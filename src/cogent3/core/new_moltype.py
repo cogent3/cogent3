@@ -528,6 +528,31 @@ class MolType:
     def _(self, seq: numpy.ndarray) -> bool:
         return (seq == self.degen_gapped_alphabet.gap_index).any()
 
+    @functools.singledispatchmethod
+    def get_degenerate_positions(self, seq, include_gap=True) -> numpy.ndarray:
+        """returns a boolean array indicating degenerate positions"""
+        raise TypeError(f"{type(seq)} not supported")
+
+    @get_degenerate_positions.register
+    def _(self, seq: numpy.ndarray, include_gap=True) -> numpy.ndarray:
+
+        for index, val in enumerate(self.degen_gapped_alphabet):
+            if include_gap and val in self.gap or val in self.ambiguities:
+                break
+        return seq >= index
+
+    @get_degenerate_positions.register
+    def _(self, seq: str, include_gap=True) -> numpy.ndarray:
+        return self.get_degenerate_positions(
+            self.degen_gapped_alphabet.to_indices(seq), include_gap
+        )
+
+    @get_degenerate_positions.register
+    def _(self, seq: bytes, include_gap=True) -> numpy.ndarray:
+        return self.get_degenerate_positions(
+            self.degen_gapped_alphabet.to_indices(seq), include_gap
+        )
+
     def get_css_style(
         self,
         colors: typing.Optional[dict[str, str]] = None,

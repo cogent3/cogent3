@@ -126,7 +126,7 @@ class SequenceCollectionBaseTests(object):
 
     test_init_aln.__doc__ = Class.__name__ + test_init_aln.__doc__
 
-    def test_names_attribute(self):
+    def test_names_attribute(self):  # ported
         """expected to be a list"""
         seqs = self.Class({"a": b"AAAAA", "b": b"BBBBB"}, names=("a", "b"))
         self.assertIsInstance(seqs.names, list)
@@ -145,7 +145,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(a, d_upper)
         self.assertEqual(sorted(a.named_seqs.items()), sorted(d_upper.items()))
 
-    def test_init_seq(self):
+    def test_init_seq(self):  # ported
         """SequenceCollection init from list of sequences should use indices as keys"""
         seqs = ["AAAAA", "BBBBB", "CCCCC"]
         a = self.Class(seqs)
@@ -156,7 +156,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(a.names, ["seq_0", "seq_1", "seq_2"])
         self.assertEqual(list(a.seqs), ["AAAAA", "BBBBB", "CCCCC"])
 
-    def test_init_pairs(self):
+    def test_init_pairs(self):  # ported
         """SequenceCollection init from list of (key,val) pairs should work correctly"""
         seqs = [["x", "XXX"], ["b", "BBB"], ["c", "CCC"]]
         a = self.Class(seqs)
@@ -167,7 +167,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(a.names, ["x", "b", "c"])
         self.assertEqual(list(a.seqs), ["XXX", "BBB", "CCC"])
 
-    def test_init_ordered(self):
+    def test_init_ordered(self):  # ported
         """SequenceCollection should iterate over seqs correctly even if ordered"""
         first = self.ordered1
         sec = self.ordered2
@@ -188,14 +188,14 @@ class SequenceCollectionBaseTests(object):
         self.assertTrue((un_list == first_list) or (un_list == sec_list))
         self.assertNotEqual(first_list, sec_list)
 
-    def test_init_ambig(self):
+    def test_init_ambig(self):  # ported
         """SequenceCollection should tolerate ambiguous chars"""
         aln = self.Class(["AAA", "CCC"], moltype=DNA)
         aln = self.Class(["ANS", "CWC"], moltype=DNA)
         aln = self.Class(["A-A", "CC-"], moltype=DNA)
         aln = self.Class(["A?A", "CC-"], moltype=DNA)
 
-    def test_seq_len_get(self):
+    def test_seq_len_get(self):  # ported
         """SequenceCollection seq_len should return length of longest seq"""
         self.assertEqual(self.one_seq.seq_len, 5)
         self.assertEqual(self.identical.seq_len, 4)
@@ -230,7 +230,7 @@ class SequenceCollectionBaseTests(object):
         self.assertIs(seqs[1], seqs[2])
         self.assertIs(seqs[0], self.ragged_padded.named_seqs["b"])
 
-    def test_Items(self):
+    def test_Items(self):  # will not port
         """SequenceCollection iter_selected should iterate over items in specified order."""
         # should work if one row
         self.assertEqual(list(self.one_seq.iter_selected()), ["A"] * 5)
@@ -318,7 +318,7 @@ class SequenceCollectionBaseTests(object):
         # should be able to negate
         self.assertEqual(srp.take_seqs_if(is_med, negate=True), {"b": "AAA---"})
 
-    def test_get_identical_sets(self):
+    def test_get_identical_sets(self):  # ported
         """correctly identify sets of identical sequences"""
         from warnings import catch_warnings, filterwarnings
 
@@ -390,12 +390,12 @@ class SequenceCollectionBaseTests(object):
         got = frozenset(frozenset(s) for s in got)
         self.assertEqual(got, expect)
 
-    def test_is_ragged(self):
+    def test_is_ragged(self):  # ported
         """SequenceCollection is_ragged should return true if ragged alignment"""
         assert not self.identical.is_ragged()
         assert not self.gaps.is_ragged()
 
-    def test_to_phylip(self):
+    def test_to_phylip(self):  # ported
         """SequenceCollection should return PHYLIP string format correctly"""
         align_norm = self.Class(
             [
@@ -411,7 +411,7 @@ class SequenceCollectionBaseTests(object):
             """4  22\nseq_0     ACDEFGHIKLMNPQRSTUVWY-\nseq_1     ACDEFGHIKLMNPQRSUUVWF-\nseq_2     ACDEFGHIKLMNPERSKUVWC-\nseq_3     ACNEFGHIKLMNPQRS-UVWP-\n""",
         )
 
-    def test_to_fasta(self):
+    def test_to_fasta(self):  # ported
         """SequenceCollection should return correct FASTA string"""
         aln1 = self.Class(["AAA", "CCC"])
         self.assertEqual(aln1.to_fasta(), ">seq_0\nAAA\n>seq_1\nCCC\n")
@@ -426,7 +426,7 @@ class SequenceCollectionBaseTests(object):
             aln2.to_fasta(block_size=3), ">seq_0\nGCA\nTGC\nAT\n>seq_1\nTCA\nGAC\nGT\n"
         )
 
-    def test_to_nexus(self):
+    def test_to_nexus(self):  # will not port
         """SequenceCollection should return correct Nexus string format"""
         align_norm = self.Class(
             [
@@ -484,18 +484,18 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(result, ">a\nAAAA\n>b\nTTTT\n>c\nCCCC\n")
         remove(fn)
 
-    def test_len(self):
+    def test_len(self):  # ported
         """len(SequenceCollection) returns length of longest sequence"""
         aln = self.Class([("a", "AAAA"), ("b", "TTTT"), ("c", "CCCC")])
         self.assertEqual(len(aln), 4)
 
-    def test_get_seq(self):
+    def test_get_seq(self):  # ported
         """SequenceCollection.get_seq should return specified seq"""
         aln = self.Class({"seq1": "GATTTT", "seq2": "GATC??"})
         self.assertEqual(aln.get_seq("seq1"), "GATTTT")
         self.assertRaises(KeyError, aln.get_seq, "seqx")
 
-    def test_to_dict(self):
+    def test_to_dict(self):  # ported
         """SequenceCollection.to_dict should return dict of strings (not obj)"""
         aln = self.Class({"seq1": "GATTTT", "seq2": "GATC??"})
         self.assertEqual(aln.to_dict(), {"seq1": "GATTTT", "seq2": "GATC??"})
@@ -510,7 +510,7 @@ class SequenceCollectionBaseTests(object):
             {"s2": {4: "?", 5: "?"}, "s1": {3: "R", 4: "Y", 5: "?"}},
         )
 
-    def test_degap(self):
+    def test_degap(self):  # ported
         """SequenceCollection.degap should strip gaps from each seq"""
         aln = self.Class({"s1": "ATGRY?", "s2": "T-AG??"}, moltype=DNA)
         self.assertEqual(aln.degap(), {"s1": "ATGRY", "s2": "TAG"})
@@ -832,7 +832,7 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
         self.ragged = SequenceCollection({"a": "AAAAAA", "b": "AAA", "c": "AAAA"})
         super(SequenceCollectionTests, self).setUp()
 
-    def test_seq_len_get_ragged(self):
+    def test_seq_len_get_ragged(self):  # ported
         """SequenceCollection seq_len get should work for ragged seqs"""
         self.assertEqual(self.ragged.seq_len, 6)
 
@@ -1408,7 +1408,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         c = aln.counts_per_pos(include_ambiguity=False, allow_gap=True)
         assert_equal(set(c.motifs), set("ACGT-"))
 
-    def test_counts_per_seq_default_moltype(self):
+    def test_counts_per_seq_default_moltype(self):  # will not port
         """produce correct counts per seq with default moltypes"""
         data = {"a": "AAAA??????", "b": "CCCGGG--NN", "c": "CCGGTTCCAA"}
         coll = self.Class(data=data)
@@ -2074,7 +2074,7 @@ def test_to_dna_raises():
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
-def test_annotate_from_gff3(cls):
+def test_annotate_from_gff3(cls):  # ported for SequenceCollection
     """annotate_from_gff should work on data from gff3 files"""
     fasta_path = os.path.join("data/c_elegans_WS199_dna_shortened.fasta")
     gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
@@ -2135,7 +2135,7 @@ def test_align_get_features():
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
-def test_init_annotated_seqs(cls):
+def test_init_annotated_seqs(cls):  # ported for SequenceCollection
     """correctly construct from list with annotated seq"""
     seq = make_seq("GCCAGGGGGGAAAG-GGAGAA", name="seq1")
     _ = seq.add_feature(biotype="exon", name="name", spans=[(4, 10)])
@@ -2145,7 +2145,7 @@ def test_init_annotated_seqs(cls):
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
-def test_get_annotations_from_any_seq(cls):
+def test_get_annotations_from_any_seq(cls):  # ported for SequenceCollection
     """get_annotations_from_any_seq returns correct annotations"""
     data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
     seqs = cls(data, moltype=DNA)
@@ -2219,7 +2219,7 @@ def gff_db(DATA_DIR):
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
-def test_copy_annotations(cls, gff_db):
+def test_copy_annotations(cls, gff_db):  # ported for SequenceCollection
     """copy_annotations copies records from annotation db"""
 
     seq_coll = cls({"seq1": "ACGU", "seq2": "CGUA", "test_seq": "CCGU"})
@@ -2242,7 +2242,7 @@ def _make_seq(name):
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
-def test_init_seqs_have_annotations(cls, gff_db):
+def test_init_seqs_have_annotations(cls, gff_db):  # ported for SequenceCollection
     """annotations on input seqs correctly merged and propagated"""
 
     seq_coll = cls({"seq1": _make_seq("seq1"), "seq2": _make_seq("seq2")})
@@ -2257,7 +2257,7 @@ def test_init_seqs_have_annotations(cls, gff_db):
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
-def test_add_to_seq_updates_coll(cls, gff_db):
+def test_add_to_seq_updates_coll(cls, gff_db):  # ported for SequenceCollection
     """annotating a seq updates the db of the propagated"""
     seq_coll = cls(
         {"x": "AACCCAAAATTTTTTGGGGGGGGGGCCCC", "y": "AACCCAAAATTTTTTGGGGGGGGGGCCCC"}
@@ -2269,7 +2269,7 @@ def test_add_to_seq_updates_coll(cls, gff_db):
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
-def test_assign_none(cls, gff_db):
+def test_assign_none(cls, gff_db):  # ported for SequenceCollection
     """assigning None to annotation_db breaks conection"""
 
     seq_coll = cls({"seq1": "ACGU", "seq2": "CGUA", "test_seq": "CCGU"})
@@ -2279,7 +2279,7 @@ def test_assign_none(cls, gff_db):
     assert seq_coll.annotation_db is None
 
 
-def test_copy_annotations_incompat_fails(seqcoll_db, gb_db):
+def test_copy_annotations_incompat_fails(seqcoll_db, gb_db):  # ported
     """copy_annotations copies records from annotation db"""
     db = seqcoll_db.annotation_db
     seqcoll = seqcoll_db.rename_seqs(
@@ -2290,7 +2290,7 @@ def test_copy_annotations_incompat_fails(seqcoll_db, gb_db):
         seqcoll.copy_annotations(gb_db)
 
 
-def test_copy_annotations_incompat_type_fails(seqcoll_db, gb_db):
+def test_copy_annotations_incompat_type_fails(seqcoll_db, gb_db):  # ported
     """copy_annotations copies records from annotation db"""
     with pytest.raises(TypeError):
         seqcoll_db.copy_annotations({"a": "ACGGT"})
@@ -2656,7 +2656,7 @@ def test_get_translation_info(cls, seqs):
         (2, ("GATTTT", "TCCAGG")),
     ),
 )
-def test_has_terminal_stop_true(cls, gc, seqs):
+def test_has_terminal_stop_true(cls, gc, seqs):  # ported
     gc = get_code(gc)
     data = {f"s{i}": s for i, s in enumerate(seqs)}
     seqs = cls(data=data, moltype="dna")
@@ -2668,7 +2668,7 @@ def test_has_terminal_stop_true(cls, gc, seqs):
     "gc,seqs",
     ((1, ("TCCTCA", "GATTTT")), (2, ("GATTTT", "TCCCGG")), (1, ("CCTCA", "ATTTT"))),
 )
-def test_has_terminal_stop_false(cls, gc, seqs):
+def test_has_terminal_stop_false(cls, gc, seqs):  # ported
     gc = get_code(gc)
     data = {f"s{i}": s for i, s in enumerate(seqs)}
     seqs = cls(data=data, moltype="dna")
@@ -2972,7 +2972,7 @@ def test_filtered(cls):
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
-def test_counts_per_seq(cls):
+def test_counts_per_seq(cls):  # ported
     """SequenceCollection.counts_per_seq handles motif length, allow_gaps etc.."""
     data = {"a": "AAAA??????", "b": "CCCGGG--NN", "c": "CCGGTTCCAA"}
     coll = cls(data=data, moltype="dna")

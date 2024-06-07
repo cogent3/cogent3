@@ -160,3 +160,35 @@ def test_not_is_gapped(seq, data_type):
 def test_gap_index_constant(moltype):
     # make sure gap index is always the same
     assert moltype.gapped_alphabet.gap_index == moltype.degen_gapped_alphabet.gap_index
+
+
+@pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
+@pytest.mark.parametrize("moltype", (new_moltype.DNA, new_moltype.RNA))
+def test_get_degenerate_positions(data_type, moltype):
+    seq = make_typed("ASA", data_type, moltype)
+    got = moltype.get_degenerate_positions(seq)
+    expect = numpy.array([False, True, False], dtype=bool)
+    assert numpy.array_equal(got, expect)
+
+    seq = make_typed("A-SA", data_type, moltype)
+    got = moltype.get_degenerate_positions(seq)
+    expect = numpy.array([False, True, True, False], dtype=bool)
+    assert numpy.array_equal(got, expect)
+
+    got = moltype.get_degenerate_positions(seq, include_gap=False)
+    expect = numpy.array([False, False, True, False], dtype=bool)
+    assert numpy.array_equal(got, expect)
+
+    seq = make_typed("BAB", data_type, moltype)
+    got = moltype.get_degenerate_positions(seq)
+    expect = numpy.array([True, False, True], dtype=bool)
+    assert numpy.array_equal(got, expect)
+
+    seq = make_typed("---", data_type, moltype)
+    got = moltype.get_degenerate_positions(seq)
+    expect = numpy.array([True, True, True], dtype=bool)
+
+    seq = make_typed("", data_type, moltype)
+    got = moltype.get_degenerate_positions(seq)
+    expect = numpy.array([], dtype=bool)
+    assert numpy.array_equal(got, expect)
