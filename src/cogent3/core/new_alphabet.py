@@ -240,7 +240,7 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
     @to_indices.register
     def _(self, seq: str) -> numpy.ndarray:
-        return self._bytes2arr(seq.encode("utf8"))
+        return self.to_indices(seq.encode("utf8"))
 
     @to_indices.register
     def _(self, seq: numpy.ndarray) -> numpy.ndarray:
