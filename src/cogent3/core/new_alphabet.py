@@ -114,7 +114,7 @@ class MonomerAlphabetABC(ABC):
     def from_indices(self, seq: numpy.ndarray) -> str: ...
 
     @abstractmethod
-    def to_bytes(self) -> bytes: ...
+    def as_bytes(self) -> bytes: ...
 
 
 def get_array_type(num_elements: int):
@@ -212,7 +212,7 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         self._gap_index = self.index(gap) if gap else None
         self.dtype = get_array_type(len(self))
         self._chars = set(self)  # for quick lookup
-        byte_chars = self.to_bytes()
+        byte_chars = self.as_bytes()
         self._bytes2arr = bytes_to_array(byte_chars, dtype=self.dtype)
         self._arr2bytes = array_to_bytes(byte_chars)
 
@@ -293,7 +293,8 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
     def _(self, seq: numpy.ndarray) -> bool:
         return seq.min() >= 0 and seq.max() < len(self)
 
-    def to_bytes(self) -> bytes:
+    def as_bytes(self) -> bytes:
+        """returns self as a byte string"""
         if not isinstance(self[0], str):
             return bytes(bytearray(self))
 

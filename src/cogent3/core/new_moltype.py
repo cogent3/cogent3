@@ -378,7 +378,7 @@ class MolType:
             # assume we have a nucleic acid moltype
             dest = "".join(complements[c] for c in self.degen_gapped_alphabet)
             self._complement = new_alphabet.convert_alphabet(
-                self.degen_gapped_alphabet.to_bytes(),
+                self.degen_gapped_alphabet.as_bytes(),
                 dest.encode("utf8"),
             )
 
