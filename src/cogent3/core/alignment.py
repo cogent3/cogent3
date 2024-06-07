@@ -1057,7 +1057,7 @@ class _SequenceCollectionBase:
 
     def get_translation(
         self, gc=None, incomplete_ok=False, include_stop=False, trim_stop=True, **kwargs
-    ):  # will not port
+    ):  # ported
         """translate from nucleic acid to protein
 
         Parameters
@@ -1121,7 +1121,7 @@ class _SequenceCollectionBase:
 
         return align_dict
 
-    def get_ambiguous_positions(self):
+    def get_ambiguous_positions(self):  # ported
         """Returns dict of seq:{position:char} for ambiguous chars.
 
         Used in likelihood calculations.
@@ -1194,7 +1194,7 @@ class _SequenceCollectionBase:
 
     def trim_stop_codons(
         self, gc: Any = None, strict: bool = False, **kwargs
-    ):  # will not port
+    ):  # ported
         """Removes any terminal stop codons from the sequences
 
         Parameters
@@ -1760,7 +1760,7 @@ class _SequenceCollectionBase:
         allow_gap=False,
         exclude_unobserved=False,
         warn=False,
-    ):
+    ):  # ported
         """return MotifFreqsArray per sequence"""
 
         counts = self.counts_per_seq(
@@ -1779,7 +1779,7 @@ class _SequenceCollectionBase:
         allow_gap=False,
         exclude_unobserved=True,
         warn=False,
-    ):
+    ):  # ported
         """Returns the Shannon entropy per sequence.
 
         Parameters

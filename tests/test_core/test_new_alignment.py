@@ -332,6 +332,30 @@ def test_seqs_data_subset_raises(dna_sd):
         _ = dna_sd.subset(["seq4"])
 
 
+def test_seqs_data_to_alphabet():
+    ASCII = new_moltype.ASCII.alphabet
+    DNA = new_moltype.DNA.degen_gapped_alphabet
+    RNA = new_moltype.RNA.degen_gapped_alphabet
+    seqs = new_aln.SeqsData(data={"a": "AAA", "b": "TTT", "c": "CCC"}, alphabet=ASCII)
+    dna_seqs = seqs.to_alphabet(DNA)
+
+    assert dna_seqs.get_seq_str(seqid="b") == "TTT"
+    assert dna_seqs.alphabet == DNA
+
+    rna_seqs = dna_seqs.to_alphabet(RNA)
+    assert rna_seqs.get_seq_str(seqid="b") == "UUU"
+    assert rna_seqs.alphabet == RNA
+
+
+def test_seqs_data_to_alphabet_invalid():
+    ASCII = new_moltype.ASCII.alphabet
+    DNA = new_moltype.DNA.degen_gapped_alphabet
+    RNA = new_moltype.RNA.degen_gapped_alphabet
+    seqs = new_aln.SeqsData(data={"a": "AAA", "b": "TTT", "c": "LLL"}, alphabet=ASCII)
+    with pytest.raises(ValueError):
+        _ = seqs.to_alphabet(DNA)
+
+
 @pytest.mark.parametrize(
     "index",
     [

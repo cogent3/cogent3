@@ -226,6 +226,7 @@ class SeqsData(SeqsDataABC):
     ):
         self._alphabet = alphabet
         self._make_seq = make_seq
+        # todo: kath, make underlying data unchangable with `arrl.flags.writeable = False`
         self._data: dict[str, numpy.ndarray] = {
             str(name): self._alphabet.to_indices(seq) for name, seq in data.items()
         }
@@ -295,8 +296,32 @@ class SeqsData(SeqsDataABC):
     def to_alphabet(
         self, alphabet: new_alpha.CharAlphabet, check_valid=True
     ) -> SeqsData:
-        # todo: kath
-        ...
+        # refactor: design -- map directly between arrays?
+        # refactor: design -- better way to check if alphabets are DNA and RNA?
+        if len(alphabet) == len(self.alphabet):
+            return self.__class__(data=self._data, alphabet=alphabet)
+
+        new_data = {}
+        for seqid in self.names:
+            seq_data = self.get_seq_array(seqid=seqid)
+            old = self.alphabet.as_bytes()
+            new = alphabet.as_bytes()
+
+            convert_old_to_bytes = new_alpha.array_to_bytes(old)
+            convert_bytes_to_new = new_alpha.bytes_to_array(
+                new, dtype=new_alpha.get_array_type(len(new))
+            )
+
+            as_new_alpha = convert_bytes_to_new(convert_old_to_bytes(seq_data))
+
+            if check_valid and not alphabet.is_valid(as_new_alpha):
+                raise ValueError(
+                    f"Changing from old alphabet={self.alphabet} to new {alphabet=} is not valid for this data"
+                )
+
+            new_data[seqid] = as_new_alpha
+
+        return self.__class__(data=new_data, alphabet=alphabet)
 
     def __len__(self):
         return len(self.names)
