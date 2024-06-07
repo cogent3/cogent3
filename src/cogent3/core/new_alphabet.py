@@ -193,7 +193,7 @@ class array_to_bytes:
 
     def __call__(self, seq: numpy.ndarray) -> bytes:
         b = self._converter(seq.tobytes())
-        return bytearray(b)
+        return bytes(bytearray(b))
 
 
 class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
