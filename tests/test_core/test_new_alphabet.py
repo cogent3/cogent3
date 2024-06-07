@@ -41,7 +41,7 @@ def test_convert_alphabet_mixed_length():
 )
 def test_to_bytes(moltype):
     alpha = moltype.alphabet
-    got = alpha.to_bytes()
+    got = alpha.as_bytes()
     expect = "".join(alpha).encode("utf8")
     assert len(got) == len(alpha)
     assert got == expect
@@ -49,7 +49,7 @@ def test_to_bytes(moltype):
 
 def test_to_bytes_bytes():
     alpha = new_moltype.BYTES.alphabet
-    got = alpha.to_bytes()
+    got = alpha.as_bytes()
     assert len(got) == len(alpha)
     expect = bytes(bytearray(range(256)))
     assert got == expect

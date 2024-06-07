@@ -15,6 +15,7 @@ OptStr = typing.Optional[str]
 OptCallable = typing.Optional[typing.Callable]
 SeqStrType = typing.Union[list[str], tuple[str, ...]]
 StrORBytes = typing.Union[str, bytes]
+StrORBytesORArray = typing.Union[str, bytes, numpy.ndarray]
 SeqStrBytesType = typing.Union[list[StrORBytes], tuple[StrORBytes, ...]]
 StrORArray = typing.Union[str, numpy.ndarray]
 
@@ -378,7 +379,7 @@ class MolType:
             # assume we have a nucleic acid moltype
             dest = "".join(complements[c] for c in self.degen_gapped_alphabet)
             self._complement = new_alphabet.convert_alphabet(
-                self.degen_gapped_alphabet.to_bytes(),
+                self.degen_gapped_alphabet.as_bytes(),
                 dest.encode("utf8"),
             )
 
@@ -463,7 +464,7 @@ class MolType:
         return self._make_seq(moltype=self, seq=seq or "", name=name, **kwargs)
 
     @functools.singledispatchmethod
-    def complement(self, seq) -> str:
+    def complement(self, seq: StrORBytesORArray) -> str:
         """converts a string or bytes into it's nucleic acid complement"""
         raise TypeError(f"{type(seq)} not supported")
 
@@ -475,22 +476,26 @@ class MolType:
     def _(self, seq: bytes) -> str:
         return self._complement(seq).decode("utf8")
 
+    @complement.register
+    def _(self, seq: numpy.ndarray) -> str:
+        return self.complement(self.degen_gapped_alphabet.array_to_bytes(seq))
+
     def rc(self, seq: str) -> str:
         """reverse reverse complement of a sequence"""
         return self.complement(seq)[::-1]
 
     @functools.singledispatchmethod
-    def is_degenerate(self, seq) -> bool:
+    def is_degenerate(self, seq: StrORBytesORArray) -> bool:
         """checks if a sequence contains degenerate characters"""
         raise TypeError(f"{type(seq)} not supported")
 
     @is_degenerate.register
     def _(self, seq: bytes) -> bool:
-        return self.is_degenerate(seq.decode("utf8"))
+        return self.is_degenerate(self.degen_gapped_alphabet.to_indices(seq))
 
     @is_degenerate.register
     def _(self, seq: str) -> bool:
-        return any(c in self.ambiguities for c in seq)
+        return self.is_degenerate(self.degen_gapped_alphabet.to_indices(seq))
 
     @is_degenerate.register
     def _(self, seq: numpy.ndarray) -> bool:

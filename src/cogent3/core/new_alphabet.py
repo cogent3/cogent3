@@ -9,6 +9,7 @@ import numpy
 
 
 StrORBytes = typing.Union[str, bytes]
+StrORBytesORArray = typing.Union[str, bytes, numpy.ndarray]
 OptInt = typing.Optional[int]
 OptStr = typing.Optional[str]
 OptBytes = typing.Optional[bytes]
@@ -114,7 +115,7 @@ class MonomerAlphabetABC(ABC):
     def from_indices(self, seq: numpy.ndarray) -> str: ...
 
     @abstractmethod
-    def to_bytes(self) -> bytes: ...
+    def as_bytes(self) -> bytes: ...
 
 
 def get_array_type(num_elements: int):
@@ -193,7 +194,7 @@ class array_to_bytes:
 
     def __call__(self, seq: numpy.ndarray) -> bytes:
         b = self._converter(seq.tobytes())
-        return bytearray(b)
+        return bytes(bytearray(b))
 
 
 class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
@@ -212,7 +213,7 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         self._gap_index = self.index(gap) if gap else None
         self.dtype = get_array_type(len(self))
         self._chars = set(self)  # for quick lookup
-        byte_chars = self.to_bytes()
+        byte_chars = self.as_bytes()
         self._bytes2arr = bytes_to_array(byte_chars, dtype=self.dtype)
         self._arr2bytes = array_to_bytes(byte_chars)
 
@@ -230,7 +231,7 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         return 1
 
     @functools.singledispatchmethod
-    def to_indices(self, seq: str) -> numpy.ndarray:
+    def to_indices(self, seq: StrORBytesORArray) -> numpy.ndarray:
         raise TypeError(f"{type(seq)} is invalid")
 
     @to_indices.register
@@ -239,7 +240,7 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
     @to_indices.register
     def _(self, seq: str) -> numpy.ndarray:
-        return self._bytes2arr(seq.encode("utf8"))
+        return self.to_indices(seq.encode("utf8"))
 
     @to_indices.register
     def _(self, seq: numpy.ndarray) -> numpy.ndarray:
@@ -282,22 +283,31 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         return KmerAlphabet(words=words, monomers=self, gap=gap, k=k)
 
     @functools.singledispatchmethod
-    def is_valid(self, seq) -> bool:
+    def is_valid(self, seq: StrORBytesORArray) -> bool:
         raise TypeError(f"{type(seq)} is invalid")
 
     @is_valid.register
     def _(self, seq: str) -> bool:
-        return set(seq) <= self._chars
+        return self.is_valid(self.to_indices(seq))
+
+    @is_valid.register
+    def _(self, seq: bytes) -> bool:
+        return self.is_valid(self.to_indices(seq))
 
     @is_valid.register
     def _(self, seq: numpy.ndarray) -> bool:
         return seq.min() >= 0 and seq.max() < len(self)
 
-    def to_bytes(self) -> bytes:
+    def as_bytes(self) -> bytes:
+        """returns self as a byte string"""
         if not isinstance(self[0], str):
             return bytes(bytearray(self))
 
         return "".join(self).encode("utf8")
+
+    def array_to_bytes(self, seq: numpy.ndarray) -> bytes:
+        """returns seq as a byte string"""
+        return self._arr2bytes(seq)
 
 
 @numba.jit(nopython=True)
