@@ -375,6 +375,7 @@ class MolType:
             if ambigs and gap
             else None
         )
+
         if complements:
             # assume we have a nucleic acid moltype
             dest = "".join(complements[c] for c in self.degen_gapped_alphabet)
@@ -423,6 +424,10 @@ class MolType:
     def degen_gapped_alphabet(self):
         """monomers + gap + ambiguous characters"""
         return self._degen_gapped
+
+    @property
+    def gaps(self):
+        return frozenset([self.gap, self.missing])
 
     def is_valid(self, seq: StrORArray) -> bool:
         """checks against most degenerate alphabet"""

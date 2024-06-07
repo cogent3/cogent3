@@ -609,7 +609,7 @@ class MolType:
         self._serialisable = {k: v for k, v in locals().items() if k != "self"}
         self.gap = gap
         self.missing = missing
-        self.gaps = frozenset([gap, missing])
+        self.gaps = frozenset([gap, missing])  # ported
         if gaps:
             self.gaps = self.gaps.union(frozenset(gaps))
         self.label = label

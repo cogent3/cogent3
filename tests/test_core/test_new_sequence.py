@@ -12,9 +12,6 @@ def test_moltype_make_seq(name):
     assert str(seq) == raw
 
 
-@pytest.mark.xfail(
-    reason="bytes CharAlphabet is not consistent in handling of string types"
-)
 def test_moltype_make_bytes_seq():
     raw = "ACGGA"
     name = "bytes"

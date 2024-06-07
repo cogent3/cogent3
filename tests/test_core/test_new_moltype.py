@@ -192,3 +192,20 @@ def test_get_degenerate_positions(data_type, moltype):
     got = moltype.get_degenerate_positions(seq)
     expect = numpy.array([], dtype=bool)
     assert numpy.array_equal(got, expect)
+
+
+@pytest.mark.parametrize(
+    "moltype",
+    (
+        new_moltype.ASCII,
+        new_moltype.DNA,
+        new_moltype.RNA,
+        new_moltype.PROTEIN,
+        new_moltype.PROTEIN_WITH_STOP,
+    ),
+)
+def test_gaps(moltype):
+    # TODO: fred, bytes
+    got = moltype.gaps
+    expect = frozenset({"-", "?"})
+    assert got == expect
