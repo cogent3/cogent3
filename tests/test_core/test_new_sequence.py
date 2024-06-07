@@ -1,6 +1,14 @@
+import re
+
+import numpy
 import pytest
 
-from cogent3.core import new_moltype, new_sequence
+from cogent3.core import (
+    new_alphabet,
+    new_genetic_code,
+    new_moltype,
+    new_sequence,
+)
 
 
 @pytest.mark.parametrize("name", ("dna", "rna", "protein", "protein_with_stop", "text"))
@@ -21,7 +29,158 @@ def test_moltype_make_bytes_seq():
     assert str(seq) == raw
 
 
-# From test_sequence.py
+# Tests from test_sequence.py
+@pytest.mark.parametrize("gc,seq", ((1, "TCCTGA"), (1, "ACGTAA---"), (2, "TCCAGG")))
+def test_has_terminal_stop_true(gc, seq):
+    gc = new_genetic_code.get_code(gc)
+    seq = new_moltype.DNA.make_seq(seq=seq)
+    assert seq.has_terminal_stop(gc=gc)
+
+
+@pytest.mark.parametrize(
+    "gc,seq", ((1, "TCCAGG"), (2, "TCCAAA"), (1, "CCTGA"), (2, "CCAGG"))
+)
+def test_has_terminal_stop_false(gc, seq):
+    gc = new_genetic_code.get_code(gc)
+    seq = new_moltype.DNA.make_seq(seq=seq)
+    assert not seq.has_terminal_stop(gc=gc)
+
+
+@pytest.mark.xfail(
+    reason="UnboundLocalError: cannot access local variable 'seq' where it is not associated with a value"
+)
+def test_has_terminal_stop_strict():
+    gc = new_genetic_code.get_code(1)
+    seq = new_moltype.DNA.make_seq(seq=seq)
+    with pytest.raises(new_moltype.AlphabetError):
+        seq.has_terminal_stop(gc=gc, strict=True)
+
+
+@pytest.mark.parametrize(
+    "gc,seq",
+    (
+        (2, "TCCAGG"),
+        (1, "TAATGA"),
+        (1, "ACGTGA---"),
+        (1, "--AT-CTGA"),
+    ),
+)
+def test_trim_terminal_stop_true(gc, seq):
+    gc = new_genetic_code.get_code(gc)
+    expect = re.sub("(TGA|AGG)(?=[-]*$)", "---" if "-" in seq else "", seq)
+
+    seq = new_moltype.DNA.make_seq(seq=seq)
+    got = str(seq.trim_stop_codon(gc=gc))
+    assert got == expect
+
+
+@pytest.mark.parametrize("gc,seq", ((1, "T?CTGC"), (2, "TCCAAG")))
+def test_trim_terminal_stop_nostop(gc, seq):
+    gc = new_genetic_code.get_code(gc)
+    seq = new_moltype.DNA.make_seq(seq=seq)
+    got = seq.trim_stop_codon(gc=gc)
+    assert str(got) == str(seq)
+    # since there's no stop, we just return the same object
+    assert got is seq
+
+
+@pytest.mark.parametrize(
+    "gc,seq", ((1, "TCCAGG"), (2, "TCCAAA"), (1, "CCTGA"), (2, "CCAGG"))
+)
+def test_trim_terminal_stop_false(gc, seq):
+    gc = new_genetic_code.get_code(gc)
+    seq = new_moltype.DNA.make_seq(seq=seq)
+    assert str(seq.trim_stop_codon(gc=gc)) == str(seq)
+
+
+@pytest.mark.xfail(
+    reason="cogent3.core.alphabet.AlphabetError: None length not divisible by 3"
+)
+def test_trim_terminal_stop_strict():
+    gc = new_genetic_code.get_code(1)
+    seq = new_moltype.DNA.make_seq(seq="TCCAG")
+    with pytest.raises(new_alphabet.AlphabetError):
+        seq.trim_stop_codon(gc=gc, strict=True)
+
+
+@pytest.mark.parametrize("cast", (int, numpy.int32, numpy.int64, numpy.uint8))
+def test_index_a_seq(cast):
+    seq = new_moltype.DNA.make_seq(seq="TCCAG")
+    got = seq[cast(1)]
+    assert isinstance(got, new_sequence.Sequence)
+
+
+@pytest.mark.parametrize("cast", (float, numpy.float32))
+def test_index_a_seq_float_fail(cast):
+    seq = new_moltype.DNA.make_seq(seq="TCCAG")
+    index = cast(1)
+    with pytest.raises(TypeError):
+        seq[index]
+
+
+@pytest.mark.parametrize("moltype", ("dna", "protein"))
+def test_same_moltype(moltype):
+    moltype = new_moltype.get_moltype(moltype)
+    seq = moltype.make_seq(seq="TCCAG")
+    got = seq.to_moltype(moltype)
+    assert got is seq
+
+
+def test_gapped_by_map_segment_iter():
+    moltype = new_moltype.DNA
+    m, seq = moltype.make_seq(seq="-TCC--AG").parse_out_gaps()
+    g = list(seq.gapped_by_map_segment_iter(m, allow_gaps=True, recode_gaps=False))
+    assert g == ["-", "TCC", "--", "AG"]
+
+
+@pytest.mark.parametrize("rev", (False, True))
+@pytest.mark.parametrize("sliced", (False, True))
+@pytest.mark.parametrize("start_stop", ((None, None), (3, 7)))
+def test_copied_parent_coordinates(sliced, rev, start_stop):
+    orig_name = "orig"
+    seq = new_moltype.DNA.make_seq(seq="ACGGTGGGAC", name=orig_name)
+    start, stop = start_stop
+    start = start or 0
+    stop = stop or len(seq)
+    sl = slice(start, stop)
+    seq = seq[sl]
+    sliced_name = "sliced"
+    seq.name = sliced_name
+    assert seq.name == sliced_name
+    seq = seq.rc() if rev else seq
+    copied = seq.copy(sliced=sliced)
+    assert copied.name == sliced_name
+    # matches original
+    assert copied.parent_coordinates() == seq.parent_coordinates()
+    # and expected -- the coordinate name always reflects the underlying sequence
+    assert copied.parent_coordinates() == (orig_name, start, stop, -1 if rev else 1)
+
+
+@pytest.mark.parametrize("rev", (False, True))
+def test_parent_coordinates(rev):
+    seq = new_moltype.DNA.make_seq(seq="ACGGTGGGAC")
+    seq = seq[1:1]
+    seq = seq.rc() if rev else seq
+    seq.name = "sliced"  # this assignment does not affect the
+    # note that when a sequence has zero length, the parent seqid is None
+    assert seq.parent_coordinates() == (None, 0, 0, 1)
+
+
+@pytest.mark.parametrize(
+    "cls", (new_moltype.DNA.make_seq, new_sequence.SeqView, str, bytes)
+)
+def test_coerce_to_seqview(cls):
+    seq = "AC--GGTGGGAC"
+    seqid = "seq1"
+    if cls in (str, bytes):
+        s = bytes(seq, "utf8") if cls == bytes else seq
+        got = new_sequence._coerce_to_seqview(s, seqid)
+    else:
+        got = new_sequence._coerce_to_seqview(cls(seq=seq), seqid)
+    assert got.value == seq
+    assert isinstance(got, new_sequence.SeqView)
+
+
 def test_seqview_seqid():
     sv = new_sequence.SeqView(seq="ACGGTGGGAC")
     assert sv.seqid is None

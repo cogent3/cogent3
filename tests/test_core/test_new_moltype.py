@@ -205,7 +205,7 @@ def test_get_degenerate_positions(data_type, moltype):
     ),
 )
 def test_gaps(moltype):
-    # TODO: fred, bytes
+    # TODO: fred, add new_moltype.BYTES
     got = moltype.gaps
     expect = frozenset({"-", "?"})
     assert got == expect
