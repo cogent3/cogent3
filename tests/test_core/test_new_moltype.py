@@ -164,7 +164,7 @@ def test_gap_index_constant(moltype):
 
 @pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
 @pytest.mark.parametrize("moltype", (new_moltype.DNA, new_moltype.RNA))
-def test_not_is_gapped(data_type, moltype):
+def test_get_degenerate_positions(data_type, moltype):
     seq = make_typed("ASA", data_type, moltype)
     got = moltype.get_degenerate_positions(seq)
     expect = numpy.array([False, True, False], dtype=bool)
