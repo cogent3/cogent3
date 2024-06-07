@@ -491,11 +491,11 @@ class MolType:
 
     @is_degenerate.register
     def _(self, seq: bytes) -> bool:
-        return self.is_degenerate(seq.decode("utf8"))
+        return self.is_degenerate(self.degen_gapped_alphabet.to_indices(seq))
 
     @is_degenerate.register
     def _(self, seq: str) -> bool:
-        return any(c in self.ambiguities for c in seq)
+        return self.is_degenerate(self.degen_gapped_alphabet.to_indices(seq))
 
     @is_degenerate.register
     def _(self, seq: numpy.ndarray) -> bool:

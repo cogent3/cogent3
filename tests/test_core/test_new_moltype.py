@@ -97,6 +97,7 @@ def make_typed(seq, data_type, moltype):
         "N",
         "R",
         "Y",
+        "?",  # IUPAC missing is also a degenerate
         "GCAUGUAGCUCGUCAGUCAGUACGUGCASCUAG",
         "ACGYAUGCUGYEWEWNFMNFUWBYBCWUYBCJWBEIWFUB",
     ),
