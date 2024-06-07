@@ -1168,3 +1168,33 @@ def test_sequence_collection_to_moltype_annotation_db():
     seqs.annotation_db = db
     dna = seqs.to_moltype("dna")
     assert len(dna.annotation_db) == 3
+
+
+def test_dotplot():
+    """exercising dotplot method"""
+    seqs = new_aln.make_unaligned_seqs(
+        {
+            "Human": "CAGATTTGGCAGTT-",
+            "Mouse": "CAGATTCAGCAGGTG",
+            "Rat": "CAGATTCAGCAGGTG",
+        },
+        moltype="dna",
+    )
+    _ = seqs.dotplot()
+    with pytest.raises(AssertionError):
+        seqs.dotplot(window=5, k=11)
+
+
+def test_sequence_collection_dotplot_annotated():
+    """exercising dotplot method with annotated sequences"""
+    db = GffAnnotationDb()
+    db.add_feature(seqid="Human", biotype="exon", name="fred", spans=[(10, 15)])
+
+    seqs = new_aln.make_unaligned_seqs(
+        {"Human": "CAGATTTGGCAGTT-", "Mouse": "CAGATTCAGCAGGTG"}, moltype="dna"
+    )
+    seqs.annotation_db = db
+    seqs = seqs.take_seqs(["Human", "Mouse"], copy_annotations=True)
+    _ = seqs.dotplot(show_progress=False)
+
+

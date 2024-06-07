@@ -798,6 +798,113 @@ class SequenceCollection:
 
         return alignment_to_phylip(self.to_dict())
 
+    def dotplot(
+        self,
+        name1: Optional[str] = None,
+        name2: Optional[str] = None,
+        window: int = 20,
+        threshold: Optional[int] = None,
+        k: Optional[int] = None,
+        min_gap: int = 0,
+        width: int = 500,
+        title: Optional[str] = None,
+        rc: bool = False,
+        show_progress: bool = False,
+    ):
+        """make a dotplot between specified sequences. Random sequences
+        chosen if names not provided.
+
+        Parameters
+        ----------
+        name1, name2
+            names of sequences -- if not provided, a random choice is made
+        window
+            segment size for comparison between sequences
+        threshold
+            windows where the sequences are identical >= threshold are a match
+        k
+            size of k-mer to break sequences into. Larger values increase
+            speed but reduce resolution. If not specified, and
+            window == threshold, then k is set to window. Otherwise, it is
+            computed as the maximum of {threshold // (window - threshold), 5}.
+        min_gap
+            permitted gap for joining adjacent line segments, default is no gap
+            joining
+        width
+            figure width. Figure height is computed based on the ratio of
+            len(seq1) / len(seq2)
+        title
+            title for the plot
+        rc
+            include dotplot of reverse compliment also. Only applies to Nucleic
+            acids moltypes
+
+        Returns
+        -------
+        a Drawable or AnnotatedDrawable
+        """
+        from cogent3.draw.dotplot import Dotplot
+        from cogent3.draw.drawable import AnnotatedDrawable
+
+        if k is not None:
+            assert 0 < k < window, "k must be smaller than window size"
+
+        if len(self.names) == 1:
+            name1 = name2 = self.names[0]
+        elif name1 is None and name2 is None:
+            name1, name2 = list(numpy.random.choice(self.names, size=2, replace=False))
+        elif not (name1 and name2):
+            names = list(set(self.names + [None]) ^ {name1, name2})
+            name = list(numpy.random.choice(names, size=1))[0]
+            name1 = name1 or name
+            name2 = name2 or name
+
+        if not {name1, name2} <= set(self.names):
+            msg = f"{name1}, {name2} missing"
+            raise ValueError(msg)
+
+        seq1 = self.get_seq(seqname=name1, copy_annotations=True)
+        seq2 = self.get_seq(seqname=name2, copy_annotations=True)
+
+        if seq1.is_annotated() or seq2.is_annotated():
+            annotated = True
+            data = getattr(seq1, "data", seq1)
+            bottom = data.get_drawable()
+            data = getattr(seq2, "data", seq2)
+            left = data.get_drawable(vertical=True)
+        else:
+            annotated = False
+
+        dotplot = Dotplot(
+            seq1,
+            seq2,
+            False,
+            window=window,
+            threshold=threshold,
+            k=k,
+            min_gap=min_gap,
+            xtitle=None if annotated else seq1.name,
+            ytitle=None if annotated else seq2.name,
+            title=title,
+            moltype=self.moltype,
+            rc=rc,
+            show_progress=show_progress,
+            width=width,
+        )
+
+        if annotated:
+            dotplot = AnnotatedDrawable(
+                dotplot,
+                left_track=left,
+                bottom_track=bottom,
+                xtitle=seq1.name,
+                ytitle=seq2.name,
+                title=title,
+                xrange=[0, len(seq1)],
+                yrange=[0, len(seq2)],
+            )
+        return dotplot
+
     def has_terminal_stop(self, gc: typing.Any = None, strict: bool = False) -> bool:
         """Returns True if any sequence has a terminal stop codon.
 
