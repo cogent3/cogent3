@@ -584,7 +584,7 @@ class SequenceCollection:
             else mtype.gapped_alphabet
         )
         try:
-            new_seqs_data = self.seqs.to_alphabet(mtype.degen_gapped_alphabet)
+            new_seqs_data = self.seqs.to_alphabet(alpha)
         except ValueError as e:
             raise ValueError(
                 f"Failed to convert moltype from {self.moltype.label} to {moltype}"

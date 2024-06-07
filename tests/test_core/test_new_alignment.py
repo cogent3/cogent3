@@ -350,7 +350,6 @@ def test_seqs_data_to_alphabet():
 def test_seqs_data_to_alphabet_invalid():
     ASCII = new_moltype.ASCII.alphabet
     DNA = new_moltype.DNA.degen_gapped_alphabet
-    RNA = new_moltype.RNA.degen_gapped_alphabet
     seqs = new_aln.SeqsData(data={"a": "AAA", "b": "TTT", "c": "LLL"}, alphabet=ASCII)
     with pytest.raises(ValueError):
         _ = seqs.to_alphabet(DNA)
@@ -1068,12 +1067,13 @@ def test_sequence_collection_get_seq_annotated():
         {"seq1": "GATTTT", "seq2": "GATC??"}, moltype="dna"
     )
     seqs.add_feature(seqid="seq1", biotype="xyz", name="abc", spans=[(1, 2)])
+    seqs.add_feature(seqid="seq2", biotype="xyzzz", name="abc", spans=[(1, 2)])
 
     with_annos = seqs.get_seq("seq1", copy_annotations=True)
     assert len(with_annos.annotation_db) == 1
 
     without_annos = seqs.get_seq("seq1", copy_annotations=False)
-    assert len(without_annos.annotation_db) == 0
+    assert len(without_annos.annotation_db) == 2
 
 
 def _make_seq(name):
@@ -1137,6 +1137,7 @@ def test_copy_annotations_incompat_type_fails(seqcoll_db, seqs):
     with pytest.raises(TypeError):
         seqcoll_db.copy_annotations(seqs)
 
+
 def test_sequence_collection_to_moltype_with_gaps():
     """correctly convert to specified moltype"""
     data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
@@ -1196,5 +1197,3 @@ def test_sequence_collection_dotplot_annotated():
     seqs.annotation_db = db
     seqs = seqs.take_seqs(["Human", "Mouse"], copy_annotations=True)
     _ = seqs.dotplot(show_progress=False)
-
-
