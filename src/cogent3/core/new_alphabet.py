@@ -288,7 +288,11 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
     @is_valid.register
     def _(self, seq: str) -> bool:
-        return set(seq) <= self._chars
+        return self.is_valid(self.to_indices(seq))
+
+    @is_valid.register
+    def _(self, seq: bytes) -> bool:
+        return self.is_valid(self.to_indices(seq))
 
     @is_valid.register
     def _(self, seq: numpy.ndarray) -> bool:
