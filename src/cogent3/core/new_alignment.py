@@ -1431,7 +1431,7 @@ def make_unaligned_seqs(
     # create a db from sequences if they're annotated
     seqs_anno_db = merged_db_collection(data)
     # if db from seqs and provided db, merge
-    # todo: kath, should we default to not merging unless specified?
+    # todo: kath, should we default to provided db if both? or merge?
     if annotation_db and seqs_anno_db:
         annotation_db.update(seqs_anno_db)
     else:
@@ -1440,7 +1440,11 @@ def make_unaligned_seqs(
     seqs_data = coerce_to_seqs_data_dict(data, label_to_name=label_to_name)
 
     moltype = new_moltype.get_moltype(moltype)
-    seqs_data = SeqsData(data=seqs_data, alphabet=moltype.degen_gapped_alphabet)
+    alphabet = (
+        moltype.degen_gapped_alphabet or moltype.gapped_alphabet or moltype.alphabet
+    )
+
+    seqs_data = SeqsData(data=seqs_data, alphabet=alphabet)
     return make_unaligned_seqs(
         seqs_data,
         moltype=moltype,
