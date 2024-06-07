@@ -20,6 +20,12 @@ def test_stop_codons():
     assert code.stop_codons == {"TAA", "TAG", "TGA"}
 
 
+@pytest.mark.parametrize("codons", ("TAA", "TAG", "TGA"))
+def test_is_stop_true(codons):
+    code = new_genetic_code.DEFAULT
+    assert code.is_stop(codons)
+
+
 def test_start_codons():
     code = new_genetic_code.DEFAULT
     dna = code.moltype.alphabet

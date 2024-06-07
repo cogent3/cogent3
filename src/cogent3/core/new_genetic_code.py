@@ -232,6 +232,10 @@ class GeneticCode:
         for strand, start in itertools.product(("+", "-"), range(3)):
             yield strand, start, self.translate(seq, start, rc=strand == "-")
 
+    def is_stop(self, codon):
+        """Returns True if codon is a stop codon, False otherwise."""
+        return self[codon] == "*"
+
 
 _mapping_cols = "ncbi_code_sequence", "ID", "name", "ncbi_start_codon_map"
 # code mappings are based on the product of bases in order TCAG

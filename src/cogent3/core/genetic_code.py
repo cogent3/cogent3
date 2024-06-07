@@ -289,7 +289,7 @@ class GeneticCode:
         fixed_codon = str(codon).upper().replace("U", "T")
         return fixed_codon in self.start_codons
 
-    def is_stop(self, codon):
+    def is_stop(self, codon):  # ported
         """Returns True if codon is a stop codon, False otherwise."""
         return self[codon] == "*"
 
