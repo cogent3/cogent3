@@ -71,7 +71,9 @@ def test_str_moltype():
     assert text == f"MolType({tuple('TCAG')})"
 
 
-@pytest.mark.parametrize("seq", ("ACCCG", b"ACCCG"))
+@pytest.mark.parametrize(
+    "seq", ("ACCCG", b"ACCCG", numpy.array([2, 1, 1, 1, 3], dtype=numpy.uint8))[-1:]
+)
 @pytest.mark.parametrize("name", ("dna", "rna"))
 def test_complement(name, seq):
     dna = new_moltype.get_moltype(name)

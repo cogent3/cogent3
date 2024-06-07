@@ -305,6 +305,10 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
         return "".join(self).encode("utf8")
 
+    def array_to_bytes(self, seq: numpy.ndarray) -> bytes:
+        """returns seq as a byte string"""
+        return self._arr2bytes(seq)
+
 
 @numba.jit(nopython=True)
 def coord_conversion_coeffs(num_states, k, dtype=None):  # pragma: no cover

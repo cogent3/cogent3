@@ -476,6 +476,10 @@ class MolType:
     def _(self, seq: bytes) -> str:
         return self._complement(seq).decode("utf8")
 
+    @complement.register
+    def _(self, seq: numpy.ndarray) -> str:
+        return self.complement(self.degen_gapped_alphabet.array_to_bytes(seq))
+
     def rc(self, seq: str) -> str:
         """reverse reverse complement of a sequence"""
         return self.complement(seq)[::-1]
