@@ -455,6 +455,9 @@ class SequenceCollection:
         # todo: kath, note gavins comment that this method could operate on only the names
         # list and not the seqs_data object
 
+        if isinstance(names, str):
+            names = [names]
+
         if negate:
             names = [name for name in self.names if name not in names]
         else:
@@ -496,6 +499,13 @@ class SequenceCollection:
     ):
         """Returns new collection containing seqs where f(seq) is True.
 
+        Parameters
+        ----------
+        f
+            function that takes a sequence object and returns True or False
+        negate
+            select all sequences EXCEPT those where f(seq) is True
+
         Notes
         -----
         The seqs in the new collection are the same objects as the
@@ -505,12 +515,24 @@ class SequenceCollection:
         return self.take_seqs(self.get_seq_names_if(f, negate), **kwargs)
 
     def get_seq(self, seqname: str, copy_annotations: bool = False):
-        """Return a sequence object for the specified seqname."""
+        """Return a sequence object for the specified seqname.
+
+        Parameters
+        ----------
+        seqname
+            name of the sequence to return
+        copy_annotations
+            if True, only annotations from the selected seq are copied to the
+            annotation_db of the new collection, the same annotation db is used.
+
+        """
         seq = self.seqs[seqname]
 
         if copy_annotations:
             seq.annotation_db = type(self.annotation_db)()
             seq.annotation_db.update(annot_db=self.annotation_db, seqids=seqname)
+        else:
+            seq.annotation_db = self.annotation_db
 
         return seq
 
@@ -541,6 +563,39 @@ class SequenceCollection:
         # refactor: array - chars > gap char
         seqs = {name: self.seqs[name].degap() for name in self.names}
         return make_unaligned_seqs(seqs, moltype=self.moltype, info=self.info, **kwargs)
+
+    def to_moltype(self, moltype: str) -> SequenceCollection:
+        """returns copy of self with changed moltype
+
+        Parameters
+        ----------
+        moltype
+            name of the new moltype, e.g, 'dna', 'rna'.
+
+        Notes
+        -----
+        Cannot convert from nucleic acids to proteins. Use get_translation() for that.
+
+        """
+        mtype = new_moltype.get_moltype(moltype)
+        alpha = (
+            mtype.degen_gapped_alphabet
+            if mtype.degen_gapped_alphabet is not None
+            else mtype.gapped_alphabet
+        )
+        try:
+            new_seqs_data = self.seqs.to_alphabet(mtype.degen_gapped_alphabet)
+        except ValueError as e:
+            raise ValueError(
+                f"Failed to convert moltype from {self.moltype.label} to {moltype}"
+            ) from e
+
+        return self.__class__(
+            seqs_data=new_seqs_data,
+            moltype=mtype,
+            info=self.info,
+            annotation_db=self.annotation_db,
+        )
 
     def get_lengths(
         self, include_ambiguity: bool = False, allow_gap: bool = False

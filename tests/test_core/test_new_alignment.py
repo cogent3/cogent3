@@ -300,7 +300,7 @@ def test_seqs_data_getitem_raises(dna_sd, make_seq):
         _ = dna_sd[invalid_index]
 
 
-def tests_seqs_data_subset(dna_sd):
+def test_seqs_data_subset(dna_sd):
     got = dna_sd.subset("seq1")
     assert isinstance(got, new_aln.SeqsData)
     assert got.names == ["seq1"]
@@ -1136,3 +1136,35 @@ def test_copy_annotations_incompat_type_fails(seqcoll_db, seqs):
 
     with pytest.raises(TypeError):
         seqcoll_db.copy_annotations(seqs)
+
+def test_sequence_collection_to_moltype_with_gaps():
+    """correctly convert to specified moltype"""
+    data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
+    seqs = new_aln.make_unaligned_seqs(data, moltype="text")
+    dna_seqs = seqs.to_moltype("dna")
+    assert dna_seqs.moltype.label == "dna"
+    assert dna_seqs.to_dict() == data
+
+    with pytest.raises(ValueError):
+        seqs.to_moltype("rna")
+
+
+def test_sequence_collection_to_moltype_info():
+    """correctly convert to specified moltype"""
+    data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
+    seqs = new_aln.make_unaligned_seqs(data, moltype="text", info={"key": "value"})
+    dna = seqs.to_moltype("dna")
+    assert dna.info["key"] == "value"
+
+
+def test_sequence_collection_to_moltype_annotation_db():
+    """correctly convert to specified moltype"""
+    data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
+    seqs = new_aln.make_unaligned_seqs(data, moltype="text")
+    db = GffAnnotationDb()
+    db.add_feature(seqid="seq1", biotype="exon", name="annotation1", spans=[(3, 8)])
+    db.add_feature(seqid="seq2", biotype="exon", name="annotation2", spans=[(1, 2)])
+    db.add_feature(seqid="seq3", biotype="exon", name="annotation3", spans=[(3, 6)])
+    seqs.annotation_db = db
+    dna = seqs.to_moltype("dna")
+    assert len(dna.annotation_db) == 3
