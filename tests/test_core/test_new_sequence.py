@@ -47,12 +47,12 @@ def test_has_terminal_stop_false(gc, seq):
 
 
 @pytest.mark.xfail(
-    reason="UnboundLocalError: cannot access local variable 'seq' where it is not associated with a value"
+    reason="cogent3.core.alphabet.AlphabetError: None length not divisible by 3"
 )
 def test_has_terminal_stop_strict():
     gc = new_genetic_code.get_code(1)
-    seq = new_moltype.DNA.make_seq(seq=seq)
-    with pytest.raises(new_moltype.AlphabetError):
+    seq = new_moltype.DNA.make_seq(seq="TCCAG")
+    with pytest.raises(new_alphabet.AlphabetError):
         seq.has_terminal_stop(gc=gc, strict=True)
 
 
