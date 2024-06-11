@@ -800,7 +800,7 @@ class SequenceCollection:
         -----
         raises exception if invalid sequences do not all have the same length
         """
-        if len(set(self.seqs.seq_lengths().values())) > 1:
+        if self.is_ragged():
             raise ValueError("not all seqs same length, cannot convert to phylip")
 
         return alignment_to_phylip(self.to_dict())
@@ -911,6 +911,9 @@ class SequenceCollection:
                 yrange=[0, len(seq2)],
             )
         return dotplot
+
+    def is_ragged(self) -> bool:
+        return len(set(self.seqs.seq_lengths().values())) > 1
 
     def has_terminal_stop(self, gc: typing.Any = None, strict: bool = False) -> bool:
         """Returns True if any sequence has a terminal stop codon.

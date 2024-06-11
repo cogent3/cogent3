@@ -929,6 +929,12 @@ def test_sequence_collection_to_fasta():
     assert seqs.to_fasta(block_size=3) == ">seq_0\nGCA\nTGC\nAT\n>seq_1\nTCA\nGAC\nGT\n"
 
 
+def test_is_ragged(ragged, ragged_padded):
+    """SequenceCollection is_ragged should return true if ragged alignment"""
+    assert ragged.is_ragged()
+    assert not ragged_padded.is_ragged()
+
+
 def test_sequence_collection_to_phylip():
     """SequenceCollection should return PHYLIP string format correctly"""
     align_norm = new_aln.make_unaligned_seqs(

@@ -390,7 +390,7 @@ class SequenceCollectionBaseTests(object):
         got = frozenset(frozenset(s) for s in got)
         self.assertEqual(got, expect)
 
-    def test_is_ragged(self):  # will not port
+    def test_is_ragged(self):  # ported
         """SequenceCollection is_ragged should return true if ragged alignment"""
         assert not self.identical.is_ragged()
         assert not self.gaps.is_ragged()
