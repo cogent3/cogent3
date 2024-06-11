@@ -201,7 +201,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(self.identical.seq_len, 4)
         self.assertEqual(self.gaps.seq_len, 7)
 
-    def test_Seqs(self):
+    def test_Seqs(self):  # ported
         """SequenceCollection seqs property should return seqs in correct order."""
         first = self.ordered1
         sec = self.ordered2
@@ -454,7 +454,7 @@ class SequenceCollectionBaseTests(object):
         aln = self.Class({"seq1": "ACGU", "seq2": "CGUA", "seq3": "CCGU"})
         self.assertEqual(aln.num_seqs, 3)
 
-    def test_add_info(self):
+    def test_add_info(self):  # will not port
         """__add__ should preserve info attribute"""
         align1 = self.Class(
             {"a": "AAAA", "b": "TTTT", "c": "CCCC"}, info={"key": "foo"}
@@ -465,7 +465,7 @@ class SequenceCollectionBaseTests(object):
         align = align1 + align2
         self.assertEqual(align.info["key"], "foo")
 
-    def test_add_seqs_info(self):
+    def test_add_seqs_info(self):  # ported
         """add_seqs should preserve info attribute"""
         data = [("name1", "AAA"), ("name2", "AAA"), ("name3", "AAA"), ("name4", "AAA")]
         data2 = [("name5", "BBB"), ("name6", "CCC")]
@@ -474,7 +474,7 @@ class SequenceCollectionBaseTests(object):
         out_aln = aln.add_seqs(aln2)
         self.assertEqual(out_aln.info["key"], "foo")
 
-    def test_write(self):
+    def test_write(self):  # ported
         """SequenceCollection.write should write in correct format"""
         aln = self.Class([("a", "AAAA"), ("b", "TTTT"), ("c", "CCCC")])
         fn = mktemp(suffix=".fasta")
@@ -502,7 +502,7 @@ class SequenceCollectionBaseTests(object):
         for i in list(aln.to_dict().values()):
             assert isinstance(i, str)
 
-    def test_get_ambiguous_positions(self):
+    def test_get_ambiguous_positions(self):  # ported
         """SequenceCollection.get_ambiguous_positions should return pos"""
         aln = self.Class({"s1": "ATGRY?", "s2": "T-AG??"}, moltype=DNA)
         self.assertEqual(
@@ -651,7 +651,7 @@ class SequenceCollectionBaseTests(object):
         # assertRaises error when pad_length is less than max seq length
         self.assertRaises(ValueError, self.ragged_padded.pad_seqs, 5)
 
-    def test_to_moltype_info(self):
+    def test_to_moltype_info(self):  # ported
         """correctly convert to specified moltype"""
         data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
         seqs = self.Class(data=data, info={"key": "value"})
@@ -1340,7 +1340,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         result = a.replace_seqs(seqs)  # default behaviour
         self.assertEqual(result.info["key"], "value")
 
-    def test_counts(self):
+    def test_counts(self):  # ported
         """SequenceCollection.counts handles motif length, allow_gaps etc.."""
         data = {"a": "AAAA??????", "b": "CCCGGG--NN"}
         coll = self.Class(data=data, moltype=DNA)
@@ -1408,7 +1408,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         c = aln.counts_per_pos(include_ambiguity=False, allow_gap=True)
         assert_equal(set(c.motifs), set("ACGT-"))
 
-    def test_counts_per_seq_default_moltype(self):  # will not port
+    def test_counts_per_seq_default_moltype(self):
         """produce correct counts per seq with default moltypes"""
         data = {"a": "AAAA??????", "b": "CCCGGG--NN", "c": "CCGGTTCCAA"}
         coll = self.Class(data=data)
@@ -1420,7 +1420,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         got = coll.counts_per_seq(include_ambiguity=True, allow_gap=True)
         self.assertEqual(got.col_sum()["-"], 2)
 
-    def test_counts_per_pos_default_moltype(self):
+    def test_counts_per_pos_default_moltype(self):  # will not port
         """produce correct counts per pos with default moltypes"""
         data = {"a": "AAAA??????", "b": "CCCGGG--NN", "c": "CCGGTTCCAA"}
         coll = self.Class(data=data)
@@ -2445,7 +2445,7 @@ def test_to_rich_dict_alignment():
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
-def test_dotplot_annotated(cls):
+def test_dotplot_annotated(cls):  # ported for SequenceCollection
     """exercising dotplot method with annotated sequences"""
     db = GffAnnotationDb()
     db.add_feature(seqid="Human", biotype="exon", name="fred", spans=[(10, 15)])
@@ -2529,7 +2529,7 @@ def test_get_translation_with_stop(cls):
 
 
 @pytest.mark.parametrize("cls", (Alignment, ArrayAlignment, SequenceCollection))
-def test_get_translation_trim_stop(cls):
+def test_get_translation_trim_stop(cls):  # ported for SequenceCollection
     seqs = {"seq1": "GATTCCTAG", "seq2": "GATTCCTCC"}
     alignment = cls(data=seqs, moltype=DNA)
     expect = {"seq1": "DS", "seq2": "DSS"}
@@ -2694,7 +2694,7 @@ def test_has_terminal_stop_strict(cls):
         (2, ("GATTTT", "TCCAGG")),
     ),
 )
-def test_trim_stops_true(cls, gc, seqs):
+def test_trim_stops_true(cls, gc, seqs):  # ported for SequenceCollection
     gc = get_code(gc)
     data = {f"s{i}": s for i, s in enumerate(seqs)}
 
@@ -2717,7 +2717,7 @@ def test_trim_stops_true(cls, gc, seqs):
     "gc,seqs",
     ((1, ("T-CTGC", "GATAA?")), (2, ("GATTTT", "TCCCGG")), (1, ("CCTGC", "GATAA"))),
 )
-def test_trim_terminal_stops_nostop(cls, gc, seqs):
+def test_trim_terminal_stops_nostop(cls, gc, seqs):  # ported for SequenceCollection
     gc = get_code(gc)
     data = {f"s{i}": s for i, s in enumerate(seqs)}
     seqs = cls(data=data, moltype="dna")
@@ -2727,7 +2727,7 @@ def test_trim_terminal_stops_nostop(cls, gc, seqs):
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
 @pytest.mark.parametrize("seqs", (("CCTCA", "ATTTT"), ("CCTCA-", "ATTTTA")))
-def test_trim_terminal_stops_strict(cls, seqs):
+def test_trim_terminal_stops_strict(cls, seqs):  # ported for SequenceCollection
     gc = get_code(1)
     data = {f"s{i}": s for i, s in enumerate(seqs)}
     seqs = cls(data=data, moltype="dna")
@@ -2736,7 +2736,7 @@ def test_trim_terminal_stops_strict(cls, seqs):
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
-def test_trim_stop_codons_info(cls):
+def test_trim_stop_codons_info(cls):  # ported for SequenceCollection
     """trim_stop_codons should preserve info attribute"""
     coll = cls(
         data={"seq1": "ACGTAA", "seq2": "ACGACG", "seq3": "ACGCGT"},
@@ -3235,7 +3235,7 @@ def brca1_data():
 
 
 @pytest.mark.parametrize("cls", (Alignment, ArrayAlignment, SequenceCollection))
-def test_dotplot(cls, brca1_data):
+def test_dotplot(cls, brca1_data):  # ported for SequenceCollection
     """exercising dotplot method"""
     seqs = cls(data=brca1_data, moltype=DNA)
     _ = seqs.dotplot()
