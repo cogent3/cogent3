@@ -302,10 +302,10 @@ class SeqsData(SeqsDataABC):
             return self.__class__(data=self._data, alphabet=alphabet)
 
         new_data = {}
+        old = self.alphabet.as_bytes()
+        new = alphabet.as_bytes()
         for seqid in self.names:
             seq_data = self.get_seq_array(seqid=seqid)
-            old = self.alphabet.as_bytes()
-            new = alphabet.as_bytes()
 
             convert_old_to_bytes = new_alpha.array_to_bytes(old)
             convert_bytes_to_new = new_alpha.bytes_to_array(
@@ -526,6 +526,10 @@ class SequenceCollection:
             annotation_db of the new collection, the same annotation db is used.
 
         """
+        # refactor: design
+        # This method provides a mechanism for binding the annotation db to the sequence instance,
+        # which self.seqs[seq_name] does not. This is a difference to the original implementation,
+        # so it needs more thought.
         seq = self.seqs[seqname]
 
         if copy_annotations:
@@ -578,6 +582,9 @@ class SequenceCollection:
 
         """
         mtype = new_moltype.get_moltype(moltype)
+        if mtype is self.moltype:
+            return self  # nothing to be done
+
         alpha = (
             mtype.degen_gapped_alphabet
             if mtype.degen_gapped_alphabet is not None
@@ -863,8 +870,8 @@ class SequenceCollection:
             msg = f"{name1}, {name2} missing"
             raise ValueError(msg)
 
-        seq1 = self.get_seq(seqname=name1, copy_annotations=True)
-        seq2 = self.get_seq(seqname=name2, copy_annotations=True)
+        seq1 = self.get_seq(seqname=name1, copy_annotations=False)
+        seq2 = self.get_seq(seqname=name2, copy_annotations=False)
 
         if seq1.is_annotated() or seq2.is_annotated():
             annotated = True
@@ -1424,18 +1431,21 @@ def make_unaligned_seqs(
     source
         origins of this data, defaults to 'unknown'. Converted to a string
         and added to info["source"].
+    annotation_db
+        annotation database to attach to the collection
+
+    Notes
+    -----
+    - If no annotation_db is provided, but the sequences are annotated, an
+    annotation_db is created by merging any annotation db's found in the sequences.
+    - If the sequences are annotated AND an annotation_db is provided, only the
+    annotation_db is used.
+
     """
     if len(data) == 0:
         raise ValueError("data must be at least one sequence.")
 
-    # create a db from sequences if they're annotated
-    seqs_anno_db = merged_db_collection(data)
-    # if db from seqs and provided db, merge
-    # todo: kath, should we default to provided db if both? or merge?
-    if annotation_db and seqs_anno_db:
-        annotation_db.update(seqs_anno_db)
-    else:
-        annotation_db = annotation_db or seqs_anno_db
+    annotation_db = annotation_db or merged_db_collection(data)
 
     seqs_data = coerce_to_seqs_data_dict(data, label_to_name=label_to_name)
 
