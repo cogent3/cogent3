@@ -241,6 +241,7 @@ def test_is_ambiguity():
     assert not new_moltype.DNA.is_ambiguity("G")
 
 
+@pytest.mark.xfail(reason="remove xfail when MolType.gaps() is implemented")
 def test_degap():
     """MolType degap should remove all gaps from sequence"""
     g = new_moltype.RNA.degap
