@@ -1,7 +1,6 @@
 import os
 import re
 
-from tempfile import mktemp
 from warnings import catch_warnings, filterwarnings
 
 import numpy
@@ -16,6 +15,11 @@ import cogent3.core.new_sequence as new_seq
 # todo: kath, update to using new_sequence.load_seq when implemented
 from cogent3 import load_seq
 from cogent3.core.annotation_db import GffAnnotationDb, load_annotations
+
+
+@pytest.fixture(scope="session")
+def tmp_path(tmpdir_factory):
+    return tmpdir_factory.mktemp("tmp_path")
 
 
 @pytest.fixture
@@ -1458,27 +1462,25 @@ def test_sequence_collection_add_seqs_info():
     assert out_aln.info["key"] == "foo"
 
 
-def test_sequence_collection_write():
+def test_sequence_collection_write(fasta_path):
     """SequenceCollection.write should write in correct format"""
     data = {"a": "AAAA", "b": "TTTT", "c": "CCCC"}
     seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
-    fn = mktemp(suffix=".fasta")
+    fn = fasta_path / "seqs.fasta"
     seqs.write(fn)
     with open(fn, newline=None) as infile:
         result = infile.read()
     assert result == ">a\nAAAA\n>b\nTTTT\n>c\nCCCC\n"
-    os.remove(fn)
 
 
-def test_sequence_collection_write_gapped():
+def test_sequence_collection_write_gapped(fasta_path):
     data = {"a": "AAA--", "b": "TTTT", "c": "CCCC"}
     seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
-    fn = mktemp(suffix=".fasta")
+    fn = fasta_path / "seqs.fasta"
     seqs.write(fn)
     with open(fn, newline=None) as infile:
         result = infile.read()
     assert result == ">a\nAAA--\n>b\nTTTT\n>c\nCCCC\n"
-    os.remove(fn)
 
 
 def test_get_ambiguous_positions():

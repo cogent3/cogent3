@@ -888,7 +888,7 @@ class SequenceCollection:
         if filename is None:
             raise IOError("no filename specified")
 
-        suffix, cmp_suffix = get_format_suffixes(filename)
+        suffix, _ = get_format_suffixes(filename)
         if file_format is None and suffix:
             file_format = suffix
 
