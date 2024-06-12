@@ -1084,6 +1084,26 @@ class SequenceCollection:
                     ambig[i] = motif
         return result
 
+    def trim_stop_codons(self, gc: Any = 1, strict: bool = False):
+        """Removes any terminal stop codons from the sequences
+
+        Parameters
+        ----------
+        gc
+            valid input to cogent3.get_code(), a genetic code object, number
+            or name, defaults to standard code
+        strict
+            If True, raises an exception if a seq length not divisible by 3
+        """
+        if not self.has_terminal_stop(gc=gc, strict=strict):
+            return self
+
+        new_seqs = {s.name: s.trim_stop_codon(gc=gc, strict=strict) for s in self.seqs}
+        result = make_unaligned_seqs(new_seqs, moltype=self.moltype, info=self.info)
+        if self.annotation_db:
+            result.annotation_db = self.annotation_db
+        return result
+
     def counts_per_seq(
         self,
         motif_length: int = 1,
