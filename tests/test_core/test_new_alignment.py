@@ -1462,21 +1462,21 @@ def test_sequence_collection_add_seqs_info():
     assert out_aln.info["key"] == "foo"
 
 
-def test_sequence_collection_write(fasta_path):
+def test_sequence_collection_write(tmp_path):
     """SequenceCollection.write should write in correct format"""
     data = {"a": "AAAA", "b": "TTTT", "c": "CCCC"}
     seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
-    fn = fasta_path / "seqs.fasta"
+    fn = tmp_path / "seqs.fasta"
     seqs.write(fn)
     with open(fn, newline=None) as infile:
         result = infile.read()
     assert result == ">a\nAAAA\n>b\nTTTT\n>c\nCCCC\n"
 
 
-def test_sequence_collection_write_gapped(fasta_path):
+def test_sequence_collection_write_gapped(tmp_path):
     data = {"a": "AAA--", "b": "TTTT", "c": "CCCC"}
     seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
-    fn = fasta_path / "seqs.fasta"
+    fn = tmp_path / "seqs.fasta"
     seqs.write(fn)
     with open(fn, newline=None) as infile:
         result = infile.read()
