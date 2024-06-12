@@ -529,7 +529,7 @@ class SequenceCollection:
         # pass take_seqs the result of get_seq_indices
         return self.take_seqs(self.get_seq_names_if(f, negate), **kwargs)
 
-    def get_seq(self, seqname: str, copy_annotations: bool = False):
+    def get_seq(self, seqname: str, copy_annotations: bool = False) -> new_seq.Sequence:
         """Return a sequence object for the specified seqname.
 
         Parameters
@@ -557,7 +557,7 @@ class SequenceCollection:
 
     def add_seqs(
         self, seqs: Union[dict[str, PrimitiveSeqTypes], SeqsData, list], **kwargs
-    ):
+    ) -> SequenceCollection:
         """Returns new collection with additional sequences.
 
         Parameters
@@ -573,7 +573,6 @@ class SequenceCollection:
             info=self.info,
             annotation_db=self.annotation_db,
         )
-        ...
 
     def to_dict(self, as_array: bool = False) -> dict[str, Union[str, numpy.ndarray]]:
         """Return a dictionary of sequences.
@@ -587,7 +586,7 @@ class SequenceCollection:
         get = self.seqs.get_seq_array if as_array else self.seqs.get_seq_str
         return {name: get(seqid=name) for name in self.names}
 
-    def degap(self):
+    def degap(self) -> SequenceCollection:
         """Returns new collection in which sequences have no gaps.
 
         Notes
@@ -1276,11 +1275,11 @@ class SequenceCollection:
 
     def entropy_per_seq(
         self,
-        motif_length=1,
-        include_ambiguity=False,
-        allow_gap=False,
-        exclude_unobserved=True,
-        warn=False,
+        motif_length: int = 1,
+        include_ambiguity: bool = False,
+        allow_gap: bool = False,
+        exclude_unobserved: bool = True,
+        warn: bool = False,
     ) -> numpy.ndarray:
         """Returns the Shannon entropy per sequence.
 
@@ -1369,7 +1368,7 @@ class SequenceCollection:
             annotation_db=self.annotation_db,
         )
 
-    def strand_symmetry(self, motif_length=1):
+    def strand_symmetry(self, motif_length: int = 1):
         """returns dict of strand symmetry test results per seq"""
         return {s.name: s.strand_symmetry(motif_length=motif_length) for s in self.seqs}
 
