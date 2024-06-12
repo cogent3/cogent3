@@ -84,13 +84,14 @@ def test_sizeframes():
 
 
 @pytest.mark.parametrize("code_id", range(1, 5))
-def test_compare_codes_true(code_id):
-    gc = new_genetic_code.get_code(code_id)
-    assert gc == gc
+def test_eq_true(code_id):
+    gc0 = new_genetic_code.get_code(code_id)
+    gc1 = new_genetic_code.get_code(code_id)
+    assert gc0 == gc1
 
 
 @pytest.mark.parametrize("code_id", range(1, 5))
-def test_compare_codes_false(code_id):
+def test_eq_false(code_id):
     gc0 = new_genetic_code.get_code(code_id)
     gc1 = new_genetic_code.get_code(code_id + 1)
     assert gc0 != gc1

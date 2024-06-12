@@ -426,8 +426,9 @@ class MolType:
         return self._degen_gapped
 
     @property
-    def gaps(self):
-        return frozenset([self.gap, self.missing])
+    def gaps(self) -> frozenset:
+        gaps = [char for char in (self.gap, self.missing) if char is not None]
+        return frozenset(gaps)
 
     def is_valid(self, seq: StrORArray) -> bool:
         """checks against most degenerate alphabet"""
@@ -540,7 +541,6 @@ class MolType:
 
     @get_degenerate_positions.register
     def _(self, seq: numpy.ndarray, include_gap=True) -> numpy.ndarray:
-
         for index, val in enumerate(self.degen_gapped_alphabet):
             if include_gap and val in self.gap or val in self.ambiguities:
                 break

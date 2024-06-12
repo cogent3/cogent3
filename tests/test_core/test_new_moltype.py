@@ -209,3 +209,11 @@ def test_gaps(moltype):
     got = moltype.gaps
     expect = frozenset({"-", "?"})
     assert got == expect
+
+
+def test_gaps_none():
+    mt = new_moltype.DNA
+    mt.gap = None
+    got = mt.gaps
+    expect = frozenset({"?"})
+    assert got == expect
