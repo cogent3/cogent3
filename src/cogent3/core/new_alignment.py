@@ -1861,6 +1861,15 @@ def _(data: set, label_to_name: Callable = None) -> dict[str, PrimitiveSeqTypes]
     return coerce_to_seqs_data_dict(labelled_seqs, label_to_name=label_to_name)
 
 
+@coerce_to_seqs_data_dict.register
+def _(
+    data: SequenceCollection, label_to_name: Callable = None
+) -> dict[str, PrimitiveSeqTypes]:
+    return coerce_to_seqs_data_dict(
+        data.to_dict(as_array=True), label_to_name=label_to_name
+    )
+
+
 @singledispatch
 def assign_names(
     first, data: Union[list, set]

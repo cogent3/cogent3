@@ -1,9 +1,7 @@
-import json
 import os
-import pathlib
 import re
 
-from tempfile import TemporaryDirectory, mktemp
+from tempfile import mktemp
 from warnings import catch_warnings, filterwarnings
 
 import numpy
@@ -16,7 +14,7 @@ import cogent3.core.new_moltype as new_moltype
 import cogent3.core.new_sequence as new_seq
 
 # todo: kath, update to using new_sequence.load_seq when implemented
-from cogent3 import load_seq, open_
+from cogent3 import load_seq
 from cogent3.core.annotation_db import GffAnnotationDb, load_annotations
 
 
@@ -1023,7 +1021,7 @@ def test_sequence_collection_has_terminal_stop_strict():
     with pytest.raises(new_alpha.AlphabetError):
         seq_coll.has_terminal_stop(gc=gc, strict=True)
 
-    seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
+    _ = new_aln.make_unaligned_seqs(data, moltype="dna")
 
 
 @pytest.mark.parametrize(
