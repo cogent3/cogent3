@@ -535,28 +535,142 @@ class MolType:
         return (seq == self.degen_gapped_alphabet.gap_index).any()
 
     @functools.singledispatchmethod
-    def get_degenerate_positions(self, seq, include_gap=True) -> numpy.ndarray:
-        """returns a boolean array indicating degenerate positions"""
+    def get_degenerate_positions(self, seq, include_gap=True) -> list[int]:
+        """returns indices matching degenerate characters"""
         raise TypeError(f"{type(seq)} not supported")
 
     @get_degenerate_positions.register
-    def _(self, seq: numpy.ndarray, include_gap=True) -> numpy.ndarray:
+    def _(self, seq: numpy.ndarray, include_gap=True) -> list[int]:
+
         for index, val in enumerate(self.degen_gapped_alphabet):
             if include_gap and val in self.gap or val in self.ambiguities:
                 break
-        return seq >= index
+        degens = seq >= index
+        return numpy.where(degens)[0].tolist()
 
     @get_degenerate_positions.register
-    def _(self, seq: str, include_gap=True) -> numpy.ndarray:
+    def _(self, seq: str, include_gap=True) -> list[int]:
         return self.get_degenerate_positions(
             self.degen_gapped_alphabet.to_indices(seq), include_gap
         )
 
     @get_degenerate_positions.register
-    def _(self, seq: bytes, include_gap=True) -> numpy.ndarray:
+    def _(self, seq: bytes, include_gap=True) -> list[int]:
         return self.get_degenerate_positions(
             self.degen_gapped_alphabet.to_indices(seq), include_gap
         )
+
+    @functools.singledispatchmethod
+    def degap(self, seq) -> StrORBytesORArray:
+        """removes all gap and missing characters from a sequence"""
+        # refactor: design
+        # previous implementation also removed missing characters, as does this
+        # implementation. But should we revisit this?
+        raise TypeError(f"{type(seq)} not supported")
+
+    @degap.register
+    def _(self, seq: str) -> str:
+        trans = dict([(i, None) for i in map(ord, self.gaps)])
+        seq.translate(trans)
+        return seq.translate(trans)
+
+    @degap.register
+    def _(self, seq: bytes) -> bytes:
+        return self.degap(seq.decode("utf8")).encode("utf8")
+
+    @degap.register
+    def _(self, seq: numpy.ndarray) -> numpy.ndarray:
+        gap_indices = [self.degen_gapped_alphabet.index(gap) for gap in self.gaps]
+        return seq[~numpy.isin(seq, gap_indices)]
+
+    @degap.register
+    def _(self, seq: tuple) -> set[str]:
+        seq = "".join(seq)
+        return tuple(self.degap(seq))
+
+    def is_ambiguity(self, query_motif: str) -> bool:
+        """Return True if querymotif is an amibiguity character in alphabet.
+
+        Parameters
+        ----------
+        query_motif
+            the motif being queried.
+
+        """
+        ambigs_missing = {
+            self.missing,
+            *frozenset(self.ambiguities.keys()),
+        }
+        return query_motif in ambigs_missing
+
+    def resolve_ambiguity(
+        self,
+        ambig_motif: str,
+        alphabet: typing.Optional[new_alphabet.CharAlphabet] = None,
+        allow_gap: bool = False,
+    ) -> typing.Tuple[str]:
+        """Returns tuple of all possible canonical characters corresponding
+        to ambig_motif
+
+        Parameters
+        ----------
+        ambig_motif
+            the string to be expanded
+        alphabet
+            optional, disambiguated motifs not present in alphabet will be
+            excluded. This could be a codon alphabet where stop codons are
+            not present.
+        allow_gap
+            whether the gap character is allowed in output. Only
+            applied when alphabet is None.
+
+        Notes
+        -----
+        If ambig_motif is > 1 character long and alphabet is None, we construct
+        a word alphabet with the same length.
+        """
+        ambiguities = {
+            **self.ambiguities,
+            self.gap: frozenset(self.gap),
+            self.missing: set([*self.alphabet, self.gap]),
+        }
+        for m in self.alphabet:
+            ambiguities[m] = frozenset(m)
+        if alphabet is None:
+            word_alpha = self.alphabet.get_kmer_alphabet(
+                k=len(ambig_motif), include_gap=allow_gap
+            )
+            # refactor: design
+            # with_gap_motif() is not implemented on KmerAlphabet, check whether
+            # allow_gap makes sense in this case
+            alphabet = word_alpha.with_gap_motif() if allow_gap else word_alpha
+            if not allow_gap:
+                ambiguities["?"] = tuple(c for c in ambiguities["?"] if c != self.gap)
+
+        if ambig_motif in alphabet:
+            return (ambig_motif,)
+
+        try:
+            resolved = [ambiguities[c] for c in ambig_motif]
+        except KeyError as e:
+            raise new_alphabet.AlphabetError(ambig_motif) from e
+
+        result = tuple("".join(e) for e in itertools.product(*resolved))
+        if alphabet:
+            result = tuple(e for e in result if e in alphabet)
+
+        if not result:
+            raise new_alphabet.AlphabetError(ambig_motif)
+
+        return result
+
+    def strand_symmetric_motifs(self, motif_length: int = 1):
+        """returns ordered pairs of strand complementary motifs"""
+        if len(self.alphabet) != 4:
+            raise TypeError("moltype must be DNA or RNA")
+
+        motif_set = self.alphabet.get_kmer_alphabet(k=motif_length)
+        return {tuple(sorted([m, self.complement(m)])) for m in motif_set}
 
     def get_css_style(
         self,

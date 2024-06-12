@@ -508,7 +508,7 @@ class MolTypeTests(TestCase):
         # should raise exception on unknown disambiguation method
         self.assertRaises(NotImplementedError, d, s, "xyz")
 
-    def test_degap(self):
+    def test_degap(self):  # ported
         """MolType degap should remove all gaps from sequence"""
         g = RnaMolType.degap
         self.assertEqual(g(""), "")
@@ -945,7 +945,7 @@ class DinucAlphabet(_AlphabetTestCase):
         alpha = self.alpha.get_subset(motif_freqs)
         self.assertEqualSets(alpha, ["AA", "CA", "GT"])
 
-    def test_strand_symmetric_motifs(self):
+    def test_strand_symmetric_motifs(self):  # ported
         """construction of strand symmetric motif sets"""
         # fails for a moltype with no strand complement
         with self.assertRaises(TypeError):
@@ -1116,13 +1116,13 @@ class TestCodonAlphabet(_AlphabetTestCase):
         self.assertEqual(alpha_int, alpha_name)
 
 
-def test_resolve_ambiguity_nucs():
+def test_resolve_ambiguity_nucs():  # ported
     got = DNA.resolve_ambiguity("AT?", allow_gap=False)
     assert len(got) == 4
     assert len(got[0]) == 3
 
 
-def test_resolve_ambiguity_codons():
+def test_resolve_ambiguity_codons():  # ported
     from cogent3 import get_code
 
     gc = get_code(1)

@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import re
 import typing
+import warnings
 
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from dataclasses import InitVar, dataclass, field
 from functools import singledispatch, singledispatchmethod
 from pathlib import Path
-from typing import Callable, Iterator, Mapping, Optional, Union
+from typing import Any, Callable, Iterator, Mapping, Optional, Union
 
 import numpy
 
@@ -24,9 +25,13 @@ from cogent3.core.annotation_db import (
 )
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.location import IndelMap
+from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
+from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import alignment_to_fasta
 from cogent3.format.phylip import alignment_to_phylip
+from cogent3.util import progress_display as UI
 from cogent3.util import warning as c3warn
+from cogent3.util.io import atomic_write, get_format_suffixes
 from cogent3.util.misc import get_setting_from_environ, negate_condition
 
 
@@ -290,8 +295,16 @@ class SeqsData(SeqsDataABC):
     def add_seqs(
         self, seqs: dict[str, PrimitiveSeqTypes], force_unique_keys=True
     ) -> SeqsData:
-        # todo: kath
-        ...
+        """Returns a new SeqsData object with added sequences."""
+        if force_unique_keys and any(name in self.names for name in seqs):
+            raise ValueError("One or more sequence names already exist in collection")
+        new_data = {
+            **self._data,
+            **{name: self.alphabet.to_indices(seq) for name, seq in seqs.items()},
+        }
+        return self.__class__(
+            data=new_data, alphabet=self.alphabet, make_seq=self.make_seq
+        )
 
     def to_alphabet(
         self, alphabet: new_alpha.CharAlphabet, check_valid=True
@@ -350,10 +363,11 @@ class SequenceCollection:
     def __init__(
         self,
         *,
-        seqs_data: SeqsData,
+        seqs_data: SeqsDataABC,
         moltype: new_moltype.MolType,
         names: list[str] = None,
         info: Union[dict, InfoClass] = None,
+        source: str = None,
         annotation_db: SupportsFeatures = None,
     ):
         self._seqs_data = seqs_data
@@ -363,6 +377,7 @@ class SequenceCollection:
         if not isinstance(info, InfoClass):
             info = InfoClass(info) if info else InfoClass()
         self.info = info
+        self.source = source
         self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60)
         self._annotation_db = annotation_db or DEFAULT_ANNOTATION_DB()
 
@@ -540,8 +555,24 @@ class SequenceCollection:
 
         return seq
 
-    def add_seqs(self, seqs: dict[str, PrimitiveSeqTypes], **kwargs):
-        # todo: kath, add this method once its functional on SeqsData
+    def add_seqs(
+        self, seqs: Union[dict[str, PrimitiveSeqTypes], SeqsData, list], **kwargs
+    ):
+        """Returns new collection with additional sequences.
+
+        Parameters
+        ----------
+        seqs
+            sequences to add
+        """
+        data = coerce_to_seqs_data_dict(seqs, label_to_name=None)
+        seqs_data = self.seqs.add_seqs(data, **kwargs)
+        return self.__class__(
+            seqs_data=seqs_data,
+            moltype=self.moltype,
+            info=self.info,
+            annotation_db=self.annotation_db,
+        )
         ...
 
     def to_dict(self, as_array: bool = False) -> dict[str, Union[str, numpy.ndarray]]:
@@ -556,17 +587,21 @@ class SequenceCollection:
         get = self.seqs.get_seq_array if as_array else self.seqs.get_seq_str
         return {name: get(seqid=name) for name in self.names}
 
-    def degap(self, **kwargs):
-        """Returns copy in which sequences have no gaps.
+    def degap(self):
+        """Returns new collection in which sequences have no gaps.
 
-        Parameters
-        ----------
-        kwargs
-            passed to class constructor
+        Notes
+        -----
+        The returned collection will not retain an annotation_db if present.
         """
         # refactor: array - chars > gap char
-        seqs = {name: self.seqs[name].degap() for name in self.names}
-        return make_unaligned_seqs(seqs, moltype=self.moltype, info=self.info, **kwargs)
+        seqs = {
+            name: self.moltype.degap(self.seqs.get_seq_array(seqid=name))
+            for name in self.names
+        }
+        return make_unaligned_seqs(
+            seqs, moltype=self.moltype, info=self.info, source=self.source
+        )
 
     def to_moltype(self, moltype: str) -> SequenceCollection:
         """returns copy of self with changed moltype
@@ -611,17 +646,51 @@ class SequenceCollection:
 
         Parameters
         ----------
-        include_ambiguity
-            if True, motifs containing ambiguous characters
-            from the seq moltype are included. No expansion of those is attempted.
-        allow_gap
-            if True, motifs containing a gap character are included.
 
+    def distance_matrix(self, calc: str = "pdist"):
+        """Estimated pairwise distance between sequences
+
+        Parameters
+        ----------
+        calc
+            The distance calculation method to use, either "pdist" or "jc69".
+            - "pdist" is an approximation of the proportion sites different.
+            - "jc69" is an approximation of the Jukes Cantor distance.
+
+        Returns
+        -------
+        DistanceMatrix
+            Estimated pairwise distances between sequences in the collection
+
+        Notes
+        -----
+        pdist approximates the proportion sites different from the Jaccard
+        distance. Coefficients for the approximation were derived from a
+        polynomial fit between Jaccard distance of kmers with k=10 and the
+        proportion of sites different using mammalian 106 protein coding
+        gene DNA sequence alignments.
+
+        jc69 approximates the Jukes Cantor distance using the approximated
+        proportion sites different, i.e., a transformation of the above.
         """
-        counts = self.counts_per_seq(
-            motif_length=1, include_ambiguity=include_ambiguity, allow_gap=allow_gap
+        from cogent3.app.dist import get_approx_dist_calc
+
+        # check moltype
+        if len(self.moltype.alphabet) != 4:
+            raise NotImplementedError("only defined for DNA/RNA molecular types")
+
+        # assert we have more than one sequence in the SequenceCollection
+        if self.num_seqs == 1:
+            raise ValueError(
+                "Pairwise distance cannot be computed for a single sequence. "
+                "Please provide at least two sequences."
+            )
+
+        dist_calc_app = get_approx_dist_calc(
+            dist=calc, num_states=len(self.moltype.alphabet)
         )
-        return counts.row_sum()
+
+        return dist_calc_app(self)
 
     def copy_annotations(self, seq_db: SupportsFeatures) -> None:
         """copy annotations into attached annotation db
@@ -805,6 +874,43 @@ class SequenceCollection:
 
         return alignment_to_phylip(self.to_dict())
 
+    def write(self, filename: str = None, file_format: str = None, **kwargs):
+        """Write the sequences to a file, preserving order of sequences.
+
+        Parameters
+        ----------
+        filename
+            name of the sequence file
+        file_format
+            format of the sequence file
+
+        Notes
+        -----
+
+        If file_format is None, will attempt to infer format from the filename
+        suffix.
+        """
+        # refactor: design
+        # changed format to file_format to not conflict with builtin (could use suffix instead)
+
+        # todo: kath, add support for json
+        if filename is None:
+            raise IOError("no filename specified")
+
+        suffix, cmp_suffix = get_format_suffixes(filename)
+        if file_format is None and suffix:
+            file_format = suffix
+
+        if file_format == "json":
+            with atomic_write(filename, mode="wt") as f:
+                f.write(self.to_json())
+            return
+
+        if "order" not in kwargs:
+            kwargs["order"] = self.names
+
+        save_to_filename(self.to_dict(), filename, file_format, **kwargs)
+
     def dotplot(
         self,
         name1: Optional[str] = None,
@@ -912,6 +1018,349 @@ class SequenceCollection:
             )
         return dotplot
 
+    @UI.display_wrap
+    def apply_pssm(
+        self, pssm=None, path=None, background=None, pseudocount=0, names=None, ui=None
+    ):
+        """scores sequences using the specified pssm
+
+        Parameters
+        ----------
+        pssm : profile.PSSM
+            if not provided, will be loaded from path
+        path
+            path to either a jaspar or cisbp matrix (path must end have a suffix
+            matching the format).
+        pseudocount
+            adjustment for zero in matrix
+        names
+            returns only scores for these sequences and in the name order
+
+        Returns
+        -------
+        numpy array of log2 based scores at every position
+        """
+        assert not self.is_ragged(), "all sequences must have same length"
+        from cogent3.parse import cisbp, jaspar
+
+        assert pssm or path, "Must specify a PSSM or a path"
+        assert not (pssm and path), "Can only specify one of pssm, path"
+
+        if isinstance(names, str):
+            names = [names]
+
+        if path:
+            is_cisbp = path.endswith("cisbp")
+            is_jaspar = path.endswith("jaspar")
+            if not (is_cisbp or is_jaspar):
+                raise NotImplementedError(f"Unknown format {path.split('.')[-1]}")
+
+            if is_cisbp:
+                pfp = cisbp.read(path)
+                pssm = pfp.to_pssm(background=background)
+            else:
+                _, pwm = jaspar.read(path)
+                pssm = pwm.to_pssm(background=background, pseudocount=pseudocount)
+
+        assert isinstance(pssm, PSSM)
+        array_align = hasattr(self, "array_seqs")
+        assert set(pssm.motifs) == set(self.moltype)
+        if array_align and list(pssm.motifs) == list(self.moltype):
+            if names:
+                name_indices = [self.names.index(n) for n in names]
+                data = self.array_seqs.take(name_indices, axis=0)
+            else:
+                data = self.array_seqs
+
+            result = [pssm.score_indexed_seq(seq) for seq in ui.series(data)]
+        else:
+            seqs = [self.seqs[n] for n in names] if names else self.seqs
+            result = [pssm.score_seq(seq) for seq in ui.series(seqs)]
+
+        return numpy.array(result)
+
+    def get_ambiguous_positions(self):
+        """Returns dict of seq:{position:char} for ambiguous chars.
+
+        Used in likelihood calculations.
+        """
+        result = {}
+        for name in self.names:
+            result[name] = ambig = {}
+            for i, motif in enumerate(self.seqs[name]):
+                if self.moltype.is_ambiguity(motif):
+                    ambig[i] = motif
+        return result
+
+    def counts_per_seq(
+        self,
+        motif_length: int = 1,
+        include_ambiguity: bool = False,
+        allow_gap: bool = False,
+        exclude_unobserved: bool = False,
+        warn: bool = False,
+    ) -> MotifCountsArray:  # refactor: using array
+        """counts of motifs per sequence
+
+        Parameters
+        ----------
+        motif_length
+            number of characters per tuple.
+        include_ambiguity
+            if True, motifs containing ambiguous characters from the seq moltype
+            are included. No expansion of those is attempted.
+        allow_gap
+            if True, motifs containing a gap character are included.
+        warn
+            warns if motif_length > 1 and collection trimmed to produce motif
+            columns.
+
+        Notes
+        -----
+
+        only non-overlapping motifs are counted
+        """
+        counts = []
+        motifs = set()
+        for name in self.names:
+            seq = self.get_seq(name)
+            c = seq.counts(
+                motif_length=motif_length,
+                include_ambiguity=include_ambiguity,
+                allow_gap=allow_gap,
+                exclude_unobserved=exclude_unobserved,
+                warn=warn,
+            )
+            motifs.update(c.keys())
+            counts.append(c)
+        motifs = list(sorted(motifs))
+        for i, c in enumerate(counts):
+            counts[i] = c.tolist(motifs)
+        return MotifCountsArray(counts, motifs, row_indices=self.names)
+
+    def counts(
+        self,
+        motif_length: int = 1,
+        include_ambiguity: bool = False,
+        allow_gap: bool = False,
+        exclude_unobserved: bool = False,
+    ) -> MotifCountsArray:
+        """counts of motifs
+
+        Parameters
+        ----------
+        motif_length
+            number of elements per character.
+        include_ambiguity
+            if True, motifs containing ambiguous characters from the seq moltype
+            are included. No expansion of those is attempted.
+        allow_gap
+            if True, motifs containing a gap character are included.
+        exclude_unobserved
+            if True, unobserved motif combinations are excluded.
+
+        Notes
+        -----
+
+        only non-overlapping motifs are counted
+        """
+        per_seq = self.counts_per_seq(
+            motif_length=motif_length,
+            include_ambiguity=include_ambiguity,
+            allow_gap=allow_gap,
+            exclude_unobserved=exclude_unobserved,
+        )
+        return per_seq.motif_totals()
+
+    def get_motif_probs(
+        self,
+        alphabet: new_alpha.CharAlphabet = None,
+        include_ambiguity: bool = False,
+        exclude_unobserved: bool = False,
+        allow_gap: bool = False,
+        pseudocount: int = 0,
+    ) -> dict:  # refactor: using array
+        """Return a dictionary of motif probs, calculated as the averaged
+        frequency across sequences.
+
+        Parameters
+        ----------
+        include_ambiguity
+            if True resolved ambiguous codes are included in estimation of
+            frequencies, default is False.
+        exclude_unobserved
+            if True, motifs that are not present in the alignment are excluded
+            from the returned dictionary,
+            default is False.
+        allow_gap
+            allow gap motif
+
+        Notes
+        -----
+
+        only non-overlapping motifs are counted
+        """
+        moltype = self.moltype
+        if alphabet is None:
+            alphabet = moltype.alphabet
+            if allow_gap:
+                alphabet = alphabet.gapped
+
+        counts = {}
+        for seq_name in self.names:
+            sequence = self.seqs[seq_name]
+            motif_len = alphabet.get_motif_len()
+            if motif_len > 1:
+                posns = list(range(0, len(sequence) + 1 - motif_len, motif_len))
+                sequence = [sequence[i : i + motif_len] for i in posns]
+            for motif in sequence:
+                if not allow_gap and self.moltype.gap in motif:
+                    continue
+
+                if motif in counts:
+                    counts[motif] += 1
+                else:
+                    counts[motif] = 1
+
+        probs = {}
+        if not exclude_unobserved:
+            for motif in alphabet:
+                probs[motif] = pseudocount
+
+        for motif, count in list(counts.items()):
+            motif_set = moltype.resolve_ambiguity(motif, alphabet=alphabet)
+            if len(motif_set) > 1:
+                if include_ambiguity:
+                    count = float(count) / len(motif_set)
+                else:
+                    continue
+            for motif in motif_set:
+                probs[motif] = probs.get(motif, pseudocount) + count
+
+        total = float(sum(probs.values()))
+        for motif in probs:
+            probs[motif] /= total
+
+        return probs
+
+    def probs_per_seq(
+        self,
+        motif_length: int = 1,
+        include_ambiguity: bool = False,
+        allow_gap: bool = False,
+        exclude_unobserved: bool = False,
+        warn: bool = False,
+    ) -> MotifFreqsArray:
+        """return MotifFreqsArray per sequence"""
+
+        counts = self.counts_per_seq(
+            motif_length=motif_length,
+            include_ambiguity=include_ambiguity,
+            allow_gap=allow_gap,
+            exclude_unobserved=exclude_unobserved,
+            warn=warn,
+        )
+        return None if counts is None else counts.to_freq_array()
+
+    def entropy_per_seq(
+        self,
+        motif_length=1,
+        include_ambiguity=False,
+        allow_gap=False,
+        exclude_unobserved=True,
+        warn=False,
+    ) -> numpy.ndarray:
+        """Returns the Shannon entropy per sequence.
+
+        Parameters
+        ----------
+        motif_length: int
+            number of characters per tuple.
+        include_ambiguity: bool
+            if True, motifs containing ambiguous characters
+            from the seq moltype are included. No expansion of those is attempted.
+        allow_gap: bool
+            if True, motifs containing a gap character are included.
+        exclude_unobserved: bool
+            if True, unobserved motif combinations are excluded.
+        warn
+            warns if motif_length > 1 and alignment trimmed to produce
+            motif columns
+
+        Notes
+        -----
+        For motif_length > 1, it's advisable to specify exclude_unobserved=True,
+        this avoids unnecessary calculations.
+        """
+        probs = self.probs_per_seq(
+            motif_length=motif_length,
+            include_ambiguity=include_ambiguity,
+            allow_gap=allow_gap,
+            exclude_unobserved=exclude_unobserved,
+            warn=warn,
+        )
+
+        return None if probs is None else probs.entropy()
+
+    def get_lengths(
+        self, include_ambiguity: bool = False, allow_gap: bool = False
+    ) -> dict[str, int]:
+        """returns sequence lengths as a dict of {seqid: length}
+
+        Parameters
+        ----------
+        include_ambiguity
+            if True, motifs containing ambiguous characters
+            from the seq moltype are included. No expansion of those is attempted.
+        allow_gap
+            if True, motifs containing a gap character are included.
+
+        """
+        counts = self.counts_per_seq(
+            motif_length=1, include_ambiguity=include_ambiguity, allow_gap=allow_gap
+        )
+        return counts.row_sum()
+
+    def pad_seqs(self, pad_length: int = None):
+        """Returns copy in which sequences are padded to same length.
+
+        Parameters
+        ----------
+        pad_length
+            Length all sequences are to be padded to. Will pad to max sequence
+            length if pad_length is None or less than max length.
+        """
+        # get max length
+        max_len = max(self.seqs.seq_lengths().values())
+        # If a pad_length was passed in, make sure it is valid
+        if pad_length is None:
+            pad_length = max_len
+
+        elif pad_length < max_len:
+            raise ValueError(
+                f"pad_length must be at greater or equal to maximum sequence length: {str(max_len)}"
+            )
+        # Get new sequence dict
+        new_seqs = {}
+
+        # for each sequence, pad gaps to end
+        for seq_name in self.names:
+            seq = self.seqs.get_seq_str(seqid=seq_name)
+            padded_seq = seq + "-" * (pad_length - len(seq))
+            new_seqs[seq_name] = padded_seq
+
+        return make_unaligned_seqs(
+            new_seqs,
+            moltype=self.moltype,
+            info=self.info,
+            source=self.source,
+            annotation_db=self.annotation_db,
+        )
+
+    def strand_symmetry(self, motif_length=1):
+        """returns dict of strand symmetry test results per seq"""
+        return {s.name: s.strand_symmetry(motif_length=motif_length) for s in self.seqs}
+
     def is_ragged(self) -> bool:
         return len(set(self.seqs.seq_lengths().values())) > 1
 
@@ -942,6 +1391,17 @@ class SequenceCollection:
             if True, degenerate characters are ignored
 
         """
+
+        if self.is_ragged():
+            raise ValueError("not all seqs same length, cannot get identical sets")
+
+        if mask_degen and not self.moltype.degen_alphabet:
+            warnings.warn(
+                "in get_identical_sets, mask_degen has no effect as moltype "
+                f"{self.moltype.label!r} has no degenerate characters",
+                UserWarning,
+            )
+            mask_degen = False
 
         def reduced(seq, indices):
             return "".join(seq[i] for i in range(len(seq)) if i not in indices)
@@ -1359,12 +1819,11 @@ def _(seqs: dict) -> SupportsFeatures:
 def coerce_to_seqs_data_dict(
     data, label_to_name: Callable = None
 ) -> dict[
-    str, Union[PrimitiveSeqTypes, new_seq.Sequence]
+    str, PrimitiveSeqTypes
 ]:  # refactor: type hint for callable should specificy input/return type
     raise NotImplementedError(
         f"coerce_to_seqs_data_dict not implemented for {type(data)}"
     )
-
 
 @coerce_to_seqs_data_dict.register
 def _(data: dict, label_to_name: Callable = None) -> dict[str, PrimitiveSeqTypes]:
@@ -1406,6 +1865,11 @@ def _(first: new_seq.Sequence, data: Union[list, set]) -> dict[str, new_seq.Sequ
 
 @assign_names.register
 def _(first: list, data: Union[list, set]) -> dict[str, PrimitiveSeqTypes]:
+    return {name_seq[0]: name_seq[1] for name_seq in data}
+
+
+@assign_names.register
+def _(first: tuple, data: Union[list, set]) -> dict[str, PrimitiveSeqTypes]:
     return {name_seq[0]: name_seq[1] for name_seq in data}
 
 
@@ -1489,7 +1953,11 @@ def _(
     info["source"] = str(info.get("source", "unknown"))
 
     return SequenceCollection(
-        seqs_data=data, moltype=moltype, info=info, annotation_db=annotation_db
+        seqs_data=data,
+        moltype=moltype,
+        info=info,
+        annotation_db=annotation_db,
+        source=source,
     )
 
 

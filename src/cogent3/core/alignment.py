@@ -1012,7 +1012,7 @@ class _SequenceCollectionBase:
 
         return combined_aln
 
-    def write(self, filename=None, format=None, **kwargs):
+    def write(self, filename=None, format=None, **kwargs):  # ported
         """Write the alignment to a file, preserving order of sequences.
 
         Parameters
@@ -1403,7 +1403,7 @@ class _SequenceCollectionBase:
 
         return self.take_seqs_if(gaps_ok)
 
-    def omit_gap_runs(self, allowed_run=1):
+    def omit_gap_runs(self, allowed_run=1):  # will not port
         """Returns new alignment where all seqs have runs of gaps <=allowed_run.
 
         Note that seqs with exactly allowed_run gaps are not deleted.
@@ -1437,19 +1437,19 @@ class _SequenceCollectionBase:
             result.annotation_db = self.annotation_db
         return result
 
-    def to_dna(self):
+    def to_dna(self):  # ported
         """returns copy of self as an alignment of DNA moltype seqs"""
         return self.to_moltype("dna")
 
-    def to_rna(self):
+    def to_rna(self):  # ported
         """returns copy of self as an alignment of RNA moltype seqs"""
         return self.to_moltype("rna")
 
-    def to_protein(self):
+    def to_protein(self):  # ported
         """returns copy of self as an alignment of PROTEIN moltype seqs"""
         return self.to_moltype("protein")
 
-    def rc(self):
+    def rc(self):  # ported
         """Returns the reverse complement alignment"""
         seqs = [self.named_seqs[name].rc() for name in self.names]
         rc = self.__class__(
@@ -1462,11 +1462,11 @@ class _SequenceCollectionBase:
         rc.annotation_db = self.annotation_db
         return rc
 
-    def reverse_complement(self):
+    def reverse_complement(self):  # ported
         """Returns the reverse complement alignment. A synonym for rc."""
         return self.rc()
 
-    def pad_seqs(self, pad_length=None, **kwargs):
+    def pad_seqs(self, pad_length=None, **kwargs):  # ported
         """Returns copy in which sequences are padded to same length.
 
         Parameters
@@ -1505,7 +1505,7 @@ class _SequenceCollectionBase:
         # return new SequenceCollection object
         return SequenceCollection(moltype=self.moltype, data=new_seqs, **kwargs)
 
-    def strand_symmetry(self, motif_length=1):
+    def strand_symmetry(self, motif_length=1):  # ported
         """returns dict of strand symmetry test results per seq"""
         return {s.name: s.strand_symmetry(motif_length=motif_length) for s in self.seqs}
 
@@ -1521,7 +1521,7 @@ class _SequenceCollectionBase:
         title: Optional[str] = None,
         rc: bool = False,
         show_progress: bool = False,
-    ):
+    ):  # ported
         """make a dotplot between specified sequences. Random sequences
         chosen if names not provided.
 
@@ -1624,7 +1624,7 @@ class _SequenceCollectionBase:
             )
         return dotplot
 
-    def rename_seqs(self, renamer):
+    def rename_seqs(self, renamer):  # ported
         """returns new instance with sequences renamed
 
         Parameters
@@ -1651,7 +1651,7 @@ class _SequenceCollectionBase:
     @UI.display_wrap
     def apply_pssm(
         self, pssm=None, path=None, background=None, pseudocount=0, names=None, ui=None
-    ):
+    ):  # ported
         """scores sequences using the specified pssm
 
         Parameters
@@ -2006,7 +2006,7 @@ class SequenceCollection(_SequenceCollectionBase):
                 feature["spans"] = (array(feature["spans"]) - offset).tolist()
             yield seq.make_feature(feature, self)
 
-    def distance_matrix(self, calc="pdist"):
+    def distance_matrix(self, calc="pdist"):  # ported
         """Estimated pairwise distance between sequences
 
         Parameters

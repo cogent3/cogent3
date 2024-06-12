@@ -1,15 +1,22 @@
+import json
 import os
+import pathlib
+import re
+
+from tempfile import TemporaryDirectory, mktemp
+from warnings import catch_warnings, filterwarnings
 
 import numpy
 import pytest
 
+import cogent3.core.genetic_code as new_gc
 import cogent3.core.new_alignment as new_aln
 import cogent3.core.new_alphabet as new_alpha
 import cogent3.core.new_moltype as new_moltype
 import cogent3.core.new_sequence as new_seq
 
-# todo: kath, update this to using new Sequence load_seq when it is ready
-from cogent3 import load_seq
+# todo: kath, update to using new_sequence.load_seq when implemented
+from cogent3 import load_seq, open_
 from cogent3.core.annotation_db import GffAnnotationDb, load_annotations
 
 
@@ -122,13 +129,14 @@ def gff_db(DATA_DIR):
     return load_annotations(path=DATA_DIR / "simple.gff")
 
 
-@pytest.fixture(scope="session")
-def seqcoll_db():
-    fasta_path = os.path.join("data/c_elegans_WS199_dna_shortened.fasta")
-    gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
+@pytest.fixture(scope="function")
+def seqcoll_db(DATA_DIR):
+    fasta_path = os.path.join(DATA_DIR / "c_elegans_WS199_dna_shortened.fasta")
     seq = load_seq(fasta_path, moltype="dna")
-    seq_coll = new_aln.make_unaligned_seqs({seq.name: seq}, moltype="dna")
-    seq_coll.annotate_from_gff(gff3_path)
+    seq_coll = new_aln.make_unaligned_seqs({seq.name: str(seq)}, moltype="dna")
+    seq_coll.annotation_db = load_annotations(
+        path=DATA_DIR / "c_elegans_WS199_shortened_gff.gff3"
+    )
     return seq_coll
 
 
@@ -599,7 +607,7 @@ def test_sequence_collection_names(seqs):
         seqs.names = ["seq1", "seq2", "seq3", "seq4"]
 
 
-def test_init_seq():
+def test_make_unaligned_seqs_list_str():
     """SequenceCollection init from list of sequences should use indices as keys"""
     seqs = ["TTTTT", "CCCCC", "GGGGG"]
     a = new_aln.make_unaligned_seqs(seqs, moltype="dna")
@@ -610,10 +618,7 @@ def test_init_seq():
     assert a.names == ["seq_0", "seq_1", "seq_2"]
 
 
-@pytest.mark.xfail(
-    reason="todo: decide if we support init from list of (key,val) pairs"
-)
-def test_init_pairs():
+def test_make_unaligned_seqs_pairs():
     """SequenceCollection init from list of (key,val) pairs should work correctly"""
     seqs = [["a", "AAA"], ["t", "TTT"], ["c", "CCC"]]
     a = new_aln.make_unaligned_seqs(seqs, moltype="dna")
@@ -624,7 +629,15 @@ def test_init_pairs():
     assert a.names == ["a", "t", "c"]
 
 
-def test_init_ordered(ordered1, ordered2):
+def test_make_unaligned_seqs_list_sequences():
+    """correctly construct from list of sequences of length 2"""
+    seq1 = new_moltype.DNA.make_seq(seq="AC", name="seq1")
+    seq2 = new_moltype.DNA.make_seq(seq="AC", name="seq2")
+    coll = new_aln.make_unaligned_seqs([seq1, seq2], moltype="dna")
+    assert isinstance(coll, new_aln.SequenceCollection)
+
+
+def test_sequence_collection_init_ordered(ordered1, ordered2):
     """SequenceCollection should iterate over seqs correctly even if ordered"""
     first = ordered1
     sec = ordered2
@@ -641,7 +654,7 @@ def test_sequence_collection_init_ambig():
     _ = new_aln.make_unaligned_seqs(["A?A", "CC-"], moltype="dna")
 
 
-def test_iter_seqs_ragged_padded(ragged_padded):
+def test_sequence_collection_iter_seqs_ragged_padded(ragged_padded):
     """SequenceCollection.iter_seqs() method should support reordering of seqs"""
     seqs = list(ragged_padded.iter_seqs())
     assert seqs == ["AAAAAA", "AAA---", "AAAA--"]
@@ -773,7 +786,7 @@ def test_sequence_collection_set_repr_policy_valid_input(seqs):
 
 def test_sequence_collection_take_seqs(ragged_padded):
     """SequenceCollection take_seqs should return new SequenceCollection with selected seqs."""
-    a = ragged_padded.take_seqs(list("bc"))
+    a = ragged_padded.take_seqs(["b", "c"])
     assert isinstance(a, new_aln.SequenceCollection)
     assert a.names == ["b", "c"]
     assert str(a.seqs["b"]) == "AAA---"
@@ -800,10 +813,10 @@ def test_sequence_collection_take_seqs_str(ragged_padded):
 
 def test_sequence_collection_take_seqs_info():
     """take_seqs should preserve info attribute"""
-    moltype = new_moltype.get_moltype("dna")
+    data = {"a": "CCCCCC", "b": "AAA---", "c": "AAAA--"}
     orig = new_aln.make_unaligned_seqs(
-        {"a": "CCCCCC", "b": "AAA---", "c": "AAAA--"},
-        moltype=moltype,
+        data,
+        moltype="dna",
         info={"key": "value"},
     )
     subset = orig.take_seqs(list("ab"))
@@ -812,29 +825,37 @@ def test_sequence_collection_take_seqs_info():
 
 def test_sequence_collection_take_seqs_moltype():
     """take_seqs should preserve the MolType"""
-    moltype = new_moltype.get_moltype("dna")
-    orig = new_aln.make_unaligned_seqs(
-        {"a": "CCCCCC", "b": "AAA---", "c": "AAAA--"}, moltype=moltype
-    )
+    data = {"a": "CCCCCC", "b": "AAA---", "c": "AAAA--"}
+    orig = new_aln.make_unaligned_seqs(data, moltype="dna")
     subset = orig.take_seqs(list("ab"))
     assert set(subset.moltype) == set(orig.moltype)
 
 
 def test_sequence_collection_take_seqs_empty_names():
-    moltype = new_moltype.get_moltype("dna")
-    orig = new_aln.make_unaligned_seqs(
-        {"a": "CCCCCC", "b": "AAA---", "c": "AAAA--"}, moltype=moltype
-    )
+    """take_seqs should raise ValueError if no seqs are selected."""
+    data = {"a": "CCCCCC", "b": "AAA---", "c": "AAAA--"}
+    orig = new_aln.make_unaligned_seqs(data, moltype="dna")
     with pytest.raises(ValueError):
         _ = orig.take_seqs([])
 
 
+def test_sequence_collection_take_seqs_copy_annotations(gff_db):
+    data = {"test_seq": "ACGT", "test_seq2": "CGTTTA"}
+    seq_coll = new_aln.make_unaligned_seqs(data, moltype="dna", annotation_db=gff_db)
+    seq_coll.annotation_db = gff_db
+    # if copy annotations is true, only the annotations for the selected seqs should be copied
+    just_seq2 = seq_coll.take_seqs(names="test_seq2", copy_annotations=True)
+    assert len(just_seq2.annotation_db) == 1
+
+    # if copy annotations is false, the annotation db should be the same as original
+    just_seq1 = seq_coll.take_seqs(names="test_seq", copy_annotations=False)
+    assert just_seq1.annotation_db == gff_db
+
+
 def test_sequence_collection_num_seqs():
     """SequenceCollection.num_seqs should count seqs."""
-
-    seqs = new_aln.make_unaligned_seqs(
-        {"seq1": "ACGU", "seq2": "CGUA", "seq3": "CCGU"}, moltype="rna"
-    )
+    data = {"seq1": "ACGU", "seq2": "CGUA", "seq3": "CCGU"}
+    seqs = new_aln.make_unaligned_seqs(data, moltype="rna")
     assert seqs.num_seqs == 3
 
 
@@ -861,7 +882,7 @@ def is_any(x):
     return len(x) > 0
 
 
-def test_get_seq_names_if(ragged_padded):
+def test_sequence_collection_get_seq_names_if(ragged_padded):
     """SequenceCollection.get_seq_names_if should return names of seqs where f(row) is True"""
 
     assert ragged_padded.get_seq_names_if(is_long) == []
@@ -874,7 +895,7 @@ def test_get_seq_names_if(ragged_padded):
     assert ragged_padded.get_seq_names_if(is_any, negate=True) == []
 
 
-def test_take_seqs_if(ragged_padded):
+def test_sequence_collection_take_seqs_if(ragged_padded):
     """SequenceCollection take_seqs_if should return seqs where f(seq) is True"""
 
     with pytest.raises(ValueError):
@@ -902,9 +923,8 @@ def test_sequence_collection_to_dict():
 
 def test_sequence_collection_get_seq():
     """SequenceCollection.get_seq should return specified seq"""
-    seqs = new_aln.make_unaligned_seqs(
-        {"seq1": "GATTTT", "seq2": "GATC??"}, moltype="dna"
-    )
+    data = {"seq1": "GATTTT", "seq2": "GATC??"}
+    seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
     assert seqs.get_seq("seq1") == "GATTTT"
     with pytest.raises(KeyError):
         seqs.get_seq("seqx")
@@ -919,38 +939,57 @@ def test_sequence_collection_degap():
 
 def test_sequence_collection_to_fasta():
     """SequenceCollection should return correct FASTA string"""
-    seqs = new_aln.make_unaligned_seqs(["AAA", "CCC"], moltype="dna")
+    data = {"seq_0": "AAA", "seq_1": "CCC"}
+    seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
     assert seqs.to_fasta() == ">seq_0\nAAA\n>seq_1\nCCC\n"
     assert seqs.to_fasta(block_size=2) == ">seq_0\nAA\nA\n>seq_1\nCC\nC\n"
 
-    seqs = new_aln.make_unaligned_seqs(["GCATGCAT", "TCAGACGT"], moltype="dna")
+    data = {"seq_0": "GCATGCAT", "seq_1": "TCAGACGT"}
+    seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
     assert seqs.to_fasta() == ">seq_0\nGCATGCAT\n>seq_1\nTCAGACGT\n"
     assert seqs.to_fasta(block_size=4) == ">seq_0\nGCAT\nGCAT\n>seq_1\nTCAG\nACGT\n"
     assert seqs.to_fasta(block_size=3) == ">seq_0\nGCA\nTGC\nAT\n>seq_1\nTCA\nGAC\nGT\n"
 
 
-def test_is_ragged(ragged, ragged_padded):
+def test_sequence_collection_is_ragged(ragged, ragged_padded):
     """SequenceCollection is_ragged should return true if ragged alignment"""
     assert ragged.is_ragged()
     assert not ragged_padded.is_ragged()
 
 
+def test_sequence_collection_ragged(ragged):
+    """SequenceCollection seqs should work on ragged alignment"""
+    ragged.names = "bac"
+    assert [ragged.seqs.get_seq_str(seqid=name) for name in ragged.names] == [
+        "AAA",
+        "AAAAAA",
+        "AAAA",
+    ]
+
+
 def test_sequence_collection_to_phylip():
     """SequenceCollection should return PHYLIP string format correctly"""
-    align_norm = new_aln.make_unaligned_seqs(
-        [
-            "ACDEFGHIKLMNPQRSTUVWY-",
-            "ACDEFGHIKLMNPQRSUUVWF-",
-            "ACDEFGHIKLMNPERSKUVWC-",
-            "ACNEFGHIKLMNPQRS-UVWP-",
-        ],
-        moltype="protein",
-    )
+    data = {
+        "seq_0": "ACDEFGHIKLMNPQRSTUVWY-",
+        "seq_1": "ACDEFGHIKLMNPQRSUUVWF-",
+        "seq_2": "ACDEFGHIKLMNPERSKUVWC-",
+        "seq_3": "ACNEFGHIKLMNPQRS-UVWP-",
+    }
+    align_norm = new_aln.make_unaligned_seqs(data, moltype="protein")
 
     assert (
         align_norm.to_phylip()
         == """4  22\nseq_0     ACDEFGHIKLMNPQRSTUVWY-\nseq_1     ACDEFGHIKLMNPQRSUUVWF-\nseq_2     ACDEFGHIKLMNPERSKUVWC-\nseq_3     ACNEFGHIKLMNPQRS-UVWP-\n"""
     )
+
+
+def test_sequence_collection_to_phylip_ragged():
+    """SequenceCollection should refuse to convert ragged seqs to phylip"""
+    data = {"seq1": "KGA-", "seq2": "KGA"}
+    align_rag = new_aln.make_unaligned_seqs(data, moltype="protein")
+
+    with pytest.raises(ValueError):
+        align_rag.to_phylip()
 
 
 @pytest.mark.parametrize(
@@ -961,23 +1000,168 @@ def test_sequence_collection_to_phylip():
         (2, ("GATTTT", "TCCAGG")),
     ),
 )
-def test_has_terminal_stop_true(gc, seqs):
+def test_sequence_collection_has_terminal_stop_true(gc, seqs):
     data = {f"s{i}": s for i, s in enumerate(seqs)}
-    seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
-    assert seqs.has_terminal_stop(gc=gc)
+    seq_coll = new_aln.make_unaligned_seqs(data, moltype="dna")
+    assert seq_coll.has_terminal_stop(gc=gc)
 
 
 @pytest.mark.parametrize(
     "gc,seqs",
     ((1, ("TCCTCA", "GATTTT")), (2, ("GATTTT", "TCCCGG")), (1, ("CCTCA", "ATTTT"))),
 )
-def test_has_terminal_stop_false(gc, seqs):
+def test_sequence_collection_has_terminal_stop_false(gc, seqs):
+    data = {f"s{i}": s for i, s in enumerate(seqs)}
+    seq_coll = new_aln.make_unaligned_seqs(data, moltype="dna")
+    assert not seq_coll.has_terminal_stop(gc=gc)
+
+
+def test_sequence_collection_has_terminal_stop_strict():
+    gc = new_gc.get_code(1)
+    data = {f"s{i}": s for i, s in enumerate(("CCTCA", "ATTTT"))}
+    seq_coll = new_aln.make_unaligned_seqs(data, moltype="dna")
+    with pytest.raises(new_alpha.AlphabetError):
+        seq_coll.has_terminal_stop(gc=gc, strict=True)
+
+
+    seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
+
+
+@pytest.mark.parametrize(
+    "gc,seqs",
+    ((1, ("T-CTGC", "GATAA?")), (2, ("GATTTT", "TCCCGG")), (1, ("CCTGC", "GATAA"))),
+)
+def test_sequence_collection_trim_terminal_stops_no_stop(gc, seqs):
+    gc = new_gc.get_code(gc)
     data = {f"s{i}": s for i, s in enumerate(seqs)}
     seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
-    assert not seqs.has_terminal_stop(gc=gc)
+    got = seqs.trim_stop_codons(gc=gc)
+    assert got is seqs
 
 
-def test_get_similar():
+@pytest.mark.parametrize(
+    "data", ({"s1": "CCTCA", "s2": "ATTTT"}, {"s1": "CCTCA-", "s2": "ATTTTA"})
+)
+def test_sequence_collection_trim_terminal_stops_strict(data):
+    gc = new_gc.get_code(1)
+    seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
+    with pytest.raises(new_alpha.AlphabetError):
+        seqs.trim_stop_codons(gc=gc, strict=True)
+
+
+def test_sequence_collection_trim_stop_codons_info():
+    """trim_stop_codons should preserve info attribute"""
+    data = {"seq1": "ACGTAA", "seq2": "ACGACG", "seq3": "ACGCGT"}
+    coll = new_aln.make_unaligned_seqs(
+        data,
+        moltype="dna",
+        info={"key": "value"},
+    )
+    coll = coll.trim_stop_codons()
+    assert coll.info["key"] == "value"
+
+
+@pytest.fixture(scope="function")
+def dna_seqs_with_dupes():
+    data = {
+        "a": "ACGG",
+        "b": "ACGG",  # strict identical
+        "c": "ACGN",  # non-strict matches above
+        "d": "ACGT",
+        "e": "ACGT",
+        "k": "ACGT",  # strict identical
+        "f": "RAAA",
+        "g": "YAAA",  # non-strict identical
+    }
+
+    return new_aln.make_unaligned_seqs(data, moltype="dna")
+
+
+def test_sequence_collection_get_identical_sets_dna(dna_seqs_with_dupes):
+    """correctly identify sets of identical sequences"""
+    got = dna_seqs_with_dupes.get_identical_sets(
+        mask_degen=False
+    )  # a strict comparison
+    # convert to frozenset, so we can do a comparison robust to set order
+    got = frozenset(frozenset(s) for s in got)
+    expect = [{"a", "b"}, {"d", "e", "k"}]
+    expect = frozenset(frozenset(s) for s in expect)
+    assert got == expect
+
+
+def test_sequence_collection_get_identical_sets_dna_mask_degen(dna_seqs_with_dupes):
+    got = dna_seqs_with_dupes.get_identical_sets(mask_degen=True)
+    got = frozenset(frozenset(s) for s in got)
+    expect = [{"a", "b", "c"}, {"d", "e", "k"}, {"f", "g"}]
+    expect = frozenset(frozenset(s) for s in expect)
+    assert got == expect
+
+
+@pytest.fixture(scope="function")
+def protein_seqs_with_dupes():
+    data = {
+        "a": "ACGT",
+        "b": "ACGT",  # strict identical
+        "c": "ACGX",  # non-strict matches above
+        "d": "TTTT",
+        "e": "TTTT",
+        "k": "TTTT",  # strict identical
+        "f": "BAAA",
+        "g": "ZAAA",  # non-strict identical
+    }
+
+    return new_aln.make_unaligned_seqs(data, moltype="protein")
+
+
+def test_sequence_collection_get_identical_sets_protein(protein_seqs_with_dupes):
+    got = protein_seqs_with_dupes.get_identical_sets(
+        mask_degen=False
+    )  # a strict comparison
+    # convert to frozenset, so we can do a comparison robust to set order
+    got = frozenset(frozenset(s) for s in got)
+    expect = [{"a", "b"}, {"d", "e", "k"}]
+    expect = frozenset(frozenset(s) for s in expect)
+    assert got == expect
+
+
+def test_sequence_collection_get_identical_sets_protein_mask_degen(
+    protein_seqs_with_dupes,
+):
+    got = protein_seqs_with_dupes.get_identical_sets(mask_degen=True)
+    got = frozenset(frozenset(s) for s in got)
+    expect = [{"a", "b", "c"}, {"d", "e", "k"}, {"f", "g"}]
+    expect = frozenset(frozenset(s) for s in expect)
+    assert got == expect
+
+
+def test_sequence_collection_get_identical_sets_text():
+    data = {
+        "a": "ACGT",
+        "b": "ACGT",  # strict identical
+        "c": "ACGX",  # non-strict matches above
+        "d": "TTTT",
+        "e": "TTTT",
+        "k": "TTTT",  # strict identical
+        "f": "BAAA",
+        "g": "ZAAA",  # non-strict identical
+    }
+    seqs = new_aln.make_unaligned_seqs(data, moltype="text")
+    got = seqs.get_identical_sets(mask_degen=False)
+    # convert to frozenset, so we can do a comparison robust to set order
+    got = frozenset(frozenset(s) for s in got)
+    expect = [{"a", "b"}, {"d", "e", "k"}]
+    expect = frozenset(frozenset(s) for s in expect)
+    assert got == expect
+
+    with catch_warnings():
+        filterwarnings("ignore", category=UserWarning)
+        got = seqs.get_identical_sets(mask_degen=True)
+
+    got = frozenset(frozenset(s) for s in got)
+    assert got == expect
+
+
+def test_sequence_collection_get_similar():
     data = {
         "a": "AAAAAAAAAA",  # target
         "b": "AAAAAAAAAA",  # identical
@@ -1001,30 +1185,78 @@ def test_get_similar():
 def test_sequence_collection_init_annotated_seqs():
     """correctly construct from list with annotated seq"""
     seq = new_moltype.DNA.make_seq(seq="GCCAGGGGGGAAAG-GGAGAA", name="seq1")
-    _ = seq.add_feature(biotype="exon", name="name", spans=[(4, 10)])
+    seq.add_feature(biotype="exon", name="name", spans=[(4, 10)])
     coll = new_aln.make_unaligned_seqs([seq], moltype="dna")
     features = list(coll.get_features(biotype="exon"))
     assert len(features) == 1
 
 
-def test_sequence_collection_make_unaligned_seqs_annotated():
-    """annotate_from_gff should work on data from gff3 files"""
-    fasta_path = os.path.join("data/c_elegans_WS199_dna_shortened.fasta")
-    gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
-    seq = load_seq(fasta_path, moltype="dna")
-    seq = new_moltype.DNA.make_seq(seq=str(seq), name="seq1")
-    seq.annotate_from_gff(gff3_path)
+def test_sequence_collection_counts_per_seq():
+    """SequenceCollection.counts_per_seq handles motif length, allow_gaps etc.."""
+    data = {"a": "AAAA??????", "b": "CCCGGG--NN", "c": "CCGGTTCCAA"}
+    coll = new_aln.make_unaligned_seqs(data, moltype="dna")
+    mtype = coll.moltype
+    got = coll.counts_per_seq()
+    assert got["a", "A"] == 4
+    assert len(got.motifs) == len(mtype.alphabet)
+    got = coll.counts_per_seq(include_ambiguity=True, allow_gap=True)
+    # N, -, ? are the additional states
+    assert len(got.motifs) == 7
+    expect = {"-": 2, "?": 0, "A": 0, "C": 3, "G": 3, "N": 2, "T": 0}
+    b = got["b"].to_dict()
+    for k in expect:
+        assert b[k] == expect[k]
+
+    got = coll.counts_per_seq(motif_length=2)
+    assert len(got.motifs), len(mtype.alphabet) ** 2
+    assert got["a", "AA"] == 2
+    assert got["b", "GG"] == 1
+    got = coll.counts_per_seq(exclude_unobserved=True)
+    expect = {"C": 4, "G": 2, "T": 2, "A": 2}
+    c = got["c"].to_dict()
+    for k in expect:
+        assert c[k] == expect[k]
+
+
+def test_sequence_collection_counts():
+    """SequenceCollection.counts handles motif length, allow_gaps etc.."""
+    data = {"a": "AAAA??????", "b": "CCCGGG--NN"}
+    coll = new_aln.make_unaligned_seqs(data, moltype="dna")
+    got = coll.counts()
+    expect = dict(A=4, C=3, G=3)
+    assert all(got[k] == v for k, v in expect.items())
+
+    got = coll.counts(motif_length=2)
+    expect = dict(AA=2, CC=1, CG=1, GG=1)
+    assert all(got[k] == v for k, v in expect.items())
+
+    got = coll.counts(motif_length=2, allow_gap=True)
+    expect.update({"--": 1})
+    assert all(got[k] == v for k, v in expect.items())
+
+    got = coll.counts(motif_length=2, include_ambiguity=True, allow_gap=True)
+    expect = dict(AA=2, CC=1, CG=1, GG=1, NN=1)
+    expect.update({"??": 3, "--": 1})
+    assert all(got[k] == v for k, v in expect.items())
 
 
 def test_sequence_collection_annotation_db_assign_none():
     """assigning None to annotation_db breaks conection"""
-    seq_coll = new_aln.make_unaligned_seqs(
-        {"seq1": "ACGU", "seq2": "CGUA", "test_seq": "CCGU"}, moltype="rna"
-    )
+    data = {"seq1": "ACGU", "seq2": "CGUA", "test_seq": "CCGU"}
+    seq_coll = new_aln.make_unaligned_seqs(data, moltype="rna")
     seq_coll.add_feature(seqid="seq1", biotype="xyz", name="abc", spans=[(1, 2)])
     seq_coll.add_feature(seqid="seq2", biotype="xyzzz", name="abc", spans=[(1, 2)])
+    assert seq_coll.annotation_db is not None
     seq_coll.annotation_db = None
     assert seq_coll.annotation_db is None
+
+
+def test_sequence_collection_annotation_db_assign_same(gff_db):
+    """assigning the same annotation_db"""
+    data = {"test_seq": "ACGT", "test_seq2": "CGTTTA"}
+    seq_coll = new_aln.make_unaligned_seqs(data, moltype="dna", annotation_db=gff_db)
+    seq_coll.annotation_db = gff_db
+    assert seq_coll.annotation_db is gff_db
 
 
 def test_sequence_collection_get_annotations_from_any_seq():
@@ -1057,9 +1289,8 @@ def test_sequence_collection_get_annotations_from_any_seq():
 
 def test_sequence_collection_copy_annotations(gff_db):
     """copy_annotations copies records from annotation db"""
-    seq_coll = new_aln.make_unaligned_seqs(
-        {"seq1": "ACGU", "seq2": "CGUA", "test_seq": "CCGU"}, moltype="rna"
-    )
+    data = {"seq1": "ACGU", "seq2": "CGUA", "test_seq": "CCGU"}
+    seq_coll = new_aln.make_unaligned_seqs(data, moltype="rna")
     seq_coll.add_feature(seqid="seq1", biotype="xyz", name="abc", spans=[(1, 2)])
     seq_coll.add_feature(seqid="seq2", biotype="xyzzz", name="abc", spans=[(1, 2)])
     expect = seq_coll.annotation_db.num_matches() + gff_db.num_matches()
@@ -1069,11 +1300,11 @@ def test_sequence_collection_copy_annotations(gff_db):
 
 def test_sequence_collection_get_seq_annotated():
     """SequenceCollection.get_seq should return specified seq"""
-    seqs = new_aln.make_unaligned_seqs(
-        {"seq1": "GATTTT", "seq2": "GATC??"}, moltype="dna"
-    )
+
+    data = {"seq1": "GATTTT", "seq2": "GATC??"}
+    seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
     seqs.add_feature(seqid="seq1", biotype="xyz", name="abc", spans=[(1, 2)])
-    seqs.add_feature(seqid="seq2", biotype="xyzzz", name="abc", spans=[(1, 2)])
+    seqs.add_feature(seqid="seq2", biotype="xy", name="ab", spans=[(1, 2)])
 
     with_annos = seqs.get_seq("seq1", copy_annotations=True)
     assert len(with_annos.annotation_db) == 1
@@ -1092,33 +1323,26 @@ def _make_seq(name):
     return seq
 
 
-@pytest.mark.xfail(
-    reason="construction of Sequences from SequenceCollection does not propagate \
-    annotations to get a sequence with annotations, use get_seq with copy_annotations=True"
-)
 def test_sequence_collection_init_seqs_have_annotations():
     """annotations on input seqs correctly merged and propagated"""
-
-    seq_coll = new_aln.make_unaligned_seqs(
-        {"seq1": _make_seq("seq1"), "seq2": _make_seq("seq2")}, moltype="dna"
-    )
+    data = {"seq1": _make_seq("seq1"), "seq2": _make_seq("seq2")}
+    seq_coll = new_aln.make_unaligned_seqs(data, moltype="dna")
     coll_db = seq_coll.annotation_db
     assert len(coll_db) == 4
-    for seq in seq_coll.seqs:
+    for name in seq_coll.names:
+        seq = seq_coll.get_seq(name)
         db = seq.annotation_db
         assert db is coll_db
 
 
-@pytest.mark.xfail(
-    reason="annotating sequences does not propagate annotations to the SequenceCollection"
-)
-def test_add_to_seq_updates_coll():
+def test_sequence_collection_add_to_seq_updates_coll():
     """annotating a seq updates the db of the propagated"""
+    data = {
+        "x": "AACCCAAAATTTTTTGGGGGGGGGGCCCC",
+        "y": "AACCCAAAATTTTTTGGGGGGGGGGCCCC",
+    }
     seq_coll = new_aln.make_unaligned_seqs(
-        {
-            "x": "AACCCAAAATTTTTTGGGGGGGGGGCCCC",
-            "y": "AACCCAAAATTTTTTGGGGGGGGGGCCCC",
-        },
+        data,
         moltype="dna",
     )
     x = seq_coll.get_seq("x")
@@ -1127,19 +1351,7 @@ def test_add_to_seq_updates_coll():
     assert len(seq_coll.annotation_db) == len(x.annotation_db) == 1
 
 
-@pytest.mark.xfail(reason="load_seq creating old-style Sequence")
-def test_copy_annotations_incompat_fails(seqcoll_db, gb_db):
-    """copy_annotations copies records from annotation db"""
-    db = seqcoll_db.annotation_db
-    seqcoll_db.annotation_db = db
-    with pytest.raises(TypeError):
-        seqcoll_db.copy_annotations(gb_db)
-
-
-@pytest.mark.xfail(reason="load_seq creating old-style Sequence")
-def test_copy_annotations_incompat_type_fails(seqcoll_db, seqs):
-    """copy_annotations copies records from annotation db"""
-
+def test_sequence_collection_copy_annotations_incompat_type_fails(seqcoll_db, seqs):
     with pytest.raises(TypeError):
         seqcoll_db.copy_annotations(seqs)
 
@@ -1177,14 +1389,22 @@ def test_sequence_collection_to_moltype_annotation_db():
     assert len(dna.annotation_db) == 3
 
 
-def test_dotplot():
+def test_sequence_collection_to_moltype_same_moltype():
+    data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
+    seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
+    to_same_seqs = seqs.to_moltype("dna")
+    assert to_same_seqs is seqs
+
+
+def test_sequence_collection_dotplot():
     """exercising dotplot method"""
+    data = {
+        "Human": "CAGATTTGGCAGTT-",
+        "Mouse": "CAGATTCAGCAGGTG",
+        "Rat": "CAGATTCAGCAGGTG",
+    }
     seqs = new_aln.make_unaligned_seqs(
-        {
-            "Human": "CAGATTTGGCAGTT-",
-            "Mouse": "CAGATTCAGCAGGTG",
-            "Rat": "CAGATTCAGCAGGTG",
-        },
+        data,
         moltype="dna",
     )
     _ = seqs.dotplot()
@@ -1197,9 +1417,274 @@ def test_sequence_collection_dotplot_annotated():
     db = GffAnnotationDb()
     db.add_feature(seqid="Human", biotype="exon", name="fred", spans=[(10, 15)])
 
-    seqs = new_aln.make_unaligned_seqs(
-        {"Human": "CAGATTTGGCAGTT-", "Mouse": "CAGATTCAGCAGGTG"}, moltype="dna"
-    )
+    data = {"Human": "CAGATTTGGCAGTT-", "Mouse": "CAGATTCAGCAGGTG"}
+    seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
     seqs.annotation_db = db
     seqs = seqs.take_seqs(["Human", "Mouse"], copy_annotations=True)
     _ = seqs.dotplot(show_progress=False)
+
+
+def test_sequence_collection_add_seqs():
+    data = dict(
+        [("name1", "AAA"), ("name2", "AAA"), ("name3", "AAA"), ("name4", "AAA")]
+    )
+    data2 = dict([("name5", "BBB"), ("name6", "CCC")])
+    aln = new_aln.make_unaligned_seqs(data, moltype="text", info={"key": "foo"})
+    out_aln = aln.add_seqs(data2)
+    assert len(out_aln.names) == 6
+
+
+def test_sequence_collection_add_seqs_duplicate_raises():
+    """add_seqs should raise an error if duplicate names"""
+    data = dict(
+        [("name1", "AAA"), ("name2", "AAA"), ("name3", "AAA"), ("name4", "AAA")]
+    )
+    data2 = dict([("name5", "BBB"), ("name1", "CCC")])
+    aln = new_aln.make_unaligned_seqs(data, moltype="text", info={"key": "foo"})
+    with pytest.raises(ValueError):
+        _ = aln.add_seqs(data2)
+
+    # but it should work if we allow duplicates
+    out_aln = aln.add_seqs(data2, force_unique_keys=False)
+    assert len(out_aln.names) == 5
+
+
+def test_sequence_collection_add_seqs_info():
+    """add_seqs should preserve info attribute"""
+    data = dict(
+        [("name1", "AAA"), ("name2", "AAA"), ("name3", "AAA"), ("name4", "AAA")]
+    )
+    data2 = dict([("name5", "BBB"), ("name6", "CCC")])
+    aln = new_aln.make_unaligned_seqs(data, moltype="text", info={"key": "foo"})
+    aln2 = new_aln.make_unaligned_seqs(data2, moltype="text", info={"key": "bar"})
+    out_aln = aln.add_seqs(aln2)
+    assert out_aln.info["key"] == "foo"
+
+
+def test_sequence_collection_write():
+    """SequenceCollection.write should write in correct format"""
+    data = {"a": "AAAA", "b": "TTTT", "c": "CCCC"}
+    seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
+    fn = mktemp(suffix=".fasta")
+    seqs.write(fn)
+    with open(fn, newline=None) as infile:
+        result = infile.read()
+    assert result == ">a\nAAAA\n>b\nTTTT\n>c\nCCCC\n"
+    os.remove(fn)
+
+
+def test_sequence_collection_write_gapped():
+    data = {"a": "AAA--", "b": "TTTT", "c": "CCCC"}
+    seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
+    fn = mktemp(suffix=".fasta")
+    seqs.write(fn)
+    with open(fn, newline=None) as infile:
+        result = infile.read()
+    assert result == ">a\nAAA--\n>b\nTTTT\n>c\nCCCC\n"
+    os.remove(fn)
+
+
+def test_get_ambiguous_positions():
+    """SequenceCollection.get_ambiguous_positions should return pos"""
+    aln = new_aln.make_unaligned_seqs({"s1": "ATGRY?", "s2": "T-AG??"}, moltype="dna")
+    assert aln.get_ambiguous_positions() == {
+        "s2": {4: "?", 5: "?"},
+        "s1": {3: "R", 4: "Y", 5: "?"},
+    }
+
+
+@pytest.mark.xfail(reason="'MolType' object has no attribute 'gaps'")
+def test_sequence_collection_consistent_gap_degen_handling():
+    """gap degen character should be treated consistently"""
+    # the degen character '?' can be a gap, so when we strip gaps it should
+    # be gone too
+    raw_seq = "---??-??TC-GGCG-GCA-G-GC-?-C-TAN-GCGC-CCTC-AGGA?-???-??--"
+    raw_ungapped = re.sub("[-?]", "", raw_seq)
+    re.sub("[N?]+", "", raw_seq)
+    dna = new_moltype.DNA.make_seq(seq=raw_seq)
+
+    aln = new_aln.make_unaligned_seqs({"a": dna, "b": dna}, moltype="dna")
+    expect = new_aln.make_unaligned_seqs(
+        {"a": raw_ungapped, "b": raw_ungapped}, moltype="dna"
+    ).to_fasta()
+    assert aln.degap().to_fasta() == expect
+
+
+def test_sequence_collection_pad_seqs(ragged):
+    # pad to max length
+    padded1 = ragged.pad_seqs()
+    seqs1 = list(padded1.iter_seqs(seq_order=["a", "b", "c"]))
+    assert list(map(str, seqs1)) == ["AAAAAA", "AAA---", "AAAA--"]
+
+    # pad to alternate length
+    padded2 = ragged.pad_seqs(pad_length=10)
+    seqs2 = list(padded2.iter_seqs(seq_order=["a", "b", "c"]))
+    assert list(map(str, seqs2)) == ["AAAAAA----", "AAA-------", "AAAA------"]
+
+    # assertRaises error when pad_length is less than max seq length
+    with pytest.raises(ValueError):
+        _ = ragged.pad_seqs(pad_length=5)
+
+
+@pytest.fixture
+def ambigs_coll():
+    data = {"a": "AAAA??????", "b": "CCCGGG--NN"}
+    return new_aln.make_unaligned_seqs(data, moltype="dna")
+
+
+def test_sequence_collection_get_lengths(ambigs_coll):
+    got = ambigs_coll.get_lengths()
+    expect = {"a": 4, "b": 6}
+    assert got == expect
+
+
+
+
+def test_sequence_collection_get_lengths_allow_gap(ambigs_coll):
+    got = ambigs_coll.get_lengths(include_ambiguity=True, allow_gap=True)
+    expect = {"a": 10, "b": 10}
+    assert got == expect
+
+
+def test_sequence_collection_strand_symmetry():
+    """exercising strand symmetry test"""
+    data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
+    seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
+    result = seqs.strand_symmetry()
+    assert numpy.allclose(result["seq1"].observed.array, [[3, 2], [2, 2]])
+    assert numpy.allclose(result["seq2"].observed.array, [[3, 0], [2, 1]])
+
+
+
+
+def test_sequence_collection_apply_pssm():
+    """should successfully produce pssm scores"""
+    from cogent3.parse import jaspar
+
+    _, pwm = jaspar.read("data/sample.jaspar")
+    data = {
+        "ENSMUSG00000056468": "GCCAGGGGGGAAAGGGAGAA",
+        "ENSMUSG00000039616": "GCCCTTCAAATTTGGTTTCT",
+        "ENSMUSG00000024091": "TTTCCAGGGCAGACAAGACG",
+        "ENSMUSG00000024056": "ACAATAATGCCGAGAGCCAG",
+        "ENSMUSG00000054321": "TATGAAAATTTTTGCCAGGC",
+        "ENSMUSG00000052469": "CCTGTTTGCCTTTAAATATT",
+        "ENSMUSG00000024261": "CAGACAAGAAACCAGCAACA",
+        "ENSMUSG00000052031": "AGCGAGTATNCACGCACAGA",
+        "ENSMUSG00000067872": "ACACAGCTCTGACAACTCAT",
+        "ENSMUSG00000023892": "GTAACATCAGTACAGCACAG",
+    }
+    seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
+    max_seq_len = max(seqs.seqs.seq_lengths().values())
+
+    scores = seqs.apply_pssm(path="data/sample.jaspar", show_progress=False)
+    assert scores.shape == (len(data), max_seq_len - pwm.shape[0] + 1)
+    scores = seqs.apply_pssm(pssm=pwm.to_pssm(), show_progress=False)
+    assert scores.shape == (len(data), max_seq_len - pwm.shape[0] + 1)
+
+    # using the names argument works to return scores in the correct order
+    seqs = new_aln.make_unaligned_seqs(
+        {"ENSMUSG00000056468": "GCCAGGGGGGAAAGGGAGAA"}, moltype="dna"
+    )
+    expect = []
+    expect.extend(seqs.apply_pssm(pssm=pwm.to_pssm(), show_progress=False))
+    seqs = new_aln.make_unaligned_seqs(
+        {"ENSMUSG00000039616": "GCCCTTCAAATTTGGTTTCT"}, moltype="dna"
+    )
+    expect.extend(seqs.apply_pssm(pssm=pwm.to_pssm(), show_progress=False))
+    expect = numpy.array(expect)
+    seqs = new_aln.make_unaligned_seqs(
+        {
+            "ENSMUSG00000056468": "GCCAGGGGGGAAAGGGAGAA",
+            "ENSMUSG00000039616": "GCCCTTCAAATTTGGTTTCT",
+        },
+        moltype="dna",
+    )
+    got = seqs.apply_pssm(
+        pssm=pwm.to_pssm(), show_progress=False, names="ENSMUSG00000056468"
+    )
+    assert numpy.allclose(got, expect[:1])
+    got = seqs.apply_pssm(
+        pssm=pwm.to_pssm(), show_progress=False, names=["ENSMUSG00000039616"]
+    )
+    assert numpy.allclose(got, expect[1:])
+    got = seqs.apply_pssm(
+        pssm=pwm.to_pssm(),
+        show_progress=False,
+        names=["ENSMUSG00000056468", "ENSMUSG00000039616"],
+    )
+    assert numpy.allclose(got, expect)
+    got = seqs.apply_pssm(
+        pssm=pwm.to_pssm(),
+        show_progress=False,
+        names=["ENSMUSG00000039616", "ENSMUSG00000056468"],
+    )
+    assert numpy.allclose(got, expect[::-1])
+
+
+def test_sequence_collection_apply_pssm2():
+    """apply_pssm fail if ragged sequences"""
+    data = {
+        "ENSMUSG00000056468": "GCCAGGGGGGAAAGGGAGAA",
+        "ENSMUSG00000039616": "GCCCTTCAAATTT",
+    }
+    seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
+    with pytest.raises(AssertionError):
+        _ = seqs.apply_pssm(path="data/sample.jaspar", show_progress=False)
+
+
+def test_sequence_collection_get_seq_entropy():
+    """get_seq_entropy should get entropy of each seq"""
+    a = new_aln.make_unaligned_seqs(dict(a="ACCC", b="AGTA"), moltype="dna")
+    entropy = a.entropy_per_seq()
+    e = 0.81127812445913283  # sum(p log_2 p) for p = 0.25, 0.75
+    assert numpy.allclose(entropy, numpy.array([e, 1.5]))
+
+
+
+
+@pytest.mark.parametrize("moltype", ("dna", "rna"))
+def test_sequence_collection_distance_matrix_singleton_collection(moltype):
+    """SequenceCollection.distance_matrix() should raise error if collection
+    only contains a single sequence"""
+    collection = new_aln.make_unaligned_seqs({"s1": "ACGTACGTAGTCGCG"}, moltype=moltype)
+    with pytest.raises(ValueError):
+        _ = collection.distance_matrix()
+
+
+@pytest.mark.parametrize("moltype", ("dna", "rna"))
+def test_sequence_collection_distance_matrix_same_seq(moltype):
+    """Identical seqs should return distance measure of 0.0"""
+    data = dict([("s1", "ACGACGAGCGCG"), ("s2", "GGACGACGCG"), ("s3", "GGACGACGCG")])
+    collection = new_aln.make_unaligned_seqs(data, moltype=moltype)
+    with catch_warnings():
+        filterwarnings("ignore", category=DeprecationWarning)
+        dists = collection.distance_matrix(calc="pdist")
+
+    # all comparison of a sequence to itself should be zero
+    for seq in collection.names:
+        assert dists[(seq, seq)] == 0.0
+
+    # s2 and s3 are identical, so should be zero
+    assert dists[("s2", "s3")] == 0.0
+    assert dists[("s3", "s2")] == 0.0
+
+    # s1 is different from s2 and s3
+    assert dists[("s1", "s2")] > 0.0
+    assert dists[("s1", "s3")] > 0.0
+
+
+@pytest.mark.parametrize("moltype", ("protein", "text", "bytes"))
+def test_sequence_collection_distance_matrix_fails_wrong_moltype(moltype):
+    data = {"s1": "ACGTA", "s2": "ACGTA"}
+    seqs = new_aln.make_unaligned_seqs(data, moltype=moltype)
+    with pytest.raises(NotImplementedError):
+        seqs.distance_matrix()
+
+
+@pytest.mark.parametrize("moltype", ("dna", "rna"))
+def test_distance_matrix_passes_correct_moltype(moltype):
+    data = {"s1": "ACGTA", "s2": "ACGTA"}
+    seqs = new_aln.make_unaligned_seqs(data, moltype=moltype)
+
+    seqs.distance_matrix()
