@@ -1023,7 +1023,6 @@ def test_sequence_collection_has_terminal_stop_strict():
     with pytest.raises(new_alpha.AlphabetError):
         seq_coll.has_terminal_stop(gc=gc, strict=True)
 
-
     seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
 
 
@@ -1538,8 +1537,6 @@ def test_sequence_collection_get_lengths(ambigs_coll):
     assert got == expect
 
 
-
-
 def test_sequence_collection_get_lengths_allow_gap(ambigs_coll):
     got = ambigs_coll.get_lengths(include_ambiguity=True, allow_gap=True)
     expect = {"a": 10, "b": 10}
@@ -1553,8 +1550,6 @@ def test_sequence_collection_strand_symmetry():
     result = seqs.strand_symmetry()
     assert numpy.allclose(result["seq1"].observed.array, [[3, 2], [2, 2]])
     assert numpy.allclose(result["seq2"].observed.array, [[3, 0], [2, 1]])
-
-
 
 
 def test_sequence_collection_apply_pssm():
@@ -1639,8 +1634,6 @@ def test_sequence_collection_get_seq_entropy():
     entropy = a.entropy_per_seq()
     e = 0.81127812445913283  # sum(p log_2 p) for p = 0.25, 0.75
     assert numpy.allclose(entropy, numpy.array([e, 1.5]))
-
-
 
 
 @pytest.mark.parametrize("moltype", ("dna", "rna"))
