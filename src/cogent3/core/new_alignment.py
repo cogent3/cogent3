@@ -639,14 +639,6 @@ class SequenceCollection:
             annotation_db=self.annotation_db,
         )
 
-    def get_lengths(
-        self, include_ambiguity: bool = False, allow_gap: bool = False
-    ) -> dict[str, int]:
-        """returns sequence lengths as a dict of {seqid: length}
-
-        Parameters
-        ----------
-
     def distance_matrix(self, calc: str = "pdist"):
         """Estimated pairwise distance between sequences
 
@@ -1824,6 +1816,7 @@ def coerce_to_seqs_data_dict(
     raise NotImplementedError(
         f"coerce_to_seqs_data_dict not implemented for {type(data)}"
     )
+
 
 @coerce_to_seqs_data_dict.register
 def _(data: dict, label_to_name: Callable = None) -> dict[str, PrimitiveSeqTypes]:
