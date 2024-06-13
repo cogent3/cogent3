@@ -1,7 +1,7 @@
 import numpy
 import pytest
 
-from cogent3.core import moltype, new_moltype
+from cogent3.core import moltype, new_moltype, new_sequence
 
 
 def test_make_pairs():
@@ -213,14 +213,21 @@ def test_gaps(moltype):
 
 def test_gaps_none():
     mt = new_moltype.MolType(
-        "no_gap", monomers="".join(new_moltype.IUPAC_DNA_chars), gap=None
+        "no_gap",
+        monomers="".join(new_moltype.IUPAC_DNA_chars),
+        make_seq=new_sequence.DnaSequence,
+        gap=None,
     )
+
     got = mt.gaps
     expect = frozenset({"?"})
     assert got == expect
 
     mt = new_moltype.MolType(
-        "no_missing", monomers="".join(new_moltype.IUPAC_DNA_chars), missing=None
+        "no_missing",
+        monomers="".join(new_moltype.IUPAC_DNA_chars),
+        make_seq=new_sequence.DnaSequence,
+        missing=None,
     )
     got = mt.gaps
     expect = frozenset({"-"})
