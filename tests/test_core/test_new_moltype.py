@@ -202,6 +202,7 @@ def test_resolve_ambiguity_nucs():
 
 
 def test_resolve_ambiguity_codons():
+    # refactor to using new_genetic_code when codon alphabet class is implemented
     from cogent3 import get_code
 
     gc = get_code(1)
@@ -226,19 +227,14 @@ def test_resolve_ambiguity_codons():
         new_moltype.DNA.resolve_ambiguity("---", alphabet=codon_alpha)
 
 
-def test_is_ambiguity():
-    assert new_moltype.DNA.is_ambiguity("N")
-    assert new_moltype.DNA.is_ambiguity("R")
-    assert new_moltype.DNA.is_ambiguity("Y")
-    assert new_moltype.DNA.is_ambiguity("W")
-    assert new_moltype.DNA.is_ambiguity("S")
-    assert new_moltype.DNA.is_ambiguity("M")
-    assert new_moltype.DNA.is_ambiguity("?")
-    assert not new_moltype.DNA.is_ambiguity("-")
-    assert not new_moltype.DNA.is_ambiguity("A")
-    assert not new_moltype.DNA.is_ambiguity("T")
-    assert not new_moltype.DNA.is_ambiguity("C")
-    assert not new_moltype.DNA.is_ambiguity("G")
+@pytest.mark.parametrize("char", ("N", "R", "Y", "W", "S", "M", "?"))
+def test_is_ambiguity_true(char):
+    assert new_moltype.DNA.is_ambiguity(char)
+
+
+@pytest.mark.parametrize("char", ("-", "A", "T", "C", "G"))
+def test_is_ambiguity_false(char):
+    assert not new_moltype.DNA.is_ambiguity(char)
 
 
 @pytest.mark.xfail(reason="remove xfail when MolType.gaps() is implemented")

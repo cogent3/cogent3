@@ -881,8 +881,6 @@ class SequenceCollection:
         If file_format is None, will attempt to infer format from the filename
         suffix.
         """
-        # refactor: design
-        # changed format to file_format to not conflict with builtin (could use suffix instead)
 
         # todo: kath, add support for json
         if filename is None:
@@ -1011,21 +1009,33 @@ class SequenceCollection:
 
     @UI.display_wrap
     def apply_pssm(
-        self, pssm=None, path=None, background=None, pseudocount=0, names=None, ui=None
-    ):
+        self,
+        pssm: PSSM = None,
+        path: str = None,
+        background: numpy.array = None,
+        pseudocount: int = 0,
+        names: list = None,
+        ui=None,
+    ) -> numpy.array:
         """scores sequences using the specified pssm
 
         Parameters
         ----------
-        pssm : profile.PSSM
-            if not provided, will be loaded from path
+        pssm :
+            A profile.PSSM instance, if not provided, will be loaded from path
         path
             path to either a jaspar or cisbp matrix (path must end have a suffix
             matching the format).
+        background
+            background frequencies distribution
         pseudocount
             adjustment for zero in matrix
         names
             returns only scores for these sequences and in the name order
+        ui
+            argument to control the display of a progress bar. i.e.,
+            'show_progress=True'
+
 
         Returns
         -------
@@ -1341,20 +1351,17 @@ class SequenceCollection:
             Length all sequences are to be padded to. Will pad to max sequence
             length if pad_length is None or less than max length.
         """
-        # get max length
+
         max_len = max(self.seqs.seq_lengths().values())
-        # If a pad_length was passed in, make sure it is valid
+
         if pad_length is None:
             pad_length = max_len
-
         elif pad_length < max_len:
             raise ValueError(
                 f"pad_length must be at greater or equal to maximum sequence length: {str(max_len)}"
             )
-        # Get new sequence dict
-        new_seqs = {}
 
-        # for each sequence, pad gaps to end
+        new_seqs = {}
         for seq_name in self.names:
             seq = self.seqs.get_seq_str(seqid=seq_name)
             padded_seq = seq + "-" * (pad_length - len(seq))
@@ -1393,7 +1400,9 @@ class SequenceCollection:
                 return True
         return False
 
-    def get_identical_sets(self, mask_degen: bool = False):  # refactor: array
+    def get_identical_sets(
+        self, mask_degen: bool = False
+    ) -> list[set]:  # refactor: array/simplify
         """returns sets of names for sequences that are identical
 
         Parameters
@@ -1903,7 +1912,7 @@ def make_unaligned_seqs(
     info: dict = None,
     source: Union[str, Path] = None,
     annotation_db: SupportsFeatures = None,
-) -> SequenceCollection:  # refactor: design
+) -> SequenceCollection:  # refactor: design/simplify
     """Initialise an unaligned collection of sequences.
 
     Parameters
