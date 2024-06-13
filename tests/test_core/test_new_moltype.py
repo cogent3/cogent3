@@ -212,8 +212,16 @@ def test_gaps(moltype):
 
 
 def test_gaps_none():
-    mt = new_moltype.DNA
-    mt.gap = None
+    mt = new_moltype.MolType(
+        "no_gap", monomers="".join(new_moltype.IUPAC_DNA_chars), gap=None
+    )
     got = mt.gaps
     expect = frozenset({"?"})
+    assert got == expect
+
+    mt = new_moltype.MolType(
+        "no_missing", monomers="".join(new_moltype.IUPAC_DNA_chars), missing=None
+    )
+    got = mt.gaps
+    expect = frozenset({"-"})
     assert got == expect

@@ -127,6 +127,10 @@ class GeneticCode:
     def __hash__(self):
         return hash(self.name)
 
+    def __eq__(self, other):
+        """Allows two GeneticCode objects to be compared to each other."""
+        return self.name == getattr(other, "name", None)
+
     @property
     def stop_codons(self) -> SetStr:
         return self._stop_codons
@@ -158,12 +162,6 @@ class GeneticCode:
         display = self.to_table()
         display.set_repr_policy(show_shape=False)
         return display._repr_html_()
-
-    def __eq__(self, other):
-        """Allows two GeneticCode objects to be compared to each other.
-        Two GeneticCode objects are equal if they have equal CodeSequences.
-        """
-        return str(self) == str(other)
 
     def __getitem__(self, item):
         """Returns amino acid corresponding to codon, or codons for an aa.
