@@ -24,7 +24,6 @@ from random import shuffle
 from numpy import array, floating, integer, issubdtype
 
 from cogent3._version import __version__
-from cogent3.core.alphabet import AlphabetError
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
     BasicAnnotationDb,
@@ -36,6 +35,7 @@ from cogent3.core.annotation_db import (
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.location import FeatureMap, IndelMap, LostSpan
+from cogent3.core.new_alphabet import AlphabetError
 from cogent3.format.fasta import alignment_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts
 from cogent3.maths.stats.number import CategoryCounter

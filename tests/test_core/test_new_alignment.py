@@ -300,7 +300,7 @@ def test_seqs_data_getitem_raises(dna_sd, make_seq):
         _ = dna_sd[invalid_index]
 
 
-def tests_seqs_data_subset(dna_sd):
+def test_seqs_data_subset(dna_sd):
     got = dna_sd.subset("seq1")
     assert isinstance(got, new_aln.SeqsData)
     assert got.names == ["seq1"]
@@ -330,6 +330,29 @@ def test_seqs_data_subset_raises(dna_sd):
     # but will raise error if resulting in empty selection
     with pytest.raises(ValueError):
         _ = dna_sd.subset(["seq4"])
+
+
+def test_seqs_data_to_alphabet():
+    ASCII = new_moltype.ASCII.alphabet
+    DNA = new_moltype.DNA.degen_gapped_alphabet
+    RNA = new_moltype.RNA.degen_gapped_alphabet
+    seqs = new_aln.SeqsData(data={"a": "AAA", "b": "TTT", "c": "CCC"}, alphabet=ASCII)
+    dna_seqs = seqs.to_alphabet(DNA)
+
+    assert dna_seqs.get_seq_str(seqid="b") == "TTT"
+    assert dna_seqs.alphabet == DNA
+
+    rna_seqs = dna_seqs.to_alphabet(RNA)
+    assert rna_seqs.get_seq_str(seqid="b") == "UUU"
+    assert rna_seqs.alphabet == RNA
+
+
+def test_seqs_data_to_alphabet_invalid():
+    ASCII = new_moltype.ASCII.alphabet
+    DNA = new_moltype.DNA.degen_gapped_alphabet
+    seqs = new_aln.SeqsData(data={"a": "AAA", "b": "TTT", "c": "LLL"}, alphabet=ASCII)
+    with pytest.raises(ValueError):
+        _ = seqs.to_alphabet(DNA)
 
 
 @pytest.mark.parametrize(
@@ -906,6 +929,12 @@ def test_sequence_collection_to_fasta():
     assert seqs.to_fasta(block_size=3) == ">seq_0\nGCA\nTGC\nAT\n>seq_1\nTCA\nGAC\nGT\n"
 
 
+def test_is_ragged(ragged, ragged_padded):
+    """SequenceCollection is_ragged should return true if ragged alignment"""
+    assert ragged.is_ragged()
+    assert not ragged_padded.is_ragged()
+
+
 def test_sequence_collection_to_phylip():
     """SequenceCollection should return PHYLIP string format correctly"""
     align_norm = new_aln.make_unaligned_seqs(
@@ -1044,12 +1073,13 @@ def test_sequence_collection_get_seq_annotated():
         {"seq1": "GATTTT", "seq2": "GATC??"}, moltype="dna"
     )
     seqs.add_feature(seqid="seq1", biotype="xyz", name="abc", spans=[(1, 2)])
+    seqs.add_feature(seqid="seq2", biotype="xyzzz", name="abc", spans=[(1, 2)])
 
     with_annos = seqs.get_seq("seq1", copy_annotations=True)
     assert len(with_annos.annotation_db) == 1
 
     without_annos = seqs.get_seq("seq1", copy_annotations=False)
-    assert len(without_annos.annotation_db) == 0
+    assert len(without_annos.annotation_db) == 2
 
 
 def _make_seq(name):
@@ -1112,3 +1142,64 @@ def test_copy_annotations_incompat_type_fails(seqcoll_db, seqs):
 
     with pytest.raises(TypeError):
         seqcoll_db.copy_annotations(seqs)
+
+
+def test_sequence_collection_to_moltype_with_gaps():
+    """correctly convert to specified moltype"""
+    data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
+    seqs = new_aln.make_unaligned_seqs(data, moltype="text")
+    dna_seqs = seqs.to_moltype("dna")
+    assert dna_seqs.moltype.label == "dna"
+    assert dna_seqs.to_dict() == data
+
+    with pytest.raises(ValueError):
+        seqs.to_moltype("rna")
+
+
+def test_sequence_collection_to_moltype_info():
+    """correctly convert to specified moltype"""
+    data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
+    seqs = new_aln.make_unaligned_seqs(data, moltype="text", info={"key": "value"})
+    dna = seqs.to_moltype("dna")
+    assert dna.info["key"] == "value"
+
+
+def test_sequence_collection_to_moltype_annotation_db():
+    """correctly convert to specified moltype"""
+    data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
+    seqs = new_aln.make_unaligned_seqs(data, moltype="text")
+    db = GffAnnotationDb()
+    db.add_feature(seqid="seq1", biotype="exon", name="annotation1", spans=[(3, 8)])
+    db.add_feature(seqid="seq2", biotype="exon", name="annotation2", spans=[(1, 2)])
+    db.add_feature(seqid="seq3", biotype="exon", name="annotation3", spans=[(3, 6)])
+    seqs.annotation_db = db
+    dna = seqs.to_moltype("dna")
+    assert len(dna.annotation_db) == 3
+
+
+def test_dotplot():
+    """exercising dotplot method"""
+    seqs = new_aln.make_unaligned_seqs(
+        {
+            "Human": "CAGATTTGGCAGTT-",
+            "Mouse": "CAGATTCAGCAGGTG",
+            "Rat": "CAGATTCAGCAGGTG",
+        },
+        moltype="dna",
+    )
+    _ = seqs.dotplot()
+    with pytest.raises(AssertionError):
+        seqs.dotplot(window=5, k=11)
+
+
+def test_sequence_collection_dotplot_annotated():
+    """exercising dotplot method with annotated sequences"""
+    db = GffAnnotationDb()
+    db.add_feature(seqid="Human", biotype="exon", name="fred", spans=[(10, 15)])
+
+    seqs = new_aln.make_unaligned_seqs(
+        {"Human": "CAGATTTGGCAGTT-", "Mouse": "CAGATTCAGCAGGTG"}, moltype="dna"
+    )
+    seqs.annotation_db = db
+    seqs = seqs.take_seqs(["Human", "Mouse"], copy_annotations=True)
+    _ = seqs.dotplot(show_progress=False)

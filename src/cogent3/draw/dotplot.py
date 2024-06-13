@@ -57,7 +57,7 @@ def _convert_input(seq, moltype):
         return gap_map, seq
 
     seq = (
-        moltype.make_seq(str(seq), seq.name)
+        moltype.make_seq(seq=str(seq), name=seq.name)
         if hasattr(seq, "moltype")
         else moltype.make_seq(seq)
     )

@@ -226,6 +226,7 @@ class SeqsData(SeqsDataABC):
     ):
         self._alphabet = alphabet
         self._make_seq = make_seq
+        # todo: kath, make underlying data unchangable with `arrl.flags.writeable = False`
         self._data: dict[str, numpy.ndarray] = {
             str(name): self._alphabet.to_indices(seq) for name, seq in data.items()
         }
@@ -295,8 +296,32 @@ class SeqsData(SeqsDataABC):
     def to_alphabet(
         self, alphabet: new_alpha.CharAlphabet, check_valid=True
     ) -> SeqsData:
-        # todo: kath
-        ...
+        # refactor: design -- map directly between arrays?
+        # refactor: design -- better way to check if alphabets are DNA and RNA?
+        if len(alphabet) == len(self.alphabet):
+            return self.__class__(data=self._data, alphabet=alphabet)
+
+        new_data = {}
+        old = self.alphabet.as_bytes()
+        new = alphabet.as_bytes()
+        for seqid in self.names:
+            seq_data = self.get_seq_array(seqid=seqid)
+
+            convert_old_to_bytes = new_alpha.array_to_bytes(old)
+            convert_bytes_to_new = new_alpha.bytes_to_array(
+                new, dtype=new_alpha.get_array_type(len(new))
+            )
+
+            as_new_alpha = convert_bytes_to_new(convert_old_to_bytes(seq_data))
+
+            if check_valid and not alphabet.is_valid(as_new_alpha):
+                raise ValueError(
+                    f"Changing from old alphabet={self.alphabet} to new {alphabet=} is not valid for this data"
+                )
+
+            new_data[seqid] = as_new_alpha
+
+        return self.__class__(data=new_data, alphabet=alphabet)
 
     def __len__(self):
         return len(self.names)
@@ -430,6 +455,9 @@ class SequenceCollection:
         # todo: kath, note gavins comment that this method could operate on only the names
         # list and not the seqs_data object
 
+        if isinstance(names, str):
+            names = [names]
+
         if negate:
             names = [name for name in self.names if name not in names]
         else:
@@ -471,6 +499,13 @@ class SequenceCollection:
     ):
         """Returns new collection containing seqs where f(seq) is True.
 
+        Parameters
+        ----------
+        f
+            function that takes a sequence object and returns True or False
+        negate
+            select all sequences EXCEPT those where f(seq) is True
+
         Notes
         -----
         The seqs in the new collection are the same objects as the
@@ -480,12 +515,28 @@ class SequenceCollection:
         return self.take_seqs(self.get_seq_names_if(f, negate), **kwargs)
 
     def get_seq(self, seqname: str, copy_annotations: bool = False):
-        """Return a sequence object for the specified seqname."""
+        """Return a sequence object for the specified seqname.
+
+        Parameters
+        ----------
+        seqname
+            name of the sequence to return
+        copy_annotations
+            if True, only annotations from the selected seq are copied to the
+            annotation_db of the new collection, the same annotation db is used.
+
+        """
+        # refactor: design
+        # This method provides a mechanism for binding the annotation db to the sequence instance,
+        # which self.seqs[seq_name] does not. This is a difference to the original implementation,
+        # so it needs more thought.
         seq = self.seqs[seqname]
 
         if copy_annotations:
             seq.annotation_db = type(self.annotation_db)()
             seq.annotation_db.update(annot_db=self.annotation_db, seqids=seqname)
+        else:
+            seq.annotation_db = self.annotation_db
 
         return seq
 
@@ -516,6 +567,42 @@ class SequenceCollection:
         # refactor: array - chars > gap char
         seqs = {name: self.seqs[name].degap() for name in self.names}
         return make_unaligned_seqs(seqs, moltype=self.moltype, info=self.info, **kwargs)
+
+    def to_moltype(self, moltype: str) -> SequenceCollection:
+        """returns copy of self with changed moltype
+
+        Parameters
+        ----------
+        moltype
+            name of the new moltype, e.g, 'dna', 'rna'.
+
+        Notes
+        -----
+        Cannot convert from nucleic acids to proteins. Use get_translation() for that.
+
+        """
+        mtype = new_moltype.get_moltype(moltype)
+        if mtype is self.moltype:
+            return self  # nothing to be done
+
+        alpha = (
+            mtype.degen_gapped_alphabet
+            if mtype.degen_gapped_alphabet is not None
+            else mtype.gapped_alphabet
+        )
+        try:
+            new_seqs_data = self.seqs.to_alphabet(alpha)
+        except ValueError as e:
+            raise ValueError(
+                f"Failed to convert moltype from {self.moltype.label} to {moltype}"
+            ) from e
+
+        return self.__class__(
+            seqs_data=new_seqs_data,
+            moltype=mtype,
+            info=self.info,
+            annotation_db=self.annotation_db,
+        )
 
     def get_lengths(
         self, include_ambiguity: bool = False, allow_gap: bool = False
@@ -713,10 +800,120 @@ class SequenceCollection:
         -----
         raises exception if invalid sequences do not all have the same length
         """
-        if len(set(self.seqs.seq_lengths().values())) > 1:
+        if self.is_ragged():
             raise ValueError("not all seqs same length, cannot convert to phylip")
 
         return alignment_to_phylip(self.to_dict())
+
+    def dotplot(
+        self,
+        name1: Optional[str] = None,
+        name2: Optional[str] = None,
+        window: int = 20,
+        threshold: Optional[int] = None,
+        k: Optional[int] = None,
+        min_gap: int = 0,
+        width: int = 500,
+        title: Optional[str] = None,
+        rc: bool = False,
+        show_progress: bool = False,
+    ):
+        """make a dotplot between specified sequences. Random sequences
+        chosen if names not provided.
+
+        Parameters
+        ----------
+        name1, name2
+            names of sequences -- if not provided, a random choice is made
+        window
+            segment size for comparison between sequences
+        threshold
+            windows where the sequences are identical >= threshold are a match
+        k
+            size of k-mer to break sequences into. Larger values increase
+            speed but reduce resolution. If not specified, and
+            window == threshold, then k is set to window. Otherwise, it is
+            computed as the maximum of {threshold // (window - threshold), 5}.
+        min_gap
+            permitted gap for joining adjacent line segments, default is no gap
+            joining
+        width
+            figure width. Figure height is computed based on the ratio of
+            len(seq1) / len(seq2)
+        title
+            title for the plot
+        rc
+            include dotplot of reverse compliment also. Only applies to Nucleic
+            acids moltypes
+
+        Returns
+        -------
+        a Drawable or AnnotatedDrawable
+        """
+        from cogent3.draw.dotplot import Dotplot
+        from cogent3.draw.drawable import AnnotatedDrawable
+
+        if k is not None:
+            assert 0 < k < window, "k must be smaller than window size"
+
+        if len(self.names) == 1:
+            name1 = name2 = self.names[0]
+        elif name1 is None and name2 is None:
+            name1, name2 = list(numpy.random.choice(self.names, size=2, replace=False))
+        elif not (name1 and name2):
+            names = list(set(self.names + [None]) ^ {name1, name2})
+            name = list(numpy.random.choice(names, size=1))[0]
+            name1 = name1 or name
+            name2 = name2 or name
+
+        if not {name1, name2} <= set(self.names):
+            msg = f"{name1}, {name2} missing"
+            raise ValueError(msg)
+
+        seq1 = self.get_seq(seqname=name1, copy_annotations=False)
+        seq2 = self.get_seq(seqname=name2, copy_annotations=False)
+
+        if seq1.is_annotated() or seq2.is_annotated():
+            annotated = True
+            data = getattr(seq1, "data", seq1)
+            bottom = data.get_drawable()
+            data = getattr(seq2, "data", seq2)
+            left = data.get_drawable(vertical=True)
+        else:
+            annotated = False
+
+        dotplot = Dotplot(
+            seq1,
+            seq2,
+            False,
+            window=window,
+            threshold=threshold,
+            k=k,
+            min_gap=min_gap,
+            xtitle=None if annotated else seq1.name,
+            ytitle=None if annotated else seq2.name,
+            title=title,
+            moltype=self.moltype,
+            rc=rc,
+            show_progress=show_progress,
+            width=width,
+        )
+
+        if annotated:
+            dotplot = AnnotatedDrawable(
+                dotplot,
+                left_track=left,
+                bottom_track=bottom,
+                xtitle=seq1.name,
+                ytitle=seq2.name,
+                title=title,
+                xrange=[0, len(seq1)],
+                yrange=[0, len(seq2)],
+            )
+        return dotplot
+
+    def is_ragged(self) -> bool:
+        return len(set(self.seqs.seq_lengths().values())) > 1
 
     def has_terminal_stop(self, gc: typing.Any = None, strict: bool = False) -> bool:
         """Returns True if any sequence has a terminal stop codon.
@@ -1237,23 +1434,30 @@ def make_unaligned_seqs(
     source
         origins of this data, defaults to 'unknown'. Converted to a string
         and added to info["source"].
+    annotation_db
+        annotation database to attach to the collection
+
+    Notes
+    -----
+    - If no annotation_db is provided, but the sequences are annotated, an
+    annotation_db is created by merging any annotation db's found in the sequences.
+    - If the sequences are annotated AND an annotation_db is provided, only the
+    annotation_db is used.
+
     """
     if len(data) == 0:
         raise ValueError("data must be at least one sequence.")
 
-    # create a db from sequences if they're annotated
-    seqs_anno_db = merged_db_collection(data)
-    # if db from seqs and provided db, merge
-    # todo: kath, should we default to not merging unless specified?
-    if annotation_db and seqs_anno_db:
-        annotation_db.update(seqs_anno_db)
-    else:
-        annotation_db = annotation_db or seqs_anno_db
+    annotation_db = annotation_db or merged_db_collection(data)
 
     seqs_data = coerce_to_seqs_data_dict(data, label_to_name=label_to_name)
 
     moltype = new_moltype.get_moltype(moltype)
-    seqs_data = SeqsData(data=seqs_data, alphabet=moltype.degen_gapped_alphabet)
+    alphabet = (
+        moltype.degen_gapped_alphabet or moltype.gapped_alphabet or moltype.alphabet
+    )
+
+    seqs_data = SeqsData(data=seqs_data, alphabet=alphabet)
     return make_unaligned_seqs(
         seqs_data,
         moltype=moltype,
