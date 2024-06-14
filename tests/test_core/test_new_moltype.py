@@ -237,25 +237,28 @@ def test_is_ambiguity_false(char):
     assert not new_moltype.DNA.is_ambiguity(char)
 
 
-@pytest.mark.xfail(reason="remove xfail when MolType.gaps() is implemented")
-def test_degap():
+@pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
+@pytest.mark.parametrize(
+    "seq, expect",
+    (
+        ("", ""),
+        ("GAUGgaug", "GAUGgaug"),
+        ("----", ""),
+        ("--GAUG--", "GAUG"),
+        ("?gaug-", "gaug"),
+        ("-gaug", "gaug"),
+        ("gaug-", "gaug"),
+        ("-g?a-u?g-", "gaug"),
+    ),
+)
+def test_degap(seq, expect, data_type):
     """MolType degap should remove all gaps from sequence"""
-    g = new_moltype.RNA.degap
-    assert g("") == ""
-    assert g("GUCAGUCgcaugcnvuincdks") == "GUCAGUCgcaugcnvuincdks"
-    assert g("----------------") == ""
-    assert g("gcuauacg-") == "gcuauacg"
-    assert g("?gcuauacg-") == "gcuauacg"
-    assert g("-CUAGUCA") == "CUAGUCA"
-    assert g("---a---c---u----g---") == "acug"
-    assert g(tuple("---a---c---u----g---")) == tuple("acug")
-    assert numpy.array_equal(
-        g(numpy.array([0, 1, 2, 3, 4], dtype=numpy.uint8)),
-        numpy.array([0, 1, 2, 3], dtype=numpy.uint8),
-    )
-    assert numpy.array_equal(
-        g(numpy.array([0, 1, 2, 3, 5], dtype=numpy.uint8)),
-        numpy.array([0, 1, 2, 3, 5], dtype=numpy.uint8),
+    degap = new_moltype.RNA.degap
+    seq = make_typed(seq, data_type, new_moltype.RNA)
+    expect = make_typed(expect, data_type, new_moltype.RNA)
+    got = degap(seq)
+    assert (
+        numpy.array_equal(got, expect) if data_type == numpy.ndarray else got == expect
     )
 
 

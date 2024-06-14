@@ -520,7 +520,7 @@ class MolType:
 
     @is_gapped.register
     def _(self, seq: str) -> bool:
-        return self.gapped_alphabet.gap_char in seq
+        return any(gap in seq for gap in self.gaps)
 
     @is_gapped.register
     def _(self, seq: bytes) -> bool:
@@ -532,7 +532,8 @@ class MolType:
 
     @is_gapped.register
     def _(self, seq: numpy.ndarray) -> bool:
-        return (seq == self.degen_gapped_alphabet.gap_index).any()
+        gaps_indices = [self.degen_gapped_alphabet.index(gap) for gap in self.gaps]
+        return numpy.isin(seq, gaps_indices).any()
 
     @functools.singledispatchmethod
     def get_degenerate_positions(self, seq, include_gap: bool = True) -> list[int]:
@@ -563,29 +564,23 @@ class MolType:
     def degap(self, seq) -> StrORBytesORArray:
         """removes all gap and missing characters from a sequence"""
         # refactor: design
-        # cache translation callables
-        # make bytes the primary method
+        # cache translation callables (using alpabet.convert_alphabet)
+        # previous implementation had support for tuples -- is this necessary?
         raise TypeError(f"{type(seq)} not supported")
 
     @degap.register
-    def _(self, seq: str) -> str:
-        trans = dict([(i, None) for i in map(ord, self.gaps)])
-        seq.translate(trans)
-        return seq.translate(trans)
+    def _(self, seq: bytes) -> bytes:
+        return seq.translate(None, delete="".join(self.gaps).encode("utf8"))
 
     @degap.register
-    def _(self, seq: bytes) -> bytes:
-        return self.degap(seq.decode("utf8")).encode("utf8")
+    def _(self, seq: str) -> str:
+        degapped = self.degap(seq.encode("utf8"))
+        return degapped.decode("utf8")
 
     @degap.register
     def _(self, seq: numpy.ndarray) -> numpy.ndarray:
-        gap_indices = [self.degen_gapped_alphabet.index(gap) for gap in self.gaps]
-        return seq[~numpy.isin(seq, gap_indices)]
-
-    @degap.register
-    def _(self, seq: tuple) -> set[str]:
-        seq = "".join(seq)
-        return tuple(self.degap(seq))
+        degapped = self.degen_gapped_alphabet.array_to_bytes(seq)
+        return self.degen_gapped_alphabet.to_indices(self.degap(degapped))
 
     def is_ambiguity(self, query_motif: str) -> bool:
         """Return True if querymotif is an amibiguity character in alphabet.
