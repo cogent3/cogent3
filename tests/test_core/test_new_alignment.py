@@ -6,7 +6,6 @@ from warnings import catch_warnings, filterwarnings
 import numpy
 import pytest
 
-import cogent3.core.genetic_code as new_gc
 import cogent3.core.new_alignment as new_aln
 import cogent3.core.new_alphabet as new_alpha
 import cogent3.core.new_moltype as new_moltype
