@@ -1427,7 +1427,7 @@ class SequenceCollection:
             return "".join(seq[i] for i in range(len(seq)) if i not in indices)
 
         identical_sets = []
-        
+
         seen = []
         # if strict, we do a sort and one pass through the list
         seqs = self.to_dict()
@@ -1445,7 +1445,10 @@ class SequenceCollection:
             identical_sets = list(dupes.values())
             return identical_sets
 
-        mask_posns = {name: self.moltype.get_degenerate_positions(seq, include_gap=True) for name, seq in seqs.items()}
+        mask_posns = {
+            name: self.moltype.get_degenerate_positions(seq, include_gap=True)
+            for name, seq in seqs.items()
+        }
 
         for i in range(len(self.names) - 1):
             n1 = self.names[i]
