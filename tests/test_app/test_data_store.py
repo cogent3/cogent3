@@ -731,3 +731,15 @@ def test_write_multiple_times_apply_to(app_dstore_in):
     orig_length = len(app.data_store)
     app.apply_to(dstore_in)
     assert len(app.data_store) == orig_length
+
+
+def test_directory_data_store_write_compressed(tmp_path):
+    from cogent3 import get_app, make_aligned_seqs, open_data_store
+
+    out = open_data_store(base_path=tmp_path / "demo", suffix="fa.gz", mode="w")
+    writer = get_app("write_seqs", data_store=out)
+    seqs = make_aligned_seqs(
+        dict(s1="CG--T", s2="CGTTT"), moltype="dna", info=dict(source="test")
+    )
+    got = writer(seqs)  # pylint: disable=not-callable
+    assert got, got
