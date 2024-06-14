@@ -57,7 +57,7 @@ from cogent3.core.annotation_db import (
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.location import FeatureMap, IndelMap, LostSpan
-from cogent3.format.fasta import alignment_to_fasta
+from cogent3.format.fasta import seqs_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts
 from cogent3.maths.stats.number import CategoryCounter
 from cogent3.util import warning as c3warn
@@ -124,7 +124,7 @@ class SequenceI(object):
             label = self.label
         elif hasattr(self, "name") and self.name:
             label = self.name
-        return alignment_to_fasta({label: str(self)}, block_size=block_size)
+        return seqs_to_fasta({label: str(self)}, block_size=block_size)
 
     def to_rich_dict(self, exclude_annotations=False):
         """returns {'name': name, 'seq': sequence, 'moltype': moltype.label}"""
@@ -2581,7 +2581,7 @@ class ArraySequenceBase(object):
         elif hasattr(self, "name") and self.name:
             label = self.name
 
-        return alignment_to_fasta({label: str(self)}, block_size=block_size)
+        return seqs_to_fasta({label: str(self)}, block_size=block_size)
 
     def to_phylip(self, name_len=28, label_len=30):
         """Return string of self in one line for PHYLIP, no newline.
