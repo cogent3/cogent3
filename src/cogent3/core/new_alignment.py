@@ -1427,7 +1427,7 @@ class SequenceCollection:
             return "".join(seq[i] for i in range(len(seq)) if i not in indices)
 
         identical_sets = []
-        mask_posns = {}
+        
         seen = []
         # if strict, we do a sort and one pass through the list
         seqs = self.to_dict()
@@ -1445,16 +1445,14 @@ class SequenceCollection:
             identical_sets = list(dupes.values())
             return identical_sets
 
+        mask_posns = {name: self.moltype.get_degenerate_positions(seq, include_gap=True) for name, seq in seqs.items()}
+
         for i in range(len(self.names) - 1):
             n1 = self.names[i]
             if n1 in seen:
                 continue
 
             seq1 = seqs[n1]
-            if n1 not in mask_posns:
-                pos = self.moltype.get_degenerate_positions(seq1, include_gap=True)
-                mask_posns[n1] = pos
-
             group = set()
             for j in range(i + 1, len(self.names)):
                 n2 = self.names[j]
@@ -1462,20 +1460,13 @@ class SequenceCollection:
                     continue
 
                 seq2 = seqs[n2]
-                if n2 not in mask_posns:
-                    pos = self.moltype.get_degenerate_positions(seq2, include_gap=True)
-                    mask_posns[n2] = pos
-
-                seq2 = seqs[n2]
-
-                s1, s2 = seq1, seq2
-
                 pos = mask_posns[n1] + mask_posns[n2]
-                if pos:
-                    s1 = reduced(seq1, pos)
-                    s2 = reduced(seq2, pos)
 
-                if s1 == s2:
+                if pos:
+                    seq1 = reduced(seq1, pos)
+                    seq2 = reduced(seq2, pos)
+
+                if seq1 == seq2:
                     seen.append(n2)
                     group.update([n1, n2])
 
