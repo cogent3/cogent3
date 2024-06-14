@@ -114,13 +114,8 @@ def test_index_a_seq(cast):
 def test_index_a_seq_float_fail(cast):
     seq = new_moltype.DNA.make_seq(seq="TCCAG")
     index = cast(1)
-
-    # avoid codacy "statement seems to have no effect"
-    def idx_seq():
-        return seq[index]
-
     with pytest.raises(TypeError):
-        idx_seq()
+        seq[index]  # pylint: disable=W0104
 
 
 @pytest.mark.parametrize("moltype", ("dna", "protein"))
