@@ -20,6 +20,12 @@ def test_stop_codons():
     assert code.stop_codons == {"TAA", "TAG", "TGA"}
 
 
+@pytest.mark.parametrize("codons", ("TAA", "TAG", "TGA"))
+def test_is_stop_true(codons):
+    code = new_genetic_code.DEFAULT
+    assert code.is_stop(codons)
+
+
 def test_start_codons():
     code = new_genetic_code.DEFAULT
     dna = code.moltype.alphabet
@@ -75,3 +81,17 @@ def test_sizeframes():
     }
     got = set(code.sixframes(seq))
     assert got == expect
+
+
+@pytest.mark.parametrize("code_id", range(1, 5))
+def test_eq_true(code_id):
+    gc0 = new_genetic_code.get_code(code_id)
+    gc1 = new_genetic_code.get_code(code_id)
+    assert gc0 == gc1
+
+
+@pytest.mark.parametrize("code_id", range(1, 5))
+def test_eq_false(code_id):
+    gc0 = new_genetic_code.get_code(code_id)
+    gc1 = new_genetic_code.get_code(code_id + 1)
+    assert gc0 != gc1

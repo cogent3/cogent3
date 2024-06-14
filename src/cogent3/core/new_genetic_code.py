@@ -128,7 +128,8 @@ class GeneticCode:
         return hash(self.name)
 
     def __eq__(self, other):
-        return self.name == other.name
+        """Allows two GeneticCode objects to be compared to each other."""
+        return self.name == getattr(other, "name", None)
 
     @property
     def stop_codons(self) -> SetStr:
@@ -161,12 +162,6 @@ class GeneticCode:
         display = self.to_table()
         display.set_repr_policy(show_shape=False)
         return display._repr_html_()
-
-    def __eq__(self, other):
-        """Allows two GeneticCode objects to be compared to each other.
-        Two GeneticCode objects are equal if they have equal CodeSequences.
-        """
-        return str(self) == str(other)
 
     def __getitem__(self, item):
         """Returns amino acid corresponding to codon, or codons for an aa.
@@ -231,6 +226,10 @@ class GeneticCode:
 
         for strand, start in itertools.product(("+", "-"), range(3)):
             yield strand, start, self.translate(seq, start, rc=strand == "-")
+
+    def is_stop(self, codon):
+        """Returns True if codon is a stop codon, False otherwise."""
+        return self[codon] == "*"
 
 
 _mapping_cols = "ncbi_code_sequence", "ID", "name", "ncbi_start_codon_map"

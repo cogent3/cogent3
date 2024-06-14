@@ -1662,12 +1662,14 @@ class NucleicAcidSequenceMixin:
         Parameters
         ----------
         gc
-            valid input to cogent3.get_code(), a genetic code object, number
+            valid input to new_genetic_code.get_code(), a genetic code object, number
             or name
         strict
             If True, raises an exception if length not divisible by 3
         """
-        gc = get_code(gc)
+        from cogent3.core import new_genetic_code
+
+        gc = new_genetic_code.get_code(gc)
         _, s = self.parse_out_gaps()
 
         divisible_by_3 = len(s) % 3 == 0
@@ -1690,7 +1692,7 @@ class NucleicAcidSequenceMixin:
         Parameters
         ----------
         gc
-            valid input to cogent3.get_code(), a genetic code object, number
+            valid input to new_genetic_code.get_code(), a genetic code object, number
             or name
         strict
             If True, raises an exception if length not divisible by 3
@@ -1700,10 +1702,12 @@ class NucleicAcidSequenceMixin:
         If sequence contains gap characters, the result preserves the sequence
         length by adding gap characters at the end.
         """
+        from cogent3.core import new_genetic_code
+
         if not self.has_terminal_stop(gc=gc, strict=strict):
             return self
 
-        gc = get_code(gc)
+        gc = new_genetic_code.get_code(gc)
         m, s = self.parse_out_gaps()
 
         divisible_by_3 = len(s) % 3 == 0

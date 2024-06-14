@@ -1,7 +1,7 @@
 import numpy
 import pytest
 
-from cogent3.core import moltype, new_moltype
+from cogent3.core import moltype, new_moltype, new_sequence
 
 
 def test_make_pairs():
@@ -192,3 +192,43 @@ def test_get_degenerate_positions(data_type, moltype):
     got = moltype.get_degenerate_positions(seq)
     expect = numpy.array([], dtype=bool)
     assert numpy.array_equal(got, expect)
+
+
+@pytest.mark.parametrize(
+    "moltype",
+    (
+        new_moltype.ASCII,
+        new_moltype.DNA,
+        new_moltype.RNA,
+        new_moltype.PROTEIN,
+        new_moltype.PROTEIN_WITH_STOP,
+    ),
+)
+def test_gaps(moltype):
+    # TODO: fred, add new_moltype.BYTES
+    got = moltype.gaps
+    expect = frozenset({"-", "?"})
+    assert got == expect
+
+
+def test_gaps_none():
+    mt = new_moltype.MolType(
+        "no_gap",
+        monomers="".join(new_moltype.IUPAC_DNA_chars),
+        make_seq=new_sequence.DnaSequence,
+        gap=None,
+    )
+
+    got = mt.gaps
+    expect = frozenset({"?"})
+    assert got == expect
+
+    mt = new_moltype.MolType(
+        "no_missing",
+        monomers="".join(new_moltype.IUPAC_DNA_chars),
+        make_seq=new_sequence.DnaSequence,
+        missing=None,
+    )
+    got = mt.gaps
+    expect = frozenset({"-"})
+    assert got == expect
