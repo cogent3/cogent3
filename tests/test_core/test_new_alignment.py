@@ -147,12 +147,6 @@ def test_seqs_data_default_attributes(dna_sd: new_aln.SeqsData):
     assert isinstance(dna_sd.alphabet, new_alpha.CharAlphabet)
 
 
-@pytest.mark.xfail(reason="SeqsData currently expects correctly formatted data")
-def test_seqs_data_seq_if_str(seq1: str, alpha):
-    with pytest.raises(NotImplementedError):
-        new_aln.SeqsData(data=seq1, alphabet=alpha)
-
-
 def test_seqs_data_view_zero_step_raises(dna_sd):
     with pytest.raises(ValueError):
         new_aln.SeqDataView(seqs=dna_sd, step=0, seq_len=4)
@@ -932,7 +926,6 @@ def test_sequence_collection_get_seq():
         seqs.get_seq("seqx")
 
 
-@pytest.mark.xfail(reason="AttributeError: 'MolType' object has no attribute 'degap'")
 def test_sequence_collection_degap():
     """SequenceCollection.degap should strip gaps from each seq"""
     seqs = new_aln.make_unaligned_seqs({"s1": "ATGRY?", "s2": "T-AG??"}, moltype="dna")
@@ -1019,13 +1012,10 @@ def test_sequence_collection_has_terminal_stop_false(gc, seqs):
 
 
 def test_sequence_collection_has_terminal_stop_strict():
-    gc = new_gc.get_code(1)
     data = {f"s{i}": s for i, s in enumerate(("CCTCA", "ATTTT"))}
     seq_coll = new_aln.make_unaligned_seqs(data, moltype="dna")
     with pytest.raises(new_alpha.AlphabetError):
-        seq_coll.has_terminal_stop(gc=gc, strict=True)
-
-    _ = new_aln.make_unaligned_seqs(data, moltype="dna")
+        seq_coll.has_terminal_stop(gc=1, strict=True)
 
 
 @pytest.mark.parametrize(
@@ -1033,7 +1023,6 @@ def test_sequence_collection_has_terminal_stop_strict():
     ((1, ("T-CTGC", "GATAA?")), (2, ("GATTTT", "TCCCGG")), (1, ("CCTGC", "GATAA"))),
 )
 def test_sequence_collection_trim_terminal_stops_no_stop(gc, seqs):
-    gc = new_gc.get_code(gc)
     data = {f"s{i}": s for i, s in enumerate(seqs)}
     seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
     got = seqs.trim_stop_codons(gc=gc)
@@ -1044,10 +1033,9 @@ def test_sequence_collection_trim_terminal_stops_no_stop(gc, seqs):
     "data", ({"s1": "CCTCA", "s2": "ATTTT"}, {"s1": "CCTCA-", "s2": "ATTTTA"})
 )
 def test_sequence_collection_trim_terminal_stops_strict(data):
-    gc = new_gc.get_code(1)
     seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
     with pytest.raises(new_alpha.AlphabetError):
-        seqs.trim_stop_codons(gc=gc, strict=True)
+        seqs.trim_stop_codons(gc=1, strict=True)
 
 
 def test_sequence_collection_trim_stop_codons_info():
@@ -1492,7 +1480,6 @@ def test_get_ambiguous_positions():
     }
 
 
-@pytest.mark.xfail(reason="'MolType' object has no attribute 'gaps'")
 def test_sequence_collection_consistent_gap_degen_handling():
     """gap degen character should be treated consistently"""
     # the degen character '?' can be a gap, so when we strip gaps it should
