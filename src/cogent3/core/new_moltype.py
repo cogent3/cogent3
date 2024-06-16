@@ -535,30 +535,15 @@ class MolType:
         gaps_indices = [self.degen_gapped_alphabet.index(gap) for gap in self.gaps]
         return numpy.isin(seq, gaps_indices).any()
 
-    @functools.singledispatchmethod
-    def get_degenerate_positions(self, seq, include_gap: bool = True) -> list[int]:
-        """returns indices matching degenerate characters"""
-        raise TypeError(f"{type(seq)} not supported")
-
-    @get_degenerate_positions.register
-    def _(self, seq: numpy.ndarray, include_gap: bool = True) -> list[int]:
+    def get_degenerate_positions(
+        self, seq: StrORBytesORArray, include_gap: bool = True
+    ) -> list[int]:
+        seq = self.degen_gapped_alphabet.to_indices(seq)
         for index, val in enumerate(self.degen_gapped_alphabet):
             if include_gap and val in self.gap or val in self.ambiguities:
                 break
         degens = seq >= index
         return numpy.where(degens)[0].tolist()
-
-    @get_degenerate_positions.register
-    def _(self, seq: str, include_gap: bool = True) -> list[int]:
-        return self.get_degenerate_positions(
-            self.degen_gapped_alphabet.to_indices(seq), include_gap
-        )
-
-    @get_degenerate_positions.register
-    def _(self, seq: bytes, include_gap: bool = True) -> list[int]:
-        return self.get_degenerate_positions(
-            self.degen_gapped_alphabet.to_indices(seq), include_gap
-        )
 
     @functools.singledispatchmethod
     def degap(self, seq) -> StrORBytesORArray:

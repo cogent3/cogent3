@@ -368,7 +368,7 @@ class SequenceCollection:
         moltype: new_moltype.MolType,
         names: list[str] = None,
         info: Union[dict, InfoClass] = None,
-        source: str = None,
+        source: str = None,  # refactor: need to deal with optional args type hints
         annotation_db: SupportsFeatures = None,
     ):
         self._seqs_data = seqs_data
@@ -599,8 +599,14 @@ class SequenceCollection:
             name: self.moltype.degap(self.seqs.get_seq_array(seqid=name))
             for name in self.names
         }
-        return make_unaligned_seqs(
-            seqs, moltype=self.moltype, info=self.info, source=self.source
+        seqs_data = self.seqs.__class__(
+            data=seqs, alphabet=self.seqs.alphabet, make_seq=self.seqs.make_seq
+        )
+        return self.__class__(
+            seqs_data=seqs_data,
+            moltype=self.moltype,
+            info=self.info,
+            source=self.source,
         )
 
     def to_moltype(self, moltype: str) -> SequenceCollection:
@@ -1051,6 +1057,7 @@ class SequenceCollection:
         if isinstance(names, str):
             names = [names]
 
+        # refactor: design - delegate below logic to seperate function load_pssm()
         if path:
             is_cisbp = path.endswith("cisbp")
             is_jaspar = path.endswith("jaspar")
@@ -1086,6 +1093,7 @@ class SequenceCollection:
 
         Used in likelihood calculations.
         """
+        # refactor: performance
         result = {}
         for name in self.names:
             result[name] = ambig = {}
@@ -1368,8 +1376,11 @@ class SequenceCollection:
             padded_seq = seq + "-" * (pad_length - len(seq))
             new_seqs[seq_name] = padded_seq
 
-        return make_unaligned_seqs(
-            new_seqs,
+        seqs_data = self.seqs.__class__(
+            data=new_seqs, alphabet=self.seqs.alphabet, make_seq=self.seqs.make_seq
+        )
+        return self.__class__(
+            seqs_data=seqs_data,
             moltype=self.moltype,
             info=self.info,
             source=self.source,
@@ -1484,7 +1495,7 @@ class SequenceCollection:
         target: new_seq.Sequence,
         min_similarity: float = 0.0,
         max_similarity: float = 1.0,
-        metric: Callable = new_seq.frac_same, # refactor: type hint for callable should specificy input/return type
+        metric: Callable = new_seq.frac_same,  # refactor: type hint for callable should specificy input/return type
         transform: bool = None,
     ) -> SequenceCollection:
         """Returns new SequenceCollection containing sequences similar to target.
@@ -1505,19 +1516,19 @@ class SequenceCollection:
             metric, e.g. frac_same_gaps.
         transform
             transformation function to use on the sequences before the metric
-            is calculated. If None, uses the whole sequences in each case. A 
+            is calculated. If None, uses the whole sequences in each case. A
             frequent transformation is a function that returns a specified range
-            of a sequence, e.g. eliminating the ends. Note that the transform 
+            of a sequence, e.g. eliminating the ends. Note that the transform
             applies to both the real sequence and the target sequence.
 
         Notes
         -----
         both min_similarity and max_similarity are inclusive.
-        
+
         Warning
         -------
         if the transformation changes the type of the sequence (e.g. extracting
-        a string from an RnaSequence object), distance metrics that depend on 
+        a string from an RnaSequence object), distance metrics that depend on
         instance data of the original class may fail.
         """
         if transform:
