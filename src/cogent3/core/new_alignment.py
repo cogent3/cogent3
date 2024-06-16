@@ -148,7 +148,7 @@ class SeqDataView(new_seq.SliceRecordABC):
             f"seqid={self.seqid!r}, seq_len={self.seq_len})"
         )
 
-    # todo: do we support copy? do we support copy with sliced?
+    # refactor: design, do we support copy? do we support copy with sliced?
     def copy(self, sliced: bool = False):
         """returns copy"""
         return self
@@ -231,10 +231,11 @@ class SeqsData(SeqsDataABC):
     ):
         self._alphabet = alphabet
         self._make_seq = make_seq
-        # todo: kath, make underlying data unchangable with `arrl.flags.writeable = False`
-        self._data: dict[str, numpy.ndarray] = {
-            str(name): self._alphabet.to_indices(seq) for name, seq in data.items()
-        }
+        self._data: dict[str, numpy.ndarray] = {}
+        for name, seq in data.items():
+            arr = self._alphabet.to_indices(seq)
+            arr.flags.writeable = False
+            self._data[str(name)] = arr
 
     @property
     def names(self) -> list:
@@ -467,7 +468,8 @@ class SequenceCollection:
         The seqs in the new collection will be references to the same objects as
         the seqs in the old collection.
         """
-        # todo: kath, note gavins comment that this method could operate on only the names
+        # refactor: design
+        # consider gavins comment that this method could operate on only the names
         # list and not the seqs_data object
 
         if isinstance(names, str):
@@ -526,7 +528,6 @@ class SequenceCollection:
         The seqs in the new collection are the same objects as the
         seqs in the old collection, not copies.
         """
-        # pass take_seqs the result of get_seq_indices
         return self.take_seqs(self.get_seq_names_if(f, negate), **kwargs)
 
     def get_seq(self, seqname: str, copy_annotations: bool = False) -> new_seq.Sequence:
@@ -1427,8 +1428,8 @@ class SequenceCollection:
             return "".join(seq[i] for i in range(len(seq)) if i not in indices)
 
         identical_sets = []
-
         seen = []
+
         # if strict, we do a sort and one pass through the list
         seqs = self.to_dict()
         if not mask_degen:
@@ -1483,9 +1484,9 @@ class SequenceCollection:
         target: new_seq.Sequence,
         min_similarity: float = 0.0,
         max_similarity: float = 1.0,
-        metric: float = new_seq.frac_same,
+        metric: Callable = new_seq.frac_same, # refactor: type hint for callable should specificy input/return type
         transform: bool = None,
-    ) -> new_seq.SequenceCollection:
+    ) -> SequenceCollection:
         """Returns new SequenceCollection containing sequences similar to target.
 
         Parameters
@@ -1496,23 +1497,28 @@ class SequenceCollection:
             minimum similarity that will be kept. Default 0.0.
         max_similarity
             maximum similarity that will be kept. Default 1.0.
-            (Note that both min_similarity and max_similarity are inclusive.)
         metric
-            similarity function to use. Must be f(first_seq, second_seq).
+            a similarity function to use. Must be f(first_seq, second_seq).
             The default metric is fraction similarity, ranging from 0.0 (0%
-            identical) to 1.0 (100% identical). The Sequence classes have lots
+            identical) to 1.0 (100% identical). The Sequence class have lots
             of methods that can be passed in as unbound methods to act as the
             metric, e.g. frac_same_gaps.
         transform
-            transformation function to use on the sequences before
-            the metric is calculated. If None, uses the whole sequences in each
-            case. A frequent transformation is a function that returns a specified
-            range of a sequence, e.g. eliminating the ends. Note that the
-            transform applies to both the real sequence and the target sequence.
+            transformation function to use on the sequences before the metric
+            is calculated. If None, uses the whole sequences in each case. A 
+            frequent transformation is a function that returns a specified range
+            of a sequence, e.g. eliminating the ends. Note that the transform 
+            applies to both the real sequence and the target sequence.
 
-        WARNING: if the transformation changes the type of the sequence (e.g.
-        extracting a string from an RnaSequence object), distance metrics that
-        depend on instance data of the original class may fail.
+        Notes
+        -----
+        both min_similarity and max_similarity are inclusive.
+        
+        Warning
+        -------
+        if the transformation changes the type of the sequence (e.g. extracting
+        a string from an RnaSequence object), distance metrics that depend on 
+        instance data of the original class may fail.
         """
         if transform:
             target = transform(target)
@@ -1541,11 +1547,11 @@ class SequenceCollection:
         return FORMATTERS["fasta"](self.to_dict())
 
     def __eq__(
-        self, other: Union[new_seq.SequenceCollection, dict]
+        self, other: Union[SequenceCollection, dict]
     ) -> bool:  # refactor: design
         return id(self) == id(other)
 
-    def __ne__(self, other: new_seq.SequenceCollection) -> bool:
+    def __ne__(self, other: SequenceCollection) -> bool:
         return not self.__eq__(other)
 
     def __repr__(self):
