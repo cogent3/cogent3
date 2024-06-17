@@ -1682,6 +1682,14 @@ def test_sequence_collection_copy_annotations_incompat_type_fails(seqcoll_db, se
         seqcoll_db.copy_annotations(seqs)
 
 
+@pytest.mark.parametrize("moltype", ("dna", "protein"))
+def test_same_moltype(moltype):
+    data = dict(s1="ACGTT", s2="ACCTT")
+    seqs = new_aln.make_unaligned_seqs(data, moltype=moltype)
+    got = seqs.to_moltype(moltype=moltype)
+    assert got is seqs
+
+
 def test_sequence_collection_to_moltype_with_gaps():
     """correctly convert to specified moltype"""
     data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
