@@ -418,7 +418,15 @@ def kmer_indices_to_seq(
     return result
 
 
-class KmerAlphabet(tuple, AlphabetABC):
+class KmerAlphabetABC(ABC):
+    @abstractmethod
+    def to_index(self, seq) -> int: ...
+
+    @abstractmethod
+    def from_index(self, kmer_index: int) -> str: ...
+
+
+class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
     def __new__(
         cls,
         words: tuple[StrORBytes, ...],
