@@ -103,16 +103,24 @@ class AlphabetABC(ABC):
     @abstractmethod
     def with_gap_motif(self): ...
 
-
-class MonomerAlphabetABC(ABC):
-    @abstractmethod
-    def get_kmer_alphabet(self, size: int): ...
-
     @abstractmethod
     def to_indices(self, seq: str) -> numpy.ndarray: ...
 
     @abstractmethod
     def from_indices(self, seq: numpy.ndarray) -> str: ...
+
+    @property
+    @abstractmethod
+    def gap_char(self) -> OptStr: ...
+
+    @property
+    @abstractmethod
+    def gap_index(self) -> OptInt: ...
+
+
+class MonomerAlphabetABC(ABC):
+    @abstractmethod
+    def get_kmer_alphabet(self, size: int): ...
 
     @abstractmethod
     def as_bytes(self) -> bytes: ...
