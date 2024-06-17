@@ -353,7 +353,7 @@ class SeqsData(SeqsDataABC):
             sdv
             if self.make_seq is None
             else self.make_seq(seq=sdv.str_value, name=index)
-        )
+        )  # todo: kath, i think seq._seq = sdv if self.make_seq
 
     @__getitem__.register
     def _(self, index: int) -> Union[SeqDataView, new_seq.Sequence]:
@@ -710,7 +710,9 @@ class SequenceCollection:
             alphabet=pep_moltype.alphabet,
             make_seq=pep_moltype.make_seq,
         )
-        return self.__class__(seqs_data, info=self.info, source=self.source, **kwargs)
+        return self.__class__(
+            seqs_data=seqs_data, info=self.info, source=self.source, **kwargs
+        )
 
     def rc(self):
         """Returns the reverse complement of all sequences in the collection.
@@ -724,7 +726,7 @@ class SequenceCollection:
             data=rc_seqs, alphabet=self.moltype.alphabet, make_seq=self.moltype.make_seq
         )
         return self.__class__(
-            data=seqs_data,
+            seqs_data=seqs_data,
             name=self.name,
             info=self.info,
             moltype=self.moltype,
