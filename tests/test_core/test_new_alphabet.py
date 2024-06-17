@@ -172,6 +172,13 @@ def test_coord2index_fail():
         new_alphabet.coord_to_index(coord, coeffs)
 
 
+@pytest.mark.parametrize("gap", ("", "-"))
+def test_char_alphabet_with_gap(gap):
+    alpha = new_alphabet.CharAlphabet(list(f"TCAG{gap}"), gap=gap or None)
+    gapped = alpha.with_gap_motif()
+    assert "-" in gapped
+
+
 @pytest.mark.parametrize("k", (2, 3))
 def test_kmer_alphabet_construction(k):
     dna = new_moltype.get_moltype("dna")

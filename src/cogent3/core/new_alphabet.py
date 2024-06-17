@@ -254,7 +254,12 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
     def _(self, seq: numpy.ndarray) -> str:
         return self._arr2bytes(seq).decode("utf8")
 
-    def with_gap_motif(self): ...
+    def with_gap_motif(self, gap_char="-"):
+        """returns new monomer alphabet with gap character added"""
+        if self.gap_char:
+            return self
+        chars = tuple(self) + (gap_char,)
+        return CharAlphabet(chars, gap=gap_char)
 
     def get_kmer_alphabet(self, k: int, include_gap: bool = True) -> "KmerAlphabet":
         """returns kmer alphabet with words of size k
