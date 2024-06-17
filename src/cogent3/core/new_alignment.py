@@ -575,6 +575,11 @@ class SequenceCollection:
             annotation_db=self.annotation_db,
         )
 
+    def rename_seqs(self, renamer):
+        # todo: kath
+        # is this something we want to support in addition to label_to_name
+        ...
+
     def to_dict(self, as_array: bool = False) -> dict[str, Union[str, numpy.ndarray]]:
         """Return a dictionary of sequences.
 
@@ -644,6 +649,91 @@ class SequenceCollection:
             info=self.info,
             annotation_db=self.annotation_db,
         )
+
+    def to_dna(self):
+        """returns copy of self as an alignment of DNA moltype seqs"""
+        # refactor: design
+        # do we need this in addition to to_moltype?
+        return self.to_moltype("dna")
+
+    def to_rna(self):
+        """returns copy of self as an alignment of RNA moltype seqs"""
+        return self.to_moltype("rna")
+
+    def get_translation(
+        self,
+        gc: int = 1,
+        incomplete_ok: bool = False,
+        include_stop: bool = False,
+        trim_stop: bool = True,
+        **kwargs,
+    ):
+        """translate from nucleic acid to protein
+
+        Parameters
+        ----------
+        gc
+            genetic code, either the number or name
+            (use cogent3.core.genetic_code.available_codes)
+        incomplete_ok
+            codons that are mixes of nucleotide and gaps converted to '?'.
+            raises a ValueError if False
+        include_stop
+            whether to allow a stops in the translated sequence
+        trim_stop
+            exclude terminal stop codons if they exist
+        kwargs
+            related to construction of the resulting object
+
+        Returns
+        -------
+        A new instance of self translated into protein
+        """
+        if len(self.moltype.alphabet) != 4:
+            raise TypeError("Sequences must be a DNA/RNA")
+
+        translated = {}
+        if trim_stop and not include_stop:
+            seqs = self.trim_stop_codons(gc=gc, strict=not incomplete_ok)
+        else:
+            seqs = self
+        # do the translation
+        for seqname in seqs.names:
+            seq = seqs.seqs[seqname]
+            pep = seq.get_translation(
+                gc, incomplete_ok=True, include_stop=include_stop, trim_stop=trim_stop
+            )
+            translated[seqname] = pep
+        pep_moltype = pep.moltype
+        seqs_data = SeqsData(
+            data=translated,
+            alphabet=pep_moltype.alphabet,
+            make_seq=pep_moltype.make_seq,
+        )
+        return self.__class__(seqs_data, info=self.info, source=self.source, **kwargs)
+
+    def rc(self):
+        """Returns the reverse complement of all sequences in the collection.
+        A synonym for reverse_complement."""
+        # refactor: design
+        # I think SeqsData needs to keep track of the fact that sequences are now reverse complemented?
+        # for the purpose of annotations
+        # OR reverse complement comes with the caveat that annotations are not preserved
+        rc_seqs = {name: self.seqs[name].rc() for name in self.names}
+        seqs_data = self.seqs.__class__(
+            data=rc_seqs, alphabet=self.moltype.alphabet, make_seq=self.moltype.make_seq
+        )
+        return self.__class__(
+            data=seqs_data,
+            name=self.name,
+            info=self.info,
+            moltype=self.moltype,
+        )
+
+    def reverse_complement(self):
+        """Returns the reverse complement of all sequences in the collection.
+        A synonym for rc."""
+        return self.rc()
 
     def distance_matrix(self, calc: str = "pdist"):
         """Estimated pairwise distance between sequences
@@ -801,6 +891,8 @@ class SequenceCollection:
         seqid: Union[str, Iterator[str]] = None,
         biotype: Optional[str] = None,
         name: Optional[str] = None,
+        start: int = None,
+        stop: int = None,
         allow_partial: bool = False,
     ) -> Iterator[Feature]:
         """yields Feature instances
@@ -813,18 +905,27 @@ class SequenceCollection:
             biotype of the feature, e.g. CDS, gene
         name
             name of the feature
+        start
+            start position of the feature (not inclusive)
+        stop
+            stop position of the feature (inclusive)
         allow_partial
             allow features partially overlaping self
 
         Notes
         -----
-        When dealing with a nucleic acid moltype, the returned features will
+        - When dealing with a nucleic acid moltype, the returned features will
         yield a sequence segment that is consistently oriented irrespective
         of strand of the current instance.
+        - start is non-inclusive, so if allow_partial is False, only features
+        strictly starting after start will be returned.
+
         """
         if not self.annotation_db:
             return None
 
+        # refactor: design
+        # information on parent_coordinates/annotation offsets is lost when seqs are converted to SeqsData
         seqid_to_seqname = {seq.parent_coordinates()[0]: seq.name for seq in self.seqs}
         if seqid and (
             seqid not in seqid_to_seqname and seqid not in seqid_to_seqname.values()
@@ -836,6 +937,8 @@ class SequenceCollection:
             biotype=biotype,
             name=name,
             on_alignment=False,
+            start=start,
+            stop=stop,
             allow_partial=allow_partial,
         ):
             seqname = seqid_to_seqname[feature["seqid"]]
@@ -872,7 +975,7 @@ class SequenceCollection:
 
         return alignment_to_phylip(self.to_dict())
 
-    def write(self, filename: str = None, file_format: str = None, **kwargs):
+    def write(self, filename: str, file_format: str = None, **kwargs):
         """Write the sequences to a file, preserving order of sequences.
 
         Parameters
@@ -890,9 +993,6 @@ class SequenceCollection:
         """
 
         # todo: kath, add support for json
-        if filename is None:
-            raise IOError("no filename specified")
-
         suffix, _ = get_format_suffixes(filename)
         if file_format is None and suffix:
             file_format = suffix
@@ -1072,19 +1172,10 @@ class SequenceCollection:
                 pssm = pwm.to_pssm(background=background, pseudocount=pseudocount)
 
         assert isinstance(pssm, PSSM)
-        array_align = hasattr(self, "array_seqs")
         assert set(pssm.motifs) == set(self.moltype)
-        if array_align and list(pssm.motifs) == list(self.moltype):
-            if names:
-                name_indices = [self.names.index(n) for n in names]
-                data = self.array_seqs.take(name_indices, axis=0)
-            else:
-                data = self.array_seqs
 
-            result = [pssm.score_indexed_seq(seq) for seq in ui.series(data)]
-        else:
-            seqs = [self.seqs[n] for n in names] if names else self.seqs
-            result = [pssm.score_seq(seq) for seq in ui.series(seqs)]
+        seqs = [self.seqs[n] for n in names] if names else self.seqs
+        result = [pssm.score_seq(seq) for seq in ui.series(seqs)]
 
         return numpy.array(result)
 
@@ -1215,15 +1306,18 @@ class SequenceCollection:
 
         Parameters
         ----------
+        alphabet
+            alphabet to use for motifs
         include_ambiguity
             if True resolved ambiguous codes are included in estimation of
-            frequencies, default is False.
+            frequencies.
         exclude_unobserved
             if True, motifs that are not present in the alignment are excluded
-            from the returned dictionary,
-            default is False.
+            from the returned dictionary.
         allow_gap
             allow gap motif
+        pseudocount
+            value to add to each count
 
         Notes
         -----
@@ -1234,12 +1328,12 @@ class SequenceCollection:
         if alphabet is None:
             alphabet = moltype.alphabet
             if allow_gap:
-                alphabet = alphabet.gapped
+                alphabet = moltype.gapped_alphabet
 
         counts = {}
         for seq_name in self.names:
             sequence = self.seqs[seq_name]
-            motif_len = alphabet.get_motif_len()
+            motif_len = alphabet.motif_len
             if motif_len > 1:
                 posns = list(range(0, len(sequence) + 1 - motif_len, motif_len))
                 sequence = [sequence[i : i + motif_len] for i in posns]
@@ -1281,7 +1375,23 @@ class SequenceCollection:
         exclude_unobserved: bool = False,
         warn: bool = False,
     ) -> MotifFreqsArray:
-        """return MotifFreqsArray per sequence"""
+        """return frequency array of motifs per sequence
+
+        Parameters
+        ----------
+        motif_length
+            number of characters per motif
+        include_ambiguity
+            if True, include motifs containing ambiguous characters
+        allow_gap
+            if True, include motifs containing a gap character
+        exclude_unobserved
+            if True, exclude motifs not present in the sequences in
+            the resulting array
+        warn
+            warns if motif_length > 1 and collection trimmed to produce motif
+            columns.
+        """
 
         counts = self.counts_per_seq(
             motif_length=motif_length,
@@ -1975,7 +2085,7 @@ def make_unaligned_seqs(
 
 @make_unaligned_seqs.register
 def _(
-    data: SeqsData,
+    data: SeqsDataABC,
     *,
     moltype: Union[str, new_moltype.MolType],
     label_to_name: Callable = None,
