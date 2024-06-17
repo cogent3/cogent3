@@ -387,11 +387,10 @@ def seq_to_kmer_indices(
         raise ValueError(f"size of result {len(result)} <= {size}")
 
     for result_idx, i in enumerate(range(0, len(seq) - k + 1, step)):
-        for j in range(i, i + k):
-            if seq[j] < num_states:
-                result[result_idx] = coord_to_index(seq[i : i + k], coeffs)
-            else:
-                continue
+        if (num_states > seq[i : i + k]).all():
+            result[result_idx] = coord_to_index(seq[i : i + k], coeffs)
+        else:
+            continue
     return result
 
 
