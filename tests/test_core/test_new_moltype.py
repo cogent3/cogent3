@@ -1,7 +1,7 @@
 import numpy
 import pytest
 
-from cogent3.core import moltype, new_moltype, new_sequence
+from cogent3.core import moltype, new_alphabet, new_moltype, new_sequence
 
 
 def test_make_pairs():
@@ -167,31 +167,117 @@ def test_gap_index_constant(moltype):
 def test_get_degenerate_positions(data_type, moltype):
     seq = make_typed("ASA", data_type, moltype)
     got = moltype.get_degenerate_positions(seq)
-    expect = numpy.array([False, True, False], dtype=bool)
-    assert numpy.array_equal(got, expect)
+    expect = [1]
+    assert got == expect
 
     seq = make_typed("A-SA", data_type, moltype)
     got = moltype.get_degenerate_positions(seq)
-    expect = numpy.array([False, True, True, False], dtype=bool)
-    assert numpy.array_equal(got, expect)
+    expect = [1, 2]
+    assert got == expect
 
     got = moltype.get_degenerate_positions(seq, include_gap=False)
-    expect = numpy.array([False, False, True, False], dtype=bool)
-    assert numpy.array_equal(got, expect)
+    expect = [2]
+    assert got == expect
 
     seq = make_typed("BAB", data_type, moltype)
     got = moltype.get_degenerate_positions(seq)
-    expect = numpy.array([True, False, True], dtype=bool)
-    assert numpy.array_equal(got, expect)
+    expect = [0, 2]
+    assert got == expect
 
     seq = make_typed("---", data_type, moltype)
     got = moltype.get_degenerate_positions(seq)
-    expect = numpy.array([True, True, True], dtype=bool)
+    expect = [0, 1, 2]
+    assert got == expect
 
     seq = make_typed("", data_type, moltype)
     got = moltype.get_degenerate_positions(seq)
-    expect = numpy.array([], dtype=bool)
-    assert numpy.array_equal(got, expect)
+    expect = []
+    assert got == expect
+
+
+def test_resolve_ambiguity_nucs():
+    got = new_moltype.DNA.resolve_ambiguity("AT?", allow_gap=False)
+    assert len(got) == 4
+    assert len(got[0]) == 3
+
+
+def test_resolve_ambiguity_codons():
+    # refactor to using new_genetic_code when codon alphabet class is implemented
+    from cogent3 import get_code
+
+    gc = get_code(1)
+    codon_alpha = gc.get_alphabet(include_stop=False)
+    codon_alpha_w_gap = codon_alpha.with_gap_motif()
+    assert (
+        len(new_moltype.DNA.resolve_ambiguity("AT?", alphabet=codon_alpha_w_gap)) == 4
+    )
+    assert (
+        len(new_moltype.DNA.resolve_ambiguity("???", alphabet=codon_alpha_w_gap)) == 62
+    )
+    assert (
+        len(new_moltype.DNA.resolve_ambiguity("---", alphabet=codon_alpha_w_gap)) == 1
+    )
+
+    assert len(new_moltype.DNA.resolve_ambiguity("AT?", alphabet=codon_alpha)) == 4
+    assert len(new_moltype.DNA.resolve_ambiguity("???", alphabet=codon_alpha)) == 61
+
+    with pytest.raises(new_alphabet.AlphabetError):
+        new_moltype.DNA.resolve_ambiguity("at-")
+    with pytest.raises(new_alphabet.AlphabetError):
+        new_moltype.DNA.resolve_ambiguity("---", alphabet=codon_alpha)
+
+
+@pytest.mark.parametrize("char", ("N", "R", "Y", "W", "S", "M", "?"))
+def test_is_ambiguity_true(char):
+    assert new_moltype.DNA.is_ambiguity(char)
+
+
+@pytest.mark.parametrize("char", ("-", "A", "T", "C", "G"))
+def test_is_ambiguity_false(char):
+    assert not new_moltype.DNA.is_ambiguity(char)
+
+
+@pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
+@pytest.mark.parametrize(
+    "seq, expect",
+    (
+        ("", ""),
+        ("GAUGgaug", "GAUGgaug"),
+        ("----", ""),
+        ("--GAUG--", "GAUG"),
+        ("?gaug-", "gaug"),
+        ("-gaug", "gaug"),
+        ("gaug-", "gaug"),
+        ("-g?a-u?g-", "gaug"),
+    ),
+)
+def test_degap(seq, expect, data_type):
+    """MolType degap should remove all gaps from sequence"""
+    degap = new_moltype.RNA.degap
+    seq = make_typed(seq, data_type, new_moltype.RNA)
+    expect = make_typed(expect, data_type, new_moltype.RNA)
+    got = degap(seq)
+    assert (
+        numpy.array_equal(got, expect) if data_type == numpy.ndarray else got == expect
+    )
+
+
+def test_strand_symmetric_motifs():
+    """construction of strand symmetric motif sets"""
+    # fails for a moltype with no strand complement
+    with pytest.raises(TypeError):
+        new_moltype.PROTEIN.strand_symmetric_motifs()
+
+    got = new_moltype.DNA.strand_symmetric_motifs(motif_length=1)
+    expect = set([("A", "T"), ("C", "G")])
+    assert got == expect
+    got = new_moltype.RNA.strand_symmetric_motifs(motif_length=1)
+    expect = set([("A", "U"), ("C", "G")])
+    assert got == expect
+    got = new_moltype.DNA.strand_symmetric_motifs(motif_length=2)
+    assert len(got) == 8
+    got = new_moltype.DNA.strand_symmetric_motifs(motif_length=3)
+    assert len(got) == 32
 
 
 @pytest.mark.parametrize(

@@ -181,8 +181,8 @@ def jaccard_dist(seq_coll: UnalignedSeqsType, k: int = 10) -> PairwiseDistanceTy
     """
 
     kmers = {
-        name: set(seq.iter_kmers(k, strict=True))
-        for name, seq in seq_coll.named_seqs.items()
+        name: set(seq_coll.named_seqs[name].iter_kmers(k, strict=True))
+        for name in seq_coll.names
     }
     seq_names = sorted(kmers.keys())
     num_seqs = len(seq_names)

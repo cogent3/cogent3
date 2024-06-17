@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import re
 import typing
+import warnings
 
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from dataclasses import InitVar, dataclass, field
 from functools import singledispatch, singledispatchmethod
 from pathlib import Path
-from typing import Callable, Iterator, Mapping, Optional, Union
+from typing import Any, Callable, Iterator, Mapping, Optional, Union
 
 import numpy
 
@@ -24,9 +25,13 @@ from cogent3.core.annotation_db import (
 )
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.location import IndelMap
+from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
+from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import alignment_to_fasta
 from cogent3.format.phylip import alignment_to_phylip
+from cogent3.util import progress_display as UI
 from cogent3.util import warning as c3warn
+from cogent3.util.io import atomic_write, get_format_suffixes
 from cogent3.util.misc import get_setting_from_environ, negate_condition
 
 
@@ -143,7 +148,7 @@ class SeqDataView(new_seq.SliceRecordABC):
             f"seqid={self.seqid!r}, seq_len={self.seq_len})"
         )
 
-    # todo: do we support copy? do we support copy with sliced?
+    # refactor: design, do we support copy? do we support copy with sliced?
     def copy(self, sliced: bool = False):
         """returns copy"""
         return self
@@ -226,10 +231,11 @@ class SeqsData(SeqsDataABC):
     ):
         self._alphabet = alphabet
         self._make_seq = make_seq
-        # todo: kath, make underlying data unchangable with `arrl.flags.writeable = False`
-        self._data: dict[str, numpy.ndarray] = {
-            str(name): self._alphabet.to_indices(seq) for name, seq in data.items()
-        }
+        self._data: dict[str, numpy.ndarray] = {}
+        for name, seq in data.items():
+            arr = self._alphabet.to_indices(seq)
+            arr.flags.writeable = False
+            self._data[str(name)] = arr
 
     @property
     def names(self) -> list:
@@ -290,8 +296,16 @@ class SeqsData(SeqsDataABC):
     def add_seqs(
         self, seqs: dict[str, PrimitiveSeqTypes], force_unique_keys=True
     ) -> SeqsData:
-        # todo: kath
-        ...
+        """Returns a new SeqsData object with added sequences."""
+        if force_unique_keys and any(name in self.names for name in seqs):
+            raise ValueError("One or more sequence names already exist in collection")
+        new_data = {
+            **self._data,
+            **{name: self.alphabet.to_indices(seq) for name, seq in seqs.items()},
+        }
+        return self.__class__(
+            data=new_data, alphabet=self.alphabet, make_seq=self.make_seq
+        )
 
     def to_alphabet(
         self, alphabet: new_alpha.CharAlphabet, check_valid=True
@@ -350,10 +364,11 @@ class SequenceCollection:
     def __init__(
         self,
         *,
-        seqs_data: SeqsData,
+        seqs_data: SeqsDataABC,
         moltype: new_moltype.MolType,
         names: list[str] = None,
         info: Union[dict, InfoClass] = None,
+        source: str = None,  # refactor: need to deal with optional args type hints
         annotation_db: SupportsFeatures = None,
     ):
         self._seqs_data = seqs_data
@@ -363,6 +378,7 @@ class SequenceCollection:
         if not isinstance(info, InfoClass):
             info = InfoClass(info) if info else InfoClass()
         self.info = info
+        self.source = source
         self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60)
         self._annotation_db = annotation_db or DEFAULT_ANNOTATION_DB()
 
@@ -452,7 +468,8 @@ class SequenceCollection:
         The seqs in the new collection will be references to the same objects as
         the seqs in the old collection.
         """
-        # todo: kath, note gavins comment that this method could operate on only the names
+        # refactor: design
+        # consider gavins comment that this method could operate on only the names
         # list and not the seqs_data object
 
         if isinstance(names, str):
@@ -511,10 +528,9 @@ class SequenceCollection:
         The seqs in the new collection are the same objects as the
         seqs in the old collection, not copies.
         """
-        # pass take_seqs the result of get_seq_indices
         return self.take_seqs(self.get_seq_names_if(f, negate), **kwargs)
 
-    def get_seq(self, seqname: str, copy_annotations: bool = False):
+    def get_seq(self, seqname: str, copy_annotations: bool = False) -> new_seq.Sequence:
         """Return a sequence object for the specified seqname.
 
         Parameters
@@ -540,9 +556,24 @@ class SequenceCollection:
 
         return seq
 
-    def add_seqs(self, seqs: dict[str, PrimitiveSeqTypes], **kwargs):
-        # todo: kath, add this method once its functional on SeqsData
-        ...
+    def add_seqs(
+        self, seqs: Union[dict[str, PrimitiveSeqTypes], SeqsData, list], **kwargs
+    ) -> SequenceCollection:
+        """Returns new collection with additional sequences.
+
+        Parameters
+        ----------
+        seqs
+            sequences to add
+        """
+        data = coerce_to_seqs_data_dict(seqs, label_to_name=None)
+        seqs_data = self.seqs.add_seqs(data, **kwargs)
+        return self.__class__(
+            seqs_data=seqs_data,
+            moltype=self.moltype,
+            info=self.info,
+            annotation_db=self.annotation_db,
+        )
 
     def to_dict(self, as_array: bool = False) -> dict[str, Union[str, numpy.ndarray]]:
         """Return a dictionary of sequences.
@@ -556,17 +587,27 @@ class SequenceCollection:
         get = self.seqs.get_seq_array if as_array else self.seqs.get_seq_str
         return {name: get(seqid=name) for name in self.names}
 
-    def degap(self, **kwargs):
-        """Returns copy in which sequences have no gaps.
+    def degap(self) -> SequenceCollection:
+        """Returns new collection in which sequences have no gaps.
 
-        Parameters
-        ----------
-        kwargs
-            passed to class constructor
+        Notes
+        -----
+        The returned collection will not retain an annotation_db if present.
         """
         # refactor: array - chars > gap char
-        seqs = {name: self.seqs[name].degap() for name in self.names}
-        return make_unaligned_seqs(seqs, moltype=self.moltype, info=self.info, **kwargs)
+        seqs = {
+            name: self.moltype.degap(self.seqs.get_seq_array(seqid=name))
+            for name in self.names
+        }
+        seqs_data = self.seqs.__class__(
+            data=seqs, alphabet=self.seqs.alphabet, make_seq=self.seqs.make_seq
+        )
+        return self.__class__(
+            seqs_data=seqs_data,
+            moltype=self.moltype,
+            info=self.info,
+            source=self.source,
+        )
 
     def to_moltype(self, moltype: str) -> SequenceCollection:
         """returns copy of self with changed moltype
@@ -604,24 +645,50 @@ class SequenceCollection:
             annotation_db=self.annotation_db,
         )
 
-    def get_lengths(
-        self, include_ambiguity: bool = False, allow_gap: bool = False
-    ) -> dict[str, int]:
-        """returns sequence lengths as a dict of {seqid: length}
+    def distance_matrix(self, calc: str = "pdist"):
+        """Estimated pairwise distance between sequences
 
         Parameters
         ----------
-        include_ambiguity
-            if True, motifs containing ambiguous characters
-            from the seq moltype are included. No expansion of those is attempted.
-        allow_gap
-            if True, motifs containing a gap character are included.
+        calc
+            The distance calculation method to use, either "pdist" or "jc69".
+            - "pdist" is an approximation of the proportion sites different.
+            - "jc69" is an approximation of the Jukes Cantor distance.
 
+        Returns
+        -------
+        DistanceMatrix
+            Estimated pairwise distances between sequences in the collection
+
+        Notes
+        -----
+        pdist approximates the proportion sites different from the Jaccard
+        distance. Coefficients for the approximation were derived from a
+        polynomial fit between Jaccard distance of kmers with k=10 and the
+        proportion of sites different using mammalian 106 protein coding
+        gene DNA sequence alignments.
+
+        jc69 approximates the Jukes Cantor distance using the approximated
+        proportion sites different, i.e., a transformation of the above.
         """
-        counts = self.counts_per_seq(
-            motif_length=1, include_ambiguity=include_ambiguity, allow_gap=allow_gap
+        from cogent3.app.dist import get_approx_dist_calc
+
+        # check moltype
+        if len(self.moltype.alphabet) != 4:
+            raise NotImplementedError("only defined for DNA/RNA molecular types")
+
+        # assert we have more than one sequence in the SequenceCollection
+        if self.num_seqs == 1:
+            raise ValueError(
+                "Pairwise distance cannot be computed for a single sequence. "
+                "Please provide at least two sequences."
+            )
+
+        dist_calc_app = get_approx_dist_calc(
+            dist=calc, num_states=len(self.moltype.alphabet)
         )
-        return counts.row_sum()
+
+        return dist_calc_app(self)
 
     def copy_annotations(self, seq_db: SupportsFeatures) -> None:
         """copy annotations into attached annotation db
@@ -805,6 +872,41 @@ class SequenceCollection:
 
         return alignment_to_phylip(self.to_dict())
 
+    def write(self, filename: str = None, file_format: str = None, **kwargs):
+        """Write the sequences to a file, preserving order of sequences.
+
+        Parameters
+        ----------
+        filename
+            name of the sequence file
+        file_format
+            format of the sequence file
+
+        Notes
+        -----
+
+        If file_format is None, will attempt to infer format from the filename
+        suffix.
+        """
+
+        # todo: kath, add support for json
+        if filename is None:
+            raise IOError("no filename specified")
+
+        suffix, _ = get_format_suffixes(filename)
+        if file_format is None and suffix:
+            file_format = suffix
+
+        if file_format == "json":
+            with atomic_write(filename, mode="wt") as f:
+                f.write(self.to_json())
+            return
+
+        if "order" not in kwargs:
+            kwargs["order"] = self.names
+
+        save_to_filename(self.to_dict(), filename, file_format, **kwargs)
+
     def dotplot(
         self,
         name1: Optional[str] = None,
@@ -912,6 +1014,383 @@ class SequenceCollection:
             )
         return dotplot
 
+    @UI.display_wrap
+    def apply_pssm(
+        self,
+        pssm: PSSM = None,
+        path: str = None,
+        background: numpy.array = None,
+        pseudocount: int = 0,
+        names: list = None,
+        ui=None,
+    ) -> numpy.array:
+        """scores sequences using the specified pssm
+
+        Parameters
+        ----------
+        pssm :
+            A profile.PSSM instance, if not provided, will be loaded from path
+        path
+            path to either a jaspar or cisbp matrix (path must end have a suffix
+            matching the format).
+        background
+            background frequencies distribution
+        pseudocount
+            adjustment for zero in matrix
+        names
+            returns only scores for these sequences and in the name order
+        ui
+            argument to control the display of a progress bar. i.e.,
+            'show_progress=True'
+
+
+        Returns
+        -------
+        numpy array of log2 based scores at every position
+        """
+        assert not self.is_ragged(), "all sequences must have same length"
+        from cogent3.parse import cisbp, jaspar
+
+        assert pssm or path, "Must specify a PSSM or a path"
+        assert not (pssm and path), "Can only specify one of pssm, path"
+
+        if isinstance(names, str):
+            names = [names]
+
+        # refactor: design - delegate below logic to seperate function load_pssm()
+        if path:
+            is_cisbp = path.endswith("cisbp")
+            is_jaspar = path.endswith("jaspar")
+            if not (is_cisbp or is_jaspar):
+                raise NotImplementedError(f"Unknown format {path.split('.')[-1]}")
+
+            if is_cisbp:
+                pfp = cisbp.read(path)
+                pssm = pfp.to_pssm(background=background)
+            else:
+                _, pwm = jaspar.read(path)
+                pssm = pwm.to_pssm(background=background, pseudocount=pseudocount)
+
+        assert isinstance(pssm, PSSM)
+        array_align = hasattr(self, "array_seqs")
+        assert set(pssm.motifs) == set(self.moltype)
+        if array_align and list(pssm.motifs) == list(self.moltype):
+            if names:
+                name_indices = [self.names.index(n) for n in names]
+                data = self.array_seqs.take(name_indices, axis=0)
+            else:
+                data = self.array_seqs
+
+            result = [pssm.score_indexed_seq(seq) for seq in ui.series(data)]
+        else:
+            seqs = [self.seqs[n] for n in names] if names else self.seqs
+            result = [pssm.score_seq(seq) for seq in ui.series(seqs)]
+
+        return numpy.array(result)
+
+    def get_ambiguous_positions(self):
+        """Returns dict of seq:{position:char} for ambiguous chars.
+
+        Used in likelihood calculations.
+        """
+        # refactor: performance
+        result = {}
+        for name in self.names:
+            result[name] = ambig = {}
+            for i, motif in enumerate(self.seqs[name]):
+                if self.moltype.is_ambiguity(motif):
+                    ambig[i] = motif
+        return result
+
+    def trim_stop_codons(self, gc: Any = 1, strict: bool = False):
+        """Removes any terminal stop codons from the sequences
+
+        Parameters
+        ----------
+        gc
+            valid input to cogent3.get_code(), a genetic code object, number
+            or name, defaults to standard code
+        strict
+            If True, raises an exception if a seq length not divisible by 3
+        """
+        if not self.has_terminal_stop(gc=gc, strict=strict):
+            return self
+
+        new_seqs = {s.name: s.trim_stop_codon(gc=gc, strict=strict) for s in self.seqs}
+        result = make_unaligned_seqs(new_seqs, moltype=self.moltype, info=self.info)
+        if self.annotation_db:
+            result.annotation_db = self.annotation_db
+        return result
+
+    def counts_per_seq(
+        self,
+        motif_length: int = 1,
+        include_ambiguity: bool = False,
+        allow_gap: bool = False,
+        exclude_unobserved: bool = False,
+        warn: bool = False,
+    ) -> MotifCountsArray:  # refactor: using array
+        """counts of motifs per sequence
+
+        Parameters
+        ----------
+        motif_length
+            number of characters per tuple.
+        include_ambiguity
+            if True, motifs containing ambiguous characters from the seq moltype
+            are included. No expansion of those is attempted.
+        allow_gap
+            if True, motifs containing a gap character are included.
+        warn
+            warns if motif_length > 1 and collection trimmed to produce motif
+            columns.
+
+        Notes
+        -----
+
+        only non-overlapping motifs are counted
+        """
+        counts = []
+        motifs = set()
+        for name in self.names:
+            seq = self.get_seq(name)
+            c = seq.counts(
+                motif_length=motif_length,
+                include_ambiguity=include_ambiguity,
+                allow_gap=allow_gap,
+                exclude_unobserved=exclude_unobserved,
+                warn=warn,
+            )
+            motifs.update(c.keys())
+            counts.append(c)
+        motifs = list(sorted(motifs))
+        for i, c in enumerate(counts):
+            counts[i] = c.tolist(motifs)
+        return MotifCountsArray(counts, motifs, row_indices=self.names)
+
+    def counts(
+        self,
+        motif_length: int = 1,
+        include_ambiguity: bool = False,
+        allow_gap: bool = False,
+        exclude_unobserved: bool = False,
+    ) -> MotifCountsArray:
+        """counts of motifs
+
+        Parameters
+        ----------
+        motif_length
+            number of elements per character.
+        include_ambiguity
+            if True, motifs containing ambiguous characters from the seq moltype
+            are included. No expansion of those is attempted.
+        allow_gap
+            if True, motifs containing a gap character are included.
+        exclude_unobserved
+            if True, unobserved motif combinations are excluded.
+
+        Notes
+        -----
+
+        only non-overlapping motifs are counted
+        """
+        per_seq = self.counts_per_seq(
+            motif_length=motif_length,
+            include_ambiguity=include_ambiguity,
+            allow_gap=allow_gap,
+            exclude_unobserved=exclude_unobserved,
+        )
+        return per_seq.motif_totals()
+
+    def get_motif_probs(
+        self,
+        alphabet: new_alpha.CharAlphabet = None,
+        include_ambiguity: bool = False,
+        exclude_unobserved: bool = False,
+        allow_gap: bool = False,
+        pseudocount: int = 0,
+    ) -> dict:  # refactor: using array
+        """Return a dictionary of motif probs, calculated as the averaged
+        frequency across sequences.
+
+        Parameters
+        ----------
+        include_ambiguity
+            if True resolved ambiguous codes are included in estimation of
+            frequencies, default is False.
+        exclude_unobserved
+            if True, motifs that are not present in the alignment are excluded
+            from the returned dictionary,
+            default is False.
+        allow_gap
+            allow gap motif
+
+        Notes
+        -----
+
+        only non-overlapping motifs are counted
+        """
+        moltype = self.moltype
+        if alphabet is None:
+            alphabet = moltype.alphabet
+            if allow_gap:
+                alphabet = alphabet.gapped
+
+        counts = {}
+        for seq_name in self.names:
+            sequence = self.seqs[seq_name]
+            motif_len = alphabet.get_motif_len()
+            if motif_len > 1:
+                posns = list(range(0, len(sequence) + 1 - motif_len, motif_len))
+                sequence = [sequence[i : i + motif_len] for i in posns]
+            for motif in sequence:
+                if not allow_gap and self.moltype.gap in motif:
+                    continue
+
+                if motif in counts:
+                    counts[motif] += 1
+                else:
+                    counts[motif] = 1
+
+        probs = {}
+        if not exclude_unobserved:
+            for motif in alphabet:
+                probs[motif] = pseudocount
+
+        for motif, count in list(counts.items()):
+            motif_set = moltype.resolve_ambiguity(motif, alphabet=alphabet)
+            if len(motif_set) > 1:
+                if include_ambiguity:
+                    count = float(count) / len(motif_set)
+                else:
+                    continue
+            for motif in motif_set:
+                probs[motif] = probs.get(motif, pseudocount) + count
+
+        total = float(sum(probs.values()))
+        for motif in probs:
+            probs[motif] /= total
+
+        return probs
+
+    def probs_per_seq(
+        self,
+        motif_length: int = 1,
+        include_ambiguity: bool = False,
+        allow_gap: bool = False,
+        exclude_unobserved: bool = False,
+        warn: bool = False,
+    ) -> MotifFreqsArray:
+        """return MotifFreqsArray per sequence"""
+
+        counts = self.counts_per_seq(
+            motif_length=motif_length,
+            include_ambiguity=include_ambiguity,
+            allow_gap=allow_gap,
+            exclude_unobserved=exclude_unobserved,
+            warn=warn,
+        )
+        return None if counts is None else counts.to_freq_array()
+
+    def entropy_per_seq(
+        self,
+        motif_length: int = 1,
+        include_ambiguity: bool = False,
+        allow_gap: bool = False,
+        exclude_unobserved: bool = True,
+        warn: bool = False,
+    ) -> numpy.ndarray:
+        """Returns the Shannon entropy per sequence.
+
+        Parameters
+        ----------
+        motif_length: int
+            number of characters per tuple.
+        include_ambiguity: bool
+            if True, motifs containing ambiguous characters
+            from the seq moltype are included. No expansion of those is attempted.
+        allow_gap: bool
+            if True, motifs containing a gap character are included.
+        exclude_unobserved: bool
+            if True, unobserved motif combinations are excluded.
+        warn
+            warns if motif_length > 1 and alignment trimmed to produce
+            motif columns
+
+        Notes
+        -----
+        For motif_length > 1, it's advisable to specify exclude_unobserved=True,
+        this avoids unnecessary calculations.
+        """
+        probs = self.probs_per_seq(
+            motif_length=motif_length,
+            include_ambiguity=include_ambiguity,
+            allow_gap=allow_gap,
+            exclude_unobserved=exclude_unobserved,
+            warn=warn,
+        )
+
+        return None if probs is None else probs.entropy()
+
+    def get_lengths(
+        self, include_ambiguity: bool = False, allow_gap: bool = False
+    ) -> dict[str, int]:
+        """returns sequence lengths as a dict of {seqid: length}
+
+        Parameters
+        ----------
+        include_ambiguity
+            if True, motifs containing ambiguous characters
+            from the seq moltype are included. No expansion of those is attempted.
+        allow_gap
+            if True, motifs containing a gap character are included.
+
+        """
+        counts = self.counts_per_seq(
+            motif_length=1, include_ambiguity=include_ambiguity, allow_gap=allow_gap
+        )
+        return counts.row_sum()
+
+    def pad_seqs(self, pad_length: int = None):
+        """Returns copy in which sequences are padded to same length.
+
+        Parameters
+        ----------
+        pad_length
+            Length all sequences are to be padded to. Will pad to max sequence
+            length if pad_length is None or less than max length.
+        """
+
+        max_len = max(self.seqs.seq_lengths().values())
+
+        if pad_length is None:
+            pad_length = max_len
+        elif pad_length < max_len:
+            raise ValueError(
+                f"pad_length must be at greater or equal to maximum sequence length: {str(max_len)}"
+            )
+
+        new_seqs = {}
+        for seq_name in self.names:
+            seq = self.seqs.get_seq_str(seqid=seq_name)
+            padded_seq = seq + "-" * (pad_length - len(seq))
+            new_seqs[seq_name] = padded_seq
+
+        seqs_data = self.seqs.__class__(
+            data=new_seqs, alphabet=self.seqs.alphabet, make_seq=self.seqs.make_seq
+        )
+        return self.__class__(
+            seqs_data=seqs_data,
+            moltype=self.moltype,
+            info=self.info,
+            source=self.source,
+            annotation_db=self.annotation_db,
+        )
+
+    def strand_symmetry(self, motif_length: int = 1):
+        """returns dict of strand symmetry test results per seq"""
+        return {s.name: s.strand_symmetry(motif_length=motif_length) for s in self.seqs}
+
     def is_ragged(self) -> bool:
         return len(set(self.seqs.seq_lengths().values())) > 1
 
@@ -933,7 +1412,9 @@ class SequenceCollection:
                 return True
         return False
 
-    def get_identical_sets(self, mask_degen: bool = False):  # refactor: array
+    def get_identical_sets(
+        self, mask_degen: bool = False
+    ) -> list[set]:  # refactor: array/simplify
         """returns sets of names for sequences that are identical
 
         Parameters
@@ -943,12 +1424,23 @@ class SequenceCollection:
 
         """
 
+        if self.is_ragged():
+            raise ValueError("not all seqs same length, cannot get identical sets")
+
+        if mask_degen and not self.moltype.degen_alphabet:
+            warnings.warn(
+                "in get_identical_sets, mask_degen has no effect as moltype "
+                f"{self.moltype.label!r} has no degenerate characters",
+                UserWarning,
+            )
+            mask_degen = False
+
         def reduced(seq, indices):
             return "".join(seq[i] for i in range(len(seq)) if i not in indices)
 
         identical_sets = []
-        mask_posns = {}
         seen = []
+
         # if strict, we do a sort and one pass through the list
         seqs = self.to_dict()
         if not mask_degen:
@@ -965,16 +1457,17 @@ class SequenceCollection:
             identical_sets = list(dupes.values())
             return identical_sets
 
+        mask_posns = {
+            name: self.moltype.get_degenerate_positions(seq, include_gap=True)
+            for name, seq in seqs.items()
+        }
+
         for i in range(len(self.names) - 1):
             n1 = self.names[i]
             if n1 in seen:
                 continue
 
             seq1 = seqs[n1]
-            if n1 not in mask_posns:
-                pos = self.moltype.get_degenerate_positions(seq1, include_gap=True)
-                mask_posns[n1] = pos
-
             group = set()
             for j in range(i + 1, len(self.names)):
                 n2 = self.names[j]
@@ -982,20 +1475,13 @@ class SequenceCollection:
                     continue
 
                 seq2 = seqs[n2]
-                if n2 not in mask_posns:
-                    pos = self.moltype.get_degenerate_positions(seq2, include_gap=True)
-                    mask_posns[n2] = pos
-
-                seq2 = seqs[n2]
-
-                s1, s2 = seq1, seq2
-
                 pos = mask_posns[n1] + mask_posns[n2]
-                if pos:
-                    s1 = reduced(seq1, pos)
-                    s2 = reduced(seq2, pos)
 
-                if s1 == s2:
+                if pos:
+                    seq1 = reduced(seq1, pos)
+                    seq2 = reduced(seq2, pos)
+
+                if seq1 == seq2:
                     seen.append(n2)
                     group.update([n1, n2])
 
@@ -1009,9 +1495,9 @@ class SequenceCollection:
         target: new_seq.Sequence,
         min_similarity: float = 0.0,
         max_similarity: float = 1.0,
-        metric: float = new_seq.frac_same,
+        metric: Callable = new_seq.frac_same,  # refactor: type hint for callable should specificy input/return type
         transform: bool = None,
-    ) -> new_seq.SequenceCollection:
+    ) -> SequenceCollection:
         """Returns new SequenceCollection containing sequences similar to target.
 
         Parameters
@@ -1022,23 +1508,28 @@ class SequenceCollection:
             minimum similarity that will be kept. Default 0.0.
         max_similarity
             maximum similarity that will be kept. Default 1.0.
-            (Note that both min_similarity and max_similarity are inclusive.)
         metric
-            similarity function to use. Must be f(first_seq, second_seq).
+            a similarity function to use. Must be f(first_seq, second_seq).
             The default metric is fraction similarity, ranging from 0.0 (0%
-            identical) to 1.0 (100% identical). The Sequence classes have lots
+            identical) to 1.0 (100% identical). The Sequence class have lots
             of methods that can be passed in as unbound methods to act as the
             metric, e.g. frac_same_gaps.
         transform
-            transformation function to use on the sequences before
-            the metric is calculated. If None, uses the whole sequences in each
-            case. A frequent transformation is a function that returns a specified
-            range of a sequence, e.g. eliminating the ends. Note that the
-            transform applies to both the real sequence and the target sequence.
+            transformation function to use on the sequences before the metric
+            is calculated. If None, uses the whole sequences in each case. A
+            frequent transformation is a function that returns a specified range
+            of a sequence, e.g. eliminating the ends. Note that the transform
+            applies to both the real sequence and the target sequence.
 
-        WARNING: if the transformation changes the type of the sequence (e.g.
-        extracting a string from an RnaSequence object), distance metrics that
-        depend on instance data of the original class may fail.
+        Notes
+        -----
+        both min_similarity and max_similarity are inclusive.
+
+        Warning
+        -------
+        if the transformation changes the type of the sequence (e.g. extracting
+        a string from an RnaSequence object), distance metrics that depend on
+        instance data of the original class may fail.
         """
         if transform:
             target = transform(target)
@@ -1067,11 +1558,11 @@ class SequenceCollection:
         return FORMATTERS["fasta"](self.to_dict())
 
     def __eq__(
-        self, other: Union[new_seq.SequenceCollection, dict]
+        self, other: Union[SequenceCollection, dict]
     ) -> bool:  # refactor: design
         return id(self) == id(other)
 
-    def __ne__(self, other: new_seq.SequenceCollection) -> bool:
+    def __ne__(self, other: SequenceCollection) -> bool:
         return not self.__eq__(other)
 
     def __repr__(self):
@@ -1359,7 +1850,7 @@ def _(seqs: dict) -> SupportsFeatures:
 def coerce_to_seqs_data_dict(
     data, label_to_name: Callable = None
 ) -> dict[
-    str, Union[PrimitiveSeqTypes, new_seq.Sequence]
+    str, PrimitiveSeqTypes
 ]:  # refactor: type hint for callable should specificy input/return type
     raise NotImplementedError(
         f"coerce_to_seqs_data_dict not implemented for {type(data)}"
@@ -1389,6 +1880,15 @@ def _(data: set, label_to_name: Callable = None) -> dict[str, PrimitiveSeqTypes]
     return coerce_to_seqs_data_dict(labelled_seqs, label_to_name=label_to_name)
 
 
+@coerce_to_seqs_data_dict.register
+def _(
+    data: SequenceCollection, label_to_name: Callable = None
+) -> dict[str, PrimitiveSeqTypes]:
+    return coerce_to_seqs_data_dict(
+        data.to_dict(as_array=True), label_to_name=label_to_name
+    )
+
+
 @singledispatch
 def assign_names(
     first, data: Union[list, set]
@@ -1409,6 +1909,11 @@ def _(first: list, data: Union[list, set]) -> dict[str, PrimitiveSeqTypes]:
     return {name_seq[0]: name_seq[1] for name_seq in data}
 
 
+@assign_names.register
+def _(first: tuple, data: Union[list, set]) -> dict[str, PrimitiveSeqTypes]:
+    return {name_seq[0]: name_seq[1] for name_seq in data}
+
+
 @singledispatch
 def make_unaligned_seqs(
     data: Union[dict[str, PrimitiveSeqTypes], SeqsData, list],
@@ -1418,7 +1923,7 @@ def make_unaligned_seqs(
     info: dict = None,
     source: Union[str, Path] = None,
     annotation_db: SupportsFeatures = None,
-) -> SequenceCollection:  # refactor: design
+) -> SequenceCollection:  # refactor: design/simplify
     """Initialise an unaligned collection of sequences.
 
     Parameters
@@ -1489,7 +1994,11 @@ def _(
     info["source"] = str(info.get("source", "unknown"))
 
     return SequenceCollection(
-        seqs_data=data, moltype=moltype, info=info, annotation_db=annotation_db
+        seqs_data=data,
+        moltype=moltype,
+        info=info,
+        annotation_db=annotation_db,
+        source=source,
     )
 
 
