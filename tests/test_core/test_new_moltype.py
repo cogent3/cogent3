@@ -84,7 +84,7 @@ def test_complement(name, seq):
 
 def make_typed(seq, data_type, moltype):
     if data_type is numpy.ndarray:
-        seq = moltype.degen_gapped_alphabet.to_indices(seq)
+        seq = moltype.most_degen_alphabet().to_indices(seq)
     elif data_type is bytes:
         seq = seq.encode("utf-8")
     return seq
@@ -318,3 +318,25 @@ def test_gaps_none():
     got = mt.gaps
     expect = frozenset({"-"})
     assert got == expect
+
+
+@pytest.mark.parametrize(
+    "label",
+    (
+        "bytes",
+        "dna",
+        "rna",
+        "protein",
+        "protein_with_stop",
+        "text",
+    ),
+)
+def test_most_degenerate_alphabet(label):
+    moltype = new_moltype.get_moltype(label)
+    got = moltype.most_degen_alphabet()
+    # expected value for number of characters is
+    # length of monomers + len(moltype gaps) + len(ambiguities)
+    num_ambigs = len(moltype.ambiguities or [])
+    num_ambigs += 1 if moltype.missing and num_ambigs else 0
+    expected = len(moltype.alphabet) + len(moltype.gap or []) + num_ambigs
+    assert len(got) == expected

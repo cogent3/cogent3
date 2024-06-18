@@ -450,8 +450,8 @@ class MolType:
         return alpha.is_valid(seq)
 
     def iter_alphabets(self):
-        """yield the different defined alphabets"""
-        alphas = (self._monomers, self._gapped, self._degen, self._degen_gapped)
+        """yield alphabets in order of most to least degenerate"""
+        alphas = self._degen_gapped, self._degen, self._gapped, self._monomers
         yield from (a for a in alphas if a)
 
     def is_compatible_alphabet(
@@ -576,8 +576,11 @@ class MolType:
 
     @degap.register
     def _(self, seq: numpy.ndarray) -> numpy.ndarray:
-        degapped = self.degen_gapped_alphabet.array_to_bytes(seq)
-        return self.degen_gapped_alphabet.to_indices(self.degap(degapped))
+        degen = self.most_degen_alphabet()
+        if not degen.gap_char:
+            raise TypeError(f"no gap character defined for {self.name!r}")
+        degapped = degen.array_to_bytes(seq)
+        return degen.to_indices(self.degap(degapped))
 
     def is_ambiguity(self, query_motif: str) -> bool:
         """Return True if querymotif is an amibiguity character in alphabet.
@@ -702,6 +705,10 @@ class MolType:
         ]
 
         return css, styles
+
+    def most_degen_alphabet(self):
+        """returns the most degenerate alphabet for this instance"""
+        return next(self.iter_alphabets())
 
 
 def _make_moltype_dict() -> dict[str, MolType]:
