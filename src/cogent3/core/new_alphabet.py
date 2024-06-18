@@ -281,7 +281,12 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
     @to_indices.register
     def _(self, seq: bytes) -> numpy.ndarray:
-        return self._bytes2arr(seq)
+        result = self._bytes2arr(seq)
+        # any non-canonical characters should lie outside the range
+        # we replace these with a single value
+        if self.missing_index:
+            result[result >= self.missing_index] = self.missing_index
+        return result
 
     @to_indices.register
     def _(self, seq: str) -> numpy.ndarray:
