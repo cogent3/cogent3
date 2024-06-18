@@ -750,10 +750,12 @@ def available_moltypes():
 # constant instances of the core molecular types
 ASCII = MolType(
     # A default type for text read from a file etc. when we don't
-    # want to prematurely assume DNA or Protein.
+    # want to prematurely assume DNA or Protein. We therefore need to include
+    # characters that could be present in any of those files.
     monomers="".join(ascii_letters),
     name="text",
     make_seq=new_sequence.Sequence,
+    missing=IUPAC_missing,
 )
 
 DNA = MolType(
