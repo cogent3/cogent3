@@ -716,7 +716,7 @@ class SequenceCollection:
         pep_moltype = pep.moltype
         seqs_data = SeqsData(
             data=translated,
-            alphabet=pep_moltype.degen_gapped,
+            alphabet=pep_moltype.degen_gapped_alphabet,
             make_seq=pep_moltype.make_seq,
         )
         return self.__class__(
