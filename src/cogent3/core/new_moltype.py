@@ -356,21 +356,31 @@ class MolType:
         ambigs = new_alphabet._coerce_to_type(monomers, "".join(self.ambiguities or ""))
 
         self._monomers = new_alphabet.make_alphabet(
-            chars=monomers, gap=None, moltype=self
+            chars=monomers, gap=None, missing=None, moltype=self
         )
         self._degen = (
-            new_alphabet.make_alphabet(chars=monomers + ambigs, gap=None, moltype=self)
+            new_alphabet.make_alphabet(
+                chars=monomers + ambigs + missing,
+                gap=None,
+                missing=missing or None,
+                moltype=self,
+            )
             if ambigs
             else None
         )
         self._gapped = (
-            new_alphabet.make_alphabet(chars=monomers + gap, gap=self.gap, moltype=self)
+            new_alphabet.make_alphabet(
+                chars=monomers + gap, gap=self.gap, missing=None, moltype=self
+            )
             if gap
             else None
         )
         self._degen_gapped = (
             new_alphabet.make_alphabet(
-                chars=monomers + gap + ambigs + missing, gap=self.gap, moltype=self
+                chars=monomers + gap + ambigs + missing,
+                gap=self.gap,
+                missing=missing or None,
+                moltype=self,
             )
             if ambigs and gap
             else None
