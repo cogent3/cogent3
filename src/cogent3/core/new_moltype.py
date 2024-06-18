@@ -426,7 +426,7 @@ class MolType:
         return self._degen_gapped
 
     @property
-    def gaps(self) -> frozenset:
+    def gaps(self) -> frozenset:  # refactor: docstring
         gaps = [char for char in (self.gap, self.missing) if char is not None]
         return frozenset(gaps)
 
@@ -462,7 +462,9 @@ class MolType:
 
         return any(alpha == alphabet for alpha in self.iter_alphabets())
 
-    def make_seq(self, *, seq: str, name: OptStr = None, check_seq=True, **kwargs):
+    def make_seq(
+        self, *, seq: str, name: OptStr = None, check_seq=True, **kwargs
+    ):  # refactor: docstring
         if check_seq:
             assert self.is_valid(
                 seq
@@ -496,7 +498,7 @@ class MolType:
         raise TypeError(f"{type(seq)} not supported")
 
     @is_degenerate.register
-    def _(self, seq: bytes) -> bool:
+    def _(self, seq: bytes) -> bool:  # refactor: docstring
         return self.is_degenerate(self.degen_gapped_alphabet.to_indices(seq))
 
     @is_degenerate.register
@@ -537,7 +539,7 @@ class MolType:
 
     def get_degenerate_positions(
         self, seq: StrORBytesORArray, include_gap: bool = True
-    ) -> list[int]:
+    ) -> list[int]:  # refactor: docstring
         seq = self.degen_gapped_alphabet.to_indices(seq)
         for index, val in enumerate(self.degen_gapped_alphabet):
             if include_gap and val in self.gap or val in self.ambiguities:
@@ -644,7 +646,9 @@ class MolType:
 
         return result
 
-    def strand_symmetric_motifs(self, motif_length: int = 1):
+    def strand_symmetric_motifs(
+        self, motif_length: int = 1
+    ) -> set[tuple[str, str]]:  # refactor: docstring
         """returns ordered pairs of strand complementary motifs"""
         if len(self.alphabet) != 4:
             raise TypeError("moltype must be DNA or RNA")
