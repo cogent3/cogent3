@@ -3,7 +3,6 @@ import os
 import pathlib
 import re
 
-from tempfile import TemporaryDirectory
 from warnings import catch_warnings, filterwarnings
 
 import numpy
@@ -2054,16 +2053,15 @@ def test_sequence_collection_get_seq_entropy():
 
 
 @pytest.mark.xfail(reason="todo: kath, design of serialisation is unresolved")
-def test_sequence_collection_write_to_json():
+def test_sequence_collection_write_to_json(tmp_path):
     # test writing to json file
     data = {"a": "AAAA", "b": "TTTT", "c": "CCCC"}
     aln = new_aln.make_unaligned_seqs(data, moltype="dna")
-    with TemporaryDirectory(".") as dirname:
-        path = str(pathlib.Path(dirname) / "sample.json")
-        aln.write(path)
-        with open_(path) as fn:
-            got = json.loads(fn.read())
-            assert got == aln.to_rich_dict()
+    path = str(tmp_path / "sample.json")
+    aln.write(path)
+    with open_(path) as fn:
+        got = json.loads(fn.read())
+        assert got == aln.to_rich_dict()
 
 
 @pytest.mark.parametrize("moltype", ("dna", "rna"))

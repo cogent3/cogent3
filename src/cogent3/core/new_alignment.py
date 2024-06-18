@@ -72,7 +72,7 @@ class SeqDataView(new_seq.SliceRecordABC):
         step: Optional[int] = None,
         offset: int = 0,
         seqid: Optional[str] = None,
-    ):
+    ):  # refactor: need to deal with optional args type hints
         if step == 0:
             raise ValueError("step cannot be 0")
         step = 1 if step is None else step
@@ -186,7 +186,7 @@ class SeqsDataABC(ABC):
     @abstractmethod
     def get_seq_array(
         self, *, seqid: str, start: int = None, stop: int = None
-    ) -> numpy.ndarray: ...
+    ) -> numpy.ndarray: ...  # refactor: need to deal with optional args type hints
 
     @abstractmethod
     def get_seq_str(
@@ -221,6 +221,10 @@ class SeqsDataABC(ABC):
 
 class SeqsData(SeqsDataABC):
     __slots__ = ("_data", "_alphabet", "_names", "_make_seq")
+    # todo: kath
+    # refactor: design
+    # SeqsData needs new fields that record the offsets and possibly whether
+    # the sequence is reversed
 
     def __init__(
         self,
@@ -266,7 +270,7 @@ class SeqsData(SeqsDataABC):
 
     def get_seq_array(
         self, *, seqid: str, start: int = None, stop: int = None
-    ) -> numpy.ndarray:
+    ) -> numpy.ndarray:  # refactor: need to deal with optional args type hints
         return self._data[seqid][start:stop]
 
     def get_seq_str(self, *, seqid: str, start: int = None, stop: int = None) -> str:
@@ -368,9 +372,9 @@ class SequenceCollection:
         moltype: new_moltype.MolType,
         names: list[str] = None,
         info: Union[dict, InfoClass] = None,
-        source: str = None,  # refactor: need to deal with optional args type hints
+        source: str = None,
         annotation_db: SupportsFeatures = None,
-    ):
+    ):  # refactor: need to deal with optional args type hints
         self._seqs_data = seqs_data
         self.moltype = moltype
         self.names = names
@@ -427,7 +431,9 @@ class SequenceCollection:
 
     def iter_seqs(
         self, seq_order: list = None
-    ) -> Iterator[Union[new_seq.Sequence, SeqsData]]:
+    ) -> Iterator[
+        Union[new_seq.Sequence, SeqsData]
+    ]:  # refactor: need to deal with optional args type hints
         """Iterates over sequences in the collection, in order.
 
         Parameters
@@ -577,7 +583,7 @@ class SequenceCollection:
 
     def rename_seqs(self, renamer):
         # todo: kath
-        # is this something we want to support in addition to label_to_name
+        # returns new SeqsData instance
         ...
 
     def to_dict(self, as_array: bool = False) -> dict[str, Union[str, numpy.ndarray]]:
@@ -689,6 +695,9 @@ class SequenceCollection:
         -------
         A new instance of self translated into protein
         """
+        # todo: kath, add check for when include_stop==True, the seq.get_translation method should be
+        # returning sequences with a protein_with_stop moltype.
+
         if len(self.moltype.alphabet) != 4:
             raise TypeError("Sequences must be a DNA/RNA")
 
@@ -707,7 +716,7 @@ class SequenceCollection:
         pep_moltype = pep.moltype
         seqs_data = SeqsData(
             data=translated,
-            alphabet=pep_moltype.alphabet,
+            alphabet=pep_moltype.degen_gapped,
             make_seq=pep_moltype.make_seq,
         )
         return self.__class__(
@@ -716,11 +725,14 @@ class SequenceCollection:
 
     def rc(self):
         """Returns the reverse complement of all sequences in the collection.
-        A synonym for reverse_complement."""
-        # refactor: design
-        # I think SeqsData needs to keep track of the fact that sequences are now reverse complemented?
-        # for the purpose of annotations
-        # OR reverse complement comes with the caveat that annotations are not preserved
+        A synonym for reverse_complement.
+
+        Notes
+        -----
+        Reverse complementing the collection will break the relationship to an
+        annotation_db if present.
+
+        """
         rc_seqs = {name: self.seqs[name].rc() for name in self.names}
         seqs_data = self.seqs.__class__(
             data=rc_seqs, alphabet=self.moltype.alphabet, make_seq=self.moltype.make_seq
@@ -734,7 +746,14 @@ class SequenceCollection:
 
     def reverse_complement(self):
         """Returns the reverse complement of all sequences in the collection.
-        A synonym for rc."""
+        A synonym for rc.
+
+        Notes
+        -----
+        Reverse complementing the collection will break the relationship to an
+        annotation_db if present.
+
+        """
         return self.rc()
 
     def distance_matrix(self, calc: str = "pdist"):
@@ -896,7 +915,7 @@ class SequenceCollection:
         start: int = None,
         stop: int = None,
         allow_partial: bool = False,
-    ) -> Iterator[Feature]:
+    ) -> Iterator[Feature]:  # refactor: need to deal with optional args type hints
         """yields Feature instances
 
         Parameters
@@ -926,8 +945,6 @@ class SequenceCollection:
         if not self.annotation_db:
             return None
 
-        # refactor: design
-        # information on parent_coordinates/annotation offsets is lost when seqs are converted to SeqsData
         seqid_to_seqname = {seq.parent_coordinates()[0]: seq.name for seq in self.seqs}
         if seqid and (
             seqid not in seqid_to_seqname and seqid not in seqid_to_seqname.values()
