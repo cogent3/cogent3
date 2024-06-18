@@ -2074,7 +2074,7 @@ def test_to_dna_raises():
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
-def test_annotate_from_gff3(cls):  # will not port for SequenceCollection
+def test_annotate_from_gff3(cls):  # will not port
     """annotate_from_gff should work on data from gff3 files"""
     fasta_path = os.path.join("data/c_elegans_WS199_dna_shortened.fasta")
     gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")

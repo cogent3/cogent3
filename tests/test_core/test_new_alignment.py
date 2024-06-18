@@ -1305,11 +1305,11 @@ def test_sequence_collection_get_identical_sets_ragged_raises(ragged):
         _ = ragged.get_identical_sets()
 
 
-def dna_2_rna(seq):
-    return seq.replace("T", "U")
+def rev(seq):
+    return seq[::-1]
 
 
-@pytest.mark.parametrize("transform", [dna_2_rna, lambda x: x, None])
+@pytest.mark.parametrize("transform", [rev, lambda x: x, None])
 def test_sequence_collection_get_similar(transform):
     data = {
         "a": "AAAAAAAAAA",  # target
@@ -1682,7 +1682,7 @@ def test_sequence_collection_copy_annotations_incompat_type_fails(seqcoll_db, se
 
 
 @pytest.mark.parametrize("moltype", ("dna", "protein"))
-def test_same_moltype(moltype):
+def test_sequence_collection_to_moltype_same_moltype(moltype):
     data = dict(s1="ACGTT", s2="ACCTT")
     seqs = new_aln.make_unaligned_seqs(data, moltype=moltype)
     got = seqs.to_moltype(moltype=moltype)
@@ -1725,13 +1725,6 @@ def test_sequence_collection_to_moltype_annotation_db():
     seqs.annotation_db = db
     dna = seqs.to_moltype("dna")
     assert len(dna.annotation_db) == 3
-
-
-def test_sequence_collection_to_moltype_same_moltype():
-    data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
-    seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
-    to_same_seqs = seqs.to_moltype("dna")
-    assert to_same_seqs is seqs
 
 
 def test_sequence_collection_to_dna():
