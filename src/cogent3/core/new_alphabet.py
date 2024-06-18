@@ -117,6 +117,14 @@ class AlphabetABC(ABC):
     @abstractmethod
     def gap_index(self) -> OptInt: ...
 
+    @property
+    @abstractmethod
+    def missing_char(self) -> OptStr: ...
+
+    @property
+    @abstractmethod
+    def missing_index(self) -> OptInt: ...
+
 
 class MonomerAlphabetABC(ABC):
     @abstractmethod
@@ -206,19 +214,40 @@ class array_to_bytes:
 
 
 class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
-    def __new__(cls, chars: typing.Sequence[StrORBytes], gap: OptStr = None):
+    def __new__(
+        cls,
+        chars: typing.Sequence[StrORBytes],
+        gap: OptStr = None,
+        missing: OptStr = None,
+    ):
         if not chars:
             raise ValueError(f"cannot create empty {cls.__name__!r}")
 
         if gap is not None:
             assert _coerce_to_type(chars[0], gap) in chars
 
-        consistent_words(chars, length=1)
-        return tuple.__new__(cls, chars, gap=gap)
+        if missing is not None:
+            assert _coerce_to_type(chars[0], missing) in chars
 
-    def __init__(self, chars: typing.Sequence[StrORBytes], gap: str = None):
+        consistent_words(chars, length=1)
+        return tuple.__new__(cls, chars, gap=gap, missing=missing)
+
+    def __init__(
+        self,
+        chars: typing.Sequence[StrORBytes],
+        gap: OptStr = None,
+        missing: OptStr = None,
+    ):
         self._gap_char = gap
         self._gap_index = self.index(gap) if gap else None
+        self._missing_char = missing
+        self._missing_index = self.index(missing) if missing else None
+
+        # the number of canonical states are non-gap, non-missing states
+        adj = (1 if gap else 0) + (1 if missing else 0)
+
+        self._num_canonical = len(self) - adj
+
         self.dtype = get_array_type(len(self))
         self._chars = set(self)  # for quick lookup
         byte_chars = self.as_bytes()
@@ -232,6 +261,14 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
     @property
     def gap_index(self) -> OptInt:
         return self._gap_index
+
+    @property
+    def missing_char(self) -> OptStr:
+        return self._missing_char
+
+    @property
+    def missing_index(self) -> OptInt:
+        return self._missing_index
 
     @property
     def motif_len(self) -> int:
@@ -567,7 +604,7 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
 _alphabet_moltype_map = {}
 
 
-def make_alphabet(*, chars, gap, moltype):
+def make_alphabet(*, chars, gap, missing, moltype):
     """constructs an alphabet and registers the associated moltype
 
     Notes
@@ -575,6 +612,6 @@ def make_alphabet(*, chars, gap, moltype):
     The moltype is associated with the alphabet, available as an
     alphabet property.
     """
-    alpha = CharAlphabet(chars, gap=gap)
+    alpha = CharAlphabet(chars, gap=gap, missing=missing)
     _alphabet_moltype_map[alpha] = moltype
     return alpha
