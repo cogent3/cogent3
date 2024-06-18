@@ -318,6 +318,12 @@ AA_COLORS = _expand_colors(
 )
 
 
+def _strictly_upper(monomers: tuple[StrORBytes]):
+    """whether all elements correspond to upper case characters"""
+    cast = str if isinstance(monomers[0], str) else chr
+    return all(cast(c).isupper() for c in monomers)
+
+
 @dataclasses.dataclass
 class MolType:
     name: str
@@ -336,6 +342,7 @@ class MolType:
     _degen: new_alphabet.CharAlphabet = dataclasses.field(init=False)
     _degen_gapped: new_alphabet.CharAlphabet = dataclasses.field(init=False)
     _colors: dict[str, str] = dataclasses.field(init=False)
+    _strictly_upper_case: bool = dataclasses.field(init=False)
 
     # how to connect this to the sequence constructor and avoid
     # circular imports
@@ -354,6 +361,7 @@ class MolType:
         gap = new_alphabet._coerce_to_type(monomers, self.gap or "")
         missing = new_alphabet._coerce_to_type(monomers, self.missing or "")
         ambigs = new_alphabet._coerce_to_type(monomers, "".join(self.ambiguities or ""))
+        self._strictly_upper_case = _strictly_upper(monomers)
 
         self._monomers = new_alphabet.make_alphabet(
             chars=monomers, gap=None, missing=None, moltype=self
@@ -488,10 +496,12 @@ class MolType:
 
     @complement.register
     def _(self, seq: str) -> str:
+        seq = seq.upper() if self._strictly_upper_case else seq
         return self.complement(seq.encode("utf8"))
 
     @complement.register
     def _(self, seq: bytes) -> str:
+        seq = seq.upper() if self._strictly_upper_case else seq
         return self._complement(seq).decode("utf8")
 
     @complement.register
@@ -500,6 +510,7 @@ class MolType:
 
     def rc(self, seq: str) -> str:
         """reverse reverse complement of a sequence"""
+        seq = seq.upper() if self._strictly_upper_case else seq
         return self.complement(seq)[::-1]
 
     @functools.singledispatchmethod
@@ -509,10 +520,12 @@ class MolType:
 
     @is_degenerate.register
     def _(self, seq: bytes) -> bool:  # refactor: docstring
+        seq = seq.upper() if self._strictly_upper_case else seq
         return self.is_degenerate(self.degen_gapped_alphabet.to_indices(seq))
 
     @is_degenerate.register
     def _(self, seq: str) -> bool:
+        seq = seq.upper() if self._strictly_upper_case else seq
         return self.is_degenerate(self.degen_gapped_alphabet.to_indices(seq))
 
     @is_degenerate.register
@@ -532,14 +545,17 @@ class MolType:
 
     @is_gapped.register
     def _(self, seq: str) -> bool:
+        seq = seq.upper() if self._strictly_upper_case else seq
         return any(gap in seq for gap in self.gaps)
 
     @is_gapped.register
     def _(self, seq: bytes) -> bool:
+        seq = seq.upper() if self._strictly_upper_case else seq
         return self.is_gapped(seq.decode("utf8"))
 
     @is_gapped.register
     def _(self, seq: bytes) -> bool:
+        seq = seq.upper() if self._strictly_upper_case else seq
         return self.is_gapped(seq.decode("utf8"))
 
     @is_gapped.register
@@ -550,6 +566,8 @@ class MolType:
     def get_degenerate_positions(
         self, seq: StrORBytesORArray, include_gap: bool = True
     ) -> list[int]:  # refactor: docstring
+        if isinstance(seq, (str, bytes)):
+            seq = seq.upper() if self._strictly_upper_case else seq
         seq = self.degen_gapped_alphabet.to_indices(seq)
         for index, val in enumerate(self.degen_gapped_alphabet):
             if include_gap and val in self.gap or val in self.ambiguities:
@@ -567,10 +585,14 @@ class MolType:
 
     @degap.register
     def _(self, seq: bytes) -> bytes:
+        seq = seq.upper() if self._strictly_upper_case else seq
+        if self.gap is None:
+            raise TypeError(f"no gap character defined for {self.name!r}")
         return seq.translate(None, delete="".join(self.gaps).encode("utf8"))
 
     @degap.register
     def _(self, seq: str) -> str:
+        seq = seq.upper() if self._strictly_upper_case else seq
         degapped = self.degap(seq.encode("utf8"))
         return degapped.decode("utf8")
 
@@ -591,6 +613,7 @@ class MolType:
             the motif being queried.
 
         """
+        query_motif = query_motif.upper() if self._strictly_upper_case else query_motif
         ambigs_missing = {
             self.missing,
             *frozenset(self.ambiguities.keys()),
@@ -624,6 +647,7 @@ class MolType:
         a word alphabet with the same length.
         """
         # refactor: simplify
+        ambig_motif = ambig_motif.upper() if self._strictly_upper_case else ambig_motif
         ambiguities = {
             **self.ambiguities,
             self.gap: frozenset(self.gap),

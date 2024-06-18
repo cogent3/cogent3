@@ -238,6 +238,7 @@ def test_is_ambiguity_false(char):
 
 
 @pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
+@pytest.mark.parametrize("moltype", ("text", "rna"))
 @pytest.mark.parametrize(
     "seq, expect",
     (
@@ -251,15 +252,24 @@ def test_is_ambiguity_false(char):
         ("-g?a-u?g-", "gaug"),
     ),
 )
-def test_degap(seq, expect, data_type):
+def test_degap(seq, expect, data_type, moltype):
     """MolType degap should remove all gaps from sequence"""
-    degap = new_moltype.RNA.degap
-    seq = make_typed(seq, data_type, new_moltype.RNA)
-    expect = make_typed(expect, data_type, new_moltype.RNA)
-    got = degap(seq)
+    moltype = new_moltype.get_moltype(moltype)
+    seq = seq.upper() if moltype.name == "rna" else seq
+    expect = expect.upper() if moltype.name == "rna" else expect
+    seq = make_typed(seq, data_type, moltype)
+    expect = make_typed(expect, data_type, moltype)
+    got = moltype.degap(seq)
     assert (
         numpy.array_equal(got, expect) if data_type == numpy.ndarray else got == expect
     )
+
+
+def test_degap_coerces_case():
+    seq, expect = "gaug-", "gaug".upper()
+    rna = new_moltype.RNA
+    got = rna.degap(seq)
+    assert got == expect
 
 
 def test_strand_symmetric_motifs():
