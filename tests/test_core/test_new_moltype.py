@@ -301,9 +301,14 @@ def test_strand_symmetric_motifs():
     ),
 )
 def test_gaps(moltype):
-    # TODO: fred, add new_moltype.BYTES
     got = moltype.gaps
     expect = frozenset({"-", "?"})
+    assert got == expect
+
+
+def test_gaps_bytes():
+    got = new_moltype.get_moltype("bytes").gaps
+    expect = frozenset()
     assert got == expect
 
 
