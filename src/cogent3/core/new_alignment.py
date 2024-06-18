@@ -45,10 +45,9 @@ def assign_sequential_names(num_seqs: int, base_name: str = "seq", start_at: int
     return [f"{base_name}_{i}" for i in range(start_at, start_at + num_seqs)]
 
 
-class SeqDataView(new_seq.SliceRecordABC):
+class SeqDataView(new_seq.SeqViewABC, new_seq.SliceRecordABC):
     """
-    A view class for SeqsData, providing properties for different
-    representations.
+    A view class for SeqsData, providing properties for different representations.
 
     self.seqs is a SeqsData() instance, but other properties are a reference to a
     single seqid only.
@@ -76,7 +75,6 @@ class SeqDataView(new_seq.SliceRecordABC):
         if step == 0:
             raise ValueError("step cannot be 0")
         step = 1 if step is None else step
-
         self._seq_len = self._checked_seq_len(seq_len)
         func = (
             new_seq._input_vals_pos_step if step > 0 else new_seq._input_vals_neg_step
@@ -130,15 +128,6 @@ class SeqDataView(new_seq.SliceRecordABC):
             seqid=self.seqid, start=self.parent_start, stop=self.parent_stop
         )
         return raw if self.step == 1 else raw[:: self.step]
-
-    def __str__(self):
-        return self.str_value
-
-    def __array__(self):
-        return self.array_value
-
-    def __bytes__(self):
-        return self.bytes_value
 
     def __repr__(self) -> str:
         seq = f"{self[:10]!s}...{self[-5:]}" if len(self) > 15 else str(self)
@@ -356,8 +345,8 @@ class SeqsData(SeqsDataABC):
         return (
             sdv
             if self.make_seq is None
-            else self.make_seq(seq=sdv.str_value, name=index)
-        )  # todo: kath, i think seq._seq = sdv if self.make_seq
+            else self.make_seq(seq=sdv, name=index, check_seq=False)
+        )
 
     @__getitem__.register
     def _(self, index: int) -> Union[SeqDataView, new_seq.Sequence]:
@@ -830,6 +819,8 @@ class SequenceCollection:
         if self.annotation_db is None:
             self.annotation_db = type(seq_db)()
 
+        # refactor
+        # if we update a db with the same db, it just hangs... need to fix
         if self.annotation_db.compatible(seq_db, symmetric=False):
             # our db contains the tables in other, so we update in place
             self.annotation_db.update(annot_db=seq_db, seqids=self.names)
