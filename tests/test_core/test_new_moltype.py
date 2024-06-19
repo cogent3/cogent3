@@ -72,7 +72,7 @@ def test_str_moltype():
 
 
 @pytest.mark.parametrize(
-    "seq", ("ACCCG", b"ACCCG", numpy.array([2, 1, 1, 1, 3], dtype=numpy.uint8))[-1:]
+    "seq", ("ACCCG", b"ACCCG", numpy.array([2, 1, 1, 1, 3], dtype=numpy.uint8))
 )
 @pytest.mark.parametrize("name", ("dna", "rna"))
 def test_complement(name, seq):
@@ -84,7 +84,7 @@ def test_complement(name, seq):
 
 def make_typed(seq, data_type, moltype):
     if data_type is numpy.ndarray:
-        seq = moltype.degen_gapped_alphabet.to_indices(seq)
+        seq = moltype.most_degen_alphabet().to_indices(seq)
     elif data_type is bytes:
         seq = seq.encode("utf-8")
     return seq
@@ -104,7 +104,9 @@ def make_typed(seq, data_type, moltype):
 )
 def test_is_degenerate(seq, data_type):
     seq = make_typed(seq, data_type, new_moltype.RNA)
-    assert new_moltype.RNA.is_degenerate(seq)
+    # note that the last sequence is NOT a valid RNA sequence, so
+    # we need to turn off validation
+    assert new_moltype.RNA.is_degenerate(seq, validate=False)
 
 
 @pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
@@ -238,6 +240,7 @@ def test_is_ambiguity_false(char):
 
 
 @pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
+@pytest.mark.parametrize("moltype", ("text", "rna"))
 @pytest.mark.parametrize(
     "seq, expect",
     (
@@ -251,12 +254,14 @@ def test_is_ambiguity_false(char):
         ("-g?a-u?g-", "gaug"),
     ),
 )
-def test_degap(seq, expect, data_type):
+def test_degap(seq, expect, data_type, moltype):
     """MolType degap should remove all gaps from sequence"""
-    degap = new_moltype.RNA.degap
-    seq = make_typed(seq, data_type, new_moltype.RNA)
-    expect = make_typed(expect, data_type, new_moltype.RNA)
-    got = degap(seq)
+    moltype = new_moltype.get_moltype(moltype)
+    seq = seq.upper() if moltype.name == "rna" else seq
+    expect = expect.upper() if moltype.name == "rna" else expect
+    seq = make_typed(seq, data_type, moltype)
+    expect = make_typed(expect, data_type, moltype)
+    got = moltype.degap(seq)
     assert (
         numpy.array_equal(got, expect) if data_type == numpy.ndarray else got == expect
     )
@@ -291,9 +296,14 @@ def test_strand_symmetric_motifs():
     ),
 )
 def test_gaps(moltype):
-    # TODO: fred, add new_moltype.BYTES
     got = moltype.gaps
     expect = frozenset({"-", "?"})
+    assert got == expect
+
+
+def test_gaps_bytes():
+    got = new_moltype.get_moltype("bytes").gaps
+    expect = frozenset()
     assert got == expect
 
 
@@ -318,3 +328,42 @@ def test_gaps_none():
     got = mt.gaps
     expect = frozenset({"-"})
     assert got == expect
+
+
+@pytest.mark.parametrize(
+    "label",
+    (
+        "bytes",
+        "dna",
+        "rna",
+        "protein",
+        "protein_with_stop",
+        "text",
+    ),
+)
+def test_most_degenerate_alphabet(label):
+    moltype = new_moltype.get_moltype(label)
+    got = moltype.most_degen_alphabet()
+    # expected value for number of characters is
+    # length of monomers + len(moltype gaps) + len(ambiguities)
+    num_ambigs = len(moltype.ambiguities or [])
+    expected = len(moltype.alphabet) + len(moltype.gaps or []) + num_ambigs
+    assert len(got) == expected
+
+
+def test_validate_seq():
+    moltype = new_moltype.ASCII
+    alpha = moltype.most_degen_alphabet()
+    assert alpha.is_valid("?gau")
+
+
+def test_degap_raises():
+    with pytest.raises(new_alphabet.AlphabetError):
+        new_moltype.RNA.degap("-g?a-u?g-", validate=True)
+
+
+def test_is_invalid_rna():
+    rna = new_moltype.RNA
+    seq = "ACGYAUGCUGYEWEWNFMNFUWBYBCWUYBCJWBEIWFUB"
+    ambigs = set(seq) - set("ACGU")
+    assert not rna.is_valid(seq)

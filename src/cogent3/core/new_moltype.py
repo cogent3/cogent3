@@ -318,6 +318,12 @@ AA_COLORS = _expand_colors(
 )
 
 
+def _strictly_upper(monomers: tuple[StrORBytes]):
+    """whether all elements correspond to upper case characters"""
+    cast = str if isinstance(monomers[0], str) else chr
+    return all(cast(c).isupper() for c in monomers)
+
+
 @dataclasses.dataclass
 class MolType:
     name: str
@@ -333,6 +339,7 @@ class MolType:
     # private attributes to be delivered via properties
     _monomers: new_alphabet.CharAlphabet = dataclasses.field(init=False)
     _gapped: new_alphabet.CharAlphabet = dataclasses.field(init=False)
+    _gapped_missing: new_alphabet.CharAlphabet = dataclasses.field(init=False)
     _degen: new_alphabet.CharAlphabet = dataclasses.field(init=False)
     _degen_gapped: new_alphabet.CharAlphabet = dataclasses.field(init=False)
     _colors: dict[str, str] = dataclasses.field(init=False)
@@ -356,21 +363,41 @@ class MolType:
         ambigs = new_alphabet._coerce_to_type(monomers, "".join(self.ambiguities or ""))
 
         self._monomers = new_alphabet.make_alphabet(
-            chars=monomers, gap=None, moltype=self
+            chars=monomers, gap=None, missing=None, moltype=self
         )
         self._degen = (
-            new_alphabet.make_alphabet(chars=monomers + ambigs, gap=None, moltype=self)
+            new_alphabet.make_alphabet(
+                chars=monomers + ambigs + missing,
+                gap=None,
+                missing=missing or None,
+                moltype=self,
+            )
             if ambigs
             else None
         )
         self._gapped = (
-            new_alphabet.make_alphabet(chars=monomers + gap, gap=self.gap, moltype=self)
+            new_alphabet.make_alphabet(
+                chars=monomers + gap, gap=self.gap, missing=None, moltype=self
+            )
             if gap
+            else None
+        )
+        self._gapped_missing = (
+            new_alphabet.make_alphabet(
+                chars=monomers + gap + missing,
+                gap=self.gap,
+                missing=missing or None,
+                moltype=self,
+            )
+            if missing and gap
             else None
         )
         self._degen_gapped = (
             new_alphabet.make_alphabet(
-                chars=monomers + gap + ambigs + missing, gap=self.gap, moltype=self
+                chars=monomers + gap + ambigs + missing,
+                gap=self.gap,
+                missing=missing or None,
+                moltype=self,
             )
             if ambigs and gap
             else None
@@ -426,22 +453,24 @@ class MolType:
         return self._degen_gapped
 
     @property
-    def gaps(self) -> frozenset:
+    def gaps(self) -> frozenset:  # refactor: docstring
         gaps = [char for char in (self.gap, self.missing) if char is not None]
         return frozenset(gaps)
 
     def is_valid(self, seq: StrORArray) -> bool:
         """checks against most degenerate alphabet"""
-        alpha = next(
-            alpha
-            for alpha in (self._degen_gapped, self._degen, self._gapped, self._monomers)
-            if alpha
-        )
+        alpha = self.most_degen_alphabet()
         return alpha.is_valid(seq)
 
     def iter_alphabets(self):
-        """yield the different defined alphabets"""
-        alphas = (self._monomers, self._gapped, self._degen, self._degen_gapped)
+        """yield alphabets in order of most to least degenerate"""
+        alphas = (
+            self._degen_gapped,
+            self._degen,
+            self._gapped_missing,
+            self._gapped,
+            self._monomers,
+        )
         yield from (a for a in alphas if a)
 
     def is_compatible_alphabet(
@@ -462,7 +491,9 @@ class MolType:
 
         return any(alpha == alphabet for alpha in self.iter_alphabets())
 
-    def make_seq(self, *, seq: str, name: OptStr = None, check_seq=True, **kwargs):
+    def make_seq(
+        self, *, seq: str, name: OptStr = None, check_seq=True, **kwargs
+    ):  # refactor: docstring
         if check_seq:
             assert self.is_valid(
                 seq
@@ -470,42 +501,89 @@ class MolType:
         return self._make_seq(moltype=self, seq=seq or "", name=name, **kwargs)
 
     @functools.singledispatchmethod
-    def complement(self, seq: StrORBytesORArray) -> str:
-        """converts a string or bytes into it's nucleic acid complement"""
+    def complement(self, seq: StrORBytesORArray, validate: bool = True) -> str:
+        """converts a string or bytes into it's nucleic acid complement
+
+        Parameters
+        ----------
+        seq
+            sequence to be complemented
+        validate
+            if True, checks the sequence is validated against the most
+            degenerate alphabet
+        """
         raise TypeError(f"{type(seq)} not supported")
 
     @complement.register
-    def _(self, seq: str) -> str:
-        return self.complement(seq.encode("utf8"))
+    def _(self, seq: str, validate: bool = True) -> str:
+        if validate and not self.is_valid(seq):
+            raise new_alphabet.AlphabetError(
+                f"{seq[:4]!r} not valid for moltype {self.name!r}"
+            )
+
+        return self.complement(seq.encode("utf8"), validate=False)
 
     @complement.register
-    def _(self, seq: bytes) -> str:
+    def _(self, seq: bytes, validate: bool = True) -> str:
+        if validate and not self.is_valid(seq):
+            raise new_alphabet.AlphabetError(
+                f"{seq[:4]!r} not valid for moltype {self.name!r}"
+            )
         return self._complement(seq).decode("utf8")
 
     @complement.register
-    def _(self, seq: numpy.ndarray) -> str:
-        return self.complement(self.degen_gapped_alphabet.array_to_bytes(seq))
+    def _(self, seq: numpy.ndarray, validate: bool = True) -> str:
+        if validate and not self.is_valid(seq):
+            raise new_alphabet.AlphabetError(
+                f"{seq[:4]!r} not valid for moltype {self.name!r}"
+            )
 
-    def rc(self, seq: str) -> str:
+        return self.complement(
+            self.degen_gapped_alphabet.array_to_bytes(seq), validate=False
+        )
+
+    def rc(self, seq: str, validate: bool = True) -> str:
         """reverse reverse complement of a sequence"""
+        if validate and not self.is_valid(seq):
+            raise new_alphabet.AlphabetError(
+                f"{seq[:4]!r} not valid for moltype {self.name!r}"
+            )
+
         return self.complement(seq)[::-1]
 
     @functools.singledispatchmethod
-    def is_degenerate(self, seq: StrORBytesORArray) -> bool:
+    def is_degenerate(self, seq: StrORBytesORArray, validate: bool = True) -> bool:
         """checks if a sequence contains degenerate characters"""
         raise TypeError(f"{type(seq)} not supported")
 
     @is_degenerate.register
-    def _(self, seq: bytes) -> bool:
-        return self.is_degenerate(self.degen_gapped_alphabet.to_indices(seq))
+    def _(self, seq: bytes, validate: bool = True) -> bool:  # refactor: docstring
+        if validate and not self.is_valid(seq):
+            raise new_alphabet.AlphabetError(
+                f"{seq[:4]!r} not valid for moltype {self.name!r}"
+            )
+        return self.is_degenerate(
+            self.degen_gapped_alphabet.to_indices(seq), validate=False
+        )
 
     @is_degenerate.register
-    def _(self, seq: str) -> bool:
-        return self.is_degenerate(self.degen_gapped_alphabet.to_indices(seq))
+    def _(self, seq: str, validate: bool = True) -> bool:
+        if validate and not self.is_valid(seq):
+            raise new_alphabet.AlphabetError(
+                f"{seq[:4]!r} not valid for moltype {self.name!r}"
+            )
+        return self.is_degenerate(
+            self.degen_gapped_alphabet.to_indices(seq), validate=False
+        )
 
     @is_degenerate.register
-    def _(self, seq: numpy.ndarray) -> bool:
+    def _(self, seq: numpy.ndarray, validate: bool = True) -> bool:
         # what index is the first degenerate character
+        if validate and not self.is_valid(seq):
+            raise new_alphabet.AlphabetError(
+                f"{seq[:4]!r} not valid for moltype {self.name!r}"
+            )
+
         for index, val in enumerate(self.degen_gapped_alphabet):
             if val in self.ambiguities:
                 break
@@ -514,31 +592,54 @@ class MolType:
         return (seq >= index).any()
 
     @functools.singledispatchmethod
-    def is_gapped(self, seq) -> bool:
+    def is_gapped(self, seq, validate: bool = True) -> bool:
         """checks if a sequence contains gaps"""
         raise TypeError(f"{type(seq)} not supported")
 
     @is_gapped.register
-    def _(self, seq: str) -> bool:
+    def _(self, seq: str, validate: bool = True) -> bool:
+        if validate and not self.is_valid(seq):
+            raise new_alphabet.AlphabetError(
+                f"{seq[:4]!r} not valid for moltype {self.name!r}"
+            )
         return any(gap in seq for gap in self.gaps)
 
     @is_gapped.register
-    def _(self, seq: bytes) -> bool:
-        return self.is_gapped(seq.decode("utf8"))
+    def _(self, seq: bytes, validate: bool = True) -> bool:
+        if validate and not self.is_valid(seq):
+            raise new_alphabet.AlphabetError(
+                f"{seq[:4]!r} not valid for moltype {self.name!r}"
+            )
+        return self.is_gapped(seq.decode("utf8"), validate=False)
 
     @is_gapped.register
-    def _(self, seq: bytes) -> bool:
-        return self.is_gapped(seq.decode("utf8"))
+    def _(self, seq: bytes, validate: bool = True) -> bool:
+        if validate and not self.is_valid(seq):
+            raise new_alphabet.AlphabetError(
+                f"{seq[:4]!r} not valid for moltype {self.name!r}"
+            )
+        return self.is_gapped(seq.decode("utf8"), validate=False)
 
     @is_gapped.register
-    def _(self, seq: numpy.ndarray) -> bool:
-        gaps_indices = [self.degen_gapped_alphabet.index(gap) for gap in self.gaps]
+    def _(self, seq: numpy.ndarray, validate: bool = True) -> bool:
+        if validate and not self.is_valid(seq):
+            raise new_alphabet.AlphabetError(
+                f"{seq[:4]!r} not valid for moltype {self.name!r}"
+            )
+        alpha = self.most_degen_alphabet()
+        gaps_indices = [alpha.index(gap) for gap in self.gaps]
         return numpy.isin(seq, gaps_indices).any()
 
     def get_degenerate_positions(
-        self, seq: StrORBytesORArray, include_gap: bool = True
-    ) -> list[int]:
-        seq = self.degen_gapped_alphabet.to_indices(seq)
+        self, seq: StrORBytesORArray, include_gap: bool = True, validate: bool = True
+    ) -> list[int]:  # refactor: docstring
+        if validate and not self.is_valid(seq):
+            raise new_alphabet.AlphabetError(
+                f"{seq[:4]!r} not valid for moltype {self.name!r}"
+            )
+
+        alpha = self.most_degen_alphabet()
+        seq = alpha.to_indices(seq)
         for index, val in enumerate(self.degen_gapped_alphabet):
             if include_gap and val in self.gap or val in self.ambiguities:
                 break
@@ -546,7 +647,7 @@ class MolType:
         return numpy.where(degens)[0].tolist()
 
     @functools.singledispatchmethod
-    def degap(self, seq) -> StrORBytesORArray:
+    def degap(self, seq, validate: bool = True) -> StrORBytesORArray:
         """removes all gap and missing characters from a sequence"""
         # refactor: design
         # cache translation callables (using alpabet.convert_alphabet)
@@ -554,20 +655,41 @@ class MolType:
         raise TypeError(f"{type(seq)} not supported")
 
     @degap.register
-    def _(self, seq: bytes) -> bytes:
+    def _(self, seq: bytes, validate: bool = True) -> bytes:
+        if validate and not self.is_valid(seq):
+            raise new_alphabet.AlphabetError(
+                f"{seq[:4]!r} not valid for moltype {self.name!r}"
+            )
+
+        if self.gap is None:
+            raise TypeError(f"no gap character defined for {self.name!r}")
+
         return seq.translate(None, delete="".join(self.gaps).encode("utf8"))
 
     @degap.register
-    def _(self, seq: str) -> str:
-        degapped = self.degap(seq.encode("utf8"))
+    def _(self, seq: str, validate: bool = True) -> str:
+        if validate and not self.is_valid(seq):
+            raise new_alphabet.AlphabetError(
+                f"{seq[:4]!r} not valid for moltype {self.name!r}"
+            )
+        degapped = self.degap(seq.encode("utf8"), validate=False)
         return degapped.decode("utf8")
 
     @degap.register
-    def _(self, seq: numpy.ndarray) -> numpy.ndarray:
-        degapped = self.degen_gapped_alphabet.array_to_bytes(seq)
-        return self.degen_gapped_alphabet.to_indices(self.degap(degapped))
+    def _(self, seq: numpy.ndarray, validate: bool = True) -> numpy.ndarray:
+        if validate and not self.is_valid(seq):
+            raise new_alphabet.AlphabetError(
+                f"{seq[:4]!r} not valid for moltype {self.name!r}"
+            )
 
-    def is_ambiguity(self, query_motif: str) -> bool:
+        degen = self.most_degen_alphabet()
+        if not degen.gap_char:
+            raise TypeError(f"no gap character defined for {self.name!r}")
+
+        degapped = degen.array_to_bytes(seq)
+        return degen.to_indices(self.degap(degapped, validate=False))
+
+    def is_ambiguity(self, query_motif: str, validate: bool = True) -> bool:
         """Return True if querymotif is an amibiguity character in alphabet.
 
         Parameters
@@ -576,6 +698,11 @@ class MolType:
             the motif being queried.
 
         """
+        if validate and not self.is_valid(query_motif):
+            raise new_alphabet.AlphabetError(
+                f"{query_motif[:4]!r} not valid for moltype {self.name!r}"
+            )
+
         ambigs_missing = {
             self.missing,
             *frozenset(self.ambiguities.keys()),
@@ -587,6 +714,7 @@ class MolType:
         ambig_motif: str,
         alphabet: typing.Optional[new_alphabet.CharAlphabet] = None,
         allow_gap: bool = False,
+        validate: bool = True,
     ) -> typing.Tuple[str]:
         """Returns tuple of all possible canonical characters corresponding
         to ambig_motif
@@ -608,6 +736,11 @@ class MolType:
         If ambig_motif is > 1 character long and alphabet is None, we construct
         a word alphabet with the same length.
         """
+        if validate and not self.is_valid(ambig_motif):
+            raise new_alphabet.AlphabetError(
+                f"{ambig_motif[:4]!r} not valid for moltype {self.name!r}"
+            )
+
         # refactor: simplify
         ambiguities = {
             **self.ambiguities,
@@ -644,7 +777,9 @@ class MolType:
 
         return result
 
-    def strand_symmetric_motifs(self, motif_length: int = 1):
+    def strand_symmetric_motifs(
+        self, motif_length: int = 1
+    ) -> set[tuple[str, str]]:  # refactor: docstring
         """returns ordered pairs of strand complementary motifs"""
         if len(self.alphabet) != 4:
             raise TypeError("moltype must be DNA or RNA")
@@ -688,6 +823,11 @@ class MolType:
         ]
 
         return css, styles
+
+    @functools.cache
+    def most_degen_alphabet(self):
+        """returns the most degenerate alphabet for this instance"""
+        return next(self.iter_alphabets())
 
 
 def _make_moltype_dict() -> dict[str, MolType]:
@@ -736,10 +876,12 @@ def available_moltypes():
 # constant instances of the core molecular types
 ASCII = MolType(
     # A default type for text read from a file etc. when we don't
-    # want to prematurely assume DNA or Protein.
+    # want to prematurely assume DNA or Protein. We therefore need to include
+    # characters that could be present in any of those files.
     monomers="".join(ascii_letters),
     name="text",
     make_seq=new_sequence.Sequence,
+    missing=IUPAC_missing,
 )
 
 DNA = MolType(

@@ -103,16 +103,32 @@ class AlphabetABC(ABC):
     @abstractmethod
     def with_gap_motif(self): ...
 
-
-class MonomerAlphabetABC(ABC):
-    @abstractmethod
-    def get_kmer_alphabet(self, size: int): ...
-
     @abstractmethod
     def to_indices(self, seq: str) -> numpy.ndarray: ...
 
     @abstractmethod
     def from_indices(self, seq: numpy.ndarray) -> str: ...
+
+    @property
+    @abstractmethod
+    def gap_char(self) -> OptStr: ...
+
+    @property
+    @abstractmethod
+    def gap_index(self) -> OptInt: ...
+
+    @property
+    @abstractmethod
+    def missing_char(self) -> OptStr: ...
+
+    @property
+    @abstractmethod
+    def missing_index(self) -> OptInt: ...
+
+
+class MonomerAlphabetABC(ABC):
+    @abstractmethod
+    def get_kmer_alphabet(self, size: int): ...
 
     @abstractmethod
     def as_bytes(self) -> bytes: ...
@@ -198,19 +214,45 @@ class array_to_bytes:
 
 
 class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
-    def __new__(cls, chars: typing.Sequence[StrORBytes], gap: OptStr = None):
+    def __new__(
+        cls,
+        chars: typing.Sequence[StrORBytes],
+        gap: OptStr = None,
+        missing: OptStr = None,
+    ):
         if not chars:
             raise ValueError(f"cannot create empty {cls.__name__!r}")
 
         if gap is not None:
             assert _coerce_to_type(chars[0], gap) in chars
 
-        consistent_words(chars, length=1)
-        return tuple.__new__(cls, chars, gap=gap)
+        if missing is not None:
+            # if a bytes alphabet and missing provided this will fail
+            # since individual elements of a bytes object are integers
+            # leaving as is because we're considering a full bytes
+            # alphabet only, in which case the missing character is already
+            # present
+            assert _coerce_to_type(chars[0], missing) in chars
 
-    def __init__(self, chars: typing.Sequence[StrORBytes], gap: str = None):
+        consistent_words(chars, length=1)
+        return tuple.__new__(cls, chars, gap=gap, missing=missing)
+
+    def __init__(
+        self,
+        chars: typing.Sequence[StrORBytes],
+        gap: OptStr = None,
+        missing: OptStr = None,
+    ):
         self._gap_char = gap
         self._gap_index = self.index(gap) if gap else None
+        self._missing_char = missing
+        self._missing_index = self.index(missing) if missing else None
+
+        # the number of canonical states are non-gap, non-missing states
+        adj = (1 if gap else 0) + (1 if missing else 0)
+
+        self._num_canonical = len(self) - adj
+
         self.dtype = get_array_type(len(self))
         self._chars = set(self)  # for quick lookup
         byte_chars = self.as_bytes()
@@ -226,6 +268,14 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         return self._gap_index
 
     @property
+    def missing_char(self) -> OptStr:
+        return self._missing_char
+
+    @property
+    def missing_index(self) -> OptInt:
+        return self._missing_index
+
+    @property
     def motif_len(self) -> int:
         # this is enforced by consistent_words(length=1) in the constructor
         return 1
@@ -236,7 +286,10 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
     @to_indices.register
     def _(self, seq: bytes) -> numpy.ndarray:
-        return self._bytes2arr(seq)
+        result = self._bytes2arr(seq)
+        # any non-canonical characters should lie outside the range
+        # we replace these with a single value
+        return result
 
     @to_indices.register
     def _(self, seq: str) -> numpy.ndarray:
@@ -254,7 +307,20 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
     def _(self, seq: numpy.ndarray) -> str:
         return self._arr2bytes(seq).decode("utf8")
 
-    def with_gap_motif(self): ...
+    def with_gap_motif(self, gap_char="-", missing_char="?"):
+        """returns new monomer alphabet with gap and missing characters added
+
+        Parameters
+        ----------
+        gap_char
+            the IUPAC gap character "-"
+        missing_char
+            the IUPAC missing character "?"
+        """
+        if self.gap_char and self.missing_char:
+            return self
+        chars = tuple(self[: self._num_canonical]) + (gap_char, missing_char)
+        return self.__class__(chars, gap=gap_char, missing=missing_char)
 
     def get_kmer_alphabet(self, k: int, include_gap: bool = True) -> "KmerAlphabet":
         """returns kmer alphabet with words of size k
@@ -296,6 +362,8 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
     @is_valid.register
     def _(self, seq: numpy.ndarray) -> bool:
+        if not len(seq):
+            return True
         return seq.min() >= 0 and seq.max() < len(self)
 
     def as_bytes(self) -> bytes:
@@ -374,11 +442,10 @@ def seq_to_kmer_indices(
         raise ValueError(f"size of result {len(result)} <= {size}")
 
     for result_idx, i in enumerate(range(0, len(seq) - k + 1, step)):
-        for j in range(i, i + k):
-            if seq[j] < num_states:
-                result[result_idx] = coord_to_index(seq[i : i + k], coeffs)
-            else:
-                continue
+        if (num_states > seq[i : i + k]).all():
+            result[result_idx] = coord_to_index(seq[i : i + k], coeffs)
+        else:
+            continue
     return result
 
 
@@ -405,7 +472,15 @@ def kmer_indices_to_seq(
     return result
 
 
-class KmerAlphabet(tuple, AlphabetABC):
+class KmerAlphabetABC(ABC):
+    @abstractmethod
+    def to_index(self, seq) -> int: ...
+
+    @abstractmethod
+    def from_index(self, kmer_index: int) -> str: ...
+
+
+class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
     def __new__(
         cls,
         words: tuple[StrORBytes, ...],
@@ -547,7 +622,7 @@ class KmerAlphabet(tuple, AlphabetABC):
 _alphabet_moltype_map = {}
 
 
-def make_alphabet(*, chars, gap, moltype):
+def make_alphabet(*, chars, gap, missing, moltype):
     """constructs an alphabet and registers the associated moltype
 
     Notes
@@ -555,6 +630,6 @@ def make_alphabet(*, chars, gap, moltype):
     The moltype is associated with the alphabet, available as an
     alphabet property.
     """
-    alpha = CharAlphabet(chars, gap=gap)
+    alpha = CharAlphabet(chars, gap=gap, missing=missing)
     _alphabet_moltype_map[alpha] = moltype
     return alpha
