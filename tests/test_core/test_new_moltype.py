@@ -72,7 +72,7 @@ def test_str_moltype():
 
 
 @pytest.mark.parametrize(
-    "seq", ("ACCCG", b"ACCCG", numpy.array([2, 1, 1, 1, 3], dtype=numpy.uint8))[-1:]
+    "seq", ("ACCCG", b"ACCCG", numpy.array([2, 1, 1, 1, 3], dtype=numpy.uint8))
 )
 @pytest.mark.parametrize("name", ("dna", "rna"))
 def test_complement(name, seq):
@@ -265,13 +265,6 @@ def test_degap(seq, expect, data_type, moltype):
     )
 
 
-def test_degap_coerces_case():
-    seq, expect = "gaug-", "gaug".upper()
-    rna = new_moltype.RNA
-    got = rna.degap(seq)
-    assert got == expect
-
-
 def test_strand_symmetric_motifs():
     """construction of strand symmetric motif sets"""
     # fails for a moltype with no strand complement
@@ -352,6 +345,11 @@ def test_most_degenerate_alphabet(label):
     # expected value for number of characters is
     # length of monomers + len(moltype gaps) + len(ambiguities)
     num_ambigs = len(moltype.ambiguities or [])
-    num_ambigs += 1 if moltype.missing and num_ambigs else 0
-    expected = len(moltype.alphabet) + len(moltype.gap or []) + num_ambigs
+    expected = len(moltype.alphabet) + len(moltype.gaps or []) + num_ambigs
     assert len(got) == expected
+
+
+def test_validate_seq():
+    moltype = new_moltype.ASCII
+    alpha = moltype.most_degen_alphabet()
+    assert alpha.is_valid("?gau")

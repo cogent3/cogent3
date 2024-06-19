@@ -227,6 +227,11 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
             assert _coerce_to_type(chars[0], gap) in chars
 
         if missing is not None:
+            # if a bytes alphabet and missing provided this will fail
+            # since individual elements of a bytes object are integers
+            # leaving as is because we're considering a full bytes
+            # alphabet only, in which case the missing character is already
+            # present
             assert _coerce_to_type(chars[0], missing) in chars
 
         consistent_words(chars, length=1)
@@ -317,7 +322,7 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         if self.gap_char and self.missing_char:
             return self
         chars = tuple(self[: self._num_canonical]) + (gap_char, missing_char)
-        return CharAlphabet(chars, gap=gap_char, missing=missing_char)
+        return self.__class__(chars, gap=gap_char, missing=missing_char)
 
     def get_kmer_alphabet(self, k: int, include_gap: bool = True) -> "KmerAlphabet":
         """returns kmer alphabet with words of size k
@@ -359,6 +364,8 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
     @is_valid.register
     def _(self, seq: numpy.ndarray) -> bool:
+        if not len(seq):
+            return True
         return seq.min() >= 0 and seq.max() < len(self)
 
     def as_bytes(self) -> bytes:
