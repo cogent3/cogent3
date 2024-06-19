@@ -60,6 +60,8 @@ class SeqDataView(new_seq.SeqViewABC, new_seq.SliceRecordABC):
     data = {"seq1": "ACGT", "seq2": "GTTTGCA"}
     sd = SeqsData(data=data)
     sdv = sd.get_seq_view(seqid="seq1")
+    sdv.array_value
+    # array([3, 1, 2, 0], dtype=int8)
     """
 
     __slots__ = ("seqs", "start", "stop", "step", "_offset", "_seqid", "_seq_len")
@@ -113,6 +115,7 @@ class SeqDataView(new_seq.SeqViewABC, new_seq.SliceRecordABC):
 
     @property
     def str_value(self) -> str:
+        """returns the sequence as a string"""
         raw = self.seqs.get_seq_str(
             seqid=self.seqid, start=self.parent_start, stop=self.parent_stop
         )
@@ -120,6 +123,7 @@ class SeqDataView(new_seq.SeqViewABC, new_seq.SliceRecordABC):
 
     @property
     def array_value(self) -> numpy.ndarray:
+        """returns the sequence as a numpy array"""
         raw = self.seqs.get_seq_array(
             seqid=self.seqid, start=self.parent_start, stop=self.parent_stop
         )
@@ -127,12 +131,14 @@ class SeqDataView(new_seq.SeqViewABC, new_seq.SliceRecordABC):
 
     @property
     def bytes_value(self) -> bytes:
+        """returns the sequence as bytes"""
         raw = self.seqs.get_seq_bytes(
             seqid=self.seqid, start=self.parent_start, stop=self.parent_stop
         )
         return raw if self.step == 1 else raw[:: self.step]
 
     def __repr__(self) -> str:
+        # todo: add alphabet to the repr
         seq = f"{self[:10]!s}...{self[-5:]}" if len(self) > 15 else str(self)
         return (
             f"{self.__class__.__name__}(seq={seq}, start={self.start}, "
@@ -250,6 +256,7 @@ class SeqsData(SeqsDataABC):
 
     @make_seq.setter
     def make_seq(self, make_seq: Callable) -> None:
+        # refactor: add type hints for callable function
         self._make_seq = make_seq
 
     @property
@@ -257,6 +264,7 @@ class SeqsData(SeqsDataABC):
         return self._alphabet
 
     def seq_lengths(self) -> dict[str, int]:
+        """Returns lengths of sequences as dict of {name: length, ... }."""
         return {name: seq.shape[0] for name, seq in self._data.items()}
 
     def get_seq_array(
@@ -1973,9 +1981,9 @@ def _(seqs: dict) -> SupportsFeatures:
 @singledispatch
 def coerce_to_seqs_data_dict(
     data, label_to_name: OptCallable = None
-) -> dict[
-    str, PrimitiveSeqTypes
-]:  # refactor: type hint for callable should specificy input/return type
+) -> dict[str, PrimitiveSeqTypes]:
+    # refactor: type hint for callable should specificy input/return type
+    # refactor: handle conversion of SeqView to SeqDataView.
     raise NotImplementedError(
         f"coerce_to_seqs_data_dict not implemented for {type(data)}"
     )

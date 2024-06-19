@@ -554,6 +554,7 @@ class Sequence:
         Returns 0 if one sequence is empty.
         """
         # refactor: simplify
+        # refactor: array - make use of self._seq.array_value
         if not self or not other:
             return 0.0
 
@@ -2473,8 +2474,6 @@ class RnaSequence(Sequence, NucleicAcidSequenceMixin):
 
 @singledispatch
 def _coerce_to_seqview(data, seqid, alphabet) -> SeqViewABC:
-    # refactor:
-    # build a SeqsData instance to handle conversion of SeqView to SeqDataView
     from cogent3.core.alignment import Aligned
 
     if isinstance(data, Aligned):
