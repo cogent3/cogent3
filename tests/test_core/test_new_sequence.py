@@ -63,6 +63,7 @@ def test_offset_with_multiple_slices(DATA_DIR):
         seq="ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC", name="22"
     )
     gff3_path = DATA_DIR / "ensembl_sample.gff3"
+    # TODO: directly assign an annotation_db, annotate_from_gff to be discontinued
     seq.annotate_from_gff(gff3_path)
     rd = seq[2:].to_rich_dict()
     s1 = deserialise_object(rd)
