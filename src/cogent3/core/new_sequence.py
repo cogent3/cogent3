@@ -103,6 +103,8 @@ class Sequence:
         """
         self.moltype = moltype
         self.name = name
+        # todo: kath, convert all usages of degen_gapped_alphabet to most_degen_alphabet
+        # when most_degen_alphabet merged in
         self._seq = _coerce_to_seqview(seq, name, self.moltype.degen_gapped_alphabet)
         info = info or {}
         self.info = InfoClass(**info)
@@ -2291,6 +2293,7 @@ class SliceRecordABC(ABC):
 
 
 class SeqViewABC(ABC):
+    # refactor: docstring
 
     __slots__ = ()
     seqid: str
@@ -2327,6 +2330,7 @@ class SeqViewABC(ABC):
 
 
 class SeqView(SeqViewABC, SliceRecordABC):
+    # refactor: docstring
     __slots__ = (
         "seq",
         "alphabet",
@@ -2393,9 +2397,6 @@ class SeqView(SeqViewABC, SliceRecordABC):
     @property
     def bytes_value(self):
         return self.str_value.encode("utf-8")
-
-    def __iter__(self):
-        return iter(self.str_value)
 
     def __repr__(self) -> str:
         seq = f"{self.seq[:10]}...{self.seq[-5:]}" if self.seq_len > 15 else self.seq
@@ -2471,7 +2472,9 @@ class RnaSequence(Sequence, NucleicAcidSequenceMixin):
 
 
 @singledispatch
-def _coerce_to_seqview(data, seqid, alphabet):
+def _coerce_to_seqview(data, seqid, alphabet) -> SeqViewABC:
+    # refactor:
+    # build a SeqsData instance to handle conversion of SeqView to SeqDataView
     from cogent3.core.alignment import Aligned
 
     if isinstance(data, Aligned):
@@ -2480,31 +2483,31 @@ def _coerce_to_seqview(data, seqid, alphabet):
 
 
 @_coerce_to_seqview.register
-def _(data: SeqViewABC, seqid, alphabet):
+def _(data: SeqViewABC, seqid, alphabet) -> SeqViewABC:
     return data
 
 
 @_coerce_to_seqview.register
-def _(data: Sequence, seqid, alphabet):
+def _(data: Sequence, seqid, alphabet) -> SeqViewABC:
     return _coerce_to_seqview(data._seq, seqid, alphabet)
 
 
 @_coerce_to_seqview.register
-def _(data: str, seqid, alphabet):
+def _(data: str, seqid, alphabet) -> SeqViewABC:
     return SeqView(seq=data, seqid=seqid, alphabet=alphabet)
 
 
 @_coerce_to_seqview.register
-def _(data: bytes, seqid, alphabet):
+def _(data: bytes, seqid, alphabet) -> SeqViewABC:
     data = data.decode("utf8")
     return SeqView(seq=data, seqid=seqid, alphabet=alphabet)
 
 
 @_coerce_to_seqview.register
-def _(data: tuple, seqid, alphabet):
+def _(data: tuple, seqid, alphabet) -> SeqViewABC:
     return _coerce_to_seqview("".join(data), seqid, alphabet)
 
 
 @_coerce_to_seqview.register
-def _(data: list, seqid, alphabet):
+def _(data: list, seqid, alphabet) -> SeqViewABC:
     return _coerce_to_seqview("".join(data), seqid, alphabet)
