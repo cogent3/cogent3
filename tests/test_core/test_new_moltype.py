@@ -104,7 +104,9 @@ def make_typed(seq, data_type, moltype):
 )
 def test_is_degenerate(seq, data_type):
     seq = make_typed(seq, data_type, new_moltype.RNA)
-    assert new_moltype.RNA.is_degenerate(seq)
+    # note that the last sequence is NOT a valid RNA sequence, so
+    # we need to turn off validation
+    assert new_moltype.RNA.is_degenerate(seq, validate=False)
 
 
 @pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
@@ -353,3 +355,15 @@ def test_validate_seq():
     moltype = new_moltype.ASCII
     alpha = moltype.most_degen_alphabet()
     assert alpha.is_valid("?gau")
+
+
+def test_degap_raises():
+    with pytest.raises(new_alphabet.AlphabetError):
+        new_moltype.RNA.degap("-g?a-u?g-", validate=True)
+
+
+def test_is_invalid_rna():
+    rna = new_moltype.RNA
+    seq = "ACGYAUGCUGYEWEWNFMNFUWBYBCWUYBCJWBEIWFUB"
+    ambigs = set(seq) - set("ACGU")
+    assert not rna.is_valid(seq)
