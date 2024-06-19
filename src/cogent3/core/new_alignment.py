@@ -37,6 +37,9 @@ from cogent3.util.misc import get_setting_from_environ, negate_condition
 
 DEFAULT_ANNOTATION_DB = BasicAnnotationDb
 
+OptInt = typing.Optional[int]
+OptStr = typing.Optional[str]
+OptCallable = typing.Optional[typing.Callable]
 PrimitiveSeqTypes = Union[str, bytes, numpy.ndarray]
 
 
@@ -66,11 +69,11 @@ class SeqDataView(new_seq.SeqViewABC, new_seq.SliceRecordABC):
         *,
         seqs: SeqsData,
         seq_len: int,
-        start: Optional[int] = None,
-        stop: Optional[int] = None,
-        step: Optional[int] = None,
+        start: OptInt = None,
+        stop: OptInt = None,
+        step: OptInt = None,
         offset: int = 0,
-        seqid: Optional[str] = None,
+        seqid: OptStr = None,
     ):  # refactor: need to deal with optional args type hints
         if step == 0:
             raise ValueError("step cannot be 0")
@@ -149,9 +152,7 @@ class SeqsDataABC(ABC):
     """
 
     alphabet: new_alpha.CharAlphabet
-    make_seq: Callable = (
-        None  # refactor: type hint for callable should specificy input/return type
-    )
+    make_seq: OptCallable = None
 
     @abstractmethod
     def seq_lengths(self) -> dict[str, int]: ...
@@ -174,17 +175,17 @@ class SeqsDataABC(ABC):
 
     @abstractmethod
     def get_seq_array(
-        self, *, seqid: str, start: int = None, stop: int = None
-    ) -> numpy.ndarray: ...  # refactor: need to deal with optional args type hints
+        self, *, seqid: str, start: OptInt = None, stop: OptInt = None
+    ) -> numpy.ndarray: ...
 
     @abstractmethod
     def get_seq_str(
-        self, *, seqid: str, start: int = None, stop: int = None
+        self, *, seqid: str, start: OptInt = None, stop: OptInt = None
     ) -> str: ...
 
     @abstractmethod
     def get_seq_bytes(
-        self, *, seqid: str, start: int = None, stop: int = None
+        self, *, seqid: str, start: OptInt = None, stop: OptInt = None
     ) -> bytes: ...
 
     @abstractmethod
@@ -220,7 +221,7 @@ class SeqsData(SeqsDataABC):
         *,
         data: dict[str, PrimitiveSeqTypes],
         alphabet: new_alpha.CharAlphabet,
-        make_seq: Callable = None,
+        make_seq: OptCallable = None,
     ):
         self._alphabet = alphabet
         self._make_seq = make_seq
@@ -258,17 +259,19 @@ class SeqsData(SeqsDataABC):
         return {name: seq.shape[0] for name, seq in self._data.items()}
 
     def get_seq_array(
-        self, *, seqid: str, start: int = None, stop: int = None
-    ) -> numpy.ndarray:  # refactor: need to deal with optional args type hints
+        self, *, seqid: str, start: OptInt = None, stop: OptInt = None
+    ) -> numpy.ndarray:
         return self._data[seqid][start:stop]
 
-    def get_seq_str(self, *, seqid: str, start: int = None, stop: int = None) -> str:
+    def get_seq_str(
+        self, *, seqid: str, start: OptInt = None, stop: OptInt = None
+    ) -> str:
         return self._alphabet.from_indices(
             self.get_seq_array(seqid=seqid, start=start, stop=stop)
         )
 
     def get_seq_bytes(
-        self, *, seqid: str, start: int = None, stop: int = None
+        self, *, seqid: str, start: OptInt = None, stop: OptInt = None
     ) -> bytes:
         return self.get_seq_str(seqid=seqid, start=start, stop=stop).encode("utf8")
 
@@ -361,7 +364,7 @@ class SequenceCollection:
         moltype: new_moltype.MolType,
         names: list[str] = None,
         info: Union[dict, InfoClass] = None,
-        source: str = None,
+        source: OptStr = None,
         annotation_db: SupportsFeatures = None,
     ):  # refactor: need to deal with optional args type hints
         self._seqs_data = seqs_data
@@ -860,7 +863,7 @@ class SequenceCollection:
         biotype: str,
         name: str,
         spans: list[tuple[int, int]],
-        parent_id: Optional[str] = None,
+        parent_id: OptStr = None,
         strand: str = "+",
     ) -> Feature:
         """
@@ -901,10 +904,10 @@ class SequenceCollection:
         self,
         *,
         seqid: Union[str, Iterator[str]] = None,
-        biotype: Optional[str] = None,
-        name: Optional[str] = None,
-        start: int = None,
-        stop: int = None,
+        biotype: OptStr = None,
+        name: OptStr = None,
+        start: OptInt = None,
+        stop: OptInt = None,
         allow_partial: bool = False,
     ) -> Iterator[Feature]:  # refactor: need to deal with optional args type hints
         """yields Feature instances
@@ -985,7 +988,7 @@ class SequenceCollection:
 
         return alignment_to_phylip(self.to_dict())
 
-    def write(self, filename: str, file_format: str = None, **kwargs):
+    def write(self, filename: str, file_format: OptStr = None, **kwargs):
         """Write the sequences to a file, preserving order of sequences.
 
         Parameters
@@ -1019,14 +1022,14 @@ class SequenceCollection:
 
     def dotplot(
         self,
-        name1: Optional[str] = None,
-        name2: Optional[str] = None,
+        name1: OptStr = None,
+        name2: OptStr = None,
         window: int = 20,
-        threshold: Optional[int] = None,
-        k: Optional[int] = None,
+        threshold: OptInt = None,
+        k: OptInt = None,
         min_gap: int = 0,
         width: int = 500,
-        title: Optional[str] = None,
+        title: OptStr = None,
         rc: bool = False,
         show_progress: bool = False,
     ):
@@ -1128,7 +1131,7 @@ class SequenceCollection:
     def apply_pssm(
         self,
         pssm: PSSM = None,
-        path: str = None,
+        path: OptStr = None,
         background: numpy.array = None,
         pseudocount: int = 0,
         names: list = None,
@@ -1471,7 +1474,7 @@ class SequenceCollection:
         )
         return counts.row_sum()
 
-    def pad_seqs(self, pad_length: int = None):
+    def pad_seqs(self, pad_length: OptInt = None):
         """Returns copy in which sequences are padded to same length.
 
         Parameters
@@ -1728,7 +1731,7 @@ class SequenceCollection:
         self,
         name_order: Optional[typing.Sequence[str]] = None,
         wrap: int = 60,
-        limit: Optional[int] = None,
+        limit: OptInt = None,
         colors: Optional[Mapping[str, str]] = None,
         font_size: int = 12,
         font_family: str = "Lucida Console",
@@ -1879,10 +1882,10 @@ class SequenceCollection:
 
     def set_repr_policy(
         self,
-        num_seqs: Optional[int] = None,
-        num_pos: Optional[int] = None,
-        ref_name: Optional[str] = None,
-        wrap: Optional[int] = None,
+        num_seqs: OptInt = None,
+        num_pos: OptInt = None,
+        ref_name: OptInt = None,
+        wrap: OptInt = None,
     ):
         """specify policy for repr(self)
 
@@ -1968,7 +1971,7 @@ def _(seqs: dict) -> SupportsFeatures:
 
 @singledispatch
 def coerce_to_seqs_data_dict(
-    data, label_to_name: Callable = None
+    data, label_to_name: OptCallable = None
 ) -> dict[
     str, PrimitiveSeqTypes
 ]:  # refactor: type hint for callable should specificy input/return type
@@ -1978,7 +1981,7 @@ def coerce_to_seqs_data_dict(
 
 
 @coerce_to_seqs_data_dict.register
-def _(data: dict, label_to_name: Callable = None) -> dict[str, PrimitiveSeqTypes]:
+def _(data: dict, label_to_name: OptCallable = None) -> dict[str, PrimitiveSeqTypes]:
     is_sequence = isinstance(next(iter(data.values()), None), new_seq.Sequence)
     return {
         (label_to_name(k) if label_to_name else k): (str(v) if is_sequence else v)
@@ -1987,14 +1990,14 @@ def _(data: dict, label_to_name: Callable = None) -> dict[str, PrimitiveSeqTypes
 
 
 @coerce_to_seqs_data_dict.register
-def _(data: list, label_to_name: Callable = None) -> dict[str, PrimitiveSeqTypes]:
+def _(data: list, label_to_name: OptCallable = None) -> dict[str, PrimitiveSeqTypes]:
     first = data[0]
     labelled_seqs = assign_names(first, data=data)
     return coerce_to_seqs_data_dict(labelled_seqs, label_to_name=label_to_name)
 
 
 @coerce_to_seqs_data_dict.register
-def _(data: set, label_to_name: Callable = None) -> dict[str, PrimitiveSeqTypes]:
+def _(data: set, label_to_name: OptCallable = None) -> dict[str, PrimitiveSeqTypes]:
     first = next(iter(data))
     labelled_seqs = assign_names(first, data=data)
     return coerce_to_seqs_data_dict(labelled_seqs, label_to_name=label_to_name)
@@ -2002,7 +2005,7 @@ def _(data: set, label_to_name: Callable = None) -> dict[str, PrimitiveSeqTypes]
 
 @coerce_to_seqs_data_dict.register
 def _(
-    data: SequenceCollection, label_to_name: Callable = None
+    data: SequenceCollection, label_to_name: OptCallable = None
 ) -> dict[str, PrimitiveSeqTypes]:
     return coerce_to_seqs_data_dict(
         data.to_dict(as_array=True), label_to_name=label_to_name
@@ -2039,7 +2042,7 @@ def make_unaligned_seqs(
     data: Union[dict[str, PrimitiveSeqTypes], SeqsData, list],
     *,
     moltype: Union[str, new_moltype.MolType],
-    label_to_name: Callable = None,
+    label_to_name: OptCallable = None,
     info: dict = None,
     source: Union[str, Path] = None,
     annotation_db: SupportsFeatures = None,
@@ -2098,7 +2101,7 @@ def _(
     data: SeqsDataABC,
     *,
     moltype: Union[str, new_moltype.MolType],
-    label_to_name: Callable = None,
+    label_to_name: OptCallable = None,
     info: dict = None,
     source: Union[str, Path] = None,
     annotation_db: SupportsFeatures = None,
