@@ -74,7 +74,7 @@ class SeqDataView(new_seq.SeqViewABC, new_seq.SliceRecordABC):
         step: OptInt = None,
         offset: int = 0,
         seqid: OptStr = None,
-    ):  # refactor: need to deal with optional args type hints
+    ):
         if step == 0:
             raise ValueError("step cannot be 0")
         step = 1 if step is None else step
@@ -151,6 +151,7 @@ class SeqsDataABC(ABC):
     a SequenceCollection
     """
 
+    __slots__ = ()
     alphabet: new_alpha.CharAlphabet
     make_seq: OptCallable = None
 
@@ -210,7 +211,7 @@ class SeqsDataABC(ABC):
 
 
 class SeqsData(SeqsDataABC):
-    __slots__ = ("_data", "_alphabet", "_names", "_make_seq")
+    __slots__ = ("_data", "_alphabet", "_make_seq")
     # todo: kath
     # refactor: design
     # SeqsData needs new fields that record the offsets and possibly whether
