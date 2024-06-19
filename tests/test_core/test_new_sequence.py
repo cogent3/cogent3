@@ -46,9 +46,6 @@ def test_has_terminal_stop_false(gc, seq):
     assert not seq.has_terminal_stop(gc=gc)
 
 
-@pytest.mark.xfail(
-    reason="cogent3.core.alphabet.AlphabetError: None length not divisible by 3"
-)
 def test_has_terminal_stop_strict():
     gc = new_genetic_code.get_code(1)
     seq = new_moltype.DNA.make_seq(seq="TCCAG")
@@ -93,9 +90,6 @@ def test_trim_terminal_stop_false(gc, seq):
     assert str(seq.trim_stop_codon(gc=gc)) == str(seq)
 
 
-@pytest.mark.xfail(
-    reason="cogent3.core.alphabet.AlphabetError: None length not divisible by 3"
-)
 def test_trim_terminal_stop_strict():
     gc = new_genetic_code.get_code(1)
     seq = new_moltype.DNA.make_seq(seq="TCCAG")
