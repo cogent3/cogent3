@@ -158,8 +158,6 @@ class SeqsDataABC(ABC):
     """
 
     __slots__ = ()
-    alphabet: new_alpha.CharAlphabet
-    make_seq: OptCallable = None
 
     @abstractmethod
     def seq_lengths(self) -> dict[str, int]: ...
@@ -171,6 +169,8 @@ class SeqsDataABC(ABC):
     @property
     @abstractmethod
     def make_seq(self): ...
+
+    # refactor: docstring
 
     @make_seq.setter
     @abstractmethod

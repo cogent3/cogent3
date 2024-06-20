@@ -1915,12 +1915,11 @@ class SliceRecordABC(ABC):
     seq_len refers to a Python typing.Sequence object, e.g. array, str, list.
     """
 
-    __slots__ = ()
-    start: int
-    stop: int
-    step: int
-    seq_len: int
-    _offset: int
+    __slots__ = ("start", "stop", "step", "_offset")
+
+    @property
+    @abstractmethod
+    def seq_len(self) -> int: ...
 
     @abstractmethod
     def _get_init_kwargs(self) -> dict:
@@ -2297,7 +2296,6 @@ class SeqViewABC(ABC):
     # refactor: docstring
 
     __slots__ = ()
-    seqid: str
 
     @property
     def seqid(self) -> str: ...
