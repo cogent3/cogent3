@@ -22,6 +22,11 @@ def dna_alphabet():
     return new_moltype.DNA.degen_gapped_alphabet
 
 
+@pytest.fixture(scope="function")
+def ascii_alphabet():
+    return new_moltype.ASCII.alphabet
+
+
 @pytest.mark.parametrize("name", ("dna", "rna", "protein", "protein_with_stop", "text"))
 def test_moltype_make_seq(name):
     raw = "ACGGA"
@@ -41,16 +46,20 @@ def test_moltype_make_bytes_seq():
 
 
 # Tests from test_sequence.py
+@pytest.mark.xfail(reason="refactor: how to serialise an alphabet")
 def test_to_json():
     """to_json roundtrip recreates to_dict"""
-    r = new_moltype.DNA.make_seq(seq="AAGGCC", name="seq1")
+    dna = new_moltype.DNA
+    r = dna.make_seq(seq="AAGGCC", name="seq1")
     got = json.loads(r.to_json())
-    seq = new_sequence.SeqView(seq="AAGGCC", seqid="seq1").to_rich_dict()
+    seq = new_sequence.SeqView(
+        seq="AAGGCC", seqid="seq1", alphabet=dna.most_degen_alphabet()
+    ).to_rich_dict()
 
     expect = {
         "name": "seq1",
         "seq": seq,
-        "moltype": r.moltype.label,
+        "moltype": dna.label,
         "info": None,
         "type": get_object_provenance(r),
         "version": __version__,
@@ -82,9 +91,9 @@ def test_offset_with_multiple_slices(DATA_DIR):
 
 
 @pytest.mark.parametrize("coord", ("start", "stop"))
-def test_seqview_to_rich_dict(coord):
+def test_seqview_to_rich_dict(coord, dna_alphabet):
     parent = "ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC"
-    sv = new_sequence.SeqView(seq=parent)
+    sv = new_sequence.SeqView(seq=parent, alphabet=dna_alphabet)
     plus = sv.to_rich_dict()
     minus = sv[::-1].to_rich_dict()
     plus = plus.pop("init_args")
@@ -99,9 +108,9 @@ def test_seqview_to_rich_dict(coord):
     reason="NotImplementedError: deserialising 'cogent3.core.new_sequence.SeqView' from json"
 )
 @pytest.mark.parametrize("reverse", (False, True))
-def test_seqview_round_trip(reverse):
+def test_seqview_round_trip(reverse, dna_alphabet):
     parent = "ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC"
-    sv = new_sequence.SeqView(seq=parent)
+    sv = new_sequence.SeqView(seq=parent, alphabet=dna_alphabet)
     sv = sv[::-1] if reverse else sv
 
     rd = sv.to_rich_dict()
@@ -111,10 +120,10 @@ def test_seqview_round_trip(reverse):
 
 
 @pytest.mark.parametrize("reverse", (False, True))
-def test_sliced_seqview_rich_dict(reverse):
+def test_sliced_seqview_rich_dict(reverse, dna_alphabet):
     parent = "ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC"
     sl = slice(2, 13)
-    sv = new_sequence.SeqView(seq=parent)[sl]
+    sv = new_sequence.SeqView(seq=parent, alphabet=dna_alphabet)[sl]
     sv = sv[::-1] if reverse else sv
     rd = sv.to_rich_dict()
     assert rd["init_args"]["seq"] == parent[sl]
@@ -131,14 +140,14 @@ def test_sliced_seqview_rich_dict(reverse):
     ),
 )
 @pytest.mark.parametrize("offset", (4, 0))
-def test_parent_start_stop(sl, offset):
+def test_parent_start_stop(sl, offset, ascii_alphabet):
     data = "0123456789"
     # check our slice matches the expectation for rest of test
     expect = "234" if sl.step > 0 else "432"
-    sv = new_sequence.SeqView(seq=data)
+    sv = new_sequence.SeqView(seq=data, alphabet=ascii_alphabet)
     sv.offset = offset
     sv = sv[sl]
-    assert sv.value == expect
+    assert sv.str_value == expect
     # now check that start / stop are always the same
     # irrespective of step sign
     assert (sv.parent_start, sv.parent_stop) == (2 + offset, 5 + offset)
@@ -151,26 +160,26 @@ def test_parent_start_stop(sl, offset):
         slice(None, None, -1),  # slice whole sequence minus strand
     ),
 )
-def test_parent_start_stop_limits(sl):
+def test_parent_start_stop_limits(sl, ascii_alphabet):
     data = "0123456789"
     # check our slice matches the expectation for rest of test
     expect = data[sl]
-    sv = new_sequence.SeqView(seq=data)
+    sv = new_sequence.SeqView(seq=data, alphabet=ascii_alphabet)
     sv = sv[sl]
-    assert sv.value == expect
+    assert sv.str_value == expect
     # now check that start / stop are always the same
     # irrespective of step sign
     assert (sv.parent_start, sv.parent_stop) == (0, 10)
 
 
 @pytest.mark.parametrize("rev", (False, True))
-def test_parent_start_stop_empty(rev):
+def test_parent_start_stop_empty(rev, ascii_alphabet):
     data = "0123456789"
     # check our slice matches the expectation for rest of test
     expect = ""
-    sv = new_sequence.SeqView(seq=data)
+    sv = new_sequence.SeqView(seq=data, alphabet=ascii_alphabet)
     sv = sv[0 : 0 : -1 if rev else 1]
-    assert sv.value == expect
+    assert sv.str_value == expect
     # now check that start / stop are always the same
     # irrespective of step sign
     assert (sv.parent_start, sv.parent_stop) == (0, 0)
@@ -178,15 +187,15 @@ def test_parent_start_stop_empty(rev):
 
 @pytest.mark.parametrize("rev", (False, True))
 @pytest.mark.parametrize("index", range(9))
-def test_parent_start_stop_singletons(index, rev):
+def test_parent_start_stop_singletons(index, rev, ascii_alphabet):
     data = "0123456789"
     start, stop = (-(10 - index), -(10 - index + 1)) if rev else (index, index + 1)
     sl = slice(start, stop, -1 if rev else 1)
     # check our slice matches the expectation for rest of test
     expect = data[sl]
-    sv = new_sequence.SeqView(seq=data)
+    sv = new_sequence.SeqView(seq=data, alphabet=ascii_alphabet)
     sv = sv[sl]
-    assert sv.value == expect
+    assert sv.str_value == expect
     # now check that start / stop are always the same
     # irrespective of step sign
     assert (sv.parent_start, sv.parent_stop) == (index, index + 1)
