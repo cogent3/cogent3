@@ -151,7 +151,7 @@ def test_seqs_data_default_attributes(dna_sd: new_aln.SeqsData):
 
 def test_seqs_data_view_zero_step_raises(dna_sd):
     with pytest.raises(ValueError):
-        new_aln.SeqDataView(seqs=dna_sd, step=0, seq_len=4)
+        new_aln.SeqDataView(seq=dna_sd, step=0, seq_len=4)
 
 
 @pytest.mark.parametrize("seqid", ["seq1", "seq2"])
@@ -200,7 +200,7 @@ def test_seqs_data_get_seq_view(str_seqs_dict, alpha, seqid):
     seq_len = len(seq)
     got = sd.get_seq_view(seqid)
     assert isinstance(got, new_aln.SeqDataView)
-    assert got.seqs == sd
+    assert got.seq == sd
     assert got.stop == seq_len
     assert got.seqid == seqid
     assert got.seq_len == seq_len
@@ -275,7 +275,7 @@ def test_seqs_data_make_seq_setget(dna_sd):
 @pytest.mark.parametrize("seq", ("seq1", "seq2"))
 def test_seqs_data_getitem_str_1(dna_sd, seq):
     got = dna_sd[seq]
-    assert got.seqs == dna_sd
+    assert got.seq == dna_sd
     assert got.seqid == seq
 
 
@@ -283,7 +283,7 @@ def test_seqs_data_getitem_str_1(dna_sd, seq):
 def test_seqs_data_getitem_int(str_seqs_dict, alpha, idx):
     sd = new_aln.SeqsData(data=str_seqs_dict, alphabet=alpha)
     got = sd[idx]
-    assert got.seqs == sd
+    assert got.seq == sd
     assert got.seqid == list(str_seqs_dict)[idx]
 
 
@@ -293,7 +293,7 @@ def test_seqs_data_getitem_str(
     seqid,
 ):
     got = dna_sd[seqid]
-    assert got.seqs == dna_sd
+    assert got.seq == dna_sd
     assert got.seqid == seqid
 
 
@@ -373,7 +373,7 @@ def test_seqs_data_to_alphabet_invalid():
     ],
 )
 def test_seq_data_view_slice_returns_self(seq1: str, index: slice):
-    sdv = new_aln.SeqDataView(seqs=seq1, seqid="seq1", seq_len=len(seq1))
+    sdv = new_aln.SeqDataView(seq=seq1, seqid="seq1", seq_len=len(seq1))
     got = sdv[index]
     assert isinstance(got, new_aln.SeqDataView)
 
@@ -453,7 +453,7 @@ def test_get_aligned_view(aligned_dict, seqid):
     ad = new_aln.AlignedData.from_gapped_seqs(aligned_dict)
     got = ad.get_aligned_view(seqid)
     assert isinstance(got, new_aln.AlignedDataView)
-    assert got.seqs == ad
+    assert got.seq == ad
     assert got.stop == ad.align_len
     assert got.seq_len == ad.align_len
 

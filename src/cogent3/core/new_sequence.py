@@ -103,9 +103,7 @@ class Sequence:
         """
         self.moltype = moltype
         self.name = name
-        # todo: kath, convert all usages of degen_gapped_alphabet to most_degen_alphabet
-        # when most_degen_alphabet merged in
-        self._seq = _coerce_to_seqview(seq, name, self.moltype.degen_gapped_alphabet)
+        self._seq = _coerce_to_seqview(seq, name, self.moltype.most_degen_alphabet())
         info = info or {}
         self.info = InfoClass(**info)
         self._repr_policy = dict(num_pos=60)
@@ -1089,7 +1087,7 @@ class Sequence:
 
         s = moltype.coerce_str(self._seq.value)
         moltype.verify_sequence(s, gaps_allowed=True, wildcards_allowed=True)
-        sv = SeqView(seq=s, alphabet=moltype.degen_gapped_alphabet)
+        sv = SeqView(seq=s, alphabet=moltype.most_degen_alphabet())
         new = moltype.make_seq(sv, name=self.name, info=self.info)
         new.annotation_db = self.annotation_db
         return new

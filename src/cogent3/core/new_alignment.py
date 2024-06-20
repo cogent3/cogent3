@@ -64,12 +64,12 @@ class SeqDataView(new_seq.SeqViewABC, new_seq.SliceRecordABC):
     # array([3, 1, 2, 0], dtype=int8)
     """
 
-    __slots__ = ("seqs", "start", "stop", "step", "_offset", "_seqid", "_seq_len")
+    __slots__ = ("seq", "start", "stop", "step", "_offset", "_seqid", "_seq_len")
 
     def __init__(
         self,
         *,
-        seqs: SeqsData,
+        seq: SeqsData,
         seq_len: int,
         start: OptInt = None,
         stop: OptInt = None,
@@ -85,7 +85,7 @@ class SeqDataView(new_seq.SeqViewABC, new_seq.SliceRecordABC):
             new_seq._input_vals_pos_step if step > 0 else new_seq._input_vals_neg_step
         )
         start, stop, step = func(self._seq_len, start, stop, step)
-        self.seqs = seqs
+        self.seq = seq
         self.start = start
         self.stop = stop
         self.step = step
@@ -99,7 +99,7 @@ class SeqDataView(new_seq.SeqViewABC, new_seq.SliceRecordABC):
     @property
     def _zero_slice(self):
         return self.__class__(
-            seqs=self.seqs, seqid=self.seqid, seq_len=self._seq_len, start=0, stop=0
+            seq=self.seq, seqid=self.seqid, seq_len=self._seq_len, start=0, stop=0
         )
 
     @property
@@ -111,12 +111,12 @@ class SeqDataView(new_seq.SeqViewABC, new_seq.SliceRecordABC):
         return self._seq_len
 
     def _get_init_kwargs(self):
-        return {"seqs": self.seqs, "seqid": self.seqid}
+        return {"seq": self.seq, "seqid": self.seqid}
 
     @property
     def str_value(self) -> str:
         """returns the sequence as a string"""
-        raw = self.seqs.get_seq_str(
+        raw = self.seq.get_seq_str(
             seqid=self.seqid, start=self.parent_start, stop=self.parent_stop
         )
         return raw if self.step == 1 else raw[:: self.step]
@@ -124,7 +124,7 @@ class SeqDataView(new_seq.SeqViewABC, new_seq.SliceRecordABC):
     @property
     def array_value(self) -> numpy.ndarray:
         """returns the sequence as a numpy array"""
-        raw = self.seqs.get_seq_array(
+        raw = self.seq.get_seq_array(
             seqid=self.seqid, start=self.parent_start, stop=self.parent_stop
         )
         return raw if self.step == 1 else raw[:: self.step]
@@ -132,7 +132,7 @@ class SeqDataView(new_seq.SeqViewABC, new_seq.SliceRecordABC):
     @property
     def bytes_value(self) -> bytes:
         """returns the sequence as bytes"""
-        raw = self.seqs.get_seq_bytes(
+        raw = self.seq.get_seq_bytes(
             seqid=self.seqid, start=self.parent_start, stop=self.parent_stop
         )
         return raw if self.step == 1 else raw[:: self.step]
@@ -286,7 +286,7 @@ class SeqsData(SeqsDataABC):
 
     def get_seq_view(self, seqid: str) -> SeqDataView:
         seq_len = len(self._data[seqid])
-        return SeqDataView(seqs=self, seqid=seqid, seq_len=seq_len)
+        return SeqDataView(seq=self, seqid=seqid, seq_len=seq_len)
 
     def subset(self, names: Union[str, typing.Sequence[str]]) -> SeqsData:
         """Returns a new SeqsData object with only the specified names."""
@@ -638,11 +638,7 @@ class SequenceCollection:
         if mtype is self.moltype:
             return self  # nothing to be done
 
-        alpha = (
-            mtype.degen_gapped_alphabet
-            if mtype.degen_gapped_alphabet is not None
-            else mtype.gapped_alphabet
-        )
+        alpha = mtype.most_degen_alphabet()
         try:
             new_seqs_data = self.seqs.to_alphabet(alpha)
         except ValueError as e:
@@ -717,7 +713,7 @@ class SequenceCollection:
         pep_moltype = pep.moltype
         seqs_data = SeqsData(
             data=translated,
-            alphabet=pep_moltype.degen_gapped_alphabet,
+            alphabet=pep_moltype.most_degen_alphabet(),
             make_seq=pep_moltype.make_seq,
         )
         return self.__class__(
@@ -2090,9 +2086,7 @@ def make_unaligned_seqs(
     seqs_data = coerce_to_seqs_data_dict(data, label_to_name=label_to_name)
 
     moltype = new_moltype.get_moltype(moltype)
-    alphabet = (
-        moltype.degen_gapped_alphabet or moltype.gapped_alphabet or moltype.alphabet
-    )
+    alphabet = moltype.most_degen_alphabet()
 
     seqs_data = SeqsData(data=seqs_data, alphabet=alphabet)
     return make_unaligned_seqs(
