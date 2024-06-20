@@ -1,14 +1,20 @@
+import json
 import re
 
 import numpy
 import pytest
 
+import cogent3
+
+from cogent3._version import __version__
 from cogent3.core import (
     new_alphabet,
     new_genetic_code,
     new_moltype,
     new_sequence,
 )
+from cogent3.util.deserialise import deserialise_object
+from cogent3.util.misc import get_object_provenance
 
 
 @pytest.mark.parametrize("name", ("dna", "rna", "protein", "protein_with_stop", "text"))
@@ -30,6 +36,173 @@ def test_moltype_make_bytes_seq():
 
 
 # Tests from test_sequence.py
+def test_to_json():
+    """to_json roundtrip recreates to_dict"""
+    r = new_moltype.DNA.make_seq(seq="AAGGCC", name="seq1")
+    got = json.loads(r.to_json())
+    seq = new_sequence.SeqView(seq="AAGGCC", seqid="seq1").to_rich_dict()
+
+    expect = {
+        "name": "seq1",
+        "seq": seq,
+        "moltype": r.moltype.label,
+        "info": None,
+        "type": get_object_provenance(r),
+        "version": __version__,
+        "annotation_offset": 0,
+    }
+
+    assert got == expect
+
+
+@pytest.mark.xfail(
+    reason="NotImplementedError: deserialising 'cogent3.core.new_sequence.DnaSequence' from json"
+)
+def test_offset_with_multiple_slices(DATA_DIR):
+    seq = new_moltype.DNA.make_seq(
+        seq="ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC", name="22"
+    )
+    gff3_path = DATA_DIR / "ensembl_sample.gff3"
+    # TODO: directly assign an annotation_db, annotate_from_gff to be discontinued
+    seq.annotate_from_gff(gff3_path)
+    rd = seq[2:].to_rich_dict()
+    s1 = deserialise_object(rd)
+    assert s1.annotation_offset == 2
+    rd = s1[3:].to_rich_dict()
+    s2 = deserialise_object(rd)
+    assert s2.annotation_offset == 5
+    expect = {(f.seqid, f.biotype, f.name) for f in seq.get_features(start=5)}
+    got = {(f.seqid, f.biotype, f.name) for f in s2.get_features()}
+    assert got == expect
+
+
+@pytest.mark.parametrize("coord", ("start", "stop"))
+def test_seqview_to_rich_dict(coord):
+    parent = "ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC"
+    sv = new_sequence.SeqView(seq=parent)
+    plus = sv.to_rich_dict()
+    minus = sv[::-1].to_rich_dict()
+    plus = plus.pop("init_args")
+    minus = minus.pop("init_args")
+    assert plus.pop("seq") == minus.pop("seq")
+    assert plus["step"] == -minus["step"]
+    assert coord not in plus
+    assert coord not in minus
+
+
+@pytest.mark.xfail(
+    reason="NotImplementedError: deserialising 'cogent3.core.new_sequence.SeqView' from json"
+)
+@pytest.mark.parametrize("reverse", (False, True))
+def test_seqview_round_trip(reverse):
+    parent = "ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC"
+    sv = new_sequence.SeqView(seq=parent)
+    sv = sv[::-1] if reverse else sv
+
+    rd = sv.to_rich_dict()
+    got = deserialise_object(rd)
+    assert isinstance(got, new_sequence.SeqView)
+    assert got.to_rich_dict() == sv.to_rich_dict()
+
+
+@pytest.mark.parametrize("reverse", (False, True))
+def test_sliced_seqview_rich_dict(reverse):
+    parent = "ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC"
+    sl = slice(2, 13)
+    sv = new_sequence.SeqView(seq=parent)[sl]
+    sv = sv[::-1] if reverse else sv
+    rd = sv.to_rich_dict()
+    assert rd["init_args"]["seq"] == parent[sl]
+    assert rd["init_args"]["offset"] == 2
+
+
+@pytest.mark.parametrize(
+    "sl",
+    (
+        slice(2, 5, 1),  # positive indices, positive step
+        slice(-8, -5, 1),  # negative indices, positive step
+        slice(4, 1, -1),  # positive indices, negative step
+        slice(-6, -9, -1),  # negative indices, negative step
+    ),
+)
+@pytest.mark.parametrize("offset", (4, 0))
+def test_parent_start_stop(sl, offset):
+    data = "0123456789"
+    # check our slice matches the expectation for rest of test
+    expect = "234" if sl.step > 0 else "432"
+    sv = new_sequence.SeqView(seq=data)
+    sv.offset = offset
+    sv = sv[sl]
+    assert sv.value == expect
+    # now check that start / stop are always the same
+    # irrespective of step sign
+    assert (sv.parent_start, sv.parent_stop) == (2 + offset, 5 + offset)
+
+
+@pytest.mark.parametrize(
+    "sl",
+    (
+        slice(None, None, 1),  # slice whole sequence plus strand
+        slice(None, None, -1),  # slice whole sequence minus strand
+    ),
+)
+def test_parent_start_stop_limits(sl):
+    data = "0123456789"
+    # check our slice matches the expectation for rest of test
+    expect = data[sl]
+    sv = new_sequence.SeqView(seq=data)
+    sv = sv[sl]
+    assert sv.value == expect
+    # now check that start / stop are always the same
+    # irrespective of step sign
+    assert (sv.parent_start, sv.parent_stop) == (0, 10)
+
+
+@pytest.mark.parametrize("rev", (False, True))
+def test_parent_start_stop_empty(rev):
+    data = "0123456789"
+    # check our slice matches the expectation for rest of test
+    expect = ""
+    sv = new_sequence.SeqView(seq=data)
+    sv = sv[0 : 0 : -1 if rev else 1]
+    assert sv.value == expect
+    # now check that start / stop are always the same
+    # irrespective of step sign
+    assert (sv.parent_start, sv.parent_stop) == (0, 0)
+
+
+@pytest.mark.parametrize("rev", (False, True))
+@pytest.mark.parametrize("index", range(9))
+def test_parent_start_stop_singletons(index, rev):
+    data = "0123456789"
+    start, stop = (-(10 - index), -(10 - index + 1)) if rev else (index, index + 1)
+    sl = slice(start, stop, -1 if rev else 1)
+    # check our slice matches the expectation for rest of test
+    expect = data[sl]
+    sv = new_sequence.SeqView(seq=data)
+    sv = sv[sl]
+    assert sv.value == expect
+    # now check that start / stop are always the same
+    # irrespective of step sign
+    assert (sv.parent_start, sv.parent_stop) == (index, index + 1)
+
+
+def test_get_drawable(DATA_DIR):
+    seq = cogent3.load_seq(DATA_DIR / "annotated_seq.gb")
+    seq = seq[2000:4000]
+    biotypes = "CDS", "gene", "mRNA"
+    for feat in seq.get_features(biotype=biotypes, allow_partial=True):
+        draw = feat.get_drawable()
+        assert "(incomplete)" in draw.text
+
+    full = seq.get_drawable(biotype=biotypes)
+    # should only include elements that overlap the segment
+    assert len(full.traces) == len(biotypes)
+    # and their names should indicate they're incomplete
+    for trace in full.traces:
+        assert "(incomplete)" in trace.text
+
+
 @pytest.mark.parametrize("gc,seq", ((1, "TCCTGA"), (1, "ACGTAA---"), (2, "TCCAGG")))
 def test_has_terminal_stop_true(gc, seq):
     gc = new_genetic_code.get_code(gc)

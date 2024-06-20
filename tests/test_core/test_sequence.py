@@ -2333,15 +2333,11 @@ def test_to_rich_dict(cls, with_offset):
     assert got == expect
 
 
-@pytest.mark.parametrize("cls,with_offset", ((ArraySequence, False), (Sequence, True)))
-def test_to_json(cls, with_offset):
+def test_to_json():  # ported for Sequence
     """to_json roundtrip recreates to_dict"""
-    r = cls("AAGGCC", name="seq1")
-    got = json.loads(r.to_json())
-
     seq = "AAGGCC"
-    if cls == Sequence:
-        seq = SeqView(seq=seq, seqid="seq1").to_rich_dict()
+    r = ArraySequence(seq, name="seq1")
+    got = json.loads(r.to_json())
 
     expect = {
         "name": "seq1",
@@ -2351,155 +2347,8 @@ def test_to_json(cls, with_offset):
         "type": get_object_provenance(r),
         "version": __version__,
     }
-    if with_offset:
-        expect["annotation_offset"] = 0
 
     assert got == expect
-
-
-def test_offset_with_multiple_slices(DATA_DIR):
-    from cogent3.util.deserialise import deserialise_object
-
-    seq = DNA.make_seq("ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC", name="22")
-    gff3_path = DATA_DIR / "ensembl_sample.gff3"
-    seq.annotate_from_gff(gff3_path)
-    rd = seq[2:].to_rich_dict()
-    s1 = deserialise_object(rd)
-    assert s1.annotation_offset == 2
-    rd = s1[3:].to_rich_dict()
-    s2 = deserialise_object(rd)
-    assert s2.annotation_offset == 5
-    expect = {(f.seqid, f.biotype, f.name) for f in seq.get_features(start=5)}
-    got = {(f.seqid, f.biotype, f.name) for f in s2.get_features()}
-    assert got == expect
-
-
-def test_seqview_to_rich_dict():
-    parent = "ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC"
-    sv = SeqView(seq=parent)
-    plus = sv.to_rich_dict()
-    minus = sv[::-1].to_rich_dict()
-    plus = plus.pop("init_args")
-    minus = minus.pop("init_args")
-    assert plus.pop("seq") == minus.pop("seq")
-    assert plus["step"] == -minus["step"]
-    for coord in ("start", "stop"):
-        assert coord not in plus
-        assert coord not in minus
-
-
-@pytest.mark.parametrize("reverse", (False, True))
-def test_seqview_round_trip(reverse):
-    from cogent3.util.deserialise import deserialise_object
-
-    parent = "ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC"
-    sv = SeqView(seq=parent)
-    if reverse:
-        sv = sv[::-1]
-
-    rd = sv.to_rich_dict()
-    got = deserialise_object(rd)
-    assert isinstance(got, SeqView)
-    assert got.to_rich_dict() == sv.to_rich_dict()
-
-
-@pytest.mark.parametrize("reverse", (False, True))
-def test_sliced_seqview_rich_dict(reverse):
-    parent = "ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC"
-    sl = slice(2, 13)
-    sv = SeqView(seq=parent)[sl]
-    if reverse:
-        sv = sv[::-1]
-    rd = sv.to_rich_dict()
-    assert rd["init_args"]["seq"] == parent[sl]
-    assert rd["init_args"]["offset"] == 2
-
-
-@pytest.mark.parametrize(
-    "sl",
-    (
-        slice(2, 5, 1),  # positive indices, positive step
-        slice(-8, -5, 1),  # negative indices, positive step
-        slice(4, 1, -1),  # positive indices, negative step
-        slice(-6, -9, -1),  # negative indices, negative step
-    ),
-)
-@pytest.mark.parametrize("offset", (4, 0))
-def test_parent_start_stop(sl, offset):
-    data = "0123456789"
-    # check our slice matches the expectation for rest of test
-    expect = "234" if sl.step > 0 else "432"
-    sv = SeqView(seq=data)
-    sv.offset = offset
-    sv = sv[sl]
-    assert sv.value == expect
-    # now check that start / stop are always the same
-    # irrespective of step sign
-    assert (sv.parent_start, sv.parent_stop) == (2 + offset, 5 + offset)
-
-
-@pytest.mark.parametrize(
-    "sl",
-    (
-        slice(None, None, 1),  # slice whole sequence plus strand
-        slice(None, None, -1),  # slice whole sequence minus strand
-    ),
-)
-def test_parent_start_stop_limits(sl):
-    data = "0123456789"
-    # check our slice matches the expectation for rest of test
-    expect = data[sl]
-    sv = SeqView(seq=data)
-    sv = sv[sl]
-    assert sv.value == expect
-    # now check that start / stop are always the same
-    # irrespective of step sign
-    assert (sv.parent_start, sv.parent_stop) == (0, 10)
-
-
-@pytest.mark.parametrize("rev", (False, True))
-def test_parent_start_stop_empty(rev):
-    data = "0123456789"
-    # check our slice matches the expectation for rest of test
-    expect = ""
-    sv = SeqView(seq=data)
-    sv = sv[0 : 0 : -1 if rev else 1]
-    assert sv.value == expect
-    # now check that start / stop are always the same
-    # irrespective of step sign
-    assert (sv.parent_start, sv.parent_stop) == (0, 0)
-
-
-@pytest.mark.parametrize("rev", (False, True))
-@pytest.mark.parametrize("index", range(9))
-def test_parent_start_stop_singletons(index, rev):
-    data = "0123456789"
-    start, stop = (-(10 - index), -(10 - index + 1)) if rev else (index, index + 1)
-    sl = slice(start, stop, -1 if rev else 1)
-    # check our slice matches the expectation for rest of test
-    expect = data[sl]
-    sv = SeqView(seq=data)
-    sv = sv[sl]
-    assert sv.value == expect
-    # now check that start / stop are always the same
-    # irrespective of step sign
-    assert (sv.parent_start, sv.parent_stop) == (index, index + 1)
-
-
-def test_get_drawable(DATA_DIR):
-    seq = cogent3.load_seq(DATA_DIR / "annotated_seq.gb")
-    seq = seq[2000:4000]
-    biotypes = "CDS", "gene", "mRNA"
-    for feat in seq.get_features(biotype=biotypes, allow_partial=True):
-        draw = feat.get_drawable()
-        assert "(incomplete)" in draw.text
-
-    full = seq.get_drawable(biotype=biotypes)
-    # should only include elements that overlap the segment
-    assert len(full.traces) == len(biotypes)
-    # and their names should indicate they're incomplete
-    for trace in full.traces:
-        assert "(incomplete)" in trace.text
 
 
 @pytest.mark.parametrize(
