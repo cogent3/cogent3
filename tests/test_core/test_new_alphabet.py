@@ -83,6 +83,16 @@ def test_charalphabet_to_indices(seq):
     assert (got == numpy.array([2, 2, 3, 0, 2], dtype=numpy.uint8)).all()
 
 
+@pytest.mark.parametrize("gap", ("", "-"))
+def test_charalphabet_to_indices_non_canonical(gap):
+    # non-canonical characters should be beyond limit of
+    # canonical
+    canonical = list(f"TCAG{gap}")
+    alpha = new_alphabet.CharAlphabet(canonical, gap=gap or None)
+    got = alpha.to_indices("ACNGT")
+    assert got.max() >= len(canonical)
+
+
 def test_charalphabet_to_indices_invalid():
     alpha = new_alphabet.CharAlphabet(list("TCAG"))
     with pytest.raises(TypeError):
@@ -185,6 +195,110 @@ def test_kmer_alphabet_construction(k):
     monomers = dna.alphabet
     kmers = monomers.get_kmer_alphabet(k)
     assert len(kmers) == 4**k
+
+
+@pytest.mark.parametrize("gap_index", (-1, 4))
+@pytest.mark.parametrize("indices", (2, 3, (2, 3)))
+def test_seq_to_kmer_indices_handle_gap(indices, gap_index):
+    k = 2
+    coeffs = new_alphabet.coord_conversion_coeffs(4, k)
+    seq = numpy.array([0, 1, 1, 3], dtype=numpy.uint8)
+    result = numpy.zeros(len(seq) // k, dtype=numpy.uint8)
+    seq.put(indices, gap_index)
+    got = new_alphabet.seq_to_kmer_indices(
+        seq,
+        result,
+        coeffs,
+        4,
+        k,
+        gap_char_index=gap_index,
+        gap_index=-1 if gap_index == -1 else 16,
+        independent_kmer=True,
+    )
+    expect = numpy.array([1, 16], dtype=numpy.uint8)
+    assert (got == expect).all()
+
+
+@pytest.mark.parametrize("gap_index", (-1, 4))
+def test_seq_to_kmer_indices_handle_missing(gap_index):
+    k = 2
+    coeffs = new_alphabet.coord_conversion_coeffs(4, k)
+    # first dinuc has missing, last dinuc has a gap
+    seq = numpy.array([5, 1, 0, 1, 0, 4], dtype=numpy.uint8)
+    result = numpy.zeros(len(seq) // k, dtype=numpy.uint8)
+    expect = numpy.array([17 if gap_index > 0 else 16, 1, 16], dtype=numpy.uint8)
+    got = new_alphabet.seq_to_kmer_indices(
+        seq,
+        result,
+        coeffs,
+        4,
+        k,
+        gap_char_index=gap_index,
+        gap_index=-1 if gap_index == -1 else 16,
+        independent_kmer=True,
+    )
+    assert (got == expect).all()
+
+
+@pytest.mark.parametrize("gap", ("", "-"))
+def test_kmer_alpha_to_indices_to_index_with_gap(gap):
+    alpha = new_alphabet.CharAlphabet(list(f"TCAG{gap}"), gap=gap or None)
+    dinucs = alpha.get_kmer_alphabet(k=2, include_gap=bool(gap))
+    got1 = int(dinucs.to_indices("--")[0])
+    got2 = dinucs.to_index("--")
+    assert got1 == got2 == 16
+
+
+@pytest.mark.parametrize("seq", ("AC", numpy.array([2, 1], dtype=numpy.uint8)))
+def test_kmer_alphabet_to_index_mixed(seq):
+    dna = new_moltype.get_moltype("dna")
+    kmers = dna.alphabet.get_kmer_alphabet(k=2, include_gap=False)
+    kmer_index = kmers.to_index(seq)
+    # we compare result to tuple result
+    assert kmer_index == 9
+
+
+@pytest.mark.parametrize("gap", ("", "-"))
+def test_kmer_index_to_seq(gap):
+    alpha = new_alphabet.CharAlphabet(list(f"TCAG{gap}"), gap=gap or None)
+    dinuc_alpha = alpha.get_kmer_alphabet(k=2, include_gap=bool(gap))
+    seq = alpha.to_indices("ACTG")
+    expect = numpy.array(
+        [dinuc_alpha.index(d) for d in ("AC", "TG")], dtype=numpy.uint8
+    )
+    assert (dinuc_alpha.to_indices(seq) == expect).all()
+
+
+def test_kmer_index_to_gapped_seq():
+    alpha = new_alphabet.CharAlphabet(list("TCAG-"), gap="-")
+    dinuc_alpha = alpha.get_kmer_alphabet(k=2, include_gap=True)
+    seq = alpha.to_indices("AC--TG")
+    expect = numpy.array(
+        [dinuc_alpha.index(d) for d in ("AC", "--", "TG")], dtype=numpy.uint8
+    )
+    assert (dinuc_alpha.to_indices(seq) == expect).all()
+
+
+@pytest.mark.parametrize("gap", ("", "-"))
+@pytest.mark.parametrize("k", (2, 3))
+def test_kmer_alphabet_with_gap_motif(gap, k):
+    alpha = new_alphabet.CharAlphabet(list(f"TCAG{gap}"), gap=gap or None)
+    kmers = alpha.get_kmer_alphabet(k=k)
+    gap_state = "-" * k
+    gapped = kmers.with_gap_motif()
+    assert gap_state in gapped
+    assert gapped.gap_char == gap_state
+    assert gapped.gap_index == len(gapped) - 1
+
+
+@pytest.mark.parametrize("gap", ("", "-"))
+def test_kmer_alpha_to_indices_with_gap(gap):
+    alpha = new_alphabet.CharAlphabet(list(f"TCAG{gap}"), gap=gap or None)
+    dinucs = alpha.get_kmer_alphabet(k=2, include_gap=bool(gap))
+    seq = numpy.array([5, 1, 0, 1, 0, 4], dtype=numpy.uint8)
+    got = dinucs.to_indices(seq)
+    expect = numpy.array([17 if gap else 16, 1, 16], dtype=numpy.uint8)
+    assert (got == expect).all()
 
 
 @pytest.mark.parametrize("k", (2, 3))
@@ -290,6 +404,28 @@ def test_kmer_alphabet_to_indices_invalid():
         trinuc_alpha.to_indices(["ACG", "TGG"])
 
 
+@pytest.mark.parametrize("seq", ("ACGT", "ACYG", "NN"))
+def test_kmer_alphabet_is_valid(seq):
+    dna = new_moltype.get_moltype("dna")
+    dinuc_alpha = dna.alphabet.get_kmer_alphabet(k=2, include_gap=False)
+    dinucs = dinuc_alpha.to_indices(seq)
+    assert dinuc_alpha.is_valid(dinucs)
+
+
+def test_kmer_alphabet_not_is_valid():
+    dna = new_moltype.get_moltype("dna")
+    seq = numpy.array([2, 5, 3, 17], dtype=numpy.uint8)
+    dinuc_alpha = dna.alphabet.get_kmer_alphabet(k=2, include_gap=False)
+    assert not dinuc_alpha.is_valid(seq)
+
+
+def test_kmer_alphabet_invalid_is_valid():
+    dna = new_moltype.get_moltype("dna")
+    dinuc_alpha = dna.alphabet.get_kmer_alphabet(k=2, include_gap=False)
+    with pytest.raises(TypeError):
+        dinuc_alpha.is_valid("ACGT")
+
+
 def test_kmer_alphabet_from_indices_independent():
     dna = new_moltype.get_moltype("dna")
     seq = "ATGGGCAGA"
@@ -298,6 +434,16 @@ def test_kmer_alphabet_from_indices_independent():
     kmer_seq = trinuc_alpha.to_indices(arr, independent_kmer=True)
     got = trinuc_alpha.from_indices(kmer_seq)
     assert_allclose(got, arr)
+
+
+def test_kmer_alphabet_from_indices_independent_with_gap():
+    dna = new_moltype.get_moltype("dna")
+    seq = "AT--"
+    array_seq = dna.gapped_alphabet.to_indices(seq)
+    dinuc_alpha = dna.gapped_alphabet.get_kmer_alphabet(k=2, include_gap=True)
+    kmer_seq = dinuc_alpha.to_indices(array_seq, independent_kmer=True)
+    got = dinuc_alpha.from_indices(kmer_seq)
+    assert_allclose(got, array_seq)
 
 
 def test_kmer_alphabet_from_indices_not_independent():
@@ -317,3 +463,40 @@ def test_char_alphabet_num_canonical(gap, missing):
         list(f"TCAG{gap}{missing}"), gap=gap or None, missing=missing or None
     )
     assert alpha.num_canonical == 4
+
+
+@pytest.mark.parametrize("include_gap", (True, False))
+@pytest.mark.parametrize("gap", ("", "-"))
+@pytest.mark.parametrize("missing", ("", "?"))
+def test_char_kmer_alphabet_construct_gap_state(gap, include_gap, missing):
+    gap_state = "--"
+    missing_state = "??"
+    alpha = new_alphabet.CharAlphabet(
+        list(f"TCAG{gap}{missing}"), gap=gap or None, missing=missing or None
+    )
+    dinucs = alpha.get_kmer_alphabet(k=2, include_gap=include_gap)
+    assert gap_state in dinucs if include_gap and gap else gap_state not in dinucs
+    assert (
+        missing_state in dinucs
+        if include_gap and missing
+        else missing_state not in dinucs
+    )
+
+
+def test_kmeralpha_from_index_gap_or_missing():
+    alpha = new_alphabet.CharAlphabet(list(f"TCAG-?"), gap="-", missing="?")
+    dinuc = alpha.get_kmer_alphabet(k=2, include_gap=True)
+    # should be a gap motif
+    expect = alpha.to_indices("--")
+    got = dinuc.from_index(16)
+    assert (got == expect).all()
+    expect = alpha.to_indices("??")
+    got = dinuc.from_index(17)
+    assert (got == expect).all()
+
+
+def test_kmeralpha_from_index_invalid():
+    alpha = new_alphabet.CharAlphabet(list(f"TCAG-?"), gap="-", missing="?")
+    dinuc = alpha.get_kmer_alphabet(k=2, include_gap=False)
+    with pytest.raises(ValueError):
+        dinuc.from_index(16)

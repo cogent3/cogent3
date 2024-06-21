@@ -326,9 +326,14 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         """
         if self.gap_char and self.missing_char:
             return self
-        chars = tuple(self[: self._num_canonical]) + (gap_char, missing_char)
+        chars = (
+            tuple(self[: self._num_canonical]) + (gap_char, missing_char)
+            if missing_char
+            else (gap_char,)
+        )
         return self.__class__(chars, gap=gap_char, missing=missing_char)
 
+    @functools.cache
     def get_kmer_alphabet(self, k: int, include_gap: bool = True) -> "KmerAlphabet":
         """returns kmer alphabet with words of size k
 
@@ -344,15 +349,19 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         if k == 1:
             return self
 
-        limit = self.num_canonical if self.gap_char else len(self)
-        chars = tuple(self[:limit])
+        chars = tuple(self[: self.num_canonical])
 
         gap = self._gap_char * k if include_gap and self._gap_char is not None else None
-        missing = self._missing_char * k if self._missing_char is not None else None
+        missing = (
+            self._missing_char * k
+            if self._missing_char is not None and include_gap
+            else None
+        )
         words = tuple("".join(e) for e in itertools.product(chars, repeat=k))
-        if include_gap and gap:
-            words += (gap,)
-        return KmerAlphabet(words=words, monomers=self, gap=gap, k=k)
+        words += (gap,) if include_gap and gap else ()
+        words += (missing,) if include_gap and missing else ()
+
+        return KmerAlphabet(words=words, monomers=self, gap=gap, k=k, missing=missing)
 
     @functools.singledispatchmethod
     def is_valid(self, seq: StrORBytesORArray) -> bool:
@@ -413,6 +422,8 @@ def seq_to_kmer_indices(
     coeffs: numpy.ndarray,
     num_states: int,
     k: int,
+    gap_char_index: int = -1,
+    gap_index: int = -1,
     independent_kmer: bool = True,
 ) -> numpy.ndarray:  # pragma: no cover
     """return 1D indices for valid k-mers
@@ -427,17 +438,22 @@ def seq_to_kmer_indices(
     coeffs
         result of calling coord_conversion_coeffs() with num_states and k
     num_states
-        defines range of possible ints at a position
+        the number of canonical states, which defines range of allowed
+        ints at a position
     k
         k-mer size
+    gap_char_index
+        value of a gap character in seq. If > 0, any k-mer containing
+        a gap character is assigned an index of num_states**k. Any
+        k-mer containing an integer greater than gap_index is assigned an
+        index of (num_states**k) + 1. If gap_char_index < 0, then any
+        k-mer containing an integer greater than num_states is assigned an
+        index of num_states**k.
+    gap_index
+        value to be assigned when gap_char_index is != -1, must be positive
     independent_kmer
         if True, sets returns indices for non-overlapping k-mers, otherwise
         returns indices for all k-mers
-
-    Notes
-    -----
-    If a k-mer has an element > num_states, that k-mer index is assigned
-    to 1+num_states**k
     """
     # check the result length is consistent with the settings
     step: int = k if independent_kmer else 1
@@ -445,11 +461,15 @@ def seq_to_kmer_indices(
     if len(result) < size:
         raise ValueError(f"size of result {len(result)} <= {size}")
 
+    missing_index: int = gap_index + 1 if gap_char_index > 0 else num_states**k
     for result_idx, i in enumerate(range(0, len(seq) - k + 1, step)):
-        if (num_states > seq[i : i + k]).all():
+        segment = seq[i : i + k]
+        if (num_states > segment).all():
             result[result_idx] = coord_to_index(seq[i : i + k], coeffs)
+        elif gap_char_index > 0 and segment.max() == gap_char_index:
+            result[result_idx] = gap_index
         else:
-            continue
+            result[result_idx] = missing_index
     return result
 
 
@@ -460,12 +480,25 @@ def kmer_indices_to_seq(
     result: numpy.ndarray,
     coeffs: numpy.ndarray,
     k: int,
+    gap_index: int = -1,
+    gap_char_index: int = -1,
     independent_kmer: bool = True,
 ) -> numpy.ndarray:  # pragma: no cover
+    if gap_index > 0:
+        assert (
+            gap_char_index > 0
+        ), f"gap_index={gap_index} but gap_char_index={gap_char_index}"
+        gap_state = numpy.array([gap_char_index] * k, dtype=result.dtype)
+    else:
+        gap_state = numpy.empty(0, dtype=result.dtype)
     for index, kmer_index in enumerate(kmer_indices):
-        coord = index_to_coord(kmer_index, coeffs)
+        if kmer_index == gap_index:
+            coord = gap_state
+        else:
+            coord = index_to_coord(kmer_index, coeffs)
+
         if index == 0:
-            result[0:3] = coord
+            result[:k] = coord
         elif independent_kmer:
             seq_index = index * k
             result[seq_index : seq_index + k] = coord
@@ -491,6 +524,7 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         monomers: CharAlphabet,
         k: int,
         gap: OptStr = None,
+        missing: OptStr = None,
     ):
         if not words:
             raise ValueError(f"cannot create empty {cls.__name__!r}")
@@ -499,7 +533,7 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
             assert _coerce_to_type(words[0], gap) in words
 
         consistent_words(words, length=k)
-        return tuple.__new__(cls, words, monomers=monomers, gap=gap)
+        return tuple.__new__(cls, words, monomers=monomers, gap=gap, missing=missing)
 
     def __init__(
         self,
@@ -507,6 +541,7 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         monomers: CharAlphabet,
         k: int,
         gap: OptStr = None,
+        missing: OptStr = None,
     ):
         """
         Parameters
@@ -520,15 +555,45 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         gap
             the gap state ("-" * k) if present
         """
-        self._gap_char = gap
         self.monomers = monomers
         self.dtype = get_array_type(len(self))
         self._words = set(self)  # for quick lookup
         self.k = k
+
+        self._gap_char = gap
+        self._gap_index = self.index(gap) if gap else None
+        self._missing_char = missing
+        self._missing_index = self.index(missing) if missing else None
+        if gap:
+            assert self.monomers.gap_char is not None
+            assert gap == self.monomers.gap_char * k
+            assert gap in self
+
+        if missing:
+            assert self.monomers.missing_char is not None
+            assert missing == self.monomers.missing_char * k
+            assert missing in self
+
         self._coeffs = coord_conversion_coeffs(
             self.monomers.num_canonical, k, dtype=self.dtype
         )
         self._num_canonical = self.monomers.num_canonical**k
+
+    @property
+    def gap_char(self) -> OptStr:
+        return self._gap_char
+
+    @property
+    def gap_index(self) -> OptInt:
+        return self._gap_index
+
+    @property
+    def missing_char(self) -> OptStr:
+        return self._missing_char
+
+    @property
+    def missing_index(self) -> OptInt:
+        return self._missing_index
 
     @property
     def num_canonical(self) -> int:
@@ -544,7 +609,16 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
             a sequence of monomers
         independent_kmer
             if True, returns non-overlapping k-mers
-        """
+
+        Notes
+        -----
+        If self.gap_char is not None, then the following rules apply:
+        If a sequence k-mer contains a gap character it is
+        assigned an index of (num. monomer states**k). If
+        a k-mer contains a non-canonical and non-gap character,
+        it is assigned an index of (num. monomer states**k) + 1.
+        If self.gap_char is None, then both of the above cases
+        are defined as (num. monomer states**k)."""
         # todo: handle case of non-modulo sequences
         raise TypeError(f"{type(seq)} is invalid")
 
@@ -559,13 +633,17 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         if independent_kmer:
             size = int(numpy.ceil(size / self.k))
         result = numpy.zeros(size, dtype=get_array_type(size))
+        gap_char_index = self.monomers.gap_index or -1
+        gap_index = self.gap_index or -1
         return seq_to_kmer_indices(
             seq,
             result,
             self._coeffs,
             self.monomers.num_canonical,
             self.k,
-            independent_kmer,
+            gap_char_index=gap_char_index,
+            gap_index=gap_index,
+            independent_kmer=independent_kmer,
         )
 
     def from_indices(
@@ -578,15 +656,31 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
             size = len(kmer_indices) + self.k - 1
 
         result = numpy.zeros(size, dtype=self.dtype)
+        gap_char_index = self.monomers.gap_index or -1
+        gap_index = self.gap_index or -1
         return kmer_indices_to_seq(
             kmer_indices,
             result,
             self._coeffs,
             self.k,
+            gap_char_index=gap_char_index,
+            gap_index=gap_index,
             independent_kmer=independent_kmer,
         )
 
-    def with_gap_motif(self): ...
+    def with_gap_motif(self, include_missing: bool = False):
+        """returns a new KmerAlphabet with the gap motif added
+
+        Notes
+        -----
+        Adds gap state to monomers and recreates k-mer alphabet
+        for self
+        """
+        if self.gap_char:
+            return self
+        missing = "?" if include_missing else None
+        monomers = self.monomers.with_gap_motif(missing_char=missing)
+        return monomers.get_kmer_alphabet(self.k, include_gap=True)
 
     @functools.singledispatchmethod
     def to_index(self, seq) -> numpy.ndarray:
@@ -598,51 +692,69 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
             sequence to be encoded, can be either a string or numpy array
         overlapping
             if False, performs operation on sequential k-mers, e.g. codons
-        """
+
+
+        Notes
+        -----
+        If self.gap_char is defined, then the following rules apply:
+        returns num_states**k if a k-mer contains a gap character,
+        otherwise returns num_states**k + 1 if a k-mer contains a
+        non-canonical character. If self.gap_char is not defined,
+        returns num_states**k for both cases."""
         raise TypeError(f"{type(seq)} not supported")
 
     @to_index.register
     def _(self, seq: str) -> numpy.ndarray:
-        """encodes a k-mer as a single integer
-
-        Parameters
-        ----------
-        seq
-            sequence to be encoded
-        overlapping
-            if False, performs operation on sequential k-mers, e.g. codons
-        """
         seq = self.monomers.to_indices(seq)
         return self.to_index(seq)
 
     @to_index.register
     def _(self, seq: bytes) -> numpy.ndarray:
-        """encodes a k-mer as a single integer
-
-        Parameters
-        ----------
-        seq
-            sequence to be encoded
-        overlapping
-            if False, performs operation on sequential k-mers, e.g. codons
-        """
         seq = self.monomers.to_indices(seq)
         return self.to_index(seq)
 
     @to_index.register
     def _(self, seq: numpy.ndarray) -> numpy.ndarray:
-        """encodes a k-mer as a single integer
+        assert len(seq) == self.k
+        if (self.monomers.num_canonical > seq).all():
+            return coord_to_index(seq, self._coeffs)
+
+        gap_char_index = self.monomers.gap_index or self.monomers.num_canonical
+        gap_index = self.gap_index or self.num_canonical
+        missing_index = gap_index + 1 if self.gap_char else gap_index
+        return gap_index if seq.max() == gap_char_index else missing_index
+
+    def from_index(self, kmer_index: int) -> numpy.ndarray:
+        """decodes an integer into a k-mer"""
+        if self.gap_index is not None and kmer_index == self.gap_index:
+            return numpy.array([self.monomers.gap_index] * self.k, dtype=self.dtype)
+        elif self.missing_index is not None and kmer_index == self.missing_index:
+            return numpy.array([self.monomers.missing_index] * self.k, dtype=self.dtype)
+        elif kmer_index >= len(self):
+            raise ValueError(f"{kmer_index} is out of range")
+
+        return index_to_coord(kmer_index, self._coeffs)
+
+    @functools.singledispatchmethod
+    def is_valid(self, seq: numpy.ndarray) -> bool:
+        """whether integers are within the valid range
 
         Parameters
         ----------
         seq
-            sequence to be encoded
-        """
-        return coord_to_index(seq, self._coeffs)
+            a numpy array of integers
 
-    def from_index(self, kmer_index: int) -> numpy.ndarray:
-        """decodes an integer into a k-mer"""
-        return index_to_coord(kmer_index, self._coeffs)
+        Notes
+        -------
+        This will raise a TypeError for string or bytes. Using to_indices() to
+        convert those ensures a valid result.
+        """
+        raise TypeError(f"{type(seq)} is invalid, must be numpy.ndarray")
+
+    @is_valid.register
+    def _(self, seq: numpy.ndarray) -> bool:
+        max_val = max(self.missing_index or 0, self.gap_index or 0, self.num_canonical)
+        return seq.min() >= 0 and seq.max() <= max_val if len(seq) else True
 
 
 _alphabet_moltype_map = {}
