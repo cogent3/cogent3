@@ -447,7 +447,9 @@ def test_sequences_propogates_seqid_seqview():
     assert seq._seq.seqid == "parent_name"
 
     # creating a Sequence with an unnamed seqview does not name the SeqView.
-    seq = new_sequence.Sequence(new_sequence.SeqView(seq="ACGGTGGGAC"), name="seq_name")
+    seq = new_moltype.DNA.make_seq(
+        new_sequence.SeqView(seq="ACGGTGGGAC"), name="seq_name"
+    )
     assert seq.name == "seq_name"
     assert seq._seq.seqid is None
 
