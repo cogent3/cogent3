@@ -308,3 +308,12 @@ def test_kmer_alphabet_from_indices_not_independent():
     kmer_seq = trinuc_alpha.to_indices(arr, independent_kmer=False)
     got = trinuc_alpha.from_indices(kmer_seq, independent_kmer=False)
     assert_allclose(got, arr)
+
+
+@pytest.mark.parametrize("gap", ("", "-"))
+@pytest.mark.parametrize("missing", ("", "?"))
+def test_char_alphabet_num_canonical(gap, missing):
+    alpha = new_alphabet.CharAlphabet(
+        list(f"TCAG{gap}{missing}"), gap=gap or None, missing=missing or None
+    )
+    assert alpha.num_canonical == 4

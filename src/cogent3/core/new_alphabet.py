@@ -95,6 +95,10 @@ class AlphabetABC(ABC):
 
     @property
     @abstractmethod
+    def num_canonical(self) -> int: ...
+
+    @property
+    @abstractmethod
     def motif_len(self) -> int: ...
 
     @abstractmethod
@@ -258,6 +262,10 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         byte_chars = self.as_bytes()
         self._bytes2arr = bytes_to_array(byte_chars, dtype=self.dtype)
         self._arr2bytes = array_to_bytes(byte_chars)
+
+    @property
+    def num_canonical(self) -> int:
+        return self._num_canonical
 
     @property
     def gap_char(self) -> OptStr:
@@ -509,9 +517,14 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         self.dtype = get_array_type(len(self))
         self._words = set(self)  # for quick lookup
         self.k = k
+        self._coeffs = coord_conversion_coeffs(
+            self.monomers.num_canonical, k, dtype=self.dtype
+        )
+        self._num_canonical = self.monomers.num_canonical**k
 
-        size = len(self.monomers) - 1 if self.monomers.gap_char else len(self.monomers)
-        self._coeffs = coord_conversion_coeffs(size, k, dtype=self.dtype)
+    @property
+    def num_canonical(self) -> int:
+        return self._num_canonical
 
     @functools.singledispatchmethod
     def to_indices(self, seq, independent_kmer: bool = True) -> numpy.ndarray:
@@ -539,7 +552,12 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
             size = int(numpy.ceil(size / self.k))
         result = numpy.zeros(size, dtype=get_array_type(size))
         return seq_to_kmer_indices(
-            seq, result, self._coeffs, len(self.monomers), self.k, independent_kmer
+            seq,
+            result,
+            self._coeffs,
+            self.monomers.num_canonical,
+            self.k,
+            independent_kmer,
         )
 
     def from_indices(
