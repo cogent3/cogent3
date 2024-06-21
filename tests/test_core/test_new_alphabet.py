@@ -484,7 +484,7 @@ def test_char_kmer_alphabet_construct_gap_state(gap, include_gap, missing):
 
 
 def test_kmeralpha_from_index_gap_or_missing():
-    alpha = new_alphabet.CharAlphabet(list(f"TCAG-?"), gap="-", missing="?")
+    alpha = new_alphabet.CharAlphabet(list("TCAG-?"), gap="-", missing="?")
     dinuc = alpha.get_kmer_alphabet(k=2, include_gap=True)
     # should be a gap motif
     expect = alpha.to_indices("--")
@@ -496,7 +496,7 @@ def test_kmeralpha_from_index_gap_or_missing():
 
 
 def test_kmeralpha_from_index_invalid():
-    alpha = new_alphabet.CharAlphabet(list(f"TCAG-?"), gap="-", missing="?")
+    alpha = new_alphabet.CharAlphabet(list("TCAG-?"), gap="-", missing="?")
     dinuc = alpha.get_kmer_alphabet(k=2, include_gap=False)
     with pytest.raises(ValueError):
         dinuc.from_index(16)
