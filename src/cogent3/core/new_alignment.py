@@ -37,20 +37,20 @@ from cogent3.util.misc import get_setting_from_environ, negate_condition
 
 DEFAULT_ANNOTATION_DB = BasicAnnotationDb
 
-OptInt = typing.Optional[int]
-OptStr = typing.Optional[str]
-OptList = typing.Optional[list]
-OptDict = typing.Optional[dict]
-OptCallable = typing.Optional[typing.Callable]
-OptRenamerCallable = typing.Optional[typing.Callable[[str], str]]
-OptPathType = Optional[Union[str, Path]]
+OptInt = Optional[int]
+OptStr = Optional[str]
+OptList = Optional[list]
+OptDict = Optional[dict]
+OptCallable = Optional[Callable]
+OptRenamerCallable = Optional[Callable[[str], str]]
+OptPathType = Union[str, Path, None]
 PrimitiveSeqTypes = Union[str, bytes, numpy.ndarray]
 
 
 class MakeSeqCallable(typing.Protocol):
     def __call__(
         self,
-        seq: typing.Union[PrimitiveSeqTypes, new_seq.Sequence, new_seq.SeqViewABC],
+        seq: Union[PrimitiveSeqTypes, new_seq.Sequence, new_seq.SeqViewABC],
         name: OptStr = None,
         check_seq: bool = True,
     ) -> new_seq.Sequence: ...
@@ -241,7 +241,7 @@ class SeqsData(SeqsDataABC):
         *,
         data: dict[str, PrimitiveSeqTypes],
         alphabet: new_alpha.CharAlphabet,
-        make_seq: typing.Optional[MakeSeqCallable] = None,
+        make_seq: Optional[MakeSeqCallable] = None,
     ):
         self._alphabet = alphabet
         self._make_seq = make_seq
@@ -256,7 +256,7 @@ class SeqsData(SeqsDataABC):
         return list(self._data.keys())
 
     @property
-    def make_seq(self) -> typing.Optional[MakeSeqCallable]:
+    def make_seq(self) -> Optional[MakeSeqCallable]:
         """if set, returns a function that takes 'seq' and 'name' as keyword
         arguments and returns a corresponding Sequence from the collection.
 
@@ -384,9 +384,9 @@ class SequenceCollection:
         seqs_data: SeqsDataABC,
         moltype: new_moltype.MolType,
         names: OptList = None,
-        info: typing.Optional[Union[dict, InfoClass]] = None,
+        info: Optional[Union[dict, InfoClass]] = None,
         source: OptPathType = None,
-        annotation_db: typing.Optional[SupportsFeatures] = None,
+        annotation_db: Optional[SupportsFeatures] = None,
     ):
         self._seqs_data = seqs_data
         self.moltype = moltype
@@ -1537,7 +1537,7 @@ class SequenceCollection:
     def is_ragged(self) -> bool:
         return len(set(self.seqs.seq_lengths().values())) > 1
 
-    def has_terminal_stop(self, gc: typing.Any = None, strict: bool = False) -> bool:
+    def has_terminal_stop(self, gc: Any = None, strict: bool = False) -> bool:
         """Returns True if any sequence has a terminal stop codon.
 
         Parameters
