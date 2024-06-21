@@ -294,10 +294,9 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
     @to_indices.register
     def _(self, seq: bytes) -> numpy.ndarray:
-        result = self._bytes2arr(seq)
         # any non-canonical characters should lie outside the range
         # we replace these with a single value
-        return result
+        return self._bytes2arr(seq)
 
     @to_indices.register
     def _(self, seq: str) -> numpy.ndarray:
@@ -345,12 +344,11 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         if k == 1:
             return self
 
-        if self.gap_char:
-            chars = tuple(c for c in self if c != self.gap_char)
-        else:
-            chars = tuple(self)
+        limit = self.num_canonical if self.gap_char else len(self)
+        chars = tuple(self[:limit])
 
         gap = self._gap_char * k if include_gap and self._gap_char is not None else None
+        missing = self._missing_char * k if self._missing_char is not None else None
         words = tuple("".join(e) for e in itertools.product(chars, repeat=k))
         if include_gap and gap:
             words += (gap,)
@@ -370,9 +368,7 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
     @is_valid.register
     def _(self, seq: numpy.ndarray) -> bool:
-        if not len(seq):
-            return True
-        return seq.min() >= 0 and seq.max() < len(self)
+        return seq.min() >= 0 and seq.max() < len(self) if len(seq) else True
 
     def as_bytes(self) -> bytes:
         """returns self as a byte string"""
@@ -512,6 +508,18 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         k: int,
         gap: OptStr = None,
     ):
+        """
+        Parameters
+        ----------
+        words
+            series of k length strings
+        monomers
+            base CharAlphabet instance
+        k
+            word size
+        gap
+            the gap state ("-" * k) if present
+        """
         self._gap_char = gap
         self.monomers = monomers
         self.dtype = get_array_type(len(self))
