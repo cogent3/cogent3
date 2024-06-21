@@ -95,3 +95,35 @@ def test_eq_false(code_id):
     gc0 = new_genetic_code.get_code(code_id)
     gc1 = new_genetic_code.get_code(code_id + 1)
     assert gc0 != gc1
+
+
+@pytest.mark.parametrize(
+    "seq, expect",
+    [
+        ("?GATCT", "XS"),
+        ("GAT-T-", "D-"),
+        ("GAT---", "D-"),
+        ("GAT?CT", "DX"),
+        ("GAT?C-", "DX"),
+    ],
+)
+def test_translate_incomplete(seq, expect):
+    gc = new_genetic_code.DEFAULT
+    got = gc.translate(seq)
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "seq, expect",
+    [
+        ("AGATC?", "XS"),
+        ("-A-ATC", "D-"),
+        ("---ATC", "D-"),
+        ("AG?ATC", "DX"),
+        ("-G?ATC", "DX"),
+    ],
+)
+def test_translate_incomplete_rc(seq, expect):
+    gc = new_genetic_code.DEFAULT
+    got = gc.translate(seq, rc=True)
+    assert got == expect
