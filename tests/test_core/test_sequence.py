@@ -2293,31 +2293,11 @@ def test_annotate_gff_nested_features(DATA_DIR):
     assert tuple(str(ex.get_slice()) for ex in exons) == exon_seqs
 
 
-def test_to_moltype_dna():
-    """to_moltype("dna") ensures conversion from T to U"""
-    seq = DNA.make_seq("AAAAGGGGTTT", name="seq1")
-    rna = seq.to_moltype("rna")
-
-    assert "T" not in rna
-
-
-def test_to_moltype_rna():
-    """to_moltype("rna") ensures conversion from U to T"""
-    seq = RNA.make_seq("AAAAGGGGUUU", name="seq1")
-    rna = seq.to_moltype("dna")
-
-    assert "U" not in rna
-
-
-@pytest.mark.parametrize("cls,with_offset", ((ArraySequence, False), (Sequence, True)))
-def test_to_rich_dict(cls, with_offset):
+def test_to_rich_dict():  # ported for Sequence
     """Sequence to_dict works"""
-    r = cls("AAGGCC", name="seq1")
+    r = ArraySequence("AAGGCC", name="seq1")
     got = r.to_rich_dict()
     seq = "AAGGCC"
-
-    if cls == Sequence:
-        seq = SeqView(seq=seq, seqid="seq1").to_rich_dict()
 
     expect = {
         "name": "seq1",
@@ -2327,8 +2307,6 @@ def test_to_rich_dict(cls, with_offset):
         "type": get_object_provenance(r),
         "version": __version__,
     }
-    if with_offset:
-        expect["annotation_offset"] = 0
 
     assert got == expect
 
@@ -2378,17 +2356,7 @@ def test_coerce_to_seqview(cls):
     assert isinstance(got, SeqView)
 
 
-def test_sequences_propogates_seqid():  # ported for Sequence
+def test_sequences_propogates_seqid():  # ported for Sequence  and SeqView
     # creating a name Aligned propagates the seqid to the SeqView.
     seq = Aligned(*Sequence("ACG--G--GAC", name="seq1").parse_out_gaps())
     assert seq.data._seq.seqid == "seq1"
-
-    # creating a Sequence with a seqview does not change the seqid of the SeqView.
-    seq = Sequence(SeqView(seq="ACGGTGGGAC", seqid="parent_name"), name="seq_name")
-    assert seq.name == "seq_name"
-    assert seq._seq.seqid == "parent_name"
-
-    # creating a Sequence with an unnamed seqview does not name the SeqView.
-    seq = Sequence(SeqView(seq="ACGGTGGGAC"), name="seq_name")
-    assert seq.name == "seq_name"
-    assert seq._seq.seqid is None

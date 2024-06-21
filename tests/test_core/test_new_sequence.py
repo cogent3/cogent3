@@ -36,6 +36,48 @@ def test_moltype_make_bytes_seq():
 
 
 # Tests from test_sequence.py
+@pytest.mark.xfail(
+    reason="AttributeError: 'MolType' object has no attribute 'coerce_str'"
+)
+def test_to_moltype_dna():
+    """to_moltype("dna") ensures conversion from T to U"""
+    seq = new_moltype.DNA.make_seq(seq="AAAAGGGGTTT", name="seq1")
+    rna = seq.to_moltype("rna")
+
+    assert "T" not in rna
+
+
+@pytest.mark.xfail(
+    reason="AttributeError: 'MolType' object has no attribute 'coerce_str'"
+)
+def test_to_moltype_rna():
+    """to_moltype("rna") ensures conversion from U to T"""
+    seq = new_moltype.RNA.make_seq(seq="AAAAGGGGUUU", name="seq1")
+    rna = seq.to_moltype("dna")
+
+    assert "U" not in rna
+
+
+def test_to_rich_dict():
+    """Sequence to_dict works"""
+    seq = "AAGGCC"
+    r = new_moltype.DNA.make_seq(seq="AAGGCC", name="seq1")
+    got = r.to_rich_dict()
+    seq = new_sequence.SeqView(seq=seq, seqid="seq1").to_rich_dict()
+
+    expect = {
+        "name": "seq1",
+        "seq": seq,
+        "moltype": r.moltype.label,
+        "info": None,
+        "type": get_object_provenance(r),
+        "version": __version__,
+        "annotation_offset": 0,
+    }
+
+    assert got == expect
+
+
 def test_to_json():
     """to_json roundtrip recreates to_dict"""
     r = new_moltype.DNA.make_seq(seq="AAGGCC", name="seq1")
@@ -393,6 +435,21 @@ def test_sequences_propogates_seqid():
     seq.name = "seq2"
     assert seq.name == "seq2"
     assert seq._seq.seqid == "seq1"
+
+
+@pytest.mark.xfail(reason="no SeqView dispatch for new_alphabet.to_indices")
+def test_sequences_propogates_seqid_seqview():
+    # creating a Sequence with a seqview does not change the seqid of the SeqView.
+    seq = new_moltype.DNA.make_seq(
+        seq=new_sequence.SeqView(seq="ACGGTGGGAC", seqid="parent_name"), name="seq_name"
+    )
+    assert seq.name == "seq_name"
+    assert seq._seq.seqid == "parent_name"
+
+    # creating a Sequence with an unnamed seqview does not name the SeqView.
+    seq = new_sequence.Sequence(new_sequence.SeqView(seq="ACGGTGGGAC"), name="seq_name")
+    assert seq.name == "seq_name"
+    assert seq._seq.seqid is None
 
 
 def test_make_seq_assigns_to_seqview():
