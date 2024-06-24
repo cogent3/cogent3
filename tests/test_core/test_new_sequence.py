@@ -70,10 +70,12 @@ def test_to_moltype_rna():
 
 def test_to_rich_dict():
     """Sequence to_dict works"""
-    seq = "AAGGCC"
-    r = new_moltype.DNA.make_seq(seq="AAGGCC", name="seq1")
+    dna = new_moltype.DNA
+    r = dna.make_seq(seq="AAGGCC", name="seq1")
     got = r.to_rich_dict()
-    seq = new_sequence.SeqView(seq=seq, seqid="seq1").to_rich_dict()
+    seq = new_sequence.SeqView(
+        seq="AAGGCC", seqid="seq1", alphabet=dna.most_degen_alphabet()
+    ).to_rich_dict()
 
     expect = {
         "name": "seq1",
