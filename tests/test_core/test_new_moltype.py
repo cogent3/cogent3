@@ -365,5 +365,4 @@ def test_degap_raises():
 def test_is_invalid_rna():
     rna = new_moltype.RNA
     seq = "ACGYAUGCUGYEWEWNFMNFUWBYBCWUYBCJWBEIWFUB"
-    ambigs = set(seq) - set("ACGU")
     assert not rna.is_valid(seq)
