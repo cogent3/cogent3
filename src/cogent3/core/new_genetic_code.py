@@ -74,7 +74,22 @@ def _get_start_codon_indices(start_codon_map: str) -> tuple[int, ...]:
 def _make_converter(
     kmer_alpha: new_alphabet.KmerAlphabet, codons: tuple[str, ...], code_sequence: str
 ) -> typing.Callable[[bytes, bytes], bytes]:
-    assert len(codons) == len(code_sequence) == 64
+    """returns a converter of codon indices into amino acid indices
+
+    Parameters
+    ----------
+    kmer_alpha
+        a complete trinucleotide alphabet
+    codons
+        the order of codons corresponding to code_sequence
+    code_sequence
+        NCBI genetic code sequence plus gap and missing states
+
+    Returns
+    -------
+    callable for converting codon sequence as bytes to amino acid sequence
+    as bytes
+    """
     # we get the index of the codon in the kmer alphabet
     kmers = numpy.array(
         [kmer_alpha.to_index(codon) for codon in codons], dtype=numpy.uint8
@@ -84,7 +99,13 @@ def _make_converter(
 
 @dataclasses.dataclass
 class GeneticCode:
-    """Holds codon to amino acid mapping, and vice versa."""
+    """Holds codon to amino acid mapping, and vice versa.
+
+    Notes
+    -----
+    We add additional states to the genetic code to represent gapped codons
+    and missing data.
+    """
 
     ID: int
     name: str
@@ -105,24 +126,24 @@ class GeneticCode:
     _translate_minus: ConverterType = dataclasses.field(init=False, default=None)
 
     def __post_init__(self, ncbi_code_sequence: str, ncbi_start_codon_map: str):
-        trinuc_alpha = self.moltype.alphabet.get_kmer_alphabet(k=3, include_gap=False)
+        trinuc_alpha = self.moltype.gapped_alphabet.with_gap_motif().get_kmer_alphabet(
+            k=3, include_gap=True
+        )
+        code_seq = f"{ncbi_code_sequence}-X"
+        start_map = f"{ncbi_start_codon_map}--"
         self._codon_to_aa, self._aa_to_codon, self._stop_codons = _make_mappings(
-            trinuc_alpha, ncbi_code_sequence
+            trinuc_alpha, code_seq
         )
         self.codons = trinuc_alpha
         self._start_codons = {
-            self.codons[i] for i in _get_start_codon_indices(ncbi_start_codon_map)
+            self.codons[i] for i in _get_start_codon_indices(start_map)
         }
         self._sense_codons = tuple(
-            c for c in self.codons if self._codon_to_aa[c] != "*"
+            c for c in self.codons if self._codon_to_aa[c] not in "*-X"
         )
         self.anticodons = tuple(self.moltype.rc(codon) for codon in self.codons)
-        self._translate_plus = _make_converter(
-            trinuc_alpha, self.codons, ncbi_code_sequence
-        )
-        self._translate_minus = _make_converter(
-            trinuc_alpha, self.anticodons, ncbi_code_sequence
-        )
+        self._translate_plus = _make_converter(trinuc_alpha, self.codons, code_seq)
+        self._translate_minus = _make_converter(trinuc_alpha, self.anticodons, code_seq)
 
     def __hash__(self):
         return hash(self.name)
@@ -182,7 +203,7 @@ class GeneticCode:
     def translate(
         self, dna: StrORBytesORArray, start: int = 0, rc: bool = False
     ) -> str:
-        """Translates DNA to protein with current GeneticCode.
+        """Translates DNA to protein.
 
         Parameters
         ----------
@@ -196,6 +217,9 @@ class GeneticCode:
         Notes
         -----
         Sequences are truncated to be a multiple of 3.
+        Codons containing ambiguous nucleotides are translated as 'X',
+        codons containing a gap character are translated as '-'. Codons with
+        a mix of ambiguous nucleotides and gaps are translated as 'X'.
 
         Returns
         -------
@@ -209,12 +233,12 @@ class GeneticCode:
             dna = dna[:-diff]
 
         # convert to indices and then bytes
-        seq = self.codons.to_indices(dna).tobytes()
+        seq = self.codons.to_indices(dna)
 
         if rc:
-            return self._translate_minus(seq).decode("utf8")[::-1]
+            return self._translate_minus(seq.tobytes()).decode("utf8")[::-1]
 
-        return self._translate_plus(seq).decode("utf8")
+        return self._translate_plus(seq.tobytes()).decode("utf8")
 
     def sixframes(self, seq: str) -> typing.Iterable[typing.Tuple[str, int, str]]:
         """Returns the six reading frames of the genetic code.

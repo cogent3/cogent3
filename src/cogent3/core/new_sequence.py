@@ -24,6 +24,7 @@ from random import shuffle
 from numpy import array, floating, integer, issubdtype
 
 from cogent3._version import __version__
+from cogent3.core import new_alphabet
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
     BasicAnnotationDb,
@@ -32,10 +33,8 @@ from cogent3.core.annotation_db import (
     SupportsFeatures,
     load_annotations,
 )
-from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.location import FeatureMap, IndelMap, LostSpan
-from cogent3.core.new_alphabet import AlphabetError
 from cogent3.format.fasta import alignment_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts
 from cogent3.maths.stats.number import CategoryCounter
@@ -104,7 +103,7 @@ class Sequence:
         """
         self.moltype = moltype
         self.name = name
-        self._seq = _coerce_to_seqview(seq, name)
+        self._seq = _coerce_to_seqview(seq, name, self.moltype.most_degen_alphabet())
         info = info or {}
         self.info = InfoClass(**info)
         self._repr_policy = dict(num_pos=60)
@@ -113,6 +112,12 @@ class Sequence:
 
     def __str__(self):
         return str(self._seq)
+
+    def __bytes__(self):
+        return bytes(self._seq)
+
+    def __array__(self):
+        return array(self._seq)
 
     def to_fasta(self, make_seqlabel=None, block_size=60):
         """Return string of self in FASTA format, no trailing newline
@@ -547,6 +552,7 @@ class Sequence:
         Returns 0 if one sequence is empty.
         """
         # refactor: simplify
+        # refactor: array - make use of self._seq.array_value
         if not self or not other:
             return 0.0
 
@@ -1081,7 +1087,7 @@ class Sequence:
 
         s = moltype.coerce_str(self._seq.value)
         moltype.verify_sequence(s, gaps_allowed=True, wildcards_allowed=True)
-        sv = SeqView(seq=s)
+        sv = SeqView(seq=s, alphabet=moltype.most_degen_alphabet())
         new = moltype.make_seq(sv, name=self.name, info=self.info)
         new.annotation_db = self.annotation_db
         return new
@@ -1678,7 +1684,7 @@ class NucleicAcidSequenceMixin:
             return gc.is_stop(end3)
 
         if strict:
-            raise AlphabetError(f"{self.name!r} length not divisible by 3")
+            raise new_alphabet.AlphabetError(f"{self.name!r} length not divisible by 3")
 
         return False
 
@@ -1772,12 +1778,12 @@ class NucleicAcidSequenceMixin:
         #  with stop. The genetic code should also do the translation off
         #  raw data, either an array of ints or a string. So this method
         #  should only deal with trimming terminal stops, modulo 3 etc...
-        from cogent3.core import new_moltype
+        from cogent3.core import new_genetic_code, new_moltype
 
         protein = new_moltype.get_moltype(
             "protein_with_stop" if include_stop else "protein"
         )
-        gc = get_code(gc)
+        gc = new_genetic_code.get_code(gc)
         codon_alphabet = gc.get_alphabet(include_stop=include_stop).with_gap_motif()
         moltype = self.moltype
         # translate the codons
@@ -1794,9 +1800,9 @@ class NucleicAcidSequenceMixin:
                 resolved = moltype.resolve_ambiguity(
                     orig_codon, alphabet=codon_alphabet
                 )
-            except AlphabetError:
+            except new_alphabet.AlphabetError:
                 if not incomplete_ok or "-" not in orig_codon:
-                    raise AlphabetError(
+                    raise new_alphabet.AlphabetError(
                         f"unresolvable codon {orig_codon!r} in {self.name}"
                     )
                 resolved = (orig_codon,)
@@ -1807,14 +1813,16 @@ class NucleicAcidSequenceMixin:
                 elif "-" in codon:
                     aa = "?"
                     if not incomplete_ok:
-                        raise AlphabetError(f"incomplete codon {codon} in {self.name}")
+                        raise new_alphabet.AlphabetError(
+                            f"incomplete codon {codon} in {self.name}"
+                        )
                 else:
                     aa = gc[codon]
                     if aa == "*" and not include_stop:
                         continue
                 trans.append(aa)
             if not trans:
-                raise AlphabetError(orig_codon)
+                raise new_alphabet.AlphabetError(orig_codon)
             aa = protein.what_ambiguity(trans)
             translation.append(aa)
 
@@ -1905,11 +1913,11 @@ class SliceRecordABC(ABC):
     seq_len refers to a Python typing.Sequence object, e.g. array, str, list.
     """
 
-    start: int
-    stop: int
-    step: int
-    seq_len: int
-    _offset: int
+    __slots__ = ("start", "stop", "step", "_offset")
+
+    @property
+    @abstractmethod
+    def seq_len(self) -> int: ...
 
     @abstractmethod
     def _get_init_kwargs(self) -> dict:
@@ -1920,6 +1928,8 @@ class SliceRecordABC(ABC):
     @abstractmethod
     def copy(self): ...
 
+    # refactor: design
+    # can we remove the need for this method on the ABC and inheriting
     @property
     @abstractmethod
     def _zero_slice(self): ...
@@ -1996,12 +2006,11 @@ class SliceRecordABC(ABC):
         seq_index, _, _ = self._get_index(rel_index, include_boundary=include_boundary)
 
         offset = self.offset
-        if self.is_reversed:
-            abs_index = offset + self.seq_len + seq_index + 1
-        else:
-            abs_index = offset + seq_index
-
-        return abs_index
+        return (
+            offset + self.seq_len + seq_index + 1
+            if self.is_reversed
+            else offset + seq_index
+        )
 
     def relative_position(self, abs_index: int, stop: bool = False):
         """converts an index on the original "Python sequence" into an index
@@ -2281,13 +2290,60 @@ class SliceRecordABC(ABC):
         )
 
 
-class SeqView(SliceRecordABC):
-    __slots__ = ("seq", "start", "stop", "step", "_offset", "_seqid", "_seq_len")
+class SeqViewABC(ABC):
+    # refactor: docstring
+
+    __slots__ = ()
+
+    @property
+    def seqid(self) -> OptStr: ...
+
+    @property
+    @abstractmethod
+    def str_value(self) -> str: ...
+
+    @property
+    @abstractmethod
+    def array_value(self) -> array: ...
+
+    @property
+    @abstractmethod
+    def bytes_value(self) -> bytes: ...
+
+    @abstractmethod
+    def copy(self, sliced: bool = False): ...
+
+    def __str__(self) -> str:
+        return self.str_value
+
+    def __array__(self, dtype=None):
+        arr = self.array_value
+        if dtype is not None:
+            arr = arr.astype(dtype)
+        return arr
+
+    def __bytes__(self):
+        return self.bytes_value
+
+
+class SeqView(SeqViewABC, SliceRecordABC):
+    # refactor: docstring
+    __slots__ = (
+        "seq",
+        "alphabet",
+        "start",
+        "stop",
+        "step",
+        "_offset",
+        "_seqid",
+        "_seq_len",
+    )
 
     def __init__(
         self,
         *,
         seq: str,
+        alphabet: new_alphabet.AlphabetABC,
         start: OptInt = None,
         stop: OptInt = None,
         step: OptInt = None,
@@ -2298,7 +2354,7 @@ class SeqView(SliceRecordABC):
         if step == 0:
             raise ValueError("step cannot be 0")
         step = 1 if step is None else step
-
+        self.alphabet = alphabet
         func = _input_vals_pos_step if step > 0 else _input_vals_neg_step
         start, stop, step = func(len(seq), start, stop, step)
         self.seq = seq
@@ -2314,7 +2370,7 @@ class SeqView(SliceRecordABC):
 
     @property
     def _zero_slice(self):
-        return self.__class__(seq="")
+        return self.__class__(seq="", alphabet=self.alphabet)
 
     @property
     def seqid(self) -> str:
@@ -2325,32 +2381,19 @@ class SeqView(SliceRecordABC):
         return self._seq_len
 
     def _get_init_kwargs(self):
-        return {"seq": self.seq, "seqid": self.seqid}
+        return {"seq": self.seq, "seqid": self.seqid, "alphabet": self.alphabet}
 
     @property
-    def value(self):
+    def str_value(self):
         return self.seq[self.start : self.stop : self.step]
 
-    def replace(self, old: str, new: str):
-        new_seq = self.seq.replace(old, new)
-        if len(old) == len(new):
-            return self.__class__(
-                seq=new_seq,
-                start=self.start,
-                stop=self.stop,
-                step=self.step,
-                offset=self.offset,
-                seqid=self.seqid,
-                seq_len=self.seq_len,
-            )
+    @property
+    def array_value(self):
+        return self.alphabet.to_indices(self.str_value)
 
-        return self.__class__(seq=new_seq)
-
-    def __iter__(self):
-        return iter(self.value)
-
-    def __str__(self) -> str:
-        return self.value
+    @property
+    def bytes_value(self):
+        return self.str_value.encode("utf-8")
 
     def __repr__(self) -> str:
         seq = f"{self.seq[:10]}...{self.seq[-5:]}" if self.seq_len > 15 else self.seq
@@ -2396,11 +2439,12 @@ class SeqView(SliceRecordABC):
         if not sliced:
             return self.__class__(
                 seq=self.seq,
+                seqid=self.seqid,
+                alphabet=self.alphabet,
                 start=self.start,
                 stop=self.stop,
                 step=self.step,
                 offset=self.offset,
-                seqid=self.seqid,
                 seq_len=self.seq_len,
             )
         return self.from_rich_dict(self.to_rich_dict())
@@ -2425,40 +2469,40 @@ class RnaSequence(Sequence, NucleicAcidSequenceMixin):
 
 
 @singledispatch
-def _coerce_to_seqview(data, seqid):
+def _coerce_to_seqview(data, seqid, alphabet) -> SeqViewABC:
     from cogent3.core.alignment import Aligned
 
     if isinstance(data, Aligned):
-        return _coerce_to_seqview(str(data), seqid)
+        return _coerce_to_seqview(str(data), seqid, alphabet)
     raise NotImplementedError(f"{type(data)}")
 
 
 @_coerce_to_seqview.register
-def _(data: SeqView, seqid):
+def _(data: SeqViewABC, seqid, alphabet) -> SeqViewABC:
     return data
 
 
 @_coerce_to_seqview.register
-def _(data: Sequence, seqid):
-    return _coerce_to_seqview(data._seq, seqid)
+def _(data: Sequence, seqid, alphabet) -> SeqViewABC:
+    return _coerce_to_seqview(data._seq, seqid, alphabet)
 
 
 @_coerce_to_seqview.register
-def _(data: str, seqid):
-    return SeqView(seq=data, seqid=seqid)
+def _(data: str, seqid, alphabet) -> SeqViewABC:
+    return SeqView(seq=data, seqid=seqid, alphabet=alphabet)
 
 
 @_coerce_to_seqview.register
-def _(data: bytes, seqid):
+def _(data: bytes, seqid, alphabet) -> SeqViewABC:
     data = data.decode("utf8")
-    return SeqView(seq=data, seqid=seqid)
+    return SeqView(seq=data, seqid=seqid, alphabet=alphabet)
 
 
 @_coerce_to_seqview.register
-def _(data: tuple, seqid):
-    return _coerce_to_seqview("".join(data), seqid)
+def _(data: tuple, seqid, alphabet) -> SeqViewABC:
+    return _coerce_to_seqview("".join(data), seqid, alphabet)
 
 
 @_coerce_to_seqview.register
-def _(data: list, seqid):
-    return _coerce_to_seqview("".join(data), seqid)
+def _(data: list, seqid, alphabet) -> SeqViewABC:
+    return _coerce_to_seqview("".join(data), seqid, alphabet)

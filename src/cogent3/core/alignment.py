@@ -1445,7 +1445,7 @@ class _SequenceCollectionBase:
         """returns copy of self as an alignment of RNA moltype seqs"""
         return self.to_moltype("rna")
 
-    def to_protein(self):  # ported
+    def to_protein(self):  # will not port
         """returns copy of self as an alignment of PROTEIN moltype seqs"""
         return self.to_moltype("protein")
 

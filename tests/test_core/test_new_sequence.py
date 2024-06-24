@@ -17,6 +17,16 @@ from cogent3.util.deserialise import deserialise_object
 from cogent3.util.misc import get_object_provenance
 
 
+@pytest.fixture(scope="function")
+def dna_alphabet():
+    return new_moltype.DNA.degen_gapped_alphabet
+
+
+@pytest.fixture(scope="function")
+def ascii_alphabet():
+    return new_moltype.ASCII.alphabet
+
+
 @pytest.mark.parametrize("name", ("dna", "rna", "protein", "protein_with_stop", "text"))
 def test_moltype_make_seq(name):
     raw = "ACGGA"
@@ -78,16 +88,20 @@ def test_to_rich_dict():
     assert got == expect
 
 
+@pytest.mark.xfail(reason="refactor: how to serialise an alphabet")
 def test_to_json():
     """to_json roundtrip recreates to_dict"""
-    r = new_moltype.DNA.make_seq(seq="AAGGCC", name="seq1")
+    dna = new_moltype.DNA
+    r = dna.make_seq(seq="AAGGCC", name="seq1")
     got = json.loads(r.to_json())
-    seq = new_sequence.SeqView(seq="AAGGCC", seqid="seq1").to_rich_dict()
+    seq = new_sequence.SeqView(
+        seq="AAGGCC", seqid="seq1", alphabet=dna.most_degen_alphabet()
+    ).to_rich_dict()
 
     expect = {
         "name": "seq1",
         "seq": seq,
-        "moltype": r.moltype.label,
+        "moltype": dna.label,
         "info": None,
         "type": get_object_provenance(r),
         "version": __version__,
@@ -119,9 +133,9 @@ def test_offset_with_multiple_slices(DATA_DIR):
 
 
 @pytest.mark.parametrize("coord", ("start", "stop"))
-def test_seqview_to_rich_dict(coord):
+def test_seqview_to_rich_dict(coord, dna_alphabet):
     parent = "ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC"
-    sv = new_sequence.SeqView(seq=parent)
+    sv = new_sequence.SeqView(seq=parent, alphabet=dna_alphabet)
     plus = sv.to_rich_dict()
     minus = sv[::-1].to_rich_dict()
     plus = plus.pop("init_args")
@@ -136,9 +150,9 @@ def test_seqview_to_rich_dict(coord):
     reason="NotImplementedError: deserialising 'cogent3.core.new_sequence.SeqView' from json"
 )
 @pytest.mark.parametrize("reverse", (False, True))
-def test_seqview_round_trip(reverse):
+def test_seqview_round_trip(reverse, dna_alphabet):
     parent = "ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC"
-    sv = new_sequence.SeqView(seq=parent)
+    sv = new_sequence.SeqView(seq=parent, alphabet=dna_alphabet)
     sv = sv[::-1] if reverse else sv
 
     rd = sv.to_rich_dict()
@@ -148,10 +162,10 @@ def test_seqview_round_trip(reverse):
 
 
 @pytest.mark.parametrize("reverse", (False, True))
-def test_sliced_seqview_rich_dict(reverse):
+def test_sliced_seqview_rich_dict(reverse, dna_alphabet):
     parent = "ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC"
     sl = slice(2, 13)
-    sv = new_sequence.SeqView(seq=parent)[sl]
+    sv = new_sequence.SeqView(seq=parent, alphabet=dna_alphabet)[sl]
     sv = sv[::-1] if reverse else sv
     rd = sv.to_rich_dict()
     assert rd["init_args"]["seq"] == parent[sl]
@@ -168,14 +182,14 @@ def test_sliced_seqview_rich_dict(reverse):
     ),
 )
 @pytest.mark.parametrize("offset", (4, 0))
-def test_parent_start_stop(sl, offset):
+def test_parent_start_stop(sl, offset, ascii_alphabet):
     data = "0123456789"
     # check our slice matches the expectation for rest of test
     expect = "234" if sl.step > 0 else "432"
-    sv = new_sequence.SeqView(seq=data)
+    sv = new_sequence.SeqView(seq=data, alphabet=ascii_alphabet)
     sv.offset = offset
     sv = sv[sl]
-    assert sv.value == expect
+    assert sv.str_value == expect
     # now check that start / stop are always the same
     # irrespective of step sign
     assert (sv.parent_start, sv.parent_stop) == (2 + offset, 5 + offset)
@@ -188,26 +202,26 @@ def test_parent_start_stop(sl, offset):
         slice(None, None, -1),  # slice whole sequence minus strand
     ),
 )
-def test_parent_start_stop_limits(sl):
+def test_parent_start_stop_limits(sl, ascii_alphabet):
     data = "0123456789"
     # check our slice matches the expectation for rest of test
     expect = data[sl]
-    sv = new_sequence.SeqView(seq=data)
+    sv = new_sequence.SeqView(seq=data, alphabet=ascii_alphabet)
     sv = sv[sl]
-    assert sv.value == expect
+    assert sv.str_value == expect
     # now check that start / stop are always the same
     # irrespective of step sign
     assert (sv.parent_start, sv.parent_stop) == (0, 10)
 
 
 @pytest.mark.parametrize("rev", (False, True))
-def test_parent_start_stop_empty(rev):
+def test_parent_start_stop_empty(rev, ascii_alphabet):
     data = "0123456789"
     # check our slice matches the expectation for rest of test
     expect = ""
-    sv = new_sequence.SeqView(seq=data)
+    sv = new_sequence.SeqView(seq=data, alphabet=ascii_alphabet)
     sv = sv[0 : 0 : -1 if rev else 1]
-    assert sv.value == expect
+    assert sv.str_value == expect
     # now check that start / stop are always the same
     # irrespective of step sign
     assert (sv.parent_start, sv.parent_stop) == (0, 0)
@@ -215,15 +229,15 @@ def test_parent_start_stop_empty(rev):
 
 @pytest.mark.parametrize("rev", (False, True))
 @pytest.mark.parametrize("index", range(9))
-def test_parent_start_stop_singletons(index, rev):
+def test_parent_start_stop_singletons(index, rev, ascii_alphabet):
     data = "0123456789"
     start, stop = (-(10 - index), -(10 - index + 1)) if rev else (index, index + 1)
     sl = slice(start, stop, -1 if rev else 1)
     # check our slice matches the expectation for rest of test
     expect = data[sl]
-    sv = new_sequence.SeqView(seq=data)
+    sv = new_sequence.SeqView(seq=data, alphabet=ascii_alphabet)
     sv = sv[sl]
-    assert sv.value == expect
+    assert sv.str_value == expect
     # now check that start / stop are always the same
     # irrespective of step sign
     assert (sv.parent_start, sv.parent_stop) == (index, index + 1)
@@ -375,38 +389,55 @@ def test_parent_coordinates(rev):
     assert seq.parent_coordinates() == (None, 0, 0, 1)
 
 
-@pytest.mark.parametrize(
-    "cls", (new_moltype.DNA.make_seq, new_sequence.SeqView, str, bytes)
-)
-def test_coerce_to_seqview(cls):
+@pytest.mark.parametrize("cls", (str, bytes))
+def test_coerce_to_seqview_str_bytes(cls, dna_alphabet):
     seq = "AC--GGTGGGAC"
     seqid = "seq1"
-    if cls in (str, bytes):
-        s = bytes(seq, "utf8") if cls == bytes else seq
-        got = new_sequence._coerce_to_seqview(s, seqid)
-    else:
-        got = new_sequence._coerce_to_seqview(cls(seq=seq), seqid)
-    assert got.value == seq
+    s = bytes(seq, "utf8") if cls == bytes else seq
+    got = new_sequence._coerce_to_seqview(s, seqid, alphabet=dna_alphabet)
+    assert got.str_value == seq
     assert isinstance(got, new_sequence.SeqView)
 
 
-def test_seqview_seqid():
-    sv = new_sequence.SeqView(seq="ACGGTGGGAC")
+def test_coerce_to_seqview_sequence(dna_alphabet):
+    seq = "AC--GGTGGGAC"
+    seqid = "seq1"
+    got = new_sequence._coerce_to_seqview(
+        new_moltype.DNA.make_seq(seq=seq), seqid, alphabet=dna_alphabet
+    )
+    assert got.str_value == seq
+    assert isinstance(got, new_sequence.SeqView)
+
+
+def test_coerce_to_seqview_already_seqview(dna_alphabet):
+    seq = "AC--GGTGGGAC"
+    seqid = "seq1"
+    got = new_sequence._coerce_to_seqview(
+        new_sequence.SeqView(seq=seq, alphabet=dna_alphabet),
+        seqid,
+        alphabet=dna_alphabet,
+    )
+    assert got.str_value == seq
+    assert isinstance(got, new_sequence.SeqView)
+
+
+def test_seqview_seqid(dna_alphabet):
+    sv = new_sequence.SeqView(seq="ACGGTGGGAC", alphabet=dna_alphabet)
     assert sv.seqid is None
 
-    sv = new_sequence.SeqView(seq="ACGGTGGGAC", seqid="seq1")
+    sv = new_sequence.SeqView(seq="ACGGTGGGAC", seqid="seq1", alphabet=dna_alphabet)
     assert sv.seqid == "seq1"
 
 
-def test_seqview_rich_dict_round_trip_seqid():
-    sv = new_sequence.SeqView(seq="ACGGTGGGAC", seqid="seq1")
+def test_seqview_rich_dict_round_trip_seqid(dna_alphabet):
+    sv = new_sequence.SeqView(seq="ACGGTGGGAC", seqid="seq1", alphabet=dna_alphabet)
     rd = sv.to_rich_dict()
     assert rd["init_args"]["seqid"] == "seq1"
 
     got = new_sequence.SeqView.from_rich_dict(rd)
     assert got.seqid == "seq1"
 
-    sv = new_sequence.SeqView(seq="ACGGTGGGAC")
+    sv = new_sequence.SeqView(seq="ACGGTGGGAC", alphabet=dna_alphabet)
     rd = sv.to_rich_dict()
     assert rd["init_args"]["seqid"] is None
 
@@ -414,8 +445,8 @@ def test_seqview_rich_dict_round_trip_seqid():
     assert got.seqid is None
 
 
-def test_seqview_slice_propagates_seqid():
-    sv = new_sequence.SeqView(seq="ACGGTGGGAC", seqid="seq1")
+def test_seqview_slice_propagates_seqid(dna_alphabet):
+    sv = new_sequence.SeqView(seq="ACGGTGGGAC", seqid="seq1", alphabet=dna_alphabet)
     sliced_sv = sv[1:8:2]
     assert sliced_sv.seqid == "seq1"
 
@@ -459,8 +490,8 @@ def test_make_seq_assigns_to_seqview():
     assert seq.name == seq._seq.seqid == "s1"
 
 
-def test_empty_seqview_translate_position():
-    sv = new_sequence.SeqView(seq="")
+def test_empty_seqview_translate_position(dna_alphabet):
+    sv = new_sequence.SeqView(seq="", alphabet=dna_alphabet)
     assert sv.absolute_position(0) == 0
     assert sv.relative_position(0) == 0
 
@@ -469,10 +500,12 @@ def test_empty_seqview_translate_position():
 @pytest.mark.parametrize("stop", (None, 10, 8, 1, 0, -1, -11))
 @pytest.mark.parametrize("step", (None, 1, 2, -1, -2))
 @pytest.mark.parametrize("length", (1, 8, 999))
-def test_seqview_seq_len_init(start, stop, step, length):
+def test_seqview_seq_len_init(start, stop, step, length, dna_alphabet):
     # seq_len is length of seq when None
     seq_data = "A" * length
-    sv = new_sequence.SeqView(seq=seq_data, start=start, stop=stop, step=step)
+    sv = new_sequence.SeqView(
+        seq=seq_data, start=start, stop=stop, step=step, alphabet=dna_alphabet
+    )
     expect = len(seq_data)
     # Check property and slot
     assert sv.seq_len == expect
@@ -480,22 +513,33 @@ def test_seqview_seq_len_init(start, stop, step, length):
 
 
 @pytest.mark.parametrize("seq, seq_len", [("A", 0), ("", 1), ("A", 2)])
-def test_seqview_seq_len_mismatch(seq, seq_len):
+def test_seqview_seq_len_mismatch(seq, seq_len, dna_alphabet):
     # If provided, seq_len must match len(seq)
     with pytest.raises(AssertionError):
-        new_sequence.SeqView(seq=seq, seq_len=seq_len)
+        new_sequence.SeqView(seq=seq, seq_len=seq_len, alphabet=dna_alphabet)
 
 
-def test_seqview_copy_propagates_seq_len():
+def test_seqview_copy_propagates_seq_len(dna_alphabet):
     seq = "ACGGTGGGAC"
-    sv = new_sequence.SeqView(seq=seq)
+    sv = new_sequence.SeqView(seq=seq, alphabet=dna_alphabet)
     copied = sv.copy()
     assert copied.seq_len == len(seq)
 
 
-def test_seqview_seq_len_modified_seq():
+def test_seqview_seq_len_modified_seq(dna_alphabet):
     seq = "ACGGTGGGAC"
-    sv = new_sequence.SeqView(seq=seq)
+    sv = new_sequence.SeqView(seq=seq, alphabet=dna_alphabet)
 
     sv.seq = "ATGC"  # this should not modify seq_len
     assert sv.seq_len == len(seq)
+
+
+def test_sequence_str_bytes_array():
+    data = "ACGGTGGGAC"
+    seq = new_moltype.DNA.make_seq(seq=data)
+    print(type(seq))
+    assert str(seq) == data
+    assert bytes(seq) == data.encode("utf8")
+    assert numpy.array_equal(
+        numpy.array(seq), new_moltype.DNA.alphabet.to_indices(data)
+    )

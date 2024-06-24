@@ -522,7 +522,7 @@ class SequenceCollectionBaseTests(object):
         got = aln.degap()
         self.assertEqual(got.info.path, "blah")
 
-    def test_with_modified_termini(self):
+    def test_with_modified_termini(self):  # will not port
         """SequenceCollection.with_modified_termini should code trailing gaps as ?"""
         aln = self.Class({"s1": "AATGR--", "s2": "-T-AG?-"}, moltype=DNA)
         self.assertEqual(
@@ -2074,7 +2074,7 @@ def test_to_dna_raises():
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
-def test_annotate_from_gff3(cls):  # ported for SequenceCollection
+def test_annotate_from_gff3(cls):  # will not port
     """annotate_from_gff should work on data from gff3 files"""
     fasta_path = os.path.join("data/c_elegans_WS199_dna_shortened.fasta")
     gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
@@ -2914,7 +2914,7 @@ def test_to_unaligned_seqs(data):
 
 @pytest.mark.parametrize("moltype", ("dna", "protein"))
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
-def test_same_moltype(cls, moltype):
+def test_same_moltype(cls, moltype):  # ported for SequenceCollection
     moltype = get_moltype(moltype)
     data = dict(s1="ACGTT", s2="ACCTT")
     seqs = cls(data, moltype=moltype)
@@ -2923,7 +2923,7 @@ def test_same_moltype(cls, moltype):
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
-def test_add(cls):
+def test_add(cls):  # will not port for SequenceCollection
     """__add__ should concatenate sequence data, by name"""
     align1 = cls({"a": "AAAA", "b": "TTTT", "c": "CCCC"})
     align2 = cls({"a": "GGGG", "b": "----", "c": "NNNN"})
@@ -3185,7 +3185,7 @@ def test_aln_from_fasta_parser(cls):
     "d", ({"a": "AAAAA", "b": "BBBBB"}, {"a": b"AAAAA", "b": b"BBBBB"})
 )
 @pytest.mark.parametrize("cls", (Alignment, ArrayAlignment, SequenceCollection))
-def test_init_dict(cls, d):
+def test_init_dict(cls, d):  # will not port for SequenceCollection
     """SequenceCollection init from dict should work as expected"""
     # from bytes strings
     a = cls(d, names=["a", "b"])
