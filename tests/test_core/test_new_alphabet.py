@@ -204,7 +204,8 @@ def test_seq_to_kmer_indices_handle_gap(indices, gap_index):
     coeffs = new_alphabet.coord_conversion_coeffs(4, k)
     seq = numpy.array([0, 1, 1, 3], dtype=numpy.uint8)
     result = numpy.zeros(len(seq) // k, dtype=numpy.uint8)
-    seq.put(indices, gap_index)
+    # the gap index is 4
+    seq.put(indices, 4)
     got = new_alphabet.seq_to_kmer_indices(
         seq,
         result,
