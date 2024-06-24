@@ -37,10 +37,23 @@ from cogent3.util.misc import get_setting_from_environ, negate_condition
 
 DEFAULT_ANNOTATION_DB = BasicAnnotationDb
 
-OptInt = typing.Optional[int]
-OptStr = typing.Optional[str]
-OptCallable = typing.Optional[typing.Callable]
+OptInt = Optional[int]
+OptStr = Optional[str]
+OptList = Optional[list]
+OptDict = Optional[dict]
+OptCallable = Optional[Callable]
+OptRenamerCallable = Optional[Callable[[str], str]]
+OptPathType = Union[str, Path, None]
 PrimitiveSeqTypes = Union[str, bytes, numpy.ndarray]
+
+
+class MakeSeqCallable(typing.Protocol):
+    def __call__(
+        self,
+        seq: Union[PrimitiveSeqTypes, new_seq.Sequence, new_seq.SeqViewABC],
+        name: OptStr = None,
+        check_seq: bool = True,
+    ) -> new_seq.Sequence: ...
 
 
 def assign_sequential_names(num_seqs: int, base_name: str = "seq", start_at: int = 0):
@@ -52,7 +65,7 @@ class SeqDataView(new_seq.SeqViewABC, new_seq.SliceRecordABC):
     """
     A view class for SeqsData, providing properties for different representations.
 
-    self.seqs is a SeqsData() instance, but other properties are a reference to a
+    self.seq is a SeqsData() instance, but other properties are a reference to a
     single seqid only.
 
     Example
@@ -70,12 +83,12 @@ class SeqDataView(new_seq.SeqViewABC, new_seq.SliceRecordABC):
         self,
         *,
         seq: SeqsData,
+        seqid: str,
         seq_len: int,
         start: OptInt = None,
         stop: OptInt = None,
         step: OptInt = None,
         offset: int = 0,
-        seqid: OptStr = None,
     ):
         if step == 0:
             raise ValueError("step cannot be 0")
@@ -174,7 +187,7 @@ class SeqsDataABC(ABC):
 
     @make_seq.setter
     @abstractmethod
-    def make_seq(self, make_seq: Callable) -> None: ...
+    def make_seq(self, make_seq: MakeSeqCallable) -> None: ...
 
     @property
     @abstractmethod
@@ -213,7 +226,7 @@ class SeqsDataABC(ABC):
     @abstractmethod
     def __getitem__(
         self, index: Union[str, int]
-    ) -> Union[new_seq.Sequence, new_seq.SliceRecordABC]: ...
+    ) -> Union[new_seq.Sequence, new_seq.SeqViewABC]: ...
 
 
 class SeqsData(SeqsDataABC):
@@ -228,7 +241,7 @@ class SeqsData(SeqsDataABC):
         *,
         data: dict[str, PrimitiveSeqTypes],
         alphabet: new_alpha.CharAlphabet,
-        make_seq: OptCallable = None,
+        make_seq: Optional[MakeSeqCallable] = None,
     ):
         self._alphabet = alphabet
         self._make_seq = make_seq
@@ -243,9 +256,9 @@ class SeqsData(SeqsDataABC):
         return list(self._data.keys())
 
     @property
-    def make_seq(self) -> Union[SeqDataView, new_seq.Sequence]:
+    def make_seq(self) -> Optional[MakeSeqCallable]:
         """if set, returns a function that takes 'seq' and 'name' as keyword
-        arguments and returns a given Sequence from the collection.
+        arguments and returns a corresponding Sequence from the collection.
 
         Notes
         -----
@@ -255,8 +268,7 @@ class SeqsData(SeqsDataABC):
         return self._make_seq
 
     @make_seq.setter
-    def make_seq(self, make_seq: Callable) -> None:
-        # refactor: add type hints for callable function
+    def make_seq(self, make_seq: MakeSeqCallable) -> None:
         self._make_seq = make_seq
 
     @property
@@ -348,11 +360,11 @@ class SeqsData(SeqsDataABC):
     @singledispatchmethod
     def __getitem__(
         self, index: Union[str, int]
-    ) -> Union[SeqDataView, new_seq.Sequence]:
+    ) -> Union[new_seq.Sequence, new_seq.SeqViewABC]:
         raise NotImplementedError(f"__getitem__ not implemented for {type(index)}")
 
     @__getitem__.register
-    def _(self, index: str) -> Union[SeqDataView, new_seq.Sequence]:
+    def _(self, index: str) -> Union[new_seq.Sequence, new_seq.SeqViewABC]:
         sdv = self.get_seq_view(seqid=index)
         return (
             sdv
@@ -361,7 +373,7 @@ class SeqsData(SeqsDataABC):
         )
 
     @__getitem__.register
-    def _(self, index: int) -> Union[SeqDataView, new_seq.Sequence]:
+    def _(self, index: int) -> Union[new_seq.Sequence, new_seq.SeqViewABC]:
         return self[self.names[index]]
 
 
@@ -371,11 +383,11 @@ class SequenceCollection:
         *,
         seqs_data: SeqsDataABC,
         moltype: new_moltype.MolType,
-        names: list[str] = None,
-        info: Union[dict, InfoClass] = None,
-        source: OptStr = None,
-        annotation_db: SupportsFeatures = None,
-    ):  # refactor: need to deal with optional args type hints
+        names: OptList = None,
+        info: Optional[Union[dict, InfoClass]] = None,
+        source: OptPathType = None,
+        annotation_db: Optional[SupportsFeatures] = None,
+    ):
         self._seqs_data = seqs_data
         self.moltype = moltype
         self.names = names
@@ -388,7 +400,7 @@ class SequenceCollection:
         self._annotation_db = annotation_db or DEFAULT_ANNOTATION_DB()
 
     @property
-    def names(self) -> Iterator[str]:
+    def names(self) -> list:
         return self._names
 
     @names.setter
@@ -402,7 +414,7 @@ class SequenceCollection:
             raise ValueError(f"Provided names not found in collection: {left_diff}")
 
     @property
-    def seqs(self) -> SeqsData:
+    def seqs(self) -> SeqsDataABC:
         return self._seqs_data
 
     @property
@@ -427,13 +439,13 @@ class SequenceCollection:
     @c3warn.deprecated_callable(
         version="2025.5", reason=".seqs can now be indexed by name", new=".seqs"
     )
-    def named_seqs(self) -> SeqsData:  # pragma: no cover
+    def named_seqs(self) -> SeqsDataABC:  # pragma: no cover
         return self.seqs
 
     def iter_seqs(
-        self, seq_order: list = None
+        self, seq_order: OptList = None
     ) -> Iterator[
-        Union[new_seq.Sequence, SeqsData]
+        Union[new_seq.Sequence, new_seq.SeqViewABC]
     ]:  # refactor: need to deal with optional args type hints
         """Iterates over sequences in the collection, in order.
 
@@ -554,7 +566,6 @@ class SequenceCollection:
         # which self.seqs[seq_name] does not. This is a difference to the original implementation,
         # so it needs more thought.
         seq = self.seqs[seqname]
-
         if copy_annotations:
             seq.annotation_db = type(self.annotation_db)()
             seq.annotation_db.update(annot_db=self.annotation_db, seqids=seqname)
@@ -611,6 +622,10 @@ class SequenceCollection:
             name: self.moltype.degap(self.seqs.get_seq_array(seqid=name))
             for name in self.names
         }
+        # refactor: design
+        # this wont work if using a SeqsData that is initialised differently
+        # should we put a degap method on the SeqsDataABC class?
+        # or something alike get_init_kwargs()?
         seqs_data = self.seqs.__class__(
             data=seqs, alphabet=self.seqs.alphabet, make_seq=self.seqs.make_seq
         )
@@ -1137,9 +1152,9 @@ class SequenceCollection:
         self,
         pssm: PSSM = None,
         path: OptStr = None,
-        background: numpy.array = None,
+        background: numpy.ndarray = None,
         pseudocount: int = 0,
-        names: list = None,
+        names: OptList = None,
         ui=None,
     ) -> numpy.array:
         """scores sequences using the specified pssm
@@ -1522,7 +1537,7 @@ class SequenceCollection:
     def is_ragged(self) -> bool:
         return len(set(self.seqs.seq_lengths().values())) > 1
 
-    def has_terminal_stop(self, gc: typing.Any = None, strict: bool = False) -> bool:
+    def has_terminal_stop(self, gc: Any = None, strict: bool = False) -> bool:
         """Returns True if any sequence has a terminal stop codon.
 
         Parameters
@@ -1623,7 +1638,9 @@ class SequenceCollection:
         target: new_seq.Sequence,
         min_similarity: float = 0.0,
         max_similarity: float = 1.0,
-        metric: Callable = new_seq.frac_same,  # refactor: type hint for callable should specificy input/return type
+        metric: Callable[
+            [new_seq.Sequence, new_seq.Sequence], float
+        ] = new_seq.frac_same,
         transform: bool = None,
     ) -> SequenceCollection:
         """Returns new SequenceCollection containing sequences similar to target.
@@ -1976,9 +1993,8 @@ def _(seqs: dict) -> SupportsFeatures:
 
 @singledispatch
 def coerce_to_seqs_data_dict(
-    data, label_to_name: OptCallable = None
+    data, label_to_name: OptRenamerCallable = None
 ) -> dict[str, PrimitiveSeqTypes]:
-    # refactor: type hint for callable should specificy input/return type
     # refactor: handle conversion of SeqView to SeqDataView.
     raise NotImplementedError(
         f"coerce_to_seqs_data_dict not implemented for {type(data)}"
@@ -1986,7 +2002,9 @@ def coerce_to_seqs_data_dict(
 
 
 @coerce_to_seqs_data_dict.register
-def _(data: dict, label_to_name: OptCallable = None) -> dict[str, PrimitiveSeqTypes]:
+def _(
+    data: dict, label_to_name: OptRenamerCallable = None
+) -> dict[str, PrimitiveSeqTypes]:
     is_sequence = isinstance(next(iter(data.values()), None), new_seq.Sequence)
     return {
         (label_to_name(k) if label_to_name else k): (str(v) if is_sequence else v)
@@ -1995,14 +2013,18 @@ def _(data: dict, label_to_name: OptCallable = None) -> dict[str, PrimitiveSeqTy
 
 
 @coerce_to_seqs_data_dict.register
-def _(data: list, label_to_name: OptCallable = None) -> dict[str, PrimitiveSeqTypes]:
+def _(
+    data: list, label_to_name: OptRenamerCallable = None
+) -> dict[str, PrimitiveSeqTypes]:
     first = data[0]
     labelled_seqs = assign_names(first, data=data)
     return coerce_to_seqs_data_dict(labelled_seqs, label_to_name=label_to_name)
 
 
 @coerce_to_seqs_data_dict.register
-def _(data: set, label_to_name: OptCallable = None) -> dict[str, PrimitiveSeqTypes]:
+def _(
+    data: set, label_to_name: OptRenamerCallable = None
+) -> dict[str, PrimitiveSeqTypes]:
     first = next(iter(data))
     labelled_seqs = assign_names(first, data=data)
     return coerce_to_seqs_data_dict(labelled_seqs, label_to_name=label_to_name)
@@ -2010,7 +2032,7 @@ def _(data: set, label_to_name: OptCallable = None) -> dict[str, PrimitiveSeqTyp
 
 @coerce_to_seqs_data_dict.register
 def _(
-    data: SequenceCollection, label_to_name: OptCallable = None
+    data: SequenceCollection, label_to_name: OptRenamerCallable = None
 ) -> dict[str, PrimitiveSeqTypes]:
     return coerce_to_seqs_data_dict(
         data.to_dict(as_array=True), label_to_name=label_to_name
@@ -2047,9 +2069,9 @@ def make_unaligned_seqs(
     data: Union[dict[str, PrimitiveSeqTypes], SeqsData, list],
     *,
     moltype: Union[str, new_moltype.MolType],
-    label_to_name: OptCallable = None,
+    label_to_name: OptRenamerCallable = None,
     info: dict = None,
-    source: Union[str, Path] = None,
+    source: OptPathType = None,
     annotation_db: SupportsFeatures = None,
 ) -> SequenceCollection:  # refactor: design/simplify
     """Initialise an unaligned collection of sequences.
@@ -2104,9 +2126,9 @@ def _(
     data: SeqsDataABC,
     *,
     moltype: Union[str, new_moltype.MolType],
-    label_to_name: OptCallable = None,
+    label_to_name: OptRenamerCallable = None,
     info: dict = None,
-    source: Union[str, Path] = None,
+    source: OptPathType = None,
     annotation_db: SupportsFeatures = None,
 ) -> SequenceCollection:
 

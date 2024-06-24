@@ -2296,7 +2296,7 @@ class SeqViewABC(ABC):
     __slots__ = ()
 
     @property
-    def seqid(self) -> str: ...
+    def seqid(self) -> OptStr: ...
 
     @property
     @abstractmethod

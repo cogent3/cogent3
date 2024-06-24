@@ -151,7 +151,7 @@ def test_seqs_data_default_attributes(dna_sd: new_aln.SeqsData):
 
 def test_seqs_data_view_zero_step_raises(dna_sd):
     with pytest.raises(ValueError):
-        new_aln.SeqDataView(seq=dna_sd, step=0, seq_len=4)
+        new_aln.SeqDataView(seq=dna_sd, seqid=seq1, step=0, seq_len=4)
 
 
 @pytest.mark.parametrize("seqid", ["seq1", "seq2"])
