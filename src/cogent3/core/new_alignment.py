@@ -25,7 +25,12 @@ from cogent3.core.annotation_db import (
 )
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.location import IndelMap
-from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
+from cogent3.core.profile import (
+    PSSM,
+    MotifCountsArray,
+    MotifFreqsArray,
+    load_pssm,
+)
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import alignment_to_fasta
 from cogent3.format.phylip import alignment_to_phylip
@@ -1199,35 +1204,20 @@ class SequenceCollection:
             argument to control the display of a progress bar. i.e.,
             'show_progress=True'
 
-
         Returns
         -------
         numpy array of log2 based scores at every position
         """
         assert not self.is_ragged(), "all sequences must have same length"
-        from cogent3.parse import cisbp, jaspar
-
         assert pssm or path, "Must specify a PSSM or a path"
         assert not (pssm and path), "Can only specify one of pssm, path"
 
         if isinstance(names, str):
             names = [names]
 
-        # refactor: design - delegate below logic to seperate function load_pssm()
         if path:
-            is_cisbp = path.endswith("cisbp")
-            is_jaspar = path.endswith("jaspar")
-            if not (is_cisbp or is_jaspar):
-                raise NotImplementedError(f"Unknown format {path.split('.')[-1]}")
+            pssm = load_pssm(path, background=background, pseudocount=pseudocount)
 
-            if is_cisbp:
-                pfp = cisbp.read(path)
-                pssm = pfp.to_pssm(background=background)
-            else:
-                _, pwm = jaspar.read(path)
-                pssm = pwm.to_pssm(background=background, pseudocount=pseudocount)
-
-        assert isinstance(pssm, PSSM)
         assert set(pssm.motifs) == set(self.moltype)
 
         seqs = [self.seqs[n] for n in names] if names else self.seqs
