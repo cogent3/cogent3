@@ -1,11 +1,15 @@
 import functools
 import itertools
+import json
 import typing
 
 from abc import ABC, abstractmethod
 
 import numba
 import numpy
+
+from cogent3.util.deserialise import register_deserialiser
+from cogent3.util.misc import get_object_provenance
 
 
 StrORBytes = typing.Union[str, bytes]
@@ -128,6 +132,16 @@ class AlphabetABC(ABC):
     @property
     @abstractmethod
     def missing_index(self) -> OptInt: ...
+
+    @abstractmethod
+    def to_rich_dict(self) -> dict: ...
+
+    @abstractmethod
+    def to_json(self) -> str: ...
+
+    @classmethod
+    @abstractmethod
+    def from_rich_dict(cls, data: dict) -> None: ...
 
 
 class MonomerAlphabetABC(ABC):
@@ -389,6 +403,32 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
     def array_to_bytes(self, seq: numpy.ndarray) -> bytes:
         """returns seq as a byte string"""
         return self._arr2bytes(seq)
+
+    def to_rich_dict(self) -> dict:
+        """returns a serialisable dictionary"""
+        from cogent3._version import __version__
+
+        return {
+            "chars": list(self),
+            "gap": self.gap_char,
+            "missing": self.missing_char,
+            "version": __version__,
+            "type": get_object_provenance(self),
+        }
+
+    def to_json(self) -> str:
+        """returns a serialisable string"""
+        return json.dumps(self.to_rich_dict())
+
+    @classmethod
+    def from_rich_dict(cls, data: dict) -> "CharAlphabet":
+        """returns an instance from a serialised dictionary"""
+        return cls(data["chars"], gap=data["gap"], missing=data["missing"])
+
+
+@register_deserialiser(get_object_provenance(CharAlphabet))
+def deserialise_char_alphabet(data) -> CharAlphabet:
+    return CharAlphabet.from_rich_dict(data)
 
 
 @numba.jit(nopython=True)
@@ -760,6 +800,41 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
     def _(self, seq: numpy.ndarray) -> bool:
         max_val = max(self.missing_index or 0, self.gap_index or 0, self.num_canonical)
         return seq.min() >= 0 and seq.max() <= max_val if len(seq) else True
+
+    def to_rich_dict(self) -> dict:
+        """returns a serialisable dictionary"""
+        from cogent3._version import __version__
+
+        return {
+            "words": list(self),
+            "monomers": self.monomers.to_rich_dict(),
+            "k": self.k,
+            "gap": self.gap_char,
+            "missing": self.missing_char,
+            "version": __version__,
+            "type": get_object_provenance(self),
+        }
+
+    def to_json(self) -> str:
+        """returns a serialisable string"""
+        return json.dumps(self.to_rich_dict())
+
+    @classmethod
+    def from_rich_dict(cls, data: dict) -> "KmerAlphabet":
+        """returns an instance from a serialised dictionary"""
+        monomers = CharAlphabet.from_rich_dict(data["monomers"])
+        return cls(
+            words=data["words"],
+            monomers=monomers,
+            k=data["k"],
+            gap=data["gap"],
+            missing=data["missing"],
+        )
+
+
+@register_deserialiser(get_object_provenance(KmerAlphabet))
+def deserialise_kmer_alphabet(data) -> KmerAlphabet:
+    return KmerAlphabet.from_rich_dict(data)
 
 
 _alphabet_moltype_map = {}

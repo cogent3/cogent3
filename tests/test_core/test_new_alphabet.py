@@ -501,3 +501,48 @@ def test_kmeralpha_from_index_invalid():
     dinuc = alpha.get_kmer_alphabet(k=2, include_gap=False)
     with pytest.raises(ValueError):
         dinuc.from_index(16)
+
+
+@pytest.mark.parametrize("gap", ("", "-"))
+@pytest.mark.parametrize("missing", ("", "?"))
+def test_serialise_charalphabet(gap, missing):
+    alpha = new_alphabet.CharAlphabet(
+        list(f"TCAG{gap}{missing}"), gap=gap or None, missing=missing or None
+    )
+    ser = alpha.to_rich_dict()
+    deser = new_alphabet.CharAlphabet.from_rich_dict(ser)
+    assert deser == alpha
+
+
+@pytest.mark.parametrize("gap", ("", "-"))
+@pytest.mark.parametrize("missing", ("", "?"))
+@pytest.mark.parametrize("include_gap", (True, False))
+def test_serialise_kmeralphabet(gap, missing, include_gap):
+    alpha = new_alphabet.CharAlphabet(
+        list(f"TCAG{gap}{missing}"), gap=gap or None, missing=missing or None
+    )
+    kmers = alpha.get_kmer_alphabet(k=2, include_gap=include_gap)
+    ser = kmers.to_rich_dict()
+    deser = new_alphabet.KmerAlphabet.from_rich_dict(ser)
+    assert deser == kmers
+
+
+@pytest.mark.parametrize(
+    "alpha",
+    (
+        new_moltype.DNA.alphabet,
+        new_moltype.DNA.gapped_alphabet,
+        new_moltype.DNA.gapped_alphabet.get_kmer_alphabet(k=2),
+    ),
+)
+def test_deserialise_alphas(alpha):
+    from cogent3.util.deserialise import deserialise_object
+
+    ser = alpha.to_rich_dict()
+    got = deserialise_object(ser)
+    assert got == alpha
+
+    # now from json
+    ser = alpha.to_json()
+    got = deserialise_object(ser)
+    assert got == alpha
