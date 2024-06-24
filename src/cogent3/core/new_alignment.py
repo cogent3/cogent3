@@ -593,10 +593,33 @@ class SequenceCollection:
             annotation_db=self.annotation_db,
         )
 
-    def rename_seqs(self, renamer):
-        # todo: kath
-        # returns new SeqsData instance
-        ...
+    def rename_seqs(self, renamer: Callable[[str], str]):
+        """Returns new collection with renamed sequences."""
+
+        # refactor: design
+        # consider whether we want new seq instances rather than just renaming
+        data = self.to_dict(as_array=True)
+        new_data = {renamer(name): seq for name, seq in data.items()}
+
+        seqs_data = self.seqs.__class__(
+            data=new_data, alphabet=self.seqs.alphabet, make_seq=self.seqs.make_seq
+        )
+
+        result = self.__class__(
+            seqs_data=seqs_data,
+            moltype=self.moltype,
+            info=self.info,
+            source=self.source,
+        )
+        if self.annotation_db:
+            # refactor: design
+            # how to manage to keep track of aliases? possibly stored
+            # in the annotation db
+            name_map = {renamer(name): name for name in self.names}
+            result.info.name_map = name_map
+            result.annotation_db = self.annotation_db
+
+        return result
 
     def to_dict(self, as_array: bool = False) -> dict[str, Union[str, numpy.ndarray]]:
         """Return a dictionary of sequences.
