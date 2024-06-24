@@ -125,7 +125,8 @@ def test_relative_position_base_cases(one_seq):
 
 @pytest.fixture(scope="function")
 def integer_seq():
-    return new_sequence.SeqView(seq="0123456789")
+    a = new_moltype.BYTES.most_degen_alphabet()
+    return new_sequence.SeqView(seq="0123456789", alphabet=a)
 
 
 def test_relative_position(integer_seq):
@@ -172,7 +173,7 @@ def test_seqview_copy(sliced, rev, integer_seq):
     sv = integer_seq[slice_start:slice_end]
     copied = sv.copy(sliced=sliced)
 
-    assert copied.value == raw_data[slice_start:slice_end]
+    assert copied.str_value == raw_data[slice_start:slice_end]
     assert copied.is_reversed == integer_seq.is_reversed
     assert sliced and copied.seq is not sv.seq or copied.seq is integer_seq.seq
 
@@ -220,38 +221,7 @@ def test_absolute_relative_roundtrip_reverse(
     abs_val = view.absolute_position(value)
     rel_val = view.relative_position(abs_val)
     assert view.offset == (offset or 0)
-    assert (view[rel_val]).value == view[value].value
-
-
-@pytest.mark.parametrize("value", (0, 3))
-@pytest.mark.parametrize("offset", (None, 1, 2))
-@pytest.mark.parametrize("start", (None, 1, 2))
-@pytest.mark.parametrize("stop", (None, 10, 11))
-@pytest.mark.parametrize("step", (None, 1, 2))
-def test_absolute_relative_roundtrip(one_seq, value, offset, start, stop, step):
-    # a round trip from relative to absolute then from absolute to relative, should return the same value we began with
-    view = one_seq[start:stop:step]
-    view.annotation_offset = offset or 0
-    abs_val = view._seq.absolute_position(value)
-    rel_val = view._seq.relative_position(abs_val)
-    assert rel_val == value
-
-
-@pytest.mark.parametrize("value", (0, 2))
-@pytest.mark.parametrize("offset", (None, 1, 2))
-@pytest.mark.parametrize("start", (None, -1, -2))
-@pytest.mark.parametrize("stop", (None, -10))
-@pytest.mark.parametrize("step", (-1, -2))
-def test_absolute_relative_roundtrip_reverse(
-    integer_seq, value, offset, start, stop, step
-):
-    # a round trip from relative to absolute then from absolute to relative, should return the same value we began with
-    view = integer_seq[start:stop:step]
-    view.offset = offset or 0
-    abs_val = view.absolute_position(value)
-    rel_val = view.relative_position(abs_val)
-    assert view.offset == (offset or 0)
-    assert (view[rel_val]).value == view[value].value
+    assert (view[rel_val]).str_value == view[value].str_value
 
 
 def test_annotate_gff_nested_features(DATA_DIR):
