@@ -22,7 +22,7 @@ def seqs_to_fasta(
     Parameters
     ----------
     seqs
-        seq_name tp sequence mapping
+        seq_name to sequence mapping
     block_size
         the sequence length to write to each line,
         by default 60
@@ -33,7 +33,7 @@ def seqs_to_fasta(
 
     Returns
     -------
-    The alignment in the Fasta format.
+    The sequences in the Fasta format.
     """
     order = order or seqs
     result = []
