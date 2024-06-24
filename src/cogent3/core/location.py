@@ -916,7 +916,7 @@ def _spans_from_locations(locations: SeqCoordTypes, parent_length: int) -> SeqSp
         return ()
 
     if locations[0][0] > locations[-1][1]:
-        raise ValueError("locations must be ordered smallest-> largest")
+        raise ValueError(f"locations must be ordered smallest-> largest {locations}")
 
     spans = []
     for start, end in locations:

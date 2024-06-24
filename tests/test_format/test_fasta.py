@@ -6,7 +6,7 @@ from unittest import TestCase
 from cogent3.core.alignment import Alignment
 from cogent3.core.info import Info
 from cogent3.core.sequence import Sequence
-from cogent3.format.fasta import alignment_to_fasta
+from cogent3.format.fasta import seqs_to_fasta
 
 
 class FastaTests(TestCase):
@@ -45,9 +45,9 @@ class FastaTests(TestCase):
 
     def test_alignment_to_fasta(self):
         """should return correct fasta string."""
-        self.assertEqual(alignment_to_fasta({}), "")
-        self.assertEqual(alignment_to_fasta(self.alignment_dict), self.fasta_with_label)
+        self.assertEqual(seqs_to_fasta({}), "")
+        self.assertEqual(seqs_to_fasta(self.alignment_dict), self.fasta_with_label)
         self.assertEqual(
-            alignment_to_fasta(self.alignment_dict, block_size=2),
+            seqs_to_fasta(self.alignment_dict, block_size=2),
             self.fasta_with_label_lw2,
         )

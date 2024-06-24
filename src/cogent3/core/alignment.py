@@ -81,7 +81,7 @@ from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
-from cogent3.format.fasta import alignment_to_fasta
+from cogent3.format.fasta import seqs_to_fasta
 from cogent3.format.nexus import nexus_from_alignment
 from cogent3.format.phylip import alignment_to_phylip
 from cogent3.maths.stats.number import CategoryCounter
@@ -898,7 +898,7 @@ class _SequenceCollectionBase:
         -------
         The Fasta formatted alignment.
         """
-        return alignment_to_fasta(self.to_dict(), block_size=block_size)
+        return seqs_to_fasta(self.to_dict(), block_size=block_size)
 
     def to_nexus(self, seq_type, wrap=50):  # will not port
         """
