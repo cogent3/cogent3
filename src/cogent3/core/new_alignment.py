@@ -62,13 +62,25 @@ class MakeSeqCallable(typing.Protocol):
 
 
 def assign_sequential_names(num_seqs: int, base_name: str = "seq", start_at: int = 0):
-    """Returns list of num_seqs sequential, unique names."""
+    """Returns list of sequential, unique names, e.g., ['seq_0` ... 'seq_n'] for
+     num_seqs = n+1
+
+    Parameters
+    ----------
+    num_seqs
+        number of names to generate
+    base_name
+        the base name to use for the sequence names
+    start_at
+        the number to start the sequence names at
+    """
     return [f"{base_name}_{i}" for i in range(start_at, start_at + num_seqs)]
 
 
 class SeqDataView(new_seq.SeqViewABC, new_seq.SliceRecordABC):
     """
-    A view class for SeqsData, providing properties for different representations.
+    A view class for SeqsData, providing properties for different representations
+    of a single sequence.
 
     self.seq is a SeqsData() instance, but other properties are a reference to a
     single seqid only.
@@ -188,11 +200,12 @@ class SeqsDataABC(ABC):
     @abstractmethod
     def make_seq(self): ...
 
-    # refactor: docstring
-
     @make_seq.setter
     @abstractmethod
-    def make_seq(self, make_seq: MakeSeqCallable) -> None: ...
+    def make_seq(self, make_seq: MakeSeqCallable) -> None:
+        """Can be set with any callable function that takes 'seq' and 'name' as
+        keyword arguments. Typically set with '<moltype-instance>.make_seq'."""
+        ...
 
     @property
     @abstractmethod
@@ -235,6 +248,7 @@ class SeqsDataABC(ABC):
 
 
 class SeqsData(SeqsDataABC):
+    # refactor: docstring
     __slots__ = ("_data", "_alphabet", "_make_seq")
     # todo: kath
     # refactor: design
@@ -449,9 +463,7 @@ class SequenceCollection:
 
     def iter_seqs(
         self, seq_order: OptList = None
-    ) -> Iterator[
-        Union[new_seq.Sequence, new_seq.SeqViewABC]
-    ]:  # refactor: need to deal with optional args type hints
+    ) -> Iterator[Union[new_seq.Sequence, new_seq.SeqViewABC]]:
         """Iterates over sequences in the collection, in order.
 
         Parameters
