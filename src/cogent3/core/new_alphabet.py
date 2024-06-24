@@ -462,6 +462,11 @@ def seq_to_kmer_indices(
         raise ValueError(f"size of result {len(result)} <= {size}")
 
     missing_index: int = gap_index + 1 if gap_char_index > 0 else num_states**k
+    if gap_char_index > 0:
+        assert (
+            gap_index > 0
+        ), f"gap_index={gap_index} but gap_char_index={gap_char_index}"
+
     for result_idx, i in enumerate(range(0, len(seq) - k + 1, step)):
         segment = seq[i : i + k]
         if (num_states > segment).all():

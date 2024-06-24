@@ -488,6 +488,7 @@ class DataStoreDirectory(DataStoreABC):
         sfx, cmp = get_format_suffixes(unique_id)
         if sfx != suffix:
             unique_id = f"{Path(unique_id).stem}.{suffix}"
+            sfx, cmp = get_format_suffixes(unique_id)
 
         unique_id = (
             unique_id.replace(self.suffix, suffix)
@@ -496,8 +497,9 @@ class DataStoreDirectory(DataStoreABC):
         )
         if suffix != "log" and unique_id in self:
             return None
-
-        with open_(self.source / subdir / unique_id, mode="w", newline="\n") as out:
+        newline = None if cmp else "\n"
+        mode = "wt" if cmp else "w"
+        with open_(self.source / subdir / unique_id, mode=mode, newline=newline) as out:
             out.write(data)
 
         if subdir == _LOG_TABLE:
