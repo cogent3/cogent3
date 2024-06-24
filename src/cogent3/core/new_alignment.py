@@ -32,7 +32,7 @@ from cogent3.core.profile import (
     load_pssm,
 )
 from cogent3.format.alignment import save_to_filename
-from cogent3.format.fasta import alignment_to_fasta
+from cogent3.format.fasta import seqs_to_fasta
 from cogent3.format.phylip import alignment_to_phylip
 from cogent3.util import progress_display as UI
 from cogent3.util import warning as c3warn
@@ -638,6 +638,17 @@ class SequenceCollection:
         get = self.seqs.get_seq_array if as_array else self.seqs.get_seq_str
         return {name: get(seqid=name) for name in self.names}
 
+    def to_json(self):
+        # todo
+        # refactor: design - waiting for alphabet serialisation
+        ...
+
+    def to_rich_dict(self) -> dict:
+        # todo
+        # refactor: design - waiting for alphabet serialisation
+        # add SeqsData.to_dict method which returns a dict [str: str]
+        ...
+
     def degap(self) -> SequenceCollection:
         """Returns new collection in which sequences have no gaps.
 
@@ -650,10 +661,6 @@ class SequenceCollection:
             name: self.moltype.degap(self.seqs.get_seq_array(seqid=name))
             for name in self.names
         }
-        # refactor: design
-        # this wont work if using a SeqsData that is initialised differently
-        # should we put a degap method on the SeqsDataABC class?
-        # or something alike get_init_kwargs()?
         seqs_data = self.seqs.__class__(
             data=seqs, alphabet=self.seqs.alphabet, make_seq=self.seqs.make_seq
         )
@@ -697,13 +704,11 @@ class SequenceCollection:
         )
 
     def to_dna(self):
-        """returns copy of self as an alignment of DNA moltype seqs"""
-        # refactor: design
-        # do we need this in addition to to_moltype?
+        """returns copy of self as a collection of DNA moltype seqs"""
         return self.to_moltype("dna")
 
     def to_rna(self):
-        """returns copy of self as an alignment of RNA moltype seqs"""
+        """returns copy of self as a collection of RNA moltype seqs"""
         return self.to_moltype("rna")
 
     def get_translation(
@@ -714,7 +719,7 @@ class SequenceCollection:
         trim_stop: bool = True,
         **kwargs,
     ):
-        """translate from nucleic acid to protein
+        """translate sequences from nucleic acid to protein
 
         Parameters
         ----------
@@ -734,33 +739,39 @@ class SequenceCollection:
         Returns
         -------
         A new instance of self translated into protein
+
+        Notes
+        -----
+        Translating will break the relationship to an annotation_db if present.
         """
-        # todo: kath, add check for when include_stop==True, the seq.get_translation method should be
-        # returning sequences with a protein_with_stop moltype.
 
         if len(self.moltype.alphabet) != 4:
-            raise TypeError("Sequences must be a DNA/RNA")
+            raise new_alpha.AlphabetError("Sequences must be a DNA/RNA")
 
         translated = {}
-        if trim_stop and not include_stop:
-            seqs = self.trim_stop_codons(gc=gc, strict=not incomplete_ok)
-        else:
-            seqs = self
         # do the translation
-        for seqname in seqs.names:
-            seq = seqs.seqs[seqname]
+        for seqname in self.names:
+            seq = self.seqs[seqname]
             pep = seq.get_translation(
-                gc, incomplete_ok=True, include_stop=include_stop, trim_stop=trim_stop
+                gc,
+                incomplete_ok=incomplete_ok,
+                include_stop=include_stop,
+                trim_stop=trim_stop,
             )
-            translated[seqname] = pep
+            translated[seqname] = str(pep)
         pep_moltype = pep.moltype
-        seqs_data = SeqsData(
+
+        seqs_data = self.seqs.__class__(
             data=translated,
             alphabet=pep_moltype.most_degen_alphabet(),
             make_seq=pep_moltype.make_seq,
         )
         return self.__class__(
-            seqs_data=seqs_data, info=self.info, source=self.source, **kwargs
+            seqs_data=seqs_data,
+            moltype=pep_moltype,
+            info=self.info,
+            source=self.source,
+            **kwargs,
         )
 
     def rc(self):
@@ -957,7 +968,8 @@ class SequenceCollection:
         start: OptInt = None,
         stop: OptInt = None,
         allow_partial: bool = False,
-    ) -> Iterator[Feature]:  # refactor: need to deal with optional args type hints
+        **kwargs,
+    ) -> Iterator[Feature]:
         """yields Feature instances
 
         Parameters
@@ -974,6 +986,8 @@ class SequenceCollection:
             stop position of the feature (inclusive)
         allow_partial
             allow features partially overlaping self
+        kwargs
+            additional keyword arguments to query the annotation db
 
         Notes
         -----
@@ -987,6 +1001,7 @@ class SequenceCollection:
         if not self.annotation_db:
             return None
 
+        # create a map between original seqid and current seqname (if renamed)
         seqid_to_seqname = {seq.parent_coordinates()[0]: seq.name for seq in self.seqs}
         if seqid and (
             seqid not in seqid_to_seqname and seqid not in seqid_to_seqname.values()
@@ -1001,6 +1016,7 @@ class SequenceCollection:
             start=start,
             stop=stop,
             allow_partial=allow_partial,
+            **kwargs,
         ):
             seqname = seqid_to_seqname[feature["seqid"]]
             seq = self.seqs[seqname]
@@ -1021,7 +1037,7 @@ class SequenceCollection:
         -------
         The collection in Fasta format.
         """
-        return alignment_to_fasta(self.to_dict(), block_size=block_size)
+        return seqs_to_fasta(self.to_dict(), block_size=block_size)
 
     def to_phylip(self):
         """
@@ -1029,7 +1045,7 @@ class SequenceCollection:
 
         Notes
         -----
-        raises exception if invalid sequences do not all have the same length
+        raises exception if sequences do not all have the same length
         """
         if self.is_ragged():
             raise ValueError("not all seqs same length, cannot convert to phylip")
@@ -1184,7 +1200,7 @@ class SequenceCollection:
         pseudocount: int = 0,
         names: OptList = None,
         ui=None,
-    ) -> numpy.array:
+    ) -> numpy.array:  # refactor: type - how to type hint ui?
         """scores sequences using the specified pssm
 
         Parameters

@@ -228,8 +228,7 @@ class GeneticCode:
         if start:
             dna = dna[start:]
 
-        diff = len(dna) % 3
-        if diff != 0:
+        if diff := len(dna) % 3:
             dna = dna[:-diff]
 
         # convert to indices and then bytes

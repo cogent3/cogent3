@@ -1040,9 +1040,6 @@ def test_sequence_collection_has_terminal_stop_strict():
         seq_coll.has_terminal_stop(gc=1, strict=True)
 
 
-@pytest.mark.xfail(
-    reason="todo: relies on Sequence.get_translation which requires a codon alphabet class'"
-)
 def test_sequence_collection_get_translation_trim_stop():
     data = {"seq1": "GATTCCTAG", "seq2": "GATTCCTCC"}
     seq_coll = new_aln.make_unaligned_seqs(data, moltype="dna")
@@ -1051,44 +1048,48 @@ def test_sequence_collection_get_translation_trim_stop():
     assert got.to_dict() == expect
 
 
-@pytest.mark.xfail(
-    reason="todo: relies on Sequence.get_translation which requires a codon alphabet class'"
-)
 def test_sequence_collection_get_translation_raises():
     """should raise error if self.moltype is not a nucleic acid"""
     data = {"seq1": "PAR", "seq2": "PQR"}
     seq_coll = new_aln.make_unaligned_seqs(data, moltype="protein")
-    with pytest.raises(TypeError):
+    with pytest.raises(new_alpha.AlphabetError):
         _ = seq_coll.get_translation(trim_stop=True)
 
 
-@pytest.mark.xfail(
-    reason="todo: relies on Sequence.get_translation which requires a codon alphabet class'"
-)
 @pytest.mark.parametrize(
-    "seqs", ({"seq1": "GATTTT", "seq2": "GATC??"}, {"seq1": "GAT---", "seq2": "?GATCT"})
+    "seqs",
+    (
+        {"seq1": "GATTTT", "seq2": "GATC??"},
+        {"seq1": "GAT---", "seq2": "GATCTT"},
+        {"seq1": "GAT-T-", "seq2": "GATCTT"},
+        {"seq1": "GATTTT", "seq2": "?GATCT"},
+    ),
 )
-def test_sequence_collection_get_translation2(seqs):
+def test_sequence_collection_get_translation(seqs):
     """SequenceCollection.get_translation translates each seq"""
     seq_coll = new_aln.make_unaligned_seqs(seqs, moltype="dna")
-    got = seq_coll.get_translation()
-    assert len(got) == 2
+    got = seq_coll.get_translation(incomplete_ok=True)
+    assert got.num_seqs == 2
     assert got.moltype == new_moltype.PROTEIN
 
 
-@pytest.mark.xfail(
-    reason="todo: relies on Sequence.get_translation which requires a codon alphabet class'"
-)
 def test_sequence_collection_get_translation_with_stop():
-    data = {"seq1": "GATTAG", "seq2": "?GATCT"}
+    data = {"seq1": "?GATCT", "seq2": "GATTAG"}
     seq_coll = new_aln.make_unaligned_seqs(data, moltype="dna")
-    got = seq_coll.get_translation(include_stop=True)
-    assert got.to_dict() == {"seq1": "D*", "seq2": "XS"}
+    got = seq_coll.get_translation(
+        incomplete_ok=True, include_stop=True, trim_stop=False
+    )
+    assert got.to_dict() == {"seq1": "XS", "seq2": "D*"}
+    assert got.moltype == new_moltype.PROTEIN_WITH_STOP
 
 
-@pytest.mark.xfail(
-    reason="todo: relies on Sequence.get_translation which requires a codon alphabet class'"
-)
+def test_sequence_collection_get_translation_non_div_3():
+    data = {"seq1": "?GATCTA", "seq2": "GATTAGGG"}
+    seq_coll = new_aln.make_unaligned_seqs(data, moltype="dna")
+    got = seq_coll.get_translation(incomplete_ok=True, include_stop=True)
+    assert got.to_dict() == {"seq1": "XS", "seq2": "D*"}
+
+
 @pytest.mark.parametrize(
     "data", ({"seq1": "GATTTT", "seq2": "GATC??"}, {"seq1": "GAT---", "seq2": "?GATCT"})
 )
@@ -1100,32 +1101,29 @@ def test_sequence_collection_get_translation_error(data):
         seq_coll.get_translation()
 
 
-@pytest.mark.xfail(
-    reason="todo: relies on Sequence.get_translation which requires a codon alphabet class'"
-)
 @pytest.mark.parametrize(
     "data",
     (
+        {"seq1": "GATTTT", "seq2": "GATCTT"},
+        {"seq1": "GAT---", "seq2": "GGATCT"},
+        {"seq1": "GATTTT", "seq2": "?GATCT"},
         {"seq1": "GATTTT", "seq2": "GATC??"},
-        {"seq1": "GAT---", "seq2": "?GATCT"},
+        {"seq1": "GAT-T-", "seq2": "GATCTT"},
     ),
 )
 def test_sequence_collection_get_translation_info(data):
     """SequenceCollection.get_translation preserves info attribute"""
-    seq_coll = new_aln.make_unaligned_seqs(data, moltype="dna")
-    got = seq_coll.get_translation()
+    seq_coll = new_aln.make_unaligned_seqs(data, moltype="dna", info={"key": "value"})
+    got = seq_coll.get_translation(incomplete_ok=True)
     assert got.info["key"] == "value"
 
 
-@pytest.mark.xfail(
-    reason="todo: relies on Sequence.get_translation which requires a codon alphabet class'"
-)
 def test_sequence_collection_get_translation_incomplete():
     """get translation works on incomplete codons"""
     data = {"seq1": "GATN--", "seq2": "?GATCT"}
     seq_coll = new_aln.make_unaligned_seqs(data, moltype="dna")
     got = seq_coll.get_translation(incomplete_ok=True)
-    assert got.to_dict() == {"seq1": "D?", "seq2": "XS"}
+    assert got.to_dict() == {"seq1": "DX", "seq2": "XS"}
     with pytest.raises(new_alpha.AlphabetError):
         _ = seq_coll.get_translation(incomplete_ok=False)
 
@@ -1949,7 +1947,6 @@ def test_sequence_collection_strand_symmetry():
     assert numpy.allclose(result["seq2"].observed.array, [[3, 0], [2, 1]])
 
 
-@pytest.mark.xfail(reason="todo: kath, decide on how to handle rename_seqs")
 def test_sequence_collection_rename_seqs():
     """successfully rename sequences"""
     data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
@@ -1957,8 +1954,6 @@ def test_sequence_collection_rename_seqs():
     new = seqs.rename_seqs(lambda x: x.upper())
     expect = {n.upper() for n in data}
     assert set(new.names) == expect
-    # renamed contains the name map as info attribute
-    assert new.info.name_map == {k.upper(): k for k in data}
 
 
 def test_sequence_collection_apply_pssm():

@@ -1444,11 +1444,9 @@ class Sequence:
         -------
         Returns a list of Feature instances.
         """
-        try:
+        with contextlib.suppress(ValueError):
+            # assume ValueError is due to already being a regex
             pattern = self.moltype.to_regex(seq=pattern)
-        except ValueError:
-            # assume already a regex
-            pass
 
         pos = [m.span() for m in re.finditer(pattern, str(self))]
         if not pos:
@@ -1746,7 +1744,7 @@ class NucleicAcidSequenceMixin:
 
     def get_translation(
         self,
-        gc: OptGeneticCodeType = None,
+        gc: OptGeneticCodeType = 1,
         incomplete_ok: bool = False,
         include_stop: bool = False,
         trim_stop: bool = True,
@@ -1759,8 +1757,9 @@ class NucleicAcidSequenceMixin:
             valid input to cogent3.get_code(), a genetic code object, number
             or name
         incomplete_ok
-            codons that are mixes of nucleotide and gaps converted to '?'.
-            raises a ValueError if False
+            codons that are mixes of nucleotide and gaps converted to '-'.
+            codons containing ambiguous nucleotides are translated as 'X'.
+            raises a AlphabetError if False
         include_stop
             allows stop codons in translation
         trim_stop
@@ -1774,59 +1773,32 @@ class NucleicAcidSequenceMixin:
         ------
         AlphabetError if include_stop is False and a stop codon occurs
         """
-        # todo gavin the genetic code should have the moltype for protein
-        #  with stop. The genetic code should also do the translation off
-        #  raw data, either an array of ints or a string. So this method
-        #  should only deal with trimming terminal stops, modulo 3 etc...
+
         from cogent3.core import new_genetic_code, new_moltype
 
         protein = new_moltype.get_moltype(
             "protein_with_stop" if include_stop else "protein"
         )
         gc = new_genetic_code.get_code(gc)
-        codon_alphabet = gc.get_alphabet(include_stop=include_stop).with_gap_motif()
-        moltype = self.moltype
-        # translate the codons
-        translation = []
-        if include_stop or not trim_stop:
-            # we just deal with sequence as is
-            seq = str(self)
+
+        if trim_stop:
+            seq = self.trim_stop_codon(gc=gc, strict=not incomplete_ok)
         else:
-            seq = str(self.trim_stop_codon(gc=gc, strict=not incomplete_ok))
+            seq = self
 
-        for posn in range(0, len(seq) - 2, 3):
-            orig_codon = str(seq[posn : posn + 3])
-            try:
-                resolved = moltype.resolve_ambiguity(
-                    orig_codon, alphabet=codon_alphabet
-                )
-            except new_alphabet.AlphabetError:
-                if not incomplete_ok or "-" not in orig_codon:
-                    raise new_alphabet.AlphabetError(
-                        f"unresolvable codon {orig_codon!r} in {self.name}"
-                    )
-                resolved = (orig_codon,)
-            trans = []
-            for codon in resolved:
-                if codon == "---":
-                    aa = "-"
-                elif "-" in codon:
-                    aa = "?"
-                    if not incomplete_ok:
-                        raise new_alphabet.AlphabetError(
-                            f"incomplete codon {codon} in {self.name}"
-                        )
-                else:
-                    aa = gc[codon]
-                    if aa == "*" and not include_stop:
-                        continue
-                trans.append(aa)
-            if not trans:
-                raise new_alphabet.AlphabetError(orig_codon)
-            aa = protein.what_ambiguity(trans)
-            translation.append(aa)
+        # since we are realising the string, reverse complementing will be
+        # dealt with, so rc=False
+        pep = gc.translate(str(seq), rc=False)
 
-        return protein.make_seq(seq="".join(translation), name=self.name)
+        if not include_stop and "*" in pep:
+            raise new_alphabet.AlphabetError("stop codon in translation")
+
+        if not incomplete_ok and ("-" in pep or "X" in pep):
+            raise new_alphabet.AlphabetError(
+                "Incomplete codon in translation, set incomplete_ok=True to "
+                "allow translation"
+            )
+        return protein.make_seq(seq=pep, name=self.name)
 
     def to_rna(self):
         """Returns copy of self as RNA."""
@@ -2450,7 +2422,7 @@ class SeqView(SeqViewABC, SliceRecordABC):
         return self.from_rich_dict(self.to_rich_dict())
 
 
-class DnaSequence(Sequence, NucleicAcidSequenceMixin):
+class DnaSequence(NucleicAcidSequenceMixin, Sequence):
     """Holds the standard DNA sequence."""
 
     # constructed by DNA moltype
@@ -2460,7 +2432,7 @@ class DnaSequence(Sequence, NucleicAcidSequenceMixin):
         return seq.replace("u", "t").replace("U", "T")
 
 
-class RnaSequence(Sequence, NucleicAcidSequenceMixin):
+class RnaSequence(NucleicAcidSequenceMixin, Sequence):
     """Holds the standard RNA sequence."""
 
     def _seq_filter(self, seq):
