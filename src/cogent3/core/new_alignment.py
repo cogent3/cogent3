@@ -798,7 +798,7 @@ class SequenceCollection:
         """
         rc_seqs = {name: self.seqs[name].rc() for name in self.names}
         seqs_data = self.seqs.__class__(
-            data=rc_seqs, alphabet=self.moltype.alphabet, make_seq=self.moltype.make_seq
+            data=rc_seqs, alphabet=self.moltype.most_degen_alphabet(), make_seq=self.moltype.make_seq
         )
         return self.__class__(
             seqs_data=seqs_data,
