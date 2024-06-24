@@ -392,7 +392,7 @@ class DictArray(object):
 
         return self.template.wrap(self.array + other.array)
 
-    def __array__(self, dtype=None):
+    def __array__(self, dtype=None, copy=False):
         array = self.array
         if dtype is not None:
             array = array.astype(dtype)
