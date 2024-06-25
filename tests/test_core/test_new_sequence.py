@@ -468,9 +468,6 @@ def test_seqview_to_rich_dict(coord, dna_alphabet):
     assert coord not in minus
 
 
-@pytest.mark.xfail(
-    reason="NotImplementedError: deserialising 'cogent3.core.new_sequence.SeqView' from json"
-)
 @pytest.mark.parametrize("reverse", (False, True))
 def test_seqview_round_trip(reverse, dna_alphabet):
     parent = "ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC"
