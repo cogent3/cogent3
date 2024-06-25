@@ -62,7 +62,7 @@ class MakeSeqCallable(typing.Protocol):
 
 
 def assign_sequential_names(num_seqs: int, base_name: str = "seq", start_at: int = 0):
-    """Returns list of sequential, unique names, e.g., ['seq_0` ... 'seq_n'] for
+    """Returns list of sequential, unique names, e.g., ['seq_0' ... 'seq_n'] for
      num_seqs = n+1
 
     Parameters
@@ -70,7 +70,7 @@ def assign_sequential_names(num_seqs: int, base_name: str = "seq", start_at: int
     num_seqs
         number of names to generate
     base_name
-        the base name to use for the sequence names
+        the sequence name prefix
     start_at
         the number to start the sequence names at
     """
@@ -79,7 +79,7 @@ def assign_sequential_names(num_seqs: int, base_name: str = "seq", start_at: int
 
 class SeqDataView(new_seq.SeqViewABC, new_seq.SliceRecordABC):
     """
-    A view class for SeqsData, providing properties for different representations
+    A view class for SeqsData, providing methods for different representations
     of a single sequence.
 
     self.seq is a SeqsData() instance, but other properties are a reference to a
@@ -770,11 +770,13 @@ class SequenceCollection:
                 include_stop=include_stop,
                 trim_stop=trim_stop,
             )
-            translated[seqname] = str(pep)
+            translated[seqname] = pep
+
+        seqs_data = coerce_to_seqs_data_dict(translated, label_to_name=None)
         pep_moltype = pep.moltype
 
         seqs_data = self.seqs.__class__(
-            data=translated,
+            data=seqs_data,
             alphabet=pep_moltype.most_degen_alphabet(),
             make_seq=pep_moltype.make_seq,
         )
@@ -798,7 +800,9 @@ class SequenceCollection:
         """
         rc_seqs = {name: self.seqs[name].rc() for name in self.names}
         seqs_data = self.seqs.__class__(
-            data=rc_seqs, alphabet=self.moltype.most_degen_alphabet(), make_seq=self.moltype.make_seq
+            data=rc_seqs,
+            alphabet=self.moltype.most_degen_alphabet(),
+            make_seq=self.moltype.make_seq,
         )
         return self.__class__(
             seqs_data=seqs_data,
@@ -1212,7 +1216,7 @@ class SequenceCollection:
         pseudocount: int = 0,
         names: OptList = None,
         ui=None,
-    ) -> numpy.array:  # refactor: type - how to type hint ui?
+    ) -> numpy.array:  # refactor: design: move to rich for progress bars?
         """scores sequences using the specified pssm
 
         Parameters
@@ -1228,9 +1232,6 @@ class SequenceCollection:
             adjustment for zero in matrix
         names
             returns only scores for these sequences and in the name order
-        ui
-            argument to control the display of a progress bar. i.e.,
-            'show_progress=True'
 
         Returns
         -------
@@ -2048,7 +2049,9 @@ def _(
 ) -> dict[str, PrimitiveSeqTypes]:
     is_sequence = isinstance(next(iter(data.values()), None), new_seq.Sequence)
     return {
-        (label_to_name(k) if label_to_name else k): (str(v) if is_sequence else v)
+        (label_to_name(k) if label_to_name else k): (
+            numpy.array(v) if is_sequence else v
+        )
         for k, v in data.items()
     }
 

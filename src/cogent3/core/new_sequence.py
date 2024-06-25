@@ -1786,9 +1786,9 @@ class NucleicAcidSequenceMixin:
         else:
             seq = self
 
-        # since we are realising the string, reverse complementing will be
+        # since we are realising the view, reverse complementing will be
         # dealt with, so rc=False
-        pep = gc.translate(str(seq), rc=False)
+        pep = gc.translate(array(seq), rc=False)
 
         if not include_stop and "*" in pep:
             raise new_alphabet.AlphabetError("stop codon in translation")

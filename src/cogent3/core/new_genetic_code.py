@@ -225,6 +225,9 @@ class GeneticCode:
         -------
         String containing amino acid sequence.
         """
+        # refactor: design
+        # previous implementation converted mix of ambigs and nt to '?', potentially
+        # we should change the behaviour to match this.
         if start:
             dna = dna[start:]
 

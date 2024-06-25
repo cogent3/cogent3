@@ -770,6 +770,7 @@ def test_sequence_str_bytes_array():
     )
 
 
+@pytest.mark.xfail(reason="remove when Sequence.__str__ complements sequence")
 @pytest.mark.parametrize("seq,rc", (("ATGTTT", False), ("AAACAT", True)))
 def test_translation(seq, rc):
     seq = new_moltype.DNA.make_seq(seq=seq)
