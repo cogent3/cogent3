@@ -364,8 +364,10 @@ class SeqsData(SeqsDataABC):
         old = self.alphabet.as_bytes()
         new = alphabet.as_bytes()
         for seqid in self.names:
+            # refactor: design
+            # this conversion needs to be a method on the alphabet
+            # so it can be used by Sequence.to_moltype
             seq_data = self.get_seq_array(seqid=seqid)
-
             convert_old_to_bytes = new_alpha.array_to_bytes(old)
             convert_bytes_to_new = new_alpha.bytes_to_array(
                 new, dtype=new_alpha.get_array_type(len(new))

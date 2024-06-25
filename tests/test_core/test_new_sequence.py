@@ -789,7 +789,10 @@ def test_sequences_propogates_seqid():
 def test_sequences_propogates_seqid_seqview():
     # creating a Sequence with a seqview does not change the seqid of the SeqView.
     seq = new_moltype.DNA.make_seq(
-        seq=new_sequence.SeqView(seq="ACGGTGGGAC", seqid="parent_name"), name="seq_name"
+        seq=new_sequence.SeqView(
+            seq="ACGGTGGGAC", seqid="parent_name", alphabet=dna_alphabet
+        ),
+        name="seq_name",
     )
     assert seq.name == "seq_name"
     assert seq._seq.seqid == "parent_name"

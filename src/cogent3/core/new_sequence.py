@@ -1090,7 +1090,7 @@ class Sequence:
         if moltype is self.moltype:
             return self
 
-        s = moltype.coerce_str(self._seq.value)
+        s = moltype.coerce_str(self._seq.str_value)
         moltype.verify_sequence(s, gaps_allowed=True, wildcards_allowed=True)
         sv = SeqView(seq=s, alphabet=moltype.most_degen_alphabet())
         new = moltype.make_seq(sv, name=self.name, info=self.info)
@@ -2402,8 +2402,8 @@ class SeqView(SeqViewABC, SliceRecordABC):
     def from_rich_dict(cls, data: dict):
         init_args = data.pop("init_args")
         init_args["alphabet"] = new_alphabet.CharAlphabet.from_rich_dict(
-                init_args["alphabet"]
-            )
+            init_args["alphabet"]
+        )
         if "offset" in data:
             init_args["offset"] = data.pop("offset")
         return cls(**init_args)
