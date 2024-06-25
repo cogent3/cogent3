@@ -13,10 +13,11 @@ import cogent3.core.new_alphabet as new_alpha
 import cogent3.core.new_moltype as new_moltype
 import cogent3.core.new_sequence as new_seq
 
-# todo: kath, update to using new_sequence.load_seq when implemented
-from cogent3 import load_seq, open_
+from cogent3 import load_seq, load_unaligned_seqs, open_
+from cogent3._version import __version__
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import GffAnnotationDb, load_annotations
+from cogent3.util.misc import get_object_provenance
 
 
 @pytest.fixture(scope="session")
@@ -136,8 +137,8 @@ def gff_db(DATA_DIR):
 @pytest.fixture(scope="function")
 def seqcoll_db(DATA_DIR):
     fasta_path = os.path.join(DATA_DIR / "c_elegans_WS199_dna_shortened.fasta")
-    seq = load_seq(fasta_path, moltype="dna")
-    seq_coll = new_aln.make_unaligned_seqs({seq.name: str(seq)}, moltype="dna")
+    seq = load_seq(fasta_path, moltype="dna", new_type=True)
+    seq_coll = new_aln.make_unaligned_seqs({seq.name: seq}, moltype="dna")
     seq_coll.annotation_db = load_annotations(
         path=DATA_DIR / "c_elegans_WS199_shortened_gff.gff3"
     )
@@ -541,18 +542,30 @@ def test_make_unaligned_seqs_dict(moltype):
 
 
 @pytest.mark.parametrize("moltype", ("dna", "rna", "protein", "protein_with_stop"))
-def test_make_unaligned_seqs_list(moltype):
+@pytest.mark.parametrize("cls", (list, set))
+def test_make_unaligned_seqs_collection(moltype, cls):
     """test SequenceCollection constructor utility function"""
-    data = ["AGGCCC", "AGAAAA"]
+    data = cls(["AGGCCC", "AGAAAA"])
     got = new_aln.make_unaligned_seqs(data, moltype=moltype)
     assert isinstance(got, new_aln.SequenceCollection)
     assert got._seqs_data.make_seq == new_moltype.get_moltype(moltype).make_seq
+    assert got.num_seqs == 2
 
     # should also work if seqs are arrays
     data = [numpy.array(["AGGCCC"]), numpy.array(["AGAAAA"])]
     got = new_aln.make_unaligned_seqs(data, moltype=moltype)
     assert isinstance(got, new_aln.SequenceCollection)
     assert got._seqs_data.make_seq == new_moltype.get_moltype(moltype).make_seq
+
+    # also when seqs are list(name: seq) pairs
+    data = [["seq1", "AGGCCC"], ["seq2", "AGAAAA"]]
+    got = new_aln.make_unaligned_seqs(data, moltype=moltype)
+    assert isinstance(got, new_aln.SequenceCollection)
+
+    # or tuples
+    data = [("seq1", "AGGCCC"), ("seq2", "AGAAAA")]
+    got = new_aln.make_unaligned_seqs(data, moltype=moltype)
+    assert isinstance(got, new_aln.SequenceCollection)
 
 
 def test_make_unaligned_seqs_label_to_name():
@@ -644,11 +657,10 @@ def test_sequence_collection_init_ordered(ordered1, ordered2):
     assert sec.names == ["c", "a"]
 
 
-@pytest.mark.xfail(reason="todo: kath, load_unaligned_seqs not creating new style seqs")
 def test_sequence_collection_info_source():
     """info.source exists if load seqs given a filename"""
     path = pathlib.Path("data/brca1.fasta")
-    seqs = new_aln.load_unaligned_seqs(path)
+    seqs = load_unaligned_seqs(path, moltype="dna", new_type=True)
     assert seqs.info.source == str(path)
 
 
@@ -2040,7 +2052,6 @@ def test_sequence_collection_get_seq_entropy():
     assert numpy.allclose(entropy, numpy.array([e, 1.5]))
 
 
-@pytest.mark.xfail(reason="todo: kath, design of serialisation is unresolved")
 def test_sequence_collection_write_to_json(tmp_path):
     # test writing to json file
     data = {"a": "AAAA", "b": "TTTT", "c": "CCCC"}
@@ -2050,6 +2061,63 @@ def test_sequence_collection_write_to_json(tmp_path):
     with open_(path) as fn:
         got = json.loads(fn.read())
         assert got == aln.to_rich_dict()
+
+
+def test_sequence_collection_to_rich_dict():
+    """to_rich_dict produces correct dict"""
+    data = {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}
+    seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
+
+    got = seqs.to_rich_dict()
+    seqs_data = {
+        "data": {name: seqs.seqs.get_seq_str(seqid=name) for name in seqs.names},
+        "alphabet": seqs.moltype.most_degen_alphabet().to_rich_dict(),
+        "type": get_object_provenance(seqs.seqs),
+    }
+    expect = {
+        "seqs": seqs_data,
+        "moltype": seqs.moltype.label,
+        "names": seqs.names,
+        "info": seqs.info,
+        "type": get_object_provenance(seqs),
+        "version": __version__,
+    }
+    assert got == expect
+
+
+def test_sequence_collection_to_rich_dict_annotation_db():
+    data = {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}
+    seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
+    seqs.add_feature(seqid="seq1", biotype="xyz", name="abc", spans=[(1, 2)])
+
+    got = seqs.to_rich_dict()
+    db = seqs.annotation_db.to_rich_dict()
+    seqs_data = {
+        "data": {name: seqs.seqs.get_seq_str(seqid=name) for name in seqs.names},
+        "alphabet": seqs.moltype.most_degen_alphabet().to_rich_dict(),
+        "type": get_object_provenance(seqs.seqs),
+    }
+    expect = {
+        "seqs": seqs_data,
+        "moltype": seqs.moltype.label,
+        "names": seqs.names,
+        "info": seqs.info,
+        "annotation_db": db,
+        "type": get_object_provenance(seqs),
+        "version": __version__,
+    }
+    assert got == expect
+
+
+def test_sequence_collection_to_json():
+    """roundtrip of to_json produces correct dict"""
+    aln = new_aln.make_unaligned_seqs(
+        {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}, moltype="dna"
+    )
+    txt = aln.to_json()
+    got = json.loads(txt)
+    expect = aln.to_rich_dict()
+    assert got == expect
 
 
 @pytest.mark.parametrize("moltype", ("dna", "rna"))
