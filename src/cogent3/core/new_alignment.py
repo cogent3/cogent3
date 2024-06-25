@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 import typing
 import warnings
@@ -17,6 +18,7 @@ import cogent3.core.new_alphabet as new_alpha
 import cogent3.core.new_moltype as new_moltype
 import cogent3.core.new_sequence as new_seq
 
+from cogent3._version import __version__
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
     BasicAnnotationDb,
@@ -37,7 +39,11 @@ from cogent3.format.phylip import alignment_to_phylip
 from cogent3.util import progress_display as UI
 from cogent3.util import warning as c3warn
 from cogent3.util.io import atomic_write, get_format_suffixes
-from cogent3.util.misc import get_setting_from_environ, negate_condition
+from cogent3.util.misc import (
+    get_object_provenance,
+    get_setting_from_environ,
+    negate_condition,
+)
 
 
 DEFAULT_ANNOTATION_DB = BasicAnnotationDb
@@ -239,6 +245,9 @@ class SeqsDataABC(ABC):
     def add_seqs(self, seqs) -> SeqsDataABC: ...
 
     @abstractmethod
+    def to_rich_dict(self) -> dict: ...
+
+    @abstractmethod
     def __len__(self): ...
 
     @abstractmethod
@@ -372,6 +381,16 @@ class SeqsData(SeqsDataABC):
             new_data[seqid] = as_new_alpha
 
         return self.__class__(data=new_data, alphabet=alphabet)
+
+    def to_rich_dict(self) -> dict:
+        """returns a serialisable string"""
+        # todo: kath
+        # this should also include offset and complement when those are implemented
+        return {
+            "data": {name: self.get_seq_str(seqid=name) for name in self.names},
+            "alphabet": self.alphabet.to_rich_dict(),
+            "type": get_object_provenance(self),
+        }
 
     def __len__(self):
         return len(self.names)
@@ -650,16 +669,36 @@ class SequenceCollection:
         get = self.seqs.get_seq_array if as_array else self.seqs.get_seq_str
         return {name: get(seqid=name) for name in self.names}
 
-    def to_json(self):
-        # todo
-        # refactor: design - waiting for alphabet serialisation
-        ...
+    def to_rich_dict(self):
+        """returns a serialisable string"""
+        # refactor: design
+        # consider whether we want to include a from_rich_dict method
+        data = {}
+        moltype = self.moltype.label
+        info = {} if self.info is None else self.info
 
-    def to_rich_dict(self) -> dict:
-        # todo
-        # refactor: design - waiting for alphabet serialisation
-        # add SeqsData.to_dict method which returns a dict [str: str]
-        ...
+        if info.get("Refs", None) is not None and "Refs" in info:
+            info.pop("Refs")
+
+        info = info or None
+
+        data = dict(
+            seqs=self.seqs.to_rich_dict(),
+            moltype=moltype,
+            names=self.names,
+            info=info,
+            type=get_object_provenance(self),
+            version=__version__,
+        )
+
+        if hasattr(self, "annotation_db") and self.annotation_db:
+            data["annotation_db"] = self.annotation_db.to_rich_dict()
+
+        return data
+
+    def to_json(self):
+        """returns json formatted string"""
+        return json.dumps(self.to_rich_dict())
 
     def degap(self) -> SequenceCollection:
         """Returns new collection in which sequences have no gaps.
@@ -1085,7 +1124,6 @@ class SequenceCollection:
         suffix.
         """
 
-        # todo: kath, add support for json
         suffix, _ = get_format_suffixes(filename)
         if file_format is None and suffix:
             file_format = suffix
@@ -2090,7 +2128,7 @@ def assign_names(
     if isinstance(first, (str, bytes, numpy.ndarray)):
         names = assign_sequential_names(len(data))
         return dict(zip(names, data))
-    raise NotImplementedError(f"assign_names not implemented for {type(data)}")
+    raise NotImplementedError(f"assign_names not implemented for {type(first)}")
 
 
 @assign_names.register
@@ -2117,7 +2155,7 @@ def make_unaligned_seqs(
     info: dict = None,
     source: OptPathType = None,
     annotation_db: SupportsFeatures = None,
-) -> SequenceCollection:  # refactor: design/simplify
+) -> SequenceCollection:
     """Initialise an unaligned collection of sequences.
 
     Parameters
@@ -2144,6 +2182,13 @@ def make_unaligned_seqs(
     annotation_db is used.
 
     """
+    # refactor: design/simplify
+    # the dispatches above handle the different type of data that the previous
+    # make_unaligned_seqs handled. This includes dicts, lists (where items are
+    # either pairs of [name, seq], or just seqs), tuples, Sequences, etc.
+    # We could simplify it creatly by only supporting dicts, SeqsDataABC,
+    # or SequenceCollections.
+
     if len(data) == 0:
         raise ValueError("data must be at least one sequence.")
 
@@ -2183,7 +2228,10 @@ def _(
         )
 
     info = info if isinstance(info, dict) else {}
-    info["source"] = str(info.get("source", "unknown"))
+    if source:
+        info["source"] = str(source)
+    else:
+        info["source"] = str(info.get("source", "unknown"))
 
     return SequenceCollection(
         seqs_data=data,
