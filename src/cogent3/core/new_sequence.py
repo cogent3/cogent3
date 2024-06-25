@@ -2395,11 +2395,15 @@ class SeqView(SeqViewABC, SliceRecordABC):
 
         data["init_args"]["seq"] = self.seq[start:stop]
         data["init_args"]["offset"] = int(self.parent_start)
+        data["init_args"]["alphabet"] = self.alphabet.to_rich_dict()
         return data
 
     @classmethod
     def from_rich_dict(cls, data: dict):
         init_args = data.pop("init_args")
+        init_args["alphabet"] = new_alphabet.CharAlphabet.from_rich_dict(
+                init_args["alphabet"]
+            )
         if "offset" in data:
             init_args["offset"] = data.pop("offset")
         return cls(**init_args)

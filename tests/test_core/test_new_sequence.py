@@ -410,7 +410,6 @@ def test_to_rich_dict():
     assert got == expect
 
 
-@pytest.mark.xfail(reason="refactor: how to serialise an alphabet")
 def test_to_json():
     """to_json roundtrip recreates to_dict"""
     dna = new_moltype.DNA
