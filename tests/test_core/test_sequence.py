@@ -2049,13 +2049,6 @@ def test_get_kmers_strict_DNA_RNA_Protein_mixed_ambiguities():
     assert r.get_kmers(8, strict=False) == []
 
 
-@pytest.fixture(scope="function")
-def one_seq():
-    from cogent3 import make_seq
-
-    return make_seq("AACCTGGAACC", moltype="dna")
-
-
 @pytest.fixture(scope="session")
 def worm_seq_path(DATA_DIR):
     return DATA_DIR / "c_elegans_WS199_dna_shortened.fasta"
