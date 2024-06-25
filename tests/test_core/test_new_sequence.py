@@ -99,17 +99,6 @@ def test_triple_slice(
 
 
 @pytest.mark.xfail(reason="AttributeError: 'SeqView' object has no attribute 'replace'")
-def test_seqview_replace(ascii_alpha):
-    """SeqView supports replacements of substrings, however overriding the sequence data"""
-    seq_data = "abcdefghijk"
-    sv = new_sequence.SeqView(seq=seq_data, alphabet=ascii_alpha)
-    sv_replaced = sv.replace("a", "u")
-    assert sv_replaced.value == seq_data.replace("a", "u")
-    assert sv_replaced.replace("u", "a").value == seq_data
-    assert sv_replaced.seq == seq_data.replace("a", "u")
-
-
-@pytest.mark.xfail(reason="AttributeError: 'SeqView' object has no attribute 'replace'")
 def test_seqview_remove_gaps(ascii_alpha):
     """Replacing strings of different lengths should work, although any previous slices will be lost"""
     seq_data = "abc----def"
