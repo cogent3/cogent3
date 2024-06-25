@@ -1591,17 +1591,7 @@ def test_sequence_collection_copy_annotations(gff_db):
     assert seq_coll.annotation_db.num_matches() == gff_db.num_matches()
 
 
-@pytest.mark.xfail(reason="todo: this just hangs... ")
 def test_sequence_collection_copy_annotations_same_annotations(gff_db):
-    # define a timeout for this test at 5 seconds
-    import signal
-
-    def handler(signum, frame):
-        raise TimeoutError("Test timed out")
-
-    signal.signal(signal.SIGALRM, handler)
-    signal.alarm(5)
-
     data = {"seq1": "ACGU", "seq2": "CGUA", "test_seq": "CCGU"}
     seq_coll = new_aln.make_unaligned_seqs(data, moltype="rna")
     seq_coll = new_aln.make_unaligned_seqs(data, moltype="rna")
