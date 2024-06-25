@@ -768,3 +768,31 @@ def test_sequence_str_bytes_array():
     assert numpy.array_equal(
         numpy.array(seq), new_moltype.DNA.alphabet.to_indices(data)
     )
+
+
+@pytest.mark.xfail(reason="remove when Sequence.__str__ complements sequence")
+@pytest.mark.parametrize("seq,rc", (("ATGTTT", False), ("AAACAT", True)))
+def test_translation(seq, rc):
+    seq = new_moltype.DNA.make_seq(seq=seq)
+    if rc:
+        seq = seq.rc()
+    get_str = str(seq)
+    assert get_str == "ATGTTT"
+    aa = seq.get_translation()
+    assert str(aa) == "MF"
+
+
+def test_get_translation_include_stop():
+    s = new_moltype.DNA.make_seq(seq="ATTTAACTT", name="s1")
+    aa = s.get_translation(include_stop=True)
+    assert str(aa) == "I*L"
+
+
+def test_get_translation_trim_stop():
+    s = new_moltype.DNA.make_seq(seq="ATTTCCTGA", name="s1")
+    aa = s.get_translation(trim_stop=True)
+    assert str(aa) == "IS"
+    # no effect on internal stops
+    s = new_moltype.DNA.make_seq(seq="ATTTAACTT", name="s1")
+    aa = s.get_translation(include_stop=True, trim_stop=True)
+    assert str(aa) == "I*L"

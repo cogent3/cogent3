@@ -518,7 +518,7 @@ class PSSM(_MotifNumberArray):
         num_motifs = len(self.motifs)
         scores = []
 
-        for i in range(0, indexed.shape[0] - self.shape[0] + 1):
+        for i in range(indexed.shape[0] - self.shape[0] + 1):
             segment = indexed[i : i + self.shape[0]]
             un_ambig = segment < num_motifs
             if not un_ambig.all():
@@ -529,3 +529,35 @@ class PSSM(_MotifNumberArray):
             score = pssm[self._indices[: pssm.shape[0]], segment].sum()
             scores.append(score)
         return scores
+
+
+def load_pssm(path: str, background: numpy.ndarray = None, pseudocount: int = 0):
+    """loads a PSSM from a file
+
+    Parameters
+    ----------
+    path
+        path to either a jaspar or cisbp matrix (path must end have a suffix
+        matching the format).
+    background
+        background frequencies distribution
+    pseudocount
+        adjustment for zero in matrix
+
+    """
+    from cogent3.parse import cisbp, jaspar
+
+    is_cisbp = path.endswith("cisbp")
+    is_jaspar = path.endswith("jaspar")
+    if not (is_cisbp or is_jaspar):
+        raise NotImplementedError(f"Unknown format {path.split('.')[-1]}")
+
+    if is_cisbp:
+        pfp = cisbp.read(path)
+        pssm = pfp.to_pssm(background=background)
+    else:
+        _, pwm = jaspar.read(path)
+        pssm = pwm.to_pssm(background=background, pseudocount=pseudocount)
+
+    assert isinstance(pssm, PSSM)
+    return pssm

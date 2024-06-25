@@ -225,11 +225,13 @@ class GeneticCode:
         -------
         String containing amino acid sequence.
         """
+        # refactor: design
+        # previous implementation converted mix of ambigs and nt to '?', potentially
+        # we should change the behaviour to match this.
         if start:
             dna = dna[start:]
 
-        diff = len(dna) % 3
-        if diff != 0:
+        if diff := len(dna) % 3:
             dna = dna[:-diff]
 
         # convert to indices and then bytes

@@ -1250,7 +1250,7 @@ class ModelSequenceTests(SequenceTests):
 
 
 @pytest.mark.parametrize("seq,rc", (("ATGTTT", False), ("AAACAT", True)))
-def test_translation(seq, rc):
+def test_translation(seq, rc):  # ported
     seq = DNA.make_seq(seq)
     if rc:
         seq = seq.rc()
@@ -1259,13 +1259,13 @@ def test_translation(seq, rc):
     assert str(aa) == "MF"
 
 
-def test_get_translation_include_stop():
+def test_get_translation_include_stop():  # ported
     s = DNA.make_seq("ATTTAACTT", name="s1")
     aa = s.get_translation(include_stop=True)
     assert str(aa) == "I*L"
 
 
-def test_get_translation_trim_stop():
+def test_get_translation_trim_stop():  # ported
     s = DNA.make_seq("ATTTCCTGA", name="s1")
     aa = s.get_translation(trim_stop=True)
     assert str(aa) == "IS"
