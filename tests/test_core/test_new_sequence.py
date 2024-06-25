@@ -45,7 +45,110 @@ def test_moltype_make_bytes_seq():
     assert str(seq) == raw
 
 
+@pytest.fixture(scope="function")
+def integer_seq():
+    """Used for slicing tests"""
+    a = new_moltype.BYTES.most_degen_alphabet()
+    return new_sequence.SeqView(seq="0123456789", alphabet=a)
+
+
+@pytest.fixture
+def ascii_alpha():
+    return new_moltype.ASCII.most_degen_alphabet()
+
+
 # Tests from test_sequence.py
+@pytest.mark.parametrize(
+    "sub_slices_triple",
+    (
+        (slice(None, None, None), slice(None, None, None), slice(None, None, None)),
+        (slice(1, 9, 1), slice(2, 8, 1), slice(3, 7, 1)),
+        (slice(1, 9, 1), slice(2, 8, 1), slice(3, 9, 1)),
+        (slice(1, 9, 1), slice(2, 8, 2), slice(3, 7, -3)),
+    ),
+)
+def test_subslice_3(sub_slices_triple):
+    """SeqView should handle three subsequent slices"""
+    seq_data = "abcdefghijk"
+    sv = new_sequence.SeqView(seq=seq_data, alphabet=ascii_alpha)
+    slice_1, slice_2, slice_3 = sub_slices_triple
+    assert (
+        sv[slice_1][slice_2][slice_3].str_value == seq_data[slice_1][slice_2][slice_3]
+    )
+
+
+@pytest.mark.parametrize("start", (0, 2, -1))
+@pytest.mark.parametrize("stop", (7, 10, -11))
+@pytest.mark.parametrize("step", (1, -2))
+@pytest.mark.parametrize("start_2", (0, 2, -8))
+@pytest.mark.parametrize("stop_2", (2, 4))
+@pytest.mark.parametrize("step_2", (2, -1))
+@pytest.mark.parametrize("start_3", (0, 1, -6))
+@pytest.mark.parametrize("stop_3", (4, 10, -10))
+@pytest.mark.parametrize("step_3", (2, -2))
+def test_triple_slice(
+    integer_seq, start, stop, step, start_2, stop_2, step_2, start_3, stop_3, step_3
+):
+    """SeqView should handle subsequent forward slice"""
+    seq = integer_seq.seq
+    got = integer_seq[start:stop:step][start_2:stop_2:step_2][start_3:stop_3:step_3]
+    expected = seq[start:stop:step][start_2:stop_2:step_2][start_3:stop_3:step_3]
+
+    assert got.str_value == expected
+    assert len(got) == len(expected)
+
+
+@pytest.mark.xfail(reason="AttributeError: 'SeqView' object has no attribute 'replace'")
+def test_seqview_remove_gaps(ascii_alpha):
+    """Replacing strings of different lengths should work, although any previous slices will be lost"""
+    seq_data = "abc----def"
+    sv = new_sequence.SeqView(seq=seq_data, alphabet=ascii_alpha)
+    sliced = sv[2:4]
+    assert sliced.start == 2
+    replaced = sliced.replace("-", "")
+    assert replaced.value == seq_data.replace("-", "")
+    assert replaced.start == 0  # start should now be zero,
+    assert replaced.stop == len(seq_data.replace("-", ""))
+
+
+def test_seqview_repr():
+    alpha = new_moltype.DNA.most_degen_alphabet()
+    # Short sequence, defaults
+    seq = "ACGT"
+    view = new_sequence.SeqView(seq=seq, alphabet=alpha)
+    expected = (
+        "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=0, seqid=None, seq_len=4)"
+    )
+    assert repr(view) == expected
+
+    # Long sequence
+    seq = "ACGT" * 10
+    view = new_sequence.SeqView(seq=seq, alphabet=alpha)
+    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=0, stop=40, step=1, offset=0, seqid=None, seq_len=40)"
+    assert repr(view) == expected
+
+    # Non-zero start, stop, and step values
+    seq = "ACGT" * 10
+    view = new_sequence.SeqView(seq=seq, start=5, stop=35, step=2, alphabet=alpha)
+    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=5, stop=35, step=2, offset=0, seqid=None, seq_len=40)"
+    assert repr(view) == expected
+
+    # offset
+    seq = "ACGT"
+    view = new_sequence.SeqView(seq=seq, offset=5, alphabet=alpha)
+    expected = (
+        "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=5, seqid=None, seq_len=4)"
+    )
+    assert repr(view) == expected
+
+    # seqid
+    seq = "ACGT"
+    view = new_sequence.SeqView(seq=seq, seqid="seq1", alphabet=alpha)
+    expected = "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=0, seqid='seq1', seq_len=4)"
+    assert repr(view) == expected
+
+
+# test_get_kmers_strict() to test_annotate_from_gff()
 @pytest.fixture(scope="function")
 def one_seq():
     return new_moltype.DNA.make_seq(seq="AACCTGGAACC")
@@ -60,7 +163,6 @@ def test_seq_repr(one_seq):
     assert expect.startswith(got), (expect, got)
 
 
-@pytest.mark.xfail(reason="AssertionError: ('GGTTCCAGGTT', 'CCAAGGT')")
 def test_seq_repr_rc(one_seq):
     pat = re.compile("[ACGT]+")
     dna = one_seq.moltype
@@ -121,12 +223,6 @@ def test_relative_position_base_cases(one_seq):
     # a -ve index  should raise an IndexError
     with pytest.raises(IndexError):
         one_seq._seq.relative_position(-5)
-
-
-@pytest.fixture(scope="function")
-def integer_seq():
-    a = new_moltype.BYTES.most_degen_alphabet()
-    return new_sequence.SeqView(seq="0123456789", alphabet=a)
 
 
 def test_relative_position(integer_seq):
