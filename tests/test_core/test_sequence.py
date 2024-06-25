@@ -1773,7 +1773,7 @@ def test_subsequent_slice_neg_step(slice_1, slice_2):
     assert sv[slice_1][slice_2].value == seq_data[slice_1][slice_2]
 
 
-def test_seqview_replace():  # not porting, discontinuing SeqView.replace  
+def test_seqview_replace():  # not porting, discontinuing SeqView.replace
     """SeqView supports replacements of substrings, however overriding the sequence data"""
     seq_data = "abcdefghijk"
     sv = SeqView(seq=seq_data)
