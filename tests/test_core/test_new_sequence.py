@@ -60,7 +60,6 @@ def test_seq_repr(one_seq):
     assert expect.startswith(got), (expect, got)
 
 
-@pytest.mark.xfail(reason="AssertionError: ('GGTTCCAGGTT', 'CCAAGGT')")
 def test_seq_repr_rc(one_seq):
     pat = re.compile("[ACGT]+")
     dna = one_seq.moltype

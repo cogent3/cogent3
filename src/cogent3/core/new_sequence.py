@@ -111,7 +111,11 @@ class Sequence:
         self.annotation_offset = annotation_offset
 
     def __str__(self):
-        return str(self._seq)
+        result = str(self._seq)
+        if self._seq.is_reversed:
+            with contextlib.suppress(TypeError):
+                result = self.moltype.complement(result)
+        return result
 
     def __bytes__(self):
         return bytes(self._seq)
