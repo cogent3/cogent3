@@ -38,6 +38,7 @@ from cogent3.core.location import FeatureMap, IndelMap, LostSpan
 from cogent3.format.fasta import alignment_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts
 from cogent3.maths.stats.number import CategoryCounter
+from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import (
     DistanceFromMatrix,
@@ -2424,6 +2425,11 @@ class SeqView(SeqViewABC, SliceRecordABC):
                 seq_len=self.seq_len,
             )
         return self.from_rich_dict(self.to_rich_dict())
+
+
+@register_deserialiser(get_object_provenance(SeqView))
+def deserialise_seq_view(data) -> SeqView:
+    return SeqView.from_rich_dict(data)
 
 
 class DnaSequence(NucleicAcidSequenceMixin, Sequence):
