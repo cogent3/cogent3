@@ -244,6 +244,7 @@ def _load_files_to_unaligned_seqs(
             data=seqs,
             moltype=moltype,
             label_to_name=label_to_name,
+            source=path,
             info=info,
         )
 
@@ -298,7 +299,7 @@ def load_seq(
     info : dict
         a dict from which to make an info object
     new_type
-        if True, returned sequences will be a new type.
+        if True, the returned sequence will be of the new type.
         Support for the old style will be removed as of 2025.6.
     **kw
         other keyword arguments passed to SequenceCollection
@@ -372,7 +373,7 @@ def load_unaligned_seqs(
     info
         a dict from which to make an info object
     new_type
-        if True, returned SequenceCollection will be a new type.
+        if True, the returned SequenceCollection will be of the new type.
         Support for the old style will be removed as of 2025.6.
 
     **kw
