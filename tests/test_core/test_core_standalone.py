@@ -884,6 +884,8 @@ def test_load_unaligned_seqs_no_format(new_type):
 
 def test_load_seq():
     """load single sequence"""
+    # refactor: design
+    # we should use the pytest tmp_path fixture, more robust than tmpdir
     from cogent3 import Sequence
 
     paths = (

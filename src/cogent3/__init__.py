@@ -138,14 +138,12 @@ def make_unaligned_seqs(
         origins of this data, defaults to 'unknown'. Converted to a string
         and added to info["source"].
     new_type
-        if True, returned SequenceCollection will be of the new type.
-        Support for the old type will be removed as of 2025.6.
+        if True, the returned SequenceCollection will be of the new type.
+        The default will be changed to True in 2024.12. Support for the old
+        style will be removed as of 2025.6.
     **kw
         other keyword arguments passed to SequenceCollection
     """
-    # refactor: docstring
-    # probably need to add more detail about the new_type flag
-    # should at some point the new_type flag default to true?
     if new_type and moltype is None:
         raise ValueError("Argument 'moltype' is required when 'new_type=True'")
     elif new_type:
@@ -299,8 +297,9 @@ def load_seq(
     info : dict
         a dict from which to make an info object
     new_type
-        if True, the returned sequence will be of the new type.
-        Support for the old style will be removed as of 2025.6.
+        if True, the returned SequenceCollection will be of the new type.
+        The default will be changed to True in 2024.12. Support for the old
+        style will be removed as of 2025.6.
     **kw
         other keyword arguments passed to SequenceCollection
 
@@ -374,7 +373,8 @@ def load_unaligned_seqs(
         a dict from which to make an info object
     new_type
         if True, the returned SequenceCollection will be of the new type.
-        Support for the old style will be removed as of 2025.6.
+        The default will be changed to True in 2024.12. Support for the old
+        style will be removed as of 2025.6.
 
     **kw
         other keyword arguments passed to SequenceCollection, or show_progress.

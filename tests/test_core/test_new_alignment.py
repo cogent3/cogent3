@@ -2063,6 +2063,7 @@ def test_sequence_collection_to_rich_dict():
         "data": {name: seqs.seqs.get_seq_str(seqid=name) for name in seqs.names},
         "alphabet": seqs.moltype.most_degen_alphabet().to_rich_dict(),
         "type": get_object_provenance(seqs.seqs),
+        "version": __version__,
     }
     expect = {
         "seqs": seqs_data,

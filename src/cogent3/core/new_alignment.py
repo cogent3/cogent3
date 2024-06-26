@@ -363,28 +363,29 @@ class SeqsData(SeqsDataABC):
         new_data = {}
         old = self.alphabet.as_bytes()
         new = alphabet.as_bytes()
+        convert_old_to_bytes = new_alpha.array_to_bytes(old)
+        convert_bytes_to_new = new_alpha.bytes_to_array(
+            new, dtype=new_alpha.get_array_type(len(new))
+        )
+
         for seqid in self.names:
             # refactor: design
             # this conversion needs to be a method on the alphabet
             # so it can be used by Sequence.to_moltype
-            seq_data = self.get_seq_array(seqid=seqid)
-            convert_old_to_bytes = new_alpha.array_to_bytes(old)
-            convert_bytes_to_new = new_alpha.bytes_to_array(
-                new, dtype=new_alpha.get_array_type(len(new))
-            )
 
+            seq_data = self.get_seq_array(seqid=seqid)
             as_new_alpha = convert_bytes_to_new(convert_old_to_bytes(seq_data))
 
             if check_valid and not alphabet.is_valid(as_new_alpha):
                 raise ValueError(
-                    f"Changing from old alphabet={self.alphabet} to new {alphabet=} is not valid for this data"
+                    f"Changing from old alphabet={self.alphabet} to new "
+                    f"{alphabet=} is not valid for this data"
                 )
-
             new_data[seqid] = as_new_alpha
 
         return self.__class__(data=new_data, alphabet=alphabet)
 
-    def to_rich_dict(self) -> dict:
+    def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
         """returns a serialisable string"""
         # todo: kath
         # this should also include offset and complement when those are implemented
@@ -392,6 +393,7 @@ class SeqsData(SeqsDataABC):
             "data": {name: self.get_seq_str(seqid=name) for name in self.names},
             "alphabet": self.alphabet.to_rich_dict(),
             "type": get_object_provenance(self),
+            "version": __version__,
         }
 
     def __len__(self):
@@ -2188,7 +2190,7 @@ def make_unaligned_seqs(
     # the dispatches above handle the different type of data that the previous
     # make_unaligned_seqs handled. This includes dicts, lists (where items are
     # either pairs of [name, seq], or just seqs), tuples, Sequences, etc.
-    # We could simplify it creatly by only supporting dicts, SeqsDataABC,
+    # We could simplify it greatly by only supporting dicts, SeqsDataABC,
     # or SequenceCollections.
 
     if len(data) == 0:
