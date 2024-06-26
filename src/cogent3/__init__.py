@@ -297,7 +297,7 @@ def load_seq(
     info : dict
         a dict from which to make an info object
     new_type
-        if True, the returned SequenceCollection will be of the new type.
+        if True, the returned Sequence will be of the new type.
         The default will be changed to True in 2024.12. Support for the old
         style will be removed as of 2025.6.
     **kw
