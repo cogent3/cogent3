@@ -2290,6 +2290,9 @@ class SeqViewABC(ABC):
     @abstractmethod
     def copy(self, sliced: bool = False): ...
 
+    @abstractmethod
+    def to_rich_dict(self) -> dict: ...
+
     def __str__(self) -> str:
         return self.str_value
 
