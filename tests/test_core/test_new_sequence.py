@@ -98,19 +98,6 @@ def test_triple_slice(
     assert len(got) == len(expected)
 
 
-@pytest.mark.xfail(reason="AttributeError: 'SeqView' object has no attribute 'replace'")
-def test_seqview_remove_gaps(ascii_alpha):
-    """Replacing strings of different lengths should work, although any previous slices will be lost"""
-    seq_data = "abc----def"
-    sv = new_sequence.SeqView(seq=seq_data, alphabet=ascii_alpha)
-    sliced = sv[2:4]
-    assert sliced.start == 2
-    replaced = sliced.replace("-", "")
-    assert replaced.value == seq_data.replace("-", "")
-    assert replaced.start == 0  # start should now be zero,
-    assert replaced.stop == len(seq_data.replace("-", ""))
-
-
 def test_seqview_repr():
     alpha = new_moltype.DNA.most_degen_alphabet()
     # Short sequence, defaults
