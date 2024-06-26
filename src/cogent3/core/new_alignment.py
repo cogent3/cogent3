@@ -188,7 +188,8 @@ class SeqDataView(new_seq.SeqViewABC, new_seq.SliceRecordABC):
         return self
 
     def to_rich_dict(self) -> dict: ...
-        # todo: kath -- implement this
+
+    # todo: kath -- implement this
 
 
 class SeqsDataABC(ABC):
@@ -322,11 +323,6 @@ class SeqsData(SeqsDataABC):
     def get_seq_array(
         self, *, seqid: str, start: OptInt = None, stop: OptInt = None
     ) -> numpy.ndarray:
-        # design: refactor
-        # these methods doesn't handle reverse complement... should they?
-        # currently it is the responsibility of the SeqDataView. Mainly
-        # because SeqsData doesnt have access to moltype, so can't deal with
-        # complementing the sequences if they are reversed.
         return self._data[seqid][start:stop]
 
     def get_seq_str(
@@ -708,11 +704,6 @@ class SequenceCollection:
         as_array
             if True, sequences are returned as numpy arrays, otherwise as strings
         """
-        # refactor: design
-        # here we use SeqsData.__getitem__ because it ensures the sequence
-        # is reverse complemented if necessary, this is going to be inefficient
-        # for as_array=True.
-
         get = self.seqs.__getitem__
         return {
             name: (numpy.array(get(name)) if as_array else str(get(name)))
@@ -889,8 +880,6 @@ class SequenceCollection:
         annotation_db if present.
 
         """
-        # todo: kath
-        # is it strictly necessary to break the relationship to the annotation_db?
         return self.__class__(
             seqs_data=self.seqs.reverse_seqs(),
             names=self.names,
