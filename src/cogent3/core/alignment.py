@@ -854,7 +854,7 @@ class _SequenceCollectionBase:
 
         return alignment_to_phylip(self.to_dict())
 
-    def to_rich_dict(self):
+    def to_rich_dict(self):  # ported
         """returns detailed content including info and moltype attributes"""
         data = {}
         moltype = self.moltype.label
@@ -881,7 +881,7 @@ class _SequenceCollectionBase:
 
         return data
 
-    def to_json(self):
+    def to_json(self):  # ported
         """returns json formatted string"""
         return json.dumps(self.to_rich_dict())
 

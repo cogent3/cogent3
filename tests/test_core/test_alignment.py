@@ -2368,7 +2368,7 @@ def test_seq_rename_preserves_annotations(cls):
     "cls",
     (SequenceCollection, ArrayAlignment),
 )
-def test_to_rich_dict_not_alignment(cls):
+def test_to_rich_dict_not_alignment(cls):  # ported for SequenceCollection
     """to_rich_dict produces correct dict"""
     data = {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}
     aln = cls(data, moltype="dna")
@@ -3428,7 +3428,7 @@ def test_sample_info(cls):
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
-def test_to_json(cls):
+def test_to_json(cls):  # ported for SequenceCollection
     """roundtrip of to_json produces correct dict"""
     aln = cls({"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"})
     txt = aln.to_json()

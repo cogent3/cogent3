@@ -98,19 +98,6 @@ def test_triple_slice(
     assert len(got) == len(expected)
 
 
-@pytest.mark.xfail(reason="AttributeError: 'SeqView' object has no attribute 'replace'")
-def test_seqview_remove_gaps(ascii_alpha):
-    """Replacing strings of different lengths should work, although any previous slices will be lost"""
-    seq_data = "abc----def"
-    sv = new_sequence.SeqView(seq=seq_data, alphabet=ascii_alpha)
-    sliced = sv[2:4]
-    assert sliced.start == 2
-    replaced = sliced.replace("-", "")
-    assert replaced.value == seq_data.replace("-", "")
-    assert replaced.start == 0  # start should now be zero,
-    assert replaced.stop == len(seq_data.replace("-", ""))
-
-
 def test_seqview_repr():
     alpha = new_moltype.DNA.most_degen_alphabet()
     # Short sequence, defaults
@@ -410,7 +397,6 @@ def test_to_rich_dict():
     assert got == expect
 
 
-@pytest.mark.xfail(reason="refactor: how to serialise an alphabet")
 def test_to_json():
     """to_json roundtrip recreates to_dict"""
     dna = new_moltype.DNA
@@ -468,9 +454,6 @@ def test_seqview_to_rich_dict(coord, dna_alphabet):
     assert coord not in minus
 
 
-@pytest.mark.xfail(
-    reason="NotImplementedError: deserialising 'cogent3.core.new_sequence.SeqView' from json"
-)
 @pytest.mark.parametrize("reverse", (False, True))
 def test_seqview_round_trip(reverse, dna_alphabet):
     parent = "ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC"
@@ -793,7 +776,10 @@ def test_sequences_propogates_seqid():
 def test_sequences_propogates_seqid_seqview():
     # creating a Sequence with a seqview does not change the seqid of the SeqView.
     seq = new_moltype.DNA.make_seq(
-        seq=new_sequence.SeqView(seq="ACGGTGGGAC", seqid="parent_name"), name="seq_name"
+        seq=new_sequence.SeqView(
+            seq="ACGGTGGGAC", seqid="parent_name", alphabet=dna_alphabet
+        ),
+        name="seq_name",
     )
     assert seq.name == "seq_name"
     assert seq._seq.seqid == "parent_name"

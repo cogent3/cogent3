@@ -38,6 +38,7 @@ from cogent3.core.location import FeatureMap, IndelMap, LostSpan
 from cogent3.format.fasta import alignment_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts
 from cogent3.maths.stats.number import CategoryCounter
+from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import (
     DistanceFromMatrix,
@@ -1089,7 +1090,7 @@ class Sequence:
         if moltype is self.moltype:
             return self
 
-        s = moltype.coerce_str(self._seq.value)
+        s = moltype.coerce_str(self._seq.str_value)
         moltype.verify_sequence(s, gaps_allowed=True, wildcards_allowed=True)
         sv = SeqView(seq=s, alphabet=moltype.most_degen_alphabet())
         new = moltype.make_seq(sv, name=self.name, info=self.info)
@@ -2394,11 +2395,15 @@ class SeqView(SeqViewABC, SliceRecordABC):
 
         data["init_args"]["seq"] = self.seq[start:stop]
         data["init_args"]["offset"] = int(self.parent_start)
+        data["init_args"]["alphabet"] = self.alphabet.to_rich_dict()
         return data
 
     @classmethod
     def from_rich_dict(cls, data: dict):
         init_args = data.pop("init_args")
+        init_args["alphabet"] = new_alphabet.CharAlphabet.from_rich_dict(
+            init_args["alphabet"]
+        )
         if "offset" in data:
             init_args["offset"] = data.pop("offset")
         return cls(**init_args)
@@ -2424,6 +2429,11 @@ class SeqView(SeqViewABC, SliceRecordABC):
                 seq_len=self.seq_len,
             )
         return self.from_rich_dict(self.to_rich_dict())
+
+
+@register_deserialiser(get_object_provenance(SeqView))
+def deserialise_seq_view(data) -> SeqView:
+    return SeqView.from_rich_dict(data)
 
 
 class DnaSequence(NucleicAcidSequenceMixin, Sequence):

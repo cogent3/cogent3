@@ -21,6 +21,7 @@ from cogent3 import (
     make_unaligned_seqs,
 )
 from cogent3.app.data_store import make_record_for_json
+from cogent3.core import new_alignment
 from cogent3.core.alignment import (
     Alignment,
     ArrayAlignment,
@@ -42,27 +43,6 @@ class TestConstructorFunctions(unittest.TestCase):
         seq = make_seq(_seq, moltype="dna")
         self.assertEqual(seq.moltype.label, "dna")
         self.assertEqual(str(seq), _seq)
-
-    def test_make_unaligned_seqs(self):
-        """test SequenceCollection constructor utility function"""
-        data = {"a": "AGGTT", "b": "AG"}
-        got = make_unaligned_seqs(data)
-        self.assertIsInstance(got, SequenceCollection)
-        self.assertEqual(got.to_dict(), data)
-        self.assertEqual(got.info["source"], "unknown")
-        # moltype arg works
-        got = make_unaligned_seqs(data, moltype="dna")
-        self.assertEqual(got.moltype.label, "dna")
-        # info works
-        got = make_unaligned_seqs(data, info=dict(a=2))
-        self.assertEqual(got.info["a"], 2)
-        with self.assertRaises(AssertionError):
-            _ = make_unaligned_seqs(data, info=2)
-
-        # source works
-        for src in ("somewhere", pathlib.Path("somewhere")):
-            got = make_unaligned_seqs(data, source=src)
-            self.assertEqual(got.info["source"], str(src))
 
     def test_make_aligned_seqs(self):
         """test Alignment/ArrayAlignment constructor utility function"""
@@ -90,45 +70,6 @@ class TestConstructorFunctions(unittest.TestCase):
         self.assertIsInstance(got, Alignment)
         self.assertEqual(got.to_dict(), data)
         self.assertEqual(got.info["source"], "unknown")
-
-    def test_load_seq(self):
-        """load single sequence"""
-        from cogent3 import Sequence
-
-        paths = (
-            "c_elegans_WS199_dna_shortened.fasta",
-            "annotated_seq.gb",
-            "brca1_5.250.paml",
-        )
-        seq_names = ("I", "AE017341", "NineBande")
-        data_dir = pathlib.Path(DATA_DIR)
-        for i, path in enumerate(paths):
-            got = load_seq(data_dir / path)
-            assert isinstance(got, Sequence)
-            assert got.info.source == str(data_dir / path)
-            assert got.name == seq_names[i]
-
-        # try json
-        seq = got
-        with TemporaryDirectory(dir=".") as dirname:
-            outpath = pathlib.Path(dirname) / "seq.json"
-            outpath.write_text(seq.to_json())
-            got = load_seq(outpath)
-            assert str(got) == str(seq)
-            assert got.name == seq.name
-
-    def test_load_unaligned_seqs(self):
-        """test loading unaligned from file"""
-        path = os.path.join(DATA_DIR, "brca1_5.paml")
-        got = load_unaligned_seqs(path)
-        self.assertIsInstance(got, SequenceCollection)
-        self.assertTrue("Human" in got.to_dict())
-        self.assertEqual(got.info["source"], path)
-
-    def test_load_unaligned_seqs_no_format(self):
-        """test loading unaligned from file"""
-        with self.assertRaises(ValueError):
-            load_unaligned_seqs("somepath")
 
     def test_load_aligned_seqs(self):
         """test loading aligned from file"""
@@ -825,7 +766,7 @@ class SequenceTestMethods(unittest.TestCase):
         self.assertEqual(str(rev), "TTAYNDGT")
 
 
-def test_load_seq_new():
+def test_load_seq_annotated():
     """load single sequence"""
     from cogent3 import Sequence
 
@@ -891,3 +832,80 @@ def gb_file(tmp_dir, request):
 def test_gb_suffixes(gb_file):
     seqs = load_unaligned_seqs(gb_file)
     isinstance(seqs, SequenceCollection)
+
+
+@pytest.mark.parametrize(
+    "new_type, seq_type",
+    [(True, new_alignment.SequenceCollection), (False, SequenceCollection)],
+)
+@pytest.mark.parametrize("path_type", [str, pathlib.Path])
+def test_make_unaligned_seqs(new_type, seq_type, path_type):
+    """test SequenceCollection constructor utility function"""
+    data = {"a": "AGGTT", "b": "AG"}
+    got = make_unaligned_seqs(data, moltype="dna", new_type=new_type)
+    assert isinstance(got, seq_type)
+    assert got.to_dict() == data
+    assert got.info["source"] == "unknown"
+
+    # info works
+    got = make_unaligned_seqs(data, moltype="dna", info=dict(a=2))
+    assert got.info["a"] == 2
+
+    # invalid info raises
+    with pytest.raises(AssertionError):
+        _ = make_unaligned_seqs(data, moltype="dna", info=2)
+
+    # source works
+    got = make_unaligned_seqs(
+        data, source=path_type("somewhere"), moltype="dna", new_type=new_type
+    )
+    assert got.info["source"] == "somewhere"
+
+
+@pytest.mark.parametrize(
+    "new_type, seq_type",
+    [(True, new_alignment.SequenceCollection), (False, SequenceCollection)],
+)
+def test_load_unaligned_seqs(new_type, seq_type):
+    """test loading unaligned from file"""
+    path = os.path.join(DATA_DIR, "brca1_5.paml")
+    got = load_unaligned_seqs(path, moltype="dna", new_type=new_type)
+    assert isinstance(got, seq_type)
+    assert "Human" in got.to_dict()
+    assert got.info["source"] == path
+
+
+@pytest.mark.parametrize("new_type", [True, False])
+def test_load_unaligned_seqs_no_format(new_type):
+    """test loading unaligned from file"""
+    with pytest.raises(ValueError):
+        load_unaligned_seqs("somepath", moltype="dna", new_type=new_type)
+
+
+def test_load_seq():
+    """load single sequence"""
+    # refactor: design
+    # we should use the pytest tmp_path fixture, more robust than tmpdir
+    from cogent3 import Sequence
+
+    paths = (
+        "c_elegans_WS199_dna_shortened.fasta",
+        "annotated_seq.gb",
+        "brca1_5.250.paml",
+    )
+    seq_names = ("I", "AE017341", "NineBande")
+    data_dir = pathlib.Path(DATA_DIR)
+    for i, path in enumerate(paths):
+        got = load_seq(data_dir / path)
+        assert isinstance(got, Sequence)
+        assert got.info.source == str(data_dir / path)
+        assert got.name == seq_names[i]
+
+    # try json
+    seq = got
+    with TemporaryDirectory(dir=".") as dirname:
+        outpath = pathlib.Path(dirname) / "seq.json"
+        outpath.write_text(seq.to_json())
+        got = load_seq(outpath)
+        assert str(got) == str(seq)
+        assert got.name == seq.name

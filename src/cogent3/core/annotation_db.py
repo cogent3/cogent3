@@ -1103,6 +1103,9 @@ class SqliteAnnotationDbMixin:
     def _update_db_from_other_db(
         self, other_db: SupportsFeatures, seqids: OptionalStrContainer = None
     ):
+        if other_db == self:
+            return
+
         conditions = {"seqid": seqids} if seqids else {}
         table_names = other_db.table_names
 
