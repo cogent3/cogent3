@@ -78,24 +78,33 @@ __numba_logger = logging.getLogger("numba")
 __numba_logger.setLevel(logging.WARNING)
 
 
-def make_seq(seq, name=None, moltype=None):
+def make_seq(seq, name: str = None, moltype=None, new_type: bool = False):
     """
     Parameters
     ----------
-    seq : str
+    seq
         raw string to be converted to sequence object
-    name : str
+    name
         sequence name
     moltype
         name of a moltype or moltype instance
+    new_type
+        if True, returns a new type Sequence (cogent3.core.new_sequence.Sequence).
+        The default will be changed to True in 2024.12. Support for the old
+        style will be removed as of 2025.6.
 
     Returns
     -------
     returns a sequence object
     """
     moltype = moltype or "text"
-    moltype = get_moltype(moltype)
-    seq = moltype.make_seq(seq, name=name)
+    if new_type or "COGENT3_NEW_TYPE" in os.environ:
+        from cogent3.core import new_moltype
+
+        moltype = new_moltype.get_moltype(moltype)
+    else:
+        moltype = get_moltype(moltype)
+    seq = moltype.make_seq(seq=seq, name=name)
     return seq
 
 
@@ -138,15 +147,18 @@ def make_unaligned_seqs(
         origins of this data, defaults to 'unknown'. Converted to a string
         and added to info["source"].
     new_type
-        if True, the returned SequenceCollection will be of the new type.
-        The default will be changed to True in 2024.12. Support for the old
-        style will be removed as of 2025.6.
+        if True, the returned SequenceCollection will be of the new type,
+        (cogent3.core.new_sequence.SequenceCollection). The default will be
+        changed to True in 2024.12. Support for the old style will be removed
+        as of 2025.6.
     **kw
         other keyword arguments passed to SequenceCollection
     """
-    if new_type and moltype is None:
-        raise ValueError("Argument 'moltype' is required when 'new_type=True'")
-    elif new_type:
+
+    if new_type or "COGENT3_NEW_TYPE" in os.environ:
+        if moltype is None:
+            raise ValueError("Argument 'moltype' is required when 'new_type=True'")
+
         from cogent3.core import new_alignment
 
         return new_alignment.make_unaligned_seqs(
@@ -233,9 +245,11 @@ def _load_files_to_unaligned_seqs(
         )
         for fn in ui.series(file_names)
     ]
-    if new_type and moltype is None:
-        raise ValueError("Argument 'moltype' is required when 'new_type=True'")
-    elif new_type:
+
+    if new_type or "COGENT3_NEW_TYPE" in os.environ:
+        if moltype is None:
+            raise ValueError("Argument 'moltype' is required when 'new_type=True'")
+
         from cogent3.core import new_alignment
 
         return new_alignment.make_unaligned_seqs(
@@ -297,7 +311,7 @@ def load_seq(
     info : dict
         a dict from which to make an info object
     new_type
-        if True, the returned Sequence will be of the new type.
+        if True, returns a new type Sequence (cogent3.core.new_sequence.Sequence)
         The default will be changed to True in 2024.12. Support for the old
         style will be removed as of 2025.6.
     **kw
@@ -323,9 +337,11 @@ def load_seq(
     data = _load_seqs(file_format, filename, format, kw, parser_kw)
     name, seq = data[0]
     name = label_to_name(name) if label_to_name else name
-    if new_type and moltype is None:
-        raise ValueError("Argument 'moltype' is required when 'new_type=True'")
-    elif new_type:
+
+    if new_type or "COGENT3_NEW_TYPE" in os.environ:
+        if moltype is None:
+            raise ValueError("Argument 'moltype' is required when 'new_type=True'")
+
         from cogent3.core import new_moltype
 
         moltype = new_moltype.get_moltype(moltype)
@@ -372,9 +388,10 @@ def load_unaligned_seqs(
     info
         a dict from which to make an info object
     new_type
-        if True, the returned SequenceCollection will be of the new type.
-        The default will be changed to True in 2024.12. Support for the old
-        style will be removed as of 2025.6.
+        if True, the returned SequenceCollection will be of the new type,
+        (cogent3.core.new_sequence.SequenceCollection). The default will be
+        changed to True in 2024.12. Support for the old style will be removed
+        as of 2025.6.
 
     **kw
         other keyword arguments passed to SequenceCollection, or show_progress.
@@ -405,9 +422,11 @@ def load_unaligned_seqs(
         return load_from_json(filename, (SequenceCollection,))
 
     data = _load_seqs(file_format, filename, format, kw, parser_kw)
-    if new_type and moltype is None:
-        raise ValueError("Argument 'moltype' is required when 'new_type=True'")
-    elif new_type:
+
+    if new_type or "COGENT3_NEW_TYPE" in os.environ:
+        if moltype is None:
+            raise ValueError("Argument 'moltype' is required when 'new_type=True'")
+
         from cogent3.core import new_alignment
 
         return new_alignment.make_unaligned_seqs(
