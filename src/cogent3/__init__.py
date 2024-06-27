@@ -78,7 +78,9 @@ __numba_logger = logging.getLogger("numba")
 __numba_logger.setLevel(logging.WARNING)
 
 
-def make_seq(seq, name: str = None, moltype=None, new_type: bool = False):
+def make_seq(
+    seq, name: str = None, moltype=None, new_type: bool = False
+):  # refactor: type hinting, need to capture optional args and the return type
     """
     Parameters
     ----------
@@ -246,26 +248,13 @@ def _load_files_to_unaligned_seqs(
         for fn in ui.series(file_names)
     ]
 
-    if new_type or "COGENT3_NEW_TYPE" in os.environ:
-        if moltype is None:
-            raise ValueError("Argument 'moltype' is required when 'new_type=True'")
-
-        from cogent3.core import new_alignment
-
-        return new_alignment.make_unaligned_seqs(
-            data=seqs,
-            moltype=moltype,
-            label_to_name=label_to_name,
-            source=path,
-            info=info,
-        )
-
     return make_unaligned_seqs(
         seqs,
         label_to_name=label_to_name,
         moltype=moltype,
         source=path,
         info=info,
+        new_type=new_type,
     )
 
 
@@ -338,16 +327,7 @@ def load_seq(
     name, seq = data[0]
     name = label_to_name(name) if label_to_name else name
 
-    if new_type or "COGENT3_NEW_TYPE" in os.environ:
-        if moltype is None:
-            raise ValueError("Argument 'moltype' is required when 'new_type=True'")
-
-        from cogent3.core import new_moltype
-
-        moltype = new_moltype.get_moltype(moltype)
-        result = moltype.make_seq(seq=seq, name=name)
-    else:
-        result = make_seq(seq, name, moltype=moltype)
+    result = make_seq(seq, name, moltype=moltype, new_type=new_type)
     result.info.update(info)
 
     if getattr(seq, "annotation_db", None):
@@ -423,27 +403,13 @@ def load_unaligned_seqs(
 
     data = _load_seqs(file_format, filename, format, kw, parser_kw)
 
-    if new_type or "COGENT3_NEW_TYPE" in os.environ:
-        if moltype is None:
-            raise ValueError("Argument 'moltype' is required when 'new_type=True'")
-
-        from cogent3.core import new_alignment
-
-        return new_alignment.make_unaligned_seqs(
-            data,
-            moltype=moltype,
-            label_to_name=label_to_name,
-            info=info,
-            source=filename,
-            **kw,
-        )
-
     return make_unaligned_seqs(
         data,
         label_to_name=label_to_name,
         moltype=moltype,
         source=filename,
         info=info,
+        new_type=new_type,
         **kw,
     )
 
