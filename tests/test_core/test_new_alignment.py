@@ -13,6 +13,7 @@ import cogent3.core.new_alphabet as new_alpha
 import cogent3.core.new_moltype as new_moltype
 import cogent3.core.new_sequence as new_seq
 
+from cogent3.util.deserialise import deserialise_object
 from cogent3 import load_seq, load_unaligned_seqs, open_
 from cogent3._version import __version__
 from cogent3.core.annotation import Feature
@@ -362,6 +363,18 @@ def test_seqs_data_to_alphabet_invalid():
         _ = seqs.to_alphabet(DNA)
 
 
+@pytest.mark.parametrize("reverse", (False, True))
+def test_seqs_data_round_trip(reverse, alpha):
+    seqs_data = new_aln.SeqsData(
+        data = {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}, alphabet = alpha
+    )
+    seqs_data = seqs_data.reverse_seqs() if reverse else seqs_data
+
+    rd = seqs_data.to_rich_dict()
+    got = deserialise_object(rd)
+    assert isinstance(got, new_aln.SeqsData)
+    assert got.to_rich_dict() == seqs_data.to_rich_dict()
+
 @pytest.mark.parametrize(
     "index",
     [
@@ -391,6 +404,31 @@ def test_seq_data_view_value(str_seqs_dict: dict, alpha, start, stop, step):
     sdv = sd.get_seq_view(seqid=seq)
     sdv2 = sdv[start:stop:step]
     got = sdv2.str_value
+    assert got == expect
+
+
+@pytest.mark.parametrize("rev", (False, True))
+def test_seq_data_view_to_rich_dict(rev):
+    data = {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}
+    alpha = new_moltype.DNA.degen_gapped_alphabet
+    sd = new_aln.SeqsData(data=data, alphabet=alpha)
+    sdv = sd.get_seq_view(seqid="seq1")
+    sdv = sdv[::-1] if rev else sdv
+    got = sdv.to_rich_dict()
+    expect = {
+        "init_args": {
+            "seqid": "seq1",
+            "start": sdv.start,
+            "stop": sdv.stop,
+            "step": sdv.step,
+            "offset": sdv.offset,
+            "seq_len": sdv.seq_len,
+            "seq": sd.to_rich_dict(),
+        },
+        "type": get_object_provenance(sdv),
+        "version": __version__,
+    }
+
     assert got == expect
 
 
@@ -2045,12 +2083,12 @@ def test_sequence_collection_get_seq_entropy():
 def test_sequence_collection_write_to_json(tmp_path):
     # test writing to json file
     data = {"a": "AAAA", "b": "TTTT", "c": "CCCC"}
-    aln = new_aln.make_unaligned_seqs(data, moltype="dna")
+    seq_coll = new_aln.make_unaligned_seqs(data, moltype="dna")
     path = str(tmp_path / "sample.json")
-    aln.write(path)
+    seq_coll.write(path)
     with open_(path) as fn:
         got = json.loads(fn.read())
-        assert got == aln.to_rich_dict()
+        assert got == seq_coll.to_rich_dict()
 
 
 def test_sequence_collection_to_rich_dict():
@@ -2060,19 +2098,23 @@ def test_sequence_collection_to_rich_dict():
 
     got = seqs.to_rich_dict()
     seqs_data = {
-        "data": {name: seqs.seqs.get_seq_str(seqid=name) for name in seqs.names},
-        "alphabet": seqs.moltype.most_degen_alphabet().to_rich_dict(),
+        "init_args": {
+            "data": {name: seqs.seqs.get_seq_str(seqid=name) for name in seqs.names},
+            "alphabet": seqs.moltype.most_degen_alphabet().to_rich_dict(),
+            "reversed_seqs": seqs.seqs.reversed,
+        },
         "type": get_object_provenance(seqs.seqs),
-        "reversed_seqs": seqs.seqs.reversed,
         "version": __version__,
     }
     expect = {
-        "seqs": seqs_data,
-        "moltype": seqs.moltype.label,
-        "names": seqs.names,
-        "info": seqs.info,
+        "seqs_data": seqs_data,
         "type": get_object_provenance(seqs),
         "version": __version__,
+        "init_args": {
+            "moltype": seqs.moltype.label,
+            "names": seqs.names,
+            "info": seqs.info,
+        },
     }
     assert got == expect
 
@@ -2085,18 +2127,22 @@ def test_sequence_collection_to_rich_dict_annotation_db():
     got = seqs.to_rich_dict()
     db = seqs.annotation_db.to_rich_dict()
     seqs_data = {
-        "data": {name: seqs.seqs.get_seq_str(seqid=name) for name in seqs.names},
-        "alphabet": seqs.moltype.most_degen_alphabet().to_rich_dict(),
+        "init_args": {
+            "data": {name: seqs.seqs.get_seq_str(seqid=name) for name in seqs.names},
+            "alphabet": seqs.moltype.most_degen_alphabet().to_rich_dict(),
+            "reversed_seqs": seqs.seqs.reversed,
+        },
         "type": get_object_provenance(seqs.seqs),
-        "reversed_seqs": seqs.seqs.reversed,
         "version": __version__,
     }
     expect = {
-        "seqs": seqs_data,
-        "moltype": seqs.moltype.label,
-        "names": seqs.names,
-        "info": seqs.info,
-        "annotation_db": db,
+        "seqs_data": seqs_data,
+        "init_args": {
+            "moltype": seqs.moltype.label,
+            "names": seqs.names,
+            "info": seqs.info,
+            "annotation_db": db,
+        },
         "type": get_object_provenance(seqs),
         "version": __version__,
     }
@@ -2110,17 +2156,21 @@ def test_sequence_collection_to_rich_dict_reversed_seqs():
 
     got = reversed_seqs.to_rich_dict()
     seqs_data = {
-        "data": {name: seqs.seqs.get_seq_str(seqid=name) for name in seqs.names},
-        "alphabet": seqs.moltype.most_degen_alphabet().to_rich_dict(),
+        "init_args": {
+            "data": {name: seqs.seqs.get_seq_str(seqid=name) for name in seqs.names},
+            "alphabet": seqs.moltype.most_degen_alphabet().to_rich_dict(),
+            "reversed_seqs": {"seq1": True, "seq2": True, "seq3": True},
+        },
         "type": get_object_provenance(seqs.seqs),
-        "reversed_seqs": {"seq1": True, "seq2": True, "seq3": True},
         "version": __version__,
     }
     expect = {
-        "seqs": seqs_data,
-        "moltype": seqs.moltype.label,
-        "names": seqs.names,
-        "info": seqs.info,
+        "seqs_data": seqs_data,
+        "init_args": {
+            "moltype": seqs.moltype.label,
+            "names": seqs.names,
+            "info": seqs.info,
+        },
         "type": get_object_provenance(seqs),
         "version": __version__,
     }
@@ -2129,13 +2179,26 @@ def test_sequence_collection_to_rich_dict_reversed_seqs():
 
 def test_sequence_collection_to_json():
     """roundtrip of to_json produces correct dict"""
-    aln = new_aln.make_unaligned_seqs(
+    seq_coll = new_aln.make_unaligned_seqs(
         {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}, moltype="dna"
     )
-    txt = aln.to_json()
+    txt = seq_coll.to_json()
     got = json.loads(txt)
-    expect = aln.to_rich_dict()
+    expect = seq_coll.to_rich_dict()
     assert got == expect
+
+
+@pytest.mark.parametrize("reverse", (False, True))
+def test_sequence_collection_round_trip(reverse):
+    seq_coll = new_aln.make_unaligned_seqs(
+        {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}, moltype="dna"
+    )
+    seq_coll = seq_coll.reverse_complement() if reverse else seq_coll
+
+    rd = seq_coll.to_rich_dict()
+    got = deserialise_object(rd)
+    assert isinstance(got, new_aln.SequenceCollection)
+    assert got.to_rich_dict() == seq_coll.to_rich_dict()
 
 
 @pytest.mark.parametrize("moltype", ("dna", "rna"))
