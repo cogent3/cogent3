@@ -119,10 +119,18 @@ class Sequence:
         return result
 
     def __bytes__(self):
-        return bytes(self._seq)
+        result = bytes(self._seq)
+        if self._seq.is_reversed:
+            with contextlib.suppress(TypeError):
+                result = self.moltype.complement(result)
+        return result
 
     def __array__(self):
-        return array(self._seq)
+        result = array(self._seq)
+        if self._seq.is_reversed:
+            with contextlib.suppress(TypeError):
+                result = self.moltype.complement(result)
+        return result
 
     def to_fasta(self, make_seqlabel=None, block_size=60):
         """Return string of self in FASTA format, no trailing newline
@@ -2383,7 +2391,8 @@ class SeqView(SeqViewABC, SliceRecordABC):
             f"seqid={self.seqid!r}, seq_len={self.seq_len})"
         )
 
-    def to_rich_dict(self):
+    def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
+        """returns a json serialisable dict"""
         # get the current state
         data = {"type": get_object_provenance(self), "version": __version__}
         data["init_args"] = self._get_init_kwargs()

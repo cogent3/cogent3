@@ -5,6 +5,7 @@ NOTE: * is used to denote termination (as per NCBI standard).
 NOTE: Although the genetic code objects convert DNA to RNA and vice
 versa, lists of codons that they produce will be provided in DNA format.
 """
+import os
 import re
 
 from itertools import product
@@ -523,7 +524,7 @@ for key, value in list(GeneticCodes.items()):
 DEFAULT = GeneticCodes[1]
 
 
-def get_code(code_id=1):
+def get_code(code_id=1, new_type=False):
     """returns the genetic code
 
     Parameters
@@ -531,7 +532,16 @@ def get_code(code_id=1):
     code_id
         genetic code identifier, name, number or string(number), defaults to
         standard genetic code
+    new_type
+        if True, the returned genetic code object will be the new type.
+        The default will be changed to True in 2024.12. Support for the old
+        style will be removed as of 2025.6.
     """
+    if new_type or "COGENT3_NEW_TYPE" in os.environ:
+        from cogent3.core.new_genetic_code import get_code as new_get_code
+
+        return new_get_code(code_id=code_id)
+
     code_id = code_id or 1
     if isinstance(code_id, GeneticCode):
         return code_id
