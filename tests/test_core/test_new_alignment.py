@@ -13,11 +13,11 @@ import cogent3.core.new_alphabet as new_alpha
 import cogent3.core.new_moltype as new_moltype
 import cogent3.core.new_sequence as new_seq
 
-from cogent3.util.deserialise import deserialise_object
 from cogent3 import load_seq, load_unaligned_seqs, open_
 from cogent3._version import __version__
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import GffAnnotationDb, load_annotations
+from cogent3.util.deserialise import deserialise_object
 from cogent3.util.misc import get_object_provenance
 
 
@@ -366,7 +366,7 @@ def test_seqs_data_to_alphabet_invalid():
 @pytest.mark.parametrize("reverse", (False, True))
 def test_seqs_data_round_trip(reverse, alpha):
     seqs_data = new_aln.SeqsData(
-        data = {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}, alphabet = alpha
+        data={"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}, alphabet=alpha
     )
     seqs_data = seqs_data.reverse_seqs() if reverse else seqs_data
 
@@ -374,6 +374,7 @@ def test_seqs_data_round_trip(reverse, alpha):
     got = deserialise_object(rd)
     assert isinstance(got, new_aln.SeqsData)
     assert got.to_rich_dict() == seqs_data.to_rich_dict()
+
 
 @pytest.mark.parametrize(
     "index",

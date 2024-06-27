@@ -193,14 +193,16 @@ class SeqDataView(new_seq.SeqViewABC, new_seq.SliceRecordABC):
 
         data = {"type": get_object_provenance(self), "version": __version__}
         data["init_args"] = self._get_init_kwargs()
-        data["init_args"].update({
-            "step": self.step,
-            "start": self.start,
-            "stop": self.stop,
-            "seq": self.seq.to_rich_dict(),
-            "offset": int(self.parent_start),
-            "seq_len": self.seq_len
-        })
+        data["init_args"].update(
+            {
+                "step": self.step,
+                "start": self.start,
+                "stop": self.stop,
+                "seq": self.seq.to_rich_dict(),
+                "offset": int(self.parent_start),
+                "seq_len": self.seq_len,
+            }
+        )
 
         return data
 
@@ -781,7 +783,7 @@ class SequenceCollection:
         moltype = data["init_args"].pop("moltype")
         moltype = new_moltype.get_moltype(moltype)
 
-        return cls(seqs_data=seqs_data, **data["init_args"], moltype = moltype)
+        return cls(seqs_data=seqs_data, **data["init_args"], moltype=moltype)
 
     def to_json(self):
         """returns json formatted string"""
