@@ -2063,6 +2063,7 @@ def test_sequence_collection_to_rich_dict():
         "data": {name: seqs.seqs.get_seq_str(seqid=name) for name in seqs.names},
         "alphabet": seqs.moltype.most_degen_alphabet().to_rich_dict(),
         "type": get_object_provenance(seqs.seqs),
+        "reversed_seqs": seqs.seqs.reversed,
         "version": __version__,
     }
     expect = {
@@ -2087,6 +2088,7 @@ def test_sequence_collection_to_rich_dict_annotation_db():
         "data": {name: seqs.seqs.get_seq_str(seqid=name) for name in seqs.names},
         "alphabet": seqs.moltype.most_degen_alphabet().to_rich_dict(),
         "type": get_object_provenance(seqs.seqs),
+        "reversed_seqs": seqs.seqs.reversed,
         "version": __version__,
     }
     expect = {
@@ -2095,6 +2097,30 @@ def test_sequence_collection_to_rich_dict_annotation_db():
         "names": seqs.names,
         "info": seqs.info,
         "annotation_db": db,
+        "type": get_object_provenance(seqs),
+        "version": __version__,
+    }
+    assert got == expect
+
+
+def test_sequence_collection_to_rich_dict_reversed_seqs():
+    data = {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}
+    seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
+    reversed_seqs = seqs.reverse_complement()
+
+    got = reversed_seqs.to_rich_dict()
+    seqs_data = {
+        "data": {name: seqs.seqs.get_seq_str(seqid=name) for name in seqs.names},
+        "alphabet": seqs.moltype.most_degen_alphabet().to_rich_dict(),
+        "type": get_object_provenance(seqs.seqs),
+        "reversed_seqs": {"seq1": True, "seq2": True, "seq3": True},
+        "version": __version__,
+    }
+    expect = {
+        "seqs": seqs_data,
+        "moltype": seqs.moltype.label,
+        "names": seqs.names,
+        "info": seqs.info,
         "type": get_object_provenance(seqs),
         "version": __version__,
     }
@@ -2152,8 +2178,20 @@ def test_sequence_collection_distance_matrix_raises_wrong_moltype(moltype):
 
 
 @pytest.mark.parametrize("moltype", ("dna", "rna"))
-def test_distance_matrix_passes_correct_moltype(moltype):
+def test_sequence_collection_distance_matrix_passes_correct_moltype(moltype):
     data = {"s1": "ACGTA", "s2": "ACGTA"}
     seqs = new_aln.make_unaligned_seqs(data, moltype=moltype)
 
     seqs.distance_matrix()
+
+
+def test_sequence_collection_reverse_complement():
+    data = {"s1": "AACC", "s2": "GGTT"}
+    seqs = new_aln.make_unaligned_seqs(data, moltype="dna")
+    got = seqs.reverse_complement()
+    expect = {"s1": "GGTT", "s2": "AACC"}
+    assert got.to_dict() == expect
+    assert str(got.get_seq(seqname="s1")) == "GGTT"
+
+    got = got.reverse_complement()
+    assert got.to_dict() == data
