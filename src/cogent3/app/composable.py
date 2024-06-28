@@ -153,6 +153,21 @@ def _get_raw_hints(main_func, min_params):
     if depth > 2:
         raise TypeError(msg.format("return_type", return_type, depth))
 
+    if isinstance(first_param_type, str):
+        msg = (
+            "Apps do not yet support string type hints "
+            "(such as those caused by __future__ annotations). "
+            f"Bad type hint: {first_param_type}"
+        )
+        raise NotImplementedError(msg)
+    if isinstance(return_type, str):
+        msg = (
+            "Apps do not yet support string type hints "
+            "(such as those caused by __future__ annotations). "
+            f"Bad type hint: {return_type}"
+        )
+        raise NotImplementedError(msg)
+
     return first_param_type, return_type
 
 
