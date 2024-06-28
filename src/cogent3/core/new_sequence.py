@@ -74,7 +74,7 @@ def _moltype_seq_from_rich_dict(data):
 
     data.pop("type")
     data.pop("version")
-    data.pop("annotation_db")
+    data.pop("annotation_db", None)
 
     moltype = data.pop("moltype")
     moltype = new_moltype.get_moltype(moltype)
