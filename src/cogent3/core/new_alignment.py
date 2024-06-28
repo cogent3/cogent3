@@ -187,6 +187,10 @@ class SeqDataView(new_seq.SeqViewABC, new_seq.SliceRecordABC):
         """returns copy"""
         return self
 
+    def to_rich_dict(self) -> dict: ...
+
+    # todo: kath -- implement this
+
 
 class SeqsDataABC(ABC):
     """Abstract base class for respresenting the collection of sequences underlying
@@ -216,6 +220,10 @@ class SeqsDataABC(ABC):
     @property
     @abstractmethod
     def alphabet(self) -> new_alpha.CharAlphabet: ...
+
+    @property
+    @abstractmethod
+    def reversed(self) -> dict[str, bool]: ...
 
     @abstractmethod
     def get_seq_array(
@@ -258,11 +266,10 @@ class SeqsDataABC(ABC):
 
 class SeqsData(SeqsDataABC):
     # refactor: docstring
-    __slots__ = ("_data", "_alphabet", "_make_seq")
+    __slots__ = ("_data", "_alphabet", "_make_seq", "_reversed_seqs")
     # todo: kath
     # refactor: design
-    # SeqsData needs new fields that record the offsets and possibly whether
-    # the sequence is reversed
+    # SeqsData needs new fields that record the offsets
 
     def __init__(
         self,
@@ -270,6 +277,7 @@ class SeqsData(SeqsDataABC):
         data: dict[str, PrimitiveSeqTypes],
         alphabet: new_alpha.CharAlphabet,
         make_seq: Optional[MakeSeqCallable] = None,
+        reversed_seqs: dict[str, bool] = None,
     ):
         self._alphabet = alphabet
         self._make_seq = make_seq
@@ -278,6 +286,7 @@ class SeqsData(SeqsDataABC):
             arr = self._alphabet.to_indices(seq)
             arr.flags.writeable = False
             self._data[str(name)] = arr
+        self._reversed_seqs = reversed_seqs or {}
 
     @property
     def names(self) -> list:
@@ -303,6 +312,10 @@ class SeqsData(SeqsDataABC):
     def alphabet(self) -> new_alpha.CharAlphabet:
         return self._alphabet
 
+    @property
+    def reversed(self) -> dict[str, bool]:
+        return self._reversed_seqs
+
     def seq_lengths(self) -> dict[str, int]:
         """Returns lengths of sequences as dict of {name: length, ... }."""
         return {name: seq.shape[0] for name, seq in self._data.items()}
@@ -326,7 +339,8 @@ class SeqsData(SeqsDataABC):
 
     def get_seq_view(self, seqid: str) -> SeqDataView:
         seq_len = len(self._data[seqid])
-        return SeqDataView(seq=self, seqid=seqid, seq_len=seq_len)
+        step = -1 if self._reversed_seqs.get(seqid, False) else 1
+        return SeqDataView(seq=self, seqid=seqid, seq_len=seq_len, step=step)
 
     def subset(self, names: Union[str, typing.Sequence[str]]) -> SeqsData:
         """Returns a new SeqsData object with only the specified names."""
@@ -337,6 +351,36 @@ class SeqsData(SeqsDataABC):
             )
         else:
             raise ValueError(f"provided {names=} not found in collection")
+
+    def reverse_seqs(self, seqids: Union[str, typing.Sequence[str]] = None) -> SeqsData:
+        """Returns a new SeqsData object with the specified sequences reversed.
+        If no seqids are provided, all sequences are reversed."""
+
+        if seqids is None:
+            seqids = self.names
+        elif isinstance(seqids, str):
+            seqids = [seqids]
+
+        reversed_seqs = {
+            seqid: not self._reversed_seqs.get(seqid, False) for seqid in seqids
+        }
+
+        return self.__class__(
+            data=self._data,
+            alphabet=self.alphabet,
+            make_seq=self.make_seq,
+            reversed_seqs=reversed_seqs,
+        )
+
+    def rename_seqs(self, renamer: Callable[[str], str]) -> SeqsData:
+        new_data = {renamer(name): seq for name, seq in self._data.items()}
+
+        return self.__class__(
+            data=new_data,
+            alphabet=self.alphabet,
+            make_seq=self.make_seq,
+            reversed_seqs=self.reversed,
+        )
 
     def add_seqs(
         self, seqs: dict[str, PrimitiveSeqTypes], force_unique_keys=True
@@ -386,13 +430,14 @@ class SeqsData(SeqsDataABC):
         return self.__class__(data=new_data, alphabet=alphabet)
 
     def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
-        """returns a serialisable string"""
+        """returns a json serialisable dict"""
         # todo: kath
-        # this should also include offset and complement when those are implemented
+        # this should also include offset when implemented
         return {
             "data": {name: self.get_seq_str(seqid=name) for name in self.names},
             "alphabet": self.alphabet.to_rich_dict(),
             "type": get_object_provenance(self),
+            "reversed_seqs": self.reversed,
             "version": __version__,
         }
 
@@ -635,18 +680,8 @@ class SequenceCollection:
 
     def rename_seqs(self, renamer: Callable[[str], str]):
         """Returns new collection with renamed sequences."""
-
-        # refactor: design
-        # consider whether we want new seq instances rather than just renaming
-        data = self.to_dict(as_array=True)
-        new_data = {renamer(name): seq for name, seq in data.items()}
-
-        seqs_data = self.seqs.__class__(
-            data=new_data, alphabet=self.seqs.alphabet, make_seq=self.seqs.make_seq
-        )
-
         result = self.__class__(
-            seqs_data=seqs_data,
+            seqs_data=self.seqs.rename_seqs(renamer),
             moltype=self.moltype,
             info=self.info,
             source=self.source,
@@ -669,12 +704,14 @@ class SequenceCollection:
         as_array
             if True, sequences are returned as numpy arrays, otherwise as strings
         """
-
-        get = self.seqs.get_seq_array if as_array else self.seqs.get_seq_str
-        return {name: get(seqid=name) for name in self.names}
+        get = self.seqs.__getitem__
+        return {
+            name: (numpy.array(get(name)) if as_array else str(get(name)))
+            for name in self.names
+        }
 
     def to_rich_dict(self):
-        """returns a serialisable string"""
+        """returns a json serialisable dict"""
         # refactor: design
         # consider whether we want to include a from_rich_dict method
         data = {}
@@ -711,13 +748,15 @@ class SequenceCollection:
         -----
         The returned collection will not retain an annotation_db if present.
         """
-        # refactor: array - chars > gap char
         seqs = {
             name: self.moltype.degap(self.seqs.get_seq_array(seqid=name))
             for name in self.names
         }
         seqs_data = self.seqs.__class__(
-            data=seqs, alphabet=self.seqs.alphabet, make_seq=self.seqs.make_seq
+            data=coerce_to_seqs_data_dict(seqs),
+            alphabet=self.seqs.alphabet,
+            make_seq=self.seqs.make_seq,
+            reversed_seqs=self.seqs.reversed,
         )
         return self.__class__(
             seqs_data=seqs_data,
@@ -841,17 +880,12 @@ class SequenceCollection:
         annotation_db if present.
 
         """
-        rc_seqs = {name: self.seqs[name].rc() for name in self.names}
-        seqs_data = self.seqs.__class__(
-            data=rc_seqs,
-            alphabet=self.moltype.most_degen_alphabet(),
-            make_seq=self.moltype.make_seq,
-        )
         return self.__class__(
-            seqs_data=seqs_data,
-            name=self.name,
+            seqs_data=self.seqs.reverse_seqs(),
+            names=self.names,
             info=self.info,
             moltype=self.moltype,
+            source=self.source,
         )
 
     def reverse_complement(self):
@@ -1325,7 +1359,18 @@ class SequenceCollection:
             return self
 
         new_seqs = {s.name: s.trim_stop_codon(gc=gc, strict=strict) for s in self.seqs}
-        result = make_unaligned_seqs(new_seqs, moltype=self.moltype, info=self.info)
+        seqs_data = self.seqs.__class__(
+            data=coerce_to_seqs_data_dict(new_seqs),
+            alphabet=self.seqs.alphabet,
+            make_seq=self.seqs.make_seq,
+            reversed_seqs=self.seqs.reversed,
+        )
+        result = self.__class__(
+            seqs_data=seqs_data,
+            moltype=self.moltype,
+            info=self.info,
+            source=self.source,
+        )
         if self.annotation_db:
             result.annotation_db = self.annotation_db
         return result
@@ -1604,7 +1649,10 @@ class SequenceCollection:
             new_seqs[seq_name] = padded_seq
 
         seqs_data = self.seqs.__class__(
-            data=new_seqs, alphabet=self.seqs.alphabet, make_seq=self.seqs.make_seq
+            data=new_seqs,
+            alphabet=self.seqs.alphabet,
+            make_seq=self.seqs.make_seq,
+            reversed_seqs=self.seqs.reversed,
         )
         return self.__class__(
             seqs_data=seqs_data,

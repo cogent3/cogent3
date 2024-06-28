@@ -521,7 +521,7 @@ class MolType:
                 f"{seq[:4]!r} not valid for moltype {self.name!r}"
             )
 
-        return self.complement(seq.encode("utf8"), validate=False)
+        return self.complement(seq.encode("utf8"), validate=False).decode("utf8")
 
     @complement.register
     def _(self, seq: bytes, validate: bool = True) -> str:
@@ -529,7 +529,7 @@ class MolType:
             raise new_alphabet.AlphabetError(
                 f"{seq[:4]!r} not valid for moltype {self.name!r}"
             )
-        return self._complement(seq).decode("utf8")
+        return self._complement(seq)
 
     @complement.register
     def _(self, seq: numpy.ndarray, validate: bool = True) -> str:
@@ -538,8 +538,10 @@ class MolType:
                 f"{seq[:4]!r} not valid for moltype {self.name!r}"
             )
 
-        return self.complement(
-            self.degen_gapped_alphabet.array_to_bytes(seq), validate=False
+        return self.degen_gapped_alphabet.to_indices(
+            self.complement(
+                self.degen_gapped_alphabet.array_to_bytes(seq), validate=False
+            )
         )
 
     def rc(self, seq: str, validate: bool = True) -> str:

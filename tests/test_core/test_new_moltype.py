@@ -72,14 +72,23 @@ def test_str_moltype():
 
 
 @pytest.mark.parametrize(
-    "seq", ("ACCCG", b"ACCCG", numpy.array([2, 1, 1, 1, 3], dtype=numpy.uint8))
+    "seq, data_type",
+    (
+        ("ACCCG", str),
+        (b"ACCCG", bytes),
+        (numpy.array([2, 1, 1, 1, 3], dtype=numpy.uint8), numpy.ndarray),
+    ),
 )
 @pytest.mark.parametrize("name", ("dna", "rna"))
-def test_complement(name, seq):
-    dna = new_moltype.get_moltype(name)
+def test_complement(name, seq, data_type):
+    moltype = new_moltype.get_moltype(name)
     expect = "TGGGC" if name == "dna" else "UGGGC"
-    got = dna.complement(seq)
-    assert got == expect
+    got = moltype.complement(seq)
+    assert (
+        got == make_typed(expect, data_type, moltype)
+        if data_type is not numpy.ndarray
+        else numpy.array_equal(got, make_typed(expect, data_type, moltype))
+    )
 
 
 def make_typed(seq, data_type, moltype):

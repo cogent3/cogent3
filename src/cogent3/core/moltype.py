@@ -13,6 +13,7 @@ types and the MolType can be made after the objects are created.
 
 import itertools
 import json
+import os
 import re
 import typing
 
@@ -1517,8 +1518,23 @@ def _make_moltype_dict():
 moltypes = _make_moltype_dict()
 
 
-def get_moltype(name):
-    """returns the moltype with the matching name attribute"""
+def get_moltype(name, new_type: bool = False):
+    """returns the moltype with the matching name attribute
+
+    Parameters
+    ----------
+    name
+        the name of the moltype
+    new_type
+        if True, returns new type Moltype (cogent3.core.new_moltype.MolType).
+        The default will be changed to True in 2024.12. Support for the old
+        style will be removed as of 2025.6.
+    """
+    if new_type or "COGENT3_NEW_TYPE" in os.environ:
+        from cogent3.core.new_moltype import get_moltype as new_get_moltype
+
+        return new_get_moltype(name=name)
+
     if isinstance(name, MolType):
         return name
     name = name.lower()
