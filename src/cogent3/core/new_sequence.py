@@ -212,7 +212,7 @@ class Sequence:
     def from_rich_dict(cls, data):
         moltype, seq = _moltype_seq_from_rich_dict(data)
 
-        return cls(moltype, seq, **data)
+        return cls(moltype=moltype, seq=seq, **data)
 
     def to_json(self):
         """returns a json formatted string"""
@@ -1621,11 +1621,6 @@ class ProteinSequence(Sequence):
 
     # constructed by PROTEIN moltype
 
-    @classmethod
-    def from_rich_dict(cls, data):
-        moltype, seq = _moltype_seq_from_rich_dict(data)
-        return cls(moltype, seq, **data)
-
 
 @register_deserialiser(get_object_provenance(ProteinSequence))
 def deserialise_protein_sequence(data) -> ProteinSequence:
@@ -1637,11 +1632,6 @@ class ByteSequence(Sequence):
 
     # constructed by BYTES moltype
 
-    @classmethod
-    def from_rich_dict(cls, data):
-        moltype, seq = _moltype_seq_from_rich_dict(data)
-        return cls(moltype, seq, **data)
-
 
 @register_deserialiser(get_object_provenance(ByteSequence))
 def deserialise_bytes_sequence(data) -> ByteSequence:
@@ -1652,11 +1642,6 @@ class ProteinWithStopSequence(Sequence):
     """Holds the standard Protein sequence, allows for stop codon."""
 
     # constructed by PROTEIN_WITH_STOP moltype
-
-    @classmethod
-    def from_rich_dict(cls, data):
-        moltype, seq = _moltype_seq_from_rich_dict(data)
-        return cls(moltype, seq, **data)
 
 
 @register_deserialiser(get_object_provenance(ProteinWithStopSequence))
@@ -1915,12 +1900,6 @@ class DnaSequence(NucleicAcidSequenceMixin, Sequence):
         """Converts U to T."""
         return seq.replace("u", "t").replace("U", "T")
 
-    @classmethod
-    def from_rich_dict(cls, data):
-        moltype, seq = _moltype_seq_from_rich_dict(data)
-
-        return cls(moltype, seq, **data)
-
 
 @register_deserialiser(get_object_provenance(DnaSequence))
 def deserialise_dna_sequence(data) -> DnaSequence:
@@ -1935,12 +1914,6 @@ class RnaSequence(NucleicAcidSequenceMixin, Sequence):
     def _seq_filter(self, seq):
         """Converts T to U."""
         return seq.replace("t", "u").replace("T", "U")
-
-    @classmethod
-    def from_rich_dict(cls, data):
-        moltype, seq = _moltype_seq_from_rich_dict(data)
-
-        return cls(moltype, seq, **data)
 
 
 @register_deserialiser(get_object_provenance(RnaSequence))
@@ -2506,8 +2479,8 @@ class SeqView(SeqViewABC, SliceRecordABC):
 
         Warning
         -------
-        This method is not intended to provide deserialisation of this object,
-        instead it is intended for deserialisation of encapsulating class.
+        This method is not intended to provide serialisation of this object,
+        instead, it is intended for usage by an enclosing class.
         """
         # get the current state
         data = {"type": get_object_provenance(self), "version": __version__}
