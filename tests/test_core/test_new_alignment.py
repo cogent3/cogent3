@@ -374,6 +374,8 @@ def test_seqs_data_round_trip(reverse, alpha):
     got = deserialise_object(rd)
     assert isinstance(got, new_aln.SeqsData)
     assert got.to_rich_dict() == seqs_data.to_rich_dict()
+    expect = "ACGG"[::-1] if reverse else "ACGG"
+    assert str(got.get_seq_view("seq1")) == expect
 
 
 @pytest.mark.parametrize(
