@@ -1783,7 +1783,7 @@ def test_seqview_replace():  # not porting, discontinuing SeqView.replace
     assert sv_replaced.seq == seq_data.replace("a", "u")
 
 
-def test_get_kmers_strict():
+def test_get_kmers_strict():  # ported
     orig = "TCAGGAN"
     r = DnaSequence(orig)
 
@@ -1805,7 +1805,7 @@ def test_get_kmers_strict():
     assert r.get_kmers(8, strict=False) == []
 
 
-def test_get_kmers_strict_RNA():
+def test_get_kmers_strict_RNA():  # ported
     orig = "UCAGGAN"
     r = RnaSequence(orig)
 
@@ -1827,7 +1827,7 @@ def test_get_kmers_strict_RNA():
     assert r.get_kmers(8, strict=False) == []
 
 
-def test_get_kmers_strict_protein():
+def test_get_kmers_strict_protein():  # ported
     orig = "CEFGMNX"
     r = ProteinSequence(orig)
 
@@ -1847,7 +1847,7 @@ def test_get_kmers_strict_protein():
     assert r.get_kmers(7, strict=False) == ["CEFGMNX"]
 
 
-def test_get_kmers_strict_DNA_gaps():
+def test_get_kmers_strict_DNA_gaps():  # ported
     orig = "TCA-GAT"
     r = DnaSequence(orig)
 
@@ -1866,7 +1866,7 @@ def test_get_kmers_strict_DNA_gaps():
     assert r.get_kmers(8, strict=False) == []
 
 
-def test_get_kmers_strict_RNA_gaps():
+def test_get_kmers_strict_RNA_gaps():  # ported
     orig = "UCA-GAU"
     r = RnaSequence(orig)
 
@@ -1885,7 +1885,7 @@ def test_get_kmers_strict_RNA_gaps():
     assert r.get_kmers(8, strict=False) == []
 
 
-def test_get_kmers_strict_protein_gaps():
+def test_get_kmers_strict_protein_gaps():  # ported
     orig = "CEF-GMN"
     r = ProteinSequence(orig)
 
@@ -1904,7 +1904,7 @@ def test_get_kmers_strict_protein_gaps():
     assert r.get_kmers(8, strict=False) == []
 
 
-def test_get_kmers_strict_DNA_RNA_Protein_allgap():
+def test_get_kmers_strict_DNA_RNA_Protein_allgap():  # ported
     orig = "-------"
 
     r = DnaSequence(orig)
@@ -1920,7 +1920,7 @@ def test_get_kmers_strict_DNA_RNA_Protein_allgap():
     assert r.get_kmers(1, strict=False) == ["-", "-", "-", "-", "-", "-", "-"]
 
 
-def test_get_kmers_strict_DNA_RNA_Protein_mixed_ambiguities():
+def test_get_kmers_strict_DNA_RNA_Protein_mixed_ambiguities():  # ported
     r = DnaSequence("NGASTAH")
     assert r.get_kmers(1, strict=True) == ["G", "A", "T", "A"]
     assert r.get_kmers(2, strict=True) == ["GA", "TA"]

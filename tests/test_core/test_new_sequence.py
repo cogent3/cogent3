@@ -651,7 +651,247 @@ def test_seqview_repr():
     assert repr(view) == expected
 
 
-# test_get_kmers_strict() to test_annotate_from_gff()
+@pytest.mark.parametrize(
+    "k, strict, expect",
+    [
+        (1, True, ["T", "C", "A", "G", "G", "A"]),
+        (2, True, ["TC", "CA", "AG", "GG", "GA"]),
+        (3, True, ["TCA", "CAG", "AGG", "GGA"]),
+        (4, True, ["TCAG", "CAGG", "AGGA"]),
+        (5, True, ["TCAGG", "CAGGA"]),
+        (6, True, ["TCAGGA"]),
+        (7, True, []),
+        (1, False, ["T", "C", "A", "G", "G", "A", "N"]),
+        (2, False, ["TC", "CA", "AG", "GG", "GA", "AN"]),
+        (3, False, ["TCA", "CAG", "AGG", "GGA", "GAN"]),
+        (4, False, ["TCAG", "CAGG", "AGGA", "GGAN"]),
+        (5, False, ["TCAGG", "CAGGA", "AGGAN"]),
+        (6, False, ["TCAGGA", "CAGGAN"]),
+        (7, False, ["TCAGGAN"]),
+        (8, False, []),
+    ],
+)
+def test_get_kmers_strict_dna(k, strict, expect):
+    orig = "TCAGGAN"
+    mt = new_moltype.DNA
+    r = mt.make_seq(seq=orig)
+    got = r.get_kmers(k, strict=strict)
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "k, strict, expect",
+    [
+        (1, True, ["U", "C", "A", "G", "G", "A"]),
+        (2, True, ["UC", "CA", "AG", "GG", "GA"]),
+        (3, True, ["UCA", "CAG", "AGG", "GGA"]),
+        (4, True, ["UCAG", "CAGG", "AGGA"]),
+        (5, True, ["UCAGG", "CAGGA"]),
+        (6, True, ["UCAGGA"]),
+        (7, True, []),
+        (1, False, ["U", "C", "A", "G", "G", "A", "N"]),
+        (2, False, ["UC", "CA", "AG", "GG", "GA", "AN"]),
+        (3, False, ["UCA", "CAG", "AGG", "GGA", "GAN"]),
+        (4, False, ["UCAG", "CAGG", "AGGA", "GGAN"]),
+        (5, False, ["UCAGG", "CAGGA", "AGGAN"]),
+        (6, False, ["UCAGGA", "CAGGAN"]),
+        (7, False, ["UCAGGAN"]),
+        (8, False, []),
+    ],
+)
+def test_get_kmers_strict_rna(k, strict, expect):
+    orig = "UCAGGAN"
+    mt = new_moltype.RNA
+    r = mt.make_seq(seq=orig)
+    got = r.get_kmers(k, strict=strict)
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "k, strict, expect",
+    [
+        (1, True, ["C", "E", "F", "G", "M", "N"]),
+        (2, True, ["CE", "EF", "FG", "GM", "MN"]),
+        (3, True, ["CEF", "EFG", "FGM", "GMN"]),
+        (4, True, ["CEFG", "EFGM", "FGMN"]),
+        (5, True, ["CEFGM", "EFGMN"]),
+        (6, True, ["CEFGMN"]),
+        (1, False, ["C", "E", "F", "G", "M", "N", "X"]),
+        (2, False, ["CE", "EF", "FG", "GM", "MN", "NX"]),
+        (3, False, ["CEF", "EFG", "FGM", "GMN", "MNX"]),
+        (4, False, ["CEFG", "EFGM", "FGMN", "GMNX"]),
+        (5, False, ["CEFGM", "EFGMN", "FGMNX"]),
+        (6, False, ["CEFGMN", "EFGMNX"]),
+        (7, False, ["CEFGMNX"]),
+    ],
+)
+def test_get_kmers_strict_protein(k, strict, expect):
+    orig = "CEFGMNX"
+    mt = new_moltype.PROTEIN
+    r = mt.make_seq(seq=orig)
+    got = r.get_kmers(k, strict=strict)
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "k, strict, expect",
+    [
+        (1, True, ["T", "C", "A", "G", "A", "T"]),
+        (2, True, ["TC", "CA", "GA", "AT"]),
+        (3, True, ["TCA", "GAT"]),
+        (4, True, []),
+        (1, False, ["T", "C", "A", "-", "G", "A", "T"]),
+        (2, False, ["TC", "CA", "A-", "-G", "GA", "AT"]),
+        (3, False, ["TCA", "CA-", "A-G", "-GA", "GAT"]),
+        (4, False, ["TCA-", "CA-G", "A-GA", "-GAT"]),
+        (5, False, ["TCA-G", "CA-GA", "A-GAT"]),
+        (6, False, ["TCA-GA", "CA-GAT"]),
+        (7, False, ["TCA-GAT"]),
+        (8, False, []),
+    ],
+)
+def test_get_kmers_strict_dna_gaps(k, strict, expect):
+    orig = "TCA-GAT"
+    mt = new_moltype.DNA
+    r = mt.make_seq(seq=orig)
+    got = r.get_kmers(k, strict=strict)
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "k, strict, expect",
+    [
+        (1, True, ["U", "C", "A", "G", "A", "U"]),
+        (2, True, ["UC", "CA", "GA", "AU"]),
+        (3, True, ["UCA", "GAU"]),
+        (4, True, []),
+        (1, False, ["U", "C", "A", "-", "G", "A", "U"]),
+        (2, False, ["UC", "CA", "A-", "-G", "GA", "AU"]),
+        (3, False, ["UCA", "CA-", "A-G", "-GA", "GAU"]),
+        (4, False, ["UCA-", "CA-G", "A-GA", "-GAU"]),
+        (5, False, ["UCA-G", "CA-GA", "A-GAU"]),
+        (6, False, ["UCA-GA", "CA-GAU"]),
+        (7, False, ["UCA-GAU"]),
+        (8, False, []),
+    ],
+)
+def test_get_kmers_strict_rna_gaps(k, strict, expect):
+    orig = "UCA-GAU"
+    mt = new_moltype.RNA
+    r = mt.make_seq(seq=orig)
+    got = r.get_kmers(k, strict=strict)
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "k, strict, expect",
+    [
+        (1, True, ["C", "E", "F", "G", "M", "N"]),
+        (2, True, ["CE", "EF", "GM", "MN"]),
+        (3, True, ["CEF", "GMN"]),
+        (4, True, []),
+        (1, False, ["C", "E", "F", "-", "G", "M", "N"]),
+        (2, False, ["CE", "EF", "F-", "-G", "GM", "MN"]),
+        (3, False, ["CEF", "EF-", "F-G", "-GM", "GMN"]),
+        (4, False, ["CEF-", "EF-G", "F-GM", "-GMN"]),
+        (5, False, ["CEF-G", "EF-GM", "F-GMN"]),
+        (6, False, ["CEF-GM", "EF-GMN"]),
+        (7, False, ["CEF-GMN"]),
+        (8, False, []),
+    ],
+)
+def test_get_kmers_strict_protein_gaps(k, strict, expect):
+    orig = "CEF-GMN"
+    mt = new_moltype.PROTEIN
+    r = mt.make_seq(seq=orig)
+    got = r.get_kmers(k, strict=strict)
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "moltype", (new_moltype.DNA, new_moltype.RNA, new_moltype.PROTEIN)
+)
+def test_get_kmers_allgap(moltype):
+    orig = "-------"
+    expect = ["-", "-", "-", "-", "-", "-", "-"]
+    r = moltype.make_seq(seq=orig)
+    got = r.get_kmers(1, strict=False)
+    assert got == expect
+
+    expect = []
+    got = r.get_kmers(1, strict=True)
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "k, strict, expect",
+    [
+        (1, True, ["G", "A", "T", "A"]),
+        (2, True, ["GA", "TA"]),
+        (3, True, []),
+        (1, False, ["N", "G", "A", "S", "T", "A", "H"]),
+        (2, False, ["NG", "GA", "AS", "ST", "TA", "AH"]),
+        (3, False, ["NGA", "GAS", "AST", "STA", "TAH"]),
+        (4, False, ["NGAS", "GAST", "ASTA", "STAH"]),
+        (5, False, ["NGAST", "GASTA", "ASTAH"]),
+        (6, False, ["NGASTA", "GASTAH"]),
+        (7, False, ["NGASTAH"]),
+        (8, False, []),
+    ],
+)
+def test_get_kmers_mixed_ambiguities_dna(k, strict, expect):
+    mt = new_moltype.DNA
+    r = mt.make_seq(seq="NGASTAH")
+    got = r.get_kmers(k, strict=strict)
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "k, strict, expect",
+    [
+        (1, True, ["G", "A", "U", "A"]),
+        (2, True, ["GA", "UA"]),
+        (3, True, []),
+        (1, False, ["R", "G", "A", "W", "U", "A", "D"]),
+        (2, False, ["RG", "GA", "AW", "WU", "UA", "AD"]),
+        (3, False, ["RGA", "GAW", "AWU", "WUA", "UAD"]),
+        (4, False, ["RGAW", "GAWU", "AWUA", "WUAD"]),
+        (5, False, ["RGAWU", "GAWUA", "AWUAD"]),
+        (6, False, ["RGAWUA", "GAWUAD"]),
+        (7, False, ["RGAWUAD"]),
+        (8, False, []),
+    ],
+)
+def test_get_kmers_mixed_ambiguities_rna(k, strict, expect):
+    mt = new_moltype.RNA
+    r = mt.make_seq(seq="RGAWUAD")
+    got = r.get_kmers(k, strict=strict)
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "k, strict, expect",
+    [
+        (1, True, ["Q", "M", "N", "R"]),
+        (2, True, ["QM", "NR"]),
+        (3, True, []),
+        (1, False, ["B", "Q", "M", "X", "N", "R", "Z"]),
+        (2, False, ["BQ", "QM", "MX", "XN", "NR", "RZ"]),
+        (3, False, ["BQM", "QMX", "MXN", "XNR", "NRZ"]),
+        (4, False, ["BQMX", "QMXN", "MXNR", "XNRZ"]),
+        (5, False, ["BQMXN", "QMXNR", "MXNRZ"]),
+        (6, False, ["BQMXNR", "QMXNRZ"]),
+        (7, False, ["BQMXNRZ"]),
+        (8, False, []),
+    ],
+)
+def test_get_kmers_mixed_ambiguities_protein(k, strict, expect):
+    mt = new_moltype.PROTEIN
+    r = mt.make_seq(seq="BQMXNRZ")
+    got = r.get_kmers(k, strict=strict)
+    assert got == expect
+
+
 @pytest.fixture(scope="function")
 def one_seq():
     return new_moltype.DNA.make_seq(seq="AACCTGGAACC")
