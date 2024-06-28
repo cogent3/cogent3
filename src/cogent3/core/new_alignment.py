@@ -197,8 +197,8 @@ class SeqDataView(new_seq.SeqViewABC, new_seq.SliceRecordABC):
 
         Warning
         -------
-        This method is not intended to provide deserialisation of this object,
-        instead it is intended for deserialisation of encapsulating class.
+        This method is not intended to provide serialisation of this object,
+        instead, it is intended for usage by an enclosing class.
         """
 
         data = {"type": get_object_provenance(self), "version": __version__}
@@ -494,7 +494,7 @@ class SeqsData(SeqsDataABC):
     @classmethod
     def from_rich_dict(cls, data: dict[str, str | dict[str, str]]) -> SeqsData:
         """returns a new instance from a rich dict"""
-        alphabet = new_alpha.CharAlphabet.from_rich_dict(data["init_args"]["alphabet"])
+        alphabet = deserialise_object(data["init_args"]["alphabet"])
         return cls(
             data=data["init_args"]["data"],
             alphabet=alphabet,
