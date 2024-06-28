@@ -189,20 +189,31 @@ class SeqDataView(new_seq.SeqViewABC, new_seq.SliceRecordABC):
         return self
 
     def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
-        """returns a json serialisable dict"""
+        """returns a json serialisable dict.
+
+        Notes
+        -----
+        This method will slice the underlying sequence to the start and stop values
+
+        Warning
+        -------
+        This method is not intended to provide deserialisation of this object,
+        instead it is intended for deserialisation of encapsulating class.
+        """
 
         data = {"type": get_object_provenance(self), "version": __version__}
         data["init_args"] = self._get_init_kwargs()
-        data["init_args"].update(
-            {
-                "step": self.step,
-                "start": self.start,
-                "stop": self.stop,
-                "seq": self.seq.to_rich_dict(),
-                "offset": int(self.parent_start),
-                "seq_len": self.seq_len,
-            }
-        )
+        data["init_args"]["step"] = self.step
+
+        if self.is_reversed:
+            adj = self.seq_len + 1
+            start, stop = self.stop + adj, self.start + adj
+        else:
+            start, stop = self.start, self.stop
+
+        data["init_args"]["seq"] = self.str_value[start:stop]
+        data["init_args"]["offset"] = int(self.parent_start)
+        data["init_args"]["seq_len"] = len(self)
 
         return data
 
@@ -743,7 +754,12 @@ class SequenceCollection:
         }
 
     def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
-        """returns a json serialisable dict"""
+        """returns a json serialisable dict
+
+        Notes
+        -----
+        Serialisation will not include the annotation_db if present.
+        """
         moltype = self.moltype.label
         info = {} if self.info is None else self.info
 
@@ -775,9 +791,6 @@ class SequenceCollection:
         cls, data: dict[str, str | dict[str, str]]
     ) -> SequenceCollection:
         """returns a new instance from a rich dict"""
-        # todo: kath
-        # when annotation dbs have a from_rich_dict method, this will need to be updated
-
         seqs_data = deserialise_object(data["seqs_data"])
         data["init_args"].pop("annotation_db", None)
         moltype = data["init_args"].pop("moltype")

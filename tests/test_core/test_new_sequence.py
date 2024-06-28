@@ -397,7 +397,7 @@ def test_to_rich_dict():
     assert got == expect
 
 
-def test_to_json():
+def test_sequence_to_json():
     """to_json roundtrip recreates to_dict"""
     dna = new_moltype.DNA
     r = dna.make_seq(seq="AAGGCC", name="seq1")
@@ -452,18 +452,6 @@ def test_seqview_to_rich_dict(coord, dna_alphabet):
     assert plus["step"] == -minus["step"]
     assert coord not in plus
     assert coord not in minus
-
-
-@pytest.mark.parametrize("reverse", (False, True))
-def test_seqview_round_trip(reverse, dna_alphabet):
-    parent = "ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC"
-    sv = new_sequence.SeqView(seq=parent, alphabet=dna_alphabet)
-    sv = sv[::-1] if reverse else sv
-
-    rd = sv.to_rich_dict()
-    got = deserialise_object(rd)
-    assert isinstance(got, new_sequence.SeqView)
-    assert got.to_rich_dict() == sv.to_rich_dict()
 
 
 @pytest.mark.parametrize("reverse", (False, True))
@@ -733,20 +721,14 @@ def test_seqview_seqid(dna_alphabet):
     assert sv.seqid == "seq1"
 
 
-def test_seqview_rich_dict_round_trip_seqid(dna_alphabet):
+def test_seqview_to_rich_dict_seqid(dna_alphabet):
     sv = new_sequence.SeqView(seq="ACGGTGGGAC", seqid="seq1", alphabet=dna_alphabet)
     rd = sv.to_rich_dict()
     assert rd["init_args"]["seqid"] == "seq1"
 
-    got = new_sequence.SeqView.from_rich_dict(rd)
-    assert got.seqid == "seq1"
-
     sv = new_sequence.SeqView(seq="ACGGTGGGAC", alphabet=dna_alphabet)
     rd = sv.to_rich_dict()
     assert rd["init_args"]["seqid"] is None
-
-    got = new_sequence.SeqView.from_rich_dict(rd)
-    assert got.seqid is None
 
 
 def test_seqview_slice_propagates_seqid(dna_alphabet):
@@ -877,3 +859,23 @@ def test_get_translation_trim_stop():
     s = new_moltype.DNA.make_seq(seq="ATTTAACTT", name="s1")
     aa = s.get_translation(include_stop=True, trim_stop=True)
     assert str(aa) == "I*L"
+
+
+@pytest.mark.parametrize(
+    "moltype, data",
+    (
+        ("dna", "ACGT"),
+        ("rna", "ACGU"),
+        ("protein", "ACDE"),
+        ("protein_with_stop", "ACDE*"),
+        ("bytes", "ACDE"),
+    ),
+)
+def test_sequence_serialisation_round_trip(moltype, data):
+    moltype = new_moltype.get_moltype(moltype)
+    seq = moltype.make_seq(seq=data, name="seq1")
+
+    rd = seq.to_rich_dict()
+    got = deserialise_object(rd)
+    assert isinstance(got, type(seq))
+    assert got.to_rich_dict() == seq.to_rich_dict()

@@ -419,12 +419,10 @@ def test_seq_data_view_to_rich_dict(rev):
     expect = {
         "init_args": {
             "seqid": "seq1",
-            "start": sdv.start,
-            "stop": sdv.stop,
             "step": sdv.step,
             "offset": sdv.offset,
             "seq_len": sdv.seq_len,
-            "seq": sd.to_rich_dict(),
+            "seq": sdv.str_value,
         },
         "type": get_object_provenance(sdv),
         "version": __version__,

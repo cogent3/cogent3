@@ -69,6 +69,26 @@ def _is_float(val) -> bool:
     return issubdtype(val.__class__, floating) or isinstance(val, float)
 
 
+def _moltype_seq_from_rich_dict(data):
+    from cogent3.core import new_moltype
+
+    data.pop("type")
+    data.pop("version")
+    data.pop("annotation_db")
+
+    moltype = data.pop("moltype")
+    moltype = new_moltype.get_moltype(moltype)
+
+    seqview_data = data.pop("seq")
+    seq = _coerce_to_seqview(
+        seqview_data["init_args"]["seq"], data["name"], moltype.most_degen_alphabet()
+    )
+    seq = seq[:: seqview_data["init_args"]["step"]]
+    seq.offset = seqview_data["init_args"]["offset"]
+
+    return moltype, seq
+
+
 @total_ordering
 class Sequence:
     """Holds the standard Sequence object. Immutable.
@@ -153,8 +173,14 @@ class Sequence:
             label = self.name
         return alignment_to_fasta({label: str(self)}, block_size=block_size)
 
-    def to_rich_dict(self, exclude_annotations=False):
-        """returns {'name': name, 'seq': sequence, 'moltype': moltype.label}"""
+    def to_rich_dict(self, exclude_annotations=True):
+        """returns {'name': name, 'seq': sequence, 'moltype': moltype.label}
+
+        Notes
+        -----
+        Deserialisation of the sequence object will not include the annotation_db
+        even if exclude_annotations=False.
+        """
         info = {} if self.info is None else self.info
         if info.get("Refs", None) is not None and "Refs" in info:
             info.pop("Refs")
@@ -171,7 +197,7 @@ class Sequence:
         )
         if hasattr(self, "annotation_offset"):
             offset = int(self._seq.parent_start)
-            data.update(dict(annotation_offset=offset))
+            data |= dict(annotation_offset=offset)
 
         if (
             hasattr(self, "annotation_db")
@@ -181,6 +207,12 @@ class Sequence:
             data["annotation_db"] = self.annotation_db.to_rich_dict()
 
         return data
+
+    @classmethod
+    def from_rich_dict(cls, data):
+        moltype, seq = _moltype_seq_from_rich_dict(data)
+
+        return cls(moltype, seq, **data)
 
     def to_json(self):
         """returns a json formatted string"""
@@ -1579,25 +1611,57 @@ class Sequence:
         return self._seq.seqid, self._seq.parent_start, self._seq.parent_stop, strand
 
 
+@register_deserialiser(get_object_provenance(Sequence))
+def deserialise_sequence(data) -> Sequence:
+    return Sequence.from_rich_dict(data)
+
+
 class ProteinSequence(Sequence):
     """Holds the standard Protein sequence."""
 
     # constructed by PROTEIN moltype
-    ...
+
+    @classmethod
+    def from_rich_dict(cls, data):
+        moltype, seq = _moltype_seq_from_rich_dict(data)
+        return cls(moltype, seq, **data)
+
+
+@register_deserialiser(get_object_provenance(ProteinSequence))
+def deserialise_protein_sequence(data) -> ProteinSequence:
+    return ProteinSequence.from_rich_dict(data)
 
 
 class ByteSequence(Sequence):
     """Holds the bytes sequence."""
 
     # constructed by BYTES moltype
-    ...
+
+    @classmethod
+    def from_rich_dict(cls, data):
+        moltype, seq = _moltype_seq_from_rich_dict(data)
+        return cls(moltype, seq, **data)
+
+
+@register_deserialiser(get_object_provenance(ByteSequence))
+def deserialise_bytes_sequence(data) -> ByteSequence:
+    return ByteSequence.from_rich_dict(data)
 
 
 class ProteinWithStopSequence(Sequence):
     """Holds the standard Protein sequence, allows for stop codon."""
 
     # constructed by PROTEIN_WITH_STOP moltype
-    ...
+
+    @classmethod
+    def from_rich_dict(cls, data):
+        moltype, seq = _moltype_seq_from_rich_dict(data)
+        return cls(moltype, seq, **data)
+
+
+@register_deserialiser(get_object_provenance(ProteinWithStopSequence))
+def deserialise_protein_with_stop_sequence(data) -> ProteinWithStopSequence:
+    return ProteinWithStopSequence.from_rich_dict(data)
 
 
 class NucleicAcidSequenceMixin:
@@ -1840,6 +1904,48 @@ class NucleicAcidSequenceMixin:
         obs = template.wrap(obs)
         cat = CategoryCounts(obs)
         return cat.G_fit()
+
+
+class DnaSequence(NucleicAcidSequenceMixin, Sequence):
+    """Holds the standard DNA sequence."""
+
+    # constructed by DNA moltype
+
+    def _seq_filter(self, seq):
+        """Converts U to T."""
+        return seq.replace("u", "t").replace("U", "T")
+
+    @classmethod
+    def from_rich_dict(cls, data):
+        moltype, seq = _moltype_seq_from_rich_dict(data)
+
+        return cls(moltype, seq, **data)
+
+
+@register_deserialiser(get_object_provenance(DnaSequence))
+def deserialise_dna_sequence(data) -> DnaSequence:
+    return DnaSequence.from_rich_dict(data)
+
+
+class RnaSequence(NucleicAcidSequenceMixin, Sequence):
+    """Holds the standard RNA sequence."""
+
+    # constructed by RNA moltype
+
+    def _seq_filter(self, seq):
+        """Converts T to U."""
+        return seq.replace("t", "u").replace("T", "U")
+
+    @classmethod
+    def from_rich_dict(cls, data):
+        moltype, seq = _moltype_seq_from_rich_dict(data)
+
+        return cls(moltype, seq, **data)
+
+
+@register_deserialiser(get_object_provenance(RnaSequence))
+def deserialise_rna_sequence(data) -> RnaSequence:
+    return RnaSequence.from_rich_dict(data)
 
 
 def _input_vals_pos_step(seqlen, start, stop, step):
@@ -2392,12 +2498,21 @@ class SeqView(SeqViewABC, SliceRecordABC):
         )
 
     def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
-        """returns a json serialisable dict"""
+        """returns a json serialisable dict
+
+        Notes
+        -----
+        This method will slice the underlying sequence to the start and stop values
+
+        Warning
+        -------
+        This method is not intended to provide deserialisation of this object,
+        instead it is intended for deserialisation of encapsulating class.
+        """
         # get the current state
         data = {"type": get_object_provenance(self), "version": __version__}
         data["init_args"] = self._get_init_kwargs()
-        # since we will truncate the seq, we don't need start, stop,
-        # step is sufficient
+
         data["init_args"]["step"] = self.step
         if self.is_reversed:
             adj = self.seq_len + 1
@@ -2409,16 +2524,6 @@ class SeqView(SeqViewABC, SliceRecordABC):
         data["init_args"]["offset"] = int(self.parent_start)
         data["init_args"]["alphabet"] = self.alphabet.to_rich_dict()
         return data
-
-    @classmethod
-    def from_rich_dict(cls, data: dict):
-        init_args = data.pop("init_args")
-        init_args["alphabet"] = new_alphabet.CharAlphabet.from_rich_dict(
-            init_args["alphabet"]
-        )
-        if "offset" in data:
-            init_args["offset"] = data.pop("offset")
-        return cls(**init_args)
 
     def copy(self, sliced: bool = False):
         """returns copy
@@ -2440,30 +2545,14 @@ class SeqView(SeqViewABC, SliceRecordABC):
                 offset=self.offset,
                 seq_len=self.seq_len,
             )
-        return self.from_rich_dict(self.to_rich_dict())
-
-
-@register_deserialiser(get_object_provenance(SeqView))
-def deserialise_seq_view(data) -> SeqView:
-    return SeqView.from_rich_dict(data)
-
-
-class DnaSequence(NucleicAcidSequenceMixin, Sequence):
-    """Holds the standard DNA sequence."""
-
-    # constructed by DNA moltype
-
-    def _seq_filter(self, seq):
-        """Converts U to T."""
-        return seq.replace("u", "t").replace("U", "T")
-
-
-class RnaSequence(NucleicAcidSequenceMixin, Sequence):
-    """Holds the standard RNA sequence."""
-
-    def _seq_filter(self, seq):
-        """Converts T to U."""
-        return seq.replace("t", "u").replace("T", "U")
+        data = self.to_rich_dict()
+        return self.__class__(
+            seq=data["init_args"]["seq"],
+            seqid=self.seqid,
+            alphabet=self.alphabet,
+            step=self.step,
+            offset=self.offset,
+        )
 
 
 @singledispatch
