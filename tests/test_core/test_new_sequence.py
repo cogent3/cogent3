@@ -1,6 +1,8 @@
 import json
 import re
 
+from pickle import dumps
+
 import numpy
 import pytest
 
@@ -27,6 +29,17 @@ def ascii_alphabet():
     return new_moltype.ASCII.alphabet
 
 
+@pytest.fixture
+def bytes_alphabet():
+    return new_moltype.BYTES.most_degen_alphabet()
+
+
+@pytest.fixture(scope="function")
+def integer_seq(bytes_alphabet):
+    """Used for slicing tests"""
+    return new_sequence.SeqView(seq="0123456789", alphabet=bytes_alphabet)
+
+
 @pytest.mark.parametrize("name", ("dna", "rna", "protein", "protein_with_stop", "text"))
 def test_moltype_make_seq(name):
     raw = "ACGGA"
@@ -45,72 +58,504 @@ def test_moltype_make_bytes_seq():
     assert str(seq) == raw
 
 
-@pytest.fixture
-def bytes_alpha():
-    return new_moltype.BYTES.most_degen_alphabet()
-
-
-@pytest.fixture(scope="function")
-def integer_seq(bytes_alpha):
-    """Used for slicing tests"""
-    return new_sequence.SeqView(seq="0123456789", alphabet=bytes_alpha)
-
-
-@pytest.fixture
-def ascii_alpha():
-    return new_moltype.ASCII.most_degen_alphabet()
-
-
 # Tests from test_sequence.py
+
+
+@pytest.mark.parametrize(
+    "moltype", ("dna", "rna", "protein", "protein_with_stop", "text")
+)
+def test_sequence_copy(moltype):
+    """correctly returns a copy version of self"""
+    mt = new_moltype.get_moltype(moltype)
+    s = mt.make_seq(seq="CCCCCCCCCCCCCAAAA", name="test_copy")
+    annot1 = s.add_feature(biotype="exon", name="annot1", spans=[(0, 10)])
+    annot2 = s.add_feature(biotype="exon", name="annot2", spans=[(10, 14)])
+    got = s.copy()
+    got_annot1 = list(got.get_features(biotype="exon", name="annot1"))[0]
+    got_annot2 = list(got.get_features(biotype="exon", name="annot2"))[0]
+    assert got is not s
+    assert got_annot1 is not annot1
+    assert got_annot2 is not annot2
+    assert got.name == s.name
+    assert got.info == s.info
+    assert str(got) == str(s)
+    assert got.moltype == s.moltype
+    annot1_slice = str(annot1.get_slice())
+    annot2_slice = str(annot2.get_slice())
+    got1_slice = str(got_annot1.get_slice())
+    got2_slice = str(got_annot2.get_slice())
+    assert annot1_slice == got1_slice
+    assert annot2_slice == got2_slice
+
+
+@pytest.mark.parametrize(
+    "moltype", ("dna", "rna", "protein", "protein_with_stop", "text")
+)
+@pytest.mark.parametrize("seq", ("ACG", "AC-G", "-A-C"))
+def test_sequence_compare_to_string(moltype, seq):
+    """Sequence should compare equal to same string."""
+    mt = new_moltype.get_moltype(moltype)
+    s = mt.make_seq(seq=seq)
+    assert s == seq
+
+
+def test_sequence_slice():
+    """Sequence slicing should work as expected"""
+    r = new_moltype.RNA.make_seq(seq="UCAGG")
+    assert r[0] == "U"
+    assert r[-1] == "G"
+    assert r[1:3] == "CA"
+
+
+def test_sequence_to_dna():
+    """Returns copy of self as DNA."""
+    r = new_moltype.RNA.make_seq(seq="UCA")
+    assert str(r) == "UCA"
+    assert str(r.to_dna()) == "TCA"
+
+
+def test_sequence_to_rna():
+    """Returns copy of self as RNA."""
+    r = new_moltype.DNA.make_seq(seq="TCA")
+    assert str(r) == "TCA"
+    assert str(r.to_rna()) == "UCA"
+
+
+def test_sequence_to_fasta():
+    """Sequence.to_fasta() should return Fasta-formatted string"""
+    even = "TCAGAT"
+    odd = f"{even}AAA"
+    even_dna = new_moltype.DNA.make_seq(seq=even, name="even")
+    odd_dna = new_moltype.DNA.make_seq(seq=odd, name="odd")
+    assert even_dna.to_fasta() == ">even\nTCAGAT\n"
+    # set line wrap to small number so we can test that it works
+    assert even_dna.to_fasta(block_size=2) == ">even\nTC\nAG\nAT\n"
+    assert odd_dna.to_fasta(block_size=2) == ">odd\nTC\nAG\nAT\nAA\nA\n"
+    # check that changing the linewrap again works
+    assert even_dna.to_fasta(block_size=4) == ">even\nTCAG\nAT\n"
+
+
+def test_sequence_serialize():
+    """Sequence should be serializable"""
+    r = new_moltype.RNA.make_seq(seq="UGAGG")
+    assert dumps(r)
+
+
+def test_sequence_to_moltype():
+    """correctly convert to specified moltype"""
+    s = new_moltype.ASCII.make_seq(seq="TTTTTTTTTTAAAA", name="test1")
+    s.add_feature(biotype="exon", name="fred", spans=[(0, 10)])
+    s.add_feature(biotype="exon", name="trev", spans=[(10, 14)])
+    got = s.to_moltype("dna")
+    fred = list(got.get_features(name="fred"))[0]
+    assert str(got[fred]) == "TTTTTTTTTT"
+    trev = list(got.get_features(name="trev"))[0]
+    assert str(got[trev]) == "AAAA"
+
+    # should raise exception if moltype not compatible with sequence data
+    with pytest.raises(ValueError):
+        s.to_moltype("rna")
+
+    # calling with a null object should raise an exception
+    with pytest.raises(ValueError):
+        s.to_moltype(None)
+
+    with pytest.raises(ValueError):
+        s.to_moltype("")
+
+
+@pytest.mark.parametrize(
+    "seq, expect", (("UCAG-", "UCAG-"), ("NRYSW", ""), ("USNG", "UG"))
+)
+def test_sequence_strip_degenerate(seq, expect):
+    """Sequence strip_degenerate should remove any degenerate bases"""
+    seq = new_moltype.RNA.make_seq(seq=seq)
+    got = seq.strip_degenerate()
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "seq, expect",
+    (
+        ("UCXXXAGWSNYRHBNZZZD-D", "UCAGWSNYRHBND-D"),
+        ("@#^*($@!#&()!@QZX", ""),
+        ("aaaxggg---!ccc", "---"),
+    ),
+)
+def test_sequence_strip_bad(seq, expect):
+    """Sequence strip_bad should remove any non-base, non-gap chars"""
+    # have to turn off check to get bad data in
+    seq = new_moltype.RNA.make_seq(seq=seq, check_seq=False)
+    got = seq.strip_bad()
+    assert str(got) == expect
+
+
+@pytest.mark.parametrize(
+    "seq, expect",
+    (
+        ("UXXCAGWSNYRHBNZ#!D-D", "UCAGWSNYRHBNDD"),
+        ("@#^*($@!#&()!@QZX", ""),
+        ("AAA GGG ---!CCC", "AAAGGGCCC"),
+    ),
+)
+def test_sequence_strip_bad_and_gaps(seq, expect):
+    """Sequence strip_bad_and_gaps should remove gaps and bad chars"""
+    # have to turn off check to get bad data in; no longer preserves case
+    seq = new_moltype.RNA.make_seq(seq=seq, check_seq=False)
+    got = seq.strip_bad_and_gaps()
+    assert str(got) == expect
+
+
+def test_sequence_shuffle():
+    """Sequence shuffle should return new random sequence w/ same monomers"""
+    r = new_moltype.RNA.make_seq(seq="UUUUCCCCAAAAGGGG")
+    s = r.shuffle()
+    assert r != s
+    # assert the number of counts of each monomer is the same
+    assert r.counts() == s.counts()
+
+
+def test_sequence_complement():
+    """Sequence complement should correctly complement sequence"""
+    got = new_moltype.RNA.make_seq(seq="UAUCG-NR").complement()
+    assert got == "AUAGC-NY"
+    got = new_moltype.DNA.make_seq(seq="TATCG-NR").complement()
+    assert got == "ATAGC-NY"
+    got = new_moltype.DNA.make_seq(seq="").complement()
+    assert got == ""
+    with pytest.raises(AttributeError):
+        new_moltype.PROTEIN.make_seq(seq="ACD").complement()
+
+
+def test_sequence_rc():
+    """Sequence.rc() should correctly reverse-complement sequence"""
+    # no longer preserves case!
+    assert new_moltype.DNA.make_seq(seq="TATCG-NR").rc() == "YN-CGATA"
+    assert new_moltype.RNA.make_seq(seq="").rc() == ""
+    assert new_moltype.RNA.make_seq(seq="UAUCG-NR").rc() == "YN-CGAUA"
+    assert new_moltype.RNA.make_seq(seq="A").rc() == "U"
+    with pytest.raises(AttributeError):
+        new_moltype.PROTEIN.make_seq(seq="ACD").rc()
+
+
+def test_sequence_contains():
+    """Sequence contains should return correct result"""
+    r = new_moltype.RNA.make_seq(seq="UCA")
+    assert "U" in r
+    assert "CA" in r
+    assert "X" not in r
+    assert "G" not in r
+
+
+def test_sequence_iter():
+    """Sequence iter should iterate over sequence"""
+    p = new_moltype.PROTEIN.make_seq(seq="QWE")
+    assert list(p) == ["Q", "W", "E"]
+
+
+def test_sequence_is_gapped():
+    """Sequence is_gapped should return True if gaps in seq"""
+    assert not new_moltype.RNA.make_seq(seq="").is_gapped()
+    assert not new_moltype.RNA.make_seq(seq="ACGUCAGUACGUCAGNRCGAUYRNRYRN").is_gapped()
+    assert new_moltype.RNA.make_seq(seq="-").is_gapped()
+    assert new_moltype.PROTEIN.make_seq(seq="--").is_gapped()
+    assert new_moltype.RNA.make_seq(seq="CAGUCGUACGUCAGUACGU-ACUG").is_gapped()
+    assert new_moltype.RNA.make_seq(seq="CA--CGUAUGCA-----G").is_gapped()
+    assert new_moltype.RNA.make_seq(seq="CAGU-").is_gapped()
+
+
+@pytest.mark.xfail(
+    reason="AttributeError: 'MolType' object has no attribute 'count_gaps'"
+)
+def test_sequence_is_gap():
+    """Sequence is_gap should return True if char is a valid gap char"""
+    r = new_moltype.RNA.make_seq(seq="ACGUCAGUACGUCAGNRCGAUYRNRYRN")
+    for char in "UCGANRNYWSKMBDHV":  # all valid RNA chars/ambiguities
+        assert not r.is_gap(char)
+    assert r.is_gap("-")
+    # only works on a single literal that's a gap, not on a sequence.
+    # possibly, this behavior should change?
+    r.is_gap("---")
+    assert not r.is_gap("---")
+    # check behaviour on self
+    assert not new_moltype.RNA.make_seq(seq="CGAUACGUACGACU").is_gap()
+    assert not new_moltype.RNA.make_seq(seq="---CGAUA----CGUACG---ACU---").is_gap()
+    assert new_moltype.RNA.make_seq(seq="").is_gap()
+    assert new_moltype.RNA.make_seq(seq="----------").is_gap()
+
+
+def test_sequence_is_degenerate():
+    """Sequence is_degenerate should return True if degen symbol in seq"""
+    assert not new_moltype.RNA.make_seq(seq="").is_degenerate()
+    assert not new_moltype.RNA.make_seq(
+        seq="UACGCUACAUGGCUAGCUA---ACGUCAG"
+    ).is_degenerate()
+    assert new_moltype.RNA.make_seq(seq="N").is_degenerate()
+    assert new_moltype.RNA.make_seq(seq="R").is_degenerate()
+    assert new_moltype.RNA.make_seq(seq="Y").is_degenerate()
+    assert new_moltype.RNA.make_seq(seq="GCSUA").is_degenerate()
+    assert new_moltype.RNA.make_seq(seq="ACGYAUGCUGYWWNMN").is_degenerate()
+
+
+def test_sequence_is_strict():
+    """Sequence is_strict should return True if all symbols in Monomers"""
+    assert new_moltype.RNA.make_seq(seq="").is_strict()
+    assert new_moltype.PROTEIN.make_seq(seq="A").is_strict()
+    assert new_moltype.RNA.make_seq(seq="UAGCACU").is_strict()
+    assert not new_moltype.RNA.make_seq(seq="CAGUCGAUCA-").is_strict()
+
+
+@pytest.mark.xfail(
+    reason="AttributeError: 'MolType' object has no attribute 'disambiguate'"
+)
+def test_sequence_disambiguate():
+    """Sequence disambiguate should remove degenerate bases
+
+    Notes
+    -----
+    This test relies on random generation not being the same twice!
+    """
+    assert new_moltype.RNA.make_seq(seq="").disambiguate() == ""
+    assert (
+        new_moltype.RNA.make_seq(seq="AGCUGAUGUA--CAGU").disambiguate()
+        == "AGCUGAUGUA--CAGU"
+    )
+    assert new_moltype.RNA.make_seq(seq="AU-YRS-CG").disambiguate("strip") == "AU--CG"
+    s = new_moltype.RNA.make_seq(seq="AUN-YRS-WKMCGWMRNMWRKY")
+    t = s.disambiguate("random")
+    u = s.disambiguate("random")
+    for i, j in zip(str(s), str(t)):
+        if i in s.moltype.degenerates:
+            assert j in s.moltype.degenerates[i]
+        else:
+            assert i == j
+    assert t != u
+    assert len(s) == len(t)
+
+
+def test_sequence_degap():
+    """Sequence degap should remove all gaps from sequence"""
+    # doesn't preserve case
+    new_moltype.RNA.make_seq(seq="").degap() == ""
+    new_moltype.RNA.make_seq(seq="GUCAGUC").degap() == "GUCAGUC"
+    new_moltype.RNA.make_seq(seq="----------------").degap() == ""
+    new_moltype.RNA.make_seq(seq="GCUAUACG-").degap() == "GCUAUACG"
+    new_moltype.RNA.make_seq(seq="-CUAGUCA").degap() == "CUAGUCA"
+    new_moltype.RNA.make_seq(seq="---A---C---U----G---").degap() == "ACUG"
+    new_moltype.RNA.make_seq(seq="?A-").degap() == "A"
+
+
+@pytest.mark.xfail(
+    reason="AttributeError: 'MolType' object has no attribute 'gap_indices'"
+)
+def test_sequence_gap_indices():
+    """Sequence gap_indices should return correct gap positions"""
+    assert new_moltype.RNA.make_seq(seq="").gap_indices() == []
+    assert new_moltype.RNA.make_seq(seq="ACUGUCAGUACGHSDKCUCDNNS").gap_indices() == []
+    assert new_moltype.RNA.make_seq(seq="GUACGUACAKDC-SDHDSK").gap_indices() == [12]
+    assert new_moltype.RNA.make_seq(seq="-DSHUHDS").gap_indices() == [0]
+    assert new_moltype.RNA.make_seq(seq="UACHASADS-").gap_indices() == [9]
+    assert new_moltype.RNA.make_seq(
+        seq="---CGAUgCAU---ACGHc---ACGUCAGU---"
+    ).gap_indices() == [0, 1, 2, 11, 12, 13, 19, 20, 21, 30, 31, 32]
+
+
+@pytest.mark.xfail(
+    reason="AttributeError: 'MolType' object has no attribute 'gap_vector'"
+)
+def test_sequence_gap_vector():
+    """Sequence gap_vector should return correct gap positions"""
+
+    def g(x):
+        return new_moltype.RNA.make_seq(seq=x).gap_vector()
+
+    assert g("") == []
+    assert g("ACUGUCAGUACGHCSDKCCUCCDNCNS") == [False] * 27
+    assert g("GUACGUAACAKADC-SDAHADSAK") == list(
+        map(bool, list(map(int, "000000000000001000000000")))
+    )
+    assert g("-DSHSUHDSS") == list(map(bool, list(map(int, "1000000000"))))
+    assert g("UACHASCAGDS-") == list(map(bool, list(map(int, "000000000001"))))
+    assert g("---CGAUCAU---ACGH---ACGUCAGU--?") == list(
+        map(bool, list(map(int, "1110000000111000011100000000111")))
+    )
+
+
+@pytest.mark.xfail(
+    reason="AttributeError: 'MolType' object has no attribute 'gap_maps'"
+)
+def test_gap_maps():
+    """Sequence.gap_maps should return dicts mapping gapped/ungapped pos"""
+    empty = ""
+    no_gaps = "AAA"
+    all_gaps = "---"
+    start_gaps = "--ABC"
+    end_gaps = "AB---"
+    mid_gaps = "--A--B-CD---"
+
+    def gm(x):
+        return new_moltype.RNA.make_seq(seq=x).gap_maps()
+
+    assert gm(empty) == ({}, {})
+    assert gm(no_gaps) == ({0: 0, 1: 1, 2: 2}, {0: 0, 1: 1, 2: 2})
+    assert gm(all_gaps) == ({}, {})
+    assert gm(start_gaps) == ({0: 2, 1: 3, 2: 4}, {2: 0, 3: 1, 4: 2})
+    assert gm(end_gaps) == ({0: 0, 1: 1}, {0: 0, 1: 1})
+    assert gm(mid_gaps) == ({0: 2, 1: 5, 2: 7, 3: 8}, {2: 0, 5: 1, 7: 2, 8: 3})
+
+
+@pytest.mark.xfail(
+    reason="AttributeError: 'MolType' object has no attribute 'count_gaps'"
+)
+def test_count_gaps():
+    """Sequence.count_gaps should return correct gap count"""
+    assert new_moltype.RNA.make_seq(seq="").count_gaps() == 0
+    assert new_moltype.RNA.make_seq(seq="ACUGUCAGUACGHSDKCUCDNNS").count_gaps() == 0
+    assert new_moltype.RNA.make_seq(seq="GUACGUACAKDC-SDHDSK").count_gaps() == 1
+    assert new_moltype.RNA.make_seq(seq="-DSHUHDS").count_gaps() == 1
+    assert new_moltype.RNA.make_seq(seq="UACHASADS-").count_gaps() == 1
+    assert (
+        new_moltype.RNA.make_seq(seq="---CGAUGCAU---ACGHC---ACGUCAGU---").count_gaps()
+        == 12
+    )
+
+
+@pytest.mark.xfail(
+    reason="AttributeError: 'MolType' object has no attribute 'count_degenerate'"
+)
+def test_count_degenerate():
+    """Sequence.count_degenerate should return correct degen base count"""
+    assert new_moltype.RNA.make_seq(seq="").count_degenerate() == 0
+    assert (
+        new_moltype.RNA.make_seq(seq="GACUGCAUGCAUCGUACGUCAGUACCGA").count_degenerate()
+        == 0
+    )
+    assert new_moltype.RNA.make_seq(seq="N").count_degenerate() == 1
+    assert new_moltype.PROT.make_seq(seq="N").count_degenerate() == 0
+    assert new_moltype.RNA.make_seq(seq="NRY").count_degenerate() == 3
+    assert (
+        new_moltype.RNA.make_seq(
+            seq="ACGUAVCUAGCAUNUCAGUCAGyUACGUCAGS"
+        ).count_degenerate()
+        == 4
+    )
+
+
+@pytest.mark.xfail(
+    reason="AttributeError: 'MolType' object has no attribute 'possibilities'"
+)
+def test_possibilites():
+    """Sequence possibilities should return correct # possible sequences"""
+    assert new_moltype.RNA.make_seq(seq="").possibilities() == 1
+    assert new_moltype.RNA.make_seq(seq="ACGUGCAU").possibilities() == 1
+    assert new_moltype.RNA.make_seq(seq="N").possibilities() == 4
+    assert new_moltype.RNA.make_seq(seq="R").possibilities() == 2
+    assert new_moltype.RNA.make_seq(seq="H").possibilities() == 3
+    assert new_moltype.RNA.make_seq(seq="nRh").possibilities() == 24
+    assert (
+        new_moltype.RNA.make_seq(
+            seq="AUGCNGUCAG-AURGAUC--GAUHCGAUACGWS"
+        ).possibilities()
+        == 96
+    )
+
+
+@pytest.mark.xfail(reason="AttributeError: 'MolType' object has no attribute 'mw'")
+def test_mw():
+    """Sequence MW should return correct molecular weight"""
+    assert new_moltype.PROTEIN.make_seq(seq="").mw() == 0
+    assert new_moltype.RNA.make_seq(seq="").mw() == 0
+    assert numpy.allclose(new_moltype.PROTEIN.make_seq(seq="A").mw(), 89.09)
+    assert numpy.allclose(new_moltype.RNA.make_seq(seq="A").mw(), 375.17)
+    assert numpy.allclose(new_moltype.PROTEIN.make_seq(seq="AAA").mw(), 231.27)
+    assert numpy.allclose(new_moltype.RNA.make_seq(seq="AAA").mw(), 1001.59)
+    assert numpy.allclose(new_moltype.RNA.make_seq(seq="AAACCCA").mw(), 2182.37)
+
+
+@pytest.mark.xfail(
+    reason="AttributeError: 'MolType' object has no attribute 'can_match'"
+)
+def test_can_match():
+    """Sequence can_match should return True if all positions can match"""
+    assert new_moltype.RNA.make_seq(seq="").can_match("")
+    assert new_moltype.RNA.make_seq(seq="UCAG").can_match("UCAG")
+    assert not new_moltype.RNA.make_seq(seq="UCAG").can_match("ucag")
+    assert new_moltype.RNA.make_seq(seq="UCAG").can_match("NNNN")
+    assert new_moltype.RNA.make_seq(seq="NNNN").can_match("UCAG")
+    assert new_moltype.RNA.make_seq(seq="NNNN").can_match("NNNN")
+    assert not new_moltype.RNA.make_seq(seq="N").can_match("x")
+    assert not new_moltype.RNA.make_seq(seq="N").can_match("-")
+    assert new_moltype.RNA.make_seq(seq="UCAG").can_match("YYRR")
+    assert new_moltype.RNA.make_seq(seq="UCAG").can_match("KMWS")
+
+
+@pytest.mark.xfail(
+    reason="AttributeError: 'MolType' object has no attribute 'can_mismatch'"
+)
+def test_can_mismatch():
+    """Sequence can_mismatch should return True on any possible mismatch"""
+    assert not new_moltype.RNA.make_seq("").can_mismatch("")
+    assert new_moltype.RNA.make_seq(seq="N").can_mismatch("N")
+    assert new_moltype.RNA.make_seq(seq="R").can_mismatch("R")
+    assert new_moltype.RNA.make_seq(seq="N").can_mismatch("r")
+    assert new_moltype.RNA.make_seq(seq="CGUACGCAN").can_mismatch("CGUACGCAN")
+    assert new_moltype.RNA.make_seq(seq="U").can_mismatch("C")
+    assert new_moltype.RNA.make_seq(seq="UUU").can_mismatch("UUC")
+    assert new_moltype.RNA.make_seq(seq="UUU").can_mismatch("UUY")
+    assert not new_moltype.RNA.make_seq(seq="UUU").can_mismatch("UUU")
+    assert not new_moltype.RNA.make_seq(seq="UCAG").can_mismatch("UCAG")
+    assert not new_moltype.RNA.make_seq(seq="U--").can_mismatch("U--")
+
+
 @pytest.mark.parametrize("start", (None, 0, 1, 10, -1, -10))
 @pytest.mark.parametrize("stop", (None, 10, 8, 1, 0, -1, -11))
 @pytest.mark.parametrize("step", (None, 1, 2, -1, -2))
-def test_seqview_initialisation(start, stop, step, bytes_alpha):
+def test_seqview_initialisation(start, stop, step, bytes_alphabet):
     """Initialising a SeqView should work with range of provided values"""
     seq_data = "0123456789"
     got = new_sequence.SeqView(
-        seq=seq_data, start=start, stop=stop, step=step, alphabet=bytes_alpha
+        seq=seq_data, start=start, stop=stop, step=step, alphabet=bytes_alphabet
     )
     expected = seq_data[start:stop:step]
     assert got.str_value == expected
 
 
 @pytest.mark.parametrize("index", (-10, -5, 0, 5, 9))  # -10 and 9 are boundary
-def test_seqview_index(index, bytes_alpha):
+def test_seqview_index(index, bytes_alphabet):
     """SeqView with default values can be sliced with a single index, when within the length of the sequence"""
     seq_data = "0123456789"
-    sv = new_sequence.SeqView(seq=seq_data, alphabet=bytes_alpha)
+    sv = new_sequence.SeqView(seq=seq_data, alphabet=bytes_alphabet)
     got = sv[index]
     expected = seq_data[index]
     assert got.str_value == expected
     assert len(got) == 1
 
 
-def test_seqview_index_null(ascii_alpha):
+def test_seqview_index_null(ascii_alphabet):
     "Indexing a SeqView of length 0 should return an IndexError"
-    sv = new_sequence.SeqView(seq="", alphabet=ascii_alpha)
+    sv = new_sequence.SeqView(seq="", alphabet=ascii_alphabet)
     with pytest.raises(IndexError):
         _ = sv[0]
 
 
-def test_seqview_step_0(bytes_alpha):
+def test_seqview_step_0(bytes_alphabet):
     "Initialising or slicing a SeqView with a step of 0 should return an IndexError"
-    sv = new_sequence.SeqView(seq="0123456789", alphabet=bytes_alpha)
+    sv = new_sequence.SeqView(seq="0123456789", alphabet=bytes_alphabet)
     with pytest.raises(ValueError):
         _ = sv[::0]
     with pytest.raises(ValueError):
-        _ = new_sequence.SeqView(seq="0123456789", alphabet=bytes_alpha, step=0)
+        _ = new_sequence.SeqView(seq="0123456789", alphabet=bytes_alphabet, step=0)
 
 
 @pytest.mark.parametrize("start", (0, 2, 4))
-def test_seqview_invalid_index(start, bytes_alpha):
+def test_seqview_invalid_index(start, bytes_alphabet):
     "indexing out of bounds with a forward step should raise an IndexError"
     seq = "0123456789"
     length = abs(start - len(seq))
     pos_boundary_index = length
     neg_boundary_index = -length - 1
 
-    sv = new_sequence.SeqView(seq=seq, start=start, alphabet=bytes_alpha)
+    sv = new_sequence.SeqView(seq=seq, start=start, alphabet=bytes_alphabet)
     with pytest.raises(IndexError):
         _ = sv[pos_boundary_index]
     with pytest.raises(IndexError):
@@ -118,7 +563,7 @@ def test_seqview_invalid_index(start, bytes_alpha):
 
 
 @pytest.mark.parametrize("start", (0, 2, 4))
-def test_seqview_invalid_index_positive_step_gt_1(start, bytes_alpha):
+def test_seqview_invalid_index_positive_step_gt_1(start, bytes_alphabet):
     "boundary condition for indexing out of bounds with a forward step greater than 1"
     seq = "0123456789"
     step = 2
@@ -126,7 +571,7 @@ def test_seqview_invalid_index_positive_step_gt_1(start, bytes_alpha):
     neg_boundary_index = -length - 1
     pos_boundary_index = length
 
-    sv = new_sequence.SeqView(seq=seq, start=start, step=step, alphabet=bytes_alpha)
+    sv = new_sequence.SeqView(seq=seq, start=start, step=step, alphabet=bytes_alphabet)
     with pytest.raises(IndexError):
         _ = sv[pos_boundary_index]
     with pytest.raises(IndexError):
@@ -134,7 +579,7 @@ def test_seqview_invalid_index_positive_step_gt_1(start, bytes_alpha):
 
 
 @pytest.mark.parametrize("stop", (0, 2, -11))
-def test_seqview_invalid_index_reverse_step(stop, bytes_alpha):
+def test_seqview_invalid_index_reverse_step(stop, bytes_alphabet):
     "boundary condition for indexing out of bounds with a reverse step"
     seq = "0123456789"
     step = -1
@@ -144,7 +589,7 @@ def test_seqview_invalid_index_reverse_step(stop, bytes_alpha):
     pos_boundary_index = length
 
     sv = new_sequence.SeqView(
-        seq=seq, start=start, stop=stop, step=step, alphabet=bytes_alpha
+        seq=seq, start=start, stop=stop, step=step, alphabet=bytes_alphabet
     )
     with pytest.raises(IndexError):
         _ = sv[pos_boundary_index]
@@ -153,7 +598,7 @@ def test_seqview_invalid_index_reverse_step(stop, bytes_alpha):
 
 
 @pytest.mark.parametrize("stop", (0, 2, -6))
-def test_seqview_invalid_index_reverse_step_gt_1(stop, bytes_alpha):
+def test_seqview_invalid_index_reverse_step_gt_1(stop, bytes_alphabet):
     "boundary condition for indexing out of bounds with a reverse step less than -1"
     seq = "0123456789"
     step = -2
@@ -163,7 +608,7 @@ def test_seqview_invalid_index_reverse_step_gt_1(stop, bytes_alpha):
     pos_boundary_index = length
 
     sv = new_sequence.SeqView(
-        seq=seq, start=start, stop=stop, step=step, alphabet=bytes_alpha
+        seq=seq, start=start, stop=stop, step=step, alphabet=bytes_alphabet
     )
     with pytest.raises(IndexError):
         _ = sv[pos_boundary_index]
@@ -171,38 +616,46 @@ def test_seqview_invalid_index_reverse_step_gt_1(stop, bytes_alpha):
         _ = sv[neg_boundary_index]
 
 
-def test_seqview_slice_null(ascii_alpha):
-    sv = new_sequence.SeqView(seq="", alphabet=ascii_alpha)
+def test_seqview_slice_null(ascii_alphabet):
+    sv = new_sequence.SeqView(seq="", alphabet=ascii_alphabet)
     assert len(sv) == 0
     got = sv[2:]
     assert len(got) == 0
 
 
-def test_seqview_start_out_of_bounds(bytes_alpha):
+def test_seqview_start_out_of_bounds(bytes_alphabet):
     "boundary condition for start index out of bounds"
     seq = "0123456789"
     init_start, init_stop, init_step = 2, 10, 1
     boundary = abs((init_start - init_stop) // init_step)
     sv = new_sequence.SeqView(
-        seq=seq, start=init_start, stop=init_stop, step=init_step, alphabet=bytes_alpha
+        seq=seq,
+        start=init_start,
+        stop=init_stop,
+        step=init_step,
+        alphabet=bytes_alphabet,
     )
     got = sv[boundary::].str_value
     assert got == ""
 
 
-def test_seqview_start_out_of_bounds_step_gt_1(bytes_alpha):
+def test_seqview_start_out_of_bounds_step_gt_1(bytes_alphabet):
     "boundary condition for start index out of bounds with step greater than 1"
     seq = "0123456789"
     init_start, init_stop, init_step = 2, 10, 2
     boundary = abs((init_start - init_stop) // init_step)
     sv = new_sequence.SeqView(
-        seq=seq, start=init_start, stop=init_stop, step=init_step, alphabet=bytes_alpha
+        seq=seq,
+        start=init_start,
+        stop=init_stop,
+        step=init_step,
+        alphabet=bytes_alphabet,
     )
     got = sv[boundary::].str_value
     assert got == ""
 
 
-def test_seqview_start_out_of_bounds_reverse_step(bytes_alpha):
+def test_seqview_start_out_of_bounds_reverse_step(bytes_alphabet):
     "boundary condition for start index out of bounds with reverse step"
     seq = "0123456789"
     init_start, init_stop, init_step = 2, 10, -2
@@ -210,7 +663,11 @@ def test_seqview_start_out_of_bounds_reverse_step(bytes_alpha):
     boundary_neg = -abs((init_start - init_stop) // init_step) - 1
 
     sv = new_sequence.SeqView(
-        seq=seq, start=init_start, stop=init_stop, step=init_step, alphabet=bytes_alpha
+        seq=seq,
+        start=init_start,
+        stop=init_stop,
+        step=init_step,
+        alphabet=bytes_alphabet,
     )
 
     assert sv[boundary_pos::].str_value == ""
@@ -227,10 +684,10 @@ def test_seqview_start_out_of_bounds_reverse_step(bytes_alpha):
         slice(None, None, None),
     ),
 )
-def test_seqview_defaults(simple_slices, bytes_alpha):
+def test_seqview_defaults(simple_slices, bytes_alphabet):
     """SeqView should accept slices with all combinations of default parameters"""
     seq = "0123456789"
-    got = new_sequence.SeqView(seq=seq, alphabet=bytes_alpha)[simple_slices]
+    got = new_sequence.SeqView(seq=seq, alphabet=bytes_alphabet)[simple_slices]
     expected = seq[simple_slices]
     assert got.str_value == expected
 
@@ -247,10 +704,10 @@ def test_seqview_defaults(simple_slices, bytes_alpha):
         slice(None, None, None),
     ),
 )
-def test_seqview_sliced_index(index, simple_slices, bytes_alpha):
+def test_seqview_sliced_index(index, simple_slices, bytes_alphabet):
     """SeqView that has been sliced with default parameters, can then be indexed"""
     seq = "0123456789"
-    sv = new_sequence.SeqView(seq=seq, alphabet=bytes_alpha)
+    sv = new_sequence.SeqView(seq=seq, alphabet=bytes_alphabet)
     got = sv[simple_slices][index]
     expected = seq[simple_slices][index]
     assert got.str_value == expected
@@ -258,10 +715,10 @@ def test_seqview_sliced_index(index, simple_slices, bytes_alpha):
 
 @pytest.mark.parametrize("first_step", (1, 2, -1, -2))
 @pytest.mark.parametrize("second_step", (1, 2, -1, -2))
-def test_seqview_reverse_slice(first_step, second_step, bytes_alpha):
+def test_seqview_reverse_slice(first_step, second_step, bytes_alphabet):
     """subsequent slices may reverse the previous slice"""
     seq = "0123456789"
-    sv = new_sequence.SeqView(seq=seq, step=first_step, alphabet=bytes_alpha)
+    sv = new_sequence.SeqView(seq=seq, step=first_step, alphabet=bytes_alphabet)
     got = sv[::second_step]
     expected = seq[::first_step][::second_step]
     assert got.str_value == expected
@@ -272,7 +729,7 @@ def test_seqview_reverse_slice(first_step, second_step, bytes_alpha):
 @pytest.mark.parametrize("start", (None, 10, -1, -10))
 @pytest.mark.parametrize("stop", (None, 9, -10, -11))
 @pytest.mark.parametrize("step", (-1, -2))
-def test_seqview_rev_sliced_index(index, start, stop, step, seq, bytes_alpha):
+def test_seqview_rev_sliced_index(index, start, stop, step, seq, bytes_alphabet):
     """SeqView that has been reverse sliced, can then be sliced with a single index"""
     seq_data = seq
     try:  # if python slicing raises an index error, we expect SeqView to also throw error
@@ -280,11 +737,11 @@ def test_seqview_rev_sliced_index(index, start, stop, step, seq, bytes_alpha):
     except IndexError:
         with pytest.raises(IndexError):
             _ = new_sequence.SeqView(
-                seq=seq_data, start=start, stop=stop, step=step, alphabet=bytes_alpha
+                seq=seq_data, start=start, stop=stop, step=step, alphabet=bytes_alphabet
             )[index].str_value
     else:  # if no index error, SeqView should match python slicing
         got = new_sequence.SeqView(
-            seq=seq_data, start=start, stop=stop, step=step, alphabet=bytes_alpha
+            seq=seq_data, start=start, stop=stop, step=step, alphabet=bytes_alphabet
         )[index].str_value
         assert got == expected
 
@@ -293,10 +750,10 @@ def test_seqview_rev_sliced_index(index, start, stop, step, seq, bytes_alpha):
 @pytest.mark.parametrize("start", (None, 0, 1, 9, -1, -10))
 @pytest.mark.parametrize("stop", (None, 0, 10, -7, -11))
 @pytest.mark.parametrize("step", (1, 2, -1, -2))
-def test_seqview_init_with_negatives(seq, start, stop, step, bytes_alpha):
+def test_seqview_init_with_negatives(seq, start, stop, step, bytes_alphabet):
     "SeqView initialisation should handle any combination of positive and negative slices"
     got = new_sequence.SeqView(
-        seq=seq, start=start, stop=stop, step=step, alphabet=bytes_alpha
+        seq=seq, start=start, stop=stop, step=step, alphabet=bytes_alphabet
     )
     expected = seq[start:stop:step]
     assert got.str_value == expected
@@ -306,9 +763,9 @@ def test_seqview_init_with_negatives(seq, start, stop, step, bytes_alpha):
 @pytest.mark.parametrize("start", (None, 0, 1, 9, -1, -10))
 @pytest.mark.parametrize("stop", (None, 0, 10, -7, -11))
 @pytest.mark.parametrize("step", (1, 2, -1, -2))
-def test_seqview_slice_with_negatives(seq, start, stop, step, bytes_alpha):
+def test_seqview_slice_with_negatives(seq, start, stop, step, bytes_alphabet):
     """SeqView should handle any combination of positive and negative slices"""
-    sv = new_sequence.SeqView(seq=seq, alphabet=bytes_alpha)
+    sv = new_sequence.SeqView(seq=seq, alphabet=bytes_alphabet)
     got = sv[start:stop:step]
     expected = seq[start:stop:step]
     assert got.str_value == expected
@@ -321,11 +778,11 @@ def test_seqview_slice_with_negatives(seq, start, stop, step, bytes_alpha):
 @pytest.mark.parametrize("stop_2", (None, 2, 4, 10))
 @pytest.mark.parametrize("step_2", (1, 2))
 def test_subsequent_slice_forward(
-    start, stop, step, start_2, stop_2, step_2, bytes_alpha
+    start, stop, step, start_2, stop_2, step_2, bytes_alphabet
 ):
     """SeqView should handle subsequent forward slice"""
     seq = "0123456789"
-    sv = new_sequence.SeqView(seq=seq, alphabet=bytes_alpha)
+    sv = new_sequence.SeqView(seq=seq, alphabet=bytes_alphabet)
     got = sv[start:stop:step][start_2:stop_2:step_2]
     expected = seq[start:stop:step][start_2:stop_2:step_2]
     assert got.str_value == expected
@@ -443,12 +900,12 @@ def test_subsequent_slice_forward(
         # first stop +ve, second stop -ve, second slice OUTSIDE first
     ),
 )
-def test_subsequent_slice_neg_stop(slice_1, slice_2, ascii_alpha):
+def test_subsequent_slice_neg_stop(slice_1, slice_2, ascii_alphabet):
     """SeqView should handle subsequence slices with >=1 negative stop values,
     subsequent slices may overlap or be within previous slices
     """
     seq_data = "abcdefghijk"
-    sv = new_sequence.SeqView(seq=seq_data, alphabet=ascii_alpha)
+    sv = new_sequence.SeqView(seq=seq_data, alphabet=ascii_alphabet)
     assert sv[slice_1][slice_2].str_value == seq_data[slice_1][slice_2]
 
 
@@ -526,12 +983,12 @@ def test_subsequent_slice_neg_stop(slice_1, slice_2, ascii_alpha):
         (slice(-9, 7, 3), slice(-2, None, None)),
     ),
 )
-def test_subsequent_slice_neg_start(slice_1, slice_2, ascii_alpha):
+def test_subsequent_slice_neg_start(slice_1, slice_2, ascii_alphabet):
     """SeqView should handle subsequence slices with >=1 negative start values,
     subsequent slices may or may not overlap or be within previous slices
     """
     seq_data = "abcdefghijk"
-    sv = new_sequence.SeqView(seq=seq_data, alphabet=ascii_alpha)
+    sv = new_sequence.SeqView(seq=seq_data, alphabet=ascii_alphabet)
     assert sv[slice_1][slice_2].str_value == seq_data[slice_1][slice_2]
 
 
@@ -565,12 +1022,12 @@ def test_subsequent_slice_neg_start(slice_1, slice_2, ascii_alpha):
         (slice(10, 1, -1), slice(-19, 0, -2)),
     ),
 )
-def test_subsequent_slice_neg_step(slice_1, slice_2, ascii_alpha):
+def test_subsequent_slice_neg_step(slice_1, slice_2, ascii_alphabet):
     """SeqView should handle subsequence slices with negative step values,
     subsequent slices may overlap or be within previous slices
     """
     seq_data = "0123456789"
-    sv = new_sequence.SeqView(seq=seq_data, alphabet=ascii_alpha)
+    sv = new_sequence.SeqView(seq=seq_data, alphabet=ascii_alphabet)
     assert sv[slice_1][slice_2].str_value == seq_data[slice_1][slice_2]
 
 
@@ -583,10 +1040,10 @@ def test_subsequent_slice_neg_step(slice_1, slice_2, ascii_alpha):
         (slice(1, 9, 1), slice(2, 8, 2), slice(3, 7, -3)),
     ),
 )
-def test_subslice_3(sub_slices_triple, ascii_alpha):
+def test_subslice_3(sub_slices_triple, ascii_alphabet):
     """SeqView should handle three subsequent slices"""
     seq_data = "abcdefghijk"
-    sv = new_sequence.SeqView(seq=seq_data, alphabet=ascii_alpha)
+    sv = new_sequence.SeqView(seq=seq_data, alphabet=ascii_alphabet)
     slice_1, slice_2, slice_3 = sub_slices_triple
     assert (
         sv[slice_1][slice_2][slice_3].str_value == seq_data[slice_1][slice_2][slice_3]
