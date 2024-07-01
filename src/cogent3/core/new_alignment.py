@@ -38,6 +38,7 @@ from cogent3.format.fasta import seqs_to_fasta
 from cogent3.format.phylip import alignment_to_phylip
 from cogent3.util import progress_display as UI
 from cogent3.util import warning as c3warn
+from cogent3.util.deserialise import deserialise_object, register_deserialiser
 from cogent3.util.io import atomic_write, get_format_suffixes
 from cogent3.util.misc import (
     get_object_provenance,
@@ -187,9 +188,34 @@ class SeqDataView(new_seq.SeqViewABC, new_seq.SliceRecordABC):
         """returns copy"""
         return self
 
-    def to_rich_dict(self) -> dict: ...
+    def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
+        """returns a json serialisable dict.
 
-    # todo: kath -- implement this
+        Notes
+        -----
+        This method will slice the underlying sequence to the start and stop values
+
+        Warning
+        -------
+        This method is not intended to provide serialisation of this object,
+        instead, it is intended for usage by an enclosing class.
+        """
+
+        data = {"type": get_object_provenance(self), "version": __version__}
+        data["init_args"] = self._get_init_kwargs()
+        data["init_args"]["step"] = self.step
+
+        if self.is_reversed:
+            adj = self.seq_len + 1
+            start, stop = self.stop + adj, self.start + adj
+        else:
+            start, stop = self.start, self.stop
+
+        data["init_args"]["seq"] = self.str_value[start:stop]
+        data["init_args"]["offset"] = int(self.parent_start)
+        data["init_args"]["seq_len"] = len(self)
+
+        return data
 
 
 class SeqsDataABC(ABC):
@@ -429,18 +455,6 @@ class SeqsData(SeqsDataABC):
 
         return self.__class__(data=new_data, alphabet=alphabet)
 
-    def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
-        """returns a json serialisable dict"""
-        # todo: kath
-        # this should also include offset when implemented
-        return {
-            "data": {name: self.get_seq_str(seqid=name) for name in self.names},
-            "alphabet": self.alphabet.to_rich_dict(),
-            "type": get_object_provenance(self),
-            "reversed_seqs": self.reversed,
-            "version": __version__,
-        }
-
     def __len__(self):
         return len(self.names)
 
@@ -462,6 +476,35 @@ class SeqsData(SeqsDataABC):
     @__getitem__.register
     def _(self, index: int) -> Union[new_seq.Sequence, new_seq.SeqViewABC]:
         return self[self.names[index]]
+
+    def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
+        """returns a json serialisable dict"""
+        # todo: kath
+        # this should also include offset when implemented
+        return {
+            "init_args": {
+                "data": {name: self.get_seq_str(seqid=name) for name in self.names},
+                "alphabet": self.alphabet.to_rich_dict(),
+                "reversed_seqs": self.reversed,
+            },
+            "type": get_object_provenance(self),
+            "version": __version__,
+        }
+
+    @classmethod
+    def from_rich_dict(cls, data: dict[str, str | dict[str, str]]) -> SeqsData:
+        """returns a new instance from a rich dict"""
+        alphabet = deserialise_object(data["init_args"]["alphabet"])
+        return cls(
+            data=data["init_args"]["data"],
+            alphabet=alphabet,
+            reversed_seqs=data["init_args"]["reversed_seqs"],
+        )
+
+
+@register_deserialiser(get_object_provenance(SeqsData))
+def deserialise_seqs_data(data: dict[str, str | dict[str, str]]) -> SeqsData:
+    return SeqsData.from_rich_dict(data)
 
 
 class SequenceCollection:
@@ -710,11 +753,13 @@ class SequenceCollection:
             for name in self.names
         }
 
-    def to_rich_dict(self):
-        """returns a json serialisable dict"""
-        # refactor: design
-        # consider whether we want to include a from_rich_dict method
-        data = {}
+    def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
+        """returns a json serialisable dict
+
+        Notes
+        -----
+        Serialisation will not include the annotation_db if present.
+        """
         moltype = self.moltype.label
         info = {} if self.info is None else self.info
 
@@ -723,19 +768,35 @@ class SequenceCollection:
 
         info = info or None
 
-        data = dict(
-            seqs=self.seqs.to_rich_dict(),
+        init_args = dict(
             moltype=moltype,
             names=self.names,
             info=info,
-            type=get_object_provenance(self),
-            version=__version__,
         )
 
         if hasattr(self, "annotation_db") and self.annotation_db:
-            data["annotation_db"] = self.annotation_db.to_rich_dict()
+            init_args["annotation_db"] = self.annotation_db.to_rich_dict()
+
+        data = {
+            "init_args": init_args,
+            "type": get_object_provenance(self),
+            "version": __version__,
+        }
+        data["seqs_data"] = self.seqs.to_rich_dict()
 
         return data
+
+    @classmethod
+    def from_rich_dict(
+        cls, data: dict[str, str | dict[str, str]]
+    ) -> SequenceCollection:
+        """returns a new instance from a rich dict"""
+        seqs_data = deserialise_object(data["seqs_data"])
+        data["init_args"].pop("annotation_db", None)
+        moltype = data["init_args"].pop("moltype")
+        moltype = new_moltype.get_moltype(moltype)
+
+        return cls(seqs_data=seqs_data, **data["init_args"], moltype=moltype)
 
     def to_json(self):
         """returns json formatted string"""
@@ -2078,6 +2139,11 @@ class SequenceCollection:
             if not isinstance(wrap, int):
                 raise TypeError("wrap is not an integer")
             self._repr_policy["wrap"] = wrap
+
+
+@register_deserialiser(get_object_provenance(SequenceCollection))
+def deserialise_sequence_collection(data) -> SequenceCollection:
+    return SequenceCollection.from_rich_dict(data)
 
 
 @singledispatch
