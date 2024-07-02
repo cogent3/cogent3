@@ -935,3 +935,46 @@ def test_model_invalid_tree_func():
             "HKY85",
             tree_func="123",
         )
+
+
+def test_model_bounds_allpar():
+    upper = 10.0
+    lower = 0.5
+    app = get_app(
+        "model",
+        "HKY85",
+        optimise_motif_probs=True,
+        show_progress=False,
+        unique_trees=True,
+        lower=lower,
+        upper=upper,
+    )
+
+    aln = make_aligned_seqs(data=dict(s1="ACGT", s2="ACGC", s3="AAGT"))
+    result = app(aln)
+    rules = result.lf.get_param_rules()
+    par_bounds = {
+        (r["lower"], r["upper"])
+        for r in rules
+        if r["par_name"] == ("kappa" or "length")
+    }
+    assert par_bounds == {(lower, upper)}
+
+
+def test_model_bounds_kappa():
+    upper_kappa = 99
+    lower_kappa = 9
+    app = get_app(
+        "model",
+        "HKY85",
+        optimise_motif_probs=True,
+        show_progress=False,
+        unique_trees=True,
+        param_rules=[{"par_name": "kappa", "upper": upper_kappa, "lower": lower_kappa}],
+    )
+
+    aln = make_aligned_seqs(data=dict(s1="ACGT", s2="ACGC", s3="AAGT"))
+    result = app(aln)
+    rules = result.lf.get_param_rules()
+    kappa_bounds = {(r["lower"], r["upper"]) for r in rules if r["par_name"] == "kappa"}
+    assert kappa_bounds == {(lower_kappa, upper_kappa)}
