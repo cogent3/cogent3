@@ -29,7 +29,8 @@ from .typing import (
 )
 
 
-def _config_rules(param_rules, lower, upper):
+def _config_rules(param_rules, lower, upper, overwrite=False):
+    """fill the bounds in `param_rules` whenever no bound defined for a parameter"""
     param_rules = deepcopy(param_rules)
     for rule in param_rules:
         if rule.get("par_name", None) in (
@@ -41,8 +42,12 @@ def _config_rules(param_rules, lower, upper):
         ) or rule.get("is_constant"):
             continue
 
-        rule["lower"] = rule.get("lower", lower)  # default lower bound
-        rule["upper"] = rule.get("upper", upper)  # default upper bound
+        rule["lower"] = (
+            lower if overwrite else rule.get("lower", lower)
+        )  # default lower bound
+        rule["upper"] = (
+            upper if overwrite else rule.get("upper", upper)
+        )  # default upper bound
 
     return param_rules
 
@@ -300,6 +305,13 @@ class model:
         lf = self._sm.make_likelihood_function(self._tree, **self._lf_args)
 
         lf.set_alignment(aln)
+
+        # just use the likelihood function instance to give us the rules
+        # which we can then impose the lower/upper bounds
+        rules = lf.get_param_rules()  # innate rules dict with default params
+        rules = _config_rules(rules, self._lower, self._upper, overwrite=True)
+        lf.apply_param_rules(rules)
+
         if self._param_rules:
             lf.apply_param_rules(self._param_rules)
 
@@ -322,12 +334,6 @@ class model:
                 lf.set_time_heterogeneity(
                     edge_sets=self._time_het, lower=self._lower, upper=self._upper
                 )
-        elif not self._param_rules:
-            # just use the likelihood function instance to give us the rules
-            # which we can then impose the lower/upper bounds
-            rules = lf.get_param_rules()
-            rules = _config_rules(rules, self._lower, self._upper)
-            lf.apply_param_rules(rules)
 
         if initialise:
             lf = initialise(lf, identifier)
