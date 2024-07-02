@@ -1910,10 +1910,6 @@ class DnaSequence(Sequence, NucleicAcidSequenceMixin):
 
     # constructed by DNA moltype
 
-    def _seq_filter(self, seq):
-        """Converts U to T."""
-        return seq.replace("u", "t").replace("U", "T")
-
 
 @register_deserialiser(get_object_provenance(DnaSequence))
 def deserialise_dna_sequence(data) -> DnaSequence:
@@ -1924,10 +1920,6 @@ class RnaSequence(Sequence, NucleicAcidSequenceMixin):
     """Holds the standard RNA sequence."""
 
     # constructed by RNA moltype
-
-    def _seq_filter(self, seq):
-        """Converts T to U."""
-        return seq.replace("t", "u").replace("T", "U")
 
 
 @register_deserialiser(get_object_provenance(RnaSequence))
