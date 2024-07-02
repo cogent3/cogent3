@@ -835,7 +835,7 @@ class MolType:
         # how can we reliably strip the gap character when it will be a different
         # index depending on the alphabet used to encode the sequence?
         # here I assume that degen_alphabet was used (as that is used in the str/bytes dispatches)
-        # but this is not guaranteed if the input is already numpy array. 
+        # but this is not guaranteed if the input is already numpy array.
         # given degen_gapped_alphabet is typically used for conversion elsewhere in the code
         # should we assume that instead?
         return seq[seq < len(self.degen_alphabet)]
