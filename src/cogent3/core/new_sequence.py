@@ -35,7 +35,7 @@ from cogent3.core.annotation_db import (
 )
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.location import FeatureMap, IndelMap, LostSpan
-from cogent3.format.fasta import alignment_to_fasta
+from cogent3.format.fasta import seqs_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts
 from cogent3.maths.stats.number import CategoryCounter
 from cogent3.util.deserialise import register_deserialiser
@@ -152,7 +152,7 @@ class Sequence:
                 result = self.moltype.complement(result)
         return result
 
-    def to_fasta(self, make_seqlabel=None, block_size=60):
+    def to_fasta(self, make_seqlabel=None, block_size=60) -> str:
         """Return string of self in FASTA format, no trailing newline
 
         Parameters
@@ -171,9 +171,11 @@ class Sequence:
             label = self.label
         elif hasattr(self, "name") and self.name:
             label = self.name
-        return alignment_to_fasta({label: str(self)}, block_size=block_size)
+        return seqs_to_fasta({label: str(self)}, block_size=block_size)
 
-    def to_rich_dict(self, exclude_annotations=True):
+    def to_rich_dict(
+        self, exclude_annotations: bool = True
+    ) -> dict[str, str | dict[str, str]]:
         """returns {'name': name, 'seq': sequence, 'moltype': moltype.label}
 
         Notes
@@ -209,12 +211,12 @@ class Sequence:
         return data
 
     @classmethod
-    def from_rich_dict(cls, data):
+    def from_rich_dict(cls, data: dict):
         moltype, seq = _moltype_seq_from_rich_dict(data)
 
         return cls(moltype=moltype, seq=seq, **data)
 
-    def to_json(self):
+    def to_json(self) -> str:
         """returns a json formatted string"""
         return json.dumps(self.to_rich_dict())
 
@@ -327,41 +329,48 @@ class Sequence:
         """Removes degenerate bases by stripping them out of the sequence."""
         return self.__class__(
             moltype=self.moltype,
-            seq=self.moltype.strip_degenerate(self),
+            seq=self.moltype.strip_degenerate(str(self)),
             info=self.info,
         )
 
     def strip_bad(self):
         """Removes any symbols not in the alphabet."""
+        # refactor: design
+        # previous implementation did NOT strip X from DNA even though its not in the alphabet
+        # do we want to keep that behavior?
         return self.__class__(
-            moltype=self.moltype, seq=self.moltype.strip_bad(self), info=self.info
+            moltype=self.moltype, seq=self.moltype.strip_bad(str(self)), info=self.info
         )
 
     def strip_bad_and_gaps(self):
         """Removes any symbols not in the alphabet, and any gaps."""
         return self.__class__(
             moltype=self.moltype,
-            seq=self.moltype.strip_bad_and_gaps(self),
+            seq=self.moltype.strip_bad_and_gaps(str(self)),
             info=self.info,
         )
 
-    def is_gapped(self):
+    def is_gapped(self) -> bool:
         """Returns True if sequence contains gaps."""
-        return self.moltype.is_gapped(self)
+        return self.moltype.is_gapped(str(self))
 
-    def is_gap(self, char=None):
+    def is_gap(self, char: str = None) -> bool:
         """Returns True if char is a gap.
 
         If char is not supplied, tests whether self is gaps only.
         """
+        # refactor design
+        # only works on a single literal that's a gap, not on a sequence.
+        # i.e, seq.is_gap('-') would return True, but seq.is_gap("--") would return False
+        # possibly, this behavior should change?
         if char is None:  # no char - so test if self is all gaps
             return len(self) == self.count_gaps()
         else:
-            return self.moltype.is_gap(char)
+            return char in self.moltype.gaps
 
-    def is_degenerate(self):
+    def is_degenerate(self) -> bool:
         """Returns True if sequence contains degenerate characters."""
-        return self.moltype.is_degenerate(self)
+        return self.moltype.is_degenerate(str(self))
 
     def is_valid(self):
         """Returns True if sequence contains no items absent from alphabet."""
@@ -369,23 +378,7 @@ class Sequence:
 
     def is_strict(self):
         """Returns True if sequence contains only monomers."""
-        return self.moltype.is_strict(self)
-
-    def first_gap(self):
-        """Returns the index of the first gap in the sequence, or None."""
-        return self.moltype.first_gap(self)
-
-    def first_degenerate(self):
-        """Returns the index of first degenerate symbol in sequence, or None."""
-        return self.moltype.first_degenerate(self)
-
-    def first_invalid(self):
-        """Returns the index of first invalid symbol in sequence, or None."""
-        return self.moltype.first_invalid(self)
-
-    def first_non_strict(self):
-        """Returns the index of first non-strict symbol in sequence, or None."""
-        return self.moltype.first_non_strict(self)
+        return self.moltype.alphabet.is_valid(array(self))
 
     def disambiguate(self, method="strip"):
         """Returns a non-degenerate sequence from a degenerate one.
@@ -404,7 +397,7 @@ class Sequence:
         """Deletes all gap characters from sequence."""
         result = self.__class__(
             moltype=self.moltype,
-            seq=self.moltype.degap(self),
+            seq=self.moltype.degap(str(self)),
             name=self.name,
             info=self.info,
         )
@@ -1113,13 +1106,18 @@ class Sequence:
             feature_data.pop(discard)
         return self.make_feature(feature_data)
 
-    def to_moltype(self, moltype):
+    def to_moltype(self, moltype: str):
         """returns copy of self with moltype seq
 
         Parameters
         ----------
-        moltype : str
+        moltype
             molecular type
+
+        Notes
+        -----
+        This method cannot convert between nucleic acids and proteins. Use
+        get_translation() for that.
         """
         from cogent3.core import new_moltype
 
@@ -1127,19 +1125,44 @@ class Sequence:
             raise ValueError(f"unknown moltype '{moltype}'")
 
         moltype = new_moltype.get_moltype(moltype)
+
         if moltype is self.moltype:
             return self
 
-        s = moltype.coerce_str(self._seq.str_value)
-        moltype.verify_sequence(s, gaps_allowed=True, wildcards_allowed=True)
-        sv = SeqView(seq=s, alphabet=moltype.most_degen_alphabet())
-        new = moltype.make_seq(sv, name=self.name, info=self.info)
+        if len(self.moltype.alphabet) == len(moltype.alphabet):
+            # converting between dna and rna
+            seq = (
+                moltype.most_degen_alphabet()
+                .array_to_bytes(self._seq.array_value)
+                .decode("utf-8")
+            )
+
+        else:
+            old = self.moltype.most_degen_alphabet().as_bytes()
+            new = moltype.most_degen_alphabet().as_bytes()
+            convert_old_to_bytes = new_alphabet.array_to_bytes(old)
+            convert_bytes_to_new = new_alphabet.bytes_to_array(
+                new, dtype=new_alphabet.get_array_type(len(new))
+            )
+
+            as_new_alpha = convert_bytes_to_new(
+                convert_old_to_bytes(self._seq.array_value)
+            )
+            seq = (
+                moltype.most_degen_alphabet()
+                .array_to_bytes(as_new_alpha)
+                .decode("utf-8")
+            )
+
+        if not moltype.most_degen_alphabet().is_valid(seq):
+            raise ValueError(
+                f"Changing from old moltype={self.moltype.label} to new "
+                f"moltype={moltype.label} is not valid for this data"
+            )
+        sv = SeqView(seq=seq, alphabet=moltype.most_degen_alphabet())
+        new = moltype.make_seq(seq=sv, name=self.name, info=self.info, check_seq=False)
         new.annotation_db = self.annotation_db
         return new
-
-    def _seq_filter(self, seq):
-        """Returns filtered seq; used to do DNA/RNA conversions."""
-        return seq
 
     def copy_annotations(self, seq_db: SupportsFeatures) -> None:
         """copy annotations into attached annotation db
@@ -1453,15 +1476,6 @@ class Sequence:
         seq.annotation_db = self.annotation_db
         return indel_map, seq
 
-    def replace(self, oldchar, newchar):
-        """return new instance with oldchar replaced by newchar"""
-        new = self._seq.replace(oldchar, newchar)
-        result = self.__class__(
-            moltype=self.moltype, seq=new, name=self.name, info=self.info
-        )
-        result.annotation_db = self.annotation_db
-        return result
-
     def is_annotated(self):
         """returns True if sequence has any annotations"""
         num = self.annotation_db.num_matches() if self.annotation_db else 0
@@ -1699,7 +1713,7 @@ class NucleicAcidSequenceMixin:
         will return list of keys.
         """
         return self.__class__(
-            moltype=self.moltype, seq=self.moltype.complement(self), info=self.info
+            moltype=self.moltype, seq=self.moltype.complement(str(self)), info=self.info
         )
 
     def reverse_complement(self):
@@ -1891,7 +1905,7 @@ class NucleicAcidSequenceMixin:
         return cat.G_fit()
 
 
-class DnaSequence(NucleicAcidSequenceMixin, Sequence):
+class DnaSequence(Sequence, NucleicAcidSequenceMixin):
     """Holds the standard DNA sequence."""
 
     # constructed by DNA moltype
@@ -1906,7 +1920,7 @@ def deserialise_dna_sequence(data) -> DnaSequence:
     return DnaSequence.from_rich_dict(data)
 
 
-class RnaSequence(NucleicAcidSequenceMixin, Sequence):
+class RnaSequence(Sequence, NucleicAcidSequenceMixin):
     """Holds the standard RNA sequence."""
 
     # constructed by RNA moltype
