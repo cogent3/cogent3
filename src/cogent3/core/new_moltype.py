@@ -779,6 +779,77 @@ class MolType:
 
         return result
 
+    @functools.singledispatchmethod
+    def strip_degenerate(self, seq: StrORBytesORArray) -> StrORBytesORArray:
+        """removes degenerate characters"""
+        raise TypeError(f"{type(seq)} not supported")
+
+    @strip_degenerate.register
+    def _(self, seq: bytes) -> bytes:
+        monomers = self.alphabet
+        ambigs = set(self.degen_alphabet) - set(monomers)
+        func = new_alphabet.convert_alphabet(
+            src=monomers.as_bytes(),
+            dest=monomers.as_bytes(),
+            delete="".join(ambigs).encode("utf-8"),
+        )
+        return func(seq)
+
+    @strip_degenerate.register
+    def _(self, seq: str) -> str:
+        return self.strip_degenerate(seq.encode("utf-8")).decode("utf-8")
+
+    @strip_degenerate.register
+    def _(self, seq: numpy.ndarray) -> numpy.ndarray:
+        return self.degen_gapped_alphabet.to_indices(
+            self.strip_degenerate(self.degen_gapped_alphabet.array_to_bytes(seq))
+        )
+
+    @functools.singledispatchmethod
+    def strip_bad(self, seq: StrORBytesORArray) -> StrORBytesORArray:
+        """Removes any symbols not in the alphabet."""
+        raise TypeError(f"{type(seq)} not supported")
+
+    @strip_bad.register
+    def _(self, seq: numpy.ndarray) -> numpy.ndarray:
+        return seq[seq < len(self.degen_gapped_alphabet)]
+
+    @strip_bad.register
+    def _(self, seq: bytes) -> bytes:
+        return self.degen_gapped_alphabet.array_to_bytes(
+            self.strip_bad(self.degen_gapped_alphabet.to_indices(seq))
+        )
+
+    @strip_bad.register
+    def _(self, seq: str) -> str:
+        return self.strip_bad(seq.encode("utf8")).decode("utf8")
+
+    @functools.singledispatchmethod
+    def strip_bad_and_gaps(self, seq: StrORBytesORArray) -> StrORBytesORArray:
+        """Removes any symbols not in the alphabet, and any gaps."""
+        raise TypeError(f"{type(seq)} not supported")
+
+    @strip_bad_and_gaps.register
+    def _(self, seq: numpy.ndarray) -> numpy.ndarray:
+        # refactor: design
+        # how can we reliably strip the gap character when it will be a different
+        # index depending on the alphabet used to encode the sequence?
+        # here I assume that degen_alphabet was used (as that is used in the str/bytes dispatches)
+        # but this is not guaranteed if the input is already numpy array. 
+        # given degen_gapped_alphabet is typically used for conversion elsewhere in the code
+        # should we assume that instead?
+        return seq[seq < len(self.degen_alphabet)]
+
+    @strip_bad_and_gaps.register
+    def _(self, seq: bytes) -> bytes:
+        return self.degen_alphabet.array_to_bytes(
+            self.strip_bad_and_gaps(self.degen_alphabet.to_indices(seq))
+        )
+
+    @strip_bad_and_gaps.register
+    def _(self, seq: str) -> str:
+        return self.strip_bad_and_gaps(seq.encode("utf8")).decode("utf8")
+
     def strand_symmetric_motifs(
         self, motif_length: int = 1
     ) -> set[tuple[str, str]]:  # refactor: docstring
