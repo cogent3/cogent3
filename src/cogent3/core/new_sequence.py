@@ -1160,7 +1160,7 @@ class Sequence:
                 f"moltype={moltype.label} is not valid for this data"
             )
         sv = SeqView(seq=seq, alphabet=moltype.most_degen_alphabet())
-        new = moltype.make_seq(seq=sv, name=self.name, info=self.info, check_seq=False)
+        new = self.__class__(moltype=moltype, seq=sv, name=self.name, info=self.info)
         new.annotation_db = self.annotation_db
         return new
 
