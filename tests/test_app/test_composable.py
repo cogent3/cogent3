@@ -1129,3 +1129,17 @@ def test_copies_doc_from_func():
 
     assert delme2.__doc__ == "my docstring"
     assert delme2.__init__.__doc__.split() == ["Notes", "-----", "body"]
+
+
+def test_bad_wrap():
+    def foo(a: "str") -> int:
+        return int(a)
+
+    with pytest.raises(NotImplementedError):
+        define_app(foo)
+
+    def bar(a: str) -> "int":
+        return int(a)
+
+    with pytest.raises(NotImplementedError):
+        define_app(bar)
