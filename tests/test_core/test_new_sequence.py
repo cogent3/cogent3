@@ -336,13 +336,13 @@ def test_sequence_disambiguate():
 def test_sequence_degap():
     """Sequence degap should remove all gaps from sequence"""
     # doesn't preserve case
-    new_moltype.RNA.make_seq(seq="").degap() == ""
-    new_moltype.RNA.make_seq(seq="GUCAGUC").degap() == "GUCAGUC"
-    new_moltype.RNA.make_seq(seq="----------------").degap() == ""
-    new_moltype.RNA.make_seq(seq="GCUAUACG-").degap() == "GCUAUACG"
-    new_moltype.RNA.make_seq(seq="-CUAGUCA").degap() == "CUAGUCA"
-    new_moltype.RNA.make_seq(seq="---A---C---U----G---").degap() == "ACUG"
-    new_moltype.RNA.make_seq(seq="?A-").degap() == "A"
+    assert new_moltype.RNA.make_seq(seq="").degap() == ""
+    assert new_moltype.RNA.make_seq(seq="GUCAGUC").degap() == "GUCAGUC"
+    assert new_moltype.RNA.make_seq(seq="----------------").degap() == ""
+    assert new_moltype.RNA.make_seq(seq="GCUAUACG-").degap() == "GCUAUACG"
+    assert new_moltype.RNA.make_seq(seq="-CUAGUCA").degap() == "CUAGUCA"
+    assert new_moltype.RNA.make_seq(seq="---A---C---U----G---").degap() == "ACUG"
+    assert new_moltype.RNA.make_seq(seq="?A-").degap() == "A"
 
 
 @pytest.mark.xfail(
@@ -494,7 +494,7 @@ def test_can_match():
 )
 def test_can_mismatch():
     """Sequence can_mismatch should return True on any possible mismatch"""
-    assert not new_moltype.RNA.make_seq("").can_mismatch("")
+    assert not new_moltype.RNA.make_seq(seq="").can_mismatch("")
     assert new_moltype.RNA.make_seq(seq="N").can_mismatch("N")
     assert new_moltype.RNA.make_seq(seq="R").can_mismatch("R")
     assert new_moltype.RNA.make_seq(seq="N").can_mismatch("r")
