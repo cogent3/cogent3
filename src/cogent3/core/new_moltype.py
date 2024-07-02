@@ -821,7 +821,7 @@ class MolType:
 
     @strip_bad.register
     def _(self, seq: str) -> str:
-        return self._strip_bad(seq.encode("utf8")).decode("utf8")
+        return self.strip_bad(seq.encode("utf8")).decode("utf8")
 
     @functools.singledispatchmethod
     def strip_bad_and_gaps(self, seq: StrORBytes) -> StrORBytes:
