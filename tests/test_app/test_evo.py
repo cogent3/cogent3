@@ -493,10 +493,26 @@ class TestHypothesisResult(TestCase):
         aln = make_aligned_seqs(data=_data, moltype="dna")
         opt_args = dict(max_evaluations=10, limit_action="ignore")
         m1 = evo_app.model(
-            "F81", optimise_motif_probs=False, split_codons=True, opt_args=opt_args
+            "F81",
+            optimise_motif_probs=False,
+            split_codons=True,
+            opt_args=opt_args,
+            param_rules=[
+                {"par_name": "length", "upper": 10.0, "lower": 1e-09},
+            ],
+            lower=1e-06,
+            upper=1000000.0,
         )
         m2 = evo_app.model(
-            "GTR", optimise_motif_probs=False, split_codons=True, opt_args=opt_args
+            "GTR",
+            optimise_motif_probs=False,
+            split_codons=True,
+            opt_args=opt_args,
+            param_rules=[
+                {"par_name": "length", "upper": 10.0, "lower": 1e-09},
+            ],
+            lower=1e-06,
+            upper=1000000.0,
         )
         hyp = evo_app.hypothesis(m1, m2)
         r = hyp(aln)
