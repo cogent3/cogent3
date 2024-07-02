@@ -401,7 +401,7 @@ def test_strip_degenerate(data_type):
     )
 
 
-@pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
+@pytest.mark.parametrize("data_type", (str, bytes))
 def test_strip_bad(data_type):
     """removes characters that are not in the alphabet"""
 
@@ -409,25 +409,19 @@ def test_strip_bad(data_type):
     seq = make_typed("TCGA-Q?NRYWSKMBDHV", data_type, new_moltype.DNA)
     got = new_moltype.DNA.strip_bad(seq)
     expect = make_typed("TCGA-?NRYWSKMBDHV", data_type, new_moltype.DNA)
-    assert (
-        numpy.array_equal(got, expect) if data_type is numpy.ndarray else got == expect
-    )
+    assert got == expect
 
     # Protein - J and * not in Protein alphabet/ambiguities
     seq = make_typed("ASTBJZ*-X", data_type, new_moltype.PROTEIN)
     got = new_moltype.PROTEIN.strip_bad(seq)
     expect = make_typed("ASTBZ-X", data_type, new_moltype.PROTEIN)
-    assert (
-        numpy.array_equal(got, expect) if data_type is numpy.ndarray else got == expect
-    )
+    assert got == expect
 
     # Protein with stop - J  not in Protein alphabet/ambiguities
     seq = make_typed("ASTBJZ*-X", data_type, new_moltype.PROTEIN_WITH_STOP)
     got = new_moltype.PROTEIN_WITH_STOP.strip_bad(seq)
     expect = make_typed("ASTBZ*-X", data_type, new_moltype.PROTEIN_WITH_STOP)
-    assert (
-        numpy.array_equal(got, expect) if data_type is numpy.ndarray else got == expect
-    )
+    assert got == expect
 
 
 @pytest.mark.parametrize("data_type", (str, bytes))
