@@ -829,21 +829,18 @@ class MolType:
         """Removes any symbols not in the alphabet, and any gaps."""
         raise TypeError(f"{type(seq)} not supported")
 
-    @strip_bad_and_gaps.register
-    def _(self, seq: numpy.ndarray) -> numpy.ndarray:
-        # refactor: design
-        # how can we reliably strip the gap character when it will be a different
-        # index depending on the alphabet used to encode the sequence?
-        # here I assume that degen_alphabet was used (as that is used in the str/bytes dispatches)
-        # but this is not guaranteed if the input is already numpy array.
-        # given degen_gapped_alphabet is typically used for conversion elsewhere in the code
-        # should we assume that instead?
-        return seq[seq < len(self.degen_alphabet)]
+    def _strip_bad_and_gaps(self, seq: numpy.ndarray) -> numpy.ndarray:
+        return seq[
+            numpy.logical_and(
+                seq < len(self.degen_gapped_alphabet),
+                seq != self.degen_gapped_alphabet.gap_index,
+            )
+        ]
 
     @strip_bad_and_gaps.register
     def _(self, seq: bytes) -> bytes:
-        return self.degen_alphabet.array_to_bytes(
-            self.strip_bad_and_gaps(self.degen_alphabet.to_indices(seq))
+        return self.degen_gapped_alphabet.array_to_bytes(
+            self._strip_bad_and_gaps(self.degen_gapped_alphabet.to_indices(seq))
         )
 
     @strip_bad_and_gaps.register
