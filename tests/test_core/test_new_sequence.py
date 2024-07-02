@@ -45,11 +45,15 @@ def test_moltype_make_bytes_seq():
     assert str(seq) == raw
 
 
+@pytest.fixture
+def bytes_alpha():
+    return new_moltype.BYTES.most_degen_alphabet()
+
+
 @pytest.fixture(scope="function")
-def integer_seq():
+def integer_seq(bytes_alpha):
     """Used for slicing tests"""
-    a = new_moltype.BYTES.most_degen_alphabet()
-    return new_sequence.SeqView(seq="0123456789", alphabet=a)
+    return new_sequence.SeqView(seq="0123456789", alphabet=bytes_alpha)
 
 
 @pytest.fixture
@@ -58,6 +62,518 @@ def ascii_alpha():
 
 
 # Tests from test_sequence.py
+@pytest.mark.parametrize("start", (None, 0, 1, 10, -1, -10))
+@pytest.mark.parametrize("stop", (None, 10, 8, 1, 0, -1, -11))
+@pytest.mark.parametrize("step", (None, 1, 2, -1, -2))
+def test_seqview_initialisation(start, stop, step, bytes_alpha):
+    """Initialising a SeqView should work with range of provided values"""
+    seq_data = "0123456789"
+    got = new_sequence.SeqView(
+        seq=seq_data, start=start, stop=stop, step=step, alphabet=bytes_alpha
+    )
+    expected = seq_data[start:stop:step]
+    assert got.str_value == expected
+
+
+@pytest.mark.parametrize("index", (-10, -5, 0, 5, 9))  # -10 and 9 are boundary
+def test_seqview_index(index, bytes_alpha):
+    """SeqView with default values can be sliced with a single index, when within the length of the sequence"""
+    seq_data = "0123456789"
+    sv = new_sequence.SeqView(seq=seq_data, alphabet=bytes_alpha)
+    got = sv[index]
+    expected = seq_data[index]
+    assert got.str_value == expected
+    assert len(got) == 1
+
+
+def test_seqview_index_null(ascii_alpha):
+    "Indexing a SeqView of length 0 should return an IndexError"
+    sv = new_sequence.SeqView(seq="", alphabet=ascii_alpha)
+    with pytest.raises(IndexError):
+        _ = sv[0]
+
+
+def test_seqview_step_0(bytes_alpha):
+    "Initialising or slicing a SeqView with a step of 0 should return an IndexError"
+    sv = new_sequence.SeqView(seq="0123456789", alphabet=bytes_alpha)
+    with pytest.raises(ValueError):
+        _ = sv[::0]
+    with pytest.raises(ValueError):
+        _ = new_sequence.SeqView(seq="0123456789", alphabet=bytes_alpha, step=0)
+
+
+@pytest.mark.parametrize("start", (0, 2, 4))
+def test_seqview_invalid_index(start, bytes_alpha):
+    "indexing out of bounds with a forward step should raise an IndexError"
+    seq = "0123456789"
+    length = abs(start - len(seq))
+    pos_boundary_index = length
+    neg_boundary_index = -length - 1
+
+    sv = new_sequence.SeqView(seq=seq, start=start, alphabet=bytes_alpha)
+    with pytest.raises(IndexError):
+        _ = sv[pos_boundary_index]
+    with pytest.raises(IndexError):
+        _ = sv[neg_boundary_index]
+
+
+@pytest.mark.parametrize("start", (0, 2, 4))
+def test_seqview_invalid_index_positive_step_gt_1(start, bytes_alpha):
+    "boundary condition for indexing out of bounds with a forward step greater than 1"
+    seq = "0123456789"
+    step = 2
+    length = abs((start - len(seq)) // step)
+    neg_boundary_index = -length - 1
+    pos_boundary_index = length
+
+    sv = new_sequence.SeqView(seq=seq, start=start, step=step, alphabet=bytes_alpha)
+    with pytest.raises(IndexError):
+        _ = sv[pos_boundary_index]
+    with pytest.raises(IndexError):
+        _ = sv[neg_boundary_index]
+
+
+@pytest.mark.parametrize("stop", (0, 2, -11))
+def test_seqview_invalid_index_reverse_step(stop, bytes_alpha):
+    "boundary condition for indexing out of bounds with a reverse step"
+    seq = "0123456789"
+    step = -1
+    start = len(seq)
+    length = abs((start - stop) // step)
+    neg_boundary_index = -length - 1
+    pos_boundary_index = length
+
+    sv = new_sequence.SeqView(
+        seq=seq, start=start, stop=stop, step=step, alphabet=bytes_alpha
+    )
+    with pytest.raises(IndexError):
+        _ = sv[pos_boundary_index]
+    with pytest.raises(IndexError):
+        _ = sv[neg_boundary_index]
+
+
+@pytest.mark.parametrize("stop", (0, 2, -6))
+def test_seqview_invalid_index_reverse_step_gt_1(stop, bytes_alpha):
+    "boundary condition for indexing out of bounds with a reverse step less than -1"
+    seq = "0123456789"
+    step = -2
+    start = len(seq)
+    length = abs((start - stop) // step)
+    neg_boundary_index = -length - 1
+    pos_boundary_index = length
+
+    sv = new_sequence.SeqView(
+        seq=seq, start=start, stop=stop, step=step, alphabet=bytes_alpha
+    )
+    with pytest.raises(IndexError):
+        _ = sv[pos_boundary_index]
+    with pytest.raises(IndexError):
+        _ = sv[neg_boundary_index]
+
+
+def test_seqview_slice_null(ascii_alpha):
+    sv = new_sequence.SeqView(seq="", alphabet=ascii_alpha)
+    assert len(sv) == 0
+    got = sv[2:]
+    assert len(got) == 0
+
+
+def test_seqview_start_out_of_bounds(bytes_alpha):
+    "boundary condition for start index out of bounds"
+    seq = "0123456789"
+    init_start, init_stop, init_step = 2, 10, 1
+    boundary = abs((init_start - init_stop) // init_step)
+    sv = new_sequence.SeqView(
+        seq=seq, start=init_start, stop=init_stop, step=init_step, alphabet=bytes_alpha
+    )
+    got = sv[boundary::].str_value
+    assert got == ""
+
+
+def test_seqview_start_out_of_bounds_step_gt_1(bytes_alpha):
+    "boundary condition for start index out of bounds with step greater than 1"
+    seq = "0123456789"
+    init_start, init_stop, init_step = 2, 10, 2
+    boundary = abs((init_start - init_stop) // init_step)
+    sv = new_sequence.SeqView(
+        seq=seq, start=init_start, stop=init_stop, step=init_step, alphabet=bytes_alpha
+    )
+    got = sv[boundary::].str_value
+    assert got == ""
+
+
+def test_seqview_start_out_of_bounds_reverse_step(bytes_alpha):
+    "boundary condition for start index out of bounds with reverse step"
+    seq = "0123456789"
+    init_start, init_stop, init_step = 2, 10, -2
+    boundary_pos = abs((init_start - init_stop) // init_step)
+    boundary_neg = -abs((init_start - init_stop) // init_step) - 1
+
+    sv = new_sequence.SeqView(
+        seq=seq, start=init_start, stop=init_stop, step=init_step, alphabet=bytes_alpha
+    )
+
+    assert sv[boundary_pos::].str_value == ""
+    assert sv[boundary_neg::].str_value == ""
+
+
+@pytest.mark.parametrize(
+    "simple_slices",
+    (
+        slice(None, None, 1),
+        slice(None, 3, None),
+        slice(1, None, None),
+        slice(1, 3, None),
+        slice(None, None, None),
+    ),
+)
+def test_seqview_defaults(simple_slices, bytes_alpha):
+    """SeqView should accept slices with all combinations of default parameters"""
+    seq = "0123456789"
+    got = new_sequence.SeqView(seq=seq, alphabet=bytes_alpha)[simple_slices]
+    expected = seq[simple_slices]
+    assert got.str_value == expected
+
+
+@pytest.mark.parametrize("index", (-8, -5, 0, 5, 8))
+@pytest.mark.parametrize(
+    "simple_slices",
+    (
+        slice(None, None, 1),
+        slice(None, 10, None),
+        slice(1, None, None),
+        slice(1, 10, None),
+        slice(1, 10, 1),
+        slice(None, None, None),
+    ),
+)
+def test_seqview_sliced_index(index, simple_slices, bytes_alpha):
+    """SeqView that has been sliced with default parameters, can then be indexed"""
+    seq = "0123456789"
+    sv = new_sequence.SeqView(seq=seq, alphabet=bytes_alpha)
+    got = sv[simple_slices][index]
+    expected = seq[simple_slices][index]
+    assert got.str_value == expected
+
+
+@pytest.mark.parametrize("first_step", (1, 2, -1, -2))
+@pytest.mark.parametrize("second_step", (1, 2, -1, -2))
+def test_seqview_reverse_slice(first_step, second_step, bytes_alpha):
+    """subsequent slices may reverse the previous slice"""
+    seq = "0123456789"
+    sv = new_sequence.SeqView(seq=seq, step=first_step, alphabet=bytes_alpha)
+    got = sv[::second_step]
+    expected = seq[::first_step][::second_step]
+    assert got.str_value == expected
+
+
+@pytest.mark.parametrize("seq", ("0123456789", "01234567890"))
+@pytest.mark.parametrize("index", (-10, -4, 0, 6, 10))
+@pytest.mark.parametrize("start", (None, 10, -1, -10))
+@pytest.mark.parametrize("stop", (None, 9, -10, -11))
+@pytest.mark.parametrize("step", (-1, -2))
+def test_seqview_rev_sliced_index(index, start, stop, step, seq, bytes_alpha):
+    """SeqView that has been reverse sliced, can then be sliced with a single index"""
+    seq_data = seq
+    try:  # if python slicing raises an index error, we expect SeqView to also throw error
+        expected = seq_data[start:stop:step][index]
+    except IndexError:
+        with pytest.raises(IndexError):
+            _ = new_sequence.SeqView(
+                seq=seq_data, start=start, stop=stop, step=step, alphabet=bytes_alpha
+            )[index].str_value
+    else:  # if no index error, SeqView should match python slicing
+        got = new_sequence.SeqView(
+            seq=seq_data, start=start, stop=stop, step=step, alphabet=bytes_alpha
+        )[index].str_value
+        assert got == expected
+
+
+@pytest.mark.parametrize("seq", ("0123456789", "012345678"))
+@pytest.mark.parametrize("start", (None, 0, 1, 9, -1, -10))
+@pytest.mark.parametrize("stop", (None, 0, 10, -7, -11))
+@pytest.mark.parametrize("step", (1, 2, -1, -2))
+def test_seqview_init_with_negatives(seq, start, stop, step, bytes_alpha):
+    "SeqView initialisation should handle any combination of positive and negative slices"
+    got = new_sequence.SeqView(
+        seq=seq, start=start, stop=stop, step=step, alphabet=bytes_alpha
+    )
+    expected = seq[start:stop:step]
+    assert got.str_value == expected
+
+
+@pytest.mark.parametrize("seq", ("0123456789", "012345678"))
+@pytest.mark.parametrize("start", (None, 0, 1, 9, -1, -10))
+@pytest.mark.parametrize("stop", (None, 0, 10, -7, -11))
+@pytest.mark.parametrize("step", (1, 2, -1, -2))
+def test_seqview_slice_with_negatives(seq, start, stop, step, bytes_alpha):
+    """SeqView should handle any combination of positive and negative slices"""
+    sv = new_sequence.SeqView(seq=seq, alphabet=bytes_alpha)
+    got = sv[start:stop:step]
+    expected = seq[start:stop:step]
+    assert got.str_value == expected
+
+
+@pytest.mark.parametrize("start", (None, 0, 2))
+@pytest.mark.parametrize("stop", (None, 5, 7, 10))
+@pytest.mark.parametrize("step", (1, 2))
+@pytest.mark.parametrize("start_2", (None, 0, 1, 2))
+@pytest.mark.parametrize("stop_2", (None, 2, 4, 10))
+@pytest.mark.parametrize("step_2", (1, 2))
+def test_subsequent_slice_forward(
+    start, stop, step, start_2, stop_2, step_2, bytes_alpha
+):
+    """SeqView should handle subsequent forward slice"""
+    seq = "0123456789"
+    sv = new_sequence.SeqView(seq=seq, alphabet=bytes_alpha)
+    got = sv[start:stop:step][start_2:stop_2:step_2]
+    expected = seq[start:stop:step][start_2:stop_2:step_2]
+    assert got.str_value == expected
+    assert len(got) == len(expected)
+
+
+@pytest.mark.parametrize(
+    "slice_1, slice_2",
+    (
+        # WITH DEFAULTS
+        # first stop -ve
+        (slice(None, -3, None), slice(None, None, None)),
+        # second stop -ve
+        (slice(None, None, None), slice(None, -1, None)),
+        # both stop -ve, (first > second), second slice WITHIN first
+        (slice(None, -3, None), slice(None, -5, None)),
+        # both stop -ve, (first < second), second slice WITHIN first
+        (slice(None, -5, None), slice(None, -3, None)),
+        # both stop -ve, (first > second), second slice OUTSIDE first
+        (slice(None, -3, None), slice(None, -8, None)),
+        # both stop -ve, (first < second), second slice OUTSIDE first
+        (slice(None, -8, None), slice(None, -3, None)),
+        # first stop -ve, second stop +ve, second slice WITHIN first
+        (slice(None, -2, None), slice(None, 7, None)),
+        # first stop -ve, second stop +ve, second slice OUTSIDE first
+        (slice(None, -6, None), slice(None, 7, None)),
+        # first stop +ve, second stop -ve, second slice WITHIN first
+        (slice(None, 6, None), slice(None, -2, None)),
+        # first stop +ve, second stop -ve, second slice OUTSIDE first
+        (slice(None, 6, None), slice(None, -7, None)),
+        # WITH FIRST STEP > 1
+        # first stop -ve
+        (slice(None, -3, 2), slice(None, None, None)),
+        # second stop -ve
+        (slice(None, None, 2), slice(None, -1, None)),
+        # both stop -ve, (first > second), second slice WITHIN first
+        (slice(None, -1, 2), slice(None, -3, None)),
+        # both stop -ve, (first < second), second slice WITHIN first
+        (slice(None, -3, 2), slice(None, -2, None)),
+        # both stop -ve, (first > second), second slice OUTSIDE first
+        (slice(None, -3, 2), slice(None, -8, None)),
+        # both stop -ve, (first < second), second slice OUTSIDE first
+        (slice(None, -8, 2), slice(None, -3, None)),
+        # first stop -ve, second stop +ve, second slice WITHIN first
+        (slice(None, -2, 2), slice(None, 3, None)),
+        # first stop -ve, second stop +ve, second slice OVERLAP first
+        (slice(None, -6, 2), slice(None, 7, None)),
+        # first stop +ve, second stop -ve, second slice WITHIN first
+        (slice(None, 6, 2), slice(None, -2, None)),
+        # first stop +ve, second stop -ve, second slice OUTSIDE first
+        (slice(None, 6, 2), slice(None, -7, None)),
+        # WITH SECOND STEP > 1
+        # first stop -ve
+        (slice(None, -3, None), slice(None, None, 3)),
+        # second stop -ve
+        (slice(None, None, None), slice(None, -1, 3)),
+        # both stop -ve, (first > second), second slice WITHIN first
+        (slice(None, -2, None), slice(None, -4, 2)),
+        # both stop -ve, (first < second), second slice WITHIN first
+        (slice(None, -4, None), slice(None, -3, 2)),
+        # both stop -ve, (first > second), second slice OUTSIDE first
+        (slice(None, -3, None), slice(None, -8, 2)),
+        # both stop -ve, (first < second), second slice OUTSIDE first
+        (slice(None, -8, None), slice(None, -3, 2)),
+        # first stop -ve, second stop +ve, second slice WITHIN first
+        (slice(None, -2, None), slice(None, 7, 2)),
+        # first stop -ve, second stop +ve, second slice OVERLAP first
+        (slice(None, -6, None), slice(None, 7, 2)),
+        # first stop +ve, second stop -ve, second slice WITHIN first
+        (slice(None, 9, None), slice(None, -2, 3)),
+        # first stop +ve, second stop -ve, second slice OUTSIDE first
+        (slice(None, 6, None), slice(None, -7, 3)),
+        # WITH BOTH STEP > 1
+        # first stop -ve
+        (slice(None, -3, 2), slice(None, None, 3)),
+        # second stop -ve
+        (slice(None, None, 2), slice(None, -1, 3)),
+        # both stop -ve, (first > second), second slice WITHIN first
+        (slice(None, -1, 3), slice(None, -2, 2)),
+        # both stop -ve, (first < second), second slice WITHIN first
+        (slice(None, -2, 2), slice(None, -1, 2)),
+        # both stop -ve, (first > second), second slice OUTSIDE first
+        (slice(None, -3, 3), slice(None, -8, 2)),
+        # both stop -ve, (first < second), second slice OUTSIDE first
+        (slice(None, -8, 2), slice(None, -3, 2)),
+        # first stop -ve, second stop +ve, second slice WITHIN first
+        (slice(None, -2, 3), slice(None, 7, 2)),
+        # first stop -ve, second stop +ve, second slice OVERLAP first
+        (slice(None, -3, 3), slice(None, 7, 2)),
+        # first stop +ve, second stop -ve, second slice WITHIN first
+        (slice(None, 9, 2), slice(None, -1, 3)),
+        # first stop +ve, second stop -ve, second slice OUTSIDE first
+        (slice(None, 6, 2), slice(None, -7, 3)),
+        # NON-ZERO START
+        # first stop -ve
+        (slice(1, -3, 2), slice(None, None, 3)),
+        # second stop -ve
+        (slice(1, None, 2), slice(None, -1, 3)),
+        # both stop -ve, (first > second), second slice WITHIN first
+        (slice(1, -1, 3), slice(None, -2, 2)),
+        # both stop -ve, (first < second), second slice WITHIN first
+        (slice(1, -2, 2), slice(None, -1, 2)),
+        # both stop -ve, (first > second), second slice OUTSIDE first
+        (slice(1, -3, 3), slice(None, -8, 2)),
+        # both stop -ve, (first < second), second slice OUTSIDE first
+        (slice(1, -8, 2), slice(None, -3, 2)),
+        # first stop -ve, second stop +ve, second slice WITHIN first
+        (slice(1, -2, 3), slice(None, 7, 2)),
+        # first stop -ve, second stop +ve, second slice OVERLAP first
+        (slice(1, -3, 3), slice(None, 7, 2)),
+        # first stop +ve, second stop -ve, second slice WITHIN first
+        (slice(1, 10, 2), slice(None, -1, 3)),
+        # first stop +ve, second stop -ve, second slice OUTSIDE first
+        (slice(1, 6, 2), slice(None, -7, 3)),
+        # first stop +ve, second stop -ve, second slice OUTSIDE first
+    ),
+)
+def test_subsequent_slice_neg_stop(slice_1, slice_2, ascii_alpha):
+    """SeqView should handle subsequence slices with >=1 negative stop values,
+    subsequent slices may overlap or be within previous slices
+    """
+    seq_data = "abcdefghijk"
+    sv = new_sequence.SeqView(seq=seq_data, alphabet=ascii_alpha)
+    assert sv[slice_1][slice_2].str_value == seq_data[slice_1][slice_2]
+
+
+@pytest.mark.parametrize(
+    "slice_1, slice_2",
+    (
+        # WITH DEFAULTS
+        # first start -ve
+        (slice(-6, None, None), slice(None, None, None)),
+        # second start -ve
+        (slice(None, None, None), slice(-6, None, None)),
+        # both start -ve, (first < second), second slice WITHIN first
+        (slice(-6, None, None), slice(-4, None, None)),
+        # both start -ve, (first > second), second slice OUTSIDE first
+        (slice(-4, None, None), slice(-6, None, None)),
+        # first start -ve, second start +ve, second slice WITHIN first
+        (slice(-8, None, None), slice(2, None, None)),
+        # first start -ve, second start +ve, second slice OUTSIDE first
+        (slice(-6, None, None), slice(7, None, None)),
+        # first start +ve, second start -ve, second slice WITHIN first
+        (slice(2, None, None), slice(-7, None, None)),
+        # first start +ve, second start -ve, second slice OUTSIDE first
+        (slice(5, None, None), slice(-6, None, None)),
+        # WITH FIRST STEP > 1
+        # first start -ve
+        (slice(-6, None, 2), slice(None, None, None)),
+        # second start -ve
+        (slice(None, None, 2), slice(-6, None, None)),
+        # both start -ve, (first < second), second slice WITHIN first
+        (slice(-8, None, 2), slice(-6, None, None)),
+        # both start -ve, (first > second), second slice OUTSIDE first
+        (slice(-7, None, 2), slice(-9, None, None)),
+        # first start -ve, second start +ve, second slice WITHIN first
+        (slice(-9, None, 2), slice(2, None, None)),
+        # first start -ve, second start +ve, second slice OUTSIDE first
+        (slice(-6, None, 2), slice(7, None, None)),
+        # first start +ve, second start -ve, second slice WITHIN first
+        (slice(2, None, 2), slice(-7, None, None)),
+        # first start +ve, second start -ve, second slice OUTSIDE first
+        (slice(3, None, 2), slice(-9, None, None)),
+        # WITH SECOND STEP > 1
+        # first start -ve
+        (slice(-6, None, None), slice(None, None, 2)),
+        # second start -ve
+        (slice(None, None, None), slice(-6, None, 2)),
+        # both start -ve, (first < second), second slice WITHIN first
+        (slice(-8, None, None), slice(-6, None, 2)),
+        # both start -ve, (first > second), second slice OUTSIDE first
+        (slice(-7, None, None), slice(-9, None, 2)),
+        # first start -ve, second start +ve, second slice WITHIN first
+        (slice(-9, None, None), slice(2, None, 2)),
+        # first start -ve, second start +ve, second slice OUTSIDE first
+        (slice(-6, None, None), slice(7, None, 2)),
+        # first start +ve, second start -ve, second slice WITHIN first
+        (slice(2, None, None), slice(-7, None, 2)),
+        # first start +ve, second start -ve, second slice OUTSIDE first
+        (slice(3, None, None), slice(-9, None, 2)),
+        # WITH BOTH STEP > 1
+        # first start -ve
+        (slice(-6, None, 3), slice(None, None, 2)),
+        # second start -ve
+        (slice(None, None, 3), slice(-6, None, 2)),
+        # both start -ve, (first < second), second slice WITHIN first
+        (slice(-9, None, 3), slice(-7, None, 2)),
+        # both start -ve, (first > second), second slice OUTSIDE first
+        (slice(-7, None, 3), slice(-9, None, 2)),
+        # first start -ve, second start +ve, second slice WITHIN first
+        (slice(-9, None, 3), slice(2, None, 2)),
+        # first start -ve, second start +ve, second slice OUTSIDE first
+        (slice(-6, None, 2), slice(7, None, 2)),
+        # first start +ve, second start -ve, second slice WITHIN first
+        (slice(2, None, 3), slice(-7, None, 2)),
+        # first start +ve, second start -ve, second slice OUTSIDE first
+        (slice(3, None, 3), slice(-9, None, 2)),
+        (slice(-9, 7, 3), slice(-2, None, None)),
+    ),
+)
+def test_subsequent_slice_neg_start(slice_1, slice_2, ascii_alpha):
+    """SeqView should handle subsequence slices with >=1 negative start values,
+    subsequent slices may or may not overlap or be within previous slices
+    """
+    seq_data = "abcdefghijk"
+    sv = new_sequence.SeqView(seq=seq_data, alphabet=ascii_alpha)
+    assert sv[slice_1][slice_2].str_value == seq_data[slice_1][slice_2]
+
+
+@pytest.mark.parametrize(
+    "slice_1, slice_2",
+    (
+        # WITH DEFAULTS
+        # first step -ve
+        (slice(None, None, -1), slice(None, None, None)),
+        # second step -ve
+        (slice(None, None, None), slice(None, None, -1)),
+        # both step -ve, start/stop -ve, second slice WITHIN first
+        (slice(-1, -11, -2), slice(-1, -5, -3)),
+        # both step -ve, start/stop -ve, second slice OUTSIDE first
+        (slice(-1, -11, -2), slice(-1, -11, -3)),
+        # both step -ve, start/stop +ve, second slice WITHIN first
+        (slice(10, 0, -2), slice(5, 0, -3)),
+        # both step -ve, start/stop +ve, second slice OUTSIDE first
+        (slice(10, 0, -2), slice(10, 0, -3)),
+        # first step -ve, second step +ve, second slice WITHIN first
+        (slice(10, 0, -2), slice(1, 5, 2)),
+        # first step -ve, second step +ve, second slice OUTSIDE first
+        (slice(10, 0, -2), slice(0, 10, 2)),
+        # first step +ve, second step -ve, second slice WITHIN first
+        (slice(0, 10, 2), slice(4, 0, -2)),
+        # first step +ve, second step -ve, second slice OUTSIDE first
+        (slice(0, 10, 3), slice(10, 0, -2)),
+        # first step -ve, second step +ve, second start/stop +ve
+        (slice(10, 1, -1), slice(-8, 11, 2)),
+        # first step -ve, second step +ve, second start/stop +ve
+        (slice(10, 1, -1), slice(-19, 0, -2)),
+    ),
+)
+def test_subsequent_slice_neg_step(slice_1, slice_2, ascii_alpha):
+    """SeqView should handle subsequence slices with negative step values,
+    subsequent slices may overlap or be within previous slices
+    """
+    seq_data = "0123456789"
+    sv = new_sequence.SeqView(seq=seq_data, alphabet=ascii_alpha)
+    assert sv[slice_1][slice_2].str_value == seq_data[slice_1][slice_2]
+
+
 @pytest.mark.parametrize(
     "sub_slices_triple",
     (
@@ -67,7 +583,7 @@ def ascii_alpha():
         (slice(1, 9, 1), slice(2, 8, 2), slice(3, 7, -3)),
     ),
 )
-def test_subslice_3(sub_slices_triple):
+def test_subslice_3(sub_slices_triple, ascii_alpha):
     """SeqView should handle three subsequent slices"""
     seq_data = "abcdefghijk"
     sv = new_sequence.SeqView(seq=seq_data, alphabet=ascii_alpha)
@@ -135,7 +651,247 @@ def test_seqview_repr():
     assert repr(view) == expected
 
 
-# test_get_kmers_strict() to test_annotate_from_gff()
+@pytest.mark.parametrize(
+    "k, strict, expect",
+    [
+        (1, True, ["T", "C", "A", "G", "G", "A"]),
+        (2, True, ["TC", "CA", "AG", "GG", "GA"]),
+        (3, True, ["TCA", "CAG", "AGG", "GGA"]),
+        (4, True, ["TCAG", "CAGG", "AGGA"]),
+        (5, True, ["TCAGG", "CAGGA"]),
+        (6, True, ["TCAGGA"]),
+        (7, True, []),
+        (1, False, ["T", "C", "A", "G", "G", "A", "N"]),
+        (2, False, ["TC", "CA", "AG", "GG", "GA", "AN"]),
+        (3, False, ["TCA", "CAG", "AGG", "GGA", "GAN"]),
+        (4, False, ["TCAG", "CAGG", "AGGA", "GGAN"]),
+        (5, False, ["TCAGG", "CAGGA", "AGGAN"]),
+        (6, False, ["TCAGGA", "CAGGAN"]),
+        (7, False, ["TCAGGAN"]),
+        (8, False, []),
+    ],
+)
+def test_get_kmers_strict_dna(k, strict, expect):
+    orig = "TCAGGAN"
+    mt = new_moltype.DNA
+    r = mt.make_seq(seq=orig)
+    got = r.get_kmers(k, strict=strict)
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "k, strict, expect",
+    [
+        (1, True, ["U", "C", "A", "G", "G", "A"]),
+        (2, True, ["UC", "CA", "AG", "GG", "GA"]),
+        (3, True, ["UCA", "CAG", "AGG", "GGA"]),
+        (4, True, ["UCAG", "CAGG", "AGGA"]),
+        (5, True, ["UCAGG", "CAGGA"]),
+        (6, True, ["UCAGGA"]),
+        (7, True, []),
+        (1, False, ["U", "C", "A", "G", "G", "A", "N"]),
+        (2, False, ["UC", "CA", "AG", "GG", "GA", "AN"]),
+        (3, False, ["UCA", "CAG", "AGG", "GGA", "GAN"]),
+        (4, False, ["UCAG", "CAGG", "AGGA", "GGAN"]),
+        (5, False, ["UCAGG", "CAGGA", "AGGAN"]),
+        (6, False, ["UCAGGA", "CAGGAN"]),
+        (7, False, ["UCAGGAN"]),
+        (8, False, []),
+    ],
+)
+def test_get_kmers_strict_rna(k, strict, expect):
+    orig = "UCAGGAN"
+    mt = new_moltype.RNA
+    r = mt.make_seq(seq=orig)
+    got = r.get_kmers(k, strict=strict)
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "k, strict, expect",
+    [
+        (1, True, ["C", "E", "F", "G", "M", "N"]),
+        (2, True, ["CE", "EF", "FG", "GM", "MN"]),
+        (3, True, ["CEF", "EFG", "FGM", "GMN"]),
+        (4, True, ["CEFG", "EFGM", "FGMN"]),
+        (5, True, ["CEFGM", "EFGMN"]),
+        (6, True, ["CEFGMN"]),
+        (1, False, ["C", "E", "F", "G", "M", "N", "X"]),
+        (2, False, ["CE", "EF", "FG", "GM", "MN", "NX"]),
+        (3, False, ["CEF", "EFG", "FGM", "GMN", "MNX"]),
+        (4, False, ["CEFG", "EFGM", "FGMN", "GMNX"]),
+        (5, False, ["CEFGM", "EFGMN", "FGMNX"]),
+        (6, False, ["CEFGMN", "EFGMNX"]),
+        (7, False, ["CEFGMNX"]),
+    ],
+)
+def test_get_kmers_strict_protein(k, strict, expect):
+    orig = "CEFGMNX"
+    mt = new_moltype.PROTEIN
+    r = mt.make_seq(seq=orig)
+    got = r.get_kmers(k, strict=strict)
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "k, strict, expect",
+    [
+        (1, True, ["T", "C", "A", "G", "A", "T"]),
+        (2, True, ["TC", "CA", "GA", "AT"]),
+        (3, True, ["TCA", "GAT"]),
+        (4, True, []),
+        (1, False, ["T", "C", "A", "-", "G", "A", "T"]),
+        (2, False, ["TC", "CA", "A-", "-G", "GA", "AT"]),
+        (3, False, ["TCA", "CA-", "A-G", "-GA", "GAT"]),
+        (4, False, ["TCA-", "CA-G", "A-GA", "-GAT"]),
+        (5, False, ["TCA-G", "CA-GA", "A-GAT"]),
+        (6, False, ["TCA-GA", "CA-GAT"]),
+        (7, False, ["TCA-GAT"]),
+        (8, False, []),
+    ],
+)
+def test_get_kmers_strict_dna_gaps(k, strict, expect):
+    orig = "TCA-GAT"
+    mt = new_moltype.DNA
+    r = mt.make_seq(seq=orig)
+    got = r.get_kmers(k, strict=strict)
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "k, strict, expect",
+    [
+        (1, True, ["U", "C", "A", "G", "A", "U"]),
+        (2, True, ["UC", "CA", "GA", "AU"]),
+        (3, True, ["UCA", "GAU"]),
+        (4, True, []),
+        (1, False, ["U", "C", "A", "-", "G", "A", "U"]),
+        (2, False, ["UC", "CA", "A-", "-G", "GA", "AU"]),
+        (3, False, ["UCA", "CA-", "A-G", "-GA", "GAU"]),
+        (4, False, ["UCA-", "CA-G", "A-GA", "-GAU"]),
+        (5, False, ["UCA-G", "CA-GA", "A-GAU"]),
+        (6, False, ["UCA-GA", "CA-GAU"]),
+        (7, False, ["UCA-GAU"]),
+        (8, False, []),
+    ],
+)
+def test_get_kmers_strict_rna_gaps(k, strict, expect):
+    orig = "UCA-GAU"
+    mt = new_moltype.RNA
+    r = mt.make_seq(seq=orig)
+    got = r.get_kmers(k, strict=strict)
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "k, strict, expect",
+    [
+        (1, True, ["C", "E", "F", "G", "M", "N"]),
+        (2, True, ["CE", "EF", "GM", "MN"]),
+        (3, True, ["CEF", "GMN"]),
+        (4, True, []),
+        (1, False, ["C", "E", "F", "-", "G", "M", "N"]),
+        (2, False, ["CE", "EF", "F-", "-G", "GM", "MN"]),
+        (3, False, ["CEF", "EF-", "F-G", "-GM", "GMN"]),
+        (4, False, ["CEF-", "EF-G", "F-GM", "-GMN"]),
+        (5, False, ["CEF-G", "EF-GM", "F-GMN"]),
+        (6, False, ["CEF-GM", "EF-GMN"]),
+        (7, False, ["CEF-GMN"]),
+        (8, False, []),
+    ],
+)
+def test_get_kmers_strict_protein_gaps(k, strict, expect):
+    orig = "CEF-GMN"
+    mt = new_moltype.PROTEIN
+    r = mt.make_seq(seq=orig)
+    got = r.get_kmers(k, strict=strict)
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "moltype", (new_moltype.DNA, new_moltype.RNA, new_moltype.PROTEIN)
+)
+def test_get_kmers_allgap(moltype):
+    orig = "-------"
+    expect = ["-", "-", "-", "-", "-", "-", "-"]
+    r = moltype.make_seq(seq=orig)
+    got = r.get_kmers(1, strict=False)
+    assert got == expect
+
+    expect = []
+    got = r.get_kmers(1, strict=True)
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "k, strict, expect",
+    [
+        (1, True, ["G", "A", "T", "A"]),
+        (2, True, ["GA", "TA"]),
+        (3, True, []),
+        (1, False, ["N", "G", "A", "S", "T", "A", "H"]),
+        (2, False, ["NG", "GA", "AS", "ST", "TA", "AH"]),
+        (3, False, ["NGA", "GAS", "AST", "STA", "TAH"]),
+        (4, False, ["NGAS", "GAST", "ASTA", "STAH"]),
+        (5, False, ["NGAST", "GASTA", "ASTAH"]),
+        (6, False, ["NGASTA", "GASTAH"]),
+        (7, False, ["NGASTAH"]),
+        (8, False, []),
+    ],
+)
+def test_get_kmers_mixed_ambiguities_dna(k, strict, expect):
+    mt = new_moltype.DNA
+    r = mt.make_seq(seq="NGASTAH")
+    got = r.get_kmers(k, strict=strict)
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "k, strict, expect",
+    [
+        (1, True, ["G", "A", "U", "A"]),
+        (2, True, ["GA", "UA"]),
+        (3, True, []),
+        (1, False, ["R", "G", "A", "W", "U", "A", "D"]),
+        (2, False, ["RG", "GA", "AW", "WU", "UA", "AD"]),
+        (3, False, ["RGA", "GAW", "AWU", "WUA", "UAD"]),
+        (4, False, ["RGAW", "GAWU", "AWUA", "WUAD"]),
+        (5, False, ["RGAWU", "GAWUA", "AWUAD"]),
+        (6, False, ["RGAWUA", "GAWUAD"]),
+        (7, False, ["RGAWUAD"]),
+        (8, False, []),
+    ],
+)
+def test_get_kmers_mixed_ambiguities_rna(k, strict, expect):
+    mt = new_moltype.RNA
+    r = mt.make_seq(seq="RGAWUAD")
+    got = r.get_kmers(k, strict=strict)
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "k, strict, expect",
+    [
+        (1, True, ["Q", "M", "N", "R"]),
+        (2, True, ["QM", "NR"]),
+        (3, True, []),
+        (1, False, ["B", "Q", "M", "X", "N", "R", "Z"]),
+        (2, False, ["BQ", "QM", "MX", "XN", "NR", "RZ"]),
+        (3, False, ["BQM", "QMX", "MXN", "XNR", "NRZ"]),
+        (4, False, ["BQMX", "QMXN", "MXNR", "XNRZ"]),
+        (5, False, ["BQMXN", "QMXNR", "MXNRZ"]),
+        (6, False, ["BQMXNR", "QMXNRZ"]),
+        (7, False, ["BQMXNRZ"]),
+        (8, False, []),
+    ],
+)
+def test_get_kmers_mixed_ambiguities_protein(k, strict, expect):
+    mt = new_moltype.PROTEIN
+    r = mt.make_seq(seq="BQMXNRZ")
+    got = r.get_kmers(k, strict=strict)
+    assert got == expect
+
+
 @pytest.fixture(scope="function")
 def one_seq():
     return new_moltype.DNA.make_seq(seq="AACCTGGAACC")
