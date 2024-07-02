@@ -54,7 +54,7 @@ class SequenceTests(TestCase):
     DNA = DnaSequence
     PROT = ProteinSequence
 
-    def test_init_empty(self):
+    def test_init_empty(self):  # will not port
         """Sequence and subclasses should init correctly."""
         # NOTE: ModelSequences can't be initialized empty because it screws up
         # the dimensions of the array, and not worth special-casing.
@@ -65,18 +65,18 @@ class SequenceTests(TestCase):
         r = self.RNA()
         assert r.moltype is RNA
 
-    def test_init_data(self):
+    def test_init_data(self):  # will not port
         """Sequence init with data should set data in correct location"""
         r = self.RNA("ucagg")
         # no longer preserves case
         self.assertEqual(r, "UCAGG")
 
-    def test_init_from_bytes(self):
+    def test_init_from_bytes(self):  # will not port
         """correctly convert bytes to str"""
         s = self.SEQ(b"ACGT")
         self.assertEqual(s, "ACGT")
 
-    def test_init_other_seq(self):
+    def test_init_other_seq(self):  # will not port
         """Sequence init with other seq should preserve name and info."""
         r = self.RNA("UCAGG", name="x", info={"z": 3})
         s = Sequence(r)
@@ -84,7 +84,7 @@ class SequenceTests(TestCase):
         self.assertEqual(s.name, "x")
         self.assertEqual(s.info.z, 3)
 
-    def test_copy(self):
+    def test_copy(self):  # ported
         """correctly returns a copy version of self"""
         s = Sequence("TTTTTTTTTTAAAA", name="test_copy")
         annot1 = s.add_feature(biotype="exon", name="annot1", spans=[(0, 10)])
@@ -106,31 +106,31 @@ class SequenceTests(TestCase):
         self.assertEqual(annot1_slice, got1_slice)
         self.assertEqual(annot2_slice, got2_slice)
 
-    def test_compare_to_string(self):
+    def test_compare_to_string(self):  # ported
         """Sequence should compare equal to same string."""
         r = self.RNA("UCC")
         self.assertEqual(r, "UCC")
 
-    def test_slice(self):
+    def test_slice(self):  # ported
         """Sequence slicing should work as expected"""
         r = self.RNA("UCAGG")
         self.assertEqual(r[0], "U")
         self.assertEqual(r[-1], "G")
         self.assertEqual(r[1:3], "CA")
 
-    def test_to_dna(self):
+    def test_to_dna(self):  # ported
         """Returns copy of self as DNA."""
         r = self.RNA("UCA")
         self.assertEqual(str(r), "UCA")
         self.assertEqual(str(r.to_dna()), "TCA")
 
-    def test_to_rna(self):
+    def test_to_rna(self):  # ported
         """Returns copy of self as RNA."""
         r = self.DNA("TCA")
         self.assertEqual(str(r), "TCA")
         self.assertEqual(str(r.to_rna()), "UCA")
 
-    def test_to_fasta(self):
+    def test_to_fasta(self):  # ported
         """Sequence to_fasta() should return Fasta-format string"""
         even = "TCAGAT"
         odd = even + "AAA"
@@ -143,12 +143,14 @@ class SequenceTests(TestCase):
         # check that changing the linewrap again works
         self.assertEqual(even_dna.to_fasta(block_size=4), ">even\nTCAG\nAT\n")
 
-    def test_serialize(self):
+    def test_serialize(self):  # ported
         """Sequence should be serializable"""
         r = self.RNA("ugagg")
         assert dumps(r)
 
-    def test_sequence_to_moltype(self):
+    def test_sequence_to_moltype(
+        self,
+    ):  # ported however not supporting coercing to a different moltype if invalid
         """correctly convert to specified moltype"""
         s = Sequence("TTTTTTTTTTAAAA", name="test1")
         s.add_feature(biotype="exon", name="fred", spans=[(0, 10)])
@@ -166,13 +168,13 @@ class SequenceTests(TestCase):
         with self.assertRaises(ValueError):
             s.to_moltype("")
 
-    def test_strip_degenerate(self):
+    def test_strip_degenerate(self):  # ported
         """Sequence strip_degenerate should remove any degenerate bases"""
         self.assertEqual(self.RNA("UCAG-").strip_degenerate(), "UCAG-")
         self.assertEqual(self.RNA("NRYSW").strip_degenerate(), "")
         self.assertEqual(self.RNA("USNG").strip_degenerate(), "UG")
 
-    def test_strip_bad(self):
+    def test_strip_bad(self):  # ported
         """Sequence strip_bad should remove any non-base, non-gap chars"""
         # have to turn off check to get bad data in; no longer preserves case
         self.assertEqual(
@@ -184,7 +186,7 @@ class SequenceTests(TestCase):
             self.RNA("aaaxggg---!ccc", check=False).strip_bad(), "AAAGGG---CCC"
         )
 
-    def test_strip_bad_and_gaps(self):
+    def test_strip_bad_and_gaps(self):  # ported
         """Sequence strip_bad_and_gaps should remove gaps and bad chars"""
         # have to turn off check to get bad data in; no longer preserves case
         self.assertEqual(
@@ -198,21 +200,21 @@ class SequenceTests(TestCase):
             self.RNA("aaa ggg ---!ccc", check=False).strip_bad_and_gaps(), "AAAGGGCCC"
         )
 
-    def test_shuffle(self):
+    def test_shuffle(self):  # ported
         """Sequence shuffle should return new random sequence w/ same monomers"""
         r = self.RNA("UUUUCCCCAAAAGGGG")
         s = r.shuffle()
         self.assertFalse(r == s)
         self.assertCountEqual(r, s)
 
-    def test_complement(self):
+    def test_complement(self):  # ported
         """Sequence complement should correctly complement sequence"""
         self.assertEqual(self.RNA("UAUCG-NR").complement(), "AUAGC-NY")
         self.assertEqual(self.DNA("TATCG-NR").complement(), "ATAGC-NY")
         self.assertEqual(self.DNA("").complement(), "")
         self.assertRaises(TypeError, self.PROT("ACD").complement)
 
-    def test_rc(self):
+    def test_rc(self):  # ported although not support coercing to upper case
         """Sequence rc should correctly reverse-complement sequence"""
         # no longer preserves case!
         self.assertEqual(self.RNA("UauCG-NR").rc(), "YN-CGAUA")
@@ -221,7 +223,7 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA("A").rc(), "U")
         self.assertRaises(TypeError, self.PROT("ACD").rc)
 
-    def test_contains(self):
+    def test_contains(self):  # ported
         """Sequence contains should return correct result"""
         r = self.RNA("UCA")
         assert "U" in r
@@ -229,12 +231,12 @@ class SequenceTests(TestCase):
         assert "X" not in r
         assert "G" not in r
 
-    def test_iter(self):
+    def test_iter(self):  # ported
         """Sequence iter should iterate over sequence"""
         p = self.PROT("QWE")
         self.assertEqual(list(p), ["Q", "W", "E"])
 
-    def test_is_gapped(self):
+    def test_is_gapped(self):  # ported although not support coercing to upper case
         """Sequence is_gapped should return True if gaps in seq"""
         assert not self.RNA("").is_gapped()
         assert not self.RNA("ACGUCAGUACGUCAGNRCGAUcaguaguacYRNRYRN").is_gapped()
@@ -244,7 +246,7 @@ class SequenceTests(TestCase):
         assert self.RNA("CA--CGUAUGCA-----g").is_gapped()
         assert self.RNA("CAGU-").is_gapped()
 
-    def test_is_gap(self):
+    def test_is_gap(self):  # ported although not support coercing to upper case
         """Sequence is_gap should return True if char is a valid gap char"""
         r = self.RNA("ACGUCAGUACGUCAGNRCGAUcaguaguacYRNRYRN")
         for char in "qwertyuiopasdfghjklzxcvbnmQWERTYUIOASDFGHJKLZXCVBNM":
@@ -259,7 +261,7 @@ class SequenceTests(TestCase):
         assert self.RNA("").is_gap()
         assert self.RNA("----------").is_gap()
 
-    def test_is_degenerate(self):
+    def test_is_degenerate(self):  # ported although not support coercing to upper case
         """Sequence is_degenerate should return True if degen symbol in seq"""
         assert not self.RNA("").is_degenerate()
         assert not self.RNA("UACGCUACAUGuacgucaguGCUAGCUA---ACGUCAG").is_degenerate()
@@ -269,14 +271,14 @@ class SequenceTests(TestCase):
         assert self.RNA("GCAUguagcucgUCAGUCAGUACgUgcasCUAG").is_degenerate()
         assert self.RNA("ACGYAUGCUGYWWNMNuwbycwuybcwbwub").is_degenerate()
 
-    def test_is_strict(self):
+    def test_is_strict(self):  # ported although not support coercing to upper case
         """Sequence is_strict should return True if all symbols in Monomers"""
         assert self.RNA("").is_strict()
         assert self.PROT("A").is_strict()
         assert self.RNA("UAGCACUgcaugcauGCAUGACuacguACAUG").is_strict()
         assert not self.RNA("CAGUCGAUCA-cgaucagUCGAUGAC").is_strict()
 
-    def test_first_gap(self):
+    def test_first_gap(self):  # will not port
         """Sequence first_gap should return index of first gap symbol, or None"""
         self.assertEqual(self.RNA("").first_gap(), None)
         self.assertEqual(self.RNA("a").first_gap(), None)
@@ -285,7 +287,7 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA("b-ac").first_gap(), 1)
         self.assertEqual(self.RNA("abcd-").first_gap(), 4)
 
-    def test_first_degenerate(self):
+    def test_first_degenerate(self):  # will not port
         """Sequence first_degenerate should return index of first degen symbol"""
         self.assertEqual(self.RNA("").first_degenerate(), None)
         self.assertEqual(self.RNA("a").first_degenerate(), None)
@@ -294,7 +296,7 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA("CUGguagvAUG").first_degenerate(), 7)
         self.assertEqual(self.RNA("ACUGCUAacgud").first_degenerate(), 11)
 
-    def test_first_non_strict(self):
+    def test_first_non_strict(self):  # will not port
         """Sequence first_non_strict should return index of first non-strict symbol"""
         self.assertEqual(self.RNA("").first_non_strict(), None)
         self.assertEqual(self.RNA("A").first_non_strict(), None)
@@ -303,7 +305,7 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA("-").first_non_strict(), 0)
         self.assertEqual(self.RNA("ACGUcgAUGUGCAUcagu-").first_non_strict(), 18)
 
-    def test_disambiguate(self):
+    def test_disambiguate(self):  # ported
         """Sequence disambiguate should remove degenerate bases"""
         self.assertEqual(self.RNA("").disambiguate(), "")
         self.assertEqual(
@@ -323,7 +325,7 @@ class SequenceTests(TestCase):
         self.assertFalse(t == u)
         self.assertEqual(len(s), len(t))
 
-    def test_degap(self):
+    def test_degap(self):  # ported
         """Sequence degap should remove all gaps from sequence"""
         # doesn't preserve case
         self.assertEqual(self.RNA("").degap(), "")
@@ -336,7 +338,7 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA("---a---c---u----g---").degap(), "ACUG")
         self.assertEqual(self.RNA("?a-").degap(), "A")
 
-    def test_gap_indices(self):
+    def test_gap_indices(self):  # ported
         """Sequence gap_indices should return correct gap positions"""
         self.assertEqual(self.RNA("").gap_indices(), [])
         self.assertEqual(self.RNA("ACUGUCAGUACGHSDKCUCDNNS").gap_indices(), [])
@@ -348,7 +350,7 @@ class SequenceTests(TestCase):
             [0, 1, 2, 11, 12, 13, 19, 20, 21, 30, 31, 32],
         )
 
-    def test_gap_vector(self):
+    def test_gap_vector(self):  # ported
         """Sequence gap_vector should return correct gap positions"""
 
         def g(x):
@@ -369,7 +371,7 @@ class SequenceTests(TestCase):
             list(map(bool, list(map(int, "111000000001110000011100000000111")))),
         )
 
-    def test_gap_maps(self):
+    def test_gap_maps(self):  # ported
         """Sequence gap_maps should return dicts mapping gapped/ungapped pos"""
         empty = ""
         no_gaps = "aaa"
@@ -390,7 +392,7 @@ class SequenceTests(TestCase):
             gm(mid_gaps), ({0: 2, 1: 5, 2: 7, 3: 8}, {2: 0, 5: 1, 7: 2, 8: 3})
         )
 
-    def test_count_gaps(self):
+    def test_count_gaps(self):  # ported
         """Sequence count_gaps should return correct gap count"""
         self.assertEqual(self.RNA("").count_gaps(), 0)
         self.assertEqual(self.RNA("ACUGUCAGUACGHSDKCUCDNNS").count_gaps(), 0)
@@ -399,7 +401,7 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA("UACHASADS-").count_gaps(), 1)
         self.assertEqual(self.RNA("---CGAUgCAU---ACGHc---ACGUCAGU---").count_gaps(), 12)
 
-    def test_count_degenerate(self):
+    def test_count_degenerate(self):  # ported
         """Sequence count_degenerate should return correct degen base count"""
         self.assertEqual(self.RNA("").count_degenerate(), 0)
         self.assertEqual(self.RNA("GACUGCAUGCAUCGUACGUCAGUACCGA").count_degenerate(), 0)
@@ -410,7 +412,7 @@ class SequenceTests(TestCase):
             self.RNA("ACGUAVCUAGCAUNUCAGUCAGyUACGUCAGS").count_degenerate(), 4
         )
 
-    def test_possibilites(self):
+    def test_possibilites(self):  # ported
         """Sequence possibilities should return correct # possible sequences"""
         self.assertEqual(self.RNA("").possibilities(), 1)
         self.assertEqual(self.RNA("ACGUgcaucagUCGuGCAU").possibilities(), 1)
@@ -422,7 +424,7 @@ class SequenceTests(TestCase):
             self.RNA("AUGCnGUCAg-aurGauc--gauhcgauacgws").possibilities(), 96
         )
 
-    def test_mw(self):
+    def test_mw(self):  # ported
         """Sequence MW should return correct molecular weight"""
         self.assertEqual(self.PROT("").mw(), 0)
         self.assertEqual(self.RNA("").mw(), 0)
@@ -432,7 +434,7 @@ class SequenceTests(TestCase):
         assert_allclose(self.RNA("AAA").mw(), 1001.59)
         assert_allclose(self.RNA("AAACCCA").mw(), 2182.37)
 
-    def test_can_match(self):
+    def test_can_match(self):  # ported
         """Sequence can_match should return True if all positions can match"""
         assert self.RNA("").can_match("")
         assert self.RNA("UCAG").can_match("UCAG")
@@ -445,7 +447,7 @@ class SequenceTests(TestCase):
         assert self.RNA("UCAG").can_match("YYRR")
         assert self.RNA("UCAG").can_match("KMWS")
 
-    def test_can_mismatch(self):
+    def test_can_mismatch(self):  # ported
         """Sequence can_mismatch should return True on any possible mismatch"""
         assert not self.RNA("").can_mismatch("")
         assert self.RNA("N").can_mismatch("N")
@@ -751,7 +753,7 @@ class SequenceTests(TestCase):
         self.assertEqual(dna.strip_degenerate(), raw_no_ambigs)
         self.assertEqual(dna.strip_bad_and_gaps(), raw_ungapped)
 
-    def test_replace(self):
+    def test_replace(self):  # will not port
         """replace should convert oldchars to new returning same class"""
         seq = self.SEQ("ACC--GT")
         got = seq.replace("-", "N")
