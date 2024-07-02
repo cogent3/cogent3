@@ -806,26 +806,25 @@ class MolType:
         )
 
     @functools.singledispatchmethod
-    def strip_bad(self, seq: StrORBytesORArray) -> StrORBytesORArray:
+    def strip_bad(self, seq: StrORBytes) -> StrORBytes:
         """Removes any symbols not in the alphabet."""
         raise TypeError(f"{type(seq)} not supported")
 
-    @strip_bad.register
-    def _(self, seq: numpy.ndarray) -> numpy.ndarray:
+    def _strip_bad(self, seq: numpy.ndarray) -> numpy.ndarray:
         return seq[seq < len(self.degen_gapped_alphabet)]
 
     @strip_bad.register
     def _(self, seq: bytes) -> bytes:
         return self.degen_gapped_alphabet.array_to_bytes(
-            self.strip_bad(self.degen_gapped_alphabet.to_indices(seq))
+            self._strip_bad(self.degen_gapped_alphabet.to_indices(seq))
         )
 
     @strip_bad.register
     def _(self, seq: str) -> str:
-        return self.strip_bad(seq.encode("utf8")).decode("utf8")
+        return self._strip_bad(seq.encode("utf8")).decode("utf8")
 
     @functools.singledispatchmethod
-    def strip_bad_and_gaps(self, seq: StrORBytesORArray) -> StrORBytesORArray:
+    def strip_bad_and_gaps(self, seq: StrORBytes) -> StrORBytes:
         """Removes any symbols not in the alphabet, and any gaps."""
         raise TypeError(f"{type(seq)} not supported")
 
