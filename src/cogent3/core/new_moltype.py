@@ -890,6 +890,22 @@ class MolType:
             self.random_disambiguate(self.degen_gapped_alphabet.array_to_bytes(seq))
         )
 
+    @functools.singledispatchmethod
+    def count_gaps(self, seq: StrORBytes) -> int:
+        """returns the number of gap characters in a sequence"""
+        raise TypeError(f"{type(seq)} not supported")
+
+    def _count_gaps(self, seq: numpy.ndarray) -> int:
+        return numpy.sum(seq == self.degen_gapped_alphabet.gap_index)
+
+    @count_gaps.register
+    def _(self, seq: bytes) -> int:
+        return self._count_gaps(self.degen_gapped_alphabet.to_indices(seq))
+
+    @count_gaps.register
+    def _(self, seq: str) -> int:
+        return self.count_gaps(seq.encode("utf8"))
+
     def strand_symmetric_motifs(
         self, motif_length: int = 1
     ) -> set[tuple[str, str]]:  # refactor: docstring
