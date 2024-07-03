@@ -378,32 +378,6 @@ def test_sequence_gap_vector():
     )
 
 
-@pytest.mark.xfail(
-    reason="AttributeError: 'MolType' object has no attribute 'gap_maps'"
-)
-def test_gap_maps():
-    """Sequence.gap_maps should return dicts mapping gapped/ungapped pos"""
-    empty = ""
-    no_gaps = "AAA"
-    all_gaps = "---"
-    start_gaps = "--ABC"
-    end_gaps = "AB---"
-    mid_gaps = "--A--B-CD---"
-
-    def gm(x):
-        return new_moltype.RNA.make_seq(seq=x).gap_maps()
-
-    assert gm(empty) == ({}, {})
-    assert gm(no_gaps) == ({0: 0, 1: 1, 2: 2}, {0: 0, 1: 1, 2: 2})
-    assert gm(all_gaps) == ({}, {})
-    assert gm(start_gaps) == ({0: 2, 1: 3, 2: 4}, {2: 0, 3: 1, 4: 2})
-    assert gm(end_gaps) == ({0: 0, 1: 1}, {0: 0, 1: 1})
-    assert gm(mid_gaps) == ({0: 2, 1: 5, 2: 7, 3: 8}, {2: 0, 5: 1, 7: 2, 8: 3})
-
-
-@pytest.mark.xfail(
-    reason="AttributeError: 'MolType' object has no attribute 'count_gaps'"
-)
 def test_count_gaps():
     """Sequence.count_gaps should return correct gap count"""
     assert new_moltype.RNA.make_seq(seq="").count_gaps() == 0
@@ -417,9 +391,6 @@ def test_count_gaps():
     )
 
 
-@pytest.mark.xfail(
-    reason="AttributeError: 'MolType' object has no attribute 'count_degenerate'"
-)
 def test_count_degenerate():
     """Sequence.count_degenerate should return correct degen base count"""
     assert new_moltype.RNA.make_seq(seq="").count_degenerate() == 0
@@ -428,31 +399,28 @@ def test_count_degenerate():
         == 0
     )
     assert new_moltype.RNA.make_seq(seq="N").count_degenerate() == 1
-    assert new_moltype.PROT.make_seq(seq="N").count_degenerate() == 0
+    assert new_moltype.PROTEIN.make_seq(seq="N").count_degenerate() == 0
     assert new_moltype.RNA.make_seq(seq="NRY").count_degenerate() == 3
     assert (
         new_moltype.RNA.make_seq(
-            seq="ACGUAVCUAGCAUNUCAGUCAGyUACGUCAGS"
+            seq="ACGUAVCUAGCAUNUCAGUCAGYUACGUCAGS"
         ).count_degenerate()
         == 4
     )
 
 
-@pytest.mark.xfail(
-    reason="AttributeError: 'MolType' object has no attribute 'possibilities'"
-)
-def test_possibilites():
-    """Sequence possibilities should return correct # possible sequences"""
-    assert new_moltype.RNA.make_seq(seq="").possibilities() == 1
-    assert new_moltype.RNA.make_seq(seq="ACGUGCAU").possibilities() == 1
-    assert new_moltype.RNA.make_seq(seq="N").possibilities() == 4
-    assert new_moltype.RNA.make_seq(seq="R").possibilities() == 2
-    assert new_moltype.RNA.make_seq(seq="H").possibilities() == 3
-    assert new_moltype.RNA.make_seq(seq="nRh").possibilities() == 24
+def test_sequence_count_variants():
+    """Sequence count_variants should return correct # possible sequences"""
+    assert new_moltype.RNA.make_seq(seq="").count_variants() == 1
+    assert new_moltype.RNA.make_seq(seq="ACGUGCAU").count_variants() == 1
+    assert new_moltype.RNA.make_seq(seq="N").count_variants() == 4
+    assert new_moltype.RNA.make_seq(seq="R").count_variants() == 2
+    assert new_moltype.RNA.make_seq(seq="H").count_variants() == 3
+    assert new_moltype.RNA.make_seq(seq="NRH").count_variants() == 24
     assert (
         new_moltype.RNA.make_seq(
             seq="AUGCNGUCAG-AURGAUC--GAUHCGAUACGWS"
-        ).possibilities()
+        ).count_variants()
         == 96
     )
 
