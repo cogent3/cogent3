@@ -486,7 +486,7 @@ class MolTypeTests(TestCase):
         self.assertEqual(s("ACGUcgAUGUGCAUcaguX"), 18)
         self.assertEqual(s("ACGUcgAUGUGCAUcaguX-38243829"), 18)
 
-    def test_disambiguate(self):
+    def test_disambiguate(self):  # ported
         """MolType disambiguate should remove degenerate bases"""
         d = RnaMolType.disambiguate
         self.assertEqual(d(""), "")
@@ -599,7 +599,7 @@ class MolTypeTests(TestCase):
         self.assertEqual(c("!@#$!@#$!@#$"), 12)
         self.assertEqual(c("cguua!cgcuagua@cguasguadc#"), 3)
 
-    def test_count_degenerate(self):
+    def test_count_degenerate(self):  # ported
         """MolType count_degenerate should return correct degen base count"""
         d = RnaMolType.count_degenerate
         self.assertEqual(d(""), 0)
@@ -608,7 +608,7 @@ class MolTypeTests(TestCase):
         self.assertEqual(d("NRY"), 3)
         self.assertEqual(d("ACGUAVCUAGCAUNUCAGUCAGyUACGUCAGS"), 4)
 
-    def test_possibilites(self):
+    def test_possibilites(self):  # ported
         """MolType possibilities should return correct # possible sequences"""
         p = RnaMolType.possibilities
         self.assertEqual(p(""), 1)
