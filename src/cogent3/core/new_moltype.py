@@ -846,6 +846,50 @@ class MolType:
     def _(self, seq: str) -> str:
         return self.strip_bad_and_gaps(seq.encode("utf8")).decode("utf8")
 
+    def disambiguate(
+        self, seq: StrORBytesORArray, method: str = "strip"
+    ) -> StrORBytesORArray:
+        """Returns a non-degenerate sequence from a degenerate one.
+
+        Parameters
+        ----------
+        seq
+            the sequence to be disambiguated
+        method
+            how to disambiguate the sequence, one of "strip", "random"
+            strip: removes degenerate characters
+            random: randomly selects a non-degenerate character
+        """
+        if method == "strip":
+            return self.strip_degenerate(seq)
+
+        elif method == "random":
+            return self.random_disambiguate(seq)
+
+        else:
+            raise NotImplementedError(f"method={method} not implemented")
+
+    @functools.singledispatchmethod
+    def random_disambiguate(self, seq: StrORBytesORArray) -> StrORBytesORArray:
+        """disambiguates a sequence by randomly selecting a non-degenerate character"""
+        raise TypeError(f"{type(seq)} not supported")
+
+    @random_disambiguate.register
+    def _(self, seq: str) -> str:
+        return "".join(
+            numpy.random.choice(list(self.ambiguities.get(n, n))) for n in seq
+        )
+
+    @random_disambiguate.register
+    def _(self, seq: bytes) -> bytes:
+        return self.random_disambiguate(seq.decode("utf8")).encode("utf8")
+
+    @random_disambiguate.register
+    def _(self, seq: numpy.ndarray) -> numpy.ndarray:
+        return self.degen_gapped_alphabet.to_indices(
+            self.random_disambiguate(self.degen_gapped_alphabet.array_to_bytes(seq))
+        )
+
     def strand_symmetric_motifs(
         self, motif_length: int = 1
     ) -> set[tuple[str, str]]:  # refactor: docstring

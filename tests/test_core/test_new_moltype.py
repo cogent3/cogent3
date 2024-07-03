@@ -445,3 +445,42 @@ def test_strip_bad_and_gaps(data_type):
     got = new_moltype.PROTEIN_WITH_STOP.strip_bad(seq)
     expect = make_typed("ASTBZ*X", data_type, new_moltype.PROTEIN_WITH_STOP)
     assert got == expect
+
+
+@pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
+def test_disambiguate_empty(data_type):
+    d = new_moltype.RNA.disambiguate
+    seq = make_typed("", data_type, new_moltype.RNA)
+    assert (
+        numpy.array_equal(d(seq), seq) if data_type is numpy.ndarray else d(seq) == seq
+    )
+
+
+@pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
+def test_disambiguate_strip(data_type):
+    """MolType disambiguate should remove degenerate bases"""
+    d = new_moltype.RNA.disambiguate
+    seq = make_typed("AUN-YRS-WKMCGWMRNMWRKY", data_type, new_moltype.RNA)
+    got = d(seq, "strip")
+    expect = make_typed("AU--CG", data_type, new_moltype.RNA)
+    assert (
+        numpy.array_equal(got, expect) if data_type is numpy.ndarray else got == expect
+    )
+
+
+def test_disambiguate_random_str():
+    # todo: add tests for bytes and numpy.array
+    d = new_moltype.RNA.disambiguate
+    s = "AUN-YRS-WKMCGWMRNMWRKY"
+    t = d(s, "random")
+
+    assert len(s) == len(t)
+
+    for i, j in zip(s, t):
+        if i in new_moltype.RNA.ambiguities:
+            assert j in new_moltype.RNA.ambiguities[i]
+
+    assert new_moltype.RNA.is_degenerate(t) == False
+    with pytest.raises(NotImplementedError):
+        d(s, method="xyz")
+

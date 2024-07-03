@@ -383,13 +383,18 @@ class Sequence:
     def disambiguate(self, method="strip"):
         """Returns a non-degenerate sequence from a degenerate one.
 
-        method can be 'strip' (deletes any characters not in monomers or gaps)
-        or 'random'(assigns the possibilities at random, using equal
-        frequencies).
+        Parameters
+        ----------
+        seq
+            the sequence to be disambiguated
+        method
+            how to disambiguate the sequence, one of "strip", "random"
+            strip: deletes any characters not in monomers or gaps
+            random: assigns the possibilities at random, using equal frequencies
         """
         return self.__class__(
             moltype=self.moltype,
-            seq=self.moltype.disambiguate(self, method),
+            seq=self.moltype.disambiguate(str(self), method),
             info=self.info,
         )
 

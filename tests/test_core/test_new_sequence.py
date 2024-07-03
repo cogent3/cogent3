@@ -305,9 +305,6 @@ def test_sequence_is_strict():
     assert not new_moltype.RNA.make_seq(seq="CAGUCGAUCA-").is_strict()
 
 
-@pytest.mark.xfail(
-    reason="AttributeError: 'MolType' object has no attribute 'disambiguate'"
-)
 def test_sequence_disambiguate():
     """Sequence disambiguate should remove degenerate bases
 
@@ -325,8 +322,8 @@ def test_sequence_disambiguate():
     t = s.disambiguate("random")
     u = s.disambiguate("random")
     for i, j in zip(str(s), str(t)):
-        if i in s.moltype.degenerates:
-            assert j in s.moltype.degenerates[i]
+        if i in s.moltype.ambiguities:
+            assert j in s.moltype.ambiguities[i]
         else:
             assert i == j
     assert t != u
