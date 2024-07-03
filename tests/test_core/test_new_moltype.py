@@ -484,3 +484,35 @@ def test_disambiguate_random_str():
     with pytest.raises(NotImplementedError):
         d(s, method="xyz")
 
+
+@pytest.mark.parametrize("data_type", (str, bytes))
+@pytest.mark.parametrize(
+    "data, expect",
+    (("---CGAUGCAU---ACGHC---ACGUCAGU---", 12), ("", 0), ("ACGU", 0), ("-", 1)),
+)
+def test_count_gaps(data, expect, data_type):
+    seq = make_typed(data, data_type, new_moltype.RNA)
+    got = new_moltype.RNA.count_gaps(seq)
+    assert got == expect
+
+
+def test_count_degenerate():
+    """MolType count_degenerate should return correct degen base count"""
+    d = new_moltype.RNA.count_degenerate
+    assert d("") == 0
+    assert d("GACUGCAUGCAUCGUACGUCAGUACCGA") == 0
+    assert d("N") == 1
+    assert d("NRY") == 3
+    assert d("ACGUAVCUAGCAUNUCAGUCAGyUACGUCAGS") == 4
+
+
+def test_count_variants():
+    """MolType count_variants should return correct # possible sequences"""
+    p = new_moltype.RNA.count_variants
+    assert p("") == 1
+    assert p("ACGUGCAUCAGUCGUGCAU") == 1
+    assert p("N") == 4
+    assert p("R") == 2
+    assert p("H") == 3
+    assert p("NRH") == 24
+    assert p("AUGCNGUCAG-AURGAUC--GAUHCGAUACGWS") == 96
