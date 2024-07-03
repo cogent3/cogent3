@@ -906,6 +906,22 @@ class MolType:
     def _(self, seq: str) -> int:
         return self.count_gaps(seq.encode("utf8"))
 
+    @functools.singledispatchmethod
+    def count_degenerate(self, seq: StrORBytes) -> int:
+        """returns the number of degenerate characters in a sequence"""
+        raise TypeError(f"{type(seq)} not supported")
+
+    def _count_degenerate(self, seq: numpy.ndarray) -> int:
+        return numpy.sum(seq >= self.degen_gapped_alphabet.gap_index)
+
+    @count_degenerate.register
+    def _(self, seq: bytes) -> int:
+        return self._count_degenerate(self.degen_gapped_alphabet.to_indices(seq))
+
+    @count_degenerate.register
+    def _(self, seq: str) -> int:
+        return self.count_degenerate(seq.encode("utf8"))
+
     def strand_symmetric_motifs(
         self, motif_length: int = 1
     ) -> set[tuple[str, str]]:  # refactor: docstring
