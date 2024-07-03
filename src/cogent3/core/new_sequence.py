@@ -372,11 +372,11 @@ class Sequence:
         """Returns True if sequence contains degenerate characters."""
         return self.moltype.is_degenerate(str(self))
 
-    def is_valid(self):
+    def is_valid(self) -> bool:
         """Returns True if sequence contains no items absent from alphabet."""
         return self.moltype.is_valid(self)
 
-    def is_strict(self):
+    def is_strict(self) -> bool:
         """Returns True if sequence contains only monomers."""
         return self.moltype.alphabet.is_valid(array(self))
 
@@ -417,25 +417,31 @@ class Sequence:
         """Returns vector of True or False according to which pos are gaps."""
         return self.moltype.gap_vector(self)
 
-    def gap_maps(self):
-        """Returns dicts mapping between gapped and ungapped positions."""
-        return self.moltype.gap_maps(self)
-
-    def count_gaps(self):
+    def count_gaps(self) -> int:
         """Counts the gaps in the specified sequence."""
-        return self.moltype.count_gaps(self)
+        return self.moltype.count_gaps(bytes(self))
 
-    def count_degenerate(self):
-        """Counts the degenerate bases in the specified sequence."""
-        return self.moltype.count_degenerate(self)
+    def count_degenerate(self) -> int:
+        """Counts the degenerate bases in the specified sequence.
 
-    def possibilities(self):
-        """Counts number of possible sequences matching the sequence.
-
-        Uses self.degenerates to decide how many possibilities there are at
-        each position in the sequence.
+        Notes
+        -----
+        gap and missing characters are counted as degenerate.
         """
-        return self.moltype.possibilities(self)
+        # design: refactor
+        # should gap and missing characters be counted as degenerate?
+        return self.moltype.count_degenerate(bytes(self))
+
+    def count_variants(self):
+        """Counts number of possible sequences matching the sequence, given
+        any ambiguous characters in the sequence.
+
+        Notes
+        -----
+        Uses self.ambiguitues to decide how many possibilities there are at
+        each position in the sequence and calculates the permutations.
+        """
+        return self.moltype.count_variants(str(self))
 
     def mw(self, method="random", delta=None):  # refactor: type hint
         """Returns the molecular weight of (one strand of) the sequence.
