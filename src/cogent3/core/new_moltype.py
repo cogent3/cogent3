@@ -922,6 +922,26 @@ class MolType:
     def _(self, seq: str) -> int:
         return self.count_degenerate(seq.encode("utf8"))
 
+    @functools.singledispatchmethod
+    def count_variants(self, seq: StrORBytes) -> int:
+        """Counts number of possible sequences matching the sequence, given
+        any ambiguous characters in the sequence.
+
+        Notes
+        -----
+        Uses self.ambiguitues to decide how many possibilities there are at
+        each position in the sequence and calculates the permutations.
+        """
+        raise TypeError(f"{type(seq)} not supported")
+
+    @count_variants.register
+    def _(self, seq: bytes) -> int:
+        return self.count_variants(seq.decode("utf8"))
+
+    @count_variants.register
+    def _(self, seq: str) -> int:
+        return numpy.prod([len(self.ambiguities.get(c, c)) for c in seq])
+
     def strand_symmetric_motifs(
         self, motif_length: int = 1
     ) -> set[tuple[str, str]]:  # refactor: docstring
