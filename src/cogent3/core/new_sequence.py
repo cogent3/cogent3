@@ -1144,26 +1144,13 @@ class Sequence:
             # converting between dna and rna
             seq = (
                 moltype.most_degen_alphabet()
-                .array_to_bytes(self._seq.array_value)
+                .array_to_bytes(array(self))
                 .decode("utf-8")
             )
 
         else:
-            old = self.moltype.most_degen_alphabet().as_bytes()
-            new = moltype.most_degen_alphabet().as_bytes()
-            convert_old_to_bytes = new_alphabet.array_to_bytes(old)
-            convert_bytes_to_new = new_alphabet.bytes_to_array(
-                new, dtype=new_alphabet.get_array_type(len(new))
-            )
-
-            as_new_alpha = convert_bytes_to_new(
-                convert_old_to_bytes(self._seq.array_value)
-            )
-            seq = (
-                moltype.most_degen_alphabet()
-                .array_to_bytes(as_new_alpha)
-                .decode("utf-8")
-            )
+            # assume converting between ASCII/BYTES and nucleic acid
+            seq = str(self)
 
         if not moltype.most_degen_alphabet().is_valid(seq):
             raise ValueError(

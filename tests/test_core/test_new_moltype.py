@@ -480,7 +480,7 @@ def test_disambiguate_random_str():
         if i in new_moltype.RNA.ambiguities:
             assert j in new_moltype.RNA.ambiguities[i]
 
-    assert new_moltype.RNA.is_degenerate(t) == False
+    assert not new_moltype.RNA.is_degenerate(t)
     with pytest.raises(NotImplementedError):
         d(s, method="xyz")
 
