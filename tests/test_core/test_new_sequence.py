@@ -1,5 +1,6 @@
 import json
 import re
+import typing
 
 from pickle import dumps
 
@@ -171,6 +172,50 @@ def test_sequence_strip_degenerate(seq, expect):
     """Sequence strip_degenerate should remove any degenerate bases"""
     seq = new_moltype.RNA.make_seq(seq=seq)
     got = seq.strip_degenerate()
+
+
+def test_add():
+    mt = new_moltype.DNA
+    seq1 = mt.make_seq(seq="AAA")
+    seq2 = mt.make_seq(seq="CCC")
+    got = seq1 + seq2
+    assert got == "AAACCC"
+    assert got.moltype == mt
+
+
+@pytest.mark.xfail(reason="No error when adding sequences")
+def test_add_bad():
+    mt = new_moltype.DNA
+    seq1 = mt.make_seq(seq="AAA")
+    with pytest.raises(new_alphabet.AlphabetError):
+        f"{seq1}s8d3j%31 s-']"
+
+
+@pytest.mark.parametrize(
+    "moltype,label",
+    [
+        (new_moltype.ASCII, "text"),
+        (new_moltype.BYTES, "bytes"),
+        (new_moltype.DNA, "dna"),
+    ],
+)
+def test_get_type(moltype, label):
+    seq = moltype.make_seq(seq="ARCGT")
+    got = seq.get_type()
+    assert got == label
+
+
+@pytest.mark.xfail(
+    reason="cannot iterate over SeqView and KeyError with unambiguous character"
+)
+@pytest.mark.parametrize(
+    "s, expect",
+    [("ARC", [("A",), ("A", "G"), ("C",)]), ("AGC", [("A",), ("G",), ("C",)])],
+)
+def test_resolved_ambiguities(s, expect):
+    mt = new_moltype.DNA
+    seq = mt.make_seq(seq=s)
+    got = seq.resolved_ambiguities()
     assert got == expect
 
 
@@ -470,6 +515,45 @@ def test_can_mismatch():
     assert not new_moltype.RNA.make_seq(seq="UUU").can_mismatch("UUU")
     assert not new_moltype.RNA.make_seq(seq="UCAG").can_mismatch("UCAG")
     assert not new_moltype.RNA.make_seq(seq="U--").can_mismatch("U--")
+
+
+@pytest.mark.parametrize(
+    "size, expect",
+    [
+        (60, ">even\nTCAGAT\n"),  # default block_size
+        (2, ">even\nTC\nAG\nAT\n"),
+        (4, ">even\nTCAG\nAT\n"),
+    ],
+)
+def test_to_fasta_even(size, expect):
+    mt = new_moltype.DNA
+    seq = mt.make_seq(seq="TCAGAT", name="even")
+    got = seq.to_fasta(block_size=size)
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "size, expect",
+    [
+        (60, ">odd\nTCAGATAAA\n"),  # default block_size
+        (2, ">odd\nTC\nAG\nAT\nAA\nA\n"),
+        (4, ">odd\nTCAG\nATAA\nA\n"),
+    ],
+)
+def test_to_fasta_odd(size, expect):
+    mt = new_moltype.DNA
+    seq = mt.make_seq(seq="TCAGATAAA", name="odd")
+    got = seq.to_fasta(block_size=size)
+    assert got == expect
+
+
+@pytest.mark.xfail(reason="no Sequence.to_phylip()")
+def test_to_phylip():
+    mt = new_moltype.DNA
+    seq = mt.make_seq(seq="TCAGAT", name="seq_name")
+    got = seq.to_phylip()
+    expect = f"seq_name{' '*27}TCAGAT"
+    assert got == expect
 
 
 @pytest.mark.parametrize("start", (None, 0, 1, 10, -1, -10))
@@ -1071,6 +1155,33 @@ def test_seqview_repr():
     view = new_sequence.SeqView(seq=seq, seqid="seq1", alphabet=alpha)
     expected = "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=0, seqid='seq1', seq_len=4)"
     assert repr(view) == expected
+
+
+@pytest.mark.parametrize("k", range(1, 7))
+def test_iter_kmers_returns_generator(k):
+    orig = "TCAGGA"
+    mt = new_moltype.DNA
+    r = mt.make_seq(seq=orig)
+    got = r.iter_kmers(k=k)
+    assert isinstance(got, typing.Generator)
+
+
+def test_iter_kmers_empty():
+    orig = ""
+    mt = new_moltype.DNA
+    r = mt.make_seq(seq=orig)
+    got = r.iter_kmers(k=1)
+    assert not list(got)
+
+
+@pytest.mark.parametrize("k", (0, -1, 1.1))
+def test_iter_kmers_handles_invalid(k):
+    orig = ""
+    mt = new_moltype.DNA
+    r = mt.make_seq(seq=orig)
+    got = r.iter_kmers(k=k)
+    with pytest.raises(ValueError):
+        list(got)
 
 
 @pytest.mark.parametrize(

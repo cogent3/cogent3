@@ -961,7 +961,7 @@ class SequenceTests(TestCase):
 class SequenceSubclassTests(TestCase):
     SequenceClass = Sequence
 
-    def test_DnaSequence(self):
+    def test_DnaSequence(self):  # ported
         """DnaSequence should behave as expected"""
         x = DnaSequence("tcag")
         # note: no longer preserves case
@@ -974,13 +974,13 @@ class SequenceSubclassTests(TestCase):
         self.assertRaises(AlphabetError, x.__add__, "z")
         self.assertEqual(DnaSequence("TTTAc").rc(), "GTAAA")
 
-    def test_get_type(self):
+    def test_get_type(self):  # ported
         """returns moltype label"""
         for moltype in ("text", "dna", "bytes"):
             seq = get_moltype(moltype).make_seq("ARCGT")
             self.assertEqual(seq.get_type(), moltype)
 
-    def test_resolved_ambiguities(self):
+    def test_resolved_ambiguities(self):  # ported
         seq = get_moltype("dna").make_seq("ARC")
         got = seq.resolved_ambiguities()
         self.assertEqual(got, [("A",), ("A", "G"), ("C",)])
@@ -989,7 +989,9 @@ class SequenceSubclassTests(TestCase):
         got = seq.resolved_ambiguities()
         self.assertEqual(got, [("A",), ("G",), ("C",)])
 
-    def test_iter_kmers(self):
+    def test_iter_kmers(
+        self,
+    ):  # ported tests for Generator and empty orig, dupes of test_get_kmers...()
         """correctly yield all k-mers"""
         from typing import Generator
 
@@ -1008,7 +1010,7 @@ class SequenceSubclassTests(TestCase):
         got = list(r.iter_kmers(k=1))
         self.assertEqual(got, [])
 
-    def test_iter_kmers_handles_invalid(self):
+    def test_iter_kmers_handles_invalid(self):  # ported
         """raise exceptions on invalid input to iter_kmers"""
         orig = "TCAGGA"
         r = self.SequenceClass(orig)
@@ -1016,7 +1018,7 @@ class SequenceSubclassTests(TestCase):
             with self.assertRaises(ValueError):
                 _ = list(r.iter_kmers(k))
 
-    def test_get_kmers(self):
+    def test_get_kmers(self):  # not porting, dupes of test_get_kmers..()
         """returns a list of k-mers"""
         orig = "TCAGGA"
         r = self.SequenceClass(orig)
@@ -1028,12 +1030,12 @@ class SequenceSubclassTests(TestCase):
 
 
 # TODO move methods of this class onto the single class that inherits from it!
-class ModelSequenceTests(object):
+class ModelSequenceTests(object):  # ported
     """base class for tests of specific ArraySequence objects."""
 
     SequenceClass = None  # override in derived classes
 
-    def test_to_fasta(self):
+    def test_to_fasta(self):  # ported
         """Sequence to_fasta() should return Fasta-format string"""
         even = "TCAGAT"
         odd = even + "AAA"
@@ -1046,13 +1048,15 @@ class ModelSequenceTests(object):
         # check that changing the linewrap again works
         self.assertEqual(even_dna.to_fasta(block_size=4), ">even\nTCAG\nAT\n")
 
-    def test_to_phylip(self):
+    def test_to_phylip(self):  # ported
         """Sequence to_phylip() should return one-line phylip string"""
         s = self.SequenceClass("ACG", name="xyz")
         self.assertEqual(s.to_phylip(), "xyz" + " " * 27 + "ACG")
 
 
-class DnaSequenceTests(ModelSequenceTests, TestCase):
+class DnaSequenceTests(
+    ModelSequenceTests, TestCase
+):  # not porting: not supporting ArraySeqs
     class SequenceClass(ArrayNucleicAcidSequence):
         alphabet = DNA.alphabets.base
 
@@ -1068,7 +1072,9 @@ class DnaSequenceTests(ModelSequenceTests, TestCase):
         self.assertEqual(str(r), orig)
 
 
-class CodonSequenceTests(SequenceTests, TestCase):
+class CodonSequenceTests(
+    SequenceTests, TestCase
+):  # not porting: not supporting ArraySeqs
     class SequenceClass(ArrayCodonSequence):
         alphabet = DNA.alphabets.base**3
 
@@ -1084,7 +1090,7 @@ class CodonSequenceTests(SequenceTests, TestCase):
         self.assertEqual(str(r), orig)
 
 
-class DnaSequenceGapTests(TestCase):
+class DnaSequenceGapTests(TestCase):  # not porting: not supporting ArraySeqs
     """Tests of gapped DNA sequences."""
 
     class SequenceClass(ArrayNucleicAcidSequence):
@@ -1128,7 +1134,7 @@ class DnaSequenceGapTests(TestCase):
         self.assertEqual(got.name, "blah")
 
 
-class SequenceIntegrationTests(TestCase):
+class SequenceIntegrationTests(TestCase):  # not porting: not supporting ArraySeqs
     """Should be able to convert regular to model sequences, and back"""
 
     def test_regular_to_model(self):
@@ -1180,7 +1186,7 @@ class SequenceIntegrationTests(TestCase):
         self.assertEqual(str(r.to_dna()), "TTTCGT")
 
 
-class ModelSequenceTests(SequenceTests):
+class ModelSequenceTests(SequenceTests):  # not porting: not supporting ArraySeqs
     """Tests of the ArraySequence class's inheritance of SequenceI."""
 
     SEQ = ArraySequence
