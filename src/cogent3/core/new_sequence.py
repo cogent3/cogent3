@@ -329,15 +329,12 @@ class Sequence:
         """Removes degenerate bases by stripping them out of the sequence."""
         return self.__class__(
             moltype=self.moltype,
-            seq=self.moltype.strip_degenerate(str(self)),
+            seq=self.moltype.strip_degenerate(bytes(self)),
             info=self.info,
         )
 
     def strip_bad(self):
         """Removes any symbols not in the alphabet."""
-        # refactor: design
-        # previous implementation did NOT strip X from DNA even though its not in the alphabet
-        # do we want to keep that behavior?
         return self.__class__(
             moltype=self.moltype, seq=self.moltype.strip_bad(str(self)), info=self.info
         )
@@ -359,7 +356,7 @@ class Sequence:
 
         If char is not supplied, tests whether self is gaps only.
         """
-        # refactor design
+        # refactor design - possibly delete method
         # only works on a single literal that's a gap, not on a sequence.
         # i.e, seq.is_gap('-') would return True, but seq.is_gap("--") would return False
         # possibly, this behavior should change?
@@ -402,7 +399,7 @@ class Sequence:
         """Deletes all gap characters from sequence."""
         result = self.__class__(
             moltype=self.moltype,
-            seq=self.moltype.degap(str(self)),
+            seq=self.moltype.degap(bytes(self)),
             name=self.name,
             info=self.info,
         )
@@ -1129,6 +1126,9 @@ class Sequence:
         -----
         This method cannot convert between nucleic acids and proteins. Use
         get_translation() for that.
+
+        When applied to a sequence in a SequenceCollection, the resulting
+        sequence will no longer be part of the collection.
         """
         from cogent3.core import new_moltype
 
@@ -1711,7 +1711,9 @@ class NucleicAcidSequenceMixin:
         will return list of keys.
         """
         return self.__class__(
-            moltype=self.moltype, seq=self.moltype.complement(str(self)), info=self.info
+            moltype=self.moltype,
+            seq=self.moltype.complement(bytes(self)),
+            info=self.info,
         )
 
     def reverse_complement(self):
