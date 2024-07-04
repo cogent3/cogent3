@@ -315,19 +315,19 @@ class SequenceI(object):
         """Returns True if sequence contains only monomers."""
         return self.moltype.is_strict(self)
 
-    def first_gap(self):
+    def first_gap(self):  # will not port
         """Returns the index of the first gap in the sequence, or None."""
         return self.moltype.first_gap(self)
 
-    def first_degenerate(self):
+    def first_degenerate(self):  # will not port
         """Returns the index of first degenerate symbol in sequence, or None."""
         return self.moltype.first_degenerate(self)
 
-    def first_invalid(self):
+    def first_invalid(self):  # will not port
         """Returns the index of first invalid symbol in sequence, or None."""
         return self.moltype.first_invalid(self)
 
-    def first_non_strict(self):
+    def first_non_strict(self):  # will not port
         """Returns the index of first non-strict symbol in sequence, or None."""
         return self.moltype.first_non_strict(self)
 

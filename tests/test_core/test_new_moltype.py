@@ -375,3 +375,144 @@ def test_is_invalid_rna():
     rna = new_moltype.RNA
     seq = "ACGYAUGCUGYEWEWNFMNFUWBYBCWUYBCJWBEIWFUB"
     assert not rna.is_valid(seq)
+
+
+@pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
+def test_strip_degenerate(data_type):
+    seq = make_typed("N-TCGA-N-TCNGA", data_type, new_moltype.DNA)
+    got = new_moltype.DNA.strip_degenerate(seq)
+    expect = make_typed("-TCGA--TCGA", data_type, new_moltype.DNA)
+    assert (
+        numpy.array_equal(got, expect) if data_type is numpy.ndarray else got == expect
+    )
+
+    seq = make_typed("AST-B-ASZT-", data_type, new_moltype.PROTEIN)
+    got = new_moltype.PROTEIN.strip_degenerate(seq)
+    expect = make_typed("AST--AST-", data_type, new_moltype.PROTEIN)
+    assert (
+        numpy.array_equal(got, expect) if data_type is numpy.ndarray else got == expect
+    )
+
+    seq = make_typed("AST-B*-ASZT-", data_type, new_moltype.PROTEIN_WITH_STOP)
+    got = new_moltype.PROTEIN_WITH_STOP.strip_degenerate(seq)
+    expect = make_typed("AST-*-AST-", data_type, new_moltype.PROTEIN_WITH_STOP)
+    assert (
+        numpy.array_equal(got, expect) if data_type is numpy.ndarray else got == expect
+    )
+
+
+@pytest.mark.parametrize("data_type", (str, bytes))
+def test_strip_bad(data_type):
+    """removes characters that are not in the alphabet"""
+
+    # DNA - Q not in DNA alphabet/ambiguities
+    seq = make_typed("TCGA-Q?NRYWSKMBDHV", data_type, new_moltype.DNA)
+    got = new_moltype.DNA.strip_bad(seq)
+    expect = make_typed("TCGA-?NRYWSKMBDHV", data_type, new_moltype.DNA)
+    assert got == expect
+
+    # Protein - J and * not in Protein alphabet/ambiguities
+    seq = make_typed("ASTBJZ*-X", data_type, new_moltype.PROTEIN)
+    got = new_moltype.PROTEIN.strip_bad(seq)
+    expect = make_typed("ASTBZ-X", data_type, new_moltype.PROTEIN)
+    assert got == expect
+
+    # Protein with stop - J  not in Protein alphabet/ambiguities
+    seq = make_typed("ASTBJZ*-X", data_type, new_moltype.PROTEIN_WITH_STOP)
+    got = new_moltype.PROTEIN_WITH_STOP.strip_bad(seq)
+    expect = make_typed("ASTBZ*-X", data_type, new_moltype.PROTEIN_WITH_STOP)
+    assert got == expect
+
+
+@pytest.mark.parametrize("data_type", (str, bytes))
+def test_strip_bad_and_gaps(data_type):
+    """removes characters that are not in the alphabet and gaps"""
+
+    # DNA - Q not in DNA alphabet/ambiguities
+    seq = make_typed("TCGA-Q?NRYWSKMBDHV", data_type, new_moltype.DNA)
+    got = new_moltype.DNA.strip_bad_and_gaps(seq)
+    expect = make_typed("TCGA?NRYWSKMBDHV", data_type, new_moltype.DNA)
+    assert got == expect
+
+    # Protein - J and * not in Protein alphabet/ambiguities
+    seq = make_typed("ASTBJZ*X", data_type, new_moltype.PROTEIN)
+    got = new_moltype.PROTEIN.strip_bad(seq)
+    expect = make_typed("ASTBZX", data_type, new_moltype.PROTEIN)
+    assert got == expect
+
+    # Protein with stop - J  not in Protein alphabet/ambiguities
+    seq = make_typed("ASTBJZ*X", data_type, new_moltype.PROTEIN_WITH_STOP)
+    got = new_moltype.PROTEIN_WITH_STOP.strip_bad(seq)
+    expect = make_typed("ASTBZ*X", data_type, new_moltype.PROTEIN_WITH_STOP)
+    assert got == expect
+
+
+@pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
+def test_disambiguate_empty(data_type):
+    d = new_moltype.RNA.disambiguate
+    seq = make_typed("", data_type, new_moltype.RNA)
+    assert (
+        numpy.array_equal(d(seq), seq) if data_type is numpy.ndarray else d(seq) == seq
+    )
+
+
+@pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
+def test_disambiguate_strip(data_type):
+    """MolType disambiguate should remove degenerate bases"""
+    d = new_moltype.RNA.disambiguate
+    seq = make_typed("AUN-YRS-WKMCGWMRNMWRKY", data_type, new_moltype.RNA)
+    got = d(seq, "strip")
+    expect = make_typed("AU--CG", data_type, new_moltype.RNA)
+    assert (
+        numpy.array_equal(got, expect) if data_type is numpy.ndarray else got == expect
+    )
+
+
+def test_disambiguate_random_str():
+    # todo: add tests for bytes and numpy.array
+    d = new_moltype.RNA.disambiguate
+    s = "AUN-YRS-WKMCGWMRNMWRKY"
+    t = d(s, "random")
+
+    assert len(s) == len(t)
+
+    for i, j in zip(s, t):
+        if i in new_moltype.RNA.ambiguities:
+            assert j in new_moltype.RNA.ambiguities[i]
+
+    assert not new_moltype.RNA.is_degenerate(t)
+    with pytest.raises(NotImplementedError):
+        d(s, method="xyz")
+
+
+@pytest.mark.parametrize("data_type", (str, bytes))
+@pytest.mark.parametrize(
+    "data, expect",
+    (("---CGAUGCAU---ACGHC---ACGUCAGU---", 12), ("", 0), ("ACGU", 0), ("-", 1)),
+)
+def test_count_gaps(data, expect, data_type):
+    seq = make_typed(data, data_type, new_moltype.RNA)
+    got = new_moltype.RNA.count_gaps(seq)
+    assert got == expect
+
+
+def test_count_degenerate():
+    """MolType count_degenerate should return correct degen base count"""
+    d = new_moltype.RNA.count_degenerate
+    assert d("") == 0
+    assert d("GACUGCAUGCAUCGUACGUCAGUACCGA") == 0
+    assert d("N") == 1
+    assert d("NRY") == 3
+    assert d("ACGUAVCUAGCAUNUCAGUCAGyUACGUCAGS") == 4
+
+
+def test_count_variants():
+    """MolType count_variants should return correct # possible sequences"""
+    p = new_moltype.RNA.count_variants
+    assert p("") == 1
+    assert p("ACGUGCAUCAGUCGUGCAU") == 1
+    assert p("N") == 4
+    assert p("R") == 2
+    assert p("H") == 3
+    assert p("NRH") == 24
+    assert p("AUGCNGUCAG-AURGAUC--GAUHCGAUACGWS") == 96

@@ -779,6 +779,169 @@ class MolType:
 
         return result
 
+    @functools.singledispatchmethod
+    def strip_degenerate(self, seq: StrORBytesORArray) -> StrORBytesORArray:
+        """removes degenerate characters"""
+        raise TypeError(f"{type(seq)} not supported")
+
+    @strip_degenerate.register
+    def _(self, seq: bytes) -> bytes:
+        monomers = self.alphabet
+        ambigs = set(self.degen_alphabet) - set(monomers)
+        func = new_alphabet.convert_alphabet(
+            src=monomers.as_bytes(),
+            dest=monomers.as_bytes(),
+            delete="".join(ambigs).encode("utf-8"),
+        )
+        return func(seq)
+
+    @strip_degenerate.register
+    def _(self, seq: str) -> str:
+        return self.strip_degenerate(seq.encode("utf-8")).decode("utf-8")
+
+    @strip_degenerate.register
+    def _(self, seq: numpy.ndarray) -> numpy.ndarray:
+        return self.degen_gapped_alphabet.to_indices(
+            self.strip_degenerate(self.degen_gapped_alphabet.array_to_bytes(seq))
+        )
+
+    @functools.singledispatchmethod
+    def strip_bad(self, seq: StrORBytes) -> StrORBytes:
+        """Removes any symbols not in the alphabet."""
+        raise TypeError(f"{type(seq)} not supported")
+
+    def _strip_bad(self, seq: numpy.ndarray) -> numpy.ndarray:
+        return seq[seq < len(self.degen_gapped_alphabet)]
+
+    @strip_bad.register
+    def _(self, seq: bytes) -> bytes:
+        return self.degen_gapped_alphabet.array_to_bytes(
+            self._strip_bad(self.degen_gapped_alphabet.to_indices(seq))
+        )
+
+    @strip_bad.register
+    def _(self, seq: str) -> str:
+        return self.strip_bad(seq.encode("utf8")).decode("utf8")
+
+    @functools.singledispatchmethod
+    def strip_bad_and_gaps(self, seq: StrORBytes) -> StrORBytes:
+        """Removes any symbols not in the alphabet, and any gaps."""
+        raise TypeError(f"{type(seq)} not supported")
+
+    def _strip_bad_and_gaps(self, seq: numpy.ndarray) -> numpy.ndarray:
+        return seq[
+            numpy.logical_and(
+                seq < len(self.degen_gapped_alphabet),
+                seq != self.degen_gapped_alphabet.gap_index,
+            )
+        ]
+
+    @strip_bad_and_gaps.register
+    def _(self, seq: bytes) -> bytes:
+        return self.degen_gapped_alphabet.array_to_bytes(
+            self._strip_bad_and_gaps(self.degen_gapped_alphabet.to_indices(seq))
+        )
+
+    @strip_bad_and_gaps.register
+    def _(self, seq: str) -> str:
+        return self.strip_bad_and_gaps(seq.encode("utf8")).decode("utf8")
+
+    def disambiguate(
+        self, seq: StrORBytesORArray, method: str = "strip"
+    ) -> StrORBytesORArray:
+        """Returns a non-degenerate sequence from a degenerate one.
+
+        Parameters
+        ----------
+        seq
+            the sequence to be disambiguated
+        method
+            how to disambiguate the sequence, one of "strip", "random"
+            strip: removes degenerate characters
+            random: randomly selects a non-degenerate character
+        """
+        if method == "strip":
+            return self.strip_degenerate(seq)
+
+        elif method == "random":
+            return self.random_disambiguate(seq)
+
+        else:
+            raise NotImplementedError(f"method={method} not implemented")
+
+    @functools.singledispatchmethod
+    def random_disambiguate(self, seq: StrORBytesORArray) -> StrORBytesORArray:
+        """disambiguates a sequence by randomly selecting a non-degenerate character"""
+        raise TypeError(f"{type(seq)} not supported")
+
+    @random_disambiguate.register
+    def _(self, seq: str) -> str:
+        return "".join(
+            numpy.random.choice(list(self.ambiguities.get(n, n))) for n in seq
+        )
+
+    @random_disambiguate.register
+    def _(self, seq: bytes) -> bytes:
+        return self.random_disambiguate(seq.decode("utf8")).encode("utf8")
+
+    @random_disambiguate.register
+    def _(self, seq: numpy.ndarray) -> numpy.ndarray:
+        return self.degen_gapped_alphabet.to_indices(
+            self.random_disambiguate(self.degen_gapped_alphabet.array_to_bytes(seq))
+        )
+
+    @functools.singledispatchmethod
+    def count_gaps(self, seq: StrORBytes) -> int:
+        """returns the number of gap characters in a sequence"""
+        raise TypeError(f"{type(seq)} not supported")
+
+    def _count_gaps(self, seq: numpy.ndarray) -> int:
+        return numpy.sum(seq == self.degen_gapped_alphabet.gap_index)
+
+    @count_gaps.register
+    def _(self, seq: bytes) -> int:
+        return self._count_gaps(self.degen_gapped_alphabet.to_indices(seq))
+
+    @count_gaps.register
+    def _(self, seq: str) -> int:
+        return self.count_gaps(seq.encode("utf8"))
+
+    @functools.singledispatchmethod
+    def count_degenerate(self, seq: StrORBytes) -> int:
+        """returns the number of degenerate characters in a sequence"""
+        raise TypeError(f"{type(seq)} not supported")
+
+    def _count_degenerate(self, seq: numpy.ndarray) -> int:
+        return numpy.sum(seq >= self.degen_gapped_alphabet.gap_index)
+
+    @count_degenerate.register
+    def _(self, seq: bytes) -> int:
+        return self._count_degenerate(self.degen_gapped_alphabet.to_indices(seq))
+
+    @count_degenerate.register
+    def _(self, seq: str) -> int:
+        return self.count_degenerate(seq.encode("utf8"))
+
+    @functools.singledispatchmethod
+    def count_variants(self, seq: StrORBytes) -> int:
+        """Counts number of possible sequences matching the sequence, given
+        any ambiguous characters in the sequence.
+
+        Notes
+        -----
+        Uses self.ambiguitues to decide how many possibilities there are at
+        each position in the sequence and calculates the permutations.
+        """
+        raise TypeError(f"{type(seq)} not supported")
+
+    @count_variants.register
+    def _(self, seq: bytes) -> int:
+        return self.count_variants(seq.decode("utf8"))
+
+    @count_variants.register
+    def _(self, seq: str) -> int:
+        return numpy.prod([len(self.ambiguities.get(c, c)) for c in seq])
+
     def strand_symmetric_motifs(
         self, motif_length: int = 1
     ) -> set[tuple[str, str]]:  # refactor: docstring

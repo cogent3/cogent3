@@ -35,7 +35,7 @@ from cogent3.core.annotation_db import (
 )
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.location import FeatureMap, IndelMap, LostSpan
-from cogent3.format.fasta import alignment_to_fasta
+from cogent3.format.fasta import seqs_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts
 from cogent3.maths.stats.number import CategoryCounter
 from cogent3.util.deserialise import register_deserialiser
@@ -152,7 +152,7 @@ class Sequence:
                 result = self.moltype.complement(result)
         return result
 
-    def to_fasta(self, make_seqlabel=None, block_size=60):
+    def to_fasta(self, make_seqlabel=None, block_size=60) -> str:
         """Return string of self in FASTA format, no trailing newline
 
         Parameters
@@ -171,9 +171,11 @@ class Sequence:
             label = self.label
         elif hasattr(self, "name") and self.name:
             label = self.name
-        return alignment_to_fasta({label: str(self)}, block_size=block_size)
+        return seqs_to_fasta({label: str(self)}, block_size=block_size)
 
-    def to_rich_dict(self, exclude_annotations=True):
+    def to_rich_dict(
+        self, exclude_annotations: bool = True
+    ) -> dict[str, str | dict[str, str]]:
         """returns {'name': name, 'seq': sequence, 'moltype': moltype.label}
 
         Notes
@@ -209,12 +211,12 @@ class Sequence:
         return data
 
     @classmethod
-    def from_rich_dict(cls, data):
+    def from_rich_dict(cls, data: dict):
         moltype, seq = _moltype_seq_from_rich_dict(data)
 
         return cls(moltype=moltype, seq=seq, **data)
 
-    def to_json(self):
+    def to_json(self) -> str:
         """returns a json formatted string"""
         return json.dumps(self.to_rich_dict())
 
@@ -327,76 +329,69 @@ class Sequence:
         """Removes degenerate bases by stripping them out of the sequence."""
         return self.__class__(
             moltype=self.moltype,
-            seq=self.moltype.strip_degenerate(self),
+            seq=self.moltype.strip_degenerate(bytes(self)),
             info=self.info,
         )
 
     def strip_bad(self):
         """Removes any symbols not in the alphabet."""
         return self.__class__(
-            moltype=self.moltype, seq=self.moltype.strip_bad(self), info=self.info
+            moltype=self.moltype, seq=self.moltype.strip_bad(str(self)), info=self.info
         )
 
     def strip_bad_and_gaps(self):
         """Removes any symbols not in the alphabet, and any gaps."""
         return self.__class__(
             moltype=self.moltype,
-            seq=self.moltype.strip_bad_and_gaps(self),
+            seq=self.moltype.strip_bad_and_gaps(str(self)),
             info=self.info,
         )
 
-    def is_gapped(self):
+    def is_gapped(self) -> bool:
         """Returns True if sequence contains gaps."""
-        return self.moltype.is_gapped(self)
+        return self.moltype.is_gapped(str(self))
 
-    def is_gap(self, char=None):
+    def is_gap(self, char: str = None) -> bool:
         """Returns True if char is a gap.
 
         If char is not supplied, tests whether self is gaps only.
         """
+        # refactor design - possibly delete method
+        # only works on a single literal that's a gap, not on a sequence.
+        # i.e, seq.is_gap('-') would return True, but seq.is_gap("--") would return False
+        # possibly, this behavior should change?
         if char is None:  # no char - so test if self is all gaps
             return len(self) == self.count_gaps()
         else:
-            return self.moltype.is_gap(char)
+            return char in self.moltype.gaps
 
-    def is_degenerate(self):
+    def is_degenerate(self) -> bool:
         """Returns True if sequence contains degenerate characters."""
-        return self.moltype.is_degenerate(self)
+        return self.moltype.is_degenerate(str(self))
 
-    def is_valid(self):
+    def is_valid(self) -> bool:
         """Returns True if sequence contains no items absent from alphabet."""
         return self.moltype.is_valid(self)
 
-    def is_strict(self):
+    def is_strict(self) -> bool:
         """Returns True if sequence contains only monomers."""
-        return self.moltype.is_strict(self)
-
-    def first_gap(self):
-        """Returns the index of the first gap in the sequence, or None."""
-        return self.moltype.first_gap(self)
-
-    def first_degenerate(self):
-        """Returns the index of first degenerate symbol in sequence, or None."""
-        return self.moltype.first_degenerate(self)
-
-    def first_invalid(self):
-        """Returns the index of first invalid symbol in sequence, or None."""
-        return self.moltype.first_invalid(self)
-
-    def first_non_strict(self):
-        """Returns the index of first non-strict symbol in sequence, or None."""
-        return self.moltype.first_non_strict(self)
+        return self.moltype.alphabet.is_valid(array(self))
 
     def disambiguate(self, method="strip"):
         """Returns a non-degenerate sequence from a degenerate one.
 
-        method can be 'strip' (deletes any characters not in monomers or gaps)
-        or 'random'(assigns the possibilities at random, using equal
-        frequencies).
+        Parameters
+        ----------
+        seq
+            the sequence to be disambiguated
+        method
+            how to disambiguate the sequence, one of "strip", "random"
+            strip: deletes any characters not in monomers or gaps
+            random: assigns the possibilities at random, using equal frequencies
         """
         return self.__class__(
             moltype=self.moltype,
-            seq=self.moltype.disambiguate(self, method),
+            seq=self.moltype.disambiguate(str(self), method),
             info=self.info,
         )
 
@@ -404,7 +399,7 @@ class Sequence:
         """Deletes all gap characters from sequence."""
         result = self.__class__(
             moltype=self.moltype,
-            seq=self.moltype.degap(self),
+            seq=self.moltype.degap(bytes(self)),
             name=self.name,
             info=self.info,
         )
@@ -419,25 +414,31 @@ class Sequence:
         """Returns vector of True or False according to which pos are gaps."""
         return self.moltype.gap_vector(self)
 
-    def gap_maps(self):
-        """Returns dicts mapping between gapped and ungapped positions."""
-        return self.moltype.gap_maps(self)
-
-    def count_gaps(self):
+    def count_gaps(self) -> int:
         """Counts the gaps in the specified sequence."""
-        return self.moltype.count_gaps(self)
+        return self.moltype.count_gaps(bytes(self))
 
-    def count_degenerate(self):
-        """Counts the degenerate bases in the specified sequence."""
-        return self.moltype.count_degenerate(self)
+    def count_degenerate(self) -> int:
+        """Counts the degenerate bases in the specified sequence.
 
-    def possibilities(self):
-        """Counts number of possible sequences matching the sequence.
-
-        Uses self.degenerates to decide how many possibilities there are at
-        each position in the sequence.
+        Notes
+        -----
+        gap and missing characters are counted as degenerate.
         """
-        return self.moltype.possibilities(self)
+        # design: refactor
+        # should gap and missing characters be counted as degenerate?
+        return self.moltype.count_degenerate(bytes(self))
+
+    def count_variants(self):
+        """Counts number of possible sequences matching the sequence, given
+        any ambiguous characters in the sequence.
+
+        Notes
+        -----
+        Uses self.ambiguitues to decide how many possibilities there are at
+        each position in the sequence and calculates the permutations.
+        """
+        return self.moltype.count_variants(str(self))
 
     def mw(self, method="random", delta=None):  # refactor: type hint
         """Returns the molecular weight of (one strand of) the sequence.
@@ -1113,13 +1114,21 @@ class Sequence:
             feature_data.pop(discard)
         return self.make_feature(feature_data)
 
-    def to_moltype(self, moltype):
+    def to_moltype(self, moltype: str):
         """returns copy of self with moltype seq
 
         Parameters
         ----------
-        moltype : str
+        moltype
             molecular type
+
+        Notes
+        -----
+        This method cannot convert between nucleic acids and proteins. Use
+        get_translation() for that.
+
+        When applied to a sequence in a SequenceCollection, the resulting
+        sequence will no longer be part of the collection.
         """
         from cogent3.core import new_moltype
 
@@ -1127,19 +1136,31 @@ class Sequence:
             raise ValueError(f"unknown moltype '{moltype}'")
 
         moltype = new_moltype.get_moltype(moltype)
+
         if moltype is self.moltype:
             return self
 
-        s = moltype.coerce_str(self._seq.str_value)
-        moltype.verify_sequence(s, gaps_allowed=True, wildcards_allowed=True)
-        sv = SeqView(seq=s, alphabet=moltype.most_degen_alphabet())
-        new = moltype.make_seq(sv, name=self.name, info=self.info)
+        if len(self.moltype.alphabet) == len(moltype.alphabet):
+            # converting between dna and rna
+            seq = (
+                moltype.most_degen_alphabet()
+                .array_to_bytes(array(self))
+                .decode("utf-8")
+            )
+
+        else:
+            # assume converting between ASCII/BYTES and nucleic acid
+            seq = str(self)
+
+        if not moltype.most_degen_alphabet().is_valid(seq):
+            raise ValueError(
+                f"Changing from old moltype={self.moltype.label} to new "
+                f"moltype={moltype.label} is not valid for this data"
+            )
+        sv = SeqView(seq=seq, alphabet=moltype.most_degen_alphabet())
+        new = self.__class__(moltype=moltype, seq=sv, name=self.name, info=self.info)
         new.annotation_db = self.annotation_db
         return new
-
-    def _seq_filter(self, seq):
-        """Returns filtered seq; used to do DNA/RNA conversions."""
-        return seq
 
     def copy_annotations(self, seq_db: SupportsFeatures) -> None:
         """copy annotations into attached annotation db
@@ -1453,15 +1474,6 @@ class Sequence:
         seq.annotation_db = self.annotation_db
         return indel_map, seq
 
-    def replace(self, oldchar, newchar):
-        """return new instance with oldchar replaced by newchar"""
-        new = self._seq.replace(oldchar, newchar)
-        result = self.__class__(
-            moltype=self.moltype, seq=new, name=self.name, info=self.info
-        )
-        result.annotation_db = self.annotation_db
-        return result
-
     def is_annotated(self):
         """returns True if sequence has any annotations"""
         num = self.annotation_db.num_matches() if self.annotation_db else 0
@@ -1699,7 +1711,9 @@ class NucleicAcidSequenceMixin:
         will return list of keys.
         """
         return self.__class__(
-            moltype=self.moltype, seq=self.moltype.complement(self), info=self.info
+            moltype=self.moltype,
+            seq=self.moltype.complement(bytes(self)),
+            info=self.info,
         )
 
     def reverse_complement(self):
@@ -1891,14 +1905,10 @@ class NucleicAcidSequenceMixin:
         return cat.G_fit()
 
 
-class DnaSequence(NucleicAcidSequenceMixin, Sequence):
+class DnaSequence(Sequence, NucleicAcidSequenceMixin):
     """Holds the standard DNA sequence."""
 
     # constructed by DNA moltype
-
-    def _seq_filter(self, seq):
-        """Converts U to T."""
-        return seq.replace("u", "t").replace("U", "T")
 
 
 @register_deserialiser(get_object_provenance(DnaSequence))
@@ -1906,14 +1916,10 @@ def deserialise_dna_sequence(data) -> DnaSequence:
     return DnaSequence.from_rich_dict(data)
 
 
-class RnaSequence(NucleicAcidSequenceMixin, Sequence):
+class RnaSequence(Sequence, NucleicAcidSequenceMixin):
     """Holds the standard RNA sequence."""
 
     # constructed by RNA moltype
-
-    def _seq_filter(self, seq):
-        """Converts T to U."""
-        return seq.replace("t", "u").replace("T", "U")
 
 
 @register_deserialiser(get_object_provenance(RnaSequence))
