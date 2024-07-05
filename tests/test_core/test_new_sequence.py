@@ -172,6 +172,7 @@ def test_sequence_strip_degenerate(seq, expect):
     """Sequence strip_degenerate should remove any degenerate bases"""
     seq = new_moltype.RNA.make_seq(seq=seq)
     got = seq.strip_degenerate()
+    assert got == expect
 
 
 def test_add():
@@ -309,9 +310,6 @@ def test_sequence_is_gapped():
     assert new_moltype.RNA.make_seq(seq="CAGU-").is_gapped()
 
 
-@pytest.mark.xfail(
-    reason="AttributeError: 'MolType' object has no attribute 'count_gaps'"
-)
 def test_sequence_is_gap():
     """Sequence is_gap should return True if char is a valid gap char"""
     r = new_moltype.RNA.make_seq(seq="ACGUCAGUACGUCAGNRCGAUYRNRYRN")
@@ -1642,25 +1640,17 @@ def test_annotate_gff_nested_features(DATA_DIR):
     assert tuple(str(ex.get_slice()) for ex in exons) == exon_seqs
 
 
-@pytest.mark.xfail(
-    reason="AttributeError: 'MolType' object has no attribute 'coerce_str'"
-)
 def test_to_moltype_dna():
     """to_moltype("dna") ensures conversion from T to U"""
     seq = new_moltype.DNA.make_seq(seq="AAAAGGGGTTT", name="seq1")
     rna = seq.to_moltype("rna")
-
     assert "T" not in rna
 
 
-@pytest.mark.xfail(
-    reason="AttributeError: 'MolType' object has no attribute 'coerce_str'"
-)
 def test_to_moltype_rna():
     """to_moltype("rna") ensures conversion from U to T"""
     seq = new_moltype.RNA.make_seq(seq="AAAAGGGGUUU", name="seq1")
     rna = seq.to_moltype("dna")
-
     assert "U" not in rna
 
 
