@@ -189,7 +189,7 @@ def test_add_bad():
     mt = new_moltype.DNA
     seq1 = mt.make_seq(seq="AAA")
     with pytest.raises(new_alphabet.AlphabetError):
-        f"{seq1}s8d3j%31 s-']"
+        _ = f"{seq1}s8d3j%31 s-']"
 
 
 @pytest.mark.parametrize(
