@@ -10,8 +10,8 @@ import pytest
 
 from scitrack import get_text_hexdigest
 
-import cogent3.app.io as io_app
-
+from cogent3.app import io as io_app
+from cogent3.app import sample as sample_app
 from cogent3.app.composable import NotCompleted
 from cogent3.app.data_store import (
     _MD5_TABLE,
@@ -743,3 +743,13 @@ def test_directory_data_store_write_compressed(tmp_path):
     )
     got = writer(seqs)  # pylint: disable=not-callable
     assert got, got
+
+
+def test_apply_to_not_completed(nc_dstore, tmp_path):
+    loader = io_app.load_unaligned()
+    num_seqs = sample_app.take_n_seqs(number=3)
+    out_dstore = io_app.open_data_store(tmp_path / "output", suffix="fa", mode="w")
+    writer = io_app.write_seqs(data_store=out_dstore, format="fasta")
+    app = loader + num_seqs + writer
+    fini = app.apply_to(nc_dstore)
+    print(fini)
