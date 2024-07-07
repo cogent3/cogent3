@@ -20,7 +20,12 @@ from cogent3.util import parallel as PAR
 from cogent3.util import progress_display as UI
 from cogent3.util.misc import docstring_to_summary_rest, get_object_provenance
 
-from .data_store import DataMember, get_data_source, get_unique_id
+from .data_store import (
+    DataMember,
+    DataStoreABC,
+    get_data_source,
+    get_unique_id,
+)
 
 
 _builtin_seqs = list, set, tuple
@@ -702,6 +707,8 @@ def _as_completed(self, dstore, parallel=False, par_kw=None, **kwargs) -> Genera
 
     if isinstance(dstore, str):
         dstore = [dstore]
+    elif isinstance(dstore, DataStoreABC):
+        dstore = dstore.completed
     mapped = _proxy_input(dstore)
     if not mapped:
         return mapped
@@ -778,6 +785,8 @@ def _apply_to(
 
     if isinstance(dstore, (str, Path)):  # one filename
         dstore = [dstore]
+    elif isinstance(dstore, DataStoreABC):
+        dstore = dstore.completed
 
     # todo this should fail if somebody provides data that cannot produce a unique_id
     inputs = {}
