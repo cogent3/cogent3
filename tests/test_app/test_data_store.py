@@ -747,9 +747,9 @@ def test_directory_data_store_write_compressed(tmp_path):
 
 def test_apply_to_not_completed(nc_dstore, tmp_path):
     loader = io_app.load_unaligned()
-    num_seqs = sample_app.take_n_seqs(number=3)
+    num_seqs = sample_app.take_n_seqs(number=3, fixed_choice=False)
     out_dstore = io_app.open_data_store(tmp_path / "output", suffix="fa", mode="w")
     writer = io_app.write_seqs(data_store=out_dstore, format="fasta")
     app = loader + num_seqs + writer
     fini = app.apply_to(nc_dstore)
-    print(fini)
+    assert 0 < len(fini.completed) <= len(nc_dstore.completed)
