@@ -374,7 +374,7 @@ def test_sequence_gap_indices():
     expect = numpy.array([])
     assert numpy.array_equal(got, expect)
 
-    got == new_moltype.RNA.make_seq(seq="ACUGUCAGUACGHSDKCUCDNNS").gap_indices()
+    got = new_moltype.RNA.make_seq(seq="ACUGUCAGUACGHSDKCUCDNNS").gap_indices()
     expect = numpy.array([])
     assert numpy.array_equal(got, expect)
 
