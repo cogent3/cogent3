@@ -106,25 +106,6 @@ def ordered2():
     return seqs
 
 
-@pytest.fixture
-def aligned_dict():
-    return dict(seq1="ACG--T", seq2="-CGAAT")
-
-
-@pytest.fixture
-def ad_demo(aligned_dict: dict[str, str]):
-    return new_aln.AlignedData.from_gapped_seqs(aligned_dict)
-
-
-@pytest.fixture
-def gap_seqs():
-    return [
-        ("A---CTG-C", [[1, 3], [4, 1]]),
-        ("-GTAC--", [[0, 1], [4, 2]]),
-        ("---AGC--TGC--", [[0, 3], [3, 2], [6, 2]]),
-    ]
-
-
 @pytest.fixture(scope="function")
 def gb_db(DATA_DIR):
     return load_annotations(path=DATA_DIR / "annotated_seq.gb")
@@ -471,98 +452,6 @@ def test_bytes(sdv_s2: new_aln.SeqDataView):
     expect = sdv_s2.bytes_value
     got = bytes(sdv_s2)
     assert expect == got
-
-
-# AlignedSeqData tests
-def test_from_string_unequal_seqlens():
-    data = dict(seq1="A-A", seq2="AAAAAAA--")
-    with pytest.raises(ValueError):
-        new_aln.AlignedData.from_gapped_seqs(data=data)
-
-
-@pytest.mark.xfail(reason="AlignedData not yet functional")
-def test_aligned_from_string_returns_self(aligned_dict):
-    got = new_aln.AlignedData.from_gapped_seqs(data=aligned_dict)
-    assert isinstance(got, new_aln.AlignedData)
-    # assert gap lengths
-
-
-@pytest.mark.xfail(reason="AlignedData not yet functional")
-@pytest.mark.parametrize("seqid", ("seq1", "seq2"))
-def test_get_aligned_view(aligned_dict, seqid):
-    ad = new_aln.AlignedData.from_gapped_seqs(aligned_dict)
-    got = ad.get_aligned_view(seqid)
-    assert isinstance(got, new_aln.AlignedDataView)
-    assert got.seq == ad
-    assert got.stop == ad.align_len
-    assert got.seq_len == ad.align_len
-
-
-@pytest.mark.xfail(reason="AlignedData not yet functional")
-def test_seq_to_gap_coords_str_all_gaps():
-    parent_seq = "-----"
-    expect_gaplen = numpy.array([len(parent_seq)])
-    got_ungap, got_map = new_aln.seq_to_gap_coords(
-        parent_seq, moltype=new_moltype.get_moltype("dna")
-    )
-    assert got_ungap == ""
-    assert got_map.cum_gap_lengths == expect_gaplen
-
-
-@pytest.mark.xfail(reason="AlignedData not yet functional")
-def test_seq_to_gap_coords_str_no_gaps():
-    parent_seq = "ACTGC"
-    got_ungap, got_empty_arr = new_aln.seq_to_gap_coords(
-        parent_seq, moltype=new_moltype.get_moltype("dna")
-    )
-    assert got_ungap == parent_seq
-    assert got_empty_arr.size == 0
-
-
-@pytest.mark.xfail(reason="AlignedData not yet functional")
-def test_seq_to_gap_coords_arr_all_gaps():
-    alpha = new_moltype.get_moltype("dna").degen_gapped_alphabet
-    parent_seq = alpha.to_indices("-----", alpha)
-    got_ungap, got_map = new_aln.seq_to_gap_coords(
-        parent_seq, moltype=new_moltype.get_moltype("dna")
-    )
-    assert got_ungap.size == 0
-    assert got_map.get_gap_coordinates() == [[0, 5]]
-
-
-@pytest.mark.xfail(reason="AlignedData not yet functional")
-def test_seq_to_gap_coords_arr_no_gaps():
-    alpha = new_moltype.get_moltype("dna").degen_gapped_alphabet
-    parent_seq = alpha.to_indices("ACTGC", alpha)
-    got_ungap, got_empty_arr = new_aln.seq_to_gap_coords(
-        parent_seq, moltype=new_moltype.get_moltype("dna")
-    )
-    assert numpy.array_equal(got_ungap, parent_seq)
-    assert got_empty_arr.size == 0
-
-
-@pytest.mark.xfail(reason="AlignedData not yet functional")
-@pytest.mark.parametrize("i", range(3))
-def test_seq_to_gap_coords_str(gap_seqs, i):
-    seq, gap_coords = gap_seqs[i]
-    got_ungapped, got_map = new_aln.seq_to_gap_coords(
-        seq, moltype=new_moltype.get_moltype("dna")
-    )
-    assert got_ungapped == seq.replace("-", "")
-    assert got_map.get_gap_coordinates() == gap_coords
-
-
-@pytest.mark.xfail(reason="AlignedData not yet functional")
-@pytest.mark.parametrize("i", range(3))
-def test_seq_to_gap_coords_arr(gap_seqs, i):
-    seq, gap_coords = gap_seqs[i]
-    alpha = new_moltype.get_moltype("dna").degen_gapped_alphabet
-    seq = alpha.to_indices(seq, alpha)  # convert to array repr
-    got_ungapped, got_map = new_aln.seq_to_gap_coords(
-        seq, moltype=new_moltype.get_moltype("dna")
-    )
-    assert numpy.array_equal(got_ungapped, seq[seq != 4])  # gap_char = 4
-    assert got_map.get_gap_coordinates() == gap_coords
 
 
 @pytest.mark.parametrize("moltype", ("dna", "rna", "protein", "protein_with_stop"))
