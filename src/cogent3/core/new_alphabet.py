@@ -379,6 +379,10 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
     @functools.singledispatchmethod
     def is_valid(self, seq: StrORBytesORArray) -> bool:
+        # refactor: design
+        if hasattr(seq, "alphabet"):
+            # assume a SeqView instance
+            return seq.alphabet == self
         raise TypeError(f"{type(seq)} is invalid")
 
     @is_valid.register
