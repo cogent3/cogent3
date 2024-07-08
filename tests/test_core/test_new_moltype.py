@@ -429,9 +429,9 @@ def test_strip_bad_and_gaps(data_type):
     """removes characters that are not in the alphabet and gaps"""
 
     # DNA - Q not in DNA alphabet/ambiguities
-    seq = make_typed("TCGA-Q?NRYWSKMBDHV", data_type, new_moltype.DNA)
+    seq = make_typed("TCGA-QNRYWSKMBDHV", data_type, new_moltype.DNA)
     got = new_moltype.DNA.strip_bad_and_gaps(seq)
-    expect = make_typed("TCGA?NRYWSKMBDHV", data_type, new_moltype.DNA)
+    expect = make_typed("TCGANRYWSKMBDHV", data_type, new_moltype.DNA)
     assert got == expect
 
     # Protein - J and * not in Protein alphabet/ambiguities

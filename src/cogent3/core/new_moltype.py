@@ -9,9 +9,16 @@ from string import ascii_letters
 import numpy
 
 from cogent3.core import new_alphabet, new_sequence
+from cogent3.data.molecular_weight import (
+    DnaMW,
+    ProteinMW,
+    RnaMW,
+    WeightCalculator,
+)
 
 
 OptStr = typing.Optional[str]
+OptFloat = typing.Optional[float]
 OptCallable = typing.Optional[typing.Callable]
 SeqStrType = typing.Union[list[str], tuple[str, ...]]
 StrORBytes = typing.Union[str, bytes]
@@ -179,6 +186,44 @@ def make_pairs(
     return result
 
 
+def make_matches(
+    monomers: tuple[str, ...] = None,
+    gaps: str = None,
+    degenerates: dict[str, set[str]] = None,
+) -> dict[frozenset[str], bool]:
+    """Makes a dict of symbol pairs (i,j) -> strictness.
+
+    Strictness is True if i and j always match and False if they sometimes
+    match (e.g. A always matches A, but W sometimes matches R).
+    """
+
+    monomers = monomers or {}
+    gaps = gaps or {}
+    degenerates = degenerates or {}
+    result = {}
+
+    # all monomers always match themselves and no other monomers
+    for i in monomers:
+        result[(i, i)] = True
+
+    # all gaps always match all other gaps
+    for i, j in itertools.combinations_with_replacement(gaps, 2):
+        result[(i, j)], result[(j, i)] = True, True
+
+    # monomers sometimes match degenerates that contain them
+    for i in monomers:
+        for j in degenerates:
+            if i in degenerates[j]:
+                result[(i, j)], result[(j, i)] = False, False
+
+    # degenerates sometimes match degenerates if the sets intersect
+    for i in degenerates:
+        for j in degenerates:
+            if degenerates[i] & degenerates[j]:
+                result[(i, j)], result[(j, i)] = False, False
+    return result
+
+
 # RNA_PAIRING_RULES is a dict of {name:(base_pairs,degen_pairs)} where base_pairs
 # is a dict with the non-degenerate pairing rules and degen_pairs is a dict with
 # both the degenerate and non-degenerate pairing rules.
@@ -335,6 +380,7 @@ class MolType:
     ambiguities: typing.Optional[dict[str, tuple[str, ...]]] = None
     colors: dataclasses.InitVar[typing.Optional[dict[str, str]]] = None
     pairing_rules: typing.Optional[dict[str, dict[frozenset[str], bool]]] = None
+    mw_calculator: typing.Optional[WeightCalculator] = None
 
     # private attributes to be delivered via properties
     _monomers: new_alphabet.CharAlphabet = dataclasses.field(init=False)
@@ -456,6 +502,12 @@ class MolType:
     def gaps(self) -> frozenset:  # refactor: docstring
         gaps = [char for char in (self.gap, self.missing) if char is not None]
         return frozenset(gaps)
+
+    @property
+    def matching_rules(self) -> dict[frozenset[str], bool]:
+        return make_matches(
+            monomers=self._monomers, gaps=self.gaps, degenerates=self.ambiguities
+        )
 
     def is_valid(self, seq: StrORArray) -> bool:
         """checks against most degenerate alphabet"""
@@ -825,14 +877,18 @@ class MolType:
 
     @functools.singledispatchmethod
     def strip_bad_and_gaps(self, seq: StrORBytes) -> StrORBytes:
-        """Removes any symbols not in the alphabet, and any gaps."""
+        """Removes any symbols not in the alphabet, and any gaps.
+        Since missing could be a gap, it is also removed."""
         raise TypeError(f"{type(seq)} not supported")
 
     def _strip_bad_and_gaps(self, seq: numpy.ndarray) -> numpy.ndarray:
         return seq[
             numpy.logical_and(
-                seq < len(self.degen_gapped_alphabet),
-                seq != self.degen_gapped_alphabet.gap_index,
+                numpy.logical_and(
+                    seq < len(self.degen_gapped_alphabet),
+                    seq != self.degen_gapped_alphabet.gap_index,
+                ),
+                seq != self.degen_gapped_alphabet.missing_index,
             )
         ]
 
@@ -952,6 +1008,76 @@ class MolType:
         motif_set = self.alphabet.get_kmer_alphabet(k=motif_length)
         return {tuple(sorted([m, self.complement(m)])) for m in motif_set}
 
+    def mw(self, seq: str, method: str = "random", delta: OptFloat = None) -> float:
+        """Returns the molecular weight of the sequence. If the sequence is
+        ambiguous, uses method to disambiguate the sequence.
+
+        Parameters
+        ----------
+        seq
+            the sequence whose molecular weight is to be calculated.
+        method
+            the method provided to .disambiguate() to disambiguate the sequence.
+            either "random" or "first".
+        delta
+            if delta is present, uses it instead of the standard weight adjustment.
+
+        """
+        if not seq:
+            return 0
+        try:
+            return self.mw_calculator(seq, delta)
+        except KeyError:  # assume sequence was ambiguous
+            return self.mw_calculator(self.disambiguate(seq, method), delta)
+
+    def can_match(self, first: str, second: str) -> bool:
+        """Returns True if every pos in 1st could match same pos in 2nd.
+
+        Notes
+        -----
+        Truncates at length of shorter sequence. gaps are only allowed to match
+        other gaps.
+        """
+        # refactor: design
+        # is this method necessary?
+        m = self.matching_rules
+        return all(pair in m for pair in zip(first, second))
+
+    def can_pair(self, first: str, second: str) -> bool:
+        pairs = make_pairs(
+            pairs=self.pairing_rules,
+            monomers=self._monomers,
+            gaps=self.gaps,
+            degenerates=self.ambiguities,
+        )
+        sec = list(second)
+        sec.reverse()
+        for pair in zip(first, sec):
+            if frozenset(pair) not in pairs:
+                return False
+        return True
+
+    def can_mispair(self, first: str, second: str) -> bool:
+        """Returns True if any position in self could mispair with other.
+
+        Notes
+        -----
+        Pairing occurs in reverse order, i.e. last position of other with
+        first position of self, etc.
+
+        Truncates at length of shorter sequence.
+
+        Gaps are always counted as possible mispairs, as are weak pairs like GU.
+        """
+        p = self.pairing_rules
+        if not first or not second:
+            return False
+
+        for pair in zip(first, second[::-1]):
+            if not p.get(frozenset(pair), None):
+                return True
+        return False
+
     def get_css_style(
         self,
         colors: typing.Optional[dict[str, str]] = None,
@@ -1056,6 +1182,8 @@ DNA = MolType(
     complements=IUPAC_DNA_ambiguities_complements,
     colors=NT_COLORS,
     make_seq=new_sequence.DnaSequence,
+    pairing_rules=DNA_STANDARD_PAIRS,
+    mw_calculator=DnaMW,
 )
 
 RNA = MolType(
@@ -1066,6 +1194,7 @@ RNA = MolType(
     colors=NT_COLORS,
     make_seq=new_sequence.RnaSequence,
     pairing_rules=RNA_STANDARD_PAIRS,
+    mw_calculator=RnaMW,
 )
 #
 PROTEIN = MolType(
@@ -1074,6 +1203,7 @@ PROTEIN = MolType(
     name="protein",
     colors=AA_COLORS,
     make_seq=new_sequence.ProteinSequence,
+    mw_calculator=ProteinMW,
 )
 
 PROTEIN_WITH_STOP = MolType(
@@ -1082,6 +1212,7 @@ PROTEIN_WITH_STOP = MolType(
     name="protein_with_stop",
     colors=AA_COLORS,
     make_seq=new_sequence.ProteinWithStopSequence,
+    mw_calculator=ProteinMW,
 )
 BYTES = MolType(
     # A default type for arbitrary chars read from a file etc. when we don't
