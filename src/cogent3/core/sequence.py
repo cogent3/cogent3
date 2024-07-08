@@ -403,7 +403,7 @@ class SequenceI(object):
         """
         return self.moltype.can_match(self, other)
 
-    def can_mismatch(self, other):
+    def can_mismatch(self, other):  # will not port
         """Returns True if any position in self could mismatch with other.
 
         Truncates at length of shorter sequence.

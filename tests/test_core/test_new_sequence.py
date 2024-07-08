@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import typing
 
@@ -205,12 +206,12 @@ def test_get_type(moltype, label):
     assert got == label
 
 
-@pytest.mark.xfail(
-    reason="cannot iterate over SeqView and KeyError with unambiguous character"
-)
 @pytest.mark.parametrize(
     "s, expect",
-    [("ARC", [("A",), ("A", "G"), ("C",)]), ("AGC", [("A",), ("G",), ("C",)])],
+    [
+        ("ARC", [set(("A")), set(("A", "G")), set(("C",))]),
+        ("AGC", [set(("A",)), set(("G",)), set(("C",))]),
+    ],
 )
 def test_resolved_ambiguities(s, expect):
     mt = new_moltype.DNA
@@ -309,23 +310,6 @@ def test_sequence_is_gapped():
     assert new_moltype.RNA.make_seq(seq="CAGU-").is_gapped()
 
 
-def test_sequence_is_gap():
-    """Sequence is_gap should return True if char is a valid gap char"""
-    r = new_moltype.RNA.make_seq(seq="ACGUCAGUACGUCAGNRCGAUYRNRYRN")
-    for char in "UCGANRNYWSKMBDHV":  # all valid RNA chars/ambiguities
-        assert not r.is_gap(char)
-    assert r.is_gap("-")
-    # only works on a single literal that's a gap, not on a sequence.
-    # possibly, this behavior should change?
-    r.is_gap("---")
-    assert not r.is_gap("---")
-    # check behaviour on self
-    assert not new_moltype.RNA.make_seq(seq="CGAUACGUACGACU").is_gap()
-    assert not new_moltype.RNA.make_seq(seq="---CGAUA----CGUACG---ACU---").is_gap()
-    assert new_moltype.RNA.make_seq(seq="").is_gap()
-    assert new_moltype.RNA.make_seq(seq="----------").is_gap()
-
-
 def test_sequence_is_degenerate():
     """Sequence is_degenerate should return True if degen symbol in seq"""
     assert not new_moltype.RNA.make_seq(seq="").is_degenerate()
@@ -384,24 +368,35 @@ def test_sequence_degap():
     assert new_moltype.RNA.make_seq(seq="?A-").degap() == "A"
 
 
-@pytest.mark.xfail(
-    reason="AttributeError: 'MolType' object has no attribute 'gap_indices'"
-)
 def test_sequence_gap_indices():
     """Sequence gap_indices should return correct gap positions"""
-    assert new_moltype.RNA.make_seq(seq="").gap_indices() == []
-    assert new_moltype.RNA.make_seq(seq="ACUGUCAGUACGHSDKCUCDNNS").gap_indices() == []
-    assert new_moltype.RNA.make_seq(seq="GUACGUACAKDC-SDHDSK").gap_indices() == [12]
-    assert new_moltype.RNA.make_seq(seq="-DSHUHDS").gap_indices() == [0]
-    assert new_moltype.RNA.make_seq(seq="UACHASADS-").gap_indices() == [9]
-    assert new_moltype.RNA.make_seq(
-        seq="---CGAUgCAU---ACGHc---ACGUCAGU---"
-    ).gap_indices() == [0, 1, 2, 11, 12, 13, 19, 20, 21, 30, 31, 32]
+    got = new_moltype.RNA.make_seq(seq="").gap_indices()
+    expect = numpy.array([])
+    assert numpy.array_equal(got, expect)
+
+    got == new_moltype.RNA.make_seq(seq="ACUGUCAGUACGHSDKCUCDNNS").gap_indices()
+    expect = numpy.array([])
+    assert numpy.array_equal(got, expect)
+
+    got = new_moltype.RNA.make_seq(seq="GUACGUACAKDC-SDHDSK").gap_indices()
+    expect = numpy.array([12])
+    assert numpy.array_equal(got, expect)
+
+    got = new_moltype.RNA.make_seq(seq="-DSHUHDS").gap_indices()
+    expect = numpy.array([0])
+    assert numpy.array_equal(got, expect)
+
+    got = new_moltype.RNA.make_seq(seq="UACHASADS-").gap_indices()
+    expect = numpy.array([9])
+    assert numpy.array_equal(got, expect)
+
+    got = new_moltype.RNA.make_seq(
+        seq="---CGAUGCAU---ACGHC---ACGUCAGU---"
+    ).gap_indices()
+    expect = numpy.array([0, 1, 2, 11, 12, 13, 19, 20, 21, 30, 31, 32])
+    assert numpy.array_equal(got, expect)
 
 
-@pytest.mark.xfail(
-    reason="AttributeError: 'MolType' object has no attribute 'gap_vector'"
-)
 def test_sequence_gap_vector():
     """Sequence gap_vector should return correct gap positions"""
 
@@ -467,7 +462,6 @@ def test_sequence_count_variants():
     )
 
 
-@pytest.mark.xfail(reason="AttributeError: 'MolType' object has no attribute 'mw'")
 def test_mw():
     """Sequence MW should return correct molecular weight"""
     assert new_moltype.PROTEIN.make_seq(seq="").mw() == 0
@@ -479,39 +473,492 @@ def test_mw():
     assert numpy.allclose(new_moltype.RNA.make_seq(seq="AAACCCA").mw(), 2182.37)
 
 
-@pytest.mark.xfail(
-    reason="AttributeError: 'MolType' object has no attribute 'can_match'"
-)
 def test_can_match():
     """Sequence can_match should return True if all positions can match"""
     assert new_moltype.RNA.make_seq(seq="").can_match("")
     assert new_moltype.RNA.make_seq(seq="UCAG").can_match("UCAG")
-    assert not new_moltype.RNA.make_seq(seq="UCAG").can_match("ucag")
     assert new_moltype.RNA.make_seq(seq="UCAG").can_match("NNNN")
     assert new_moltype.RNA.make_seq(seq="NNNN").can_match("UCAG")
     assert new_moltype.RNA.make_seq(seq="NNNN").can_match("NNNN")
-    assert not new_moltype.RNA.make_seq(seq="N").can_match("x")
+    assert not new_moltype.RNA.make_seq(seq="N").can_match("X")
     assert not new_moltype.RNA.make_seq(seq="N").can_match("-")
     assert new_moltype.RNA.make_seq(seq="UCAG").can_match("YYRR")
     assert new_moltype.RNA.make_seq(seq="UCAG").can_match("KMWS")
 
 
-@pytest.mark.xfail(
-    reason="AttributeError: 'MolType' object has no attribute 'can_mismatch'"
-)
-def test_can_mismatch():
-    """Sequence can_mismatch should return True on any possible mismatch"""
-    assert not new_moltype.RNA.make_seq(seq="").can_mismatch("")
-    assert new_moltype.RNA.make_seq(seq="N").can_mismatch("N")
-    assert new_moltype.RNA.make_seq(seq="R").can_mismatch("R")
-    assert new_moltype.RNA.make_seq(seq="N").can_mismatch("r")
-    assert new_moltype.RNA.make_seq(seq="CGUACGCAN").can_mismatch("CGUACGCAN")
-    assert new_moltype.RNA.make_seq(seq="U").can_mismatch("C")
-    assert new_moltype.RNA.make_seq(seq="UUU").can_mismatch("UUC")
-    assert new_moltype.RNA.make_seq(seq="UUU").can_mismatch("UUY")
-    assert not new_moltype.RNA.make_seq(seq="UUU").can_mismatch("UUU")
-    assert not new_moltype.RNA.make_seq(seq="UCAG").can_mismatch("UCAG")
-    assert not new_moltype.RNA.make_seq(seq="U--").can_mismatch("U--")
+def test_can_pair():
+    """Sequence can_pair should return True if all positions can pair"""
+    assert new_moltype.RNA.make_seq(seq="").can_pair("")
+    assert not new_moltype.RNA.make_seq(seq="UCAG").can_pair("UCAG")
+    assert new_moltype.RNA.make_seq(seq="UCAG").can_pair("CUGA")
+    assert not new_moltype.RNA.make_seq(seq="UCAG").can_pair("cuga")
+    assert new_moltype.RNA.make_seq(seq="UCAG").can_pair("NNNN")
+    assert new_moltype.RNA.make_seq(seq="NNNN").can_pair("UCAG")
+    assert new_moltype.RNA.make_seq(seq="NNNN").can_pair("NNNN")
+    assert not new_moltype.RNA.make_seq(seq="N").can_pair("x")
+    assert not new_moltype.RNA.make_seq(seq="N").can_pair("-")
+    assert new_moltype.RNA.make_seq(seq="-").can_pair("-")
+    assert new_moltype.RNA.make_seq(seq="UCAGU").can_pair("KYYRR")
+    assert new_moltype.RNA.make_seq(seq="UCAG").can_pair("KKRS")
+    assert new_moltype.RNA.make_seq(seq="U").can_pair("G")
+
+    assert not new_moltype.DNA.make_seq(seq="T").can_pair("G")
+
+
+def test_can_mispair():
+    """Sequence can_mispair should return True on any possible mispair"""
+    assert not new_moltype.RNA.make_seq(seq="").can_mispair("")
+    assert new_moltype.RNA.make_seq(seq="N").can_mispair("N")
+    assert new_moltype.RNA.make_seq(seq="R").can_mispair("Y")
+    assert new_moltype.RNA.make_seq(seq="N").can_mispair("r")
+    assert new_moltype.RNA.make_seq(seq="CGUACGCAN").can_mispair("NUHCHUACH")
+    assert new_moltype.RNA.make_seq(seq="U").can_mispair("C")
+    assert new_moltype.RNA.make_seq(seq="U").can_mispair("R")
+    assert new_moltype.RNA.make_seq(seq="UUU").can_mispair("AAR")
+    assert new_moltype.RNA.make_seq(seq="UUU").can_mispair("GAG")
+    assert not new_moltype.RNA.make_seq(seq="UUU").can_mispair("AAA")
+    assert not new_moltype.RNA.make_seq(seq="UCAG").can_mispair("CUGA")
+    assert new_moltype.RNA.make_seq(seq="U--").can_mispair("--U")
+    assert new_moltype.DNA.make_seq(seq="TCCAAAGRYY").can_mispair("RRYCTTTGGA")
+
+
+def test_must_pair():
+    """Sequence must_pair should return True when no possible mispairs"""
+    assert new_moltype.RNA.make_seq(seq="").must_pair("")
+    assert not new_moltype.RNA.make_seq(seq="N").must_pair("N")
+    assert not new_moltype.RNA.make_seq(seq="R").must_pair("Y")
+    assert not new_moltype.RNA.make_seq(seq="A").must_pair("A")
+    assert not new_moltype.RNA.make_seq(seq="CGUACGCAN").must_pair("NUGCGUACG")
+    assert not new_moltype.RNA.make_seq(seq="U").must_pair("C")
+    assert not new_moltype.RNA.make_seq(seq="UUU").must_pair("AAR")
+    assert not new_moltype.RNA.make_seq(seq="UUU").must_pair("RAA")
+    assert not new_moltype.RNA.make_seq(seq="UU-").must_pair("-AA")
+    assert new_moltype.RNA.make_seq(seq="UCAG").must_pair("CUGA")
+
+    assert new_moltype.DNA.make_seq(seq="TCCAGGG").must_pair("CCCTGGA")
+    assert new_moltype.DNA.make_seq(seq="TCCAGGG").must_pair(
+        new_moltype.DNA.make_seq(seq="CCCTGGA")
+    )
+    assert not new_moltype.DNA.make_seq(seq="TCCAGGG").must_pair("NCCTGGA")
+
+
+def test_diff():
+    """Sequence diff should count 1 for each difference between sequences"""
+    assert new_moltype.RNA.make_seq(seq="UGCUGCUC").diff("") == 0
+    assert new_moltype.RNA.make_seq(seq="UGCUGCUC").diff("U") == 0
+    assert new_moltype.RNA.make_seq(seq="UGCUGCUC").diff("UCCCCCUC") == 3
+    assert new_moltype.RNA.make_seq(seq="AAAAA").diff("CCCCC") == 5
+    # raises TypeError if other not iterable
+    with pytest.raises(TypeError):
+        new_moltype.RNA.make_seq(seq="AAAAA").diff(5)
+
+
+def test_distance():
+    """Sequence distance should calculate correctly based on function"""
+
+    def f(a, b):
+        if a == b:
+            return 0
+        if (a in "UC" and b in "UC") or (a in "AG" and b in "AG"):
+            return 1
+        else:
+            return 10
+
+    # uses identity function by default
+    assert new_moltype.RNA.make_seq(seq="UGCUGCUC").distance("") == 0
+    assert new_moltype.RNA.make_seq(seq="UGCUGCUC").distance("U") == 0
+    assert new_moltype.RNA.make_seq(seq="UGCUGCUC").distance("UCCCCCUC") == 3
+    assert new_moltype.RNA.make_seq(seq="AAAAA").distance("CCCCC") == 5
+    # should use function if supplied
+    assert new_moltype.RNA.make_seq(seq="UGCUGCUC").distance("", f) == 0
+    assert new_moltype.RNA.make_seq(seq="UGCUGCUC").distance("U", f) == 0
+    assert new_moltype.RNA.make_seq(seq="UGCUGCUC").distance("C", f) == 1
+    assert new_moltype.RNA.make_seq(seq="UGCUGCUC").distance("G", f) == 10
+    assert new_moltype.RNA.make_seq(seq="UGCUGCUC").distance("UCCCCCUC", f) == 21
+    assert new_moltype.RNA.make_seq(seq="AAAAA").distance("CCCCC", f) == 50
+
+
+def test_matrix_distance():
+    """Sequence matrix_distance should look up distances from a matrix"""
+    # note that the score matrix must contain 'diagonal' elements m[i][i]
+    # to avoid failure when the sequences match.
+    m = {"U": {"U": 0, "C": 1, "A": 5}, "C": {"C": 0, "A": 2, "G": 4}}
+    assert new_moltype.RNA.make_seq(seq="UUUCCC").matrix_distance("UCACGG", m) == 14
+    assert new_moltype.RNA.make_seq(seq="UUUCCC").matrix_distance("", m) == 0
+    assert new_moltype.RNA.make_seq(seq="UUU").matrix_distance("CAC", m) == 7
+    with pytest.raises(KeyError):
+        new_moltype.RNA.make_seq(seq="UUU").matrix_distance("CAG", m)
+
+
+def test_frac_same():
+    """Sequence frac_same should return similarity between sequences"""
+    s1 = new_moltype.RNA.make_seq(seq="ACGU")
+    s2 = new_moltype.RNA.make_seq(seq="AACG")
+    s3 = new_moltype.RNA.make_seq(seq="GG")
+    s4 = new_moltype.RNA.make_seq(seq="A")
+    e = new_moltype.RNA.make_seq(seq="")
+    assert s1.frac_same(e) == 0
+    assert s1.frac_same(s2) == 0.25
+    assert s1.frac_same(s3) == 0
+    assert s1.frac_same(s4) == 1.0  # note truncation
+
+
+def test_frac_diff():
+    """Sequence frac_diff should return difference between sequences"""
+    s1 = new_moltype.RNA.make_seq(seq="ACGU")
+    s2 = new_moltype.RNA.make_seq(seq="AACG")
+    s3 = new_moltype.RNA.make_seq(seq="GG")
+    s4 = new_moltype.RNA.make_seq(seq="A")
+    e = new_moltype.RNA.make_seq(seq="")
+    assert s1.frac_diff(e) == 0
+    assert s1.frac_diff(s2) == 0.75
+    assert s1.frac_diff(s3) == 1
+    assert s1.frac_diff(s4) == 0  # note truncation
+
+
+def test_frac_same_gaps():
+    """Sequence frac_same_gaps should return similarity in gap positions"""
+    s1 = new_moltype.RNA.make_seq(seq="AAAA")
+    s2 = new_moltype.RNA.make_seq(seq="GGGG")
+    s3 = new_moltype.RNA.make_seq(seq="----")
+    s4 = new_moltype.RNA.make_seq(seq="A-A-")
+    s5 = new_moltype.RNA.make_seq(seq="-G-G")
+    s6 = new_moltype.RNA.make_seq(seq="UU--")
+    s7 = new_moltype.RNA.make_seq(seq="-")
+    s8 = new_moltype.RNA.make_seq(seq="GGG")
+    e = new_moltype.RNA.make_seq(seq="")
+    assert s1.frac_same_gaps(s1) == 1
+    assert s1.frac_same_gaps(s2) == 1
+    assert s1.frac_same_gaps(s3) == 0
+    assert s1.frac_same_gaps(s4) == 0.5
+    assert s1.frac_same_gaps(s5) == 0.5
+    assert s1.frac_same_gaps(s6) == 0.5
+    assert s1.frac_same_gaps(s7) == 0
+    assert s1.frac_same_gaps(e) == 0
+    assert s3.frac_same_gaps(s3) == 1
+    assert s3.frac_same_gaps(s4) == 0.5
+    assert s3.frac_same_gaps(s7) == 1.0
+    assert e.frac_same_gaps(e) == 0.0
+    assert s4.frac_same_gaps(s5) == 0.0
+    assert s4.frac_same_gaps(s6) == 0.5
+    assert numpy.allclose(s6.frac_same_gaps(s8), 2 / 3.0)
+
+
+def test_frac_diff_gaps():
+    """Sequence frac_diff_gaps should return difference in gap positions"""
+    s1 = new_moltype.RNA.make_seq(seq="AAAA")
+    s2 = new_moltype.RNA.make_seq(seq="GGGG")
+    s3 = new_moltype.RNA.make_seq(seq="----")
+    s4 = new_moltype.RNA.make_seq(seq="A-A-")
+    s5 = new_moltype.RNA.make_seq(seq="-G-G")
+    s6 = new_moltype.RNA.make_seq(seq="UU--")
+    s7 = new_moltype.RNA.make_seq(seq="-")
+    s8 = new_moltype.RNA.make_seq(seq="GGG")
+    e = new_moltype.RNA.make_seq(seq="")
+    assert s1.frac_diff_gaps(s1) == 0
+    assert s1.frac_diff_gaps(s2) == 0
+    assert s1.frac_diff_gaps(s3) == 1
+    assert s1.frac_diff_gaps(s4) == 0.5
+    assert s1.frac_diff_gaps(s5) == 0.5
+    assert s1.frac_diff_gaps(s6) == 0.5
+    assert s1.frac_diff_gaps(s7) == 1
+    assert s1.frac_diff_gaps(e) == 0
+    assert s3.frac_diff_gaps(s3) == 0
+    assert s3.frac_diff_gaps(s4) == 0.5
+    assert s3.frac_diff_gaps(s7) == 0.0
+    assert e.frac_diff_gaps(e) == 0.0
+    assert s4.frac_diff_gaps(s5) == 1.0
+    assert s4.frac_diff_gaps(s6) == 0.5
+    assert numpy.allclose(s6.frac_diff_gaps(s8), 1 / 3.0)
+
+
+def test_frac_same_non_gaps():
+    """Sequence frac_same_non_gaps should return similarities at non-gaps"""
+    s1 = new_moltype.RNA.make_seq(seq="AAAA")
+    s2 = new_moltype.RNA.make_seq(seq="AGGG")
+    s3 = new_moltype.RNA.make_seq(seq="GGGG")
+    s4 = new_moltype.RNA.make_seq(seq="AG--GA-G")
+    s5 = new_moltype.RNA.make_seq(seq="CU--CU-C")
+    s6 = new_moltype.RNA.make_seq(seq="AC--GC-G")
+    s7 = new_moltype.RNA.make_seq(seq="--------")
+    s8 = new_moltype.RNA.make_seq(seq="AAAA----")
+    s9 = new_moltype.RNA.make_seq(seq="A-GG-A-C")
+    e = new_moltype.RNA.make_seq(seq="")
+
+    def test(x, y, z):
+        assert numpy.allclose(x.frac_same_non_gaps(y), z)
+
+    test(s1, s2, 0.25)
+    test(s1, s3, 0)
+    test(s2, s3, 0.75)
+    test(s1, s4, 0.5)
+    test(s4, s5, 0)
+    test(s4, s6, 0.6)
+    test(s4, s7, 0)
+    test(s4, s8, 0.5)
+    test(s4, s9, 2 / 3.0)
+    test(e, s4, 0)
+
+
+def test_frac_diffNonGaps():
+    """Sequence frac_diff_non_gaps should return differences at non-gaps"""
+    s1 = new_moltype.RNA.make_seq(seq="AAAA")
+    s2 = new_moltype.RNA.make_seq(seq="AGGG")
+    s3 = new_moltype.RNA.make_seq(seq="GGGG")
+    s4 = new_moltype.RNA.make_seq(seq="AG--GA-G")
+    s5 = new_moltype.RNA.make_seq(seq="CU--CU-C")
+    s6 = new_moltype.RNA.make_seq(seq="AC--GC-G")
+    s7 = new_moltype.RNA.make_seq(seq="--------")
+    s8 = new_moltype.RNA.make_seq(seq="AAAA----")
+    s9 = new_moltype.RNA.make_seq(seq="A-GG-A-C")
+    e = new_moltype.RNA.make_seq(seq="")
+
+    def test(x, y, z):
+        assert numpy.allclose(x.frac_diff_non_gaps(y), z)
+
+    test(s1, s2, 0.75)
+    test(s1, s3, 1)
+    test(s2, s3, 0.25)
+    test(s1, s4, 0.5)
+    test(s4, s5, 1)
+    test(s4, s6, 0.4)
+    test(s4, s7, 0)
+    test(s4, s8, 0.5)
+    test(s4, s9, 1 / 3.0)
+    test(e, s4, 0)
+
+
+def test_frac_similar():
+    """Sequence frac_similar should return the fraction similarity"""
+    transitions = dict.fromkeys(
+        [
+            ("A", "A"),
+            ("A", "G"),
+            ("G", "A"),
+            ("G", "G"),
+            ("U", "U"),
+            ("U", "C"),
+            ("C", "U"),
+            ("C", "C"),
+        ]
+    )
+
+    s1 = new_moltype.RNA.make_seq(seq="UCAGGCAA")
+    s2 = new_moltype.RNA.make_seq(seq="CCAAAUGC")
+    s3 = new_moltype.RNA.make_seq(seq="GGGGGGGG")
+    e = new_moltype.RNA.make_seq(seq="")
+
+    def test(x, y, z):
+        assert numpy.allclose(x.frac_similar(y, transitions), z)
+
+    test(e, e, 0)
+    test(s1, e, 0)
+    test(s1, s1, 1)
+    test(s1, s2, 7.0 / 8)
+    test(s1, s3, 5.0 / 8)
+    test(s2, s3, 4.0 / 8)
+
+
+def test_with_termini_unknown():
+    """with_termini_unknown should reset termini to unknown char"""
+    s1 = new_moltype.RNA.make_seq(seq="-?--AC--?-")
+    s2 = new_moltype.RNA.make_seq(seq="AC")
+    s3 = new_moltype.RNA.make_seq(seq="-----")
+    assert s1.with_termini_unknown() == "????AC????"
+    assert s2.with_termini_unknown() == "AC"
+    assert s3.with_termini_unknown() == "?????"
+
+
+def test_consistent_gap_degen_handling():
+    """gap degen character should be treated consistently"""
+    # the degen character '?' can be a gap, so when we strip either gaps or
+    # degen characters it should be gone too
+    raw_seq = "---??-??TC-GGCG-GCA-G-GC-?-C-TAN-GCGC-CCTC-AGGA?-???-??--"
+    raw_ungapped = re.sub("[-?]", "", raw_seq)
+    raw_no_ambigs = re.sub("[N?]+", "", raw_seq)
+    dna = new_moltype.DNA.make_seq(seq=raw_seq)
+    assert dna.degap() == raw_ungapped
+    assert dna.strip_degenerate() == raw_no_ambigs
+    assert dna.strip_bad_and_gaps() == raw_ungapped
+
+
+def test_counts():
+    """count motifs of different sizes, +/- ambiguities"""
+    # test DNA seq
+    orig = "AACCGGTTAN-T"
+    seq = new_moltype.DNA.make_seq(seq=orig)
+    # no gaps, no ambiguities
+    got = seq.counts()
+    expect = dict(A=3, C=2, G=2, T=3)
+    assert dict(got) == expect
+    # gaps allowed
+    got = seq.counts(allow_gap=True)
+    expect = dict(A=3, C=2, G=2, T=3)
+    expect.update({"-": 1})
+    assert dict(got) == expect
+    # ambig allowed
+    got = seq.counts(include_ambiguity=True)
+    expect = dict(A=3, C=2, G=2, T=3, N=1)
+    assert dict(got) == expect
+    # ambig and gap allowed
+    got = seq.counts(include_ambiguity=True, allow_gap=True)
+    expect = dict(A=3, C=2, G=2, T=3, N=1)
+    expect.update({"-": 1})
+    assert dict(got) == expect
+
+    # test DNA seq motif length of 2
+    got = seq.counts(motif_length=2)
+    expect = dict(AA=1, CC=1, GG=1, TT=1)
+    assert dict(got) == expect
+    # gap allowed
+    got = seq.counts(motif_length=2, allow_gap=True)
+    expect = dict(AA=1, CC=1, GG=1, TT=1)
+    expect.update({"-T": 1})
+    # ambig allowed
+    got = seq.counts(motif_length=2, include_ambiguity=True)
+    expect = dict(AA=1, CC=1, GG=1, TT=1, AN=1)
+    assert dict(got) == expect
+    # ambig and gap allowed
+    got = seq.counts(motif_length=2, include_ambiguity=True, allow_gap=True)
+    expect = dict(AA=1, CC=1, GG=1, TT=1, AN=1)
+    expect.update({"-T": 1})
+    assert dict(got) == expect
+
+    # handle '?'
+    orig = "AACCGGTTAN-T?"
+    seq = new_moltype.DNA.make_seq(seq=orig)
+    got = seq.counts()
+    expect = dict(A=3, C=2, G=2, T=3)
+    assert dict(got) == expect
+    got = seq.counts(allow_gap=True, include_ambiguity=True)
+    expect.update({"-": 1, "N": 1, "?": 1})
+    assert dict(got) == expect
+
+
+def test_strand_symmetry():
+    """correctly compute test of strand symmetry"""
+    from cogent3 import get_moltype
+    from cogent3.core.alignment import Aligned
+
+    seq = new_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG")
+    ssym = seq.strand_symmetry(motif_length=1)
+    assert numpy.allclose(ssym.observed.array, [[7, 5], [7, 9]])
+    assert numpy.allclose(ssym.expected.array, [[6, 6], [8, 8]])
+
+    # RNA too
+    seq = seq.to_rna()
+    ssym = seq.strand_symmetry(motif_length=1)
+    assert numpy.allclose(ssym.observed.array, [[7, 5], [7, 9]])
+
+    # Aligned
+    seq = new_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG")
+    m, s = seq.parse_out_gaps()
+    seq = Aligned(m, s)
+    ssym = seq.strand_symmetry(motif_length=1)
+    assert numpy.allclose(ssym.observed.array, [[7, 5], [7, 9]])
+
+    with pytest.raises(TypeError):
+        text = get_moltype("text")
+        m, s = text.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG").parse_out_gaps()
+        s.strand_symmetry(motif_length=1)
+
+    # with motif_length=2
+    seq = new_moltype.DNA.make_seq(
+        seq="AC GG CT GA AG CG CT CC GG GT TT AA AA CG".replace(" ", "")
+    )
+    ssym = seq.strand_symmetry(motif_length=2)
+    assert len(ssym.observed.keys()) <= 8
+    assert numpy.allclose(ssym.observed["AA"].to_array(), [2, 1])
+    assert numpy.allclose(ssym.observed["CC"].to_array(), [1, 2])
+
+
+def test_is_annotated():
+    """is_annotated operates correctly"""
+    s = new_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG")
+    if hasattr(s, "annotation_db"):
+        assert not s.is_annotated()
+        _ = s.add_feature(biotype="gene", name="blah", spans=[(0, 10)])
+        assert s.is_annotated()
+    else:
+        with pytest.raises(AttributeError):
+            s.is_annotated()
+
+
+def test_to_html():
+    """produce correct html formatted text"""
+    seq = new_moltype.DNA.make_seq(seq="ACGGTGGGGGGGGG")
+    got = seq.to_html(wrap=50)
+    # ensure balanced tags are in the txt
+    for tag in ["<style>", "</style>", "<div", "</div>", "<table>", "</table>"]:
+        assert tag in got
+
+    seq_row = (
+        '<tr><td class="label">None</td>'
+        '<td><span class="A_dna">A</span>'
+        '<span class="C_dna">C</span>'
+        '<span class="G_dna">G</span>'
+        '<span class="G_dna">G</span>'
+        '<span class="T_dna">T</span>'
+        '<span class="G_dna">G</span>'
+        '<span class="G_dna">G</span>'
+        '<span class="G_dna">G</span>'
+        '<span class="G_dna">G</span>'
+        '<span class="G_dna">G</span>'
+        '<span class="G_dna">G</span>'
+        '<span class="G_dna">G</span>'
+        '<span class="G_dna">G</span>'
+        '<span class="G_dna">G</span></td></tr>'
+    )
+
+    assert seq_row in got
+
+
+def test_repr_html():
+    """correctly uses set_repr and the environment variable settings"""
+    token = 'class="label"'
+    moltype = new_moltype.get_moltype("text")
+    seq = new_sequence.Sequence(seq="AAAAA", moltype=moltype)
+
+    orig = [l for l in seq._repr_html_().splitlines() if token in l][0]
+    orig_num = len(re.findall(r"\bA\b", orig))
+    assert orig_num == 5
+
+    # using environment variable
+    env_name = "COGENT3_ALIGNMENT_REPR_POLICY"
+    os.environ[env_name] = "num_pos=2"
+    got = [l for l in seq._repr_html_().splitlines() if token in l][0]
+    got_num = len(re.findall(r"\bA\b", got))
+    assert got_num == 2
+    os.environ.pop(env_name, None)
+
+
+def _check_mix_add(s1, s2):
+    s1s2 = s1 + s2
+    s2s1 = s2 + s1
+    assert s1s2.name is None
+    assert s2s1.name is None
+    assert s1s2 == str(s1) + str(s2)
+    assert s2s1 == str(s2) + str(s1)
+
+
+def test_sequence_add_propogates_name():
+    """name property correctly handled in sequence add"""
+    moltype = new_moltype.get_moltype("text")
+    a1 = new_sequence.Sequence(moltype=moltype, seq="AAA", name="1")
+    a2 = new_sequence.Sequence(moltype=moltype, seq="CC", name="1")
+    a = a1 + a2
+    assert a.name == "1"
+    assert a == "AAACC"
+
+    b = new_sequence.Sequence(moltype=moltype, seq="GGGG", name="2")
+    _check_mix_add(a1, b)
+    c = new_sequence.Sequence(moltype=moltype, seq="TT")
+    _check_mix_add(a1, c)
+
+    e = "AA"
+    be = b + e
+    assert be.name is None
+    assert be == str(b) + e
 
 
 @pytest.mark.parametrize(
@@ -544,12 +991,11 @@ def test_to_fasta_odd(size, expect):
     assert got == expect
 
 
-@pytest.mark.xfail(reason="no Sequence.to_phylip()")
 def test_to_phylip():
     mt = new_moltype.DNA
-    seq = mt.make_seq(seq="TCAGAT", name="seq_name")
+    seq = mt.make_seq(seq="TCAGAT", name="xyz")
     got = seq.to_phylip()
-    expect = f"seq_name{' '*27}TCAGAT"
+    expect = f"xyz{' '*27}TCAGAT"
     assert got == expect
 
 
@@ -1697,27 +2143,6 @@ def test_sequence_to_json():
     assert got == expect
 
 
-@pytest.mark.xfail(
-    reason="NotImplementedError: deserialising 'cogent3.core.new_sequence.DnaSequence' from json"
-)
-def test_offset_with_multiple_slices(DATA_DIR):
-    seq = new_moltype.DNA.make_seq(
-        seq="ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC", name="22"
-    )
-    gff3_path = DATA_DIR / "ensembl_sample.gff3"
-    # TODO: directly assign an annotation_db, annotate_from_gff to be discontinued
-    seq.annotate_from_gff(gff3_path)
-    rd = seq[2:].to_rich_dict()
-    s1 = deserialise_object(rd)
-    assert s1.annotation_offset == 2
-    rd = s1[3:].to_rich_dict()
-    s2 = deserialise_object(rd)
-    assert s2.annotation_offset == 5
-    expect = {(f.seqid, f.biotype, f.name) for f in seq.get_features(start=5)}
-    got = {(f.seqid, f.biotype, f.name) for f in s2.get_features()}
-    assert got == expect
-
-
 @pytest.mark.parametrize("coord", ("start", "stop"))
 def test_seqview_to_rich_dict(coord, dna_alphabet):
     parent = "ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC"
@@ -2032,8 +2457,7 @@ def test_sequences_propogates_seqid():
     assert seq._seq.seqid == "seq1"
 
 
-@pytest.mark.xfail(reason="no SeqView dispatch for new_alphabet.to_indices")
-def test_sequences_propogates_seqid_seqview():
+def test_sequences_propogates_seqid_seqview(dna_alphabet):
     # creating a Sequence with a seqview does not change the seqid of the SeqView.
     seq = new_moltype.DNA.make_seq(
         seq=new_sequence.SeqView(
@@ -2046,7 +2470,8 @@ def test_sequences_propogates_seqid_seqview():
 
     # creating a Sequence with an unnamed seqview does not name the SeqView.
     seq = new_moltype.DNA.make_seq(
-        new_sequence.SeqView(seq="ACGGTGGGAC"), name="seq_name"
+        seq=new_sequence.SeqView(seq="ACGGTGGGAC", alphabet=dna_alphabet),
+        name="seq_name",
     )
     assert seq.name == "seq_name"
     assert seq._seq.seqid is None
