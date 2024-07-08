@@ -1,5 +1,6 @@
 import json
 import re
+import typing
 
 from pickle import dumps
 
@@ -174,6 +175,50 @@ def test_sequence_strip_degenerate(seq, expect):
     assert got == expect
 
 
+def test_add():
+    mt = new_moltype.DNA
+    seq1 = mt.make_seq(seq="AAA")
+    seq2 = mt.make_seq(seq="CCC")
+    got = seq1 + seq2
+    assert got == "AAACCC"
+    assert got.moltype == mt
+
+
+def test_add_bad():
+    mt = new_moltype.DNA
+    seq1 = mt.make_seq(seq="AAA")
+    with pytest.raises(new_alphabet.AlphabetError):
+        _ = seq1 + "s8d3j%31 s-']"
+
+
+@pytest.mark.parametrize(
+    "moltype,label",
+    [
+        (new_moltype.ASCII, "text"),
+        (new_moltype.BYTES, "bytes"),
+        (new_moltype.DNA, "dna"),
+    ],
+)
+def test_get_type(moltype, label):
+    seq = moltype.make_seq(seq="ARCGT")
+    got = seq.get_type()
+    assert got == label
+
+
+@pytest.mark.xfail(
+    reason="cannot iterate over SeqView and KeyError with unambiguous character"
+)
+@pytest.mark.parametrize(
+    "s, expect",
+    [("ARC", [("A",), ("A", "G"), ("C",)]), ("AGC", [("A",), ("G",), ("C",)])],
+)
+def test_resolved_ambiguities(s, expect):
+    mt = new_moltype.DNA
+    seq = mt.make_seq(seq=s)
+    got = seq.resolved_ambiguities()
+    assert got == expect
+
+
 @pytest.mark.parametrize(
     "seq, expect",
     (
@@ -264,9 +309,6 @@ def test_sequence_is_gapped():
     assert new_moltype.RNA.make_seq(seq="CAGU-").is_gapped()
 
 
-@pytest.mark.xfail(
-    reason="AttributeError: 'MolType' object has no attribute 'count_gaps'"
-)
 def test_sequence_is_gap():
     """Sequence is_gap should return True if char is a valid gap char"""
     r = new_moltype.RNA.make_seq(seq="ACGUCAGUACGUCAGNRCGAUYRNRYRN")
@@ -470,6 +512,45 @@ def test_can_mismatch():
     assert not new_moltype.RNA.make_seq(seq="UUU").can_mismatch("UUU")
     assert not new_moltype.RNA.make_seq(seq="UCAG").can_mismatch("UCAG")
     assert not new_moltype.RNA.make_seq(seq="U--").can_mismatch("U--")
+
+
+@pytest.mark.parametrize(
+    "size, expect",
+    [
+        (60, ">even\nTCAGAT\n"),  # default block_size
+        (2, ">even\nTC\nAG\nAT\n"),
+        (4, ">even\nTCAG\nAT\n"),
+    ],
+)
+def test_to_fasta_even(size, expect):
+    mt = new_moltype.DNA
+    seq = mt.make_seq(seq="TCAGAT", name="even")
+    got = seq.to_fasta(block_size=size)
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "size, expect",
+    [
+        (60, ">odd\nTCAGATAAA\n"),  # default block_size
+        (2, ">odd\nTC\nAG\nAT\nAA\nA\n"),
+        (4, ">odd\nTCAG\nATAA\nA\n"),
+    ],
+)
+def test_to_fasta_odd(size, expect):
+    mt = new_moltype.DNA
+    seq = mt.make_seq(seq="TCAGATAAA", name="odd")
+    got = seq.to_fasta(block_size=size)
+    assert got == expect
+
+
+@pytest.mark.xfail(reason="no Sequence.to_phylip()")
+def test_to_phylip():
+    mt = new_moltype.DNA
+    seq = mt.make_seq(seq="TCAGAT", name="seq_name")
+    got = seq.to_phylip()
+    expect = f"seq_name{' '*27}TCAGAT"
+    assert got == expect
 
 
 @pytest.mark.parametrize("start", (None, 0, 1, 10, -1, -10))
@@ -1073,6 +1154,33 @@ def test_seqview_repr():
     assert repr(view) == expected
 
 
+@pytest.mark.parametrize("k", range(1, 7))
+def test_iter_kmers_returns_generator(k):
+    orig = "TCAGGA"
+    mt = new_moltype.DNA
+    r = mt.make_seq(seq=orig)
+    got = r.iter_kmers(k=k)
+    assert isinstance(got, typing.Generator)
+
+
+def test_iter_kmers_empty():
+    orig = ""
+    mt = new_moltype.DNA
+    r = mt.make_seq(seq=orig)
+    got = r.iter_kmers(k=1)
+    assert not list(got)
+
+
+@pytest.mark.parametrize("k", (0, -1, 1.1))
+def test_iter_kmers_handles_invalid(k):
+    orig = ""
+    mt = new_moltype.DNA
+    r = mt.make_seq(seq=orig)
+    got = r.iter_kmers(k=k)
+    with pytest.raises(ValueError):
+        list(got)
+
+
 @pytest.mark.parametrize(
     "k, strict, expect",
     [
@@ -1531,25 +1639,17 @@ def test_annotate_gff_nested_features(DATA_DIR):
     assert tuple(str(ex.get_slice()) for ex in exons) == exon_seqs
 
 
-@pytest.mark.xfail(
-    reason="AttributeError: 'MolType' object has no attribute 'coerce_str'"
-)
 def test_to_moltype_dna():
     """to_moltype("dna") ensures conversion from T to U"""
     seq = new_moltype.DNA.make_seq(seq="AAAAGGGGTTT", name="seq1")
     rna = seq.to_moltype("rna")
-
     assert "T" not in rna
 
 
-@pytest.mark.xfail(
-    reason="AttributeError: 'MolType' object has no attribute 'coerce_str'"
-)
 def test_to_moltype_rna():
     """to_moltype("rna") ensures conversion from U to T"""
     seq = new_moltype.RNA.make_seq(seq="AAAAGGGGUUU", name="seq1")
     rna = seq.to_moltype("dna")
-
     assert "U" not in rna
 
 

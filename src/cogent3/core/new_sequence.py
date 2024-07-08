@@ -802,6 +802,11 @@ class Sequence:
                 )
         other_seq = str(other)
 
+        if not self.moltype.most_degen_alphabet().is_valid(str(other)):
+            raise new_alphabet.AlphabetError(
+                f"Invalid sequence characters in other for moltype={self.moltype.label}"
+            )
+
         # If two sequences with the same name are being added together the name should not be None
         if type(other) == type(self):
             name = self.name if self.name == other.name else None
