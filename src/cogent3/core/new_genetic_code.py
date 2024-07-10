@@ -257,6 +257,30 @@ class GeneticCode:
         """Returns True if codon is a stop codon, False otherwise."""
         return self[codon] == "*"
 
+    def get_alphabet(
+        self, include_gap: bool = False, include_stop: bool = False
+    ) -> new_alphabet.CodonAlphabet:
+        """returns a codon alphabet
+
+        Parameters
+        ----------
+        include_gap
+            alphabet includes the gap motif
+        """
+        if include_stop:
+            codons = tuple(self.moltype.alphabet.get_kmer_alphabet(k=3))
+        else:
+            codons = tuple(self.sense_codons)
+
+        gap = self.moltype.gapped_alphabet.gap_char * 3 if include_gap else None
+
+        if include_gap:
+            codons += (gap,)
+
+        return new_alphabet.CodonAlphabet(
+            words=codons, monomers=self.moltype.alphabet, gap=gap
+        )
+
 
 _mapping_cols = "ncbi_code_sequence", "ID", "name", "ncbi_start_codon_map"
 # code mappings are based on the product of bases in order TCAG
