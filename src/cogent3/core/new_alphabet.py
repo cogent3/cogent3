@@ -835,11 +835,160 @@ def deserialise_kmer_alphabet(data: dict) -> KmerAlphabet:
     return KmerAlphabet.from_rich_dict(data)
 
 
+class CodonAlphabet(tuple):
+    """represents the sense-codons of a GeneticCode"""
+
+    def __new__(
+        cls,
+        words: tuple[StrORBytes, ...],
+        monomers: CharAlphabet,
+        gap: OptStr = None,
+    ):
+        if not words:
+            raise ValueError(f"cannot create empty {cls.__name__!r}")
+
+        if gap is not None:
+            assert _coerce_to_type(words[0], gap) in words
+
+        consistent_words(words, length=3)
+        return tuple.__new__(cls, words, monomers=monomers, gap=gap)
+
+    def __init__(
+        self,
+        words: tuple[StrORBytes, ...],
+        monomers: CharAlphabet,
+        gap: OptStr = None,
+    ):
+        """
+        Parameters
+        ----------
+        words
+            series of 3 character strings representing sense codons
+        monomers
+            CharAlphabet instance of DNA monomers, including degenerate
+            characters
+        gap
+            the gap state "---" if present
+        """
+        self._gap_char = gap
+        self.monomers = monomers
+        self.dtype = get_array_type(len(self))
+        self._words = set(self)  # for quick lookup
+        self._to_indices = {codon: i for i, codon in enumerate(self)}
+        self._from_indices = {i: codon for codon, i in self._to_indices.items()}
+        self.motif_length = 3
+
+    @property
+    def gap_char(self):
+        return self._gap_char
+
+    @property
+    def gap_index(self):
+        return self._to_indices(self.gap_char) if self._gap_char else None
+
+    @property
+    def missing_char(self):
+        """not supported on CodonAlphabet"""
+        return None
+
+    @property
+    def missing_index(self):
+        """not supported on CodonAlphabet"""
+        return None
+
+    @functools.singledispatchmethod
+    def to_indices(self, seq) -> numpy.ndarray:
+        """returns a sequence of codon indices"""
+        raise TypeError(f"{type(seq)} is not supported")
+
+    @to_indices.register
+    def _(self, seq: str) -> numpy.ndarray:
+        return self.to_indices([seq[i : i + 3] for i in range(0, len(seq), 3)])
+
+    @to_indices.register
+    def _(self, seq: list) -> numpy.ndarray:
+        return [self.to_index(c) for c in seq]
+
+    def to_index(self, codon: str) -> int:
+        if len(codon) != 3:
+            raise ValueError(f"{codon=!r} is not of length 3")
+        try:
+            return self._to_indices[codon]
+        except KeyError as e:
+            raise ValueError(f"{codon=!r} not in alphabet") from e
+
+    def from_index(self, index: int) -> str:
+        if index > len(self) or index < 0:
+            raise ValueError(f"{index=!r} is not within range")
+
+        try:
+            return self._from_indices[index]
+        except KeyError as e:
+            raise ValueError(f"invalid {index=}") from e
+
+    def from_indices(self, indices: numpy.ndarray) -> list[str]:
+        return [self.from_index(index) for index in indices]
+
+    @property
+    def num_canonical(self):
+        return len(self._words)
+
+    @functools.singledispatchmethod
+    def is_valid(self, seq) -> bool:
+        """seq is valid for alphabet"""
+        raise TypeError(f"{type(seq)} not supported")
+
+    @is_valid.register
+    def _(self, seq: str) -> bool:
+        try:
+            _ = self.to_indices(seq)
+            return True
+        except ValueError:
+            return False
+
+    @is_valid.register
+    def _(self, seq: numpy.ndarray) -> bool:
+        return seq.min() >= 0 and seq.max() < len(self)
+
+    def with_gap_motif(self):
+        if self.gap_char:
+            return self
+        monomers = self.monomers.with_gap_motif()
+        gap_char = monomers.gap_char * 3
+        words = tuple(self) + (gap_char,)
+        return self.__class__(words=words, monomers=monomers, gap=gap_char)
+
+    def to_rich_dict(self):
+        from cogent3._version import __version__
+
+        return {
+            "monomers": self.monomers.to_rich_dict(),
+            "type": get_object_provenance(self),
+            "version": __version__,
+            "words": list(self),
+        }
+
+    def to_json(self):
+        return json.dumps(self.to_rich_dict())
+
+    @classmethod
+    def from_rich_dict(cls, data):
+        data["monomers"] = deserialise_char_alphabet(data["monomers"])
+        data.pop("type", None)
+        data.pop("version", None)
+        return cls(**data)
+
+
+@register_deserialiser(get_object_provenance(CodonAlphabet))
+def deserialise_codon_alphabet(data: dict) -> CodonAlphabet:
+    return CodonAlphabet.from_rich_dict(data)
+
+
 _alphabet_moltype_map = {}
 
 
 def make_alphabet(*, chars, gap, missing, moltype):
-    """constructs an alphabet and registers the associated moltype
+    """constructs a character alphabet and registers the associated moltype
 
     Notes
     -----
