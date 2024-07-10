@@ -21,6 +21,8 @@ from functools import singledispatch, total_ordering
 from operator import eq, ne
 from random import shuffle
 
+import numpy
+
 from numpy import array, floating, integer, issubdtype
 
 from cogent3._version import __version__
@@ -51,7 +53,10 @@ from cogent3.util.transform import for_seq, per_shortest
 OptGeneticCodeType = typing.Optional[typing.Union[int, str, "GeneticCode"]]
 OptStr = typing.Optional[str]
 OptInt = typing.Optional[int]
+OptFloat = typing.Optional[float]
+IntORFloat = typing.Union[int, float]
 StrORIterableStr = typing.Union[str, typing.Iterable[str]]
+StrORBytesORArray = typing.Union[str, bytes, numpy.ndarray]
 ARRAY_TYPE = type(array(1))
 
 # standard distance functions: left  because generally useful
@@ -173,6 +178,13 @@ class Sequence:
             label = self.name
         return seqs_to_fasta({label: str(self)}, block_size=block_size)
 
+    def to_phylip(self, name_len: int = 28, label_len: int = 30) -> str:
+        """Return string of self in one line for PHYLIP, no newline.
+
+        Default: max name length is 28, label length is 30.
+        """
+        return str(self.name)[:name_len].ljust(label_len) + str(self)
+
     def to_rich_dict(
         self, exclude_annotations: bool = True
     ) -> dict[str, str | dict[str, str]]:
@@ -220,18 +232,18 @@ class Sequence:
         """returns a json formatted string"""
         return json.dumps(self.to_rich_dict())
 
-    def count(self, item):
+    def count(self, item: str):
         """count() delegates to self._seq."""
         return str(self).count(item)
 
     def counts(
         self,
-        motif_length=1,
-        include_ambiguity=False,
-        allow_gap=False,
-        exclude_unobserved=False,
-        warn=False,
-    ):
+        motif_length: int = 1,
+        include_ambiguity: bool = False,
+        allow_gap: bool = False,
+        exclude_unobserved: bool = False,
+        warn: bool = False,
+    ) -> CategoryCounter:
         """returns dict of counts of motifs
 
         only non-overlapping motifs are counted.
@@ -251,12 +263,9 @@ class Sequence:
             warns if motif_length > 1 and alignment trimmed to produce
             motif columns
         """
-        try:
-            data = str(self)
-        except AttributeError:
-            data = self._data
+        # refactor: array
 
-        not_array = isinstance(data, (SeqView, str))
+        data = str(self)
 
         if motif_length == 1:
             counts = CategoryCounter(data)
@@ -267,20 +276,10 @@ class Sequence:
                 )
             limit = (len(data) // motif_length) * motif_length
             data = data[:limit]
-            if not_array:
-                counts = CategoryCounter(
-                    data[i : i + motif_length] for i in range(0, limit, motif_length)
-                )
-            else:
-                counts = CategoryCounter(
-                    tuple(v) for v in data.reshape(limit // motif_length, motif_length)
-                )
-        if not not_array:
-            for key in list(counts):
-                indices = [key] if motif_length == 1 else key
-                motif = self.alphabet.to_chars(indices).astype(str)
-                motif = "".join(motif)
-                counts[motif] = counts.pop(key)
+
+            counts = CategoryCounter(
+                data[i : i + motif_length] for i in range(0, limit, motif_length)
+            )
 
         exclude = []
         if not include_ambiguity or not allow_gap:
@@ -340,7 +339,8 @@ class Sequence:
         )
 
     def strip_bad_and_gaps(self):
-        """Removes any symbols not in the alphabet, and any gaps."""
+        """Removes any symbols not in the alphabet, and any gaps. As the missing
+        character could be a gap, this method will remove it as well."""
         return self.__class__(
             moltype=self.moltype,
             seq=self.moltype.strip_bad_and_gaps(str(self)),
@@ -350,20 +350,6 @@ class Sequence:
     def is_gapped(self) -> bool:
         """Returns True if sequence contains gaps."""
         return self.moltype.is_gapped(str(self))
-
-    def is_gap(self, char: str = None) -> bool:
-        """Returns True if char is a gap.
-
-        If char is not supplied, tests whether self is gaps only.
-        """
-        # refactor design - possibly delete method
-        # only works on a single literal that's a gap, not on a sequence.
-        # i.e, seq.is_gap('-') would return True, but seq.is_gap("--") would return False
-        # possibly, this behavior should change?
-        if char is None:  # no char - so test if self is all gaps
-            return len(self) == self.count_gaps()
-        else:
-            return char in self.moltype.gaps
 
     def is_degenerate(self) -> bool:
         """Returns True if sequence contains degenerate characters."""
@@ -377,7 +363,7 @@ class Sequence:
         """Returns True if sequence contains only monomers."""
         return self.moltype.alphabet.is_valid(array(self))
 
-    def disambiguate(self, method="strip"):
+    def disambiguate(self, method: str = "strip"):
         """Returns a non-degenerate sequence from a degenerate one.
 
         Parameters
@@ -406,13 +392,16 @@ class Sequence:
         result.annotation_db = self.annotation_db
         return result
 
-    def gap_indices(self):
-        """Returns list of indices of all gaps in the sequence, or []."""
-        return self.moltype.gap_indices(self)
+    def gap_indices(self) -> numpy.ndarray:
+        """Returns array of the indices of all gaps in the sequence"""
+        return numpy.where(self.gap_vector())[0]
 
-    def gap_vector(self):
-        """Returns vector of True or False according to which pos are gaps."""
-        return self.moltype.gap_vector(self)
+    def gap_vector(self) -> list[bool]:
+        """Returns vector of True or False according to which pos are gaps or missing."""
+        return (
+            (array(self) == self.moltype.degen_gapped_alphabet.gap_index)
+            | (array(self) == self.moltype.degen_gapped_alphabet.missing_index)
+        ).tolist()
 
     def count_gaps(self) -> int:
         """Counts the gaps in the specified sequence."""
@@ -440,66 +429,67 @@ class Sequence:
         """
         return self.moltype.count_variants(str(self))
 
-    def mw(self, method="random", delta=None):  # refactor: type hint
+    def mw(self, method: str = "random", delta: OptFloat = None) -> float:
         """Returns the molecular weight of (one strand of) the sequence.
 
-        If the sequence is ambiguous, uses method (random or strip) to
-        disambiguate the sequence.
+        Parameters
+        ----------
+        method
+            If the sequence is ambiguous, uses method (random or strip) to
+            disambiguate the sequence.
+        delta
+            If delta is passed in, adds delta per strand. Default is None, which
+            uses the alphabet default. Typically, this adds 18 Da for terminal
+            water. However, note that the default nucleic acid weight assumes
+            5' monophosphate and 3' OH: pass in delta=18.0 if you want 5' OH as
+            well.
 
-        If delta is passed in, adds delta per strand (default is None, which
-        uses the alphabet default. Typically, this adds 18 Da for terminal
-        water. However, note that the default nucleic acid weight assumes
-        5' monophosphate and 3' OH: pass in delta=18.0 if you want 5' OH as
-        well.
-
-        Note that this method only calculates the MW of the coding strand. If
-        you want the MW of the reverse strand, add self.rc().mw(). DO NOT
-        just multiply the MW by 2: the results may not be accurate due to
-        strand bias, e.g. in mitochondrial genomes.
+        Notes
+        -----
+        this method only calculates the MW of the coding strand. If you want
+        the MW of the reverse strand, add self.rc().mw(). DO NOT just multiply
+        the MW by 2: the results may not be accurate due to strand bias, e.g.
+        in mitochondrial genomes.
         """
         return self.moltype.mw(self, method, delta)
 
-    def can_match(self, other):
+    def can_match(self, other) -> bool:
         """Returns True if every pos in self could match same pos in other.
 
         Truncates at length of shorter sequence.
         gaps are only allowed to match other gaps.
         """
-        return self.moltype.can_match(self, other)
+        return self.moltype.can_match(str(self), str(other))
 
-    def can_mismatch(self, other):
-        """Returns True if any position in self could mismatch with other.
-
-        Truncates at length of shorter sequence.
-        gaps are always counted as matches.
-        """
-        return self.moltype.can_mismatch(self, other)
-
-    def must_match(self, other):
-        """Returns True if all positions in self must match positions in other."""
-        return self.moltype.must_match(self, other)
-
-    def diff(self, other):
+    def diff(self, other) -> int:
         """Returns number of differences between self and other.
 
-        NOTE: truncates at the length of the shorter sequence. Case-sensitive.
+        Notes
+        -----
+        Truncates at the length of the shorter sequence.
         """
         return self.distance(other)
 
-    def distance(self, other, function=None):
+    def distance(
+        self, other, function: typing.Callable[[str, str], IntORFloat] = None
+    ) -> IntORFloat:
         """Returns distance between self and other using function(i,j).
 
-        other must be a sequence.
+        Parameters
+        ----------
+        other
+            a sequence to compare to self
+        function
+            takes two seq residues and returns a number. To turn a 2D matrix into
+            a function, use cogent3.util.miscs.DistanceFromMatrix(matrix).
 
-        function should be a function that takes two items and returns a
-        number. To turn a 2D matrix into a function, use
-        cogent3.util.miscs.DistanceFromMatrix(matrix).
+        Notes
+        -----
+        Truncates at the length of the shorter sequence.
 
-        NOTE: Truncates at the length of the shorter sequence.
-
-        Note that the function acts on two _elements_ of the sequences, not
-        the two sequences themselves (i.e. the behavior will be the same for
-        every position in the sequences, such as identity scoring or a function
+        The function acts on two _elements_ of the sequences, not the two
+        sequences themselves (i.e. the behavior will be the same for every
+        position in the sequences, such as identity scoring or a function
         derived from a distance matrix as suggested above). One limitation of
         this approach is that the distance function cannot use properties of
         the sequences themselves: for example, it cannot use the lengths of the
@@ -525,10 +515,12 @@ class Sequence:
             distance += function(first, second)
         return distance
 
-    def matrix_distance(self, other, matrix):
+    def matrix_distance(self, other, matrix) -> IntORFloat:
         """Returns distance between self and other using a score matrix.
 
-        WARNING: the matrix must explicitly contain scores for the case where
+        Warning
+        -------
+        The matrix must explicitly contain scores for the case where
         a position is the same in self and other (e.g. for a distance matrix,
         an identity between U and U might have a score of 0). The reason the
         scores for the 'diagonals' need to be passed explicitly is that for
@@ -539,19 +531,23 @@ class Sequence:
         """
         return self.distance(other, DistanceFromMatrix(matrix))
 
-    def frac_same(self, other):
+    def frac_same(self, other) -> float:
         """Returns fraction of positions where self and other are the same.
 
-        Truncates at length of shorter sequence.
-        Note that frac_same and frac_diff are both 0 if one sequence is empty.
+        Notes
+        -----
+        Truncates at length of shorter sequence. Will return  0 if one sequence
+        is empty.
         """
         return frac_same(self, other)
 
-    def frac_diff(self, other):
+    def frac_diff(self, other) -> float:
         """Returns fraction of positions where self and other differ.
 
-        Truncates at length of shorter sequence.
-        Note that frac_same and frac_diff are both 0 if one sequence is empty.
+        Notes
+        -----
+        Truncates at length of shorter sequence. Will return  0 if one sequence
+        is empty.
         """
         return frac_diff(self, other)
 
@@ -645,7 +641,7 @@ class Sequence:
         else:  # there were no positions that weren't gaps
             return 0
 
-    def frac_similar(self, other, similar_pairs):
+    def frac_similar(self, other, similar_pairs: dict[(str, str), typing.Any]):
         """Returns fraction of positions where self[i] is similar to other[i].
 
         similar_pairs must be a dict such that d[(i,j)] exists if i and j are
@@ -677,18 +673,16 @@ class Sequence:
                     first_nongap = i
                 last_nongap = i
         missing = self.moltype.missing
-        if first_nongap is None:  # sequence was all gaps
-            result = self.__class__(
-                moltype=self.moltype, seq=[missing for _ in len(self)], info=self.info
+        if first_nongap is None:
+            return self.__class__(
+                moltype=self.moltype, seq=missing * len(self), info=self.info
             )
-        else:
-            prefix = missing * first_nongap
-            mid = str(self)[first_nongap : last_nongap + 1]
-            suffix = missing * (len(self) - last_nongap - 1)
-            result = self.__class__(
-                moltype=self.moltype, seq=prefix + mid + suffix, info=self.info
-            )
-        return result
+        prefix = missing * first_nongap
+        mid = str(self)[first_nongap : last_nongap + 1]
+        suffix = missing * (len(self) - last_nongap - 1)
+        return self.__class__(
+            moltype=self.moltype, seq=prefix + mid + suffix, info=self.info
+        )
 
     def _repr_html_(self):
         settings = self._repr_policy.copy()
@@ -701,11 +695,11 @@ class Sequence:
 
     def to_html(
         self,
-        wrap=60,
-        limit=None,
-        colors=None,
-        font_size=12,
-        font_family="Lucida Console",
+        wrap: int = 60,
+        limit: OptInt = None,
+        colors: typing.Optional[typing.Mapping[str, str]] = None,
+        font_size: int = 12,
+        font_family: str = "Lucida Console",
     ):
         """returns html with embedded styles for sequence colouring
 
@@ -717,8 +711,7 @@ class Sequence:
         limit
             truncate alignment to this length
         colors
-            {character
-            moltype.
+            dict of {char: color} to use for coloring
         font_size
             in points. Affects labels and sequence and line spacing
             (proportional to value)
@@ -837,7 +830,7 @@ class Sequence:
         return self._seq.parent_start
 
     @annotation_offset.setter
-    def annotation_offset(self, value):
+    def annotation_offset(self, value: int):
         self._seq.offset = value
 
     @property
@@ -845,14 +838,14 @@ class Sequence:
         return self._annotation_db
 
     @annotation_db.setter
-    def annotation_db(self, value):
+    def annotation_db(self, value: SupportsFeatures):
         # Without knowing the contents of the db we cannot
         # establish whether self.moltype is compatible, so
         # we rely on the user to get that correct
         # one approach to support validation might be to add
         # to the SupportsFeatures protocol a is_nucleic flag,
         # for both DNA and RNA. But if a user trys get_slice()
-        # on a '-' strand feature, they will get a TypError.
+        # on a '-' strand feature, they will get a TypeError.
         # I think that's enough.
         self.replace_annotation_db(value, check=False)
 
@@ -1220,7 +1213,11 @@ class Sequence:
         return new
 
     def with_masked_annotations(
-        self, annot_types, mask_char=None, shadow=False, extend_query=False
+        self,
+        annot_types: StrORIterableStr,
+        mask_char: str = None,
+        shadow: bool = False,
+        extend_query: bool = False,
     ):
         """returns a sequence with annot_types regions replaced by mask_char
         if shadow is False, otherwise all other regions are masked.
@@ -1372,10 +1369,10 @@ class Sequence:
         """Return the sequence type as moltype label."""
         return self.moltype.label
 
-    def resolved_ambiguities(self) -> list[tuple[str]]:
-        """Returns a list of tuples of strings."""
+    def resolved_ambiguities(self) -> list[set[str]]:
+        """Returns a list of sets of strings."""
         ambigs = self.moltype.ambiguities
-        return [ambigs[motif] for motif in self._seq]
+        return [set(ambigs.get(motif, motif)) for motif in str(self)]
 
     def iter_kmers(self, k: int, strict: bool = True) -> typing.Iterator[str]:
         """generates all overlapping k-mers.
@@ -1676,38 +1673,48 @@ class NucleicAcidSequenceMixin:
                 result = self.moltype.complement(result)
         return result
 
-    def can_pair(self, other):
+    def can_pair(self, other) -> bool:
         """Returns True if self and other could pair.
 
+        other
+            sequence, must be able to be cast to string.
+
+        Notes
+        -----
         Pairing occurs in reverse order, i.e. last position of other with
         first position of self, etc.
 
         Truncates at length of shorter sequence.
-        gaps are only allowed to pair with other gaps, and are counted as 'weak'
-        (same category as GU and degenerate pairs).
 
-        NOTE: second must be able to be reverse
+        Gaps are only allowed to pair with other gaps.
+
+        Weak pairs (like GU) are considered as possible pairs.
         """
-        return self.moltype.can_pair(self, other)
+        return self.moltype.can_pair(str(self), str(other))
 
-    def can_mispair(self, other):
+    def can_mispair(self, other) -> bool:
         """Returns True if any position in self could mispair with other.
 
+        Notes
+        -----
         Pairing occurs in reverse order, i.e. last position of other with
         first position of self, etc.
 
         Truncates at length of shorter sequence.
-        gaps are always counted as possible mispairs, as are weak pairs like GU.
-        """
-        return self.moltype.can_mispair(self, other)
 
-    def must_pair(self, other):
+        Gaps are always counted as possible mispairs, as are weak pairs like GU.
+        """
+        return self.moltype.can_mispair(self, str(other))
+
+    def must_pair(self, other) -> bool:
         """Returns True if all positions in self must pair with other.
 
+        Notes
+        -----
         Pairing occurs in reverse order, i.e. last position of other with
         first position of self, etc.
         """
-        return not self.moltype.can_mispair(self, other)
+        return not self.moltype.can_mispair(self, str(other))
 
     def complement(self):
         """Returns complement of self, using data from MolType.

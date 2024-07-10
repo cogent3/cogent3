@@ -7,18 +7,14 @@ import warnings
 
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from dataclasses import InitVar, dataclass, field
 from functools import singledispatch, singledispatchmethod
 from pathlib import Path
 from typing import Any, Callable, Iterator, Mapping, Optional, Union
 
 import numpy
 
-import cogent3.core.new_alphabet as new_alpha
-import cogent3.core.new_moltype as new_moltype
-import cogent3.core.new_sequence as new_seq
-
 from cogent3._version import __version__
+from cogent3.core import new_alphabet, new_moltype, new_sequence
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
     BasicAnnotationDb,
@@ -26,7 +22,6 @@ from cogent3.core.annotation_db import (
     SupportsFeatures,
 )
 from cogent3.core.info import Info as InfoClass
-from cogent3.core.location import IndelMap
 from cogent3.core.profile import (
     PSSM,
     MotifCountsArray,
@@ -56,16 +51,16 @@ OptDict = Optional[dict]
 OptCallable = Optional[Callable]
 OptRenamerCallable = Optional[Callable[[str], str]]
 OptPathType = Union[str, Path, None]
-PrimitiveSeqTypes = Union[str, bytes, numpy.ndarray]
+StrORBytesORArray = Union[str, bytes, numpy.ndarray]
 
 
 class MakeSeqCallable(typing.Protocol):
     def __call__(
         self,
-        seq: Union[PrimitiveSeqTypes, new_seq.Sequence, new_seq.SeqViewABC],
+        seq: Union[StrORBytesORArray, new_sequence.Sequence, new_sequence.SeqViewABC],
         name: OptStr = None,
         check_seq: bool = True,
-    ) -> new_seq.Sequence: ...
+    ) -> new_sequence.Sequence: ...
 
 
 def assign_sequential_names(num_seqs: int, base_name: str = "seq", start_at: int = 0):
@@ -84,7 +79,7 @@ def assign_sequential_names(num_seqs: int, base_name: str = "seq", start_at: int
     return [f"{base_name}_{i}" for i in range(start_at, start_at + num_seqs)]
 
 
-class SeqDataView(new_seq.SeqViewABC, new_seq.SliceRecordABC):
+class SeqDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
     """
     A view class for SeqsData, providing methods for different representations
     of a single sequence.
@@ -119,7 +114,9 @@ class SeqDataView(new_seq.SeqViewABC, new_seq.SliceRecordABC):
         step = 1 if step is None else step
         self._seq_len = self._checked_seq_len(seq_len)
         func = (
-            new_seq._input_vals_pos_step if step > 0 else new_seq._input_vals_neg_step
+            new_sequence._input_vals_pos_step
+            if step > 0
+            else new_sequence._input_vals_neg_step
         )
         start, stop, step = func(self._seq_len, start, stop, step)
         self.seq = seq
@@ -245,7 +242,7 @@ class SeqsDataABC(ABC):
 
     @property
     @abstractmethod
-    def alphabet(self) -> new_alpha.CharAlphabet: ...
+    def alphabet(self) -> new_alphabet.CharAlphabet: ...
 
     @property
     @abstractmethod
@@ -267,13 +264,13 @@ class SeqsDataABC(ABC):
     ) -> bytes: ...
 
     @abstractmethod
-    def get_seq_view(self, seqid: str) -> new_seq.SliceRecordABC: ...
+    def get_seq_view(self, seqid: str) -> new_sequence.SliceRecordABC: ...
 
     @abstractmethod
     def subset(self, names: Union[str, typing.Sequence[str]]) -> SeqsDataABC: ...
 
     @abstractmethod
-    def to_alphabet(self, alphabet: new_alpha.CharAlphabet) -> SeqsDataABC: ...
+    def to_alphabet(self, alphabet: new_alphabet.CharAlphabet) -> SeqsDataABC: ...
 
     @abstractmethod
     def add_seqs(self, seqs) -> SeqsDataABC: ...
@@ -287,7 +284,7 @@ class SeqsDataABC(ABC):
     @abstractmethod
     def __getitem__(
         self, index: Union[str, int]
-    ) -> Union[new_seq.Sequence, new_seq.SeqViewABC]: ...
+    ) -> Union[new_sequence.Sequence, new_sequence.SeqViewABC]: ...
 
 
 class SeqsData(SeqsDataABC):
@@ -300,8 +297,8 @@ class SeqsData(SeqsDataABC):
     def __init__(
         self,
         *,
-        data: dict[str, PrimitiveSeqTypes],
-        alphabet: new_alpha.CharAlphabet,
+        data: dict[str, StrORBytesORArray],
+        alphabet: new_alphabet.CharAlphabet,
         make_seq: Optional[MakeSeqCallable] = None,
         reversed_seqs: dict[str, bool] = None,
     ):
@@ -335,7 +332,7 @@ class SeqsData(SeqsDataABC):
         self._make_seq = make_seq
 
     @property
-    def alphabet(self) -> new_alpha.CharAlphabet:
+    def alphabet(self) -> new_alphabet.CharAlphabet:
         return self._alphabet
 
     @property
@@ -409,7 +406,7 @@ class SeqsData(SeqsDataABC):
         )
 
     def add_seqs(
-        self, seqs: dict[str, PrimitiveSeqTypes], force_unique_keys=True
+        self, seqs: dict[str, StrORBytesORArray], force_unique_keys=True
     ) -> SeqsData:
         """Returns a new SeqsData object with added sequences."""
         if force_unique_keys and any(name in self.names for name in seqs):
@@ -423,7 +420,7 @@ class SeqsData(SeqsDataABC):
         )
 
     def to_alphabet(
-        self, alphabet: new_alpha.CharAlphabet, check_valid=True
+        self, alphabet: new_alphabet.CharAlphabet, check_valid=True
     ) -> SeqsData:
         # refactor: design -- map directly between arrays?
         # refactor: design -- better way to check if alphabets are DNA and RNA?
@@ -433,9 +430,9 @@ class SeqsData(SeqsDataABC):
         new_data = {}
         old = self.alphabet.as_bytes()
         new = alphabet.as_bytes()
-        convert_old_to_bytes = new_alpha.array_to_bytes(old)
-        convert_bytes_to_new = new_alpha.bytes_to_array(
-            new, dtype=new_alpha.get_array_type(len(new))
+        convert_old_to_bytes = new_alphabet.array_to_bytes(old)
+        convert_bytes_to_new = new_alphabet.bytes_to_array(
+            new, dtype=new_alphabet.get_array_type(len(new))
         )
 
         for seqid in self.names:
@@ -461,11 +458,11 @@ class SeqsData(SeqsDataABC):
     @singledispatchmethod
     def __getitem__(
         self, index: Union[str, int]
-    ) -> Union[new_seq.Sequence, new_seq.SeqViewABC]:
+    ) -> Union[new_sequence.Sequence, new_sequence.SeqViewABC]:
         raise NotImplementedError(f"__getitem__ not implemented for {type(index)}")
 
     @__getitem__.register
-    def _(self, index: str) -> Union[new_seq.Sequence, new_seq.SeqViewABC]:
+    def _(self, index: str) -> Union[new_sequence.Sequence, new_sequence.SeqViewABC]:
         sdv = self.get_seq_view(seqid=index)
         return (
             sdv
@@ -474,7 +471,7 @@ class SeqsData(SeqsDataABC):
         )
 
     @__getitem__.register
-    def _(self, index: int) -> Union[new_seq.Sequence, new_seq.SeqViewABC]:
+    def _(self, index: int) -> Union[new_sequence.Sequence, new_sequence.SeqViewABC]:
         return self[self.names[index]]
 
     def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
@@ -574,7 +571,7 @@ class SequenceCollection:
 
     def iter_seqs(
         self, seq_order: OptList = None
-    ) -> Iterator[Union[new_seq.Sequence, new_seq.SeqViewABC]]:
+    ) -> Iterator[Union[new_sequence.Sequence, new_sequence.SeqViewABC]]:
         """Iterates over sequences in the collection, in order.
 
         Parameters
@@ -649,7 +646,7 @@ class SequenceCollection:
         return result
 
     def get_seq_names_if(
-        self, f: Callable[[new_seq.Sequence], bool], negate: bool = False
+        self, f: Callable[[new_sequence.Sequence], bool], negate: bool = False
     ):
         """Returns list of names of seqs where f(seq) is True."""
         get = self.seqs.__getitem__
@@ -659,7 +656,7 @@ class SequenceCollection:
         return [name for name in self.names if new_f(get(name))]
 
     def take_seqs_if(
-        self, f: Callable[[new_seq.Sequence], bool], negate: bool = False, **kwargs
+        self, f: Callable[[new_sequence.Sequence], bool], negate: bool = False, **kwargs
     ):
         """Returns new collection containing seqs where f(seq) is True.
 
@@ -677,7 +674,9 @@ class SequenceCollection:
         """
         return self.take_seqs(self.get_seq_names_if(f, negate), **kwargs)
 
-    def get_seq(self, seqname: str, copy_annotations: bool = False) -> new_seq.Sequence:
+    def get_seq(
+        self, seqname: str, copy_annotations: bool = False
+    ) -> new_sequence.Sequence:
         """Return a sequence object for the specified seqname.
 
         Parameters
@@ -703,7 +702,7 @@ class SequenceCollection:
         return seq
 
     def add_seqs(
-        self, seqs: Union[dict[str, PrimitiveSeqTypes], SeqsData, list], **kwargs
+        self, seqs: Union[dict[str, StrORBytesORArray], SeqsData, list], **kwargs
     ) -> SequenceCollection:
         """Returns new collection with additional sequences.
 
@@ -901,7 +900,7 @@ class SequenceCollection:
         """
 
         if len(self.moltype.alphabet) != 4:
-            raise new_alpha.AlphabetError("Sequences must be a DNA/RNA")
+            raise new_alphabet.AlphabetError("Sequences must be a DNA/RNA")
 
         translated = {}
         # do the translation
@@ -1518,7 +1517,7 @@ class SequenceCollection:
 
     def get_motif_probs(
         self,
-        alphabet: new_alpha.CharAlphabet = None,
+        alphabet: new_alphabet.CharAlphabet = None,
         include_ambiguity: bool = False,
         exclude_unobserved: bool = False,
         allow_gap: bool = False,
@@ -1828,12 +1827,12 @@ class SequenceCollection:
 
     def get_similar(
         self,
-        target: new_seq.Sequence,
+        target: new_sequence.Sequence,
         min_similarity: float = 0.0,
         max_similarity: float = 1.0,
         metric: Callable[
-            [new_seq.Sequence, new_seq.Sequence], float
-        ] = new_seq.frac_same,
+            [new_sequence.Sequence, new_sequence.Sequence], float
+        ] = new_sequence.frac_same,
         transform: bool = None,
     ) -> SequenceCollection:
         """Returns new SequenceCollection containing sequences similar to target.
@@ -2166,7 +2165,7 @@ def merged_db_collection(seqs) -> SupportsFeatures:
     first = None
     merged = None
     for seq in seqs:
-        if not isinstance(seq, new_seq.Sequence):
+        if not isinstance(seq, new_sequence.Sequence):
             continue
 
         db = seq.annotation_db
@@ -2192,7 +2191,7 @@ def _(seqs: dict) -> SupportsFeatures:
 @singledispatch
 def coerce_to_seqs_data_dict(
     data, label_to_name: OptRenamerCallable = None
-) -> dict[str, PrimitiveSeqTypes]:
+) -> dict[str, StrORBytesORArray]:
     # refactor: handle conversion of SeqView to SeqDataView.
     raise NotImplementedError(
         f"coerce_to_seqs_data_dict not implemented for {type(data)}"
@@ -2202,8 +2201,8 @@ def coerce_to_seqs_data_dict(
 @coerce_to_seqs_data_dict.register
 def _(
     data: dict, label_to_name: OptRenamerCallable = None
-) -> dict[str, PrimitiveSeqTypes]:
-    is_sequence = isinstance(next(iter(data.values()), None), new_seq.Sequence)
+) -> dict[str, StrORBytesORArray]:
+    is_sequence = isinstance(next(iter(data.values()), None), new_sequence.Sequence)
     return {
         (label_to_name(k) if label_to_name else k): (
             numpy.array(v) if is_sequence else v
@@ -2215,7 +2214,7 @@ def _(
 @coerce_to_seqs_data_dict.register
 def _(
     data: list, label_to_name: OptRenamerCallable = None
-) -> dict[str, PrimitiveSeqTypes]:
+) -> dict[str, StrORBytesORArray]:
     first = data[0]
     labelled_seqs = assign_names(first, data=data)
     return coerce_to_seqs_data_dict(labelled_seqs, label_to_name=label_to_name)
@@ -2224,7 +2223,7 @@ def _(
 @coerce_to_seqs_data_dict.register
 def _(
     data: set, label_to_name: OptRenamerCallable = None
-) -> dict[str, PrimitiveSeqTypes]:
+) -> dict[str, StrORBytesORArray]:
     first = next(iter(data))
     labelled_seqs = assign_names(first, data=data)
     return coerce_to_seqs_data_dict(labelled_seqs, label_to_name=label_to_name)
@@ -2233,7 +2232,7 @@ def _(
 @coerce_to_seqs_data_dict.register
 def _(
     data: SequenceCollection, label_to_name: OptRenamerCallable = None
-) -> dict[str, PrimitiveSeqTypes]:
+) -> dict[str, StrORBytesORArray]:
     return coerce_to_seqs_data_dict(
         data.to_dict(as_array=True), label_to_name=label_to_name
     )
@@ -2242,7 +2241,7 @@ def _(
 @singledispatch
 def assign_names(
     first, data: Union[list, set]
-) -> dict[str, Union[PrimitiveSeqTypes, new_seq.Sequence]]:
+) -> dict[str, Union[StrORBytesORArray, new_sequence.Sequence]]:
     if isinstance(first, (str, bytes, numpy.ndarray)):
         names = assign_sequential_names(len(data))
         return dict(zip(names, data))
@@ -2250,23 +2249,25 @@ def assign_names(
 
 
 @assign_names.register
-def _(first: new_seq.Sequence, data: Union[list, set]) -> dict[str, new_seq.Sequence]:
+def _(
+    first: new_sequence.Sequence, data: Union[list, set]
+) -> dict[str, new_sequence.Sequence]:
     return {seq.name: seq for seq in data}
 
 
 @assign_names.register
-def _(first: list, data: Union[list, set]) -> dict[str, PrimitiveSeqTypes]:
+def _(first: list, data: Union[list, set]) -> dict[str, StrORBytesORArray]:
     return {name_seq[0]: name_seq[1] for name_seq in data}
 
 
 @assign_names.register
-def _(first: tuple, data: Union[list, set]) -> dict[str, PrimitiveSeqTypes]:
+def _(first: tuple, data: Union[list, set]) -> dict[str, StrORBytesORArray]:
     return {name_seq[0]: name_seq[1] for name_seq in data}
 
 
 @singledispatch
 def make_unaligned_seqs(
-    data: Union[dict[str, PrimitiveSeqTypes], SeqsData, list],
+    data: Union[dict[str, StrORBytesORArray], SeqsData, list],
     *,
     moltype: Union[str, new_moltype.MolType],
     label_to_name: OptRenamerCallable = None,
@@ -2358,132 +2359,3 @@ def _(
         annotation_db=annotation_db,
         source=source,
     )
-
-
-@singledispatch
-def seq_to_gap_coords(
-    seq: Union[str, numpy.ndarray], moltype: new_moltype.MolType
-) -> tuple[str, IndelMap]:
-    """
-    Takes a sequence with (or without) gaps and returns an ungapped sequence
-    and records the position and length of gaps in the original parent sequence
-    """
-    raise NotImplementedError(f"{seq} not implemented for type {type(seq)}")
-
-
-@seq_to_gap_coords.register
-def _(seq: str, moltype: new_moltype.MolType) -> tuple[str, IndelMap]:
-    seq = moltype.make_seq(seq=seq)
-    indel_map, ungapped_seq = seq.parse_out_gaps()
-
-    if indel_map.num_gaps == 0:
-        return str(ungapped_seq), numpy.array([], dtype=int)
-
-    return str(ungapped_seq), indel_map
-
-
-@seq_to_gap_coords.register
-def _(seq: numpy.ndarray, moltype: new_moltype.MolType) -> tuple[str, IndelMap]:
-    gap_char = moltype.degen_gapped_alphabet.index(moltype.gap)
-    # Create boolean array of gaps to get ungapped
-    gaps_bool = seq == gap_char
-    ungapped = seq[~gaps_bool]
-
-    # no gaps in seq
-    if numpy.array_equal(ungapped, seq):
-        return ungapped, numpy.array([], dtype=int)
-
-    parent_len = len(seq)
-    in_gap = False
-    parent_coords = []
-    start = 0
-    for i, gapped in enumerate(gaps_bool):
-        if gapped and not in_gap:
-            start = i
-            in_gap = True
-        if not gapped and in_gap:
-            parent_coords.append([start, i])
-            in_gap = False
-        if gapped and i == parent_len - 1:
-            # End of the sequence
-            parent_coords.append([start, i + 1])
-
-    # Format for IndelMap
-    parent_coords = numpy.array(parent_coords)
-    gap_lengths = numpy.array([end - start for start, end in parent_coords])
-    cum_lengths = gap_lengths.cumsum()
-    # Get gap start positions in sequence coords
-    gap_pos = parent_coords.T[0] - numpy.append(0, cum_lengths[:-1, numpy.newaxis])
-
-    indel_map = IndelMap(
-        gap_pos=gap_pos, cum_gap_lengths=cum_lengths, parent_length=parent_len
-    )
-
-    return ungapped, indel_map
-
-
-class AlignedDataView(SeqDataView):
-    """
-    Example
-    -------
-    data = {"seq1": "ACGT", "seq2": "GTTTGCA"}
-    ad = AlignedData.from_strings(data)
-    adv = sd.get_aligned_view(seqid="seq1")
-    """
-
-
-@dataclass
-class AlignedData:
-    # Look out for any overlaps with SeqsData
-    seqs: Optional[dict[str, numpy.ndarray]] = None
-    gaps: Optional[dict[str, numpy.ndarray]] = None
-    _moltype: new_moltype.MolType = field(init=False)
-    _names: tuple[str] = field(init=False)
-    _alpha: new_alpha.CharAlphabet = field(init=False)
-    align_len: int = 0
-    moltype: InitVar[Union[str, None]] = "dna"
-    names: InitVar[Union[tuple[str], None]] = None
-
-    def __post_init__(self, moltype, names):
-        self._moltype = new_moltype.get_moltype(moltype)
-        self._alpha = self._moltype.degen_gapped_alphabet
-        self.seqs = {k: self._alpha.to_indices(v) for k, v in self.seqs.items()}
-
-    @classmethod
-    def from_gapped_seqs(
-        cls,
-        data: dict[str, Union[str, numpy.ndarray]],
-        moltype: Union[str, new_moltype.MolType] = "dna",
-        names: Optional[tuple[str]] = None,
-    ):
-        """
-        Convert dict of {"seq_name": "seq"} to two dicts for seqs and gaps
-        """
-        seq_lengths = {len(v) for v in data.values()}
-        if len(seq_lengths) != 1:
-            raise ValueError("All sequence lengths must be the same.")
-
-        align_len = seq_lengths.pop()
-        moltype = new_moltype.get_moltype(moltype)
-
-        seqs = {}
-        gaps = {}
-        for name, seq in data.items():
-            seqs[name], gaps[name] = seq_to_gap_coords(seq, moltype)
-
-        names = names or list(data.keys)
-
-        return cls(
-            seqs=seqs,
-            gaps=gaps,
-            moltype=moltype,
-            names=names,
-            align_len=align_len,
-        )
-
-    def get_aligned_view(self, seqid: str) -> AlignedDataView:
-        # Need to revisit what the variable is called i.e. parent_length
-        return AlignedDataView(seqs=self, seqid=seqid, seq_len=self.align_len)
-
-    def get_gaps(self, seqid: str) -> numpy.ndarray:
-        return self.gaps[seqid]

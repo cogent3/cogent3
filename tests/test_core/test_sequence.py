@@ -246,7 +246,7 @@ class SequenceTests(TestCase):
         assert self.RNA("CA--CGUAUGCA-----g").is_gapped()
         assert self.RNA("CAGU-").is_gapped()
 
-    def test_is_gap(self):  # ported although not support coercing to upper case
+    def test_is_gap(self):  # will not port
         """Sequence is_gap should return True if char is a valid gap char"""
         r = self.RNA("ACGUCAGUACGUCAGNRCGAUcaguaguacYRNRYRN")
         for char in "qwertyuiopasdfghjklzxcvbnmQWERTYUIOASDFGHJKLZXCVBNM":
@@ -447,7 +447,7 @@ class SequenceTests(TestCase):
         assert self.RNA("UCAG").can_match("YYRR")
         assert self.RNA("UCAG").can_match("KMWS")
 
-    def test_can_mismatch(self):  # ported
+    def test_can_mismatch(self):  # will not port
         """Sequence can_mismatch should return True on any possible mismatch"""
         assert not self.RNA("").can_mismatch("")
         assert self.RNA("N").can_mismatch("N")
@@ -461,7 +461,7 @@ class SequenceTests(TestCase):
         assert not self.RNA("UCAG").can_mismatch("UCAG")
         assert not self.RNA("U--").can_mismatch("U--")
 
-    def test_must_match(self):
+    def test_must_match(self):  # will not port
         """Sequence must_match should return True when no possible mismatches"""
         assert self.RNA("").must_match("")
         assert not self.RNA("N").must_match("N")
@@ -474,7 +474,7 @@ class SequenceTests(TestCase):
         assert self.RNA("UU-").must_match("UU-")
         assert self.RNA("UCAG").must_match("UCAG")
 
-    def test_can_pair(self):
+    def test_can_pair(self):  # ported
         """Sequence can_pair should return True if all positions can pair"""
         assert self.RNA("").can_pair("")
         assert not self.RNA("UCAG").can_pair("UCAG")
@@ -492,7 +492,7 @@ class SequenceTests(TestCase):
 
         assert not self.DNA("T").can_pair("G")
 
-    def test_can_mispair(self):
+    def test_can_mispair(self):  # ported
         """Sequence can_mispair should return True on any possible mispair"""
         assert not self.RNA("").can_mispair("")
         assert self.RNA("N").can_mispair("N")
@@ -509,7 +509,7 @@ class SequenceTests(TestCase):
 
         assert self.DNA("TCCAAAGRYY").can_mispair("RRYCTTTGGA")
 
-    def test_must_pair(self):
+    def test_must_pair(self):  # ported
         """Sequence must_pair should return True when no possible mispairs"""
         assert self.RNA("").must_pair("")
         assert not self.RNA("N").must_pair("N")
@@ -526,7 +526,7 @@ class SequenceTests(TestCase):
         assert self.DNA("tccaggg").must_pair(self.DNA("ccctgga"))
         assert not self.DNA("TCCAGGG").must_pair("NCCTGGA")
 
-    def test_diff(self):
+    def test_diff(self):  # ported
         """Sequence diff should count 1 for each difference between sequences"""
         self.assertEqual(self.RNA("UGCUGCUC").diff(""), 0)
         self.assertEqual(self.RNA("UGCUGCUC").diff("U"), 0)
@@ -536,7 +536,7 @@ class SequenceTests(TestCase):
         # raises TypeError if other not iterable
         self.assertRaises(TypeError, self.RNA("AAAAA").diff, 5)
 
-    def test_distance(self):
+    def test_distance(self):  # ported
         """Sequence distance should calculate correctly based on function"""
 
         def f(a, b):
@@ -562,7 +562,7 @@ class SequenceTests(TestCase):
         # case-sensitive!
         self.assertEqual(self.RNA("AAAAA").distance("CCCCC", f), 50)
 
-    def test_matrix_distance(self):
+    def test_matrix_distance(self):  # ported
         """Sequence matrix_distance should look up distances from a matrix"""
         # note that the score matrix must contain 'diagonal' elements m[i][i]
         # to avoid failure when the sequences match.
@@ -572,7 +572,7 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA("UUU").matrix_distance("CAC", m), 7)
         self.assertRaises(KeyError, self.RNA("UUU").matrix_distance, "CAG", m)
 
-    def test_frac_same(self):
+    def test_frac_same(self):  # ported
         """Sequence frac_same should return similarity between sequences"""
         s1 = self.RNA("ACGU")
         s2 = self.RNA("AACG")
@@ -584,7 +584,7 @@ class SequenceTests(TestCase):
         self.assertEqual(s1.frac_same(s3), 0)
         self.assertEqual(s1.frac_same(s4), 1.0)  # note truncation
 
-    def test_frac_diff(self):
+    def test_frac_diff(self):  # ported
         """Sequence frac_diff should return difference between sequences"""
         s1 = self.RNA("ACGU")
         s2 = self.RNA("AACG")
@@ -596,7 +596,7 @@ class SequenceTests(TestCase):
         self.assertEqual(s1.frac_diff(s3), 1)
         self.assertEqual(s1.frac_diff(s4), 0)  # note truncation
 
-    def test_frac_same_gaps(self):
+    def test_frac_same_gaps(self):  # ported
         """Sequence frac_same_gaps should return similarity in gap positions"""
         s1 = self.RNA("AAAA")
         s2 = self.RNA("GGGG")
@@ -623,7 +623,7 @@ class SequenceTests(TestCase):
         self.assertEqual(s4.frac_same_gaps(s6), 0.5)
         assert_allclose(s6.frac_same_gaps(s8), 2 / 3.0)
 
-    def test_frac_diffGaps(self):
+    def test_frac_diffGaps(self):  # ported
         """Sequence frac_diff_gaps should return difference in gap positions"""
         s1 = self.RNA("AAAA")
         s2 = self.RNA("GGGG")
@@ -650,7 +650,7 @@ class SequenceTests(TestCase):
         self.assertEqual(s4.frac_diff_gaps(s6), 0.5)
         assert_allclose(s6.frac_diff_gaps(s8), 1 / 3.0)
 
-    def test_frac_same_non_gaps(self):
+    def test_frac_same_non_gaps(self):  # ported
         """Sequence frac_same_non_gaps should return similarities at non-gaps"""
         s1 = self.RNA("AAAA")
         s2 = self.RNA("AGGG")
@@ -677,7 +677,7 @@ class SequenceTests(TestCase):
         test(s4, s9, 2 / 3.0)
         test(e, s4, 0)
 
-    def test_frac_diffNonGaps(self):
+    def test_frac_diffNonGaps(self):  # ported
         """Sequence frac_diff_non_gaps should return differences at non-gaps"""
         s1 = self.RNA("AAAA")
         s2 = self.RNA("AGGG")
@@ -704,7 +704,7 @@ class SequenceTests(TestCase):
         test(s4, s9, 1 / 3.0)
         test(e, s4, 0)
 
-    def test_frac_similar(self):
+    def test_frac_similar(self):  # ported
         """Sequence frac_similar should return the fraction similarity"""
         transitions = dict.fromkeys(
             [
@@ -734,14 +734,14 @@ class SequenceTests(TestCase):
         test(s1, s3, 5.0 / 8)
         test(s2, s3, 4.0 / 8)
 
-    def test_with_termini_unknown(self):
+    def test_with_termini_unknown(self):  # ported
         """with_termini_unknown should reset termini to unknown char"""
         s1 = self.RNA("-?--AC--?-")
         s2 = self.RNA("AC")
         self.assertEqual(s1.with_termini_unknown(), "????AC????")
         self.assertEqual(s2.with_termini_unknown(), "AC")
 
-    def test_consistent_gap_degen_handling(self):
+    def test_consistent_gap_degen_handling(self):  # ported
         """gap degen character should be treated consistently"""
         # the degen character '?' can be a gap, so when we strip either gaps or
         # degen characters it should be gone too
@@ -760,7 +760,7 @@ class SequenceTests(TestCase):
         self.assertEqual(str(got), "ACCNNGT")
         self.assertTrue(isinstance(got, self.SEQ))
 
-    def test_counts(self):
+    def test_counts(self):  # ported
         """count motifs of different sizes, +/- ambiguities"""
         # test DNA seq
         orig = "AACCGGTTAN-T"
@@ -819,7 +819,7 @@ class SequenceTests(TestCase):
         expect.update({"-": 1, "N": 1, "?": 1})
         self.assertEqual(dict(got), expect)
 
-    def test_strand_symmetry(self):
+    def test_strand_symmetry(self):  # ported
         """correctly compute test of strand symmetry"""
         from cogent3 import get_moltype
         from cogent3.core.alignment import Aligned
@@ -853,7 +853,7 @@ class SequenceTests(TestCase):
         assert_allclose(ssym.observed["AA"].to_array(), [2, 1])
         assert_allclose(ssym.observed["CC"].to_array(), [1, 2])
 
-    def test_is_annotated(self):
+    def test_is_annotated(self):  # ported
         """is_annotated operates correctly"""
         s = self.SEQ("ACGGCTGAAGCGCTCCGGGTTTAAAACG")
         if hasattr(s, "annotation_db"):
@@ -864,7 +864,7 @@ class SequenceTests(TestCase):
             with self.assertRaises(AttributeError):
                 s.is_annotated()
 
-    def test_to_html(self):
+    def test_to_html(self):  # ported
         """produce correct html formatted text"""
         seq = DnaSequence("ACGGTGGGGGGGGG")
         got = seq.to_html(wrap=50)
@@ -892,7 +892,7 @@ class SequenceTests(TestCase):
 
         self.assertTrue(seq_row in got)
 
-    def test_repr_html(self):
+    def test_repr_html(self):  # ported
         """correctly uses set_repr and the environment variable settings"""
         token = 'class="label"'
         seq = self.SEQ("AAAAA")
@@ -909,7 +909,7 @@ class SequenceTests(TestCase):
         self.assertEqual(got_num, 2)
         os.environ.pop(env_name, None)
 
-    def test_add(self):
+    def test_add(self):  # ported
         """Test for the add method within sequence"""
 
         even = "TCAGAT"
@@ -931,7 +931,7 @@ class SequenceTests(TestCase):
         self.assertNotEqual(original_sequence.name, added_name_only_duplicate.name)
         self.assertNotEqual(original_sequence.name, different_sequences.name)
 
-    def test_add2(self):
+    def test_add2(self):  # ported
         """name property correctly handled in sequence add"""
         a1 = self.SEQ("AAA", name="1")
         a2 = self.SEQ("CC", name="1")
@@ -949,7 +949,7 @@ class SequenceTests(TestCase):
         self.assertIsNone(be.name)
         self.assertEqual(be, str(b) + e)
 
-    def _check_mix_add(self, s1, s2):
+    def _check_mix_add(self, s1, s2):  # ported
         s1s2 = s1 + s2
         s2s1 = s2 + s1
         self.assertIsNone(s1s2.name)

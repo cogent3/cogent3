@@ -38,6 +38,8 @@ RnaWeightCorrection = DnaWeightCorrection
 class WeightCalculator(object):
     """Calculates molecular weight of a non-degenerate sequence."""
 
+    # refactor: array
+
     def __init__(self, Weights, Correction):
         """Returns a new WeightCalculator object (class, so serializable)."""
         self.Weights = Weights
