@@ -96,7 +96,6 @@ class convert_alphabet:
 
 
 class AlphabetABC(ABC):
-
     @property
     @abstractmethod
     def num_canonical(self) -> int: ...
@@ -427,7 +426,7 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
 
 @register_deserialiser(get_object_provenance(CharAlphabet))
-def deserialise_char_alphabet(data) -> CharAlphabet:
+def deserialise_char_alphabet(data: dict) -> CharAlphabet:
     return CharAlphabet.from_rich_dict(data)
 
 
@@ -694,7 +693,6 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
     def from_indices(
         self, kmer_indices: numpy.ndarray, independent_kmer: bool = True
     ) -> numpy.ndarray:
-
         if independent_kmer:
             size = len(kmer_indices) * self.k
         else:
@@ -833,7 +831,7 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
 
 
 @register_deserialiser(get_object_provenance(KmerAlphabet))
-def deserialise_kmer_alphabet(data) -> KmerAlphabet:
+def deserialise_kmer_alphabet(data: dict) -> KmerAlphabet:
     return KmerAlphabet.from_rich_dict(data)
 
 
