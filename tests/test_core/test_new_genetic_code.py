@@ -127,3 +127,22 @@ def test_translate_incomplete_rc(seq, expect):
     gc = new_genetic_code.DEFAULT
     got = gc.translate(seq, rc=True)
     assert got == expect
+
+
+def test_get_alphabet():
+    gc = new_genetic_code.get_code(1)
+    alpha = gc.get_alphabet()
+    assert len(alpha) == 61
+    assert alpha.to_index("TTT") == 0
+
+    alpha_gap = gc.get_alphabet(include_gap=True)
+    assert len(alpha_gap) == 62
+
+
+def test_get_alphabet_with_stop():
+    gc = new_genetic_code.get_code(1)
+    alpha = gc.get_alphabet(include_stop=True)
+    assert len(alpha) == 64
+
+    alpha_gap = gc.get_alphabet(include_gap=True, include_stop=True)
+    assert len(alpha_gap) == 65

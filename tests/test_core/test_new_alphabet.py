@@ -5,7 +5,7 @@ import pytest
 
 from numpy.testing import assert_allclose
 
-from cogent3.core import new_alphabet, new_moltype
+from cogent3.core import new_alphabet, new_genetic_code, new_moltype
 
 
 @pytest.mark.parametrize(
@@ -546,3 +546,62 @@ def test_deserialise_alphas(alpha):
     ser = alpha.to_json()
     got = deserialise_object(ser)
     assert got == alpha
+
+
+@pytest.fixture
+def calpha():
+    gc = new_genetic_code.get_code(1)
+    return new_alphabet.CodonAlphabet(
+        words=gc.sense_codons, monomers=gc.moltype.alphabet
+    )
+
+
+def test_codon_alphabet_init(calpha):
+    assert len(calpha) == 61
+
+
+def test_codon_alphabet_index(calpha):
+    assert calpha.to_index("TTT") == 0
+
+
+@pytest.mark.parametrize("seq", (["TTT", "TTC"], "TTTTTC"))
+def test_to_indices(calpha, seq):
+    got = calpha.to_indices(seq)
+    assert_allclose(got, numpy.array([0, 1], dtype=numpy.uint8))
+
+
+def test_codon_alphabet_invalid_codon(calpha):
+    with pytest.raises(ValueError):
+        calpha.to_index("TGA")
+
+
+def test_codon_alphabet_from_index(calpha):
+    assert calpha.from_index(0) == "TTT"
+
+
+def test_codon_alphabet_from_indices(calpha):
+    assert calpha.from_indices(numpy.array([1, 0], dtype=numpy.uint8)) == ["TTC", "TTT"]
+
+
+@pytest.mark.parametrize("seq", ("GGGAGA", numpy.array([1, 2]), numpy.array([2, 60])))
+def test_codon_alphabet_is_valid(seq, calpha):
+    assert calpha.is_valid(seq)
+
+
+@pytest.mark.parametrize("seq", ("GGGTGA", numpy.array([-1, 2]), numpy.array([2, 66])))
+def test_codon_alphabet_not_is_valid(seq, calpha):
+    assert not calpha.is_valid(seq)
+
+
+def test_codon_alphabet_with_gap_motif(calpha):
+    with_gap = calpha.with_gap_motif()
+    assert len(with_gap) == len(calpha) + 1
+
+
+def test_codon_alphabet_serlialise_round_trip(calpha):
+    from cogent3.util.deserialise import deserialise_object
+
+    got = deserialise_object(calpha.to_json())
+    assert isinstance(got, new_alphabet.CodonAlphabet)
+    assert list(got) == list(calpha)
+    assert calpha.to_index("TTC") == 1
