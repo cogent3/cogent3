@@ -602,12 +602,12 @@ class smith_waterman:
         """
         Parameters
         ----------
-        score_matrix : dict
+        score_matrix
             scoring dict, defaults to `make_dna_scoring_dict(10, -1, -8)` for
             DNA and `make_generic_scoring_dict(10, moltype)` for other moltype.
-        insertion_penalty : int
+        insertion_penalty
             penalty for gap insertion
-        extension_penalty : int
+        extension_penalty
             penalty for gap extension
         moltype
             molecular type of sequences, defaults to "dna"
@@ -617,6 +617,32 @@ class smith_waterman:
         If the provided molecular type differs from the moltype of the
         SequenceCollection to be aligned, the sequences are converted to
         the provided moltype.
+
+        Examples
+        --------
+
+        Create and align two sequences using the Smith-Waterman algorithm.
+
+        >>> from cogent3 import make_unaligned_seqs, get_app
+        >>> seqs = make_unaligned_seqs({
+        ... "Human": "GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
+        ... "Bandicoot": "NACTCATTAATGCTTGAAACCAGCAGTTTATTGTCCAAC",
+        ... }, moltype="dna")
+        >>> app = get_app("smith_waterman")
+        >>> result = app(seqs)
+        >>> print(result.to_pretty())
+            Human    AGCTCATTACAGCATGAGAACAGCAGTTTATTACTCA
+        Bandicoot    NA.......AT..T...A.C............GTC..
+
+        Align with a less stringent scoring matrix. i.e. for more divergent
+        sequences.
+
+        >>> from cogent3.align import make_dna_scoring_dict
+        >>> app = get_app("smith_waterman", score_matrix=make_dna_scoring_dict(5, -2, -5))
+        >>> result = app(seqs)
+        >>> print(result.to_pretty())
+            Human    AGCTCATTACAGCATGAGAACAGCAGTTTATTACTCA
+        Bandicoot    NA.......AT..T...A.C............GTC..
         """
         self.moltype = get_moltype(moltype)
         self._score_matrix = score_matrix or (

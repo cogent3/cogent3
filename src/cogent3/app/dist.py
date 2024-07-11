@@ -51,15 +51,22 @@ class fast_slow_dist:
 
     Uses fast (but less numerically robust) approach where possible, slow (robust)
     approach when not.
+
     """
 
-    def __init__(self, distance=None, moltype=None, fast_calc=None, slow_calc=None):
+    def __init__(
+        self,
+        distance: str = None,
+        moltype: str = None,
+        fast_calc: str = None,
+        slow_calc: str = None,
+    ):
         """
         Parameters
         ----------
-        moltype : str
+        moltype
             cogent3 moltype
-        distance : str
+        distance
             Name of a distance method available as both fast and slow calculator.
         fast_calc
             Name of a fast distance calculator. See cogent3.available_distances().
@@ -69,6 +76,33 @@ class fast_slow_dist:
         Notes
         -----
         If you provide fast_calc or slow_calc, you must specify the moltype.
+
+        Examples
+        --------
+
+        Create a sample alignment and app to calculate the pairwise hamming
+        distance.
+
+        >>> from cogent3 import make_aligned_seqs, get_app
+        >>> seqs = {
+        ...     "Human": "GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
+        ...     "Bandicoot": "---NACTCATTAATGCTTGAAACCAGCAGTTTATTGTCCAAC",
+        ...     "Rhesus": "GCCAGCTCATTACAGCATGAGAAC---AGTTTGTTACTCACT",
+        ...     "FlyingFox": "GCCAGCTCTTTACAGCATGAGAACAG---TTTATTATACACT"
+        ... }
+        >>> aln = make_aligned_seqs(seqs, moltype="dna")
+        >>> app = get_app("fast_slow_dist", distance="hamming", moltype="dna")
+        >>> result = app(aln)
+        >>> result.to_dict()
+        {('Bandicoot', 'FlyingFox'): 11.0, ('Bandicoot', 'Human'): 11.0, ('Bandicoot', 'Rhesus'): 12.0,...
+
+        Create an app with ``fast_calc="TN93"``.
+
+        >>> app = get_app("fast_slow_dist", fast_calc="TN93", moltype="dna")
+        >>> result = app(aln)
+        >>> result.to_dict()
+        {('Bandicoot', 'FlyingFox'): 0.4494289084991177,...
+
         """
         self._moltype = moltype if moltype is None else get_moltype(moltype)
         self._sm = None
@@ -353,6 +387,33 @@ class gap_dist:
             gap insertion penalty
         gap_extend
             gap extension penalty
+
+        Examples
+        --------
+
+        Create a sample alignment and app to calculate the pairwise difference in gaps.
+
+        >>> from cogent3 import make_aligned_seqs, get_app
+        >>> seqs = {
+        ...     "Human": "GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
+        ...     "Bandicoot": "---NACTCATTAATGCTTGAAACCAGCAGTTTATTGTCCAAC",
+        ...     "Rhesus": "GCCAGCTCATTACAGCATGAGAAC---AGTTTGTTACTCACT",
+        ...     "FlyingFox": "GCCAGCTCTTTACAGCATGAGAACAG---TTTATTATACACT",
+        ... }
+        >>> aln = make_aligned_seqs(seqs, moltype="dna")
+        >>> app = get_app("gap_dist")
+        >>> result = app(aln)
+        >>> result.to_dict()
+        {('Bandicoot', 'FlyingFox'): 30.0, ('Bandicoot', 'Human'): 15.0, ('Bandicoot', 'Rhesus'): 30.0,...
+
+        Calculate the pairwise difference in gaps with different ``gap_insert``
+        and ``gap_extend`` penalties.
+
+        >>> app = get_app("gap_dist", gap_insert=10, gap_extend=2.8)
+        >>> result = app(aln)
+        >>> result.to_dict()
+        {('Bandicoot', 'FlyingFox'): 36.8, ('Bandicoot', 'Human'): 18.4, ('Bandicoot', 'Rhesus'): 36.8,...
+
         """
         self._insert = gap_insert
         self._extend = gap_extend
