@@ -14,7 +14,7 @@ from typing import Any, Optional, Union
 import numpy
 
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
-from cogent3.core.moltype import get_moltype
+from cogent3.core.moltype import MolType, get_moltype
 from cogent3.core.profile import (
     make_motif_counts_from_tabular,
     make_motif_freqs_from_tabular,
@@ -24,7 +24,6 @@ from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.format.alignment import FORMATTERS
 from cogent3.parse.sequence import PARSERS
 from cogent3.util.deserialise import deserialise_object
-from cogent3.util.misc import extend_docstring_from
 from cogent3.util.table import Table
 
 from .composable import LOADER, WRITER, NotCompleted, define_app
@@ -295,6 +294,10 @@ class load_aligned:
             molecular type, string or instance
         format : str
             sequence file format
+
+        Examples
+        --------
+        See https://cogent3.org/doc/app/app_cookbook/load-aligned.html
         """
         self.moltype = moltype if moltype is None else get_moltype(moltype)
         self._parser = PARSERS[format.lower()]
@@ -310,14 +313,20 @@ class load_aligned:
 class load_unaligned:
     """Loads unaligned sequences. Returns a SequenceCollection."""
 
-    def __init__(self, *, moltype=None, format="fasta"):
+    def __init__(
+        self, *, moltype: Optional[Union[str, MolType]] = None, format: str = "fasta"
+    ):
         """
         Parameters
         ----------
         moltype
             molecular type, string or instance
-        format : str
+        format
             sequence file format
+
+        Examples
+        --------
+        See https://cogent3.org/doc/app/app_cookbook/load-unaligned.html
         """
         self.moltype = moltype if moltype is None else get_moltype(moltype)
         self._parser = PARSERS[format.lower()]
@@ -358,6 +367,10 @@ class load_tabular:
             cogent3 type of tabular data
         strict
             all rows MUST have the same number of records
+
+        Examples
+        --------
+        See https://cogent3.org/doc/app/app_cookbook/load-tabular.html
         """
         self._sep = sep
         self._with_title = with_title
@@ -435,6 +448,13 @@ class load_json:
     """Loads json serialised cogent3 objects from a json file.
     Returns whatever object type was stored."""
 
+    def __init__(self):
+        """
+        Examples
+        --------
+        See: https://cogent3.org/doc/app/app_cookbook/load-json.html
+        """
+
     def main(self, path: IdentifierType) -> SerialisableType:
         """returns object deserialised from json at path"""
         data = _read_it(path)
@@ -501,6 +521,10 @@ class write_json:
             A function for creating a unique identifier based on the data
             source. The default function removes path information and
             filename + compression suffixes.
+
+        Examples
+        --------
+        See https://cogent3.org/doc/app/app_cookbook/write-json.html
         """
         if not isinstance(data_store, DataStoreABC):
             raise TypeError(f"invalid type {type(data_store)!r} for data_store")
@@ -526,7 +550,6 @@ class write_json:
 class write_seqs:
     """Write sequences in standard formats."""
 
-    @extend_docstring_from(write_json.__init__, pre=False)
     def __init__(
         self,
         data_store: DataStoreABC,
@@ -534,8 +557,20 @@ class write_seqs:
         format: str = "fasta",
     ):
         """
+        Parameters
+        ----------
+        data_store
+            A writeable data store.
+        id_from_source
+            A function for creating a unique identifier based on the data
+            source. The default function removes path information and
+            filename + compression suffixes.
         format
             sequence format
+
+        Examples
+        --------
+        See https://cogent3.org/doc/app/app_cookbook/write-seqs.html
         """
         if not isinstance(data_store, DataStoreABC):
             raise TypeError(f"invalid type {type(data_store)!r} for data_store")
@@ -560,7 +595,6 @@ class write_seqs:
 class write_tabular:
     """Writes tabular data in text format supported by the cogent3 Table object."""
 
-    @extend_docstring_from(write_json.__init__, pre=False)
     def __init__(
         self,
         data_store: DataStoreABC,
@@ -568,8 +602,18 @@ class write_tabular:
         format: str = "tsv",
     ):
         """
+        data_store
+            A writeable data store.
+        id_from_source
+            A function for creating a unique identifier based on the data
+            source. The default function removes path information and
+            filename + compression suffixes.
         format
             tabular format, e.g. 'csv' or 'tsv'
+
+        Examples
+        --------
+        See https://cogent3.org/doc/app/app_cookbook/write-tabular.html
         """
         if not isinstance(data_store, DataStoreABC):
             raise TypeError(f"invalid type {type(data_store)!r} for data_store")
@@ -597,7 +641,6 @@ DEFAULT_SERIALISER = to_primitive() + pickle_it()
 class write_db:
     """Write serialised objects to a database instance."""
 
-    @extend_docstring_from(write_json.__init__, pre=False)
     def __init__(
         self,
         data_store: DataStoreABC,
@@ -605,9 +648,19 @@ class write_db:
         serialiser: callable = DEFAULT_SERIALISER,
     ):
         """
+        data_store
+            A writeable data store.
+        id_from_source
+            A function for creating a unique identifier based on the data
+            source. The default function removes path information and
+            filename + compression suffixes.
         serialiser
             A callable for serialising input data. By default, it converts
             data into primitive python data types, pickling the result.
+
+        Examples
+        --------
+        See https://cogent3.org/doc/app/app_cookbook/write-db.html
         """
         if not isinstance(data_store, DataStoreABC):
             raise TypeError(f"invalid type {type(data_store)!r} for data_store")
