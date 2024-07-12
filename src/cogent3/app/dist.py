@@ -2,7 +2,7 @@ import itertools
 
 from copy import deepcopy
 from itertools import combinations
-from typing import Callable, Union
+from typing import Callable, Optional, Union
 
 import numpy
 
@@ -56,10 +56,10 @@ class fast_slow_dist:
 
     def __init__(
         self,
-        distance: str = None,
-        moltype: str = None,
-        fast_calc: str = None,
-        slow_calc: str = None,
+        distance: Optional[str] = None,
+        moltype: Optional[str] = None,
+        fast_calc: Optional[str] = None,
+        slow_calc: Optional[str] = None,
     ):
         """
         Parameters

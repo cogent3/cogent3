@@ -14,7 +14,7 @@ from typing import Any, Optional, Union
 import numpy
 
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
-from cogent3.core.moltype import get_moltype
+from cogent3.core.moltype import MolType, get_moltype
 from cogent3.core.profile import (
     make_motif_counts_from_tabular,
     make_motif_freqs_from_tabular,
@@ -314,13 +314,15 @@ class load_aligned:
 class load_unaligned:
     """Loads unaligned sequences. Returns a SequenceCollection."""
 
-    def __init__(self, *, moltype=None, format="fasta"):
+    def __init__(
+        self, *, moltype: Optional[Union[str, MolType]] = None, format: str = "fasta"
+    ):
         """
         Parameters
         ----------
         moltype
             molecular type, string or instance
-        format : str
+        format
             sequence file format
 
         Examples
