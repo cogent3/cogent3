@@ -24,7 +24,6 @@ from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.format.alignment import FORMATTERS
 from cogent3.parse.sequence import PARSERS
 from cogent3.util.deserialise import deserialise_object
-from cogent3.util.misc import extend_docstring_from
 from cogent3.util.table import Table
 
 from .composable import LOADER, WRITER, NotCompleted, define_app
@@ -455,7 +454,6 @@ class load_json:
         --------
         See: https://cogent3.org/doc/app/app_cookbook/load-json.html
         """
-        pass
 
     def main(self, path: IdentifierType) -> SerialisableType:
         """returns object deserialised from json at path"""
