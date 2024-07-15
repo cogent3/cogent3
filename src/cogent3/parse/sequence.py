@@ -137,9 +137,9 @@ XML_PARSERS = {"gbseq": gbseq.GbSeqXmlParser, "tseq": tinyseq.TinyseqParser}
 SeqParserInputTypes = typing.Union[str, pathlib.Path, tuple, list]
 
 
-def get_parser(format: str) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+def get_parser(fmt: str) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
     """returns a sequence format parser"""
     try:
-        return PARSERS[format]
+        return PARSERS[fmt]
     except KeyError:
-        raise ValueError(f"Unsupported format {format!r}")
+        raise ValueError(f"Unsupported format {fmt!r}")
