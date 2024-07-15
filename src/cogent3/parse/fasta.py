@@ -2,11 +2,15 @@
 """
 
 import os
+import pathlib
 import re
+import string
 import typing
 
 from collections.abc import Callable
 from functools import singledispatch
+
+import numpy
 
 import cogent3
 
@@ -378,3 +382,81 @@ def GroupFastaParser(
     func = cogent3.make_aligned_seqs if aligned else cogent3.make_unaligned_seqs
     seqs = func(current_collection, moltype=moltype, info=info)
     yield seqs
+
+
+OutTypes = typing.Union[str, bytes, numpy.ndarray]
+OptConverter = typing.Optional[typing.Callable[[bytes], OutTypes]]
+
+
+class minimal_converter:
+    """coerces lower case bytes to upper case bytes and removes whitespace"""
+
+    def __init__(self) -> None:
+        lc = string.ascii_lowercase.encode("utf8")
+        self._translate = b"".maketrans(lc, lc.upper())
+
+    def __call__(self, text: bytes) -> str:
+        return text.translate(self._translate, delete=b"\n\r\t ").decode("utf8")
+
+
+@singledispatch
+def iter_fasta_records(
+    data, converter: OptConverter = None
+) -> typing.Iterable[typing.Tuple[str, OutTypes]]:
+    """generator returning sequence labels and sequences converted bytes from a fasta file
+
+    Parameters
+    ----------
+    path
+        location of the fasta file
+    converter
+        a callable that uses converts sequence characters into nominated bytes,
+        deleting unwanted characters (newlines, spaces). Whatever type this
+        callable returns will be the type of the sequence returned. If None,
+        uses minimal_converter()
+
+
+    Returns
+    -------
+    the sequence label as a string and the sequence as transformed by converter
+    """
+    raise NotImplementedError(f"iter_fasta_records not implemented for {type(data)}")
+
+
+@iter_fasta_records.register
+def _(
+    data: bytes, converter: OptConverter = None
+) -> typing.Iterable[typing.Tuple[str, OutTypes]]:
+    if converter is None:
+        converter = minimal_converter()
+
+    records = data.split(b">")
+    for record in records:
+        if not len(record):
+            continue
+
+        eol = record.find(b"\n")
+        if eol == -1:
+            continue
+        label = record[:eol].strip().decode("utf8")
+        seq = converter(record[eol + 1 :])
+        yield label, seq
+
+
+@iter_fasta_records.register
+def _(data: str, converter: OptConverter = None):
+    with open_(data, mode="rb") as infile:
+        data: bytes = infile.read()
+    return iter_fasta_records(data, converter=converter)
+
+
+@iter_fasta_records.register
+def _(data: pathlib.Path, converter: OptConverter = None):
+    with open_(data, mode="rb") as infile:
+        data: bytes = infile.read()
+    return iter_fasta_records(data, converter=converter)
+
+
+@iter_fasta_records.register
+def _(data: list, converter: OptConverter = None):
+    return MinimalFastaParser(data, strict=False)

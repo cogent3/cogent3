@@ -19,6 +19,7 @@ from cogent3.parse.fasta import (
     NcbiFastaLabelParser,
     NcbiFastaParser,
     RichLabel,
+    iter_fasta_records,
 )
 from cogent3.parse.record import RecordError
 
@@ -433,3 +434,12 @@ def test_fasta_with_spaces(strict, sep):
     data = [">A", sep.join(("gaaaa", "tgatt")), ">B", sep.join(("tttga", "gcagg"))]
     got = dict(MinimalFastaParser(data, strict=strict))
     assert got == {"A": "gaaaatgatt", "B": "tttgagcagg"}
+
+
+def test_iter_fasta_records(DATA_DIR):
+    path = DATA_DIR / "brca1.fasta"
+    got = dict(iter_fasta_records(path))
+    assert len(got) == 55
+    assert "LesserEle" in got
+    assert got["LesserEle"][:10] == "TGTGGCACAG"
+    assert got["LesserEle"][-10:] == "ATGTA-----"
