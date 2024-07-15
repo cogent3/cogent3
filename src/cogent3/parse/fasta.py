@@ -360,11 +360,12 @@ def GroupFastaParser(
     for label, seq in parser:
         seq = moltype.make_seq(seq, name=label, info=label.info)
         if DEBUG:
-            print("str(label) ", str(label), "repr(label)", repr(label))
-        if not group_ids or label.info[group_key] in group_ids:
+            print(f"{label=} {label=!r}")
+        if not group_ids:
             current_collection[label] = seq
-            if not group_ids:
-                group_ids.append(label.info[group_key])
+            group_ids.append(label.info[group_key])
+        elif label.info[group_key] in group_ids:
+            current_collection[label] = seq
         else:
             # we finish off check of current before creating a collection
             if group_ids[-1] not in done_groups:
@@ -380,8 +381,7 @@ def GroupFastaParser(
             group_ids.append(label.info[group_key])
     info = Info(Group=group_ids[-1])
     func = cogent3.make_aligned_seqs if aligned else cogent3.make_unaligned_seqs
-    seqs = func(current_collection, moltype=moltype, info=info)
-    yield seqs
+    yield func(current_collection, moltype=moltype, info=info)
 
 
 OutTypes = typing.Union[str, bytes, numpy.ndarray]
