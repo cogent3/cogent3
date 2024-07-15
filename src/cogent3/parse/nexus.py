@@ -197,7 +197,7 @@ def MinimalNexusAlignParser(align_path):
         line = infile.readline()
     except AttributeError:
         # guessing it's a list of strings from a nexus file
-        line = infile.pop(0)
+        line = next(iter(infile))
 
     if not line.lower().startswith("#nexus"):
         raise ValueError("not a nexus file")

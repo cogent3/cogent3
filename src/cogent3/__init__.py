@@ -38,7 +38,7 @@ from cogent3.evolve.fast_distance import (
 from cogent3.evolve.models import available_models, get_model
 from cogent3.parse.cogent3_json import load_from_json
 from cogent3.parse.newick import parse_string as newick_parse_string
-from cogent3.parse.sequence import FromFilenameParser
+from cogent3.parse.sequence import get_parser
 from cogent3.parse.table import load_delimited
 from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
 from cogent3.util.io import get_format_suffixes, open_
@@ -268,7 +268,9 @@ def _load_seqs(file_format, filename, fmt, kw, parser_kw):
     for other_kw in ("constructor_kw", "kw"):
         other_kw = kw.pop(other_kw, None) or {}
         kw.update(other_kw)
-    return list(FromFilenameParser(filename, fmt, **parser_kw))
+
+    parser = get_parser(fmt)
+    return list(parser(filename, **parser_kw))
 
 
 def load_seq(
