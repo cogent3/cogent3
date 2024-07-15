@@ -89,13 +89,11 @@ def parse_trans_table(trans_table):
     result = {}
     for line in trans_table:
         line = line.strip()
-        if line == ";":
-            pass
-        else:
+        if line != ";":
             label, name = line.split(None, 1)
             # take comma out of name if it is there
             if name.endswith(","):
-                name = name[0:-1]
+                name = name[:-1]
             # remove single quotes
             if name.startswith("'") and name.endswith("'"):
                 name = name[1:-1]
@@ -129,11 +127,12 @@ def get_BL_table(branch_lengths):
             in_table = 0
         if beg_tag.match(line):
             in_table = 1
-        if in_table == 1:
-            if line.startswith("---") or beg_tag.match(line) or line.strip() == "":
-                pass
-            else:
-                result.append(line)
+        if in_table == 1 and (
+            not line.startswith("---")
+            and not beg_tag.match(line)
+            and line.strip() != ""
+        ):
+            result.append(line)
     return result
 
 
@@ -161,15 +160,11 @@ def find_fields(line, field_order=None, field_delims=None):
 def parse_taxa(taxa_field):
     """gets taxa # from taxa field extracted with find_fields"""
 
-    # look for lines with a number in parentheses
-    term_match = re.search(r"\(\d+\)", taxa_field)
-    if not term_match:
-        data = taxa_field
-    else:
-        term = term_match.group(0)
-        data_match = re.search(r"\d+", term)
-        data = data_match.group(0)
-    return data
+    if not (term_match := re.search(r"\(\d+\)", taxa_field)):
+        return taxa_field
+    term = term_match[0]
+    data_match = re.search(r"\d+", term)
+    return data_match[0]
 
 
 def parse_PAUP_log(branch_lengths):
