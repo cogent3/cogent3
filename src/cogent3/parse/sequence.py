@@ -21,7 +21,6 @@ from cogent3.util.io import get_format_suffixes, open_
 
 
 _lc_to_wc = "".join([[chr(x), "?"]["A" <= chr(x) <= "Z"] for x in range(256)])
-_compression = re.compile(r"\.(gz|bz2)$")
 
 
 def FromFilenameParser(filename, format=None, **kw):
