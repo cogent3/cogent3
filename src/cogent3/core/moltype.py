@@ -808,11 +808,11 @@ class MolType:
             badchar = nonalpha.search(seq)
             if badchar:
                 motif = badchar.group()
-                raise AlphabetError(motif)
+                raise AlphabetError(f"{motif!r}")
         except TypeError:  # not alphabetic sequence: try slow method
             for motif in seq:
                 if motif not in alpha:
-                    raise AlphabetError(motif)
+                    raise AlphabetError(f"{motif!r}")
 
     def is_ambiguity(self, querymotif):
         """Return True if querymotif is an amibiguity character in alphabet.
