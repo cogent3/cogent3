@@ -524,7 +524,7 @@ for key, value in list(GeneticCodes.items()):
 DEFAULT = GeneticCodes[1]
 
 
-def get_code(code_id=1, new_type=False):
+def get_code(code_id: int = 1, new_type: bool = False):
     """returns the genetic code
 
     Parameters

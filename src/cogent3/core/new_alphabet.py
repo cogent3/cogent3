@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 import numba
 import numpy
 
+from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.misc import get_object_provenance
 
@@ -301,6 +302,15 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         # this is enforced by consistent_words(length=1) in the constructor
         return 1
 
+    @c3warn.deprecated_callable(
+        version="2025.6",
+        reason="Replaced by .motif_len",
+        is_discontinued=True,
+    )
+    def get_motif_len(self) -> int:
+        # added to maintain compatibility with the old API
+        return self.motif_len
+
     @functools.singledispatchmethod
     def to_indices(self, seq: StrORBytesORArray) -> numpy.ndarray:
         raise TypeError(f"{type(seq)} is invalid")
@@ -427,6 +437,14 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
     def from_rich_dict(cls, data: dict) -> "CharAlphabet":
         """returns an instance from a serialised dictionary"""
         return cls(data["chars"], gap=data["gap"], missing=data["missing"])
+
+    @c3warn.deprecated_callable(
+        version="2025.6",
+        reason="Replaced by get_kmer_alphabet",
+        is_discontinued=True,
+    )
+    def get_word_alphabet(self, k: int, include_gap: bool = True) -> "KmerAlphabet":
+        return self.get_kmer_alphabet(k, include_gap=include_gap)
 
 
 @register_deserialiser(get_object_provenance(CharAlphabet))

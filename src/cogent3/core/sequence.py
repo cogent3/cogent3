@@ -72,6 +72,7 @@ from cogent3.util.transform import for_seq, per_shortest
 
 
 ARRAY_TYPE = type(array(1))
+DEFAULT_ANNOTATION_DB = BasicAnnotationDb
 
 # standard distance functions: left  because generally useful
 frac_same = for_seq(f=eq, aggregator=sum, normalizer=per_shortest)
@@ -837,7 +838,7 @@ class Sequence(SequenceI):
         self.info = info
 
         self._repr_policy = dict(num_pos=60)
-        self._annotation_db = BasicAnnotationDb()
+        self._annotation_db = DEFAULT_ANNOTATION_DB()
         self.annotation_offset = annotation_offset
 
     @property

@@ -40,11 +40,18 @@ from cogent3.core.alignment import (
 )
 from cogent3.core.alphabet import AlphabetError
 from cogent3.core.annotation_db import GffAnnotationDb
-from cogent3.core.moltype import AB, ASCII, BYTES, DNA, PROTEIN, RNA
-from cogent3.core.sequence import ArraySequence, RnaSequence, Sequence, SeqView
+from cogent3.core.moltype import AB
+from cogent3.core.sequence import ArraySequence, Sequence, SeqView
 from cogent3.maths.util import safe_p_log_p
 from cogent3.parse.fasta import MinimalFastaParser
 from cogent3.util.misc import get_object_provenance
+
+
+DNA = get_moltype("dna")
+RNA = get_moltype("rna")
+PROTEIN = get_moltype("protein")
+ASCII = get_moltype("text")
+BYTES = get_moltype("bytes")
 
 
 class SequenceCollectionBaseTests(object):
@@ -72,9 +79,9 @@ class SequenceCollectionBaseTests(object):
         self.gaps = self.Class({"a": "AAAAAAA", "b": "A--A-AA", "c": "AA-----"})
         self.gaps_rna = self.Class(
             {
-                "a": RnaSequence("AAAAAAA"),
-                "b": RnaSequence("A--A-AA"),
-                "c": RnaSequence("AA-----"),
+                "a": RNA.make_seq(seq="AAAAAAA"),
+                "b": RNA.make_seq(seq="A--A-AA"),
+                "c": RNA.make_seq(seq="AA-----"),
             }
         )
         self.unordered = self.Class({"a": "AAAAA", "b": "BBBBB"})
@@ -86,27 +93,33 @@ class SequenceCollectionBaseTests(object):
         )
         self.many = self.Class(
             {
-                "a": RnaSequence("UCAGUCAGUU"),
-                "b": RnaSequence("UCCGUCAAUU"),
-                "c": RnaSequence("ACCAUCAGUC"),
-                "d": RnaSequence("UCAAUCGGUU"),
-                "e": RnaSequence("UUGGUUGGGU"),
-                "f": RnaSequence("CCGGGCGGCC"),
-                "g": RnaSequence("UCAACCGGAA"),
+                "a": RNA.make_seq(seq="UCAGUCAGUU"),
+                "b": RNA.make_seq(seq="UCCGUCAAUU"),
+                "c": RNA.make_seq(seq="ACCAUCAGUC"),
+                "d": RNA.make_seq(seq="UCAAUCGGUU"),
+                "e": RNA.make_seq(seq="UUGGUUGGGU"),
+                "f": RNA.make_seq(seq="CCGGGCGGCC"),
+                "g": RNA.make_seq(seq="UCAACCGGAA"),
             }
         )
         # Additional SequenceCollections for tests added 6/4/04 by Jeremy
         # Widmann
-        self.sequences = self.Class(list(map(RnaSequence, ["UCAG", "UCAG", "UCAG"])))
+        self.sequences = self.Class(
+            [
+                RNA.make_seq(seq="UCAG"),
+                RNA.make_seq(seq="UCAG"),
+                RNA.make_seq(seq="UCAG"),
+            ]
+        )
         # Additional SequenceCollection for tests added 1/30/06 by Cathy
         # Lozupone
         self.omitSeqsTemplate_aln = self.Class(
             {
-                "s1": RnaSequence("UC-----CU---C"),
-                "s2": RnaSequence("UC------U---C"),
-                "s3": RnaSequence("UUCCUUCUU-UUC"),
-                "s4": RnaSequence("UU-UUUU-UUUUC"),
-                "s5": RnaSequence("-------------"),
+                "s1": RNA.make_seq(seq="UC-----CU---C"),
+                "s2": RNA.make_seq(seq="UC------U---C"),
+                "s3": RNA.make_seq(seq="UUCCUUCUU-UUC"),
+                "s4": RNA.make_seq(seq="UU-UUUU-UUUUC"),
+                "s5": RNA.make_seq(seq="-------------"),
             }
         )
 
@@ -531,9 +544,9 @@ class SequenceCollectionBaseTests(object):
 
     def test_make_gap_filter(self):
         """make_gap_filter returns f(seq) -> True if aligned ok w/ query"""
-        s1 = RnaSequence("UC-----CU---C")
-        s3 = RnaSequence("UUCCUUCUU-UUC")
-        s4 = RnaSequence("UU-UUUU-UUUUC")
+        s1 = RNA.make_seq(seq="UC-----CU---C")
+        s3 = RNA.make_seq(seq="UUCCUUCUU-UUC")
+        s4 = RNA.make_seq(seq="UU-UUUU-UUUUC")
         # check that the behavior is ok for gap runs
         f1 = make_gap_filter(s1, 0.9, 5)
         f3 = make_gap_filter(s3, 0.9, 5)
@@ -626,7 +639,7 @@ class SequenceCollectionBaseTests(object):
         raw_seq = "---??-??TC-GGCG-GCA-G-GC-?-C-TAN-GCGC-CCTC-AGGA?-???-??--"
         raw_ungapped = re.sub("[-?]", "", raw_seq)
         re.sub("[N?]+", "", raw_seq)
-        dna = DNA.make_seq(raw_seq)
+        dna = DNA.make_seq(seq=raw_seq)
 
         aln = self.Class(data=[("a", dna), ("b", dna)])
         expect = self.Class(data=[("a", raw_ungapped), ("b", raw_ungapped)]).to_fasta()
@@ -890,7 +903,7 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
     def test_info_source(self):  # ported
         """info.source exists if load seqs given a filename"""
         path = pathlib.Path("data/brca1.fasta")
-        seqs = load_unaligned_seqs(path)
+        seqs = load_unaligned_seqs(path, moltype="dna")
         self.assertEqual(seqs.info.source, str(path))
 
     def test_apply_pssm2(self):  # ported
@@ -905,8 +918,8 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
 
     def test_construction(self):  # ported
         """correctly construct from list of sequences of length 2"""
-        seq1 = make_seq("AC", name="seq1")
-        seq2 = make_seq("AC", name="seq2")
+        seq1 = make_seq(seq="AC", name="seq1")
+        seq2 = make_seq(seq="AC", name="seq2")
         coll = SequenceCollection(data=[seq1, seq2])
 
 
@@ -1389,10 +1402,10 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             ]
         )
 
-        s1 = DNA.make_seq("TCAGAG", name="s1")
-        s2 = DNA.make_seq("CCACAC", name="s2")
-        s3 = DNA.make_seq("AGATAT", name="s3")
-        s4 = DNA.make_seq("G-ACCC", name="s4")
+        s1 = DNA.make_seq(seq="TCAGAG", name="s1")
+        s2 = DNA.make_seq(seq="CCACAC", name="s2")
+        s3 = DNA.make_seq(seq="AGATAT", name="s3")
+        s4 = DNA.make_seq(seq="G-ACCC", name="s4")
         aln = self.Class([s1, s2, s3], moltype=DNA)
         obs = aln.counts_per_pos()
         assert_equal(obs.array, exp)
@@ -1717,9 +1730,10 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
 
     def test_to_moltype_annotations(self):
         """correctly convert to specified moltype with proper sequence annotations"""
-        s1 = Sequence("TTTTTTAAAA", name="test_seq1")
-        s2 = Sequence("AAAATTTTTT", name="test_seq2")
-        s3 = Sequence("AATTTTTAAA", name="test_seq3")
+
+        s1 = Sequence(seq="TTTTTTAAAA", name="test_seq1")
+        s2 = Sequence(seq="AAAATTTTTT", name="test_seq2")
+        s3 = Sequence(seq="AATTTTTAAA", name="test_seq3")
         s1.add_feature(biotype="exon", name="fred", spans=[(0, 6)])
         s2.add_feature(biotype="exon", name="fred", spans=[(4, 10)])
         s3.add_feature(biotype="exon", name="fred", spans=[(2, 7)])
@@ -1736,9 +1750,9 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
 
     def test_construction(self):
         """correctly construct from list of sequences of length 2"""
-        seq1 = make_seq("AC-", name="seq1")
+        seq1 = make_seq(seq="AC-", name="seq1")
         seq1 = Aligned(*seq1.parse_out_gaps())
-        seq2 = make_seq("ACG", name="seq2")
+        seq2 = make_seq(seq="ACG", name="seq2")
         seq2 = Aligned(*seq2.parse_out_gaps())
         coll = self.Class(data=[seq1, seq2])
 
@@ -1751,7 +1765,7 @@ class ArrayAlignmentSpecificTests(TestCase):
         self.a2 = ArrayAlignment(["ABC", "DEF"], names=["x", "y"])
         seqs = []
         for s in ["abaa", "abbb"]:
-            seqs.append(AB.make_seq(s, preserve_case=True))
+            seqs.append(AB.make_seq(seq=s, preserve_case=True))
         self.a = ArrayAlignment(seqs, moltype=AB)
         self.b = Alignment(["ABC", "DEF"])
         self.c = SequenceCollection(["ABC", "DEF"])
@@ -1864,7 +1878,7 @@ class ArrayAlignmentSpecificTests(TestCase):
         assert_allclose(f, e)
         seqs = []
         for s in ["-GAT", "ACCT", "GAGT"]:
-            seqs.append(make_seq(s, moltype="dna"))
+            seqs.append(make_seq(seq=s, moltype="dna"))
         a = ArrayAlignment(seqs)
         f = a.entropy_per_pos(allow_gap=True)
         e = array([1.584962500721156, 1.584962500721156, 1.584962500721156, 0])
@@ -1872,7 +1886,7 @@ class ArrayAlignmentSpecificTests(TestCase):
 
         seqs = []
         for s in ["-RAT", "ACCT", "GTGT"]:
-            seqs.append(make_seq(s, moltype="dna"))
+            seqs.append(make_seq(seq=s, moltype="dna"))
         a = ArrayAlignment(seqs)
 
         # "-RAT"
@@ -1911,10 +1925,10 @@ class IntegrationTests(TestCase):
 
     def setUp(self):
         """Intialize some standard sequences"""
-        self.r1 = RNA.make_seq("AAA", name="x")
-        self.r2 = RNA.make_seq("CCC", name="y")
-        self.m1 = RNA.make_array_seq("AAA", name="xx")
-        self.m2 = RNA.make_array_seq("CCC", name="yy")
+        self.r1 = RNA.make_seq(seq="AAA", name="x")
+        self.r2 = RNA.make_seq(seq="CCC", name="y")
+        self.m1 = RNA.make_array_seq(seq="AAA", name="xx")
+        self.m2 = RNA.make_array_seq(seq="CCC", name="yy")
 
     def test_model_to_model(self):
         """Model seq should work with dense alignment"""
@@ -1992,7 +2006,7 @@ class IntegrationTests(TestCase):
 def test_featuremap_slice_aligned(raw_seq, coords):
     from cogent3.core.location import FeatureMap, Span
 
-    im, seq = DNA.make_seq(raw_seq).parse_out_gaps()
+    im, seq = DNA.make_seq(seq=raw_seq).parse_out_gaps()
     ia = Aligned(im, seq)
     length = len(raw_seq)
     fmap = FeatureMap(spans=[Span(s, e) for s, e in coords], parent_length=length)
@@ -2040,14 +2054,33 @@ def test_to_type(cls):
 
 
 @pytest.mark.parametrize(
-    "moltype,array_align",
-    tuple(itertools.product(["rna", "dna", "protein"], [True, False])),
+    "moltype",
+    ["rna", "dna", "protein"],
 )
-def test_upac_consensus_allow_gaps(moltype, array_align):
+def test_upac_consensus_allow_gaps(moltype):
     aln = make_aligned_seqs(
         data={"s1": "ACGG", "s2": "ACGG", "s3": "-CGG"},
         moltype=moltype,
-        array_align=array_align,
+        array_align=False,
+    )
+    # default behaviour
+    iupac = aln.iupac_consensus()
+    assert iupac == "?CGG"
+
+    # allow_gaps
+    iupac = aln.iupac_consensus(allow_gap=False)
+    assert iupac == "ACGG"
+
+
+@pytest.mark.parametrize(
+    "moltype",
+    ["rna", "dna", "protein"],
+)
+def test_upac_consensus_allow_gaps_array_alignment(moltype):
+    aln = make_aligned_seqs(
+        data={"s1": "ACGG", "s2": "ACGG", "s3": "-CGG"},
+        moltype=moltype,
+        array_align=False,
     )
     # default behaviour
     iupac = aln.iupac_consensus()
@@ -2059,7 +2092,7 @@ def test_upac_consensus_allow_gaps(moltype, array_align):
 
 
 def test_rc_iter():
-    dna = DNA.make_seq("ACG", name="seq1")
+    dna = DNA.make_seq(seq="ACG", name="seq1")
     rc = dna.rc()
 
     got = [x for x in rc]
@@ -2068,7 +2101,7 @@ def test_rc_iter():
 
 
 def test_to_dna_raises():
-    seq = make_seq("ETV", moltype="protein")
+    seq = make_seq(seq="ETV", moltype="protein")
     with pytest.raises(AlphabetError):
         seq.to_moltype("dna")
 
@@ -2120,10 +2153,10 @@ def test_seqcoll_query(seqcoll_db):
 
 
 def test_align_get_features():
-    #                0123456789   the positions
-    seq1 = make_seq("ACG--ACCGT", moltype="dna", name="seq1")
-    seq2 = make_seq("ACGGGCCCGT", moltype="dna", name="seq2")
-    #                  *****      the CDS feature
+    #                    0123456789   the positions
+    seq1 = make_seq(seq="ACG--ACCGT", moltype="dna", name="seq1")
+    seq2 = make_seq(seq="ACGGGCCCGT", moltype="dna", name="seq2")
+    #                      *****      the CDS feature
     seq2.add_feature(biotype="CDS", name="fake01", spans=[(2, 7)], strand="+")
     aln = make_aligned_seqs(data=[seq1, seq2], array_align=False)
     feat = list(aln.get_features(biotype="CDS"))[0]
@@ -2137,7 +2170,7 @@ def test_align_get_features():
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
 def test_init_annotated_seqs(cls):  # ported for SequenceCollection
     """correctly construct from list with annotated seq"""
-    seq = make_seq("GCCAGGGGGGAAAG-GGAGAA", name="seq1")
+    seq = make_seq(seq="GCCAGGGGGGAAAG-GGAGAA", name="seq1")
     _ = seq.add_feature(biotype="exon", name="name", spans=[(4, 10)])
     coll = cls(data=[seq])
     features = list(coll.get_features(biotype="exon"))
@@ -2235,7 +2268,7 @@ def _make_seq(name):
     cds = (15, 25)
     utr = (12, 15)
     # name is required for creating annotations
-    seq = DNA.make_seq(raw_seq, name=name)
+    seq = DNA.make_seq(seq=raw_seq, name=name)
     seq.add_feature(biotype="CDS", name="CDS", spans=[cds])
     seq.add_feature(biotype="5'UTR", name="5' UTR", spans=[utr])
     return seq
@@ -2297,7 +2330,7 @@ def test_copy_annotations_incompat_type_fails(seqcoll_db, gb_db):  # ported
 
 
 def test_aligned_deepcopy_sliced():
-    a = Aligned(*DNA.make_seq("GCAAGGCGCCAA").parse_out_gaps())
+    a = Aligned(*DNA.make_seq(seq="GCAAGGCGCCAA").parse_out_gaps())
     sliced = a[2:3]
     sl_cp = sliced.deepcopy(sliced=True)
     assert str(sl_cp) == str(sliced)
@@ -2364,14 +2397,60 @@ def test_seq_rename_preserves_annotations(cls):
     assert len(list(new.get_features(seqid="seq1")))
 
 
-@pytest.mark.parametrize(
-    "cls",
-    (SequenceCollection, ArrayAlignment),
-)
-def test_to_rich_dict_not_alignment(cls):  # ported for SequenceCollection
+def test_to_rich_dict_not_alignment():  # ported
     """to_rich_dict produces correct dict"""
     data = {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}
-    aln = cls(data, moltype="dna")
+    aln = SequenceCollection(data, moltype="dna")
+    try:
+        seq_type = get_object_provenance(aln.seqs[0].data)
+    except AttributeError:
+        seq_type = get_object_provenance(aln.seqs[0])
+
+    got = aln.to_rich_dict()
+
+    data = {k: SeqView(seq=s, seqid=k).to_rich_dict() for k, s in data.items()}
+
+    expect = {
+        "seqs": {
+            "seq1": {
+                "name": "seq1",
+                "seq": data["seq1"],
+                "info": None,
+                "type": seq_type,
+                "moltype": aln.moltype.label,
+                "version": __version__,
+                "annotation_offset": 0,
+            },
+            "seq2": {
+                "name": "seq2",
+                "seq": data["seq2"],
+                "info": None,
+                "type": seq_type,
+                "moltype": aln.moltype.label,
+                "version": __version__,
+                "annotation_offset": 0,
+            },
+            "seq3": {
+                "name": "seq3",
+                "seq": data["seq3"],
+                "info": None,
+                "type": seq_type,
+                "moltype": aln.moltype.label,
+                "version": __version__,
+                "annotation_offset": 0,
+            },
+        },
+        "moltype": aln.moltype.label,
+        "info": None,
+        "type": get_object_provenance(aln),
+        "version": __version__,
+    }
+    assert got == expect
+
+
+def test_array_alignment_to_rich_dict_not_alignment():  # will not port
+    data = {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}
+    aln = ArrayAlignment(data, moltype="dna")
     try:
         seq_type = get_object_provenance(aln.seqs[0].data)
     except AttributeError:
@@ -2426,7 +2505,9 @@ def test_to_rich_dict_alignment():
     got = aln.to_rich_dict()
 
     data = {
-        k: Aligned(*make_seq(s, name=k, moltype="dna").parse_out_gaps()).to_rich_dict()
+        k: Aligned(
+            *make_seq(seq=s, name=k, moltype="dna").parse_out_gaps()
+        ).to_rich_dict()
         for k, s in data.items()
     }
 
@@ -2456,11 +2537,19 @@ def test_dotplot_annotated(cls):  # ported for SequenceCollection
     _ = seqs.dotplot(show_progress=False)
 
 
-@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
-def test_get_seq_entropy(cls):
+def test_array_alignment_get_seq_entropy():
     """ArrayAlignment get_seq_entropy should get entropy of each seq"""
-    seqs = [AB.make_seq(s, preserve_case=True) for s in ["abab", "bbbb", "abbb"]]
-    a = cls(seqs, moltype=AB)
+    seqs = [AB.make_seq(seq=s, preserve_case=True) for s in ["abab", "bbbb", "abbb"]]
+    a = ArrayAlignment(seqs, moltype=AB)
+    entropy = a.entropy_per_seq()
+    e = 0.81127812445913283  # sum(p log_2 p) for p = 0.25, 0.75
+    assert_allclose(entropy, array([1, 0, e]))
+
+
+def test_get_seq_entropy():
+    """Alignment get_seq_entropy should get entropy of each seq"""
+    seqs = [AB.make_seq(seq=s, preserve_case=True) for s in ["abab", "bbbb", "abbb"]]
+    a = Alignment(seqs, moltype=AB)
     entropy = a.entropy_per_seq()
     e = 0.81127812445913283  # sum(p log_2 p) for p = 0.25, 0.75
     assert_allclose(entropy, array([1, 0, e]))
@@ -2621,7 +2710,7 @@ def test_get_gap_array_equivalence():
 @pytest.mark.parametrize("reverse", (False, True))
 def test_aligned_rich_dict(reverse):
     map_, s = make_seq(
-        "TTGAAGAATATGT------GAAAGAG", name="s1", moltype="dna"
+        seq="TTGAAGAATATGT------GAAAGAG", name="s1", moltype="dna"
     ).parse_out_gaps()
     seq = Aligned(map_, s)
     if reverse:
@@ -2880,9 +2969,9 @@ def test_init_duplicate_keys_raises(cls):
     "seq",
     (
         "ACGG",
-        DNA.make_seq("ACGG"),
+        DNA.make_seq(seq="ACGG"),
         numpy.array([2, 1, 3, 3], dtype=int),
-        Aligned(*DNA.make_seq("AC-GG").parse_out_gaps()),
+        Aligned(*DNA.make_seq(seq="AC-GG").parse_out_gaps()),
     ),
 )
 def test_construct_unaligned_seq(seq):
@@ -2896,10 +2985,10 @@ def test_construct_unaligned_seq(seq):
     (
         [["s1", "ACGG"]],
         {"s1": "ACGG"},
-        {"s1": DNA.make_seq("ACGG")},
+        {"s1": DNA.make_seq(seq="ACGG")},
         (
             Aligned(
-                *DNA.make_seq("AC-GG", name="s1").parse_out_gaps(),
+                *DNA.make_seq(seq="AC-GG", name="s1").parse_out_gaps(),
             ),
         ),
         iter([["s1", "ACGG"]]),
@@ -3003,7 +3092,7 @@ def test_counts_per_seq_arr_alignment():
     """ArrayAlignment counts_per_seq should return motif counts each seq"""
     seqs = []
     for s in ["abaa", "abbb"]:
-        seqs.append(AB.make_seq(s, preserve_case=True))
+        seqs.append(AB.make_seq(seq=s, preserve_case=True))
     a = ArrayAlignment(seqs, moltype=AB)
     f = a.counts_per_seq()
     assert_equal(f.array, array([[3, 1], [1, 3]]))
@@ -3142,7 +3231,7 @@ def test_replace_seqs(cls):
 def test_get_alphabet_and_moltype():
     """ArrayAlignment should figure out correct alphabet and moltype"""
     s1 = "A"
-    s2 = RNA.make_seq("AA")
+    s2 = RNA.make_seq(seq="AA")
 
     d = ArrayAlignment(s1)
     assert d.moltype is BYTES
@@ -3196,9 +3285,9 @@ def test_init_dict(cls, d):  # will not port for SequenceCollection
 @pytest.mark.parametrize("cls", (Alignment, ArrayAlignment, SequenceCollection))
 def test_init_seq_info(cls):
     """SequenceCollection init from seqs w/ info should preserve data"""
-    a = Sequence("AAA", name="a", info={"x": 3})
-    b = Sequence("CCC", name="b", info={"x": 4})
-    c = Sequence("GGG", name="c", info={"x": 5})
+    a = Sequence(seq="AAA", name="a", info={"x": 3})
+    b = Sequence(seq="CCC", name="b", info={"x": 4})
+    c = Sequence(seq="GGG", name="c", info={"x": 5})
     seqs = [c, b, a]
     a = cls(seqs)
     assert list(a.names) == ["c", "b", "a"]
@@ -3341,7 +3430,7 @@ def test_sliced_deepcopy(data, name, rev):
 
 
 def test_aligned_deepcopy_sliced_map_matches_data():
-    m, seq = DNA.make_seq("ACAACGACG", name="seq1").parse_out_gaps()
+    m, seq = DNA.make_seq(seq="ACAACGACG", name="seq1").parse_out_gaps()
     aligned = Aligned(m, seq)
     sliced = aligned[3:5]
     sliced_copy = sliced.deepcopy(sliced=True)
@@ -3669,7 +3758,7 @@ def test_quick_tree(cls, calc, brca1_data):
 
 @pytest.mark.parametrize("raw", ("-AAAGGGGGAACCCT", "AAAGGGGGAACCCT"))
 def test_slice_aligned(raw):
-    imap, seq = DNA.make_seq(raw, name="x").parse_out_gaps()
+    imap, seq = DNA.make_seq(seq=raw, name="x").parse_out_gaps()
     al = Aligned(imap, seq)
     sliced = al[:-3]
     assert str(sliced) == raw[:-3]
@@ -3678,7 +3767,7 @@ def test_slice_aligned(raw):
 def test_slice_aligned_featuremap_allgap():
     from cogent3.core.location import FeatureMap, LostSpan
 
-    imap, seq = DNA.make_seq("AAAGGGGGAACCCT", name="x").parse_out_gaps()
+    imap, seq = DNA.make_seq(seq="AAAGGGGGAACCCT", name="x").parse_out_gaps()
     al = Aligned(imap, seq)
     fmap = FeatureMap(spans=[LostSpan(4)], parent_length=0)
     sliced = al[fmap]
@@ -3694,7 +3783,7 @@ def test_slice_aligned_featuremap_multi_spans():
     raw_seq = "AAAGG--GGG-AACCCT"
     #          01234  567 890123
     #                       1111
-    imap, seq = DNA.make_seq(raw_seq, name="x").parse_out_gaps()
+    imap, seq = DNA.make_seq(seq=raw_seq, name="x").parse_out_gaps()
     al = Aligned(imap, seq)
     fmap = FeatureMap.from_locations(
         locations=[(1, 4), (7, 9), (13, 16)], parent_length=len(raw_seq)

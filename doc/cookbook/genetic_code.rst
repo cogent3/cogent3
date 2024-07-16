@@ -3,6 +3,12 @@
 Using genetic codes
 ^^^^^^^^^^^^^^^^^^^
 
+.. note:: **Alpha Release of the New GeneticCode API**
+
+   We are pleased to announce an alpha release of our new ``GeneticCode`` API. This version can be accessed by specifying the argument ``new_type=True`` in the ``get_code()`` function. 
+   
+   Please be aware that this alpha release has not been fully integrated with the library. Users are encouraged to explore its capabilities but should proceed with caution!
+
 Selecting codes in methods that support them
 """"""""""""""""""""""""""""""""""""""""""""
 

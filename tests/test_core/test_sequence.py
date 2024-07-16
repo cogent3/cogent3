@@ -843,7 +843,7 @@ class SequenceTests(TestCase):
 
         with self.assertRaises(TypeError):
             text = get_moltype("text")
-            m, s = text.make_seq("ACGGCTGAAGCGCTCCGGGTTTAAAACG").parse_out_gaps()
+            m, s = text.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG").parse_out_gaps()
             s.strand_symmetry(motif_length=1)
 
         # with motif_length=2
@@ -977,15 +977,15 @@ class SequenceSubclassTests(TestCase):
     def test_get_type(self):  # ported
         """returns moltype label"""
         for moltype in ("text", "dna", "bytes"):
-            seq = get_moltype(moltype).make_seq("ARCGT")
+            seq = get_moltype(moltype).make_seq(seq="ARCGT")
             self.assertEqual(seq.get_type(), moltype)
 
     def test_resolved_ambiguities(self):  # ported
-        seq = get_moltype("dna").make_seq("ARC")
+        seq = get_moltype("dna").make_seq(seq="ARC")
         got = seq.resolved_ambiguities()
         self.assertEqual(got, [("A",), ("A", "G"), ("C",)])
 
-        seq = get_moltype("dna").make_seq("AGC")
+        seq = get_moltype("dna").make_seq(seq="AGC")
         got = seq.resolved_ambiguities()
         self.assertEqual(got, [("A",), ("G",), ("C",)])
 
@@ -1128,7 +1128,7 @@ class DnaSequenceGapTests(TestCase):  # not porting: not supporting ArraySeqs
     def test_degap_name(self):
         """degap preserves name attribute"""
         # todo this should work for any seq class, but is not
-        seq = DNA.make_seq("ACG---T", "blah")
+        seq = DNA.make_seq(seq="ACG---T", name="blah")
         got = seq.degap()
         self.assertEqual(str(got), "ACGT")
         self.assertEqual(got.name, "blah")
@@ -1140,31 +1140,31 @@ class SequenceIntegrationTests(TestCase):  # not porting: not supporting ArraySe
     def test_regular_to_model(self):
         """Regular sequence should convert to model sequence"""
         r = RNA.make_seq("AAA", name="x")
-        s = RNA.make_array_seq(r)
+        s = RNA.make_array_seq(seq=r)
         self.assertEqual(str(s), "AAA")
         self.assertEqual(s.moltype, RNA)
         self.assertEqual(s.name, "x")
 
     def test_model_to_regular(self):
         """Model sequence should convert to regular sequence"""
-        r = RNA.make_array_seq("AAA", name="x")
-        s = RNA.make_seq(r)
+        r = RNA.make_array_seq(seq="AAA", name="x")
+        s = RNA.make_seq(seq=r)
         self.assertEqual(str(s), "AAA")
         self.assertEqual(s.moltype, RNA)
         self.assertEqual(s.name, "x")
 
     def test_regular_to_regular(self):
         """Regular sequence should convert to regular sequence"""
-        r = RNA.make_seq("AAA", name="x")
-        s = RNA.make_seq(r)
+        r = RNA.make_seq(seq="AAA", name="x")
+        s = RNA.make_seq(seq=r)
         self.assertEqual(str(s), "AAA")
         self.assertEqual(s.moltype, RNA)
         self.assertEqual(s.name, "x")
 
     def test_model_to_model(self):
         """Model sequence should convert to model sequence"""
-        r = RNA.make_array_seq("AAA", name="x")
-        s = RNA.make_array_seq(r)
+        r = RNA.make_array_seq(seq="AAA", name="x")
+        s = RNA.make_array_seq(seq=r)
         self.assertEqual(str(s), "AAA")
         self.assertEqual(s.moltype, RNA)
         self.assertEqual(s.name, "x")
@@ -1250,7 +1250,7 @@ class ModelSequenceTests(SequenceTests):  # not porting: not supporting ArraySeq
     def test_count_ab(self):
         """abseq array seq should count characters"""
         AB = get_moltype("ab")
-        seq = AB.make_array_seq("aaba-", alphabet=AB.alphabet.with_gap_motif())
+        seq = AB.make_array_seq(seq="aaba-", alphabet=AB.alphabet.with_gap_motif())
         c = seq.counts()
         self.assertEqual(c.to_dict(), {"a": 3, "b": 1})
         c = seq.counts(allow_gap=True)
@@ -1259,7 +1259,7 @@ class ModelSequenceTests(SequenceTests):  # not porting: not supporting ArraySeq
 
 @pytest.mark.parametrize("seq,rc", (("ATGTTT", False), ("AAACAT", True)))
 def test_translation(seq, rc):  # ported
-    seq = DNA.make_seq(seq)
+    seq = DNA.make_seq(seq=seq)
     if rc:
         seq = seq.rc()
     assert str(seq) == "ATGTTT"
@@ -1268,17 +1268,17 @@ def test_translation(seq, rc):  # ported
 
 
 def test_get_translation_include_stop():  # ported
-    s = DNA.make_seq("ATTTAACTT", name="s1")
+    s = DNA.make_seq(seq="ATTTAACTT", name="s1")
     aa = s.get_translation(include_stop=True)
     assert str(aa) == "I*L"
 
 
 def test_get_translation_trim_stop():  # ported
-    s = DNA.make_seq("ATTTCCTGA", name="s1")
+    s = DNA.make_seq(seq="ATTTCCTGA", name="s1")
     aa = s.get_translation(trim_stop=True)
     assert str(aa) == "IS"
     # no effect on internal stops
-    s = DNA.make_seq("ATTTAACTT", name="s1")
+    s = DNA.make_seq(seq="ATTTAACTT", name="s1")
     aa = s.get_translation(include_stop=True, trim_stop=True)
     assert str(aa) == "I*L"
 
@@ -2061,7 +2061,7 @@ def test_get_kmers_strict_DNA_RNA_Protein_mixed_ambiguities():  # ported
 def one_seq():
     from cogent3 import make_seq
 
-    return make_seq("AACCTGGAACC", moltype="dna")
+    return make_seq(seq="AACCTGGAACC", moltype="dna")
 
 
 @pytest.fixture(scope="session")
@@ -2106,7 +2106,7 @@ def test_seq_repr(one_seq, rc):  # ported
 
 
 def test_annotation_from_slice_with_stride():  # ported
-    seq = DNA.make_seq("AAACGCGCGAAAAAAA", name="s1")
+    seq = DNA.make_seq(seq="AAACGCGCGAAAAAAA", name="s1")
     seq.add_feature(biotype="exon", name="ex1", spans=[(3, 9)])
     f = list(seq.get_features(name="ex1"))[0]
     assert str(f.get_slice()) == "CGCGCG"
@@ -2273,7 +2273,7 @@ def test_annotate_gff_nested_features(DATA_DIR):  # ported
     #            *********            exon
     #                       *****     exon
     # ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC...
-    seq = DNA.make_seq("ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC", name="22")
+    seq = DNA.make_seq(seq="ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC", name="22")
     gff3_path = DATA_DIR / "ensembl_sample.gff3"
     seq.annotate_from_gff(gff3_path)
     # we have 8 records in the gff file
@@ -2305,7 +2305,7 @@ def test_annotate_gff_nested_features(DATA_DIR):  # ported
 
 def test_to_moltype_dna():  # ported
     """to_moltype("dna") ensures conversion from T to U"""
-    seq = DNA.make_seq("AAAAGGGGTTT", name="seq1")
+    seq = DNA.make_seq(seq="AAAAGGGGTTT", name="seq1")
     rna = seq.to_moltype("rna")
 
     assert "T" not in rna
@@ -2313,7 +2313,7 @@ def test_to_moltype_dna():  # ported
 
 def test_to_moltype_rna():  # ported
     """to_moltype("rna") ensures conversion from U to T"""
-    seq = RNA.make_seq("AAAAGGGGUUU", name="seq1")
+    seq = RNA.make_seq(seq="AAAAGGGGUUU", name="seq1")
     rna = seq.to_moltype("dna")
 
     assert "U" not in rna
@@ -2370,7 +2370,7 @@ def test_to_json(cls, with_offset):  # ported
 def test_offset_with_multiple_slices(DATA_DIR):  # ported
     from cogent3.util.deserialise import deserialise_object
 
-    seq = DNA.make_seq("ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC", name="22")
+    seq = DNA.make_seq(seq="ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC", name="22")
     gff3_path = DATA_DIR / "ensembl_sample.gff3"
     seq.annotate_from_gff(gff3_path)
     rd = seq[2:].to_rich_dict()
@@ -2515,7 +2515,7 @@ def test_get_drawable(DATA_DIR):  # ported
 @pytest.mark.parametrize("gc,seq", ((1, "TCCTGA"), (1, "ACGTAA---"), (2, "TCCAGG")))
 def test_has_terminal_stop_true(gc, seq):  # ported
     gc = cogent3.get_code(gc)
-    seq = cogent3.make_seq(seq, moltype="dna")
+    seq = cogent3.make_seq(seq=seq, moltype="dna")
     assert seq.has_terminal_stop(gc=gc)
 
 
@@ -2524,13 +2524,13 @@ def test_has_terminal_stop_true(gc, seq):  # ported
 )
 def test_has_terminal_stop_false(gc, seq):  # ported
     gc = cogent3.get_code(gc)
-    seq = cogent3.make_seq(seq, moltype="dna")
+    seq = cogent3.make_seq(seq=seq, moltype="dna")
     assert not seq.has_terminal_stop(gc=gc)
 
 
 def test_has_terminal_stop_strict():  # ported
     gc = cogent3.get_code(1)
-    seq = cogent3.make_seq("TCCAG", moltype="dna")
+    seq = cogent3.make_seq(seq="TCCAG", moltype="dna")
     with pytest.raises(AlphabetError):
         seq.has_terminal_stop(gc=gc, strict=True)
 
@@ -2548,7 +2548,7 @@ def test_trim_terminal_stop_true(gc, seq):  # ported
     gc = cogent3.get_code(gc)
     expect = re.sub("(TGA|AGG)(?=[-]*$)", "---" if "-" in seq else "", seq)
 
-    seq = cogent3.make_seq(seq, moltype="dna")
+    seq = cogent3.make_seq(seq=seq, moltype="dna")
     got = str(seq.trim_stop_codon(gc=gc))
     assert got == expect
 
@@ -2556,7 +2556,7 @@ def test_trim_terminal_stop_true(gc, seq):  # ported
 @pytest.mark.parametrize("gc,seq", ((1, "T?CTGC"), (2, "TCCAAG")))
 def test_trim_terminal_stop_nostop(gc, seq):  # ported
     gc = cogent3.get_code(gc)
-    seq = cogent3.make_seq(seq, moltype="dna")
+    seq = cogent3.make_seq(seq=seq, moltype="dna")
     got = seq.trim_stop_codon(gc=gc)
     assert str(got) == str(seq)
     # since there's no stop, we just return the same object
@@ -2568,27 +2568,27 @@ def test_trim_terminal_stop_nostop(gc, seq):  # ported
 )
 def test_trim_terminal_stop_false(gc, seq):  # ported
     gc = cogent3.get_code(gc)
-    seq = cogent3.make_seq(seq, moltype="dna")
+    seq = cogent3.make_seq(seq=seq, moltype="dna")
     assert str(seq.trim_stop_codon(gc=gc)) == str(seq)
 
 
 def test_trim_terminal_stop_strict():  # ported
     gc = cogent3.get_code(1)
-    seq = cogent3.make_seq("TCCAG", moltype="dna")
+    seq = cogent3.make_seq(seq="TCCAG", moltype="dna")
     with pytest.raises(AlphabetError):
         seq.trim_stop_codon(gc=gc, strict=True)
 
 
 @pytest.mark.parametrize("cast", (int, numpy.int32, numpy.int64, numpy.uint8))
 def test_index_a_seq(cast):  # ported
-    seq = cogent3.make_seq("TCCAG", moltype="dna")
+    seq = cogent3.make_seq(seq="TCCAG", moltype="dna")
     got = seq[cast(1)]
     assert isinstance(got, Sequence)
 
 
 @pytest.mark.parametrize("cast", (float, numpy.float32))
 def test_index_a_seq_float_fail(cast):  # ported
-    seq = cogent3.make_seq("TCCAG", moltype="dna")
+    seq = cogent3.make_seq(seq="TCCAG", moltype="dna")
     index = cast(1)
     with pytest.raises(TypeError):
         seq[index]
@@ -2597,14 +2597,14 @@ def test_index_a_seq_float_fail(cast):  # ported
 @pytest.mark.parametrize("moltype", ("dna", "protein"))
 def test_same_moltype(moltype):  # ported
     moltype = get_moltype(moltype)
-    seq = moltype.make_seq("TCCAG")
+    seq = moltype.make_seq(seq="TCCAG")
     got = seq.to_moltype(moltype)
     assert got is seq
 
 
 def test_gapped_by_map_segment_iter():  # ported
     moltype = get_moltype("dna")
-    m, seq = moltype.make_seq("-TCC--AG").parse_out_gaps()
+    m, seq = moltype.make_seq(seq="-TCC--AG").parse_out_gaps()
     g = list(seq.gapped_by_map_segment_iter(m, allow_gaps=True, recode_gaps=False))
     assert g == ["-", "TCC", "--", "AG"]
 
@@ -2614,7 +2614,7 @@ def test_gapped_by_map_segment_iter():  # ported
 @pytest.mark.parametrize("start_stop", ((None, None), (3, 7)))
 def test_copied_parent_coordinates(sliced, rev, start_stop):  # ported
     orig_name = "orig"
-    seq = DNA.make_seq("ACGGTGGGAC", name=orig_name)
+    seq = DNA.make_seq(seq="ACGGTGGGAC", name=orig_name)
     start, stop = start_stop
     start = start or 0
     stop = stop or len(seq)
@@ -2635,7 +2635,7 @@ def test_copied_parent_coordinates(sliced, rev, start_stop):  # ported
 
 @pytest.mark.parametrize("rev", (False, True))
 def test_parent_coordinates(rev):  # ported
-    seq = DNA.make_seq("ACGGTGGGAC")
+    seq = DNA.make_seq(seq="ACGGTGGGAC")
     seq = seq[1:1]
     if rev:
         seq = seq.rc()
@@ -2731,7 +2731,7 @@ def test_sequences_propogates_seqid():  # ported for Sequence and SeqView
 
 
 def test_make_seq_assigns_to_seqview():  # ported
-    seq = cogent3.make_seq("ACGT", name="s1")
+    seq = cogent3.make_seq(seq="ACGT", name="s1")
     assert seq.name == seq._seq.seqid == "s1"
 
 

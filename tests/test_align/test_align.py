@@ -7,7 +7,12 @@ import pytest
 import cogent3.align.progressive
 import cogent3.evolve.substitution_model
 
-from cogent3 import DNA, load_aligned_seqs, load_tree, make_unaligned_seqs
+from cogent3 import (
+    get_moltype,
+    load_aligned_seqs,
+    load_tree,
+    make_unaligned_seqs,
+)
 from cogent3.align.align import (
     classic_align_pairwise,
     global_pairwise,
@@ -21,6 +26,10 @@ from cogent3.evolve.models import HKY85, get_model
 dna_model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
     model_gaps=False, equal_motif_probs=True
 )
+
+DNA = get_moltype("dna")
+seq1 = DNA.make_seq(seq="AAACCGGACATTACGTGCGTA", name="FAKE01")
+seq2 = DNA.make_seq(seq="CCGGTCAGGTTACGTACGTT", name="FAKE02")
 
 
 def matchedColumns(align):
@@ -36,10 +45,6 @@ def matchedColumns(align):
         return True
 
     return len(align.filtered(all_same))
-
-
-seq1 = DNA.make_seq("aaaccggacattacgtgcgta", name="FAKE01")
-seq2 = DNA.make_seq("ccggtcaggttacgtacgtt", name="FAKE02")
 
 
 class AlignmentTestCase(unittest.TestCase):
@@ -59,8 +64,8 @@ class AlignmentTestCase(unittest.TestCase):
         from cogent3 import PROTEIN
 
         S = make_generic_scoring_dict(1, PROTEIN)
-        seq1 = PROTEIN.make_seq("MAYPFQLGLQD", "seq1")
-        seq2 = PROTEIN.make_seq("MAYPFGLQD", "seq2")
+        seq1 = PROTEIN.make_seq(seq="MAYPFQLGLQD", name="seq1")
+        seq2 = PROTEIN.make_seq(seq="MAYPFGLQD", name="seq2")
         a1 = classic_align_pairwise(seq1, seq2, S, 10, 2, local=False)
         self.assertEqual(a1.to_dict(), dict(seq1="MAYPFQLGLQD", seq2="MAYPF--GLQD"))
 
@@ -70,16 +75,16 @@ class AlignmentTestCase(unittest.TestCase):
             self.assertEqual(len(a), 23)
 
     def test_gaps_at_both_ends(self):
-        s = "aaaccggttt"
-        s1 = DNA.make_seq(s[:-2], name="A")
-        s2 = DNA.make_seq(s[2:], name="B")
+        s = "AAACCGGTTT"
+        s1 = DNA.make_seq(seq=s[:-2], name="A")
+        s2 = DNA.make_seq(seq=s[2:], name="B")
         for a in self._aligned_both_ways(s1, s2, local=False):
             self.assertEqual(matchedColumns(a), 6)
             self.assertEqual(len(a), 10)
 
     def test_short(self):
-        s1 = DNA.make_seq("tacagta", name="A")
-        s2 = DNA.make_seq("tacgtc", name="B")
+        s1 = DNA.make_seq(seq="TACAGTA", name="A")
+        s2 = DNA.make_seq(seq="TACGTC", name="B")
         for a in self._aligned_both_ways(s1, s2, local=False):
             self.assertEqual(matchedColumns(a), 5)
             self.assertEqual(len(a), 7)
@@ -87,14 +92,14 @@ class AlignmentTestCase(unittest.TestCase):
     def test_pairwise_returns_score(self):
         """exercise pairwise local/global returns alignment score"""
         S = make_dna_scoring_dict(10, -1, -8)
-        aln, score = local_pairwise(seq1, seq2, S, 10, 2, return_score=True)
+        _, score = local_pairwise(seq1, seq2, S, 10, 2, return_score=True)
         self.assertTrue(score > 100)
-        aln, score = global_pairwise(seq1, seq2, S, 10, 2, return_score=True)
+        _, score = global_pairwise(seq1, seq2, S, 10, 2, return_score=True)
         self.assertTrue(score > 100)
 
     def test_codon(self):
-        s1 = DNA.make_seq("tacgccgta", name="A")
-        s2 = DNA.make_seq("tacgta", name="B")
+        s1 = DNA.make_seq(seq="TACGCCGTA", name="A")
+        s2 = DNA.make_seq(seq="TACGTA", name="B")
         codon_model = cogent3.evolve.substitution_model.TimeReversibleCodon(
             model_gaps=False, equal_motif_probs=True, mprob_model="conditional"
         )
@@ -109,8 +114,8 @@ class AlignmentTestCase(unittest.TestCase):
         """Should pick the first best-equal hit rather than the last one"""
         # so that the Pyrex and Python versions give the same result.
         score_matrix = make_dna_scoring_dict(match=1, transition=-1, transversion=-1)
-        pattern = DNA.make_seq("cwc", name="pattern")
-        two_hit = DNA.make_seq("cactc", name="target")
+        pattern = DNA.make_seq(seq="CWC", name="pattern")
+        two_hit = DNA.make_seq(seq="CACTC", name="target")
         aln = local_pairwise(pattern, two_hit, score_matrix, 5, 2)
         hit = aln.named_seqs["target"]
         self.assertEqual(str(hit).lower(), "cac")
@@ -137,7 +142,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
     ):
         kw["indel_rate"] = indel_rate
         kw["indel_length"] = indel_length
-        seqs = {key: DNA.make_seq(value) for (key, value) in list(orig.items())}
+        seqs = {key: DNA.make_seq(seq=value) for (key, value) in list(orig.items())}
         if len(seqs) == 2:
             tree = cogent3.make_tree(treestring="(A:.1,B:.1)")
         else:
@@ -150,7 +155,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
     def _test_aln(self, seqs, model=dna_model, param_vals=None, **kw):
         orig = {n: s.replace("-", "") for (n, s) in list(seqs.items())}
         aln = self._make_aln(orig, model=model, param_vals=param_vals, **kw)
-        result = {n: s.lower() for (n, s) in list(aln.to_dict().items())}
+        result = aln.to_dict()
         # assert the alignment result is correct
         self.assertEqual(seqs, result)
         # and the moltype matches the model
@@ -166,13 +171,13 @@ class MultipleAlignmentTestCase(unittest.TestCase):
     def test_progressive1(self):
         """test progressive alignment, gaps in middle"""
         self._test_aln(
-            {"A": "tacagta", "B": "tac-gtc", "C": "ta---ta", "D": "tac-gtc"},
+            {"A": "TACAGTA", "B": "TAC-GTC", "C": "TA---TA", "D": "TAC-GTC"},
             model="F81",
         )
 
     def test_progessive_model_name(self):
         """tree_align handles models specified by name"""
-        self._test_aln({"A": "tacagta", "B": "tac-gtc", "C": "ta---ta", "D": "tac-gtc"})
+        self._test_aln({"A": "TACAGTA", "B": "TAC-GTC", "C": "TA---TA", "D": "TAC-GTC"})
 
     def test_progressive_est_tree(self):
         """exercise progressive alignment without a guide tree"""
@@ -181,9 +186,10 @@ class MultipleAlignmentTestCase(unittest.TestCase):
                 "A": "TGTGGCACAAATGCTCATGCCAGCTCTTTACAGCATGAGAACA",
                 "B": "TGTGGCACAGATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTT",
                 "C": "TGTGGCACAAGTACTCATGCCAGCTCAGTACAGCATGAGAACAGCAGTTT",
-            }
+            },
+            moltype="dna",
         )
-        aln, tree = cogent3.align.progressive.tree_align(
+        aln, _ = cogent3.align.progressive.tree_align(
             HKY85(), seqs, show_progress=False, param_vals={"kappa": 4.0}
         )
 
@@ -194,7 +200,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         }
         self.assertEqual(aln.to_dict(), expect)
 
-        aln, tree = cogent3.align.progressive.tree_align(
+        aln, _ = cogent3.align.progressive.tree_align(
             HKY85(),
             seqs,
             show_progress=False,
@@ -211,44 +217,44 @@ class MultipleAlignmentTestCase(unittest.TestCase):
     def test_align_info(self):
         """alignment info object has parameter values"""
         aln = self._make_aln(
-            {"A": "gcctcgg", "B": "gcctcgg", "C": "gcctcggaaacgt", "D": "aaacgt"}
+            {"A": "GCCTCGG", "B": "GCCTCGG", "C": "GCCTCGGAAACGT", "D": "AAACGT"}
         )
         self.assertTrue(aln.info["align_params"]["lnL"] < 0)
 
     def test_progressive_params(self):
         """excercise progressive alignment providing model params"""
         self._test_aln(
-            {"A": "tacagta", "B": "tac-gtc", "C": "ta---ta", "D": "cac-cta"},
+            {"A": "TACAGTA", "B": "TAC-GTC", "C": "TA---TA", "D": "CAC-CTA"},
             model=HKY85(),
             param_vals=[("kappa", 2.0)],
         )
 
     def test_tree_align_does_pairs(self):
         """test tree_align handles pairs of sequences"""
-        self._test_aln({"A": "acttgtac", "B": "ac--gtac"})
+        self._test_aln({"A": "ACTTGTAC", "B": "AC--GTAC"})
 
     def test_gap_at_start(self):
         """test progressive alignment, gaps at start"""
-        self._test_aln({"A": "-ac", "B": "-ac", "C": "-ac", "D": "gac"})
+        self._test_aln({"A": "-AC", "B": "-AC", "C": "-AC", "D": "GAC"})
 
     def test_gap_at_end(self):
         """test progressive alignment, gaps at end"""
-        self._test_aln({"A": "gt-", "B": "gt-", "C": "gt-", "D": "gta"})
+        self._test_aln({"A": "GT-", "B": "GT-", "C": "GT-", "D": "GTA"})
 
     def test_gaps2(self):
         """gaps have real costs, even end gaps"""
-        self._test_aln({"A": "g-", "B": "g-", "C": "ga", "D": "a-"})
+        self._test_aln({"A": "G-", "B": "G-", "C": "GA", "D": "A-"})
 
-        self._test_aln({"A": "-g", "B": "-g", "C": "ag", "D": "-a"})
+        self._test_aln({"A": "-G", "B": "-G", "C": "AG", "D": "-A"})
 
     def test_difficult_end_gaps(self):
-        self._test_aln({"A": "--cctc", "B": "--cctc", "C": "gacctc", "D": "ga----"})
+        self._test_aln({"A": "--CCTC", "B": "--CCTC", "C": "GACCTC", "D": "GA----"})
         self._test_aln(
             {
-                "A": "gcctcgg------",
-                "B": "gcctcgg------",
-                "C": "gcctcggaaacgt",
-                "D": "-------aaacgt",
+                "A": "GCCTCGG------",
+                "B": "GCCTCGG------",
+                "C": "GCCTCGGAAACGT",
+                "D": "-------AAACGT",
             }
         )
 

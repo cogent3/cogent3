@@ -543,9 +543,12 @@ class MolType:
 
         return any(alpha == alphabet for alpha in self.iter_alphabets())
 
-    def make_seq(
-        self, *, seq: str, name: OptStr = None, check_seq=True, **kwargs
-    ):  # refactor: docstring
+    def make_seq(self, *, seq: str, name: OptStr = None, check_seq=True, **kwargs):
+        # refactor: docstring
+        # refactor: design
+        # for Sequence and SeqView object, a consistency check with moltype/alphabet
+        # should be performed
+
         if check_seq:
             assert self.is_valid(
                 seq
@@ -1137,6 +1140,11 @@ def get_moltype(name: typing.Union[str, MolType]) -> MolType:
     """returns the moltype with the matching name attribute"""
     if isinstance(name, MolType):
         return name
+    # refactor: simplify
+    # intoduced to check whether we have a old-style moltype object,
+    # remove when support for the old-style moltype objects is removed
+    if hasattr(name, "label"):
+        name = name.label
     name = name.lower()
     if name not in _moltypes:
         raise ValueError(f"unknown moltype {name!r}")

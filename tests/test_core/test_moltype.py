@@ -796,6 +796,8 @@ class RnaMolTypeTests(TestCase):
         expect = {b + "_protein" for b in states}
         self.assertEqual(got, expect)
 
+    ("new MolType will not support setting label")
+
     def test_get_css_no_label(self):
         """should not fail when moltype has no label"""
         dna = get_moltype("dna")
@@ -1142,15 +1144,18 @@ def test_resolve_ambiguity_codons():  # ported
 
 
 def test_make_seq_on_seq():
-    seq = DNA.make_seq("ACGG")
-    got = DNA.make_seq(seq)
+    seq = DNA.make_seq(seq="ACGG")
+    got = DNA.make_seq(seq=seq)
     assert got is seq
 
 
+("Dropping support for coerce_str")
+
+
 def test_make_seq_diff_moltype():
-    seq = RNA.make_seq("ACGG")
+    seq = RNA.make_seq(seq="ACGG")
     seq.add_feature(biotype="gene", name="test", spans=[(0, 2)])
-    got = DNA.make_seq(seq)
+    got = DNA.make_seq(seq=seq)
     assert len(got.annotation_db) == 1
 
 

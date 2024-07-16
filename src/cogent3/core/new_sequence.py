@@ -58,6 +58,7 @@ IntORFloat = typing.Union[int, float]
 StrORIterableStr = typing.Union[str, typing.Iterable[str]]
 StrORBytesORArray = typing.Union[str, bytes, numpy.ndarray]
 ARRAY_TYPE = type(array(1))
+DEFAULT_ANNOTATION_DB = BasicAnnotationDb
 
 # standard distance functions: left  because generally useful
 frac_same = for_seq(f=eq, aggregator=sum, normalizer=per_shortest)
@@ -133,7 +134,7 @@ class Sequence:
         info = info or {}
         self.info = InfoClass(**info)
         self._repr_policy = dict(num_pos=60)
-        self._annotation_db = BasicAnnotationDb()
+        self._annotation_db = DEFAULT_ANNOTATION_DB()
         self.annotation_offset = annotation_offset
 
     def __str__(self):
@@ -1234,10 +1235,13 @@ class Sequence:
             the annotated regions
         """
         if mask_char is None:
-            ambigs = [(len(v), c) for c, v in list(self.moltype.ambiguities.items())]
-            ambigs.sort()
-            mask_char = ambigs[-1][1]
-        assert mask_char in self.moltype, f"Invalid mask_char {mask_char}"
+            mask_char = (
+                self.moltype.missing
+                or max(self.moltype.ambiguities.items(), key=lambda x: len(x[1]))[0]
+            )
+        assert (
+            mask_char in self.moltype.most_degen_alphabet()
+        ), f"Invalid mask_char {mask_char}"
 
         annotations = []
         annot_types = [annot_types] if isinstance(annot_types, str) else annot_types
@@ -1433,7 +1437,7 @@ class Sequence:
             whether to notify of an incomplete terminal motif
         """
         seq = self._seq
-        if isinstance(seq, SeqView):
+        if isinstance(seq, SeqViewABC):
             seq = str(self)
         if motif_length == 1:
             return seq
@@ -2549,8 +2553,10 @@ class SeqView(SeqViewABC, SliceRecordABC):
 @singledispatch
 def _coerce_to_seqview(data, seqid, alphabet) -> SeqViewABC:
     from cogent3.core.alignment import Aligned
+    from cogent3.core.sequence import Sequence as old_Sequence
+    from cogent3.core.sequence import SeqView as old_SeqView
 
-    if isinstance(data, Aligned):
+    if isinstance(data, (Aligned, old_Sequence, old_SeqView)):
         return _coerce_to_seqview(str(data), seqid, alphabet)
     raise NotImplementedError(f"{type(data)}")
 

@@ -127,7 +127,8 @@ exclude = ["doc/*.html"]
 [tool.pytest.ini_options]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-    "internet: marks tests that require internet access  (deselect with '-m \"not internet\"')"
+    "internet: marks tests that require internet access  (deselect with '-m \"not internet\"')",
+    "discontinued: mark tests as discontinued (deselect with '-m \"not discontinued\"')",
     ]
 testpaths = "tests"
 addopts = ["--strict-config"]
