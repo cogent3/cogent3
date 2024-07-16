@@ -410,17 +410,16 @@ def iter_fasta_records(
     path
         location of the fasta file
     converter
-        a callable that uses converts sequence characters into nominated bytes,
-        deleting unwanted characters (newlines, spaces). Whatever type this
-        callable returns will be the type of the sequence returned. If None,
-        uses minimal_converter()
+        a callable that converts sequence characters, deleting unwanted characters
+        (newlines, spaces). Whatever type this callable returns will be the type
+        of the sequence returned. If None, uses minimal_converter() which returns bytes.
 
 
     Returns
     -------
     the sequence label as a string and the sequence as transformed by converter
     """
-    raise NotImplementedError(f"iter_fasta_records not implemented for {type(data)}")
+    raise TypeError(f"iter_fasta_records not implemented for {type(data)}")
 
 
 @iter_fasta_records.register
