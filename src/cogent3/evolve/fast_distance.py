@@ -54,7 +54,9 @@ def get_moltype_index_array(moltype, invalid=-9):
     canonical_chars = list(moltype)
     # maximum ordinal for an allowed character, this defines the length of
     # the required numpy array
-    # refactor: hack
+    # refactor: simplify
+    # added for compatibility with both new and old moltypes - should be removed
+    # when old moltype is removed
     from cogent3.core.new_moltype import MolType as new_MolType
 
     if isinstance(moltype, new_MolType):

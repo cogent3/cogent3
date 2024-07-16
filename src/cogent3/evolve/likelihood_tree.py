@@ -237,7 +237,9 @@ def make_likelihood_tree_leaf(sequence, alphabet, seq_name):
 
     counts = numpy.array(counts, float)
 
-    # refactor: hack
+    # refactor: simplify
+    # added for compatibility between old and new style sequences/moltype/alphabets
+    # should be simplified when old style is removed
     from cogent3.core.alphabet import Alphabet, CharAlphabet
     from cogent3.core.new_sequence import Sequence
 

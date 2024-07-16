@@ -47,9 +47,6 @@ from cogent3.parse.fasta import MinimalFastaParser
 from cogent3.util.misc import get_object_provenance
 
 
-# refactor: hack
-# use get_moltype for all moltype instances to ensure new_type is set correctly
-# if we are relying on an enviroment variable.
 DNA = get_moltype("dna")
 RNA = get_moltype("rna")
 PROTEIN = get_moltype("protein")
@@ -2156,10 +2153,10 @@ def test_seqcoll_query(seqcoll_db):
 
 
 def test_align_get_features():
-    #                0123456789   the positions
+    #                    0123456789   the positions
     seq1 = make_seq(seq="ACG--ACCGT", moltype="dna", name="seq1")
     seq2 = make_seq(seq="ACGGGCCCGT", moltype="dna", name="seq2")
-    #                  *****      the CDS feature
+    #                      *****      the CDS feature
     seq2.add_feature(biotype="CDS", name="fake01", spans=[(2, 7)], strand="+")
     aln = make_aligned_seqs(data=[seq1, seq2], array_align=False)
     feat = list(aln.get_features(biotype="CDS"))[0]

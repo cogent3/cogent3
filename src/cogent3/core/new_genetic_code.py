@@ -469,7 +469,7 @@ def get_code(code_id: StrORInt = 1) -> GeneticCode:
         genetic code identifier, name, number or string(number), defaults to
         standard genetic code
     """
-    # refactor: hack
+    # refactor: simplify
     # added for compatibility with previous API, should be removed when
     # support for old style is dropped
     if code_id is None:
