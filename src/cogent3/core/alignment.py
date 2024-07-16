@@ -1638,10 +1638,11 @@ class _SequenceCollectionBase:
             new_name = renamer(name)
             name_map[new_name] = name
             try:
-                new_seq = self.moltype.make_seq(seq.data, new_name)
+                # assume seq is an Aligned instance
+                new_seq = self.moltype.make_seq(seq=seq.data, name=new_name)
                 new_seq = Aligned(seq.map, new_seq)
             except AttributeError:
-                new_seq = self.moltype.make_seq(seq, new_name)
+                new_seq = self.moltype.make_seq(seq=seq, name=new_name)
             new[new_name] = new_seq
         result = self.__class__(data=new, info=self.info, moltype=self.moltype)
         result.info.name_map = name_map
@@ -2594,12 +2595,12 @@ class AlignmentI(object):
             col_lookup = dict.fromkeys(cols)
             for name, seq in list(self.named_seqs.items()):
                 result[name] = make_seq(
-                    [str(seq[i]) for i in range(len(seq)) if i not in col_lookup]
+                    seq=[str(seq[i]) for i in range(len(seq)) if i not in col_lookup]
                 )
         # otherwise, just get the requested indices
         else:
             for name, seq in list(self.named_seqs.items()):
-                result[name] = make_seq("".join(str(seq[i]) for i in cols))
+                result[name] = make_seq(seq="".join(str(seq[i]) for i in cols))
         return self.__class__(
             result, names=self.names, info=self.info, moltype=self.moltype
         )
@@ -2663,7 +2664,7 @@ class AlignmentI(object):
             pos = CategoryCounter(pos)
             states.append(pos.mode)
 
-        return self.moltype.make_seq("".join(states))
+        return self.moltype.make_seq(seq="".join(states))
 
     def probs_per_pos(
         self, motif_length=1, include_ambiguity=False, allow_gap=False, warn=False
@@ -2988,7 +2989,7 @@ class AlignmentI(object):
         new_seqs = []
         for seq in self.seqs:
             seq = make_seq(
-                "".join(str(seq[x1:x2]) for x1, x2 in positions), name=seq.name
+                seq="".join(str(seq[x1:x2]) for x1, x2 in positions), name=seq.name
             )
             new_seqs.append(seq)
 
@@ -3939,7 +3940,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             seqs = [self.alphabet.to_string(seq) for seq in self.array_seqs]
             if self.moltype:
                 seqs = [
-                    self.moltype.make_seq(seq, name, preserve_case=True)
+                    self.moltype.make_seq(seq=seq, name=name, preserve_case=True)
                     for seq, name in zip(seqs, self.names)
                 ]
             self._named_seqs = _make_named_seqs(self.names, seqs)
@@ -4618,7 +4619,7 @@ class Alignment(AlignmentI, SequenceCollection):
         """Converts seq to Aligned object -- override in subclasses"""
         db = getattr(seq, "annotation_db", None)
         (map, seq) = self.moltype.make_seq(
-            seq, key, preserve_case=True
+            seq=seq, name=key, preserve_case=True
         ).parse_out_gaps()
         seq.annotation_db = db
         return Aligned(map, seq)
@@ -5638,14 +5639,14 @@ def _construct_unaligned_seq(data, name, moltype) -> Sequence:
     try:
         result = data.to_moltype(moltype) if moltype else data
     except AttributeError:
-        result = moltype.make_seq(data, name=name, preserve_case=False)
+        result = moltype.make_seq(seq=data, name=name, preserve_case=False)
     result.name = name
     return result
 
 
 @_construct_unaligned_seq.register
 def _(data: str, name, moltype) -> Sequence:
-    return moltype.make_seq(data, name=name, preserve_case=False)
+    return moltype.make_seq(seq=data, name=name, preserve_case=False)
 
 
 @_construct_unaligned_seq.register
@@ -5662,7 +5663,7 @@ def _(data: Aligned, name, moltype) -> Sequence:
 @_construct_unaligned_seq.register
 def _(data: ArraySequence, name, moltype) -> Sequence:
     assert name == data.name
-    return moltype.make_seq(str(data), name=name, info=data.info)
+    return moltype.make_seq(seq=str(data), name=name, info=data.info)
 
 
 @_construct_unaligned_seq.register

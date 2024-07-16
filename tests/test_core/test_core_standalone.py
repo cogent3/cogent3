@@ -38,9 +38,9 @@ class TestConstructorFunctions(unittest.TestCase):
     def test_make_seq(self):
         """test constructor utility function"""
         _seq = "ACGGT"
-        seq = make_seq(_seq)
+        seq = make_seq(seq=_seq)
         self.assertEqual(seq.moltype.label, "text")
-        seq = make_seq(_seq, moltype="dna")
+        seq = make_seq(seq=_seq, moltype="dna")
         self.assertEqual(seq.moltype.label, "dna")
         self.assertEqual(str(seq), _seq)
 
@@ -94,10 +94,10 @@ class TestConstructorFunctions(unittest.TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             json_path = os.path.join(dirname, "unaligned.json")
             path = os.path.join(DATA_DIR, "brca1_5.paml")
-            unaligned = load_unaligned_seqs(path)
+            unaligned = load_unaligned_seqs(path, moltype="dna")
             unaligned.write(json_path)
 
-            got = load_unaligned_seqs(json_path)
+            got = load_unaligned_seqs(json_path, moltype="dna")
             self.assertIsInstance(got, SequenceCollection)
             self.assertEqual(got.to_dict(), unaligned.to_dict())
             self.assertEqual(got.info["source"], path)
@@ -112,9 +112,9 @@ class TestConstructorFunctions(unittest.TestCase):
                 out.write(json.dumps(completed_record))
             # tests when provided record json file is uncompleted
             with self.assertRaises(TypeError):
-                load_unaligned_seqs(uncompleted_record_path)
+                load_unaligned_seqs(uncompleted_record_path, moltype="dna")
             # tests when provided record json is completed
-            got = load_unaligned_seqs(completed_record_path)
+            got = load_unaligned_seqs(completed_record_path, moltype="dna")
             self.assertIsInstance(got, SequenceCollection)
             self.assertEqual(got.to_dict(), unaligned.to_dict())
             self.assertEqual(got.info["source"], path)
@@ -153,7 +153,7 @@ class TestConstructorFunctions(unittest.TestCase):
                 out.write(json.dumps(completed_record))
             # tests when provided record json file is uncompleted
             with self.assertRaises(TypeError):
-                load_unaligned_seqs(uncompleted_record_path)
+                load_unaligned_seqs(uncompleted_record_path, moltype="dna")
             # tests when provided record json is completed
             got = load_aligned_seqs(completed_record_path)
             self.assertIsInstance(got, ArrayAlignment)
@@ -162,7 +162,7 @@ class TestConstructorFunctions(unittest.TestCase):
             # tests wrong input json file
             json_path = os.path.join(dirname, "unaligned.json")
             path = os.path.join(DATA_DIR, "brca1_5.paml")
-            unaligned = load_unaligned_seqs(path)
+            unaligned = load_unaligned_seqs(path, moltype="dna")
             unaligned.write(json_path)
             with self.assertRaises(TypeError):
                 load_aligned_seqs(json_path)
@@ -243,8 +243,8 @@ class AlignmentTestMethods(unittest.TestCase):
         # python classes without __getstate__ etc.
         import pickle as pickle
 
-        seq1 = DNA.make_seq("aagaagaagaccccca")
-        seq2 = DNA.make_seq("aagaagaagaccccct")
+        seq1 = DNA.make_seq(seq="aagaagaagaccccca")
+        seq2 = DNA.make_seq(seq="aagaagaagaccccct")
         seq2.add_feature(biotype="exon", name="fred", spans=[(10, 15)])
         aln = make_aligned_seqs(data={"a": seq1, "b": seq2})
         # TODO the ability to pickle/unpickle depends on the protocol
@@ -655,7 +655,7 @@ class SequenceTestMethods(unittest.TestCase):
     """Testing Sequence methods"""
 
     def setUp(self):
-        self.seq = make_seq("ATGACGTTGCGTAGCATAGCTCGA", "dna")
+        self.seq = make_seq(seq="ATGACGTTGCGTAGCATAGCTCGA", moltype="dna")
 
     def test_getlength(self):
         """testing getting length"""
@@ -675,17 +675,17 @@ class SequenceTestMethods(unittest.TestCase):
 
     def test_translate(self):
         """test of translating seqs"""
-        seq = make_seq("ATGACGTTGCGTAGCATAGCTCGA", moltype=DNA).get_translation()
+        seq = make_seq(seq="ATGACGTTGCGTAGCATAGCTCGA", moltype=DNA).get_translation()
         self.assertEqual(str(seq), "MTLRSIAR")
 
     def test_ambig_translate(self):
         """test of translating seqs"""
-        seq = make_seq("CGNTGN???---", moltype=DNA).get_translation()
+        seq = make_seq(seq="CGNTGN???---", moltype=DNA).get_translation()
         self.assertEqual(str(seq), "RX?-")
 
     def test_translate_incomplete(self):
         """test of translating seqs with incomplete codon"""
-        seq = make_seq("CGNTGNAC----", moltype=DNA)
+        seq = make_seq(seq="CGNTGNAC----", moltype=DNA)
         aa = seq.get_translation(incomplete_ok=True)
         self.assertEqual(str(aa), "RX?-")
         with self.assertRaises(AlphabetError):
@@ -830,7 +830,7 @@ def gb_file(tmp_dir, request):
 
 
 def test_gb_suffixes(gb_file):
-    seqs = load_unaligned_seqs(gb_file)
+    seqs = load_unaligned_seqs(gb_file, moltype="dna")
     isinstance(seqs, SequenceCollection)
 
 

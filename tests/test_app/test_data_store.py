@@ -534,7 +534,7 @@ def test_get_data_source_seqcoll(klass):
 
     value = klass("some/path.txt")
     obj = make_unaligned_seqs(
-        data=dict(seq1="ACGG"), info=dict(source=value, random_key=1234)
+        data=dict(seq1="ACGG"), moltype="dna", info=dict(source=value, random_key=1234)
     )
     got = get_data_source(obj)
     assert got == "path.txt"

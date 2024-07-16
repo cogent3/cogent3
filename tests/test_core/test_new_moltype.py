@@ -1,7 +1,13 @@
 import numpy
 import pytest
 
-from cogent3.core import moltype, new_alphabet, new_moltype, new_sequence
+from cogent3.core import (
+    moltype,
+    new_alphabet,
+    new_genetic_code,
+    new_moltype,
+    new_sequence,
+)
 
 
 def test_make_pairs():
@@ -213,10 +219,7 @@ def test_resolve_ambiguity_nucs():
 
 
 def test_resolve_ambiguity_codons():
-    # refactor to using new_genetic_code when codon alphabet class is implemented
-    from cogent3 import get_code
-
-    gc = get_code(1)
+    gc = new_genetic_code.get_code(1)
     codon_alpha = gc.get_alphabet(include_stop=False)
     codon_alpha_w_gap = codon_alpha.with_gap_motif()
     assert (

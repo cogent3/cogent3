@@ -59,7 +59,7 @@ def _convert_input(seq, moltype):
     seq = (
         moltype.make_seq(seq=str(seq), name=seq.name)
         if hasattr(seq, "moltype")
-        else moltype.make_seq(seq)
+        else moltype.make_seq(seq=seq)
     )
 
     gap_map, seq = seq.parse_out_gaps()

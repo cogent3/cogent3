@@ -15,8 +15,8 @@ def _s2i(s):
 def test(r=1, **kw):
     S = make_dna_scoring_dict(10, -1, -8)
 
-    seq2 = DNA.make_seq("AAAATGCTTA" * r)
-    seq1 = DNA.make_seq("AATTTTGCTG" * r)
+    seq2 = DNA.make_seq(seq="AAAATGCTTA" * r)
+    seq1 = DNA.make_seq(seq="AATTTTGCTG" * r)
 
     t0 = time.clock()
     try:

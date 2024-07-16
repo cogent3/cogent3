@@ -692,7 +692,7 @@ def test_roundtrip_TN93_model_result():
 def test_roundtrip_seq(mtype):
     """seq to_json enables roundtrip"""
     mtype = moltype.get_moltype(mtype)
-    seq = mtype.make_seq("ACGGTCGG", "label", info={"something": 3})
+    seq = mtype.make_seq(seq="ACGGTCGG", name="label", info={"something": 3})
     got = deserialise_object(seq.to_json())
     assert got.info.something == 3
     assert got.name == "label"

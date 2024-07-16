@@ -54,7 +54,13 @@ def get_moltype_index_array(moltype, invalid=-9):
     canonical_chars = list(moltype)
     # maximum ordinal for an allowed character, this defines the length of
     # the required numpy array
-    max_ord = max(list(map(ord, list(moltype.All.keys()))))
+    # refactor: hack
+    from cogent3.core.new_moltype import MolType as new_MolType
+
+    if isinstance(moltype, new_MolType):
+        max_ord = max(list(map(ord, list(moltype.most_degen_alphabet()))))
+    else:
+        max_ord = max(list(map(ord, list(moltype.All.keys()))))
     char_to_index = zeros(max_ord + 1, int32)
     # all non canonical_chars are ``invalid''
     char_to_index.fill(invalid)
