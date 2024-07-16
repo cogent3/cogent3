@@ -120,9 +120,15 @@ def gff_db(DATA_DIR):
 
 @pytest.fixture(scope="function")
 def seqcoll_db(DATA_DIR):
-    fasta_path = os.path.join(DATA_DIR / "c_elegans_WS199_dna_shortened.fasta")
-    seq = load_seq(fasta_path, moltype="dna", new_type=True)
-    seq_coll = new_alignment.make_unaligned_seqs({seq.name: seq}, moltype="dna")
+    from cogent3.parse.fasta import iter_fasta_records
+
+    # NOTE: using iter_fasta_records directly because the c elegans
+    # file has a lower case sequence and the iter_fasta_records function
+    # coerces by default
+
+    fasta_path = DATA_DIR / "c_elegans_WS199_dna_shortened.fasta"
+    data = dict(iter_fasta_records(fasta_path))
+    seq_coll = new_alignment.make_unaligned_seqs(data, moltype="dna")
     seq_coll.annotation_db = load_annotations(
         path=DATA_DIR / "c_elegans_WS199_shortened_gff.gff3"
     )

@@ -11,6 +11,7 @@ the MolType. It is thus essential that the connection between these other
 types and the MolType can be made after the objects are created.
 """
 
+import functools
 import itertools
 import json
 import os
@@ -808,11 +809,11 @@ class MolType:
             badchar = nonalpha.search(seq)
             if badchar:
                 motif = badchar.group()
-                raise AlphabetError(motif)
+                raise AlphabetError(f"{motif!r}")
         except TypeError:  # not alphabetic sequence: try slow method
             for motif in seq:
                 if motif not in alpha:
-                    raise AlphabetError(motif)
+                    raise AlphabetError(f"{motif!r}")
 
     def is_ambiguity(self, querymotif):
         """Return True if querymotif is an amibiguity character in alphabet.
@@ -1378,12 +1379,24 @@ class MolType:
         return any(alpha == alphabet for alpha in self.alphabets.iter_alphabets())
 
 
+@functools.singledispatch
 def _convert_to_rna(seq: str) -> str:
     return seq.replace("t", "u").replace("T", "U")
 
 
+@_convert_to_rna.register
+def _(seq: bytes) -> str:
+    return seq.replace(b"t", b"u").replace(b"T", b"U").decode("utf8")
+
+
+@functools.singledispatch
 def _convert_to_dna(seq: str) -> str:
     return seq.replace("u", "t").replace("U", "T")
+
+
+@_convert_to_dna.register
+def _(seq: bytes) -> str:
+    return seq.replace(b"u", b"t").replace(b"U", b"T").decode("utf8")
 
 
 ASCII = MolType(

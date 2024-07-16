@@ -10,7 +10,7 @@ def MsfParser(f):
     with contextlib.suppress(AttributeError):
         f = f.read().splitlines()
 
-    f.pop(0)
+    next(f)
     for line in f:
         line = line.strip()
         if line.endswith(".."):
