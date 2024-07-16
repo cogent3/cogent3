@@ -12,7 +12,7 @@ Sequence Collections and Alignments
 
    We are pleased to announce an alpha release of our new ``SequenceCollection`` API. This version can be accessed by specifying the argument ``new_type=True`` in the ``load_unaligned_seqs()`` or ``make_unaligned_seqs()`` functions. The new API is designed for increased efficiency, offering access to the underlying data in multiple formats, including numpy arrays, strings, and bytes (via ``array(seqs)``, ``str(seqs)`` and ``bytes(seqs)`` respectively). 
 
-   Please be aware that this alpha release has not been fully integrated with the entire library. Users are encouraged to explore its capabilities but should proceed with caution!
+   Please be aware that this alpha release has not been fully integrated with the library. Users are encouraged to explore its capabilities but should proceed with caution!
 
 For loading collections of unaligned or aligned sequences see :ref:`load-seqs`.
 

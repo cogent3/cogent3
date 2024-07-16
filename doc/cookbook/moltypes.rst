@@ -10,8 +10,8 @@ Molecular types
 .. note:: **Alpha Release of the New MolType API**
 
    We are pleased to announce an alpha release of our new ``MolType`` API. This version can be accessed by specifying the argument ``new_type=True`` in the ``get_moltype()`` function. 
-   
-   Please be aware that this alpha release has not been fully integrated with the entire library. Users are encouraged to explore its capabilities but should proceed with caution!
+
+   Please be aware that this alpha release has not been fully integrated with the library. Users are encouraged to explore its capabilities but should proceed with caution!
 
 The ``MolType`` object provides services for resolving ambiguities, or providing the correct ambiguity for recoding. It also maintains the mappings between different kinds of alphabets, sequences and alignments.
 

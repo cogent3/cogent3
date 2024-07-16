@@ -12,7 +12,7 @@ Loading a sequence from a file
 
    We are pleased to announce an alpha release of our new ``Sequence`` API! This version can be accessed by specifying the argument ``new_type=True`` in the ``load_seq()`` or ``make_seq()`` functions. The new API is designed for increased efficiency, offering access to the underlying data in multiple formats, including numpy arrays, strings, and bytes (via ``array(seq)``, ``str(seq)`` and ``bytes(seq)`` respectively). 
 
-   Please be aware that this alpha release has not been fully integrated with the entire library. Users are encouraged to explore its capabilities but should proceed with caution!
+   Please be aware that this alpha release has not been fully integrated with the library. Users are encouraged to explore its capabilities but should proceed with caution!
 
 It's also possible to load a sequence from a :ref:`url <load_url>`.
 
