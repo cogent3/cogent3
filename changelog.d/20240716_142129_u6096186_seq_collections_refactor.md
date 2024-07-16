@@ -3,14 +3,11 @@ A new scriv changelog fragment.
 
 Uncomment the section that is right (remove the HTML comment wrapper).
 -->
-
-
 ### Contributors
 
-- katherine caley (@KatherineCaley) 
-- fred jaya (@fredjaya) 
+- katherine caley (@KatherineCaley)
+- fred jaya (@fredjaya)
 - gavin huttley (@GavinHuttley)
-
 
 ### ENH
 
