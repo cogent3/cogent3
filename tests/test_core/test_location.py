@@ -268,7 +268,7 @@ class MapTests(TestCase):
 
     def test_get_gap_coords(self):
         """returns gap start and lengths"""
-        m, _ = DNA.make_seq("-AC--GT-TTA--").parse_out_gaps()
+        m, _ = DNA.make_seq(seq="-AC--GT-TTA--").parse_out_gaps()
         got = m.get_gap_coordinates()
         self.assertEqual(dict(got), {0: 1, 2: 2, 4: 1, 7: 2})
 
@@ -330,8 +330,8 @@ def test_map_nucleic_reversed():
 @pytest.mark.parametrize("cls", (FeatureMap, IndelMap))
 def test_coordinate(cls):
     # coordinates are for ungapped segments in underlying sequence
-    #                   01   2 345
-    seq = DNA.make_seq("AC---G-TAA--")
+    #                       01   2 345
+    seq = DNA.make_seq(seq="AC---G-TAA--")
     m, _ = seq.parse_out_gaps()
     m = cls.from_spans(spans=tuple(m.spans), parent_length=m.parent_length)
     got = m.get_coordinates()
@@ -340,7 +340,7 @@ def test_coordinate(cls):
 
 @pytest.mark.parametrize("cls", (FeatureMap, IndelMap))
 def test_gap_coordinate(cls):
-    seq = DNA.make_seq("AC---G-TAA--")
+    seq = DNA.make_seq(seq="AC---G-TAA--")
     m, _ = seq.parse_out_gaps()
     m = cls.from_spans(spans=tuple(m.spans), parent_length=m.parent_length)
     got = m.get_gap_coordinates()
@@ -349,9 +349,9 @@ def test_gap_coordinate(cls):
 
 def test_gaps():
     # returns spans corresponding to position on "aligned" seq of gaps
-    #                   000000000011
-    #                   012345678901
-    seq = DNA.make_seq("AC---G-TAA--")
+    #                       000000000011
+    #                       012345678901
+    seq = DNA.make_seq(seq="AC---G-TAA--")
     m, _ = seq.parse_out_gaps()
     m = FeatureMap.from_spans(spans=tuple(m.spans), parent_length=m.parent_length)
     got = [(g.start, g.end) for g in tuple(m.gaps().spans)]
@@ -361,9 +361,9 @@ def test_gaps():
 @pytest.mark.parametrize("cls", (IndelMap, FeatureMap))
 def test_nongap(cls):
     # returns spans corresponding to position on "aligned" seq of nongaps
-    #                   000000000011
-    #                   012345678901
-    seq = DNA.make_seq("AC---G-TAA--")
+    #                       000000000011
+    #                       012345678901
+    seq = DNA.make_seq(seq="AC---G-TAA--")
     m, _ = seq.parse_out_gaps()
     m = cls.from_spans(spans=tuple(m.spans), parent_length=m.parent_length)
 
@@ -375,7 +375,7 @@ def test_nongap(cls):
 def test_nongap_startswith(cls):
     # returns spans corresponding to position on "aligned" seq of nongaps
     #                   012345678
-    seq = DNA.make_seq("--G-TAA--")
+    seq = DNA.make_seq(seq="--G-TAA--")
     m, _ = seq.parse_out_gaps()
     m = cls.from_spans(spans=tuple(m.spans), parent_length=m.parent_length)
 
@@ -387,7 +387,7 @@ def test_nongap_startswith(cls):
 def test_nongap_not_endswith(cls):
     # returns spans corresponding to position on "aligned" seq of nongaps
     #                   0123456
-    seq = DNA.make_seq("--G-TAA")
+    seq = DNA.make_seq(seq="--G-TAA")
     m, _ = seq.parse_out_gaps()
     m = cls.from_spans(spans=tuple(m.spans), parent_length=m.parent_length)
 
@@ -397,9 +397,9 @@ def test_nongap_not_endswith(cls):
 
 def test_spans_gen():
     # returns spans corresponding to position on "aligned" seq of nongaps
-    #                   000000000011
-    #                   012345678901
-    seq = DNA.make_seq("AC---G-TAA--")
+    #                       000000000011
+    #                       012345678901
+    seq = DNA.make_seq(seq="AC---G-TAA--")
     expect = [Span(0, 2), LostSpan(3), Span(2, 3), LostSpan(1), Span(3, 6), LostSpan(2)]
     m, _ = seq.parse_out_gaps()
     gap_data = numpy.array([(2, 3), (3, 1), (6, 2)])
@@ -411,9 +411,9 @@ def test_spans_gen():
 
 def test_spans_gap_start():
     # returns spans corresponding to position on "aligned" seq of nongaps
-    #                   000000000011
-    #                   012345678901
-    seq = DNA.make_seq("---TAA")
+    #                       000000000011
+    #                       012345678901
+    seq = DNA.make_seq(seq="---TAA")
     expect = [LostSpan(3), Span(0, 3)]
     im, _ = seq.parse_out_gaps()
     got = list(im.spans)
@@ -422,9 +422,9 @@ def test_spans_gap_start():
 
 def test_spans_gen_nogaps():
     # returns spans corresponding to position on "aligned" seq of nongaps
-    #                   000000000011
-    #                   012345678901
-    seq = DNA.make_seq("ACGTAA")
+    #                       000000000011
+    #                       012345678901
+    seq = DNA.make_seq(seq="ACGTAA")
     m, _ = seq.parse_out_gaps()
     spans = list(m.spans)
     assert len(spans) == 1
@@ -432,7 +432,7 @@ def test_spans_gen_nogaps():
 
 
 def test_round_trip_rich_dict():
-    seq = DNA.make_seq("AC---G-TAA--")
+    seq = DNA.make_seq(seq="AC---G-TAA--")
     im, _ = seq.parse_out_gaps()
     rd = im.to_rich_dict()
     got = IndelMap.from_rich_dict(rd)
@@ -591,7 +591,7 @@ def test_compare_map_indexed():
     from cogent3.core.alignment import Aligned
 
     raw_seq = "--AC-GTAA--"
-    im, seq = DNA.make_seq(raw_seq).parse_out_gaps()
+    im, seq = DNA.make_seq(seq=raw_seq).parse_out_gaps()
     ia = Aligned(im, seq)
     length = len(raw_seq)
     got = [str(ia[i]) for i in range(length)]
@@ -625,9 +625,9 @@ def test_indelmap_to_feature_map():
 def test_indelmap_nucleic_reversed(raw):
     from cogent3.core.alignment import Aligned
 
-    plus = DNA.make_seq(raw)
+    plus = DNA.make_seq(seq=raw)
     minus = plus.rc()
-    plus_imap, _ = DNA.make_seq(raw).parse_out_gaps()
+    plus_imap, _ = DNA.make_seq(seq=raw).parse_out_gaps()
     minus_imap, minus_seq = minus.parse_out_gaps()
     got = plus_imap.nucleic_reversed()
     assert got.get_coordinates() == minus_imap.get_coordinates()
@@ -668,8 +668,8 @@ def test_indel_map_get_gap_coords():
 )
 def test_indelmap_joined_segments(coords):
     raw = "--AC--GGGG--"
-    expect, _ = DNA.make_seq("".join(raw[s:e] for s, e in coords)).parse_out_gaps()
-    imap, _ = DNA.make_seq(raw).parse_out_gaps()
+    expect, _ = DNA.make_seq(seq="".join(raw[s:e] for s, e in coords)).parse_out_gaps()
+    imap, _ = DNA.make_seq(seq=raw).parse_out_gaps()
     got = imap.joined_segments(coords)
     assert got.gap_pos.tolist() == expect.gap_pos.tolist()
     assert got.cum_gap_lengths.tolist() == expect.cum_gap_lengths.tolist()
@@ -678,8 +678,8 @@ def test_indelmap_joined_segments(coords):
 def test_indelmap_slice_terminating():
     raw = "-CB-A--"
     start, end = 4, 6
-    expect, _ = DNA.make_seq(raw[start:end]).parse_out_gaps()
-    imap, _ = DNA.make_seq(raw).parse_out_gaps()
+    expect, _ = DNA.make_seq(seq=raw[start:end]).parse_out_gaps()
+    imap, _ = DNA.make_seq(seq=raw).parse_out_gaps()
     got = imap[start:end]
     assert got.gap_pos.tolist() == expect.gap_pos.tolist()
     assert got.cum_gap_lengths.tolist() == expect.cum_gap_lengths.tolist()
@@ -688,8 +688,8 @@ def test_indelmap_slice_terminating():
 def test_indelmap_slice_zero():
     raw = "-CB-A--"
     start, end = 0, 0
-    expect, s = DNA.make_seq(raw[start:end]).parse_out_gaps()
-    imap, _ = DNA.make_seq(raw).parse_out_gaps()
+    expect, s = DNA.make_seq(seq=raw[start:end]).parse_out_gaps()
+    imap, _ = DNA.make_seq(seq=raw).parse_out_gaps()
     got = imap[start:end]
     assert got.parent_length == len(s)
     assert got.gap_pos.tolist() == expect.gap_pos.tolist()
@@ -725,8 +725,8 @@ def test_indelmap_get_indices_errors():
 def test_indelmap_slice_innner_gap():
     start, end = 4, 6
     raw = "--AC--GGGG--"
-    expect, _ = DNA.make_seq(raw[start:end]).parse_out_gaps()
-    imap, _ = DNA.make_seq(raw).parse_out_gaps()
+    expect, _ = DNA.make_seq(seq=raw[start:end]).parse_out_gaps()
+    imap, _ = DNA.make_seq(seq=raw).parse_out_gaps()
     imap = imap[start:end]
     assert imap.gap_pos.tolist() == expect.gap_pos.tolist()
 
@@ -734,7 +734,7 @@ def test_indelmap_slice_innner_gap():
 def test_indelmap_slice_cum_length():
     start, end = 7, 11
     raw = "--AC--GGGG--"
-    expect, _ = DNA.make_seq(raw[start:end]).parse_out_gaps()
+    expect, _ = DNA.make_seq(seq=raw[start:end]).parse_out_gaps()
     imap, _ = DNA.make_seq(raw).parse_out_gaps()
     imap = imap[start:end]
     assert imap.gap_pos.tolist() == expect.gap_pos.tolist()
@@ -944,7 +944,7 @@ def test_gapped_convert_aln2seq_gapchar(data, gap_number):
 
 
 def test_gapped_convert_aln2seq_invalid():
-    gaps, _ = make_seq("AC--GTA-TG", moltype="dna").parse_out_gaps()
+    gaps, _ = make_seq(seq="AC--GTA-TG", moltype="dna").parse_out_gaps()
     with pytest.raises(IndexError):
         # absolute value of negative indices must be < seq length
         gaps.get_seq_index(-100)
@@ -1099,7 +1099,7 @@ def test_gap_coords_to_map():
     assert dict(got.get_gap_coordinates()) == gap_coords
 
     # and no gaps
-    m, seq = DNA.make_seq("ACGTTTA").parse_out_gaps()
+    m, seq = DNA.make_seq(seq="ACGTTTA").parse_out_gaps()
     got = gap_coords_to_map({}, len(seq))
     assert len(got) == len(m)
     assert got.get_coordinates() == m.get_coordinates()

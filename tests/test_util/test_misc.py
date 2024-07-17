@@ -41,6 +41,7 @@ from cogent3.util.misc import (
     is_iterable,
     iterable,
     list_flatten,
+    negate_condition,
     not_list_tuple,
     recursive_flatten,
 )
@@ -1284,3 +1285,17 @@ def test_get_true_spans_not_absolute():
 
     got = get_true_spans(array([1, 0, 0, 1, 1, 1, 1, 0, 1, 1]), absolute_pos=False)
     assert_allclose(got, array([[0, 1], [2, 4], [3, 2]]))
+
+
+def test_negate_condition():
+    def greater_than_5(x):
+        return x > 5
+
+    negator = negate_condition(greater_than_5)
+
+    result_true = negator(3)
+    result_false = negator(8)
+
+    assert result_true == True
+    assert result_false == False
+    assert greater_than_5(3) != negator(3)

@@ -86,7 +86,7 @@ def make_pairwise(data, refseq_name, moltype="dna", array_align=False):
 
 
 def make_aligned(gaps_lengths, seq, name="seq1"):
-    seq = seq.moltype.make_seq(seq, name=name)
+    seq = seq.moltype.make_seq(seq=seq, name=name)
     return Aligned(gap_coords_to_map(gaps_lengths, len(seq)), seq)
 
 
@@ -155,7 +155,7 @@ class RefalignmentTests(TestCase):
     def test_gap_union(self):
         """correctly identifies the union of all gaps"""
         # fails if not all sequences same
-        seq = DNA.make_seq("AACCCGTT")
+        seq = DNA.make_seq(seq="AACCCGTT")
         all_gaps = dict([(0, 3), (2, 1), (5, 3), (6, 3)])
         make_aligned(all_gaps, seq)
         gap_sets = [
@@ -178,7 +178,7 @@ class RefalignmentTests(TestCase):
 
     def test_gap_difference(self):
         """correctly identifies the difference in gaps"""
-        seq = DNA.make_seq("AACCCGTT")
+        seq = DNA.make_seq(seq="AACCCGTT")
         dict([(0, 3), (2, 1), (5, 3), (6, 3)])
         gap_sets = [
             dict([(5, 1), (6, 3)]),
@@ -563,7 +563,7 @@ def test_sp_score_exclude_gap():
     data = {"s1": "AAGAA-A", "s2": "-ATAATG", "s3": "C-TGG-G"}
     # prop unchanged s1-s2, s1-s3
     expect = sum([6 * 3 / 6, 0, 5 * 2 / 5])
-    aln = make_aligned_seqs(data, moltype="dna")
+    aln = make_aligned_seqs(data, moltype="dna", array_align=False)
     got = app.main(aln)
     assert_allclose(got, expect)
 

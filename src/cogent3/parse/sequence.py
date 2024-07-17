@@ -1,8 +1,8 @@
-#!/usr/bin/env python
-"""Classes for reading multiple sequence alignment files in different formats."""
+"""Delegator for sequence data format parsers."""
 
-
-import re
+import functools
+import pathlib
+import typing
 import xml.dom.minidom
 
 from cogent3.parse import (
@@ -17,14 +17,19 @@ from cogent3.parse import (
     tinyseq,
 )
 from cogent3.parse.record import FileFormatError
-from cogent3.util.io import get_format_suffixes, open_
+from cogent3.util import warning as c3warn
+from cogent3.util.io import get_format_suffixes, iter_splitlines, open_
 
 
 _lc_to_wc = "".join([[chr(x), "?"]["A" <= chr(x) <= "Z"] for x in range(256)])
-_compression = re.compile(r"\.(gz|bz2)$")
 
 
-def FromFilenameParser(filename, format=None, **kw):
+@c3warn.deprecated_callable(
+    "2024.9",
+    reason="allow more customised parser implementations",
+    is_discontinued=True,
+)
+def FromFilenameParser(filename, format=None, **kw):  # pragma: no cover
     """Arguments:
     - filename: name of the sequence alignment file
     - format: the multiple sequence file format
@@ -38,7 +43,12 @@ def FromFilenameParser(filename, format=None, **kw):
     return FromFileParser(data.splitlines(), format, **kw)
 
 
-def FromFileParser(f, format, dialign_recode=False, **kw):
+@c3warn.deprecated_callable(
+    "2024.9",
+    reason="allow more customised parser implementations",
+    is_discontinued=True,
+)
+def FromFileParser(f, format, dialign_recode=False, **kw):  # pragma: no cover
     format = format.lower()
     if format in XML_PARSERS:
         doctype = format
@@ -66,26 +76,70 @@ def FromFileParser(f, format, dialign_recode=False, **kw):
         yield name, seq
 
 
+ParserOutputType = typing.Iterable[typing.Tuple[str, str]]
+
+
+class LineBasedParser:
+    """wrapper class to standardise input for line-based sequence format parsers"""
+
+    def __init__(self, parser: typing.Callable[[typing.Any], ParserOutputType]) -> None:
+        self._parse = parser
+
+    @functools.singledispatchmethod
+    def __call__(self, data, **kwargs) -> ParserOutputType:
+        raise TypeError(f"Unsupported data type {type(data)}")
+
+    @__call__.register
+    def _(self, data: str, **kwargs) -> ParserOutputType:
+        return self(pathlib.Path(data), **kwargs)
+
+    @__call__.register
+    def _(self, data: pathlib.Path, **kwargs) -> ParserOutputType:
+        if not data.exists():
+            raise FileNotFoundError(f"File '{data}' does not exist")
+        yield from self._parse(iter_splitlines(data), **kwargs)
+
+    @__call__.register
+    def _(self, data: tuple, **kwargs) -> ParserOutputType:
+        # we're assuming this is already split by lines
+        yield from self._parse(data, **kwargs)
+
+    @__call__.register
+    def _(self, data: list, **kwargs) -> ParserOutputType:
+        # we're assuming this is already split by lines
+        yield from self._parse(data, **kwargs)
+
+
 PARSERS = {
-    "phylip": phylip.MinimalPhylipParser,
-    "paml": paml.PamlParser,
-    "fasta": fasta.MinimalFastaParser,
-    "mfa": fasta.MinimalFastaParser,
-    "fa": fasta.MinimalFastaParser,
-    "faa": fasta.MinimalFastaParser,
-    "fna": fasta.MinimalFastaParser,
-    "xmfa": fasta.MinimalXmfaParser,
-    "gde": fasta.MinimalGdeParser,
-    "aln": clustal.ClustalParser,
-    "clustal": clustal.ClustalParser,
-    "gb": genbank.RichGenbankParser,
-    "gbk": genbank.RichGenbankParser,
-    "gbff": genbank.RichGenbankParser,
-    "genbank": genbank.RichGenbankParser,
-    "msf": gcg.MsfParser,
-    "nex": nexus.MinimalNexusAlignParser,
-    "nxs": nexus.MinimalNexusAlignParser,
-    "nexus": nexus.MinimalNexusAlignParser,
+    "phylip": LineBasedParser(phylip.MinimalPhylipParser),
+    "paml": LineBasedParser(paml.PamlParser),
+    "fasta": LineBasedParser(fasta.MinimalFastaParser),
+    "mfa": LineBasedParser(fasta.MinimalFastaParser),
+    "fa": LineBasedParser(fasta.MinimalFastaParser),
+    "faa": LineBasedParser(fasta.MinimalFastaParser),
+    "fna": LineBasedParser(fasta.MinimalFastaParser),
+    "xmfa": LineBasedParser(fasta.MinimalXmfaParser),
+    "gde": LineBasedParser(fasta.MinimalGdeParser),
+    "aln": LineBasedParser(clustal.ClustalParser),
+    "clustal": LineBasedParser(clustal.ClustalParser),
+    "gb": LineBasedParser(genbank.RichGenbankParser),
+    "gbk": LineBasedParser(genbank.RichGenbankParser),
+    "gbff": LineBasedParser(genbank.RichGenbankParser),
+    "genbank": LineBasedParser(genbank.RichGenbankParser),
+    "msf": LineBasedParser(gcg.MsfParser),
+    "nex": LineBasedParser(nexus.MinimalNexusAlignParser),
+    "nxs": LineBasedParser(nexus.MinimalNexusAlignParser),
+    "nexus": LineBasedParser(nexus.MinimalNexusAlignParser),
 }
 
 XML_PARSERS = {"gbseq": gbseq.GbSeqXmlParser, "tseq": tinyseq.TinyseqParser}
+
+SeqParserInputTypes = typing.Union[str, pathlib.Path, tuple, list]
+
+
+def get_parser(fmt: str) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+    """returns a sequence format parser"""
+    try:
+        return PARSERS[fmt]
+    except KeyError:
+        raise ValueError(f"Unsupported format {fmt!r}")

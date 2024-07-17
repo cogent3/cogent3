@@ -644,7 +644,7 @@ def RichGenbankParser(
         info = Info(genbank_record=info)
         try:
             seq = rec_moltype.make_seq(
-                rec["sequence"].upper(), info=info, name=rec["locus"]
+                seq=rec["sequence"].upper(), info=info, name=rec["locus"]
             )
         except KeyError:
             if "contig" in rec:

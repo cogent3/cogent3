@@ -17,7 +17,7 @@ class FeaturesTest(TestCase):
     def setUp(self):
         # A Sequence with a couple of exons on it.
         self.s = DNA.make_seq(
-            "AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA", name="Orig"
+            seq="AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA", name="Orig"
         )
         self.exon1 = self.s.add_feature(biotype="exon", name="fred", spans=[(10, 15)])
         self.exon2 = self.s.add_feature(biotype="exon", name="trev", spans=[(30, 40)])
@@ -75,7 +75,7 @@ class FeaturesTest(TestCase):
 
     def test_annotate_matches_to(self):
         """annotate_matches_to attaches annotations correctly to a Sequence"""
-        seq = DNA.make_seq("TTCCACTTCCGCTT", name="x")
+        seq = DNA.make_seq(seq="TTCCACTTCCGCTT", name="x")
         pattern = "CCRC"
         annot = seq.annotate_matches_to(
             pattern=pattern, biotype="domain", name="fred", allow_multiple=True
@@ -156,7 +156,9 @@ def test_feature_residue():
 @pytest.fixture(scope="function")
 def ann_seq():
     # A Sequence with a couple of exons on it.
-    s = DNA.make_seq("AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA", name="Orig")
+    s = DNA.make_seq(
+        seq="AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA", name="Orig"
+    )
     s.add_feature(biotype="gene", name="a-gene", spans=[(10, 40)])
     s.add_feature(
         biotype="exon", name="fred", spans=[(10, 15), (30, 40)], parent_id="a-gene"
@@ -198,7 +200,7 @@ def _add_features(obj, on_alignment):
 
 
 def test_feature_query_child_seq():
-    s = DNA.make_seq("AAAGGGAAAA", name="s1")
+    s = DNA.make_seq(seq="AAAGGGAAAA", name="s1")
     s = _add_features(s, on_alignment=False)
     gene = list(s.get_features(biotype="CDS"))[0]
     child = list(gene.get_children())
@@ -209,7 +211,7 @@ def test_feature_query_child_seq():
 
 
 def test_feature_query_parent_seq():
-    s = DNA.make_seq("AAAGGGAAAA", name="s1")
+    s = DNA.make_seq(seq="AAAGGGAAAA", name="s1")
     s = _add_features(s, on_alignment=False)
     exon = list(s.get_features(name="child"))[0]
     parent = list(exon.get_parent())
@@ -446,7 +448,9 @@ def test_feature_from_alignment():
 
 def test_nested_get_slice():
     """check the get_slice method works on nested annotations"""
-    s = DNA.make_seq("AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA", name="Orig")
+    s = DNA.make_seq(
+        seq="AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA", name="Orig"
+    )
     ex = s.add_feature(biotype="exon", name="fred", spans=[(10, 20)])
     s.add_feature(biotype="exon", name="trev", spans=[(30, 40)])
     s.add_feature(biotype="repeat", name="bob", spans=[(12, 17)], parent_id="fred")
@@ -458,7 +462,7 @@ def test_roundtrip_annotated_seq():
     """should work for a seq that has been reverse complemented"""
     # the key that exposed the bug was a gap in the middle of the sequence
     seq = DNA.make_seq(
-        "AAAGGGGGAACCT",
+        seq="AAAGGGGGAACCT",
         name="x",
     )
     seq.add_feature(biotype="exon", name="E1", spans=[(3, 8)])
@@ -499,7 +503,7 @@ def test_masking_strand_agnostic_seq():
     # Annotations should be correctly masked,
     # whether the sequence has been reverse complemented or not.
     # We use the plus/minus strand CDS containing sequences created above.
-    plus = DNA.make_seq("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA", name="plus")
+    plus = DNA.make_seq(seq="AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA", name="plus")
     plus.annotation_db = db
     masked = plus.with_masked_annotations("CDS")
     assert len(masked) == len(plus)
@@ -540,7 +544,7 @@ def test_masking_strand_agnostic_aln():
 def test_roundtrip_json():
     """features can roundtrip from json"""
 
-    seq = DNA.make_seq("AAAAATATTATTGGGT")
+    seq = DNA.make_seq(seq="AAAAATATTATTGGGT")
     seq.add_feature(biotype="exon", name="myname", spans=[(0, 5)])
     got = seq.to_json()
     new = deserialise_object(got)
@@ -628,7 +632,7 @@ def test_feature_out_range():
 def test_search_with_ints(cast):
     """searching for features with numpy ints should work"""
     start, stop = cast([2, 5])
-    seq = DNA.make_seq("AAAGGGGGAACCCT", name="x")
+    seq = DNA.make_seq(seq="AAAGGGGGAACCCT", name="x")
     db = GffAnnotationDb()
     db.add_feature(seqid="x", biotype="exon", name="E1", spans=[(3, 8)])
     db.add_feature(seqid="x", biotype="exon", name="E2", spans=[(10, 13)])
@@ -674,7 +678,7 @@ def test_feature_reverse():
     # and show that after getting the reverse complement we have
     # exactly the same result from getting the CDS annotation.
 
-    plus = DNA.make_seq("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA", name="plus")
+    plus = DNA.make_seq(seq="AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA", name="plus")
     plus_cds = plus.add_feature(
         biotype="CDS", name="gene", spans=[(2, 6), (10, 15), (25, 35)]
     )
@@ -687,7 +691,7 @@ def test_feature_reverse():
 @pytest.mark.parametrize("moltype", ("protein", "bytes", "text"))
 def test_rc_feature_on_wrong_moltype(moltype):
     moltype = get_moltype(moltype)
-    seq = moltype.make_seq("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA", name="s1")
+    seq = moltype.make_seq(seq="AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA", name="s1")
     cds = seq.add_feature(
         biotype="CDS", name="gene", spans=[(2, 6), (10, 15), (25, 35)], strand="-"
     )
@@ -738,7 +742,9 @@ def test_hash_feature(ann_seq):
 
 
 def test_seq_degap_preserves_annotations():
-    s1 = DNA.make_seq("AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAGGGAACCCT", name="seq1")
+    s1 = DNA.make_seq(
+        seq="AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAGGGAACCCT", name="seq1"
+    )
     s1.add_feature(biotype="exon", name="A", spans=[(10, 15)])
     dg = s1.degap()
     assert len(s1.annotation_db) == len(dg.annotation_db)

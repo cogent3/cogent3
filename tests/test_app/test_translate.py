@@ -18,7 +18,7 @@ class TestTranslatable(TestCase):
     def test_best_frame(self):
         """correctly identify best frame with/without allowing rc"""
         make_seq = DNA.make_seq
-        seq = make_seq("ATGCTAACATAAA", name="fake1")
+        seq = make_seq(seq="ATGCTAACATAAA", name="fake1")
         f = best_frame(seq)
         self.assertEqual(f, 1)
         f = best_frame(seq, require_stop=True)
@@ -26,14 +26,15 @@ class TestTranslatable(TestCase):
 
         # a challenging seq, translatable in 1 and 3 frames, ending on stop in
         # frame 1. Should return frame 1 irrespective of require_stop
-        seq = make_seq("ATGTTACGGACGATGCTGAAGTCGAAGATCCACCGCGCCACGGTGACCTGCTGA")
+        seq = make_seq(seq="ATGTTACGGACGATGCTGAAGTCGAAGATCCACCGCGCCACGGTGACCTGCTGA")
         f = best_frame(seq)
         self.assertEqual(f, 1)
 
         # a rc seq
         f = best_frame(seq)
         seq = make_seq(
-            "AATATAAATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTTCATAAAGTCATA", name="fake2"
+            seq="AATATAAATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTTCATAAAGTCATA",
+            name="fake2",
         )
         f = best_frame(seq, allow_rc=True)
         self.assertEqual(f, 1)
@@ -70,7 +71,7 @@ class TestTranslatable(TestCase):
 
     def test_translate_frames(self):
         """returns translated sequences"""
-        seq = DNA.make_seq("ATGCTGACATAAA", name="fake1")
+        seq = DNA.make_seq(seq="ATGCTGACATAAA", name="fake1")
         tr = translate_frames(seq)
         self.assertEqual(tr, ["MLT*", "C*HK", "ADI"])
         # with the bacterial nuclear and plant plastid code
@@ -82,7 +83,7 @@ class TestTranslate(TestCase):
     def test_translate_seqcoll(self):
         """correctly translate a sequence collection"""
         seqs = dict(a="ATGAGG", b="ATGTAA")
-        seqs = make_unaligned_seqs(seqs)
+        seqs = make_unaligned_seqs(seqs, moltype="dna")
         # trim terminal stops
         translater = translate_seqs()
         aa = translater(seqs)

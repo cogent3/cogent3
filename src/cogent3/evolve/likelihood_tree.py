@@ -3,6 +3,9 @@ Each leaf holds a sequence.  Used by a likelihood function."""
 
 import numpy
 
+from cogent3.core.alphabet import AlphabetError
+from cogent3.core.new_alphabet import AlphabetError as new_AlphabetError
+
 from . import likelihood_tree_numba as likelihood_tree
 
 
@@ -234,15 +237,37 @@ def make_likelihood_tree_leaf(sequence, alphabet, seq_name):
 
     counts = numpy.array(counts, float)
 
+    # refactor: simplify
+    # added for compatibility between old and new style sequences/moltype/alphabets
+    # should be simplified when old style is removed
+    from cogent3.core.alphabet import Alphabet, CharAlphabet
+    from cogent3.core.new_sequence import Sequence
+
+    if isinstance(sequence, Sequence):
+        # we can rely on getting the moltype from the sequence
+        moltype = sequence.moltype
+    elif isinstance(alphabet, (CharAlphabet, Alphabet)):
+        # we can rely on getting the moltype from the alphabet
+        moltype = alphabet.moltype
+    else:
+        # the combination of new old style sequence and new alphabet
+        # means we cannot reliably source the moltype.
+        try:
+            moltype = sequence.moltype
+        except AttributeError as e:
+            raise ValueError(
+                "Cannot determine moltype from sequence or alphabet"
+            ) from e
+
     # Convert list of unique motifs to array of unique profiles
     try:
-        likelihoods = get_matched_array(
-            alphabet, alphabet.moltype, uniq_motifs, dtype=float
-        )
-    except alphabet.AlphabetError as detail:
+        likelihoods = get_matched_array(alphabet, moltype, uniq_motifs, dtype=float)
+    except (AlphabetError, new_AlphabetError) as detail:
         motif = str(detail)
         posn = list(sequence2).index(motif) * motif_len
-        raise ValueError(f"{motif!r} at {seq_name!r}:{posn} not in alphabet")
+        raise ValueError(
+            f"{motif!r} at {seq_name!r}:{posn} not in alphabet"
+        ) from detail
 
     return LikelihoodTreeLeaf(
         uniq_motifs, likelihoods, counts, index, seq_name, alphabet, sequence

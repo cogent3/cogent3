@@ -11,8 +11,10 @@ the MolType. It is thus essential that the connection between these other
 types and the MolType can be made after the objects are created.
 """
 
+import functools
 import itertools
 import json
+import os
 import re
 import typing
 
@@ -609,7 +611,7 @@ class MolType:
         self._serialisable = {k: v for k, v in locals().items() if k != "self"}
         self.gap = gap
         self.missing = missing
-        self.gaps = frozenset([gap, missing])
+        self.gaps = frozenset([gap, missing])  # ported
         if gaps:
             self.gaps = self.gaps.union(frozenset(gaps))
         self.label = label
@@ -807,11 +809,11 @@ class MolType:
             badchar = nonalpha.search(seq)
             if badchar:
                 motif = badchar.group()
-                raise AlphabetError(motif)
+                raise AlphabetError(f"{motif!r}")
         except TypeError:  # not alphabetic sequence: try slow method
             for motif in seq:
                 if motif not in alpha:
-                    raise AlphabetError(motif)
+                    raise AlphabetError(f"{motif!r}")
 
     def is_ambiguity(self, querymotif):
         """Return True if querymotif is an amibiguity character in alphabet.
@@ -1377,12 +1379,24 @@ class MolType:
         return any(alpha == alphabet for alpha in self.alphabets.iter_alphabets())
 
 
+@functools.singledispatch
 def _convert_to_rna(seq: str) -> str:
     return seq.replace("t", "u").replace("T", "U")
 
 
+@_convert_to_rna.register
+def _(seq: bytes) -> str:
+    return seq.replace(b"t", b"u").replace(b"T", b"U").decode("utf8")
+
+
+@functools.singledispatch
 def _convert_to_dna(seq: str) -> str:
     return seq.replace("u", "t").replace("U", "T")
+
+
+@_convert_to_dna.register
+def _(seq: bytes) -> str:
+    return seq.replace(b"u", b"t").replace(b"U", b"T").decode("utf8")
 
 
 ASCII = MolType(
@@ -1517,8 +1531,23 @@ def _make_moltype_dict():
 moltypes = _make_moltype_dict()
 
 
-def get_moltype(name):
-    """returns the moltype with the matching name attribute"""
+def get_moltype(name, new_type: bool = False):
+    """returns the moltype with the matching name attribute
+
+    Parameters
+    ----------
+    name
+        the name of the moltype
+    new_type
+        if True, returns new type Moltype (cogent3.core.new_moltype.MolType).
+        The default will be changed to True in 2024.12. Support for the old
+        style will be removed as of 2025.6.
+    """
+    if new_type or "COGENT3_NEW_TYPE" in os.environ:
+        from cogent3.core.new_moltype import get_moltype as new_get_moltype
+
+        return new_get_moltype(name=name)
+
     if isinstance(name, MolType):
         return name
     name = name.lower()

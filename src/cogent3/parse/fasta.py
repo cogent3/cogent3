@@ -2,11 +2,15 @@
 """
 
 import os
+import pathlib
 import re
+import string
 import typing
 
 from collections.abc import Callable
 from functools import singledispatch
+
+import numpy
 
 import cogent3
 
@@ -356,11 +360,12 @@ def GroupFastaParser(
     for label, seq in parser:
         seq = moltype.make_seq(seq, name=label, info=label.info)
         if DEBUG:
-            print("str(label) ", str(label), "repr(label)", repr(label))
-        if not group_ids or label.info[group_key] in group_ids:
+            print(f"{label=} {label=!r}")
+        if not group_ids:
             current_collection[label] = seq
-            if not group_ids:
-                group_ids.append(label.info[group_key])
+            group_ids.append(label.info[group_key])
+        elif label.info[group_key] in group_ids:
+            current_collection[label] = seq
         else:
             # we finish off check of current before creating a collection
             if group_ids[-1] not in done_groups:
@@ -376,5 +381,81 @@ def GroupFastaParser(
             group_ids.append(label.info[group_key])
     info = Info(Group=group_ids[-1])
     func = cogent3.make_aligned_seqs if aligned else cogent3.make_unaligned_seqs
-    seqs = func(current_collection, moltype=moltype, info=info)
-    yield seqs
+    yield func(current_collection, moltype=moltype, info=info)
+
+
+OutTypes = typing.Union[str, bytes, numpy.ndarray]
+OptConverter = typing.Optional[typing.Callable[[bytes], OutTypes]]
+
+
+class minimal_converter:
+    """coerces lower case bytes to upper case bytes and removes whitespace"""
+
+    def __init__(self) -> None:
+        lc = string.ascii_lowercase.encode("utf8")
+        self._translate = b"".maketrans(lc, lc.upper())
+
+    def __call__(self, text: bytes) -> str:
+        return text.translate(self._translate, delete=b"\n\r\t ").decode("utf8")
+
+
+@singledispatch
+def iter_fasta_records(
+    data, converter: OptConverter = None
+) -> typing.Iterable[typing.Tuple[str, OutTypes]]:
+    """generator returning sequence labels and sequences converted bytes from a fasta file
+
+    Parameters
+    ----------
+    path
+        location of the fasta file
+    converter
+        a callable that converts sequence characters, deleting unwanted characters
+        (newlines, spaces). Whatever type this callable returns will be the type
+        of the sequence returned. If None, uses minimal_converter() which returns bytes.
+
+
+    Returns
+    -------
+    the sequence label as a string and the sequence as transformed by converter
+    """
+    raise TypeError(f"iter_fasta_records not implemented for {type(data)}")
+
+
+@iter_fasta_records.register
+def _(
+    data: bytes, converter: OptConverter = None
+) -> typing.Iterable[typing.Tuple[str, OutTypes]]:
+    if converter is None:
+        converter = minimal_converter()
+
+    records = data.split(b">")
+    for record in records:
+        if not len(record):
+            continue
+
+        eol = record.find(b"\n")
+        if eol == -1:
+            continue
+        label = record[:eol].strip().decode("utf8")
+        seq = converter(record[eol + 1 :])
+        yield label, seq
+
+
+@iter_fasta_records.register
+def _(data: str, converter: OptConverter = None):
+    with open_(data, mode="rb") as infile:
+        data: bytes = infile.read()
+    return iter_fasta_records(data, converter=converter)
+
+
+@iter_fasta_records.register
+def _(data: pathlib.Path, converter: OptConverter = None):
+    with open_(data, mode="rb") as infile:
+        data: bytes = infile.read()
+    return iter_fasta_records(data, converter=converter)
+
+
+@iter_fasta_records.register
+def _(data: list, converter: OptConverter = None):
+    return MinimalFastaParser(data, strict=False)
