@@ -1994,6 +1994,20 @@ class SliceRecordABC(ABC):
     """Abstract base class for recording the history of operations to be applied
     to some underlying data. Provides slicing functionality for the underlying data.
 
+    Parameters
+    ----------
+    start
+        start of the slice (inclusive indexing)
+    stop
+        stop of the slice (exclusive indexing)
+    step
+        step of the slice
+    offset
+        can be set with any additional offset that exists before the start of
+        the underlying data
+    seq_len
+        length of the underlying data (not including offset)
+
     Notes
     -----
     seq_len refers to a Python typing.Sequence object, e.g. array, str, list.
@@ -2382,12 +2396,14 @@ class SeqViewABC(ABC):
 
     This class defines an interface for sequence views, by which operations
     performed on the sequence do not modify the original sequence data. Instead,
-    modifications and operations are realised on a view of the sequence.
+    modifications and operations are stored on the returned view of the sequence
+    and can be realised by accessing the values of the view.
     """
 
     __slots__ = ()
 
     @property
+    @abstractmethod
     def seqid(self) -> OptStr: ...
 
     @property

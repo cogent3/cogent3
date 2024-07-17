@@ -568,8 +568,8 @@ class MolType:
             if True, performs validation checks; set to False if the sequence
             data is already known to be valid.
         **kwargs
-            Additional keyword arguments that may be required for creating the
-            Sequence object,
+            additional keyword arguments that may be required for creating the
+            Sequence object
         """
         # refactor: design
         # for Sequence and SeqView object, a consistency check with moltype/alphabet
