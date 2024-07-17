@@ -535,6 +535,6 @@ class PSSMTests(TestCase):
             [0.6, 0.15, 0.05, 0.2],
         ]
         pssm = PSSM(data, "ACTG")
-        seq = DNA.make_seq("".join("ACTG"[i] for i in [3, 1, 2, 0, 2, 2, 3]))
+        seq = DNA.make_seq(seq="".join("ACTG"[i] for i in [3, 1, 2, 0, 2, 2, 3]))
         scores = pssm.score_seq(seq)
         assert_allclose(scores, [-4.481, -5.703, -2.966], atol=1e-3)

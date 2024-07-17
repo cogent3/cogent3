@@ -519,3 +519,39 @@ def test_count_variants():
     assert p("H") == 3
     assert p("NRH") == 24
     assert p("AUGCNGUCAG-AURGAUC--GAUHCGAUACGWS") == 96
+
+
+def test_degenerate_from_seq():
+    """RnaMolType degenerate_from_seq should give correct results"""
+    rna = new_moltype.get_moltype("rna")
+    d = rna.degenerate_from_seq
+    # check monomers
+    assert d("A") == "A"
+    assert d("C") == "C"
+    # check seq of monomers
+    assert d("AAA") == "A"
+    # check some 2- to 4-way cases
+    assert d("AG") == "R"
+    assert d("CG") == "S"
+    assert d("ACG") == "V"
+    assert d("AGCU") == "N"
+    # check some cases with gaps
+    assert d("A---ACU") == "?"
+    assert d("AAA-") == "?"
+    assert d("---") == "-"
+    # check mixed case example
+    assert d("AAAAAA") == "A"
+    # check example with degenerate symbols in set
+    assert d("RS") == "V"
+    assert d("RN-") == "?"
+    # check that it works for proteins as well
+    protein = new_moltype.get_moltype("protein")
+    p = protein.degenerate_from_seq
+    assert p("A") == "A"
+    assert p("AAA") == "A"
+    assert p("DN") == "B"
+    assert p("---") == "-"
+    assert p("ACD") == "X"
+    assert p("ABD") == "X"
+    assert p("ACX") == "X"
+    assert p("AC-") == "?"

@@ -8,7 +8,7 @@ from warnings import catch_warnings, filterwarnings
 import numpy
 import pytest
 
-from cogent3 import load_seq, load_unaligned_seqs, open_
+from cogent3 import load_unaligned_seqs, open_
 from cogent3._version import __version__
 from cogent3.core import new_alignment, new_alphabet, new_moltype, new_sequence
 from cogent3.core.annotation import Feature
@@ -234,7 +234,6 @@ def test_seqs_data_seq_lengths(str_seqs_dict, arr_seqs_dict, alpha):
 
 
 def test_seqs_data_get_seq_array(str_seqs_dict, alpha):
-    # todo: kath, edit and parametrize for all moltypes
     # seq1
     expect = numpy.array([2, 1, 3, 0], dtype="uint8")
     sd = new_alignment.SeqsData(data=str_seqs_dict, alphabet=alpha)

@@ -267,61 +267,69 @@ IUPAC_PROTEIN_code_aa = {
     "*": "STOP",
 }
 
-IUPAC_PROTEIN_chars = (
-    "A",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "I",
-    "K",
-    "L",
-    "M",
-    "N",
-    "P",
-    "Q",
-    "R",
-    "S",
-    "T",
-    "U",
-    "V",
-    "W",
-    "Y",
+IUPAC_PROTEIN_chars = frozenset(
+    [
+        "A",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H",
+        "I",
+        "K",
+        "L",
+        "M",
+        "N",
+        "P",
+        "Q",
+        "R",
+        "S",
+        "T",
+        "U",
+        "V",
+        "W",
+        "Y",
+    ]
 )
 
-PROTEIN_WITH_STOP_chars = (
-    "A",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "I",
-    "K",
-    "L",
-    "M",
-    "N",
-    "P",
-    "Q",
-    "R",
-    "S",
-    "T",
-    "U",
-    "V",
-    "W",
-    "Y",
-    "*",
+PROTEIN_WITH_STOP_chars = frozenset(
+    [
+        "A",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H",
+        "I",
+        "K",
+        "L",
+        "M",
+        "N",
+        "P",
+        "Q",
+        "R",
+        "S",
+        "T",
+        "U",
+        "V",
+        "W",
+        "Y",
+        "*",
+    ]
 )
 
-IUPAC_PROTEIN_ambiguities = {"B": ["N", "D"], "X": IUPAC_PROTEIN_chars, "Z": ["Q", "E"]}
+IUPAC_PROTEIN_ambiguities = {
+    "B": frozenset(["N", "D"]),
+    "X": IUPAC_PROTEIN_chars,
+    "Z": frozenset(["Q", "E"]),
+}
 
 PROTEIN_WITH_STOP_ambiguities = {
-    "B": ["N", "D"],
+    "B": frozenset(["N", "D"]),
     "X": PROTEIN_WITH_STOP_chars,
-    "Z": ["Q", "E"],
+    "Z": frozenset(["Q", "E"]),
 }
 
 # styling for moltype display
@@ -543,8 +551,26 @@ class MolType:
 
         return any(alpha == alphabet for alpha in self.iter_alphabets())
 
-    def make_seq(self, *, seq: str, name: OptStr = None, check_seq=True, **kwargs):
-        # refactor: docstring
+    def make_seq(
+        self, *, seq: str, name: OptStr = None, check_seq=True, **kwargs
+    ) -> new_sequence.Sequence:
+        """creates a Sequence object corresponding to the molecular type of
+        this instance.
+
+        Parameters
+        ----------
+        seq
+            the raw sequence data
+        name
+            the name of the sequence
+        check_seq
+            whether to validate the sequence data against the molecular type
+            if True, performs validation checks; set to False if the sequence
+            data is already known to be valid.
+        **kwargs
+            additional keyword arguments that may be required for creating the
+            Sequence object
+        """
         # refactor: design
         # for Sequence and SeqView object, a consistency check with moltype/alphabet
         # should be performed
@@ -1000,6 +1026,38 @@ class MolType:
     @count_variants.register
     def _(self, seq: str) -> int:
         return numpy.prod([len(self.ambiguities.get(c, c)) for c in seq])
+
+    def degenerate_from_seq(self, seq: str) -> str:
+        """Returns least degenerate symbol that encompasses a set of characters"""
+        symbols = frozenset(seq)
+
+        # if the length of the set is 1, return the single character
+        if len(symbols) == 1:
+            return next(iter(symbols))
+
+        # all degenerate symbols should be added to the sets that they encompass
+        degens = self.ambiguities.copy()
+        for degen1 in degens:
+            for degen2, char_set in self.ambiguities.items():
+                if self.ambiguities[degen1] <= char_set:
+                    degens[degen2] = degens[degen2].union(frozenset(degen1))
+
+        # reverse the mapping between degenerate symbols and their encompassing sets
+        inv_degens = {frozenset(val): key for key, val in list(degens.items())}
+
+        # add gap and missing characters to the mapping
+        inv_degens[frozenset(self.gap)] = self.gap
+        inv_degens[frozenset(self.degen_gapped_alphabet)] = self.missing
+
+        # if we exactly match a set of symbols, return the corresponding degenerate
+        if result := inv_degens.get(symbols):
+            return result
+
+        # if we don't exactly match, sort all encompassing sets and return the
+        # least degenerate one
+        encompassing = [chars for chars in inv_degens if chars.issuperset(symbols)]
+        encompassing = sorted(encompassing, key=len)
+        return inv_degens[encompassing[0]]
 
     def strand_symmetric_motifs(
         self, motif_length: int = 1
