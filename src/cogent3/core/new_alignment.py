@@ -288,7 +288,24 @@ class SeqsDataABC(ABC):
 
 
 class SeqsData(SeqsDataABC):
-    # refactor: docstring
+    """A collection of sequences underlying a SequenceCollection. The sequence
+    data is stored as numpy arrays, however the underlying data can be accessed
+    as strings, bytes, or numpy arrays.
+
+    Attributes
+    ----------
+    data
+        a dictionary of {name: sequence} pairs
+    alphabet
+        an instance of CharAlphabet valid for the sequences
+    make_seq
+        optional sequence constructor, takes 'seq' and 'name' as keyword arguments
+        and returns a Sequence instance. If not set, __getitem__ will return a
+        SeqDataView
+    reversed_seqs
+        a dictionary of {name: bool} pairs indicating if the sequence is reversed
+    """
+
     __slots__ = ("_data", "_alphabet", "_make_seq", "_reversed_seqs")
     # todo: kath
     # refactor: design

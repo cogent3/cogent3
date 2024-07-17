@@ -551,8 +551,26 @@ class MolType:
 
         return any(alpha == alphabet for alpha in self.iter_alphabets())
 
-    def make_seq(self, *, seq: str, name: OptStr = None, check_seq=True, **kwargs):
-        # refactor: docstring
+    def make_seq(
+        self, *, seq: str, name: OptStr = None, check_seq=True, **kwargs
+    ) -> new_sequence.Sequence:
+        """creates a Sequence object corresponding to the molecular type of
+        this instance.
+
+        Parameters
+        ----------
+        seq
+            the raw sequence data
+        name
+            the name of the sequence
+        check_seq
+            whether to validate the sequence data against the molecular type
+            if True, performs validation checks; set to False if the sequence
+            data is already known to be valid.
+        **kwargs
+            Additional keyword arguments that may be required for creating the
+            Sequence object,
+        """
         # refactor: design
         # for Sequence and SeqView object, a consistency check with moltype/alphabet
         # should be performed

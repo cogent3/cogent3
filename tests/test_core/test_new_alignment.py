@@ -234,7 +234,6 @@ def test_seqs_data_seq_lengths(str_seqs_dict, arr_seqs_dict, alpha):
 
 
 def test_seqs_data_get_seq_array(str_seqs_dict, alpha):
-    # todo: kath, edit and parametrize for all moltypes
     # seq1
     expect = numpy.array([2, 1, 3, 0], dtype="uint8")
     sd = new_alignment.SeqsData(data=str_seqs_dict, alphabet=alpha)

@@ -1992,7 +1992,7 @@ def _input_vals_neg_step(seqlen, start, stop, step):
 
 class SliceRecordABC(ABC):
     """Abstract base class for recording the history of operations to be applied
-    to some underlying data
+    to some underlying data. Provides slicing functionality for the underlying data.
 
     Notes
     -----
@@ -2377,7 +2377,13 @@ class SliceRecordABC(ABC):
 
 
 class SeqViewABC(ABC):
-    # refactor: docstring
+    """
+    An abstract base class for providing a view of a sequence.
+
+    This class defines an interface for sequence views, by which operations
+    performed on the sequence do not modify the original sequence data. Instead,
+    modifications and operations are realised on a view of the sequence.
+    """
 
     __slots__ = ()
 
@@ -2416,7 +2422,33 @@ class SeqViewABC(ABC):
 
 
 class SeqView(SeqViewABC, SliceRecordABC):
-    # refactor: docstring
+    """
+    Provides a view of a sequence with support for slicing operations.
+
+    This class represents a view of a sequence, allowing for efficient slicing
+    without altering the original sequence data.
+
+    Parameters
+    ----------
+    seq
+        the original sequence data
+    alphabet
+        the alphabet object defining valid characters for the sequence
+    start
+        the starting index of the slice. Defaults to the start of the sequence
+    stop
+        the stopping index of the slice. Defaults to the end of the sequence
+    step
+        the step size for the slice. Defaults to 1
+    offset
+        an offset used for adjusting the view's starting position. Defaults to 0
+    seqid
+        the name or identifier of the sequence
+    seq_len
+        the length of the sequence. Defaults to the length of the input sequence
+
+    """
+
     __slots__ = (
         "seq",
         "alphabet",
