@@ -20,7 +20,12 @@ from cogent3.util import parallel as PAR
 from cogent3.util import progress_display as UI
 from cogent3.util.misc import docstring_to_summary_rest, get_object_provenance
 
-from .data_store import DataMember, get_data_source, get_unique_id
+from .data_store import (
+    DataMember,
+    DataStoreABC,
+    get_data_source,
+    get_unique_id,
+)
 
 
 _builtin_seqs = list, set, tuple
@@ -152,6 +157,21 @@ def _get_raw_hints(main_func, min_params):
     depth, _ = type_tree(return_type)
     if depth > 2:
         raise TypeError(msg.format("return_type", return_type, depth))
+
+    if isinstance(first_param_type, str):
+        msg = (
+            "Apps do not yet support string type hints "
+            "(such as those caused by __future__ annotations). "
+            f"Bad type hint: {first_param_type}"
+        )
+        raise NotImplementedError(msg)
+    if isinstance(return_type, str):
+        msg = (
+            "Apps do not yet support string type hints "
+            "(such as those caused by __future__ annotations). "
+            f"Bad type hint: {return_type}"
+        )
+        raise NotImplementedError(msg)
 
     return first_param_type, return_type
 
@@ -687,6 +707,8 @@ def _as_completed(self, dstore, parallel=False, par_kw=None, **kwargs) -> Genera
 
     if isinstance(dstore, str):
         dstore = [dstore]
+    elif isinstance(dstore, DataStoreABC):
+        dstore = dstore.completed
     mapped = _proxy_input(dstore)
     if not mapped:
         return mapped
@@ -763,6 +785,8 @@ def _apply_to(
 
     if isinstance(dstore, (str, Path)):  # one filename
         dstore = [dstore]
+    elif isinstance(dstore, DataStoreABC):
+        dstore = dstore.completed
 
     # todo this should fail if somebody provides data that cannot produce a unique_id
     inputs = {}
