@@ -1139,7 +1139,7 @@ class SequenceIntegrationTests(TestCase):  # not porting: not supporting ArraySe
 
     def test_regular_to_model(self):
         """Regular sequence should convert to model sequence"""
-        r = RNA.make_seq("AAA", name="x")
+        r = RNA.make_seq(seq="AAA", name="x")
         s = RNA.make_array_seq(seq=r)
         self.assertEqual(str(s), "AAA")
         self.assertEqual(s.moltype, RNA)

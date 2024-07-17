@@ -14,8 +14,8 @@ from cogent3.parse.cigar import (
 class TestCigar(unittest.TestCase):
     def setUp(self):
         self.cigar_text = "3D2M3D6MDM2D3MD"
-        self.aln_seq = DNA.make_seq("---AA---GCTTAG-A--CCT-")
-        self.aln_seq1 = DNA.make_seq("CCAAAAAA---TAGT-GGC--G")
+        self.aln_seq = DNA.make_seq(seq="---AA---GCTTAG-A--CCT-")
+        self.aln_seq1 = DNA.make_seq(seq="CCAAAAAA---TAGT-GGC--G")
         self.map, self.seq = self.aln_seq.parse_out_gaps()
         self.map1, self.seq1 = self.aln_seq1.parse_out_gaps()
         self.slices = [(1, 4), (0, 8), (7, 12), (0, 1), (3, 5)]
