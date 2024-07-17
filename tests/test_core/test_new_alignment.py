@@ -2177,3 +2177,108 @@ def test_sequence_collection_reverse_complement():
 
     got = got.reverse_complement()
     assert got.to_dict() == data
+
+
+# Alignment tests
+
+
+@pytest.fixture
+def aligned_dict():
+    return dict(seq1="ACG--T", seq2="-CGAAT")
+
+
+@pytest.fixture
+def ad_demo(aligned_dict: dict[str, str]):
+    return new_alignment.AlignedData.from_gapped_seqs(aligned_dict)
+
+
+@pytest.fixture
+def gap_seqs():
+    return [
+        ("A---CTG-C", [[1, 3], [4, 1]]),
+        ("-GTAC--", [[0, 1], [4, 2]]),
+        ("---AGC--TGC--", [[0, 3], [3, 2], [6, 2]]),
+    ]
+
+
+def test_from_string_unequal_seqlens():
+    data = dict(seq1="A-A", seq2="AAAAAAA--")
+    with pytest.raises(ValueError):
+        new_alignment.AlignedData.from_gapped_seqs(data=data)
+
+
+def test_aligned_from_string_returns_self(aligned_dict):
+    got = new_alignment.AlignedData.from_gapped_seqs(data=aligned_dict)
+    assert isinstance(got, new_alignment.AlignedData)
+
+
+@pytest.mark.xfail(reason="AlignedDataView not implemented")
+@pytest.mark.parametrize("seqid", ("seq1", "seq2"))
+def test_get_aligned_view(aligned_dict, seqid):
+    ad = new_alignment.AlignedData.from_gapped_seqs(aligned_dict)
+    got = ad.get_aligned_view(seqid)
+    assert isinstance(got, new_alignment.AlignedDataView)
+    assert got.seq == ad
+    assert got.stop == ad.align_len
+    assert got.seq_len == ad.align_len
+
+
+def test_seq_to_gap_coords_str_all_gaps():
+    parent_seq = "-----"
+    expect_gaplen = numpy.array([len(parent_seq)])
+    got_ungap, got_map = new_alignment.seq_to_gap_coords(
+        parent_seq, moltype=new_moltype.get_moltype("dna")
+    )
+    assert got_ungap == ""
+    assert got_map.cum_gap_lengths == expect_gaplen
+
+
+def test_seq_to_gap_coords_str_no_gaps():
+    parent_seq = "ACTGC"
+    got_ungap, got_empty_arr = new_alignment.seq_to_gap_coords(
+        parent_seq, moltype=new_moltype.get_moltype("dna")
+    )
+    assert got_ungap == parent_seq
+    assert got_empty_arr.size == 0
+
+
+def test_seq_to_gap_coords_arr_all_gaps():
+    alpha = new_moltype.get_moltype("dna").degen_gapped_alphabet
+    parent_seq = alpha.to_indices("-----")
+    got_ungap, got_map = new_alignment.seq_to_gap_coords(
+        parent_seq, moltype=new_moltype.get_moltype("dna")
+    )
+    assert got_ungap.size == 0
+    assert got_map.get_gap_coordinates() == [[0, 5]]
+
+
+def test_seq_to_gap_coords_arr_no_gaps():
+    alpha = new_moltype.get_moltype("dna").degen_gapped_alphabet
+    parent_seq = alpha.to_indices("ACTGC")
+    got_ungap, got_empty_arr = new_alignment.seq_to_gap_coords(
+        parent_seq, moltype=new_moltype.get_moltype("dna")
+    )
+    assert numpy.array_equal(got_ungap, parent_seq)
+    assert got_empty_arr.size == 0
+
+
+@pytest.mark.parametrize("i", range(3))
+def test_seq_to_gap_coords_str(gap_seqs, i):
+    seq, gap_coords = gap_seqs[i]
+    got_ungapped, got_map = new_alignment.seq_to_gap_coords(
+        seq, moltype=new_moltype.get_moltype("dna")
+    )
+    assert got_ungapped == seq.replace("-", "")
+    assert got_map.get_gap_coordinates() == gap_coords
+
+
+@pytest.mark.parametrize("i", range(3))
+def test_seq_to_gap_coords_arr(gap_seqs, i):
+    seq, gap_coords = gap_seqs[i]
+    alpha = new_moltype.get_moltype("dna").degen_gapped_alphabet
+    seq = alpha.to_indices(seq)  # convert to array repr
+    got_ungapped, got_map = new_alignment.seq_to_gap_coords(
+        seq, moltype=new_moltype.get_moltype("dna")
+    )
+    assert numpy.array_equal(got_ungapped, seq[seq != 4])  # gap_char = 4
+    assert got_map.get_gap_coordinates() == gap_coords
