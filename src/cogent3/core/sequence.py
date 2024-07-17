@@ -60,7 +60,6 @@ from cogent3.core.location import FeatureMap, IndelMap, LostSpan
 from cogent3.format.fasta import seqs_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts
 from cogent3.maths.stats.number import CategoryCounter
-from cogent3.util import warning as c3warn
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import (
     DistanceFromMatrix,
@@ -1427,11 +1426,6 @@ class Sequence(SequenceI):
             for pos in range(start, end, step):
                 yield self[pos : pos + window]
 
-    @c3warn.deprecated_args(
-        "2024.6",
-        reason="argument name consistency",
-        old_new=(("log_warnings", "warn"),),
-    )
     def get_in_motif_size(self, motif_length=1, warn=False):
         """returns sequence as list of non-overlapping motifs
 

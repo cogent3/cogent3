@@ -2633,11 +2633,6 @@ class AlignmentI(object):
         """Returns new Alignment containing cols where f(col) is True."""
         return self.take_positions(self.get_position_indices(f, negate=negate))
 
-    @c3warn.deprecated_args(
-        "2024.6",
-        reason="consistency with other methods",
-        old_new=[("allow_gaps", "allow_gap")],
-    )
     def iupac_consensus(self, alphabet=None, allow_gap=True):
         """Returns string containing IUPAC consensus sequence of the alignment."""
         if alphabet is None:
@@ -4038,11 +4033,6 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             result.append(">" + str(l) + "\n" + "".join(seq2str(s)))
         return "\n".join(result) + "\n"
 
-    @c3warn.deprecated_args(
-        "2024.6",
-        reason="consistency with other methods",
-        old_new=[("allow_gaps", "allow_gap")],
-    )
     def iupac_consensus(self, alphabet=None, allow_gap=True):
         """Returns string containing IUPAC consensus sequence of the alignment."""
         if alphabet is None:

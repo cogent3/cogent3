@@ -140,9 +140,6 @@ def minimise(f, *args, **kw):
     return maximise(nf, *args, **kw)
 
 
-@c3warn.deprecated_args(
-    "2024.6", reason="has no effect in this function", discontinued="limit_action"
-)
 @UI.display_wrap
 def maximise(
     f,
