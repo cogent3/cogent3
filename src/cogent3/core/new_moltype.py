@@ -1009,6 +1009,38 @@ class MolType:
     def _(self, seq: str) -> int:
         return numpy.prod([len(self.ambiguities.get(c, c)) for c in seq])
 
+    def degenerate_from_seq(self, seq: str) -> str:
+        """Returns least degenerate symbol that encompasses a set of characters"""
+        symbols = frozenset(seq)
+
+        # if the length of the set is 1, return the single character
+        if len(symbols) == 1:
+            return next(iter(symbols))
+
+        # all degenerate symbols should be added to the sets that they encompass
+        degens = self.ambiguities.copy()
+        for degen1 in degens:
+            for degen2, char_set in self.ambiguities.items():
+                if self.ambiguities[degen1] <= char_set:
+                    degens[degen2] = degens[degen2].union(frozenset(degen1))
+
+        # reverse the mapping between degenerate symbols and their encompassing sets
+        inv_degens = {frozenset(val): key for key, val in list(degens.items())}
+
+        # add gap and missing characters to the mapping
+        inv_degens[frozenset(self.gap)] = self.gap
+        inv_degens[frozenset(self.degen_gapped_alphabet)] = self.missing
+
+        # if we exactly match a set of symbols, return the corresponding degenerate
+        if result := inv_degens.get(symbols):
+            return result
+
+        # if we don't exactly match, sort all encompassing sets and return the
+        # least degenerate one
+        encompassing = [chars for chars in inv_degens if chars.issuperset(symbols)]
+        encompassing = sorted(encompassing, key=len)
+        return inv_degens[encompassing[0]]
+
     def strand_symmetric_motifs(
         self, motif_length: int = 1
     ) -> set[tuple[str, str]]:  # refactor: docstring
