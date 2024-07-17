@@ -267,61 +267,69 @@ IUPAC_PROTEIN_code_aa = {
     "*": "STOP",
 }
 
-IUPAC_PROTEIN_chars = (
-    "A",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "I",
-    "K",
-    "L",
-    "M",
-    "N",
-    "P",
-    "Q",
-    "R",
-    "S",
-    "T",
-    "U",
-    "V",
-    "W",
-    "Y",
+IUPAC_PROTEIN_chars = frozenset(
+    [
+        "A",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H",
+        "I",
+        "K",
+        "L",
+        "M",
+        "N",
+        "P",
+        "Q",
+        "R",
+        "S",
+        "T",
+        "U",
+        "V",
+        "W",
+        "Y",
+    ]
 )
 
-PROTEIN_WITH_STOP_chars = (
-    "A",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "I",
-    "K",
-    "L",
-    "M",
-    "N",
-    "P",
-    "Q",
-    "R",
-    "S",
-    "T",
-    "U",
-    "V",
-    "W",
-    "Y",
-    "*",
+PROTEIN_WITH_STOP_chars = frozenset(
+    [
+        "A",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H",
+        "I",
+        "K",
+        "L",
+        "M",
+        "N",
+        "P",
+        "Q",
+        "R",
+        "S",
+        "T",
+        "U",
+        "V",
+        "W",
+        "Y",
+        "*",
+    ]
 )
 
-IUPAC_PROTEIN_ambiguities = {"B": ["N", "D"], "X": IUPAC_PROTEIN_chars, "Z": ["Q", "E"]}
+IUPAC_PROTEIN_ambiguities = {
+    "B": frozenset(["N", "D"]),
+    "X": IUPAC_PROTEIN_chars,
+    "Z": frozenset(["Q", "E"]),
+}
 
 PROTEIN_WITH_STOP_ambiguities = {
-    "B": ["N", "D"],
+    "B": frozenset(["N", "D"]),
     "X": PROTEIN_WITH_STOP_chars,
-    "Z": ["Q", "E"],
+    "Z": frozenset(["Q", "E"]),
 }
 
 # styling for moltype display
