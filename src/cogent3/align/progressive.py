@@ -1,6 +1,6 @@
 from typing import Optional, Tuple
 
-from cogent3 import get_app, get_model
+from cogent3 import get_app, get_model, make_unaligned_seqs
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
 from cogent3.core.tree import TreeNode
 from cogent3.evolve.distance import EstimateDistances
@@ -69,10 +69,10 @@ def tree_align(
 
     num_states = len(model.alphabet)
 
-    if isinstance(seqs, SequenceCollection):
-        seqs = seqs.to_moltype(moltype)
+    if isinstance(seqs, dict):
+        seqs = make_unaligned_seqs(seqs, moltype=moltype)
     else:
-        seqs = SequenceCollection(data=seqs, moltype=moltype)
+        seqs = seqs.to_moltype(moltype)
 
     if tree is not None:
         fix_lengths = get_app("scale_branches", scalar=1.0)

@@ -486,7 +486,7 @@ class MolTypeTests(TestCase):
         self.assertEqual(s("ACGUcgAUGUGCAUcaguX"), 18)
         self.assertEqual(s("ACGUcgAUGUGCAUcaguX-38243829"), 18)
 
-    def test_disambiguate(self):
+    def test_disambiguate(self):  # ported
         """MolType disambiguate should remove degenerate bases"""
         d = RnaMolType.disambiguate
         self.assertEqual(d(""), "")
@@ -508,7 +508,7 @@ class MolTypeTests(TestCase):
         # should raise exception on unknown disambiguation method
         self.assertRaises(NotImplementedError, d, s, "xyz")
 
-    def test_degap(self):
+    def test_degap(self):  # ported
         """MolType degap should remove all gaps from sequence"""
         g = RnaMolType.degap
         self.assertEqual(g(""), "")
@@ -599,7 +599,7 @@ class MolTypeTests(TestCase):
         self.assertEqual(c("!@#$!@#$!@#$"), 12)
         self.assertEqual(c("cguua!cgcuagua@cguasguadc#"), 3)
 
-    def test_count_degenerate(self):
+    def test_count_degenerate(self):  # ported
         """MolType count_degenerate should return correct degen base count"""
         d = RnaMolType.count_degenerate
         self.assertEqual(d(""), 0)
@@ -608,7 +608,7 @@ class MolTypeTests(TestCase):
         self.assertEqual(d("NRY"), 3)
         self.assertEqual(d("ACGUAVCUAGCAUNUCAGUCAGyUACGUCAGS"), 4)
 
-    def test_possibilites(self):
+    def test_possibilites(self):  # ported
         """MolType possibilities should return correct # possible sequences"""
         p = RnaMolType.possibilities
         self.assertEqual(p(""), 1)
@@ -796,6 +796,8 @@ class RnaMolTypeTests(TestCase):
         expect = {b + "_protein" for b in states}
         self.assertEqual(got, expect)
 
+    ("new MolType will not support setting label")
+
     def test_get_css_no_label(self):
         """should not fail when moltype has no label"""
         dna = get_moltype("dna")
@@ -945,7 +947,7 @@ class DinucAlphabet(_AlphabetTestCase):
         alpha = self.alpha.get_subset(motif_freqs)
         self.assertEqualSets(alpha, ["AA", "CA", "GT"])
 
-    def test_strand_symmetric_motifs(self):
+    def test_strand_symmetric_motifs(self):  # ported
         """construction of strand symmetric motif sets"""
         # fails for a moltype with no strand complement
         with self.assertRaises(TypeError):
@@ -1116,13 +1118,13 @@ class TestCodonAlphabet(_AlphabetTestCase):
         self.assertEqual(alpha_int, alpha_name)
 
 
-def test_resolve_ambiguity_nucs():
+def test_resolve_ambiguity_nucs():  # ported
     got = DNA.resolve_ambiguity("AT?", allow_gap=False)
     assert len(got) == 4
     assert len(got[0]) == 3
 
 
-def test_resolve_ambiguity_codons():
+def test_resolve_ambiguity_codons():  # ported
     from cogent3 import get_code
 
     gc = get_code(1)
@@ -1142,15 +1144,18 @@ def test_resolve_ambiguity_codons():
 
 
 def test_make_seq_on_seq():
-    seq = DNA.make_seq("ACGG")
-    got = DNA.make_seq(seq)
+    seq = DNA.make_seq(seq="ACGG")
+    got = DNA.make_seq(seq=seq)
     assert got is seq
 
 
+("Dropping support for coerce_str")
+
+
 def test_make_seq_diff_moltype():
-    seq = RNA.make_seq("ACGG")
+    seq = RNA.make_seq(seq="ACGG")
     seq.add_feature(biotype="gene", name="test", spans=[(0, 2)])
-    got = DNA.make_seq(seq)
+    got = DNA.make_seq(seq=seq)
     assert len(got.annotation_db) == 1
 
 

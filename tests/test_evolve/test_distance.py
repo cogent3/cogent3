@@ -743,7 +743,8 @@ class DistancesTests(TestCase):
                 "b": "GTACGTACGTAC",
                 "c": "GTACGTACGTTC",
                 "e": "GTACGTACTGGT",
-            }
+            },
+            moltype="dna",
         )
         self.collection = make_unaligned_seqs(
             data={
@@ -751,7 +752,8 @@ class DistancesTests(TestCase):
                 "b": "GTACGTACGTAC",
                 "c": "GTACGTACGTTC",
                 "e": "GTACGTACTGGT",
-            }
+            },
+            moltype="dna",
         )
 
     def assertDistsAlmostEqual(self, expected, observed, precision=4):

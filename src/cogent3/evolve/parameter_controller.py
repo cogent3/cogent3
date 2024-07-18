@@ -568,11 +568,18 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
 
     def set_sequences(self, seqs, locus=None):
         from cogent3.core.alignment import SequenceCollection
+        from cogent3.core.new_alignment import (
+            SequenceCollection as new_SequenceCollection,
+        )
 
         leaves = {}
 
+        # refactor: simplify
+        # can be simplified once we drop support for old sequence objects
         if isinstance(seqs, SequenceCollection):
             seqs = seqs.named_seqs
+        if isinstance(seqs, new_SequenceCollection):
+            seqs = {name: seqs.seqs[name] for name in seqs.names}
 
         for name, seq in list(seqs.items()):
             # if has uniq, probably already a likelihood tree leaf obj already

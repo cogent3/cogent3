@@ -11,6 +11,7 @@ from numpy.testing import assert_allclose
 
 from cogent3 import (
     get_app,
+    get_code,
     load_aligned_seqs,
     load_tree,
     make_aligned_seqs,
@@ -34,10 +35,11 @@ from cogent3.util.deserialise import (
 class TestDeserialising(TestCase):
     def test_roundtrip_codon_alphabet(self):
         """codon alphabet to_json enables roundtrip"""
-        data = moltype.STANDARD_CODON.to_json()
+        STANDARD_CODON = get_code(1).get_alphabet()
+        data = STANDARD_CODON.to_json()
         got = deserialise_object(data)
-        self.assertEqual(type(got), type(moltype.STANDARD_CODON))
-        self.assertEqual(list(got), list(moltype.STANDARD_CODON))
+        self.assertEqual(type(got), type(STANDARD_CODON))
+        self.assertEqual(list(got), list(STANDARD_CODON))
 
     def test_roundtrip_alphabet(self):
         """alphabet to_json enables roundtrip"""
@@ -690,7 +692,7 @@ def test_roundtrip_TN93_model_result():
 def test_roundtrip_seq(mtype):
     """seq to_json enables roundtrip"""
     mtype = moltype.get_moltype(mtype)
-    seq = mtype.make_seq("ACGGTCGG", "label", info={"something": 3})
+    seq = mtype.make_seq(seq="ACGGTCGG", name="label", info={"something": 3})
     got = deserialise_object(seq.to_json())
     assert got.info.something == 3
     assert got.name == "label"

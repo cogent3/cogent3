@@ -388,7 +388,7 @@ def test_feature_strand():
     minus_spans = [(4, 7), (11, 13)]
     minus_seq = "".join(raw_seq[s:e] for s, e in minus_spans)
     minus_seq = "".join([{"T": "A", "A": "T"}[b] for b in minus_seq[::-1]])
-    seq = make_seq(raw_seq, name="s1", moltype="dna")
+    seq = make_seq(seq=raw_seq, name="s1", moltype="dna")
     db = GffAnnotationDb()
     db.add_feature(
         seqid="s1",
@@ -426,7 +426,7 @@ def test_feature_nucleic():
 
     #                              111111
     #                    0123456789012345
-    seq = make_seq("AACCTTTGGGGAATTT", moltype="dna")
+    seq = make_seq(seq="AACCTTTGGGGAATTT", moltype="dna")
     mmap = loc.FeatureMap.from_locations(
         locations=[(4, 7), (10, 12)], parent_length=len(seq)
     )
@@ -630,7 +630,7 @@ def test_rc_get_slice_positive_feature(anno_db):
     the same sequence before and after the sequence is reverse complemented
     """
 
-    seq = DNA.make_seq("AAAAGGGG", name="seq1")
+    seq = DNA.make_seq(seq="AAAAGGGG", name="seq1")
 
     seq.annotation_db = anno_db
     anno_db.add_feature(
@@ -795,7 +795,7 @@ def test_relative_position_negative_feature(seq_db):
 
 
 def test_relative_position_positive_feature(anno_db):
-    seq = DNA.make_seq("AAAAGGGG", name="seq1")
+    seq = DNA.make_seq(seq="AAAAGGGG", name="seq1")
 
     seq.annotation_db = anno_db
     anno_db.add_feature(
