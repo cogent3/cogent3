@@ -6,7 +6,7 @@ build-backend = "flit_core.buildapi"
 name = "cogent3"
 description = """COmparative GENomics Toolkit 3: genomic sequence analysis within notebooks or on compute systems with 1000s of CPUs."""
 # remember to update cogent3/_version.py too!
-version = "2024.5.7a1"
+version = "2024.7.19a1"
 authors = [
     { name = "Gavin Huttley", email = "Gavin.Huttley@anu.edu.au"},
 ]
