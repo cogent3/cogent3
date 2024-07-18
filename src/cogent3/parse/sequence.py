@@ -91,7 +91,7 @@ class LineBasedParser:
 
     @__call__.register
     def _(self, data: str, **kwargs) -> ParserOutputType:
-        return self(pathlib.Path(data), **kwargs)
+        yield from self._parse(iter_splitlines(data), **kwargs)
 
     @__call__.register
     def _(self, data: pathlib.Path, **kwargs) -> ParserOutputType:

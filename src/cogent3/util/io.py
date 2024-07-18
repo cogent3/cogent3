@@ -365,11 +365,14 @@ def iter_splitlines(
     -----
     Loads chunks of data from the file, yields one line at a time
     """
-    path = Path(path)
-    if chunk_size and path.stat().st_size < chunk_size:
-        # file is smaller than provided chunk_size, just
-        # load it all
+    if _urls.search(str(path)):
         chunk_size = None
+    else:
+        path = Path(path)
+        if chunk_size and path.stat().st_size < chunk_size:
+            # file is smaller than provided chunk_size, just
+            # load it all
+            chunk_size = None
 
     with open_(path) as infile:
         last = ""
