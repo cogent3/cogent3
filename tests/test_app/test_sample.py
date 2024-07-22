@@ -1,7 +1,6 @@
 from unittest import TestCase
 
 import pytest
-
 from cogent3 import DNA, make_aligned_seqs, make_unaligned_seqs
 from cogent3.app import composable, sample
 from cogent3.app.composable import NotCompleted

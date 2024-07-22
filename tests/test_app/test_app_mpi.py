@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import pytest
-
 from cogent3 import get_app, open_data_store
 from cogent3.util import parallel
 

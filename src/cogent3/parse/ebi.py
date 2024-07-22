@@ -1,8 +1,7 @@
 #!/usr/bin/env python
-"""Provide a parser for SwissProt EBI format files.
-"""
-import sys
+"""Provide a parser for SwissProt EBI format files."""
 
+import sys
 from pprint import pprint
 
 from cogent3.core.sequence import Sequence
@@ -13,7 +12,6 @@ from cogent3.parse.record_finder import (
     TailedRecordFinder,
 )
 from cogent3.util.misc import NestedSplitter, curry, list_flatten
-
 
 maketrans = str.maketrans
 
@@ -1652,7 +1650,5 @@ AC   Q9U9C5;hdfksfsdfs;sdfsfsfs;
 SQ   SEQUENCE   218 AA;  24367 MW;  F24AE5E8A102FAC6 CRC64;
      MISVMQQMIN NDSPEDSKES ITSVQQTPFF WPSAAAAIPS IQGESRSERE
 //
-""".split(
-            "\n"
-        )
+""".split("\n")
         pprint(list(EbiParser(lines, strict=False, selected_labels=[])))

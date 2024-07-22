@@ -14,7 +14,6 @@ import os
 import re
 import typing
 import warnings
-
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from functools import singledispatch, total_ordering
@@ -22,7 +21,6 @@ from operator import eq, ne
 from random import shuffle
 
 import numpy
-
 from numpy import array, floating, integer, issubdtype
 
 from cogent3._version import __version__
@@ -48,7 +46,6 @@ from cogent3.util.misc import (
     get_setting_from_environ,
 )
 from cogent3.util.transform import for_seq, per_shortest
-
 
 OptGeneticCodeType = typing.Optional[typing.Union[int, str, "GeneticCode"]]
 OptStr = typing.Optional[str]

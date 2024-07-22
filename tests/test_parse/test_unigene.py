@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-"""Unit tests for unigene-specific classes
-"""
+"""Unit tests for unigene-specific classes"""
+
 from unittest import TestCase
 
 from cogent3.parse.record_finder import GbFinder

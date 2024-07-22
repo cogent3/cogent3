@@ -25,7 +25,7 @@ way the positioning of parameters in the instantaneous rate matrix (commonly
 called Q) is determined.
 
 >>> model = Nucleotide(equal_motif_probs=True)
->>> model.setparameterrules({'alpha': model.istransition})
+>>> model.setparameterrules({"alpha": model.istransition})
 >>> parameter_controller = model.make_likelihood_function(tree)
 """
 
@@ -34,12 +34,10 @@ from __future__ import annotations
 import json
 import typing
 import warnings
-
 from collections.abc import Callable
 from copy import deepcopy
 
 import numpy
-
 from numpy.linalg import svd
 
 from cogent3._version import __version__
@@ -68,7 +66,6 @@ from cogent3.recalculation.definition import (
     WeightedPartitionDefn,
 )
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
-
 
 kappa_y = predicate.MotifChange("T", "C").aliased("kappa_y")
 kappa_r = predicate.MotifChange("A", "G").aliased("kappa_r")

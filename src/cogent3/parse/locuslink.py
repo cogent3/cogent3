@@ -51,7 +51,6 @@ from cogent3.parse.record import (
 )
 from cogent3.parse.record_finder import LabeledRecordFinder
 
-
 maketrans = str.maketrans
 strip = str.strip
 rstrip = str.rstrip

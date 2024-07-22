@@ -30,7 +30,6 @@ from __future__ import annotations
 import json
 import numbers
 import re
-
 from copy import deepcopy
 from functools import reduce
 from itertools import combinations

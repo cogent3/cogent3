@@ -1,15 +1,11 @@
 import json
 import pathlib
 import shutil
-
 from itertools import product
 from pathlib import Path
 from pickle import dumps, loads
 
 import pytest
-
-from scitrack import get_text_hexdigest
-
 from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
 from cogent3.app.composable import NotCompleted
@@ -30,6 +26,7 @@ from cogent3.app.data_store import (
 )
 from cogent3.util.table import Table
 from cogent3.util.union_dict import UnionDict
+from scitrack import get_text_hexdigest
 
 
 @pytest.fixture(scope="function")

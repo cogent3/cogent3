@@ -1,6 +1,5 @@
 import numpy
 
-
 three_letter_order = "ARNDCQEGHILKMFPSTWYV"
 aa_order = numpy.array([ord(aa) for aa in three_letter_order])
 reorder = numpy.argsort(aa_order)

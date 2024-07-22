@@ -19,7 +19,6 @@ import json
 import os
 import re
 import warnings
-
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from functools import singledispatch, total_ordering
@@ -68,7 +67,6 @@ from cogent3.util.misc import (
     get_setting_from_environ,
 )
 from cogent3.util.transform import for_seq, per_shortest
-
 
 ARRAY_TYPE = type(array(1))
 DEFAULT_ANNOTATION_DB = BasicAnnotationDb

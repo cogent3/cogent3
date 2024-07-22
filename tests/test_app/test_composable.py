@@ -1,22 +1,16 @@
 import inspect
 import pickle
 import shutil
-
 from pathlib import Path
 from pickle import dumps, loads
 from typing import Set, Tuple
 from unittest.mock import Mock
 
 import pytest
-
-from numpy import array, ndarray
-from scitrack import CachingLogger
-
 from cogent3 import get_app, make_aligned_seqs, open_data_store
-from cogent3.app import align, evo
+from cogent3.app import align, evo, translate, tree
 from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
-from cogent3.app import translate, tree
 from cogent3.app import typing as c3types
 from cogent3.app.composable import (
     NON_COMPOSABLE,
@@ -42,6 +36,8 @@ from cogent3.app.translate import select_translatable
 from cogent3.app.tree import quick_tree
 from cogent3.app.typing import AlignedSeqsType, PairwiseDistanceType
 from cogent3.core.alignment import Alignment, SequenceCollection
+from numpy import array, ndarray
+from scitrack import CachingLogger
 
 
 @pytest.fixture(scope="function")

@@ -1,6 +1,5 @@
 from cogent3.util.misc import get_merged_by_value_coords
 
-
 # following from https://cgwb.nci.nih.gov/goldenPath/help/bedgraph.html
 # track type=bedGraph name=track_label description=center_label
 #        visibility=display_mode color=r,g,b altColor=r,g,b

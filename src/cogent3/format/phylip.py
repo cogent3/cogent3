@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""Writer for PHYLIP sequence format
-"""
+"""Writer for PHYLIP sequence format"""
 
 from cogent3.format.util import _AlignmentFormatter
 

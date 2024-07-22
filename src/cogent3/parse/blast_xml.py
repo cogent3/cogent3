@@ -1,13 +1,10 @@
-"""Parsers for XML output of blast, psi-blast and blat.
-"""
+"""Parsers for XML output of blast, psi-blast and blat."""
 
 import xml.dom.minidom
-
 from operator import gt as _gt
 from operator import lt as _lt
 
 from cogent3.parse.blast import MinimalBlastParser9, MinimalPsiBlastParser9
-
 
 """
 CAUTION:

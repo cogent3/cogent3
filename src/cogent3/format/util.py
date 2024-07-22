@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""Alignment formatter template class
-"""
+"""Alignment formatter template class"""
 
 
 class _AlignmentFormatter:

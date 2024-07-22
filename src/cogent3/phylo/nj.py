@@ -9,7 +9,6 @@ Biological sequence analysis by Durbin et al
 Generalised as described by Pearson, Robins & Zhang, 1999.
 """
 
-
 from collections import deque
 
 import numpy

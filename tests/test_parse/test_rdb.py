@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # test_rdb.py
-"""Unit test for RDB Parser
-"""
+"""Unit test for RDB Parser"""
+
 from unittest import TestCase
 
 from cogent3.core.info import Info

@@ -2,7 +2,6 @@ import functools
 import itertools
 import json
 import typing
-
 from abc import ABC, abstractmethod
 
 import numba
@@ -11,7 +10,6 @@ import numpy
 from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.misc import get_object_provenance
-
 
 StrORBytes = typing.Union[str, bytes]
 StrORBytesORArray = typing.Union[str, bytes, numpy.ndarray]

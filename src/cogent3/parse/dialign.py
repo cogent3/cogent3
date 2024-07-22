@@ -4,7 +4,6 @@ import re
 
 from cogent3 import ASCII
 
-
 _header = re.compile(r"^\s+[=]+")
 _quality_scores = re.compile(r"^ +\d+[\s\d]*$")
 

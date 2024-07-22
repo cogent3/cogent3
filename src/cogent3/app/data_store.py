@@ -7,7 +7,6 @@ import pathlib
 import re
 import reprlib
 import zipfile
-
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from enum import Enum
@@ -29,7 +28,6 @@ from cogent3.util.deserialise import deserialise_object
 from cogent3.util.io import get_format_suffixes, open_
 from cogent3.util.parallel import is_master_process
 from cogent3.util.table import Table
-
 
 _NOT_COMPLETED_TABLE = "not_completed"
 _LOG_TABLE = "logs"

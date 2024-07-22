@@ -2,12 +2,10 @@ import json
 import os
 import pathlib
 import re
-
 from warnings import catch_warnings, filterwarnings
 
 import numpy
 import pytest
-
 from cogent3 import load_unaligned_seqs, open_
 from cogent3._version import __version__
 from cogent3.core import new_alignment, new_alphabet, new_moltype, new_sequence

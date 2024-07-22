@@ -1,7 +1,6 @@
 from collections import deque
 
 import pytest
-
 from cogent3 import make_seq
 from cogent3.align.pycompare import (
     Kmer,

@@ -15,7 +15,6 @@ str.  Note that its default constuctor is rstrip instead of strip.
 
 from cogent3.parse.record import RecordError
 
-
 strip = str.strip
 rstrip = str.rstrip
 

@@ -1,7 +1,6 @@
 import unittest
 
 import pytest
-
 from cogent3 import (
     get_moltype,
     load_seq,
@@ -11,7 +10,6 @@ from cogent3 import (
 from cogent3.core.alignment import Alignment, SequenceCollection
 from cogent3.core.annotation_db import BasicAnnotationDb
 from cogent3.core.location import FeatureMap, Span
-
 
 DNA = get_moltype("dna")
 

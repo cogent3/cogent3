@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-"""Extracts data from NCBI nodes.dmp and names.dmp files.
-"""
+"""Extracts data from NCBI nodes.dmp and names.dmp files."""
+
 from functools import total_ordering
 
 from cogent3.core.tree import TreeNode
-
 
 strip = str.strip
 

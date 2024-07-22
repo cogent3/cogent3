@@ -5,13 +5,12 @@ NOTE: * is used to denote termination (as per NCBI standard).
 NOTE: Although the genetic code objects convert DNA to RNA and vice
 versa, lists of codons that they produce will be provided in DNA format.
 """
+
 import os
 import re
-
 from itertools import product
 
 from cogent3.util.table import Table
-
 
 maketrans = str.maketrans
 
@@ -44,12 +43,14 @@ class GeneticCode:
 
     Use the `get_code()` function to get one of the included code instances. These are created as follows.
 
-    >>> code_sequence = 'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG'
+    >>> code_sequence = (
+    ...     "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG"
+    ... )
     >>> gc = GeneticCode(code_sequence)
-    >>> sgc['UUU'] == 'F'
-    >>> sgc['TTT'] == 'F'
-    >>> sgc['F'] == ['TTT', 'TTC']          #in arbitrary order
-    >>> sgc['*'] == ['TAA', 'TAG', 'TGA']   #in arbitrary order
+    >>> sgc["UUU"] == "F"
+    >>> sgc["TTT"] == "F"
+    >>> sgc["F"] == ["TTT", "TTC"]  # in arbitrary order
+    >>> sgc["*"] == ["TAA", "TAG", "TGA"]  # in arbitrary order
 
     code_sequence : 64 character string containing NCBI genetic code translation
 

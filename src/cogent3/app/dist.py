@@ -1,11 +1,9 @@
 import itertools
-
 from copy import deepcopy
 from itertools import combinations
 from typing import Callable, Optional, Union
 
 import numpy
-
 from numpy import polyval, triu_indices
 
 from cogent3 import get_moltype, make_tree
@@ -24,7 +22,6 @@ from .typing import (
     SerialisableType,
     UnalignedSeqsType,
 )
-
 
 # The following coefficients are derived from a polynomial fit between Jaccard distance
 # and the proportion of different sites for mammalian DNA sequences. NOTE: the Jaccard
@@ -88,7 +85,7 @@ class fast_slow_dist:
         ...     "Human": "GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
         ...     "Bandicoot": "---NACTCATTAATGCTTGAAACCAGCAGTTTATTGTCCAAC",
         ...     "Rhesus": "GCCAGCTCATTACAGCATGAGAAC---AGTTTGTTACTCACT",
-        ...     "FlyingFox": "GCCAGCTCTTTACAGCATGAGAACAG---TTTATTATACACT"
+        ...     "FlyingFox": "GCCAGCTCTTTACAGCATGAGAACAG---TTTATTATACACT",
         ... }
         >>> aln = make_aligned_seqs(seqs, moltype="dna")
         >>> app = get_app("fast_slow_dist", distance="hamming", moltype="dna")

@@ -11,12 +11,10 @@ Both return a PhyloNode object of the UPGMA cluster
 """
 
 import numpy
-
 from numpy import argmin, average, diag, ravel, take
 
 from cogent3.core.tree import PhyloNode
 from cogent3.util.dict_array import DictArray
-
 
 BIG_NUM = 1e305
 

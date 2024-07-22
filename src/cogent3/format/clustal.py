@@ -2,6 +2,7 @@
 """
 Writer for Clustal format.
 """
+
 from copy import copy
 
 from cogent3.core.alignment import SequenceCollection

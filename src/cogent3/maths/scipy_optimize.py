@@ -21,9 +21,7 @@ __all__ = ["fmin_powell", "brent", "bracket"]
 import builtins
 
 import numpy
-
 from numpy import absolute, asarray, atleast_1d, eye, sqrt, squeeze
-
 
 # These have been copied from Numeric's MLab.py
 # I don't think they made the transition to scipy_core

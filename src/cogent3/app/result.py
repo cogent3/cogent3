@@ -1,12 +1,10 @@
 import json
-
 from collections import OrderedDict
 from collections.abc import MutableMapping
 from functools import total_ordering
 from pathlib import Path
 
 import numpy
-
 from scipy.stats.distributions import chi2
 
 from cogent3._version import __version__

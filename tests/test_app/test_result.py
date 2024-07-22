@@ -1,5 +1,4 @@
 import pathlib
-
 from unittest import TestCase
 
 from cogent3 import make_aligned_seqs, make_table

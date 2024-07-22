@@ -17,7 +17,6 @@ import json
 import os
 import re
 import typing
-
 from collections import defaultdict
 from copy import deepcopy
 from random import choice
@@ -60,7 +59,6 @@ from cogent3.util.misc import (
     get_object_provenance,
 )
 from cogent3.util.transform import KeepChars, first_index_in_set
-
 
 maketrans = str.maketrans
 translate = str.translate

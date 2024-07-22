@@ -8,7 +8,6 @@ from cogent3.core.moltype import Alphabet, MolType, get_moltype
 from .composable import NotCompleted, define_app
 from .typing import SeqsCollectionType, SerialisableType
 
-
 GeneticCodeTypes = Union[str, int, GeneticCode]
 MolTypes = Union[str, MolType]
 
@@ -195,10 +194,12 @@ class select_translatable:
         which are translatable.
 
         >>> from cogent3 import make_unaligned_seqs, get_app
-        >>> aln = make_unaligned_seqs({
-        ...     "s1": "AATATAAATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTTCATAAAGTCATA",
-        ...     "s1_rc": "TATGACTTTATGAAGTAATAAACTGCTGTTCTCATGCTGTAATGAGCTGGCATTTATATT"
-        ... })
+        >>> aln = make_unaligned_seqs(
+        ...     {
+        ...         "s1": "AATATAAATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTTCATAAAGTCATA",
+        ...         "s1_rc": "TATGACTTTATGAAGTAATAAACTGCTGTTCTCATGCTGTAATGAGCTGGCATTTATATT",
+        ...     }
+        ... )
         >>> app = get_app("select_translatable")
         >>> result = app(aln)
         >>> print(result.to_dict())

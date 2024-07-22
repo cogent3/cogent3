@@ -1,9 +1,7 @@
 import xml.dom.minidom
-
 from unittest import TestCase
 
 from cogent3.parse.gbseq import GbSeqXmlParser
-
 
 data = """<?xml version="1.0"?>
  <!DOCTYPE GBSet PUBLIC "-//NCBI//NCBI GBSeq/EN" "http://www.ncbi.nlm.nih.gov/dtd/NCBI_GBSeq.dtd">

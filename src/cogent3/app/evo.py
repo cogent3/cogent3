@@ -2,7 +2,6 @@ from copy import deepcopy
 from typing import Callable, Iterable, Optional, Union
 
 import cogent3.util.io
-
 from cogent3 import load_tree, make_tree
 from cogent3.core.tree import TreeNode
 from cogent3.evolve.models import get_model
@@ -145,13 +144,16 @@ class model:
         because we recommend it!)
 
         >>> from cogent3 import make_aligned_seqs, get_app
-        >>> aln = make_aligned_seqs({
-        ...    "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
-        ...    "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
-        ...    "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
-        ... })
-        >>> app = get_app("model", "F81", opt_args=dict(limit_action="ignore",
-        ... max_evaluations=10))
+        >>> aln = make_aligned_seqs(
+        ...     {
+        ...         "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+        ...         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+        ...         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        ...     }
+        ... )
+        >>> app = get_app(
+        ...     "model", "F81", opt_args=dict(limit_action="ignore", max_evaluations=10)
+        ... )
         >>> result = app(aln)
         >>> result
         F81...
@@ -164,12 +166,14 @@ class model:
         string.
 
         >>> tree = "(Mouse,(Human,Gorilla),Opossum)"
-        >>> aln2 = make_aligned_seqs({
-        ...      "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
-        ...      "Gorilla": "ATGCGGCGCGCGGAGGCCGCGCTCGCGGAG",
-        ...      "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
-        ...      "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
-        ... })
+        >>> aln2 = make_aligned_seqs(
+        ...     {
+        ...         "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+        ...         "Gorilla": "ATGCGGCGCGCGGAGGCCGCGCTCGCGGAG",
+        ...         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+        ...         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        ...     }
+        ... )
         >>> app_tr = get_app("model", "F81", tree=tree)
 
         Or we could assign a function that estimates the tree for an alignment.
@@ -184,10 +188,10 @@ class model:
         https://cogent3.org/doc/app/evo-model-timehet
 
         >>> app_thet = get_app(
-        ...    "model",
-        ...    "HKY85",
-        ...    tree=tree,
-        ...    time_het=[dict(tip_names=["Human", "Opossum"], outgroup_name="Mouse")],
+        ...     "model",
+        ...     "HKY85",
+        ...     tree=tree,
+        ...     time_het=[dict(tip_names=["Human", "Opossum"], outgroup_name="Mouse")],
         ... )
 
         Specify the upper and lower bounds for certain branch length and rate
@@ -215,21 +219,22 @@ class model:
         ...     "HKY85",
         ...     tree=tree,
         ...     opt_args=dict(
-        ...         max_restarts=5, tolerance=1e-8, max_evaluations=1_000_000, limit_action="ignore"
+        ...         max_restarts=5,
+        ...         tolerance=1e-8,
+        ...         max_evaluations=1_000_000,
+        ...         limit_action="ignore",
         ...     ),
         ... )
 
         Specify settings in the likelihood function constructor.
 
         >>> app_alt_lf = get_app(
-        ...     "model", "HKY85", tree=tree, lf_args = dict(discrete_edges=["Opossum"])
+        ...     "model", "HKY85", tree=tree, lf_args=dict(discrete_edges=["Opossum"])
         ... )
 
         Splitting codons and fit models to each codon position class.
 
-        >>> app_sp_codon = get_app(
-        ...     "model", "HKY85", tree=tree, split_codons=True
-        ... )
+        >>> app_sp_codon = get_app("model", "HKY85", tree=tree, split_codons=True)
 
         A ``NotCompleted`` object (see https://cogent3.org/doc/app/not-completed.html)
         is returned if ``tree`` (or ``tree_func``) is not provided and the number of seqs
@@ -244,10 +249,11 @@ class model:
         (Note that we have deliberately configured the optimiser to raise an exception if
         it exits because it reached the maximum allowed evaluations.)
 
-        >>> app_limit_act = get_app("model", "GN", opt_args=dict(limit_action="raise",
-        ... max_evaluations=10))
+        >>> app_limit_act = get_app(
+        ...     "model", "GN", opt_args=dict(limit_action="raise", max_evaluations=10)
+        ... )
         >>> result = app_limit_act(aln)
-        >>> print(result.message) # doctest: +NORMALIZE_WHITESPACE
+        >>> print(result.message)  # doctest: +NORMALIZE_WHITESPACE
         Traceback ... FORCED EXIT from optimiser after 10 evaluations
         """
         if tree_func:
@@ -670,8 +676,11 @@ class tabulate_stats:
         ...     "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         ... }
         >>> aln = make_aligned_seqs(data=data, moltype="dna")
-        >>> mod = get_app("model", "HKY85", opt_args=dict(max_evaluatuions=10,
-        ... limit_action="ignore"))
+        >>> mod = get_app(
+        ...     "model",
+        ...     "HKY85",
+        ...     opt_args=dict(max_evaluatuions=10, limit_action="ignore"),
+        ... )
         >>> result = mod(aln)
         >>> tabulator = get_app("tabulate_stats")
         >>> tabulated = tabulator(result)

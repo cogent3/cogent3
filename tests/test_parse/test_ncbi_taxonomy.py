@@ -1,5 +1,4 @@
-"""Tests of parsers for dealing with NCBI Taxonomy files.
-"""
+"""Tests of parsers for dealing with NCBI Taxonomy files."""
 
 from unittest import TestCase
 
@@ -14,16 +13,13 @@ from cogent3.parse.ncbi_taxonomy import (
     NcbiTaxonParser,
 )
 
-
 good_nodes = """1\t|\t1\t|\tno rank\t|\t\t|\t8\t|\t0\t|\t1\t|\t0\t|\t0\t|\t0\t|\t0\t|\t0\t|\t\t|
 2\t|\t1\t|\tsuperkingdom\t|\t\t|\t0\t|\t0\t|\t11\t|\t0\t|\t0\t|\t0\t|\t0\t|\t0\t|\t\t|
 6\t|\t2\t|\tgenus\t|\t\t|\t0\t|\t1\t|\t11\t|\t1\t|\t0\t|\t1\t|\t0\t|\t0\t|\t|\t
 7\t|\t6\t|\tspecies\t|\tAC\t|\t0\t|\t1\t|\t11\t|\t1\t|\t0\t|\t1\t|\t0\t|\t0\t|\t\t|
 9\t|\t7\t|\tsubspecies\t|\tBA\t|\t0\t|\t1\t|\t11\t|\t1\t|\t0\t|\t1\t|\t0\t|\t0\t|\t\t|
 10\t|\t6\t|\tspecies\t|\tAC\t|\t0\t|\t1\t|\t11\t|\t1\t|\t0\t|\t1\t|\t0\t|\t0\t|\t\t|
-""".split(
-    "\n"
-)
+""".split("\n")
 
 bad_nodes = """1\t|\t1\t|\tno rank\t|\t\t|\t8\t|\t0\t|\t1\t|\t0\t|\t0\t|\t0\t|\t0\t|\t0\t|\t\t|
 2\t|\t1\t|\tsuperkingdom\t|\t\t|\t0\t|\t0\t|\t11\t|\t0\t|\t0\t|\t0\t|\t0\t|\t0\t|\t\t|
@@ -31,9 +27,7 @@ bad_nodes = """1\t|\t1\t|\tno rank\t|\t\t|\t8\t|\t0\t|\t1\t|\t0\t|\t0\t|\t0\t|\t
 7\t|\t6\t|\tspecies\t|\tAC\t|\t0\t|\t1\t|\t11\t|\t1\t|\t0\t|\t1\t|\t0\t|\t0\t|\t\t|
 9\t|\t777\t|\tsubspecies\t|\tBA\t|\t0\t|\t1\t|\t11\t|\t1\t|\t0\t|\t1\t|\t0\t|\t0\t|\t\t|
 10\t|\t666\t|\tspecies\t|\tAC\t|\t0\t|\t1\t|\t11\t|\t1\t|\t0\t|\t1\t|\t0\t|\t0\t|\t\t|
-""".split(
-    "\n"
-)
+""".split("\n")
 
 good_names = """1\t|\tall\t|\t\t|\tsynonym\t|
 1\t|\troot\t|\t\t|\tscientific name\t|
@@ -46,9 +40,7 @@ good_names = """1\t|\tall\t|\t\t|\tsynonym\t|
 7\t|\tAzorhizobium caulinodans\t|\t\t|\tscientific name\t|
 9\t|\tBuchnera aphidicola\t|\t\t|\tscientific name\t|
 10\t|\tFakus namus\t|\t\t|\tscientific name\t|
-""".split(
-    "\n"
-)
+""".split("\n")
 
 
 class NcbiTaxonTests(TestCase):

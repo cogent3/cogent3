@@ -6,11 +6,9 @@ from __future__ import annotations
 import inspect
 import re
 import sys
-
 from typing import ForwardRef, TypeVar, Union
 
 from typing_extensions import get_args, get_origin
-
 
 if sys.version_info.minor >= 10:
     from types import UnionType

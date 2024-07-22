@@ -1,15 +1,11 @@
 import os
 import warnings
-
 from unittest import TestCase
-
-from numpy.testing import assert_allclose, assert_almost_equal
 
 import cogent3.evolve.parameter_controller
 import cogent3.evolve.substitution_model
-
 from cogent3 import make_aligned_seqs, make_tree
-
+from numpy.testing import assert_allclose, assert_almost_equal
 
 base_path = os.getcwd()
 data_path = os.path.join(base_path, "data")

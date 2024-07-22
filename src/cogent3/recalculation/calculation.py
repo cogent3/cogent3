@@ -7,7 +7,6 @@ import numpy
 from cogent3.maths.optimisers import ParameterOutOfBoundsError, maximise
 from cogent3.maths.solve import find_root
 
-
 TRACE_DEFAULT = "COGENT3_TRACE" in os.environ
 TRACE_SCALE = 100000
 

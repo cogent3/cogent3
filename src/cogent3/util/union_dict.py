@@ -1,5 +1,4 @@
-"""UnionDict extension of dict.
-"""
+"""UnionDict extension of dict."""
 
 
 class UnionDict(dict):

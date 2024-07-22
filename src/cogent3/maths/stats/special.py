@@ -6,7 +6,6 @@ from numpy import exp, floor, log, sin, sqrt
 
 from cogent3.util import warning as c3warn
 
-
 log_epsilon = 1e-6  # for threshold in log/exp close to 1
 # For IEEE arithmetic (IBMPC):
 MACHEP = 1.11022302462515654042e-16  # 2**-53

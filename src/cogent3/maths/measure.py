@@ -5,7 +5,6 @@ from numpy.linalg import slogdet
 from numpy.testing import assert_allclose, assert_equal
 
 import cogent3.util.misc
-
 from cogent3.maths.util import safe_p_log_p, validate_freqs_array
 
 

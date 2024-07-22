@@ -3,7 +3,6 @@ import json
 import os
 import pickle
 import zipfile
-
 from enum import Enum
 from functools import singledispatch
 from gzip import compress as gzip_compress
@@ -46,7 +45,6 @@ from .typing import (
     TabularType,
     UnalignedSeqsType,
 )
-
 
 _datastore_reader_map = {}
 

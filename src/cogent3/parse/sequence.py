@@ -20,7 +20,6 @@ from cogent3.parse.record import FileFormatError
 from cogent3.util import warning as c3warn
 from cogent3.util.io import get_format_suffixes, iter_splitlines, open_
 
-
 _lc_to_wc = "".join([[chr(x), "?"]["A" <= chr(x) <= "Z"] for x in range(256)])
 
 

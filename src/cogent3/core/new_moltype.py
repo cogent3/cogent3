@@ -2,7 +2,6 @@ import dataclasses
 import functools
 import itertools
 import typing
-
 from collections import defaultdict
 from string import ascii_letters
 
@@ -15,7 +14,6 @@ from cogent3.data.molecular_weight import (
     RnaMW,
     WeightCalculator,
 )
-
 
 OptStr = typing.Optional[str]
 OptFloat = typing.Optional[float]

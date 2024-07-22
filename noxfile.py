@@ -2,7 +2,6 @@ import pathlib
 
 import nox
 
-
 _py_versions = range(9, 13)
 
 

@@ -6,7 +6,6 @@ import typing
 from cogent3.core.alignment import Aligned, Alignment
 from cogent3.core.location import IndelMap
 
-
 IntOrNone = typing.Union[int, None]
 IntListType = list[int]
 CoordsListType = list[list[typing.Sequence[int]]]
@@ -37,7 +36,7 @@ def seq_traceback(s1, s2, aligned_positions, gap_value):
 
 
 def gap_traceback(
-    aligned_positions: list[list[IntOrNone, IntOrNone]]
+    aligned_positions: list[list[IntOrNone, IntOrNone]],
 ) -> tuple[IntListType, IntListType, CoordsListType, int]:
     """gap Vectors from state matrix and ending point"""
     consuming = [False, False]
@@ -64,7 +63,7 @@ def gap_traceback(
 
 
 def map_traceback(
-    aligned_positions: list[list[IntOrNone, IntOrNone]]
+    aligned_positions: list[list[IntOrNone, IntOrNone]],
 ) -> tuple[IntListType, IntListType, list[IndelMap]]:
     # using IndelMap's to keep track of gaps for indel alignment
     starts, ends, gap_vectors, alignment_len = gap_traceback(aligned_positions)

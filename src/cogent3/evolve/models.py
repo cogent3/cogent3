@@ -22,7 +22,6 @@ from cogent3.evolve.substitution_model import kappa_r as _kappa_r
 from cogent3.evolve.substitution_model import kappa_y as _kappa_y
 from cogent3.util.table import Table
 
-
 nucleotide_models = []
 codon_models = []
 protein_models = []

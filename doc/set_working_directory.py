@@ -5,7 +5,6 @@ Assumes this file is distributed inside COGENT3_ROOT/doc directory"""
 import os
 import pathlib
 
-
 current = pathlib.Path(__file__).absolute().parent
 
 

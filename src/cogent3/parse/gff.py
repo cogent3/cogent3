@@ -6,12 +6,10 @@ import io
 import pathlib
 import re
 import typing
-
 from abc import ABC
 
 from cogent3.util import warning as c3warn
 from cogent3.util.io import PathType, open_
-
 
 OptionalCallable = typing.Optional[typing.Callable]
 OptionalStrContainer = typing.Optional[typing.Union[str, typing.Sequence[str]]]

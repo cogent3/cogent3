@@ -1,25 +1,21 @@
-"""Parsers for FASTA and related formats.
-"""
+"""Parsers for FASTA and related formats."""
 
 import os
 import pathlib
 import re
 import string
 import typing
-
 from collections.abc import Callable
 from functools import singledispatch
 
 import numpy
 
 import cogent3
-
 from cogent3.core.info import Info
 from cogent3.core.moltype import ASCII, BYTES
 from cogent3.parse.record import RecordError
 from cogent3.parse.record_finder import LabeledRecordFinder
 from cogent3.util.io import open_
-
 
 _white_space = re.compile(r"\s+")
 strip = str.strip

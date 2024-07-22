@@ -1,13 +1,8 @@
 import itertools
-
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 
 import pytest
-
-from numpy import log, polyval
-from numpy.testing import assert_allclose
-
 from cogent3 import (
     DNA,
     PROTEIN,
@@ -26,7 +21,8 @@ from cogent3.app.dist import (
 )
 from cogent3.evolve.fast_distance import DistanceMatrix, HammingPair, TN93Pair
 from cogent3.maths.distance_transform import jaccard
-
+from numpy import log, polyval
+from numpy.testing import assert_allclose
 
 _seqs1 = {
     "Human": "GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",

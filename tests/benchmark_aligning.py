@@ -3,7 +3,6 @@
 import time
 
 import numpy
-
 from cogent3 import DNA
 from cogent3.align.align import classic_align_pairwise, make_dna_scoring_dict
 

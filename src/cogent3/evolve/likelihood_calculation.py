@@ -8,6 +8,7 @@ implementation. The two versions are maintained for the purpose of cross-
 validating accuracy. The calculations can be performed for tree's that have polytomies
 in addition to binary trees.
 """
+
 import numpy
 
 from cogent3.evolve.likelihood_tree import LikelihoodTreeEdge

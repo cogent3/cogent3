@@ -18,7 +18,6 @@ import re
 
 from cogent3.parse.record import FileFormatError
 
-
 EOT = None
 
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""Writer for PAML sequence format
-"""
+"""Writer for PAML sequence format"""
 
 from cogent3.format.util import _AlignmentFormatter
 
