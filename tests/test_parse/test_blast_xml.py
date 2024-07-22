@@ -1,5 +1,4 @@
 import xml.dom.minidom
-
 from unittest import TestCase
 
 from cogent3.parse.blast_xml import (

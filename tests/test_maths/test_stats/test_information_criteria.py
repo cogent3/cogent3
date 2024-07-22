@@ -1,8 +1,7 @@
 from unittest import TestCase
 
-from numpy.testing import assert_allclose
-
 from cogent3.maths.stats.information_criteria import aic, bic
+from numpy.testing import assert_allclose
 
 
 class InformationCriteria(TestCase):

@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-""" Unit tests for Genetic Code classes.
-"""
+"""Unit tests for Genetic Code classes."""
+
 from unittest import TestCase
 
 import pytest
-
 from cogent3 import DNA, RNA
 from cogent3.core.genetic_code import (
     DEFAULT,

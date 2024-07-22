@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-"""Unit tests for parser support libraries dealing with records.
-"""
+"""Unit tests for parser support libraries dealing with records."""
+
 from unittest import TestCase
 
 from cogent3.parse.record import (

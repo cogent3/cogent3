@@ -1,7 +1,6 @@
 #!/usr/bin/env Python
 """Data for molecular weight calculations on proteins and nucleotides."""
 
-
 ProteinWeights = {
     "A": 71.09,
     "C": 103.16,

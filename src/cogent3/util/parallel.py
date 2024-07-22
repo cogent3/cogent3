@@ -6,7 +6,6 @@ import warnings
 
 from cogent3.util.misc import extend_docstring_from
 
-
 multiprocessing.set_start_method(
     "forkserver" if sys.platform == "darwin" else "spawn", force=True
 )

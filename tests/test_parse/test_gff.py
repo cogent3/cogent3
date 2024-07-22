@@ -1,24 +1,20 @@
-"""Unit tests for GFF and related parsers.
-"""
+"""Unit tests for GFF and related parsers."""
 
 import io
 import os
 import pathlib
 import re
-
 from io import StringIO
 from pathlib import Path
 from unittest import TestCase
 
 import pytest
-
 from cogent3.parse.gff import (
     GffRecord,
     gff_parser,
     is_gff3,
     parse_attributes_gff2,
 )
-
 
 headers = [
     """##gff-version 2 

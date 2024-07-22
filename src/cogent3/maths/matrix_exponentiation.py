@@ -12,7 +12,6 @@
 import warnings
 
 import numpy
-
 from numpy.linalg import eig, inv, solve
 
 

@@ -15,7 +15,6 @@ import numpy
 import typing_extensions
 
 import cogent3.util.warning as c3warn
-
 from cogent3._version import __version__
 from cogent3.parse.gff import merged_gff_records
 from cogent3.util.deserialise import register_deserialiser
@@ -23,7 +22,6 @@ from cogent3.util.io import PathType, iter_line_blocks
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
 from cogent3.util.progress_display import display_wrap
 from cogent3.util.table import Table
-
 
 OptionalInt = typing.Optional[int]
 OptionalStr = typing.Optional[str]
@@ -922,7 +920,7 @@ class SqliteAnnotationDbMixin:
         --------
         To compute copy number by gene name within each genome
 
-        >>> counts_table = db.count_distinct(seqid=True, biotype='gene', name=True)
+        >>> counts_table = db.count_distinct(seqid=True, biotype="gene", name=True)
         """
         columns = {k for k, v in locals().items() if v is True}
         if not columns:

@@ -1,11 +1,9 @@
 import os
-
 from unittest import TestCase
 
 from cogent3.evolve import predicate, substitution_model
 from cogent3.evolve.models import F81, GN, HKY85
 from cogent3.evolve.predicate import MotifChange
-
 
 base_path = os.getcwd()
 data_path = os.path.join(base_path, "data")

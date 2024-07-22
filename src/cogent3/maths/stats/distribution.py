@@ -25,7 +25,6 @@ from cogent3.maths.stats.special import (
 )
 from cogent3.util import warning as c3warn
 
-
 # ndtri import b/c it should be available via this module
 
 

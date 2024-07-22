@@ -1,4 +1,4 @@
-""" matrix based distance metrics, and related coordinate transforms
+"""matrix based distance metrics, and related coordinate transforms
 
 functions to compute distance matrices row by row from abundance matrices,
 typically samples (rows) vs. species/OTU's (cols)
@@ -56,7 +56,6 @@ from functools import singledispatch
 from typing import Union
 
 import numpy
-
 from numpy import (
     abs,
     all,
@@ -71,9 +70,17 @@ from numpy import (
     min,
     multiply,
     nan_to_num,
+    ravel,
+    seterr,
+    shape,
+    sqrt,
+    square,
+    sum,
+    take,
+    where,
+    zeros,
 )
 from numpy import ndim as rank
-from numpy import ravel, seterr, shape, sqrt, square, sum, take, where, zeros
 from numpy.linalg import norm
 
 

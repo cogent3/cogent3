@@ -1,27 +1,26 @@
 """Wrapper for numpy arrays so that they can be indexed by name
 
-    >>> a = numpy.identity(3, int)
-    >>> b = DictArrayTemplate('abc', 'ABC').wrap(a)
-    >>> b[0]
-    ===========
-    A    B    C
-    -----------
-    1    0    0
-    -----------
-    >>> b['a']
-    ===========
-    A    B    C
-    -----------
-    1    0    0
-    -----------
-    >>> b.keys()
-    ['a', 'b', 'c']
-    >>> b['a'].keys()
-    ['A', 'B', 'C']
+>>> a = numpy.identity(3, int)
+>>> b = DictArrayTemplate("abc", "ABC").wrap(a)
+>>> b[0]
+===========
+A    B    C
+-----------
+1    0    0
+-----------
+>>> b["a"]
+===========
+A    B    C
+-----------
+1    0    0
+-----------
+>>> b.keys()
+['a', 'b', 'c']
+>>> b["a"].keys()
+['A', 'B', 'C']
 """
 
 import json
-
 from collections import defaultdict
 from itertools import combinations, product
 

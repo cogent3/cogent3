@@ -1,9 +1,7 @@
 #!/usr/bin/env python
-"""Tests of transformation and composition functions .
-"""
-from unittest import TestCase
+"""Tests of transformation and composition functions ."""
 
-from numpy.testing import assert_allclose
+from unittest import TestCase
 
 from cogent3.util.transform import (
     KeepChars,
@@ -12,6 +10,7 @@ from cogent3.util.transform import (
     per_longest,
     per_shortest,
 )
+from numpy.testing import assert_allclose
 
 
 class has_x(object):

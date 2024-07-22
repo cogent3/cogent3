@@ -1,14 +1,10 @@
-"""Provides tests for array.py
-"""
+"""Provides tests for array.py"""
 
 # SUPPORT2425
 # from __future__ import with_statement
 
 from unittest import TestCase
 from warnings import filterwarnings
-
-from numpy import array, transpose
-from numpy.testing import assert_allclose, assert_equal
 
 from cogent3.maths.util import (
     column_degeneracy,
@@ -18,7 +14,8 @@ from cogent3.maths.util import (
     safe_log,
     safe_p_log_p,
 )
-
+from numpy import array, transpose
+from numpy.testing import assert_allclose, assert_equal
 
 filterwarnings("ignore", "invalid value encountered in", category=RuntimeWarning)
 

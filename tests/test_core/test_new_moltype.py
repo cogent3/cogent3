@@ -1,6 +1,5 @@
 import numpy
 import pytest
-
 from cogent3.core import (
     moltype,
     new_alphabet,

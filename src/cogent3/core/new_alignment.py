@@ -4,7 +4,6 @@ import json
 import re
 import typing
 import warnings
-
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from functools import singledispatch, singledispatchmethod
@@ -40,7 +39,6 @@ from cogent3.util.misc import (
     get_setting_from_environ,
     negate_condition,
 )
-
 
 DEFAULT_ANNOTATION_DB = BasicAnnotationDb
 
@@ -1993,13 +1991,14 @@ class SequenceCollection:
 
         .. code-block:: python
 
-            seq_col # is rendered by jupyter
+            seq_col  # is rendered by jupyter
 
         You can directly use the result for display in a notebook as
 
         .. code-block:: python
 
             from IPython.core.display import HTML
+
             HTML(seq_col.to_html())
         """
         css, styles = self.moltype.get_css_style(
@@ -2356,7 +2355,6 @@ def _(
     source: OptPathType = None,
     annotation_db: SupportsFeatures = None,
 ) -> SequenceCollection:
-
     moltype = new_moltype.get_moltype(moltype)
     if not moltype.is_compatible_alphabet(data.alphabet):
         raise ValueError(

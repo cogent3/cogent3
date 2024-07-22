@@ -3,6 +3,7 @@
 
 Info is a dictionary and is the annotation object of a Sequence object.
 """
+
 from warnings import warn
 
 from cogent3.parse.record import MappedRecord

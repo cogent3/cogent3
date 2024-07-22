@@ -1,23 +1,6 @@
-"""Unit tests for statistical tests and utility functions.
-"""
+"""Unit tests for statistical tests and utility functions."""
 
 from unittest import TestCase
-
-from numpy import (
-    arange,
-    array,
-    asarray,
-    concatenate,
-    fill_diagonal,
-    isfinite,
-    isnan,
-    logical_and,
-    ones,
-    reshape,
-    testing,
-    tril,
-)
-from numpy.testing import assert_allclose, assert_equal
 
 from cogent3.maths.stats.number import NumberCounter
 from cogent3.maths.stats.test import (
@@ -77,6 +60,21 @@ from cogent3.maths.stats.test import (
     tail,
     z_test,
 )
+from numpy import (
+    arange,
+    array,
+    asarray,
+    concatenate,
+    fill_diagonal,
+    isfinite,
+    isnan,
+    logical_and,
+    ones,
+    reshape,
+    testing,
+    tril,
+)
+from numpy.testing import assert_allclose, assert_equal
 
 
 def is_prob(value):

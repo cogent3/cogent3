@@ -1,11 +1,9 @@
 import multiprocessing
 import sys
 import time
-
 from unittest import TestCase, skipIf
 
 import numpy
-
 from cogent3.util import parallel
 
 

@@ -1,6 +1,5 @@
 import functools
 import inspect
-
 from typing import Any, Callable, Optional, Sequence, Tuple
 from warnings import catch_warnings, simplefilter
 from warnings import warn as _warn
@@ -113,7 +112,7 @@ def deprecated_args(
     ...                  discontinued='discontinued_arg',
     ... )
     >>> def my_function(new_name):
-    >>>     # do something here
+    >>> # do something here
 
     When `my_function` is called with the argument `old_arg`, a warning
     will be raised indicating that the argument is deprecated and should
@@ -195,7 +194,8 @@ def deprecated_callable(
     in favour of a new function.
 
     >>> @deprecated_callable(version='2023.6', reason='function rename', new='a_function')
-    >>> def my_function(arg): pass
+    >>> def my_function(arg):
+    ...     pass
 
     """
 

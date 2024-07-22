@@ -1,11 +1,7 @@
-"""Unit tests for special functions used in statistics.
-"""
+"""Unit tests for special functions used in statistics."""
 
 import math
-
 from unittest import TestCase
-
-from numpy.testing import assert_allclose
 
 from cogent3.maths.stats.special import (
     igami,
@@ -16,6 +12,7 @@ from cogent3.maths.stats.special import (
     ndtri,
     one_minus_exp,
 )
+from numpy.testing import assert_allclose
 
 
 class SpecialTests(TestCase):

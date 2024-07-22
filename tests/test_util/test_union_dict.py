@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-"""Unit tests for union_dict.
-"""
+"""Unit tests for union_dict."""
+
 from unittest import TestCase
 
 from cogent3.util.union_dict import UnionDict

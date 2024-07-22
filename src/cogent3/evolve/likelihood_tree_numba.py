@@ -1,7 +1,5 @@
 import numpy
-
 from numba import njit
-
 
 # turn off code coverage as njit-ted code not accessible to coverage
 

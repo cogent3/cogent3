@@ -2,7 +2,6 @@
 import pathlib
 
 import pytest
-
 from cogent3.parse import sequence
 
 

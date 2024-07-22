@@ -1,13 +1,9 @@
 import json
 import os
-
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 
 import numpy
-
-from numpy.testing import assert_allclose
-
 from cogent3 import DNA
 from cogent3.util.dict_array import (
     DictArray,
@@ -19,6 +15,7 @@ from cogent3.util.dict_array import (
     convert_for_dictarray,
     convert_series,
 )
+from numpy.testing import assert_allclose
 
 
 class DictArrayTest(TestCase):
@@ -403,7 +400,7 @@ class DictArrayTest(TestCase):
             "dim-1 dim-2 value\n0 0 3.123456789\n0 1 6.246913578\n1 0 9.370370367\n1 1 12.493827156",
         )
         with self.assertRaises(ValueError):
-            darr.to_string(format="md"),
+            (darr.to_string(format="md"),)
 
     def test_to_table(self):
         """creates Table when ndim <= 2"""

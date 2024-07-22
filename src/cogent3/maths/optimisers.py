@@ -1,10 +1,8 @@
-"""Local or Global-then-local optimisation with progress display
-"""
+"""Local or Global-then-local optimisation with progress display"""
 
 from __future__ import annotations
 
 import warnings
-
 from functools import singledispatch
 from typing import Tuple
 
@@ -15,7 +13,6 @@ from cogent3.util import warning as c3warn
 
 from .scipy_optimisers import Powell
 from .simannealingoptimiser import SimulatedAnnealing
-
 
 GlobalOptimiser = SimulatedAnnealing
 LocalOptimiser = Powell

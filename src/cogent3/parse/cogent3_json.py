@@ -1,5 +1,4 @@
-"""Supports JSON load/read/write operations on major Cogent3 objects.
-"""
+"""Supports JSON load/read/write operations on major Cogent3 objects."""
 
 import json
 

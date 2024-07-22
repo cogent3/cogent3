@@ -1,5 +1,4 @@
-"""Unit tests for locuslink-specific classes
-"""
+"""Unit tests for locuslink-specific classes"""
 
 from unittest import TestCase
 

@@ -5,7 +5,6 @@ import textwrap
 import time
 import traceback
 import types
-
 from copy import deepcopy
 from enum import Enum
 from pathlib import Path
@@ -26,7 +25,6 @@ from .data_store import (
     get_data_source,
     get_unique_id,
 )
-
 
 _builtin_seqs = list, set, tuple
 
@@ -561,10 +559,10 @@ def define_app(
     ...
     ...     def main(self, aln: AlignedSeqsType) -> T:
     ...         return aln.omit_bad_seqs(
-    ...                                 quantile=self.quantile,
-    ...                                 gap_fraction=self.gap_fraction,
-    ...                                 moltype=self.moltype
-    ...                                 )
+    ...             quantile=self.quantile,
+    ...             gap_fraction=self.gap_fraction,
+    ...             moltype=self.moltype,
+    ...         )
 
     ``drop_bad`` is a composable app with ``app_type=GENERIC``. The input
     data must be a sequence alignment instance. It returns the same type,
@@ -582,12 +580,12 @@ def define_app(
     >>> T = Union[AlignedSeqsType, SerialisableType]
     >>>
     >>> @define_app
-    ... def omit_seqs(aln: AlignedSeqsType, quantile=None, gap_fraction=1, moltype="dna") -> T:
+    ... def omit_seqs(
+    ...     aln: AlignedSeqsType, quantile=None, gap_fraction=1, moltype="dna"
+    ... ) -> T:
     ...     return aln.omit_bad_seqs(
-    ...                             quantile=quantile,
-    ...                             gap_fraction=gap_fraction,
-    ...                             moltype=moltype
-    ...                             )
+    ...         quantile=quantile, gap_fraction=gap_fraction, moltype=moltype
+    ...     )
 
     ``omit_seqs`` is now an app, allowing creating different variants which
     can be composed as per ones defined via a class.

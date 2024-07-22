@@ -1,6 +1,5 @@
 import math
 import time
-
 from collections import Counter
 
 from cogent3.util import parallel

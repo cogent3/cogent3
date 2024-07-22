@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 """Unit tests for the PSL parser.
-   Compatible with blat v.34
+Compatible with blat v.34
 """
 
 from unittest import TestCase
 
 from cogent3.parse.psl import MinimalPslParser, PslToTable
-
 
 fname = "data/test.psl"
 

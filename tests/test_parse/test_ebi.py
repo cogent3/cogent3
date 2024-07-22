@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-""" Provides tests for EbiParser and related classes and functions.
-"""
+"""Provides tests for EbiParser and related classes and functions."""
 
 from unittest import TestCase
 

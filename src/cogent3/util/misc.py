@@ -1,5 +1,4 @@
-"""Generally useful utility classes and methods.
-"""
+"""Generally useful utility classes and methods."""
 
 from __future__ import annotations
 
@@ -9,14 +8,12 @@ import os
 import re
 import typing
 import warnings
-
 from random import randint
 from typing import Any, Callable, Tuple
 from urllib.parse import urlparse
 from warnings import warn
 
 import numpy
-
 from numpy import array, finfo, float64, ndarray, zeros
 
 

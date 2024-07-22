@@ -1,5 +1,4 @@
-"""Tests for FASTA sequence format writer.
-"""
+"""Tests for FASTA sequence format writer."""
 
 from unittest import TestCase
 

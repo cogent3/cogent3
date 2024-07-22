@@ -3,11 +3,9 @@ import os
 import pathlib
 import tempfile
 import unittest
-
 from tempfile import TemporaryDirectory
 
 import pytest
-
 from cogent3 import (
     DNA,
     PROTEIN,
@@ -29,7 +27,6 @@ from cogent3.core.alignment import (
 )
 from cogent3.core.alphabet import AlphabetError
 from cogent3.parse.record import FileFormatError
-
 
 DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
 

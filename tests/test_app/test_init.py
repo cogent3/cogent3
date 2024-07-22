@@ -1,13 +1,11 @@
 """testing the default import"""
 
 import os
-
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 
 import pytest
-
 from cogent3 import app_help, available_apps, get_app, open_data_store
 from cogent3.app.composable import LOADER, WRITER, is_app
 from cogent3.util.table import Table

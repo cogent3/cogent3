@@ -2,11 +2,11 @@
 """Parser for NCBI Sequence Set XML format.
 DOCTYPE Bioseq-set PUBLIC "-//NCBI//NCBI Seqset/EN" "http://www.ncbi.nlm.nih.gov/dtd/NCBI_Seqset.dtd"
 """
+
 import io
 import xml.dom.minidom
 
 from cogent3.core import location, moltype
-
 
 """
 CAUTION:

@@ -7,7 +7,6 @@ import pathlib
 import pickle
 import sys
 import warnings
-
 from typing import Callable, Optional, Union
 
 from cogent3._version import __version__
@@ -20,6 +19,7 @@ from cogent3.core.alignment import (
 )
 from cogent3.core.annotation_db import load_annotations
 from cogent3.core.genetic_code import available_codes, get_code
+
 # note that moltype has to be imported last, because it sets the moltype in
 # the objects created by the other modules.
 from cogent3.core.moltype import (
@@ -46,7 +46,6 @@ from cogent3.util.progress_display import display_wrap
 from cogent3.util.table import Table as _Table
 from cogent3.util.table import cast_str_to_array
 
-
 __copyright__ = "Copyright 2007-2023, The Cogent Project"
 __credits__ = "https://github.com/cogent3/cogent3/graphs/contributors"
 __license__ = "BSD-3"
@@ -71,7 +70,6 @@ if warn_env in os.environ:
 
 
 import logging
-
 
 # suppress numba warnings
 __numba_logger = logging.getLogger("numba")

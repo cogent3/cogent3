@@ -9,7 +9,6 @@ from .align import (
     make_generic_scoring_dict,
 )
 
-
 __all__ = [
     "align",
     "dp_calculation",

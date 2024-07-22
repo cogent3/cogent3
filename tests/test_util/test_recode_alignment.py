@@ -1,7 +1,5 @@
 from unittest import TestCase
 
-from numpy.testing import assert_allclose
-
 from cogent3 import make_aligned_seqs
 from cogent3.core.alignment import ArrayAlignment
 from cogent3.evolve.models import DSO78_freqs, DSO78_matrix
@@ -13,6 +11,7 @@ from cogent3.util.recode_alignment import (
     recode_dense_alignment,
     recode_freq_vector,
 )
+from numpy.testing import assert_allclose
 
 
 class RecodeAlignmentTests(TestCase):

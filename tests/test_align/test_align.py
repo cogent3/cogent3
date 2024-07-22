@@ -1,12 +1,10 @@
 import itertools
 import unittest
 
-import numpy
-import pytest
-
 import cogent3.align.progressive
 import cogent3.evolve.substitution_model
-
+import numpy
+import pytest
 from cogent3 import (
     get_moltype,
     load_aligned_seqs,
@@ -21,7 +19,6 @@ from cogent3.align.align import (
     make_generic_scoring_dict,
 )
 from cogent3.evolve.models import HKY85, get_model
-
 
 dna_model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
     model_gaps=False, equal_motif_probs=True

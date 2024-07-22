@@ -1,5 +1,4 @@
-"""Unit tests for the clustal parsers.
-"""
+"""Unit tests for the clustal parsers."""
 
 from unittest import TestCase
 
@@ -10,7 +9,6 @@ from cogent3.parse.clustal import (
     last_space,
 )
 from cogent3.parse.record import RecordError
-
 
 # Note: the data are all strings and hence immutable, so it's OK to define
 # them here instead of in setUp and then subclassing everything from that
@@ -36,9 +34,7 @@ xyz             -------------------------------------CAUGCAUCGUACGUACGCAUGAC 23
 abc             UGACUAGUCAGCUAGCAUCGAUCAGU 145
 def             CGAUCAGUCAGUCGAU---------- 34
 xyz             UGCUGCAUCA---------------- 33
-                *     ***""".split(
-    "\n"
-)
+                *     ***""".split("\n")
 
 bad = ["dshfjsdfhdfsj", "hfsdjksdfhjsdf"]
 

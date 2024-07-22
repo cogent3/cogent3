@@ -1,12 +1,9 @@
 import json
 import re
-
 from importlib import import_module
 
 import cogent3
-
 from cogent3.util.io import open_, path_exists
-
 
 _deserialise_func_map = {}
 
