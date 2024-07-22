@@ -874,7 +874,7 @@ class TreeNodeTests(TestCase):
     def test_itertips(self):
         """TreeNode itertips should iterate over terminal descendants"""
         tree = self.TreeRoot
-        (self.assertEqual([i.name for i in tree.iter_tips()], list("degh")),)
+        self.assertEqual([i.name for i in tree.iter_tips()], list("degh"))
 
     def test_nontips(self):
         """TreeNode nontips should return all non-terminal descendants"""
