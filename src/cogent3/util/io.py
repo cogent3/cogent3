@@ -1,7 +1,6 @@
 import contextlib
 import shutil
 import uuid
-
 from bz2 import open as bzip_open
 from gzip import open as gzip_open
 from io import TextIOWrapper
@@ -14,10 +13,9 @@ from urllib.parse import ParseResult, urlparse
 from urllib.request import urlopen
 from zipfile import ZipFile
 
-from chardet import detect
+from charset_normalizer import detect
 
 from cogent3.util.misc import _wout_period
-
 
 PathType = Union[str, PathLike, PurePath]
 # support prefixes for urls
