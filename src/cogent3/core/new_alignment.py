@@ -2745,18 +2745,18 @@ class AlignedData:
         return self.__class__.from_aligned_seqs(new_data, self.moltype)
 
     def reversed(self):
-        # todo: kath 
-        ...
-
-    def subset(self): 
         # todo: kath
         ...
 
-    def to_alphabet(self): 
+    def subset(self):
         # todo: kath
         ...
 
-    def to_rich_dict(self): 
+    def to_alphabet(self):
+        # todo: kath
+        ...
+
+    def to_rich_dict(self):
         # todo: kath
         ...
 
@@ -2774,7 +2774,7 @@ class AlignedDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
         step: OptInt = None,
         offset: int = 0,
     ):
-        if step < 1:
+        if step and step < 1:
             raise ValueError(f"step cannot be {step}")
         step = 1 if step is None else step
         self.seq = seq
@@ -2847,7 +2847,7 @@ class AlignedDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
     def copy(self):
         return self
 
-    def to_rich_dict(self) -> dict: 
+    def to_rich_dict(self) -> dict:
         # todo: kath
         ...
 
