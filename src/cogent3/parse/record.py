@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-"""Provides support functions and classes for parsers.
-"""
+"""Provides support functions and classes for parsers."""
+
 from copy import deepcopy
 
 from cogent3.util.misc import iterable

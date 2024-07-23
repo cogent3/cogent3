@@ -8,7 +8,6 @@ from cogent3.core.new_alphabet import AlphabetError as new_AlphabetError
 
 from . import likelihood_tree_numba as likelihood_tree
 
-
 numpy.seterr(all="ignore")
 
 

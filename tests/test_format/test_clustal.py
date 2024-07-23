@@ -1,5 +1,4 @@
-"""Tests for Clustal sequence format writer.
-"""
+"""Tests for Clustal sequence format writer."""
 
 from unittest import TestCase
 

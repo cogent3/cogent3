@@ -1,22 +1,22 @@
 """Code for handling multiple sequence alignments. In particular:
 
-    - SequenceCollection handles both aligned and unaligned sequences.
-    - Alignment and its subclasses handle multiple sequence alignments, storing
-      the raw sequences and a gap map. Useful for very long alignments, e.g.
-      genomics data.
-    - ArrayAlignment and its subclasses handle multiple sequence alignments as
-      arrays of characters. Especially useful for short alignments that contain
-      many sequences.
+- SequenceCollection handles both aligned and unaligned sequences.
+- Alignment and its subclasses handle multiple sequence alignments, storing
+  the raw sequences and a gap map. Useful for very long alignments, e.g.
+  genomics data.
+- ArrayAlignment and its subclasses handle multiple sequence alignments as
+  arrays of characters. Especially useful for short alignments that contain
+  many sequences.
 
-    WARNING: The various alignment objects try to guess the input type from the
-    input, but this behavior has a few quirks. In particular, if the input is
-    a sequence of two-item sequences (e.g. a list of two-character strings),
-    each sequence will be unpacked and the first item will be used as the
-    label, the second as the sequence. For example, Alignment(['AA','CC','AA'])
-    produces an alignment of three 1-character strings labeled A, C and A
-    respectively. The reason for this is that the common case is that you have
-    passed in a stream of two-item label, sequence pairs. However, this can
-    cause confusion when testing.
+WARNING: The various alignment objects try to guess the input type from the
+input, but this behavior has a few quirks. In particular, if the input is
+a sequence of two-item sequences (e.g. a list of two-character strings),
+each sequence will be unpacked and the first item will be used as the
+label, the second as the sequence. For example, Alignment(['AA','CC','AA'])
+produces an alignment of three 1-character strings labeled A, C and A
+respectively. The reason for this is that the common case is that you have
+passed in a stream of two-item label, sequence pairs. However, this can
+cause confusion when testing.
 """
 
 from __future__ import annotations
@@ -27,7 +27,6 @@ import os
 import re
 import typing
 import warnings
-
 from collections import Counter, defaultdict
 from copy import deepcopy
 from functools import singledispatchmethod, total_ordering
@@ -44,7 +43,6 @@ from typing import (
 )
 
 import numpy
-
 from numpy import (
     arange,
     array,
@@ -64,7 +62,6 @@ from numpy import (
 from numpy.random import choice, permutation, randint
 
 import cogent3  # will use to get at cogent3.parse.fasta.MinimalFastaParser,
-
 from cogent3._version import __version__
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
@@ -79,6 +76,7 @@ from cogent3.core.info import Info as InfoClass
 from cogent3.core.location import FeatureMap, IndelMap
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
+
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import seqs_to_fasta
@@ -97,7 +95,6 @@ from cogent3.util.misc import (
     get_setting_from_environ,
 )
 from cogent3.util.union_dict import UnionDict
-
 
 DEFAULT_ANNOTATION_DB = BasicAnnotationDb
 
@@ -2125,13 +2122,14 @@ class SequenceCollection(_SequenceCollectionBase):
 
         .. code-block:: python
 
-            seq_col # is rendered by jupyter
+            seq_col  # is rendered by jupyter
 
         You can directly use the result for display in a notebook as
 
         .. code-block:: python
 
             from IPython.core.display import HTML
+
             HTML(seq_col.to_html())
         """
         css, styles = self.moltype.get_css_style(
@@ -2633,11 +2631,6 @@ class AlignmentI(object):
         """Returns new Alignment containing cols where f(col) is True."""
         return self.take_positions(self.get_position_indices(f, negate=negate))
 
-    @c3warn.deprecated_args(
-        "2024.6",
-        reason="consistency with other methods",
-        old_new=[("allow_gaps", "allow_gap")],
-    )
     def iupac_consensus(self, alphabet=None, allow_gap=True):
         """Returns string containing IUPAC consensus sequence of the alignment."""
         if alphabet is None:
@@ -3096,13 +3089,14 @@ class AlignmentI(object):
 
         .. code-block:: python
 
-            aln # is rendered by jupyter
+            aln  # is rendered by jupyter
 
         You can directly use the result for display in a notebook as
 
         .. code-block:: python
 
             from IPython.core.display import HTML
+
             HTML(aln.to_html())
         """
         css, styles = self.moltype.get_css_style(
@@ -4038,11 +4032,6 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             result.append(">" + str(l) + "\n" + "".join(seq2str(s)))
         return "\n".join(result) + "\n"
 
-    @c3warn.deprecated_args(
-        "2024.6",
-        reason="consistency with other methods",
-        old_new=[("allow_gaps", "allow_gap")],
-    )
     def iupac_consensus(self, alphabet=None, allow_gap=True):
         """Returns string containing IUPAC consensus sequence of the alignment."""
         if alphabet is None:

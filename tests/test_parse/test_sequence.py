@@ -2,7 +2,6 @@
 import pathlib
 
 import pytest
-
 from cogent3.parse import sequence
 
 
@@ -53,3 +52,14 @@ def test_line_based_wrap_load_valid_input_types(gde_data):
 def test_get_unknown_format():
     with pytest.raises(ValueError):
         sequence.get_parser("nope")
+
+
+@pytest.mark.internet
+def test_line_based_url(DATA_DIR):
+    fname = "long_testseqs.fasta"
+    url = f"https://raw.githubusercontent.com/cogent3/cogent3/develop/doc/data/{fname}"
+
+    parser = sequence.LineBasedParser(lambda x: x)
+    from_url = list(parser(url))
+    from_local = list(parser(DATA_DIR / fname))
+    assert from_url == from_local

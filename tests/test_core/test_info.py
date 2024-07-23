@@ -1,8 +1,7 @@
 #!/usr/bin/env python
-"""Unit tests for Info class and associated objects (DbRef, DbRefs, etc.).
-"""
-import warnings
+"""Unit tests for Info class and associated objects (DbRef, DbRefs, etc.)."""
 
+import warnings
 from unittest import TestCase
 
 from cogent3.core.info import DbRef, DbRefs, Info, _make_list

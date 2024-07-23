@@ -6,7 +6,6 @@ import numpy
 from cogent3.util.misc import extend_docstring_from
 from cogent3.util.union_dict import UnionDict
 
-
 # user specified environment variable for plotly renderer
 PLOTLY_RENDERER = os.environ.get("PLOTLY_RENDERER", None)
 

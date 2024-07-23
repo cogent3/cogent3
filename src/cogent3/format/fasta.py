@@ -1,8 +1,6 @@
-"""Writer for FASTA sequence format
-"""
+"""Writer for FASTA sequence format"""
 
 import textwrap
-
 from typing import Optional
 
 from cogent3.format.util import _AlignmentFormatter

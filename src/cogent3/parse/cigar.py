@@ -20,7 +20,6 @@ import re
 from cogent3 import DNA, make_aligned_seqs
 from cogent3.core.location import IndelMap, LostSpan, Span
 
-
 _pattern = re.compile("([0-9]*)([DM])")
 
 

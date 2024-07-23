@@ -19,7 +19,6 @@ import json
 import os
 import re
 import warnings
-
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from functools import singledispatch, total_ordering
@@ -60,7 +59,6 @@ from cogent3.core.location import FeatureMap, IndelMap, LostSpan
 from cogent3.format.fasta import seqs_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts
 from cogent3.maths.stats.number import CategoryCounter
-from cogent3.util import warning as c3warn
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import (
     DistanceFromMatrix,
@@ -69,7 +67,6 @@ from cogent3.util.misc import (
     get_setting_from_environ,
 )
 from cogent3.util.transform import for_seq, per_shortest
-
 
 ARRAY_TYPE = type(array(1))
 DEFAULT_ANNOTATION_DB = BasicAnnotationDb
@@ -1427,11 +1424,6 @@ class Sequence(SequenceI):
             for pos in range(start, end, step):
                 yield self[pos : pos + window]
 
-    @c3warn.deprecated_args(
-        "2024.6",
-        reason="argument name consistency",
-        old_new=(("log_warnings", "warn"),),
-    )
     def get_in_motif_size(self, motif_length=1, warn=False):
         """returns sequence as list of non-overlapping motifs
 

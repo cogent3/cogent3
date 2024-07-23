@@ -1,7 +1,6 @@
 import pathlib
 
 import pytest
-
 from cogent3 import make_tree
 from cogent3.phylo.tree_distance import (
     lin_rajan_moret,
@@ -9,7 +8,6 @@ from cogent3.phylo.tree_distance import (
     rooted_robinson_foulds,
     unrooted_robinson_foulds,
 )
-
 
 ROOTED_DISTANCE_MEASURES = matching_cluster_distance, rooted_robinson_foulds
 UNROOTED_DISTANCE_MEASURES = lin_rajan_moret, unrooted_robinson_foulds

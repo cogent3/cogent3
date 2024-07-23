@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-"""Parsers for the various files in the UniGene database.
-"""
+"""Parsers for the various files in the UniGene database."""
+
 from cogent3.parse.record import (
     ByPairs,
     LineOrientedConstructor,
@@ -11,7 +11,6 @@ from cogent3.parse.record import (
     semi_splitter,
 )
 from cogent3.parse.record_finder import GbFinder
-
 
 maketrans = str.maketrans
 strip = str.strip

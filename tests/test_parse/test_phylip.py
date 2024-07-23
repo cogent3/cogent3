@@ -1,5 +1,4 @@
-"""Unit tests for the phylip parser
-"""
+"""Unit tests for the phylip parser"""
 
 from io import StringIO
 from unittest import TestCase

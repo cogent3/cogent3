@@ -1,12 +1,12 @@
 chardet==5.2.0
-pillow==10.3.0
-psutil==5.9.8
-numpy==2.0.0
+pillow==10.4.0
+psutil==6.0.0
+numpy==2.0.1
 numba>0.48.0;python_version<'3.9'
 numba>0.53; python_version>='3.9'
 numba>0.54; python_version>='3.10'
 numba>=0.57.0; python_version=='3.11'
-scipy==1.13.1
+scipy==1.14.0
 nox==2024.4.15
 plotly==5.22.0
 typing_extensions>=3.7

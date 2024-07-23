@@ -1,21 +1,14 @@
-"""Unit tests for Sequence class and its subclasses.
-"""
+"""Unit tests for Sequence class and its subclasses."""
 
 import json
 import os
 import re
-
 from pickle import dumps
 from unittest import TestCase
 
+import cogent3
 import numpy
 import pytest
-
-from numpy import array
-from numpy.testing import assert_allclose, assert_equal
-
-import cogent3
-
 from cogent3._version import __version__
 from cogent3.core.alignment import Aligned
 from cogent3.core.moltype import (
@@ -44,6 +37,8 @@ from cogent3.core.sequence import (
     _coerce_to_seqview,
 )
 from cogent3.util.misc import get_object_provenance
+from numpy import array
+from numpy.testing import assert_allclose, assert_equal
 
 
 class SequenceTests(TestCase):
@@ -1139,7 +1134,7 @@ class SequenceIntegrationTests(TestCase):  # not porting: not supporting ArraySe
 
     def test_regular_to_model(self):
         """Regular sequence should convert to model sequence"""
-        r = RNA.make_seq("AAA", name="x")
+        r = RNA.make_seq(seq="AAA", name="x")
         s = RNA.make_array_seq(seq=r)
         self.assertEqual(str(s), "AAA")
         self.assertEqual(s.moltype, RNA)

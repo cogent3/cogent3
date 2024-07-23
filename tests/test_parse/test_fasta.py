@@ -1,18 +1,14 @@
-"""Unit tests for FASTA and related parsers.
-"""
+"""Unit tests for FASTA and related parsers."""
 
 import os
 import pathlib
-
 from unittest import TestCase
 
 import numpy
 import pytest
-
 from cogent3.core.info import Info
-from cogent3.core.sequence import DnaSequence
+from cogent3.core.sequence import DnaSequence, Sequence
 from cogent3.core.sequence import ProteinSequence as Protein
-from cogent3.core.sequence import Sequence
 from cogent3.parse.fasta import (
     FastaParser,
     GroupFastaParser,
@@ -24,7 +20,6 @@ from cogent3.parse.fasta import (
     iter_fasta_records,
 )
 from cogent3.parse.record import RecordError
-
 
 base_path = os.path.dirname(os.path.dirname(__file__))
 data_path = os.path.join(base_path, "data")

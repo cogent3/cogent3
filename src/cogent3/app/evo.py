@@ -2,7 +2,6 @@ from copy import deepcopy
 from typing import Callable, Iterable, Optional, Union
 
 import cogent3.util.io
-
 from cogent3 import load_tree, make_tree
 from cogent3.core.tree import TreeNode
 from cogent3.evolve.models import get_model
@@ -29,7 +28,8 @@ from .typing import (
 )
 
 
-def _config_rules(param_rules, lower, upper):
+def _config_rules(param_rules, lower, upper, overwrite=False):
+    """fill the bounds in `param_rules` whenever no bound defined for a parameter"""
     param_rules = deepcopy(param_rules)
     for rule in param_rules:
         if rule.get("par_name", None) in (
@@ -41,8 +41,12 @@ def _config_rules(param_rules, lower, upper):
         ) or rule.get("is_constant"):
             continue
 
-        rule["lower"] = rule.get("lower", lower)  # default lower bound
-        rule["upper"] = rule.get("upper", upper)  # default upper bound
+        rule["lower"] = (
+            lower if overwrite else rule.get("lower", lower)
+        )  # default lower bound
+        rule["upper"] = (
+            upper if overwrite else rule.get("upper", upper)
+        )  # default upper bound
 
     return param_rules
 
@@ -140,13 +144,16 @@ class model:
         because we recommend it!)
 
         >>> from cogent3 import make_aligned_seqs, get_app
-        >>> aln = make_aligned_seqs({
-        ...    "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
-        ...    "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
-        ...    "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
-        ... })
-        >>> app = get_app("model", "F81", opt_args=dict(limit_action="ignore",
-        ... max_evaluations=10))
+        >>> aln = make_aligned_seqs(
+        ...     {
+        ...         "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+        ...         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+        ...         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        ...     }
+        ... )
+        >>> app = get_app(
+        ...     "model", "F81", opt_args=dict(limit_action="ignore", max_evaluations=10)
+        ... )
         >>> result = app(aln)
         >>> result
         F81...
@@ -159,12 +166,14 @@ class model:
         string.
 
         >>> tree = "(Mouse,(Human,Gorilla),Opossum)"
-        >>> aln2 = make_aligned_seqs({
-        ...      "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
-        ...      "Gorilla": "ATGCGGCGCGCGGAGGCCGCGCTCGCGGAG",
-        ...      "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
-        ...      "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
-        ... })
+        >>> aln2 = make_aligned_seqs(
+        ...     {
+        ...         "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+        ...         "Gorilla": "ATGCGGCGCGCGGAGGCCGCGCTCGCGGAG",
+        ...         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+        ...         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        ...     }
+        ... )
         >>> app_tr = get_app("model", "F81", tree=tree)
 
         Or we could assign a function that estimates the tree for an alignment.
@@ -179,10 +188,10 @@ class model:
         https://cogent3.org/doc/app/evo-model-timehet
 
         >>> app_thet = get_app(
-        ...    "model",
-        ...    "HKY85",
-        ...    tree=tree,
-        ...    time_het=[dict(tip_names=["Human", "Opossum"], outgroup_name="Mouse")],
+        ...     "model",
+        ...     "HKY85",
+        ...     tree=tree,
+        ...     time_het=[dict(tip_names=["Human", "Opossum"], outgroup_name="Mouse")],
         ... )
 
         Specify the upper and lower bounds for certain branch length and rate
@@ -210,21 +219,22 @@ class model:
         ...     "HKY85",
         ...     tree=tree,
         ...     opt_args=dict(
-        ...         max_restarts=5, tolerance=1e-8, max_evaluations=1_000_000, limit_action="ignore"
+        ...         max_restarts=5,
+        ...         tolerance=1e-8,
+        ...         max_evaluations=1_000_000,
+        ...         limit_action="ignore",
         ...     ),
         ... )
 
         Specify settings in the likelihood function constructor.
 
         >>> app_alt_lf = get_app(
-        ...     "model", "HKY85", tree=tree, lf_args = dict(discrete_edges=["Opossum"])
+        ...     "model", "HKY85", tree=tree, lf_args=dict(discrete_edges=["Opossum"])
         ... )
 
         Splitting codons and fit models to each codon position class.
 
-        >>> app_sp_codon = get_app(
-        ...     "model", "HKY85", tree=tree, split_codons=True
-        ... )
+        >>> app_sp_codon = get_app("model", "HKY85", tree=tree, split_codons=True)
 
         A ``NotCompleted`` object (see https://cogent3.org/doc/app/not-completed.html)
         is returned if ``tree`` (or ``tree_func``) is not provided and the number of seqs
@@ -239,10 +249,11 @@ class model:
         (Note that we have deliberately configured the optimiser to raise an exception if
         it exits because it reached the maximum allowed evaluations.)
 
-        >>> app_limit_act = get_app("model", "GN", opt_args=dict(limit_action="raise",
-        ... max_evaluations=10))
+        >>> app_limit_act = get_app(
+        ...     "model", "GN", opt_args=dict(limit_action="raise", max_evaluations=10)
+        ... )
         >>> result = app_limit_act(aln)
-        >>> print(result.message) # doctest: +NORMALIZE_WHITESPACE
+        >>> print(result.message)  # doctest: +NORMALIZE_WHITESPACE
         Traceback ... FORCED EXIT from optimiser after 10 evaluations
         """
         if tree_func:
@@ -300,6 +311,13 @@ class model:
         lf = self._sm.make_likelihood_function(self._tree, **self._lf_args)
 
         lf.set_alignment(aln)
+
+        # just use the likelihood function instance to give us the rules
+        # which we can then impose the lower/upper bounds
+        rules = lf.get_param_rules()  # innate rules dict with default params
+        rules = _config_rules(rules, self._lower, self._upper, overwrite=True)
+        lf.apply_param_rules(rules)
+
         if self._param_rules:
             lf.apply_param_rules(self._param_rules)
 
@@ -322,12 +340,6 @@ class model:
                 lf.set_time_heterogeneity(
                     edge_sets=self._time_het, lower=self._lower, upper=self._upper
                 )
-        elif not self._param_rules:
-            # just use the likelihood function instance to give us the rules
-            # which we can then impose the lower/upper bounds
-            rules = lf.get_param_rules()
-            rules = _config_rules(rules, self._lower, self._upper)
-            lf.apply_param_rules(rules)
 
         if initialise:
             lf = initialise(lf, identifier)
@@ -664,8 +676,11 @@ class tabulate_stats:
         ...     "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         ... }
         >>> aln = make_aligned_seqs(data=data, moltype="dna")
-        >>> mod = get_app("model", "HKY85", opt_args=dict(max_evaluatuions=10,
-        ... limit_action="ignore"))
+        >>> mod = get_app(
+        ...     "model",
+        ...     "HKY85",
+        ...     opt_args=dict(max_evaluatuions=10, limit_action="ignore"),
+        ... )
         >>> result = mod(aln)
         >>> tabulator = get_app("tabulate_stats")
         >>> tabulated = tabulator(result)

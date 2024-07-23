@@ -6,13 +6,12 @@ import into other packages. These classes still under development.
 Current formats include restructured text (keyed by 'rest'), latex, html,
 columns separated by a provided string, and a simple text format.
 """
+
 import re
 import textwrap
-
 from xml.sax.saxutils import escape
 
 import numpy
-
 
 known_formats = (
     "bedgraph",

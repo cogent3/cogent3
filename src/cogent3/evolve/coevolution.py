@@ -1,4 +1,4 @@
-""" Description
+"""Description
 File created on 03 May 2007.
 
 Functions to perform coevolutionary analyses on
@@ -75,7 +75,6 @@ from cogent3.maths.stats.distribution import binomial_exact
 from cogent3.maths.stats.number import CategoryCounter, CategoryFreqs
 from cogent3.maths.stats.special import ROUND_ERROR
 
-
 DEFAULT_EXCLUDES = "".join([IUPAC_gap, IUPAC_missing])
 DEFAULT_NULL_VALUE = nan
 
@@ -115,7 +114,7 @@ def join_positions(pos1, pos2):
     pos2: iterable object containing the second positions data
 
     Example:
-        >>> join_positions('ABCD','1234')
+        >>> join_positions("ABCD", "1234")
             ['A1', 'B2', 'C3', 'D4']
     """
     return ["".join([r1, r2]) for r1, r2 in zip(pos1, pos2)]

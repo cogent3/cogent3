@@ -1,11 +1,9 @@
-"""Unit tests for tree parsers.
-"""
+"""Unit tests for tree parsers."""
 
 from unittest import TestCase
 
 from cogent3.core.tree import PhyloNode
 from cogent3.parse.tree import DndParser, DndTokenizer, RecordError
-
 
 sample = """
 (

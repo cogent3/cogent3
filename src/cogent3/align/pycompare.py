@@ -435,8 +435,9 @@ class MatchedSeqPaths:
             for x, y in self.paths[y_intercept][1:]:
                 last_x, last_y = result[-1]
                 if len(x - last_x) <= min_gap:
-                    result[-1] = last_x.merge(x, strict=False), last_y.merge(
-                        y, strict=False
+                    result[-1] = (
+                        last_x.merge(x, strict=False),
+                        last_y.merge(y, strict=False),
                     )
                 else:
                     result.append((x, y))

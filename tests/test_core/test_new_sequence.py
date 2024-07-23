@@ -2,14 +2,11 @@ import json
 import os
 import re
 import typing
-
 from pickle import dumps
 
+import cogent3
 import numpy
 import pytest
-
-import cogent3
-
 from cogent3._version import __version__
 from cogent3.core import (
     new_alphabet,

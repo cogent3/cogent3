@@ -11,7 +11,6 @@ from numpy import log
 
 from cogent3 import make_aligned_seqs
 
-
 cite = "Goldman, N. (1993).  Statistical tests of models of DNA substitution.  J Mol Evol, 36: 182-98"
 
 

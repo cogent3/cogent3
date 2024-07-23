@@ -13,7 +13,6 @@ from cogent3.util.table import Table
 from .composable import is_app, is_app_composable
 from .io import open_data_store
 
-
 # Entry_point for apps to register themselves as plugins
 APP_ENTRY_POINT = "cogent3.app"
 

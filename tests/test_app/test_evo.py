@@ -1,14 +1,10 @@
 import pathlib
-
 from os.path import dirname, join
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import MagicMock
 
 import pytest
-
-from numpy.testing import assert_allclose, assert_raises
-
 from cogent3 import (
     get_app,
     load_aligned_seqs,
@@ -26,7 +22,7 @@ from cogent3.app.result import (
 )
 from cogent3.evolve.models import get_model
 from cogent3.util.deserialise import deserialise_object
-
+from numpy.testing import assert_allclose, assert_raises
 
 data_dir = join(dirname(dirname(__file__)), "data")
 
@@ -493,10 +489,26 @@ class TestHypothesisResult(TestCase):
         aln = make_aligned_seqs(data=_data, moltype="dna")
         opt_args = dict(max_evaluations=10, limit_action="ignore")
         m1 = evo_app.model(
-            "F81", optimise_motif_probs=False, split_codons=True, opt_args=opt_args
+            "F81",
+            optimise_motif_probs=False,
+            split_codons=True,
+            opt_args=opt_args,
+            param_rules=[
+                {"par_name": "length", "upper": 10.0, "lower": 1e-09},
+            ],
+            lower=1e-06,
+            upper=1000000.0,
         )
         m2 = evo_app.model(
-            "GTR", optimise_motif_probs=False, split_codons=True, opt_args=opt_args
+            "GTR",
+            optimise_motif_probs=False,
+            split_codons=True,
+            opt_args=opt_args,
+            param_rules=[
+                {"par_name": "length", "upper": 10.0, "lower": 1e-09},
+            ],
+            lower=1e-06,
+            upper=1000000.0,
         )
         hyp = evo_app.hypothesis(m1, m2)
         r = hyp(aln)
@@ -919,3 +931,46 @@ def test_model_invalid_tree_func():
             "HKY85",
             tree_func="123",
         )
+
+
+def test_model_bounds_allpar():
+    upper = 10.0
+    lower = 0.5
+    app = get_app(
+        "model",
+        "HKY85",
+        optimise_motif_probs=True,
+        show_progress=False,
+        unique_trees=True,
+        lower=lower,
+        upper=upper,
+    )
+
+    aln = make_aligned_seqs(data=dict(s1="ACGT", s2="ACGC", s3="AAGT"))
+    result = app(aln)
+    rules = result.lf.get_param_rules()
+    par_bounds = {
+        (r["lower"], r["upper"])
+        for r in rules
+        if r["par_name"] == ("kappa" or "length")
+    }
+    assert par_bounds == {(lower, upper)}
+
+
+def test_model_bounds_kappa():
+    upper_kappa = 99
+    lower_kappa = 9
+    app = get_app(
+        "model",
+        "HKY85",
+        optimise_motif_probs=True,
+        show_progress=False,
+        unique_trees=True,
+        param_rules=[{"par_name": "kappa", "upper": upper_kappa, "lower": lower_kappa}],
+    )
+
+    aln = make_aligned_seqs(data=dict(s1="ACGT", s2="ACGC", s3="AAGT"))
+    result = app(aln)
+    rules = result.lf.get_param_rules()
+    kappa_bounds = {(r["lower"], r["upper"]) for r in rules if r["par_name"] == "kappa"}
+    assert kappa_bounds == {(lower_kappa, upper_kappa)}

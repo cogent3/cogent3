@@ -1,11 +1,9 @@
 import math
 import os
 import time
-
 from collections import Counter
 
 from cogent3.util import parallel
-
 
 # the following environment variable is created by PBS on job execution
 PBS_NCPUS = os.environ.get("PBS_NCPUS", None)

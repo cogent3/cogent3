@@ -3,7 +3,6 @@ import dataclasses
 import functools
 import inspect
 import json
-
 from abc import ABC, abstractmethod
 from bisect import bisect_left, bisect_right
 from functools import total_ordering
@@ -11,7 +10,6 @@ from itertools import chain
 from typing import Any, Iterator, Optional, Sequence, Union
 
 import numpy
-
 from numpy.typing import NDArray
 
 from cogent3._version import __version__
@@ -24,7 +22,6 @@ from cogent3.util.misc import (
     get_object_provenance,
     iterable,
 )
-
 
 strip = str.strip
 

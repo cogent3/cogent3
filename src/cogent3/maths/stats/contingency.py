@@ -233,9 +233,10 @@ class CategoryCounts:
         if expected.array.min() < 0:
             raise ValueError("negative values encountered")
 
-        assert_allclose(
-            self.observed.array.sum(), expected.array.sum()
-        ), "unequal totals of observed and expected"
+        (
+            assert_allclose(self.observed.array.sum(), expected.array.sum()),
+            "unequal totals of observed and expected",
+        )
 
         self._expected = expected
 

@@ -1,10 +1,7 @@
 import warnings
-
 from typing import Union
 
 import numpy
-
-import cogent3.util.warning as c3warn
 
 from cogent3.core.alphabet import Alphabet
 from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
@@ -180,10 +177,7 @@ class MonomerProbModel(ComplexMotifProbModel):
         )
         return (monomer_probs, word_probs, mprobs_matrix)
 
-    @c3warn.deprecated_args(
-        "2024.6", reason="use warn instead", discontinued="auto", stack_level=4
-    )
-    def adapt_motif_probs(self, motif_probs, warn=False, auto=False):
+    def adapt_motif_probs(self, motif_probs, warn=False):
         try:
             motif_probs = adapt_motif_probs(self.monomer_alphabet, motif_probs)
         except ValueError:

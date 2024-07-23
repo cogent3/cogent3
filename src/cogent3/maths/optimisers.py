@@ -1,10 +1,8 @@
-"""Local or Global-then-local optimisation with progress display
-"""
+"""Local or Global-then-local optimisation with progress display"""
 
 from __future__ import annotations
 
 import warnings
-
 from functools import singledispatch
 from typing import Tuple
 
@@ -15,7 +13,6 @@ from cogent3.util import warning as c3warn
 
 from .scipy_optimisers import Powell
 from .simannealingoptimiser import SimulatedAnnealing
-
 
 GlobalOptimiser = SimulatedAnnealing
 LocalOptimiser = Powell
@@ -140,9 +137,6 @@ def minimise(f, *args, **kw):
     return maximise(nf, *args, **kw)
 
 
-@c3warn.deprecated_args(
-    "2024.6", reason="has no effect in this function", discontinued="limit_action"
-)
 @UI.display_wrap
 def maximise(
     f,

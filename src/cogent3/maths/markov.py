@@ -11,7 +11,7 @@ class TransitionMatrix(object):
         [.9, .0, .1],
         [.0, .9, .1],
         [.5, .5, .0],], Float)
-    >>> T = TransitionMatrix(a, ['x', 'y', 'm'])
+    >>> T = TransitionMatrix(a, ["x", "y", "m"])
     """
 
     def __init__(self, matrix, tags, stationary_probs=None):

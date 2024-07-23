@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Parser for PSL format (default output by blat).
-   Compatible with blat v.34
+Compatible with blat v.34
 """
 
 from cogent3.util.table import Table

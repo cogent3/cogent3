@@ -2,10 +2,6 @@ from unittest import TestCase
 
 import numpy
 import pytest
-
-from numpy import log2
-from numpy.testing import assert_allclose
-
 from cogent3 import (
     DNA,
     get_app,
@@ -34,7 +30,8 @@ from cogent3.app.align import (
 from cogent3.app.composable import NotCompleted
 from cogent3.core.alignment import Aligned, Alignment, ArrayAlignment
 from cogent3.core.location import gap_coords_to_map
-
+from numpy import log2
+from numpy.testing import assert_allclose
 
 _seqs = {
     "Human": "GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",

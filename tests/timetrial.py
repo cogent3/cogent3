@@ -10,7 +10,6 @@ import string
 import sys
 import time
 
-
 # Values that affect the running of the program.
 minimum_accepted_time = 2
 

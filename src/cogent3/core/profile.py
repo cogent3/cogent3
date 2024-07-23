@@ -1,5 +1,4 @@
 import numpy
-
 from numpy import array, digitize
 from numpy.random import random
 

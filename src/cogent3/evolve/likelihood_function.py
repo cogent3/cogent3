@@ -1,7 +1,6 @@
 import json
 import random
 import typing
-
 from collections import defaultdict
 from copy import deepcopy
 
@@ -23,7 +22,6 @@ from cogent3.recalculation.scope import InvalidScopeError
 from cogent3.util import table
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import adjusted_gt_minprob, get_object_provenance
-
 
 # cogent3.evolve.parameter_controller.LikelihoodParameterController tells the
 # recalculation framework to use this subclass rather than the generic

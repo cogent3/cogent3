@@ -6,7 +6,6 @@ import unittest
 from cogent3 import load_aligned_seqs, load_tree
 from cogent3.evolve import bootstrap, substitution_model
 
-
 base_path = os.getcwd()
 data_path = os.path.join(base_path, "data")
 

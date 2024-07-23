@@ -4,7 +4,6 @@ import numpy
 
 from cogent3.maths.stats.special import igam
 
-
 try:
     from math import factorial
 except ImportError:  # python version < 2.6

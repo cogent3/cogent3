@@ -1,10 +1,8 @@
-"""Unit tests for the GenBank database parsers.
-"""
+"""Unit tests for the GenBank database parsers."""
 
 from unittest import TestCase
 
 import pytest
-
 from cogent3.parse.genbank import (
     Location,
     LocationList,
@@ -109,9 +107,7 @@ SOURCE      Homo sapiens (human)
 ?
 REFERENCE   2  (bases 1 to 92123751)
   AUTHORS   International Human Genome Sequencing Consortium.
-  TITLE     Finishing the euchromatic sequence of the human genome""".split(
-            "\n"
-        )
+  TITLE     Finishing the euchromatic sequence of the human genome""".split("\n")
         self.assertEqual(
             list(indent_splitter(lines)),
             [
@@ -133,9 +129,7 @@ ORIGIN
         1 gggagcgcgg cgcgggagcc cgaggctgag actcaccgga ggaagcggcg cgagcgcccc
        61   gccatcgtcc \t\t cggctgaagt 123 \ngcagtg  \n
       121 cctgggctta agcagtcttc45ccacctcagc 
-//\n\n\n""".split(
-            "\n"
-        )
+//\n\n\n""".split("\n")
         result = parse_sequence(lines)
         self.assertEqual(
             result,
@@ -147,9 +141,7 @@ ORIGIN
         lines = """  ORGANISM  Homo sapiens
             Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi;
             Mammalia; Eutheria; Euarchontoglires; Primates; Catarrhini;
-            Hominidae; Homo.""".split(
-            "\n"
-        )
+            Hominidae; Homo.""".split("\n")
         label, data = block_consolidator(lines)
         self.assertEqual(label, "ORGANISM")
         self.assertEqual(
@@ -184,9 +176,7 @@ ORIGIN
         lines = """  ORGANISM  Homo sapiens
         Eukaryota; Metazoa; Chordata Craniata; Vertebrata; Euteleostomi;
         Mammalia; Eutheria; Euarchontoglires; Primates \t abc.  2.; Catarrhini
-        Hominidae; Homo.""".split(
-            "\n"
-        )
+        Hominidae; Homo.""".split("\n")
         species, taxonomy = parse_organism(lines)
         self.assertEqual(species, "Homo sapiens")
         self.assertEqual(
@@ -399,9 +389,7 @@ ORIGIN
         s = """SOURCE      African elephant.
   ORGANISM  Mitochondrion Loxodonta africana
             Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi;
-            Mammalia; Eutheria; Proboscidea; Elephantidae; Loxodonta.""".split(
-            "\n"
-        )
+            Mammalia; Eutheria; Proboscidea; Elephantidae; Loxodonta.""".split("\n")
         r = parse_source(s)
         self.assertEqual(len(r), 3)
         self.assertEqual(r["source"], "African elephant.")

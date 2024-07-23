@@ -20,7 +20,6 @@ import numpy
 from cogent3.core import new_alphabet, new_moltype
 from cogent3.util.table import Table
 
-
 OptStr = typing.Optional[str]
 SetStr = typing.Set[str]
 ConverterType = typing.Callable[[bytes, bytes], bytes]

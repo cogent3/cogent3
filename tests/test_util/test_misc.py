@@ -1,15 +1,10 @@
-"""Unit tests for utility functions and classes.
-"""
+"""Unit tests for utility functions and classes."""
 
 from copy import copy, deepcopy
 from os import remove, rmdir
 from unittest import TestCase
 
 import pytest
-
-from numpy import array
-from numpy.testing import assert_allclose
-
 from cogent3.util.misc import (
     ClassChecker,
     ConstrainedContainer,
@@ -45,6 +40,8 @@ from cogent3.util.misc import (
     not_list_tuple,
     recursive_flatten,
 )
+from numpy import array
+from numpy.testing import assert_allclose
 
 
 class UtilsTests(TestCase):
@@ -1205,7 +1202,6 @@ def test_is_in_jupyter():
     # an ugly hack, the in_jupyter function relies entirely on whether a
     # get_ipython variable exists in the name space
     import cogent3.util.misc as module
-
     from cogent3.util.misc import in_jupyter
 
     module.get_ipython = lambda x: x

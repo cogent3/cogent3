@@ -3,7 +3,6 @@ from numbers import Number
 from typing import Tuple
 
 import numpy as np
-
 from numpy import array, diag, dot, eye, float64, int32, log, sqrt, zeros
 from numpy.linalg import det, inv
 
@@ -14,7 +13,6 @@ from cogent3.util.misc import get_object_provenance
 from cogent3.util.progress_display import display_wrap
 
 from .pairwise_distance_numba import fill_diversity_matrix
-
 
 # pending addition of protein distance metrics
 

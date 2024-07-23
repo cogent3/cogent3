@@ -1,8 +1,6 @@
 import numpy as np
-
 from numba import boolean, float64, int64, njit, optional, uint8
 from numba.core.types.containers import Tuple
-
 
 # turn off code coverage as njit-ted code not accessible to coverage
 

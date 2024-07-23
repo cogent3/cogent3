@@ -26,7 +26,7 @@ class MapTest(unittest.TestCase):
                 self.fail(repr((r, expected)))
 
     def test_get_by_annotation(self):
-        seq = DNA.make_seq("ATCGATCGAT" * 5, name="base")
+        seq = DNA.make_seq(seq="ATCGATCGAT" * 5, name="base")
         seq.add_feature(biotype="test_type", name="test_label", spans=[(5, 10)])
         seq.add_feature(biotype="test_type", name="test_label2", spans=[(15, 18)])
 

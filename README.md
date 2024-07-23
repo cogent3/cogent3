@@ -16,6 +16,37 @@
 
 `cogent3` is a mature python library for analysis of genomic sequence data. We endeavour to provide a first-class experience within Jupyter notebooks, but the algorithms also support parallel execution on compute systems with 1000's of processors.
 
+## 📣 Feature Announcements 📣
+
+<details>
+  <summary> Supporting third-party apps as plugins 🔌 </summary>
+
+Cogent3 now provides support for plugins! Third-party developers can deploy their code as cogent3 apps with just a few lines. See the [demo project](https://github.com/cogent3/app_template).
+
+Post any questions you have in [cogent3 discussions](https://github.com/cogent3/cogent3/discussions).
+
+</details>
+
+<details>
+  <summary> The developers of Cogent3 and IQ-TREE2 announce piqtree2 🎉 </summary>
+
+Speaking of plugins, our first major third-party plugin is [piqtree2](https://pypi.org/project/piqtree2). Try it out and [give us feedback](https://github.com/iqtree/piqtree2/discussions).
+
+</details>
+
+<details>
+  <summary> New core data types improve efficiency and flexibility </summary>
+
+The cogent3 development team 👾 are hard at work modernising the core internals 💪🛠.
+
+In this release the `Sequence`, `SequenceCollection`, `MolType`, `GeneticCode`, and alphabet classes have all been rewritten from scratch with an eye to simplifying the code while improving its flexibility and performance. (We're working on alignments for the next release.)
+
+The "new-style" objects enhance performance by supporting the access of the underlying data in various formats (i.e. numpy arrays, bytes or strings). You can create "new-style" objects by setting the `new_type=True` argument in top-level functions (`make_seq`, `load_seq`, `make_unaligned_seqs`, `get_moltype`, `get_code`). These are not yet the default and are not fully integrated into the existing code. They can also differ in their API relative to the classes they replace. 
+
+We encourage experimentation in cases where integration with old objects is NOT required and [look forward to any feedback](https://github.com/cogent3/cogent3/discussions)!
+
+</details>
+
 ## Who is it for?
 
 ### Anyone who wants to analyse sequence divergence using robust statistical models

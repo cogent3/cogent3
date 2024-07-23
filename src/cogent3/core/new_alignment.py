@@ -4,7 +4,6 @@ import json
 import re
 import typing
 import warnings
-
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from functools import singledispatch, singledispatchmethod
@@ -40,7 +39,6 @@ from cogent3.util.misc import (
     get_setting_from_environ,
     negate_condition,
 )
-
 
 DEFAULT_ANNOTATION_DB = BasicAnnotationDb
 
@@ -288,7 +286,24 @@ class SeqsDataABC(ABC):
 
 
 class SeqsData(SeqsDataABC):
-    # refactor: docstring
+    """A collection of sequences underlying a SequenceCollection. The sequence
+    data is stored as numpy arrays, however the underlying data can be accessed
+    as strings, bytes, or numpy arrays.
+
+    Attributes
+    ----------
+    data
+        a dictionary of {name: sequence} pairs
+    alphabet
+        an instance of CharAlphabet valid for the sequences
+    make_seq
+        optional sequence constructor, takes 'seq' and 'name' as keyword arguments
+        and returns a Sequence instance. If not set, __getitem__ will return a
+        SeqDataView
+    reversed_seqs
+        a dictionary of {name: bool} pairs indicating if the sequence is reversed
+    """
+
     __slots__ = ("_data", "_alphabet", "_make_seq", "_reversed_seqs")
     # todo: kath
     # refactor: design
@@ -1976,13 +1991,14 @@ class SequenceCollection:
 
         .. code-block:: python
 
-            seq_col # is rendered by jupyter
+            seq_col  # is rendered by jupyter
 
         You can directly use the result for display in a notebook as
 
         .. code-block:: python
 
             from IPython.core.display import HTML
+
             HTML(seq_col.to_html())
         """
         css, styles = self.moltype.get_css_style(
@@ -2339,7 +2355,6 @@ def _(
     source: OptPathType = None,
     annotation_db: SupportsFeatures = None,
 ) -> SequenceCollection:
-
     moltype = new_moltype.get_moltype(moltype)
     if not moltype.is_compatible_alphabet(data.alphabet):
         raise ValueError(

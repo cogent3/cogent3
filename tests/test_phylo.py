@@ -2,10 +2,7 @@ import os
 import pathlib
 import unittest
 import warnings
-
 from tempfile import TemporaryDirectory
-
-from numpy import exp, log
 
 from cogent3 import get_model, load_aligned_seqs, load_tree, make_tree
 from cogent3.phylo.consensus import get_splits, get_tree, majority_rule
@@ -19,7 +16,7 @@ from cogent3.phylo.tree_collection import (
     make_trees,
 )
 from cogent3.util.io import remove_files
-
+from numpy import exp, log
 
 warnings.filterwarnings("ignore", "Not using MPI as mpi4py not found")
 

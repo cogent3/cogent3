@@ -6,15 +6,14 @@ build-backend = "flit_core.buildapi"
 name = "cogent3"
 description = """COmparative GENomics Toolkit 3: genomic sequence analysis within notebooks or on compute systems with 1000s of CPUs."""
 # remember to update cogent3/_version.py too!
-version = "2024.5.7a1"
+version = "2024.7.19a1"
 authors = [
     { name = "Gavin Huttley", email = "Gavin.Huttley@anu.edu.au"},
 ]
 keywords = ["biology", "genomics", "statistics", "phylogeny", "evolution", "bioinformatics"]
 readme = "README.md"
 license = { file = "LICENSE" }
-dependencies = ["chardet",
-        # until we know all dependencies work on numpy 2, pin to lesser version
+dependencies = ["charset-normalizer",
         "numpy",
         "numba>0.53; python_version>='3.9' and python_version <'3.12'",
         "numba>0.54; python_version>='3.10' and python_version <'3.12'",
@@ -48,9 +47,7 @@ Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 
 [project.optional-dependencies]
 test = [
-    "black==24.4.2",
-    "isort==5.13.2",
-    "click==8.1.7", # black needs this pinned
+    "ruff==0.5.4",
     "kaleido",
     "pandas",
     "plotly",
@@ -69,7 +66,6 @@ doc  = ["click==8.1.7",
         "jupyterlab",
         "jupytext",
         "kaleido",
-        "matplotlib",
         "nbconvert>5.4",
         "nbformat",
         "nbsphinx",
@@ -85,19 +81,16 @@ doc  = ["click==8.1.7",
         "sphinxcontrib-bibtex",
         "sphinxcontrib-video"]
 extra = ["pandas", "plotly", "psutil", "kaleido"]
-dev = ["black==24.4.2",
-       "click==8.1.7",
+dev = ["ruff==0.5.4",
        "flit",
        "ipykernel",
        "ipython",
        "ipywidgets",
-       "isort==5.13.2",
        "jupyter-sphinx",
        "jupyter_client",
        "jupyterlab",
        "jupytext",
        "kaleido",
-       "matplotlib",
        "nbconvert>5.4",
        "nbformat",
        "nbsphinx",
@@ -139,33 +132,93 @@ filterwarnings = [
     'ignore:Model not reversible',
 ]
 
-[tool.black]
-line-length = 88
-target-version = ["py39", "py310", "py311", "py312"]
-exclude = '''
-/(
-    \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.nox
-  | \.venv
-  | _build
-  | build
-  | dist
-  | tests/data
-)/
-'''
+[tool.ruff]
+exclude = [
+    "iqtree2",
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
+]
 
-[tool.isort]
-atomic=true
-force_grid_wrap=0
-include_trailing_comma=true
-lines_after_imports=2
-lines_between_types=1
-multi_line_output=3
-use_parentheses=true
-src_paths = ["src", "tests","doc","noxfile.py"]
+# Same as Black.
+line-length = 88
+indent-width = 4
+
+target-version = "py39"
+
+[tool.ruff.lint]
+# Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
+# Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
+# McCabe complexity (`C901`) by default.
+select = ["ALL"]
+ignore = ["EXE002", "FA100", "E501", "D"]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "S101", # asserts allowed in tests...
+    "INP001", # __init__.py files are not required...
+    "ANN",
+    "N802",
+    "N803"
+]
+"noxfile.py" = [
+    "S101", # asserts allowed in tests...
+    "INP001", # __init__.py files are not required...
+    "ANN",
+    "N802",
+    "N803"
+]
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "lf"
+docstring-code-format = true
+
+# Set the line length limit used when formatting code snippets in
+# docstrings.
+#
+# This only has an effect when the `docstring-code-format` setting is
+# enabled.
+docstring-code-line-length = "dynamic"
 
 [tool.scriv]
 format="md"

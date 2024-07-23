@@ -17,9 +17,9 @@ As of 12/27/03, should be capable of parsing the ClustalW .dnd files without
 difficulty.
 
 """
+
 from cogent3.core.tree import PhyloNode
 from cogent3.parse.record import RecordError
-
 
 strip = str.strip
 maketrans = str.maketrans

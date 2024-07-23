@@ -20,7 +20,6 @@ from cogent3.parse.record import FileFormatError
 from cogent3.util import warning as c3warn
 from cogent3.util.io import get_format_suffixes, iter_splitlines, open_
 
-
 _lc_to_wc = "".join([[chr(x), "?"]["A" <= chr(x) <= "Z"] for x in range(256)])
 
 
@@ -91,7 +90,7 @@ class LineBasedParser:
 
     @__call__.register
     def _(self, data: str, **kwargs) -> ParserOutputType:
-        return self(pathlib.Path(data), **kwargs)
+        yield from self._parse(iter_splitlines(data), **kwargs)
 
     @__call__.register
     def _(self, data: pathlib.Path, **kwargs) -> ParserOutputType:

@@ -1,7 +1,6 @@
 import contextlib
 import shutil
 import uuid
-
 from bz2 import open as bzip_open
 from gzip import open as gzip_open
 from io import TextIOWrapper
@@ -14,10 +13,9 @@ from urllib.parse import ParseResult, urlparse
 from urllib.request import urlopen
 from zipfile import ZipFile
 
-from chardet import detect
+from charset_normalizer import detect
 
 from cogent3.util.misc import _wout_period
-
 
 PathType = Union[str, PathLike, PurePath]
 # support prefixes for urls
@@ -365,11 +363,14 @@ def iter_splitlines(
     -----
     Loads chunks of data from the file, yields one line at a time
     """
-    path = Path(path)
-    if chunk_size and path.stat().st_size < chunk_size:
-        # file is smaller than provided chunk_size, just
-        # load it all
+    if _urls.search(str(path)):
         chunk_size = None
+    else:
+        path = Path(path)
+        if chunk_size and path.stat().st_size < chunk_size:
+            # file is smaller than provided chunk_size, just
+            # load it all
+            chunk_size = None
 
     with open_(path) as infile:
         last = ""

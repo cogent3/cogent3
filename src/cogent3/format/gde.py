@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""Writer for GDE sequence format
-"""
+"""Writer for GDE sequence format"""
 
 from cogent3.format.util import _AlignmentFormatter
 

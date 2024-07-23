@@ -1,4 +1,40 @@
 
+<a id='changelog-2024.7.19a1'></a>
+# Changes in release "2024.7.19a1"
+
+## Contributors
+
+- Contributions from @YapengLang, @KatherineCaley, @rmcar17, @fredjaya,
+  @GavinHuttley to cogent3 issues, code AND code reviews!
+- Contributions from @GavinHuttley and @khiron to Cogent3 repo
+  maintenance, developer tooling, issues etc.. related to the SMBE2024
+  workshop!
+
+## ENH
+
+- Defined an abstract base class for Gff records and support users providing
+  their own class via the cogent3.parse.gff.gff_parser(make_record) argument.
+  This enables users to devise a custom implementation tuned to the features
+  of different provider gff data.
+- Contributions from @KatherineCaley, @fredjaya and @GavinHuttley on massive
+  refactor of core objects concerning genetic codes, molecular types, 
+  alphabets, sequences and sequence collections ... huge efforts 💪 🚀 👷🏼‍♀️!
+- Introduced alpha versions of new implementations of core objects: `Sequence`,
+  `SequenceCollection`, `MolType`, `GeneticCode`, and `Alphabet`. These
+  "new-style" objects enhance performance by supporting the access of the
+  underlying data in various formats (i.e. numpy arrays, bytes or strings). The
+  "new-style" objects can be accessed by setting the `new_type=True` argument
+  in top-level functions (`make_seq`, `load_seq`, `make_unaligned_seqs`,
+  `get_moltype`, `get_code`). These are not yet the default and are not fully
+  integrated into the existing code, however, we encourage experimentation in
+  cases where integration with old objects is NOT required and look forward to
+  any feedback!
+
+## BUG
+
+- @YapengLang identified and fixed a bug in `cogent3.app.evo.model` where
+  settings for upper / lower bounds where being ignored.
+
 <a id='changelog-2024.5.7a1'></a>
 # Changes in release "2024.5.7a1"
 

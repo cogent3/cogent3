@@ -13,7 +13,6 @@ Functions for generating combinations, permutations, or cartesian products
 of lists.
 """
 
-
 maketrans = str.maketrans
 
 # standard combinatorial HOF's from Mertz

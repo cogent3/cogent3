@@ -1,13 +1,11 @@
-"""Provides tests for classes and functions in profile.py
-"""
+"""Provides tests for classes and functions in profile.py"""
 
 from collections import Counter
 from unittest import TestCase
 
+from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
 from numpy import array, log2, nan, vstack
 from numpy.testing import assert_allclose
-
-from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
 
 
 class MotifCountsArrayTests(TestCase):
@@ -284,9 +282,8 @@ class MotifFreqsArrayTests(TestCase):
 
     def test_pairwise_jsd(self):
         """correctly constructs pairwise JSD dict"""
-        from numpy.random import random
-
         from cogent3.maths.measure import jsd
+        from numpy.random import random
 
         data = [[0.25, 0.25, 0.25, 0.25], [0.5, 0.5, 0, 0]]
         expect = jsd(data[0], data[1])
@@ -306,9 +303,8 @@ class MotifFreqsArrayTests(TestCase):
 
     def test_pairwise_jsm(self):
         """correctly constructs pairwise JS metric dict"""
-        from numpy.random import random
-
         from cogent3.maths.measure import jsm
+        from numpy.random import random
 
         data = [[0.25, 0.25, 0.25, 0.25], [0.5, 0.5, 0, 0]]
         expect = jsm(data[0], data[1])
@@ -535,6 +531,6 @@ class PSSMTests(TestCase):
             [0.6, 0.15, 0.05, 0.2],
         ]
         pssm = PSSM(data, "ACTG")
-        seq = DNA.make_seq("".join("ACTG"[i] for i in [3, 1, 2, 0, 2, 2, 3]))
+        seq = DNA.make_seq(seq="".join("ACTG"[i] for i in [3, 1, 2, 0, 2, 2, 3]))
         scores = pssm.score_seq(seq)
         assert_allclose(scores, [-4.481, -5.703, -2.966], atol=1e-3)

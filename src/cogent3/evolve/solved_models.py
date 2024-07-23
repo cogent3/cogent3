@@ -3,7 +3,6 @@ intermediate rate matrix Q.
 """
 
 import numpy
-
 from numpy.testing import assert_allclose
 
 from cogent3.evolve.substitution_model import (

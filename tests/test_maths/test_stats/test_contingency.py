@@ -1,11 +1,9 @@
 from unittest import TestCase
 
 import numpy
-
-from numpy.testing import assert_allclose
-
 from cogent3.maths.stats.contingency import CategoryCounts, calc_expected
 from cogent3.util.dict_array import DictArrayTemplate
+from numpy.testing import assert_allclose
 
 
 class ContingencyTests(TestCase):

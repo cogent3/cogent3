@@ -5,7 +5,6 @@ import datetime
 import os
 import re
 import sqlite3
-
 from pathlib import Path
 from typing import Optional, Union
 
@@ -25,7 +24,6 @@ from cogent3.app.data_store import (
     StrOrBytes,
 )
 from cogent3.util.misc import extend_docstring_from
-
 
 _RESULT_TABLE = "results"
 _MEMORY = ":memory:"

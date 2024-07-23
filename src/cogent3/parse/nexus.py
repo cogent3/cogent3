@@ -5,12 +5,10 @@ parses Nexus formatted tree files and Branchlength info in log files
 """
 
 import re
-
 from collections import defaultdict
 
 from cogent3.parse.record import RecordError
 from cogent3.util.io import open_
-
 
 strip = str.strip
 

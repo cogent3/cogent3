@@ -5,7 +5,6 @@ import unittest
 from cogent3 import PROTEIN
 from cogent3.parse.dialign import DialignParser, parse_data_line
 
-
 data = """
                            DIALIGN 2.2.1 
                            *************

@@ -2,7 +2,6 @@ from collections import Counter, defaultdict
 from collections.abc import MutableMapping
 
 import numpy
-
 from numpy.testing import assert_allclose
 
 
