@@ -2650,9 +2650,8 @@ class AlignedData:
         seq = self.seqs[seqid]
         gaps = self.gaps[seqid]
 
-        # If there are no gaps, gaps not be an instance of IndelMap
-        # and we can return sliced sequence
-        if not isinstance(gaps, IndelMap):
+        # if there's no gaps, just slice the sequence
+        if len(seq) == self.align_len:
             return seq[start:stop]
 
         new_map = gaps[start:stop] if start is not None or stop is not None else gaps
@@ -2673,9 +2672,8 @@ class AlignedData:
         seq = self.seqs[seqid]
         gaps = self.gaps[seqid]
 
-        # If there are no gaps, gaps not be an instance of IndelMap
-        # and we can return sliced sequence
-        if not isinstance(gaps, IndelMap):
+        # if there's no gaps, just slice the sequence
+        if len(seq) == self.align_len:
             return seq[start:stop]
 
         return self.moltype.most_degen_alphabet().gapped_by_map(seq, gaps)[start:stop]
