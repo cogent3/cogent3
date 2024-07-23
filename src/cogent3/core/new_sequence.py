@@ -866,9 +866,8 @@ class Sequence:
         if value == self._annotation_db:
             return
 
-        if check and value:
-            if not isinstance(value, SupportsFeatures):
-                raise TypeError(f"{type(value)} does not satisfy SupportsFeatures")
+        if check and value and not isinstance(value, SupportsFeatures):
+            raise TypeError(f"{type(value)} does not satisfy SupportsFeatures")
 
         self._annotation_db = value
 
@@ -1277,36 +1276,39 @@ class Sequence:
         return new
 
     def gapped_by_map_segment_iter(
-        self, segment_map, allow_gaps=True, recode_gaps=False
+        self, map, allow_gaps=True, recode_gaps=False
     ) -> str:
-        if not allow_gaps and not segment_map.complete:
-            raise ValueError(f"gap(s) in map {segment_map}")
-
-        for span in segment_map.spans:
-            if span.lost:
-                unknown = "?" if span.terminal or recode_gaps else "-"
-                seg = unknown * span.length
-            else:
-                seg = str(self[span.start : span.end])
-
-            yield seg
+        # refactor: design
+        # I've moved the functionality of these methods to the alphabet. I am
+        # not sure if that is the right place for them, but I think it is
+        # important to have them accessible without having to create a sequence
+        # instance
+        alphabet = self.moltype.most_degen_alphabet()
+        return alphabet.gapped_by_map_segment_iter(
+            str(self),
+            map,
+            allow_gaps=allow_gaps,
+            recode_gaps=recode_gaps,
+        )
 
     def gapped_by_map_motif_iter(self, map):
-        for segment in self.gapped_by_map_segment_iter(map):
+        alphabet = self.moltype.most_degen_alphabet()
+        for segment in alphabet.gapped_by_map_segment_iter(map):
             yield from segment
 
     def gapped_by_map(self, map, recode_gaps=False):
-        segments = self.gapped_by_map_segment_iter(map, True, recode_gaps)
+        alphabet = self.moltype.most_degen_alphabet()
         return self.__class__(
             moltype=self.moltype,
-            seq="".join(segments),
+            seq=alphabet.gapped_by_map(str(self), map, recode_gaps=recode_gaps),
             name=self.name,
             info=self.info,
         )
 
     def _mapped(self, map):
         # Called by generic __getitem__
-        segments = self.gapped_by_map_segment_iter(map, allow_gaps=False)
+        alphabet = self.moltype.most_degen_alphabet()
+        segments = alphabet.gapped_by_map_segment_iter(str(self), map, allow_gaps=False)
         return self.__class__(
             moltype=self.moltype, seq="".join(segments), name=self.name, info=self.info
         )
@@ -1523,7 +1525,7 @@ class Sequence:
         ]
 
     def get_drawables(
-        self, *, biotype: typing.Optional[str, typing.Iterable[str]] = None
+        self, *, biotype: typing.Optional[StrORIterableStr] = None
     ) -> dict:
         """returns a dict of drawables, keyed by type
 

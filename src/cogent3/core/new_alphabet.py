@@ -7,11 +7,13 @@ from abc import ABC, abstractmethod
 import numba
 import numpy
 
+from cogent3.core.location import IndelMap
 from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.misc import get_object_provenance
 
 StrORBytes = typing.Union[str, bytes]
+StrORArray = typing.Union[str, numpy.ndarray]
 StrORBytesORArray = typing.Union[str, bytes, numpy.ndarray]
 OptInt = typing.Optional[int]
 OptStr = typing.Optional[str]
@@ -414,6 +416,109 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
     def array_to_bytes(self, seq: numpy.ndarray) -> bytes:
         """returns seq as a byte string"""
         return self._arr2bytes(seq)
+
+    @functools.singledispatchmethod
+    def gapped_by_map_segment_iter(
+        self,
+        seq: StrORBytesORArray,
+        map: IndelMap,
+        allow_gaps: bool = True,
+        recode_gaps: bool = False,
+    ) -> typing.Generator[StrORBytesORArray, StrORBytesORArray, StrORBytesORArray]:
+        """Yields segments of a sequence according to a gap map."""
+        raise TypeError(f"{type(seq)} not supported")
+
+    @gapped_by_map_segment_iter.register
+    def _(
+        self,
+        seq: str,
+        map: IndelMap,
+        allow_gaps: bool = True,
+        recode_gaps: bool = False,
+    ) -> typing.Generator[str, str, str]:
+        if not allow_gaps and not map.complete:
+            raise ValueError(f"gap(s) in map {map}")
+
+        for span in map.spans:
+            if span.lost:
+                unknown = (
+                    self.missing if span.terminal or recode_gaps else self.gap_char
+                )
+                seg = unknown * span.length
+            else:
+                seg = seq[span.start : span.end]
+
+            yield seg
+
+    @gapped_by_map_segment_iter.register
+    def _(
+        self,
+        seq: numpy.ndarray,
+        map: IndelMap,
+        allow_gaps: bool = True,
+        recode_gaps: bool = False,
+    ) -> typing.Generator[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
+        if not allow_gaps and not map.complete:
+            raise ValueError(f"gap(s) in map {map}")
+
+        for span in map.spans:
+            if span.lost:
+                unknown = self.missing_index if recode_gaps else self.gap_index
+                seg = numpy.full(span.length, unknown, dtype=numpy.uint8)
+            else:
+                seg = seq[span.start : span.end]
+
+            yield seg
+
+    @gapped_by_map_segment_iter.register
+    def _(
+        self,
+        seq: bytes,
+        map: IndelMap,
+        allow_gaps: bool = True,
+        recode_gaps: bool = False,
+    ) -> typing.Generator[bytes, bytes, bytes]:
+        return (
+            self.gapped_by_map_segment_iter(
+                seq.decode("utf8"), map, allow_gaps, recode_gaps
+            )
+        ).encode("utf8")
+
+    @functools.singledispatchmethod
+    def gapped_by_map(
+        self, seq: StrORBytesORArray, map: IndelMap, recode_gaps: bool = False
+    ) -> StrORBytesORArray:
+        """Inserts gaps into a sequence according to a gap map."""
+        raise TypeError(f"{type(seq)} not supported")
+
+    @gapped_by_map.register
+    def _(self, seq: str, map: IndelMap, recode_gaps: bool = False) -> str:
+        """Inserts gaps into a sequence according to a gap map."""
+        return "".join(
+            self.gapped_by_map_segment_iter(seq, map, recode_gaps=recode_gaps)
+        )
+
+    @gapped_by_map.register
+    def _(
+        self, seq: numpy.ndarray, map: IndelMap, recode_gaps: bool = False
+    ) -> numpy.ndarray:
+        """Inserts gaps into a sequence according to a gap map."""
+        return numpy.concatenate(
+            list(self.gapped_by_map_segment_iter(seq, map, recode_gaps=recode_gaps)),
+            dtype=numpy.uint8,
+        )
+
+    @gapped_by_map.register
+    def _(self, seq: bytes, map: IndelMap, recode_gaps: bool = False) -> bytes:
+        return b"".join(
+            self.gapped_by_map_segment_iter(seq, map, recode_gaps=recode_gaps)
+        )
+
+    def gapped_by_map_motif_iter(
+        self, seq: StrORArray, map: IndelMap
+    ) -> typing.Generator[StrORBytesORArray, StrORBytesORArray, StrORBytesORArray]:
+        for segment in self.gapped_by_map_segment_iter(seq, map):
+            yield from segment
 
     def to_rich_dict(self) -> dict:
         """returns a serialisable dictionary"""
