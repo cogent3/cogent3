@@ -2780,17 +2780,31 @@ class AlignedSeqsData(SeqsDataABC, AlignedSeqsDataABC):
         start: OptInt = None,
         stop: OptInt = None,
     ) -> numpy.ndarray:
-        """Return sequence corresponding to seqid as an array of indices.
+        """Return sequence data corresponding to seqid as an array of indices.
         start/stop are in alignment coordinates. Includes gaps.
         """
-        seq = self.seqs[seqid]
-        gaps = self.gaps[seqid]
+        seq = self._seqs[seqid]
 
         # if there's no gaps, just slice the sequence
         if len(seq) == self.align_len:
             return seq[start:stop]
 
-        return self.moltype.most_degen_alphabet().gapped_by_map(seq, gaps)[start:stop]
+        gaps = self._gaps[seqid]
+        indel_map = IndelMap(
+            gap_pos=gaps[:, 0], cum_gap_lengths=gaps[:, 1], parent_length=self.align_len
+        )
+
+        gapped = numpy.array([], dtype=numpy.uint8)
+        for span in indel_map.spans:
+            if span.lost:
+                unknown = self.alphabet.gap_index
+                seg = numpy.full(span.length, unknown, dtype=numpy.uint8)
+            else:
+                seg = seq[span.start : span.end]
+
+            gapped = numpy.concatenate((gapped, seg))
+
+        return gapped[start:stop]
 
     def get_seq_str(
         self,

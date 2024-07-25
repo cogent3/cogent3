@@ -1278,39 +1278,38 @@ class Sequence:
         return new
 
     def gapped_by_map_segment_iter(
-        self, map, allow_gaps=True, recode_gaps=False
-    ) -> str:
-        # refactor: design
-        # I've moved the functionality of these methods to the alphabet. I am
-        # not sure if that is the right place for them, but I think it is
-        # important to have them accessible without having to create a sequence
-        # instance
-        alphabet = self.moltype.most_degen_alphabet()
-        return alphabet.gapped_by_map_segment_iter(
-            str(self),
-            map,
-            allow_gaps=allow_gaps,
-            recode_gaps=recode_gaps,
-        )
+        self, segment_map: IndelMap, allow_gaps: bool = True, recode_gaps: bool = False
+    ) -> typing.Iterator[str, str, str]:
+        if not allow_gaps and not segment_map.complete:
+            raise ValueError(f"gap(s) in map {segment_map}")
 
-    def gapped_by_map_motif_iter(self, map):
-        alphabet = self.moltype.most_degen_alphabet()
-        for segment in alphabet.gapped_by_map_segment_iter(map):
+        for span in segment_map.spans:
+            if span.lost:
+                unknown = "?" if span.terminal or recode_gaps else "-"
+                seg = unknown * span.length
+            else:
+                seg = str(self[span.start : span.end])
+
+            yield seg
+
+    def gapped_by_map_motif_iter(
+        self, segment_map: IndelMap
+    ) -> typing.Iterator[str, str, str]:
+        for segment in self.gapped_by_map_segment_iter(segment_map):
             yield from segment
 
-    def gapped_by_map(self, map, recode_gaps=False):
-        alphabet = self.moltype.most_degen_alphabet()
+    def gapped_by_map(self, segment_map: IndelMap, recode_gaps: bool = False):
+        segments = self.gapped_by_map_segment_iter(segment_map, True, recode_gaps)
         return self.__class__(
             moltype=self.moltype,
-            seq=alphabet.gapped_by_map(str(self), map, recode_gaps=recode_gaps),
+            seq="".join(segments),
             name=self.name,
             info=self.info,
         )
 
-    def _mapped(self, map):
+    def _mapped(self, segment_map: IndelMap):
         # Called by generic __getitem__
-        alphabet = self.moltype.most_degen_alphabet()
-        segments = alphabet.gapped_by_map_segment_iter(str(self), map, allow_gaps=False)
+        segments = self.gapped_by_map_segment_iter(segment_map, allow_gaps=False)
         return self.__class__(
             moltype=self.moltype, seq="".join(segments), name=self.name, info=self.info
         )
