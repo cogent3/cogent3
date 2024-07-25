@@ -36,7 +36,7 @@ def bytes_alphabet():
 @pytest.fixture(scope="function")
 def integer_seq(bytes_alphabet):
     """Used for slicing tests"""
-    return new_sequence.SeqView(seq="0123456789", alphabet=bytes_alphabet)
+    return new_sequence.SeqView(parent="0123456789", alphabet=bytes_alphabet)
 
 
 @pytest.mark.parametrize("name", ("dna", "rna", "protein", "protein_with_stop", "text"))
@@ -1003,7 +1003,7 @@ def test_seqview_initialisation(start, stop, step, bytes_alphabet):
     """Initialising a SeqView should work with range of provided values"""
     seq_data = "0123456789"
     got = new_sequence.SeqView(
-        seq=seq_data, start=start, stop=stop, step=step, alphabet=bytes_alphabet
+        parent=seq_data, start=start, stop=stop, step=step, alphabet=bytes_alphabet
     )
     expected = seq_data[start:stop:step]
     assert got.str_value == expected
@@ -1013,7 +1013,7 @@ def test_seqview_initialisation(start, stop, step, bytes_alphabet):
 def test_seqview_index(index, bytes_alphabet):
     """SeqView with default values can be sliced with a single index, when within the length of the sequence"""
     seq_data = "0123456789"
-    sv = new_sequence.SeqView(seq=seq_data, alphabet=bytes_alphabet)
+    sv = new_sequence.SeqView(parent=seq_data, alphabet=bytes_alphabet)
     got = sv[index]
     expected = seq_data[index]
     assert got.str_value == expected
@@ -1022,18 +1022,18 @@ def test_seqview_index(index, bytes_alphabet):
 
 def test_seqview_index_null(ascii_alphabet):
     "Indexing a SeqView of length 0 should return an IndexError"
-    sv = new_sequence.SeqView(seq="", alphabet=ascii_alphabet)
+    sv = new_sequence.SeqView(parent="", alphabet=ascii_alphabet)
     with pytest.raises(IndexError):
         _ = sv[0]
 
 
 def test_seqview_step_0(bytes_alphabet):
     "Initialising or slicing a SeqView with a step of 0 should return an IndexError"
-    sv = new_sequence.SeqView(seq="0123456789", alphabet=bytes_alphabet)
+    sv = new_sequence.SeqView(parent="0123456789", alphabet=bytes_alphabet)
     with pytest.raises(ValueError):
         _ = sv[::0]
     with pytest.raises(ValueError):
-        _ = new_sequence.SeqView(seq="0123456789", alphabet=bytes_alphabet, step=0)
+        _ = new_sequence.SeqView(parent="0123456789", alphabet=bytes_alphabet, step=0)
 
 
 @pytest.mark.parametrize("start", (0, 2, 4))
@@ -1044,7 +1044,7 @@ def test_seqview_invalid_index(start, bytes_alphabet):
     pos_boundary_index = length
     neg_boundary_index = -length - 1
 
-    sv = new_sequence.SeqView(seq=seq, start=start, alphabet=bytes_alphabet)
+    sv = new_sequence.SeqView(parent=seq, start=start, alphabet=bytes_alphabet)
     with pytest.raises(IndexError):
         _ = sv[pos_boundary_index]
     with pytest.raises(IndexError):
@@ -1060,7 +1060,9 @@ def test_seqview_invalid_index_positive_step_gt_1(start, bytes_alphabet):
     neg_boundary_index = -length - 1
     pos_boundary_index = length
 
-    sv = new_sequence.SeqView(seq=seq, start=start, step=step, alphabet=bytes_alphabet)
+    sv = new_sequence.SeqView(
+        parent=seq, start=start, step=step, alphabet=bytes_alphabet
+    )
     with pytest.raises(IndexError):
         _ = sv[pos_boundary_index]
     with pytest.raises(IndexError):
@@ -1078,7 +1080,7 @@ def test_seqview_invalid_index_reverse_step(stop, bytes_alphabet):
     pos_boundary_index = length
 
     sv = new_sequence.SeqView(
-        seq=seq, start=start, stop=stop, step=step, alphabet=bytes_alphabet
+        parent=seq, start=start, stop=stop, step=step, alphabet=bytes_alphabet
     )
     with pytest.raises(IndexError):
         _ = sv[pos_boundary_index]
@@ -1097,7 +1099,7 @@ def test_seqview_invalid_index_reverse_step_gt_1(stop, bytes_alphabet):
     pos_boundary_index = length
 
     sv = new_sequence.SeqView(
-        seq=seq, start=start, stop=stop, step=step, alphabet=bytes_alphabet
+        parent=seq, start=start, stop=stop, step=step, alphabet=bytes_alphabet
     )
     with pytest.raises(IndexError):
         _ = sv[pos_boundary_index]
@@ -1106,7 +1108,7 @@ def test_seqview_invalid_index_reverse_step_gt_1(stop, bytes_alphabet):
 
 
 def test_seqview_slice_null(ascii_alphabet):
-    sv = new_sequence.SeqView(seq="", alphabet=ascii_alphabet)
+    sv = new_sequence.SeqView(parent="", alphabet=ascii_alphabet)
     assert len(sv) == 0
     got = sv[2:]
     assert len(got) == 0
@@ -1118,7 +1120,7 @@ def test_seqview_start_out_of_bounds(bytes_alphabet):
     init_start, init_stop, init_step = 2, 10, 1
     boundary = abs((init_start - init_stop) // init_step)
     sv = new_sequence.SeqView(
-        seq=seq,
+        parent=seq,
         start=init_start,
         stop=init_stop,
         step=init_step,
@@ -1134,7 +1136,7 @@ def test_seqview_start_out_of_bounds_step_gt_1(bytes_alphabet):
     init_start, init_stop, init_step = 2, 10, 2
     boundary = abs((init_start - init_stop) // init_step)
     sv = new_sequence.SeqView(
-        seq=seq,
+        parent=seq,
         start=init_start,
         stop=init_stop,
         step=init_step,
@@ -1152,7 +1154,7 @@ def test_seqview_start_out_of_bounds_reverse_step(bytes_alphabet):
     boundary_neg = -abs((init_start - init_stop) // init_step) - 1
 
     sv = new_sequence.SeqView(
-        seq=seq,
+        parent=seq,
         start=init_start,
         stop=init_stop,
         step=init_step,
@@ -1176,7 +1178,7 @@ def test_seqview_start_out_of_bounds_reverse_step(bytes_alphabet):
 def test_seqview_defaults(simple_slices, bytes_alphabet):
     """SeqView should accept slices with all combinations of default parameters"""
     seq = "0123456789"
-    got = new_sequence.SeqView(seq=seq, alphabet=bytes_alphabet)[simple_slices]
+    got = new_sequence.SeqView(parent=seq, alphabet=bytes_alphabet)[simple_slices]
     expected = seq[simple_slices]
     assert got.str_value == expected
 
@@ -1196,7 +1198,7 @@ def test_seqview_defaults(simple_slices, bytes_alphabet):
 def test_seqview_sliced_index(index, simple_slices, bytes_alphabet):
     """SeqView that has been sliced with default parameters, can then be indexed"""
     seq = "0123456789"
-    sv = new_sequence.SeqView(seq=seq, alphabet=bytes_alphabet)
+    sv = new_sequence.SeqView(parent=seq, alphabet=bytes_alphabet)
     got = sv[simple_slices][index]
     expected = seq[simple_slices][index]
     assert got.str_value == expected
@@ -1207,7 +1209,7 @@ def test_seqview_sliced_index(index, simple_slices, bytes_alphabet):
 def test_seqview_reverse_slice(first_step, second_step, bytes_alphabet):
     """subsequent slices may reverse the previous slice"""
     seq = "0123456789"
-    sv = new_sequence.SeqView(seq=seq, step=first_step, alphabet=bytes_alphabet)
+    sv = new_sequence.SeqView(parent=seq, step=first_step, alphabet=bytes_alphabet)
     got = sv[::second_step]
     expected = seq[::first_step][::second_step]
     assert got.str_value == expected
@@ -1226,11 +1228,15 @@ def test_seqview_rev_sliced_index(index, start, stop, step, seq, bytes_alphabet)
     except IndexError:
         with pytest.raises(IndexError):
             _ = new_sequence.SeqView(
-                seq=seq_data, start=start, stop=stop, step=step, alphabet=bytes_alphabet
+                parent=seq_data,
+                start=start,
+                stop=stop,
+                step=step,
+                alphabet=bytes_alphabet,
             )[index].str_value
     else:  # if no index error, SeqView should match python slicing
         got = new_sequence.SeqView(
-            seq=seq_data, start=start, stop=stop, step=step, alphabet=bytes_alphabet
+            parent=seq_data, start=start, stop=stop, step=step, alphabet=bytes_alphabet
         )[index].str_value
         assert got == expected
 
@@ -1242,7 +1248,7 @@ def test_seqview_rev_sliced_index(index, start, stop, step, seq, bytes_alphabet)
 def test_seqview_init_with_negatives(seq, start, stop, step, bytes_alphabet):
     "SeqView initialisation should handle any combination of positive and negative slices"
     got = new_sequence.SeqView(
-        seq=seq, start=start, stop=stop, step=step, alphabet=bytes_alphabet
+        parent=seq, start=start, stop=stop, step=step, alphabet=bytes_alphabet
     )
     expected = seq[start:stop:step]
     assert got.str_value == expected
@@ -1254,7 +1260,7 @@ def test_seqview_init_with_negatives(seq, start, stop, step, bytes_alphabet):
 @pytest.mark.parametrize("step", (1, 2, -1, -2))
 def test_seqview_slice_with_negatives(seq, start, stop, step, bytes_alphabet):
     """SeqView should handle any combination of positive and negative slices"""
-    sv = new_sequence.SeqView(seq=seq, alphabet=bytes_alphabet)
+    sv = new_sequence.SeqView(parent=seq, alphabet=bytes_alphabet)
     got = sv[start:stop:step]
     expected = seq[start:stop:step]
     assert got.str_value == expected
@@ -1271,7 +1277,7 @@ def test_subsequent_slice_forward(
 ):
     """SeqView should handle subsequent forward slice"""
     seq = "0123456789"
-    sv = new_sequence.SeqView(seq=seq, alphabet=bytes_alphabet)
+    sv = new_sequence.SeqView(parent=seq, alphabet=bytes_alphabet)
     got = sv[start:stop:step][start_2:stop_2:step_2]
     expected = seq[start:stop:step][start_2:stop_2:step_2]
     assert got.str_value == expected
@@ -1394,7 +1400,7 @@ def test_subsequent_slice_neg_stop(slice_1, slice_2, ascii_alphabet):
     subsequent slices may overlap or be within previous slices
     """
     seq_data = "abcdefghijk"
-    sv = new_sequence.SeqView(seq=seq_data, alphabet=ascii_alphabet)
+    sv = new_sequence.SeqView(parent=seq_data, alphabet=ascii_alphabet)
     assert sv[slice_1][slice_2].str_value == seq_data[slice_1][slice_2]
 
 
@@ -1477,7 +1483,7 @@ def test_subsequent_slice_neg_start(slice_1, slice_2, ascii_alphabet):
     subsequent slices may or may not overlap or be within previous slices
     """
     seq_data = "abcdefghijk"
-    sv = new_sequence.SeqView(seq=seq_data, alphabet=ascii_alphabet)
+    sv = new_sequence.SeqView(parent=seq_data, alphabet=ascii_alphabet)
     assert sv[slice_1][slice_2].str_value == seq_data[slice_1][slice_2]
 
 
@@ -1516,7 +1522,7 @@ def test_subsequent_slice_neg_step(slice_1, slice_2, ascii_alphabet):
     subsequent slices may overlap or be within previous slices
     """
     seq_data = "0123456789"
-    sv = new_sequence.SeqView(seq=seq_data, alphabet=ascii_alphabet)
+    sv = new_sequence.SeqView(parent=seq_data, alphabet=ascii_alphabet)
     assert sv[slice_1][slice_2].str_value == seq_data[slice_1][slice_2]
 
 
@@ -1532,7 +1538,7 @@ def test_subsequent_slice_neg_step(slice_1, slice_2, ascii_alphabet):
 def test_subslice_3(sub_slices_triple, ascii_alphabet):
     """SeqView should handle three subsequent slices"""
     seq_data = "abcdefghijk"
-    sv = new_sequence.SeqView(seq=seq_data, alphabet=ascii_alphabet)
+    sv = new_sequence.SeqView(parent=seq_data, alphabet=ascii_alphabet)
     slice_1, slice_2, slice_3 = sub_slices_triple
     assert (
         sv[slice_1][slice_2][slice_3].str_value == seq_data[slice_1][slice_2][slice_3]
@@ -1552,7 +1558,7 @@ def test_triple_slice(
     integer_seq, start, stop, step, start_2, stop_2, step_2, start_3, stop_3, step_3
 ):
     """SeqView should handle subsequent forward slice"""
-    seq = integer_seq.seq
+    seq = integer_seq.parent
     got = integer_seq[start:stop:step][start_2:stop_2:step_2][start_3:stop_3:step_3]
     expected = seq[start:stop:step][start_2:stop_2:step_2][start_3:stop_3:step_3]
 
@@ -1564,36 +1570,32 @@ def test_seqview_repr():
     alpha = new_moltype.DNA.most_degen_alphabet()
     # Short sequence, defaults
     seq = "ACGT"
-    view = new_sequence.SeqView(seq=seq, alphabet=alpha)
-    expected = (
-        "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=0, seqid=None, seq_len=4)"
-    )
+    view = new_sequence.SeqView(parent=seq, alphabet=alpha)
+    expected = "SeqView(parent='ACGT', start=0, stop=4, step=1, offset=0, seqid=None, parent_len=4)"
     assert repr(view) == expected
 
     # Long sequence
     seq = "ACGT" * 10
-    view = new_sequence.SeqView(seq=seq, alphabet=alpha)
-    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=0, stop=40, step=1, offset=0, seqid=None, seq_len=40)"
+    view = new_sequence.SeqView(parent=seq, alphabet=alpha)
+    expected = "SeqView(parent='ACGTACGTAC...TACGT', start=0, stop=40, step=1, offset=0, seqid=None, parent_len=40)"
     assert repr(view) == expected
 
     # Non-zero start, stop, and step values
     seq = "ACGT" * 10
-    view = new_sequence.SeqView(seq=seq, start=5, stop=35, step=2, alphabet=alpha)
-    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=5, stop=35, step=2, offset=0, seqid=None, seq_len=40)"
+    view = new_sequence.SeqView(parent=seq, start=5, stop=35, step=2, alphabet=alpha)
+    expected = "SeqView(parent='ACGTACGTAC...TACGT', start=5, stop=35, step=2, offset=0, seqid=None, parent_len=40)"
     assert repr(view) == expected
 
     # offset
     seq = "ACGT"
-    view = new_sequence.SeqView(seq=seq, offset=5, alphabet=alpha)
-    expected = (
-        "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=5, seqid=None, seq_len=4)"
-    )
+    view = new_sequence.SeqView(parent=seq, offset=5, alphabet=alpha)
+    expected = "SeqView(parent='ACGT', start=0, stop=4, step=1, offset=5, seqid=None, parent_len=4)"
     assert repr(view) == expected
 
     # seqid
     seq = "ACGT"
-    view = new_sequence.SeqView(seq=seq, seqid="seq1", alphabet=alpha)
-    expected = "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=0, seqid='seq1', seq_len=4)"
+    view = new_sequence.SeqView(parent=seq, seqid="seq1", alphabet=alpha)
+    expected = "SeqView(parent='ACGT', start=0, stop=4, step=1, offset=0, seqid='seq1', parent_len=4)"
     assert repr(view) == expected
 
 
@@ -1976,7 +1978,7 @@ def test_relative_position_step_GT_one(integer_seq):
 @pytest.mark.parametrize("sliced", (False, True))
 @pytest.mark.parametrize("rev", (False, True))
 def test_seqview_copy(sliced, rev, integer_seq):
-    raw_data = integer_seq.seq
+    raw_data = integer_seq.parent
     integer_seq = integer_seq[::-1] if rev else integer_seq
     raw_data = raw_data[::-1] if rev else raw_data
 
@@ -1987,7 +1989,9 @@ def test_seqview_copy(sliced, rev, integer_seq):
 
     assert copied.str_value == raw_data[slice_start:slice_end]
     assert copied.is_reversed == integer_seq.is_reversed
-    assert sliced and copied.seq is not sv.seq or copied.seq is integer_seq.seq
+    assert (
+        sliced and copied.parent is not sv.parent or copied.parent is integer_seq.parent
+    )
 
 
 def test_relative_position_with_remainder(integer_seq):
@@ -2102,7 +2106,7 @@ def test_to_rich_dict():
     r = dna.make_seq(seq="AAGGCC", name="seq1")
     got = r.to_rich_dict()
     seq = new_sequence.SeqView(
-        seq="AAGGCC", seqid="seq1", alphabet=dna.most_degen_alphabet()
+        parent="AAGGCC", seqid="seq1", alphabet=dna.most_degen_alphabet()
     ).to_rich_dict()
 
     expect = {
@@ -2124,7 +2128,7 @@ def test_sequence_to_json():
     r = dna.make_seq(seq="AAGGCC", name="seq1")
     got = json.loads(r.to_json())
     seq = new_sequence.SeqView(
-        seq="AAGGCC", seqid="seq1", alphabet=dna.most_degen_alphabet()
+        parent="AAGGCC", seqid="seq1", alphabet=dna.most_degen_alphabet()
     ).to_rich_dict()
 
     expect = {
@@ -2143,7 +2147,7 @@ def test_sequence_to_json():
 @pytest.mark.parametrize("coord", ("start", "stop"))
 def test_seqview_to_rich_dict(coord, dna_alphabet):
     parent = "ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC"
-    sv = new_sequence.SeqView(seq=parent, alphabet=dna_alphabet)
+    sv = new_sequence.SeqView(parent=parent, alphabet=dna_alphabet)
     plus = sv.to_rich_dict()
     minus = sv[::-1].to_rich_dict()
     plus = plus.pop("init_args")
@@ -2158,7 +2162,7 @@ def test_seqview_to_rich_dict(coord, dna_alphabet):
 def test_sliced_seqview_rich_dict(reverse, dna_alphabet):
     parent = "ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC"
     sl = slice(2, 13)
-    sv = new_sequence.SeqView(seq=parent, alphabet=dna_alphabet)[sl]
+    sv = new_sequence.SeqView(parent=parent, alphabet=dna_alphabet)[sl]
     sv = sv[::-1] if reverse else sv
     rd = sv.to_rich_dict()
     assert rd["init_args"]["seq"] == parent[sl]
@@ -2179,7 +2183,7 @@ def test_parent_start_stop(sl, offset, ascii_alphabet):
     data = "0123456789"
     # check our slice matches the expectation for rest of test
     expect = "234" if sl.step > 0 else "432"
-    sv = new_sequence.SeqView(seq=data, alphabet=ascii_alphabet)
+    sv = new_sequence.SeqView(parent=data, alphabet=ascii_alphabet)
     sv.offset = offset
     sv = sv[sl]
     assert sv.str_value == expect
@@ -2199,7 +2203,7 @@ def test_parent_start_stop_limits(sl, ascii_alphabet):
     data = "0123456789"
     # check our slice matches the expectation for rest of test
     expect = data[sl]
-    sv = new_sequence.SeqView(seq=data, alphabet=ascii_alphabet)
+    sv = new_sequence.SeqView(parent=data, alphabet=ascii_alphabet)
     sv = sv[sl]
     assert sv.str_value == expect
     # now check that start / stop are always the same
@@ -2212,7 +2216,7 @@ def test_parent_start_stop_empty(rev, ascii_alphabet):
     data = "0123456789"
     # check our slice matches the expectation for rest of test
     expect = ""
-    sv = new_sequence.SeqView(seq=data, alphabet=ascii_alphabet)
+    sv = new_sequence.SeqView(parent=data, alphabet=ascii_alphabet)
     sv = sv[0 : 0 : -1 if rev else 1]
     assert sv.str_value == expect
     # now check that start / stop are always the same
@@ -2228,7 +2232,7 @@ def test_parent_start_stop_singletons(index, rev, ascii_alphabet):
     sl = slice(start, stop, -1 if rev else 1)
     # check our slice matches the expectation for rest of test
     expect = data[sl]
-    sv = new_sequence.SeqView(seq=data, alphabet=ascii_alphabet)
+    sv = new_sequence.SeqView(parent=data, alphabet=ascii_alphabet)
     sv = sv[sl]
     assert sv.str_value == expect
     # now check that start / stop are always the same
@@ -2405,7 +2409,7 @@ def test_coerce_to_seqview_already_seqview(dna_alphabet):
     seq = "AC--GGTGGGAC"
     seqid = "seq1"
     got = new_sequence._coerce_to_seqview(
-        new_sequence.SeqView(seq=seq, alphabet=dna_alphabet),
+        new_sequence.SeqView(parent=seq, alphabet=dna_alphabet),
         seqid,
         alphabet=dna_alphabet,
     )
@@ -2414,25 +2418,25 @@ def test_coerce_to_seqview_already_seqview(dna_alphabet):
 
 
 def test_seqview_seqid(dna_alphabet):
-    sv = new_sequence.SeqView(seq="ACGGTGGGAC", alphabet=dna_alphabet)
+    sv = new_sequence.SeqView(parent="ACGGTGGGAC", alphabet=dna_alphabet)
     assert sv.seqid is None
 
-    sv = new_sequence.SeqView(seq="ACGGTGGGAC", seqid="seq1", alphabet=dna_alphabet)
+    sv = new_sequence.SeqView(parent="ACGGTGGGAC", seqid="seq1", alphabet=dna_alphabet)
     assert sv.seqid == "seq1"
 
 
 def test_seqview_to_rich_dict_seqid(dna_alphabet):
-    sv = new_sequence.SeqView(seq="ACGGTGGGAC", seqid="seq1", alphabet=dna_alphabet)
+    sv = new_sequence.SeqView(parent="ACGGTGGGAC", seqid="seq1", alphabet=dna_alphabet)
     rd = sv.to_rich_dict()
     assert rd["init_args"]["seqid"] == "seq1"
 
-    sv = new_sequence.SeqView(seq="ACGGTGGGAC", alphabet=dna_alphabet)
+    sv = new_sequence.SeqView(parent="ACGGTGGGAC", alphabet=dna_alphabet)
     rd = sv.to_rich_dict()
     assert rd["init_args"]["seqid"] is None
 
 
 def test_seqview_slice_propagates_seqid(dna_alphabet):
-    sv = new_sequence.SeqView(seq="ACGGTGGGAC", seqid="seq1", alphabet=dna_alphabet)
+    sv = new_sequence.SeqView(parent="ACGGTGGGAC", seqid="seq1", alphabet=dna_alphabet)
     sliced_sv = sv[1:8:2]
     assert sliced_sv.seqid == "seq1"
 
@@ -2458,7 +2462,7 @@ def test_sequences_propogates_seqid_seqview(dna_alphabet):
     # creating a Sequence with a seqview does not change the seqid of the SeqView.
     seq = new_moltype.DNA.make_seq(
         seq=new_sequence.SeqView(
-            seq="ACGGTGGGAC", seqid="parent_name", alphabet=dna_alphabet
+            parent="ACGGTGGGAC", seqid="parent_name", alphabet=dna_alphabet
         ),
         name="seq_name",
     )
@@ -2467,7 +2471,7 @@ def test_sequences_propogates_seqid_seqview(dna_alphabet):
 
     # creating a Sequence with an unnamed seqview does not name the SeqView.
     seq = new_moltype.DNA.make_seq(
-        seq=new_sequence.SeqView(seq="ACGGTGGGAC", alphabet=dna_alphabet),
+        seq=new_sequence.SeqView(parent="ACGGTGGGAC", alphabet=dna_alphabet),
         name="seq_name",
     )
     assert seq.name == "seq_name"
@@ -2480,7 +2484,7 @@ def test_make_seq_assigns_to_seqview():
 
 
 def test_empty_seqview_translate_position(dna_alphabet):
-    sv = new_sequence.SeqView(seq="", alphabet=dna_alphabet)
+    sv = new_sequence.SeqView(parent="", alphabet=dna_alphabet)
     assert sv.absolute_position(0) == 0
     assert sv.relative_position(0) == 0
 
@@ -2493,34 +2497,34 @@ def test_seqview_seq_len_init(start, stop, step, length, dna_alphabet):
     # seq_len is length of seq when None
     seq_data = "A" * length
     sv = new_sequence.SeqView(
-        seq=seq_data, start=start, stop=stop, step=step, alphabet=dna_alphabet
+        parent=seq_data, start=start, stop=stop, step=step, alphabet=dna_alphabet
     )
     expect = len(seq_data)
     # Check property and slot
-    assert sv.seq_len == expect
-    assert sv._seq_len == expect
+    assert sv.parent_len == expect
+    assert sv._parent_len == expect
 
 
 @pytest.mark.parametrize("seq, seq_len", [("A", 0), ("", 1), ("A", 2)])
 def test_seqview_seq_len_mismatch(seq, seq_len, dna_alphabet):
     # If provided, seq_len must match len(seq)
     with pytest.raises(AssertionError):
-        new_sequence.SeqView(seq=seq, seq_len=seq_len, alphabet=dna_alphabet)
+        new_sequence.SeqView(parent=seq, parent_len=seq_len, alphabet=dna_alphabet)
 
 
 def test_seqview_copy_propagates_seq_len(dna_alphabet):
     seq = "ACGGTGGGAC"
-    sv = new_sequence.SeqView(seq=seq, alphabet=dna_alphabet)
+    sv = new_sequence.SeqView(parent=seq, alphabet=dna_alphabet)
     copied = sv.copy()
-    assert copied.seq_len == len(seq)
+    assert copied.parent_len == len(seq)
 
 
 def test_seqview_seq_len_modified_seq(dna_alphabet):
     seq = "ACGGTGGGAC"
-    sv = new_sequence.SeqView(seq=seq, alphabet=dna_alphabet)
+    sv = new_sequence.SeqView(parent=seq, alphabet=dna_alphabet)
 
-    sv.seq = "ATGC"  # this should not modify seq_len
-    assert sv.seq_len == len(seq)
+    sv.parent = "ATGC"  # this should not modify seq_len
+    assert sv.parent_len == len(seq)
 
 
 def test_sequence_str_bytes_array():
