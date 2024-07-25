@@ -283,7 +283,7 @@ class SeqsDataABC(ABC):
     ) -> bytes: ...
 
     @abstractmethod
-    def get_seq_view(self, seqid: str) -> new_sequence.SliceRecordABC: ...
+    def get_view(self, seqid: str) -> new_sequence.SliceRecordABC: ...
 
     @abstractmethod
     def subset(self, names: Union[str, typing.Sequence[str]]) -> SeqsDataABC: ...
@@ -396,7 +396,7 @@ class SeqsData(SeqsDataABC):
     ) -> bytes:
         return self.get_seq_str(seqid=seqid, start=start, stop=stop).encode("utf8")
 
-    def get_seq_view(self, seqid: str) -> SeqDataView:
+    def get_view(self, seqid: str) -> SeqDataView:
         seq_len = len(self._data[seqid])
         step = -1 if self._reversed_seqs.get(seqid, False) else 1
         return SeqDataView(parent=self, seqid=seqid, parent_len=seq_len, step=step)
@@ -499,7 +499,7 @@ class SeqsData(SeqsDataABC):
 
     @__getitem__.register
     def _(self, index: str) -> Union[new_sequence.Sequence, new_sequence.SeqViewABC]:
-        sdv = self.get_seq_view(seqid=index)
+        sdv = self.get_view(seqid=index)
         return (
             sdv
             if self.make_seq is None
@@ -2689,8 +2689,8 @@ class AlignedSeqsData(SeqsDataABC, AlignedSeqsDataABC):
 
     @__getitem__.register
     def _(self, index: str) -> Aligned:
-        adv = self.get_aligned_view(seqid=index)
-        return Aligned(data=adv, moltype=self.moltype)
+        adv = self.get_view(seqid=index)
+        return Aligned(data=adv)
 
     @__getitem__.register
     def _(self, index: int) -> Aligned:
@@ -2698,16 +2698,41 @@ class AlignedSeqsData(SeqsDataABC, AlignedSeqsDataABC):
 
     @property
     def names(self) -> tuple[str]:
-        return self._names
+        return list(self._seqs.keys())
 
     @property
     def alphabet(self) -> new_alphabet.CharAlphabet:
         return self._alphabet
 
-    def get_aligned_view(self, seqid: str) -> AlignedDataView:
-        # refactor: design
-        # need to revisit what the variable is called i.e. parent_length
-        return AlignedDataView(seq=self, seqid=seqid, seq_len=self.align_len)
+    @property
+    def make_seq(self) -> Optional[MakeSeqCallable]:
+        """if set, returns a function that takes 'seq' and 'name' as keyword
+        arguments and returns a corresponding Sequence from the collection.
+
+        Notes
+        -----
+        Can be set with any callable function that takes 'seq' and 'name' as
+        keyword arguments. Typically set with '<moltype-instance>.make_seq'.
+        """
+        return self._make_seq
+
+    @make_seq.setter
+    def make_seq(self, make_seq: MakeSeqCallable) -> None:
+        self._make_seq = make_seq
+
+    @property
+    def align_len(self) -> int:
+        return self._align_len
+
+    def seq_lengths(self) -> dict[str, int]:
+        """Returns lengths of sequences as dict of {name: length, ... }."""
+        # todo: kath
+        # remove this from the ABC since it is not relevant for the Aligned version!!
+
+        return {name: self.align_len for name in self.names}
+
+    def get_view(self, seqid: str) -> AlignedDataView:
+        return AlignedDataView(parent=self, seqid=seqid, parent_len=self.align_len)
 
     def get_gaps(self, seqid: str) -> numpy.ndarray:
         return self.gaps[seqid]
