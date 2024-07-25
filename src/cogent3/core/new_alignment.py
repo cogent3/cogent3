@@ -2496,13 +2496,8 @@ class SliceRecord(new_sequence.SliceRecordABC):
 class Aligned:
     """A single sequence in an alignment."""
 
-    def __init__(self, data: AlignedDataView, moltype: MolTypes):
+    def __init__(self, data: AlignedDataView):
         self._data = data
-        self._moltype = new_moltype.get_moltype(moltype)
-
-    @property
-    def moltype(self) -> MolTypes:
-        return self._moltype
 
     @property
     def data(self) -> AlignedDataView:
@@ -2515,7 +2510,7 @@ class Aligned:
     @property
     def seq(self) -> new_sequence.Sequence:
         """Returns Sequence object, excluding gaps."""
-        return self.moltype.make_seq(seq=self.data.str_value, name=self.data.seqid)
+        return self.data.parent.make_seq(seq=self.data.str_value, name=self.data.seqid)
 
     def get_gapped_seq(self):
         """Returns Sequence object, including gaps."""
