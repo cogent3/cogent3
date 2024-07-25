@@ -2512,27 +2512,27 @@ class Aligned:
         """Returns Sequence object, excluding gaps."""
         return self.data.parent.make_seq(seq=self.data.str_value, name=self.data.seqid)
 
-    def get_gapped_seq(self):
+    @property
+    def gapped_seq(self) -> new_sequence.Sequence:
         """Returns Sequence object, including gaps."""
-        # refactor: design
-        # should we mirror the above property and call this gapped_seq
-        # and make it a property?
-        return self.moltype.make_seq(
+        return self.data.parent.make_seq(
             seq=self.data.gapped_str_value, name=self.data.seqid
         )
 
     def __str__(self) -> str:
-        return self.data.gapped_str_value
+        return str(self.gapped_seq)
 
-    def __array__(self) -> numpy.ndarray:
-        return self.data.gapped_array_value
+    def __array__(self, dtype=None, copy=None) -> numpy.ndarray:
+        if copy is False:
+            raise ValueError("`copy=False` isn't supported. A copy is always created.")
+        return numpy.array(self.gapped_seq, dtype=dtype)
 
     def __bytes__(self) -> bytes:
-        return self.data.gapped_bytes_value
+        return bytes(self.gapped_seq)
 
     def __iter__(self):
         """Iterates over sequence one motif (e.g. char) at a time, incl. gaps"""
-        yield from self.data.gapped_str_value
+        yield self.gapped_seq
 
     @singledispatchmethod
     def __getitem__(self, span: Union[int, slice]):
