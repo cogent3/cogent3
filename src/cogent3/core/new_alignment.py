@@ -2638,10 +2638,12 @@ class AlignedSeqsData(SeqsDataABC, AlignedSeqsDataABC):
     @classmethod
     def from_aligned_seqs(
         cls,
+        *,
         data: dict[str, StrORArray],
-        moltype: MolTypes,
+        alphabet: new_alphabet.CharAlphabet,
+        make_seq: Optional[MakeSeqCallable] = None,
     ):
-        """Construct an AlignedData object from a dict of sequences
+        """Construct an AlignedSeqsData object from a dict of aligned sequences
 
         Parameters
         ----------
@@ -2657,20 +2659,20 @@ class AlignedSeqsData(SeqsDataABC, AlignedSeqsDataABC):
             raise ValueError("All sequence lengths must be the same.")
 
         align_len = seq_lengths.pop()
-        moltype = new_moltype.get_moltype(moltype)
-
         seqs = {}
         gaps = {}
         for name, seq in data.items():
-            seq, map = seq_to_gap_coords(seq, moltype)
-            seq = moltype.most_degen_alphabet().to_indices(seq)
+            seq, map = seq_to_gap_coords(seq, alphabet=alphabet, make_seq=make_seq)
+            seq = alphabet.to_indices(seq)
             seq.flags.writeable = False
+            map.flags.writeable = False
             seqs[name], gaps[name] = seq, map
 
         return cls(
             seqs=seqs,
             gaps=gaps,
-            moltype=moltype,
+            alphabet=alphabet,
+            make_seq=make_seq,
             align_len=align_len,
             check=False,
         )
@@ -2827,15 +2829,21 @@ class AlignedSeqsData(SeqsDataABC, AlignedSeqsDataABC):
 
     def add_seqs(
         self, seqs: dict[str, StrORArray], force_unique_keys=True
-    ) -> AlignedData:
-        """Returns a new AlignedData object with added sequences."""
+    ) -> AlignedSeqsData:
+        """Returns a new AlignedSeqsData object with added sequences."""
         if force_unique_keys and any(name in self.names for name in seqs):
             raise ValueError("One or more sequence names already exist in collection")
+        # refactor: design
+        # instead of re-computing the gaps, can we construct the new gaps and append to
+        # the existing gaps?
+
         new_data = {
-            **self.seqs,
+            **self._seqs,
             **seqs,
         }
-        return self.__class__.from_aligned_seqs(new_data, self.moltype)
+        return self.__class__.from_aligned_seqs(
+            data=new_data, alphabet=self.alphabet, make_seq=self._make_seq
+        )
 
     def reversed(self):
         # todo: kath
@@ -2978,7 +2986,7 @@ class Alignment(SequenceCollection):
         super().__init__(**kwargs)
 
     @property
-    def seqs(self) -> AlignedData:
+    def seqs(self) -> AlignedSeqsData:
         return self._seqs_data
 
     def get_seq(self, seqname: str) -> new_sequence.Sequence:
@@ -2990,7 +2998,7 @@ class Alignment(SequenceCollection):
     )
     def get_gapped_seq(self, seqname):
         """Return a gapped Sequence object for the specified seqname."""
-        return self.seqs[seqname].get_gapped_seq()
+        return self.seqs[seqname].gapped_seq
 
     def iter_positions(
         self, pos_order: list = None
@@ -3018,7 +3026,7 @@ class Alignment(SequenceCollection):
 
 @singledispatch
 def make_aligned_seqs(
-    data: Union[dict[str, StrORBytesORArray], AlignedData],
+    data: Union[dict[str, StrORBytesORArray], AlignedSeqsData],
     *,
     moltype: str,
     info: dict = None,
@@ -3028,18 +3036,22 @@ def make_aligned_seqs(
 
 @make_aligned_seqs.register
 def _(data: dict, *, moltype: str, info: dict = None) -> Alignment:
-    # todo: implement a coerce to AlignedData dict function
-    aligned_data = AlignedData.from_aligned_seqs(data, moltype=moltype)
+    # todo: implement a coerce to AlignedSeqsData dict function
+    moltype = new_moltype.get_moltype(moltype)
+    alphabet = moltype.most_degen_alphabet()
+    aligned_data = AlignedSeqsData.from_aligned_seqs(
+        data=data, alphabet=alphabet, make_seq=moltype.make_seq
+    )
     return make_aligned_seqs(aligned_data, moltype=moltype, info=info)
 
 
 @make_aligned_seqs.register
-def _(data: AlignedData, *, moltype: str, info: dict = None) -> Alignment:
+def _(data: AlignedSeqsData, *, moltype: str, info: dict = None) -> Alignment:
     moltype = new_moltype.get_moltype(moltype)
     if not moltype.is_compatible_alphabet(data.alphabet):
         raise ValueError(
-            f"Provided moltype: {moltype.label} is not compatible with AlignedData",
-            f" moltype {data.moltype.label}",
+            f"Provided moltype: {moltype.label} is not compatible with AlignedSeqsData",
+            f" alphabet: {data.alphabet}",
         )
 
     return Alignment(seqs_data=data, moltype=moltype, info=info)
