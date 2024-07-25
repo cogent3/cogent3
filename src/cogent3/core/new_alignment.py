@@ -2495,7 +2495,7 @@ class SliceRecord(new_sequence.SliceRecordABC):
     def _get_init_kwargs(self) -> dict:
         return {}
 
-    def copy(self):
+    def copy(self, sliced: bool = False):
         # todo: kath
         return self
 
@@ -2589,6 +2589,7 @@ class AlignedSeqsDataABC(ABC):
     @abstractmethod
     def get_gapped_seq_str(
         self,
+        *,
         seqid: str,
         start: OptInt = None,
         stop: OptInt = None,
@@ -2597,6 +2598,7 @@ class AlignedSeqsDataABC(ABC):
     @abstractmethod
     def get_gapped_seq_bytes(
         self,
+        *,
         seqid: str,
         start: OptInt = None,
         stop: OptInt = None,
@@ -2672,11 +2674,11 @@ class AlignedSeqsData(SeqsDataABC, AlignedSeqsDataABC):
         seqs = {}
         gaps = {}
         for name, seq in data.items():
-            seq, map = seq_to_gap_coords(seq, alphabet=alphabet, make_seq=make_seq)
+            seq, gap_map = seq_to_gap_coords(seq, alphabet=alphabet, make_seq=make_seq)
             seq = alphabet.to_indices(seq)
             seq.flags.writeable = False
-            map.flags.writeable = False
-            seqs[name], gaps[name] = seq, map
+            gap_map.flags.writeable = False
+            seqs[name], gaps[name] = seq, gap_map
 
         return cls(
             seqs=seqs,
@@ -2880,11 +2882,11 @@ class AlignedSeqsData(SeqsDataABC, AlignedSeqsDataABC):
         # todo: kath
         ...
 
-    def subset(self):
+    def subset(self, names: Union[str, typing.Sequence[str]]):
         # todo: kath
         ...
 
-    def to_alphabet(self):
+    def to_alphabet(self, alphabet: new_alphabet.CharAlphabet):
         # todo: kath
         ...
 
@@ -3006,7 +3008,7 @@ class AlignedDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
 
     def _zero_slice(self):
         return self.__class__(
-            seq=self.parent,
+            parent=self.parent,
             seqid=self.seqid,
             parent_len=self._parent_len,
             start=0,
@@ -3025,9 +3027,18 @@ class Alignment(SequenceCollection):
     def seqs(self) -> AlignedSeqsData:
         return self._seqs_data
 
-    def get_seq(self, seqname: str) -> new_sequence.Sequence:
+    def get_seq(
+        self, seqname: str, copy_annotations: bool = False
+    ) -> new_sequence.Sequence:
         """Return a Sequence object for the specified seqname."""
-        return self.seqs[seqname].seq
+        seq = self.seqs[seqname].seq
+        if copy_annotations:
+            seq.annotation_db = type(self.annotation_db)()
+            seq.annotation_db.update(annot_db=self.annotation_db, seqids=seqname)
+        else:
+            seq.annotation_db = self.annotation_db
+
+        return seq
 
     @c3warn.deprecated_args(
         version="2025.6", reason="naming consistency", old_new=[("seq_name", "seqname")]

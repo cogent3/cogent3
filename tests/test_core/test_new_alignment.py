@@ -2286,7 +2286,7 @@ def test_aligned_bytes(aligned_dict, seqid, dna_moltype):
 
 
 @pytest.mark.parametrize(
-    "slice",
+    "slicer",
     (
         slice(0, 3),
         slice(1, 4),
@@ -2297,14 +2297,14 @@ def test_aligned_bytes(aligned_dict, seqid, dna_moltype):
     ),
 )
 @pytest.mark.parametrize("seqid", ("seq1", "seq2"))
-def test_slice_aligned(seqid, slice, dna_alphabet, dna_make_seq):
+def test_slice_aligned(seqid, slicer, dna_alphabet, dna_make_seq):
     seqs = dict(seq1="-AAGGGGGAACCCT", seq2="AAAGGGGGAACCCT")
     aligned_data = new_alignment.AlignedSeqsData.from_aligned_seqs(
         data=seqs, alphabet=dna_alphabet, make_seq=dna_make_seq
     )
     al = aligned_data[seqid]
-    sliced = al[slice]
-    assert str(sliced) == seqs[seqid][slice]
+    sliced = al[slicer]
+    assert str(sliced) == seqs[seqid][slicer]
 
 
 @pytest.mark.parametrize("seqid", ("seq1", "seq2"))
