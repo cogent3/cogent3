@@ -98,14 +98,14 @@ class SeqDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
     # array([3, 1, 2, 0], dtype=int8)
     """
 
-    __slots__ = ("seq", "start", "stop", "step", "_offset", "_seqid", "_seq_len")
+    __slots__ = ("parent", "start", "stop", "step", "_offset", "_seqid", "_parent_len")
 
     def __init__(
         self,
         *,
-        seq: SeqsData,
+        parent: SeqsData,
         seqid: str,
-        seq_len: int,
+        parent_len: int,
         start: OptInt = None,
         stop: OptInt = None,
         step: OptInt = None,
@@ -114,14 +114,14 @@ class SeqDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
         if step == 0:
             raise ValueError("step cannot be 0")
         step = 1 if step is None else step
-        self._seq_len = self._checked_seq_len(seq_len)
+        self._parent_len = self._checked_seq_len(parent_len)
         func = (
             new_sequence._input_vals_pos_step
             if step > 0
             else new_sequence._input_vals_neg_step
         )
-        start, stop, step = func(self._seq_len, start, stop, step)
-        self.seq = seq
+        start, stop, step = func(self._parent_len, start, stop, step)
+        self.parent = parent
         self.start = start
         self.stop = stop
         self.step = step
@@ -135,7 +135,11 @@ class SeqDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
     @property
     def _zero_slice(self):
         return self.__class__(
-            seq=self.seq, seqid=self.seqid, seq_len=self._seq_len, start=0, stop=0
+            parent=self.parent,
+            seqid=self.seqid,
+            parent_len=self._parent_len,
+            start=0,
+            stop=0,
         )
 
     @property
@@ -143,16 +147,16 @@ class SeqDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
         return self._seqid
 
     @property
-    def seq_len(self) -> int:
-        return self._seq_len
+    def parent_len(self) -> int:
+        return self._parent_len
 
     def _get_init_kwargs(self):
-        return {"seq": self.seq, "seqid": self.seqid}
+        return {"parent": self.parent, "seqid": self.seqid}
 
     @property
     def str_value(self) -> str:
         """returns the sequence as a string"""
-        raw = self.seq.get_seq_str(
+        raw = self.parent.get_seq_str(
             seqid=self.seqid, start=self.parent_start, stop=self.parent_stop
         )
         return raw if self.step == 1 else raw[:: self.step]
@@ -160,7 +164,7 @@ class SeqDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
     @property
     def array_value(self) -> numpy.ndarray:
         """returns the sequence as a numpy array"""
-        raw = self.seq.get_seq_array(
+        raw = self.parent.get_seq_array(
             seqid=self.seqid, start=self.parent_start, stop=self.parent_stop
         )
         return raw if self.step == 1 else raw[:: self.step]
@@ -168,7 +172,7 @@ class SeqDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
     @property
     def bytes_value(self) -> bytes:
         """returns the sequence as bytes"""
-        raw = self.seq.get_seq_bytes(
+        raw = self.parent.get_seq_bytes(
             seqid=self.seqid, start=self.parent_start, stop=self.parent_stop
         )
         return raw if self.step == 1 else raw[:: self.step]
@@ -177,9 +181,9 @@ class SeqDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
         # todo: add alphabet to the repr
         seq = f"{self[:10]!s}...{self[-5:]}" if len(self) > 15 else str(self)
         return (
-            f"{self.__class__.__name__}(seq={seq}, start={self.start}, "
+            f"{self.__class__.__name__}(parent={seq}, start={self.start}, "
             f"stop={self.stop}, step={self.step}, offset={self.offset}, "
-            f"seqid={self.seqid!r}, seq_len={self.seq_len})"
+            f"seqid={self.seqid!r}, parent_len={self.parent_len})"
         )
 
     # refactor: design, do we support copy? do we support copy with sliced?
@@ -205,14 +209,14 @@ class SeqDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
         data["init_args"]["step"] = self.step
 
         if self.is_reversed:
-            adj = self.seq_len + 1
+            adj = self.parent_len + 1
             start, stop = self.stop + adj, self.start + adj
         else:
             start, stop = self.start, self.stop
 
-        data["init_args"]["seq"] = self.str_value[start:stop]
+        data["init_args"]["parent"] = self.str_value[start:stop]
         data["init_args"]["offset"] = int(self.parent_start)
-        data["init_args"]["seq_len"] = len(self)
+        data["init_args"]["parent_len"] = len(self)
 
         return data
 
@@ -382,7 +386,7 @@ class SeqsData(SeqsDataABC):
     def get_seq_view(self, seqid: str) -> SeqDataView:
         seq_len = len(self._data[seqid])
         step = -1 if self._reversed_seqs.get(seqid, False) else 1
-        return SeqDataView(seq=self, seqid=seqid, seq_len=seq_len, step=step)
+        return SeqDataView(parent=self, seqid=seqid, parent_len=seq_len, step=step)
 
     def subset(self, names: Union[str, typing.Sequence[str]]) -> SeqsData:
         """Returns a new SeqsData object with only the specified names."""
@@ -2450,7 +2454,7 @@ def _(seq: bytes, moltype: new_moltype.MolType) -> tuple[bytes, IndelMap]:
 
 
 class SliceRecord(new_sequence.SliceRecordABC):
-    __slots__ = "_seq_len"
+    __slots__ = "_parent_len"
 
     def __init__(
         self, start: OptInt, stop: OptInt, step: OptInt, offset: int, seq_len: int
@@ -2462,15 +2466,15 @@ class SliceRecord(new_sequence.SliceRecordABC):
         self._seq_len = seq_len
 
     @property
-    def seq_len(self) -> int:
-        return self._seq_len
+    def parent_len(self) -> int:
+        return self._parent_len
 
     def _get_init_kwargs(self) -> dict:
         return {}
 
     def copy(self):
         # todo: kath
-        ...
+        return self
 
     @property
     def _zero_slice(self): ...
@@ -2764,9 +2768,9 @@ class AlignedDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
     def __init__(
         self,
         *,
-        seq: AlignedData,
+        parent: AlignedSeqsData,
         seqid: str,
-        seq_len: int,
+        parent_len: int,
         start: OptInt = None,
         stop: OptInt = None,
         step: OptInt = None,
@@ -2775,14 +2779,14 @@ class AlignedDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
         if step and step < 1:
             raise ValueError(f"step cannot be {step}")
         step = 1 if step is None else step
-        self.seq = seq
-        self._seq_len = self._checked_seq_len(seq_len)
+        self.parent = parent
+        self._parent_len = self._checked_seq_len(parent_len)
         func = (
             new_sequence._input_vals_pos_step
             if step > 0
             else new_sequence._input_vals_neg_step
         )
-        start, stop, step = func(self._seq_len, start, stop, step)
+        start, stop, step = func(self._parent_len, start, stop, step)
         self.start = start
         self.stop = stop
         self.step = step
@@ -2794,8 +2798,8 @@ class AlignedDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
         return self._seqid
 
     @property
-    def seq_len(self) -> int:
-        return self._seq_len
+    def parent_len(self) -> int:
+        return self._parent_len
 
     @property
     def map(self) -> IndelMap:
@@ -2803,42 +2807,37 @@ class AlignedDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
 
     @property
     def str_value(self) -> str:
-        # return the sequence as a string
-        # slices are realised
-        # start and stop are in alignment coordinates
-        # gaps are excluded
-        return self.seq.get_seq_str(seqid=self.seqid, start=self.start, stop=self.stop)
+        return self.parent.get_seq_str(
+            seqid=self.seqid, start=self.start, stop=self.stop
+        )
 
     @property
     def gapped_str_value(self) -> str:
-        # return the sequence as a string
-        # slices are realised
-        # start and stop are in alignment coordinates
-        return self.seq.get_gapped_seq_str(
+        return self.parent.get_gapped_seq_str(
             seqid=self.seqid, start=self.start, stop=self.stop
         )
 
     @property
     def array_value(self) -> numpy.ndarray:
-        return self.seq.get_seq_array(
+        return self.parent.get_seq_array(
             seqid=self.seqid, start=self.start, stop=self.stop
         )
 
     @property
     def gapped_array_value(self) -> numpy.ndarray:
-        return self.seq.get_gapped_seq_array(
+        return self.parent.get_gapped_seq_array(
             seqid=self.seqid, start=self.start, stop=self.stop
         )
 
     @property
     def bytes_value(self) -> bytes:
-        return self.seq.get_seq_bytes(
+        return self.parent.get_seq_bytes(
             seqid=self.seqid, start=self.start, stop=self.stop
         )
 
     @property
     def gapped_bytes_value(self) -> bytes:
-        return self.seq.get_gapped_seq_bytes(
+        return self.parent.get_gapped_seq_bytes(
             seqid=self.seqid, start=self.start, stop=self.stop
         )
 
@@ -2850,15 +2849,19 @@ class AlignedDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
         ...
 
     def _get_init_kwargs(self) -> dict:
-        return {"seq": self.seq, "seqid": self.seqid}
+        return {"parent": self.parent, "seqid": self.seqid}
 
     def _checked_seq_len(self, seq_len: int) -> int:
-        assert seq_len == self.seq.align_len
+        assert seq_len == self.parent.align_len
         return seq_len
 
     def _zero_slice(self):
         return self.__class__(
-            seq=self.seq, seqid=self.seqid, seq_len=self._seq_len, start=0, stop=0
+            seq=self.parent,
+            seqid=self.seqid,
+            parent_len=self._parent_len,
+            start=0,
+            stop=0,
         )
 
 
