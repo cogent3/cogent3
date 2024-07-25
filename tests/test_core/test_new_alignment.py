@@ -2237,8 +2237,8 @@ def aligned_data(aligned_dict, dna_alphabet, dna_make_seq):
 def gap_seqs():
     return [
         ("A---CTG-C", [[1, 3], [4, 4]]),
-        ("-GTAC--", [[0, 1], [4, 3]]),
-        ("---AGC--TGC--", [[0, 3], [3, 5], [6, 7]]),
+        ("-GTAC----", [[0, 1], [4, 5]]),
+        ("---A--T--", [[0, 3], [1, 5], [2, 7]]),
     ]
 
 
@@ -2418,6 +2418,14 @@ def test_aligned_data_from_string_returns_self(
     assert got.align_len == 6
 
 
+def test_aligned_data_init_check(gap_seqs, dna_alphabet):
+    seqs = {f"seq_{i}": seq.replace("-", "") for i, (seq, _) in enumerate(gap_seqs)}
+    gaps = {f"seq_{i}": numpy.array(gaps) for i, (_, gaps) in enumerate(gap_seqs)}
+    ad = new_alignment.AlignedSeqsData(seqs=seqs, gaps=gaps, alphabet=dna_alphabet)
+    assert ad.get_seq_str(seqid="seq_0") == seqs["seq_0"]
+    assert numpy.array_equal(ad.get_gaps(seqid="seq_0"), gaps["seq_0"])
+
+
 @pytest.mark.parametrize("seqid", ("seq1", "seq2", "seq3", "seq4"))
 @pytest.mark.parametrize("moltype", ("dna_moltype", "rna_moltype"))
 def test_aligned_data_get_seq_array(aligned_array_dict, seqid, moltype, request):
@@ -2517,6 +2525,45 @@ def test_aligned_data_get_aligned_view(aligned_dict, seqid, dna_alphabet, dna_ma
     assert got.parent == ad
     assert got.stop == ad.align_len
     assert got.parent_len == ad.align_len
+
+
+@pytest.mark.parametrize("seqid", ("seq1", "seq2", "seq3", "seq4"))
+def test_aligned_data_view_array(aligned_array_dict, dna_alphabet, dna_make_seq, seqid):
+    ad = new_alignment.AlignedSeqsData.from_aligned_seqs(
+        data=aligned_array_dict, alphabet=dna_alphabet, make_seq=dna_make_seq
+    )
+    view = ad.get_view(seqid)
+    got = numpy.array(view)
+    expect = aligned_array_dict[seqid][aligned_array_dict[seqid] != 4]  # remove gaps
+    assert numpy.array_equal(got, expect)
+
+
+@pytest.mark.parametrize("seqid", ("seq1", "seq2", "seq3", "seq4"))
+def test_aligned_data_view_bytes(aligned_array_dict, dna_alphabet, dna_make_seq, seqid):
+    ad = new_alignment.AlignedSeqsData.from_aligned_seqs(
+        data=aligned_array_dict, alphabet=dna_alphabet, make_seq=dna_make_seq
+    )
+    view = ad.get_view(seqid)
+    got = bytes(view)
+    expect = aligned_array_dict[seqid][aligned_array_dict[seqid] != 4]  # remove gaps
+    expect = dna_alphabet.array_to_bytes(expect)  # convert to bytes
+    assert numpy.array_equal(got, expect)
+
+
+@pytest.mark.parametrize("seqid", ("seq1", "seq2", "seq3", "seq4"))
+def test_aligned_data_view_zero_slice(
+    aligned_array_dict, dna_alphabet, dna_make_seq, seqid
+):
+    # an invalid slice should return a empty view
+    ad = new_alignment.AlignedSeqsData.from_aligned_seqs(
+        data=aligned_array_dict, alphabet=dna_alphabet, make_seq=dna_make_seq
+    )
+    view = ad.get_view(seqid)
+    got = view[:0]
+    assert len(got) == 0
+    got = view[15:20]
+    print(got)
+    assert len(got) == 0
 
 
 def test_alignment_init(aligned_dict, dna_moltype, dna_alphabet, dna_make_seq):

@@ -2622,7 +2622,7 @@ class AlignedSeqsData(SeqsDataABC, AlignedSeqsDataABC):
         seqs: Optional[dict[str, StrORBytesORArray]],
         gaps: Optional[dict[str, numpy.ndarray]],
         alphabet: new_alphabet.CharAlphabet,
-        align_len: int,
+        align_len: OptInt = None,
         make_seq: Optional[MakeSeqCallable] = None,
         check: bool = True,
     ):
@@ -2633,9 +2633,12 @@ class AlignedSeqsData(SeqsDataABC, AlignedSeqsDataABC):
                 raise ValueError("Both seqs and gaps must be provided.")
             if set(seqs.keys()) != set(gaps.keys()):
                 raise ValueError("Keys in seqs and gaps must be identical.")
-            seq_lengths = {len(v) for v in seqs.values()}
+            seq_lengths = {
+                len(v) + l[-1][1] for v, l in zip(seqs.values(), gaps.values())
+            }
             if len(seq_lengths) != 1:
                 raise ValueError("All sequence lengths must be the same.")
+            align_len = seq_lengths.pop()
         self._seqs = {}
         for k, v in seqs.items():
             seq = self._alphabet.to_indices(v)
@@ -2645,7 +2648,7 @@ class AlignedSeqsData(SeqsDataABC, AlignedSeqsDataABC):
         for k, v in gaps.items():
             self._gaps[k] = v
             v.flags.writeable = False
-        self._align_len = align_len
+        self._align_len = align_len or len(next(iter(self._seqs.values())))
 
     @classmethod
     def from_aligned_seqs(
@@ -2979,6 +2982,8 @@ class AlignedDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
         )
 
     def __str__(self) -> str:
+        # refactor: design
+        # should this return gapped or ungapped?
         return self.str_value
 
     def __array__(self, dtype=None, copy=None) -> numpy.ndarray:
@@ -2992,7 +2997,7 @@ class AlignedDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
     def __bytes__(self) -> bytes:
         return self.bytes_value
 
-    def copy(self):
+    def copy(self, sliced: bool = False):
         return self
 
     def to_rich_dict(self) -> dict:
@@ -3006,6 +3011,7 @@ class AlignedDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
         assert seq_len == self.parent.align_len
         return seq_len
 
+    @property
     def _zero_slice(self):
         return self.__class__(
             parent=self.parent,
