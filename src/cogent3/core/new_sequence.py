@@ -148,8 +148,10 @@ class Sequence:
                 result = self.moltype.complement(result)
         return result
 
-    def __array__(self):
-        result = array(self._seq)
+    def __array__(self, dtype=None, copy=None):
+        if copy is False:
+            raise ValueError("`copy=False` isn't supported. A copy is always created.")
+        result = array(self._seq, dtype=dtype)
         if self._seq.is_reversed:
             with contextlib.suppress(TypeError):
                 result = self.moltype.complement(result)
@@ -2421,17 +2423,14 @@ class SeqViewABC(ABC):
     @abstractmethod
     def to_rich_dict(self) -> dict: ...
 
-    def __str__(self) -> str:
-        return self.str_value
+    @abstractmethod
+    def __str__(self) -> str: ...
 
-    def __array__(self, dtype=None):
-        arr = self.array_value
-        if dtype is not None:
-            arr = arr.astype(dtype)
-        return arr
+    @abstractmethod
+    def __array__(self, dtype=None, copy=None): ...
 
-    def __bytes__(self):
-        return self.bytes_value
+    @abstractmethod
+    def __bytes__(self): ...
 
 
 class SeqView(SeqViewABC, SliceRecordABC):
@@ -2528,6 +2527,20 @@ class SeqView(SeqViewABC, SliceRecordABC):
     @property
     def bytes_value(self):
         return self.str_value.encode("utf-8")
+
+    def __str__(self) -> str:
+        return self.str_value
+
+    def __array__(self, dtype=None, copy=None) -> numpy.ndarray:
+        if copy is False:
+            raise ValueError("`copy=False` isn't supported. A copy is always created.")
+        arr = self.array_value
+        if dtype is not None:
+            arr = arr.astype(dtype)
+        return arr
+
+    def __bytes__(self) -> bytes:
+        return self.bytes_value
 
     def __repr__(self) -> str:
         seq = (

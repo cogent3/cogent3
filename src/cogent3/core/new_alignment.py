@@ -176,6 +176,20 @@ class SeqDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
         )
         return raw if self.step == 1 else raw[:: self.step]
 
+    def __str__(self) -> str:
+        return self.str_value
+
+    def __array__(self, dtype=None, copy=None) -> numpy.ndarray:
+        if copy is False:
+            raise ValueError("`copy=False` isn't supported. A copy is always created.")
+        arr = self.array_value
+        if dtype:
+            arr = arr.astype(dtype)
+        return arr
+
+    def __bytes__(self) -> bytes:
+        return self.bytes_value
+
     def __repr__(self) -> str:
         # todo: add alphabet to the repr
         seq = f"{self[:10]!s}...{self[-5:]}" if len(self) > 15 else str(self)
@@ -2897,6 +2911,20 @@ class AlignedDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
         return self.parent.get_gapped_seq_bytes(
             seqid=self.seqid, start=self.start, stop=self.stop
         )
+
+    def __str__(self) -> str:
+        return self.str_value
+
+    def __array__(self, dtype=None, copy=None) -> numpy.ndarray:
+        if copy is False:
+            raise ValueError("`copy=False` isn't supported. A copy is always created.")
+        arr = self.array_value
+        if dtype:
+            arr = arr.astype(dtype)
+        return arr
+
+    def __bytes__(self) -> bytes:
+        return self.bytes_value
 
     def copy(self):
         return self
