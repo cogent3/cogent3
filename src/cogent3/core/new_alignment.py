@@ -6,7 +6,6 @@ import typing
 import warnings
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from dataclasses import InitVar, dataclass, field
 from functools import singledispatch, singledispatchmethod
 from pathlib import Path
 from typing import Any, Callable, Iterator, Mapping, Optional, Union
@@ -2536,38 +2535,96 @@ class Aligned:
 
     @__getitem__.register
     def _(self, span: slice):
-        # refactor: design
-        # this is not yet implemented for reverse slices - do we want to do that?
-        # although maybe AlignedDataView should handle this?
+        # todo: kath
+        # implement for reverse complement
         if span.step and span.step < 0:
             raise NotImplementedError("Cannot reverse an Aligned")
 
-        return self.__class__(
-            data=self.data[span.start : span.stop], moltype=self.moltype
-        )
+        return self.__class__(data=self.data[span.start : span.stop])
 
 
-@dataclass
-class AlignedData:
+class AlignedSeqsDataABC(ABC):
+    @classmethod
+    @abstractmethod
+    def from_aligned_seqs(
+        cls,
+        *,
+        data: dict[str, StrORArray],
+        alphabet: new_alphabet.CharAlphabet,
+        make_seq: Optional[MakeSeqCallable] = None,
+    ): ...
+
+    @property
+    @abstractmethod
+    def align_len(self) -> int: ...
+
+    @abstractmethod
+    def get_gapped_seq_array(
+        self,
+        *,
+        seqid: str,
+        start: OptInt = None,
+        stop: OptInt = None,
+    ) -> numpy.ndarray: ...
+
+    @abstractmethod
+    def get_gapped_seq_str(
+        self,
+        seqid: str,
+        start: OptInt = None,
+        stop: OptInt = None,
+    ) -> str: ...
+
+    @abstractmethod
+    def get_gapped_seq_bytes(
+        self,
+        seqid: str,
+        start: OptInt = None,
+        stop: OptInt = None,
+    ) -> bytes: ...
+
+
+class AlignedSeqsData(SeqsDataABC, AlignedSeqsDataABC):
     # refactor: docstring
-    seqs: Optional[dict[str, StrORBytesORArray]]
-    gaps: Optional[dict[str, numpy.ndarray]]
-    moltype: MolTypes
-    make_seq: Optional[MakeSeqCallable] = None
-    align_len: int = 0
-    check: bool = True
 
-    _names: tuple[str] = field(init=False)
-    _alphabet: new_alphabet.CharAlphabet = field(init=False)
+    __slots__ = (
+        "_seqs",
+        "_gaps",
+        "_alphabet",
+        "_make_seq",
+        "_align_len",
+    )
 
-    def __post_init__(self):
-        if self.check:
-            seq_lengths = {len(v) for v in self.seqs.values()}
+    def __init__(
+        self,
+        *,
+        seqs: Optional[dict[str, StrORBytesORArray]],
+        gaps: Optional[dict[str, numpy.ndarray]],
+        alphabet: new_alphabet.CharAlphabet,
+        align_len: int,
+        make_seq: Optional[MakeSeqCallable] = None,
+        check: bool = True,
+    ):
+        self._alphabet = alphabet
+        self._make_seq = make_seq
+        if check:
+            if not seqs or not gaps:
+                raise ValueError("Both seqs and gaps must be provided.")
+            if set(seqs.keys()) != set(gaps.keys()):
+                raise ValueError("Keys in seqs and gaps must be identical.")
+            seq_lengths = {len(v) for v in seqs.values()}
             if len(seq_lengths) != 1:
                 raise ValueError("All sequence lengths must be the same.")
-            self.seqs = {k: self._alphabet.to_indices(v) for k, v in self.seqs.items()}
-        self._alphabet = self.moltype.most_degen_alphabet()
-        self._names = list(self.seqs.keys())
+        self._seqs = {}
+        for k, v in seqs.items():
+            seq = self._alphabet.to_indices(v)
+            seq.flags.writeable = False
+            self._seqs[k] = seq
+        self._gaps = {}
+        for k, v in gaps.items():
+            self._gaps[k] = v
+            v.flags.writeable = False
+        self._align_len = align_len
 
     @classmethod
     def from_aligned_seqs(
