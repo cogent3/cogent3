@@ -2400,7 +2400,10 @@ def _(
 
 @singledispatch
 def seq_to_gap_coords(
-    seq: StrORBytesORArray, moltype: new_moltype.MolType
+    seq: StrORBytesORArray,
+    *,
+    alphabet: new_alphabet.CharAlphabet,
+    make_seq: MakeSeqCallable,
 ) -> tuple[StrORBytesORArray, IndelMap]:
     """
     Takes a sequence with (or without) gaps and returns an ungapped sequence
@@ -2410,21 +2413,28 @@ def seq_to_gap_coords(
 
 
 @seq_to_gap_coords.register
-def _(seq: str, moltype: new_moltype.MolType) -> tuple[str, IndelMap]:
-    seq = moltype.make_seq(seq=seq)
+def _(
+    seq: str, *, alphabet: new_alphabet.CharAlphabet, make_seq: MakeSeqCallable
+) -> tuple[str, numpy.ndarray]:
+    seq = make_seq(seq=seq)
     indel_map, ungapped_seq = seq.parse_out_gaps()
 
     if indel_map.num_gaps == 0:
         return str(ungapped_seq), numpy.array([], dtype=int)
 
-    return str(ungapped_seq), indel_map
+    return str(ungapped_seq), numpy.array(
+        [indel_map.gap_pos, indel_map.cum_gap_lengths]
+    ).T
 
 
 @seq_to_gap_coords.register
 def _(
-    seq: numpy.ndarray, moltype: new_moltype.MolType
-) -> tuple[numpy.ndarray, IndelMap]:
-    gaps_bool = seq == moltype.most_degen_alphabet().gap_index
+    seq: numpy.ndarray,
+    *,
+    alphabet: new_alphabet.CharAlphabet,
+    make_seq: MakeSeqCallable,
+) -> tuple[numpy.ndarray, numpy.ndarray]:
+    gaps_bool = seq == alphabet.gap_index
     ungapped = seq[~gaps_bool]
 
     # no gaps in seq
@@ -2453,17 +2463,17 @@ def _(
     # get gap start positions in sequence coords
     gap_pos = parent_coords.T[0] - numpy.append(0, cum_lengths[:-1, numpy.newaxis])
 
-    indel_map = IndelMap(
-        gap_pos=gap_pos, cum_gap_lengths=cum_lengths, parent_length=parent_len
-    )
-
-    return ungapped, indel_map
+    return ungapped, numpy.array([gap_pos, cum_lengths]).T
 
 
 @seq_to_gap_coords.register
-def _(seq: bytes, moltype: new_moltype.MolType) -> tuple[bytes, IndelMap]:
-    seq, indel_map = seq_to_gap_coords(seq.decode("utf-8"), moltype)
-    return seq.encode("utf-8"), indel_map
+def _(
+    seq: bytes, *, alphabet: new_alphabet.CharAlphabet, make_seq: MakeSeqCallable
+) -> tuple[bytes, numpy.ndarray]:
+    seq, map_array = seq_to_gap_coords(
+        seq.decode("utf-8"), alphabet=alphabet, make_seq=make_seq
+    )
+    return seq.encode("utf-8"), map_array
 
 
 class SliceRecord(new_sequence.SliceRecordABC):
@@ -2732,7 +2742,7 @@ class AlignedSeqsData(SeqsDataABC, AlignedSeqsDataABC):
         return AlignedDataView(parent=self, seqid=seqid, parent_len=self.align_len)
 
     def get_gaps(self, seqid: str) -> numpy.ndarray:
-        return self.gaps[seqid]
+        return self._gaps[seqid]
 
     def get_seq_array(
         self,
@@ -2744,16 +2754,23 @@ class AlignedSeqsData(SeqsDataABC, AlignedSeqsDataABC):
         """Return sequence corresponding to seqid as an array of indices.
         start/stop are in alignment coordinates. Excludes gaps.
         """
-        seq = self.seqs[seqid]
-        gaps = self.gaps[seqid]
-
+        seq = self._seqs[seqid]
         # if there's no gaps, just slice the sequence
         if len(seq) == self.align_len:
             return seq[start:stop]
 
-        new_map = gaps[start:stop] if start is not None or stop is not None else gaps
-        seq_start = gaps.get_seq_index(start or 0)
-        seq_end = gaps.get_seq_index(stop or self.align_len)
+        gaps = self._gaps[seqid]
+        indel_map = IndelMap(
+            gap_pos=gaps[:, 0], cum_gap_lengths=gaps[:, 1], parent_length=self.align_len
+        )
+
+        new_map = (
+            indel_map[start:stop]
+            if start is not None or stop is not None
+            else indel_map
+        )
+        seq_start = indel_map.get_seq_index(start or 0)
+        seq_end = indel_map.get_seq_index(stop or self.align_len)
         return seq[seq_start:seq_end] if new_map.useful else seq[:0]
 
     def get_gapped_seq_array(
@@ -2902,7 +2919,12 @@ class AlignedDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
 
     @property
     def map(self) -> IndelMap:
-        return self.seq.get_gaps(self.seqid)[self.start : self.stop]
+        gap_pos_gap_length = self.parent.get_gaps(self.seqid)[self.start : self.stop]
+        return IndelMap(
+            gap_pos=gap_pos_gap_length[:, 0],
+            cum_gap_lengths=gap_pos_gap_length[:, 1],
+            parent_length=self.parent_len,
+        )
 
     @property
     def str_value(self) -> str:
