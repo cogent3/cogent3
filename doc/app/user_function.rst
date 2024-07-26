@@ -34,7 +34,7 @@ Cogent3 apps solve several problems. Here are just a few.
 
     Cogent3 provides mechanisms for discovering your app, getting help on it with an example of how to use it. This mechanism is the same for all apps, which means users do not need to know the structure of your package (see the :ref:`app overview <app_start>`).
 
-.. dropdown:: **The app infrastructure comes with a freebies!**
+.. dropdown:: **The app infrastructure comes with freebies!**
 
     When used as part of a composed function, they automatically provide logging. Composed apps can record run failures (everyone encounters bad data ☹️) and make it easier to see how much of an analysis was affected. They also greatly simplify running analyses in parallel. 
 
