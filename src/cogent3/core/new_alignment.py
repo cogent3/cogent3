@@ -2642,8 +2642,8 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         self._seqs = {}
         for k, v in seqs.items():
             seq = self._alphabet.to_indices(v)
-            seq.flags.writeable = False
             self._seqs[k] = seq
+            seq.flags.writeable = False
         self._gaps = {}
         for k, v in gaps.items():
             self._gaps[k] = v
@@ -2792,6 +2792,8 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         if len(seq) == self.align_len:
             return seq[start:stop]
 
+        # refactor: design
+        # direct numpy array approach would be faster
         gaps = self._gaps[seqid]
         indel_map = IndelMap(
             gap_pos=gaps[:, 0], cum_gap_lengths=gaps[:, 1], parent_length=self.align_len
