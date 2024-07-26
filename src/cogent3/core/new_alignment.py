@@ -289,7 +289,7 @@ class SeqsDataABC(ABC):
     def subset(self, names: Union[str, typing.Sequence[str]]) -> SeqsDataABC: ...
 
     @abstractmethod
-    def to_alphabet(self, alphabet: new_alphabet.CharAlphabet) -> SeqsDataABC: ...
+    def to_alphabet(self, alphabet: new_alphabet.AlphabetABC) -> SeqsDataABC: ...
 
     @abstractmethod
     def add_seqs(self, seqs) -> SeqsDataABC: ...
@@ -334,7 +334,7 @@ class SeqsData(SeqsDataABC):
         self,
         *,
         data: dict[str, StrORBytesORArray],
-        alphabet: new_alphabet.CharAlphabet,
+        alphabet: new_alphabet.AlphabetABC,
         make_seq: Optional[MakeSeqCallable] = None,
         reversed_seqs: dict[str, bool] = None,
     ):
@@ -456,7 +456,7 @@ class SeqsData(SeqsDataABC):
         )
 
     def to_alphabet(
-        self, alphabet: new_alphabet.CharAlphabet, check_valid=True
+        self, alphabet: new_alphabet.AlphabetABC, check_valid=True
     ) -> SeqsData:
         # refactor: design -- map directly between arrays?
         # refactor: design -- better way to check if alphabets are DNA and RNA?
@@ -1554,7 +1554,7 @@ class SequenceCollection:
 
     def get_motif_probs(
         self,
-        alphabet: new_alphabet.CharAlphabet = None,
+        alphabet: new_alphabet.AlphabetABC = None,
         include_ambiguity: bool = False,
         exclude_unobserved: bool = False,
         allow_gap: bool = False,
@@ -2402,7 +2402,7 @@ def _(
 def seq_to_gap_coords(
     seq: StrORBytesORArray,
     *,
-    alphabet: new_alphabet.CharAlphabet,
+    alphabet: new_alphabet.AlphabetABC,
     make_seq: MakeSeqCallable,
 ) -> tuple[StrORBytesORArray, IndelMap]:
     """
@@ -2414,7 +2414,7 @@ def seq_to_gap_coords(
 
 @seq_to_gap_coords.register
 def _(
-    seq: str, *, alphabet: new_alphabet.CharAlphabet, make_seq: MakeSeqCallable
+    seq: str, *, alphabet: new_alphabet.AlphabetABC, make_seq: MakeSeqCallable
 ) -> tuple[str, numpy.ndarray]:
     seq = make_seq(seq=seq)
     indel_map, ungapped_seq = seq.parse_out_gaps()
@@ -2431,7 +2431,7 @@ def _(
 def _(
     seq: numpy.ndarray,
     *,
-    alphabet: new_alphabet.CharAlphabet,
+    alphabet: new_alphabet.AlphabetABC,
     make_seq: MakeSeqCallable,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
     gaps_bool = seq == alphabet.gap_index
@@ -2468,7 +2468,7 @@ def _(
 
 @seq_to_gap_coords.register
 def _(
-    seq: bytes, *, alphabet: new_alphabet.CharAlphabet, make_seq: MakeSeqCallable
+    seq: bytes, *, alphabet: new_alphabet.AlphabetABC, make_seq: MakeSeqCallable
 ) -> tuple[bytes, numpy.ndarray]:
     seq, map_array = seq_to_gap_coords(
         seq.decode("utf-8"), alphabet=alphabet, make_seq=make_seq
@@ -2569,7 +2569,7 @@ class AlignedSeqsDataABC(ABC):
         cls,
         *,
         data: dict[str, StrORArray],
-        alphabet: new_alphabet.CharAlphabet,
+        alphabet: new_alphabet.AlphabetABC,
         make_seq: Optional[MakeSeqCallable] = None,
     ): ...
 
@@ -2621,7 +2621,7 @@ class AlignedSeqsData(SeqsDataABC, AlignedSeqsDataABC):
         *,
         seqs: Optional[dict[str, StrORBytesORArray]],
         gaps: Optional[dict[str, numpy.ndarray]],
-        alphabet: new_alphabet.CharAlphabet,
+        alphabet: new_alphabet.AlphabetABC,
         align_len: OptInt = None,
         make_seq: Optional[MakeSeqCallable] = None,
         check: bool = True,
@@ -2655,7 +2655,7 @@ class AlignedSeqsData(SeqsDataABC, AlignedSeqsDataABC):
         cls,
         *,
         data: dict[str, StrORArray],
-        alphabet: new_alphabet.CharAlphabet,
+        alphabet: new_alphabet.AlphabetABC,
         make_seq: Optional[MakeSeqCallable] = None,
     ):
         """Construct an AlignedSeqsData object from a dict of aligned sequences
