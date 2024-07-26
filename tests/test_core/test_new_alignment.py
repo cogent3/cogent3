@@ -2443,7 +2443,9 @@ def test_aligned_seqs_data_get_seq_array(aligned_array_dict, seqid, moltype, req
 
 @pytest.mark.parametrize("seqid", ("seq1", "seq2", "seq3", "seq4"))
 @pytest.mark.parametrize("moltype", ("dna_moltype", "rna_moltype"))
-def test_aligned_seqs_data_get_gapped_seq_array(aligned_array_dict, seqid, moltype, request):
+def test_aligned_seqs_data_get_gapped_seq_array(
+    aligned_array_dict, seqid, moltype, request
+):
     moltype = request.getfixturevalue(moltype)
     ad = new_alignment.AlignedSeqsData.from_aligned_seqs(
         data=aligned_array_dict,
@@ -2472,7 +2474,9 @@ def test_aligned_seqs_data_get_seq_str(aligned_array_dict, seqid, moltype, reque
 
 @pytest.mark.parametrize("seqid", ("seq1", "seq2", "seq3", "seq4"))
 @pytest.mark.parametrize("moltype", ("dna_moltype", "rna_moltype"))
-def test_aligned_seqs_data_get_gapped_seq_str(aligned_array_dict, seqid, moltype, request):
+def test_aligned_seqs_data_get_gapped_seq_str(
+    aligned_array_dict, seqid, moltype, request
+):
     moltype = request.getfixturevalue(moltype)
     ad = new_alignment.AlignedSeqsData.from_aligned_seqs(
         data=aligned_array_dict,
@@ -2502,7 +2506,9 @@ def test_aligned_seqs_data_get_seq_bytes(aligned_array_dict, seqid, moltype, req
 
 @pytest.mark.parametrize("seqid", ("seq1", "seq2", "seq3", "seq4"))
 @pytest.mark.parametrize("moltype", ("dna_moltype", "rna_moltype"))
-def test_aligned_seqs_data_get_gapped_seq_bytes(aligned_array_dict, seqid, moltype, request):
+def test_aligned_seqs_data_get_gapped_seq_bytes(
+    aligned_array_dict, seqid, moltype, request
+):
     moltype = request.getfixturevalue(moltype)
     ad = new_alignment.AlignedSeqsData.from_aligned_seqs(
         data=aligned_array_dict,
@@ -2513,6 +2519,7 @@ def test_aligned_seqs_data_get_gapped_seq_bytes(aligned_array_dict, seqid, molty
     raw = aligned_array_dict[seqid]
     expect = moltype.degen_gapped_alphabet.array_to_bytes(raw)
     assert got == expect
+
 
 @pytest.mark.parametrize("seqid", ("seq1", "seq2", "seq3", "seq4"))
 def test_aligned_seqs_data_seq_lengths(seqid, aligned_dict, dna_alphabet, dna_make_seq):
@@ -2578,7 +2585,9 @@ def test_aligned_seqs_data_add_seqs_duplicate_keys_raises(dna_alphabet, dna_make
 
 
 @pytest.mark.parametrize("seqid", ("seq1", "seq2", "seq3", "seq4"))
-def test_aligned_seqs_data_get_aligned_view(aligned_dict, seqid, dna_alphabet, dna_make_seq):
+def test_aligned_seqs_data_get_aligned_view(
+    aligned_dict, seqid, dna_alphabet, dna_make_seq
+):
     ad = new_alignment.AlignedSeqsData.from_aligned_seqs(
         data=aligned_dict, alphabet=dna_alphabet, make_seq=dna_make_seq
     )
