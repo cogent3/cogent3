@@ -2873,10 +2873,15 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         # instead of re-computing the gaps, can we construct the new gaps and append to
         # the existing gaps?
 
-        new_data = {
-            **self._seqs,
-            **seqs,
-        }
+        new_seq_lens = {len(seq) for seq in seqs.values()}
+        if len(new_seq_lens) != 1 or new_seq_lens.pop() != self.align_len:
+            raise ValueError(
+                "All sequences must be the same length as existing sequences"
+            )
+
+        old_seqs = {name: self.get_gapped_seq_array(seqid=name) for name in self.names}
+        new_data = old_seqs | seqs
+
         return self.__class__.from_aligned_seqs(
             data=new_data, alphabet=self.alphabet, make_seq=self._make_seq
         )
