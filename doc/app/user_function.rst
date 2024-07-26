@@ -1,15 +1,57 @@
+Why write apps?
+===============
+
+Cogent3 apps solve several problems. Here are just a few.
+
+.. dropdown:: **An analysis that requires multiple apps can be composed into a single process.**
+
+    Defining and using composed apps is simple, and the code is easier to read and check. Compare using a "composed" app, made up of three separate apps
+
+    .. code-block:: python
+
+        # making a composed
+        my_steps = step_1 + step_2 + step_3
+        step_3_output = my_steps(step_1_input)
+
+    to using each app in order.
+
+    .. code-block:: python
+
+        step_1_output = step_1(step_1_input)
+        step_2_output = step_2(step_1_output)
+        step_3_output = step_3(step_2_input)
+
+.. dropdown:: **Applying a process to multiple data records can be done without looping.**
+
+    Cogent3 :ref:`data stores <data_stores>` simplify selecting data for analysis and can be applied for batch execution by an app.
+
+    .. code-block:: python
+
+        step_1_inputs = open_data_store("path/to/seqs", suffix="fasta")
+        results = list(my_steps.as_completed(step_1_inputs))
+
+.. dropdown:: **Distributing your app as a Cogent3 plugin reduces the learning curve for users.**
+
+    Cogent3 provides mechanisms for discovering your app, getting help on it with an example of how to use it. This mechanism is the same for all apps, which means users do not need to know the structure of your package (see the :ref:`app overview <app_start>`).
+
+.. dropdown:: **The app infrastructure comes with a freebies!**
+
+    When used as part of a composed function, they automatically provide logging. Composed apps can record run failures (everyone encounters bad data ☹️) and make it easier to see how much of an analysis was affected. They also greatly simplify running analyses in parallel. 
+
+.. dropdown:: **Apps are seriously easy to write!**
+
+    Read on to see just how easy they are. In summary, just two lines of code extra plus two extra lines in your projects' `pyproject.toml`, and you have everything you need to distribute your app.
+
+    Use the `cogent3 app cookiecutter template <https://github.com/cogent3/app_template>`_ to get a head start.
+
 Writing your own apps
 =====================
-
-.. When writing an app, consider what type of processing it will do, whether it should be "composable", and whether it makes sense to write it as a function or a class.
 
 Consider the case where you have a directory of files with the same format. You want to apply a consistent procedure to each file separately and produce a corresponding output. If one of the files is incompatible with the calculations, you want to record that and continue processing the rest. This is the use case for which Cogent3 apps are designed. By building your own apps, you can easily incorporate them as a part of a more substantial algorithm. You also get invaluable capabilities such as automated logging and simplifying their execution in parallel.
 
 To write a Cogent3 app, you must make some decisions. What type of processing will your app do? What data type(s) will it accept as input? What data type will it produce as output? Do you need to deal with data that doesn't satisfy a condition?
 
 Defining apps is achieved with the ``define_app``  decorator. Below, we describe the different configuration options and give three examples of writing apps.
-
-.. note:: Check out the `cogent3 app cookiecutter template <https://github.com/cogent3/app_template>`_ that we've made available to make writing apps more accessible.
 
 .. dropdown:: Specifying the type of app
 
@@ -23,7 +65,7 @@ Defining apps is achieved with the ``define_app``  decorator. Below, we describe
 
     The decorator has a default value of ``"generic"``. This means that the app does data transformation and does not, for example, load data from disk or write data to disk (those are the ``loader`` and ``writer`` types).
 
-    If your application is not intended to be applied sequentially to a series of independent data records of the same type, then you set ``define_app(app_type=AppType.NON_COMPOSABLE)`` (or equivalently ``define_app(app_type="non_composable")``).
+    If your application is not intended to be applied sequentially, before or after other cogent3 apps, to a series of independent data records of the same type, then you set ``define_app(app_type=AppType.NON_COMPOSABLE)`` (or equivalently ``define_app(app_type="non_composable")``).
     
     .. note:: Non-composable apps cannot be added (or composed) with other apps.
 
@@ -66,7 +108,7 @@ The critical elements of a function being defined as an app are:
 1. The ``define_app`` decorator is used.
 2. Type hints are specified for the function's first argument and its return type.
 
-.. note: Currently, your function can only have one required argument.
+.. note: Currently, your function can only have one required argument. It can have any number of optional arguments.
 
 .. dropdown:: Using the custom app
 
