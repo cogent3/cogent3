@@ -30,7 +30,9 @@ class _GapOffset:
     """computes sum of gap lengths preceding a position. Acts like a dict
     for getting the offset for an integer key with the __getitem__ returning
     the offset.
+
     If your coordinate is an alignment position, set invert=True.
+
     Examples
     --------
     From sequence coordinate to an alignment coordinate
