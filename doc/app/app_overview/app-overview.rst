@@ -20,8 +20,10 @@ Apps have several key features, they:
 #. can be used by themselves or combined into a "composed" app (aka pipeline)
 #. automatically track the relationship between an input data record and its output record
 
-Where to start?
----------------
+.. _app_start:
+
+How do I start to use apps?
+---------------------------
 
 Three top-level functions are very useful:
 

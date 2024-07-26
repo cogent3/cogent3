@@ -478,7 +478,7 @@ def define_app(
         what type of app, typically you just want GENERIC.
     skip_not_completed
         if True (default), NotCompleted instances are returned without being
-        passed to the app.main() method.
+        passed to the app.
 
     Notes
     -----
