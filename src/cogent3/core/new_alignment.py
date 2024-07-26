@@ -2737,11 +2737,8 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         return self._align_len
 
     def seq_lengths(self) -> dict[str, int]:
-        """Returns lengths of sequences as dict of {name: length, ... }."""
-        # todo: kath
-        # remove this from the ABC since it is not relevant for the Aligned version!!
-
-        return {name: self.align_len for name in self.names}
+        """Returns lengths of ungapped sequences as dict of {name: length, ... }."""
+        return {name: len(seq) for name, seq in self._seqs.items()}
 
     def get_view(self, seqid: str) -> AlignedDataView:
         return AlignedDataView(parent=self, seqid=seqid, parent_len=self.align_len)
