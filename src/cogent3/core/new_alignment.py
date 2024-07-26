@@ -2753,8 +2753,9 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         start: OptInt = None,
         stop: OptInt = None,
     ) -> numpy.ndarray:
-        """Return sequence corresponding to seqid as an array of indices.
-        start/stop are in alignment coordinates. Excludes gaps.
+        """Return ungapped sequence corresponding to seqid as an array of indices.
+        start/stop are in alignment coordinates and the alignment coordinates
+        are converted to sequence coordinates. Excludes gaps.
         """
         seq = self._seqs[seqid]
         # if there's no gaps, just slice the sequence
@@ -2815,8 +2816,9 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         start: OptInt = None,
         stop: OptInt = None,
     ) -> str:
-        """Return sequence corresponding to seqid as a string.
-        start/stop are in alignment coordinates. Excludes gaps."""
+        """Return ungapped sequence corresponding to seqid as a string.
+        start/stop are in alignment coordinates and the alignment coordinates
+        are converted to sequence coordinates. Excludes gaps."""
 
         return self.alphabet.from_indices(
             self.get_seq_array(seqid=seqid, start=start, stop=stop)
@@ -2843,8 +2845,9 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         start: OptInt = None,
         stop: OptInt = None,
     ) -> bytes:
-        """Return sequence corresponding to seqid as a bytes string.
-        start/stop are in alignment coordinates. Excludes gaps."""
+        """Return ungapped sequence corresponding to seqid as a bytes string.
+        start/stop are in alignment coordinates and the alignment coordinates
+        are converted to sequence coordinates. Excludes gaps."""
         return self.get_seq_str(seqid=seqid, start=start, stop=stop).encode("utf8")
 
     def get_gapped_seq_bytes(
