@@ -2562,7 +2562,7 @@ class Aligned:
         return self.__class__(data=self.data[span.start : span.stop])
 
 
-class AlignedSeqsDataABC(ABC):
+class AlignedSeqsDataABC(SeqsDataABC):
     @classmethod
     @abstractmethod
     def from_aligned_seqs(
@@ -2605,7 +2605,7 @@ class AlignedSeqsDataABC(ABC):
     ) -> bytes: ...
 
 
-class AlignedSeqsData(SeqsDataABC, AlignedSeqsDataABC):
+class AlignedSeqsData(AlignedSeqsDataABC):
     # refactor: docstring
 
     __slots__ = (
@@ -2889,7 +2889,7 @@ class AlignedSeqsData(SeqsDataABC, AlignedSeqsDataABC):
         # todo: kath
         ...
 
-    def to_alphabet(self, alphabet: new_alphabet.CharAlphabet):
+    def to_alphabet(self, alphabet: new_alphabet.AlphabetABC):
         # todo: kath
         ...
 
@@ -2903,7 +2903,7 @@ class AlignedDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
     def __init__(
         self,
         *,
-        parent: AlignedSeqsData,
+        parent: AlignedSeqsDataABC,
         seqid: str,
         parent_len: int,
         start: OptInt = None,
@@ -3030,7 +3030,7 @@ class Alignment(SequenceCollection):
         super().__init__(**kwargs)
 
     @property
-    def seqs(self) -> AlignedSeqsData:
+    def seqs(self) -> AlignedSeqsDataABC:
         return self._seqs_data
 
     def get_seq(
@@ -3099,7 +3099,7 @@ def _(data: dict, *, moltype: str, info: dict = None) -> Alignment:
 
 
 @make_aligned_seqs.register
-def _(data: AlignedSeqsData, *, moltype: str, info: dict = None) -> Alignment:
+def _(data: AlignedSeqsDataABC, *, moltype: str, info: dict = None) -> Alignment:
     moltype = new_moltype.get_moltype(moltype)
     if not moltype.is_compatible_alphabet(data.alphabet):
         raise ValueError(
