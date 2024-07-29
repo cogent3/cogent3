@@ -1493,7 +1493,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         # but setting drop_invalid=False allows calc
         dists = aln.distance_matrix(calc="paralinear", drop_invalid=True)
 
-    def test_get_gapped_seq(self):
+    def test_get_gapped_seq(self):  # ported
         """Alignment.get_gapped_seq should return seq, with gaps"""
         aln = self.Class({"seq1": "--TTT?", "seq2": "GATC??"})
         self.assertEqual(str(aln.get_gapped_seq("seq1")), "--TTT?")
@@ -3106,7 +3106,7 @@ def test_coevolution_segments():
 
 
 @pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
-def test_iter_positions(cls):
+def test_iter_positions(cls):  # ported
     data = {"a": "AAAAAA", "b": "AAA---", "c": "AAAA--"}
     r = cls({k: data[k] for k in "cb"})
     assert list(r.iter_positions(pos_order=[5, 1, 3])) == list(
@@ -3753,7 +3753,7 @@ def test_quick_tree(cls, calc, brca1_data):
 
 
 @pytest.mark.parametrize("raw", ("-AAAGGGGGAACCCT", "AAAGGGGGAACCCT"))
-def test_slice_aligned(raw):
+def test_slice_aligned(raw):  # ported
     imap, seq = DNA.make_seq(seq=raw, name="x").parse_out_gaps()
     al = Aligned(imap, seq)
     sliced = al[:-3]

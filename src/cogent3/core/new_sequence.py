@@ -148,8 +148,10 @@ class Sequence:
                 result = self.moltype.complement(result)
         return result
 
-    def __array__(self):
-        result = array(self._seq)
+    def __array__(self, dtype=None, copy=None):
+        if copy is False:
+            raise ValueError("`copy=False` isn't supported. A copy is always created.")
+        result = array(self._seq, dtype=dtype)
         if self._seq.is_reversed:
             with contextlib.suppress(TypeError):
                 result = self.moltype.complement(result)
@@ -866,9 +868,8 @@ class Sequence:
         if value == self._annotation_db:
             return
 
-        if check and value:
-            if not isinstance(value, SupportsFeatures):
-                raise TypeError(f"{type(value)} does not satisfy SupportsFeatures")
+        if check and value and not isinstance(value, SupportsFeatures):
+            raise TypeError(f"{type(value)} does not satisfy SupportsFeatures")
 
         self._annotation_db = value
 
@@ -1153,7 +1154,7 @@ class Sequence:
                 f"Changing from old moltype={self.moltype.label} to new "
                 f"moltype={moltype.label} is not valid for this data"
             )
-        sv = SeqView(seq=seq, alphabet=moltype.most_degen_alphabet())
+        sv = SeqView(parent=seq, alphabet=moltype.most_degen_alphabet())
         new = self.__class__(moltype=moltype, seq=sv, name=self.name, info=self.info)
         new.annotation_db = self.annotation_db
         return new
@@ -1277,8 +1278,8 @@ class Sequence:
         return new
 
     def gapped_by_map_segment_iter(
-        self, segment_map, allow_gaps=True, recode_gaps=False
-    ) -> str:
+        self, segment_map: IndelMap, allow_gaps: bool = True, recode_gaps: bool = False
+    ) -> typing.Iterator[str, str, str]:
         if not allow_gaps and not segment_map.complete:
             raise ValueError(f"gap(s) in map {segment_map}")
 
@@ -1291,12 +1292,14 @@ class Sequence:
 
             yield seg
 
-    def gapped_by_map_motif_iter(self, map):
-        for segment in self.gapped_by_map_segment_iter(map):
+    def gapped_by_map_motif_iter(
+        self, segment_map: IndelMap
+    ) -> typing.Iterator[str, str, str]:
+        for segment in self.gapped_by_map_segment_iter(segment_map):
             yield from segment
 
-    def gapped_by_map(self, map, recode_gaps=False):
-        segments = self.gapped_by_map_segment_iter(map, True, recode_gaps)
+    def gapped_by_map(self, segment_map: IndelMap, recode_gaps: bool = False):
+        segments = self.gapped_by_map_segment_iter(segment_map, True, recode_gaps)
         return self.__class__(
             moltype=self.moltype,
             seq="".join(segments),
@@ -1304,9 +1307,9 @@ class Sequence:
             info=self.info,
         )
 
-    def _mapped(self, map):
+    def _mapped(self, segment_map: IndelMap):
         # Called by generic __getitem__
-        segments = self.gapped_by_map_segment_iter(map, allow_gaps=False)
+        segments = self.gapped_by_map_segment_iter(segment_map, allow_gaps=False)
         return self.__class__(
             moltype=self.moltype, seq="".join(segments), name=self.name, info=self.info
         )
@@ -1523,7 +1526,7 @@ class Sequence:
         ]
 
     def get_drawables(
-        self, *, biotype: typing.Optional[str, typing.Iterable[str]] = None
+        self, *, biotype: typing.Optional[StrORIterableStr] = None
     ) -> dict:
         """returns a dict of drawables, keyed by type
 
@@ -2002,19 +2005,15 @@ class SliceRecordABC(ABC):
     offset
         can be set with any additional offset that exists before the start of
         the underlying data
-    seq_len
+    parent_len
         length of the underlying data (not including offset)
-
-    Notes
-    -----
-    seq_len refers to a Python typing.Sequence object, e.g. array, str, list.
     """
 
     __slots__ = ("start", "stop", "step", "_offset")
 
     @property
     @abstractmethod
-    def seq_len(self) -> int: ...
+    def parent_len(self) -> int: ...
 
     @abstractmethod
     def _get_init_kwargs(self) -> dict:
@@ -2052,7 +2051,7 @@ class SliceRecordABC(ABC):
         if self.is_reversed:
             # self.stop becomes the start, self.stop will be negative
             assert self.stop < 0, "expected stop on reverse strand SeqView < 0"
-            start = self.stop + self.seq_len + 1
+            start = self.stop + self.parent_len + 1
         else:
             start = self.start
 
@@ -2074,7 +2073,7 @@ class SliceRecordABC(ABC):
         if self.is_reversed:
             # self.start becomes the stop, self.start will be negative
             assert self.start < 0, "expected start on reverse strand SeqView < 0"
-            stop = self.start + self.seq_len + 1
+            stop = self.start + self.parent_len + 1
         else:
             stop = self.stop
         return self.offset + stop
@@ -2104,7 +2103,7 @@ class SliceRecordABC(ABC):
 
         offset = self.offset
         return (
-            offset + self.seq_len + seq_index + 1
+            offset + self.parent_len + seq_index + 1
             if self.is_reversed
             else offset + seq_index
         )
@@ -2128,7 +2127,7 @@ class SliceRecordABC(ABC):
             offset = self.offset
 
             if (
-                tmp := (self.seq_len - abs_index + offset + self.start + 1)
+                tmp := (self.parent_len - abs_index + offset + self.start + 1)
             ) % self.step == 0 or stop:
                 rel_pos = tmp // abs(self.step)
             else:
@@ -2157,7 +2156,7 @@ class SliceRecordABC(ABC):
                 stop=stop,
                 step=step,
                 offset=self.offset,
-                seq_len=self.seq_len,
+                parent_len=self.parent_len,
                 **kwargs,
             )
 
@@ -2251,7 +2250,7 @@ class SliceRecordABC(ABC):
         # checking for zero-length slice
         if stop < start:
             return self._zero_slice
-        if start > self.seq_len:
+        if start > self.parent_len:
             return self._zero_slice
 
         return self.__class__(
@@ -2259,7 +2258,7 @@ class SliceRecordABC(ABC):
             stop=min(self.stop, stop),
             step=self.step * step,
             offset=self.offset,
-            seq_len=self.seq_len,
+            parent_len=self.parent_len,
             **kwargs,
         )
 
@@ -2287,7 +2286,7 @@ class SliceRecordABC(ABC):
             stop=max(self.stop, stop),
             step=self.step * step,
             offset=self.offset,
-            seq_len=self.seq_len,
+            parent_len=self.parent_len,
             **kwargs,
         )
 
@@ -2311,28 +2310,28 @@ class SliceRecordABC(ABC):
         # max possible start is "true stop" - step, because stop is not inclusive
         # "true stop" - step is converted to -ve index via subtracting len(self)
         if slice_start >= len(self):
-            start = (self.start + len(self) * self.step - self.step) - self.seq_len
+            start = (self.start + len(self) * self.step - self.step) - self.parent_len
         elif slice_start >= 0:
-            start = (self.start + slice_start * self.step) - self.seq_len
+            start = (self.start + slice_start * self.step) - self.parent_len
         else:
             start = (
                 self.start
                 + len(self) * self.step
                 + slice_start * self.step
-                - self.seq_len
+                - self.parent_len
             )
 
-        if slice_stop >= self.seq_len:
+        if slice_stop >= self.parent_len:
             return self._zero_slice
 
         if slice_stop >= 0:
-            stop = self.start + (slice_stop * self.step) - self.seq_len
+            stop = self.start + (slice_stop * self.step) - self.parent_len
         else:
             stop = (
                 self.start
                 + (len(self) * self.step)
                 + (slice_stop * self.step)
-                - self.seq_len
+                - self.parent_len
             )
 
         if start >= 0 or stop >= 0:
@@ -2340,10 +2339,10 @@ class SliceRecordABC(ABC):
 
         return self.__class__(
             start=start,
-            stop=max(stop, self.start - self.seq_len - 1),
+            stop=max(stop, self.start - self.parent_len - 1),
             step=self.step * step,
             offset=self.offset,
-            seq_len=self.seq_len,
+            parent_len=self.parent_len,
             **kwargs,
         )
 
@@ -2353,28 +2352,30 @@ class SliceRecordABC(ABC):
         # max start is "true stop" + abs(step), because stop is not inclusive
         # "true stop" adjust for if abs(stop-start) % step != 0
         if slice_start >= len(self):
-            start = self.seq_len + self.start + len(self) * self.step + abs(self.step)
+            start = (
+                self.parent_len + self.start + len(self) * self.step + abs(self.step)
+            )
         elif slice_start >= 0:
-            start = self.seq_len + (self.start + slice_start * self.step)
+            start = self.parent_len + (self.start + slice_start * self.step)
         else:
-            start = self.seq_len + (
+            start = self.parent_len + (
                 self.start + len(self) * self.step + slice_start * self.step
             )
 
         if slice_stop >= 0:
-            stop = self.seq_len + (self.start + slice_stop * self.step)
-            if stop <= self.seq_len + self.stop:
+            stop = self.parent_len + (self.start + slice_stop * self.step)
+            if stop <= self.parent_len + self.stop:
                 return self._zero_slice
         else:
-            stop = self.seq_len + (
+            stop = self.parent_len + (
                 self.start + len(self) * self.step + slice_stop * self.step
             )
-            if stop > self.seq_len + self.start:
-                stop = self.seq_len + self.start + 1
+            if stop > self.parent_len + self.start:
+                stop = self.parent_len + self.start + 1
 
         # if -ve, it's an invalid slice becomes zero
         # checking for zero-length slice
-        if stop < start or start > self.seq_len or min(start, stop) < 0:
+        if stop < start or start > self.parent_len or min(start, stop) < 0:
             return self._zero_slice
 
         return self.__class__(
@@ -2382,7 +2383,7 @@ class SliceRecordABC(ABC):
             stop=stop,
             step=self.step * step,
             offset=self.offset,
-            seq_len=self.seq_len,
+            parent_len=self.parent_len,
             **kwargs,
         )
 
@@ -2421,17 +2422,14 @@ class SeqViewABC(ABC):
     @abstractmethod
     def to_rich_dict(self) -> dict: ...
 
-    def __str__(self) -> str:
-        return self.str_value
+    @abstractmethod
+    def __str__(self) -> str: ...
 
-    def __array__(self, dtype=None):
-        arr = self.array_value
-        if dtype is not None:
-            arr = arr.astype(dtype)
-        return arr
+    @abstractmethod
+    def __array__(self, dtype=None, copy=None): ...
 
-    def __bytes__(self):
-        return self.bytes_value
+    @abstractmethod
+    def __bytes__(self): ...
 
 
 class SeqView(SeqViewABC, SliceRecordABC):
@@ -2443,7 +2441,7 @@ class SeqView(SeqViewABC, SliceRecordABC):
 
     Parameters
     ----------
-    seq
+    parent
         the original sequence data
     alphabet
         the alphabet object defining valid characters for the sequence
@@ -2457,69 +2455,69 @@ class SeqView(SeqViewABC, SliceRecordABC):
         an offset used for adjusting the view's starting position. Defaults to 0
     seqid
         the name or identifier of the sequence
-    seq_len
+    parent_len
         the length of the sequence. Defaults to the length of the input sequence
 
     """
 
     __slots__ = (
-        "seq",
+        "parent",
         "alphabet",
         "start",
         "stop",
         "step",
         "_offset",
         "_seqid",
-        "_seq_len",
+        "_parent_len",
     )
 
     def __init__(
         self,
         *,
-        seq: str,
+        parent: str,
         alphabet: new_alphabet.AlphabetABC,
         start: OptInt = None,
         stop: OptInt = None,
         step: OptInt = None,
         offset: int = 0,
         seqid: OptStr = None,
-        seq_len: OptInt = None,
+        parent_len: OptInt = None,
     ):
         if step == 0:
             raise ValueError("step cannot be 0")
         step = 1 if step is None else step
         self.alphabet = alphabet
         func = _input_vals_pos_step if step > 0 else _input_vals_neg_step
-        start, stop, step = func(len(seq), start, stop, step)
-        self.seq = seq
+        start, stop, step = func(len(parent), start, stop, step)
+        self.parent = parent
         self.start = start
         self.stop = stop
         self.step = step
         self._offset = offset
         self._seqid = seqid
 
-        if seq_len is not None and seq_len != len(seq):
-            raise AssertionError(f"{seq_len} != {len(self.seq)})")
-        self._seq_len = seq_len or len(self.seq)
+        if parent_len is not None and parent_len != len(parent):
+            raise AssertionError(f"{parent_len} != {len(self.parent)})")
+        self._parent_len = parent_len or len(self.parent)
 
     @property
     def _zero_slice(self):
-        return self.__class__(seq="", alphabet=self.alphabet)
+        return self.__class__(parent="", alphabet=self.alphabet)
 
     @property
     def seqid(self) -> str:
         return self._seqid
 
     @property
-    def seq_len(self) -> int:
-        return self._seq_len
+    def parent_len(self) -> int:
+        return self._parent_len
 
     def _get_init_kwargs(self):
-        return {"seq": self.seq, "seqid": self.seqid, "alphabet": self.alphabet}
+        return {"parent": self.parent, "seqid": self.seqid, "alphabet": self.alphabet}
 
     @property
     def str_value(self):
-        return self.seq[self.start : self.stop : self.step]
+        return self.parent[self.start : self.stop : self.step]
 
     @property
     def array_value(self):
@@ -2529,12 +2527,30 @@ class SeqView(SeqViewABC, SliceRecordABC):
     def bytes_value(self):
         return self.str_value.encode("utf-8")
 
+    def __str__(self) -> str:
+        return self.str_value
+
+    def __array__(self, dtype=None, copy=None) -> numpy.ndarray:
+        if copy is False:
+            raise ValueError("`copy=False` isn't supported. A copy is always created.")
+        arr = self.array_value
+        if dtype is not None:
+            arr = arr.astype(dtype)
+        return arr
+
+    def __bytes__(self) -> bytes:
+        return self.bytes_value
+
     def __repr__(self) -> str:
-        seq = f"{self.seq[:10]}...{self.seq[-5:]}" if self.seq_len > 15 else self.seq
+        seq = (
+            f"{self.parent[:10]}...{self.parent[-5:]}"
+            if self.parent_len > 15
+            else self.parent
+        )
         return (
-            f"{self.__class__.__name__}(seq={seq!r}, start={self.start}, "
+            f"{self.__class__.__name__}(parent={seq!r}, start={self.start}, "
             f"stop={self.stop}, step={self.step}, offset={self.offset}, "
-            f"seqid={self.seqid!r}, seq_len={self.seq_len})"
+            f"seqid={self.seqid!r}, parent_len={self.parent_len})"
         )
 
     def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
@@ -2555,12 +2571,12 @@ class SeqView(SeqViewABC, SliceRecordABC):
 
         data["init_args"]["step"] = self.step
         if self.is_reversed:
-            adj = self.seq_len + 1
+            adj = self.parent_len + 1
             start, stop = self.stop + adj, self.start + adj
         else:
             start, stop = self.start, self.stop
 
-        data["init_args"]["seq"] = self.seq[start:stop]
+        data["init_args"]["seq"] = self.parent[start:stop]
         data["init_args"]["offset"] = int(self.parent_start)
         data["init_args"]["alphabet"] = self.alphabet.to_rich_dict()
         return data
@@ -2576,18 +2592,18 @@ class SeqView(SeqViewABC, SliceRecordABC):
         """
         if not sliced:
             return self.__class__(
-                seq=self.seq,
+                parent=self.parent,
                 seqid=self.seqid,
                 alphabet=self.alphabet,
                 start=self.start,
                 stop=self.stop,
                 step=self.step,
                 offset=self.offset,
-                seq_len=self.seq_len,
+                parent_len=self._parent_len,
             )
         data = self.to_rich_dict()
         return self.__class__(
-            seq=data["init_args"]["seq"],
+            parent=data["init_args"]["seq"],
             seqid=self.seqid,
             alphabet=self.alphabet,
             step=self.step,
@@ -2618,13 +2634,13 @@ def _(data: Sequence, seqid, alphabet) -> SeqViewABC:
 
 @_coerce_to_seqview.register
 def _(data: str, seqid, alphabet) -> SeqViewABC:
-    return SeqView(seq=data, seqid=seqid, alphabet=alphabet)
+    return SeqView(parent=data, seqid=seqid, alphabet=alphabet)
 
 
 @_coerce_to_seqview.register
 def _(data: bytes, seqid, alphabet) -> SeqViewABC:
     data = data.decode("utf8")
-    return SeqView(seq=data, seqid=seqid, alphabet=alphabet)
+    return SeqView(parent=data, seqid=seqid, alphabet=alphabet)
 
 
 @_coerce_to_seqview.register

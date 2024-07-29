@@ -21,6 +21,7 @@ from cogent3.core.annotation_db import (
     SupportsFeatures,
 )
 from cogent3.core.info import Info as InfoClass
+from cogent3.core.location import IndelMap
 from cogent3.core.profile import (
     PSSM,
     MotifCountsArray,
@@ -49,7 +50,9 @@ OptDict = Optional[dict]
 OptCallable = Optional[Callable]
 OptRenamerCallable = Optional[Callable[[str], str]]
 OptPathType = Union[str, Path, None]
+StrORArray = Union[str, numpy.ndarray]
 StrORBytesORArray = Union[str, bytes, numpy.ndarray]
+MolTypes = Union[str, new_moltype.MolType]
 
 
 class MakeSeqCallable(typing.Protocol):
@@ -94,14 +97,14 @@ class SeqDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
     # array([3, 1, 2, 0], dtype=int8)
     """
 
-    __slots__ = ("seq", "start", "stop", "step", "_offset", "_seqid", "_seq_len")
+    __slots__ = ("parent", "start", "stop", "step", "_offset", "_seqid", "_parent_len")
 
     def __init__(
         self,
         *,
-        seq: SeqsData,
+        parent: SeqsData,
         seqid: str,
-        seq_len: int,
+        parent_len: int,
         start: OptInt = None,
         stop: OptInt = None,
         step: OptInt = None,
@@ -110,14 +113,14 @@ class SeqDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
         if step == 0:
             raise ValueError("step cannot be 0")
         step = 1 if step is None else step
-        self._seq_len = self._checked_seq_len(seq_len)
+        self._parent_len = self._checked_seq_len(parent_len)
         func = (
             new_sequence._input_vals_pos_step
             if step > 0
             else new_sequence._input_vals_neg_step
         )
-        start, stop, step = func(self._seq_len, start, stop, step)
-        self.seq = seq
+        start, stop, step = func(self._parent_len, start, stop, step)
+        self.parent = parent
         self.start = start
         self.stop = stop
         self.step = step
@@ -131,7 +134,11 @@ class SeqDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
     @property
     def _zero_slice(self):
         return self.__class__(
-            seq=self.seq, seqid=self.seqid, seq_len=self._seq_len, start=0, stop=0
+            parent=self.parent,
+            seqid=self.seqid,
+            parent_len=self._parent_len,
+            start=0,
+            stop=0,
         )
 
     @property
@@ -139,16 +146,16 @@ class SeqDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
         return self._seqid
 
     @property
-    def seq_len(self) -> int:
-        return self._seq_len
+    def parent_len(self) -> int:
+        return self._parent_len
 
     def _get_init_kwargs(self):
-        return {"seq": self.seq, "seqid": self.seqid}
+        return {"parent": self.parent, "seqid": self.seqid}
 
     @property
     def str_value(self) -> str:
         """returns the sequence as a string"""
-        raw = self.seq.get_seq_str(
+        raw = self.parent.get_seq_str(
             seqid=self.seqid, start=self.parent_start, stop=self.parent_stop
         )
         return raw if self.step == 1 else raw[:: self.step]
@@ -156,7 +163,7 @@ class SeqDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
     @property
     def array_value(self) -> numpy.ndarray:
         """returns the sequence as a numpy array"""
-        raw = self.seq.get_seq_array(
+        raw = self.parent.get_seq_array(
             seqid=self.seqid, start=self.parent_start, stop=self.parent_stop
         )
         return raw if self.step == 1 else raw[:: self.step]
@@ -164,18 +171,32 @@ class SeqDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
     @property
     def bytes_value(self) -> bytes:
         """returns the sequence as bytes"""
-        raw = self.seq.get_seq_bytes(
+        raw = self.parent.get_seq_bytes(
             seqid=self.seqid, start=self.parent_start, stop=self.parent_stop
         )
         return raw if self.step == 1 else raw[:: self.step]
+
+    def __str__(self) -> str:
+        return self.str_value
+
+    def __array__(self, dtype=None, copy=None) -> numpy.ndarray:
+        if copy is False:
+            raise ValueError("`copy=False` isn't supported. A copy is always created.")
+        arr = self.array_value
+        if dtype:
+            arr = arr.astype(dtype)
+        return arr
+
+    def __bytes__(self) -> bytes:
+        return self.bytes_value
 
     def __repr__(self) -> str:
         # todo: add alphabet to the repr
         seq = f"{self[:10]!s}...{self[-5:]}" if len(self) > 15 else str(self)
         return (
-            f"{self.__class__.__name__}(seq={seq}, start={self.start}, "
+            f"{self.__class__.__name__}(parent={seq}, start={self.start}, "
             f"stop={self.stop}, step={self.step}, offset={self.offset}, "
-            f"seqid={self.seqid!r}, seq_len={self.seq_len})"
+            f"seqid={self.seqid!r}, parent_len={self.parent_len})"
         )
 
     # refactor: design, do we support copy? do we support copy with sliced?
@@ -201,14 +222,14 @@ class SeqDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
         data["init_args"]["step"] = self.step
 
         if self.is_reversed:
-            adj = self.seq_len + 1
+            adj = self.parent_len + 1
             start, stop = self.stop + adj, self.start + adj
         else:
             start, stop = self.start, self.stop
 
-        data["init_args"]["seq"] = self.str_value[start:stop]
+        data["init_args"]["parent"] = self.str_value[start:stop]
         data["init_args"]["offset"] = int(self.parent_start)
-        data["init_args"]["seq_len"] = len(self)
+        data["init_args"]["parent_len"] = len(self)
 
         return data
 
@@ -262,13 +283,13 @@ class SeqsDataABC(ABC):
     ) -> bytes: ...
 
     @abstractmethod
-    def get_seq_view(self, seqid: str) -> new_sequence.SliceRecordABC: ...
+    def get_view(self, seqid: str) -> new_sequence.SliceRecordABC: ...
 
     @abstractmethod
     def subset(self, names: Union[str, typing.Sequence[str]]) -> SeqsDataABC: ...
 
     @abstractmethod
-    def to_alphabet(self, alphabet: new_alphabet.CharAlphabet) -> SeqsDataABC: ...
+    def to_alphabet(self, alphabet: new_alphabet.AlphabetABC) -> SeqsDataABC: ...
 
     @abstractmethod
     def add_seqs(self, seqs) -> SeqsDataABC: ...
@@ -313,7 +334,7 @@ class SeqsData(SeqsDataABC):
         self,
         *,
         data: dict[str, StrORBytesORArray],
-        alphabet: new_alphabet.CharAlphabet,
+        alphabet: new_alphabet.AlphabetABC,
         make_seq: Optional[MakeSeqCallable] = None,
         reversed_seqs: dict[str, bool] = None,
     ):
@@ -375,10 +396,10 @@ class SeqsData(SeqsDataABC):
     ) -> bytes:
         return self.get_seq_str(seqid=seqid, start=start, stop=stop).encode("utf8")
 
-    def get_seq_view(self, seqid: str) -> SeqDataView:
+    def get_view(self, seqid: str) -> SeqDataView:
         seq_len = len(self._data[seqid])
         step = -1 if self._reversed_seqs.get(seqid, False) else 1
-        return SeqDataView(seq=self, seqid=seqid, seq_len=seq_len, step=step)
+        return SeqDataView(parent=self, seqid=seqid, parent_len=seq_len, step=step)
 
     def subset(self, names: Union[str, typing.Sequence[str]]) -> SeqsData:
         """Returns a new SeqsData object with only the specified names."""
@@ -435,7 +456,7 @@ class SeqsData(SeqsDataABC):
         )
 
     def to_alphabet(
-        self, alphabet: new_alphabet.CharAlphabet, check_valid=True
+        self, alphabet: new_alphabet.AlphabetABC, check_valid=True
     ) -> SeqsData:
         # refactor: design -- map directly between arrays?
         # refactor: design -- better way to check if alphabets are DNA and RNA?
@@ -478,7 +499,7 @@ class SeqsData(SeqsDataABC):
 
     @__getitem__.register
     def _(self, index: str) -> Union[new_sequence.Sequence, new_sequence.SeqViewABC]:
-        sdv = self.get_seq_view(seqid=index)
+        sdv = self.get_view(seqid=index)
         return (
             sdv
             if self.make_seq is None
@@ -538,6 +559,7 @@ class SequenceCollection:
             info = InfoClass(info) if info else InfoClass()
         self.info = info
         self.source = source
+        # todo: kath - move _repr_policy to method so it can be reimplemented in Aligment class
         self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60)
         self._annotation_db = annotation_db or DEFAULT_ANNOTATION_DB()
 
@@ -1532,7 +1554,7 @@ class SequenceCollection:
 
     def get_motif_probs(
         self,
-        alphabet: new_alphabet.CharAlphabet = None,
+        alphabet: new_alphabet.AlphabetABC = None,
         include_ambiguity: bool = False,
         exclude_unobserved: bool = False,
         allow_gap: bool = False,
@@ -2374,3 +2396,722 @@ def _(
         annotation_db=annotation_db,
         source=source,
     )
+
+
+@singledispatch
+def seq_to_gap_coords(
+    seq: StrORBytesORArray,
+    *,
+    alphabet: new_alphabet.AlphabetABC,
+    make_seq: MakeSeqCallable,
+) -> tuple[StrORBytesORArray, IndelMap]:
+    """
+    Takes a sequence with (or without) gaps and returns an ungapped sequence
+    and a map of the position and length of gaps in the original parent sequence
+    """
+    raise NotImplementedError(f"seq_to_gap_coords not implemented for type {type(seq)}")
+
+
+@seq_to_gap_coords.register
+def _(
+    seq: str, *, alphabet: new_alphabet.AlphabetABC, make_seq: MakeSeqCallable
+) -> tuple[str, numpy.ndarray]:
+    seq = make_seq(seq=seq)
+    indel_map, ungapped_seq = seq.parse_out_gaps()
+
+    if indel_map.num_gaps == 0:
+        return str(ungapped_seq), numpy.array([], dtype=int)
+
+    return str(ungapped_seq), numpy.array(
+        [indel_map.gap_pos, indel_map.cum_gap_lengths]
+    ).T
+
+
+@seq_to_gap_coords.register
+def _(
+    seq: numpy.ndarray,
+    *,
+    alphabet: new_alphabet.AlphabetABC,
+    make_seq: MakeSeqCallable,
+) -> tuple[numpy.ndarray, numpy.ndarray]:
+    gaps_bool = seq == alphabet.gap_index
+    ungapped = seq[~gaps_bool]
+
+    # no gaps in seq
+    if numpy.array_equal(ungapped, seq):
+        return ungapped, numpy.array([], dtype=int)
+
+    parent_len = len(seq)
+    in_gap = False
+    parent_coords = []
+    start = 0
+    for i, gapped in enumerate(gaps_bool):
+        if gapped and not in_gap:
+            start = i
+            in_gap = True
+        if not gapped and in_gap:
+            parent_coords.append([start, i])
+            in_gap = False
+        if gapped and i == parent_len - 1:
+            # end of sequence
+            parent_coords.append([start, i + 1])
+
+    # format for IndelMap
+    parent_coords = numpy.array(parent_coords)
+    gap_lengths = numpy.array([end - start for start, end in parent_coords])
+    cum_lengths = gap_lengths.cumsum()
+    # get gap start positions in sequence coords
+    gap_pos = parent_coords.T[0] - numpy.append(0, cum_lengths[:-1, numpy.newaxis])
+
+    return ungapped, numpy.array([gap_pos, cum_lengths]).T
+
+
+@seq_to_gap_coords.register
+def _(
+    seq: bytes, *, alphabet: new_alphabet.AlphabetABC, make_seq: MakeSeqCallable
+) -> tuple[bytes, numpy.ndarray]:
+    seq, map_array = seq_to_gap_coords(
+        seq.decode("utf-8"), alphabet=alphabet, make_seq=make_seq
+    )
+    return seq.encode("utf-8"), map_array
+
+
+class SliceRecord(new_sequence.SliceRecordABC):
+    __slots__ = "_parent_len"
+
+    def __init__(
+        self, start: OptInt, stop: OptInt, step: OptInt, offset: int, seq_len: int
+    ):
+        self.start = start
+        self.stop = stop
+        self.step = step
+        self._offset = offset
+        self._seq_len = seq_len
+
+    @property
+    def parent_len(self) -> int:
+        return self._parent_len
+
+    def _get_init_kwargs(self) -> dict:
+        return {}
+
+    def copy(self, sliced: bool = False):
+        # todo: kath
+        return self
+
+    @property
+    def _zero_slice(self): ...
+
+
+class Aligned:
+    """A single sequence in an alignment."""
+
+    def __init__(self, data: AlignedDataView):
+        self._data = data
+
+    @property
+    def data(self) -> AlignedDataView:
+        return self._data
+
+    @property
+    def map(self) -> IndelMap:
+        return self.data.map
+
+    @property
+    def seq(self) -> new_sequence.Sequence:
+        """Returns Sequence object, excluding gaps."""
+        return self.data.parent.make_seq(seq=self.data.str_value, name=self.data.seqid)
+
+    @property
+    def gapped_seq(self) -> new_sequence.Sequence:
+        """Returns Sequence object, including gaps."""
+        return self.data.parent.make_seq(
+            seq=self.data.gapped_str_value, name=self.data.seqid
+        )
+
+    def __str__(self) -> str:
+        return str(self.gapped_seq)
+
+    def __array__(self, dtype=None, copy=None) -> numpy.ndarray:
+        if copy is False:
+            raise ValueError("`copy=False` isn't supported. A copy is always created.")
+        return numpy.array(self.gapped_seq, dtype=dtype)
+
+    def __bytes__(self) -> bytes:
+        return bytes(self.gapped_seq)
+
+    def __iter__(self):
+        """Iterates over sequence one motif (e.g. char) at a time, incl. gaps"""
+        yield self.gapped_seq
+
+    @singledispatchmethod
+    def __getitem__(self, span: Union[int, slice]):
+        raise NotImplementedError(f"__getitem__ not implemented for {type(span)}")
+
+    @__getitem__.register
+    def _(self, span: int):
+        return self.__getitem__(slice(span, span + 1))
+
+    @__getitem__.register
+    def _(self, span: slice):
+        # todo: kath
+        # implement for reverse complement
+        if span.step and span.step < 0:
+            raise NotImplementedError("Cannot reverse an Aligned")
+
+        return self.__class__(data=self.data[span.start : span.stop])
+
+
+class AlignedSeqsDataABC(SeqsDataABC):
+    @classmethod
+    @abstractmethod
+    def from_aligned_seqs(
+        cls,
+        *,
+        data: dict[str, StrORArray],
+        alphabet: new_alphabet.AlphabetABC,
+        make_seq: Optional[MakeSeqCallable] = None,
+    ): ...
+
+    @property
+    @abstractmethod
+    def align_len(self) -> int: ...
+
+    @abstractmethod
+    def get_gapped_seq_array(
+        self,
+        *,
+        seqid: str,
+        start: OptInt = None,
+        stop: OptInt = None,
+    ) -> numpy.ndarray: ...
+
+    @abstractmethod
+    def get_gapped_seq_str(
+        self,
+        *,
+        seqid: str,
+        start: OptInt = None,
+        stop: OptInt = None,
+    ) -> str: ...
+
+    @abstractmethod
+    def get_gapped_seq_bytes(
+        self,
+        *,
+        seqid: str,
+        start: OptInt = None,
+        stop: OptInt = None,
+    ) -> bytes: ...
+
+
+class AlignedSeqsData(AlignedSeqsDataABC):
+    # refactor: docstring
+
+    __slots__ = (
+        "_seqs",
+        "_gaps",
+        "_alphabet",
+        "_make_seq",
+        "_align_len",
+    )
+
+    def __init__(
+        self,
+        *,
+        seqs: Optional[dict[str, StrORBytesORArray]],
+        gaps: Optional[dict[str, numpy.ndarray]],
+        alphabet: new_alphabet.AlphabetABC,
+        align_len: OptInt = None,
+        make_seq: Optional[MakeSeqCallable] = None,
+        check: bool = True,
+    ):
+        self._alphabet = alphabet
+        self._make_seq = make_seq
+        if check:
+            if not seqs or not gaps:
+                raise ValueError("Both seqs and gaps must be provided.")
+            if set(seqs.keys()) != set(gaps.keys()):
+                raise ValueError("Keys in seqs and gaps must be identical.")
+            seq_lengths = {
+                len(v) + l[-1][1] for v, l in zip(seqs.values(), gaps.values())
+            }
+            if len(seq_lengths) != 1:
+                raise ValueError("All sequence lengths must be the same.")
+            align_len = seq_lengths.pop()
+        self._seqs = {}
+        for k, v in seqs.items():
+            seq = self._alphabet.to_indices(v)
+            self._seqs[k] = seq
+            seq.flags.writeable = False
+        self._gaps = {}
+        for k, v in gaps.items():
+            self._gaps[k] = v
+            v.flags.writeable = False
+        self._align_len = align_len or len(next(iter(self._seqs.values())))
+
+    @classmethod
+    def from_aligned_seqs(
+        cls,
+        *,
+        data: dict[str, StrORArray],
+        alphabet: new_alphabet.AlphabetABC,
+        make_seq: Optional[MakeSeqCallable] = None,
+    ):
+        """Construct an AlignedSeqsData object from a dict of aligned sequences
+
+        Parameters
+        ----------
+        data
+            dict of gapped sequences {name: seq, ...}. sequences must all be
+            the same length
+        moltype
+            the molecular type of the sequences e.g., 'dna', 'protein' or a
+            MolType instance
+        """
+        seq_lengths = {len(v) for v in data.values()}
+        if len(seq_lengths) != 1:
+            raise ValueError("All sequence lengths must be the same.")
+
+        align_len = seq_lengths.pop()
+        seqs = {}
+        gaps = {}
+        for name, seq in data.items():
+            seq, gap_map = seq_to_gap_coords(seq, alphabet=alphabet, make_seq=make_seq)
+            seq = alphabet.to_indices(seq)
+            seq.flags.writeable = False
+            gap_map.flags.writeable = False
+            seqs[name], gaps[name] = seq, gap_map
+
+        return cls(
+            seqs=seqs,
+            gaps=gaps,
+            alphabet=alphabet,
+            make_seq=make_seq,
+            align_len=align_len,
+            check=False,
+        )
+
+    def __len__(self):
+        return self.align_len
+
+    @singledispatchmethod
+    def __getitem__(self, index: Union[str, int]) -> Aligned:
+        raise NotImplementedError(f"__getitem__ not implemented for {type(index)}")
+
+    @__getitem__.register
+    def _(self, index: str) -> Aligned:
+        adv = self.get_view(seqid=index)
+        return Aligned(data=adv)
+
+    @__getitem__.register
+    def _(self, index: int) -> Aligned:
+        return self[self.names[index]]
+
+    @property
+    def names(self) -> tuple[str]:
+        return list(self._seqs.keys())
+
+    @property
+    def alphabet(self) -> new_alphabet.CharAlphabet:
+        return self._alphabet
+
+    @property
+    def make_seq(self) -> Optional[MakeSeqCallable]:
+        """if set, returns a function that takes 'seq' and 'name' as keyword
+        arguments and returns a corresponding Sequence from the collection.
+
+        Notes
+        -----
+        Can be set with any callable function that takes 'seq' and 'name' as
+        keyword arguments. Typically set with '<moltype-instance>.make_seq'.
+        """
+        return self._make_seq
+
+    @make_seq.setter
+    def make_seq(self, make_seq: MakeSeqCallable) -> None:
+        self._make_seq = make_seq
+
+    @property
+    def align_len(self) -> int:
+        return self._align_len
+
+    def seq_lengths(self) -> dict[str, int]:
+        """Returns lengths of ungapped sequences as dict of {name: length, ... }."""
+        return {name: len(seq) for name, seq in self._seqs.items()}
+
+    def get_view(self, seqid: str) -> AlignedDataView:
+        return AlignedDataView(parent=self, seqid=seqid, parent_len=self.align_len)
+
+    def get_gaps(self, seqid: str) -> numpy.ndarray:
+        return self._gaps[seqid]
+
+    def get_seq_array(
+        self,
+        *,
+        seqid: str,
+        start: OptInt = None,
+        stop: OptInt = None,
+    ) -> numpy.ndarray:
+        """Return ungapped sequence corresponding to seqid as an array of indices.
+        start/stop are in alignment coordinates and the alignment coordinates
+        are converted to sequence coordinates. Excludes gaps.
+        """
+        seq = self._seqs[seqid]
+        # if there's no gaps, just slice the sequence
+        if len(seq) == self.align_len:
+            return seq[start:stop]
+
+        gaps = self._gaps[seqid]
+        indel_map = IndelMap(
+            gap_pos=gaps[:, 0], cum_gap_lengths=gaps[:, 1], parent_length=self.align_len
+        )
+
+        new_map = (
+            indel_map[start:stop]
+            if start is not None or stop is not None
+            else indel_map
+        )
+        seq_start = indel_map.get_seq_index(start or 0)
+        seq_end = indel_map.get_seq_index(stop or self.align_len)
+        return seq[seq_start:seq_end] if new_map.useful else seq[:0]
+
+    def get_gapped_seq_array(
+        self,
+        *,
+        seqid: str,
+        start: OptInt = None,
+        stop: OptInt = None,
+    ) -> numpy.ndarray:
+        """Return sequence data corresponding to seqid as an array of indices.
+        start/stop are in alignment coordinates. Includes gaps.
+        """
+        seq = self._seqs[seqid]
+
+        # if there's no gaps, just slice the sequence
+        if len(seq) == self.align_len:
+            return seq[start:stop]
+
+        # refactor: design
+        # direct numpy array approach would be faster
+        gaps = self._gaps[seqid]
+        indel_map = IndelMap(
+            gap_pos=gaps[:, 0], cum_gap_lengths=gaps[:, 1], parent_length=self.align_len
+        )
+
+        gapped = numpy.array([], dtype=numpy.uint8)
+        for span in indel_map.spans:
+            if span.lost:
+                unknown = self.alphabet.gap_index
+                seg = numpy.full(span.length, unknown, dtype=numpy.uint8)
+            else:
+                seg = seq[span.start : span.end]
+
+            gapped = numpy.concatenate((gapped, seg))
+
+        return gapped[start:stop]
+
+    def get_seq_str(
+        self,
+        *,
+        seqid: str,
+        start: OptInt = None,
+        stop: OptInt = None,
+    ) -> str:
+        """Return ungapped sequence corresponding to seqid as a string.
+        start/stop are in alignment coordinates and the alignment coordinates
+        are converted to sequence coordinates. Excludes gaps."""
+
+        return self.alphabet.from_indices(
+            self.get_seq_array(seqid=seqid, start=start, stop=stop)
+        )
+
+    def get_gapped_seq_str(
+        self,
+        *,
+        seqid: str,
+        start: OptInt = None,
+        stop: OptInt = None,
+    ) -> str:
+        """Return sequence corresponding to seqid as a string.
+        start/stop are in alignment coordinates. Includes gaps."""
+
+        return self.alphabet.from_indices(
+            self.get_gapped_seq_array(seqid=seqid, start=start, stop=stop)
+        )
+
+    def get_seq_bytes(
+        self,
+        *,
+        seqid: str,
+        start: OptInt = None,
+        stop: OptInt = None,
+    ) -> bytes:
+        """Return ungapped sequence corresponding to seqid as a bytes string.
+        start/stop are in alignment coordinates and the alignment coordinates
+        are converted to sequence coordinates. Excludes gaps."""
+        return self.get_seq_str(seqid=seqid, start=start, stop=stop).encode("utf8")
+
+    def get_gapped_seq_bytes(
+        self,
+        *,
+        seqid: str,
+        start: OptInt = None,
+        stop: OptInt = None,
+    ) -> bytes:
+        """Return sequence corresponding to seqid as a bytes string.
+        start/stop are in alignment coordinates. Includes gaps."""
+        return self.get_gapped_seq_str(seqid=seqid, start=start, stop=stop).encode(
+            "utf8"
+        )
+
+    def add_seqs(
+        self, seqs: dict[str, StrORArray], force_unique_keys=True
+    ) -> AlignedSeqsData:
+        """Returns a new AlignedSeqsData object with added sequences."""
+        if force_unique_keys and any(name in self.names for name in seqs):
+            raise ValueError("One or more sequence names already exist in collection")
+        # refactor: design
+        # instead of re-computing the gaps, can we construct the new gaps and append to
+        # the existing gaps?
+
+        new_seq_lens = {len(seq) for seq in seqs.values()}
+        if len(new_seq_lens) != 1 or new_seq_lens.pop() != self.align_len:
+            raise ValueError(
+                "All sequences must be the same length as existing sequences"
+            )
+
+        old_seqs = {name: self.get_gapped_seq_array(seqid=name) for name in self.names}
+        new_data = old_seqs | seqs
+
+        return self.__class__.from_aligned_seqs(
+            data=new_data, alphabet=self.alphabet, make_seq=self._make_seq
+        )
+
+    def reversed(self):
+        # todo: kath
+        ...
+
+    def subset(self, names: Union[str, typing.Sequence[str]]):
+        # todo: kath
+        ...
+
+    def to_alphabet(self, alphabet: new_alphabet.AlphabetABC):
+        # todo: kath
+        ...
+
+    def to_rich_dict(self):
+        # todo: kath
+        ...
+
+
+class AlignedDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
+    # refactor: docstring
+    def __init__(
+        self,
+        *,
+        parent: AlignedSeqsDataABC,
+        seqid: str,
+        parent_len: int,
+        start: OptInt = None,
+        stop: OptInt = None,
+        step: OptInt = None,
+        offset: int = 0,
+    ):
+        if step and step < 1:
+            raise ValueError(f"step cannot be {step}")
+        step = 1 if step is None else step
+        self.parent = parent
+        self._parent_len = self._checked_seq_len(parent_len)
+        func = (
+            new_sequence._input_vals_pos_step
+            if step > 0
+            else new_sequence._input_vals_neg_step
+        )
+        start, stop, step = func(self._parent_len, start, stop, step)
+        self.start = start
+        self.stop = stop
+        self.step = step
+        self._offset = offset
+        self._seqid = seqid
+
+    @property
+    def seqid(self) -> str:
+        return self._seqid
+
+    @property
+    def parent_len(self) -> int:
+        return self._parent_len
+
+    @property
+    def map(self) -> IndelMap:
+        gap_pos_gap_length = self.parent.get_gaps(self.seqid)[self.start : self.stop]
+        return IndelMap(
+            gap_pos=gap_pos_gap_length[:, 0],
+            cum_gap_lengths=gap_pos_gap_length[:, 1],
+            parent_length=self.parent_len,
+        )
+
+    @property
+    def str_value(self) -> str:
+        return self.parent.get_seq_str(
+            seqid=self.seqid, start=self.start, stop=self.stop
+        )
+
+    @property
+    def gapped_str_value(self) -> str:
+        return self.parent.get_gapped_seq_str(
+            seqid=self.seqid, start=self.start, stop=self.stop
+        )
+
+    @property
+    def array_value(self) -> numpy.ndarray:
+        return self.parent.get_seq_array(
+            seqid=self.seqid, start=self.start, stop=self.stop
+        )
+
+    @property
+    def gapped_array_value(self) -> numpy.ndarray:
+        return self.parent.get_gapped_seq_array(
+            seqid=self.seqid, start=self.start, stop=self.stop
+        )
+
+    @property
+    def bytes_value(self) -> bytes:
+        return self.parent.get_seq_bytes(
+            seqid=self.seqid, start=self.start, stop=self.stop
+        )
+
+    @property
+    def gapped_bytes_value(self) -> bytes:
+        return self.parent.get_gapped_seq_bytes(
+            seqid=self.seqid, start=self.start, stop=self.stop
+        )
+
+    def __str__(self) -> str:
+        # refactor: design
+        # should this return gapped or ungapped?
+        return self.str_value
+
+    def __array__(self, dtype=None, copy=None) -> numpy.ndarray:
+        if copy is False:
+            raise ValueError("`copy=False` isn't supported. A copy is always created.")
+        arr = self.array_value
+        if dtype:
+            arr = arr.astype(dtype)
+        return arr
+
+    def __bytes__(self) -> bytes:
+        return self.bytes_value
+
+    def copy(self, sliced: bool = False):
+        return self
+
+    def to_rich_dict(self) -> dict:
+        # todo: kath
+        ...
+
+    def _get_init_kwargs(self) -> dict:
+        return {"parent": self.parent, "seqid": self.seqid}
+
+    def _checked_seq_len(self, seq_len: int) -> int:
+        assert seq_len == self.parent.align_len
+        return seq_len
+
+    @property
+    def _zero_slice(self):
+        return self.__class__(
+            parent=self.parent,
+            seqid=self.seqid,
+            parent_len=self._parent_len,
+            start=0,
+            stop=0,
+        )
+
+
+class Alignment(SequenceCollection):
+    def __init__(
+        self,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+
+    @property
+    def seqs(self) -> AlignedSeqsDataABC:
+        return self._seqs_data
+
+    def get_seq(
+        self, seqname: str, copy_annotations: bool = False
+    ) -> new_sequence.Sequence:
+        """Return a Sequence object for the specified seqname."""
+        seq = self.seqs[seqname].seq
+        if copy_annotations:
+            seq.annotation_db = type(self.annotation_db)()
+            seq.annotation_db.update(annot_db=self.annotation_db, seqids=seqname)
+        else:
+            seq.annotation_db = self.annotation_db
+
+        return seq
+
+    @c3warn.deprecated_args(
+        version="2025.6", reason="naming consistency", old_new=[("seq_name", "seqname")]
+    )
+    def get_gapped_seq(self, seqname):
+        """Return a gapped Sequence object for the specified seqname."""
+        return self.seqs[seqname].gapped_seq
+
+    def iter_positions(
+        self, pos_order: list = None
+    ) -> typing.Iterator[list, list, list]:
+        """Iterates over positions in the alignment, in order.
+
+        Parameters
+        ----------
+        pos_order
+            list of indices specifying the column order. If None, the
+            positions are iterated in order.
+
+        Returns
+        -------
+        yields lists of elemenets for each position (column) in the alignment
+        """
+        # refactor: array
+        # this could also iter columns of indices as a numpy array - could be an optional arg
+        get = self.seqs.__getitem__
+        pos_order = pos_order or range(self.seqs.align_len)
+        seq_order = self.names
+        for pos in pos_order:
+            yield [str(get(seq)[pos]) for seq in seq_order]
+
+
+@singledispatch
+def make_aligned_seqs(
+    data: Union[dict[str, StrORBytesORArray], AlignedSeqsData],
+    *,
+    moltype: str,
+    info: dict = None,
+) -> Alignment:
+    raise NotImplementedError(f"make_aligned_seqs not implemented for {type(data)}")
+
+
+@make_aligned_seqs.register
+def _(data: dict, *, moltype: str, info: dict = None) -> Alignment:
+    # todo: implement a coerce to AlignedSeqsData dict function
+    moltype = new_moltype.get_moltype(moltype)
+    alphabet = moltype.most_degen_alphabet()
+    aligned_data = AlignedSeqsData.from_aligned_seqs(
+        data=data, alphabet=alphabet, make_seq=moltype.make_seq
+    )
+    return make_aligned_seqs(aligned_data, moltype=moltype, info=info)
+
+
+@make_aligned_seqs.register
+def _(data: AlignedSeqsDataABC, *, moltype: str, info: dict = None) -> Alignment:
+    moltype = new_moltype.get_moltype(moltype)
+    if not moltype.is_compatible_alphabet(data.alphabet):
+        raise ValueError(
+            f"Provided moltype: {moltype.label} is not compatible with AlignedSeqsData",
+            f" alphabet: {data.alphabet}",
+        )
+
+    return Alignment(seqs_data=data, moltype=moltype, info=info)

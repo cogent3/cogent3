@@ -2553,7 +2553,7 @@ class AlignmentI(object):
         app = cogent3.get_app(app_name, **kwargs)
         return app(self)
 
-    def iter_positions(self, pos_order=None):
+    def iter_positions(self, pos_order=None):  # ported
         """Iterates over positions in the alignment, in order.
 
         pos_order refers to a list of indices (ints) specifying the column
@@ -4791,7 +4791,7 @@ class Alignment(AlignmentI, SequenceCollection):
         """
         return self.named_seqs[seqname].data
 
-    def get_gapped_seq(self, seq_name, recode_gaps=False):
+    def get_gapped_seq(self, seq_name, recode_gaps=False):  # ported
         """Return a gapped Sequence object for the specified seqname.
 
         Note: always returns Sequence object, not ArraySequence.

@@ -12,6 +12,7 @@ from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.misc import get_object_provenance
 
 StrORBytes = typing.Union[str, bytes]
+StrORArray = typing.Union[str, numpy.ndarray]
 StrORBytesORArray = typing.Union[str, bytes, numpy.ndarray]
 OptInt = typing.Optional[int]
 OptStr = typing.Optional[str]

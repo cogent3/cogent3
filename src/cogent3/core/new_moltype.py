@@ -20,9 +20,9 @@ OptFloat = typing.Optional[float]
 OptCallable = typing.Optional[typing.Callable]
 SeqStrType = typing.Union[list[str], tuple[str, ...]]
 StrORBytes = typing.Union[str, bytes]
+StrORArray = typing.Union[str, numpy.ndarray]
 StrORBytesORArray = typing.Union[str, bytes, numpy.ndarray]
 SeqStrBytesType = typing.Union[list[StrORBytes], tuple[StrORBytes, ...]]
-StrORArray = typing.Union[str, numpy.ndarray]
 
 IUPAC_gap = "-"
 
