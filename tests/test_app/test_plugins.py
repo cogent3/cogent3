@@ -91,7 +91,7 @@ def test_install_app_function(mock_extension_manager):
 
 @pytest.mark.parametrize("app_doc", [None, "text"])
 @pytest.mark.parametrize("init_doc", [None, "text"])
-def test_app_docs(mock_extension_manager, app_doc, init_doc):
+def test_app_docs(mock_extension_manager, app_doc, init_doc, capsys):
     @define_app
     class documented_app:
         """This is a test app that has a __init__, and a docstring"""
@@ -109,8 +109,8 @@ def test_app_docs(mock_extension_manager, app_doc, init_doc):
     app.__class__.__doc__ = app_doc
     app.__class__.__init__.__doc__ = init_doc
     app_help("documented_app")
-    got = _make_apphelp_docstring(app.__class__)
-    assert "Options" in got
+    got = capsys.readouterr()
+    assert "Options" in got.out
 
 
 def test_namespace_collision(mock_extension_manager):
