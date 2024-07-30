@@ -366,7 +366,7 @@ def iter_splitlines(
     if _urls.search(str(path)):
         chunk_size = None
     else:
-        path = Path(path)
+        path = Path(path).expanduser()
         if chunk_size and path.stat().st_size < chunk_size:
             # file is smaller than provided chunk_size, just
             # load it all
