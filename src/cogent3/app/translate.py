@@ -166,7 +166,7 @@ class select_translatable:
         gc: GeneticCodeTypes = 1,
         allow_rc: bool = False,
         trim_terminal_stop: bool = True,
-        frame: int | None = None,
+        frame: Optional[int] = None,
     ):
         """
         Parameters
