@@ -1,5 +1,6 @@
 from unittest import TestCase
 
+import pytest
 from cogent3 import DNA, make_aligned_seqs, make_unaligned_seqs
 from cogent3.app.composable import NotCompleted
 from cogent3.app.translate import (
@@ -48,8 +49,8 @@ class TestTranslatable(TestCase):
     def test_select_translatable(self):
         """correctly get translatable seqs"""
         data = {
-            "a": "AATATAAATGCCAGCTCATTACAGCATGAGAACA" "GCAGTTTATTACTTCATAAAGTCATA",
-            "rc": "TATGACTTTATGAAGTAATAAACTGCTGTTCTCA" "TGCTGTAATGAGCTGGCATTTATATT",
+            "a": "AATATAAATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTTCATAAAGTCATA",
+            "rc": "TATGACTTTATGAAGTAATAAACTGCTGTTCTCATGCTGTAATGAGCTGGCATTTATATT",
         }
         seqs = make_unaligned_seqs(data=data, moltype=DNA)
         trans = select_translatable(allow_rc=False)
@@ -143,3 +144,58 @@ class TestFourFoldDegen(TestCase):
                 get_code(i), alphabet=DNA.alphabet, as_indices=True
             )
             self.assertEqual(got, expect)
+
+
+@pytest.fixture(params=(None, 0, 1, 2))
+def framed_seqs(DATA_DIR, request):
+    # sample sequences with terminating stop codon
+    # using valid values for frame
+    data = {
+        "NineBande": "GCAAGGCGCCAACAGAGCAGATGGGCTGAAAGTAAGGAAACATGTAATGATAGGCAGACTTAA",
+        "Mouse": "GCAGTGAGCCAGCAGAGCAGATGGGCTGCAAGTAAAGGAACATGTAACGACAGGCAGGTTTAA",
+        "Human": "GCAAGGAGCCAACATAACAGATGGGCTGGAAGTAAGGAAACATGTAATGATAGGCGGACTTAA",
+        "HowlerMon": "GCAAGGAGCCAACATAACAGATGGGCTGAAAGTGAGGAAACATGTAATGATAGGCAGACTTAA",
+        "DogFaced": "GCAAGGAGCCAGCAGAACAGATGGGTTGAAACTAAGGAAACATGTAATGATAGGCAGACTTAA",
+    }
+    prefix = "A" * (request.param or 0)
+    frame = None if request.param is None else request.param + 1
+    for k, s in data.items():
+        data[k] = prefix + s
+    return make_unaligned_seqs(data=data, moltype="dna", info={"frame": frame})
+
+
+def test_select_translatable_with_frame_terminal_stop(framed_seqs):
+    frame = framed_seqs.info.frame
+    sl = slice(None, None) if frame is None else slice(frame - 1, None)
+    expect = {s.name: str(s[sl]) for s in framed_seqs.seqs}
+    app = select_translatable(frame=frame, trim_terminal_stop=False)
+    got = app(framed_seqs)
+    assert got.to_dict() == expect
+
+
+def test_select_translatable_with_frame_no_stop(framed_seqs):
+    frame = framed_seqs.info.frame
+    sl = slice(None, -3) if frame is None else slice(frame - 1, -3)
+    expect = {s.name: str(s[sl]) for s in framed_seqs.seqs}
+    app = select_translatable(frame=frame, trim_terminal_stop=True)
+    got = app(framed_seqs)
+    assert got.to_dict() == expect
+
+
+def test_select_trabnslatable_exclude_internal_stop():
+    aln = make_unaligned_seqs(
+        {
+            "internal_stop": "AATTAAATGTGA",
+            "s2": "TATGACTAA",
+        }
+    )
+    app = select_translatable(frame=1)
+    result = app(aln)
+    expect = {"s2": "TATGAC"}
+    assert result.to_dict() == expect
+
+
+@pytest.mark.parametrize("frame", (-1, 0, 4))
+def test_select_translatable_invalid_frame(frame):
+    with pytest.raises(AssertionError):
+        _ = select_translatable(frame=frame)
