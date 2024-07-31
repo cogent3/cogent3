@@ -454,6 +454,13 @@ def test_iter_splitlines_chunk_empty_file(tmp_path):
     assert not got
 
 
+@pytest.mark.parametrize("transform", (str, pathlib.Path))
+def test_iter_splitlines_tilde(home_file, transform):
+    expect = pathlib.Path(home_file).expanduser().read_text().splitlines()
+    got = list(iter_splitlines(transform(home_file)))
+    assert len(got) == len(expect)
+
+
 def test_iter_line_blocks_correct_size(tmp_path):
     # correctly break up
     path = tmp_path / "multi-line.txt"
