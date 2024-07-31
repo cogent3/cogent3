@@ -54,12 +54,12 @@ class TestTranslatable(TestCase):
         }
         seqs = make_unaligned_seqs(data=data, moltype=DNA)
         trans = select_translatable(allow_rc=False)
-        tr = trans(seqs)
+        tr = trans(seqs)  # pylint: disable=not-callable
         ex = data.copy()
         ex.pop("rc")
         self.assertEqual(tr.to_dict(), ex)
         trans = select_translatable(allow_rc=True)
-        tr = trans(seqs)
+        tr = trans(seqs)  # pylint: disable=not-callable
         ex = data.copy()
         ex["rc"] = data["a"]
         self.assertEqual(tr.to_dict(), ex)
@@ -67,7 +67,7 @@ class TestTranslatable(TestCase):
         # if seqs not translatable returns NotCompletedResult
         data = dict(a="TAATTGATTAA", b="GCAGTTTATTA")
         seqs = make_unaligned_seqs(data=data, moltype=DNA)
-        got = select_translatable(allow_rc=False)
+        got = select_translatable(allow_rc=False)(seqs)  # pylint: disable=not-callable
         self.assertTrue(type(got), NotCompleted)
 
     def test_translate_frames(self):
@@ -87,12 +87,12 @@ class TestTranslate(TestCase):
         seqs = make_unaligned_seqs(seqs, moltype="dna")
         # trim terminal stops
         translater = translate_seqs()
-        aa = translater(seqs)
+        aa = translater(seqs)  # pylint: disable=not-callable
         self.assertEqual(aa.to_dict(), dict(a="MR", b="M"))
         self.assertEqual(aa.moltype.label, "protein")
         # don't trim terminal stops, returns NotCompleted
         translater = translate_seqs(trim_terminal_stop=False)
-        aa = translater(seqs)
+        aa = translater(seqs)  # pylint: disable=not-callable
         self.assertIsInstance(aa, NotCompleted)
 
     def test_translate_aln(self):
@@ -101,13 +101,13 @@ class TestTranslate(TestCase):
         # an array alignment
         aln = make_aligned_seqs(data)
         translater = translate_seqs()
-        aa = translater(aln)
+        aa = translater(aln)  # pylint: disable=not-callable
         self.assertEqual(aa.to_dict(), dict(a="MRP", b="MF-"))
         self.assertEqual(aa.moltype.label, "protein")
         self.assertIsInstance(aa, type(aln))
         # Alignment
         aln = aln.to_type(array_align=True)
-        aa = translater(aln)
+        aa = translater(aln)  # pylint: disable=not-callable
         self.assertEqual(aa.to_dict(), dict(a="MRP", b="MF-"))
         self.assertEqual(aa.moltype.label, "protein")
         self.assertIsInstance(aa, type(aln))
@@ -169,7 +169,7 @@ def test_select_translatable_with_frame_terminal_stop(framed_seqs):
     sl = slice(None, None) if frame is None else slice(frame - 1, None)
     expect = {s.name: str(s[sl]) for s in framed_seqs.seqs}
     app = select_translatable(frame=frame, trim_terminal_stop=False)
-    got = app(framed_seqs)
+    got = app(framed_seqs)  # pylint: disable=not-callable
     assert got.to_dict() == expect
 
 
@@ -178,7 +178,7 @@ def test_select_translatable_with_frame_no_stop(framed_seqs):
     sl = slice(None, -3) if frame is None else slice(frame - 1, -3)
     expect = {s.name: str(s[sl]) for s in framed_seqs.seqs}
     app = select_translatable(frame=frame, trim_terminal_stop=True)
-    got = app(framed_seqs)
+    got = app(framed_seqs)  # pylint: disable=not-callable
     assert got.to_dict() == expect
 
 
@@ -190,7 +190,7 @@ def test_select_trabnslatable_exclude_internal_stop():
         }
     )
     app = select_translatable(frame=1)
-    result = app(aln)
+    result = app(aln)  # pylint: disable=not-callable
     expect = {"s2": "TATGAC"}
     assert result.to_dict() == expect
 
