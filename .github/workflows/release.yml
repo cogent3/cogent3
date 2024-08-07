@@ -29,6 +29,7 @@ jobs:
 
   build:
     name: Build wheel and sdist
+    needs: test
     runs-on: ubuntu-latest
 
     steps:
