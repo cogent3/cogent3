@@ -134,7 +134,6 @@ filterwarnings = [
 
 [tool.ruff]
 exclude = [
-    "iqtree2",
     ".bzr",
     ".direnv",
     ".eggs",

@@ -60,7 +60,7 @@ jobs:
   release_test:
     name: Release to Test PyPI
     needs: build
-    environment: release
+    environment: release_test
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -78,7 +78,7 @@ jobs:
   
   release:
     name: Release to PyPI
-    needs: release_test
+    needs: release
     environment: release
     runs-on: ubuntu-latest
     permissions:
