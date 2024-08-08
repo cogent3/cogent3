@@ -42,7 +42,7 @@ jobs:
       - name: "Installs for docs"
         run: |
           pip install --upgrade pip uv
-          uv pip install ".[doc]"
+          python -m uv pip install ".[doc]"
 
       - name: "making docs"
         run: |
