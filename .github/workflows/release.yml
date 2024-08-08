@@ -70,6 +70,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: c3-wheel-sdist
+          path: ./dist
 
       - name: Publish package distributions to Test PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
@@ -89,6 +90,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: c3-wheel-sdist
+          path: ./dist
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
