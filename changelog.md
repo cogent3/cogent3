@@ -1,6 +1,6 @@
 
-<a id='changelog-2024.7.19a2'></a>
-# Changes in release "2024.7.19a2"
+<a id='changelog-2024.7.19a3'></a>
+# Changes in release "2024.7.19a3"
 
 This is a minor bug fix release.
 
