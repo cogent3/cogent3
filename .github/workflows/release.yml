@@ -41,8 +41,8 @@ jobs:
 
       - name: "Installs for docs"
         run: |
-          pip install --upgrade pip
-          pip install ".[doc]"
+          pip install --upgrade pip uv
+          uv pip install ".[doc]"
 
       - name: "making docs"
         run: |
