@@ -1,4 +1,24 @@
 
+<a id='changelog-2024.7.19a2'></a>
+# Changes in release "2024.7.19a2"
+
+This is a minor bug fix release.
+
+## Contributors
+
+- Contributions from @GavinHuttley and @rmcar17 to Cogent3 repo
+  maintenance, developer tooling
+
+## ENH
+
+- The cogent3 select_translatable() app gets a `frame` argument. This allows
+  specifying one frame of reference for the translation for all sequences.
+
+## BUG
+
+- Fixed a regression affecting loading sequences when the path had the ~
+  character in it.
+
 <a id='changelog-2024.7.19a1'></a>
 # Changes in release "2024.7.19a1"
 
