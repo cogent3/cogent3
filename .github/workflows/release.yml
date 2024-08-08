@@ -22,10 +22,32 @@ jobs:
       - name: "Installs for ${{ matrix.python-version }}"
         run: |
           pip install --upgrade pip
-          pip install nox
+          pip install nox uv
 
       - name: "Run nox for Python ${{ matrix.python-version }}"
-        run: "nox -s test-${{ matrix.python-version }}"
+        run: "nox -db uv -s test-${{ matrix.python-version }}"
+
+  docbuild:
+    name: "Build docs"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: "actions/checkout@v4"
+        with:
+          fetch-depth: 0
+
+      - uses: "actions/setup-python@v5"
+        with:
+            python-version: "3.12"
+
+      - name: "Installs for docs"
+        run: |
+          pip install --upgrade pip
+          pip install ".[doc]"
+
+      - name: "making docs"
+        run: |
+          cd doc
+          make html
 
   build:
     name: Build wheel and sdist
@@ -59,7 +81,7 @@ jobs:
   
   release_test:
     name: Release to Test PyPI
-    needs: build
+    needs: [build, docbuild]
     environment: release_test
     runs-on: ubuntu-latest
     permissions:
