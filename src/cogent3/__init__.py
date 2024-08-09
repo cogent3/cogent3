@@ -7,7 +7,6 @@ import pathlib
 import pickle
 import sys
 import warnings
-
 from typing import Callable, Optional, Union
 
 from cogent3._version import __version__
@@ -20,6 +19,7 @@ from cogent3.core.alignment import (
 )
 from cogent3.core.annotation_db import load_annotations
 from cogent3.core.genetic_code import available_codes, get_code
+
 # note that moltype has to be imported last, because it sets the moltype in
 # the objects created by the other modules.
 from cogent3.core.moltype import (
@@ -38,14 +38,13 @@ from cogent3.evolve.fast_distance import (
 from cogent3.evolve.models import available_models, get_model
 from cogent3.parse.cogent3_json import load_from_json
 from cogent3.parse.newick import parse_string as newick_parse_string
-from cogent3.parse.sequence import FromFilenameParser
+from cogent3.parse.sequence import get_parser
 from cogent3.parse.table import load_delimited
 from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
 from cogent3.util.io import get_format_suffixes, open_
 from cogent3.util.progress_display import display_wrap
 from cogent3.util.table import Table as _Table
 from cogent3.util.table import cast_str_to_array
-
 
 __copyright__ = "Copyright 2007-2023, The Cogent Project"
 __credits__ = "https://github.com/cogent3/cogent3/graphs/contributors"
@@ -72,30 +71,40 @@ if warn_env in os.environ:
 
 import logging
 
-
 # suppress numba warnings
 __numba_logger = logging.getLogger("numba")
 __numba_logger.setLevel(logging.WARNING)
 
 
-def make_seq(seq, name=None, moltype=None):
+def make_seq(
+    seq, name: str = None, moltype=None, new_type: bool = False
+):  # refactor: type hinting, need to capture optional args and the return type
     """
     Parameters
     ----------
-    seq : str
+    seq
         raw string to be converted to sequence object
-    name : str
+    name
         sequence name
     moltype
         name of a moltype or moltype instance
+    new_type
+        if True, returns a new type Sequence (cogent3.core.new_sequence.Sequence).
+        The default will be changed to True in 2024.12. Support for the old
+        style will be removed as of 2025.6.
 
     Returns
     -------
     returns a sequence object
     """
     moltype = moltype or "text"
-    moltype = get_moltype(moltype)
-    seq = moltype.make_seq(seq, name=name)
+    if new_type or "COGENT3_NEW_TYPE" in os.environ:
+        from cogent3.core import new_moltype
+
+        moltype = new_moltype.get_moltype(moltype)
+    else:
+        moltype = get_moltype(moltype)
+    seq = moltype.make_seq(seq=seq, name=name)
     return seq
 
 
@@ -120,7 +129,7 @@ def _make_seq_container(
 
 
 def make_unaligned_seqs(
-    data, moltype=None, label_to_name=None, info=None, source=None, **kw
+    data, moltype=None, label_to_name=None, info=None, source=None, new_type=False, **kw
 ):
     """Initialize an unaligned collection of sequences.
 
@@ -137,10 +146,29 @@ def make_unaligned_seqs(
     source
         origins of this data, defaults to 'unknown'. Converted to a string
         and added to info["source"].
+    new_type
+        if True, the returned SequenceCollection will be of the new type,
+        (cogent3.core.new_sequence.SequenceCollection). The default will be
+        changed to True in 2024.12. Support for the old style will be removed
+        as of 2025.6.
     **kw
         other keyword arguments passed to SequenceCollection
     """
 
+    if new_type or "COGENT3_NEW_TYPE" in os.environ:
+        if moltype is None:
+            raise ValueError("Argument 'moltype' is required when 'new_type=True'")
+
+        from cogent3.core import new_alignment
+
+        return new_alignment.make_unaligned_seqs(
+            data,
+            moltype=moltype,
+            label_to_name=label_to_name,
+            info=info,
+            source=source,
+            **kw,
+        )
     return _make_seq_container(
         SequenceCollection,
         data,
@@ -201,6 +229,7 @@ def _load_files_to_unaligned_seqs(
     label_to_name: Optional[Callable] = None,
     parser_kw: Optional[dict] = None,
     info: Optional[dict] = None,
+    new_type: bool = False,
     ui=None,
 ) -> SequenceCollection:
     """loads multiple files and returns as a sequence collection"""
@@ -216,12 +245,14 @@ def _load_files_to_unaligned_seqs(
         )
         for fn in ui.series(file_names)
     ]
+
     return make_unaligned_seqs(
         seqs,
         label_to_name=label_to_name,
         moltype=moltype,
         source=path,
         info=info,
+        new_type=new_type,
     )
 
 
@@ -235,7 +266,9 @@ def _load_seqs(file_format, filename, fmt, kw, parser_kw):
     for other_kw in ("constructor_kw", "kw"):
         other_kw = kw.pop(other_kw, None) or {}
         kw.update(other_kw)
-    return list(FromFilenameParser(filename, fmt, **parser_kw))
+
+    parser = get_parser(fmt)
+    return list(parser(filename, **parser_kw))
 
 
 def load_seq(
@@ -246,6 +279,7 @@ def load_seq(
     label_to_name: Optional[Callable] = None,
     parser_kw: Optional[dict] = None,
     info: Optional[dict] = None,
+    new_type: bool = False,
     **kw,
 ) -> Sequence:
     """
@@ -265,6 +299,10 @@ def load_seq(
         optional arguments for the parser
     info : dict
         a dict from which to make an info object
+    new_type
+        if True, returns a new type Sequence (cogent3.core.new_sequence.Sequence)
+        The default will be changed to True in 2024.12. Support for the old
+        style will be removed as of 2025.6.
     **kw
         other keyword arguments passed to SequenceCollection
 
@@ -288,7 +326,8 @@ def load_seq(
     data = _load_seqs(file_format, filename, format, kw, parser_kw)
     name, seq = data[0]
     name = label_to_name(name) if label_to_name else name
-    result = make_seq(seq, name, moltype=moltype)
+
+    result = make_seq(seq, name, moltype=moltype, new_type=new_type)
     result.info.update(info)
 
     if getattr(seq, "annotation_db", None):
@@ -307,6 +346,7 @@ def load_unaligned_seqs(
     label_to_name=None,
     parser_kw: Optional[dict] = None,
     info: Optional[dict] = None,
+    new_type: bool = False,
     **kw,
 ) -> SequenceCollection:
     """
@@ -314,19 +354,25 @@ def load_unaligned_seqs(
 
     Parameters
     ----------
-    filename : str
+    filename
         path to sequence file or glob pattern. If a glob we assume a single
         sequence per file. All seqs returned in one SequenceCollection.
-    format : str
+    format
         sequence file format, if not specified tries to guess from the path suffix
     moltype
         the moltype, eg DNA, PROTEIN, 'dna', 'protein'
     label_to_name
         function for converting original name into another name.
-    parser_kw : dict
+    parser_kw
         optional arguments for the parser
     info
         a dict from which to make an info object
+    new_type
+        if True, the returned SequenceCollection will be of the new type,
+        (cogent3.core.new_sequence.SequenceCollection). The default will be
+        changed to True in 2024.12. Support for the old style will be removed
+        as of 2025.6.
+
     **kw
         other keyword arguments passed to SequenceCollection, or show_progress.
         The latter induces a progress bar for number of files processed when
@@ -348,6 +394,7 @@ def load_unaligned_seqs(
             label_to_name=label_to_name,
             parser_kw=parser_kw,
             info=info,
+            new_type=new_type,
             ui=ui,
         )
 
@@ -355,12 +402,14 @@ def load_unaligned_seqs(
         return load_from_json(filename, (SequenceCollection,))
 
     data = _load_seqs(file_format, filename, format, kw, parser_kw)
+
     return make_unaligned_seqs(
         data,
         label_to_name=label_to_name,
         moltype=moltype,
         source=filename,
         info=info,
+        new_type=new_type,
         **kw,
     )
 

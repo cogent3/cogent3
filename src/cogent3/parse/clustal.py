@@ -18,8 +18,8 @@ If the lines have trailing numbers (i.e. Clustal was run with -LINENOS=ON),
 silently deletes them. Does not check that the numbers actually correspond to
 the number of chars in the sequence printed so far.
 """
-from cogent3.parse.record import DelimitedSplitter, RecordError
 
+from cogent3.parse.record import DelimitedSplitter, RecordError
 
 strip = str.strip
 

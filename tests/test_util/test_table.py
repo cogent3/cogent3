@@ -1,21 +1,15 @@
-"""Unit tests for table.
-"""
+"""Unit tests for table."""
 
 import json
 import os
 import pathlib
 import pickle
-
 from collections import defaultdict
 from tempfile import TemporaryDirectory
 from unittest import TestCase, skipIf
 
 import numpy
 import pytest
-
-from numpy import arange
-from numpy.testing import assert_equal
-
 from cogent3 import load_table, make_table, open_
 from cogent3.format.table import (
     formatted_array,
@@ -30,7 +24,9 @@ from cogent3.util.table import (
     cast_str_to_numeric,
     cast_to_array,
 )
-
+from numpy import arange
+from numpy.exceptions import ComplexWarning
+from numpy.testing import assert_equal
 
 try:
     from pandas import DataFrame
@@ -1766,7 +1762,7 @@ class TableTests(TestCase):
 
         with numpy.testing.suppress_warnings() as sup:
             # we know that converting to real loses imaginary
-            sup.filter(numpy.ComplexWarning)
+            sup.filter(ComplexWarning)
             for d_type in [numpy.int64, numpy.complex128, numpy.float64]:
                 d = d.astype(d_type)
                 r = cast_str_to_numeric(d)

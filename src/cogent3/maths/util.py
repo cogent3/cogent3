@@ -1,10 +1,7 @@
-"""Provides small utility functions for numpy arrays.
-"""
+"""Provides small utility functions for numpy arrays."""
 
 import numpy
-
 from numpy import array, clip, cumsum, searchsorted, sort, sum
-
 
 err = numpy.seterr(divide="raise")
 
@@ -54,7 +51,7 @@ def row_uncertainty(a):
 
     Will return 0 for every empty row, but an empty array for every empty column,
     thanks to this sum behavior:
-    >>> sum(array([[]]),1)
+    >>> sum(array([[]]), 1)
     array([0])
     >>> sum(array([[]]))
     zeros((0,), 'l')
@@ -74,7 +71,7 @@ def column_uncertainty(a):
 
     Will return 0 for every empty row, but an empty array for every empty column,
     thanks to this sum behavior:
-    >>> sum(array([[]]),1)
+    >>> sum(array([[]]), 1)
     array([0])
     >>> sum(array([[]]))
     zeros((0,), 'l')
@@ -100,9 +97,9 @@ def row_degeneracy(a, cutoff=0.5):
 
     WARNING: watch out with floating point numbers.
     if the cutoff= 0.9 and in the array is also 0.9, it might not be found
-    >>> searchsorted(cumsum(array([.6,.3,.1])),.9)
+    >>> searchsorted(cumsum(array([0.6, 0.3, 0.1])), 0.9)
     2
-    >>> searchsorted(cumsum(array([.5,.4,.1])),.9)
+    >>> searchsorted(cumsum(array([0.5, 0.4, 0.1])), 0.9)
     1
 
     If the cutoff value is not found, the result is clipped to the
@@ -135,9 +132,9 @@ def column_degeneracy(a, cutoff=0.5):
 
     WARNING: watch out with floating point numbers.
     if the cutoff= 0.9 and in the array is also 0.9, it might not be found
-    >>> searchsorted(cumsum(array([.6,.3,.1])),.9)
+    >>> searchsorted(cumsum(array([0.6, 0.3, 0.1])), 0.9)
     2
-    >>> searchsorted(cumsum(array([.5,.4,.1])),.9)
+    >>> searchsorted(cumsum(array([0.5, 0.4, 0.1])), 0.9)
     1
 
     If the cutoff value is not found, the result is clipped to the
@@ -243,7 +240,8 @@ def proportions_to_ratios(values) -> list:
     sum of the left half and adds the resulting value to the returned list.
 
     Examples
-    -------
+    --------
+
     >>>  proportions_to_ratios([0.125, 0.125, 0.375, 0.375])
     [3, 1, 1]
 

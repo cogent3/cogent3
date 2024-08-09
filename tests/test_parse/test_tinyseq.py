@@ -1,9 +1,7 @@
 import xml.dom.minidom
-
 from unittest import TestCase
 
 from cogent3.parse.tinyseq import TinyseqParser
-
 
 data = """<?xml version="1.0"?>
  <!DOCTYPE TSeqSet PUBLIC "-//NCBI//NCBI TSeq/EN" "http://www.ncbi.nlm.nih.gov/dtd/NCBI_TSeq.dtd">

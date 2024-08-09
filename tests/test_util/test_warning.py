@@ -2,7 +2,6 @@ import pickle
 import warnings
 
 import pytest
-
 from cogent3.util.warning import deprecated_args, deprecated_callable
 
 

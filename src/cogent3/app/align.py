@@ -1,5 +1,4 @@
 import warnings
-
 from bisect import bisect_left
 from itertools import combinations
 from typing import Optional, Union
@@ -31,12 +30,14 @@ class _GapOffset:
     """computes sum of gap lengths preceding a position. Acts like a dict
     for getting the offset for an integer key with the __getitem__ returning
     the offset.
+
     If your coordinate is an alignment position, set invert=True.
+
     Examples
     --------
     From sequence coordinate to an alignment coordinate
 
-    >>> seq2aln = _GapOffset({1:3, 7:1})
+    >>> seq2aln = _GapOffset({1: 3, 7: 1})
     >>> seq_pos = 2
     >>> aln_pos = seq_pos + seq2aln[seq_pos]
     >>> aln_pos
@@ -44,7 +45,7 @@ class _GapOffset:
 
     From alignment coordinate to a sequence coordinate
 
-    >>> aln2seq = _GapOffset({1:3, 7:1}, invert=True)
+    >>> aln2seq = _GapOffset({1: 3, 7: 1}, invert=True)
     >>> seq_pos = aln_pos - aln2seq[aln_pos]
     >>> seq_pos
     2
@@ -467,15 +468,22 @@ class progressive_align:
         and an app for alignment with nucleotide model ``model="HKY85"``.
 
         >>> from cogent3 import make_unaligned_seqs, get_app
-        >>> aln = make_unaligned_seqs({
-        ... "Human": "GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
-        ... "Bandicoot": "NACTCATTAATGCTTGAAACCAGCAGTTTATTGTCCAAC",
-        ... "Rhesus": "GCCAGCTCATTACAGCATGAGAACAGTTTGTTACTCACT",
-        ... "FlyingFox": "GCCAGCTCTTTACAGCATGAGAACAGTTTATTATACACT"
-        ... }, moltype="dna")
+        >>> aln = make_unaligned_seqs(
+        ...     {
+        ...         "Human": "GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
+        ...         "Bandicoot": "NACTCATTAATGCTTGAAACCAGCAGTTTATTGTCCAAC",
+        ...         "Rhesus": "GCCAGCTCATTACAGCATGAGAACAGTTTGTTACTCACT",
+        ...         "FlyingFox": "GCCAGCTCTTTACAGCATGAGAACAGTTTATTATACACT",
+        ...     },
+        ...     moltype="dna",
+        ... )
         >>> app = get_app("progressive_align", model="HKY85")
         >>> result = app(aln)
-        >>> print(result.to_pretty(name_order=['Human', 'Bandicoot', 'Rhesus', 'FlyingFox']))
+        >>> print(
+        ...     result.to_pretty(
+        ...         name_order=["Human", "Bandicoot", "Rhesus", "FlyingFox"]
+        ...     )
+        ... )
             Human    GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT...
 
         Optionally, a pre-computed guide tree can be provided.
@@ -483,7 +491,11 @@ class progressive_align:
         >>> newick = "(Bandicoot:0.4,FlyingFox:0.05,(Rhesus:0.06," "Human:0.0):0.04);"
         >>> app_guided = get_app("progressive_align", model="HKY85", guide_tree=newick)
         >>> result = app_guided(aln)
-        >>> print(result.to_pretty(name_order=['Human', 'Bandicoot', 'Rhesus', 'FlyingFox']))
+        >>> print(
+        ...     result.to_pretty(
+        ...         name_order=["Human", "Bandicoot", "Rhesus", "FlyingFox"]
+        ...     )
+        ... )
             Human    GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT
         Bandicoot    NA.TCA.T.A.G.TTG.AACC.G...---......GTC..AC
            Rhesus    ..........................---...G.........
@@ -602,12 +614,12 @@ class smith_waterman:
         """
         Parameters
         ----------
-        score_matrix : dict
+        score_matrix
             scoring dict, defaults to `make_dna_scoring_dict(10, -1, -8)` for
             DNA and `make_generic_scoring_dict(10, moltype)` for other moltype.
-        insertion_penalty : int
+        insertion_penalty
             penalty for gap insertion
-        extension_penalty : int
+        extension_penalty
             penalty for gap extension
         moltype
             molecular type of sequences, defaults to "dna"
@@ -617,6 +629,37 @@ class smith_waterman:
         If the provided molecular type differs from the moltype of the
         SequenceCollection to be aligned, the sequences are converted to
         the provided moltype.
+
+        Examples
+        --------
+
+        Create and align two sequences using the Smith-Waterman algorithm.
+
+        >>> from cogent3 import make_unaligned_seqs, get_app
+        >>> seqs = make_unaligned_seqs(
+        ...     {
+        ...         "Human": "GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
+        ...         "Bandicoot": "NACTCATTAATGCTTGAAACCAGCAGTTTATTGTCCAAC",
+        ...     },
+        ...     moltype="dna",
+        ... )
+        >>> app = get_app("smith_waterman")
+        >>> result = app(seqs)
+        >>> print(result.to_pretty())
+            Human    AGCTCATTACAGCATGAGAACAGCAGTTTATTACTCA
+        Bandicoot    NA.......AT..T...A.C............GTC..
+
+        Align with a less stringent scoring matrix. i.e. for more divergent
+        sequences.
+
+        >>> from cogent3.align import make_dna_scoring_dict
+        >>> app = get_app(
+        ...     "smith_waterman", score_matrix=make_dna_scoring_dict(5, -2, -5)
+        ... )
+        >>> result = app(seqs)
+        >>> print(result.to_pretty())
+            Human    AGCTCATTACAGCATGAGAACAGCAGTTTATTACTCA
+        Bandicoot    NA.......AT..T...A.C............GTC..
         """
         self.moltype = get_moltype(moltype)
         self._score_matrix = score_matrix or (
@@ -687,7 +730,9 @@ class ic_score:
         quality score. The default is equally frequent motif probabilities.
 
         >>> from cogent3 import make_aligned_seqs, get_app
-        >>> aln = make_aligned_seqs({"s1": "AATTGA", "s2": "AGGTCC", "s3": "AGGATG", "s4": "AGGCGT"})
+        >>> aln = make_aligned_seqs(
+        ...     {"s1": "AATTGA", "s2": "AGGTCC", "s3": "AGGATG", "s4": "AGGCGT"}
+        ... )
         >>> app = get_app("ic_score")
         >>> result = app(aln)
         >>> print(result)
@@ -759,12 +804,15 @@ def cogent3_score(aln: AlignedSeqsType) -> float:
     ``progressive_align()``.
 
     >>> from cogent3 import make_unaligned_seqs, get_app
-    >>> aln = make_unaligned_seqs({
-    ... "Human": "GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
-    ... "Bandicoot": "NACTCATTAATGCTTGAAACCAGCAGTTTATTGTCCAAC",
-    ... "Rhesus": "GCCAGCTCATTACAGCATGAGAACAGTTTGTTACTCACT",
-    ... "FlyingFox": "GCCAGCTCTTTACAGCATGAGAACAGTTTATTATACACT"
-    ... }, moltype="dna")
+    >>> aln = make_unaligned_seqs(
+    ...     {
+    ...         "Human": "GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
+    ...         "Bandicoot": "NACTCATTAATGCTTGAAACCAGCAGTTTATTGTCCAAC",
+    ...         "Rhesus": "GCCAGCTCATTACAGCATGAGAACAGTTTGTTACTCACT",
+    ...         "FlyingFox": "GCCAGCTCTTTACAGCATGAGAACAGTTTATTATACACT",
+    ...     },
+    ...     moltype="dna",
+    ... )
     >>> newick = "(Bandicoot:0.4,FlyingFox:0.05,(Rhesus:0.06," "Human:0.0):0.04);"
     >>> aligner = get_app("progressive_align", model="HKY85")
 
@@ -851,7 +899,9 @@ class sp_score:
         Penalise gap extensions with ``gap_extend=1`` and insertions with
         ``gap_insert=2``.
 
-        >>> app_gap_penalty = get_app("sp_score", calc="pdist", gap_extend=1, gap_insert=2)
+        >>> app_gap_penalty = get_app(
+        ...     "sp_score", calc="pdist", gap_extend=1, gap_insert=2
+        ... )
         >>> result = app_gap_penalty(aln)
         >>> print(result)
         -13.0

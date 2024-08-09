@@ -3,7 +3,6 @@ import dataclasses
 import functools
 import inspect
 import json
-
 from abc import ABC, abstractmethod
 from bisect import bisect_left, bisect_right
 from functools import total_ordering
@@ -11,7 +10,6 @@ from itertools import chain
 from typing import Any, Iterator, Optional, Sequence, Union
 
 import numpy
-
 from numpy.typing import NDArray
 
 from cogent3._version import __version__
@@ -24,7 +22,6 @@ from cogent3.util.misc import (
     get_object_provenance,
     iterable,
 )
-
 
 strip = str.strip
 
@@ -916,7 +913,7 @@ def _spans_from_locations(locations: SeqCoordTypes, parent_length: int) -> SeqSp
         return ()
 
     if locations[0][0] > locations[-1][1]:
-        raise ValueError("locations must be ordered smallest-> largest")
+        raise ValueError(f"locations must be ordered smallest-> largest {locations}")
 
     spans = []
     for start, end in locations:
@@ -1007,7 +1004,22 @@ def _update_lengths(
 
 @dataclasses.dataclass
 class IndelMap(MapABC):
-    """store locations of deletions in a Aligned sequence"""
+    """store locations of deletions in a Aligned sequence
+
+    Parameters
+    ----------
+    gap_pos
+        start positions of gap segments in sequence (ungapped) coordinates
+    cum_gap_lengths
+        cumulative gap lengths per segment
+    gap_lengths
+        length of each gap segment
+    termini_unknown
+        if ``True``, returns new instance with terminal gaps indicated as
+        unknown character '?'
+    parent_length
+        length of parent sequence (i.e. aligned sequence with gaps)
+    """
 
     # gap data is gap positions, gap lengths on input, stored
     gap_pos: IntArrayTypes

@@ -5,7 +5,6 @@ import unittest
 from cogent3 import PROTEIN
 from cogent3.parse.dialign import DialignParser, parse_data_line
 
-
 data = """
                            DIALIGN 2.2.1 
                            *************
@@ -87,7 +86,7 @@ class TestDialign(unittest.TestCase):
         }
         self.aln_seqs = {}
         for name, seq in list(aln_seqs.items()):
-            self.aln_seqs[name] = PROTEIN.make_seq(seq, name=name)
+            self.aln_seqs[name] = PROTEIN.make_seq(seq=seq, name=name)
         self.QualityScores = "00000005888882222229999999900000006666666666633334000333345555333333000000000000000"
 
     def test_line_split(self):

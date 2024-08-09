@@ -1,5 +1,4 @@
 import os
-
 from functools import singledispatch
 from typing import Union
 
@@ -11,7 +10,6 @@ from cogent3.util.misc import is_url
 
 from .composable import define_app
 from .typing import PairwiseDistanceType, SerialisableType, TreeType
-
 
 NoneType = type(None)
 

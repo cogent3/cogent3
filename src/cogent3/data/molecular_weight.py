@@ -1,7 +1,6 @@
 #!/usr/bin/env Python
 """Data for molecular weight calculations on proteins and nucleotides."""
 
-
 ProteinWeights = {
     "A": 71.09,
     "C": 103.16,
@@ -37,6 +36,8 @@ RnaWeightCorrection = DnaWeightCorrection
 
 class WeightCalculator(object):
     """Calculates molecular weight of a non-degenerate sequence."""
+
+    # refactor: array
 
     def __init__(self, Weights, Correction):
         """Returns a new WeightCalculator object (class, so serializable)."""

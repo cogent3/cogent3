@@ -1,32 +1,29 @@
 import contextlib
-import os
 import shutil
 import uuid
-
 from bz2 import open as bzip_open
 from gzip import open as gzip_open
 from io import TextIOWrapper
-from os import path as os_path
-from os import remove
-from pathlib import Path
+from os import PathLike, remove
+from pathlib import Path, PurePath
 from re import compile
 from tempfile import mkdtemp
-from typing import IO, Callable, Optional, Tuple, Union
+from typing import IO, Callable, Iterator, Optional, Tuple, Union
 from urllib.parse import ParseResult, urlparse
 from urllib.request import urlopen
 from zipfile import ZipFile
 
-from chardet import detect
+from charset_normalizer import detect
 
 from cogent3.util.misc import _wout_period
 
-
+PathType = Union[str, PathLike, PurePath]
 # support prefixes for urls
 _urls = compile("^(http[s]*|file)")
 
 
 def _get_compression_open(
-    path: Optional[os.PathLike] = None, compression: Optional[str] = None
+    path: Optional[PathType] = None, compression: Optional[str] = None
 ) -> Optional[Callable]:
     """returns function for opening compression formats
 
@@ -47,7 +44,7 @@ def _get_compression_open(
     return {"gz": gzip_open, "bz2": bzip_open, "zip": open_zip}.get(compression, None)
 
 
-def open_zip(filename: os.PathLike, mode: str = "r", **kwargs) -> IO:
+def open_zip(filename: PathType, mode: str = "r", **kwargs) -> IO:
     """open a single member zip-compressed file
 
     Note
@@ -81,7 +78,7 @@ def open_zip(filename: os.PathLike, mode: str = "r", **kwargs) -> IO:
         return TextIOWrapper(opened, encoding=encoding)
 
 
-def open_(filename: os.PathLike, mode="rt", **kwargs) -> IO:
+def open_(filename: PathType, mode="rt", **kwargs) -> IO:
     """open that handles different compression
 
     Parameters
@@ -186,7 +183,7 @@ class atomic_write:
     """performs atomic write operations, cleans up if fails"""
 
     def __init__(
-        self, path: os.PathLike, tmpdir=None, in_zip=None, mode="w", encoding=None
+        self, path: PathType, tmpdir=None, in_zip=None, mode="w", encoding=None
     ):
         """
 
@@ -308,7 +305,7 @@ class atomic_write:
 T = Optional[str]
 
 
-def get_format_suffixes(filename: os.PathLike) -> Tuple[T, T]:
+def get_format_suffixes(filename: PathType) -> Tuple[T, T]:
     """returns file, compression suffixes"""
     filename = Path(filename)
     if not filename.suffix:
@@ -343,8 +340,86 @@ def remove_files(list_of_filepaths, error_on_missing=True):
         raise OSError("Some filepaths were not accessible: %s" % "\t".join(missing))
 
 
-def path_exists(path: os.PathLike) -> bool:
+def path_exists(path: PathType) -> bool:
     """whether path is a valid path and it exists"""
-    with contextlib.suppress(ValueError, TypeError):
-        return os_path.exists(str(path))
+    with contextlib.suppress(Exception):
+        return Path(path).exists()
     return False
+
+
+def iter_splitlines(
+    path: PathType, chunk_size: Optional[int] = 1_000_000
+) -> Iterator[str]:
+    """yields line from file
+
+    Parameters
+    ----------
+    path
+        data file
+    chunk_size
+        number of bytes to load in one go from path
+
+    Notes
+    -----
+    Loads chunks of data from the file, yields one line at a time
+    """
+    if _urls.search(str(path)):
+        chunk_size = None
+    else:
+        path = Path(path).expanduser()
+        if chunk_size and path.stat().st_size < chunk_size:
+            # file is smaller than provided chunk_size, just
+            # load it all
+            chunk_size = None
+
+    with open_(path) as infile:
+        last = ""
+        while True:
+            data = infile.read(chunk_size)
+            if not data:  # end of file
+                break
+
+            data = last + data
+            end_is_newline = data.endswith("\n")
+            lines = data.splitlines()
+            last = lines.pop(-1)
+            if end_is_newline:
+                # even if text is from Windows and uses "\r\n", pythons
+                # string splitlines() will respect \n
+                last += "\n"
+
+            if not len(lines):
+                # we have not seen a newline
+                continue
+
+            yield from lines
+
+        if last:
+            yield from last.splitlines()
+
+
+def iter_line_blocks(
+    path: PathType,
+    num_lines: Optional[int] = 1000,
+    chunk_size: Optional[int] = 5_000_000,
+) -> Iterator[list[str]]:
+    """yields list with num_lines str from path
+
+    Parameters
+    ----------
+    path
+        data file
+    num_lines
+        number of lines per block. If None just returns all lines.
+    chunk_size
+        number of bytes to load in one go from path
+    """
+    lines = []
+    for line in iter_splitlines(path, chunk_size=chunk_size):
+        lines.append(line)
+        if len(lines) == num_lines:
+            yield lines
+            lines = []
+
+    if lines:
+        yield lines

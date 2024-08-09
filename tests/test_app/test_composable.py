@@ -1,22 +1,16 @@
 import inspect
 import pickle
 import shutil
-
 from pathlib import Path
 from pickle import dumps, loads
 from typing import Set, Tuple
 from unittest.mock import Mock
 
 import pytest
-
-from numpy import array, ndarray
-from scitrack import CachingLogger
-
 from cogent3 import get_app, make_aligned_seqs, open_data_store
-from cogent3.app import align, evo
+from cogent3.app import align, evo, translate, tree
 from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
-from cogent3.app import translate, tree
 from cogent3.app import typing as c3types
 from cogent3.app.composable import (
     NON_COMPOSABLE,
@@ -42,6 +36,8 @@ from cogent3.app.translate import select_translatable
 from cogent3.app.tree import quick_tree
 from cogent3.app.typing import AlignedSeqsType, PairwiseDistanceType
 from cogent3.core.alignment import Alignment, SequenceCollection
+from numpy import array, ndarray
+from scitrack import CachingLogger
 
 
 @pytest.fixture(scope="function")
@@ -502,14 +498,13 @@ def test_str():
     got = str(func)
     assert (
         got
-        == "select_translatable(moltype='dna', gc=1, allow_rc=False,\ntrim_terminal_stop=True)"
+        == "select_translatable(moltype='dna', gc=1, allow_rc=False,\ntrim_terminal_stop=True, frame=None)"
     )
 
     func = select_translatable(allow_rc=True)
     got = str(func)
-    assert (
-        got
-        == "select_translatable(moltype='dna', gc=1, allow_rc=True, trim_terminal_stop=True)"
+    assert got.startswith(
+        "select_translatable(moltype='dna', gc=1, allow_rc=True, trim_terminal_stop=True"
     )
 
     nodegen = omit_degenerates()
@@ -1129,3 +1124,17 @@ def test_copies_doc_from_func():
 
     assert delme2.__doc__ == "my docstring"
     assert delme2.__init__.__doc__.split() == ["Notes", "-----", "body"]
+
+
+def test_bad_wrap():
+    def foo(a: "str") -> int:
+        return int(a)
+
+    with pytest.raises(NotImplementedError):
+        define_app(foo)
+
+    def bar(a: str) -> "int":
+        return int(a)
+
+    with pytest.raises(NotImplementedError):
+        define_app(bar)

@@ -1,14 +1,12 @@
-#!/usr/bin/env python
 import os
 import re
 
-from cogent3.format.fasta import alignment_to_fasta
+from cogent3.format.fasta import seqs_to_fasta
 from cogent3.format.gde import alignment_to_gde
 from cogent3.format.paml import alignment_to_paml
 from cogent3.format.phylip import alignment_to_phylip
 from cogent3.parse.record import FileFormatError
 from cogent3.util.io import atomic_write
-
 
 # todo convert formatters so str(formatter) returns correctly formatted
 # string, and rename method names, rename base class name (sequences, not
@@ -49,8 +47,8 @@ def write_alignment_to_file(f, alignment, format, **kw):
 FORMATTERS = {
     "phylip": alignment_to_phylip,
     "paml": alignment_to_paml,
-    "fasta": alignment_to_fasta,
-    "mfa": alignment_to_fasta,
-    "fa": alignment_to_fasta,
+    "fasta": seqs_to_fasta,
+    "mfa": seqs_to_fasta,
+    "fa": seqs_to_fasta,
     "gde": alignment_to_gde,
 }

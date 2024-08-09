@@ -75,7 +75,6 @@ from .calculation import ConstCell, EvaluatedCell, LogOptPar, OptPar
 from .scope import ParameterController, _Defn, _LeafDefn, _NonLeafDefn
 from .setting import ConstVal, Var
 
-
 # In this module we bring together scopes, settings and calculations.
 # Most of the classes are 'Defns' with their superclasses in scope.py.
 # These supply a make_cells() method which instantiates 'Cell'

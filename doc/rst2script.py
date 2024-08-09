@@ -2,11 +2,11 @@
 """
 This takes doctest files and turns them into standalone scripts.
 """
+
 import pathlib
 import re
 
 import click
-
 
 not_wsp = re.compile(r"\S+")
 code_eval = re.compile(r"(?<=\s{4})([>]{3}|[.]{3})\s")

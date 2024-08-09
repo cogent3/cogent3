@@ -1,16 +1,14 @@
-"""Unit tests for FASTA and related parsers.
-"""
+"""Unit tests for FASTA and related parsers."""
 
 import os
-
+import pathlib
 from unittest import TestCase
 
+import numpy
 import pytest
-
 from cogent3.core.info import Info
-from cogent3.core.sequence import DnaSequence
+from cogent3.core.sequence import DnaSequence, Sequence
 from cogent3.core.sequence import ProteinSequence as Protein
-from cogent3.core.sequence import Sequence
 from cogent3.parse.fasta import (
     FastaParser,
     GroupFastaParser,
@@ -19,9 +17,9 @@ from cogent3.parse.fasta import (
     NcbiFastaLabelParser,
     NcbiFastaParser,
     RichLabel,
+    iter_fasta_records,
 )
 from cogent3.parse.record import RecordError
-
 
 base_path = os.path.dirname(os.path.dirname(__file__))
 data_path = os.path.join(base_path, "data")
@@ -433,3 +431,27 @@ def test_fasta_with_spaces(strict, sep):
     data = [">A", sep.join(("gaaaa", "tgatt")), ">B", sep.join(("tttga", "gcagg"))]
     got = dict(MinimalFastaParser(data, strict=strict))
     assert got == {"A": "gaaaatgatt", "B": "tttgagcagg"}
+
+
+def test_iter_fasta_records(DATA_DIR):
+    path = DATA_DIR / "brca1.fasta"
+    got = dict(iter_fasta_records(path))
+    assert len(got) == 55
+    assert "LesserEle" in got
+    assert got["LesserEle"][:10] == "TGTGGCACAG"
+    assert got["LesserEle"][-10:] == "ATGTA-----"
+
+
+@pytest.fixture(params=(pathlib.Path, str))
+def fasta_path(DATA_DIR, request):
+    return request.param(DATA_DIR / "c_elegans_WS199_dna_shortened.fasta")
+
+
+def test_iter_fasta_records_path_types(fasta_path):
+    got = dict(iter_fasta_records(fasta_path))
+    assert len(got) == 1
+
+
+def test_iter_fasta_records_invalid():
+    with pytest.raises(TypeError):
+        list(iter_fasta_records(numpy.array([">abcd", "ACGG"])))

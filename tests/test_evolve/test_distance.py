@@ -1,13 +1,9 @@
 import os
 import warnings
-
 from unittest import TestCase
 
 import numpy
 import pytest
-
-from numpy.testing import assert_allclose, assert_equal
-
 from cogent3 import (
     DNA,
     PROTEIN,
@@ -38,7 +34,7 @@ from cogent3.evolve.models import F81, HKY85, JC69
 from cogent3.evolve.pairwise_distance_numba import (
     fill_diversity_matrix as numba_fill_diversity_matrix,
 )
-
+from numpy.testing import assert_allclose, assert_equal
 
 warnings.filterwarnings("ignore", "Not using MPI as mpi4py not found")
 
@@ -743,7 +739,8 @@ class DistancesTests(TestCase):
                 "b": "GTACGTACGTAC",
                 "c": "GTACGTACGTTC",
                 "e": "GTACGTACTGGT",
-            }
+            },
+            moltype="dna",
         )
         self.collection = make_unaligned_seqs(
             data={
@@ -751,7 +748,8 @@ class DistancesTests(TestCase):
                 "b": "GTACGTACGTAC",
                 "c": "GTACGTACGTTC",
                 "e": "GTACGTACTGGT",
-            }
+            },
+            moltype="dna",
         )
 
     def assertDistsAlmostEqual(self, expected, observed, precision=4):

@@ -1,10 +1,17 @@
 import unittest
 
 import pytest
-
-from cogent3 import DNA, load_seq, make_aligned_seqs, make_unaligned_seqs
+from cogent3 import (
+    get_moltype,
+    load_seq,
+    make_aligned_seqs,
+    make_unaligned_seqs,
+)
 from cogent3.core.alignment import Alignment, SequenceCollection
+from cogent3.core.annotation_db import BasicAnnotationDb
 from cogent3.core.location import FeatureMap, Span
+
+DNA = get_moltype("dna")
 
 
 def makeSampleSequence(name, with_gaps=False):
@@ -14,7 +21,7 @@ def makeSampleSequence(name, with_gaps=False):
     if with_gaps:
         raw_seq = f"{raw_seq[:5]}-----{raw_seq[10:-2]}--"
     # name is required for creating annotations
-    seq = DNA.make_seq(raw_seq, name=name)
+    seq = DNA.make_seq(seq=raw_seq, name=name)
     seq.add_feature(biotype="CDS", name="CDS", spans=[cds])
     seq.add_feature(biotype="5'UTR", name="5' UTR", spans=[utr])
     return seq
@@ -222,7 +229,7 @@ def test_slice_seq_with_partial_start(ann_seq, annot_type, num):
 
 def test_seq_feature_to_dict():
     """create the attributes necessary to write into the user table"""
-    seq = DNA.make_seq("ATTGTACGCCCCTGA", name="test_seq")
+    seq = DNA.make_seq(seq="ATTGTACGCCCCTGA", name="test_seq")
     feature_data = {
         "biotype": "CDS",
         "name": "fake",
@@ -295,7 +302,7 @@ def test_gbdb_get_children_get_parent(DATA_DIR):
 def test_features_survives_seq_rename(rev):
     segments = ["A" * 10, "C" * 10, "T" * 5, "C" * 5, "A" * 5]
 
-    seq = DNA.make_seq("".join(segments), name="original")
+    seq = DNA.make_seq(seq="".join(segments), name="original")
     gene = seq.add_feature(biotype="gene", name="gene1", spans=[(10, 20), (25, 30)])
     gene_expect = str(seq[10:20]) + str(seq[25:30])
     assert str(gene.get_slice()) == gene_expect
@@ -319,11 +326,11 @@ def test_features_survives_seq_rename(rev):
 
 
 @pytest.mark.parametrize("rev", (False, True))
-@pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
-def test_features_survives_aligned_seq_rename(rev, cls):
+@pytest.mark.parametrize("make_cls", (make_unaligned_seqs, Alignment))
+def test_features_survives_aligned_seq_rename(rev, make_cls):
     segments = ["A" * 10, "C" * 10, "T" * 5, "C" * 5, "A" * 5]
 
-    seqs = cls({"original": "".join(segments)}, moltype="dna")
+    seqs = make_cls({"original": "".join(segments)}, moltype="dna")
     seqs.annotation_db.add_feature(
         seqid="original", biotype="gene", name="gene1", spans=[(10, 20), (25, 30)]
     )

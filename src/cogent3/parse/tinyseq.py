@@ -7,7 +7,6 @@ import xml.dom.minidom
 
 from cogent3.core import moltype
 
-
 """
 CAUTION:
 This XML PARSER uses minidom. This means a bad performance for

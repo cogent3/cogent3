@@ -10,7 +10,6 @@ Jan./Feb. 1994, pp. 65-100.
 """
 
 import random
-
 from collections import deque
 
 import numpy

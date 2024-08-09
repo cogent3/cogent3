@@ -3,7 +3,6 @@ from numbers import Number
 from typing import Tuple
 
 import numpy as np
-
 from numpy import array, diag, dot, eye, float64, int32, log, sqrt, zeros
 from numpy.linalg import det, inv
 
@@ -14,7 +13,6 @@ from cogent3.util.misc import get_object_provenance
 from cogent3.util.progress_display import display_wrap
 
 from .pairwise_distance_numba import fill_diversity_matrix
-
 
 # pending addition of protein distance metrics
 
@@ -54,7 +52,15 @@ def get_moltype_index_array(moltype, invalid=-9):
     canonical_chars = list(moltype)
     # maximum ordinal for an allowed character, this defines the length of
     # the required numpy array
-    max_ord = max(list(map(ord, list(moltype.All.keys()))))
+    # refactor: simplify
+    # added for compatibility with both new and old moltypes - should be removed
+    # when old moltype is removed
+    from cogent3.core.new_moltype import MolType as new_MolType
+
+    if isinstance(moltype, new_MolType):
+        max_ord = max(list(map(ord, list(moltype.most_degen_alphabet()))))
+    else:
+        max_ord = max(list(map(ord, list(moltype.All.keys()))))
     char_to_index = zeros(max_ord + 1, int32)
     # all non canonical_chars are ``invalid''
     char_to_index.fill(invalid)

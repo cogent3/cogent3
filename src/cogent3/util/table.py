@@ -14,7 +14,6 @@ import json
 import pathlib
 import pickle
 import re
-
 from collections import defaultdict
 from collections.abc import Callable, MutableMapping
 from itertools import product
@@ -29,7 +28,6 @@ from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.io import atomic_write, get_format_suffixes
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
 from cogent3.util.union_dict import UnionDict
-
 
 try:
     from IPython.display import display

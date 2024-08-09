@@ -15,7 +15,6 @@ and/or Enumerations on the fly, however.
 
 import json
 import typing
-
 from functools import singledispatchmethod
 from itertools import product
 

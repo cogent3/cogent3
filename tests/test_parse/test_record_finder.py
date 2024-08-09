@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""Unit tests for recordfinders: parsers that group the lines for a record.
-"""
+"""Unit tests for recordfinders: parsers that group the lines for a record."""
 
 from unittest import TestCase
 

@@ -6,7 +6,6 @@ from cogent3.parse.greengenes import (
     make_ignore_f,
 )
 
-
 # consider project name
 # remember to add yourself if you make changes
 

@@ -10,7 +10,6 @@ from cogent3.core.sequence import RnaSequence
 from cogent3.parse.record import RecordError
 from cogent3.parse.record_finder import DelimitedRecordFinder
 
-
 strip = str.strip
 maketrans = str.maketrans
 

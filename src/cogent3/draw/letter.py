@@ -2,7 +2,7 @@
 Character shapes that are renderable into Plotly plots. The SVG paths were derived from
 the mono-spaced font Inconsolata, which is under the SIL Open Font License. The characters
 are stored as SVG paths that are in array format for accessible data manipulation.
-The paths are ultimately converted into a String for use in Plotly. 
+The paths are ultimately converted into a String for use in Plotly.
 
 The SVG paths for each character were generated via the following process:
 
@@ -18,7 +18,6 @@ The SVG paths for each character were generated via the following process:
 import numpy
 
 from cogent3.util.union_dict import UnionDict
-
 
 _svg_paths = {
     "A": [

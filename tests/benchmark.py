@@ -11,7 +11,6 @@ from cogent3.evolve.substitution_model import (
 from cogent3.maths import optimisers
 from cogent3.util import parallel
 
-
 ALIGNMENT = load_aligned_seqs(filename="data/brca1.fasta")
 TREE = load_tree(filename="data/murphy.tree")
 

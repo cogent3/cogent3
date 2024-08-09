@@ -1,7 +1,6 @@
 from collections import deque
 
 import pytest
-
 from cogent3 import make_seq
 from cogent3.align.pycompare import (
     Kmer,
@@ -51,8 +50,8 @@ def smallseq():
 
 
 def test_find_matched_k_eq_1():
-    s1 = make_seq("TGATGTAAGGTAGTT", name="1")
-    s2 = make_seq("CTGGAAGGGT", name="2")
+    s1 = make_seq(seq="TGATGTAAGGTAGTT", name="1")
+    s2 = make_seq(seq="CTGGAAGGGT", name="2")
     expect = _brute_force(s1, s2, window=5, threshold=3)
     sk = SeqKmers(s1, k=1, canonical=set("ACGT"))
     got = find_matched_paths(seq_kmers=sk, seq1=s1, seq2=s2, window=5, threshold=3)
@@ -129,7 +128,7 @@ def test_segment_adjacent():
 
 def test_segment_rc():
     """should correctly transform for reverse complemented sequence"""
-    seq = make_seq("AACCCTTTTT", moltype="dna")
+    seq = make_seq(seq="AACCCTTTTT", moltype="dna")
     c = segment(2, 5)
     assert seq[c.start : c.end] == "CCC"
     r = c.for_rc(len(seq))
@@ -144,7 +143,7 @@ def test_get_segments():
 
 
 def test_kmer_one(smallseq):
-    seq = make_seq(smallseq, name="seq1")
+    seq = make_seq(seq=smallseq, name="seq1")
     kmers = {Kmer(e, seq.name, i) for i, e in enumerate(seq.iter_kmers(k=2))}
     assert kmers == {smallseq[i : i + 2] for i in range(len(smallseq) - 1)}
 
@@ -171,7 +170,7 @@ def test_kmer_one(smallseq):
 
 
 def test_seqkmers_1seq(smallseq):
-    seq1 = make_seq(smallseq, name="seq1", moltype="dna")
+    seq1 = make_seq(seq=smallseq, name="seq1", moltype="dna")
     sk = SeqKmers(seq1, 1, canonical=set(seq1.moltype))
     assert sk.num_seqs == 1
     # iter k-mers skips single occurrence in seq1
@@ -182,7 +181,7 @@ def test_seqkmers_1seq(smallseq):
 @pytest.mark.parametrize("k,expect", [(1, 3), (2, 5), (7, 0)])
 def test_seqkmers_1seq_degenerate(k, expect):
     # k-mers with degenerate characters are not stored
-    seq1 = make_seq("NCCGGTT", name="seq1", moltype="dna")
+    seq1 = make_seq(seq="NCCGGTT", name="seq1", moltype="dna")
     sk = SeqKmers(seq1, k, canonical=set(seq1.moltype))
     assert len(sk.kmers) == expect
     assert "N" not in sk.kmers
@@ -191,8 +190,8 @@ def test_seqkmers_1seq_degenerate(k, expect):
 
 
 def test_seqkmers_2seqs(smallseq):
-    seq1 = make_seq(smallseq, name="seq1", moltype="dna")
-    seq2 = make_seq(smallseq[1:], name="seq2", moltype="dna")
+    seq1 = make_seq(seq=smallseq, name="seq1", moltype="dna")
+    seq2 = make_seq(seq=smallseq[1:], name="seq2", moltype="dna")
     sk = SeqKmers(seq1, 2, canonical=set(seq1.moltype))
     sk.add_seq(seq2)
     # the k-mer indices for "AC" should not have an entry for seq2, but should
@@ -207,7 +206,7 @@ def test_seqkmers_2seqs(smallseq):
 def test_seqkmers_1seq_iter_matched_indices():
     from itertools import product
 
-    seq1 = make_seq("", name="seq1", moltype="dna")
+    seq1 = make_seq(seq="", name="seq1", moltype="dna")
     sk = SeqKmers(seq1, 2, canonical=set("ACGT"))
     kmer = Kmer("AA", "seq1", 0)
     kmer.add_location("seq1", 1)
@@ -224,7 +223,7 @@ def test_seqkmers_1seq_iter_matched_indices():
 def test_seqkmers_2seq_iter_matched_indices():
     from itertools import product
 
-    seq1 = make_seq("", name="seq1", moltype="dna")
+    seq1 = make_seq(seq="", name="seq1", moltype="dna")
     sk = SeqKmers(seq1, 2, canonical=set("ACGT"))
     sk.num_seqs += 1
     sk.other_name = "seq2"
@@ -240,8 +239,8 @@ def test_seqkmers_2seq_iter_matched_indices():
 
 
 def test_seqkmers_2seqs_dropseq(smallseq):
-    seq1 = make_seq(smallseq, name="seq1", moltype="dna")
-    seq2 = make_seq(smallseq[1:], name="seq2", moltype="dna")
+    seq1 = make_seq(seq=smallseq, name="seq1", moltype="dna")
+    seq2 = make_seq(seq=smallseq[1:], name="seq2", moltype="dna")
     sk = SeqKmers(seq1, 2, canonical=set(seq1.moltype))
     sk.add_seq(seq2)
     assert sk.ref_name == seq1.name
@@ -255,8 +254,8 @@ def test_seqkmers_2seqs_dropseq(smallseq):
 
 
 def test_dropseq_default(smallseq):
-    seq1 = make_seq(smallseq, name="seq1", moltype="dna")
-    seq2 = make_seq(smallseq[1:], name="seq2", moltype="dna")
+    seq1 = make_seq(seq=smallseq, name="seq1", moltype="dna")
+    seq2 = make_seq(seq=smallseq[1:], name="seq2", moltype="dna")
     sk = SeqKmers(seq1, 2, canonical=set(seq1.moltype))
     sk.add_seq(seq2)
     sk.drop_seq()
@@ -264,7 +263,7 @@ def test_dropseq_default(smallseq):
 
 
 def test_one_seq_dropseq(smallseq):
-    seq1 = make_seq(smallseq, name="seq1", moltype="dna")
+    seq1 = make_seq(seq=smallseq, name="seq1", moltype="dna")
     sk = SeqKmers(seq1, 2, canonical=set(seq1.moltype))
     assert sk.other_name is None
     assert sk.num_seqs == 1
@@ -274,8 +273,8 @@ def test_one_seq_dropseq(smallseq):
 
 
 def test_seqkmers_iter_matching_kmers(smallseq):
-    seq1 = make_seq(smallseq, name="seq1", moltype="dna")
-    seq2 = make_seq(smallseq[1:], name="seq2", moltype="dna")
+    seq1 = make_seq(seq=smallseq, name="seq1", moltype="dna")
+    seq2 = make_seq(seq=smallseq[1:], name="seq2", moltype="dna")
     sk = SeqKmers(seq1, 2, canonical=set(seq1.moltype))
     sk.add_seq(seq2)
     for kmer in sk.iter_matching_kmers():
@@ -295,12 +294,12 @@ def test_matchedpaths():
 
 @pytest.fixture
 def aseq1():
-    return make_seq("ATACGT", name="seq1", moltype="dna")
+    return make_seq(seq="ATACGT", name="seq1", moltype="dna")
 
 
 @pytest.fixture
 def aseq2():
-    return make_seq("AGTTTACGTTTGACGTAA", name="seq2", moltype="dna")
+    return make_seq(seq="AGTTTACGTTTGACGTAA", name="seq2", moltype="dna")
 
 
 def test_bruteforce(aseq1, aseq2):
@@ -375,7 +374,7 @@ def test_find_matched_paths_moltype(aseq1, aseq2, moltype):
 
 
 def test_find_matched_with_rc():
-    s = make_seq("CACACCACTGCAGTCGGATAGACC", moltype="dna", name="s1")
+    s = make_seq(seq="CACACCACTGCAGTCGGATAGACC", moltype="dna", name="s1")
     r = s.rc()
     r.name = "rc1"
     k = _calc_seed_size(4, 4)
@@ -391,8 +390,8 @@ def test_find_matched_with_rc():
 
 
 def test_find_matched_with_small_seed():
-    s1 = make_seq("CACACCACTGCAGTCGGATAGACC", moltype="dna", name="s1")
-    s2 = make_seq("GGTCTATCCGACTGCAGTGGTGTG", moltype="dna", name="s2")
+    s1 = make_seq(seq="CACACCACTGCAGTCGGATAGACC", moltype="dna", name="s1")
+    s2 = make_seq(seq="GGTCTATCCGACTGCAGTGGTGTG", moltype="dna", name="s2")
     k = 2
     expect = _brute_force(s1, s2, 4, 4)
     sk = SeqKmers(s1, k=k, canonical="ACGT")
@@ -402,7 +401,7 @@ def test_find_matched_with_small_seed():
 
 @pytest.mark.parametrize("w,t", [(4, 4), (3, 3)])
 def test_find_matched_1seq(w, t):
-    s = make_seq("CACACCACTGCAGTCGGATAGACC", moltype="dna", name="s1")
+    s = make_seq(seq="CACACCACTGCAGTCGGATAGACC", moltype="dna", name="s1")
     expect = _brute_force(s, s, w, t)
     sk = SeqKmers(s, k=w, canonical=set("ACGT"))
     got = find_matched_paths(seq_kmers=sk, seq1=s, window=w, threshold=t)

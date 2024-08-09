@@ -1,5 +1,4 @@
-"""Provides standard statistical tests. Tests produce statistic and P-value.
-"""
+"""Provides standard statistical tests. Tests produce statistic and P-value."""
 
 import warnings
 
@@ -22,10 +21,13 @@ from numpy import (
     ones,
     ravel,
     sqrt,
+    take,
+    tanh,
+    trace,
+    zeros,
 )
 from numpy import std as _std
 from numpy import sum as npsum
-from numpy import take, tanh, trace, zeros
 from numpy.random import permutation, randint
 from scipy.stats import binom, f, norm, t
 from scipy.stats.distributions import chi2
@@ -40,7 +42,6 @@ from cogent3.maths.stats.special import (
     log_one_minus,
     one_minus_exp,
 )
-
 
 # defining globals for the alternate hypotheses
 ALT_TWO_SIDED = "2"

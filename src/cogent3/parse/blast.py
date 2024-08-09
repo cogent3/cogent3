@@ -1,12 +1,10 @@
-"""Parsers for blast, psi-blast and blat.
-"""
+"""Parsers for blast, psi-blast and blat."""
 
 from cogent3.parse.record_finder import (
     DelimitedRecordFinder,
     LabeledRecordFinder,
     never_ignore,
 )
-
 
 strip = str.strip
 upper = str.upper

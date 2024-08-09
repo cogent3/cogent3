@@ -1,40 +1,62 @@
-#!/usr/bin/env python
-"""Writer for FASTA sequence format
-"""
+"""Writer for FASTA sequence format"""
 
+import textwrap
 from typing import Optional
 
 from cogent3.format.util import _AlignmentFormatter
+from cogent3.util import warning as c3warn
 
 
-def alignment_to_fasta(
-    alignment_dict: dict[str, str],
+@c3warn.deprecated_args(
+    "2024.9", reason="better name", old_new=[("alignment_dict", "seqs")]
+)
+def seqs_to_fasta(
+    seqs: dict[str, str],
     block_size: int = 60,
     order: Optional[list[str]] = None,
 ) -> str:
     """Returns a Fasta string given an alignment.
 
     Parameters
-        ----------
-        alignment_dict
-            dict of seq_name
-        block_size
-            the sequence length to write to each line,
-            by default 60
-        order
-            optional list of sequence names, which order to print in.
-            Assumes complete and correct list of names,
-            by default None
+    ----------
+    seqs
+        seq_name to sequence mapping
+    block_size
+        the sequence length to write to each line,
+        by default 60
+    order
+        optional list of sequence names, which order to print in.
+        Assumes complete and correct list of names. Defaults to
+        iteration order of seqs.
 
-        Returns
-        -------
-        The alignment in the Fasta format.
+    Returns
+    -------
+    The sequences in the Fasta format.
     """
-    order = order or []
-    return FastaFormatter().format(alignment_dict, block_size, order)
+    order = order or seqs
+    result = []
+    for name in order:
+        result.append(f">{name}")
+        result.extend(textwrap.wrap(str(seqs[name]), block_size))
+    if result:
+        result.append("")
+    return "\n".join(result)
 
 
-class FastaFormatter(_AlignmentFormatter):
+@c3warn.deprecated_callable("2024.9", reason="better name", new="seqs_to_fasta")
+def alignment_to_fasta(
+    alignment_dict: dict[str, str],
+    block_size: int = 60,
+    order: Optional[list[str]] = None,
+) -> str:  # pragma: no cover
+    """use seqs_to_fasta() instead"""
+    return seqs_to_fasta(seqs=alignment_dict, block_size=block_size, order=order)
+
+
+@c3warn.deprecated_callable(
+    "2024.9", reason="inefficient", is_discontinued=True, new="seqs_to_fasta"
+)
+class FastaFormatter(_AlignmentFormatter):  # pragma: no cover
     def format(
         self,
         alignment_dict: dict[str, str],

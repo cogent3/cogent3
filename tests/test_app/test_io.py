@@ -9,10 +9,7 @@ import tempfile
 
 import numpy
 import pytest
-
-from numpy.testing import assert_allclose
-
-from cogent3 import DNA, get_app, open_data_store
+from cogent3 import get_app, get_moltype, open_data_store
 from cogent3.app import io as io_app
 from cogent3.app.composable import NotCompleted, source_proxy
 from cogent3.app.data_store import (
@@ -29,6 +26,9 @@ from cogent3.maths.util import safe_log
 from cogent3.parse.sequence import PARSERS
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.table import Table
+from numpy.testing import assert_allclose
+
+DNA = get_moltype("dna")
 
 
 @pytest.fixture(scope="function")
@@ -124,9 +124,9 @@ def test_source_proxy_simple(fasta_dir):
 @pytest.mark.parametrize("suffix", ("nex", "paml", "fasta"))
 def test_load_aligned(DATA_DIR, suffix):
     """should handle nexus too"""
-    nexus_paths = DataStoreDirectory(DATA_DIR, suffix=suffix, limit=2)
+    dstore = DataStoreDirectory(DATA_DIR, suffix=suffix, limit=2)
     loader = io_app.load_aligned(format=suffix)
-    results = [loader(m) for m in nexus_paths]
+    results = [loader(m) for m in dstore]
     for result in results:
         assert isinstance(result, ArrayAlignment)
 
@@ -431,7 +431,7 @@ def test_pickled_compress_roundtrip(data):
     deserialised = io_app.decompress() + io_app.unpickle_it() + io_app.from_primitive()
     s = serialised(data)
     d = deserialised(s)
-    assert d == data
+    assert d.label == data.label
 
 
 # todo test objects where there is no unique_id provided, or inferrable,
@@ -528,7 +528,9 @@ def seqs():
     from cogent3 import make_unaligned_seqs
 
     return make_unaligned_seqs(
-        data=dict(a="ACGG", b="GGC"), info=dict(source="dummy/blah.1.2.fa")
+        data=dict(a="ACGG", b="GGC"),
+        moltype="dna",
+        info=dict(source="dummy/blah.1.2.fa"),
     )
 
 

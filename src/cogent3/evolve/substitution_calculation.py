@@ -14,7 +14,6 @@ from cogent3.recalculation.definition import (
     RatioParamDefn,
 )
 
-
 # Custom subclasses of Defn (see cogent3.recalulation) for use by
 # substitution models.
 

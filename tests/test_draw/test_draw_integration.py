@@ -1,12 +1,11 @@
 import pathlib
 import unittest
 
-from numpy.testing import assert_allclose
-
 from cogent3 import load_aligned_seqs, make_aligned_seqs, make_table
 from cogent3.core.annotation_db import GffAnnotationDb
 from cogent3.draw.drawable import AnnotatedDrawable, Drawable, get_domain
 from cogent3.util.union_dict import UnionDict
+from numpy.testing import assert_allclose
 
 
 def load_alignment(annotate1=False, annotate2=False):

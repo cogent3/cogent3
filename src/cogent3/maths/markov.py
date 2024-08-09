@@ -11,7 +11,7 @@ class TransitionMatrix(object):
         [.9, .0, .1],
         [.0, .9, .1],
         [.5, .5, .0],], Float)
-    >>> T = TransitionMatrix(a, ['x', 'y', 'm'])
+    >>> T = TransitionMatrix(a, ["x", "y", "m"])
     """
 
     def __init__(self, matrix, tags, stationary_probs=None):
@@ -31,8 +31,8 @@ class TransitionMatrix(object):
     def _getStationaryProbs(self):
         if self._stationary_probs is None:
             matrix = self.Matrix
-            for i in range(10):
-                matrix = numpy.core.multiarray.dot(matrix, matrix)
+            for _ in range(10):
+                matrix = numpy.dot(matrix, matrix)
             self._stationary_probs = matrix[0]
         return self._stationary_probs
 

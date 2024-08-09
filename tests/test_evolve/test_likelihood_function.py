@@ -6,22 +6,17 @@ tests to do:
     testing the likelihood for specified pars
     getting ancestral probs
     simulating sequence (not possible to verify values as random)
-    
+
     checking that the object resets on tree change, model change, etc
 """
 
 import json
 import os
 import warnings
-
 from unittest import TestCase
 
 import numpy
 import pytest
-
-from numpy import dot, ones
-from numpy.testing import assert_allclose
-
 from cogent3 import (
     DNA,
     load_aligned_seqs,
@@ -45,7 +40,8 @@ from cogent3.evolve.ns_substitution_model import GeneralStationary
 from cogent3.maths.matrix_exponential_integration import expected_number_subs
 from cogent3.maths.matrix_exponentiation import PadeExponentiator as expm
 from cogent3.maths.stats.information_criteria import aic, bic
-
+from numpy import dot, ones
+from numpy.testing import assert_allclose
 
 warnings.filterwarnings("ignore", "Motif probs overspecified")
 warnings.filterwarnings("ignore", "Ignoring tree edge lengths")
@@ -539,7 +535,7 @@ DogFaced   root      1.00  1.00
             root = simalign.named_seqs["root"]
             self.assertEqual(str(root), str(root_sequence))
 
-        root_sequence = DNA.make_seq("GTAATT")
+        root_sequence = DNA.make_seq(seq="GTAATT")
         use_root_seq(root_sequence)  # as a sequence instance
         use_root_seq("GTAATC")  # as a string
 

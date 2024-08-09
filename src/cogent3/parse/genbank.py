@@ -10,7 +10,6 @@ from cogent3.parse.record_finder import (
     LabeledRecordFinder,
 )
 
-
 maketrans = str.maketrans
 strip = str.strip
 rstrip = str.rstrip
@@ -644,7 +643,7 @@ def RichGenbankParser(
         info = Info(genbank_record=info)
         try:
             seq = rec_moltype.make_seq(
-                rec["sequence"].upper(), info=info, name=rec["locus"]
+                seq=rec["sequence"].upper(), info=info, name=rec["locus"]
             )
         except KeyError:
             if "contig" in rec:

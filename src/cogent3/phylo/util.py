@@ -1,6 +1,5 @@
 import numpy
 
-
 # Distance matricies are presently represented as simple dictionaries, which
 # need to be converted into numpy arrays before being fed into phylogenetic
 # reconstruction algorithms.

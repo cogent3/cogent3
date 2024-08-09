@@ -3,7 +3,6 @@ import warnings
 
 import numpy
 import pytest
-
 from cogent3 import DNA, SequenceCollection, _Table, load_seq
 from cogent3.core.annotation_db import (
     BasicAnnotationDb,
@@ -288,6 +287,20 @@ def test_load_annotations_multi(DATA_DIR):
     assert len(got) == expect
 
 
+def test_load_annotations_chunked(gff_db, DATA_DIR):
+    path = DATA_DIR / "c_elegans_WS199_shortened_gff.gff3"
+
+    name = "CDS:B0019.1"
+    expect = list(gff_db.get_features_matching(name=name))[0]
+    assert len(expect["spans"]) == 3
+    # two lines splits a 3 line record into 2 and 1 line, so the
+    # update record code is invoked
+    db = load_annotations(path=path, write_path=":memory:", lines_per_block=2)
+    got = list(db.get_features_matching(name=name))[0]
+    assert got.pop("spans") == expect.pop("spans")
+    assert got == expect
+
+
 @pytest.mark.parametrize("parent_biotype, name", (("gene", "CNA00110"),))
 def test_gb_get_children(gb_db, parent_biotype, name):
     parent = list(gb_db.get_features_matching(biotype=parent_biotype, name=name))[0]
@@ -374,7 +387,7 @@ def test_feature_strand():
     minus_spans = [(4, 7), (11, 13)]
     minus_seq = "".join(raw_seq[s:e] for s, e in minus_spans)
     minus_seq = "".join([{"T": "A", "A": "T"}[b] for b in minus_seq[::-1]])
-    seq = make_seq(raw_seq, name="s1", moltype="dna")
+    seq = make_seq(seq=raw_seq, name="s1", moltype="dna")
     db = GffAnnotationDb()
     db.add_feature(
         seqid="s1",
@@ -412,7 +425,7 @@ def test_feature_nucleic():
 
     #                              111111
     #                    0123456789012345
-    seq = make_seq("AACCTTTGGGGAATTT", moltype="dna")
+    seq = make_seq(seq="AACCTTTGGGGAATTT", moltype="dna")
     mmap = loc.FeatureMap.from_locations(
         locations=[(4, 7), (10, 12)], parent_length=len(seq)
     )
@@ -616,7 +629,7 @@ def test_rc_get_slice_positive_feature(anno_db):
     the same sequence before and after the sequence is reverse complemented
     """
 
-    seq = DNA.make_seq("AAAAGGGG", name="seq1")
+    seq = DNA.make_seq(seq="AAAAGGGG", name="seq1")
 
     seq.annotation_db = anno_db
     anno_db.add_feature(
@@ -781,7 +794,7 @@ def test_relative_position_negative_feature(seq_db):
 
 
 def test_relative_position_positive_feature(anno_db):
-    seq = DNA.make_seq("AAAAGGGG", name="seq1")
+    seq = DNA.make_seq(seq="AAAAGGGG", name="seq1")
 
     seq.annotation_db = anno_db
     anno_db.add_feature(
@@ -852,12 +865,12 @@ def test_writing_attributes_gff(gff_db):
     gff_db.add_feature(
         biotype="gene",
         seqid="blah",
-        name="cancer-gene",
+        name="agene",
         attributes="description=cancer",
         spans=[(0, 10)],
     )
     r = list(gff_db.get_records_matching(attributes="cancer"))[0]
-    assert r["name"] == "cancer-gene"
+    assert r["name"] == "agene"
 
 
 def test_equal():
@@ -1157,9 +1170,10 @@ def test_gbdb_get_parent_fails_no_coords(gb_db):
         _ = list(gb_db.get_feature_parent(name="CNA00110"))
 
 
-def test_load_annotations_invalid_path():
+@pytest.mark.parametrize("suffix", ("gff3", "gb"))
+def test_load_annotations_invalid_path(suffix):
     with pytest.raises(IOError):
-        load_annotations(path="invalidfile.gff3")
+        load_annotations(path=f"invalidfile.{suffix}")
 
 
 @pytest.mark.parametrize("integer", (int, numpy.int64))
@@ -1207,3 +1221,67 @@ def test_subset_gff3_db_source(gff_db, tmp_dir):
     # manual inspection of the original GFF3 file indicates 7 records
     # BUT the CDS records get merged into a single row
     assert len(subset) == 6
+
+
+@pytest.mark.parametrize(
+    "new_span", ([[22, 24]], [[9, 20]], [[0, 1]], [[9, 20], [29, 45], [59, 70]])
+)
+def test_gffdb_update_record(gff_db, new_span):
+    name = "CDS:B0019.1"
+    init_value = [[9, 20], [29, 45], [59, 70]]
+    combined = set(tuple(c) for c in new_span + init_value)
+    expect = [list(p) for p in sorted(combined)]
+    gff_db.update_record_spans(name=name, spans=new_span)
+    got = list(gff_db.get_records_matching(name=name))[0]
+    assert got["spans"].tolist() == expect
+
+
+def test_gffdb_update_record_empty(gff_db):
+    name = "CDS:B0019.1"
+    init_value = [[9, 20], [29, 45], [59, 70]]
+    gff_db.update_record_spans(name=name, spans=[])
+    got = list(gff_db.get_records_matching(name=name))[0]
+    assert got["spans"].tolist() == init_value
+
+
+def test_gffdb_update_absent_record(gff_db):
+    name = "qwerty"  # does not exist
+    init_value = [[9, 20], [29, 45], [59, 70]]
+    gff_db.update_record_spans(name=name, spans=init_value)
+    got = list(gff_db.get_records_matching(name=name))
+    assert not got
+
+
+@pytest.mark.parametrize("db", ("gff_db", "gb_db"))
+def test_db_close(request, db):
+    import sqlite3
+
+    db = request.getfixturevalue(db)
+    db.close()
+    with pytest.raises(sqlite3.ProgrammingError):
+        _ = list(db.get_features_matching(biotype="gene"))
+
+
+@pytest.mark.parametrize("db", ("gff_db", "gb_db"))
+@pytest.mark.parametrize(
+    "col", ("biotype", "seqid", "name", "start", "stop", "parent_id")
+)
+def test_db_make_index(request, db, col):
+    ann_db = request.getfixturevalue(db)
+    expect = {("index", col, tn) for tn in ann_db.table_names}
+    ann_db.make_indexes()
+    sql_template = (
+        "SELECT * FROM sqlite_master WHERE type = 'index' AND"  # nosec B608
+        f" tbl_name = '%s' and name = {col!r}"  # nosec B608
+    )
+
+    result = ann_db._execute_sql(sql_template % ann_db.table_names[0]).fetchone()
+    got = tuple(result)[:3]
+    assert got in expect
+
+
+@pytest.mark.parametrize("db", ("gff_db", "gb_db"))
+def test_db_repr(request, db):
+    ann_db = request.getfixturevalue(db)
+    got = repr(ann_db)
+    assert isinstance(got, str)

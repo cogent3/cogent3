@@ -1,16 +1,13 @@
 import pathlib
-
 from unittest import TestCase
 
 import pytest
-
 from cogent3 import DNA, load_aligned_seqs, make_aligned_seqs, make_tree
 from cogent3.app import dist
 from cogent3.app import tree as tree_app
 from cogent3.app.composable import NotCompleted
 from cogent3.core.tree import PhyloNode, TreeNode
 from cogent3.evolve.fast_distance import DistanceMatrix
-
 
 DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
 

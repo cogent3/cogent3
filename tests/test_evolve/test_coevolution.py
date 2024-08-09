@@ -2,19 +2,6 @@ from os import environ, remove
 from tempfile import NamedTemporaryFile, mktemp
 from unittest import TestCase
 
-from numpy import (
-    arange,
-    array,
-    e,
-    greater_equal,
-    less_equal,
-    log,
-    nan,
-    sqrt,
-    zeros,
-)
-from numpy.testing import assert_allclose, assert_equal
-
 from cogent3 import (
     DNA,
     PROTEIN,
@@ -93,6 +80,18 @@ from cogent3.evolve.coevolution import (
 )
 from cogent3.maths.stats.number import CategoryCounter
 from cogent3.parse.fasta import MinimalFastaParser
+from numpy import (
+    arange,
+    array,
+    e,
+    greater_equal,
+    less_equal,
+    log,
+    nan,
+    sqrt,
+    zeros,
+)
+from numpy.testing import assert_allclose, assert_equal
 
 
 def _fasta_to_dict(data):

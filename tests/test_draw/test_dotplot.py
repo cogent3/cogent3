@@ -1,22 +1,23 @@
 from unittest import TestCase
 
 import numpy
-
-from cogent3 import DNA, make_unaligned_seqs
+from cogent3 import get_moltype, make_unaligned_seqs
 from cogent3.core.alignment import Aligned, ArrayAlignment
 from cogent3.core.location import IndelMap
 from cogent3.draw.dotplot import Dotplot, _convert_input, get_align_coords
+
+DNA = get_moltype("dna")
 
 
 class TestUtilFunctions(TestCase):
     def test_len_seq(self):
         """returns length of sequence minus gaps"""
-        m, seq = DNA.make_seq("ACGGT--A").parse_out_gaps()
+        m, _ = DNA.make_seq(seq="ACGGT--A").parse_out_gaps()
         self.assertEqual(m.parent_length, 6)
 
     def test_convert_input(self):
         """converts data for dotplotting"""
-        m, seq = DNA.make_seq("ACGGT--A").parse_out_gaps()
+        m, seq = DNA.make_seq(seq="ACGGT--A").parse_out_gaps()
         aligned_seq = Aligned(m, seq)
         mapped_gap, new_seq = _convert_input(aligned_seq, None)
         self.assertIs(new_seq.moltype, DNA)
@@ -32,28 +33,28 @@ class TestUtilFunctions(TestCase):
         # ACGGT--A
         #   012345
         # --GGTTTA
-        m1, seq1 = DNA.make_seq("ACGGT--A").parse_out_gaps()
-        m2, seq2 = DNA.make_seq("--GGTTTA").parse_out_gaps()
+        m1, seq1 = DNA.make_seq(seq="ACGGT--A").parse_out_gaps()
+        m2, seq2 = DNA.make_seq(seq="--GGTTTA").parse_out_gaps()
         path = get_align_coords(m1, m2)
         expect = [2, 4, None, 5, 5], [0, 2, None, 5, 5]
         self.assertEqual(path.get_coords(), expect)
 
         # we have no gaps, so coords will be None
-        m1, s1 = seq1.parse_out_gaps()
-        m2, s2 = seq2.parse_out_gaps()
+        m1, _ = seq1.parse_out_gaps()
+        m2, _ = seq2.parse_out_gaps()
         path = get_align_coords(m1, m2)
         self.assertEqual(path.get_coords(), ([], []))
 
         # unless we indicate the seqs came from an Alignment
-        m1, seq1 = DNA.make_seq("ACGGTTTA").parse_out_gaps()
-        m2, seq2 = DNA.make_seq("GGGGTTTA").parse_out_gaps()
+        m1, seq1 = DNA.make_seq(seq="ACGGTTTA").parse_out_gaps()
+        m2, seq2 = DNA.make_seq(seq="GGGGTTTA").parse_out_gaps()
         paths = get_align_coords(m1, m2, aligned=True)
         # display ranges are inclusive, thus length - 1
         self.assertEqual(paths.get_coords(), ([0, len(seq1) - 1], [0, len(seq1) - 1]))
 
         # raises an exception if the Aligned seqs are different lengths
-        m1, seq1 = DNA.make_seq("ACGGTTTA").parse_out_gaps()
-        m2, seq2 = DNA.make_seq("GGGGTT").parse_out_gaps()
+        m1, seq1 = DNA.make_seq(seq="ACGGTTTA").parse_out_gaps()
+        m2, seq2 = DNA.make_seq(seq="GGGGTT").parse_out_gaps()
         with self.assertRaises(AssertionError):
             get_align_coords(m1, m2, aligned=True)
 

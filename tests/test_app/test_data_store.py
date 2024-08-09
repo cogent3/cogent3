@@ -1,17 +1,13 @@
 import json
 import pathlib
 import shutil
-
 from itertools import product
 from pathlib import Path
 from pickle import dumps, loads
 
 import pytest
-
-from scitrack import get_text_hexdigest
-
-import cogent3.app.io as io_app
-
+from cogent3.app import io as io_app
+from cogent3.app import sample as sample_app
 from cogent3.app.composable import NotCompleted
 from cogent3.app.data_store import (
     _MD5_TABLE,
@@ -30,6 +26,7 @@ from cogent3.app.data_store import (
 )
 from cogent3.util.table import Table
 from cogent3.util.union_dict import UnionDict
+from scitrack import get_text_hexdigest
 
 
 @pytest.fixture(scope="function")
@@ -534,7 +531,7 @@ def test_get_data_source_seqcoll(klass):
 
     value = klass("some/path.txt")
     obj = make_unaligned_seqs(
-        data=dict(seq1="ACGG"), info=dict(source=value, random_key=1234)
+        data=dict(seq1="ACGG"), moltype="dna", info=dict(source=value, random_key=1234)
     )
     got = get_data_source(obj)
     assert got == "path.txt"
@@ -731,3 +728,25 @@ def test_write_multiple_times_apply_to(app_dstore_in):
     orig_length = len(app.data_store)
     app.apply_to(dstore_in)
     assert len(app.data_store) == orig_length
+
+
+def test_directory_data_store_write_compressed(tmp_path):
+    from cogent3 import get_app, make_aligned_seqs, open_data_store
+
+    out = open_data_store(base_path=tmp_path / "demo", suffix="fa.gz", mode="w")
+    writer = get_app("write_seqs", data_store=out)
+    seqs = make_aligned_seqs(
+        dict(s1="CG--T", s2="CGTTT"), moltype="dna", info=dict(source="test")
+    )
+    got = writer(seqs)  # pylint: disable=not-callable
+    assert got, got
+
+
+def test_apply_to_not_completed(nc_dstore, tmp_path):
+    loader = io_app.load_unaligned()
+    num_seqs = sample_app.take_n_seqs(number=3, fixed_choice=False)
+    out_dstore = io_app.open_data_store(tmp_path / "output", suffix="fa", mode="w")
+    writer = io_app.write_seqs(data_store=out_dstore, format="fasta")
+    app = loader + num_seqs + writer
+    fini = app.apply_to(nc_dstore)
+    assert 0 < len(fini.completed) <= len(nc_dstore.completed)

@@ -12,7 +12,6 @@ from .composable import NON_COMPOSABLE, NotCompleted, define_app
 from .translate import get_fourfold_degenerate_sets
 from .typing import AlignedSeqsType, SeqsCollectionType, SerialisableType
 
-
 # TODO need a function to filter sequences based on divergence, ala divergent
 # set.
 
@@ -60,14 +59,18 @@ class concat:
 
         Create sample alignments with matching sequence names
 
-        >>> aln1 = make_aligned_seqs({"s1": "AAA", "s2": "CAA", "s3": "AAA"}, moltype="dna")
-        >>> aln2 = make_aligned_seqs({"s1": "GCG", "s2": "GGG", "s3": "GGT"}, moltype="dna")
+        >>> aln1 = make_aligned_seqs(
+        ...     {"s1": "AAA", "s2": "CAA", "s3": "AAA"}, moltype="dna"
+        ... )
+        >>> aln2 = make_aligned_seqs(
+        ...     {"s1": "GCG", "s2": "GGG", "s3": "GGT"}, moltype="dna"
+        ... )
 
         Concatenate alignments. By default, sequences without matching names in
         the corresponding alignment are omitted (intersect=True).
 
         >>> result = concat_alns([aln1, aln2])
-        >>> print(result.to_pretty(name_order=["s1","s2","s3"]))
+        >>> print(result.to_pretty(name_order=["s1", "s2", "s3"]))
         s1    AAAGCG
         s2    C...G.
         s3    ....GT
@@ -78,7 +81,7 @@ class concat:
         >>> concat_missing = get_app("concat", moltype="dna", intersect=False)
         >>> aln3 = make_aligned_seqs({"s4": "GCG", "s5": "GGG"}, moltype="dna")
         >>> result = concat_missing([aln1, aln3])
-        >>> print(result.to_pretty(name_order=["s1","s2","s3","s4","s5"]))
+        >>> print(result.to_pretty(name_order=["s1", "s2", "s3", "s4", "s5"]))
         s1    AAA???
         s2    C.....
         s3    ......
@@ -89,7 +92,7 @@ class concat:
 
         >>> concat_delim = get_app("concat", join_seq="N", moltype="dna")
         >>> result = concat_delim([aln1, aln2])
-        >>> print(result.to_pretty(name_order=["s1","s2","s3"]))
+        >>> print(result.to_pretty(name_order=["s1", "s2", "s3"]))
         s1    AAANGCG
         s2    C....G.
         s3    .....GT
@@ -180,7 +183,9 @@ class omit_degenerates:
         Create sample data with degenerate characters
 
         >>> from cogent3 import app_help, get_app, make_aligned_seqs
-        >>> aln = make_aligned_seqs({"s1": "ACGA-GACG", "s2": "GATGATGYT"}, moltype="dna")
+        >>> aln = make_aligned_seqs(
+        ...     {"s1": "ACGA-GACG", "s2": "GATGATGYT"}, moltype="dna"
+        ... )
 
         Create an app that omits aligned columns containing a degenerate
         character from an alignment
@@ -377,7 +382,9 @@ class take_codon_positions:
         positions from four-fold degenerate codons.
 
         >>> aln_ff = make_aligned_seqs({"s1": "GCAAGCGTTTAT", "s2": "GCTTTTGTCAAT"})
-        >>> take_fourfold = get_app("take_codon_positions", fourfold_degenerate=True, moltype="dna")
+        >>> take_fourfold = get_app(
+        ...     "take_codon_positions", fourfold_degenerate=True, moltype="dna"
+        ... )
         >>> result = take_fourfold(aln_ff)
         >>> print(result.to_pretty())
         s1    AT
@@ -478,12 +485,9 @@ class take_named_seqs:
         matching the provided names.
 
         >>> from cogent3 import make_aligned_seqs, get_app
-        >>> aln = make_aligned_seqs({
-        ...     "s1": "GCAAGC",
-        ...     "s2": "GCTTTT",
-        ...     "s3": "GC--GC",
-        ...     "s4": "GCAAGC"
-        ... })
+        >>> aln = make_aligned_seqs(
+        ...     {"s1": "GCAAGC", "s2": "GCTTTT", "s3": "GC--GC", "s4": "GCAAGC"}
+        ... )
         >>> app = get_app("take_named_seqs", "s1", "s2")
         >>> result = app(aln)
         >>> print(result.to_pretty())
@@ -550,13 +554,9 @@ class take_n_seqs:
         returned.
 
         >>> from cogent3 import make_aligned_seqs, get_app
-        >>> aln = make_aligned_seqs({
-        ...     "s1": "ACGT",
-        ...     "s2": "ACG-",
-        ...     "s3": "ACGN",
-        ...     "s4": "ACGG",
-        ...     "s5": "ACGG"
-        ... })
+        >>> aln = make_aligned_seqs(
+        ...     {"s1": "ACGT", "s2": "ACG-", "s3": "ACGN", "s4": "ACGG", "s5": "ACGG"}
+        ... )
         >>> app_first_n = get_app("take_n_seqs", number=3)
         >>> result = app_first_n(aln)
         >>> print(result.to_pretty())
@@ -578,13 +578,15 @@ class take_n_seqs:
         ``fixed_choice=True`` ensures the same sequences are returned when
         (randomly) sampling sequences across several alignments.
 
-        >>> aln2 = make_aligned_seqs({
-        ...     "s1": "GCGC",
-        ...     "s2": "GCG-",
-        ...     "s3": "GCG-",
-        ...     "s4": "GCGG",
-        ...     "s5": "GCGG",
-        ... })
+        >>> aln2 = make_aligned_seqs(
+        ...     {
+        ...         "s1": "GCGC",
+        ...         "s2": "GCG-",
+        ...         "s3": "GCG-",
+        ...         "s4": "GCGG",
+        ...         "s5": "GCGG",
+        ...     }
+        ... )
         >>> app_fixed = get_app("take_n_seqs", number=3, random=True, fixed_choice=True)
         >>> result1 = app_fixed(aln).names
         >>> result2 = app_fixed(aln2).names
@@ -806,7 +808,9 @@ class fixed_length:
         before sampling (i.e. codon positions are preserved).
 
         >>> aln = make_aligned_seqs({"s1": "GCAAGCGTTTAT", "s2": "GCTTTTGTCAAT"})
-        >>> app_motif3 = get_app("fixed_length", length=6, motif_length=3, random=True, seed=9)
+        >>> app_motif3 = get_app(
+        ...     "fixed_length", length=6, motif_length=3, random=True, seed=9
+        ... )
         >>> result = app_motif3(aln)
         >>> print(result.to_pretty())
         s1    AGCTAT
@@ -912,15 +916,18 @@ class omit_bad_seqs:
         or more gaps.
 
         >>> from cogent3 import make_aligned_seqs, get_app
-        >>> aln = make_aligned_seqs({
-        ...     "s1": "---ACC---TT-",
-        ...     "s2": "---ACC---TT-",
-        ...     "s3": "---ACC---TT-",
-        ...     "s4": "--AACCG-GTT-",
-        ...     "s5": "--AACCGGGTTT",
-        ...     "s6": "AGAACCGGGTT-",
-        ...     "s7": "------------"
-        ... }, moltype="dna")
+        >>> aln = make_aligned_seqs(
+        ...     {
+        ...         "s1": "---ACC---TT-",
+        ...         "s2": "---ACC---TT-",
+        ...         "s3": "---ACC---TT-",
+        ...         "s4": "--AACCG-GTT-",
+        ...         "s5": "--AACCGGGTTT",
+        ...         "s6": "AGAACCGGGTT-",
+        ...         "s7": "------------",
+        ...     },
+        ...     moltype="dna",
+        ... )
         >>> app_frac_05 = get_app("omit_bad_seqs", gap_fraction=0.5)
         >>> result = app_frac_05(aln)
         >>> print(result.to_pretty())
@@ -1001,11 +1008,11 @@ class omit_duplicated:
 
         >>> from cogent3 import get_app, make_aligned_seqs
         >>> data = {
-        ... "a": "ACGT",
-        ... "b": "ACG-",  # identical to 'a' except has a gap
-        ... "c": "ACGG",  # duplicate
-        ... "d": "ACGG",  # duplicate
-        ... "e": "AGTC"   # unique
+        ...     "a": "ACGT",
+        ...     "b": "ACG-",  # identical to 'a' except has a gap
+        ...     "c": "ACGG",  # duplicate
+        ...     "d": "ACGG",  # duplicate
+        ...     "e": "AGTC",  # unique
         ... }
 
         Create an app that selects a representative of omits duplicate sequences.
@@ -1035,13 +1042,17 @@ class omit_duplicated:
         sequences with degenerate characters. We create sample data first that
         has a DNA ambiguity code.
 
-        >>> data = make_aligned_seqs({
-        ... "s1": "ATCG",
-        ... "s2": "ATYG",  # matches s1 with ambiguity
-        ... "s3": "GGTA",
-        ... },
-        ... moltype="DNA")
-        >>> app_dna = get_app("omit_duplicated", mask_degen=True, choose="longest", moltype="DNA")
+        >>> data = make_aligned_seqs(
+        ...     {
+        ...         "s1": "ATCG",
+        ...         "s2": "ATYG",  # matches s1 with ambiguity
+        ...         "s3": "GGTA",
+        ...     },
+        ...     moltype="DNA",
+        ... )
+        >>> app_dna = get_app(
+        ...     "omit_duplicated", mask_degen=True, choose="longest", moltype="DNA"
+        ... )
         >>> result = app_dna(data)
         >>> print(result.to_pretty())
         s1    ATCG
@@ -1135,7 +1146,9 @@ class trim_stop_codons:
         stop codons.
 
         >>> from cogent3 import make_unaligned_seqs, make_aligned_seqs, get_app
-        >>> ualn = make_unaligned_seqs(data={"s1": "AAATTTCCC", "s2": "AAATTTTAA"}, moltype="dna")
+        >>> ualn = make_unaligned_seqs(
+        ...     data={"s1": "AAATTTCCC", "s2": "AAATTTTAA"}, moltype="dna"
+        ... )
         >>> app = get_app("trim_stop_codons")
         >>> result = app(ualn)
         >>> print(result.to_dict())
@@ -1147,7 +1160,9 @@ class trim_stop_codons:
         For a list of all genetic codes, see
         https://cogent3.org/doc/cookbook/what_codes.html.
 
-        >>> aln = make_aligned_seqs(data={"s1": "AAATTTCCC", "s2": "AAATTTTAA"}, moltype="dna")
+        >>> aln = make_aligned_seqs(
+        ...     data={"s1": "AAATTTCCC", "s2": "AAATTTTAA"}, moltype="dna"
+        ... )
         >>> app = get_app("trim_stop_codons", gc=2)
         >>> result = app(aln)
         >>> print(result.to_dict())

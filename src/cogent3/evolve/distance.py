@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-"""Estimating pairwise distances between sequences.
-"""
+"""Estimating pairwise distances between sequences."""
+
 from itertools import combinations
 from warnings import warn
 

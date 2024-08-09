@@ -1,7 +1,5 @@
 from unittest import TestCase
 
-from numpy.testing import assert_allclose, assert_equal
-
 from cogent3.parse.blast import (
     FastacmdTaxonomyParser,
     GenericBlastParser9,
@@ -21,6 +19,7 @@ from cogent3.parse.blast import (
     make_label,
     query_finder,
 )
+from numpy.testing import assert_allclose, assert_equal
 
 
 class BlastTests(TestCase):

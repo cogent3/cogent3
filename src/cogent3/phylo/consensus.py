@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 """This module implements methods for generating consensus trees from a list of trees"""
-import warnings
 
+import warnings
 from collections import defaultdict
 from itertools import product
 

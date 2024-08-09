@@ -5,9 +5,10 @@
 Translated from R 2.4 by Gavin Huttley
 """
 
-from numpy import arange, array, asarray
-from numpy import dot as matrixmultiply
 from numpy import (
+    arange,
+    array,
+    asarray,
     exp,
     fabs,
     floor,
@@ -20,8 +21,8 @@ from numpy import (
     sum,
     zeros,
 )
+from numpy import dot as matrixmultiply
 from scipy.special import binom
-
 
 PIO4 = pi / 4
 PIO2 = pi / 2
