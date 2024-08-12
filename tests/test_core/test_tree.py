@@ -2324,10 +2324,10 @@ def test_load_tree_bad_encoding():
     incorrectly detected the encoding of a file as UTF-16LE.
     """
     newick = "(a,b);"
-    tree = make_tree(newick)
 
-    with NamedTemporaryFile("+w", delete_on_close=False, suffix=".tre") as f:
-        f.write(tree.get_newick())
-        f.close()
+    with TemporaryDirectory(dir=".") as dirname:
+        tree_path = os.path.join(dirname, "tree.tree")
+        with open(tree_path, "wb") as f:
+            f.write(newick.encode("ascii"))
 
-        assert load_tree(f.name).get_newick() == newick
+        assert load_tree(tree_path).get_newick() == newick
