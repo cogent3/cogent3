@@ -2316,3 +2316,18 @@ def test_parser():
     tidied = tree.get_newick(with_distances=1)
     assert tidied == nice
     assert tree.get_node_matching_name("pair").params["other"] == ["com\nment"]
+
+
+def test_load_tree_bad_encoding():
+    """
+    charset_normalizer rather than chardet as a dependency
+    incorrectly detected the encoding of a file as UTF-16LE.
+    """
+    newick = "(a,b);"
+
+    with TemporaryDirectory(dir=".") as dirname:
+        tree_path = os.path.join(dirname, "tree.tree")
+        with open(tree_path, "wb") as f:
+            f.write(newick.encode("ascii"))
+
+        assert load_tree(tree_path).get_newick() == newick
