@@ -5,7 +5,7 @@ import os
 import pathlib
 import random
 from copy import copy, deepcopy
-from tempfile import NamedTemporaryFile, TemporaryDirectory
+from tempfile import TemporaryDirectory
 from unittest import TestCase
 
 import pytest
