@@ -13,7 +13,7 @@ from urllib.parse import ParseResult, urlparse
 from urllib.request import urlopen
 from zipfile import ZipFile
 
-from charset_normalizer import detect
+from chardet import detect
 
 from cogent3.util.misc import _wout_period
 

@@ -1,4 +1,17 @@
 
+<a id='changelog-2024.7.19a4'></a>
+# Changes in release "2024.7.19a4"
+
+This is a minor bug fix release.
+
+## Contributors
+
+- Contribution from @rmcar17 on fixing an encoding error when loading small newick trees.
+
+## BUG
+
+- Fixed an issue with `load_tree` incorrectly detecting the encoding of very small newick files.
+
 <a id='changelog-2024.7.19a3'></a>
 # Changes in release "2024.7.19a3"
 
