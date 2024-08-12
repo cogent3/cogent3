@@ -2899,7 +2899,9 @@ def test_alignment_to_html():
     assert got.find(ref_row) < got.find(other_row)
 
 
-@pytest.mark.xfail(reason="todo: Alignment repr currently using Seqcollection code, need to update")
+@pytest.mark.xfail(
+    reason="todo: Alignment repr currently using Seqcollection code, need to update"
+)
 def test_alignment_repr():
     data = {
         "ENSMUSG00000056468": "GCCAGGGGGAAAA",
