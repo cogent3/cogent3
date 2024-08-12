@@ -57,7 +57,7 @@ test = [
     "pytest-xdist",
     "tinydb",
     "nox"]
-doc  = ["click==8.1.7",
+doc  = ["click",
         "ipykernel",
         "ipython",
         "ipywidgets",
