@@ -326,7 +326,7 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
     @to_indices.register
     def _(self, seq: numpy.ndarray) -> numpy.ndarray:
-        return seq
+        return seq.astype(numpy.uint8)
 
     @functools.singledispatchmethod
     def from_indices(self, seq: numpy.ndarray) -> str:

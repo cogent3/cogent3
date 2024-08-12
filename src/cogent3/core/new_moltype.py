@@ -8,12 +8,7 @@ from string import ascii_letters
 import numpy
 
 from cogent3.core import new_alphabet, new_sequence
-from cogent3.data.molecular_weight import (
-    DnaMW,
-    ProteinMW,
-    RnaMW,
-    WeightCalculator,
-)
+from cogent3.data.molecular_weight import DnaMW, ProteinMW, RnaMW, WeightCalculator
 
 OptStr = typing.Optional[str]
 OptFloat = typing.Optional[float]

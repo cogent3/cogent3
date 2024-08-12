@@ -8,12 +8,7 @@ import cogent3
 import numpy
 import pytest
 from cogent3._version import __version__
-from cogent3.core import (
-    new_alphabet,
-    new_genetic_code,
-    new_moltype,
-    new_sequence,
-)
+from cogent3.core import new_alphabet, new_genetic_code, new_moltype, new_sequence
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.misc import get_object_provenance
 

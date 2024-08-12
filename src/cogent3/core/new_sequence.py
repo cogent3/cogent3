@@ -149,8 +149,6 @@ class Sequence:
         return result
 
     def __array__(self, dtype=None, copy=None):
-        if copy is False:
-            raise ValueError("`copy=False` isn't supported. A copy is always created.")
         result = array(self._seq, dtype=dtype)
         if self._seq.is_reversed:
             with contextlib.suppress(TypeError):
@@ -2531,8 +2529,6 @@ class SeqView(SeqViewABC, SliceRecordABC):
         return self.str_value
 
     def __array__(self, dtype=None, copy=None) -> numpy.ndarray:
-        if copy is False:
-            raise ValueError("`copy=False` isn't supported. A copy is always created.")
         arr = self.array_value
         if dtype is not None:
             arr = arr.astype(dtype)
