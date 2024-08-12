@@ -5,7 +5,7 @@ import os
 import pathlib
 import random
 from copy import copy, deepcopy
-from tempfile import TemporaryDirectory
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 from unittest import TestCase
 
 import pytest
@@ -2316,3 +2316,18 @@ def test_parser():
     tidied = tree.get_newick(with_distances=1)
     assert tidied == nice
     assert tree.get_node_matching_name("pair").params["other"] == ["com\nment"]
+
+
+def test_load_tree_bad_encoding():
+    """
+    charset_normalizer rather than chardet as a dependency
+    incorrectly detected the encoding of a file as UTF-16LE.
+    """
+    newick = "(a,b);"
+    tree = make_tree(newick)
+
+    with NamedTemporaryFile("+w", delete_on_close=False, suffix=".tre") as f:
+        f.write(tree.get_newick())
+        f.close()
+
+        assert load_tree(f.name).get_newick() == newick
