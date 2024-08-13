@@ -2511,7 +2511,7 @@ class Aligned:
     @property
     def seq(self) -> new_sequence.Sequence:
         """Returns Sequence object, excluding gaps."""
-        # todo: kath, where is the responsibility of reverse complement?aligned_seqs_data
+        # todo: kath, where is the responsibility of reverse complement?
         return self.data.parent.make_seq(seq=self.data.str_value, name=self.data.seqid)
 
     @property
@@ -3416,13 +3416,3 @@ def _(data: AlignedSeqsDataABC, *, moltype: str, info: dict = None) -> Alignment
     return Alignment(seqs_data=data, moltype=moltype, info=info)
 
 
-# ALN._make_aligned assigned to ASD.make_aligned
-# ALN.moltype.amke_Seq gets assigned to ASD.make_seq (created ungapped)
-# ALN. make_aligned(dv):
-#    dv.slice = self.slice
-#    return Aligned(dv, self.moltype)
-# Aligned.seq - converts slice record coords into sequence coords using the indel map
-# ASD[seqid][start:stop:step]
-
-# Aligned
-# ADV needs to go via the slice record to colelct start, stop, step information
