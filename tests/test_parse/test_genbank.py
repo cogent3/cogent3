@@ -542,9 +542,19 @@ def test_rich_genbank_just_seq():
     assert not len(seq.annotation_db)
 
 
-def test_iter_genbank_records(DATA_DIR):
-    path = DATA_DIR / "annotated_seq.gb"
-    name, seq, features = list(genbank.iter_genbank_records(path))[0]
+@pytest.fixture(params=("\r\n", "\n"))
+def gb_rec(DATA_DIR, tmp_path, request):
+    seqfile = DATA_DIR / "annotated_seq.gb"
+    out_seqfile = tmp_path / "noseq.gb"
+    data = seqfile.read_text()
+    newline = request.param
+    output = data.replace("\n", newline)
+    out_seqfile.write_text(output)
+    return out_seqfile
+
+
+def test_iter_genbank_records(gb_rec):
+    name, seq, features = list(genbank.iter_genbank_records(gb_rec))[0]
     assert len(seq) == 6201
     assert name == "AE017341"
     assert seq.startswith("CAATACCCAC")
@@ -552,8 +562,9 @@ def test_iter_genbank_records(DATA_DIR):
     assert features["locus"] == "AE017341"
 
 
-def test_iter_genbank_records_no_feature_conversion(DATA_DIR):
-    path = DATA_DIR / "annotated_seq.gb"
+@pytest.mark.parametrize("cast", (None, str))
+def test_iter_genbank_records_no_feature_conversion(cast, gb_rec):
+    path = cast(gb_rec) if cast else gb_rec
     name, seq, features = list(
         genbank.iter_genbank_records(path, convert_features=None)
     )[0]
@@ -564,18 +575,49 @@ def test_iter_genbank_records_no_feature_conversion(DATA_DIR):
     assert isinstance(features, str)
 
 
-@pytest.fixture()
-def no_seq(DATA_DIR, tmp_path):
+@pytest.fixture(params=("\n", "\r\n"))
+def gb_no_seq(DATA_DIR, tmp_path, request):
     seqfile = DATA_DIR / "annotated_seq.gb"
     data = seqfile.read_text()
+    newline = request.param
     index = data.find("\nORIGIN")
     out_seqfile = tmp_path / "noseq.gb"
-    out_seqfile.write_text(f"{data[:index]}\nORIGIN\n//\n")
+    output = f"{data[:index]}\nORIGIN\n//\n".replace("\n", newline)
+    out_seqfile.write_text(output)
     return out_seqfile
 
 
-def test_iter_genbank_records_noseq(no_seq):
-    name, seq, features = list(genbank.iter_genbank_records(no_seq))[0]
+def test_iter_genbank_records_noseq(gb_no_seq):
+    name, seq, features = list(genbank.iter_genbank_records(gb_no_seq))[0]
     assert name == "AE017341"
     assert len(seq) == 0
     assert seq == ""
+
+
+def test_minimal_parser_no_feature_conversion(gb_rec):
+    got = list(genbank.minimal_parser(gb_rec, convert_features=None))[0]
+    assert len(got["sequence"]) == 6201
+    assert got["locus"] == "AE017341"
+    assert len(got) == 3
+    assert isinstance(got["features"], str)
+
+
+def test_iter_genbank_records_invalid_input(gb_rec):
+    data = gb_rec.read_text().splitlines()
+    with pytest.raises(TypeError):
+        list(genbank.iter_genbank_records(data))
+
+
+@pytest.mark.parametrize("as_string", (True, False))
+def test_default_parse_metadata(gb_rec, as_string):
+    *_, features = list(genbank.iter_genbank_records(gb_rec, convert_features=None))[0]
+    features = features if as_string else features.encode("utf8")
+    got = genbank.default_parse_metadata(features)
+    assert got["locus"] == "AE017341"
+
+
+def test_default_parse_metadata_invalid(DATA_DIR):
+    path = DATA_DIR / "annotated_seq.gb"
+    *_, features = list(genbank.iter_genbank_records(path, convert_features=None))[0]
+    with pytest.raises(TypeError):
+        genbank.default_parse_metadata(features.splitlines())

@@ -556,74 +556,6 @@ def RichGenbankParser(*args, **kwargs):  # pragma: no cover
     return rich_parser(*args, **kwargs)
 
 
-def rich_parser(
-    handle,
-    info_excludes=None,
-    moltype=None,
-    skip_contigs=False,
-    db: typing.Optional[GenbankAnnotationDb] = None,
-    just_seq: bool = False,
-):
-    """Returns annotated sequences from GenBank formatted file.
-
-    Parameters
-    ----------
-    info_excludes
-        a series of fields to be excluded from the Info object
-    moltype
-        a MolType instance, such as PROTEIN, DNA. Default is ASCII.
-    skip_contigs
-        ignores records with no actual sequence data, typically
-        a genomic contig.
-    db
-        a GenbankAnnotationDb instance to which feature data will be
-        added
-    just_seq
-        return only the sequence, excludes include any feature data and
-        does not create an annotation_db. Overrides db argument.
-    """
-    info_excludes = info_excludes or ["sequence", "features"]
-    moltype = get_moltype(moltype) if moltype else None
-    for rec in minimal_parser(
-        handle, converter=default_seq_converter, convert_features=default_parse_metadata
-    ):
-        info = {
-            label: value
-            for label, value in list(rec.items())
-            if label not in info_excludes
-        }
-        if moltype is None:
-            rec_moltype = rec["mol_type"].lower()
-            rec_moltype = (
-                rec_moltype if rec_moltype in ("dna", "rna", "protein") else "text"
-            )
-            rec_moltype = get_moltype(rec_moltype)
-        else:
-            rec_moltype = moltype
-
-        info = Info(genbank_record=info)
-        try:
-            seq = rec_moltype.make_seq(
-                seq=rec["sequence"].upper(), info=info, name=rec["locus"]
-            )
-        except KeyError:
-            if "contig" in rec:
-                if not skip_contigs:
-                    yield rec["locus"], rec["contig"]
-            elif "WGS" in rec:
-                if not skip_contigs:
-                    yield rec["locus"], rec["WGS"]
-            elif not skip_contigs:
-                yield rec["locus"], None
-            continue
-
-        if not just_seq:
-            seq.annotation_db = GenbankAnnotationDb(
-                data=rec.pop("features", None), seqid=rec["locus"], db=db
-            )
-        yield rec["locus"], seq
-
-
 def parse_metadata_first_line(features: str) -> dict[str, str]:
     """extracts key information from the first line only"""
     line, _ = features.split("\n", maxsplit=1)
@@ -705,10 +637,11 @@ def _(
     convert_features: OptFeatureConverterType = default_parse_metadata,
 ) -> typing.Iterator[tuple[str, OutTypes, typing.Any]]:
     for record in data.split(b"\n//"):
-        if len(record) <= 2:
+        if record.isspace():
+            # trailing newline
             continue
         # split on the delimiter between feature data and sequence
-        features, seq = record.split(b"ORIGIN")
+        features, seq = record.split(b"\nORIGIN")
         # we get the locus data
         line = features[: features.find(b"\n")].split()
         locus = line[1].decode("utf8")
@@ -796,3 +729,72 @@ def minimal_parser(
         if isinstance(features, str):
             features = {"features": features}
         yield {"locus": locus, "sequence": seq, **features}
+
+
+def rich_parser(
+    handle,
+    info_excludes=None,
+    moltype=None,
+    skip_contigs=False,
+    db: typing.Optional[GenbankAnnotationDb] = None,
+    just_seq: bool = False,
+):
+    """Returns annotated sequences from GenBank formatted file.
+
+    Parameters
+    ----------
+    info_excludes
+        a series of fields to be excluded from the Info object
+    moltype
+        a MolType instance, such as PROTEIN, DNA. Default is ASCII.
+    skip_contigs
+        ignores records with no actual sequence data, typically
+        a genomic contig.
+    db
+        a GenbankAnnotationDb instance to which feature data will be
+        added
+    just_seq
+        return only the sequence, excludes include any feature data and
+        does not create an annotation_db. Overrides db argument.
+    """
+    info_excludes = info_excludes or ["sequence", "features"]
+    moltype = get_moltype(moltype) if moltype else None
+    feature_parser = parse_metadata_first_line if just_seq else default_parse_metadata
+    for rec in minimal_parser(
+        handle, converter=default_seq_converter, convert_features=feature_parser
+    ):
+        info = {
+            label: value
+            for label, value in list(rec.items())
+            if label not in info_excludes
+        }
+        if moltype is None:
+            rec_moltype = rec["mol_type"].lower()
+            rec_moltype = (
+                rec_moltype if rec_moltype in ("dna", "rna", "protein") else "text"
+            )
+            rec_moltype = get_moltype(rec_moltype)
+        else:
+            rec_moltype = moltype
+
+        info = Info(genbank_record=info)
+        try:
+            seq = rec_moltype.make_seq(
+                seq=rec["sequence"].upper(), info=info, name=rec["locus"]
+            )
+        except KeyError:
+            if "contig" in rec:
+                if not skip_contigs:
+                    yield rec["locus"], rec["contig"]
+            elif "WGS" in rec:
+                if not skip_contigs:
+                    yield rec["locus"], rec["WGS"]
+            elif not skip_contigs:
+                yield rec["locus"], None
+            continue
+
+        if not just_seq:
+            seq.annotation_db = GenbankAnnotationDb(
+                data=rec.pop("features", None), seqid=rec["locus"], db=db
+            )
+        yield rec["locus"], seq
