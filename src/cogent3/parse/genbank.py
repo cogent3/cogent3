@@ -626,7 +626,8 @@ def rich_parser(
 
 @functools.singledispatch
 def default_parse_metadata(data) -> dict[str, dict]:
-    raise TypeError(f"iter_fasta_records not implemented for {type(data)}")
+    """convert genbank record metadata in a dict"""
+    raise TypeError(f"not implemented for {type(data)}")
 
 
 @default_parse_metadata.register
