@@ -1617,7 +1617,7 @@ def _db_from_genbank(
     path: PathType, db: typing.Optional[SupportsFeatures], write_path, **kwargs
 ):
     from cogent3 import open_
-    from cogent3.parse.genbank import MinimalGenbankParser
+    from cogent3.parse.genbank import minimal_parser
 
     paths = pathlib.Path(path)
     paths = list(paths.parent.glob(paths.name))
@@ -1625,15 +1625,14 @@ def _db_from_genbank(
     ui = kwargs.pop("ui")
     one_valid_path = False
     for path in ui.series(paths):
-        with open_(path) as infile:
-            rec = list(MinimalGenbankParser(infile))[0]
-            db = GenbankAnnotationDb(
-                source=write_path,
-                data=rec.pop("features", None),
-                seqid=rec["locus"],
-                db=db,
-            )
-            one_valid_path = True
+        rec = list(minimal_parser(path))[0]
+        db = GenbankAnnotationDb(
+            source=write_path,
+            data=rec.pop("features", None),
+            seqid=rec["locus"],
+            db=db,
+        )
+        one_valid_path = True
 
     if not one_valid_path:
         raise IOError(f"{str(path)!r} not found")

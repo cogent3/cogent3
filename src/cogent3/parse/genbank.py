@@ -1,7 +1,14 @@
-from typing import List, Optional, Tuple
+import functools
+import io
+import pathlib
+import string
+import typing
 
+import numpy
+
+import cogent3
+from cogent3.core import new_alphabet
 from cogent3.core.annotation_db import GenbankAnnotationDb
-from cogent3.core.genetic_code import GeneticCodes
 from cogent3.core.info import Info
 from cogent3.core.moltype import get_moltype
 from cogent3.parse.record import FieldWrapper
@@ -9,6 +16,7 @@ from cogent3.parse.record_finder import (
     DelimitedRecordFinder,
     LabeledRecordFinder,
 )
+from cogent3.util import warning as c3warn
 
 maketrans = str.maketrans
 strip = str.strip
@@ -433,7 +441,7 @@ class LocationList(list):
             result.append(curr)
         return "".join(result)
 
-    def get_coordinates(self) -> List[Tuple[int, int]]:
+    def get_coordinates(self) -> typing.List[typing.Tuple[int, int]]:
         """returns the segments in python coordinates"""
         return sorted((i.start, i.stop + 1) for i in self)
 
@@ -519,6 +527,9 @@ handlers = {
 }
 
 
+@c3warn.deprecated_callable(
+    "2024.12", reason="minimal_parser is faster and more flexible", is_discontinued=True
+)
 def MinimalGenbankParser(lines, handlers=handlers, default_handler=generic_adaptor):
     for rec in GbFinder(lines):
         curr = {}
@@ -579,30 +590,18 @@ def parse_location_atom(location_atom):
     return Location(int(a))
 
 
-wanted_types = dict.fromkeys(["CDS"])
+@c3warn.deprecated_callable("2024.12", reason="pep8 naming", new="rich_parser")
+def RichGenbankParser(*args, **kwargs):
+    """deprecated, use rich_parser instead"""
+    return rich_parser(*args, **kwargs)
 
 
-def extract_nt_prot_seqs(rec, wanted=wanted_types):
-    """Extracts nucleotide seqs, and, where possible, protein seqs, from recs."""
-    rec_seq = rec["sequence"]
-    for f in rec["features"]:
-        if f["type"] not in wanted:
-            continue
-        translation = f["translation"][0]
-        raw_seq = f["location"].extract(rec_seq)
-        print(raw_seq)
-        seq = raw_seq[int(f["codon_start"][0]) - 1 :]
-        print("dt:", translation)
-        print("ct:", GeneticCodes[f.get("transl_table", "1")[0]].translate(seq))
-        print("s :", seq)
-
-
-def RichGenbankParser(
+def rich_parser(
     handle,
     info_excludes=None,
     moltype=None,
     skip_contigs=False,
-    db: Optional[GenbankAnnotationDb] = None,
+    db: typing.Optional[GenbankAnnotationDb] = None,
     just_seq: bool = False,
 ):
     """Returns annotated sequences from GenBank formatted file.
@@ -625,7 +624,9 @@ def RichGenbankParser(
     """
     info_excludes = info_excludes or ["sequence", "features"]
     moltype = get_moltype(moltype) if moltype else None
-    for rec in MinimalGenbankParser(handle):
+    for rec in minimal_parser(
+        handle, converter=default_seq_converter, convert_features=default_parse_metadata
+    ):
         info = {
             label: value
             for label, value in list(rec.items())
@@ -661,3 +662,169 @@ def RichGenbankParser(
                 data=rec.pop("features", None), seqid=rec["locus"], db=db
             )
         yield rec["locus"], seq
+
+
+@functools.singledispatch
+def default_parse_metadata(data) -> dict[str, dict]:
+    raise TypeError(f"iter_fasta_records not implemented for {type(data)}")
+
+
+@default_parse_metadata.register
+def _(data: bytes) -> dict[str, dict]:
+    return default_parse_metadata(data.decode("utf8"))
+
+
+@default_parse_metadata.register
+def _(data: str) -> dict[str, dict]:
+    curr = {}
+    for field in indent_splitter(data.splitlines()):
+        first_word = field[0].split(None, 1)[0]
+        handler = handlers.get(first_word, generic_adaptor)
+
+        try:
+            handler(field, curr)
+        except Exception:
+            return {}
+    return curr
+
+
+OutTypes = typing.Union[str, bytes, numpy.ndarray]
+SeqConverterType = typing.Optional[typing.Callable[[bytes], OutTypes]]
+OptFeatureConverterType = typing.Optional[typing.Callable[[str], typing.Any]]
+
+_seq_converter = new_alphabet.convert_alphabet(
+    string.ascii_lowercase.encode("utf8"),
+    string.ascii_uppercase.encode("utf8"),
+    delete=b"\n\r\t 0123456789",
+)
+
+
+def default_seq_converter(data: bytes) -> str:
+    return _seq_converter(data).decode("utf8")
+
+
+@functools.singledispatch
+def iter_genbank_records(
+    data,
+    converter: SeqConverterType = default_seq_converter,
+    convert_features: OptFeatureConverterType = default_parse_metadata,
+) -> tuple[str, OutTypes, typing.Any]:
+    """generator returning sequence labels and sequences converted bytes from a fasta file
+
+    Parameters
+    ----------
+    data
+        contents of a genbank file or the path to one
+    converter
+        a callable that converts sequence characters, deleting unwanted characters
+        (newlines, spaces, numbers). Whatever type this callable returns will be the type
+        of the sequence returned. If None, uses default_seq_converter() which returns str.
+    convert_features
+        a callable that converts the feature block of the genbank record, passed as
+        a string
+
+    Returns
+    -------
+    the sequence label as a string and the sequence as transformed by converter
+    """
+    raise TypeError(f"iter_fasta_records not implemented for {type(data)}")
+
+
+@iter_genbank_records.register
+def _(
+    data: bytes,
+    converter: SeqConverterType = default_seq_converter,
+    convert_features: OptFeatureConverterType = default_parse_metadata,
+) -> typing.Iterator[tuple[str, OutTypes, typing.Any]]:
+    for record in data.split(b"\n//"):
+        if len(record) <= 2:
+            continue
+        # split on the delimiter between feature data and sequence
+        features, seq = record.split(b"ORIGIN")
+        # we get the locus data
+        line = features[: features.find(b"\n")].split()
+        locus = line[1].decode("utf8")
+        # processing the seq
+        seq = converter(seq)
+        # then the features
+        features = features.decode("utf8")
+        if convert_features:
+            features = convert_features(features)
+
+        yield locus, seq, features
+
+
+@iter_genbank_records.register
+def _(
+    data: str,
+    converter: SeqConverterType = default_seq_converter,
+    convert_features: OptFeatureConverterType = default_parse_metadata,
+) -> typing.Iterator[tuple[str, OutTypes, typing.Any]]:
+    with cogent3.open_(data, mode="rb") as infile:
+        data: bytes = infile.read()
+
+    return iter_genbank_records(
+        data, converter=converter, convert_features=convert_features
+    )
+
+
+@iter_genbank_records.register
+def _(
+    data: pathlib.Path,
+    converter: SeqConverterType = default_seq_converter,
+    convert_features: OptFeatureConverterType = default_parse_metadata,
+) -> typing.Iterator[tuple[str, OutTypes, typing.Any]]:
+    with cogent3.open_(data, mode="rb") as infile:
+        data: bytes = infile.read()
+
+    return iter_genbank_records(
+        data, converter=converter, convert_features=convert_features
+    )
+
+
+@iter_genbank_records.register
+def _(
+    data: io.TextIOBase,
+    converter: SeqConverterType = default_seq_converter,
+    convert_features: OptFeatureConverterType = default_parse_metadata,
+) -> typing.Iterator[tuple[str, OutTypes, typing.Any]]:
+    data: bytes = data.read().encode("utf8")
+
+    return iter_genbank_records(
+        data, converter=converter, convert_features=convert_features
+    )
+
+
+def minimal_parser(
+    data,
+    converter: SeqConverterType = default_seq_converter,
+    convert_features: OptFeatureConverterType = default_parse_metadata,
+) -> typing.Iterator[dict]:
+    """minimal genbank parser wraps iter_genbank_records
+
+    Parameters
+    ----------
+    converter
+        a callable that converts sequence characters, deleting unwanted
+        characters (newlines, spaces, numbers). Whatever type this callable
+        returns will be the type of the sequence returned. If None, uses
+        default_seq_converter() which returns str.
+    convert_features
+        a callable that converts the feature block of the genbank record,
+        passed as a string. If None, the metadata is returned as a string.
+
+    Notes
+    -----
+    To just read sequence data, set convert_feature to None. This can boost
+    performance nearly 10x.
+
+    Returns
+    -------
+    dictionary with at least keys 'locus', 'sequence'. All values are python
+    primitives. (The default feature parser creates many more keys from the
+    genbank record metadata.)
+    """
+    for locus, seq, features in iter_genbank_records(data, converter, convert_features):
+        if isinstance(features, str):
+            features = {"features": features}
+        yield {"locus": locus, "sequence": seq, **features}
