@@ -918,10 +918,10 @@ def test_incompatible_invalid_type(wrong_type):
 
 
 def _custom_namer(data):
-    for key in ("gene", "locus_tag", "strain"):
-        if key in data:
-            return data[key]
-    return ["default name"]
+    return next(
+        (data[key] for key in ("gene", "locus_tag", "strain") if key in data),
+        ["default name"],
+    )
 
 
 def test_gb_namer(DATA_DIR):
