@@ -118,7 +118,7 @@ def _make_seq_container(
     info = info or {}
     for other_kw in ("constructor_kw", "kw"):
         other_kw = kw.pop(other_kw, None) or {}
-        kw.update(other_kw)
+        kw |= other_kw
     assert isinstance(info, dict), "info must be a dict"
     source = source or info.get("source", "unknown")
     info["source"] = str(source)

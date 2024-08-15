@@ -15,7 +15,7 @@ from cogent3.core.annotation_db import (
     update_file_format,
 )
 from cogent3.core.sequence import Sequence
-from cogent3.parse.genbank import MinimalGenbankParser
+from cogent3.parse import genbank
 from cogent3.util import deserialise
 
 
@@ -918,15 +918,15 @@ def test_incompatible_invalid_type(wrong_type):
 
 
 def _custom_namer(data):
-    for key in ("gene", "locus_tag", "strain"):
-        if key in data:
-            return data[key]
-    return ["default name"]
+    return next(
+        (data[key] for key in ("gene", "locus_tag", "strain") if key in data),
+        ["default name"],
+    )
 
 
 def test_gb_namer(DATA_DIR):
     path = DATA_DIR / "annotated_seq.gb"
-    got = list(MinimalGenbankParser(path.read_text().splitlines()))
+    got = list(genbank.minimal_parser(path))
     data = got[0]["features"]
     db = GenbankAnnotationDb(data=data, namer=_custom_namer, seqid=got[0]["locus"])
     # there are 2 repeat regions, which we don't catch with our namer
