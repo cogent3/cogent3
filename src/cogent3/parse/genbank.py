@@ -550,48 +550,6 @@ def MinimalGenbankParser(
             yield curr
 
 
-def parse_location_segment(location_segment):
-    """Parses a location segment into its component pieces.
-
-    Known possibilities:
-    http://www.ebi.ac.uk/embl/Documentation/FT_definitions/feature_table.html
-
-    467             single base
-    a..b            range from a to b, including a and b
-    <a              strictly before a
-    >a              strictly after a
-    (a.b)           a single base between a and b, inclusive
-    a^b             a site between two adjacent bases between a and b
-    accession:a     a occurs in accession, not in the current sequence
-    db::accession:a a occurrs in accession in db, not in the current sequence
-    """
-    s = location_segment  # save some typing...
-    lsp = parse_location_segment
-    # check if it's a range
-    if ".." in s:
-        first, second = s.split("..")
-        return Location([lsp(first), lsp(second)])
-    # check if it's between two adjacent bases
-    elif "^" in s:
-        first, second = s.split("^")
-        return Location([lsp(first), lsp(second)], is_between=True)
-    # check if it's a single base reference -- but don't be fooled by
-    # accessions!
-    elif "." in s and s.startswith("(") and s.endswith(")"):
-        first, second = s.split(".")
-        return Location([lsp(first[1:]), lsp(second[:-1])])
-
-
-def parse_location_atom(location_atom):
-    """Parses a location atom, supposed to be a single-base position."""
-    a = location_atom
-    if a.startswith("<") or a.startswith(">"):  # fuzzy
-        position = int(a[1:])
-        return Location(position, ambiguity=a[0])
-    # otherwise, should just be an integer
-    return Location(int(a))
-
-
 @c3warn.deprecated_callable("2024.12", reason="pep8 naming", new="rich_parser")
 def RichGenbankParser(*args, **kwargs):  # pragma: no cover
     """deprecated, use rich_parser instead"""
