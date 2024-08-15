@@ -2526,7 +2526,6 @@ def test_seqview_seq_len_modified_seq(dna_alphabet):
 def test_sequence_str_bytes_array():
     data = "ACGGTGGGAC"
     seq = new_moltype.DNA.make_seq(seq=data)
-    print(type(seq))
     assert str(seq) == data
     assert bytes(seq) == data.encode("utf8")
     assert numpy.array_equal(
