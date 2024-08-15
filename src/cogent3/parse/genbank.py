@@ -624,6 +624,13 @@ def rich_parser(
         yield rec["locus"], seq
 
 
+def parse_metadata_first_line(features: str) -> dict[str, str]:
+    """extracts key information from the first line only"""
+    line, _ = features.split("\n", maxsplit=1)
+    data = parse_locus(line)
+    return data
+
+
 @functools.singledispatch
 def default_parse_metadata(data) -> dict[str, dict]:
     """convert genbank record metadata in a dict"""
