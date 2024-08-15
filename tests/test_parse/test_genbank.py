@@ -588,7 +588,7 @@ def gb_no_seq(DATA_DIR, tmp_path, request):
 
 
 def test_iter_genbank_records_noseq(gb_no_seq):
-    name, seq, features = list(genbank.iter_genbank_records(gb_no_seq))[0]
+    name, seq, _ = list(genbank.iter_genbank_records(gb_no_seq))[0]
     assert name == "AE017341"
     assert len(seq) == 0
     assert seq == ""
