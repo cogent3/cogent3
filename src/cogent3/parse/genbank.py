@@ -530,7 +530,9 @@ handlers = {
 @c3warn.deprecated_callable(
     "2024.12", reason="minimal_parser is faster and more flexible", is_discontinued=True
 )
-def MinimalGenbankParser(lines, handlers=handlers, default_handler=generic_adaptor):
+def MinimalGenbankParser(
+    lines, handlers=handlers, default_handler=generic_adaptor
+):  # pragma: no cover
     for rec in GbFinder(lines):
         curr = {}
         bad_record = False
@@ -591,7 +593,7 @@ def parse_location_atom(location_atom):
 
 
 @c3warn.deprecated_callable("2024.12", reason="pep8 naming", new="rich_parser")
-def RichGenbankParser(*args, **kwargs):
+def RichGenbankParser(*args, **kwargs):  # pragma: no cover
     """deprecated, use rich_parser instead"""
     return rich_parser(*args, **kwargs)
 
