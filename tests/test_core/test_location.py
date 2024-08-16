@@ -6,6 +6,7 @@ from unittest import TestCase
 import numpy
 import pytest
 from cogent3 import DNA, make_seq
+from cogent3.core import new_moltype
 from cogent3.core.location import (
     FeatureMap,
     IndelMap,
@@ -950,7 +951,7 @@ def test_gapped_convert_aln2seq_invalid():
 
 @pytest.mark.parametrize(
     "invalid_slice",
-    (slice(None, None, -1), slice(None, None, 2)),
+    (slice(None, None, -1), slice(None, None, -2)),
 )
 def test_gap_pos_invalid_slice(invalid_slice):
     pos, lengths = numpy.array([[1, 3]], dtype=numpy.int32).T
@@ -1195,3 +1196,44 @@ def test_indelmap_make_seq_feature_map():
     got = im.make_seq_feature_map(align_map)
     assert got.get_coordinates() == expect.get_coordinates()
     assert got.parent_length == expect.parent_length
+
+
+def test_indelmap_slice_positive_step_trivial():
+    # simple case of where slice is inside a single gap
+    data = "A--------G"
+    imap, _ = new_moltype.DNA.make_seq(seq=data).parse_out_gaps()
+    got = imap[1:7:3]
+    expect, _ = new_moltype.DNA.make_seq(seq=data[1:7:3]).parse_out_gaps()
+    assert (got.gap_pos == expect.gap_pos).all()
+    assert (got.cum_gap_lengths == expect.cum_gap_lengths).all()
+
+
+@pytest.mark.parametrize(
+    "aslice",
+    [
+        slice(0, 16, 3),
+        slice(1, 15, 3),
+        slice(5, 8, 1),
+        slice(3, 16, 2),
+        slice(4, 16, 2),
+        slice(1, 16, 7),
+    ],
+)
+@pytest.mark.parametrize(
+    "data",
+    [
+        "--AAA---C--AAAA--",
+        "AAACCCCTTTTGGGGAA",
+        "--AAA---C--AAAAAA",
+        "--A--A--C--T--A--",
+        "A---------------C",
+        "-----------------",
+    ],
+)
+def test_indelmap_slice_positive_step(aslice, data):
+    # simple case of where slice is inside a single gap
+    imap, _ = new_moltype.DNA.make_seq(seq=data).parse_out_gaps()
+    got = imap[aslice]
+    expect, _ = new_moltype.DNA.make_seq(seq=data[aslice]).parse_out_gaps()
+    assert (got.gap_pos == expect.gap_pos).all()
+    assert (got.cum_gap_lengths == expect.cum_gap_lengths).all()

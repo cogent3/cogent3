@@ -3414,5 +3414,3 @@ def _(data: AlignedSeqsDataABC, *, moltype: str, info: dict = None) -> Alignment
         )
 
     return Alignment(seqs_data=data, moltype=moltype, info=info)
-
-
