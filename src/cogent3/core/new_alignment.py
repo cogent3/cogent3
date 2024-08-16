@@ -2976,8 +2976,6 @@ class AlignedDataView(new_sequence.SeqViewABC):
             cum_gap_lengths=cum_gap_lengths,
             parent_length=len(self.parent),
         )
-        # todo: kath
-        # need to implement non-1 step support for IndelMaps
         return im[
             self.slice_record.start : self.slice_record.stop : self.slice_record.step
         ]
