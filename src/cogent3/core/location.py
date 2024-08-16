@@ -1128,15 +1128,16 @@ class IndelMap(MapABC):
         # we're assuming that this gap object is associated with a sequence
         # that will also be sliced. Hence, we need to shift the gap insertion
         # positions relative to this newly sliced sequence.
-        if (item.step or 1) < 1:
-            raise NotImplementedError(
-                f"{type(self).__name__!r} does not yet support negative strides"
-            )
 
         zero_array = numpy.array([], dtype=_DEFAULT_GAP_DTYPE)
         start = item.start or 0
         stop = item.stop if item.stop is not None else len(self)
         step = item.step or 1
+
+        if step < 1:
+            raise NotImplementedError(
+                f"{type(self).__name__!r} does not yet support negative strides"
+            )
 
         # convert negative indices
         start = start if start >= 0 else len(self) + start
@@ -1157,7 +1158,7 @@ class IndelMap(MapABC):
         no_gaps = self.__class__(
             gap_pos=zero_array.copy(),
             cum_gap_lengths=zero_array.copy(),
-            parent_length=stop - start,
+            parent_length=-((stop - start) // -step),
         )
         if not self.num_gaps:
             return no_gaps
@@ -1172,7 +1173,7 @@ class IndelMap(MapABC):
         cum_lengths = self.cum_gap_lengths.copy()
         # we find where the slice starts
         # searchsorted finds indices where elements should be inserted to maintain order.
-        # l is the index of the first gap included in the slice. use start + 1 to account
+        # l is the index of the first gap included in the slice. I use start + 1 to account
         # for the fact that gap ends are exclusive indexing
         l = numpy.searchsorted(gap_ends, start + 1, side="left")
         if gap_starts[l] <= start < gap_ends[l] and stop <= gap_ends[l]:
@@ -1252,22 +1253,14 @@ class IndelMap(MapABC):
             overstep = (gap_starts[r] - start) % step
             adj = step - overstep if overstep else 0
             adj_gaps[-1][1] = -(((stop - gap_starts[r]) - adj) // -step)
-        elif stop >= gap_ends[-1]:
-            # stop is within the final ungapped segment
-            # work out how many positions are in the segment
-            overstep = (gap_ends[-1] - start) % step
-            adj = step - overstep if overstep else 0
-            adj_seq_len = -((stop - (gap_ends[-1] + adj)) // -step)
-            cum_seq_length += max(adj_seq_len, 0)
-
-        elif stop < gap_starts[r]:
+        elif stop >= gap_ends[-1] or stop < gap_starts[r]:
             # stop is within an ungapped segment
-            # work out how many positions are in the segment
+            # either the last segment or the one before the last included gap
             overstep = (gap_ends[r - 1] - start) % step
             adj = step - overstep if overstep else 0
             adj_seq_len = -((stop - (gap_ends[r - 1] + adj)) // -step)
             cum_seq_length += max(adj_seq_len, 0)
-        elif gap_starts[r] <= stop < gap_ends[r]:
+        else:
             # stop is within a gap
             # work out the previous ungapped segment
             overstep = (gap_ends[r - 1] - start) % step
@@ -1282,7 +1275,6 @@ class IndelMap(MapABC):
 
             if adj_gap_len > 0:
                 # check that we do not step over the gap entirely
-
                 if adj_seq_len < 1 and adj_gaps[-1][0] == cum_seq_length:
                     # the previous gap is contiguous with this one
                     adj_gaps[-1][1] += adj_gap_len
