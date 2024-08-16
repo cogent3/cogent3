@@ -1,5 +1,7 @@
 from unittest import TestCase
 
+from numpy.testing import assert_allclose
+
 from cogent3 import make_tree
 from cogent3.draw.dendrogram import (
     CircularTreeGeometry,
@@ -8,7 +10,6 @@ from cogent3.draw.dendrogram import (
 )
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.union_dict import UnionDict
-from numpy.testing import assert_allclose
 
 
 class TestDendro(TestCase):

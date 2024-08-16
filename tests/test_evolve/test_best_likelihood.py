@@ -1,6 +1,8 @@
 import math
 from unittest import TestCase
 
+from numpy.testing import assert_allclose
+
 from cogent3 import DNA, make_aligned_seqs
 from cogent3.evolve.best_likelihood import (
     BestLogLikelihood,
@@ -11,7 +13,6 @@ from cogent3.evolve.best_likelihood import (
     get_G93_lnL_from_array,
     get_ML_probs,
 )
-from numpy.testing import assert_allclose
 
 IUPAC_DNA_ambiguities = "NRYWSKMBDHV"
 

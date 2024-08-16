@@ -1,6 +1,7 @@
 import unittest
 
 import pytest
+
 from cogent3 import (
     get_moltype,
     load_seq,

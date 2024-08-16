@@ -6,6 +6,7 @@ import zipfile
 from urllib.parse import urlparse
 
 import pytest
+
 from cogent3.app.composable import NotCompleted
 from cogent3.util.io import (
     _path_relative_to_zip_parent,

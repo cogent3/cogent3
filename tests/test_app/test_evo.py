@@ -5,6 +5,8 @@ from unittest import TestCase
 from unittest.mock import MagicMock
 
 import pytest
+from numpy.testing import assert_allclose, assert_raises
+
 from cogent3 import (
     get_app,
     load_aligned_seqs,
@@ -22,7 +24,6 @@ from cogent3.app.result import (
 )
 from cogent3.evolve.models import get_model
 from cogent3.util.deserialise import deserialise_object
-from numpy.testing import assert_allclose, assert_raises
 
 data_dir = join(dirname(dirname(__file__)), "data")
 

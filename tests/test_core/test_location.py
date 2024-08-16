@@ -5,6 +5,7 @@ from unittest import TestCase
 
 import numpy
 import pytest
+
 from cogent3 import DNA, make_seq
 from cogent3.core.location import (
     FeatureMap,

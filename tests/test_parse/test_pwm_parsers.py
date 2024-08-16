@@ -1,9 +1,10 @@
 from unittest import TestCase
 
-from cogent3.core.moltype import get_moltype
-from cogent3.parse import cisbp, jaspar
 from numpy import array
 from numpy.testing import assert_allclose, assert_array_equal
+
+from cogent3.core.moltype import get_moltype
+from cogent3.parse import cisbp, jaspar
 
 
 class TestPwmParsers(TestCase):

@@ -1,9 +1,10 @@
 from unittest import TestCase
 
 import numpy
+from numpy.testing import assert_allclose
+
 from cogent3 import make_aligned_seqs
 from cogent3.maths.stats import number
-from numpy.testing import assert_allclose
 
 
 class TestNumber(TestCase):

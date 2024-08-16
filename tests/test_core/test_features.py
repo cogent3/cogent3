@@ -2,6 +2,7 @@ from unittest import TestCase
 
 import numpy
 import pytest
+
 from cogent3 import ASCII, DNA, get_moltype, make_aligned_seqs
 from cogent3.core.alignment import Alignment, SequenceCollection
 from cogent3.core.annotation import Feature

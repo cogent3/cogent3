@@ -6,6 +6,7 @@ from unittest import TestCase
 
 import numpy
 import pytest
+
 from cogent3.core.info import Info
 from cogent3.core.sequence import DnaSequence, Sequence
 from cogent3.core.sequence import ProteinSequence as Protein

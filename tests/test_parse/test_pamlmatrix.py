@@ -1,9 +1,10 @@
 from io import StringIO
 from unittest import TestCase
 
+from numpy.testing import assert_equal
+
 from cogent3.evolve.models import DSO78_freqs, DSO78_matrix
 from cogent3.parse.paml_matrix import PamlMatrixParser
-from numpy.testing import assert_equal
 
 data = """
        27									    

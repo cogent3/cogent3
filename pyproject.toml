@@ -219,6 +219,10 @@ docstring-code-format = true
 # enabled.
 docstring-code-line-length = "dynamic"
 
+[tool.ruff.lint.isort]
+# group cogent3 imports last
+known-first-party = ["cogent3"]
+
 [tool.scriv]
 format="md"
 categories=["Contributors", "ENH", "BUG", "DOC", "Deprecations", "Discontinued"]

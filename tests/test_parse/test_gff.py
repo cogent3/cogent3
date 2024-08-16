@@ -9,6 +9,7 @@ from pathlib import Path
 from unittest import TestCase
 
 import pytest
+
 from cogent3.parse.gff import (
     GffRecord,
     gff_parser,

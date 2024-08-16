@@ -3,6 +3,7 @@
 from unittest import TestCase
 
 import pytest
+
 from cogent3.parse import genbank
 
 
