@@ -1002,6 +1002,21 @@ def _update_lengths(
     result_lengths[result_indices] += gap_lengths[other_indices]
 
 
+def _step_adjustment(gap_start, start, step):
+    """determines how many more steps we need to take from the beginning of
+    a gap/ungapped segment to reach a position which is a multiple of the step"""
+    overstep = (gap_start - start) % step
+    return step - overstep if overstep else 0
+
+
+def _step_adjusted_length(start, end, adj, step):
+    """returns the adjusted length of a segment given a step size
+    and its start and stop index. The adjustment is the number of steps
+    needed to reach the next multiple of the step size"""
+    adjusted_length = -((end - start - adj) // -step)
+    return max(adjusted_length, 0)
+
+
 @dataclasses.dataclass
 class IndelMap(MapABC):
     """store locations of deletions in a Aligned sequence
@@ -1158,7 +1173,7 @@ class IndelMap(MapABC):
         no_gaps = self.__class__(
             gap_pos=zero_array.copy(),
             cum_gap_lengths=zero_array.copy(),
-            parent_length=-((stop - start) // -step),
+            parent_length=_step_adjusted_length(start, stop, 0, step),
         )
         if not self.num_gaps:
             return no_gaps
@@ -1173,21 +1188,20 @@ class IndelMap(MapABC):
         cum_lengths = self.cum_gap_lengths.copy()
         # we find where the slice starts
         # searchsorted finds indices where elements should be inserted to maintain order.
-        # l is the index of the first gap included in the slice. I use start + 1 to account
-        # for the fact that gap ends are exclusive indexing
+        # l is the index of the first gap included in the slice, using start + 1 to account
+        # for exclusive indexing of gap ends
         l = numpy.searchsorted(gap_ends, start + 1, side="left")
         if gap_starts[l] <= start < gap_ends[l] and stop <= gap_ends[l]:
             # entire span is within a single gap
             # pos now 0
             gap_pos = numpy.array([0], dtype=_DEFAULT_GAP_DTYPE)
             cum_lengths = cum_lengths[l : l + 1]
-            # cumulative length is adjusted for the stride
-            cum_lengths[0] = -((stop - start) // -step)
+            cum_lengths[0] = _step_adjusted_length(start, stop, 0, step)
             return self.__class__(
                 gap_pos=gap_pos, cum_gap_lengths=cum_lengths, parent_length=0
             )
 
-        # cumulative length of the sequence accounting for step
+        # start a counter for the cumulative sequence length
         cum_seq_length = 0
         adj_gaps = []
         lengths = self.get_gap_lengths()
@@ -1210,16 +1224,15 @@ class IndelMap(MapABC):
 
             # we need to determine how long the ungapped segment is, in order
             # to know what adjusted index the following gap starts at
-            ungapped_length = -((gap_starts[l] - start) // -step)
-            cum_seq_length += max(ungapped_length, 0)
 
-            # adj is how many more steps we need to take to reach a position
-            # which is a multiple of the step
-            overstep = (gap_starts[l] - start) % step
-            adj = step - overstep if overstep else 0
+            cum_seq_length += _step_adjusted_length(
+                start=start, end=gap_starts[l], adj=0, step=step
+            )
+            # adj is how many more steps we need to take from the beginning of
+            # the gap to reach a position which is a multiple of the step
+            adj = _step_adjustment(gap_starts[l], start, step)
             if adj < lengths[l]:
-                # if adj > length, then the gap is "stepped over" by the stride
-                # so we first check that we include this gap
+                # if adj > gap length, then the gap is "stepped over" by the stride
                 adj_gap_len = -((lengths[l] - adj) // -step)
                 adj_gaps.append([cum_seq_length, adj_gap_len])
 
@@ -1230,14 +1243,14 @@ class IndelMap(MapABC):
         # these are the gaps that are fully within the slice
         for j in range(l + 1, r):
             # determine how long the preceding ungapped segment was
-            overstep = (gap_ends[j - 1] - start) % step
-            adj = step - overstep if overstep else 0
-            ungapped_length = -(((gap_starts[j] - (gap_ends[j - 1])) - adj) // -step)
-            cum_seq_length += max(ungapped_length, 0)
+            adj = _step_adjustment(gap_ends[j - 1], start, step)
+            adj_seq_len = _step_adjusted_length(
+                (gap_ends[j - 1]), gap_starts[j], adj, step
+            )
+            cum_seq_length += adj_seq_len
 
             # calculate the adjustment to the gap
-            overstep = (gap_starts[j] - start) % step
-            adj = step - overstep if overstep else 0
+            adj = _step_adjustment(gap_starts[j], start, step)
             if adj < lengths[j]:
                 # if overstep > length, then the gap is "stepped over" by the stride
                 adj_gap_len = -((lengths[j] - adj) // -step)
@@ -1250,32 +1263,28 @@ class IndelMap(MapABC):
         # now we determine the end of the slice
         if l == r:
             # the stop was inside the first gap
-            overstep = (gap_starts[r] - start) % step
-            adj = step - overstep if overstep else 0
-            adj_gaps[-1][1] = -(((stop - gap_starts[r]) - adj) // -step)
+            adj = _step_adjustment(gap_starts[r], start, step)
+            adj_gaps[-1][1] = _step_adjusted_length(gap_starts[r], stop, adj, step)
         elif stop >= gap_ends[-1] or stop < gap_starts[r]:
             # stop is within an ungapped segment
             # either the last segment or the one before the last included gap
-            overstep = (gap_ends[r - 1] - start) % step
-            adj = step - overstep if overstep else 0
-            adj_seq_len = -((stop - (gap_ends[r - 1] + adj)) // -step)
-            cum_seq_length += max(adj_seq_len, 0)
+            adj = _step_adjustment(gap_ends[r - 1], start, step)
+            cum_seq_length += _step_adjusted_length(gap_ends[r - 1], stop, adj, step)
         else:
             # stop is within a gap
             # work out the previous ungapped segment
-            overstep = (gap_ends[r - 1] - start) % step
-            adj = step - overstep if overstep else 0
-            adj_seq_len = -((gap_starts[r] - (gap_ends[r - 1] + adj)) // -step)
-            cum_seq_length += max(adj_seq_len, 0)
+            adj = _step_adjustment(gap_ends[r - 1], start, step)
+            cum_seq_length += _step_adjusted_length(
+                gap_ends[r - 1], gap_starts[r], adj, step
+            )
 
             # work out the length of the gap when considering the stop
-            overstep = (gap_starts[r] - start) % step
-            adj = step - overstep if overstep else 0
-            adj_gap_len = -((stop - (gap_starts[r] + adj)) // -step)
+            adj = _step_adjustment(gap_starts[r], start, step)
+            adj_gap_len = _step_adjusted_length(gap_starts[r], stop, adj, step)
 
             if adj_gap_len > 0:
                 # check that we do not step over the gap entirely
-                if adj_seq_len < 1 and adj_gaps[-1][0] == cum_seq_length:
+                if adj_gaps[-1][0] == cum_seq_length:
                     # the previous gap is contiguous with this one
                     adj_gaps[-1][1] += adj_gap_len
                 else:
