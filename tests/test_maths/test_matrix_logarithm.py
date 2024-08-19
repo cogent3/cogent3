@@ -2,13 +2,14 @@
 
 from unittest import TestCase
 
+from numpy import array
+from numpy.testing import assert_allclose
+
 from cogent3.maths.matrix_logarithm import (
     is_generator_unique,
     logm,
     logm_taylor,
 )
-from numpy import array
-from numpy.testing import assert_allclose
 
 
 class logarithm_tests(TestCase):

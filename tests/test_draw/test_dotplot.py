@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 import numpy
+
 from cogent3 import get_moltype, make_unaligned_seqs
 from cogent3.core.alignment import Aligned, ArrayAlignment
 from cogent3.core.location import IndelMap

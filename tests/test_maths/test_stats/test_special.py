@@ -3,6 +3,8 @@
 import math
 from unittest import TestCase
 
+from numpy.testing import assert_allclose
+
 from cogent3.maths.stats.special import (
     igami,
     incbi,
@@ -12,7 +14,6 @@ from cogent3.maths.stats.special import (
     ndtri,
     one_minus_exp,
 )
-from numpy.testing import assert_allclose
 
 
 class SpecialTests(TestCase):

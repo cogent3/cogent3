@@ -5,6 +5,8 @@ Currently using tests against calculations in R, spreadsheets being unreliable.
 
 from unittest import TestCase
 
+from numpy.testing import assert_allclose, assert_almost_equal
+
 from cogent3.maths.stats.distribution import (
     bdtr,
     bdtrc,
@@ -27,7 +29,6 @@ from cogent3.maths.stats.distribution import (
     tprob,
     zprob,
 )
-from numpy.testing import assert_allclose, assert_almost_equal
 
 
 class DistributionsTests(TestCase):

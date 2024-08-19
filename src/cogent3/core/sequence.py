@@ -1200,7 +1200,7 @@ class Sequence(SequenceI):
         """returns a copy of self
 
         Parameters
-        -----------
+        ----------
         sliced
             Slices underlying sequence with start/end of self coordinates. The offset
             is retained.

@@ -9,14 +9,15 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase
 
 import pytest
+from numpy import array
+from numpy.testing import assert_allclose, assert_equal
+
 from cogent3 import load_tree, make_tree, open_
 from cogent3._version import __version__
 from cogent3.core.tree import PhyloNode, TreeError, TreeNode
 from cogent3.maths.stats.test import correlation
 from cogent3.parse.tree import DndParser
 from cogent3.util.misc import get_object_provenance
-from numpy import array
-from numpy.testing import assert_allclose, assert_equal
 
 base_path = os.path.dirname(os.path.dirname(__file__))
 data_path = os.path.join(base_path, "data")

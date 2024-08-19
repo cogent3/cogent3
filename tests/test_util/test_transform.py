@@ -3,6 +3,8 @@
 
 from unittest import TestCase
 
+from numpy.testing import assert_allclose
+
 from cogent3.util.transform import (
     KeepChars,
     first_index_in_set,
@@ -10,7 +12,6 @@ from cogent3.util.transform import (
     per_longest,
     per_shortest,
 )
-from numpy.testing import assert_allclose
 
 
 class has_x(object):

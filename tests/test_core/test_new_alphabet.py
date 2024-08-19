@@ -2,8 +2,9 @@ import itertools
 
 import numpy
 import pytest
-from cogent3.core import new_alphabet, new_genetic_code, new_moltype
 from numpy.testing import assert_allclose
+
+from cogent3.core import new_alphabet, new_genetic_code, new_moltype
 
 
 @pytest.mark.parametrize(

@@ -183,16 +183,15 @@ Loading sequences using format parsers
 Loading FASTA sequences from an open file or list of lines
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To load FASTA formatted sequences directly, you can use the ``MinimalFastaParser``.
+To load FASTA formatted sequences directly, you can use ``iter_fasta_records``. This parser returns data as python strings.
 
 .. note:: This returns the sequences as strings.
 
 .. jupyter-execute::
 
-    from cogent3.parse.fasta import MinimalFastaParser
+    from cogent3.parse.fasta import iter_fasta_records
 
-    f = open("data/long_testseqs.fasta")
-    seqs = [(name, seq) for name, seq in MinimalFastaParser(f)]
+    seqs = list(iter_fasta_records("data/long_testseqs.fasta"))
     seqs
 
 Handling overloaded FASTA sequence labels
@@ -218,7 +217,7 @@ The FASTA label field is frequently overloaded, with different information field
 
 .. jupyter-execute::
 
-    from cogent3.parse.fasta import LabelParser, MinimalFastaParser
+    from cogent3.parse.fasta import LabelParser, iter_fasta_records
 
     fasta_data = [
         ">gi|10047090|ref|NP_055147.1| small muscle protein, X-linked [Homo sapiens]",
@@ -233,7 +232,7 @@ The FASTA label field is frequently overloaded, with different information field
         [[1, "gi", str], [3, "ref", str], [4, "description", str]],
         split_with="|",
     )
-    for name, seq in MinimalFastaParser(fasta_data, label_to_name=label_to_name):
+    for name, seq in iter_fasta_records(fasta_data, label_to_name=label_to_name):
         print(name)
         print(name.info.gi)
         print(name.info.description)

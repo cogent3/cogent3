@@ -7,6 +7,9 @@ from typing import Set, Tuple
 from unittest.mock import Mock
 
 import pytest
+from numpy import array, ndarray
+from scitrack import CachingLogger
+
 from cogent3 import get_app, make_aligned_seqs, open_data_store
 from cogent3.app import align, evo, translate, tree
 from cogent3.app import io as io_app
@@ -36,8 +39,6 @@ from cogent3.app.translate import select_translatable
 from cogent3.app.tree import quick_tree
 from cogent3.app.typing import AlignedSeqsType, PairwiseDistanceType
 from cogent3.core.alignment import Alignment, SequenceCollection
-from numpy import array, ndarray
-from scitrack import CachingLogger
 
 
 @pytest.fixture(scope="function")
@@ -394,6 +395,19 @@ def test_apply_to_logger(DATA_DIR, tmp_dir):
     assert len(process.data_store.logs) == 1
 
 
+def test_apply_to_no_logger(DATA_DIR, tmp_dir):
+    """correctly uses user provided logger"""
+    dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
+    reader = io_app.load_aligned(format="fasta", moltype="dna")
+    min_length = sample_app.min_length(10)
+    out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="w")
+    writer = io_app.write_db(out_dstore)
+    process = reader + min_length + writer
+    process.apply_to(dstore, show_progress=False, logger=False)
+    assert len(process.data_store.logs) == 0
+    assert process.logger is None
+
+
 @pytest.mark.parametrize("logger_val", (True, "somepath.log"))
 def test_apply_to_invalid_logger(DATA_DIR, tmp_dir, logger_val):
     """incorrect logger value raises TypeError"""
@@ -443,7 +457,9 @@ def test_apply_to_not_partially_done(DATA_DIR, tmp_dir):
     reader = io_app.load_aligned(format="fasta", moltype="dna")
     out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="w")
     writer = io_app.write_db(out_dstore)
-    _ = writer(reader(dstore[0]))  # doing the first one
+    # doing the first one
+    # turning off warning as apps are callable
+    _ = writer(reader(dstore[0]))  # pylint: disable=not-callable
     writer.data_store.close()
 
     out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="a")
@@ -457,8 +473,8 @@ def test_apply_to_not_partially_done(DATA_DIR, tmp_dir):
 @pytest.mark.parametrize("show", (True, False))
 def test_as_completed_progress(full_dstore, capsys, show):
     loader = get_app("load_unaligned", format="fasta", moltype="dna")
-    omit_degenerates = get_app("omit_degenerates")
-    app = loader + omit_degenerates
+    omit = get_app("omit_degenerates")
+    app = loader + omit
     list(app.as_completed(full_dstore.completed, show_progress=show))
     result = capsys.readouterr().err.splitlines()
     if show:
@@ -559,7 +575,7 @@ def test_triggers_bugcatcher():
 
     read = io_app.load_aligned(moltype="dna")
     read.main = lambda x: None
-    got = read("somepath.fasta")
+    got = read("somepath.fasta")  # pylint: disable=not-callable
     assert isinstance(got, NotCompleted)
     assert got.type == "BUG"
 

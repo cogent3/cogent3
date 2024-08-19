@@ -4,6 +4,8 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase
 
 import numpy
+from numpy.testing import assert_allclose
+
 from cogent3 import DNA
 from cogent3.util.dict_array import (
     DictArray,
@@ -15,7 +17,6 @@ from cogent3.util.dict_array import (
     convert_for_dictarray,
     convert_series,
 )
-from numpy.testing import assert_allclose
 
 
 class DictArrayTest(TestCase):

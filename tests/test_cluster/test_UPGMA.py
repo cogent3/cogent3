@@ -1,5 +1,8 @@
 from unittest import TestCase
 
+from numpy import array
+from numpy.testing import assert_allclose
+
 from cogent3 import make_tree
 from cogent3.cluster.UPGMA import (
     UPGMA_cluster,
@@ -11,8 +14,6 @@ from cogent3.cluster.UPGMA import (
 )
 from cogent3.core.tree import PhyloNode
 from cogent3.util.dict_array import DictArray
-from numpy import array
-from numpy.testing import assert_allclose
 
 
 class UPGMATests(TestCase):

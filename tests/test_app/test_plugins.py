@@ -3,8 +3,11 @@ import string
 from importlib.metadata import EntryPoint
 from unittest.mock import patch
 
-import cogent3
 import pytest
+from stevedore import extension
+from stevedore.extension import ExtensionManager
+
+import cogent3
 from cogent3.app import (
     _make_apphelp_docstring,
     app_help,
@@ -13,8 +16,6 @@ from cogent3.app import (
 )
 from cogent3.app.composable import define_app
 from cogent3.util.table import Table
-from stevedore import extension
-from stevedore.extension import ExtensionManager
 
 
 @pytest.fixture

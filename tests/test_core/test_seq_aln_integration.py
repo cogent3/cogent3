@@ -1,11 +1,12 @@
 from unittest import TestCase
 
-from cogent3.core.alignment import Alignment, ArrayAlignment
-from cogent3.core.moltype import RNA
-from cogent3.core.sequence import ArraySequence, RnaSequence
 from numpy import all as alltrue
 from numpy import array, transpose
 from numpy.testing import assert_equal
+
+from cogent3.core.alignment import Alignment, ArrayAlignment
+from cogent3.core.moltype import RNA
+from cogent3.core.sequence import ArraySequence, RnaSequence
 
 
 class AllTests(TestCase):

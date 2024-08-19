@@ -5,6 +5,9 @@ from os import remove, rmdir
 from unittest import TestCase
 
 import pytest
+from numpy import array
+from numpy.testing import assert_allclose
+
 from cogent3.util.misc import (
     ClassChecker,
     ConstrainedContainer,
@@ -40,8 +43,6 @@ from cogent3.util.misc import (
     not_list_tuple,
     recursive_flatten,
 )
-from numpy import array
-from numpy.testing import assert_allclose
 
 
 class UtilsTests(TestCase):

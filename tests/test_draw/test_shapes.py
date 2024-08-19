@@ -1,7 +1,8 @@
 from unittest import TestCase
 
-from cogent3.draw import drawable
 from numpy.testing import assert_allclose
+
+from cogent3.draw import drawable
 
 
 class Test_Shapes(TestCase):

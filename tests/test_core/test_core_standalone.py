@@ -6,6 +6,7 @@ import unittest
 from tempfile import TemporaryDirectory
 
 import pytest
+
 from cogent3 import (
     DNA,
     PROTEIN,

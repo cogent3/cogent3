@@ -254,7 +254,7 @@ def _add(self, other):
 
 def _repr(self):
     val = f"{self.input!r} + " if self.app_type is not LOADER and self.input else ""
-    all_args = deepcopy(self._init_vals)
+    all_args = {**self._init_vals}
     args_items = all_args.pop("args", None)
     data = ", ".join(f"{v!r}" for v in args_items) if args_items else ""
     kwargs_items = all_args.pop("kwargs", None)
@@ -802,36 +802,42 @@ def _apply_to(
     if not dstore:  # this should just return datastore, because if all jobs are done!
         raise ValueError("dstore is empty")
 
-    start = time.time()
     self.set_logger(logger)
-    logger = self.logger
-    logger.log_message(str(self), label="composable function")
-    logger.log_versions(["cogent3"])
+    if self.logger:
+        start = time.time()
+        logger = self.logger
+        logger.log_message(str(self), label="composable function")
+        logger.log_versions(["cogent3"])
 
     inputs = _proxy_input(inputs.values())
     for result in self.as_completed(
         inputs, parallel=parallel, par_kw=par_kw, show_progress=show_progress
     ):
         member = self.main(data=result.obj, identifier=id_from_source(result.source))
-        md5 = getattr(member, "md5", None)
-        logger.log_message(str(member), label="output")
-        if md5:
-            logger.log_message(md5, label="output md5sum")
+        if self.logger:
+            md5 = getattr(member, "md5", None)
+            logger.log_message(str(member), label="output")
+            if md5:
+                logger.log_message(md5, label="output md5sum")
 
-    taken = time.time() - start
-    logger.log_message(f"{taken}", label="TIME TAKEN")
-    log_file_path = Path(logger.log_file_path)
-    logger.shutdown()
-    self.data_store.write_log(
-        unique_id=log_file_path.name, data=log_file_path.read_text()
-    )
-    if cleanup:
-        log_file_path.unlink(missing_ok=True)
+    if self.logger:
+        taken = time.time() - start
+        logger.log_message(f"{taken}", label="TIME TAKEN")
+        log_file_path = Path(logger.log_file_path)
+        logger.shutdown()
+        self.data_store.write_log(
+            unique_id=log_file_path.name, data=log_file_path.read_text()
+        )
+        if cleanup:
+            log_file_path.unlink(missing_ok=True)
 
     return self.data_store
 
 
 def _set_logger(self, logger=None):
+    if logger is False:
+        self.logger = None
+        return
     if logger is None:
         logger = CachingLogger(create_dir=True)
     if not isinstance(logger, CachingLogger):
