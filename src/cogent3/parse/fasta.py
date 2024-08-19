@@ -1,5 +1,6 @@
 """Parsers for FASTA and related formats."""
 
+import io
 import os
 import pathlib
 import re

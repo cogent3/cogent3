@@ -458,7 +458,9 @@ def test_apply_to_not_partially_done(DATA_DIR, tmp_dir):
     reader = io_app.load_aligned(format="fasta", moltype="dna")
     out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="w")
     writer = io_app.write_db(out_dstore)
-    _ = writer(reader(dstore[0]))  # doing the first one
+    # doing the first one
+    # turning off warning as apps are callable
+    _ = writer(reader(dstore[0]))  # pylint: disable=not-callable
     writer.data_store.close()
 
     out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="a")
@@ -472,8 +474,8 @@ def test_apply_to_not_partially_done(DATA_DIR, tmp_dir):
 @pytest.mark.parametrize("show", (True, False))
 def test_as_completed_progress(full_dstore, capsys, show):
     loader = get_app("load_unaligned", format="fasta", moltype="dna")
-    omit_degenerates = get_app("omit_degenerates")
-    app = loader + omit_degenerates
+    omit = get_app("omit_degenerates")
+    app = loader + omit
     list(app.as_completed(full_dstore.completed, show_progress=show))
     result = capsys.readouterr().err.splitlines()
     if show:
@@ -574,7 +576,7 @@ def test_triggers_bugcatcher():
 
     read = io_app.load_aligned(moltype="dna")
     read.main = lambda x: None
-    got = read("somepath.fasta")
+    got = read("somepath.fasta")  # pylint: disable=not-callable
     assert isinstance(got, NotCompleted)
     assert got.type == "BUG"
 
