@@ -1,5 +1,7 @@
 """Unit tests for the GenBank database parsers."""
 
+import io
+import pathlib
 from unittest import TestCase
 
 import pytest
@@ -556,6 +558,26 @@ def gb_rec(DATA_DIR, tmp_path, request):
 
 def test_iter_genbank_records(gb_rec):
     name, seq, features = list(genbank.iter_genbank_records(gb_rec))[0]
+    assert len(seq) == 6201
+    assert name == "AE017341"
+    assert seq.startswith("CAATACCCAC")
+    assert seq.endswith("TGTGTACGTAA")
+    assert features["locus"] == "AE017341"
+
+
+@pytest.fixture(params=(pathlib.Path, str, io.FileIO))
+def gb_inputs(DATA_DIR, request):
+    path = DATA_DIR / "annotated_seq.gb"
+    if request.param is not io.FileIO:
+        yield request.param(path)
+    else:
+        handle = path.open()
+        yield handle
+        handle.close()
+
+
+def test_iter_genbank_records_inputs(gb_inputs):
+    name, seq, features = list(genbank.iter_genbank_records(gb_inputs))[0]
     assert len(seq) == 6201
     assert name == "AE017341"
     assert seq.startswith("CAATACCCAC")
