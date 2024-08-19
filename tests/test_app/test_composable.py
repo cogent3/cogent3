@@ -395,6 +395,20 @@ def test_apply_to_logger(DATA_DIR, tmp_dir):
     assert len(process.data_store.logs) == 1
 
 
+def test_apply_to_no_logger(DATA_DIR, tmp_dir):
+    """correctly uses user provided logger"""
+    dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
+    LOGGER = CachingLogger()
+    reader = io_app.load_aligned(format="fasta", moltype="dna")
+    min_length = sample_app.min_length(10)
+    out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="w")
+    writer = io_app.write_db(out_dstore)
+    process = reader + min_length + writer
+    process.apply_to(dstore, show_progress=False, logger=False)
+    assert len(process.data_store.logs) == 0
+    assert process.logger is None
+
+
 @pytest.mark.parametrize("logger_val", (True, "somepath.log"))
 def test_apply_to_invalid_logger(DATA_DIR, tmp_dir, logger_val):
     """incorrect logger value raises TypeError"""
