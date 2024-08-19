@@ -398,7 +398,6 @@ def test_apply_to_logger(DATA_DIR, tmp_dir):
 def test_apply_to_no_logger(DATA_DIR, tmp_dir):
     """correctly uses user provided logger"""
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
-    LOGGER = CachingLogger()
     reader = io_app.load_aligned(format="fasta", moltype="dna")
     min_length = sample_app.min_length(10)
     out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="w")
