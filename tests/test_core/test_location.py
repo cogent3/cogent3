@@ -1198,42 +1198,26 @@ def test_indelmap_make_seq_feature_map():
     assert got.parent_length == expect.parent_length
 
 
-def test_indelmap_slice_positive_step_trivial():
-    # simple case of where slice is inside a single gap
-    data = "A--------G"
-    imap, _ = new_moltype.DNA.make_seq(seq=data).parse_out_gaps()
-    got = imap[1:7:3]
-    expect, _ = new_moltype.DNA.make_seq(seq=data[1:7:3]).parse_out_gaps()
-    assert (got.gap_pos == expect.gap_pos).all()
-    assert (got.cum_gap_lengths == expect.cum_gap_lengths).all()
-
-
-@pytest.mark.parametrize(
-    "aslice",
-    [
-        slice(0, 16, 3),
-        slice(1, 15, 3),
-        slice(5, 8, 1),
-        slice(3, 16, 2),
-        slice(4, 16, 2),
-        slice(1, 16, 7),
-    ],
-)
+@pytest.mark.parametrize("start", range(10))
+@pytest.mark.parametrize("stop", range(11))
+@pytest.mark.parametrize("step", range(1, 5))
 @pytest.mark.parametrize(
     "data",
     [
-        "--AAA---C--AAAA--",
-        "AAACCCCTTTTGGGGAA",
-        "--AAA---C--AAAAAA",
-        "--A--A--C--T--A--",
-        "A---------------C",
-        "-----------------",
+        "TCAGTCAGTC",
+        "AAAAA-----",
+        "-----AAAAA",
+        "--AA--AA--",
+        "AA--AA--AA",
+        "A-A-A-A-A-",
+        "---TTTT---",
+        "C--------C",
+        "----------",
     ],
 )
-def test_indelmap_slice_positive_step(aslice, data):
-    # simple case of where slice is inside a single gap
+def test_indelmap_positive_step_varaint_slices(start, stop, step, data):
     imap, _ = new_moltype.DNA.make_seq(seq=data).parse_out_gaps()
-    got = imap[aslice]
-    expect, _ = new_moltype.DNA.make_seq(seq=data[aslice]).parse_out_gaps()
+    got = imap[start:stop:step]
+    expect, _ = new_moltype.DNA.make_seq(seq=data[start:stop:step]).parse_out_gaps()
     assert (got.gap_pos == expect.gap_pos).all()
     assert (got.cum_gap_lengths == expect.cum_gap_lengths).all()

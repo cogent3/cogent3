@@ -1218,13 +1218,11 @@ class IndelMap(MapABC):
             adj_gaps.append([0, adj_gap_len])
         else:
             # start is within a ungapped segment
-            if stop <= gap_starts[l]:
+            if stop - ((stop - start) % step) <= gap_starts[l]:
                 # the slice ends within the same ungapped segment
                 return no_gaps
 
-            # we need to determine how long the ungapped segment is, in order
-            # to know what adjusted index the following gap starts at
-
+            # determine the preceding seq length
             cum_seq_length += _step_adjusted_length(
                 start=start, end=gap_starts[l], adj=0, step=step
             )
@@ -1284,7 +1282,7 @@ class IndelMap(MapABC):
 
             if adj_gap_len > 0:
                 # check that we do not step over the gap entirely
-                if adj_gaps[-1][0] == cum_seq_length:
+                if adj_gaps and adj_gaps[-1][0] == cum_seq_length:
                     # the previous gap is contiguous with this one
                     adj_gaps[-1][1] += adj_gap_len
                 else:
