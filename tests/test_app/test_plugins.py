@@ -257,6 +257,23 @@ def test_app_with_app_as_default(mock_extension_manager):
     assert app_with_custom_addapp(5) == 15
 
 
+def test_app_help_mixed_type_hinting(mock_extension_manager):
+    """apps can be initialized with other apps as arguments"""
+
+    @define_app
+    class MyApp:
+        def __init__(self, seed: int | None = None, b=2, c: str = ""):
+            self.seed = seed
+
+        def main(self, data: int) -> int:
+            return data + self.seed
+
+    mock_extension_manager([create_extension(MyApp)])
+    ds = _make_apphelp_docstring(MyApp)
+    # successfully stripped type-hints
+    assert ":" not in ds
+
+
 def test_app_help_from_function(mock_extension_manager):
     """_make_apphelp_docstring on a decorated function should return help"""
 
