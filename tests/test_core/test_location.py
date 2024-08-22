@@ -6,6 +6,7 @@ from unittest import TestCase
 import numpy
 import pytest
 from cogent3 import DNA, make_seq
+from cogent3.core import new_moltype
 from cogent3.core.location import (
     FeatureMap,
     IndelMap,
@@ -950,7 +951,7 @@ def test_gapped_convert_aln2seq_invalid():
 
 @pytest.mark.parametrize(
     "invalid_slice",
-    (slice(None, None, -1), slice(None, None, 2)),
+    (slice(None, None, -1), slice(None, None, -2)),
 )
 def test_gap_pos_invalid_slice(invalid_slice):
     pos, lengths = numpy.array([[1, 3]], dtype=numpy.int32).T
@@ -1195,3 +1196,28 @@ def test_indelmap_make_seq_feature_map():
     got = im.make_seq_feature_map(align_map)
     assert got.get_coordinates() == expect.get_coordinates()
     assert got.parent_length == expect.parent_length
+
+
+@pytest.mark.parametrize("start", range(10))
+@pytest.mark.parametrize("stop", range(11))
+@pytest.mark.parametrize("step", range(1, 5))
+@pytest.mark.parametrize(
+    "data",
+    [
+        "TCAGTCAGTC",
+        "AAAAA-----",
+        "-----AAAAA",
+        "--AA--AA--",
+        "AA--AA--AA",
+        "A-A-A-A-A-",
+        "---TTTT---",
+        "C--------C",
+        "----------",
+    ],
+)
+def test_indelmap_positive_step_varaint_slices(start, stop, step, data):
+    imap, _ = new_moltype.DNA.make_seq(seq=data).parse_out_gaps()
+    got = imap[start:stop:step]
+    expect, _ = new_moltype.DNA.make_seq(seq=data[start:stop:step]).parse_out_gaps()
+    assert (got.gap_pos == expect.gap_pos).all()
+    assert (got.cum_gap_lengths == expect.cum_gap_lengths).all()

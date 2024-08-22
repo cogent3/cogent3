@@ -495,7 +495,7 @@ def test_make_unaligned_seqs_dict(moltype):
     assert got._seqs_data.make_seq == new_moltype.get_moltype(moltype).make_seq
 
     # should also work if seqs are arrays
-    data = {"a": numpy.array(["AGGCCC"]), "b": numpy.array(["AGAAAA"])}
+    data = {"a": numpy.array([0, 2, 1, 3, 2, 3]), "b": numpy.array([0, 2, 1, 3, 2, 1])}
     got = new_alignment.make_unaligned_seqs(data, moltype=moltype)
     assert isinstance(got, new_alignment.SequenceCollection)
     assert got._seqs_data.make_seq == new_moltype.get_moltype(moltype).make_seq
@@ -512,7 +512,7 @@ def test_make_unaligned_seqs_collection(moltype, cls):
     assert got.num_seqs == 2
 
     # should also work if seqs are arrays
-    data = [numpy.array(["AGGCCC"]), numpy.array(["AGAAAA"])]
+    data = [numpy.array([0, 2, 1, 3, 2, 3]), numpy.array([0, 2, 1, 3, 2, 1])]
     got = new_alignment.make_unaligned_seqs(data, moltype=moltype)
     assert isinstance(got, new_alignment.SequenceCollection)
     assert got._seqs_data.make_seq == new_moltype.get_moltype(moltype).make_seq

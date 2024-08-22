@@ -1203,7 +1203,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         copied = aln.copy()
         self.assertEqual(aln.info, copied.info)
 
-    def test_to_pretty(self):
+    def test_to_pretty(self):  # ported
         """produce correct pretty print formatted text"""
         seqs = {"seq1": "ACGAANGA", "seq2": "-CGAACGA", "seq3": "ATGAACGA"}
         expect = ["seq1    ACGAANGA", "seq2    -....C..", "seq3    .T...C.."]
@@ -1224,7 +1224,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         ]
         self.assertEqual(got, "\n".join(expect))
 
-    def test_to_html(self):
+    def test_to_html(self):  # ported
         """produce correct html formatted text"""
         seqs = {"seq1": "ACG", "seq2": "-CT"}
 
