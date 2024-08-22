@@ -149,7 +149,7 @@ def test_app_help_signature(capsys, app_name):
 
     got = _make_signature(_get_app_matching_name(app_name))
     # app name is in quotes
-    assert f'"{app_name}"' in got
+    assert f"{app_name!r}" in got
     # check split across multiple lines if long signature
     if len(got) > 70:
         assert got.count("\n") > 1
