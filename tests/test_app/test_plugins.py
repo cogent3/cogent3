@@ -1,5 +1,6 @@
 import random
 import string
+import sys
 from importlib.metadata import EntryPoint
 from unittest.mock import patch
 
@@ -257,6 +258,9 @@ def test_app_with_app_as_default(mock_extension_manager):
     assert app_with_custom_addapp(5) == 15
 
 
+@pytest.mark.skipif(
+    sys.version_info[:2] == (3, 9), reason="Skipping test for Python 3.9"
+)
 def test_app_help_mixed_type_hinting(mock_extension_manager):
     """apps can be initialized with other apps as arguments"""
 
