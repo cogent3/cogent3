@@ -190,3 +190,11 @@ def test_scale_bar_place(style, vert, horizontal):
     # if we set scale_bar None, there should be shapes
     dnd.scale_bar = None
     assert dnd.figure.layout.get("shapes") is None
+
+
+def test_dendro_tip_font():
+    # should update tip font in annotations as a dict, not an integer
+    tree = make_tree("((a:0.1,b:0.25):0.1,(c:0.02,(e:0.035,f:0.04):0.15):0.3,g:0.3)")
+    dnd = tree.get_figure()
+    layout = dnd.figure.layout
+    assert layout.annotations[0].font.size == 12
