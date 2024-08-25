@@ -8,6 +8,7 @@
 ![Using Black Formatting](https://img.shields.io/badge/code%20style-black-000000.svg)
 
 [![CodeQL](https://github.com/cogent3/cogent3/actions/workflows/codeql.yml/badge.svg)](https://github.com/cogent3/cogent3/actions/workflows/codeql.yml)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/e80e3441de59449bb1a4d8ad1fdea4fa)](https://app.codacy.com/gh/cogent3/cogent3/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 
 <p align="left">
   <img src="https://raw.githubusercontent.com/cogent3/cogent3.github.io/e72df8c155c100f502b6a7009347d1821ab3adef/doc/_static/c3-logo.svg" width="300">
