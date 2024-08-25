@@ -660,7 +660,7 @@ def _proxy_input(dstore):
         if not e:
             continue
         if not isinstance(e, source_proxy):
-            e = source_proxy(e)
+            e = e if hasattr(e, "source") else source_proxy(e)
         inputs.append(e)
 
     return inputs
@@ -813,7 +813,10 @@ def _apply_to(
     for result in self.as_completed(
         inputs, parallel=parallel, par_kw=par_kw, show_progress=show_progress
     ):
-        member = self.main(data=result.obj, identifier=id_from_source(result.source))
+        member = self.main(
+            data=getattr(result, "obj", result),
+            identifier=id_from_source(result.source),
+        )
         if self.logger:
             md5 = getattr(member, "md5", None)
             logger.log_message(str(member), label="output")
