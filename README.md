@@ -20,6 +20,13 @@
 ## 📣 Feature Announcements 📣
 
 <details>
+    <summary> Faster sequence format parsers 💨 </summary>
+
+We have faster implementations of the parsers for Fasta and GenBank sequence formats. These are used by our standard loading mechanisms. If you just want to get the contents of files in those formats as standard Python types, use `cogent3.parser.fasta.iter_fasta_records()` or `cogent3.parser.genbank.iter_genbank_records()`.
+
+</details>
+
+<details>
   <summary> Supporting third-party apps as plugins 🔌 </summary>
 
 Cogent3 now provides support for plugins! Third-party developers can deploy their code as cogent3 apps with just a few lines. See the [demo project](https://github.com/cogent3/app_template).
