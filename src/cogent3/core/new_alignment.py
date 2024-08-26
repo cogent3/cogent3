@@ -2470,8 +2470,8 @@ class SliceRecord(new_sequence.SliceRecordABC):
     ):
         parent_len = int(parent_len)
         self._parent_len = parent_len
-        self.start = start or 0
-        self.stop = stop or parent_len
+        self.start = start if start is not None else 0
+        self.stop = stop if stop is not None else parent_len
         self.step = step or 1
         self._offset = offset or 0
 
@@ -2486,8 +2486,15 @@ class SliceRecord(new_sequence.SliceRecordABC):
         # todo: kath
         return self
 
+    def __repr__(self):
+        # refactor
+        return (
+            f"[{self.start}:{self.stop}:{self.step} of parent length {self.parent_len}]"
+        )
+
     @property
-    def _zero_slice(self): ...
+    def _zero_slice(self):
+        return self.__class__(start=0, stop=0, step=1, parent_len=self.parent_len)
 
 
 class Aligned:
@@ -2548,9 +2555,8 @@ class Aligned:
 
     @__getitem__.register
     def _(self, span: slice):
-        new_data = self.data.copy()
-        new_data.slice_record = self.data.slice_record[span]
-        return self.__class__(data=new_data, moltype=self.moltype)
+        self.data.slice_record = self.data.slice_record[span]
+        return self.__class__(data=self.data, moltype=self.moltype)
 
 
 class AlignedSeqsDataABC(SeqsDataABC):
@@ -2577,6 +2583,7 @@ class AlignedSeqsDataABC(SeqsDataABC):
         seqid: str,
         start: OptInt = None,
         stop: OptInt = None,
+        step: OptInt = None,
     ) -> numpy.ndarray: ...
 
     @abstractmethod
@@ -2586,6 +2593,7 @@ class AlignedSeqsDataABC(SeqsDataABC):
         seqid: str,
         start: OptInt = None,
         stop: OptInt = None,
+        step: OptInt = None,
     ) -> str: ...
 
     @abstractmethod
@@ -2595,6 +2603,7 @@ class AlignedSeqsDataABC(SeqsDataABC):
         seqid: str,
         start: OptInt = None,
         stop: OptInt = None,
+        step: OptInt = None,
     ) -> bytes: ...
 
 
@@ -2766,35 +2775,85 @@ class AlignedSeqsData(AlignedSeqsDataABC):
     def get_gaps(self, seqid: str) -> numpy.ndarray:
         return self._gaps[seqid]
 
+    def _get_seq_array(
+        self,
+        *,
+        seqid: str,
+        gapped: bool,
+        start: OptInt = None,
+        stop: OptInt = None,
+        step: OptInt = None,
+    ) -> numpy.ndarray:
+        """Return sequence data corresponding to seqid as an array of indices.
+        start/stop are in alignment coordinates. Includes gaps.
+        """
+        seq = self._seqs[seqid]
+        start = start if start is not None else 0
+        stop = stop if stop is not None else self.align_len
+        step = step or 1
+
+        # if there's no gaps, just slice the sequence
+        if len(seq) == self.align_len:
+            return seq[start:stop:step]
+
+        gaps = self._gaps[seqid]
+        indel_map = IndelMap(
+            gap_pos=gaps[:, 0], cum_gap_lengths=gaps[:, 1], parent_length=self.align_len
+        )
+        map_sliced = indel_map[start:stop:step]
+        unknown = self.alphabet.gap_index
+
+        # there is only gaps
+        if len(seq) == 0:
+            if gapped:
+                return numpy.full(len(map_sliced), unknown, dtype=numpy.uint8)
+            else:
+                return numpy.array([], dtype=numpy.uint8)
+
+        if step > 1:
+            # select indices from the sequence that are in the frame of the step
+            indices = [
+                indel_map.get_seq_index(x)
+                for x in range(start, stop)
+                if (x - start) % step == 0 and indel_map.get_seq_index(x) < len(seq)
+            ]
+        else:
+            indices = slice(
+                indel_map.get_seq_index(start), indel_map.get_seq_index(stop)
+            )
+
+        seq_sliced = seq[indices]
+
+        concat = numpy.array([], dtype=numpy.uint8)
+        for span in map_sliced.spans:
+            if span.lost:
+                if gapped:
+                    seg = numpy.full(span.length, unknown, dtype=numpy.uint8)
+                else:
+                    # if not gapped, we skip over this segment
+                    continue
+            else:
+                seg = seq_sliced[span.start : span.end]
+
+            concat = numpy.concatenate((concat, seg))
+
+        return concat
+
     def get_seq_array(
         self,
         *,
         seqid: str,
         start: OptInt = None,
         stop: OptInt = None,
+        step: OptInt = None,
     ) -> numpy.ndarray:
         """Return ungapped sequence corresponding to seqid as an array of indices.
         start/stop are in alignment coordinates and the alignment coordinates
         are converted to sequence coordinates. Excludes gaps.
         """
-        seq = self._seqs[seqid]
-        # if there's no gaps, just slice the sequence
-        if len(seq) == self.align_len:
-            return seq[start:stop]
-
-        gaps = self._gaps[seqid]
-        indel_map = IndelMap(
-            gap_pos=gaps[:, 0], cum_gap_lengths=gaps[:, 1], parent_length=self.align_len
+        return self._get_seq_array(
+            seqid=seqid, gapped=False, start=start, stop=stop, step=step
         )
-
-        new_map = (
-            indel_map[start:stop]
-            if start is not None or stop is not None
-            else indel_map
-        )
-        seq_start = indel_map.get_seq_index(start or 0)
-        seq_end = indel_map.get_seq_index(stop or self.align_len)
-        return seq[seq_start:seq_end] if new_map.useful else seq[:0]
 
     def get_gapped_seq_array(
         self,
@@ -2802,34 +2861,14 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         seqid: str,
         start: OptInt = None,
         stop: OptInt = None,
+        step: OptInt = None,
     ) -> numpy.ndarray:
         """Return sequence data corresponding to seqid as an array of indices.
         start/stop are in alignment coordinates. Includes gaps.
         """
-        seq = self._seqs[seqid]
-
-        # if there's no gaps, just slice the sequence
-        if len(seq) == self.align_len:
-            return seq[start:stop]
-
-        # refactor: design
-        # direct numpy array approach would be faster
-        gaps = self._gaps[seqid]
-        indel_map = IndelMap(
-            gap_pos=gaps[:, 0], cum_gap_lengths=gaps[:, 1], parent_length=self.align_len
+        return self._get_seq_array(
+            seqid=seqid, gapped=True, start=start, stop=stop, step=step
         )
-
-        gapped = numpy.array([], dtype=numpy.uint8)
-        for span in indel_map.spans:
-            if span.lost:
-                unknown = self.alphabet.gap_index
-                seg = numpy.full(span.length, unknown, dtype=numpy.uint8)
-            else:
-                seg = seq[span.start : span.end]
-
-            gapped = numpy.concatenate((gapped, seg))
-
-        return gapped[start:stop]
 
     def get_seq_str(
         self,
@@ -2837,13 +2876,14 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         seqid: str,
         start: OptInt = None,
         stop: OptInt = None,
+        step: OptInt = None,
     ) -> str:
         """Return ungapped sequence corresponding to seqid as a string.
         start/stop are in alignment coordinates and the alignment coordinates
         are converted to sequence coordinates. Excludes gaps."""
 
         return self.alphabet.from_indices(
-            self.get_seq_array(seqid=seqid, start=start, stop=stop)
+            self.get_seq_array(seqid=seqid, start=start, stop=stop, step=step)
         )
 
     def get_gapped_seq_str(
@@ -2852,12 +2892,13 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         seqid: str,
         start: OptInt = None,
         stop: OptInt = None,
+        step: OptInt = None,
     ) -> str:
         """Return sequence corresponding to seqid as a string.
         start/stop are in alignment coordinates. Includes gaps."""
 
         return self.alphabet.from_indices(
-            self.get_gapped_seq_array(seqid=seqid, start=start, stop=stop)
+            self.get_gapped_seq_array(seqid=seqid, start=start, stop=stop, step=step)
         )
 
     def get_seq_bytes(
@@ -2866,11 +2907,14 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         seqid: str,
         start: OptInt = None,
         stop: OptInt = None,
+        step: OptInt = None,
     ) -> bytes:
         """Return ungapped sequence corresponding to seqid as a bytes string.
         start/stop are in alignment coordinates and the alignment coordinates
         are converted to sequence coordinates. Excludes gaps."""
-        return self.get_seq_str(seqid=seqid, start=start, stop=stop).encode("utf8")
+        return self.get_seq_str(seqid=seqid, start=start, stop=stop, step=step).encode(
+            "utf8"
+        )
 
     def get_gapped_seq_bytes(
         self,
@@ -2878,12 +2922,13 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         seqid: str,
         start: OptInt = None,
         stop: OptInt = None,
+        step: OptInt = None,
     ) -> bytes:
         """Return sequence corresponding to seqid as a bytes string.
         start/stop are in alignment coordinates. Includes gaps."""
-        return self.get_gapped_seq_str(seqid=seqid, start=start, stop=stop).encode(
-            "utf8"
-        )
+        return self.get_gapped_seq_str(
+            seqid=seqid, start=start, stop=stop, step=step
+        ).encode("utf8")
 
     def add_seqs(
         self, seqs: dict[str, StrORArray], force_unique_keys=True
@@ -2983,37 +3028,55 @@ class AlignedDataView(new_sequence.SeqViewABC):
     @property
     def str_value(self) -> str:
         return self.parent.get_seq_str(
-            seqid=self.seqid, start=self.slice_record.start, stop=self.slice_record.stop
+            seqid=self.seqid,
+            start=self.slice_record.start,
+            stop=self.slice_record.stop,
+            step=self.slice_record.step,
         )
 
     @property
     def gapped_str_value(self) -> str:
         return self.parent.get_gapped_seq_str(
-            seqid=self.seqid, start=self.slice_record.start, stop=self.slice_record.stop
+            seqid=self.seqid,
+            start=self.slice_record.start,
+            stop=self.slice_record.stop,
+            step=self.slice_record.step,
         )
 
     @property
     def array_value(self) -> numpy.ndarray:
         return self.parent.get_seq_array(
-            seqid=self.seqid, start=self.slice_record.start, stop=self.slice_record.stop
+            seqid=self.seqid,
+            start=self.slice_record.start,
+            stop=self.slice_record.stop,
+            step=self.slice_record.step,
         )
 
     @property
     def gapped_array_value(self) -> numpy.ndarray:
         return self.parent.get_gapped_seq_array(
-            seqid=self.seqid, start=self.slice_record.start, stop=self.slice_record.stop
+            seqid=self.seqid,
+            start=self.slice_record.start,
+            stop=self.slice_record.stop,
+            step=self.slice_record.step,
         )
 
     @property
     def bytes_value(self) -> bytes:
         return self.parent.get_seq_bytes(
-            seqid=self.seqid, start=self.slice_record.start, stop=self.slice_record.stop
+            seqid=self.seqid,
+            start=self.slice_record.start,
+            stop=self.slice_record.stop,
+            step=self.slice_record.step,
         )
 
     @property
     def gapped_bytes_value(self) -> bytes:
         return self.parent.get_gapped_seq_bytes(
-            seqid=self.seqid, start=self.slice_record.start, stop=self.slice_record.stop
+            seqid=self.seqid,
+            start=self.slice_record.start,
+            stop=self.slice_record.stop,
+            step=self.slice_record.step,
         )
 
     def __str__(self) -> str:

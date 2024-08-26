@@ -9,7 +9,7 @@ import pytest
 from cogent3 import load_unaligned_seqs, open_
 from cogent3._version import __version__
 from cogent3.core import new_alignment, new_alphabet, new_moltype, new_sequence
-from cogent3.core.annotation import Feature, FeatureMap
+from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import GffAnnotationDb, load_annotations
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.misc import get_object_provenance
@@ -2355,27 +2355,24 @@ def test_aligned_bytes(aligned_dict, seqid, dna_moltype):
     assert got == expect
 
 
-@pytest.mark.xfail(reason="todo: aligned slicing behaviour ")
-@pytest.mark.parametrize(
-    "slicer",
-    (
-        slice(0, 3),
-        slice(1, 4),
-        slice(3, 6),
-        slice(None, -3),
-        slice(-10, -3),
-        slice(-10, None),
-    ),
-)
-@pytest.mark.parametrize("seqid", ("seq1", "seq2"))
-def test_slice_aligned(seqid, slicer, dna_alphabet, dna_make_seq):
-    seqs = dict(seq1="-AAGGGGGAACCCT", seq2="AAAGGGGGAACCCT")
-    aligned_seqs_data = new_alignment.AlignedSeqsData.from_aligned_seqs(
-        data=seqs, alphabet=dna_alphabet, make_seq=dna_make_seq
+@pytest.mark.parametrize("start", range(6))
+@pytest.mark.parametrize("stop", range(6))
+@pytest.mark.parametrize("step", range(1, 4))
+@pytest.mark.parametrize("seqid", ("seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"))
+def test_slice_aligned_step(seqid, start, stop, step):
+    seqs = dict(
+        seq1="AA--CC",
+        seq2="--AA--",
+        seq3="-A-A-A",
+        seq4="AAA---",
+        seq5="---AAA",
+        seq6="------",
+        seq7="AAAAAA",
     )
-    al = aligned_seqs_data[seqid]
-    sliced = al[slicer]
-    assert str(sliced) == seqs[seqid][slicer]
+    aln = new_alignment.make_aligned_seqs(seqs, moltype="dna")
+    al = aln.seqs[seqid]
+    sliced = al[start:stop:step]
+    assert str(sliced) == seqs[seqid][start:stop:step]
 
 
 @pytest.mark.parametrize("seqid", ("seq1", "seq2"))
