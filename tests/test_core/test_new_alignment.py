@@ -2358,7 +2358,9 @@ def test_aligned_bytes(aligned_dict, seqid, dna_moltype):
 @pytest.mark.parametrize("start", range(6))
 @pytest.mark.parametrize("stop", range(6))
 @pytest.mark.parametrize("step", range(1, 4))
-@pytest.mark.parametrize("seqid", ("seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"))
+@pytest.mark.parametrize(
+    "seqid", ("seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7")
+)
 def test_slice_aligned_step(seqid, start, stop, step):
     seqs = dict(
         seq1="AA--CC",
