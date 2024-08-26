@@ -1218,7 +1218,7 @@ class IndelMap(MapABC):
             adj_gaps.append([0, adj_gap_len])
         else:
             # start is within a ungapped segment
-            if stop - ((stop - start) % step) <= gap_starts[l]:
+            if stop - ((stop - start) % step) < gap_starts[l]:
                 # the slice ends within the same ungapped segment
                 return no_gaps
 
