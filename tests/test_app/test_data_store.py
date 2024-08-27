@@ -8,7 +8,6 @@ from pickle import dumps, loads
 import pytest
 from scitrack import get_text_hexdigest
 
-from cogent3 import get_app
 from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
 from cogent3.app.composable import NotCompleted
