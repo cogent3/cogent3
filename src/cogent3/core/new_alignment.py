@@ -3179,9 +3179,6 @@ class Alignment(SequenceCollection):
     def __len__(self):
         return len(self.seqs)
 
-    def to_dict(self) -> dict[str, str]:
-        return {name: str(self.seqs[name]) for name in self.names}
-
     def __getitem__(self, index):
         new_slice = self._slice_record[index]
         result = self.__class__(

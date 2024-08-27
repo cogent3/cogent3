@@ -2939,7 +2939,7 @@ def test_alignment_repr():
 @pytest.mark.parametrize("step", range(1, 3))
 @pytest.mark.parametrize("seqid", ("seq1", "seq2", "seq3", "seq4"))
 def test_alignment_slice(aligned_dict, start, stop, step, seqid):
-    """slicing an alignment should propogates to aligned instances"""
+    """slicing an alignment should propogate the slice to aligned instances"""
     aln = new_alignment.make_aligned_seqs(aligned_dict, moltype="dna")
     sliced_aln = aln[start:stop:step]
     got = sliced_aln.seqs[seqid].gapped_seq
