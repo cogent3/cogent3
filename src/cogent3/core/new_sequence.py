@@ -2007,6 +2007,9 @@ class SliceRecordABC(ABC):
         length of the underlying data (not including offset)
     """
 
+    # todo: kath
+    # slice record should throw an error if the step is 0
+
     __slots__ = ("start", "stop", "step", "_offset")
 
     @property
