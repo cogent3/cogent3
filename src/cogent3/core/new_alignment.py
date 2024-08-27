@@ -2803,35 +2803,32 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         indel_map = IndelMap(
             gap_pos=gaps[:, 0], cum_gap_lengths=gaps[:, 1], parent_length=self.align_len
         )
-        map_sliced = indel_map[start:stop:step]
+
         unknown = self.alphabet.gap_index
 
         # there is only gaps
         if len(seq) == 0:
             if gapped:
-                return numpy.full(len(map_sliced), unknown, dtype=numpy.uint8)
+                return numpy.full(
+                    int(-((stop - start) // -step)), unknown, dtype=numpy.uint8
+                )
             else:
                 return numpy.array([], dtype=numpy.uint8)
 
-        # AlignedSeqsData stores the ungapped sequence data, we need to convert
-        # from alignment coordinates to sequences coordinates to index this data
-        if step > 1:
-            # select individual indices from the sequence that are in the frame
-            # of the step
-            indices = [
+        # convert from alignment coordinates to sequences coordinates
+        # selecting only the indices that are in the frame of the stride
+        indices = []
+        for span in indel_map.nongap():
+            indices += [
                 indel_map.get_seq_index(x)
-                for x in range(start, stop)
-                if (x - start) % step == 0 and indel_map.get_seq_index(x) < len(seq)
+                for x in range(span.start, span.end)
+                if start <= x < stop and (x - start) % step == 0
             ]
-        else:
-            # step is 1 so select a contiguous slice
-            indices = slice(
-                indel_map.get_seq_index(start), indel_map.get_seq_index(stop)
-            )
 
         seq_sliced = seq[indices]
-
+        map_sliced = indel_map[start:stop:step]
         concat = numpy.array([], dtype=numpy.uint8)
+
         # iterate through spans
         for span in map_sliced.spans:
             if span.lost:
@@ -3116,8 +3113,10 @@ class Alignment(SequenceCollection):
         super().__init__(**kwargs)
         self._seqs_data.make_aligned = self._make_aligned
         self._seqs_data.make_seq = self.moltype.make_seq
-        self._slice_record = slice_record or SliceRecord(
-            parent_len=self._seqs_data.align_len
+        self._slice_record = (
+            slice_record
+            if slice_record is not None
+            else SliceRecord(parent_len=self._seqs_data.align_len)
         )
 
     def _make_aligned(self, data: AlignedDataView) -> Aligned:
