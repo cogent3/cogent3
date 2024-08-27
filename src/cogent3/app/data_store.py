@@ -637,7 +637,7 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
                 name = pathlib.Path(name)
                 if subdir and name.parent.name != subdir:
                     continue
-                if name.match(pattern):
+                if name.match(pattern) and not name.name.startswith("."):
                     yield name
 
     @property
