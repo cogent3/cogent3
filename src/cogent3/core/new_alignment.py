@@ -2784,8 +2784,11 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         stop: OptInt = None,
         step: OptInt = None,
     ) -> numpy.ndarray:
-        """Return sequence data corresponding to seqid as an array of indices.
-        start/stop are in alignment coordinates. Includes gaps.
+        """helper function to return sequence data corresponding to seqid as an
+        array of indices. start/stop are in alignment coordinates.
+
+        Interweaves gaps into the sequence if gapped is True. Returns the ungapped
+        sequence if gapped is False.
         """
         seq = self._seqs[seqid]
         start = start if start is not None else 0
@@ -2810,14 +2813,18 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             else:
                 return numpy.array([], dtype=numpy.uint8)
 
+        # AlignedSeqsData stores the ungapped sequence data, we need to convert
+        # from alignment coordinates to sequences coordinates to index this data
         if step > 1:
-            # select indices from the sequence that are in the frame of the step
+            # select individual indices from the sequence that are in the frame
+            # of the step
             indices = [
                 indel_map.get_seq_index(x)
                 for x in range(start, stop)
                 if (x - start) % step == 0 and indel_map.get_seq_index(x) < len(seq)
             ]
         else:
+            # step is 1 so select a contiguous slice
             indices = slice(
                 indel_map.get_seq_index(start), indel_map.get_seq_index(stop)
             )
@@ -2825,6 +2832,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         seq_sliced = seq[indices]
 
         concat = numpy.array([], dtype=numpy.uint8)
+        # iterate through spans
         for span in map_sliced.spans:
             if span.lost:
                 if gapped:
