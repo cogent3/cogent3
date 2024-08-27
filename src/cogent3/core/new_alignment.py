@@ -562,7 +562,7 @@ class SequenceCollection:
         self.source = source
         # todo: kath - move _repr_policy to method so it can be reimplemented in Aligment class
         self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60)
-        # todo: kath
+        # refactor:
         # think on the assignment of annotation dbs, could we change it to a method where there is an optional argument of the remapping of names?
         self._annotation_db = annotation_db or DEFAULT_ANNOTATION_DB()
 
@@ -2487,7 +2487,8 @@ class SliceRecord(new_sequence.SliceRecordABC):
         return self
 
     def __repr__(self):
-        # refactor
+        # refactor: design
+        # what should this look like?
         return (
             f"[{self.start}:{self.stop}:{self.step} of parent length {self.parent_len}]"
         )
@@ -2518,12 +2519,15 @@ class Aligned:
     @property
     def seq(self) -> new_sequence.Sequence:
         """Returns Sequence object, excluding gaps."""
-        # todo: kath, where is the responsibility of reverse complement?
+        # todo: kath
+        # check for reverse and complement when we support negative steps
         return self.data.parent.make_seq(seq=self.data.str_value, name=self.data.seqid)
 
     @property
     def gapped_seq(self) -> new_sequence.Sequence:
         """Returns Sequence object, including gaps."""
+        # todo: kath
+        # check for reverse and complement when we support negative steps
         return self.data.parent.make_seq(
             seq=self.data.gapped_str_value, name=self.data.seqid
         )
