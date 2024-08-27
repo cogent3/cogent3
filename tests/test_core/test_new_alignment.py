@@ -2395,8 +2395,6 @@ def test_aligned_returns_sequence(seqid):
 
 @pytest.mark.parametrize("seqid", ("seq1", "seq2", "seq3", "seq4"))
 def test_aligned_iter(seqid, aligned_dict):
-    """iterating over an Aligned object should include gaps and when indexed,
-    this should be realised in the iteration"""
     aln = new_alignment.make_aligned_seqs(aligned_dict, moltype="dna")
     aligned = aln.seqs[seqid]
     for i, got in enumerate(aligned):
@@ -2787,7 +2785,7 @@ def test_alignment_get_gapped_seq():
     assert got == expect
 
 
-def test_iter_positions():
+def test_alignment_iter_positions():
     data = {"a": "AAAAAA", "b": "AAA---", "c": "AAAA--"}
     r = new_alignment.make_aligned_seqs({k: data[k] for k in "cb"}, moltype="dna")
     assert list(r.iter_positions(pos_order=[5, 1, 3])) == list(
@@ -2947,3 +2945,20 @@ def test_alignment_repr():
         repr(seqs)
         == "5 x 11 text alignment: a[AAAAAAAAAA...], b[BBBBBBBBBB...], c[CCCCCCCCCC...], ..."
     )
+
+
+@pytest.mark.parametrize("start", range(6))
+@pytest.mark.parametrize("stop", range(6))
+@pytest.mark.parametrize("step", range(1, 3))
+@pytest.mark.parametrize("seqid", ("seq1", "seq2", "seq3", "seq4"))
+def test_alignment_slice(aligned_dict, start, stop, step, seqid):
+    """slicing an alignment should propogates to aligned instances"""
+    aln = new_alignment.make_aligned_seqs(aligned_dict, moltype="dna")
+    sliced_aln = aln[start:stop:step]
+    got = sliced_aln.seqs[seqid].gapped_seq
+    expect = aligned_dict[seqid][start:stop:step]
+    assert got == expect
+
+    got = sliced_aln.seqs[seqid].seq
+    expect = expect.replace("-", "")
+    assert got == expect
