@@ -616,6 +616,30 @@ def test_zipped_ro_basic(zipped_basic, ro_dstore):
     assert expect == got
 
 
+@pytest.fixture
+def zipped_hidden(fasta_dir):
+    # converts the fasta_dir into a zipped archive and duplicates
+    # all files to one whose name is preixed by "."
+    for fn in fasta_dir.glob("*.fasta"):
+        nf = fn.parent / f".{fn.name}"
+        shutil.copyfile(fn, nf)
+
+    path = shutil.make_archive(
+        base_name=fasta_dir.name,
+        format="zip",
+        base_dir=fasta_dir.name,
+        root_dir=fasta_dir.parent,
+    )
+    return pathlib.Path(path)
+
+
+def test_zipped_ro_basic_hidden(zipped_hidden, zipped_basic):
+    orig = ReadOnlyDataStoreZipped(zipped_basic, suffix="fasta")
+    dstore = ReadOnlyDataStoreZipped(zipped_hidden, suffix="fasta")
+    assert len(dstore) == len(orig)
+    assert all(not m.unique_id.startswith(".") for m in dstore)
+
+
 def test_zipped_ro_full(zipped_full, full_dstore):
     got_ids = {m.unique_id for m in zipped_full.completed}
     expect_ids = {m.unique_id for m in full_dstore.completed}
