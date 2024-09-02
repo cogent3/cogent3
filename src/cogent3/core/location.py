@@ -1206,10 +1206,9 @@ class IndelMap(MapABC):
         adj_gaps = []
         lengths = self.get_gap_lengths()
 
-        # work out the first gap.
+        # determine the beginning of the slice
         if gap_starts[l] <= start < gap_ends[l]:
             # start is within a gap
-            # we adjust the gap length to account for the start position
             adj = start - gap_starts[l]
             # we want "ceiling division" to determine how many steps are
             # included which we can achieve with upside down "floor division"
@@ -1218,8 +1217,8 @@ class IndelMap(MapABC):
             adj_gaps.append([0, adj_gap_len])
         else:
             # start is within a ungapped segment
-            if stop - ((stop - start) % step) <= gap_starts[l]:
-                # the slice ends within the same ungapped segment
+            if stop <= gap_starts[l]:
+                # the stop is within the same ungapped segment
                 return no_gaps
 
             # determine the preceding seq length
@@ -1250,7 +1249,7 @@ class IndelMap(MapABC):
             # calculate the adjustment to the gap
             adj = _step_adjustment(gap_starts[j], start, step)
             if adj < lengths[j]:
-                # if overstep > length, then the gap is "stepped over" by the stride
+                # if adj > length, then the gap is "stepped over" by the stride
                 adj_gap_len = -((lengths[j] - adj) // -step)
 
                 if adj_gaps and adj_gaps[-1][0] == cum_seq_length:
@@ -1258,30 +1257,42 @@ class IndelMap(MapABC):
                     adj_gaps[-1][1] += adj_gap_len
                 else:
                     adj_gaps.append([cum_seq_length, adj_gap_len])
-        # now we determine the end of the slice
+
+        # determine the end of the slice
         if l == r:
             # the stop was inside the first gap
             adj = _step_adjustment(gap_starts[r], start, step)
-            adj_gaps[-1][1] = _step_adjusted_length(gap_starts[r], stop, adj, step)
+
+            if adj_gaps:
+                # start was in the gap
+                adj_gaps[-1][1] = _step_adjusted_length(gap_starts[r], stop, adj, step)
+            else:
+                # start was in the seq before the gap
+                adj_gaps.append(
+                    [
+                        cum_seq_length,
+                        _step_adjusted_length(gap_starts[r], stop, adj, step),
+                    ]
+                )
+
         elif stop >= gap_ends[-1] or stop < gap_starts[r]:
             # stop is within an ungapped segment
-            # either the last segment or the one before the last included gap
             adj = _step_adjustment(gap_ends[r - 1], start, step)
             cum_seq_length += _step_adjusted_length(gap_ends[r - 1], stop, adj, step)
         else:
             # stop is within a gap
-            # work out the previous ungapped segment
+            # determine length of previous ungapped segment
             adj = _step_adjustment(gap_ends[r - 1], start, step)
             cum_seq_length += _step_adjusted_length(
                 gap_ends[r - 1], gap_starts[r], adj, step
             )
 
-            # work out the length of the gap when considering the stop
+            # determine length of the gap when considering the stop
             adj = _step_adjustment(gap_starts[r], start, step)
             adj_gap_len = _step_adjusted_length(gap_starts[r], stop, adj, step)
 
+            # check that we do not step over the gap entirely
             if adj_gap_len > 0:
-                # check that we do not step over the gap entirely
                 if adj_gaps and adj_gaps[-1][0] == cum_seq_length:
                     # the previous gap is contiguous with this one
                     adj_gaps[-1][1] += adj_gap_len
