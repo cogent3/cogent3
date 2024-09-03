@@ -1,7 +1,6 @@
 import multiprocessing
-import sys
 import time
-from unittest import TestCase, skipIf
+from unittest import TestCase
 
 import numpy
 
@@ -45,17 +44,17 @@ class ParallelTests(TestCase):
         self.assertEqual(result1[0], result2[0])
         self.assertNotEqual(result1, result2)
 
-    @skipIf(sys.version_info[1] < 7, "method exclusive to Python 3.7 and above")
-    def test_is_master_process(self):
-        """
-        is_master_process() should return False
-        for all child processes
-        """
-        index = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        master_processes = 0
-        for result in parallel.imap(
-            check_is_master_process, index, max_workers=None, use_mpi=False
-        ):
-            if result:
-                master_processes += 1
-        self.assertEqual(master_processes, 0)
+
+def test_is_master_process():
+    """
+    is_master_process() should return False
+    for all child processes
+    """
+    assert parallel.is_master_process()  # this should be master!
+    index = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    # but workers should not
+    master_processes = sum(
+        bool(result)
+        for result in parallel.imap(check_is_master_process, index, use_mpi=False)
+    )
+    assert master_processes == 0

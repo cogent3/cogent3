@@ -14,6 +14,7 @@ keywords = ["biology", "genomics", "statistics", "phylogeny", "evolution", "bioi
 readme = "README.md"
 license = { file = "LICENSE" }
 dependencies = ["chardet",
+        "loky",
         "numpy",
         "numba>0.53; python_version>='3.9' and python_version <'3.12'",
         "numba>0.54; python_version>='3.10' and python_version <'3.12'",
