@@ -55,8 +55,6 @@ def test_is_master_process():
     # but workers should not
     master_processes = sum(
         bool(result)
-        for result in parallel.imap(
-            check_is_master_process, index, max_workers=4, use_mpi=False
-        )
+        for result in parallel.imap(check_is_master_process, index, use_mpi=False)
     )
     assert master_processes == 0
