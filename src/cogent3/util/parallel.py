@@ -34,7 +34,6 @@ def get_rank():
     if MPI is not None:
         rank = COMM.Get_rank()
     else:
-        ctxt = loky.backend.get_context()
         process_name = multiprocessing.current_process().name
         if process_name != "MainProcess":
             rank = int(process_name.split("-")[-1])
