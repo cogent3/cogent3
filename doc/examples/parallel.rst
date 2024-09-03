@@ -23,11 +23,22 @@ This is the simplest case to implement, requires no additional software installs
 Using ``app.apply_to()``
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you are using ``cogent3`` :ref:`composable apps <apps>`, then the simplest approach is to use the ``apply_to()`` method. The conditions of parallel execution are controlled using the keyword arguments ``parallel`` and ``par_kw``. The former indicates parallel execution is to be undertaken. The latter is how additional arguments are provided to ``parallel.map()``. For instance, using 4 workers would be specified as:
+If you are using a composed ``cogent3`` :ref:`app <apps>` **with** a writer, then the simplest approach is to use the ``apply_to()`` method. The conditions of parallel execution are controlled using the keyword arguments ``parallel`` and ``par_kw``. The former indicates parallel execution is to be undertaken. The latter is how additional arguments are provided to ``parallel.as_completed()``. For instance, using 4 workers would be specified as:
 
 .. code-block:: python
     
     results = app.apply_to(data, parallel=True, par_kw=dict(max_workers=4))
+
+.. note:: If you are using mpi, set ``par_kw=dict(max_workers=4, use_mpi=True)``.
+
+Using ``app.as_completed()``
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you are using a composed ``cogent3`` :ref:`app <apps>` **without** a writer, then use the ``as_completed()`` method. The arguments are the same as for ``apply_to()`` but as this method returns a generator, you use a builtin type to execute the call.
+
+.. code-block:: python
+    
+    results = list(app.as_completed(data, parallel=True, par_kw=dict(max_workers=4)))
 
 .. note:: If you are using mpi, set ``par_kw=dict(max_workers=4, use_mpi=True)``.
 
