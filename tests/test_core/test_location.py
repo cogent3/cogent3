@@ -1211,7 +1211,7 @@ def test_indelmap_make_seq_feature_map():
         "----------",
     ],
 )
-def test_indelmap_positive_step_varaint_slices(start, stop, step, data):
+def test_indelmap_positive_step_variant_slices(start, stop, step, data):
     imap, _ = new_moltype.DNA.make_seq(seq=data).parse_out_gaps()
     got = imap[start:stop:step]
     expect, _ = new_moltype.DNA.make_seq(seq=data[start:stop:step]).parse_out_gaps()
@@ -1237,7 +1237,7 @@ def test_indelmap_positive_step_varaint_slices(start, stop, step, data):
         "----------",
     ],
 )
-def test_indelmap_negative_step_varaint_slices(start, stop, step, data):
+def test_indelmap_negative_step_variant_slices(start, stop, step, data):
     imap, _ = new_moltype.DNA.make_seq(seq=data).parse_out_gaps()
     got = imap[start:stop:step]
     expect, _ = new_moltype.DNA.make_seq(seq=data[start:stop:step]).parse_out_gaps()
