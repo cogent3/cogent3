@@ -698,12 +698,12 @@ def test_indelmap_slice_zero():
 def test_indelmap_invalid_slice_range():
     # If we mirror python slicing, an invalid slice should return an empty map
     imap = IndelMap(
-        gap_pos=numpy.array([10], dtype=numpy.int32),
-        gap_lengths=numpy.array([2], dtype=numpy.int32),
+        gap_pos=numpy.array([10], dtype=int),
+        gap_lengths=numpy.array([2], dtype=int),
         parent_length=10,
     )
 
-    expect = numpy.array([], dtype=numpy.int32)
+    expect = numpy.array([], dtype=int)
 
     got = imap[-100]
     assert (got.gap_pos == expect).all()
