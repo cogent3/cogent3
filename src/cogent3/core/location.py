@@ -22,6 +22,8 @@ strip = str.strip
 
 _DEFAULT_GAP_DTYPE = numpy.int32
 
+OptInt = Optional[int]
+
 
 def _norm_index(i, length, default):
     """For converting s[:3] to s[0:3], s[-1] to s[len(s)-1] and s[0:lots] to s[0:len(s)]"""
@@ -1013,7 +1015,9 @@ def _step_adjusted_length(start, end, adj, step):
     return max(adjusted_length, 0)
 
 
-def _input_vals_pos_step(seqlen, start, stop, step):
+def _input_vals_pos_step(
+    seqlen: int, start: OptInt, stop: OptInt, step: int
+) -> tuple[int, int, int]:
     start = 0 if start is None else start
     if start > 0 and start >= seqlen:
         # start beyond seq is an empty slice
@@ -1038,7 +1042,9 @@ def _input_vals_pos_step(seqlen, start, stop, step):
     return start, stop, step
 
 
-def _input_vals_neg_step(seqlen, start, stop, step):
+def _input_vals_neg_step(
+    seqlen: int, start: OptInt, stop: OptInt, step: int
+) -> tuple[int, int, int]:
     # Note how Python reverse slicing works
     # we need to make sure the start and stop are both
     # negative, for example "abcd"[-1:-5:-1] returns "dcba"
@@ -1198,7 +1204,7 @@ class IndelMap(MapABC):
             stop = -stop - 1
             return self.nucleic_reversed()[start:stop:-step]
 
-        if self._check_no_gap_slice(start, stop, step):
+        if self._check_no_gap_slice(start, stop):
             return self._zero_imap(start, stop, step)
 
         gap_starts, gap_ends = _gap_spans(self.gap_pos, self.cum_gap_lengths)
@@ -1316,7 +1322,7 @@ class IndelMap(MapABC):
             parent_length=parent_length,
         )
 
-    def _zero_imap(self, start, stop, step):
+    def _zero_imap(self, start: int, stop: int, step: int) -> "IndelMap":
         """returns a new IndelMap with zero gaps"""
         zero_array = numpy.array([], dtype=_DEFAULT_GAP_DTYPE)
         return self.__class__(
@@ -1325,7 +1331,7 @@ class IndelMap(MapABC):
             parent_length=_step_adjusted_length(start, stop, 0, step),
         )
 
-    def _single_imap(self, start, stop, step):
+    def _single_imap(self, start: int, stop: int, step: int) -> "IndelMap":
         """returns a new IndelMap with a single gap"""
         gap_pos = numpy.array([0], dtype=_DEFAULT_GAP_DTYPE)
         cum_gap_length = numpy.array([_step_adjusted_length(start, stop, 0, step)])
@@ -1333,7 +1339,17 @@ class IndelMap(MapABC):
             gap_pos=gap_pos, cum_gap_lengths=cum_gap_length, parent_length=0
         )
 
-    def _check_no_gap_slice(self, start, stop, step):
+    def _check_no_gap_slice(self, start: int, stop: int) -> bool:
+        """check for easy cases where slicing an indel maps results in no gaps.
+
+        Returns
+            True if no gaps are present in the slice
+
+        Notes
+        -----
+        this method assumes positive indexing and a positive step
+        (i.e. start, stop, step > 0)
+        """
         # when slicing an indel maps, we can have four easy cases:
         # 1 - invalid slice
         if start == stop:
@@ -1347,11 +1363,7 @@ class IndelMap(MapABC):
         last_gap = self.gap_pos[-1] + self.cum_gap_lengths[-1]  # end of last gap
 
         # 3 - slice before first gap; 4 - after last gap (for positive step)
-        if step > 0 and (stop <= first_gap or start >= last_gap):
-            return True
-
-        # 3 - slice before first gap; 4 - after last gap (for negative step)
-        if step < 0 and (len(self) + stop >= last_gap or len(self) + start < first_gap):
+        if stop <= first_gap or start >= last_gap:
             return True
 
     def get_align_index(self, seq_index: int, slice_stop: bool = False) -> int:
