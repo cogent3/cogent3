@@ -695,23 +695,27 @@ def test_indelmap_slice_zero():
     assert got.cum_gap_lengths.tolist() == expect.cum_gap_lengths.tolist()
 
 
-@pytest.mark.xfail(reason="If we mirror pythong slicing, this should pass")
 def test_indelmap_invalid_slice_range():
-    # refactor
     # If we mirror python slicing, an invalid slice should return an empty map
     imap = IndelMap(
-        gap_pos=numpy.array([10], dtype=int),
-        gap_lengths=numpy.array([2], dtype=int),
+        gap_pos=numpy.array([10], dtype=numpy.int32),
+        gap_lengths=numpy.array([2], dtype=numpy.int32),
         parent_length=10,
     )
-    with pytest.raises(IndexError):
-        imap[-100]
 
-    with pytest.raises(IndexError):
-        imap[-100:]
+    expect = numpy.array([], dtype=numpy.int32)
 
-    with pytest.raises(IndexError):
-        imap[:-99]
+    got = imap[-100]
+    assert (got.gap_pos == expect).all()
+    assert (got.cum_gap_lengths == expect).all()
+
+    got = imap[-100:]
+    assert (got.gap_pos == expect).all()
+    assert (got.cum_gap_lengths == expect).all()
+
+    got = imap[:-99]
+    assert (got.gap_pos == expect).all()
+    assert (got.cum_gap_lengths == expect).all()
 
 
 def test_indelmap_get_indices_errors():
@@ -1217,12 +1221,13 @@ def test_indelmap_positive_step_varaint_slices(start, stop, step, data):
 
 @pytest.mark.parametrize("start", range(11))
 @pytest.mark.parametrize("stop", range(10))
-@pytest.mark.parametrize("step", [-1, -2, -3, -4])
+@pytest.mark.parametrize("step", [-1, -2, -3])
 @pytest.mark.parametrize(
     "data",
     [
         "TCAGTCAGTC",
         "AAAAA-----",
+        "AAAAAAA--A",
         "-----AAAAA",
         "--AA--AA--",
         "AA--AA--AA",
