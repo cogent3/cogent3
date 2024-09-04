@@ -2938,7 +2938,7 @@ def test_alignment_repr():
 @pytest.mark.parametrize("stop", range(6))
 @pytest.mark.parametrize("step", range(1, 3))
 @pytest.mark.parametrize("seqid", ("seq1", "seq2", "seq3", "seq4"))
-def test_alignment_slice(aligned_dict, start, stop, step, seqid):
+def test_alignment_slice_pos_step_gapped(aligned_dict, start, stop, step, seqid):
     """slicing an alignment should propogate the slice to aligned instances"""
     aln = new_alignment.make_aligned_seqs(aligned_dict, moltype="dna")
     sliced_aln = aln[start:stop:step]
@@ -2946,6 +2946,41 @@ def test_alignment_slice(aligned_dict, start, stop, step, seqid):
     expect = aligned_dict[seqid][start:stop:step]
     assert got == expect
 
+
+@pytest.mark.parametrize("start", range(6))
+@pytest.mark.parametrize("stop", range(6))
+@pytest.mark.parametrize("step", range(1, 3))
+@pytest.mark.parametrize("seqid", ("seq1", "seq2", "seq3", "seq4"))
+def test_alignment_slice_pos_step_ungapped(aligned_dict, start, stop, step, seqid):
+    """slicing an alignment should propogate the slice to aligned instances"""
+    aln = new_alignment.make_aligned_seqs(aligned_dict, moltype="dna")
+    sliced_aln = aln[start:stop:step]
     got = sliced_aln.seqs[seqid].seq
-    expect = expect.replace("-", "")
+    expect = aligned_dict[seqid][start:stop:step].replace("-", "")
+    assert got == expect
+
+
+@pytest.mark.parametrize("start", range(6))
+@pytest.mark.parametrize("stop", range(6))
+@pytest.mark.parametrize("step", range(-3, 0))
+@pytest.mark.parametrize("seqid", ("seq1", "seq2", "seq3", "seq4"))
+def test_alignment_slice_neg_step_gapped(aligned_dict, start, stop, step, seqid):
+    """slicing an alignment should propogate the slice to aligned instances"""
+    aln = new_alignment.make_aligned_seqs(aligned_dict, moltype="dna")
+    sliced_aln = aln[start:stop:step]
+    got = sliced_aln.seqs[seqid].gapped_seq
+    expect = aligned_dict[seqid][start:stop:step]
+    assert got == expect
+
+
+@pytest.mark.parametrize("start", range(6))
+@pytest.mark.parametrize("stop", range(6))
+@pytest.mark.parametrize("step", range(-3, 0))
+@pytest.mark.parametrize("seqid", ("seq1", "seq2", "seq3", "seq4"))
+def test_alignment_slice_neg_step_ungapped(aligned_dict, start, stop, step, seqid):
+    """slicing an alignment should propogate the slice to aligned instances"""
+    aln = new_alignment.make_aligned_seqs(aligned_dict, moltype="dna")
+    sliced_aln = aln[start:stop:step]
+    got = sliced_aln.seqs[seqid].seq
+    expect = aligned_dict[seqid][start:stop:step].replace("-", "")
     assert got == expect
