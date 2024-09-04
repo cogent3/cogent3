@@ -6,7 +6,6 @@ import json
 from abc import ABC, abstractmethod
 from bisect import bisect_left, bisect_right
 from functools import total_ordering
-from itertools import chain
 from typing import Any, Iterator, Optional, Sequence, Union
 
 import numpy
@@ -16,11 +15,7 @@ from cogent3._version import __version__
 from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.misc import (
-    ClassChecker,
-    ConstrainedList,
-    FunctionWrapper,
     get_object_provenance,
-    iterable,
 )
 
 strip = str.strip
@@ -1003,8 +998,9 @@ def _update_lengths(
 
 
 def _step_adjustment(gap_start, start, step):
-    """determines how many more steps we need to take from the beginning of
-    a gap/ungapped segment to reach a position which is a multiple of the step"""
+    """adjusment to a start, given a step size. The adjustment determines how
+    many more steps we need to take from the beginning of a gap/ungapped segment
+    to reach a position which is a multiple of the step"""
     overstep = (gap_start - start) % step
     return step - overstep if overstep else 0
 
@@ -1015,6 +1011,53 @@ def _step_adjusted_length(start, end, adj, step):
     needed to reach the next multiple of the step size"""
     adjusted_length = -((end - start - adj) // -step)
     return max(adjusted_length, 0)
+
+
+def _input_vals_pos_step(seqlen, start, stop, step):
+    start = 0 if start is None else start
+    if start > 0 and start >= seqlen:
+        # start beyond seq is an empty slice
+        return 0, 0, 1
+
+    stop = seqlen if stop is None else stop
+    if stop < 0 and abs(stop) >= seqlen:
+        # finished slice before we started seq!
+        return 0, 0, 1
+
+    start = max(seqlen + start, 0) if start < 0 else start
+
+    if stop > 0:
+        stop = min(seqlen, stop)
+    elif stop < 0:
+        stop += seqlen
+
+    if start >= stop:
+        start = stop = 0
+        step = 1
+
+    return start, stop, step
+
+
+def _input_vals_neg_step(seqlen, start, stop, step):
+    # Note how Python reverse slicing works
+    # we need to make sure the start and stop are both
+    # negative, for example "abcd"[-1:-5:-1] returns "dcba"
+    if start is None or start >= seqlen:  # set default
+        start = -1  # Done
+    elif start >= 0:  # convert to -ve index
+        start = start - seqlen
+    elif start < -seqlen:  # start is bounded by len(seq)
+        return 0, 0, 1
+
+    if stop is None:  # set default
+        stop = -seqlen - 1
+    elif stop >= 0:
+        stop -= seqlen
+
+    stop = max(stop, -seqlen - 1)  # stop should always be <= len(seq)
+
+    # checking for zero-length slice
+    return (0, 0, 1) if start < stop else (start, stop, step)
 
 
 @dataclasses.dataclass
@@ -1144,64 +1187,29 @@ class IndelMap(MapABC):
         # that will also be sliced. Hence, we need to shift the gap insertion
         # positions relative to this newly sliced sequence.
 
-        zero_array = numpy.array([], dtype=_DEFAULT_GAP_DTYPE)
-        start = item.start or 0
-        stop = item.stop if item.stop is not None else len(self)
-        step = item.step or 1
+        # refactor: simplify
 
-        if step < 1:
-            raise NotImplementedError(
-                f"{type(self).__name__!r} does not yet support negative strides"
-            )
+        step = 1 if item.step is None else item.step
+        func = _input_vals_pos_step if step > 0 else _input_vals_neg_step
+        start, stop, step = func(len(self), item.start, item.stop, step)
 
-        # convert negative indices
-        start = start if start >= 0 else len(self) + start
-        stop = stop if stop >= 0 else len(self) + stop
-        if min((start, stop)) < 0:
-            raise IndexError("item.start or item.stop is out of range")
+        if step < 0:
+            start = -start - 1
+            stop = -stop - 1
+            return self.nucleic_reversed()[start:stop:-step]
 
-        if start >= stop:
-            # standard slice behaviour without negative step
-            return self.__class__(
-                gap_pos=zero_array.copy(),
-                cum_gap_lengths=zero_array.copy(),
-                parent_length=0,
-            )
-
-        # we address three easy cases:
-        # 1 - no gaps; 2 - slice before first gap; 3 - after last gap
-        no_gaps = self.__class__(
-            gap_pos=zero_array.copy(),
-            cum_gap_lengths=zero_array.copy(),
-            parent_length=_step_adjusted_length(start, stop, 0, step),
-        )
-        if not self.num_gaps:
-            return no_gaps
-
-        first_gap = self.gap_pos[0]  # start of first gap
-        last_gap = self.gap_pos[-1] + self.cum_gap_lengths[-1]  # end of last gap
-        if stop < first_gap or start >= last_gap:
-            return no_gaps
+        if self._check_no_gap_slice(start, stop, step):
+            return self._zero_imap(start, stop, step)
 
         gap_starts, gap_ends = _gap_spans(self.gap_pos, self.cum_gap_lengths)
-        gap_pos = self.gap_pos.copy()
-        cum_lengths = self.cum_gap_lengths.copy()
-        # we find where the slice starts
-        # searchsorted finds indices where elements should be inserted to maintain order.
-        # l is the index of the first gap included in the slice, using start + 1 to account
-        # for exclusive indexing of gap ends
-        l = numpy.searchsorted(gap_ends, start + 1, side="left")
-        if gap_starts[l] <= start < gap_ends[l] and stop <= gap_ends[l]:
-            # entire span is within a single gap
-            # pos now 0
-            gap_pos = numpy.array([0], dtype=_DEFAULT_GAP_DTYPE)
-            cum_lengths = cum_lengths[l : l + 1]
-            cum_lengths[0] = _step_adjusted_length(start, stop, 0, step)
-            return self.__class__(
-                gap_pos=gap_pos, cum_gap_lengths=cum_lengths, parent_length=0
-            )
 
-        # start a counter for the cumulative sequence length
+        # determine the gap index where the slice starts
+        l = numpy.searchsorted(gap_ends, start + 1, side="left")
+
+        # check if entire slice is within a single gap
+        if gap_starts[l] <= start < gap_ends[l] and stop <= gap_ends[l]:
+            return self._single_imap(start, stop, step)
+
         cum_seq_length = 0
         adj_gaps = []
         lengths = self.get_gap_lengths()
@@ -1219,7 +1227,7 @@ class IndelMap(MapABC):
             # start is within a ungapped segment
             if stop <= gap_starts[l]:
                 # the stop is within the same ungapped segment
-                return no_gaps
+                return self._zero_imap(start, stop, step)
 
             # determine the preceding seq length
             cum_seq_length += _step_adjusted_length(
@@ -1228,16 +1236,15 @@ class IndelMap(MapABC):
             # adj is how many more steps we need to take from the beginning of
             # the gap to reach a position which is a multiple of the step
             adj = _step_adjustment(gap_starts[l], start, step)
+            # check gap is not stepped over entirely
             if adj < lengths[l]:
-                # if adj > gap length, then the gap is "stepped over" by the stride
                 adj_gap_len = -((lengths[l] - adj) // -step)
                 adj_gaps.append([cum_seq_length, adj_gap_len])
 
         # start search for rhs index
         r = numpy.searchsorted(gap_ends[l:], stop, side="right") + l
 
-        # iterate through the gaps between l and r
-        # these are the gaps that are fully within the slice
+        # iterate through the gaps that are fully within the slice
         for j in range(l + 1, r):
             # determine how long the preceding ungapped segment was
             adj = _step_adjustment(gap_ends[j - 1], start, step)
@@ -1308,6 +1315,44 @@ class IndelMap(MapABC):
             gap_lengths=lengths,
             parent_length=parent_length,
         )
+
+    def _zero_imap(self, start, stop, step):
+        """returns a new IndelMap with zero gaps"""
+        zero_array = numpy.array([], dtype=_DEFAULT_GAP_DTYPE)
+        return self.__class__(
+            gap_pos=zero_array.copy(),
+            cum_gap_lengths=zero_array.copy(),
+            parent_length=_step_adjusted_length(start, stop, 0, step),
+        )
+
+    def _single_imap(self, start, stop, step):
+        """returns a new IndelMap with a single gap"""
+        gap_pos = numpy.array([0], dtype=_DEFAULT_GAP_DTYPE)
+        cum_gap_length = numpy.array([_step_adjusted_length(start, stop, 0, step)])
+        return self.__class__(
+            gap_pos=gap_pos, cum_gap_lengths=cum_gap_length, parent_length=0
+        )
+
+    def _check_no_gap_slice(self, start, stop, step):
+        # when slicing an indel maps, we can have four easy cases:
+        # 1 - invalid slice
+        if start == stop:
+            return True
+
+        # 2 - no gaps
+        if not self.num_gaps:
+            return True
+
+        first_gap = self.gap_pos[0]  # start of first gap
+        last_gap = self.gap_pos[-1] + self.cum_gap_lengths[-1]  # end of last gap
+
+        # 3 - slice before first gap; 4 - after last gap (for positive step)
+        if step > 0 and (stop <= first_gap or start >= last_gap):
+            return True
+
+        # 3 - slice before first gap; 4 - after last gap (for negative step)
+        if step < 0 and (len(self) + stop >= last_gap or len(self) + start < first_gap):
+            return True
 
     def get_align_index(self, seq_index: int, slice_stop: bool = False) -> int:
         """convert a sequence index into an alignment index

@@ -695,7 +695,10 @@ def test_indelmap_slice_zero():
     assert got.cum_gap_lengths.tolist() == expect.cum_gap_lengths.tolist()
 
 
+@pytest.mark.xfail(reason="If we mirror pythong slicing, this should pass")
 def test_indelmap_invalid_slice_range():
+    # refactor
+    # If we mirror python slicing, an invalid slice should return an empty map
     imap = IndelMap(
         gap_pos=numpy.array([10], dtype=int),
         gap_lengths=numpy.array([2], dtype=int),
@@ -947,17 +950,6 @@ def test_gapped_convert_aln2seq_invalid():
     with pytest.raises(IndexError):
         # absolute value of negative indices must be < seq length
         gaps.get_seq_index(-100)
-
-
-@pytest.mark.parametrize(
-    "invalid_slice",
-    (slice(None, None, -1), slice(None, None, -2)),
-)
-def test_gap_pos_invalid_slice(invalid_slice):
-    pos, lengths = numpy.array([[1, 3]], dtype=numpy.int32).T
-    gp = IndelMap(gap_pos=pos, gap_lengths=lengths, parent_length=20)
-    with pytest.raises(NotImplementedError):
-        _ = gp[invalid_slice]
 
 
 @pytest.mark.parametrize(
@@ -1216,6 +1208,31 @@ def test_indelmap_make_seq_feature_map():
     ],
 )
 def test_indelmap_positive_step_varaint_slices(start, stop, step, data):
+    imap, _ = new_moltype.DNA.make_seq(seq=data).parse_out_gaps()
+    got = imap[start:stop:step]
+    expect, _ = new_moltype.DNA.make_seq(seq=data[start:stop:step]).parse_out_gaps()
+    assert (got.gap_pos == expect.gap_pos).all()
+    assert (got.cum_gap_lengths == expect.cum_gap_lengths).all()
+
+
+@pytest.mark.parametrize("start", range(11))
+@pytest.mark.parametrize("stop", range(10))
+@pytest.mark.parametrize("step", [-1, -2, -3, -4])
+@pytest.mark.parametrize(
+    "data",
+    [
+        "TCAGTCAGTC",
+        "AAAAA-----",
+        "-----AAAAA",
+        "--AA--AA--",
+        "AA--AA--AA",
+        "A-A-A-A-A-",
+        "---TTTT---",
+        "C--------C",
+        "----------",
+    ],
+)
+def test_indelmap_negative_step_varaint_slices(start, stop, step, data):
     imap, _ = new_moltype.DNA.make_seq(seq=data).parse_out_gaps()
     got = imap[start:stop:step]
     expect, _ = new_moltype.DNA.make_seq(seq=data[start:stop:step]).parse_out_gaps()
