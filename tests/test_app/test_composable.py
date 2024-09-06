@@ -3,7 +3,7 @@ import pickle
 import shutil
 from pathlib import Path
 from pickle import dumps, loads
-from typing import Set, Tuple
+from typing import Set, Tuple, Union
 from unittest.mock import Mock
 
 import pytest
@@ -319,7 +319,7 @@ def test_as_completed_empty_data(data):
 )
 def test_as_completed_w_wout_source(data):
     @define_app
-    def pass_through(val: dict | UnionDict | Alignment) -> dict:
+    def pass_through(val: Union[dict, UnionDict, Alignment]) -> dict:
         return val
 
     app = pass_through()  # pylint: disable=not-callable

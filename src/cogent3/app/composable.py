@@ -8,7 +8,7 @@ import types
 from copy import deepcopy
 from enum import Enum
 from pathlib import Path
-from typing import Any, Generator, Tuple
+from typing import Any, Generator, Tuple, Union
 from uuid import uuid4
 
 from scitrack import CachingLogger
@@ -667,10 +667,10 @@ def _proxy_input(dstore):
 
 
 def _source_wrapped(
-    self, value: source_proxy | c3_typing.HasSource
+    self, value: Union[source_proxy, c3_typing.HasSource]
 ) -> c3_typing.HasSource:
-    if not isinstance(value, c3_typing.HasSource):
-        value = source_proxy(value)
+    if not isinstance(value, source_proxy):
+        return self(value)
 
     value.set_obj(self(value.obj))
     return value
