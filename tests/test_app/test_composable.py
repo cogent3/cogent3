@@ -322,7 +322,7 @@ def test_as_completed_w_wout_source(data):
     def pass_through(val: Union[dict, UnionDict, Alignment]) -> dict:
         return val
 
-    app = pass_through()  # pylint: disable=not-callable
+    app = pass_through()  # pylint: disable=not-callable,no-value-for-parameter
     got = list(app.as_completed([data], show_progress=False))
     assert bool(got), got
 
