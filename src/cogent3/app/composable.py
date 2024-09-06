@@ -14,7 +14,7 @@ from uuid import uuid4
 from scitrack import CachingLogger
 
 from cogent3._version import __version__
-from cogent3.app.typing import get_constraint_names, type_tree
+from cogent3.app import typing as c3_typing
 from cogent3.util import parallel as PAR
 from cogent3.util import progress_display as UI
 from cogent3.util.misc import docstring_to_summary_rest, get_object_provenance
@@ -148,11 +148,11 @@ def _get_raw_hints(main_func, min_params):
         "{} type {} nesting level exceeds 2 for {}"
         "we suggest using a custom type, e.g. a dataclass"
     )
-    depth, _ = type_tree(first_param_type)
+    depth, _ = c3_typing.type_tree(first_param_type)
     if depth > 2:
         raise TypeError(msg.format("first_param", first_param_type, depth))
 
-    depth, _ = type_tree(return_type)
+    depth, _ = c3_typing.type_tree(return_type)
     if depth > 2:
         raise TypeError(msg.format("return_type", return_type, depth))
 
@@ -190,8 +190,8 @@ def _get_main_hints(klass) -> Tuple[set, set]:
         raise ValueError(f"must define a callable main() method in {klass.__name__!r}")
 
     first_param_type, return_type = _get_raw_hints(main_func, 2)
-    first_param_type = get_constraint_names(first_param_type)
-    return_type = get_constraint_names(return_type)
+    first_param_type = c3_typing.get_constraint_names(first_param_type)
+    return_type = c3_typing.get_constraint_names(return_type)
 
     return frozenset(first_param_type), frozenset(return_type)
 
