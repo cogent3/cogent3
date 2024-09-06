@@ -1018,6 +1018,17 @@ def _step_adjusted_length(start, end, adj, step):
 def _input_vals_pos_step(
     seqlen: int, start: OptInt, stop: OptInt, step: int
 ) -> tuple[int, int, int]:
+    """returns standardised start, stop, step values for positive step slicing. 
+    
+    Notes
+    -----
+    The input values for start and stop can be +ve, -ve or None. The returned
+    start and stop are strictly +ve and within the sequence length, and if not
+    provided default to 0 and seqlen respectively. 
+
+    If the slice results in a zero-length slice, the returned start, stop, step
+    will be 0, 0, 1 respectively.
+    """
     start = 0 if start is None else start
     if start > 0 and start >= seqlen:
         # start beyond seq is an empty slice
@@ -1045,9 +1056,23 @@ def _input_vals_pos_step(
 def _input_vals_neg_step(
     seqlen: int, start: OptInt, stop: OptInt, step: int
 ) -> tuple[int, int, int]:
+    """returns standardised start, stop, step values for negative step slicing.
+    
+    Notes
+    -----
+    The input values for start and stop can be positive, negative or None. The
+    returned start and stop are strictly negative and correspond to indices 
+    within the sequence length. If not provided, start defaults to -1 and stop  
+    to -seqlen-1.
+
+    If the slice results in a zero-length slice, the returned start, stop, step
+    will be 0, 0, 1 respectively.
+    """
     # Note how Python reverse slicing works
     # we need to make sure the start and stop are both
     # negative, for example "abcd"[-1:-5:-1] returns "dcba"
+    # returning the complete string in reverse order is only 
+    # possible with negative indexing
     if start is None or start >= seqlen:  # set default
         start = -1  # Done
     elif start >= 0:  # convert to -ve index
