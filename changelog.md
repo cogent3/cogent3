@@ -1,4 +1,28 @@
 
+<a id='changelog-2024.7.19a6'></a>
+# Changes in release "2024.7.19a6"
+
+Mainly a bug fix release. But one important new feature is support for parallelisation
+in jupyter notebooks!
+
+## Contributors
+
+- @GavinHuttley
+
+## ENH
+
+- Use loky for parallel processing instead of multiprocessing alone. loky is more robust
+  and supports parallel execution in jupyter notebooks .. yay!
+- Using a feature to slice a sequence or an alignment should now preserve the annotation
+  when possible (a feature has a single contiguous span), or removes the annotation_db
+  when not querying it could be misleading.
+
+## BUG
+
+- Fixed issue where read only zipped data stores would include files
+  starting with a "._"
+- Fixed regression affecting app.as_completed()
+
 <a id='changelog-2024.7.19a5'></a>
 # Changes in release "2024.7.19a5"
 

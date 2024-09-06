@@ -96,18 +96,24 @@ class Feature:
         present in the sequence, then this method will fail.
         """
         fmap = self.map
-        if not (complete or fmap.complete):
+
+        if not complete and not fmap.complete:
             fmap = fmap.without_gaps()
         if not allow_gaps:
             result = self.parent[fmap]
-            if self.reversed:
-                result = result.rc()
-            return result
-
+            return self._do_seq_slice(result)
         # all slicing now requires start < end
         result = self.parent[fmap.start : fmap.end]
+        return self._do_seq_slice(result)
+
+    def _do_seq_slice(self, result):
+        offset = self.map.start if self.map.num_spans == 1 else 0
         if self.reversed:
             result = result.rc()
+        result.annotation_offset = offset
+        if self.map.num_spans > 1:
+            # db querying will be incorrect so make sure it can't be done
+            result.annotation_db = None
         return result
 
     def without_lost_spans(self):
