@@ -1683,6 +1683,10 @@ class FeatureMap(MapABC):
     def spans(self) -> Iterator[SeqSpanTypes]:
         yield from self._spans
 
+    @property
+    def num_spans(self):
+        return len(self._spans)
+
     def get_covering_span(self) -> "FeatureMap":
         span = (self.start, self.end)
         return self.__class__.from_locations(

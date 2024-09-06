@@ -598,6 +598,45 @@ def test_get_slice():
     assert str(got) == str(seq[5:10])
 
 
+def test_get_slice_annotation_offset():
+    """get_slice should return the same as slicing the sequence directly"""
+    seq = Sequence("ATTGTACGCCCCTGA", name="test_seq")
+    feature_data = {
+        "biotype": "CDS",
+        "name": "fake",
+        "spans": [
+            (5, 10),
+        ],
+        "strand": "+",
+    }
+    feature = seq.make_feature(feature_data)
+    assert feature.map.num_spans == 1
+    got = feature.get_slice()
+    assert got.annotation_offset == 5
+
+
+def test_get_slice_annotation_offset_not_set():
+    # annotation offset is set to zero if a feature spans disjoint segments
+    # plus the annotation db is set to None
+    seq = Sequence("ATTGTACGCCCCTGA", name="test_seq")
+    feature_data = {
+        "biotype": "CDS",
+        "name": "fake",
+        "spans": [
+            (5, 7),
+            (9, 11),
+        ],
+        "strand": "+",
+    }
+    feature = seq.make_feature(feature_data)
+    assert feature.map.num_spans == 2
+    got = feature.get_slice()
+    assert got.annotation_offset == 0
+    assert got.annotation_db is None
+    f = list(got.get_features(biotype="gene"))
+    assert not f
+
+
 def test_feature_get_children(seq_db):
     feat = list(seq_db.get_features(name="Transcript:B0019.1"))[0]
     new_feat_5pUTR = list(feat.get_children(biotype="five_prime_UTR"))
