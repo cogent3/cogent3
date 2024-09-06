@@ -666,7 +666,12 @@ def _proxy_input(dstore):
     return inputs
 
 
-def _source_wrapped(self, value: source_proxy) -> source_proxy:
+def _source_wrapped(
+    self, value: source_proxy | c3_typing.HasSource
+) -> c3_typing.HasSource:
+    if not isinstance(value, c3_typing.HasSource):
+        value = source_proxy(value)
+
     value.set_obj(self(value.obj))
     return value
 

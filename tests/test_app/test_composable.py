@@ -22,7 +22,6 @@ from cogent3.app.composable import (
     _add,
     _get_raw_hints,
     define_app,
-    get_object_provenance,
     is_app,
     is_app_composable,
 )
@@ -39,6 +38,7 @@ from cogent3.app.translate import select_translatable
 from cogent3.app.tree import quick_tree
 from cogent3.app.typing import AlignedSeqsType, PairwiseDistanceType
 from cogent3.core.alignment import Alignment, SequenceCollection
+from cogent3.util.union_dict import UnionDict
 
 
 @pytest.fixture(scope="function")
@@ -307,6 +307,24 @@ def test_as_completed_empty_data(data):
     # returns empty input
     got = proc.as_completed(data)
     assert got == []
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        dict(a=2),
+        UnionDict(a=2, source="blah.txt"),
+        Alignment(data=dict(a="ACGT"), info=dict(source="blah.txt")),
+    ],
+)
+def test_as_completed_w_wout_source(data):
+    @define_app
+    def pass_through(val: dict | UnionDict | Alignment) -> dict:
+        return val
+
+    app = pass_through()  # pylint: disable=not-callable
+    got = list(app.as_completed([data], show_progress=False))
+    assert bool(got), got
 
 
 @pytest.mark.parametrize("klass", (DataStoreDirectory, DataStoreSqlite))
