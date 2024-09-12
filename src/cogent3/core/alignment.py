@@ -2514,7 +2514,7 @@ class AlignmentI(object):
     default_gap = "-"  # default gap character for padding
     gap_chars = dict.fromkeys("-?")  # default gap chars for comparisons
 
-    def __repr__(self):
+    def __repr__(self):  # ported
         seqs = []
         limit = 10
         delimiter = ""

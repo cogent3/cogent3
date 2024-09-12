@@ -3235,6 +3235,24 @@ class Alignment(SequenceCollection):
 
         return names, output
 
+    def __repr__(self):
+        seqs = []
+        limit = 10
+        delimiter = ""
+        for count, name in enumerate(self.names):
+            if count == 3:
+                seqs.append("...")
+                break
+            elts = list(str(self.seqs[name])[: limit + 1])
+            if len(elts) > limit:
+                elts[-1] = "..."
+            seqs.append(f"{name}[{delimiter.join(elts)}]")
+        seqs = ", ".join(seqs)
+
+        return (
+            f"{len(self.names)} x {len(self)} {self.moltype.label} alignment: {seqs}"
+        )
+    
     def _repr_html_(self) -> str:
         settings = self._repr_policy.copy()
         env_vals = get_setting_from_environ(

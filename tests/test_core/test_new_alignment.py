@@ -2883,9 +2883,6 @@ def test_alignment_to_html():
     assert got.find(ref_row) < got.find(other_row)
 
 
-@pytest.mark.xfail(
-    reason="todo: Alignment repr currently using Seqcollection code, need to update"
-)
 def test_alignment_repr():
     data = {
         "ENSMUSG00000056468": "GCCAGGGGGAAAA",
@@ -2927,7 +2924,7 @@ def test_alignment_repr():
         "d": "D" * 11,
         "e": "E" * 11,
     }
-    seqs = new_alignment.make_aligned_seqs(data, moltype="dna")
+    seqs = new_alignment.make_aligned_seqs(data, moltype="text")
     assert (
         repr(seqs)
         == "5 x 11 text alignment: a[AAAAAAAAAA...], b[BBBBBBBBBB...], c[CCCCCCCCCC...], ..."
