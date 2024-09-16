@@ -1029,7 +1029,7 @@ def _input_vals_pos_step(
     If the slice results in a zero-length slice, the returned start, stop, step
     will be 0, 0, 1 respectively.
     """
-    start = 0 if start is None else start
+    start = start or 0
     if start > 0 and start >= seqlen:
         # start beyond seq is an empty slice
         return 0, 0, 1
