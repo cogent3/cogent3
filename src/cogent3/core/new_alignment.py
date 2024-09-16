@@ -3249,10 +3249,8 @@ class Alignment(SequenceCollection):
             seqs.append(f"{name}[{delimiter.join(elts)}]")
         seqs = ", ".join(seqs)
 
-        return (
-            f"{len(self.names)} x {len(self)} {self.moltype.label} alignment: {seqs}"
-        )
-    
+        return f"{len(self.names)} x {len(self)} {self.moltype.label} alignment: {seqs}"
+
     def _repr_html_(self) -> str:
         settings = self._repr_policy.copy()
         env_vals = get_setting_from_environ(
