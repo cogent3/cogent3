@@ -3143,7 +3143,17 @@ class Alignment(SequenceCollection):
     def get_seq(
         self, seqname: str, copy_annotations: bool = False
     ) -> new_sequence.Sequence:
-        """Return a Sequence object for the specified seqname."""
+        """Return a Sequence object for the specified seqname.
+
+        Parameters
+        ----------
+        seqname
+            name of the sequence to return
+        copy_annotations
+            if True, only the annotations for the specified sequence are copied
+            to the annotation database of the Sequence object. If False, all
+            annotations are copied.
+        """
         seq = self.seqs[seqname].seq
         if copy_annotations:
             seq.annotation_db = type(self.annotation_db)()
@@ -3156,8 +3166,13 @@ class Alignment(SequenceCollection):
     @c3warn.deprecated_args(
         version="2025.6", reason="naming consistency", old_new=[("seq_name", "seqname")]
     )
-    def get_gapped_seq(self, seqname):
-        """Return a gapped Sequence object for the specified seqname."""
+    def get_gapped_seq(self, seqname: str) -> new_sequence.Sequence:
+        """Return a gapped Sequence object for the specified seqname.
+
+        Notes
+        -----
+        This method breaks the connection to the annotation database.
+        """
         return self.seqs[seqname].gapped_seq
 
     def alignment_quality(self, app_name: str = "ic_score", **kwargs):
