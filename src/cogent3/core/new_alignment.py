@@ -3160,6 +3160,27 @@ class Alignment(SequenceCollection):
         """Return a gapped Sequence object for the specified seqname."""
         return self.seqs[seqname].gapped_seq
 
+    def alignment_quality(self, app_name: str = "ic_score", **kwargs):
+        """
+        Computes the alignment quality using the indicated app
+
+        Parameters
+        ----------
+        app_name
+            name of an alignment score calculating app, e.g. 'ic_score',
+            'cogent3_score', 'sp_score'
+
+        kwargs
+            keyword arguments to be passed to the app. Use
+            ``cogent3.app_help(app_name)`` to see the available options.
+
+        Returns
+        -------
+        float or a NotCompleted instance if the score could not be computed
+        """
+        app = get_app(app_name, **kwargs)
+        return app(self)
+
     def iter_positions(
         self, pos_order: list = None
     ) -> typing.Iterator[list, list, list]:
