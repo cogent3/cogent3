@@ -34,7 +34,13 @@ from cogent3.core.annotation_db import (
     load_annotations,
 )
 from cogent3.core.info import Info as InfoClass
-from cogent3.core.location import FeatureMap, IndelMap, LostSpan
+from cogent3.core.location import (
+    FeatureMap,
+    IndelMap,
+    LostSpan,
+    _input_vals_neg_step,
+    _input_vals_pos_step,
+)
 from cogent3.format.fasta import seqs_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts
 from cogent3.maths.stats.number import CategoryCounter
@@ -1939,53 +1945,6 @@ class RnaSequence(Sequence, NucleicAcidSequenceMixin):
 @register_deserialiser(get_object_provenance(RnaSequence))
 def deserialise_rna_sequence(data) -> RnaSequence:
     return RnaSequence.from_rich_dict(data)
-
-
-def _input_vals_pos_step(seqlen, start, stop, step):
-    start = 0 if start is None else start
-    if start > 0 and start >= seqlen:
-        # start beyond seq is an empty slice
-        return 0, 0, 1
-
-    stop = seqlen if stop is None else stop
-    if stop < 0 and abs(stop) >= seqlen:
-        # finished slice before we started seq!
-        return 0, 0, 1
-
-    start = max(seqlen + start, 0) if start < 0 else start
-
-    if stop > 0:
-        stop = min(seqlen, stop)
-    elif stop < 0:
-        stop += seqlen
-
-    if start >= stop:
-        start = stop = 0
-        step = 1
-
-    return start, stop, step
-
-
-def _input_vals_neg_step(seqlen, start, stop, step):
-    # Note how Python reverse slicing works
-    # we need to make sure the start and stop are both
-    # negative, for example "abcd"[-1:-5:-1] returns "dcba"
-    if start is None or start >= seqlen:  # set default
-        start = -1  # Done
-    elif start >= 0:  # convert to -ve index
-        start = start - seqlen
-    elif start < -seqlen:  # start is bounded by len(seq)
-        return 0, 0, 1
-
-    if stop is None:  # set default
-        stop = -seqlen - 1
-    elif stop >= 0:
-        stop -= seqlen
-
-    stop = max(stop, -seqlen - 1)  # stop should always be <= len(seq)
-
-    # checking for zero-length slice
-    return (0, 0, 1) if start < stop else (start, stop, step)
 
 
 class SliceRecordABC(ABC):

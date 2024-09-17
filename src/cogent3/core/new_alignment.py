@@ -21,7 +21,7 @@ from cogent3.core.annotation_db import (
     SupportsFeatures,
 )
 from cogent3.core.info import Info as InfoClass
-from cogent3.core.location import IndelMap
+from cogent3.core.location import IndelMap, _input_vals_neg_step, _input_vals_pos_step
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray, load_pssm
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import seqs_to_fasta
@@ -2794,19 +2794,14 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         Interweaves gaps into the sequence if gapped is True. Returns the ungapped
         sequence if gapped is False.
         """
+        step = 1 if step is None else step
+        func = _input_vals_pos_step if step > 0 else _input_vals_neg_step
+        start, stop, step = func(self.align_len, start, stop, step)
         seq = self._seqs[seqid]
-        start = start if start is not None else 0
-        stop = stop if stop is not None else self.align_len
-        step = step or 1
 
         # if there's no gaps, just slice the sequence
         if len(seq) == self.align_len:
             return seq[start:stop:step]
-
-        gaps = self._gaps[seqid]
-        indel_map = IndelMap(
-            gap_pos=gaps[:, 0], cum_gap_lengths=gaps[:, 1], parent_length=self.align_len
-        )
 
         unknown = self.alphabet.gap_index
 
@@ -2818,6 +2813,18 @@ class AlignedSeqsData(AlignedSeqsDataABC):
                 )
             else:
                 return numpy.array([], dtype=numpy.uint8)
+
+        gaps = self._gaps[seqid]
+        indel_map = IndelMap(
+            gap_pos=gaps[:, 0], cum_gap_lengths=gaps[:, 1], parent_length=len(seq)
+        )
+
+        if step < 0:
+            seq = seq[::-1]
+            indel_map = indel_map[::-1]
+            start = -start - 1
+            stop = -stop - 1
+            step = -step
 
         # convert from alignment coordinates to sequences coordinates
         # selecting only the indices that are in the frame of the stride
@@ -3227,6 +3234,22 @@ class Alignment(SequenceCollection):
                 output[names[seq_num]].append(val)
 
         return names, output
+
+    def __repr__(self):
+        seqs = []
+        limit = 10
+        delimiter = ""
+        for count, name in enumerate(self.names):
+            if count == 3:
+                seqs.append("...")
+                break
+            elts = list(str(self.seqs[name])[: limit + 1])
+            if len(elts) > limit:
+                elts[-1] = "..."
+            seqs.append(f"{name}[{delimiter.join(elts)}]")
+        seqs = ", ".join(seqs)
+
+        return f"{len(self.names)} x {len(self)} {self.moltype.label} alignment: {seqs}"
 
     def _repr_html_(self) -> str:
         settings = self._repr_policy.copy()
