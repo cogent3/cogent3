@@ -999,15 +999,15 @@ def _update_lengths(
     result_lengths[result_indices] += gap_lengths[other_indices]
 
 
-def _step_adjustment(gap_start: int, start: int, step: int):
-    """adjusment to a start, given a step size. The adjustment determines how
+def _step_adjustment(gap_start: int, start: int, step: int) -> int:
+    """adjustment to a start, given a step size. The adjustment determines how
     many more steps we need to take from the beginning of a gap/ungapped segment
-    to reach a position which is a multiple of the step"""
+    to reach a position that is a multiple of the step"""
     overstep = (gap_start - start) % step
     return step - overstep if overstep else 0
 
 
-def _step_adjusted_length(start: int, end: int, adj: int, step: int):
+def _step_adjusted_length(start: int, end: int, adj: int, step: int) -> int:
     """returns the adjusted length of a segment given a step size
     and its start and stop index. The adjustment is the number of steps
     needed to reach the next multiple of the step size"""
