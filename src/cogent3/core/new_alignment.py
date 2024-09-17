@@ -3337,56 +3337,45 @@ class Alignment(SequenceCollection):
             consensus.append(degen("".join(col)))
         return "".join(consensus)
 
-    def _get_raw_pretty(self, name_order):
-        """returns dict {name: seq, ...} for pretty print"""
-        if name_order is not None:
-            assert set(name_order) <= set(self.names), "names don't match"
+    def to_pretty(self, name_order=None, wrap=None):
+        """returns a string representation of the alignment in pretty print format
 
-        output = defaultdict(list)
-        names = name_order or self.names
-        num_seqs = len(names)
+        Parameters
+        ----------
+        name_order
+            order of names for display.
+        wrap
+            maximum number of printed bases
+        """
+        names, output = self._get_raw_pretty(name_order=name_order)
+        label_width = max(list(map(len, names)))
+        name_template = "{:>%d}" % label_width
+        display_names = dict([(n, name_template.format(n)) for n in names])
 
-        seqs = [str(self.seqs[name]) for name in names]
-        positions = list(zip(*seqs))
+        def make_line(label, seq):
+            return f"{label}    {seq}"
 
-        for position in positions:
-            ref = position[0]
-            output[names[0]].append(ref)
-            for seq_num in range(1, num_seqs):
-                val = "." if position[seq_num] == ref else position[seq_num]
-                output[names[seq_num]].append(val)
+        if wrap is None:
+            result = [make_line(display_names[n], "".join(output[n])) for n in names]
+            return "\n".join(result)
 
-        return names, output
+        align_length = len(self)
+        result = []
+        for start in range(0, align_length, wrap):
+            for n in names:
+                result.append(
+                    make_line(
+                        display_names[n],
+                        "".join(output[n][start : start + wrap]),
+                    )
+                )
 
-    def __repr__(self):
-        seqs = []
-        limit = 10
-        delimiter = ""
-        for count, name in enumerate(self.names):
-            if count == 3:
-                seqs.append("...")
-                break
-            elts = list(str(self.seqs[name])[: limit + 1])
-            if len(elts) > limit:
-                elts[-1] = "..."
-            seqs.append(f"{name}[{delimiter.join(elts)}]")
-        seqs = ", ".join(seqs)
+            result.append("")
 
-        return f"{len(self.names)} x {len(self)} {self.moltype.label} alignment: {seqs}"
+        if not result[-1]:
+            del result[-1]
 
-    def _repr_html_(self) -> str:
-        settings = self._repr_policy.copy()
-        env_vals = get_setting_from_environ(
-            "COGENT3_ALIGNMENT_REPR_POLICY",
-            dict(num_seqs=int, num_pos=int, wrap=int, ref_name=str),
-        )
-        settings.update(env_vals)
-        return self.to_html(
-            name_order=self.names[: settings["num_seqs"]],
-            ref_name=settings["ref_name"],
-            limit=settings["num_pos"],
-            wrap=settings["wrap"],
-        )
+        return "\n".join(result)
 
     def to_html(
         self,
@@ -3557,45 +3546,40 @@ class Alignment(SequenceCollection):
         ]
         return "\n".join(text)
 
-    def to_pretty(self, name_order=None, wrap=None):
-        """returns a string representation of the alignment in pretty print format
+    def _get_raw_pretty(self, name_order):
+        """returns dict {name: seq, ...} for pretty print"""
+        if name_order is not None:
+            assert set(name_order) <= set(self.names), "names don't match"
 
-        Parameters
-        ----------
-        name_order
-            order of names for display.
-        wrap
-            maximum number of printed bases
-        """
-        names, output = self._get_raw_pretty(name_order=name_order)
-        label_width = max(list(map(len, names)))
-        name_template = "{:>%d}" % label_width
-        display_names = dict([(n, name_template.format(n)) for n in names])
+        output = defaultdict(list)
+        names = name_order or self.names
+        num_seqs = len(names)
 
-        def make_line(label, seq):
-            return f"{label}    {seq}"
+        seqs = [str(self.seqs[name]) for name in names]
+        positions = list(zip(*seqs))
 
-        if wrap is None:
-            result = [make_line(display_names[n], "".join(output[n])) for n in names]
-            return "\n".join(result)
+        for position in positions:
+            ref = position[0]
+            output[names[0]].append(ref)
+            for seq_num in range(1, num_seqs):
+                val = "." if position[seq_num] == ref else position[seq_num]
+                output[names[seq_num]].append(val)
 
-        align_length = len(self)
-        result = []
-        for start in range(0, align_length, wrap):
-            for n in names:
-                result.append(
-                    make_line(
-                        display_names[n],
-                        "".join(output[n][start : start + wrap]),
-                    )
-                )
+        return names, output
 
-            result.append("")
-
-        if not result[-1]:
-            del result[-1]
-
-        return "\n".join(result)
+    def _repr_html_(self) -> str:
+        settings = self._repr_policy.copy()
+        env_vals = get_setting_from_environ(
+            "COGENT3_ALIGNMENT_REPR_POLICY",
+            dict(num_seqs=int, num_pos=int, wrap=int, ref_name=str),
+        )
+        settings.update(env_vals)
+        return self.to_html(
+            name_order=self.names[: settings["num_seqs"]],
+            ref_name=settings["ref_name"],
+            limit=settings["num_pos"],
+            wrap=settings["wrap"],
+        )
 
 
 @singledispatch
