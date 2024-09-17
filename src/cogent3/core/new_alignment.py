@@ -2947,14 +2947,24 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         ).encode("utf8")
 
     def add_seqs(
-        self, seqs: dict[str, StrORArray], force_unique_keys=True
+        self,
+        seqs: dict[str, StrORArray],
+        force_unique_keys=True,
+        strand: dict[str, str] = None,
     ) -> AlignedSeqsData:
-        """Returns a new AlignedSeqsData object with added sequences."""
+        """Returns a new AlignedSeqsData object with added sequences.
+
+        Parameters
+        ----------
+        seqs
+            dict of sequences to add {name: seq, ...}
+        force_unique_keys
+            if True, raises ValueError if any sequence names already exist in the collection
+        strand
+            the strand orientations {name: strand, ...} where strand is one of '+', '-'.
+        """
         if force_unique_keys and any(name in self.names for name in seqs):
             raise ValueError("One or more sequence names already exist in collection")
-        # refactor: design
-        # instead of re-computing the gaps, can we construct the new gaps and append to
-        # the existing gaps?
 
         new_seq_lens = {len(seq) for seq in seqs.values()}
         if len(new_seq_lens) != 1 or new_seq_lens.pop() != self.align_len:
@@ -2962,16 +2972,25 @@ class AlignedSeqsData(AlignedSeqsDataABC):
                 "All sequences must be the same length as existing sequences"
             )
 
-        old_seqs = {name: self.get_gapped_seq_array(seqid=name) for name in self.names}
-        new_data = old_seqs | seqs
+        new_seqs = {}
+        new_gaps = {}
+        for name, seq in seqs.items():
+            seq, gap_map = seq_to_gap_coords(seq, alphabet=self.alphabet)
+            seq = self.alphabet.to_indices(seq)
+            seq.flags.writeable = False
+            gap_map.flags.writeable = False
+            new_seqs[name], new_gaps[name] = seq, gap_map
 
-        return self.__class__.from_aligned_seqs(
-            data=new_data, alphabet=self.alphabet, make_seq=self._make_seq
+        return self.__class__(
+            seqs={**self._seqs, **new_seqs},
+            gaps={**self._gaps, **new_gaps},
+            alphabet=self.alphabet,
+            make_seq=self._make_seq,
+            make_aligned=self._make_aligned,
+            align_len=self.align_len,
+            strand={**self._strand, **(strand or {})},
         )
 
-    def reversed(self):
-        # todo: kath
-        ...
 
     def subset(self, names: Union[str, typing.Sequence[str]]):
         # todo: kath
