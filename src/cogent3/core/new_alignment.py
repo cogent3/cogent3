@@ -3200,9 +3200,56 @@ class Alignment(SequenceCollection):
         result.annotation_db = self.annotation_db
         return result
 
-    def reverse_complement(self):
-        # needs to be tracked in the ASD mirroring SD
-        ...
+    def counts_per_pos(
+        self,
+        motif_length: int = 1,
+        include_ambiguity: bool = False,
+        allow_gap: bool = False,
+        warn: bool = False,
+    ):
+        """return DictArray of counts per position
+
+        Parameters
+        ----------
+
+        warn
+            warns if motif_length > 1 and alignment trimmed to produce
+            motif columns
+        """
+        length = (len(self) // motif_length) * motif_length
+        if warn and len(self) != length:
+            warnings.warn(f"trimmed {len(self) - length}", UserWarning)
+
+        data = list(self.to_dict().values())
+        alpha = self.moltype.alphabet.get_word_alphabet(motif_length)
+        all_motifs = set()
+        exclude_chars = set()
+        if not allow_gap:
+            exclude_chars.update(self.moltype.gap)
+
+        if not include_ambiguity:
+            ambigs = [c for c, v in self.moltype.ambiguities.items() if len(v) > 1]
+            exclude_chars.update(ambigs)
+
+        result = []
+        for i in range(0, len(self) - motif_length + 1, motif_length):
+            counts = CategoryCounter([s[i : i + motif_length] for s in data])
+            all_motifs.update(list(counts))
+            result.append(counts)
+
+        if all_motifs:
+            alpha += tuple(sorted(set(alpha) ^ all_motifs))
+
+        if exclude_chars:
+            # this additional clause is required for the bytes moltype
+            # That moltype includes '-' as a character
+            alpha = [m for m in alpha if not (set(m) & exclude_chars)]
+
+        for i, counts in enumerate(result):
+            result[i] = counts.tolist(alpha)
+
+        result = MotifCountsArray(result, alpha)
+        return result
 
     def iupac_consensus(self, allow_gap: bool = True):
         """Returns string containing IUPAC consensus sequence of the alignment."""
