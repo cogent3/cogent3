@@ -2532,7 +2532,7 @@ class AlignmentI(object):
             f"{len(self.names)} x {self.seq_len} {self.moltype.label} alignment: {seqs}"
         )
 
-    def alignment_quality(self, app_name: str = "ic_score", **kwargs):
+    def alignment_quality(self, app_name: str = "ic_score", **kwargs):  # ported
         """
         Computes the alignment quality using the indicated app
 
@@ -3010,7 +3010,7 @@ class AlignmentI(object):
             for pos in range(start, end, step):
                 yield self[pos : pos + window]
 
-    def _get_raw_pretty(self, name_order):
+    def _get_raw_pretty(self, name_order):  # ported
         """returns dict {name: seq, ...} for pretty print"""
         if name_order is not None:
             assert set(name_order) <= set(self.names), "names don't match"
@@ -3035,7 +3035,7 @@ class AlignmentI(object):
 
         return names, output
 
-    def _repr_html_(self) -> str:
+    def _repr_html_(self) -> str:  # ported
         settings = self._repr_policy.copy()
         env_vals = get_setting_from_environ(
             "COGENT3_ALIGNMENT_REPR_POLICY",
@@ -3058,7 +3058,7 @@ class AlignmentI(object):
         colors: Optional[Mapping[str, str]] = None,
         font_size: int = 12,
         font_family: str = "Lucida Console",
-    ) -> str:
+    ) -> str:  # ported
         """returns html with embedded styles for sequence colouring
 
         Parameters
@@ -3222,7 +3222,7 @@ class AlignmentI(object):
         ]
         return "\n".join(text)
 
-    def to_pretty(self, name_order=None, wrap=None):
+    def to_pretty(self, name_order=None, wrap=None):  # ported
         """returns a string representation of the alignment in pretty print format
 
         Parameters
