@@ -1374,7 +1374,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         for k, v in expect.items():
             self.assertEqual(got[k], v)
 
-    def test_counts_per_pos(self):
+    def test_counts_per_pos(self):  # ported
         """correctly count motifs"""
         exp = array(
             [
@@ -1429,7 +1429,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         got = coll.counts_per_seq(include_ambiguity=True, allow_gap=True)
         self.assertEqual(got.col_sum()["-"], 2)
 
-    def test_counts_per_pos_default_moltype(self):  # will not port
+    def test_counts_per_pos_default_moltype(self):
         """produce correct counts per pos with default moltypes"""
         data = {"a": "AAAA??????", "b": "CCCGGG--NN", "c": "CCGGTTCCAA"}
         coll = self.Class(data=data)
@@ -2639,7 +2639,7 @@ def test_get_translation_error(cls, seqs):  # ported for SequenceCollection
 
 @pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
 @pytest.mark.parametrize("method", ("ic_score", "cogent3_score", "sp_score"))
-def test_alignment_quality_methods(cls, method):
+def test_alignment_quality_methods(cls, method):  # ported
     data = {
         "DogFaced": "TG----AATATGT------GAAAGAG",
         "FreeTaile": "TTGAAGAATATGT------GAAAGAG",
