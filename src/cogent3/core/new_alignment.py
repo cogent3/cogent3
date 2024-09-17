@@ -3194,11 +3194,32 @@ class Alignment(SequenceCollection):
             moltype=self.moltype,
             info=self.info,
         )
-        # we cannot support connection to the original annotation db if the slice is not 1 or -1
-        if abs(new_slice.step) > 1:
+
+    def get_gap_array(self, include_ambiguity: bool = True) -> numpy.ndarray:
+        """returns bool array with gap state True, False otherwise
+
+        Parameters
+        ----------
+        include_ambiguity : bool
+            if True, ambiguity characters that include the gap state are
+            included
+        """
+        result = numpy.empty((self.num_seqs, len(self)), dtype=bool)
+
+        for i, seqid in enumerate(self.names):
+            seq_array = self.seqs.get_gapped_seq_array(
+                seqid=seqid,
+            )
+            if include_ambiguity:
+                # find the index of gaps
+                gap_indices = list(
+                    map(self.moltype.most_degen_alphabet().index, self.moltype.gaps)
+                )
+                result[i][seq_array in gap_indices] = True
+            else:
+                result[i] = seq_array == self.moltype.gap_index
+
             return result
-        result.annotation_db = self.annotation_db
-        return result
 
     def counts_per_pos(
         self,
