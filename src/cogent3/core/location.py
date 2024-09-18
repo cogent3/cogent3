@@ -1592,7 +1592,7 @@ class IndelMap(MapABC):
         return FeatureMap(spans=spans, parent_length=self.parent_length)
 
     @functools.singledispatchmethod
-    def shared_gaps(self, other) -> numpy.ndarray:
+    def shared_gaps(self, other: Union["IndelMap", numpy.ndarray]) -> numpy.ndarray:
         """returns a numpy array of the shared [(gap start, gap end), ...]
 
         Notes
@@ -1630,7 +1630,7 @@ class IndelMap(MapABC):
         return numpy.array(result, dtype=_DEFAULT_GAP_DTYPE)
 
     @functools.singledispatchmethod
-    def minus_gaps(self, other_gaps):
+    def minus_gaps(self, other_gaps: Union["IndelMap", numpy.ndarray]):
         """returns new map with gaps in other_gaps removed from self
 
         Parameters
