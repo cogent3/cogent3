@@ -1360,7 +1360,7 @@ def test_indelmap_invalid_slice_type():
         parent_length=10,
     )
     with pytest.raises(NotImplementedError):
-        imap[()]
+        imap[()]  # pylint: disable=pointless-statement
 
 
 def test_indelmap_make_seq_feature_map():

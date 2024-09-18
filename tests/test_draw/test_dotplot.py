@@ -2,7 +2,7 @@ from unittest import TestCase
 
 import numpy
 
-from cogent3 import get_moltype, load_aligned_seqs, make_seq, make_unaligned_seqs
+from cogent3 import get_moltype, make_unaligned_seqs
 from cogent3.core.alignment import Aligned, ArrayAlignment
 from cogent3.core.location import IndelMap
 from cogent3.draw.dotplot import Dotplot, _convert_input, get_align_coords
