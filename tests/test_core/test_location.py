@@ -1,5 +1,6 @@
 """Unit tests for Span classes."""
 
+import re
 from itertools import combinations
 from unittest import TestCase
 
@@ -13,7 +14,10 @@ from cogent3.core.location import (
     LostSpan,
     Span,
     TerminalPadding,
+    coords_intersect,
+    coords_minus_coords,
     gap_coords_to_map,
+    span_and_span,
 )
 
 
@@ -1171,6 +1175,192 @@ def test_featuremap_div():
     fm_1 = fm_3 / 3
     assert list(fm_1.spans) == [sp / 3 for sp in spans]
     assert fm_1.parent_length == 6 / 3
+
+
+# Constants
+EMPTY = None, None
+
+
+@pytest.mark.parametrize(
+    "span1, span2, expected",
+    [
+        ((1, 5), (2, 4), (2, 4)),  # span1 contains span2
+        ((2, 4), (1, 5), (2, 4)),  # span1 within span2
+        ((1, 5), (1, 3), (1, 3)),  # same start, different end
+        ((1, 3), (1, 5), (1, 3)),  # same start, different end
+        ((1, 5), (2, 5), (2, 5)),  # different start, same end
+        ((2, 5), (1, 5), (2, 5)),  # different start, same end
+        ((1, 4), (2, 5), (2, 4)),  # span1 overlaps start of span2
+        ((1, 9), (6, 10), (6, 9)),  # span1 overlaps start of span2
+        ((2, 5), (1, 4), (2, 4)),  # span1 overlaps end of span2
+    ],
+)
+def test_span_and_span(span1, span2, expected):
+    result = span_and_span(span1, span2)
+    assert result == expected
+
+
+@pytest.mark.parametrize(
+    "span1, span2",
+    [
+        ((5, 1), (2, 4)),
+        ((1, 5), (4, 2)),
+    ],
+)
+def test_span_and_span_error_cases(span1, span2):
+    with pytest.raises(ValueError):
+        span_and_span(span1, span2)
+
+
+@pytest.mark.parametrize(
+    "arr1, arr2, expected",
+    [
+        # unique or equal
+        ([[1, 3], [5, 7]], [[2, 4], [6, 8]], [[1, 2], [5, 6]]),
+        ([[1, 2], [3, 4], [5, 6]], [[5, 6], [7, 8]], [[1, 2], [3, 4]]),
+        # unique or overlap
+        ([[1, 4], [7, 9]], [[3, 4]], [[1, 3], [7, 9]]),
+        ([[1, 2], [5, 9]], [[2, 6], [8, 10]], [[1, 2], [5, 7]]),
+    ],
+)
+def test_coords_sub_coords(arr1, arr2, expected):
+    arr1 = numpy.array(arr1)
+    arr2 = numpy.array(arr2)
+    result = coords_minus_coords(arr1, arr2)
+    assert numpy.array_equal(result, expected)
+
+
+@pytest.mark.parametrize(
+    "arr1, arr2, expected",
+    [
+        ([(1, 5)], [(2, 3)], [(2, 3)]),
+        ([(1, 5)], [(0, 2), (3, 4)], [(1, 2), (3, 4)]),
+        ([(1, 5), (6, 10)], [(2, 3), (7, 8)], [(2, 3), (7, 8)]),
+        ([(1, 5), (6, 10), (12, 14)], [(2, 3), (7, 8)], [(2, 3), (7, 8)]),
+        ([(1, 9), (12, 14)], [(2, 4), (6, 10)], [(2, 4), (6, 9)]),
+        ([(1, 5)], [(5, 6)], []),
+        ([(1, 5)], [(0, 1)], []),
+        ([(1, 5)], [(4, 5)], [(4, 5)]),
+        ([(1, 5)], [(1, 5)], [(1, 5)]),
+        ([(1, 5)], [(0, 6)], [(1, 5)]),
+        ([], [(1, 2)], []),
+        ([(1, 2)], [], []),
+        ([], [], []),
+    ],
+)
+def test_coord_intersect(arr1, arr2, expected):
+    result = coords_intersect(arr1, arr2)
+    assert result == expected
+
+
+RAW_SEQS = (
+    "----GTA-TG",
+    "AC--GTA---",
+    "AC--GTA-TG",
+    "A-C-G-T-A-",
+    "-A-C-G-T-A",
+    "ACGTAACGTA",
+    "AC--AACGTA",
+    "ACGTAA--TA",
+    "GTATG-----",
+    "-----GTATG",
+    "----------",
+)
+
+gap_run = re.compile("-+")
+
+
+@pytest.fixture(scope="session", params=combinations(RAW_SEQS, 2))
+def seq_pairs(request):
+    raw1, raw2 = request.param
+    return make_seq(raw1, moltype="dna"), make_seq(raw2, moltype="dna")
+
+
+@pytest.mark.parametrize("as_array", (True, False))
+def test_indelmap_shared_gaps(seq_pairs, as_array):
+    # we check against a sequence modified such that only the shared
+    # gaps are retained
+    s1, s2 = seq_pairs
+    common = "".join(
+        "-" if f"{a}{b}" == "--" else "X" for a, b in zip(str(s1), str(s2))
+    )
+    expect = [(m.start(), m.end()) for m in gap_run.finditer(common)]
+    ig1, s1 = s1.parse_out_gaps()
+    ig2, s2 = s2.parse_out_gaps()
+    arg = ig2.get_gap_align_coordinates() if as_array else ig2
+    got = ig1.shared_gaps(arg)
+    numpy.testing.assert_allclose(got, expect)
+
+
+@pytest.mark.parametrize("as_array", (True, False))
+def test_indelmap_subtraction(seq_pairs, as_array):
+    s1, s2 = seq_pairs
+    unique_gaps = "".join(a for a, b in zip(str(s1), str(s2)) if f"{a}{b}" != "--")
+    ig1, s1 = s1.parse_out_gaps()
+    ig2, s2 = s2.parse_out_gaps()
+    arg = ig2.get_gap_align_coordinates() if as_array else ig2
+    got1 = ig1.minus_gaps(arg)
+    expect, _ = make_seq(unique_gaps, moltype="dna").parse_out_gaps()
+    numpy.testing.assert_allclose(
+        got1.get_gap_coordinates(), expect.get_gap_coordinates()
+    )
+
+
+def test_indelmap_subtraction_build_aligned(seq_pairs):
+    from cogent3.core.alignment import Aligned
+
+    s1, s2 = seq_pairs
+
+    unique_gaps = "".join(a for a, b in zip(str(s1), str(s2)) if f"{a}{b}" != "--")
+    ig1, s1 = s1.parse_out_gaps()
+    ig2, s2 = s2.parse_out_gaps()
+    got1 = ig1.minus_gaps(ig2.get_gap_align_coordinates())
+    got = Aligned(got1, s1)
+    assert str(got) == unique_gaps
+
+
+def test_indelmap_combined_and_subtract(seq_pairs):
+    s1, s2 = seq_pairs
+    ig1, s1 = s1.parse_out_gaps()
+    ig2, s2 = s2.parse_out_gaps()
+    expect = ig1.minus_gaps(ig2.get_gap_align_coordinates())
+    intersect = ig1.shared_gaps(ig2)
+    got = ig1.minus_gaps(intersect)
+    numpy.testing.assert_allclose(
+        got.get_gap_coordinates(), expect.get_gap_coordinates()
+    )
+
+
+def test_indelmap_shared_gap_error():
+    ig1 = IndelMap(
+        gap_pos=numpy.array([1, 3]), gap_lengths=numpy.array([2, 1]), parent_length=5
+    )
+    ig2 = IndelMap(
+        gap_pos=numpy.array([1, 3]), gap_lengths=numpy.array([2, 1]), parent_length=10
+    )
+    with pytest.raises(AssertionError):
+        ig1.shared_gaps(ig2)
+
+
+def test_indelmap_minus_gap_error():
+    ig1 = IndelMap(
+        gap_pos=numpy.array([1, 3]), gap_lengths=numpy.array([2, 1]), parent_length=5
+    )
+    ig2 = IndelMap(
+        gap_pos=numpy.array([1, 3]), gap_lengths=numpy.array([2, 100]), parent_length=10
+    )
+    with pytest.raises(AssertionError):
+        ig1.minus_gaps(ig2.get_gap_align_coordinates())
+
+
+def test_indelmap_invalid_slice_type():
+    imap = IndelMap(
+        gap_pos=numpy.array([10], dtype=int),
+        gap_lengths=numpy.array([2], dtype=int),
+        parent_length=10,
+    )
+    with pytest.raises(NotImplementedError):
+        imap[()]
 
 
 def test_indelmap_make_seq_feature_map():

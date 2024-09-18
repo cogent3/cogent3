@@ -6,6 +6,7 @@ from cogent3.align.pycompare import (
     _calc_seed_size,
     find_matched_paths,
 )
+from cogent3.core import location
 from cogent3.core.moltype import get_moltype
 from cogent3.draw.drawable import Drawable
 from cogent3.util.union_dict import UnionDict
@@ -66,12 +67,16 @@ def _convert_input(seq, moltype):
     return gap_map, seq
 
 
-def get_align_coords(map1, map2, aligned=False) -> MatchedSeqPaths:
+def get_align_coords(
+    map1: location.IndelMap, map2: location.IndelMap, aligned=False
+) -> MatchedSeqPaths:
     """sequence coordinates of aligned segments"""
     from cogent3.align.pycompare import segment
 
     if aligned:
         assert len(map1) == len(map2), "aligned sequences not equal length"
+
+    # we reduce the maps to only gaps that are unique to each
 
     # we get the gap coordinates in alignment indices for both sequences
     # sorting this allows us to trivially identify the alignment indices of

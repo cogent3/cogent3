@@ -8,7 +8,7 @@ import os
 import re
 import typing
 import warnings
-from random import randint
+from random import choice
 from typing import Any, Callable, Tuple
 from urllib.parse import urlparse
 from warnings import warn
@@ -832,7 +832,7 @@ def get_independent_coords(spans, random_tie_breaker=False):
         curr = spans[i]
         if curr[0] < last[1]:
             if random_tie_breaker:
-                result[-1] = [last, curr][randint(0, 1)]
+                result[-1] = choice((last, curr))
             else:
                 result[-1] = last
             continue
