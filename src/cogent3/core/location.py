@@ -6,7 +6,6 @@ import json
 from abc import ABC, abstractmethod
 from bisect import bisect_left, bisect_right
 from functools import total_ordering
-from itertools import chain
 from typing import Any, Iterator, Optional, Sequence, Union
 
 import numpy
@@ -15,13 +14,7 @@ from numpy.typing import NDArray
 from cogent3._version import __version__
 from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
-from cogent3.util.misc import (
-    ClassChecker,
-    ConstrainedList,
-    FunctionWrapper,
-    get_object_provenance,
-    iterable,
-)
+from cogent3.util.misc import get_object_provenance
 
 strip = str.strip
 
@@ -1458,7 +1451,9 @@ class IndelMap(MapABC):
             result = result.reshape((0, 2))
         return result
 
-    def merge_maps(self, other, parent_length: Optional[int] = None) -> "IndelMap":
+    def merge_maps(
+        self, other: "IndelMap", parent_length: Optional[int] = None
+    ) -> "IndelMap":
         """merge gaps of other with self
 
         Parameters
@@ -1595,6 +1590,202 @@ class IndelMap(MapABC):
             spans.append(Span(start, end))
 
         return FeatureMap(spans=spans, parent_length=self.parent_length)
+
+    @functools.singledispatchmethod
+    def shared_gaps(self, other: Union["IndelMap", numpy.ndarray]) -> numpy.ndarray:
+        """returns a numpy array of the shared [(gap start, gap end), ...]
+
+        Notes
+        -----
+        The result is in alignment coordinates
+        """
+        if len(self) != len(other):
+            raise AssertionError(
+                f"{len(other)=} != {len(self)=}, from a different alignment?"
+            )
+        if self.num_gaps == 0 or other.num_gaps == 0:
+            return numpy.array([], dtype=_DEFAULT_GAP_DTYPE)
+
+        return self.shared_gaps(other.get_gap_align_coordinates())
+
+    @shared_gaps.register
+    def _(self, other: numpy.ndarray) -> numpy.ndarray:
+        """returns a numpy array of the shared [(gap start, gap end), ...]
+
+        Notes
+        -----
+        The result is in alignment coordinates
+        """
+        other_gaps = other
+        if not len(other_gaps):
+            return numpy.array([], dtype=_DEFAULT_GAP_DTYPE)
+
+        if other_gaps[-1][-1] > len(self):
+            raise AssertionError(
+                f"other_gaps {other_gaps!r} from a different alignment?"
+            )
+        self_gaps = self.get_gap_align_coordinates()
+
+        result = coords_intersect(self_gaps, other_gaps)
+        return numpy.array(result, dtype=_DEFAULT_GAP_DTYPE)
+
+    @functools.singledispatchmethod
+    def minus_gaps(self, other_gaps: Union["IndelMap", numpy.ndarray]):
+        """returns new map with gaps in other_gaps removed from self
+
+        Parameters
+        ----------
+        other_gaps
+            IndelMap instance, or numpy array in alignment coordinates
+
+        Returns
+        -------
+        New instance with gap spans represented by other_gaps removed from self
+        """
+        if len(self) != len(other_gaps):
+            raise AssertionError(
+                f"{len(other_gaps)=} != {len(self)=}, from a different alignment?"
+            )
+
+        return self.minus_gaps(other_gaps.get_gap_align_coordinates())
+
+    @minus_gaps.register
+    def _(self, other_gaps: numpy.ndarray):
+        if not len(other_gaps):
+            return self
+
+        if other_gaps[-1][-1] > len(self):
+            raise AssertionError(
+                f"other_gaps {other_gaps!r} from a different alignment?"
+            )
+        self_gaps = self.get_gap_align_coordinates()
+        unique = coords_minus_coords(self_gaps, other_gaps)
+        new_gaps = numpy.empty((len(unique), 2), dtype=_DEFAULT_GAP_DTYPE)
+        for i, (start, end) in enumerate(unique):
+            new_gaps[i] = self.get_seq_index(start), end - start
+        gap_pos, gap_lengths = new_gaps.T
+        return self.__class__(
+            gap_pos=gap_pos,
+            gap_lengths=gap_lengths,
+            parent_length=self.parent_length,
+        )
+
+
+_empty = None, None
+
+
+def coords_minus_coords(
+    coords1: numpy.ndarray, coords2: numpy.ndarray
+) -> numpy.ndarray:
+    """returns the coords1 minus any overlaps with coords2
+
+    Parameters
+    ----------
+    coords1, coords2
+        coordinates defining segments as [(gap start, gap end)..]
+
+    Notes
+    ------
+    Assumes both coordinate series are sorted.
+    """
+    dtype = getattr(coords1, "dtype", _DEFAULT_GAP_DTYPE)
+    unique_segments = []
+    for a1, a2 in coords1:
+        total_intersect = None
+        for b1, b2 in coords2:
+            if b2 < a1:
+                continue
+
+            if a2 <= b1:
+                # no intersection
+                break
+
+            result = span_and_span((a1, a2), (b1, b2))
+            if result[0] is not None:
+                total_intersect = result[1] - result[0] + (total_intersect or 0)
+
+        end = a2 - (total_intersect or 0)
+        if end < 0:
+            raise ValueError(
+                f"new length negative segment length {a1=} {a2=} {total_intersect=}"
+            )
+        elif a2 - a1 != total_intersect:
+            unique_segments.append((a1, end))
+
+    return numpy.array(unique_segments, dtype=dtype)
+
+
+def span_and_span(
+    spans1: tuple[int, int], spans2: tuple[int, int]
+) -> Union[tuple[int, int], tuple[None, None]]:
+    """returns the intersection of two spans
+
+    Parameters
+    ----------
+    spans1, span2
+        each span is a tuple of start, end coordinates
+
+    Returns
+    -------
+        If no intersection, returns (None, None)
+
+    Raises
+    ------
+    ValueError
+        if a span is not in span[0] < span[1] order
+    """
+    a1, a2 = spans1
+    b1, b2 = spans2
+    # return intersection of the spans
+    if a1 >= a2 or b1 >= b2:
+        raise ValueError("coordinates must be start < end")
+
+    if a1 < b1 and a2 > b2:
+        # span1 contains span2
+        return b1, b2
+    elif a1 >= b1 and a2 <= b2:
+        # span1 equal to or within span2
+        return a1, a2
+    elif a1 == b1:
+        # same start, different end
+        return a1, min(a2, b2)
+    elif a2 == b2:
+        # different start, same end
+        return max(a1, b1), a2
+    elif a1 < b1 < a2:
+        # span1 overlaps start of span2
+        return b1, min(a2, b2)
+    elif a1 < b2 < a2:
+        # span1 overlaps end of span2
+        return max(a1, b1), b2
+    else:
+        return _empty
+
+
+def coords_intersect(
+    coords1: numpy.ndarray, coords2: numpy.ndarray
+) -> list[tuple[int, int]]:
+    """returns the intersecting spans between two sets of coordinates
+
+    Parameters
+    ----------
+    coords1, coords2
+        coordinates defining segments as [(gap start, gap end)..]
+
+    Notes
+    ------
+    Assumes both coordinate series are sorted.
+    """
+    intersects = []
+    for a1, a2 in coords1:
+        for b1, b2 in coords2:
+            if a1 <= b2 and b1 <= a2:
+                i1, i2 = span_and_span((a1, a2), (b1, b2))
+                if i1 is not None:
+                    intersects.append((i1, i2))
+            elif a2 < b1:
+                break
+    return intersects
 
 
 @dataclasses.dataclass
