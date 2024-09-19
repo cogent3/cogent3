@@ -1682,7 +1682,7 @@ def coords_minus_coords(
     Parameters
     ----------
     coords1, coords2
-        series of coordinates defining segments
+        coordinates defining segments as [(gap start, gap end)..]
 
     Notes
     ------
@@ -1770,7 +1770,7 @@ def coords_intersect(
     Parameters
     ----------
     coords1, coords2
-        series of coordinates defining segments
+        coordinates defining segments as [(gap start, gap end)..]
 
     Notes
     ------
