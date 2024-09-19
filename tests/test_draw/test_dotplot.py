@@ -177,8 +177,8 @@ def test_get_align_coords():
 
 def test_get_aligned_coords_invalid_maps():
     # raises an exception if the Aligned seqs are different lengths
-    m1, seq1 = DNA.make_seq(seq="ACGGTTTA").parse_out_gaps()
-    m2, seq2 = DNA.make_seq(seq="GGGGTT").parse_out_gaps()
+    m1, _ = DNA.make_seq(seq="ACGGTTTA").parse_out_gaps()
+    m2, _ = DNA.make_seq(seq="GGGGTT").parse_out_gaps()
     with pytest.raises(AssertionError):
         get_align_coords(m1, m2, aligned=True)
 
@@ -188,7 +188,7 @@ def test_get_align_coords_common_gaps():
     # ACGGT--A
     #   012345
     # --GGTTTA
-    m1, m2, seq1, seq2 = _prep_seqs(DNA, "ACG--GT--A", "--G--GTTTA", True)
+    m1, m2, *_ = _prep_seqs(DNA, "ACG--GT--A", "--G--GTTTA", True)
     path = get_align_coords(m1, m2)
     expect = [2, 4, None, 5, 5], [0, 2, None, 5, 5]
     assert path.get_coords() == expect
