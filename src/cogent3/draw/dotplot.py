@@ -97,6 +97,17 @@ def get_align_coords(
     return paths
 
 
+def _prep_seqs(moltype, seq1, seq2, is_aligned):
+    ig1, seq1 = _convert_input(seq1, moltype)
+    ig2, seq2 = _convert_input(seq2, moltype)
+    if is_aligned:
+        # remove any shared gaps so the aligned path is useful
+        intersect = ig1.shared_gaps(ig2)
+        ig1 = ig1.minus_gaps(intersect)
+        ig2 = ig2.minus_gaps(intersect)
+    return ig1, ig2, seq1, seq2
+
+
 class Dotplot(Drawable):
     """calculates matches between sequences and displays as a dotplot"""
 
@@ -144,14 +155,12 @@ class Dotplot(Drawable):
             AnnotatedDrawable
         title : str
             title for the plot
-        show_progress : bool
-            displays progress bar
         """
 
         # we ensure sequences have gaps parsed and the calculate aspect ratio
         moltype = seq1.moltype if hasattr(seq1, "moltype") else get_moltype(moltype)
-        map1, seq1 = _convert_input(seq1, moltype)
-        map2, seq2 = _convert_input(seq2, moltype)
+        map1, map2, seq1, seq2 = _prep_seqs(moltype, seq1, seq2, is_aligned)
+
         len1, len2 = len(seq1), len(seq2)
         height = width * len2 / len1
 
@@ -159,7 +168,7 @@ class Dotplot(Drawable):
             seq1.name = "seq1"
             seq2.name = "seq2"
 
-        super(Dotplot, self).__init__(
+        super().__init__(
             visible_axes=True,
             showlegend=True,
             width=width,
