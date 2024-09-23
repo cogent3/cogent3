@@ -48,7 +48,7 @@ Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 
 [project.optional-dependencies]
 test = [
-    "ruff==0.5.7",
+    "ruff==0.6.7",
     "kaleido",
     "pandas",
     "plotly",
@@ -82,7 +82,7 @@ doc  = ["click",
         "sphinxcontrib-bibtex",
         "sphinxcontrib-video"]
 extra = ["pandas", "plotly", "psutil", "kaleido"]
-dev = ["ruff==0.5.7",
+dev = ["ruff==0.6.7",
        "flit",
        "ipykernel",
        "ipython",
