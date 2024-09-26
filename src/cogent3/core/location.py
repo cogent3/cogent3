@@ -14,9 +14,7 @@ from numpy.typing import NDArray
 from cogent3._version import __version__
 from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
-from cogent3.util.misc import (
-    get_object_provenance,
-)
+from cogent3.util.misc import get_object_provenance
 
 strip = str.strip
 

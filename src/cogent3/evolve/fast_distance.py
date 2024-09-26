@@ -7,6 +7,7 @@ from numpy import array, diag, dot, eye, float64, int32, log, sqrt, zeros
 from numpy.linalg import det, inv
 
 from cogent3._version import __version__
+from cogent3.core import new_moltype
 from cogent3.core.moltype import DNA, RNA, get_moltype
 from cogent3.util.dict_array import DictArray
 from cogent3.util.misc import get_object_provenance
@@ -341,7 +342,7 @@ class _PairwiseDistance:
 
     def _convert_seqs_to_indices(self, alignment):
         assert isinstance(
-            alignment.moltype, type(self.moltype)
+            alignment.moltype, (type(self.moltype), new_moltype.MolType)
         ), "Alignment does not have correct MolType"
 
         self._dists = {}

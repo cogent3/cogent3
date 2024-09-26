@@ -997,8 +997,11 @@ def test_to_phylip():
 def test_seqview_initialisation(start, stop, step, bytes_alphabet):
     """Initialising a SeqView should work with range of provided values"""
     seq_data = "0123456789"
+    slice_record = new_sequence.SliceRecord(
+        start=start, stop=stop, step=step, parent_len=len(seq_data)
+    )
     got = new_sequence.SeqView(
-        parent=seq_data, start=start, stop=stop, step=step, alphabet=bytes_alphabet
+        parent=seq_data, slice_record=slice_record, alphabet=bytes_alphabet
     )
     expected = seq_data[start:stop:step]
     assert got.str_value == expected
@@ -1028,7 +1031,10 @@ def test_seqview_step_0(bytes_alphabet):
     with pytest.raises(ValueError):
         _ = sv[::0]
     with pytest.raises(ValueError):
-        _ = new_sequence.SeqView(parent="0123456789", alphabet=bytes_alphabet, step=0)
+        sr = new_sequence.SliceRecord(step=0, parent_len=10)
+        _ = new_sequence.SeqView(
+            parent="0123456789", alphabet=bytes_alphabet, slice_record=sr
+        )
 
 
 @pytest.mark.parametrize("start", (0, 2, 4))
@@ -1039,7 +1045,8 @@ def test_seqview_invalid_index(start, bytes_alphabet):
     pos_boundary_index = length
     neg_boundary_index = -length - 1
 
-    sv = new_sequence.SeqView(parent=seq, start=start, alphabet=bytes_alphabet)
+    sr = new_sequence.SliceRecord(start=start, parent_len=len(seq))
+    sv = new_sequence.SeqView(parent=seq, slice_record=sr, alphabet=bytes_alphabet)
     with pytest.raises(IndexError):
         _ = sv[pos_boundary_index]
     with pytest.raises(IndexError):
@@ -1055,9 +1062,8 @@ def test_seqview_invalid_index_positive_step_gt_1(start, bytes_alphabet):
     neg_boundary_index = -length - 1
     pos_boundary_index = length
 
-    sv = new_sequence.SeqView(
-        parent=seq, start=start, step=step, alphabet=bytes_alphabet
-    )
+    sr = new_sequence.SliceRecord(start=start, step=step, parent_len=len(seq))
+    sv = new_sequence.SeqView(parent=seq, slice_record=sr, alphabet=bytes_alphabet)
     with pytest.raises(IndexError):
         _ = sv[pos_boundary_index]
     with pytest.raises(IndexError):
@@ -1074,9 +1080,10 @@ def test_seqview_invalid_index_reverse_step(stop, bytes_alphabet):
     neg_boundary_index = -length - 1
     pos_boundary_index = length
 
-    sv = new_sequence.SeqView(
-        parent=seq, start=start, stop=stop, step=step, alphabet=bytes_alphabet
+    sr = new_sequence.SliceRecord(
+        start=start, stop=stop, step=step, parent_len=len(seq)
     )
+    sv = new_sequence.SeqView(parent=seq, slice_record=sr, alphabet=bytes_alphabet)
     with pytest.raises(IndexError):
         _ = sv[pos_boundary_index]
     with pytest.raises(IndexError):
@@ -1093,9 +1100,10 @@ def test_seqview_invalid_index_reverse_step_gt_1(stop, bytes_alphabet):
     neg_boundary_index = -length - 1
     pos_boundary_index = length
 
-    sv = new_sequence.SeqView(
-        parent=seq, start=start, stop=stop, step=step, alphabet=bytes_alphabet
+    sr = new_sequence.SliceRecord(
+        start=start, stop=stop, step=step, parent_len=len(seq)
     )
+    sv = new_sequence.SeqView(parent=seq, slice_record=sr, alphabet=bytes_alphabet)
     with pytest.raises(IndexError):
         _ = sv[pos_boundary_index]
     with pytest.raises(IndexError):
@@ -1114,11 +1122,12 @@ def test_seqview_start_out_of_bounds(bytes_alphabet):
     seq = "0123456789"
     init_start, init_stop, init_step = 2, 10, 1
     boundary = abs((init_start - init_stop) // init_step)
+    sr = new_sequence.SliceRecord(
+        start=init_start, stop=init_stop, step=init_step, parent_len=len(seq)
+    )
     sv = new_sequence.SeqView(
         parent=seq,
-        start=init_start,
-        stop=init_stop,
-        step=init_step,
+        slice_record=sr,
         alphabet=bytes_alphabet,
     )
     got = sv[boundary::].str_value
@@ -1130,11 +1139,12 @@ def test_seqview_start_out_of_bounds_step_gt_1(bytes_alphabet):
     seq = "0123456789"
     init_start, init_stop, init_step = 2, 10, 2
     boundary = abs((init_start - init_stop) // init_step)
+    sr = new_sequence.SliceRecord(
+        start=init_start, stop=init_stop, step=init_step, parent_len=len(seq)
+    )
     sv = new_sequence.SeqView(
         parent=seq,
-        start=init_start,
-        stop=init_stop,
-        step=init_step,
+        slice_record=sr,
         alphabet=bytes_alphabet,
     )
     got = sv[boundary::].str_value
@@ -1148,11 +1158,12 @@ def test_seqview_start_out_of_bounds_reverse_step(bytes_alphabet):
     boundary_pos = abs((init_start - init_stop) // init_step)
     boundary_neg = -abs((init_start - init_stop) // init_step) - 1
 
+    sr = new_sequence.SliceRecord(
+        start=init_start, stop=init_stop, step=init_step, parent_len=len(seq)
+    )
     sv = new_sequence.SeqView(
         parent=seq,
-        start=init_start,
-        stop=init_stop,
-        step=init_step,
+        slice_record=sr,
         alphabet=bytes_alphabet,
     )
 
@@ -1204,7 +1215,8 @@ def test_seqview_sliced_index(index, simple_slices, bytes_alphabet):
 def test_seqview_reverse_slice(first_step, second_step, bytes_alphabet):
     """subsequent slices may reverse the previous slice"""
     seq = "0123456789"
-    sv = new_sequence.SeqView(parent=seq, step=first_step, alphabet=bytes_alphabet)
+    sr = new_sequence.SliceRecord(step=first_step, parent_len=len(seq))
+    sv = new_sequence.SeqView(parent=seq, slice_record=sr, alphabet=bytes_alphabet)
     got = sv[::second_step]
     expected = seq[::first_step][::second_step]
     assert got.str_value == expected
@@ -1222,16 +1234,20 @@ def test_seqview_rev_sliced_index(index, start, stop, step, seq, bytes_alphabet)
         expected = seq_data[start:stop:step][index]
     except IndexError:
         with pytest.raises(IndexError):
+            sr = new_sequence.SliceRecord(
+                start=start, stop=stop, step=step, parent_len=len(seq_data)
+            )
             _ = new_sequence.SeqView(
                 parent=seq_data,
-                start=start,
-                stop=stop,
-                step=step,
+                slice_record=sr,
                 alphabet=bytes_alphabet,
             )[index].str_value
     else:  # if no index error, SeqView should match python slicing
+        sr = new_sequence.SliceRecord(
+            start=start, stop=stop, step=step, parent_len=len(seq_data)
+        )
         got = new_sequence.SeqView(
-            parent=seq_data, start=start, stop=stop, step=step, alphabet=bytes_alphabet
+            parent=seq_data, slice_record=sr, alphabet=bytes_alphabet
         )[index].str_value
         assert got == expected
 
@@ -1242,9 +1258,10 @@ def test_seqview_rev_sliced_index(index, start, stop, step, seq, bytes_alphabet)
 @pytest.mark.parametrize("step", (1, 2, -1, -2))
 def test_seqview_init_with_negatives(seq, start, stop, step, bytes_alphabet):
     "SeqView initialisation should handle any combination of positive and negative slices"
-    got = new_sequence.SeqView(
-        parent=seq, start=start, stop=stop, step=step, alphabet=bytes_alphabet
+    sr = new_sequence.SliceRecord(
+        start=start, stop=stop, step=step, parent_len=len(seq)
     )
+    got = new_sequence.SeqView(parent=seq, slice_record=sr, alphabet=bytes_alphabet)
     expected = seq[start:stop:step]
     assert got.str_value == expected
 
@@ -1566,32 +1583,47 @@ def test_seqview_repr():
     # Short sequence, defaults
     seq = "ACGT"
     view = new_sequence.SeqView(parent=seq, alphabet=alpha)
-    expected = "SeqView(parent='ACGT', start=0, stop=4, step=1, offset=0, seqid=None, parent_len=4)"
+    expected = f"SeqView(seqid=None, parent='ACGT', slice_record={view.slice_record!r})"
     assert repr(view) == expected
 
     # Long sequence
     seq = "ACGT" * 10
     view = new_sequence.SeqView(parent=seq, alphabet=alpha)
-    expected = "SeqView(parent='ACGTACGTAC...TACGT', start=0, stop=40, step=1, offset=0, seqid=None, parent_len=40)"
+    expected = f"SeqView(seqid=None, parent='ACGTACGTAC...TACGT', slice_record={view.slice_record!r})"
     assert repr(view) == expected
 
-    # Non-zero start, stop, and step values
+    # Non-zero slice record
     seq = "ACGT" * 10
-    view = new_sequence.SeqView(parent=seq, start=5, stop=35, step=2, alphabet=alpha)
-    expected = "SeqView(parent='ACGTACGTAC...TACGT', start=5, stop=35, step=2, offset=0, seqid=None, parent_len=40)"
+    sr = new_sequence.SliceRecord(start=5, stop=35, step=2, parent_len=len(seq))
+    view = new_sequence.SeqView(parent=seq, alphabet=alpha, slice_record=sr)
+    expected = f"SeqView(seqid=None, parent='ACGTACGTAC...TACGT', slice_record={view.slice_record!r})"
     assert repr(view) == expected
 
-    # offset
+    # slice record with an offset
     seq = "ACGT"
-    view = new_sequence.SeqView(parent=seq, offset=5, alphabet=alpha)
-    expected = "SeqView(parent='ACGT', start=0, stop=4, step=1, offset=5, seqid=None, parent_len=4)"
+    sr = new_sequence.SliceRecord(offset=5, parent_len=len(seq))
+    view = new_sequence.SeqView(parent=seq, alphabet=alpha, slice_record=sr)
+    expected = f"SeqView(seqid=None, parent='ACGT', slice_record={view.slice_record!r})"
     assert repr(view) == expected
 
     # seqid
     seq = "ACGT"
     view = new_sequence.SeqView(parent=seq, seqid="seq1", alphabet=alpha)
-    expected = "SeqView(parent='ACGT', start=0, stop=4, step=1, offset=0, seqid='seq1', parent_len=4)"
+    expected = (
+        f"SeqView(seqid='seq1', parent='ACGT', slice_record={view.slice_record!r})"
+    )
     assert repr(view) == expected
+
+
+def test_slice_record_repr():
+    # defaults
+    sr = new_sequence.SliceRecord(parent_len=20)
+    expected = "SliceRecord(start=0, stop=20, step=1, parent_len=20, offset=0)"
+    assert repr(sr) == expected
+
+    sr = new_sequence.SliceRecord(start=1, stop=10, step=2, parent_len=20, offset=5)
+    expected = "SliceRecord(start=1, stop=10, step=2, parent_len=20, offset=5)"
+    assert repr(sr) == expected
 
 
 @pytest.mark.parametrize("k", range(1, 7))
@@ -1898,44 +1930,44 @@ def test_annotation_from_slice_with_stride():
 
 def test_absolute_position_base_cases(one_seq):
     """with no offset or view, the absolute index should remain unchanged"""
-    got = one_seq._seq.absolute_position(5)
+    got = one_seq._seq.slice_record.absolute_position(5)
     assert got == 5
 
     # an index outside the range of the sequence should raise an IndexError
     with pytest.raises(IndexError):
-        one_seq._seq.absolute_position(20)
+        one_seq._seq.slice_record.absolute_position(20)
 
     with pytest.raises(IndexError):
-        one_seq._seq.absolute_position(-20)
+        one_seq._seq.slice_record.absolute_position(-20)
 
 
 def test_absolute_position_positive(one_seq):
     # with an offset, the abs index should be offset + index
     one_seq.annotation_offset = 2
-    got = one_seq._seq.absolute_position(2)
+    got = one_seq._seq.slice_record.absolute_position(2)
     assert got == 2 + 2
 
     # with an offset and start, the abs index should be offset + start + index
     view = one_seq[2::]
     view.annotation_offset = 2  # todo: do we want the annotation_offset to be preserved when slicing? I think yes
-    got = view._seq.absolute_position(2)
+    got = view._seq.slice_record.absolute_position(2)
     assert got == 2 + 2 + 2
 
     # with an offset, start and step, the abs index should be offset + start + index * step
     view = one_seq[2::2]
     view.annotation_offset = 2
-    got = view._seq.absolute_position(2)
+    got = view._seq.slice_record.absolute_position(2)
     assert got == 2 + 2 + 2 * 2
 
 
 def test_relative_position_base_cases(one_seq):
     """with no offset or view, the absolute index should remain unchanged"""
-    got = one_seq._seq.relative_position(5)
+    got = one_seq._seq.slice_record.relative_position(5)
     assert got == 5
 
     # a -ve index  should raise an IndexError
     with pytest.raises(IndexError):
-        one_seq._seq.relative_position(-5)
+        one_seq._seq.slice_record.relative_position(-5)
 
 
 def test_relative_position(integer_seq):
@@ -1944,11 +1976,11 @@ def test_relative_position(integer_seq):
 
     view = integer_seq[1:9:]
     # view = "12345678"
-    got = view.relative_position(0)
+    got = view.slice_record.relative_position(0)
     # precedes the view, so should return -1
     assert got == -1
     # exceeds the view, but still returns a value
-    got = view.relative_position(10)
+    got = view.slice_record.relative_position(10)
     assert got == 9
 
 
@@ -1960,13 +1992,13 @@ def test_relative_position_step_GT_one(integer_seq):
     # precedes the view, with step > 1
     view = integer_seq[2:7:2]
     # view = "246", precedes the view by 1 step
-    got = view.relative_position(0)
+    got = view.slice_record.relative_position(0)
     assert got == -1
     # precedes the view by 0.5 step, default behaviour is to round up to 0
-    got = view.relative_position(1)
+    got = view.slice_record.relative_position(1)
     assert got == 0
     # exceeds the view by two steps, len(view) + 2 = 4
-    got = view.relative_position(10)
+    got = view.slice_record.relative_position(10)
     assert got == 4
 
 
@@ -1994,12 +2026,12 @@ def test_relative_position_with_remainder(integer_seq):
     a position that is 'stepped over'"""
     view = integer_seq[1:9:2]
     # view = "1357"
-    got = view.relative_position(2)
+    got = view.slice_record.relative_position(2)
     # 2 is stepped over in the view, so we return the index of 3 (which is 1)
     assert got == 1
 
     # setting the arg stop=True will adjust to the largest number, smaller than the given abs value, that is in the view
-    got = view.relative_position(8, stop=True)
+    got = view.slice_record.relative_position(8, stop=True)
     # 8 is excluded from the view, so we return the index of 7 (which is 3)
     assert got == 3
 
@@ -2013,8 +2045,8 @@ def test_absolute_relative_roundtrip(one_seq, value, offset, start, stop, step):
     # a round trip from relative to absolute then from absolute to relative, should return the same value we began with
     view = one_seq[start:stop:step]
     view.annotation_offset = offset or 0
-    abs_val = view._seq.absolute_position(value)
-    rel_val = view._seq.relative_position(abs_val)
+    abs_val = view._seq.slice_record.absolute_position(value)
+    rel_val = view._seq.slice_record.relative_position(abs_val)
     assert rel_val == value
 
 
@@ -2028,10 +2060,10 @@ def test_absolute_relative_roundtrip_reverse(
 ):
     # a round trip from relative to absolute then from absolute to relative, should return the same value we began with
     view = integer_seq[start:stop:step]
-    view.offset = offset or 0
-    abs_val = view.absolute_position(value)
-    rel_val = view.relative_position(abs_val)
-    assert view.offset == (offset or 0)
+    view.slice_record.offset = offset or 0
+    abs_val = view.slice_record.absolute_position(value)
+    rel_val = view.slice_record.relative_position(abs_val)
+    assert view.slice_record.offset == (offset or 0)
     assert (view[rel_val]).str_value == view[value].str_value
 
 
@@ -2148,7 +2180,10 @@ def test_seqview_to_rich_dict(coord, dna_alphabet):
     plus = plus.pop("init_args")
     minus = minus.pop("init_args")
     assert plus.pop("seq") == minus.pop("seq")
-    assert plus["step"] == -minus["step"]
+    assert (
+        plus["slice_record"]["init_args"]["step"]
+        == -minus["slice_record"]["init_args"]["step"]
+    )
     assert coord not in plus
     assert coord not in minus
 
@@ -2161,7 +2196,7 @@ def test_sliced_seqview_rich_dict(reverse, dna_alphabet):
     sv = sv[::-1] if reverse else sv
     rd = sv.to_rich_dict()
     assert rd["init_args"]["seq"] == parent[sl]
-    assert rd["init_args"]["offset"] == 2
+    assert rd["init_args"]["slice_record"]["init_args"]["offset"] == 2
 
 
 @pytest.mark.parametrize(
@@ -2179,12 +2214,15 @@ def test_parent_start_stop(sl, offset, ascii_alphabet):
     # check our slice matches the expectation for rest of test
     expect = "234" if sl.step > 0 else "432"
     sv = new_sequence.SeqView(parent=data, alphabet=ascii_alphabet)
-    sv.offset = offset
+    sv.slice_record.offset = offset
     sv = sv[sl]
     assert sv.str_value == expect
     # now check that start / stop are always the same
     # irrespective of step sign
-    assert (sv.parent_start, sv.parent_stop) == (2 + offset, 5 + offset)
+    assert (sv.slice_record.parent_start, sv.slice_record.parent_stop) == (
+        2 + offset,
+        5 + offset,
+    )
 
 
 @pytest.mark.parametrize(
@@ -2203,7 +2241,7 @@ def test_parent_start_stop_limits(sl, ascii_alphabet):
     assert sv.str_value == expect
     # now check that start / stop are always the same
     # irrespective of step sign
-    assert (sv.parent_start, sv.parent_stop) == (0, 10)
+    assert (sv.slice_record.parent_start, sv.slice_record.parent_stop) == (0, 10)
 
 
 @pytest.mark.parametrize("rev", (False, True))
@@ -2216,7 +2254,7 @@ def test_parent_start_stop_empty(rev, ascii_alphabet):
     assert sv.str_value == expect
     # now check that start / stop are always the same
     # irrespective of step sign
-    assert (sv.parent_start, sv.parent_stop) == (0, 0)
+    assert (sv.slice_record.parent_start, sv.slice_record.parent_stop) == (0, 0)
 
 
 @pytest.mark.parametrize("rev", (False, True))
@@ -2232,7 +2270,10 @@ def test_parent_start_stop_singletons(index, rev, ascii_alphabet):
     assert sv.str_value == expect
     # now check that start / stop are always the same
     # irrespective of step sign
-    assert (sv.parent_start, sv.parent_stop) == (index, index + 1)
+    assert (sv.slice_record.parent_start, sv.slice_record.parent_stop) == (
+        index,
+        index + 1,
+    )
 
 
 def test_get_drawable(DATA_DIR):
@@ -2480,8 +2521,8 @@ def test_make_seq_assigns_to_seqview():
 
 def test_empty_seqview_translate_position(dna_alphabet):
     sv = new_sequence.SeqView(parent="", alphabet=dna_alphabet)
-    assert sv.absolute_position(0) == 0
-    assert sv.relative_position(0) == 0
+    assert sv.slice_record.absolute_position(0) == 0
+    assert sv.slice_record.relative_position(0) == 0
 
 
 @pytest.mark.parametrize("start", (None, 0, 1, 10, -1, -10))
@@ -2491,9 +2532,8 @@ def test_empty_seqview_translate_position(dna_alphabet):
 def test_seqview_seq_len_init(start, stop, step, length, dna_alphabet):
     # seq_len is length of seq when None
     seq_data = "A" * length
-    sv = new_sequence.SeqView(
-        parent=seq_data, start=start, stop=stop, step=step, alphabet=dna_alphabet
-    )
+    sr = new_sequence.SliceRecord(start=start, stop=stop, step=step, parent_len=length)
+    sv = new_sequence.SeqView(parent=seq_data, slice_record=sr, alphabet=dna_alphabet)
     expect = len(seq_data)
     # Check property and slot
     assert sv.parent_len == expect
