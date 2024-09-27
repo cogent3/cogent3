@@ -102,17 +102,19 @@ class SeqDataView(new_sequence.SeqViewABC):
     # array([3, 1, 2, 0], dtype=int8)
     """
 
-    __slots__ = ("parent", "_seqid", "_parent_len", "_slice_record")
+    __slots__ = ("parent", "alphabet", "_seqid", "_parent_len", "_slice_record")
 
     def __init__(
         self,
         *,
         parent: SeqsData,
-        seqid: str,
+        alphabet: new_alphabet.CharAlphabet,
         parent_len: int,
-        slice_record: new_sequence.SliceRecordABC,
+        seqid: str = None,
+        slice_record: new_sequence.SliceRecordABC = None,
     ):
         self.parent = parent
+        self.alphabet = alphabet
         self._seqid = seqid
         self._parent_len = parent_len
         self._slice_record = (
@@ -181,6 +183,7 @@ class SeqDataView(new_sequence.SeqViewABC):
         return self.__class__(
             parent=self.parent,
             seqid=self.seqid,
+            alphabet=self.alphabet,
             parent_len=self.parent_len,
             slice_record=self.slice_record[segment],
         )
@@ -198,7 +201,7 @@ class SeqDataView(new_sequence.SeqViewABC):
         return self
 
     def _get_init_kwargs(self):
-        return {"parent": self.parent, "seqid": self.seqid}
+        return {"parent": self.parent, "seqid": self.seqid, "alphabet": self.alphabet}
 
     def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
         """returns a json serialisable dict.
@@ -229,7 +232,7 @@ class SeqDataView(new_sequence.SeqViewABC):
             offset=self.slice_record.parent_start,
         )
         data["init_args"]["slice_record"] = new_sr.to_rich_dict()
-
+        data["init_args"]["alphabet"] = self.alphabet.to_rich_dict()
         return data
 
 
@@ -464,7 +467,11 @@ class SeqsData(SeqsDataABC):
             step=-1 if self.is_reversed else 1, parent_len=seq_len, offset=offset
         )
         return SeqDataView(
-            parent=self, seqid=seqid, parent_len=seq_len, slice_record=slice_record
+            parent=self,
+            seqid=seqid,
+            parent_len=seq_len,
+            alphabet=self.alphabet,
+            slice_record=slice_record,
         )
 
     def subset(self, names: Union[str, typing.Sequence[str]]) -> SeqsData:
@@ -2586,11 +2593,7 @@ class Aligned:
     @property
     def seq(self) -> new_sequence.Sequence:
         """Returns Sequence object, excluding gaps."""
-        # could just pass the ADV to the Sequence object and let it handle the rest
-        seq = self.data.str_value
-        if self.data.slice_record.step < 0:
-            seq = self.moltype.complement(seq)
-        return self.moltype.make_seq(seq=seq, name=self.data.seqid)
+        return self.moltype.make_seq(seq=self.data, name=self.data.seqid)
 
     @property
     def gapped_seq(self) -> new_sequence.Sequence:
@@ -2603,6 +2606,10 @@ class Aligned:
     @property
     def moltype(self) -> new_moltype.MolType:
         return self._moltype
+
+    @property
+    def name(self) -> str:
+        return self.data.seqid
 
     def __str__(self) -> str:
         return str(self.gapped_seq)
@@ -2629,6 +2636,31 @@ class Aligned:
     def _(self, span: slice):
         self.data.slice_record = self.data.slice_record[span]
         return self.__class__(data=self.data, moltype=self.moltype)
+
+    def parent_coordinates(self, seq_coords=False):
+        """returns seqid, start, stop, strand on the parent sequence
+
+        Parameters
+        ----------
+        seq_coords
+            if True, the coordinates for the unaligned sequence
+        """
+        strand = -1 if self.data.is_reversed else 1
+        seqid = self.data.seqid
+        if not seq_coords:
+            start = self.data.slice_record.parent_start
+            stop = self.data.slice_record.parent_stop
+        else:
+            # AlignedDataView.parent_seq_coords uses it's indelmap, etc..
+            # to return the necessary coordinates
+            seqid, start, stop, strand = self.data.parent_seq_coords()
+
+        return (
+            seqid,
+            start,
+            stop,
+            strand,
+        )
 
 
 class AlignedSeqsDataABC(SeqsDataABC):
@@ -2896,7 +2928,12 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         return {name: len(seq) for name, seq in self._seqs.items()}
 
     def get_view(self, seqid: str) -> AlignedDataView:
-        return AlignedDataView(parent=self, seqid=seqid, slice_record=self.slice_record)
+        return AlignedDataView(
+            parent=self,
+            seqid=seqid,
+            alphabet=self.alphabet,
+            slice_record=self.slice_record,
+        )
 
     def get_gaps(self, seqid: str) -> numpy.ndarray:
         return self._gaps[seqid]
@@ -3172,20 +3209,33 @@ class AlignedSeqsData(AlignedSeqsDataABC):
 class AlignedDataView(new_sequence.SeqViewABC):
     # refactor: docstring
 
-    __slots__ = ("parent", "_seqid", "_offset", "_parent_len", "_slice_record")
+    __slots__ = (
+        "parent",
+        "_seqid",
+        "alphabet",
+        "_offset",
+        "_parent_len",
+        "_slice_record",
+    )
 
     def __init__(
         self,
         *,
         parent: AlignedSeqsDataABC,
         seqid: str,
-        slice_record: new_sequence.SliceRecord,
+        alphabet: new_alphabet.AlphabetABC,
+        slice_record: new_sequence.SliceRecord = None,
         offset: int = 0,
     ):
         self.parent = parent
         self._seqid = seqid
+        self.alphabet = alphabet
         self._parent_len = parent.align_len
-        self._slice_record = slice_record
+        self._slice_record = (
+            slice_record
+            if slice_record is not None
+            else new_sequence.SliceRecord(parent_len=self._parent_len)
+        )
         self._offset = offset
 
     @property
@@ -3208,22 +3258,19 @@ class AlignedDataView(new_sequence.SeqViewABC):
     def map(self) -> IndelMap:
         gap_pos_gap_length = self.parent.get_gaps(self.seqid)
         if gap_pos_gap_length.size > 0:
-            gap_pos = (gap_pos_gap_length[:, 0],)
-            cum_gap_lengths = (gap_pos_gap_length[:, 1],)
+            gap_pos = numpy.array(gap_pos_gap_length[:, 0], dtype=int)
+            cum_gap_lengths = numpy.array(gap_pos_gap_length[:, 1], dtype=int)
         else:
             gap_pos, cum_gap_lengths = (
                 numpy.array([], dtype=int),
                 numpy.array([], dtype=int),
             )
 
-        im = IndelMap(
+        return IndelMap(
             gap_pos=gap_pos,
             cum_gap_lengths=cum_gap_lengths,
             parent_length=len(self.parent),
         )
-        return im[
-            self.slice_record.start : self.slice_record.stop : self.slice_record.step
-        ]
 
     @property
     def str_value(self) -> str:
@@ -3280,26 +3327,33 @@ class AlignedDataView(new_sequence.SeqViewABC):
         )
 
     def __str__(self) -> str:
-        # refactor: design
-        # should this return gapped or ungapped?
-        return self.gapped_str_value
+        return self.str_value
 
     def __array__(self, dtype=None, copy=None) -> numpy.ndarray:
-        arr = self.gapped_array_value
+        arr = self.array_value
         if dtype:
             arr = arr.astype(dtype)
         return arr
 
     def __bytes__(self) -> bytes:
-        return self.gapped_bytes_value
+        return self.bytes_value
 
     def __getitem__(self, segment) -> new_sequence.SeqViewABC:
         return self.__class__(
             parent=self.parent,
             seqid=self.seqid,
+            alphabet=self.alphabet,
             slice_record=self.slice_record[segment],
             offset=self._offset,
         )
+
+    def parent_seq_coords(self) -> tuple[str, int, int, int]:
+        """returns seqid, start, stop, strand on the parent sequence"""
+        start = self.map.get_seq_index(self.slice_record.parent_start)
+        stop = self.map.get_seq_index(self.slice_record.parent_stop)
+        strand = -1 if self.slice_record.step < 0 else 1
+
+        return self.seqid, start, stop, strand
 
     def copy(self, sliced: bool = False):
         return self
@@ -3326,7 +3380,7 @@ class Alignment(SequenceCollection):
             info=self.info,
         )
         # we cannot support connection to the original annotation db if the slice is not 1 or -1
-        if isinstance(index, slice) and abs(index.step) > 1:
+        if isinstance(index, slice) and abs(index.step or 1) > 1:
             return result
         result.annotation_db = self.annotation_db
         return result
@@ -3527,6 +3581,71 @@ class Alignment(SequenceCollection):
             consensus.append(degen("".join(col)))
         return "".join(consensus)
 
+    def _get_seq_features(
+        self,
+        *,
+        seqid: Optional[str] = None,
+        biotype: Optional[str] = None,
+        name: Optional[str] = None,
+        allow_partial: bool = False,
+    ) -> Iterator[Feature]:
+        """yields Feature instances
+
+        Parameters
+        ----------
+        seqid
+            limit search to features on this named sequence, defaults to search all
+        biotype
+            biotype of the feature, e.g. CDS, gene
+        name
+            name of the feature
+        allow_partial
+            allow features partially overlaping self
+
+        Notes
+        -----
+        When dealing with a nucleic acid moltype, the returned features will
+        yield a sequence segment that is consistently oriented irrespective
+        of strand of the current instance.
+        """
+        if self.annotation_db is None:
+            return None
+
+        seqid_to_seqname = {seq.parent_coordinates()[0]: seq.name for seq in self.seqs}
+
+        seqids = [seqid] if isinstance(seqid, str) else seqid
+        if seqids is None:
+            seqids = tuple(seqid_to_seqname)
+        elif set(seqids) & set(self.names):
+            # we've been given seq names, convert to parent names
+            seqids = [self.seqs[seqid].parent_coordinates()[0] for seqid in seqids]
+        elif seqids and set(seqids) <= seqid_to_seqname.keys():
+            # already correct
+            pass
+        else:
+            raise ValueError(f"unknown {seqid=}")
+
+        for seqid in seqids:
+            seqname = seqid_to_seqname[seqid]
+            seq = self.seqs[seqname].seq
+            # we use parent seqid
+            parent_id, start, stop, _ = seq.parent_coordinates()
+            offset = seq.annotation_offset
+
+            for feature in self.annotation_db.get_features_matching(
+                seqid=parent_id,
+                biotype=biotype,
+                name=name,
+                on_alignment=False,
+                allow_partial=allow_partial,
+                start=start,
+                stop=stop,
+            ):
+                if offset:
+                    feature["spans"] = (numpy.array(feature["spans"]) - offset).tolist()
+                # passing self only used when self is an Alignment
+                yield seq.make_feature(feature, self)
+
     def get_features(
         self,
         *,
@@ -3535,7 +3654,69 @@ class Alignment(SequenceCollection):
         name: Optional[str] = None,
         on_alignment: Optional[bool] = None,
         allow_partial: bool = False,
-    ) -> Iterator[Feature]: ...
+    ) -> Iterator[Feature]:
+        """yields Feature instances
+
+        Parameters
+        ----------
+        seqid
+            limit search to features on this named sequence, defaults to search all
+        biotype
+            biotype of the feature, e.g. CDS, gene
+        name
+            name of the feature
+        on_alignment
+            limit query to features on Alignment, ignores sequences. Ignored on
+            SequenceCollection instances.
+        allow_partial
+            allow features partially overlaping self
+
+        Notes
+        -----
+        When dealing with a nucleic acid moltype, the returned features will
+        yield a sequence segment that is consistently oriented irrespective
+        of strand of the current instance.
+        """
+        # we only do on-alignment in here
+        if not on_alignment:
+            kwargs = {
+                k: v for k, v in locals().items() if k not in ("self", "__class__")
+            }
+            kwargs.pop("on_alignment")
+            yield from self._get_seq_features(**kwargs)
+
+        if on_alignment == False:
+            return
+
+        if self.annotation_db is None:
+            anno_db = merged_db_collection(self.seqs)
+            self.annotation_db = anno_db
+
+        if self.annotation_db is None:
+            return None
+
+        seq_map = None
+        for feature in self.annotation_db.get_features_matching(
+            biotype=biotype,
+            name=name,
+            on_alignment=on_alignment,
+            allow_partial=allow_partial,
+        ):
+            if feature["seqid"]:
+                continue
+            on_al = feature.pop("on_alignment", on_alignment)
+            if feature["seqid"]:
+                raise RuntimeError(f"{on_alignment=} {feature=}")
+            if seq_map is None:
+                seq_map = self.seqs[0].map.to_feature_map()
+                *_, strand = self.seqs[0].data.parent_coordinates()
+
+            spans = numpy.array(feature["spans"])
+            spans = seq_map.relative_position(spans)
+            feature["spans"] = spans.tolist()
+            # and if i've been reversed...?
+            feature["strand"] = "-" if strand == -1 else "+"
+            yield self.make_feature(feature=feature, on_alignment=on_al)
 
     def to_pretty(self, name_order=None, wrap=None):
         """returns a string representation of the alignment in pretty print format

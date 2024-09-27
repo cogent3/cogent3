@@ -400,10 +400,11 @@ def test_seqs_data_round_trip(reverse, dna_alphabet):
         slice(None),
     ],
 )
-def test_seq_data_view_slice_returns_self(seq1: str, index: slice):
+def test_seq_data_view_slice_returns_self(seq1: str, index: slice, dna_alphabet):
     sdv = new_alignment.SeqDataView(
         parent=seq1,
         seqid="seq1",
+        alphabet=dna_alphabet,
         parent_len=len(seq1),
         slice_record=new_sequence.SliceRecord(parent_len=len(seq1)),
     )
@@ -438,6 +439,7 @@ def test_seq_data_view_to_rich_dict(rev):
         "init_args": {
             "seqid": "seq1",
             "parent": sdv.str_value,
+            "alphabet": alpha.to_rich_dict(),
             "slice_record": sdv.slice_record.to_rich_dict(),
         },
         "type": get_object_provenance(sdv),
@@ -2775,14 +2777,14 @@ def test_aligned_seqs_data_add_seqs_duplicate_keys_raises(dna_alphabet, dna_make
 def test_aligned_seqs_data_get_aligned_view(
     aligned_dict, seqid, dna_alphabet, dna_make_seq
 ):
+    # str on an ADV should return the ungapped sequence
     ad = new_alignment.AlignedSeqsData.from_aligned_seqs(
         data=aligned_dict, alphabet=dna_alphabet, make_seq=dna_make_seq
     )
     got = ad.get_view(seqid)
-    assert isinstance(got, new_alignment.AlignedDataView)
     assert got.parent == ad
     assert got.parent_len == ad.align_len
-    assert str(got) == aligned_dict[seqid]
+    assert str(got) == aligned_dict[seqid].replace("-", "")
 
 
 @pytest.mark.parametrize("seqid", ("seq1", "seq2", "seq3", "seq4"))
@@ -2792,7 +2794,7 @@ def test_aligned_data_view_array(aligned_array_dict, dna_alphabet, dna_make_seq,
     )
     view = ad.get_view(seqid)
     got = numpy.array(view)
-    expect = aligned_array_dict[seqid]
+    expect = aligned_array_dict[seqid][aligned_array_dict[seqid] != 4]  # remove gaps
     assert numpy.array_equal(got, expect)
 
 
@@ -2803,7 +2805,7 @@ def test_aligned_data_view_bytes(aligned_array_dict, dna_alphabet, dna_make_seq,
     )
     view = ad.get_view(seqid)
     got = bytes(view)
-    expect = aligned_array_dict[seqid]
+    expect = aligned_array_dict[seqid][aligned_array_dict[seqid] != 4]  # remove gaps
     expect = dna_alphabet.array_to_bytes(expect)  # convert to bytes
     assert numpy.array_equal(got, expect)
 
@@ -3199,3 +3201,48 @@ def test_alignment_get_gap_array():
         dtype=bool,
     )
     assert numpy.allclose(got, expect)
+
+
+###
+def test_get_feature():
+    from cogent3.core import new_alignment
+
+    aln = new_alignment.make_aligned_seqs(
+        {"x": "-AAAAAAAAA", "y": "TTTT--CCCT"}, moltype="dna"
+    )
+
+    db = aln.annotation_db
+    db.add_feature(seqid="y", biotype="exon", name="A", spans=[(5, 8)])
+    feat = list(aln.get_features(seqid="y", biotype="exon", on_alignment=False))[0]
+    assert feat.get_slice().to_dict() == dict(x="AAA", y="CCT")
+
+
+@pytest.fixture
+def aligned_data():
+    from cogent3.core import new_alignment, new_moltype
+
+    dna = new_moltype.get_moltype("dna")
+
+    data = {
+        "seq1": "A-GT",
+        #         012
+        "seq2": "-GGT",
+    }
+    return new_alignment.make_aligned_seqs(data, moltype="dna")
+
+
+def test_aligned_view_parent_coords(aligned_data):
+    seqid = "seq2"
+    a1 = aligned_data.seqs[seqid]
+    got = a1.parent_coordinates()
+    assert got == (seqid, 0, 4, 1)
+
+    a2 = aligned_data[2:]
+    a1_2 = a2.seqs[seqid]
+    assert a1_2.parent_coordinates() == (seqid, 2, 4, 1)
+
+    # now getting the sequence coordinates
+    s2 = a2.get_seq(seqid)
+    expect = s2.parent_coordinates()  # this is in alignment coordinates...
+    got = a1_2.parent_coordinates(seq_coords=True)
+    assert got == (seqid, 1, 3, 1)
