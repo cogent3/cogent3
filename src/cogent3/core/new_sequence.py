@@ -2564,8 +2564,6 @@ class SeqView(SeqViewABC):
 
     @property
     def str_value(self):
-        # todo: kath
-        # could be a place to use slice_record.apply?
         return self.parent[
             self.slice_record.start : self.slice_record.stop : self.slice_record.step
         ]

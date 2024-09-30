@@ -1437,7 +1437,7 @@ class IndelMap(MapABC):
 
         return int(seq_index + gap_lengths)
 
-    def get_seq_index(self, align_index: int) -> int:
+    def get_seq_index(self, align_index: int, step: int = 1) -> int:
         """converts alignment index to sequence index"""
         # NOTE I explicitly cast all returned values to python int's due to
         # need for json serialisation, which does not support numpy int classes
@@ -1467,7 +1467,17 @@ class IndelMap(MapABC):
         if gap_starts[index] <= align_index < gap_ends[index]:
             # within the gap at index
             # so the gap insertion position is the sequence position
-            return int(self.gap_pos[index])
+
+            # if the step is greater than 1, its possible that the gap insertion
+            # position is "stepped over" by the stride of the alignment. In this
+            # case, we need to adjust the sequence position to the nearest multiple
+            # of the step size
+            return (
+                int(self.gap_pos[index])
+                + _step_adjustment(gap_ends[index], align_index, step)
+                if abs(step) > 1
+                else int(self.gap_pos[index])
+            )
 
     def __len__(self) -> int:
         length_gaps = self.cum_gap_lengths[-1] if self.num_gaps else 0

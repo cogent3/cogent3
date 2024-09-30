@@ -85,7 +85,11 @@ def assign_sequential_names(num_seqs: int, base_name: str = "seq", start_at: int
     return [f"{base_name}_{i}" for i in range(start_at, start_at + num_seqs)]
 
 
-class SeqDataView(new_sequence.SeqViewABC):
+class SeqDataViewABC(new_sequence.SeqViewABC):
+    __slots__ = ()
+
+
+class SeqDataView(SeqDataViewABC):
     """
     A view class for SeqsData, providing methods for different representations
     of a single sequence.
@@ -266,10 +270,6 @@ class SeqsDataABC(ABC):
     @property
     @abstractmethod
     def alphabet(self) -> new_alphabet.CharAlphabet: ...
-
-    @property
-    @abstractmethod
-    def is_reversed(self) -> bool: ...
 
     @property
     @abstractmethod
@@ -671,6 +671,8 @@ class SequenceCollection:
     @names.setter
     def names(self, names: list[str]):
         # refactor: design, do we accept the names as an arg, or should we rely on seqs_data keys?
+        # if we are allowing the set of names to be a subset of the seqs_data keys, we should
+        # ensure that we are using the names and not the keys in the rest of the code!
         if names is None:
             self._names = self._seqs_data.names
         elif set(names) <= set(self._seqs_data.names):
@@ -2593,7 +2595,20 @@ class Aligned:
     @property
     def seq(self) -> new_sequence.Sequence:
         """Returns Sequence object, excluding gaps."""
-        return self.moltype.make_seq(seq=self.data, name=self.data.seqid)
+        # if the slice record has abs(step) > 1, we cannot retain a connection to the underlying aligned 
+        # seq data container because the gaps are not going to be modulo the step.
+        rev = 1 
+        if abs(self.data.slice_record.step) == 1:
+            seq = self.data.get_seq_view()
+        elif self.data.slice_record.step < -1:
+            # gapped_str_value will apply the step to the underlying data, so
+            # we need to reverse the underlying data, and then reverse the Sequence
+            # so that the seq knows to complment the sequence on output
+            seq = self.moltype.degap(self.data.gapped_str_value)[::-1]
+            rev = -1
+        else: 
+            seq = self.moltype.degap(self.data.gapped_str_value)
+        return self.moltype.make_seq(seq=seq, name=self.data.seqid)[::rev]
 
     @property
     def gapped_seq(self) -> new_sequence.Sequence:
@@ -2634,8 +2649,7 @@ class Aligned:
 
     @__getitem__.register
     def _(self, span: slice):
-        self.data.slice_record = self.data.slice_record[span]
-        return self.__class__(data=self.data, moltype=self.moltype)
+        return self.__class__(data=self.data[span], moltype=self.moltype)
 
     def parent_coordinates(self, seq_coords=False):
         """returns seqid, start, stop, strand on the parent sequence
@@ -2664,6 +2678,8 @@ class Aligned:
 
 
 class AlignedSeqsDataABC(SeqsDataABC):
+    # all methods that are from SeqsDataABC should work in sequence coordinates
+    # all methods unique to AlignedSeqsDataABC should work in aligned coordinates
     __slots__ = ()
 
     @classmethod
@@ -2731,6 +2747,7 @@ def _gapped_seq_len(seq: numpy.ndarray, gap_map: numpy.ndarray) -> int:
 
 class AlignedSeqsData(AlignedSeqsDataABC):
     # refactor: docstring
+    # refactor: design
 
     __slots__ = (
         "_seqs",
@@ -2750,7 +2767,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         seqs: Optional[dict[str, StrORBytesORArray]],
         gaps: Optional[dict[str, numpy.ndarray]],
         alphabet: new_alphabet.AlphabetABC,
-        slice_record: new_sequence.SliceRecord = None,
         make_seq: Optional[MakeSeqCallable] = None,
         make_aligned: Optional[MakeAlignedCallable] = None,
         strand: dict[str, int] = None,
@@ -2789,11 +2805,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             self._gaps[k] = v
             v.flags.writeable = False
         self._align_len = align_len or gapped_seq_lengths.pop()
-        self._slice_record = (
-            slice_record
-            if slice_record is not None
-            else new_sequence.SliceRecord(parent_len=self.align_len)
-        )
         self._strand = strand or {}
         self._offset = offset or {}
 
@@ -2880,27 +2891,11 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         return self._align_len
 
     @property
-    def slice_record(self) -> new_sequence.SliceRecord:
-        return self._slice_record
-
-    @slice_record.setter
-    def slice_record(self, record: new_sequence.SliceRecord) -> None:
-        self._slice_record = record
-
-    @property
-    def is_reversed(self) -> bool:
-        return self.slice_record.step < 0
-
-    @property
     def strand(self) -> dict[str, str]:
         """returns the strand orientation of each sequence in the Alignment"""
         # todo: kath
         # can we move to SeqsDataABC and inherit here and in SeqsData?
-        return (
-            {name: -self._strand.get(name, 1) for name in self.names}
-            if self.is_reversed
-            else {name: self._strand.get(name, 1) for name in self.names}
-        )
+        return {name: -self._strand.get(name, 1) for name in self.names}
 
     @property
     def offset(self) -> dict[str, int]:
@@ -2932,27 +2927,41 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             parent=self,
             seqid=seqid,
             alphabet=self.alphabet,
-            slice_record=self.slice_record,
         )
 
     def get_gaps(self, seqid: str) -> numpy.ndarray:
         return self._gaps[seqid]
 
-    def _get_seq_array(
+    def get_seq_array(
         self,
         *,
         seqid: str,
-        gapped: bool,
         start: OptInt = None,
         stop: OptInt = None,
         step: OptInt = None,
     ) -> numpy.ndarray:
-        """helper function to return sequence data corresponding to seqid as an
-        array of indices. start/stop are in alignment coordinates.
-
-        Interweaves gaps into the sequence if gapped is True. Returns the ungapped
-        sequence if gapped is False.
+        """Return ungapped sequence corresponding to seqid as an array of indices.
+        assumes start/stop are in sequence coordinates. Excludes gaps.
         """
+        # refactor: design
+        seq = self._seqs[seqid]
+        return seq[start:stop:step]
+
+    def get_gapped_seq_array(
+        self,
+        *,
+        seqid: str,
+        start: OptInt = None,
+        stop: OptInt = None,
+        step: OptInt = None,
+    ) -> numpy.ndarray:
+        """Return sequence data corresponding to seqid as an array of indices.
+        start/stop are in alignment coordinates. Includes gaps.
+        """
+
+        # refactor: design
+        # should this pass the data sliced data to the ADV which then applies the step???
+
         step = 1 if step is None else step
         func = _input_vals_pos_step if step > 0 else _input_vals_neg_step
         start, stop, step = func(self.align_len, start, stop, step)
@@ -2966,12 +2975,9 @@ class AlignedSeqsData(AlignedSeqsDataABC):
 
         # there is only gaps
         if len(seq) == 0:
-            if gapped:
-                return numpy.full(
-                    int(-((stop - start) // -step)), unknown, dtype=numpy.uint8
-                )
-            else:
-                return numpy.array([], dtype=numpy.uint8)
+            return numpy.full(
+                int(-((stop - start) // -step)), unknown, dtype=numpy.uint8
+            )
 
         gaps = self._gaps[seqid]
         indel_map = IndelMap(
@@ -3002,48 +3008,12 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         # iterate through spans
         for span in map_sliced.spans:
             if span.lost:
-                if gapped:
-                    seg = numpy.full(span.length, unknown, dtype=numpy.uint8)
-                else:
-                    # if not gapped, we skip over this segment
-                    continue
+                seg = numpy.full(span.length, unknown, dtype=numpy.uint8)
             else:
                 seg = seq_sliced[span.start : span.end]
-
             concat = numpy.concatenate((concat, seg))
 
         return concat
-
-    def get_seq_array(
-        self,
-        *,
-        seqid: str,
-        start: OptInt = None,
-        stop: OptInt = None,
-        step: OptInt = None,
-    ) -> numpy.ndarray:
-        """Return ungapped sequence corresponding to seqid as an array of indices.
-        start/stop are in alignment coordinates and the alignment coordinates
-        are converted to sequence coordinates. Excludes gaps.
-        """
-        return self._get_seq_array(
-            seqid=seqid, gapped=False, start=start, stop=stop, step=step
-        )
-
-    def get_gapped_seq_array(
-        self,
-        *,
-        seqid: str,
-        start: OptInt = None,
-        stop: OptInt = None,
-        step: OptInt = None,
-    ) -> numpy.ndarray:
-        """Return sequence data corresponding to seqid as an array of indices.
-        start/stop are in alignment coordinates. Includes gaps.
-        """
-        return self._get_seq_array(
-            seqid=seqid, gapped=True, start=start, stop=stop, step=step
-        )
 
     def get_seq_str(
         self,
@@ -3056,7 +3026,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         """Return ungapped sequence corresponding to seqid as a string.
         start/stop are in alignment coordinates and the alignment coordinates
         are converted to sequence coordinates. Excludes gaps."""
-
         return self.alphabet.from_indices(
             self.get_seq_array(seqid=seqid, start=start, stop=stop, step=step)
         )
@@ -3145,7 +3114,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             seqs={**self._seqs, **new_seqs},
             gaps={**self._gaps, **new_gaps},
             alphabet=self.alphabet,
-            slice_record=self._slice_record,
             make_seq=self._make_seq,
             make_aligned=self._make_aligned,
             strand={**self._strand, **(strand or {})},
@@ -3154,11 +3122,11 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         )
 
     def reverse(self):
+        # todo: kath, the eternal question, how to reverse a seqsdata which knows nothing about the slice record
         return self.__class__(
             seqs=self._seqs,
             gaps=self._gaps,
             alphabet=self.alphabet,
-            slice_record=self._slice_record[::-1],
             make_seq=self._make_seq,
             make_aligned=self._make_aligned,
             strand=self._strand,
@@ -3178,7 +3146,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
                 seqs=seq_data,
                 gaps=gap_data,
                 alphabet=self.alphabet,
-                slice_record=self._slice_record,
                 make_seq=self._make_seq,
                 make_aligned=self._make_aligned,
                 strand={
@@ -3204,6 +3171,25 @@ class AlignedSeqsData(AlignedSeqsDataABC):
     def to_rich_dict(self):
         # todo: kath
         ...
+
+
+class AlignedDataViewABC(new_sequence.SeqViewABC):
+    __slots__ = ()
+
+    @abstractmethod
+    def get_seq_view(self) -> new_sequence.SeqViewABC: ...
+
+    @property
+    @abstractmethod
+    def gapped_str_value(self) -> str: ...
+
+    @property
+    @abstractmethod
+    def gapped_array_value(self) -> numpy.ndarray: ...
+
+    @property
+    @abstractmethod
+    def gapped_bytes_value(self) -> bytes: ...
 
 
 class AlignedDataView(new_sequence.SeqViewABC):
@@ -3349,8 +3335,10 @@ class AlignedDataView(new_sequence.SeqViewABC):
 
     def parent_seq_coords(self) -> tuple[str, int, int, int]:
         """returns seqid, start, stop, strand on the parent sequence"""
-        start = self.map.get_seq_index(self.slice_record.parent_start)
-        stop = self.map.get_seq_index(self.slice_record.parent_stop)
+        start = self.map.get_seq_index(
+            self.slice_record.parent_start, step=self.slice_record.step
+        )
+        stop = self.map.get_seq_index(self.slice_record.parent_stop) 
         strand = -1 if self.slice_record.step < 0 else 1
 
         return self.seqid, start, stop, strand
@@ -3362,28 +3350,50 @@ class AlignedDataView(new_sequence.SeqViewABC):
         ...
         # todo: kath...
 
+    def get_seq_view(self) -> new_sequence.SeqViewABC:
+        # we want the parent coordinates in sequence coordinates
+        # parent_seq_coords does not account for the stride
+        seqid, start, stop, _ = self.parent_seq_coords()
+        parent_len = self.parent.seq_lengths()[seqid]
+        sr =  new_sequence.SliceRecord(
+                start=start,
+                stop=stop,
+                parent_len=parent_len,
+            )[::self.slice_record.step]
+
+        return SeqDataView(
+            parent=self.parent,
+            seqid=seqid,
+            alphabet=self.alphabet,
+            parent_len=parent_len,
+            slice_record=sr
+        )
+
 
 class Alignment(SequenceCollection):
     def __init__(
         self,
+        slice_record: new_sequence.SliceRecord = None,
         **kwargs,
     ):
         super().__init__(**kwargs)
         self._seqs_data.make_aligned = self._make_aligned
+        self._slice_record = (
+            slice_record
+            if slice_record is not None
+            else new_sequence.SliceRecord(parent_len=self._seqs_data.align_len)
+        )
 
-    def __getitem__(self, index: Union[int, slice]):
-        # todo: kath, is this a legal way to do this?
-        self._seqs_data.slice_record = self._seqs_data.slice_record[index]
-        result = self.__class__(
-            seqs_data=self._seqs_data,
+    def __getitem__(self, index):
+        # refactor: design
+        # should this return a new alignment or just modify the slice record?
+        new_slice = self._slice_record[index]
+        return self.__class__(
+            seqs_data=self.seqs,
+            slice_record=new_slice,
             moltype=self.moltype,
             info=self.info,
         )
-        # we cannot support connection to the original annotation db if the slice is not 1 or -1
-        if isinstance(index, slice) and abs(index.step or 1) > 1:
-            return result
-        result.annotation_db = self.annotation_db
-        return result
 
     def __repr__(self):
         seqs = []
@@ -3405,6 +3415,8 @@ class Alignment(SequenceCollection):
         return len(self.seqs)
 
     def _make_aligned(self, data: AlignedDataView) -> Aligned:
+        # we set the slice record on the AlignedDataView
+        data.slice_record = self._slice_record
         return Aligned(data=data, moltype=self.moltype)
 
     @property

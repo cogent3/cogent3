@@ -3022,6 +3022,19 @@ def test_alignment_repr():
     )
 
 
+def test_alignment_sliced(aligned_dict):
+    """slicing an alignment should propogate the slice to aligned instances"""
+    seqid = 'seq1'
+    start = 1
+    stop = 5
+    step = 3
+    aln = new_alignment.make_aligned_seqs(aligned_dict, moltype="dna")
+    sliced_aln = aln[start:stop:step]
+    got = sliced_aln.get_seq(seqid)
+    expect = aligned_dict[seqid][start:stop:step].replace("-", "")
+    assert got == expect
+
+
 @pytest.mark.parametrize("start", range(6))
 @pytest.mark.parametrize("stop", range(6))
 @pytest.mark.parametrize("step", range(1, 3))
@@ -3043,7 +3056,7 @@ def test_alignment_slice_pos_step_ungapped(aligned_dict, start, stop, step, seqi
     """slicing an alignment should propogate the slice to aligned instances"""
     aln = new_alignment.make_aligned_seqs(aligned_dict, moltype="dna")
     sliced_aln = aln[start:stop:step]
-    got = sliced_aln.seqs[seqid].data.str_value
+    got = sliced_aln.seqs[seqid].seq
     expect = aligned_dict[seqid][start:stop:step].replace("-", "")
     assert got == expect
 
@@ -3068,9 +3081,10 @@ def test_alignment_slice_neg_step_gapped(aligned_dict, start, stop, step, seqid)
 def test_alignment_slice_neg_step_ungapped(aligned_dict, start, stop, step, seqid):
     """slicing an alignment should propogate the slice to aligned instances"""
     aln = new_alignment.make_aligned_seqs(aligned_dict, moltype="dna")
+    dna = aln.moltype
     sliced_aln = aln[start:stop:step]
-    got = sliced_aln.seqs[seqid].data.str_value
-    expect = aligned_dict[seqid][start:stop:step].replace("-", "")
+    got = sliced_aln.seqs[seqid].seq
+    expect = dna.complement(aligned_dict[seqid][start:stop:step].replace("-", ""))
     assert got == expect
 
 
@@ -3218,10 +3232,8 @@ def test_get_feature():
 
 
 @pytest.fixture
-def aligned_data():
+def alignment():
     from cogent3.core import new_alignment, new_moltype
-
-    dna = new_moltype.get_moltype("dna")
 
     data = {
         "seq1": "A-GT",
@@ -3231,18 +3243,54 @@ def aligned_data():
     return new_alignment.make_aligned_seqs(data, moltype="dna")
 
 
-def test_aligned_view_parent_coords(aligned_data):
+def test_aligned_view_parent_coords(alignment):
     seqid = "seq2"
-    a1 = aligned_data.seqs[seqid]
+    a1 = alignment.seqs[seqid]
     got = a1.parent_coordinates()
     assert got == (seqid, 0, 4, 1)
 
-    a2 = aligned_data[2:]
+    a2 = alignment[2:]
     a1_2 = a2.seqs[seqid]
     assert a1_2.parent_coordinates() == (seqid, 2, 4, 1)
 
     # now getting the sequence coordinates
     s2 = a2.get_seq(seqid)
-    expect = s2.parent_coordinates()  # this is in alignment coordinates...
+    expect = s2.parent_coordinates()
     got = a1_2.parent_coordinates(seq_coords=True)
-    assert got == (seqid, 1, 3, 1)
+    assert got == expect
+
+
+def test_aligned_view_parent_coords_reversed(alignment):
+    seqid = "seq2"
+    a2 = alignment[2:].rc()
+    a1_2 = a2.seqs[seqid]
+    assert a1_2.parent_coordinates() == (seqid, 2, 4, -1)
+
+    s2 = a2.get_seq(seqid)
+    expect = s2.parent_coordinates()
+    got = a1_2.parent_coordinates(seq_coords=True)
+    assert got == expect
+
+
+@pytest.mark.parametrize("rced", [True, False])
+def test_get_seq_from_slice(alignment, rced):
+    seqid = "seq2"
+    raw = str(alignment.seqs[seqid])
+    dna = alignment.moltype
+    expect = dna.rc(raw[2:]) if rced else raw[2:]
+
+    a2 = alignment[2:].rc() if rced else alignment[2:]
+    seq = a2.get_seq(seqid)
+    got = str(seq)
+    assert got == expect
+
+
+def test_oneoff(aligned_dict):
+    seqid = "seq4"
+    start, stop, step = 4, 2, -1
+    aln = new_alignment.make_aligned_seqs(aligned_dict, moltype="dna")
+    dna = aln.moltype
+    sliced_aln = aln[start:stop:step]
+    got = dna.complement(str(sliced_aln.seqs[seqid].seq))
+    expect = aligned_dict[seqid][start:stop:step].replace("-", "")
+    assert got == expect
