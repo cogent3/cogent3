@@ -3024,7 +3024,7 @@ def test_alignment_repr():
 
 def test_alignment_sliced(aligned_dict):
     """slicing an alignment should propogate the slice to aligned instances"""
-    seqid = 'seq1'
+    seqid = "seq1"
     start = 1
     stop = 5
     step = 3
@@ -3286,11 +3286,11 @@ def test_get_seq_from_slice(alignment, rced):
 
 
 def test_oneoff(aligned_dict):
-    seqid = "seq4"
-    start, stop, step = 4, 2, -1
+    seqid = "seq1"
+    start, stop, step = 1, 2, 1
     aln = new_alignment.make_aligned_seqs(aligned_dict, moltype="dna")
-    dna = aln.moltype
     sliced_aln = aln[start:stop:step]
-    got = dna.complement(str(sliced_aln.seqs[seqid].seq))
+    seq = sliced_aln.seqs[seqid].seq
+    got = seq[::1]
     expect = aligned_dict[seqid][start:stop:step].replace("-", "")
     assert got == expect

@@ -2595,20 +2595,27 @@ class Aligned:
     @property
     def seq(self) -> new_sequence.Sequence:
         """Returns Sequence object, excluding gaps."""
-        # if the slice record has abs(step) > 1, we cannot retain a connection to the underlying aligned 
+        # if the slice record has abs(step) > 1, we cannot retain a connection to the underlying aligned
         # seq data container because the gaps are not going to be modulo the step.
-        rev = 1 
+        rev = False
         if abs(self.data.slice_record.step) == 1:
             seq = self.data.get_seq_view()
         elif self.data.slice_record.step < -1:
+            # todo: kath
             # gapped_str_value will apply the step to the underlying data, so
-            # we need to reverse the underlying data, and then reverse the Sequence
-            # so that the seq knows to complment the sequence on output
+            # we need to re-reverse the underlying data AND reverse the Sequence
+            # so that the seq knows to complement the sequence on output
+            # OPTION 1: is to complement the sequence here
+            # OPTION 2: add a property to ADV which returns non-reversed data
             seq = self.moltype.degap(self.data.gapped_str_value)[::-1]
-            rev = -1
-        else: 
+            rev = True
+        else:
             seq = self.moltype.degap(self.data.gapped_str_value)
-        return self.moltype.make_seq(seq=seq, name=self.data.seqid)[::rev]
+        return (
+            self.moltype.make_seq(seq=seq, name=self.data.seqid)[::-1]
+            if rev
+            else self.moltype.make_seq(seq=seq, name=self.data.seqid)
+        )
 
     @property
     def gapped_seq(self) -> new_sequence.Sequence:
@@ -3338,7 +3345,7 @@ class AlignedDataView(new_sequence.SeqViewABC):
         start = self.map.get_seq_index(
             self.slice_record.parent_start, step=self.slice_record.step
         )
-        stop = self.map.get_seq_index(self.slice_record.parent_stop) 
+        stop = self.map.get_seq_index(self.slice_record.parent_stop)
         strand = -1 if self.slice_record.step < 0 else 1
 
         return self.seqid, start, stop, strand
@@ -3355,18 +3362,18 @@ class AlignedDataView(new_sequence.SeqViewABC):
         # parent_seq_coords does not account for the stride
         seqid, start, stop, _ = self.parent_seq_coords()
         parent_len = self.parent.seq_lengths()[seqid]
-        sr =  new_sequence.SliceRecord(
-                start=start,
-                stop=stop,
-                parent_len=parent_len,
-            )[::self.slice_record.step]
+        sr = new_sequence.SliceRecord(
+            start=start,
+            stop=stop,
+            parent_len=parent_len,
+        )[:: self.slice_record.step]
 
         return SeqDataView(
             parent=self.parent,
             seqid=seqid,
             alphabet=self.alphabet,
             parent_len=parent_len,
-            slice_record=sr
+            slice_record=sr,
         )
 
 
@@ -3385,8 +3392,6 @@ class Alignment(SequenceCollection):
         )
 
     def __getitem__(self, index):
-        # refactor: design
-        # should this return a new alignment or just modify the slice record?
         new_slice = self._slice_record[index]
         return self.__class__(
             seqs_data=self.seqs,
@@ -3461,6 +3466,24 @@ class Alignment(SequenceCollection):
         This method breaks the connection to the annotation database.
         """
         return self.seqs[seqname].gapped_seq
+
+    def rc(self):
+        """Returns the reverse complement of all sequences in the alignment.
+        A synonym for reverse_complement.
+
+        Notes
+        -----
+        Reverse complementing the collection will break the relationship to an
+        annotation_db if present.
+        """
+        return self.__class__(
+            seqs_data=self.seqs,
+            slice_record=self._slice_record[::-1],
+            names=self.names,
+            info=self.info,
+            moltype=self.moltype,
+            source=self.source,
+        )
 
     def alignment_quality(self, app_name: str = "ic_score", **kwargs):
         """
