@@ -2179,7 +2179,7 @@ def test_seqview_to_rich_dict(coord, dna_alphabet):
     minus = sv[::-1].to_rich_dict()
     plus = plus.pop("init_args")
     minus = minus.pop("init_args")
-    assert plus.pop("seq") == minus.pop("seq")
+    assert plus.pop("parent") == minus.pop("parent")
     assert (
         plus["slice_record"]["init_args"]["step"]
         == -minus["slice_record"]["init_args"]["step"]
@@ -2195,7 +2195,7 @@ def test_sliced_seqview_rich_dict(reverse, dna_alphabet):
     sv = new_sequence.SeqView(parent=parent, alphabet=dna_alphabet)[sl]
     sv = sv[::-1] if reverse else sv
     rd = sv.to_rich_dict()
-    assert rd["init_args"]["seq"] == parent[sl]
+    assert rd["init_args"]["parent"] == parent[sl]
     assert rd["init_args"]["slice_record"]["init_args"]["offset"] == 2
 
 

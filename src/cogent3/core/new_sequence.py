@@ -90,7 +90,7 @@ def _moltype_seq_from_rich_dict(data):
 
     seqview_data = data.pop("seq")
     seq = _coerce_to_seqview(
-        seqview_data["init_args"]["seq"], data["name"], moltype.most_degen_alphabet()
+        seqview_data["init_args"]["parent"], data["name"], moltype.most_degen_alphabet()
     )
     seq = seq[:: seqview_data["init_args"]["slice_record"]["init_args"]["step"]]
     # todo: kath,
@@ -2660,7 +2660,7 @@ class SeqView(SeqViewABC):
             )
         data = self.to_rich_dict()
         return self.__class__(
-            parent=data["init_args"]["seq"],
+            parent=data["init_args"]["parent"],
             seqid=self.seqid,
             alphabet=self.alphabet,
             slice_record=SliceRecord(**data["init_args"]["slice_record"]["init_args"]),
