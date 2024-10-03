@@ -77,7 +77,12 @@ __numba_logger.setLevel(logging.WARNING)
 
 
 def make_seq(
-    seq, name: str = None, moltype=None, new_type: bool = False
+    seq,
+    name: str = None,
+    moltype=None,
+    new_type: bool = False,
+    annotation_offset: int = 0,
+    **kw: dict,
 ):  # refactor: type hinting, need to capture optional args and the return type
     """
     Parameters
@@ -92,6 +97,10 @@ def make_seq(
         if True, returns a new type Sequence (cogent3.core.new_sequence.Sequence).
         The default will be changed to True in 2024.12. Support for the old
         style will be removed as of 2025.6.
+    annotation_offset
+        integer indicating start position relative to annotations
+    **kw
+        other keyword arguments passed to Sequence
 
     Returns
     -------
@@ -104,7 +113,9 @@ def make_seq(
         moltype = new_moltype.get_moltype(moltype)
     else:
         moltype = get_moltype(moltype)
-    seq = moltype.make_seq(seq=seq, name=name)
+    seq = moltype.make_seq(
+        seq=seq, name=name, annotation_offset=annotation_offset, **kw
+    )
     return seq
 
 
@@ -256,17 +267,13 @@ def _load_files_to_unaligned_seqs(
     )
 
 
-def _load_seqs(file_format, filename, fmt, kw, parser_kw):
+def _load_seqs(file_format, filename, fmt, parser_kw):
     """utility function for loading sequences"""
     fmt = fmt or file_format
     if not fmt:
         msg = "could not determined file format, set using the format argument"
         raise ValueError(msg)
     parser_kw = parser_kw or {}
-    for other_kw in ("constructor_kw", "kw"):
-        other_kw = kw.pop(other_kw, None) or {}
-        kw.update(other_kw)
-
     parser = get_parser(fmt)
     return list(parser(filename, **parser_kw))
 
@@ -280,7 +287,8 @@ def load_seq(
     parser_kw: Optional[dict] = None,
     info: Optional[dict] = None,
     new_type: bool = False,
-    **kw,
+    annotation_offset: int = 0,
+    **kw: dict,
 ) -> Sequence:
     """
     loads unaligned sequences from file
@@ -303,8 +311,10 @@ def load_seq(
         if True, returns a new type Sequence (cogent3.core.new_sequence.Sequence)
         The default will be changed to True in 2024.12. Support for the old
         style will be removed as of 2025.6.
+    annotation_offset
+        integer indicating start position relative to annotations
     **kw
-        other keyword arguments passed to SequenceCollection
+        other keyword arguments passed to sequence loader
 
     Notes
     -----
@@ -323,11 +333,18 @@ def load_seq(
         seq.name = label_to_name(seq.name) if label_to_name else seq.name
         return seq
 
-    data = _load_seqs(file_format, filename, format, kw, parser_kw)
+    data = _load_seqs(file_format, filename, format, parser_kw)
     name, seq = data[0]
     name = label_to_name(name) if label_to_name else name
 
-    result = make_seq(seq, name, moltype=moltype, new_type=new_type)
+    result = make_seq(
+        seq,
+        name,
+        moltype=moltype,
+        new_type=new_type,
+        annotation_offset=annotation_offset,
+        **kw,
+    )
     result.info.update(info)
 
     if getattr(seq, "annotation_db", None):
@@ -372,7 +389,6 @@ def load_unaligned_seqs(
         (cogent3.core.new_sequence.SequenceCollection). The default will be
         changed to True in 2024.12. Support for the old style will be removed
         as of 2025.6.
-
     **kw
         other keyword arguments passed to SequenceCollection, or show_progress.
         The latter induces a progress bar for number of files processed when
@@ -401,7 +417,7 @@ def load_unaligned_seqs(
     if file_format == "json":
         return load_from_json(filename, (SequenceCollection,))
 
-    data = _load_seqs(file_format, filename, format, kw, parser_kw)
+    data = _load_seqs(file_format, filename, format, parser_kw)
 
     return make_unaligned_seqs(
         data,
@@ -441,6 +457,8 @@ def load_aligned_seqs(
         function for converting original name into another name.
     parser_kw : dict
         optional arguments for the parser
+    kw
+        passed to make_aligned_seqs
 
     Returns
     -------
@@ -450,7 +468,7 @@ def load_aligned_seqs(
     if file_format == "json":
         return load_from_json(filename, (Alignment, ArrayAlignment))
 
-    data = _load_seqs(file_format, filename, format, kw, parser_kw)
+    data = _load_seqs(file_format, filename, format, parser_kw)
     return make_aligned_seqs(
         data,
         array_align=array_align,

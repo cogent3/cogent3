@@ -2,7 +2,7 @@ from collections import defaultdict, namedtuple
 from numbers import Number
 from typing import Tuple
 
-import numpy as np
+import numpy
 from numpy import array, diag, dot, eye, float64, int32, log, sqrt, zeros
 from numpy.linalg import det, inv
 
@@ -706,17 +706,23 @@ class DistanceMatrix(DictArray):
     """pairwise distance matrix"""
 
     def __init__(self, dists, invalid=None):
-        super(DistanceMatrix, self).__init__(dists, dtype=float)
+        super().__init__(dists, dtype=float)
 
         self._invalid = invalid
 
+    @classmethod
+    def from_array_names(cls, matrix: numpy.ndarray, names, invalid=None):
+        """construct a distance matrix from numpy array and names"""
+        darr = DictArray.from_array_names(matrix, names, names)
+        return cls(darr, invalid=invalid)
+
     def __setitem__(self, names, value):
-        (index, remaining) = self.template.interpret_index(names)
+        index, _ = self.template.interpret_index(names)
         self.array[index] = value
         return
 
     def __getitem__(self, names):
-        (index, remaining) = self.template.interpret_index(names)
+        index, remaining = self.template.interpret_index(names)
         result = self.array[index]
         if remaining is not None:
             result = self.__class__(result, remaining)
@@ -741,7 +747,7 @@ class DistanceMatrix(DictArray):
 
     def to_dict(self, **kwargs):
         """Returns a flattened dict with diagonal elements removed"""
-        result = super(DistanceMatrix, self).to_dict(flatten=True)
+        result = super().to_dict(flatten=True)
         for n1 in self.names:
             del result[(n1, n1)]
         return result
@@ -782,20 +788,13 @@ class DistanceMatrix(DictArray):
         else:
             keep = [i for i, n in enumerate(current_names) if n in names]
 
+        if len(keep) <= 1:
+            return None
+
         data = self.array.take(keep, axis=0)
         data = data.take(keep, axis=1)
         names = current_names.take(keep)
-        dists = {
-            (names[i], names[j]): data[i, j]
-            for i in range(len(names))
-            for j in range(len(names))
-            if i != j
-        }
-        if not dists:
-            result = None
-        else:
-            result = self.__class__(dists)
-        return result
+        return self.from_array_names(data, names)
 
     def drop_invalid(self):
         """drops all rows / columns with an invalid entry"""
@@ -806,9 +805,9 @@ class DistanceMatrix(DictArray):
             raise RuntimeError("Must be a square matrix")
         names = array(self.names)
         # NaN is an invalid value
-        cols = np.isnan(self.array).sum(axis=0)
+        cols = numpy.isnan(self.array).sum(axis=0)
         exclude = names[cols != 0].tolist()
-        rows = np.isnan(self.array).sum(axis=1)
+        rows = numpy.isnan(self.array).sum(axis=1)
         exclude += names[rows != 0].tolist()
         exclude = set(exclude)
         keep = set(names) ^ exclude
@@ -842,8 +841,8 @@ class DistanceMatrix(DictArray):
         In case of multiple occurrences of the maximum values, the names
         corresponding to the first occurrence are returned.
         """
-        max_index_flat = np.argmax(self)
-        max_index_1, max_index_2 = np.unravel_index(max_index_flat, self.shape)
+        max_index_flat = numpy.argmax(self)
+        max_index_1, max_index_2 = numpy.unravel_index(max_index_flat, self.shape)
         max_pair = self.names[max_index_1], self.names[max_index_2]
 
         return max_pair
@@ -861,11 +860,9 @@ class DistanceMatrix(DictArray):
         corresponding to the first occurrence are returned.
         """
         dmat_copy = self.array.copy()
-        np.fill_diagonal(
-            dmat_copy, np.inf
+        numpy.fill_diagonal(
+            dmat_copy, numpy.inf
         )  # Exclude diagonal by setting diagonal elements to infinity
-        min_index_flat = np.argmin(dmat_copy)
-        min_index_1, min_index_2 = np.unravel_index(min_index_flat, self.shape)
-        min_pair = self.names[min_index_1], self.names[min_index_2]
-
-        return min_pair
+        min_index_flat = numpy.argmin(dmat_copy)
+        min_index_1, min_index_2 = numpy.unravel_index(min_index_flat, self.shape)
+        return self.names[min_index_1], self.names[min_index_2]

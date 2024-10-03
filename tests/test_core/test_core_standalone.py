@@ -33,15 +33,6 @@ DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
 
 
 class TestConstructorFunctions(unittest.TestCase):
-    def test_make_seq(self):
-        """test constructor utility function"""
-        _seq = "ACGGT"
-        seq = make_seq(seq=_seq)
-        self.assertEqual(seq.moltype.label, "text")
-        seq = make_seq(seq=_seq, moltype="dna")
-        self.assertEqual(seq.moltype.label, "dna")
-        self.assertEqual(str(seq), _seq)
-
     def test_make_aligned_seqs(self):
         """test Alignment/ArrayAlignment constructor utility function"""
         data = {"a": "AGGTT", "b": "AGAA-"}
@@ -880,30 +871,55 @@ def test_load_unaligned_seqs_no_format(new_type):
         load_unaligned_seqs("somepath", moltype="dna", new_type=new_type)
 
 
-def test_load_seq():
+@pytest.fixture(
+    params=zip(
+        (
+            "c_elegans_WS199_dna_shortened.fasta",
+            "annotated_seq.gb",
+            "brca1_5.250.paml",
+        ),
+        ("I", "AE017341", "NineBande"),
+    )
+)
+def path_name(request):
+    yield request.param
+
+
+def test_load_seq(path_name, tmp_path, DATA_DIR):
     """load single sequence"""
-    # refactor: design
-    # we should use the pytest tmp_path fixture, more robust than tmpdir
     from cogent3 import Sequence
 
-    paths = (
-        "c_elegans_WS199_dna_shortened.fasta",
-        "annotated_seq.gb",
-        "brca1_5.250.paml",
-    )
-    seq_names = ("I", "AE017341", "NineBande")
-    data_dir = pathlib.Path(DATA_DIR)
-    for i, path in enumerate(paths):
-        got = load_seq(data_dir / path)
-        assert isinstance(got, Sequence)
-        assert got.info.source == str(data_dir / path)
-        assert got.name == seq_names[i]
+    path, name = path_name
+    seq = load_seq(DATA_DIR / path)
+    assert isinstance(seq, Sequence)
+    assert seq.info.source == str(DATA_DIR / path)
+    assert seq.name == name
 
     # try json
-    seq = got
-    with TemporaryDirectory(dir=".") as dirname:
-        outpath = pathlib.Path(dirname) / "seq.json"
-        outpath.write_text(seq.to_json())
-        got = load_seq(outpath)
-        assert str(got) == str(seq)
-        assert got.name == seq.name
+    outpath = tmp_path / "seq.json"
+    outpath.write_text(seq.to_json())
+    got = load_seq(outpath)
+    assert str(got) == str(seq)
+    assert got.name == seq.name
+
+
+@pytest.mark.parametrize("offset", (0, 20))
+@pytest.mark.parametrize("moltype", ("dna", "text"))
+def test_make_seq(moltype, offset):
+    """test constructor utility function"""
+    _seq = "ACGGT"
+    seq = make_seq(seq=_seq, moltype=moltype, annotation_offset=offset)
+    assert seq.moltype.label == moltype
+    assert seq.annotation_offset == offset
+    assert str(seq) == _seq
+
+
+@pytest.mark.parametrize("offset", (0, 20))
+@pytest.mark.parametrize("moltype", ("dna", "text"))
+def test_load_seq_moltype_offset(moltype, offset, DATA_DIR):
+    """test loader propagates moltype and offset args"""
+    seq = load_seq(
+        DATA_DIR / "brca1_5.250.paml", moltype=moltype, annotation_offset=offset
+    )
+    assert seq.moltype.label == moltype
+    assert seq.annotation_offset == offset

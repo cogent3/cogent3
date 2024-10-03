@@ -4,6 +4,7 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase
 
 import numpy
+import pytest
 from numpy.testing import assert_allclose
 
 from cogent3 import DNA
@@ -494,3 +495,22 @@ class DictArrayTest(TestCase):
         # must be equal dimensions
         with self.assertRaises(ValueError):
             darr1 + DictArrayTemplate(list("CD"), list("AB")).wrap(data)
+
+
+_d = [
+    [0.7, 0.1, 0.2, 0.3],
+    [0.1, 0.7, 0.1, 0.3],
+    [0.3, 0.2, 0.6, 0.3],
+    [0.4, 0.1, 0.1, 0.7],
+]
+_n = list("TCAG"), list("TCAG")
+
+
+@pytest.mark.parametrize("data,names", ((_d, _n), (_d[0], (_n[0],))))
+def test_dictarray_from_array_names(data, names):
+    data = numpy.array(data)
+    darr = DictArray.from_array_names(data, *names)
+    # dimension names correct
+    assert darr.template.names == list(names)
+    # indexed value correct, can be an array, or a float
+    assert_allclose(darr["T"], data[0])
