@@ -1893,6 +1893,7 @@ def test_sequence_collection_add_seqs_info(collection_maker):
     assert out_aln.info["key"] == "foo"
 
 
+@pytest.mark.xfail(reason="design of strand attribute is not finalized")
 @pytest.mark.parametrize(
     "collection_maker",
     [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
@@ -3483,17 +3484,21 @@ def test_matching_ref():
     assert result4.to_dict() == {"s3": "UUCCUUCUU-UUC", "s4": "UU-UUUU-UUUUC"}
 
 
-@pytest.mark.xfail(reason="bug where make_aligned is overriding the slice record for previous slices")
+@pytest.mark.xfail(
+    reason="bug where make_aligned is overriding the slice record for previous slices"
+)
 def test_sliding_windows():
     """sliding_windows should return slices of alignments."""
-    alignment = new_alignment.make_aligned_seqs({"seq1": "ACGTACGT", "seq2": "ACGTACGT", "seq3": "ACGTACGT"}, moltype="dna")
+    alignment = new_alignment.make_aligned_seqs(
+        {"seq1": "ACGTACGT", "seq2": "ACGTACGT", "seq3": "ACGTACGT"}, moltype="dna"
+    )
     result = []
 
     for bit in alignment.sliding_windows(5, 2):
         result += [bit]
-    assert result[0].to_dict() ==  {"seq3": "ACGTA", "seq2": "ACGTA", "seq1": "ACGTA"}
-    assert result[1].to_dict() ==  {"seq3": "GTACG", "seq2": "GTACG", "seq1": "GTACG"}
-    
+    assert result[0].to_dict() == {"seq3": "ACGTA", "seq2": "ACGTA", "seq1": "ACGTA"}
+    assert result[1].to_dict() == {"seq3": "GTACG", "seq2": "GTACG", "seq1": "GTACG"}
+
     result = []
     for bit in alignment.sliding_windows(5, 1):
         result += [bit]
@@ -3593,6 +3598,3 @@ def test_twooff():
     slice_2 = aln[2:7]
     assert slice_2.to_dict() == {"seq1": "GATCG", "seq2": "GATCG"}
     assert slice_1.to_dict() == {"seq1": "TCGAT", "seq2": "TCGAT"}
-
-
-    

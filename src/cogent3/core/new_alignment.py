@@ -4029,7 +4029,7 @@ class Alignment(SequenceCollection):
         end
             last window start position
         """
-        start = start or 0 
+        start = start or 0
         end = [end, len(self) - window + 1][end is None]
         end = min(len(self) - window + 1, end)
         if start < end and len(self) - end >= window - 1:
