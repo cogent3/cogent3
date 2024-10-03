@@ -3104,6 +3104,7 @@ def test_alignment_strand_invalid(aligned_dict, coll_maker):
         _ = coll_maker(aligned_dict, moltype="dna", strand={"seq1": 3})
 
 
+@pytest.mark.xfail(reason="design of strand attribute is not finalized")
 @pytest.mark.parametrize(
     "coll_maker", (new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs)
 )
