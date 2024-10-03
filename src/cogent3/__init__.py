@@ -256,17 +256,13 @@ def _load_files_to_unaligned_seqs(
     )
 
 
-def _load_seqs(file_format, filename, fmt, kw, parser_kw):
+def _load_seqs(file_format, filename, fmt, parser_kw):
     """utility function for loading sequences"""
     fmt = fmt or file_format
     if not fmt:
         msg = "could not determined file format, set using the format argument"
         raise ValueError(msg)
     parser_kw = parser_kw or {}
-    for other_kw in ("constructor_kw", "kw"):
-        other_kw = kw.pop(other_kw, None) or {}
-        kw.update(other_kw)
-
     parser = get_parser(fmt)
     return list(parser(filename, **parser_kw))
 
@@ -323,7 +319,7 @@ def load_seq(
         seq.name = label_to_name(seq.name) if label_to_name else seq.name
         return seq
 
-    data = _load_seqs(file_format, filename, format, kw, parser_kw)
+    data = _load_seqs(file_format, filename, format, parser_kw)
     name, seq = data[0]
     name = label_to_name(name) if label_to_name else name
 
@@ -401,7 +397,7 @@ def load_unaligned_seqs(
     if file_format == "json":
         return load_from_json(filename, (SequenceCollection,))
 
-    data = _load_seqs(file_format, filename, format, kw, parser_kw)
+    data = _load_seqs(file_format, filename, format, parser_kw)
 
     return make_unaligned_seqs(
         data,
@@ -450,7 +446,7 @@ def load_aligned_seqs(
     if file_format == "json":
         return load_from_json(filename, (Alignment, ArrayAlignment))
 
-    data = _load_seqs(file_format, filename, format, kw, parser_kw)
+    data = _load_seqs(file_format, filename, format, parser_kw)
     return make_aligned_seqs(
         data,
         array_align=array_align,
