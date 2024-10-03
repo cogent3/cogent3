@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import typing
 import warnings
@@ -31,16 +32,19 @@ from cogent3.maths.stats.number import CategoryCounter
 from cogent3.util import progress_display as UI
 from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import deserialise_object, register_deserialiser
+from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.io import atomic_write, get_format_suffixes
 from cogent3.util.misc import (
     get_object_provenance,
     get_setting_from_environ,
     negate_condition,
 )
+from cogent3.util.union_dict import UnionDict
 
 DEFAULT_ANNOTATION_DB = BasicAnnotationDb
 
 OptInt = Optional[int]
+OptFloat = Optional[float]
 OptStr = Optional[str]
 OptList = Optional[list]
 OptDict = Optional[dict]
@@ -142,8 +146,10 @@ class SeqDataView(SeqDataViewABC):
     @property
     def str_value(self) -> str:
         """returns the sequence as a string"""
-        # todo: kath, in ADV, the .get_seq_str method gets passed the step, but here it doesn't
+        # todo: kath, in ADV, the .get_seq_str method gets passed the step, but here it doesn't.
         # to have consistent parameters we could pass the slice_record to the get_seq_str method
+        # todo: kath,
+        # think about whether to keep using parent_start and parent_stop or to use start and stop
         raw = self.parent.get_seq_str(
             seqid=self.seqid,
             start=self.slice_record.parent_start,
@@ -2601,12 +2607,11 @@ class Aligned:
         if abs(self.data.slice_record.step) == 1:
             seq = self.data.get_seq_view()
         elif self.data.slice_record.step < -1:
-            # todo: kath
+            # refactor: design
             # gapped_str_value will apply the step to the underlying data, so
             # we need to re-reverse the underlying data AND reverse the Sequence
-            # so that the seq knows to complement the sequence on output
-            # OPTION 1: is to complement the sequence here
-            # OPTION 2: add a property to ADV which returns non-reversed data
+            # so that the seq knows to complement the data on output
+            # we should revisit this design
             seq = self.moltype.degap(self.data.gapped_str_value)[::-1]
             rev = True
         else:
@@ -2632,6 +2637,10 @@ class Aligned:
     @property
     def name(self) -> str:
         return self.data.seqid
+
+    def gap_vector(self) -> list[bool]:
+        """Returns gap_vector of GappedSeq, for omit_gap_pos."""
+        return self.gapped_seq.gap_vector()
 
     def __str__(self) -> str:
         return str(self.gapped_seq)
@@ -2682,6 +2691,10 @@ class Aligned:
             stop,
             strand,
         )
+
+    def __repr__(self) -> str:
+        # refactor: design
+        return f"Aligned({self.data!r})"
 
 
 class AlignedSeqsDataABC(SeqsDataABC):
@@ -3262,7 +3275,7 @@ class AlignedDataView(new_sequence.SeqViewABC):
         return IndelMap(
             gap_pos=gap_pos,
             cum_gap_lengths=cum_gap_lengths,
-            parent_length=len(self.parent),
+            parent_length=self.parent.seq_lengths()[self.seqid],
         )
 
     @property
@@ -3340,6 +3353,20 @@ class AlignedDataView(new_sequence.SeqViewABC):
             offset=self._offset,
         )
 
+    def __repr__(self) -> str:
+        # refactor: design
+        seq_preview = (
+            f"{self.parent.get_seq_array(seqid=self.seqid, start=0, stop=10)}..."
+            f"{self.parent.get_seq_array(seqid=self.seqid, start=self.parent_len-5)}"
+            if self.parent_len > 15
+            else self.parent.get_seq_array(seqid=self.seqid)
+        )
+        seq_preview = self.alphabet.from_indices(seq_preview)
+        return (
+            f"{self.__class__.__name__}(seqid={self.seqid!r}, map={self.map!r}, parent={seq_preview!r}, "
+            f"slice_record={self.slice_record.__repr__()})"
+        )
+
     def parent_seq_coords(self) -> tuple[str, int, int, int]:
         """returns seqid, start, stop, strand on the parent sequence"""
         start = self.map.get_seq_index(
@@ -3375,6 +3402,44 @@ class AlignedDataView(new_sequence.SeqViewABC):
             parent_len=parent_len,
             slice_record=sr,
         )
+
+
+def make_gap_filter(template, gap_fraction, gap_run):
+    """Returns f(seq) -> True if no gap runs and acceptable gap fraction.
+
+    Calculations relative to template.
+    gap_run = number of consecutive gaps allowed in either the template or seq
+    gap_fraction = fraction of positions that either have a gap in the template
+        but not in the seq or in the seq but not in the template
+    NOTE: template and seq must both be ArraySequence objects.
+    """
+    template_gaps = numpy.array(template.gap_vector())
+
+    def result(seq):
+        """Returns True if seq adhers to the gap threshold and gap fraction."""
+        seq_gaps = numpy.array(seq.gap_vector())
+        # check if gap amount bad
+        if sum(seq_gaps != template_gaps) / float(len(seq)) > gap_fraction:
+            return False
+        # check if gap runs bad
+        if (
+            b"\x01" * gap_run
+            in numpy.logical_and(seq_gaps, numpy.logical_not(template_gaps))
+            .astype(numpy.uint8)
+            .tobytes()
+        ):
+            return False
+        # check if insertion runs bad
+        elif (
+            b"\x01" * gap_run
+            in numpy.logical_and(template_gaps, numpy.logical_not(seq_gaps))
+            .astype(numpy.uint8)
+            .tobytes()
+        ):
+            return False
+        return True
+
+    return result
 
 
 class Alignment(SequenceCollection):
@@ -3529,6 +3594,36 @@ class Alignment(SequenceCollection):
         for pos in pos_order:
             yield [str(get(seq)[pos]) for seq in seq_order]
 
+    positions = property(iter_positions)
+
+    def get_position_indices(
+        self, f: Callable, native: bool = False, negate: bool = False
+    ) -> list[int]:
+        """Returns list of column indices for which f(col) is True.
+
+        f : callable
+          function that returns true/false given an alignment position
+        native : boolean
+          if True, and ArrayAlignment, f is provided with slice of array
+          otherwise the string is used
+        negate : boolean
+          if True, not f() is used
+        """
+        # refactor:
+        # type hint for f
+        # implement native
+        if negate:
+
+            def new_f(x):
+                return not f(x)
+
+        else:
+            new_f = f
+
+        result = [i for i, col in enumerate(self.positions) if new_f(col)]
+
+        return result
+
     def get_gap_array(self, include_ambiguity: bool = True) -> numpy.ndarray:
         """returns bool array with gap state True, False otherwise
 
@@ -3555,13 +3650,34 @@ class Alignment(SequenceCollection):
 
             return result
 
+    def iupac_consensus(self, allow_gap: bool = True) -> str:
+        """Returns string containing IUPAC consensus sequence of the alignment."""
+        exclude = set() if allow_gap else set(self.moltype.gaps)
+        consensus = []
+        degen = self.moltype.degenerate_from_seq
+        for col in self.iter_positions():
+            col = set(col) - exclude
+            consensus.append(degen("".join(col)))
+        return "".join(consensus)
+
+    def majority_consensus(self) -> new_sequence.Sequence:
+        """Returns consensus sequence containing most frequent item at each
+        position."""
+        states = []
+        data = zip(*map(str, self.seqs))
+        for pos in data:
+            pos = CategoryCounter(pos)
+            states.append(pos.mode)
+
+        return self.moltype.make_seq(seq="".join(states))
+
     def counts_per_pos(
         self,
         motif_length: int = 1,
         include_ambiguity: bool = False,
         allow_gap: bool = False,
         warn: bool = False,
-    ):
+    ) -> DictArray:
         """return DictArray of counts per position
 
         Parameters
@@ -3576,7 +3692,7 @@ class Alignment(SequenceCollection):
             warnings.warn(f"trimmed {len(self) - length}", UserWarning)
 
         data = list(self.to_dict().values())
-        alpha = self.moltype.alphabet.get_word_alphabet(motif_length)
+        alpha = self.moltype.alphabet.get_kmer_alphabet(motif_length)
         all_motifs = set()
         exclude_chars = set()
         if not allow_gap:
@@ -3606,15 +3722,319 @@ class Alignment(SequenceCollection):
         result = MotifCountsArray(result, alpha)
         return result
 
-    def iupac_consensus(self, allow_gap: bool = True):
-        """Returns string containing IUPAC consensus sequence of the alignment."""
-        exclude = set() if allow_gap else set(self.moltype.gaps)
-        consensus = []
-        degen = self.moltype.degenerate_from_seq
-        for col in self.iter_positions():
-            col = set(col) - exclude
-            consensus.append(degen("".join(col)))
-        return "".join(consensus)
+    def probs_per_pos(
+        self,
+        motif_length: int = 1,
+        include_ambiguity: bool = False,
+        allow_gap: bool = False,
+        warn: bool = False,
+    ) -> MotifFreqsArray:
+        """returns MotifFreqsArray per position"""
+        counts = self.counts_per_pos(
+            motif_length=motif_length,
+            include_ambiguity=include_ambiguity,
+            allow_gap=allow_gap,
+            warn=warn,
+        )
+        return counts.to_freq_array()
+
+    def entropy_per_pos(
+        self,
+        motif_length: int = 1,
+        include_ambiguity: bool = False,
+        allow_gap: bool = False,
+        warn: bool = False,
+    ) -> numpy.ndarray:
+        """returns shannon entropy per position"""
+        probs = self.probs_per_pos(
+            motif_length=motif_length,
+            include_ambiguity=include_ambiguity,
+            allow_gap=allow_gap,
+            warn=warn,
+        )
+        return probs.entropy()
+
+    def counts_per_seq(
+        self,
+        motif_length: int = 1,
+        include_ambiguity: bool = False,
+        allow_gap: bool = False,
+        exclude_unobserved: bool = False,
+        warn: bool = False,
+    ) -> MotifCountsArray:
+        """counts of non-overlapping motifs per sequence
+
+        Parameters
+        ----------
+        motif_length
+            number of elements per character.
+        include_ambiguity
+            if True, motifs containing ambiguous characters
+            from the seq moltype are included. No expansion of those is attempted.
+        allow_gap
+            if True, motifs containing a gap character are included.
+        exclude_unobserved
+            if False, all canonical states included
+        warn
+            warns if motif_length > 1 and alignment trimmed to produce
+            motif columns
+        """
+        length = (len(self) // motif_length) * motif_length
+        if warn and len(self) != length:
+            warnings.warn(f"trimmed {len(self) - length}", UserWarning)
+
+        counts = []
+        motifs = set()
+        for name in self.names:
+            seq = self.get_gapped_seq(name)
+            c = seq.counts(
+                motif_length=motif_length,
+                include_ambiguity=include_ambiguity,
+                allow_gap=allow_gap,
+                exclude_unobserved=exclude_unobserved,
+            )
+            motifs.update(c.keys())
+            counts.append(c)
+
+        if not exclude_unobserved:
+            motifs.update(self.moltype.alphabet.get_kmer_alphabet(motif_length))
+
+        motifs = list(sorted(motifs))
+        if not motifs:
+            return None
+
+        for i, c in enumerate(counts):
+            counts[i] = c.tolist(motifs)
+        return MotifCountsArray(counts, motifs, row_indices=self.names)
+
+    def probs_per_seq(
+        self,
+        motif_length: int = 1,
+        include_ambiguity: bool = False,
+        allow_gap: bool = False,
+        exclude_unobserved: bool = False,
+        warn: bool = False,
+    ) -> MotifFreqsArray:
+        """return MotifFreqsArray per sequence
+
+        Parameters
+        ----------
+        motif_length
+            number of characters per tuple.
+        include_ambiguity
+            if True, motifs containing ambiguous characters
+            from the seq moltype are included. No expansion of those is attempted.
+        allow_gap
+            if True, motifs containing a gap character are included.
+        exclude_unobserved
+            if True, unobserved motif combinations are excluded.
+        warn
+            warns if motif_length > 1 and alignment trimmed to produce
+            motif columns
+        """
+
+        counts = self.counts_per_seq(
+            motif_length=motif_length,
+            include_ambiguity=include_ambiguity,
+            allow_gap=allow_gap,
+            exclude_unobserved=exclude_unobserved,
+            warn=warn,
+        )
+        return None if counts is None else counts.to_freq_array()
+
+    def entropy_per_seq(
+        self,
+        motif_length: int = 1,
+        include_ambiguity: bool = False,
+        allow_gap: bool = False,
+        exclude_unobserved: bool = True,
+        warn: bool = False,
+    ) -> numpy.ndarray:
+        """returns the Shannon entropy per sequence
+
+        Parameters
+        ----------
+        motif_length
+            number of characters per tuple.
+        include_ambiguity
+            if True, motifs containing ambiguous characters
+            from the seq moltype are included. No expansion of those is attempted.
+        allow_gap
+            if True, motifs containing a gap character are included.
+        exclude_unobserved
+            if True, unobserved motif combinations are excluded.
+        warn
+            warns if motif_length > 1 and alignment trimmed to produce
+            motif columns
+
+        Notes
+        -----
+        For motif_length > 1, it's advisable to specify exclude_unobserved=True,
+        this avoids unnecessary calculations.
+        """
+
+        probs = self.probs_per_seq(
+            motif_length=motif_length,
+            include_ambiguity=include_ambiguity,
+            allow_gap=allow_gap,
+            exclude_unobserved=exclude_unobserved,
+            warn=warn,
+        )
+        return None if probs is None else probs.entropy()
+
+    def get_gap_array(self, include_ambiguity: bool = True):
+        """returns bool array with gap state True, False otherwise
+
+        Parameters
+        ----------
+        include_ambiguity
+            if True, ambiguity characters that include the gap state are
+            included
+        """
+        result = numpy.full((self.num_seqs, len(self)), False, dtype=bool)
+        for i, seqid in enumerate(self.names):
+            if include_ambiguity:
+                seq_array = self.seqs.get_gapped_seq_array(seqid=seqid)
+                result[i][seq_array >= self.moltype.most_degen_alphabet().gap_index] = (
+                    True
+                )
+            else:
+                gaps = self.seqs.get_gaps(seqid)
+                for gap_pos, cum_gap_length in gaps:
+                    result[i][list(range(gap_pos, gap_pos + cum_gap_length))] = True
+        return result
+
+    def count_gaps_per_pos(self, include_ambiguity: bool = True) -> DictArray:
+        """return counts of gaps per position as a DictArray
+
+        Parameters
+        ----------
+        include_ambiguity
+            if True, ambiguity characters that include the gap state are
+            included
+        """
+        gap_array = self.get_gap_array(include_ambiguity=include_ambiguity)
+        darr = DictArrayTemplate(range(len(self)))
+
+        result = gap_array.sum(axis=0)
+        result = darr.wrap(result)
+        return result
+
+    def count_gaps_per_seq(
+        self,
+        induced_by: bool = False,
+        unique: bool = False,
+        include_ambiguity: bool = True,
+        drawable: bool = False,
+    ):
+        """return counts of gaps per sequence as a DictArray
+
+        Parameters
+        ----------
+        induced_by
+            a gapped column is considered to be induced by a seq if the seq
+            has a non-gap character in that column.
+        unique
+            count is limited to gaps uniquely induced by each sequence
+        include_ambiguity
+            if True, ambiguity characters that include the gap state are
+            included
+        drawable
+            if True, resulting object is capable of plotting data via specified
+            plot type 'bar', 'box' or 'violin'
+        """
+        from cogent3.draw.drawable import Drawable
+
+        gap_array = self.get_gap_array(include_ambiguity=include_ambiguity)
+        darr = DictArrayTemplate(self.names)
+
+        if unique:
+            # we identify cols with a single non-gap character
+            gap_cols = gap_array.sum(axis=0) == self.num_seqs - 1
+            gap_array = gap_array[:, gap_cols] == False
+        elif induced_by:
+            # identify all columns with gap opposite
+            gap_cols = gap_array.sum(axis=0) > 0
+            gap_array = gap_array[:, gap_cols] == False
+        else:
+            gap_cols = gap_array.sum(axis=0) > 0
+            gap_array = gap_array[:, gap_cols]
+
+        result = gap_array.sum(axis=1)
+        result = darr.wrap(result)
+        if drawable:
+            drawable = drawable.lower()
+            trace_name = (
+                os.path.basename(self.info.source) if self.info.source else None
+            )
+            draw = Drawable("Gaps Per Sequence", showlegend=False)
+            draw.layout |= dict(yaxis=dict(title="Gap counts"))
+            if drawable == "bar":
+                trace = UnionDict(type="bar", y=result.array, x=self.names)
+            else:
+                trace = UnionDict(
+                    type=drawable, y=result.array, text=self.names, name=trace_name
+                )
+
+            draw.add_trace(trace)
+            result = draw.bound_to(result)
+
+        return result
+
+    def omit_bad_seqs(self, quantile: OptFloat = None):
+        """Returns new alignment without sequences with a number of uniquely
+        introduced gaps exceeding quantile
+
+        Uses count_gaps_per_seq(unique=True) to obtain the counts of gaps
+        uniquely introduced by a sequence. The cutoff is the quantile of
+        this distribution.
+
+        Parameters
+        ----------
+        quantile
+            sequences whose unique gap count is in a quantile larger than this
+            cutoff are excluded. The default quantile is (num_seqs - 1) / num_seqs
+        """
+        gap_counts = self.count_gaps_per_seq(unique=True)
+        quantile = quantile or (self.num_seqs - 1) / self.num_seqs
+        cutoff = numpy.quantile(gap_counts.array, quantile)
+        names = [name for name, count in gap_counts.items() if count <= cutoff]
+        return self.take_seqs(names)
+
+    def matching_ref(self, ref_name, gap_fraction, gap_run):
+        """Returns new alignment with seqs well aligned with a reference.
+
+        gap_fraction = fraction of positions that either have a gap in the
+            template but not in the seq or in the seq but not in the template
+        gap_run = number of consecutive gaps tolerated in query relative to
+            sequence or sequence relative to query
+        """
+        template = self.seqs[ref_name]
+        gap_filter = make_gap_filter(template, gap_fraction, gap_run)
+        return self.take_seqs_if(gap_filter)
+
+    def sliding_windows(
+        self, window: int, step: int, start: OptInt = None, end: OptInt = None
+    ):
+        """Generator yielding new alignments of given length and interval.
+
+        Parameters
+        ----------
+        window
+            The length of each returned alignment.
+        step
+            The interval between the start of the successive windows.
+        start
+            first window start position
+        end
+            last window start position
+        """
+        start = start or 0 
+        end = [end, len(self) - window + 1][end is None]
+        end = min(len(self) - window + 1, end)
+        if start < end and len(self) - end >= window - 1:
+            for pos in range(start, end, step):
+                yield self[pos : pos + window]
 
     def _get_seq_features(
         self,

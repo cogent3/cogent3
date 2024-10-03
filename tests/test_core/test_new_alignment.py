@@ -1445,9 +1445,12 @@ def test_sequence_collection_counts_per_seq():
         assert c[k] == expect[k]
 
 
-def test_sequence_collection_probs_per_seq():
+@pytest.mark.parametrize(
+    "coll_maker", (new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs)
+)
+def test_sequence_collection_probs_per_seq(coll_maker):
     data = {"seq1": "AA??", "seq2": "CG-N", "seq3": "CGAA"}
-    coll = new_alignment.make_unaligned_seqs(data, moltype="dna")
+    coll = coll_maker(data, moltype="dna")
     got = coll.probs_per_seq()
     assert got["seq1", "A"] == 1.0
     assert got["seq2", "C"] == 0.5
@@ -3217,6 +3220,289 @@ def test_alignment_get_gap_array():
     assert numpy.allclose(got, expect)
 
 
+def test_get_position_indices():
+    """get_position_indices should return names of cols where f(col)"""
+
+    def gap_1st(x):
+        return x[0] == "-"
+
+    def gap_2nd(x):
+        return x[1] == "-"
+
+    def gap_3rd(x):
+        return x[2] == "-"
+
+    def is_list(x):
+        return isinstance(x, list)
+
+    gaps = new_alignment.make_aligned_seqs(
+        {"a": "AAAAAAA", "b": "A--A-AA", "c": "AA-----"}, moltype="dna"
+    )
+
+    assert gaps.get_position_indices(gap_1st) == []
+    assert gaps.get_position_indices(gap_2nd) == [1, 2, 4]
+    assert gaps.get_position_indices(gap_3rd) == [2, 3, 4, 5, 6]
+    assert gaps.get_position_indices(is_list) == [0, 1, 2, 3, 4, 5, 6]
+    # should be able to negate
+    assert gaps.get_position_indices(gap_2nd, negate=True) == [0, 3, 5, 6]
+    assert gaps.get_position_indices(gap_1st, negate=True) == [0, 1, 2, 3, 4, 5, 6]
+    assert gaps.get_position_indices(is_list, negate=True) == []
+
+
+def test_iupac_consensus_rna():
+    """Alignment iupac_consensus should use RNA IUPAC symbols correctly"""
+    aln = new_alignment.make_aligned_seqs(
+        {
+            "seq1": "UCAGN-UCAGN-UCAGN-UCAGAGCAUN-",
+            "seq2": "UUCCAAGGNN--UUCCAAGGNNAGCAG--",
+            "seq3": "UUCCAAGGNN--UUCCAAGGNNAGCUA--",
+            "seq4": "UUUUCCCCAAAAGGGGNNNN--AGCUA--",
+            "seq5": "UUUUCCCCAAAAGGGGNNNN--AGCUA--",
+        },
+        moltype="rna",
+    )
+
+    # following IUPAC consensus calculated by hand
+    assert aln.iupac_consensus() == "UYHBN?BSNN??KBVSN?NN??AGCWD?-"
+
+
+def test_iupac_consensus_dna():
+    """Alignment iupac_consensus should use DNA IUPAC symbols correctly"""
+    aln = new_alignment.make_aligned_seqs(
+        {
+            "seq1": "TCAGN-TCAGN-TCAGN-TCAGAGCATN-",
+            "seq2": "TTCCAAGGNN--TTCCAAGGNNAGCAG--",
+            "seq3": "TTCCAAGGNN--TTCCAAGGNNAGCTA--",
+            "seq4": "TTTTCCCCAAAAGGGGNNNN--AGCTA--",
+            "seq5": "TTTTCCCCAAAAGGGGNNNN--AGCTA--",
+        },
+        moltype="dna",
+    )
+    # following IUPAC consensus calculated by hand
+    assert aln.iupac_consensus() == "TYHBN?BSNN??KBVSN?NN??AGCWD?-"
+
+
+def test_iupac_consensus_protein():
+    """Alignment iupac_consensus should use protein IUPAC symbols correctly"""
+    aln = new_alignment.make_aligned_seqs(
+        {
+            "seq1": "ACDEFGHIKLMNPQRSTUVWY-",
+            "seq2": "ACDEFGHIKLMNPQRSUUVWF-",
+            "seq3": "ACDEFGHIKLMNPERSKUVWC-",
+            "seq4": "ACNEFGHIKLMNPQRS-UVWP-",
+        },
+        moltype="protein",
+    )
+    # following IUPAC consensus calculated by hand
+    # Test all uppper
+    assert aln.iupac_consensus() == "ACBEFGHIKLMNPZRS?UVWX-"
+
+
+def test_majority_consensus():
+    """Alignment.majority_consensus should return commonest symbol per column"""
+    # Check the exact strings expected from string transform
+    aln = new_alignment.make_aligned_seqs(
+        {
+            "seq1": "ACG",
+            "seq2": "ACG",
+            "seq3": "TTT",
+        },
+        moltype="dna",
+    )
+    assert aln.majority_consensus() == "ACG"
+
+
+def test_probs_per_pos():
+    """Alignment.probs_per_pos should find Pr(symbol) in each
+    column"""
+    # 4 seqs (easy to calculate probabilities)
+    align = new_alignment.make_aligned_seqs(
+        {"seq1": "AAA", "seq2": "ACA", "seq3": "GGG", "seq4": "GUC"}, moltype="rna"
+    )
+    got = align.probs_per_pos()
+    # check that the column probs match the counts we expect
+    expect = [
+        {"A": 0.5, "G": 0.5},
+        {"A": 0.25, "C": 0.25, "G": 0.25, "U": 0.25},
+        {"A": 0.5, "G": 0.25, "C": 0.25},
+    ]
+    for pos, probs in enumerate(expect):
+        for char, prob in probs.items():
+            assert numpy.allclose(got[pos, char], prob)
+
+
+def test_entropy_per_pos():
+    """SequenceCollection.entropy_per_pos should match hand-calculated values"""
+    aln = new_alignment.make_aligned_seqs({"seq1": "ATA", "seq2": "AAA"}, moltype="dna")
+    obs = aln.entropy_per_pos()
+    assert numpy.allclose(obs, [0, 1, 0])
+    # check what happens with only one input sequence
+    aln = new_alignment.make_aligned_seqs({"seq1": "TGC"}, moltype="dna")
+    obs = aln.entropy_per_pos()
+    assert numpy.allclose(obs, [0, 0, 0])
+
+
+@pytest.mark.parametrize(
+    "coll_maker", (new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs)
+)
+def test_entropy_excluding_unobserved(coll_maker):
+    """omitting unobserved motifs should not affect entropy calculation"""
+    a = coll_maker(dict(a="ACAGGG", b="AGACCC", c="GGCCTA"), moltype="dna")
+    entropy_excluded = a.entropy_per_seq(exclude_unobserved=True)
+    entropy_unexcluded = a.entropy_per_seq(exclude_unobserved=False)
+    assert numpy.allclose(entropy_excluded, entropy_unexcluded)
+
+
+def test_seq_entropy_just_gaps():
+    """get_seq_entropy should get entropy of each seq"""
+    aln = new_alignment.make_aligned_seqs(dict(a="A---", b="----"), moltype="dna")
+    got = aln.entropy_per_seq()
+    expect = numpy.array([0, numpy.nan], dtype=numpy.float64)
+
+    assert numpy.allclose(got, expect, equal_nan=True)
+
+    aln = new_alignment.make_aligned_seqs(dict(a="----", b="----"), moltype="dna")
+    entropy = aln.entropy_per_seq()
+    assert entropy is None
+
+
+def test_get_gap_array():
+    aln = new_alignment.make_aligned_seqs(
+        {"seq1": "A-GN", "seq2": "TG--", "seq3": "----"}, moltype="dna"
+    )
+    got = aln.get_gap_array()
+    expect = numpy.array(
+        [
+            [False, True, False, True],
+            [False, False, True, True],
+            [True, True, True, True],
+        ]
+    )
+    assert numpy.allclose(got, expect)
+
+    got = aln.get_gap_array(include_ambiguity=False)
+    expect = numpy.array(
+        [
+            [False, True, False, False],
+            [False, False, True, True],
+            [True, True, True, True],
+        ]
+    )
+
+
+def test_count_gaps_per_pos():
+    """correctly compute the number of gaps"""
+    data = {"a": "AAAA---GGT", "b": "CCC--GG?GT"}
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    # per position
+    got = aln.count_gaps_per_pos(include_ambiguity=False)
+    assert numpy.array_equal(got.array, [0, 0, 0, 1, 2, 1, 1, 0, 0, 0])
+    got = aln.count_gaps_per_pos(include_ambiguity=True)
+    assert numpy.array_equal(got.array, [0, 0, 0, 1, 2, 1, 1, 1, 0, 0])
+
+
+def test_count_gaps_per_seq():
+    """correctly compute the number of gaps"""
+    data = {"a": "AAAA---GGT", "b": "CCC--GG?GT"}
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    got = aln.count_gaps_per_seq(include_ambiguity=False)
+    assert numpy.array_equal(got.array, [3, 2])
+    assert numpy.array_equal(got["b"], 2)
+    got = aln.count_gaps_per_seq(include_ambiguity=True)
+    assert numpy.array_equal(got.array, [3, 3])
+    assert numpy.array_equal(got["b"], 3)
+    # per seq, unique
+    got = aln.count_gaps_per_seq(include_ambiguity=False, unique=True)
+    assert numpy.array_equal(got.array, [1, 2])
+    got = aln.count_gaps_per_seq(include_ambiguity=True, unique=True)
+    assert numpy.array_equal(got.array, [2, 2])
+
+    data = {"a": "AAAGGG", "b": "------", "c": "------"}
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    got = aln.count_gaps_per_seq(include_ambiguity=False, unique=True)
+    assert numpy.array_equal(got.array, [6, 0, 0])
+    assert numpy.array_equal(got["a"], 6)
+    assert numpy.array_equal(got["b"], 0)
+
+    # per_seq, induced_by
+    data = {"a": "--ACGT---GTAC", "b": "--ACGTA--GT--", "c": "--ACGTA-AGT--"}
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    got = aln.count_gaps_per_seq(unique=False, induced_by=True)
+    assert numpy.array_equal(got.array, [2, 1, 2])
+    assert numpy.array_equal(got["b"], 1)
+
+
+def test_omit_bad_seqs():
+    """omit_bad_seqs should return alignment w/o seqs causing most gaps"""
+    data = {
+        "s1": "---ACC---TT-",
+        "s2": "---ACC---TT-",
+        "s3": "---ACC---TT-",
+        "s4": "--AACCG-GTT-",
+        "s5": "--AACCGGGTTT",
+        "s6": "AGAACCGGGTT-",
+    }
+
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    # with defaults, excludes s6
+    expect = data.copy()
+    del expect["s6"]
+    result = aln.omit_bad_seqs()
+    assert result.to_dict() == expect
+    # with quantile 0.5, just s1, s2, s3
+    expect = data.copy()
+    for key in ("s6", "s5"):
+        del expect[key]
+    result = aln.omit_bad_seqs(0.5)
+    assert result.to_dict() == expect
+
+
+def test_matching_ref():
+    """Alignment.matching_ref returns new aln with well-aln to temp"""
+    data = {
+        "s1": "UC-----CU---C",
+        "s2": "UC------U---C",
+        "s3": "UUCCUUCUU-UUC",
+        "s4": "UU-UUUU-UUUUC",
+        "s5": "-------------",
+    }
+
+    aln = new_alignment.make_aligned_seqs(data, moltype="rna")
+    result = aln.matching_ref("s3", 0.9, 5)
+    assert result.to_dict() == {"s3": "UUCCUUCUU-UUC", "s4": "UU-UUUU-UUUUC"}
+    result2 = aln.matching_ref("s4", 0.9, 4)
+    assert result2.to_dict() == {"s3": "UUCCUUCUU-UUC", "s4": "UU-UUUU-UUUUC"}
+    result3 = aln.matching_ref("s1", 0.9, 4)
+    assert result3.to_dict() == {
+        "s2": "UC------U---C",
+        "s1": "UC-----CU---C",
+        "s5": "-------------",
+    }
+
+    result4 = aln.matching_ref("s3", 0.5, 13)
+    assert result4.to_dict() == {"s3": "UUCCUUCUU-UUC", "s4": "UU-UUUU-UUUUC"}
+
+
+@pytest.mark.xfail(reason="bug where make_aligned is overriding the slice record for previous slices")
+def test_sliding_windows():
+    """sliding_windows should return slices of alignments."""
+    alignment = new_alignment.make_aligned_seqs({"seq1": "ACGTACGT", "seq2": "ACGTACGT", "seq3": "ACGTACGT"}, moltype="dna")
+    result = []
+
+    for bit in alignment.sliding_windows(5, 2):
+        result += [bit]
+    assert result[0].to_dict() ==  {"seq3": "ACGTA", "seq2": "ACGTA", "seq1": "ACGTA"}
+    assert result[1].to_dict() ==  {"seq3": "GTACG", "seq2": "GTACG", "seq1": "GTACG"}
+    
+    result = []
+    for bit in alignment.sliding_windows(5, 1):
+        result += [bit]
+    assert result[0].to_dict() == {"seq3": "ACGTA", "seq2": "ACGTA", "seq1": "ACGTA"}
+    assert result[1].to_dict() == {"seq3": "CGTAC", "seq2": "CGTAC", "seq1": "CGTAC"}
+    assert result[2].to_dict() == {"seq3": "GTACG", "seq2": "GTACG", "seq1": "GTACG"}
+    assert result[3].to_dict() == {"seq3": "TACGT", "seq2": "TACGT", "seq1": "TACGT"}
+
+
 ###
 def test_get_feature():
     from cogent3.core import new_alignment
@@ -3290,7 +3576,23 @@ def test_oneoff(aligned_dict):
     start, stop, step = 1, 2, 1
     aln = new_alignment.make_aligned_seqs(aligned_dict, moltype="dna")
     sliced_aln = aln[start:stop:step]
-    seq = sliced_aln.seqs[seqid].seq
+    seq = sliced_aln.get_seq(seqid)
     got = seq[::1]
     expect = aligned_dict[seqid][start:stop:step].replace("-", "")
     assert got == expect
+
+
+def test_twooff():
+    data = {
+        "seq1": "TCGATCGA",
+        "seq2": "TCGATCGA",
+    }
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    slice_1 = aln[0:5]
+    assert slice_1.to_dict() == {"seq1": "TCGAT", "seq2": "TCGAT"}
+    slice_2 = aln[2:7]
+    assert slice_2.to_dict() == {"seq1": "GATCG", "seq2": "GATCG"}
+    assert slice_1.to_dict() == {"seq1": "TCGAT", "seq2": "TCGAT"}
+
+
+    
