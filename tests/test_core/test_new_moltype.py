@@ -555,3 +555,20 @@ def test_degenerate_from_seq():
     assert p("ABD") == "X"
     assert p("ACX") == "X"
     assert p("AC-") == "?"
+
+
+@pytest.mark.parametrize(
+    "moltype,zero,second,last",
+    (
+        ("DNA", "T", "A", "G"),
+        ("RNA", "U", "A", "G"),
+        ("PROTEIN", "A", "D", "Y"),
+        ("PROTEIN_WITH_STOP", "A", "D", "*"),
+    ),
+)
+def test_char_order(moltype, zero, second, last):
+    prefix = "IUPAC_" if "STOP" not in moltype else ""
+    attr = getattr(new_moltype, f"{prefix}{moltype}_chars")
+    assert attr[0] == zero
+    assert attr[2] == second
+    assert attr[-1] == last
