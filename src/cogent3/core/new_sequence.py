@@ -78,18 +78,47 @@ def _moltype_seq_from_rich_dict(data):
     data.pop("type")
     data.pop("version")
     data.pop("annotation_db", None)
+    offset = data.pop("annotation_offset", 0)
 
     moltype = data.pop("moltype")
     moltype = new_moltype.get_moltype(moltype)
 
     seqview_data = data.pop("seq")
     seq = _coerce_to_seqview(
-        seqview_data["init_args"]["seq"], data["name"], moltype.most_degen_alphabet()
+        seqview_data["init_args"]["seq"],
+        data["name"],
+        moltype.most_degen_alphabet(),
+        offset,
     )
     seq = seq[:: seqview_data["init_args"]["step"]]
-    seq.offset = seqview_data["init_args"]["offset"]
 
     return moltype, seq
+
+
+# This is a design note about the annotation_offset attribute on sequences
+#  and the related offset attribute on the sequence view.
+
+# The SeqView object is responsible for performing slices and keeping track of
+#  those slice operations relative to a parent. This is done via the start, stop
+#  and step attributes.
+
+# The annotation_offset attribute is intended to facilitate relating sequences
+#  to annotations stored in coordinates of an annotated parent sequence. Consider
+#  for example a gene that lies on a chromosome. If a user has an instance of that
+#  gene's sequence in a sequence object, then the annotation_offset would be the
+#  start position of that gene on the plus strand of the original chromosome.
+
+# It's the case that an annotation_offset can only be specified by the user as
+#  an argument to the sequence constructor. The design decision was made to
+#  have the responsibility for providing the coordinates on the parent lie
+#  with the SeqView class. These values are provided by the parent_start,
+#  parent_stop and absolute_position methods.
+
+# The state flow is in the constructor for the sequence class. There is
+#  an assignment of the annotation_offset to the provided sequence_view.
+
+# The only time the offset value is not at the SeqView level is the
+#  sequence object is being serialised.
 
 
 @total_ordering
@@ -127,12 +156,14 @@ class Sequence:
         """
         self.moltype = moltype
         self.name = name
-        self._seq = _coerce_to_seqview(seq, name, self.moltype.most_degen_alphabet())
+        self._seq = _coerce_to_seqview(
+            seq, name, self.moltype.most_degen_alphabet(), annotation_offset
+        )
+
         info = info or {}
         self.info = InfoClass(**info)
         self._repr_policy = dict(num_pos=60)
         self._annotation_db = DEFAULT_ANNOTATION_DB()
-        self.annotation_offset = annotation_offset
 
     def __str__(self):
         result = str(self._seq)
@@ -827,10 +858,6 @@ class Sequence:
 
         return self._seq.parent_start
 
-    @annotation_offset.setter
-    def annotation_offset(self, value: int):
-        self._seq.offset = value
-
     @property
     def annotation_db(self):
         return self._annotation_db
@@ -1197,14 +1224,17 @@ class Sequence:
         exclude_annotations
             drops annotation_db when True
         """
-        annotation_offset = self.annotation_offset if sliced else self._seq.offset
+        # when slicing a seqview with sliced=True, seqview discards the
+        # offset attribute. Sequence then needs to be provided to its
+        # constructor from its current state.
+        offset = self.annotation_offset if sliced else 0
         data = self._seq.copy(sliced=sliced)
         new = self.__class__(
             moltype=self.moltype,
             seq=data,
             name=self.name,
             info=self.info,
-            annotation_offset=annotation_offset,
+            annotation_offset=offset,
         )
         db = None if exclude_annotations else copy.deepcopy(self.annotation_db)
         new._annotation_db = db
@@ -1306,9 +1336,20 @@ class Sequence:
 
     def _mapped(self, map):
         # Called by generic __getitem__
-        segments = self.gapped_by_map_segment_iter(map, allow_gaps=False)
+        if map.num_spans == 1:
+            seq = self._seq[map.start : map.end]
+            offset = map.start
+        else:
+            segments = self.gapped_by_map_segment_iter(map, allow_gaps=False)
+            seq = "".join(segments)
+            offset = 0
+
         return self.__class__(
-            moltype=self.moltype, seq="".join(segments), name=self.name, info=self.info
+            moltype=self.moltype,
+            seq=seq,
+            name=self.name,
+            info=self.info,
+            annotation_offset=offset,
         )
 
     def __repr__(self):
@@ -1329,7 +1370,8 @@ class Sequence:
 
         if isinstance(index, (FeatureMap, IndelMap)):
             new = self._mapped(index)
-            preserve_offset = True
+            # annotations have no meaning if disjoint slicing segments
+            preserve_offset = index.num_spans == 1
 
         elif isinstance(index, slice) or _is_int(index):
             new = self.__class__(
@@ -1346,7 +1388,6 @@ class Sequence:
 
         if self.annotation_db is not None and preserve_offset:
             new.replace_annotation_db(self.annotation_db, check=False)
-            new.annotation_offset = self.annotation_offset
 
         if _is_float(index):
             raise TypeError("cannot slice using float")
@@ -2561,7 +2602,6 @@ class SeqView(SeqViewABC, SliceRecordABC):
             start, stop = self.start, self.stop
 
         data["init_args"]["seq"] = self.seq[start:stop]
-        data["init_args"]["offset"] = int(self.parent_start)
         data["init_args"]["alphabet"] = self.alphabet.to_rich_dict()
         return data
 
@@ -2596,42 +2636,48 @@ class SeqView(SeqViewABC, SliceRecordABC):
 
 
 @singledispatch
-def _coerce_to_seqview(data, seqid, alphabet) -> SeqViewABC:
+def _coerce_to_seqview(data, seqid, alphabet, offset) -> SeqViewABC:
     from cogent3.core.alignment import Aligned
     from cogent3.core.sequence import Sequence as old_Sequence
     from cogent3.core.sequence import SeqView as old_SeqView
 
     if isinstance(data, (Aligned, old_Sequence, old_SeqView)):
-        return _coerce_to_seqview(str(data), seqid, alphabet)
+        return _coerce_to_seqview(str(data), seqid, alphabet, offset)
     raise NotImplementedError(f"{type(data)}")
 
 
 @_coerce_to_seqview.register
-def _(data: SeqViewABC, seqid, alphabet) -> SeqViewABC:
+def _(data: SeqViewABC, seqid, alphabet, offset) -> SeqViewABC:
+    if offset and data.offset:
+        raise ValueError(
+            f"cannot set {offset=} on a SeqView with an offset {data.offset=}"
+        )
+    elif offset:
+        data.offset = offset
     return data
 
 
 @_coerce_to_seqview.register
-def _(data: Sequence, seqid, alphabet) -> SeqViewABC:
-    return _coerce_to_seqview(data._seq, seqid, alphabet)
+def _(data: Sequence, seqid, alphabet, offset) -> SeqViewABC:
+    return _coerce_to_seqview(data._seq, seqid, alphabet, offset)
 
 
 @_coerce_to_seqview.register
-def _(data: str, seqid, alphabet) -> SeqViewABC:
-    return SeqView(seq=data, seqid=seqid, alphabet=alphabet)
+def _(data: str, seqid, alphabet, offset) -> SeqViewABC:
+    return SeqView(seq=data, seqid=seqid, alphabet=alphabet, offset=offset)
 
 
 @_coerce_to_seqview.register
-def _(data: bytes, seqid, alphabet) -> SeqViewABC:
+def _(data: bytes, seqid, alphabet, offset) -> SeqViewABC:
     data = data.decode("utf8")
-    return SeqView(seq=data, seqid=seqid, alphabet=alphabet)
+    return SeqView(seq=data, seqid=seqid, alphabet=alphabet, offset=offset)
 
 
 @_coerce_to_seqview.register
-def _(data: tuple, seqid, alphabet) -> SeqViewABC:
-    return _coerce_to_seqview("".join(data), seqid, alphabet)
+def _(data: tuple, seqid, alphabet, offset) -> SeqViewABC:
+    return _coerce_to_seqview("".join(data), seqid, alphabet, offset)
 
 
 @_coerce_to_seqview.register
-def _(data: list, seqid, alphabet) -> SeqViewABC:
-    return _coerce_to_seqview("".join(data), seqid, alphabet)
+def _(data: list, seqid, alphabet, offset) -> SeqViewABC:
+    return _coerce_to_seqview("".join(data), seqid, alphabet, offset)

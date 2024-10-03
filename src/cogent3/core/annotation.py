@@ -107,10 +107,8 @@ class Feature:
         return self._do_seq_slice(result)
 
     def _do_seq_slice(self, result):
-        offset = self.map.start if self.map.num_spans == 1 else 0
         if self.reversed:
             result = result.rc()
-        result.annotation_offset = offset
         if self.map.num_spans > 1:
             # db querying will be incorrect so make sure it can't be done
             result.annotation_db = None
