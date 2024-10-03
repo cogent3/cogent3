@@ -77,7 +77,11 @@ __numba_logger.setLevel(logging.WARNING)
 
 
 def make_seq(
-    seq, name: str = None, moltype=None, new_type: bool = False
+    seq,
+    name: str = None,
+    moltype=None,
+    new_type: bool = False,
+    annotation_offset: int = 0,
 ):  # refactor: type hinting, need to capture optional args and the return type
     """
     Parameters
@@ -92,6 +96,8 @@ def make_seq(
         if True, returns a new type Sequence (cogent3.core.new_sequence.Sequence).
         The default will be changed to True in 2024.12. Support for the old
         style will be removed as of 2025.6.
+    annotation_offset
+        integer indicating start position relative to annotations
 
     Returns
     -------
@@ -104,7 +110,7 @@ def make_seq(
         moltype = new_moltype.get_moltype(moltype)
     else:
         moltype = get_moltype(moltype)
-    seq = moltype.make_seq(seq=seq, name=name)
+    seq = moltype.make_seq(seq=seq, name=name, annotation_offset=annotation_offset)
     return seq
 
 
@@ -276,6 +282,7 @@ def load_seq(
     parser_kw: Optional[dict] = None,
     info: Optional[dict] = None,
     new_type: bool = False,
+    annotation_offset: int = 0,
     **kw,
 ) -> Sequence:
     """
@@ -299,8 +306,10 @@ def load_seq(
         if True, returns a new type Sequence (cogent3.core.new_sequence.Sequence)
         The default will be changed to True in 2024.12. Support for the old
         style will be removed as of 2025.6.
+    annotation_offset
+        integer indicating start position relative to annotations
     **kw
-        other keyword arguments passed to SequenceCollection
+        other keyword arguments passed to sequence loader
 
     Notes
     -----
@@ -323,7 +332,7 @@ def load_seq(
     name, seq = data[0]
     name = label_to_name(name) if label_to_name else name
 
-    result = make_seq(seq, name, moltype=moltype, new_type=new_type)
+    result = make_seq(seq, name, moltype=moltype, new_type=new_type, **kw)
     result.info.update(info)
 
     if getattr(seq, "annotation_db", None):
@@ -368,7 +377,6 @@ def load_unaligned_seqs(
         (cogent3.core.new_sequence.SequenceCollection). The default will be
         changed to True in 2024.12. Support for the old style will be removed
         as of 2025.6.
-
     **kw
         other keyword arguments passed to SequenceCollection, or show_progress.
         The latter induces a progress bar for number of files processed when
@@ -437,6 +445,8 @@ def load_aligned_seqs(
         function for converting original name into another name.
     parser_kw : dict
         optional arguments for the parser
+    kw
+        passed to make_aligned_seqs
 
     Returns
     -------
