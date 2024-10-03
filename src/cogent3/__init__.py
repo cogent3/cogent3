@@ -82,6 +82,7 @@ def make_seq(
     moltype=None,
     new_type: bool = False,
     annotation_offset: int = 0,
+    **kw: dict,
 ):  # refactor: type hinting, need to capture optional args and the return type
     """
     Parameters
@@ -98,6 +99,8 @@ def make_seq(
         style will be removed as of 2025.6.
     annotation_offset
         integer indicating start position relative to annotations
+    **kw
+        other keyword arguments passed to Sequence
 
     Returns
     -------
@@ -110,7 +113,9 @@ def make_seq(
         moltype = new_moltype.get_moltype(moltype)
     else:
         moltype = get_moltype(moltype)
-    seq = moltype.make_seq(seq=seq, name=name, annotation_offset=annotation_offset)
+    seq = moltype.make_seq(
+        seq=seq, name=name, annotation_offset=annotation_offset, **kw
+    )
     return seq
 
 
@@ -283,7 +288,7 @@ def load_seq(
     info: Optional[dict] = None,
     new_type: bool = False,
     annotation_offset: int = 0,
-    **kw,
+    **kw: dict,
 ) -> Sequence:
     """
     loads unaligned sequences from file
@@ -332,7 +337,14 @@ def load_seq(
     name, seq = data[0]
     name = label_to_name(name) if label_to_name else name
 
-    result = make_seq(seq, name, moltype=moltype, new_type=new_type, **kw)
+    result = make_seq(
+        seq,
+        name,
+        moltype=moltype,
+        new_type=new_type,
+        annotation_offset=annotation_offset,
+        **kw,
+    )
     result.info.update(info)
 
     if getattr(seq, "annotation_db", None):
