@@ -1341,13 +1341,13 @@ class Sequence:
             info=self.info,
         )
 
-    def _mapped(self, segment_map: IndelMap):
+    def _mapped(self, map: IndelMap):
         # Called by generic __getitem__
-        if segment_map.num_spans == 1:
+        if map.num_spans == 1:
             seq = self._seq[map.start : map.end]
             offset = map.start
         else:
-            segments = self.gapped_by_map_segment_iter(segment_map, allow_gaps=False)
+            segments = self.gapped_by_map_segment_iter(map, allow_gaps=False)
             seq = "".join(segments)
             offset = 0
 
