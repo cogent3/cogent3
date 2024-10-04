@@ -1343,7 +1343,7 @@ class Sequence:
 
     def _mapped(self, segment_map: IndelMap):
         # Called by generic __getitem__
-        if map.num_spans == 1:
+        if segment_map.num_spans == 1:
             seq = self._seq[map.start : map.end]
             offset = map.start
         else:
