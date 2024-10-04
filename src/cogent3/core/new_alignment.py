@@ -147,9 +147,7 @@ class SeqDataView(SeqDataViewABC):
     def str_value(self) -> str:
         """returns the sequence as a string"""
         # todo: kath, in ADV, the .get_seq_str method gets passed the step, but here it doesn't.
-        # to have consistent parameters we could pass the slice_record to the get_seq_str method
-        # todo: kath,
-        # think about whether to keep using parent_start and parent_stop or to use start and stop
+        # also, keep using parent_start and parent_stop or to use start and stop?
         raw = self.parent.get_seq_str(
             seqid=self.seqid,
             start=self.slice_record.parent_start,
@@ -2695,6 +2693,7 @@ class Aligned:
 
     def __repr__(self) -> str:
         # refactor: design
+        # todo: when design is finalised, add tests for this
         return f"Aligned({self.data!r})"
 
 
@@ -3333,6 +3332,7 @@ class AlignedDataView(new_sequence.SeqViewABC):
 
     def __repr__(self) -> str:
         # refactor: design
+        # todo: once design is settled, need to be tested
         seq_preview = (
             f"{self.parent.get_seq_array(seqid=self.seqid, start=0, stop=10)}..."
             f"{self.parent.get_seq_array(seqid=self.seqid, start=self.parent_len-5)}"
