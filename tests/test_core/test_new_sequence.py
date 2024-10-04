@@ -1944,20 +1944,20 @@ def test_absolute_position_base_cases(one_seq):
 
 def test_absolute_position_positive(one_seq):
     # with an offset, the abs index should be offset + index
-    one_seq._seq.offset = 2
-    got = one_seq._seq.slice_record.absolute_position(2)
+    one_seq._seq = one_seq._seq.with_offset(2)
+    view = one_seq._seq
+    got = view.slice_record.absolute_position(2)
     assert got == 2 + 2
 
     # with an offset and start, the abs index should be offset + start + index
-    view = one_seq[2::]
-    view._seq.offset = 2  # todo: do we want the annotation_offset to be preserved when slicing? I think yes
-    got = view._seq.slice_record.absolute_position(2)
+    seq = one_seq[2::]
+    view = seq._seq  # todo: do we want the annotation_offset to be preserved when slicing? I think yes
+    got = view.slice_record.absolute_position(2)
     assert got == 2 + 2 + 2
 
     # with an offset, start and step, the abs index should be offset + start + index * step
-    view = one_seq[2::2]
-    view._seq.offset = 2
-    got = view._seq.slice_record.absolute_position(2)
+    seq = one_seq[2::2]
+    got = seq._seq.slice_record.absolute_position(2)
     assert got == 2 + 2 + 2 * 2
 
 
@@ -2044,10 +2044,10 @@ def test_relative_position_with_remainder(integer_seq):
 @pytest.mark.parametrize("step", (None, 1, 2))
 def test_absolute_relative_roundtrip(one_seq, value, offset, start, stop, step):
     # a round trip from relative to absolute then from absolute to relative, should return the same value we began with
-    view = one_seq[start:stop:step]
-    view._seq.offset = offset or 0
-    abs_val = view._seq.slice_record.absolute_position(value)
-    rel_val = view._seq.slice_record.relative_position(abs_val)
+    seq = one_seq[start:stop:step]
+    seq._seq.with_offset(offset or 0)
+    abs_val = seq._seq.slice_record.absolute_position(value)
+    rel_val = seq._seq.slice_record.relative_position(abs_val)
     assert rel_val == value
 
 
@@ -2197,7 +2197,6 @@ def test_sliced_seqview_rich_dict(reverse, dna_alphabet):
     sv = sv[::-1] if reverse else sv
     rd = sv.to_rich_dict()
     assert rd["init_args"]["parent"] == parent[sl]
-    assert rd["init_args"]["slice_record"]["init_args"]["offset"] == 2
 
 
 @pytest.mark.parametrize(
@@ -2214,9 +2213,9 @@ def test_parent_start_stop(sl, offset, ascii_alphabet):
     data = "0123456789"
     # check our slice matches the expectation for rest of test
     expect = "234" if sl.step > 0 else "432"
-    sv = new_sequence.SeqView(parent=data, alphabet=ascii_alphabet)
-    sv.slice_record.offset = offset
+    sv = new_sequence.SeqView(parent=data, alphabet=ascii_alphabet, offset=offset)
     sv = sv[sl]
+    assert sv.offset == offset
     assert sv.str_value == expect
     # now check that start / stop are always the same
     # irrespective of step sign
@@ -2562,6 +2561,23 @@ def test_seqview_seq_len_modified_seq(dna_alphabet):
 
     sv.parent = "ATGC"  # this should not modify seq_len
     assert sv.parent_len == len(seq)
+
+
+@pytest.mark.parametrize("offset", [0, 4])
+def test_seqview_with_offset(offset, dna_alphabet):
+    seq = "ACGGTGGGAC"
+    sv = new_sequence.SeqView(parent=seq, alphabet=dna_alphabet)
+    got = sv.with_offset(offset)
+    assert got is not sv
+    assert got.offset == offset
+
+
+@pytest.mark.parametrize("offset", [0, 4])
+def test_seqview_with_offset_fails(offset, dna_alphabet):
+    seq = "ACGGTGGGAC"
+    sv = new_sequence.SeqView(parent=seq, alphabet=dna_alphabet, offset=1)
+    with pytest.raises(ValueError):
+        _ = sv.with_offset(offset)
 
 
 def test_sequence_str_bytes_array():

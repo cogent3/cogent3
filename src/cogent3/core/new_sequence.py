@@ -91,14 +91,12 @@ def _moltype_seq_from_rich_dict(data):
 
     seqview_data = data.pop("seq")
     seq = _coerce_to_seqview(
-        seqview_data["init_args"]["parent"], data["name"], moltype.most_degen_alphabet(), offset,
+        seqview_data["init_args"]["parent"],
+        data["name"],
+        moltype.most_degen_alphabet(),
+        offset,
     )
     seq = seq[:: seqview_data["init_args"]["slice_record"]["init_args"]["step"]]
-    # todo: kath,
-    # could probably handle the offset in the _coerce_to_seqview function
-    seq.slice_record.offset = seqview_data["init_args"]["slice_record"]["init_args"][
-        "offset"
-    ]
 
     return moltype, seq
 
@@ -1347,7 +1345,7 @@ class Sequence:
             info=self.info,
         )
 
-    def _mapped(self, segment_map: IndelMap):
+    def _mapped(self, map: IndelMap):
         # Called by generic __getitem__
         if map.num_spans == 1:
             seq = self._seq[map.start : map.end]
@@ -2412,7 +2410,7 @@ class SliceRecord(SliceRecordABC):
         start: OptInt = None,
         stop: OptInt = None,
         step: OptInt = None,
-        offset: int = None,
+        offset: int = 0,
     ):
         if step == 0:
             raise ValueError("step cannot be 0")
@@ -2566,6 +2564,7 @@ class SeqView(SeqViewABC):
         seqid: OptStr = None,
         parent_len: OptInt = None,
         slice_record: SliceRecordABC = None,
+        offset: int = 0,
     ):
         self.alphabet = alphabet
         self.parent = parent
@@ -2578,6 +2577,12 @@ class SeqView(SeqViewABC):
             if slice_record is not None
             else SliceRecord(parent_len=self._parent_len)
         )
+        if offset and self._slice_record.offset:
+            raise ValueError(
+                f"cannot set {offset=} on a SeqView with an offset {self._slice_record.offset=}"
+            )
+        elif offset:
+            self._slice_record.offset = offset
 
     @property
     def seqid(self) -> str:
@@ -2586,6 +2591,10 @@ class SeqView(SeqViewABC):
     @property
     def slice_record(self) -> SliceRecordABC:
         return self._slice_record
+
+    @property
+    def offset(self) -> int:
+        return self.slice_record.offset
 
     @property
     def parent_len(self) -> int:
@@ -2645,6 +2654,16 @@ class SeqView(SeqViewABC):
             f"slice_record={self.slice_record.__repr__()})"
         )
 
+    def with_offset(self, offset: int):
+        if self._slice_record.offset:
+            raise ValueError(
+                f"cannot set {offset=} on a SeqView with an offset {self._slice_record.offset=}"
+            )
+        else:
+            init_kwargs = self._get_init_kwargs()
+            init_kwargs["offset"] = offset
+            return self.__class__(**init_kwargs)
+
     def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
         """returns a json serialisable dict
 
@@ -2672,7 +2691,6 @@ class SeqView(SeqViewABC):
         new_sr = SliceRecord(
             parent_len=(stop - start),
             step=self.slice_record.step,
-            offset=self.slice_record.parent_start,
         )
         data["init_args"]["slice_record"] = new_sr.to_rich_dict()
         data["init_args"]["alphabet"] = self.alphabet.to_rich_dict()
@@ -2722,7 +2740,7 @@ def _(data: SeqViewABC, seqid, alphabet, offset) -> SeqViewABC:
             f"cannot set {offset=} on a SeqView with an offset {data.offset=}"
         )
     elif offset:
-        data.offset = offset
+        return data.with_offset(offset)
     return data
 
 
