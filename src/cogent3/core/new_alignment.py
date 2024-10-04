@@ -2774,7 +2774,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         "_gaps",
         "_alphabet",
         "_make_seq",
-        "_make_aligned",
         "_align_len",
         "_strand",
         "_offset",
@@ -2788,7 +2787,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         gaps: Optional[dict[str, numpy.ndarray]],
         alphabet: new_alphabet.AlphabetABC,
         make_seq: Optional[MakeSeqCallable] = None,
-        make_aligned: Optional[MakeAlignedCallable] = None,
         strand: dict[str, int] = None,
         offset: dict[str, int] = None,
         align_len: OptInt = None,
@@ -2796,7 +2794,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
     ):
         self._alphabet = alphabet
         self._make_seq = make_seq
-        self._make_aligned = make_aligned
         if check or not align_len:
             if not seqs or not gaps:
                 raise ValueError("Both seqs and gaps must be provided.")
@@ -2899,14 +2896,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         self._make_seq = make_seq
 
     @property
-    def make_aligned(self) -> MakeAlignedCallable:
-        return self._make_aligned
-
-    @make_aligned.setter
-    def make_aligned(self, make_aligned: MakeAlignedCallable) -> None:
-        self._make_aligned = make_aligned
-
-    @property
     def align_len(self) -> int:
         return self._align_len
 
@@ -2926,16 +2915,15 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         return self.align_len
 
     @singledispatchmethod
-    def __getitem__(self, index: Union[str, int]) -> Aligned:
+    def __getitem__(self, index: Union[str, int]):
         raise NotImplementedError(f"__getitem__ not implemented for {type(index)}")
 
     @__getitem__.register
-    def _(self, index: str) -> Aligned:
-        adv = self.get_view(seqid=index)
-        return self.make_aligned(data=adv)
+    def _(self, index: str):
+        return self.get_view(index)
 
     @__getitem__.register
-    def _(self, index: int) -> Aligned:
+    def _(self, index: int):
         return self[self.names[index]]
 
     def seq_lengths(self) -> dict[str, int]:
@@ -3135,7 +3123,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             gaps={**self._gaps, **new_gaps},
             alphabet=self.alphabet,
             make_seq=self._make_seq,
-            make_aligned=self._make_aligned,
             strand={**self._strand, **(strand or {})},
             offset={**self._offset, **(offset or {})},
             align_len=self.align_len,
@@ -3167,7 +3154,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
                 gaps=gap_data,
                 alphabet=self.alphabet,
                 make_seq=self._make_seq,
-                make_aligned=self._make_aligned,
                 strand={
                     name: strand
                     for name, strand in self._strand.items()
@@ -3484,8 +3470,9 @@ class Alignment(SequenceCollection):
     def __len__(self):
         return len(self.seqs)
 
-    def _make_aligned(self, data: AlignedDataView) -> Aligned:
+    def _make_aligned(self, seqid: str) -> Aligned:
         # we set the slice record on the AlignedDataView
+        data = self._seqs_data.get_view(seqid)
         data.slice_record = self._slice_record
         return Aligned(data=data, moltype=self.moltype)
 
