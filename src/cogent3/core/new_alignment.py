@@ -3347,9 +3347,7 @@ class AlignedDataView(new_sequence.SeqViewABC):
 
     def parent_seq_coords(self) -> tuple[str, int, int, int]:
         """returns seqid, start, stop, strand on the parent sequence"""
-        start = self.map.get_seq_index(
-            self.slice_record.parent_start, step=self.slice_record.step
-        )
+        start = self.map.get_seq_index(self.slice_record.parent_start)
         stop = self.map.get_seq_index(self.slice_record.parent_stop)
         strand = -1 if self.slice_record.step < 0 else 1
 
