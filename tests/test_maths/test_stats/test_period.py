@@ -1,6 +1,8 @@
 from unittest import TestCase
 
 import numpy
+from numpy.testing import assert_allclose, assert_equal
+
 from cogent3.maths.period import AutoCorrelation, Hybrid, Ipdft, ipdft
 from cogent3.maths.stats.period import (
     SeqToSymbols,
@@ -11,7 +13,6 @@ from cogent3.maths.stats.period import (
     g_statistic,
     seq_to_symbols,
 )
-from numpy.testing import assert_allclose, assert_equal
 
 
 class TestPeriodStat(TestCase):

@@ -1,5 +1,9 @@
 from unittest import TestCase
 
+from numpy import diag_indices, dot, finfo, float64
+from numpy.random import random
+from numpy.testing import assert_allclose
+
 from cogent3.maths.matrix_exponentiation import PadeExponentiator
 from cogent3.maths.matrix_logarithm import logm
 from cogent3.maths.measure import (
@@ -8,9 +12,6 @@ from cogent3.maths.measure import (
     paralinear_continuous_time,
     paralinear_discrete_time,
 )
-from numpy import diag_indices, dot, finfo, float64
-from numpy.random import random
-from numpy.testing import assert_allclose
 
 
 def gen_q_p():

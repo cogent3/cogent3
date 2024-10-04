@@ -1,6 +1,9 @@
 import warnings
 from unittest import TestCase
 
+from numpy import dot, ones
+from numpy.testing import assert_allclose
+
 from cogent3 import (
     DNA,
     load_aligned_seqs,
@@ -18,8 +21,6 @@ from cogent3.evolve.substitution_model import (
     TimeReversibleNucleotide,
 )
 from cogent3.maths.matrix_exponentiation import PadeExponentiator as expm
-from numpy import dot, ones
-from numpy.testing import assert_allclose
 
 warnings.filterwarnings("ignore", "Motif probs overspecified")
 warnings.filterwarnings("ignore", "Model not reversible")

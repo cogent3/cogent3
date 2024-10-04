@@ -4,6 +4,7 @@ from unittest import TestCase
 
 import numpy
 import pytest
+
 from cogent3.maths.optimisers import (
     MaximumEvaluationsReached,
     _standardise_data,

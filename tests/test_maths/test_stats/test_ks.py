@@ -1,5 +1,7 @@
 from unittest import TestCase
 
+from numpy.testing import assert_allclose
+
 from cogent3.maths.stats.ks import (
     pkolmogorov1x,
     pkolmogorov2x,
@@ -7,7 +9,6 @@ from cogent3.maths.stats.ks import (
     psmirnov2x,
 )
 from cogent3.maths.stats.test import ks_boot, ks_test
-from numpy.testing import assert_allclose
 
 
 class KSTests(TestCase):

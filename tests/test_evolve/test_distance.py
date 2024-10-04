@@ -4,6 +4,8 @@ from unittest import TestCase
 
 import numpy
 import pytest
+from numpy.testing import assert_allclose, assert_equal
+
 from cogent3 import (
     DNA,
     PROTEIN,
@@ -34,7 +36,6 @@ from cogent3.evolve.models import F81, HKY85, JC69
 from cogent3.evolve.pairwise_distance_numba import (
     fill_diversity_matrix as numba_fill_diversity_matrix,
 )
-from numpy.testing import assert_allclose, assert_equal
 
 warnings.filterwarnings("ignore", "Not using MPI as mpi4py not found")
 
@@ -611,45 +612,6 @@ class TestDistanceMatrix(TestCase):
         with self.assertRaises(ValueError):
             darr = DistanceMatrix(data)
 
-    def test_dropping_from_matrix(self):
-        """pairwise distances should have method for dropping invalid data"""
-        data = {
-            ("ABAYE2984", "Atu3667"): None,
-            ("ABAYE2984", "Avin_42730"): 0.638,
-            ("ABAYE2984", "BAA10469"): None,
-            ("Atu3667", "ABAYE2984"): None,
-            ("Atu3667", "Avin_42730"): 2.368,
-            ("Atu3667", "BAA10469"): None,
-            ("Avin_42730", "ABAYE2984"): 0.638,
-            ("Avin_42730", "Atu3667"): 2.368,
-            ("Avin_42730", "BAA10469"): 1.85,
-            ("BAA10469", "ABAYE2984"): None,
-            ("BAA10469", "Atu3667"): None,
-            ("BAA10469", "Avin_42730"): 1.85,
-        }
-
-        darr = DistanceMatrix(data)
-        new = darr.drop_invalid()
-        self.assertEqual(new, None)
-
-        data = {
-            ("ABAYE2984", "Atu3667"): 0.25,
-            ("ABAYE2984", "Avin_42730"): 0.638,
-            ("ABAYE2984", "BAA10469"): None,
-            ("Atu3667", "ABAYE2984"): 0.25,
-            ("Atu3667", "Avin_42730"): 2.368,
-            ("Atu3667", "BAA10469"): 0.25,
-            ("Avin_42730", "ABAYE2984"): 0.638,
-            ("Avin_42730", "Atu3667"): 2.368,
-            ("Avin_42730", "BAA10469"): 1.85,
-            ("BAA10469", "ABAYE2984"): 0.25,
-            ("BAA10469", "Atu3667"): 0.25,
-            ("BAA10469", "Avin_42730"): 1.85,
-        }
-        darr = DistanceMatrix(data)
-        new = darr.drop_invalid()
-        self.assertEqual(new.shape, (2, 2))
-
     def test_take_dists(self):
         """subsets the distance matrix"""
         data = {
@@ -994,3 +956,57 @@ def test_min_pair_tied():
     got = set(dmat.min_pair())
     expect = {frozenset(("A", "B")), frozenset(("A", "C"))}
     assert got in expect
+
+
+def test_dropping_from_matrix():
+    """pairwise distances should have method for dropping invalid data"""
+    data = {
+        ("ABAYE2984", "Atu3667"): None,
+        ("ABAYE2984", "Avin_42730"): 0.638,
+        ("ABAYE2984", "BAA10469"): None,
+        ("Atu3667", "ABAYE2984"): None,
+        ("Atu3667", "Avin_42730"): 2.368,
+        ("Atu3667", "BAA10469"): None,
+        ("Avin_42730", "ABAYE2984"): 0.638,
+        ("Avin_42730", "Atu3667"): 2.368,
+        ("Avin_42730", "BAA10469"): 1.85,
+        ("BAA10469", "ABAYE2984"): None,
+        ("BAA10469", "Atu3667"): None,
+        ("BAA10469", "Avin_42730"): 1.85,
+    }
+
+    darr = DistanceMatrix(data)
+    new = darr.drop_invalid()
+    assert new is None
+
+    data = {
+        ("ABAYE2984", "Atu3667"): 0.25,
+        ("ABAYE2984", "Avin_42730"): 0.638,
+        ("ABAYE2984", "BAA10469"): None,
+        ("Atu3667", "ABAYE2984"): 0.25,
+        ("Atu3667", "Avin_42730"): 2.368,
+        ("Atu3667", "BAA10469"): 0.25,
+        ("Avin_42730", "ABAYE2984"): 0.638,
+        ("Avin_42730", "Atu3667"): 2.368,
+        ("Avin_42730", "BAA10469"): 1.85,
+        ("BAA10469", "ABAYE2984"): 0.25,
+        ("BAA10469", "Atu3667"): 0.25,
+        ("BAA10469", "Avin_42730"): 1.85,
+    }
+    darr = DistanceMatrix(data)
+    new = darr.drop_invalid()
+    assert new.shape == (2, 2)
+
+
+def test_distance_matrix_from_array_names():
+    data = numpy.array(
+        [
+            [0.7, 0.1, 0.2, 0.3],
+            [0.1, 0.7, 0.1, 0.3],
+            [0.3, 0.2, 0.6, 0.3],
+            [0.4, 0.1, 0.1, 0.7],
+        ]
+    )
+    names = list("abcd")
+    got = DistanceMatrix.from_array_names(data, names)
+    assert got["b", "c"] == 0.1

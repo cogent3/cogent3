@@ -13,7 +13,7 @@ from urllib.parse import ParseResult, urlparse
 from urllib.request import urlopen
 from zipfile import ZipFile
 
-from charset_normalizer import detect
+from chardet import detect
 
 from cogent3.util.misc import _wout_period
 
@@ -366,7 +366,7 @@ def iter_splitlines(
     if _urls.search(str(path)):
         chunk_size = None
     else:
-        path = Path(path)
+        path = Path(path).expanduser()
         if chunk_size and path.stat().st_size < chunk_size:
             # file is smaller than provided chunk_size, just
             # load it all

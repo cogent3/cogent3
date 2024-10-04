@@ -9,14 +9,15 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase
 
 import pytest
+from numpy import array
+from numpy.testing import assert_allclose, assert_equal
+
 from cogent3 import load_tree, make_tree, open_
 from cogent3._version import __version__
 from cogent3.core.tree import PhyloNode, TreeError, TreeNode
 from cogent3.maths.stats.test import correlation
 from cogent3.parse.tree import DndParser
 from cogent3.util.misc import get_object_provenance
-from numpy import array
-from numpy.testing import assert_allclose, assert_equal
 
 base_path = os.path.dirname(os.path.dirname(__file__))
 data_path = os.path.join(base_path, "data")
@@ -2316,3 +2317,18 @@ def test_parser():
     tidied = tree.get_newick(with_distances=1)
     assert tidied == nice
     assert tree.get_node_matching_name("pair").params["other"] == ["com\nment"]
+
+
+def test_load_tree_bad_encoding():
+    """
+    charset_normalizer rather than chardet as a dependency
+    incorrectly detected the encoding of a file as UTF-16LE.
+    """
+    newick = "(a,b);"
+
+    with TemporaryDirectory(dir=".") as dirname:
+        tree_path = os.path.join(dirname, "tree.tree")
+        with open(tree_path, "wb") as f:
+            f.write(newick.encode("ascii"))
+
+        assert load_tree(tree_path).get_newick() == newick

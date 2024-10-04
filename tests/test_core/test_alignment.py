@@ -9,6 +9,9 @@ from unittest import TestCase
 
 import numpy
 import pytest
+from numpy import array, log2, nan
+from numpy.testing import assert_allclose, assert_equal
+
 from cogent3 import (
     get_app,
     get_code,
@@ -40,8 +43,6 @@ from cogent3.core.sequence import ArraySequence, Sequence, SeqView
 from cogent3.maths.util import safe_p_log_p
 from cogent3.parse.fasta import MinimalFastaParser
 from cogent3.util.misc import get_object_provenance
-from numpy import array, log2, nan
-from numpy.testing import assert_allclose, assert_equal
 
 DNA = get_moltype("dna")
 RNA = get_moltype("rna")

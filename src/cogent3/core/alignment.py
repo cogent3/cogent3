@@ -2116,7 +2116,7 @@ class SequenceCollection(_SequenceCollectionBase):
             string denoting font family
 
         Examples
-        ---------
+        --------
 
         In a jupyter notebook, this code is used to provide the representation.
 
@@ -3083,7 +3083,7 @@ class AlignmentI(object):
             string denoting font family
 
         Examples
-        ---------
+        --------
 
         In a jupyter notebook, this code is used to provide the representation.
 

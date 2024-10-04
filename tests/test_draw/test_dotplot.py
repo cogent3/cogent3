@@ -1,10 +1,12 @@
 from unittest import TestCase
 
 import numpy
+import pytest
+
 from cogent3 import get_moltype, make_unaligned_seqs
 from cogent3.core.alignment import Aligned, ArrayAlignment
 from cogent3.core.location import IndelMap
-from cogent3.draw.dotplot import Dotplot, _convert_input, get_align_coords
+from cogent3.draw.dotplot import Dotplot, _convert_input, _prep_seqs, get_align_coords
 
 DNA = get_moltype("dna")
 
@@ -26,37 +28,6 @@ class TestUtilFunctions(TestCase):
         mapped_gap, new_seq = _convert_input("ACGGT--A", DNA)
         self.assertEqual(str(mapped_gap), str(m))
         self.assertEqual(str(new_seq), str(seq))
-
-    def test_get_align_coords(self):
-        """correctly returns the alignment coordinates"""
-        # 01234  5
-        # ACGGT--A
-        #   012345
-        # --GGTTTA
-        m1, seq1 = DNA.make_seq(seq="ACGGT--A").parse_out_gaps()
-        m2, seq2 = DNA.make_seq(seq="--GGTTTA").parse_out_gaps()
-        path = get_align_coords(m1, m2)
-        expect = [2, 4, None, 5, 5], [0, 2, None, 5, 5]
-        self.assertEqual(path.get_coords(), expect)
-
-        # we have no gaps, so coords will be None
-        m1, _ = seq1.parse_out_gaps()
-        m2, _ = seq2.parse_out_gaps()
-        path = get_align_coords(m1, m2)
-        self.assertEqual(path.get_coords(), ([], []))
-
-        # unless we indicate the seqs came from an Alignment
-        m1, seq1 = DNA.make_seq(seq="ACGGTTTA").parse_out_gaps()
-        m2, seq2 = DNA.make_seq(seq="GGGGTTTA").parse_out_gaps()
-        paths = get_align_coords(m1, m2, aligned=True)
-        # display ranges are inclusive, thus length - 1
-        self.assertEqual(paths.get_coords(), ([0, len(seq1) - 1], [0, len(seq1) - 1]))
-
-        # raises an exception if the Aligned seqs are different lengths
-        m1, seq1 = DNA.make_seq(seq="ACGGTTTA").parse_out_gaps()
-        m2, seq2 = DNA.make_seq(seq="GGGGTT").parse_out_gaps()
-        with self.assertRaises(AssertionError):
-            get_align_coords(m1, m2, aligned=True)
 
     def test_display2d(self):
         """correctly constructs a Display2d"""
@@ -176,3 +147,48 @@ def test_dotplot_unaligned():
     # trigger building traces
     _ = dp.figure
     assert len(dp.traces[0].x)
+
+
+def test_get_align_coords():
+    """correctly returns the alignment coordinates"""
+    # 01234  5
+    # ACGGT--A
+    #   012345
+    # --GGTTTA
+    m1, seq1 = DNA.make_seq(seq="ACGGT--A").parse_out_gaps()
+    m2, seq2 = DNA.make_seq(seq="--GGTTTA").parse_out_gaps()
+    path = get_align_coords(m1, m2)
+    expect = [2, 4, None, 5, 5], [0, 2, None, 5, 5]
+    assert path.get_coords() == expect
+
+    # we have no gaps, so coords will be None
+    m1, _ = seq1.parse_out_gaps()
+    m2, _ = seq2.parse_out_gaps()
+    path = get_align_coords(m1, m2)
+    assert path.get_coords() == ([], [])
+
+    # unless we indicate the seqs came from an Alignment
+    m1, seq1 = DNA.make_seq(seq="ACGGTTTA").parse_out_gaps()
+    m2, seq2 = DNA.make_seq(seq="GGGGTTTA").parse_out_gaps()
+    paths = get_align_coords(m1, m2, aligned=True)
+    # display ranges are inclusive, thus length - 1
+    assert paths.get_coords() == ([0, len(seq1) - 1], [0, len(seq1) - 1])
+
+
+def test_get_aligned_coords_invalid_maps():
+    # raises an exception if the Aligned seqs are different lengths
+    m1, _ = DNA.make_seq(seq="ACGGTTTA").parse_out_gaps()
+    m2, _ = DNA.make_seq(seq="GGGGTT").parse_out_gaps()
+    with pytest.raises(AssertionError):
+        get_align_coords(m1, m2, aligned=True)
+
+
+def test_get_align_coords_common_gaps():
+    # 01234  5
+    # ACGGT--A
+    #   012345
+    # --GGTTTA
+    m1, m2, *_ = _prep_seqs(DNA, "ACG--GT--A", "--G--GTTTA", True)
+    path = get_align_coords(m1, m2)
+    expect = [2, 4, None, 5, 5], [0, 2, None, 5, 5]
+    assert path.get_coords() == expect
