@@ -4,6 +4,7 @@
 from unittest import TestCase
 
 import pytest
+
 from cogent3 import DNA, RNA
 from cogent3.core.genetic_code import (
     DEFAULT,

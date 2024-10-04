@@ -1,4 +1,99 @@
 
+<a id='changelog-2024.7.19a6'></a>
+# Changes in release "2024.7.19a6"
+
+Mainly a bug fix release. But one important new feature is support for parallelisation
+in jupyter notebooks!
+
+## Contributors
+
+- @GavinHuttley
+
+## ENH
+
+- Use loky for parallel processing instead of multiprocessing alone. loky is more robust
+  and supports parallel execution in jupyter notebooks .. yay!
+- Using a feature to slice a sequence or an alignment should now preserve the annotation
+  when possible (a feature has a single contiguous span), or removes the annotation_db
+  when not querying it could be misleading.
+
+## BUG
+
+- Fixed issue where read only zipped data stores would include files
+  starting with a "._"
+- Fixed regression affecting app.as_completed()
+
+<a id='changelog-2024.7.19a5'></a>
+# Changes in release "2024.7.19a5"
+
+There are some new features and minor bug fixes in this release. 
+
+## Contributors
+
+- @GavinHuttley
+
+## ENH
+
+- genbank.iter_genbank_records() is a revised genbank parser that returns
+  primitive python types. It defaults to returning the genbank record LOCUS
+  values as the name. If the convert_features argument is None, then
+  genbank record metadata is left as a string. This can boost performance
+  10x over the old MinimalGenbankParser. The default is to convert features
+  into a dict as before.
+- genbank.minimal_parser() is a new function that provides a minimal
+  parser for Genbank files, replacing the MinimalGenbankParser. It uses
+  the genbank.iter_genbank_records() function.
+- genbank.rich_parser() replaces the RichGenbankParser. It uses
+  genbank.minimal_parser() but has the same behaviour as the older version.
+- the <app writer>.apply_to() method now accepts logger=False. This turns off
+  logging completely.
+
+## BUG
+
+- Fixed a regression affecting setting tip font sizes on dendrograms. You can now
+  assign either an integer to `<dendrogram>.tip_font` or a dict,
+  e.g. `{"size": 10, "family": "Inconsolata, monospace"}`.
+
+## Deprecations
+
+- genbank.MinimalGenbankParser is being discontinued in favor of
+  genbank.minimal_parser (see above).
+- genbank.RichGenbankParser is being discontinued in favor of
+  genbank.rich_parser (see above).
+
+<a id='changelog-2024.7.19a4'></a>
+# Changes in release "2024.7.19a4"
+
+This is a minor bug fix release.
+
+## Contributors
+
+- Contribution from @rmcar17 on fixing an encoding error when loading small newick trees.
+
+## BUG
+
+- Fixed an issue with `load_tree` incorrectly detecting the encoding of very small newick files.
+
+<a id='changelog-2024.7.19a3'></a>
+# Changes in release "2024.7.19a3"
+
+This is a minor bug fix release.
+
+## Contributors
+
+- Contributions from @GavinHuttley and @rmcar17 to Cogent3 repo
+  maintenance, developer tooling
+
+## ENH
+
+- The cogent3 select_translatable() app gets a `frame` argument. This allows
+  specifying one frame of reference for the translation for all sequences.
+
+## BUG
+
+- Fixed a regression affecting loading sequences when the path had the ~
+  character in it.
+
 <a id='changelog-2024.7.19a1'></a>
 # Changes in release "2024.7.19a1"
 

@@ -4,9 +4,10 @@ import re
 import typing
 from pickle import dumps
 
-import cogent3
 import numpy
 import pytest
+
+import cogent3
 from cogent3._version import __version__
 from cogent3.core import new_alphabet, new_genetic_code, new_moltype, new_sequence
 from cogent3.util.deserialise import deserialise_object
@@ -1911,19 +1912,19 @@ def test_absolute_position_base_cases(one_seq):
 
 def test_absolute_position_positive(one_seq):
     # with an offset, the abs index should be offset + index
-    one_seq.annotation_offset = 2
+    one_seq._seq.offset = 2
     got = one_seq._seq.absolute_position(2)
     assert got == 2 + 2
 
     # with an offset and start, the abs index should be offset + start + index
     view = one_seq[2::]
-    view.annotation_offset = 2  # todo: do we want the annotation_offset to be preserved when slicing? I think yes
+    view._seq.offset = 2  # todo: do we want the annotation_offset to be preserved when slicing? I think yes
     got = view._seq.absolute_position(2)
     assert got == 2 + 2 + 2
 
     # with an offset, start and step, the abs index should be offset + start + index * step
     view = one_seq[2::2]
-    view.annotation_offset = 2
+    view._seq.offset = 2
     got = view._seq.absolute_position(2)
     assert got == 2 + 2 + 2 * 2
 
@@ -2012,7 +2013,7 @@ def test_relative_position_with_remainder(integer_seq):
 def test_absolute_relative_roundtrip(one_seq, value, offset, start, stop, step):
     # a round trip from relative to absolute then from absolute to relative, should return the same value we began with
     view = one_seq[start:stop:step]
-    view.annotation_offset = offset or 0
+    view._seq.offset = offset or 0
     abs_val = view._seq.absolute_position(value)
     rel_val = view._seq.relative_position(abs_val)
     assert rel_val == value
@@ -2161,7 +2162,6 @@ def test_sliced_seqview_rich_dict(reverse, dna_alphabet):
     sv = sv[::-1] if reverse else sv
     rd = sv.to_rich_dict()
     assert rd["init_args"]["seq"] == parent[sl]
-    assert rd["init_args"]["offset"] == 2
 
 
 @pytest.mark.parametrize(
@@ -2385,7 +2385,7 @@ def test_coerce_to_seqview_str_bytes(cls, dna_alphabet):
     seq = "AC--GGTGGGAC"
     seqid = "seq1"
     s = bytes(seq, "utf8") if cls == bytes else seq
-    got = new_sequence._coerce_to_seqview(s, seqid, alphabet=dna_alphabet)
+    got = new_sequence._coerce_to_seqview(s, seqid, alphabet=dna_alphabet, offset=0)
     assert got.str_value == seq
     assert isinstance(got, new_sequence.SeqView)
 
@@ -2394,7 +2394,7 @@ def test_coerce_to_seqview_sequence(dna_alphabet):
     seq = "AC--GGTGGGAC"
     seqid = "seq1"
     got = new_sequence._coerce_to_seqview(
-        new_moltype.DNA.make_seq(seq=seq), seqid, alphabet=dna_alphabet
+        new_moltype.DNA.make_seq(seq=seq), seqid, alphabet=dna_alphabet, offset=0
     )
     assert got.str_value == seq
     assert isinstance(got, new_sequence.SeqView)
@@ -2407,6 +2407,7 @@ def test_coerce_to_seqview_already_seqview(dna_alphabet):
         new_sequence.SeqView(parent=seq, alphabet=dna_alphabet),
         seqid,
         alphabet=dna_alphabet,
+        offset=0,
     )
     assert got.str_value == seq
     assert isinstance(got, new_sequence.SeqView)
@@ -2525,7 +2526,6 @@ def test_seqview_seq_len_modified_seq(dna_alphabet):
 def test_sequence_str_bytes_array():
     data = "ACGGTGGGAC"
     seq = new_moltype.DNA.make_seq(seq=data)
-    print(type(seq))
     assert str(seq) == data
     assert bytes(seq) == data.encode("utf8")
     assert numpy.array_equal(

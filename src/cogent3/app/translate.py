@@ -6,7 +6,7 @@ from cogent3.core.genetic_code import GeneticCode, get_code
 from cogent3.core.moltype import Alphabet, MolType, get_moltype
 
 from .composable import NotCompleted, define_app
-from .typing import SeqsCollectionType, SerialisableType
+from .typing import SeqsCollectionType, SeqType, SerialisableType
 
 GeneticCodeTypes = Union[str, int, GeneticCode]
 MolTypes = Union[str, MolType]
@@ -166,6 +166,7 @@ class select_translatable:
         gc: GeneticCodeTypes = 1,
         allow_rc: bool = False,
         trim_terminal_stop: bool = True,
+        frame: Optional[int] = None,
     ):
         """
         Parameters
@@ -181,6 +182,9 @@ class select_translatable:
             best frame on rc, it will be negative
         trim_terminal_stop
             exclude terminal stop codon from seqs
+        frame
+            specify the coding frame (as an integer 1, 2, 3). If not specified
+            (default) uses best_frame.
 
         Returns
         -------
@@ -189,7 +193,6 @@ class select_translatable:
 
         Examples
         --------
-
         Create a sample sequence collection and an app that returns the sequences
         which are translatable.
 
@@ -202,18 +205,37 @@ class select_translatable:
         ... )
         >>> app = get_app("select_translatable")
         >>> result = app(aln)
-        >>> print(result.to_dict())
+        >>> result.to_dict()
         {'s1': 'AATATAAATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTTCATAAAGTCATA'}
 
         Use ``allow_rc=True`` to consider the reading frame for reverse strands.
 
         >>> app_rc = get_app("select_translatable", allow_rc=True)
         >>> result = app_rc(aln)
-        >>> print(result.to_dict())
+        >>> result.to_dict()
         {'s1': 'AATATAAATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTTCATAAAGTCATA', 's1_rc': 'AATATAAATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTTCATAAAGTCATA'}
+
+        If you know the sequences are all in a specific frame, you can specify
+        that using ``frame=<number>`` where the number is 1, 2 or 3. We make
+        two sequences in frame 1 and add an internal stop to one
+
+        >>> aln = make_unaligned_seqs(
+        ...     {
+        ...         "internal_stop": "AATTAAATGTGA",
+        ...         "s2": "TATGACTAA",
+        ...     }
+        ... )
+        >>> app = get_app("select_translatable", frame=1)
+        >>> result = app(aln)
+        >>> result.to_dict()
+        {'s2': 'TATGAC'}
         """
         moltype = get_moltype(moltype)
         assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
+
+        if frame is not None:
+            assert 1 <= frame <= 3, f"{frame} not 1, 2 or 3"
+        self._frame = frame
 
         self._moltype = moltype
         self._gc = get_code(gc)
@@ -221,6 +243,14 @@ class select_translatable:
         self._trim_terminal_stop = trim_terminal_stop
 
     T = Union[SerialisableType, SeqsCollectionType]
+
+    def _get_frame(self, seq: SeqType) -> int:
+        if self._frame is not None:
+            tr = self._gc.translate(str(seq), start=self._frame - 1)
+            if "*" in tr[:-1]:
+                raise ValueError(f"internal stop in {seq.name}")
+            return self._frame
+        return best_frame(seq, self._gc, allow_rc=self._allow_rc)
 
     def main(self, seqs: SeqsCollectionType) -> T:
         """returns the translatable sequences from seqs.
@@ -234,7 +264,7 @@ class select_translatable:
         error_log = []
         for seq in seqs.seqs:
             try:
-                frame = best_frame(seq, self._gc, allow_rc=self._allow_rc)
+                frame = self._get_frame(seq)
                 if frame < 0:
                     seq = seq.rc()
                     frame *= -1

@@ -21,6 +21,7 @@ A    B    C
 """
 
 import json
+import typing
 from collections import defaultdict
 from itertools import combinations, product
 
@@ -243,7 +244,7 @@ class NumericKey(int):
         return int.__new__(cls, val)
 
 
-class DictArrayTemplate(object):
+class DictArrayTemplate:
     def __init__(self, *dimensions):
         self.names = []
         self.ordinals = []
@@ -337,7 +338,7 @@ class DictArrayTemplate(object):
         return (tuple(index), klass)
 
 
-class DictArray(object):
+class DictArray:
     """Wraps a numpy array so that it can be indexed with strings. Behaves
     like nested dictionaries (only ordered).
 
@@ -376,6 +377,26 @@ class DictArray(object):
             create_new = DictArrayTemplate(*args[1:]).wrap(args[0], dtype=dtype)
             self.__dict__ = create_new.__dict__
         self.shape = self.array.shape
+
+    @classmethod
+    def from_array_names(cls, array: numpy.ndarray, *names: typing.Sequence[str]):
+        """creates instance directly from a numpy array and series of names
+
+        Parameters
+        ----------
+        array
+            any data type
+        names
+            must match the array dimensions
+        """
+
+        if len(names) != array.ndim or any(
+            len(labels) != array.shape[dim] for dim, labels in enumerate(names)
+        ):
+            raise ValueError("names must match array dimensions")
+
+        template = DictArrayTemplate(*names)
+        return DictArray(array, template)
 
     def to_array(self):
         return self.array

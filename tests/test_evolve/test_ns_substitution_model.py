@@ -2,6 +2,9 @@ import warnings
 from unittest import TestCase
 
 import numpy
+from numpy import array, dot, empty
+from numpy.testing import assert_allclose
+
 from cogent3 import DNA, make_aligned_seqs, make_tree
 from cogent3.evolve.ns_substitution_model import (
     DiscreteSubstitutionModel,
@@ -16,8 +19,6 @@ from cogent3.evolve.ns_substitution_model import (
 )
 from cogent3.evolve.predicate import MotifChange
 from cogent3.evolve.substitution_model import TimeReversibleNucleotide
-from numpy import array, dot, empty
-from numpy.testing import assert_allclose
 
 
 def _make_likelihood(model, tree, results, is_discrete=False):

@@ -1,3 +1,4 @@
+import functools
 from collections import defaultdict
 from math import floor
 
@@ -615,6 +616,19 @@ class Dendrogram(Drawable):
 
         self._contemporaneous = value
 
+    @functools.singledispatchmethod
+    def _update_tip_font(self, val):
+        """update tip font settings"""
+        raise TypeError(f"{type(val)} not a supported type for tip_font")
+
+    @_update_tip_font.register
+    def _(self, val: dict) -> None:
+        self._tip_font |= val
+
+    @_update_tip_font.register
+    def _(self, val: int) -> None:
+        self._tip_font.size = val
+
     @property
     def tip_font(self):
         return self._tip_font
@@ -622,7 +636,7 @@ class Dendrogram(Drawable):
     @tip_font.setter
     def tip_font(self, val):
         """update tip font settings"""
-        self._tip_font = val
+        self._update_tip_font(val)
 
     def _scale_label_pad(self):
         """returns the label pad scaled by maximum dist to tip"""

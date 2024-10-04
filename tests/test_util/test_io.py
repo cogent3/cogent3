@@ -6,6 +6,7 @@ import zipfile
 from urllib.parse import urlparse
 
 import pytest
+
 from cogent3.app.composable import NotCompleted
 from cogent3.util.io import (
     _path_relative_to_zip_parent,
@@ -452,6 +453,13 @@ def test_iter_splitlines_chunk_empty_file(tmp_path):
     path.write_text("")
     got = list(iter_splitlines(path))
     assert not got
+
+
+@pytest.mark.parametrize("transform", (str, pathlib.Path))
+def test_iter_splitlines_tilde(home_file, transform):
+    expect = pathlib.Path(home_file).expanduser().read_text().splitlines()
+    got = list(iter_splitlines(transform(home_file)))
+    assert len(got) == len(expect)
 
 
 def test_iter_line_blocks_correct_size(tmp_path):

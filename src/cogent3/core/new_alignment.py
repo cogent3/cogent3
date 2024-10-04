@@ -2000,7 +2000,7 @@ class SequenceCollection:
             string denoting font family
 
         Examples
-        ---------
+        --------
 
         In a jupyter notebook, this code is used to provide the representation.
 

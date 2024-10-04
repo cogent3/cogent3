@@ -8,13 +8,13 @@ import types
 from copy import deepcopy
 from enum import Enum
 from pathlib import Path
-from typing import Any, Generator, Tuple
+from typing import Any, Generator, Tuple, Union
 from uuid import uuid4
 
 from scitrack import CachingLogger
 
 from cogent3._version import __version__
-from cogent3.app.typing import get_constraint_names, type_tree
+from cogent3.app import typing as c3_typing
 from cogent3.util import parallel as PAR
 from cogent3.util import progress_display as UI
 from cogent3.util.misc import docstring_to_summary_rest, get_object_provenance
@@ -148,11 +148,11 @@ def _get_raw_hints(main_func, min_params):
         "{} type {} nesting level exceeds 2 for {}"
         "we suggest using a custom type, e.g. a dataclass"
     )
-    depth, _ = type_tree(first_param_type)
+    depth, _ = c3_typing.type_tree(first_param_type)
     if depth > 2:
         raise TypeError(msg.format("first_param", first_param_type, depth))
 
-    depth, _ = type_tree(return_type)
+    depth, _ = c3_typing.type_tree(return_type)
     if depth > 2:
         raise TypeError(msg.format("return_type", return_type, depth))
 
@@ -190,8 +190,8 @@ def _get_main_hints(klass) -> Tuple[set, set]:
         raise ValueError(f"must define a callable main() method in {klass.__name__!r}")
 
     first_param_type, return_type = _get_raw_hints(main_func, 2)
-    first_param_type = get_constraint_names(first_param_type)
-    return_type = get_constraint_names(return_type)
+    first_param_type = c3_typing.get_constraint_names(first_param_type)
+    return_type = c3_typing.get_constraint_names(return_type)
 
     return frozenset(first_param_type), frozenset(return_type)
 
@@ -254,7 +254,7 @@ def _add(self, other):
 
 def _repr(self):
     val = f"{self.input!r} + " if self.app_type is not LOADER and self.input else ""
-    all_args = deepcopy(self._init_vals)
+    all_args = {**self._init_vals}
     args_items = all_args.pop("args", None)
     data = ", ".join(f"{v!r}" for v in args_items) if args_items else ""
     kwargs_items = all_args.pop("kwargs", None)
@@ -478,7 +478,7 @@ def define_app(
         what type of app, typically you just want GENERIC.
     skip_not_completed
         if True (default), NotCompleted instances are returned without being
-        passed to the app.main() method.
+        passed to the app.
 
     Notes
     -----
@@ -660,13 +660,18 @@ def _proxy_input(dstore):
         if not e:
             continue
         if not isinstance(e, source_proxy):
-            e = source_proxy(e)
+            e = e if hasattr(e, "source") else source_proxy(e)
         inputs.append(e)
 
     return inputs
 
 
-def _source_wrapped(self, value: source_proxy) -> source_proxy:
+def _source_wrapped(
+    self, value: Union[source_proxy, c3_typing.HasSource]
+) -> c3_typing.HasSource:
+    if not isinstance(value, source_proxy):
+        return self(value)
+
     value.set_obj(self(value.obj))
     return value
 
@@ -802,36 +807,45 @@ def _apply_to(
     if not dstore:  # this should just return datastore, because if all jobs are done!
         raise ValueError("dstore is empty")
 
-    start = time.time()
     self.set_logger(logger)
-    logger = self.logger
-    logger.log_message(str(self), label="composable function")
-    logger.log_versions(["cogent3"])
+    if self.logger:
+        start = time.time()
+        logger = self.logger
+        logger.log_message(str(self), label="composable function")
+        logger.log_versions(["cogent3"])
 
     inputs = _proxy_input(inputs.values())
     for result in self.as_completed(
         inputs, parallel=parallel, par_kw=par_kw, show_progress=show_progress
     ):
-        member = self.main(data=result.obj, identifier=id_from_source(result.source))
-        md5 = getattr(member, "md5", None)
-        logger.log_message(str(member), label="output")
-        if md5:
-            logger.log_message(md5, label="output md5sum")
+        member = self.main(
+            data=getattr(result, "obj", result),
+            identifier=id_from_source(result.source),
+        )
+        if self.logger:
+            md5 = getattr(member, "md5", None)
+            logger.log_message(str(member), label="output")
+            if md5:
+                logger.log_message(md5, label="output md5sum")
 
-    taken = time.time() - start
-    logger.log_message(f"{taken}", label="TIME TAKEN")
-    log_file_path = Path(logger.log_file_path)
-    logger.shutdown()
-    self.data_store.write_log(
-        unique_id=log_file_path.name, data=log_file_path.read_text()
-    )
-    if cleanup:
-        log_file_path.unlink(missing_ok=True)
+    if self.logger:
+        taken = time.time() - start
+        logger.log_message(f"{taken}", label="TIME TAKEN")
+        log_file_path = Path(logger.log_file_path)
+        logger.shutdown()
+        self.data_store.write_log(
+            unique_id=log_file_path.name, data=log_file_path.read_text()
+        )
+        if cleanup:
+            log_file_path.unlink(missing_ok=True)
 
     return self.data_store
 
 
 def _set_logger(self, logger=None):
+    if logger is False:
+        self.logger = None
+        return
     if logger is None:
         logger = CachingLogger(create_dir=True)
     if not isinstance(logger, CachingLogger):

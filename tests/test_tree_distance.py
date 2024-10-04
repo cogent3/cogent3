@@ -1,6 +1,7 @@
 import pathlib
 
 import pytest
+
 from cogent3 import make_tree
 from cogent3.phylo.tree_distance import (
     lin_rajan_moret,

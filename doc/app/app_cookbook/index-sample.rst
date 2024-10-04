@@ -12,7 +12,7 @@ Filtering data
     sample-omit-duplicated
     sample-min-len
     sample-fixed-len
-    sample-trim-stop
+    sample-trim-stops
     sample-take-pos
     sample-take-seqs
     sample-take-n-seqs

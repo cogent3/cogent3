@@ -240,7 +240,8 @@ def proportions_to_ratios(values) -> list:
     sum of the left half and adds the resulting value to the returned list.
 
     Examples
-    -------
+    --------
+
     >>>  proportions_to_ratios([0.125, 0.125, 0.375, 0.375])
     [3, 1, 1]
 

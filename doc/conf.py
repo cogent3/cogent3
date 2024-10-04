@@ -53,7 +53,6 @@ numpydoc_class_members_toctree = False
 bibtex_bibfiles = ["cogent3.bib"]
 
 templates_path = ["doc/templates"]
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # The master toctree document.
 master_doc = "index"
@@ -75,6 +74,7 @@ exclude_patterns = [
     "cookbook/loading_tabular",
     "COGENT3_LICENSE",
     "*tmp*",
+    "templates",
 ]
 
 

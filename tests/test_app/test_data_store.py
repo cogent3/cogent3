@@ -6,6 +6,8 @@ from pathlib import Path
 from pickle import dumps, loads
 
 import pytest
+from scitrack import get_text_hexdigest
+
 from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
 from cogent3.app.composable import NotCompleted
@@ -26,7 +28,6 @@ from cogent3.app.data_store import (
 )
 from cogent3.util.table import Table
 from cogent3.util.union_dict import UnionDict
-from scitrack import get_text_hexdigest
 
 
 @pytest.fixture(scope="function")
@@ -613,6 +614,30 @@ def test_zipped_ro_basic(zipped_basic, ro_dstore):
     expect = _get_member_data(ro_dstore.not_completed)
     got = _get_member_data(dstore.not_completed)
     assert expect == got
+
+
+@pytest.fixture
+def zipped_hidden(fasta_dir):
+    # converts the fasta_dir into a zipped archive and duplicates
+    # all files to one whose name is preixed by "."
+    for fn in fasta_dir.glob("*.fasta"):
+        nf = fn.parent / f".{fn.name}"
+        shutil.copyfile(fn, nf)
+
+    path = shutil.make_archive(
+        base_name=fasta_dir.name,
+        format="zip",
+        base_dir=fasta_dir.name,
+        root_dir=fasta_dir.parent,
+    )
+    return pathlib.Path(path)
+
+
+def test_zipped_ro_basic_hidden(zipped_hidden, zipped_basic):
+    orig = ReadOnlyDataStoreZipped(zipped_basic, suffix="fasta")
+    dstore = ReadOnlyDataStoreZipped(zipped_hidden, suffix="fasta")
+    assert len(dstore) == len(orig)
+    assert all(not m.unique_id.startswith(".") for m in dstore)
 
 
 def test_zipped_ro_full(zipped_full, full_dstore):

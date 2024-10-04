@@ -1,11 +1,13 @@
 """Unit tests for FASTA and related parsers."""
 
+import io
 import os
 import pathlib
 from unittest import TestCase
 
 import numpy
 import pytest
+
 from cogent3.core.info import Info
 from cogent3.core.sequence import DnaSequence, Sequence
 from cogent3.core.sequence import ProteinSequence as Protein
@@ -442,9 +444,15 @@ def test_iter_fasta_records(DATA_DIR):
     assert got["LesserEle"][-10:] == "ATGTA-----"
 
 
-@pytest.fixture(params=(pathlib.Path, str))
+@pytest.fixture(params=(pathlib.Path, str, io.FileIO))
 def fasta_path(DATA_DIR, request):
-    return request.param(DATA_DIR / "c_elegans_WS199_dna_shortened.fasta")
+    path = DATA_DIR / "c_elegans_WS199_dna_shortened.fasta"
+    if request.param is not io.FileIO:
+        yield request.param(path)
+    else:
+        handle = path.open()
+        yield handle
+        handle.close()
 
 
 def test_iter_fasta_records_path_types(fasta_path):

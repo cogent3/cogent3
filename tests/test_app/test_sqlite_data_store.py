@@ -3,6 +3,8 @@ from pathlib import Path
 from pickle import dumps, loads
 
 import pytest
+from scitrack import get_text_hexdigest
+
 from cogent3 import get_app, open_data_store
 from cogent3.app.composable import NotCompleted
 from cogent3.app.data_store import (
@@ -20,7 +22,6 @@ from cogent3.app.sqlite_data_store import (
     open_sqlite_db_rw,
 )
 from cogent3.util.table import Table
-from scitrack import get_text_hexdigest
 
 
 @pytest.fixture(scope="function")

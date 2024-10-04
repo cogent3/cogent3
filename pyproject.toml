@@ -5,15 +5,16 @@ build-backend = "flit_core.buildapi"
 [project]
 name = "cogent3"
 description = """COmparative GENomics Toolkit 3: genomic sequence analysis within notebooks or on compute systems with 1000s of CPUs."""
-# remember to update cogent3/_version.py too!
-version = "2024.7.19a1"
+dynamic = ["version"]
+
 authors = [
     { name = "Gavin Huttley", email = "Gavin.Huttley@anu.edu.au"},
 ]
 keywords = ["biology", "genomics", "statistics", "phylogeny", "evolution", "bioinformatics"]
 readme = "README.md"
 license = { file = "LICENSE" }
-dependencies = ["charset-normalizer",
+dependencies = ["chardet",
+        "loky",
         "numpy",
         "numba>0.53; python_version>='3.9' and python_version <'3.12'",
         "numba>0.54; python_version>='3.10' and python_version <'3.12'",
@@ -47,7 +48,7 @@ Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 
 [project.optional-dependencies]
 test = [
-    "ruff==0.5.4",
+    "ruff==0.6.7",
     "kaleido",
     "pandas",
     "plotly",
@@ -57,7 +58,7 @@ test = [
     "pytest-xdist",
     "tinydb",
     "nox"]
-doc  = ["click==8.1.7",
+doc  = ["click",
         "ipykernel",
         "ipython",
         "ipywidgets",
@@ -81,7 +82,7 @@ doc  = ["click==8.1.7",
         "sphinxcontrib-bibtex",
         "sphinxcontrib-video"]
 extra = ["pandas", "plotly", "psutil", "kaleido"]
-dev = ["ruff==0.5.4",
+dev = ["ruff==0.6.7",
        "flit",
        "ipykernel",
        "ipython",
@@ -134,7 +135,6 @@ filterwarnings = [
 
 [tool.ruff]
 exclude = [
-    "iqtree2",
     ".bzr",
     ".direnv",
     ".eggs",
@@ -219,6 +219,10 @@ docstring-code-format = true
 # This only has an effect when the `docstring-code-format` setting is
 # enabled.
 docstring-code-line-length = "dynamic"
+
+[tool.ruff.lint.isort]
+# group cogent3 imports last
+known-first-party = ["cogent3"]
 
 [tool.scriv]
 format="md"
