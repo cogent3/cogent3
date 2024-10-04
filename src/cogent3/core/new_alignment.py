@@ -313,9 +313,6 @@ class SeqsDataABC(ABC):
     def add_seqs(self, seqs) -> SeqsDataABC: ...
 
     @abstractmethod
-    def reverse(self) -> SeqsDataABC: ...
-
-    @abstractmethod
     def to_rich_dict(self) -> dict: ...
 
     @abstractmethod
@@ -434,6 +431,11 @@ class SeqsData(SeqsDataABC):
         """Reverse the orientation of all sequences in the collection."""
         # the reverse method does not change the underlying data, instead just
         # toggles the _reversed attribute
+
+        # refactor: design, this can't be put on the ABC unless we add it to the
+        # AlignedSeqsData class as well -- however, ASD does not have the responsibility
+        # of managing the orientation of the sequences, the lies with the
+        # Alignment.slice_record
 
         return self.__class__(
             data=self._data,
@@ -3130,20 +3132,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             strand={**self._strand, **(strand or {})},
             offset={**self._offset, **(offset or {})},
             align_len=self.align_len,
-        )
-
-    def reverse(self):
-        # todo: kath, the eternal question, how to reverse a seqsdata which knows nothing about the slice record
-        return self.__class__(
-            seqs=self._seqs,
-            gaps=self._gaps,
-            alphabet=self.alphabet,
-            make_seq=self._make_seq,
-            make_aligned=self._make_aligned,
-            strand=self._strand,
-            offset=self._offset,
-            align_len=self.align_len,
-            check=False,
         )
 
     def subset(self, names: Union[str, typing.Sequence[str]]):
