@@ -71,7 +71,7 @@ DNA_STANDARD_PAIRS = {
 }
 
 # note change in standard order from DNA
-IUPAC_RNA_chars = ["U", "C", "A", "G"]
+IUPAC_RNA_chars = "U", "C", "A", "G"
 IUPAC_RNA_ambiguities = {
     "N": frozenset(("A", "C", "U", "G")),
     "R": frozenset(("A", "G")),
@@ -265,68 +265,64 @@ IUPAC_PROTEIN_code_aa = {
     "*": "STOP",
 }
 
-IUPAC_PROTEIN_chars = frozenset(
-    [
-        "A",
-        "C",
-        "D",
-        "E",
-        "F",
-        "G",
-        "H",
-        "I",
-        "K",
-        "L",
-        "M",
-        "N",
-        "P",
-        "Q",
-        "R",
-        "S",
-        "T",
-        "U",
-        "V",
-        "W",
-        "Y",
-    ]
+IUPAC_PROTEIN_chars = (
+    "A",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "K",
+    "L",
+    "M",
+    "N",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "Y",
 )
 
-PROTEIN_WITH_STOP_chars = frozenset(
-    [
-        "A",
-        "C",
-        "D",
-        "E",
-        "F",
-        "G",
-        "H",
-        "I",
-        "K",
-        "L",
-        "M",
-        "N",
-        "P",
-        "Q",
-        "R",
-        "S",
-        "T",
-        "U",
-        "V",
-        "W",
-        "Y",
-        "*",
-    ]
+PROTEIN_WITH_STOP_chars = (
+    "A",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "K",
+    "L",
+    "M",
+    "N",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "Y",
+    "*",
 )
 
 IUPAC_PROTEIN_ambiguities = {
     "B": frozenset(["N", "D"]),
-    "X": IUPAC_PROTEIN_chars,
+    "X": frozenset(IUPAC_PROTEIN_chars),
     "Z": frozenset(["Q", "E"]),
 }
 
 PROTEIN_WITH_STOP_ambiguities = {
     "B": frozenset(["N", "D"]),
-    "X": PROTEIN_WITH_STOP_chars,
+    "X": frozenset(PROTEIN_WITH_STOP_chars),
     "Z": frozenset(["Q", "E"]),
 }
 
