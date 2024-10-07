@@ -2018,9 +2018,6 @@ class SliceRecordABC(ABC):
         length of the underlying data (not including offset)
     """
 
-    # todo: kath
-    # slice record should throw an error if the step is 0
-
     __slots__ = ("start", "stop", "step", "_offset")
 
     @property
@@ -2477,7 +2474,15 @@ class SeqViewABC(ABC):
 
     @property
     @abstractmethod
+    def parent_len(self) -> int: ...
+
+    @property
+    @abstractmethod
     def slice_record(self) -> SliceRecordABC: ...
+
+    @property
+    def offset(self) -> int:
+        return self.slice_record.offset
 
     @property
     def is_reversed(self) -> bool:
@@ -2530,14 +2535,6 @@ class SeqView(SeqViewABC):
         the original sequence data
     alphabet
         the alphabet object defining valid characters for the sequence
-    start
-        the starting index of the slice. Defaults to the start of the sequence
-    stop
-        the stopping index of the slice. Defaults to the end of the sequence
-    step
-        the step size for the slice. Defaults to 1
-    offset
-        an offset used for adjusting the view's starting position. Defaults to 0
     seqid
         the name or identifier of the sequence
     parent_len
@@ -2591,10 +2588,6 @@ class SeqView(SeqViewABC):
     @property
     def slice_record(self) -> SliceRecordABC:
         return self._slice_record
-
-    @property
-    def offset(self) -> int:
-        return self.slice_record.offset
 
     @property
     def parent_len(self) -> int:
