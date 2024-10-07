@@ -3,6 +3,7 @@ import warnings
 
 import numpy
 import pytest
+
 from cogent3 import DNA, SequenceCollection, _Table, load_seq
 from cogent3.core.annotation_db import (
     BasicAnnotationDb,
@@ -15,7 +16,7 @@ from cogent3.core.annotation_db import (
     update_file_format,
 )
 from cogent3.core.sequence import Sequence
-from cogent3.parse.genbank import MinimalGenbankParser
+from cogent3.parse import genbank
 from cogent3.util import deserialise
 
 
@@ -597,6 +598,45 @@ def test_get_slice():
     assert str(got) == str(seq[5:10])
 
 
+def test_get_slice_annotation_offset():
+    """get_slice should return the same as slicing the sequence directly"""
+    seq = Sequence("ATTGTACGCCCCTGA", name="test_seq")
+    feature_data = {
+        "biotype": "CDS",
+        "name": "fake",
+        "spans": [
+            (5, 10),
+        ],
+        "strand": "+",
+    }
+    feature = seq.make_feature(feature_data)
+    assert feature.map.num_spans == 1
+    got = feature.get_slice()
+    assert got.annotation_offset == 5
+
+
+def test_get_slice_annotation_offset_not_set():
+    # annotation offset is set to zero if a feature spans disjoint segments
+    # plus the annotation db is set to None
+    seq = Sequence("ATTGTACGCCCCTGA", name="test_seq")
+    feature_data = {
+        "biotype": "CDS",
+        "name": "fake",
+        "spans": [
+            (5, 7),
+            (9, 11),
+        ],
+        "strand": "+",
+    }
+    feature = seq.make_feature(feature_data)
+    assert feature.map.num_spans == 2
+    got = feature.get_slice()
+    assert got.annotation_offset == 0
+    assert got.annotation_db is None
+    f = list(got.get_features(biotype="gene"))
+    assert not f
+
+
 def test_feature_get_children(seq_db):
     feat = list(seq_db.get_features(name="Transcript:B0019.1"))[0]
     new_feat_5pUTR = list(feat.get_children(biotype="five_prime_UTR"))
@@ -918,15 +958,15 @@ def test_incompatible_invalid_type(wrong_type):
 
 
 def _custom_namer(data):
-    for key in ("gene", "locus_tag", "strain"):
-        if key in data:
-            return data[key]
-    return ["default name"]
+    return next(
+        (data[key] for key in ("gene", "locus_tag", "strain") if key in data),
+        ["default name"],
+    )
 
 
 def test_gb_namer(DATA_DIR):
     path = DATA_DIR / "annotated_seq.gb"
-    got = list(MinimalGenbankParser(path.read_text().splitlines()))
+    got = list(genbank.minimal_parser(path))
     data = got[0]["features"]
     db = GenbankAnnotationDb(data=data, namer=_custom_namer, seqid=got[0]["locus"])
     # there are 2 repeat regions, which we don't catch with our namer

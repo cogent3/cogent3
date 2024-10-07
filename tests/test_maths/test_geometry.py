@@ -3,6 +3,11 @@
 from math import sqrt
 from unittest import TestCase
 
+from numpy import allclose, arange, array, insert, isclose, sum, take
+from numpy.linalg import norm
+from numpy.random import choice, dirichlet
+from numpy.testing import assert_allclose, assert_equal
+
 from cogent3.maths.geometry import (
     aitchison_distance,
     alr,
@@ -16,10 +21,6 @@ from cogent3.maths.geometry import (
     multiplicative_replacement,
     sphere_points,
 )
-from numpy import allclose, arange, array, insert, isclose, sum, take
-from numpy.linalg import norm
-from numpy.random import choice, dirichlet
-from numpy.testing import assert_allclose, assert_equal
 
 
 class CenterOfMassTests(TestCase):

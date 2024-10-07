@@ -1,15 +1,12 @@
+import loky  # noqa
 import concurrent.futures as concurrentfutures
 import multiprocessing
 import os
 import sys
 import warnings
 
+
 from cogent3.util.misc import extend_docstring_from
-
-multiprocessing.set_start_method(
-    "forkserver" if sys.platform == "darwin" else "spawn", force=True
-)
-
 
 if os.environ.get("DONT_USE_MPI", 0):
     MPI = None
@@ -64,17 +61,14 @@ def is_master_process():
     process name included "ForkProcess" for Windows
     or "SpawnProcess" for POSIX
     """
-    if MPI is not None:
-        process_cmd = sys.argv[0]
-        process_file = process_cmd.split(os.sep)[-1]
-        if process_file == "server.py":
-            return False
-    else:
-        process_name = multiprocessing.current_process().name
-        if "Fork" in process_name or "Spawn" in process_name:
-            return False
+    if MPI is None:
+        ctxt = loky.backend.get_context()
+        return ctxt.parent_process() is None
 
-    return True
+    process_cmd = sys.argv[0]
+    process_file = process_cmd.split(os.sep)[-1]
+    if process_file == "server.py":
+        return False
 
 
 class PicklableAndCallable:
@@ -167,9 +161,7 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=Non
         if not chunksize:
             chunksize = get_default_chunksize(s, max_workers)
 
-        f = PicklableAndCallable(f)
-
-        with concurrentfutures.ProcessPoolExecutor(max_workers) as executor:
+        with loky.get_reusable_executor(max_workers=max_workers) as executor:
             yield from executor.map(f, s, chunksize=chunksize)
 
 
@@ -218,9 +210,7 @@ def _as_completed_mproc(f, s, max_workers):
     if not max_workers or max_workers > multiprocessing.cpu_count():
         max_workers = multiprocessing.cpu_count() - 1
 
-    f = PicklableAndCallable(f)
-
-    with concurrentfutures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+    with loky.get_reusable_executor(max_workers=max_workers) as executor:
         to_do = [executor.submit(f, e) for e in s]
         for result in concurrentfutures.as_completed(to_do):
             yield result.result()

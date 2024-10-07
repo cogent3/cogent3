@@ -8,6 +8,9 @@ from unittest import TestCase
 
 import numpy
 import pytest
+from numpy import unravel_index
+from numpy.testing import assert_equal
+
 from cogent3.core.alphabet import (
     CharAlphabet,
     Enumeration,
@@ -22,8 +25,6 @@ from cogent3.core.alphabet import (
     uint64,
 )
 from cogent3.core.moltype import RNA
-from numpy import unravel_index
-from numpy.testing import assert_equal
 
 DnaBases = CharAlphabet("TCAG")
 RnaBases = CharAlphabet("UCAG")

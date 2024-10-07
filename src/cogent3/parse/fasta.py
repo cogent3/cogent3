@@ -1,5 +1,6 @@
 """Parsers for FASTA and related formats."""
 
+import io
 import os
 import pathlib
 import re
@@ -21,6 +22,10 @@ _white_space = re.compile(r"\s+")
 strip = str.strip
 
 Sequence = BYTES.make_seq
+
+OutTypes = typing.Union[str, bytes, numpy.ndarray]
+OptConverterType = typing.Optional[typing.Callable[[bytes], OutTypes]]
+RenamerType = typing.Callable[[str], str]
 
 
 def is_fasta_label(x):
@@ -65,7 +70,7 @@ def _(data: os.PathLike):
 
 
 def _faster_parser(
-    data: typing.Iterable[str], label_to_name: typing.Callable, label_char: str
+    data: typing.Iterable[str], label_to_name: RenamerType, label_char: str
 ) -> typing.Iterable[typing.Tuple[str, str]]:
     label = None
     seq = []
@@ -88,7 +93,7 @@ def _faster_parser(
 
 
 def _strict_parser(
-    data: typing.Iterable[str], label_to_name: typing.Callable, label_char: str
+    data: typing.Iterable[str], label_to_name: RenamerType, label_char: str
 ) -> typing.Iterable[typing.Tuple[str, str]]:
     seq = []
     label = None
@@ -121,7 +126,7 @@ def _strict_parser(
 def MinimalFastaParser(
     path: PathOrIterableType,
     strict: bool = True,
-    label_to_name: typing.Callable = str,
+    label_to_name: RenamerType = str,
     label_characters: str = ">",
 ) -> typing.Iterable[typing.Tuple[str, str]]:
     """
@@ -311,8 +316,7 @@ def LabelParser(display_template, field_formatters, split_with=":", DEBUG=False)
                     info[name] = converter(label[index])
                 except IndexError:
                     raise IndexError(
-                        "parsing label %s failed for property %s at index %s"
-                        % (label, name, index)
+                        f"parsing label {label} failed for property {name} at index {index}"
                     )
             else:
                 info[name] = label[index]
@@ -380,10 +384,6 @@ def GroupFastaParser(
     yield func(current_collection, moltype=moltype, info=info)
 
 
-OutTypes = typing.Union[str, bytes, numpy.ndarray]
-OptConverter = typing.Optional[typing.Callable[[bytes], OutTypes]]
-
-
 class minimal_converter:
     """coerces lower case bytes to upper case bytes and removes whitespace"""
 
@@ -397,7 +397,7 @@ class minimal_converter:
 
 @singledispatch
 def iter_fasta_records(
-    data, converter: OptConverter = None
+    data, converter: OptConverterType = None, label_to_name: RenamerType = str
 ) -> typing.Iterable[typing.Tuple[str, OutTypes]]:
     """generator returning sequence labels and sequences converted bytes from a fasta file
 
@@ -420,7 +420,7 @@ def iter_fasta_records(
 
 @iter_fasta_records.register
 def _(
-    data: bytes, converter: OptConverter = None
+    data: bytes, converter: OptConverterType = None, label_to_name: RenamerType = str
 ) -> typing.Iterable[typing.Tuple[str, OutTypes]]:
     if converter is None:
         converter = minimal_converter()
@@ -434,24 +434,40 @@ def _(
         if eol == -1:
             continue
         label = record[:eol].strip().decode("utf8")
+        if label_to_name:
+            label = label_to_name(label)
         seq = converter(record[eol + 1 :])
         yield label, seq
 
 
 @iter_fasta_records.register
-def _(data: str, converter: OptConverter = None):
+def _(data: str, converter: OptConverterType = None, label_to_name: RenamerType = str):
     with open_(data, mode="rb") as infile:
         data: bytes = infile.read()
-    return iter_fasta_records(data, converter=converter)
+    return iter_fasta_records(data, converter=converter, label_to_name=label_to_name)
 
 
 @iter_fasta_records.register
-def _(data: pathlib.Path, converter: OptConverter = None):
+def _(
+    data: pathlib.Path,
+    converter: OptConverterType = None,
+    label_to_name: RenamerType = str,
+):
     with open_(data, mode="rb") as infile:
         data: bytes = infile.read()
-    return iter_fasta_records(data, converter=converter)
+    return iter_fasta_records(data, converter=converter, label_to_name=label_to_name)
 
 
 @iter_fasta_records.register
-def _(data: list, converter: OptConverter = None):
-    return MinimalFastaParser(data, strict=False)
+def _(
+    data: io.TextIOWrapper,
+    converter: OptConverterType = None,
+    label_to_name: RenamerType = str,
+):
+    data: bytes = data.read().encode("utf8")
+    return iter_fasta_records(data, converter=converter, label_to_name=label_to_name)
+
+
+@iter_fasta_records.register
+def _(data: list, converter: OptConverterType = None, label_to_name: RenamerType = str):
+    return MinimalFastaParser(data, strict=False, label_to_name=label_to_name)

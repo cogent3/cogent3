@@ -1,10 +1,11 @@
 import itertools
 import unittest
 
-import cogent3.align.progressive
-import cogent3.evolve.substitution_model
 import numpy
 import pytest
+
+import cogent3.align.progressive
+import cogent3.evolve.substitution_model
 from cogent3 import (
     get_moltype,
     load_aligned_seqs,

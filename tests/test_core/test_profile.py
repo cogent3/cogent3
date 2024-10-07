@@ -3,9 +3,10 @@
 from collections import Counter
 from unittest import TestCase
 
-from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
 from numpy import array, log2, nan, vstack
 from numpy.testing import assert_allclose
+
+from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
 
 
 class MotifCountsArrayTests(TestCase):
@@ -282,8 +283,9 @@ class MotifFreqsArrayTests(TestCase):
 
     def test_pairwise_jsd(self):
         """correctly constructs pairwise JSD dict"""
-        from cogent3.maths.measure import jsd
         from numpy.random import random
+
+        from cogent3.maths.measure import jsd
 
         data = [[0.25, 0.25, 0.25, 0.25], [0.5, 0.5, 0, 0]]
         expect = jsd(data[0], data[1])
@@ -303,8 +305,9 @@ class MotifFreqsArrayTests(TestCase):
 
     def test_pairwise_jsm(self):
         """correctly constructs pairwise JS metric dict"""
-        from cogent3.maths.measure import jsm
         from numpy.random import random
+
+        from cogent3.maths.measure import jsm
 
         data = [[0.25, 0.25, 0.25, 0.25], [0.5, 0.5, 0, 0]]
         expect = jsm(data[0], data[1])

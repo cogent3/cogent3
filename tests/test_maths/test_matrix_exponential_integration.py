@@ -1,10 +1,11 @@
 from unittest import TestCase
 
-import cogent3.maths.matrix_exponentiation as cmme
 import numpy as np
-from cogent3.maths import matrix_exponential_integration as expm
 from numpy import array, diag, dot, exp
 from numpy.testing import assert_allclose
+
+import cogent3.maths.matrix_exponentiation as cmme
+from cogent3.maths import matrix_exponential_integration as expm
 
 
 class TestIntegratingExponentiator(TestCase):

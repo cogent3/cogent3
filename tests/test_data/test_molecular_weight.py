@@ -3,8 +3,9 @@
 
 from unittest import TestCase
 
-from cogent3.data.molecular_weight import ProteinMW, RnaMW
 from numpy.testing import assert_allclose
+
+from cogent3.data.molecular_weight import ProteinMW, RnaMW
 
 
 class WeightCalculatorTests(TestCase):

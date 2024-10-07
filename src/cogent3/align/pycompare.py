@@ -561,6 +561,7 @@ def find_matched_paths(
     else:
         seq_kmers.add_seq(seq2)
 
+    seq1, seq2 = str(seq1), str(seq2)
     # for every matched k-mer, we determine the y-intercept.
     for seq1_idx, seq2_idx in seq_kmers.iter_matched_indices():
         if paths.position_covered(seq1_idx, seq2_idx):
@@ -571,9 +572,9 @@ def find_matched_paths(
         s1_coord, _ = paths.last_on_path(seq1_idx, seq2_idx)
         left_limit = min(abs(s1_coord.end - seq1_idx), delta)
         ref_coord, other_coord = _extend_from_position(
-            str(seq1),
+            seq1,
             seq1_idx,
-            str(seq2),
+            seq2,
             seq2_idx,
             window=window,
             threshold=threshold,

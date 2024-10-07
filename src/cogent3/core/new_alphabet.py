@@ -475,7 +475,7 @@ def index_to_coord(index: int, coeffs: numpy.ndarray):  # pragma: no cover
     return coord
 
 
-@numba.jit()
+@numba.jit(nopython=True)
 def seq_to_kmer_indices(
     seq: numpy.ndarray,
     result: numpy.ndarray,
@@ -539,7 +539,7 @@ def seq_to_kmer_indices(
 
 
 # todo: profile this against pure python
-@numba.jit()
+@numba.jit(nopython=True)
 def kmer_indices_to_seq(
     kmer_indices: numpy.ndarray,
     result: numpy.ndarray,

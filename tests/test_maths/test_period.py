@@ -1,5 +1,8 @@
 from unittest import TestCase
 
+from numpy import arange, array, convolve, exp, float64, pi, random, sin, zeros
+from numpy.testing import assert_allclose, assert_almost_equal, assert_equal
+
 from cogent3.maths.period import _autocorr_inner2 as py_autocorr_inner
 from cogent3.maths.period import _goertzel_inner as py_goertzel_inner
 from cogent3.maths.period import _ipdft_inner2 as py_ipdft_inner
@@ -7,8 +10,6 @@ from cogent3.maths.period import auto_corr, dft, goertzel, hybrid, ipdft
 from cogent3.maths.period_numba import autocorr_inner as numba_autocorr_inner
 from cogent3.maths.period_numba import goertzel_inner as numba_goertzel_inner
 from cogent3.maths.period_numba import ipdft_inner as numba_ipdft_inner
-from numpy import arange, array, convolve, exp, float64, pi, random, sin, zeros
-from numpy.testing import assert_allclose, assert_almost_equal, assert_equal
 
 
 class TestPeriod(TestCase):

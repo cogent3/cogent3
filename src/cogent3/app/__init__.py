@@ -95,6 +95,7 @@ def available_apps(name_filter: str | None = None) -> Table:
 
 
 _get_param = re.compile('(?<=").+(?=")')
+_type_hint = re.compile(r":.+?=\s*")
 
 
 def _make_signature(app: type) -> str:
@@ -109,7 +110,7 @@ def _make_signature(app: type) -> str:
 
     init_sig = inspect.signature(app.__init__)
     app_name = app.__name__
-    params = [f'"{app_name}"']
+    params = [f"{app_name!r}"]
     empty_default = inspect._empty
     for k, v in init_sig.parameters.items():
         if k == "self":
@@ -120,6 +121,7 @@ def _make_signature(app: type) -> str:
         txt = txt.replace("<built-in function callable>", "callable")
 
         val = _get_param.findall(txt)[0]
+        val = _type_hint.sub("=", val)
         if v.default is not empty_default and callable(v.default):
             val = val.split("=", maxsplit=1)
             if hasattr(v.default, "app_type"):
@@ -127,6 +129,7 @@ def _make_signature(app: type) -> str:
             else:
                 val[-1] = f" {get_object_provenance(v.default)}"
             val = "=".join(val)
+
         params.append(val.replace("\n", " "))
 
     sig_prefix = f"{app_name}_app = get_app"
@@ -224,7 +227,7 @@ def _make_apphelp_docstring(app):
     docs = []
     app_doc = app.__doc__ or ""
     if app_doc.strip():
-        docs.extend(_make_head("Overview") + [_clean_overview(app_doc)])
+        docs.extend(_make_head("Overview") + [_clean_overview(app_doc)] + [""])
 
     docs.extend(_make_head("Options for making the app") + [_make_signature(app)])
 

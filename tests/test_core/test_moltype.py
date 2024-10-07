@@ -2,6 +2,10 @@ import pickle
 from unittest import TestCase
 
 import pytest
+
+# ind some of the standard alphabets to reduce typing
+from numpy.testing import assert_allclose
+
 from cogent3.core import sequence
 from cogent3.core.moltype import (
     DNA,
@@ -26,9 +30,6 @@ from cogent3.core.moltype import (
     make_pairs,
 )
 from cogent3.data.molecular_weight import DnaMW, RnaMW
-
-# ind some of the standard alphabets to reduce typing
-from numpy.testing import assert_allclose
 
 RnaBases = RNA.alphabets.base
 DnaBases = DNA.alphabets.base

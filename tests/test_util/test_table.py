@@ -10,6 +10,10 @@ from unittest import TestCase, skipIf
 
 import numpy
 import pytest
+from numpy import arange
+from numpy.exceptions import ComplexWarning
+from numpy.testing import assert_equal
+
 from cogent3 import load_table, make_table, open_
 from cogent3.format.table import (
     formatted_array,
@@ -24,9 +28,6 @@ from cogent3.util.table import (
     cast_str_to_numeric,
     cast_to_array,
 )
-from numpy import arange
-from numpy.exceptions import ComplexWarning
-from numpy.testing import assert_equal
 
 try:
     from pandas import DataFrame

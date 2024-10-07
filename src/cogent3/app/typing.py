@@ -6,7 +6,7 @@ from __future__ import annotations
 import inspect
 import re
 import sys
-from typing import ForwardRef, TypeVar, Union
+from typing import Any, ForwardRef, Protocol, TypeVar, Union, runtime_checkable
 
 from typing_extensions import get_args, get_origin
 
@@ -16,6 +16,19 @@ if sys.version_info.minor >= 10:
     NESTED_HINTS = (Union, UnionType, list, tuple, set)
 else:
     NESTED_HINTS = (Union, list, tuple, set)
+
+
+@runtime_checkable
+class HasSource(Protocol):
+    @property
+    def source(self) -> Any: ...
+
+
+@runtime_checkable
+class HasInfo(Protocol):
+    @property
+    def info(self) -> HasSource: ...
+
 
 AlignedSeqsType = TypeVar("AlignedSeqsType", "Alignment", "ArrayAlignment")
 UnalignedSeqsType = TypeVar("UnalignedSeqsType", bound="SequenceCollection")
