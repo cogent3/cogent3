@@ -89,11 +89,7 @@ def assign_sequential_names(num_seqs: int, base_name: str = "seq", start_at: int
     return [f"{base_name}_{i}" for i in range(start_at, start_at + num_seqs)]
 
 
-class SeqDataViewABC(new_sequence.SeqViewABC):
-    __slots__ = ()
-
-
-class SeqDataView(SeqDataViewABC):
+class SeqDataView(new_sequence.SeqViewABC):
     """
     A view class for SeqsData, providing methods for different representations
     of a single sequence.
@@ -406,6 +402,9 @@ class SeqsData(SeqsDataABC):
         sequence is on the plus strand, -1 indicates the sequence is on the
         minus strand.
         """
+        # todo: kath
+        # handling of strand needs to be worked out
+
         # we don't provide a setter for strand, as the strand information can only
         # be provided at initialisation, we check to see if the SeqsData has been
         # reversed and return the opposite strand orientation if it has
@@ -506,7 +505,7 @@ class SeqsData(SeqsDataABC):
             raise ValueError(f"provided {names=} not found in collection")
 
     def rename_seqs(self, renamer: Callable[[str], str]) -> SeqsData:
-        # todo: kath, how does this impact feature querying with original names?
+        # todo: kath, create a map between original seqid and current seqname for feature querying?
         renamed_data = {}
         renamed_strand = {}
         renamed_offset = {}
