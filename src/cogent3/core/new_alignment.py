@@ -3193,22 +3193,19 @@ class AlignedDataView(new_sequence.SeqViewABC):
     def map(self) -> IndelMap:
         gap_pos_gap_length = self.parent.get_gaps(self.seqid)
         if gap_pos_gap_length.size > 0:
-            gap_pos = (gap_pos_gap_length[:, 0],)
-            cum_gap_lengths = (gap_pos_gap_length[:, 1],)
+            gap_pos = numpy.array(gap_pos_gap_length[:, 0], dtype=int)
+            cum_gap_lengths = numpy.array(gap_pos_gap_length[:, 1], dtype=int)
         else:
             gap_pos, cum_gap_lengths = (
                 numpy.array([], dtype=int),
                 numpy.array([], dtype=int),
             )
 
-        im = IndelMap(
+        return IndelMap(
             gap_pos=gap_pos,
             cum_gap_lengths=cum_gap_lengths,
-            parent_length=len(self.parent),
+            parent_length=self.parent.seq_lengths()[self.seqid],
         )
-        return im[
-            self.slice_record.start : self.slice_record.stop : self.slice_record.step
-        ]
 
     @property
     def str_value(self) -> str:
