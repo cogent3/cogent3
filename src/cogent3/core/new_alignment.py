@@ -2899,24 +2899,32 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         return self.align_len
 
     @singledispatchmethod
-    def __getitem__(self, index: Union[str, int]) -> Aligned:
+    def __getitem__(self, index: Union[str, int]):
         raise NotImplementedError(f"__getitem__ not implemented for {type(index)}")
 
     @__getitem__.register
-    def _(self, index: str) -> Aligned:
-        adv = self.get_view(seqid=index)
-        return self.make_aligned(data=adv)
+    def _(self, index: str):
+        return self.get_view(index)
 
     @__getitem__.register
-    def _(self, index: int) -> Aligned:
+    def _(self, index: int):
         return self[self.names[index]]
 
     def seq_lengths(self) -> dict[str, int]:
         """Returns lengths of ungapped sequences as dict of {name: length, ... }."""
         return {name: len(seq) for name, seq in self._seqs.items()}
 
-    def get_view(self, seqid: str) -> AlignedDataView:
-        return AlignedDataView(parent=self, seqid=seqid)
+    @singledispatchmethod
+    def get_view(self, seqid: str):
+        return AlignedDataView(
+            parent=self,
+            seqid=seqid,
+            alphabet=self.alphabet,
+        )
+
+    @get_view.register
+    def _(self, seqid: int):
+        return self.get_view(self.names[seqid])
 
     def get_gaps(self, seqid: str) -> numpy.ndarray:
         return self._gaps[seqid]
