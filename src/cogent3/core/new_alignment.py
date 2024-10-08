@@ -144,7 +144,7 @@ class SeqDataView(new_sequence.SeqViewABC):
         """returns the sequence as a string"""
         # todo: kath, in ADV, the .get_seq_str method gets passed the step and
         # the returned sequence is sliced by the step. In SDV, the step is not
-        # applied in the get_seq_str method, but is applied in this method here. 
+        # applied in the get_seq_str method, but is applied in this method here.
         # can we make this consistent?
 
         # also, keep using parent_start and parent_stop or to use start and stop?
@@ -1569,7 +1569,7 @@ class SequenceCollection:
         # creating the new SeqsData object here violates the loose coupling
         # principle which we have been trying to adhere to.
         # or we warn of the potential change in the seqs_data object
-        
+
         seqs_data = self._seqs_data.__class__(
             data=coerce_to_seqs_data_dict(new_seqs),
             alphabet=self._seqs_data.alphabet,
@@ -3360,6 +3360,10 @@ class AlignedDataView(new_sequence.SeqViewABC):
     def copy(self, sliced: bool = False):
         return self
 
+    def to_rich_dict(self) -> dict:
+        ...
+        # todo: kath...
+
     def get_seq_view(self) -> new_sequence.SeqViewABC:
         # we want the parent coordinates in sequence coordinates
         # parent_seq_coords does not account for the stride
@@ -3380,6 +3384,42 @@ class AlignedDataView(new_sequence.SeqViewABC):
         )
 
 
+def make_gap_filter(template, gap_fraction, gap_run):
+    """Returns f(seq) -> True if no gap runs and acceptable gap fraction.
+
+    Calculations relative to template.
+    gap_run = number of consecutive gaps allowed in either the template or seq
+    gap_fraction = fraction of positions that either have a gap in the template
+        but not in the seq or in the seq but not in the template
+    NOTE: template and seq must both be ArraySequence objects.
+    """
+    template_gaps = numpy.array(template.gap_vector())
+
+    def result(seq):
+        """Returns True if seq adhers to the gap threshold and gap fraction."""
+        seq_gaps = numpy.array(seq.gap_vector())
+        # check if gap amount bad
+        if sum(seq_gaps != template_gaps) / float(len(seq)) > gap_fraction:
+            return False
+        # check if gap runs bad
+        if (
+            b"\x01" * gap_run
+            in numpy.logical_and(seq_gaps, numpy.logical_not(template_gaps))
+            .astype(numpy.uint8)
+            .tobytes()
+        ):
+            return False
+        # check if insertion runs bad
+        elif (
+            b"\x01" * gap_run
+            in numpy.logical_and(template_gaps, numpy.logical_not(seq_gaps))
+            .astype(numpy.uint8)
+            .tobytes()
+        ):
+            return False
+        return True
+
+    return result
 
 
 class _IndexableSeqs:
@@ -3431,6 +3471,21 @@ class Alignment(SequenceCollection):
             info=self.info,
         )
 
+    def __repr__(self):
+        seqs = []
+        limit = 10
+        delimiter = ""
+        for count, name in enumerate(self.names):
+            if count == 3:
+                seqs.append("...")
+                break
+            elts = list(str(self.seqs[name])[: limit + 1])
+            if len(elts) > limit:
+                elts[-1] = "..."
+            seqs.append(f"{name}[{delimiter.join(elts)}]")
+        seqs = ", ".join(seqs)
+
+        return f"{len(self.names)} x {len(self)} {self.moltype.label} alignment: {seqs}"
 
     def __len__(self):
         return len(self._seqs_data)
