@@ -330,10 +330,7 @@ class SeqsData(SeqsDataABC):
         a dictionary of {name: bool} pairs indicating if the sequence is reversed
     """
 
-    __slots__ = ("_data", "_alphabet", "_make_seq", "_reversed_seqs")
-    # todo: kath
-    # refactor: design
-    # SeqsData needs new fields that record the offsets
+    __slots__ = ("_data", "_alphabet", "_make_seq", "_strand", "_offset", "_reversed")
 
     def __init__(
         self,
@@ -341,7 +338,8 @@ class SeqsData(SeqsDataABC):
         data: dict[str, StrORBytesORArray],
         alphabet: new_alphabet.AlphabetABC,
         make_seq: Optional[MakeSeqCallable] = None,
-        reversed_seqs: dict[str, bool] = None,
+        offset: dict[str, int] = None,
+        check: bool = True,
     ):
         self._alphabet = alphabet
         self._make_seq = make_seq
@@ -350,7 +348,11 @@ class SeqsData(SeqsDataABC):
             arr = self._alphabet.to_indices(seq)
             arr.flags.writeable = False
             self._data[str(name)] = arr
-        self._reversed_seqs = reversed_seqs or {}
+        self._offset = offset or {}
+        if check:
+            assert set(self._offset.keys()) <= set(
+                self._data.keys()
+            ), "sequence name provided in offset not found in data"
 
     @property
     def names(self) -> list:
@@ -377,8 +379,11 @@ class SeqsData(SeqsDataABC):
         return self._alphabet
 
     @property
-    def reversed(self) -> dict[str, bool]:
-        return self._reversed_seqs
+
+    @property
+    def offset(self) -> dict[str, int]:
+        return {name: self._offset.get(name, 0) for name in self.names}
+
 
     def seq_lengths(self) -> dict[str, int]:
         """Returns lengths of sequences as dict of {name: length, ... }."""
@@ -403,53 +408,61 @@ class SeqsData(SeqsDataABC):
 
     def get_view(self, seqid: str) -> SeqDataView:
         seq_len = len(self._data[seqid])
-        step = -1 if self._reversed_seqs.get(seqid, False) else 1
-        return SeqDataView(parent=self, seqid=seqid, parent_len=seq_len, step=step)
+        offset = self._offset.get(seqid, 0)
 
     def subset(self, names: Union[str, typing.Sequence[str]]) -> SeqsData:
         """Returns a new SeqsData object with only the specified names."""
         names = [names] if isinstance(names, str) else names
         if data := {name: self._data.get(name) for name in names if name in self.names}:
             return self.__class__(
-                data=data, alphabet=self.alphabet, make_seq=self.make_seq
+                data=data,
+                alphabet=self.alphabet,
+                make_seq=self.make_seq,
+                offset={
+                    name: offset
+                    for name, offset in self._offset.items()
+                    if name in names
+                },
+                check=False,
             )
         else:
             raise ValueError(f"provided {names=} not found in collection")
 
-    def reverse_seqs(self, seqids: Union[str, typing.Sequence[str]] = None) -> SeqsData:
-        """Returns a new SeqsData object with the specified sequences reversed.
-        If no seqids are provided, all sequences are reversed."""
+    def rename_seqs(self, renamer: Callable[[str], str]) -> SeqsData:
+        # todo: kath, create a map between original seqid and current seqname for feature querying?
+        renamed_data = {}
 
-        if seqids is None:
-            seqids = self.names
-        elif isinstance(seqids, str):
-            seqids = [seqids]
+        renamed_offset = {}
 
-        reversed_seqs = {
-            seqid: not self._reversed_seqs.get(seqid, False) for seqid in seqids
-        }
-
-        return self.__class__(
-            data=self._data,
-            alphabet=self.alphabet,
-            make_seq=self.make_seq,
-            reversed_seqs=reversed_seqs,
+        for name in self._data:
+            new_name = renamer(name)
+            renamed_data[new_name] = self._data[name]
         )
 
-    def rename_seqs(self, renamer: Callable[[str], str]) -> SeqsData:
-        new_data = {renamer(name): seq for name, seq in self._data.items()}
+            if name in self._offset:
+                renamed_offset[new_name] = self._offset[name]
 
         return self.__class__(
-            data=new_data,
+            data=renamed_data,
             alphabet=self.alphabet,
             make_seq=self.make_seq,
-            reversed_seqs=self.reversed,
+            offset=renamed_offset,
+            check=False,
         )
 
     def add_seqs(
-        self, seqs: dict[str, StrORBytesORArray], force_unique_keys=True
+        self,
+        seqs: dict[str, StrORBytesORArray],
+        force_unique_keys=True,
+        offset=None,
     ) -> SeqsData:
-        """Returns a new SeqsData object with added sequences."""
+        """Returns a new SeqsData object with added sequences. If force_unique_keys
+        is True, raises ValueError if any names already exist in the collection."""
+        # refactor: design
+        # if the collection has been reversed, we assume the same for
+        # the new data. If this is not a desirable behaviour, we could realise
+        # the reversal of the current collection, add the new data, and set
+        # reversed to False
         if force_unique_keys and any(name in self.names for name in seqs):
             raise ValueError("One or more sequence names already exist in collection")
         new_data = {
@@ -457,7 +470,10 @@ class SeqsData(SeqsDataABC):
             **{name: self.alphabet.to_indices(seq) for name, seq in seqs.items()},
         }
         return self.__class__(
-            data=new_data, alphabet=self.alphabet, make_seq=self.make_seq
+            data=new_data,
+            alphabet=self.alphabet,
+            make_seq=self.make_seq,
+            offset={**self._offset, **(offset or {})},
         )
 
     def to_alphabet(
@@ -517,13 +533,11 @@ class SeqsData(SeqsDataABC):
 
     def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
         """returns a json serialisable dict"""
-        # todo: kath
-        # this should also include offset when implemented
         return {
             "init_args": {
                 "data": {name: self.get_seq_str(seqid=name) for name in self.names},
                 "alphabet": self.alphabet.to_rich_dict(),
-                "reversed_seqs": self.reversed,
+                "offset": self._offset,
             },
             "type": get_object_provenance(self),
             "version": __version__,
@@ -536,7 +550,7 @@ class SeqsData(SeqsDataABC):
         return cls(
             data=data["init_args"]["data"],
             alphabet=alphabet,
-            reversed_seqs=data["init_args"]["reversed_seqs"],
+            offset=data["init_args"]["offset"],
         )
 
 
@@ -1453,12 +1467,9 @@ class SequenceCollection:
             return self
 
         new_seqs = {s.name: s.trim_stop_codon(gc=gc, strict=strict) for s in self.seqs}
-        seqs_data = self.seqs.__class__(
+        seqs_data = self._seqs_data.__class__(
             data=coerce_to_seqs_data_dict(new_seqs),
-            alphabet=self.seqs.alphabet,
-            make_seq=self.seqs.make_seq,
-            reversed_seqs=self.seqs.reversed,
-        )
+            offset=self._seqs_data.offset,
         result = self.__class__(
             seqs_data=seqs_data,
             moltype=self.moltype,
@@ -1745,12 +1756,9 @@ class SequenceCollection:
         seqs_data = self.seqs.__class__(
             data=new_seqs,
             alphabet=self.seqs.alphabet,
-            make_seq=self.seqs.make_seq,
+        seqs_data = self._seqs_data.__class__(
             reversed_seqs=self.seqs.reversed,
-        )
-        return self.__class__(
-            seqs_data=seqs_data,
-            moltype=self.moltype,
+            offset=self._seqs_data.offset,
             info=self.info,
             source=self.source,
             annotation_db=self.annotation_db,
@@ -2459,47 +2467,6 @@ def _(
     seq: bytes, *, alphabet: new_alphabet.AlphabetABC
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
     return seq_to_gap_coords(seq.decode("utf-8"), alphabet=alphabet)
-
-
-class SliceRecord(new_sequence.SliceRecordABC):
-    __slots__ = "_parent_len"
-
-    def __init__(
-        self,
-        parent_len: int,
-        start: OptInt = None,
-        stop: OptInt = None,
-        step: OptInt = None,
-        offset: int = None,
-    ):
-        parent_len = int(parent_len)
-        self._parent_len = parent_len
-        self.start = start if start is not None else 0
-        self.stop = stop if stop is not None else parent_len
-        self.step = step or 1
-        self._offset = offset or 0
-
-    @property
-    def parent_len(self) -> int:
-        return self._parent_len
-
-    def _get_init_kwargs(self) -> dict:
-        return {}
-
-    def copy(self, sliced: bool = False):
-        # todo: kath
-        return self
-
-    def __repr__(self):
-        # refactor: design
-        # what should this look like?
-        return (
-            f"[{self.start}:{self.stop}:{self.step} of parent length {self.parent_len}]"
-        )
-
-    @property
-    def _zero_slice(self):
-        return self.__class__(start=0, stop=0, step=1, parent_len=self.parent_len)
 
 
 class Aligned:
