@@ -100,13 +100,13 @@ class SeqDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
     # array([3, 1, 2, 0], dtype=int8)
     """
 
-    __slots__ = ("parent", "start", "stop", "step", "_offset", "_seqid", "_parent_len")
+    __slots__ = ("parent", "alphabet", "_seqid", "_parent_len", "_slice_record")
 
     def __init__(
         self,
         *,
         parent: SeqsData,
-        seqid: str,
+        alphabet: new_alphabet.CharAlphabet,
         parent_len: int,
         start: OptInt = None,
         stop: OptInt = None,
@@ -124,10 +124,7 @@ class SeqDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
         )
         start, stop, step = func(self._parent_len, start, stop, step)
         self.parent = parent
-        self.start = start
-        self.stop = stop
-        self.step = step
-        self._offset = offset
+        self.alphabet = alphabet
         self._seqid = seqid
 
     def _checked_seq_len(self, seq_len: int) -> int:
@@ -229,9 +226,7 @@ class SeqDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
             start, stop = self.start, self.stop
 
         data["init_args"]["parent"] = self.str_value[start:stop]
-        data["init_args"]["offset"] = int(self.parent_start)
-        data["init_args"]["parent_len"] = len(self)
-
+        data["init_args"]["alphabet"] = self.alphabet.to_rich_dict()
         return data
 
 
