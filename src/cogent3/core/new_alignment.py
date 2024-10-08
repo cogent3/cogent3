@@ -3261,6 +3261,21 @@ class AlignedDataView(new_sequence.SeqViewABC):
             offset=self._offset,
         )
 
+    def __repr__(self) -> str:
+        # refactor: design
+        # todo: once design is settled, need to be tested
+        seq_preview = (
+            f"{self.parent.get_seq_array(seqid=self.seqid, start=0, stop=10)}..."
+            f"{self.parent.get_seq_array(seqid=self.seqid, start=self.parent_len-5)}"
+            if self.parent_len > 15
+            else self.parent.get_seq_array(seqid=self.seqid)
+        )
+        seq_preview = self.alphabet.from_indices(seq_preview)
+        return (
+            f"{self.__class__.__name__}(seqid={self.seqid!r}, map={self.map!r}, parent={seq_preview!r}, "
+            f"slice_record={self.slice_record.__repr__()})"
+        )
+
     def parent_seq_coords(self) -> tuple[str, int, int, int]:
         """returns seqid, start, stop, strand on the parent sequence"""
         start = self.map.get_seq_index(self.slice_record.parent_start)
