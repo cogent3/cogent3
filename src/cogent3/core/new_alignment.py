@@ -2654,8 +2654,32 @@ class Aligned:
 
     @__getitem__.register
     def _(self, span: slice):
-        self.data.slice_record = self.data.slice_record[span]
-        return self.__class__(data=self.data, moltype=self.moltype)
+        return self.__class__(data=self.data[span], moltype=self.moltype)
+
+    def parent_coordinates(self, seq_coords=False):
+        """returns seqid, start, stop, strand on the parent sequence
+
+        Parameters
+        ----------
+        seq_coords
+            if True, the coordinates for the unaligned sequence
+        """
+        strand = -1 if self.data.is_reversed else 1
+        seqid = self.data.seqid
+        if not seq_coords:
+            start = self.data.slice_record.parent_start
+            stop = self.data.slice_record.parent_stop
+        else:
+            # AlignedDataView.parent_seq_coords uses it's indelmap, etc..
+            # to return the necessary coordinates
+            seqid, start, stop, strand = self.data.parent_seq_coords()
+
+        return (
+            seqid,
+            start,
+            stop,
+            strand,
+        )
 
 
 class AlignedSeqsDataABC(SeqsDataABC):
@@ -3217,18 +3241,33 @@ class AlignedDataView(new_sequence.SeqViewABC):
         )
 
     def __str__(self) -> str:
-        # refactor: design
-        # should this return gapped or ungapped?
-        return self.gapped_str_value
+        return self.str_value
 
     def __array__(self, dtype=None, copy=None) -> numpy.ndarray:
-        arr = self.gapped_array_value
+        arr = self.array_value
         if dtype:
             arr = arr.astype(dtype)
         return arr
 
     def __bytes__(self) -> bytes:
-        return self.gapped_bytes_value
+        return self.bytes_value
+
+    def __getitem__(self, segment) -> new_sequence.SeqViewABC:
+        return self.__class__(
+            parent=self.parent,
+            seqid=self.seqid,
+            alphabet=self.alphabet,
+            slice_record=self.slice_record[segment],
+            offset=self._offset,
+        )
+
+    def parent_seq_coords(self) -> tuple[str, int, int, int]:
+        """returns seqid, start, stop, strand on the parent sequence"""
+        start = self.map.get_seq_index(self.slice_record.parent_start)
+        stop = self.map.get_seq_index(self.slice_record.parent_stop)
+        strand = -1 if self.slice_record.step < 0 else 1
+
+        return self.seqid, start, stop, strand
 
     def copy(self, sliced: bool = False):
         return self
