@@ -2598,18 +2598,34 @@ class Aligned:
     @property
     def seq(self) -> new_sequence.Sequence:
         """Returns Sequence object, excluding gaps."""
-        # todo: kath
-        # check for reverse and complement when we support negative steps
-        return self.data.parent.make_seq(seq=self.data.str_value, name=self.data.seqid)
+        # if the slice record has abs(step) > 1, we cannot retain a connection to the underlying aligned
+        # seq data container because the gaps are not going to be modulo the step.
+        rev = False
+        if abs(self.data.slice_record.step) == 1:
+            seq = self.data.get_seq_view()
+        elif self.data.slice_record.step < -1:
+            # refactor: design
+            # gapped_str_value will apply the step to the underlying data, so
+            # we need to re-reverse the underlying data AND reverse the Sequence
+            # so that the seq knows to complement the data on output
+            # we should revisit this design
+            seq = self.moltype.degap(self.data.gapped_str_value)[::-1]
+            rev = True
+        else:
+            seq = self.moltype.degap(self.data.gapped_str_value)
+        return (
+            self.moltype.make_seq(seq=seq, name=self.data.seqid)[::-1]
+            if rev
+            else self.moltype.make_seq(seq=seq, name=self.data.seqid)
+        )
 
     @property
     def gapped_seq(self) -> new_sequence.Sequence:
         """Returns Sequence object, including gaps."""
-        # todo: kath
-        # check for reverse and complement when we support negative steps
-        return self.data.parent.make_seq(
-            seq=self.data.gapped_str_value, name=self.data.seqid
-        )
+        seq = self.data.gapped_str_value
+        if self.data.slice_record.step < 0:
+            seq = self.moltype.complement(seq)
+        return self.moltype.make_seq(seq=seq, name=self.data.seqid)
 
     @property
     def moltype(self) -> new_moltype.MolType:
@@ -3217,7 +3233,26 @@ class AlignedDataView(new_sequence.SeqViewABC):
     def copy(self, sliced: bool = False):
         return self
 
-    def to_rich_dict(self) -> dict: ...
+    def get_seq_view(self) -> new_sequence.SeqViewABC:
+        # we want the parent coordinates in sequence coordinates
+        # parent_seq_coords does not account for the stride
+        seqid, start, stop, _ = self.parent_seq_coords()
+        parent_len = self.parent.seq_lengths()[seqid]
+        sr = new_sequence.SliceRecord(
+            start=start,
+            stop=stop,
+            parent_len=parent_len,
+        )[:: self.slice_record.step]
+
+        return SeqDataView(
+            parent=self.parent,
+            seqid=seqid,
+            alphabet=self.alphabet,
+            parent_len=parent_len,
+            slice_record=sr,
+        )
+
+
 
 
 class Alignment(SequenceCollection):
