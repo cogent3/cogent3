@@ -764,12 +764,14 @@ class SequenceCollection:
         if not names:
             raise ValueError(f"{names=} and {negate=} resulted in no names")
 
-        seqs_data = self.seqs.subset(names)
+        seqs_data = self._seqs_data.subset(names)
 
         result = self.__class__(
             seqs_data=seqs_data,
             moltype=self.moltype,
+            names=names,
             info=self.info,
+            source=self.source,
             **kwargs,
         )
         if self.annotation_db:
@@ -786,11 +788,11 @@ class SequenceCollection:
         self, f: Callable[[new_sequence.Sequence], bool], negate: bool = False
     ):
         """Returns list of names of seqs where f(seq) is True."""
-        get = self.seqs.__getitem__
+        get = self.seqs
 
         new_f = negate_condition(f) if negate else f
 
-        return [name for name in self.names if new_f(get(name))]
+        return [name for name in self.names if new_f(get[name])]
 
     def take_seqs_if(
         self, f: Callable[[new_sequence.Sequence], bool], negate: bool = False, **kwargs
@@ -849,7 +851,7 @@ class SequenceCollection:
             sequences to add
         """
         data = coerce_to_seqs_data_dict(seqs, label_to_name=None)
-        seqs_data = self.seqs.add_seqs(data, **kwargs)
+        seqs_data = self._seqs_data.add_seqs(data, **kwargs)
         return self.__class__(
             seqs_data=seqs_data,
             moltype=self.moltype,
@@ -860,7 +862,7 @@ class SequenceCollection:
     def rename_seqs(self, renamer: Callable[[str], str]):
         """Returns new collection with renamed sequences."""
         result = self.__class__(
-            seqs_data=self.seqs.rename_seqs(renamer),
+            seqs_data=self._seqs_data.rename_seqs(renamer),
             moltype=self.moltype,
             info=self.info,
             source=self.source,
@@ -883,9 +885,8 @@ class SequenceCollection:
         as_array
             if True, sequences are returned as numpy arrays, otherwise as strings
         """
-        get = self.seqs.__getitem__
         return {
-            name: (numpy.array(get(name)) if as_array else str(get(name)))
+            name: (numpy.array(self.seqs[name]) if as_array else str(self.seqs[name]))
             for name in self.names
         }
 
@@ -918,7 +919,7 @@ class SequenceCollection:
             "type": get_object_provenance(self),
             "version": __version__,
         }
-        data["seqs_data"] = self.seqs.to_rich_dict()
+        data["seqs_data"] = self._seqs_data.to_rich_dict()
 
         return data
 
@@ -985,7 +986,7 @@ class SequenceCollection:
 
         alpha = mtype.most_degen_alphabet()
         try:
-            new_seqs_data = self.seqs.to_alphabet(alpha)
+            new_seqs_data = self._seqs_data.to_alphabet(alpha)
         except ValueError as e:
             raise ValueError(
                 f"Failed to convert moltype from {self.moltype.label} to {moltype}"
@@ -1058,7 +1059,7 @@ class SequenceCollection:
         seqs_data = coerce_to_seqs_data_dict(translated, label_to_name=None)
         pep_moltype = pep.moltype
 
-        seqs_data = self.seqs.__class__(
+        seqs_data = self._seqs_data.__class__(
             data=seqs_data,
             alphabet=pep_moltype.most_degen_alphabet(),
             make_seq=pep_moltype.make_seq,
@@ -1082,7 +1083,6 @@ class SequenceCollection:
         -----
         Reverse complementing the collection will break the relationship to an
         annotation_db if present.
-
         """
         return self.__class__(
             seqs_data=self._seqs_data.reverse(),
@@ -1839,7 +1839,7 @@ class SequenceCollection:
             length if pad_length is None or less than max length.
         """
 
-        max_len = max(self.seqs.seq_lengths().values())
+        max_len = max(self._seqs_data.seq_lengths().values())
 
         if pad_length is None:
             pad_length = max_len
@@ -1850,7 +1850,7 @@ class SequenceCollection:
 
         new_seqs = {}
         for seq_name in self.names:
-            seq = self.seqs.get_seq_str(seqid=seq_name)
+            seq = self._seqs_data.get_seq_str(seqid=seq_name)
             padded_seq = seq + "-" * (pad_length - len(seq))
             new_seqs[seq_name] = padded_seq
 
@@ -1875,7 +1875,7 @@ class SequenceCollection:
         return {s.name: s.strand_symmetry(motif_length=motif_length) for s in self.seqs}
 
     def is_ragged(self) -> bool:
-        return len(set(self.seqs.seq_lengths().values())) > 1
+        return len(set(self._seqs_data.seq_lengths().values())) > 1
 
     def has_terminal_stop(self, gc: Any = None, strict: bool = False) -> bool:
         """Returns True if any sequence has a terminal stop codon.
@@ -2138,7 +2138,7 @@ class SequenceCollection:
             colors=colors, font_size=font_size, font_family=font_family
         )
 
-        seq_lengths = numpy.array(list(self.seqs.seq_lengths().values()))
+        seq_lengths = numpy.array(list(self._seqs_data.seq_lengths().values()))
         min_val = seq_lengths.min()
         max_val = seq_lengths.max()
         med_val = numpy.median(seq_lengths)
@@ -3375,30 +3375,68 @@ class AlignedDataView(new_sequence.SeqViewABC):
 
 
 
+class _IndexableSeqs:
+    def __init__(self, parent):
+        self.parent = parent
+
+    def __getitem__(self, key):
+        return self.parent._make_aligned(key)
+
+
 class Alignment(SequenceCollection):
     def __init__(
         self,
-        slice_record: new_sequence.SliceRecordABC = None,
+        slice_record: new_sequence.SliceRecord = None,
         **kwargs,
     ):
         super().__init__(**kwargs)
-        self._seqs_data.make_aligned = self._make_aligned
-        self._seqs_data.make_seq = self.moltype.make_seq
         self._slice_record = (
             slice_record
             if slice_record is not None
-            else SliceRecord(parent_len=self._seqs_data.align_len)
+            else new_sequence.SliceRecord(parent_len=self._seqs_data.align_len)
         )
 
-    def _make_aligned(self, data: AlignedDataView) -> Aligned:
+    @singledispatchmethod
+    def __getitem__(self, index):
+        raise NotImplementedError(f"__getitem__ not implemented for {type(index)}")
+
+    @__getitem__.register
+    def _(self, index: str):
+        return self._make_aligned(seqid=index)
+
+    @__getitem__.register
+    def _(self, index: int):
+        new_slice = self._slice_record[index]
+        return self.__class__(
+            seqs_data=self._seqs_data,
+            slice_record=new_slice,
+            moltype=self.moltype,
+            info=self.info,
+        )
+
+    @__getitem__.register
+    def _(self, index: slice):
+        new_slice = self._slice_record[index]
+        return self.__class__(
+            seqs_data=self._seqs_data,
+            slice_record=new_slice,
+            moltype=self.moltype,
+            info=self.info,
+        )
+
+
+    def __len__(self):
+        return len(self._seqs_data)
+
+    def _make_aligned(self, seqid: str) -> Aligned:
+        # we set the slice record on the AlignedDataView
+        data = self._seqs_data.get_view(seqid)
         data.slice_record = self._slice_record
         return Aligned(data=data, moltype=self.moltype)
 
     @property
     def seqs(self) -> AlignedSeqsDataABC:
-        # want to construct the ASD here (i think)
-        # gets passed the slice record
-        return self._seqs_data
+        return _IndexableSeqs(self)
 
     def get_seq(
         self, seqname: str, copy_annotations: bool = False
@@ -3437,14 +3475,11 @@ class Alignment(SequenceCollection):
         """
         # refactor: array
         # this could also iter columns of indices as a numpy array - could be an optional arg
-        get = self.seqs.__getitem__
-        pos_order = pos_order or range(self.seqs.align_len)
-        seq_order = self.names
+        pos_order = pos_order or range(self._seqs_data.align_len)
         for pos in pos_order:
-            yield [str(get(seq)[pos]) for seq in seq_order]
+            yield [str(self[seq][pos]) for seq in self.names]
 
-    def __len__(self):
-        return len(self.seqs)
+    positions = property(iter_positions)
 
     def __getitem__(self, index):
         new_slice = self._slice_record[index]
