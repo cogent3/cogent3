@@ -2642,6 +2642,16 @@ class SeqView(SeqViewABC):
             f"slice_record={self.slice_record.__repr__()})"
         )
 
+    def with_offset(self, offset: int):
+        if self._slice_record.offset:
+            raise ValueError(
+                f"cannot set {offset=} on a SeqView with an offset {self._slice_record.offset=}"
+            )
+        
+        init_kwargs = self._get_init_kwargs()
+        init_kwargs["offset"] = offset
+        return self.__class__(**init_kwargs)
+
     def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
         """returns a json serialisable dict
 
@@ -2718,7 +2728,7 @@ def _(data: SeqViewABC, seqid, alphabet, offset) -> SeqViewABC:
             f"cannot set {offset=} on a SeqView with an offset {data.offset=}"
         )
     elif offset:
-        data.offset = offset
+        return data.with_offset(offset)
     return data
 
 
