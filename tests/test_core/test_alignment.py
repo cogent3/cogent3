@@ -1037,7 +1037,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(len(got3), len(got1))
         self.assertEqual(got3.to_dict(), got1.to_dict())
 
-    def test_omit_bad_seqs(self):
+    def test_omit_bad_seqs(self):  # ported
         """omit_bad_seqs should return alignment w/o seqs causing most gaps"""
         data = {
             "s1": "---ACC---TT-",
@@ -1061,7 +1061,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         result = aln.omit_bad_seqs(0.5)
         self.assertEqual(result.to_dict(), expect)
 
-    def test_matching_ref(self):
+    def test_matching_ref(self):  # ported
         """Alignment.matching_ref returns new aln with well-aln to temp"""
         aln = self.omitSeqsTemplate_aln
         result = aln.matching_ref("s3", 0.9, 5)
@@ -1076,7 +1076,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         result4 = aln.matching_ref("s3", 0.5, 13)
         self.assertEqual(result4, {"s3": "UUCCUUCUU-UUC", "s4": "UU-UUUU-UUUUC"})
 
-    def test_iupac_consensus_RNA(self):
+    def test_iupac_consensus_RNA(self):  # ported
         """SequenceCollection iupac_consensus should use RNA IUPAC symbols correctly"""
         alignmentUpper = self.Class(
             [
@@ -1095,7 +1095,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             alignmentUpper.iupac_consensus(), "UYHBN?BSNN??KBVSN?NN??AGCWD?-"
         )
 
-    def test_iupac_consensus_DNA(self):
+    def test_iupac_consensus_DNA(self):  # ported
         """SequenceCollection iupac_consensus should use DNA IUPAC symbols correctly"""
         alignmentUpper = self.Class(
             [
@@ -1112,7 +1112,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             alignmentUpper.iupac_consensus(DNA), "TYHBN?BSNN??KBVSN?NN??AGCWD?-"
         )
 
-    def test_iupac_consensus_Protein(self):
+    def test_iupac_consensus_Protein(self):  # ported
         """SequenceCollection iupac_consensus should use protein IUPAC symbols correctly"""
         alignmentUpper = self.Class(
             [
@@ -1133,7 +1133,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         assert not self.identical.is_ragged()
         assert not self.gaps.is_ragged()
 
-    def test_probs_per_pos(self):
+    def test_probs_per_pos(self):  # ported
         """SequenceCollection.probs_per_pos should find Pr(symbol) in each
         column"""
         # make an alignment with 4 seqs (easy to calculate probabilities)
@@ -1149,12 +1149,12 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             for char, prob in probs.items():
                 assert_allclose(got[pos, char], prob)
 
-    def test_majority_consensus(self):
+    def test_majority_consensus(self):  # ported
         """SequenceCollection.majority_consensus should return commonest symbol per column"""
         # Check the exact strings expected from string transform
         self.assertEqual(self.sequences.majority_consensus(), "UCAG")
 
-    def test_uncertainties(self):
+    def test_uncertainties(self):  # ported
         """SequenceCollection.uncertainties should match hand-calculated values"""
         aln = self.Class(["ABC", "AXC"])
         obs = aln.entropy_per_pos()
@@ -1375,7 +1375,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         for k, v in expect.items():
             self.assertEqual(got[k], v)
 
-    def test_counts_per_pos(self):
+    def test_counts_per_pos(self):  # ported
         """correctly count motifs"""
         exp = array(
             [
@@ -1430,7 +1430,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         got = coll.counts_per_seq(include_ambiguity=True, allow_gap=True)
         self.assertEqual(got.col_sum()["-"], 2)
 
-    def test_counts_per_pos_default_moltype(self):  # will not port
+    def test_counts_per_pos_default_moltype(self):
         """produce correct counts per pos with default moltypes"""
         data = {"a": "AAAA??????", "b": "CCCGGG--NN", "c": "CCGGTTCCAA"}
         coll = self.Class(data=data)
@@ -1462,7 +1462,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         entropy = a.entropy_per_pos()
         assert_allclose(entropy, [numpy.nan, numpy.nan, numpy.nan])
 
-    def test_entropy_excluding_unobserved(self):
+    def test_entropy_excluding_unobserved(self):  # ported
         """omitting unobserved motifs should not affect entropy calculation"""
         a = self.Class(dict(a="ACAGGG", b="AGACCC", c="GGCCTA"), moltype=DNA)
         entropy_excluded = a.entropy_per_seq(exclude_unobserved=True)
@@ -1499,7 +1499,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         aln = self.Class({"seq1": "--TTT?", "seq2": "GATC??"})
         self.assertEqual(str(aln.get_gapped_seq("seq1")), "--TTT?")
 
-    def test_count_gaps_per_seq(self):
+    def test_count_gaps_per_seq(self):  # ported
         """correctly compute the number of gaps"""
         data = {"a": "AAAA---GGT", "b": "CCC--GG?GT"}
         aln = self.Class(data=data, moltype=DNA)
@@ -1552,7 +1552,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         seqs = load_aligned_seqs("data/brca1.fasta", array_align=array_align)
         self.assertEqual(seqs.info.source, "data/brca1.fasta")
 
-    def test_seq_entropy_just_gaps(self):
+    def test_seq_entropy_just_gaps(self):  # ported
         """get_seq_entropy should get entropy of each seq"""
         a = self.Class(dict(a="A---", b="----"), moltype=DNA)
         entropy = a.entropy_per_seq()
@@ -1643,7 +1643,7 @@ class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
 class AlignmentTests(AlignmentBaseTests, TestCase):
     Class = Alignment
 
-    def test_sliding_windows(self):
+    def test_sliding_windows(self):  # ported
         """sliding_windows should return slices of alignments."""
         alignment = self.Class(
             {"seq1": "ACGTACGT", "seq2": "ACGTACGT", "seq3": "ACGTACGT"}
@@ -2640,7 +2640,7 @@ def test_get_translation_error(cls, seqs):  # ported for SequenceCollection
 
 @pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
 @pytest.mark.parametrize("method", ("ic_score", "cogent3_score", "sp_score"))
-def test_alignment_quality_methods(cls, method):
+def test_alignment_quality_methods(cls, method):  # ported
     data = {
         "DogFaced": "TG----AATATGT------GAAAGAG",
         "FreeTaile": "TTGAAGAATATGT------GAAAGAG",
@@ -2691,7 +2691,7 @@ def test_alignment_quality_methods_zero_length(method):
     assert_allclose(score, 0.0)
 
 
-def test_get_gap_array_equivalence():
+def test_get_gap_array_equivalence():  # will not port
     # make sure produced gap arrays are identical between the
     # two Alignment classes
     data = {
@@ -3019,7 +3019,7 @@ def test_add(cls):  # will not port for SequenceCollection
 
 
 @pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
-def test_count_gaps_per_pos(cls):
+def test_count_gaps_per_pos(cls):  # ported
     """correctly compute the number of gaps"""
     data = {"a": "AAAA---GGT", "b": "CCC--GG?GT"}
     aln = cls(data=data, moltype=DNA)
@@ -3524,7 +3524,7 @@ def test_to_json(cls):  # ported for SequenceCollection
 
 
 @pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
-def test_get_position_indices(cls):
+def test_get_position_indices(cls):  # ported
     """get_position_indices should return names of cols where f(col)"""
 
     def gap_1st(x):
