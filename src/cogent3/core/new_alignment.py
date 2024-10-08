@@ -3326,7 +3326,7 @@ class AlignedDataView(new_sequence.SeqViewABC):
     def __bytes__(self) -> bytes:
         return self.bytes_value
 
-    def __getitem__(self, segment) -> new_sequence.SeqViewABC:
+    def __getitem__(self, segment) -> AlignedDataViewABC:
         return self.__class__(
             parent=self.parent,
             seqid=self.seqid,
@@ -3492,13 +3492,18 @@ class Alignment(SequenceCollection):
         return len(self._seqs_data)
 
     def _make_aligned(self, seqid: str) -> Aligned:
-        # we set the slice record on the AlignedDataView
+        # refactor: design
+        # add slice_record as an argument to the get_view() method
         data = self._seqs_data.get_view(seqid)
         data.slice_record = self._slice_record
         return Aligned(data=data, moltype=self.moltype)
 
     @property
     def seqs(self) -> AlignedSeqsDataABC:
+        # refactor: design
+        # make _seqs a private attribute and the indexable seqs class will be
+        # assigned to it in the constructor. The property will then just return
+        #  the _seqs attribute.
         return _IndexableSeqs(self)
 
     def get_seq(
@@ -3645,6 +3650,8 @@ class Alignment(SequenceCollection):
                     True
                 )
             else:
+                # refactor: design
+                # this should be on IndelMap
                 gaps = self._seqs_data.get_gaps(seqid)
                 for gap_pos, cum_gap_length in gaps:
                     result[i][list(range(gap_pos, gap_pos + cum_gap_length))] = True
