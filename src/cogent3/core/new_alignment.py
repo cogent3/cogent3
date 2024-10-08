@@ -3776,23 +3776,49 @@ def make_aligned_seqs(
     *,
     moltype: str,
     info: dict = None,
+    strand: dict[str, int] = None,
+    offset: dict[str, int] = None,
+    annotation_db: SupportsFeatures = None,
 ) -> Alignment:
     raise NotImplementedError(f"make_aligned_seqs not implemented for {type(data)}")
 
 
 @make_aligned_seqs.register
-def _(data: dict, *, moltype: str, info: dict = None) -> Alignment:
+def _(
+    data: dict,
+    *,
+    moltype: str,
+    info: dict = None,
+    strand: dict[str, str] = None,
+    offset: dict[str, int] = None,
+    annotation_db: SupportsFeatures = None,
+) -> Alignment:
     # todo: implement a coerce to AlignedSeqsData dict function
     moltype = new_moltype.get_moltype(moltype)
     alphabet = moltype.most_degen_alphabet()
     aligned_data = AlignedSeqsData.from_aligned_seqs(
-        data=data, alphabet=alphabet, make_seq=moltype.make_seq
+        data=data,
+        alphabet=alphabet,
+        make_seq=moltype.make_seq,
+        strand=strand,
+        offset=offset,
     )
-    return make_aligned_seqs(aligned_data, moltype=moltype, info=info)
+    annotation_db = annotation_db or merged_db_collection(data)
+    return make_aligned_seqs(
+        aligned_data, moltype=moltype, info=info, annotation_db=annotation_db
+    )
 
 
 @make_aligned_seqs.register
-def _(data: AlignedSeqsDataABC, *, moltype: str, info: dict = None) -> Alignment:
+def _(
+    data: AlignedSeqsDataABC,
+    *,
+    moltype: str,
+    info: dict = None,
+    strand: dict[str, str] = None,
+    offset: dict[str, int] = None,
+    annotation_db: SupportsFeatures = None,
+) -> Alignment:
     moltype = new_moltype.get_moltype(moltype)
     if not moltype.is_compatible_alphabet(data.alphabet):
         raise ValueError(
@@ -3800,4 +3826,6 @@ def _(data: AlignedSeqsDataABC, *, moltype: str, info: dict = None) -> Alignment
             f" alphabet: {data.alphabet}",
         )
 
-    return Alignment(seqs_data=data, moltype=moltype, info=info)
+    return Alignment(
+        seqs_data=data, moltype=moltype, info=info, annotation_db=annotation_db
+    )
