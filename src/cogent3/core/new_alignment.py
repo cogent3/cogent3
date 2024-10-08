@@ -3098,20 +3098,52 @@ class AlignedSeqsData(AlignedSeqsDataABC):
                 "All sequences must be the same length as existing sequences"
             )
 
-        old_seqs = {name: self.get_gapped_seq_array(seqid=name) for name in self.names}
-        new_data = old_seqs | seqs
+        new_seqs = {}
+        new_gaps = {}
+        for name, seq in seqs.items():
+            seq, gap_map = seq_to_gap_coords(seq, alphabet=self.alphabet)
+            seq = self.alphabet.to_indices(seq)
+            seq.flags.writeable = False
+            gap_map.flags.writeable = False
+            new_seqs[name], new_gaps[name] = seq, gap_map
 
-        return self.__class__.from_aligned_seqs(
-            data=new_data, alphabet=self.alphabet, make_seq=self._make_seq
+        return self.__class__(
+            seqs={**self._seqs, **new_seqs},
+            gaps={**self._gaps, **new_gaps},
+            alphabet=self.alphabet,
+            make_seq=self._make_seq,
+            strand={**self._strand, **(strand or {})},
+            offset={**self._offset, **(offset or {})},
+            align_len=self.align_len,
         )
 
-    def reversed(self):
-        # todo: kath
-        ...
-
     def subset(self, names: Union[str, typing.Sequence[str]]):
-        # todo: kath
-        ...
+        """Returns a new AlignedSeqsData object with only the specified names."""
+        names = [names] if isinstance(names, str) else names
+        if seq_data := {
+            name: self._seqs.get(name) for name in names if name in self.names
+        }:
+            gap_data = {name: self._gaps.get(name) for name in seq_data}
+            return self.__class__(
+                seqs=seq_data,
+                gaps=gap_data,
+                alphabet=self.alphabet,
+                make_seq=self._make_seq,
+                strand={
+                    name: strand
+                    for name, strand in self._strand.items()
+                    if name in names
+                },
+                offset={
+                    name: offset
+                    for name, offset in self._offset.items()
+                    if name in names
+                },
+                align_len=self.align_len,
+                check=False,
+            )
+        else:
+            raise ValueError(f"provided {names=} not found in collection")
 
     def to_alphabet(self, alphabet: new_alphabet.AlphabetABC):
         # todo: kath
