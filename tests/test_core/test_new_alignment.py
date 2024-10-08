@@ -3607,8 +3607,6 @@ def test_sliding_windows():
 
 @pytest.mark.xfail(reason="todo: get_features not properly implemented so test hangs")
 def test_get_feature():
-    from cogent3.core import new_alignment
-
     aln = new_alignment.make_aligned_seqs(
         {"x": "-AAAAAAAAA", "y": "TTTT--CCCT"}, moltype="dna"
     )
@@ -3621,8 +3619,6 @@ def test_get_feature():
 
 @pytest.fixture
 def alignment():
-    from cogent3.core import new_alignment, new_moltype
-
     data = {
         "seq1": "A-GT",
         #         012
