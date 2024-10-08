@@ -660,10 +660,7 @@ class SequenceCollection:
             info = InfoClass(info) if info else InfoClass()
         self.info = info
         self.source = source
-        # todo: kath - move _repr_policy to method so it can be reimplemented in Aligment class
         self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60)
-        # refactor:
-        # think on the assignment of annotation dbs, could we change it to a method where there is an optional argument of the remapping of names?
         self._annotation_db = annotation_db or DEFAULT_ANNOTATION_DB()
 
     @property
@@ -671,7 +668,10 @@ class SequenceCollection:
         return self._names
 
     @names.setter
-    def names(self, names: list[str]):  # refactor: design
+    def names(self, names: list[str]):
+        # refactor: design, do we accept the names as an arg, or should we rely on seqs_data keys?
+        # if we are allowing the set of names to be a subset of the seqs_data keys, we should
+        # ensure that we are using the names and not the keys in the rest of the code!
         if names is None:
             self._names = self._seqs_data.names
         elif set(names) <= set(self._seqs_data.names):
@@ -1292,6 +1292,7 @@ class SequenceCollection:
         strictly starting after start will be returned.
 
         """
+
         if not self.annotation_db:
             return None
 
@@ -1556,6 +1557,12 @@ class SequenceCollection:
             return self
 
         new_seqs = {s.name: s.trim_stop_codon(gc=gc, strict=strict) for s in self.seqs}
+        # todo: kath
+        # should we be using the seqs_data object to do this?
+        # creating the new SeqsData object here violates the loose coupling
+        # principle which we have been trying to adhere to.
+        # or we warn of the potential change in the seqs_data object
+        
         seqs_data = self._seqs_data.__class__(
             data=coerce_to_seqs_data_dict(new_seqs),
             alphabet=self._seqs_data.alphabet,
