@@ -270,6 +270,8 @@ class SeqsDataABC(ABC):
 
     @property
     @abstractmethod
+    def strand(self) -> dict[str, str]: ...
+
     @property
     @abstractmethod
     def offset(self) -> dict[str, int]: ...
@@ -328,8 +330,8 @@ class SeqsData(SeqsDataABC):
         optional sequence constructor, takes 'seq' and 'name' as keyword arguments
         and returns a Sequence instance. If not set, __getitem__ will return a
         SeqDataView
-    reversed_seqs
-        a dictionary of {name: bool} pairs indicating if the sequence is reversed
+    strand
+        a dictionary of {name: strand} pairs indicating the sequence orientation
     """
 
     __slots__ = ("_data", "_alphabet", "_make_seq", "_strand", "_offset", "_reversed")
@@ -340,6 +342,7 @@ class SeqsData(SeqsDataABC):
         data: dict[str, StrORBytesORArray],
         alphabet: new_alphabet.AlphabetABC,
         make_seq: Optional[MakeSeqCallable] = None,
+        strand: dict[str, int] = None,
         offset: dict[str, int] = None,
         check: bool = True,
     ):
@@ -350,11 +353,19 @@ class SeqsData(SeqsDataABC):
             arr = self._alphabet.to_indices(seq)
             arr.flags.writeable = False
             self._data[str(name)] = arr
+        self._strand = strand or {}
         self._offset = offset or {}
         if check:
             assert set(self._offset.keys()) <= set(
                 self._data.keys()
             ), "sequence name provided in offset not found in data"
+            assert set(self._strand.keys()) <= set(
+                self._data.keys()
+            ), "sequence name provided in strand not found in data"
+            assert set(self._strand.values()) <= {
+                1,
+                -1,
+            }, "strand must be one of '1' or '-1'"
 
     @property
     def names(self) -> list:
@@ -381,6 +392,24 @@ class SeqsData(SeqsDataABC):
         return self._alphabet
 
     @property
+    def strand(self) -> dict[str, int]:
+        """returns the strand orientation of the sequences. +1 indicates the
+        sequence is on the plus strand, -1 indicates the sequence is on the
+        minus strand.
+        """
+        # todo: kath
+        # handling of strand needs to be worked out
+
+        # we don't provide a setter for strand, as the strand information can only
+        # be provided at initialisation, we check to see if the SeqsData has been
+        # reversed and return the opposite strand orientation if it has
+        # todo: kath,
+        # the strand needs to be passed to seq (so .parent_coordinates knows about it)
+        return (
+            {name: -self._strand.get(name, 1) for name in self.names}
+            if self.is_reversed
+            else {name: self._strand.get(name, 1) for name in self.names}
+        )
 
     @property
     def offset(self) -> dict[str, int]:
@@ -420,6 +449,11 @@ class SeqsData(SeqsDataABC):
                 data=data,
                 alphabet=self.alphabet,
                 make_seq=self.make_seq,
+                strand={
+                    name: strand
+                    for name, strand in self._strand.items()
+                    if name in names
+                },
                 offset={
                     name: offset
                     for name, offset in self._offset.items()
@@ -433,14 +467,14 @@ class SeqsData(SeqsDataABC):
     def rename_seqs(self, renamer: Callable[[str], str]) -> SeqsData:
         # todo: kath, create a map between original seqid and current seqname for feature querying?
         renamed_data = {}
-
+        renamed_strand = {}
         renamed_offset = {}
 
         for name in self._data:
             new_name = renamer(name)
             renamed_data[new_name] = self._data[name]
-        )
-
+            if name in self._strand:
+                renamed_strand[new_name] = self._strand[name]
             if name in self._offset:
                 renamed_offset[new_name] = self._offset[name]
 
@@ -448,6 +482,7 @@ class SeqsData(SeqsDataABC):
             data=renamed_data,
             alphabet=self.alphabet,
             make_seq=self.make_seq,
+            strand=renamed_strand,
             offset=renamed_offset,
             check=False,
         )
@@ -456,6 +491,7 @@ class SeqsData(SeqsDataABC):
         self,
         seqs: dict[str, StrORBytesORArray],
         force_unique_keys=True,
+        strand=None,
         offset=None,
     ) -> SeqsData:
         """Returns a new SeqsData object with added sequences. If force_unique_keys
@@ -475,6 +511,7 @@ class SeqsData(SeqsDataABC):
             data=new_data,
             alphabet=self.alphabet,
             make_seq=self.make_seq,
+            strand={**self._strand, **(strand or {})},
             offset={**self._offset, **(offset or {})},
         )
 
@@ -495,10 +532,6 @@ class SeqsData(SeqsDataABC):
         )
 
         for seqid in self.names:
-            # refactor: design
-            # this conversion needs to be a method on the alphabet
-            # so it can be used by Sequence.to_moltype
-
             seq_data = self.get_seq_array(seqid=seqid)
             as_new_alpha = convert_bytes_to_new(convert_old_to_bytes(seq_data))
 
@@ -509,7 +542,13 @@ class SeqsData(SeqsDataABC):
                 )
             new_data[seqid] = as_new_alpha
 
-        return self.__class__(data=new_data, alphabet=alphabet)
+        return self.__class__(
+            data=new_data,
+            alphabet=alphabet,
+            strand=self._strand,
+            offset=self._offset,
+            check=False,
+        )
 
     def __len__(self):
         return len(self.names)
@@ -539,6 +578,7 @@ class SeqsData(SeqsDataABC):
             "init_args": {
                 "data": {name: self.get_seq_str(seqid=name) for name in self.names},
                 "alphabet": self.alphabet.to_rich_dict(),
+                "strand": self._strand,
                 "offset": self._offset,
             },
             "type": get_object_provenance(self),
@@ -552,6 +592,7 @@ class SeqsData(SeqsDataABC):
         return cls(
             data=data["init_args"]["data"],
             alphabet=alphabet,
+            strand=data["init_args"]["strand"],
             offset=data["init_args"]["offset"],
         )
 
@@ -865,15 +906,18 @@ class SequenceCollection:
         -----
         The returned collection will not retain an annotation_db if present.
         """
+        # todo: kath, constructing the SeqsData object here violates loose coupling
+        # can we put this in the SeqsData class?
         seqs = {
-            name: self.moltype.degap(self.seqs.get_seq_array(seqid=name))
+            name: self.moltype.degap(self._seqs_data.get_seq_array(seqid=name))
             for name in self.names
         }
-        seqs_data = self.seqs.__class__(
+        seqs_data = self._seqs_data.__class__(
             data=coerce_to_seqs_data_dict(seqs),
-            alphabet=self.seqs.alphabet,
-            make_seq=self.seqs.make_seq,
-            reversed_seqs=self.seqs.reversed,
+            alphabet=self._seqs_data.alphabet,
+            make_seq=self._seqs_data.make_seq,
+            strand=self._seqs_data.strand,
+            offset=self._seqs_data.offset,
         )
         return self.__class__(
             seqs_data=seqs_data,
@@ -978,6 +1022,8 @@ class SequenceCollection:
             data=seqs_data,
             alphabet=pep_moltype.most_degen_alphabet(),
             make_seq=pep_moltype.make_seq,
+            strand=self._seqs_data.strand,
+            offset=self._seqs_data.offset,
         )
         return self.__class__(
             seqs_data=seqs_data,
@@ -1471,6 +1517,9 @@ class SequenceCollection:
         new_seqs = {s.name: s.trim_stop_codon(gc=gc, strict=strict) for s in self.seqs}
         seqs_data = self._seqs_data.__class__(
             data=coerce_to_seqs_data_dict(new_seqs),
+            alphabet=self._seqs_data.alphabet,
+            make_seq=self._seqs_data.make_seq,
+            strand=self._seqs_data.strand,
             offset=self._seqs_data.offset,
         result = self.__class__(
             seqs_data=seqs_data,
@@ -1755,12 +1804,16 @@ class SequenceCollection:
             padded_seq = seq + "-" * (pad_length - len(seq))
             new_seqs[seq_name] = padded_seq
 
-        seqs_data = self.seqs.__class__(
-            data=new_seqs,
-            alphabet=self.seqs.alphabet,
         seqs_data = self._seqs_data.__class__(
-            reversed_seqs=self.seqs.reversed,
+            data=new_seqs,
+            alphabet=self._seqs_data.alphabet,
+            make_seq=self._seqs_data.make_seq,
+            strand=self._seqs_data.strand,
             offset=self._seqs_data.offset,
+        )
+        return self.__class__(
+            seqs_data=seqs_data,
+            moltype=self.moltype,
             info=self.info,
             source=self.source,
             annotation_db=self.annotation_db,
@@ -2319,6 +2372,7 @@ def make_unaligned_seqs(
     info: dict = None,
     source: OptPathType = None,
     annotation_db: SupportsFeatures = None,
+    strand: dict[str, int] = None,
 ) -> SequenceCollection:
     """Initialise an unaligned collection of sequences.
 
@@ -2363,7 +2417,7 @@ def make_unaligned_seqs(
     moltype = new_moltype.get_moltype(moltype)
     alphabet = moltype.most_degen_alphabet()
 
-    seqs_data = SeqsData(data=seqs_data, alphabet=alphabet)
+    seqs_data = SeqsData(data=seqs_data, alphabet=alphabet, strand=strand)
     return make_unaligned_seqs(
         seqs_data,
         moltype=moltype,
@@ -2383,6 +2437,7 @@ def _(
     info: dict = None,
     source: OptPathType = None,
     annotation_db: SupportsFeatures = None,
+    strand: dict[str, int] = None,
 ) -> SequenceCollection:
     moltype = new_moltype.get_moltype(moltype)
     if not moltype.is_compatible_alphabet(data.alphabet):
@@ -2604,7 +2659,7 @@ def _gapped_seq_len(seq: numpy.ndarray, gap_map: numpy.ndarray) -> int:
 
 class AlignedSeqsData(AlignedSeqsDataABC):
     # refactor: docstring
-    # needs to record parentid, strand, offset
+    # refactor: design
 
     __slots__ = (
         "_seqs",
@@ -2612,7 +2667,8 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         "_alphabet",
         "_make_seq",
         "_align_len",
-        "_make_aligned",
+        "_strand",
+        "_offset",
     )
 
     def __init__(
@@ -2621,17 +2677,32 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         seqs: Optional[dict[str, StrORBytesORArray]],
         gaps: Optional[dict[str, numpy.ndarray]],
         alphabet: new_alphabet.AlphabetABC,
-        make_seq: Optional[MakeSeqCallable],
+        make_seq: Optional[MakeSeqCallable] = None,
+        strand: dict[str, int] = None,
+        offset: dict[str, int] = None,
         align_len: OptInt = None,
         check: bool = True,
     ):
         self._alphabet = alphabet
         self._make_seq = make_seq
-        if check:
+        if check or not align_len:
             if not seqs or not gaps:
                 raise ValueError("Both seqs and gaps must be provided.")
             if set(seqs.keys()) != set(gaps.keys()):
                 raise ValueError("Keys in seqs and gaps must be identical.")
+            if strand:
+                assert set(strand.keys()).issubset(seqs.keys())
+                assert set(strand.values()) <= {
+                    1,
+                    -1,
+                }, "strand must be one of '1' or '-1'"
+            if offset:
+                assert set(offset.keys()).issubset(seqs.keys())
+            gapped_seq_lengths = {
+                _gapped_seq_len(v, l) for v, l in zip(seqs.values(), gaps.values())
+            }
+            if len(gapped_seq_lengths) != 1:
+                raise ValueError("All sequence lengths must be the same.")
         self._seqs = {}
         for k, v in seqs.items():
             seq = self._alphabet.to_indices(v)
@@ -2641,12 +2712,9 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         for k, v in gaps.items():
             self._gaps[k] = v
             v.flags.writeable = False
-        gapped_seq_lengths = {
-            _gapped_seq_len(v, l) for v, l in zip(seqs.values(), gaps.values())
-        }
-        if len(gapped_seq_lengths) != 1:
-            raise ValueError("All sequence lengths must be the same.")
         self._align_len = align_len or gapped_seq_lengths.pop()
+        self._strand = strand or {}
+        self._offset = offset or {}
 
     @classmethod
     def from_aligned_seqs(
@@ -2715,18 +2783,20 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         self._make_seq = make_seq
 
     @property
-    def make_aligned(self) -> MakeAlignedCallable:
-        return self._make_aligned
-
-    @make_aligned.setter
-    def make_aligned(self, make_aligned: MakeAlignedCallable) -> None:
-        self._make_aligned = make_aligned
 
     @property
-    def align_len(self) -> int:
-        return self._align_len
+    def strand(self) -> dict[str, str]:
+        """returns the strand orientation of each sequence in the Alignment"""
+        # todo: kath
+        # can we move to SeqsDataABC and inherit here and in SeqsData?
+        return {name: -self._strand.get(name, 1) for name in self.names}
 
-    def __len__(self):
+    @property
+    def offset(self) -> dict[str, int]:
+        """returns the offset of each sequence in the Alignment"""
+        return {name: self._offset.get(name, 0) for name in self.names}
+
+    def __len__(self) -> int:
         return self.align_len
 
     @singledispatchmethod
@@ -2920,14 +2990,25 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         ).encode("utf8")
 
     def add_seqs(
-        self, seqs: dict[str, StrORArray], force_unique_keys=True
+        self,
+        seqs: dict[str, StrORArray],
+        force_unique_keys=True,
+        strand: dict[str, int] = None,
+        offset: dict[str, int] = None,
     ) -> AlignedSeqsData:
-        """Returns a new AlignedSeqsData object with added sequences."""
+        """Returns a new AlignedSeqsData object with added sequences.
+
+        Parameters
+        ----------
+        seqs
+            dict of sequences to add {name: seq, ...}
+        force_unique_keys
+            if True, raises ValueError if any sequence names already exist in the collection
+        strand
+            the strand orientations {name: strand, ...} where strand is one of '1', '-1'.
+        """
         if force_unique_keys and any(name in self.names for name in seqs):
             raise ValueError("One or more sequence names already exist in collection")
-        # refactor: design
-        # instead of re-computing the gaps, can we construct the new gaps and append to
-        # the existing gaps?
 
         new_seq_lens = {len(seq) for seq in seqs.values()}
         if len(new_seq_lens) != 1 or new_seq_lens.pop() != self.align_len:
