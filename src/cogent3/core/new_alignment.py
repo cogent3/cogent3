@@ -2631,6 +2631,14 @@ class Aligned:
     def moltype(self) -> new_moltype.MolType:
         return self._moltype
 
+    @property
+    def name(self) -> str:
+        return self.data.seqid
+
+    def gap_vector(self) -> list[bool]:
+        """Returns gap_vector of GappedSeq, for omit_gap_pos."""
+        return self.gapped_seq.gap_vector()
+
     def __str__(self) -> str:
         return str(self.gapped_seq)
 
@@ -2680,6 +2688,11 @@ class Aligned:
             stop,
             strand,
         )
+
+    def __repr__(self) -> str:
+        # refactor: design
+        # todo: when design is finalised, add tests for this
+        return f"Aligned({self.data!r})"
 
 
 class AlignedSeqsDataABC(SeqsDataABC):
