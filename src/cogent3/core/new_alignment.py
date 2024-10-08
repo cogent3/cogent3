@@ -124,7 +124,7 @@ class SeqDataView(new_sequence.SeqViewABC):
         self._slice_record = (
             slice_record
             if slice_record is not None
-            else SliceRecord(parent_len=self._parent_len)
+            else new_sequence.SliceRecord(parent_len=self._parent_len)
         )
 
     @property
@@ -374,6 +374,7 @@ class SeqsData(SeqsDataABC):
                 -1,
             }, "strand must be one of '1' or '-1'"
         self._reversed = reversed
+        # refactor: rename reversed argument to not clash with python built-in
 
     @property
     def names(self) -> list:

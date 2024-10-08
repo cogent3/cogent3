@@ -2647,7 +2647,7 @@ class SeqView(SeqViewABC):
             raise ValueError(
                 f"cannot set {offset=} on a SeqView with an offset {self._slice_record.offset=}"
             )
-        
+
         init_kwargs = self._get_init_kwargs()
         init_kwargs["offset"] = offset
         return self.__class__(**init_kwargs)
