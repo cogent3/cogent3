@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import typing
 import warnings
@@ -12,6 +13,7 @@ from typing import Any, Callable, Iterator, Mapping, Optional, Union
 
 import numpy
 
+from cogent3 import get_app
 from cogent3._version import __version__
 from cogent3.core import new_alphabet, new_moltype, new_sequence
 from cogent3.core.annotation import Feature
@@ -26,19 +28,23 @@ from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray, load_p
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import seqs_to_fasta
 from cogent3.format.phylip import alignment_to_phylip
+from cogent3.maths.stats.number import CategoryCounter
 from cogent3.util import progress_display as UI
 from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import deserialise_object, register_deserialiser
+from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.io import atomic_write, get_format_suffixes
 from cogent3.util.misc import (
     get_object_provenance,
     get_setting_from_environ,
     negate_condition,
 )
+from cogent3.util.union_dict import UnionDict
 
 DEFAULT_ANNOTATION_DB = BasicAnnotationDb
 
 OptInt = Optional[int]
+OptFloat = Optional[float]
 OptStr = Optional[str]
 OptList = Optional[list]
 OptDict = Optional[dict]
@@ -996,6 +1002,7 @@ class SequenceCollection:
             seqs_data=new_seqs_data,
             moltype=mtype,
             info=self.info,
+            source=self.source,
             annotation_db=self.annotation_db,
         )
 
@@ -3441,7 +3448,19 @@ class Alignment(SequenceCollection):
     def get_seq(
         self, seqname: str, copy_annotations: bool = False
     ) -> new_sequence.Sequence:
-        """Return a Sequence object for the specified seqname."""
+        """Return a Sequence object for the specified seqname.
+
+        Parameters
+        ----------
+        seqname
+            name of the sequence to return
+        copy_annotations
+            if True, only the annotations for the specified sequence are copied
+            to the annotation database of the Sequence object. If False, all
+            annotations are copied.
+        """
+        # todo
+        # more efficient to constuct the sequence object directly?
         seq = self.seqs[seqname].seq
         if copy_annotations:
             seq.annotation_db = type(self.annotation_db)()
@@ -3454,9 +3473,53 @@ class Alignment(SequenceCollection):
     @c3warn.deprecated_args(
         version="2025.6", reason="naming consistency", old_new=[("seq_name", "seqname")]
     )
-    def get_gapped_seq(self, seqname):
-        """Return a gapped Sequence object for the specified seqname."""
+    def get_gapped_seq(self, seqname: str) -> new_sequence.Sequence:
+        """Return a gapped Sequence object for the specified seqname.
+
+        Notes
+        -----
+        This method breaks the connection to the annotation database.
+        """
         return self.seqs[seqname].gapped_seq
+
+    def rc(self):
+        """Returns the reverse complement of all sequences in the alignment.
+        A synonym for reverse_complement.
+
+        Notes
+        -----
+        Reverse complementing the collection will break the relationship to an
+        annotation_db if present.
+        """
+        return self.__class__(
+            seqs_data=self._seqs_data,
+            slice_record=self._slice_record[::-1],
+            names=self.names,
+            info=self.info,
+            moltype=self.moltype,
+            source=self.source,
+        )
+
+    def alignment_quality(self, app_name: str = "ic_score", **kwargs):
+        """
+        Computes the alignment quality using the indicated app
+
+        Parameters
+        ----------
+        app_name
+            name of an alignment score calculating app, e.g. 'ic_score',
+            'cogent3_score', 'sp_score'
+
+        kwargs
+            keyword arguments to be passed to the app. Use
+            ``cogent3.app_help(app_name)`` to see the available options.
+
+        Returns
+        -------
+        float or a NotCompleted instance if the score could not be computed
+        """
+        app = get_app(app_name, **kwargs)
+        return app(self)
 
     def iter_positions(
         self, pos_order: list = None
@@ -3481,25 +3544,61 @@ class Alignment(SequenceCollection):
 
     positions = property(iter_positions)
 
-    def __getitem__(self, index):
-        new_slice = self._slice_record[index]
-        result = self.__class__(
-            seqs_data=self.seqs,
-            slice_record=new_slice,
-            moltype=self.moltype,
-            info=self.info,
-        )
-        # we cannot support connection to the original annotation db if the slice is not 1 or -1
-        if abs(new_slice.step) > 1:
-            return result
-        result.annotation_db = self.annotation_db
+    def get_position_indices(
+        self, f: Callable, native: bool = False, negate: bool = False
+    ) -> list[int]:
+        """Returns list of column indices for which f(col) is True.
+
+        f : callable
+          function that returns true/false given an alignment position
+        native : boolean
+          if True, and ArrayAlignment, f is provided with slice of array
+          otherwise the string is used
+        negate : boolean
+          if True, not f() is used
+        """
+        # refactor:
+        # type hint for f
+        # implement native
+        if negate:
+
+            def new_f(x):
+                return not f(x)
+
+        else:
+            new_f = f
+
+        result = [i for i, col in enumerate(self.positions) if new_f(col)]
+
         return result
 
-    def reverse_complement(self):
-        # needs to be tracked in the ASD mirroring SD
-        ...
+    def get_gap_array(self, include_ambiguity: bool = True) -> numpy.ndarray:
+        """returns bool array with gap state True, False otherwise
 
-    def iupac_consensus(self, allow_gap: bool = True):
+        Parameters
+        ----------
+        include_ambiguity : bool
+            if True, ambiguity characters that include the gap state are
+            included
+        """
+        result = numpy.empty((self.num_seqs, len(self)), dtype=bool)
+
+        for i, seqid in enumerate(self.names):
+            seq_array = self._seqs_data.get_gapped_seq_array(
+                seqid=seqid,
+            )
+            if include_ambiguity:
+                # find the index of gaps
+                gap_indices = list(
+                    map(self.moltype.most_degen_alphabet().index, self.moltype.gaps)
+                )
+                result[i][seq_array in gap_indices] = True
+            else:
+                result[i] = seq_array == self.moltype.gap_index
+
+            return result
+
+    def iupac_consensus(self, allow_gap: bool = True) -> str:
         """Returns string containing IUPAC consensus sequence of the alignment."""
         exclude = set() if allow_gap else set(self.moltype.gaps)
         consensus = []
@@ -3509,56 +3608,558 @@ class Alignment(SequenceCollection):
             consensus.append(degen("".join(col)))
         return "".join(consensus)
 
-    def _get_raw_pretty(self, name_order):
-        """returns dict {name: seq, ...} for pretty print"""
-        if name_order is not None:
-            assert set(name_order) <= set(self.names), "names don't match"
+    def majority_consensus(self) -> new_sequence.Sequence:
+        """Returns consensus sequence containing most frequent item at each
+        position."""
+        states = []
+        data = zip(*map(str, self.seqs))
+        for pos in data:
+            pos = CategoryCounter(pos)
+            states.append(pos.mode)
 
-        output = defaultdict(list)
-        names = name_order or self.names
-        num_seqs = len(names)
+        return self.moltype.make_seq(seq="".join(states))
 
-        seqs = [str(self.seqs[name]) for name in names]
-        positions = list(zip(*seqs))
+    def counts_per_pos(
+        self,
+        motif_length: int = 1,
+        include_ambiguity: bool = False,
+        allow_gap: bool = False,
+        warn: bool = False,
+    ) -> DictArray:
+        """return DictArray of counts per position
 
-        for position in positions:
-            ref = position[0]
-            output[names[0]].append(ref)
-            for seq_num in range(1, num_seqs):
-                val = "." if position[seq_num] == ref else position[seq_num]
-                output[names[seq_num]].append(val)
+        Parameters
+        ----------
 
-        return names, output
+        warn
+            warns if motif_length > 1 and alignment trimmed to produce
+            motif columns
+        """
+        length = (len(self) // motif_length) * motif_length
+        if warn and len(self) != length:
+            warnings.warn(f"trimmed {len(self) - length}", UserWarning)
 
-    def __repr__(self):
-        seqs = []
-        limit = 10
-        delimiter = ""
-        for count, name in enumerate(self.names):
-            if count == 3:
-                seqs.append("...")
-                break
-            elts = list(str(self.seqs[name])[: limit + 1])
-            if len(elts) > limit:
-                elts[-1] = "..."
-            seqs.append(f"{name}[{delimiter.join(elts)}]")
-        seqs = ", ".join(seqs)
+        data = list(self.to_dict().values())
+        alpha = self.moltype.alphabet.get_kmer_alphabet(motif_length)
+        all_motifs = set()
+        exclude_chars = set()
+        if not allow_gap:
+            exclude_chars.update(self.moltype.gap)
 
-        return f"{len(self.names)} x {len(self)} {self.moltype.label} alignment: {seqs}"
+        if not include_ambiguity:
+            ambigs = [c for c, v in self.moltype.ambiguities.items() if len(v) > 1]
+            exclude_chars.update(ambigs)
 
-    def _repr_html_(self) -> str:
-        settings = self._repr_policy.copy()
-        env_vals = get_setting_from_environ(
-            "COGENT3_ALIGNMENT_REPR_POLICY",
-            dict(num_seqs=int, num_pos=int, wrap=int, ref_name=str),
+        result = []
+        for i in range(0, len(self) - motif_length + 1, motif_length):
+            counts = CategoryCounter([s[i : i + motif_length] for s in data])
+            all_motifs.update(list(counts))
+            result.append(counts)
+
+        if all_motifs:
+            alpha += tuple(sorted(set(alpha) ^ all_motifs))
+
+        if exclude_chars:
+            # this additional clause is required for the bytes moltype
+            # That moltype includes '-' as a character
+            alpha = [m for m in alpha if not (set(m) & exclude_chars)]
+
+        for i, counts in enumerate(result):
+            result[i] = counts.tolist(alpha)
+
+        result = MotifCountsArray(result, alpha)
+        return result
+
+    def probs_per_pos(
+        self,
+        motif_length: int = 1,
+        include_ambiguity: bool = False,
+        allow_gap: bool = False,
+        warn: bool = False,
+    ) -> MotifFreqsArray:
+        """returns MotifFreqsArray per position"""
+        counts = self.counts_per_pos(
+            motif_length=motif_length,
+            include_ambiguity=include_ambiguity,
+            allow_gap=allow_gap,
+            warn=warn,
         )
-        settings.update(env_vals)
-        return self.to_html(
-            name_order=self.names[: settings["num_seqs"]],
-            ref_name=settings["ref_name"],
-            limit=settings["num_pos"],
-            wrap=settings["wrap"],
+        return counts.to_freq_array()
+
+    def entropy_per_pos(
+        self,
+        motif_length: int = 1,
+        include_ambiguity: bool = False,
+        allow_gap: bool = False,
+        warn: bool = False,
+    ) -> numpy.ndarray:
+        """returns shannon entropy per position"""
+        probs = self.probs_per_pos(
+            motif_length=motif_length,
+            include_ambiguity=include_ambiguity,
+            allow_gap=allow_gap,
+            warn=warn,
         )
+        return probs.entropy()
+
+    def counts_per_seq(
+        self,
+        motif_length: int = 1,
+        include_ambiguity: bool = False,
+        allow_gap: bool = False,
+        exclude_unobserved: bool = False,
+        warn: bool = False,
+    ) -> MotifCountsArray:
+        """counts of non-overlapping motifs per sequence
+
+        Parameters
+        ----------
+        motif_length
+            number of elements per character.
+        include_ambiguity
+            if True, motifs containing ambiguous characters
+            from the seq moltype are included. No expansion of those is attempted.
+        allow_gap
+            if True, motifs containing a gap character are included.
+        exclude_unobserved
+            if False, all canonical states included
+        warn
+            warns if motif_length > 1 and alignment trimmed to produce
+            motif columns
+        """
+        length = (len(self) // motif_length) * motif_length
+        if warn and len(self) != length:
+            warnings.warn(f"trimmed {len(self) - length}", UserWarning)
+
+        counts = []
+        motifs = set()
+        for name in self.names:
+            seq = self.get_gapped_seq(name)
+            c = seq.counts(
+                motif_length=motif_length,
+                include_ambiguity=include_ambiguity,
+                allow_gap=allow_gap,
+                exclude_unobserved=exclude_unobserved,
+            )
+            motifs.update(c.keys())
+            counts.append(c)
+
+        if not exclude_unobserved:
+            motifs.update(self.moltype.alphabet.get_kmer_alphabet(motif_length))
+
+        motifs = list(sorted(motifs))
+        if not motifs:
+            return None
+
+        for i, c in enumerate(counts):
+            counts[i] = c.tolist(motifs)
+        return MotifCountsArray(counts, motifs, row_indices=self.names)
+
+    def probs_per_seq(
+        self,
+        motif_length: int = 1,
+        include_ambiguity: bool = False,
+        allow_gap: bool = False,
+        exclude_unobserved: bool = False,
+        warn: bool = False,
+    ) -> MotifFreqsArray:
+        """return MotifFreqsArray per sequence
+
+        Parameters
+        ----------
+        motif_length
+            number of characters per tuple.
+        include_ambiguity
+            if True, motifs containing ambiguous characters
+            from the seq moltype are included. No expansion of those is attempted.
+        allow_gap
+            if True, motifs containing a gap character are included.
+        exclude_unobserved
+            if True, unobserved motif combinations are excluded.
+        warn
+            warns if motif_length > 1 and alignment trimmed to produce
+            motif columns
+        """
+
+        counts = self.counts_per_seq(
+            motif_length=motif_length,
+            include_ambiguity=include_ambiguity,
+            allow_gap=allow_gap,
+            exclude_unobserved=exclude_unobserved,
+            warn=warn,
+        )
+        return None if counts is None else counts.to_freq_array()
+
+    def entropy_per_seq(
+        self,
+        motif_length: int = 1,
+        include_ambiguity: bool = False,
+        allow_gap: bool = False,
+        exclude_unobserved: bool = True,
+        warn: bool = False,
+    ) -> numpy.ndarray:
+        """returns the Shannon entropy per sequence
+
+        Parameters
+        ----------
+        motif_length
+            number of characters per tuple.
+        include_ambiguity
+            if True, motifs containing ambiguous characters
+            from the seq moltype are included. No expansion of those is attempted.
+        allow_gap
+            if True, motifs containing a gap character are included.
+        exclude_unobserved
+            if True, unobserved motif combinations are excluded.
+        warn
+            warns if motif_length > 1 and alignment trimmed to produce
+            motif columns
+
+        Notes
+        -----
+        For motif_length > 1, it's advisable to specify exclude_unobserved=True,
+        this avoids unnecessary calculations.
+        """
+
+        probs = self.probs_per_seq(
+            motif_length=motif_length,
+            include_ambiguity=include_ambiguity,
+            allow_gap=allow_gap,
+            exclude_unobserved=exclude_unobserved,
+            warn=warn,
+        )
+        return None if probs is None else probs.entropy()
+
+    def get_gap_array(self, include_ambiguity: bool = True):
+        """returns bool array with gap state True, False otherwise
+
+        Parameters
+        ----------
+        include_ambiguity
+            if True, ambiguity characters that include the gap state are
+            included
+        """
+        result = numpy.full((self.num_seqs, len(self)), False, dtype=bool)
+        for i, seqid in enumerate(self.names):
+            if include_ambiguity:
+                seq_array = self._seqs_data.get_gapped_seq_array(seqid=seqid)
+                result[i][seq_array >= self.moltype.most_degen_alphabet().gap_index] = (
+                    True
+                )
+            else:
+                gaps = self._seqs_data.get_gaps(seqid)
+                for gap_pos, cum_gap_length in gaps:
+                    result[i][list(range(gap_pos, gap_pos + cum_gap_length))] = True
+        return result
+
+    def count_gaps_per_pos(self, include_ambiguity: bool = True) -> DictArray:
+        """return counts of gaps per position as a DictArray
+
+        Parameters
+        ----------
+        include_ambiguity
+            if True, ambiguity characters that include the gap state are
+            included
+        """
+        gap_array = self.get_gap_array(include_ambiguity=include_ambiguity)
+        darr = DictArrayTemplate(range(len(self)))
+
+        result = gap_array.sum(axis=0)
+        result = darr.wrap(result)
+        return result
+
+    def count_gaps_per_seq(
+        self,
+        induced_by: bool = False,
+        unique: bool = False,
+        include_ambiguity: bool = True,
+        drawable: bool = False,
+    ):
+        """return counts of gaps per sequence as a DictArray
+
+        Parameters
+        ----------
+        induced_by
+            a gapped column is considered to be induced by a seq if the seq
+            has a non-gap character in that column.
+        unique
+            count is limited to gaps uniquely induced by each sequence
+        include_ambiguity
+            if True, ambiguity characters that include the gap state are
+            included
+        drawable
+            if True, resulting object is capable of plotting data via specified
+            plot type 'bar', 'box' or 'violin'
+        """
+        from cogent3.draw.drawable import Drawable
+
+        gap_array = self.get_gap_array(include_ambiguity=include_ambiguity)
+        darr = DictArrayTemplate(self.names)
+
+        if unique:
+            # we identify cols with a single non-gap character
+            gap_cols = gap_array.sum(axis=0) == self.num_seqs - 1
+            gap_array = gap_array[:, gap_cols] == False
+        elif induced_by:
+            # identify all columns with gap opposite
+            gap_cols = gap_array.sum(axis=0) > 0
+            gap_array = gap_array[:, gap_cols] == False
+        else:
+            gap_cols = gap_array.sum(axis=0) > 0
+            gap_array = gap_array[:, gap_cols]
+
+        result = gap_array.sum(axis=1)
+        result = darr.wrap(result)
+        if drawable:
+            drawable = drawable.lower()
+            trace_name = (
+                os.path.basename(self.info.source) if self.info.source else None
+            )
+            draw = Drawable("Gaps Per Sequence", showlegend=False)
+            draw.layout |= dict(yaxis=dict(title="Gap counts"))
+            if drawable == "bar":
+                trace = UnionDict(type="bar", y=result.array, x=self.names)
+            else:
+                trace = UnionDict(
+                    type=drawable, y=result.array, text=self.names, name=trace_name
+                )
+
+            draw.add_trace(trace)
+            result = draw.bound_to(result)
+
+        return result
+
+    def omit_bad_seqs(self, quantile: OptFloat = None):
+        """Returns new alignment without sequences with a number of uniquely
+        introduced gaps exceeding quantile
+
+        Uses count_gaps_per_seq(unique=True) to obtain the counts of gaps
+        uniquely introduced by a sequence. The cutoff is the quantile of
+        this distribution.
+
+        Parameters
+        ----------
+        quantile
+            sequences whose unique gap count is in a quantile larger than this
+            cutoff are excluded. The default quantile is (num_seqs - 1) / num_seqs
+        """
+        gap_counts = self.count_gaps_per_seq(unique=True)
+        quantile = quantile or (self.num_seqs - 1) / self.num_seqs
+        cutoff = numpy.quantile(gap_counts.array, quantile)
+        names = [name for name, count in gap_counts.items() if count <= cutoff]
+        return self.take_seqs(names)
+
+    def matching_ref(self, ref_name, gap_fraction, gap_run):
+        """Returns new alignment with seqs well aligned with a reference.
+
+        gap_fraction = fraction of positions that either have a gap in the
+            template but not in the seq or in the seq but not in the template
+        gap_run = number of consecutive gaps tolerated in query relative to
+            sequence or sequence relative to query
+        """
+        template = self.seqs[ref_name]
+        gap_filter = make_gap_filter(template, gap_fraction, gap_run)
+        return self.take_seqs_if(gap_filter)
+
+    def sliding_windows(
+        self, window: int, step: int, start: OptInt = None, end: OptInt = None
+    ):
+        """Generator yielding new alignments of given length and interval.
+
+        Parameters
+        ----------
+        window
+            The length of each returned alignment.
+        step
+            The interval between the start of the successive windows.
+        start
+            first window start position
+        end
+            last window start position
+        """
+        start = start or 0
+        end = [end, len(self) - window + 1][end is None]
+        end = min(len(self) - window + 1, end)
+        if start < end and len(self) - end >= window - 1:
+            for pos in range(start, end, step):
+                yield self[pos : pos + window]
+
+    def _get_seq_features(
+        self,
+        *,
+        seqid: Optional[str] = None,
+        biotype: Optional[str] = None,
+        name: Optional[str] = None,
+        allow_partial: bool = False,
+    ) -> Iterator[Feature]:
+        """yields Feature instances
+
+        Parameters
+        ----------
+        seqid
+            limit search to features on this named sequence, defaults to search all
+        biotype
+            biotype of the feature, e.g. CDS, gene
+        name
+            name of the feature
+        allow_partial
+            allow features partially overlaping self
+
+        Notes
+        -----
+        When dealing with a nucleic acid moltype, the returned features will
+        yield a sequence segment that is consistently oriented irrespective
+        of strand of the current instance.
+        """
+        if self.annotation_db is None:
+            return None
+
+        seqid_to_seqname = {seq.parent_coordinates()[0]: seq.name for seq in self.seqs}
+
+        seqids = [seqid] if isinstance(seqid, str) else seqid
+        if seqids is None:
+            seqids = tuple(seqid_to_seqname)
+        elif set(seqids) & set(self.names):
+            # we've been given seq names, convert to parent names
+            seqids = [self.seqs[seqid].parent_coordinates()[0] for seqid in seqids]
+        elif seqids and set(seqids) <= seqid_to_seqname.keys():
+            # already correct
+            pass
+        else:
+            raise ValueError(f"unknown {seqid=}")
+
+        for seqid in seqids:
+            seqname = seqid_to_seqname[seqid]
+            seq = self.seqs[seqname].seq
+            # we use parent seqid
+            parent_id, start, stop, _ = seq.parent_coordinates()
+            offset = seq.annotation_offset
+
+            for feature in self.annotation_db.get_features_matching(
+                seqid=parent_id,
+                biotype=biotype,
+                name=name,
+                on_alignment=False,
+                allow_partial=allow_partial,
+                start=start,
+                stop=stop,
+            ):
+                if offset:
+                    feature["spans"] = (numpy.array(feature["spans"]) - offset).tolist()
+                # passing self only used when self is an Alignment
+                yield seq.make_feature(feature, self)
+
+    def get_features(
+        self,
+        *,
+        seqid: Optional[str] = None,
+        biotype: Optional[str] = None,
+        name: Optional[str] = None,
+        on_alignment: Optional[bool] = None,
+        allow_partial: bool = False,
+    ) -> Iterator[Feature]:
+        """yields Feature instances
+
+        Parameters
+        ----------
+        seqid
+            limit search to features on this named sequence, defaults to search all
+        biotype
+            biotype of the feature, e.g. CDS, gene
+        name
+            name of the feature
+        on_alignment
+            limit query to features on Alignment, ignores sequences. Ignored on
+            SequenceCollection instances.
+        allow_partial
+            allow features partially overlaping self
+
+        Notes
+        -----
+        When dealing with a nucleic acid moltype, the returned features will
+        yield a sequence segment that is consistently oriented irrespective
+        of strand of the current instance.
+        """
+        # we only do on-alignment in here
+        if not on_alignment:
+            kwargs = {
+                k: v for k, v in locals().items() if k not in ("self", "__class__")
+            }
+            kwargs.pop("on_alignment")
+            yield from self._get_seq_features(**kwargs)
+
+        if on_alignment == False:
+            return
+
+        if self.annotation_db is None:
+            anno_db = merged_db_collection(self._seqs_data)
+            self.annotation_db = anno_db
+
+        if self.annotation_db is None:
+            return None
+
+        seq_map = None
+        for feature in self.annotation_db.get_features_matching(
+            biotype=biotype,
+            name=name,
+            on_alignment=on_alignment,
+            allow_partial=allow_partial,
+        ):
+            if feature["seqid"]:
+                continue
+            on_al = feature.pop("on_alignment", on_alignment)
+            if feature["seqid"]:
+                raise RuntimeError(f"{on_alignment=} {feature=}")
+            if seq_map is None:
+                seq_map = self.seqs[0].map.to_feature_map()
+                *_, strand = self.seqs[0].data.parent_coordinates()
+
+            spans = numpy.array(feature["spans"])
+            spans = seq_map.relative_position(spans)
+            feature["spans"] = spans.tolist()
+            # and if i've been reversed...?
+            feature["strand"] = "-" if strand == -1 else "+"
+            yield self.make_feature(feature=feature, on_alignment=on_al)
+
+    def to_pretty(self, name_order=None, wrap=None):
+        """returns a string representation of the alignment in pretty print format
+
+        Parameters
+        ----------
+        name_order
+            order of names for display.
+        wrap
+            maximum number of printed bases
+        """
+        names, output = self._get_raw_pretty(name_order=name_order)
+        label_width = max(list(map(len, names)))
+        name_template = "{:>%d}" % label_width
+        display_names = dict([(n, name_template.format(n)) for n in names])
+
+        def make_line(label, seq):
+            return f"{label}    {seq}"
+
+        if wrap is None:
+            result = [make_line(display_names[n], "".join(output[n])) for n in names]
+            return "\n".join(result)
+
+        align_length = len(self)
+        result = []
+        for start in range(0, align_length, wrap):
+            for n in names:
+                result.append(
+                    make_line(
+                        display_names[n],
+                        "".join(output[n][start : start + wrap]),
+                    )
+                )
+
+            result.append("")
+
+        if not result[-1]:
+            del result[-1]
+
+        return "\n".join(result)
 
     def to_html(
         self,
@@ -3729,45 +4330,40 @@ class Alignment(SequenceCollection):
         ]
         return "\n".join(text)
 
-    def to_pretty(self, name_order=None, wrap=None):
-        """returns a string representation of the alignment in pretty print format
+    def _get_raw_pretty(self, name_order):
+        """returns dict {name: seq, ...} for pretty print"""
+        if name_order is not None:
+            assert set(name_order) <= set(self.names), "names don't match"
 
-        Parameters
-        ----------
-        name_order
-            order of names for display.
-        wrap
-            maximum number of printed bases
-        """
-        names, output = self._get_raw_pretty(name_order=name_order)
-        label_width = max(list(map(len, names)))
-        name_template = "{:>%d}" % label_width
-        display_names = dict([(n, name_template.format(n)) for n in names])
+        output = defaultdict(list)
+        names = name_order or self.names
+        num_seqs = len(names)
 
-        def make_line(label, seq):
-            return f"{label}    {seq}"
+        seqs = [str(self.seqs[name]) for name in names]
+        positions = list(zip(*seqs))
 
-        if wrap is None:
-            result = [make_line(display_names[n], "".join(output[n])) for n in names]
-            return "\n".join(result)
+        for position in positions:
+            ref = position[0]
+            output[names[0]].append(ref)
+            for seq_num in range(1, num_seqs):
+                val = "." if position[seq_num] == ref else position[seq_num]
+                output[names[seq_num]].append(val)
 
-        align_length = len(self)
-        result = []
-        for start in range(0, align_length, wrap):
-            for n in names:
-                result.append(
-                    make_line(
-                        display_names[n],
-                        "".join(output[n][start : start + wrap]),
-                    )
-                )
+        return names, output
 
-            result.append("")
-
-        if not result[-1]:
-            del result[-1]
-
-        return "\n".join(result)
+    def _repr_html_(self) -> str:
+        settings = self._repr_policy.copy()
+        env_vals = get_setting_from_environ(
+            "COGENT3_ALIGNMENT_REPR_POLICY",
+            dict(num_seqs=int, num_pos=int, wrap=int, ref_name=str),
+        )
+        settings.update(env_vals)
+        return self.to_html(
+            name_order=self.names[: settings["num_seqs"]],
+            ref_name=settings["ref_name"],
+            limit=settings["num_pos"],
+            wrap=settings["wrap"],
+        )
 
 
 @singledispatch
