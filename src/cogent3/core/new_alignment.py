@@ -3632,26 +3632,22 @@ class Alignment(SequenceCollection):
 
         Parameters
         ----------
-        include_ambiguity : bool
+        include_ambiguity
             if True, ambiguity characters that include the gap state are
             included
         """
-        result = numpy.empty((self.num_seqs, len(self)), dtype=bool)
-
+        result = numpy.full((self.num_seqs, len(self)), False, dtype=bool)
         for i, seqid in enumerate(self.names):
-            seq_array = self._seqs_data.get_gapped_seq_array(
-                seqid=seqid,
-            )
             if include_ambiguity:
-                # find the index of gaps
-                gap_indices = list(
-                    map(self.moltype.most_degen_alphabet().index, self.moltype.gaps)
+                seq_array = self._seqs_data.get_gapped_seq_array(seqid=seqid)
+                result[i][seq_array >= self.moltype.most_degen_alphabet().gap_index] = (
+                    True
                 )
-                result[i][seq_array in gap_indices] = True
             else:
-                result[i] = seq_array == self.moltype.gap_index
-
-            return result
+                gaps = self._seqs_data.get_gaps(seqid)
+                for gap_pos, cum_gap_length in gaps:
+                    result[i][list(range(gap_pos, gap_pos + cum_gap_length))] = True
+        return result
 
     def iupac_consensus(self, allow_gap: bool = True) -> str:
         """Returns string containing IUPAC consensus sequence of the alignment."""
@@ -3884,28 +3880,6 @@ class Alignment(SequenceCollection):
             warn=warn,
         )
         return None if probs is None else probs.entropy()
-
-    def get_gap_array(self, include_ambiguity: bool = True):
-        """returns bool array with gap state True, False otherwise
-
-        Parameters
-        ----------
-        include_ambiguity
-            if True, ambiguity characters that include the gap state are
-            included
-        """
-        result = numpy.full((self.num_seqs, len(self)), False, dtype=bool)
-        for i, seqid in enumerate(self.names):
-            if include_ambiguity:
-                seq_array = self._seqs_data.get_gapped_seq_array(seqid=seqid)
-                result[i][seq_array >= self.moltype.most_degen_alphabet().gap_index] = (
-                    True
-                )
-            else:
-                gaps = self._seqs_data.get_gaps(seqid)
-                for gap_pos, cum_gap_length in gaps:
-                    result[i][list(range(gap_pos, gap_pos + cum_gap_length))] = True
-        return result
 
     def count_gaps_per_pos(self, include_ambiguity: bool = True) -> DictArray:
         """return counts of gaps per position as a DictArray
