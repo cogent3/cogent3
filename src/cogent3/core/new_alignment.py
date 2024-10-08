@@ -270,7 +270,9 @@ class SeqsDataABC(ABC):
 
     @property
     @abstractmethod
-    def reversed(self) -> dict[str, bool]: ...
+    @property
+    @abstractmethod
+    def offset(self) -> dict[str, int]: ...
 
     @abstractmethod
     def get_seq_array(
