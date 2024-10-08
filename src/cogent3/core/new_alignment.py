@@ -344,6 +344,7 @@ class SeqsData(SeqsDataABC):
         make_seq: Optional[MakeSeqCallable] = None,
         strand: dict[str, int] = None,
         offset: dict[str, int] = None,
+        reversed: bool = False,
         check: bool = True,
     ):
         self._alphabet = alphabet
@@ -366,6 +367,7 @@ class SeqsData(SeqsDataABC):
                 1,
                 -1,
             }, "strand must be one of '1' or '-1'"
+        self._reversed = reversed
 
     @property
     def names(self) -> list:
@@ -415,6 +417,27 @@ class SeqsData(SeqsDataABC):
     def offset(self) -> dict[str, int]:
         return {name: self._offset.get(name, 0) for name in self.names}
 
+    @property
+    def is_reversed(self) -> bool:
+        return self._reversed
+
+    def reverse(self) -> SeqsData:
+        """Reverse the orientation of all sequences in the collection."""
+        # refactor: design, this can't be put on the SeqsDataABC unless we add it to the
+        # AlignedSeqsData class as well -- however, ASD does not have the responsibility
+        # of managing the orientation of the sequences, the lies with the
+        # Alignment.slice_record
+
+        # we dont touch the data, just toggle the reversed attribute
+        return self.__class__(
+            data=self._data,
+            alphabet=self.alphabet,
+            make_seq=self.make_seq,
+            strand=self._strand,
+            offset=self._offset,
+            reversed=not self._reversed,
+            check=False,
+        )
 
     def seq_lengths(self) -> dict[str, int]:
         """Returns lengths of sequences as dict of {name: length, ... }."""
@@ -440,6 +463,16 @@ class SeqsData(SeqsDataABC):
     def get_view(self, seqid: str) -> SeqDataView:
         seq_len = len(self._data[seqid])
         offset = self._offset.get(seqid, 0)
+        slice_record = new_sequence.SliceRecord(
+            step=-1 if self.is_reversed else 1, parent_len=seq_len, offset=offset
+        )
+        return SeqDataView(
+            parent=self,
+            seqid=seqid,
+            parent_len=seq_len,
+            alphabet=self.alphabet,
+            slice_record=slice_record,
+        )
 
     def subset(self, names: Union[str, typing.Sequence[str]]) -> SeqsData:
         """Returns a new SeqsData object with only the specified names."""
@@ -459,6 +492,7 @@ class SeqsData(SeqsDataABC):
                     for name, offset in self._offset.items()
                     if name in names
                 },
+                reversed=self._reversed,
                 check=False,
             )
         else:
@@ -484,6 +518,7 @@ class SeqsData(SeqsDataABC):
             make_seq=self.make_seq,
             strand=renamed_strand,
             offset=renamed_offset,
+            reversed=self._reversed,
             check=False,
         )
 
@@ -513,6 +548,7 @@ class SeqsData(SeqsDataABC):
             make_seq=self.make_seq,
             strand={**self._strand, **(strand or {})},
             offset={**self._offset, **(offset or {})},
+            reversed=self._reversed,
         )
 
     def to_alphabet(
@@ -547,6 +583,7 @@ class SeqsData(SeqsDataABC):
             alphabet=alphabet,
             strand=self._strand,
             offset=self._offset,
+            reversed=self._reversed,
             check=False,
         )
 
@@ -580,6 +617,7 @@ class SeqsData(SeqsDataABC):
                 "alphabet": self.alphabet.to_rich_dict(),
                 "strand": self._strand,
                 "offset": self._offset,
+                "reversed": self.is_reversed,
             },
             "type": get_object_provenance(self),
             "version": __version__,
@@ -594,6 +632,7 @@ class SeqsData(SeqsDataABC):
             alphabet=alphabet,
             strand=data["init_args"]["strand"],
             offset=data["init_args"]["offset"],
+            reversed=data["init_args"]["reversed"],
         )
 
 
@@ -918,6 +957,7 @@ class SequenceCollection:
             make_seq=self._seqs_data.make_seq,
             strand=self._seqs_data.strand,
             offset=self._seqs_data.offset,
+            reversed=self._seqs_data.is_reversed,
         )
         return self.__class__(
             seqs_data=seqs_data,
@@ -1024,6 +1064,7 @@ class SequenceCollection:
             make_seq=pep_moltype.make_seq,
             strand=self._seqs_data.strand,
             offset=self._seqs_data.offset,
+            reversed=self._seqs_data.is_reversed,
         )
         return self.__class__(
             seqs_data=seqs_data,
@@ -1044,7 +1085,7 @@ class SequenceCollection:
 
         """
         return self.__class__(
-            seqs_data=self.seqs.reverse_seqs(),
+            seqs_data=self._seqs_data.reverse(),
             names=self.names,
             info=self.info,
             moltype=self.moltype,
@@ -1521,6 +1562,8 @@ class SequenceCollection:
             make_seq=self._seqs_data.make_seq,
             strand=self._seqs_data.strand,
             offset=self._seqs_data.offset,
+            reversed=self._seqs_data.is_reversed,
+        )
         result = self.__class__(
             seqs_data=seqs_data,
             moltype=self.moltype,
@@ -1810,6 +1853,7 @@ class SequenceCollection:
             make_seq=self._seqs_data.make_seq,
             strand=self._seqs_data.strand,
             offset=self._seqs_data.offset,
+            reversed=self._seqs_data.is_reversed,
         )
         return self.__class__(
             seqs_data=seqs_data,
