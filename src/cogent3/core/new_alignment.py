@@ -190,13 +190,12 @@ class SeqDataView(new_sequence.SeqViewABC):
             parent_len=self.parent_len,
             slice_record=self.slice_record[segment],
         )
+
     def __repr__(self) -> str:
-        # todo: add alphabet to the repr
         seq = f"{self[:10]!s}...{self[-5:]}" if len(self) > 15 else str(self)
         return (
-            f"{self.__class__.__name__}(parent={seq}, start={self.start}, "
-            f"stop={self.stop}, step={self.step}, offset={self.offset}, "
-            f"seqid={self.seqid!r}, parent_len={self.parent_len})"
+            f"{self.__class__.__name__}(seqid={self.seqid!r}, parent={seq}, "
+            f"slice_record={self.slice_record!r})"
         )
 
     # refactor: design, do we support copy? do we support copy with sliced?
