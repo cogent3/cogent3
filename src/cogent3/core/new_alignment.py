@@ -83,7 +83,7 @@ def assign_sequential_names(num_seqs: int, base_name: str = "seq", start_at: int
     return [f"{base_name}_{i}" for i in range(start_at, start_at + num_seqs)]
 
 
-class SeqDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
+class SeqDataView(new_sequence.SeqViewABC):
     """
     A view class for SeqsData, providing methods for different representations
     of a single sequence.
@@ -108,37 +108,17 @@ class SeqDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
         parent: SeqsData,
         alphabet: new_alphabet.CharAlphabet,
         parent_len: int,
-        start: OptInt = None,
-        stop: OptInt = None,
-        step: OptInt = None,
-        offset: int = 0,
+        seqid: str = None,
+        slice_record: new_sequence.SliceRecordABC = None,
     ):
-        if step == 0:
-            raise ValueError("step cannot be 0")
-        step = 1 if step is None else step
-        self._parent_len = self._checked_seq_len(parent_len)
-        func = (
-            new_sequence._input_vals_pos_step
-            if step > 0
-            else new_sequence._input_vals_neg_step
-        )
-        start, stop, step = func(self._parent_len, start, stop, step)
         self.parent = parent
         self.alphabet = alphabet
         self._seqid = seqid
-
-    def _checked_seq_len(self, seq_len: int) -> int:
-        assert seq_len is not None
-        return seq_len
-
-    @property
-    def _zero_slice(self):
-        return self.__class__(
-            parent=self.parent,
-            seqid=self.seqid,
-            parent_len=self._parent_len,
-            start=0,
-            stop=0,
+        self._parent_len = parent_len
+        self._slice_record = (
+            slice_record
+            if slice_record is not None
+            else SliceRecord(parent_len=self._parent_len)
         )
 
     @property
@@ -149,32 +129,46 @@ class SeqDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
     def parent_len(self) -> int:
         return self._parent_len
 
-    def _get_init_kwargs(self):
-        return {"parent": self.parent, "seqid": self.seqid}
+    @property
+    def slice_record(self) -> new_sequence.SliceRecordABC:
+        return self._slice_record
 
     @property
     def str_value(self) -> str:
         """returns the sequence as a string"""
+        # todo: kath, in ADV, the .get_seq_str method gets passed the step and
+        # the returned sequence is sliced by the step. In SDV, the step is not
+        # applied in the get_seq_str method, but is applied in this method here. 
+        # can we make this consistent?
+
+        # also, keep using parent_start and parent_stop or to use start and stop?
+        # this is another inconsistency between SDV and ADV
         raw = self.parent.get_seq_str(
-            seqid=self.seqid, start=self.parent_start, stop=self.parent_stop
+            seqid=self.seqid,
+            start=self.slice_record.parent_start,
+            stop=self.slice_record.parent_stop,
         )
-        return raw if self.step == 1 else raw[:: self.step]
+        return raw if self.slice_record.step == 1 else raw[:: self.slice_record.step]
 
     @property
     def array_value(self) -> numpy.ndarray:
         """returns the sequence as a numpy array"""
         raw = self.parent.get_seq_array(
-            seqid=self.seqid, start=self.parent_start, stop=self.parent_stop
+            seqid=self.seqid,
+            start=self.slice_record.parent_start,
+            stop=self.slice_record.parent_stop,
         )
-        return raw if self.step == 1 else raw[:: self.step]
+        return raw if self.slice_record.step == 1 else raw[:: self.slice_record.step]
 
     @property
     def bytes_value(self) -> bytes:
         """returns the sequence as bytes"""
         raw = self.parent.get_seq_bytes(
-            seqid=self.seqid, start=self.parent_start, stop=self.parent_stop
+            seqid=self.seqid,
+            start=self.slice_record.parent_start,
+            stop=self.slice_record.parent_stop,
         )
-        return raw if self.step == 1 else raw[:: self.step]
+        return raw if self.slice_record.step == 1 else raw[:: self.slice_record.step]
 
     def __str__(self) -> str:
         return self.str_value
@@ -188,6 +182,14 @@ class SeqDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
     def __bytes__(self) -> bytes:
         return self.bytes_value
 
+    def __getitem__(self, segment: typing.Union[int, slice]) -> new_sequence.SeqViewABC:
+        return self.__class__(
+            parent=self.parent,
+            seqid=self.seqid,
+            alphabet=self.alphabet,
+            parent_len=self.parent_len,
+            slice_record=self.slice_record[segment],
+        )
     def __repr__(self) -> str:
         # todo: add alphabet to the repr
         seq = f"{self[:10]!s}...{self[-5:]}" if len(self) > 15 else str(self)
@@ -201,6 +203,9 @@ class SeqDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
     def copy(self, sliced: bool = False):
         """returns copy"""
         return self
+
+    def _get_init_kwargs(self):
+        return {"parent": self.parent, "seqid": self.seqid, "alphabet": self.alphabet}
 
     def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
         """returns a json serialisable dict.
@@ -217,15 +222,20 @@ class SeqDataView(new_sequence.SeqViewABC, new_sequence.SliceRecordABC):
 
         data = {"type": get_object_provenance(self), "version": __version__}
         data["init_args"] = self._get_init_kwargs()
-        data["init_args"]["step"] = self.step
 
-        if self.is_reversed:
+        if self.slice_record.is_reversed:
             adj = self.parent_len + 1
-            start, stop = self.stop + adj, self.start + adj
+            start, stop = self.slice_record.stop + adj, self.slice_record.start + adj
         else:
-            start, stop = self.start, self.stop
+            start, stop = self.slice_record.start, self.slice_record.stop
 
         data["init_args"]["parent"] = self.str_value[start:stop]
+        new_sr = new_sequence.SliceRecord(
+            parent_len=(stop - start),
+            step=self.slice_record.step,
+            offset=self.slice_record.parent_start,
+        )
+        data["init_args"]["slice_record"] = new_sr.to_rich_dict()
         data["init_args"]["alphabet"] = self.alphabet.to_rich_dict()
         return data
 
