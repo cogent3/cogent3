@@ -261,17 +261,6 @@ class SeqsDataABC(ABC):
 
     @property
     @abstractmethod
-    def make_seq(self): ...
-
-    @make_seq.setter
-    @abstractmethod
-    def make_seq(self, make_seq: MakeSeqCallable) -> None:
-        """Can be set with any callable function that takes 'seq' and 'name' as
-        keyword arguments. Typically set with '<moltype-instance>.make_seq'."""
-        ...
-
-    @property
-    @abstractmethod
     def alphabet(self) -> new_alphabet.CharAlphabet: ...
 
     @property
@@ -332,29 +321,30 @@ class SeqsData(SeqsDataABC):
         a dictionary of {name: sequence} pairs
     alphabet
         an instance of CharAlphabet valid for the sequences
-    make_seq
-        optional sequence constructor, takes 'seq' and 'name' as keyword arguments
-        and returns a Sequence instance. If not set, __getitem__ will return a
-        SeqDataView
     strand
         a dictionary of {name: strand} pairs indicating the sequence orientation
+    offset
+        a dictionary of {name: offset} pairs indicating the offset of the sequence
+    reversed
+        a boolean indicating if the sequences are reversed
+    check
+        a boolean indicating if the data should be checked for naming consistency
+        between arguments
     """
 
-    __slots__ = ("_data", "_alphabet", "_make_seq", "_strand", "_offset", "_reversed")
+    __slots__ = ("_data", "_alphabet", "_strand", "_offset", "_reversed")
 
     def __init__(
         self,
         *,
         data: dict[str, StrORBytesORArray],
         alphabet: new_alphabet.AlphabetABC,
-        make_seq: Optional[MakeSeqCallable] = None,
         strand: dict[str, int] = None,
         offset: dict[str, int] = None,
         reversed: bool = False,
         check: bool = True,
     ):
         self._alphabet = alphabet
-        self._make_seq = make_seq
         self._data: dict[str, numpy.ndarray] = {}
         for name, seq in data.items():
             arr = self._alphabet.to_indices(seq)
@@ -379,22 +369,6 @@ class SeqsData(SeqsDataABC):
     @property
     def names(self) -> list:
         return list(self._data.keys())
-
-    @property
-    def make_seq(self) -> Optional[MakeSeqCallable]:
-        """if set, returns a function that takes 'seq' and 'name' as keyword
-        arguments and returns a corresponding Sequence from the collection.
-
-        Notes
-        -----
-        Can be set with any callable function that takes 'seq' and 'name' as
-        keyword arguments. Typically set with '<moltype-instance>.make_seq'.
-        """
-        return self._make_seq
-
-    @make_seq.setter
-    def make_seq(self, make_seq: MakeSeqCallable) -> None:
-        self._make_seq = make_seq
 
     @property
     def alphabet(self) -> new_alphabet.CharAlphabet:
@@ -439,7 +413,6 @@ class SeqsData(SeqsDataABC):
         return self.__class__(
             data=self._data,
             alphabet=self.alphabet,
-            make_seq=self.make_seq,
             strand=self._strand,
             offset=self._offset,
             reversed=not self._reversed,
@@ -488,7 +461,6 @@ class SeqsData(SeqsDataABC):
             return self.__class__(
                 data=data,
                 alphabet=self.alphabet,
-                make_seq=self.make_seq,
                 strand={
                     name: strand
                     for name, strand in self._strand.items()
@@ -522,7 +494,6 @@ class SeqsData(SeqsDataABC):
         return self.__class__(
             data=renamed_data,
             alphabet=self.alphabet,
-            make_seq=self.make_seq,
             strand=renamed_strand,
             offset=renamed_offset,
             reversed=self._reversed,
@@ -552,7 +523,6 @@ class SeqsData(SeqsDataABC):
         return self.__class__(
             data=new_data,
             alphabet=self.alphabet,
-            make_seq=self.make_seq,
             strand={**self._strand, **(strand or {})},
             offset={**self._offset, **(offset or {})},
             reversed=self._reversed,
@@ -598,22 +568,15 @@ class SeqsData(SeqsDataABC):
         return len(self.names)
 
     @singledispatchmethod
-    def __getitem__(
-        self, index: Union[str, int]
-    ) -> Union[new_sequence.Sequence, new_sequence.SeqViewABC]:
+    def __getitem__(self, index: Union[str, int]) -> new_sequence.SeqViewABC:
         raise NotImplementedError(f"__getitem__ not implemented for {type(index)}")
 
     @__getitem__.register
-    def _(self, index: str) -> Union[new_sequence.Sequence, new_sequence.SeqViewABC]:
-        sdv = self.get_view(seqid=index)
-        return (
-            sdv
-            if self.make_seq is None
-            else self.make_seq(seq=sdv, name=index, check_seq=False)
-        )
+    def _(self, index: str) -> new_sequence.SeqViewABC:
+        return self.get_view(seqid=index)
 
     @__getitem__.register
-    def _(self, index: int) -> Union[new_sequence.Sequence, new_sequence.SeqViewABC]:
+    def _(self, index: int) -> new_sequence.SeqViewABC:
         return self[self.names[index]]
 
     def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
@@ -681,10 +644,6 @@ class SequenceCollection:
 
     @property
     def seqs(self) -> AlignedSeqsDataABC:
-        # refactor: design
-        # make _seqs a private attribute and the indexable seqs class will be
-        # assigned to it in the constructor. The property will then just return
-        #  the _seqs attribute.
         return self._seqs
 
     @property
@@ -975,7 +934,6 @@ class SequenceCollection:
         seqs_data = self._seqs_data.__class__(
             data=coerce_to_seqs_data_dict(seqs),
             alphabet=self._seqs_data.alphabet,
-            make_seq=self._seqs_data.make_seq,
             strand=self._seqs_data.strand,
             offset=self._seqs_data.offset,
             reversed=self._seqs_data.is_reversed,
@@ -1083,7 +1041,6 @@ class SequenceCollection:
         seqs_data = self._seqs_data.__class__(
             data=seqs_data,
             alphabet=pep_moltype.most_degen_alphabet(),
-            make_seq=pep_moltype.make_seq,
             strand=self._seqs_data.strand,
             offset=self._seqs_data.offset,
             reversed=self._seqs_data.is_reversed,
@@ -1587,7 +1544,6 @@ class SequenceCollection:
         seqs_data = self._seqs_data.__class__(
             data=coerce_to_seqs_data_dict(new_seqs),
             alphabet=self._seqs_data.alphabet,
-            make_seq=self._seqs_data.make_seq,
             strand=self._seqs_data.strand,
             offset=self._seqs_data.offset,
             reversed=self._seqs_data.is_reversed,
@@ -1878,7 +1834,6 @@ class SequenceCollection:
         seqs_data = self._seqs_data.__class__(
             data=new_seqs,
             alphabet=self._seqs_data.alphabet,
-            make_seq=self._seqs_data.make_seq,
             strand=self._seqs_data.strand,
             offset=self._seqs_data.offset,
             reversed=self._seqs_data.is_reversed,
@@ -2713,7 +2668,7 @@ class Aligned:
     def __repr__(self) -> str:
         # refactor: design
         # todo: when design is finalised, add tests for this
-        return f"Aligned({self.data!r})"
+        return f"Aligned(map={self.data.map}, data={self.seq})"
 
 
 class AlignedSeqsDataABC(SeqsDataABC):
@@ -2728,7 +2683,6 @@ class AlignedSeqsDataABC(SeqsDataABC):
         *,
         data: dict[str, StrORArray],
         alphabet: new_alphabet.AlphabetABC,
-        make_seq: Optional[MakeSeqCallable],
     ): ...
 
     @property
@@ -2792,7 +2746,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         "_seqs",
         "_gaps",
         "_alphabet",
-        "_make_seq",
         "_align_len",
         "_strand",
         "_offset",
@@ -2804,14 +2757,12 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         seqs: Optional[dict[str, StrORBytesORArray]],
         gaps: Optional[dict[str, numpy.ndarray]],
         alphabet: new_alphabet.AlphabetABC,
-        make_seq: Optional[MakeSeqCallable] = None,
         strand: dict[str, int] = None,
         offset: dict[str, int] = None,
         align_len: OptInt = None,
         check: bool = True,
     ):
         self._alphabet = alphabet
-        self._make_seq = make_seq
         if check or not align_len:
             if not seqs or not gaps:
                 raise ValueError("Both seqs and gaps must be provided.")
@@ -2849,7 +2800,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         *,
         data: dict[str, StrORArray],
         alphabet: new_alphabet.AlphabetABC,
-        make_seq: Optional[MakeSeqCallable] = None,
         **kwargs,
     ):
         """Construct an AlignedSeqsData object from a dict of aligned sequences
@@ -2861,9 +2811,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             the same length
         alphabet
             alphabet object for the sequences
-        make_seq
-            callable that takes 'seq' and 'name' as keyword arguments and
-            constructs a Sequence object.
         """
         seq_lengths = {len(v) for v in data.values()}
         if len(seq_lengths) != 1:
@@ -2883,7 +2830,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             seqs=seqs,
             gaps=gaps,
             alphabet=alphabet,
-            make_seq=make_seq,
             align_len=align_len,
             check=False,
             **kwargs,
@@ -2896,22 +2842,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
     @property
     def alphabet(self) -> new_alphabet.CharAlphabet:
         return self._alphabet
-
-    @property
-    def make_seq(self) -> Optional[MakeSeqCallable]:
-        """if set, returns a function that takes 'seq' and 'name' as keyword
-        arguments and returns a corresponding Sequence from the collection.
-
-        Notes
-        -----
-        Can be set with any callable function that takes 'seq' and 'name' as
-        keyword arguments. Typically set with '<moltype-instance>.make_seq'.
-        """
-        return self._make_seq
-
-    @make_seq.setter
-    def make_seq(self, make_seq: MakeSeqCallable) -> None:
-        self._make_seq = make_seq
 
     @property
     def align_len(self) -> int:
@@ -3145,7 +3075,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             seqs={**self._seqs, **new_seqs},
             gaps={**self._gaps, **new_gaps},
             alphabet=self.alphabet,
-            make_seq=self._make_seq,
             strand={**self._strand, **(strand or {})},
             offset={**self._offset, **(offset or {})},
             align_len=self.align_len,
@@ -3162,7 +3091,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
                 seqs=seq_data,
                 gaps=gap_data,
                 alphabet=self.alphabet,
-                make_seq=self._make_seq,
                 strand={
                     name: strand
                     for name, strand in self._strand.items()
@@ -3441,7 +3369,7 @@ class _IndexableSeqs:
 
     def __init__(
         self,
-        parent: SeqsDataABC,
+        parent: SequenceCollection,
         make_seq: typing.Callable[[str], typing.Union[new_sequence.Sequence, Aligned]],
     ):
         """
@@ -4473,7 +4401,6 @@ def _(
     aligned_data = AlignedSeqsData.from_aligned_seqs(
         data=data,
         alphabet=alphabet,
-        make_seq=moltype.make_seq,
         strand=strand,
         offset=offset,
     )
