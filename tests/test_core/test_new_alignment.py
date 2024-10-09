@@ -29,16 +29,26 @@ def test_indexing_seqs_prop(func, index):
     assert str(got) == raw["seq1"]
 
 
-@pytest.mark.parametrize(
-    "func", (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs)
-)
-def test_indexing_seqs_repr(func):
+def test_sequence_collection_indexing_seqs_repr():
     names = ["seq1", "seq2", "seq3"]
     seqs = "GGGTAC", "GTTTGC", "ACGTAC"
     raw = dict(zip(names, seqs))
-    obj = func(raw, moltype="dna")
+    obj = new_alignment.make_unaligned_seqs(raw, moltype="dna")
     got = repr(obj.seqs)
-    print(got, type(obj.seqs))
+    class_name = obj.seqs[0].__class__.__name__
+    expect = f"[{class_name}({seqs[0]}), ... ], {len(names)} x seqs"
+    assert got == expect
+
+
+def test_alignment_indexing_seqs_repr():
+    names = ["seq1", "seq2", "seq3"]
+    seqs = "GGGTAC", "GTTTGC", "ACGTAC"
+    raw = dict(zip(names, seqs))
+    obj = new_alignment.make_aligned_seqs(raw, moltype="dna")
+    got = repr(obj.seqs)
+    class_name = obj.seqs[0].__class__.__name__
+    expect = f"[{class_name}(map=[]/6, data={seqs[0]}), ... ], {len(names)} x seqs"
+    assert got == expect
 
 
 @pytest.fixture(scope="session")
@@ -307,7 +317,7 @@ def test_seqs_data_getitem_str(dna_sd, seq):
 
 
 @pytest.mark.parametrize("idx", (0, 1))
-def test_seqs_data_getitem_int(dna_sd, idx):
+def test_seqs_data_getitem_int(str_seqs_dict, dna_sd, idx):
     got = dna_sd[idx]
     assert isinstance(got, new_alignment.SeqDataView)
     assert got.parent == dna_sd
