@@ -662,13 +662,30 @@ class SequenceCollection:
         self._seqs_data = seqs_data
         self.moltype = moltype
         self.names = names
-        self._seqs_data.make_seq = self.moltype.make_seq
         if not isinstance(info, InfoClass):
             info = InfoClass(info) if info else InfoClass()
         self.info = info
         self.source = source
         self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60)
         self._annotation_db = annotation_db or DEFAULT_ANNOTATION_DB()
+        self._seqs = None
+        self._post_init()
+
+    def _post_init(self):
+        # override in subclasses
+        self._seqs = _IndexableSeqs(self, make_seq=self._make_seq)
+
+    def _make_seq(self, name: str) -> new_sequence.Sequence:
+        sv = self._seqs_data.get_view(name)
+        return self.moltype.make_seq(seq=sv, name=name)
+
+    @property
+    def seqs(self) -> AlignedSeqsDataABC:
+        # refactor: design
+        # make _seqs a private attribute and the indexable seqs class will be
+        # assigned to it in the constructor. The property will then just return
+        #  the _seqs attribute.
+        return self._seqs
 
     @property
     def names(self) -> list:
@@ -686,10 +703,6 @@ class SequenceCollection:
         else:
             left_diff = set(names) - set(self._seqs_data.names)
             raise ValueError(f"Provided names not found in collection: {left_diff}")
-
-    @property
-    def seqs(self) -> SeqsDataABC:
-        return self._seqs_data
 
     @property
     def num_seqs(self) -> int:
@@ -3424,11 +3437,44 @@ def make_gap_filter(template, gap_fraction, gap_run):
 
 
 class _IndexableSeqs:
-    def __init__(self, parent):
-        self.parent = parent
+    """container that is created by SequenceCollection and Alignment instances"""
 
-    def __getitem__(self, key):
-        return self.parent._make_aligned(key)
+    def __init__(
+        self,
+        parent: SeqsDataABC,
+        make_seq: typing.Callable[[str], typing.Union[new_sequence.Sequence, Aligned]],
+    ):
+        """
+        Parameters
+        ----------
+        parent
+            either a SequenceCollection or Alignment instance
+        make_seq
+            method on the parent that creates the correct object type when given a seqid
+        """
+        self.parent = parent
+        self._make_seq = make_seq
+
+    @singledispatchmethod
+    def __getitem__(
+        self, key: Union[str, int, slice]
+    ) -> Union[new_sequence.Sequence, Aligned]:
+        raise TypeError(f"indexing not supported for {type(key)}, try .take_seqs()")
+
+    @__getitem__.register
+    def _(self, key: int) -> Union[new_sequence.Sequence, Aligned]:
+        return self[self.parent.names[key]]
+
+    @__getitem__.register
+    def _(self, key: str) -> Union[new_sequence.Sequence, Aligned]:
+        return self._make_seq(key)
+
+    def __repr__(self) -> str:
+        one_seq = self[self.parent.names[0]]
+        return f"({one_seq!r}, {self.parent.num_seqs - 1} x seqs)"
+
+    def __len__(self) -> int:
+        return self.parent.num_seqs
 
 
 class Alignment(SequenceCollection):
@@ -3443,6 +3489,9 @@ class Alignment(SequenceCollection):
             if slice_record is not None
             else new_sequence.SliceRecord(parent_len=self._seqs_data.align_len)
         )
+
+    def _post_init(self):
+        self._seqs = _IndexableSeqs(self, make_seq=self._make_aligned)
 
     @singledispatchmethod
     def __getitem__(self, index):
@@ -3497,14 +3546,6 @@ class Alignment(SequenceCollection):
         data = self._seqs_data.get_view(seqid)
         data.slice_record = self._slice_record
         return Aligned(data=data, moltype=self.moltype)
-
-    @property
-    def seqs(self) -> AlignedSeqsDataABC:
-        # refactor: design
-        # make _seqs a private attribute and the indexable seqs class will be
-        # assigned to it in the constructor. The property will then just return
-        #  the _seqs attribute.
-        return _IndexableSeqs(self)
 
     def get_seq(
         self, seqname: str, copy_annotations: bool = False
