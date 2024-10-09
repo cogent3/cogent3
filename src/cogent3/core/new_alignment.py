@@ -56,23 +56,6 @@ StrORBytesORArray = Union[str, bytes, numpy.ndarray]
 MolTypes = Union[str, new_moltype.MolType]
 
 
-class MakeSeqCallable(typing.Protocol):
-    def __call__(
-        self,
-        seq: Union[StrORBytesORArray, new_sequence.Sequence, new_sequence.SeqViewABC],
-        name: OptStr = None,
-        check_seq: bool = True,
-    ) -> new_sequence.Sequence: ...
-
-
-class MakeAlignedCallable(typing.Protocol):
-    def __call__(
-        self,
-        aligned_data_view: AlignedDataView,
-        moltype: new_moltype.MolType,
-    ) -> Aligned: ...
-
-
 def assign_sequential_names(num_seqs: int, base_name: str = "seq", start_at: int = 0):
     """Returns list of sequential, unique names, e.g., ['seq_0' ... 'seq_n'] for
      num_seqs = n+1
@@ -643,7 +626,7 @@ class SequenceCollection:
         return self.moltype.make_seq(seq=sv, name=name)
 
     @property
-    def seqs(self) -> AlignedSeqsDataABC:
+    def seqs(self) -> _IndexableSeqs:
         return self._seqs
 
     @property
@@ -3369,7 +3352,7 @@ class _IndexableSeqs:
 
     def __init__(
         self,
-        parent: SequenceCollection,
+        parent: Union[SequenceCollection, Alignment],
         make_seq: typing.Callable[[str], typing.Union[new_sequence.Sequence, Aligned]],
     ):
         """
@@ -3400,10 +3383,14 @@ class _IndexableSeqs:
     def __repr__(self) -> str:
         one_seq = self[self.parent.names[0]]
         one_seq = f"{one_seq!r}, ... " if self.parent.num_seqs > 1 else f"{one_seq!r}"
-        return f"[{one_seq}], {self.parent.num_seqs} x seqs"
+        return f"({one_seq}), {self.parent.num_seqs} x seqs"
 
     def __len__(self) -> int:
         return self.parent.num_seqs
+
+    def __iter__(self):
+        for name in self.parent.names:
+            yield self._make_seq(name)
 
 
 class Alignment(SequenceCollection):
