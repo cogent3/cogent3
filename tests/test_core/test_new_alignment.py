@@ -3651,7 +3651,7 @@ def test_sequence_collection_indexing_seqs_repr(names_seqs):
     obj = new_alignment.make_unaligned_seqs(raw, moltype="dna")
     got = repr(obj.seqs)
     class_name = obj.seqs[0].__class__.__name__
-    expect = f"({class_name}({seqs[0]}), ... ), {len(names)} x seqs"
+    expect = f"({class_name}({seqs[0]}), + {len(names) - 1} seqs)"
     assert got == expect
 
 
@@ -3661,7 +3661,7 @@ def test_alignment_indexing_seqs_repr(names_seqs):
     obj = new_alignment.make_aligned_seqs(raw, moltype="dna")
     got = repr(obj.seqs)
     class_name = obj.seqs[0].__class__.__name__
-    expect = f"({class_name}(map=[]/6, data={seqs[0]}), ... ), {len(names)} x seqs"
+    expect = f"({class_name}(map=[]/6, data={seqs[0]}), + {len(names)-1} seqs)"
     assert got == expect
 
 

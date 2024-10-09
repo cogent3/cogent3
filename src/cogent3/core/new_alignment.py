@@ -3382,8 +3382,7 @@ class _IndexableSeqs:
 
     def __repr__(self) -> str:
         one_seq = self[self.parent.names[0]]
-        one_seq = f"{one_seq!r}, ... " if self.parent.num_seqs > 1 else f"{one_seq!r}"
-        return f"({one_seq}), {self.parent.num_seqs} x seqs"
+        return f"({one_seq!r}, + {self.parent.num_seqs -1} seqs)"
 
     def __len__(self) -> int:
         return self.parent.num_seqs
