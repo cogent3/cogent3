@@ -99,7 +99,7 @@ def int_arr():
 
 @pytest.fixture
 def sdv_s2(dna_sd: new_alignment.SeqsData) -> new_alignment.SeqDataView:
-    return dna_sd.get_view(seqid="seq2")
+    return dna_sd.get_view("seq2")
 
 
 @pytest.fixture(scope="function")
@@ -206,7 +206,7 @@ def test_seqs_data_view_repr_default_long(dna_alphabet):
 
     d = {"long": longseq}
     sd = new_alignment.SeqsData(data=d, alphabet=dna_alphabet)
-    got = sd.get_view(seqid="long")
+    got = sd.get_view("long")
     expect = (
         f"SeqDataView(seqid='long', parent={trunc}, slice_record={got.slice_record!r})"
     )
@@ -223,7 +223,7 @@ def test_seqs_data_view_copy(dna_alphabet, seqid, sliced, step):
     data = {"seq1": seq1, "seq2": seq2}
 
     sd = new_alignment.SeqsData(data=data, alphabet=dna_alphabet)
-    sdv = sd.get_view(seqid=seqid)
+    sdv = sd.get_view(seqid)
     sliced_sdv = sdv[start:stop:step]
     copied_sdv = sliced_sdv.copy(sliced=sliced)
 
@@ -447,7 +447,7 @@ def test_seq_data_view_value(str_seqs_dict: dict, dna_alphabet, start, stop, ste
     expect = str_seqs_dict[seq][start:stop:step]
     sd = new_alignment.SeqsData(data=str_seqs_dict, alphabet=dna_alphabet)
     # Get SeqDataView on seq
-    sdv = sd.get_view(seqid=seq)
+    sdv = sd.get_view(seq)
     sdv2 = sdv[start:stop:step]
     got = sdv2.str_value
     assert got == expect
@@ -458,7 +458,7 @@ def test_seq_data_view_to_rich_dict(rev):
     data = {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}
     alpha = new_moltype.DNA.degen_gapped_alphabet
     sd = new_alignment.SeqsData(data=data, alphabet=alpha)
-    sdv = sd.get_view(seqid="seq1")
+    sdv = sd.get_view("seq1")
     sdv = sdv[::-1] if rev else sdv
     got = sdv.to_rich_dict()
     expect = {
@@ -483,7 +483,7 @@ def test_seqs_data_array_value(arr_seqs_dict: dict, dna_alphabet, start, stop, s
     expect = arr_seqs_dict[seq][start:stop:step]
     sd = new_alignment.SeqsData(data=arr_seqs_dict, alphabet=dna_alphabet)
     # Get SeqDataView on seq
-    sdv = sd.get_view(seqid=seq)
+    sdv = sd.get_view(seq)
     got = sdv.array_value[start:stop:step]
     assert numpy.array_equal(got, expect)
 
@@ -497,7 +497,7 @@ def test_seqs_data_bytes_value(str_seqs_dict: dict, dna_alphabet, start, stop, s
     expect = expect.encode("utf8")
     sd = new_alignment.SeqsData(data=str_seqs_dict, alphabet=dna_alphabet)
     # Get SeqDataView on seq
-    sdv = sd.get_view(seqid=seq)
+    sdv = sd.get_view(seq)
     got = sdv.bytes_value[start:stop:step]
     assert expect == got
 
@@ -586,11 +586,6 @@ def test_make_unaligned_seqs_no_seqs():
         new_alignment.make_unaligned_seqs(data, moltype="dna")
 
 
-def test_sequence_collection_init(seqs):
-    assert isinstance(seqs.seqs, new_alignment.SeqsData)
-    assert seqs.seqs.make_seq is not None
-
-
 @pytest.mark.parametrize(
     "collection_maker",
     (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
@@ -621,7 +616,6 @@ def test_make_unaligned_seqs_list_str():
     """SequenceCollection init from list of sequences should use indices as keys"""
     seqs = ["TTTTT", "CCCCC", "GGGGG"]
     a = new_alignment.make_unaligned_seqs(seqs, moltype="dna")
-    assert len(a.seqs) == 3
     assert a.seqs["seq_0"] == "TTTTT"
     assert a.seqs["seq_1"] == "CCCCC"
     assert a.seqs["seq_2"] == "GGGGG"
@@ -632,7 +626,6 @@ def test_make_unaligned_seqs_pairs():
     """SequenceCollection init from list of (key,val) pairs should work correctly"""
     seqs = [["a", "AAA"], ["t", "TTT"], ["c", "CCC"]]
     a = new_alignment.make_unaligned_seqs(seqs, moltype="dna")
-    assert len(a.seqs) == 3
     assert a.seqs["a"] == "AAA"
     assert a.seqs["t"] == "TTT"
     assert a.seqs["c"] == "CCC"
@@ -675,14 +668,21 @@ def test_sequence_collection_init_ambig(collection_maker):
     _ = collection_maker({"s0": "A?A", "s1": "CC-"}, moltype="dna")
 
 
-def test_sequence_collection_iter_seqs_ragged_padded(ragged_padded):
+@pytest.mark.parametrize(
+    "collection_maker",
+    (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
+)
+def test_sequence_collection_iter_seqs_ragged_padded(
+    ragged_padded_dict, collection_maker
+):
     """SequenceCollection.iter_seqs() method should support reordering of seqs"""
-    seqs = list(ragged_padded.iter_seqs())
-    assert seqs == ["AAAAAA", "AAA---", "AAAA--"]
-    seqs = list(ragged_padded.iter_seqs(seq_order=["b", "a", "a"]))
-    assert seqs == ["AAA---", "AAAAAA", "AAAAAA"]
-    assert seqs[1] == seqs[2]
-    assert seqs[0] == ragged_padded.seqs["b"]
+    coll = collection_maker(ragged_padded_dict, moltype="dna")
+    seqs = list(coll.iter_seqs())
+    assert list(map(str, seqs)) == ["AAAAAA", "AAA---", "AAAA--"]
+    seqs = list(coll.iter_seqs(seq_order=["b", "a", "a"]))
+    assert list(map(str, seqs)) == ["AAA---", "AAAAAA", "AAAAAA"]
+    assert str(seqs[1]) == str(seqs[2])
+    assert str(seqs[0]) == str(coll.seqs["b"])
 
 
 def test_sequence_collection_iter_seqs_ragged(ragged):
@@ -760,17 +760,15 @@ def test_sequence_collection_repr_html_applies_policy(seqs):
     seqs.set_repr_policy(num_seqs=3)
     got = seqs._repr_html_()
     assert got.count("</tr>") == 4
-    seqs.set_repr_policy(num_seqs=len(seqs.seqs))
+    seqs.set_repr_policy(num_seqs=seqs.num_seqs)
     got = seqs._repr_html_()
-    assert got.count("</tr>") == len(seqs.seqs) + 1
+    assert got.count("</tr>") == seqs.num_seqs + 1
 
 
 def test_sequence_collection_repr_html_correct_num_seqs(seqs):
     # tests _repr_html_ displays correct number of sequences
     got = seqs._repr_html_()
-    seq_lens = numpy.array(
-        [len(seqs.seqs.get_seq_str(seqid=name)) for name in seqs.names]
-    )
+    seq_lens = numpy.array([len(seqs.seqs[name]) for name in seqs.names])
     assert (
         f"{seqs.num_seqs} x {{min={seq_lens.min()}, median={numpy.median(seq_lens)}, max={seq_lens.max()}}}"
         in got.splitlines()[-2]
@@ -1021,7 +1019,7 @@ def test_sequence_collection_is_ragged(ragged, ragged_padded):
 def test_sequence_collection_ragged(ragged):
     """SequenceCollection seqs should work on ragged alignment"""
     ragged.names = "bac"
-    assert [ragged.seqs.get_seq_str(seqid=name) for name in ragged.names] == [
+    assert [ragged.seqs[name] for name in ragged.names] == [
         "AAA",
         "AAAAAA",
         "AAAA",
@@ -2076,7 +2074,7 @@ def test_sequence_collection_apply_pssm():
         "ENSMUSG00000023892": "GTAACATCAGTACAGCACAG",
     }
     seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
-    max_seq_len = max(seqs.seqs.seq_lengths().values())
+    max_seq_len = max(seqs.get_lengths())
 
     scores = seqs.apply_pssm(path="data/sample.jaspar", show_progress=False)
     assert scores.shape == (len(data), max_seq_len - pwm.shape[0] + 1)
@@ -2161,13 +2159,15 @@ def test_sequence_collection_to_rich_dict():
     got = seqs.to_rich_dict()
     seqs_data = {
         "init_args": {
-            "data": {name: seqs.seqs.get_seq_str(seqid=name) for name in seqs.names},
+            "data": {
+                name: seqs._seqs_data.get_seq_str(seqid=name) for name in seqs.names
+            },
             "alphabet": seqs.moltype.most_degen_alphabet().to_rich_dict(),
-            "strand": seqs.seqs._strand,
-            "offset": seqs.seqs._offset,
-            "reversed": seqs.seqs.is_reversed,
+            "strand": seqs._seqs_data._strand,
+            "offset": seqs._seqs_data._offset,
+            "reversed": seqs._seqs_data.is_reversed,
         },
-        "type": get_object_provenance(seqs.seqs),
+        "type": get_object_provenance(seqs._seqs_data),
         "version": __version__,
     }
     expect = {
@@ -2192,13 +2192,15 @@ def test_sequence_collection_to_rich_dict_annotation_db():
     db = seqs.annotation_db.to_rich_dict()
     seqs_data = {
         "init_args": {
-            "data": {name: seqs.seqs.get_seq_str(seqid=name) for name in seqs.names},
+            "data": {
+                name: seqs._seqs_data.get_seq_str(seqid=name) for name in seqs.names
+            },
             "alphabet": seqs.moltype.most_degen_alphabet().to_rich_dict(),
-            "strand": seqs.seqs._strand,
-            "offset": seqs.seqs._offset,
-            "reversed": seqs.seqs.is_reversed,
+            "strand": seqs._seqs_data._strand,
+            "offset": seqs._seqs_data._offset,
+            "reversed": seqs._seqs_data.is_reversed,
         },
-        "type": get_object_provenance(seqs.seqs),
+        "type": get_object_provenance(seqs._seqs_data),
         "version": __version__,
     }
     expect = {
@@ -2223,13 +2225,15 @@ def test_sequence_collection_to_rich_dict_reversed_seqs():
     got = reversed_seqs.to_rich_dict()
     seqs_data = {
         "init_args": {
-            "data": {name: seqs.seqs.get_seq_str(seqid=name) for name in seqs.names},
+            "data": {
+                name: seqs._seqs_data.get_seq_str(seqid=name) for name in seqs.names
+            },
             "alphabet": seqs.moltype.most_degen_alphabet().to_rich_dict(),
             "strand": {"seq1": -1},
-            "offset": seqs.seqs._offset,
+            "offset": seqs._seqs_data._offset,
             "reversed": True,
         },
-        "type": get_object_provenance(seqs.seqs),
+        "type": get_object_provenance(seqs._seqs_data),
         "version": __version__,
     }
     expect = {
