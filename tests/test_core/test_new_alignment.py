@@ -16,6 +16,31 @@ from cogent3.util.deserialise import deserialise_object
 from cogent3.util.misc import get_object_provenance
 
 
+@pytest.mark.parametrize(
+    "func", (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs)
+)
+@pytest.mark.parametrize("index", (True, False))
+def test_indexing_seqs_prop(func, index):
+    names = ["seq1", "seq2", "seq3"]
+    seqs = "GGGTAC", "GTTTGC", "ACGTAC"
+    raw = dict(zip(names, seqs))
+    obj = func(raw, moltype="dna")
+    got = obj.seqs[0 if index else "seq1"]
+    assert str(got) == raw["seq1"]
+
+
+@pytest.mark.parametrize(
+    "func", (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs)
+)
+def test_indexing_seqs_repr(func):
+    names = ["seq1", "seq2", "seq3"]
+    seqs = "GGGTAC", "GTTTGC", "ACGTAC"
+    raw = dict(zip(names, seqs))
+    obj = func(raw, moltype="dna")
+    got = repr(obj.seqs)
+    print(got, type(obj.seqs))
+
+
 @pytest.fixture(scope="session")
 def tmp_path(tmpdir_factory):
     return tmpdir_factory.mktemp("tmp_path")
