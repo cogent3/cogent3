@@ -16,41 +16,6 @@ from cogent3.util.deserialise import deserialise_object
 from cogent3.util.misc import get_object_provenance
 
 
-@pytest.mark.parametrize(
-    "func", (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs)
-)
-@pytest.mark.parametrize("index", (True, False))
-def test_indexing_seqs_prop(func, index):
-    names = ["seq1", "seq2", "seq3"]
-    seqs = "GGGTAC", "GTTTGC", "ACGTAC"
-    raw = dict(zip(names, seqs))
-    obj = func(raw, moltype="dna")
-    got = obj.seqs[0 if index else "seq1"]
-    assert str(got) == raw["seq1"]
-
-
-def test_sequence_collection_indexing_seqs_repr():
-    names = ["seq1", "seq2", "seq3"]
-    seqs = "GGGTAC", "GTTTGC", "ACGTAC"
-    raw = dict(zip(names, seqs))
-    obj = new_alignment.make_unaligned_seqs(raw, moltype="dna")
-    got = repr(obj.seqs)
-    class_name = obj.seqs[0].__class__.__name__
-    expect = f"[{class_name}({seqs[0]}), ... ], {len(names)} x seqs"
-    assert got == expect
-
-
-def test_alignment_indexing_seqs_repr():
-    names = ["seq1", "seq2", "seq3"]
-    seqs = "GGGTAC", "GTTTGC", "ACGTAC"
-    raw = dict(zip(names, seqs))
-    obj = new_alignment.make_aligned_seqs(raw, moltype="dna")
-    got = repr(obj.seqs)
-    class_name = obj.seqs[0].__class__.__name__
-    expect = f"[{class_name}(map=[]/6, data={seqs[0]}), ... ], {len(names)} x seqs"
-    assert got == expect
-
-
 @pytest.fixture(scope="session")
 def tmp_path(tmpdir_factory):
     return tmpdir_factory.mktemp("tmp_path")
@@ -3656,3 +3621,58 @@ def test_alignment_indexing_string(alignment, seqid):
     got = alignment.seqs[seqid]
     assert isinstance(got, new_alignment.Aligned)
     assert str(got) == alignment.to_dict()[seqid]
+
+
+## Tests of _IndexableSeqs
+
+
+@pytest.fixture
+def names_seqs():
+    names = ["seq1", "seq2", "seq3"]
+    seqs = ["GGGTAC", "GTTTGC", "ACGTAC"]
+    return names, seqs
+
+
+@pytest.mark.parametrize(
+    "func", (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs)
+)
+@pytest.mark.parametrize("index", (True, False))
+def test_indexing_seqs_prop(names_seqs, func, index):
+    names, seqs = names_seqs
+    raw = dict(zip(names, seqs))
+    obj = func(raw, moltype="dna")
+    got = obj.seqs[0 if index else "seq1"]
+    assert str(got) == raw["seq1"]
+
+
+def test_sequence_collection_indexing_seqs_repr(names_seqs):
+    names, seqs = names_seqs
+    raw = dict(zip(names, seqs))
+    obj = new_alignment.make_unaligned_seqs(raw, moltype="dna")
+    got = repr(obj.seqs)
+    class_name = obj.seqs[0].__class__.__name__
+    expect = f"({class_name}({seqs[0]}), ... ), {len(names)} x seqs"
+    assert got == expect
+
+
+def test_alignment_indexing_seqs_repr(names_seqs):
+    names, seqs = names_seqs
+    raw = dict(zip(names, seqs))
+    obj = new_alignment.make_aligned_seqs(raw, moltype="dna")
+    got = repr(obj.seqs)
+    class_name = obj.seqs[0].__class__.__name__
+    expect = f"({class_name}(map=[]/6, data={seqs[0]}), ... ), {len(names)} x seqs"
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "func", (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs)
+)
+def test_indexing_seqs_iter(names_seqs, func):
+    names, seqs = names_seqs
+    raw = dict(zip(names, seqs))
+    obj = func(raw, moltype="dna")
+    # exercise __iter__
+    got = list(map(str, obj.seqs))
+    expect = list(seqs)
+    assert got == expect
