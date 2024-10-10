@@ -393,7 +393,7 @@ class SeqsData(SeqsDataABC):
         return self.get_seq_str(seqid=seqid, start=start, stop=stop).encode("utf8")
 
     def get_view(self, seqid: str) -> SeqDataView:
-        seq_len = self.seq_lengths()[seqid]
+        seq_len = len(self._data[seqid])
         offset = self._offset.get(seqid, 0)
         slice_record = new_sequence.SliceRecord(
             step=-1 if self.is_reversed else 1, parent_len=seq_len, offset=offset
@@ -2368,6 +2368,10 @@ def make_unaligned_seqs(
     # We could simplify it greatly by only supporting dicts, SeqsDataABC,
     # or SequenceCollections.
 
+    # refactor: design
+    # rename offset to offsets as it could track potentially multiple offsets
+    # refactor: add offset/s to docstring
+
     if len(data) == 0:
         raise ValueError("data must be at least one sequence.")
 
@@ -2795,6 +2799,8 @@ class AlignedSeqsData(AlignedSeqsDataABC):
 
     def seq_lengths(self) -> dict[str, int]:
         """Returns lengths of ungapped sequences as dict of {name: length, ... }."""
+        # refactor: design
+        # change to method get_seq_length(name) so API is not too closely tied to implementation
         return {name: len(seq) for name, seq in self._seqs.items()}
 
     @singledispatchmethod
@@ -3566,8 +3572,6 @@ class Alignment(SequenceCollection):
             pos = CategoryCounter(pos)
             states.append(pos.mode)
 
-        # refactor: design
-        # should this return an Aligned object?
         return self.moltype.make_seq(seq="".join(states))
 
     def counts_per_pos(
