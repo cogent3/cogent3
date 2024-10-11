@@ -12,9 +12,9 @@ from cogent3._version import __version__
 from cogent3.core import new_alignment, new_alphabet, new_moltype, new_sequence
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import GffAnnotationDb, load_annotations
+from cogent3.core.location import FeatureMap, LostSpan, Span
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.misc import get_object_provenance
-from cogent3.core.location import FeatureMap, Span, LostSpan
 
 
 @pytest.fixture(scope="session")
@@ -2464,7 +2464,9 @@ def test_aligned_getitem_featuremap(raw_seq, coords):
     im, seq = dna.make_seq(seq=raw_seq).parse_out_gaps()
     gaps = numpy.array([im.gap_pos, im.cum_gap_lengths]).T
     asd = new_alignment.AlignedSeqsData.from_seqs_and_gaps(
-        seqs={"seq1": numpy.array(seq)}, gaps={"seq1": gaps}, alphabet=dna.most_degen_alphabet()
+        seqs={"seq1": numpy.array(seq)},
+        gaps={"seq1": gaps},
+        alphabet=dna.most_degen_alphabet(),
     )
     aln = new_alignment.make_aligned_seqs(asd, moltype=dna)
     ia = aln.seqs["seq1"]
