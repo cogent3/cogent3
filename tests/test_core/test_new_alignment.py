@@ -1868,28 +1868,6 @@ def test_sequence_collection_add_seqs_info(collection_maker):
     assert out_aln.info["key"] == "foo"
 
 
-@pytest.mark.xfail(reason="design of strand attribute is not finalized")
-@pytest.mark.parametrize(
-    "collection_maker",
-    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
-)
-def test_sequence_collection_add_seqs_strand(collection_maker):
-    """add_seqs should preserve strand attribute, and accept new strand information
-    for the new sequences"""
-    data = dict(
-        [("name1", "AAA"), ("name2", "AAA"), ("name3", "AAA"), ("name4", "AAA")]
-    )
-    strand = {"name2": -1}
-    data2 = dict([("name5", "TTT"), ("name6", "CCC")])
-    strand2 = {
-        "name5": -1,
-    }
-    aln = collection_maker(data, moltype="dna", info={"key": "foo"}, strand=strand)
-    out_aln = aln.add_seqs(data2, strand=strand2)
-    assert out_aln.seqs.strand["name2"] == -1
-    assert out_aln.seqs.strand["name5"] == -1
-
-
 @pytest.mark.parametrize(
     "collection_maker",
     [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
@@ -2112,7 +2090,6 @@ def test_sequence_collection_to_rich_dict():
                 name: seqs._seqs_data.get_seq_str(seqid=name) for name in seqs.names
             },
             "alphabet": seqs.moltype.most_degen_alphabet().to_rich_dict(),
-            "strand": seqs._seqs_data._strand,
             "offset": seqs._seqs_data._offset,
             "reversed": seqs._seqs_data.is_reversed,
         },
@@ -2145,7 +2122,6 @@ def test_sequence_collection_to_rich_dict_annotation_db():
                 name: seqs._seqs_data.get_seq_str(seqid=name) for name in seqs.names
             },
             "alphabet": seqs.moltype.most_degen_alphabet().to_rich_dict(),
-            "strand": seqs._seqs_data._strand,
             "offset": seqs._seqs_data._offset,
             "reversed": seqs._seqs_data.is_reversed,
         },
@@ -2168,7 +2144,7 @@ def test_sequence_collection_to_rich_dict_annotation_db():
 
 def test_sequence_collection_to_rich_dict_reversed_seqs():
     data = {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}
-    seqs = new_alignment.make_unaligned_seqs(data, moltype="dna", strand={"seq1": -1})
+    seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
     reversed_seqs = seqs.reverse_complement()
 
     got = reversed_seqs.to_rich_dict()
@@ -2178,7 +2154,6 @@ def test_sequence_collection_to_rich_dict_reversed_seqs():
                 name: seqs._seqs_data.get_seq_str(seqid=name) for name in seqs.names
             },
             "alphabet": seqs.moltype.most_degen_alphabet().to_rich_dict(),
-            "strand": {"seq1": -1},
             "offset": seqs._seqs_data._offset,
             "reversed": True,
         },
@@ -3150,34 +3125,6 @@ def test_alignment_slice_neg_step_ungapped(aligned_dict, start, stop, step, seqi
     assert got == expect
 
 
-@pytest.mark.xfail(reason="not implemented yet")
-@pytest.mark.parametrize(
-    "coll_maker", (new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs)
-)
-def test_alignment_strand_invalid(aligned_dict, coll_maker):
-    with pytest.raises(ValueError):
-        _ = coll_maker(aligned_dict, moltype="dna", strand={"seq1": "invalid"})
-
-    with pytest.raises(ValueError):
-        _ = coll_maker(aligned_dict, moltype="dna", strand={"seq1": 3})
-
-
-@pytest.mark.xfail(reason="design of strand attribute is not finalized")
-@pytest.mark.parametrize(
-    "coll_maker", (new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs)
-)
-def test_alignment_strand(aligned_dict, coll_maker):
-    aln = coll_maker(aligned_dict, moltype="dna", strand={"seq1": -1})
-    assert aln.seqs.strand["seq1"] == -1
-    # if we don't set the strand information, it should be set to 1
-    assert aln.seqs.strand["seq2"] == 1
-    # reverse complement should flip the strand orientation
-    rc_aln = aln.rc()
-    assert rc_aln.seqs.strand["seq1"] == 1
-    assert rc_aln.seqs.strand["seq2"] == -1
-
-
-@pytest.mark.xfail(reason="not implemented for new style alignments")
 @pytest.mark.parametrize("method", ("ic_score", "cogent3_score", "sp_score"))
 def test_alignment_quality_methods(method):
     data = {
@@ -3623,6 +3570,32 @@ def test_alignment_indexing_string(alignment, seqid):
     assert str(got) == alignment.to_dict()[seqid]
 
 
+@pytest.mark.parametrize("rc", [True, False])
+@pytest.mark.parametrize(
+    "func", (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs)
+)
+def test_alignment_offset_propagation(aligned_dict, func, rc):
+    # providing an offset should set the offset on precisely the specified seq
+    aln = func(aligned_dict, moltype="dna", offset={"seq1": 10})
+    seq = aln.get_seq("seq1").rc() if rc else aln.get_seq("seq1")
+    assert seq._seq.offset == 10
+    assert seq.annotation_offset == 10
+
+    seq = aln.get_seq("seq2").rc() if rc else aln.get_seq("seq2")
+    assert seq._seq.offset == 0
+    assert seq.annotation_offset == 0
+
+
+def test_alignment_offset_sliced(aligned_dict):
+    aln = new_alignment.make_aligned_seqs(
+        aligned_dict, moltype="dna", offset={"seq1": 10}
+    )
+    sliced = aln[2:]
+    seq = sliced.get_seq("seq1")
+    assert seq._seq.offset == 10
+    assert seq.annotation_offset == 12
+
+
 ## Tests of _IndexableSeqs
 
 
@@ -3651,7 +3624,7 @@ def test_sequence_collection_indexing_seqs_repr(names_seqs):
     obj = new_alignment.make_unaligned_seqs(raw, moltype="dna")
     got = repr(obj.seqs)
     class_name = obj.seqs[0].__class__.__name__
-    expect = f"({class_name}({seqs[0]}), + {len(names) - 1} seqs)"
+    expect = f"({class_name}({seqs[0]}), + {len(names)-1} seqs)"
     assert got == expect
 
 
