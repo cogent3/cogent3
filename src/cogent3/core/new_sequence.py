@@ -2516,6 +2516,16 @@ class SeqViewABC(ABC):
     def __len__(self):
         return len(self.slice_record)
 
+    def with_offset(self, offset: int):
+        if self._slice_record.offset:
+            raise ValueError(
+                f"cannot set {offset=} on a SeqView with an offset {self._slice_record.offset=}"
+            )
+
+        init_kwargs = self._get_init_kwargs()
+        init_kwargs["offset"] = offset
+        return self.__class__(**init_kwargs)
+
 
 class SeqView(SeqViewABC):
     """
@@ -2561,8 +2571,6 @@ class SeqView(SeqViewABC):
         self.alphabet = alphabet
         self.parent = parent
         self._seqid = seqid
-        if parent_len is not None and parent_len != len(parent):
-            raise AssertionError(f"{parent_len} != {len(self.parent)})")
         self._parent_len = parent_len or len(self.parent)
         self._slice_record = (
             slice_record
@@ -2641,16 +2649,6 @@ class SeqView(SeqViewABC):
             f"{self.__class__.__name__}(seqid={self.seqid!r}, parent={seq_preview!r}, "
             f"slice_record={self.slice_record.__repr__()})"
         )
-
-    def with_offset(self, offset: int):
-        if self._slice_record.offset:
-            raise ValueError(
-                f"cannot set {offset=} on a SeqView with an offset {self._slice_record.offset=}"
-            )
-
-        init_kwargs = self._get_init_kwargs()
-        init_kwargs["offset"] = offset
-        return self.__class__(**init_kwargs)
 
     def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
         """returns a json serialisable dict
