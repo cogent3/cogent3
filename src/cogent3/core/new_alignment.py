@@ -180,6 +180,11 @@ class SeqsDataABC(ABC):
 
     __slots__ = ()
 
+    # refactor: design
+    # SeqsData needs a class method for creating instances from a dict, which will need to be
+    # on AlignedSeqsData as well. If we rename AlignedSeqsData.from_aligned_seqs to from_seqs
+    # (or something similar), we can use the same method name for both classes.
+
     @abstractmethod
     def seq_lengths(self) -> dict[str, int]: ...
 
@@ -2564,6 +2569,16 @@ class AlignedSeqsDataABC(SeqsDataABC):
         alphabet: new_alphabet.AlphabetABC,
     ): ...
 
+    @classmethod
+    @abstractmethod
+    def from_seqs_and_maps(
+        cls,
+        *,
+        seqs: dict[str, StrORBytesORArray],
+        gaps: dict[str, numpy.ndarray],
+        alphabet: new_alphabet.AlphabetABC,
+    ): ...
+
     @property
     @abstractmethod
     def align_len(self) -> int: ...
@@ -2702,6 +2717,35 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             alphabet=alphabet,
             align_len=align_len,
             check=False,
+            **kwargs,
+        )
+
+    @classmethod
+    def from_seqs_and_maps(
+        cls,
+        *,
+        seqs: dict[str, StrORBytesORArray],
+        gaps: dict[str, numpy.ndarray],
+        alphabet: new_alphabet.AlphabetABC,
+        **kwargs,
+    ):
+        """Construct an AlignedSeqsData object from a dict of ungapped sequences
+        and a corresponding dict of gap maps.
+
+        Parameters
+        ----------
+        seqs
+            dict of ungapped sequences {name: seq, ...}
+        gap_maps
+            dict of gap maps {name: gap_map, ...} where a gap_map is a 2D numpy array
+            of [gap index, cumulative gap length] pairs
+        alphabet
+            alphabet object for the sequences
+        """
+        return cls(
+            seqs=seqs,
+            gaps=gaps,
+            alphabet=alphabet,
             **kwargs,
         )
 

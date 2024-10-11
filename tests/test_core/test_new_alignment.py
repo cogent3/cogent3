@@ -2537,6 +2537,37 @@ def test_aligned_seqs_data_unequal_seqlens_raises(data_type, dna_alphabet, dna_m
         )
 
 
+def test_from_seqs_and_maps(dna_alphabet):
+    # AlignedSeqsData should be able to be constructed from sequences and gap maps
+    seqs = {"seq1": "ACCTA", "seq2": ""}
+    gaps = {"seq1": numpy.array([[0, 1]]), "seq2": numpy.array([[0, 6]])}
+    asd = new_alignment.AlignedSeqsData.from_seqs_and_maps(
+        seqs=seqs, gap_maps=gaps, alphabet=dna_alphabet
+    )
+    assert asd.get_seq_str(seqid="seq1") == "ACCTA"
+    assert asd.get_gapped_seq_str(seqid="seq1") == "-ACCTA"
+    assert asd.get_seq_str(seqid="seq2") == ""
+    assert asd.get_gapped_seq_str(seqid="seq2") == "------"
+
+
+def test_from_seqs_and_maps_diff_seq_lens_raises(dna_alphabet):
+    seqs = {"seq1": "ACCTA", "seq2": "A"}
+    gaps = {"seq1": numpy.array([[0, 1]]), "seq2": numpy.array([[0, 1]])}
+    with pytest.raises(ValueError):
+        _ = new_alignment.AlignedSeqsData.from_seqs_and_maps(
+            seqs=seqs, gap_maps=gaps, alphabet=dna_alphabet
+        )
+
+
+def test_from_seqs_and_maps_diff_keys_raises(dna_alphabet):
+    seqs = {"seq1": "ACCTA", "seq2": "A"}
+    gaps = {"seq1": numpy.array([[0, 1]]), "seq3": numpy.array([[0, 1]])}
+    with pytest.raises(ValueError):
+        _ = new_alignment.AlignedSeqsData.from_seqs_and_maps(
+            seqs=seqs, gap_maps=gaps, alphabet=dna_alphabet
+        )
+
+
 def test_aligned_seqs_data_diff_keys_raises(dna_alphabet):
     """AlignedSeqsData expect identical keys in seqs and gaps"""
     seqs = dict(seq1=numpy.array([2, 1]), seq2=numpy.array([2, 0, 3, 1]))
