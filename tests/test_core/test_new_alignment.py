@@ -2542,7 +2542,7 @@ def test_from_seqs_and_maps(dna_alphabet):
     seqs = {"seq1": "ACCTA", "seq2": ""}
     gaps = {"seq1": numpy.array([[0, 1]]), "seq2": numpy.array([[0, 6]])}
     asd = new_alignment.AlignedSeqsData.from_seqs_and_maps(
-        seqs=seqs, gap_maps=gaps, alphabet=dna_alphabet
+        seqs=seqs, gaps=gaps, alphabet=dna_alphabet
     )
     assert asd.get_seq_str(seqid="seq1") == "ACCTA"
     assert asd.get_gapped_seq_str(seqid="seq1") == "-ACCTA"
@@ -2555,7 +2555,7 @@ def test_from_seqs_and_maps_diff_seq_lens_raises(dna_alphabet):
     gaps = {"seq1": numpy.array([[0, 1]]), "seq2": numpy.array([[0, 1]])}
     with pytest.raises(ValueError):
         _ = new_alignment.AlignedSeqsData.from_seqs_and_maps(
-            seqs=seqs, gap_maps=gaps, alphabet=dna_alphabet
+            seqs=seqs, gaps=gaps, alphabet=dna_alphabet
         )
 
 
@@ -2564,7 +2564,7 @@ def test_from_seqs_and_maps_diff_keys_raises(dna_alphabet):
     gaps = {"seq1": numpy.array([[0, 1]]), "seq3": numpy.array([[0, 1]])}
     with pytest.raises(ValueError):
         _ = new_alignment.AlignedSeqsData.from_seqs_and_maps(
-            seqs=seqs, gap_maps=gaps, alphabet=dna_alphabet
+            seqs=seqs, gaps=gaps, alphabet=dna_alphabet
         )
 
 
