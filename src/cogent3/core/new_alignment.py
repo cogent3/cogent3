@@ -2504,6 +2504,13 @@ class Aligned:
         """Returns gap_vector of GappedSeq, for omit_gap_pos."""
         return self.gapped_seq.gap_vector()
 
+    def make_feature(self, feature: FeatureDataType, alignment: "Alignment") -> Feature:
+        """returns a feature, not written into annotation_db"""
+        annot = self.seq.make_feature(feature)
+        inverted = self.map.to_feature_map().inverse()
+        # todo should indicate whether tidy or not
+        return annot.remapped_to(alignment, inverted)
+
     def __str__(self) -> str:
         return str(self.gapped_seq)
 
@@ -2610,7 +2617,7 @@ class AlignedSeqsDataABC(SeqsDataABC):
 
     @classmethod
     @abstractmethod
-    def from_seqs_and_maps(
+    def from_seqs_and_gaps(
         cls,
         *,
         seqs: dict[str, StrORBytesORArray],
@@ -2760,7 +2767,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         )
 
     @classmethod
-    def from_seqs_and_maps(
+    def from_seqs_and_gaps(
         cls,
         *,
         seqs: dict[str, StrORBytesORArray],
@@ -3400,6 +3407,10 @@ class Alignment(SequenceCollection):
             info=self.info,
         )
 
+    @__getitem__.register
+    def _(self, index: FeatureMap):
+        return self._mapped(index)
+
     def __repr__(self):
         seqs = []
         limit = 10
@@ -3989,7 +4000,7 @@ class Alignment(SequenceCollection):
             seq = self.seqs[seqname]
             # we use parent seqid
             parent_id, start, stop, _ = seq.parent_coordinates()
-            offset = seq.annotation_offset
+            offset = seq.data.offset
 
             for feature in self.annotation_db.get_features_matching(
                 seqid=parent_id,
@@ -4320,6 +4331,20 @@ class Alignment(SequenceCollection):
             limit=settings["num_pos"],
             wrap=settings["wrap"],
         )
+
+    def _mapped(self, slicemap):
+        seqs = {}
+        maps = {}
+        for aligned in self.seqs:
+            seq, map = aligned.slice_with_map(slicemap)
+            seqs[aligned.name] = seq
+            maps[aligned.name] = map
+
+        data = self._seqs_data.from_seqs_and_gaps(
+            seqs=seqs, gaps=maps, alphabet=self.moltype.most_degen_alphabet()
+        )
+
+        return self.__class__(seqs_data=data, moltype=self.moltype, info=self.info)
 
 
 @singledispatch
