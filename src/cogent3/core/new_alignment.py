@@ -72,7 +72,7 @@ def assign_sequential_names(num_seqs: int, base_name: str = "seq", start_at: int
     return [f"{base_name}_{i}" for i in range(start_at, start_at + num_seqs)]
 
 
-class SeqDataView(new_sequence.SeqViewABC):
+class SeqDataView(new_sequence.SeqView):
     """
     A view class for SeqsData, providing methods for different representations
     of a single sequence.
@@ -90,37 +90,6 @@ class SeqDataView(new_sequence.SeqViewABC):
     """
 
     __slots__ = ("parent", "alphabet", "_seqid", "_parent_len", "_slice_record")
-
-    def __init__(
-        self,
-        *,
-        parent: SeqsData,
-        alphabet: new_alphabet.CharAlphabet,
-        parent_len: int,
-        seqid: str = None,
-        slice_record: new_sequence.SliceRecordABC = None,
-    ):
-        self.parent = parent
-        self.alphabet = alphabet
-        self._seqid = seqid
-        self._parent_len = parent_len
-        self._slice_record = (
-            slice_record
-            if slice_record is not None
-            else new_sequence.SliceRecord(parent_len=self._parent_len)
-        )
-
-    @property
-    def seqid(self) -> str:
-        return self._seqid
-
-    @property
-    def parent_len(self) -> int:
-        return self._parent_len
-
-    @property
-    def slice_record(self) -> new_sequence.SliceRecordABC:
-        return self._slice_record
 
     @property
     def str_value(self) -> str:
@@ -159,27 +128,6 @@ class SeqDataView(new_sequence.SeqViewABC):
         )
         return raw if self.slice_record.step == 1 else raw[:: self.slice_record.step]
 
-    def __str__(self) -> str:
-        return self.str_value
-
-    def __array__(self, dtype=None, copy=None) -> numpy.ndarray:
-        arr = self.array_value
-        if dtype:
-            arr = arr.astype(dtype)
-        return arr
-
-    def __bytes__(self) -> bytes:
-        return self.bytes_value
-
-    def __getitem__(self, segment: typing.Union[int, slice]) -> new_sequence.SeqViewABC:
-        return self.__class__(
-            parent=self.parent,
-            seqid=self.seqid,
-            alphabet=self.alphabet,
-            parent_len=self.parent_len,
-            slice_record=self.slice_record[segment],
-        )
-
     def __repr__(self) -> str:
         seq = f"{self[:10]!s}...{self[-5:]}" if len(self) > 15 else str(self)
         return (
@@ -191,14 +139,6 @@ class SeqDataView(new_sequence.SeqViewABC):
     def copy(self, sliced: bool = False):
         """returns copy"""
         return self
-
-    def _get_init_kwargs(self):
-        return {
-            "parent": self.parent,
-            "seqid": self.seqid,
-            "alphabet": self.alphabet,
-            "slice_record": self.slice_record,
-        }
 
     def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
         """returns a json serialisable dict.
@@ -3963,7 +3903,7 @@ class Alignment(SequenceCollection):
 
         for seqid in seqids:
             seqname = seqid_to_seqname[seqid]
-            seq = self.seqs[seqname].seq
+            seq = self.seqs[seqname]
             # we use parent seqid
             parent_id, start, stop, _ = seq.parent_coordinates()
             offset = seq.annotation_offset

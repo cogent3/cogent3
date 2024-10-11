@@ -2541,13 +2541,6 @@ def test_seqview_seq_len_init(start, stop, step, length, dna_alphabet):
     assert sv._parent_len == expect
 
 
-@pytest.mark.parametrize("seq, seq_len", [("A", 0), ("", 1), ("A", 2)])
-def test_seqview_seq_len_mismatch(seq, seq_len, dna_alphabet):
-    # If provided, seq_len must match len(seq)
-    with pytest.raises(AssertionError):
-        new_sequence.SeqView(parent=seq, parent_len=seq_len, alphabet=dna_alphabet)
-
-
 def test_seqview_copy_propagates_seq_len(dna_alphabet):
     seq = "ACGGTGGGAC"
     sv = new_sequence.SeqView(parent=seq, alphabet=dna_alphabet)
