@@ -14,6 +14,7 @@ from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import GffAnnotationDb, load_annotations
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.misc import get_object_provenance
+from cogent3.core.location import FeatureMap, Span, LostSpan
 
 
 @pytest.fixture(scope="session")
@@ -2454,6 +2455,56 @@ def test_aligned_getitem_int(gapped_seqs_dict, seqid, i):
     assert str(got) == expect
 
 
+@pytest.mark.parametrize(
+    "raw_seq,coords",
+    (("ACGGTAAAG", ((2, 4), (5, 8))), ("CCC---CCC", ((0, 3), (6, 9)))),
+)
+def test_aligned_getitem_featuremap(raw_seq, coords):
+    dna = new_moltype.get_moltype("dna")
+    im, seq = dna.make_seq(seq=raw_seq).parse_out_gaps()
+    gaps = numpy.array([im.gap_pos, im.cum_gap_lengths]).T
+    asd = new_alignment.AlignedSeqsData.from_seqs_and_gaps(
+        seqs={"seq1": numpy.array(seq)}, gaps={"seq1": gaps}, alphabet=dna.most_degen_alphabet()
+    )
+    aln = new_alignment.make_aligned_seqs(asd, moltype=dna)
+    ia = aln.seqs["seq1"]
+    length = len(raw_seq)
+    fmap = FeatureMap(spans=[Span(s, e) for s, e in coords], parent_length=length)
+    expect = "".join(raw_seq[s:e] for s, e in fmap.get_coordinates())
+    got = ia[fmap]
+    assert str(got) == expect
+
+
+@pytest.fixture
+def aligned():
+    data = {
+        "seq1": "AAAGG--GGG-AACCCT",
+    }
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    return aln.seqs["seq1"]
+
+
+def test_aligned_getitem_featuremap_allgap(aligned):
+    fmap = FeatureMap(spans=[LostSpan(4)], parent_length=0)
+    sliced = aligned[fmap]
+    assert not sliced
+
+
+def test_aligned_getitem_featuremap_multi_spans(aligned):
+    #                      1111111
+    #            01234567890123456
+    #             ***   **    ***
+    # raw_seq = "AAAGG--GGG-AACCCT"
+    #            01234  567 890123
+    #                         1111
+
+    fmap = FeatureMap.from_locations(
+        locations=[(1, 4), (7, 9), (13, 16)], parent_length=17
+    )
+    sliced = aligned[fmap]
+    assert str(sliced) == "AAGGGCCC"
+
+
 def test_aligned_getitem_raises(gapped_seqs_dict):
     aln = new_alignment.make_aligned_seqs(gapped_seqs_dict, moltype="dna")
     al = aln.seqs["seq1"]
@@ -2541,7 +2592,7 @@ def test_from_seqs_and_maps(dna_alphabet):
     # AlignedSeqsData should be able to be constructed from sequences and gap maps
     seqs = {"seq1": "ACCTA", "seq2": ""}
     gaps = {"seq1": numpy.array([[0, 1]]), "seq2": numpy.array([[0, 6]])}
-    asd = new_alignment.AlignedSeqsData.from_seqs_and_maps(
+    asd = new_alignment.AlignedSeqsData.from_seqs_and_gaps(
         seqs=seqs, gaps=gaps, alphabet=dna_alphabet
     )
     assert asd.get_seq_str(seqid="seq1") == "ACCTA"
@@ -2554,7 +2605,7 @@ def test_from_seqs_and_maps_diff_seq_lens_raises(dna_alphabet):
     seqs = {"seq1": "ACCTA", "seq2": "A"}
     gaps = {"seq1": numpy.array([[0, 1]]), "seq2": numpy.array([[0, 1]])}
     with pytest.raises(ValueError):
-        _ = new_alignment.AlignedSeqsData.from_seqs_and_maps(
+        _ = new_alignment.AlignedSeqsData.from_seqs_and_gaps(
             seqs=seqs, gaps=gaps, alphabet=dna_alphabet
         )
 
@@ -2563,7 +2614,7 @@ def test_from_seqs_and_maps_diff_keys_raises(dna_alphabet):
     seqs = {"seq1": "ACCTA", "seq2": "A"}
     gaps = {"seq1": numpy.array([[0, 1]]), "seq3": numpy.array([[0, 1]])}
     with pytest.raises(ValueError):
-        _ = new_alignment.AlignedSeqsData.from_seqs_and_maps(
+        _ = new_alignment.AlignedSeqsData.from_seqs_and_gaps(
             seqs=seqs, gaps=gaps, alphabet=dna_alphabet
         )
 
@@ -3529,7 +3580,6 @@ def test_sliding_windows():
     assert result[3].to_dict() == {"seq3": "TACGT", "seq2": "TACGT", "seq1": "TACGT"}
 
 
-@pytest.mark.xfail(reason="todo: get_features not properly implemented so test hangs")
 def test_get_feature():
     aln = new_alignment.make_aligned_seqs(
         {"x": "-AAAAAAAAA", "y": "TTTT--CCCT"}, moltype="dna"
