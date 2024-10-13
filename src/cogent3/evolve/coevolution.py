@@ -650,12 +650,14 @@ def build_rate_matrix(
 # Mutual Information Calculators
 
 
-def mi(h1, h2, joint_h):
+@c3warn.deprecated_callable("2024.12", reason=_reason_2, is_discontinued=True)
+def mi(h1, h2, joint_h):  # pragma: no cover
     """Calc Mutual Information given two entropies and their joint entropy"""
     return h1 + h2 - joint_h
 
 
-def normalized_mi(h1, h2, joint_h):
+@c3warn.deprecated_callable("2024.12", reason=_reason_2, is_discontinued=True)
+def normalized_mi(h1, h2, joint_h):  # pragma: no cover
     """MI normalized by joint entropy, as described in Martin 2005"""
     return mi(h1, h2, joint_h) / joint_h
 
@@ -665,7 +667,8 @@ nmi = normalized_mi
 # Other functions used in MI calculations
 
 
-def join_positions(pos1, pos2):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def join_positions(pos1, pos2):  # pragma: no cover
     """Merge two positions and return as a list of strings
 
     pos1: iterable object containing the first positions data
@@ -678,7 +681,8 @@ def join_positions(pos1, pos2):
     return ["".join([r1, r2]) for r1, r2 in zip(pos1, pos2)]
 
 
-def joint_entropy(pos1, pos2):
+@c3warn.deprecated_callable("2024.12", reason=_reason_2, is_discontinued=True)
+def joint_entropy(pos1, pos2):  # pragma: no cover
     """Calculate the joint entroy of a pair of positions"""
     return CategoryCounter(join_positions(pos1, pos2)).entropy
 
@@ -687,7 +691,8 @@ def joint_entropy(pos1, pos2):
 # characters)
 
 
-def ignore_excludes(pos, excludes=DEFAULT_EXCLUDES):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def ignore_excludes(pos, excludes=DEFAULT_EXCLUDES):  # pragma: no cover
     """Return position data as-is (results in excludes treated as other chars)"""
     return pos
 
@@ -695,6 +700,7 @@ def ignore_excludes(pos, excludes=DEFAULT_EXCLUDES):
 # Functions for scoring coevolution on the basis of Mutual Information
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_2, is_discontinued=True)
 def mi_pair(
     alignment,
     pos1,
@@ -705,7 +711,7 @@ def mi_pair(
     null_value=DEFAULT_NULL_VALUE,
     excludes=DEFAULT_EXCLUDES,
     exclude_handler=None,
-):
+):  # pragma: no cover
     """Calculate mutual information of a pair of alignment positions
 
     alignment: the full alignment object
@@ -764,6 +770,7 @@ def mi_pair(
     return result
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_2, is_discontinued=True)
 def mi_position(
     alignment,
     position,
@@ -772,7 +779,7 @@ def mi_position(
     null_value=DEFAULT_NULL_VALUE,
     excludes=DEFAULT_EXCLUDES,
     exclude_handler=None,
-):
+):  # pragma: no cover
     """Calc mi b/w position and all other positions in an alignment
 
     alignment: the full alignment object
@@ -819,13 +826,14 @@ def mi_position(
     return result
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_2, is_discontinued=True)
 def mi_alignment(
     alignment,
     mi_calculator=mi,
     null_value=DEFAULT_NULL_VALUE,
     excludes=DEFAULT_EXCLUDES,
     exclude_handler=None,
-):
+):  # pragma: no cover
     """Calc mi over all position pairs in an alignment
 
     alignment: the full alignment object
@@ -876,6 +884,7 @@ def mi_alignment(
 # Start Normalized Mutual Information Analysis (Martin 2005)
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_2, is_discontinued=True)
 def normalized_mi_pair(
     alignment,
     pos1,
@@ -885,7 +894,7 @@ def normalized_mi_pair(
     null_value=DEFAULT_NULL_VALUE,
     excludes=DEFAULT_EXCLUDES,
     exclude_handler=None,
-):
+):  # pragma: no cover
     """Calc normalized mutual information of a pair of alignment positions
 
     alignment: the full alignment object
@@ -920,6 +929,7 @@ def normalized_mi_pair(
 nmi_pair = normalized_mi_pair
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_2, is_discontinued=True)
 def normalized_mi_position(
     alignment,
     position,
@@ -927,7 +937,7 @@ def normalized_mi_position(
     null_value=DEFAULT_NULL_VALUE,
     excludes=DEFAULT_EXCLUDES,
     exclude_handler=None,
-):
+):  # pragma: no cover
     """Calc normalized mi b/w position and all other positions in an alignment
 
     alignment: the full alignment object
@@ -961,12 +971,13 @@ def normalized_mi_position(
 nmi_position = normalized_mi_position
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_2, is_discontinued=True)
 def normalized_mi_alignment(
     alignment,
     null_value=DEFAULT_NULL_VALUE,
     excludes=DEFAULT_EXCLUDES,
     exclude_handler=None,
-):
+):  # pragma: no cover
     """Calc normalized mi over all position pairs in an alignment
 
     alignment: the full alignment object
@@ -1030,7 +1041,8 @@ protein_dict = {
 default_sca_freqs = protein_dict
 
 
-def freqs_to_array(f, alphabet):
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
+def freqs_to_array(f, alphabet):  # pragma: no cover
     """Takes data in freqs object and turns it into array.
 
     f = dict or CategoryCounter object
@@ -1040,7 +1052,10 @@ def freqs_to_array(f, alphabet):
     return array([f.get(i, 0) for i in alphabet])
 
 
-def get_allowed_perturbations(counts, cutoff, alphabet, num_seqs=100):
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
+def get_allowed_perturbations(
+    counts, cutoff, alphabet, num_seqs=100
+):  # pragma: no cover
     """Returns list of allowed perturbations as characters
 
     count: Profile object of raw character counts at each position
@@ -1062,7 +1077,8 @@ def get_allowed_perturbations(counts, cutoff, alphabet, num_seqs=100):
     return result
 
 
-def probs_from_dict(d, alphabet):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def probs_from_dict(d, alphabet):  # pragma: no cover
     """Convert dict of alphabet char probabilities to list in alphabet's order
 
     d: probabilities of observing each character in alphabet (dict indexed
@@ -1075,7 +1091,8 @@ def probs_from_dict(d, alphabet):
     return array([d[c] for c in alphabet])
 
 
-def freqs_from_aln(aln, alphabet, scaled_aln_size=100):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def freqs_from_aln(aln, alphabet, scaled_aln_size=100):  # pragma: no cover
     """Return the frequencies in aln of chars in alphabet's order
 
     aln: the alignment object
@@ -1099,7 +1116,10 @@ def freqs_from_aln(aln, alphabet, scaled_aln_size=100):
     return (alphabet_as_indices == aln_data).sum(1) * (scaled_aln_size / len(aln_data))
 
 
-def get_positional_frequencies(aln, position_number, alphabet, scaled_aln_size=100):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def get_positional_frequencies(
+    aln, position_number, alphabet, scaled_aln_size=100
+):  # pragma: no cover
     """Return the freqs in aln[position_number] of chars in alphabet's order
 
     aln: the alignment object
@@ -1124,7 +1144,10 @@ def get_positional_frequencies(aln, position_number, alphabet, scaled_aln_size=1
     )
 
 
-def get_positional_probabilities(pos_freqs, natural_probs, scaled_aln_size=100):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def get_positional_probabilities(
+    pos_freqs, natural_probs, scaled_aln_size=100
+):  # pragma: no cover
     """Get probs of observering the freq of each char given it's natural freq
     In Suel 2003 supplementary material, this step is defined as:
      "... each element is the binomial probability of observing each
@@ -1160,7 +1183,8 @@ def get_positional_probabilities(pos_freqs, natural_probs, scaled_aln_size=100):
     return array(results)
 
 
-def get_subalignments(aln, position, selections):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def get_subalignments(aln, position, selections):  # pragma: no cover
     """returns subalns w/ seq[pos] == selection for each in selections
     aln: an alignment object
     position: int in alignment to be checked for each perturbation
@@ -1185,7 +1209,8 @@ def get_subalignments(aln, position, selections):
     return result
 
 
-def get_dg(position_probs, aln_probs):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def get_dg(position_probs, aln_probs):  # pragma: no cover
     """Return delta_g vector
 
     position_probs: the prob of observing each alphabet chars frequency in
@@ -1202,7 +1227,8 @@ def get_dg(position_probs, aln_probs):
     return array(results)
 
 
-def get_dgg(all_dgs, subaln_dgs, scaled_aln_size=100):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def get_dgg(all_dgs, subaln_dgs, scaled_aln_size=100):  # pragma: no cover
     """Return delta_delta_g value
 
     all_dgs: the dg vector for a position-of-interest in the alignment
@@ -1233,6 +1259,7 @@ def get_dgg(all_dgs, subaln_dgs, scaled_aln_size=100):
     return norm(all_dgs - subaln_dgs) / scaled_aln_size * e
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
 def sca_pair(
     alignment,
     pos1,
@@ -1247,7 +1274,7 @@ def sca_pair(
     return_all=False,
     alphabet=default_sca_alphabet,
     background_freqs=default_sca_freqs,
-):
+):  # pragma: no cover
     """ Calculate statistical coupling b/w a pair of alignment columns
 
         alignment: full alignment object
@@ -1375,6 +1402,7 @@ def sca_pair(
         return max(ddg_values)
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
 def sca_position(
     alignment,
     position,
@@ -1388,7 +1416,7 @@ def sca_position(
     return_all=False,
     alphabet=default_sca_alphabet,
     background_freqs=default_sca_freqs,
-):
+):  # pragma: no cover
     """Calculate statistical coupling b/w a column and all other columns
 
     alignment: full alignment object
@@ -1487,6 +1515,7 @@ def sca_position(
     return array(result)
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
 def sca_alignment(
     alignment,
     cutoff,
@@ -1495,7 +1524,7 @@ def sca_alignment(
     return_all=False,
     alphabet=default_sca_alphabet,
     background_freqs=default_sca_freqs,
-):
+):  # pragma: no cover
     """Calculate statistical coupling b/w all columns in alignment
 
     alignment: full alignment object
@@ -1582,7 +1611,8 @@ def sca_alignment(
 # Caporaso et al., 2008)
 
 
-def make_weights(counts, n):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def make_weights(counts, n):  # pragma: no cover
     """Return the weights for replacement states for each possible character.
     We compute the weight as the normalized frequency of the replacement state
     divided by 2*n."""
@@ -1596,7 +1626,7 @@ def make_weights(counts, n):
     return weights
 
 
-def calc_pair_scale(seqs, obs1, obs2, weights1, weights2):
+def calc_pair_scale(seqs, obs1, obs2, weights1, weights2):  # pragma: no cover
     """Return entropies and weights for comparable alignment.
     A comparable alignment is one in which, for each paired state ij, all
     alternate observable paired symbols are created. For instance, let the
@@ -1651,6 +1681,7 @@ def calc_pair_scale(seqs, obs1, obs2, weights1, weights2):
     return scales
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def resampled_mi_pair(
     alignment,
     pos1,
@@ -1659,7 +1690,7 @@ def resampled_mi_pair(
     excludes=DEFAULT_EXCLUDES,
     exclude_handler=None,
     null_value=DEFAULT_NULL_VALUE,
-):
+):  # pragma: no cover
     """returns scaled mutual information for a pair.
 
     Parameters
@@ -1709,6 +1740,7 @@ def resampled_mi_pair(
 rmi_pair = resampled_mi_pair
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def resampled_mi_position(
     alignment,
     position,
@@ -1716,7 +1748,7 @@ def resampled_mi_position(
     excludes=DEFAULT_EXCLUDES,
     exclude_handler=None,
     null_value=DEFAULT_NULL_VALUE,
-):
+):  # pragma: no cover
     aln_length = len(alignment)
     result = zeros(aln_length, float)
 
@@ -1735,12 +1767,13 @@ def resampled_mi_position(
     return result
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def resampled_mi_alignment(
     alignment,
     excludes=DEFAULT_EXCLUDES,
     exclude_handler=None,
     null_value=DEFAULT_NULL_VALUE,
-):
+):  # pragma: no cover
     """returns scaled mutual information for all possible pairs."""
     aln_length = len(alignment)
     result = zeros((aln_length, aln_length), float)
@@ -1763,7 +1796,10 @@ def resampled_mi_alignment(
 # Begin ancestral_states analysis
 
 
-def get_ancestral_seqs(aln, tree, sm=None, pseudocount=1e-6, optimise=True):
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
+def get_ancestral_seqs(
+    aln, tree, sm=None, pseudocount=1e-6, optimise=True
+):  # pragma: no cover
     """Calculates ancestral sequences by maximum likelihood
 
     Parameters
@@ -1790,9 +1826,10 @@ def get_ancestral_seqs(aln, tree, sm=None, pseudocount=1e-6, optimise=True):
     return ArrayAlignment(lf.likely_ancestral_seqs(), moltype=aln.moltype)
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
 def ancestral_state_alignment(
     aln, tree, ancestral_seqs=None, null_value=DEFAULT_NULL_VALUE
-):
+):  # pragma: no cover
     ancestral_seqs = ancestral_seqs or get_ancestral_seqs(aln, tree)
     result = []
     for i in range(len(aln)):
@@ -1803,9 +1840,10 @@ def ancestral_state_alignment(
     return ltm_to_symmetric(array(result))
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
 def ancestral_state_position(
     aln, tree, position, ancestral_seqs=None, null_value=DEFAULT_NULL_VALUE
-):
+):  # pragma: no cover
     ancestral_seqs = ancestral_seqs or get_ancestral_seqs(aln, tree)
     result = []
     for i in range(len(aln)):
@@ -1815,9 +1853,10 @@ def ancestral_state_position(
     return array(result)
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
 def ancestral_state_pair(
     aln, tree, pos1, pos2, ancestral_seqs=None, null_value=DEFAULT_NULL_VALUE
-):
+):  # pragma: no cover
     """ """
     ancestral_seqs = ancestral_seqs or get_ancestral_seqs(aln, tree)
     ancestral_names_to_seqs = dict(
@@ -1914,7 +1953,8 @@ method_abbrevs_to_names = {
 # is only performed once by coevolve_alignment.
 
 
-def sca_input_validation(alignment, **kwargs):
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
+def sca_input_validation(alignment, **kwargs):  # pragma: no cover
     """SCA specific validations steps"""
 
     # check that all required parameters are present in kwargs
@@ -1949,7 +1989,8 @@ def sca_input_validation(alignment, **kwargs):
     validate_alphabet(alphabet, background_freqs)
 
 
-def validate_alphabet(alphabet, freqs):
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
+def validate_alphabet(alphabet, freqs):  # pragma: no cover
     """SCA validation: ValueError if set(alphabet) != set(freqs.keys())"""
     alphabet_chars = set(alphabet)
     freq_chars = set(freqs.keys())
@@ -1959,7 +2000,8 @@ def validate_alphabet(alphabet, freqs):
         )
 
 
-def ancestral_states_input_validation(alignment, **kwargs):
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
+def ancestral_states_input_validation(alignment, **kwargs):  # pragma: no cover
     """Ancestral States (AS) specific validations steps"""
     # check that all required parameters are present in kwargs
     required_parameters = ["tree"]
@@ -1976,7 +2018,8 @@ def ancestral_states_input_validation(alignment, **kwargs):
         validate_ancestral_seqs(alignment, kwargs["tree"], kwargs["ancestral_seqs"])
 
 
-def validate_ancestral_seqs(alignment, tree, ancestral_seqs):
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
+def validate_ancestral_seqs(alignment, tree, ancestral_seqs):  # pragma: no cover
     """AS validation: ValueError if incompatible aln, tree, & ancestral seqs
 
     Incompatibility between the alignment and the ancestral_seqs is
@@ -1996,7 +2039,8 @@ def validate_ancestral_seqs(alignment, tree, ancestral_seqs):
         )
 
 
-def validate_tree(alignment, tree):
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
+def validate_tree(alignment, tree):  # pragma: no cover
     """AS validation: ValueError if tip and seq names aren't same"""
     if set(tree.get_tip_names()) != set(alignment.names):
         raise ValueError("Tree tips and seqs must have perfectly overlapping names.")
@@ -2007,7 +2051,8 @@ def validate_tree(alignment, tree):
 # General (opposed to algorithm-specific) validation functions
 
 
-def validate_position(alignment, position):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def validate_position(alignment, position):  # pragma: no cover
     """ValueError if position is outside the range of the alignment"""
     if not 0 <= position < len(alignment):
         raise ValueError(
@@ -2015,7 +2060,8 @@ def validate_position(alignment, position):
         )
 
 
-def validate_alignment(alignment):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def validate_alignment(alignment):  # pragma: no cover
     """ValueError on ambiguous alignment characters"""
     bad_seqs = []
     for name, ambiguous_pos in list(alignment.get_ambiguous_positions().items()):
@@ -2027,9 +2073,10 @@ def validate_alignment(alignment):
         )
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def coevolve_alignments_validation(
     method, alignment1, alignment2, min_num_seqs, max_num_seqs, **kwargs
-):
+):  # pragma: no cover
     """Validation steps required for intermolecular coevolution analyses"""
     valid_methods_for_different_moltypes = {}.fromkeys(
         [mi_alignment, nmi_alignment, resampled_mi_alignment]
@@ -2088,7 +2135,8 @@ coevolve_alignment_functions = {
 }
 
 
-def coevolve_alignment(method, alignment, **kwargs):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def coevolve_alignment(method, alignment, **kwargs):  # pragma: no cover
     """Apply coevolution method to alignment (for intramolecular coevolution)
 
     method: f(alignment,**kwargs) -> 2D array of coevolution scores
@@ -2124,7 +2172,8 @@ coevolve_alignment_to_coevolve_pair = {
 }
 
 
-def merge_alignments(alignment1, alignment2):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def merge_alignments(alignment1, alignment2):  # pragma: no cover
     """Append alignment 2 to the end of alignment 1
 
     This function is used by coevolve_alignments to merge two alignments
@@ -2155,7 +2204,8 @@ def merge_alignments(alignment1, alignment2):
     return make_aligned_seqs(result, array_align=True)
 
 
-def n_random_seqs(alignment, n):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def n_random_seqs(alignment, n):  # pragma: no cover
     """Given alignment, return n random seqs in a new alignment object.
 
     This function is used by coevolve_alignments.
@@ -2166,6 +2216,7 @@ def n_random_seqs(alignment, n):
     return alignment.take_seqs(seq_names[:n])
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def coevolve_alignments(
     method,
     alignment1,
@@ -2176,7 +2227,7 @@ def coevolve_alignments(
     max_num_seqs=None,
     sequence_filter=n_random_seqs,
     **kwargs,
-):
+):  # pragma: no cover
     """Apply method to a pair of alignments (for intermolecular coevolution)
 
     method: the *_alignment function to be applied
@@ -2358,7 +2409,8 @@ coevolve_position_functions = {
 }
 
 
-def coevolve_position(method, alignment, position, **kwargs):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def coevolve_position(method, alignment, position, **kwargs):  # pragma: no cover
     """Apply provided coevolution method to a column in alignment
 
     method: f(alignment,position,**kwargs) -> array of coevolution scores
@@ -2393,7 +2445,8 @@ coevolve_pair_functions = {
 }
 
 
-def coevolve_pair(method, alignment, pos1, pos2, **kwargs):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def coevolve_pair(method, alignment, pos1, pos2, **kwargs):  # pragma: no cover
     """Apply provided coevolution method to columns pos1 & pos2 of alignment
 
     method: f(alignment,pos1,pos2,**kwargs) -> coevolution score
@@ -2424,6 +2477,7 @@ def coevolve_pair(method, alignment, pos1, pos2, **kwargs):
 # post-processing filters for coevolution result matrices.
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def filter_threshold_based_multiple_interdependency(
     aln,
     coevolution_matrix,
@@ -2431,7 +2485,7 @@ def filter_threshold_based_multiple_interdependency(
     max_cmp_threshold=1,
     cmp_function=greater_equal,
     intermolecular_data_only=False,
-):
+):  # pragma: no cover
     """Filters positions with more than max_cmp_threshold scores >= threshold
 
     This post-processing filter is based on the idea described in:
@@ -2512,13 +2566,14 @@ def filter_threshold_based_multiple_interdependency(
     return coevolution_matrix
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def is_parsimony_informative(
     column_freqs,
     minimum_count=2,
     minimum_differences=2,
     ignored=DEFAULT_EXCLUDES,
     strict=False,
-):
+):  # pragma: no cover
     """Return True is aln_position is parsimony informative
 
     column_freqs: dict of characters at alignmnet position mapped
@@ -2591,6 +2646,7 @@ def is_parsimony_informative(
     return count_gte_minimum >= minimum_differences
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def filter_non_parsimony_informative(
     aln,
     coevolution_matrix,
@@ -2600,7 +2656,7 @@ def filter_non_parsimony_informative(
     ignored=DEFAULT_EXCLUDES,
     intermolecular_data_only=False,
     strict=False,
-):
+):  # pragma: no cover
     """Replaces scores in coevolution_matrix with null_value for positions
     which are not parsimony informative.
 
@@ -2629,7 +2685,10 @@ def filter_non_parsimony_informative(
                     coevolution_matrix[i - len_aln1, :] = null_value
 
 
-def make_positional_exclude_percentage_function(excludes, max_exclude_percent):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def make_positional_exclude_percentage_function(
+    excludes, max_exclude_percent
+):  # pragma: no cover
     """return function to identify aln positions with > max_exclude_percent"""
     excludes = {}.fromkeys(excludes)
 
@@ -2643,6 +2702,7 @@ def make_positional_exclude_percentage_function(excludes, max_exclude_percent):
     return f
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def filter_exclude_positions(
     aln,
     coevolution_matrix,
@@ -2650,7 +2710,7 @@ def filter_exclude_positions(
     null_value=DEFAULT_NULL_VALUE,
     excludes=DEFAULT_EXCLUDES,
     intermolecular_data_only=False,
-):
+):  # pragma: no cover
     """Assign null_value to positions with > max_exclude_percent excludes
 
     aln: the ArrayAlignment object
@@ -2693,7 +2753,10 @@ def filter_exclude_positions(
 # somewhere else, or should I be using pre-existing code?
 
 
-def pickle_coevolution_result(coevolve_result, out_filepath="output.pkl"):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def pickle_coevolution_result(
+    coevolve_result, out_filepath="output.pkl"
+):  # pragma: no cover
     """Pickle coevolve_result and store it at output_filepath
 
     coevolve_result: result from a coevolve_* function (above); this can
@@ -2712,7 +2775,8 @@ def pickle_coevolution_result(coevolve_result, out_filepath="output.pkl"):
     infile.close()
 
 
-def unpickle_coevolution_result(in_filepath):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def unpickle_coevolution_result(in_filepath):  # pragma: no cover
     """Read in coevolve_result from a pickled file
 
     in_filepath: filepath to unpickle
@@ -2731,7 +2795,10 @@ def unpickle_coevolution_result(in_filepath):
     return r
 
 
-def coevolution_matrix_to_csv(coevolve_matrix, out_filepath="output.csv"):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def coevolution_matrix_to_csv(
+    coevolve_matrix, out_filepath="output.csv"
+):  # pragma: no cover
     """Write coevolve_matrix as csv file at output_filepath
 
     coevolve_result: result from a coevolve_alignment function (above);
@@ -2747,7 +2814,8 @@ def coevolution_matrix_to_csv(coevolve_matrix, out_filepath="output.csv"):
     f.close()
 
 
-def csv_to_coevolution_matrix(in_filepath):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def csv_to_coevolution_matrix(in_filepath):  # pragma: no cover
     """Read a coevolution matrix from a csv file
 
     in_filepath: input filepath
@@ -2773,9 +2841,10 @@ def csv_to_coevolution_matrix(in_filepath):
 # Start functions for analyzing the results of a coevolution run.
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def identify_aln_positions_above_threshold(
     coevolution_matrix, threshold, aln_position, null_value=DEFAULT_NULL_VALUE
-):
+):  # pragma: no cover
     """Returns the list of alignment positions which achieve a
     score >= threshold with aln_position.
     Coevolution matrix should be symmetrical or you
@@ -2791,13 +2860,14 @@ def identify_aln_positions_above_threshold(
     return results
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def aln_position_pairs_cmp_threshold(
     coevolution_matrix,
     threshold,
     cmp_function,
     null_value=DEFAULT_NULL_VALUE,
     intermolecular_data_only=False,
-):
+):  # pragma: no cover
     """Returns list of position pairs with score >= threshold
 
     coevolution_matrix: 2D numpy array
@@ -2829,12 +2899,13 @@ def aln_position_pairs_cmp_threshold(
     return results
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def aln_position_pairs_ge_threshold(
     coevolution_matrix,
     threshold,
     null_value=DEFAULT_NULL_VALUE,
     intermolecular_data_only=False,
-):
+):  # pragma: no cover
     """wrapper function for aln_position_pairs_cmp_threshold"""
     return aln_position_pairs_cmp_threshold(
         coevolution_matrix,
@@ -2845,18 +2916,20 @@ def aln_position_pairs_ge_threshold(
     )
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def aln_position_pairs_le_threshold(
     coevolution_matrix,
     threshold,
     null_value=DEFAULT_NULL_VALUE,
     intermolecular_data_only=False,
-):
+):  # pragma: no cover
     """wrapper function for aln_position_pairs_cmp_threshold"""
     return aln_position_pairs_cmp_threshold(
         coevolution_matrix, threshold, less_equal, null_value, intermolecular_data_only
     )
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def count_cmp_threshold(
     m,
     threshold,
@@ -2864,7 +2937,7 @@ def count_cmp_threshold(
     null_value=DEFAULT_NULL_VALUE,
     symmetric=False,
     ignore_diagonal=False,
-):
+):  # pragma: no cover
     """Returns a count of the values in m >= threshold, ignoring nulls.
 
     m: coevolution matrix (numpy array)
@@ -2911,25 +2984,28 @@ def count_cmp_threshold(
     return total_hits, total_non_null
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def count_ge_threshold(
     m, threshold, null_value=DEFAULT_NULL_VALUE, symmetric=False, ignore_diagonal=False
-):
+):  # pragma: no cover
     """wrapper function for count_cmp_threshold"""
     return count_cmp_threshold(
         m, threshold, greater_equal, null_value, symmetric, ignore_diagonal
     )
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def count_le_threshold(
     m, threshold, null_value=DEFAULT_NULL_VALUE, symmetric=False, ignore_diagonal=False
-):
+):  # pragma: no cover
     """wrapper function for count_cmp_threshold"""
     return count_cmp_threshold(
         m, threshold, less_equal, null_value, symmetric, ignore_diagonal
     )
 
 
-def ltm_to_symmetric(m):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def ltm_to_symmetric(m):  # pragma: no cover
     """Copies values from lower triangle to upper triangle"""
     assert (
         m.shape[0] == m.shape[1]
@@ -2945,9 +3021,10 @@ def ltm_to_symmetric(m):
 
 
 # Script functionality
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def build_coevolution_matrix_filepath(
     input_filepath, output_dir="./", method=None, alphabet=None, parameter=None
-):
+):  # pragma: no cover
     """ Build filepath from input filename, output dir, and list of suffixes
 
         input_filepath: filepath to be used for generating the output
@@ -3003,7 +3080,8 @@ def build_coevolution_matrix_filepath(
     return result
 
 
-def parse_coevolution_matrix_filepath(filepath):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def parse_coevolution_matrix_filepath(filepath):  # pragma: no cover
     """Parses a coevolution matrix filepath into constituent parts.
 
     Format is very specific. Will only work on filenames such as:
