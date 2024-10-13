@@ -4335,9 +4335,9 @@ class Alignment(SequenceCollection):
         seqs = {}
         maps = {}
         for aligned in self.seqs:
-            seq, map = aligned._slice_with_map(slicemap)
+            seq, map_data = aligned._slice_with_map(slicemap)
             seqs[aligned.name] = seq
-            maps[aligned.name] = map
+            maps[aligned.name] = map_data
 
         data = self._seqs_data.from_seqs_and_gaps(
             seqs=seqs, gaps=maps, alphabet=self.moltype.most_degen_alphabet()
