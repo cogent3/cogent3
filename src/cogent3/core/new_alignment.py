@@ -2776,15 +2776,14 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         **kwargs,
     ):
         """Construct an AlignedSeqsData object from a dict of ungapped sequences
-        and a corresponding dict of gap maps.
+        and a corresponding dict of gap data.
 
         Parameters
         ----------
         seqs
             dict of ungapped sequences {name: seq, ...}
-        gap_maps
-            dict of gap maps {name: gap_map, ...} where a gap_map is a 2D numpy array
-            of [gap index, cumulative gap length] pairs
+        gaps
+            gap data {name: [[seq gap position, cumulative gap length], ...], ...} 
         alphabet
             alphabet object for the sequences
         """
