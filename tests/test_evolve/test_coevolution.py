@@ -26,8 +26,6 @@ def calc_mi_pair(alignment, pos1, pos2, normalised=False):
 
 @pytest.fixture(params=["AAAAA", "ACGT", "AACC", "ACGNNGG"])
 def column(request):
-    from cogent3 import get_moltype
-
     return get_moltype("dna", new_type=True).alphabet.to_indices(request.param)
 
 
