@@ -40,6 +40,7 @@ Modelling Evolution
     coevolution
     rate_heterogeneity
     hmm_par_heterogeneity
+    nonstationary_inference
 
 ***************************
 Phylogenetic Reconstruction
