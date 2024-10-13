@@ -2459,7 +2459,9 @@ class Aligned:
     def remapped_to(self, map):
         return Aligned(map[self.map.inverse()].inverse(), self.data)
 
-    def make_feature(self, feature: FeatureDataType, alignment: "Alignment") -> Feature:
+    def make_feature(
+        self, feature: FeatureDataType, alignment: "Alignment"
+    ) -> Feature:  # ported
         """returns a feature, not written into annotation_db"""
         annot = self.data.make_feature(feature)
         inverted = self.map.to_feature_map().inverse()

@@ -2000,7 +2000,7 @@ class IntegrationTests(TestCase):
     "raw_seq,coords",
     (("ACGGTAAAG", ((2, 4), (5, 8))), ("CCC---CCC", ((0, 3), (6, 9)))),
 )
-def test_featuremap_slice_aligned(raw_seq, coords):
+def test_featuremap_slice_aligned(raw_seq, coords):  # ported
     from cogent3.core.location import FeatureMap, Span
 
     im, seq = DNA.make_seq(seq=raw_seq).parse_out_gaps()
@@ -3761,7 +3761,7 @@ def test_slice_aligned(raw):  # ported
     assert str(sliced) == raw[:-3]
 
 
-def test_slice_aligned_featuremap_allgap():
+def test_slice_aligned_featuremap_allgap():  # ported
     from cogent3.core.location import FeatureMap, LostSpan
 
     imap, seq = DNA.make_seq(seq="AAAGGGGGAACCCT", name="x").parse_out_gaps()
@@ -3771,7 +3771,7 @@ def test_slice_aligned_featuremap_allgap():
     assert not sliced
 
 
-def test_slice_aligned_featuremap_multi_spans():
+def test_slice_aligned_featuremap_multi_spans():  # ported
     from cogent3.core.location import FeatureMap
 
     #                    1111111

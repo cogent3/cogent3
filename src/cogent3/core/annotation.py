@@ -159,7 +159,7 @@ class Feature:
             # due to separation of IndelMap and Map, change class
             gmap = gmap.to_feature_map()
 
-        seqid = grandparent.name or f"from {self.seqid!r}"
+        seqid = getattr(grandparent, "name", None) or f"from {self.seqid!r}"
         kwargs = {
             **self._serialisable,
             **{"map": gmap[self.map], "parent": grandparent, "seqid": seqid},

@@ -23,7 +23,12 @@ from cogent3.core.annotation_db import (
     SupportsFeatures,
 )
 from cogent3.core.info import Info as InfoClass
-from cogent3.core.location import IndelMap, _input_vals_neg_step, _input_vals_pos_step
+from cogent3.core.location import (
+    FeatureMap,
+    IndelMap,
+    _input_vals_neg_step,
+    _input_vals_pos_step,
+)
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray, load_pssm
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import seqs_to_fasta
@@ -179,6 +184,11 @@ class SeqsDataABC(ABC):
     """
 
     __slots__ = ()
+
+    # refactor: design
+    # SeqsData needs a class method for creating instances from a dict, which will need to be
+    # on AlignedSeqsData as well. If we rename AlignedSeqsData.from_aligned_seqs to from_seqs
+    # (or something similar), we can use the same method name for both classes.
 
     @abstractmethod
     def seq_lengths(self) -> dict[str, int]: ...
@@ -2494,6 +2504,13 @@ class Aligned:
         """Returns gap_vector of GappedSeq, for omit_gap_pos."""
         return self.gapped_seq.gap_vector()
 
+    def make_feature(self, feature: FeatureDataType, alignment: "Alignment") -> Feature:
+        """returns a feature, not written into annotation_db"""
+        annot = self.seq.make_feature(feature)
+        inverted = self.map.to_feature_map().inverse()
+        # todo should indicate whether tidy or not
+        return annot.remapped_to(alignment, inverted)
+
     def __str__(self) -> str:
         return str(self.gapped_seq)
 
@@ -2518,6 +2535,40 @@ class Aligned:
     @__getitem__.register
     def _(self, span: slice):
         return self.__class__(data=self.data[span], moltype=self.moltype)
+
+    @__getitem__.register
+    def _(self, span: FeatureMap):
+        # we assume the feature map is in align coordinates
+        data, gaps = self._slice_with_map(span)
+        seqid = self.data.seqid
+        seqs_data = self.data.parent.from_seqs_and_gaps(
+            seqs={seqid: data},
+            gaps={seqid: gaps},
+            alphabet=self.moltype.most_degen_alphabet(),
+        )
+        view = seqs_data.get_view(seqid)
+
+        return Aligned(view, self.moltype)
+
+    def _slice_with_map(self, span: FeatureMap) -> tuple[numpy.ndarray, numpy.ndarray]:
+        start, end = span.start, span.end
+        if span.useful and len(list(span.spans)) == 1:
+            im = self.map[start:end]
+            seq_start = self.map.get_seq_index(start)
+            seq_end = self.map.get_seq_index(end)
+            data = self.data.array_value[seq_start:seq_end]
+        elif not span.useful:
+            im = self.map[start:end]
+            data = self.data.array_value[:0]
+        else:
+            # multiple spans
+            align_coords = span.get_coordinates()
+            im = self.map.joined_segments(align_coords)
+            seq_map = self.map.make_seq_feature_map(span)
+            data = numpy.array(self.seq.gapped_by_map(seq_map))
+
+        gaps = numpy.array([im.gap_pos, im.cum_gap_lengths]).T
+        return data, gaps
 
     def parent_coordinates(self, seq_coords=False):
         """returns seqid, start, stop, strand on the parent sequence
@@ -2561,6 +2612,16 @@ class AlignedSeqsDataABC(SeqsDataABC):
         cls,
         *,
         data: dict[str, StrORArray],
+        alphabet: new_alphabet.AlphabetABC,
+    ): ...
+
+    @classmethod
+    @abstractmethod
+    def from_seqs_and_gaps(
+        cls,
+        *,
+        seqs: dict[str, StrORBytesORArray],
+        gaps: dict[str, numpy.ndarray],
         alphabet: new_alphabet.AlphabetABC,
     ): ...
 
@@ -2702,6 +2763,34 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             alphabet=alphabet,
             align_len=align_len,
             check=False,
+            **kwargs,
+        )
+
+    @classmethod
+    def from_seqs_and_gaps(
+        cls,
+        *,
+        seqs: dict[str, StrORBytesORArray],
+        gaps: dict[str, numpy.ndarray],
+        alphabet: new_alphabet.AlphabetABC,
+        **kwargs,
+    ):
+        """Construct an AlignedSeqsData object from a dict of ungapped sequences
+        and a corresponding dict of gap data.
+
+        Parameters
+        ----------
+        seqs
+            dict of ungapped sequences {name: seq, ...}
+        gaps
+            gap data {name: [[seq gap position, cumulative gap length], ...], ...}
+        alphabet
+            alphabet object for the sequences
+        """
+        return cls(
+            seqs=seqs,
+            gaps=gaps,
+            alphabet=alphabet,
             **kwargs,
         )
 
@@ -3317,6 +3406,10 @@ class Alignment(SequenceCollection):
             info=self.info,
         )
 
+    @__getitem__.register
+    def _(self, index: FeatureMap):
+        return self._mapped(index)
+
     def __repr__(self):
         seqs = []
         limit = 10
@@ -3906,7 +3999,7 @@ class Alignment(SequenceCollection):
             seq = self.seqs[seqname]
             # we use parent seqid
             parent_id, start, stop, _ = seq.parent_coordinates()
-            offset = seq.annotation_offset
+            offset = seq.data.offset
 
             for feature in self.annotation_db.get_features_matching(
                 seqid=parent_id,
@@ -4237,6 +4330,20 @@ class Alignment(SequenceCollection):
             limit=settings["num_pos"],
             wrap=settings["wrap"],
         )
+
+    def _mapped(self, slicemap):
+        seqs = {}
+        maps = {}
+        for aligned in self.seqs:
+            seq, map_data = aligned._slice_with_map(slicemap)
+            seqs[aligned.name] = seq
+            maps[aligned.name] = map_data
+
+        data = self._seqs_data.from_seqs_and_gaps(
+            seqs=seqs, gaps=maps, alphabet=self.moltype.most_degen_alphabet()
+        )
+
+        return self.__class__(seqs_data=data, moltype=self.moltype, info=self.info)
 
 
 @singledispatch
