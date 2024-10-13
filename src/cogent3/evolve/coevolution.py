@@ -1,52 +1,12 @@
-"""Description
-File created on 03 May 2007.
-
-Functions to perform coevolutionary analyses on
-pre-aligned biological sequences. Coevolutionary analyses detect
-correlated substitutions between alignment positions. Analyses
-can be performed to look for covariation between a pair of
-alignment positions, in which case a single 'coevolve score' is
-returned. (The nature of this coevolve score is determined by the
-method used to detect coevolution.) Alternatively, coevolution can
-be calculated between one position and all other positions in an
-alignment, in which case a vector of coevolve scores is returned.
-Finally, coevolution can be calculated over all pairs of positions
-in an alignment, in which case a matrix (usually, but not necessarily,
-symmetric) is returned.
-
-The functions providing the core functionality here are:
-
-coevolve_pair: coevolution between a pair of positions (float returned)
-coevolve_position: coevolution between a position and all other
-    positions in the alignment (vector returned)
-coevolve_alignment: coevolution between all pairs of positions in an
-    alignment (matrix returned)
-
-Each of these functions takes a coevolution calculator, an alignment, and
- any additional keyword arguments that should be passed to the coevolution
- calculator. More information on these functions and how they should be used
- is available as executable documentation in coevolution.rst.
-
-The methods provided for calculating coevolution are:
-Mutual Information (Shannon 19xx)
-Normalized Mutual Information (Martin 2005)
-Statistical Coupling Analysis (Suel 2003)
-*Ancestral states (Tuffery 2000 -- might not be the best ref,
- a better might be Shindyalov, Kolchannow, and Sander 1994, but so far I
- haven't been able to get my hands on that one).
-* These methods require a phylogenetic tree, in addition to an alignment.
- Trees are calculated on-the-fly, by neighbor-joining, if not provided.
-
-This file can be applied as a script to calculate a coevolution matrix given
-an alignment. For information, run python coevolution.py -h from the command
-line.
-
-"""
-
+import enum
+import itertools
+import typing
 from os.path import basename
 from pickle import Pickler, Unpickler
 from random import shuffle
 
+import numba
+import numpy
 from numpy import (
     array,
     e,
@@ -63,6 +23,7 @@ from numpy import (
 from numpy.linalg import norm
 
 from cogent3 import PROTEIN, make_aligned_seqs
+from cogent3.core import new_alphabet
 from cogent3.core.alignment import ArrayAlignment
 from cogent3.core.alphabet import CharAlphabet
 from cogent3.core.moltype import IUPAC_gap, IUPAC_missing
@@ -74,12 +35,619 @@ from cogent3.evolve.substitution_model import (
 from cogent3.maths.stats.distribution import binomial_exact
 from cogent3.maths.stats.number import CategoryCounter, CategoryFreqs
 from cogent3.maths.stats.special import ROUND_ERROR
+from cogent3.util import dict_array
+from cogent3.util import parallel as PAR
+from cogent3.util import progress_display as UI
+from cogent3.util import warning as c3warn
 
 DEFAULT_EXCLUDES = "".join([IUPAC_gap, IUPAC_missing])
 DEFAULT_NULL_VALUE = nan
 
 
-def build_rate_matrix(count_matrix, freqs, aa_order="ACDEFGHIKLMNPQRSTVWY"):
+class MI_METHODS(enum.Enum):
+    mi = "mi"
+    nmi = "nmi"
+    rmi = "rmi"
+
+
+# Comments on design
+# the revised mutual information calculations are based on a sequence alignment
+# represented as a numpy uint8 array.
+
+# The resampled mutual information calculation uses a cache of all entropy terms
+# from the independent and joint position, produced by _calc_entropy_components().
+# For each combination of alternate possible states, there are two values in the
+# entropy terms that need to be modified. These calculations are done by
+# _calc_updated_entropy() and _calc_temp_entropy(). This caching, plus the
+# numba.jit compilation, makes rmi competitive performance-wise with the other
+# methods.
+
+
+@numba.jit
+def _count_states(
+    state_vector: numpy.ndarray,
+    num_states: int,
+    counts: typing.Optional[numpy.ndarray] = None,
+) -> numpy.ndarray:  # pragma: no cover
+    """computes counts from a single vector of states"""
+    if counts is None:
+        counts = numpy.empty(num_states, dtype=numpy.int64)
+
+    counts.fill(0)
+    for state in state_vector:
+        if state < num_states:
+            counts[state] += 1
+
+    return counts
+
+
+@numba.jit
+def _vector_entropy(counts: numpy.ndarray) -> float:  # pragma: no cover
+    """computes entropy for a single vector of integers"""
+    total = counts.sum()
+    if total <= 1:
+        return 0.0 if total else numpy.nan
+
+    entropy = 0.0
+    for count in counts:
+        if count > 0:
+            prob = count / total
+            entropy += prob * -numpy.log2(prob)
+
+    return entropy
+
+
+@numba.jit
+def _count_joint_states(
+    joint_states: numpy.ndarray,
+    num_states: int,
+    counts: typing.Optional[numpy.ndarray] = None,
+) -> numpy.ndarray:  # pragma: no cover
+    if counts is None:
+        counts = numpy.empty((num_states, num_states), dtype=numpy.int64)
+
+    counts.fill(0)
+    for joint_state in joint_states:
+        i, j = joint_state
+        if i >= num_states or j >= num_states:
+            continue
+
+        counts[i, j] += 1
+    return counts
+
+
+@numba.jit
+def _calc_joint_entropy(counts: numpy.ndarray) -> float:  # pragma: no cover
+    entropy = 0.0
+    total_counts = counts.sum()
+    for count in counts.flatten():
+        if count > 0:
+            prob = count / total_counts
+            entropy += prob * -numpy.log2(prob)
+    return entropy
+
+
+@numba.jit
+def _calc_column_entropies(
+    columns: numpy.ndarray, num_states: int
+) -> numpy.ndarray:  # pragma: no cover
+    """
+    Calculate the entropy for each column in the input array.
+
+    Parameters:
+    array (numpy.ndarray): Input array of unsigned 8-bit integers.
+
+    Returns:
+    numpy.ndarray: Array of entropy values for each column.
+    """
+    n_cols = columns.shape[1]
+    entropies = numpy.zeros(n_cols, dtype=numpy.float64)
+    counts = numpy.empty(num_states, dtype=numpy.int64)
+    for col in range(n_cols):
+        counts = _count_states(columns[:, col], num_states, counts)
+        entropies[col] = _vector_entropy(counts)
+
+    return entropies
+
+
+@numba.jit
+def _make_weights(
+    counts: numpy.ndarray, weights: typing.Optional[numpy.ndarray] = None
+) -> numpy.ndarray:  # pragma: no cover
+    """Return the weights for replacement states for each possible character.
+    We compute the weight as the normalized frequency of the replacement state
+    divided by 2*n."""
+    zeroes = counts == 0
+    total = counts.sum()
+    char_prob = counts.astype(numpy.float64) / total
+    if weights is None:
+        weights = numpy.empty((counts.shape[0], counts.shape[0]), dtype=numpy.float64)
+
+    weights.fill(0.0)
+    denom = 2 * total
+    for i in range(counts.shape[0]):
+        if zeroes[i]:
+            continue
+        diag = char_prob[i]
+        weights[i, :] = char_prob / (1 - diag) / denom
+        weights[i, i] = 0.0
+
+    return weights
+
+
+@numba.jit
+def _calc_entropy_components(
+    counts: numpy.ndarray, total: int
+) -> tuple[float, numpy.ndarray, numpy.ndarray]:  # pragma: no cover
+    """Return the entropy and arrays of entropy components and non-zero status"""
+    non_zero = counts != 0
+    assert counts.ndim == 1, "designed for 1D arrays"
+    freqs = counts.astype(numpy.float64) / total
+    log2 = numpy.zeros(counts.shape, dtype=numpy.float64)
+    et = numpy.zeros(counts.shape, dtype=numpy.float64)
+    log2[non_zero] = numpy.log2(freqs[non_zero])
+    et[non_zero] = (
+        -log2[non_zero] * freqs[non_zero]
+    )  # the terms in the entropy equation
+    h = numpy.sum(et)  # entropy of the original data
+    return h, et, non_zero
+
+
+@numba.jit
+def _calc_temp_entropy(
+    entropy: float,
+    counts: numpy.ndarray,
+    entropy_terms: numpy.ndarray,
+    total: int,
+    index: int,
+) -> float:  # pragma: no cover
+    # compute the intermediate column 1 entropy term
+    new_count = counts[index] - 1
+    orig_term = entropy_terms[index]
+    if new_count > 0:
+        freq = new_count / total
+        log2 = -numpy.log2(freq)
+        new_term = freq * log2
+    else:
+        new_term = 0.0
+
+    return entropy - orig_term + new_term
+
+
+@numba.jit
+def _calc_updated_entropy(
+    temp_entropy: float,
+    counts: numpy.ndarray,
+    entropy_terms: numpy.ndarray,
+    total: int,
+    index: int,
+) -> float:  # pragma: no cover
+    new_count = counts[index] + 1
+    orig_term = entropy_terms[index]
+    freq = new_count / total
+    log2 = -numpy.log2(freq)
+    new_term = freq * log2
+    return temp_entropy - orig_term + new_term
+
+
+@numba.jit
+def _calc_pair_scale(
+    counts_12: numpy.ndarray,
+    counts_1: numpy.ndarray,
+    counts_2: numpy.ndarray,
+    weights_1: numpy.ndarray,
+    weights_2: numpy.ndarray,
+    states_12: numpy.ndarray,
+    states_1: numpy.ndarray,
+    states_2: numpy.ndarray,
+    coeffs: numpy.ndarray,
+) -> tuple[float, numpy.ndarray, numpy.ndarray]:  # pragma: no cover
+    """Return entropies and weights for comparable alignment.
+    A comparable alignment is one in which, for each paired state ij, all
+    alternate observable paired symbols are created. For instance, let the
+    symbols {A,C} be observed at position i and {A,C} at position j. If we
+    observe the paired types {AC, AA}. A comparable alignment would involve
+    replacing an AC pair with a CC pair."""
+
+    # break down the joint entropy into individual terms so we can easily adjust
+    # for the different combinations
+    total = counts_1.sum()
+    counts_12 = counts_12.flatten()
+    je_orig, jet, j_nz = _calc_entropy_components(counts_12, total)
+
+    # individual entropy components for column 1
+    orig_e_1, et_1, nz_1 = _calc_entropy_components(counts_1, total)
+
+    # individual entropy components for column 2
+    orig_e_2, et_2, nz_2 = _calc_entropy_components(counts_2, total)
+    orig_mi = orig_e_1 + orig_e_2 - je_orig
+
+    num_scales = j_nz.sum() * nz_1.sum() + j_nz.sum() * nz_2.sum()
+    scales = numpy.zeros((num_scales, 2), dtype=numpy.float64)
+    pairs = numpy.zeros((num_scales, 2), dtype=numpy.uint64)
+    new_coord = numpy.zeros(2, dtype=numpy.int64)
+    if orig_e_1 == 0.0 or orig_e_2 == 0.0 or je_orig == 0.0:
+        return 0.0, pairs, scales
+
+    n = 0
+    for pair in states_12.flatten()[j_nz]:
+        i, j = new_alphabet.index_to_coord(pair, coeffs=coeffs)
+        if counts_12[pair] == 0:
+            continue
+
+        # compute the intermediate column 1 entropy term
+        tmp_e_1 = _calc_temp_entropy(orig_e_1, counts_1, et_1, total, i)
+
+        # compute the intermediate joint entropy term
+        tmp_je = _calc_temp_entropy(je_orig, counts_12, jet, total, pair)
+
+        for k in states_1:
+            if k == i or counts_1[k] == 0:
+                continue
+            # compute the new entropy for column 1
+            new_e_1 = _calc_updated_entropy(tmp_e_1, counts_1, et_1, total, k)
+
+            # compute the new joint-entropy
+            new_coord[:] = k, j
+            new_index = new_alphabet.coord_to_index(new_coord, coeffs=coeffs)
+            n_je = _calc_updated_entropy(tmp_je, counts_12, jet, total, new_index)
+
+            # the weight
+            w = weights_1[i, k]
+            new_mi = new_e_1 + orig_e_2 - n_je
+            scales[n][0] = new_mi
+            scales[n][1] = w
+            pairs[n][0] = i
+            pairs[n][1] = j
+            n += 1
+
+        # compute the intermediate column 2 entropy term
+        tmp_e_2 = _calc_temp_entropy(orig_e_2, counts_2, et_2, total, j)
+        for k in states_2:
+            if k == j or counts_2[k] == 0:
+                continue
+
+            # compute the new entropy for column 1
+            new_e_2 = _calc_updated_entropy(tmp_e_2, counts_2, et_2, total, k)
+
+            # compute the new joint-entropy
+            new_coord[:] = i, k
+            new_index = new_alphabet.coord_to_index(new_coord, coeffs=coeffs)
+            n_je = _calc_updated_entropy(tmp_je, counts_12, jet, total, new_index)
+
+            # the weight
+            w = weights_2[j, k]
+            new_mi = orig_e_1 + new_e_2 - n_je
+            scales[n][0] = new_mi
+            scales[n][1] = w
+            pairs[n][0] = i
+            pairs[n][1] = j
+            n += 1
+
+    return orig_mi, pairs, scales
+
+
+@numba.jit
+def _count_col_joint(
+    pos_12: numpy.ndarray,
+    counts_12: numpy.ndarray,
+    counts_1: numpy.ndarray,
+    counts_2: numpy.ndarray,
+    num_states: int,
+) -> tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:  # pragma: no cover
+    counts_12.fill(0)
+    counts_1.fill(0)
+    counts_2.fill(0)
+    for pos_1, pos_2 in pos_12:
+        if pos_1 >= num_states or pos_2 >= num_states:
+            continue
+        counts_12[pos_1, pos_2] += 1
+        counts_1[pos_1] += 1
+        counts_2[pos_2] += 1
+
+    return counts_12, counts_1, counts_2
+
+
+@numba.jit
+def _rmi_calc(
+    positions: numpy.ndarray,
+    alignment: numpy.ndarray,
+    num_states: numpy.uint8,
+) -> tuple[numpy.ndarray, numpy.ndarray]:  # pragma: no cover
+    coeffs = new_alphabet.coord_conversion_coeffs(num_states, 2, dtype=numpy.int64)
+    weights_1 = numpy.empty((num_states, num_states), dtype=float)
+    weights_2 = numpy.empty((num_states, num_states), dtype=float)
+
+    n_seqs = alignment.shape[0]
+    stats = numpy.empty(len(positions), dtype=numpy.float64)
+    stats.fill(numpy.nan)
+
+    counts_1 = numpy.empty(num_states, dtype=numpy.int64)
+    counts_2 = numpy.empty(num_states, dtype=numpy.int64)
+    counts_12 = numpy.zeros((num_states, num_states), dtype=numpy.int64)
+    joint_states = numpy.empty((n_seqs, 2), dtype=numpy.uint8)
+
+    # the state indices
+    states_12 = numpy.arange(counts_12.size).reshape(counts_12.shape)
+    states_1 = numpy.arange(counts_1.size)
+    states_2 = numpy.arange(counts_2.size)
+
+    for pair in range(len(positions)):
+        i, j = positions[pair]
+        joint_states[:, 0] = alignment[:, i]
+        joint_states[:, 1] = alignment[:, j]
+
+        counts_12, counts_1, counts_2 = _count_col_joint(
+            joint_states, counts_12, counts_1, counts_2, num_states
+        )
+
+        weights_1 = _make_weights(counts_1, weights_1)
+        weights_2 = _make_weights(counts_2, weights_2)
+        entropy, pairs, scales = _calc_pair_scale(
+            counts_12,
+            counts_1,
+            counts_2,
+            weights_1,
+            weights_2,
+            states_12,
+            states_1,
+            states_2,
+            coeffs,
+        )
+        if entropy == 0.0:
+            stats[pair] = 0.0
+        else:
+            stat = 0.0
+            for i in range(scales.shape[0]):
+                e, w = scales[i]
+                # we round the revised entropy to avoid floating point errors
+                # this is in effect a more stringent condition
+                if entropy > numpy.round(e, 10):
+                    continue
+
+                p1, p2 = pairs[i]
+                stat += w * counts_12[p1, p2]
+
+            stats[pair] = 1 - stat
+
+    return positions, stats
+
+
+@numba.jit
+def _calc_all_entropies(
+    joint_states: numpy.ndarray,
+    joint_counts: numpy.ndarray,
+    counts_1: numpy.ndarray,
+    counts_2: numpy.ndarray,
+    num_states: int,
+) -> tuple[float, float, float]:  # pragma: no cover
+    joint_counts, counts_1, counts_2 = _count_col_joint(
+        joint_states, joint_counts, counts_1, counts_2, num_states
+    )
+    entropy_1 = _vector_entropy(counts_1)
+    entropy_2 = _vector_entropy(counts_2)
+    if entropy_1 == 0.0 or entropy_2 == 0.0:
+        return entropy_1, entropy_2, 0.0
+
+    joint_entropy = _calc_joint_entropy(joint_counts)
+    return entropy_1, entropy_2, joint_entropy
+
+
+@numba.jit
+def _general_mi_calc(
+    positions: numpy.ndarray,
+    canonical_pos: numpy.ndarray,
+    alignment: numpy.ndarray,
+    entropies: numpy.ndarray,
+    num_states: numpy.uint8,
+    metric_id: int = MI_METHODS.mi,
+) -> tuple[numpy.ndarray, numpy.ndarray]:  # pragma: no cover
+    n_seqs = alignment.shape[0]
+    stats = numpy.empty(len(positions), dtype=numpy.float64)
+    stats.fill(numpy.nan)
+
+    counts_1 = numpy.empty(num_states, dtype=numpy.int64)
+    counts_2 = numpy.empty(num_states, dtype=numpy.int64)
+    joint_counts = numpy.zeros((num_states, num_states), dtype=numpy.int64)
+    joint_states = numpy.empty((n_seqs, 2), dtype=numpy.uint8)
+    for pair in range(len(positions)):
+        i, j = positions[pair]
+        joint_states[:, 0] = alignment[:, i]
+        joint_states[:, 1] = alignment[:, j]
+        if canonical_pos[i] and canonical_pos[j]:
+            entropy_i = entropies[i]
+            entropy_j = entropies[j]
+            joint_counts = _count_joint_states(joint_states, num_states, joint_counts)
+            joint_entropy = _calc_joint_entropy(
+                joint_counts,
+            )
+        else:
+            # we need to compute all entropies
+            # cases where either position has a non-canonical
+            # state are omitted
+            entropy_i, entropy_j, joint_entropy = _calc_all_entropies(
+                joint_states,
+                joint_counts,
+                counts_1,
+                counts_2,
+                num_states,
+            )
+
+        # MI
+        stat = entropy_i + entropy_j - joint_entropy
+        if metric_id == 2 and joint_entropy != 0.0:
+            # normalised MI
+            stat /= joint_entropy
+
+        stats[pair] = stat
+    return positions, stats
+
+
+def _gen_combinations(num_pos: int, chunk_size: int) -> typing.Iterator[numpy.ndarray]:
+    combs = itertools.combinations(range(num_pos), 2)
+
+    while True:
+        if chunk := list(itertools.islice(combs, chunk_size)):
+            yield numpy.array(chunk)
+        else:
+            break
+
+
+class calc_mi:
+    """calculator for mutual information or normalised mutual information
+
+    callable with positions to calculate the statistic for.
+    """
+
+    def __init__(self, data: numpy.ndarray, num_states: int, metric_id: enum.Enum):
+        """
+        Parameters
+        ----------
+        data
+            a 2D numpy array of uint8 values representing a multiple sequence
+            alignment where sequences are the first dimension and positions are
+            the second dimension.
+        num_states
+            the number of canonical states in the moltype. Sequence elements that
+            exceed this value are not included in the calculation.
+        metric_id
+            either 1 (for MI) or 2 (for NMI)
+        """
+        self._data = data
+        self._num_states = num_states
+        self._metric_id = metric_id
+        self._canonical_pos = numpy.all(self._data < self._num_states, axis=0)
+        self._entropies = _calc_column_entropies(self._data, self._num_states)
+
+    def __call__(self, positions: numpy.ndarray) -> tuple[numpy.ndarray, numpy.ndarray]:
+        return _general_mi_calc(
+            positions,
+            self._canonical_pos,
+            self._data,
+            self._entropies,
+            self._num_states,
+            metric_id=self._metric_id,
+        )
+
+
+class calc_rmi:
+    """calculator for resampled mutual information
+
+    Callable with positions to calculate the statistic for.
+    When called, it returns the positions and their corresponding statistic.
+    """
+
+    def __init__(self, data: numpy.ndarray, num_states: int):
+        """
+        Parameters
+        ----------
+        data
+            a 2D numpy array of uint8 values representing a multiple sequence
+            alignment where sequences are the first dimension and positions are
+            the second dimension.
+        num_states
+            the number of canonical states in the moltype. Sequence elements that
+            exceed this value are not included in the calculation.
+        """
+        self._data = data
+        self._num_states = num_states
+
+    def __call__(self, positions: numpy.ndarray) -> tuple[numpy.ndarray, numpy.ndarray]:
+        return _rmi_calc(positions, self._data, self._num_states)
+
+
+@UI.display_wrap
+def coevolution_matrix(
+    *,
+    alignment: "Alignment",
+    positions: typing.Optional[typing.List[int]] = None,
+    stat: str = "nmi",
+    parallel: bool = False,
+    par_kw: typing.Optional[dict] = None,
+    show_progress: bool = False,
+    ui=None,
+) -> dict_array.DictArray:
+    """measure pairwise coevolution
+
+    Parameters
+    ----------
+    aln
+        sequence alignment
+    stat
+        either 'mi' (mutual information), 'nmi' (normalised MI) or 'rmi' (resampled MI)
+    parallel
+        run in parallel on your machine
+    par_kw
+        providing {'max_workers': 6} defines the number of workers to use, see
+        arguments for cogent3.util.parallel.as_completed()
+    show_progress
+        displays a progress bar
+
+    Returns
+    -------
+    Returns a DictArray with the pairwise coevolution values as a lower triangle. The other
+    values are nan.
+    """
+    stat = {"mi": 1, "nmi": 2, "rmi": 3}[MI_METHODS(stat).name]
+    num_states = len(alignment.moltype.alphabet)
+
+    if hasattr(alignment, "__array__"):
+        # new_type Alignment classes will support direct conversion
+        # to numpy.uint8 arrays
+        data = numpy.array(alignment)
+    else:
+        data = alignment.to_type(array_align=True).array_seqs
+
+    if positions:
+        positions = list(itertools.chain(*positions))
+        data = data[:, tuple(positions)]
+    else:
+        positions = range(data.shape[1])
+
+    num_pos = data.shape[1]
+
+    if stat == 3:
+        calc = calc_rmi(data, num_states)
+    else:
+        calc = calc_mi(data, num_states, stat)
+
+    mutual_info = numpy.empty((num_pos, num_pos), dtype=numpy.float64)
+    mutual_info.fill(numpy.nan)
+
+    # we generate the positions as a numpy.array of tuples
+    chunk_size = 10_000
+    num_chunks = num_pos * (num_pos - 1) // 2 // chunk_size
+
+    position_combinations = _gen_combinations(num_pos, chunk_size)
+    if parallel:
+        par_kw = par_kw or {}
+        to_do = PAR.as_completed(calc, position_combinations, **par_kw)
+    else:
+        to_do = map(calc, position_combinations)
+
+    for pos_pairs, stats in ui.series(
+        to_do,
+        noun="Sets of pairwise positions",
+        count=num_chunks + 1,
+    ):
+        indices = numpy.ravel_multi_index(pos_pairs.T[::-1], (num_pos, num_pos))
+        mutual_info.put(indices, stats)
+
+    positions = list(positions)
+    return dict_array.DictArray.from_array_names(mutual_info, positions, positions)
+
+
+_reason_1 = (
+    "discontinuing support for non-MI based calculations, use coevolution_matrix()"
+)
+_reason_2 = "discontinuing support for one-off calculations, use coevolution_matrix()"
+_reason_3 = "discontinuing support due to poor performance, use coevolution_matrix()"
+
+
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
+def build_rate_matrix(
+    count_matrix, freqs, aa_order="ACDEFGHIKLMNPQRSTVWY"
+):  # pragma: no cover
     epm = EmpiricalProteinMatrix(count_matrix, freqs)
     word_probs = array([freqs[aa] for aa in aa_order])
     num = word_probs.shape[0]
@@ -92,12 +660,14 @@ def build_rate_matrix(count_matrix, freqs, aa_order="ACDEFGHIKLMNPQRSTVWY"):
 # Mutual Information Calculators
 
 
-def mi(h1, h2, joint_h):
+@c3warn.deprecated_callable("2024.12", reason=_reason_2, is_discontinued=True)
+def mi(h1, h2, joint_h):  # pragma: no cover
     """Calc Mutual Information given two entropies and their joint entropy"""
     return h1 + h2 - joint_h
 
 
-def normalized_mi(h1, h2, joint_h):
+@c3warn.deprecated_callable("2024.12", reason=_reason_2, is_discontinued=True)
+def normalized_mi(h1, h2, joint_h):  # pragma: no cover
     """MI normalized by joint entropy, as described in Martin 2005"""
     return mi(h1, h2, joint_h) / joint_h
 
@@ -107,7 +677,8 @@ nmi = normalized_mi
 # Other functions used in MI calculations
 
 
-def join_positions(pos1, pos2):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def join_positions(pos1, pos2):  # pragma: no cover
     """Merge two positions and return as a list of strings
 
     pos1: iterable object containing the first positions data
@@ -120,7 +691,8 @@ def join_positions(pos1, pos2):
     return ["".join([r1, r2]) for r1, r2 in zip(pos1, pos2)]
 
 
-def joint_entropy(pos1, pos2):
+@c3warn.deprecated_callable("2024.12", reason=_reason_2, is_discontinued=True)
+def joint_entropy(pos1, pos2):  # pragma: no cover
     """Calculate the joint entroy of a pair of positions"""
     return CategoryCounter(join_positions(pos1, pos2)).entropy
 
@@ -129,7 +701,8 @@ def joint_entropy(pos1, pos2):
 # characters)
 
 
-def ignore_excludes(pos, excludes=DEFAULT_EXCLUDES):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def ignore_excludes(pos, excludes=DEFAULT_EXCLUDES):  # pragma: no cover
     """Return position data as-is (results in excludes treated as other chars)"""
     return pos
 
@@ -137,6 +710,7 @@ def ignore_excludes(pos, excludes=DEFAULT_EXCLUDES):
 # Functions for scoring coevolution on the basis of Mutual Information
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_2, is_discontinued=True)
 def mi_pair(
     alignment,
     pos1,
@@ -147,7 +721,7 @@ def mi_pair(
     null_value=DEFAULT_NULL_VALUE,
     excludes=DEFAULT_EXCLUDES,
     exclude_handler=None,
-):
+):  # pragma: no cover
     """Calculate mutual information of a pair of alignment positions
 
     alignment: the full alignment object
@@ -206,6 +780,7 @@ def mi_pair(
     return result
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_2, is_discontinued=True)
 def mi_position(
     alignment,
     position,
@@ -214,7 +789,7 @@ def mi_position(
     null_value=DEFAULT_NULL_VALUE,
     excludes=DEFAULT_EXCLUDES,
     exclude_handler=None,
-):
+):  # pragma: no cover
     """Calc mi b/w position and all other positions in an alignment
 
     alignment: the full alignment object
@@ -261,13 +836,14 @@ def mi_position(
     return result
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_2, is_discontinued=True)
 def mi_alignment(
     alignment,
     mi_calculator=mi,
     null_value=DEFAULT_NULL_VALUE,
     excludes=DEFAULT_EXCLUDES,
     exclude_handler=None,
-):
+):  # pragma: no cover
     """Calc mi over all position pairs in an alignment
 
     alignment: the full alignment object
@@ -318,6 +894,7 @@ def mi_alignment(
 # Start Normalized Mutual Information Analysis (Martin 2005)
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_2, is_discontinued=True)
 def normalized_mi_pair(
     alignment,
     pos1,
@@ -327,7 +904,7 @@ def normalized_mi_pair(
     null_value=DEFAULT_NULL_VALUE,
     excludes=DEFAULT_EXCLUDES,
     exclude_handler=None,
-):
+):  # pragma: no cover
     """Calc normalized mutual information of a pair of alignment positions
 
     alignment: the full alignment object
@@ -362,6 +939,7 @@ def normalized_mi_pair(
 nmi_pair = normalized_mi_pair
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_2, is_discontinued=True)
 def normalized_mi_position(
     alignment,
     position,
@@ -369,7 +947,7 @@ def normalized_mi_position(
     null_value=DEFAULT_NULL_VALUE,
     excludes=DEFAULT_EXCLUDES,
     exclude_handler=None,
-):
+):  # pragma: no cover
     """Calc normalized mi b/w position and all other positions in an alignment
 
     alignment: the full alignment object
@@ -403,12 +981,13 @@ def normalized_mi_position(
 nmi_position = normalized_mi_position
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_2, is_discontinued=True)
 def normalized_mi_alignment(
     alignment,
     null_value=DEFAULT_NULL_VALUE,
     excludes=DEFAULT_EXCLUDES,
     exclude_handler=None,
-):
+):  # pragma: no cover
     """Calc normalized mi over all position pairs in an alignment
 
     alignment: the full alignment object
@@ -472,7 +1051,8 @@ protein_dict = {
 default_sca_freqs = protein_dict
 
 
-def freqs_to_array(f, alphabet):
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
+def freqs_to_array(f, alphabet):  # pragma: no cover
     """Takes data in freqs object and turns it into array.
 
     f = dict or CategoryCounter object
@@ -482,7 +1062,10 @@ def freqs_to_array(f, alphabet):
     return array([f.get(i, 0) for i in alphabet])
 
 
-def get_allowed_perturbations(counts, cutoff, alphabet, num_seqs=100):
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
+def get_allowed_perturbations(
+    counts, cutoff, alphabet, num_seqs=100
+):  # pragma: no cover
     """Returns list of allowed perturbations as characters
 
     count: Profile object of raw character counts at each position
@@ -504,7 +1087,8 @@ def get_allowed_perturbations(counts, cutoff, alphabet, num_seqs=100):
     return result
 
 
-def probs_from_dict(d, alphabet):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def probs_from_dict(d, alphabet):  # pragma: no cover
     """Convert dict of alphabet char probabilities to list in alphabet's order
 
     d: probabilities of observing each character in alphabet (dict indexed
@@ -517,7 +1101,8 @@ def probs_from_dict(d, alphabet):
     return array([d[c] for c in alphabet])
 
 
-def freqs_from_aln(aln, alphabet, scaled_aln_size=100):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def freqs_from_aln(aln, alphabet, scaled_aln_size=100):  # pragma: no cover
     """Return the frequencies in aln of chars in alphabet's order
 
     aln: the alignment object
@@ -541,7 +1126,10 @@ def freqs_from_aln(aln, alphabet, scaled_aln_size=100):
     return (alphabet_as_indices == aln_data).sum(1) * (scaled_aln_size / len(aln_data))
 
 
-def get_positional_frequencies(aln, position_number, alphabet, scaled_aln_size=100):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def get_positional_frequencies(
+    aln, position_number, alphabet, scaled_aln_size=100
+):  # pragma: no cover
     """Return the freqs in aln[position_number] of chars in alphabet's order
 
     aln: the alignment object
@@ -566,7 +1154,10 @@ def get_positional_frequencies(aln, position_number, alphabet, scaled_aln_size=1
     )
 
 
-def get_positional_probabilities(pos_freqs, natural_probs, scaled_aln_size=100):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def get_positional_probabilities(
+    pos_freqs, natural_probs, scaled_aln_size=100
+):  # pragma: no cover
     """Get probs of observering the freq of each char given it's natural freq
     In Suel 2003 supplementary material, this step is defined as:
      "... each element is the binomial probability of observing each
@@ -602,7 +1193,8 @@ def get_positional_probabilities(pos_freqs, natural_probs, scaled_aln_size=100):
     return array(results)
 
 
-def get_subalignments(aln, position, selections):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def get_subalignments(aln, position, selections):  # pragma: no cover
     """returns subalns w/ seq[pos] == selection for each in selections
     aln: an alignment object
     position: int in alignment to be checked for each perturbation
@@ -627,7 +1219,8 @@ def get_subalignments(aln, position, selections):
     return result
 
 
-def get_dg(position_probs, aln_probs):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def get_dg(position_probs, aln_probs):  # pragma: no cover
     """Return delta_g vector
 
     position_probs: the prob of observing each alphabet chars frequency in
@@ -644,7 +1237,8 @@ def get_dg(position_probs, aln_probs):
     return array(results)
 
 
-def get_dgg(all_dgs, subaln_dgs, scaled_aln_size=100):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def get_dgg(all_dgs, subaln_dgs, scaled_aln_size=100):  # pragma: no cover
     """Return delta_delta_g value
 
     all_dgs: the dg vector for a position-of-interest in the alignment
@@ -675,6 +1269,7 @@ def get_dgg(all_dgs, subaln_dgs, scaled_aln_size=100):
     return norm(all_dgs - subaln_dgs) / scaled_aln_size * e
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
 def sca_pair(
     alignment,
     pos1,
@@ -689,7 +1284,7 @@ def sca_pair(
     return_all=False,
     alphabet=default_sca_alphabet,
     background_freqs=default_sca_freqs,
-):
+):  # pragma: no cover
     """ Calculate statistical coupling b/w a pair of alignment columns
 
         alignment: full alignment object
@@ -817,6 +1412,7 @@ def sca_pair(
         return max(ddg_values)
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
 def sca_position(
     alignment,
     position,
@@ -830,7 +1426,7 @@ def sca_position(
     return_all=False,
     alphabet=default_sca_alphabet,
     background_freqs=default_sca_freqs,
-):
+):  # pragma: no cover
     """Calculate statistical coupling b/w a column and all other columns
 
     alignment: full alignment object
@@ -929,6 +1525,7 @@ def sca_position(
     return array(result)
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
 def sca_alignment(
     alignment,
     cutoff,
@@ -937,7 +1534,7 @@ def sca_alignment(
     return_all=False,
     alphabet=default_sca_alphabet,
     background_freqs=default_sca_freqs,
-):
+):  # pragma: no cover
     """Calculate statistical coupling b/w all columns in alignment
 
     alignment: full alignment object
@@ -1024,7 +1621,8 @@ def sca_alignment(
 # Caporaso et al., 2008)
 
 
-def make_weights(counts, n):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def make_weights(counts, n):  # pragma: no cover
     """Return the weights for replacement states for each possible character.
     We compute the weight as the normalized frequency of the replacement state
     divided by 2*n."""
@@ -1038,7 +1636,7 @@ def make_weights(counts, n):
     return weights
 
 
-def calc_pair_scale(seqs, obs1, obs2, weights1, weights2):
+def calc_pair_scale(seqs, obs1, obs2, weights1, weights2):  # pragma: no cover
     """Return entropies and weights for comparable alignment.
     A comparable alignment is one in which, for each paired state ij, all
     alternate observable paired symbols are created. For instance, let the
@@ -1093,6 +1691,7 @@ def calc_pair_scale(seqs, obs1, obs2, weights1, weights2):
     return scales
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def resampled_mi_pair(
     alignment,
     pos1,
@@ -1101,7 +1700,7 @@ def resampled_mi_pair(
     excludes=DEFAULT_EXCLUDES,
     exclude_handler=None,
     null_value=DEFAULT_NULL_VALUE,
-):
+):  # pragma: no cover
     """returns scaled mutual information for a pair.
 
     Parameters
@@ -1151,6 +1750,7 @@ def resampled_mi_pair(
 rmi_pair = resampled_mi_pair
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def resampled_mi_position(
     alignment,
     position,
@@ -1158,7 +1758,7 @@ def resampled_mi_position(
     excludes=DEFAULT_EXCLUDES,
     exclude_handler=None,
     null_value=DEFAULT_NULL_VALUE,
-):
+):  # pragma: no cover
     aln_length = len(alignment)
     result = zeros(aln_length, float)
 
@@ -1177,12 +1777,13 @@ def resampled_mi_position(
     return result
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def resampled_mi_alignment(
     alignment,
     excludes=DEFAULT_EXCLUDES,
     exclude_handler=None,
     null_value=DEFAULT_NULL_VALUE,
-):
+):  # pragma: no cover
     """returns scaled mutual information for all possible pairs."""
     aln_length = len(alignment)
     result = zeros((aln_length, aln_length), float)
@@ -1205,7 +1806,10 @@ def resampled_mi_alignment(
 # Begin ancestral_states analysis
 
 
-def get_ancestral_seqs(aln, tree, sm=None, pseudocount=1e-6, optimise=True):
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
+def get_ancestral_seqs(
+    aln, tree, sm=None, pseudocount=1e-6, optimise=True
+):  # pragma: no cover
     """Calculates ancestral sequences by maximum likelihood
 
     Parameters
@@ -1232,9 +1836,10 @@ def get_ancestral_seqs(aln, tree, sm=None, pseudocount=1e-6, optimise=True):
     return ArrayAlignment(lf.likely_ancestral_seqs(), moltype=aln.moltype)
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
 def ancestral_state_alignment(
     aln, tree, ancestral_seqs=None, null_value=DEFAULT_NULL_VALUE
-):
+):  # pragma: no cover
     ancestral_seqs = ancestral_seqs or get_ancestral_seqs(aln, tree)
     result = []
     for i in range(len(aln)):
@@ -1245,9 +1850,10 @@ def ancestral_state_alignment(
     return ltm_to_symmetric(array(result))
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
 def ancestral_state_position(
     aln, tree, position, ancestral_seqs=None, null_value=DEFAULT_NULL_VALUE
-):
+):  # pragma: no cover
     ancestral_seqs = ancestral_seqs or get_ancestral_seqs(aln, tree)
     result = []
     for i in range(len(aln)):
@@ -1257,9 +1863,10 @@ def ancestral_state_position(
     return array(result)
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
 def ancestral_state_pair(
     aln, tree, pos1, pos2, ancestral_seqs=None, null_value=DEFAULT_NULL_VALUE
-):
+):  # pragma: no cover
     """ """
     ancestral_seqs = ancestral_seqs or get_ancestral_seqs(aln, tree)
     ancestral_names_to_seqs = dict(
@@ -1356,7 +1963,8 @@ method_abbrevs_to_names = {
 # is only performed once by coevolve_alignment.
 
 
-def sca_input_validation(alignment, **kwargs):
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
+def sca_input_validation(alignment, **kwargs):  # pragma: no cover
     """SCA specific validations steps"""
 
     # check that all required parameters are present in kwargs
@@ -1391,7 +1999,8 @@ def sca_input_validation(alignment, **kwargs):
     validate_alphabet(alphabet, background_freqs)
 
 
-def validate_alphabet(alphabet, freqs):
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
+def validate_alphabet(alphabet, freqs):  # pragma: no cover
     """SCA validation: ValueError if set(alphabet) != set(freqs.keys())"""
     alphabet_chars = set(alphabet)
     freq_chars = set(freqs.keys())
@@ -1401,7 +2010,8 @@ def validate_alphabet(alphabet, freqs):
         )
 
 
-def ancestral_states_input_validation(alignment, **kwargs):
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
+def ancestral_states_input_validation(alignment, **kwargs):  # pragma: no cover
     """Ancestral States (AS) specific validations steps"""
     # check that all required parameters are present in kwargs
     required_parameters = ["tree"]
@@ -1418,7 +2028,8 @@ def ancestral_states_input_validation(alignment, **kwargs):
         validate_ancestral_seqs(alignment, kwargs["tree"], kwargs["ancestral_seqs"])
 
 
-def validate_ancestral_seqs(alignment, tree, ancestral_seqs):
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
+def validate_ancestral_seqs(alignment, tree, ancestral_seqs):  # pragma: no cover
     """AS validation: ValueError if incompatible aln, tree, & ancestral seqs
 
     Incompatibility between the alignment and the ancestral_seqs is
@@ -1438,7 +2049,8 @@ def validate_ancestral_seqs(alignment, tree, ancestral_seqs):
         )
 
 
-def validate_tree(alignment, tree):
+@c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
+def validate_tree(alignment, tree):  # pragma: no cover
     """AS validation: ValueError if tip and seq names aren't same"""
     if set(tree.get_tip_names()) != set(alignment.names):
         raise ValueError("Tree tips and seqs must have perfectly overlapping names.")
@@ -1449,7 +2061,8 @@ def validate_tree(alignment, tree):
 # General (opposed to algorithm-specific) validation functions
 
 
-def validate_position(alignment, position):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def validate_position(alignment, position):  # pragma: no cover
     """ValueError if position is outside the range of the alignment"""
     if not 0 <= position < len(alignment):
         raise ValueError(
@@ -1457,7 +2070,8 @@ def validate_position(alignment, position):
         )
 
 
-def validate_alignment(alignment):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def validate_alignment(alignment):  # pragma: no cover
     """ValueError on ambiguous alignment characters"""
     bad_seqs = []
     for name, ambiguous_pos in list(alignment.get_ambiguous_positions().items()):
@@ -1469,9 +2083,10 @@ def validate_alignment(alignment):
         )
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def coevolve_alignments_validation(
     method, alignment1, alignment2, min_num_seqs, max_num_seqs, **kwargs
-):
+):  # pragma: no cover
     """Validation steps required for intermolecular coevolution analyses"""
     valid_methods_for_different_moltypes = {}.fromkeys(
         [mi_alignment, nmi_alignment, resampled_mi_alignment]
@@ -1530,7 +2145,8 @@ coevolve_alignment_functions = {
 }
 
 
-def coevolve_alignment(method, alignment, **kwargs):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def coevolve_alignment(method, alignment, **kwargs):  # pragma: no cover
     """Apply coevolution method to alignment (for intramolecular coevolution)
 
     method: f(alignment,**kwargs) -> 2D array of coevolution scores
@@ -1566,7 +2182,8 @@ coevolve_alignment_to_coevolve_pair = {
 }
 
 
-def merge_alignments(alignment1, alignment2):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def merge_alignments(alignment1, alignment2):  # pragma: no cover
     """Append alignment 2 to the end of alignment 1
 
     This function is used by coevolve_alignments to merge two alignments
@@ -1597,7 +2214,8 @@ def merge_alignments(alignment1, alignment2):
     return make_aligned_seqs(result, array_align=True)
 
 
-def n_random_seqs(alignment, n):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def n_random_seqs(alignment, n):  # pragma: no cover
     """Given alignment, return n random seqs in a new alignment object.
 
     This function is used by coevolve_alignments.
@@ -1608,6 +2226,7 @@ def n_random_seqs(alignment, n):
     return alignment.take_seqs(seq_names[:n])
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def coevolve_alignments(
     method,
     alignment1,
@@ -1618,7 +2237,7 @@ def coevolve_alignments(
     max_num_seqs=None,
     sequence_filter=n_random_seqs,
     **kwargs,
-):
+):  # pragma: no cover
     """Apply method to a pair of alignments (for intermolecular coevolution)
 
     method: the *_alignment function to be applied
@@ -1800,7 +2419,8 @@ coevolve_position_functions = {
 }
 
 
-def coevolve_position(method, alignment, position, **kwargs):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def coevolve_position(method, alignment, position, **kwargs):  # pragma: no cover
     """Apply provided coevolution method to a column in alignment
 
     method: f(alignment,position,**kwargs) -> array of coevolution scores
@@ -1835,7 +2455,8 @@ coevolve_pair_functions = {
 }
 
 
-def coevolve_pair(method, alignment, pos1, pos2, **kwargs):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def coevolve_pair(method, alignment, pos1, pos2, **kwargs):  # pragma: no cover
     """Apply provided coevolution method to columns pos1 & pos2 of alignment
 
     method: f(alignment,pos1,pos2,**kwargs) -> coevolution score
@@ -1866,6 +2487,7 @@ def coevolve_pair(method, alignment, pos1, pos2, **kwargs):
 # post-processing filters for coevolution result matrices.
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def filter_threshold_based_multiple_interdependency(
     aln,
     coevolution_matrix,
@@ -1873,7 +2495,7 @@ def filter_threshold_based_multiple_interdependency(
     max_cmp_threshold=1,
     cmp_function=greater_equal,
     intermolecular_data_only=False,
-):
+):  # pragma: no cover
     """Filters positions with more than max_cmp_threshold scores >= threshold
 
     This post-processing filter is based on the idea described in:
@@ -1954,13 +2576,14 @@ def filter_threshold_based_multiple_interdependency(
     return coevolution_matrix
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def is_parsimony_informative(
     column_freqs,
     minimum_count=2,
     minimum_differences=2,
     ignored=DEFAULT_EXCLUDES,
     strict=False,
-):
+):  # pragma: no cover
     """Return True is aln_position is parsimony informative
 
     column_freqs: dict of characters at alignmnet position mapped
@@ -2033,6 +2656,7 @@ def is_parsimony_informative(
     return count_gte_minimum >= minimum_differences
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def filter_non_parsimony_informative(
     aln,
     coevolution_matrix,
@@ -2042,7 +2666,7 @@ def filter_non_parsimony_informative(
     ignored=DEFAULT_EXCLUDES,
     intermolecular_data_only=False,
     strict=False,
-):
+):  # pragma: no cover
     """Replaces scores in coevolution_matrix with null_value for positions
     which are not parsimony informative.
 
@@ -2071,7 +2695,10 @@ def filter_non_parsimony_informative(
                     coevolution_matrix[i - len_aln1, :] = null_value
 
 
-def make_positional_exclude_percentage_function(excludes, max_exclude_percent):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def make_positional_exclude_percentage_function(
+    excludes, max_exclude_percent
+):  # pragma: no cover
     """return function to identify aln positions with > max_exclude_percent"""
     excludes = {}.fromkeys(excludes)
 
@@ -2085,6 +2712,7 @@ def make_positional_exclude_percentage_function(excludes, max_exclude_percent):
     return f
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def filter_exclude_positions(
     aln,
     coevolution_matrix,
@@ -2092,7 +2720,7 @@ def filter_exclude_positions(
     null_value=DEFAULT_NULL_VALUE,
     excludes=DEFAULT_EXCLUDES,
     intermolecular_data_only=False,
-):
+):  # pragma: no cover
     """Assign null_value to positions with > max_exclude_percent excludes
 
     aln: the ArrayAlignment object
@@ -2135,7 +2763,10 @@ def filter_exclude_positions(
 # somewhere else, or should I be using pre-existing code?
 
 
-def pickle_coevolution_result(coevolve_result, out_filepath="output.pkl"):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def pickle_coevolution_result(
+    coevolve_result, out_filepath="output.pkl"
+):  # pragma: no cover
     """Pickle coevolve_result and store it at output_filepath
 
     coevolve_result: result from a coevolve_* function (above); this can
@@ -2154,7 +2785,8 @@ def pickle_coevolution_result(coevolve_result, out_filepath="output.pkl"):
     infile.close()
 
 
-def unpickle_coevolution_result(in_filepath):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def unpickle_coevolution_result(in_filepath):  # pragma: no cover
     """Read in coevolve_result from a pickled file
 
     in_filepath: filepath to unpickle
@@ -2173,7 +2805,10 @@ def unpickle_coevolution_result(in_filepath):
     return r
 
 
-def coevolution_matrix_to_csv(coevolve_matrix, out_filepath="output.csv"):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def coevolution_matrix_to_csv(
+    coevolve_matrix, out_filepath="output.csv"
+):  # pragma: no cover
     """Write coevolve_matrix as csv file at output_filepath
 
     coevolve_result: result from a coevolve_alignment function (above);
@@ -2189,7 +2824,8 @@ def coevolution_matrix_to_csv(coevolve_matrix, out_filepath="output.csv"):
     f.close()
 
 
-def csv_to_coevolution_matrix(in_filepath):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def csv_to_coevolution_matrix(in_filepath):  # pragma: no cover
     """Read a coevolution matrix from a csv file
 
     in_filepath: input filepath
@@ -2215,9 +2851,10 @@ def csv_to_coevolution_matrix(in_filepath):
 # Start functions for analyzing the results of a coevolution run.
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def identify_aln_positions_above_threshold(
     coevolution_matrix, threshold, aln_position, null_value=DEFAULT_NULL_VALUE
-):
+):  # pragma: no cover
     """Returns the list of alignment positions which achieve a
     score >= threshold with aln_position.
     Coevolution matrix should be symmetrical or you
@@ -2233,13 +2870,14 @@ def identify_aln_positions_above_threshold(
     return results
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def aln_position_pairs_cmp_threshold(
     coevolution_matrix,
     threshold,
     cmp_function,
     null_value=DEFAULT_NULL_VALUE,
     intermolecular_data_only=False,
-):
+):  # pragma: no cover
     """Returns list of position pairs with score >= threshold
 
     coevolution_matrix: 2D numpy array
@@ -2271,12 +2909,13 @@ def aln_position_pairs_cmp_threshold(
     return results
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def aln_position_pairs_ge_threshold(
     coevolution_matrix,
     threshold,
     null_value=DEFAULT_NULL_VALUE,
     intermolecular_data_only=False,
-):
+):  # pragma: no cover
     """wrapper function for aln_position_pairs_cmp_threshold"""
     return aln_position_pairs_cmp_threshold(
         coevolution_matrix,
@@ -2287,18 +2926,20 @@ def aln_position_pairs_ge_threshold(
     )
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def aln_position_pairs_le_threshold(
     coevolution_matrix,
     threshold,
     null_value=DEFAULT_NULL_VALUE,
     intermolecular_data_only=False,
-):
+):  # pragma: no cover
     """wrapper function for aln_position_pairs_cmp_threshold"""
     return aln_position_pairs_cmp_threshold(
         coevolution_matrix, threshold, less_equal, null_value, intermolecular_data_only
     )
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def count_cmp_threshold(
     m,
     threshold,
@@ -2306,7 +2947,7 @@ def count_cmp_threshold(
     null_value=DEFAULT_NULL_VALUE,
     symmetric=False,
     ignore_diagonal=False,
-):
+):  # pragma: no cover
     """Returns a count of the values in m >= threshold, ignoring nulls.
 
     m: coevolution matrix (numpy array)
@@ -2353,25 +2994,28 @@ def count_cmp_threshold(
     return total_hits, total_non_null
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def count_ge_threshold(
     m, threshold, null_value=DEFAULT_NULL_VALUE, symmetric=False, ignore_diagonal=False
-):
+):  # pragma: no cover
     """wrapper function for count_cmp_threshold"""
     return count_cmp_threshold(
         m, threshold, greater_equal, null_value, symmetric, ignore_diagonal
     )
 
 
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def count_le_threshold(
     m, threshold, null_value=DEFAULT_NULL_VALUE, symmetric=False, ignore_diagonal=False
-):
+):  # pragma: no cover
     """wrapper function for count_cmp_threshold"""
     return count_cmp_threshold(
         m, threshold, less_equal, null_value, symmetric, ignore_diagonal
     )
 
 
-def ltm_to_symmetric(m):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def ltm_to_symmetric(m):  # pragma: no cover
     """Copies values from lower triangle to upper triangle"""
     assert (
         m.shape[0] == m.shape[1]
@@ -2387,9 +3031,10 @@ def ltm_to_symmetric(m):
 
 
 # Script functionality
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def build_coevolution_matrix_filepath(
     input_filepath, output_dir="./", method=None, alphabet=None, parameter=None
-):
+):  # pragma: no cover
     """ Build filepath from input filename, output dir, and list of suffixes
 
         input_filepath: filepath to be used for generating the output
@@ -2445,7 +3090,8 @@ def build_coevolution_matrix_filepath(
     return result
 
 
-def parse_coevolution_matrix_filepath(filepath):
+@c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
+def parse_coevolution_matrix_filepath(filepath):  # pragma: no cover
     """Parses a coevolution matrix filepath into constituent parts.
 
     Format is very specific. Will only work on filenames such as:
