@@ -22,7 +22,7 @@
 <details>
     <summary> Faster sequence coevolution measures 🚀 </summary>
 
-We have completely rewritten all the Mutual Information based coevolution statistics calculators. These are orders of magnitude faster the the old implementation when run in serial. We have also implemented support for their parallel execution. These methods are used by the existing `Alignment.coevolution()` method so you don't need to do anything different to use the new algorithms.
+We have completely rewritten all the Mutual Information based coevolution statistic calculators. Single CPU performance is orders of magnitude faster than the old implementation and we now also support parallel execution. The existing `Alignment.coevolution()` method uses these so you don't need to do anything different to use the new algorithms.
 
 </details>
 
