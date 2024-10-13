@@ -2539,7 +2539,7 @@ class Aligned:
     @__getitem__.register
     def _(self, span: FeatureMap):
         # we assume the feature map is in align coordinates
-        data, gaps = self.slice_with_map(span)
+        data, gaps = self._slice_with_map(span)
         seqid = self.data.seqid
         seqs_data = self.data.parent.from_seqs_and_gaps(
             seqs={seqid: data},
@@ -2550,7 +2550,7 @@ class Aligned:
 
         return Aligned(view, self.moltype)
 
-    def slice_with_map(self, span: FeatureMap) -> tuple[numpy.ndarray, numpy.ndarray]:
+    def _slice_with_map(self, span: FeatureMap) -> tuple[numpy.ndarray, numpy.ndarray]:
         start, end = span.start, span.end
         if span.useful and len(list(span.spans)) == 1:
             im = self.map[start:end]
@@ -2783,7 +2783,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         seqs
             dict of ungapped sequences {name: seq, ...}
         gaps
-            gap data {name: [[seq gap position, cumulative gap length], ...], ...} 
+            gap data {name: [[seq gap position, cumulative gap length], ...], ...}
         alphabet
             alphabet object for the sequences
         """
@@ -4335,7 +4335,7 @@ class Alignment(SequenceCollection):
         seqs = {}
         maps = {}
         for aligned in self.seqs:
-            seq, map = aligned.slice_with_map(slicemap)
+            seq, map = aligned._slice_with_map(slicemap)
             seqs[aligned.name] = seq
             maps[aligned.name] = map
 
