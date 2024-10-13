@@ -50,14 +50,17 @@ class MI_METHODS(enum.Enum):
     rmi = "rmi"
 
 
-# design perspective
+# Comments on design
 # the revised mutual information calculations are based on a sequence alignment
 # represented as a numpy uint8 array.
+
 # The resampled mutual information calculation uses a cache of all entropy terms
-# from the independent and joint position. For each combination of alternate
-# possible states, there are two values in the entropy terms that need to be
-# modified. This caching, plus the the numba.jit compilation, makes rmi
-# competitive performance-wise with the other methods.
+# from the independent and joint position, produced by _calc_entropy_components().
+# For each combination of alternate possible states, there are two values in the
+# entropy terms that need to be modified. These calculations are done by
+# _calc_updated_entropy() and _calc_temp_entropy(). This caching, plus the
+# numba.jit compilation, makes rmi competitive performance-wise with the other
+# methods.
 
 
 @numba.jit
@@ -587,14 +590,21 @@ def coevolution_matrix(
     """
     stat = {"mi": 1, "nmi": 2, "rmi": 3}[MI_METHODS(stat).name]
     num_states = len(alignment.moltype.alphabet)
-    alignment = alignment.to_type(array_align=True)
+
+    if hasattr(alignment, "__array__"):
+        # new_type Alignment classes will support direct conversion
+        # to numpy.uint8 arrays
+        data = numpy.array(alignment)
+    else:
+        data = alignment.to_type(array_align=True).array_seqs
+
     if positions:
         positions = list(itertools.chain(*positions))
-        alignment = alignment.take_positions(positions)
+        data = data[:, tuple(positions)]
     else:
-        positions = range(len(alignment))
-    num_pos = len(alignment.positions)
-    data = alignment.array_seqs
+        positions = range(data.shape[1])
+
+    num_pos = data.shape[1]
 
     if stat == 3:
         calc = calc_rmi(data, num_states)
