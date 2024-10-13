@@ -6,9 +6,9 @@
 Coevolution analysis
 ====================
 
-A method on the alignment provides an interface to the simpler (and yet robust and fast) methods for estimating coevolution. The default measure is normalised mutual information (NMI).
+A method on the alignment provides an interface to the simple (and yet robust and fast) methods for estimating coevolution. The default measure is normalised mutual information (NMI).
 
-.. todo:: add citation for NMI
+.. todo:: add citation for RMI
 
 Display coevolution as a heatmap
 --------------------------------
@@ -22,8 +22,8 @@ Using the ``drawable`` argument causes the returned object to have a ``drawable`
     aln = load_aligned_seqs("data/brca1.fasta", moltype="dna")
     aln = aln.no_degenerates(motif_length=3)
     aln = aln.get_translation()
-    aln = aln[:100]  # for compute speed in testing the documentation
-    coevo = aln.coevolution(show_progress=False, drawable="heatmap")
+    aln = aln[:100]  # sliced to simplify the visual display
+    coevo = aln.coevolution(stat="nmi", show_progress=False, drawable="heatmap")
     coevo.drawable.show()
 
 .. jupyter-execute::
@@ -38,7 +38,7 @@ Display coevolution scores as a Violin plot
 
 .. jupyter-execute::
 
-    coevo = aln.coevolution(show_progress=False, drawable="violin")
+    coevo = aln.coevolution(stat="nmi", show_progress=False, drawable="violin")
     coevo.drawable.show(width=300)
 
 Display coevolution scores as a Boxplot
@@ -46,5 +46,5 @@ Display coevolution scores as a Boxplot
 
 .. jupyter-execute::
 
-    coevo = aln.coevolution(show_progress=False, drawable="box")
+    coevo = aln.coevolution(stat="nmi", show_progress=False, drawable="box")
     coevo.drawable.show(width=300)
