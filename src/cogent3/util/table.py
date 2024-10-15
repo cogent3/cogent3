@@ -745,15 +745,26 @@ class Table:
                     str(HE(HE("...", "span", css_classes=[css_class]), "td"))
                 )
 
-            ellipsis = str(HE("".join(ellipsis), "tr", css_classes="ellipsis"))
             num_rows = 0
+            col_num = 0
             for idx in range(len(html)):
                 item = html[idx]
                 if "<tr>" in item:
                     num_rows += 1
-                if num_rows == head:
-                    html.insert(idx + 1, ellipsis)
-                    break
+                if "<th>" in item:
+                    num_col = item.count("<th>")
+                    ellipsis_slice = str(
+                        HE(
+                            "".join(ellipsis[col_num : col_num + num_col]),
+                            "tr",
+                            css_classes="ellipsis",
+                        )
+                    )
+                    col_num += num_col
+                    num_rows = 0
+                elif num_rows == head and ellipsis_slice:
+                    html.insert(idx + 1, ellipsis_slice)
+                    ellipsis_slice = ""
 
         html.insert(-1, shape_info)
         html = "\n".join(html)
