@@ -607,6 +607,15 @@ def test_codon_alphabet_to_indices(calpha, as_array):
 def test_codon_alphabet_with_gap_motif(calpha):
     with_gap = calpha.with_gap_motif()
     assert len(with_gap) == len(calpha) + 1
+    assert with_gap.gap_char == "---"
+    # on the standard genetic code, gap index is 61
+    assert with_gap.gap_index == 61
+
+
+def test_codon_alphabet_missing(calpha):
+    # not provided on codon alphabet
+    assert calpha.missing_char is None
+    assert calpha.missing_index is None
 
 
 def test_codon_alphabet_serlialise_round_trip(calpha):

@@ -901,7 +901,7 @@ class CodonAlphabet(tuple):
 
     @property
     def gap_index(self):
-        return self._to_indices(self.gap_char) if self._gap_char else None
+        return self._to_indices[self.gap_char] if self._gap_char else None
 
     @property
     def missing_char(self):
