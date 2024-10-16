@@ -592,6 +592,18 @@ def test_codon_alphabet_not_is_valid(seq, calpha):
     assert not calpha.is_valid(seq)
 
 
+@pytest.mark.parametrize("as_array", (False, True))
+def test_codon_alphabet_to_indices(calpha, as_array):
+    seq = calpha.monomers.to_indices("GGGAAG") if as_array else "GGGAAG"
+    got = calpha.to_indices(seq)
+    expect = numpy.array(
+        [calpha.to_index("GGG"), calpha.to_index("AAG")], dtype=numpy.uint8
+    )
+    assert_allclose(got, expect)
+    assert isinstance(got, numpy.ndarray)
+    assert got.dtype == numpy.uint8
+
+
 def test_codon_alphabet_with_gap_motif(calpha):
     with_gap = calpha.with_gap_motif()
     assert len(with_gap) == len(calpha) + 1

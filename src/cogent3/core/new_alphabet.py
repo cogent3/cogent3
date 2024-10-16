@@ -19,10 +19,6 @@ OptStr = typing.Optional[str]
 OptBytes = typing.Optional[bytes]
 
 
-def _element_type(val: typing.Sequence) -> typing.Any:
-    return type(val[0])
-
-
 @functools.singledispatch
 def _coerce_to_type(orig: StrORBytes, text: str) -> StrORBytes:
     raise TypeError(f"{type(orig)} is invalid")
@@ -928,7 +924,15 @@ class CodonAlphabet(tuple):
 
     @to_indices.register
     def _(self, seq: list) -> numpy.ndarray:
-        return [self.to_index(c) for c in seq]
+        return numpy.array([self.to_index(c) for c in seq], dtype=self.dtype)
+
+    @to_indices.register
+    def _(self, seq: numpy.ndarray) -> numpy.ndarray:
+        # we assume that this is a dna sequence encoded as a numpy array
+        size = len(seq) // 3
+        return self.to_indices(
+            [self.monomers.from_indices(c) for c in seq.reshape(size, 3)]
+        )
 
     def to_index(self, codon: str) -> int:
         if len(codon) != 3:
