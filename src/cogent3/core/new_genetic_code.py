@@ -258,7 +258,7 @@ class GeneticCode:
 
     def get_alphabet(
         self, include_gap: bool = False, include_stop: bool = False
-    ) -> new_alphabet.CodonAlphabet:
+    ) -> new_alphabet.SenseCodonAlphabet:
         """returns a codon alphabet
 
         Parameters
@@ -276,7 +276,7 @@ class GeneticCode:
         if include_gap:
             codons += (gap,)
 
-        return new_alphabet.CodonAlphabet(
+        return new_alphabet.SenseCodonAlphabet(
             words=codons, monomers=self.moltype.alphabet, gap=gap
         )
 

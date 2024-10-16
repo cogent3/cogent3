@@ -550,7 +550,7 @@ def test_deserialise_alphas(alpha):
 @pytest.fixture
 def calpha():
     gc = new_genetic_code.get_code(1)
-    return new_alphabet.CodonAlphabet(
+    return new_alphabet.SenseCodonAlphabet(
         words=gc.sense_codons, monomers=gc.moltype.alphabet
     )
 
@@ -622,6 +622,6 @@ def test_codon_alphabet_serlialise_round_trip(calpha):
     from cogent3.util.deserialise import deserialise_object
 
     got = deserialise_object(calpha.to_json())
-    assert isinstance(got, new_alphabet.CodonAlphabet)
+    assert isinstance(got, new_alphabet.SenseCodonAlphabet)
     assert list(got) == list(calpha)
     assert calpha.to_index("TTC") == 1

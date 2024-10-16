@@ -852,8 +852,8 @@ def deserialise_kmer_alphabet(data: dict) -> KmerAlphabet:
     return KmerAlphabet.from_rich_dict(data)
 
 
-class CodonAlphabet(tuple):
-    """represents the sense-codons of a GeneticCode"""
+class SenseCodonAlphabet(tuple):
+    """Alphabet for the sense-codons of a GeneticCode"""
 
     def __new__(
         cls,
@@ -1004,9 +1004,9 @@ class CodonAlphabet(tuple):
         return cls(**data)
 
 
-@register_deserialiser(get_object_provenance(CodonAlphabet))
-def deserialise_codon_alphabet(data: dict) -> CodonAlphabet:
-    return CodonAlphabet.from_rich_dict(data)
+@register_deserialiser(get_object_provenance(SenseCodonAlphabet))
+def deserialise_codon_alphabet(data: dict) -> SenseCodonAlphabet:
+    return SenseCodonAlphabet.from_rich_dict(data)
 
 
 _alphabet_moltype_map = {}
