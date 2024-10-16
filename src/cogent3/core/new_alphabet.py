@@ -936,7 +936,7 @@ class CodonAlphabet(tuple):
         try:
             return self._to_indices[codon]
         except KeyError as e:
-            raise ValueError(f"{codon=!r} not in alphabet") from e
+            raise AlphabetError(f"{codon=!r} not in alphabet") from e
 
     def from_index(self, index: int) -> str:
         if index > len(self) or index < 0:
@@ -964,7 +964,7 @@ class CodonAlphabet(tuple):
         try:
             _ = self.to_indices(seq)
             return True
-        except ValueError:
+        except (ValueError, AlphabetError):
             return False
 
     @is_valid.register

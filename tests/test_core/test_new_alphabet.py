@@ -570,7 +570,7 @@ def test_to_indices(calpha, seq):
 
 
 def test_codon_alphabet_invalid_codon(calpha):
-    with pytest.raises(ValueError):
+    with pytest.raises(new_alphabet.AlphabetError):
         calpha.to_index("TGA")
 
 
