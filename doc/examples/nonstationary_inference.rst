@@ -12,11 +12,11 @@ Infering Amino Acid frequencies with a nonstationary model
 
 .. sectionauthor:: Peter Goodman, Andrew Wheeler
 
-This example demonstrates how to apply a non-stationary, branch-heterogeneous maximum likelihood model to infer site frequency vectors across different branches or branch groups on a phylogenetic tree, highlighting a practical use case. The model used is a maximum likelihood, time-heterogeneous, and time-reversible model.
+This example demonstrates how to apply a non-stationary, branch-heterogeneous maximum likelihood model to infer state frequency vectors across different branches or branch groups on a phylogenetic tree, highlighting a practical use case. The model used is a maximum likelihood, time-heterogeneous, and time-reversible model.
 
-Non-stationarity means that amino acid frequencies are not fixed over genetic time. This characteristic allows a non-stationary model to infer new frequencies along different branches or clades of a tree.
+Non-stationarity means that amino acid frequencies are not fixed over time. This characteristic allows a non-stationary model to infer new frequencies along different branches or clades of a tree.
 
-In this example, we infer an amino acid frequency vector for the primate and rodent clades in a mammal phylogeny, as well as a frequency vector for the root of these two clades. The purpose of this inference was to produce three amino acid frequency vectors for comparison. The rodent vector represented the amino acid frequencies associated with a higher effective population size (:math:`N_{e}`), while the primate vector showed frequencies associated with a lower :math:`N_{e}`.  In a related analysis, we examined which amino acids were preferred in species with higher :math:`N_{e}` values and correlated those preferences with other amino acid fitness metrics.
+In this example, we infer an amino acid frequency vector for the primate and rodent clades in a mammal phylogeny, as well as a frequency vector for the root of these two clades. The purpose of this inference was to produce three amino acid frequency vectors for comparison. The rodent vector represented the amino acid frequencies associated with clade reported to exhibit a higher effective population size (:math:`N_{e}`), while the primate vector showed frequencies associated with clade reported to exhibit a lower :math:`N_{e}`. These clade specific measures allow us to measure associations with other known properties of the clades, such as amino acid fitness metrics.
 
 Load the necessary functions from Cogent3.
 
@@ -54,7 +54,7 @@ Designate clades based in your tree for which you want to infer different freque
     rodent_edges = tree.get_edge_names("MICRO_OCH","OCHOT_PRI", outgroup_name="GALEO_VAR", clade=True, stem=True)
 
 
-View the phylogenetic tree.
+We display the phylogenetic tree, using edge coloring to visualise the tree scopes represented by the model.
 
 .. jupyter-execute::
 
