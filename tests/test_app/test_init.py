@@ -165,3 +165,11 @@ def test_available_apps_filter():
     assert sum(app_name_filter in n for n in filtered_apps.columns["name"]) == len(
         filtered_apps
     )
+
+
+def test_available_apps_package():
+    """available apps lists just the package"""
+    app_name_filter: str = "model"
+    filtered_apps = available_apps(app_name_filter)
+    assert filtered_apps.columns["package"][0] == "cogent3"
+    assert all("." not in pkg for pkg in filtered_apps.columns["package"])
