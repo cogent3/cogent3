@@ -39,6 +39,7 @@ Modelling Evolution
     parametric_bootstrap
     rate_heterogeneity
     hmm_par_heterogeneity
+    nonstationary_inference
 
 ***************************
 Phylogenetic Reconstruction
