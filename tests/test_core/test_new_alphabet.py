@@ -609,7 +609,12 @@ def test_codon_alphabet_with_gap_motif(calpha):
     assert len(with_gap) == len(calpha) + 1
     assert with_gap.gap_char == "---"
     # on the standard genetic code, gap index is 61
-    assert with_gap.gap_index == 61
+def test_codon_alphabet_with_gap_motif_translation(calpha):
+    with_gap = calpha.with_gap_motif()
+    seq = "ATG---TAC"
+    translated = with_gap.to_indices(seq)
+    expected = [with_gap.to_index("ATG"), with_gap.gap_index, with_gap.to_index("TAC")]
+    assert_allclose(translated, expected)
 
 
 def test_codon_alphabet_missing(calpha):
