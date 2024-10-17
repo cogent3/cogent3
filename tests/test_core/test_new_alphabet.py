@@ -550,7 +550,7 @@ def test_deserialise_alphas(alpha):
 @pytest.fixture
 def calpha():
     gc = new_genetic_code.get_code(1)
-    return new_alphabet.CodonAlphabet(
+    return new_alphabet.SenseCodonAlphabet(
         words=gc.sense_codons, monomers=gc.moltype.alphabet
     )
 
@@ -570,7 +570,7 @@ def test_to_indices(calpha, seq):
 
 
 def test_codon_alphabet_invalid_codon(calpha):
-    with pytest.raises(ValueError):
+    with pytest.raises(new_alphabet.AlphabetError):
         calpha.to_index("TGA")
 
 
@@ -592,15 +592,41 @@ def test_codon_alphabet_not_is_valid(seq, calpha):
     assert not calpha.is_valid(seq)
 
 
+@pytest.mark.parametrize("as_array", (False, True))
+def test_codon_alphabet_to_indices(calpha, as_array):
+    seq = calpha.monomers.to_indices("GGGAAG") if as_array else "GGGAAG"
+    got = calpha.to_indices(seq)
+    expect = numpy.array(
+        [calpha.to_index("GGG"), calpha.to_index("AAG")], dtype=numpy.uint8
+    )
+    assert_allclose(got, expect)
+    assert isinstance(got, numpy.ndarray)
+    assert got.dtype == numpy.uint8
+
+
 def test_codon_alphabet_with_gap_motif(calpha):
     with_gap = calpha.with_gap_motif()
     assert len(with_gap) == len(calpha) + 1
+    assert with_gap.gap_char == "---"
+    # on the standard genetic code, gap index is 61
+def test_codon_alphabet_with_gap_motif_translation(calpha):
+    with_gap = calpha.with_gap_motif()
+    seq = "ATG---TAC"
+    translated = with_gap.to_indices(seq)
+    expected = [with_gap.to_index("ATG"), with_gap.gap_index, with_gap.to_index("TAC")]
+    assert_allclose(translated, expected)
+
+
+def test_codon_alphabet_missing(calpha):
+    # not provided on codon alphabet
+    assert calpha.missing_char is None
+    assert calpha.missing_index is None
 
 
 def test_codon_alphabet_serlialise_round_trip(calpha):
     from cogent3.util.deserialise import deserialise_object
 
     got = deserialise_object(calpha.to_json())
-    assert isinstance(got, new_alphabet.CodonAlphabet)
+    assert isinstance(got, new_alphabet.SenseCodonAlphabet)
     assert list(got) == list(calpha)
     assert calpha.to_index("TTC") == 1

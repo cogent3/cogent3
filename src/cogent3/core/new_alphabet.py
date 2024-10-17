@@ -19,10 +19,6 @@ OptStr = typing.Optional[str]
 OptBytes = typing.Optional[bytes]
 
 
-def _element_type(val: typing.Sequence) -> typing.Any:
-    return type(val[0])
-
-
 @functools.singledispatch
 def _coerce_to_type(orig: StrORBytes, text: str) -> StrORBytes:
     raise TypeError(f"{type(orig)} is invalid")
@@ -856,8 +852,8 @@ def deserialise_kmer_alphabet(data: dict) -> KmerAlphabet:
     return KmerAlphabet.from_rich_dict(data)
 
 
-class CodonAlphabet(tuple):
-    """represents the sense-codons of a GeneticCode"""
+class SenseCodonAlphabet(tuple):
+    """Alphabet for the sense-codons of a GeneticCode"""
 
     def __new__(
         cls,
@@ -905,7 +901,7 @@ class CodonAlphabet(tuple):
 
     @property
     def gap_index(self):
-        return self._to_indices(self.gap_char) if self._gap_char else None
+        return self._to_indices[self.gap_char] if self._gap_char else None
 
     @property
     def missing_char(self):
@@ -928,7 +924,15 @@ class CodonAlphabet(tuple):
 
     @to_indices.register
     def _(self, seq: list) -> numpy.ndarray:
-        return [self.to_index(c) for c in seq]
+        return numpy.array([self.to_index(c) for c in seq], dtype=self.dtype)
+
+    @to_indices.register
+    def _(self, seq: numpy.ndarray) -> numpy.ndarray:
+        # we assume that this is a dna sequence encoded as a numpy array
+        size = len(seq) // 3
+        return self.to_indices(
+            [self.monomers.from_indices(c) for c in seq.reshape(size, 3)]
+        )
 
     def to_index(self, codon: str) -> int:
         if len(codon) != 3:
@@ -936,7 +940,7 @@ class CodonAlphabet(tuple):
         try:
             return self._to_indices[codon]
         except KeyError as e:
-            raise ValueError(f"{codon=!r} not in alphabet") from e
+            raise AlphabetError(f"{codon=!r} not in alphabet") from e
 
     def from_index(self, index: int) -> str:
         if index > len(self) or index < 0:
@@ -964,7 +968,7 @@ class CodonAlphabet(tuple):
         try:
             _ = self.to_indices(seq)
             return True
-        except ValueError:
+        except (ValueError, AlphabetError):
             return False
 
     @is_valid.register
@@ -1000,9 +1004,9 @@ class CodonAlphabet(tuple):
         return cls(**data)
 
 
-@register_deserialiser(get_object_provenance(CodonAlphabet))
-def deserialise_codon_alphabet(data: dict) -> CodonAlphabet:
-    return CodonAlphabet.from_rich_dict(data)
+@register_deserialiser(get_object_provenance(SenseCodonAlphabet))
+def deserialise_codon_alphabet(data: dict) -> SenseCodonAlphabet:
+    return SenseCodonAlphabet.from_rich_dict(data)
 
 
 _alphabet_moltype_map = {}

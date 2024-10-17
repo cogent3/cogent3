@@ -1934,12 +1934,12 @@ class NucleicAcidSequenceMixin:
 
         # since we are realising the view, reverse complementing will be
         # dealt with, so rc=False
-        pep = gc.translate(array(seq), rc=False)
+        pep = gc.translate(array(seq), rc=False, incomplete_ok=incomplete_ok)
 
         if not include_stop and "*" in pep:
             raise new_alphabet.AlphabetError("stop codon in translation")
 
-        if not incomplete_ok and ("-" in pep or "X" in pep):
+        if not incomplete_ok and "X" in pep:
             raise new_alphabet.AlphabetError(
                 "Incomplete codon in translation, set incomplete_ok=True to "
                 "allow translation"
