@@ -609,6 +609,8 @@ def test_codon_alphabet_with_gap_motif(calpha):
     assert len(with_gap) == len(calpha) + 1
     assert with_gap.gap_char == "---"
     # on the standard genetic code, gap index is 61
+
+
 def test_codon_alphabet_with_gap_motif_translation(calpha):
     with_gap = calpha.with_gap_motif()
     seq = "ATG---TAC"
