@@ -2179,6 +2179,39 @@ class PhyloNode(TreeNode):
                 n.MaxDistTips = [tip_a, tip_b]
 
 
+def split_name_and_support(name_field: str | None) -> tuple[str | None, float | None]:
+    """Handle cases in the Newick format where an internal node name field
+    contains a name or/and support value, like 'edge.98/100'.
+    """
+    if not name_field:
+        return None, None
+
+    # split name and support by forward slash
+    parts = name_field.split("/")
+
+    if len(parts) == 2:
+        name = parts[0]
+        # the support value should be either a float or an int
+        try:
+            support = float(parts[1])
+        except ValueError as e:
+            raise ValueError(
+                f"Support value at node: {name} should be int/float"
+            ) from e
+        return name, support
+    # for name fields containing only one element,
+    # treat the element that can be converted to a float as a support value
+    elif len(parts) == 1:
+        try:
+            support = float(parts[0])
+            return None, support
+        except ValueError:
+            return parts[0], None
+    # handle the case where the name field is an empty string
+    else:
+        return None, None
+
+
 class TreeBuilder(object):
     # Some tree code which isn't needed once the tree is finished.
     # Mostly exists to give edges unique names
@@ -2219,8 +2252,13 @@ class TreeBuilder(object):
                 children, edge.name, params, name_loaded=edge.name_loaded
             )
 
-    def create_edge(self, children, name, params, name_loaded=True):
+    def create_edge(self, children, name_field, params, name_loaded=True):
         """Callback for newick parser"""
+        # split name and support by forward slash if present
+        splitted = split_name_and_support(name_field)
+        name = splitted[0]
+        params["support"] = splitted[1]
+
         if children is None:
             children = []
         node = self.TreeNodeClass(
