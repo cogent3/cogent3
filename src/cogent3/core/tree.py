@@ -2183,6 +2183,7 @@ def split_name_and_support(name_field: str | None) -> tuple[str | None, float | 
     """Handle cases in the Newick format where an internal node name field
     contains a name or/and support value, like 'edge.98/100'.
     """
+    # handle the case where the name field is an empty string or None
     if not name_field:
         return None, None
 
@@ -2196,20 +2197,19 @@ def split_name_and_support(name_field: str | None) -> tuple[str | None, float | 
             support = float(parts[1])
         except ValueError as e:
             raise ValueError(
-                f"Support value at node: {name} should be int/float"
+                f"Support value at node: {name} should be int or float."
             ) from e
         return name, support
-    # for name fields containing only one element,
-    # treat the element that can be converted to a float as a support value
     elif len(parts) == 1:
         try:
             support = float(parts[0])
             return None, support
         except ValueError:
             return parts[0], None
-    # handle the case where the name field is an empty string
     else:
-        return None, None
+        raise ValueError(
+            f"Invalid name field: {name_field}. It should contain at most one forward slash."
+        )
 
 
 class TreeBuilder(object):
