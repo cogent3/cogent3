@@ -2252,12 +2252,9 @@ class TreeBuilder(object):
                 children, edge.name, params, name_loaded=edge.name_loaded
             )
 
-    def create_edge(self, children, name_field, params, name_loaded=True):
+    def create_edge(self, children, name, params, name_loaded=True):
         """Callback for newick parser"""
-        # split name and support by forward slash if present
-        name, support = split_name_and_support(name_field)
-        if support is not None:
-            params["support"] = support
+        # TODO: split name and support by forward slash if present
 
         if children is None:
             children = []
