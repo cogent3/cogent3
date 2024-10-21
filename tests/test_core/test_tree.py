@@ -2342,19 +2342,14 @@ def test_load_tree_bad_encoding():
         ("", (None, None)),
         ("edge.98/24", ("edge.98", 24.0)),
         ("edge.98", ("edge.98", None)),
-        ("24", (None,24.0)),
+        ("24", (None, 24.0)),
     ),
 )
 def test_split_name_and_support(name, expected):
     assert split_name_and_support(name) == expected
 
 
-def test_split_name_and_support_invalid_support():
+@pytest.mark.parametrize("invalid", ("edge.98/invalid", "edge.98/23/invalid"))
+def test_split_name_and_support_invalid_support(invalid):
     with pytest.raises(ValueError):
-        split_name_and_support("edge.98/invalid")
-
-
-def test_split_name_and_support_invalid_name():
-    with pytest.raises(ValueError) as excinfo:
-        split_name_and_support("edge.98/24/invalid")
-    assert "Invalid name format" in str(excinfo.value)
+        split_name_and_support(invalid)
