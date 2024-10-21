@@ -2355,5 +2355,6 @@ def test_split_name_and_support_invalid_support():
 
 
 def test_split_name_and_support_invalid_name():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as excinfo:
         split_name_and_support("edge.98/24/invalid")
+    assert "Invalid name format" in str(excinfo.value)
