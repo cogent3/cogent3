@@ -27,6 +27,7 @@ Definition of relevant terms or abbreviations:
 
 from __future__ import annotations
 
+import contextlib
 import json
 import numbers
 import re
@@ -1696,6 +1697,7 @@ class PhyloNode(TreeNode):
             params["length"] = length
         kwargs["params"] = params
         super(PhyloNode, self).__init__(*args, **kwargs)
+        # split name into name/support here
 
     def _set_length(self, value):
         if not hasattr(self, "params"):
@@ -2183,33 +2185,33 @@ def split_name_and_support(name_field: str | None) -> tuple[str | None, float | 
     """Handle cases in the Newick format where an internal node name field
     contains a name or/and support value, like 'edge.98/100'.
     """
-    # handle the case where the name field is an empty string or None
+    # handle the case where the name field is None or empty string
     if not name_field:
         return None, None
 
-    # split name and support by forward slash
-    parts = name_field.split("/")
+    # if name_field is "24", treat it as support, returns (None, 24.0)
+    with contextlib.suppress(ValueError):
+        return None, float(name_field)
 
-    if len(parts) == 2:
-        name = parts[0]
-        # the support value should be either a float or an int
+    # otherwise, split the name field into name and support
+    name, *support = name_field.split("/")
+
+    if len(support) == 1:
         try:
-            support = float(parts[1])
+            support_value = float(support[0])
         except ValueError as e:
             raise ValueError(
-                f"Support value at node: {name} should be int or float."
+                f"Support value at node: {name!r} should be int or float not {support[0]!r}."
             ) from e
-        return name, support
-    elif len(parts) == 1:
-        try:
-            support = float(parts[0])
-            return None, support
-        except ValueError:
-            return parts[0], None
-    else:
+    # handle case where mutiple '/' in the name field
+    elif len(support) > 1:
         raise ValueError(
-            f"Invalid name field: {name_field}. It should contain at most one forward slash."
+            f"Support value at node: {name!r} should be int or float not {"/".join(support)!r}."
         )
+    else:
+        support_value = None
+
+    return name, support_value
 
 
 class TreeBuilder(object):
@@ -2254,8 +2256,6 @@ class TreeBuilder(object):
 
     def create_edge(self, children, name, params, name_loaded=True):
         """Callback for newick parser"""
-        # TODO: split name and support by forward slash if present
-
         if children is None:
             children = []
         node = self.TreeNodeClass(
