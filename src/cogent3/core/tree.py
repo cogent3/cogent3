@@ -2206,7 +2206,7 @@ def split_name_and_support(name_field: str | None) -> tuple[str | None, float | 
     # handle case where mutiple '/' in the name field
     elif len(support) > 1:
         raise ValueError(
-            f"Support value at node: {name!r} should be int or float not {"/".join(support)!r}."
+            f"Support value at node: {name!r} should be int or float not {'/'.join(support)!r}."
         )
     else:
         support_value = None
