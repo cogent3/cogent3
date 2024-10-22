@@ -14,7 +14,8 @@ from numpy.testing import assert_allclose, assert_equal
 
 from cogent3 import load_tree, make_tree, open_
 from cogent3._version import __version__
-from cogent3.core.tree import PhyloNode, TreeError, TreeNode
+from cogent3.core.tree import (PhyloNode, TreeError, TreeNode,
+                               split_name_and_support)
 from cogent3.maths.stats.test import correlation
 from cogent3.parse.tree import DndParser
 from cogent3.util.misc import get_object_provenance
@@ -2332,3 +2333,23 @@ def test_load_tree_bad_encoding():
             f.write(newick.encode("ascii"))
 
         assert load_tree(tree_path).get_newick() == newick
+
+
+@pytest.mark.parametrize(
+    "name,expected",
+    (
+        (None, (None, None)),
+        ("", (None, None)),
+        ("edge.98/24", ("edge.98", 24.0)),
+        ("edge.98", ("edge.98", None)),
+        ("24", (None, 24.0)),
+    ),
+)
+def test_split_name_and_support(name, expected):
+    assert split_name_and_support(name) == expected
+
+
+@pytest.mark.parametrize("invalid", ("edge.98/invalid", "edge.98/23/invalid"))
+def test_split_name_and_support_invalid_support(invalid):
+    with pytest.raises(ValueError):
+        split_name_and_support(invalid)

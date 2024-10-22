@@ -27,6 +27,7 @@ Definition of relevant terms or abbreviations:
 
 from __future__ import annotations
 
+import contextlib
 import json
 import numbers
 import re
@@ -1696,6 +1697,7 @@ class PhyloNode(TreeNode):
             params["length"] = length
         kwargs["params"] = params
         super(PhyloNode, self).__init__(*args, **kwargs)
+        # split name into name/support here
 
     def _set_length(self, value):
         if not hasattr(self, "params"):
@@ -2177,6 +2179,39 @@ class PhyloNode(TreeNode):
                     tip_a[0] += child_a.length or 0.0
                     tip_b[0] += child_b.length or 0.0
                 n.MaxDistTips = [tip_a, tip_b]
+
+
+def split_name_and_support(name_field: str | None) -> tuple[str | None, float | None]:
+    """Handle cases in the Newick format where an internal node name field
+    contains a name or/and support value, like 'edge.98/100'.
+    """
+    # handle the case where the name field is None or empty string
+    if not name_field:
+        return None, None
+
+    # if name_field is "24", treat it as support, returns (None, 24.0)
+    with contextlib.suppress(ValueError):
+        return None, float(name_field)
+
+    # otherwise, split the name field into name and support
+    name, *support = name_field.split("/")
+
+    if len(support) == 1:
+        try:
+            support_value = float(support[0])
+        except ValueError as e:
+            raise ValueError(
+                f"Support value at node: {name!r} should be int or float not {support[0]!r}."
+            ) from e
+    # handle case where mutiple '/' in the name field
+    elif len(support) > 1:
+        raise ValueError(
+            f"Support value at node: {name!r} should be int or float not {'/'.join(support)!r}."
+        )
+    else:
+        support_value = None
+
+    return name, support_value
 
 
 class TreeBuilder(object):
