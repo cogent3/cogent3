@@ -36,6 +36,7 @@ from functools import reduce
 from itertools import combinations
 from operator import or_
 from random import choice, shuffle
+from typing import Union
 
 from numpy import argsort, ceil, log, zeros
 
@@ -69,7 +70,7 @@ def _copy_node(n):
     return result
 
 
-class TreeNode(object):
+class TreeNode:
     """Store information about a tree node. Mutable.
 
     Parameters:
@@ -1693,21 +1694,26 @@ class PhyloNode(TreeNode):
     def __init__(self, *args, **kwargs):
         length = kwargs.get("length", None)
         params = kwargs.get("params", {})
-        if "length" not in params:
-            params["length"] = length
+        params["length"] = params.get("length", length)
         kwargs["params"] = params
-        super(PhyloNode, self).__init__(*args, **kwargs)
-        # split name into name/support here
+        super().__init__(*args, **kwargs)
 
-    def _set_length(self, value):
+        if self.children:
+            # self is an internal tree node
+            name, support = split_name_and_support(self.name)
+            self.name = name
+            if support is not None:
+                self.params["support"] = support
+
+    @property
+    def length(self) -> Union[float, None]:
+        return self.params.get("length", None)
+
+    @length.setter
+    def length(self, value: Union[float, None]) -> None:
         if not hasattr(self, "params"):
             self.params = {}
         self.params["length"] = value
-
-    def _get_length(self):
-        return self.params.get("length", None)
-
-    length = property(_get_length, _set_length)
 
     def __str__(self):
         """Returns string version of self, with names and distances."""
@@ -1773,7 +1779,7 @@ class PhyloNode(TreeNode):
         to_process = [(self, 0.0)]
         tips_to_save = []
 
-        seen = set([id(self)])
+        seen = {id(self)}
         while to_process:
             curr_node, curr_dist = to_process.pop(0)
 
