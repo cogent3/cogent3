@@ -2579,3 +2579,19 @@ def test_sequence_serialisation_round_trip(moltype, data):
     got = deserialise_object(rd)
     assert isinstance(got, type(seq))
     assert got.to_rich_dict() == seq.to_rich_dict()
+
+
+@pytest.fixture
+def aa_moltype(DATA_DIR, tmp_path):
+    # make a directory that contains both DNA and protein
+    outpath = tmp_path / "aa.fa"
+    aln = cogent3.load_aligned_seqs(DATA_DIR / "brca1_5.paml", moltype="dna")
+    aa = aln.get_translation()
+    aa.write(outpath)
+    return outpath
+
+
+def test_load_invalid_moltype(aa_moltype):
+    with pytest.raises(AssertionError):
+        # this should be an AlphabetError
+        cogent3.load_seq(aa_moltype, moltype="dna", new_type=True)
