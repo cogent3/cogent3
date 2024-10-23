@@ -213,7 +213,7 @@ class Enumeration(tuple):
         try:
             self.to_indices(seq)
             return True
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, AlphabetError):
             return False
 
     def from_indices(self, data):
@@ -587,7 +587,7 @@ class CharAlphabet(Alphabet):
                 return True
             ind = self.to_indices(seq)
             return max(ind) < len(self) and min(ind) >= 0
-        except (TypeError, KeyError):
+        except (TypeError, KeyError, AlphabetError):
             return False
 
     def to_chars(self, data):
