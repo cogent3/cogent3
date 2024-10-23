@@ -213,7 +213,7 @@ class Enumeration(tuple):
         try:
             self.to_indices(seq)
             return True
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, AlphabetError):
             return False
 
     def from_indices(self, data):
@@ -587,7 +587,7 @@ class CharAlphabet(Alphabet):
                 return True
             ind = self.to_indices(seq)
             return max(ind) < len(self) and min(ind) >= 0
-        except (TypeError, KeyError):
+        except (TypeError, KeyError, AlphabetError):
             return False
 
     def to_chars(self, data):
@@ -666,12 +666,20 @@ class CharAlphabet(Alphabet):
         would produce the result [1,1,2,0], returning the index of each
         element in the input.
         """
-        return array(
+        result = array(
             memoryview(
                 bytearray(data.translate(self._chars_to_indices).encode("utf8"))
             ),
             dtype=self.array_type,
         )
+        # check we are within alphabet range
+        max_val = len(self)
+        if (result >= max_val).any():
+            invalid_chars = result >= max_val
+            invalid = array(list(data))[invalid_chars]
+            raise AlphabetError(f"invalid character(s) found: {invalid.tolist()}")
+
+        return result
 
     @to_indices.register
     def _(self, data: bytes) -> ndarray:
