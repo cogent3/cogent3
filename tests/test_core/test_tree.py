@@ -2373,3 +2373,12 @@ def test_phylonode_support():
     name_and_support = tree.get_node_matching_name("def")
     assert name_and_support.name == "def"  # bit redundant given selection process
     assert name_and_support.params["support"] == 25.0
+
+def test_phylonode_support_all_name_exist():
+    # test that all node names have been uniquely assigned 
+    tree = make_tree("((1,2)5,(3,4))6;")
+    node_names = set(tree.get_node_names())
+    # check that no node name is an empty string
+    assert all(node_names)
+    assert len(node_names) == 7
+    
