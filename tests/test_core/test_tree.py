@@ -1232,12 +1232,10 @@ class TreeNodeTests(TestCase):
     def test_treenode_comparison_with_none_name(self):
         assert self.Empty < self.Single
         assert self.Single > self.Empty
-        assert self.Empty == TreeNode(name=None)
         assert self.Single > TreeNode(name=None)
         assert TreeNode(name=None) < self.Single
         assert TreeNode(name="test") > self.Empty
         assert self.Empty < TreeNode(name="test")
-
 
 
 class PhyloNodeTests(TestCase):

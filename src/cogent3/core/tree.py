@@ -132,7 +132,6 @@ class TreeNode:
         other_name = other.name or ""
 
         return self_name < other_name
-        
 
     def __gt__(self, other):
         self_name = self.name or ""
