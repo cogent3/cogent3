@@ -128,10 +128,16 @@ class TreeNode:
     # return self.name != other.name
 
     def __lt__(self, other):
-        return self.name < other.name
+        self_name = self.name or ""
+        other_name = other.name or ""
+
+        return self_name < other_name
 
     def __gt__(self, other):
-        return self.name > other.name
+        self_name = self.name or ""
+        other_name = other.name or ""
+
+        return self_name > other_name
 
     def compare_name(self, other):
         """Compares TreeNode by name"""
