@@ -3,6 +3,9 @@
 from random import randint, sample, seed
 from unittest import TestCase
 
+from numpy import array, ones, shape, sqrt
+from numpy.testing import assert_allclose
+
 from cogent3.maths.distance_transform import (
     binary_dist_chisq,
     binary_dist_chord,
@@ -37,8 +40,6 @@ from cogent3.maths.distance_transform import (
     trans_specprof,
     zeros,
 )
-from numpy import array, ones, shape, sqrt
-from numpy.testing import assert_allclose
 
 
 class functionTests(TestCase):

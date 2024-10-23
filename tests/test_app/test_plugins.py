@@ -1,10 +1,14 @@
 import random
 import string
+import sys
 from importlib.metadata import EntryPoint
 from unittest.mock import patch
 
-import cogent3
 import pytest
+from stevedore import extension
+from stevedore.extension import ExtensionManager
+
+import cogent3
 from cogent3.app import (
     _make_apphelp_docstring,
     app_help,
@@ -13,8 +17,6 @@ from cogent3.app import (
 )
 from cogent3.app.composable import define_app
 from cogent3.util.table import Table
-from stevedore import extension
-from stevedore.extension import ExtensionManager
 
 
 @pytest.fixture
@@ -254,6 +256,26 @@ def test_app_with_app_as_default(mock_extension_manager):
     assert app_with_default_addapp(5) == 42
     app_with_custom_addapp = get_app("AppWithDefault", app=AddApp(10))
     assert app_with_custom_addapp(5) == 15
+
+
+@pytest.mark.skipif(
+    sys.version_info[:2] == (3, 9), reason="Skipping test for Python 3.9"
+)
+def test_app_help_mixed_type_hinting(mock_extension_manager):
+    """apps can be initialized with other apps as arguments"""
+
+    @define_app
+    class MyApp:
+        def __init__(self, seed: int | None = None, b=2, c: str = ""):
+            self.seed = seed
+
+        def main(self, data: int) -> int:
+            return data + self.seed
+
+    mock_extension_manager([create_extension(MyApp)])
+    ds = _make_apphelp_docstring(MyApp)
+    # successfully stripped type-hints
+    assert ":" not in ds
 
 
 def test_app_help_from_function(mock_extension_manager):

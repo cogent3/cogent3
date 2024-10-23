@@ -9,6 +9,9 @@ from unittest import TestCase
 
 import numpy
 import pytest
+from numpy import array, log2, nan
+from numpy.testing import assert_allclose, assert_equal
+
 from cogent3 import (
     get_app,
     get_code,
@@ -40,8 +43,6 @@ from cogent3.core.sequence import ArraySequence, Sequence, SeqView
 from cogent3.maths.util import safe_p_log_p
 from cogent3.parse.fasta import MinimalFastaParser
 from cogent3.util.misc import get_object_provenance
-from numpy import array, log2, nan
-from numpy.testing import assert_allclose, assert_equal
 
 DNA = get_moltype("dna")
 RNA = get_moltype("rna")
@@ -1527,23 +1528,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         got = aln.count_gaps_per_seq(unique=False, induced_by=True)
         assert_equal(got.array, [2, 1, 2])
         assert_equal(got["b"], 1)
-
-    def test_coevolution(self):
-        """correctly produces matrix of coevo measures"""
-        data = {"s0": "AA", "s1": "AA", "s2": "BB", "s3": "BB", "s4": "BC"}
-        aln = self.Class(data=data)
-        coevo = aln.coevolution(method="rmi", show_progress=False)
-        expect = array([[nan, nan], [0.78333333, nan]])
-        assert_allclose(coevo.array, expect)
-        coevo = aln.coevolution(method="nmi", show_progress=False)
-        self.assertNotEqual(coevo[1, 1], expect[1, 1])
-        # now check invoking drawable produces a result object with a drawable
-        # attribute
-        coevo = aln.coevolution(method="nmi", drawable="box", show_progress=False)
-        self.assertTrue(hasattr(coevo, "drawable"))
-        aln = load_aligned_seqs("data/brca1.fasta", moltype="dna")
-        aln = aln.take_seqs(aln.names[:20])
-        aln = aln.no_degenerates()[:20]
 
     def test_info_source(self):
         """info.source exists if load_aligned_seqs given a filename"""
@@ -3885,3 +3869,22 @@ def test_empty_data(cls):
     with pytest.raises(ValueError) as e:
         _ = cls(())
     assert str(e.value) == f"{cls.__name__} must take at least one sequence."
+
+
+@pytest.mark.parametrize("cls", (ArrayAlignment, Alignment))
+def test_coevolution(cls):
+    """correctly produces matrix of coevo measures"""
+    data = {"s0": "AA", "s1": "AA", "s2": "GG", "s3": "GG", "s4": "GC"}
+    aln = cls(data=data, moltype=DNA)
+    coevo = aln.coevolution(stat="rmi", show_progress=False)
+    expect = array([[nan, nan], [0.78333333, nan]])
+    assert_allclose(coevo.array, expect)
+    coevo = aln.coevolution(stat="nmi", show_progress=False)
+    assert coevo[1, 1] != expect[1, 1]
+    # now check invoking drawable produces a result object with a drawable
+    # attribute
+    coevo = aln.coevolution(stat="nmi", drawable="box", show_progress=False)
+    assert hasattr(coevo, "drawable")
+    aln = load_aligned_seqs("data/brca1.fasta", moltype="dna")
+    aln = aln.take_seqs(aln.names[:20])
+    aln = aln.no_degenerates()[:20]

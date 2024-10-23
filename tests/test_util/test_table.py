@@ -10,6 +10,10 @@ from unittest import TestCase, skipIf
 
 import numpy
 import pytest
+from numpy import arange
+from numpy.exceptions import ComplexWarning
+from numpy.testing import assert_equal
+
 from cogent3 import load_table, make_table, open_
 from cogent3.format.table import (
     formatted_array,
@@ -24,9 +28,6 @@ from cogent3.util.table import (
     cast_str_to_numeric,
     cast_to_array,
 )
-from numpy import arange
-from numpy.exceptions import ComplexWarning
-from numpy.testing import assert_equal
 
 try:
     from pandas import DataFrame
@@ -2017,3 +2018,21 @@ def test_outer_join_col_naming(t2, t3):
     expect = list(t2.header) + [f"{col_prefix}{c}" for c in t3.header]
     assert list(got.header) == expect
     assert got.shape[0] == t2.shape[0] * t3.shape[0]
+
+
+def test_repr_html_continuation():
+    # should have an ellipsis row for every c ontinued table
+    t8_header = ["edge.name", "edge.parent", "length", "x", "y", "z"]
+    t8_rows = [
+        ["NineBande", "root", 4.0, 1.0, 3.0, 6.0],
+        ["NineBande", "root", 4.0, 1.0, 3.0, 6.0],
+        ["NineBande", "root", 4.0, 1.0, 3.0, 6.0],
+        ["NineBande", "root", 4.0, 1.0, 3.0, 6.0],
+        ["NineBande", "root", 4.0, 1.0, 3.0, 6.0],
+        ["NineBande", "root", 4.0, 1.0, 3.0, 6.0],
+        ["NineBande", "root", 4.0, 1.0, 3.0, 6.0],
+    ]
+    table = make_table(header=t8_header, data=t8_rows, max_width=30, title="a title")
+    # with 30 characters wide there are 3 subtables, so we expect 3 ellipsis rows
+    table.set_repr_policy(head=2, tail=2)
+    assert table._repr_html_().count('<tr class="ellipsis">') == 3

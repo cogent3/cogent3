@@ -1,8 +1,9 @@
 from unittest import TestCase
 
 import numpy as np
-from cogent3.maths.stats.jackknife import JackknifeStats
 from numpy.testing import assert_allclose
+
+from cogent3.maths.stats.jackknife import JackknifeStats
 
 
 def pmcc(data, axis=1):

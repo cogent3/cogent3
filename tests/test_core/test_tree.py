@@ -9,14 +9,15 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase
 
 import pytest
+from numpy import array
+from numpy.testing import assert_allclose, assert_equal
+
 from cogent3 import load_tree, make_tree, open_
 from cogent3._version import __version__
-from cogent3.core.tree import PhyloNode, TreeError, TreeNode
+from cogent3.core.tree import PhyloNode, TreeError, TreeNode, split_name_and_support
 from cogent3.maths.stats.test import correlation
 from cogent3.parse.tree import DndParser
 from cogent3.util.misc import get_object_provenance
-from numpy import array
-from numpy.testing import assert_allclose, assert_equal
 
 base_path = os.path.dirname(os.path.dirname(__file__))
 data_path = os.path.join(base_path, "data")
@@ -2331,3 +2332,43 @@ def test_load_tree_bad_encoding():
             f.write(newick.encode("ascii"))
 
         assert load_tree(tree_path).get_newick() == newick
+
+
+@pytest.mark.parametrize(
+    "name,expected",
+    (
+        (None, (None, None)),
+        ("", (None, None)),
+        ("edge.98/24", ("edge.98", 24.0)),
+        ("edge.98", ("edge.98", None)),
+        ("24", (None, 24.0)),
+    ),
+)
+def test_split_name_and_support(name, expected):
+    assert split_name_and_support(name) == expected
+
+
+@pytest.mark.parametrize("invalid", ("edge.98/invalid", "edge.98/23/invalid"))
+def test_split_name_and_support_invalid_support(invalid):
+    with pytest.raises(ValueError):
+        split_name_and_support(invalid)
+
+
+def test_phylonode_support():
+    tip_names = [str(i) for i in range(1, 13)]
+    tree = make_tree(
+        treestring="(1,(((2,3),4)/53,(5,((6,(7,(8,9))def/25),(10,11)abc))),12);"
+    )
+    assert tree.get_tip_names() == tip_names
+    # parent of 4 is node with only support value
+    just_support = tree.get_node_matching_name("4").parent
+    assert just_support.params["support"] == 53.0
+    # parent of 10 has a node name only
+    just_name = tree.get_node_matching_name("10").parent
+    assert just_name.name == "abc"
+    assert "support" not in just_name.params
+    # the node with name "def/25" correctly resoloved into node
+    # name "def" and support 25.0
+    name_and_support = tree.get_node_matching_name("def")
+    assert name_and_support.name == "def"  # bit redundant given selection process
+    assert name_and_support.params["support"] == 25.0

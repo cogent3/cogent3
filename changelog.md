@@ -1,4 +1,115 @@
 
+<a id='changelog-2024.7.19a7'></a>
+# Changes in release "2024.7.19a7"
+
+## Contributors
+
+- @GavinHuttley multiple commits and maintenance
+- A first time contribution from @petergoodman 🚀🎉!
+- @YapengLang added the key function for parsing support from newick format
+  to tree object 💪
+
+## ENH
+
+- Provide convenience class methods on both DictArray and DistanceMatrix to simplify
+  creation when you have a numpy array and the names corresponding to the dimension
+  element labels. These methods are mainly of use for developers.
+- Major rewrite of the mutual information based coevolution statistics. These are
+  most easily accessed from the `Alignment.coevolution()` method. The rewrite delivers
+  several orders of magnitude performance improvement by using `numba.jit` compiled
+  functions based on numpy arrays, plus caching of intermediate calculations.
+  The speed of the resampled Mutual Information calculation is now near identical to
+  that for the simpler MI and NMI statistics.
+- The coevolution statistics can now be run in parallel on a single machine.
+  This is most easily accessed by setting `<alignment>.coevolution(parallel=True)`.
+  The parallelisation is at the level of chunks of position pairs.
+- cogent3 now supports parsing from newick format with node support
+  statistics. The support measure is stored in `<node>.params["support"]`.
+
+## BUG
+
+- Dotplots of sequences that had gaps in common is now correctly handled. Previously,
+  the displayed aligned path was very funky because aligned segments could be
+  interrupted.
+
+## DOC
+
+- A new tutorial on using a nonstationary amino-acid model from @petergoodman.
+  This will appear in the examples documentation in the next release. Nice
+  showcase of cogent3's ability to disentangle clade specific substitution
+  processes. Plus a first time contribution!
+
+## Deprecations
+
+- All the old coevolution functions and statistics are marked for removal
+  by the last major release of 2024. Their implementations were pre-2010!,
+  and so not well suited to current data sizes. The mutual information based
+  statistics are retained, but rewritten to be much faster (see the Enhancement
+  section).
+- The old coevolution example document is removed as its out-of-date.
+
+<a id='changelog-2024.7.19a6'></a>
+# Changes in release "2024.7.19a6"
+
+Mainly a bug fix release. But one important new feature is support for parallelisation
+in jupyter notebooks!
+
+## Contributors
+
+- @GavinHuttley
+
+## ENH
+
+- Use loky for parallel processing instead of multiprocessing alone. loky is more robust
+  and supports parallel execution in jupyter notebooks .. yay!
+- Using a feature to slice a sequence or an alignment should now preserve the annotation
+  when possible (a feature has a single contiguous span), or removes the annotation_db
+  when not querying it could be misleading.
+
+## BUG
+
+- Fixed issue where read only zipped data stores would include files
+  starting with a "._"
+- Fixed regression affecting app.as_completed()
+
+<a id='changelog-2024.7.19a5'></a>
+# Changes in release "2024.7.19a5"
+
+There are some new features and minor bug fixes in this release. 
+
+## Contributors
+
+- @GavinHuttley
+
+## ENH
+
+- genbank.iter_genbank_records() is a revised genbank parser that returns
+  primitive python types. It defaults to returning the genbank record LOCUS
+  values as the name. If the convert_features argument is None, then
+  genbank record metadata is left as a string. This can boost performance
+  10x over the old MinimalGenbankParser. The default is to convert features
+  into a dict as before.
+- genbank.minimal_parser() is a new function that provides a minimal
+  parser for Genbank files, replacing the MinimalGenbankParser. It uses
+  the genbank.iter_genbank_records() function.
+- genbank.rich_parser() replaces the RichGenbankParser. It uses
+  genbank.minimal_parser() but has the same behaviour as the older version.
+- the <app writer>.apply_to() method now accepts logger=False. This turns off
+  logging completely.
+
+## BUG
+
+- Fixed a regression affecting setting tip font sizes on dendrograms. You can now
+  assign either an integer to `<dendrogram>.tip_font` or a dict,
+  e.g. `{"size": 10, "family": "Inconsolata, monospace"}`.
+
+## Deprecations
+
+- genbank.MinimalGenbankParser is being discontinued in favor of
+  genbank.minimal_parser (see above).
+- genbank.RichGenbankParser is being discontinued in favor of
+  genbank.rich_parser (see above).
+
 <a id='changelog-2024.7.19a4'></a>
 # Changes in release "2024.7.19a4"
 

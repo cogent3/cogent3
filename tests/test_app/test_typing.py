@@ -2,6 +2,7 @@ import sys
 from typing import List, Set, Tuple, Union
 
 import pytest
+
 from cogent3.app.typing import (
     AlignedSeqsType,
     IdentifierType,

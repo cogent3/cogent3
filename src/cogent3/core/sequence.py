@@ -822,7 +822,9 @@ class Sequence(SequenceI):
             else (lambda x: x)
         )
 
-        self._seq = _coerce_to_seqview(seq, self.name, preserve_case, checker)
+        self._seq = _coerce_to_seqview(
+            seq, self.name, preserve_case, checker, annotation_offset
+        )
 
         if not isinstance(info, InfoClass):
             try:
@@ -836,7 +838,6 @@ class Sequence(SequenceI):
 
         self._repr_policy = dict(num_pos=60)
         self._annotation_db = DEFAULT_ANNOTATION_DB()
-        self.annotation_offset = annotation_offset
 
     @property
     def annotation_offset(self):
@@ -856,10 +857,6 @@ class Sequence(SequenceI):
         """
 
         return self._seq.parent_start
-
-    @annotation_offset.setter
-    def annotation_offset(self, value):
-        self._seq.offset = value
 
     @property
     def annotation_db(self):
@@ -1200,20 +1197,20 @@ class Sequence(SequenceI):
         """returns a copy of self
 
         Parameters
-        -----------
+        ----------
         sliced
             Slices underlying sequence with start/end of self coordinates. The offset
             is retained.
         exclude_annotations
             drops annotation_db when True
         """
-        annotation_offset = self.annotation_offset if sliced else self._seq.offset
         data = self._seq.copy(sliced=sliced)
+        # when slicing a seqview, if we sliced=True, it discards the
+        # offset attribute, in which case this needs to be provided to the
+        # seq constructor
+        offset = self.annotation_offset if sliced else 0
         new = self.__class__(
-            data,
-            name=self.name,
-            info=self.info,
-            annotation_offset=annotation_offset,
+            data, name=self.name, info=self.info, annotation_offset=offset
         )
         db = None if exclude_annotations else copy.deepcopy(self.annotation_db)
         new._annotation_db = db
@@ -1305,8 +1302,11 @@ class Sequence(SequenceI):
 
     def _mapped(self, map):
         # Called by generic __getitem__
+        offset = map.start if map.num_spans == 1 else 0
         segments = self.gapped_by_map_segment_iter(map, allow_gaps=False)
-        return self.__class__("".join(segments), self.name, info=self.info)
+        return self.__class__(
+            "".join(segments), self.name, info=self.info, annotation_offset=offset
+        )
 
     def __repr__(self):
         myclass = f"{self.__class__.__name__}"
@@ -1326,12 +1326,11 @@ class Sequence(SequenceI):
 
         if isinstance(index, (FeatureMap, IndelMap)):
             new = self._mapped(index)
-            preserve_offset = True
+            preserve_offset = index.num_spans == 1
 
         elif isinstance(index, slice) or _is_int(index):
-            new = self.__class__(
-                self._seq[index], name=self.name, check=False, info=self.info
-            )
+            _seq = self._seq[index]
+            new = self.__class__(_seq, name=self.name, check=False, info=self.info)
             stride = getattr(index, "step", 1) or 1
             preserve_offset = stride > 0
 
@@ -1340,7 +1339,6 @@ class Sequence(SequenceI):
 
         if self.annotation_db is not None and preserve_offset:
             new.replace_annotation_db(self.annotation_db, check=False)
-            new.annotation_offset = self.annotation_offset
 
         if _is_float(index):
             raise TypeError("cannot slice using float")
@@ -2384,7 +2382,6 @@ class SeqView(SliceRecordABC):
             start, stop = self.start, self.stop
 
         data["init_args"]["seq"] = self.seq[start:stop]
-        data["init_args"]["offset"] = int(self.parent_start)
         return data
 
     @classmethod
@@ -3001,51 +2998,67 @@ class ArrayProteinWithStopSequence(ArraySequence):
 
 
 @singledispatch
-def _coerce_to_seqview(data, seqid, preserve_case, checker):
+def _coerce_to_seqview(data, seqid, preserve_case, checker, annotation_offset):
     from cogent3.core.alignment import Aligned
 
     if isinstance(data, Aligned):
-        return _coerce_to_seqview(str(data), seqid, preserve_case, checker)
+        return _coerce_to_seqview(
+            str(data), seqid, preserve_case, checker, annotation_offset
+        )
     raise NotImplementedError(f"{type(data)}")
 
 
 @_coerce_to_seqview.register
-def _(data: SeqView, seqid, preserve_case, checker):
+def _(data: SeqView, seqid, preserve_case, checker, annotation_offset):
+    if annotation_offset and data.offset:
+        raise ValueError(
+            f"cannot set {annotation_offset=} on a SeqView with an offset {data.offset=}"
+        )
+    elif annotation_offset:
+        data.offset = annotation_offset
     return data
 
 
 @_coerce_to_seqview.register
-def _(data: Sequence, seqid, preserve_case, checker):
-    return _coerce_to_seqview(data._seq, seqid, preserve_case, checker)
+def _(data: Sequence, seqid, preserve_case, checker, annotation_offset):
+    return _coerce_to_seqview(
+        data._seq, seqid, preserve_case, checker, annotation_offset
+    )
 
 
 @_coerce_to_seqview.register
-def _(data: ArraySequence, seqid, preserve_case, checker):
-    return _coerce_to_seqview(str(data), seqid, preserve_case, checker)
+def _(data: ArraySequence, seqid, preserve_case, checker, annotation_offset):
+    return _coerce_to_seqview(
+        str(data), seqid, preserve_case, checker, annotation_offset
+    )
 
 
 @_coerce_to_seqview.register
-def _(data: str, seqid, preserve_case, checker):
+def _(data: str, seqid, preserve_case, checker, annotation_offset):
     if not preserve_case:
         data = data.upper()
     checker(data)
-    return SeqView(seq=data, seqid=seqid)
+    return SeqView(seq=data, seqid=seqid, offset=annotation_offset)
 
 
 @_coerce_to_seqview.register
-def _(data: bytes, seqid, preserve_case, checker):
+def _(data: bytes, seqid, preserve_case, checker, annotation_offset):
     if not preserve_case:
         data = data.upper()
     data = data.decode("utf8")
     checker(data)
-    return SeqView(seq=data, seqid=seqid)
+    return SeqView(seq=data, seqid=seqid, offset=annotation_offset)
 
 
 @_coerce_to_seqview.register
-def _(data: tuple, seqid, preserve_case, checker):
-    return _coerce_to_seqview("".join(data), seqid, preserve_case, checker)
+def _(data: tuple, seqid, preserve_case, checker, annotation_offset):
+    return _coerce_to_seqview(
+        "".join(data), seqid, preserve_case, checker, annotation_offset
+    )
 
 
 @_coerce_to_seqview.register
-def _(data: list, seqid, preserve_case, checker):
-    return _coerce_to_seqview("".join(data), seqid, preserve_case, checker)
+def _(data: list, seqid, preserve_case, checker, annotation_offset):
+    return _coerce_to_seqview(
+        "".join(data), seqid, preserve_case, checker, annotation_offset
+    )

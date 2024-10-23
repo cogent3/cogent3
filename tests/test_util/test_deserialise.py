@@ -5,6 +5,8 @@ from unittest import TestCase
 
 import numpy
 import pytest
+from numpy.testing import assert_allclose
+
 from cogent3 import (
     get_app,
     get_code,
@@ -26,7 +28,6 @@ from cogent3.util.deserialise import (
     deserialise_likelihood_function,
     deserialise_object,
 )
-from numpy.testing import assert_allclose
 
 
 class TestDeserialising(TestCase):

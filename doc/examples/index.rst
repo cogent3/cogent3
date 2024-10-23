@@ -37,9 +37,9 @@ Modelling Evolution
     testing_multi_loci
     simulate_alignment
     parametric_bootstrap
-    coevolution
     rate_heterogeneity
     hmm_par_heterogeneity
+    nonstationary_inference
 
 ***************************
 Phylogenetic Reconstruction

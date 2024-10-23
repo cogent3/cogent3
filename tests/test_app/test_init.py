@@ -6,6 +6,7 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase
 
 import pytest
+
 from cogent3 import app_help, available_apps, get_app, open_data_store
 from cogent3.app.composable import LOADER, WRITER, is_app
 from cogent3.util.table import Table
@@ -148,7 +149,7 @@ def test_app_help_signature(capsys, app_name):
 
     got = _make_signature(_get_app_matching_name(app_name))
     # app name is in quotes
-    assert f'"{app_name}"' in got
+    assert f"{app_name!r}" in got
     # check split across multiple lines if long signature
     if len(got) > 70:
         assert got.count("\n") > 1
@@ -164,3 +165,11 @@ def test_available_apps_filter():
     assert sum(app_name_filter in n for n in filtered_apps.columns["name"]) == len(
         filtered_apps
     )
+
+
+def test_available_apps_package():
+    """available apps lists just the package"""
+    app_name_filter: str = "model"
+    filtered_apps = available_apps(app_name_filter)
+    assert filtered_apps.columns["package"][0] == "cogent3"
+    assert all("." not in pkg for pkg in filtered_apps.columns["package"])

@@ -1,4 +1,5 @@
 import pytest
+
 from cogent3.core import new_genetic_code
 
 

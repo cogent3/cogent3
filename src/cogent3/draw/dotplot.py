@@ -6,6 +6,7 @@ from cogent3.align.pycompare import (
     _calc_seed_size,
     find_matched_paths,
 )
+from cogent3.core import location
 from cogent3.core.moltype import get_moltype
 from cogent3.draw.drawable import Drawable
 from cogent3.util.union_dict import UnionDict
@@ -66,12 +67,16 @@ def _convert_input(seq, moltype):
     return gap_map, seq
 
 
-def get_align_coords(map1, map2, aligned=False) -> MatchedSeqPaths:
+def get_align_coords(
+    map1: location.IndelMap, map2: location.IndelMap, aligned=False
+) -> MatchedSeqPaths:
     """sequence coordinates of aligned segments"""
     from cogent3.align.pycompare import segment
 
     if aligned:
         assert len(map1) == len(map2), "aligned sequences not equal length"
+
+    # we reduce the maps to only gaps that are unique to each
 
     # we get the gap coordinates in alignment indices for both sequences
     # sorting this allows us to trivially identify the alignment indices of
@@ -90,6 +95,17 @@ def get_align_coords(map1, map2, aligned=False) -> MatchedSeqPaths:
         s2 = segment(map2.get_seq_index(align_start), map2.get_seq_index(align_end) - 1)
         paths.append(s1, s2)
     return paths
+
+
+def _prep_seqs(moltype, seq1, seq2, is_aligned):
+    ig1, seq1 = _convert_input(seq1, moltype)
+    ig2, seq2 = _convert_input(seq2, moltype)
+    if is_aligned:
+        # remove any shared gaps so the aligned path is useful
+        intersect = ig1.shared_gaps(ig2)
+        ig1 = ig1.minus_gaps(intersect)
+        ig2 = ig2.minus_gaps(intersect)
+    return ig1, ig2, seq1, seq2
 
 
 class Dotplot(Drawable):
@@ -139,14 +155,12 @@ class Dotplot(Drawable):
             AnnotatedDrawable
         title : str
             title for the plot
-        show_progress : bool
-            displays progress bar
         """
 
         # we ensure sequences have gaps parsed and the calculate aspect ratio
         moltype = seq1.moltype if hasattr(seq1, "moltype") else get_moltype(moltype)
-        map1, seq1 = _convert_input(seq1, moltype)
-        map2, seq2 = _convert_input(seq2, moltype)
+        map1, map2, seq1, seq2 = _prep_seqs(moltype, seq1, seq2, is_aligned)
+
         len1, len2 = len(seq1), len(seq2)
         height = width * len2 / len1
 
@@ -154,7 +168,7 @@ class Dotplot(Drawable):
             seq1.name = "seq1"
             seq2.name = "seq2"
 
-        super(Dotplot, self).__init__(
+        super().__init__(
             visible_axes=True,
             showlegend=True,
             width=width,

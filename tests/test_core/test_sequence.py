@@ -6,9 +6,12 @@ import re
 from pickle import dumps
 from unittest import TestCase
 
-import cogent3
 import numpy
 import pytest
+from numpy import array
+from numpy.testing import assert_allclose, assert_equal
+
+import cogent3
 from cogent3._version import __version__
 from cogent3.core.alignment import Aligned
 from cogent3.core.moltype import (
@@ -37,8 +40,6 @@ from cogent3.core.sequence import (
     _coerce_to_seqview,
 )
 from cogent3.util.misc import get_object_provenance
-from numpy import array
-from numpy.testing import assert_allclose, assert_equal
 
 
 class SequenceTests(TestCase):
@@ -2125,19 +2126,19 @@ def test_absolute_position_base_cases(one_seq):  # ported
 
 def test_absolute_position_positive(one_seq):  # ported
     # with an offset, the abs index should be offset + index
-    one_seq.annotation_offset = 2
+    one_seq._seq.offset = 2
     got = one_seq._seq.absolute_position(2)
     assert got == 2 + 2
 
     # with an offset and start, the abs index should be offset + start + index
     view = one_seq[2::]
-    view.annotation_offset = 2  # todo: do we want the annotation_offset to be preserved when slicing? I think yes
+    view._seq.offset = 2  # todo: do we want the annotation_offset to be preserved when slicing? I think yes
     got = view._seq.absolute_position(2)
     assert got == 2 + 2 + 2
 
     # with an offset, start and step, the abs index should be offset + start + index * step
     view = one_seq[2::2]
-    view.annotation_offset = 2
+    view._seq.offset = 2
     got = view._seq.absolute_position(2)
     assert got == 2 + 2 + 2 * 2
 
@@ -2232,7 +2233,7 @@ def test_absolute_relative_roundtrip(
 ):  # ported
     # a round trip from relative to absolute then from absolute to relative, should return the same value we began with
     view = one_seq[start:stop:step]
-    view.annotation_offset = offset or 0
+    view._seq.offset = offset or 0
     abs_val = view._seq.absolute_position(value)
     rel_val = view._seq.relative_position(abs_val)
     assert rel_val == value
@@ -2417,7 +2418,6 @@ def test_sliced_seqview_rich_dict(reverse):  # ported
         sv = sv[::-1]
     rd = sv.to_rich_dict()
     assert rd["init_args"]["seq"] == parent[sl]
-    assert rd["init_args"]["offset"] == 2
 
 
 @pytest.mark.parametrize(
@@ -2680,21 +2680,32 @@ def test_coerce_to_seqview(cls):  # ported for Sequence, SeqView, str and bytes
     seq = "AC--GGTGGGAC"
     seqid = "seq1"
     if cls in (str, bytes):
-        got = _coerce_to_seqview(seq, seqid, preserve_case=True, checker=(lambda x: x))
+        got = _coerce_to_seqview(
+            seq, seqid, preserve_case=True, checker=(lambda x: x), annotation_offset=0
+        )
     elif cls is Aligned:
         got = _coerce_to_seqview(
             cls(*Sequence(seq).parse_out_gaps()),
             seqid,
             preserve_case=True,
             checker=(lambda x: x),
+            annotation_offset=0,
         )
     elif cls is SeqView:
         got = _coerce_to_seqview(
-            cls(seq=seq), seqid, preserve_case=True, checker=(lambda x: x)
+            cls(seq=seq),
+            seqid,
+            preserve_case=True,
+            checker=(lambda x: x),
+            annotation_offset=0,
         )
     else:
         got = _coerce_to_seqview(
-            cls(seq), seqid, preserve_case=True, checker=(lambda x: x)
+            cls(seq),
+            seqid,
+            preserve_case=True,
+            checker=(lambda x: x),
+            annotation_offset=0,
         )
     assert got.value == seq
     assert isinstance(got, SeqView)
@@ -2770,3 +2781,17 @@ def test_seqview_seq_len_modified_seq():  # ported
 
     sv.seq = "ATGC"  # this should not modify seq_len
     assert sv.seq_len == len(seq)
+
+
+@pytest.mark.parametrize("new_type", [True, False])
+def test_preserving_offsets(new_type):
+    raw_seq = "ACGT"
+    seq = cogent3.make_seq(raw_seq, moltype="dna", new_type=new_type)
+    start, stop, step = 1, 2, 1
+    expect = raw_seq[start:stop:step]
+    sl = seq[start:stop:None]
+
+    assert str(sl) == expect
+    s2 = sl[::1]
+    assert str(s2) == expect
+    assert sl.annotation_offset == s2.annotation_offset
