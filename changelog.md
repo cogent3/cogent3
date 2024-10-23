@@ -1,4 +1,53 @@
 
+<a id='changelog-2024.7.19a7'></a>
+# Changes in release "2024.7.19a7"
+
+## Contributors
+
+- @GavinHuttley multiple commits and maintenance
+- A first time contribution from @petergoodman 🚀🎉!
+- @YapengLang added the key function for parsing support from newick format
+  to tree object 💪
+
+## ENH
+
+- Provide convenience class methods on both DictArray and DistanceMatrix to simplify
+  creation when you have a numpy array and the names corresponding to the dimension
+  element labels. These methods are mainly of use for developers.
+- Major rewrite of the mutual information based coevolution statistics. These are
+  most easily accessed from the `Alignment.coevolution()` method. The rewrite delivers
+  several orders of magnitude performance improvement by using `numba.jit` compiled
+  functions based on numpy arrays, plus caching of intermediate calculations.
+  The speed of the resampled Mutual Information calculation is now near identical to
+  that for the simpler MI and NMI statistics.
+- The coevolution statistics can now be run in parallel on a single machine.
+  This is most easily accessed by setting `<alignment>.coevolution(parallel=True)`.
+  The parallelisation is at the level of chunks of position pairs.
+- cogent3 now supports parsing from newick format with node support
+  statistics. The support measure is stored in `<node>.params["support"]`.
+
+## BUG
+
+- Dotplots of sequences that had gaps in common is now correctly handled. Previously,
+  the displayed aligned path was very funky because aligned segments could be
+  interrupted.
+
+## DOC
+
+- A new tutorial on using a nonstationary amino-acid model from @petergoodman.
+  This will appear in the examples documentation in the next release. Nice
+  showcase of cogent3's ability to disentangle clade specific substitution
+  processes. Plus a first time contribution!
+
+## Deprecations
+
+- All the old coevolution functions and statistics are marked for removal
+  by the last major release of 2024. Their implementations were pre-2010!,
+  and so not well suited to current data sizes. The mutual information based
+  statistics are retained, but rewritten to be much faster (see the Enhancement
+  section).
+- The old coevolution example document is removed as its out-of-date.
+
 <a id='changelog-2024.7.19a6'></a>
 # Changes in release "2024.7.19a6"
 
