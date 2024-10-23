@@ -2363,6 +2363,7 @@ def test_phylonode_support():
     # parent of 4 is node with only support value
     just_support = tree.get_node_matching_name("4").parent
     assert just_support.params["support"] == 53.0
+    assert just_support.name
     # parent of 10 has a node name only
     just_name = tree.get_node_matching_name("10").parent
     assert just_name.name == "abc"
