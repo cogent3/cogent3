@@ -714,7 +714,7 @@ def make_tree(treestring=None, tip_names=None, format=None, underscore_unmunge=F
     assert treestring or tip_names, "must provide either treestring or tip_names"
     if tip_names:
         tree_builder = TreeBuilder().create_edge
-        tips = [tree_builder([], tip_name, {}) for tip_name in tip_names]
+        tips = [tree_builder([], str(tip_name), {}) for tip_name in tip_names]
         tree = tree_builder(tips, "root", {})
         return tree
 
