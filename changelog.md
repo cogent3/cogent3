@@ -1,4 +1,17 @@
 
+<a id='changelog-2024.7.19a8'></a>
+# Changes in release "2024.7.19a8"
+
+A single bugfix release.
+
+## Contributors
+
+- Bug identified and fixed by @YapengLang 🚀🤩
+
+## BUG
+
+- Fixed a regression in Tree's arising from new name / support split functionality.
+
 <a id='changelog-2024.7.19a7'></a>
 # Changes in release "2024.7.19a7"
 
