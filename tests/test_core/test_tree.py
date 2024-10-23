@@ -1228,6 +1228,11 @@ class TreeNodeTests(TestCase):
 
         result = self.t.compare_by_subsets(self.TreeRoot)
         self.assertEqual(result, 1)
+    def test_treenode_comparison_with_none_name(self):
+        # check that comparison with name=None is handled as "" correctly
+        assert self.Empty < self.Single
+        assert self.Single > self.Empty
+
 
 
 class PhyloNodeTests(TestCase):
