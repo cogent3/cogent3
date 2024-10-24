@@ -2384,7 +2384,7 @@ def test_phylonode_support():
 
 def test_phylonode_support_all_name_exist():
     # test that all node names have been uniquely assigned 
-    tree = make_tree("((1,2)5,(3,4))6;")
+    tree = make_tree("((1,2)5,(3,4)6);")
     node_names = set(tree.get_node_names())
     # check that no node name is an empty string
     assert all(node_names)
