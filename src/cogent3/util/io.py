@@ -4,6 +4,7 @@ import uuid
 from bz2 import open as bzip_open
 from gzip import open as gzip_open
 from io import TextIOWrapper
+from lzma import open as lzma_open
 from os import PathLike, remove
 from pathlib import Path, PurePath
 from re import compile
@@ -41,7 +42,13 @@ def _get_compression_open(
     assert path or compression
     if compression is None:
         _, compression = get_format_suffixes(path)
-    return {"gz": gzip_open, "bz2": bzip_open, "zip": open_zip}.get(compression, None)
+    return {
+        "gz": gzip_open,
+        "bz2": bzip_open,
+        "zip": open_zip,
+        "xz": lzma_open,
+        "lzma": lzma_open,
+    }.get(compression, None)
 
 
 def open_zip(filename: PathType, mode: str = "r", **kwargs) -> IO:
