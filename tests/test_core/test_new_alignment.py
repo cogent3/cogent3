@@ -1961,6 +1961,18 @@ def test_sequence_collection_rename_seqs():
     assert set(new._seqs_data.names) == set(data)
 
 
+def test_sequence_collection_subsequent_rename():
+    """sequences can be renamed multiple times"""
+    data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
+    seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
+    new = seqs.rename_seqs(lambda x: x.upper())
+    new_again = new.rename_seqs(lambda x: x[:1])
+    expect = {"S"}
+    assert set(new_again.names) == expect
+    # the names should not change in the seqsdata
+    assert set(new._seqs_data.names) == set(data)
+
+
 def test_sequence_collection_apply_pssm():
     """should successfully produce pssm scores"""
     from cogent3.parse import jaspar
