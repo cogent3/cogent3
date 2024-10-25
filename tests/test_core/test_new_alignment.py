@@ -110,21 +110,16 @@ def unordered():
 
 @pytest.fixture
 def ordered1():
-    seqs = new_alignment.make_unaligned_seqs(
+    return new_alignment.make_unaligned_seqs(
         {"a": "AAAAA", "c": "CCCCC"}, moltype="dna"
     )
-    seqs.names = ["a", "c"]
-    return seqs
 
 
 @pytest.fixture
 def ordered2():
-    seqs = new_alignment.make_unaligned_seqs(
-        {"a": "AAAAA", "c": "CCCCC"}, moltype="dna"
+    return new_alignment.make_unaligned_seqs(
+        {"c": "CCCCC", "a": "AAAAA"}, moltype="dna"
     )
-    seqs.names = ["c", "a"]
-    return seqs
-
 
 @pytest.fixture(scope="function")
 def gb_db(DATA_DIR):
@@ -546,22 +541,6 @@ def test_sequence_collection_names_is_list(collection_maker):
     assert isinstance(seqs.names, list)
 
 
-@pytest.mark.parametrize(
-    "collection_maker",
-    (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
-)
-def test_sequence_collection_names(collection_maker):
-    seqs = {"seq1": "AAAAAA", "seq2": "TTTT--", "seq3": "ATTCCC"}
-    seq_coll = collection_maker(seqs, moltype="dna")
-    assert seq_coll.names == ["seq1", "seq2", "seq3"]
-    seq_coll.names = ["seq2", "seq3", "seq1"]
-    assert seq_coll.names == ["seq2", "seq3", "seq1"]
-    seq_coll.names = ["seq1", "seq2"]
-    assert seq_coll.names == ["seq1", "seq2"]
-    with pytest.raises(ValueError):
-        seq_coll.names = ["seq1", "seq2", "seq3", "seq4"]
-
-
 def test_make_unaligned_seqs_list_str():
     """SequenceCollection init from list of sequences should use indices as keys"""
     seqs = ["TTTTT", "CCCCC", "GGGGG"]
@@ -883,11 +862,8 @@ def test_sequence_collection_get_seq_names_if(ragged_padded):
 
     assert ragged_padded.get_seq_names_if(is_long) == []
     assert ragged_padded.get_seq_names_if(is_med) == ["a", "c"]
-    # return order should reflect names when updated
-    ragged_padded.names = ["b", "c", "a"]
-    assert ragged_padded.get_seq_names_if(is_med) == ["c", "a"]
     assert ragged_padded.get_seq_names_if(is_med, negate=True) == ["b"]
-    assert ragged_padded.get_seq_names_if(is_any) == ["b", "c", "a"]
+    assert ragged_padded.get_seq_names_if(is_any) == ["a", "b", "c"]
     assert ragged_padded.get_seq_names_if(is_any, negate=True) == []
 
 
@@ -967,11 +943,9 @@ def test_sequence_collection_is_ragged(ragged, ragged_padded):
 
 
 def test_sequence_collection_ragged(ragged):
-    """SequenceCollection seqs should work on ragged alignment"""
-    ragged.names = "bac"
     assert [ragged.seqs[name] for name in ragged.names] == [
-        "AAA",
         "AAAAAA",
+        "AAA",
         "AAAA",
     ]
 
@@ -1982,6 +1956,8 @@ def test_sequence_collection_rename_seqs():
     new = seqs.rename_seqs(lambda x: x.upper())
     expect = {n.upper() for n in data}
     assert set(new.names) == expect
+    # the names should not change in the seqsdata
+    assert set(new._seqs_data.names) == set(data)
 
 
 def test_sequence_collection_apply_pssm():
@@ -2103,7 +2079,7 @@ def test_sequence_collection_to_rich_dict():
         "version": __version__,
         "init_args": {
             "moltype": seqs.moltype.label,
-            "names": seqs.names,
+            "name_map": seqs._name_map,
             "info": seqs.info,
         },
     }
@@ -2133,7 +2109,7 @@ def test_sequence_collection_to_rich_dict_annotation_db():
         "seqs_data": seqs_data,
         "init_args": {
             "moltype": seqs.moltype.label,
-            "names": seqs.names,
+            "name_map": seqs._name_map,
             "info": seqs.info,
             "annotation_db": db,
         },
@@ -2165,7 +2141,7 @@ def test_sequence_collection_to_rich_dict_reversed_seqs():
         "seqs_data": seqs_data,
         "init_args": {
             "moltype": seqs.moltype.label,
-            "names": seqs.names,
+            "name_map": seqs._name_map,
             "info": seqs.info,
         },
         "type": get_object_provenance(seqs),
