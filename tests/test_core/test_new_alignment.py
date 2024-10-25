@@ -121,6 +121,7 @@ def ordered2():
         {"c": "CCCCC", "a": "AAAAA"}, moltype="dna"
     )
 
+
 @pytest.fixture(scope="function")
 def gb_db(DATA_DIR):
     return load_annotations(path=DATA_DIR / "annotated_seq.gb")
