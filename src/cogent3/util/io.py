@@ -42,7 +42,7 @@ def _get_compression_open(
     assert path or compression
     if compression is None:
         _, compression = get_format_suffixes(path)
-    return _compression_handlders.get(compression, None)
+    return _compression_handlers.get(compression, None)
 
 
 def open_zip(filename: PathType, mode: str = "r", **kwargs) -> IO:
@@ -322,7 +322,7 @@ def get_format_suffixes(filename: PathType) -> Tuple[T, T]:
         return None, None
 
     suffixes = [_wout_period.sub("", sfx).lower() for sfx in filename.suffixes[-2:]]
-    if suffixes[-1] in _compression_handlders:
+    if suffixes[-1] in _compression_handlers:
         cmp_suffix = suffixes[-1]
     else:
         cmp_suffix = None
