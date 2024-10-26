@@ -14,8 +14,7 @@ from numpy.testing import assert_allclose, assert_equal
 
 from cogent3 import load_tree, make_tree, open_
 from cogent3._version import __version__
-from cogent3.core.tree import (PhyloNode, TreeError, TreeNode,
-                               split_name_and_support)
+from cogent3.core.tree import PhyloNode, TreeError, TreeNode, split_name_and_support
 from cogent3.maths.stats.test import correlation
 from cogent3.parse.tree import DndParser
 from cogent3.util.misc import get_object_provenance
@@ -2385,3 +2384,12 @@ def test_phylonode_support():
     name_and_support = tree.get_node_matching_name("def")
     assert name_and_support.name == "def"  # bit redundant given selection process
     assert name_and_support.params["support"] == 25.0
+
+
+def test_phylonode_support_all_name_exist():
+    # test that all node names have been uniquely assigned
+    tree = make_tree("((1,2)5,(3,4)6);")
+    node_names = set(tree.get_node_names())
+    # check that no node name is an empty string
+    assert all(node_names)
+    assert len(node_names) == 7
