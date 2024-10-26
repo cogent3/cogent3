@@ -727,6 +727,9 @@ def make_tree(treestring=None, tip_names=None, format=None, underscore_unmunge=F
     if not tree.name_loaded:
         tree.name = "root"
 
+    # ensure all nodes have names
+    tree.name_unnamed_nodes()
+
     return tree
 
 
