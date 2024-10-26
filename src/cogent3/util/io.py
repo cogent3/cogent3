@@ -42,13 +42,7 @@ def _get_compression_open(
     assert path or compression
     if compression is None:
         _, compression = get_format_suffixes(path)
-    return {
-        "gz": gzip_open,
-        "bz2": bzip_open,
-        "zip": open_zip,
-        "xz": lzma_open,
-        "lzma": lzma_open,
-    }.get(compression, None)
+    return _compression_handlders.get(compression, None)
 
 
 def open_zip(filename: PathType, mode: str = "r", **kwargs) -> IO:
@@ -83,6 +77,15 @@ def open_zip(filename: PathType, mode: str = "r", **kwargs) -> IO:
             return opened
 
         return TextIOWrapper(opened, encoding=encoding)
+
+
+_compression_handlders = {
+    "gz": gzip_open,
+    "bz2": bzip_open,
+    "zip": open_zip,
+    "xz": lzma_open,
+    "lzma": lzma_open,
+}
 
 
 def open_(filename: PathType, mode="rt", **kwargs) -> IO:
@@ -318,9 +321,8 @@ def get_format_suffixes(filename: PathType) -> Tuple[T, T]:
     if not filename.suffix:
         return None, None
 
-    compression_suffixes = ("bz2", "gz", "zip")
     suffixes = [_wout_period.sub("", sfx).lower() for sfx in filename.suffixes[-2:]]
-    if suffixes[-1] in compression_suffixes:
+    if suffixes[-1] in _compression_handlders:
         cmp_suffix = suffixes[-1]
     else:
         cmp_suffix = None
