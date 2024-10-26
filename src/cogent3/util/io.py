@@ -79,7 +79,7 @@ def open_zip(filename: PathType, mode: str = "r", **kwargs) -> IO:
         return TextIOWrapper(opened, encoding=encoding)
 
 
-_compression_handlders = {
+_compression_handlers = {
     "gz": gzip_open,
     "bz2": bzip_open,
     "zip": open_zip,
