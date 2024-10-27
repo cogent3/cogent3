@@ -637,11 +637,6 @@ class _SequenceCollectionBase:
             return {}  # safe value; can't construct empty alignment
 
         result = self.__class__(result, names=seqs, info=self.info, **kwargs)
-        if self.annotation_db:
-            result.annotation_db = type(self.annotation_db)()
-            result.annotation_db.update(
-                annot_db=self.annotation_db, seqids=result.names
-            )
         return result
 
     def get_seq_indices(self, f, negate=False):  # ported
