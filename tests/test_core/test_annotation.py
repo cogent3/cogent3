@@ -9,7 +9,6 @@ from cogent3 import (
     make_unaligned_seqs,
 )
 from cogent3.core.alignment import Alignment, SequenceCollection
-from cogent3.core.annotation_db import BasicAnnotationDb
 from cogent3.core.location import FeatureMap, Span
 
 DNA = get_moltype("dna")
