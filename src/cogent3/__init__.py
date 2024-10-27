@@ -683,7 +683,13 @@ def load_table(
     )
 
 
-def make_tree(treestring=None, tip_names=None, format=None, underscore_unmunge=False):
+def make_tree(
+    treestring=None,
+    tip_names=None,
+    format=None,
+    underscore_unmunge=False,
+    name_nodes=False,
+):
     """Initialises a tree.
 
     Parameters
@@ -698,6 +704,8 @@ def make_tree(treestring=None, tip_names=None, format=None, underscore_unmunge=F
     underscore_unmunge : bool
         replace underscores with spaces in all names read, i.e. "sp_name"
         becomes "sp name"
+    name_nodes: bool
+        whether to name unnamed nodes
 
     Notes
     -----
@@ -727,8 +735,9 @@ def make_tree(treestring=None, tip_names=None, format=None, underscore_unmunge=F
     if not tree.name_loaded:
         tree.name = "root"
 
-    # ensure all nodes have names
-    tree.name_unnamed_nodes()
+    # ensure all nodes have names if name_nodes is True
+    if name_nodes:
+        tree.name_unnamed_nodes()
 
     return tree
 
