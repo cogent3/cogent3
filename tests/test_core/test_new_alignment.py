@@ -1966,11 +1966,19 @@ def test_sequence_collection_subsequent_rename():
     data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
     seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
     new = seqs.rename_seqs(lambda x: x.upper())
-    new_again = new.rename_seqs(lambda x: x[:1])
-    expect = {"S"}
+    new_again = new.rename_seqs(lambda x: f"{x[0]}{x[-1]}")
+    expect = {"S1", "S2", "S3"}
     assert set(new_again.names) == expect
     # the names should not change in the seqsdata
     assert set(new._seqs_data.names) == set(data)
+
+
+def test_sequence_collection_rename_non_unique_fails():
+    """renaming to non-unique names should raise an error"""
+    data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
+    seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
+    with pytest.raises(ValueError):
+        _ = seqs.rename_seqs(lambda x: x[:1])
 
 
 def test_sequence_collection_apply_pssm():

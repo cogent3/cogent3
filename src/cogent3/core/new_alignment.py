@@ -702,6 +702,8 @@ class SequenceCollection:
         new_name_map = {
             renamer(name): old_name for name, old_name in self._name_map.items()
         }
+        if len(new_name_map) != len(self._name_map):
+            raise ValueError(f"non-unique names produced by {renamer=}")
         return self.__class__(
             seqs_data=self._seqs_data,
             moltype=self.moltype,
