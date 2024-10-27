@@ -374,25 +374,6 @@ class SeqsData(SeqsDataABC):
         else:
             raise ValueError(f"provided {names=} not found in collection")
 
-    def rename_seqs(self, renamer: Callable[[str], str]) -> SeqsData:
-        # todo: kath, create a map between original seqid and current seqname for feature querying?
-        renamed_data = {}
-        renamed_offset = {}
-
-        for name in self._data:
-            new_name = renamer(name)
-            renamed_data[new_name] = self._data[name]
-            if name in self._offset:
-                renamed_offset[new_name] = self._offset[name]
-
-        return self.__class__(
-            data=renamed_data,
-            alphabet=self.alphabet,
-            offset=renamed_offset,
-            reversed=self._reversed,
-            check=False,
-        )
-
     def add_seqs(
         self,
         seqs: dict[str, StrORBytesORArray],
@@ -505,14 +486,14 @@ class SequenceCollection:
         *,
         seqs_data: SeqsDataABC,
         moltype: new_moltype.MolType,
-        names: OptList = None,
+        name_map: OptDict = None,
         info: Optional[Union[dict, InfoClass]] = None,
         source: OptPathType = None,
         annotation_db: Optional[SupportsFeatures] = None,
     ):
         self._seqs_data = seqs_data
         self.moltype = moltype
-        self.names = names
+        self._name_map = name_map or {name: name for name in seqs_data.names}
         if not isinstance(info, InfoClass):
             info = InfoClass(info) if info else InfoClass()
         self.info = info
@@ -527,7 +508,9 @@ class SequenceCollection:
         self._seqs = _IndexableSeqs(self, make_seq=self._make_seq)
 
     def _make_seq(self, name: str) -> new_sequence.Sequence:
-        sv = self._seqs_data.get_view(name)
+        # seqview is given the name of the parent (if different from the current name)
+        # the sequence is given the current name
+        sv = self._seqs_data.get_view(self._name_map.get(name, name))
         return self.moltype.make_seq(seq=sv, name=name)
 
     @property
@@ -536,20 +519,7 @@ class SequenceCollection:
 
     @property
     def names(self) -> list:
-        return self._names
-
-    @names.setter
-    def names(self, names: list[str]):
-        # refactor: design, do we accept the names as an arg, or should we rely on seqs_data keys?
-        # if we are allowing the set of names to be a subset of the seqs_data keys, we should
-        # ensure that we are using the names and not the keys in the rest of the code!
-        if names is None:
-            self._names = self._seqs_data.names
-        elif set(names) <= set(self._seqs_data.names):
-            self._names = names
-        else:
-            left_diff = set(names) - set(self._seqs_data.names)
-            raise ValueError(f"Provided names not found in collection: {left_diff}")
+        return list(self._name_map.keys())
 
     @property
     def num_seqs(self) -> int:
@@ -610,33 +580,31 @@ class SequenceCollection:
         copy_annotations
             if True, only annotations from selected seqs are copied to the annotation_db
             of the new collection
-
-        Notes
-        -----
-        The seqs in the new collection will be references to the same objects as
-        the seqs in the old collection.
         """
-        # refactor: design
-        # consider gavins comment that this method could operate on only the names
-        # list and not the seqs_data object
+
+        # to return a new collection with a subset of the sequences we dont
+        # want to modify the underlying data, instead we create a new collection
+        # with a subset of the names, recorded in the name_map dict.
 
         if isinstance(names, str):
             names = [names]
 
         if negate:
             names = [name for name in self.names if name not in names]
-        else:
-            names = [name for name in names if name in self.names]
 
         if not names:
             raise ValueError(f"{names=} and {negate=} resulted in no names")
 
-        seqs_data = self._seqs_data.subset(names)
+        assert set(names) <= set(
+            self.names
+        ), f"The following provided names not found in collection: {names - self.names}"
+
+        selected_name_map = {name: self._name_map[name] for name in names}
 
         result = self.__class__(
-            seqs_data=seqs_data,
+            seqs_data=self._seqs_data,
             moltype=self.moltype,
-            names=names,
+            name_map=selected_name_map,
             info=self.info,
             source=self.source,
             **kwargs,
@@ -719,30 +687,31 @@ class SequenceCollection:
         """
         data = coerce_to_seqs_data_dict(seqs, label_to_name=None)
         seqs_data = self._seqs_data.add_seqs(data, **kwargs)
+        new_seqs_names = {name: name for name in data.keys()}
         return self.__class__(
             seqs_data=seqs_data,
             moltype=self.moltype,
+            name_map={**self._name_map, **new_seqs_names},
             info=self.info,
+            source=self.source,
             annotation_db=self.annotation_db,
         )
 
     def rename_seqs(self, renamer: Callable[[str], str]):
         """Returns new collection with renamed sequences."""
-        result = self.__class__(
-            seqs_data=self._seqs_data.rename_seqs(renamer),
+        new_name_map = {
+            renamer(name): old_name for name, old_name in self._name_map.items()
+        }
+        if len(new_name_map) != len(self._name_map):
+            raise ValueError(f"non-unique names produced by {renamer=}")
+        return self.__class__(
+            seqs_data=self._seqs_data,
             moltype=self.moltype,
+            name_map=new_name_map,
             info=self.info,
             source=self.source,
+            annotation_db=self.annotation_db,
         )
-        if self.annotation_db:
-            # refactor: design
-            # how to manage to keep track of aliases? possibly stored
-            # in the annotation db
-            name_map = {renamer(name): name for name in self.names}
-            result.info.name_map = name_map
-            result.annotation_db = self.annotation_db
-
-        return result
 
     def to_dict(self, as_array: bool = False) -> dict[str, Union[str, numpy.ndarray]]:
         """Return a dictionary of sequences.
@@ -771,12 +740,16 @@ class SequenceCollection:
             info.pop("Refs")
 
         info = info or None
-
         init_args = dict(
             moltype=moltype,
-            names=self.names,
             info=info,
         )
+        if self._name_map.keys() != self._name_map.values():
+            # only add if the map is not trivial
+            init_args["name_map"] = self._name_map
+        elif len(self._name_map.keys()) < len(self._seqs_data.names):
+            # or if we have a subset of the names
+            init_args["name_map"] = self._name_map
 
         if hasattr(self, "annotation_db") and self.annotation_db:
             init_args["annotation_db"] = self.annotation_db.to_rich_dict()
@@ -950,7 +923,7 @@ class SequenceCollection:
         """
         return self.__class__(
             seqs_data=self._seqs_data.reverse(),
-            names=self.names,
+            name_map=self._name_map,
             info=self.info,
             moltype=self.moltype,
             source=self.source,
@@ -1435,6 +1408,7 @@ class SequenceCollection:
         )
         result = self.__class__(
             seqs_data=seqs_data,
+            name_map=self._name_map,
             moltype=self.moltype,
             info=self.info,
             source=self.source,
@@ -2445,9 +2419,12 @@ def _(
 class Aligned:
     """A single sequence in an alignment."""
 
-    def __init__(self, data: AlignedDataView, moltype: new_moltype.MolType):
+    def __init__(
+        self, data: AlignedDataView, moltype: new_moltype.MolType, name: OptStr = None
+    ):
         self._data = data
         self._moltype = moltype
+        self._name = name or data.seqid
 
     def __len__(self) -> int:
         return len(self.map)
@@ -2498,7 +2475,7 @@ class Aligned:
 
     @property
     def name(self) -> str:
-        return self.data.seqid
+        return self._name
 
     def gap_vector(self) -> list[bool]:
         """Returns gap_vector of GappedSeq, for omit_gap_pos."""
@@ -3432,8 +3409,10 @@ class Alignment(SequenceCollection):
     def _make_aligned(self, seqid: str) -> Aligned:
         # refactor: design
         # add slice_record as an argument to the get_view() method
-        data = self._seqs_data.get_view(seqid, self._slice_record)
-        return Aligned(data=data, moltype=self.moltype)
+        data = self._seqs_data.get_view(
+            self._name_map.get(seqid, seqid), self._slice_record
+        )
+        return Aligned(data=data, moltype=self.moltype, name=seqid)
 
     def get_seq(
         self, seqname: str, copy_annotations: bool = False
@@ -3484,7 +3463,7 @@ class Alignment(SequenceCollection):
         return self.__class__(
             seqs_data=self._seqs_data,
             slice_record=self._slice_record[::-1],
-            names=self.names,
+            name_map=self._name_map,
             info=self.info,
             moltype=self.moltype,
             source=self.source,
