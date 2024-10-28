@@ -31,10 +31,7 @@ from cogent3.core.moltype import (
     get_moltype,
 )
 from cogent3.core.tree import PhyloNode, TreeBuilder, TreeError, TreeNode
-from cogent3.evolve.fast_distance import (
-    available_distances,
-    get_distance_calculator,
-)
+from cogent3.evolve.fast_distance import available_distances, get_distance_calculator
 from cogent3.evolve.models import available_models, get_model
 from cogent3.parse.cogent3_json import load_from_json
 from cogent3.parse.newick import parse_string as newick_parse_string
@@ -686,7 +683,13 @@ def load_table(
     )
 
 
-def make_tree(treestring=None, tip_names=None, format=None, underscore_unmunge=False):
+def make_tree(
+    treestring=None,
+    tip_names=None,
+    format=None,
+    underscore_unmunge=False,
+    name_nodes=False,
+):
     """Initialises a tree.
 
     Parameters
@@ -701,6 +704,8 @@ def make_tree(treestring=None, tip_names=None, format=None, underscore_unmunge=F
     underscore_unmunge : bool
         replace underscores with spaces in all names read, i.e. "sp_name"
         becomes "sp name"
+    name_nodes: bool
+        whether to name unnamed nodes
 
     Notes
     -----
@@ -714,7 +719,7 @@ def make_tree(treestring=None, tip_names=None, format=None, underscore_unmunge=F
     assert treestring or tip_names, "must provide either treestring or tip_names"
     if tip_names:
         tree_builder = TreeBuilder().create_edge
-        tips = [tree_builder([], tip_name, {}) for tip_name in tip_names]
+        tips = [tree_builder([], str(tip_name), {}) for tip_name in tip_names]
         tree = tree_builder(tips, "root", {})
         return tree
 
@@ -729,6 +734,10 @@ def make_tree(treestring=None, tip_names=None, format=None, underscore_unmunge=F
         tree = parser(treestring, tree_builder)
     if not tree.name_loaded:
         tree.name = "root"
+
+    # ensure all nodes have names if name_nodes is True
+    if name_nodes:
+        tree.name_unnamed_nodes()
 
     return tree
 

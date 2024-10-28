@@ -14,7 +14,8 @@ from numpy.testing import assert_allclose, assert_equal
 
 from cogent3 import load_tree, make_tree, open_
 from cogent3._version import __version__
-from cogent3.core.tree import PhyloNode, TreeError, TreeNode, split_name_and_support
+from cogent3.core.tree import (PhyloNode, TreeError, TreeNode,
+                               split_name_and_support)
 from cogent3.maths.stats.test import correlation
 from cogent3.parse.tree import DndParser
 from cogent3.util.misc import get_object_provenance
@@ -49,6 +50,10 @@ class TreeTests(TestCase):
         self.assertEqual(names, ["a a", "b b", "c c"])
         self.assertEqual(str(t), result_str)
         self.assertEqual(t.get_newick(with_distances=True), result_str)
+        # ensure tip names are converted to strings
+        # when creating a tree from a list of integer tip names.
+        t = make_tree(tip_names=[1, 2, 3])
+        self.assertEqual(t.get_tip_names(), ["1", "2", "3"])
 
 
 def _new_child(old_node, constructor):
@@ -2380,3 +2385,20 @@ def test_phylonode_support():
     name_and_support = tree.get_node_matching_name("def")
     assert name_and_support.name == "def"  # bit redundant given selection process
     assert name_and_support.params["support"] == 25.0
+
+
+def test_phylonode_support_name_nodes_false():
+    # test that internal node names are None with name_nodes=False
+    tree = make_tree("((1,2)5,(3,4)6);", name_nodes=False)
+    internal_nodes = [node.name for node in tree.iter_nontips()]
+    assert all(node is None for node in internal_nodes)
+
+
+def test_phylonode_support_name_nodes_true():
+    # test that all nodes have unique names with name_nodes=True
+    tree = make_tree("((1,2)5,(3,4)6);", name_nodes=True)
+    node_names = set(tree.get_node_names())
+    # check that no node name is an empty string or None
+    assert all(node_names)
+    # check that the total number of unique node names is 7
+    assert len(node_names) == 7
