@@ -530,7 +530,9 @@ class SequenceCollection:
         # seqview is given the name of the parent (if different from the current name)
         # the sequence is given the current name
         sv = self._seqs_data.get_view(self._name_map.get(name, name))
-        return self.moltype.make_seq(seq=sv, name=name)
+        seq = self.moltype.make_seq(seq=sv, name=name)
+        seq.replace_annotation_db(self.annotation_db)
+        return seq
 
     @property
     def seqs(self) -> _IndexableSeqs:
@@ -807,7 +809,7 @@ class SequenceCollection:
         """
         seqs = {
             name: self.moltype.degap(self._seqs_data.get_seq_array(seqid=name))
-            for name in self.names
+            for name in self._name_map.values()
         }
         seqs_data = self._seqs_data.from_seqs(
             data=coerce_to_seqs_data_dict(seqs),
@@ -916,7 +918,7 @@ class SequenceCollection:
         seqs_data = coerce_to_seqs_data_dict(translated, label_to_name=None)
         pep_moltype = pep.moltype
 
-        seqs_data = self._seqs_data.__class__(
+        seqs_data = self._seqs_data.from_seqs(
             data=seqs_data,
             alphabet=pep_moltype.most_degen_alphabet(),
             offset=self._seqs_data.offset,
@@ -1699,12 +1701,12 @@ class SequenceCollection:
             )
 
         new_seqs = {}
-        for seq_name in self.names:
+        for seq_name in self._name_map.values():
             seq = self._seqs_data.get_seq_str(seqid=seq_name)
             padded_seq = seq + "-" * (pad_length - len(seq))
             new_seqs[seq_name] = padded_seq
 
-        seqs_data = self._seqs_data.__class__(
+        seqs_data = self._seqs_data.from_seqs(
             data=new_seqs,
             alphabet=self._seqs_data.alphabet,
             offset=self._seqs_data.offset,
@@ -2272,6 +2274,7 @@ def make_unaligned_seqs(
     source: OptPathType = None,
     annotation_db: SupportsFeatures = None,
     offset: dict[str, int] = None,
+    name_map: dict[str, str] = None,
 ) -> SequenceCollection:
     """Initialise an unaligned collection of sequences.
 
@@ -2315,6 +2318,18 @@ def make_unaligned_seqs(
 
     annotation_db = annotation_db or merged_db_collection(data)
 
+    if (
+        isinstance(data, dict)
+        and isinstance(next(iter(data.values()), None), new_sequence.Sequence)
+        and annotation_db
+    ):
+        # if we have a dict of Sequences, the keys in the dict (names) might
+        # be different to the names of the Sequences. If the Sequences have
+        # annotations, then we will need to make a name_map between the provided
+        # data and the names of the Sequences.
+        name_map = {key: value.name for key, value in data.items()}
+        data = {seq.name: numpy.array(seq) for seq in data.values()}
+
     seqs_data = coerce_to_seqs_data_dict(data, label_to_name=label_to_name)
 
     moltype = new_moltype.get_moltype(moltype)
@@ -2329,6 +2344,7 @@ def make_unaligned_seqs(
         source=source,
         annotation_db=annotation_db,
         offset=offset,
+        name_map=name_map,
     )
 
 
@@ -2342,6 +2358,7 @@ def _(
     source: OptPathType = None,
     annotation_db: SupportsFeatures = None,
     offset: dict[str, int] = None,
+    name_map: dict[str, str] = None,
 ) -> SequenceCollection:
     moltype = new_moltype.get_moltype(moltype)
     if not moltype.is_compatible_alphabet(data.alphabet):
@@ -2361,6 +2378,7 @@ def _(
         info=info,
         annotation_db=annotation_db,
         source=source,
+        name_map=name_map,
     )
 
 
@@ -3556,7 +3574,7 @@ class Alignment(SequenceCollection):
             included
         """
         result = numpy.full((self.num_seqs, len(self)), False, dtype=bool)
-        for i, seqid in enumerate(self.names):
+        for i, seqid in enumerate(self._name_map.values()):
             if include_ambiguity:
                 seq_array = self._seqs_data.get_gapped_seq_array(seqid=seqid)
                 result[i][seq_array >= self.moltype.most_degen_alphabet().gap_index] = (
