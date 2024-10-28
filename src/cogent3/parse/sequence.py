@@ -142,3 +142,11 @@ def get_parser(fmt: str) -> typing.Callable[[SeqParserInputTypes], ParserOutputT
         return PARSERS[fmt]
     except KeyError:
         raise ValueError(f"Unsupported format {fmt!r}")
+
+
+def is_genbank(fmt: str) -> bool:
+    """whether the provided format is a genbank format"""
+    try:
+        return get_parser(fmt).__module__.endswith("genbank")
+    except ValueError:
+        return False
