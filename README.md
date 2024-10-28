@@ -20,6 +20,13 @@
 ## 📣 Feature Announcements 📣
 
 <details>
+    <summary> Faster sequence coevolution measures 🚀 </summary>
+
+We have completely rewritten all the Mutual Information based coevolution statistic calculators. Single CPU performance is orders of magnitude faster than the old implementation and we now also support parallel execution. The existing `Alignment.coevolution()` method uses these so you don't need to do anything different to use the new algorithms.
+
+</details>
+
+<details>
     <summary> Faster sequence format parsers 💨 </summary>
 
 We have faster implementations of the parsers for Fasta and GenBank sequence formats. These are used by our standard loading mechanisms. If you just want to get the contents of files in those formats as standard Python types, use `cogent3.parser.fasta.iter_fasta_records()` or `cogent3.parser.genbank.iter_genbank_records()`.

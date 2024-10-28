@@ -34,9 +34,8 @@ def _get_extension_attr(extension):
         )
 
     _types = _make_types(obj)
-
     return [
-        extension.module_name,
+        extension.module_name.split(".")[0],
         extension.name,
         is_app_composable(obj),
         _doc_summary(obj.__doc__ or ""),
@@ -90,7 +89,7 @@ def available_apps(name_filter: str | None = None) -> Table:
             # probably a local scope issue in testing!
             rows.append(_get_extension_attr(extension))
 
-    header = ["module", "name", "composable", "doc", "input type", "output type"]
+    header = ["package", "name", "composable", "doc", "input type", "output type"]
     return Table(header=header, data=rows)
 
 

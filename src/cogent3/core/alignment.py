@@ -637,11 +637,6 @@ class _SequenceCollectionBase:
             return {}  # safe value; can't construct empty alignment
 
         result = self.__class__(result, names=seqs, info=self.info, **kwargs)
-        if self.annotation_db:
-            result.annotation_db = type(self.annotation_db)()
-            result.annotation_db.update(
-                annot_db=self.annotation_db, seqids=result.names
-            )
         return result
 
     def get_seq_indices(self, f, negate=False):  # ported
@@ -3632,15 +3627,23 @@ class AlignmentI(object):
 
         return draw
 
-    @UI.display_wrap
+    @c3warn.deprecated_args(
+        "2024.12", reason="consistency", old_new=[("method", "stat")]
+    )
     def coevolution(
-        self, method="nmi", segments=None, drawable=None, show_progress=False, ui=None
+        self,
+        stat="nmi",
+        segments=None,
+        drawable=None,
+        show_progress=False,
+        parallel=False,
+        par_kw=None,
     ):
         """performs pairwise coevolution measurement
 
         Parameters
         ----------
-        method : str
+        stat : str
             coevolution metric, defaults to 'nmi' (Normalized Mutual
             Information). Valid choices are 'rmi' (Resampled Mutual Information)
             and 'mi', mutual information.
@@ -3664,42 +3667,28 @@ class AlignmentI(object):
         from cogent3.evolve import coevolution as coevo
         from cogent3.util.union_dict import UnionDict
 
-        method = method.lower()
-        func = {"nmi": coevo.nmi_pair, "rmi": coevo.rmi_pair, "mi": coevo.mi_pair}.get(
-            method, None
-        )
-        if func is None:
-            raise ValueError(f"{method} not supported")
-
-        positions = []
+        stat = stat.lower()
         if segments:
-            for segment in segments:
-                positions.extend(range(*segment))
-        else:
-            positions.extend(range(len(self)))
+            segments = [range(*segment) for segment in segments]
 
-        pos_pairs = combinations(positions, 2)
-        total = len(positions) * (len(positions) - 1) // 2
-        result = numpy.zeros((len(self), len(self)), dtype=float)
-        result[:] = numpy.nan  # default value
-        for pair in ui.series(pos_pairs, count=total, noun="position pairs"):
-            val = func(self, *pair)
-            if val is not None:
-                result[tuple(reversed(pair))] = val
+        result = coevo.coevolution_matrix(
+            alignment=self,
+            stat=stat,
+            positions=segments,
+            show_progress=show_progress,
+            parallel=parallel,
+            par_kw=par_kw,
+        )
+        if drawable is None:
+            return result
 
-        result = result.take(positions, axis=0).take(positions, axis=1)
-        result = DictArrayTemplate(positions, positions).wrap(result)
-        if self.info.source:
-            trace_name = os.path.basename(self.info.source)
-        else:
-            trace_name = None
-
+        trace_name = os.path.basename(self.info.source) if self.info.source else None
         if drawable in ("box", "violin"):
             trace = UnionDict(
                 type=drawable, y=result.array.flatten(), showlegend=False, name=""
             )
             draw = Drawable(
-                width=500, height=500, title=trace_name, ytitle=method.upper()
+                width=500, height=500, title=trace_name, ytitle=stat.upper()
             )
             draw.add_trace(trace)
             result = draw.bound_to(result)
@@ -3725,7 +3714,7 @@ class AlignmentI(object):
             trace = UnionDict(
                 type="heatmap",
                 z=result.array,
-                colorbar=dict(title=dict(text=method.upper(), font=dict(size=16))),
+                colorbar=dict(title=dict(text=stat.upper(), font=dict(size=16))),
             )
             draw.add_trace(trace)
             draw.layout.xaxis.update(axis_args)
@@ -3737,7 +3726,7 @@ class AlignmentI(object):
             except AttributeError:
                 bottom = False
 
-            if bottom and not drawable == "box":
+            if bottom and drawable != "box":
                 xlim = 1.2
                 draw.layout.width = height * xlim
                 layout = dict(legend=dict(x=xlim, y=1))

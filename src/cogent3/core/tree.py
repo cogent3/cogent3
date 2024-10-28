@@ -27,6 +27,7 @@ Definition of relevant terms or abbreviations:
 
 from __future__ import annotations
 
+import contextlib
 import json
 import numbers
 import re
@@ -35,6 +36,7 @@ from functools import reduce
 from itertools import combinations
 from operator import or_
 from random import choice, shuffle
+from typing import Union
 
 from numpy import argsort, ceil, log, zeros
 
@@ -68,7 +70,7 @@ def _copy_node(n):
     return result
 
 
-class TreeNode(object):
+class TreeNode:
     """Store information about a tree node. Mutable.
 
     Parameters:
@@ -126,10 +128,16 @@ class TreeNode(object):
     # return self.name != other.name
 
     def __lt__(self, other):
-        return self.name < other.name
+        self_name = self.name or ""
+        other_name = other.name or ""
+
+        return self_name < other_name
 
     def __gt__(self, other):
-        return self.name > other.name
+        self_name = self.name or ""
+        other_name = other.name or ""
+
+        return self_name > other_name
 
     def compare_name(self, other):
         """Compares TreeNode by name"""
@@ -1692,20 +1700,26 @@ class PhyloNode(TreeNode):
     def __init__(self, *args, **kwargs):
         length = kwargs.get("length", None)
         params = kwargs.get("params", {})
-        if "length" not in params:
-            params["length"] = length
+        params["length"] = params.get("length", length)
         kwargs["params"] = params
-        super(PhyloNode, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
-    def _set_length(self, value):
+        if self.children:
+            # self is an internal tree node
+            name, support = split_name_and_support(self.name)
+            self.name = name
+            if support is not None:
+                self.params["support"] = support
+
+    @property
+    def length(self) -> Union[float, None]:
+        return self.params.get("length", None)
+
+    @length.setter
+    def length(self, value: Union[float, None]) -> None:
         if not hasattr(self, "params"):
             self.params = {}
         self.params["length"] = value
-
-    def _get_length(self):
-        return self.params.get("length", None)
-
-    length = property(_get_length, _set_length)
 
     def __str__(self):
         """Returns string version of self, with names and distances."""
@@ -1771,7 +1785,7 @@ class PhyloNode(TreeNode):
         to_process = [(self, 0.0)]
         tips_to_save = []
 
-        seen = set([id(self)])
+        seen = {id(self)}
         while to_process:
             curr_node, curr_dist = to_process.pop(0)
 
@@ -2177,6 +2191,39 @@ class PhyloNode(TreeNode):
                     tip_a[0] += child_a.length or 0.0
                     tip_b[0] += child_b.length or 0.0
                 n.MaxDistTips = [tip_a, tip_b]
+
+
+def split_name_and_support(name_field: str | None) -> tuple[str | None, float | None]:
+    """Handle cases in the Newick format where an internal node name field
+    contains a name or/and support value, like 'edge.98/100'.
+    """
+    # handle the case where the name field is None or empty string
+    if not name_field:
+        return None, None
+
+    # if name_field is "24", treat it as support, returns (None, 24.0)
+    with contextlib.suppress(ValueError):
+        return None, float(name_field)
+
+    # otherwise, split the name field into name and support
+    name, *support = name_field.split("/")
+
+    if len(support) == 1:
+        try:
+            support_value = float(support[0])
+        except ValueError as e:
+            raise ValueError(
+                f"Support value at node: {name!r} should be int or float not {support[0]!r}."
+            ) from e
+    # handle case where mutiple '/' in the name field
+    elif len(support) > 1:
+        raise ValueError(
+            f"Support value at node: {name!r} should be int or float not {'/'.join(support)!r}."
+        )
+    else:
+        support_value = None
+
+    return name, support_value
 
 
 class TreeBuilder(object):

@@ -1,10 +1,15 @@
 """Writer for FASTA sequence format"""
 
-import textwrap
-from typing import Optional
+from typing import Iterable, Optional
 
 from cogent3.format.util import _AlignmentFormatter
 from cogent3.util import warning as c3warn
+
+
+def _iter_in_block_size(series: str, block_size: int) -> Iterable[str]:
+    """Yield chunks of a series of items"""
+    for i in range(0, len(series), block_size):
+        yield series[i : i + block_size]
 
 
 @c3warn.deprecated_args(
@@ -37,7 +42,11 @@ def seqs_to_fasta(
     result = []
     for name in order:
         result.append(f">{name}")
-        result.extend(textwrap.wrap(str(seqs[name]), block_size))
+        seq = str(seqs[name])
+        if len(seq) <= block_size:
+            result.append(seq)
+        else:
+            result.extend(_iter_in_block_size(seq, block_size))
     if result:
         result.append("")
     return "\n".join(result)

@@ -1186,8 +1186,8 @@ class Sequence:
 
         if not moltype.most_degen_alphabet().is_valid(seq):
             raise ValueError(
-                f"Changing from old moltype={self.moltype.label} to new "
-                f"moltype={moltype.label} is not valid for this data"
+                f"Changing from old moltype={self.moltype.label!r} to new "
+                f"moltype={moltype.label!r} is not valid for this data"
             )
         sv = SeqView(parent=seq, alphabet=moltype.most_degen_alphabet())
         new = self.__class__(moltype=moltype, seq=sv, name=self.name, info=self.info)
@@ -2721,6 +2721,17 @@ def _coerce_to_seqview(data, seqid, alphabet, offset) -> SeqViewABC:
 
 @_coerce_to_seqview.register
 def _(data: SeqViewABC, seqid, alphabet, offset) -> SeqViewABC:
+    # we require the indexes of shared states in alphabets to be the same
+    # SeqView has an alphabet but SeqViewABC does NOT because that is
+    # more general and covers the case where the SeqsData collection has the
+    # alphabet
+    if hasattr(data, "alphabet"):
+        n = min(len(data.alphabet), len(alphabet))
+        if data.alphabet[:n] != alphabet[:n]:
+            raise new_alphabet.AlphabetError(
+                f"element order {data.alphabet=} != to that in {alphabet=} for {data=!r}"
+            )
+
     if offset and data.offset:
         raise ValueError(
             f"cannot set {offset=} on a SeqView with an offset {data.offset=}"
