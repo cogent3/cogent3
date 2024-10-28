@@ -173,7 +173,7 @@ def test_seqs_data_construction(str_seqs_dict, dna_alphabet):
 
 
 def test_seqs_data_construction_wrong_alphabet(str_seqs_dict, rna_alphabet):
-    """SeqsData can be constructed from a dict and alphabet, either directly or via from_seqs"""
+    """SeqsData should raise ValueError if alphabet is incompatible with data"""
     with pytest.raises(ValueError):
         _ = new_alignment.SeqsData(data=str_seqs_dict, alphabet=rna_alphabet)
 
