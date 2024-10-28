@@ -2595,3 +2595,33 @@ def test_load_invalid_moltype(aa_moltype):
     with pytest.raises(AssertionError):
         # this should be an AlphabetError
         cogent3.load_seq(aa_moltype, moltype="dna", new_type=True)
+
+
+@pytest.fixture(params=(new_moltype.DNA.alphabet, new_moltype.DNA.gapped_alphabet))
+def seqview(request):
+    return new_sequence.SeqView(seq="ACGT", alphabet=request.param, seqid="seq1")
+
+
+@pytest.mark.parametrize(
+    "alpha", (new_moltype.DNA.alphabet, new_moltype.DNA.degen_gapped_alphabet)
+)
+def test_make_seq_compatible_alpha(seqview, alpha):
+    got = new_sequence._coerce_to_seqview(seqview, seqview.seqid, alpha, 0)
+    assert got is seqview
+
+
+def test_make_seq_general_alpha_first_incompatible(seqview):
+    with pytest.raises(new_alphabet.AlphabetError):
+        alpha, seqview.alphabet = (
+            seqview.alphabet,
+            new_moltype.DNA.degen_gapped_alphabet,
+        )
+        new_sequence._coerce_to_seqview(seqview, seqview.seqid, alpha, 0)
+
+
+def test_make_seq_wrong_order_alpha():
+    sv = new_sequence.SeqView(
+        seq="ACGT", alphabet=new_moltype.DNA.gapped_alphabet, seqid="seq1"
+    )
+    with pytest.raises(new_alphabet.AlphabetError):
+        new_sequence._coerce_to_seqview(sv, sv.seqid, new_moltype.DNA.degen_alphabet, 0)
