@@ -190,10 +190,10 @@ class SeqsDataABC(ABC):
     def from_seqs(
         cls,
         *,
-        seqs: dict[str, StrORBytesORArray],
+        data: dict[str, StrORBytesORArray],
         alphabet: new_alphabet.AlphabetABC,
         **kwargs,
-    ) -> SeqsDataABC: ...
+    ): ...
 
     @abstractmethod
     def seq_lengths(self) -> dict[str, int]: ...
