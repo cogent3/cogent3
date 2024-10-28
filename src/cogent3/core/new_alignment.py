@@ -4348,7 +4348,7 @@ def _(
     # todo: implement a coerce to AlignedSeqsData dict function
     moltype = new_moltype.get_moltype(moltype)
     alphabet = moltype.most_degen_alphabet()
-    aligned_data = AlignedSeqsData.from_aligned_seqs(
+    aligned_data = AlignedSeqsData.from_seqs(
         data=data,
         alphabet=alphabet,
         offset=offset,
