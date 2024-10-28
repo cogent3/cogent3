@@ -189,6 +189,7 @@ class SeqsDataABC(ABC):
     @abstractmethod
     def from_seqs(
         cls,
+        *,
         seqs: dict[str, StrORBytesORArray],
         alphabet: new_alphabet.AlphabetABC,
         **kwargs,
