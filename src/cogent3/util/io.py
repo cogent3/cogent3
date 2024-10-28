@@ -1,4 +1,5 @@
 import contextlib
+import functools
 import shutil
 import uuid
 from bz2 import open as bzip_open
@@ -7,7 +8,6 @@ from io import TextIOWrapper
 from lzma import open as lzma_open
 from os import PathLike, remove
 from pathlib import Path, PurePath
-from re import compile
 from tempfile import mkdtemp
 from typing import IO, Callable, Iterator, Optional, Tuple, Union
 from urllib.parse import ParseResult, urlparse
@@ -19,8 +19,27 @@ from chardet import detect
 from cogent3.util.misc import _wout_period
 
 PathType = Union[str, PathLike, PurePath]
-# support prefixes for urls
-_urls = compile("^(http[s]*|file)")
+
+
+@functools.singledispatch
+def is_url(path: Union[str, bytes, Path]) -> bool:
+    """whether a path is a url"""
+    return False
+
+
+@is_url.register
+def _(path: str) -> bool:
+    return is_url(urlparse(path))
+
+
+@is_url.register
+def _(path: bytes) -> bool:
+    return is_url(urlparse(path.decode("utf8")))
+
+
+@is_url.register
+def _(path: ParseResult) -> bool:
+    return path.scheme in {"http", "https", "file"}
 
 
 def _get_compression_open(
@@ -73,10 +92,7 @@ def open_zip(filename: PathType, mode: str = "r", **kwargs) -> IO:
 
         opened = zf.open(zf.namelist()[0], mode=mode, **kwargs)
 
-        if binary_mode:
-            return opened
-
-        return TextIOWrapper(opened, encoding=encoding)
+        return opened if binary_mode else TextIOWrapper(opened, encoding=encoding)
 
 
 _compression_handlers = {
@@ -107,7 +123,7 @@ def open_(filename: PathType, mode="rt", **kwargs) -> IO:
     if not filename:
         raise ValueError(f"{filename} not a valid file name or url")
 
-    if _urls.search(str(filename)):
+    if is_url(filename):
         return open_url(filename, mode=mode, **kwargs)
 
     mode = mode or "rt"
@@ -150,15 +166,15 @@ def open_url(url: Union[str, ParseResult], mode="r", **kwargs) -> IO:
     )  # handling possibility of ParseResult
     mode = "rb" if compression else mode or "r"
 
+    if not is_url(url):
+        raise ValueError(
+            f"URL scheme must be http, https or file, not {str(url)[:20]!r}"
+        )
+
     url_parsed = url if isinstance(url, ParseResult) else urlparse(url)
 
     if "r" not in mode:
         raise ValueError("opening a url only allowed in read mode")
-
-    if not _urls.search(url_parsed.scheme):
-        raise ValueError(
-            f"URL scheme must be http, https or file, not {url_parsed.scheme}"
-        )
 
     response = urlopen(url_parsed.geturl(), timeout=10)
     encoding = response.headers.get_content_charset()
@@ -372,7 +388,7 @@ def iter_splitlines(
     -----
     Loads chunks of data from the file, yields one line at a time
     """
-    if _urls.search(str(path)):
+    if is_url(path):
         chunk_size = None
     else:
         path = Path(path).expanduser()
