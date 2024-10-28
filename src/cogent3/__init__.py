@@ -321,17 +321,19 @@ def load_seq(
 
     Parameters
     ----------
-    filename : str
+    filename
         path to sequence file
-    format : str
+    annotation_path
+        path to annotation file, ignored if format is genbank
+    format
         sequence file format, if not specified tries to guess from the path suffix
-    moltype : str
+    moltype
         the moltype, eg DNA, PROTEIN, 'dna', 'protein'
-    label_to_name : callable
+    label_to_name
         function for converting original name into another name.
-    parser_kw : dict
+    parser_kw
         optional arguments for the parser
-    info : dict
+    info
         a dict from which to make an info object
     new_type
         if True, returns a new type Sequence (cogent3.core.new_sequence.Sequence)
@@ -355,7 +357,7 @@ def load_seq(
     info["source"] = str(filename)
     file_format, _ = get_format_suffixes(filename)
     if file_format == "json":
-        seq = load_from_json(filename, (Sequence,))
+        seq = load_from_json(filename, (Sequence,))  # need to support new seq here
         seq.name = label_to_name(seq.name) if label_to_name else seq.name
         return seq
 
