@@ -139,7 +139,7 @@ def gff_db(DATA_DIR):
 
 
 @pytest.fixture(scope="function")
-def c_elegans_seq(DATA_DIR):
+def annotated_seq(DATA_DIR):
     return load_seq(
         DATA_DIR / "c_elegans_WS199_dna_shortened.fasta",
         annotation_path=DATA_DIR / "c_elegans_WS199_shortened_gff.gff3",
@@ -1815,12 +1815,12 @@ def test_sequence_collection_dotplot(dotplot_seqs):
 
 
 @pytest.mark.parametrize("with_annotations", [True, False])
-def test_sequence_collection_dotplot_annotated(c_elegans_seq, with_annotations):
+def test_sequence_collection_dotplot_annotated(annotated_seq, with_annotations):
     if not with_annotations:
-        c_elegans_seq.replace_annotation_db(None)  # this drops all annotations
+        annotated_seq.replace_annotation_db(None)  # this drops all annotations
 
     coll = new_alignment.make_unaligned_seqs(
-        {"c_elegans": c_elegans_seq}, moltype="dna"
+        {"c_elegans": annotated_seq}, moltype="dna"
     )
     dp = coll.dotplot()
     if with_annotations:
