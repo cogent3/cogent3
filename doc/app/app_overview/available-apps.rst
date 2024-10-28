@@ -16,3 +16,6 @@ The ``name_filter`` argument can be used to display only the apps that match a s
 .. jupyter-execute::
 
     available_apps(name_filter="load")
+
+
+.. note:: The first column lists the package providing the app.

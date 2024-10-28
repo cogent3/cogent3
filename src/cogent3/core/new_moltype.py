@@ -560,9 +560,8 @@ class MolType:
             additional keyword arguments that may be required for creating the
             Sequence object
         """
-        # refactor: design
-        # for Sequence and SeqView object, a consistency check with moltype/alphabet
-        # should be performed
+        if hasattr(seq, "moltype"):
+            return seq if seq.moltype is self else seq.to_moltype(self)
 
         if check_seq:
             assert self.is_valid(

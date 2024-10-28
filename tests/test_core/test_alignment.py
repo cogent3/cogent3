@@ -1529,23 +1529,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         assert_equal(got.array, [2, 1, 2])
         assert_equal(got["b"], 1)
 
-    def test_coevolution(self):
-        """correctly produces matrix of coevo measures"""
-        data = {"s0": "AA", "s1": "AA", "s2": "BB", "s3": "BB", "s4": "BC"}
-        aln = self.Class(data=data)
-        coevo = aln.coevolution(method="rmi", show_progress=False)
-        expect = array([[nan, nan], [0.78333333, nan]])
-        assert_allclose(coevo.array, expect)
-        coevo = aln.coevolution(method="nmi", show_progress=False)
-        self.assertNotEqual(coevo[1, 1], expect[1, 1])
-        # now check invoking drawable produces a result object with a drawable
-        # attribute
-        coevo = aln.coevolution(method="nmi", drawable="box", show_progress=False)
-        self.assertTrue(hasattr(coevo, "drawable"))
-        aln = load_aligned_seqs("data/brca1.fasta", moltype="dna")
-        aln = aln.take_seqs(aln.names[:20])
-        aln = aln.no_degenerates()[:20]
-
     def test_info_source(self):
         """info.source exists if load_aligned_seqs given a filename"""
         array_align = self.Class == ArrayAlignment
@@ -3886,3 +3869,22 @@ def test_empty_data(cls):
     with pytest.raises(ValueError) as e:
         _ = cls(())
     assert str(e.value) == f"{cls.__name__} must take at least one sequence."
+
+
+@pytest.mark.parametrize("cls", (ArrayAlignment, Alignment))
+def test_coevolution(cls):
+    """correctly produces matrix of coevo measures"""
+    data = {"s0": "AA", "s1": "AA", "s2": "GG", "s3": "GG", "s4": "GC"}
+    aln = cls(data=data, moltype=DNA)
+    coevo = aln.coevolution(stat="rmi", show_progress=False)
+    expect = array([[nan, nan], [0.78333333, nan]])
+    assert_allclose(coevo.array, expect)
+    coevo = aln.coevolution(stat="nmi", show_progress=False)
+    assert coevo[1, 1] != expect[1, 1]
+    # now check invoking drawable produces a result object with a drawable
+    # attribute
+    coevo = aln.coevolution(stat="nmi", drawable="box", show_progress=False)
+    assert hasattr(coevo, "drawable")
+    aln = load_aligned_seqs("data/brca1.fasta", moltype="dna")
+    aln = aln.take_seqs(aln.names[:20])
+    aln = aln.no_degenerates()[:20]

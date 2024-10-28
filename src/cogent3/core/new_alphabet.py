@@ -138,6 +138,10 @@ class AlphabetABC(ABC):
     @abstractmethod
     def from_rich_dict(cls, data: dict) -> None: ...
 
+    @property
+    def moltype(self) -> typing.Union["MolType", None]:
+        return _alphabet_moltype_map.get(self, None)
+
 
 class MonomerAlphabetABC(ABC):
     @abstractmethod
@@ -379,7 +383,10 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         words += (gap,) if include_gap and gap else ()
         words += (missing,) if include_gap and missing else ()
 
-        return KmerAlphabet(words=words, monomers=self, gap=gap, k=k, missing=missing)
+        kalpha = KmerAlphabet(words=words, monomers=self, gap=gap, k=k, missing=missing)
+        if self.moltype:
+            _alphabet_moltype_map[kalpha] = self.moltype
+        return kalpha
 
     @functools.singledispatchmethod
     def is_valid(self, seq: StrORBytesORArray) -> bool:
@@ -852,8 +859,8 @@ def deserialise_kmer_alphabet(data: dict) -> KmerAlphabet:
     return KmerAlphabet.from_rich_dict(data)
 
 
-class SenseCodonAlphabet(tuple):
-    """Alphabet for the sense-codons of a GeneticCode"""
+class SenseCodonAlphabet(tuple, AlphabetABC):
+    """represents the sense-codons of a GeneticCode"""
 
     def __new__(
         cls,
@@ -894,6 +901,8 @@ class SenseCodonAlphabet(tuple):
         self._to_indices = {codon: i for i, codon in enumerate(self)}
         self._from_indices = {i: codon for codon, i in self._to_indices.items()}
         self.motif_length = 3
+        if monomers.moltype:
+            _alphabet_moltype_map[self] = monomers.moltype
 
     @property
     def gap_char(self):
@@ -1017,8 +1026,8 @@ def make_alphabet(*, chars, gap, missing, moltype):
 
     Notes
     -----
-    The moltype is associated with the alphabet, available as an
-    alphabet property.
+    The moltype is associated with the alphabet, available as the
+    alphabet.moltype property.
     """
     alpha = CharAlphabet(chars, gap=gap, missing=missing)
     _alphabet_moltype_map[alpha] = moltype

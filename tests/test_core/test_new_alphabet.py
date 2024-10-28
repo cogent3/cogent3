@@ -632,3 +632,21 @@ def test_codon_alphabet_serlialise_round_trip(calpha):
     assert isinstance(got, new_alphabet.SenseCodonAlphabet)
     assert list(got) == list(calpha)
     assert calpha.to_index("TTC") == 1
+
+
+@pytest.fixture(params=new_moltype.DNA.iter_alphabets())
+def alpha(request):
+    return request.param
+
+
+def test_alphabet_moltype(alpha):
+    assert alpha.moltype is new_moltype.DNA
+
+
+def test_alpha_no_moltype():
+    alpha = new_alphabet.CharAlphabet(list("ACG"))
+    assert alpha.moltype is None
+
+
+def test_codon_alphabet_moltype(calpha):
+    assert calpha.moltype is new_moltype.DNA

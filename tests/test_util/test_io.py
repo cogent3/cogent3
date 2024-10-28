@@ -60,19 +60,19 @@ def test_does_not_write_if_exception(tmp_dir):
     assert not test_filepath.exists()
 
 
-def test_writes_compressed_formats(DATA_DIR, tmp_dir):
+@pytest.mark.parametrize("suffix", ("gz", "bz2", "zip", "lmza", "xz"))
+def test_writes_compressed_formats(DATA_DIR, tmp_dir, suffix):
     """correctly writes / reads different compression formats"""
     fpath = DATA_DIR / "sample.tsv"
     expect = pathlib.Path(fpath).read_text()
-    for suffix in ["gz", "bz2", "zip"]:
-        outpath = tmp_dir / f"{fpath.name}.{suffix}"
-        with atomic_write(outpath, mode="wt") as f:
-            f.write(expect)
+    outpath = tmp_dir / f"{fpath.name}.{suffix}"
+    with atomic_write(outpath, mode="wt") as f:
+        f.write(expect)
 
-        with open_(outpath) as infile:
-            got = infile.read()
+    with open_(outpath) as infile:
+        got = infile.read()
 
-        assert got == expect, f"write failed for {suffix}"
+    assert got == expect, f"write failed for {suffix}"
 
 
 def test_rename(tmp_dir):

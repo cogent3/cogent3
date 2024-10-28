@@ -442,6 +442,13 @@ def _(
 
 @iter_fasta_records.register
 def _(data: str, converter: OptConverterType = None, label_to_name: RenamerType = str):
+    try:
+        os.stat(data)
+    except OSError:
+        raise TypeError(
+            "data is a string but not a file path, directly provided data must be bytes"
+        )
+
     with open_(data, mode="rb") as infile:
         data: bytes = infile.read()
     return iter_fasta_records(data, converter=converter, label_to_name=label_to_name)
