@@ -2648,7 +2648,7 @@ def test_load_invalid_moltype(aa_moltype):
 
 @pytest.fixture(params=(new_moltype.DNA.alphabet, new_moltype.DNA.gapped_alphabet))
 def seqview(request):
-    return new_sequence.SeqView(seq="ACGT", alphabet=request.param, seqid="seq1")
+    return new_sequence.SeqView(parent="ACGT", alphabet=request.param, seqid="seq1")
 
 
 @pytest.mark.parametrize(
@@ -2670,7 +2670,7 @@ def test_make_seq_general_alpha_incompatible(seqview):
 
 def test_make_seq_wrong_order_alpha():
     sv = new_sequence.SeqView(
-        seq="ACGT", alphabet=new_moltype.DNA.gapped_alphabet, seqid="seq1"
+        parent="ACGT", alphabet=new_moltype.DNA.gapped_alphabet, seqid="seq1"
     )
     with pytest.raises(new_alphabet.AlphabetError):
         new_sequence._coerce_to_seqview(sv, sv.seqid, new_moltype.DNA.degen_alphabet, 0)
