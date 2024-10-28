@@ -1177,8 +1177,8 @@ class Sequence:
 
         if not moltype.most_degen_alphabet().is_valid(seq):
             raise ValueError(
-                f"Changing from old moltype={self.moltype.label} to new "
-                f"moltype={moltype.label} is not valid for this data"
+                f"Changing from old moltype={self.moltype.label!r} to new "
+                f"moltype={moltype.label!r} is not valid for this data"
             )
         sv = SeqView(seq=seq, alphabet=moltype.most_degen_alphabet())
         new = self.__class__(moltype=moltype, seq=sv, name=self.name, info=self.info)
