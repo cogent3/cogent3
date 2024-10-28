@@ -33,19 +33,13 @@ def _(path: str) -> bool:
 
 
 @is_url.register
-def _(path: Path) -> bool:
-    return is_url(urlparse(str(path)))
-
-
-@is_url.register
 def _(path: bytes) -> bool:
     return is_url(urlparse(path.decode("utf8")))
 
 
 @is_url.register
 def _(path: ParseResult) -> bool:
-    scheme = path.scheme or ""
-    return bool(scheme) and not scheme.startswith("ftp")
+    return path.scheme in {"http", "https", "file"}
 
 
 def _get_compression_open(
@@ -98,10 +92,7 @@ def open_zip(filename: PathType, mode: str = "r", **kwargs) -> IO:
 
         opened = zf.open(zf.namelist()[0], mode=mode, **kwargs)
 
-        if binary_mode:
-            return opened
-
-        return TextIOWrapper(opened, encoding=encoding)
+        return opened if binary_mode else TextIOWrapper(opened, encoding=encoding)
 
 
 _compression_handlers = {

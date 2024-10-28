@@ -504,14 +504,19 @@ def test_iter_line_blocks_none_num_lines(tmp_path):
 
 @pytest.mark.parametrize(
     "url",
-    ("https://example.com", pathlib.Path("https://example.com"), b"file://example.txt"),
+    (
+        "http://example.com",
+        b"file://example.txt",
+        pathlib.Path("example.txt").absolute().as_uri(),
+    ),
 )
 def test_is_url(url):
     assert is_url(url)
 
 
 @pytest.mark.parametrize(
-    "url", ("example.txt", pathlib.Path("example.txt"), b"example.txt")
+    "url",
+    ("example.txt", pathlib.Path("example.txt"), b"example.txt", r"D:\foo\example.txt"),
 )
 def test_not_is_url(url):
     assert not is_url(url)
