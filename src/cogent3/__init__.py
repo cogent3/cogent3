@@ -11,13 +11,13 @@ from typing import Callable, Optional, Union
 
 from cogent3._version import __version__
 from cogent3.app import app_help, available_apps, get_app, open_data_store
+from cogent3.core import annotation_db as _anno_db
 from cogent3.core.alignment import (
     Alignment,
     ArrayAlignment,
     Sequence,
     SequenceCollection,
 )
-from cogent3.core.annotation_db import load_annotations
 from cogent3.core.genetic_code import available_codes, get_code
 
 # note that moltype has to be imported last, because it sets the moltype in
@@ -35,7 +35,7 @@ from cogent3.evolve.fast_distance import available_distances, get_distance_calcu
 from cogent3.evolve.models import available_models, get_model
 from cogent3.parse.cogent3_json import load_from_json
 from cogent3.parse.newick import parse_string as newick_parse_string
-from cogent3.parse.sequence import get_parser
+from cogent3.parse.sequence import get_parser, is_genbank
 from cogent3.parse.table import load_delimited
 from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
 from cogent3.util.io import get_format_suffixes, open_
@@ -72,6 +72,8 @@ import logging
 __numba_logger = logging.getLogger("numba")
 __numba_logger.setLevel(logging.WARNING)
 
+load_annotations = _anno_db.load_annotations
+
 
 def make_seq(
     seq,
@@ -79,6 +81,7 @@ def make_seq(
     moltype=None,
     new_type: bool = False,
     annotation_offset: int = 0,
+    annotation_db: Optional[_anno_db.SupportsFeatures] = None,
     **kw: dict,
 ):  # refactor: type hinting, need to capture optional args and the return type
     """
@@ -113,6 +116,8 @@ def make_seq(
     seq = moltype.make_seq(
         seq=seq, name=name, annotation_offset=annotation_offset, **kw
     )
+    if annotation_db:
+        seq.annotation_db = annotation_db
     return seq
 
 
@@ -275,6 +280,30 @@ def _load_seqs(file_format, filename, fmt, parser_kw):
     return list(parser(filename, **parser_kw))
 
 
+T = Optional[_anno_db.SupportsFeatures]
+
+
+def _load_genbank_seq(
+    filename: os.PathLike, parser_kw: dict, just_seq: bool = False
+) -> tuple[str, str, T]:
+    """utility function for loading sequences"""
+    from cogent3.parse.genbank import iter_genbank_records
+
+    for name, seq, features in iter_genbank_records(filename, **parser_kw):
+        break
+    else:
+        raise ValueError(f"No sequences found in {filename}")
+
+    db = (
+        None
+        if just_seq
+        else _anno_db.GenbankAnnotationDb(
+            data=features.pop("features", None), seqid=name
+        )
+    )
+    return name, seq, db
+
+
 def load_seq(
     filename: os.PathLike,
     annotation_path: Optional[os.PathLike] = None,
@@ -292,17 +321,19 @@ def load_seq(
 
     Parameters
     ----------
-    filename : str
+    filename
         path to sequence file
-    format : str
+    annotation_path
+        path to annotation file, ignored if format is genbank
+    format
         sequence file format, if not specified tries to guess from the path suffix
-    moltype : str
+    moltype
         the moltype, eg DNA, PROTEIN, 'dna', 'protein'
-    label_to_name : callable
+    label_to_name
         function for converting original name into another name.
-    parser_kw : dict
+    parser_kw
         optional arguments for the parser
-    info : dict
+    info
         a dict from which to make an info object
     new_type
         if True, returns a new type Sequence (cogent3.core.new_sequence.Sequence)
@@ -326,12 +357,22 @@ def load_seq(
     info["source"] = str(filename)
     file_format, _ = get_format_suffixes(filename)
     if file_format == "json":
-        seq = load_from_json(filename, (Sequence,))
+        seq = load_from_json(filename, (Sequence,))  # need to support new seq here
         seq.name = label_to_name(seq.name) if label_to_name else seq.name
         return seq
 
-    data = _load_seqs(file_format, filename, format, parser_kw)
-    name, seq = data[0]
+    if is_genbank(format or file_format):
+        name, seq, db = _load_genbank_seq(
+            filename, parser_kw or {}, just_seq=annotation_path is not None
+        )
+    else:
+        db = None
+        data = _load_seqs(file_format, filename, format, parser_kw)
+        name, seq = data[0]
+
+    if annotation_path is not None:
+        db = load_annotations(path=annotation_path, seqids=[name])
+
     name = label_to_name(name) if label_to_name else name
 
     result = make_seq(
@@ -340,15 +381,11 @@ def load_seq(
         moltype=moltype,
         new_type=new_type,
         annotation_offset=annotation_offset,
+        annotation_db=db,
         **kw,
     )
     result.info.update(info)
 
-    if getattr(seq, "annotation_db", None):
-        result.annotation_db = seq.annotation_db
-
-    if annotation_path is not None:
-        result.annotation_db = load_annotations(path=annotation_path, seqids=[name])
     return result
 
 

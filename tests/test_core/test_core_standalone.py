@@ -923,3 +923,11 @@ def test_load_seq_moltype_offset(moltype, offset, DATA_DIR):
     )
     assert seq.moltype.label == moltype
     assert seq.annotation_offset == offset
+
+
+@pytest.mark.parametrize("ann_path", [True, False])
+@pytest.mark.parametrize("new_type", [True, False])
+def test_load_seq_genank(ann_path, new_type, DATA_DIR):
+    path = DATA_DIR / "annotated_seq.gb"
+    s = load_seq(path, annotation_path=path if ann_path else None, new_type=new_type)
+    assert len(s.annotation_db) == 10
