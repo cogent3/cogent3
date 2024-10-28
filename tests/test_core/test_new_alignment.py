@@ -2260,7 +2260,8 @@ def test_sequence_collection_distance_matrix_raises_wrong_moltype(moltype):
 def test_sequence_collection_distance_matrix_passes_correct_moltype(moltype):
     data = {"s1": "ACGA", "s2": "ACGA"}
     seqs = new_alignment.make_unaligned_seqs(data, moltype=moltype)
-    seqs.distance_matrix()
+    got = seqs.distance_matrix()
+    assert got[("s1", "s2")] == 0.0
 
 
 @pytest.mark.parametrize(
