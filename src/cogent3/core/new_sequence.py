@@ -2648,6 +2648,17 @@ def _coerce_to_seqview(data, seqid, alphabet, offset) -> SeqViewABC:
 
 @_coerce_to_seqview.register
 def _(data: SeqViewABC, seqid, alphabet, offset) -> SeqViewABC:
+    # we require the indexes of shared states in alphabets to be the same
+    # SeqView has an alphabet but SeqViewABC does NOT because that is
+    # more general and covers the case where the SeqsData collection has the
+    # alphabet
+    if hasattr(data, "alphabet"):
+        n = min(len(data.alphabet), len(alphabet))
+        if data.alphabet[:n] != alphabet[:n]:
+            raise new_alphabet.AlphabetError(
+                f"element order {data.alphabet=} != to that in {alphabet=} for {data=!r}"
+            )
+
     if offset and data.offset:
         raise ValueError(
             f"cannot set {offset=} on a SeqView with an offset {data.offset=}"
