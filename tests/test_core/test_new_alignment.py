@@ -174,7 +174,7 @@ def test_seqs_data_construction(str_seqs_dict, dna_alphabet):
 
 def test_seqs_data_construction_wrong_alphabet(str_seqs_dict, rna_alphabet):
     """SeqsData should raise ValueError if alphabet is incompatible with data"""
-    with pytest.raises(ValueError):
+    with pytest.raises(new_alphabet.AlphabetError):
         _ = new_alignment.SeqsData(data=str_seqs_dict, alphabet=rna_alphabet)
 
 
@@ -2808,7 +2808,7 @@ def test_aligned_seqs_data_add_seqs_diff_moltype_raises(dna_alphabet):
     data = {"seq1": "ACGT-", "seq2": "ACG-T"}  # DNA
     ad = new_alignment.AlignedSeqsData.from_seqs(data=data, alphabet=dna_alphabet)
     new_data = {"seq3": "ACGU-", "seq4": "ACG-U"}  # RNA
-    with pytest.raises(ValueError):
+    with pytest.raises(new_alphabet.AlphabetError):
         _ = ad.add_seqs(new_data)
 
 

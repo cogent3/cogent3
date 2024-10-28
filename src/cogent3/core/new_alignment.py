@@ -283,11 +283,11 @@ class SeqsData(SeqsDataABC):
         self._alphabet = alphabet
         self._offset = offset or {}
         if check:
-            assert set(self._offset.keys()) <= set(
-                data.keys()
+            assert (
+                self._offset.keys() <= data.keys()
             ), "sequence name provided in offset not found in data"
             if any(not alphabet.is_valid(seq) for seq in data.values()):
-                raise ValueError(
+                raise new_alphabet.AlphabetError(
                     f"One or more sequences are invalid for alphabet {alphabet}"
                 )
         self._data: dict[str, numpy.ndarray] = {}
@@ -2418,7 +2418,7 @@ def _(
 @seq_to_gap_coords.register
 def _(seq: str, *, alphabet: new_alphabet.AlphabetABC) -> tuple[str, numpy.ndarray]:
     if not alphabet.is_valid(seq):
-        raise ValueError(f"Sequence is invalid for alphabet {alphabet}")
+        raise new_alphabet.AlphabetError(f"Sequence is invalid for alphabet {alphabet}")
 
     return seq_to_gap_coords(alphabet.to_indices(seq), alphabet=alphabet)
 
