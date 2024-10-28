@@ -2610,11 +2610,11 @@ def test_make_seq_compatible_alpha(seqview, alpha):
     assert got is seqview
 
 
-def test_make_seq_general_alpha_first_incompatible(seqview):
+def test_make_seq_general_alpha_incompatible(seqview):
     with pytest.raises(new_alphabet.AlphabetError):
         alpha, seqview.alphabet = (
             seqview.alphabet,
-            new_moltype.DNA.degen_gapped_alphabet,
+            new_moltype.PROTEIN.degen_gapped_alphabet,
         )
         new_sequence._coerce_to_seqview(seqview, seqview.seqid, alpha, 0)
 
