@@ -12,6 +12,7 @@ from cogent3.util.io import (
     _path_relative_to_zip_parent,
     atomic_write,
     get_format_suffixes,
+    is_url,
     iter_line_blocks,
     iter_splitlines,
     open_,
@@ -499,3 +500,18 @@ def test_iter_line_blocks_none_num_lines(tmp_path):
     got = list(iter_line_blocks(path, num_lines=None))
     expect = [value]
     assert got == expect
+
+
+@pytest.mark.parametrize(
+    "url",
+    ("https://example.com", pathlib.Path("https://example.com"), b"file://example.txt"),
+)
+def test_is_url(url):
+    assert is_url(url)
+
+
+@pytest.mark.parametrize(
+    "url", ("example.txt", pathlib.Path("example.txt"), b"example.txt")
+)
+def test_not_is_url(url):
+    assert not is_url(url)

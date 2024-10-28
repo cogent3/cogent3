@@ -16,7 +16,7 @@ from cogent3.core.info import Info
 from cogent3.core.moltype import ASCII, BYTES
 from cogent3.parse.record import RecordError
 from cogent3.parse.record_finder import LabeledRecordFinder
-from cogent3.util.io import open_
+from cogent3.util.io import is_url, open_
 
 _white_space = re.compile(r"\s+")
 strip = str.strip
@@ -442,12 +442,13 @@ def _(
 
 @iter_fasta_records.register
 def _(data: str, converter: OptConverterType = None, label_to_name: RenamerType = str):
-    try:
-        os.stat(data)
-    except OSError:
-        raise TypeError(
-            "data is a string but not a file path, directly provided data must be bytes"
-        )
+    if not is_url(data):
+        try:
+            os.stat(data)
+        except OSError:
+            raise TypeError(
+                "data is a string but not a file path, directly provided data must be bytes"
+            )
 
     with open_(data, mode="rb") as infile:
         data: bytes = infile.read()
