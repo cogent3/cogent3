@@ -142,7 +142,6 @@ class AlphabetABC(ABC):
     def from_rich_dict(cls, data: dict) -> None: ...
 
     @property
-    @abstractmethod
     def moltype(self) -> typing.Union["MolType", None]:
         return _alphabet_moltype_map.get(self, None)
 
