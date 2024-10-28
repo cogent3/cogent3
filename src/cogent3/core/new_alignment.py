@@ -185,10 +185,15 @@ class SeqsDataABC(ABC):
 
     __slots__ = ()
 
-    # refactor: design
-    # SeqsData needs a class method for creating instances from a dict, which will need to be
-    # on AlignedSeqsData as well. If we rename AlignedSeqsData.from_aligned_seqs to from_seqs
-    # (or something similar), we can use the same method name for both classes.
+    @classmethod
+    @abstractmethod
+    def from_seqs(
+        cls,
+        *,
+        data: dict[str, StrORBytesORArray],
+        alphabet: new_alphabet.AlphabetABC,
+        **kwargs,
+    ): ...
 
     @abstractmethod
     def seq_lengths(self) -> dict[str, int]: ...
@@ -276,18 +281,32 @@ class SeqsData(SeqsDataABC):
         check: bool = True,
     ):
         self._alphabet = alphabet
+        self._offset = offset or {}
+        if check:
+            assert (
+                self._offset.keys() <= data.keys()
+            ), "sequence name provided in offset not found in data"
+            if any(not alphabet.is_valid(seq) for seq in data.values()):
+                raise new_alphabet.AlphabetError(
+                    f"One or more sequences are invalid for alphabet {alphabet}"
+                )
         self._data: dict[str, numpy.ndarray] = {}
         for name, seq in data.items():
             arr = self._alphabet.to_indices(seq)
             arr.flags.writeable = False
             self._data[str(name)] = arr
-        self._offset = offset or {}
-        if check:
-            assert set(self._offset.keys()) <= set(
-                self._data.keys()
-            ), "sequence name provided in offset not found in data"
         self._reversed = reversed
         # refactor: rename reversed argument to not clash with python built-in
+
+    @classmethod
+    def from_seqs(
+        cls,
+        *,
+        data: dict[str, StrORBytesORArray],
+        alphabet: new_alphabet.AlphabetABC,
+        **kwargs,
+    ):
+        return cls(data=data, alphabet=alphabet, **kwargs)
 
     @property
     def names(self) -> list:
@@ -786,17 +805,16 @@ class SequenceCollection:
         -----
         The returned collection will not retain an annotation_db if present.
         """
-        # todo: kath, constructing the SeqsData object here violates loose coupling
-        # can we put this in the SeqsData class?
         seqs = {
             name: self.moltype.degap(self._seqs_data.get_seq_array(seqid=name))
             for name in self.names
         }
-        seqs_data = self._seqs_data.__class__(
+        seqs_data = self._seqs_data.from_seqs(
             data=coerce_to_seqs_data_dict(seqs),
             alphabet=self._seqs_data.alphabet,
             offset=self._seqs_data.offset,
             reversed=self._seqs_data.is_reversed,
+            check=False,
         )
         return self.__class__(
             seqs_data=seqs_data,
@@ -1394,17 +1412,13 @@ class SequenceCollection:
             return self
 
         new_seqs = {s.name: s.trim_stop_codon(gc=gc, strict=strict) for s in self.seqs}
-        # todo: kath
-        # should we be using the seqs_data object to do this?
-        # creating the new SeqsData object here violates the loose coupling
-        # principle which we have been trying to adhere to.
-        # or we warn of the potential change in the seqs_data object
 
-        seqs_data = self._seqs_data.__class__(
+        seqs_data = self._seqs_data.from_seqs(
             data=coerce_to_seqs_data_dict(new_seqs),
             alphabet=self._seqs_data.alphabet,
             offset=self._seqs_data.offset,
             reversed=self._seqs_data.is_reversed,
+            check=False,
         )
         result = self.__class__(
             seqs_data=seqs_data,
@@ -2404,7 +2418,7 @@ def _(
 @seq_to_gap_coords.register
 def _(seq: str, *, alphabet: new_alphabet.AlphabetABC) -> tuple[str, numpy.ndarray]:
     if not alphabet.is_valid(seq):
-        raise ValueError(f"Sequence is invalid for alphabet {alphabet}")
+        raise new_alphabet.AlphabetError(f"Sequence is invalid for alphabet {alphabet}")
 
     return seq_to_gap_coords(alphabet.to_indices(seq), alphabet=alphabet)
 
@@ -2585,15 +2599,6 @@ class AlignedSeqsDataABC(SeqsDataABC):
 
     @classmethod
     @abstractmethod
-    def from_aligned_seqs(
-        cls,
-        *,
-        data: dict[str, StrORArray],
-        alphabet: new_alphabet.AlphabetABC,
-    ): ...
-
-    @classmethod
-    @abstractmethod
     def from_seqs_and_gaps(
         cls,
         *,
@@ -2703,7 +2708,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         self._offset = offset or {}
 
     @classmethod
-    def from_aligned_seqs(
+    def from_seqs(
         cls,
         *,
         data: dict[str, StrORArray],
@@ -4349,7 +4354,7 @@ def _(
     # todo: implement a coerce to AlignedSeqsData dict function
     moltype = new_moltype.get_moltype(moltype)
     alphabet = moltype.most_degen_alphabet()
-    aligned_data = AlignedSeqsData.from_aligned_seqs(
+    aligned_data = AlignedSeqsData.from_seqs(
         data=data,
         alphabet=alphabet,
         offset=offset,
