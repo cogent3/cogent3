@@ -3554,8 +3554,7 @@ class Alignment(SequenceCollection):
         return len(self._seqs_data)
 
     def __array__(self):
-        """Returns a numpy array of sequences."""
-        return numpy.array([self.seqs[name] for name in self.names])
+        return self.array_seqs
 
     def _make_aligned(self, seqid: str) -> Aligned:
         # refactor: design
@@ -3564,6 +3563,11 @@ class Alignment(SequenceCollection):
             self._name_map.get(seqid, seqid), self._slice_record
         )
         return Aligned(data=data, moltype=self.moltype, name=seqid)
+
+    @property
+    def array_seqs(self) -> numpy.ndarray:
+        """Returns a numpy array of sequences."""
+        return numpy.array([numpy.array(self.seqs[name]) for name in self.names])
 
     def get_seq(
         self, seqname: str, copy_annotations: bool = False

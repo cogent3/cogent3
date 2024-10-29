@@ -3022,6 +3022,15 @@ def test_aligned_data_view_gapped_bytes_value(aligned_array_dict, dna_alphabet, 
     assert numpy.array_equal(got, expect)
 
 
+def test_alignment_array_seqs():
+    seqs = new_alignment.make_aligned_seqs(
+        {"a": "T-", "b": "--", "c": "AA"}, moltype="dna"
+    )
+    got = seqs.array_seqs
+    expect = numpy.array([[0, 4], [4, 4], [2, 2]])
+    assert numpy.array_equal(got, expect)
+
+
 def test_alignment_init(aligned_dict, dna_moltype, dna_alphabet):
     ad = new_alignment.AlignedSeqsData.from_seqs(
         data=aligned_dict, alphabet=dna_alphabet
