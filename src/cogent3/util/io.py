@@ -142,7 +142,7 @@ def open_(filename: PathType, mode="rt", **kwargs) -> IO:
     return op(filename, mode, encoding=encoding, **kwargs)
 
 
-def open_url(url: Union[str, ParseResult], mode="r", **kwargs) -> IO:
+def open_url(url: Union[str, ParseResult], mode="rt", **kwargs) -> IO:
     """open a url
 
     Parameters
@@ -154,33 +154,29 @@ def open_url(url: Union[str, ParseResult], mode="r", **kwargs) -> IO:
 
     Raises
     ------
-    If not http(s).
+    Rasies IOError if mode is write or it's not a url.
 
-    Notes
-    -----
-    If mode='b' or 'rb' (binary read), the function returns file object to read
-    else returns TextIOWrapper to read text with specified encoding in the URL
+    Returns
+    -------
+    file object which reads binary if "b" in mode, else text.
     """
     _, compression = get_format_suffixes(
         getattr(url, "path", url)
     )  # handling possibility of ParseResult
-    mode = "rb" if compression else mode or "r"
-
-    if not is_url(url):
-        raise ValueError(
-            f"URL scheme must be http, https or file, not {str(url)[:20]!r}"
-        )
-
-    url_parsed = url if isinstance(url, ParseResult) else urlparse(url)
+    mode = mode or "r"
 
     if "r" not in mode:
-        raise ValueError("opening a url only allowed in read mode")
+        raise IOError("opening a url only allowed in read mode")
+
+    if not is_url(url):
+        raise IOError(f"URL scheme must be http, https or file, not {str(url)[:20]!r}")
+
+    url_parsed = url if isinstance(url, ParseResult) else urlparse(url)
 
     response = urlopen(url_parsed.geturl(), timeout=10)
     encoding = response.headers.get_content_charset()
     if compression:
         response = _get_compression_open(compression=compression)(response)
-        mode = "r"  # wrap it as text
 
     return response if "b" in mode else TextIOWrapper(response, encoding=encoding)
 
