@@ -4186,6 +4186,38 @@ class Alignment(SequenceCollection):
 
         return self.filtered(gaps_ok, motif_length=motif_length)
 
+
+    def trim_stop_codons(self, gc: Any = None, strict: bool = False, **kwargs):
+        # refactor: array
+        if not self.has_terminal_stop(gc=gc, strict=strict):
+            return self
+
+        # define a regex for finding stop codons followed by terminal gaps
+        gc = new_genetic_code.get_code(gc)
+        gaps = "".join(self.moltype.gaps)
+        pattern = f"({'|'.join(gc['*'])})[{gaps}]*$"
+        terminal_stop = re.compile(pattern)
+
+        data = self.to_dict()
+        for name, seq in data.items():
+            if match := terminal_stop.search(seq):
+                diff = len(seq) - match.start()
+                seq = terminal_stop.sub("-" * diff, seq)
+            data[name] = seq
+
+        seqs_data = self._seqs_data.from_seqs(
+            data=data, alphabet=self.moltype.most_degen_alphabet()
+        )
+
+        result = self.__class__(
+            seqs_data=seqs_data, info=self.info, moltype=self.moltype, **kwargs
+        )
+
+        if hasattr(self, "annotation_db"):
+            result.annotation_db = self.annotation_db
+
+        return result
+
     def _get_seq_features(
         self,
         *,
