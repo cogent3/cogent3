@@ -3451,6 +3451,10 @@ class Alignment(SequenceCollection):
     def __len__(self):
         return len(self._seqs_data)
 
+    def __array__(self):
+        """Returns a numpy array of sequences."""
+        return numpy.array([self.seqs[name] for name in self.names])
+
     def _make_aligned(self, seqid: str) -> Aligned:
         # refactor: design
         # add slice_record as an argument to the get_view() method
@@ -3473,8 +3477,6 @@ class Alignment(SequenceCollection):
             to the annotation database of the Sequence object. If False, all
             annotations are copied.
         """
-        # todo
-        # more efficient to constuct the sequence object directly?
         seq = self.seqs[seqname].seq
         if copy_annotations:
             seq.annotation_db = type(self.annotation_db)()
@@ -3563,28 +3565,51 @@ class Alignment(SequenceCollection):
     ) -> list[int]:
         """Returns list of column indices for which f(col) is True.
 
-        f : callable
+        f
           function that returns true/false given an alignment position
-        native : boolean
-          if True, and ArrayAlignment, f is provided with slice of array
-          otherwise the string is used
-        negate : boolean
+        native
+          if True, f is provided with slice of array, otherwise the string is used
+        negate
           if True, not f() is used
         """
         # refactor:
         # type hint for f
         # implement native
+        new_f = negate_condition(f) if negate else f
+
+        return [i for i, col in enumerate(self.positions) if new_f(col)]
+
+    def take_positions(self, cols: list, negate: bool = False):
+        """Returns new Alignment containing only specified positions.
+
+        Parameters
+        ----------
+        cols
+            list of column indices to keep
+        negate
+            if True, all columns except those in cols are kept
+        """
         if negate:
+            col_lookup = dict.fromkeys(cols)
+            cols = [i for i in range(len(self)) if i not in col_lookup]
 
-            def new_f(x):
-                return not f(x)
+        new_data = {
+            seqid: self._seqs_data.get_gapped_seq_array(seqid=seqid)[cols]
+            for seqid in self.names
+        }
+        seqs_data = self._seqs_data.from_seqs(
+            data=new_data, alphabet=self.moltype.most_degen_alphabet()
+        )
+        return self.__class__(
+            seqs_data=seqs_data,
+            name_map=self._name_map,
+            info=self.info,
+            moltype=self.moltype,
+        )
 
-        else:
-            new_f = f
-
-        result = [i for i, col in enumerate(self.positions) if new_f(col)]
-
-        return result
+    def take_positions_if(self, f, negate=False):
+        """Returns new Alignment containing cols where f(col) is True."""
+        return self.take_positions(self.get_position_indices(f, negate=negate))
 
     def get_gap_array(self, include_ambiguity: bool = True) -> numpy.ndarray:
         """returns bool array with gap state True, False otherwise
@@ -4102,7 +4127,7 @@ class Alignment(SequenceCollection):
                 raise RuntimeError(f"{on_alignment=} {feature=}")
             if seq_map is None:
                 seq_map = self.seqs[0].map.to_feature_map()
-                *_, strand = self.seqs[0].data.parent_coordinates()
+                *_, strand = self.seqs[0].seq.parent_coordinates()
 
             spans = numpy.array(feature["spans"])
             spans = seq_map.relative_position(spans)
@@ -4110,6 +4135,360 @@ class Alignment(SequenceCollection):
             # and if i've been reversed...?
             feature["strand"] = "-" if strand == -1 else "+"
             yield self.make_feature(feature=feature, on_alignment=on_al)
+
+
+    def get_drawables(self, *, biotype: Optional[str, Iterable[str]] = None) -> dict:
+        """returns a dict of drawables, keyed by type
+
+        Parameters
+        ----------
+        biotype
+            passed to get_features(biotype). Can be a single biotype or
+            series. Only features matching this will be included.
+        """
+        result = defaultdict(list)
+        for f in self.get_features(biotype=biotype, allow_partial=True):
+            result[f.biotype].append(f.get_drawable())
+        return result
+
+    def get_drawable(
+        self,
+        *,
+        biotype: Optional[str, Iterable[str]] = None,
+        width: int = 600,
+        vertical: int = False,
+        title: OptStr = None,
+    ):
+        """make a figure from sequence features
+
+        Parameters
+        ----------
+        biotype
+            passed to get_features(biotype). Can be a single biotype or
+            series. Only features matching this will be included.
+        width
+            width in pixels
+        vertical
+            rotates the drawable
+        title
+            title for the plot
+
+        Returns
+        -------
+        a Drawable instance
+        """
+        # todo gah I think this needs to be modified to make row-blocks
+        # for each sequence in the alignment, or are we displaying the
+        # sequence name in the feature label?
+        from cogent3.draw.drawable import Drawable
+
+        drawables = self.get_drawables(biotype=biotype)
+        if not drawables:
+            return None
+        # we order by tracks
+        top = 0
+        space = 0.25
+        annotes = []
+        for feature_type in drawables:
+            new_bottom = top + space
+            for i, annott in enumerate(drawables[feature_type]):
+                annott.shift(y=new_bottom - annott.bottom)
+                if i > 0:
+                    # todo modify the api on annott, we should not be using
+                    # a private attribute!
+                    annott._showlegend = False
+                annotes.append(annott)
+
+            top = annott.top
+
+        top += space
+        height = max((top / len(self)) * width, 300)
+        xaxis = dict(range=[0, len(self)], zeroline=False, showline=True)
+        yaxis = dict(range=[0, top], visible=False, zeroline=True, showline=True)
+
+        if vertical:
+            all_traces = [t.T.as_trace() for t in annotes]
+            width, height = height, width
+            xaxis, yaxis = yaxis, xaxis
+        else:
+            all_traces = [t.as_trace() for t in annotes]
+
+        drawer = Drawable(
+            title=title, traces=all_traces, width=width, height=height
+        )
+        drawer.layout.update(xaxis=xaxis, yaxis=yaxis)
+        return drawer
+
+    def seqlogo(
+        self,
+        width: float = 700,
+        height: float = 100,
+        wrap: OptInt = None,
+        vspace: float = 0.005,
+        colours: dict = None,
+    ):
+        """returns Drawable sequence logo using mutual information
+
+        Parameters
+        ----------
+        width, height
+            plot dimensions in pixels
+        wrap
+            number of alignment columns per row
+        vspace
+            vertical separation between rows, as a proportion of total plot
+        colours
+            mapping of characters to colours. If note provided, defaults to
+            custom for everything ecept protein, which uses protein moltype
+            colours.
+
+        Notes
+        -----
+        Computes MI based on log2 and includes the gap state, so the maximum
+        possible value is -log2(1/num_states)
+        """
+        assert 0 <= vspace <= 1, "vertical space must be in range 0, 1"
+        freqs = self.counts_per_pos(allow_gap=True).to_freq_array()
+        if colours is None and "protein" in self.moltype.label:
+            colours = self.moltype._colors
+
+        return freqs.logo(
+            width=width, height=height, wrap=wrap, vspace=vspace, colours=colours
+        )
+
+    @c3warn.deprecated_args(
+        "2024.12", reason="consistency", old_new=[("method", "stat")]
+    )
+    def coevolution(
+        self,
+        stat="nmi",
+        segments=None,
+        drawable=None,
+        show_progress=False,
+        parallel=False,
+        par_kw=None,
+    ):
+        """performs pairwise coevolution measurement
+
+        Parameters
+        ----------
+        stat : str
+            coevolution metric, defaults to 'nmi' (Normalized Mutual
+            Information). Valid choices are 'rmi' (Resampled Mutual Information)
+            and 'mi', mutual information.
+        segments : coordinate series
+            coordinates of the form [(start, end), ...] where all possible
+            pairs of alignment positions within and between segments are
+            examined.
+        drawable : None or str
+            Result object is capable of plotting data specified type. str value
+            must be one of plot type 'box', 'heatmap', 'violin'.
+        show_progress : bool
+            shows a progress bar
+
+        Returns
+        -------
+        DictArray of results with lower-triangular values. Upper triangular
+        elements and estimates that could not be computed for numerical reasons
+        are set as nan
+        """
+        from cogent3.draw.drawable import AnnotatedDrawable, Drawable
+        from cogent3.evolve import coevolution as coevo
+        from cogent3.util.union_dict import UnionDict
+
+        stat = stat.lower()
+        if segments:
+            segments = [range(*segment) for segment in segments]
+
+        result = coevo.coevolution_matrix(
+            alignment=self,
+            stat=stat,
+            positions=segments,
+            show_progress=show_progress,
+            parallel=parallel,
+            par_kw=par_kw,
+        )
+        if drawable is None:
+            return result
+
+        trace_name = os.path.basename(self.info.source) if self.info.source else None
+        if drawable in ("box", "violin"):
+            trace = UnionDict(
+                type=drawable, y=result.array.flatten(), showlegend=False, name=""
+            )
+            draw = Drawable(
+                width=500, height=500, title=trace_name, ytitle=stat.upper()
+            )
+            draw.add_trace(trace)
+            result = draw.bound_to(result)
+        elif drawable:
+            axis_title = "Alignment Position"
+            axis_args = dict(
+                showticklabels=True,
+                mirror=True,
+                showgrid=False,
+                showline=True,
+                zeroline=False,
+            )
+            height = 500
+            width = height
+            draw = Drawable(
+                width=width,
+                height=height,
+                xtitle=axis_title,
+                ytitle=axis_title,
+                title=trace_name,
+            )
+
+            trace = UnionDict(
+                type="heatmap",
+                z=result.array,
+                colorbar=dict(title=dict(text=stat.upper(), font=dict(size=16))),
+            )
+            draw.add_trace(trace)
+            draw.layout.xaxis.update(axis_args)
+            draw.layout.yaxis.update(axis_args)
+
+            try:
+                bottom = self.get_drawable()
+                left = self.get_drawable(vertical=True)
+            except AttributeError:
+                bottom = False
+
+            if bottom and drawable != "box":
+                xlim = 1.2
+                draw.layout.width = height * xlim
+                layout = dict(legend=dict(x=xlim, y=1))
+                draw = AnnotatedDrawable(
+                    draw,
+                    left_track=left,
+                    bottom_track=bottom,
+                    xtitle=axis_title,
+                    ytitle=axis_title,
+                    xrange=[0, len(self)],
+                    yrange=[0, len(self)],
+                    layout=layout,
+                )
+
+            result = draw.bound_to(result)
+
+        return result
+
+    def information_plot(
+        self,
+        width: OptInt = None,
+        height: OptInt = None,
+        window: OptInt = None,
+        stat: str = "median",
+        include_gap: bool = True,
+    ):
+        """plot information per position
+
+        Parameters
+        ----------
+        width
+            figure width in pixels
+        height
+            figure height in pixels
+        window
+            used for smoothing line, defaults to sqrt(length)
+        stat
+            'mean' or 'median, used as the summary statistic for each window
+        include_gap
+            whether to include gap counts, shown on right y-axis
+        """
+        from cogent3.draw.drawable import AnnotatedDrawable, Drawable
+
+        window = window or numpy.sqrt(len(self))
+        window = int(window)
+        y = self.entropy_per_pos()
+        nan_indices = numpy.isnan(y)
+        max_entropy = y[nan_indices == False].max()
+        y = max_entropy - y  # convert to information
+        # now make all nan's 0
+        y[nan_indices] = 0
+        stats = {"mean": numpy.mean, "median": numpy.median}
+        if stat not in stats:
+            raise ValueError('stat must be either "mean" or "median"')
+        calc_stat = stats[stat]
+        num = len(y) - window
+        v = [calc_stat(y[i : i + window]) for i in range(num)]
+        x = numpy.arange(num)
+        x += window // 2  # shift x-coordinates to middle of window
+        trace_line = UnionDict(
+            type="scatter",
+            x=x,
+            y=v,
+            mode="lines",
+            name=f"smoothed {stat}",
+            line=dict(shape="spline", smoothing=1.3),
+        )
+        trace_marks = UnionDict(
+            type="scatter",
+            x=numpy.arange(y.shape[0]),
+            y=y,
+            mode="markers",
+            opacity=0.5,
+            name="per position",
+        )
+        layout = UnionDict(
+            title="Information per position",
+            width=width,
+            height=height,
+            showlegend=True,
+            yaxis=dict(range=[0, max(y) * 1.2], showgrid=False),
+            xaxis=dict(
+                showgrid=False, range=[0, len(self)], mirror=True, showline=True
+            ),
+        )
+
+        traces = [trace_marks, trace_line]
+        if include_gap:
+            gap_counts = self.count_gaps_per_pos()
+            y = [calc_stat(gap_counts[i : i + window]) for i in range(num)]
+            trace_g = UnionDict(
+                type="scatter",
+                x=x,
+                y=y,
+                yaxis="y2",
+                name="Gaps",
+                mode="lines",
+                line=dict(shape="spline", smoothing=1.3),
+            )
+            traces += [trace_g]
+            layout.yaxis2 = dict(
+                title="Count",
+                side="right",
+                overlaying="y",
+                range=[0, max(gap_counts) * 1.2],
+                showgrid=False,
+                showline=True,
+            )
+
+        draw = Drawable(
+            title="Information per position",
+            xtitle="Position",
+            ytitle=f"Information (window={window})",
+        )
+        draw.traces.extend(traces)
+        draw.layout |= layout
+        draw.layout.legend = dict(x=1.1, y=1)
+
+        try:
+            drawable = self.get_drawable()
+        except AttributeError:
+            drawable = False
+
+        if drawable:
+            draw = AnnotatedDrawable(
+                draw,
+                bottom_track=drawable,
+                xtitle="position",
+                ytitle=f"Information (window={window})",
+                layout=layout,
+            )
+
+        return draw
 
     def to_pretty(self, name_order=None, wrap=None):
         """returns a string representation of the alignment in pretty print format
