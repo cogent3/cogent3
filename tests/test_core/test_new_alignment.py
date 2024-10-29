@@ -7,7 +7,7 @@ from warnings import catch_warnings, filterwarnings
 import numpy
 import pytest
 
-from cogent3 import get_app, load_unaligned_seqs, open_
+from cogent3 import get_app, load_seq, load_unaligned_seqs, open_
 from cogent3._version import __version__
 from cogent3.core import new_alignment, new_alphabet, new_moltype, new_sequence
 from cogent3.core.annotation import Feature
@@ -136,6 +136,16 @@ def gb_db(DATA_DIR):
 @pytest.fixture(scope="function")
 def gff_db(DATA_DIR):
     return load_annotations(path=DATA_DIR / "simple.gff")
+
+
+@pytest.fixture(scope="function")
+def annotated_seq(DATA_DIR):
+    return load_seq(
+        DATA_DIR / "c_elegans_WS199_dna_shortened.fasta",
+        annotation_path=DATA_DIR / "c_elegans_WS199_shortened_gff.gff3",
+        moltype="dna",
+        new_type=True,
+    )
 
 
 @pytest.fixture(scope="function")
@@ -1804,16 +1814,19 @@ def test_sequence_collection_dotplot(dotplot_seqs):
         dotplot_seqs.dotplot(name1="Human", name2="Dog")
 
 
-def test_sequence_collection_dotplot_annotated():
-    """exercising dotplot method with annotated sequences"""
-    db = GffAnnotationDb()
-    db.add_feature(seqid="Human", biotype="exon", name="fred", spans=[(10, 15)])
+@pytest.mark.parametrize("with_annotations", [True, False])
+def test_sequence_collection_dotplot_annotated(annotated_seq, with_annotations):
+    if not with_annotations:
+        annotated_seq.replace_annotation_db(None)  # this drops all annotations
 
-    data = {"Human": "CAGATTTGGCAGTT-", "Mouse": "CAGATTCAGCAGGTG"}
-    seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
-    seqs.annotation_db = db
-    seqs = seqs.take_seqs(["Human", "Mouse"], copy_annotations=True)
-    _ = seqs.dotplot(show_progress=False)
+    coll = new_alignment.make_unaligned_seqs(
+        {"c_elegans": annotated_seq}, moltype="dna"
+    )
+    dp = coll.dotplot()
+    if with_annotations:
+        assert len(dp.figure.data) > 2
+    else:
+        assert len(dp.figure.data) == 2
 
 
 @pytest.mark.parametrize(
