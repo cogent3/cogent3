@@ -3427,7 +3427,7 @@ class Alignment(SequenceCollection):
             moltype=self.moltype,
             info=self.info,
         )
-        if abs(slice.step) > 1:
+        if abs(new_slice.step or 1) > 1:
             return new
 
         # for simple slices, we retain the annotation database
