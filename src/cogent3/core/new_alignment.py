@@ -4186,7 +4186,6 @@ class Alignment(SequenceCollection):
 
         return self.filtered(gaps_ok, motif_length=motif_length)
 
-
     def trim_stop_codons(self, gc: Any = None, strict: bool = False, **kwargs):
         # refactor: array
         if not self.has_terminal_stop(gc=gc, strict=strict):

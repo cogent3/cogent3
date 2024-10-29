@@ -3813,7 +3813,6 @@ def test_filtered_drop_remainder():
     assert len(got) == 4
 
 
-
 @pytest.fixture
 def alignment():
     data = {
