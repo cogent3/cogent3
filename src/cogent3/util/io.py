@@ -154,22 +154,24 @@ def open_url(url: Union[str, ParseResult], mode="rt", **kwargs) -> IO:
 
     Raises
     ------
-    If not http(s).
+    Rasies IOError if mode is write or it's not a url.
+
+    Returns
+    -------
+    file object which reads binary if "b" in mode, else text.
     """
     _, compression = get_format_suffixes(
         getattr(url, "path", url)
     )  # handling possibility of ParseResult
     mode = mode or "r"
 
+    if "r" not in mode:
+        raise IOError("opening a url only allowed in read mode")
+
     if not is_url(url):
-        raise ValueError(
-            f"URL scheme must be http, https or file, not {str(url)[:20]!r}"
-        )
+        raise IOError(f"URL scheme must be http, https or file, not {str(url)[:20]!r}")
 
     url_parsed = url if isinstance(url, ParseResult) else urlparse(url)
-
-    if "r" not in mode:
-        raise ValueError("opening a url only allowed in read mode")
 
     response = urlopen(url_parsed.geturl(), timeout=10)
     encoding = response.headers.get_content_charset()
