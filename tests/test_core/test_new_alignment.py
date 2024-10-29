@@ -655,6 +655,12 @@ def test_make_seqs_from_sequences(mk_cls):
     assert isinstance(coll, new_alignment.SequenceCollection)
     assert coll.names == ["seq1", "seq2"]
 
+    # if we set different names to the seq names, they should be used
+    coll = mk_cls({"s1": seq1, "s2": seq2}, moltype="dna")
+    assert isinstance(coll, new_alignment.SequenceCollection)
+    assert coll.names == ["s1", "s2"]
+    assert coll.get_seq("s1") == seq1
+
 
 @pytest.mark.parametrize(
     "mk_cls, data_cls",
