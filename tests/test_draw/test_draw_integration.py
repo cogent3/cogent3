@@ -241,7 +241,7 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
             obj = method(drawable=style, **kwargs)
             self._check_drawable_attrs(obj.drawable.figure, style)
 
-    def test_dotplot_regression(self):
+    def test_dotplot_regression(self):  # ported
         """Tests whether dotplot produces traces and in correct ordering."""
         aln = load_aligned_seqs("data/brca1.fasta", moltype="dna")
         aln = aln.take_seqs(["Human", "Chimpanzee"])
@@ -268,7 +268,7 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
                 "Trace name still present in dp traces even after popping off trace",
             )
 
-    def test_dotplot_annotated(self):
+    def test_dotplot_annotated(self):  # ported
         """alignment with / without annotated seqs"""
         from cogent3.draw.dotplot import Dotplot
 
@@ -305,7 +305,7 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         self.assertIsInstance(dp.bottom_track, Drawable)
         self.assertIsInstance(dp.left_track, Drawable)
 
-    def test_annotated_dotplot_remove_tracks(self):
+    def test_annotated_dotplot_remove_tracks(self):  # ported
         """removing annotation tracks from dotplot should work"""
         # both annotated
         aln = load_alignment(True, True)
@@ -335,7 +335,7 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         self.assertIsNot(dp.figure, orig_fig)
         self.assertIsInstance(dp.figure, UnionDict)
 
-    def test_count_gaps_per_seq(self):
+    def test_count_gaps_per_seq(self):  # ported
         """creation of drawables works"""
         styles = "bar", "box", "violin"
         aln = load_alignment(False, False)
@@ -347,7 +347,7 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         aln = aln.to_type(array_align=True)
         self._check_drawable_styles(aln.count_gaps_per_seq, styles)
 
-    def test_coevo_drawables(self):
+    def test_coevo_drawables(self):  # ported
         """coevolution produces drawables"""
         styles = "box", "heatmap", "violin"
         aln = load_alignment(False, False)
@@ -359,7 +359,7 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         aln = aln.to_type(array_align=True)
         self._check_drawable_styles(aln.coevolution, styles, show_progress=False)
 
-    def test_coevo_annotated(self):
+    def test_coevo_annotated(self):  # ported
         """coevolution on alignment with annotated seqs should add to heatmap plot"""
         aln = load_alignment(True, False)
         aln = aln[:30]
@@ -369,7 +369,7 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         self.assertIsInstance(drawable.left_track, Drawable)
         self.assertIsInstance(drawable.bottom_track, Drawable)
 
-    def test_information_plot(self):
+    def test_information_plot(self):  # ported
         """infoprmation plot makes a drawable"""
         aln = load_alignment(False, False)
         drawable = aln.information_plot()
@@ -380,7 +380,7 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         drawable = aln.information_plot()
         self._check_drawable_attrs(drawable.figure, "scatter")
 
-    def test_get_drawable(self):
+    def test_get_drawable(self):  # ported
         """sliced alignment with features returns a drawable"""
         aln = make_aligned_seqs(
             data=dict(a="AAACGGTTT", b="CAA--GTAA"), array_align=False
