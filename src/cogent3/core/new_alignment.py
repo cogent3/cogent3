@@ -2262,6 +2262,22 @@ def _(first: tuple, data: Union[list, set]) -> dict[str, StrORBytesORArray]:
     return {name_seq[0]: name_seq[1] for name_seq in data}
 
 
+def _make_name_map(data: dict) -> tuple[OptDict, dict]:
+    if not isinstance(data, dict) or not isinstance(
+        next(iter(data.values()), None), new_sequence.Sequence
+    ):
+        return None, data
+    # if we have a dict of Sequences, {name: seq, ...}, then the provided names
+    # may differ to the name attribute on the Sequences. If the Sequences have
+    # annotations, then we will need to map between the names in order to
+    # query the annotation database. We do this by creating a name_map.
+    # Note that we do (seq.name or name) to handle when the Sequence name is
+    # None
+    name_map = {name: (seq.name or name) for name, seq in data.items()}
+    data = {(seq.name or name): numpy.array(seq) for name, seq in data.items()}
+    return name_map, data
+
+
 @singledispatch
 def make_unaligned_seqs(
     data: Union[dict[str, StrORBytesORArray], list, SeqsDataABC],
@@ -2320,17 +2336,10 @@ def make_unaligned_seqs(
 
     annotation_db = annotation_db or merged_db_collection(data)
 
-    if isinstance(data, dict) and isinstance(
-        next(iter(data.values()), None), new_sequence.Sequence
-    ):
-        # if we have a dict of Sequences, {name: seq, ...}, then the provided names
-        # may differ to the name attribute on the Sequences. If the Sequences have
-        # annotations, then we will need to map between the names in order to
-        # query the annotation database. We do this by creating a name_map.
-        # Note that we do (seq.name or name) to handle when the Sequence name is
-        # None
-        name_map = {name: (seq.name or name) for name, seq in data.items()}
-        data = {(seq.name or name): numpy.array(seq) for name, seq in data.items()}
+    # if we have Sequences, we need to construct the name map before we construct
+    # the SeqsData object - however, a name_map is provided, we assume that it
+    # corrects for any naming differences in data and skip this step
+    name_map, data = _make_name_map(data) if name_map is None else (name_map, data)
 
     seqs_data = coerce_to_seqs_data_dict(data, label_to_name=label_to_name)
 
@@ -4379,17 +4388,10 @@ def make_aligned_seqs(
     moltype = new_moltype.get_moltype(moltype)
     alphabet = moltype.most_degen_alphabet()
 
-    if isinstance(data, dict) and isinstance(
-        next(iter(data.values()), None), new_sequence.Sequence
-    ):
-        # if we have a dict of Sequences, {name: seq, ...}, then the provided names
-        # may differ to the name attribute on the Sequences. If the Sequences have
-        # annotations, then we will need to map between the names in order to
-        # query the annotation database. We do this by creating a name_map.
-        # Note that we do (seq.name or name) to handle when the Sequence name is
-        # None
-        name_map = {name: (seq.name or name) for name, seq in data.items()}
-        data = {(seq.name or name): numpy.array(seq) for name, seq in data.items()}
+    # if we have Sequences, we need to construct the name map before we construct
+    # the SeqsData object - however, a name_map is provided, we assume that it
+    # corrects for any naming differences in data and skip this step
+    name_map, data = _make_name_map(data) if name_map is None else (name_map, data)
 
     data = coerce_to_seqs_data_dict(data, label_to_name=label_to_name)
 
