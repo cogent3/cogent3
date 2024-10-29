@@ -77,6 +77,95 @@ def assign_sequential_names(num_seqs: int, base_name: str = "seq", start_at: int
     return [f"{base_name}_{i}" for i in range(start_at, start_at + num_seqs)]
 
 
+class GapsOk:
+    """determine whether number of gaps satisfies allowed_frac"""
+
+    def __init__(
+        self,
+        gap_chars,
+        allowed_frac=0,
+        motif_length=1,
+        is_array=False,
+        negate=False,
+        gap_run=False,
+        allowed_run=1,
+    ):
+        """
+        Parameters
+        ----------
+        gap_chars
+            characters corresponding to gaps
+        allowed_frac : float
+            the threshold gap fraction, ignored if gap_run
+        motif_length : int
+            used to adjust for the denominator in the gap fraction
+        is_array : bool
+            whether input will be a numpy array
+        negate : bool
+            if False (default) evaluates fraction of gap
+            characters <= allowed_frac, if True, >= allowed_frac
+        gap_run : bool
+            check for runs of gaps
+        allowed_run : int
+            length of the allowed gap run
+
+        """
+        self.motif_length = motif_length
+        self.is_array = is_array
+        self.allowed_frac = allowed_frac
+        self.allowed_run = allowed_run
+        if gap_run:
+            self._func = self.gap_run_ok
+        elif negate:
+            self._func = self.gap_frac_not_ok
+        else:
+            self._func = self.gap_frac_ok
+
+        try:
+            self.gap_chars = set(gap_chars)
+        except TypeError:
+            self.gap_chars = {gap_chars}
+
+    def _get_gap_frac(self, data):
+        length = len(data) * self.motif_length
+        # flatten the data and count elements equal to gap
+        if self.is_array:
+            data = Counter(data.flatten())
+        else:
+            data = Counter("".join([str(d) for d in data]))
+
+        num_gap = sum(data[g] for g in self.gap_chars)
+        return num_gap / length
+
+    def gap_frac_ok(self, data):
+        """fraction of gap characters <= allowed_frac"""
+        gap_frac = self._get_gap_frac(data)
+        return gap_frac <= self.allowed_frac
+
+    def gap_frac_not_ok(self, data):
+        """fraction of gap characters >= allowed_frac"""
+        gap_frac = self._get_gap_frac(data)
+        return gap_frac >= self.allowed_frac
+
+    def gap_run_ok(self, seq):
+        """runs of gaps <= allowed_run"""
+        curr_run = 0
+        is_gap = self.gap_chars.__contains__
+        result = True
+        for i in seq:
+            if is_gap(i):
+                curr_run += 1
+                if curr_run > self.allowed_run:
+                    result = False
+                    break
+            else:
+                curr_run = 0
+        return result
+
+    def __call__(self, data):
+        return self._func(data)
+
+
 class SeqDataView(new_sequence.SeqView):
     """
     A view class for SeqsData, providing methods for different representations
