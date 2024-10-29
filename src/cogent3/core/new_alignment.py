@@ -4006,6 +4006,28 @@ class Alignment(SequenceCollection):
             for pos in range(start, end, step):
                 yield self[pos : pos + window]
 
+    def omit_gap_pos(self, allowed_gap_frac: float = 1 - EPS, motif_length: int = 1):
+        """Returns new alignment where all cols (motifs) have <= allowed_gap_frac gaps.
+
+        Parameters
+        ----------
+        allowed_gap_frac
+            specifies proportion of gaps is allowed in each column. Set to 0 to
+            exclude columns with any gaps, 1 to include all columns.
+        motif_length
+            set's the "column" width, e.g. setting to 3 corresponds to codons.
+            A motif that includes a gap at any position is included in the
+            counting.
+        """
+
+        gaps = list(self.moltype.gaps)
+
+        gaps_ok = GapsOk(
+            gaps, allowed_gap_frac, is_array=False, motif_length=motif_length
+        )
+
+        return self.filtered(gaps_ok, motif_length=motif_length)
+
     def _get_seq_features(
         self,
         *,
