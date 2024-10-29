@@ -6,7 +6,7 @@ import re
 import typing
 import warnings
 from abc import ABC, abstractmethod
-from collections import defaultdict
+from collections import Counter, defaultdict
 from functools import singledispatch, singledispatchmethod
 from pathlib import Path
 from typing import Any, Callable, Iterator, Mapping, Optional, Union
@@ -4321,7 +4321,6 @@ class Alignment(SequenceCollection):
             feature["strand"] = "-" if strand == -1 else "+"
             yield self.make_feature(feature=feature, on_alignment=on_al)
 
-
     def get_drawables(self, *, biotype: Optional[str, Iterable[str]] = None) -> dict:
         """returns a dict of drawables, keyed by type
 
@@ -4469,7 +4468,7 @@ class Alignment(SequenceCollection):
         show_progress
             shows a progress bar.
         parallel
-            run in parallel, according to arguments in par_kwargs. 
+            run in parallel, according to arguments in par_kwargs.
         par_kw
             dict of values for configuring parallel execution.
 
