@@ -3822,6 +3822,73 @@ def test_filtered_drop_remainder():
     assert len(got) == 4
 
 
+def test_omit_gap_pos_motif_length():
+    """consistency with different motif_length values"""
+    data = {
+        "seq1": "CAGGTCGACCTCGGC---------CACGAC",
+        "seq2": "CAGATCGACCTCGGC---------CACGAC",
+        "seq3": "CAGATCGACCTCGGT---------CACGAT",
+        "seq4": "CAGATCGACCTCGGCGAACACGGCCATGAT",
+        "seq5": "CCGATCGACATGGGC---------CACGAT",
+        "seq6": "GCC---------------------------",
+    }
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    got1 = aln.omit_gap_pos(motif_length=1)
+    got3 = aln.omit_gap_pos(motif_length=3)
+    assert len(got3) == len(got1)
+    assert got3.to_dict() == got1.to_dict()
+
+
+def test_omit_gap_pos():
+    """Alignment omit_gap_pos should return alignment w/o positions of gaps"""
+    aln = new_alignment.make_aligned_seqs(
+        {"a": "--A-BC-", "b": "-CB-A--", "c": "--D-EF-"}, moltype="protein"
+    )
+    # first, check behavior when we're just acting on the cols (and not
+    # trying to delete the naughty seqs).
+
+    # default should strip out cols that are 100% gaps
+    result = aln.omit_gap_pos()
+    assert result.to_dict() == {"a": "-ABC", "b": "CBA-", "c": "-DEF"}
+    # if allowed_gap_frac is 1, shouldn't delete anything
+    assert aln.omit_gap_pos(1).to_dict() == {
+        "a": "--A-BC-",
+        "b": "-CB-A--",
+        "c": "--D-EF-",
+    }
+
+    # if allowed_gap_frac is 0, should strip out any cols containing gaps
+    assert aln.omit_gap_pos(0).to_dict() == {"a": "AB", "b": "BA", "c": "DE"}
+    # intermediate numbers should work as expected
+    assert aln.omit_gap_pos(0.4).to_dict() == {"a": "ABC", "b": "BA-", "c": "DEF"}
+    assert aln.omit_gap_pos(0.7).to_dict() == {"a": "-ABC", "b": "CBA-", "c": "-DEF"}
+
+    # when we increase the number of sequences to 6, more differences
+    # start to appear.
+    new_aln = aln.add_seqs({"d": "-------", "e": "XYZXYZX", "f": "AB-CDEF"})
+
+    # if no gaps are allowed, we get None
+    assert new_aln.omit_gap_pos(0) is None
+
+
+def test_omit_gap_pos_motif_length():
+    """consistency with different motif_length values"""
+    data = {
+        "seq1": "CAGGTCGACCTCGGC---------CACGAC",
+        "seq2": "CAGATCGACCTCGGC---------CACGAC",
+        "seq3": "CAGATCGACCTCGGT---------CACGAT",
+        "seq4": "CAGATCGACCTCGGCGAACACGGCCATGAT",
+        "seq5": "CCGATCGACATGGGC---------CACGAT",
+        "seq6": "GCC---------------------------",
+    }
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    got1 = aln.omit_gap_pos(motif_length=1)
+    got3 = aln.omit_gap_pos(motif_length=3)
+    assert len(got3) == len(got1)
+    assert got3.to_dict() == got1.to_dict()
+
+
+
 @pytest.fixture
 def alignment():
     data = {
