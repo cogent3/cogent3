@@ -1035,8 +1035,6 @@ class SequenceCollection:
         if self.annotation_db is None:
             self.annotation_db = type(seq_db)()
 
-        # refactor
-        # if we update a db with the same db, it just hangs... need to fix
         if self.annotation_db.compatible(seq_db, symmetric=False):
             # our db contains the tables in other, so we update in place
             self.annotation_db.update(annot_db=seq_db, seqids=self.names)
@@ -2266,7 +2264,7 @@ def _(first: tuple, data: Union[list, set]) -> dict[str, StrORBytesORArray]:
 
 @singledispatch
 def make_unaligned_seqs(
-    data: Union[dict[str, StrORBytesORArray], SeqsData, list],
+    data: Union[dict[str, StrORBytesORArray], list],
     *,
     moltype: Union[str, new_moltype.MolType],
     label_to_name: OptRenamerCallable = None,
@@ -2313,6 +2311,10 @@ def make_unaligned_seqs(
     # rename offset to offsets as it could track potentially multiple offsets
     # refactor: add offset/s to docstring
 
+    # refactor: design
+    # define a source attribute rather than storing as .info["source"]
+    # this will also replace the previous name attribute
+
     if len(data) == 0:
         raise ValueError("data must be at least one sequence.")
 
@@ -2336,14 +2338,13 @@ def make_unaligned_seqs(
     alphabet = moltype.most_degen_alphabet()
 
     seqs_data = SeqsData(data=seqs_data, alphabet=alphabet, offset=offset)
+    # we do not pass on offset/label_to_name as they are handled in this function
     return make_unaligned_seqs(
         seqs_data,
         moltype=moltype,
-        label_to_name=label_to_name,
         info=info,
         source=source,
         annotation_db=annotation_db,
-        offset=offset,
         name_map=name_map,
     )
 
@@ -2366,13 +2367,13 @@ def _(
             f"Provided moltype: {moltype} is not compatible with SeqsData alphabet {data.alphabet}"
         )
 
-    info = info if isinstance(info, dict) else {}
-    if source:
-        info["source"] = str(source)
-    else:
-        info["source"] = str(info.get("source", "unknown"))
+    # we cannot set offset when creating from an SeqsData
+    if offset:
+        raise ValueError(f"Setting offset is not supported for {data=}")
 
-    return SequenceCollection(
+    info = info if isinstance(info, dict) else {}
+    info["source"] = str(source) if source else str(info.get("source", "unknown"))
+    seqs = SequenceCollection(
         seqs_data=data,
         moltype=moltype,
         info=info,
@@ -2380,6 +2381,9 @@ def _(
         source=source,
         name_map=name_map,
     )
+    if label_to_name:
+        seqs = seqs.rename_seqs(label_to_name)
+    return seqs
 
 
 @singledispatch
@@ -2434,7 +2438,9 @@ def _(
 
 
 @seq_to_gap_coords.register
-def _(seq: str, *, alphabet: new_alphabet.AlphabetABC) -> tuple[str, numpy.ndarray]:
+def _(
+    seq: str, *, alphabet: new_alphabet.AlphabetABC
+) -> tuple[numpy.ndarray, numpy.ndarray]:
     if not alphabet.is_valid(seq):
         raise new_alphabet.AlphabetError(f"Sequence is invalid for alphabet {alphabet}")
 
@@ -2446,6 +2452,13 @@ def _(
     seq: bytes, *, alphabet: new_alphabet.AlphabetABC
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
     return seq_to_gap_coords(seq.decode("utf-8"), alphabet=alphabet)
+
+
+@seq_to_gap_coords.register
+def _(
+    seq: new_sequence.Sequence, *, alphabet: new_alphabet.AlphabetABC
+) -> tuple[numpy.ndarray, numpy.ndarray]:
+    return seq_to_gap_coords(numpy.array(seq), alphabet=alphabet)
 
 
 class Aligned:
@@ -2704,10 +2717,10 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         if check or not align_len:
             if not seqs or not gaps:
                 raise ValueError("Both seqs and gaps must be provided.")
-            if set(seqs.keys()) != set(gaps.keys()):
+            if seqs.keys() != gaps.keys():
                 raise ValueError("Keys in seqs and gaps must be identical.")
             if offset:
-                assert set(offset.keys()).issubset(seqs.keys())
+                assert offset.keys().issubset(seqs.keys())
             gapped_seq_lengths = {
                 _gapped_seq_len(v, l) for v, l in zip(seqs.values(), gaps.values())
             }
@@ -4350,36 +4363,50 @@ class Alignment(SequenceCollection):
 
 @singledispatch
 def make_aligned_seqs(
-    data: Union[dict[str, StrORBytesORArray], AlignedSeqsData],
+    data: Union[dict[str, StrORBytesORArray], list],
     *,
     moltype: str,
+    label_to_name: OptRenamerCallable = None,
     info: dict = None,
-    offset: dict[str, int] = None,
+    source: OptPathType = None,
     annotation_db: SupportsFeatures = None,
-) -> Alignment:
-    raise NotImplementedError(f"make_aligned_seqs not implemented for {type(data)}")
-
-
-@make_aligned_seqs.register
-def _(
-    data: dict,
-    *,
-    moltype: str,
-    info: dict = None,
     offset: dict[str, int] = None,
-    annotation_db: SupportsFeatures = None,
+    name_map: dict[str, str] = None,
 ) -> Alignment:
-    # todo: implement a coerce to AlignedSeqsData dict function
+    if len(data) == 0:
+        raise ValueError("data must be at least one sequence.")
+
     moltype = new_moltype.get_moltype(moltype)
     alphabet = moltype.most_degen_alphabet()
-    aligned_data = AlignedSeqsData.from_seqs(
+
+    if (
+        isinstance(data, dict)
+        and isinstance(next(iter(data.values()), None), new_sequence.Sequence)
+        and annotation_db
+    ):
+        # if we have a dict of Sequences, the keys in the dict (names) might
+        # be different to the names of the Sequences. If the Sequences have
+        # annotations, then we will need to make a name_map between the provided
+        # data and the names of the Sequences.
+        name_map = {key: value.name for key, value in data.items()}
+        data = {seq.name: numpy.array(seq) for seq in data.values()}
+
+    data = coerce_to_seqs_data_dict(data, label_to_name=label_to_name)
+
+    seqs_data = AlignedSeqsData.from_seqs(
         data=data,
         alphabet=alphabet,
         offset=offset,
     )
     annotation_db = annotation_db or merged_db_collection(data)
+    # we do not pass on offset/label_to_name as they are handled in this function
     return make_aligned_seqs(
-        aligned_data, moltype=moltype, info=info, annotation_db=annotation_db
+        seqs_data,
+        moltype=moltype,
+        info=info,
+        annotation_db=annotation_db,
+        source=source,
+        name_map=name_map,
     )
 
 
@@ -4388,9 +4415,12 @@ def _(
     data: AlignedSeqsDataABC,
     *,
     moltype: str,
+    label_to_name: OptRenamerCallable = None,
     info: dict = None,
-    offset: dict[str, int] = None,
+    source: OptPathType = None,
     annotation_db: SupportsFeatures = None,
+    offset: dict[str, int] = None,
+    name_map: dict[str, str] = None,
 ) -> Alignment:
     moltype = new_moltype.get_moltype(moltype)
     if not moltype.is_compatible_alphabet(data.alphabet):
@@ -4399,6 +4429,21 @@ def _(
             f" alphabet: {data.alphabet}",
         )
 
-    return Alignment(
-        seqs_data=data, moltype=moltype, info=info, annotation_db=annotation_db
+    # we cannot set offset when creating from an AlignedSeqsData
+    if offset:
+        raise ValueError(f"Setting offset is not supported for {data=}")
+
+    info = info if isinstance(info, dict) else {}
+    info["source"] = str(source) if source else str(info.get("source", "unknown"))
+
+    aln = Alignment(
+        seqs_data=data,
+        moltype=moltype,
+        info=info,
+        source=source,
+        annotation_db=annotation_db,
+        name_map=name_map,
     )
+    if label_to_name:
+        aln = aln.rename_seqs(label_to_name)
+    return aln
