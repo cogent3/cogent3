@@ -528,7 +528,7 @@ def gzip_uri(DATA_DIR, tmp_path):
     data = inpath.read_text()
     outpath = tmp_path / "sample.tsv.gz"
     with open_(outpath, "wb") as outfile:
-        outfile.write(data)
+        outfile.write(data.encode("utf8"))
 
     return outpath.as_uri()
 
