@@ -2337,7 +2337,7 @@ def make_unaligned_seqs(
     annotation_db = annotation_db or merged_db_collection(data)
 
     # if we have Sequences, we need to construct the name map before we construct
-    # the SeqsData object - however, a name_map is provided, we assume that it
+    # the SeqsData object - however, if a name_map is provided, we assume that it
     # corrects for any naming differences in data and skip this step
     name_map, data = _make_name_map(data) if name_map is None else (name_map, data)
 
@@ -4389,7 +4389,7 @@ def make_aligned_seqs(
     alphabet = moltype.most_degen_alphabet()
 
     # if we have Sequences, we need to construct the name map before we construct
-    # the SeqsData object - however, a name_map is provided, we assume that it
+    # the SeqsData object - however, if a name_map is provided, we assume that it
     # corrects for any naming differences in data and skip this step
     name_map, data = _make_name_map(data) if name_map is None else (name_map, data)
 
