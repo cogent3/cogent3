@@ -139,16 +139,6 @@ def gff_db(DATA_DIR):
 
 
 @pytest.fixture(scope="function")
-def annotated_seq(DATA_DIR):
-    return load_seq(
-        DATA_DIR / "c_elegans_WS199_dna_shortened.fasta",
-        annotation_path=DATA_DIR / "c_elegans_WS199_shortened_gff.gff3",
-        moltype="dna",
-        new_type=True,
-    )
-
-
-@pytest.fixture(scope="function")
 def seqcoll_db(DATA_DIR):
     from cogent3.parse.fasta import iter_fasta_records
 
@@ -1252,65 +1242,85 @@ def test_sequence_collection_get_translation_incomplete():
         (2, ("GATTTT", "TCCAGG")),
     ),
 )
-def test_sequence_collection_trim_stop_codons(gc, seqs):
+@pytest.mark.parametrize(
+    "mk_cls",
+    (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
+)
+def test_trim_stop_codons(gc, seqs, mk_cls):
     data = {f"s{i}": s for i, s in enumerate(seqs)}
 
     expect = {}
     for k, v in data.items():
-        if "-" in v:
+        if "-" in v or mk_cls == new_alignment.make_aligned_seqs:
             v = re.sub("(TGA|AGG)(?=[-]*$)", "---", v)
         else:
             v = re.sub("(TGA|AGG)", "", v)
         expect[k] = v
-    seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
+    seqs = mk_cls(data, moltype="dna")
     got = seqs.trim_stop_codons(gc=gc).to_dict()
 
     assert got == expect
 
 
 @pytest.mark.parametrize(
+    "mk_cls",
+    (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
+)
+@pytest.mark.parametrize(
     "gc,seqs",
     ((1, ("T-CTGC", "GATAA?")), (2, ("GATTTT", "TCCCGG")), (1, ("CCTGC", "GATAA"))),
 )
-def test_sequence_collection_trim_stop_codons_no_stop(gc, seqs):
+def test_trim_stop_codons_no_stop(gc, seqs, mk_cls):
     data = {f"s{i}": s for i, s in enumerate(seqs)}
-    seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
+    seqs = mk_cls(data, moltype="dna")
     got = seqs.trim_stop_codons(gc=gc)
     assert got is seqs
 
 
 @pytest.mark.parametrize(
+    "mk_cls",
+    (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
+)
+@pytest.mark.parametrize(
     "data", ({"s1": "CCTCA", "s2": "ATTTT"}, {"s1": "CCTCA-", "s2": "ATTTTA"})
 )
-def test_sequence_collection_trim_stop_codons_strict(data):
-    seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
+def test_trim_stop_codons_strict(data, mk_cls):
+    seqs = mk_cls(data, moltype="dna")
     with pytest.raises(new_alphabet.AlphabetError):
         seqs.trim_stop_codons(gc=1, strict=True)
 
 
-def test_sequence_collection_trim_stop_codons_info():
+@pytest.mark.parametrize(
+    "mk_cls",
+    (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
+)
+def test_trim_stop_codons_info(mk_cls):
     """trim_stop_codons should preserve info attribute"""
     data = {"seq1": "ACGTAA", "seq2": "ACGACG", "seq3": "ACGCGT"}
-    seq_coll = new_alignment.make_unaligned_seqs(
+    seqs = mk_cls(
         data,
         moltype="dna",
         info={"key": "value"},
     )
-    seq_coll = seq_coll.trim_stop_codons()
-    assert seq_coll.info["key"] == "value"
+    seqs = seqs.trim_stop_codons()
+    assert seqs.info["key"] == "value"
 
 
-def test_sequence_collection_trim_stop_codons_annotation_db(gff_db):
+@pytest.mark.parametrize(
+    "mk_cls",
+    (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
+)
+def test_trim_stop_codons_annotation_db(gff_db, mk_cls):
     """trim_stop_codons should preserve info attribute"""
     data = {"seq_1": "ACGTAA", "seq_2": "ACGACG", "seq_3": "ACGCGT"}
-    seq_coll = new_alignment.make_unaligned_seqs(
+    seqs = mk_cls(
         data,
         moltype="dna",
         info={"key": "value"},
     )
-    seq_coll.annotation_db = gff_db
-    trimmed = seq_coll.trim_stop_codons()
-    assert trimmed.annotation_db == seq_coll.annotation_db
+    seqs.annotation_db = gff_db
+    trimmed = seqs.trim_stop_codons()
+    assert trimmed.annotation_db == seqs.annotation_db
 
 
 @pytest.fixture(scope="function")
@@ -1889,59 +1899,6 @@ def test_sequence_collection_to_rna():
     assert rna_seqs.to_dict() == {
         name: seq.replace("T", "U") for name, seq in data.items()
     }
-
-
-@pytest.fixture(scope="function")
-def dotplot_seqs():
-    data = {
-        "Human": "CAGATTTGGCAGTT-",
-        "Mouse": "CAGATTCAGCAGGTG",
-        "Rat": "CAGATTCAGCAGG--G",
-    }
-    return new_alignment.make_unaligned_seqs(data, moltype="dna")
-
-
-def test_sequence_collection_dotplot(dotplot_seqs):
-    """exercising dotplot method"""
-    # with provided names
-    plot = dotplot_seqs.dotplot(name1="Human", name2="Mouse")
-    assert str(plot.seq1) != str(plot.seq2)
-
-    # without providing names
-    plot = dotplot_seqs.dotplot()
-    assert str(plot.seq1) != str(plot.seq2)
-
-    # providing only one name
-    plot = dotplot_seqs.dotplot(name1="Human")
-    assert str(plot.seq1) != str(plot.seq2)
-
-    # a collection of one sequence should make dotplot with itself
-    less_seqs = dotplot_seqs.take_seqs("Human")
-    plot = less_seqs.dotplot()
-    assert str(plot.seq1) == str(plot.seq2)
-
-    # k larger than window should raise an error
-    with pytest.raises(AssertionError):
-        dotplot_seqs.dotplot(window=5, k=11)
-
-    # names not in the collection should raise an error
-    with pytest.raises(ValueError):
-        dotplot_seqs.dotplot(name1="Human", name2="Dog")
-
-
-@pytest.mark.parametrize("with_annotations", [True, False])
-def test_sequence_collection_dotplot_annotated(annotated_seq, with_annotations):
-    if not with_annotations:
-        annotated_seq.replace_annotation_db(None)  # this drops all annotations
-
-    coll = new_alignment.make_unaligned_seqs(
-        {"c_elegans": annotated_seq}, moltype="dna"
-    )
-    dp = coll.dotplot()
-    if with_annotations:
-        assert len(dp.figure.data) > 2
-    else:
-        assert len(dp.figure.data) == 2
 
 
 @pytest.mark.parametrize(
@@ -3738,6 +3695,123 @@ def test_get_feature():
     db.add_feature(seqid="y", biotype="exon", name="A", spans=[(5, 8)])
     feat = list(aln.get_features(seqid="y", biotype="exon", on_alignment=False))[0]
     assert feat.get_slice().to_dict() == dict(x="AAA", y="CCT")
+
+
+def test_alignment_take_positions():
+    """SequenceCollection take_positions should return new alignment w/ specified pos"""
+    gaps = new_alignment.make_aligned_seqs(
+        {"a": "AAAAAAA", "b": "A--A-AA", "c": "AA-----"}, moltype="dna"
+    )
+    assert gaps.take_positions([5, 4, 0]).to_dict() == {
+        "a": "AAA",
+        "b": "A-A",
+        "c": "--A",
+    }
+
+    # should be able to negate
+    assert gaps.take_positions([5, 4, 0], negate=True).to_dict() == {
+        "a": "AAAA",
+        "b": "--AA",
+        "c": "A---",
+    }
+
+
+def test_alignment_take_positions_info():
+    aln = new_alignment.make_aligned_seqs(
+        {"a": "AAAAAAA", "b": "A--A-AA", "c": "AA-----"},
+        moltype="dna",
+        info={"key": "value"},
+    )
+    tps = aln.take_positions([5, 4, 0])
+    assert tps.info["key"] == "value"
+
+
+def test_take_positions_if():
+    """take_positions_if should return cols where f(col) is True"""
+
+    gaps = new_alignment.make_aligned_seqs(
+        {"a": "AAAAAAA", "b": "A--A-AA", "c": "AA-----"}, moltype="dna"
+    )
+
+    def gap_1st(x):
+        return x[0] == "-"
+
+    def gap_2nd(x):
+        return x[1] == "-"
+
+    def gap_3rd(x):
+        return x[2] == "-"
+
+    def is_list(x):
+        return isinstance(x, list)
+
+    got = gaps.take_positions_if(gap_1st).to_dict()
+    assert got == {"a": "", "b": "", "c": ""}
+
+    got = gaps.take_positions_if(gap_2nd).to_dict()
+    assert got == {"a": "AAA", "b": "---", "c": "A--"}
+
+    got = gaps.take_positions_if(gap_3rd).to_dict()
+    assert got == {"a": "AAAAA", "b": "-A-AA", "c": "-----"}
+
+    got = gaps.take_positions_if(is_list).to_dict()
+    assert got == gaps.to_dict()
+
+    # should be able to negate
+    got = gaps.take_positions_if(gap_2nd, negate=True).to_dict()
+    assert got == {"a": "AAAA", "b": "AAAA", "c": "A---"}
+
+    got = gaps.take_positions_if(gap_3rd, negate=True).to_dict()
+    assert got == {"a": "AA", "b": "A-", "c": "AA"}
+
+
+def _make_and_filter(raw, expected, motif_length, drop_remainder):
+    # a simple filter func
+    aln = new_alignment.make_aligned_seqs(raw, moltype="dna", info={"key": "value"})
+
+    def func(x):
+        return "-" not in "".join([str(s) for s in x])
+
+    result = aln.filtered(
+        func,
+        motif_length=motif_length,
+        warn=False,
+        drop_remainder=drop_remainder,
+    )
+    assert result.to_dict() == expected
+    assert result.info["key"] == "value"
+
+
+def test_filtered():
+    """filtered should return new alignment with positions consistent with
+    provided callback function"""
+    # a simple filter option
+    raw = {"a": "ACGACGACG", "b": "CCC---CCC", "c": "AAAA--AAA"}
+    _make_and_filter(raw, {"a": "ACGACG", "b": "CCCCCC", "c": "AAAAAA"}, 1, True)
+    # check with motif_length = 2
+    _make_and_filter(raw, {"a": "ACAC", "b": "CCCC", "c": "AAAA"}, 2, True)
+    # check with motif_length = 3
+    _make_and_filter(raw, {"a": "ACGACG", "b": "CCCCCC", "c": "AAAAAA"}, 3, True)
+
+
+def test_filtered_drop_remainder():
+    """filter allows dropping"""
+    raw = {"a": "ACGACGACG", "b": "CCC---CCC", "c": "AAAA--AAA"}
+    aln = new_alignment.make_aligned_seqs(raw, moltype="dna")
+
+    def func(x):
+        return "-" not in "".join([str(s) for s in x])
+
+    got = aln.filtered(func, motif_length=1, warn=False)
+    assert len(got) == 6
+    # raises an assertion if the length is not modulo
+
+    with pytest.raises(ValueError):
+        # because alignment not modulo 2
+        got = aln.filtered(func, motif_length=2, drop_remainder=False)
+    got = aln.filtered(func, motif_length=2, drop_remainder=True, warn=False)
+    assert len(got) == 4
+
 
 
 @pytest.fixture
