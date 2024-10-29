@@ -60,6 +60,10 @@ StrORArray = Union[str, numpy.ndarray]
 StrORBytesORArray = Union[str, bytes, numpy.ndarray]
 MolTypes = Union[str, new_moltype.MolType]
 
+# small number: 1-EPS is almost 1, and is used for things like the
+# default number of gaps to allow in a column.
+EPS = 1e-6
+
 
 def assign_sequential_names(num_seqs: int, base_name: str = "seq", start_at: int = 0):
     """Returns list of sequential, unique names, e.g., ['seq_0' ... 'seq_n'] for
