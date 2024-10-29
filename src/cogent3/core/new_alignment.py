@@ -3421,12 +3421,19 @@ class Alignment(SequenceCollection):
     @__getitem__.register
     def _(self, index: slice):
         new_slice = self._slice_record[index]
-        return self.__class__(
+        new = self.__class__(
             seqs_data=self._seqs_data,
             slice_record=new_slice,
             moltype=self.moltype,
             info=self.info,
         )
+        if abs(slice.step) > 1:
+            return new
+
+        # for simple slices, we retain the annotation database
+        if self.annotation_db is not None:
+            new.annotation_db = self.annotation_db
+        return new
 
     @__getitem__.register
     def _(self, index: FeatureMap):
