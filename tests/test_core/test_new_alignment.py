@@ -497,108 +497,223 @@ def test_bytes(sdv_s2: new_alignment.SeqDataView):
     assert expect == got
 
 
+# tests of SequenceCollection and Alignment constructor utility function
+
+
+@pytest.mark.parametrize(
+    "mk_cls, cls",
+    [
+        (new_alignment.make_unaligned_seqs, new_alignment.SequenceCollection),
+        (new_alignment.make_aligned_seqs, new_alignment.Alignment),
+    ],
+)
 @pytest.mark.parametrize("moltype", ("dna", "rna", "protein", "protein_with_stop"))
-def test_make_unaligned_seqs_dict(moltype):
-    """test SequenceCollection constructor utility function"""
+def test_make_seqs(moltype, mk_cls, cls):
+    """SequenceCollection and Alignment constructor functions should handle
+    dict/list/set as input"""
+    # dict of strings
     data = {"a": "AGGCCC", "b": "AGAAAA"}
-    got = new_alignment.make_unaligned_seqs(data, moltype=moltype)
-    assert isinstance(got, new_alignment.SequenceCollection)
+    got = mk_cls(data, moltype=moltype)
+    assert isinstance(got, cls)
 
-    # should also work if seqs are arrays
+    # dict of arrays
     data = {"a": numpy.array([0, 2, 1, 3, 2, 3]), "b": numpy.array([0, 2, 1, 3, 2, 1])}
-    got = new_alignment.make_unaligned_seqs(data, moltype=moltype)
-    assert isinstance(got, new_alignment.SequenceCollection)
+    got = mk_cls(data, moltype=moltype)
+    assert isinstance(got, cls)
 
-
-@pytest.mark.parametrize("moltype", ("dna", "rna", "protein", "protein_with_stop"))
-@pytest.mark.parametrize("cls", (list, set))
-def test_make_unaligned_seqs_collection(moltype, cls):
-    """test SequenceCollection constructor utility function"""
-    data = cls(["AGGCCC", "AGAAAA"])
-    got = new_alignment.make_unaligned_seqs(data, moltype=moltype)
-    assert isinstance(got, new_alignment.SequenceCollection)
+    # list of str
+    data = ["AGGCCC", "AGAAAA"]
+    got = mk_cls(data, moltype=moltype)
+    assert isinstance(got, cls)
     assert got.num_seqs == 2
 
-    # should also work if seqs are arrays
+    # set of str
+    data = {"AGGCCC", "AGAAAA"}
+    got = mk_cls(data, moltype=moltype)
+    assert isinstance(got, cls)
+    assert got.num_seqs == 2
+
+    # list of array
     data = [numpy.array([0, 2, 1, 3, 2, 3]), numpy.array([0, 2, 1, 3, 2, 1])]
-    got = new_alignment.make_unaligned_seqs(data, moltype=moltype)
-    assert isinstance(got, new_alignment.SequenceCollection)
+    got = mk_cls(data, moltype=moltype)
+    assert isinstance(got, cls)
 
-    # also when seqs are list(name: seq) pairs
+    # list(name: seq) pairs
     data = [["seq1", "AGGCCC"], ["seq2", "AGAAAA"]]
-    got = new_alignment.make_unaligned_seqs(data, moltype=moltype)
-    assert isinstance(got, new_alignment.SequenceCollection)
+    got = mk_cls(data, moltype=moltype)
+    assert isinstance(got, cls)
 
-    # or tuples
+    # tuples
     data = [("seq1", "AGGCCC"), ("seq2", "AGAAAA")]
-    got = new_alignment.make_unaligned_seqs(data, moltype=moltype)
-    assert isinstance(got, new_alignment.SequenceCollection)
+    got = mk_cls(data, moltype=moltype)
+    assert isinstance(got, cls)
 
 
-def test_make_unaligned_seqs_label_to_name():
-    """test SequenceCollection constructor utility function"""
-    data = {"a": "AGGCCC", "b": "AGAAAA"}
+@pytest.mark.parametrize(
+    "mk_cls, cls",
+    [
+        (new_alignment.make_unaligned_seqs, new_alignment.SeqsData),
+        (new_alignment.make_aligned_seqs, new_alignment.AlignedSeqsData),
+    ],
+)
+def test_make_seqs_label_to_name(mk_cls, cls, dna_alphabet):
+    """SequenceCollection and Alignment constructor functions should convert names
+    using label_to_name function if provided"""
 
     def f(x):
         return x.upper()
 
-    got = new_alignment.make_unaligned_seqs(data, moltype="dna", label_to_name=f)
+    # for data as a dict
+    data = {"a": "AGGCCC", "b": "AGAAAA"}
+    got = mk_cls(data, moltype="dna", label_to_name=f)
+    assert list(got.names) == ["A", "B"]
+
+    # for data as a SeqsData object
+    data = cls.from_seqs(data=data, alphabet=dna_alphabet)
+    got = mk_cls(data, moltype="dna", label_to_name=f)
     assert list(got.names) == ["A", "B"]
 
 
-def test_make_unaligned_seqs_raises():
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_make_seqs_raises(mk_cls):
+    """cannot construct SequenceCollection or Alignment from a string"""
     data = "AGTCCTGA"
     with pytest.raises(NotImplementedError):
-        new_alignment.make_unaligned_seqs(data, moltype="dna")
-
-
-def test_make_unaligned_seqs_incompatible_moltype(dna_sd):
-    with pytest.raises(ValueError):
-        _ = new_alignment.make_unaligned_seqs(dna_sd, moltype="rna")
-
-
-def test_make_unaligned_seqs_no_seqs():
-    data = {}
-    with pytest.raises(ValueError):
-        new_alignment.make_unaligned_seqs(data, moltype="dna")
+        mk_cls(data, moltype="dna")
 
 
 @pytest.mark.parametrize(
-    "collection_maker",
-    (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
 )
-def test_sequence_collection_names_is_list(collection_maker):
-    """expected to be a list"""
-    seqs = collection_maker({"a": b"AAAAA", "b": b"TTTTT"}, moltype="dna")
-    assert isinstance(seqs.names, list)
+def test_make_seqs_no_seqs(mk_cls):
+    """cannot construct SequenceCollection or Alignment from an empty dict"""
+    data = {}
+    with pytest.raises(ValueError):
+        mk_cls(data, moltype="dna")
 
 
-def test_make_unaligned_seqs_list_str():
-    """SequenceCollection init from list of sequences should use indices as keys"""
+@pytest.mark.parametrize(
+    "mk_cls, seqs_data_cls",
+    [
+        (new_alignment.make_unaligned_seqs, new_alignment.SeqsData),
+        (new_alignment.make_aligned_seqs, new_alignment.AlignedSeqsData),
+    ],
+)
+def test_make_seqs_incompatible_moltype(mk_cls, seqs_data_cls, dna_alphabet):
+    """SequenceCollection and Alignment constructor functions should raise an error
+    if the provided moltype is incompatible with the alphabet of the seqs data"""
+
+    data = {"a": "AGGCCC", "b": "AGAAAA"}
+    seqs_data = seqs_data_cls.from_seqs(data=data, alphabet=dna_alphabet)
+
+    with pytest.raises(ValueError):
+        _ = mk_cls(seqs_data, moltype="rna")
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_make_seqs_from_list_generates_correct_names(mk_cls):
+    """SequenceCollection/Alignment init from list of sequences should use indices as keys"""
     seqs = ["TTTTT", "CCCCC", "GGGGG"]
-    a = new_alignment.make_unaligned_seqs(seqs, moltype="dna")
-    assert a.seqs["seq_0"] == "TTTTT"
-    assert a.seqs["seq_1"] == "CCCCC"
-    assert a.seqs["seq_2"] == "GGGGG"
+    a = mk_cls(seqs, moltype="dna")
+    assert str(a.seqs["seq_0"]) == "TTTTT"
+    assert str(a.seqs["seq_1"]) == "CCCCC"
+    assert str(a.seqs["seq_2"]) == "GGGGG"
     assert a.names == ["seq_0", "seq_1", "seq_2"]
 
 
-def test_make_unaligned_seqs_pairs():
-    """SequenceCollection init from list of (key,val) pairs should work correctly"""
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_make_seqs_from_pairs(mk_cls):
+    """SequenceCollection/Alignment init from list of (key,val) pairs should work correctly"""
     seqs = [["a", "AAA"], ["t", "TTT"], ["c", "CCC"]]
-    a = new_alignment.make_unaligned_seqs(seqs, moltype="dna")
-    assert a.seqs["a"] == "AAA"
-    assert a.seqs["t"] == "TTT"
-    assert a.seqs["c"] == "CCC"
+    a = mk_cls(seqs, moltype="dna")
+    assert str(a.seqs["a"]) == "AAA"
+    assert str(a.seqs["t"]) == "TTT"
+    assert str(a.seqs["c"]) == "CCC"
     assert a.names == ["a", "t", "c"]
 
 
-def test_make_unaligned_seqs_list_sequences():
-    """correctly construct from list of sequences of length 2"""
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_make_seqs_from_sequences(mk_cls):
+    """SequenceCollection and Alignment constructor functions can be provided with
+    a list of Sequence objects"""
+    # if no names, they should be generated via the standard naming convention,
+    # seq_0, seq_1, etc.
+    seq1 = new_moltype.DNA.make_seq(seq="AC")
+    seq2 = new_moltype.DNA.make_seq(seq="AC")
+    coll = mk_cls([seq1, seq2], moltype="dna")
+    assert isinstance(coll, new_alignment.SequenceCollection)
+    assert coll.names == ["seq_0", "seq_1"]
+
+    # if the sequences have names, they should be used
     seq1 = new_moltype.DNA.make_seq(seq="AC", name="seq1")
     seq2 = new_moltype.DNA.make_seq(seq="AC", name="seq2")
-    coll = new_alignment.make_unaligned_seqs([seq1, seq2], moltype="dna")
+    coll = mk_cls([seq1, seq2], moltype="dna")
     assert isinstance(coll, new_alignment.SequenceCollection)
+    assert coll.names == ["seq1", "seq2"]
+
+    # if the data dict has different names to the seq names,
+    # the names from data should be used
+    coll = mk_cls({"s1": seq1, "s2": seq2}, moltype="dna")
+    assert isinstance(coll, new_alignment.SequenceCollection)
+    assert coll.names == ["s1", "s2"]
+    assert coll.get_seq("s1") == seq1
+
+
+@pytest.mark.parametrize(
+    "mk_cls, data_cls",
+    [
+        (new_alignment.make_unaligned_seqs, new_alignment.SeqsData),
+        (new_alignment.make_aligned_seqs, new_alignment.AlignedSeqsData),
+    ],
+)
+@pytest.mark.parametrize("seq", ("a", "b"))
+def test_make_seqs_offset(mk_cls, data_cls, seq):
+    """SequenceCollection and Alignment constructor functions should handle
+    offset argument"""
+    data = {"a": "AGGCCC", "b": "AGAAAA"}
+    offset = {"a": 1, "b": 2}
+    seqs = mk_cls(data, moltype="dna", offset=offset)
+    got = seqs.get_seq(seq)
+    assert got._seq.offset == offset[seq]
+
+    # if data is a SeqsData object, this should fail
+    data = data_cls.from_seqs(data=data, alphabet=new_moltype.DNA.degen_gapped_alphabet)
+    with pytest.raises(ValueError):
+        _ = mk_cls(data, moltype="dna", offset=offset)
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_make_seqs_invalid_chars(mk_cls):
+    data = {"seq1": "AGT1CCT", "seq2": "AGT$CCC"}
+    with pytest.raises(new_alphabet.AlphabetError):
+        mk_cls(data, moltype="dna")
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
+)
+def test_sequence_collection_names_is_list(mk_cls):
+    """expected to be a list"""
+    seqs = mk_cls({"a": b"AAAAA", "b": b"TTTTT"}, moltype="dna")
+    assert isinstance(seqs.names, list)
+    assert seqs.names == ["a", "b"]
 
 
 def test_sequence_collection_init_ordered(ordered1, ordered2):
@@ -2338,6 +2453,18 @@ def gap_seqs():
         ("-GTAC----", [[0, 1], [4, 5]]),
         ("---A--T--", [[0, 3], [1, 5], [2, 7]]),
     ]
+
+
+@pytest.mark.parametrize("i", range(3))
+def test_seq_to_gap_coords_sequences(gap_seqs, i, dna_alphabet):
+    seq, gap_coords = gap_seqs[i]
+    dna = new_moltype.get_moltype("dna")
+    got_ungapped, got_map = new_alignment.seq_to_gap_coords(
+        dna.make_seq(seq=seq), alphabet=dna_alphabet
+    )
+    expect = dna_alphabet.to_indices(seq.replace("-", ""))
+    assert numpy.array_equal(got_ungapped, expect)
+    assert numpy.array_equal(got_map, gap_coords)
 
 
 @pytest.mark.parametrize("i", range(3))
