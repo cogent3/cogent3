@@ -1830,8 +1830,10 @@ class SequenceCollection:
             If True, raises an exception if a seq length not divisible by 3
         """
 
+        aligned = isinstance(self, Alignment)
+
         for seq_name in self.names:
-            seq = self.seqs[seq_name]
+            seq = self.seqs[seq_name].seq if aligned else self.seqs[seq_name]
             if seq.has_terminal_stop(gc=gc, strict=strict):
                 return True
         return False
