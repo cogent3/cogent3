@@ -2318,17 +2318,17 @@ def make_unaligned_seqs(
 
     annotation_db = annotation_db or merged_db_collection(data)
 
-    if (
-        isinstance(data, dict)
-        and isinstance(next(iter(data.values()), None), new_sequence.Sequence)
-        and annotation_db
+    if isinstance(data, dict) and isinstance(
+        next(iter(data.values()), None), new_sequence.Sequence
     ):
-        # if we have a dict of Sequences, the keys in the dict (names) might
-        # be different to the names of the Sequences. If the Sequences have
-        # annotations, then we will need to make a name_map between the provided
-        # data and the names of the Sequences.
-        name_map = {key: value.name for key, value in data.items()}
-        data = {seq.name: numpy.array(seq) for seq in data.values()}
+        # if we have a dict of Sequences, {name: seq, ...}, then the provided names
+        # may differ to the name attribute on the Sequences. If the Sequences have
+        # annotations, then we will need to map between the names in order to
+        # query the annotation database. We do this by creating a name_map.
+        # Note that we do (seq.name or name) to handle when the Sequence name is
+        # None
+        name_map = {name: (seq.name or name) for name, seq in data.items()}
+        data = {(seq.name or name): numpy.array(seq) for name, seq in data.items()}
 
     seqs_data = coerce_to_seqs_data_dict(data, label_to_name=label_to_name)
 
