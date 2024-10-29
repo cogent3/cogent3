@@ -221,8 +221,8 @@ def make_aligned_seqs(
         origins of this data, defaults to 'unknown'. Converted to a string
         and added to info["source"].
     new_type
-        if True, the returned SequenceCollection will be of the new type,
-        (cogent3.core.new_sequence.SequenceCollection). The default will be
+        if True, the returned Alignment will be of the new type,
+        (cogent3.core.new_sequence.Alignment). The default will be
         changed to True in 2025.6. Support for the old style will be removed
         as of 2025.12.
     **kw
