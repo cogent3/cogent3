@@ -86,31 +86,31 @@ class GapsOk:
 
     def __init__(
         self,
-        gap_chars,
-        allowed_frac=0,
-        motif_length=1,
-        is_array=False,
-        negate=False,
-        gap_run=False,
-        allowed_run=1,
+        gap_chars: set,
+        allowed_frac: float = 0,
+        motif_length: int = 1,
+        is_array: bool = False,
+        negate: bool = False,
+        gap_run: bool = False,
+        allowed_run: int = 1,
     ):
         """
         Parameters
         ----------
         gap_chars
             characters corresponding to gaps
-        allowed_frac : float
+        allowed_frac
             the threshold gap fraction, ignored if gap_run
-        motif_length : int
+        motif_length
             used to adjust for the denominator in the gap fraction
-        is_array : bool
+        is_array
             whether input will be a numpy array
-        negate : bool
+        negate
             if False (default) evaluates fraction of gap
             characters <= allowed_frac, if True, >= allowed_frac
-        gap_run : bool
+        gap_run
             check for runs of gaps
-        allowed_run : int
+        allowed_run
             length of the allowed gap run
 
         """
@@ -130,7 +130,7 @@ class GapsOk:
         except TypeError:
             self.gap_chars = {gap_chars}
 
-    def _get_gap_frac(self, data):
+    def _get_gap_frac(self, data) -> float:
         length = len(data) * self.motif_length
         # flatten the data and count elements equal to gap
         if self.is_array:
