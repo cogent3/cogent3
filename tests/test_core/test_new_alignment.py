@@ -648,14 +648,24 @@ def test_make_seqs_from_pairs(mk_cls):
 )
 def test_make_seqs_from_sequences(mk_cls):
     """SequenceCollection and Alignment constructor functions can be provided with
-    a list of Sequence objects, from which the names are extracted"""
+    a list of Sequence objects"""
+    # if no names, they should be generated via the standard naming convention,
+    # seq_0, seq_1, etc.
+    seq1 = new_moltype.DNA.make_seq(seq="AC")
+    seq2 = new_moltype.DNA.make_seq(seq="AC")
+    coll = mk_cls([seq1, seq2], moltype="dna")
+    assert isinstance(coll, new_alignment.SequenceCollection)
+    assert coll.names == ["seq_0", "seq_1"]
+
+    # if the sequences have names, they should be used
     seq1 = new_moltype.DNA.make_seq(seq="AC", name="seq1")
     seq2 = new_moltype.DNA.make_seq(seq="AC", name="seq2")
     coll = mk_cls([seq1, seq2], moltype="dna")
     assert isinstance(coll, new_alignment.SequenceCollection)
     assert coll.names == ["seq1", "seq2"]
 
-    # if we set different names to the seq names, they should be used
+    # if the data dict has different names to the seq names,
+    # the names from data should be used
     coll = mk_cls({"s1": seq1, "s2": seq2}, moltype="dna")
     assert isinstance(coll, new_alignment.SequenceCollection)
     assert coll.names == ["s1", "s2"]
@@ -683,6 +693,16 @@ def test_make_seqs_offset(mk_cls, data_cls, seq):
     data = data_cls.from_seqs(data=data, alphabet=new_moltype.DNA.degen_gapped_alphabet)
     with pytest.raises(ValueError):
         _ = mk_cls(data, moltype="dna", offset=offset)
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_make_seqs_invalid_chars(mk_cls):
+    data = {"seq1": "AGT1CCT", "seq2": "AGT$CCC"}
+    with pytest.raises(new_alphabet.AlphabetError):
+        mk_cls(data, moltype="dna")
 
 
 @pytest.mark.parametrize(

@@ -2249,7 +2249,7 @@ def assign_names(
 def _(
     first: new_sequence.Sequence, data: Union[list, set]
 ) -> dict[str, new_sequence.Sequence]:
-    return {seq.name: seq for seq in data}
+    return {(seq.name or f"seq_{i}"): seq for i, seq in enumerate(data)}
 
 
 @assign_names.register
