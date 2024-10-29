@@ -4099,6 +4099,69 @@ class Alignment(SequenceCollection):
             for pos in range(start, end, step):
                 yield self[pos : pos + window]
 
+    def gapped_by_map(self, keep: FeatureMap, **kwargs):
+        # refactor: docstring
+        # todo: kath, not explicitly tested
+        seqs = {}
+        for seq in self.seqs:
+            selected = seq[keep]
+            seqs[seq.name] = numpy.array(selected.gapped_seq)
+
+        seqs_data = self._seqs_data.from_seqs(
+            data=seqs, alphabet=self.moltype.most_degen_alphabet()
+        )
+        return self.__class__(seqs_data=seqs_data, moltype=self.moltype, **kwargs)
+
+    def filtered(
+        self, predicate, motif_length: int = 1, drop_remainder: bool = True, **kwargs
+    ):
+        """The alignment positions where predicate(column) is true.
+
+        Parameters
+        ----------
+        predicate
+            a callback function that takes an tuple of motifs and returns
+            True/False
+        motif_length
+            length of the motifs the sequences should be split  into, eg. 3 for
+            filtering aligned codons.
+        drop_remainder
+            If length is not modulo motif_length, allow dropping the terminal
+            remaining columns
+        """
+        # refactor: type hint for predicate
+        # refactor: array
+        length = len(self)
+        if length % motif_length != 0 and not drop_remainder:
+            raise ValueError(
+                f"aligned length not divisible by motif_length={motif_length}"
+            )
+        gv = []
+        kept = False
+        seqs = [
+            self.get_gapped_seq(n).get_in_motif_size(motif_length, **kwargs)
+            for n in self.names
+        ]
+
+        positions = list(zip(*seqs))
+        for position, column in enumerate(positions):
+            keep = predicate(column)
+            if kept != keep:
+                gv.append(position * motif_length)
+                kept = keep
+
+        if kept:
+            gv.append(len(positions) * motif_length)
+
+        if not gv:
+            return None
+
+        locations = [(gv[i], gv[i + 1]) for i in range(0, len(gv), 2)]
+        # these are alignment coordinate locations
+        keep = FeatureMap.from_locations(locations=locations, parent_length=len(self))
+
+        return self.gapped_by_map(keep, info=self.info)
+
     def omit_gap_pos(self, allowed_gap_frac: float = 1 - EPS, motif_length: int = 1):
         """Returns new alignment where all cols (motifs) have <= allowed_gap_frac gaps.
 
