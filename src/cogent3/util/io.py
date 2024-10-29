@@ -142,7 +142,7 @@ def open_(filename: PathType, mode="rt", **kwargs) -> IO:
     return op(filename, mode, encoding=encoding, **kwargs)
 
 
-def open_url(url: Union[str, ParseResult], mode="r", **kwargs) -> IO:
+def open_url(url: Union[str, ParseResult], mode="rt", **kwargs) -> IO:
     """open a url
 
     Parameters
@@ -155,16 +155,11 @@ def open_url(url: Union[str, ParseResult], mode="r", **kwargs) -> IO:
     Raises
     ------
     If not http(s).
-
-    Notes
-    -----
-    If mode='b' or 'rb' (binary read), the function returns file object to read
-    else returns TextIOWrapper to read text with specified encoding in the URL
     """
     _, compression = get_format_suffixes(
         getattr(url, "path", url)
     )  # handling possibility of ParseResult
-    mode = "rb" if compression else mode or "r"
+    mode = mode or "r"
 
     if not is_url(url):
         raise ValueError(
@@ -180,7 +175,6 @@ def open_url(url: Union[str, ParseResult], mode="r", **kwargs) -> IO:
     encoding = response.headers.get_content_charset()
     if compression:
         response = _get_compression_open(compression=compression)(response)
-        mode = "r"  # wrap it as text
 
     return response if "b" in mode else TextIOWrapper(response, encoding=encoding)
 

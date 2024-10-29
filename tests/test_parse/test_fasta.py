@@ -460,6 +460,23 @@ def test_iter_fasta_records_path_types(fasta_path):
     assert len(got) == 1
 
 
+@pytest.fixture(params=("gz", "xz"))
+def fa_gz(DATA_DIR, tmp_path, request):
+    from cogent3 import open_
+
+    path = DATA_DIR / "brca1.fasta"
+    data = path.read_bytes()
+    outpath = tmp_path / f"brca1.fasta.{request.param}"
+    with open_(outpath, "wb") as out:
+        out.write(data)
+    return outpath.as_uri()
+
+
+def test_iter_fasta_records_compressed_file_uri(fa_gz):
+    got = dict(iter_fasta_records(str(fa_gz)))
+    assert len(got) == 55
+
+
 def test_iter_fasta_records_invalid():
     with pytest.raises(TypeError):
         list(iter_fasta_records(numpy.array([">abcd", "ACGG"])))
