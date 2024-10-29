@@ -2264,7 +2264,7 @@ def _(first: tuple, data: Union[list, set]) -> dict[str, StrORBytesORArray]:
 
 @singledispatch
 def make_unaligned_seqs(
-    data: Union[dict[str, StrORBytesORArray], list],
+    data: Union[dict[str, StrORBytesORArray], list, SeqsDataABC],
     *,
     moltype: Union[str, new_moltype.MolType],
     label_to_name: OptRenamerCallable = None,
@@ -4363,7 +4363,7 @@ class Alignment(SequenceCollection):
 
 @singledispatch
 def make_aligned_seqs(
-    data: Union[dict[str, StrORBytesORArray], list],
+    data: Union[dict[str, StrORBytesORArray], list, AlignedSeqsDataABC],
     *,
     moltype: str,
     label_to_name: OptRenamerCallable = None,
