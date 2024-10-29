@@ -15,7 +15,7 @@ import numpy
 
 from cogent3 import get_app
 from cogent3._version import __version__
-from cogent3.core import new_alphabet, new_moltype, new_sequence
+from cogent3.core import new_alphabet, new_genetic_code, new_moltype, new_sequence
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
     BasicAnnotationDb,
