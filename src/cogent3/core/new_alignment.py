@@ -4220,9 +4220,7 @@ class Alignment(SequenceCollection):
         else:
             all_traces = [t.as_trace() for t in annotes]
 
-        drawer = Drawable(
-            title=title, traces=all_traces, width=width, height=height
-        )
+        drawer = Drawable(title=title, traces=all_traces, width=width, height=height)
         drawer.layout.update(xaxis=xaxis, yaxis=yaxis)
         return drawer
 
@@ -4268,30 +4266,34 @@ class Alignment(SequenceCollection):
     )
     def coevolution(
         self,
-        stat="nmi",
-        segments=None,
-        drawable=None,
-        show_progress=False,
-        parallel=False,
-        par_kw=None,
+        stat: str = "nmi",
+        segments: list[tuple[int, int]] = None,
+        drawable: OptStr = None,
+        show_progress: bool = False,
+        parallel: bool = False,
+        par_kw: OptDict = None,
     ):
         """performs pairwise coevolution measurement
 
         Parameters
         ----------
-        stat : str
+        stat
             coevolution metric, defaults to 'nmi' (Normalized Mutual
             Information). Valid choices are 'rmi' (Resampled Mutual Information)
             and 'mi', mutual information.
-        segments : coordinate series
+        segments
             coordinates of the form [(start, end), ...] where all possible
             pairs of alignment positions within and between segments are
             examined.
-        drawable : None or str
+        drawable
             Result object is capable of plotting data specified type. str value
             must be one of plot type 'box', 'heatmap', 'violin'.
-        show_progress : bool
-            shows a progress bar
+        show_progress
+            shows a progress bar.
+        parallel
+            run in parallel, according to arguments in par_kwargs. 
+        par_kw
+            dict of values for configuring parallel execution.
 
         Returns
         -------
