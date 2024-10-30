@@ -264,3 +264,25 @@ def test_get_drawable():
     aln.annotation_db = db
     got = aln.get_drawable()
     assert got is not None
+
+
+def test_seqlogo():
+    """exercise producing a seq logo"""
+    data = {
+        "seq1": "CAGGTCGACCTCGGC---------CACGAC",
+        "seq2": "CAGATCGACCTCGGC---------CACGAC",
+        "seq3": "CAGATCGACCTCGGT---------CACGAT",
+        "seq4": "CAGATCGACCTCGGCGAACACGGCCATGAT",
+        "seq5": "CCGATCGACATGGGC---------CACGAT",
+        "seq6": "GCC---------------------------",
+    }
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    logo = aln.seqlogo()
+    # using wrap argument
+    logo = aln.seqlogo(wrap=20)
+
+    # for a sliced alignment
+    aln = aln[:20]
+    logo = aln.seqlogo()
+
+
