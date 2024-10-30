@@ -2868,6 +2868,38 @@ def test_aligned_seqs_data_get_gapped_seq_bytes(
     assert got == expect
 
 
+def test_aligned_seqs_data_get_array_seqs(aligned_dict, dna_alphabet):
+    ad = new_alignment.AlignedSeqsData.from_seqs(
+        data=aligned_dict, alphabet=dna_alphabet
+    )
+    got = ad.get_array_seqs(names=["seq1", "seq2", "seq3", "seq4"])
+    expect = numpy.array(
+        [dna_alphabet.to_indices(seq) for seq in aligned_dict.values()]
+    )
+    assert numpy.array_equal(got, expect)
+
+    names = ["seq1", "seq2"]
+    got = ad.get_array_seqs(names=names)
+    expect = numpy.array([dna_alphabet.to_indices(aligned_dict[seq]) for seq in names])
+    assert numpy.array_equal(got, expect), expect
+
+
+def test_aligned_seqs_data_get_array_pos(dna_alphabet):
+    data = {"seq1": "TTCC", "seq2": "AA--"}
+    ad = new_alignment.AlignedSeqsData.from_seqs(data=data, alphabet=dna_alphabet)
+    got = ad.get_array_pos(names=["seq1", "seq2"])
+    expect = numpy.array([[0, 2], [0, 2], [1, 4], [1, 4]])
+    assert numpy.array_equal(got, expect)
+
+
+def test_aligned_seqs_data_get_array_pos_motif_len(dna_alphabet):
+    data = {"seq1": "TTCC", "seq2": "AA--"}
+    ad = new_alignment.AlignedSeqsData.from_seqs(data=data, alphabet=dna_alphabet)
+    got = ad.get_array_pos(names=["seq1", "seq2"], motif_length=2)
+    expect = numpy.array([[[0, 0], [2, 2]], [[1, 1], [4, 4]]])
+    assert numpy.array_equal(got, expect)
+
+
 @pytest.mark.parametrize("seqid", ("seq1", "seq2", "seq3", "seq4"))
 def test_aligned_seqs_data_seq_lengths(seqid, aligned_dict, dna_alphabet):
     """AlignedSeqsData.seq_lengths should return the length of the ungapped sequences"""
@@ -3022,12 +3054,38 @@ def test_aligned_data_view_gapped_bytes_value(aligned_array_dict, dna_alphabet, 
     assert numpy.array_equal(got, expect)
 
 
-def test_alignment_array_seqs():
-    seqs = new_alignment.make_aligned_seqs(
+@pytest.fixture
+def simple_aln():
+    return new_alignment.make_aligned_seqs(
         {"a": "T-", "b": "--", "c": "AA"}, moltype="dna"
     )
-    got = seqs.array_seqs
+
+
+def test_alignment_array_seqs(simple_aln):
+    got = simple_aln.array_seqs
     expect = numpy.array([[0, 4], [4, 4], [2, 2]])
+    assert numpy.array_equal(got, expect)
+
+
+def test_alignment_array_seqs_take_seqs(simple_aln):
+    """an alignment which has been subset should return the correct array_seqs"""
+    subset = simple_aln.take_seqs(["a", "c"])
+    got = subset.array_seqs
+    expect = numpy.array([[0, 4], [2, 2]])
+    assert numpy.array_equal(got, expect)
+
+
+def test_alignment_array_positions(simple_aln):
+    got = simple_aln.array_positions
+    expect = numpy.array([[0, 4, 2], [4, 4, 2]])
+    assert numpy.array_equal(got, expect)
+
+
+def test_alignment_array_positions_take_positions(simple_aln):
+    """an alignment which has been subset should return the correct array_positions"""
+    subset = simple_aln.take_positions([0])
+    got = subset.array_positions
+    expect = numpy.array([[0, 4, 2]])
     assert numpy.array_equal(got, expect)
 
 
