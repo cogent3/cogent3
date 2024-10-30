@@ -1,11 +1,17 @@
 import pathlib
 import unittest
 
+import pytest
 from numpy.testing import assert_allclose
 
 from cogent3 import load_aligned_seqs, make_aligned_seqs, make_table
 from cogent3.core.annotation_db import GffAnnotationDb
-from cogent3.draw.drawable import AnnotatedDrawable, Drawable, get_domain
+from cogent3.draw.drawable import (
+    AnnotatedDrawable,
+    Drawable,
+    _calc_arrow_width,
+    get_domain,
+)
 from cogent3.util.union_dict import UnionDict
 
 
@@ -391,7 +397,8 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         db.add_feature(seqid="b", biotype="gene", name="1", spans=[(1, 5)])
         db.add_feature(seqid="b", biotype="gene", name="1", spans=[(5, 1)])
         aln.annotation_db = db
-        aln.get_drawable()
+        g = aln.get_drawable()
+        assert isinstance(g, Drawable)
 
 
 class TableDrawablesTest(BaseDrawablesTests):
@@ -405,5 +412,18 @@ class TableDrawablesTest(BaseDrawablesTests):
         self._check_drawable_attrs(drawable.figure, "table")
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_calculating_arrow_width_fails():
+    with pytest.raises(AssertionError):
+        _calc_arrow_width(x1=1, y1=1, y=2, full_width=3, arrow_head_scale=0.1)
+
+
+def test_calculating_arrow_width_adjusted():
+    # with a slope of 1
+    aw = _calc_arrow_width(
+        x1=0, y1=0, y=-1, full_width=3, arrow_head_scale=0.1, slope=1
+    )
+    assert aw == 1.0
+    aw = _calc_arrow_width(
+        x1=0, y1=0, y=-1, full_width=0.5, arrow_head_scale=0.1, slope=1
+    )
+    assert aw == 0.1

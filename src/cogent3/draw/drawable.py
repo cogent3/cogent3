@@ -672,6 +672,29 @@ class Diamond(Shape):
         self.y = numpy.array(ys)
 
 
+def _calc_arrow_width(
+    *,
+    x1: float,
+    y1: float,
+    y: float,
+    full_width: float,
+    arrow_head_scale: float,
+    slope: float = 0.000066,
+) -> float:
+    # we want to determine the right hand side of the rectangle so
+    # that the arrow head angle is constant, regardless of the full
+    # width, with the exception of when arrow length is small.
+    # x1, y1 must be the arrow's point (vertex)
+    # we assume that y < y1
+    assert y <= y1, f"{y=} should not be > {y1=} in calculating arrow width"
+    b = y1 - slope * x1
+    x = (y - b) / slope
+    aw = x1 - x
+    if aw > full_width:
+        aw = full_width * arrow_head_scale * 2
+    return aw
+
+
 class Arrow(Shape):
     def __init__(
         self, coords, y=0, height=0.25, arrow_head_w=0.1, reverse=False, **kwargs
@@ -692,7 +715,13 @@ class Arrow(Shape):
         width = abs(coords[-1][0] - coords[-1][1])
         x_coord = min(coords[-1][0], coords[-1][1])
         hh = height * arrow_head_w * 2
-        hw = width * arrow_head_w * 2
+        hw = _calc_arrow_width(
+            x1=x_coord + width,
+            y1=y + height / 2,
+            y=y - hh,
+            full_width=width,
+            arrow_head_scale=arrow_head_w,
+        )
 
         # Coordinates for arrow head
         arrow_x = [
