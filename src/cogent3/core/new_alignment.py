@@ -130,7 +130,7 @@ class GapsOk:
         except TypeError:
             self.gap_chars = {gap_chars}
 
-    def _get_gap_frac(self, data) -> float:
+    def _get_gap_frac(self, data: tuple[str, ...]) -> float:
         length = len(data) * self.motif_length
         # flatten the data and count elements equal to gap
         if self.is_array:
@@ -141,18 +141,19 @@ class GapsOk:
         num_gap = sum(data[g] for g in self.gap_chars)
         return num_gap / length
 
-    def gap_frac_ok(self, data):
+    def gap_frac_ok(self, data: tuple[str, ...]) -> bool:
         """fraction of gap characters <= allowed_frac"""
         gap_frac = self._get_gap_frac(data)
         return gap_frac <= self.allowed_frac
 
-    def gap_frac_not_ok(self, data):
+    def gap_frac_not_ok(self, data: tuple[str, ...]) -> bool:
         """fraction of gap characters >= allowed_frac"""
         gap_frac = self._get_gap_frac(data)
         return gap_frac >= self.allowed_frac
 
-    def gap_run_ok(self, seq):
+    def gap_run_ok(self, seq: str) -> bool:
         """runs of gaps <= allowed_run"""
+        # refactor: design, this is not used in any of the new alignment code
         curr_run = 0
         is_gap = self.gap_chars.__contains__
         result = True
@@ -166,7 +167,7 @@ class GapsOk:
                 curr_run = 0
         return result
 
-    def __call__(self, data):
+    def __call__(self, data: Union[tuple[str, ...], str]):
         return self._func(data)
 
 
