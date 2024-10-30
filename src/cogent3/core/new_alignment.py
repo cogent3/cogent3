@@ -84,6 +84,9 @@ def assign_sequential_names(num_seqs: int, base_name: str = "seq", start_at: int
 class GapsOk:
     """determine whether number of gaps satisfies allowed_frac"""
 
+    # refactor: array
+    # possibly convert to using numba jit functions
+
     def __init__(
         self,
         gap_chars: set,
