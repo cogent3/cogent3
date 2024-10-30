@@ -1834,10 +1834,8 @@ class SequenceCollection:
             If True, raises an exception if a seq length not divisible by 3
         """
 
-        aligned = isinstance(self, Alignment)
-
         for seq_name in self.names:
-            seq = self.seqs[seq_name].seq if aligned else self.seqs[seq_name]
+            seq = self.seqs[seq_name]
             if seq.has_terminal_stop(gc=gc, strict=strict):
                 return True
         return False
@@ -2780,6 +2778,17 @@ class AlignedSeqsDataABC(SeqsDataABC):
         step: OptInt = None,
     ) -> bytes: ...
 
+    @abstractmethod
+    def get_array_seqs(self, names: list[str]) -> numpy.ndarray:
+        """returns an array with axis 0 being seqs in order corresponding to names"""
+        ...
+
+    @abstractmethod
+    def get_array_pos(self, names: list[str], motif_length: int = 1) -> numpy.ndarray:
+        """returns an array with axis 0 being alignment positions columns in
+        order corresponding to names in motif_length"""
+        ...
+
 
 def _gapped_seq_len(seq: numpy.ndarray, gap_map: numpy.ndarray) -> int:
     """calculate the gapped sequence length from a ungapped sequence and gap map
@@ -3110,6 +3119,33 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         return self.get_gapped_seq_str(
             seqid=seqid, start=start, stop=stop, step=step
         ).encode("utf8")
+
+    def get_array_seqs(self, names: list[str]) -> numpy.ndarray:
+        """returns an array with axis 0 being seqs in order corresponding to names"""
+        seq_arrays = [self.get_gapped_seq_array(seqid=name) for name in names]
+        return numpy.stack(seq_arrays, dtype=numpy.uint8)
+
+    def get_array_pos(self, names, motif_length=1) -> numpy.ndarray:
+        """returns an array with axis 0 being alignment positions columns in order
+        corresponding to names in motif_length"""
+
+        array_seqs = self.get_array_seqs(names)
+
+        # if motif_length is 1, return the transposed array
+        if motif_length == 1:
+            return array_seqs.T
+
+        # For motif_length > 1, create an array with the specified motif length
+        num_positions = array_seqs.shape[1]
+        num_motifs = num_positions // motif_length
+        motif_array = numpy.zeros(
+            (num_motifs, len(names), motif_length), dtype=numpy.uint8
+        )
+
+        for i in range(num_motifs):
+            motif_array[i] = array_seqs[:, i * motif_length : (i + 1) * motif_length]
+
+        return motif_array
 
     def add_seqs(
         self,
@@ -3495,6 +3531,8 @@ class Alignment(SequenceCollection):
             if slice_record is not None
             else new_sequence.SliceRecord(parent_len=self._seqs_data.align_len)
         )
+        self._array_seqs = None
+        self._array_positions = None
 
     def _post_init(self):
         self._seqs = _IndexableSeqs(self, make_seq=self._make_aligned)
@@ -3570,8 +3608,19 @@ class Alignment(SequenceCollection):
 
     @property
     def array_seqs(self) -> numpy.ndarray:
-        """Returns a numpy array of sequences."""
-        return numpy.array([numpy.array(self.seqs[name]) for name in self.names])
+        """Returns a numpy array of sequences, axis 0 is seqs in order
+        corresponding to names"""
+        if self._array_seqs is None:
+            self._array_seqs = self._seqs_data.get_array_seqs(self.names)
+        return self._array_seqs
+
+    @property
+    def array_positions(self) -> numpy.ndarray:
+        """Returns a numpy array of positions, axis 0 is alignment positions
+        columns in order corresponding to names."""
+        if self._array_positions is None:
+            self._array_positions = self._seqs_data.get_array_pos(self.names)
+        return self._array_positions
 
     def get_seq(
         self, seqname: str, copy_annotations: bool = False
@@ -4141,6 +4190,8 @@ class Alignment(SequenceCollection):
         """
         # refactor: type hint for predicate
         # refactor: array
+        # add argument array_type: bool=True which allows the user to specify what
+        # type their callable can handle and what type the method should return
         length = len(self)
         if length % motif_length != 0 and not drop_remainder:
             raise ValueError(
@@ -4188,11 +4239,29 @@ class Alignment(SequenceCollection):
 
         gaps = list(self.moltype.gaps)
 
+        # redesign: use array methods
         gaps_ok = GapsOk(
             gaps, allowed_gap_frac, is_array=False, motif_length=motif_length
         )
 
         return self.filtered(gaps_ok, motif_length=motif_length)
+
+    def has_terminal_stop(self, gc: Any = None, strict: bool = False) -> bool:
+        """Returns True if any sequence has a terminal stop codon.
+
+        Parameters
+        ----------
+        gc
+            valid input to cogent3.get_code(), a genetic code object, number
+            or name
+        strict
+            If True, raises an exception if a seq length not divisible by 3
+        """
+        for seq_name in self.names:
+            seq = self.seqs[seq_name].seq
+            if seq.has_terminal_stop(gc=gc, strict=strict):
+                return True
+        return False
 
     def trim_stop_codons(self, gc: Any = None, strict: bool = False, **kwargs):
         # refactor: array
@@ -4224,7 +4293,7 @@ class Alignment(SequenceCollection):
             result.annotation_db = self.annotation_db
 
         return result
-
+    
     def _get_seq_features(
         self,
         *,
@@ -4419,7 +4488,8 @@ class Alignment(SequenceCollection):
             for i, annott in enumerate(drawables[feature_type]):
                 annott.shift(y=new_bottom - annott.bottom)
                 if i > 0:
-                    # todo modify the api on annott, we should not be using
+                    # refactor: design
+                    # modify the api on annott, we should not be using
                     # a private attribute!
                     annott._showlegend = False
                 annotes.append(annott)
@@ -4523,6 +4593,9 @@ class Alignment(SequenceCollection):
         from cogent3.evolve import coevolution as coevo
         from cogent3.util.union_dict import UnionDict
 
+        # refactor: design
+        # These graphical representations of matrices should be separate functions
+        # in the drawing submodule somewhere
         stat = stat.lower()
         if segments:
             segments = [range(*segment) for segment in segments]
@@ -4626,6 +4699,9 @@ class Alignment(SequenceCollection):
         """
         from cogent3.draw.drawable import AnnotatedDrawable, Drawable
 
+        # refactor: design
+        # These graphical representations of matrices should be separate functions
+        # in the drawing submodule somewhere
         window = window or numpy.sqrt(len(self))
         window = int(window)
         y = self.entropy_per_pos()
