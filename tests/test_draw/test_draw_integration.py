@@ -2,12 +2,14 @@ import pathlib
 import unittest
 import uuid
 
+import pytest
 from numpy.testing import assert_allclose
 
 from cogent3 import load_aligned_seqs, make_aligned_seqs, make_table
 from cogent3.core.annotation_db import GffAnnotationDb
 from cogent3.draw.drawable import (
     AnnotatedDrawable,
+    Arrow,
     Drawable,
     _calc_arrow_width,
     get_domain,
@@ -427,3 +429,9 @@ def test_colour_choice():
     assert label in make_shape._colors
     shape2 = make_shape(type_=label, coords=[(30, 60)])
     assert shape1.fillcolor == shape2.fillcolor == make_shape._colors[label]
+
+
+@pytest.mark.parametrize("biotype", ("mRNA", "MRNA", "gene", "misc_RNA", "tRNA", "CDS"))
+def test_arrow_shapes(biotype):
+    shape = make_shape(type_=biotype, coords=[(10, 20)], parent_length=20)
+    assert isinstance(shape, Arrow)
