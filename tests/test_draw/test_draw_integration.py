@@ -1,5 +1,6 @@
 import pathlib
 import unittest
+import uuid
 
 from numpy.testing import assert_allclose
 
@@ -10,6 +11,7 @@ from cogent3.draw.drawable import (
     Drawable,
     _calc_arrow_width,
     get_domain,
+    make_shape,
 )
 from cogent3.util.union_dict import UnionDict
 
@@ -416,3 +418,12 @@ def test_calculating_arrow_width_adjusted():
     assert aw == 10
     aw = _calc_arrow_width(parent_length=100, feature_width=10, frac=0.05)
     assert aw == 5
+
+
+def test_colour_choice():
+    label = str(uuid.uuid4())
+    assert label not in make_shape._colors
+    shape1 = make_shape(type_=label, coords=[(10, 20)])
+    assert label in make_shape._colors
+    shape2 = make_shape(type_=label, coords=[(30, 60)])
+    assert shape1.fillcolor == shape2.fillcolor == make_shape._colors[label]

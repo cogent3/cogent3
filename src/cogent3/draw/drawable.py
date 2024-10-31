@@ -855,7 +855,7 @@ class _MakeShape:
         kwargs |= dict(reverse=reverse)
 
         klass = self._shapes.get(type_.lower(), Rectangle)
-        color = self._colors.get(type_.lower())
+        color = self.get_colour(type_)
         if klass != Arrow:
             kwargs.pop("reverse", None)
 
@@ -881,6 +881,16 @@ class _MakeShape:
                 **kwargs,
             )
         return result
+
+    def get_colour(self, label):
+        from plotly.colors import sample_colorscale
+
+        label = label.lower()
+
+        if label not in self._colors:
+            self._colors[label] = sample_colorscale("Viridis", numpy.random.rand())[0]
+
+        return self._colors[label]
 
 
 make_shape = _MakeShape()
