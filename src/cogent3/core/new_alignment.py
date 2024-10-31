@@ -3126,22 +3126,20 @@ class AlignedSeqsData(AlignedSeqsDataABC):
 
     def get_array_seqs(self, names: list[str]) -> numpy.ndarray:
         """returns an array with axis 0 being seqs in order corresponding to names"""
-        # refactor: design
-        # change to iterator?
         seq_arrays = [self.get_gapped_seq_array(seqid=name) for name in names]
         return numpy.stack(seq_arrays, dtype=numpy.uint8)
 
     def get_array_pos(self, names, motif_length=1) -> numpy.ndarray:
         """returns an array with axis 0 being alignment positions columns in order
         corresponding to names in motif_length"""
-        # refactor: design
-        # change to iterator? iter_alignment_pos()
-
         array_seqs = self.get_array_seqs(names)
 
         # if motif_length is 1, return the transposed array
         if motif_length == 1:
             return array_seqs.T
+
+        # refactor: design
+        # can we use numpy.reshape here?
 
         # For motif_length > 1, create an array with the specified motif length
         num_positions = array_seqs.shape[1]
@@ -3747,6 +3745,8 @@ class Alignment(SequenceCollection):
         # implement native
         new_f = negate_condition(f) if negate else f
 
+        # refactor: design
+        # use array_positions here
         return [i for i, col in enumerate(self.positions) if new_f(col)]
 
     def take_positions(self, cols: list, negate: bool = False):
@@ -4718,6 +4718,8 @@ class Alignment(SequenceCollection):
         window = int(window)
         y = self.entropy_per_pos()
         nan_indices = numpy.isnan(y)
+        if nan_indices.sum() == y.shape[0]:  # assuming 1D array
+            y.fill(0.0)
         max_entropy = y[nan_indices == False].max()
         y = max_entropy - y  # convert to information
         # now make all nan's 0
