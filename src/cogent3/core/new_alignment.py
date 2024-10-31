@@ -904,6 +904,10 @@ class SequenceCollection:
         -----
         The returned collection will not retain an annotation_db if present.
         """
+        # refactor: design
+        # todo: this needs to be implemented for Alignment - need to think about the design.
+        # in the old implementation, this method removed all gaps and then returned a
+        # SequenceCollection (even for alignemnts).
         seqs = {
             name: self.moltype.degap(self._seqs_data.get_seq_array(seqid=name))
             for name in self._name_map.values()
@@ -4293,7 +4297,7 @@ class Alignment(SequenceCollection):
             result.annotation_db = self.annotation_db
 
         return result
-    
+
     def _get_seq_features(
         self,
         *,
