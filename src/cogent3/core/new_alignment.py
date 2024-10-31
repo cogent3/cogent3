@@ -3126,12 +3126,16 @@ class AlignedSeqsData(AlignedSeqsDataABC):
 
     def get_array_seqs(self, names: list[str]) -> numpy.ndarray:
         """returns an array with axis 0 being seqs in order corresponding to names"""
+        # refactor: design
+        # change to iterator?
         seq_arrays = [self.get_gapped_seq_array(seqid=name) for name in names]
         return numpy.stack(seq_arrays, dtype=numpy.uint8)
 
     def get_array_pos(self, names, motif_length=1) -> numpy.ndarray:
         """returns an array with axis 0 being alignment positions columns in order
         corresponding to names in motif_length"""
+        # refactor: design
+        # change to iterator? iter_alignment_pos()
 
         array_seqs = self.get_array_seqs(names)
 
