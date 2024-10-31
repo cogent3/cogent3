@@ -596,3 +596,13 @@ def test_make_seq_with_seq_invalid_moltype():
     seq = new_moltype.PROTEIN.make_seq(seq="ACQK")
     with pytest.raises(ValueError):
         _ = new_moltype.DNA.make_seq(seq=seq)
+
+
+def test_to_regex():
+    """returns a valid regex"""
+    seq = "ACYGR"
+    regular_expression = new_moltype.DNA.to_regex(seq=seq)
+    assert regular_expression == "AC[CT]G[AG]"
+    # raises an exception if a string is already a regex, or invalid
+    with pytest.raises(ValueError):
+        new_moltype.DNA.to_regex("(?:GAT|GAC)(?:GGT|GGC|GGA|GGG)(?:GAT|GAC)(?:CAA|CAG)")
