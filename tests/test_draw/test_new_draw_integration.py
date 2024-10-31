@@ -11,6 +11,18 @@ from cogent3.util.union_dict import UnionDict
 
 
 @pytest.fixture(scope="function")
+def seqs_dict():
+    return {
+        "seq1": "CAGGTCGACCTCGGC---------CACGAC",
+        "seq2": "CAGATCGACCTCGGC---------CACGAC",
+        "seq3": "CAGATCGACCTCGGT---------CACGAT",
+        "seq4": "CAGATCGACCTCGGCGAACACGGCCATGAT",
+        "seq5": "CCGATCGACATGGGC---------CACGAT",
+        "seq6": "GCC---------------------------",
+    }
+
+
+@pytest.fixture(scope="function")
 def annotated_seq(DATA_DIR):
     return load_seq(
         DATA_DIR / "c_elegans_WS199_dna_shortened.fasta",
@@ -266,24 +278,16 @@ def test_get_drawable():
     assert got is not None
 
 
-def test_seqlogo():
+def test_seqlogo(seqs_dict):
     """exercise producing a seq logo"""
-    data = {
-        "seq1": "CAGGTCGACCTCGGC---------CACGAC",
-        "seq2": "CAGATCGACCTCGGC---------CACGAC",
-        "seq3": "CAGATCGACCTCGGT---------CACGAT",
-        "seq4": "CAGATCGACCTCGGCGAACACGGCCATGAT",
-        "seq5": "CCGATCGACATGGGC---------CACGAT",
-        "seq6": "GCC---------------------------",
-    }
-    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    aln = new_alignment.make_aligned_seqs(seqs_dict, moltype="dna")
     _ = aln.seqlogo()
     # using wrap argument
     _ = aln.seqlogo(wrap=20)
 
 
-@pytest.mark.xfail(reason="Bug...")
-def test_seqlogo_for_sliced_alignment():
-    # for a sliced alignment
+def test_seqlogo_for_sliced_alignment(seqs_dict):
+    # exercise producing a seq logo for a sliced alignment
+    aln = new_alignment.make_aligned_seqs(seqs_dict, moltype="dna")
     aln = aln[:20]
     _ = aln.seqlogo()
