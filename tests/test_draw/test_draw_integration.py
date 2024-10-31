@@ -1,6 +1,7 @@
 import pathlib
 import unittest
 
+import numpy
 import pytest
 from numpy.testing import assert_allclose
 
@@ -412,18 +413,9 @@ class TableDrawablesTest(BaseDrawablesTests):
         self._check_drawable_attrs(drawable.figure, "table")
 
 
-def test_calculating_arrow_width_fails():
-    with pytest.raises(AssertionError):
-        _calc_arrow_width(x1=1, y1=1, y=2, full_width=3, arrow_head_scale=0.1)
-
-
 def test_calculating_arrow_width_adjusted():
-    # with a slope of 1
-    aw = _calc_arrow_width(
-        x1=0, y1=0, y=-1, full_width=3, arrow_head_scale=0.1, slope=1
-    )
-    assert aw == 1.0
-    aw = _calc_arrow_width(
-        x1=0, y1=0, y=-1, full_width=0.5, arrow_head_scale=0.1, slope=1
-    )
-    assert aw == 0.1
+    height = 0.1
+    aw = _calc_arrow_width(parent_length=100, feature_width=10, frac=1.0)
+    assert aw == 10
+    aw = _calc_arrow_width(parent_length=100, feature_width=10, frac=0.05)
+    assert aw == 5
