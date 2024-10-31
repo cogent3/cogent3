@@ -1,8 +1,6 @@
 import pathlib
 import unittest
 
-import numpy
-import pytest
 from numpy.testing import assert_allclose
 
 from cogent3 import load_aligned_seqs, make_aligned_seqs, make_table
@@ -414,7 +412,6 @@ class TableDrawablesTest(BaseDrawablesTests):
 
 
 def test_calculating_arrow_width_adjusted():
-    height = 0.1
     aw = _calc_arrow_width(parent_length=100, feature_width=10, frac=1.0)
     assert aw == 10
     aw = _calc_arrow_width(parent_length=100, feature_width=10, frac=0.05)
