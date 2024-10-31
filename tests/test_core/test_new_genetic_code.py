@@ -146,3 +146,22 @@ def test_get_alphabet_with_stop():
 
     alpha_gap = gc.get_alphabet(include_gap=True, include_stop=True)
     assert len(alpha_gap) == 65
+
+
+def test_to_regex():
+    """creates a regex from aa seq to match a DNA sequence"""
+    import re
+
+    from cogent3 import make_seq
+
+    dna = "ACCGAACAGGGC"
+    aa = "TEQG"
+    pattern = new_genetic_code.DEFAULT.to_regex(aa)
+    assert "".join(re.findall(pattern, dna)) == dna
+    # note that Z is Q or E
+    aa = "TZQG"
+    pattern = new_genetic_code.DEFAULT.to_regex(aa)
+    assert "".join(re.findall(pattern, dna)) == dna
+    aa = make_seq(aa, moltype="protein")
+    pattern = new_genetic_code.DEFAULT.to_regex(aa)
+    assert "".join(re.findall(pattern, dna)) == dna
