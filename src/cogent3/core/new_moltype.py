@@ -1174,6 +1174,18 @@ class MolType:
         """returns the most degenerate alphabet for this instance"""
         return next(self.iter_alphabets())
 
+    def to_regex(self, seq: str) -> str:
+        """returns a regex pattern with ambiguities expanded to a character set"""
+        if not self.is_valid(seq):
+            raise ValueError(f"'{seq}' is invalid for this moltype")
+
+        degen_indices = self.get_degenerate_positions(seq=seq, include_gap=False)
+        seq = list(seq)  # seq can now be modified
+        for index in degen_indices:
+            expanded = self.ambiguities[seq[index]]
+            seq[index] = f"[{''.join(sorted(expanded))}]"
+        return "".join(seq)
+
 
 def _make_moltype_dict() -> dict[str, MolType]:
     """make a dictionary of local name space molecular types"""
