@@ -3597,6 +3597,9 @@ class Alignment(SequenceCollection):
         return f"{len(self.names)} x {len(self)} {self.moltype.label} alignment: {seqs}"
 
     def __len__(self):
+        # refactor: design
+        # should the len of a sliced alignment be updated? i.e.,
+        # return len(self._slice_record)
         return len(self._seqs_data)
 
     def __array__(self):
@@ -3835,9 +3838,10 @@ class Alignment(SequenceCollection):
             warns if motif_length > 1 and alignment trimmed to produce
             motif columns
         """
-        length = (len(self) // motif_length) * motif_length
-        if warn and len(self) != length:
-            warnings.warn(f"trimmed {len(self) - length}", UserWarning)
+        align_len = len(self._slice_record)
+        length = (align_len // motif_length) * motif_length
+        if warn and align_len != length:
+            warnings.warn(f"trimmed {align_len - length}", UserWarning)
 
         data = list(self.to_dict().values())
         alpha = self.moltype.alphabet.get_kmer_alphabet(motif_length)
@@ -3851,7 +3855,7 @@ class Alignment(SequenceCollection):
             exclude_chars.update(ambigs)
 
         result = []
-        for i in range(0, len(self) - motif_length + 1, motif_length):
+        for i in range(0, align_len - motif_length + 1, motif_length):
             counts = CategoryCounter([s[i : i + motif_length] for s in data])
             all_motifs.update(list(counts))
             result.append(counts)
