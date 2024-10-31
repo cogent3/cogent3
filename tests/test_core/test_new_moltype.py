@@ -572,3 +572,27 @@ def test_char_order(moltype, zero, second, last):
     assert attr[0] == zero
     assert attr[2] == second
     assert attr[-1] == last
+
+
+@pytest.mark.parametrize(
+    "seq",
+    [
+        mt.make_seq(seq="ACGG")
+        for mt in (
+            new_moltype.DNA,
+            new_moltype.RNA,
+            new_moltype.PROTEIN,
+            new_moltype.ASCII,
+        )
+    ],
+)
+def test_make_seq_with_seq(seq):
+    new_seq = new_moltype.DNA.make_seq(seq=seq)
+    assert new_seq.moltype is new_moltype.DNA
+    assert (new_seq is seq) if seq.moltype.name == "dna" else seq is not new_seq
+
+
+def test_make_seq_with_seq_invalid_moltype():
+    seq = new_moltype.PROTEIN.make_seq(seq="ACQK")
+    with pytest.raises(ValueError):
+        _ = new_moltype.DNA.make_seq(seq=seq)

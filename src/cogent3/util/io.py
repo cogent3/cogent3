@@ -1,12 +1,13 @@
 import contextlib
+import functools
 import shutil
 import uuid
 from bz2 import open as bzip_open
 from gzip import open as gzip_open
 from io import TextIOWrapper
+from lzma import open as lzma_open
 from os import PathLike, remove
 from pathlib import Path, PurePath
-from re import compile
 from tempfile import mkdtemp
 from typing import IO, Callable, Iterator, Optional, Tuple, Union
 from urllib.parse import ParseResult, urlparse
@@ -18,8 +19,27 @@ from chardet import detect
 from cogent3.util.misc import _wout_period
 
 PathType = Union[str, PathLike, PurePath]
-# support prefixes for urls
-_urls = compile("^(http[s]*|file)")
+
+
+@functools.singledispatch
+def is_url(path: Union[str, bytes, Path]) -> bool:
+    """whether a path is a url"""
+    return False
+
+
+@is_url.register
+def _(path: str) -> bool:
+    return is_url(urlparse(path))
+
+
+@is_url.register
+def _(path: bytes) -> bool:
+    return is_url(urlparse(path.decode("utf8")))
+
+
+@is_url.register
+def _(path: ParseResult) -> bool:
+    return path.scheme in {"http", "https", "file"}
 
 
 def _get_compression_open(
@@ -41,7 +61,7 @@ def _get_compression_open(
     assert path or compression
     if compression is None:
         _, compression = get_format_suffixes(path)
-    return {"gz": gzip_open, "bz2": bzip_open, "zip": open_zip}.get(compression, None)
+    return _compression_handlers.get(compression, None)
 
 
 def open_zip(filename: PathType, mode: str = "r", **kwargs) -> IO:
@@ -72,10 +92,16 @@ def open_zip(filename: PathType, mode: str = "r", **kwargs) -> IO:
 
         opened = zf.open(zf.namelist()[0], mode=mode, **kwargs)
 
-        if binary_mode:
-            return opened
+        return opened if binary_mode else TextIOWrapper(opened, encoding=encoding)
 
-        return TextIOWrapper(opened, encoding=encoding)
+
+_compression_handlers = {
+    "gz": gzip_open,
+    "bz2": bzip_open,
+    "zip": open_zip,
+    "xz": lzma_open,
+    "lzma": lzma_open,
+}
 
 
 def open_(filename: PathType, mode="rt", **kwargs) -> IO:
@@ -97,7 +123,7 @@ def open_(filename: PathType, mode="rt", **kwargs) -> IO:
     if not filename:
         raise ValueError(f"{filename} not a valid file name or url")
 
-    if _urls.search(str(filename)):
+    if is_url(filename):
         return open_url(filename, mode=mode, **kwargs)
 
     mode = mode or "rt"
@@ -116,7 +142,7 @@ def open_(filename: PathType, mode="rt", **kwargs) -> IO:
     return op(filename, mode, encoding=encoding, **kwargs)
 
 
-def open_url(url: Union[str, ParseResult], mode="r", **kwargs) -> IO:
+def open_url(url: Union[str, ParseResult], mode="rt", **kwargs) -> IO:
     """open a url
 
     Parameters
@@ -128,33 +154,29 @@ def open_url(url: Union[str, ParseResult], mode="r", **kwargs) -> IO:
 
     Raises
     ------
-    If not http(s).
+    Rasies IOError if mode is write or it's not a url.
 
-    Notes
-    -----
-    If mode='b' or 'rb' (binary read), the function returns file object to read
-    else returns TextIOWrapper to read text with specified encoding in the URL
+    Returns
+    -------
+    file object which reads binary if "b" in mode, else text.
     """
     _, compression = get_format_suffixes(
         getattr(url, "path", url)
     )  # handling possibility of ParseResult
-    mode = "rb" if compression else mode or "r"
-
-    url_parsed = url if isinstance(url, ParseResult) else urlparse(url)
+    mode = mode or "r"
 
     if "r" not in mode:
-        raise ValueError("opening a url only allowed in read mode")
+        raise IOError("opening a url only allowed in read mode")
 
-    if not _urls.search(url_parsed.scheme):
-        raise ValueError(
-            f"URL scheme must be http, https or file, not {url_parsed.scheme}"
-        )
+    if not is_url(url):
+        raise IOError(f"URL scheme must be http, https or file, not {str(url)[:20]!r}")
+
+    url_parsed = url if isinstance(url, ParseResult) else urlparse(url)
 
     response = urlopen(url_parsed.geturl(), timeout=10)
     encoding = response.headers.get_content_charset()
     if compression:
         response = _get_compression_open(compression=compression)(response)
-        mode = "r"  # wrap it as text
 
     return response if "b" in mode else TextIOWrapper(response, encoding=encoding)
 
@@ -311,9 +333,8 @@ def get_format_suffixes(filename: PathType) -> Tuple[T, T]:
     if not filename.suffix:
         return None, None
 
-    compression_suffixes = ("bz2", "gz", "zip")
     suffixes = [_wout_period.sub("", sfx).lower() for sfx in filename.suffixes[-2:]]
-    if suffixes[-1] in compression_suffixes:
+    if suffixes[-1] in _compression_handlers:
         cmp_suffix = suffixes[-1]
     else:
         cmp_suffix = None
@@ -363,7 +384,7 @@ def iter_splitlines(
     -----
     Loads chunks of data from the file, yields one line at a time
     """
-    if _urls.search(str(path)):
+    if is_url(path):
         chunk_size = None
     else:
         path = Path(path).expanduser()
