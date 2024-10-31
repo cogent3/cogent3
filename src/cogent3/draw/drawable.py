@@ -690,10 +690,10 @@ def _make_rectangles(coords: list[list[int]], y=0, height=0.25) -> tuple[list[fl
     xs = []
     ys = []
     y_coord = [y, y + height, y + height, y, y]
-    for i in range(len(coords)):
+    for coord in coords:
         # Add coordinates for individual rectangle
-        width = abs(coords[i][0] - coords[i][1])
-        x_coord = min(coords[i][0], coords[i][1])
+        width = abs(coord[0] - coord[1])
+        x_coord = min(coord[0], coord[1])
         xs.append([x_coord, x_coord, x_coord + width, x_coord + width, x_coord])
         ys.append(y_coord)
     return xs, ys
