@@ -288,7 +288,7 @@ class GeneticCode:
         seq
             a Sequence or string of amino acids
         """
-        from .moltype import PROTEIN_WITH_STOP_ambiguities as ambigs
+        from .new_moltype import PROTEIN_WITH_STOP_ambiguities as ambigs
 
         seq = list(str(seq))
         mappings = []
