@@ -1,4 +1,13 @@
 
+<a id='changelog-2024.7.19a9'></a>
+# Changes in release "2024.7.19a9"
+
+## ENH
+
+- `cogent3.open_()` now automatically handles `.xz` and `.lzma` compressed files.
+- Formatting of fasta records is now much quicker.
+- Standardise arrow head sizes on annotation feature displays.
+
 <a id='changelog-2024.7.19a8'></a>
 # Changes in release "2024.7.19a8"
 
