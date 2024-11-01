@@ -38,4 +38,5 @@ working/*
 lcov*.info
 .ruff_cache/*
 .devcontainer/*
-hg_old.zip
+hg_old*zip
+hg_old/*

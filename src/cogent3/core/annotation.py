@@ -274,7 +274,7 @@ class Feature:
         """returns plotly trace"""
         from cogent3.draw.drawable import make_shape
 
-        return make_shape(type_=self)
+        return make_shape(type_=self, parent_length=len(self.parent))
 
     def to_dict(self):
         """returns"""

@@ -1,5 +1,6 @@
 import os
 import pathlib
+import typing
 
 import numpy
 
@@ -554,6 +555,7 @@ class Shape:
         showlegend=True,
         hoverinfo=None,
         fillcolor=None,
+        **kwargs,
     ):
         self.filled = filled
         self.fillcolor = fillcolor
@@ -672,58 +674,126 @@ class Diamond(Shape):
         self.y = numpy.array(ys)
 
 
+def _calc_arrow_width(
+    *,
+    parent_length: int,
+    feature_width: float,
+    frac: float = 0.05,
+) -> float:
+    aw = parent_length * frac
+    if aw > feature_width:
+        aw = feature_width * frac
+    return aw
+
+
+def _make_rectangles(coords: list[list[int]], y=0, height=0.25) -> tuple[list[float]]:
+    xs = []
+    ys = []
+    y_coord = [y, y + height, y + height, y, y]
+    for coord in coords:
+        # Add coordinates for individual rectangle
+        width = abs(coord[0] - coord[1])
+        x_coord = min(coord[0], coord[1])
+        xs.append([x_coord, x_coord, x_coord + width, x_coord + width, x_coord])
+        ys.append(y_coord)
+    return xs, ys
+
+
+def _make_arrow_head(
+    coord: list[float],
+    y: float,
+    height: float,
+    head_width_frac: float,
+    reverse: bool,
+    parent_length: int,
+) -> tuple[list[float]]:
+    width = abs(coord[0] - coord[1])
+    x_coord = min(coord[0], coord[1])
+    hh = height * head_width_frac * 2
+    hw = _calc_arrow_width(
+        parent_length=parent_length, feature_width=width, frac=head_width_frac
+    )
+
+    # Coordinates for arrow head
+    arrow_x = [
+        x_coord,
+        x_coord + width - hw,
+        x_coord + width - hw,
+        x_coord + width,
+        x_coord + width - hw,
+        x_coord + width - hw,
+        x_coord,
+        x_coord,
+    ]
+    arrow_y = [
+        y,
+        y,
+        y - hh,
+        y + height / 2,
+        y + height + hh,
+        y + height,
+        y + height,
+        y,
+    ]
+    if reverse:
+        arrow_x = numpy.array(arrow_x)
+        arrow_x = list(numpy.flip(arrow_x.max() - arrow_x + arrow_x.min()))
+        arrow_y = list(numpy.flip(arrow_y))
+    return arrow_x, arrow_y
+
+
+def _connecting_lines(
+    x_grp: list[list[float]], y_grp: list[list[float]], connect_y: float
+) -> tuple[list[typing.Union[float, None]]]:
+    new_xs, new_ys = x_grp[0][:], y_grp[0][:]
+    y_connect_coord = [None, connect_y, connect_y, None]
+    for i, (xs, ys) in enumerate(zip(x_grp[1:], y_grp[1:]), 1):
+        new_xs.extend([None, max(x_grp[i - 1]), min(x_grp[i]), None] + xs)
+        new_ys.extend(y_connect_coord + ys)
+    return new_xs, new_ys
+
+
 class Arrow(Shape):
     def __init__(
-        self, coords, y=0, height=0.25, arrow_head_w=0.1, reverse=False, **kwargs
+        self,
+        coords,
+        y=0,
+        height=0.25,
+        arrow_head_w=0.05,
+        reverse=False,
+        parent_length: typing.Optional[int] = None,
+        **kwargs,
     ):
-        super(Arrow, self).__init__(**kwargs)
-        xs = []
-        ys = []
-        for i in range(len(coords) - 1):
-            # Add coordinates for individual rectangle
-            width = abs(coords[i][0] - coords[i][1])
-            x_coord = min(coords[i][0], coords[i][1])
-            xs += [x_coord, x_coord, x_coord + width, x_coord + width, x_coord]
-            ys += [y, y + height, y + height, y, y]
-            # Add coordinates for connecting line segment
-            xs += [None, coords[i][1], coords[i + 1][0], None]
-            ys += [None, y + height / 2, y + height / 2, None]
+        super().__init__(**kwargs)
 
-        width = abs(coords[-1][0] - coords[-1][1])
-        x_coord = min(coords[-1][0], coords[-1][1])
-        hh = height * arrow_head_w * 2
-        hw = width * arrow_head_w * 2
-
-        # Coordinates for arrow head
-        arrow_x = [
-            x_coord,
-            x_coord + width - hw,
-            x_coord + width - hw,
-            x_coord + width,
-            x_coord + width - hw,
-            x_coord + width - hw,
-            x_coord,
-            x_coord,
-        ]
-        arrow_y = [
-            y,
-            y,
-            y - hh,
-            y + height / 2,
-            y + height + hh,
-            y + height,
-            y + height,
-            y,
-        ]
-        if not reverse:
-            xs += arrow_x
-            ys += arrow_y
+        if len(coords) == 1 or reverse:
+            head_index = 0
+            rec_coords = None if len(coords) == 1 else coords[1:]
         else:
-            arrow_x = numpy.array(arrow_x)
-            arrow_y = numpy.array(arrow_y)
-            xs += list(numpy.flip(arrow_x.max() - arrow_x + arrow_x.min()))
-            ys += list(numpy.flip(arrow_y))
+            head_index = -1
+            rec_coords = coords[:-1]
 
+        arrow_x, arrow_y = _make_arrow_head(
+            coords[head_index],
+            y=y,
+            height=height,
+            head_width_frac=arrow_head_w,
+            reverse=reverse,
+            parent_length=parent_length,
+        )
+        if rec_coords:
+            xs, ys = _make_rectangles(rec_coords, y=y, height=height)
+        else:
+            xs, ys = [], []
+
+        if reverse:
+            xs.insert(0, arrow_x)
+            ys.insert(0, arrow_y)
+        else:
+            xs.append(arrow_x)
+            ys.append(arrow_y)
+
+        xs, ys = _connecting_lines(xs, ys, y + height / 2)
         self.x = numpy.array(xs)
         self.y = numpy.array(ys)
 
@@ -747,6 +817,7 @@ class _MakeShape:
     _colors = dict(
         cds="rgba(0,0,150,0.75)",
         rrna="rgba(0,0,150,0.75)",
+        misc_rna="rgba(0,0,150,0.75)",
         trna="rgba(0,0,150,0.75)",
         exon="rgba(0,0,100,0.75)",
         gene="rgba(161,0,0,0.75)",
@@ -758,6 +829,7 @@ class _MakeShape:
     _shapes = dict(
         cds=Arrow,
         rrna=Arrow,
+        misc_rna=Arrow,
         trna=Arrow,
         exon=Arrow,
         transcript=Arrow,
@@ -785,7 +857,7 @@ class _MakeShape:
         kwargs |= dict(reverse=reverse)
 
         klass = self._shapes.get(type_.lower(), Rectangle)
-        color = self._colors.get(type_.lower())
+        color = self.get_colour(type_)
         if klass != Arrow:
             kwargs.pop("reverse", None)
 
@@ -811,6 +883,16 @@ class _MakeShape:
                 **kwargs,
             )
         return result
+
+    def get_colour(self, label):
+        from plotly.colors import sample_colorscale
+
+        label = label.lower()
+
+        if label not in self._colors:
+            self._colors[label] = sample_colorscale("Viridis", numpy.random.rand())[0]
+
+        return self._colors[label]
 
 
 make_shape = _MakeShape()

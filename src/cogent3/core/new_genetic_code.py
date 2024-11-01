@@ -295,6 +295,29 @@ class GeneticCode:
             words=codons, monomers=self.moltype.degen_gapped_alphabet, gap=gap
         )
 
+    def to_regex(self, seq: typing.Union[str, "Sequence"]) -> str:
+        """returns a regex pattern with an amino acid expanded to its codon set
+
+        Parameters
+        ----------
+        seq
+            a Sequence or string of amino acids
+        """
+        from .new_moltype import PROTEIN_WITH_STOP_ambiguities as ambigs
+
+        seq = list(str(seq))
+        mappings = []
+        for aa in seq:
+            aa = ambigs[aa] if aa in ambigs else [aa]
+            codons = []
+            for a in aa:
+                codons.extend(self[a])
+
+            # we create a regex non-capturing group for each amino acid
+            mappings.append(f"(?:{'|'.join(codons)})")
+
+        return "".join(mappings)
+
 
 _mapping_cols = "ncbi_code_sequence", "ID", "name", "ncbi_start_codon_map"
 # code mappings are based on the product of bases in order TCAG
