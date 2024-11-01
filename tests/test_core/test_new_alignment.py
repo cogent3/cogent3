@@ -1041,22 +1041,55 @@ def test_sequence_collection_get_seq():
         seqs.get_seq("seqx")
 
 
-def test_sequence_collection_degap():
+@pytest.fixture
+def gap_ambig_seqs():
+    return {"s1": "ATGRY?", "s2": "T-AG??"}
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_sequence_collection_degap(mk_cls, gap_ambig_seqs):
     """SequenceCollection.degap should strip gaps from each seq"""
-    data = {"s1": "ATGRY?", "s2": "T-AG??"}
-    seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
+
+    seqs = mk_cls(gap_ambig_seqs, moltype="dna")
     got = seqs.degap().to_dict()
     expect = {"s1": "ATGRY", "s2": "TAG"}
     assert got == expect
 
 
-def test_sequence_collection_degap_info():
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_sequence_collection_degap_info(mk_cls, gap_ambig_seqs):
     """.degap should preserve info attributes"""
-    data = {"s1": "ATGRY?", "s2": "T-AG??"}
-    aln = new_alignment.make_unaligned_seqs(data, moltype="dna")
+    aln = mk_cls(gap_ambig_seqs, moltype="dna")
     aln.info.path = "blah"
     got = aln.degap()
     assert got.info.path == "blah"
+
+
+def test_alignemnt_degap_sliced(gap_ambig_seqs):
+    """degap should apply slice_record to alignment"""
+    aln = new_alignment.make_aligned_seqs(gap_ambig_seqs, moltype="dna")
+    sliced = aln[:3]
+    got = sliced.degap()
+    expect = {"s1": "ATG", "s2": "TA"}
+    assert got.to_dict() == expect
+
+    # ATGRY?
+    # T-AG??
+    #  * * *
+    sliced = aln[1::2]
+    got = sliced.degap()
+    expect = {"s1": "TR", "s2": "G"}
+    assert got.to_dict() == expect
+
+    sliced = aln[::-1]
+    got = sliced.degap()
+    expect = {"s1": "YRGTA", "s2": "GAT"}
 
 
 def test_sequence_collection_to_fasta():
