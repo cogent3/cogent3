@@ -3071,14 +3071,14 @@ def test_alignment_array_seqs_sliced(simple_aln):
     expect = numpy.array([[0, 1], [4, 4], [2, 2]])
     assert numpy.array_equal(got, expect)
 
-    # T-C
-    # ---
-    # AAA
-    # *** but reversed
 
-    sliced = simple_aln[::-1]
-    got = sliced.array_seqs
-    expect = numpy.array([[1, 4, 0], [4, 4, 4], [2, 2, 2]])
+def test_alignment_array_seqs_reverse_complement(simple_aln):
+    """reverse complementing an alignment should be reflected in the array_seqs"""
+    rc = simple_aln.rc()
+    got = rc.array_seqs
+    # grab the raw array data and reverse complement it
+    raw = simple_aln.to_dict(as_array=True)
+    expect = numpy.array([rc.moltype.complement(seq[::-1]) for seq in raw.values()])
     assert numpy.array_equal(got, expect)
 
 
