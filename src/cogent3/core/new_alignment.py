@@ -704,6 +704,10 @@ class SequenceCollection:
         # want to modify the underlying data, instead we create a new collection
         # with a subset of the names, recorded in the name_map dict.
 
+        # refactor: design, reimplement on Alignment. on which, if self.array_seqs
+        # defined, assign result of self._array_seqs.take(subset_name_indices) to
+        # resulting alignments _array_seqs attribute
+
         if isinstance(names, str):
             names = [names]
 
