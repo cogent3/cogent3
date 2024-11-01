@@ -1060,7 +1060,7 @@ def test_sequence_collection_degap(mk_cls, gap_ambig_seqs):
     assert got == expect
 
     # Test empty sequences case
-    empty_seqs = mk_cls({"empty1": "", "empty2": ""}, motype="dna")
+    empty_seqs = mk_cls({"empty1": "", "empty2": ""}, moltype="dna")
     got_empty = empty_seqs.degap().to_dict()
     expect_empty = {"empty1": "", "empty2": ""}
     assert got_empty == expect_empty
