@@ -3036,10 +3036,12 @@ def test_alignment_array_seqs(simple_aln):
 
 
 def test_alignment_array_seqs_renamed(simple_aln):
+    # if the attribute ._array_seqs has been created (which happens when the
+    # property .array_seqs is accessed), it should not be recreated when the
+    # alignment is renamed
+    orig_arr_seqs = simple_aln.array_seqs
     renamed = simple_aln.rename_seqs(renamer=lambda x: x.upper())
-    got = renamed.array_seqs
-    expect = numpy.array([[0, 4, 1], [4, 4, 4], [2, 2, 2]])
-    assert numpy.array_equal(got, expect)
+    assert renamed.array_seqs is orig_arr_seqs
 
 
 def test_alignment_array_seqs_take_seqs(simple_aln):
