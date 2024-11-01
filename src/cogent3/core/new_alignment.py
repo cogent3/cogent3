@@ -6,7 +6,7 @@ import re
 import typing
 import warnings
 from abc import ABC, abstractmethod
-from collections import defaultdict
+from collections import Counter, defaultdict
 from functools import singledispatch, singledispatchmethod
 from pathlib import Path
 from typing import Any, Callable, Iterator, Mapping, Optional, Union
@@ -15,7 +15,7 @@ import numpy
 
 from cogent3 import get_app
 from cogent3._version import __version__
-from cogent3.core import new_alphabet, new_moltype, new_sequence
+from cogent3.core import new_alphabet, new_genetic_code, new_moltype, new_sequence
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
     BasicAnnotationDb,
@@ -60,6 +60,10 @@ StrORArray = Union[str, numpy.ndarray]
 StrORBytesORArray = Union[str, bytes, numpy.ndarray]
 MolTypes = Union[str, new_moltype.MolType]
 
+# small number: 1-EPS is almost 1, and is used for things like the
+# default number of gaps to allow in a column.
+EPS = 1e-6
+
 
 def assign_sequential_names(num_seqs: int, base_name: str = "seq", start_at: int = 0):
     """Returns list of sequential, unique names, e.g., ['seq_0' ... 'seq_n'] for
@@ -75,6 +79,99 @@ def assign_sequential_names(num_seqs: int, base_name: str = "seq", start_at: int
         the number to start the sequence names at
     """
     return [f"{base_name}_{i}" for i in range(start_at, start_at + num_seqs)]
+
+
+class GapsOk:
+    """determine whether number of gaps satisfies allowed_frac"""
+
+    # refactor: array
+    # possibly convert to using numba jit functions
+
+    def __init__(
+        self,
+        gap_chars: set,
+        allowed_frac: float = 0,
+        motif_length: int = 1,
+        is_array: bool = False,
+        negate: bool = False,
+        gap_run: bool = False,
+        allowed_run: int = 1,
+    ):
+        """
+        Parameters
+        ----------
+        gap_chars
+            characters corresponding to gaps
+        allowed_frac
+            the threshold gap fraction, ignored if gap_run
+        motif_length
+            used to adjust for the denominator in the gap fraction
+        is_array
+            whether input will be a numpy array
+        negate
+            if False (default) evaluates fraction of gap
+            characters <= allowed_frac, if True, >= allowed_frac
+        gap_run
+            check for runs of gaps
+        allowed_run
+            length of the allowed gap run
+
+        """
+        self.motif_length = motif_length
+        self.is_array = is_array
+        self.allowed_frac = allowed_frac
+        self.allowed_run = allowed_run
+        if gap_run:
+            self._func = self.gap_run_ok
+        elif negate:
+            self._func = self.gap_frac_not_ok
+        else:
+            self._func = self.gap_frac_ok
+
+        try:
+            self.gap_chars = set(gap_chars)
+        except TypeError:
+            self.gap_chars = {gap_chars}
+
+    def _get_gap_frac(self, data: tuple[str, ...]) -> float:
+        length = len(data) * self.motif_length
+        # flatten the data and count elements equal to gap
+        if self.is_array:
+            data = Counter(data.flatten())
+        else:
+            data = Counter("".join([str(d) for d in data]))
+
+        num_gap = sum(data[g] for g in self.gap_chars)
+        return num_gap / length
+
+    def gap_frac_ok(self, data: tuple[str, ...]) -> bool:
+        """fraction of gap characters <= allowed_frac"""
+        gap_frac = self._get_gap_frac(data)
+        return gap_frac <= self.allowed_frac
+
+    def gap_frac_not_ok(self, data: tuple[str, ...]) -> bool:
+        """fraction of gap characters >= allowed_frac"""
+        gap_frac = self._get_gap_frac(data)
+        return gap_frac >= self.allowed_frac
+
+    def gap_run_ok(self, seq: str) -> bool:
+        """runs of gaps <= allowed_run"""
+        # refactor: design, this is not used in any of the new alignment code
+        curr_run = 0
+        is_gap = self.gap_chars.__contains__
+        result = True
+        for i in seq:
+            if is_gap(i):
+                curr_run += 1
+                if curr_run > self.allowed_run:
+                    result = False
+                    break
+            else:
+                curr_run = 0
+        return result
+
+    def __call__(self, data: Union[tuple[str, ...], str]):
+        return self._func(data)
 
 
 class SeqDataView(new_sequence.SeqView):
@@ -607,6 +704,10 @@ class SequenceCollection:
         # want to modify the underlying data, instead we create a new collection
         # with a subset of the names, recorded in the name_map dict.
 
+        # refactor: design, reimplement on Alignment. on which, if self.array_seqs
+        # defined, assign result of self._array_seqs.take(subset_name_indices) to
+        # resulting alignments _array_seqs attribute
+
         if isinstance(names, str):
             names = [names]
 
@@ -730,7 +831,6 @@ class SequenceCollection:
             moltype=self.moltype,
             name_map=new_name_map,
             info=self.info,
-            source=self.source,
             annotation_db=self.annotation_db,
         )
 
@@ -807,6 +907,10 @@ class SequenceCollection:
         -----
         The returned collection will not retain an annotation_db if present.
         """
+        # refactor: design
+        # todo: this needs to be implemented for Alignment - need to think about the design.
+        # in the old implementation, this method removed all gaps and then returned a
+        # SequenceCollection (even for alignemnts).
         seqs = {
             name: self.moltype.degap(self._seqs_data.get_seq_array(seqid=name))
             for name in self._name_map.values()
@@ -3161,6 +3265,8 @@ class AlignedDataView(new_sequence.SeqViewABC):
                 numpy.array([], dtype=int),
             )
 
+        # refactor: design
+        # should the returned map be sliced with the slice_record?
         return IndelMap(
             gap_pos=gap_pos,
             cum_gap_lengths=cum_gap_lengths,
@@ -3396,6 +3502,7 @@ class Alignment(SequenceCollection):
             if slice_record is not None
             else new_sequence.SliceRecord(parent_len=self._seqs_data.align_len)
         )
+        self._array_seqs = None
 
     def _post_init(self):
         self._seqs = _IndexableSeqs(self, make_seq=self._make_aligned)
@@ -3421,12 +3528,19 @@ class Alignment(SequenceCollection):
     @__getitem__.register
     def _(self, index: slice):
         new_slice = self._slice_record[index]
-        return self.__class__(
+        new = self.__class__(
             seqs_data=self._seqs_data,
             slice_record=new_slice,
             moltype=self.moltype,
             info=self.info,
         )
+        if abs(new_slice.step or 1) > 1:
+            return new
+
+        # for simple slices, we retain the annotation database
+        if self.annotation_db is not None:
+            new.annotation_db = self.annotation_db
+        return new
 
     @__getitem__.register
     def _(self, index: FeatureMap):
@@ -3449,7 +3563,10 @@ class Alignment(SequenceCollection):
         return f"{len(self.names)} x {len(self)} {self.moltype.label} alignment: {seqs}"
 
     def __len__(self):
-        return len(self._seqs_data)
+        return len(self._slice_record)
+
+    def __array__(self):
+        return self.array_seqs
 
     def _make_aligned(self, seqid: str) -> Aligned:
         # refactor: design
@@ -3458,6 +3575,27 @@ class Alignment(SequenceCollection):
             self._name_map.get(seqid, seqid), self._slice_record
         )
         return Aligned(data=data, moltype=self.moltype, name=seqid)
+
+    @property
+    def array_seqs(self) -> numpy.ndarray:
+        """Returns a numpy array of sequences, axis 0 is seqs in order
+        corresponding to names"""
+        if self._array_seqs is None:
+            # create the dest array dim
+            arr_seqs = numpy.empty(
+                (self.num_seqs, len(self)), dtype=self._seqs_data.alphabet.dtype
+            )
+            for i, seq in enumerate(self.seqs):
+                arr_seqs[i, :] = numpy.array(seq)
+            arr_seqs.flags.writeable = False  # make sure data is immutable
+            self._array_seqs = arr_seqs
+        return self._array_seqs
+
+    @property
+    def array_positions(self) -> numpy.ndarray:
+        """Returns a numpy array of positions, axis 0 is alignment positions
+        columns in order corresponding to names."""
+        return self.array_seqs.T
 
     def get_seq(
         self, seqname: str, copy_annotations: bool = False
@@ -3473,8 +3611,6 @@ class Alignment(SequenceCollection):
             to the annotation database of the Sequence object. If False, all
             annotations are copied.
         """
-        # todo
-        # more efficient to constuct the sequence object directly?
         seq = self.seqs[seqname].seq
         if copy_annotations:
             seq.annotation_db = type(self.annotation_db)()
@@ -3535,6 +3671,27 @@ class Alignment(SequenceCollection):
         app = get_app(app_name, **kwargs)
         return app(self)
 
+    def rename_seqs(self, renamer: Callable[[str], str]):
+        """Returns new alignment with renamed sequences."""
+        new_name_map = {
+            renamer(name): old_name for name, old_name in self._name_map.items()
+        }
+        if len(new_name_map) != len(self._name_map):
+            raise ValueError(f"non-unique names produced by {renamer=}")
+
+        new = self.__class__(
+            seqs_data=self._seqs_data,
+            moltype=self.moltype,
+            name_map=new_name_map,
+            info=self.info,
+            annotation_db=self.annotation_db,
+        )
+
+        if self._array_seqs is not None:
+            new._array_seqs = self._array_seqs
+
+        return new
+
     def iter_positions(
         self, pos_order: list = None
     ) -> typing.Iterator[list, list, list]:
@@ -3552,7 +3709,8 @@ class Alignment(SequenceCollection):
         """
         # refactor: array
         # this could also iter columns of indices as a numpy array - could be an optional arg
-        pos_order = pos_order or range(self._seqs_data.align_len)
+        # refactor: add motif_length argument
+        pos_order = pos_order or range(len(self))
         for pos in pos_order:
             yield [str(self[seq][pos]) for seq in self.names]
 
@@ -3563,28 +3721,53 @@ class Alignment(SequenceCollection):
     ) -> list[int]:
         """Returns list of column indices for which f(col) is True.
 
-        f : callable
+        f
           function that returns true/false given an alignment position
-        native : boolean
-          if True, and ArrayAlignment, f is provided with slice of array
-          otherwise the string is used
-        negate : boolean
+        native
+          if True, f is provided with slice of array, otherwise the string is used
+        negate
           if True, not f() is used
         """
         # refactor:
         # type hint for f
         # implement native
+        new_f = negate_condition(f) if negate else f
+
+        # refactor: design
+        # use array_positions here
+        return [i for i, col in enumerate(self.positions) if new_f(col)]
+
+    def take_positions(self, cols: list, negate: bool = False):
+        """Returns new Alignment containing only specified positions.
+
+        Parameters
+        ----------
+        cols
+            list of column indices to keep
+        negate
+            if True, all columns except those in cols are kept
+        """
         if negate:
+            col_lookup = dict.fromkeys(cols)
+            cols = [i for i in range(len(self)) if i not in col_lookup]
 
-            def new_f(x):
-                return not f(x)
+        new_data = {
+            seqid: self._seqs_data.get_gapped_seq_array(seqid=seqid)[cols]
+            for seqid in self.names
+        }
+        seqs_data = self._seqs_data.from_seqs(
+            data=new_data, alphabet=self.moltype.most_degen_alphabet()
+        )
+        return self.__class__(
+            seqs_data=seqs_data,
+            name_map=self._name_map,
+            info=self.info,
+            moltype=self.moltype,
+        )
 
-        else:
-            new_f = f
-
-        result = [i for i, col in enumerate(self.positions) if new_f(col)]
-
-        return result
+    def take_positions_if(self, f, negate=False):
+        """Returns new Alignment containing cols where f(col) is True."""
+        return self.take_positions(self.get_position_indices(f, negate=negate))
 
     def get_gap_array(self, include_ambiguity: bool = True) -> numpy.ndarray:
         """returns bool array with gap state True, False otherwise
@@ -3647,9 +3830,10 @@ class Alignment(SequenceCollection):
             warns if motif_length > 1 and alignment trimmed to produce
             motif columns
         """
-        length = (len(self) // motif_length) * motif_length
-        if warn and len(self) != length:
-            warnings.warn(f"trimmed {len(self) - length}", UserWarning)
+        align_len = len(self._slice_record)
+        length = (align_len // motif_length) * motif_length
+        if warn and align_len != length:
+            warnings.warn(f"trimmed {align_len - length}", UserWarning)
 
         data = list(self.to_dict().values())
         alpha = self.moltype.alphabet.get_kmer_alphabet(motif_length)
@@ -3663,7 +3847,7 @@ class Alignment(SequenceCollection):
             exclude_chars.update(ambigs)
 
         result = []
-        for i in range(0, len(self) - motif_length + 1, motif_length):
+        for i in range(0, align_len - motif_length + 1, motif_length):
             counts = CategoryCounter([s[i : i + motif_length] for s in data])
             all_motifs.update(list(counts))
             result.append(counts)
@@ -3974,6 +4158,142 @@ class Alignment(SequenceCollection):
             for pos in range(start, end, step):
                 yield self[pos : pos + window]
 
+    def gapped_by_map(self, keep: FeatureMap, **kwargs):
+        # refactor: docstring
+        # todo: kath, not explicitly tested
+        seqs = {}
+        for seq in self.seqs:
+            selected = seq[keep]
+            seqs[seq.name] = numpy.array(selected.gapped_seq)
+
+        seqs_data = self._seqs_data.from_seqs(
+            data=seqs, alphabet=self.moltype.most_degen_alphabet()
+        )
+        return self.__class__(seqs_data=seqs_data, moltype=self.moltype, **kwargs)
+
+    def filtered(
+        self, predicate, motif_length: int = 1, drop_remainder: bool = True, **kwargs
+    ):
+        """The alignment positions where predicate(column) is true.
+
+        Parameters
+        ----------
+        predicate
+            a callback function that takes an tuple of motifs and returns
+            True/False
+        motif_length
+            length of the motifs the sequences should be split  into, eg. 3 for
+            filtering aligned codons.
+        drop_remainder
+            If length is not modulo motif_length, allow dropping the terminal
+            remaining columns
+        """
+        # refactor: type hint for predicate
+        # refactor: array
+        # add argument array_type: bool=True which allows the user to specify what
+        # type their callable can handle and what type the method should return
+        length = len(self)
+        if length % motif_length != 0 and not drop_remainder:
+            raise ValueError(
+                f"aligned length not divisible by motif_length={motif_length}"
+            )
+        gv = []
+        kept = False
+        seqs = [
+            self.get_gapped_seq(n).get_in_motif_size(motif_length, **kwargs)
+            for n in self.names
+        ]
+
+        positions = list(zip(*seqs))
+        for position, column in enumerate(positions):
+            keep = predicate(column)
+            if kept != keep:
+                gv.append(position * motif_length)
+                kept = keep
+
+        if kept:
+            gv.append(len(positions) * motif_length)
+
+        if not gv:
+            return None
+
+        locations = [(gv[i], gv[i + 1]) for i in range(0, len(gv), 2)]
+        # these are alignment coordinate locations
+        keep = FeatureMap.from_locations(locations=locations, parent_length=len(self))
+
+        return self.gapped_by_map(keep, info=self.info)
+
+    def omit_gap_pos(self, allowed_gap_frac: float = 1 - EPS, motif_length: int = 1):
+        """Returns new alignment where all cols (motifs) have <= allowed_gap_frac gaps.
+
+        Parameters
+        ----------
+        allowed_gap_frac
+            specifies proportion of gaps is allowed in each column. Set to 0 to
+            exclude columns with any gaps, 1 to include all columns.
+        motif_length
+            set's the "column" width, e.g. setting to 3 corresponds to codons.
+            A motif that includes a gap at any position is included in the
+            counting.
+        """
+
+        gaps = list(self.moltype.gaps)
+
+        # redesign: use array methods
+        gaps_ok = GapsOk(
+            gaps, allowed_gap_frac, is_array=False, motif_length=motif_length
+        )
+
+        return self.filtered(gaps_ok, motif_length=motif_length)
+
+    def has_terminal_stop(self, gc: Any = None, strict: bool = False) -> bool:
+        """Returns True if any sequence has a terminal stop codon.
+
+        Parameters
+        ----------
+        gc
+            valid input to cogent3.get_code(), a genetic code object, number
+            or name
+        strict
+            If True, raises an exception if a seq length not divisible by 3
+        """
+        for seq_name in self.names:
+            seq = self.seqs[seq_name].seq
+            if seq.has_terminal_stop(gc=gc, strict=strict):
+                return True
+        return False
+
+    def trim_stop_codons(self, gc: Any = None, strict: bool = False, **kwargs):
+        # refactor: array
+        if not self.has_terminal_stop(gc=gc, strict=strict):
+            return self
+
+        # define a regex for finding stop codons followed by terminal gaps
+        gc = new_genetic_code.get_code(gc)
+        gaps = "".join(self.moltype.gaps)
+        pattern = f"({'|'.join(gc['*'])})[{gaps}]*$"
+        terminal_stop = re.compile(pattern)
+
+        data = self.to_dict()
+        for name, seq in data.items():
+            if match := terminal_stop.search(seq):
+                diff = len(seq) - match.start()
+                seq = terminal_stop.sub("-" * diff, seq)
+            data[name] = seq
+
+        seqs_data = self._seqs_data.from_seqs(
+            data=data, alphabet=self.moltype.most_degen_alphabet()
+        )
+
+        result = self.__class__(
+            seqs_data=seqs_data, info=self.info, moltype=self.moltype, **kwargs
+        )
+
+        if hasattr(self, "annotation_db"):
+            result.annotation_db = self.annotation_db
+
+        return result
+
     def _get_seq_features(
         self,
         *,
@@ -4102,7 +4422,7 @@ class Alignment(SequenceCollection):
                 raise RuntimeError(f"{on_alignment=} {feature=}")
             if seq_map is None:
                 seq_map = self.seqs[0].map.to_feature_map()
-                *_, strand = self.seqs[0].data.parent_coordinates()
+                *_, strand = self.seqs[0].seq.parent_coordinates()
 
             spans = numpy.array(feature["spans"])
             spans = seq_map.relative_position(spans)
@@ -4110,6 +4430,370 @@ class Alignment(SequenceCollection):
             # and if i've been reversed...?
             feature["strand"] = "-" if strand == -1 else "+"
             yield self.make_feature(feature=feature, on_alignment=on_al)
+
+    def get_drawables(self, *, biotype: Optional[str, Iterable[str]] = None) -> dict:
+        """returns a dict of drawables, keyed by type
+
+        Parameters
+        ----------
+        biotype
+            passed to get_features(biotype). Can be a single biotype or
+            series. Only features matching this will be included.
+        """
+        result = defaultdict(list)
+        for f in self.get_features(biotype=biotype, allow_partial=True):
+            result[f.biotype].append(f.get_drawable())
+        return result
+
+    def get_drawable(
+        self,
+        *,
+        biotype: Optional[str, Iterable[str]] = None,
+        width: int = 600,
+        vertical: int = False,
+        title: OptStr = None,
+    ):
+        """make a figure from sequence features
+
+        Parameters
+        ----------
+        biotype
+            passed to get_features(biotype). Can be a single biotype or
+            series. Only features matching this will be included.
+        width
+            width in pixels
+        vertical
+            rotates the drawable
+        title
+            title for the plot
+
+        Returns
+        -------
+        a Drawable instance
+        """
+        # todo gah I think this needs to be modified to make row-blocks
+        # for each sequence in the alignment, or are we displaying the
+        # sequence name in the feature label?
+        from cogent3.draw.drawable import Drawable
+
+        drawables = self.get_drawables(biotype=biotype)
+        if not drawables:
+            return None
+        # we order by tracks
+        top = 0
+        space = 0.25
+        annotes = []
+        for feature_type in drawables:
+            new_bottom = top + space
+            for i, annott in enumerate(drawables[feature_type]):
+                annott.shift(y=new_bottom - annott.bottom)
+                if i > 0:
+                    # refactor: design
+                    # modify the api on annott, we should not be using
+                    # a private attribute!
+                    annott._showlegend = False
+                annotes.append(annott)
+
+            top = annott.top
+
+        top += space
+        height = max((top / len(self)) * width, 300)
+        xaxis = dict(range=[0, len(self)], zeroline=False, showline=True)
+        yaxis = dict(range=[0, top], visible=False, zeroline=True, showline=True)
+
+        if vertical:
+            all_traces = [t.T.as_trace() for t in annotes]
+            width, height = height, width
+            xaxis, yaxis = yaxis, xaxis
+        else:
+            all_traces = [t.as_trace() for t in annotes]
+
+        drawer = Drawable(title=title, traces=all_traces, width=width, height=height)
+        drawer.layout.update(xaxis=xaxis, yaxis=yaxis)
+        return drawer
+
+    def seqlogo(
+        self,
+        width: float = 700,
+        height: float = 100,
+        wrap: OptInt = None,
+        vspace: float = 0.005,
+        colours: dict = None,
+    ):
+        """returns Drawable sequence logo using mutual information
+
+        Parameters
+        ----------
+        width, height
+            plot dimensions in pixels
+        wrap
+            number of alignment columns per row
+        vspace
+            vertical separation between rows, as a proportion of total plot
+        colours
+            mapping of characters to colours. If note provided, defaults to
+            custom for everything ecept protein, which uses protein moltype
+            colours.
+
+        Notes
+        -----
+        Computes MI based on log2 and includes the gap state, so the maximum
+        possible value is -log2(1/num_states)
+        """
+        assert 0 <= vspace <= 1, "vertical space must be in range 0, 1"
+        freqs = self.counts_per_pos(allow_gap=True).to_freq_array()
+        if colours is None and "protein" in self.moltype.label:
+            colours = self.moltype._colors
+
+        return freqs.logo(
+            width=width, height=height, wrap=wrap, vspace=vspace, colours=colours
+        )
+
+    @c3warn.deprecated_args(
+        "2024.12", reason="consistency", old_new=[("method", "stat")]
+    )
+    def coevolution(
+        self,
+        stat: str = "nmi",
+        segments: list[tuple[int, int]] = None,
+        drawable: OptStr = None,
+        show_progress: bool = False,
+        parallel: bool = False,
+        par_kw: OptDict = None,
+    ):
+        """performs pairwise coevolution measurement
+
+        Parameters
+        ----------
+        stat
+            coevolution metric, defaults to 'nmi' (Normalized Mutual
+            Information). Valid choices are 'rmi' (Resampled Mutual Information)
+            and 'mi', mutual information.
+        segments
+            coordinates of the form [(start, end), ...] where all possible
+            pairs of alignment positions within and between segments are
+            examined.
+        drawable
+            Result object is capable of plotting data specified type. str value
+            must be one of plot type 'box', 'heatmap', 'violin'.
+        show_progress
+            shows a progress bar.
+        parallel
+            run in parallel, according to arguments in par_kwargs.
+        par_kw
+            dict of values for configuring parallel execution.
+
+        Returns
+        -------
+        DictArray of results with lower-triangular values. Upper triangular
+        elements and estimates that could not be computed for numerical reasons
+        are set as nan
+        """
+        from cogent3.draw.drawable import AnnotatedDrawable, Drawable
+        from cogent3.evolve import coevolution as coevo
+        from cogent3.util.union_dict import UnionDict
+
+        # refactor: design
+        # These graphical representations of matrices should be separate functions
+        # in the drawing submodule somewhere
+        stat = stat.lower()
+        if segments:
+            segments = [range(*segment) for segment in segments]
+
+        result = coevo.coevolution_matrix(
+            alignment=self,
+            stat=stat,
+            positions=segments,
+            show_progress=show_progress,
+            parallel=parallel,
+            par_kw=par_kw,
+        )
+        if drawable is None:
+            return result
+
+        trace_name = os.path.basename(self.info.source) if self.info.source else None
+        if drawable in ("box", "violin"):
+            trace = UnionDict(
+                type=drawable, y=result.array.flatten(), showlegend=False, name=""
+            )
+            draw = Drawable(
+                width=500, height=500, title=trace_name, ytitle=stat.upper()
+            )
+            draw.add_trace(trace)
+            result = draw.bound_to(result)
+        elif drawable:
+            axis_title = "Alignment Position"
+            axis_args = dict(
+                showticklabels=True,
+                mirror=True,
+                showgrid=False,
+                showline=True,
+                zeroline=False,
+            )
+            height = 500
+            width = height
+            draw = Drawable(
+                width=width,
+                height=height,
+                xtitle=axis_title,
+                ytitle=axis_title,
+                title=trace_name,
+            )
+
+            trace = UnionDict(
+                type="heatmap",
+                z=result.array,
+                colorbar=dict(title=dict(text=stat.upper(), font=dict(size=16))),
+            )
+            draw.add_trace(trace)
+            draw.layout.xaxis.update(axis_args)
+            draw.layout.yaxis.update(axis_args)
+
+            try:
+                bottom = self.get_drawable()
+                left = self.get_drawable(vertical=True)
+            except AttributeError:
+                bottom = False
+
+            if bottom and drawable != "box":
+                xlim = 1.2
+                draw.layout.width = height * xlim
+                layout = dict(legend=dict(x=xlim, y=1))
+                draw = AnnotatedDrawable(
+                    draw,
+                    left_track=left,
+                    bottom_track=bottom,
+                    xtitle=axis_title,
+                    ytitle=axis_title,
+                    xrange=[0, len(self)],
+                    yrange=[0, len(self)],
+                    layout=layout,
+                )
+
+            result = draw.bound_to(result)
+
+        return result
+
+    def information_plot(
+        self,
+        width: OptInt = None,
+        height: OptInt = None,
+        window: OptInt = None,
+        stat: str = "median",
+        include_gap: bool = True,
+    ):
+        """plot information per position
+
+        Parameters
+        ----------
+        width
+            figure width in pixels
+        height
+            figure height in pixels
+        window
+            used for smoothing line, defaults to sqrt(length)
+        stat
+            'mean' or 'median, used as the summary statistic for each window
+        include_gap
+            whether to include gap counts, shown on right y-axis
+        """
+        from cogent3.draw.drawable import AnnotatedDrawable, Drawable
+
+        # refactor: design
+        # These graphical representations of matrices should be separate functions
+        # in the drawing submodule somewhere
+        window = window or numpy.sqrt(len(self))
+        window = int(window)
+        y = self.entropy_per_pos()
+        nan_indices = numpy.isnan(y)
+        if nan_indices.sum() == y.shape[0]:  # assuming 1D array
+            y.fill(0.0)
+        max_entropy = y[nan_indices == False].max()
+        y = max_entropy - y  # convert to information
+        # now make all nan's 0
+        y[nan_indices] = 0
+        stats = {"mean": numpy.mean, "median": numpy.median}
+        if stat not in stats:
+            raise ValueError('stat must be either "mean" or "median"')
+        calc_stat = stats[stat]
+        num = len(y) - window
+        v = [calc_stat(y[i : i + window]) for i in range(num)]
+        x = numpy.arange(num)
+        x += window // 2  # shift x-coordinates to middle of window
+        trace_line = UnionDict(
+            type="scatter",
+            x=x,
+            y=v,
+            mode="lines",
+            name=f"smoothed {stat}",
+            line=dict(shape="spline", smoothing=1.3),
+        )
+        trace_marks = UnionDict(
+            type="scatter",
+            x=numpy.arange(y.shape[0]),
+            y=y,
+            mode="markers",
+            opacity=0.5,
+            name="per position",
+        )
+        layout = UnionDict(
+            title="Information per position",
+            width=width,
+            height=height,
+            showlegend=True,
+            yaxis=dict(range=[0, max(y) * 1.2], showgrid=False),
+            xaxis=dict(
+                showgrid=False, range=[0, len(self)], mirror=True, showline=True
+            ),
+        )
+
+        traces = [trace_marks, trace_line]
+        if include_gap:
+            gap_counts = self.count_gaps_per_pos()
+            y = [calc_stat(gap_counts[i : i + window]) for i in range(num)]
+            trace_g = UnionDict(
+                type="scatter",
+                x=x,
+                y=y,
+                yaxis="y2",
+                name="Gaps",
+                mode="lines",
+                line=dict(shape="spline", smoothing=1.3),
+            )
+            traces += [trace_g]
+            layout.yaxis2 = dict(
+                title="Count",
+                side="right",
+                overlaying="y",
+                range=[0, max(gap_counts) * 1.2],
+                showgrid=False,
+                showline=True,
+            )
+
+        draw = Drawable(
+            title="Information per position",
+            xtitle="Position",
+            ytitle=f"Information (window={window})",
+        )
+        draw.traces.extend(traces)
+        draw.layout |= layout
+        draw.layout.legend = dict(x=1.1, y=1)
+
+        try:
+            drawable = self.get_drawable()
+        except AttributeError:
+            drawable = False
+
+        if drawable:
+            draw = AnnotatedDrawable(
+                draw,
+                bottom_track=drawable,
+                xtitle="position",
+                ytitle=f"Information (window={window})",
+                layout=layout,
+            )
+
+        return draw
 
     def to_pretty(self, name_order=None, wrap=None):
         """returns a string representation of the alignment in pretty print format

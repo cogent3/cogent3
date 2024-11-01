@@ -1574,7 +1574,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         got = aln._repr_html_()
         self.assertIn("%d x %d" % (aln.num_seqs, aln.seq_len), got.splitlines()[-2])
 
-    def test_seqlogo(self):
+    def test_seqlogo(self):  # ported
         """exercise producing a seq logo"""
         data = {
             "seq1": "CAGGTCGACCTCGGC---------CACGAC",

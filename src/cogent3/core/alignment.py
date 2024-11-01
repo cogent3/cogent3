@@ -3638,7 +3638,7 @@ class AlignmentI(object):
         show_progress=False,
         parallel=False,
         par_kw=None,
-    ):
+    ):  # ported
         """performs pairwise coevolution measurement
 
         Parameters
@@ -3745,7 +3745,9 @@ class AlignmentI(object):
 
         return result
 
-    def seqlogo(self, width=700, height=100, wrap=None, vspace=0.005, colours=None):
+    def seqlogo(
+        self, width=700, height=100, wrap=None, vspace=0.005, colours=None
+    ):  # ported
         """returns Drawable sequence logo using mutual information
 
         Parameters
@@ -4775,7 +4777,7 @@ class Alignment(AlignmentI, SequenceCollection):
 
         return self.gapped_by_map(keep, info=self.info)
 
-    def get_seq(self, seqname):
+    def get_seq(self, seqname):  # ported
         """Return a ungapped Sequence object for the specified seqname.
 
         Note: always returns Sequence object, not ArraySequence.
@@ -4789,7 +4791,7 @@ class Alignment(AlignmentI, SequenceCollection):
         """
         return self.named_seqs[seq_name].get_gapped_seq(recode_gaps)
 
-    def iter_positions(self, pos_order=None):
+    def iter_positions(self, pos_order=None):  # ported
         """Iterates over positions in the alignment, in order.
 
         pos_order refers to a list of indices (ints) specifying the column
@@ -4986,7 +4988,9 @@ class Alignment(AlignmentI, SequenceCollection):
 
         return self.__class__(new_seqs, info=self.info, moltype=self.moltype)
 
-    def get_drawables(self, *, biotype: Optional[str, Iterable[str]] = None) -> dict:
+    def get_drawables(
+        self, *, biotype: Optional[str, Iterable[str]] = None
+    ) -> dict:  # ported
         """returns a dict of drawables, keyed by type
 
         Parameters
@@ -5006,7 +5010,7 @@ class Alignment(AlignmentI, SequenceCollection):
         biotype: Optional[str, Iterable[str]] = None,
         width: int = 600,
         vertical: int = False,
-    ):
+    ):  # ported
         """make a figure from sequence features
 
         Parameters

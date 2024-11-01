@@ -200,6 +200,7 @@ def make_aligned_seqs(
     label_to_name=None,
     info=None,
     source=None,
+    new_type=False,
     **kw,
 ):
     """Initialize an aligned collection of sequences.
@@ -219,9 +220,29 @@ def make_aligned_seqs(
     source
         origins of this data, defaults to 'unknown'. Converted to a string
         and added to info["source"].
+    new_type
+        if True, the returned Alignment will be of the new type,
+        (cogent3.core.new_sequence.Alignment). The default will be
+        changed to True in 2025.6. Support for the old style will be removed
+        as of 2025.12.
     **kw
         other keyword arguments passed to alignment class
     """
+    if new_type or "COGENT3_NEW_TYPE" in os.environ:
+        if moltype is None:
+            raise ValueError("Argument 'moltype' is required when 'new_type=True'")
+
+        from cogent3.core import new_alignment
+
+        return new_alignment.make_aligned_seqs(
+            data,
+            moltype=moltype,
+            label_to_name=label_to_name,
+            info=info,
+            source=source,
+            **kw,
+        )
+
     klass = ArrayAlignment if array_align else Alignment
     return _make_seq_container(
         klass,
