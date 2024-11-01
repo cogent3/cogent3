@@ -3498,7 +3498,6 @@ class Alignment(SequenceCollection):
             else new_sequence.SliceRecord(parent_len=self._seqs_data.align_len)
         )
         self._array_seqs = None
-        self._array_positions = None
 
     def _post_init(self):
         self._seqs = _IndexableSeqs(self, make_seq=self._make_aligned)
@@ -3580,28 +3579,21 @@ class Alignment(SequenceCollection):
         """Returns a numpy array of sequences, axis 0 is seqs in order
         corresponding to names"""
         if self._array_seqs is None:
-            start, stop, step = (
-                self._slice_record.start,
-                self._slice_record.stop,
-                self._slice_record.step,
+            # create the dest array dim
+            arr_seqs = numpy.empty(
+                (self.num_seqs, len(self)), dtype=self._seqs_data.alphabet.dtype
             )
-            seq_arrays = [
-                self._seqs_data.get_gapped_seq_array(
-                    seqid=name, start=start, stop=stop, step=step
-                )
-                for name in self._name_map.values()
-            ]
-            self._array_seqs = numpy.stack(seq_arrays, dtype=numpy.uint8)
+            for i, seq in enumerate(self.seqs):
+                arr_seqs[i, :] = numpy.array(seq)
+            arr_seqs.flags.writeable = False  # make sure data is immutable
+            self._array_seqs = arr_seqs
         return self._array_seqs
 
     @property
     def array_positions(self) -> numpy.ndarray:
         """Returns a numpy array of positions, axis 0 is alignment positions
         columns in order corresponding to names."""
-        if self._array_positions is None:
-            array_seqs = self.array_seqs
-            self._array_positions = array_seqs.T
-        return self._array_positions
+        return self.array_seqs.T
 
     def get_seq(
         self, seqname: str, copy_annotations: bool = False
