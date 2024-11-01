@@ -3108,9 +3108,23 @@ def test_alignment_array_positions_sliced(simple_aln):
     got = sliced.array_positions
     assert numpy.array_equal(got, expect)
 
+
+def test_array_positions_reverse_complement(simple_aln):
+    # orig:
+    # T-C   041
+    # ---   444
+    # AAA   222
+
+    # rc:
+    # G-A   342
+    # ---   444
+    # TTT   000
+
+    # iter columns should iter over columns in rc
+
     sliced = simple_aln[::-1]
-    expect = numpy.array([[1, 4, 2], [4, 4, 2], [0, 4, 2]])
     got = sliced.array_positions
+    expect = numpy.array([[3, 4, 0], [4, 4, 0], [2, 4, 0]])
     assert numpy.array_equal(got, expect)
 
 
