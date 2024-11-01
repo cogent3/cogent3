@@ -827,7 +827,6 @@ class SequenceCollection:
             moltype=self.moltype,
             name_map=new_name_map,
             info=self.info,
-            source=self.source,
             annotation_db=self.annotation_db,
         )
 
@@ -3262,6 +3261,8 @@ class AlignedDataView(new_sequence.SeqViewABC):
                 numpy.array([], dtype=int),
             )
 
+        # refactor: design
+        # should the returned map be sliced with the slice_record?
         return IndelMap(
             gap_pos=gap_pos,
             cum_gap_lengths=cum_gap_lengths,
