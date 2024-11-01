@@ -3580,8 +3580,15 @@ class Alignment(SequenceCollection):
         """Returns a numpy array of sequences, axis 0 is seqs in order
         corresponding to names"""
         if self._array_seqs is None:
+            start, stop, step = (
+                self._slice_record.start,
+                self._slice_record.stop,
+                self._slice_record.step,
+            )
             seq_arrays = [
-                self._seqs_data.get_gapped_seq_array(seqid=name)
+                self._seqs_data.get_gapped_seq_array(
+                    seqid=name, start=start, stop=stop, step=step
+                )
                 for name in self._name_map.values()
             ]
             self._array_seqs = numpy.stack(seq_arrays, dtype=numpy.uint8)
