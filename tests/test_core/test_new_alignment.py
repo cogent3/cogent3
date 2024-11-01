@@ -1054,9 +1054,16 @@ def test_sequence_collection_degap(mk_cls, gap_ambig_seqs):
     """SequenceCollection.degap should strip gaps from each seq"""
 
     seqs = mk_cls(gap_ambig_seqs, moltype="dna")
+    # Test normal case
     got = seqs.degap().to_dict()
     expect = {"s1": "ATGRY", "s2": "TAG"}
     assert got == expect
+
+    # Test empty sequences case
+    empty_seqs = Alignment({"empty1": "", "empty2": ""})
+    got_empty = empty_seqs.degap().to_dict()
+    expect_empty = {"empty1": "", "empty2": ""}
+    assert got_empty == expect_empty
 
 
 @pytest.mark.parametrize(
