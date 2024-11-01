@@ -3025,13 +3025,13 @@ def test_aligned_data_view_gapped_bytes_value(aligned_array_dict, dna_alphabet, 
 @pytest.fixture
 def simple_aln():
     return new_alignment.make_aligned_seqs(
-        {"a": "T-", "b": "--", "c": "AA"}, moltype="dna"
+        {"a": "T-C", "b": "---", "c": "AAA"}, moltype="dna"
     )
 
 
 def test_alignment_array_seqs(simple_aln):
     got = simple_aln.array_seqs
-    expect = numpy.array([[0, 4], [4, 4], [2, 2]])
+    expect = numpy.array([[0, 4, 1], [4, 4, 4], [2, 2, 2]])
     assert numpy.array_equal(got, expect)
 
 
@@ -3039,13 +3039,45 @@ def test_alignment_array_seqs_take_seqs(simple_aln):
     """an alignment which has been subset should return the correct array_seqs"""
     subset = simple_aln.take_seqs(["a", "c"])
     got = subset.array_seqs
-    expect = numpy.array([[0, 4], [2, 2]])
+    expect = numpy.array([[0, 4, 1], [2, 2, 2]])
+    assert numpy.array_equal(got, expect)
+
+
+def test_alignment_array_seqs_sliced(simple_aln):
+    """an alignment which has been sliced should be reflected in the array_seqs"""
+    # T-C
+    # ---
+    # AAA
+    # **
+
+    sliced = simple_aln[:2]
+    got = sliced.array_seqs
+    expect = numpy.array([[0, 4], [4, 4], [2, 2]])
+    assert numpy.array_equal(got, expect)
+
+    # T-C
+    # ---
+    # AAA
+    # * *
+    sliced = simple_aln[::2]
+    got = sliced.array_seqs
+    expect = numpy.array([[0, 1], [4, 4], [2, 2]])
+    assert numpy.array_equal(got, expect)
+
+    # T-C
+    # ---
+    # AAA
+    # *** but reversed
+
+    sliced = simple_aln[::-1]
+    got = sliced.array_seqs
+    expect = numpy.array([[1, 4, 0], [4, 4, 4], [2, 2, 2]])
     assert numpy.array_equal(got, expect)
 
 
 def test_alignment_array_positions(simple_aln):
     got = simple_aln.array_positions
-    expect = numpy.array([[0, 4, 2], [4, 4, 2]])
+    expect = numpy.array([[0, 4, 2], [4, 4, 2], [1, 4, 2]])
     assert numpy.array_equal(got, expect)
 
 
@@ -3054,6 +3086,24 @@ def test_alignment_array_positions_take_positions(simple_aln):
     subset = simple_aln.take_positions([0])
     got = subset.array_positions
     expect = numpy.array([[0, 4, 2]])
+    assert numpy.array_equal(got, expect)
+
+
+def test_alignment_array_positions_sliced(simple_aln):
+    """an alignment which has been sliced should be reflected in the array_positions"""
+    sliced = simple_aln[:2]
+    got = sliced.array_positions
+    expect = numpy.array([[0, 4, 2], [4, 4, 2]])
+    assert numpy.array_equal(got, expect)
+
+    sliced = simple_aln[::2]
+    expect = numpy.array([[0, 4, 2], [1, 4, 2]])
+    got = sliced.array_positions
+    assert numpy.array_equal(got, expect)
+
+    sliced = simple_aln[::-1]
+    expect = numpy.array([[1, 4, 2], [4, 4, 2], [0, 4, 2]])
+    got = sliced.array_positions
     assert numpy.array_equal(got, expect)
 
 
