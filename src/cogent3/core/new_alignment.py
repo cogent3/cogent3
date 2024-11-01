@@ -2782,17 +2782,6 @@ class AlignedSeqsDataABC(SeqsDataABC):
         step: OptInt = None,
     ) -> bytes: ...
 
-    @abstractmethod
-    def get_array_seqs(self, names: list[str]) -> numpy.ndarray:
-        """returns an array with axis 0 being seqs in order corresponding to names"""
-        ...
-
-    @abstractmethod
-    def get_array_pos(self, names: list[str], motif_length: int = 1) -> numpy.ndarray:
-        """returns an array with axis 0 being alignment positions columns in
-        order corresponding to names in motif_length"""
-        ...
-
 
 def _gapped_seq_len(seq: numpy.ndarray, gap_map: numpy.ndarray) -> int:
     """calculate the gapped sequence length from a ungapped sequence and gap map
@@ -3123,35 +3112,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         return self.get_gapped_seq_str(
             seqid=seqid, start=start, stop=stop, step=step
         ).encode("utf8")
-
-    def get_array_seqs(self, names: list[str]) -> numpy.ndarray:
-        """returns an array with axis 0 being seqs in order corresponding to names"""
-        seq_arrays = [self.get_gapped_seq_array(seqid=name) for name in names]
-        return numpy.stack(seq_arrays, dtype=numpy.uint8)
-
-    def get_array_pos(self, names, motif_length=1) -> numpy.ndarray:
-        """returns an array with axis 0 being alignment positions columns in order
-        corresponding to names in motif_length"""
-        array_seqs = self.get_array_seqs(names)
-
-        # if motif_length is 1, return the transposed array
-        if motif_length == 1:
-            return array_seqs.T
-
-        # refactor: design
-        # can we use numpy.reshape here?
-
-        # For motif_length > 1, create an array with the specified motif length
-        num_positions = array_seqs.shape[1]
-        num_motifs = num_positions // motif_length
-        motif_array = numpy.zeros(
-            (num_motifs, len(names), motif_length), dtype=numpy.uint8
-        )
-
-        for i in range(num_motifs):
-            motif_array[i] = array_seqs[:, i * motif_length : (i + 1) * motif_length]
-
-        return motif_array
 
     def add_seqs(
         self,
@@ -3620,7 +3580,11 @@ class Alignment(SequenceCollection):
         """Returns a numpy array of sequences, axis 0 is seqs in order
         corresponding to names"""
         if self._array_seqs is None:
-            self._array_seqs = self._seqs_data.get_array_seqs(self.names)
+            seq_arrays = [
+                self._seqs_data.get_gapped_seq_array(seqid=name)
+                for name in self._name_map.values()
+            ]
+            self._array_seqs = numpy.stack(seq_arrays, dtype=numpy.uint8)
         return self._array_seqs
 
     @property
@@ -3628,7 +3592,8 @@ class Alignment(SequenceCollection):
         """Returns a numpy array of positions, axis 0 is alignment positions
         columns in order corresponding to names."""
         if self._array_positions is None:
-            self._array_positions = self._seqs_data.get_array_pos(self.names)
+            array_seqs = self.array_seqs
+            self._array_positions = array_seqs.T
         return self._array_positions
 
     def get_seq(
@@ -3722,6 +3687,7 @@ class Alignment(SequenceCollection):
         """
         # refactor: array
         # this could also iter columns of indices as a numpy array - could be an optional arg
+        # refactor: add motif_length argument
         pos_order = pos_order or range(self._seqs_data.align_len)
         for pos in pos_order:
             yield [str(self[seq][pos]) for seq in self.names]
