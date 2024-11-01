@@ -3558,10 +3558,7 @@ class Alignment(SequenceCollection):
         return f"{len(self.names)} x {len(self)} {self.moltype.label} alignment: {seqs}"
 
     def __len__(self):
-        # refactor: design
-        # should the len of a sliced alignment be updated? i.e.,
-        # return len(self._slice_record)
-        return len(self._seqs_data)
+        return len(self._slice_record)
 
     def __array__(self):
         return self.array_seqs
@@ -3687,7 +3684,7 @@ class Alignment(SequenceCollection):
         # refactor: array
         # this could also iter columns of indices as a numpy array - could be an optional arg
         # refactor: add motif_length argument
-        pos_order = pos_order or range(self._seqs_data.align_len)
+        pos_order = pos_order or range(len(self))
         for pos in pos_order:
             yield [str(self[seq][pos]) for seq in self.names]
 
