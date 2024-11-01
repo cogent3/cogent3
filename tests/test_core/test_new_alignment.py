@@ -3035,6 +3035,13 @@ def test_alignment_array_seqs(simple_aln):
     assert numpy.array_equal(got, expect)
 
 
+def test_alignment_array_seqs_renamed(simple_aln):
+    renamed = simple_aln.rename_seqs(renamer=lambda x: x.upper())
+    got = renamed.array_seqs
+    expect = numpy.array([[0, 4, 1], [4, 4, 4], [2, 2, 2]])
+    assert numpy.array_equal(got, expect)
+
+
 def test_alignment_array_seqs_take_seqs(simple_aln):
     """an alignment which has been subset should return the correct array_seqs"""
     subset = simple_aln.take_seqs(["a", "c"])
