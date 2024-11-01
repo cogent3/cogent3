@@ -244,9 +244,6 @@ def test_coevo_drawables(load_alignment):
     check_drawable_styles(aln.coevolution, styles, show_progress=False)
 
 
-@pytest.mark.xfail(
-    reason="todo: for sliced alignment, inconsistent length between length of alignment and length of the map"
-)
 def test_coevo_annotated(load_alignment):
     """coevolution on alignment with annotated seqs should add to heatmap plot"""
     aln = load_alignment(True, False)
