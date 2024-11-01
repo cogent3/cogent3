@@ -3255,6 +3255,15 @@ class AlignedDataView(new_sequence.SeqViewABC):
 
     @property
     def map(self) -> IndelMap:
+        imap = self._parent_map()
+        start, stop, step = (
+            self.slice_record.start,
+            self.slice_record.stop,
+            self.slice_record.step,
+        )
+        return imap[start:stop:step]
+
+    def _parent_map(self) -> IndelMap:
         gap_pos_gap_length = self.parent.get_gaps(self.seqid)
         if gap_pos_gap_length.size > 0:
             gap_pos = numpy.array(gap_pos_gap_length[:, 0], dtype=int)
@@ -3264,9 +3273,6 @@ class AlignedDataView(new_sequence.SeqViewABC):
                 numpy.array([], dtype=int),
                 numpy.array([], dtype=int),
             )
-
-        # refactor: design
-        # should the returned map be sliced with the slice_record?
         return IndelMap(
             gap_pos=gap_pos,
             cum_gap_lengths=cum_gap_lengths,
@@ -3364,8 +3370,11 @@ class AlignedDataView(new_sequence.SeqViewABC):
 
     def parent_seq_coords(self) -> tuple[str, int, int, int]:
         """returns seqid, start, stop, strand on the parent sequence"""
-        start = self.map.get_seq_index(self.slice_record.parent_start)
-        stop = self.map.get_seq_index(self.slice_record.parent_stop)
+        # we want the coordinates on the parent, which means we need to use the
+        # parent's IndelMap for findings the correct indices.
+        parent_map = self._parent_map()
+        start = parent_map.get_seq_index(self.slice_record.parent_start)
+        stop = parent_map.get_seq_index(self.slice_record.parent_stop)
         strand = -1 if self.slice_record.step < 0 else 1
 
         return self.seqid, start, stop, strand
