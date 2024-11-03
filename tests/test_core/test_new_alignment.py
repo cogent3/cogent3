@@ -1046,17 +1046,20 @@ def gap_ambig_seqs():
     return {"s1": "ATGRY?", "s2": "T-AG??"}
 
 
+@pytest.mark.parametrize("rced", [False, True])
 @pytest.mark.parametrize(
     "mk_cls",
     [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
 )
-def test_sequence_collection_degap(mk_cls, gap_ambig_seqs):
+def test_sequence_collection_degap(mk_cls, gap_ambig_seqs, rced):
     """SequenceCollection.degap should strip gaps from each seq"""
 
     seqs = mk_cls(gap_ambig_seqs, moltype="dna")
     # Test normal case
-    got = seqs.degap().to_dict()
-    expect = {"s1": "ATGRY", "s2": "TAG"}
+    degapped = seqs.rc().degap() if rced else seqs.degap()
+    got = degapped.to_dict()
+
+    expect = {"s1": "RYCAT", "s2": "CTA"} if rced else {"s1": "ATGRY", "s2": "TAG"}
     assert got == expect
 
     # Test empty sequences case
