@@ -40,6 +40,7 @@ from cogent3.util.deserialise import deserialise_object, register_deserialiser
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.io import atomic_write, get_format_suffixes
 from cogent3.util.misc import (
+    extend_docstring_from,
     get_object_provenance,
     get_setting_from_environ,
     negate_condition,
@@ -901,16 +902,13 @@ class SequenceCollection:
         return json.dumps(self.to_rich_dict())
 
     def degap(self) -> SequenceCollection:
-        """Returns new collection in which sequences have no gaps.
+        """Returns new collection in which sequences have no gaps or missing
+        characters.
 
         Notes
         -----
         The returned collection will not retain an annotation_db if present.
         """
-        # refactor: design
-        # todo: this needs to be implemented for Alignment - need to think about the design.
-        # in the old implementation, this method removed all gaps and then returned a
-        # SequenceCollection (even for alignemnts).
         seqs = {
             name: self.moltype.degap(self._seqs_data.get_seq_array(seqid=name))
             for name in self._name_map.values()
@@ -2785,6 +2783,43 @@ class AlignedSeqsDataABC(SeqsDataABC):
         step: OptInt = None,
     ) -> bytes: ...
 
+    @abstractmethod
+    def get_ungapped(
+        self,
+        name_map: dict[str, str],
+        start: OptInt = None,
+        stop: OptInt = None,
+        step: OptInt = None,
+    ) -> tuple[dict, dict]:
+        """
+        Returns a dictionary of sequence data with no gaps or missing characters and
+        a dictionary with information to construct a new SequenceCollection via
+        make_unaligned_seqs.
+
+        Parameters
+        ----------
+        name_map
+            A dict of {aln_name: data_name, ...} indicating the mapping between
+            names in the encompassing Alignment (aln_name) and the names in self
+            (data_name).
+        start
+            The starting position for slicing the sequences.
+        stop
+            The stopping position for slicing the sequences.
+        step
+            The step size for slicing the sequences.
+
+        Returns
+        -------
+        tuple
+            A tuple containing the following:
+            - seqs (dict): A dictionary of {name: seq, ...} where the sequences have no gaps
+              or missing characters.
+            - kwargs (dict): A dictionary of keyword arguments for make_unaligned_seqs, e.g.,
+              {"offset": self.offset, "name_map": name_map}.
+        """
+        ...
+
 
 def _gapped_seq_len(seq: numpy.ndarray, gap_map: numpy.ndarray) -> int:
     """calculate the gapped sequence length from a ungapped sequence and gap map
@@ -3115,6 +3150,28 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         return self.get_gapped_seq_str(
             seqid=seqid, start=start, stop=stop, step=step
         ).encode("utf8")
+
+    @extend_docstring_from(AlignedSeqsDataABC.get_ungapped)
+    def get_ungapped(
+        self,
+        name_map: dict[str, str],
+        start: OptInt = None,
+        stop: OptInt = None,
+        step: OptInt = None,
+    ) -> tuple[dict, dict]:
+        seqs = {}
+        for name in name_map.values():
+            # use get_gapped_seq_array because we want to slice in alignment coordinates
+            seq = self.get_gapped_seq_array(
+                seqid=name, start=start, stop=stop, step=step
+            )
+            # we need to remove the index of gap and missing characters
+            mask = (seq != self.alphabet.gap_index) & (
+                seq != self.alphabet.missing_index
+            )
+            seqs[name] = seq[mask]
+
+        return seqs, {"offset": self.offset, "name_map": name_map}
 
     def add_seqs(
         self,
@@ -4131,6 +4188,37 @@ class Alignment(SequenceCollection):
         cutoff = numpy.quantile(gap_counts.array, quantile)
         names = [name for name, count in gap_counts.items() if count <= cutoff]
         return self.take_seqs(names)
+
+    def degap(self) -> SequenceCollection:
+        """Returns new SequenceCollection in which sequences have no gaps or
+        missing characters.
+
+        Notes
+        -----
+        The returned collection will not retain an annotation_db if present.
+        """
+        # refactor: design
+        # add optional argument to retain annotation_db
+
+        # because SequenceCollection does not track slice operations, we need
+        # to apply any slice record to the underlying data
+        start, stop, step = (
+            self._slice_record.start,
+            self._slice_record.stop,
+            self._slice_record.step,
+        )
+        data, kwargs = self._seqs_data.get_ungapped(
+            name_map=self._name_map, start=start, stop=stop, step=step
+        )
+        # the SeqsData classes will return the data corresponding to the slice,
+        # however, will not complement the data if the step is negative. We do
+        # this here.
+        data = (
+            {name: self.moltype.complement(seq) for name, seq in data.items()}
+            if step < 0
+            else data
+        )
+        return make_unaligned_seqs(data, moltype=self.moltype, info=self.info, **kwargs)
 
     def matching_ref(self, ref_name, gap_fraction, gap_run):
         """Returns new alignment with seqs well aligned with a reference.
