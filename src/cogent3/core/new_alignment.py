@@ -4197,6 +4197,9 @@ class Alignment(SequenceCollection):
         -----
         The returned collection will not retain an annotation_db if present.
         """
+        # refactor: design
+        # add optional argument to retain annotation_db
+
         # because SequenceCollection does not track slice operations, we need
         # to apply any slice record to the underlying data
         start, stop, step = (
@@ -4206,6 +4209,14 @@ class Alignment(SequenceCollection):
         )
         data, kwargs = self._seqs_data.get_ungapped(
             name_map=self._name_map, start=start, stop=stop, step=step
+        )
+        # the SeqsData classes will return the data corresponding to the slice,
+        # however, will not complement the data if the step is negative. We do
+        # this here.
+        data = (
+            {name: self.moltype.complement(seq) for name, seq in data.items()}
+            if step < 0
+            else data
         )
         return make_unaligned_seqs(data, moltype=self.moltype, info=self.info, **kwargs)
 
