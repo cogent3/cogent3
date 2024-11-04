@@ -3876,7 +3876,6 @@ def test_get_feature():
     assert feat.get_slice().to_dict() == dict(x="AAA", y="CCT")
 
 
-
 def test_alignment_sample_with_replacement():
     # test with replacement -- just verify that it rnus
     alignment = new_alignment.make_aligned_seqs(
