@@ -4107,6 +4107,20 @@ def test_no_degenerates():
     }
     assert result == expect
 
+    # for length non-divisible by motif_length
+    data = {
+        "s1": "AAA CCC GGG TTT T".replace(" ", ""),
+        "s2": "CCC GGG T-T AAA A".replace(" ", ""),
+        "s3": "GGR YTT AAA CCC C".replace(" ", ""),
+    }
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    result = aln.no_degenerates(motif_length=3, allow_gap=False).to_dict()
+    expect = {
+        "s1": "TTT".replace(" ", ""),
+        "s2": "AAA".replace(" ", ""),
+        "s3": "CCC".replace(" ", ""),
+    }
+
 
 def test_omit_gap_pos_motif_length():
     """consistency with different motif_length values"""
