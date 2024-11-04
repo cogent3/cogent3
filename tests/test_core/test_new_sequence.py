@@ -867,14 +867,22 @@ def test_strand_symmetry():
 
 def test_is_annotated():
     """is_annotated operates correctly"""
-    s = new_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG")
-    if hasattr(s, "annotation_db"):
-        assert not s.is_annotated()
-        _ = s.add_feature(biotype="gene", name="blah", spans=[(0, 10)])
-        assert s.is_annotated()
-    else:
-        with pytest.raises(AttributeError):
-            s.is_annotated()
+    s = new_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG", name="s1")
+    _ = s.add_feature(biotype="gene", name="blah", spans=[(0, 10)])
+    assert s.is_annotated()
+
+
+def test_not_is_annotated():
+    """is_annotated operates correctly"""
+    s = new_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG", name="s1")
+    assert not s.is_annotated()
+    # annotation on different seq
+    s.annotation_db.add_feature(
+        seqid="s2", biotype="gene", name="blah", spans=[(0, 10)]
+    )
+    assert not s.is_annotated()
+    s.annotation_db = None
+    assert not s.is_annotated()
 
 
 def test_to_html():
