@@ -4426,6 +4426,13 @@ class Alignment(SequenceCollection):
         defaults generates a standard bootstrap resampling of the alignment.
         """
         # refactor: type hint for randint, permutation
+        # refactor: array
+        #  Given array_pos property, it will be efficient to generate random
+        # indices and use numpy.take() using that. In the case of motif_length
+        # != 1, the total number of positions is just len(self) // motif_length.
+        # Having produced that, those indices can be scaled back up, or the
+        # numpy array reshaped.
+
         population_size = len(self) // motif_length
         if not n:
             n = population_size
@@ -4484,6 +4491,7 @@ class Alignment(SequenceCollection):
 
         return result
 
+    @extend_docstring_from(SequenceCollection.get_translation)
     def get_translation(
         self,
         gc: int = None,
