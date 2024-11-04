@@ -2749,6 +2749,16 @@ class AlignedSeqsDataABC(SeqsDataABC):
         alphabet: new_alphabet.AlphabetABC,
     ): ...
 
+    @classmethod
+    @abstractmethod
+    def from_names_and_array(
+        cls,
+        *,
+        names: list[str],
+        data: numpy.ndarray,
+        alphabet: new_alphabet.AlphabetABC,
+    ): ...
+
     @property
     @abstractmethod
     def align_len(self) -> int: ...
@@ -2953,6 +2963,43 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             gaps=gaps,
             alphabet=alphabet,
             **kwargs,
+        )
+
+    @classmethod
+    def from_names_and_array(
+        cls,
+        *,
+        names: list[str],
+        data: numpy.ndarray,
+        alphabet: new_alphabet.AlphabetABC,
+    ):
+        """Construct an AlignedSeqsData object from a list of names and a numpy
+        array of aligned sequence data.
+
+        Parameters
+        ----------
+        names
+            list of sequence names
+        data
+            numpy array of aligned sequence data
+        alphabet
+            alphabet object for the sequences
+        """
+        if len(names) != data.shape[0]:
+            raise ValueError("Number of names must match number of rows in data.")
+
+        seqs = {}
+        gaps = {}
+        for name, seq in zip(names, data):
+            seq, gap_map = seq_to_gap_coords(seq, alphabet=alphabet)
+            seq.flags.writeable = False
+            gap_map.flags.writeable = False
+            seqs[name], gaps[name] = seq, gap_map
+
+        return cls(
+            seqs=seqs,
+            gaps=gaps,
+            alphabet=alphabet,
         )
 
     @property
@@ -4333,7 +4380,6 @@ class Alignment(SequenceCollection):
             character (latter is default, as most evolutionary modelling treats
             gaps as N).
         """
-        # refactor: array
         try:
             chars = list(self.moltype.alphabet)
         except AttributeError as e:
@@ -4343,14 +4389,21 @@ class Alignment(SequenceCollection):
             )
             raise ValueError(msg) from e
 
-        if allow_gap:
-            chars.extend(self.moltype.gap)
+        cutoff = len(chars) + 1 if allow_gap else len(chars)
+        indices = (self.array_positions < cutoff).all(axis=1)
 
-        def predicate(column):
-            data = set("".join([str(d) for d in column]))
-            return data <= set(chars)
+        if motif_length > 1:
+            num_motif = len(self) // motif_length
+            motif_valid = indices.reshape(num_motif, motif_length).all(axis=1).flatten()
+            indices = numpy.repeat(motif_valid, motif_length)
+        selected = self.array_positions[indices].T
 
-        return self.filtered(predicate, motif_length=motif_length)
+        aligned_seqs_data = self._seqs_data.from_names_and_array(
+            names=self.names, data=selected, alphabet=self.moltype.most_degen_alphabet()
+        )
+        return self.__class__(
+            seqs_data=aligned_seqs_data, info=self.info, moltype=self.moltype
+        )
 
     def omit_gap_pos(self, allowed_gap_frac: float = 1 - EPS, motif_length: int = 1):
         """Returns new alignment where all cols (motifs) have <= allowed_gap_frac gaps.

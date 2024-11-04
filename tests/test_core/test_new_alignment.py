@@ -2773,7 +2773,7 @@ def test_aligned_seqs_data_unequal_seqlens_raises(data_type, dna_alphabet, dna_m
         )
 
 
-def test_from_seqs_and_maps(dna_alphabet):
+def test_from_seqs_and_gaps(dna_alphabet):
     # AlignedSeqsData should be able to be constructed from sequences and gap maps
     seqs = {"seq1": "ACCTA", "seq2": ""}
     gaps = {"seq1": numpy.array([[0, 1]]), "seq2": numpy.array([[0, 6]])}
@@ -2786,7 +2786,7 @@ def test_from_seqs_and_maps(dna_alphabet):
     assert asd.get_gapped_seq_str(seqid="seq2") == "------"
 
 
-def test_from_seqs_and_maps_diff_seq_lens_raises(dna_alphabet):
+def test_from_seqs_and_gaps_diff_seq_lens_raises(dna_alphabet):
     seqs = {"seq1": "ACCTA", "seq2": "A"}
     gaps = {"seq1": numpy.array([[0, 1]]), "seq2": numpy.array([[0, 1]])}
     with pytest.raises(ValueError):
@@ -2795,12 +2795,44 @@ def test_from_seqs_and_maps_diff_seq_lens_raises(dna_alphabet):
         )
 
 
-def test_from_seqs_and_maps_diff_keys_raises(dna_alphabet):
+def test_from_seqs_and_gaps_diff_keys_raises(dna_alphabet):
     seqs = {"seq1": "ACCTA", "seq2": "A"}
     gaps = {"seq1": numpy.array([[0, 1]]), "seq3": numpy.array([[0, 1]])}
     with pytest.raises(ValueError):
         _ = new_alignment.AlignedSeqsData.from_seqs_and_gaps(
             seqs=seqs, gaps=gaps, alphabet=dna_alphabet
+        )
+
+
+def test_from_names_and_array(dna_alphabet):
+    names = ["seq1", "seq2", "seq3"]
+    data = numpy.array([[0, 1, 2, 3], [3, 2, 1, 0], [4, 4, 4, 4]])
+    asd = new_alignment.AlignedSeqsData.from_names_and_array(
+        names=names, data=data, alphabet=dna_alphabet
+    )
+    assert asd.names == ["seq1", "seq2", "seq3"]
+    got = asd.get_seq_array(seqid="seq1")
+    expect = numpy.array([0, 1, 2, 3])
+    assert numpy.array_equal(got, expect)
+
+
+def test_from_names_and_array_empty_raises(dna_alphabet):
+    names = []
+    data = numpy.array([]).reshape(0, 0)
+
+    with pytest.raises(ValueError):
+        _ = new_alignment.AlignedSeqsData.from_names_and_array(
+            names=names, data=data, alphabet=dna_alphabet
+        )
+
+
+def test_from_names_and_array_mismatched_length(dna_alphabet):
+    names = ["seq1", "seq2"]
+    data = numpy.array([[1, 0, 1], [0, 1, 0], [1, 1, 1]])
+
+    with pytest.raises(ValueError):
+        _ = new_alignment.AlignedSeqsData.from_names_and_array(
+            names=names, data=data, alphabet=dna_alphabet
         )
 
 
