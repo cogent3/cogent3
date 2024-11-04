@@ -881,6 +881,8 @@ def test_not_is_annotated():
         seqid="s2", biotype="gene", name="blah", spans=[(0, 10)]
     )
     assert not s.is_annotated()
+    s.annotation_db = None
+    assert not s.is_annotated()
 
 
 def test_to_html():
