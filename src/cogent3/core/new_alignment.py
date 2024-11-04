@@ -2499,7 +2499,7 @@ def _(
 
 @singledispatch
 def seq_to_gap_coords(
-    seq: StrORBytesORArray,
+    seq: typing.union[StrORBytesORArray, new_sequence.Sequence],
     *,
     alphabet: new_alphabet.AlphabetABC,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
@@ -4511,7 +4511,7 @@ class Alignment(SequenceCollection):
                 include_stop=include_stop,
                 trim_stop=trim_stop,
             )
-            translated[seqname] = numpy.array(pep)
+            translated[seqname] = pep
         kwargs["moltype"] = pep.moltype
         seqs_data = self._seqs_data.from_seqs(
             data=translated, alphabet=pep.moltype.most_degen_alphabet()
