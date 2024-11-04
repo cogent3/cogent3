@@ -1530,9 +1530,10 @@ class Sequence:
         return indel_map, seq
 
     def is_annotated(self):
-        """returns True if sequence has any annotations"""
-        num = self.annotation_db.num_matches() if self.annotation_db else 0
-        return num != 0
+        """returns True if sequence parent name has any annotations"""
+        with contextlib.suppress(AttributeError):
+            return self.annotation_db.num_matches(seqid=self._seq.seqid) != 0
+        return False
 
     def annotate_matches_to(
         self, pattern: str, biotype: str, name: str, allow_multiple: bool = False
