@@ -3905,10 +3905,12 @@ def test_alignment_sample_tuples():
     assert len(sample), 20
     # test columns alignment preserved
     seqs = list(sample.to_dict().values())
-    assert seqs[0], seqs[1]
+    assert seqs[0] == seqs[1]
     # ensure each char occurs twice as sampling dinucs without replacement
     for char in seqs[0]:
         assert seqs[0].count(char) == 2
+
+    assert all(len(set(seqs[0][i : i + 2])) == 1 for i in range(0, len(seqs[0]), 2))
 
 
 def test_alignment_take_positions():
