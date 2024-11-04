@@ -1187,33 +1187,33 @@ def test_sequence_collection_has_terminal_stop_strict():
 
 
 @pytest.mark.parametrize(
-    "maker,expect",
+    "mk_cls,expect",
     (
         (new_alignment.make_unaligned_seqs, {"seq1": "DS", "seq2": "DSS"}),
         (new_alignment.make_aligned_seqs, {"seq1": "DS-", "seq2": "DSS"}),
     ),
 )
-def test_get_translation_trim_stop(maker, expect):
+def test_get_translation_trim_stop(mk_cls, expect):
     data = {"seq1": "GATTCCTAG", "seq2": "GATTCCTCC"}
-    seqs = maker(data, moltype="dna")
+    seqs = mk_cls(data, moltype="dna")
     got = seqs.get_translation(trim_stop=True)
     assert got.to_dict() == expect
 
 
 @pytest.mark.parametrize(
-    "maker",
+    "mk_cls",
     (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
 )
-def test_get_translation_raises(maker):
+def test_get_translation_raises(mk_cls):
     """should raise error if self.moltype is not a nucleic acid"""
     data = {"seq1": "PAR", "seq2": "PQR"}
-    seqs = maker(data, moltype="protein")
+    seqs = mk_cls(data, moltype="protein")
     with pytest.raises(new_alphabet.AlphabetError):
         _ = seqs.get_translation(trim_stop=True)
 
 
 @pytest.mark.parametrize(
-    "maker",
+    "mk_cls",
     (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
 )
 @pytest.mark.parametrize(
@@ -1225,52 +1225,52 @@ def test_get_translation_raises(maker):
         {"seq1": "GATTTT", "seq2": "?GATCT"},
     ),
 )
-def test_get_translation(seqs, maker):
+def test_get_translation(seqs, mk_cls):
     """SequenceCollection.get_translation translates each seq"""
-    seqs = maker(seqs, moltype="dna")
+    seqs = mk_cls(seqs, moltype="dna")
     got = seqs.get_translation(incomplete_ok=True)
     assert got.num_seqs == 2
     assert got.moltype == new_moltype.PROTEIN
 
 
 @pytest.mark.parametrize(
-    "maker",
+    "mk_cls",
     (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
 )
-def test_get_translation_with_stop(maker):
+def test_get_translation_with_stop(mk_cls):
     data = {"seq1": "?GATAG", "seq2": "GATTAG"}
-    seqs = maker(data, moltype="dna")
+    seqs = mk_cls(data, moltype="dna")
     got = seqs.get_translation(incomplete_ok=True, include_stop=True, trim_stop=False)
     assert got.to_dict() == {"seq1": "X*", "seq2": "D*"}
     assert got.moltype == new_moltype.PROTEIN_WITH_STOP
 
 
 @pytest.mark.parametrize(
-    "maker",
+    "mk_cls",
     (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
 )
-def test_get_translation_non_div_3(maker):
+def test_get_translation_non_div_3(mk_cls):
     data = {"seq1": "?GATCTA", "seq2": "GATTAGG"}
-    seqs = maker(data, moltype="dna")
+    seqs = mk_cls(data, moltype="dna")
     got = seqs.get_translation(incomplete_ok=True, include_stop=True)
     assert got.to_dict() == {"seq1": "XS", "seq2": "D*"}
 
 
 @pytest.mark.parametrize(
-    "maker",
+    "mk_cls",
     (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
 )
 @pytest.mark.parametrize(
     "data", ({"seq1": "GATTTT", "seq2": "GATC??"}, {"seq1": "GAT---", "seq2": "?GATCT"})
 )
-def test_get_translation_error(data, maker):
-    seqs = maker(data, moltype="dna")
+def test_get_translation_error(data, mk_cls):
+    seqs = mk_cls(data, moltype="dna")
     with pytest.raises(TypeError):
         seqs.get_translation()
 
 
 @pytest.mark.parametrize(
-    "maker",
+    "mk_cls",
     (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
 )
 @pytest.mark.parametrize(
@@ -1283,21 +1283,21 @@ def test_get_translation_error(data, maker):
         {"seq1": "GAT-T-", "seq2": "GATCTT"},
     ),
 )
-def test_get_translation_info(data, maker):
+def test_get_translation_info(data, mk_cls):
     """SequenceCollection.get_translation preserves info attribute"""
-    seqs = maker(data, moltype="dna", info={"key": "value"})
+    seqs = mk_cls(data, moltype="dna", info={"key": "value"})
     got = seqs.get_translation(incomplete_ok=True)
     assert got.info["key"] == "value"
 
 
 @pytest.mark.parametrize(
-    "maker",
+    "mk_cls",
     (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
 )
-def test_get_translation_incomplete(maker):
+def test_get_translation_incomplete(mk_cls):
     """get translation works on incomplete codons"""
     data = {"seq1": "GATN--", "seq2": "?GATCT"}
-    seqs = maker(data, moltype="dna")
+    seqs = mk_cls(data, moltype="dna")
     got = seqs.get_translation(incomplete_ok=True)
     assert got.to_dict() == {"seq1": "DX", "seq2": "XS"}
     with pytest.raises(new_alphabet.AlphabetError):
