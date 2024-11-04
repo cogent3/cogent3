@@ -2804,15 +2804,16 @@ def test_from_seqs_and_gaps_diff_keys_raises(dna_alphabet):
         )
 
 
-def test_from_names_and_array(dna_alphabet):
+@pytest.mark.parametrize("seqid, i", (("seq1", 0), ("seq2", 1), ("seq3", 2)))
+def test_from_names_and_array(dna_alphabet, seqid, i):
     names = ["seq1", "seq2", "seq3"]
     data = numpy.array([[0, 1, 2, 3], [3, 2, 1, 0], [4, 4, 4, 4]])
     asd = new_alignment.AlignedSeqsData.from_names_and_array(
         names=names, data=data, alphabet=dna_alphabet
     )
     assert asd.names == ["seq1", "seq2", "seq3"]
-    got = asd.get_seq_array(seqid="seq1")
-    expect = numpy.array([0, 1, 2, 3])
+    got = asd.get_gapped_seq_array(seqid=seqid)
+    expect = data[i]
     assert numpy.array_equal(got, expect)
 
 
