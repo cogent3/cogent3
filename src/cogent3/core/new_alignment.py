@@ -4389,14 +4389,20 @@ class Alignment(SequenceCollection):
             )
             raise ValueError(msg) from e
 
+        array_pos = self.array_positions
         cutoff = len(chars) + 1 if allow_gap else len(chars)
-        indices = (self.array_positions < cutoff).all(axis=1)
+        indices = (array_pos < cutoff).all(axis=1)
 
         if motif_length > 1:
             num_motif = len(self) // motif_length
+
+            if len(self) % motif_length != 0:
+                indices = indices[: num_motif * motif_length]
+                array_pos = array_pos[: num_motif * motif_length]
+
             motif_valid = indices.reshape(num_motif, motif_length).all(axis=1).flatten()
             indices = numpy.repeat(motif_valid, motif_length)
-        selected = self.array_positions[indices].T
+        selected = array_pos[indices].T
 
         aligned_seqs_data = self._seqs_data.from_names_and_array(
             names=self.names, data=selected, alphabet=self.moltype.most_degen_alphabet()
