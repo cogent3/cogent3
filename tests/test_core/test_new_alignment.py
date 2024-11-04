@@ -1186,22 +1186,36 @@ def test_sequence_collection_has_terminal_stop_strict():
         seq_coll.has_terminal_stop(gc=1, strict=True)
 
 
-def test_sequence_collection_get_translation_trim_stop():
+@pytest.mark.parametrize(
+    "mk_cls,expect",
+    (
+        (new_alignment.make_unaligned_seqs, {"seq1": "DS", "seq2": "DSS"}),
+        (new_alignment.make_aligned_seqs, {"seq1": "DS-", "seq2": "DSS"}),
+    ),
+)
+def test_get_translation_trim_stop(mk_cls, expect):
     data = {"seq1": "GATTCCTAG", "seq2": "GATTCCTCC"}
-    seq_coll = new_alignment.make_unaligned_seqs(data, moltype="dna")
-    got = seq_coll.get_translation(trim_stop=True)
-    expect = {"seq1": "DS", "seq2": "DSS"}
+    seqs = mk_cls(data, moltype="dna")
+    got = seqs.get_translation(trim_stop=True)
     assert got.to_dict() == expect
 
 
-def test_sequence_collection_get_translation_raises():
+@pytest.mark.parametrize(
+    "mk_cls",
+    (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
+)
+def test_get_translation_raises(mk_cls):
     """should raise error if self.moltype is not a nucleic acid"""
     data = {"seq1": "PAR", "seq2": "PQR"}
-    seq_coll = new_alignment.make_unaligned_seqs(data, moltype="protein")
+    seqs = mk_cls(data, moltype="protein")
     with pytest.raises(new_alphabet.AlphabetError):
-        _ = seq_coll.get_translation(trim_stop=True)
+        _ = seqs.get_translation(trim_stop=True)
 
 
+@pytest.mark.parametrize(
+    "mk_cls",
+    (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
+)
 @pytest.mark.parametrize(
     "seqs",
     (
@@ -1211,42 +1225,54 @@ def test_sequence_collection_get_translation_raises():
         {"seq1": "GATTTT", "seq2": "?GATCT"},
     ),
 )
-def test_sequence_collection_get_translation(seqs):
+def test_get_translation(seqs, mk_cls):
     """SequenceCollection.get_translation translates each seq"""
-    seq_coll = new_alignment.make_unaligned_seqs(seqs, moltype="dna")
-    got = seq_coll.get_translation(incomplete_ok=True)
+    seqs = mk_cls(seqs, moltype="dna")
+    got = seqs.get_translation(incomplete_ok=True)
     assert got.num_seqs == 2
     assert got.moltype == new_moltype.PROTEIN
 
 
-def test_sequence_collection_get_translation_with_stop():
-    data = {"seq1": "?GATCT", "seq2": "GATTAG"}
-    seq_coll = new_alignment.make_unaligned_seqs(data, moltype="dna")
-    got = seq_coll.get_translation(
-        incomplete_ok=True, include_stop=True, trim_stop=False
-    )
-    assert got.to_dict() == {"seq1": "XS", "seq2": "D*"}
+@pytest.mark.parametrize(
+    "mk_cls",
+    (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
+)
+def test_get_translation_with_stop(mk_cls):
+    data = {"seq1": "?GATAG", "seq2": "GATTAG"}
+    seqs = mk_cls(data, moltype="dna")
+    got = seqs.get_translation(incomplete_ok=True, include_stop=True, trim_stop=False)
+    assert got.to_dict() == {"seq1": "X*", "seq2": "D*"}
     assert got.moltype == new_moltype.PROTEIN_WITH_STOP
 
 
-def test_sequence_collection_get_translation_non_div_3():
-    data = {"seq1": "?GATCTA", "seq2": "GATTAGGG"}
-    seq_coll = new_alignment.make_unaligned_seqs(data, moltype="dna")
-    got = seq_coll.get_translation(incomplete_ok=True, include_stop=True)
+@pytest.mark.parametrize(
+    "mk_cls",
+    (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
+)
+def test_get_translation_non_div_3(mk_cls):
+    data = {"seq1": "?GATCTA", "seq2": "GATTAGG"}
+    seqs = mk_cls(data, moltype="dna")
+    got = seqs.get_translation(incomplete_ok=True, include_stop=True)
     assert got.to_dict() == {"seq1": "XS", "seq2": "D*"}
 
 
 @pytest.mark.parametrize(
+    "mk_cls",
+    (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
+)
+@pytest.mark.parametrize(
     "data", ({"seq1": "GATTTT", "seq2": "GATC??"}, {"seq1": "GAT---", "seq2": "?GATCT"})
 )
-def test_sequence_collection_get_translation_error(data):
-    """SequenceCollection.get_translation translates each seq"""
-    # check for a failure when no moltype specified
-    seq_coll = new_alignment.make_unaligned_seqs(data, moltype="dna")
+def test_get_translation_error(data, mk_cls):
+    seqs = mk_cls(data, moltype="dna")
     with pytest.raises(TypeError):
-        seq_coll.get_translation()
+        seqs.get_translation()
 
 
+@pytest.mark.parametrize(
+    "mk_cls",
+    (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
+)
 @pytest.mark.parametrize(
     "data",
     (
@@ -1257,23 +1283,25 @@ def test_sequence_collection_get_translation_error(data):
         {"seq1": "GAT-T-", "seq2": "GATCTT"},
     ),
 )
-def test_sequence_collection_get_translation_info(data):
+def test_get_translation_info(data, mk_cls):
     """SequenceCollection.get_translation preserves info attribute"""
-    seq_coll = new_alignment.make_unaligned_seqs(
-        data, moltype="dna", info={"key": "value"}
-    )
-    got = seq_coll.get_translation(incomplete_ok=True)
+    seqs = mk_cls(data, moltype="dna", info={"key": "value"})
+    got = seqs.get_translation(incomplete_ok=True)
     assert got.info["key"] == "value"
 
 
-def test_sequence_collection_get_translation_incomplete():
+@pytest.mark.parametrize(
+    "mk_cls",
+    (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
+)
+def test_get_translation_incomplete(mk_cls):
     """get translation works on incomplete codons"""
     data = {"seq1": "GATN--", "seq2": "?GATCT"}
-    seq_coll = new_alignment.make_unaligned_seqs(data, moltype="dna")
-    got = seq_coll.get_translation(incomplete_ok=True)
+    seqs = mk_cls(data, moltype="dna")
+    got = seqs.get_translation(incomplete_ok=True)
     assert got.to_dict() == {"seq1": "DX", "seq2": "XS"}
     with pytest.raises(new_alphabet.AlphabetError):
-        _ = seq_coll.get_translation(incomplete_ok=False)
+        _ = seqs.get_translation(incomplete_ok=False)
 
 
 @pytest.mark.parametrize(
@@ -3848,6 +3876,43 @@ def test_get_feature():
     assert feat.get_slice().to_dict() == dict(x="AAA", y="CCT")
 
 
+def test_alignment_sample_with_replacement():
+    # test with replacement -- just verify that it rnus
+    alignment = new_alignment.make_aligned_seqs(
+        {"seq1": "GATC", "seq2": "GATC"}, moltype="dna"
+    )
+    sample = alignment.sample(n=100, with_replacement=True)
+    assert len(sample) == 100
+    # ensure that sampling with replacement works on single col alignment
+    alignment1 = new_alignment.make_aligned_seqs(
+        {"seq1": "A", "seq2": "A"}, moltype="dna"
+    )
+    result = alignment1.sample(with_replacement=True)
+    assert len(result) == 1
+
+
+def test_alignment_sample_tuples():
+    ##### test with motif size != 1 #####
+    alignment = new_alignment.make_aligned_seqs(
+        {
+            "seq1": "AACCDDEEFFGGHHIIKKLLMMNNPP",
+            "seq2": "AACCDDEEFFGGHHIIKKLLMMNNPP",
+        },
+        moltype="protein",
+    )
+    # ensure length correct
+    sample = alignment.sample(n=10, motif_length=2)
+    assert len(sample), 20
+    # test columns alignment preserved
+    seqs = list(sample.to_dict().values())
+    assert seqs[0] == seqs[1]
+    # ensure each char occurs twice as sampling dinucs without replacement
+    for char in seqs[0]:
+        assert seqs[0].count(char) == 2
+
+    assert all(len(set(seqs[0][i : i + 2])) == 1 for i in range(0, len(seqs[0]), 2))
+
+
 def test_alignment_take_positions():
     """SequenceCollection take_positions should return new alignment w/ specified pos"""
     gaps = new_alignment.make_aligned_seqs(
@@ -3962,6 +4027,52 @@ def test_filtered_drop_remainder():
         got = aln.filtered(func, motif_length=2, drop_remainder=False)
     got = aln.filtered(func, motif_length=2, drop_remainder=True, warn=False)
     assert len(got) == 4
+
+
+def test_no_degenerates():
+    """no_degenerates correctly excludes columns containing IUPAC ambiguity codes"""
+    data = {
+        "s1": "AAA CCC GGG TTT".replace(" ", ""),
+        "s2": "CCC GGG T-T AAA".replace(" ", ""),
+        "s3": "GGR YTT AAA CCC".replace(" ", ""),
+    }
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+
+    # motif length of 1, defaults - no gaps allowed
+    result = aln.no_degenerates().to_dict()
+    expect = {
+        "s1": "AA CC GG TTT".replace(" ", ""),
+        "s2": "CC GG TT AAA".replace(" ", ""),
+        "s3": "GG TT AA CCC".replace(" ", ""),
+    }
+    assert result == expect
+
+    # allow gaps
+    result = aln.no_degenerates(allow_gap=True).to_dict()
+    expect = {
+        "s1": "AA CC GGG TTT".replace(" ", ""),
+        "s2": "CC GG T-T AAA".replace(" ", ""),
+        "s3": "GG TT AAA CCC".replace(" ", ""),
+    }
+    assert result == expect
+
+    # motif length of 3, defaults - no gaps allowed
+    result = aln.no_degenerates(motif_length=3, allow_gap=False).to_dict()
+    expect = {
+        "s1": "TTT".replace(" ", ""),
+        "s2": "AAA".replace(" ", ""),
+        "s3": "CCC".replace(" ", ""),
+    }
+    assert result == expect
+
+    # allow gaps
+    result = aln.no_degenerates(motif_length=3, allow_gap=True).to_dict()
+    expect = {
+        "s1": "GGG TTT".replace(" ", ""),
+        "s2": "T-T AAA".replace(" ", ""),
+        "s3": "AAA CCC".replace(" ", ""),
+    }
+    assert result == expect
 
 
 def test_omit_gap_pos_motif_length():

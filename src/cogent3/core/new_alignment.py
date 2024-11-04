@@ -2499,7 +2499,7 @@ def _(
 
 @singledispatch
 def seq_to_gap_coords(
-    seq: StrORBytesORArray,
+    seq: typing.union[StrORBytesORArray, new_sequence.Sequence],
     *,
     alphabet: new_alphabet.AlphabetABC,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
@@ -4320,6 +4320,38 @@ class Alignment(SequenceCollection):
 
         return self.gapped_by_map(keep, info=self.info)
 
+    def no_degenerates(self, motif_length: int = 1, allow_gap: bool = False):
+        """returns new alignment without degenerate characters
+
+        Parameters
+        ----------
+        motif_length
+            sequences are segmented into units of this size and the segments are
+            excluded if they contain degenerate characters.
+        allow_gap
+            whether gaps are allowed or whether they are treated as a degenerate
+            character (latter is default, as most evolutionary modelling treats
+            gaps as N).
+        """
+        # refactor: array
+        try:
+            chars = list(self.moltype.alphabet)
+        except AttributeError as e:
+            msg = (
+                "Invalid MolType (no degenerate characters), "
+                "create the alignment using DNA, RNA or PROTEIN"
+            )
+            raise ValueError(msg) from e
+
+        if allow_gap:
+            chars.extend(self.moltype.gap)
+
+        def predicate(column):
+            data = set("".join([str(d) for d in column]))
+            return data <= set(chars)
+
+        return self.filtered(predicate, motif_length=motif_length)
+
     def omit_gap_pos(self, allowed_gap_frac: float = 1 - EPS, motif_length: int = 1):
         """Returns new alignment where all cols (motifs) have <= allowed_gap_frac gaps.
 
@@ -4360,6 +4392,74 @@ class Alignment(SequenceCollection):
                 return True
         return False
 
+    def sample(
+        self,
+        *,
+        n: int = None,
+        with_replacement: bool = False,
+        motif_length: int = 1,
+        randint=numpy.random.randint,
+        permutation=numpy.random.permutation,
+    ):
+        """Returns random sample of positions from self, e.g. to bootstrap.
+
+        Parameters
+        ----------
+        n
+            number of positions to sample. If None, all positions are sampled.
+        with_replacement
+            if True, samples with replacement.
+        motif_length
+            number of positions to sample as a single motif.
+        randint
+            random number generator, default is numpy.randint
+        permutation
+            function to generate a random permutation of positions, default is
+            numpy.permutation
+
+        Notes
+        -----
+        By default (resampling all positions without replacement), generates
+        a permutation of the positions of the alignment.
+
+        Setting with_replacement to True and otherwise leaving parameters as
+        defaults generates a standard bootstrap resampling of the alignment.
+        """
+        # refactor: type hint for randint, permutation
+        # refactor: array
+        #  Given array_pos property, it will be efficient to generate random
+        # indices and use numpy.take() using that. In the case of motif_length
+        # != 1, the total number of positions is just len(self) // motif_length.
+        # Having produced that, those indices can be scaled back up, or the
+        # numpy array reshaped.
+
+        population_size = len(self) // motif_length
+        if not n:
+            n = population_size
+        if with_replacement:
+            locations = randint(0, population_size, n)
+        else:
+            assert n <= population_size, (n, population_size, motif_length)
+            locations = permutation(population_size)[:n]
+
+        positions = numpy.empty(n * motif_length, dtype=int)
+        for i, loc in enumerate(locations):
+            positions[i * motif_length : (i + 1) * motif_length] = range(
+                loc * motif_length, (loc + 1) * motif_length
+            )
+
+        new_seqs = {}
+        for seqid in self.names:
+            sampled = self._seqs_data.get_gapped_seq_array(seqid=seqid)[positions]
+            new_seqs[seqid] = sampled
+
+        new_seqs_data = self._seqs_data.from_seqs(
+            data=new_seqs, alphabet=self.moltype.most_degen_alphabet()
+        )
+        return self.__class__(
+            seqs_data=new_seqs_data, info=self.info, moltype=self.moltype
+        )
+
     def trim_stop_codons(self, gc: Any = None, strict: bool = False, **kwargs):
         # refactor: array
         if not self.has_terminal_stop(gc=gc, strict=strict):
@@ -4390,6 +4490,42 @@ class Alignment(SequenceCollection):
             result.annotation_db = self.annotation_db
 
         return result
+
+    @extend_docstring_from(SequenceCollection.get_translation)
+    def get_translation(
+        self,
+        gc: int = None,
+        incomplete_ok: bool = False,
+        include_stop: bool = False,
+        trim_stop: bool = True,
+        **kwargs,
+    ):
+        if len(self.moltype.alphabet) != 4:
+            raise new_alphabet.AlphabetError(
+                f"Must be a DNA/RNA, not {self.moltype.label}"
+            )
+
+        translated = {}
+        if not trim_stop or include_stop:
+            seqs = self
+        else:
+            seqs = self.trim_stop_codons(gc=gc, strict=not incomplete_ok)
+        # do the translation
+        for seqname in seqs.names:
+            seq = seqs.get_gapped_seq(seqname)
+            pep = seq.get_translation(
+                gc,
+                incomplete_ok=incomplete_ok,
+                include_stop=include_stop,
+                trim_stop=trim_stop,
+            )
+            translated[seqname] = pep
+        kwargs["moltype"] = pep.moltype
+        seqs_data = self._seqs_data.from_seqs(
+            data=translated, alphabet=pep.moltype.most_degen_alphabet()
+        )
+
+        return self.__class__(seqs_data=seqs_data, info=self.info, **kwargs)
 
     def _get_seq_features(
         self,
