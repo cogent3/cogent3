@@ -3396,6 +3396,14 @@ def test_alignment_to_html():
     assert got.find(ref_row) < got.find(other_row)
 
 
+def test_alignment_to_html_text_moltype():
+    """exercising producing html for text moltype"""
+    seqs = {"seq1": "ACG", "seq2": "-CT"}
+
+    aln = new_alignment.make_aligned_seqs(seqs, moltype="text")
+    _ = aln.to_html(ref_name="longest")
+
+
 def test_alignment_repr():
     data = {
         "ENSMUSG00000056468": "GCCAGGGGGAAAA",
