@@ -4380,14 +4380,13 @@ class Alignment(SequenceCollection):
             character (latter is default, as most evolutionary modelling treats
             gaps as N).
         """
-        try:
-            chars = list(self.moltype.alphabet)
-        except AttributeError as e:
-            msg = (
-                "Invalid MolType (no degenerate characters), "
+        if self.moltype.degen_alphabet is None:
+            raise new_moltype.MolTypeError(
+                f"Invalid MolType={self.moltype.label} (no degenerate characters), "
                 "create the alignment using DNA, RNA or PROTEIN"
             )
-            raise ValueError(msg) from e
+
+        chars = len(self.moltype)
 
         array_pos = self.array_positions
         cutoff = len(chars) + 1 if allow_gap else len(chars)
