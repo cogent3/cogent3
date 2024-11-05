@@ -147,6 +147,20 @@ def test_is_degenerate_invalid():
 @pytest.mark.parametrize(
     "seq",
     (
+        "",
+        "QWERTYUIOPASDFGHJKLZXCVBNM",
+    ),
+)
+def test_text_moltype_is_not_degenerate(seq, data_type):
+    """Text moltype should not be degenerate"""
+    seq = make_typed(seq, data_type, new_moltype.ASCII)
+    assert not new_moltype.ASCII.is_degenerate(seq)
+
+
+@pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
+@pytest.mark.parametrize(
+    "seq",
+    (
         "-",
         "Y-",
         "GC--A",
