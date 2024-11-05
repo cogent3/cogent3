@@ -1529,10 +1529,22 @@ class Sequence:
         seq.annotation_db = self.annotation_db
         return indel_map, seq
 
-    def is_annotated(self):
-        """returns True if sequence parent name has any annotations"""
+    def is_annotated(
+        self, biotype: typing.Optional[typing.Union[str, list[str]]] = None
+    ) -> bool:
+        """returns True if sequence parent name has any annotations
+
+        Parameters
+        ----------
+        biotype
+            amend condition to return True only if the sequence is
+            annotated with one of provided biotypes.
+        """
         with contextlib.suppress(AttributeError):
-            return self.annotation_db.num_matches(seqid=self._seq.seqid) != 0
+            return (
+                self.annotation_db.num_matches(seqid=self._seq.seqid, biotype=biotype)
+                != 0
+            )
         return False
 
     def annotate_matches_to(
