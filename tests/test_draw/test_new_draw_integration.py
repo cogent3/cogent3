@@ -224,6 +224,39 @@ def test_annotated_dotplot_remove_tracks(load_alignment):
     assert isinstance(dp.figure, UnionDict)
 
 
+def test_sequence_collection_dotplot_annotated_no_matcing_seqids():
+    """has annotation_db but not for a selected sequence, returns plain DotPlot"""
+    db = GffAnnotationDb()
+    # dog not present
+    db.add_feature(seqid="Dog", biotype="exon", name="fred", spans=[(10, 15)])
+    data = {"Human": "CAGATTTGGCAGTT-", "Mouse": "CAGATTCAGCAGGTG"}
+    seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
+    seqs.annotation_db = db
+    seqs = seqs.take_seqs(["Human", "Mouse"], copy_annotations=True)
+    got = seqs.dotplot(show_progress=False, biotype="exon")
+    assert not isinstance(got, AnnotatedDrawable)
+    assert isinstance(got, Dotplot)
+
+
+def test_sequence_collection_dotplot_annotated_select_biotype():
+    """has annotation_db but not for a selected sequence, returns plain DotPlot"""
+    db = GffAnnotationDb()
+    # dog not present
+    db.add_feature(seqid="Human", biotype="exon", name="fred", spans=[(10, 15)])
+    data = {"Human": "CAGATTTGGCAGTT-", "Mouse": "CAGATTCAGCAGGTG"}
+    seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
+    seqs.annotation_db = db
+    seqs = seqs.take_seqs(["Human", "Mouse"])
+    got = seqs.dotplot(show_progress=False, biotype="gene")
+    assert not isinstance(got, AnnotatedDrawable)
+    assert isinstance(got, Dotplot)
+    # but if we select an available biotype
+    got = seqs.dotplot(show_progress=False, biotype="exon")
+    assert isinstance(got, AnnotatedDrawable)
+    # we get one trace with that biotype as the name
+    assert sum(tr.name == "exon" for tr in got.figure.data)
+
+
 def test_count_gaps_per_seq(load_alignment):
     """creation of drawables works"""
     styles = "bar", "box", "violin"

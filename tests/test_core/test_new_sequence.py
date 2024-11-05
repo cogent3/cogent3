@@ -872,6 +872,15 @@ def test_is_annotated():
     assert s.is_annotated()
 
 
+@pytest.mark.parametrize("biotype", ("gene", "exon", ("gene", "exon")))
+def test_is_annotated_biotype(biotype):
+    """is_annotated operates correctly"""
+    s = new_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG", name="s1")
+    _ = s.add_feature(biotype="gene", name="blah", spans=[(0, 10)])
+    _ = s.add_feature(biotype="exon", name="blah", spans=[(0, 10)])
+    assert s.is_annotated(biotype=biotype)
+
+
 def test_not_is_annotated():
     """is_annotated operates correctly"""
     s = new_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG", name="s1")
@@ -881,6 +890,11 @@ def test_not_is_annotated():
         seqid="s2", biotype="gene", name="blah", spans=[(0, 10)]
     )
     assert not s.is_annotated()
+    # annotation wrong biotype
+    s.annotation_db.add_feature(
+        seqid="s1", biotype="exon", name="blah", spans=[(0, 10)]
+    )
+    assert not s.is_annotated(biotype="gene")
     s.annotation_db = None
     assert not s.is_annotated()
 
