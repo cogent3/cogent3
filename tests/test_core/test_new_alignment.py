@@ -4122,6 +4122,13 @@ def test_no_degenerates():
     }
 
 
+def test_no_degenerates_bad_moltype_raises():
+    """no_degenerates should raise an error if moltype has no degenerate symbols"""
+    aln = new_alignment.make_aligned_seqs({"s1": "ACGT", "s2": "ACGT"}, moltype="text")
+    with pytest.raises(new_moltype.MolTypeError):
+        _ = aln.no_degenerates()
+
+
 def test_omit_gap_pos_motif_length():
     """consistency with different motif_length values"""
     data = {
