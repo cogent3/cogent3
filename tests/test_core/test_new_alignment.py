@@ -2773,7 +2773,7 @@ def test_aligned_seqs_data_unequal_seqlens_raises(data_type, dna_alphabet, dna_m
         )
 
 
-def test_from_seqs_and_maps(dna_alphabet):
+def test_from_seqs_and_gaps(dna_alphabet):
     # AlignedSeqsData should be able to be constructed from sequences and gap maps
     seqs = {"seq1": "ACCTA", "seq2": ""}
     gaps = {"seq1": numpy.array([[0, 1]]), "seq2": numpy.array([[0, 6]])}
@@ -2786,7 +2786,7 @@ def test_from_seqs_and_maps(dna_alphabet):
     assert asd.get_gapped_seq_str(seqid="seq2") == "------"
 
 
-def test_from_seqs_and_maps_diff_seq_lens_raises(dna_alphabet):
+def test_from_seqs_and_gaps_diff_seq_lens_raises(dna_alphabet):
     seqs = {"seq1": "ACCTA", "seq2": "A"}
     gaps = {"seq1": numpy.array([[0, 1]]), "seq2": numpy.array([[0, 1]])}
     with pytest.raises(ValueError):
@@ -2795,12 +2795,45 @@ def test_from_seqs_and_maps_diff_seq_lens_raises(dna_alphabet):
         )
 
 
-def test_from_seqs_and_maps_diff_keys_raises(dna_alphabet):
+def test_from_seqs_and_gaps_diff_keys_raises(dna_alphabet):
     seqs = {"seq1": "ACCTA", "seq2": "A"}
     gaps = {"seq1": numpy.array([[0, 1]]), "seq3": numpy.array([[0, 1]])}
     with pytest.raises(ValueError):
         _ = new_alignment.AlignedSeqsData.from_seqs_and_gaps(
             seqs=seqs, gaps=gaps, alphabet=dna_alphabet
+        )
+
+
+@pytest.mark.parametrize("seqid, i", (("seq1", 0), ("seq2", 1), ("seq3", 2)))
+def test_from_names_and_array(dna_alphabet, seqid, i):
+    names = ["seq1", "seq2", "seq3"]
+    data = numpy.array([[0, 1, 2, 3], [3, 2, 1, 0], [4, 4, 4, 4]])
+    asd = new_alignment.AlignedSeqsData.from_names_and_array(
+        names=names, data=data, alphabet=dna_alphabet
+    )
+    assert asd.names == ["seq1", "seq2", "seq3"]
+    got = asd.get_gapped_seq_array(seqid=seqid)
+    expect = data[i]
+    assert numpy.array_equal(got, expect)
+
+
+def test_from_names_and_array_empty_raises(dna_alphabet):
+    names = []
+    data = numpy.array([]).reshape(0, 0)
+
+    with pytest.raises(ValueError):
+        _ = new_alignment.AlignedSeqsData.from_names_and_array(
+            names=names, data=data, alphabet=dna_alphabet
+        )
+
+
+def test_from_names_and_array_mismatched_length(dna_alphabet):
+    names = ["seq1", "seq2"]
+    data = numpy.array([[1, 0, 1], [0, 1, 0], [1, 1, 1]])
+
+    with pytest.raises(ValueError):
+        _ = new_alignment.AlignedSeqsData.from_names_and_array(
+            names=names, data=data, alphabet=dna_alphabet
         )
 
 
@@ -4073,6 +4106,27 @@ def test_no_degenerates():
         "s3": "AAA CCC".replace(" ", ""),
     }
     assert result == expect
+
+    # for length non-divisible by motif_length
+    data = {
+        "s1": "AAA CCC GGG TTT T".replace(" ", ""),
+        "s2": "CCC GGG T-T AAA A".replace(" ", ""),
+        "s3": "GGR YTT AAA CCC C".replace(" ", ""),
+    }
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    result = aln.no_degenerates(motif_length=3, allow_gap=False).to_dict()
+    expect = {
+        "s1": "TTT".replace(" ", ""),
+        "s2": "AAA".replace(" ", ""),
+        "s3": "CCC".replace(" ", ""),
+    }
+
+
+def test_no_degenerates_bad_moltype_raises():
+    """no_degenerates should raise an error if moltype has no degenerate symbols"""
+    aln = new_alignment.make_aligned_seqs({"s1": "ACGT", "s2": "ACGT"}, moltype="text")
+    with pytest.raises(new_moltype.MolTypeError):
+        _ = aln.no_degenerates()
 
 
 def test_omit_gap_pos_motif_length():

@@ -140,6 +140,9 @@ RNA_EXTENDED_PAIRS = {
 }
 
 
+class MolTypeError(TypeError): ...
+
+
 def make_pairs(
     *,
     pairs: dict[tuple[str, str], bool] = None,
