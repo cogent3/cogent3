@@ -4389,14 +4389,17 @@ class Alignment(SequenceCollection):
         chars = len(self.moltype)
 
         array_pos = self.array_positions
+        # by design, char alphabets are organised such that the canonical
+        # characters always occur first, followed by gap, then ambiguity
+        # characters. so we can define a cutoff as follows:
         cutoff = len(chars) + 1 if allow_gap else len(chars)
         indices = (array_pos < cutoff).all(axis=1)
 
         if motif_length > 1:
             num_motif = len(self) // motif_length
 
-            if len(self) % motif_length != 0:
-                indices = indices[: num_motif * motif_length]
+            if remainder := len(self) % motif_length:
+                indices = indices[:-remainder]
                 array_pos = array_pos[: num_motif * motif_length]
 
             motif_valid = indices.reshape(num_motif, motif_length).all(axis=1).flatten()
