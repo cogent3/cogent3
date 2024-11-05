@@ -1342,6 +1342,7 @@ class SequenceCollection:
         width: int = 500,
         title: OptStr = None,
         rc: bool = False,
+        biotype: typing.Union[str, tuple[str]] = "gene",
         show_progress: bool = False,
     ):
         """make a dotplot between specified sequences. Random sequences
@@ -1371,6 +1372,8 @@ class SequenceCollection:
         rc
             include dotplot of reverse compliment also. Only applies to Nucleic
             acids moltypes
+        biotype
+            if selected sequences are annotated, display only these biotypes
 
         Returns
         -------
@@ -1398,16 +1401,9 @@ class SequenceCollection:
 
         seq1 = self.get_seq(seqname=name1, copy_annotations=False)
         seq2 = self.get_seq(seqname=name2, copy_annotations=False)
-
-        if seq1.is_annotated() or seq2.is_annotated():
-            annotated = True
-            data = getattr(seq1, "data", seq1)
-            bottom = data.get_drawable()
-            data = getattr(seq2, "data", seq2)
-            left = data.get_drawable(vertical=True)
-        else:
-            annotated = False
-
+        annotated = seq1.is_annotated(biotype=biotype) or seq2.is_annotated(
+            biotype=biotype
+        )
         dotplot = Dotplot(
             seq1,
             seq2,
@@ -1426,6 +1422,10 @@ class SequenceCollection:
         )
 
         if annotated:
+            data = getattr(seq1, "data", seq1)
+            bottom = data.get_drawable(biotype=biotype)
+            data = getattr(seq2, "data", seq2)
+            left = data.get_drawable(biotype=biotype, vertical=True)
             dotplot = AnnotatedDrawable(
                 dotplot,
                 left_track=left,
@@ -1436,6 +1436,7 @@ class SequenceCollection:
                 xrange=[0, len(seq1)],
                 yrange=[0, len(seq2)],
             )
+
         return dotplot
 
     @UI.display_wrap
