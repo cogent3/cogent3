@@ -4392,7 +4392,7 @@ class Alignment(SequenceCollection):
         # by design, char alphabets are organised such that the canonical
         # characters always occur first, followed by gap, then ambiguity
         # characters. so we can define a cutoff as follows:
-        cutoff = len(chars) + 1 if allow_gap else len(chars)
+        cutoff = chars + 1 if allow_gap else chars
         indices = (array_pos < cutoff).all(axis=1)
 
         if motif_length > 1:
