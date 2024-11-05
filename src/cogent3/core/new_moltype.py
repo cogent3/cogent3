@@ -637,7 +637,7 @@ class MolType:
                 f"{seq[:4]!r} not valid for moltype {self.name!r}"
             )
         return self.is_degenerate(
-            self.degen_gapped_alphabet.to_indices(seq), validate=False
+            self.most_degen_alphabet().to_indices(seq), validate=False
         )
 
     @is_degenerate.register
@@ -647,23 +647,22 @@ class MolType:
                 f"{seq[:4]!r} not valid for moltype {self.name!r}"
             )
         return self.is_degenerate(
-            self.degen_gapped_alphabet.to_indices(seq), validate=False
+            self.most_degen_alphabet().to_indices(seq), validate=False
         )
 
     @is_degenerate.register
     def _(self, seq: numpy.ndarray, validate: bool = True) -> bool:
-        # what index is the first degenerate character
+        if self.degen_alphabet is None:
+            return False
+
         if validate and not self.is_valid(seq):
             raise new_alphabet.AlphabetError(
                 f"{seq[:4]!r} not valid for moltype {self.name!r}"
             )
 
-        for index, val in enumerate(self.degen_gapped_alphabet):
-            if val in self.ambiguities:
-                break
-        else:
-            return False
-        return (seq >= index).any()
+        first_degen = self.most_degen_alphabet().gap_index + 1
+
+        return (seq >= first_degen).any()
 
     @functools.singledispatchmethod
     def is_gapped(self, seq, validate: bool = True) -> bool:
