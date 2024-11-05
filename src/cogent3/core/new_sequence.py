@@ -1530,7 +1530,7 @@ class Sequence:
         return indel_map, seq
 
     def is_annotated(
-        self, biotype: typing.Optional[typing.Union[str, list[str]]] = None
+        self, biotype: typing.Optional[typing.Union[str, tuple[str]]] = None
     ) -> bool:
         """returns True if sequence parent name has any annotations
 
