@@ -660,13 +660,9 @@ class MolType:
                 f"{seq[:4]!r} not valid for moltype {self.name!r}"
             )
 
-        # what index is the first degenerate character
-        for index, val in enumerate(self.most_degen_alphabet()):
-            if val in self.ambiguities:
-                break
-        else:
-            return False
-        return (seq >= index).any()
+        first_degen = self.most_degen_alphabet().gap_index + 1
+
+        return (seq >= first_degen).any()
 
     @functools.singledispatchmethod
     def is_gapped(self, seq, validate: bool = True) -> bool:
