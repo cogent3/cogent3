@@ -3401,7 +3401,22 @@ def test_alignment_to_html_text_moltype():
     seqs = {"seq1": "ACG", "seq2": "-CT"}
 
     aln = new_alignment.make_aligned_seqs(seqs, moltype="text")
-    _ = aln.to_html(ref_name="longest")
+    got = aln.to_html(ref_name="longest")
+    ref_row = (
+        '<tr><td class="label">seq1</td>'
+        '<td><span class="A_text">A</span>'
+        '<span class="C_text">C</span>'
+        '<span class="G_text">G</span></td></tr>'
+    )
+    other_row = (
+        '<tr><td class="label">seq2</td>'
+        '<td><span class="ambig_text">-</span>'
+        '<span class="C_text">.</span>'
+        '<span class="T_text">T</span></td></tr>'
+    )
+
+    assert ref_row in got
+    assert other_row in got
 
 
 def test_alignment_repr():
