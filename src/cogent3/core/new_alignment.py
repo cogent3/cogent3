@@ -4400,7 +4400,7 @@ class Alignment(SequenceCollection):
 
             if remainder := len(self) % motif_length:
                 indices = indices[:-remainder]
-                array_pos = array_pos[: num_motif * motif_length]
+                array_pos = array_pos[:-remainder]
 
             motif_valid = indices.reshape(num_motif, motif_length).all(axis=1).flatten()
             indices = numpy.repeat(motif_valid, motif_length)
