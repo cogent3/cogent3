@@ -2230,10 +2230,14 @@ def test_sequence_collection_strand_symmetry():
     assert numpy.allclose(result["seq2"].observed.array, [[3, 0], [2, 1]])
 
 
-def test_sequence_collection_rename_seqs():
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_sequence_collection_rename_seqs(mk_cls):
     """successfully rename sequences"""
     data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
-    seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
+    seqs = mk_cls(data, moltype="dna")
     new = seqs.rename_seqs(lambda x: x.upper())
     expect = {n.upper() for n in data}
     assert set(new.names) == expect
@@ -2241,10 +2245,14 @@ def test_sequence_collection_rename_seqs():
     assert set(new._seqs_data.names) == set(data)
 
 
-def test_sequence_collection_subsequent_rename():
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_sequence_collection_subsequent_rename(mk_cls):
     """sequences can be renamed multiple times"""
     data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
-    seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
+    seqs = mk_cls(data, moltype="dna")
     new = seqs.rename_seqs(lambda x: x.upper())
     new_again = new.rename_seqs(lambda x: f"{x[0]}{x[-1]}")
     expect = {"S1", "S2", "S3"}
@@ -2253,12 +2261,26 @@ def test_sequence_collection_subsequent_rename():
     assert set(new._seqs_data.names) == set(data)
 
 
-def test_sequence_collection_rename_non_unique_fails():
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_sequence_collection_rename_non_unique_fails(mk_cls):
     """renaming to non-unique names should raise an error"""
     data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
-    seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
+    seqs = mk_cls(data, moltype="dna")
     with pytest.raises(ValueError):
         _ = seqs.rename_seqs(lambda x: x[:1])
+
+
+def test_alignment_rename_sliced():
+    """a sliced alignment that is renmed will retain slice information"""
+    data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    sliced = aln[:3]
+    renamed = sliced.rename_seqs(lambda x: x.upper())
+    expect = {n.upper(): seq[:3] for n, seq in data.items()}
+    assert renamed.to_dict() == expect
 
 
 def test_sequence_collection_apply_pssm():

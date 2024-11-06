@@ -3841,6 +3841,7 @@ class Alignment(SequenceCollection):
             seqs_data=self._seqs_data,
             moltype=self.moltype,
             name_map=new_name_map,
+            slice_record=self._slice_record,
             info=self.info,
             annotation_db=self.annotation_db,
         )
