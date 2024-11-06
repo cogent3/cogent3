@@ -523,7 +523,12 @@ class SeqsData(SeqsDataABC):
         # refactor: design -- map directly between arrays?
         # refactor: design -- better way to check if alphabets are DNA and RNA?
         if len(alphabet) == len(self.alphabet):
-            return self.__class__(data=self._data, alphabet=alphabet)
+            return self.__class__(
+                data=self._data,
+                alphabet=alphabet,
+                offset=self._offset,
+                reversed=self._reversed,
+            )
 
         new_data = {}
         old = self.alphabet.as_bytes()
