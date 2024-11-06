@@ -3872,8 +3872,6 @@ class Alignment(SequenceCollection):
         for pos in pos_order:
             yield [str(self[seq][pos]) for seq in self.names]
 
-    positions = property(iter_positions)
-
     def get_position_indices(
         self, f: Callable, native: bool = False, negate: bool = False
     ) -> list[int]:
