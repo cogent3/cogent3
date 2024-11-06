@@ -1102,15 +1102,72 @@ def test_alignemnt_degap_sliced(gap_ambig_seqs):
     expect = {"s1": "YRGTA", "s2": "GAT"}
 
 
-def test_sequence_collection_to_fasta():
-    """SequenceCollection should return correct FASTA string"""
+def test_get_degapped_relative_to():
+    """should remove all columns with a gap in sequence with given name"""
+    aln = new_alignment.make_aligned_seqs(
+        [
+            ["name1", "-AC-DEFGHI---"],
+            ["name2", "XXXXXX--XXXXX"],
+            ["name3", "YYYY-YYYYYYYY"],
+            ["name4", "-KL---MNPR---"],
+        ],
+        moltype="protein",
+    )
+    expect = dict(
+        [
+            ["name1", "ACDEFGHI"],
+            ["name2", "XXXX--XX"],
+            ["name3", "YY-YYYYY"],
+            ["name4", "KL--MNPR"],
+        ]
+    )
+    result = aln.get_degapped_relative_to("name1")
+    assert result.to_dict() == expect
+
+    with pytest.raises(ValueError):
+        aln.get_degapped_relative_to("nameX")
+
+
+def test_get_degapped_relative_to_info():
+    """should remove all columns with a gap in sequence with given name
+    while preserving info attribute"""
+    aln = new_alignment.make_aligned_seqs(
+        [
+            ["name1", "-AC-DEFGHI---"],
+            ["name2", "XXXXXX--XXXXX"],
+            ["name3", "YYYY-YYYYYYYY"],
+            ["name4", "-KL---MNPR---"],
+        ],
+        moltype="protein",
+        info={"key": "foo"},
+    )
+    out_aln = new_alignment.make_aligned_seqs(
+        [
+            ["name1", "ACDEFGHI"],
+            ["name2", "XXXX--XX"],
+            ["name3", "YY-YYYYY"],
+            ["name4", "KL--MNPR"],
+        ],
+        moltype="protein",
+        info={"key": "bar"},
+    )
+    gdrt = aln.get_degapped_relative_to("name1")
+    assert gdrt.info["key"] == "foo"
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_sequence_collection_to_fasta(mk_cls):
+    """SequenceCollection and Alignment should return correct FASTA string"""
     data = {"seq_0": "AAA", "seq_1": "CCC"}
-    seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
+    seqs = mk_cls(data, moltype="dna")
     assert seqs.to_fasta() == ">seq_0\nAAA\n>seq_1\nCCC\n"
     assert seqs.to_fasta(block_size=2) == ">seq_0\nAA\nA\n>seq_1\nCC\nC\n"
 
     data = {"seq_0": "GCATGCAT", "seq_1": "TCAGACGT"}
-    seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
+    seqs = mk_cls(data, moltype="dna")
     assert seqs.to_fasta() == ">seq_0\nGCATGCAT\n>seq_1\nTCAGACGT\n"
     assert seqs.to_fasta(block_size=4) == ">seq_0\nGCAT\nGCAT\n>seq_1\nTCAG\nACGT\n"
     assert seqs.to_fasta(block_size=3) == ">seq_0\nGCA\nTGC\nAT\n>seq_1\nTCA\nGAC\nGT\n"
@@ -1875,28 +1932,57 @@ def test_sequence_collection_copy_annotations_incompat_type_fails(seqcoll_db, se
         seqcoll_db.copy_annotations(seqs)
 
 
+@pytest.mark.parametrize(
+    "mk_cls, seq_cls",
+    [
+        (new_alignment.make_unaligned_seqs, new_sequence.Sequence),
+        (new_alignment.make_aligned_seqs, new_alignment.Aligned),
+    ],
+)
 @pytest.mark.parametrize("moltype", ("dna", "rna", "protein"))
-def test_sequence_collection_to_moltype(moltype):
+def test_sequence_collection_to_moltype(moltype, mk_cls, seq_cls):
     data = dict(s1="ACGAA-", s2="ACCCAA")
-    seqs = new_alignment.make_unaligned_seqs(data, moltype="text")
+    seqs = mk_cls(data, moltype="text")
     mt_seqs = seqs.to_moltype(moltype=moltype)
     got = mt_seqs.seqs["s1"]
     assert got.moltype.label == moltype
-    assert isinstance(got, new_sequence.Sequence)
+    assert isinstance(got, seq_cls)
 
 
+@pytest.mark.parametrize("rc", (True, False))
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_sequence_collection_to_moltype_rc(rc, mk_cls):
+    data = dict(s1="TCAG", s2="TCA-")
+    seqs = mk_cls(data, moltype="dna")
+    seqs = seqs.rc() if rc else seqs
+    got = seqs.to_moltype("rna").to_dict()
+    expect = {"s1": "CUGA", "s2": "-UGA"} if rc else dict(s1="UCAG", s2="UCA-")
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
 @pytest.mark.parametrize("moltype", ("dna", "protein"))
-def test_sequence_collection_to_moltype_same_moltype(moltype):
+def test_sequence_collection_to_moltype_same_moltype(moltype, mk_cls):
     data = dict(s1="ACGTT", s2="ACCTT")
-    seqs = new_alignment.make_unaligned_seqs(data, moltype=moltype)
+    seqs = mk_cls(data, moltype=moltype)
     got = seqs.to_moltype(moltype=moltype)
     assert got is seqs
 
 
-def test_sequence_collection_to_moltype_with_gaps():
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_sequence_collection_to_moltype_with_gaps(mk_cls):
     """correctly convert to specified moltype"""
     data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
-    seqs = new_alignment.make_unaligned_seqs(data, moltype="text")
+    seqs = mk_cls(data, moltype="text")
     dna_seqs = seqs.to_moltype("dna")
     assert dna_seqs.moltype.label == "dna"
     assert dna_seqs.to_dict() == data
@@ -1910,20 +1996,26 @@ def test_sequence_collection_to_moltype_with_gaps():
         seqs.to_moltype("rna")
 
 
-def test_sequence_collection_to_moltype_info():
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_sequence_collection_to_moltype_info(mk_cls):
     """correctly convert to specified moltype"""
     data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
-    seqs = new_alignment.make_unaligned_seqs(
-        data, moltype="text", info={"key": "value"}
-    )
+    seqs = mk_cls(data, moltype="text", info={"key": "value"})
     dna = seqs.to_moltype("dna")
     assert dna.info["key"] == "value"
 
 
-def test_sequence_collection_to_moltype_annotation_db():
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_sequence_collection_to_moltype_annotation_db(mk_cls):
     """correctly convert to specified moltype"""
     data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
-    seqs = new_alignment.make_unaligned_seqs(data, moltype="text")
+    seqs = mk_cls(data, moltype="text")
     db = GffAnnotationDb()
     db.add_feature(seqid="seq1", biotype="exon", name="annotation1", spans=[(3, 8)])
     db.add_feature(seqid="seq2", biotype="exon", name="annotation2", spans=[(1, 2)])
@@ -1933,10 +2025,14 @@ def test_sequence_collection_to_moltype_annotation_db():
     assert len(dna.annotation_db) == 3
 
 
-def test_sequence_collection_to_dna():
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_sequence_collection_to_dna(mk_cls):
     """correctly convert to dna"""
     data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
-    seqs = new_alignment.make_unaligned_seqs(data, moltype="text")
+    seqs = mk_cls(data, moltype="text")
 
     # convert from text to dna
     dna_seqs = seqs.to_dna()
@@ -1945,7 +2041,7 @@ def test_sequence_collection_to_dna():
 
     # convert from rna to dna
     data = {"seq1": "ACGUACGUA", "seq2": "ACCGAA---", "seq3": "ACGUACGUU"}
-    seqs = new_alignment.make_unaligned_seqs(data, moltype="RNA")
+    seqs = mk_cls(data, moltype="RNA")
     dna_seqs = seqs.to_dna()
     assert dna_seqs.moltype.label == "dna"
     assert dna_seqs.to_dict() == {
@@ -1953,9 +2049,13 @@ def test_sequence_collection_to_dna():
     }
 
 
-def test_sequence_collection_to_rna():
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_sequence_collection_to_rna(mk_cls):
     data = {"seq1": "ACGUACGUA", "seq2": "ACCGAA---", "seq3": "ACGUACGUU"}
-    seqs = new_alignment.make_unaligned_seqs(data, moltype="text")
+    seqs = mk_cls(data, moltype="text")
 
     # convert from text to rna
     rna_seqs = seqs.to_rna()
@@ -1964,7 +2064,7 @@ def test_sequence_collection_to_rna():
 
     # convert from dna to rna
     data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
-    seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
+    seqs = mk_cls(data, moltype="dna")
     rna_seqs = seqs.to_rna()
     assert rna_seqs.moltype.label == "rna"
     assert rna_seqs.to_dict() == {
@@ -2037,12 +2137,12 @@ def test_sequence_collection_write(collection_maker, tmp_path):
 
 
 @pytest.mark.parametrize(
-    "collection_maker",
+    "mk_cls",
     [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
 )
-def test_sequence_collection_write_gapped(collection_maker, tmp_path):
+def test_sequence_collection_write_gapped(mk_cls, tmp_path):
     data = {"a": "AAA--", "b": "TTTTT", "c": "CCCCC"}
-    seqs = collection_maker(data, moltype="dna")
+    seqs = mk_cls(data, moltype="dna")
     fn = tmp_path / "seqs.fasta"
     seqs.write(fn)
     with open(fn, newline=None) as infile:
@@ -2050,18 +2150,23 @@ def test_sequence_collection_write_gapped(collection_maker, tmp_path):
     assert result == ">a\nAAA--\n>b\nTTTTT\n>c\nCCCCC\n"
 
 
-def test_get_ambiguous_positions():
-    """SequenceCollection.get_ambiguous_positions should return pos"""
-    aln = new_alignment.make_unaligned_seqs(
-        {"s1": "ATGRY?", "s2": "T-AG??"}, moltype="dna"
-    )
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_get_ambiguous_positions(mk_cls):
+    aln = mk_cls({"s1": "ATGRY?", "s2": "T-AG??"}, moltype="dna")
     assert aln.get_ambiguous_positions() == {
         "s2": {4: "?", 5: "?"},
         "s1": {3: "R", 4: "Y", 5: "?"},
     }
 
 
-def test_sequence_collection_consistent_gap_degen_handling():
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_sequence_collection_consistent_gap_degen_handling(mk_cls):
     """gap degen character should be treated consistently"""
     # the degen character '?' can be a gap, so when we strip gaps it should
     # be gone too
@@ -2070,10 +2175,8 @@ def test_sequence_collection_consistent_gap_degen_handling():
     re.sub("[N?]+", "", raw_seq)
     dna = new_moltype.DNA.make_seq(seq=raw_seq)
 
-    aln = new_alignment.make_unaligned_seqs({"a": dna, "b": dna}, moltype="dna")
-    expect = new_alignment.make_unaligned_seqs(
-        {"a": raw_ungapped, "b": raw_ungapped}, moltype="dna"
-    ).to_fasta()
+    aln = mk_cls({"a": dna, "b": dna}, moltype="dna")
+    expect = mk_cls({"a": raw_ungapped, "b": raw_ungapped}, moltype="dna").to_fasta()
     assert aln.degap().to_fasta() == expect
 
 
