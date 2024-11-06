@@ -4310,6 +4310,38 @@ class Alignment(SequenceCollection):
         )
         return make_unaligned_seqs(data, moltype=self.moltype, info=self.info, **kwargs)
 
+    def get_degapped_relative_to(self, name: str):
+        """Remove all columns with gaps in sequence with given name.
+
+        Parameters
+        ----------
+        name
+            sequence name
+
+        Notes
+        -----
+        The returned alignment will not retain an annotation_db if present.
+        """
+
+        if name not in self.names:
+            raise ValueError(f"Alignment missing sequence named {name!r}")
+
+        gapindex = self.moltype.most_degen_alphabet().gap_index
+        seqindex = self.names.index(name)
+        indices = self.array_seqs[seqindex] != gapindex
+        new = self.array_seqs[:, indices]
+
+        new_seq_data = self._seqs_data.from_names_and_array(
+            names=self.names, data=new, alphabet=self.moltype.most_degen_alphabet()
+        )
+
+        return self.__class__(
+            seqs_data=new_seq_data,
+            name_map=self._name_map,
+            moltype=self.moltype,
+            info=self.info,
+        )
+
     def matching_ref(self, ref_name, gap_fraction, gap_run):
         """Returns new alignment with seqs well aligned with a reference.
 
