@@ -1107,7 +1107,7 @@ def test_get_degapped_relative_to():
     aln = new_alignment.make_aligned_seqs(
         [
             ["name1", "-AC-DEFGHI---"],
-            ["name2", "XXXXXX--XXXXX"],
+            ["name2", "XXXXXXXXXXXXX"],
             ["name3", "YYYY-YYYYYYYY"],
             ["name4", "-KL---MNPR---"],
         ],
@@ -1116,7 +1116,7 @@ def test_get_degapped_relative_to():
     expect = dict(
         [
             ["name1", "ACDEFGHI"],
-            ["name2", "XXXX--XX"],
+            ["name2", "XXXXXXXX"],
             ["name3", "YY-YYYYY"],
             ["name4", "KL--MNPR"],
         ]
@@ -1126,6 +1126,33 @@ def test_get_degapped_relative_to():
 
     with pytest.raises(ValueError):
         aln.get_degapped_relative_to("nameX")
+
+
+def test_get_degapped_relative_to_no_or_all_gaps():
+    """should handle case where no gaps are present in reference
+    or when the reference is all gaps"""
+    aln = new_alignment.make_aligned_seqs(
+        [
+            ["name1", "-AC-DEFGHI---"],
+            ["name2", "XXXXXXXXXXXXX"],
+            ["name3", "YYYY-YYYYYYYY"],
+            ["name4", "-------------"],
+        ],
+        moltype="protein",
+    )
+    expect = dict(
+        [
+            ["name1", "-AC-DEFGHI---"],
+            ["name2", "XXXXXXXXXXXXX"],
+            ["name3", "YYYY-YYYYYYYY"],
+            ["name4", "-------------"],
+        ]
+    )
+    got = aln.get_degapped_relative_to("name2").to_dict()
+    assert got == expect
+
+    got = aln.get_degapped_relative_to("name4").to_dict()
+    assert got == {"name1": "", "name2": "", "name3": "", "name4": ""}
 
 
 @pytest.mark.parametrize("rc", [False, True])
