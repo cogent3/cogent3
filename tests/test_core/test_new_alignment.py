@@ -1128,6 +1128,29 @@ def test_get_degapped_relative_to():
         aln.get_degapped_relative_to("nameX")
 
 
+def test_get_degapped_relative_to_sliced():
+    aln = new_alignment.make_aligned_seqs(
+        [
+            ["name1", "-AC-DEFGHI---"],
+            ["name2", "XXXXXX--XXXXX"],
+            ["name3", "YYYY-YYYYYYYY"],
+            ["name4", "-KL---MNPR---"],
+        ],
+        moltype="protein",
+    )
+    sliced = aln[:5]
+    expect = dict(
+        [
+            ["name1", "ACD"],
+            ["name2", "XXX"],
+            ["name3", "YY-"],
+            ["name4", "KL-"],
+        ]
+    )
+    result = sliced.get_degapped_relative_to("name1")
+    assert result.to_dict() == expect
+
+
 def test_get_degapped_relative_to_info():
     """should remove all columns with a gap in sequence with given name
     while preserving info attribute"""
