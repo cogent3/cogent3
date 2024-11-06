@@ -3289,9 +3289,43 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         else:
             raise ValueError(f"provided {names=} not found in collection")
 
-    def to_alphabet(self, alphabet: new_alphabet.AlphabetABC):
-        # todo: kath
-        ...
+    def to_alphabet(self, alphabet: new_alphabet.AlphabetABC, check_valid: bool = True):
+        """Returns a new AlignedSeqsData object with the same underlying data
+        with a new alphabet."""
+        if len(alphabet) == len(self.alphabet):
+            # special case where mapping between dna and rna
+            return self.__class__(
+                seqs=self._seqs,
+                gaps=self._gaps,
+                alphabet=alphabet,
+                offset=self._offset,
+                align_len=self.align_len,
+            )
+
+        new_data = {}
+        old = self.alphabet.as_bytes()
+        new = alphabet.as_bytes()
+        convert_old_to_bytes = new_alphabet.array_to_bytes(old)
+        convert_bytes_to_new = new_alphabet.bytes_to_array(
+            new, dtype=new_alphabet.get_array_type(len(new))
+        )
+
+        for seqid in self.names:
+            seq_data = self.get_gapped_seq_array(seqid=seqid)
+            as_new_alpha = convert_bytes_to_new(convert_old_to_bytes(seq_data))
+
+            if check_valid and not alphabet.is_valid(as_new_alpha):
+                raise ValueError(
+                    f"Changing from old alphabet={self.alphabet} to new "
+                    f"{alphabet=} is not valid for this data"
+                )
+            new_data[seqid] = as_new_alpha
+
+        return self.from_seqs(
+            data=new_data,
+            alphabet=alphabet,
+            offset=self._offset,
+        )
 
     def to_rich_dict(self):
         # todo: kath
