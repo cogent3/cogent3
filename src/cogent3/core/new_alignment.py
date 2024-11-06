@@ -4627,6 +4627,29 @@ class Alignment(SequenceCollection):
 
         return result
 
+    @extend_docstring_from(SequenceCollection.to_moltype)
+    def to_moltype(self, moltype: str):
+        mtype = new_moltype.get_moltype(moltype)
+        if mtype is self.moltype:
+            return self  # nothing to be done
+
+        alpha = mtype.most_degen_alphabet()
+        try:
+            new_seqs_data = self._seqs_data.to_alphabet(alpha)
+        except ValueError as e:
+            raise ValueError(
+                f"Failed to convert moltype from {self.moltype.label} to {moltype}"
+            ) from e
+
+        return self.__class__(
+            seqs_data=new_seqs_data,
+            moltype=mtype,
+            info=self.info,
+            source=self.source,
+            slice_record=self._slice_record,
+            annotation_db=self.annotation_db,
+        )
+
     @extend_docstring_from(SequenceCollection.get_translation)
     def get_translation(
         self,
