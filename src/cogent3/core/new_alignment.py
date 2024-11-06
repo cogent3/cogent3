@@ -3730,6 +3730,11 @@ class Alignment(SequenceCollection):
         return Aligned(data=data, moltype=self.moltype, name=seqid)
 
     @property
+    def positions(self):
+        from_indices = self.moltype.most_degen_alphabet().from_indices
+        return [list(from_indices(pos)) for pos in self.array_positions]
+
+    @property
     def array_seqs(self) -> numpy.ndarray:
         """Returns a numpy array of sequences, axis 0 is seqs in order
         corresponding to names"""
