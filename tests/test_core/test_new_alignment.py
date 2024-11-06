@@ -1128,24 +1128,30 @@ def test_get_degapped_relative_to():
         aln.get_degapped_relative_to("nameX")
 
 
-def test_get_degapped_relative_to_sliced():
+@pytest.mark.parametrize("rc", [False, True])
+def test_get_degapped_relative_to_sliced(rc):
     aln = new_alignment.make_aligned_seqs(
         [
-            ["name1", "-AC-DEFGHI---"],
-            ["name2", "XXXXXX--XXXXX"],
-            ["name3", "YYYY-YYYYYYYY"],
-            ["name4", "-KL---MNPR---"],
+            ["name1", "-AC-TTT"],
+            ["name2", "AAAAAA-"],
+            ["name3", "YYYY-YY"],
+            ["name4", "-AC---G"],
         ],
-        moltype="protein",
+        moltype="dna",
     )
-    sliced = aln[:5]
+    sliced = aln[:5].rc() if rc else aln[:5]
     expect = dict(
         [
-            ["name1", "ACD"],
-            ["name2", "XXX"],
+            ["name1", "ACT"],
+            ["name2", "AAA"],
             ["name3", "YY-"],
-            ["name4", "KL-"],
+            ["name4", "AC-"],
         ]
+    )
+    expect = (
+        {name: aln.moltype.complement(seq[::-1]) for name, seq in expect.items()}
+        if rc
+        else expect
     )
     result = sliced.get_degapped_relative_to("name1")
     assert result.to_dict() == expect
