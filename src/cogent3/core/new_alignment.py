@@ -547,7 +547,7 @@ class SeqsData(SeqsDataABC):
             as_new_alpha = convert_bytes_to_new(convert_old_to_bytes(seq_data))
 
             if check_valid and not alphabet.is_valid(as_new_alpha):
-                raise ValueError(
+                raise new_moltype.MolTypeError(
                     f"Changing from old alphabet={self.alphabet} to new "
                     f"{alphabet=} is not valid for this data"
                 )
@@ -956,8 +956,8 @@ class SequenceCollection:
         alpha = mtype.most_degen_alphabet()
         try:
             new_seqs_data = self._seqs_data.to_alphabet(alpha)
-        except ValueError as e:
-            raise ValueError(
+        except new_moltype.MolTypeError as e:
+            raise new_moltype.MolTypeError(
                 f"Failed to convert moltype from {self.moltype.label} to {moltype}"
             ) from e
 
@@ -3321,7 +3321,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             as_new_alpha = convert_bytes_to_new(convert_old_to_bytes(seq_data))
 
             if check_valid and not alphabet.is_valid(as_new_alpha):
-                raise ValueError(
+                raise new_moltype.MolTypeError(
                     f"Changing from old alphabet={self.alphabet} to new "
                     f"{alphabet=} is not valid for this data"
                 )
@@ -4643,8 +4643,8 @@ class Alignment(SequenceCollection):
         alpha = mtype.most_degen_alphabet()
         try:
             new_seqs_data = self._seqs_data.to_alphabet(alpha)
-        except ValueError as e:
-            raise ValueError(
+        except new_moltype.MolTypeError as e:
+            raise new_moltype.MolTypeError(
                 f"Failed to convert moltype from {self.moltype.label} to {moltype}"
             ) from e
 
