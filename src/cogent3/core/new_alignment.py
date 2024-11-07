@@ -2449,7 +2449,7 @@ def make_unaligned_seqs(
     info: OptDict = None,
     source: OptPathType = None,
     annotation_db: SupportsFeatures = None,
-    offset: typing.Optional[DictStrStr] = None,
+    offset: typing.Optional[DictStrInt] = None,
     name_map: typing.Optional[DictStrStr] = None,
 ) -> SequenceCollection:
     """Initialise an unaligned collection of sequences.
