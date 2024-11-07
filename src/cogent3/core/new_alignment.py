@@ -2325,15 +2325,15 @@ def _(seqs: dict) -> SupportsFeatures:
 @dataclasses.dataclass
 class raw_seq_data:
     seq: StrORBytesORArray
-    name: str | None = None
-    parent_name: str | None = None
+    name: OptStr = None
+    parent_name: OptStr = None
     offset: int = 0
     is_reversed: bool = False
 
 
 @singledispatch
 def coerce_to_raw_seq_data(
-    seq, moltype: new_moltype.MolType, name: str | None = None
+    seq, moltype: new_moltype.MolType, name: OptStr = None
 ) -> raw_seq_data:
     if isinstance(seq, Aligned):
         name = name or seq.name
@@ -2363,21 +2363,19 @@ def _(
 
 
 @coerce_to_raw_seq_data.register
-def _(seq: str, moltype: new_moltype.MolType, name: str | None = None) -> raw_seq_data:
+def _(seq: str, moltype: new_moltype.MolType, name: OptStr = None) -> raw_seq_data:
     return raw_seq_data(seq=seq, name=name)
 
 
 @coerce_to_raw_seq_data.register
 def _(
-    seq: numpy.ndarray, moltype: new_moltype.MolType, name: str | None = None
+    seq: numpy.ndarray, moltype: new_moltype.MolType, name: OptStr = None
 ) -> raw_seq_data:
     return raw_seq_data(seq=seq, name=name)
 
 
 @coerce_to_raw_seq_data.register
-def _(
-    seq: bytes, moltype: new_moltype.MolType, name: str | None = None
-) -> raw_seq_data:
+def _(seq: bytes, moltype: new_moltype.MolType, name: OptStr = None) -> raw_seq_data:
     return raw_seq_data(seq=seq, name=name)
 
 
