@@ -90,7 +90,7 @@ class _SeqNamer:
         self._num = start_at
         self._name_func = name_func
 
-    def __call__(self, seq: StrORBytesORArray, name: str | None = None) -> str:
+    def __call__(self, seq: StrORBytesORArray, name: OptStr = None) -> str:
         name = name or getattr(seq, "name", name)
 
         if not name:
