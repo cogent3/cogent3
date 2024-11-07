@@ -2048,7 +2048,7 @@ def test_sequence_collection_to_moltype_with_gaps(mk_cls):
     assert rna_seqs.moltype.label == "rna"
 
     # but not from text to rna directly
-    with pytest.raises(ValueError):
+    with pytest.raises(new_moltype.MolTypeError):
         seqs.to_moltype("rna")
 
 

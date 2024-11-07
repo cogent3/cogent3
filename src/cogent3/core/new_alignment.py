@@ -3737,6 +3737,8 @@ class Alignment(SequenceCollection):
 
     @property
     def positions(self):
+        # refactor: design
+        # possibly rename to str_positions since we have array_positions
         from_indices = self.moltype.most_degen_alphabet().from_indices
         return [list(from_indices(pos)) for pos in self.array_positions]
 
