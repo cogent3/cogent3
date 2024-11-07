@@ -368,7 +368,7 @@ def test_seqs_data_to_alphabet_invalid():
     seqs = new_alignment.SeqsData(
         data={"a": "AAA", "b": "TTT", "c": "LLL"}, alphabet=ASCII
     )
-    with pytest.raises(ValueError):
+    with pytest.raises(new_moltype.MolTypeError):
         _ = seqs.to_alphabet(DNA)
 
 
