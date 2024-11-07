@@ -524,9 +524,10 @@ class SeqsData(SeqsDataABC):
         # if the length of the two alphabets are the same and the only difference
         # between the sets of characters is U/T, then we have the special case of
         # converting between DNA and RNA alphabets, which we can achieved easily.
-        if len(self.alphabet) == len(alphabet) and set(self.alphabet) ^ set(
-            alphabet
-        ) == {"U", "T"}:
+        if (
+            len(self.alphabet) == len(alphabet)
+            and len({(a, b) for a, b in zip(self.alphabet, alphabet) if a != b}) == 1
+        ):
             return self.__class__(
                 data=self._data,
                 alphabet=alphabet,
@@ -3296,9 +3297,10 @@ class AlignedSeqsData(AlignedSeqsDataABC):
     def to_alphabet(self, alphabet: new_alphabet.AlphabetABC, check_valid: bool = True):
         """Returns a new AlignedSeqsData object with the same underlying data
         with a new alphabet."""
-        if len(alphabet) == len(self.alphabet) and set(self.alphabet) ^ set(
-            alphabet
-        ) == {"U", "T"}:
+        if (
+            len(alphabet) == len(self.alphabet)
+            and len({(a, b) for a, b in zip(self.alphabet, alphabet) if a != b}) == 1
+        ):
             # special case where mapping between dna and rna
             return self.__class__(
                 seqs=self._seqs,
