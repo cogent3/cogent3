@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import contextlib
+import dataclasses
 import json
 import os
 import re
@@ -29,6 +31,7 @@ from cogent3.core.location import (
     _input_vals_neg_step,
     _input_vals_pos_step,
 )
+from cogent3.core.new_alphabet import StrORBytesORArray
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray, load_pssm
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import seqs_to_fasta
@@ -62,6 +65,7 @@ OptStr = Optional[str]
 OptList = Optional[list]
 OptDict = Optional[dict]
 DictStrStr = dict[str, str]
+DictStrInt = dict[str, int]
 OptCallable = Optional[Callable]
 OptRenamerCallable = Optional[Callable[[str], str]]
 OptPathType = Union[str, Path, None]
@@ -75,20 +79,27 @@ MolTypes = Union[str, new_moltype.MolType]
 EPS = 1e-6
 
 
-def assign_sequential_names(num_seqs: int, base_name: str = "seq", start_at: int = 0):
-    """Returns list of sequential, unique names, e.g., ['seq_0' ... 'seq_n'] for
-     num_seqs = n+1
+class _SeqNamer:
+    def __init__(
+        self,
+        name_func: OptRenamerCallable = None,
+        base_name: str = "seq",
+        start_at: int = 0,
+    ):
+        self._base_name = base_name
+        self._num = start_at
+        self._name_func = name_func
 
-    Parameters
-    ----------
-    num_seqs
-        number of names to generate
-    base_name
-        the sequence name prefix
-    start_at
-        the number to start the sequence names at
-    """
-    return [f"{base_name}_{i}" for i in range(start_at, start_at + num_seqs)]
+    def __call__(self, seq: StrORBytesORArray, name: str | None = None) -> str:
+        name = name or getattr(seq, "name", name)
+
+        if not name:
+            name = f"{self._base_name}_{self._num}"
+            self._num += 1
+        elif self._name_func:
+            name = self._name_func(name)
+
+        return name
 
 
 class GapsOk:
@@ -342,7 +353,7 @@ class SeqsDataABC(ABC):
     def to_alphabet(self, alphabet: new_alphabet.AlphabetABC) -> SeqsDataABC: ...
 
     @abstractmethod
-    def add_seqs(self, seqs) -> SeqsDataABC: ...
+    def add_seqs(self, seqs, **kwargs) -> SeqsDataABC: ...
 
     @abstractmethod
     def to_rich_dict(self) -> dict: ...
@@ -817,13 +828,20 @@ class SequenceCollection:
         seqs
             sequences to add
         """
-        data = coerce_to_seqs_data_dict(seqs, label_to_name=None)
+        assign_names = _SeqNamer()
+        data, offsets, is_reversed, name_map = prep_for_seqs_data(
+            seqs, self.moltype, assign_names
+        )
+
+        if not name_map:
+            name_map = dict(zip(data, data))
+
+        kwargs["offset"] = offsets
         seqs_data = self._seqs_data.add_seqs(data, **kwargs)
-        new_seqs_names = {name: name for name in data.keys()}
         return self.__class__(
             seqs_data=seqs_data,
             moltype=self.moltype,
-            name_map={**self._name_map, **new_seqs_names},
+            name_map={**self._name_map, **name_map},
             info=self.info,
             source=self.source,
             annotation_db=self.annotation_db,
@@ -2304,97 +2322,124 @@ def _(seqs: dict) -> SupportsFeatures:
     return merged_db_collection(seqs.values())
 
 
+@dataclasses.dataclass
+class raw_seq_data:
+    seq: StrORBytesORArray
+    name: str | None = None
+    parent_name: str | None = None
+    offset: int = 0
+    is_reversed: bool = False
+
+
 @singledispatch
-def coerce_to_seqs_data_dict(
-    data, label_to_name: OptRenamerCallable = None
-) -> dict[str, StrORBytesORArray]:
+def coerce_to_raw_seq_data(
+    seq, moltype: new_moltype.MolType, name: str | None = None
+) -> raw_seq_data:
+    if isinstance(seq, Aligned):
+        name = name or seq.name
+        seq = str(seq)
+        return coerce_to_raw_seq_data(seq, moltype, name)
+    raise TypeError(f"coerce_to_seq_data not implemented for {type(seq)}")
+
+
+@coerce_to_raw_seq_data.register
+def _(
+    seq: new_sequence.Sequence, moltype: new_moltype.MolType, name: str
+) -> raw_seq_data:
+    seq = seq.to_moltype(moltype)
+    parent_name, start, _, step = seq.parent_coordinates()
+    # we always get the "plus strand" seq
+    # because reverse complementing is done via the Sequence instance
+    # and the orientation with respect to records in a bound db needs
+    # to be preserved (that annotation db is extracted elsewhere)
+    raw_seq = seq.to_array(apply_transforms=False)
+    return raw_seq_data(
+        seq=raw_seq,
+        name=name or seq.name,
+        parent_name=parent_name,
+        offset=start,
+        is_reversed=step < 0,
+    )
+
+
+@coerce_to_raw_seq_data.register
+def _(seq: str, moltype: new_moltype.MolType, name: str | None = None) -> raw_seq_data:
+    return raw_seq_data(seq=seq, name=name)
+
+
+@coerce_to_raw_seq_data.register
+def _(
+    seq: numpy.ndarray, moltype: new_moltype.MolType, name: str | None = None
+) -> raw_seq_data:
+    return raw_seq_data(seq=seq, name=name)
+
+
+@coerce_to_raw_seq_data.register
+def _(
+    seq: bytes, moltype: new_moltype.MolType, name: str | None = None
+) -> raw_seq_data:
+    return raw_seq_data(seq=seq, name=name)
+
+
+CT = tuple[dict[str, StrORBytesORArray], dict[str, int], bool, dict[str, str]]
+
+
+@singledispatch
+def prep_for_seqs_data(data, moltype: new_moltype.MolType, seq_namer: _SeqNamer) -> CT:
     # refactor: handle conversion of SeqView to SeqDataView.
     raise NotImplementedError(
         f"coerce_to_seqs_data_dict not implemented for {type(data)}"
     )
 
 
-@coerce_to_seqs_data_dict.register
-def _(
-    data: dict, label_to_name: OptRenamerCallable = None
-) -> dict[str, StrORBytesORArray]:
-    is_sequence = isinstance(next(iter(data.values()), None), new_sequence.Sequence)
-    return {
-        (label_to_name(k) if label_to_name else k): (
-            numpy.array(v) if is_sequence else v
-        )
-        for k, v in data.items()
-    }
-
-
-@coerce_to_seqs_data_dict.register
-def _(
-    data: list, label_to_name: OptRenamerCallable = None
-) -> dict[str, StrORBytesORArray]:
-    first = data[0]
-    labelled_seqs = assign_names(first, data=data)
-    return coerce_to_seqs_data_dict(labelled_seqs, label_to_name=label_to_name)
-
-
-@coerce_to_seqs_data_dict.register
-def _(
-    data: set, label_to_name: OptRenamerCallable = None
-) -> dict[str, StrORBytesORArray]:
-    first = next(iter(data))
-    labelled_seqs = assign_names(first, data=data)
-    return coerce_to_seqs_data_dict(labelled_seqs, label_to_name=label_to_name)
-
-
-@coerce_to_seqs_data_dict.register
-def _(
-    data: SequenceCollection, label_to_name: OptRenamerCallable = None
-) -> dict[str, StrORBytesORArray]:
-    return coerce_to_seqs_data_dict(
-        data.to_dict(as_array=True), label_to_name=label_to_name
-    )
-
-
-@singledispatch
-def assign_names(
-    first, data: Union[list, set]
-) -> dict[str, Union[StrORBytesORArray, new_sequence.Sequence]]:
-    if isinstance(first, (str, bytes, numpy.ndarray)):
-        names = assign_sequential_names(len(data))
-        return dict(zip(names, data))
-    raise NotImplementedError(f"assign_names not implemented for {type(first)}")
-
-
-@assign_names.register
-def _(
-    first: new_sequence.Sequence, data: Union[list, set]
-) -> dict[str, new_sequence.Sequence]:
-    return {(seq.name or f"seq_{i}"): seq for i, seq in enumerate(data)}
-
-
-@assign_names.register
-def _(first: list, data: Union[list, set]) -> dict[str, StrORBytesORArray]:
-    return {name_seq[0]: name_seq[1] for name_seq in data}
-
-
-@assign_names.register
-def _(first: tuple, data: Union[list, set]) -> dict[str, StrORBytesORArray]:
-    return {name_seq[0]: name_seq[1] for name_seq in data}
-
-
-def _make_name_map(data: dict) -> tuple[OptDict, dict]:
-    if not isinstance(data, dict) or not isinstance(
-        next(iter(data.values()), None), new_sequence.Sequence
-    ):
-        return None, data
+@prep_for_seqs_data.register
+def _(data: dict, moltype: new_moltype.MolType, seq_namer: _SeqNamer) -> CT:
+    seqs = {}  # for the (Aligned)SeqsDataABC
+    offsets = {}  # for the (Aligned)SeqsDataABC
+    is_reversed = False
+    name_map = {}  # for the sequence collection
     # if we have a dict of Sequences, {name: seq, ...}, then the provided names
     # may differ to the name attribute on the Sequences. If the Sequences have
     # annotations, then we will need to map between the names in order to
     # query the annotation database. We do this by creating a name_map.
     # Note that we do (seq.name or name) to handle when the Sequence name is
     # None
-    name_map = {name: (seq.name or name) for name, seq in data.items()}
-    data = {(seq.name or name): numpy.array(seq) for name, seq in data.items()}
-    return name_map, data
+    for name, seq in data.items():
+        name = seq_namer(seq=seq, name=name)
+        seq_data = coerce_to_raw_seq_data(seq, moltype, name=name)
+        offsets[name] = seq_data.offset
+        seqs[seq_data.parent_name or seq_data.name] = seq_data.seq
+        is_reversed = seq_data.is_reversed
+        name_map[name] = seq_data.parent_name or name
+
+    return seqs, offsets, is_reversed, name_map
+
+
+@prep_for_seqs_data.register
+def _(data: list, moltype: new_moltype.MolType, seq_namer: _SeqNamer) -> CT:
+    if not isinstance(data[0], new_sequence.Sequence):
+        with contextlib.suppress(ValueError):
+            return prep_for_seqs_data(dict(data), moltype, seq_namer)
+
+    result = {seq_namer(seq=record): record for record in data}
+    return prep_for_seqs_data(result, moltype, seq_namer)
+
+
+@prep_for_seqs_data.register
+def _(data: tuple, moltype: new_moltype.MolType, seq_namer: _SeqNamer) -> CT:
+    return prep_for_seqs_data(list(data), moltype, seq_namer)
+
+
+@prep_for_seqs_data.register
+def _(data: set, moltype: new_moltype.MolType, seq_namer: _SeqNamer) -> CT:
+    return prep_for_seqs_data(list(data), moltype, seq_namer)
+
+
+@prep_for_seqs_data.register
+def _(
+    data: SequenceCollection, moltype: new_moltype.MolType, seq_namer: _SeqNamer
+) -> CT:
+    return prep_for_seqs_data({seq_namer(s): s for s in data.seqs}, moltype, seq_namer)
 
 
 @singledispatch
@@ -2453,6 +2498,9 @@ def make_unaligned_seqs(
     # define a source attribute rather than storing as .info["source"]
     # this will also replace the previous name attribute
 
+    moltype = new_moltype.get_moltype(moltype)
+    alphabet = moltype.most_degen_alphabet()
+
     if len(data) == 0:
         raise ValueError("data must be at least one sequence.")
 
@@ -2461,14 +2509,11 @@ def make_unaligned_seqs(
     # if we have Sequences, we need to construct the name map before we construct
     # the SeqsData object - however, if a name_map is provided, we assume that it
     # corrects for any naming differences in data and skip this step
-    name_map, data = _make_name_map(data) if name_map is None else (name_map, data)
-
-    seqs_data = coerce_to_seqs_data_dict(data, label_to_name=label_to_name)
-
-    moltype = new_moltype.get_moltype(moltype)
-    alphabet = moltype.most_degen_alphabet()
-
-    seqs_data = SeqsData(data=seqs_data, alphabet=alphabet, offset=offset)
+    assign_names = _SeqNamer(name_func=label_to_name)
+    seqs_data, offs, rvd, nm = prep_for_seqs_data(data, moltype, assign_names)
+    name_map = nm if name_map is None else name_map
+    # seqs_data keys should be the same as the value of name_map, not the keys
+    seqs_data = SeqsData(data=seqs_data, alphabet=alphabet, offset=offset, reversed=rvd)
     # we do not pass on offset/label_to_name as they are handled in this function
     return make_unaligned_seqs(
         seqs_data,
@@ -2536,8 +2581,8 @@ def _(
     *,
     alphabet: new_alphabet.AlphabetABC,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
-    gaps_bool = seq == alphabet.gap_index
-    ungapped = seq[~gaps_bool]
+    gap_indices: numpy.ndarray[bool] = seq == alphabet.gap_index
+    ungapped = seq[~gap_indices]
 
     # no gaps in seq
     if numpy.array_equal(ungapped, seq):
@@ -2547,7 +2592,7 @@ def _(
     in_gap = False
     parent_coords = []
     start = 0
-    for i, gapped in enumerate(gaps_bool):
+    for i, gapped in enumerate(gap_indices):
         if gapped and not in_gap:
             start = i
             in_gap = True
@@ -2774,6 +2819,36 @@ class AlignedSeqsDataABC(SeqsDataABC):
     def align_len(self) -> int: ...
 
     @abstractmethod
+    def get_seq_array(
+        self,
+        *,
+        seqid: str,
+        start: OptInt = None,
+        stop: OptInt = None,
+        step: OptInt = None,
+    ) -> numpy.ndarray: ...
+
+    @abstractmethod
+    def get_seq_str(
+        self,
+        *,
+        seqid: str,
+        start: OptInt = None,
+        stop: OptInt = None,
+        step: OptInt = None,
+    ) -> str: ...
+
+    @abstractmethod
+    def get_seq_bytes(
+        self,
+        *,
+        seqid: str,
+        start: OptInt = None,
+        stop: OptInt = None,
+        step: OptInt = None,
+    ) -> bytes: ...
+
+    @abstractmethod
     def get_gapped_seq_array(
         self,
         *,
@@ -2888,7 +2963,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             if seqs.keys() != gaps.keys():
                 raise ValueError("Keys in seqs and gaps must be identical.")
             if offset:
-                assert offset.keys().issubset(seqs.keys())
+                assert offset.keys() <= seqs.keys()
             gapped_seq_lengths = {
                 _gapped_seq_len(v, l) for v, l in zip(seqs.values(), gaps.values())
             }
@@ -3579,10 +3654,11 @@ class _IndexableSeqs:
 class Alignment(SequenceCollection):
     def __init__(
         self,
+        seqs_data: AlignedSeqsDataABC,  # seqs_data
         slice_record: new_sequence.SliceRecord = None,
         **kwargs,
     ):
-        super().__init__(**kwargs)
+        super().__init__(seqs_data=seqs_data, **kwargs)
         self._slice_record = (
             slice_record
             if slice_record is not None
@@ -4684,7 +4760,9 @@ class Alignment(SequenceCollection):
             feature["strand"] = "-" if strand == -1 else "+"
             yield self.make_feature(feature=feature, on_alignment=on_al)
 
-    def get_drawables(self, *, biotype: Optional[str, Iterable[str]] = None) -> dict:
+    def get_drawables(
+        self, *, biotype: Optional[str, typing.Iterable[str]] = None
+    ) -> dict:
         """returns a dict of drawables, keyed by type
 
         Parameters
@@ -5311,13 +5389,13 @@ class Alignment(SequenceCollection):
 def make_aligned_seqs(
     data: Union[dict[str, StrORBytesORArray], list, AlignedSeqsDataABC],
     *,
-    moltype: str,
+    moltype: typing.Union[str, new_moltype.MolType],
     label_to_name: OptRenamerCallable = None,
-    info: dict = None,
+    info: OptDict = None,
     source: OptPathType = None,
-    annotation_db: SupportsFeatures = None,
-    offset: dict[str, int] = None,
-    name_map: dict[str, str] = None,
+    annotation_db: typing.Optional[SupportsFeatures] = None,
+    offset: typing.Optional[DictStrInt] = None,
+    name_map: typing.Optional[DictStrStr] = None,
 ) -> Alignment:
     if len(data) == 0:
         raise ValueError("data must be at least one sequence.")
@@ -5328,12 +5406,12 @@ def make_aligned_seqs(
     # if we have Sequences, we need to construct the name map before we construct
     # the SeqsData object - however, if a name_map is provided, we assume that it
     # corrects for any naming differences in data and skip this step
-    name_map, data = _make_name_map(data) if name_map is None else (name_map, data)
-
-    data = coerce_to_seqs_data_dict(data, label_to_name=label_to_name)
-
+    assign_names = _SeqNamer(name_func=label_to_name)
+    seqs_data, offs, rvd, nm = prep_for_seqs_data(data, moltype, assign_names)
+    offset = offset or offs
+    name_map = name_map or nm
     seqs_data = AlignedSeqsData.from_seqs(
-        data=data,
+        data=seqs_data,
         alphabet=alphabet,
         offset=offset,
     )
@@ -5353,13 +5431,13 @@ def make_aligned_seqs(
 def _(
     data: AlignedSeqsDataABC,
     *,
-    moltype: str,
+    moltype: typing.Union[str, new_moltype.MolType],
     label_to_name: OptRenamerCallable = None,
-    info: dict = None,
+    info: OptDict = None,
     source: OptPathType = None,
-    annotation_db: SupportsFeatures = None,
-    offset: dict[str, int] = None,
-    name_map: dict[str, str] = None,
+    annotation_db: typing.Optional[SupportsFeatures] = None,
+    offset: typing.Optional[DictStrInt] = None,
+    name_map: typing.Optional[DictStrStr] = None,
 ) -> Alignment:
     moltype = new_moltype.get_moltype(moltype)
     if not moltype.is_compatible_alphabet(data.alphabet):
