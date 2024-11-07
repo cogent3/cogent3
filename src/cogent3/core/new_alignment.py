@@ -47,6 +47,13 @@ from cogent3.util.misc import (
 )
 from cogent3.util.union_dict import UnionDict
 
+# DESIGN NOTES
+# the sequence data collections (SeqsDataABC and AlignedSeqsDataABC)
+# have no concept of strand. All transformations with respect to strand
+# are applied by the sequence record objects that have a .moltype
+# attribute, i.e. Sequence and Aligned.
+
+
 DEFAULT_ANNOTATION_DB = BasicAnnotationDb
 
 OptInt = Optional[int]
@@ -909,12 +916,15 @@ class SequenceCollection:
         -----
         The returned collection will not retain an annotation_db if present.
         """
-        seqs = {
-            name: self.moltype.degap(self._seqs_data.get_seq_array(seqid=name))
-            for name in self._name_map.values()
-        }
+        data = {}
+        for name in self.names:
+            # because we are in a SequenceCollection, which cannot be sliced, so
+            # we can just interrogate the bound _seqs_data directly.
+            seq = self._seqs_data.get_seq_array(seqid=self._name_map.get(name, name))
+            data[name] = self.moltype.degap(seq)
+
         seqs_data = self._seqs_data.from_seqs(
-            data=coerce_to_seqs_data_dict(seqs),
+            data=data,
             alphabet=self._seqs_data.alphabet,
             offset=self._seqs_data.offset,
             reversed=self._seqs_data.is_reversed,
@@ -1007,24 +1017,23 @@ class SequenceCollection:
 
         translated = {}
         # do the translation
-        for seqname in self.names:
-            seq = self.seqs[seqname]
+        for seq in self.seqs:
             pep = seq.get_translation(
                 gc,
                 incomplete_ok=incomplete_ok,
                 include_stop=include_stop,
                 trim_stop=trim_stop,
             )
-            translated[seqname] = pep
+            translated[seq.name] = numpy.array(pep)
 
-        seqs_data = coerce_to_seqs_data_dict(translated, label_to_name=None)
-        pep_moltype = pep.moltype
-
+        pep_moltype = new_moltype.get_moltype(
+            "protein_with_stop" if include_stop else "protein"
+        )
         seqs_data = self._seqs_data.from_seqs(
-            data=seqs_data,
+            data=translated,
             alphabet=pep_moltype.most_degen_alphabet(),
             offset=self._seqs_data.offset,
-            reversed=self._seqs_data.is_reversed,
+            reversed=False,  # reversed not meaningful for a protein sequence
         )
         return self.__class__(
             seqs_data=seqs_data,
@@ -1514,10 +1523,15 @@ class SequenceCollection:
         if not self.has_terminal_stop(gc=gc, strict=strict):
             return self
 
-        new_seqs = {s.name: s.trim_stop_codon(gc=gc, strict=strict) for s in self.seqs}
+        new_seqs = {
+            s.name: s.trim_stop_codon(gc=gc, strict=strict).to_array(
+                apply_transforms=False
+            )
+            for s in self.seqs
+        }
 
         seqs_data = self._seqs_data.from_seqs(
-            data=coerce_to_seqs_data_dict(new_seqs),
+            data=new_seqs,
             alphabet=self._seqs_data.alphabet,
             offset=self._seqs_data.offset,
             reversed=self._seqs_data.is_reversed,
