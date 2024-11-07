@@ -24,7 +24,7 @@ import numpy
 from numpy import array, floating, integer, issubdtype
 
 from cogent3._version import __version__
-from cogent3.core import new_alphabet
+from cogent3.core import new_alphabet, new_moltype
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
     BasicAnnotationDb,
@@ -139,7 +139,7 @@ class Sequence:
     def __init__(
         self,
         moltype: "MolType",
-        seq: str,
+        seq: typing.Union[StrORBytesORArray, SeqViewABC],
         *,
         name: OptStr = None,
         info: typing.Optional[typing.Union[dict, InfoClass]] = None,
@@ -1170,7 +1170,7 @@ class Sequence:
             feature_data.pop(discard)
         return self.make_feature(feature_data)
 
-    def to_moltype(self, moltype: str):
+    def to_moltype(self, moltype: typing.Union[str, new_moltype.MolType]) -> "Sequence":
         """returns copy of self with moltype seq
 
         Parameters
@@ -1186,7 +1186,6 @@ class Sequence:
         When applied to a sequence in a SequenceCollection, the resulting
         sequence will no longer be part of the collection.
         """
-        from cogent3.core import new_moltype
 
         if not moltype:
             raise ValueError(f"unknown moltype '{moltype}'")
@@ -2598,7 +2597,7 @@ class SeqView(SeqViewABC):
     def __init__(
         self,
         *,
-        parent: str,
+        parent: typing.Union[str, "SeqsDataABC"],
         alphabet: new_alphabet.AlphabetABC,
         seqid: OptStr = None,
         parent_len: OptInt = None,

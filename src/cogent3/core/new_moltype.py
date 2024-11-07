@@ -541,7 +541,12 @@ class MolType:
         return any(alpha == alphabet for alpha in self.iter_alphabets())
 
     def make_seq(
-        self, *, seq: str, name: OptStr = None, check_seq=True, **kwargs
+        self,
+        *,
+        seq: typing.Union[str, "SeqViewABC"],
+        name: OptStr = None,
+        check_seq: bool = True,
+        **kwargs,
     ) -> new_sequence.Sequence:
         """creates a Sequence object corresponding to the molecular type of
         this instance.
@@ -601,7 +606,7 @@ class MolType:
         return self._complement(seq)
 
     @complement.register
-    def _(self, seq: numpy.ndarray, validate: bool = True) -> str:
+    def _(self, seq: numpy.ndarray, validate: bool = True) -> numpy.ndarray[int]:
         if validate and not self.is_valid(seq):
             raise new_alphabet.AlphabetError(
                 f"{seq[:4]!r} not valid for moltype {self.name!r}"

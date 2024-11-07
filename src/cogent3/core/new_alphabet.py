@@ -207,7 +207,7 @@ class bytes_to_array:
         )
         self.dtype = dtype
 
-    def __call__(self, seq: bytes) -> numpy.ndarray:
+    def __call__(self, seq: bytes) -> numpy.ndarray[int]:
         b = self._converter(seq)
         return numpy.array(memoryview(b), dtype=self.dtype)
 
@@ -311,21 +311,21 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         return self.motif_len
 
     @functools.singledispatchmethod
-    def to_indices(self, seq: StrORBytesORArray) -> numpy.ndarray:
+    def to_indices(self, seq: StrORBytesORArray) -> numpy.ndarray[int]:
         raise TypeError(f"{type(seq)} is invalid")
 
     @to_indices.register
-    def _(self, seq: bytes) -> numpy.ndarray:
+    def _(self, seq: bytes) -> numpy.ndarray[int]:
         # any non-canonical characters should lie outside the range
         # we replace these with a single value
         return self._bytes2arr(seq)
 
     @to_indices.register
-    def _(self, seq: str) -> numpy.ndarray:
+    def _(self, seq: str) -> numpy.ndarray[int]:
         return self.to_indices(seq.encode("utf8"))
 
     @to_indices.register
-    def _(self, seq: numpy.ndarray) -> numpy.ndarray:
+    def _(self, seq: numpy.ndarray) -> numpy.ndarray[int]:
         return seq.astype(self.dtype)
 
     @functools.singledispatchmethod
@@ -905,11 +905,11 @@ class SenseCodonAlphabet(tuple, AlphabetABC):
             _alphabet_moltype_map[self] = monomers.moltype
 
     @property
-    def gap_char(self):
+    def gap_char(self) -> str:
         return self._gap_char
 
     @property
-    def gap_index(self):
+    def gap_index(self) -> OptInt:
         return self._to_indices[self.gap_char] if self._gap_char else None
 
     @property

@@ -61,11 +61,13 @@ OptFloat = Optional[float]
 OptStr = Optional[str]
 OptList = Optional[list]
 OptDict = Optional[dict]
+DictStrStr = dict[str, str]
 OptCallable = Optional[Callable]
 OptRenamerCallable = Optional[Callable[[str], str]]
 OptPathType = Union[str, Path, None]
-StrORArray = Union[str, numpy.ndarray]
-StrORBytesORArray = Union[str, bytes, numpy.ndarray]
+StrORArray = Union[str, numpy.ndarray[int]]
+StrORBytesORArray = Union[str, bytes, numpy.ndarray[int]]
+StrORBytesORArrayOrSeq = Union[str, bytes, numpy.ndarray[int], new_sequence.Sequence]
 MolTypes = Union[str, new_moltype.MolType]
 
 # small number: 1-EPS is almost 1, and is used for things like the
@@ -418,7 +420,7 @@ class SeqsData(SeqsDataABC):
         return list(self._data.keys())
 
     @property
-    def alphabet(self) -> new_alphabet.CharAlphabet:
+    def alphabet(self) -> new_alphabet.AlphabetABC:
         return self._alphabet
 
     @property
@@ -2401,11 +2403,11 @@ def make_unaligned_seqs(
     *,
     moltype: Union[str, new_moltype.MolType],
     label_to_name: OptRenamerCallable = None,
-    info: dict = None,
+    info: OptDict = None,
     source: OptPathType = None,
     annotation_db: SupportsFeatures = None,
-    offset: dict[str, int] = None,
-    name_map: dict[str, str] = None,
+    offset: typing.Optional[DictStrStr] = None,
+    name_map: typing.Optional[DictStrStr] = None,
 ) -> SequenceCollection:
     """Initialise an unaligned collection of sequences.
 
@@ -2424,14 +2426,18 @@ def make_unaligned_seqs(
         and added to info["source"].
     annotation_db
         annotation database to attach to the collection
+    offset
+        a dict mapping names to annotation offsets
+    name_map
+        a dict mapping sequence names to "parent" sequence names. The parent
+        name will be used for querying a annotation_db.
 
     Notes
     -----
-    - If no annotation_db is provided, but the sequences are annotated, an
+    If no annotation_db is provided, but the sequences are annotated, an
     annotation_db is created by merging any annotation db's found in the sequences.
-    - If the sequences are annotated AND an annotation_db is provided, only the
+    If the sequences are annotated AND an annotation_db is provided, only the
     annotation_db is used.
-
     """
     # refactor: design/simplify
     # the dispatches above handle the different type of data that the previous
@@ -2442,7 +2448,6 @@ def make_unaligned_seqs(
 
     # refactor: design
     # rename offset to offsets as it could track potentially multiple offsets
-    # refactor: add offset/s to docstring
 
     # refactor: design
     # define a source attribute rather than storing as .info["source"]
@@ -4696,7 +4701,7 @@ class Alignment(SequenceCollection):
     def get_drawable(
         self,
         *,
-        biotype: Optional[str, Iterable[str]] = None,
+        biotype: Optional[str, typing.Iterable[str]] = None,
         width: int = 600,
         vertical: int = False,
         title: OptStr = None,
