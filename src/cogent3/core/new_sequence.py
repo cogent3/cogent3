@@ -185,12 +185,36 @@ class Sequence:
                 result = self.moltype.complement(result)
         return result
 
-    def __array__(self, dtype=None, copy=None):
+    def __array__(self, dtype=None, copy=None) -> numpy.ndarray[int]:
         result = array(self._seq, dtype=dtype)
         if self._seq.is_reversed:
             with contextlib.suppress(TypeError):
                 result = self.moltype.complement(result)
         return result
+
+    def to_array(self, apply_transforms: bool = True) -> numpy.ndarray[int]:
+        """returns the numpy array
+
+        Parameters
+        ----------
+        apply_transforms
+            if True, applies any reverse complement operation
+
+        Notes
+        -----
+        Use this method with apply_transforms=False if you are
+        creating data for storage in a SeqData instance.
+        """
+        if apply_transforms:
+            return numpy.array(self)
+
+        arr = self._seq.array_value
+        if self._seq.is_reversed:
+            # the reversal will have been applied in the SeqView
+            # array_value method, so we undo that here.
+            arr = arr[::-1]
+
+        return arr
 
     def to_fasta(self, make_seqlabel=None, block_size=60) -> str:
         """Return string of self in FASTA format, no trailing newline

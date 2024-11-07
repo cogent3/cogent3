@@ -2605,6 +2605,23 @@ def test_sequence_str_bytes_array():
     )
 
 
+def test_sequence_to_array_method():
+    data = "ACGGTGGGAC"
+    the_slice = slice(2, 6)
+    dna = new_moltype.DNA
+    expect_plus = dna.alphabet.to_indices(data[the_slice])
+    expect_minus = dna.alphabet.to_indices(dna.rc(data[the_slice]))
+    seq = new_moltype.DNA.make_seq(seq=data)[the_slice]
+    # no transforms applied, so both options give same plus strand array
+    assert numpy.array_equal(seq.to_array(apply_transforms=True), expect_plus)
+    assert numpy.array_equal(seq.to_array(apply_transforms=False), expect_plus)
+    rc = seq.rc()
+    # transform applied, equals minus strand
+    assert numpy.array_equal(rc.to_array(apply_transforms=True), expect_minus)
+    # transform applied, not doing it returns the plus strand
+    assert numpy.array_equal(rc.to_array(apply_transforms=False), expect_plus)
+
+
 @pytest.mark.parametrize("seq,rc", (("ATGTTT", False), ("AAACAT", True)))
 def test_translation(seq, rc):
     seq = new_moltype.DNA.make_seq(seq=seq)
