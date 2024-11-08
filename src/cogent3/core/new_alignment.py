@@ -604,6 +604,9 @@ class SequenceCollection:
 
     def _get_init_kwargs(self) -> dict:
         """dict of all the arguments needed to initialise a new instance"""
+        # allows methods in SequenceCollection to be inherited by Alignment,
+        # as both classes implement _get_init_kwargs, ensuring that the correct
+        # initialisation arguments are captured for each class.
         return {
             "seqs_data": self._seqs_data,
             "moltype": self.moltype,
@@ -811,14 +814,11 @@ class SequenceCollection:
         }
         if len(new_name_map) != len(self._name_map):
             raise ValueError(f"non-unique names produced by {renamer=}")
-        return self.__class__(
-            seqs_data=self._seqs_data,
-            moltype=self.moltype,
-            name_map=new_name_map,
-            info=self.info,
-            is_reversed=self._is_reversed,
-            annotation_db=self.annotation_db,
-        )
+
+        init_args = self._get_init_kwargs()
+        init_args["name_map"] = new_name_map
+
+        return self.__class__(**init_args)
 
     def to_dict(self, as_array: bool = False) -> dict[str, Union[str, numpy.ndarray]]:
         """Return a dictionary of sequences.
@@ -901,19 +901,16 @@ class SequenceCollection:
             seq = self._seqs_data.get_seq_array(seqid=self._name_map.get(name, name))
             data[name] = self.moltype.degap(seq)
 
-        seqs_data = self._seqs_data.from_seqs(
+        init_kwargs = self._get_init_kwargs()
+        init_kwargs.pop("annotation_db", None)
+        init_kwargs["seqs_data"] = self._seqs_data.from_seqs(
             data=data,
             alphabet=self._seqs_data.alphabet,
             offset=self._seqs_data.offset,
             check=False,
         )
-        return self.__class__(
-            seqs_data=seqs_data,
-            moltype=self.moltype,
-            info=self.info,
-            source=self.source,
-            is_reversed=self._is_reversed,
-        )
+
+        return self.__class__(**init_kwargs)
 
     def to_moltype(self, moltype: str) -> SequenceCollection:
         """returns copy of self with changed moltype
@@ -1022,11 +1019,6 @@ class SequenceCollection:
     def rc(self):
         """Returns the reverse complement of all sequences in the collection.
         A synonym for reverse_complement.
-
-        Notes
-        -----
-        Reverse complementing the collection will break the relationship to an
-        annotation_db if present.
         """
         init_kwargs = self._get_init_kwargs()
         init_kwargs["is_reversed"] = not self._is_reversed
@@ -1035,12 +1027,6 @@ class SequenceCollection:
     def reverse_complement(self):
         """Returns the reverse complement of all sequences in the collection.
         A synonym for rc.
-
-        Notes
-        -----
-        Reverse complementing the collection will break the relationship to an
-        annotation_db if present.
-
         """
         return self.rc()
 
@@ -1502,20 +1488,15 @@ class SequenceCollection:
             for s in self.seqs
         }
 
-        seqs_data = self._seqs_data.from_seqs(
+        init_kwargs = self._get_init_kwargs()
+        init_kwargs.pop("annotation_db", None)
+        init_kwargs["seqs_data"] = self._seqs_data.from_seqs(
             data=new_seqs,
             alphabet=self._seqs_data.alphabet,
             offset=self._seqs_data.offset,
             check=False,
         )
-        result = self.__class__(
-            seqs_data=seqs_data,
-            name_map=self._name_map,
-            moltype=self.moltype,
-            info=self.info,
-            source=self.source,
-            is_reversed=self._is_reversed,
-        )
+        result = self.__class__(**init_kwargs)
         if self.annotation_db:
             result.annotation_db = self.annotation_db
         return result
@@ -1793,19 +1774,13 @@ class SequenceCollection:
             padded_seq = seq + "-" * (pad_length - len(seq))
             new_seqs[seq_name] = padded_seq
 
-        seqs_data = self._seqs_data.from_seqs(
+        init_kwargs = self._get_init_kwargs()
+        init_kwargs["seqs_data"] = self._seqs_data.from_seqs(
             data=new_seqs,
             alphabet=self._seqs_data.alphabet,
             offset=self._seqs_data.offset,
         )
-        return self.__class__(
-            seqs_data=seqs_data,
-            moltype=self.moltype,
-            info=self.info,
-            source=self.source,
-            is_reversed=self._is_reversed,
-            annotation_db=self.annotation_db,
-        )
+        return self.__class__(**init_kwargs)
 
     def strand_symmetry(self, motif_length: int = 1):
         """returns dict of strand symmetry test results per seq"""
@@ -3704,7 +3679,7 @@ class Alignment(SequenceCollection):
     def _post_init(self):
         self._seqs = _IndexableSeqs(self, make_seq=self._make_aligned)
 
-    def _get_init_kwargs(self):
+    def _get_init_kwargs(self) -> dict:
         """returns the kwargs needed to re-instantiate the object"""
         return {
             "seqs_data": self._seqs_data,
@@ -3850,20 +3825,10 @@ class Alignment(SequenceCollection):
     def rc(self):
         """Returns the reverse complement of all sequences in the alignment.
         A synonym for reverse_complement.
-
-        Notes
-        -----
-        Reverse complementing the collection will break the relationship to an
-        annotation_db if present.
         """
-        return self.__class__(
-            seqs_data=self._seqs_data,
-            slice_record=self._slice_record[::-1],
-            name_map=self._name_map,
-            info=self.info,
-            moltype=self.moltype,
-            source=self.source,
-        )
+        init_kwargs = self._get_init_kwargs()
+        init_kwargs["slice_record"] = self._slice_record[::-1]
+        return self.__class__(**init_kwargs)
 
     def alignment_quality(self, app_name: str = "ic_score", **kwargs):
         """
@@ -3894,14 +3859,9 @@ class Alignment(SequenceCollection):
         if len(new_name_map) != len(self._name_map):
             raise ValueError(f"non-unique names produced by {renamer=}")
 
-        new = self.__class__(
-            seqs_data=self._seqs_data,
-            moltype=self.moltype,
-            name_map=new_name_map,
-            slice_record=self._slice_record,
-            info=self.info,
-            annotation_db=self.annotation_db,
-        )
+        init_kwargs = self._get_init_kwargs()
+        init_kwargs["name_map"] = new_name_map
+        new = self.__class__(**init_kwargs)
 
         if self._array_seqs is not None:
             new._array_seqs = self._array_seqs
