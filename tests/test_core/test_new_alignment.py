@@ -1967,6 +1967,14 @@ def test_sequence_collection_init_seqs_have_annotations():
         assert db is coll_db
 
 
+def test_sequence_collection_init_seqs_mixed_rc(capsys):
+    """annotations on input seqs with mixed rc means dropping annotations"""
+    data = {"seq1": _make_seq("seq1"), "seq2": _make_seq("seq2").rc()}
+    seq_coll = new_alignment.make_unaligned_seqs(data, moltype="dna")
+    coll_db = seq_coll.annotation_db
+    assert not len(coll_db)
+
+
 def test_sequence_collection_add_to_seq_updates_coll():
     """annotating a seq updates the db of the propagated"""
     data = {

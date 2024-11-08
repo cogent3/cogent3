@@ -2389,7 +2389,7 @@ def _(seq: bytes, moltype: new_moltype.MolType, name: OptStr = None) -> raw_seq_
     return raw_seq_data(seq=seq, name=name)
 
 
-CT = tuple[dict[str, StrORBytesORArray], dict[str, int], bool, dict[str, str]]
+CT = tuple[dict[str, StrORBytesORArray], dict[str, int], int, dict[str, str]]
 
 
 @singledispatch
@@ -2404,7 +2404,7 @@ def prep_for_seqs_data(data, moltype: new_moltype.MolType, seq_namer: _SeqNamer)
 def _(data: dict, moltype: new_moltype.MolType, seq_namer: _SeqNamer) -> CT:
     seqs = {}  # for the (Aligned)SeqsDataABC
     offsets = {}  # for the (Aligned)SeqsDataABC
-    is_reversed = False
+    is_reversed = 0
     name_map = {}  # for the sequence collection
     # if we have a dict of Sequences, {name: seq, ...}, then the provided names
     # may differ to the name attribute on the Sequences. If the Sequences have
@@ -2417,7 +2417,7 @@ def _(data: dict, moltype: new_moltype.MolType, seq_namer: _SeqNamer) -> CT:
         seq_data = coerce_to_raw_seq_data(seq, moltype, name=name)
         offsets[name] = seq_data.offset
         seqs[seq_data.parent_name or seq_data.name] = seq_data.seq
-        is_reversed = seq_data.is_reversed
+        is_reversed += 1 if seq_data.is_reversed else 0
         name_map[name] = seq_data.parent_name or name
 
     return seqs, offsets, is_reversed, name_map
@@ -2519,6 +2519,18 @@ def make_unaligned_seqs(
     # corrects for any naming differences in data and skip this step
     assign_names = _SeqNamer(name_func=label_to_name)
     seqs_data, offs, rvd, nm = prep_for_seqs_data(data, moltype, assign_names)
+    # rvd is the count of sequences that have been reversed. It should be equal 0
+    # or the number of sequences. If inbetween, the sequences are a mix of the two
+    # which for now we do not support.
+    if 0 < rvd < len(seqs_data):
+        rvd = False
+        if annotation_db and len(annotation_db) > 0:
+            warnings.warn(
+                "Sequence strand is inconsistent, not applying the annotation db.",
+                UserWarning,
+            )
+            annotation_db = None
+
     name_map = nm if name_map is None else name_map
     # seqs_data keys should be the same as the value of name_map, not the keys
     seqs_data = SeqsData(data=seqs_data, alphabet=alphabet, offset=offset, reversed=rvd)
@@ -5569,12 +5581,25 @@ def make_aligned_seqs(
 
     moltype = new_moltype.get_moltype(moltype)
     alphabet = moltype.most_degen_alphabet()
+    annotation_db = annotation_db or merged_db_collection(data)
 
     # if we have Sequences, we need to construct the name map before we construct
     # the SeqsData object - however, if a name_map is provided, we assume that it
     # corrects for any naming differences in data and skip this step
     assign_names = _SeqNamer(name_func=label_to_name)
     seqs_data, offs, rvd, nm = prep_for_seqs_data(data, moltype, assign_names)
+    # rvd is the count of sequences that have been reversed. It should be equal 0
+    # or the number of sequences. If inbetween, the sequences are a mix of the two
+    # which for now we do not support.
+    if 0 < rvd < len(seqs_data):
+        rvd = False
+        if annotation_db and len(annotation_db) > 0:
+            warnings.warn(
+                "Sequence strand is inconsistent, not applying the annotation db.",
+                UserWarning,
+            )
+            annotation_db = None
+
     offset = offset or offs
     name_map = name_map or nm
     seqs_data = AlignedSeqsData.from_seqs(
@@ -5582,7 +5607,6 @@ def make_aligned_seqs(
         alphabet=alphabet,
         offset=offset,
     )
-    annotation_db = annotation_db or merged_db_collection(data)
     # we do not pass on offset/label_to_name as they are handled in this function
     return make_aligned_seqs(
         seqs_data,
