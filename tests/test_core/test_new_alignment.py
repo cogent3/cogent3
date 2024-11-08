@@ -313,38 +313,6 @@ def test_seqs_data_getitem_raises(dna_sd):
         _ = dna_sd[invalid_index]
 
 
-def test_seqs_data_subset(dna_sd):
-    got = dna_sd.subset("seq1")
-    assert isinstance(got, new_alignment.SeqsData)
-    assert got.names == ["seq1"]
-    assert got.get_seq_str(seqid="seq1") == dna_sd.get_seq_str(seqid="seq1")
-
-    got = dna_sd.subset(["seq1", "seq2"])
-    assert isinstance(got, new_alignment.SeqsData)
-    assert got.names == ["seq1", "seq2"]
-    assert got.get_seq_str(seqid="seq1") == dna_sd.get_seq_str(seqid="seq1")
-    assert got.get_seq_str(seqid="seq2") == dna_sd.get_seq_str(seqid="seq2")
-
-    got = dna_sd.subset(["seq2", "seq1"])
-    assert got.names == ["seq2", "seq1"]
-    assert got.get_seq_str(seqid="seq1") == dna_sd.get_seq_str(seqid="seq1")
-    assert got.get_seq_str(seqid="seq2") == dna_sd.get_seq_str(seqid="seq2")
-
-    got = dna_sd.subset(["seq3"])
-    assert got.names == ["seq3"]
-    assert got.get_seq_str(seqid="seq3") == dna_sd.get_seq_str(seqid="seq3")
-
-
-def test_seqs_data_subset_raises(dna_sd):
-    # should handle missing seqids
-    got = dna_sd.subset(["seq1", "seq4"])
-    assert got.names == ["seq1"]
-
-    # but will raise error if resulting in empty selection
-    with pytest.raises(ValueError):
-        _ = dna_sd.subset(["seq4"])
-
-
 def test_seqs_data_to_alphabet():
     ASCII = new_moltype.ASCII.alphabet
     DNA = new_moltype.DNA.degen_gapped_alphabet
@@ -3227,14 +3195,6 @@ def test_aligned_seqs_data_get_aligned_view(aligned_dict, seqid, dna_alphabet):
     assert got.parent == ad
     assert got.parent_len == ad.align_len
     assert str(got) == aligned_dict[seqid].replace("-", "")
-
-
-def test_aligned_seqs_data_subset_raises(aligned_dict, dna_alphabet):
-    ad = new_alignment.AlignedSeqsData.from_seqs(
-        data=aligned_dict, alphabet=dna_alphabet
-    )
-    with pytest.raises(ValueError):
-        _ = ad.subset(["seq99"])
 
 
 @pytest.mark.parametrize("seqid", ("seq1", "seq2", "seq3", "seq4"))

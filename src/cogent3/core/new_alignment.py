@@ -475,25 +475,7 @@ class SeqsData(SeqsDataABC):
             parent_len=seq_len,
             alphabet=self.alphabet,
             slice_record=slice_record,
-        )
-
-    def subset(self, names: Union[str, typing.Sequence[str]]) -> SeqsData:
-        """Returns a new SeqsData object with only the specified names."""
-        names = [names] if isinstance(names, str) else names
-        if data := {name: self._data.get(name) for name in names if name in self.names}:
-            return self.__class__(
-                data=data,
-                alphabet=self.alphabet,
-                offset={
-                    name: offset
-                    for name, offset in self._offset.items()
-                    if name in names
-                },
-                reversed=self._reversed,
-                check=False,
-            )
-        else:
-            raise ValueError(f"provided {names=} not found in collection")
+    
 
     def add_seqs(
         self,
@@ -3359,28 +3341,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             offset={**self._offset, **(offset or {})},
             align_len=self.align_len,
         )
-
-    def subset(self, names: Union[str, typing.Sequence[str]]):
-        """Returns a new AlignedSeqsData object with only the specified names."""
-        names = [names] if isinstance(names, str) else names
-        if seq_data := {
-            name: self._seqs.get(name) for name in names if name in self.names
-        }:
-            gap_data = {name: self._gaps.get(name) for name in seq_data}
-            return self.__class__(
-                seqs=seq_data,
-                gaps=gap_data,
-                alphabet=self.alphabet,
-                offset={
-                    name: offset
-                    for name, offset in self._offset.items()
-                    if name in names
-                },
-                align_len=self.align_len,
-                check=False,
-            )
-        else:
-            raise ValueError(f"provided {names=} not found in collection")
 
     def to_alphabet(self, alphabet: new_alphabet.AlphabetABC, check_valid: bool = True):
         """Returns a new AlignedSeqsData object with the same underlying data
