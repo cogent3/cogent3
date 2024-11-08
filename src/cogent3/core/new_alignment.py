@@ -5594,8 +5594,9 @@ def make_aligned_seqs(
     if 0 < rvd < len(seqs_data):
         rvd = False
         if annotation_db and len(annotation_db) > 0:
-            UserWarning(
-                "Sequence strand is inconsistent, not applying the annotation db."
+            warnings.warn(
+                "Sequence strand is inconsistent, not applying the annotation db.",
+                UserWarning,
             )
             annotation_db = None
 
