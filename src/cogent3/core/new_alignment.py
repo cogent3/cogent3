@@ -592,21 +592,16 @@ class SequenceCollection:
         # seqview is given the name of the parent (if different from the current name)
         # the sequence is given the current name
         seqid = self._name_map.get(name, name)
-        # a slice record with step information is passed to the view
-        seq_len = len(self._seqs_data.get_seq_array(seqid=seqid))
-        slice_record = new_sequence.SliceRecord(
-            step=-1 if self._is_reversed else 1, parent_len=seq_len
-        )
-        sv = self._seqs_data.get_view(seqid, slice_record=slice_record)
+        sv = self._seqs_data.get_view(seqid, slice_record=self._get_slice_record(seqid))
         seq = self.moltype.make_seq(seq=sv, name=name)
         seq.replace_annotation_db(self.annotation_db)
         return seq
 
     def _get_init_kwargs(self) -> dict:
         """dict of all the arguments needed to initialise a new instance"""
-        # allows methods in SequenceCollection to be inherited by Alignment,
-        # as both classes implement _get_init_kwargs, ensuring that the correct
-        # initialisation arguments are captured for each class.
+        # both SequenceCollection and Alignment implement _get_init_kwargs,
+        # ensuring methods in SequenceCollection that are inherited by Alignment
+        # capture initialisation arguments unique to the subclass.
         return {
             "seqs_data": self._seqs_data,
             "moltype": self.moltype,
@@ -615,6 +610,11 @@ class SequenceCollection:
             "annotation_db": self.annotation_db,
             "is_reversed": self._is_reversed,
         }
+
+    def _get_slice_record(self, seqid: str) -> new_sequence.SliceRecord:
+        seq_len = len(self._seqs_data.get_seq_array(seqid=seqid))
+        step = -1 if self._is_reversed else 1
+        return new_sequence.SliceRecord(parent_len=seq_len, step=step)
 
     @property
     def seqs(self) -> _IndexableSeqs:
