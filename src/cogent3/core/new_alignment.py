@@ -64,6 +64,7 @@ OptFloat = Optional[float]
 OptStr = Optional[str]
 OptList = Optional[list]
 OptDict = Optional[dict]
+OptBool = Optional[bool]
 DictStrStr = dict[str, str]
 DictStrInt = dict[str, int]
 OptCallable = Optional[Callable]
@@ -328,10 +329,9 @@ class SeqsDataABC(ABC):
     ) -> bytes: ...
 
     @abstractmethod
-    def get_view(self, seqid: str) -> new_sequence.SeqViewABC: ...
-
-    @abstractmethod
-    def subset(self, names: Union[str, typing.Sequence[str]]) -> SeqsDataABC: ...
+    def get_view(
+        self, seqid: str, slice_record: new_sequence.SliceRecord = None
+    ) -> new_sequence.SeqViewABC: ...
 
     @abstractmethod
     def to_alphabet(self, alphabet: new_alphabet.AlphabetABC) -> SeqsDataABC: ...
@@ -379,7 +379,6 @@ class SeqsData(SeqsDataABC):
         data: dict[str, StrORBytesORArray],
         alphabet: new_alphabet.AlphabetABC,
         offset: dict[str, int] = None,
-        reversed: bool = False,
         check: bool = True,
     ):
         self._alphabet = alphabet
@@ -397,8 +396,6 @@ class SeqsData(SeqsDataABC):
             arr = self._alphabet.to_indices(seq)
             arr.flags.writeable = False
             self._data[str(name)] = arr
-        self._reversed = reversed
-        # refactor: rename reversed argument to not clash with python built-in
 
     @classmethod
     def from_seqs(
@@ -422,26 +419,6 @@ class SeqsData(SeqsDataABC):
     def offset(self) -> dict[str, int]:
         return {name: self._offset.get(name, 0) for name in self.names}
 
-    @property
-    def is_reversed(self) -> bool:
-        return self._reversed
-
-    def reverse(self) -> SeqsData:
-        """Reverse the orientation of all sequences in the collection."""
-        # refactor: design, this can't be put on the SeqsDataABC unless we add it to the
-        # AlignedSeqsData class as well -- however, ASD does not have the responsibility
-        # of managing the orientation of the sequences, the lies with the
-        # Alignment.slice_record
-
-        # we dont touch the data, just toggle the reversed attribute
-        return self.__class__(
-            data=self._data,
-            alphabet=self.alphabet,
-            offset=self._offset,
-            reversed=not self._reversed,
-            check=False,
-        )
-
     def seq_lengths(self) -> dict[str, int]:
         """Returns lengths of sequences as dict of {name: length, ... }."""
         return {name: seq.shape[0] for name, seq in self._data.items()}
@@ -463,19 +440,18 @@ class SeqsData(SeqsDataABC):
     ) -> bytes:
         return self.get_seq_str(seqid=seqid, start=start, stop=stop).encode("utf8")
 
-    def get_view(self, seqid: str) -> SeqDataView:
+    def get_view(
+        self, seqid: str, slice_record: new_sequence.SliceRecord = None
+    ) -> SeqDataView:
         seq_len = len(self._data[seqid])
-        offset = self._offset.get(seqid, 0)
-        slice_record = new_sequence.SliceRecord(
-            step=-1 if self.is_reversed else 1, parent_len=seq_len, offset=offset
-        )
         return SeqDataView(
             parent=self,
             seqid=seqid,
             parent_len=seq_len,
             alphabet=self.alphabet,
             slice_record=slice_record,
-    
+            offset=self._offset.get(seqid, 0),
+        )
 
     def add_seqs(
         self,
@@ -485,11 +461,6 @@ class SeqsData(SeqsDataABC):
     ) -> SeqsData:
         """Returns a new SeqsData object with added sequences. If force_unique_keys
         is True, raises ValueError if any names already exist in the collection."""
-        # refactor: design
-        # if the collection has been reversed, we assume the same for
-        # the new data. If this is not a desirable behaviour, we could realise
-        # the reversal of the current collection, add the new data, and set
-        # reversed to False
         if force_unique_keys and any(name in self.names for name in seqs):
             raise ValueError("One or more sequence names already exist in collection")
         new_data = {
@@ -500,7 +471,6 @@ class SeqsData(SeqsDataABC):
             data=new_data,
             alphabet=self.alphabet,
             offset={**self._offset, **(offset or {})},
-            reversed=self._reversed,
         )
 
     def to_alphabet(
@@ -518,7 +488,6 @@ class SeqsData(SeqsDataABC):
                 data=self._data,
                 alphabet=alphabet,
                 offset=self._offset,
-                reversed=self._reversed,
             )
 
         new_data = {}
@@ -544,7 +513,6 @@ class SeqsData(SeqsDataABC):
             data=new_data,
             alphabet=alphabet,
             offset=self._offset,
-            reversed=self._reversed,
             check=False,
         )
 
@@ -570,7 +538,6 @@ class SeqsData(SeqsDataABC):
                 "data": {name: self.get_seq_str(seqid=name) for name in self.names},
                 "alphabet": self.alphabet.to_rich_dict(),
                 "offset": self._offset,
-                "reversed": self.is_reversed,
             },
             "type": get_object_provenance(self),
             "version": __version__,
@@ -584,7 +551,6 @@ class SeqsData(SeqsDataABC):
             data=data["init_args"]["data"],
             alphabet=alphabet,
             offset=data["init_args"]["offset"],
-            reversed=data["init_args"]["reversed"],
         )
 
 
@@ -603,6 +569,7 @@ class SequenceCollection:
         info: Optional[Union[dict, InfoClass]] = None,
         source: OptPathType = None,
         annotation_db: Optional[SupportsFeatures] = None,
+        is_reversed: bool = False,
     ):
         self._seqs_data = seqs_data
         self.moltype = moltype
@@ -614,6 +581,7 @@ class SequenceCollection:
         self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60)
         self._annotation_db = annotation_db or DEFAULT_ANNOTATION_DB()
         self._seqs = None
+        self._is_reversed = is_reversed
         self._post_init()
 
     def _post_init(self):
@@ -623,10 +591,27 @@ class SequenceCollection:
     def _make_seq(self, name: str) -> new_sequence.Sequence:
         # seqview is given the name of the parent (if different from the current name)
         # the sequence is given the current name
-        sv = self._seqs_data.get_view(self._name_map.get(name, name))
+        seqid = self._name_map.get(name, name)
+        # a slice record with step information is passed to the view
+        seq_len = len(self._seqs_data.get_seq_array(seqid=seqid))
+        slice_record = new_sequence.SliceRecord(
+            step=-1 if self._is_reversed else 1, parent_len=seq_len
+        )
+        sv = self._seqs_data.get_view(seqid, slice_record=slice_record)
         seq = self.moltype.make_seq(seq=sv, name=name)
         seq.replace_annotation_db(self.annotation_db)
         return seq
+
+    def _get_init_kwargs(self) -> dict:
+        """dict of all the arguments needed to initialise a new instance"""
+        return {
+            "seqs_data": self._seqs_data,
+            "moltype": self.moltype,
+            "name_map": self._name_map,
+            "info": self.info,
+            "annotation_db": self.annotation_db,
+            "is_reversed": self._is_reversed,
+        }
 
     @property
     def seqs(self) -> _IndexableSeqs:
@@ -720,14 +705,10 @@ class SequenceCollection:
 
         selected_name_map = {name: self._name_map[name] for name in names}
 
-        result = self.__class__(
-            seqs_data=self._seqs_data,
-            moltype=self.moltype,
-            name_map=selected_name_map,
-            info=self.info,
-            source=self.source,
-            **kwargs,
-        )
+        init_kwargs = self._get_init_kwargs()
+        init_kwargs["name_map"] = selected_name_map
+
+        result = self.__class__(**init_kwargs)
         if self.annotation_db:
             if copy_annotations:
                 result.annotation_db = type(self.annotation_db)()
@@ -835,6 +816,7 @@ class SequenceCollection:
             moltype=self.moltype,
             name_map=new_name_map,
             info=self.info,
+            is_reversed=self._is_reversed,
             annotation_db=self.annotation_db,
         )
 
@@ -923,7 +905,6 @@ class SequenceCollection:
             data=data,
             alphabet=self._seqs_data.alphabet,
             offset=self._seqs_data.offset,
-            reversed=self._seqs_data.is_reversed,
             check=False,
         )
         return self.__class__(
@@ -931,6 +912,7 @@ class SequenceCollection:
             moltype=self.moltype,
             info=self.info,
             source=self.source,
+            is_reversed=self._is_reversed,
         )
 
     def to_moltype(self, moltype: str) -> SequenceCollection:
@@ -958,13 +940,11 @@ class SequenceCollection:
                 f"Failed to convert moltype from {self.moltype.label} to {moltype}"
             ) from e
 
-        return self.__class__(
-            seqs_data=new_seqs_data,
-            moltype=mtype,
-            info=self.info,
-            source=self.source,
-            annotation_db=self.annotation_db,
-        )
+        init_kwargs = self._get_init_kwargs()
+        init_kwargs["seqs_data"] = new_seqs_data
+        init_kwargs["moltype"] = mtype
+
+        return self.__class__(**init_kwargs)
 
     def to_dna(self):
         """returns copy of self as a collection of DNA moltype seqs"""
@@ -1029,13 +1009,13 @@ class SequenceCollection:
             data=translated,
             alphabet=pep_moltype.most_degen_alphabet(),
             offset=self._seqs_data.offset,
-            reversed=False,  # reversed not meaningful for a protein sequence
         )
         return self.__class__(
             seqs_data=seqs_data,
             moltype=pep_moltype,
             info=self.info,
             source=self.source,
+            is_reversed=self._is_reversed,
             **kwargs,
         )
 
@@ -1048,13 +1028,9 @@ class SequenceCollection:
         Reverse complementing the collection will break the relationship to an
         annotation_db if present.
         """
-        return self.__class__(
-            seqs_data=self._seqs_data.reverse(),
-            name_map=self._name_map,
-            info=self.info,
-            moltype=self.moltype,
-            source=self.source,
-        )
+        init_kwargs = self._get_init_kwargs()
+        init_kwargs["is_reversed"] = not self._is_reversed
+        return self.__class__(**init_kwargs)
 
     def reverse_complement(self):
         """Returns the reverse complement of all sequences in the collection.
@@ -1530,7 +1506,6 @@ class SequenceCollection:
             data=new_seqs,
             alphabet=self._seqs_data.alphabet,
             offset=self._seqs_data.offset,
-            reversed=self._seqs_data.is_reversed,
             check=False,
         )
         result = self.__class__(
@@ -1539,6 +1514,7 @@ class SequenceCollection:
             moltype=self.moltype,
             info=self.info,
             source=self.source,
+            is_reversed=self._is_reversed,
         )
         if self.annotation_db:
             result.annotation_db = self.annotation_db
@@ -1821,13 +1797,13 @@ class SequenceCollection:
             data=new_seqs,
             alphabet=self._seqs_data.alphabet,
             offset=self._seqs_data.offset,
-            reversed=self._seqs_data.is_reversed,
         )
         return self.__class__(
             seqs_data=seqs_data,
             moltype=self.moltype,
             info=self.info,
             source=self.source,
+            is_reversed=self._is_reversed,
             annotation_db=self.annotation_db,
         )
 
@@ -2370,7 +2346,7 @@ def prep_for_seqs_data(data, moltype: new_moltype.MolType, seq_namer: _SeqNamer)
 def _(data: dict, moltype: new_moltype.MolType, seq_namer: _SeqNamer) -> CT:
     seqs = {}  # for the (Aligned)SeqsDataABC
     offsets = {}  # for the (Aligned)SeqsDataABC
-    is_reversed = 0
+    rvd = 0
     name_map = {}  # for the sequence collection
     # if we have a dict of Sequences, {name: seq, ...}, then the provided names
     # may differ to the name attribute on the Sequences. If the Sequences have
@@ -2383,10 +2359,10 @@ def _(data: dict, moltype: new_moltype.MolType, seq_namer: _SeqNamer) -> CT:
         seq_data = coerce_to_raw_seq_data(seq, moltype, name=name)
         offsets[name] = seq_data.offset
         seqs[seq_data.parent_name or seq_data.name] = seq_data.seq
-        is_reversed += 1 if seq_data.is_reversed else 0
+        rvd += 1 if seq_data.is_reversed else 0
         name_map[name] = seq_data.parent_name or name
 
-    return seqs, offsets, is_reversed, name_map
+    return seqs, offsets, rvd, name_map
 
 
 @prep_for_seqs_data.register
@@ -2427,6 +2403,7 @@ def make_unaligned_seqs(
     annotation_db: SupportsFeatures = None,
     offset: typing.Optional[DictStrInt] = None,
     name_map: typing.Optional[DictStrStr] = None,
+    is_reversed: OptBool = None,
 ) -> SequenceCollection:
     """Initialise an unaligned collection of sequences.
 
@@ -2450,6 +2427,9 @@ def make_unaligned_seqs(
     name_map
         a dict mapping sequence names to "parent" sequence names. The parent
         name will be used for querying a annotation_db.
+    is_reversed
+        flag indicating whether the sequences are reversed with respect to the
+        underlying data.
 
     Notes
     -----
@@ -2458,19 +2438,16 @@ def make_unaligned_seqs(
     If the sequences are annotated AND an annotation_db is provided, only the
     annotation_db is used.
     """
-    # refactor: design/simplify
-    # the dispatches above handle the different type of data that the previous
-    # make_unaligned_seqs handled. This includes dicts, lists (where items are
-    # either pairs of [name, seq], or just seqs), tuples, Sequences, etc.
-    # We could simplify it greatly by only supporting dicts, SeqsDataABC,
-    # or SequenceCollections.
-
     # refactor: design
     # rename offset to offsets as it could track potentially multiple offsets
 
     # refactor: design
     # define a source attribute rather than storing as .info["source"]
     # this will also replace the previous name attribute
+
+    # refactor: design
+    # currently reversal can only be applied to the entire collection.
+    # This should be made more flexible.
 
     moltype = new_moltype.get_moltype(moltype)
     alphabet = moltype.most_degen_alphabet()
@@ -2487,8 +2464,13 @@ def make_unaligned_seqs(
     seqs_data, offs, rvd, nm = prep_for_seqs_data(data, moltype, assign_names)
     # rvd is the count of sequences that have been reversed. It should be equal 0
     # or the number of sequences. If inbetween, the sequences are a mix of the two
-    # which for now we do not support.
-    if 0 < rvd < len(seqs_data):
+    # which for now we do not support. However, if the user has provided a value
+    # for is_reversed, we will use that.
+    if is_reversed is not None:
+        rvd = is_reversed
+    elif rvd in {0, len(seqs_data)}:
+        rvd = bool(rvd)
+    else:
         rvd = False
         if annotation_db and len(annotation_db) > 0:
             warnings.warn(
@@ -2499,7 +2481,7 @@ def make_unaligned_seqs(
 
     name_map = nm if name_map is None else name_map
     # seqs_data keys should be the same as the value of name_map, not the keys
-    seqs_data = SeqsData(data=seqs_data, alphabet=alphabet, offset=offset, reversed=rvd)
+    seqs_data = SeqsData(data=seqs_data, alphabet=alphabet, offset=offset)
     # we do not pass on offset/label_to_name as they are handled in this function
     return make_unaligned_seqs(
         seqs_data,
@@ -2508,6 +2490,7 @@ def make_unaligned_seqs(
         source=source,
         annotation_db=annotation_db,
         name_map=name_map,
+        is_reversed=rvd,
     )
 
 
@@ -2522,6 +2505,7 @@ def _(
     annotation_db: SupportsFeatures = None,
     offset: dict[str, int] = None,
     name_map: dict[str, str] = None,
+    is_reversed: OptBool = None,
 ) -> SequenceCollection:
     moltype = new_moltype.get_moltype(moltype)
     if not moltype.is_compatible_alphabet(data.alphabet):
@@ -2542,6 +2526,7 @@ def _(
         annotation_db=annotation_db,
         source=source,
         name_map=name_map,
+        is_reversed=is_reversed or False,
     )
     if label_to_name:
         seqs = seqs.rename_seqs(label_to_name)
@@ -3198,6 +3183,8 @@ class AlignedSeqsData(AlignedSeqsDataABC):
 
         # convert from alignment coordinates to sequences coordinates
         # selecting only the indices that are in the frame of the stride
+        # refactor: design
+        # only select indices if we have values for start/stop/step
         indices = []
         for span in indel_map.nongap():
             indices += [
@@ -3716,6 +3703,17 @@ class Alignment(SequenceCollection):
 
     def _post_init(self):
         self._seqs = _IndexableSeqs(self, make_seq=self._make_aligned)
+
+    def _get_init_kwargs(self):
+        """returns the kwargs needed to re-instantiate the object"""
+        return {
+            "seqs_data": self._seqs_data,
+            "moltype": self.moltype,
+            "name_map": self._name_map,
+            "info": self.info,
+            "annotation_db": self.annotation_db,
+            "slice_record": self._slice_record,
+        }
 
     @singledispatchmethod
     def __getitem__(self, index):
@@ -4687,29 +4685,6 @@ class Alignment(SequenceCollection):
 
         return result
 
-    @extend_docstring_from(SequenceCollection.to_moltype)
-    def to_moltype(self, moltype: str):
-        mtype = new_moltype.get_moltype(moltype)
-        if mtype is self.moltype:
-            return self  # nothing to be done
-
-        alpha = mtype.most_degen_alphabet()
-        try:
-            new_seqs_data = self._seqs_data.to_alphabet(alpha)
-        except new_moltype.MolTypeError as e:
-            raise new_moltype.MolTypeError(
-                f"Failed to convert moltype from {self.moltype.label} to {moltype}"
-            ) from e
-
-        return self.__class__(
-            seqs_data=new_seqs_data,
-            moltype=mtype,
-            info=self.info,
-            source=self.source,
-            slice_record=self._slice_record,
-            annotation_db=self.annotation_db,
-        )
-
     @extend_docstring_from(SequenceCollection.get_translation)
     def get_translation(
         self,
@@ -5519,6 +5494,7 @@ def make_aligned_seqs(
     annotation_db: typing.Optional[SupportsFeatures] = None,
     offset: typing.Optional[DictStrInt] = None,
     name_map: typing.Optional[DictStrStr] = None,
+    is_reversed: OptBool = None,
 ) -> Alignment:
     if len(data) == 0:
         raise ValueError("data must be at least one sequence.")
@@ -5534,8 +5510,13 @@ def make_aligned_seqs(
     seqs_data, offs, rvd, nm = prep_for_seqs_data(data, moltype, assign_names)
     # rvd is the count of sequences that have been reversed. It should be equal 0
     # or the number of sequences. If inbetween, the sequences are a mix of the two
-    # which for now we do not support.
-    if 0 < rvd < len(seqs_data):
+    # which for now we do not support. However, if the user has provided a value
+    # for is_reversed, we will use that.
+    if is_reversed is not None:
+        rvd = is_reversed
+    elif rvd in {0, len(seqs_data)}:
+        rvd = bool(rvd)
+    else:
         rvd = False
         if annotation_db and len(annotation_db) > 0:
             warnings.warn(
@@ -5559,6 +5540,7 @@ def make_aligned_seqs(
         annotation_db=annotation_db,
         source=source,
         name_map=name_map,
+        is_reversed=rvd,
     )
 
 
@@ -5573,6 +5555,7 @@ def _(
     annotation_db: typing.Optional[SupportsFeatures] = None,
     offset: typing.Optional[DictStrInt] = None,
     name_map: typing.Optional[DictStrStr] = None,
+    is_reversed: OptBool = None,
 ) -> Alignment:
     moltype = new_moltype.get_moltype(moltype)
     if not moltype.is_compatible_alphabet(data.alphabet):
@@ -5588,6 +5571,11 @@ def _(
     info = info if isinstance(info, dict) else {}
     info["source"] = str(source) if source else str(info.get("source", "unknown"))
 
+    sr = (
+        new_sequence.SliceRecord(parent_len=data.align_len, step=-1)
+        if is_reversed
+        else None
+    )
     aln = Alignment(
         seqs_data=data,
         moltype=moltype,
@@ -5595,6 +5583,7 @@ def _(
         source=source,
         annotation_db=annotation_db,
         name_map=name_map,
+        slice_record=sr,
     )
     if label_to_name:
         aln = aln.rename_seqs(label_to_name)
