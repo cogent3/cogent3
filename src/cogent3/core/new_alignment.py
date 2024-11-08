@@ -175,22 +175,6 @@ class GapsOk:
         gap_frac = self._get_gap_frac(data)
         return gap_frac >= self.allowed_frac
 
-    def gap_run_ok(self, seq: str) -> bool:
-        """runs of gaps <= allowed_run"""
-        # refactor: design, this is not used in any of the new alignment code
-        curr_run = 0
-        is_gap = self.gap_chars.__contains__
-        result = True
-        for i in seq:
-            if is_gap(i):
-                curr_run += 1
-                if curr_run > self.allowed_run:
-                    result = False
-                    break
-            else:
-                curr_run = 0
-        return result
-
     def __call__(self, data: Union[tuple[str, ...], str]):
         return self._func(data)
 
