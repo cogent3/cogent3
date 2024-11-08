@@ -521,9 +521,19 @@ class SeqsData(SeqsDataABC):
         self, alphabet: new_alphabet.AlphabetABC, check_valid=True
     ) -> SeqsData:
         # refactor: design -- map directly between arrays?
-        # refactor: design -- better way to check if alphabets are DNA and RNA?
-        if len(alphabet) == len(self.alphabet):
-            return self.__class__(data=self._data, alphabet=alphabet)
+        # if the length of the two alphabets are the same and the only difference
+        # between the sets of characters is U/T, then we have the special case of
+        # converting between DNA and RNA alphabets, which we can achieved easily.
+        if (
+            len(self.alphabet) == len(alphabet)
+            and len({(a, b) for a, b in zip(self.alphabet, alphabet) if a != b}) == 1
+        ):
+            return self.__class__(
+                data=self._data,
+                alphabet=alphabet,
+                offset=self._offset,
+                reversed=self._reversed,
+            )
 
         new_data = {}
         old = self.alphabet.as_bytes()
@@ -538,7 +548,7 @@ class SeqsData(SeqsDataABC):
             as_new_alpha = convert_bytes_to_new(convert_old_to_bytes(seq_data))
 
             if check_valid and not alphabet.is_valid(as_new_alpha):
-                raise ValueError(
+                raise new_moltype.MolTypeError(
                     f"Changing from old alphabet={self.alphabet} to new "
                     f"{alphabet=} is not valid for this data"
                 )
@@ -947,8 +957,8 @@ class SequenceCollection:
         alpha = mtype.most_degen_alphabet()
         try:
             new_seqs_data = self._seqs_data.to_alphabet(alpha)
-        except ValueError as e:
-            raise ValueError(
+        except new_moltype.MolTypeError as e:
+            raise new_moltype.MolTypeError(
                 f"Failed to convert moltype from {self.moltype.label} to {moltype}"
             ) from e
 
@@ -3284,9 +3294,46 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         else:
             raise ValueError(f"provided {names=} not found in collection")
 
-    def to_alphabet(self, alphabet: new_alphabet.AlphabetABC):
-        # todo: kath
-        ...
+    def to_alphabet(self, alphabet: new_alphabet.AlphabetABC, check_valid: bool = True):
+        """Returns a new AlignedSeqsData object with the same underlying data
+        with a new alphabet."""
+        if (
+            len(alphabet) == len(self.alphabet)
+            and len({(a, b) for a, b in zip(self.alphabet, alphabet) if a != b}) == 1
+        ):
+            # special case where mapping between dna and rna
+            return self.__class__(
+                seqs=self._seqs,
+                gaps=self._gaps,
+                alphabet=alphabet,
+                offset=self._offset,
+                align_len=self.align_len,
+            )
+
+        new_data = {}
+        old = self.alphabet.as_bytes()
+        new = alphabet.as_bytes()
+        convert_old_to_bytes = new_alphabet.array_to_bytes(old)
+        convert_bytes_to_new = new_alphabet.bytes_to_array(
+            new, dtype=new_alphabet.get_array_type(len(new))
+        )
+
+        for seqid in self.names:
+            seq_data = self.get_gapped_seq_array(seqid=seqid)
+            as_new_alpha = convert_bytes_to_new(convert_old_to_bytes(seq_data))
+
+            if check_valid and not alphabet.is_valid(as_new_alpha):
+                raise new_moltype.MolTypeError(
+                    f"Changing from old alphabet={self.alphabet} to new "
+                    f"{alphabet=} is not valid for this data"
+                )
+            new_data[seqid] = as_new_alpha
+
+        return self.from_seqs(
+            data=new_data,
+            alphabet=alphabet,
+            offset=self._offset,
+        )
 
     def to_rich_dict(self):
         # todo: kath
@@ -3691,6 +3738,13 @@ class Alignment(SequenceCollection):
         return Aligned(data=data, moltype=self.moltype, name=seqid)
 
     @property
+    def positions(self):
+        # refactor: design
+        # possibly rename to str_positions since we have array_positions
+        from_indices = self.moltype.most_degen_alphabet().from_indices
+        return [list(from_indices(pos)) for pos in self.array_positions]
+
+    @property
     def array_seqs(self) -> numpy.ndarray:
         """Returns a numpy array of sequences, axis 0 is seqs in order
         corresponding to names"""
@@ -3797,6 +3851,7 @@ class Alignment(SequenceCollection):
             seqs_data=self._seqs_data,
             moltype=self.moltype,
             name_map=new_name_map,
+            slice_record=self._slice_record,
             info=self.info,
             annotation_db=self.annotation_db,
         )
@@ -3827,8 +3882,6 @@ class Alignment(SequenceCollection):
         pos_order = pos_order or range(len(self))
         for pos in pos_order:
             yield [str(self[seq][pos]) for seq in self.names]
-
-    positions = property(iter_positions)
 
     def get_position_indices(
         self, f: Callable, native: bool = False, negate: bool = False
@@ -4268,6 +4321,38 @@ class Alignment(SequenceCollection):
         )
         return make_unaligned_seqs(data, moltype=self.moltype, info=self.info, **kwargs)
 
+    def get_degapped_relative_to(self, name: str):
+        """Remove all columns with gaps in sequence with given name.
+
+        Parameters
+        ----------
+        name
+            sequence name
+
+        Notes
+        -----
+        The returned alignment will not retain an annotation_db if present.
+        """
+
+        if name not in self.names:
+            raise ValueError(f"Alignment missing sequence named {name!r}")
+
+        gapindex = self.moltype.most_degen_alphabet().gap_index
+        seqindex = self.names.index(name)
+        indices = self.array_seqs[seqindex] != gapindex
+        new = self.array_seqs[:, indices]
+
+        new_seq_data = self._seqs_data.from_names_and_array(
+            names=self.names, data=new, alphabet=self.moltype.most_degen_alphabet()
+        )
+
+        return self.__class__(
+            seqs_data=new_seq_data,
+            name_map=self._name_map,
+            moltype=self.moltype,
+            info=self.info,
+        )
+
     def matching_ref(self, ref_name, gap_fraction, gap_run):
         """Returns new alignment with seqs well aligned with a reference.
 
@@ -4552,6 +4637,29 @@ class Alignment(SequenceCollection):
             result.annotation_db = self.annotation_db
 
         return result
+
+    @extend_docstring_from(SequenceCollection.to_moltype)
+    def to_moltype(self, moltype: str):
+        mtype = new_moltype.get_moltype(moltype)
+        if mtype is self.moltype:
+            return self  # nothing to be done
+
+        alpha = mtype.most_degen_alphabet()
+        try:
+            new_seqs_data = self._seqs_data.to_alphabet(alpha)
+        except new_moltype.MolTypeError as e:
+            raise new_moltype.MolTypeError(
+                f"Failed to convert moltype from {self.moltype.label} to {moltype}"
+            ) from e
+
+        return self.__class__(
+            seqs_data=new_seqs_data,
+            moltype=mtype,
+            info=self.info,
+            source=self.source,
+            slice_record=self._slice_record,
+            annotation_db=self.annotation_db,
+        )
 
     @extend_docstring_from(SequenceCollection.get_translation)
     def get_translation(

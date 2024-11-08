@@ -2574,7 +2574,7 @@ class AlignmentI(object):
 
     positions = property(iter_positions)  # ported
 
-    def take_positions(self, cols, negate=False):
+    def take_positions(self, cols, negate=False):  # ported
         """Returns new Alignment containing only specified positions.
 
         By default, the seqs will be lists, but an alternative constructor
@@ -3916,13 +3916,13 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         self.seq_len = curr_seqs.shape[1] if len(curr_seqs) else 0
 
     @property
-    def positions(self):
+    def positions(self):  # ported
         """Override superclass positions to return positions as symbols."""
         from_indices = self.alphabet.from_indices
         return [list(from_indices(pos)) for pos in self.array_positions]
 
     @property
-    def named_seqs(self):
+    def named_seqs(self):  # ported
         if self._named_seqs is None:
             seqs = [self.alphabet.to_string(seq) for seq in self.array_seqs]
             if self.moltype:
@@ -3933,7 +3933,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             self._named_seqs = _make_named_seqs(self.names, seqs)
         return self._named_seqs
 
-    def __iter__(self):
+    def __iter__(self):  # ported
         """iter(aln) iterates over positions, returning array slices.
 
         Each item in the result is be a position ('column' in standard
@@ -3945,7 +3945,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         """
         return iter(self.positions)
 
-    def __getitem__(self, item):
+    def __getitem__(self, item):  # ported
         if not isinstance(item, slice):
             data = self.array_seqs[:, item]
             data = vstack(data)
@@ -3969,7 +3969,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
 
     def get_sub_alignment(
         self, seqs=None, pos=None, negate_seqs=False, negate_pos=False
-    ):
+    ):  # will not port (can be achieved with take_seqs and take_positions)
         """Returns subalignment of specified sequences and positions.
 
         seqs and pos can be passed in as lists of sequence indices to keep
@@ -4014,7 +4014,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             moltype=self.moltype,
         )
 
-    def __str__(self):
+    def __str__(self):  # ported
         """Returns FASTA-format string.
 
         Should be able to handle joint alphabets, e.g. codons.
@@ -4048,7 +4048,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         motif_length=1,
         randint=randint,
         permutation=permutation,
-    ):
+    ):  # ported
         """Returns random sample of positions from self, e.g. to bootstrap.
 
         Parameters
@@ -4093,7 +4093,9 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             names=self.names,
         )
 
-    def filtered(self, predicate, motif_length=1, drop_remainder=True, **kwargs):
+    def filtered(
+        self, predicate, motif_length=1, drop_remainder=True, **kwargs
+    ):  # ported
         """The alignment positions where predicate(column) is true.
 
         Parameters
@@ -4154,7 +4156,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
                 s = s.replace(gapchar, ambig)
         return s
 
-    def get_degapped_relative_to(self, name):
+    def get_degapped_relative_to(self, name):  # ported
         """Remove all columns with gaps in sequence with given name.
 
         Returns Alignment object of the same class.
@@ -4178,7 +4180,9 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             new, names=self.names, moltype=self.moltype, info=self.info
         )
 
-    def add_from_ref_aln(self, ref_aln, before_name=None, after_name=None):
+    def add_from_ref_aln(
+        self, ref_aln, before_name=None, after_name=None
+    ):  # will not port
         """
         Insert sequence(s) to self based on their alignment to a reference
         sequence. Assumes the first sequence in ref_aln.names[0] is the
@@ -4295,11 +4299,11 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             new_seqarr, names=self.names, moltype=seqs.moltype, info=self.info
         )
 
-    def to_moltype(self, moltype):
+    def to_moltype(self, moltype):  # ported
         """returns copy of self with moltype seqs"""
         return super().to_moltype(moltype)
 
-    def get_identical_sets(self, mask_degen=False):
+    def get_identical_sets(self, mask_degen=False):  # ported
         """returns sets of names for sequences that are identical
 
         Parameters
@@ -4379,7 +4383,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         result._repr_policy.update(self._repr_policy)
         return result
 
-    def no_degenerates(self, motif_length=1, allow_gap=False):
+    def no_degenerates(self, motif_length=1, allow_gap=False):  # ported
         """returns new alignment without degenerate characters
 
         Parameters
@@ -4418,7 +4422,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         allow_gap=False,
         exclude_unobserved=False,
         warn=False,
-    ):
+    ):  # ported
         """counts of non-overlapping motifs per sequence
 
         Parameters
@@ -4468,7 +4472,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             counts[i] = c.tolist(motifs)
         return MotifCountsArray(counts, motifs, row_indices=self.names)
 
-    def omit_gap_pos(self, allowed_gap_frac=1 - eps, motif_length=1):
+    def omit_gap_pos(self, allowed_gap_frac=1 - eps, motif_length=1):  # ported
         """Returns new alignment where all cols (motifs) have <= allowed_gap_frac gaps.
 
         Parameters
@@ -4499,7 +4503,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         result = self.filtered(gaps_ok, motif_length=motif_length)
         return result
 
-    def get_position_indices(self, f, native=False, negate=False):
+    def get_position_indices(self, f, native=False, negate=False):  # ported
         """Returns list of column indices for which f(col) is True.
 
         f : callable
@@ -4526,7 +4530,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
 
         return result
 
-    def get_gap_array(self, include_ambiguity=True):
+    def get_gap_array(self, include_ambiguity=True):  # ported
         """returns bool array with gap state True, False otherwise
 
         Parameters
@@ -4664,7 +4668,7 @@ class Alignment(AlignmentI, SequenceCollection):
             align.append((sliced.name, sliced))
         return self.__class__(moltype=self.moltype, data=align, info=self.info)
 
-    def gapped_by_map(self, keep, **kwargs):
+    def gapped_by_map(self, keep, **kwargs):  # ported
         # keep is a Map
         # seqs = [seq[keep] for seq in self.seqs]
         seqs = []

@@ -1667,7 +1667,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         self.assertEqual(r1, {"seq1": "T-G", "seq2": "TCG"})
         self.assertEqual(r2, {"seq1": "--G", "seq2": "TCG"})
 
-    def test_get_degapped_relative_to_info(self):
+    def test_get_degapped_relative_to_info(self):  # ported
         """should remove all columns with a gap in sequence with given name
         while preserving info attribute"""
         aln = self.Class(
@@ -3324,7 +3324,7 @@ def test_dotplot_alignment(cls):
 
 
 @pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
-def test_get_degapped_relative_to(cls):
+def test_get_degapped_relative_to(cls):  # ported
     """should remove all columns with a gap in sequence with given name"""
     aln = cls(
         [
