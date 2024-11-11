@@ -3949,6 +3949,7 @@ class Alignment(SequenceCollection):
         negate
             if True, all columns except those in cols are kept
         """
+        # refactor: array - use array operations throughout method
         if negate:
             col_lookup = dict.fromkeys(cols)
             cols = [i for i in range(len(self)) if i not in col_lookup]
