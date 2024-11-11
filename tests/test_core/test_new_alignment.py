@@ -2282,9 +2282,10 @@ def test_sequence_collection_pad_seqs(ragged):
     seqs2 = list(padded2.iter_seqs(seq_order=["a", "b", "c"]))
     assert list(map(str, seqs2)) == ["AAAAAA----", "AAA-------", "AAAA------"]
 
-    # assertRaises error when pad_length is less than max seq length
-    with pytest.raises(ValueError):
-        _ = ragged.pad_seqs(pad_length=5)
+    # will pad to max sequence length if pad_length less than max length
+    padded3 = ragged.pad_seqs(pad_length=5)
+    seqs3 = list(padded3.iter_seqs(seq_order=["a", "b", "c"]))
+    assert list(map(str, seqs3)) == ["AAAAAA", "AAA---", "AAAA--"]
 
 
 def test_sequence_collection_pad_seqs_reversed():

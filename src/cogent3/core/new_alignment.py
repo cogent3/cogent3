@@ -559,17 +559,41 @@ def deserialise_seqs_data(data: dict[str, str | dict[str, str]]) -> SeqsData:
 
 
 class SequenceCollection:
+    """A container of unaligned sequences"""
+
     def __init__(
         self,
         *,
         seqs_data: SeqsDataABC,
         moltype: new_moltype.MolType,
-        name_map: OptDict = None,
         info: Optional[Union[dict, InfoClass]] = None,
         source: OptPathType = None,
         annotation_db: Optional[SupportsFeatures] = None,
+        name_map: OptDict = None,
         is_reversed: bool = False,
     ):
+        """Initialises a new SequenceCollection.
+
+        Parameters
+        ----------
+        seqs_data
+            a SeqsDataABC instance containg the sequence data
+        moltype
+            the molecular type of the sequences
+        info
+            additional information about the collection
+        source
+            the source of the sequence data
+        annotation_db
+            a database of annotations for the sequences
+        name_map
+            map between the names specified in the collection and names used in
+            the underlying seqs_data. Used for when the names have been changed,
+            but we want to query for annotations using the original names.
+        is_reversed
+            flag indicating the sequences are reversed with respect to the
+            underlying data in seqs_data
+        """
         self._seqs_data = seqs_data
         self.moltype = moltype
         self._name_map = name_map or {name: name for name in seqs_data.names}
@@ -3668,6 +3692,7 @@ class _IndexableSeqs:
 
 
 class Alignment(SequenceCollection):
+    # refactor: docstring
     def __init__(
         self,
         seqs_data: AlignedSeqsDataABC,  # seqs_data
