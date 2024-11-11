@@ -330,9 +330,7 @@ class SeqsDataABC(ABC):
     ) -> bytes: ...
 
     @abstractmethod
-    def get_view(
-        self, seqid: str, slice_record: OptSliceRecord = None
-    ) -> new_sequence.SeqViewABC: ...
+    def get_view(self, seqid: str) -> new_sequence.SeqViewABC: ...
 
     @abstractmethod
     def to_alphabet(self, alphabet: new_alphabet.AlphabetABC) -> SeqsDataABC: ...
@@ -441,14 +439,13 @@ class SeqsData(SeqsDataABC):
     ) -> bytes:
         return self.get_seq_str(seqid=seqid, start=start, stop=stop).encode("utf8")
 
-    def get_view(self, seqid: str, slice_record: OptSliceRecord = None) -> SeqDataView:
+    def get_view(self, seqid: str) -> SeqDataView:
         seq_len = len(self._data[seqid])
         return SeqDataView(
             parent=self,
             seqid=seqid,
             parent_len=seq_len,
             alphabet=self.alphabet,
-            slice_record=slice_record,
             offset=self._offset.get(seqid, 0),
         )
 
@@ -524,6 +521,8 @@ class SeqsData(SeqsDataABC):
 
     @__getitem__.register
     def _(self, index: str) -> new_sequence.SeqViewABC:
+        # note that this will always return the plus strand, even if the Collection 
+        # has been reversed
         return self.get_view(seqid=index)
 
     @__getitem__.register
@@ -591,7 +590,8 @@ class SequenceCollection:
         # seqview is given the name of the parent (if different from the current name)
         # the sequence is given the current name
         seqid = self._name_map.get(name, name)
-        sv = self._seqs_data.get_view(seqid, slice_record=self._get_slice_record(seqid))
+        sv = self._seqs_data.get_view(seqid)
+        sv = sv[::-1] if self._is_reversed else sv
         seq = self.moltype.make_seq(seq=sv, name=name)
         seq.replace_annotation_db(self.annotation_db)
         return seq
@@ -609,11 +609,6 @@ class SequenceCollection:
             "annotation_db": self.annotation_db,
             "is_reversed": self._is_reversed,
         }
-
-    def _get_slice_record(self, seqid: str) -> new_sequence.SliceRecord:
-        seq_len = len(self._seqs_data.get_seq_array(seqid=seqid))
-        step = -1 if self._is_reversed else 1
-        return new_sequence.SliceRecord(parent_len=seq_len, step=step)
 
     @property
     def seqs(self) -> _IndexableSeqs:
@@ -3068,6 +3063,8 @@ class AlignedSeqsData(AlignedSeqsDataABC):
 
     @__getitem__.register
     def _(self, index: str):
+        # refactor: design
+        # this view will return the whole sequence, even if the alignment is sliced
         return self.get_view(index)
 
     @__getitem__.register
@@ -3081,17 +3078,16 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         return {name: len(seq) for name, seq in self._seqs.items()}
 
     @singledispatchmethod
-    def get_view(self, seqid: str, slice_record: OptSliceRecord = None):
+    def get_view(self, seqid: str):
         return AlignedDataView(
             parent=self,
             seqid=seqid,
             alphabet=self.alphabet,
-            slice_record=slice_record,
         )
 
     @get_view.register
-    def _(self, seqid: int, slice_record: OptSliceRecord = None):
-        return self.get_view(self.names[seqid], slice_record)
+    def _(self, seqid: int):
+        return self.get_view(self.names[seqid])
 
     def get_gaps(self, seqid: str) -> numpy.ndarray:
         return self._gaps[seqid]
@@ -3751,11 +3747,8 @@ class Alignment(SequenceCollection):
         return self.array_seqs
 
     def _make_aligned(self, seqid: str) -> Aligned:
-        # refactor: design
-        # add slice_record as an argument to the get_view() method
-        data = self._seqs_data.get_view(
-            self._name_map.get(seqid, seqid), self._slice_record
-        )
+        data = self._seqs_data.get_view(self._name_map.get(seqid, seqid))
+        data.slice_record = self._slice_record
         return Aligned(data=data, moltype=self.moltype, name=seqid)
 
     @property
