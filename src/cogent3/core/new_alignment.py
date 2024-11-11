@@ -521,7 +521,8 @@ class SeqsData(SeqsDataABC):
 
     @__getitem__.register
     def _(self, index: str) -> new_sequence.SeqViewABC:
-        # note that this will always return the plus strand, even if the Collection 
+        # refactor: design
+        # note that this will always return the plus strand, even if the collection
         # has been reversed
         return self.get_view(seqid=index)
 
@@ -906,7 +907,7 @@ class SequenceCollection:
 
         return self.__class__(**init_kwargs)
 
-    def to_moltype(self, moltype: str) -> SequenceCollection:
+    def to_moltype(self, moltype: MolTypes) -> SequenceCollection:
         """returns copy of self with changed moltype
 
         Parameters
@@ -1006,7 +1007,7 @@ class SequenceCollection:
             moltype=pep_moltype,
             info=self.info,
             source=self.source,
-            is_reversed=self._is_reversed,
+            is_reversed=False,  # reversed not meaningful for a protein
             **kwargs,
         )
 
@@ -1744,7 +1745,7 @@ class SequenceCollection:
         return counts.row_sum()
 
     def pad_seqs(self, pad_length: OptInt = None):
-        """Returns copy in which sequences are padded to same length.
+        """Returns copy in which sequences are padded with the gap character to same length.
 
         Parameters
         ----------
@@ -1758,19 +1759,29 @@ class SequenceCollection:
         if pad_length is None:
             pad_length = max_len
         elif pad_length < max_len:
-            raise ValueError(
-                f"pad_length must be at greater or equal to maximum sequence length: {str(max_len)}"
-            )
+            pad_length = max_len
 
-        new_seqs = {}
-        for seq_name in self._name_map.values():
-            seq = self._seqs_data.get_seq_str(seqid=seq_name)
-            padded_seq = seq + "-" * (pad_length - len(seq))
-            new_seqs[seq_name] = padded_seq
+        padded_seqs = {}
+        for seq in self.seqs:
+            padded_seq = numpy.full(
+                shape=pad_length,
+                fill_value=self.moltype.gapped_alphabet.gap_index,
+                dtype=self.moltype.most_degen_alphabet().dtype,
+            )
+            padded_seq[: len(seq)] = numpy.array(seq)
+            # the padded_seqs dict will be used to create the seqs_data, so the
+            # keys should be the seqids from the original seqs_data, if this differs
+            # from the seq name, this will be recorded in the name_map
+            parent_name = seq._seq.seqid
+            padded_seqs[parent_name] = padded_seq
 
         init_kwargs = self._get_init_kwargs()
+        # when we access .seqs, if the collection has been reversed, this will have
+        # been applied to the returned Sequence, so we reset it to False for the 
+        # returned collection
+        init_kwargs["is_reversed"] = False
         init_kwargs["seqs_data"] = self._seqs_data.from_seqs(
-            data=new_seqs,
+            data=padded_seqs,
             alphabet=self._seqs_data.alphabet,
             offset=self._seqs_data.offset,
         )
@@ -3918,8 +3929,8 @@ class Alignment(SequenceCollection):
             cols = [i for i in range(len(self)) if i not in col_lookup]
 
         new_data = {
-            seqid: self._seqs_data.get_gapped_seq_array(seqid=seqid)[cols]
-            for seqid in self.names
+            aligned.data.seqid: numpy.array(aligned.gapped_seq)[cols]
+            for aligned in self.seqs
         }
         seqs_data = self._seqs_data.from_seqs(
             data=new_data, alphabet=self.moltype.most_degen_alphabet()
@@ -3945,16 +3956,16 @@ class Alignment(SequenceCollection):
             included
         """
         result = numpy.full((self.num_seqs, len(self)), False, dtype=bool)
-        for i, seqid in enumerate(self._name_map.values()):
+        for i, aligned in enumerate(self.seqs):
             if include_ambiguity:
-                seq_array = self._seqs_data.get_gapped_seq_array(seqid=seqid)
+                seq_array = numpy.array(aligned)
                 result[i][seq_array >= self.moltype.most_degen_alphabet().gap_index] = (
                     True
                 )
             else:
                 # refactor: design
                 # this should be on IndelMap
-                gaps = self._seqs_data.get_gaps(seqid)
+                gaps = self._seqs_data.get_gaps(aligned.data.seqid)
                 for gap_pos, cum_gap_length in gaps:
                     result[i][list(range(gap_pos, gap_pos + cum_gap_length))] = True
         return result
@@ -4595,9 +4606,9 @@ class Alignment(SequenceCollection):
             )
 
         new_seqs = {}
-        for seqid in self.names:
-            sampled = self._seqs_data.get_gapped_seq_array(seqid=seqid)[positions]
-            new_seqs[seqid] = sampled
+        for aligned in self.seqs:
+            sampled = numpy.array(aligned)[positions]
+            new_seqs[aligned.data.seqid] = sampled
 
         new_seqs_data = self._seqs_data.from_seqs(
             data=new_seqs, alphabet=self.moltype.most_degen_alphabet()

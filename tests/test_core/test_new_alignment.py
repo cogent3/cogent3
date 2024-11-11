@@ -1059,7 +1059,7 @@ def test_sequence_collection_degap_info(mk_cls, gap_ambig_seqs):
     assert got.info.path == "blah"
 
 
-def test_alignemnt_degap_sliced(gap_ambig_seqs):
+def test_alignment_degap_sliced(gap_ambig_seqs):
     """degap should apply slice_record to alignment"""
     aln = new_alignment.make_aligned_seqs(gap_ambig_seqs, moltype="dna")
     sliced = aln[:3]
@@ -2018,6 +2018,13 @@ def test_sequence_collection_to_moltype(moltype, mk_cls, seq_cls):
     assert got.moltype.label == moltype
     assert isinstance(got, seq_cls)
 
+    # should also work with moltype objects
+    mt = new_moltype.get_moltype(moltype)
+    mt_seqs = seqs.to_moltype(moltype=mt)
+    got = mt_seqs.seqs["s1"]
+    assert got.moltype.label == moltype
+    assert isinstance(got, seq_cls)
+
 
 @pytest.mark.parametrize("rc", (True, False))
 @pytest.mark.parametrize(
@@ -2278,6 +2285,21 @@ def test_sequence_collection_pad_seqs(ragged):
     # assertRaises error when pad_length is less than max seq length
     with pytest.raises(ValueError):
         _ = ragged.pad_seqs(pad_length=5)
+
+
+def test_sequence_collection_pad_seqs_reversed():
+    mk_seq = new_moltype.DNA.make_seq
+    data = {
+        "a": mk_seq(seq="T", name="A"),
+        "b": mk_seq(seq="TCG", name="B"),
+        "c": mk_seq(seq="TTGG", name="C"),
+    }
+    ragged = new_alignment.make_unaligned_seqs(data, moltype="dna")
+    rc = ragged.rc()
+    padded = rc.pad_seqs()
+    got = padded.to_dict()
+    expect = {"a": "A---", "b": "CGA-", "c": "CCAA"}
+    assert got == expect
 
 
 @pytest.fixture
@@ -3834,6 +3856,12 @@ def test_alignment_get_gap_array():
     )
     assert numpy.allclose(got, expect)
 
+    # if we slice the alignment, the gap array should reflect the slice
+    sliced = aln[:2]
+    got = sliced.get_gap_array()
+    expect = expect[:, :2]
+    assert numpy.allclose(got, expect)
+
 
 def test_get_position_indices():
     """get_position_indices should return names of cols where f(col)"""
@@ -4167,6 +4195,21 @@ def test_alignment_sample_tuples():
     assert all(len(set(seqs[0][i : i + 2])) == 1 for i in range(0, len(seqs[0]), 2))
 
 
+def test_alignment_sample_sliced():
+    """sample should only return characters from current view"""
+    # not a deterministic test, but has a small false positive rate of 1/1001
+    data = {"seq1": "A" * 1000 + "C"}
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    sliced = aln[-1:]
+    got = sliced.sample(n=1)
+    assert got.to_dict() == {"seq1": "C"}
+
+    rc = aln.rc()
+    sliced = rc[:1]
+    got = sliced.sample(n=1)
+    assert got.to_dict() == {"seq1": "G"}
+
+
 def test_alignment_take_positions():
     """SequenceCollection take_positions should return new alignment w/ specified pos"""
     gaps = new_alignment.make_aligned_seqs(
@@ -4184,6 +4227,29 @@ def test_alignment_take_positions():
         "b": "--AA",
         "c": "A---",
     }
+
+
+def test_alignment_take_positions_sliced():
+    #       012345
+    #       -TAA--
+    #       TTAGGG
+    # slice: ***
+    # pos:    **
+
+    data = {
+        "seq1": "-TAA--",
+        "seq2": "TTAGGG",
+    }
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    sliced = aln[1:4]
+    got = sliced.take_positions([1, 2]).to_dict()
+    expect = {"seq1": "AA", "seq2": "AG"}
+    assert got == expect
+
+    rev = aln.rc()
+    got = rev.take_positions([1, 2]).to_dict()
+    expect = {"seq1": "-T", "seq2": "CC"}
+    assert got == expect
 
 
 def test_alignment_take_positions_info():
