@@ -65,6 +65,7 @@ OptStr = Optional[str]
 OptList = Optional[list]
 OptDict = Optional[dict]
 OptBool = Optional[bool]
+OptSliceRecord = Optional[new_sequence.SliceRecord]
 DictStrStr = dict[str, str]
 DictStrInt = dict[str, int]
 OptCallable = Optional[Callable]
@@ -330,7 +331,7 @@ class SeqsDataABC(ABC):
 
     @abstractmethod
     def get_view(
-        self, seqid: str, slice_record: new_sequence.SliceRecord = None
+        self, seqid: str, slice_record: OptSliceRecord = None
     ) -> new_sequence.SeqViewABC: ...
 
     @abstractmethod
@@ -440,9 +441,7 @@ class SeqsData(SeqsDataABC):
     ) -> bytes:
         return self.get_seq_str(seqid=seqid, start=start, stop=stop).encode("utf8")
 
-    def get_view(
-        self, seqid: str, slice_record: new_sequence.SliceRecord = None
-    ) -> SeqDataView:
+    def get_view(self, seqid: str, slice_record: OptSliceRecord = None) -> SeqDataView:
         seq_len = len(self._data[seqid])
         return SeqDataView(
             parent=self,
@@ -3082,7 +3081,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         return {name: len(seq) for name, seq in self._seqs.items()}
 
     @singledispatchmethod
-    def get_view(self, seqid: str, slice_record: new_sequence.SliceRecord = None):
+    def get_view(self, seqid: str, slice_record: OptSliceRecord = None):
         return AlignedDataView(
             parent=self,
             seqid=seqid,
@@ -3091,7 +3090,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         )
 
     @get_view.register
-    def _(self, seqid: int, slice_record: new_sequence.SliceRecord = None):
+    def _(self, seqid: int, slice_record: OptSliceRecord = None):
         return self.get_view(self.names[seqid], slice_record)
 
     def get_gaps(self, seqid: str) -> numpy.ndarray:
@@ -3387,7 +3386,7 @@ class AlignedDataView(new_sequence.SeqViewABC):
         parent: AlignedSeqsDataABC,
         seqid: str,
         alphabet: new_alphabet.AlphabetABC,
-        slice_record: new_sequence.SliceRecord = None,
+        slice_record: OptSliceRecord = None,
     ):
         self.parent = parent
         self._seqid = seqid
@@ -3665,7 +3664,7 @@ class Alignment(SequenceCollection):
     def __init__(
         self,
         seqs_data: AlignedSeqsDataABC,  # seqs_data
-        slice_record: new_sequence.SliceRecord = None,
+        slice_record: OptSliceRecord = None,
         **kwargs,
     ):
         super().__init__(seqs_data=seqs_data, **kwargs)
