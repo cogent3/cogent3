@@ -1777,7 +1777,7 @@ class SequenceCollection:
 
         init_kwargs = self._get_init_kwargs()
         # when we access .seqs, if the collection has been reversed, this will have
-        # been applied to the returned Sequence, so we reset it to False for the 
+        # been applied to the returned Sequence, so we reset it to False for the
         # returned collection
         init_kwargs["is_reversed"] = False
         init_kwargs["seqs_data"] = self._seqs_data.from_seqs(
