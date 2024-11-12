@@ -716,9 +716,12 @@ class MolType:
                 f"{seq[:4]!r} not valid for moltype {self.name!r}"
             )
 
+        if self.degen_alphabet is None:
+            return []
+
         alpha = self.most_degen_alphabet()
         seq = alpha.to_indices(seq)
-        for index, val in enumerate(self.degen_gapped_alphabet):
+        for index, val in enumerate(alpha):
             if include_gap and val in self.gap or val in self.ambiguities:
                 break
         degens = seq >= index

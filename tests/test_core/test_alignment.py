@@ -956,7 +956,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         )
         assert_allclose(got, expect)
 
-    def test_filter_drop_remainder(self):
+    def test_filter_drop_remainder(self):  # ported
         """filter allows dropping"""
         raw = {"a": "ACGACGACG", "b": "CCC---CCC", "c": "AAAA--AAA"}
         aln = self.Class(raw)
@@ -970,14 +970,14 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         got = aln.filtered(func, motif_length=2, drop_remainder=True, warn=False)
         self.assertEqual(len(got), 4)
 
-    def test_take_positions_info(self):
+    def test_take_positions_info(self):  # ported
         aln = self.Class(
             {"a": "AAAAAAA", "b": "A--A-AA", "c": "AA-----"}, info={"key": "value"}
         )
         tps = aln.take_positions([5, 4, 0])
         self.assertEqual(tps.info["key"], "value")
 
-    def test_take_positions_if(self):
+    def test_take_positions_if(self):  # ported
         """SequenceCollection take_positions_if should return cols where f(col) is True"""
 
         def gap_1st(x):
@@ -1021,7 +1021,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             {"a": "AA", "b": "A-", "c": "AA"},
         )
 
-    def test_omit_gap_pos2(self):
+    def test_omit_gap_pos2(self):  # ported
         """consistency with different motif_length values"""
         data = {
             "seq1": "CAGGTCGACCTCGGC---------CACGAC",
@@ -1164,7 +1164,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         obs = aln.entropy_per_pos()
         assert_allclose(obs, [0, 0, 0])
 
-    def test_sample_with_replacement(self):
+    def test_sample_with_replacement(self):  # ported
         # test with replacement -- just verify that it rnus
         alignment = self.Class({"seq1": "gatc", "seq2": "gatc"})
         sample = alignment.sample(1000, with_replacement=True)
@@ -1174,7 +1174,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         result = alignment1.sample(with_replacement=True)
         self.assertEqual(len(result), 1)
 
-    def test_sample_tuples(self):
+    def test_sample_tuples(self):  # ported
         ##### test with motif size != 1 #####
         alignment = self.Class(
             {
@@ -1469,7 +1469,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         entropy_unexcluded = a.entropy_per_seq(exclude_unobserved=False)
         assert_allclose(entropy_excluded, entropy_unexcluded)
 
-    def test_distance_matrix(self):
+    def test_distance_matrix(self):  # ported
         """Alignment distance_matrix should produce correct scores"""
         data = dict([("s1", "ACGTACGTA"), ("s2", "GTGTACGTA")])
         aln = self.Class(data=data, moltype="dna")
@@ -2119,7 +2119,7 @@ def seqcoll_db():
     return seq_coll
 
 
-def test_seqcoll_query(seqcoll_db):
+def test_seqcoll_query(seqcoll_db):  # ported
     """querying from a SequenceCollection produces features bound to their seqs"""
     matches = list(seqcoll_db.get_features(seqid="I"))
     # 11 features
@@ -2132,7 +2132,7 @@ def test_seqcoll_query(seqcoll_db):
     assert len(matches) == 3
 
 
-def test_align_get_features():
+def test_align_get_features():  # ported
     #                    0123456789   the positions
     seq1 = make_seq(seq="ACG--ACCGT", moltype="dna", name="seq1")
     seq2 = make_seq(seq="ACGGGCCCGT", moltype="dna", name="seq2")
@@ -2148,7 +2148,7 @@ def test_align_get_features():
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
-def test_init_annotated_seqs(cls):  # ported for SequenceCollection
+def test_init_annotated_seqs(cls):  # ported
     """correctly construct from list with annotated seq"""
     seq = make_seq(seq="GCCAGGGGGGAAAG-GGAGAA", name="seq1")
     _ = seq.add_feature(biotype="exon", name="name", spans=[(4, 10)])
@@ -2158,7 +2158,7 @@ def test_init_annotated_seqs(cls):  # ported for SequenceCollection
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
-def test_get_annotations_from_any_seq(cls):  # ported for SequenceCollection
+def test_get_annotations_from_any_seq(cls):  # ported
     """get_annotations_from_any_seq returns correct annotations"""
     data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
     seqs = cls(data, moltype=DNA)
@@ -2186,7 +2186,7 @@ def test_get_annotations_from_any_seq(cls):  # ported for SequenceCollection
     assert "biotype='exon', name='annotation3', map=[3:6]/9" in str(got[0])
 
 
-def test_annotate_matches_to():
+def test_annotate_matches_to():  # ported
     """Aligned.annotate_matches_to correctly delegates to sequence"""
 
     aln = Alignment(dict(x="TTCCACTTCCGCTT"), moltype="dna")
@@ -2232,7 +2232,7 @@ def gff_db(DATA_DIR):
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
-def test_copy_annotations(cls, gff_db):  # ported for SequenceCollection
+def test_copy_annotations(cls, gff_db):  # ported
     """copy_annotations copies records from annotation db"""
 
     seq_coll = cls({"seq1": "ACGU", "seq2": "CGUA", "test_seq": "CCGU"})
@@ -2255,7 +2255,7 @@ def _make_seq(name):
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
-def test_init_seqs_have_annotations(cls, gff_db):  # ported for SequenceCollection
+def test_init_seqs_have_annotations(cls, gff_db):  # ported
     """annotations on input seqs correctly merged and propagated"""
 
     seq_coll = cls({"seq1": _make_seq("seq1"), "seq2": _make_seq("seq2")})
@@ -2270,7 +2270,7 @@ def test_init_seqs_have_annotations(cls, gff_db):  # ported for SequenceCollecti
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
-def test_add_to_seq_updates_coll(cls, gff_db):  # ported for SequenceCollection
+def test_add_to_seq_updates_coll(cls, gff_db):  # ported
     """annotating a seq updates the db of the propagated"""
     seq_coll = cls(
         {"x": "AACCCAAAATTTTTTGGGGGGGGGGCCCC", "y": "AACCCAAAATTTTTTGGGGGGGGGGCCCC"}
@@ -2282,7 +2282,7 @@ def test_add_to_seq_updates_coll(cls, gff_db):  # ported for SequenceCollection
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
-def test_assign_none(cls, gff_db):  # ported for SequenceCollection
+def test_assign_none(cls, gff_db):  # ported
     """assigning None to annotation_db breaks conection"""
 
     seq_coll = cls({"seq1": "ACGU", "seq2": "CGUA", "test_seq": "CCGU"})
@@ -2364,7 +2364,7 @@ def test_deepcopy_aligned(cls):
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
-def test_seq_rename_preserves_annotations(cls):
+def test_seq_rename_preserves_annotations(cls):  # ported
     """rename seqs discards all annotations"""
     data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
     seqs = cls(data, moltype=DNA)
@@ -2506,7 +2506,7 @@ def test_to_rich_dict_alignment():
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
-def test_dotplot_annotated(cls):  # ported for SequenceCollection
+def test_dotplot_annotated(cls):  # ported
     """exercising dotplot method with annotated sequences"""
     db = GffAnnotationDb()
     db.add_feature(seqid="Human", biotype="exon", name="fred", spans=[(10, 15)])
@@ -2581,7 +2581,7 @@ def test_distance_matrix_passes_correct_moltype(moltype):  # ported
 @pytest.mark.parametrize(
     "seqs", ({"seq1": "GATTTT", "seq2": "GATC??"}, {"seq1": "GAT---", "seq2": "?GATCT"})
 )
-def test_get_translation2(cls, seqs):  # ported for SequenceCollection
+def test_get_translation2(cls, seqs):  # ported
     """SequenceCollection.get_translation translates each seq"""
     alignment = cls(data=seqs, moltype=DNA)
     got = alignment.get_translation()
@@ -2590,7 +2590,7 @@ def test_get_translation2(cls, seqs):  # ported for SequenceCollection
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
-def test_get_translation_with_stop(cls):  # ported for SequenceCollection
+def test_get_translation_with_stop(cls):  # ported
     seqs = {"seq1": "GATTAG", "seq2": "?GATCT"}
     alignment = cls(data=seqs, moltype=DNA)
     got = alignment.get_translation(include_stop=True)
@@ -2598,7 +2598,7 @@ def test_get_translation_with_stop(cls):  # ported for SequenceCollection
 
 
 @pytest.mark.parametrize("cls", (Alignment, ArrayAlignment, SequenceCollection))
-def test_get_translation_trim_stop(cls):  # ported for SequenceCollection
+def test_get_translation_trim_stop(cls):  # ported
     seqs = {"seq1": "GATTCCTAG", "seq2": "GATTCCTCC"}
     alignment = cls(data=seqs, moltype=DNA)
     expect = {"seq1": "DS", "seq2": "DSS"}
@@ -2613,7 +2613,7 @@ def test_get_translation_trim_stop(cls):  # ported for SequenceCollection
 @pytest.mark.parametrize(
     "seqs", ({"seq1": "GATTTT", "seq2": "GATC??"}, {"seq1": "GAT---", "seq2": "?GATCT"})
 )
-def test_get_translation_error(cls, seqs):  # ported for SequenceCollection
+def test_get_translation_error(cls, seqs):  # ported
     """SequenceCollection.get_translation translates each seq"""
     # check for a failure when no moltype specified
     alignment = cls(data=seqs)
@@ -2709,7 +2709,7 @@ def test_aligned_rich_dict(reverse):
         {"seq1": "GAT---", "seq2": "?GATCT"},
     ),
 )
-def test_get_translation_info(cls, seqs):  # ported for SequenceCollection
+def test_get_translation_info(cls, seqs):  # ported
     """SequenceCollection.get_translation preserves info attribute"""
     alignment = cls(data=seqs, moltype=DNA, info={"key": "value"})
     got = alignment.get_translation()
@@ -2725,7 +2725,7 @@ def test_get_translation_info(cls, seqs):  # ported for SequenceCollection
         (2, ("GATTTT", "TCCAGG")),
     ),
 )
-def test_has_terminal_stop_true(cls, gc, seqs):  # ported for SequenceCollection
+def test_has_terminal_stop_true(cls, gc, seqs):  # ported
     gc = get_code(gc)
     data = {f"s{i}": s for i, s in enumerate(seqs)}
     seqs = cls(data=data, moltype="dna")
@@ -2737,7 +2737,7 @@ def test_has_terminal_stop_true(cls, gc, seqs):  # ported for SequenceCollection
     "gc,seqs",
     ((1, ("TCCTCA", "GATTTT")), (2, ("GATTTT", "TCCCGG")), (1, ("CCTCA", "ATTTT"))),
 )
-def test_has_terminal_stop_false(cls, gc, seqs):  # ported for SequenceCollection
+def test_has_terminal_stop_false(cls, gc, seqs):  # ported
     gc = get_code(gc)
     data = {f"s{i}": s for i, s in enumerate(seqs)}
     seqs = cls(data=data, moltype="dna")
@@ -2745,7 +2745,7 @@ def test_has_terminal_stop_false(cls, gc, seqs):  # ported for SequenceCollectio
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
-def test_has_terminal_stop_strict(cls):  # ported for SequenceCollection
+def test_has_terminal_stop_strict(cls):  # ported
     gc = get_code(1)
     data = {f"s{i}": s for i, s in enumerate(("CCTCA", "ATTTT"))}
     seqs = cls(data=data, moltype="dna")
@@ -2763,7 +2763,7 @@ def test_has_terminal_stop_strict(cls):  # ported for SequenceCollection
         (2, ("GATTTT", "TCCAGG")),
     ),
 )
-def test_trim_stops_true(cls, gc, seqs):  # ported for SequenceCollection
+def test_trim_stops_true(cls, gc, seqs):  # ported
     gc = get_code(gc)
     data = {f"s{i}": s for i, s in enumerate(seqs)}
 
@@ -2786,7 +2786,7 @@ def test_trim_stops_true(cls, gc, seqs):  # ported for SequenceCollection
     "gc,seqs",
     ((1, ("T-CTGC", "GATAA?")), (2, ("GATTTT", "TCCCGG")), (1, ("CCTGC", "GATAA"))),
 )
-def test_trim_terminal_stops_nostop(cls, gc, seqs):  # ported for SequenceCollection
+def test_trim_terminal_stops_nostop(cls, gc, seqs):  # ported
     gc = get_code(gc)
     data = {f"s{i}": s for i, s in enumerate(seqs)}
     seqs = cls(data=data, moltype="dna")
@@ -2796,7 +2796,7 @@ def test_trim_terminal_stops_nostop(cls, gc, seqs):  # ported for SequenceCollec
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
 @pytest.mark.parametrize("seqs", (("CCTCA", "ATTTT"), ("CCTCA-", "ATTTTA")))
-def test_trim_terminal_stops_strict(cls, seqs):  # ported for SequenceCollection
+def test_trim_terminal_stops_strict(cls, seqs):  # ported
     gc = get_code(1)
     data = {f"s{i}": s for i, s in enumerate(seqs)}
     seqs = cls(data=data, moltype="dna")
@@ -2805,7 +2805,7 @@ def test_trim_terminal_stops_strict(cls, seqs):  # ported for SequenceCollection
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
-def test_trim_stop_codons_info(cls):  # ported for SequenceCollection
+def test_trim_stop_codons_info(cls):  # ported
     """trim_stop_codons should preserve info attribute"""
     coll = cls(
         data={"seq1": "ACGTAA", "seq2": "ACGACG", "seq3": "ACGCGT"},
@@ -2817,7 +2817,7 @@ def test_trim_stop_codons_info(cls):  # ported for SequenceCollection
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
-def test_get_translation_incomplete(cls):  # ported for SequenceCollection
+def test_get_translation_incomplete(cls):  # ported
     """get translation works on incomplete codons"""
     alignment = cls(data={"seq1": "GATN--", "seq2": "?GATCT"}, moltype=DNA)
     got = alignment.get_translation(incomplete_ok=True)
@@ -2827,7 +2827,7 @@ def test_get_translation_incomplete(cls):  # ported for SequenceCollection
 
 
 @pytest.mark.parametrize("name", ("s1", "s2", "s3"))
-def test_get_seq_with_sliced_aln(name):
+def test_get_seq_with_sliced_aln(name):  # ported
     seqs = {
         "s1": "GTTGAAGTAGTAGAAGTTCCAAATAATGAA",
         "s2": "GTG------GTAGAAGTTCCAAATAATGAA",
@@ -2846,7 +2846,7 @@ def test_get_seq_with_sliced_aln(name):
 
 
 @pytest.mark.parametrize("name", ("s1", "s2", "s3"))
-def test_get_seq_with_sliced_rced_aln(name):
+def test_get_seq_with_sliced_rced_aln(name):  # ported
     seqs = {
         "s1": "GTTGAAGTAGTAGAAGTTCCAAATAATGAA",
         "s2": "GTG------GTAGAAGTTCCAAATAATGAA",
@@ -2864,7 +2864,7 @@ def test_get_seq_with_sliced_rced_aln(name):
 
 
 @pytest.mark.parametrize("name", ("s1", "s2", "s3"))
-def test_get_seq_with_sliced_aln_multiple_spans(name):
+def test_get_seq_with_sliced_aln_multiple_spans(name):  # ported
     seqs = {  # the sliced seq has:
         "s1": "GTTGA--TAGTAGAAGTTCCAAATAATGAA",  # span gap span
         "s2": "G----TT------AAGTTCCAAATAATGAA",  # gap span gap
@@ -2882,7 +2882,7 @@ def test_get_seq_with_sliced_aln_multiple_spans(name):
 
 
 @pytest.mark.parametrize("name", ("s1", "s2", "s3"))
-def test_get_seq_with_sliced_rced_aln_multiple_spans(name):
+def test_get_seq_with_sliced_rced_aln_multiple_spans(name):  # ported
     seqs = {  # the sliced seq has:
         "s1": "GTTGA--TAGTAGAAGTTCCAAATAATGAA",  # span gap span
         "s2": "G----TT------AAGTTCCAAATAATGAA",  # gap span gap
@@ -2899,7 +2899,7 @@ def test_get_seq_with_sliced_rced_aln_multiple_spans(name):
 
 
 @pytest.mark.parametrize("name", ("s1", "s2", "s3"))
-def test_get_gapped_seq_with_sliced_aln(name):
+def test_get_gapped_seq_with_sliced_aln(name):  # ported
     seqs = {
         "s1": "G-TG---TAGTAGAAGTTCCAAATAATGAA",
         "s2": "GTG------GTAGAAGTTCCAAATAATGAA",
@@ -2919,7 +2919,7 @@ def test_get_gapped_seq_with_sliced_aln(name):
 
 @pytest.mark.parametrize("name", ("s1", "s2", "s3"))
 @pytest.mark.parametrize("array_align", (True, False))
-def test_aln_rev_slice(name, array_align):
+def test_aln_rev_slice(name, array_align):  # ported
     seqs = {
         "s1": "AAGGTTCC",
         "s2": "AAGGTTCC",
@@ -3028,7 +3028,7 @@ def _make_and_filter(cls, raw, expected, motif_length, drop_remainder):
 
 
 @pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
-def test_filtered(cls):
+def test_filtered(cls):  # ported
     """filtered should return new alignment with positions consistent with
     provided callback function"""
     # a simple filter option
@@ -3442,7 +3442,7 @@ def test_iter_selected(cls):  # ported for SequenceCollection
 
 
 @pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
-def test_take_positions(cls):
+def test_take_positions(cls):  # ported
     """SequenceCollection take_positions should return new alignment w/ specified pos"""
     gaps = cls({"a": "AAAAAAA", "b": "A--A-AA", "c": "AA-----"})
     assert gaps.take_positions([5, 4, 0]) == {"a": "AAA", "b": "A-A", "c": "--A"}
@@ -3568,7 +3568,7 @@ def test_array_align_error_with_mixed_length():
 
 
 @pytest.mark.parametrize("cls", (Alignment, ArrayAlignment, SequenceCollection))
-def test_add_seqs(cls):
+def test_add_seqs(cls):  # will not port adding seqs at positions
     """add_seqs should return an alignment with the new sequences appended or inserted"""
     data = [("name1", "AAA"), ("name2", "AAA"), ("name3", "AAA"), ("name4", "AAA")]
     data1 = [("name1", "AAA"), ("name2", "AAA")]
@@ -3618,7 +3618,7 @@ def test_add_seqs(cls):
 
 
 @pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
-def test_omit_gap_pos(cls):
+def test_omit_gap_pos(cls):  # ported
     """Alignment omit_gap_pos should return alignment w/o positions of gaps"""
     aln = cls({"a": "--A-BC-", "b": "-CB-A--", "c": "--D-EF-"}, names=["a", "b", "c"])
     # first, check behavior when we're just acting on the cols (and not
@@ -3653,7 +3653,7 @@ def test_omit_gap_pos(cls):
 
 
 @pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
-def test_no_degenerates(cls):
+def test_no_degenerates(cls):  # ported
     """no_degenerates correctly excludes columns containing IUPAC ambiguity codes"""
     data = {
         "s1": "AAA CCC GGG TTT".replace(" ", ""),
@@ -3701,7 +3701,7 @@ def test_no_degenerates(cls):
 
 @pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
 @pytest.mark.parametrize("moltype", ("bytes", "text"))
-def test_no_degenerates_invalid_moltype(cls, moltype):
+def test_no_degenerates_invalid_moltype(cls, moltype):  # will not port
     # raises ValueError if a default moltype -- with no
     # degen characters -- is used
     data = {
