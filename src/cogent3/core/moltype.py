@@ -1542,14 +1542,14 @@ def get_moltype(name, new_type: bool = False):
         style will be removed as of 2025.6.
     """
     from cogent3.core import new_moltype
-    
+
     if new_type or "COGENT3_NEW_TYPE" in os.environ:
         return new_moltype.get_moltype(name=name)
     if isinstance(name, MolType):
         return name
     if isinstance(name, new_moltype.MolType):
         return name
-    
+
     name = name.lower()
     if name not in moltypes:
         raise ValueError(f"unknown moltype {name!r}")
