@@ -372,9 +372,9 @@ def test_annotation_db_assign_same(gff_db, mk_cls):
     assert seq_coll.annotation_db is gff_db
 
 
-@pytest.mark.parametrize("reversed", (False, True))
+@pytest.mark.parametrize("rved", (False, True))
 @pytest.mark.parametrize("annot_type", ("LTR", "misc_feature", "CDS", "5'UTR"))
-def test_region_union_on_alignment(annot_type, reversed):
+def test_region_union_on_alignment(annot_type, rved):
     # >FAKE01
     # AACCCAAAATTTTTTGGGGGGGGGGCCCC
     # >FAKE02
@@ -391,7 +391,7 @@ def test_region_union_on_alignment(annot_type, reversed):
         "5'UTR": {"FAKE01": "CC", "FAKE02": "CC"},
         "LTR": {"FAKE01": "CCCAAAATTTTTT", "FAKE02": "CCC-----TTTTT"},
     }
-    newaln = aln.rc() if reversed else aln
+    newaln = aln.rc() if rved else aln
     feature_list = list(newaln.get_features(biotype=annot_type, on_alignment=True))
     new = feature_list[0]
     new = new.get_slice()
@@ -424,9 +424,7 @@ def test_annotate_matches_to():
     aln.annotation_db = GffAnnotationDb()
     gc = new_genetic_code.get_code(1)
     aa_regex = gc.to_regex("FHF")
-    s = aln.seqs["x"].annotate_matches_to(
-        aa_regex, "domain", "test", allow_multiple=False
-    )
+    aln.seqs["x"].annotate_matches_to(aa_regex, "domain", "test", allow_multiple=False)
     a = list(aln.get_features(seqid="x"))[0]
     assert str(aln[a].seqs["x"]) == "TTCCACTTC"
 
