@@ -13,6 +13,7 @@ from functools import singledispatch, singledispatchmethod
 from pathlib import Path
 from typing import Any, Callable, Iterator, Mapping, Optional, Union
 
+import numba
 import numpy
 
 from cogent3 import get_app
@@ -2551,42 +2552,78 @@ def seq_to_gap_coords(
     raise NotImplementedError(f"seq_to_gap_coords not implemented for type {type(seq)}")
 
 
+@numba.jit
+def gapped_seq_to_ungapped_and_gaps(
+    seq: numpy.ndarray,
+    gap_index: int,
+) -> tuple[numpy.ndarray, numpy.ndarray]:  # pragma: no cover
+    """
+    extracts the ungapped sequence and gap data from a gapped sequence
+
+    Parameters
+    ----------
+    seq
+        numpy array representing a gapped sequence
+    gap_index
+        from an alphabet
+
+    Returns
+    -------
+    ungapped, [[gap_pos in sequence coords, cumulative gap length]]
+
+    Notes
+    -----
+    being called by seq_to_gap_coords
+    """
+    seqlen = len(seq)
+    working = numpy.empty((seqlen, numpy.int64(2)), dtype=numpy.int64)
+
+    in_gap = False
+    num_gaps = 0
+    start = 0
+    for i, base in enumerate(seq):
+        gapped = base == gap_index
+        if gapped and not in_gap:
+            start = i
+            in_gap = True
+        elif not gapped and in_gap:
+            working[num_gaps][:] = start, i - start
+            num_gaps += 1
+            in_gap = False
+
+        if gapped and i == seqlen - 1:
+            # end of sequence
+            working[num_gaps][:] = start, i - start + 1
+            num_gaps += 1
+
+    if num_gaps == 0:
+        return seq, numpy.empty((0, 2), dtype=numpy.int64)
+
+    gap_coords = working[:num_gaps]
+    gap_coords.T[1] = gap_coords.T[1].cumsum()
+    # get gap start positions in sequence coords
+    for index, cum_length in enumerate(numpy.append(0, gap_coords.T[1][:-1])):
+        gap_coords[index][0] -= cum_length
+
+    ungapped = numpy.empty(seqlen - gap_coords.T[1][-1], dtype=seq.dtype)
+    seqpos = 0
+    for b in seq:
+        if b != gap_index:
+            ungapped[seqpos] = b
+            seqpos += 1
+
+    return ungapped, gap_coords
+
+
 @seq_to_gap_coords.register
 def _(
     seq: numpy.ndarray,
     *,
     alphabet: new_alphabet.AlphabetABC,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
-    gap_indices: numpy.ndarray[bool] = seq == alphabet.gap_index
-    ungapped = seq[~gap_indices]
-
-    # no gaps in seq
-    if numpy.array_equal(ungapped, seq):
-        return ungapped, numpy.array([], dtype=int)
-
-    parent_len = len(seq)
-    in_gap = False
-    parent_coords = []
-    start = 0
-    for i, gapped in enumerate(gap_indices):
-        if gapped and not in_gap:
-            start = i
-            in_gap = True
-        if not gapped and in_gap:
-            parent_coords.append([start, i])
-            in_gap = False
-        if gapped and i == parent_len - 1:
-            # end of sequence
-            parent_coords.append([start, i + 1])
-
-    # format for IndelMap
-    parent_coords = numpy.array(parent_coords)
-    gap_lengths = numpy.array([end - start for start, end in parent_coords])
-    cum_lengths = gap_lengths.cumsum()
-    # get gap start positions in sequence coords
-    gap_pos = parent_coords.T[0] - numpy.append(0, cum_lengths[:-1, numpy.newaxis])
-
-    return ungapped, numpy.array([gap_pos, cum_lengths]).T
+    return gapped_seq_to_ungapped_and_gaps(
+        seq.astype(alphabet.dtype), alphabet.gap_index
+    )
 
 
 @seq_to_gap_coords.register
