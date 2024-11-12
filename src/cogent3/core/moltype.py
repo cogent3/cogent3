@@ -1541,13 +1541,15 @@ def get_moltype(name, new_type: bool = False):
         The default will be changed to True in 2024.12. Support for the old
         style will be removed as of 2025.6.
     """
+    from cogent3.core import new_moltype
+    
     if new_type or "COGENT3_NEW_TYPE" in os.environ:
-        from cogent3.core.new_moltype import get_moltype as new_get_moltype
-
-        return new_get_moltype(name=name)
-
+        return new_moltype.get_moltype(name=name)
     if isinstance(name, MolType):
         return name
+    if isinstance(name, new_moltype.MolType):
+        return name
+    
     name = name.lower()
     if name not in moltypes:
         raise ValueError(f"unknown moltype {name!r}")
