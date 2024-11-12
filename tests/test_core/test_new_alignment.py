@@ -4202,6 +4202,7 @@ def test_alignment_distance_matrix():
         _ = aln.distance_matrix(calc="paralinear")
     # but setting drop_invalid=False allows calc
     dists = aln.distance_matrix(calc="paralinear", drop_invalid=True)
+    assert dists is None
 
 
 def test_alignment_sample_with_replacement():
