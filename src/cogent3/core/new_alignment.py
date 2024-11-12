@@ -5794,15 +5794,15 @@ class Alignment(SequenceCollection):
 
     def _mapped(self, slicemap):
         seqs = {}
-        gaps = {}
+        maps = {}
         for aligned in self.seqs:
-            seq, gap = aligned.slice_with_map(slicemap)
+            seq, im = aligned.slice_with_map(slicemap)
             name = aligned.data.seqid
             seqs[name] = seq
-            gaps[name] = gap
+            maps[name] = im
 
         data = self._seqs_data.from_seqs_and_gaps(
-            seqs=seqs, gaps=gaps, alphabet=self.moltype.most_degen_alphabet()
+            seqs=seqs, gaps=maps, alphabet=self.moltype.most_degen_alphabet()
         )
 
         return self.__class__(
