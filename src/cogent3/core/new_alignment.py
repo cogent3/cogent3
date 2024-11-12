@@ -1016,7 +1016,7 @@ class SequenceCollection:
                 include_stop=include_stop,
                 trim_stop=trim_stop,
             )
-            translated[seq.name] = numpy.array(pep)
+            translated[seq._seq.seqid] = numpy.array(pep)
 
         pep_moltype = new_moltype.get_moltype(
             "protein_with_stop" if include_stop else "protein"
@@ -1029,6 +1029,7 @@ class SequenceCollection:
         return self.__class__(
             seqs_data=seqs_data,
             moltype=pep_moltype,
+            name_map=self._name_map,
             info=self.info,
             source=self.source,
             is_reversed=False,  # reversed not meaningful for a protein
@@ -4389,12 +4390,18 @@ class Alignment(SequenceCollection):
             info=self.info,
         )
 
-    def matching_ref(self, ref_name, gap_fraction, gap_run):
+    def matching_ref(self, ref_name: str, gap_fraction: float, gap_run: int):
         """Returns new alignment with seqs well aligned with a reference.
 
-        gap_fraction = fraction of positions that either have a gap in the
+        Parameters
+        ----------
+        ref_name
+            name of the sequence to use as the reference
+        gap_fraction
+            fraction of positions that either have a gap in the
             template but not in the seq or in the seq but not in the template
-        gap_run = number of consecutive gaps tolerated in query relative to
+        gap_run
+            number of consecutive gaps tolerated in query relative to
             sequence or sequence relative to query
         """
         template = self.seqs[ref_name]
@@ -4642,6 +4649,117 @@ class Alignment(SequenceCollection):
         return self.__class__(
             seqs_data=new_seqs_data, info=self.info, moltype=self.moltype
         )
+
+    def distance_matrix(
+        self,
+        calc: str = "pdist",
+        show_progress: bool = False,
+        drop_invalid: bool = False,
+    ):
+        """Returns pairwise distances between sequences.
+
+        Parameters
+        ----------
+        calc
+            a pairwise distance calculator or name of one. For options see
+            cogent3.evolve.fast_distance.available_distances
+        show_progress
+            controls progress display for distance calculation
+        drop_invalid
+            If True, sequences for which a pairwise distance could not be
+            calculated are excluded. If False, an ArithmeticError is raised if
+            a distance could not be computed on observed data.
+        """
+        from cogent3.evolve.fast_distance import get_distance_calculator
+
+        try:
+            calculator = get_distance_calculator(
+                calc,
+                moltype=self.moltype,
+                alignment=self,
+                invalid_raises=not drop_invalid,
+            )
+            calculator.run(show_progress=show_progress)
+        except ArithmeticError as e:
+            msg = "not all pairwise distances could be computed, try drop_invalid=True"
+            raise ArithmeticError(msg) from e
+        result = calculator.get_pairwise_distances()
+        if drop_invalid:
+            result = result.drop_invalid()
+        return result
+
+    @UI.display_wrap
+    def quick_tree(
+        self,
+        calc: str = "pdist",
+        bootstrap: OptInt = None,
+        drop_invalid: bool = False,
+        show_progress: bool = False,
+        ui=None,  # refactor: type hint
+    ):
+        """Returns a phylogenetic tree.
+
+        Parameters
+        ----------
+        calc
+            a pairwise distance calculator or name of one. For options see
+            cogent3.evolve.fast_distance.available_distances
+        bootstrap
+            Number of non-parametric bootstrap replicates. Resamples alignment
+            columns with replacement and builds a phylogeny for each such
+            resampling.
+        drop_invalid
+            If True, sequences for which a pairwise distance could not be
+            calculated are excluded. If False, an ArithmeticError is raised if
+            a distance could not be computed on observed data.
+        show_progress
+            controls progress display for distance calculation
+
+        Returns
+        -------
+        a phylogenetic tree. If bootstrap specified, returns the weighted
+        majority consensus. Support for each node is stored as
+        edge.params['params'].
+
+        Notes
+        -----
+        Sequences in the observed alignment for which distances could not be
+        computed are omitted. Bootstrap replicates are required to have
+        distances for all seqs present in the observed data distance matrix.
+        """
+        from cogent3.phylo.consensus import weighted_majority_rule
+        from cogent3.phylo.nj import gnj
+
+        dm = self.distance_matrix(
+            calc=calc, show_progress=show_progress, drop_invalid=drop_invalid
+        )
+        results = gnj(dm, keep=1, show_progress=show_progress)
+        kept_names = set(dm.template.names[0])
+        if bootstrap:
+            subaln = (
+                self.take_seqs(kept_names) if set(self.names) != kept_names else self
+            )
+            for _ in ui.series(range(bootstrap), count=bootstrap, noun="bootstrap"):
+                b = subaln.sample(with_replacement=True)
+                try:
+                    bdist = b.distance_matrix(
+                        calc=calc, show_progress=show_progress, drop_invalid=False
+                    )
+                except ArithmeticError:
+                    # all sequences must have a pairwise distance to allow
+                    # constructing a consensus tree
+                    continue
+                bresult = gnj(bdist, keep=1, show_progress=show_progress)
+                results.extend(bresult)
+
+            consense = weighted_majority_rule(results)
+            assert len(consense) == 1
+            results = consense
+
+        tree = results[0]
+        if not bootstrap:
+            tree = tree[1]
+        return tree
 
     def trim_stop_codons(self, gc: Any = None, strict: bool = False, **kwargs):
         # refactor: array

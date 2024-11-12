@@ -7,7 +7,7 @@ from warnings import catch_warnings, filterwarnings
 import numpy
 import pytest
 
-from cogent3 import get_app, load_unaligned_seqs, open_
+from cogent3 import get_app, load_aligned_seqs, load_unaligned_seqs, open_
 from cogent3._version import __version__
 from cogent3.core import new_alignment, new_alphabet, new_moltype, new_sequence
 from cogent3.core.annotation import Feature
@@ -726,6 +726,14 @@ def test_sequence_collection_iter_seqs_ragged(ragged):
     assert seqs[0] == ragged.seqs["b"]
 
 
+def test_sequence_collection_iter_seqs_renamed(ragged_padded_dict):
+    """SequenceCollection iter_seqs() method should support renaming of seqs"""
+    coll = new_alignment.make_unaligned_seqs(ragged_padded_dict, moltype="dna")
+    renamed = coll.rename_seqs(renamer=lambda x: f"seq_{x}")
+    seqs = list(renamed.iter_seqs())
+    assert seqs == ["AAAAAA", "AAA---", "AAAA--"]
+
+
 def test_sequence_collection_repr():
     data = {
         "ENSMUSG00000056468": "GCCAGGGGGAAAAGGGAGAA",
@@ -1322,6 +1330,17 @@ def test_get_translation(seqs, mk_cls):
     got = seqs.get_translation(incomplete_ok=True)
     assert got.num_seqs == 2
     assert got.moltype == new_moltype.PROTEIN
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
+)
+def test_get_translation_renamed(seqs, mk_cls):
+    seqs = mk_cls({"s1": "GATTTT", "s2": "GATCTT"}, moltype="dna")
+    renamed = seqs.rename_seqs(lambda x: f"{x}_renamed")
+    got = renamed.get_translation(incomplete_ok=True)
+    assert got.names == ["s1_renamed", "s2_renamed"]
 
 
 @pytest.mark.parametrize(
@@ -4148,7 +4167,7 @@ def test_sliding_windows():
     assert result[3].to_dict() == {"seq3": "TACGT", "seq2": "TACGT", "seq1": "TACGT"}
 
 
-def test_get_feature():
+def test_alignment_get_feature():
     aln = new_alignment.make_aligned_seqs(
         {"x": "-AAAAAAAAA", "y": "TTTT--CCCT"}, moltype="dna"
     )
@@ -4157,6 +4176,32 @@ def test_get_feature():
     db.add_feature(seqid="y", biotype="exon", name="A", spans=[(5, 8)])
     feat = list(aln.get_features(seqid="y", biotype="exon", on_alignment=False))[0]
     assert feat.get_slice().to_dict() == dict(x="AAA", y="CCT")
+
+
+def test_alignment_distance_matrix():
+    """Alignment distance_matrix should produce correct scores"""
+    data = dict([("s1", "ACGTACGTA"), ("s2", "GTGTACGTA")])
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    dists = aln.distance_matrix(calc="hamming", show_progress=False)
+    assert dists == {("s1", "s2"): 2.0, ("s2", "s1"): 2.0}
+    # and for protein
+    aa = aln.get_translation()
+    dists = aa.distance_matrix(calc="hamming")
+    assert dists == {("s1", "s2"): 1.0, ("s2", "s1"): 1.0}
+
+    # when there are invalid data
+    data = dict(
+        seq1="AGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT",
+        seq2="TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC",
+        seq3="TACAAAAAAAAGGGGCGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC",
+    )
+
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    with pytest.raises(ArithmeticError):
+        # default settings cause an exception
+        _ = aln.distance_matrix(calc="paralinear")
+    # but setting drop_invalid=False allows calc
+    dists = aln.distance_matrix(calc="paralinear", drop_invalid=True)
 
 
 def test_alignment_sample_with_replacement():
@@ -4464,6 +4509,31 @@ def test_omit_gap_pos():
 
     # if no gaps are allowed, we get None
     assert new_aln.omit_gap_pos(0) is None
+
+
+@pytest.fixture(scope="session")
+def brca1_data():
+    return load_aligned_seqs("data/brca1.fasta", moltype="dna", new_type=True).to_dict()
+
+
+@pytest.mark.parametrize("calc", ("hamming", None))
+def test_alignment_quick_tree(calc, brca1_data):
+    """quick tree method returns tree"""
+    aln = new_alignment.make_aligned_seqs(brca1_data, moltype="dna")[:100]
+    aln = aln.take_seqs(["Human", "Rhesus", "HowlerMon", "Galago", "Mouse"])
+    kwargs = dict(show_progress=False)
+    if calc:
+        kwargs["calc"] = calc
+
+    # bootstrap
+    tree = aln.quick_tree(bootstrap=2, **kwargs)
+    assert set(tree.get_tip_names()) == set(aln.names)
+    types = {
+        type(float(edge.params["support"]))
+        for edge in tree.preorder()
+        if not edge.is_root()
+    }
+    assert types == {float}
 
 
 @pytest.fixture
