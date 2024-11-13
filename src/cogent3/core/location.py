@@ -8,6 +8,7 @@ from bisect import bisect_left, bisect_right
 from functools import total_ordering
 from typing import Any, Iterator, Optional, Sequence, Union
 
+import numba
 import numpy
 from numpy.typing import NDArray
 
@@ -962,13 +963,14 @@ def spans_to_gap_coords(
     return numpy.array(gap_pos, dtype=dtype), numpy.array(cum_lengths, dtype=dtype)
 
 
+@numba.jit
 def _gap_spans(
     gap_pos: IntArrayTypes, cum_gap_lengths: IntArrayTypes
 ) -> tuple[IntArrayTypes, IntArrayTypes]:
     """returns 1D arrays in alignment coordinates of
     gap start, gap stop"""
     if not len(gap_pos):
-        r = numpy.array([], dtype=_DEFAULT_GAP_DTYPE)
+        r = numpy.empty((0,), dtype=gap_pos.dtype)
         return r, r
 
     ends = gap_pos + cum_gap_lengths
@@ -1077,6 +1079,101 @@ def _input_vals_neg_step(
     return (0, 0, 1) if start < stop else (start, stop, step)
 
 
+@numba.jit
+def seq_to_align_index(
+    gap_pos: IntArrayTypes,
+    cum_lengths: IntArrayTypes,
+    parent_length: int,
+    num_gaps: int,
+    seq_index: int,
+    slice_stop: bool = False,
+) -> int:
+    """convert a sequence index into an alignment index
+
+    Parameters
+    ----------
+    seq_index
+        coordinate on the sequence, must be < parent_length
+    slice_stop
+        set to True if the index is to be the end of an alignment slice.
+        In that case, and if seq_index is in gap_pos then it returns
+        the first alignment index of the gap run.
+    """
+    # NOTE I explicitly cast all returned values to python int's due to
+    # need for json serialisation, which does not support numpy int classes
+    if seq_index < 0:
+        seq_index += parent_length
+
+    if seq_index < 0:
+        raise IndexError(f"{seq_index} negative seq_index beyond limit ")
+
+    if not num_gaps or seq_index < gap_pos[0]:
+        return int(seq_index)
+
+    # if stop_index, check if the seq_index corresponds to a gap position
+    match = seq_index == gap_pos
+    if slice_stop and match.any():
+        # if so, we return the alignment coord for the first gap position
+        (idx,) = numpy.where(match)[0]
+        if idx:
+            gap_len = cum_lengths[idx] - cum_lengths[idx - 1]
+        else:
+            gap_len = cum_lengths[idx]
+        gap_end = gap_pos[idx] + cum_lengths[idx]
+        return int(gap_end - gap_len)
+
+    if seq_index >= gap_pos[-1]:
+        return int(seq_index + cum_lengths[-1])
+
+    # find gap position before seq_index
+    index = numpy.searchsorted(gap_pos, seq_index, side="left")
+    if seq_index < gap_pos[index]:
+        gap_lengths = cum_lengths[index - 1] if index else 0
+    else:
+        gap_lengths = cum_lengths[index]
+
+    return int(seq_index + gap_lengths)
+
+
+@numba.jit
+def align_to_seq_index(
+    gap_pos: IntArrayTypes,
+    cum_lengths: IntArrayTypes,
+    len_aligned: int,
+    num_gaps: int,
+    align_index: int,
+) -> int:
+    """converts alignment index to sequence index"""
+    # NOTE I explicitly cast all returned values to python int's due to
+    # need for json serialisation, which does not support numpy int classes
+    if align_index < 0:
+        align_index = len_aligned + align_index
+    if align_index < 0:
+        raise IndexError(f"{align_index} align_index beyond limit")
+
+    if not num_gaps or align_index < gap_pos[0]:
+        return align_index
+
+    # these are alignment indices for gaps
+    gap_starts, gap_ends = _gap_spans(gap_pos, cum_lengths)
+    if align_index >= gap_ends[-1]:
+        return int(align_index - cum_lengths[-1])
+
+    index = numpy.searchsorted(gap_ends, align_index, side="left")
+    if align_index < gap_starts[index]:
+        # before the gap at index
+        return int(align_index - cum_lengths[index - 1])
+
+    if align_index == gap_ends[index]:
+        # after the gap at index
+        return int(align_index - cum_lengths[index])
+
+    if gap_starts[index] <= align_index < gap_ends[index]:
+        # within the gap at index
+        # so the gap insertion position is the sequence position
+        return int(gap_pos[index])
+
+
 @dataclasses.dataclass
 class IndelMap(MapABC):
     """store locations of deletions in a Aligned sequence
@@ -1122,6 +1219,9 @@ class IndelMap(MapABC):
                 f"gap position {self.gap_pos[-1]} outside parent_length {self.parent_length}"
             )
 
+        # force all to int32
+        self.gap_pos = self.gap_pos.astype(numpy.int32)
+        self.cum_gap_lengths = self.cum_gap_lengths.astype(numpy.int32)
         # make gap array immutable
         self.gap_pos.flags.writeable = False
         self.cum_gap_lengths.flags.writeable = False
@@ -1387,73 +1487,30 @@ class IndelMap(MapABC):
             In that case, and if seq_index is in gap_pos then it returns
             the first alignment index of the gap run.
         """
-        cum_lengths = self.cum_gap_lengths
-        gap_pos = self.gap_pos
+        index = seq_to_align_index(
+            self.gap_pos,
+            self.cum_gap_lengths,
+            self.parent_length,
+            self.num_gaps,
+            seq_index,
+            slice_stop,
+        )
         # NOTE I explicitly cast all returned values to python int's due to
         # need for json serialisation, which does not support numpy int classes
-        if seq_index < 0:
-            seq_index += self.parent_length
-
-        if seq_index < 0:
-            raise IndexError(f"{seq_index} negative seq_index beyond limit ")
-
-        if not self.num_gaps or seq_index < gap_pos[0]:
-            return int(seq_index)
-
-        # if stop_index, check if the seq_index corresponds to a gap position
-        if slice_stop and (match := seq_index == gap_pos).any():
-            # if so, we return the alignment coord for the first gap position
-            (idx,) = numpy.where(match)[0]
-            if idx:
-                gap_len = cum_lengths[idx] - cum_lengths[idx - 1]
-            else:
-                gap_len = cum_lengths[idx]
-            gap_end = gap_pos[idx] + cum_lengths[idx]
-            return int(gap_end - gap_len)
-
-        if seq_index >= gap_pos[-1]:
-            return int(seq_index + cum_lengths[-1])
-
-        # find gap position before seq_index
-        index = numpy.searchsorted(gap_pos, seq_index, side="left")
-        if seq_index < gap_pos[index]:
-            gap_lengths = cum_lengths[index - 1] if index else 0
-        else:
-            gap_lengths = cum_lengths[index]
-
-        return int(seq_index + gap_lengths)
+        return int(index)
 
     def get_seq_index(self, align_index: int) -> int:
         """converts alignment index to sequence index"""
+        val = align_to_seq_index(
+            self.gap_pos,
+            self.cum_gap_lengths,
+            len(self),
+            self.num_gaps,
+            align_index,
+        )
         # NOTE I explicitly cast all returned values to python int's due to
         # need for json serialisation, which does not support numpy int classes
-        if align_index < 0:
-            align_index = len(self) + align_index
-        if align_index < 0:
-            raise IndexError(f"{align_index} align_index beyond limit")
-
-        if not self.num_gaps or align_index < self.gap_pos[0]:
-            return align_index
-
-        # these are alignment indices for gaps
-        cum_lengths = self.cum_gap_lengths
-        gap_starts, gap_ends = _gap_spans(self.gap_pos, cum_lengths)
-        if align_index >= gap_ends[-1]:
-            return int(align_index - cum_lengths[-1])
-
-        index = numpy.searchsorted(gap_ends, align_index, side="left")
-        if align_index < gap_starts[index]:
-            # before the gap at index
-            return int(align_index - cum_lengths[index - 1])
-
-        if align_index == gap_ends[index]:
-            # after the gap at index
-            return int(align_index - cum_lengths[index])
-
-        if gap_starts[index] <= align_index < gap_ends[index]:
-            # within the gap at index
-            # so the gap insertion position is the sequence position
-            return int(self.gap_pos[index])
+        return int(val)
 
     def __len__(self) -> int:
         length_gaps = self.cum_gap_lengths[-1] if self.num_gaps else 0
