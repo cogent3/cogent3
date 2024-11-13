@@ -2543,7 +2543,7 @@ def _(
 
 
 @singledispatch
-def decomposed_gapped_seq(
+def decompose_gapped_seq(
     seq: typing.union[StrORBytesORArray, new_sequence.Sequence],
     *,
     alphabet: new_alphabet.AlphabetABC,
@@ -2553,12 +2553,12 @@ def decomposed_gapped_seq(
     and a map of the position and length of gaps in the original parent sequence
     """
     raise NotImplementedError(
-        f"decomposed_gapped_seq not implemented for type {type(seq)}"
+        f"decompose_gapped_seq not implemented for type {type(seq)}"
     )
 
 
 @numba.jit
-def decompose_gapped_seq(
+def decompose_gapped_seq_array(
     seq: numpy.ndarray,
     gap_index: int,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:  # pragma: no cover
@@ -2578,7 +2578,7 @@ def decompose_gapped_seq(
 
     Notes
     -----
-    being called by decomposed_gapped_seq
+    being called by decompose_gapped_seq
     """
     seqlen = len(seq)
     working = numpy.empty((seqlen, numpy.int64(2)), dtype=numpy.int64)
@@ -2653,37 +2653,37 @@ def compose_gapped_seq(
     return gapped_seq
 
 
-@decomposed_gapped_seq.register
+@decompose_gapped_seq.register
 def _(
     seq: numpy.ndarray,
     *,
     alphabet: new_alphabet.AlphabetABC,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
-    return decompose_gapped_seq(seq.astype(alphabet.dtype), alphabet.gap_index)
+    return decompose_gapped_seq_array(seq.astype(alphabet.dtype), alphabet.gap_index)
 
 
-@decomposed_gapped_seq.register
+@decompose_gapped_seq.register
 def _(
     seq: str, *, alphabet: new_alphabet.AlphabetABC
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
     if not alphabet.is_valid(seq):
         raise new_alphabet.AlphabetError(f"Sequence is invalid for alphabet {alphabet}")
 
-    return decomposed_gapped_seq(alphabet.to_indices(seq), alphabet=alphabet)
+    return decompose_gapped_seq(alphabet.to_indices(seq), alphabet=alphabet)
 
 
-@decomposed_gapped_seq.register
+@decompose_gapped_seq.register
 def _(
     seq: bytes, *, alphabet: new_alphabet.AlphabetABC
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
-    return decomposed_gapped_seq(seq.decode("utf-8"), alphabet=alphabet)
+    return decompose_gapped_seq(seq.decode("utf-8"), alphabet=alphabet)
 
 
-@decomposed_gapped_seq.register
+@decompose_gapped_seq.register
 def _(
     seq: new_sequence.Sequence, *, alphabet: new_alphabet.AlphabetABC
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
-    return decomposed_gapped_seq(numpy.array(seq), alphabet=alphabet)
+    return decompose_gapped_seq(numpy.array(seq), alphabet=alphabet)
 
 
 class Aligned:
@@ -3066,7 +3066,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         seqs = {}
         gaps = {}
         for name, seq in data.items():
-            seq, gap_map = decomposed_gapped_seq(seq, alphabet=alphabet)
+            seq, gap_map = decompose_gapped_seq(seq, alphabet=alphabet)
             seq = alphabet.to_indices(seq)
             seq.flags.writeable = False
             gap_map.flags.writeable = False
@@ -3135,7 +3135,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         seqs = {}
         gaps = {}
         for name, seq in zip(names, data):
-            seq, gap_map = decomposed_gapped_seq(seq, alphabet=alphabet)
+            seq, gap_map = decompose_gapped_seq(seq, alphabet=alphabet)
             seq.flags.writeable = False
             gap_map.flags.writeable = False
             seqs[name], gaps[name] = seq, gap_map
@@ -3351,7 +3351,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         new_seqs = {}
         new_gaps = {}
         for name, seq in seqs.items():
-            seq, gap_map = decomposed_gapped_seq(seq, alphabet=self.alphabet)
+            seq, gap_map = decompose_gapped_seq(seq, alphabet=self.alphabet)
             seq = self.alphabet.to_indices(seq)
             seq.flags.writeable = False
             gap_map.flags.writeable = False
