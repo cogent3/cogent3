@@ -18,7 +18,13 @@ import numpy
 
 from cogent3 import get_app
 from cogent3._version import __version__
-from cogent3.core import new_alphabet, new_genetic_code, new_moltype, new_sequence
+from cogent3.core import (
+    location,
+    new_alphabet,
+    new_genetic_code,
+    new_moltype,
+    new_sequence,
+)
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
     BasicAnnotationDb,
@@ -848,10 +854,7 @@ class SequenceCollection:
         as_array
             if True, sequences are returned as numpy arrays, otherwise as strings
         """
-        return {
-            name: (numpy.array(self.seqs[name]) if as_array else str(self.seqs[name]))
-            for name in self.names
-        }
+        return {s.name: (numpy.array(s) if as_array else str(s)) for s in self.seqs}
 
     def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
         """returns a json serialisable dict
@@ -2540,7 +2543,7 @@ def _(
 
 
 @singledispatch
-def seq_to_gap_coords(
+def decomposed_gapped_seq(
     seq: typing.union[StrORBytesORArray, new_sequence.Sequence],
     *,
     alphabet: new_alphabet.AlphabetABC,
@@ -2549,11 +2552,13 @@ def seq_to_gap_coords(
     Takes a sequence with (or without) gaps and returns an ungapped sequence
     and a map of the position and length of gaps in the original parent sequence
     """
-    raise NotImplementedError(f"seq_to_gap_coords not implemented for type {type(seq)}")
+    raise NotImplementedError(
+        f"decomposed_gapped_seq not implemented for type {type(seq)}"
+    )
 
 
 @numba.jit
-def gapped_seq_to_ungapped_and_gaps(
+def decompose_gapped_seq(
     seq: numpy.ndarray,
     gap_index: int,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:  # pragma: no cover
@@ -2573,7 +2578,7 @@ def gapped_seq_to_ungapped_and_gaps(
 
     Notes
     -----
-    being called by seq_to_gap_coords
+    being called by decomposed_gapped_seq
     """
     seqlen = len(seq)
     working = numpy.empty((seqlen, numpy.int64(2)), dtype=numpy.int64)
@@ -2615,39 +2620,70 @@ def gapped_seq_to_ungapped_and_gaps(
     return ungapped, gap_coords
 
 
-@seq_to_gap_coords.register
+@numba.jit
+def compose_gapped_seq(
+    ungapped_seq: numpy.ndarray, gaps: numpy.ndarray, gap_index: int
+) -> numpy.ndarray:  # pragma: no cover
+    """reconstruct a gapped sequence from an ungapped sequence and gap data"""
+    if not len(gaps):
+        return ungapped_seq
+
+    gapped_len = len(ungapped_seq) + gaps[-1, 1]
+
+    gapped_seq = numpy.empty(gapped_len, dtype=ungapped_seq.dtype)
+
+    pos = 0
+    ungapped_pos = 0
+    prev_gap_len = 0
+    for gap_pos, cum_gap_len in gaps:
+        gap_len = cum_gap_len - prev_gap_len
+        prev_gap_len = cum_gap_len
+
+        gapped_seq[pos : pos + gap_pos - ungapped_pos] = ungapped_seq[
+            ungapped_pos:gap_pos
+        ]
+        pos += gap_pos - ungapped_pos
+        ungapped_pos = gap_pos
+
+        gapped_seq[pos : pos + gap_len] = gap_index
+        pos += gap_len
+
+    gapped_seq[pos:] = ungapped_seq[ungapped_pos:]
+
+    return gapped_seq
+
+
+@decomposed_gapped_seq.register
 def _(
     seq: numpy.ndarray,
     *,
     alphabet: new_alphabet.AlphabetABC,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
-    return gapped_seq_to_ungapped_and_gaps(
-        seq.astype(alphabet.dtype), alphabet.gap_index
-    )
+    return decompose_gapped_seq(seq.astype(alphabet.dtype), alphabet.gap_index)
 
 
-@seq_to_gap_coords.register
+@decomposed_gapped_seq.register
 def _(
     seq: str, *, alphabet: new_alphabet.AlphabetABC
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
     if not alphabet.is_valid(seq):
         raise new_alphabet.AlphabetError(f"Sequence is invalid for alphabet {alphabet}")
 
-    return seq_to_gap_coords(alphabet.to_indices(seq), alphabet=alphabet)
+    return decomposed_gapped_seq(alphabet.to_indices(seq), alphabet=alphabet)
 
 
-@seq_to_gap_coords.register
+@decomposed_gapped_seq.register
 def _(
     seq: bytes, *, alphabet: new_alphabet.AlphabetABC
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
-    return seq_to_gap_coords(seq.decode("utf-8"), alphabet=alphabet)
+    return decomposed_gapped_seq(seq.decode("utf-8"), alphabet=alphabet)
 
 
-@seq_to_gap_coords.register
+@decomposed_gapped_seq.register
 def _(
     seq: new_sequence.Sequence, *, alphabet: new_alphabet.AlphabetABC
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
-    return seq_to_gap_coords(numpy.array(seq), alphabet=alphabet)
+    return decomposed_gapped_seq(numpy.array(seq), alphabet=alphabet)
 
 
 class Aligned:
@@ -3030,7 +3066,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         seqs = {}
         gaps = {}
         for name, seq in data.items():
-            seq, gap_map = seq_to_gap_coords(seq, alphabet=alphabet)
+            seq, gap_map = decomposed_gapped_seq(seq, alphabet=alphabet)
             seq = alphabet.to_indices(seq)
             seq.flags.writeable = False
             gap_map.flags.writeable = False
@@ -3099,7 +3135,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         seqs = {}
         gaps = {}
         for name, seq in zip(names, data):
-            seq, gap_map = seq_to_gap_coords(seq, alphabet=alphabet)
+            seq, gap_map = decomposed_gapped_seq(seq, alphabet=alphabet)
             seq.flags.writeable = False
             gap_map.flags.writeable = False
             seqs[name], gaps[name] = seq, gap_map
@@ -3191,64 +3227,17 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         """Return sequence data corresponding to seqid as an array of indices.
         start/stop are in alignment coordinates. Includes gaps.
         """
-
-        # refactor: design
-        # should this pass the data sliced data to the ADV which then applies the step???
-
-        step = 1 if step is None else step
-        func = _input_vals_pos_step if step > 0 else _input_vals_neg_step
-        start, stop, step = func(self.align_len, start, stop, step)
-        seq = self._seqs[seqid]
-
-        # if there's no gaps, just slice the sequence
-        if len(seq) == self.align_len:
-            return seq[start:stop:step]
-
-        unknown = self.alphabet.gap_index
-
-        # there is only gaps
-        if len(seq) == 0:
-            return numpy.full(
-                int(-((stop - start) // -step)), unknown, dtype=numpy.uint8
-            )
-
+        # reminder: design
+        # this is recreating the orignal seq, so will be memory and compute inefficient
+        # better to build the smallest gapped seq represented by the start/stop
+        # determine the seq coordinates for slicing the ungapped sequence then apply the step
+        # note with the latter approach, if the step is negative, need to apply the step as
+        # a positive integer than return the reversed array
+        gap_index = self.alphabet.gap_index
         gaps = self._gaps[seqid]
-        indel_map = IndelMap(
-            gap_pos=gaps[:, 0], cum_gap_lengths=gaps[:, 1], parent_length=len(seq)
-        )
-
-        if step < 0:
-            seq = seq[::-1]
-            indel_map = indel_map[::-1]
-            start = -start - 1
-            stop = -stop - 1
-            step = -step
-
-        # convert from alignment coordinates to sequences coordinates
-        # selecting only the indices that are in the frame of the stride
-        # refactor: design
-        # only select indices if we have values for start/stop/step
-        indices = []
-        for span in indel_map.nongap():
-            indices += [
-                indel_map.get_seq_index(x)
-                for x in range(span.start, span.end)
-                if start <= x < stop and (x - start) % step == 0
-            ]
-
-        seq_sliced = seq[indices]
-        map_sliced = indel_map[start:stop:step]
-        concat = numpy.array([], dtype=numpy.uint8)
-
-        # iterate through spans
-        for span in map_sliced.spans:
-            if span.lost:
-                seg = numpy.full(span.length, unknown, dtype=numpy.uint8)
-            else:
-                seg = seq_sliced[span.start : span.end]
-            concat = numpy.concatenate((concat, seg))
-
-        return concat
+        seq = self._seqs[seqid]
+        gapped = compose_gapped_seq(seq, gaps, gap_index)
+        return gapped[start:stop:step]
 
     def get_seq_str(
         self,
@@ -3318,8 +3307,12 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         step: OptInt = None,
     ) -> tuple[dict, dict]:
         seqs = {}
+        # redesign
+        # if gaps exist, don't go via gapped seq
+        # convert alignment coords into sequence coords using the location.align_to_seq_index function
+        # this means we will need to convert coordinates to a plus strand slice
         for name in name_map.values():
-            # use get_gapped_seq_array because we want to slice in alignment coordinates
+            # using get_gapped_seq_array so we can slice in alignment coordinates
             seq = self.get_gapped_seq_array(
                 seqid=name, start=start, stop=stop, step=step
             )
@@ -3358,7 +3351,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         new_seqs = {}
         new_gaps = {}
         for name, seq in seqs.items():
-            seq, gap_map = seq_to_gap_coords(seq, alphabet=self.alphabet)
+            seq, gap_map = decomposed_gapped_seq(seq, alphabet=self.alphabet)
             seq = self.alphabet.to_indices(seq)
             seq.flags.writeable = False
             gap_map.flags.writeable = False

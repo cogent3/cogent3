@@ -2732,10 +2732,10 @@ def gap_seqs():
 
 
 @pytest.mark.parametrize("i", range(3))
-def test_seq_to_gap_coords_sequences(gap_seqs, i, dna_alphabet):
+def test_decomposed_gapped_seq_sequences(gap_seqs, i, dna_alphabet):
     seq, gap_coords = gap_seqs[i]
     dna = new_moltype.get_moltype("dna")
-    got_ungapped, got_map = new_alignment.seq_to_gap_coords(
+    got_ungapped, got_map = new_alignment.decomposed_gapped_seq(
         dna.make_seq(seq=seq), alphabet=dna_alphabet
     )
     expect = dna_alphabet.to_indices(seq.replace("-", ""))
@@ -2744,18 +2744,20 @@ def test_seq_to_gap_coords_sequences(gap_seqs, i, dna_alphabet):
 
 
 @pytest.mark.parametrize("i", range(3))
-def test_seq_to_gap_coords_str(gap_seqs, i, dna_alphabet):
+def test_decomposed_gapped_seq_str(gap_seqs, i, dna_alphabet):
     seq, gap_coords = gap_seqs[i]
-    got_ungapped, got_map = new_alignment.seq_to_gap_coords(seq, alphabet=dna_alphabet)
+    got_ungapped, got_map = new_alignment.decomposed_gapped_seq(
+        seq, alphabet=dna_alphabet
+    )
     expect = dna_alphabet.to_indices(seq.replace("-", ""))
     assert numpy.array_equal(got_ungapped, expect)
     assert numpy.array_equal(got_map, gap_coords)
 
 
-def test_seq_to_gap_coords_str_all_gaps(dna_alphabet):
+def test_decomposed_gapped_seq_str_all_gaps(dna_alphabet):
     parent_seq = "-----"
     expect_gaplen = numpy.array([len(parent_seq)])
-    got_ungap, got_map = new_alignment.seq_to_gap_coords(
+    got_ungap, got_map = new_alignment.decomposed_gapped_seq(
         parent_seq, alphabet=dna_alphabet
     )
     expect = numpy.array([])
@@ -2763,9 +2765,9 @@ def test_seq_to_gap_coords_str_all_gaps(dna_alphabet):
     assert got_map[:, 1] == expect_gaplen
 
 
-def test_seq_to_gap_coords_str_no_gaps(dna_alphabet):
+def test_decomposed_gapped_seq_str_no_gaps(dna_alphabet):
     parent_seq = "ACTGC"
-    got_ungap, got_map = new_alignment.seq_to_gap_coords(
+    got_ungap, got_map = new_alignment.decomposed_gapped_seq(
         parent_seq, alphabet=dna_alphabet
     )
     expect = dna_alphabet.to_indices(parent_seq)
@@ -2773,18 +2775,18 @@ def test_seq_to_gap_coords_str_no_gaps(dna_alphabet):
     assert got_map.size == 0
 
 
-def test_seq_to_gap_coords_arr_all_gaps(dna_alphabet):
+def test_decomposed_gapped_seq_arr_all_gaps(dna_alphabet):
     parent_seq = dna_alphabet.to_indices("-----")
-    got_ungap, got_map = new_alignment.seq_to_gap_coords(
+    got_ungap, got_map = new_alignment.decomposed_gapped_seq(
         parent_seq, alphabet=dna_alphabet
     )
     assert got_ungap.size == 0
     assert numpy.array_equal(got_map, numpy.array([[0, 5]]))
 
 
-def test_seq_to_gap_coords_arr_no_gaps(dna_alphabet):
+def test_decomposed_gapped_seq_arr_no_gaps(dna_alphabet):
     parent_seq = dna_alphabet.to_indices("ACTGC")
-    got_ungap, got_empty_arr = new_alignment.seq_to_gap_coords(
+    got_ungap, got_empty_arr = new_alignment.decomposed_gapped_seq(
         parent_seq, alphabet=dna_alphabet
     )
     assert numpy.array_equal(got_ungap, parent_seq)
@@ -2792,28 +2794,30 @@ def test_seq_to_gap_coords_arr_no_gaps(dna_alphabet):
 
 
 @pytest.mark.parametrize("i", range(3))
-def test_seq_to_gap_coords_arr(gap_seqs, i, dna_alphabet):
+def test_decomposed_gapped_seq_arr(gap_seqs, i, dna_alphabet):
     seq, gap_coords = gap_seqs[i]
     seq = dna_alphabet.to_indices(seq)
-    got_ungapped, got_map = new_alignment.seq_to_gap_coords(seq, alphabet=dna_alphabet)
+    got_ungapped, got_map = new_alignment.decomposed_gapped_seq(
+        seq, alphabet=dna_alphabet
+    )
     expect = seq[seq != 4]  # gap_char = 4
     assert numpy.array_equal(got_ungapped, expect)
     assert numpy.array_equal(got_map, gap_coords)
 
 
 @pytest.mark.parametrize("i", range(3))
-def test_seq_to_gap_coords_arr_dispatch_equal(gap_seqs, i, dna_alphabet):
-    """seq_to_gap_coords should return the same gap coords when input is a string/array/bytes"""
+def test_decomposed_gapped_seq_arr_dispatch_equal(gap_seqs, i, dna_alphabet):
+    """decomposed_gapped_seq should return the same gap coords when input is a string/array/bytes"""
     seq_str, _ = gap_seqs[i]
     seq_array = dna_alphabet.to_indices(seq_str)
     seq_bytes = dna_alphabet.array_to_bytes(seq_array)
-    seq_from_str, gaps_from_str = new_alignment.seq_to_gap_coords(
+    seq_from_str, gaps_from_str = new_alignment.decomposed_gapped_seq(
         seq_str, alphabet=dna_alphabet
     )
-    seq_from_array, gaps_from_arr = new_alignment.seq_to_gap_coords(
+    seq_from_array, gaps_from_arr = new_alignment.decomposed_gapped_seq(
         seq_array, alphabet=dna_alphabet
     )
-    seq_from_bytes, gaps_from_bytes = new_alignment.seq_to_gap_coords(
+    seq_from_bytes, gaps_from_bytes = new_alignment.decomposed_gapped_seq(
         seq_bytes, alphabet=dna_alphabet
     )
     assert numpy.array_equal(gaps_from_str, gaps_from_arr)
@@ -2983,11 +2987,11 @@ def test_aligned_seqs_data_init_gapped(
     }
 
     seq_data = {
-        name: new_alignment.seq_to_gap_coords(seq, alphabet=dna_alphabet)[0]
+        name: new_alignment.decomposed_gapped_seq(seq, alphabet=dna_alphabet)[0]
         for name, seq in typed_data.items()
     }
     gap_data = {
-        name: new_alignment.seq_to_gap_coords(seq, alphabet=dna_alphabet)[1]
+        name: new_alignment.decomposed_gapped_seq(seq, alphabet=dna_alphabet)[1]
         for name, seq in typed_data.items()
     }
     asd = new_alignment.AlignedSeqsData(
@@ -3008,11 +3012,11 @@ def test_aligned_seqs_data_unequal_seqlens_raises(data_type, dna_alphabet, dna_m
         _ = new_alignment.AlignedSeqsData.from_seqs(data=data, alphabet=dna_alphabet)
     # directly creating an AlignedSeqsData object should also raise an error
     seq_data = {
-        name: new_alignment.seq_to_gap_coords(seq, alphabet=dna_alphabet)[0]
+        name: new_alignment.decomposed_gapped_seq(seq, alphabet=dna_alphabet)[0]
         for name, seq in data.items()
     }
     gap_data = {
-        name: new_alignment.seq_to_gap_coords(seq, alphabet=dna_alphabet)[1]
+        name: new_alignment.decomposed_gapped_seq(seq, alphabet=dna_alphabet)[1]
         for name, seq in data.items()
     }
     with pytest.raises(ValueError):
@@ -4676,3 +4680,45 @@ def test_indexing_seqs_iter(names_seqs, func):
     got = list(map(str, obj.seqs))
     expect = list(seqs)
     assert got == expect
+
+
+@pytest.mark.parametrize(
+    "gapped_seq",
+    (
+        "ACGGCTA",  # No gaps
+        "AC--GT-AGC",  # With gaps
+        "------",  # All gaps
+        # Edge cases
+        "-A-C-G-T",
+        "A-C-G-T-",
+    ),
+)
+def test_gapped_seq_round_trip(gapped_seq):
+    gapped_seq = new_moltype.DNA.gapped_alphabet.to_indices(gapped_seq)
+    # split into components
+    ungapped_seq, gaps = new_alignment.decompose_gapped_seq(gapped_seq, 4)
+
+    # Recreate the gapped sequence from the ungapped sequence and gaps
+    recreated_gapped_seq = new_alignment.compose_gapped_seq(ungapped_seq, gaps, 4)
+
+    # Test the output of gapped_seq_from_components against the original sequence
+    numpy.testing.assert_array_equal(recreated_gapped_seq, gapped_seq)
+
+
+def test_asd_get_gapped_seq(aligned_dict, dna_alphabet):
+    a_slice = slice(None, 4, 2)
+    seqid = "seq4"
+    orig_seq = aligned_dict[seqid][a_slice]
+    orig_array = dna_alphabet.to_indices(orig_seq)
+    orig_revd = orig_array[::-1]
+
+    asd = new_alignment.AlignedSeqsData.from_seqs(
+        data=aligned_dict, alphabet=new_moltype.DNA.most_degen_alphabet()
+    )
+    view = asd.get_view(seqid)
+    fwd = view[a_slice]
+    rev = fwd[::-1]
+    fwd_gapped = fwd.gapped_array_value
+    numpy.testing.assert_array_equal(fwd_gapped, orig_array)
+    rev_gapped = rev.gapped_array_value
+    numpy.testing.assert_array_equal(rev_gapped, orig_revd)
