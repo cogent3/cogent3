@@ -111,7 +111,7 @@ eps = 1e-6
 # factory functions for identifying whether character set conditions are satsified
 
 
-def AllowedCharacters(chars, is_array=False, negate=False):
+def AllowedCharacters(chars, is_array=False, negate=False):  # ported
     """factory function for evaluating whether a sequence contains only
     the specified gap characters"""
     try:
@@ -2624,7 +2624,7 @@ class AlignmentI(object):
 
         return result
 
-    def take_positions_if(self, f, negate=False):
+    def take_positions_if(self, f, negate=False):  # ported
         """Returns new Alignment containing cols where f(col) is True."""
         return self.take_positions(self.get_position_indices(f, negate=negate))
 
@@ -2755,7 +2755,7 @@ class AlignmentI(object):
         )
         return None if probs is None else probs.entropy()
 
-    def no_degenerates(self, motif_length=1, allow_gap=False):
+    def no_degenerates(self, motif_length=1, allow_gap=False):  # ported
         """returns new alignment without degenerate characters
 
         Parameters
@@ -2783,7 +2783,7 @@ class AlignmentI(object):
         predicate = AllowedCharacters(chars, is_array=False)
         return self.filtered(predicate, motif_length=motif_length)
 
-    def omit_gap_pos(self, allowed_gap_frac=1 - eps, motif_length=1):
+    def omit_gap_pos(self, allowed_gap_frac=1 - eps, motif_length=1):  # ported
         """Returns new alignment where all cols (motifs) have <= allowed_gap_frac gaps.
 
         Parameters
@@ -2940,7 +2940,7 @@ class AlignmentI(object):
         motif_length=1,
         randint=randint,
         permutation=permutation,
-    ):
+    ):  # ported
         """Returns random sample of positions from self, e.g. to bootstrap.
 
         Parameters
@@ -3383,7 +3383,7 @@ class AlignmentI(object):
 
         return result
 
-    def to_type(self, array_align=False, moltype=None, alphabet=None):
+    def to_type(self, array_align=False, moltype=None, alphabet=None):  # will not port
         """returns alignment of type indicated by array_align
 
         Parameters
@@ -3415,7 +3415,9 @@ class AlignmentI(object):
                 moltype = self.moltype
         return klass(data=data, moltype=moltype, info=self.info, names=self.names)
 
-    def distance_matrix(self, calc="pdist", show_progress=False, drop_invalid=False):
+    def distance_matrix(
+        self, calc="pdist", show_progress=False, drop_invalid=False
+    ):  # ported
         """Returns pairwise distances between sequences.
 
         Parameters
@@ -3457,7 +3459,7 @@ class AlignmentI(object):
         drop_invalid=False,
         show_progress=False,
         ui=None,
-    ):
+    ):  # ported
         """
         bootstrap : int or None
             Number of non-parametric bootstrap replicates. Resamples alignment
@@ -3518,7 +3520,7 @@ class AlignmentI(object):
 
     def information_plot(
         self, width=None, height=None, window=None, stat="median", include_gap=True
-    ):
+    ):  # ported
         """plot information per position
 
         Parameters
@@ -3778,7 +3780,9 @@ class AlignmentI(object):
         )
 
     @extend_docstring_from(_SequenceCollectionBase.trim_stop_codons)
-    def trim_stop_codons(self, gc: Any = None, strict: bool = False, **kwargs):
+    def trim_stop_codons(
+        self, gc: Any = None, strict: bool = False, **kwargs
+    ):  # ported
         if not self.has_terminal_stop(gc=gc, strict=strict):
             return self
 
@@ -3807,7 +3811,7 @@ class AlignmentI(object):
     @extend_docstring_from(_SequenceCollectionBase.get_translation)
     def get_translation(
         self, gc=None, incomplete_ok=False, include_stop=False, trim_stop=True, **kwargs
-    ):
+    ):  # ported
         if len(self.moltype.alphabet) != 4:
             raise TypeError("Must be a DNA/RNA")
 
@@ -4677,7 +4681,9 @@ class Alignment(AlignmentI, SequenceCollection):
             seqs.append(selected)
         return self.__class__(moltype=self.moltype, data=seqs, **kwargs)
 
-    def get_projected_feature(self, *, seqid: str, feature: Feature) -> Feature:
+    def get_projected_feature(
+        self, *, seqid: str, feature: Feature
+    ) -> Feature:  # ported
         """returns an alignment feature projected onto the seqid sequence
 
         Parameters
@@ -4749,7 +4755,9 @@ class Alignment(AlignmentI, SequenceCollection):
         return new
 
     @extend_docstring_from(ArrayAlignment.filtered)
-    def filtered(self, predicate, motif_length=1, drop_remainder=True, **kwargs):
+    def filtered(
+        self, predicate, motif_length=1, drop_remainder=True, **kwargs
+    ):  # ported
         length = self.seq_len
         if length % motif_length != 0 and not drop_remainder:
             raise ValueError(
@@ -4952,7 +4960,7 @@ class Alignment(AlignmentI, SequenceCollection):
 
         return self.add_seqs(temp_aln, before_name, after_name)
 
-    def replace_seqs(self, seqs, aa_to_codon=True):
+    def replace_seqs(self, seqs, aa_to_codon=True):  # will not port
         """Returns new alignment with same shape but with data taken from seqs.
 
         Parameters
@@ -5083,7 +5091,7 @@ class Alignment(AlignmentI, SequenceCollection):
         parent_id: Optional[str] = None,
         strand: str = "+",
         on_alignment: Optional[bool] = None,
-    ) -> Feature:
+    ) -> Feature:  # ported
         """
         add feature on named sequence, or on the alignment itself
 
@@ -5141,7 +5149,7 @@ class Alignment(AlignmentI, SequenceCollection):
         *,
         feature: FeatureDataType,
         on_alignment: Optional[bool] = None,
-    ) -> Feature:
+    ) -> Feature:  # ported
         """
         create a feature on named sequence, or on the alignment itself
 
@@ -5190,7 +5198,7 @@ class Alignment(AlignmentI, SequenceCollection):
         biotype: Optional[str] = None,
         name: Optional[str] = None,
         allow_partial: bool = False,
-    ) -> Iterator[Feature]:
+    ) -> Iterator[Feature]:  # ported
         """yields Feature instances
 
         Parameters
@@ -5260,7 +5268,7 @@ class Alignment(AlignmentI, SequenceCollection):
         name: Optional[str] = None,
         on_alignment: Optional[bool] = None,
         allow_partial: bool = False,
-    ) -> Iterator[Feature]:
+    ) -> Iterator[Feature]:  # ported
         """yields Feature instances
 
         Parameters

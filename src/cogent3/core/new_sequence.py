@@ -1372,18 +1372,15 @@ class Sequence:
         # Called by generic __getitem__
         if segment_map.num_spans == 1:
             seq = self._seq[segment_map.start : segment_map.end]
-            offset = segment_map.start
         else:
             segments = self.gapped_by_map_segment_iter(segment_map, allow_gaps=False)
             seq = "".join(segments)
-            offset = 0
 
         return self.__class__(
             moltype=self.moltype,
             seq=seq,
             name=self.name,
             info=self.info,
-            annotation_offset=offset,
         )
 
     def __repr__(self):

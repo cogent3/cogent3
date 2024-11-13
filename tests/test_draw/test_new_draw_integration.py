@@ -118,13 +118,14 @@ def test_dotplot_base_cases(dotplot_seqs):
 
 
 @pytest.mark.parametrize("with_annotations", [True, False])
-def test_dotplot_annotated(annotated_seq, with_annotations):
+@pytest.mark.parametrize(
+    "mk_cls", [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs]
+)
+def test_dotplot_annotated(annotated_seq, with_annotations, mk_cls):
     if not with_annotations:
         annotated_seq.replace_annotation_db(None)  # this drops all annotations
 
-    coll = new_alignment.make_unaligned_seqs(
-        {"c_elegans": annotated_seq}, moltype="dna"
-    )
+    coll = mk_cls({"c_elegans": annotated_seq}, moltype="dna")
     dp = coll.dotplot()
     if with_annotations:
         assert len(dp.figure.data) > 2

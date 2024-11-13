@@ -1255,6 +1255,9 @@ def test_sequence_collection_to_phylip_ragged():
 
 
 @pytest.mark.parametrize(
+    "mk_cls", [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs]
+)
+@pytest.mark.parametrize(
     "gc,seqs",
     (
         (1, ("TCCTGA", "GATTT?")),
@@ -1262,25 +1265,31 @@ def test_sequence_collection_to_phylip_ragged():
         (2, ("GATTTT", "TCCAGG")),
     ),
 )
-def test_sequence_collection_has_terminal_stop_true(gc, seqs):
+def test_sequence_collection_has_terminal_stop_true(gc, seqs, mk_cls):
     data = {f"s{i}": s for i, s in enumerate(seqs)}
-    seq_coll = new_alignment.make_unaligned_seqs(data, moltype="dna")
+    seq_coll = mk_cls(data, moltype="dna")
     assert seq_coll.has_terminal_stop(gc=gc)
 
 
 @pytest.mark.parametrize(
+    "mk_cls", [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs]
+)
+@pytest.mark.parametrize(
     "gc,seqs",
     ((1, ("TCCTCA", "GATTTT")), (2, ("GATTTT", "TCCCGG")), (1, ("CCTCA", "ATTTT"))),
 )
-def test_sequence_collection_has_terminal_stop_false(gc, seqs):
+def test_sequence_collection_has_terminal_stop_false(gc, seqs, mk_cls):
     data = {f"s{i}": s for i, s in enumerate(seqs)}
-    seq_coll = new_alignment.make_unaligned_seqs(data, moltype="dna")
+    seq_coll = mk_cls(data, moltype="dna")
     assert not seq_coll.has_terminal_stop(gc=gc)
 
 
-def test_sequence_collection_has_terminal_stop_strict():
+@pytest.mark.parametrize(
+    "mk_cls", [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs]
+)
+def test_sequence_collection_has_terminal_stop_strict(mk_cls):
     data = {f"s{i}": s for i, s in enumerate(("CCTCA", "ATTTT"))}
-    seq_coll = new_alignment.make_unaligned_seqs(data, moltype="dna")
+    seq_coll = mk_cls(data, moltype="dna")
     with pytest.raises(new_alphabet.AlphabetError):
         seq_coll.has_terminal_stop(gc=1, strict=True)
 
@@ -1639,17 +1648,6 @@ def test_sequence_collection_get_similar(transform):
     assert got.names == ["d"]
 
 
-# todo: kath: add test for Alignment when it can be constructed with Sequence objects
-@pytest.mark.parametrize("coll_maker", [new_alignment.make_unaligned_seqs])
-def test_sequence_collection_init_annotated_seqs(coll_maker):
-    """correctly construct from list with annotated seq"""
-    seq = new_moltype.DNA.make_seq(seq="GCCAGGGGGGAAAG-GGAGAA", name="seq1")
-    seq.add_feature(biotype="exon", name="name", spans=[(4, 10)])
-    coll = coll_maker({"seq1": seq}, moltype="dna")
-    features = list(coll.get_features(biotype="exon"))
-    assert len(features) == 1
-
-
 def test_sequence_collection_get_motif_probs():
     data = {"a": "AC-", "b": "AC", "c": "AC"}
     aln = new_alignment.make_unaligned_seqs(data, moltype="dna")
@@ -1776,65 +1774,6 @@ def test_sequence_collection_counts():
     assert all(got[k] == v for k, v in expect.items())
 
 
-def test_sequence_collection_annotation_db_assign_none():
-    """assigning None to annotation_db breaks conection"""
-    data = {"seq1": "ACGU", "seq2": "CGUA", "test_seq": "CCGU"}
-    seq_coll = new_alignment.make_unaligned_seqs(data, moltype="rna")
-    seq_coll.add_feature(seqid="seq1", biotype="xyz", name="abc", spans=[(1, 2)])
-    seq_coll.add_feature(seqid="seq2", biotype="xyzzz", name="abc", spans=[(1, 2)])
-    assert seq_coll.annotation_db is not None
-    seq_coll.annotation_db = None
-    assert seq_coll.annotation_db is None
-
-
-def test_sequence_collection_annotation_db_assign_same(gff_db):
-    """assigning the same annotation_db"""
-    data = {"test_seq": "ACGT", "test_seq2": "CGTTTA"}
-    seq_coll = new_alignment.make_unaligned_seqs(
-        data, moltype="dna", annotation_db=gff_db
-    )
-    seq_coll.annotation_db = gff_db
-    assert seq_coll.annotation_db is gff_db
-
-
-@pytest.mark.parametrize("coll_maker", [new_alignment.make_unaligned_seqs])
-def test_sequence_collection_get_annotations_from_any_seq(coll_maker):
-    """get_annotations_from_any_seq returns correct annotations"""
-    data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
-    seqs = coll_maker(data, moltype="dna")
-    db = GffAnnotationDb()
-    db.add_feature(seqid="seq1", biotype="exon", name="annotation1", spans=[(3, 8)])
-    db.add_feature(seqid="seq2", biotype="exon", name="annotation2", spans=[(1, 2)])
-    db.add_feature(seqid="seq3", biotype="exon", name="annotation3", spans=[(3, 6)])
-    seqs.annotation_db = db
-    got = list(seqs.get_features())
-    assert len(got) == 3
-    assert "biotype='exon', name='annotation1', map=[3:8]/9" in str(got[0])
-    assert "biotype='exon', name='annotation2', map=[1:2]/9" in str(got[1])
-    assert "biotype='exon', name='annotation3', map=[3:6]/9" in str(got[2])
-
-    got = list(seqs.get_features(name="annotation1"))
-    assert len(got) == 1
-    assert "biotype='exon', name='annotation1', map=[3:8]/9" in str(got[0])
-
-    got = list(seqs.get_features(biotype="exon", name="annotation2"))
-    assert len(got) == 1
-    assert "biotype='exon', name='annotation2', map=[1:2]/9" in str(got[0])
-
-    got = list(seqs.get_features(name="annotation3"))
-    assert len(got) == 1
-    assert "biotype='exon', name='annotation3', map=[3:6]/9" in str(got[0])
-
-
-def test_sequence_collection_add_feature(seqs):
-    _ = seqs.add_feature(seqid="seq1", biotype="xyz", name="abc", spans=[(1, 2)])
-    assert seqs.annotation_db.num_matches() == 1
-
-    # if seqid is not in seqs, raise error
-    with pytest.raises(ValueError):
-        _ = seqs.add_feature(seqid="bad_seq", biotype="xyz", name="abc", spans=[(1, 2)])
-
-
 def test_sequence_collection_make_feature(seqs):
     data = {"seqid": "seq1", "biotype": "xyz", "name": "abc", "spans": [(1, 2)]}
     feat = seqs.make_feature(feature=data)
@@ -1879,54 +1818,6 @@ def test_sequence_collection_get_features(seqs):
         )
 
 
-def test_sequence_collection_copy_annotations(gff_db):
-    """copy_annotations copies records from annotation db"""
-    data = {"seq1": "ACGU", "seq2": "CGUA", "test_seq": "CCGU"}
-    seq_coll = new_alignment.make_unaligned_seqs(data, moltype="rna")
-    seq_coll.add_feature(seqid="seq1", biotype="xyz", name="abc", spans=[(1, 2)])
-    seq_coll.add_feature(seqid="seq2", biotype="xyzzz", name="abc", spans=[(1, 2)])
-    expect = seq_coll.annotation_db.num_matches() + gff_db.num_matches()
-    seq_coll.copy_annotations(gff_db)
-    assert seq_coll.annotation_db.num_matches() == expect
-
-    # copy annotations with no current annotations
-    seq_coll = new_alignment.make_unaligned_seqs(data, moltype="rna")
-    seq_coll.copy_annotations(gff_db)
-    assert seq_coll.annotation_db.num_matches() == gff_db.num_matches()
-
-
-def test_sequence_collection_copy_annotations_same_annotations(gff_db):
-    data = {"seq1": "ACGU", "seq2": "CGUA", "test_seq": "CCGU"}
-    seq_coll = new_alignment.make_unaligned_seqs(data, moltype="rna")
-    seq_coll = new_alignment.make_unaligned_seqs(data, moltype="rna")
-
-    # copy annotations with the same annotation_db
-    seq_coll.annotation_db = gff_db
-    seq_coll.copy_annotations(gff_db)
-
-    assert seq_coll.annotation_db.num_matches() == gff_db.num_matches()
-
-
-def test_sequence_collection_copy_annotations_none_matching(gff_db):
-    """copy annotations should old copy annotations for matching seqids"""
-    data = {"name1": "ACGU", "name2": "CGUA", "name_3": "CCGU"}
-    seq_coll = new_alignment.make_unaligned_seqs(data, moltype="rna")
-    seq_coll.add_feature(seqid="name1", biotype="xyz", name="abc", spans=[(1, 2)])
-    seq_coll.add_feature(seqid="name2", biotype="xyzzz", name="abc", spans=[(1, 2)])
-    expect = seq_coll.annotation_db.num_matches()
-    assert gff_db.num_matches() > 0
-    seq_coll.copy_annotations(gff_db)
-    assert seq_coll.annotation_db.num_matches() == expect
-
-
-def test_sequence_collection_copy_annotations_no_db(gff_db):
-    data = {"seq1": "ACGU", "seq2": "CGUA", "test_seq": "CCGU"}
-    seq_coll = new_alignment.make_unaligned_seqs(data, moltype="rna")
-
-    seq_coll.copy_annotations(gff_db)
-    assert seq_coll.annotation_db.num_matches() == gff_db.num_matches()
-
-
 def test_sequence_collection_get_seq_annotated():
     """SequenceCollection.get_seq should return specified seq"""
 
@@ -1950,18 +1841,6 @@ def _make_seq(name):
     seq.add_feature(biotype="CDS", name="CDS", spans=[cds])
     seq.add_feature(biotype="5'UTR", name="5' UTR", spans=[utr])
     return seq
-
-
-def test_sequence_collection_init_seqs_have_annotations():
-    """annotations on input seqs correctly merged and propagated"""
-    data = {"seq1": _make_seq("seq1"), "seq2": _make_seq("seq2")}
-    seq_coll = new_alignment.make_unaligned_seqs(data, moltype="dna")
-    coll_db = seq_coll.annotation_db
-    assert len(coll_db) == 4
-    for name in seq_coll.names:
-        seq = seq_coll.get_seq(name)
-        db = seq.annotation_db
-        assert db is coll_db
 
 
 @pytest.mark.parametrize("rc", (True, False))
@@ -1998,22 +1877,6 @@ def test_sequence_collection_init_seqs_mixed_rc():
     coll_db = seq_coll.annotation_db
     assert not len(coll_db)
     assert not seq_coll._is_reversed
-
-
-def test_sequence_collection_add_to_seq_updates_coll():
-    """annotating a seq updates the db of the propagated"""
-    data = {
-        "x": "AACCCAAAATTTTTTGGGGGGGGGGCCCC",
-        "y": "AACCCAAAATTTTTTGGGGGGGGGGCCCC",
-    }
-    seq_coll = new_alignment.make_unaligned_seqs(
-        data,
-        moltype="dna",
-    )
-    x = seq_coll.get_seq("x")
-    assert len(seq_coll.annotation_db) == len(x.annotation_db) == 0
-    x.add_feature(biotype="exon", name="E1", spans=[(3, 8)])
-    assert len(seq_coll.annotation_db) == len(x.annotation_db) == 1
 
 
 def test_sequence_collection_copy_annotations_incompat_type_fails(seqcoll_db, seqs):
@@ -4635,6 +4498,116 @@ def test_alignment_offset_sliced(aligned_dict):
     seq = sliced.get_seq("seq1")
     assert seq._seq.offset == 10
     assert seq.annotation_offset == 12
+
+
+@pytest.mark.parametrize("name", ("s1", "s2", "s3"))
+def test_get_seq_with_sliced_aln(name):
+    seqs = {
+        "s1": "GTTGAAGTAGTAGAAGTTCCAAATAATGAA",
+        "s2": "GTG------GTAGAAGTTCCAAATAATGAA",
+        "s3": "GCTGAAGTAGTGGAAGTTGCAAAT---GAA",
+    }
+    aln = new_alignment.make_aligned_seqs(seqs, moltype="dna")
+    start, stop = 1, 5
+    a1 = aln[start:stop]
+
+    seq = a1.get_seq(name)
+    assert isinstance(seq, new_sequence.Sequence), seq
+
+    got = str(seq)
+    expect = seqs[name][start:stop].replace("-", "")
+    assert got == expect, (got, expect)
+
+
+@pytest.mark.parametrize("name", ("s1", "s2", "s3"))
+def test_get_seq_with_sliced_rced_aln(name):
+    seqs = {
+        "s1": "GTTGAAGTAGTAGAAGTTCCAAATAATGAA",
+        "s2": "GTG------GTAGAAGTTCCAAATAATGAA",
+        "s3": "GCTGAAGTAGTGGAAGTTGCAAAT---GAA",
+    }
+    aln = new_alignment.make_aligned_seqs(seqs, moltype="dna")
+    start, stop = 1, 5
+    a1 = aln[start:stop]
+    a1 = a1.rc()
+    got = str(a1.get_seq(name))
+
+    dna = new_moltype.get_moltype("dna")
+    expect = dna.complement(seqs[name][start:stop].replace("-", ""))[::-1]
+    assert got == expect, (got, expect)
+
+
+@pytest.mark.parametrize("name", ("s1", "s2", "s3"))
+def test_get_seq_with_sliced_aln_multiple_spans(name):
+    seqs = {  # the sliced seq has:
+        "s1": "GTTGA--TAGTAGAAGTTCCAAATAATGAA",  # span gap span
+        "s2": "G----TT------AAGTTCCAAATAATGAA",  # gap span gap
+        "s3": "G--GA--TA--GGAAGTTGCAAAT---GAA",  # gap span gap span gap
+    }
+    aln = new_alignment.make_aligned_seqs(seqs, moltype="dna")
+    start, stop = 1, 10
+    a1 = aln[start:stop]
+    seq = a1.get_seq(name)
+    assert isinstance(seq, new_sequence.Sequence), seq
+
+    expect = seqs[name][start:stop].replace("-", "")
+    got = str(seq)
+    assert got == expect, (got, expect)
+
+
+@pytest.mark.parametrize("name", ("s1", "s2", "s3"))
+def test_get_seq_with_sliced_rced_aln_multiple_spans(name):
+    seqs = {  # the sliced seq has:
+        "s1": "GTTGA--TAGTAGAAGTTCCAAATAATGAA",  # span gap span
+        "s2": "G----TT------AAGTTCCAAATAATGAA",  # gap span gap
+        "s3": "G--GA--TA--GGAAGTTGCAAAT---GAA",  # gap span gap span gap
+    }
+    aln = new_alignment.make_aligned_seqs(seqs, moltype="dna")
+    start, stop = 1, 10
+    a1 = aln[start:stop]
+    a1 = a1.rc()
+    got = str(a1.get_seq(name))
+    dna = new_moltype.get_moltype("dna")
+    expect = dna.complement(seqs[name][start:stop].replace("-", ""))[::-1]
+    assert got == expect, (got, expect)
+
+
+@pytest.mark.parametrize("name", ("s1", "s2", "s3"))
+def test_get_gapped_seq_with_sliced_aln(name):
+    seqs = {
+        "s1": "G-TG---TAGTAGAAGTTCCAAATAATGAA",
+        "s2": "GTG------GTAGAAGTTCCAAATAATGAA",
+        "s3": "GC--AAGTAGTGGAAGTTGCAAAT---GAA",
+    }
+    aln = new_alignment.make_aligned_seqs(seqs, moltype="dna")
+    start, stop = 1, 10
+    a1 = aln[start:stop]
+
+    seq = a1.get_gapped_seq(name)
+    assert isinstance(seq, new_sequence.Sequence), seq
+
+    got = str(seq)
+    expect = seqs[name][start:stop]
+    assert got == expect, (got, expect)
+
+
+@pytest.mark.parametrize("name", ("s1", "s2", "s3"))
+def test_aln_rev_slice(name):
+    seqs = {
+        "s1": "AAGGTTCC",
+        "s2": "AAGGTTCC",
+        "s3": "AAGGTTCC",
+    }
+
+    aln = new_alignment.make_aligned_seqs(seqs, moltype="dna")
+    got = aln[5:1]
+    assert not got
+
+    seq = got.get_gapped_seq(name)
+    assert not str(seq)
+
+    seq = got.get_seq(name)
+    assert not str(seq)
 
 
 ## Tests of _IndexableSeqs

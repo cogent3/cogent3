@@ -2665,6 +2665,7 @@ class Aligned:
         self._data = data
         self._moltype = moltype
         self._name = name or data.seqid
+        self._annotation_db = DEFAULT_ANNOTATION_DB()
 
     def __len__(self) -> int:
         return len(self.map)
@@ -2691,15 +2692,20 @@ class Aligned:
             # we need to re-reverse the underlying data AND reverse the Sequence
             # so that the seq knows to complement the data on output
             # we should revisit this design
+
+            # refactor: design
+            # use gapped_array_value in place of gapped_str_value where possible
             seq = self.moltype.degap(self.data.gapped_str_value)[::-1]
             rev = True
         else:
             seq = self.moltype.degap(self.data.gapped_str_value)
-        return (
+        mt_seq = (
             self.moltype.make_seq(seq=seq, name=self.data.seqid)[::-1]
             if rev
             else self.moltype.make_seq(seq=seq, name=self.data.seqid)
         )
+        mt_seq.annotation_db = self.annotation_db
+        return mt_seq
 
     @property
     def gapped_seq(self) -> new_sequence.Sequence:
@@ -2716,6 +2722,17 @@ class Aligned:
     @property
     def name(self) -> str:
         return self._name
+
+    @property
+    def annotation_db(self):
+        return self._annotation_db
+
+    @annotation_db.setter
+    def annotation_db(self, value: SupportsFeatures):
+        if value == self._annotation_db:
+            return
+
+        self._annotation_db = value
 
     def gap_vector(self) -> list[bool]:
         """Returns gap_vector of positions."""
@@ -2756,7 +2773,7 @@ class Aligned:
     @__getitem__.register
     def _(self, span: FeatureMap):
         # we assume the feature map is in align coordinates
-        data, gaps = self._slice_with_map(span)
+        data, gaps = self.slice_with_map(span)
         seqid = self.data.seqid
         seqs_data = self.data.parent.from_seqs_and_gaps(
             seqs={seqid: data},
@@ -2767,13 +2784,16 @@ class Aligned:
 
         return Aligned(view, self.moltype)
 
-    def _slice_with_map(self, span: FeatureMap) -> tuple[numpy.ndarray, numpy.ndarray]:
+    def slice_with_map(self, span: FeatureMap) -> tuple[numpy.ndarray, numpy.ndarray]:
         start, end = span.start, span.end
         if span.useful and len(list(span.spans)) == 1:
             im = self.map[start:end]
             seq_start = self.map.get_seq_index(start)
             seq_end = self.map.get_seq_index(end)
             data = self.data.array_value[seq_start:seq_end]
+            # .array_value will return the data in the correct orientation
+            # which means we need to complement it if the data is reversed
+            data = self.moltype.complement(data) if self.data.is_reversed else data
         elif not span.useful:
             im = self.map[start:end]
             data = self.data.array_value[:0]
@@ -2782,6 +2802,8 @@ class Aligned:
             align_coords = span.get_coordinates()
             im = self.map.joined_segments(align_coords)
             seq_map = self.map.make_seq_feature_map(span)
+            # self.seq will return the data in the correct orientation
+            # and will complement it if the data is reversed
             data = numpy.array(self.seq.gapped_by_map(seq_map))
 
         gaps = numpy.array([im.gap_pos, im.cum_gap_lengths]).T
@@ -2812,9 +2834,20 @@ class Aligned:
             strand,
         )
 
+    @extend_docstring_from(new_sequence.Sequence.annotate_matches_to)
+    def annotate_matches_to(
+        self, pattern: str, biotype: str, name: str, allow_multiple: bool = False
+    ):  # noqa
+        return self.seq.annotate_matches_to(
+            pattern=pattern,
+            biotype=biotype,
+            name=name,
+            allow_multiple=allow_multiple,
+        )
+
     def __repr__(self) -> str:
         # refactor: design
-        # todo: when design is finalised, add tests for this
+        # avoid using map in the repr
         return f"Aligned(map={self.data.map}, data={self.seq})"
 
 
@@ -3389,6 +3422,14 @@ class AlignedDataViewABC(new_sequence.SeqViewABC):
 
     @property
     @abstractmethod
+    def map(self) -> IndelMap: ...
+
+    @property
+    @abstractmethod
+    def slice_record(self) -> new_sequence.SliceRecordABC: ...
+
+    @property
+    @abstractmethod
     def gapped_str_value(self) -> str: ...
 
     @property
@@ -3431,7 +3472,7 @@ class AlignedDataView(new_sequence.SeqViewABC):
         )
 
     @property
-    def slice_record(self):
+    def slice_record(self) -> new_sequence.SliceRecordABC:
         return self._slice_record
 
     @slice_record.setter
@@ -3761,6 +3802,12 @@ class Alignment(SequenceCollection):
     def _(self, index: FeatureMap):
         return self._mapped(index)
 
+    @__getitem__.register
+    def _(self, index: Feature):
+        if index.parent is not self:
+            raise ValueError("This feature applied to the wrong sequence / alignment")
+        return index.get_slice()
+
     def __repr__(self):
         seqs = []
         limit = 10
@@ -3784,9 +3831,11 @@ class Alignment(SequenceCollection):
         return self.array_seqs
 
     def _make_aligned(self, seqid: str) -> Aligned:
-        data = self._seqs_data.get_view(self._name_map.get(seqid, seqid))
-        data.slice_record = self._slice_record
-        return Aligned(data=data, moltype=self.moltype, name=seqid)
+        adv = self._seqs_data.get_view(self._name_map.get(seqid, seqid))
+        adv.slice_record = self._slice_record
+        aligned = Aligned(data=adv, moltype=self.moltype, name=seqid)
+        aligned.annotation_db = self.annotation_db
+        return aligned
 
     @property
     def positions(self):
@@ -4871,6 +4920,115 @@ class Alignment(SequenceCollection):
 
         return self.__class__(seqs_data=seqs_data, info=self.info, **kwargs)
 
+    def make_feature(
+        self,
+        *,
+        feature: FeatureDataType,
+        on_alignment: OptBool = None,
+    ) -> Feature:
+        """
+        create a feature on named sequence, or on the alignment itself
+
+        Parameters
+        ----------
+        feature
+            a dict with all the necessary data rto construct a feature
+        on_alignment
+            the feature is in alignment coordinates, incompatible with setting
+            'seqid'. Set to True if 'seqid' not provided.
+
+        Returns
+        -------
+        Feature
+
+        Raises
+        ------
+        ValueError if define a 'seqid' not on alignment or use 'seqid' and
+        on_alignment.
+
+        Notes
+        -----
+        To get a feature AND add it to annotation_db, use add_feature().
+        """
+        if on_alignment is None:
+            on_alignment = feature.pop("on_alignment", None)
+
+        if not on_alignment and feature["seqid"]:
+            return self.seqs[feature["seqid"]].make_feature(feature, self)
+
+        feature["seqid"] = feature.get("seqid", None)
+        # there's no sequence to bind to, the feature is directly on self
+        revd = feature.pop("strand", None) == "-"
+        feature["strand"] = "-" if revd else "+"
+        fmap = FeatureMap.from_locations(
+            locations=feature.pop("spans"), parent_length=len(self)
+        )
+        if revd:
+            fmap = fmap.nucleic_reversed()
+        return Feature(parent=self, map=fmap, **feature)
+
+    def add_feature(
+        self,
+        *,
+        biotype: str,
+        name: str,
+        spans: List[Tuple[int, int]],
+        seqid: OptStr = None,
+        parent_id: OptStr = None,
+        strand: str = "+",
+        on_alignment: OptBool = None,
+    ) -> Feature:
+        """
+        add feature on named sequence, or on the alignment itself
+
+        Parameters
+        ----------
+        seqid
+            sequence name, incompatible with on_alignment
+        parent_id
+            name of the parent feature
+        biotype
+            biological type, e.g. CDS
+        name
+            name of the feature
+        spans
+            plus strand coordinates of feature
+        strand
+            '+' (default) or '-'
+        on_alignment
+            the feature is in alignment coordinates, incompatible with setting
+            seqid. Set to True if seqid not provided.
+
+        Returns
+        -------
+        Feature
+
+        Raises
+        ------
+        ValueError if define a seqid not on alignment or use seqid and
+        on_alignment.
+        """
+        if seqid and on_alignment is None:
+            on_alignment = False
+        elif not on_alignment:
+            on_alignment = on_alignment is None
+
+        if seqid and on_alignment:
+            raise ValueError("seqid and on_alignment are incomatible")
+
+        if seqid and seqid not in self.names:
+            raise ValueError(f"unknown {seqid=}")
+
+        if not self.annotation_db:
+            self.annotation_db = DEFAULT_ANNOTATION_DB()
+
+        feature = {k: v for k, v in locals().items() if k != "self"}
+
+        self.annotation_db.add_feature(**feature)
+        for discard in ("on_alignment", "parent_id"):
+            feature.pop(discard, None)
+        return self.make_feature(feature=feature, on_alignment=on_alignment)
+
     def _get_seq_features(
         self,
         *,
@@ -5007,6 +5165,39 @@ class Alignment(SequenceCollection):
             # and if i've been reversed...?
             feature["strand"] = "-" if strand == -1 else "+"
             yield self.make_feature(feature=feature, on_alignment=on_al)
+
+    def get_projected_feature(self, *, seqid: str, feature: Feature) -> Feature:
+        """returns an alignment feature projected onto the seqid sequence
+
+        Parameters
+        ----------
+        seqid
+            name of the sequence to project the feature onto
+        feature
+            a Feature, bound to self, that will be projected
+
+        Returns
+        -------
+        a new Feature bound to seqid
+
+        Notes
+        -----
+        The alignment coordinates of feature are converted into the seqid
+        sequence coordinates and the object is bound to that sequence.
+
+        The feature is added to the annotation_db.
+        """
+        target_aligned = self.seqs[seqid]
+        if feature.parent is not self:
+            raise ValueError("Feature does not belong to this alignment")
+        result = feature.remapped_to(target_aligned.seq, target_aligned.map)
+
+        if not self.annotation_db:
+            # todo gah improve bound db initialisation
+            self.annotation_db = DEFAULT_ANNOTATION_DB()
+
+        self.annotation_db.add_feature(**feature.to_dict())
+        return result
 
     def get_drawables(
         self, *, biotype: Optional[str, typing.Iterable[str]] = None
@@ -5622,15 +5813,21 @@ class Alignment(SequenceCollection):
         seqs = {}
         maps = {}
         for aligned in self.seqs:
-            seq, map_data = aligned._slice_with_map(slicemap)
-            seqs[aligned.name] = seq
-            maps[aligned.name] = map_data
+            seq, im = aligned.slice_with_map(slicemap)
+            name = aligned.data.seqid
+            seqs[name] = seq
+            maps[name] = im
 
         data = self._seqs_data.from_seqs_and_gaps(
             seqs=seqs, gaps=maps, alphabet=self.moltype.most_degen_alphabet()
         )
 
-        return self.__class__(seqs_data=data, moltype=self.moltype, info=self.info)
+        return self.__class__(
+            seqs_data=data,
+            moltype=self.moltype,
+            name_map=self._name_map,
+            info=self.info,
+        )
 
 
 @singledispatch
