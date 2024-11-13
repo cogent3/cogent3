@@ -966,7 +966,7 @@ def spans_to_gap_coords(
 @numba.jit
 def _gap_spans(
     gap_pos: IntArrayTypes, cum_gap_lengths: IntArrayTypes
-) -> tuple[IntArrayTypes, IntArrayTypes]:
+) -> tuple[IntArrayTypes, IntArrayTypes]:  # pragma: no cover
     """returns 1D arrays in alignment coordinates of
     gap start, gap stop"""
     if not len(gap_pos):
