@@ -107,7 +107,7 @@ class AlphabetABC(ABC):
     def with_gap_motif(self): ...
 
     @abstractmethod
-    def to_indices(self, seq: str) -> numpy.ndarray: ...
+    def to_indices(self, seq: StrORBytesORArray) -> numpy.ndarray: ...
 
     @abstractmethod
     def from_indices(self, seq: numpy.ndarray) -> str: ...
@@ -329,8 +329,16 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         return seq.astype(self.dtype)
 
     @functools.singledispatchmethod
-    def from_indices(self, seq: numpy.ndarray) -> str:
+    def from_indices(self, seq: StrORBytesORArray) -> str:
         raise TypeError(f"{type(seq)} is invalid")
+
+    @from_indices.register
+    def _(self, seq: str) -> str:
+        return seq
+
+    @from_indices.register
+    def _(self, seq: bytes) -> str:
+        return seq.decode("utf8")
 
     @from_indices.register
     def _(self, seq: numpy.ndarray) -> str:
@@ -750,7 +758,7 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         return monomers.get_kmer_alphabet(self.k, include_gap=True)
 
     @functools.singledispatchmethod
-    def to_index(self, seq) -> numpy.ndarray:
+    def to_index(self, seq) -> int:
         """encodes a k-mer as a single integer
 
         Parameters
@@ -771,17 +779,17 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         raise TypeError(f"{type(seq)} not supported")
 
     @to_index.register
-    def _(self, seq: str) -> numpy.ndarray:
+    def _(self, seq: str) -> int:
         seq = self.monomers.to_indices(seq)
         return self.to_index(seq)
 
     @to_index.register
-    def _(self, seq: bytes) -> numpy.ndarray:
+    def _(self, seq: bytes) -> int:
         seq = self.monomers.to_indices(seq)
         return self.to_index(seq)
 
     @to_index.register
-    def _(self, seq: numpy.ndarray) -> numpy.ndarray:
+    def _(self, seq: numpy.ndarray) -> int:
         assert len(seq) == self.k
         if (self.monomers.num_canonical > seq).all():
             return coord_to_index(seq, self._coeffs)
