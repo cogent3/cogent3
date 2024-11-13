@@ -650,3 +650,27 @@ def test_alpha_no_moltype():
 
 def test_codon_alphabet_moltype(calpha):
     assert calpha.moltype is new_moltype.DNA
+
+
+@pytest.mark.parametrize(
+    "seq",
+    ("GGTAC", "GGTAC".encode("utf8"), numpy.array([3, 3, 0, 2, 1], dtype=numpy.uint8)),
+)
+def test_char_alphabet_to_indices_types(seq):
+    dna = new_moltype.get_moltype("dna")
+    alpha = dna.alphabet
+    got = alpha.to_indices(seq)
+    expect = numpy.array([3, 3, 0, 2, 1], dtype=numpy.uint8)
+    assert_allclose(got, expect)
+
+
+@pytest.mark.parametrize(
+    "seq",
+    ("GGTAC", "GGTAC".encode("utf8"), numpy.array([3, 3, 0, 2, 1], dtype=numpy.uint8)),
+)
+def test_char_alphabet_from_indices_types(seq):
+    dna = new_moltype.get_moltype("dna")
+    alpha = dna.alphabet
+    got = alpha.from_indices(seq)
+    expect = "GGTAC"
+    assert got == expect

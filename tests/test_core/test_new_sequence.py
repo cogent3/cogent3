@@ -2713,3 +2713,12 @@ def test_make_seq_wrong_order_alpha():
     )
     with pytest.raises(new_alphabet.AlphabetError):
         new_sequence._coerce_to_seqview(sv, sv.seqid, new_moltype.DNA.degen_alphabet, 0)
+
+
+@pytest.mark.parametrize(
+    "raw_seq",
+    ("GGTAC", "GGTAC".encode("utf8"), numpy.array([3, 3, 0, 2, 1], dtype=numpy.uint8)),
+)
+def test_make_seq_from_types(raw_seq):
+    seq = new_moltype.DNA.make_seq(seq=raw_seq)
+    assert str(seq) == "GGTAC"
