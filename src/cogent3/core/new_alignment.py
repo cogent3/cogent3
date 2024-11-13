@@ -111,81 +111,51 @@ class _SeqNamer:
         return name
 
 
-class GapsOk:
-    """determine whether number of gaps satisfies allowed_frac"""
+@numba.njit(cache=True)
+def _gap_ok_vector_single(
+    data: numpy.ndarray[numpy.uint8],
+    gap_index: int,
+    missing_index: int,
+    num_allowed: int,
+) -> bool:
+    """returns indicies for which the number of gaps & missing data is less than or equal to num_allowed"""
+    num = 0
+    for i in range(len(data)):
+        if data[i] == gap_index:
+            num += 1
+        elif missing_index is not None and data[i] == missing_index:
+            num += 1
 
-    # refactor: array
-    # possibly convert to using numba jit functions
+        if num > num_allowed:
+            break
 
-    def __init__(
-        self,
-        gap_chars: set,
-        allowed_frac: float = 0,
-        motif_length: int = 1,
-        is_array: bool = False,
-        negate: bool = False,
-        gap_run: bool = False,
-        allowed_run: int = 1,
-    ):
-        """
-        Parameters
-        ----------
-        gap_chars
-            characters corresponding to gaps
-        allowed_frac
-            the threshold gap fraction, ignored if gap_run
-        motif_length
-            used to adjust for the denominator in the gap fraction
-        is_array
-            whether input will be a numpy array
-        negate
-            if False (default) evaluates fraction of gap
-            characters <= allowed_frac, if True, >= allowed_frac
-        gap_run
-            check for runs of gaps
-        allowed_run
-            length of the allowed gap run
+    return num <= num_allowed
 
-        """
-        self.motif_length = motif_length
-        self.is_array = is_array
-        self.allowed_frac = allowed_frac
-        self.allowed_run = allowed_run
-        if gap_run:
-            self._func = self.gap_run_ok
-        elif negate:
-            self._func = self.gap_frac_not_ok
-        else:
-            self._func = self.gap_frac_ok
 
-        try:
-            self.gap_chars = set(gap_chars)
-        except TypeError:
-            self.gap_chars = {gap_chars}
+@numba.njit(cache=True)
+def _gap_ok_vector_multi(
+    motifs: numpy.ndarray,
+    gap_index: int,
+    missing_index: int,
+    motif_length: int,
+    num_allowed: int,
+) -> numpy.ndarray[bool]:
+    """returns indicies for which the number of gaps & missing data in a vector of motifs is less than or equal to num_allowed"""
+    num = 0
+    for motif in motifs:
+        for j in range(motif_length):
+            if (
+                motif[j] == gap_index
+                or missing_index is not None
+                and motif[j] == missing_index
+            ):
+                num += 1
+                break
 
-    def _get_gap_frac(self, data: tuple[str, ...]) -> float:
-        length = len(data) * self.motif_length
-        # flatten the data and count elements equal to gap
-        if self.is_array:
-            data = Counter(data.flatten())
-        else:
-            data = Counter("".join([str(d) for d in data]))
+        if num > num_allowed:
+            break
 
-        num_gap = sum(data[g] for g in self.gap_chars)
-        return num_gap / length
-
-    def gap_frac_ok(self, data: tuple[str, ...]) -> bool:
-        """fraction of gap characters <= allowed_frac"""
-        gap_frac = self._get_gap_frac(data)
-        return gap_frac <= self.allowed_frac
-
-    def gap_frac_not_ok(self, data: tuple[str, ...]) -> bool:
-        """fraction of gap characters >= allowed_frac"""
-        gap_frac = self._get_gap_frac(data)
-        return gap_frac >= self.allowed_frac
-
-    def __call__(self, data: Union[tuple[str, ...], str]):
-        return self._func(data)
+    return num <= num_allowed
 
 
 class SeqDataView(new_sequence.SeqView):
@@ -2557,7 +2527,40 @@ def decompose_gapped_seq(
     )
 
 
-@numba.jit
+@decompose_gapped_seq.register
+def _(
+    seq: numpy.ndarray,
+    *,
+    alphabet: new_alphabet.AlphabetABC,
+) -> tuple[numpy.ndarray, numpy.ndarray]:
+    return decompose_gapped_seq_array(seq.astype(alphabet.dtype), alphabet.gap_index)
+
+
+@decompose_gapped_seq.register
+def _(
+    seq: str, *, alphabet: new_alphabet.AlphabetABC
+) -> tuple[numpy.ndarray, numpy.ndarray]:
+    if not alphabet.is_valid(seq):
+        raise new_alphabet.AlphabetError(f"Sequence is invalid for alphabet {alphabet}")
+
+    return decompose_gapped_seq(alphabet.to_indices(seq), alphabet=alphabet)
+
+
+@decompose_gapped_seq.register
+def _(
+    seq: bytes, *, alphabet: new_alphabet.AlphabetABC
+) -> tuple[numpy.ndarray, numpy.ndarray]:
+    return decompose_gapped_seq(seq.decode("utf-8"), alphabet=alphabet)
+
+
+@decompose_gapped_seq.register
+def _(
+    seq: new_sequence.Sequence, *, alphabet: new_alphabet.AlphabetABC
+) -> tuple[numpy.ndarray, numpy.ndarray]:
+    return decompose_gapped_seq(numpy.array(seq), alphabet=alphabet)
+
+
+@numba.jit(cache=True)
 def decompose_gapped_seq_array(
     seq: numpy.ndarray,
     gap_index: int,
@@ -2620,7 +2623,7 @@ def decompose_gapped_seq_array(
     return ungapped, gap_coords
 
 
-@numba.jit
+@numba.jit(cache=True)
 def compose_gapped_seq(
     ungapped_seq: numpy.ndarray, gaps: numpy.ndarray, gap_index: int
 ) -> numpy.ndarray:  # pragma: no cover
@@ -2651,39 +2654,6 @@ def compose_gapped_seq(
     gapped_seq[pos:] = ungapped_seq[ungapped_pos:]
 
     return gapped_seq
-
-
-@decompose_gapped_seq.register
-def _(
-    seq: numpy.ndarray,
-    *,
-    alphabet: new_alphabet.AlphabetABC,
-) -> tuple[numpy.ndarray, numpy.ndarray]:
-    return decompose_gapped_seq_array(seq.astype(alphabet.dtype), alphabet.gap_index)
-
-
-@decompose_gapped_seq.register
-def _(
-    seq: str, *, alphabet: new_alphabet.AlphabetABC
-) -> tuple[numpy.ndarray, numpy.ndarray]:
-    if not alphabet.is_valid(seq):
-        raise new_alphabet.AlphabetError(f"Sequence is invalid for alphabet {alphabet}")
-
-    return decompose_gapped_seq(alphabet.to_indices(seq), alphabet=alphabet)
-
-
-@decompose_gapped_seq.register
-def _(
-    seq: bytes, *, alphabet: new_alphabet.AlphabetABC
-) -> tuple[numpy.ndarray, numpy.ndarray]:
-    return decompose_gapped_seq(seq.decode("utf-8"), alphabet=alphabet)
-
-
-@decompose_gapped_seq.register
-def _(
-    seq: new_sequence.Sequence, *, alphabet: new_alphabet.AlphabetABC
-) -> tuple[numpy.ndarray, numpy.ndarray]:
-    return decompose_gapped_seq(numpy.array(seq), alphabet=alphabet)
 
 
 class Aligned:
@@ -2748,7 +2718,7 @@ class Aligned:
         return self._name
 
     def gap_vector(self) -> list[bool]:
-        """Returns gap_vector of GappedSeq, for omit_gap_pos."""
+        """Returns gap_vector of positions."""
         return self.gapped_seq.gap_vector()
 
     def make_feature(self, feature: FeatureDataType, alignment: "Alignment") -> Feature:
@@ -4572,6 +4542,31 @@ class Alignment(SequenceCollection):
             seqs_data=aligned_seqs_data, info=self.info, moltype=self.moltype
         )
 
+    def _omit_gap_pos_single(
+        self, gap_index: int, missing_index: OptInt, allowed_num: int
+    ) -> numpy.ndarray[bool]:
+        # for motif_length == 1
+        indices = numpy.empty(len(self), dtype=bool)
+        for i, col in enumerate(self.array_seqs.T):
+            indices[i] = _gap_ok_vector_single(
+                col, gap_index, missing_index, allowed_num
+            )
+        return indices
+
+    def _omit_gap_pos_multi(
+        self, gap_index: int, missing_index: OptInt, allowed_num: int, motif_length: int
+    ) -> numpy.ndarray[bool]:
+        # for motif_length > 1
+        num_motifs = len(self) // motif_length
+        indices = numpy.empty(num_motifs * motif_length, dtype=bool)
+        for i in range(0, len(self), motif_length):
+            col = self.array_seqs.T[i : i + motif_length].T
+            ok = _gap_ok_vector_multi(
+                col, gap_index, missing_index, motif_length, allowed_num
+            )
+            indices[i : i + motif_length] = ok
+        return indices
+
     def omit_gap_pos(self, allowed_gap_frac: float = 1 - EPS, motif_length: int = 1):
         """Returns new alignment where all cols (motifs) have <= allowed_gap_frac gaps.
 
@@ -4585,15 +4580,33 @@ class Alignment(SequenceCollection):
             A motif that includes a gap at any position is included in the
             counting.
         """
+        alpha = self.moltype.most_degen_alphabet()
+        gap_index = alpha.gap_index
+        missing_index = alpha.missing_index
+        if not gap_index or not missing_index:
+            return self
 
-        gaps = list(self.moltype.gaps)
+        allowed_num = int(numpy.floor(self.num_seqs * allowed_gap_frac))
 
-        # redesign: use array methods
-        gaps_ok = GapsOk(
-            gaps, allowed_gap_frac, is_array=False, motif_length=motif_length
+        # we are assuming gap and missing data have same value on other strand
+        positions = self.array_positions
+        if motif_length == 1:
+            indices = self._omit_gap_pos_single(gap_index, missing_index, allowed_num)
+        else:
+            positions = positions[: motif_length * (len(positions) // motif_length)]
+            indices = self._omit_gap_pos_multi(
+                gap_index, missing_index, allowed_num, motif_length
+            )
+        selected = positions[indices, :].T
+
+        aligned_seqs_data = self._seqs_data.from_names_and_array(
+            names=self.names, data=selected, alphabet=alpha
         )
-
-        return self.filtered(gaps_ok, motif_length=motif_length)
+        kwargs = self._get_init_kwargs()
+        kwargs["seqs_data"] = aligned_seqs_data
+        # slice record now needs to be reset since we likely have disjoint positions
+        kwargs.pop("slice_record", None)
+        return self.__class__(**kwargs)
 
     def has_terminal_stop(self, gc: Any = None, strict: bool = False) -> bool:
         """Returns True if any sequence has a terminal stop codon.

@@ -4513,7 +4513,8 @@ def test_omit_gap_pos():
     new_aln = aln.add_seqs({"d": "-------", "e": "XYZXYZX", "f": "AB-CDEF"})
 
     # if no gaps are allowed, we get None
-    assert new_aln.omit_gap_pos(0) is None
+    got = new_aln.omit_gap_pos(0)
+    assert not len(got)
 
 
 @pytest.fixture(scope="session")
