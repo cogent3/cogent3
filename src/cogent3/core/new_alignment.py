@@ -117,7 +117,7 @@ def _gap_ok_vector_single(
     gap_index: int,
     missing_index: int,
     num_allowed: int,
-) -> bool:
+) -> bool:  # pragma: no cover
     """returns indicies for which the number of gaps & missing data is less than or equal to num_allowed"""
     num = 0
     for i in range(len(data)):
@@ -139,7 +139,7 @@ def _gap_ok_vector_multi(
     missing_index: int,
     motif_length: int,
     num_allowed: int,
-) -> numpy.ndarray[bool]:
+) -> numpy.ndarray[bool]:  # pragma: no cover
     """returns indicies for which the number of gaps & missing data in a vector of motifs is less than or equal to num_allowed"""
     num = 0
     for motif in motifs:
@@ -4583,7 +4583,7 @@ class Alignment(SequenceCollection):
         alpha = self.moltype.most_degen_alphabet()
         gap_index = alpha.gap_index
         missing_index = alpha.missing_index
-        if not gap_index or not missing_index:
+        if not gap_index and not missing_index:
             return self
 
         allowed_num = int(numpy.floor(self.num_seqs * allowed_gap_frac))

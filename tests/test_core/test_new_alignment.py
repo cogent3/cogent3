@@ -4517,6 +4517,15 @@ def test_omit_gap_pos():
     assert not len(got)
 
 
+def test_omit_gap_pos_no_gap_moltype():
+    """if moltype does not support gap, just returns self"""
+    aln = new_alignment.make_aligned_seqs(
+        {"a": "--A-BC-", "b": "-CB-A--", "c": "--D-EF-"}, moltype="bytes"
+    )
+    got = aln.omit_gap_pos()
+    assert got is aln
+
+
 @pytest.fixture(scope="session")
 def brca1_data():
     return load_aligned_seqs("data/brca1.fasta", moltype="dna", new_type=True).to_dict()
