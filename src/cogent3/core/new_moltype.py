@@ -721,9 +721,7 @@ class MolType:
 
         alpha = self.most_degen_alphabet()
         seq = alpha.to_indices(seq)
-        for index, val in enumerate(alpha):
-            if include_gap and val in self.gap or val in self.ambiguities:
-                break
+        index = len(self) if include_gap else len(self) + 1
         degens = seq >= index
         return numpy.where(degens)[0].tolist()
 

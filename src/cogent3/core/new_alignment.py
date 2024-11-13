@@ -2686,6 +2686,9 @@ class Aligned:
             # we need to re-reverse the underlying data AND reverse the Sequence
             # so that the seq knows to complement the data on output
             # we should revisit this design
+
+            # refactor: design
+            # use gapped_array_value in place of gapped_str_value where possible
             seq = self.moltype.degap(self.data.gapped_str_value)[::-1]
             rev = True
         else:
@@ -2838,7 +2841,7 @@ class Aligned:
 
     def __repr__(self) -> str:
         # refactor: design
-        # todo: when design is finalised, add tests for this
+        # avoid using map in the repr
         return f"Aligned(map={self.data.map}, data={self.seq})"
 
 
@@ -3456,6 +3459,14 @@ class AlignedDataViewABC(new_sequence.SeqViewABC):
 
     @property
     @abstractmethod
+    def map(self) -> IndelMap: ...
+
+    @property
+    @abstractmethod
+    def slice_record(self) -> new_sequence.SliceRecordABC: ...
+
+    @property
+    @abstractmethod
     def gapped_str_value(self) -> str: ...
 
     @property
@@ -3498,7 +3509,7 @@ class AlignedDataView(new_sequence.SeqViewABC):
         )
 
     @property
-    def slice_record(self):
+    def slice_record(self) -> new_sequence.SliceRecordABC:
         return self._slice_record
 
     @slice_record.setter
