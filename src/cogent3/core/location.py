@@ -1087,7 +1087,7 @@ def seq_to_align_index(
     num_gaps: int,
     seq_index: int,
     slice_stop: bool = False,
-) -> int:
+) -> int:  # pragma: no cover
     """convert a sequence index into an alignment index
 
     Parameters
@@ -1142,7 +1142,7 @@ def align_to_seq_index(
     len_aligned: int,
     num_gaps: int,
     align_index: int,
-) -> int:
+) -> int:  # pragma: no cover
     """converts alignment index to sequence index"""
     # NOTE I explicitly cast all returned values to python int's due to
     # need for json serialisation, which does not support numpy int classes
