@@ -575,7 +575,8 @@ class MolType:
             assert self.is_valid(
                 seq
             ), f"{seq[:4]!r} not valid for moltype {self.name!r}"
-        return self._make_seq(moltype=self, seq=seq or "", name=name, **kwargs)
+        seq = "" if seq is None else seq
+        return self._make_seq(moltype=self, seq=seq, name=name, **kwargs)
 
     @functools.singledispatchmethod
     def complement(self, seq: StrORBytesORArray, validate: bool = True) -> str:

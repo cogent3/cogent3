@@ -2597,7 +2597,7 @@ class SeqView(SeqViewABC):
     def __init__(
         self,
         *,
-        parent: typing.Union[str, "SeqsDataABC"],
+        parent: StrORBytesORArray,
         alphabet: new_alphabet.AlphabetABC,
         seqid: OptStr = None,
         parent_len: OptInt = None,
@@ -2640,15 +2640,24 @@ class SeqView(SeqViewABC):
             "slice_record": self.slice_record,
         }
 
+    # DESIGN NOTE
+    # alphabet.to_indices() and alphabet.from_indices() cope with most primitive
+    # types that parent may be
     @property
     def str_value(self):
-        return self.parent[
-            self.slice_record.start : self.slice_record.stop : self.slice_record.step
-        ]
+        return self.alphabet.from_indices(
+            self.parent[
+                self.slice_record.start : self.slice_record.stop : self.slice_record.step
+            ]
+        )
 
     @property
     def array_value(self):
-        return self.alphabet.to_indices(self.str_value)
+        return self.alphabet.to_indices(
+            self.parent[
+                self.slice_record.start : self.slice_record.stop : self.slice_record.step
+            ]
+        )
 
     @property
     def bytes_value(self):
@@ -2745,7 +2754,9 @@ class SeqView(SeqViewABC):
 
 
 @singledispatch
-def _coerce_to_seqview(data, seqid, alphabet, offset) -> SeqViewABC:
+def _coerce_to_seqview(
+    data, seqid: str, alphabet: new_alphabet.AlphabetABC, offset: int
+) -> SeqViewABC:
     from cogent3.core.alignment import Aligned
     from cogent3.core.sequence import Sequence as old_Sequence
     from cogent3.core.sequence import SeqView as old_SeqView
@@ -2756,7 +2767,9 @@ def _coerce_to_seqview(data, seqid, alphabet, offset) -> SeqViewABC:
 
 
 @_coerce_to_seqview.register
-def _(data: SeqViewABC, seqid, alphabet, offset) -> SeqViewABC:
+def _(
+    data: SeqViewABC, seqid: str, alphabet: new_alphabet.AlphabetABC, offset: int
+) -> SeqViewABC:
     # we require the indexes of shared states in alphabets to be the same
     # SeqView has an alphabet but SeqViewABC does NOT because that is
     # more general and covers the case where the SeqsData collection has the
@@ -2778,26 +2791,48 @@ def _(data: SeqViewABC, seqid, alphabet, offset) -> SeqViewABC:
 
 
 @_coerce_to_seqview.register
-def _(data: Sequence, seqid, alphabet, offset) -> SeqViewABC:
+def _(
+    data: Sequence, seqid: str, alphabet: new_alphabet.AlphabetABC, offset: int
+) -> SeqViewABC:
     return _coerce_to_seqview(data._seq, seqid, alphabet, offset)
 
 
 @_coerce_to_seqview.register
-def _(data: str, seqid, alphabet, offset) -> SeqViewABC:
+def _(
+    data: str, seqid: str, alphabet: new_alphabet.AlphabetABC, offset: int
+) -> SeqViewABC:
     return SeqView(parent=data, seqid=seqid, alphabet=alphabet, offset=offset)
 
 
 @_coerce_to_seqview.register
-def _(data: bytes, seqid, alphabet, offset) -> SeqViewABC:
+def _(
+    data: bytes, seqid: str, alphabet: new_alphabet.AlphabetABC, offset: int
+) -> SeqViewABC:
     data = data.decode("utf8")
     return SeqView(parent=data, seqid=seqid, alphabet=alphabet, offset=offset)
 
 
 @_coerce_to_seqview.register
-def _(data: tuple, seqid, alphabet, offset) -> SeqViewABC:
+def _(
+    data: numpy.ndarray, seqid: str, alphabet: new_alphabet.AlphabetABC, offset: int
+) -> SeqViewABC:
+    return SeqView(
+        parent=data.astype(alphabet.dtype),
+        seqid=seqid,
+        alphabet=alphabet,
+        offset=offset,
+    )
+
+
+@_coerce_to_seqview.register
+def _(
+    data: tuple, seqid: str, alphabet: new_alphabet.AlphabetABC, offset: int
+) -> SeqViewABC:
     return _coerce_to_seqview("".join(data), seqid, alphabet, offset)
 
 
 @_coerce_to_seqview.register
-def _(data: list, seqid, alphabet, offset) -> SeqViewABC:
+def _(
+    data: list, seqid: str, alphabet: new_alphabet.AlphabetABC, offset: int
+) -> SeqViewABC:
     return _coerce_to_seqview("".join(data), seqid, alphabet, offset)

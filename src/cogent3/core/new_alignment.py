@@ -2742,7 +2742,7 @@ class Aligned:
     @property
     def gapped_seq(self) -> new_sequence.Sequence:
         """Returns Sequence object, including gaps."""
-        seq = self.data.gapped_str_value
+        seq = self.data.gapped_array_value
         if self.data.slice_record.step < 0:
             seq = self.moltype.complement(seq)
         return self.moltype.make_seq(seq=seq, name=self.data.seqid)
