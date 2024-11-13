@@ -3842,7 +3842,7 @@ class Alignment(SequenceCollection):
     @__getitem__.register
     def _(self, index: Feature):
         if index.parent is not self:
-            raise ValueError(f"feature.parent {index.seqid!r} is not self")
+            raise ValueError("This feature applied to the wrong sequence / alignment")
         return index.get_slice()
 
     def __repr__(self):
