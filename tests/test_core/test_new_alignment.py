@@ -4513,7 +4513,17 @@ def test_omit_gap_pos():
     new_aln = aln.add_seqs({"d": "-------", "e": "XYZXYZX", "f": "AB-CDEF"})
 
     # if no gaps are allowed, we get None
-    assert new_aln.omit_gap_pos(0) is None
+    got = new_aln.omit_gap_pos(0)
+    assert not len(got)
+
+
+def test_omit_gap_pos_no_gap_moltype():
+    """if moltype does not support gap, just returns self"""
+    aln = new_alignment.make_aligned_seqs(
+        {"a": "--A-BC-", "b": "-CB-A--", "c": "--D-EF-"}, moltype="bytes"
+    )
+    got = aln.omit_gap_pos()
+    assert got is aln
 
 
 @pytest.fixture(scope="session")
