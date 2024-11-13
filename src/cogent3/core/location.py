@@ -1092,6 +1092,14 @@ def seq_to_align_index(
 
     Parameters
     ----------
+    gap_pos
+        array of gap positions in sequence coordinates
+    cum_lengths
+        array of cumulative gap lengths
+    parent_length
+        length of parent sequence (i.e. aligned sequence without gaps)
+    num_gaps
+        the number of gaps
     seq_index
         coordinate on the sequence, must be < parent_length
     slice_stop
@@ -1101,6 +1109,7 @@ def seq_to_align_index(
     """
     # NOTE I explicitly cast all returned values to python int's due to
     # need for json serialisation, which does not support numpy int classes
+    assert len(gap_pos) == len(cum_lengths) == num_gaps
     if seq_index < 0:
         seq_index += parent_length
 
@@ -1110,7 +1119,7 @@ def seq_to_align_index(
     if not num_gaps or seq_index < gap_pos[0]:
         return int(seq_index)
 
-    # if stop_index, check if the seq_index corresponds to a gap position
+    # if slice_stop, check if the seq_index corresponds to a gap position
     match = seq_index == gap_pos
     if slice_stop and match.any():
         # if so, we return the alignment coord for the first gap position
@@ -1143,7 +1152,22 @@ def align_to_seq_index(
     num_gaps: int,
     align_index: int,
 ) -> int:  # pragma: no cover
-    """converts alignment index to sequence index"""
+    """converts alignment index to sequence index
+
+    Parameters
+    ----------
+    gap_pos
+        array of gap positions in sequence coordinates
+    cum_lengths
+        array of cumulative gap lengths
+    len_aligned
+        length of aligned sequence
+    num_gaps
+        the number of gaps
+    align_index
+        coordinate on the alignment, must be < len_aligned
+    """
+    assert len(gap_pos) == len(cum_lengths) == num_gaps
     # NOTE I explicitly cast all returned values to python int's due to
     # need for json serialisation, which does not support numpy int classes
     if align_index < 0:
@@ -1190,7 +1214,7 @@ class IndelMap(MapABC):
         if ``True``, returns new instance with terminal gaps indicated as
         unknown character '?'
     parent_length
-        length of parent sequence (i.e. aligned sequence with gaps)
+        length of parent sequence (i.e. aligned sequence without gaps)
     """
 
     # gap data is gap positions, gap lengths on input, stored
