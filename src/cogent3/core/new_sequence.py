@@ -136,6 +136,15 @@ class Sequence:
     Sequences should be constructed by a MolType instance.
     """
 
+    __slots__ = (
+        "moltype",
+        "name",
+        "_seq",
+        "info",
+        "_repr_policy",
+        "_annotation_db",
+    )
+
     def __init__(
         self,
         moltype: "MolType",
@@ -144,6 +153,7 @@ class Sequence:
         name: OptStr = None,
         info: typing.Optional[typing.Union[dict, InfoClass]] = None,
         annotation_offset: int = 0,
+        annotation_db: typing.Optional[SupportsFeatures] = None,
     ):
         """Initialize a sequence.
 
@@ -159,6 +169,13 @@ class Sequence:
             Info object or dict
         annotation_offset
             integer indicating start position relative to annotations
+        annotation_db
+            optional annotation database
+
+        Notes
+        -----
+        If a user attempts to add a feature and the annotation_db is None,
+        a default BasicAnnotationDb instance will be created and used.
         """
         self.moltype = moltype
         self.name = name
@@ -169,7 +186,7 @@ class Sequence:
         info = info or {}
         self.info = InfoClass(**info)
         self._repr_policy = dict(num_pos=60)
-        self._annotation_db = DEFAULT_ANNOTATION_DB()
+        self._annotation_db = annotation_db
 
     def __str__(self):
         result = str(self._seq)
@@ -1050,6 +1067,11 @@ class Sequence:
 
         return r_spans
 
+    def _init_annotation_db(self) -> None:
+        """initialise a default type annotation db if not already set"""
+        if self._annotation_db is None:
+            self._annotation_db = DEFAULT_ANNOTATION_DB()
+
     def make_feature(self, feature: FeatureDataType, *args) -> Feature:
         """
         return an Feature instance from feature data
@@ -1164,6 +1186,8 @@ class Sequence:
             seqid=self.name,
             **{n: v for n, v in locals().items() if n not in ("self", "seqid")},
         )
+        if self._annotation_db is None:
+            self._init_annotation_db()
 
         self.annotation_db.add_feature(**feature_data)
         for discard in ("on_alignment", "parent_id"):
@@ -1952,8 +1976,12 @@ class NucleicAcidSequenceMixin:
         ------
         AlphabetError if include_stop is False and a stop codon occurs
         """
-
         from cogent3.core import new_genetic_code, new_moltype
+
+        if not self.moltype.is_nucleic:
+            raise new_moltype.MolTypeError(
+                f"moltype must be a DNA/RNA, not {self.moltype.name!r}"
+            )
 
         protein = new_moltype.get_moltype(
             "protein_with_stop" if include_stop else "protein"

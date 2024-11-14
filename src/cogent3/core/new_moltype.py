@@ -622,6 +622,17 @@ class MolType:
             )
         )
 
+    @property
+    def is_nucleic(self) -> bool:
+        """is a nucleic acid moltype
+
+        Notes
+        -----
+        nucleic moltypes can be used for complementing and translating
+        into amino acids.
+        """
+        return callable(self._complement)
+
     def rc(self, seq: str, validate: bool = True) -> str:
         """reverse reverse complement of a sequence"""
         if validate and not self.is_valid(seq):

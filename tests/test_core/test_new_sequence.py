@@ -9,6 +9,7 @@ import pytest
 
 import cogent3
 from cogent3._version import __version__
+from cogent3.core import annotation_db as anndb_module
 from cogent3.core import new_alphabet, new_genetic_code, new_moltype, new_sequence
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.misc import get_object_provenance
@@ -881,11 +882,31 @@ def test_is_annotated_biotype(biotype):
     assert s.is_annotated(biotype=biotype)
 
 
+def test_annotation_defaults():
+    s = new_moltype.DNA.make_seq(seq="AC", name="s1")
+    assert s.annotation_db is None
+    s._init_annotation_db()
+    assert isinstance(s.annotation_db, anndb_module.SupportsFeatures)
+
+
+def test_init_with_annotationdb():
+    anndb = anndb_module.GffAnnotationDb()
+    s = new_moltype.DNA.make_seq(seq="AC", name="s1", annotation_db=anndb)
+    assert isinstance(s.annotation_db, anndb_module.GffAnnotationDb)
+    assert s.annotation_db is anndb
+
+
+def test_init_with_annotation_offset():
+    s = new_moltype.DNA.make_seq(seq="AC", name="s1", annotation_offset=2)
+    assert s.annotation_offset == 2
+
+
 def test_not_is_annotated():
     """is_annotated operates correctly"""
     s = new_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG", name="s1")
     assert not s.is_annotated()
     # annotation on different seq
+    s._init_annotation_db()
     s.annotation_db.add_feature(
         seqid="s2", biotype="gene", name="blah", spans=[(0, 10)]
     )
