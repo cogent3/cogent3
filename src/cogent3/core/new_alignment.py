@@ -277,11 +277,11 @@ class SeqsDataABC(ABC):
     ): ...
 
     @abstractmethod
-    def seq_lengths(self) -> dict[str, int]: ...
+    def get_seq_length(self, seqid: str) -> int: ...
 
     @property
     @abstractmethod
-    def names(self) -> list: ...
+    def names(self) -> tuple: ...
 
     @property
     @abstractmethod
@@ -395,9 +395,9 @@ class SeqsData(SeqsDataABC):
     def offset(self) -> dict[str, int]:
         return {name: self._offset.get(name, 0) for name in self.names}
 
-    def seq_lengths(self) -> dict[str, int]:
-        """Returns lengths of sequences as dict of {name: length, ... }."""
-        return {name: seq.shape[0] for name, seq in self._data.items()}
+    def get_seq_length(self, seqid: str) -> int:
+        """return length for seqid"""
+        return self._data[seqid].shape[0]
 
     def get_seq_array(
         self, *, seqid: str, start: OptInt = None, stop: OptInt = None
@@ -1753,7 +1753,9 @@ class SequenceCollection:
             length if pad_length is None or less than max length.
         """
 
-        max_len = max(self._seqs_data.seq_lengths().values())
+        max_len = max(
+            self._seqs_data.get_seq_length(n) for n in self._name_map.values()
+        )
 
         if pad_length is None:
             pad_length = max_len
@@ -1791,7 +1793,10 @@ class SequenceCollection:
         return {s.name: s.strand_symmetry(motif_length=motif_length) for s in self.seqs}
 
     def is_ragged(self) -> bool:
-        return len(set(self._seqs_data.seq_lengths().values())) > 1
+        return (
+            len(set(self._seqs_data.get_seq_length(n) for n in self._name_map.values()))
+            > 1
+        )
 
     def has_terminal_stop(self, gc: Any = None, strict: bool = False) -> bool:
         """Returns True if any sequence has a terminal stop codon.
@@ -2054,7 +2059,9 @@ class SequenceCollection:
             colors=colors, font_size=font_size, font_family=font_family
         )
 
-        seq_lengths = numpy.array(list(self._seqs_data.seq_lengths().values()))
+        seq_lengths = numpy.array(
+            list(self._seqs_data.get_seq_length(n) for n in self._name_map.values())
+        )
         min_val = seq_lengths.min()
         max_val = seq_lengths.max()
         med_val = numpy.median(seq_lengths)
@@ -3194,11 +3201,9 @@ class AlignedSeqsData(AlignedSeqsDataABC):
     def _(self, index: int):
         return self[self.names[index]]
 
-    def seq_lengths(self) -> dict[str, int]:
-        """Returns lengths of ungapped sequences as dict of {name: length, ... }."""
-        # refactor: design
-        # change to method get_seq_length(name) so API is not too closely tied to implementation
-        return {name: len(seq) for name, seq in self._seqs.items()}
+    def get_seq_length(self, seqid: str) -> int:
+        """return length of the unaligned seq for seqid"""
+        return len(self._seqs[seqid])
 
     @singledispatchmethod
     def get_view(self, seqid: str):
@@ -3521,7 +3526,7 @@ class AlignedDataView(new_sequence.SeqViewABC):
         return IndelMap(
             gap_pos=gap_pos,
             cum_gap_lengths=cum_gap_lengths,
-            parent_length=self.parent.seq_lengths()[self.seqid],
+            parent_length=self.parent.get_seq_length(self.seqid),
         )
 
     @property
@@ -3643,7 +3648,7 @@ class AlignedDataView(new_sequence.SeqViewABC):
         # we want the parent coordinates in sequence coordinates
         # parent_seq_coords does not account for the stride
         seqid, start, stop, _ = self.parent_seq_coords()
-        parent_len = self.parent.seq_lengths()[seqid]
+        parent_len = self.parent.get_seq_length(seqid)
         offset = self.parent.offset.get(seqid)
         sr = new_sequence.SliceRecord(
             start=start,

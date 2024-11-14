@@ -259,29 +259,24 @@ def test_seqs_data_names(str_seqs_dict, dna_alphabet):
     assert list(got) == list(expect)
 
 
-def test_seqs_data_seq_lengths(str_seqs_dict, arr_seqs_dict, dna_alphabet):
-    expect = {k: len(v) for k, v in str_seqs_dict.items()}
-    sd = new_alignment.SeqsData(data=str_seqs_dict, alphabet=dna_alphabet)
-    got = sd.seq_lengths()
+@pytest.fixture(params=["str_seqs_dict", "arr_seqs_dict"])
+def seqs_dicts(request):
+    return request.getfixturevalue(request.param)
+
+
+@pytest.mark.parametrize("seqid", ["seq1", "seq2", "seq3"])
+def test_seqs_data_seq_lengths(seqs_dicts, dna_alphabet, seqid):
+    sd = new_alignment.SeqsData(data=seqs_dicts, alphabet=dna_alphabet)
+    expect = len(seqs_dicts[seqid])
+    got = sd.get_seq_length(seqid)
     assert got == expect
 
-    expect = {k: len(v) for k, v in arr_seqs_dict.items()}
+
+@pytest.mark.parametrize("seqid", ["seq1", "seq2", "seq3"])
+def test_seqs_data_get_seq_array(arr_seqs_dict, dna_alphabet, seqid):
+    expect = arr_seqs_dict[seqid]
     sd = new_alignment.SeqsData(data=arr_seqs_dict, alphabet=dna_alphabet)
-    got = sd.seq_lengths()
-    assert got == expect
-
-
-def test_seqs_data_get_seq_array(str_seqs_dict, dna_alphabet):
-    # seq1
-    expect = numpy.array([2, 1, 3, 0], dtype="uint8")
-    sd = new_alignment.SeqsData(data=str_seqs_dict, alphabet=dna_alphabet)
-    got = sd.get_seq_array(seqid="seq1")
-    assert numpy.array_equal(got, expect)
-
-    # seq2
-    expect = numpy.array([3, 0, 0, 0, 3, 1, 2], dtype="uint8")
-    sd = new_alignment.SeqsData(data=str_seqs_dict, alphabet=dna_alphabet)
-    got = sd.get_seq_array(seqid="seq2")
+    got = sd.get_seq_array(seqid=seqid)
     assert numpy.array_equal(got, expect)
 
 
@@ -3088,14 +3083,12 @@ def test_aligned_seqs_data_get_gapped_seq_bytes(
 
 
 @pytest.mark.parametrize("seqid", ("seq1", "seq2", "seq3", "seq4"))
-def test_aligned_seqs_data_seq_lengths(seqid, aligned_dict, dna_alphabet):
-    """AlignedSeqsData.seq_lengths should return the length of the ungapped sequences"""
+def test_aligned_seqs_data_get_seq_length(seqid, aligned_dict, dna_alphabet):
     ad = new_alignment.AlignedSeqsData.from_seqs(
         data=aligned_dict, alphabet=dna_alphabet
     )
-    got = ad.seq_lengths()[seqid]
-    expect = len(aligned_dict[seqid].replace("-", ""))
-    assert got == expect
+    raw = aligned_dict[seqid].replace("-", "")
+    assert ad.get_seq_length(seqid) == len(raw)
 
 
 def test_aligned_seqs_data_add_seqs(dna_alphabet):
