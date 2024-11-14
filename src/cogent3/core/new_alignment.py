@@ -8,7 +8,7 @@ import re
 import typing
 import warnings
 from abc import ABC, abstractmethod
-from collections import Counter, defaultdict
+from collections import defaultdict
 from functools import singledispatch, singledispatchmethod
 from pathlib import Path
 from typing import Any, Callable, Iterator, Mapping, Optional, Union
@@ -19,7 +19,6 @@ import numpy
 from cogent3 import get_app
 from cogent3._version import __version__
 from cogent3.core import (
-    location,
     new_alphabet,
     new_genetic_code,
     new_moltype,
@@ -35,10 +34,7 @@ from cogent3.core.info import Info as InfoClass
 from cogent3.core.location import (
     FeatureMap,
     IndelMap,
-    _input_vals_neg_step,
-    _input_vals_pos_step,
 )
-from cogent3.core.new_alphabet import StrORBytesORArray
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray, load_pssm
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import seqs_to_fasta
@@ -3019,7 +3015,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
     # refactor: design
 
     __slots__ = (
-        "_seqs",
+        "_ungapped",
         "_gaps",
         "_alphabet",
         "_align_len",
@@ -3029,7 +3025,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
     def __init__(
         self,
         *,
-        seqs: Optional[dict[str, StrORBytesORArray]],
+        ungapped_seqs: Optional[dict[str, numpy.ndarray]],
         gaps: Optional[dict[str, numpy.ndarray]],
         alphabet: new_alphabet.AlphabetABC,
         offset: dict[str, int] = None,
@@ -3038,21 +3034,22 @@ class AlignedSeqsData(AlignedSeqsDataABC):
     ):
         self._alphabet = alphabet
         if check or not align_len:
-            if not seqs or not gaps:
+            if not ungapped_seqs or not gaps:
                 raise ValueError("Both seqs and gaps must be provided.")
-            if seqs.keys() != gaps.keys():
+            if ungapped_seqs.keys() != gaps.keys():
                 raise ValueError("Keys in seqs and gaps must be identical.")
             if offset:
-                assert offset.keys() <= seqs.keys()
+                assert offset.keys() <= ungapped_seqs.keys()
             gapped_seq_lengths = {
-                _gapped_seq_len(v, l) for v, l in zip(seqs.values(), gaps.values())
+                _gapped_seq_len(v, l)
+                for v, l in zip(ungapped_seqs.values(), gaps.values())
             }
             if len(gapped_seq_lengths) != 1:
                 raise ValueError("All sequence lengths must be the same.")
-        self._seqs = {}
-        for k, v in seqs.items():
+        self._ungapped = {}
+        for k, v in ungapped_seqs.items():
             seq = self._alphabet.to_indices(v)
-            self._seqs[k] = seq
+            self._ungapped[k] = seq
             seq.flags.writeable = False
         self._gaps = {}
         for k, v in gaps.items():
@@ -3094,7 +3091,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             seqs[name], gaps[name] = seq, gap_map
 
         return cls(
-            seqs=seqs,
+            ungapped_seqs=seqs,
             gaps=gaps,
             alphabet=alphabet,
             align_len=align_len,
@@ -3124,7 +3121,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             alphabet object for the sequences
         """
         return cls(
-            seqs=seqs,
+            ungapped_seqs=seqs,
             gaps=gaps,
             alphabet=alphabet,
             **kwargs,
@@ -3162,14 +3159,14 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             seqs[name], gaps[name] = seq, gap_map
 
         return cls(
-            seqs=seqs,
+            ungapped_seqs=seqs,
             gaps=gaps,
             alphabet=alphabet,
         )
 
     @property
     def names(self) -> tuple[str]:
-        return list(self._seqs.keys())
+        return list(self._ungapped.keys())
 
     @property
     def alphabet(self) -> new_alphabet.CharAlphabet:
@@ -3203,7 +3200,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
 
     def get_seq_length(self, seqid: str) -> int:
         """return length of the unaligned seq for seqid"""
-        return len(self._seqs[seqid])
+        return len(self._ungapped[seqid])
 
     @singledispatchmethod
     def get_view(self, seqid: str):
@@ -3232,7 +3229,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         assumes start/stop are in sequence coordinates. Excludes gaps.
         """
         # refactor: design
-        seq = self._seqs[seqid]
+        seq = self._ungapped[seqid]
         return seq[start:stop:step]
 
     def get_gapped_seq_array(
@@ -3254,7 +3251,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         # a positive integer than return the reversed array
         gap_index = self.alphabet.gap_index
         gaps = self._gaps[seqid]
-        seq = self._seqs[seqid]
+        seq = self._ungapped[seqid]
         gapped = compose_gapped_seq(seq, gaps, gap_index)
         return gapped[start:stop:step]
 
@@ -3377,7 +3374,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             new_seqs[name], new_gaps[name] = seq, gap_map
 
         return self.__class__(
-            seqs={**self._seqs, **new_seqs},
+            ungapped_seqs={**self._ungapped, **new_seqs},
             gaps={**self._gaps, **new_gaps},
             alphabet=self.alphabet,
             offset={**self._offset, **(offset or {})},
@@ -3393,7 +3390,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         ):
             # special case where mapping between dna and rna
             return self.__class__(
-                seqs=self._seqs,
+                ungapped_seqs=self._ungapped,
                 gaps=self._gaps,
                 alphabet=alphabet,
                 offset=self._offset,
