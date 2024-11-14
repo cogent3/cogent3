@@ -68,7 +68,8 @@ OptFloat = Optional[float]
 OptStr = Optional[str]
 OptList = Optional[list]
 OptIterStr = Optional[Iterable[str]]
-OptPySeqStr = Optional[PySeq[str]]
+PySeqStr = PySeq[str]
+OptPySeqStr = Optional[PySeqStr]
 OptDict = Optional[dict]
 OptBool = Optional[bool]
 OptSliceRecord = Optional[new_sequence.SliceRecord]
@@ -2995,6 +2996,15 @@ class AlignedSeqsDataABC(SeqsDataABC):
         """
         ...
 
+    @abstractmethod
+    def get_positions(
+        self,
+        names: PySeqStr,
+        start: OptInt = None,
+        stop: OptInt = None,
+        step: OptInt = None,
+    ) -> numpy.ndarray: ...
+
 
 def _gapped_seq_len(seq: numpy.ndarray, gap_map: numpy.ndarray) -> int:
     """calculate the gapped sequence length from a ungapped sequence and gap map
@@ -3130,12 +3140,10 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         names = tuple(kwargs.pop("names", seqs.keys()))
         if not len(names):
             raise ValueError("seqs cannot be empty")
+
         align_len = kwargs.pop("align_len", None)
         if align_len is None:
-            g = gaps[names[0]]
-            align_len = (
-                len(seqs[names[0]]) + g[-1][1] if len(g) else len(seqs[names[0]])
-            )
+            align_len = _gapped_seq_len(seqs[names[0]], gaps[names[0]])
 
         gapped_seqs = numpy.empty((len(names), align_len), dtype=alphabet.dtype)
         for i, name in enumerate(names):
@@ -3471,6 +3479,21 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             offset=self._offset,
             names=self.names,
         )
+
+    def get_positions(
+        self,
+        names: PySeqStr,
+        start: OptInt = None,
+        stop: OptInt = None,
+        step: OptInt = None,
+    ) -> numpy.ndarray:
+        """returns an array of the selected positions for names."""
+        indices = tuple(self._name_to_index[name] for name in names)
+
+        if abs((start - stop) // step) == self.align_len:
+            return self._gapped[indices, :] if step > 0 else self._gapped[indices, ::-1]
+
+        return self._gapped[indices, start:stop:step]
 
     def to_rich_dict(self):
         # todo: kath
@@ -3913,11 +3936,20 @@ class Alignment(SequenceCollection):
         corresponding to names"""
         if self._array_seqs is None:
             # create the dest array dim
-            arr_seqs = numpy.empty(
-                (self.num_seqs, len(self)), dtype=self._seqs_data.alphabet.dtype
+            arr_seqs = self._seqs_data.get_positions(
+                names=list(self._name_map.values()),
+                start=self._slice_record.start,
+                stop=self._slice_record.stop,
+                step=self._slice_record.step,
             )
-            for i, seq in enumerate(self.seqs):
-                arr_seqs[i, :] = numpy.array(seq)
+            # if we are reversed and a nucleic acid moltype we will complement the array
+            if self.moltype.is_nucleic and self._slice_record.step < 0:
+                arr_seqs = arr_seqs.copy()
+                arr_seqs.flags.writeable = True
+                for i in range(arr_seqs.shape[0]):
+                    seq = arr_seqs[i]
+                    arr_seqs[i] = self.moltype.complement(seq)
+
             arr_seqs.flags.writeable = False  # make sure data is immutable
             self._array_seqs = arr_seqs
         return self._array_seqs
