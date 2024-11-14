@@ -1967,8 +1967,12 @@ class NucleicAcidSequenceMixin:
         ------
         AlphabetError if include_stop is False and a stop codon occurs
         """
-
         from cogent3.core import new_genetic_code, new_moltype
+
+        if not self.moltype.is_nucleic:
+            raise new_moltype.MolTypeError(
+                f"moltype must be a DNA/RNA, not {self.moltype.name!r}"
+            )
 
         protein = new_moltype.get_moltype(
             "protein_with_stop" if include_stop else "protein"

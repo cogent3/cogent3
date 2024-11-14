@@ -976,9 +976,10 @@ class SequenceCollection:
         -----
         Translating will break the relationship to an annotation_db if present.
         """
-
-        if len(self.moltype.alphabet) != 4:
-            raise new_alphabet.AlphabetError("Sequences must be a DNA/RNA")
+        if not self.moltype.is_nucleic:
+            raise new_moltype.MolTypeError(
+                f"moltype must be a DNA/RNA, not {self.moltype.name!r}"
+            )
 
         translated = {}
         # do the translation
@@ -4955,9 +4956,9 @@ class Alignment(SequenceCollection):
         trim_stop: bool = True,
         **kwargs,
     ):
-        if len(self.moltype.alphabet) != 4:
-            raise new_alphabet.AlphabetError(
-                f"Must be a DNA/RNA, not {self.moltype.label}"
+        if not self.moltype.is_nucleic:
+            raise new_moltype.MolTypeError(
+                f"moltype must be a DNA/RNA, not {self.moltype.name!r}"
             )
 
         translated = {}

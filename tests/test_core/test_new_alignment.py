@@ -1311,7 +1311,7 @@ def test_get_translation_raises(mk_cls):
     """should raise error if self.moltype is not a nucleic acid"""
     data = {"seq1": "PAR", "seq2": "PQR"}
     seqs = mk_cls(data, moltype="protein")
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(new_moltype.MolTypeError):
         _ = seqs.get_translation(trim_stop=True)
 
 
