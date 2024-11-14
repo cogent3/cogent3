@@ -890,10 +890,10 @@ def test_annotation_defaults():
 
 
 def test_init_with_annotationdb():
-    s = new_moltype.DNA.make_seq(
-        seq="AC", name="s1", annotation_db=anndb_module.GffAnnotationDb()
-    )
+    anndb = anndb_module.GffAnnotationDb()
+    s = new_moltype.DNA.make_seq(seq="AC", name="s1", annotation_db=anndb)
     assert isinstance(s.annotation_db, anndb_module.GffAnnotationDb)
+    assert s.annotation_db is anndb
 
 
 def test_init_with_annotation_offset():

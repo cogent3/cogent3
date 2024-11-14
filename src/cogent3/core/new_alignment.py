@@ -4985,10 +4985,6 @@ class Alignment(SequenceCollection):
             offset=None,
         )
         kwargs["moltype"] = pep_moltype
-        seqs_data = self._seqs_data.from_seqs(
-            data=translated, alphabet=pep.moltype.most_degen_alphabet()
-        )
-
         return self.__class__(seqs_data=seqs_data, info=self.info, **kwargs)
 
     def make_feature(
