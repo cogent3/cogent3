@@ -136,6 +136,15 @@ class Sequence:
     Sequences should be constructed by a MolType instance.
     """
 
+    __slots__ = (
+        "moltype",
+        "name",
+        "_seq",
+        "info",
+        "_repr_policy",
+        "_annotation_db",
+    )
+
     def __init__(
         self,
         moltype: "MolType",
