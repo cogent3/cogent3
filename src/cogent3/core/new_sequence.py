@@ -1067,7 +1067,7 @@ class Sequence:
 
         return r_spans
 
-    def init_annotation_db(self) -> None:
+    def _init_annotation_db(self) -> None:
         """initialise a default type annotation db if not already set"""
         if self._annotation_db is None:
             self._annotation_db = DEFAULT_ANNOTATION_DB()
@@ -1187,7 +1187,7 @@ class Sequence:
             **{n: v for n, v in locals().items() if n not in ("self", "seqid")},
         )
         if self._annotation_db is None:
-            self.init_annotation_db()
+            self._init_annotation_db()
 
         self.annotation_db.add_feature(**feature_data)
         for discard in ("on_alignment", "parent_id"):
