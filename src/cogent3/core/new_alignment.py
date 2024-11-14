@@ -2977,11 +2977,11 @@ class AlignedSeqsDataABC(SeqsDataABC):
             names in the encompassing Alignment (aln_name) and the names in self
             (data_name).
         start
-            The starting position for slicing the sequences.
+            The alignment starting position.
         stop
-            The stopping position for slicing the sequences.
+            The alignment stopping position.
         step
-            The step size for slicing the sequences.
+            The step size.
 
         Returns
         -------
@@ -3019,7 +3019,9 @@ class AlignedSeqsData(AlignedSeqsDataABC):
 
     __slots__ = (
         "_names",
+        "_name_to_index",
         "_ungapped",
+        "_gapped",
         "_gaps",
         "_alphabet",
         "_align_len",
@@ -3029,41 +3031,37 @@ class AlignedSeqsData(AlignedSeqsDataABC):
     def __init__(
         self,
         *,
-        ungapped_seqs: Optional[dict[str, numpy.ndarray]],
-        gaps: Optional[dict[str, numpy.ndarray]],
+        gapped_seqs: numpy.ndarray,
+        names: tuple[str],
+        ungapped_seqs: Optional[dict[str, numpy.ndarray]] = None,
+        gaps: Optional[dict[str, numpy.ndarray]] = None,
+        offset: Optional[DictStrInt] = None,
         alphabet: new_alphabet.AlphabetABC,
-        offset: dict[str, int] = None,
         align_len: OptInt = None,
         check: bool = True,
-        names: OptIterStr = None,
     ):
         self._alphabet = alphabet
-        assert names is not None or gaps is not None
-        self._names = tuple(names or gaps.keys())
-        if check or not align_len:
-            if not ungapped_seqs or not gaps:
-                raise ValueError("Both seqs and gaps must be provided.")
-            if ungapped_seqs.keys() != gaps.keys():
-                raise ValueError("Keys in seqs and gaps must be identical.")
-            if offset:
-                assert offset.keys() <= ungapped_seqs.keys()
-            gapped_seq_lengths = {
-                _gapped_seq_len(v, l)
-                for v, l in zip(ungapped_seqs.values(), gaps.values())
-            }
-            if len(gapped_seq_lengths) != 1:
-                raise ValueError("All sequence lengths must be the same.")
-        self._ungapped = {}
-        for k, v in ungapped_seqs.items():
-            seq = self._alphabet.to_indices(v)
-            self._ungapped[k] = seq
-            seq.flags.writeable = False
-        self._gaps = {}
-        for k, v in gaps.items():
-            self._gaps[k] = v
-            v.flags.writeable = False
-        self._align_len = align_len or gapped_seq_lengths.pop()
+        self._names = tuple(names)
+        self._name_to_index = {name: i for i, name in enumerate(names)}
+        self._gapped = gapped_seqs
+        self._ungapped = ungapped_seqs or {}
+        self._gaps = gaps or {}
+        align_len = align_len or gapped_seqs.shape[1]
+        if align_len:
+            assert align_len == gapped_seqs.shape[1], "mismatch in alignment length"
+
+        self._align_len = align_len
         self._offset = offset or {}
+
+        if check:
+            if not set(names) >= set(self._gaps.keys()) or not set(names) >= set(
+                self._ungapped.keys()
+            ):
+                raise ValueError(
+                    "Keys in ungapped seqs and gaps must be subsets of names."
+                )
+            if not set(names) >= set(self._offset):
+                raise ValueError("Keys in offset must be a subset of names.")
 
     @classmethod
     def from_seqs(
@@ -3089,18 +3087,17 @@ class AlignedSeqsData(AlignedSeqsDataABC):
 
         align_len = seq_lengths.pop()
         names = tuple(data.keys())
-        seqs = {}
-        gaps = {}
-        for name, seq in data.items():
-            seq, gap_map = decompose_gapped_seq(seq, alphabet=alphabet)
-            seq = alphabet.to_indices(seq)
-            seq.flags.writeable = False
-            gap_map.flags.writeable = False
-            seqs[name], gaps[name] = seq, gap_map
+        array_seqs = numpy.empty((len(names), align_len), dtype=alphabet.dtype)
+        for i, name in enumerate(names):
+            array_seqs[i] = alphabet.to_indices(data[name])
+            if not alphabet.is_valid(data[name]):
+                raise new_alphabet.AlphabetError(
+                    f"Sequence {name} contains invalid characters."
+                )
 
+        array_seqs.flags.writeable = False
         return cls(
-            ungapped_seqs=seqs,
-            gaps=gaps,
+            gapped_seqs=array_seqs,
             alphabet=alphabet,
             align_len=align_len,
             check=False,
@@ -3129,12 +3126,33 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         alphabet
             alphabet object for the sequences
         """
-        names = kwargs.pop("names", tuple(seqs.keys()))
+        names = tuple(kwargs.pop("names", seqs.keys()))
+        if not len(names):
+            raise ValueError("seqs cannot be empty")
+        align_len = kwargs.pop("align_len", None)
+        if align_len is None:
+            g = gaps[names[0]]
+            align_len = (
+                len(seqs[names[0]]) + g[-1][1] if len(g) else len(seqs[names[0]])
+            )
+
+        gapped_seqs = numpy.empty((len(names), align_len), dtype=alphabet.dtype)
+        for i, name in enumerate(names):
+            seq = alphabet.to_indices(seqs[name])
+            seqs[name] = seq
+            if name not in gaps:
+                raise ValueError(f"Missing gap data for sequence {name!r}")
+            gapped_seqs[i] = compose_gapped_seq(seq, gaps[name], alphabet.gap_index)
+            assert len(gapped_seqs[i]) == align_len, "aligned lengths do not match"
+
+        gapped_seqs.flags.writeable = False
         return cls(
             ungapped_seqs=seqs,
             gaps=gaps,
+            gapped_seqs=gapped_seqs,
             alphabet=alphabet,
             names=names,
+            align_len=align_len,
             **kwargs,
         )
 
@@ -3158,20 +3176,14 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         alphabet
             alphabet object for the sequences
         """
-        if len(names) != data.shape[0]:
+        if len(names) != data.shape[0] or not len(names):
             raise ValueError("Number of names must match number of rows in data.")
 
-        seqs = {}
-        gaps = {}
-        for name, seq in zip(names, data):
-            seq, gap_map = decompose_gapped_seq(seq, alphabet=alphabet)
-            seq.flags.writeable = False
-            gap_map.flags.writeable = False
-            seqs[name], gaps[name] = seq, gap_map
-
+        gapped_seqs = data.astype(alphabet.dtype)
+        gapped_seqs.flags.writeable = False
         return cls(
-            ungapped_seqs=seqs,
-            gaps=gaps,
+            gapped_seqs=gapped_seqs,
+            names=names,
             alphabet=alphabet,
         )
 
@@ -3211,7 +3223,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
 
     def get_seq_length(self, seqid: str) -> int:
         """return length of the unaligned seq for seqid"""
-        return len(self._ungapped[seqid])
+        return len(self._get_ungapped(seqid))
 
     @singledispatchmethod
     def get_view(self, seqid: str):
@@ -3225,8 +3237,26 @@ class AlignedSeqsData(AlignedSeqsDataABC):
     def _(self, seqid: int):
         return self.get_view(self.names[seqid])
 
-    def get_gaps(self, seqid: str) -> numpy.ndarray:
+    def _get_gaps(self, seqid: str) -> numpy.ndarray:
+        if seqid not in self._gaps:
+            self._make_gaps_and_ungapped(seqid)
         return self._gaps[seqid]
+
+    def _get_ungapped(self, seqid: str) -> numpy.ndarray:
+        if seqid not in self._ungapped:
+            self._make_gaps_and_ungapped(seqid)
+        return self._ungapped[seqid]
+
+    def get_gaps(self, seqid: str) -> numpy.ndarray:
+        return self._get_gaps(seqid)
+
+    def _make_gaps_and_ungapped(self, seqid):
+        index = self._name_to_index[seqid]
+        ungapped, gaps = decompose_gapped_seq(
+            self._gapped[index], alphabet=self.alphabet
+        )
+        self._gaps[seqid] = gaps
+        self._ungapped[seqid] = ungapped
 
     def get_seq_array(
         self,
@@ -3239,8 +3269,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         """Return ungapped sequence corresponding to seqid as an array of indices.
         assumes start/stop are in sequence coordinates. Excludes gaps.
         """
-        # refactor: design
-        seq = self._ungapped[seqid]
+        seq = self._get_ungapped(seqid)
         return seq[start:stop:step]
 
     def get_gapped_seq_array(
@@ -3260,10 +3289,8 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         # determine the seq coordinates for slicing the ungapped sequence then apply the step
         # note with the latter approach, if the step is negative, need to apply the step as
         # a positive integer than return the reversed array
-        gap_index = self.alphabet.gap_index
-        gaps = self._gaps[seqid]
-        seq = self._ungapped[seqid]
-        gapped = compose_gapped_seq(seq, gaps, gap_index)
+        index = self._name_to_index[seqid]
+        gapped = self._gapped[index]
         return gapped[start:stop:step]
 
     def get_seq_str(
@@ -3275,8 +3302,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         step: OptInt = None,
     ) -> str:
         """Return ungapped sequence corresponding to seqid as a string.
-        start/stop are in alignment coordinates and the alignment coordinates
-        are converted to sequence coordinates. Excludes gaps."""
+        start/stop are in sequence coordinates. Excludes gaps."""
         return self.alphabet.from_indices(
             self.get_seq_array(seqid=seqid, start=start, stop=stop, step=step)
         )
@@ -3291,7 +3317,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
     ) -> str:
         """Return sequence corresponding to seqid as a string.
         start/stop are in alignment coordinates. Includes gaps."""
-
         return self.alphabet.from_indices(
             self.get_gapped_seq_array(seqid=seqid, start=start, stop=stop, step=step)
         )
@@ -3305,8 +3330,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         step: OptInt = None,
     ) -> bytes:
         """Return ungapped sequence corresponding to seqid as a bytes string.
-        start/stop are in alignment coordinates and the alignment coordinates
-        are converted to sequence coordinates. Excludes gaps."""
+        start/stop are in sequence coordinates. Excludes gaps."""
         return self.get_seq_str(seqid=seqid, start=start, stop=stop, step=step).encode(
             "utf8"
         )
@@ -3333,28 +3357,34 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         stop: OptInt = None,
         step: OptInt = None,
     ) -> tuple[dict, dict]:
-        seqs = {}
         # redesign
         # if gaps exist, don't go via gapped seq
         # convert alignment coords into sequence coords using the location.align_to_seq_index function
         # this means we will need to convert coordinates to a plus strand slice
-        for name in name_map.values():
-            # using get_gapped_seq_array so we can slice in alignment coordinates
-            seq = self.get_gapped_seq_array(
-                seqid=name, start=start, stop=stop, step=step
-            )
-            # we need to remove the index of gap and missing characters
-            mask = (seq != self.alphabet.gap_index) & (
-                seq != self.alphabet.missing_index
-            )
-            seqs[name] = seq[mask]
+        seq_array = numpy.empty(
+            (len(name_map), self.align_len), dtype=self.alphabet.dtype
+        )
+        names = tuple(name_map.values())
+        for i, name in enumerate(names):
+            index = self._name_to_index[name]
+            seq_array[i] = self._gapped[index]
+        seq_array = seq_array[:, start:stop:step]
+        # now exclude gaps and missing
+        seqs = {}
+        for i, name in enumerate(names):
+            seq = seq_array[i]
+            indices = seq != self.alphabet.gap_index
+            if self.alphabet.missing_index is not None:
+                indices &= seq != self.alphabet.missing_index
+            seqs[name] = seq[indices]
 
-        return seqs, {"offset": self.offset, "name_map": name_map}
+        offset = {n: v for n, v in self._offset.items() if n in names}
+        return seqs, {"offset": offset, "name_map": name_map}
 
     def add_seqs(
         self,
         seqs: dict[str, StrORArray],
-        force_unique_keys=True,
+        force_unique_keys: bool = True,
         offset: dict[str, int] = None,
     ) -> AlignedSeqsData:
         """Returns a new AlignedSeqsData object with added sequences.
@@ -3375,18 +3405,24 @@ class AlignedSeqsData(AlignedSeqsDataABC):
                 "All sequences must be the same length as existing sequences"
             )
 
-        new_seqs = {}
-        new_gaps = {}
+        new_seqs = dict(zip(self.names, self._gapped))
         for name, seq in seqs.items():
-            seq, gap_map = decompose_gapped_seq(seq, alphabet=self.alphabet)
             seq = self.alphabet.to_indices(seq)
+            if not self.alphabet.is_valid(seq):
+                raise new_alphabet.AlphabetError(
+                    f"Sequence {name!r} contains invalid characters."
+                )
             seq.flags.writeable = False
-            gap_map.flags.writeable = False
-            new_seqs[name], new_gaps[name] = seq, gap_map
+            new_seqs[name] = seq
+
+        names = tuple(new_seqs.keys())
+        gapped = numpy.empty((len(names), self.align_len), dtype=self.alphabet.dtype)
+        for i, name in enumerate(names):
+            gapped[i] = new_seqs[name]
 
         return self.__class__(
-            ungapped_seqs={**self._ungapped, **new_seqs},
-            gaps={**self._gaps, **new_gaps},
+            gapped_seqs=gapped,
+            names=names,
             alphabet=self.alphabet,
             offset={**self._offset, **(offset or {})},
             align_len=self.align_len,
@@ -3401,36 +3437,38 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         ):
             # special case where mapping between dna and rna
             return self.__class__(
-                ungapped_seqs=self._ungapped,
-                gaps=self._gaps,
+                gapped_seqs=self._gapped,
                 alphabet=alphabet,
                 offset=self._offset,
                 align_len=self.align_len,
+                names=self.names,
             )
 
-        new_data = {}
         old = self.alphabet.as_bytes()
         new = alphabet.as_bytes()
         convert_old_to_bytes = new_alphabet.array_to_bytes(old)
         convert_bytes_to_new = new_alphabet.bytes_to_array(
             new, dtype=new_alphabet.get_array_type(len(new))
         )
+        gapped = numpy.empty(
+            (len(self.names), self.align_len), dtype=self.alphabet.dtype
+        )
 
-        for seqid in self.names:
-            seq_data = self.get_gapped_seq_array(seqid=seqid)
-            as_new_alpha = convert_bytes_to_new(convert_old_to_bytes(seq_data))
+        for i in range(len(self.names)):
+            as_new_alpha = convert_bytes_to_new(convert_old_to_bytes(self._gapped[i]))
 
             if check_valid and not alphabet.is_valid(as_new_alpha):
                 raise new_moltype.MolTypeError(
                     f"Changing from old alphabet={self.alphabet} to new "
                     f"{alphabet=} is not valid for this data"
                 )
-            new_data[seqid] = as_new_alpha
+            gapped[i] = as_new_alpha
 
-        return self.from_seqs(
-            data=new_data,
+        return self.__class__(
+            gapped_seqs=gapped,
             alphabet=alphabet,
             offset=self._offset,
+            names=self.names,
         )
 
     def to_rich_dict(self):
@@ -4936,8 +4974,17 @@ class Alignment(SequenceCollection):
                 include_stop=include_stop,
                 trim_stop=trim_stop,
             )
-            translated[seqname] = pep
-        kwargs["moltype"] = pep.moltype
+            translated[seqname] = numpy.array(pep)
+
+        pep_moltype = new_moltype.get_moltype(
+            "protein_with_stop" if include_stop else "protein"
+        )
+        seqs_data = self._seqs_data.from_seqs(
+            data=translated,
+            alphabet=pep_moltype.most_degen_alphabet(),
+            offset=None,
+        )
+        kwargs["moltype"] = pep_moltype
         seqs_data = self._seqs_data.from_seqs(
             data=translated, alphabet=pep.moltype.most_degen_alphabet()
         )

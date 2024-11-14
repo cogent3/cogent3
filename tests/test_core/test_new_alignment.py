@@ -2825,11 +2825,15 @@ def test_aligned_seqs_data_init(seqid, gap_seqs, dna_alphabet):
     """test initialisation of AlignedSeqsData object with dictionary of ungapped
     sequences and dictionary of gap coordinates and cumulated gap lengths"""
     seqs = {f"seq{i}": seq.replace("-", "") for i, (seq, _) in enumerate(gap_seqs)}
-    gaps = {f"seq{i}": numpy.array(gaps) for i, (_, gaps) in enumerate(gap_seqs)}
-    ad = new_alignment.AlignedSeqsData(
-        ungapped_seqs=seqs, gaps=gaps, alphabet=dna_alphabet
+    gaps = {
+        f"seq{i}": numpy.array(gaps, dtype=numpy.int32)
+        for i, (_, gaps) in enumerate(gap_seqs)
+    }
+    ad = new_alignment.AlignedSeqsData.from_seqs_and_gaps(
+        seqs={**seqs}, gaps=gaps, alphabet=dna_alphabet
     )
-    assert ad.get_seq_str(seqid=seqid) == seqs[seqid]
+    got = ad.get_seq_str(seqid=seqid)
+    assert got == seqs[seqid]
     assert numpy.array_equal(ad.get_gaps(seqid=seqid), gaps[seqid])
 
 
@@ -2854,8 +2858,8 @@ def test_aligned_seqs_data_init_gapped(
         name: new_alignment.decompose_gapped_seq(seq, alphabet=dna_alphabet)[1]
         for name, seq in typed_data.items()
     }
-    asd = new_alignment.AlignedSeqsData(
-        ungapped_seqs=seq_data, gaps=gap_data, alphabet=dna_alphabet
+    asd = new_alignment.AlignedSeqsData.from_seqs_and_gaps(
+        seqs=seq_data, gaps=gap_data, alphabet=dna_alphabet
     )
     assert asd.align_len == 6
     assert asd.get_gapped_seq_str(seqid=seqid) == gapped_seqs_dict[seqid]
@@ -2880,8 +2884,8 @@ def test_aligned_seqs_data_unequal_seqlens_raises(data_type, dna_alphabet, dna_m
         for name, seq in data.items()
     }
     with pytest.raises(ValueError):
-        _ = new_alignment.AlignedSeqsData(
-            ungapped_seqs=seq_data, gaps=gap_data, alphabet=dna_alphabet
+        _ = new_alignment.AlignedSeqsData.from_seqs_and_gaps(
+            seqs=seq_data, gaps=gap_data, alphabet=dna_alphabet
         )
 
 
@@ -2952,24 +2956,28 @@ def test_from_names_and_array_mismatched_length(dna_alphabet):
 def test_aligned_seqs_data_diff_keys_raises(dna_alphabet):
     """AlignedSeqsData expect identical keys in seqs and gaps"""
     seqs = dict(seq1=numpy.array([2, 1]), seq2=numpy.array([2, 0, 3, 1]))
-    gaps = dict(seq1=numpy.array([[1, 3]]), seq3=numpy.array([[0, 1]]))
+    gaps = dict(
+        seq1=numpy.array([[1, 3]], dtype=numpy.int32),
+        seq3=numpy.array([[0, 1]], dtype=numpy.int32),
+    )
 
     with pytest.raises(ValueError):
-        _ = new_alignment.AlignedSeqsData(
-            ungapped_seqs=seqs, gaps=gaps, alphabet=dna_alphabet
+        _ = new_alignment.AlignedSeqsData.from_seqs_and_gaps(
+            seqs=seqs, gaps=gaps, alphabet=dna_alphabet
         )
     # assert that it would work if we indeed had the same keys
     gaps["seq2"] = gaps.pop("seq3")
-    asd = new_alignment.AlignedSeqsData(
-        ungapped_seqs=seqs, gaps=gaps, alphabet=dna_alphabet
+    asd = new_alignment.AlignedSeqsData.from_seqs_and_gaps(
+        seqs=seqs, gaps=gaps, alphabet=dna_alphabet
     )
-    assert asd.get_seq_str(seqid="seq1") == "AC"
+    got = asd.get_seq_str(seqid="seq1")
+    assert got == "AC"
 
 
 def test_aligned_seqs_data_omit_seqs_gaps_raises(dna_alphabet):
     with pytest.raises(ValueError):
-        _ = new_alignment.AlignedSeqsData(
-            ungapped_seqs={}, gaps={}, alphabet=dna_alphabet
+        _ = new_alignment.AlignedSeqsData.from_seqs_and_gaps(
+            seqs={}, gaps={}, alphabet=dna_alphabet
         )
 
 
