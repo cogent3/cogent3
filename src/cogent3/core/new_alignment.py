@@ -3217,18 +3217,8 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         return self.align_len
 
     @singledispatchmethod
-    def __getitem__(self, index: Union[str, int]):
-        raise NotImplementedError(f"__getitem__ not implemented for {type(index)}")
-
-    @__getitem__.register
-    def _(self, index: str):
-        # refactor: design
-        # this view will return the whole sequence, even if the alignment is sliced
+    def __getitem__(self, index: Union[str, int]) -> AlignedDataViewABC:
         return self.get_view(index)
-
-    @__getitem__.register
-    def _(self, index: int):
-        return self[self.names[index]]
 
     def get_seq_length(self, seqid: str) -> int:
         """return length of the unaligned seq for seqid"""
@@ -3943,12 +3933,12 @@ class Alignment(SequenceCollection):
                 step=self._slice_record.step,
             )
             # if we are reversed and a nucleic acid moltype we will complement the array
-            if self.moltype.is_nucleic and self._slice_record.step < 0:
+            if self.moltype.is_nucleic and self._slice_record.is_reversed:
                 arr_seqs = arr_seqs.copy()
                 arr_seqs.flags.writeable = True
+                make_complement = self.moltype.complement
                 for i in range(arr_seqs.shape[0]):
-                    seq = arr_seqs[i]
-                    arr_seqs[i] = self.moltype.complement(seq)
+                    arr_seqs[i] = make_complement(arr_seqs[i])
 
             arr_seqs.flags.writeable = False  # make sure data is immutable
             self._array_seqs = arr_seqs
