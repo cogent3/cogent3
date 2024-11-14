@@ -3064,7 +3064,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         ungapped_seqs
             a dictionary mapping names to 1D numpy.uint8 arrays of individual
             sequences without gaps. If not provided, computed on demand.
-        gaps, optional
+        gaps
             a dictionary mapping names to 1D numpy.int32 arrays of gap data,
             axis 0 is a gap axis 1 is [gap position in sequence coordinates,
             cumulative gap length].  If not provided, computed on demand.
@@ -3074,13 +3074,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             length of the alignment, which must equal the gapped_seqs.shape[1]
         check
             validate any keys in offset, ungapped_seqs, gaps are a subset of names
-
-        Raises
-        ------
-        ValueError
-            _description_
-        ValueError
-            _description_
         """
         self._alphabet = alphabet
         self._names = tuple(names)
