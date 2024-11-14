@@ -2837,6 +2837,28 @@ def test_aligned_seqs_data_init(seqid, gap_seqs, dna_alphabet):
     assert numpy.array_equal(ad.get_gaps(seqid=seqid), gaps[seqid])
 
 
+@pytest.mark.parametrize(
+    "kwargs",
+    (
+        dict(offset=dict(s4=1)),
+        dict(gaps=dict(s4=numpy.array([[0, 1]]))),
+        dict(ungapped_seqs=dict(s4=numpy.array([1, 2, 3]))),
+    ),
+)
+def test_aligned_seqs_data_init_check_raises(dna_alphabet, kwargs):
+    raw = (
+        "A---CTG-C",
+        "-GTAC----",
+        "---A--T--",
+    )
+    gapped = numpy.array([dna_alphabet.to_indices(seq) for seq in raw])
+    names = "s1", "s2", "s3"
+    with pytest.raises(ValueError):
+        new_alignment.AlignedSeqsData(
+            gapped_seqs=gapped, names=names, alphabet=dna_alphabet, **kwargs
+        )
+
+
 @pytest.mark.parametrize("seqid", ("seq1", "seq2", "seq3", "seq4", "seq5"))
 @pytest.mark.parametrize("data_type", (str, numpy.array, bytes))
 def test_aligned_seqs_data_init_gapped(

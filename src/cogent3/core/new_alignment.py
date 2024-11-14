@@ -3044,13 +3044,44 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         *,
         gapped_seqs: numpy.ndarray,
         names: tuple[str],
+        alphabet: new_alphabet.AlphabetABC,
         ungapped_seqs: Optional[dict[str, numpy.ndarray]] = None,
         gaps: Optional[dict[str, numpy.ndarray]] = None,
         offset: Optional[DictStrInt] = None,
-        alphabet: new_alphabet.AlphabetABC,
         align_len: OptInt = None,
         check: bool = True,
     ):
+        """
+        Parameters
+        ----------
+        gapped_seqs
+            2D numpy.uint8 array of aligned sequences. axis 0 are sequences,
+            axis 1 are alignment positions
+        names
+            sequence names in order matching the axis 0 of gapped_seqs
+        alphabet
+            caharacter alphabet for the sequences
+        ungapped_seqs
+            a dictionary mapping names to 1D numpy.uint8 arrays of individual
+            sequences without gaps. If not provided, computed on demand.
+        gaps, optional
+            a dictionary mapping names to 1D numpy.int32 arrays of gap data,
+            axis 0 is a gap axis 1 is [gap position in sequence coordinates,
+            cumulative gap length].  If not provided, computed on demand.
+        offset
+            a dictionary of annotation offsets
+        align_len
+            length of the alignment, which must equal the gapped_seqs.shape[1]
+        check
+            validate any keys in offset, ungapped_seqs, gaps are a subset of names
+
+        Raises
+        ------
+        ValueError
+            _description_
+        ValueError
+            _description_
+        """
         self._alphabet = alphabet
         self._names = tuple(names)
         self._name_to_index = {name: i for i, name in enumerate(names)}
@@ -3073,6 +3104,9 @@ class AlignedSeqsData(AlignedSeqsDataABC):
                 )
             if not set(names) >= set(self._offset):
                 raise ValueError("Keys in offset must be a subset of names.")
+
+            if len(names) != gapped_seqs.shape[0]:
+                raise ValueError(f"{len(names)=} != {gapped_seqs.shape[0]=}")
 
     @classmethod
     def from_seqs(
