@@ -2923,7 +2923,7 @@ def test_from_names_and_array(dna_alphabet, seqid, i):
     asd = new_alignment.AlignedSeqsData.from_names_and_array(
         names=names, data=data, alphabet=dna_alphabet
     )
-    assert asd.names == ["seq1", "seq2", "seq3"]
+    assert asd.names == ("seq1", "seq2", "seq3")
     got = asd.get_gapped_seq_array(seqid=seqid)
     expect = data[i]
     assert numpy.array_equal(got, expect)
@@ -2978,7 +2978,7 @@ def test_aligned_seqs_data_names(aligned_dict, dna_alphabet):
         data=aligned_dict, alphabet=dna_alphabet
     )
     assert isinstance(got, new_alignment.AlignedSeqsData)
-    assert got.names == ["seq1", "seq2", "seq3", "seq4"]
+    assert got.names == ("seq1", "seq2", "seq3", "seq4")
 
 
 def test_aligned_seqs_data_len(aligned_dict, dna_alphabet):
@@ -3104,7 +3104,7 @@ def test_aligned_seqs_data_add_seqs(dna_alphabet):
     ad = new_alignment.AlignedSeqsData.from_seqs(data=data, alphabet=dna_alphabet)
     new_data = {"seq4": "ACGTT", "seq5": "ACG--", "seq6": "-----"}
     new_ad = ad.add_seqs(new_data)
-    assert new_ad.names == ["seq1", "seq2", "seq3", "seq4", "seq5", "seq6"]
+    assert new_ad.names == ("seq1", "seq2", "seq3", "seq4", "seq5", "seq6")
 
 
 def test_aligned_seqs_data_add_seqs_diff_lengths_raises(dna_alphabet):
@@ -3141,7 +3141,7 @@ def test_aligned_seqs_data_add_seqs_duplicate_keys_raises(dna_alphabet):
 
     # if we set force_unique_keys=False, it should not raise an error
     new_ad = ad.add_seqs(new_data, force_unique_keys=False)
-    assert new_ad.names == ["seq1", "seq2", "seq3"]
+    assert new_ad.names == ("seq1", "seq2", "seq3")
 
 
 @pytest.mark.parametrize("seqid", ("seq1", "seq2", "seq3", "seq4"))

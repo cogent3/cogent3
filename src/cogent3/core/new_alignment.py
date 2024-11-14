@@ -11,7 +11,8 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from functools import singledispatch, singledispatchmethod
 from pathlib import Path
-from typing import Any, Callable, Iterator, Mapping, Optional, Union
+from typing import Any, Callable, Iterable, Iterator, Mapping, Optional, Union
+from typing import Sequence as PySeq
 
 import numba
 import numpy
@@ -66,6 +67,8 @@ OptInt = Optional[int]
 OptFloat = Optional[float]
 OptStr = Optional[str]
 OptList = Optional[list]
+OptIterStr = Optional[Iterable[str]]
+OptPySeqStr = Optional[PySeq[str]]
 OptDict = Optional[dict]
 OptBool = Optional[bool]
 OptSliceRecord = Optional[new_sequence.SliceRecord]
@@ -3015,6 +3018,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
     # refactor: design
 
     __slots__ = (
+        "_names",
         "_ungapped",
         "_gaps",
         "_alphabet",
@@ -3031,8 +3035,11 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         offset: dict[str, int] = None,
         align_len: OptInt = None,
         check: bool = True,
+        names: OptIterStr = None,
     ):
         self._alphabet = alphabet
+        assert names is not None or gaps is not None
+        self._names = tuple(names or gaps.keys())
         if check or not align_len:
             if not ungapped_seqs or not gaps:
                 raise ValueError("Both seqs and gaps must be provided.")
@@ -3081,6 +3088,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             raise ValueError("All sequence lengths must be the same.")
 
         align_len = seq_lengths.pop()
+        names = tuple(data.keys())
         seqs = {}
         gaps = {}
         for name, seq in data.items():
@@ -3096,6 +3104,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             alphabet=alphabet,
             align_len=align_len,
             check=False,
+            names=names,
             **kwargs,
         )
 
@@ -3120,10 +3129,12 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         alphabet
             alphabet object for the sequences
         """
+        names = kwargs.pop("names", tuple(seqs.keys()))
         return cls(
             ungapped_seqs=seqs,
             gaps=gaps,
             alphabet=alphabet,
+            names=names,
             **kwargs,
         )
 
@@ -3131,7 +3142,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
     def from_names_and_array(
         cls,
         *,
-        names: list[str],
+        names: PySeq[str],
         data: numpy.ndarray,
         alphabet: new_alphabet.AlphabetABC,
     ):
@@ -3166,7 +3177,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
 
     @property
     def names(self) -> tuple[str]:
-        return list(self._ungapped.keys())
+        return self._names
 
     @property
     def alphabet(self) -> new_alphabet.CharAlphabet:
