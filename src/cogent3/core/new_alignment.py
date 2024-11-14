@@ -2564,6 +2564,7 @@ def _(
 def decompose_gapped_seq_array(
     seq: numpy.ndarray,
     gap_index: int,
+    missing_index: int = -1,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:  # pragma: no cover
     """
     extracts the ungapped sequence and gap data from a gapped sequence
@@ -2574,6 +2575,8 @@ def decompose_gapped_seq_array(
         numpy array representing a gapped sequence
     gap_index
         from an alphabet
+    missing_index
+        from an alphabet, represents index for missing character
 
     Returns
     -------
@@ -2582,6 +2585,9 @@ def decompose_gapped_seq_array(
     Notes
     -----
     being called by decompose_gapped_seq
+    A missing_index is an ambiguity code that includes the gap character.
+    Be careful in providing this value when dealing with sequences that
+    may have had a feature masking applied.
     """
     seqlen = len(seq)
     working = numpy.empty((seqlen, numpy.int64(2)), dtype=numpy.int64)
@@ -2590,7 +2596,7 @@ def decompose_gapped_seq_array(
     num_gaps = 0
     start = 0
     for i, base in enumerate(seq):
-        gapped = base == gap_index
+        gapped = base == gap_index or base == missing_index
         if gapped and not in_gap:
             start = i
             in_gap = True
