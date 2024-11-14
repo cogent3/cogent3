@@ -594,9 +594,9 @@ class SequenceCollection:
         seqid = self._name_map.get(name, name)
         sv = self._seqs_data.get_view(seqid)
         sv = sv[::-1] if self._is_reversed else sv
-        seq = self.moltype.make_seq(seq=sv, name=name)
-        seq.replace_annotation_db(self.annotation_db)
-        return seq
+        return self.moltype.make_seq(
+            seq=sv, name=name, annotation_db=self.annotation_db
+        )
 
     def _get_init_kwargs(self) -> dict:
         """dict of all the arguments needed to initialise a new instance"""
@@ -2660,12 +2660,16 @@ class Aligned:
     """A single sequence in an alignment."""
 
     def __init__(
-        self, data: AlignedDataView, moltype: new_moltype.MolType, name: OptStr = None
+        self,
+        data: AlignedDataView,
+        moltype: new_moltype.MolType,
+        name: OptStr = None,
+        annotation_db: typing.Optional[SupportsFeatures] = None,
     ):
         self._data = data
         self._moltype = moltype
         self._name = name or data.seqid
-        self._annotation_db = DEFAULT_ANNOTATION_DB()
+        self._annotation_db = annotation_db
 
     def __len__(self) -> int:
         return len(self.map)
@@ -2704,7 +2708,8 @@ class Aligned:
             if rev
             else self.moltype.make_seq(seq=seq, name=self.data.seqid)
         )
-        mt_seq.annotation_db = self.annotation_db
+        ann_db = self.annotation_db if abs(self.data.slice_record.step) == 1 else None
+        mt_seq.replace_annotation_db(ann_db)
         return mt_seq
 
     @property
