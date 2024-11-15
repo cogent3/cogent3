@@ -3363,7 +3363,7 @@ class AlignmentI(object):
             counts[i] = c.tolist(motifs)
         return MotifCountsArray(counts, motifs, row_indices=self.names)
 
-    def variable_positions(self, include_gap_motif=True):
+    def variable_positions(self, include_gap_motif=True):  # ported
         """Return a list of variable position indexes.
 
         Parameters
