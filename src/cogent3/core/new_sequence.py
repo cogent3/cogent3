@@ -2119,6 +2119,22 @@ class SliceRecordABC(ABC):
         return start
 
     @property
+    def plus_stop(self) -> int:
+        """stop on plus strand"""
+        if self.is_reversed:
+            # self.start becomes the stop, self.start will be negative
+            assert self.start < 0, "expected start on reverse strand SeqView < 0"
+            stop = self.start + self.parent_len + 1
+        else:
+            stop = self.stop
+        return stop
+
+    @property
+    def plus_step(self) -> int:
+        """step on plus strand"""
+        return abs(self.step)
+
+    @property
     def parent_start(self) -> int:
         """returns the start on the parent plus strand
 
@@ -2136,17 +2152,6 @@ class SliceRecordABC(ABC):
     @property
     def is_reversed(self):
         return self.step < 0
-
-    @property
-    def plus_stop(self) -> int:
-        """stop on plus strand"""
-        if self.is_reversed:
-            # self.start becomes the stop, self.start will be negative
-            assert self.start < 0, "expected start on reverse strand SeqView < 0"
-            stop = self.start + self.parent_len + 1
-        else:
-            stop = self.stop
-        return stop
 
     @property
     def parent_stop(self) -> int:

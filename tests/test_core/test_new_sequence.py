@@ -2584,6 +2584,17 @@ def test_seqview_seq_len_init(start, stop, step, length, dna_alphabet):
     assert sv._parent_len == expect
 
 
+@pytest.mark.parametrize("step", (1, 3))
+@pytest.mark.parametrize("rev", (False, True))
+def test_seqview_plus_attrs(rev, step):
+    # always equal values from plkus strand
+    start = 2
+    stop = 12
+    sr = new_sequence.SliceRecord(start=start, stop=stop, step=step, parent_len=30)
+    sr = sr[::-1] if rev else sr
+    assert (sr.plus_start, sr.plus_stop, sr.plus_step) == (start, stop, step)
+
+
 def test_seqview_copy_propagates_seq_len(dna_alphabet):
     seq = "ACGGTGGGAC"
     sv = new_sequence.SeqView(parent=seq, alphabet=dna_alphabet)
