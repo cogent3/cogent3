@@ -5,12 +5,11 @@ execution on compute systems with 1000s of CPUs."""
 import os
 import pathlib
 import pickle
-import sys
 import warnings
 from typing import Callable, Optional, Union
 
 from cogent3._version import __version__
-from cogent3.app import app_help, available_apps, get_app, open_data_store
+from cogent3.app import app_help, available_apps, get_app, open_data_store  # noqa
 from cogent3.core import annotation_db as _anno_db
 from cogent3.core.alignment import (
     Alignment,
@@ -18,21 +17,24 @@ from cogent3.core.alignment import (
     Sequence,
     SequenceCollection,
 )
-from cogent3.core.genetic_code import available_codes, get_code
+from cogent3.core.genetic_code import available_codes, get_code  # noqa
 
 # note that moltype has to be imported last, because it sets the moltype in
 # the objects created by the other modules.
 from cogent3.core.moltype import (
-    ASCII,
-    DNA,
-    PROTEIN,
-    RNA,
-    available_moltypes,
-    get_moltype,
+    ASCII,  # noqa
+    DNA,  # noqa
+    PROTEIN,  # noqa
+    RNA,  # noqa
+    available_moltypes,  # noqa
+    get_moltype,  # noqa
 )
 from cogent3.core.tree import PhyloNode, TreeBuilder, TreeError, TreeNode
-from cogent3.evolve.fast_distance import available_distances, get_distance_calculator
-from cogent3.evolve.models import available_models, get_model
+from cogent3.evolve.fast_distance import (  # noqa
+    available_distances,
+    get_distance_calculator,
+)
+from cogent3.evolve.models import available_models, get_model  # noqa
 from cogent3.parse.cogent3_json import load_from_json
 from cogent3.parse.newick import parse_string as newick_parse_string
 from cogent3.parse.sequence import get_parser, is_genbank
@@ -47,14 +49,6 @@ __copyright__ = "Copyright 2007-2023, The Cogent Project"
 __credits__ = "https://github.com/cogent3/cogent3/graphs/contributors"
 __license__ = "BSD-3"
 
-
-_min_version = (3, 9)
-if (sys.version_info.major, sys.version_info.minor) < _min_version:
-    PY_VERSION = ".".join([str(n) for n in sys.version_info])
-    _min_version = ".".join(str(e) for e in _min_version)
-    raise RuntimeError(
-        f"Python-{_min_version} or greater is required, Python-{PY_VERSION} used."
-    )
 
 version = __version__
 version_info = tuple([int(v) for v in version.split(".") if v.isdigit()])
