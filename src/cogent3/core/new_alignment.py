@@ -643,11 +643,11 @@ class SequenceCollection:
             list of seqids giving the order in which seqs will be returned.
             Defaults to self.names
         """
-
-        seqs = self.seqs
-        get = seqs.__getitem__
-        for key in seq_order or self.names:
-            yield get(key)
+        if seq_order is None:
+            yield from self.seqs
+        else:
+            for name in seq_order:
+                yield self.seqs[name]
 
     def take_seqs(
         self,
@@ -711,7 +711,20 @@ class SequenceCollection:
     def get_seq_names_if(
         self, f: Callable[[new_sequence.Sequence], bool], negate: bool = False
     ):
-        """Returns list of names of seqs where f(seq) is True."""
+        """Returns list of names of seqs where f(seq) is True.
+
+        Parameters
+        ----------
+        f
+            function that takes a sequence object and returns True or False
+        negate
+            select all sequences EXCEPT those where f(seq) is True
+
+        Notes
+        -----
+        Sequence objects can be converted into strings or numpy arrays using
+        str() and numpy.array() respectively.
+        """
         get = self.seqs
 
         new_f = negate_condition(f) if negate else f
@@ -719,7 +732,7 @@ class SequenceCollection:
         return [name for name in self.names if new_f(get[name])]
 
     def take_seqs_if(
-        self, f: Callable[[new_sequence.Sequence], bool], negate: bool = False, **kwargs
+        self, f: Callable[[new_sequence.Sequence], bool], negate: bool = False
     ):
         """Returns new collection containing seqs where f(seq) is True.
 
@@ -732,10 +745,10 @@ class SequenceCollection:
 
         Notes
         -----
-        The seqs in the new collection are the same objects as the
-        seqs in the old collection, not copies.
+        Sequence objects can be converted into strings or numpy arrays using
+        str() and numpy.array() respectively.
         """
-        return self.take_seqs(self.get_seq_names_if(f, negate), **kwargs)
+        return self.take_seqs(self.get_seq_names_if(f, negate))
 
     def get_seq(
         self, seqname: str, copy_annotations: bool = False
@@ -2664,6 +2677,8 @@ def compose_gapped_seq(
 
 class Aligned:
     """A single sequence in an alignment."""
+
+    __slots__ = ("_data", "_moltype", "_name", "_annotation_db")
 
     def __init__(
         self,
