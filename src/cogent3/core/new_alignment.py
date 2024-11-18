@@ -4480,19 +4480,18 @@ class Alignment(SequenceCollection):
         Parameters
         ----------
         include_gap_motif
-            if False, sequences with a gap motif in a
-            column are ignored.
+            if False, sequences with a gap motif in a column are ignored.
 
         """
+        # refactor: use numba decorated function for returning the indices
         indices = []
         gap_index = self.moltype.most_degen_alphabet().gap_index
         missing_index = self.moltype.most_degen_alphabet().missing_index
 
         for i, pos in enumerate(self.array_positions):
-            unique = set(pos)
+            unique = numpy.unique(pos)
             if not include_gap_motif:
-                unique.discard(gap_index)
-                unique.discard(missing_index)
+                unique = unique[(unique != gap_index) & (unique != missing_index)]
             if len(unique) > 1:
                 indices.append(i)
         return indices
