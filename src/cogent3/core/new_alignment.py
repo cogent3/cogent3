@@ -4182,7 +4182,13 @@ class Alignment(SequenceCollection):
 
         Parameters
         ----------
-
+        motif_length
+            number of elements per character.
+        include_ambiguity
+            if True, motifs containing ambiguous characters from the seq moltype
+            are included. No expansion of those is attempted.
+        allow_gap
+            if True, motifs containing a gap character are included.
         warn
             warns if motif_length > 1 and alignment trimmed to produce
             motif columns
@@ -4199,7 +4205,7 @@ class Alignment(SequenceCollection):
         if not allow_gap:
             exclude_chars.update(self.moltype.gap)
 
-        if not include_ambiguity:
+        if not include_ambiguity and self.moltype.degen_alphabet:
             ambigs = [c for c, v in self.moltype.ambiguities.items() if len(v) > 1]
             exclude_chars.update(ambigs)
 
@@ -4459,6 +4465,28 @@ class Alignment(SequenceCollection):
             result = draw.bound_to(result)
 
         return result
+
+    def variable_positions(self, include_gap_motif: bool = True) -> list[int]:
+        """Return a list of variable position indexes.
+
+        Parameters
+        ----------
+        include_gap_motif
+            if False, sequences with a gap motif in a column are ignored.
+
+        """
+        # refactor: use numba decorated function for returning the indices
+        indices = []
+        gap_index = self.moltype.most_degen_alphabet().gap_index
+        missing_index = self.moltype.most_degen_alphabet().missing_index
+
+        for i, pos in enumerate(self.array_positions):
+            unique = numpy.unique(pos)
+            if not include_gap_motif:
+                unique = unique[(unique != gap_index) & (unique != missing_index)]
+            if len(unique) > 1:
+                indices.append(i)
+        return indices
 
     def omit_bad_seqs(self, quantile: OptFloat = None):
         """Returns new alignment without sequences with a number of uniquely

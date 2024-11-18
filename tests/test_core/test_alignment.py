@@ -539,7 +539,7 @@ class SequenceCollectionBaseTests(object):
             aln.with_modified_termini(), {"s1": "AATGR??", "s2": "?T-AG??"}
         )
 
-    def test_make_gap_filter(self):
+    def test_make_gap_filter(self):  # ported
         """make_gap_filter returns f(seq) -> True if aligned ok w/ query"""
         s1 = RNA.make_seq(seq="UC-----CU---C")
         s3 = RNA.make_seq(seq="UUCCUUCUU-UUC")
@@ -944,7 +944,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
     as a constructor.
     """
 
-    def test_alignment_quality(self):
+    def test_alignment_quality(self):  # ported
         """check alignment method correctly invokes underlying app"""
         aln = self.Class(["AAAC", "ACGC", "AGCC", "A-TC"], moltype="dna")
         got = aln.alignment_quality(equifreq_mprobs=False)
@@ -1128,7 +1128,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             alignmentUpper.iupac_consensus(PROTEIN), "ACBEFGHIKLMNPZRS?UVWX-"
         )
 
-    def test_is_ragged(self):
+    def test_is_ragged(self):  # ported
         """SequenceCollection is_ragged should return true if ragged alignment"""
         assert not self.identical.is_ragged()
         assert not self.gaps.is_ragged()
@@ -1269,7 +1269,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         # order now changes
         self.assertTrue(got.find(ref_row) < got.find(other_row))
 
-    def test_variable_positions(self):
+    def test_variable_positions(self):  # ported
         """correctly identify variable positions"""
         new_seqs = {"A": "-CG-C", "B": "ACAA?", "C": "GCGAC"}
         aln = self.Class(data=new_seqs, moltype=DNA)
@@ -1280,7 +1280,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(aln.variable_positions(include_gap_motif=True), [])
         self.assertEqual(aln.variable_positions(include_gap_motif=False), [])
 
-    def test_to_type_info(self):
+    def test_to_type_info(self):  # will not port
         """interconverting between alignment types preserves info attribute"""
         new_seqs = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
         array_align = self.Class == ArrayAlignment
@@ -1291,7 +1291,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(id(aln), id(new))
         self.assertEqual(new.info["key"], "value")
 
-    def test_to_dna(self):
+    def test_to_dna(self):  # ported
         """alignment cast to DNA works"""
         data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
         aln = self.Class(data=data)
@@ -1302,14 +1302,14 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         paln = dna.get_translation()
         self.assertRaises(AlphabetError, paln.to_dna)
 
-    def test_to_dna_info(self):
+    def test_to_dna_info(self):  # ported
         """alignment cast to DNA preserves info attribute"""
         data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
         aln = self.Class(data=data, info={"key": "value"})
         dna = aln.to_dna()
         self.assertEqual(dna.info["key"], "value")
 
-    def test_to_rna(self):
+    def test_to_rna(self):  # ported
         """alignment cast to RNA works"""
         data = {"seq1": "ACGUACGUA", "seq2": "ACCGAA---", "seq3": "ACGUACGUU"}
         aln = self.Class(data=data)
@@ -1317,14 +1317,14 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(set(rna.names), set(aln.names))
         self.assertTrue(rna.moltype == RNA)
 
-    def test_to_rna_info(self):
+    def test_to_rna_info(self):  # ported
         """alignment cast to RNA preserves info attribute"""
         data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
         aln = self.Class(data=data, info={"key": "value"})
         rna = aln.to_rna()
         self.assertEqual(rna.info["key"], "value")
 
-    def test_to_protein(self):
+    def test_to_protein(self):  # will not port (use get_translation)
         """alignment cast to protein works"""
         data = {"seq1": "TYV", "seq3": "TYV", "seq2": "TE-"}
         aln = self.Class(data=data)
@@ -1334,7 +1334,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         # should fail if invalid character set
         self.assertRaises(AlphabetError, paln.to_dna)
 
-    def test_to_protein_info(self):
+    def test_to_protein_info(self):  # will not port (use get_translation)
         """alignment cast to protein preserves info attribute"""
         data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
         aln = self.Class(data=data, info={"key": "value"})
@@ -1418,7 +1418,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         c = aln.counts_per_pos(include_ambiguity=False, allow_gap=True)
         assert_equal(set(c.motifs), set("ACGT-"))
 
-    def test_counts_per_seq_default_moltype(self):
+    def test_counts_per_seq_default_moltype(self):  # ported
         """produce correct counts per seq with default moltypes"""
         data = {"a": "AAAA??????", "b": "CCCGGG--NN", "c": "CCGGTTCCAA"}
         coll = self.Class(data=data)
@@ -1430,7 +1430,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         got = coll.counts_per_seq(include_ambiguity=True, allow_gap=True)
         self.assertEqual(got.col_sum()["-"], 2)
 
-    def test_counts_per_pos_default_moltype(self):
+    def test_counts_per_pos_default_moltype(self):  # ported
         """produce correct counts per pos with default moltypes"""
         data = {"a": "AAAA??????", "b": "CCCGGG--NN", "c": "CCGGTTCCAA"}
         coll = self.Class(data=data)
@@ -1453,7 +1453,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertTrue("-" not in found_motifs)
         self.assertEqual(lengths, {2})
 
-    def test_entropy_per_pos_just_gaps(self):
+    def test_entropy_per_pos_just_gaps(self):  # ported
         """pos with just gaps have nan"""
         a = self.Class(dict(a="A---", b="C---", c="C---"), moltype=DNA)
         entropy = a.entropy_per_pos()
@@ -1529,7 +1529,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         assert_equal(got.array, [2, 1, 2])
         assert_equal(got["b"], 1)
 
-    def test_info_source(self):
+    def test_info_source(self):  # ported
         """info.source exists if load_aligned_seqs given a filename"""
         array_align = self.Class == ArrayAlignment
         seqs = load_aligned_seqs("data/brca1.fasta", array_align=array_align)
@@ -1601,7 +1601,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
 class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
     Class = ArrayAlignment
 
-    def test_slice_align(self):
+    def test_slice_align(self):  # ported
         """slicing alignment should work correctly"""
         data = {"seq1": "ACGACGACG", "seq2": "ACGACGACG", "seq3": "ACGACGACG"}
         alignment = self.Class(data=data)
@@ -1614,7 +1614,7 @@ class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
         expect = {"seq1": "GGG", "seq2": "GGG", "seq3": "GGG"}
         self.assertEqual(sub_align.to_dict(), expect)
 
-    def test_slice_align_info(self):
+    def test_slice_align_info(self):  # ported
         """slicing alignment preserves info attribute"""
         data = {"seq1": "ACGACGACG", "seq2": "ACGACGACG", "seq3": "ACGACGACG"}
         alignment = self.Class(data=data, info={"key": "value"})
