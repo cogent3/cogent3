@@ -2108,6 +2108,33 @@ class SliceRecordABC(ABC):
         self._offset = int(value)
 
     @property
+    def plus_start(self) -> int:
+        """start on plus strand"""
+        if self.is_reversed:
+            # self.stop becomes the start, self.stop will be negative
+            assert self.stop < 0, "expected stop on reverse strand SeqView < 0"
+            start = self.stop + self.parent_len + 1
+        else:
+            start = self.start
+        return start
+
+    @property
+    def plus_stop(self) -> int:
+        """stop on plus strand"""
+        if self.is_reversed:
+            # self.start becomes the stop, self.start will be negative
+            assert self.start < 0, "expected start on reverse strand SeqView < 0"
+            stop = self.start + self.parent_len + 1
+        else:
+            stop = self.stop
+        return stop
+
+    @property
+    def plus_step(self) -> int:
+        """step on plus strand"""
+        return abs(self.step)
+
+    @property
     def parent_start(self) -> int:
         """returns the start on the parent plus strand
 
@@ -2115,15 +2142,12 @@ class SliceRecordABC(ABC):
         -------
         offset + start, taking into account whether reversed. Result
         is positive.
-        """
-        if self.is_reversed:
-            # self.stop becomes the start, self.stop will be negative
-            assert self.stop < 0, "expected stop on reverse strand SeqView < 0"
-            start = self.stop + self.parent_len + 1
-        else:
-            start = self.start
 
-        return self.offset + start
+        Notes
+        -----
+        This should NOT be used for slicing on the parent object.
+        """
+        return self.offset + self.plus_start
 
     @property
     def is_reversed(self):
@@ -2137,14 +2161,12 @@ class SliceRecordABC(ABC):
         -------
         offset + stop, taking into account whether reversed. Result
         is positive.
+
+        Notes
+        -----
+        This should NOT be used for slicing on the parent object.
         """
-        if self.is_reversed:
-            # self.start becomes the stop, self.start will be negative
-            assert self.start < 0, "expected start on reverse strand SeqView < 0"
-            stop = self.start + self.parent_len + 1
-        else:
-            stop = self.stop
-        return self.offset + stop
+        return self.offset + self.plus_stop
 
     def absolute_position(self, rel_index: int, include_boundary: bool = False):
         """Converts an index relative to the current view to be with respect

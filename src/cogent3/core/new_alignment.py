@@ -180,6 +180,11 @@ class SeqDataView(new_sequence.SeqView):
     @property
     def str_value(self) -> str:
         """returns the sequence as a string"""
+        return self.alphabet.from_indices(self.array_value)
+
+    @property
+    def array_value(self) -> numpy.ndarray:
+        """returns the sequence as a numpy array"""
         # todo: kath, in ADV, the .get_seq_str method gets passed the step and
         # the returned sequence is sliced by the step. In SDV, the step is not
         # applied in the get_seq_str method, but is applied in this method here.
@@ -187,32 +192,17 @@ class SeqDataView(new_sequence.SeqView):
 
         # also, keep using parent_start and parent_stop or to use start and stop?
         # this is another inconsistency between SDV and ADV
-        raw = self.parent.get_seq_str(
-            seqid=self.seqid,
-            start=self.slice_record.parent_start,
-            stop=self.slice_record.parent_stop,
-        )
-        return raw if self.slice_record.step == 1 else raw[:: self.slice_record.step]
-
-    @property
-    def array_value(self) -> numpy.ndarray:
-        """returns the sequence as a numpy array"""
         raw = self.parent.get_seq_array(
             seqid=self.seqid,
-            start=self.slice_record.parent_start,
-            stop=self.slice_record.parent_stop,
+            start=self.slice_record.plus_start,
+            stop=self.slice_record.plus_stop,
         )
         return raw if self.slice_record.step == 1 else raw[:: self.slice_record.step]
 
     @property
     def bytes_value(self) -> bytes:
         """returns the sequence as bytes"""
-        raw = self.parent.get_seq_bytes(
-            seqid=self.seqid,
-            start=self.slice_record.parent_start,
-            stop=self.slice_record.parent_stop,
-        )
-        return raw if self.slice_record.step == 1 else raw[:: self.slice_record.step]
+        return self.str_value.encode("utf8")
 
     def __repr__(self) -> str:
         seq = f"{self[:10]!s}...{self[-5:]}" if len(self) > 15 else str(self)
@@ -2344,7 +2334,7 @@ def _(data: dict, moltype: new_moltype.MolType, seq_namer: _SeqNamer) -> CT:
     for name, seq in data.items():
         name = seq_namer(seq=seq, name=name)
         seq_data = coerce_to_raw_seq_data(seq, moltype, name=name)
-        offsets[name] = seq_data.offset
+        offsets[seq_data.parent_name or name] = seq_data.offset
         seqs[seq_data.parent_name or seq_data.name] = seq_data.seq
         rvd += 1 if seq_data.is_reversed else 0
         name_map[name] = seq_data.parent_name or name
@@ -2449,6 +2439,8 @@ def make_unaligned_seqs(
     # corrects for any naming differences in data and skip this step
     assign_names = _SeqNamer(name_func=label_to_name)
     seqs_data, offs, rvd, nm = prep_for_seqs_data(data, moltype, assign_names)
+    offset = offset or {}
+    offset = {**offs, **offset}
     # rvd is the count of sequences that have been reversed. It should be equal 0
     # or the number of sequences. If inbetween, the sequences are a mix of the two
     # which for now we do not support. However, if the user has provided a value
