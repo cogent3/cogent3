@@ -111,6 +111,7 @@ class LineBasedParser:
 
 PARSERS = {
     "phylip": LineBasedParser(phylip.MinimalPhylipParser),
+    "phy": LineBasedParser(phylip.MinimalPhylipParser),
     "paml": LineBasedParser(paml.PamlParser),
     "fasta": fasta.iter_fasta_records,
     "mfa": fasta.iter_fasta_records,

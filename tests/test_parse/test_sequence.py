@@ -1,4 +1,3 @@
-# the delegator module
 import pathlib
 
 import pytest
@@ -74,3 +73,19 @@ def test_is_genbank(fmt):
 @pytest.mark.parametrize("fmt", ("blah", "fa", "xml", "nex", None))
 def test_is_not_genbank(fmt):
     assert not sequence.is_genbank(fmt)
+
+
+@pytest.fixture(params=("phylip", "phy"))
+def phylip_file(DATA_DIR, tmp_path, request):
+    with open(DATA_DIR / "interleaved.phylip", mode="rt") as f:
+        data = f.read()
+    outpath = tmp_path / f"interleaved.{request.param}"
+    outpath.write_text(data)
+    return outpath
+
+
+def test_select_parser_phylip_suffixes(phylip_file):
+    from cogent3 import load_aligned_seqs
+
+    got = load_aligned_seqs(phylip_file)
+    assert set(got.names) == {"human", "chimp", "mouse"}
