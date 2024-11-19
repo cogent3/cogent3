@@ -397,6 +397,7 @@ def test_seq_data_view_to_rich_dict(rev):
         "init_args": {
             "seqid": "seq1",
             "parent": sdv.str_value,
+            "parent_len": len(sdv.str_value),
             "alphabet": alpha.to_rich_dict(),
             "slice_record": sdv.slice_record.to_rich_dict(),
         },
