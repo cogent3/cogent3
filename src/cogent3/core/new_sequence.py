@@ -1236,7 +1236,9 @@ class Sequence:
                 f"Changing from old moltype={self.moltype.label!r} to new "
                 f"moltype={moltype.label!r} is not valid for this data"
             )
-        sv = SeqView(parent=seq, alphabet=moltype.most_degen_alphabet())
+        sv = SeqView(
+            parent=seq, parent_len=len(seq), alphabet=moltype.most_degen_alphabet()
+        )
         new = self.__class__(moltype=moltype, seq=sv, name=self.name, info=self.info)
         new.annotation_db = self.annotation_db
         return new
@@ -2646,15 +2648,16 @@ class SeqView(SeqViewABC):
         *,
         parent: StrORBytesORArray,
         alphabet: new_alphabet.AlphabetABC,
+        parent_len: int,
         seqid: OptStr = None,
-        parent_len: OptInt = None,
         slice_record: SliceRecordABC = None,
         offset: int = 0,
     ):
         self.alphabet = alphabet
         self.parent = parent
         self._seqid = seqid
-        self._parent_len = parent_len or len(self.parent)
+        assert parent_len is not None
+        self._parent_len = parent_len
         self._slice_record = (
             slice_record
             if slice_record is not None
@@ -2682,6 +2685,7 @@ class SeqView(SeqViewABC):
     def _get_init_kwargs(self):
         return {
             "parent": self.parent,
+            "parent_len": self._parent_len,
             "seqid": self.seqid,
             "alphabet": self.alphabet,
             "slice_record": self.slice_record,
@@ -2794,6 +2798,7 @@ class SeqView(SeqViewABC):
         data = self.to_rich_dict()
         return self.__class__(
             parent=data["init_args"]["parent"],
+            parent_len=data["init_args"]["parent_len"],
             seqid=self.seqid,
             alphabet=self.alphabet,
             slice_record=SliceRecord(**data["init_args"]["slice_record"]["init_args"]),
@@ -2848,7 +2853,9 @@ def _(
 def _(
     data: str, seqid: str, alphabet: new_alphabet.AlphabetABC, offset: int
 ) -> SeqViewABC:
-    return SeqView(parent=data, seqid=seqid, alphabet=alphabet, offset=offset)
+    return SeqView(
+        parent=data, parent_len=len(data), seqid=seqid, alphabet=alphabet, offset=offset
+    )
 
 
 @_coerce_to_seqview.register
@@ -2856,7 +2863,9 @@ def _(
     data: bytes, seqid: str, alphabet: new_alphabet.AlphabetABC, offset: int
 ) -> SeqViewABC:
     data = data.decode("utf8")
-    return SeqView(parent=data, seqid=seqid, alphabet=alphabet, offset=offset)
+    return SeqView(
+        parent=data, parent_len=len(data), seqid=seqid, alphabet=alphabet, offset=offset
+    )
 
 
 @_coerce_to_seqview.register
@@ -2865,6 +2874,7 @@ def _(
 ) -> SeqViewABC:
     return SeqView(
         parent=data.astype(alphabet.dtype),
+        parent_len=len(data),
         seqid=seqid,
         alphabet=alphabet,
         offset=offset,
