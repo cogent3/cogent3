@@ -1704,13 +1704,6 @@ class PhyloNode(TreeNode):
         kwargs["params"] = params
         super().__init__(*args, **kwargs)
 
-        if self.children:
-            # self is an internal tree node
-            name, support = split_name_and_support(self.name)
-            self.name = name
-            if support is not None:
-                self.params["support"] = support
-
     @property
     def length(self) -> Union[float, None]:
         return self.params.get("length", None)
@@ -2270,9 +2263,17 @@ class TreeBuilder(object):
         """Callback for newick parser"""
         if children is None:
             children = []
+
+        if children and issubclass(self.TreeNodeClass, PhyloNode):
+            name, support = split_name_and_support(name)
+            if support is not None:
+                params["support"] = support
+
         node = self.TreeNodeClass(
             children=list(children),
-            name=self._unique_name(name),
+            name=self._unique_name(
+                name
+            ),  # should ban use of _unique_name if name is support only
             name_loaded=name_loaded and (name is not None),
             params=params,
         )
