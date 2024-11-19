@@ -3048,9 +3048,7 @@ def _(data: bytes, seqid, preserve_case, checker, annotation_offset):
         data = data.upper()
     data = data.decode("utf8")
     checker(data)
-    return SeqView(
-        seq=data, parent_len=len(data), seqid=seqid, offset=annotation_offset
-    )
+    return SeqView(seq=data, seqid=seqid, offset=annotation_offset)
 
 
 @_coerce_to_seqview.register
