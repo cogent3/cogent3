@@ -185,19 +185,13 @@ class SeqDataView(new_sequence.SeqView):
     @property
     def array_value(self) -> numpy.ndarray:
         """returns the sequence as a numpy array"""
-        # todo: kath, in ADV, the .get_seq_str method gets passed the step and
-        # the returned sequence is sliced by the step. In SDV, the step is not
-        # applied in the get_seq_str method, but is applied in this method here.
-        # can we make this consistent?
-
-        # also, keep using parent_start and parent_stop or to use start and stop?
-        # this is another inconsistency between SDV and ADV
         raw = self.parent.get_seq_array(
             seqid=self.seqid,
             start=self.slice_record.plus_start,
             stop=self.slice_record.plus_stop,
+            step=self.slice_record.plus_step,
         )
-        return raw if self.slice_record.step == 1 else raw[:: self.slice_record.step]
+        return raw[::-1] if self.slice_record.is_reversed else raw
 
     @property
     def bytes_value(self) -> bytes:
@@ -390,21 +384,46 @@ class SeqsData(SeqsDataABC):
         return self._data[seqid].shape[0]
 
     def get_seq_array(
-        self, *, seqid: str, start: OptInt = None, stop: OptInt = None
+        self,
+        *,
+        seqid: str,
+        start: OptInt = None,
+        stop: OptInt = None,
+        step: OptInt = None,
     ) -> numpy.ndarray:
-        return self._data[seqid][start:stop]
+        start = start or 0
+        stop = stop if stop is not None else self.get_seq_length(seqid)
+        step = step or 1
+
+        out_len = (stop - start + step - 1) // step
+        out = numpy.empty(out_len, dtype=self.alphabet.dtype)
+
+        out[:] = self._data[seqid][start:stop:step]
+        return out
 
     def get_seq_str(
-        self, *, seqid: str, start: OptInt = None, stop: OptInt = None
+        self,
+        *,
+        seqid: str,
+        start: OptInt = None,
+        stop: OptInt = None,
+        step: OptInt = None,
     ) -> str:
         return self._alphabet.from_indices(
-            self.get_seq_array(seqid=seqid, start=start, stop=stop)
+            self.get_seq_array(seqid=seqid, start=start, stop=stop, step=step)
         )
 
     def get_seq_bytes(
-        self, *, seqid: str, start: OptInt = None, stop: OptInt = None
+        self,
+        *,
+        seqid: str,
+        start: OptInt = None,
+        stop: OptInt = None,
+        step: OptInt = None,
     ) -> bytes:
-        return self.get_seq_str(seqid=seqid, start=start, stop=stop).encode("utf8")
+        return self.get_seq_str(seqid=seqid, start=start, stop=stop, step=step).encode(
+            "utf8"
+        )
 
     def get_view(self, seqid: str) -> SeqDataView:
         seq_len = len(self._data[seqid])
@@ -2878,8 +2897,9 @@ class Aligned:
 
 
 class AlignedSeqsDataABC(SeqsDataABC):
-    # all methods that are from SeqsDataABC should work in sequence coordinates
-    # all methods unique to AlignedSeqsDataABC should work in aligned coordinates
+    # all methods that are from SeqsDataABC should work in sequence coordinates,
+    # all methods unique to AlignedSeqsDataABC should work in aligned coordinates.
+    # all indices provided to AlignedSeqsDataABC should be on the plus strand.
     __slots__ = ()
 
     @classmethod
@@ -3302,8 +3322,16 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         """Return ungapped sequence corresponding to seqid as an array of indices.
         assumes start/stop are in sequence coordinates. Excludes gaps.
         """
-        seq = self._get_ungapped(seqid)
-        return seq[start:stop:step]
+        start = start or 0
+        stop = stop if stop is not None else self.get_seq_length(seqid)
+        # the following assumes step will never be 0
+        step = step or 1
+        out_len = (stop - start + step - 1) // step
+
+        seq = numpy.empty(out_len, dtype=self.alphabet.dtype)
+        seq[:] = self._get_ungapped(seqid)[start:stop:step]
+
+        return seq
 
     def get_gapped_seq_array(
         self,
@@ -3316,15 +3344,16 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         """Return sequence data corresponding to seqid as an array of indices.
         start/stop are in alignment coordinates. Includes gaps.
         """
-        # reminder: design
-        # this is recreating the orignal seq, so will be memory and compute inefficient
-        # better to build the smallest gapped seq represented by the start/stop
-        # determine the seq coordinates for slicing the ungapped sequence then apply the step
-        # note with the latter approach, if the step is negative, need to apply the step as
-        # a positive integer than return the reversed array
+        start = start or 0
+        stop = stop if stop is not None else self.align_len
+        # the following assumes step will never be 0
+        step = step or 1
         index = self._name_to_index[seqid]
-        gapped = self._gapped[index]
-        return gapped[start:stop:step]
+        out_len = (stop - start + step - 1) // step
+        gapped = numpy.empty(out_len, dtype=self.alphabet.dtype)
+        gapped[:] = self._gapped[index][start:stop:step]
+
+        return gapped
 
     def get_seq_str(
         self,
@@ -3625,57 +3654,39 @@ class AlignedDataView(new_sequence.SeqViewABC):
 
     @property
     def str_value(self) -> str:
-        return self.parent.get_seq_str(
-            seqid=self.seqid,
-            start=self.slice_record.start,
-            stop=self.slice_record.stop,
-            step=self.slice_record.step,
-        )
+        return self.alphabet.from_indices(self.array_value)
 
     @property
     def gapped_str_value(self) -> str:
-        return self.parent.get_gapped_seq_str(
-            seqid=self.seqid,
-            start=self.slice_record.start,
-            stop=self.slice_record.stop,
-            step=self.slice_record.step,
-        )
+        return self.alphabet.from_indices(self.gapped_array_value)
 
     @property
     def array_value(self) -> numpy.ndarray:
-        return self.parent.get_seq_array(
+        value = self.parent.get_seq_array(
             seqid=self.seqid,
-            start=self.slice_record.start,
-            stop=self.slice_record.stop,
-            step=self.slice_record.step,
+            start=self.map.get_seq_index(self.slice_record.plus_start),
+            stop=self.map.get_seq_index(self.slice_record.plus_stop),
+            step=self.map.get_seq_index(self.slice_record.plus_step),
         )
+        return value[::-1] if self.slice_record.is_reversed else value
 
     @property
     def gapped_array_value(self) -> numpy.ndarray:
-        return self.parent.get_gapped_seq_array(
+        value = self.parent.get_gapped_seq_array(
             seqid=self.seqid,
-            start=self.slice_record.start,
-            stop=self.slice_record.stop,
-            step=self.slice_record.step,
+            start=self.slice_record.plus_start,
+            stop=self.slice_record.plus_stop,
+            step=self.slice_record.plus_step,
         )
+        return value[::-1] if self.slice_record.is_reversed else value
 
     @property
     def bytes_value(self) -> bytes:
-        return self.parent.get_seq_bytes(
-            seqid=self.seqid,
-            start=self.slice_record.start,
-            stop=self.slice_record.stop,
-            step=self.slice_record.step,
-        )
+        return self.str_value.encode("utf8")
 
     @property
     def gapped_bytes_value(self) -> bytes:
-        return self.parent.get_gapped_seq_bytes(
-            seqid=self.seqid,
-            start=self.slice_record.start,
-            stop=self.slice_record.stop,
-            step=self.slice_record.step,
-        )
+        return self.gapped_str_value.encode("utf8")
 
     def __str__(self) -> str:
         return self.str_value

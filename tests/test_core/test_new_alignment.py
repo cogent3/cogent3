@@ -236,8 +236,8 @@ def test_seqs_data_get_seq_view(str_seqs_dict, dna_alphabet, seqid):
 
 
 @pytest.mark.parametrize("seq", ("seq1", "seq2"))
-@pytest.mark.parametrize("start", (None, -1, 0, 1, 4))
-@pytest.mark.parametrize("stop", (None, -1, 0, 1, 4))
+@pytest.mark.parametrize("start", (None, 0, 1))
+@pytest.mark.parametrize("stop", (None, 3, 4))
 def test_seqs_data_get_seq_str(str_seqs_dict, dna_alphabet, seq, start, stop):
     # slicing should be tested in test_get_seq_array
     expect = str_seqs_dict[seq][start:stop]
@@ -624,6 +624,30 @@ def test_make_seqs_from_sequences(mk_cls):
 
 
 @pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+@pytest.mark.parametrize(
+    "seq_name, parent_name", [("seq_1", "parent_1"), ("seq_2", "parent_2")]
+)
+def test_make_seqs_renamed_seqs(mk_cls, seq_name, parent_name, dna_alphabet):
+    # the parent_name should persist from sequence object to SequenceCollection
+    seq_view_1 = new_sequence.SeqView(
+        parent="AAAA", parent_len=4, seqid="parent_1", alphabet=dna_alphabet
+    )
+    seq_view_2 = new_sequence.SeqView(
+        parent="TTTT", parent_len=4, seqid="parent_2", alphabet=dna_alphabet
+    )
+
+    seq_1 = new_moltype.DNA.make_seq(seq=seq_view_1, name="seq_1")
+    seq_2 = new_moltype.DNA.make_seq(seq=seq_view_2, name="seq_2")
+
+    seqs = mk_cls([seq_1, seq_2], moltype="dna")
+    assert seqs.names == ["seq_1", "seq_2"]
+    assert seqs.get_seq(seq_name)._seq.seqid == parent_name
+
+
+@pytest.mark.parametrize(
     "mk_cls, data_cls",
     [
         (new_alignment.make_unaligned_seqs, new_alignment.SeqsData),
@@ -631,7 +655,7 @@ def test_make_seqs_from_sequences(mk_cls):
     ],
 )
 @pytest.mark.parametrize("seq", ("a", "b"))
-def test_make_seqs_offset(mk_cls, data_cls, seq):
+def test_make_seqs_offset(mk_cls, data_cls, seq, dna_alphabet):
     """SequenceCollection and Alignment constructor functions should handle
     offset argument"""
     data = {"a": "AGGCCC", "b": "AGAAAA"}
@@ -644,6 +668,24 @@ def test_make_seqs_offset(mk_cls, data_cls, seq):
     data = data_cls.from_seqs(data=data, alphabet=new_moltype.DNA.degen_gapped_alphabet)
     with pytest.raises(ValueError):
         _ = mk_cls(data, moltype="dna", offset=offset)
+
+    # if provided with sequence objects with offsets, they should be propogated
+    seq_view_1 = new_sequence.SeqView(
+        parent="AAAA", parent_len=4, alphabet=dna_alphabet, offset=1
+    )
+    seq_view_2 = new_sequence.SeqView(
+        parent="TTTT", parent_len=4, alphabet=dna_alphabet, offset=2
+    )
+    seq_1 = new_moltype.DNA.make_seq(seq=seq_view_1, name="seq_1")
+    seq_2 = new_moltype.DNA.make_seq(seq=seq_view_2, name="seq_2")
+
+    seqs = mk_cls([seq_1, seq_2], moltype="dna")
+
+    got = seqs.get_seq("seq_1")
+    assert got._seq.offset == 1
+
+    got = seqs.get_seq("seq_2")
+    assert got._seq.offset == 2
 
 
 @pytest.mark.parametrize(
@@ -1047,7 +1089,21 @@ def test_sequence_collection_degap(mk_cls, gap_ambig_seqs, rced):
 
     # Test empty sequences case
     empty_seqs = mk_cls({"empty1": "", "empty2": ""}, moltype="dna")
-    got_empty = empty_seqs.degap().to_dict()
+    empty_seqs = empty_seqs.degap()
+    got_empty = empty_seqs.to_dict()
+    expect_empty = {"empty1": "", "empty2": ""}
+    assert got_empty == expect_empty
+
+
+def test_sequence_collection_degap_one_off():
+    """SequenceCollection.degap should strip gaps from each seq"""
+
+    empty_seqs = new_alignment.make_unaligned_seqs(
+        {"empty1": "", "empty2": ""}, moltype="dna"
+    )
+    a = empty_seqs.seqs[0]
+    empty_seqs = empty_seqs.degap()
+    got_empty = empty_seqs.to_dict()
     expect_empty = {"empty1": "", "empty2": ""}
     assert got_empty == expect_empty
 

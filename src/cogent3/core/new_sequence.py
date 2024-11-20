@@ -2113,9 +2113,17 @@ class SliceRecordABC(ABC):
     def plus_start(self) -> int:
         """start on plus strand"""
         if self.is_reversed:
-            # self.stop becomes the start, self.stop will be negative
+            # all indices are negative, so the stop becomes the start. To convert
+            # to positive indices, we add the length of the parent sequence to
+            # the stop. Note that when abs(self.step) > 1, we instead calculate
+            # the "true stop", i.e., the index that immediately follows (in the
+            # direction of the step) the last selected index in the slice. We then
+            # add the abs(self.step) to account for the fact that the stop uses
+            # exclusive indexing, and the start is inclusive.
+
             assert self.stop < 0, "expected stop on reverse strand SeqView < 0"
-            start = self.stop + self.parent_len + 1
+            stop = self.stop if self.step == -1 else self.start + len(self) * self.step
+            start = self.parent_len + stop + abs(self.step)
         else:
             start = self.start
         return start
@@ -2128,7 +2136,13 @@ class SliceRecordABC(ABC):
             assert self.start < 0, "expected start on reverse strand SeqView < 0"
             stop = self.start + self.parent_len + 1
         else:
-            stop = self.stop
+            # we ensure that the plus_stop is the index that immediately follows
+            # the last selected index in the slice.
+            stop = (
+                self.stop
+                if self.step == 1
+                else (self.start + len(self) * self.step - self.step) + 1
+            )
         return stop
 
     @property
@@ -2441,12 +2455,10 @@ class SliceRecordABC(ABC):
     def _get_reverse_slice_from_reverse_seqview_(
         self, slice_start: int, slice_stop: int, step: int, **kwargs
     ):
-        # max start is "true stop" + abs(step), because stop is not inclusive
-        # "true stop" adjust for if abs(stop-start) % step != 0
+        # refactor: simplify
+        # are there other places in slice_record where we can use plus_start/stop/step
         if slice_start >= len(self):
-            start = (
-                self.parent_len + self.start + len(self) * self.step + abs(self.step)
-            )
+            start = self.plus_start
         elif slice_start >= 0:
             start = self.parent_len + (self.start + slice_start * self.step)
         else:

@@ -2670,12 +2670,63 @@ def test_seqview_seq_len_init(start, stop, step, length, dna_alphabet):
 @pytest.mark.parametrize("step", (1, 3))
 @pytest.mark.parametrize("rev", (False, True))
 def test_seqview_plus_attrs(rev, step):
-    # always equal values from plkus strand
+    # always equal values from plus strand
     start = 2
     stop = 12
     sr = new_sequence.SliceRecord(start=start, stop=stop, step=step, parent_len=30)
     sr = sr[::-1] if rev else sr
     assert (sr.plus_start, sr.plus_stop, sr.plus_step) == (start, stop, step)
+
+
+@pytest.mark.parametrize("rev", (False, True))
+def test_seqview_attrs_non_modulo(rev):
+    # for when the stop value does not align with the step, the plus_[stop/start]
+    # is adjusted
+
+    # start = 1, stop = 10, step = 2
+    #   [  -->  )
+    # 0123456789
+    #   * * * *
+    # we expect the plus_stop to be 9, as this is the index immediately following
+    # the last selected index
+    sr = new_sequence.SliceRecord(start=2, stop=10, step=2, parent_len=10)
+    sr = sr[::-1] if rev else sr
+    assert sr.plus_start == 2
+    assert sr.plus_stop == 9
+
+    # start = -4, stop = -10, step = -2
+    # ( <-- ]
+    # 0123456789
+    #   * * *
+    # although a stop of -10 would be a start of 1 for step == 1, we expect
+    # in this case the plus_start to be 2
+    sr = new_sequence.SliceRecord(start=-4, stop=-10, step=-2, parent_len=10)
+    sr = sr[::-1] if rev else sr
+    assert sr.plus_start == 2
+    assert sr.plus_stop == 7
+
+    # start = 1, stop = 7, step = 3
+    #  [ --> )
+    # 0123456789
+    #  *  *
+    sr = new_sequence.SliceRecord(start=1, stop=7, step=3, parent_len=10)
+    sr = sr[::-1] if rev else sr
+    assert sr.plus_start == 1
+    assert sr.plus_stop == 5
+
+    # start = -3, stop = -9, step = -3
+    #  (     ]
+    # 0123456789
+    #     *  *
+    sr = new_sequence.SliceRecord(start=-3, stop=-9, step=-3, parent_len=10)
+    sr = sr[::-1] if rev else sr
+    assert sr.plus_start == 4
+    assert sr.plus_stop == 8
+
+    sr = new_sequence.SliceRecord(start=0, stop=0, step=1, parent_len=10)
+    sr = sr[::-1] if rev else sr
+    assert sr.plus_start == 0
+    assert sr.plus_stop == 0
 
 
 def test_seqview_copy_propagates_seq_len(dna_alphabet):
