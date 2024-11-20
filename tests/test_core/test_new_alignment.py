@@ -4928,15 +4928,17 @@ def test_alignment_apply_scaled_gaps_invalid_seqlen(codon_and_aa_alns):
         aa.apply_scaled_gaps(ungapped, aa_to_codon=True)
 
 
-@pytest.mark.parametrize(
-    "moltype1,moltype2", [("protein", "text"), ("text", "protein")]
-)
-def test_alignment_apply_scaled_gaps_invalid_moltype(
-    codon_and_aa_alns, moltype1, moltype2
-):
+def test_alignment_apply_scaled_gaps_aa2codon_invalid_moltype(codon_and_aa_alns):
     codon, aa = codon_and_aa_alns
-    aa = aa.to_moltype(moltype1)
-    codon = codon.to_moltype(moltype2)
+    codon = codon.to_moltype("text")
     ungapped = codon.degap()
     with pytest.raises(ValueError):
         aa.apply_scaled_gaps(ungapped, aa_to_codon=True)
+
+
+def test_alignment_apply_scaled_gaps_codon2aa_invalid_moltype(codon_and_aa_alns):
+    codon, aa = codon_and_aa_alns
+    ungapped = aa.degap()
+    codon = codon.to_moltype("text")
+    with pytest.raises(ValueError):
+        codon.apply_scaled_gaps(ungapped, aa_to_codon=False)
