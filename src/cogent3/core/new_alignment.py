@@ -5981,6 +5981,50 @@ class Alignment(SequenceCollection):
             info=self.info,
         )
 
+    def apply_scaled_gaps(
+        self, other: SequenceCollection, aa_to_codon: bool | None = None
+    ):
+        """applies gaps in self to unagpped sequences"""
+        assert set(other.names) == set(self.names), "Names must match"
+        if aa_to_codon and not all(
+            (not self.moltype.is_nucleic, other.moltype.is_nucleic)
+        ):
+            raise ValueError(
+                "aa_to_codon True requires nucleic moltype destination not {self.moltype.name!r}"
+            )
+        elif not aa_to_codon and not all(
+            (self.moltype.is_nucleic, not other.moltype.is_nucleic)
+        ):
+            raise ValueError(
+                f"aa_to_codon False requires protein moltype destination not {other.moltype.name!r}"
+            )
+
+        assert aa_to_codon is not None
+        gaps = {}
+        seqs = {}
+        scale = 3 if aa_to_codon else 1 / 3
+
+        for seq in self.seqs:
+            parent_name = self._name_map[seq.name]
+            gaps[parent_name] = seq.map.scaled(scale).array
+            ungapped = numpy.array(other.seqs[seq.name])
+            seqs[parent_name] = ungapped
+            seq_len = self._seqs_data.get_seq_length(parent_name)
+            if len(ungapped) != int(seq_len * scale):
+                raise ValueError(
+                    f"Destination sequence for {seq.name!r} != {scale:.2f} x {seq_len} sequence"
+                )
+
+        seq_data = self._seqs_data.from_seqs_and_gaps(
+            seqs=seqs, gaps=gaps, alphabet=other.moltype.most_degen_alphabet()
+        )
+        init_args = self._get_init_kwargs()
+        init_args.pop("slice_record")  # slice is realised
+        init_args["moltype"] = other.moltype
+        init_args["seqs_data"] = seq_data
+        init_args["annotation_db"] = other.annotation_db
+        return self.__class__(**init_args)
+
 
 @singledispatch
 def make_aligned_seqs(
