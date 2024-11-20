@@ -2729,6 +2729,14 @@ def test_seqview_attrs_non_modulo(rev):
     assert sr.plus_stop == 0
 
 
+@pytest.mark.parametrize("rev", (False, True))
+def test_seqview_attrs_zero_slice(rev):
+    sr = new_sequence.SliceRecord(start=0, stop=0, step=1, parent_len=0)
+    sr = sr[::-1] if rev else sr
+    assert sr.plus_start == 0
+    assert sr.plus_stop == 0
+
+
 def test_seqview_copy_propagates_seq_len(dna_alphabet):
     seq = "ACGGTGGGAC"
     sv = new_sequence.SeqView(parent=seq, parent_len=len(seq), alphabet=dna_alphabet)
