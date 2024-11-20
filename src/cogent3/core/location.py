@@ -1198,6 +1198,11 @@ def align_to_seq_index(
         return int(gap_pos[index])
 
 
+def all_gaps_modulo_factor(cum_lengths: numpy.ndarray, factor: int) -> bool:
+    """returns True if all gap lengths are multiples of factor"""
+    return numpy.all(cum_lengths % factor == 0)
+
+
 @dataclasses.dataclass
 class IndelMap(MapABC):
     """store locations of deletions in a Aligned sequence
@@ -1905,6 +1910,46 @@ class IndelMap(MapABC):
             gap_lengths=gap_lengths,
             parent_length=self.parent_length,
         )
+
+    def scaled(self, scale_factor: float) -> "IndelMap":
+        """returns indel map scaled by scale_factor
+
+        Notes
+        -----
+        For usage with interconverting between codon and amino-acid alignments.
+        Set scale_factor to 3 for converting amino-acid alignment to codon
+        alignment. Set scale_factor to 1/3 for converting codon alignment to
+        amino-acid alignment.
+        """
+        if scale_factor == 1:
+            return self
+
+        # need to check that, if scale_factor is < 1, it's inverse is an integer
+        if scale_factor < 1:
+            if not numpy.allclose(1 / scale_factor, int(1 / scale_factor)):
+                raise ValueError(
+                    f"scale_factor {scale_factor} must be an integer or 1/integer"
+                )
+
+            if not all_gaps_modulo_factor(self.cum_gap_lengths, int(1 / scale_factor)):
+                raise ValueError(
+                    f"gap lengths must be multiples of {int(1 / scale_factor)}"
+                )
+
+        # make sure gap lengths are modulo factor
+        parent_len = int(self.parent_length * scale_factor)
+        gap_pos = (self.gap_pos * scale_factor).astype(self.gap_pos.dtype)
+        cum_gap_lengths = (self.cum_gap_lengths * scale_factor).astype(
+            self.cum_gap_lengths.dtype
+        )
+        return self.__class__(
+            gap_pos=gap_pos, cum_gap_lengths=cum_gap_lengths, parent_length=parent_len
+        )
+
+    @property
+    def array(self):
+        """returns 2D numpy array with columns gap position and cum gap lengths"""
+        return numpy.array([self.gap_pos, self.cum_gap_lengths]).T
 
 
 _empty = None, None
