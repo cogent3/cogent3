@@ -643,7 +643,7 @@ def test_make_seqs_renamed_seqs(mk_cls, seq_name, parent_name, dna_alphabet):
     seq_2 = new_moltype.DNA.make_seq(seq=seq_view_2, name="seq_2")
 
     seqs = mk_cls([seq_1, seq_2], moltype="dna")
-    assert set(seqs.names) == set(["seq_1", "seq_2"])
+    assert set(seqs.names) == {"seq_1", "seq_2"}
     assert seqs.get_seq(seq_name)._seq.seqid == parent_name
 
 
