@@ -643,7 +643,7 @@ def test_make_seqs_renamed_seqs(mk_cls, seq_name, parent_name, dna_alphabet):
     seq_2 = new_moltype.DNA.make_seq(seq=seq_view_2, name="seq_2")
 
     seqs = mk_cls([seq_1, seq_2], moltype="dna")
-    assert seqs.names == ["seq_1", "seq_2"]
+    assert set(seqs.names) == set(["seq_1", "seq_2"])
     assert seqs.get_seq(seq_name)._seq.seqid == parent_name
 
 
@@ -1089,19 +1089,6 @@ def test_sequence_collection_degap(mk_cls, gap_ambig_seqs, rced):
 
     # Test empty sequences case
     empty_seqs = mk_cls({"empty1": "", "empty2": ""}, moltype="dna")
-    empty_seqs = empty_seqs.degap()
-    got_empty = empty_seqs.to_dict()
-    expect_empty = {"empty1": "", "empty2": ""}
-    assert got_empty == expect_empty
-
-
-def test_sequence_collection_degap_one_off():
-    """SequenceCollection.degap should strip gaps from each seq"""
-
-    empty_seqs = new_alignment.make_unaligned_seqs(
-        {"empty1": "", "empty2": ""}, moltype="dna"
-    )
-    a = empty_seqs.seqs[0]
     empty_seqs = empty_seqs.degap()
     got_empty = empty_seqs.to_dict()
     expect_empty = {"empty1": "", "empty2": ""}

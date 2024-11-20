@@ -395,6 +395,10 @@ class SeqsData(SeqsDataABC):
         stop = stop if stop is not None else self.get_seq_length(seqid)
         step = step or 1
 
+        assert (
+            start >= 0 and stop >= 0 and step > 0
+        ), "start, stop, and step must be >= 0"
+
         out_len = (stop - start + step - 1) // step
         out = numpy.empty(out_len, dtype=self.alphabet.dtype)
 
@@ -3324,8 +3328,12 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         """
         start = start or 0
         stop = stop if stop is not None else self.get_seq_length(seqid)
-        # the following assumes step will never be 0
         step = step or 1
+
+        assert (
+            start >= 0 and stop >= 0 and step > 0
+        ), "start, stop, and step must be >= 0"
+
         out_len = (stop - start + step - 1) // step
 
         seq = numpy.empty(out_len, dtype=self.alphabet.dtype)
@@ -3346,8 +3354,11 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         """
         start = start or 0
         stop = stop if stop is not None else self.align_len
-        # the following assumes step will never be 0
         step = step or 1
+        assert (
+            start >= 0 and stop >= 0 and step > 0
+        ), "start, stop, and step must be >= 0"
+
         index = self._name_to_index[seqid]
         out_len = (stop - start + step - 1) // step
         gapped = numpy.empty(out_len, dtype=self.alphabet.dtype)
