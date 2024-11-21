@@ -6047,6 +6047,13 @@ class Alignment(SequenceCollection):
         init_args["annotation_db"] = other.annotation_db
         return self.__class__(**init_args)
 
+    def copy(self):
+        """creates new instance, only mutable attributes are copied"""
+        kwargs = self._get_init_kwargs()
+        kwargs["name_map"] = self._name_map.copy()
+        kwargs["info"] = self.info.copy()
+        return self.__class__(**kwargs)
+
 
 @singledispatch
 def make_aligned_seqs(
