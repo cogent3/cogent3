@@ -877,30 +877,26 @@ class SequenceCollection:
         return {s.name: (numpy.array(s) if as_array else str(s)) for s in self.seqs}
 
     def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
-        """returns a json serialisable dict"""
-        moltype = self.moltype.label
-        info = {} if self.info is None else self.info
+        """returns a json serialisable dict
 
-        if info.get("Refs", None) is not None and "Refs" in info:
-            info.pop("Refs")
+        Notes
+        -----
+        Deserialisation the object produced by this method will not include the
+        annotation_db if present.
+        """
+        kwargs = self._get_init_kwargs()
+        kwargs.pop("is_reversed", None)  # reversal is realised
+        kwargs["name_map"] = self._name_map  # name_map is mutable
+        kwargs["info"] = self.info.copy()  # info is mutable
+        kwargs["moltype"] = self.moltype.label
 
-        info = info or None
-        init_args = dict(
-            moltype=moltype,
-            info=info,
-        )
-        if self._name_map.keys() != self._name_map.values():
-            # only add if the map is not trivial
-            init_args["name_map"] = self._name_map
-        elif len(self._name_map.keys()) < len(self._seqs_data.names):
-            # or if we have a subset of the names
-            init_args["name_map"] = self._name_map
+        kwargs.pop("annotation_db", None)
+        if self.annotation_db:
+            kwargs["annotation_db"] = self.annotation_db.to_rich_dict()
 
-        if hasattr(self, "annotation_db") and self.annotation_db:
-            init_args["annotation_db"] = self.annotation_db.to_rich_dict()
-
+        kwargs.pop("seqs_data", None)  # we serialise the seqs_data directly
         data = {
-            "init_args": init_args,
+            "init_args": kwargs,
             "type": get_object_provenance(self),
             "version": __version__,
         }
@@ -6150,19 +6146,16 @@ class Alignment(SequenceCollection):
 
     def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
         """returns a json serialisable dict"""
-        init_args = self._get_init_kwargs()
-        init_args.pop("slice_record")  # slice is realised
-        init_args["moltype"] = self.moltype.label
+        kwargs = self._get_init_kwargs()
+        kwargs.pop("slice_record")  # slice is realised
+        kwargs["name_map"] = self._name_map.copy()  # name_map is mutable
+        kwargs["info"] = self.info.copy()  # info is mutable
+        kwargs["moltype"] = self.moltype.label
 
-        if self._name_map.keys() != self._name_map.values() or len(
-            self._name_map
-        ) < len(self._seqs_data.names):
-            init_args["name_map"] = self._name_map
+        if kwargs.pop("annotation_db", None):
+            kwargs["annotation_db"] = self.annotation_db.to_rich_dict()
 
-        if init_args.pop("annotation_db", None):
-            init_args["annotation_db"] = self.annotation_db.to_rich_dict()
-
-        init_args.pop("seqs_data")
+        kwargs.pop("seqs_data")
         seqs_data = {
             n: self._seqs_data.get_gapped_seq_str(
                 seqid=n,
@@ -6173,13 +6166,13 @@ class Alignment(SequenceCollection):
             for n in self._name_map.values()
         }
         # we realise the slice, so we need to account for that in the new offset
-        init_args["offset"] = {
+        kwargs["offset"] = {
             name: offset + self._slice_record.plus_start
             for name, offset in self._seqs_data.offset.items()
         }
 
         return {
-            "init_args": init_args,
+            "init_args": kwargs,
             "type": get_object_provenance(self),
             "version": __version__,
             "seqs_data_dict": seqs_data,
