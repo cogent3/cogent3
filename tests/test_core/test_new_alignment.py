@@ -4985,3 +4985,47 @@ def test_alignment_apply_scaled_gaps_codon2aa_invalid_moltype(codon_and_aa_alns)
     codon = codon.to_moltype("text")
     with pytest.raises(ValueError):
         codon.apply_scaled_gaps(ungapped, aa_to_codon=False)
+
+
+def test_alignment_copy(simple_aln):
+    got = simple_aln.copy()
+    # mutable data structures should be different IDs
+    assert got._name_map is not simple_aln._name_map
+    assert got.info is not simple_aln.info
+    assert got.annotation_db is not simple_aln.annotation_db
+    # immutable data structures should be the same object
+    assert got._slice_record is simple_aln._slice_record
+    assert got._seqs_data is simple_aln._seqs_data
+    # sliced data should have same underlying length
+    sl = simple_aln[:2].copy()
+    assert sl._seqs_data.align_len == simple_aln._seqs_data.align_len
+
+    # renamed seqs should be propagated
+    renamed = simple_aln.rename_seqs(renamer=lambda x: x.upper())
+    copied = renamed.copy()
+    assert set(renamed.names) != set(simple_aln.names)
+    assert set(copied.names) == set(renamed.names)
+    # and can get a sequence with a new name
+    assert str(copied.seqs["A"]) == str(renamed.seqs["A"])
+
+
+def test_alignment_deepcopy(simple_aln):
+    got = simple_aln.deepcopy()
+    # all data structures should be different IDs
+    assert got._name_map is not simple_aln._name_map
+    assert got.info is not simple_aln.info
+    assert got.annotation_db is not simple_aln.annotation_db
+    assert got._slice_record is not simple_aln._slice_record
+    assert got._seqs_data is not simple_aln._seqs_data
+
+    # sliced data should have different underlying data length
+    sl = simple_aln[:2].deepcopy()
+    assert sl._seqs_data.align_len == 2 != simple_aln._seqs_data.align_len
+
+    # renamed seqs should be propagated
+    renamed = simple_aln.rename_seqs(renamer=lambda x: x.upper())
+    copied = renamed.deepcopy()
+    assert set(renamed.names) != set(simple_aln.names)
+    assert set(copied.names) == set(renamed.names)
+    # and can get a sequence with a new name
+    assert str(copied.seqs["A"]) == str(renamed.seqs["A"])
