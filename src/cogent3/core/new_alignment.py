@@ -261,6 +261,12 @@ class SeqsDataABC(ABC):
     ): ...
 
     @abstractmethod
+    def __eq__(self, value: object) -> bool: ...
+
+    @abstractmethod
+    def __neq__(self, value: object) -> bool: ...
+
+    @abstractmethod
     def get_seq_length(self, seqid: str) -> int: ...
 
     @property
@@ -354,6 +360,26 @@ class SeqsData(SeqsDataABC):
             arr = self._alphabet.to_indices(seq)
             arr.flags.writeable = False
             self._data[str(name)] = arr
+
+    def __eq__(self, other: SeqsDataABC) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+        for attr_name in ("_alphabet", "_offset"):
+            self_attr = getattr(self, attr_name)
+            other_attr = getattr(other, attr_name)
+            if self_attr != other_attr:
+                return False
+
+        # compare individuals sequences
+        if self._data.keys() != other._data.keys():
+            return False
+        return all(
+            numpy.array_equal(self._data[name], other._data[name])
+            for name in self._data
+        )
+
+    def __neq__(self, other: object) -> bool:
+        return self != other
 
     @classmethod
     def from_seqs(
@@ -3129,6 +3155,27 @@ class AlignedSeqsData(AlignedSeqsDataABC):
 
             if len(names) != gapped_seqs.shape[0]:
                 raise ValueError(f"{len(names)=} != {gapped_seqs.shape[0]=}")
+
+    def __eq__(self, other: AlignedSeqsDataABC) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+        attrs = (
+            "_names",
+            "_name_to_index",
+            "_alphabet",
+            "_align_len",
+            "_offset",
+        )
+        for attr_name in attrs:
+            self_attr = getattr(self, attr_name)
+            other_attr = getattr(other, attr_name)
+            if self_attr != other_attr:
+                return False
+
+        return numpy.all(self._gapped == other._gapped)
+
+    def __neq__(self, other: object) -> bool:
+        return self != other
 
     @classmethod
     def from_seqs(
