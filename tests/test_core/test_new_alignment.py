@@ -5068,3 +5068,16 @@ def test_alignment_not_equal_sliced(aligned_dict):
     coll1 = new_alignment.make_aligned_seqs(aligned_dict, moltype="dna")
     coll2 = coll1[:2]
     assert coll1 != coll2
+
+
+@pytest.mark.parametrize(
+    "type1,type2",
+    [
+        (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
+        (new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs),
+    ],
+)
+def test_alignment_not_equal_types(aligned_dict, type1, type2):
+    coll1 = type1(aligned_dict, moltype="dna")
+    coll2 = type2(aligned_dict, moltype="dna")
+    assert coll1 != coll2
