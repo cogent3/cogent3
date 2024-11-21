@@ -853,12 +853,7 @@ class SequenceCollection:
         return {s.name: (numpy.array(s) if as_array else str(s)) for s in self.seqs}
 
     def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
-        """returns a json serialisable dict
-
-        Notes
-        -----
-        Serialisation will not include the annotation_db if present.
-        """
+        """returns a json serialisable dict"""
         moltype = self.moltype.label
         info = {} if self.info is None else self.info
 
@@ -6055,6 +6050,53 @@ class Alignment(SequenceCollection):
         init_args["seqs_data"] = seq_data
         init_args["annotation_db"] = other.annotation_db
         return self.__class__(**init_args)
+
+    def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
+        """returns a json serialisable dict"""
+        init_args = self._get_init_kwargs()
+        init_args.pop("slice_record")  # slice is realised
+        init_args["moltype"] = self.moltype.label
+
+        if self._name_map.keys() != self._name_map.values() or len(
+            self._name_map
+        ) < len(self._seqs_data.names):
+            init_args["name_map"] = self._name_map
+
+        if init_args.pop("annotation_db", None):
+            init_args["annotation_db"] = self.annotation_db.to_rich_dict()
+
+        init_args.pop("seqs_data")
+        seqs_data = {
+            n: self._seqs_data.get_gapped_seq_str(
+                seqid=n,
+                start=self._slice_record.plus_start,
+                stop=self._slice_record.plus_stop,
+                step=self._slice_record.plus_step,
+            )
+            for n in self._name_map.values()
+        }
+        # we realise the slice, so we need to account for that in the new offset
+        init_args["offset"] = {
+            name: offset + self._slice_record.plus_start
+            for name, offset in self._seqs_data.offset.items()
+        }
+
+        return {
+            "init_args": init_args,
+            "type": get_object_provenance(self),
+            "version": __version__,
+            "seqs_data_dict": seqs_data,
+        }
+
+    @classmethod
+    def from_rich_dict(cls, data: dict[str, str | dict[str, str]]):
+        data["init_args"].pop("annotation_db", None)
+        return make_aligned_seqs(data["seqs_data_dict"], **data["init_args"])
+
+
+@register_deserialiser(get_object_provenance(Alignment))
+def deserialise_alignment(data: dict[str, str | dict[str, str]]) -> Alignment:
+    return Alignment.from_rich_dict(data)
 
 
 @singledispatch

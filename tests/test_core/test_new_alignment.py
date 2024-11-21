@@ -4985,3 +4985,88 @@ def test_alignment_apply_scaled_gaps_codon2aa_invalid_moltype(codon_and_aa_alns)
     codon = codon.to_moltype("text")
     with pytest.raises(ValueError):
         codon.apply_scaled_gaps(ungapped, aa_to_codon=False)
+
+
+def test_alignment_to_rich_dict_sliced():
+    # slices are realised
+    data = {
+        "seq1": "ATG",
+        "seq2": "TGA",
+    }
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    sliced = aln[1:]
+    assert sliced._slice_record.parent_len == 3
+    rd = sliced.to_rich_dict()
+    got = deserialise_object(rd)
+    assert got.to_dict() == {"seq1": "TG", "seq2": "GA"}
+    assert got._slice_record.parent_len == 2
+
+
+def test_alignment_to_rich_dict_round_trip():
+    data = {
+        "seq1": "ATG",
+        "seq2": "TGA",
+    }
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    rd = aln.to_rich_dict()
+    got = deserialise_object(rd)
+    assert isinstance(got, new_alignment.Alignment)
+    assert got.to_dict() == aln.to_dict()
+    assert got is not aln
+
+
+def test_alignment_to_rich_dict_round_trip_renamed():
+    # name_map is preserved
+    data = {
+        "seq1": "ATG",
+        "seq2": "TGA",
+    }
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    renamed_aln = aln.rename_seqs(renamer=lambda x: x.upper())
+    rd = renamed_aln.to_rich_dict()
+    got = deserialise_object(rd)
+    assert got._name_map == {"SEQ1": "seq1", "SEQ2": "seq2"}
+    assert got.to_dict() == renamed_aln.to_dict()
+    assert got is not renamed_aln
+
+
+def test_alignment_to_rich_dict_round_trip_offset():
+    # offset is preserved
+    data = {
+        "seq1": "ATG",
+        "seq2": "TGA",
+    }
+    offsets = {"seq1": 10, "seq2": 20}
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna", offset=offsets)
+    rd = aln.to_rich_dict()
+    got = deserialise_object(rd)
+    assert got._seqs_data.offset == offsets
+    assert got.to_dict() == aln.to_dict()
+    assert got is not aln
+
+    # if offset and sliced, this should be added to the new offset
+    sliced = aln[1:]
+    rd = sliced.to_rich_dict()
+    got = deserialise_object(rd)._seqs_data.offset
+    expect = {"seq1": 11, "seq2": 21}
+    assert got == expect
+
+
+def test_deserialise_alignment():
+    data = {
+        "init_args": {
+            "moltype": "dna",
+            "name_map": {"new_seq1": "seq1", "new_seq2": "seq2"},
+            "info": {},
+        },
+        "type": "cogent3.core.new_alignment.Alignment",
+        "version": "2023.10",
+        "seqs_data_dict": {"seq1": "ATCG", "seq2": "TAGC"},
+    }
+
+    aln = deserialise_object(data)
+
+    assert isinstance(aln, new_alignment.Alignment)
+    assert aln.names == ["new_seq1", "new_seq2"]
+    assert str(aln.get_seq("new_seq1")) == "ATCG"
+    assert str(aln.get_seq("new_seq2")) == "TAGC"
