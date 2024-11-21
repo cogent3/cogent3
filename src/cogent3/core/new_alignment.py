@@ -2771,7 +2771,7 @@ class Aligned:
         else:
             # gapped_array_value gives the reverse of the plus strand
             # so we need to complement it. We do that here because with a
-            # step != 1 we cannot retain a connection to the underlying
+            # step != 1, we cannot retain a connection to the underlying
             # annotations
             seq = self.moltype.degap(self.data.gapped_array_value)
             seq = self.moltype.complement(seq)
@@ -6152,6 +6152,43 @@ class Alignment(SequenceCollection):
         return self.__class__(
             **kwargs,
         )
+
+    def with_masked_annotations(
+        self, biotypes: PySeqStr, mask_char: str = "?", shadow: bool = False
+    ):
+        """returns an alignment with regions replaced by mask_char
+
+        Parameters
+        ----------
+        biotypes
+            annotation type(s)
+        mask_char
+            must be a character valid for the moltype. The default value is
+            the most ambiguous character, eg. '?' for DNA
+        shadow
+            If True, masks everything but the biotypes
+        """
+        # by doing numpy.array(seq), this method applies the slice_record
+        # and modifies the underlying sequence data. We therefore split
+        # gapped sequences into their gaps and seq components and discard
+        # the current slice_record.
+        gaps = {}
+        ungapped = {}
+        for seq in self.seqs:
+            parent_name = self._name_map[seq.name]
+            gaps[parent_name] = seq.map.array
+            ungapped[parent_name] = numpy.array(
+                seq.seq.with_masked_annotations(biotypes, mask_char, shadow)
+            )
+
+        seq_data = self._seqs_data.from_seqs_and_gaps(
+            seqs=ungapped, gaps=gaps, alphabet=self.moltype.most_degen_alphabet()
+        )
+        init = self._get_init_kwargs()
+        init["seqs_data"] = seq_data
+        # we have to drop the slice record since we have changed the data
+        init["slice_record"] = None
+        return self.__class__(**init)
 
 
 @singledispatch
