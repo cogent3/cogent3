@@ -261,6 +261,12 @@ class SeqsDataABC(ABC):
     ): ...
 
     @abstractmethod
+    def __eq__(self, value: object) -> bool: ...
+
+    @abstractmethod
+    def __ne__(self, value: object) -> bool: ...
+
+    @abstractmethod
     def get_seq_length(self, seqid: str) -> int: ...
 
     @property
@@ -324,14 +330,12 @@ class SeqsData(SeqsDataABC):
         an instance of CharAlphabet valid for the sequences
     offset
         a dictionary of {name: offset} pairs indicating the offset of the sequence
-    reversed
-        a boolean indicating if the sequences are reversed
     check
         a boolean indicating if the data should be checked for naming consistency
         between arguments
     """
 
-    __slots__ = ("_data", "_alphabet", "_offset", "_reversed")
+    __slots__ = ("_data", "_alphabet", "_offset")
 
     def __init__(
         self,
@@ -356,6 +360,26 @@ class SeqsData(SeqsDataABC):
             arr = self._alphabet.to_indices(seq)
             arr.flags.writeable = False
             self._data[str(name)] = arr
+
+    def __eq__(self, other: SeqsDataABC) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+        for attr_name in ("_alphabet", "_offset"):
+            self_attr = getattr(self, attr_name)
+            other_attr = getattr(other, attr_name)
+            if self_attr != other_attr:
+                return False
+
+        # compare individuals sequences
+        if self._data.keys() != other._data.keys():
+            return False
+        return all(
+            numpy.array_equal(self._data[name], other._data[name])
+            for name in self._data
+        )
+
+    def __ne__(self, other: object) -> bool:
+        return not self == other
 
     @classmethod
     def from_seqs(
@@ -1990,10 +2014,16 @@ class SequenceCollection:
 
         return FORMATTERS["fasta"](self.to_dict())
 
-    def __eq__(
-        self, other: Union[SequenceCollection, dict]
-    ) -> bool:  # refactor: design
-        return id(self) == id(other)
+    def __eq__(self, other: SequenceCollection) -> bool:
+        self_init = self._get_init_kwargs()
+        other_init = other._get_init_kwargs()
+        for key, self_val in self_init.items():
+            if key in ("annotation_db", "slice_record"):
+                continue
+            other_val = other_init.get(key)
+            if self_val != other_val:
+                return False
+        return True
 
     def __ne__(self, other: SequenceCollection) -> bool:
         return not self.__eq__(other)
@@ -3132,6 +3162,27 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             if len(names) != gapped_seqs.shape[0]:
                 raise ValueError(f"{len(names)=} != {gapped_seqs.shape[0]=}")
 
+    def __eq__(self, other: AlignedSeqsDataABC) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+        attrs = (
+            "_names",
+            "_name_to_index",
+            "_alphabet",
+            "_align_len",
+            "_offset",
+        )
+        for attr_name in attrs:
+            self_attr = getattr(self, attr_name)
+            other_attr = getattr(other, attr_name)
+            if self_attr != other_attr:
+                return False
+
+        return numpy.all(self._gapped == other._gapped)
+
+    def __ne__(self, other: object) -> bool:
+        return not self == other
+
     @classmethod
     def from_seqs(
         cls,
@@ -3883,6 +3934,12 @@ class Alignment(SequenceCollection):
 
     def _post_init(self):
         self._seqs = _IndexableSeqs(self, make_seq=self._make_aligned)
+
+    def __eq__(self, other: "Alignment") -> bool:
+        return super().__eq__(other) and self._slice_record == other._slice_record
+
+    def __ne__(self, other: "Alignment") -> bool:
+        return not self == other
 
     def _get_init_kwargs(self) -> dict:
         """returns the kwargs needed to re-instantiate the object"""
