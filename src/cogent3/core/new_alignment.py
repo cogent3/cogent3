@@ -264,7 +264,7 @@ class SeqsDataABC(ABC):
     def __eq__(self, value: object) -> bool: ...
 
     @abstractmethod
-    def __neq__(self, value: object) -> bool: ...
+    def __ne__(self, value: object) -> bool: ...
 
     @abstractmethod
     def get_seq_length(self, seqid: str) -> int: ...
@@ -378,8 +378,8 @@ class SeqsData(SeqsDataABC):
             for name in self._data
         )
 
-    def __neq__(self, other: object) -> bool:
-        return self != other
+    def __ne__(self, other: object) -> bool:
+        return not self == other
 
     @classmethod
     def from_seqs(
@@ -3180,8 +3180,8 @@ class AlignedSeqsData(AlignedSeqsDataABC):
 
         return numpy.all(self._gapped == other._gapped)
 
-    def __neq__(self, other: object) -> bool:
-        return self != other
+    def __ne__(self, other: object) -> bool:
+        return not self == other
 
     @classmethod
     def from_seqs(
