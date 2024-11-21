@@ -111,7 +111,14 @@ def deserialise_not_completed(data):
 
 def deserialise_map_spans(map_element):
     map_element.pop("version", None)
-    map_klass = _get_class(map_element.pop("type"))
+    type_ = map_element.pop("type")
+    if type_.endswith(".Map"):
+        # old style Map
+        type_ = type_.replace(".Map", ".FeatureMap")
+        for k in ("tidy", "termini_unknown"):
+            map_element.pop(k, None)
+
+    map_klass = _get_class(type_)
     spans = []
     for element in map_element["spans"]:
         element.pop("version", None)

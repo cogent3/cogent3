@@ -2081,6 +2081,11 @@ class SliceRecordABC(ABC):
 
     __slots__ = ("start", "stop", "step", "_offset")
 
+    @abstractmethod
+    def __eq__(self, other): ...
+
+    @abstractmethod
+    def __neq__(self, other): ...
     @property
     @abstractmethod
     def parent_len(self) -> int: ...
@@ -2514,6 +2519,18 @@ class SliceRecord(SliceRecordABC):
         self.step = step
         self._parent_len = parent_len
         self._offset = offset or 0
+
+    def __eq__(self, other: SliceRecordABC) -> bool:
+        return (
+            self.start == other.start
+            and self.stop == other.stop
+            and self.step == other.step
+            and self._parent_len == other.parent_len
+            and self._offset == other.offset
+        )
+
+    def __neq__(self, other: SliceRecordABC) -> bool:
+        return self != other
 
     @property
     def parent_len(self) -> int:

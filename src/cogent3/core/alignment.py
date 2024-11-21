@@ -2254,9 +2254,6 @@ class Aligned:
     """One sequence in an alignment, a map between alignment coordinates and
     sequence coordinates"""
 
-    @c3warn.deprecated_args(
-        "2024.9", reason="now requires an IndelMap", discontinued=["length"]
-    )
     def __init__(self, map, data):
         self.map = map
         self.data = data

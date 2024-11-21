@@ -4987,6 +4987,102 @@ def test_alignment_apply_scaled_gaps_codon2aa_invalid_moltype(codon_and_aa_alns)
         codon.apply_scaled_gaps(ungapped, aa_to_codon=False)
 
 
+def test_alignment_copy(simple_aln):
+    got = simple_aln.copy()
+    # mutable data structures should be different IDs
+    assert got._name_map is not simple_aln._name_map
+    assert got.info is not simple_aln.info
+    assert got.annotation_db is not simple_aln.annotation_db
+    # immutable data structures should be the same object
+    assert got._slice_record is simple_aln._slice_record
+    assert got._seqs_data is simple_aln._seqs_data
+    # sliced data should have same underlying length
+    sl = simple_aln[:2].copy()
+    assert sl._seqs_data.align_len == simple_aln._seqs_data.align_len
+
+    # renamed seqs should be propagated
+    renamed = simple_aln.rename_seqs(renamer=lambda x: x.upper())
+    copied = renamed.copy()
+    assert set(renamed.names) != set(simple_aln.names)
+    assert set(copied.names) == set(renamed.names)
+    # and can get a sequence with a new name
+    assert str(copied.seqs["A"]) == str(renamed.seqs["A"])
+
+
+def test_alignment_deepcopy(simple_aln):
+    got = simple_aln.deepcopy()
+    # all data structures should be different IDs
+    assert got._name_map is not simple_aln._name_map
+    assert got.info is not simple_aln.info
+    assert got.annotation_db is not simple_aln.annotation_db
+    assert got._slice_record is not simple_aln._slice_record
+    assert got._seqs_data is not simple_aln._seqs_data
+
+    # sliced data should have different underlying data length
+    sl = simple_aln[:2].deepcopy()
+    assert sl._seqs_data.align_len == 2 != simple_aln._seqs_data.align_len
+
+    # renamed seqs should be propagated
+    renamed = simple_aln.rename_seqs(renamer=lambda x: x.upper())
+    copied = renamed.deepcopy()
+    assert set(renamed.names) != set(simple_aln.names)
+    assert set(copied.names) == set(renamed.names)
+    # and can get a sequence with a new name
+    assert str(copied.seqs["A"]) == str(renamed.seqs["A"])
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [
+        new_alignment.make_unaligned_seqs,
+        new_alignment.make_aligned_seqs,
+    ],
+)
+def test_collections_equal(aligned_dict, mk_cls):
+    coll1 = mk_cls(aligned_dict, moltype="dna")
+    coll2 = mk_cls(aligned_dict, moltype="dna")
+    assert coll1 is not coll2
+    assert coll1 == coll2
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [
+        new_alignment.make_unaligned_seqs,
+        new_alignment.make_aligned_seqs,
+    ],
+)
+@pytest.mark.parametrize(
+    "kwargs",
+    [dict(moltype="protein"), dict(is_reversed=True), dict(name_map=dict(A="a")), {}],
+)
+def test_collections_not_equal(aligned_dict, mk_cls, kwargs):
+    coll1 = mk_cls(aligned_dict, moltype="dna")
+    aligned_dict = aligned_dict if kwargs else {**aligned_dict, **{"seq1": "TTTTTT"}}
+    kwargs = {**dict(moltype="dna"), **kwargs}
+    coll2 = mk_cls(aligned_dict, **kwargs)
+    assert coll1 != coll2
+
+
+def test_alignment_not_equal_sliced(aligned_dict):
+    coll1 = new_alignment.make_aligned_seqs(aligned_dict, moltype="dna")
+    coll2 = coll1[:2]
+    assert coll1 != coll2
+
+
+@pytest.mark.parametrize(
+    "type1,type2",
+    [
+        (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
+        (new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs),
+    ],
+)
+def test_alignment_not_equal_types(aligned_dict, type1, type2):
+    coll1 = type1(aligned_dict, moltype="dna")
+    coll2 = type2(aligned_dict, moltype="dna")
+    assert coll1 != coll2
+
+
 def test_alignment_to_rich_dict_sliced():
     # slices are realised
     data = {
