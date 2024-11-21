@@ -5375,8 +5375,6 @@ class Alignment(SequenceCollection):
 
     def get_projected_features(self, *, seqid: str, **kwargs) -> list[Feature]:
         """projects all features from other sequences onto seqid"""
-        # todo gah should there be a generator version,
-        # iter_projected_features()?
         annots = []
         for name in self.names:
             if name == seqid:
