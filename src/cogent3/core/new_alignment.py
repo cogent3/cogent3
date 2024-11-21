@@ -324,14 +324,12 @@ class SeqsData(SeqsDataABC):
         an instance of CharAlphabet valid for the sequences
     offset
         a dictionary of {name: offset} pairs indicating the offset of the sequence
-    reversed
-        a boolean indicating if the sequences are reversed
     check
         a boolean indicating if the data should be checked for naming consistency
         between arguments
     """
 
-    __slots__ = ("_data", "_alphabet", "_offset", "_reversed")
+    __slots__ = ("_data", "_alphabet", "_offset")
 
     def __init__(
         self,
