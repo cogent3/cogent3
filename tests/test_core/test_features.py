@@ -416,7 +416,7 @@ def test_nested_annotated_region_masks():
     assert got["y"] == "-T----TTTTG-GTT"
 
 
-def test_feature_from_alignment():  # ported to test_new_aln_integration.py
+def test_feature_from_alignment():
     """seq features obtained from the alignment"""
 
     # we no longer support copying annotations individually
