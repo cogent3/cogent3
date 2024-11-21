@@ -502,3 +502,30 @@ def test_copy_annotations_no_db(gff_db, mk_cls):
 
     seq_coll.copy_annotations(gff_db)
     assert seq_coll.annotation_db.num_matches() == gff_db.num_matches()
+
+
+def test_project_features_onto_specified_seqid():
+    db = GffAnnotationDb()
+    aln = new_alignment.make_aligned_seqs(
+        {"x": "-AAAAAAAAA", "y": "TTTT--TTTT"}, moltype="dna"
+    )
+    db.add_feature(seqid="x", biotype="exon", name="fred", spans=[(3, 8)])
+    aln.annotation_db = db
+
+    exons = aln.get_projected_features(seqid="y", biotype="exon")
+    assert len(exons) == 1
+    assert str(aln.get_seq("y")[exons[0].map.without_gaps()]), "TTT"
+    assert "biotype='exon', name='fred', map=[-2-, 4:7]/8" in str(exons[0])
+
+
+def test_project_features_no_features_for_specified_seqid():
+    db = GffAnnotationDb()
+    aln = new_alignment.make_aligned_seqs(
+        {"seq1": "ATGCGT", "seq2": "AT--GT"}, moltype="dna"
+    )
+    db.add_feature(seqid="seq1", biotype="gene", name="gene1", spans=[(0, 6)])
+    aln.annotation_db = db
+
+    projected_features = aln.get_projected_features(seqid="seq2", biotype="exon")
+
+    assert len(projected_features) == 0

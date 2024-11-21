@@ -4713,7 +4713,9 @@ class Alignment(AlignmentI, SequenceCollection):
         self.annotation_db.add_feature(**feature.to_dict())
         return result
 
-    def get_projected_features(self, *, seqid: str, **kwargs) -> list[Feature]:
+    def get_projected_features(
+        self, *, seqid: str, **kwargs
+    ) -> list[Feature]:  # ported
         """projects all features from other sequences onto seqid"""
         # todo gah should there be a generator version,
         # iter_projected_features()?

@@ -5373,6 +5373,15 @@ class Alignment(SequenceCollection):
         self.annotation_db.add_feature(**feature.to_dict())
         return result
 
+    def get_projected_features(self, *, seqid: str, **kwargs) -> list[Feature]:
+        """projects all features from other sequences onto seqid"""
+        annots = []
+        for name in self.names:
+            if name == seqid:
+                continue
+            annots.extend(list(self.get_features(seqid=name, **kwargs)))
+        return [self.get_projected_feature(seqid=seqid, feature=a) for a in annots]
+
     def get_drawables(
         self, *, biotype: Optional[str, typing.Iterable[str]] = None
     ) -> dict:
