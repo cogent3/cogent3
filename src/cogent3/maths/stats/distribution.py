@@ -43,41 +43,6 @@ def tprob(x, df):
     return 2 * t.sf(abs(x), df)
 
 
-@c3warn.deprecated_callable(
-    version="2024.9",
-    reason="use scipy.stats.poisson.sf() instead",
-    is_discontinued=True,
-)
-def poisson_high(successes, mean):  # pragma: no cover
-    """being removed"""
-    return pdtrc(successes, mean)
-
-
-@c3warn.deprecated_callable(
-    version="2024.9",
-    reason="use scipy.stats.poisson.cdf() instead",
-    is_discontinued=True,
-)
-def poisson_low(successes, mean):  # pragma: no cover
-    """being removed"""
-    return pdtr(successes, mean)
-
-
-@c3warn.deprecated_callable(
-    version="2024.9",
-    reason="use scipy.stats.poisson.pmf() instead",
-    is_discontinued=True,
-)
-def poisson_exact(successes, mean):  # pragma: no cover
-    """being removed"""
-    if successes == 0:
-        return pdtr(0, mean)
-    elif successes < mean:  # use left tail
-        return pdtr(successes, mean) - pdtr(successes - 1, mean)
-    else:  # successes > mean: use right tail
-        return pdtrc(successes - 1, mean) - pdtrc(successes, mean)
-
-
 def binomial_exact(successes, trials, prob):
     """Returns binomial probability of exactly X successes.
 

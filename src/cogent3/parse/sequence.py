@@ -23,58 +23,6 @@ from cogent3.util.io import get_format_suffixes, iter_splitlines, open_
 _lc_to_wc = "".join([[chr(x), "?"]["A" <= chr(x) <= "Z"] for x in range(256)])
 
 
-@c3warn.deprecated_callable(
-    "2024.9",
-    reason="allow more customised parser implementations",
-    is_discontinued=True,
-)
-def FromFilenameParser(filename, format=None, **kw):  # pragma: no cover
-    """Arguments:
-    - filename: name of the sequence alignment file
-    - format: the multiple sequence file format
-    """
-    if format is None:
-        format, _ = get_format_suffixes(filename)
-
-    with open_(filename, newline=None, mode="rt") as f:
-        data = f.read()
-
-    return FromFileParser(data.splitlines(), format, **kw)
-
-
-@c3warn.deprecated_callable(
-    "2024.9",
-    reason="allow more customised parser implementations",
-    is_discontinued=True,
-)
-def FromFileParser(f, format, dialign_recode=False, **kw):  # pragma: no cover
-    format = format.lower()
-    if format in XML_PARSERS:
-        doctype = format
-        format = "xml"
-    else:
-        doctype = None
-    if format == "xml":
-        source = dom = xml.dom.minidom.parse(f)
-        if doctype is None:
-            doctype = str(dom.doctype.name).lower()
-        if doctype not in XML_PARSERS:
-            raise FileFormatError(f"Unsupported XML doctype {doctype}")
-        parser = XML_PARSERS[doctype]
-    else:
-        if format not in PARSERS:
-            raise FileFormatError(f"Unsupported file format {format}")
-        parser = PARSERS[format]
-        source = f
-    for name, seq in parser(source, **kw):
-        if isinstance(seq, str):
-            if dialign_recode:
-                seq = seq.translate(_lc_to_wc)
-            if not seq.isupper():
-                seq = seq.upper()
-        yield name, seq
-
-
 ParserOutputType = typing.Iterable[typing.Tuple[str, str]]
 
 

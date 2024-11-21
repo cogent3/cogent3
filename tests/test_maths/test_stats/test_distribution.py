@@ -20,8 +20,6 @@ from cogent3.maths.stats.distribution import (
     pdtr,
     pdtrc,
     pdtri,
-    poisson_high,
-    poisson_low,
     probability_points,
     stdtr,
     stdtri,
