@@ -1434,3 +1434,43 @@ def test_indelmap_negative_step_variant_slices(start, stop, step, data):
     expect, _ = new_moltype.DNA.make_seq(seq=data[start:stop:step]).parse_out_gaps()
     assert (got.gap_pos == expect.gap_pos).all()
     assert (got.cum_gap_lengths == expect.cum_gap_lengths).all()
+
+
+@pytest.mark.parametrize("scale", [1 / 2, 1 / 1.1])
+def test_indelmap_scaled_invalid(scale):
+    im = IndelMap(
+        gap_pos=numpy.array([1, 3]), gap_lengths=numpy.array([2, 1]), parent_length=5
+    )
+    with pytest.raises(ValueError):
+        im.scaled(scale)
+
+
+@pytest.mark.parametrize("scale", [1, 1.0])
+def test_indelmap_scaled_one(scale):
+    im = IndelMap(
+        gap_pos=numpy.array([1, 3]), gap_lengths=numpy.array([2, 1]), parent_length=5
+    )
+    got = im.scaled(scale)
+    assert got is im
+
+
+@pytest.fixture
+def codon_and_aa_maps():
+    import cogent3
+
+    data = dict(s1="ATG --- --- GAT --- AAA", s2="ATG CAA TCG AAT GAA ATA")
+    dna = cogent3.make_aligned_seqs(
+        {n: s.replace(" ", "") for n, s in data.items()}, moltype="dna", new_type=True
+    )
+    aa = dna.get_translation()
+    dna_1 = dna.seqs["s1"].map
+    aa_1 = aa.seqs["s1"].map
+    return dna_1, aa_1
+
+
+def test_indelmap_scaled(codon_and_aa_maps):
+    cmap, amap = codon_and_aa_maps
+    cmap_to_amap = cmap.scaled(1 / 3)
+    amap_to_cmap = amap.scaled(3)
+    numpy.testing.assert_allclose(cmap_to_amap.array, amap.array)
+    numpy.testing.assert_allclose(amap_to_cmap.array, cmap.array)

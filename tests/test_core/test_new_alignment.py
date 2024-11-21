@@ -643,7 +643,7 @@ def test_make_seqs_renamed_seqs(mk_cls, seq_name, parent_name, dna_alphabet):
     seq_2 = new_moltype.DNA.make_seq(seq=seq_view_2, name="seq_2")
 
     seqs = mk_cls([seq_1, seq_2], moltype="dna")
-    assert set(seqs.names) == set(["seq_1", "seq_2"])
+    assert set(seqs.names) == {"seq_1", "seq_2"}
     assert seqs.get_seq(seq_name)._seq.seqid == parent_name
 
 
@@ -4935,3 +4935,53 @@ def test_make_gap_filter():
     assert f3(s1) == False
     assert f1(s3) == False
     assert f3(s4) == True
+
+
+@pytest.fixture(scope="session")
+def codon_and_aa_alns():
+    import cogent3
+
+    data = dict(s1="ATG --- --- GAT --- AAA", s2="ATG CAA TCG AAT GAA ATA")
+    dna = cogent3.make_aligned_seqs(
+        {n: s.replace(" ", "") for n, s in data.items()}, moltype="dna", new_type=True
+    )
+    aa = dna.get_translation()
+    return dna, aa
+
+
+def test_alignment_apply_scaled_gaps_aa_to_codon(codon_and_aa_alns):
+    codon, aa = codon_and_aa_alns
+    ungapped = codon.degap()
+    scaled = aa.apply_scaled_gaps(ungapped, aa_to_codon=True)
+    assert scaled.to_dict() == codon.to_dict()
+
+
+def test_alignment_apply_scaled_gaps_codon_to_aa(codon_and_aa_alns):
+    codon, aa = codon_and_aa_alns
+    ungapped = aa.degap()
+    scaled = codon.apply_scaled_gaps(ungapped, aa_to_codon=False)
+    assert scaled.to_dict() == aa.to_dict()
+
+
+def test_alignment_apply_scaled_gaps_invalid_seqlen(codon_and_aa_alns):
+    codon, aa = codon_and_aa_alns
+    codon = codon[:-2]
+    ungapped = codon.degap()
+    with pytest.raises(ValueError):
+        aa.apply_scaled_gaps(ungapped, aa_to_codon=True)
+
+
+def test_alignment_apply_scaled_gaps_aa2codon_invalid_moltype(codon_and_aa_alns):
+    codon, aa = codon_and_aa_alns
+    codon = codon.to_moltype("text")
+    ungapped = codon.degap()
+    with pytest.raises(ValueError):
+        aa.apply_scaled_gaps(ungapped, aa_to_codon=True)
+
+
+def test_alignment_apply_scaled_gaps_codon2aa_invalid_moltype(codon_and_aa_alns):
+    codon, aa = codon_and_aa_alns
+    ungapped = aa.degap()
+    codon = codon.to_moltype("text")
+    with pytest.raises(ValueError):
+        codon.apply_scaled_gaps(ungapped, aa_to_codon=False)
