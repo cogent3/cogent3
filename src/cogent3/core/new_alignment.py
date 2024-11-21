@@ -2759,30 +2759,25 @@ class Aligned:
     @property
     def seq(self) -> new_sequence.Sequence:
         """Returns Sequence object, excluding gaps."""
-        # if the slice record has abs(step) > 1, we cannot retain a connection to the underlying aligned
-        # seq data container because the gaps are not going to be modulo the step.
-        rev = False
-        if abs(self.data.slice_record.step) == 1:
+        # if the slice record has abs(step) > 1, we cannot retain a connection
+        # to the underlying aligned seq data container because the gaps are
+        # not going to be modulo the step.
+        if self.data.slice_record.plus_step == 1:
+            # to complement or not handled by seq view
             seq = self.data.get_seq_view()
-        elif self.data.slice_record.step < -1:
-            # refactor: design
-            # gapped_str_value will apply the step to the underlying data, so
-            # we need to re-reverse the underlying data AND reverse the Sequence
-            # so that the seq knows to complement the data on output
-            # we should revisit this design
-
-            # refactor: design
-            # use gapped_array_value in place of gapped_str_value where possible
-            seq = self.moltype.degap(self.data.gapped_str_value)[::-1]
-            rev = True
+        elif self.data.slice_record.step > 1:
+            # we have a step, but no complementing will be required
+            seq = self.moltype.degap(self.data.gapped_array_value)
         else:
-            seq = self.moltype.degap(self.data.gapped_str_value)
-        mt_seq = (
-            self.moltype.make_seq(seq=seq, name=self.data.seqid)[::-1]
-            if rev
-            else self.moltype.make_seq(seq=seq, name=self.data.seqid)
-        )
-        ann_db = self.annotation_db if abs(self.data.slice_record.step) == 1 else None
+            # gapped_array_value gives the reverse of the plus strand
+            # so we need to complement it. We do that here because with a
+            # step != 1 we cannot retain a connection to the underlying
+            # annotations
+            seq = self.moltype.degap(self.data.gapped_array_value)
+            seq = self.moltype.complement(seq)
+
+        mt_seq = self.moltype.make_seq(seq=seq, name=self.data.seqid)
+        ann_db = self.annotation_db if self.data.slice_record.plus_step == 1 else None
         mt_seq.replace_annotation_db(ann_db)
         return mt_seq
 
