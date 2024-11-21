@@ -2014,10 +2014,16 @@ class SequenceCollection:
 
         return FORMATTERS["fasta"](self.to_dict())
 
-    def __eq__(
-        self, other: Union[SequenceCollection, dict]
-    ) -> bool:  # refactor: design
-        return id(self) == id(other)
+    def __eq__(self, other: SequenceCollection) -> bool:
+        self_init = self._get_init_kwargs()
+        other_init = other._get_init_kwargs()
+        for key, self_val in self_init.items():
+            if key in ("annotation_db", "slice_record"):
+                continue
+            other_val = other_init.get(key)
+            if self_val != other_val:
+                return False
+        return True
 
     def __ne__(self, other: SequenceCollection) -> bool:
         return not self.__eq__(other)
@@ -3928,6 +3934,12 @@ class Alignment(SequenceCollection):
 
     def _post_init(self):
         self._seqs = _IndexableSeqs(self, make_seq=self._make_aligned)
+
+    def __eq__(self, other: "Alignment") -> bool:
+        return super().__eq__(other) and self._slice_record == other._slice_record
+
+    def __ne__(self, other: "Alignment") -> bool:
+        return not self == other
 
     def _get_init_kwargs(self) -> dict:
         """returns the kwargs needed to re-instantiate the object"""
