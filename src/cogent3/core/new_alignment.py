@@ -6054,6 +6054,44 @@ class Alignment(SequenceCollection):
         kwargs["info"] = self.info.copy()
         return self.__class__(**kwargs)
 
+    def deepcopy(self, **kwargs):
+        """returns deep copy of self
+
+        Notes
+        -----
+        Reduced to sliced sequences in self, kwargs are ignored.
+        Annotation db is not copied if the alignment has been sliced.
+        """
+        import copy
+
+        kwargs = self._get_init_kwargs()
+        kwargs.pop("seqs_data")
+        kwargs["name_map"] = self._name_map.copy()
+        kwargs["info"] = self.info.copy()
+        kwargs["annotation_db"] = (
+            None
+            if len(self) != self._seqs_data.align_len
+            else copy.deepcopy(self.annotation_db)
+        )
+        new_seqs_data = {
+            n: self._seqs_data.get_gapped_seq_array(
+                seqid=n,
+                start=self._slice_record.plus_start,
+                stop=self._slice_record.plus_stop,
+                step=self._slice_record.plus_step,
+            )
+            for n in self._name_map.values()
+        }
+        new_seqs_data = self._seqs_data.from_seqs(
+            data=new_seqs_data,
+            alphabet=self.moltype.most_degen_alphabet(),
+        )
+        kwargs["seqs_data"] = new_seqs_data
+        kwargs["slice_record"] = None
+        return self.__class__(
+            **kwargs,
+        )
+
 
 @singledispatch
 def make_aligned_seqs(

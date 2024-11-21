@@ -5008,3 +5008,24 @@ def test_alignment_copy(simple_aln):
     # and can get a sequence with a new name
     assert str(copied.seqs["A"]) == str(renamed.seqs["A"])
 
+
+def test_alignment_deepcopy(simple_aln):
+    got = simple_aln.deepcopy()
+    # all data structures should be different IDs
+    assert got._name_map is not simple_aln._name_map
+    assert got.info is not simple_aln.info
+    assert got.annotation_db is not simple_aln.annotation_db
+    assert got._slice_record is not simple_aln._slice_record
+    assert got._seqs_data is not simple_aln._seqs_data
+
+    # sliced data should have different underlying data length
+    sl = simple_aln[:2].deepcopy()
+    assert sl._seqs_data.align_len == 2 != simple_aln._seqs_data.align_len
+
+    # renamed seqs should be propagated
+    renamed = simple_aln.rename_seqs(renamer=lambda x: x.upper())
+    copied = renamed.deepcopy()
+    assert set(renamed.names) != set(simple_aln.names)
+    assert set(copied.names) == set(renamed.names)
+    # and can get a sequence with a new name
+    assert str(copied.seqs["A"]) == str(renamed.seqs["A"])
