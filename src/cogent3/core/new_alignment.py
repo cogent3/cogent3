@@ -6139,7 +6139,6 @@ class Alignment(SequenceCollection):
             **kwargs,
         )
 
-
     def with_masked_annotations(
         self, biotypes: PySeqStr, mask_char: str = "?", shadow: bool = False
     ):
@@ -6207,7 +6206,6 @@ class Alignment(SequenceCollection):
 @register_deserialiser(get_object_provenance(Alignment))
 def deserialise_alignment(data: dict[str, str | dict[str, str]]) -> Alignment:
     return Alignment.from_rich_dict(data)
-
 
 
 @singledispatch
