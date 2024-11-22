@@ -2488,19 +2488,8 @@ def test_sequence_collection_to_rich_dict():
     seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
 
     got = seqs.to_rich_dict()
-    seqs_data = {
-        "init_args": {
-            "data": {
-                name: seqs._seqs_data.get_seq_str(seqid=name) for name in seqs.names
-            },
-            "alphabet": seqs.moltype.most_degen_alphabet().to_rich_dict(),
-            "offset": seqs._seqs_data._offset,
-        },
-        "type": get_object_provenance(seqs._seqs_data),
-        "version": __version__,
-    }
     expect = {
-        "seqs_data": seqs_data,
+        "seqs": data,
         "type": get_object_provenance(seqs),
         "version": __version__,
         "init_args": {
@@ -2508,38 +2497,6 @@ def test_sequence_collection_to_rich_dict():
             "name_map": seqs._name_map,
             "info": seqs.info,
         },
-    }
-    assert got == expect
-
-
-def test_sequence_collection_to_rich_dict_annotation_db():
-    data = {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}
-    seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
-    seqs.add_feature(seqid="seq1", biotype="xyz", name="abc", spans=[(1, 2)])
-
-    got = seqs.to_rich_dict()
-    db = seqs.annotation_db.to_rich_dict()
-    seqs_data = {
-        "init_args": {
-            "data": {
-                name: seqs._seqs_data.get_seq_str(seqid=name) for name in seqs.names
-            },
-            "alphabet": seqs.moltype.most_degen_alphabet().to_rich_dict(),
-            "offset": seqs._seqs_data._offset,
-        },
-        "type": get_object_provenance(seqs._seqs_data),
-        "version": __version__,
-    }
-    expect = {
-        "seqs_data": seqs_data,
-        "init_args": {
-            "moltype": seqs.moltype.label,
-            "name_map": seqs._name_map,
-            "info": seqs.info,
-            "annotation_db": db,
-        },
-        "type": get_object_provenance(seqs),
-        "version": __version__,
     }
     assert got == expect
 
@@ -2547,22 +2504,11 @@ def test_sequence_collection_to_rich_dict_annotation_db():
 def test_sequence_collection_to_rich_dict_reversed_seqs():
     data = {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}
     seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
-    reversed_seqs = seqs.reverse_complement()
+    reversed_seqs = seqs.rc()
 
     got = reversed_seqs.to_rich_dict()
-    seqs_data = {
-        "init_args": {
-            "data": {
-                name: seqs._seqs_data.get_seq_str(seqid=name) for name in seqs.names
-            },
-            "alphabet": seqs.moltype.most_degen_alphabet().to_rich_dict(),
-            "offset": seqs._seqs_data._offset,
-        },
-        "type": get_object_provenance(seqs._seqs_data),
-        "version": __version__,
-    }
     expect = {
-        "seqs_data": seqs_data,
+        "seqs": reversed_seqs.to_dict(),
         "init_args": {
             "moltype": seqs.moltype.label,
             "name_map": seqs._name_map,
@@ -2585,12 +2531,12 @@ def test_sequence_collection_to_json():
     assert got == expect
 
 
-@pytest.mark.parametrize("reverse", (False, True))
-def test_sequence_collection_round_trip(reverse):
+@pytest.mark.parametrize("rc", (False, True))
+def test_sequence_collection_round_trip(rc):
     seq_coll = new_alignment.make_unaligned_seqs(
         {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}, moltype="dna"
     )
-    seq_coll = seq_coll.reverse_complement() if reverse else seq_coll
+    seq_coll = seq_coll.rc() if rc else seq_coll
 
     rd = seq_coll.to_rich_dict()
     got = deserialise_object(rd)
@@ -5081,3 +5027,135 @@ def test_alignment_not_equal_types(aligned_dict, type1, type2):
     coll1 = type1(aligned_dict, moltype="dna")
     coll2 = type2(aligned_dict, moltype="dna")
     assert coll1 != coll2
+
+
+def test_alignment_to_rich_dict_sliced():
+    # slices are realised
+    data = {
+        "seq1": "ATG",
+        "seq2": "TGA",
+    }
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    sliced = aln[1:]
+    assert sliced._slice_record.parent_len == 3
+    rd = sliced.to_rich_dict()
+    got = deserialise_object(rd)
+    assert got.to_dict() == {"seq1": "TG", "seq2": "GA"}
+    assert got._slice_record.parent_len == 2
+
+
+def test_alignment_to_rich_dict_round_trip():
+    data = {
+        "seq1": "ATG",
+        "seq2": "TGA",
+    }
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    rd = aln.to_rich_dict()
+    got = deserialise_object(rd)
+    assert isinstance(got, new_alignment.Alignment)
+    assert got.to_dict() == aln.to_dict()
+    assert got is not aln
+
+
+@pytest.mark.parametrize(
+    "mk_cls", [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs]
+)
+def test_alignment_to_rich_dict_round_trip_rc(mk_cls):
+    data = {
+        "seq1": "ATG",
+        "seq2": "TGA",
+    }
+    aln = mk_cls(data, moltype="dna").rc()
+    rd = aln.to_rich_dict()
+    got = deserialise_object(rd)
+    assert got.to_dict() == aln.to_dict()
+    assert got._is_reversed == False
+
+
+@pytest.mark.parametrize(
+    "mk_cls", [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs]
+)
+def test_alignment_to_rich_dict_round_trip_renamed(mk_cls):
+    # name_map is preserved
+    data = {
+        "seq1": "ATG",
+        "seq2": "TGA",
+    }
+    aln = mk_cls(data, moltype="dna")
+    renamed_aln = aln.rename_seqs(renamer=lambda x: x.upper())
+    rd = renamed_aln.to_rich_dict()
+    got = deserialise_object(rd)
+    assert got._name_map == {"SEQ1": "seq1", "SEQ2": "seq2"}
+    assert got.to_dict() == renamed_aln.to_dict()
+    assert got is not renamed_aln
+
+
+@pytest.mark.parametrize(
+    "mk_cls", [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs]
+)
+def test_alignment_to_rich_dict_round_trip_offset(mk_cls):
+    # offset is not preserved
+    data = {
+        "seq1": "ATG",
+        "seq2": "TGA",
+    }
+    offsets = {"seq1": 10, "seq2": 20}
+    aln = mk_cls(data, moltype="dna", offset=offsets)
+    rd = aln.to_rich_dict()
+    got = deserialise_object(rd)._seqs_data.offset
+    expect = {"seq1": 0, "seq2": 0}
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "mk_cls", [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs]
+)
+def test_alignment_to_rich_dict_round_trip_info(mk_cls):
+    # info is preserved
+    data = {
+        "seq1": "ATG",
+        "seq2": "TGA",
+    }
+    aln = mk_cls(data, moltype="dna", info={"key": "value"})
+    rd = aln.to_rich_dict()
+    got = deserialise_object(rd)
+    assert got.info["key"] == "value"
+    assert got.to_dict() == aln.to_dict()
+    assert got is not aln
+
+
+@pytest.mark.parametrize(
+    "mk_cls", [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs]
+)
+def test_alignment_to_rich_dict_round_trip_annotation_db(gff_db, mk_cls):
+    # serialisation will drop the annotation_db
+    data = {
+        "seq1": "ATG",
+        "seq2": "TGA",
+    }
+    aln = mk_cls(data, moltype="dna")
+    aln.annotation_db = gff_db
+    assert len(aln.annotation_db) > 0
+    rd = aln.to_rich_dict()
+    got = deserialise_object(rd)
+    assert len(got.annotation_db) == 0
+
+
+def test_deserialise_alignment():
+    data = {
+        "init_args": {
+            "moltype": "dna",
+            "name_map": {"new_seq1": "seq1", "new_seq2": "seq2"},
+            "info": {},
+        },
+        "type": "cogent3.core.new_alignment.Alignment",
+        "version": "2023.10",
+        "seqs": {"seq1": "ATCG", "seq2": "TAGC"},
+    }
+
+    aln = deserialise_object(data)
+
+    assert isinstance(aln, new_alignment.Alignment)
+    assert aln.names == ["new_seq1", "new_seq2"]
+    assert str(aln.get_seq("new_seq1")) == "ATCG"
+    assert str(aln.get_seq("new_seq2")) == "TAGC"
