@@ -2756,7 +2756,7 @@ class Aligned:
         else:
             # gapped_array_value gives the reverse of the plus strand
             # so we need to complement it. We do that here because with a
-            # step != 1 we cannot retain a connection to the underlying
+            # step != 1, we cannot retain a connection to the underlying
             # annotations
             seq = self.moltype.degap(self.data.gapped_array_value)
             seq = self.moltype.complement(seq)
@@ -4267,6 +4267,11 @@ class Alignment(SequenceCollection):
             warns if motif_length > 1 and alignment trimmed to produce
             motif columns
         """
+        # refactor: performance
+        # use self.variable_positions and a numba decorated
+        # function for counting k-mers the latter should allow returning the
+        # first allowed state for when position is not variable
+
         align_len = len(self._slice_record)
         length = (align_len // motif_length) * motif_length
         if warn and align_len != length:
@@ -4540,27 +4545,53 @@ class Alignment(SequenceCollection):
 
         return result
 
-    def variable_positions(self, include_gap_motif: bool = True) -> list[int]:
+    def variable_positions(
+        self,
+        include_gap_motif: bool = True,
+        include_ambiguity: bool = False,
+        motif_length: int = 1,
+    ) -> tuple[int]:
         """Return a list of variable position indexes.
 
         Parameters
         ----------
         include_gap_motif
             if False, sequences with a gap motif in a column are ignored.
+        include_ambiguity
+            if True, all states are considered.
+        motif_length
+            if any position within a motif is variable, the entire motif is
+            considered variable.
 
+        Returns
+        -------
+        tuple of integers, if motif_length > 1, the returned positions are
+        motif_length long sequential indices.
+
+        Notes
+        -----
+        Truncates alignment to be modulo motif_length.
         """
-        # refactor: use numba decorated function for returning the indices
-        indices = []
-        gap_index = self.moltype.most_degen_alphabet().gap_index
-        missing_index = self.moltype.most_degen_alphabet().missing_index
+        align_len = len(self) // motif_length * motif_length
+        array_seqs = self.array_seqs[:, :align_len]
+        # both gap and missing data are treated as gaps
+        alpha = self.moltype.most_degen_alphabet()
+        gap_index = alpha.gap_index
+        missing_index = alpha.missing_index
+        # at the individual position level
+        if include_gap_motif and include_ambiguity:
+            indices = _var_pos_allow_all(array_seqs)
+        elif include_gap_motif:
+            indices = _var_pos_canonical_or_gap(array_seqs, gap_index, missing_index)
+        elif include_ambiguity:
+            indices = _var_pos_not_gap(array_seqs, gap_index)
+        else:
+            indices = _var_pos_canonical(array_seqs, gap_index)
 
-        for i, pos in enumerate(self.array_positions):
-            unique = numpy.unique(pos)
-            if not include_gap_motif:
-                unique = unique[(unique != gap_index) & (unique != missing_index)]
-            if len(unique) > 1:
-                indices.append(i)
-        return indices
+        if motif_length > 1:
+            indices = indices.reshape(-1, motif_length).any(axis=1).repeat(motif_length)
+
+        return tuple(numpy.where(indices)[0].tolist())
 
     def omit_bad_seqs(self, quantile: OptFloat = None):
         """Returns new alignment without sequences with a number of uniquely
@@ -6134,6 +6165,43 @@ class Alignment(SequenceCollection):
             **kwargs,
         )
 
+    def with_masked_annotations(
+        self, biotypes: PySeqStr, mask_char: str = "?", shadow: bool = False
+    ):
+        """returns an alignment with regions replaced by mask_char
+
+        Parameters
+        ----------
+        biotypes
+            annotation type(s)
+        mask_char
+            must be a character valid for the moltype. The default value is
+            the most ambiguous character, eg. '?' for DNA
+        shadow
+            If True, masks everything but the biotypes
+        """
+        # by doing numpy.array(seq), this method applies the slice_record
+        # and modifies the underlying sequence data. We therefore split
+        # gapped sequences into their gaps and seq components and discard
+        # the current slice_record.
+        gaps = {}
+        ungapped = {}
+        for seq in self.seqs:
+            parent_name = self._name_map[seq.name]
+            gaps[parent_name] = seq.map.array
+            ungapped[parent_name] = numpy.array(
+                seq.seq.with_masked_annotations(biotypes, mask_char, shadow)
+            )
+
+        seq_data = self._seqs_data.from_seqs_and_gaps(
+            seqs=ungapped, gaps=gaps, alphabet=self.moltype.most_degen_alphabet()
+        )
+        init = self._get_init_kwargs()
+        init["seqs_data"] = seq_data
+        # we have to drop the slice record since we have changed the data
+        init["slice_record"] = None
+        return self.__class__(**init)
+
     def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
         """returns a json serialisable dict"""
         kwargs = self._get_init_kwargs()
@@ -6225,6 +6293,8 @@ def make_aligned_seqs(
     )
 
 
+# I'm explicitly encoding the alternate variants of the following as numba
+# can then cache the byte-compiiled functions.
 @make_aligned_seqs.register
 def _(
     data: AlignedSeqsDataABC,
@@ -6269,3 +6339,136 @@ def _(
     if label_to_name:
         aln = aln.rename_seqs(label_to_name)
     return aln
+
+
+@numba.jit(cache=True)
+def _var_pos_canonical_or_gap(
+    arr: numpy.ndarray, gap_index: int, missing_index: int
+) -> numpy.ndarray:  # pragma: no cover
+    """return boolean array indicating columns with more than one value below threshold
+
+    Parameters
+    ----------
+    arr
+        a 2D array with rows being sequences and columns positions
+    gap_index
+        value of gap state
+    missing_index
+        value of missing state
+
+    Returns
+    ------
+    a boolean array
+    """
+    # relying on consistent ordering of gap as num canonical + 1
+    m, n = arr.shape
+    result = numpy.zeros(n, dtype=numpy.bool_)
+    for pos in numpy.arange(n):
+        last = -1
+        for seq in numpy.arange(m):
+            state = arr[seq, pos]
+            if state <= gap_index or state == missing_index:
+                if last == -1:
+                    last = state
+                elif state != last:
+                    result[pos] = True
+                    break
+
+    return result
+
+
+@numba.jit(cache=True)
+def _var_pos_canonical(
+    arr: numpy.ndarray, gap_index: int
+) -> numpy.ndarray:  # pragma: no cover
+    """return boolean array indicating columns with more than one value below threshold
+
+    Parameters
+    ----------
+    arr
+        a 2D array with rows being sequences and columns positions
+    gap_index
+        value of gap state
+
+    Returns
+    ------
+    a boolean array
+    """
+    # relying on consistent ordering of gap as num canonical + 1
+    m, n = arr.shape
+    result = numpy.zeros(n, dtype=numpy.bool_)
+    for pos in numpy.arange(n):
+        last = -1
+        for seq in numpy.arange(m):
+            state = arr[seq, pos]
+            if state < gap_index:
+                if last == -1:
+                    last = state
+                elif state != last:
+                    result[pos] = True
+                    break
+
+    return result
+
+
+@numba.jit(cache=True)
+def _var_pos_allow_all(
+    arr: numpy.ndarray,
+) -> numpy.ndarray:  # pragma: no cover
+    """return boolean array indicating columns with more than one value below threshold
+
+    Parameters
+    ----------
+    arr
+        a 2D array with rows being sequences and columns positions
+
+    Returns
+    ------
+    a boolean array
+    """
+    m, n = arr.shape
+    result = numpy.zeros(n, dtype=numpy.bool_)
+    for pos in numpy.arange(n):
+        last = -1
+        for seq in numpy.arange(m):
+            state = arr[seq, pos]
+            if last == -1:
+                last = state
+            elif state != last:
+                result[pos] = True
+                break
+    return result
+
+
+@numba.jit(cache=True)
+def _var_pos_not_gap(
+    arr: numpy.ndarray,
+    gap_index: int,
+) -> numpy.ndarray:  # pragma: no cover
+    """return boolean array indicating columns with more than one value below threshold
+
+    Parameters
+    ----------
+    arr
+        a 2D array with rows being sequences and columns positions
+    gap_index
+        value of gap state
+
+    Returns
+    ------
+    a boolean array
+    """
+    m, n = arr.shape
+    result = numpy.zeros(n, dtype=numpy.bool_)
+    for pos in numpy.arange(n):
+        last = -1
+        for seq in numpy.arange(m):
+            state = arr[seq, pos]
+            if state != gap_index:
+                if last == -1:
+                    last = state
+                elif state != last:
+                    result[pos] = True
+                    break
+
+    return result

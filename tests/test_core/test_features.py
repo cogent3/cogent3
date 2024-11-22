@@ -287,7 +287,7 @@ def test_terminal_gaps():
     assert aln_exons[0].get_slice().to_dict() == dict(x="AAAAA", y="--T--")
 
 
-def test_annotated_region_masks():
+def test_annotated_region_masks():  # ported to test_new_aln_annotation.py
     """masking a sequence with specific features"""
 
     # Annotated regions can be masked (observed sequence characters
@@ -388,7 +388,7 @@ def test_annotated_region_masks():
     }
 
 
-def test_nested_annotated_region_masks():
+def test_nested_annotated_region_masks():  # ported to test_new_aln_annotation.py
     """masking a sequence with specific features when nested annotations"""
     db = GffAnnotationDb()
     db.add_feature(seqid="x", biotype="gene", name="norwegian", spans=[(0, 4)])
