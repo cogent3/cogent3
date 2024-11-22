@@ -260,17 +260,17 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         gap: OptStr = None,
         missing: OptStr = None,
     ):
+        self.dtype = get_array_type(len(self))
         self._gap_char = gap
-        self._gap_index = self.index(gap) if gap else None
+        self._gap_index = self.dtype(self.index(gap)) if gap else None
         self._missing_char = missing
-        self._missing_index = self.index(missing) if missing else None
+        self._missing_index = self.dtype(self.index(missing)) if missing else None
 
         # the number of canonical states are non-gap, non-missing states
         adj = (1 if gap else 0) + (1 if missing else 0)
 
         self._num_canonical = len(self) - adj
 
-        self.dtype = get_array_type(len(self))
         self._chars = set(self)  # for quick lookup
         byte_chars = self.as_bytes()
         self._bytes2arr = bytes_to_array(byte_chars, dtype=self.dtype)
