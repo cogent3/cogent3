@@ -3816,12 +3816,56 @@ def test_variable_positions():
     """correctly identify variable positions"""
     new_seqs = {"A": "-CG-C", "B": "ACAA?", "C": "GCGAC"}
     aln = new_alignment.make_aligned_seqs(new_seqs, moltype="dna")
-    assert aln.variable_positions(include_gap_motif=True) == [0, 2, 3, 4]
-    assert aln.variable_positions(include_gap_motif=False) == [0, 2]
+    assert aln.variable_positions(include_gap_motif=True) == (0, 2, 3, 4)
+    assert aln.variable_positions(include_gap_motif=False) == (0, 2)
     new_seqs = {"A": "GCGAC", "B": "GCGAC", "C": "GCGAC"}
     aln = new_alignment.make_aligned_seqs(new_seqs, moltype="dna")
-    assert aln.variable_positions(include_gap_motif=True) == []
-    assert aln.variable_positions(include_gap_motif=False) == []
+    assert aln.variable_positions(include_gap_motif=True) == ()
+    assert aln.variable_positions(include_gap_motif=False) == ()
+    new_seqs = {"A": "-CG?C-", "B": "ACAAYA", "C": "GCGACA"}
+    aln = new_alignment.make_aligned_seqs(new_seqs, moltype="dna")
+    assert aln.variable_positions(include_gap_motif=False, include_ambiguity=True) == (
+        0,
+        2,
+        3,
+        4,
+    )
+    assert aln.variable_positions(include_gap_motif=True, include_ambiguity=True) == (
+        0,
+        2,
+        3,
+        4,
+        5,
+    )
+
+
+def test_variable_positions_motif_length():
+    """correctly identify variable positions"""
+    #                 *  - ?
+    new_seqs = {"A": "-CG-CA", "B": "ACGACA", "C": "GCGACY"}
+    aln = new_alignment.make_aligned_seqs(new_seqs, moltype="dna")
+    # only the first dinucleotide is variable if gaps and ambigs disallowed
+    assert aln.variable_positions(
+        motif_length=2, include_gap_motif=False, include_ambiguity=False
+    ) == (0, 1)
+    # if gaps are allowed, the second dinucleotide is also variable
+    assert aln.variable_positions(
+        motif_length=2, include_gap_motif=True, include_ambiguity=False
+    ) == (0, 1, 2, 3)
+    # if no gaps but ambig allowed, the third dinucleotide is also variable
+    assert aln.variable_positions(
+        motif_length=2, include_gap_motif=False, include_ambiguity=True
+    ) == (0, 1, 4, 5)
+    # if gaps and ambig allowed all are variable
+    assert aln.variable_positions(
+        motif_length=2, include_gap_motif=True, include_ambiguity=True
+    ) == (0, 1, 2, 3, 4, 5)
+    # variable remains modulo motif_length
+    new_seqs = {"A": "-CG-CAA", "B": "ACGACAC", "C": "GCGACYG"}
+    aln = new_alignment.make_aligned_seqs(new_seqs, moltype="dna")
+    assert aln.variable_positions(
+        motif_length=2, include_gap_motif=True, include_ambiguity=True
+    ) == (0, 1, 2, 3, 4, 5)
 
 
 def test_alignment_counts_per_pos():
