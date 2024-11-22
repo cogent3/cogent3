@@ -5111,13 +5111,16 @@ def test_alignment_to_rich_dict_round_trip():
     assert got is not aln
 
 
-def test_alignment_to_rich_dict_round_trip_renamed():
+@pytest.mark.parametrize(
+    "mk_cls", [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs]
+)
+def test_alignment_to_rich_dict_round_trip_renamed(mk_cls):
     # name_map is preserved
     data = {
         "seq1": "ATG",
         "seq2": "TGA",
     }
-    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    aln = mk_cls(data, moltype="dna")
     renamed_aln = aln.rename_seqs(renamer=lambda x: x.upper())
     rd = renamed_aln.to_rich_dict()
     got = deserialise_object(rd)
@@ -5126,26 +5129,78 @@ def test_alignment_to_rich_dict_round_trip_renamed():
     assert got is not renamed_aln
 
 
-def test_alignment_to_rich_dict_round_trip_offset():
+@pytest.mark.parametrize(
+    "mk_cls", [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs]
+)
+def test_alignment_to_rich_dict_round_trip_offset(mk_cls):
     # offset is preserved
     data = {
         "seq1": "ATG",
         "seq2": "TGA",
     }
     offsets = {"seq1": 10, "seq2": 20}
-    aln = new_alignment.make_aligned_seqs(data, moltype="dna", offset=offsets)
+    aln = mk_cls(data, moltype="dna", offset=offsets)
     rd = aln.to_rich_dict()
     got = deserialise_object(rd)
     assert got._seqs_data.offset == offsets
     assert got.to_dict() == aln.to_dict()
     assert got is not aln
 
+
+def test_alignment_to_rich_dict_round_trip_offset_sliced():
     # if offset and sliced, this should be added to the new offset
+    data = {
+        "seq1": "ATG",
+        "seq2": "TGA",
+    }
+    offsets = {"seq1": 10, "seq2": 20}
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna", offset=offsets)
     sliced = aln[1:]
     rd = sliced.to_rich_dict()
     got = deserialise_object(rd)._seqs_data.offset
     expect = {"seq1": 11, "seq2": 21}
     assert got == expect
+
+
+@pytest.mark.parametrize(
+    "mk_cls", [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs]
+)
+def test_alignment_to_rich_dict_round_trip_info(mk_cls):
+    # info is preserved
+    data = {
+        "seq1": "ATG",
+        "seq2": "TGA",
+    }
+    aln = mk_cls(data, moltype="dna", info={"key": "value"})
+    rd = aln.to_rich_dict()
+    got = deserialise_object(rd)
+    assert got.info["key"] == "value"
+    assert got.to_dict() == aln.to_dict()
+    assert got is not aln
+
+
+@pytest.mark.parametrize(
+    "mk_cls", [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs]
+)
+def test_alignment_to_rich_dict_round_trip_annotation_db(gff_db, mk_cls):
+    data = {
+        "seq1": "ATG",
+        "seq2": "TGA",
+    }
+    aln = mk_cls(data, moltype="dna")
+    # if no annotation_db, it should not be included in the rich dict
+    rd = aln.to_rich_dict()
+    assert "annotation_db" not in rd["init_args"]
+
+    # if an annotation_db is present, it should be included in the rich dict
+    aln.annotation_db = gff_db
+    assert len(aln.annotation_db) > 0
+    rd = aln.to_rich_dict()
+    assert rd["init_args"]["annotation_db"] == gff_db.to_rich_dict()
+
+    # however, even if an annotation_db is present, it is not deserialised
+    got = deserialise_object(rd)
+    assert len(got.annotation_db) == 0
 
 
 def test_deserialise_alignment():

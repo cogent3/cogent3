@@ -6152,7 +6152,8 @@ class Alignment(SequenceCollection):
         kwargs["info"] = self.info.copy()  # info is mutable
         kwargs["moltype"] = self.moltype.label
 
-        if kwargs.pop("annotation_db", None):
+        annotation_db = kwargs.pop("annotation_db", None)
+        if annotation_db:
             kwargs["annotation_db"] = self.annotation_db.to_rich_dict()
 
         kwargs.pop("seqs_data")
