@@ -2103,7 +2103,6 @@ def test_seqview_copy(sliced, rev, integer_seq):
     copied = sv.copy(sliced=sliced)
 
     assert copied.str_value == raw_data[slice_start:slice_end]
-    assert copied.is_reversed == integer_seq.is_reversed
     assert (
         sliced and copied.parent is not sv.parent or copied.parent is integer_seq.parent
     )
@@ -2216,18 +2215,14 @@ def test_to_moltype_rna():
 
 
 def test_to_rich_dict():
-    """Sequence to_dict works"""
+    """Sequence.to_rich_dict works"""
     dna = new_moltype.DNA
     s = "AAGGCC"
     r = dna.make_seq(seq=s, name="seq1")
     got = r.to_rich_dict()
-    seq = new_sequence.SeqView(
-        parent=s, parent_len=len(s), seqid="seq1", alphabet=dna.most_degen_alphabet()
-    ).to_rich_dict()
-
     expect = {
         "name": "seq1",
-        "seq": seq,
+        "seq": s,
         "moltype": r.moltype.label,
         "info": None,
         "type": get_object_provenance(r),
@@ -2244,16 +2239,9 @@ def test_sequence_to_json():
     r = dna.make_seq(seq="AAGGCC", name="seq1")
     got = json.loads(r.to_json())
     data = "AAGGCC"
-    seq = new_sequence.SeqView(
-        parent=data,
-        parent_len=len(data),
-        seqid="seq1",
-        alphabet=dna.most_degen_alphabet(),
-    ).to_rich_dict()
-
     expect = {
         "name": "seq1",
-        "seq": seq,
+        "seq": data,
         "moltype": dna.label,
         "info": None,
         "type": get_object_provenance(r),
@@ -2262,37 +2250,6 @@ def test_sequence_to_json():
     }
 
     assert got == expect
-
-
-@pytest.mark.parametrize("coord", ("start", "stop"))
-def test_seqview_to_rich_dict(coord, dna_alphabet):
-    parent = "ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC"
-    sv = new_sequence.SeqView(
-        parent=parent, parent_len=len(parent), alphabet=dna_alphabet
-    )
-    plus = sv.to_rich_dict()
-    minus = sv[::-1].to_rich_dict()
-    plus = plus.pop("init_args")
-    minus = minus.pop("init_args")
-    assert plus.pop("parent") == minus.pop("parent")
-    assert (
-        plus["slice_record"]["init_args"]["step"]
-        == -minus["slice_record"]["init_args"]["step"]
-    )
-    assert coord not in plus
-    assert coord not in minus
-
-
-@pytest.mark.parametrize("reverse", (False, True))
-def test_sliced_seqview_rich_dict(reverse, dna_alphabet):
-    parent = "ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC"
-    sl = slice(2, 13)
-    sv = new_sequence.SeqView(
-        parent=parent, parent_len=len(parent), alphabet=dna_alphabet
-    )[sl]
-    sv = sv[::-1] if reverse else sv
-    rd = sv.to_rich_dict()
-    assert rd["init_args"]["parent"] == parent[sl]
 
 
 @pytest.mark.parametrize(
@@ -2513,6 +2470,8 @@ def test_copied_parent_coordinates(sliced, rev, start_stop):
     # matches original
     assert copied.parent_coordinates() == seq.parent_coordinates()
     # and expected -- the coordinate name always reflects the underlying sequence
+    # the strand will always be 1 for a copied sequence because the reversal is
+    #
     assert copied.parent_coordinates() == (orig_name, start, stop, -1 if rev else 1)
 
 
@@ -2569,19 +2528,6 @@ def test_seqview_seqid(dna_alphabet):
         parent=parent, parent_len=len(parent), seqid="seq1", alphabet=dna_alphabet
     )
     assert sv.seqid == "seq1"
-
-
-def test_seqview_to_rich_dict_seqid(dna_alphabet):
-    seq = "ACGGTGGGAC"
-    sv = new_sequence.SeqView(
-        parent=seq, parent_len=len(seq), seqid="seq1", alphabet=dna_alphabet
-    )
-    rd = sv.to_rich_dict()
-    assert rd["init_args"]["seqid"] == "seq1"
-
-    sv = new_sequence.SeqView(parent=seq, parent_len=len(seq), alphabet=dna_alphabet)
-    rd = sv.to_rich_dict()
-    assert rd["init_args"]["seqid"] is None
 
 
 def test_seqview_slice_propagates_seqid(dna_alphabet):

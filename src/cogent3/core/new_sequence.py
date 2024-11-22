@@ -84,20 +84,12 @@ def _moltype_seq_from_rich_dict(data):
     data.pop("type")
     data.pop("version")
     data.pop("annotation_db", None)
-    offset = data.pop("annotation_offset", 0)
+    data.pop("annotation_offset", 0)
 
     moltype = data.pop("moltype")
     moltype = new_moltype.get_moltype(moltype)
 
-    seqview_data = data.pop("seq")
-    seq = _coerce_to_seqview(
-        seqview_data["init_args"]["parent"],
-        data["name"],
-        moltype.most_degen_alphabet(),
-        offset,
-    )
-    seq = seq[:: seqview_data["init_args"]["slice_record"]["init_args"]["step"]]
-
+    seq = data.pop("seq")
     return moltype, seq
 
 
@@ -276,10 +268,9 @@ class Sequence:
             info.pop("Refs")
 
         info = info or None
-        seq = self._seq.to_rich_dict() if hasattr(self, "_seq") else str(self)
         data = dict(
             name=self.name,
-            seq=seq,
+            seq=str(self),
             moltype=self.moltype.label,
             info=info,
             type=get_object_provenance(self),
@@ -2613,9 +2604,6 @@ class SeqViewABC(ABC):
     def copy(self, sliced: bool = False): ...
 
     @abstractmethod
-    def to_rich_dict(self) -> dict: ...
-
-    @abstractmethod
     def __str__(self) -> str: ...
 
     @abstractmethod
@@ -2775,38 +2763,6 @@ class SeqView(SeqViewABC):
             f"slice_record={self.slice_record.__repr__()})"
         )
 
-    def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
-        """returns a json serialisable dict
-
-        Notes
-        -----
-        This method will slice the underlying sequence to the start and stop values
-
-        Warning
-        -------
-        This method is not intended to provide serialisation of this object,
-        instead, it is intended for usage by an enclosing class.
-        """
-        # get the current state
-        data = {"type": get_object_provenance(self), "version": __version__}
-        data["init_args"] = self._get_init_kwargs()
-
-        if self.slice_record.is_reversed:
-            adj = self.parent_len + 1
-            start, stop = self.slice_record.stop + adj, self.slice_record.start + adj
-
-        else:
-            start, stop = self.slice_record.start, self.slice_record.stop
-
-        data["init_args"]["parent"] = self.parent[start:stop]
-        new_sr = SliceRecord(
-            parent_len=(stop - start),
-            step=self.slice_record.step,
-        )
-        data["init_args"]["slice_record"] = new_sr.to_rich_dict()
-        data["init_args"]["alphabet"] = self.alphabet.to_rich_dict()
-        return data
-
     def copy(self, sliced: bool = False):
         """returns copy
 
@@ -2824,13 +2780,16 @@ class SeqView(SeqViewABC):
                 slice_record=self.slice_record.copy(),
                 parent_len=self.parent_len,
             )
-        data = self.to_rich_dict()
+        # the plus start and stop are applied, but the step is not applied
+        sr = SliceRecord(parent_len=len(self), step=self.slice_record.step)
         return self.__class__(
-            parent=data["init_args"]["parent"],
-            parent_len=data["init_args"]["parent_len"],
+            parent=self.parent[
+                self.slice_record.plus_start : self.slice_record.plus_stop
+            ],
+            parent_len=len(self),
             seqid=self.seqid,
             alphabet=self.alphabet,
-            slice_record=SliceRecord(**data["init_args"]["slice_record"]["init_args"]),
+            slice_record=sr,
         )
 
 

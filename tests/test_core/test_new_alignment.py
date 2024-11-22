@@ -335,18 +335,6 @@ def test_seqs_data_to_alphabet_invalid():
         _ = seqs.to_alphabet(DNA)
 
 
-def test_seqs_data_round_trip(dna_alphabet):
-    seqs_data = new_alignment.SeqsData(
-        data={"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}, alphabet=dna_alphabet
-    )
-    rd = seqs_data.to_rich_dict()
-    got = deserialise_object(rd)
-    assert isinstance(got, new_alignment.SeqsData)
-    assert got.to_rich_dict() == seqs_data.to_rich_dict()
-    expect = "ACGG"
-    assert str(got.get_view("seq1")) == expect
-
-
 @pytest.mark.parametrize(
     "index",
     [

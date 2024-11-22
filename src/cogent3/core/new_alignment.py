@@ -306,9 +306,6 @@ class SeqsDataABC(ABC):
     def add_seqs(self, seqs, **kwargs) -> SeqsDataABC: ...
 
     @abstractmethod
-    def to_rich_dict(self) -> dict: ...
-
-    @abstractmethod
     def __len__(self) -> int: ...
 
     @abstractmethod
@@ -543,33 +540,6 @@ class SeqsData(SeqsDataABC):
     @__getitem__.register
     def _(self, index: int) -> new_sequence.SeqViewABC:
         return self[self.names[index]]
-
-    def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
-        """returns a json serialisable dict"""
-        return {
-            "init_args": {
-                "data": {name: self.get_seq_str(seqid=name) for name in self.names},
-                "alphabet": self.alphabet.to_rich_dict(),
-                "offset": self._offset,
-            },
-            "type": get_object_provenance(self),
-            "version": __version__,
-        }
-
-    @classmethod
-    def from_rich_dict(cls, data: dict[str, str | dict[str, str]]) -> SeqsData:
-        """returns a new instance from a rich dict"""
-        alphabet = deserialise_object(data["init_args"]["alphabet"])
-        return cls(
-            data=data["init_args"]["data"],
-            alphabet=alphabet,
-            offset=data["init_args"]["offset"],
-        )
-
-
-@register_deserialiser(get_object_provenance(SeqsData))
-def deserialise_seqs_data(data: dict[str, str | dict[str, str]]) -> SeqsData:
-    return SeqsData.from_rich_dict(data)
 
 
 class SequenceCollection:
@@ -3590,10 +3560,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
 
         return self._gapped[indices, start:stop:step]
 
-    def to_rich_dict(self):
-        # todo: kath
-        ...
-
 
 class AlignedDataViewABC(new_sequence.SeqViewABC):
     __slots__ = ()
@@ -3786,10 +3752,6 @@ class AlignedDataView(new_sequence.SeqViewABC):
             "alphabet": self.alphabet,
             "slice_record": self.slice_record,
         }
-
-    def to_rich_dict(self) -> dict:
-        ...
-        # todo: kath...
 
     def get_seq_view(self) -> new_sequence.SeqViewABC:
         # we want the parent coordinates in sequence coordinates
