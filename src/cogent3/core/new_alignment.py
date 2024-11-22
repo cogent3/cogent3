@@ -886,21 +886,21 @@ class SequenceCollection:
         """
         kwargs = self._get_init_kwargs()
         kwargs.pop("is_reversed", None)  # reversal is realised
-        kwargs["name_map"] = self._name_map  # name_map is mutable
+        kwargs["name_map"] = self._name_map.copy()  # name_map is mutable
         kwargs["info"] = self.info.copy()  # info is mutable
         kwargs["moltype"] = self.moltype.label
-
         kwargs.pop("annotation_db", None)
-        if self.annotation_db:
-            kwargs["annotation_db"] = self.annotation_db.to_rich_dict()
-
+        kwargs.pop(
+            "offset", None
+        )  # no need for offset if we dont have an annotation_db
         kwargs.pop("seqs_data", None)  # we serialise the seqs_data directly
+
         data = {
             "init_args": kwargs,
             "type": get_object_provenance(self),
             "version": __version__,
         }
-        data["seqs_data"] = self._seqs_data.to_rich_dict()
+        data["seqs"] = {self._name_map[s.name]: str(s) for s in self.seqs}
 
         return data
 
@@ -909,12 +909,7 @@ class SequenceCollection:
         cls, data: dict[str, str | dict[str, str]]
     ) -> SequenceCollection:
         """returns a new instance from a rich dict"""
-        seqs_data = deserialise_object(data["seqs_data"])
-        data["init_args"].pop("annotation_db", None)
-        moltype = data["init_args"].pop("moltype")
-        moltype = new_moltype.get_moltype(moltype)
-
-        return cls(seqs_data=seqs_data, **data["init_args"], moltype=moltype)
+        return make_unaligned_seqs(data["seqs"], **data["init_args"])
 
     def to_json(self):
         """returns json formatted string"""
@@ -6151,38 +6146,24 @@ class Alignment(SequenceCollection):
         kwargs["name_map"] = self._name_map.copy()  # name_map is mutable
         kwargs["info"] = self.info.copy()  # info is mutable
         kwargs["moltype"] = self.moltype.label
-
-        annotation_db = kwargs.pop("annotation_db", None)
-        if annotation_db:
-            kwargs["annotation_db"] = self.annotation_db.to_rich_dict()
-
+        kwargs.pop("annotation_db", None)  # we dont serialise the annotation db
+        kwargs.pop(
+            "offset", None
+        )  # no need for offset since annotation db is not serialised
         kwargs.pop("seqs_data")
-        seqs_data = {
-            n: self._seqs_data.get_gapped_seq_str(
-                seqid=n,
-                start=self._slice_record.plus_start,
-                stop=self._slice_record.plus_stop,
-                step=self._slice_record.plus_step,
-            )
-            for n in self._name_map.values()
-        }
-        # we realise the slice, so we need to account for that in the new offset
-        kwargs["offset"] = {
-            name: offset + self._slice_record.plus_start
-            for name, offset in self._seqs_data.offset.items()
-        }
 
+        seqs = {self._name_map[s.name]: str(s) for s in self.seqs}
         return {
             "init_args": kwargs,
             "type": get_object_provenance(self),
             "version": __version__,
-            "seqs_data_dict": seqs_data,
+            "seqs": seqs,
         }
 
     @classmethod
     def from_rich_dict(cls, data: dict[str, str | dict[str, str]]):
         data["init_args"].pop("annotation_db", None)
-        return make_aligned_seqs(data["seqs_data_dict"], **data["init_args"])
+        return make_aligned_seqs(data["seqs"], **data["init_args"])
 
 
 @register_deserialiser(get_object_provenance(Alignment))
