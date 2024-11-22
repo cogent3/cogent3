@@ -640,11 +640,12 @@ class SequenceCollection:
         # both SequenceCollection and Alignment implement _get_init_kwargs,
         # ensuring methods in SequenceCollection that are inherited by Alignment
         # capture initialisation arguments unique to the subclass.
+        # mutable arguments are copied
         return {
             "seqs_data": self._seqs_data,
             "moltype": self.moltype,
-            "name_map": self._name_map,
-            "info": self.info,
+            "name_map": self._name_map.copy(),
+            "info": self.info.copy(),
             "annotation_db": self.annotation_db,
             "is_reversed": self._is_reversed,
         }
@@ -886,8 +887,6 @@ class SequenceCollection:
         """
         kwargs = self._get_init_kwargs()
         kwargs.pop("is_reversed", None)  # reversal is realised
-        kwargs["name_map"] = self._name_map.copy()  # name_map is mutable
-        kwargs["info"] = self.info.copy()  # info is mutable
         kwargs["moltype"] = self.moltype.label
         kwargs.pop("annotation_db", None)
         kwargs.pop(
@@ -3927,8 +3926,8 @@ class Alignment(SequenceCollection):
         return {
             "seqs_data": self._seqs_data,
             "moltype": self.moltype,
-            "name_map": self._name_map,
-            "info": self.info,
+            "name_map": self._name_map.copy(),
+            "info": self.info.copy(),
             "annotation_db": self.annotation_db,
             "slice_record": self._slice_record,
         }
@@ -6097,8 +6096,6 @@ class Alignment(SequenceCollection):
     def copy(self):
         """creates new instance, only mutable attributes are copied"""
         kwargs = self._get_init_kwargs()
-        kwargs["name_map"] = self._name_map.copy()
-        kwargs["info"] = self.info.copy()
         return self.__class__(**kwargs)
 
     def deepcopy(self, **kwargs):
@@ -6113,8 +6110,6 @@ class Alignment(SequenceCollection):
 
         kwargs = self._get_init_kwargs()
         kwargs.pop("seqs_data")
-        kwargs["name_map"] = self._name_map.copy()
-        kwargs["info"] = self.info.copy()
         kwargs["annotation_db"] = (
             None
             if len(self) != self._seqs_data.align_len
@@ -6143,8 +6138,6 @@ class Alignment(SequenceCollection):
         """returns a json serialisable dict"""
         kwargs = self._get_init_kwargs()
         kwargs.pop("slice_record")  # slice is realised
-        kwargs["name_map"] = self._name_map.copy()  # name_map is mutable
-        kwargs["info"] = self.info.copy()  # info is mutable
         kwargs["moltype"] = self.moltype.label
         kwargs.pop("annotation_db", None)  # we dont serialise the annotation db
         kwargs.pop(
