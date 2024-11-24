@@ -2470,8 +2470,6 @@ def test_copied_parent_coordinates(sliced, rev, start_stop):
     # matches original
     assert copied.parent_coordinates() == seq.parent_coordinates()
     # and expected -- the coordinate name always reflects the underlying sequence
-    # the strand will always be 1 for a copied sequence because the reversal is
-    #
     assert copied.parent_coordinates() == (orig_name, start, stop, -1 if rev else 1)
 
 
