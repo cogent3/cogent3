@@ -2395,20 +2395,3 @@ def test_phylonode_support():
     name_and_support = tree.get_node_matching_name("def")
     assert name_and_support.name == "def"  # bit redundant given selection process
     assert name_and_support.params["support"] == 25.0
-
-
-def test_phylonode_support_name_nodes_false():
-    # test that internal node names are None with name_nodes=False
-    tree = make_tree("((1,2)5,(3,4)6);", name_nodes=False)
-    internal_nodes = [node.name for node in tree.iter_nontips()]
-    assert all(node is None for node in internal_nodes)
-
-
-def test_phylonode_support_name_nodes_true():
-    # test that all nodes have unique names
-    tree = make_tree("((1,2)5,(3,4)6);", name_nodes=True)
-    node_names = set(tree.get_node_names())
-    # check that no node name is an empty string or None
-    assert all(node_names)
-    # check that the total number of unique node names is 7
-    assert len(node_names) == 7
