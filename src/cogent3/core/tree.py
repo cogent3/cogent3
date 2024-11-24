@@ -2280,9 +2280,7 @@ class TreeBuilder(object):
 
         node = self.TreeNodeClass(
             children=list(children),
-            name=self._unique_name(
-                name
-            ),  # should ban use of _unique_name if name is support only
+            name=self._unique_name(name),
             name_loaded=name_loaded and (name is not None),
             params=params,
         )
