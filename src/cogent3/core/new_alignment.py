@@ -2906,9 +2906,10 @@ class Aligned:
         )
 
     def __repr__(self) -> str:
-        # refactor: design
-        # avoid using map in the repr
-        return f"Aligned(map={self.data.map}, data={self.seq})"
+        seq = f"{str(self)[:7]}... {len(self):,}" if len(self) > 10 else str(self)
+        return (
+            f"Aligned(name={self.name!r}, seq={seq!r}, moltype={self.moltype.name!r})"
+        )
 
 
 class AlignedSeqsDataABC(SeqsDataABC):
