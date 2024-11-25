@@ -98,6 +98,19 @@ The Major cogent3 Data Types
     table/table
     tree/tree
 
+****************************
+NEW Major cogent3 Data Types
+****************************
+
+.. toctree::
+    :maxdepth: 1
+
+    new_alignment/alignment
+    new_sequence/sequence
+    new_genetic_code/genetic_code
+    new_moltype/moltype
+    new_alphabet/alphabet
+
 ***************
 Composable Apps
 ***************

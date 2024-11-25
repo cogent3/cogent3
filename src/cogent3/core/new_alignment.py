@@ -160,19 +160,13 @@ def _gap_ok_vector_multi(
 
 class SeqDataView(new_sequence.SeqView):
     """
-    A view class for SeqsData, providing methods for different representations
-    of a single sequence.
+    A view class for ``SeqsData``, providing methods for different
+    representations of a single sequence.
 
-    self.seq is a SeqsData() instance, but other properties are a reference to a
-    single seqid only.
-
-    Example
-    -------
-    data = {"seq1": "ACGT", "seq2": "GTTTGCA"}
-    sd = SeqsData(data=data)
-    sdv = sd.get_seq_view(seqid="seq1")
-    sdv.array_value
-    # array([3, 1, 2, 0], dtype=int8)
+    Notes
+    -----
+    ``str_value`` / ``array_value`` are not complemented, but can be reversed.
+    The latter is done by the ``Sequence`` object which has a moltype.
     """
 
     __slots__ = ("parent", "alphabet", "_seqid", "_parent_len", "_slice_record")
@@ -315,21 +309,16 @@ class SeqsDataABC(ABC):
 
 
 class SeqsData(SeqsDataABC):
-    """A collection of sequences underlying a SequenceCollection. The sequence
-    data is stored as numpy arrays, however the underlying data can be accessed
-    as strings, bytes, or numpy arrays.
+    """The builtin ``cogent3`` implementation of a collection of sequences underlying
+    a ``SequenceCollection``. The sequence data is stored as numpy arrays. Indexing
+    this object (using an int or seq name) returns a ``SeqDataView``, which can realise
+    the corresponding slice as a string, bytes, or numpy array via the alphabet.
 
-    Attributes
-    ----------
-    data
-        a dictionary of {name: sequence} pairs
-    alphabet
-        an instance of CharAlphabet valid for the sequences
-    offset
-        a dictionary of {name: offset} pairs indicating the offset of the sequence
-    check
-        a boolean indicating if the data should be checked for naming consistency
-        between arguments
+    Notes
+    -----
+    Methods on this object only accepts plust strand start, stop and step
+    indices for selecting segments of data. It can return the gap coordinates
+    for a sequence as used by IndelMap.
     """
 
     __slots__ = ("_data", "_alphabet", "_offset")
@@ -342,6 +331,24 @@ class SeqsData(SeqsDataABC):
         offset: dict[str, int] = None,
         check: bool = True,
     ):
+        """
+        Parameters
+        ----------
+        data
+            raw data as {seq name: sequence, ...} where the sequence can be converted
+            to a numpy array using the provided alphabet.
+        alphabet
+            a cogent3 CharAlphabet instance, typically defined as
+            <moltype>.most_degen_alphabet()
+        offset
+            dict indicating annotation offsets for each sequence
+        check
+            use the alphabet to check the sequences are valid
+
+        Raises
+        ------
+        new_alphabet.AlphabetError if the check fails
+        """
         self._alphabet = alphabet
         self._offset = offset or {}
         if check:
@@ -543,7 +550,12 @@ class SeqsData(SeqsDataABC):
 
 
 class SequenceCollection:
-    """A container of unaligned sequences"""
+    """A container of unaligned sequences.
+
+    Notes
+    -----
+    Should be constructed using ``make_unaligned_seqs()``.
+    """
 
     def __init__(
         self,
@@ -556,8 +568,7 @@ class SequenceCollection:
         name_map: OptDict = None,
         is_reversed: bool = False,
     ):
-        """Initialises a new SequenceCollection.
-
+        """
         Parameters
         ----------
         seqs_data
@@ -2684,7 +2695,15 @@ def compose_gapped_seq(
 
 
 class Aligned:
-    """A single sequence in an alignment."""
+    """A single sequence in an alignment.
+
+    Notes
+    -----
+    This is a wrapper around a ``AlignedDataView``. This class performs any
+    complenting needed. It can be cast directly to a string or numpy array,
+    e.g. ``numpy.array(<aligned instance>)`` returns a numpy unsigned 8-bit
+    integer array.
+    """
 
     __slots__ = ("_data", "_moltype", "_name", "_annotation_db")
 
@@ -2713,7 +2732,7 @@ class Aligned:
 
     @property
     def seq(self) -> new_sequence.Sequence:
-        """Returns Sequence object, excluding gaps."""
+        """the ungapped sequence."""
         # if the slice record has abs(step) > 1, we cannot retain a connection
         # to the underlying aligned seq data container because the gaps are
         # not going to be modulo the step.
@@ -2773,6 +2792,12 @@ class Aligned:
         inverted = self.map.to_feature_map().inverse()
         # todo should indicate whether tidy or not
         return annot.remapped_to(alignment, inverted)
+
+    def __repr__(self) -> str:
+        seq = f"{str(self)[:7]}... {len(self):,}" if len(self) > 10 else str(self)
+        return (
+            f"Aligned(name={self.name!r}, seq={seq!r}, moltype={self.moltype.name!r})"
+        )
 
     def __str__(self) -> str:
         return str(self.gapped_seq)
@@ -2873,11 +2898,6 @@ class Aligned:
             name=name,
             allow_multiple=allow_multiple,
         )
-
-    def __repr__(self) -> str:
-        # refactor: design
-        # avoid using map in the repr
-        return f"Aligned(map={self.data.map}, data={self.seq})"
 
 
 class AlignedSeqsDataABC(SeqsDataABC):
@@ -3036,8 +3056,17 @@ def _gapped_seq_len(seq: numpy.ndarray, gap_map: numpy.ndarray) -> int:
 
 
 class AlignedSeqsData(AlignedSeqsDataABC):
-    # refactor: docstring
-    # refactor: design
+    """The builtin ``cogent3`` implementation of a container of aligned sequences
+    underlying an ``Alignment``. Indexing this object returns an ``AlignedDataView``
+    which can realise the corresponding slice as a string, bytes, or numpy array,
+    gapped or ungapped.
+
+    Notes
+    -----
+    Methods on this object only accepts plust strand start, stop and step
+    indices for selecting segments of data. It can return the gap coordinates
+    for a sequence as used by ``IndelMap``.
+    """
 
     __slots__ = (
         "_names",
@@ -3589,7 +3618,16 @@ class AlignedDataViewABC(new_sequence.SeqViewABC):
 
 
 class AlignedDataView(new_sequence.SeqViewABC):
-    # refactor: docstring
+    """
+    A view class for ``AlignedSeqsData``, providing methods for different representations
+    of a single sequence.
+
+    Notes
+    -----
+    ``str_value`` / ``array_value`` are not complemented, but can be reversed. The latter
+    is done by the ``Aligned`` object which has a moltype. The ``slice_record`` attribute
+    is shared with the containing ``Alignment``.
+    """
 
     __slots__ = (
         "parent",
@@ -3859,7 +3897,13 @@ class _IndexableSeqs:
 
 
 class Alignment(SequenceCollection):
-    # refactor: docstring
+    """A collection of aligned sequences.
+
+    Notes
+    -----
+    Should be constructed using ``make_aligned_seqs()``.
+    """
+
     def __init__(
         self,
         seqs_data: AlignedSeqsDataABC,  # seqs_data

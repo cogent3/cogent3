@@ -2489,6 +2489,14 @@ class SliceRecordABC(ABC):
 
 
 class SliceRecord(SliceRecordABC):
+    """records cumulative slice operations on an object without modifying it
+
+    Notes
+    -----
+    Basis for lazy evaluation of slicing operations on sequences and alignments.
+    A reference to an instance of this class is used by different view objects.
+    """
+
     __slots__ = "_parent_len"
 
     def __init__(
@@ -2500,6 +2508,21 @@ class SliceRecord(SliceRecordABC):
         step: OptInt = None,
         offset: int = 0,
     ):
+        """
+        Parameters
+        ----------
+        start
+            start of the slice (inclusive indexing)
+        stop
+            stop of the slice (exclusive indexing)
+        step
+            step of the slice
+        offset
+            can be set with any additional offset that exists before the start of
+            the underlying data
+        parent_len
+            length of the underlying data (not including offset)
+        """
         if step == 0:
             raise ValueError("step cannot be 0")
         step = step if step is not None else 1
@@ -2633,8 +2656,8 @@ class SeqView(SeqViewABC):
     """
     Provides a view of a sequence with support for slicing operations.
 
-    This class represents a view of a sequence, allowing for efficient slicing
-    without altering the original sequence data.
+    This class represents a view of a sequence. It uses ``SliceRecord`` to
+    enable efficient slicing without altering the original sequence data.
 
     Parameters
     ----------
@@ -2647,10 +2670,11 @@ class SeqView(SeqViewABC):
     parent_len
         the length of the sequence. Defaults to the length of the input sequence
 
+    Notes
+    -----
+    It utilises the alphabet object to allow providing different types
+    such as strings or numpy arrays, corresponding to its underlying data.
     """
-
-    # todo: kath,
-    # update the docstring to reflect the new design
 
     __slots__ = (
         "parent",

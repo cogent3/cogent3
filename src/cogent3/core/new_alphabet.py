@@ -231,12 +231,30 @@ class array_to_bytes:
 
 
 class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
+    """representing fundamental monomer character sets.
+
+    Notes
+    -----
+    Provides methods for efficient conversion between characters and integers
+    from fundamental types of strings, bytes and numpy arrays.
+    """
+
     def __new__(
         cls,
         chars: typing.Sequence[StrORBytes],
         gap: OptStr = None,
         missing: OptStr = None,
     ):
+        """
+        Parameters
+        ----------
+        chars
+            the characters in the alphabet
+        gap
+            character representing the gap character (universally '-' in cogent3)
+        missing
+            character representing the missing data, typically '?'.
+        """
         if not chars:
             raise ValueError(f"cannot create empty {cls.__name__!r}")
 
@@ -594,6 +612,14 @@ class KmerAlphabetABC(ABC):
 
 
 class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
+    """k-mer alphabet represents complete non-monomer alphabets
+
+    Notes
+    -----
+    Differs from SenseCodonAlphabet case by representing all possible permutations of
+    k-length of the provided monomer alphabet. More efficient mapping between
+    """
+
     def __new__(
         cls,
         words: tuple[StrORBytes, ...],
@@ -602,6 +628,20 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         gap: OptStr = None,
         missing: OptStr = None,
     ):
+        """
+        Parameters
+        ----------
+        words
+            len(monomers)**k k-length strings
+        monomers
+            the underlying character alphabet
+        k
+            the number of monomers per word
+        gap
+            k monomer gap characters
+        missing, optional
+            k monomer missing characters
+        """
         if not words:
             raise ValueError(f"cannot create empty {cls.__name__!r}")
 
