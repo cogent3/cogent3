@@ -371,6 +371,16 @@ def _strictly_upper(monomers: tuple[StrORBytes]):
 
 @dataclasses.dataclass
 class MolType:
+    """MolType handles operations that depend on the sequence type.
+
+    Notes
+    -----
+    The only way to create sequences is via a MolType instance.
+    The instance defines different alphabets that are used for data
+    conversions.
+    Create a moltype using the ``get_moltype()`` function.
+    """
+
     name: str
     monomers: dataclasses.InitVar[StrORBytes]
     make_seq: dataclasses.InitVar[typing.Type]
