@@ -306,9 +306,6 @@ class SeqsDataABC(ABC):
     def add_seqs(self, seqs, **kwargs) -> SeqsDataABC: ...
 
     @abstractmethod
-    def to_rich_dict(self) -> dict: ...
-
-    @abstractmethod
     def __len__(self) -> int: ...
 
     @abstractmethod
@@ -544,33 +541,6 @@ class SeqsData(SeqsDataABC):
     def _(self, index: int) -> new_sequence.SeqViewABC:
         return self[self.names[index]]
 
-    def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
-        """returns a json serialisable dict"""
-        return {
-            "init_args": {
-                "data": {name: self.get_seq_str(seqid=name) for name in self.names},
-                "alphabet": self.alphabet.to_rich_dict(),
-                "offset": self._offset,
-            },
-            "type": get_object_provenance(self),
-            "version": __version__,
-        }
-
-    @classmethod
-    def from_rich_dict(cls, data: dict[str, str | dict[str, str]]) -> SeqsData:
-        """returns a new instance from a rich dict"""
-        alphabet = deserialise_object(data["init_args"]["alphabet"])
-        return cls(
-            data=data["init_args"]["data"],
-            alphabet=alphabet,
-            offset=data["init_args"]["offset"],
-        )
-
-
-@register_deserialiser(get_object_provenance(SeqsData))
-def deserialise_seqs_data(data: dict[str, str | dict[str, str]]) -> SeqsData:
-    return SeqsData.from_rich_dict(data)
-
 
 class SequenceCollection:
     """A container of unaligned sequences"""
@@ -640,11 +610,12 @@ class SequenceCollection:
         # both SequenceCollection and Alignment implement _get_init_kwargs,
         # ensuring methods in SequenceCollection that are inherited by Alignment
         # capture initialisation arguments unique to the subclass.
+        # mutable arguments are copied
         return {
             "seqs_data": self._seqs_data,
             "moltype": self.moltype,
-            "name_map": self._name_map,
-            "info": self.info,
+            "name_map": self._name_map.copy(),
+            "info": self.info.copy(),
             "annotation_db": self.annotation_db,
             "is_reversed": self._is_reversed,
         }
@@ -886,8 +857,6 @@ class SequenceCollection:
         """
         kwargs = self._get_init_kwargs()
         kwargs.pop("is_reversed", None)  # reversal is realised
-        kwargs["name_map"] = self._name_map.copy()  # name_map is mutable
-        kwargs["info"] = self.info.copy()  # info is mutable
         kwargs["moltype"] = self.moltype.label
         kwargs.pop("annotation_db", None)
         kwargs.pop(
@@ -3591,10 +3560,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
 
         return self._gapped[indices, start:stop:step]
 
-    def to_rich_dict(self):
-        # todo: kath
-        ...
-
 
 class AlignedDataViewABC(new_sequence.SeqViewABC):
     __slots__ = ()
@@ -3788,10 +3753,6 @@ class AlignedDataView(new_sequence.SeqViewABC):
             "slice_record": self.slice_record,
         }
 
-    def to_rich_dict(self) -> dict:
-        ...
-        # todo: kath...
-
     def get_seq_view(self) -> new_sequence.SeqViewABC:
         # we want the parent coordinates in sequence coordinates
         # parent_seq_coords does not account for the stride
@@ -3927,8 +3888,8 @@ class Alignment(SequenceCollection):
         return {
             "seqs_data": self._seqs_data,
             "moltype": self.moltype,
-            "name_map": self._name_map,
-            "info": self.info,
+            "name_map": self._name_map.copy(),
+            "info": self.info.copy(),
             "annotation_db": self.annotation_db,
             "slice_record": self._slice_record,
         }
@@ -6128,8 +6089,6 @@ class Alignment(SequenceCollection):
     def copy(self):
         """creates new instance, only mutable attributes are copied"""
         kwargs = self._get_init_kwargs()
-        kwargs["name_map"] = self._name_map.copy()
-        kwargs["info"] = self.info.copy()
         return self.__class__(**kwargs)
 
     def deepcopy(self, **kwargs):
@@ -6144,8 +6103,6 @@ class Alignment(SequenceCollection):
 
         kwargs = self._get_init_kwargs()
         kwargs.pop("seqs_data")
-        kwargs["name_map"] = self._name_map.copy()
-        kwargs["info"] = self.info.copy()
         kwargs["annotation_db"] = (
             None
             if len(self) != self._seqs_data.align_len
@@ -6211,8 +6168,6 @@ class Alignment(SequenceCollection):
         """returns a json serialisable dict"""
         kwargs = self._get_init_kwargs()
         kwargs.pop("slice_record")  # slice is realised
-        kwargs["name_map"] = self._name_map.copy()  # name_map is mutable
-        kwargs["info"] = self.info.copy()  # info is mutable
         kwargs["moltype"] = self.moltype.label
         kwargs.pop("annotation_db", None)  # we dont serialise the annotation db
         kwargs.pop(
