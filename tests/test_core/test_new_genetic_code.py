@@ -1,6 +1,6 @@
 import pytest
 
-from cogent3.core import new_genetic_code
+from cogent3.core import new_alphabet, new_genetic_code
 
 
 @pytest.mark.parametrize("gc", (1, "Standard", new_genetic_code.DEFAULT))
@@ -44,6 +44,12 @@ def test_sense_codons():
     assert len(code.sense_codons) == 61
 
 
+@pytest.mark.parametrize("invalid", ("AT", "TAAA", 23))
+def test_invalid_index(invalid):
+    with pytest.raises(new_genetic_code.InvalidCodonError):
+        new_genetic_code.DEFAULT[invalid]
+
+
 def test_translate():
     code = new_genetic_code.DEFAULT
     assert code.translate("ATGGGG") == code["ATG"] + code["GGG"]
@@ -54,6 +60,17 @@ def test_translate_rc():
     seq = "ATGGGG"
     rc = code.moltype.rc(seq)
     assert code.translate(rc, rc=True) == code["ATG"] + code["GGG"]
+
+
+def test_translate_incomplete_ok():
+    code = new_genetic_code.DEFAULT
+    assert code.translate("ATGG--", incomplete_ok=True) == code["ATG"] + "-"
+
+
+def test_translate_incomplete_not_ok():
+    code = new_genetic_code.DEFAULT
+    with pytest.raises(new_alphabet.AlphabetError):
+        assert code.translate("ATGG--", incomplete_ok=False)
 
 
 def test_to_table():
@@ -146,6 +163,13 @@ def test_get_alphabet_with_stop():
 
     alpha_gap = gc.get_alphabet(include_gap=True, include_stop=True)
     assert len(alpha_gap) == 65
+
+
+@pytest.mark.parametrize("repr_method", ("__str__", "__repr__", "_repr_html_"))
+def test_code_repr(repr_method):
+    gc = new_genetic_code.get_code(1)
+    got = getattr(gc, repr_method)()
+    assert isinstance(got, str)
 
 
 def test_to_regex():

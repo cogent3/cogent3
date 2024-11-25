@@ -327,7 +327,6 @@ def _gff_parser(
         )
 
 
-@c3warn.deprecated_args("2024.9", reason="not being used", discontinued="span")
 def parse_attributes_gff2(attributes: str) -> dict:
     """Returns a dict with name and info keys"""
     name = attributes[attributes.find('"') + 1 :]
@@ -336,7 +335,6 @@ def parse_attributes_gff2(attributes: str) -> dict:
     return {"ID": name, "Info": attributes}
 
 
-@c3warn.deprecated_args("2024.9", reason="not being used", discontinued="span")
 def parse_attributes_gff3(attributes: str) -> dict:
     """Returns a dictionary containing all the attributes"""
     attributes = attributes.strip(";")

@@ -31,6 +31,7 @@ from numpy import (
     array,
     compress,
     floating,
+    int32,
     integer,
     issubdtype,
     logical_not,

@@ -8,6 +8,7 @@ import numpy
 import pytest
 
 from cogent3 import DNA, make_seq
+from cogent3.core import new_moltype
 from cogent3.core.location import (
     FeatureMap,
     IndelMap,
@@ -700,19 +701,26 @@ def test_indelmap_slice_zero():
 
 
 def test_indelmap_invalid_slice_range():
+    # If we mirror python slicing, an invalid slice should return an empty map
     imap = IndelMap(
         gap_pos=numpy.array([10], dtype=int),
         gap_lengths=numpy.array([2], dtype=int),
         parent_length=10,
     )
-    with pytest.raises(IndexError):
-        imap[-100]
 
-    with pytest.raises(IndexError):
-        imap[-100:]
+    expect = numpy.array([], dtype=int)
 
-    with pytest.raises(IndexError):
-        imap[:-99]
+    got = imap[-100]
+    assert (got.gap_pos == expect).all()
+    assert (got.cum_gap_lengths == expect).all()
+
+    got = imap[-100:]
+    assert (got.gap_pos == expect).all()
+    assert (got.cum_gap_lengths == expect).all()
+
+    got = imap[:-99]
+    assert (got.gap_pos == expect).all()
+    assert (got.cum_gap_lengths == expect).all()
 
 
 def test_indelmap_get_indices_errors():
@@ -951,17 +959,6 @@ def test_gapped_convert_aln2seq_invalid():
     with pytest.raises(IndexError):
         # absolute value of negative indices must be < seq length
         gaps.get_seq_index(-100)
-
-
-@pytest.mark.parametrize(
-    "invalid_slice",
-    (slice(None, None, -1), slice(None, None, 2)),
-)
-def test_gap_pos_invalid_slice(invalid_slice):
-    pos, lengths = numpy.array([[1, 3]], dtype=numpy.int32).T
-    gp = IndelMap(gap_pos=pos, gap_lengths=lengths, parent_length=20)
-    with pytest.raises(NotImplementedError):
-        _ = gp[invalid_slice]
 
 
 @pytest.mark.parametrize(
@@ -1386,3 +1383,94 @@ def test_indelmap_make_seq_feature_map():
     got = im.make_seq_feature_map(align_map)
     assert got.get_coordinates() == expect.get_coordinates()
     assert got.parent_length == expect.parent_length
+
+
+@pytest.mark.parametrize("start", range(10))
+@pytest.mark.parametrize("stop", range(11))
+@pytest.mark.parametrize("step", range(1, 5))
+@pytest.mark.parametrize(
+    "data",
+    [
+        "TCAGTCAGTC",
+        "AAAAA-----",
+        "-----AAAAA",
+        "--AA--AA--",
+        "AA--AA--AA",
+        "A-A-A-A-A-",
+        "---TTTT---",
+        "C--------C",
+        "----------",
+    ],
+)
+def test_indelmap_positive_step_variant_slices(start, stop, step, data):
+    imap, _ = new_moltype.DNA.make_seq(seq=data).parse_out_gaps()
+    got = imap[start:stop:step]
+    expect, _ = new_moltype.DNA.make_seq(seq=data[start:stop:step]).parse_out_gaps()
+    assert (got.gap_pos == expect.gap_pos).all()
+    assert (got.cum_gap_lengths == expect.cum_gap_lengths).all()
+
+
+@pytest.mark.parametrize("start", range(11))
+@pytest.mark.parametrize("stop", range(10))
+@pytest.mark.parametrize("step", [-1, -2, -3])
+@pytest.mark.parametrize(
+    "data",
+    [
+        "TCAGTCAGTC",
+        "AAAAA-----",
+        "AAAAAAA--A",
+        "-----AAAAA",
+        "--AA--AA--",
+        "AA--AA--AA",
+        "A-A-A-A-A-",
+        "---TTTT---",
+        "C--------C",
+        "----------",
+    ],
+)
+def test_indelmap_negative_step_variant_slices(start, stop, step, data):
+    imap, _ = new_moltype.DNA.make_seq(seq=data).parse_out_gaps()
+    got = imap[start:stop:step]
+    expect, _ = new_moltype.DNA.make_seq(seq=data[start:stop:step]).parse_out_gaps()
+    assert (got.gap_pos == expect.gap_pos).all()
+    assert (got.cum_gap_lengths == expect.cum_gap_lengths).all()
+
+
+@pytest.mark.parametrize("scale", [1 / 2, 1 / 1.1])
+def test_indelmap_scaled_invalid(scale):
+    im = IndelMap(
+        gap_pos=numpy.array([1, 3]), gap_lengths=numpy.array([2, 1]), parent_length=5
+    )
+    with pytest.raises(ValueError):
+        im.scaled(scale)
+
+
+@pytest.mark.parametrize("scale", [1, 1.0])
+def test_indelmap_scaled_one(scale):
+    im = IndelMap(
+        gap_pos=numpy.array([1, 3]), gap_lengths=numpy.array([2, 1]), parent_length=5
+    )
+    got = im.scaled(scale)
+    assert got is im
+
+
+@pytest.fixture
+def codon_and_aa_maps():
+    import cogent3
+
+    data = dict(s1="ATG --- --- GAT --- AAA", s2="ATG CAA TCG AAT GAA ATA")
+    dna = cogent3.make_aligned_seqs(
+        {n: s.replace(" ", "") for n, s in data.items()}, moltype="dna", new_type=True
+    )
+    aa = dna.get_translation()
+    dna_1 = dna.seqs["s1"].map
+    aa_1 = aa.seqs["s1"].map
+    return dna_1, aa_1
+
+
+def test_indelmap_scaled(codon_and_aa_maps):
+    cmap, amap = codon_and_aa_maps
+    cmap_to_amap = cmap.scaled(1 / 3)
+    amap_to_cmap = amap.scaled(3)
+    numpy.testing.assert_allclose(cmap_to_amap.array, amap.array)
+    numpy.testing.assert_allclose(amap_to_cmap.array, cmap.array)
