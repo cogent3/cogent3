@@ -740,6 +740,7 @@ def make_tree(
     tip_names=None,
     format=None,
     underscore_unmunge=False,
+    name_nodes=False,
 ):
     """Initialises a tree.
 
@@ -755,6 +756,8 @@ def make_tree(
     underscore_unmunge : bool
         replace underscores with spaces in all names read, i.e. "sp_name"
         becomes "sp name"
+    name_nodes: bool
+        whether to name unnamed nodes
 
     Notes
     -----
@@ -783,6 +786,10 @@ def make_tree(
         tree = parser(treestring, tree_builder)
     if not tree.name_loaded:
         tree.name = "root"
+
+    # ensure all nodes have names if name_nodes is True
+    if name_nodes:
+        tree.name_unnamed_nodes()
 
     return tree
 
