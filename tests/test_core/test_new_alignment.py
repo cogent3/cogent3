@@ -4828,8 +4828,20 @@ def test_alignment_indexing_seqs_repr(names_seqs):
     raw = dict(zip(names, seqs))
     obj = new_alignment.make_aligned_seqs(raw, moltype="dna")
     got = repr(obj.seqs)
-    class_name = obj.seqs[0].__class__.__name__
+    class_name = "Aligned"
     expect = f"({class_name}(name={names[0]!r}, seq={seqs[0]!r}, moltype={obj.moltype.name!r}), + {len(names)-1} seqs)"
+    assert got == expect
+
+
+def test_aligned_repr():
+    seqs = {
+        "s1": "G-TG---TAGTAGAAGTTCCAAATAATGAA",
+        "s2": "GTG------GTAGAAGTTCCAAATAATGAA",
+        "s3": "GC--AAGTAGTGGAAGTTGCAAAT---GAA",
+    }
+    aln = new_alignment.make_aligned_seqs(seqs, moltype="dna")
+    got = repr(aln.seqs["s1"])
+    expect = f"Aligned(name='s1', seq='G-TG---... {len(seqs['s1'])}', moltype='dna')"
     assert got == expect
 
 

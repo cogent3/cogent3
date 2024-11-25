@@ -2774,6 +2774,12 @@ class Aligned:
         # todo should indicate whether tidy or not
         return annot.remapped_to(alignment, inverted)
 
+    def __repr__(self) -> str:
+        seq = f"{str(self)[:7]}... {len(self):,}" if len(self) > 10 else str(self)
+        return (
+            f"Aligned(name={self.name!r}, seq={seq!r}, moltype={self.moltype.name!r})"
+        )
+
     def __str__(self) -> str:
         return str(self.gapped_seq)
 
@@ -2872,12 +2878,6 @@ class Aligned:
             biotype=biotype,
             name=name,
             allow_multiple=allow_multiple,
-        )
-
-    def __repr__(self) -> str:
-        seq = f"{str(self)[:7]}... {len(self):,}" if len(self) > 10 else str(self)
-        return (
-            f"Aligned(name={self.name!r}, seq={seq!r}, moltype={self.moltype.name!r})"
         )
 
 
