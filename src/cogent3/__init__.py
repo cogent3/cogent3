@@ -21,25 +21,22 @@ from cogent3.core.genetic_code import available_codes, get_code  # noqa
 
 # note that moltype has to be imported last, because it sets the moltype in
 # the objects created by the other modules.
-from cogent3.core.moltype import (
-    ASCII,  # noqa
-    DNA,  # noqa
-    PROTEIN,  # noqa
-    RNA,  # noqa
-    available_moltypes,  # noqa
-    get_moltype,  # noqa
-)
+from cogent3.core.moltype import ASCII  # noqa
+from cogent3.core.moltype import DNA  # noqa
+from cogent3.core.moltype import PROTEIN  # noqa
+from cogent3.core.moltype import RNA  # noqa
+from cogent3.core.moltype import available_moltypes  # noqa
+from cogent3.core.moltype import get_moltype  # noqa
 from cogent3.core.tree import PhyloNode, TreeBuilder, TreeError, TreeNode
-from cogent3.evolve.fast_distance import (  # noqa
-    available_distances,
-    get_distance_calculator,
-)
+from cogent3.evolve.fast_distance import available_distances  # noqa
+from cogent3.evolve.fast_distance import get_distance_calculator
 from cogent3.evolve.models import available_models, get_model  # noqa
 from cogent3.parse.cogent3_json import load_from_json
 from cogent3.parse.newick import parse_string as newick_parse_string
 from cogent3.parse.sequence import get_parser, is_genbank
 from cogent3.parse.table import load_delimited
 from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
+from cogent3.util import warning as c3warn
 from cogent3.util.io import get_format_suffixes, open_
 from cogent3.util.progress_display import display_wrap
 from cogent3.util.table import Table as _Table
@@ -735,6 +732,9 @@ def load_table(
     )
 
 
+@c3warn.deprecated_args(
+    version="2024.12", reason="argument has no effect", discontinued="name_nodes"
+)
 def make_tree(
     treestring=None,
     tip_names=None,
