@@ -7,8 +7,8 @@
 .. _nonstationary-model-aa-inference:
 
 
-Infering Amino Acid frequencies with a nonstationary model
-==========================================================
+Inferring Amino Acid frequencies with a nonstationary model
+===========================================================
 
 .. sectionauthor:: Peter Goodman, Andrew Wheeler
 

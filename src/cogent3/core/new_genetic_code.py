@@ -12,6 +12,7 @@ versa, lists of codons that they produce will be provided in DNA format.
 import collections
 import contextlib
 import dataclasses
+import functools
 import itertools
 import typing
 
@@ -193,14 +194,18 @@ class GeneticCode:
             return self._aa_to_codon.get(item, set())
 
         if len(item) != 3:
-            raise InvalidCodonError(f"Codon or aa {item} has wrong length")
+            raise InvalidCodonError(f"Codon or aa {item!r} has wrong length")
 
         key = item.upper()
         key = key.replace("U", "T")
         return self._codon_to_aa.get(key, "X")
 
     def translate(
-        self, dna: StrORBytesORArray, start: int = 0, rc: bool = False
+        self,
+        dna: StrORBytesORArray,
+        start: int = 0,
+        rc: bool = False,
+        incomplete_ok: bool = True,
     ) -> str:
         """Translates DNA to protein.
 
@@ -212,17 +217,22 @@ class GeneticCode:
             position to begin translation (used to implement frames)
         rc
             if True, returns the translation of the reverse complement sequence
+        incomplete_ok
+            if True, translates codons that are a mix of gaps and bases
+            as a gap. If False, raises an AlphabetError on those incomplete
+            cases.
 
         Notes
         -----
         Sequences are truncated to be a multiple of 3.
         Codons containing ambiguous nucleotides are translated as 'X',
-        codons containing a gap character are translated as '-'. Codons with
-        a mix of ambiguous nucleotides and gaps are translated as 'X'.
+        codons containing a gap character are translated as '-' unless
+        incomplete_ok is False. Codons with a mix of ambiguous nucleotides
+        are translated as 'X'.
 
         Returns
         -------
-        String containing amino acid sequence.
+        The amino acid sequence as a string.
         """
         # refactor: design
         # previous implementation converted mix of ambigs and nt to '?', potentially
@@ -234,7 +244,11 @@ class GeneticCode:
             dna = dna[:-diff]
 
         # convert to indices and then bytes
-        seq = self.codons.to_indices(dna)
+        if incomplete_ok:
+            seq = self.codons.to_indices(dna)
+        else:
+            codons = self.get_alphabet(include_stop=True, include_gap=True)
+            seq = codons.to_indices(dna)
 
         if rc:
             return self._translate_minus(seq.tobytes()).decode("utf8")[::-1]
@@ -256,9 +270,10 @@ class GeneticCode:
         """Returns True if codon is a stop codon, False otherwise."""
         return self[codon] == "*"
 
+    @functools.cache
     def get_alphabet(
         self, include_gap: bool = False, include_stop: bool = False
-    ) -> new_alphabet.CodonAlphabet:
+    ) -> new_alphabet.SenseCodonAlphabet:
         """returns a codon alphabet
 
         Parameters
@@ -276,8 +291,8 @@ class GeneticCode:
         if include_gap:
             codons += (gap,)
 
-        return new_alphabet.CodonAlphabet(
-            words=codons, monomers=self.moltype.alphabet, gap=gap
+        return new_alphabet.SenseCodonAlphabet(
+            words=codons, monomers=self.moltype.degen_gapped_alphabet, gap=gap
         )
 
     def to_regex(self, seq: typing.Union[str, "Sequence"]) -> str:
@@ -494,14 +509,13 @@ def get_code(code_id: StrORInt = 1) -> GeneticCode:
     # refactor: simplify
     # added for compatibility with previous API, should be removed when
     # support for old style is dropped
-    if code_id is None:
-        code_id = 1
+    code_id = code_id or 1
 
     with contextlib.suppress((ValueError, TypeError)):
         code_id = int(code_id)
 
     if code_id not in _CODES:
-        raise GeneticCodeError(f"Unknown genetic code {code_id}")
+        raise GeneticCodeError(f"Unknown genetic code {code_id!r}")
     return _CODES[code_id]
 
 

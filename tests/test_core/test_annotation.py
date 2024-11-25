@@ -14,7 +14,7 @@ from cogent3.core.location import FeatureMap, Span
 DNA = get_moltype("dna")
 
 
-def makeSampleSequence(name, with_gaps=False):
+def makeSampleSequence(name, with_gaps=False):  # ported
     raw_seq = "AACCCAAAATTTTTTGGGGGGGGGGCCCC"
     cds = (15, 25)
     utr = (12, 15)
@@ -27,7 +27,7 @@ def makeSampleSequence(name, with_gaps=False):
     return seq
 
 
-def makeSampleAlignment():
+def makeSampleAlignment():  # ported
     seq1 = makeSampleSequence("FAKE01")
     seq2 = makeSampleSequence("FAKE02", with_gaps=True)
     seqs = {seq1.name: seq1, seq2.name: seq2}
@@ -57,7 +57,7 @@ class TestAnnotations(unittest.TestCase):
         newseq = a + b
         assert newseq.annotation_db is None
 
-    def test_aln_annotations(self):
+    def test_aln_annotations(self):  # ported
         """test that annotations to alignment and its' sequences"""
         aln_expecteds = {
             "misc_feature": {"FAKE01": "TTTGGGGGGGGGG", "FAKE02": "TTTGGGGGGGGGG"},
@@ -100,7 +100,7 @@ class TestMapSpans(unittest.TestCase):
 
 
 @pytest.mark.parametrize("alignment", (False, True))
-def test_constructing_collections(alignment):
+def test_constructing_collections(alignment):  # ported
     seq1 = makeSampleSequence("FAKE01")
     seq2 = makeSampleSequence("FAKE02", with_gaps=True)
     seqs = {"FAKE01": seq1, "FAKE02": seq2}
@@ -115,7 +115,7 @@ def test_constructing_collections(alignment):
 
 @pytest.mark.parametrize("reversed", (False, True))
 @pytest.mark.parametrize("annot_type", ("LTR", "misc_feature", "CDS", "5'UTR"))
-def test_region_union_on_alignment(annot_type, reversed):
+def test_region_union_on_alignment(annot_type, reversed):  # ported
     # >FAKE01
     # AACCCAAAATTTTTTGGGGGGGGGGCCCC
     # >FAKE02
@@ -146,7 +146,7 @@ def ann_aln():
     return makeSampleAlignment()
 
 
-def test_feature_projection_ungapped(ann_aln):
+def test_feature_projection_ungapped(ann_aln):  # ported
     # projection onto ungapped sequence
     expecteds = {"FAKE01": "CCCAAAATTTTTT", "FAKE02": "CCC-----TTTTT"}
     aln_ltr = list(ann_aln.get_features(biotype="LTR"))[0]
@@ -160,7 +160,7 @@ def test_feature_projection_ungapped(ann_aln):
     assert seq_ltr.parent == ann_aln.get_seq(seq_name)
 
 
-def test_feature_projection_gapped(ann_aln):
+def test_feature_projection_gapped(ann_aln):  # ported
     # projection onto gapped sequence
     expecteds = {"FAKE01": "CCCAAAATTTTTT", "FAKE02": "CCC-----TTTTT"}
     aln_ltr = list(ann_aln.get_features(biotype="LTR"))[0]
@@ -185,7 +185,7 @@ def ann_seq():
 
 
 @pytest.mark.parametrize("annot_type", ("CDS", "5'UTR"))
-def test_slice_seq_with_full_annotations(ann_seq, annot_type):
+def test_slice_seq_with_full_annotations(ann_seq, annot_type):  # ported
     # this slice contains both features intact
     newseq = ann_seq[10:]
     orig = list(ann_seq.get_features(biotype=annot_type))[0]
@@ -196,7 +196,7 @@ def test_slice_seq_with_full_annotations(ann_seq, annot_type):
 
 
 @pytest.mark.parametrize("annot_type,num", (("CDS", 0), ("5'UTR", 1)))
-def test_slice_seq_with_partial_end(ann_seq, annot_type, num):
+def test_slice_seq_with_partial_end(ann_seq, annot_type, num):  # ported
     # this slice contains both features intact
     newseq = ann_seq[:14]
     # only UTR is present
@@ -211,7 +211,7 @@ def test_slice_seq_with_partial_end(ann_seq, annot_type, num):
         assert len(gapless) < len(feat)
 
 
-@pytest.mark.parametrize("annot_type,num", (("CDS", 1), ("5'UTR", 0)))
+@pytest.mark.parametrize("annot_type,num", (("CDS", 1), ("5'UTR", 0)))  # ported
 def test_slice_seq_with_partial_start(ann_seq, annot_type, num):
     # this slice contains both features intact
     newseq = ann_seq[18:]
@@ -227,7 +227,7 @@ def test_slice_seq_with_partial_start(ann_seq, annot_type, num):
         assert len(gapless) < len(feat)
 
 
-def test_seq_feature_to_dict():
+def test_seq_feature_to_dict():  # ported
     """create the attributes necessary to write into the user table"""
     seq = DNA.make_seq(seq="ATTGTACGCCCCTGA", name="test_seq")
     feature_data = {
@@ -249,7 +249,7 @@ def test_seq_feature_to_dict():
     assert str(f.get_slice()) == str(c.get_slice())
 
 
-def test_aln_feature_to_dict():
+def test_aln_feature_to_dict():  # ported
     seqs = [
         makeSampleSequence("s1", with_gaps=False),
         makeSampleSequence("s2", with_gaps=True),
@@ -274,14 +274,14 @@ def test_aln_feature_to_dict():
 
 @pytest.mark.parametrize("fix", ("ann_seq", "ann_aln"))
 @pytest.mark.parametrize("type_", (list, tuple))
-def test_aln_slice_feat_invalid(type_, fix, request):
+def test_aln_slice_feat_invalid(type_, fix, request):  # ported
     # incorrect parent
     obj = request.getfixturevalue(fix)
     with pytest.raises(TypeError):
         _ = obj[type_(obj.get_features(biotype="exon"))]
 
 
-def test_seq_slice_seqfeat_invalid(ann_aln):
+def test_seq_slice_seqfeat_invalid(ann_aln):  # ported
     # incorrect parent
     seq1 = ann_aln.get_seq("FAKE01")
     seq2 = ann_aln.get_seq("FAKE02")
@@ -289,7 +289,7 @@ def test_seq_slice_seqfeat_invalid(ann_aln):
         _ = seq2[list(seq1.get_features(biotype="CDS"))[0]]
 
 
-def test_gbdb_get_children_get_parent(DATA_DIR):
+def test_gbdb_get_children_get_parent(DATA_DIR):  # ported
     seq = load_seq(DATA_DIR / "annotated_seq.gb")
     seq = seq[2900:6000]
     (orig,) = list(seq.get_features(biotype="gene", name="CNA00110"))
@@ -299,7 +299,7 @@ def test_gbdb_get_children_get_parent(DATA_DIR):
 
 
 @pytest.mark.parametrize("rev", (False, True))
-def test_features_survives_seq_rename(rev):
+def test_features_survives_seq_rename(rev):  # ported
     segments = ["A" * 10, "C" * 10, "T" * 5, "C" * 5, "A" * 5]
 
     seq = DNA.make_seq(seq="".join(segments), name="original")
@@ -327,7 +327,7 @@ def test_features_survives_seq_rename(rev):
 
 @pytest.mark.parametrize("rev", (False, True))
 @pytest.mark.parametrize("make_cls", (make_unaligned_seqs, Alignment))
-def test_features_survives_aligned_seq_rename(rev, make_cls):
+def test_features_survives_aligned_seq_rename(rev, make_cls):  # ported
     segments = ["A" * 10, "C" * 10, "T" * 5, "C" * 5, "A" * 5]
 
     seqs = make_cls({"original": "".join(segments)}, moltype="dna")
@@ -348,7 +348,7 @@ def test_features_survives_aligned_seq_rename(rev, make_cls):
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
-def test_features_invalid_seqid(cls):
+def test_features_invalid_seqid(cls):  # ported
     segments = ["A" * 10, "C" * 10, "T" * 5, "C" * 5, "A" * 5]
 
     seqs = cls({"original": "".join(segments)}, moltype="dna")

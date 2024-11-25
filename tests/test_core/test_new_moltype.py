@@ -147,6 +147,20 @@ def test_is_degenerate_invalid():
 @pytest.mark.parametrize(
     "seq",
     (
+        "",
+        "QWERTYUIOPASDFGHJKLZXCVBNM",
+    ),
+)
+def test_text_moltype_is_not_degenerate(seq, data_type):
+    """Text moltype should not be degenerate"""
+    seq = make_typed(seq, data_type, new_moltype.ASCII)
+    assert not new_moltype.ASCII.is_degenerate(seq)
+
+
+@pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
+@pytest.mark.parametrize(
+    "seq",
+    (
         "-",
         "Y-",
         "GC--A",
@@ -606,3 +620,15 @@ def test_to_regex():
     # raises an exception if a string is already a regex, or invalid
     with pytest.raises(ValueError):
         new_moltype.DNA.to_regex("(?:GAT|GAC)(?:GGT|GGC|GGA|GGG)(?:GAT|GAC)(?:CAA|CAG)")
+
+
+@pytest.mark.parametrize("moltype", ("dna", "rna"))
+def test_is_nucleic(moltype):
+    mt = new_moltype.get_moltype(moltype)
+    assert mt.is_nucleic
+
+
+@pytest.mark.parametrize("moltype", ("protein", "text", "bytes", "protein_with_stop"))
+def test_not_is_nucleic(moltype):
+    mt = new_moltype.get_moltype(moltype)
+    assert not mt.is_nucleic

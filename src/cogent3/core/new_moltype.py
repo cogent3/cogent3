@@ -8,21 +8,16 @@ from string import ascii_letters
 import numpy
 
 from cogent3.core import new_alphabet, new_sequence
-from cogent3.data.molecular_weight import (
-    DnaMW,
-    ProteinMW,
-    RnaMW,
-    WeightCalculator,
-)
+from cogent3.data.molecular_weight import DnaMW, ProteinMW, RnaMW, WeightCalculator
 
 OptStr = typing.Optional[str]
 OptFloat = typing.Optional[float]
 OptCallable = typing.Optional[typing.Callable]
 SeqStrType = typing.Union[list[str], tuple[str, ...]]
 StrORBytes = typing.Union[str, bytes]
+StrORArray = typing.Union[str, numpy.ndarray]
 StrORBytesORArray = typing.Union[str, bytes, numpy.ndarray]
 SeqStrBytesType = typing.Union[list[StrORBytes], tuple[StrORBytes, ...]]
-StrORArray = typing.Union[str, numpy.ndarray]
 
 IUPAC_gap = "-"
 
@@ -143,6 +138,9 @@ RNA_EXTENDED_PAIRS = {
     frozenset({"A", "C"}): False,
     frozenset({"U"}): False,
 }
+
+
+class MolTypeError(TypeError): ...
 
 
 def make_pairs(
@@ -546,7 +544,12 @@ class MolType:
         return any(alpha == alphabet for alpha in self.iter_alphabets())
 
     def make_seq(
-        self, *, seq: str, name: OptStr = None, check_seq=True, **kwargs
+        self,
+        *,
+        seq: typing.Union[str, "SeqViewABC"],
+        name: OptStr = None,
+        check_seq: bool = True,
+        **kwargs,
     ) -> new_sequence.Sequence:
         """creates a Sequence object corresponding to the molecular type of
         this instance.
@@ -572,7 +575,8 @@ class MolType:
             assert self.is_valid(
                 seq
             ), f"{seq[:4]!r} not valid for moltype {self.name!r}"
-        return self._make_seq(moltype=self, seq=seq or "", name=name, **kwargs)
+        seq = "" if seq is None else seq
+        return self._make_seq(moltype=self, seq=seq, name=name, **kwargs)
 
     @functools.singledispatchmethod
     def complement(self, seq: StrORBytesORArray, validate: bool = True) -> str:
@@ -606,7 +610,7 @@ class MolType:
         return self._complement(seq)
 
     @complement.register
-    def _(self, seq: numpy.ndarray, validate: bool = True) -> str:
+    def _(self, seq: numpy.ndarray, validate: bool = True) -> numpy.ndarray[int]:
         if validate and not self.is_valid(seq):
             raise new_alphabet.AlphabetError(
                 f"{seq[:4]!r} not valid for moltype {self.name!r}"
@@ -617,6 +621,17 @@ class MolType:
                 self.degen_gapped_alphabet.array_to_bytes(seq), validate=False
             )
         )
+
+    @property
+    def is_nucleic(self) -> bool:
+        """is a nucleic acid moltype
+
+        Notes
+        -----
+        nucleic moltypes can be used for complementing and translating
+        into amino acids.
+        """
+        return callable(self._complement)
 
     def rc(self, seq: str, validate: bool = True) -> str:
         """reverse reverse complement of a sequence"""
@@ -639,7 +654,7 @@ class MolType:
                 f"{seq[:4]!r} not valid for moltype {self.name!r}"
             )
         return self.is_degenerate(
-            self.degen_gapped_alphabet.to_indices(seq), validate=False
+            self.most_degen_alphabet().to_indices(seq), validate=False
         )
 
     @is_degenerate.register
@@ -649,23 +664,22 @@ class MolType:
                 f"{seq[:4]!r} not valid for moltype {self.name!r}"
             )
         return self.is_degenerate(
-            self.degen_gapped_alphabet.to_indices(seq), validate=False
+            self.most_degen_alphabet().to_indices(seq), validate=False
         )
 
     @is_degenerate.register
     def _(self, seq: numpy.ndarray, validate: bool = True) -> bool:
-        # what index is the first degenerate character
+        if self.degen_alphabet is None:
+            return False
+
         if validate and not self.is_valid(seq):
             raise new_alphabet.AlphabetError(
                 f"{seq[:4]!r} not valid for moltype {self.name!r}"
             )
 
-        for index, val in enumerate(self.degen_gapped_alphabet):
-            if val in self.ambiguities:
-                break
-        else:
-            return False
-        return (seq >= index).any()
+        first_degen = self.most_degen_alphabet().gap_index + 1
+
+        return (seq >= first_degen).any()
 
     @functools.singledispatchmethod
     def is_gapped(self, seq, validate: bool = True) -> bool:
@@ -714,11 +728,12 @@ class MolType:
                 f"{seq[:4]!r} not valid for moltype {self.name!r}"
             )
 
+        if self.degen_alphabet is None:
+            return []
+
         alpha = self.most_degen_alphabet()
         seq = alpha.to_indices(seq)
-        for index, val in enumerate(self.degen_gapped_alphabet):
-            if include_gap and val in self.gap or val in self.ambiguities:
-                break
+        index = len(self) if include_gap else len(self) + 1
         degens = seq >= index
         return numpy.where(degens)[0].tolist()
 
