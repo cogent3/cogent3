@@ -987,7 +987,9 @@ class omit_bad_seqs:
                 ]
             else:
                 warnings.warn(
-                    "ambig_fraction cannot be applied to old style alignments, set new_type=True in make_aligned_seqs to create an Alignment which supports this feature",
+                    "ambig_fraction cannot be applied to old style alignments, set "
+                    "new_type=True in make_aligned_seqs to create an Alignment which "
+                    "supports this feature",
                     UserWarning,
                 )
         result = aln.take_seqs(keep)
