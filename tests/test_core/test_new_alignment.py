@@ -4999,6 +4999,14 @@ def test_alignment_copy(simple_aln):
     assert str(copied.seqs["A"]) == str(renamed.seqs["A"])
 
 
+def test_alignment_copy_rc(simple_aln):
+    rc = simple_aln.rc()
+    got = rc.copy()
+    assert got.to_dict() == rc.to_dict()
+    assert got._is_reversed == rc._is_reversed
+    assert got._slice_record is rc._slice_record
+
+
 def test_alignment_deepcopy(simple_aln):
     got = simple_aln.deepcopy()
     # all data structures should be different IDs
@@ -5019,6 +5027,14 @@ def test_alignment_deepcopy(simple_aln):
     assert set(copied.names) == set(renamed.names)
     # and can get a sequence with a new name
     assert str(copied.seqs["A"]) == str(renamed.seqs["A"])
+
+
+def test_alignment_deepcopy_rc(simple_aln):
+    rc = simple_aln.rc()
+    got = rc.deepcopy()
+    assert got.to_dict() == rc.to_dict()
+    assert got._is_reversed == rc._is_reversed
+    assert got._slice_record is not simple_aln._slice_record
 
 
 @pytest.mark.parametrize(

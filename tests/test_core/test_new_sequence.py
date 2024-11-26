@@ -2673,6 +2673,25 @@ def test_seqview_attrs_non_modulo(rev):
     assert sr.plus_stop == 0
 
 
+@pytest.mark.parametrize("start", (0, 1, 10, -1, -10))
+@pytest.mark.parametrize("stop", (0, 10, 8, 1, -1, -11))
+@pytest.mark.parametrize("step", (1, 2, -1, -2))
+def test_plus_attrs_slicing(start, stop, step):
+    """slicing with plus attributes then reversing should match native python slicing"""
+    data = "0123456789"
+    sr = new_sequence.SliceRecord(start=start, stop=stop, step=step, parent_len=10)
+
+    plus_start, plus_stop, plus_step = sr.plus_start, sr.plus_stop, sr.plus_step
+    got = (
+        data[plus_start:plus_stop:plus_step][::-1]
+        if step < 0
+        else data[plus_start:plus_stop:plus_step]
+    )
+    expect = data[start:stop:step]
+    print(start, stop, step, plus_start, plus_stop, plus_step)
+    assert got == expect
+
+
 @pytest.mark.parametrize("rev", (False, True))
 def test_seqview_attrs_zero_slice(rev):
     sr = new_sequence.SliceRecord(start=0, stop=0, step=1, parent_len=0)

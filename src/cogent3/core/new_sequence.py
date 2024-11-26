@@ -2804,11 +2804,12 @@ class SeqView(SeqViewABC):
                 slice_record=self.slice_record.copy(),
                 parent_len=self.parent_len,
             )
-        # the plus start and stop are applied, but the step is not applied
-        sr = SliceRecord(parent_len=len(self), step=self.slice_record.step)
+        # we slice parent with the plus attributes only, so, if reversed, we need to
+        # retain that information in the slice_record
+        sr = SliceRecord(parent_len=len(self), step=-1) if self.is_reversed else None
         return self.__class__(
             parent=self.parent[
-                self.slice_record.plus_start : self.slice_record.plus_stop
+                self.slice_record.plus_start : self.slice_record.plus_stop : self.slice_record.plus_step
             ],
             parent_len=len(self),
             seqid=self.seqid,
