@@ -6166,7 +6166,13 @@ class Alignment(SequenceCollection):
             alphabet=self.moltype.most_degen_alphabet(),
         )
         kwargs["seqs_data"] = new_seqs_data
-        kwargs["slice_record"] = None
+        # we have modified the underlying data with the plus attributes only,
+        # so, if reversed, we need to retain that information in the slice_record
+        kwargs["slice_record"] = (
+            new_sequence.SliceRecord(parent_len=new_seqs_data.align_len, step=-1)
+            if self._slice_record.is_reversed
+            else None
+        )
         return self.__class__(
             **kwargs,
         )
