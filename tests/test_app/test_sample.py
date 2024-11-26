@@ -602,6 +602,11 @@ def test_omit_bad_seqs_ambigs(bad_ambig_gap_data):
     got = dropbad(aln)
     assert set(got.to_dict().keys()) == {"s1", "s2", "s4", "s5", "s6"}
 
+    # drop sequences with any ambiguous data
+    dropbad = sample.omit_bad_seqs(ambig_fraction=0.01)
+    got = dropbad(aln)
+    assert set(got.to_dict().keys()) == {"s1", "s2", "s5", "s6"}
+
     # drop sequences with more than 50% ambiguous data and 50% gaps
     dropbad = sample.omit_bad_seqs(gap_fraction=0.5, ambig_fraction=0.5)
     got = dropbad(aln)
