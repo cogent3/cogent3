@@ -5219,3 +5219,10 @@ def test_deserialise_alignment():
     assert aln.names == ["new_seq1", "new_seq2"]
     assert str(aln.get_seq("new_seq1")) == "ATCG"
     assert str(aln.get_seq("new_seq2")) == "TAGC"
+
+
+@pytest.mark.parametrize("mk_cls", [load_aligned_seqs, load_unaligned_seqs])
+def test_load_with_pathlib(mk_cls, DATA_DIR):
+    path = f"~/{(DATA_DIR / "brca1.fasta").relative_to(pathlib.Path.home())}"
+    got = mk_cls(path, moltype="dna")
+    assert "Human" in got.names
