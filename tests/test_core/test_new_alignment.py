@@ -5004,7 +5004,7 @@ def test_alignment_copy_rc(simple_aln):
     got = rc.copy()
     assert got.to_dict() == rc.to_dict()
     assert got._is_reversed == rc._is_reversed
-    assert got._slice_record is simple_aln._slice_record
+    assert got._slice_record is rc._slice_record
 
 
 def test_alignment_deepcopy(simple_aln):
