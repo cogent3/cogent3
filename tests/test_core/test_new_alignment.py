@@ -5223,6 +5223,6 @@ def test_deserialise_alignment():
 
 @pytest.mark.parametrize("mk_cls", [load_aligned_seqs, load_unaligned_seqs])
 def test_load_with_pathlib(mk_cls, DATA_DIR):
-    path = f"~/{(DATA_DIR / "brca1.fasta").relative_to(pathlib.Path.home())}"
+    path = f"~/{(DATA_DIR / 'brca1.fasta').relative_to(pathlib.Path.home())}"
     got = mk_cls(path, moltype="dna")
     assert "Human" in got.names
