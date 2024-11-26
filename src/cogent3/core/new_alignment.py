@@ -43,7 +43,7 @@ from cogent3.format.phylip import alignment_to_phylip
 from cogent3.maths.stats.number import CategoryCounter
 from cogent3.util import progress_display as UI
 from cogent3.util import warning as c3warn
-from cogent3.util.deserialise import deserialise_object, register_deserialiser
+from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.io import atomic_write, get_format_suffixes
 from cogent3.util.misc import (
@@ -1591,6 +1591,17 @@ class SequenceCollection:
             exclude_unobserved=exclude_unobserved,
         )
         return per_seq.motif_totals()
+
+    def count_ambiguous_per_seq(self) -> DictArray:
+        """Counts of ambiguous characters per sequence."""
+
+        darr = DictArrayTemplate(self.names)
+        counts = numpy.array(
+            [self.seqs[name].count_ambiguous() for name in self.names],
+            dtype=numpy.uint32,
+        )
+
+        return darr.wrap(counts)
 
     def get_motif_probs(
         self,
@@ -4496,7 +4507,7 @@ class Alignment(SequenceCollection):
         unique: bool = False,
         include_ambiguity: bool = True,
         drawable: bool = False,
-    ):
+    ) -> DictArray:
         """return counts of gaps per sequence as a DictArray
 
         Parameters
@@ -4550,6 +4561,17 @@ class Alignment(SequenceCollection):
             result = draw.bound_to(result)
 
         return result
+
+    def count_ambiguous_per_seq(self) -> DictArray:
+        """Return the counts of ambiguous characters per sequence as a DictArray."""
+
+        darr = DictArrayTemplate(self.names)
+        gap_index = self.moltype.most_degen_alphabet().gap_index
+
+        ambigs = self.array_seqs > gap_index
+        result = ambigs.sum(axis=1)
+
+        return darr.wrap(result)
 
     def variable_positions(
         self,

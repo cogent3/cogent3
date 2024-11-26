@@ -1,4 +1,5 @@
 from unittest import TestCase
+from warnings import catch_warnings, filterwarnings
 
 import pytest
 
@@ -293,40 +294,6 @@ class TranslateTests(TestCase):
         for name, seq in got.to_dict().items():
             self.assertIn(seq, expect[name])
 
-    def test_omit_bad_seqs(self):
-        """correctly omit bad sequences from an alignment"""
-        data = {
-            "s1": "---ACC---TT-",
-            "s2": "---ACC---TT-",
-            "s3": "---ACC---TT-",
-            "s4": "--AACCG-GTT-",
-            "s5": "--AACCGGGTTT",
-            "s6": "AGAACCGGGTT-",
-            "s7": "------------",
-        }
-        aln = make_aligned_seqs(data=data, moltype=DNA)
-        # default just eliminates strict gap sequences
-        dropbad = sample.omit_bad_seqs()
-        got = dropbad(aln)
-        expect = data.copy()
-        del expect["s7"]
-        self.assertEqual(got.to_dict(), expect)
-        # providing a more stringent gap_frac
-        dropbad = sample.omit_bad_seqs(gap_fraction=0.5)
-        got = dropbad(aln)
-        expect = data.copy()
-        for n in ("s1", "s2", "s3", "s7"):
-            del expect[n]
-        self.assertEqual(got.to_dict(), expect)
-
-        # setting quantile drops additional sequences
-        dropbad = sample.omit_bad_seqs(quantile=6 / 7)
-        got = dropbad(aln)
-        expect = data.copy()
-        for n in ("s6", "s7"):
-            del expect[n]
-        self.assertEqual(got.to_dict(), expect)
-
     def test_omit_duplicated(self):
         """correctly drop duplicated sequences"""
         # strict omit_duplicated
@@ -565,3 +532,91 @@ def test_concat_empty(data):
     ccat = sample.concat()
     got = ccat(data)
     assert isinstance(got, NotCompleted)
+
+
+@pytest.fixture
+def bad_gap_data():
+    return {
+        "s1": "---ACC---TT-",
+        "s2": "---ACC---TT-",
+        "s3": "---ACC---TT-",
+        "s4": "--AACCG-GTT-",
+        "s5": "--AACCGGGTTT",
+        "s6": "AGAACCGGGTT-",
+        "s7": "------------",
+    }
+
+
+@pytest.mark.parametrize(
+    "gap_fraction, quantile, expected_keys",
+    [
+        (
+            1,
+            None,
+            {"s1", "s2", "s3", "s4", "s5", "s6"},
+        ),  # default just eliminates strict gap sequences
+        (0.5, None, {"s4", "s5", "s6"}),  # providing a more stringent gap_frac
+        (
+            1,
+            6 / 7,
+            {"s1", "s2", "s3", "s4", "s5"},
+        ),  # setting quantile drops additional sequences
+    ],
+)
+def test_omit_bad_seqs(bad_gap_data, gap_fraction, quantile, expected_keys):
+    """correctly omit bad sequences from an alignment"""
+
+    dropbad = sample.omit_bad_seqs(gap_fraction=gap_fraction, quantile=quantile)
+    aln = make_aligned_seqs(bad_gap_data, moltype=DNA)
+    got = dropbad(aln)
+    expected = {k: bad_gap_data[k] for k in expected_keys}
+    assert got.to_dict() == expected
+
+
+@pytest.fixture
+def bad_ambig_gap_data():
+    return {
+        "s1": "---ACC---TT-",
+        "s2": "---ACC---TT-",
+        "s3": "SSSACCSSSTTS",
+        "s4": "SSAACCGSGTTS",
+        "s5": "--AACCGGGTTT",
+        "s6": "AGAACCGGGTT-",
+        "s7": "SSSSSSSSSSSS",
+    }
+
+
+def test_omit_bad_seqs_ambigs(bad_ambig_gap_data):
+    """correctly omit sequences from a new style alignment via fraction of ambiguous data"""
+    from cogent3.core import new_alignment
+
+    aln = new_alignment.make_aligned_seqs(bad_ambig_gap_data, moltype="dna")
+
+    # drop sequences with all ambiguous data
+    dropbad = sample.omit_bad_seqs(ambig_fraction=1)
+    got = dropbad(aln)
+    assert set(got.to_dict().keys()) == {"s1", "s2", "s3", "s4", "s5", "s6"}
+
+    # drop sequences with more than 50% ambiguous data
+    dropbad = sample.omit_bad_seqs(ambig_fraction=0.5)
+    got = dropbad(aln)
+    assert set(got.to_dict().keys()) == {"s1", "s2", "s4", "s5", "s6"}
+
+    # drop sequences with more than 50% ambiguous data and 50% gaps
+    dropbad = sample.omit_bad_seqs(gap_fraction=0.5, ambig_fraction=0.5)
+    got = dropbad(aln)
+    assert set(got.to_dict().keys()) == {"s4", "s5", "s6"}
+
+
+def test_omit_bad_seqs_ambigs_old_aln(bad_ambig_gap_data):
+    # ambig_fraction should be ignored if using old style alignment
+
+    aln = make_aligned_seqs(bad_ambig_gap_data, moltype=DNA)
+    dropbad = sample.omit_bad_seqs(gap_fraction=0.5, ambig_fraction=0.5)
+
+    with catch_warnings():
+        filterwarnings("ignore", category=UserWarning)
+        got = dropbad(aln)
+
+    # only sequences with more than 50% gaps should be dropped
+    assert set(got.to_dict().keys()) == {"s3", "s4", "s5", "s6", "s7"}

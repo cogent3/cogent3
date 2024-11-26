@@ -1,3 +1,4 @@
+import warnings
 from collections import defaultdict
 from typing import List, Optional, Union
 
@@ -16,6 +17,7 @@ from .typing import AlignedSeqsType, SeqsCollectionType, SerialisableType
 # set.
 
 MolTypes = Union[str, MolType]
+OptInt = Optional[int]
 
 
 def intersection(groups):
@@ -892,6 +894,7 @@ class omit_bad_seqs:
         self,
         quantile: Optional[float] = None,
         gap_fraction: int = 1,
+        ambig_fraction: OptInt = None,  # refactor: set default to 1 when support for old style aln is dropped
         moltype: MolTypes = "dna",
     ):
         """
@@ -905,6 +908,10 @@ class omit_bad_seqs:
         gap_fraction
             sequences whose proportion of gaps is >= this value are excluded, the
             default excludes sequences that are just gaps.
+        ambig_fraction
+            sequences whose proportion of ambiguous characters is >= this value
+            are excluded. Only supported for new style alignments. By default,
+            not applied.
         moltype
             molecular type, can be string or instance
 
@@ -954,8 +961,10 @@ class omit_bad_seqs:
         assert (
             moltype.label.lower() in "dna rna protein protein_with_stop"
         ), "moltype must be one of DNA, RNA or PROTEIN"
+        # refactor: design, this should raise a MolTypeError
         self._quantile = quantile
         self._gap_fraction = gap_fraction
+        self._ambig_fraction = ambig_fraction
         self._moltype = moltype
 
     T = Union[SerialisableType, AlignedSeqsType]
@@ -967,6 +976,20 @@ class omit_bad_seqs:
         gaps_per_seq = aln.count_gaps_per_seq()
         length = len(aln)
         keep = [n for n, c in gaps_per_seq.items() if c / length < self._gap_fraction]
+
+        from cogent3.core import new_alignment
+
+        if self._ambig_fraction is not None:
+            if isinstance(aln, new_alignment.Alignment):
+                ambigs_per_seq = aln.count_ambiguous_per_seq()
+                keep = [
+                    n for n in keep if ambigs_per_seq[n] / length < self._ambig_fraction
+                ]
+            else:
+                warnings.warn(
+                    "ambig_fraction cannot be applied to old style alignments, set new_type=True in make_aligned_seqs to create an Alignment which supports this feature",
+                    UserWarning,
+                )
         result = aln.take_seqs(keep)
         if self._quantile is not None:
             result = result.omit_bad_seqs(quantile=self._quantile)

@@ -363,6 +363,12 @@ class Sequence:
 
         return counts
 
+    def count_ambiguous(self) -> int:
+        """Returns the number of ambiguous characters in the sequence."""
+        data = numpy.array(self)
+        gap_index = self.moltype.most_degen_alphabet().gap_index
+        return numpy.sum(data > gap_index)
+
     def __lt__(self, other):
         """compares based on the sequence string."""
         return str(self) < str(other)
