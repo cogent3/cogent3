@@ -30,9 +30,9 @@ from cogent3.core.moltype import (
     get_moltype,  # noqa
 )
 from cogent3.core.tree import PhyloNode, TreeBuilder, TreeError, TreeNode
-from cogent3.evolve.fast_distance import (  # noqa
-    available_distances,
-    get_distance_calculator,
+from cogent3.evolve.fast_distance import (
+    available_distances,  # noqa
+    get_distance_calculator,  # noqa
 )
 from cogent3.evolve.models import available_models, get_model  # noqa
 from cogent3.parse.cogent3_json import load_from_json
@@ -40,6 +40,7 @@ from cogent3.parse.newick import parse_string as newick_parse_string
 from cogent3.parse.sequence import get_parser, is_genbank
 from cogent3.parse.table import load_delimited
 from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
+from cogent3.util import warning as c3warn
 from cogent3.util.io import get_format_suffixes, open_
 from cogent3.util.progress_display import display_wrap
 from cogent3.util.table import Table as _Table
@@ -108,7 +109,10 @@ def make_seq(
     else:
         moltype = get_moltype(moltype)
     seq = moltype.make_seq(
-        seq=seq, name=name, annotation_offset=annotation_offset, **kw
+        seq=seq,
+        name=name,
+        annotation_offset=annotation_offset,
+        **kw,
     )
     if annotation_db:
         seq.annotation_db = annotation_db
@@ -116,7 +120,13 @@ def make_seq(
 
 
 def _make_seq_container(
-    klass, data, moltype=None, label_to_name=None, info=None, source=None, **kw
+    klass,
+    data,
+    moltype=None,
+    label_to_name=None,
+    info=None,
+    source=None,
+    **kw,
 ):
     """utility function for creating the different sequence collection/alignment instances"""
     if moltype is not None:
@@ -131,12 +141,22 @@ def _make_seq_container(
     info["source"] = str(source)
 
     return klass(
-        data=data, moltype=moltype, label_to_name=label_to_name, info=info, **kw
+        data=data,
+        moltype=moltype,
+        label_to_name=label_to_name,
+        info=info,
+        **kw,
     )
 
 
 def make_unaligned_seqs(
-    data, moltype=None, label_to_name=None, info=None, source=None, new_type=False, **kw
+    data,
+    moltype=None,
+    label_to_name=None,
+    info=None,
+    source=None,
+    new_type=False,
+    **kw,
 ):
     """Initialize an unaligned collection of sequences.
 
@@ -300,7 +320,9 @@ T = Optional[_anno_db.SupportsFeatures]
 
 
 def _load_genbank_seq(
-    filename: os.PathLike, parser_kw: dict, just_seq: bool = False
+    filename: os.PathLike,
+    parser_kw: dict,
+    just_seq: bool = False,
 ) -> tuple[str, str, T]:
     """utility function for loading sequences"""
     from cogent3.parse.genbank import iter_genbank_records
@@ -314,7 +336,8 @@ def _load_genbank_seq(
         None
         if just_seq
         else _anno_db.GenbankAnnotationDb(
-            data=features.pop("features", None), seqid=name
+            data=features.pop("features", None),
+            seqid=name,
         )
     )
     return name, seq, db
@@ -379,7 +402,9 @@ def load_seq(
 
     if is_genbank(format or file_format):
         name, seq, db = _load_genbank_seq(
-            filename, parser_kw or {}, just_seq=annotation_path is not None
+            filename,
+            parser_kw or {},
+            just_seq=annotation_path is not None,
         )
     else:
         db = None
@@ -683,7 +708,7 @@ def load_table(
     """
     if not any(isinstance(filename, t) for t in (str, pathlib.PurePath)):
         raise TypeError(
-            "filename must be string or Path, perhaps you want make_table()"
+            "filename must be string or Path, perhaps you want make_table()",
         )
 
     sep = sep or kwargs.pop("delimiter", None)
@@ -711,7 +736,10 @@ def load_table(
             sep = sep or "\t"
 
         header, rows, loaded_title, legend = load_delimited(
-            filename, sep=sep, limit=limit, **kwargs
+            filename,
+            sep=sep,
+            limit=limit,
+            **kwargs,
         )
         if skip_inconsistent:
             num_fields = len(header)
@@ -743,12 +771,16 @@ def load_table(
     )
 
 
+@c3warn.deprecated_args(
+    version="2024.12",
+    reason="argument has no effect",
+    discontinued="name_nodes",
+)
 def make_tree(
     treestring=None,
     tip_names=None,
     format=None,
     underscore_unmunge=False,
-    name_nodes=False,
 ):
     """Initialises a tree.
 
@@ -764,8 +796,6 @@ def make_tree(
     underscore_unmunge : bool
         replace underscores with spaces in all names read, i.e. "sp_name"
         becomes "sp name"
-    name_nodes: bool
-        whether to name unnamed nodes
 
     Notes
     -----
@@ -795,15 +825,13 @@ def make_tree(
     if not tree.name_loaded:
         tree.name = "root"
 
-    # ensure all nodes have names if name_nodes is True
-    if name_nodes:
-        tree.name_unnamed_nodes()
-
     return tree
 
 
 def load_tree(
-    filename: Union[str, pathlib.Path], format=None, underscore_unmunge=False
+    filename: Union[str, pathlib.Path],
+    format=None,
+    underscore_unmunge=False,
 ):
     """Constructor for tree.
 
