@@ -5219,3 +5219,25 @@ def test_deserialise_alignment():
     assert aln.names == ["new_seq1", "new_seq2"]
     assert str(aln.get_seq("new_seq1")) == "ATCG"
     assert str(aln.get_seq("new_seq2")) == "TAGC"
+
+
+@pytest.fixture
+def home_seqs(DATA_DIR) -> str:
+    """makes a temporary directory with file"""
+    import tempfile
+
+    HOME = pathlib.Path("~").expanduser()
+    fn = "brca1.fasta"
+    contents = (DATA_DIR / fn).read_text()
+    with tempfile.TemporaryDirectory(dir=HOME) as dn:
+        dn = pathlib.Path(dn)
+        outpath = HOME / dn.name / fn
+        outpath.expanduser().write_text(contents)
+        yield f"~/{dn.name}/{fn}"
+
+
+@pytest.mark.parametrize("mk_cls", [load_aligned_seqs, load_unaligned_seqs])
+def test_load_with_pathlib(mk_cls, home_seqs):
+    path = home_seqs
+    got = mk_cls(path, moltype="dna")
+    assert "Human" in got.names

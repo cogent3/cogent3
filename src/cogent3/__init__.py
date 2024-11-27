@@ -286,6 +286,7 @@ def _load_files_to_unaligned_seqs(
 
 def _load_seqs(file_format, filename, fmt, parser_kw):
     """utility function for loading sequences"""
+    filename = pathlib.Path(filename).expanduser()
     fmt = fmt or file_format
     if not fmt:
         msg = "could not determined file format, set using the format argument"
@@ -487,6 +488,7 @@ def load_aligned_seqs(
     label_to_name=None,
     parser_kw=None,
     info=None,
+    new_type: bool = False,
     **kw,
 ):
     """
@@ -506,6 +508,11 @@ def load_aligned_seqs(
         function for converting original name into another name.
     parser_kw : dict
         optional arguments for the parser
+    new_type
+        if True, the returned Alignment will be of the new type,
+        (cogent3.core.new_alignment.Alignment). The default will be
+        changed to True in 2024.12. Support for the old style will be removed
+        as of 2025.6.
     kw
         passed to make_aligned_seqs
 
@@ -525,6 +532,7 @@ def load_aligned_seqs(
         moltype=moltype,
         source=filename,
         info=info,
+        new_type=new_type,
         **kw,
     )
 
