@@ -1,5 +1,4 @@
 from unittest import TestCase
-from warnings import catch_warnings, filterwarnings
 
 import pytest
 
@@ -619,9 +618,5 @@ def test_omit_bad_seqs_ambigs_old_aln(bad_ambig_gap_data):
     aln = make_aligned_seqs(bad_ambig_gap_data, moltype=DNA)
     dropbad = sample.omit_bad_seqs(gap_fraction=0.5, ambig_fraction=0.5)
 
-    with catch_warnings():
-        filterwarnings("ignore", category=UserWarning)
-        got = dropbad(aln)
-
-    # only sequences with more than 50% gaps should be dropped
-    assert set(got.to_dict().keys()) == {"s3", "s4", "s5", "s6", "s7"}
+    got = dropbad(aln)
+    assert isinstance(got, NotCompleted)

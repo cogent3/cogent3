@@ -1,4 +1,3 @@
-import warnings
 from collections import defaultdict
 from typing import List, Optional, Union
 
@@ -986,12 +985,14 @@ class omit_bad_seqs:
                     n for n in keep if ambigs_per_seq[n] / length < self._ambig_fraction
                 ]
             else:
-                warnings.warn(
+                msg = (
                     "ambig_fraction cannot be applied to old style alignments, set "
                     "new_type=True in make_aligned_seqs to create an Alignment which "
-                    "supports this feature",
-                    UserWarning,
+                    "supports this feature"
                 )
+
+                return NotCompleted("FAIL", self, msg, aln.info.source)
+
         result = aln.take_seqs(keep)
         if self._quantile is not None:
             result = result.omit_bad_seqs(quantile=self._quantile)

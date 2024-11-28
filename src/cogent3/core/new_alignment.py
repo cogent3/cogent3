@@ -4565,13 +4565,11 @@ class Alignment(SequenceCollection):
     def count_ambiguous_per_seq(self) -> DictArray:
         """Return the counts of ambiguous characters per sequence as a DictArray."""
 
-        darr = DictArrayTemplate(self.names)
         gap_index = self.moltype.most_degen_alphabet().gap_index
+        ambigs_pos = self.array_seqs > gap_index
+        ambigs = ambigs_pos.sum(axis=1)
 
-        ambigs = self.array_seqs > gap_index
-        result = ambigs.sum(axis=1)
-
-        return darr.wrap(result)
+        return DictArray.from_array_names(ambigs, self.names)
 
     def variable_positions(
         self,

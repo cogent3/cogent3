@@ -828,7 +828,7 @@ def cogent3_score(aln: AlignedSeqsType) -> float:
     if aln.num_seqs == 1 or len(aln) == 0:
         msg = "zero length" if len(aln) == 0 else "single sequence"
         return NotCompleted(
-            "FAL",
+            "FAIL",
             "cogent3_score",
             f"cannot compute alignment quality because {msg}",
             source=aln.info,
@@ -838,7 +838,7 @@ def cogent3_score(aln: AlignedSeqsType) -> float:
     return align_params.get(
         "lnL",
         NotCompleted(
-            "FAL", "cogent3_score", "no alignment quality score", source=aln.info
+            "FAIL", "cogent3_score", "no alignment quality score", source=aln.info
         ),
     )
 
