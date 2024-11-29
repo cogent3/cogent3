@@ -831,6 +831,20 @@ def test_counts():
     assert dict(got) == expect
 
 
+@pytest.mark.parametrize(
+    "data, expect",
+    [
+        ("CCTTNN", 2),
+        ("???MMM", 6),
+        ("TGCAGG", 0),
+        ("", 0),
+    ],
+)
+def test_count_ambiguous(data, expect):
+    seq = new_moltype.DNA.make_seq(seq=data)
+    assert seq.count_ambiguous() == expect
+
+
 def test_strand_symmetry():
     """correctly compute test of strand symmetry"""
     from cogent3 import get_moltype

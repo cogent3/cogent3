@@ -1839,6 +1839,22 @@ def test_sequence_collection_counts():
     assert all(got[k] == v for k, v in expect.items())
 
 
+@pytest.mark.parametrize(
+    "mk_cls", [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs]
+)
+def test_sequence_collection_count_ambiguous_per_seq(mk_cls):
+    data = {
+        "a": "AGGGT",
+        "b": "AGGN?",
+        "c": "?????",
+        "d": "-----",
+    }
+    coll = mk_cls(data, moltype="dna")
+    got = coll.count_ambiguous_per_seq()
+    expect = {"a": 0, "b": 2, "c": 5, "d": 0}
+    assert got == expect
+
+
 def test_sequence_collection_make_feature(seqs):
     data = {"seqid": "seq1", "biotype": "xyz", "name": "abc", "spans": [(1, 2)]}
     feat = seqs.make_feature(feature=data)
