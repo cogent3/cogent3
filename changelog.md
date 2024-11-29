@@ -1,4 +1,34 @@
 
+<a id='changelog-2024.11.29a1'></a>
+# Changes in release "2024.11.29a1"
+
+## Contributors
+
+- Many thousand lines of code --- @KatherineCaley 🚀
+- @YapengLang contributed bug reports and bug fixes 👏
+
+## ENH
+
+- `cogent3.open_()` now automatically handles .xz and .lzma compressed files.
+- sequence / alignment loading functions recognise .phy as phylip format.
+- Formatting of fasta records is now much quicker.
+- The grand rewrite of alignment classes is ready for use! This is a major effort,
+  unifying the capabilities of the `Alignment` and `AlignmentArray` classes into a
+  single class. The logic is cleaner, the performance is better, and the API is
+  largely (but not entirely) backwards compatible. The new approach gives us the
+  foundation for major performance improvements in the future. As with the
+  moltype, alphabet, genetic code and SequenceCollection, you can select the new
+  class via `make_aligned_seqs()` or `load_aligned_seqs()` by specifying `new_type=True`.
+  Please post any bugs or issues to the issue tracker.
+- Refactored a subset of the pairwise distance calculation demonstrating the performance
+  benefits of the new alignment classes. These are accessible via the Alignment.distance_matrix()
+  method, and also include support for parallel execution. They are wicked fast 🚀🚀🚀!
+
+## Discontinued
+
+- We no longer support python 3.9.
+
+
 <a id='changelog-2024.7.19a9'></a>
 # Changes in release "2024.7.19a9"
 
