@@ -242,7 +242,7 @@ def tn93_dist_matrix(
 
 
 @numba.jit(parallel=True)
-def _coun_states(array_seqs, num_states, parallel=True):
+def _count_states(array_seqs, num_states, parallel=True):
     # temp function to remove when the new Alignment.get_motif_probs()
     # is refactored to use numba
     num_threads = numba.get_num_threads()
@@ -310,7 +310,7 @@ def tn93(
 
     alpha = aln.moltype.alphabet
 
-    counts = _coun_states(aln.array_seqs, len(alpha), parallel=parallel)
+    counts = _count_states(aln.array_seqs, len(alpha), parallel=parallel)
     freqs = (counts / counts.sum()).astype(numpy.float32)
 
     pur_indices = alpha.to_indices("AG")

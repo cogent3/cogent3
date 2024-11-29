@@ -1179,3 +1179,11 @@ def test_new_paralinear_for_determinant_lte_zero():
 def test_unknown_dist():
     with pytest.raises(ValueError):
         pdist_numba.get_distance_calculator("blah")
+
+
+@pytest.mark.parametrize("calc", ["jc69", "tn93", "paralinear", "hamming", "pdist"])
+def test_compare_parallel_serial(DATA_DIR, calc):
+    aln = load_aligned_seqs(DATA_DIR / "brca1.fasta", moltype="dna", new_type=True)
+    serial = aln.distance_matrix(calc=calc, parallel=False)
+    parallel = aln.distance_matrix(calc=calc, parallel=True)
+    assert_allclose(serial.array, parallel.array)
