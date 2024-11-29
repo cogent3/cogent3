@@ -1,4 +1,5 @@
 import itertools
+import typing
 
 import numba
 import numba.types as numba_types
@@ -6,6 +7,10 @@ import numpy
 
 from cogent3.core import new_moltype
 from cogent3.evolve.fast_distance import DistanceMatrix
+
+if typing.TYPE_CHECKING:
+    # Forward reference to avoid circular import
+    from cogent3.core.new_alignment import Alignment
 
 # turn off code coverage as jit-ted code not accessible to coverage
 
