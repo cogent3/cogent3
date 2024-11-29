@@ -5,12 +5,11 @@ execution on compute systems with 1000s of CPUs."""
 import os
 import pathlib
 import pickle
-import sys
 import warnings
 from typing import Callable, Optional, Union
 
 from cogent3._version import __version__
-from cogent3.app import app_help, available_apps, get_app, open_data_store
+from cogent3.app import app_help, available_apps, get_app, open_data_store  # noqa
 from cogent3.core import annotation_db as _anno_db
 from cogent3.core.alignment import (
     Alignment,
@@ -18,27 +17,31 @@ from cogent3.core.alignment import (
     Sequence,
     SequenceCollection,
 )
-from cogent3.core.genetic_code import available_codes, get_code
+from cogent3.core.genetic_code import available_codes, get_code  # noqa
 
 # note that moltype has to be imported last, because it sets the moltype in
 # the objects created by the other modules.
 from cogent3.core.moltype import (
-    ASCII,
-    DNA,
-    PROTEIN,
-    RNA,
-    available_moltypes,
-    get_moltype,
+    ASCII,  # noqa
+    DNA,  # noqa
+    PROTEIN,  # noqa
+    RNA,  # noqa
+    available_moltypes,  # noqa
+    get_moltype,  # noqa
 )
 from cogent3.core.tree import PhyloNode, TreeBuilder, TreeError, TreeNode
-from cogent3.evolve.fast_distance import available_distances, get_distance_calculator
-from cogent3.evolve.models import available_models, get_model
+from cogent3.evolve.fast_distance import (
+    available_distances,  # noqa
+    get_distance_calculator,  # noqa
+)
+from cogent3.evolve.models import available_models, get_model  # noqa
 from cogent3.parse.cogent3_json import load_from_json
 from cogent3.parse.newick import parse_string as newick_parse_string
 from cogent3.parse.sequence import get_parser, is_genbank
 from cogent3.parse.table import load_delimited
 from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
-from cogent3.util.io import get_format_suffixes, open_
+from cogent3.util import warning as c3warn
+from cogent3.util.io import get_format_suffixes, is_url, open_
 from cogent3.util.progress_display import display_wrap
 from cogent3.util.table import Table as _Table
 from cogent3.util.table import cast_str_to_array
@@ -47,14 +50,6 @@ __copyright__ = "Copyright 2007-2023, The Cogent Project"
 __credits__ = "https://github.com/cogent3/cogent3/graphs/contributors"
 __license__ = "BSD-3"
 
-
-_min_version = (3, 9)
-if (sys.version_info.major, sys.version_info.minor) < _min_version:
-    PY_VERSION = ".".join([str(n) for n in sys.version_info])
-    _min_version = ".".join(str(e) for e in _min_version)
-    raise RuntimeError(
-        f"Python-{_min_version} or greater is required, Python-{PY_VERSION} used."
-    )
 
 version = __version__
 version_info = tuple([int(v) for v in version.split(".") if v.isdigit()])
@@ -114,7 +109,10 @@ def make_seq(
     else:
         moltype = get_moltype(moltype)
     seq = moltype.make_seq(
-        seq=seq, name=name, annotation_offset=annotation_offset, **kw
+        seq=seq,
+        name=name,
+        annotation_offset=annotation_offset,
+        **kw,
     )
     if annotation_db:
         seq.annotation_db = annotation_db
@@ -122,7 +120,13 @@ def make_seq(
 
 
 def _make_seq_container(
-    klass, data, moltype=None, label_to_name=None, info=None, source=None, **kw
+    klass,
+    data,
+    moltype=None,
+    label_to_name=None,
+    info=None,
+    source=None,
+    **kw,
 ):
     """utility function for creating the different sequence collection/alignment instances"""
     if moltype is not None:
@@ -137,12 +141,22 @@ def _make_seq_container(
     info["source"] = str(source)
 
     return klass(
-        data=data, moltype=moltype, label_to_name=label_to_name, info=info, **kw
+        data=data,
+        moltype=moltype,
+        label_to_name=label_to_name,
+        info=info,
+        **kw,
     )
 
 
 def make_unaligned_seqs(
-    data, moltype=None, label_to_name=None, info=None, source=None, new_type=False, **kw
+    data,
+    moltype=None,
+    label_to_name=None,
+    info=None,
+    source=None,
+    new_type=False,
+    **kw,
 ):
     """Initialize an unaligned collection of sequences.
 
@@ -200,6 +214,7 @@ def make_aligned_seqs(
     label_to_name=None,
     info=None,
     source=None,
+    new_type=False,
     **kw,
 ):
     """Initialize an aligned collection of sequences.
@@ -219,9 +234,29 @@ def make_aligned_seqs(
     source
         origins of this data, defaults to 'unknown'. Converted to a string
         and added to info["source"].
+    new_type
+        if True, the returned Alignment will be of the new type,
+        (cogent3.core.new_sequence.Alignment). The default will be
+        changed to True in 2025.6. Support for the old style will be removed
+        as of 2025.12.
     **kw
         other keyword arguments passed to alignment class
     """
+    if new_type or "COGENT3_NEW_TYPE" in os.environ:
+        if moltype is None:
+            raise ValueError("Argument 'moltype' is required when 'new_type=True'")
+
+        from cogent3.core import new_alignment
+
+        return new_alignment.make_aligned_seqs(
+            data,
+            moltype=moltype,
+            label_to_name=label_to_name,
+            info=info,
+            source=source,
+            **kw,
+        )
+
     klass = ArrayAlignment if array_align else Alignment
     return _make_seq_container(
         klass,
@@ -271,6 +306,8 @@ def _load_files_to_unaligned_seqs(
 
 def _load_seqs(file_format, filename, fmt, parser_kw):
     """utility function for loading sequences"""
+    if not is_url(filename):
+        filename = pathlib.Path(filename).expanduser()
     fmt = fmt or file_format
     if not fmt:
         msg = "could not determined file format, set using the format argument"
@@ -284,7 +321,9 @@ T = Optional[_anno_db.SupportsFeatures]
 
 
 def _load_genbank_seq(
-    filename: os.PathLike, parser_kw: dict, just_seq: bool = False
+    filename: os.PathLike,
+    parser_kw: dict,
+    just_seq: bool = False,
 ) -> tuple[str, str, T]:
     """utility function for loading sequences"""
     from cogent3.parse.genbank import iter_genbank_records
@@ -298,7 +337,8 @@ def _load_genbank_seq(
         None
         if just_seq
         else _anno_db.GenbankAnnotationDb(
-            data=features.pop("features", None), seqid=name
+            data=features.pop("features", None),
+            seqid=name,
         )
     )
     return name, seq, db
@@ -363,7 +403,9 @@ def load_seq(
 
     if is_genbank(format or file_format):
         name, seq, db = _load_genbank_seq(
-            filename, parser_kw or {}, just_seq=annotation_path is not None
+            filename,
+            parser_kw or {},
+            just_seq=annotation_path is not None,
         )
     else:
         db = None
@@ -472,6 +514,7 @@ def load_aligned_seqs(
     label_to_name=None,
     parser_kw=None,
     info=None,
+    new_type: bool = False,
     **kw,
 ):
     """
@@ -491,6 +534,11 @@ def load_aligned_seqs(
         function for converting original name into another name.
     parser_kw : dict
         optional arguments for the parser
+    new_type
+        if True, the returned Alignment will be of the new type,
+        (cogent3.core.new_alignment.Alignment). The default will be
+        changed to True in 2024.12. Support for the old style will be removed
+        as of 2025.6.
     kw
         passed to make_aligned_seqs
 
@@ -510,6 +558,7 @@ def load_aligned_seqs(
         moltype=moltype,
         source=filename,
         info=info,
+        new_type=new_type,
         **kw,
     )
 
@@ -660,7 +709,7 @@ def load_table(
     """
     if not any(isinstance(filename, t) for t in (str, pathlib.PurePath)):
         raise TypeError(
-            "filename must be string or Path, perhaps you want make_table()"
+            "filename must be string or Path, perhaps you want make_table()",
         )
 
     sep = sep or kwargs.pop("delimiter", None)
@@ -688,7 +737,10 @@ def load_table(
             sep = sep or "\t"
 
         header, rows, loaded_title, legend = load_delimited(
-            filename, sep=sep, limit=limit, **kwargs
+            filename,
+            sep=sep,
+            limit=limit,
+            **kwargs,
         )
         if skip_inconsistent:
             num_fields = len(header)
@@ -720,12 +772,16 @@ def load_table(
     )
 
 
+@c3warn.deprecated_args(
+    version="2024.12",
+    reason="argument has no effect",
+    discontinued="name_nodes",
+)
 def make_tree(
     treestring=None,
     tip_names=None,
     format=None,
     underscore_unmunge=False,
-    name_nodes=False,
 ):
     """Initialises a tree.
 
@@ -741,8 +797,6 @@ def make_tree(
     underscore_unmunge : bool
         replace underscores with spaces in all names read, i.e. "sp_name"
         becomes "sp name"
-    name_nodes: bool
-        whether to name unnamed nodes
 
     Notes
     -----
@@ -772,15 +826,13 @@ def make_tree(
     if not tree.name_loaded:
         tree.name = "root"
 
-    # ensure all nodes have names if name_nodes is True
-    if name_nodes:
-        tree.name_unnamed_nodes()
-
     return tree
 
 
 def load_tree(
-    filename: Union[str, pathlib.Path], format=None, underscore_unmunge=False
+    filename: Union[str, pathlib.Path],
+    format=None,
+    underscore_unmunge=False,
 ):
     """Constructor for tree.
 

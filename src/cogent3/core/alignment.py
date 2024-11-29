@@ -111,7 +111,7 @@ eps = 1e-6
 # factory functions for identifying whether character set conditions are satsified
 
 
-def AllowedCharacters(chars, is_array=False, negate=False):
+def AllowedCharacters(chars, is_array=False, negate=False):  # ported
     """factory function for evaluating whether a sequence contains only
     the specified gap characters"""
     try:
@@ -2254,9 +2254,6 @@ class Aligned:
     """One sequence in an alignment, a map between alignment coordinates and
     sequence coordinates"""
 
-    @c3warn.deprecated_args(
-        "2024.9", reason="now requires an IndelMap", discontinued=["length"]
-    )
     def __init__(self, map, data):
         self.map = map
         self.data = data
@@ -2454,7 +2451,9 @@ class Aligned:
     def remapped_to(self, map):
         return Aligned(map[self.map.inverse()].inverse(), self.data)
 
-    def make_feature(self, feature: FeatureDataType, alignment: "Alignment") -> Feature:
+    def make_feature(
+        self, feature: FeatureDataType, alignment: "Alignment"
+    ) -> Feature:  # ported
         """returns a feature, not written into annotation_db"""
         annot = self.data.make_feature(feature)
         inverted = self.map.to_feature_map().inverse()
@@ -2509,7 +2508,7 @@ class AlignmentI(object):
     default_gap = "-"  # default gap character for padding
     gap_chars = dict.fromkeys("-?")  # default gap chars for comparisons
 
-    def __repr__(self):
+    def __repr__(self):  # ported
         seqs = []
         limit = 10
         delimiter = ""
@@ -2527,7 +2526,7 @@ class AlignmentI(object):
             f"{len(self.names)} x {self.seq_len} {self.moltype.label} alignment: {seqs}"
         )
 
-    def alignment_quality(self, app_name: str = "ic_score", **kwargs):
+    def alignment_quality(self, app_name: str = "ic_score", **kwargs):  # ported
         """
         Computes the alignment quality using the indicated app
 
@@ -2548,7 +2547,7 @@ class AlignmentI(object):
         app = cogent3.get_app(app_name, **kwargs)
         return app(self)
 
-    def iter_positions(self, pos_order=None):
+    def iter_positions(self, pos_order=None):  # ported
         """Iterates over positions in the alignment, in order.
 
         pos_order refers to a list of indices (ints) specifying the column
@@ -2570,9 +2569,9 @@ class AlignmentI(object):
         for pos in pos_order:
             yield [get(seq)[pos] for seq in seq_order]
 
-    positions = property(iter_positions)
+    positions = property(iter_positions)  # ported
 
-    def take_positions(self, cols, negate=False):
+    def take_positions(self, cols, negate=False):  # ported
         """Returns new Alignment containing only specified positions.
 
         By default, the seqs will be lists, but an alternative constructor
@@ -2598,7 +2597,7 @@ class AlignmentI(object):
             result, names=self.names, info=self.info, moltype=self.moltype
         )
 
-    def get_position_indices(self, f, native=False, negate=False):
+    def get_position_indices(self, f, native=False, negate=False):  # ported
         """Returns list of column indices for which f(col) is True.
 
         f : callable
@@ -2622,11 +2621,11 @@ class AlignmentI(object):
 
         return result
 
-    def take_positions_if(self, f, negate=False):
+    def take_positions_if(self, f, negate=False):  # ported
         """Returns new Alignment containing cols where f(col) is True."""
         return self.take_positions(self.get_position_indices(f, negate=negate))
 
-    def iupac_consensus(self, alphabet=None, allow_gap=True):
+    def iupac_consensus(self, alphabet=None, allow_gap=True):  # ported
         """Returns string containing IUPAC consensus sequence of the alignment."""
         if alphabet is None:
             alphabet = self.moltype
@@ -2639,7 +2638,7 @@ class AlignmentI(object):
             consensus.append(degen(coerce_to_string(col)))
         return coerce_to_string(consensus)
 
-    def majority_consensus(self):
+    def majority_consensus(self):  # ported
         """Returns list containing most frequent item at each position.
 
         Optional parameter transform gives constructor for type to which result
@@ -2656,7 +2655,7 @@ class AlignmentI(object):
 
     def probs_per_pos(
         self, motif_length=1, include_ambiguity=False, allow_gap=False, warn=False
-    ):
+    ):  # ported
         """returns MotifFreqsArray per position"""
         counts = self.counts_per_pos(
             motif_length=motif_length,
@@ -2668,7 +2667,7 @@ class AlignmentI(object):
 
     def entropy_per_pos(
         self, motif_length=1, include_ambiguity=False, allow_gap=False, warn=False
-    ):
+    ):  # ported
         """returns shannon entropy per position"""
         probs = self.probs_per_pos(
             motif_length=motif_length,
@@ -2685,7 +2684,7 @@ class AlignmentI(object):
         allow_gap=False,
         exclude_unobserved=False,
         warn=False,
-    ):
+    ):  # ported
         """return MotifFreqsArray per sequence
 
         Parameters
@@ -2720,7 +2719,7 @@ class AlignmentI(object):
         allow_gap=False,
         exclude_unobserved=True,
         warn=False,
-    ):
+    ):  # ported
         """returns the Shannon entropy per sequence
 
         Parameters
@@ -2753,7 +2752,7 @@ class AlignmentI(object):
         )
         return None if probs is None else probs.entropy()
 
-    def no_degenerates(self, motif_length=1, allow_gap=False):
+    def no_degenerates(self, motif_length=1, allow_gap=False):  # ported
         """returns new alignment without degenerate characters
 
         Parameters
@@ -2781,7 +2780,7 @@ class AlignmentI(object):
         predicate = AllowedCharacters(chars, is_array=False)
         return self.filtered(predicate, motif_length=motif_length)
 
-    def omit_gap_pos(self, allowed_gap_frac=1 - eps, motif_length=1):
+    def omit_gap_pos(self, allowed_gap_frac=1 - eps, motif_length=1):  # ported
         """Returns new alignment where all cols (motifs) have <= allowed_gap_frac gaps.
 
         Parameters
@@ -2805,7 +2804,7 @@ class AlignmentI(object):
         )
         return self.filtered(gaps_ok, motif_length=motif_length)
 
-    def get_gap_array(self, include_ambiguity=True):
+    def get_gap_array(self, include_ambiguity=True):  # ported
         """returns bool array with gap state True, False otherwise
 
         Parameters
@@ -2826,7 +2825,7 @@ class AlignmentI(object):
 
         return gapped
 
-    def count_gaps_per_pos(self, include_ambiguity=True):
+    def count_gaps_per_pos(self, include_ambiguity=True):  # ported
         """return counts of gaps per position as a DictArray
 
         Parameters
@@ -2844,7 +2843,7 @@ class AlignmentI(object):
 
     def count_gaps_per_seq(
         self, induced_by=False, unique=False, include_ambiguity=True, drawable=False
-    ):
+    ):  # ported
         """return counts of gaps per sequence as a DictArray
 
         Parameters
@@ -2899,7 +2898,7 @@ class AlignmentI(object):
 
         return result
 
-    def omit_bad_seqs(self, quantile=None):
+    def omit_bad_seqs(self, quantile=None):  #  ported
         """Returns new alignment without sequences with a number of uniquely
         introduced gaps exceeding quantile
 
@@ -2919,7 +2918,7 @@ class AlignmentI(object):
         names = [name for name, count in gap_counts.items() if count <= cutoff]
         return self.take_seqs(names)
 
-    def matching_ref(self, ref_name, gap_fraction, gap_run):
+    def matching_ref(self, ref_name, gap_fraction, gap_run):  # ported
         """Returns new alignment with seqs well aligned with a reference.
 
         gap_fraction = fraction of positions that either have a gap in the
@@ -2938,7 +2937,7 @@ class AlignmentI(object):
         motif_length=1,
         randint=randint,
         permutation=permutation,
-    ):
+    ):  # ported
         """Returns random sample of positions from self, e.g. to bootstrap.
 
         Parameters
@@ -2983,7 +2982,7 @@ class AlignmentI(object):
 
         return self.__class__(new_seqs, info=self.info, moltype=self.moltype)
 
-    def sliding_windows(self, window, step, start=None, end=None):
+    def sliding_windows(self, window, step, start=None, end=None):  # ported
         """Generator yielding new alignments of given length and interval.
 
         Parameters
@@ -3005,7 +3004,7 @@ class AlignmentI(object):
             for pos in range(start, end, step):
                 yield self[pos : pos + window]
 
-    def _get_raw_pretty(self, name_order):
+    def _get_raw_pretty(self, name_order):  # ported
         """returns dict {name: seq, ...} for pretty print"""
         if name_order is not None:
             assert set(name_order) <= set(self.names), "names don't match"
@@ -3030,7 +3029,7 @@ class AlignmentI(object):
 
         return names, output
 
-    def _repr_html_(self) -> str:
+    def _repr_html_(self) -> str:  # ported
         settings = self._repr_policy.copy()
         env_vals = get_setting_from_environ(
             "COGENT3_ALIGNMENT_REPR_POLICY",
@@ -3053,7 +3052,7 @@ class AlignmentI(object):
         colors: Optional[Mapping[str, str]] = None,
         font_size: int = 12,
         font_family: str = "Lucida Console",
-    ) -> str:
+    ) -> str:  # ported
         """returns html with embedded styles for sequence colouring
 
         Parameters
@@ -3217,7 +3216,7 @@ class AlignmentI(object):
         ]
         return "\n".join(text)
 
-    def to_pretty(self, name_order=None, wrap=None):
+    def to_pretty(self, name_order=None, wrap=None):  # ported
         """returns a string representation of the alignment in pretty print format
 
         Parameters
@@ -3259,7 +3258,7 @@ class AlignmentI(object):
 
     def counts_per_pos(
         self, motif_length=1, include_ambiguity=False, allow_gap=False, warn=False
-    ):
+    ):  # ported
         """return DictArray of counts per position
 
         Parameters
@@ -3311,7 +3310,7 @@ class AlignmentI(object):
         allow_gap=False,
         exclude_unobserved=False,
         warn=False,
-    ):
+    ):  # ported
         """counts of non-overlapping motifs per sequence
 
         Parameters
@@ -3361,7 +3360,7 @@ class AlignmentI(object):
             counts[i] = c.tolist(motifs)
         return MotifCountsArray(counts, motifs, row_indices=self.names)
 
-    def variable_positions(self, include_gap_motif=True):
+    def variable_positions(self, include_gap_motif=True):  # ported
         """Return a list of variable position indexes.
 
         Parameters
@@ -3381,7 +3380,7 @@ class AlignmentI(object):
 
         return result
 
-    def to_type(self, array_align=False, moltype=None, alphabet=None):
+    def to_type(self, array_align=False, moltype=None, alphabet=None):  # will not port
         """returns alignment of type indicated by array_align
 
         Parameters
@@ -3413,7 +3412,9 @@ class AlignmentI(object):
                 moltype = self.moltype
         return klass(data=data, moltype=moltype, info=self.info, names=self.names)
 
-    def distance_matrix(self, calc="pdist", show_progress=False, drop_invalid=False):
+    def distance_matrix(
+        self, calc="pdist", show_progress=False, drop_invalid=False
+    ):  # ported
         """Returns pairwise distances between sequences.
 
         Parameters
@@ -3455,7 +3456,7 @@ class AlignmentI(object):
         drop_invalid=False,
         show_progress=False,
         ui=None,
-    ):
+    ):  # ported
         """
         bootstrap : int or None
             Number of non-parametric bootstrap replicates. Resamples alignment
@@ -3516,7 +3517,7 @@ class AlignmentI(object):
 
     def information_plot(
         self, width=None, height=None, window=None, stat="median", include_gap=True
-    ):
+    ):  # ported
         """plot information per position
 
         Parameters
@@ -3636,7 +3637,7 @@ class AlignmentI(object):
         show_progress=False,
         parallel=False,
         par_kw=None,
-    ):
+    ):  # ported
         """performs pairwise coevolution measurement
 
         Parameters
@@ -3743,7 +3744,9 @@ class AlignmentI(object):
 
         return result
 
-    def seqlogo(self, width=700, height=100, wrap=None, vspace=0.005, colours=None):
+    def seqlogo(
+        self, width=700, height=100, wrap=None, vspace=0.005, colours=None
+    ):  # ported
         """returns Drawable sequence logo using mutual information
 
         Parameters
@@ -3774,7 +3777,9 @@ class AlignmentI(object):
         )
 
     @extend_docstring_from(_SequenceCollectionBase.trim_stop_codons)
-    def trim_stop_codons(self, gc: Any = None, strict: bool = False, **kwargs):
+    def trim_stop_codons(
+        self, gc: Any = None, strict: bool = False, **kwargs
+    ):  # ported
         if not self.has_terminal_stop(gc=gc, strict=strict):
             return self
 
@@ -3803,7 +3808,7 @@ class AlignmentI(object):
     @extend_docstring_from(_SequenceCollectionBase.get_translation)
     def get_translation(
         self, gc=None, incomplete_ok=False, include_stop=False, trim_stop=True, **kwargs
-    ):
+    ):  # ported
         if len(self.moltype.alphabet) != 4:
             raise TypeError("Must be a DNA/RNA")
 
@@ -3912,13 +3917,13 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         self.seq_len = curr_seqs.shape[1] if len(curr_seqs) else 0
 
     @property
-    def positions(self):
+    def positions(self):  # ported
         """Override superclass positions to return positions as symbols."""
         from_indices = self.alphabet.from_indices
         return [list(from_indices(pos)) for pos in self.array_positions]
 
     @property
-    def named_seqs(self):
+    def named_seqs(self):  # ported
         if self._named_seqs is None:
             seqs = [self.alphabet.to_string(seq) for seq in self.array_seqs]
             if self.moltype:
@@ -3929,7 +3934,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             self._named_seqs = _make_named_seqs(self.names, seqs)
         return self._named_seqs
 
-    def __iter__(self):
+    def __iter__(self):  # ported
         """iter(aln) iterates over positions, returning array slices.
 
         Each item in the result is be a position ('column' in standard
@@ -3941,7 +3946,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         """
         return iter(self.positions)
 
-    def __getitem__(self, item):
+    def __getitem__(self, item):  # ported
         if not isinstance(item, slice):
             data = self.array_seqs[:, item]
             data = vstack(data)
@@ -3965,7 +3970,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
 
     def get_sub_alignment(
         self, seqs=None, pos=None, negate_seqs=False, negate_pos=False
-    ):
+    ):  # will not port (can be achieved with take_seqs and take_positions)
         """Returns subalignment of specified sequences and positions.
 
         seqs and pos can be passed in as lists of sequence indices to keep
@@ -4010,7 +4015,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             moltype=self.moltype,
         )
 
-    def __str__(self):
+    def __str__(self):  # ported
         """Returns FASTA-format string.
 
         Should be able to handle joint alphabets, e.g. codons.
@@ -4044,7 +4049,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         motif_length=1,
         randint=randint,
         permutation=permutation,
-    ):
+    ):  # ported
         """Returns random sample of positions from self, e.g. to bootstrap.
 
         Parameters
@@ -4089,7 +4094,9 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             names=self.names,
         )
 
-    def filtered(self, predicate, motif_length=1, drop_remainder=True, **kwargs):
+    def filtered(
+        self, predicate, motif_length=1, drop_remainder=True, **kwargs
+    ):  # ported
         """The alignment positions where predicate(column) is true.
 
         Parameters
@@ -4136,7 +4143,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             names=self.names,
         )
 
-    def get_gapped_seq(self, seq_name, recode_gaps=False):
+    def get_gapped_seq(self, seq_name, recode_gaps=False):  # ported
         """Return a gapped Sequence object for the specified seqname.
 
         Note: return type may depend on what data was loaded into the
@@ -4150,7 +4157,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
                 s = s.replace(gapchar, ambig)
         return s
 
-    def get_degapped_relative_to(self, name):
+    def get_degapped_relative_to(self, name):  # ported
         """Remove all columns with gaps in sequence with given name.
 
         Returns Alignment object of the same class.
@@ -4174,7 +4181,9 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             new, names=self.names, moltype=self.moltype, info=self.info
         )
 
-    def add_from_ref_aln(self, ref_aln, before_name=None, after_name=None):
+    def add_from_ref_aln(
+        self, ref_aln, before_name=None, after_name=None
+    ):  # will not port
         """
         Insert sequence(s) to self based on their alignment to a reference
         sequence. Assumes the first sequence in ref_aln.names[0] is the
@@ -4291,11 +4300,11 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             new_seqarr, names=self.names, moltype=seqs.moltype, info=self.info
         )
 
-    def to_moltype(self, moltype):
+    def to_moltype(self, moltype):  # ported
         """returns copy of self with moltype seqs"""
         return super().to_moltype(moltype)
 
-    def get_identical_sets(self, mask_degen=False):
+    def get_identical_sets(self, mask_degen=False):  # ported
         """returns sets of names for sequences that are identical
 
         Parameters
@@ -4375,7 +4384,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         result._repr_policy.update(self._repr_policy)
         return result
 
-    def no_degenerates(self, motif_length=1, allow_gap=False):
+    def no_degenerates(self, motif_length=1, allow_gap=False):  # ported
         """returns new alignment without degenerate characters
 
         Parameters
@@ -4414,7 +4423,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         allow_gap=False,
         exclude_unobserved=False,
         warn=False,
-    ):
+    ):  # ported
         """counts of non-overlapping motifs per sequence
 
         Parameters
@@ -4464,7 +4473,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             counts[i] = c.tolist(motifs)
         return MotifCountsArray(counts, motifs, row_indices=self.names)
 
-    def omit_gap_pos(self, allowed_gap_frac=1 - eps, motif_length=1):
+    def omit_gap_pos(self, allowed_gap_frac=1 - eps, motif_length=1):  # ported
         """Returns new alignment where all cols (motifs) have <= allowed_gap_frac gaps.
 
         Parameters
@@ -4495,7 +4504,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         result = self.filtered(gaps_ok, motif_length=motif_length)
         return result
 
-    def get_position_indices(self, f, native=False, negate=False):
+    def get_position_indices(self, f, native=False, negate=False):  # ported
         """Returns list of column indices for which f(col) is True.
 
         f : callable
@@ -4522,7 +4531,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
 
         return result
 
-    def get_gap_array(self, include_ambiguity=True):
+    def get_gap_array(self, include_ambiguity=True):  # ported
         """returns bool array with gap state True, False otherwise
 
         Parameters
@@ -4544,7 +4553,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         return gapped
 
 
-def make_gap_filter(template, gap_fraction, gap_run):
+def make_gap_filter(template, gap_fraction, gap_run):  # ported
     """Returns f(seq) -> True if no gap runs and acceptable gap fraction.
 
     Calculations relative to template.
@@ -4660,7 +4669,7 @@ class Alignment(AlignmentI, SequenceCollection):
             align.append((sliced.name, sliced))
         return self.__class__(moltype=self.moltype, data=align, info=self.info)
 
-    def gapped_by_map(self, keep, **kwargs):
+    def gapped_by_map(self, keep, **kwargs):  # ported
         # keep is a Map
         # seqs = [seq[keep] for seq in self.seqs]
         seqs = []
@@ -4669,7 +4678,9 @@ class Alignment(AlignmentI, SequenceCollection):
             seqs.append(selected)
         return self.__class__(moltype=self.moltype, data=seqs, **kwargs)
 
-    def get_projected_feature(self, *, seqid: str, feature: Feature) -> Feature:
+    def get_projected_feature(
+        self, *, seqid: str, feature: Feature
+    ) -> Feature:  # ported
         """returns an alignment feature projected onto the seqid sequence
 
         Parameters
@@ -4702,7 +4713,9 @@ class Alignment(AlignmentI, SequenceCollection):
         self.annotation_db.add_feature(**feature.to_dict())
         return result
 
-    def get_projected_features(self, *, seqid: str, **kwargs) -> list[Feature]:
+    def get_projected_features(
+        self, *, seqid: str, **kwargs
+    ) -> list[Feature]:  # ported
         """projects all features from other sequences onto seqid"""
         # todo gah should there be a generator version,
         # iter_projected_features()?
@@ -4741,7 +4754,9 @@ class Alignment(AlignmentI, SequenceCollection):
         return new
 
     @extend_docstring_from(ArrayAlignment.filtered)
-    def filtered(self, predicate, motif_length=1, drop_remainder=True, **kwargs):
+    def filtered(
+        self, predicate, motif_length=1, drop_remainder=True, **kwargs
+    ):  # ported
         length = self.seq_len
         if length % motif_length != 0 and not drop_remainder:
             raise ValueError(
@@ -4773,21 +4788,21 @@ class Alignment(AlignmentI, SequenceCollection):
 
         return self.gapped_by_map(keep, info=self.info)
 
-    def get_seq(self, seqname):
+    def get_seq(self, seqname):  # ported
         """Return a ungapped Sequence object for the specified seqname.
 
         Note: always returns Sequence object, not ArraySequence.
         """
         return self.named_seqs[seqname].data
 
-    def get_gapped_seq(self, seq_name, recode_gaps=False):
+    def get_gapped_seq(self, seq_name, recode_gaps=False):  # ported
         """Return a gapped Sequence object for the specified seqname.
 
         Note: always returns Sequence object, not ArraySequence.
         """
         return self.named_seqs[seq_name].get_gapped_seq(recode_gaps)
 
-    def iter_positions(self, pos_order=None):
+    def iter_positions(self, pos_order=None):  # ported
         """Iterates over positions in the alignment, in order.
 
         pos_order refers to a list of indices (ints) specifying the column
@@ -4944,7 +4959,7 @@ class Alignment(AlignmentI, SequenceCollection):
 
         return self.add_seqs(temp_aln, before_name, after_name)
 
-    def replace_seqs(self, seqs, aa_to_codon=True):
+    def replace_seqs(self, seqs, aa_to_codon=True):  # will not port
         """Returns new alignment with same shape but with data taken from seqs.
 
         Parameters
@@ -4984,7 +4999,9 @@ class Alignment(AlignmentI, SequenceCollection):
 
         return self.__class__(new_seqs, info=self.info, moltype=self.moltype)
 
-    def get_drawables(self, *, biotype: Optional[str, Iterable[str]] = None) -> dict:
+    def get_drawables(
+        self, *, biotype: Optional[str, Iterable[str]] = None
+    ) -> dict:  # ported
         """returns a dict of drawables, keyed by type
 
         Parameters
@@ -5004,7 +5021,7 @@ class Alignment(AlignmentI, SequenceCollection):
         biotype: Optional[str, Iterable[str]] = None,
         width: int = 600,
         vertical: int = False,
-    ):
+    ):  # ported
         """make a figure from sequence features
 
         Parameters
@@ -5073,7 +5090,7 @@ class Alignment(AlignmentI, SequenceCollection):
         parent_id: Optional[str] = None,
         strand: str = "+",
         on_alignment: Optional[bool] = None,
-    ) -> Feature:
+    ) -> Feature:  # ported
         """
         add feature on named sequence, or on the alignment itself
 
@@ -5131,7 +5148,7 @@ class Alignment(AlignmentI, SequenceCollection):
         *,
         feature: FeatureDataType,
         on_alignment: Optional[bool] = None,
-    ) -> Feature:
+    ) -> Feature:  # ported
         """
         create a feature on named sequence, or on the alignment itself
 
@@ -5180,7 +5197,7 @@ class Alignment(AlignmentI, SequenceCollection):
         biotype: Optional[str] = None,
         name: Optional[str] = None,
         allow_partial: bool = False,
-    ) -> Iterator[Feature]:
+    ) -> Iterator[Feature]:  # ported
         """yields Feature instances
 
         Parameters
@@ -5250,7 +5267,7 @@ class Alignment(AlignmentI, SequenceCollection):
         name: Optional[str] = None,
         on_alignment: Optional[bool] = None,
         allow_partial: bool = False,
-    ) -> Iterator[Feature]:
+    ) -> Iterator[Feature]:  # ported
         """yields Feature instances
 
         Parameters

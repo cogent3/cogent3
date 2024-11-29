@@ -106,11 +106,6 @@ class SerialisableType(typing.Protocol):  # pragma: no cover
 @typing.runtime_checkable
 class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
     # should be defined centrally
-    @c3warn.deprecated_args(
-        "2024.9",
-        reason="replace usage of SQL keyword as column name",
-        old_new=[("end", "stop")],
-    )
     def get_features_matching(
         self,
         *,
@@ -124,11 +119,6 @@ class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
         on_alignment: OptionalBool = None,
     ) -> typing.Iterator[FeatureDataType]: ...
 
-    @c3warn.deprecated_args(
-        "2024.9",
-        reason="replace usage of SQL keyword as column name",
-        old_new=[("end", "stop")],
-    )
     def get_feature_children(
         self,
         *,
@@ -138,11 +128,6 @@ class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
         **kwargs,
     ) -> typing.List[FeatureDataType]: ...
 
-    @c3warn.deprecated_args(
-        "2024.9",
-        reason="replace usage of SQL keyword as column name",
-        old_new=[("end", "stop")],
-    )
     def get_feature_parent(
         self,
         *,
@@ -163,11 +148,6 @@ class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
         on_alignment: OptionalBool = None,
     ) -> int: ...
 
-    @c3warn.deprecated_args(
-        "2024.9",
-        reason="replace usage of SQL keyword as column name",
-        old_new=[("end", "stop")],
-    )
     def subset(
         self,
         *,
@@ -806,11 +786,6 @@ class SqliteAnnotationDbMixin:
                         )  # remove invalid field for the FeatureDataType
                         yield parent
 
-    @c3warn.deprecated_args(
-        "2024.9",
-        reason="replace usage of SQL keyword as column name",
-        old_new=[("end", "stop")],
-    )
     def get_records_matching(
         self,
         *,
@@ -835,11 +810,6 @@ class SqliteAnnotationDbMixin:
             for result in self._get_records_matching(table_name, **kwargs):
                 yield dict(zip(result.keys(), result))
 
-    @c3warn.deprecated_args(
-        "2024.9",
-        reason="replace usage of SQL keyword as column name",
-        old_new=[("end", "stop")],
-    )
     def get_features_matching(
         self,
         *,
@@ -1133,11 +1103,6 @@ class SqliteAnnotationDbMixin:
             self.db.backup(backup)
         backup.close()
 
-    @c3warn.deprecated_args(
-        "2024.9",
-        reason="replace usage of SQL keyword as column name",
-        old_new=[("end", "stop")],
-    )
     def subset(
         self,
         *,
@@ -1469,11 +1434,6 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         self._num_fakeids += 1
         return name
 
-    @c3warn.deprecated_args(
-        "2024.9",
-        reason="replace usage of SQL keyword as column name",
-        old_new=[("end", "stop")],
-    )
     def get_feature_children(
         self,
         name: str,
@@ -1522,11 +1482,6 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
                 feat.pop("parent_id")  # remove invalid field for the FeatureDataType
                 yield feat
 
-    @c3warn.deprecated_args(
-        "2024.9",
-        reason="replace usage of SQL keyword as column name",
-        old_new=[("end", "stop")],
-    )
     def get_feature_parent(
         self,
         name: str,
@@ -1602,7 +1557,7 @@ def convert_annotation_to_annotation_db(data: dict) -> SupportsFeatures:
         ann = ann.pop("annotation_construction")
         m = deserialise_map_spans(ann.pop("map"))
         spans = m.get_coordinates()
-        strand = "-" if m.reverse else "+"
+        strand = "-" if any(s.reverse for s in m.spans) else "+"
         biotype = ann.pop("type")
         name = ann.pop("name")
         db.add_feature(

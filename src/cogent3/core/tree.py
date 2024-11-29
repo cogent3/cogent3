@@ -1695,6 +1695,11 @@ class TreeNode:
         """return dict of {<child name>: <parent name>, ...}"""
         return {e.name: e.parent.name for e in self.postorder(include_self=False)}
 
+    @staticmethod
+    def parse_token(token: str) -> tuple[str | None, dict]:
+        # TreeNode token contains no attributes
+        return token, {}
+
 
 class PhyloNode(TreeNode):
     def __init__(self, *args, **kwargs):
@@ -1703,13 +1708,6 @@ class PhyloNode(TreeNode):
         params["length"] = params.get("length", length)
         kwargs["params"] = params
         super().__init__(*args, **kwargs)
-
-        if self.children:
-            # self is an internal tree node
-            name, support = split_name_and_support(self.name)
-            self.name = name
-            if support is not None:
-                self.params["support"] = support
 
     @property
     def length(self) -> Union[float, None]:
@@ -2192,6 +2190,11 @@ class PhyloNode(TreeNode):
                     tip_b[0] += child_b.length or 0.0
                 n.MaxDistTips = [tip_a, tip_b]
 
+    @staticmethod
+    def parse_token(token: str) -> tuple[str | None, dict]:
+        name, attrs = split_name_and_support(token)
+        return (name, {"support": attrs}) if attrs else (name, {})
+
 
 def split_name_and_support(name_field: str | None) -> tuple[str | None, float | None]:
     """Handle cases in the Newick format where an internal node name field
@@ -2270,6 +2273,11 @@ class TreeBuilder(object):
         """Callback for newick parser"""
         if children is None:
             children = []
+        # split name and support for internal nodes
+        elif children != []:
+            name, pars = self.TreeNodeClass.parse_token(name)
+            params |= pars
+
         node = self.TreeNodeClass(
             children=list(children),
             name=self._unique_name(name),

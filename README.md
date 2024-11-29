@@ -20,6 +20,24 @@
 ## 📣 Feature Announcements 📣
 
 <details>
+  <summary> New core data types improve efficiency and flexibility </summary>
+
+The cogent3 development team 👾 have been hard at work modernising the core internals 💪🛠.
+
+The grand rewrite of alignment classes is ready for use! The new approach gives us the foundation for major performance improvements in the future. As with the moltype, alphabet, genetic code and `SequenceCollection`, you can select the new class via `make_aligned_seqs()` or `load_aligned_seqs()` by specifying `new_type=True`.
+These are not yet the default and are not fully integrated into the existing code. They can also differ in their API relative to the classes they replace. 
+
+We encourage experimentation in cases where integration with old objects is NOT required and [look forward to any feedback](https://github.com/cogent3/cogent3/discussions)!
+
+</details>
+
+<details>
+    <summary> Faster pairwise genetic distance calculations 🚀 </summary>
+
+We have completely rewritten a subset of the genetic distance calculators. These are now only available using the new type `Alignment.distance_matrix()` method. Single CPU performance is faster and we now also support parallel execution.
+
+</details>
+<details>
     <summary> Faster sequence coevolution measures 🚀 </summary>
 
 We have completely rewritten all the Mutual Information based coevolution statistic calculators. Single CPU performance is orders of magnitude faster than the old implementation and we now also support parallel execution. The existing `Alignment.coevolution()` method uses these so you don't need to do anything different to use the new algorithms.
@@ -49,18 +67,7 @@ Speaking of plugins, our first major third-party plugin is [piqtree2](https://py
 
 </details>
 
-<details>
-  <summary> New core data types improve efficiency and flexibility </summary>
 
-The cogent3 development team 👾 are hard at work modernising the core internals 💪🛠.
-
-In this release the `Sequence`, `SequenceCollection`, `MolType`, `GeneticCode`, and alphabet classes have all been rewritten from scratch with an eye to simplifying the code while improving its flexibility and performance. (We're working on alignments for the next release.)
-
-The "new-style" objects enhance performance by supporting the access of the underlying data in various formats (i.e. numpy arrays, bytes or strings). You can create "new-style" objects by setting the `new_type=True` argument in top-level functions (`make_seq`, `load_seq`, `make_unaligned_seqs`, `get_moltype`, `get_code`). These are not yet the default and are not fully integrated into the existing code. They can also differ in their API relative to the classes they replace. 
-
-We encourage experimentation in cases where integration with old objects is NOT required and [look forward to any feedback](https://github.com/cogent3/cogent3/discussions)!
-
-</details>
 
 ## Who is it for?
 

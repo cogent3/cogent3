@@ -2369,35 +2369,29 @@ def test_split_name_and_support_invalid_support(invalid):
 def test_phylonode_support():
     tip_names = [str(i) for i in range(1, 13)]
     tree = make_tree(
-        treestring="(1,(((2,3),4)/53,(5,((6,(7,(8,9))def/25),(10,11)abc))),12);"
+        treestring="(1,(((2,3)53,4)/53,(5,((6,(7,(8,9))def/25),(10,11)abc))),12);"
     )
     assert tree.get_tip_names() == tip_names
+
+    node_names = set(tree.get_node_names())
+    # check that no node name is an empty string or None
+    assert all(node_names)
+
     # parent of 4 is node with only support value
     just_support = tree.get_node_matching_name("4").parent
     assert just_support.params["support"] == 53.0
+
+    # parent of 2 has the same support as parent of 4
+    same_support = tree.get_node_matching_name("2").parent
+    assert same_support.params["support"] == just_support.params["support"]
+
     # parent of 10 has a node name only
     just_name = tree.get_node_matching_name("10").parent
     assert just_name.name == "abc"
     assert "support" not in just_name.params
+
     # the node with name "def/25" correctly resoloved into node
     # name "def" and support 25.0
     name_and_support = tree.get_node_matching_name("def")
     assert name_and_support.name == "def"  # bit redundant given selection process
     assert name_and_support.params["support"] == 25.0
-
-
-def test_phylonode_support_name_nodes_false():
-    # test that internal node names are None with name_nodes=False
-    tree = make_tree("((1,2)5,(3,4)6);", name_nodes=False)
-    internal_nodes = [node.name for node in tree.iter_nontips()]
-    assert all(node is None for node in internal_nodes)
-
-
-def test_phylonode_support_name_nodes_true():
-    # test that all nodes have unique names with name_nodes=True
-    tree = make_tree("((1,2)5,(3,4)6);", name_nodes=True)
-    node_names = set(tree.get_node_names())
-    # check that no node name is an empty string or None
-    assert all(node_names)
-    # check that the total number of unique node names is 7
-    assert len(node_names) == 7

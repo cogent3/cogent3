@@ -2,19 +2,31 @@ from collections import defaultdict, namedtuple
 from numbers import Number
 from typing import Tuple
 
+import numba
 import numpy
 from numpy import array, diag, dot, eye, float64, int32, log, sqrt, zeros
 from numpy.linalg import det, inv
 
 from cogent3._version import __version__
+from cogent3.core import new_moltype
 from cogent3.core.moltype import DNA, RNA, get_moltype
 from cogent3.util.dict_array import DictArray
 from cogent3.util.misc import get_object_provenance
 from cogent3.util.progress_display import display_wrap
 
-from .pairwise_distance_numba import fill_diversity_matrix
 
-# pending addition of protein distance metrics
+@numba.jit(cache=True)
+def fill_diversity_matrix(matrix, seq1, seq2):  # pragma: no cover
+    """fills the diversity matrix for valid positions.
+
+    Assumes the provided sequences have been converted to indices with
+    invalid characters being negative numbers (use get_moltype_index_array
+    plus seq_to_indices)."""
+
+    for i in range(len(seq1)):
+        if seq1[i] < 0 or seq2[i] < 0:
+            continue
+        matrix[seq1[i], seq2[i]] += 1.0
 
 
 def _same_moltype(ref, query):
@@ -24,22 +36,19 @@ def _same_moltype(ref, query):
 
 def get_pyrimidine_indices(moltype):
     """returns pyrimidine indices for the moltype"""
-    states = list(moltype)
-    if _same_moltype(RNA, moltype):
-        return list(map(states.index, "CU"))
-    elif _same_moltype(DNA, moltype):
-        return list(map(states.index, "CT"))
-    else:
+    alpha = moltype.alphabet
+    if len(alpha) != 4:
         raise RuntimeError("Non-nucleic acid MolType")
+    pyrimidines = "CT" if moltype.label == "dna" else "CU"
+    return alpha.to_indices(pyrimidines).tolist()
 
 
 def get_purine_indices(moltype):
     """returns purine indices for the moltype"""
-    states = list(moltype)
-    if not _same_moltype(RNA, moltype) and not _same_moltype(DNA, moltype):
+    alpha = moltype.alphabet
+    if len(alpha) != 4:
         raise RuntimeError("Non-nucleic acid MolType")
-
-    return list(map(states.index, "AG"))
+    return alpha.to_indices("AG").tolist()
 
 
 def get_matrix_diff_coords(indices):
@@ -77,18 +86,6 @@ def seq_to_indices(seq, char_to_index):
     """returns an array with sequence characters replaced by their index"""
     ords = list(map(ord, seq))
     return char_to_index.take(ords)
-
-
-def _fill_diversity_matrix(matrix, seq1, seq2):
-    """fills the diversity matrix for valid positions.
-
-    Assumes the provided sequences have been converted to indices with
-    invalid characters being negative numbers (use get_moltype_index_array
-    plus seq_to_indices)."""
-    paired = array([seq1, seq2]).T
-    paired = paired[paired.min(axis=1) >= 0]
-    for i in range(len(paired)):
-        matrix[paired[i][0], paired[i][1]] += 1
 
 
 def _hamming(matrix):
@@ -341,7 +338,7 @@ class _PairwiseDistance:
 
     def _convert_seqs_to_indices(self, alignment):
         assert isinstance(
-            alignment.moltype, type(self.moltype)
+            alignment.moltype, (type(self.moltype), new_moltype.MolType)
         ), "Alignment does not have correct MolType"
 
         self._dists = {}

@@ -8,6 +8,7 @@ from bisect import bisect_left, bisect_right
 from functools import total_ordering
 from typing import Any, Iterator, Optional, Sequence, Union
 
+import numba
 import numpy
 from numpy.typing import NDArray
 
@@ -19,6 +20,8 @@ from cogent3.util.misc import get_object_provenance
 strip = str.strip
 
 _DEFAULT_GAP_DTYPE = numpy.int32
+
+OptInt = Optional[int]
 
 
 def _norm_index(i, length, default):
@@ -39,7 +42,7 @@ def as_map(slice, length, cls):
         for i in slice:
             spans.extend(as_map(i, length, cls).spans)
         return cls(spans=spans, parent_length=length)
-    elif isinstance(slice, (FeatureMap, IndelMap, Map)):
+    elif isinstance(slice, (FeatureMap, IndelMap)):
         return slice
     else:
         lo, hi, step = _norm_slice(slice, length)
@@ -500,356 +503,6 @@ SeqSpanTypes = Sequence[SpanTypes]
 SeqCoordTypes = Sequence[Sequence[IntTypes]]
 
 
-class Map:  # pragma: no cover
-    """A map holds a list of spans."""
-
-    @c3warn.deprecated_callable(
-        version="2024.6",
-        reason="Replaced by IndelMap and FeatureMap",
-        is_discontinued=True,
-    )
-    def __init__(
-        self,
-        locations=None,
-        spans=None,
-        tidy=False,
-        parent_length=None,
-        termini_unknown=False,
-    ):
-        assert parent_length is not None
-        d = locals()
-        exclude = ("self", "__class__", "__slots__")
-        self._serialisable = {k: v for k, v in d.items() if k not in exclude}
-
-        if spans is None:
-            spans = []
-            for start, end in locations:
-                diff = 0
-                reverse = start > end
-                if max(start, end) < 0 or min(start, end) > parent_length:
-                    raise RuntimeError(
-                        f"located outside sequence: {(start, end, parent_length)}"
-                    )
-                if max(start, end) > parent_length and min(start, end) < 0:
-                    l_diff = min(start, end)
-                    r_diff = max(start, end) - parent_length
-                    start, end = (
-                        (0, parent_length) if start < end else (parent_length, 0)
-                    )
-                    spans += [
-                        LostSpan(abs(l_diff)),
-                        Span(start, end, tidy, tidy, reverse=reverse),
-                        LostSpan(abs(r_diff)),
-                    ]
-                elif min(start, end) < 0:
-                    diff = min(start, end)
-                    start = 0 if start < 0 else start
-                    end = 0 if end < 0 else end
-                    spans += [
-                        LostSpan(abs(diff)),
-                        Span(start, end, tidy, tidy, reverse=reverse),
-                    ]
-                elif max(start, end) > parent_length:
-                    diff = max(start, end) - parent_length
-                    start = parent_length if start > parent_length else start
-                    end = parent_length if end > parent_length else end
-                    spans += [
-                        Span(start, end, tidy, tidy, reverse=reverse),
-                        LostSpan(abs(diff)),
-                    ]
-                else:
-                    spans += [Span(start, end, tidy, tidy, reverse=reverse)]
-
-        self.offsets = []
-        self.useful = False
-        self.complete = True
-        self.reverse = None
-        posn = 0
-        for span in spans:
-            self.offsets.append(posn)
-            posn += span.length
-            if span.lost:
-                self.complete = False
-            elif not self.useful:
-                self.useful = True
-                (self.start, self.end) = (span.start, span.end)
-                self.reverse = span.reverse
-            else:
-                self.start = min(self.start, span.start)
-                self.end = max(self.end, span.end)
-                if self.reverse is not None and (span.reverse != self.reverse):
-                    self.reverse = None
-
-        if termini_unknown:
-            spans = list(spans)
-            if spans[0].lost:
-                spans[0] = TerminalPadding(spans[0].length)
-            if spans[-1].lost:
-                spans[-1] = TerminalPadding(spans[-1].length)
-
-        self.spans = tuple(spans)
-        self.length = posn
-        self.parent_length = parent_length
-        self.__inverse = None
-
-    def __len__(self):
-        return self.length
-
-    def __repr__(self):
-        return repr(list(self.spans)) + f"/{self.parent_length}"
-
-    def __getitem__(self, slice):
-        # A possible shorter map at the same level
-        slice = as_map(slice, len(self), self.__class__)
-        new_parts = []
-        for span in slice.spans:
-            new_parts.extend(span.remap_with(self))
-        return Map(spans=new_parts, parent_length=self.parent_length)
-
-    def __mul__(self, scale):
-        # For Protein -> DNA
-        new_parts = []
-        for span in self.spans:
-            new_parts.append(span * scale)
-        return Map(spans=new_parts, parent_length=self.parent_length * scale)
-
-    def __div__(self, scale):
-        # For DNA -> Protein
-        new_parts = []
-        for span in self.spans:
-            new_parts.append(span / scale)
-        return Map(spans=new_parts, parent_length=self.parent_length // scale)
-
-    def __add__(self, other):
-        if other.parent_length != self.parent_length:
-            raise ValueError("Those maps belong to different sequences")
-        return Map(spans=self.spans + other.spans, parent_length=self.parent_length)
-
-    def with_termini_unknown(self):
-        return Map(
-            self,
-            spans=self.spans[:],
-            parent_length=self.parent_length,
-            termini_unknown=True,
-        )
-
-    def get_covering_span(self):
-        if self.reverse:
-            span = (self.end, self.start)
-        else:
-            span = (self.start, self.end)
-        return Map([span], parent_length=self.parent_length)
-
-    def covered(self):
-        """>>> Map([(10,20), (15, 25), (80, 90)]).covered().spans
-        [Span(10,25), Span(80, 90)]"""
-
-        delta = {}
-        for span in self.spans:
-            if span.lost:
-                continue
-            delta[span.start] = delta.get(span.start, 0) + 1
-            delta[span.end] = delta.get(span.end, 0) - 1
-        positions = list(delta.keys())
-        positions.sort()
-        last_y = y = 0
-        last_x = start = None
-        result = []
-        for x in positions:
-            y += delta[x]
-            if x == last_x:
-                continue
-            if y and not last_y:
-                assert start is None
-                start = x
-            elif last_y and not y:
-                result.append((start, x))
-                start = None
-            last_x = x
-            last_y = y
-        assert y == 0
-        return Map(locations=result, parent_length=self.parent_length)
-
-    def reversed(self):
-        """Reversed location on same parent"""
-        spans = [s.reversed() for s in self.spans]
-        spans.reverse()
-        return Map(spans=spans, parent_length=self.parent_length)
-
-    def nucleic_reversed(self):
-        """Same location on reversed parent"""
-        spans = [s.reversed_relative_to(self.parent_length) for s in self.spans]
-        return Map(spans=spans, parent_length=self.parent_length)
-
-    def get_gap_coordinates(self):
-        """returns [(gap pos, gap length), ...]"""
-        gap_pos = []
-        for i, span in enumerate(self.spans):
-            if not span.lost:
-                continue
-
-            pos = self.spans[i - 1].end if i else 0
-            gap_pos.append((pos, len(span)))
-
-        return gap_pos
-
-    def gaps(self):
-        """The gaps (lost spans) in this map"""
-        locations = []
-        offset = 0
-        for s in self.spans:
-            if s.lost:
-                locations.append((offset, offset + s.length))
-            offset += s.length
-        return Map(locations, parent_length=len(self))
-
-    def shadow(self):
-        """The 'negative' map of the spans not included in this map"""
-        return self.inverse().gaps()
-
-    def nongap(self):
-        locations = []
-        offset = 0
-        for s in self.spans:
-            if not s.lost:
-                locations.append((offset, offset + s.length))
-            offset += s.length
-        return Map(locations, parent_length=len(self))
-
-    def without_gaps(self):
-        return Map(
-            spans=[s for s in self.spans if not s.lost],
-            parent_length=self.parent_length,
-        )
-
-    def inverse(self):
-        if self.__inverse is None:
-            self.__inverse = self._inverse()
-        return self.__inverse
-
-    def _inverse(self):
-        # can't work if there are overlaps in the map
-        # tidy ends don't survive inversion
-        if self.parent_length is None:
-            raise ValueError("Uninvertable. parent length not known")
-        posn = 0
-        temp = []
-        for span in self.spans:
-            if not span.lost:
-                if span.reverse:
-                    temp.append((span.start, span.end, posn + span.length, posn))
-                else:
-                    temp.append((span.start, span.end, posn, posn + span.length))
-            posn += span.length
-
-        temp.sort()
-        new_spans = []
-        last_hi = 0
-        for lo, hi, start, end in temp:
-            if lo > last_hi:
-                new_spans.append(LostSpan(lo - last_hi))
-            elif lo < last_hi:
-                raise ValueError(f"Uninvertable. Overlap: {lo} < {last_hi}")
-            new_spans.append(Span(start, end, reverse=start > end))
-            last_hi = hi
-        if self.parent_length > last_hi:
-            new_spans.append(LostSpan(self.parent_length - last_hi))
-        return Map(spans=new_spans, parent_length=len(self))
-
-    def get_coordinates(self):
-        """returns span coordinates as [(v1, v2), ...]
-
-        v1/v2 are (start, end) unless the map is reversed, in which case it will
-        be (end, start)"""
-
-        if self.reverse:
-            order_func = lambda x: (max(x), min(x))
-        else:
-            order_func = lambda x: x
-
-        coords = list(
-            map(order_func, [(s.start, s.end) for s in self.spans if not s.lost])
-        )
-
-        return coords
-
-    def to_rich_dict(self):
-        """returns dicts for contained spans [dict(), ..]"""
-        spans = [s.to_rich_dict() for s in self.spans]
-        data = copy.deepcopy(self._serialisable)
-        data.pop("locations", None)
-        data["spans"] = spans
-        data["type"] = get_object_provenance(self)
-        data["version"] = __version__
-        return data
-
-    def zeroed(self):
-        """returns a new instance with the first span starting at 0
-
-        Note
-        ----
-
-        Useful when an Annotatable object is sliced, but the connection to
-        the original parent is being deliberately broken as in the
-        Sequence.deepcopy(sliced=True) case.
-        """
-        # todo there's probably a more efficient way to do this
-        # create the new instance
-        from cogent3.util.deserialise import deserialise_map_spans
-
-        data = self.to_rich_dict()
-        zeroed = deserialise_map_spans(data)
-        zeroed.parent_length = len(zeroed.get_covering_span())
-        shift = min(zeroed.start, zeroed.end)
-        new_end = 0
-        for span in zeroed.spans:
-            if span.lost:
-                continue
-            span.start -= shift
-            span.end -= shift
-            new_end = max(new_end, span.end)
-
-        zeroed.start = 0
-        zeroed.end = new_end
-
-        return zeroed
-
-    T = Union[numpy.ndarray, int]
-
-    def absolute_position(self, rel_pos: T) -> T:
-        """converts rel_pos into an absolute position
-
-        Raises
-        ------
-        raises ValueError if rel_pos < 0
-        """
-        check = (
-            numpy.array([rel_pos], dtype=int) if isinstance(rel_pos, int) else rel_pos
-        )
-        if check.min() < 0:
-            raise ValueError(f"must positive, not {rel_pos=}")
-
-        if len(self) == self.parent_length:
-            # handle case of reversed here?
-            return rel_pos
-
-        return self.start + rel_pos
-
-    def relative_position(self, abs_pos: T) -> T:
-        """converts abs_pos into an relative position
-
-        Raises
-        ------
-        raises ValueError if abs_pos < 0
-        """
-        check = (
-            numpy.array([abs_pos], dtype=int) if isinstance(abs_pos, int) else abs_pos
-        )
-        if check.min() < 0:
-            raise ValueError(f"must positive, not {abs_pos=}")
-        return abs_pos - self.start
-
-
 class MapABC(ABC):
     """base class for genomic map objects"""
 
@@ -960,13 +613,14 @@ def spans_to_gap_coords(
     return numpy.array(gap_pos, dtype=dtype), numpy.array(cum_lengths, dtype=dtype)
 
 
+@numba.jit
 def _gap_spans(
     gap_pos: IntArrayTypes, cum_gap_lengths: IntArrayTypes
-) -> tuple[IntArrayTypes, IntArrayTypes]:
+) -> tuple[IntArrayTypes, IntArrayTypes]:  # pragma: no cover
     """returns 1D arrays in alignment coordinates of
     gap start, gap stop"""
     if not len(gap_pos):
-        r = numpy.array([], dtype=_DEFAULT_GAP_DTYPE)
+        r = numpy.empty((0,), dtype=gap_pos.dtype)
         return r, r
 
     ends = gap_pos + cum_gap_lengths
@@ -995,6 +649,210 @@ def _update_lengths(
     result_lengths[result_indices] += gap_lengths[other_indices]
 
 
+def _step_adjustment(gap_start: int, start: int, step: int) -> int:
+    """adjustment to a start, given a step size. The adjustment determines how
+    many more steps we need to take from the beginning of a gap/ungapped segment
+    to reach a position that is a multiple of the step"""
+    overstep = (gap_start - start) % step
+    return step - overstep if overstep else 0
+
+
+def _step_adjusted_length(start: int, end: int, adj: int, step: int) -> int:
+    """returns the adjusted length of a segment given a step size
+    and its start and stop index. The adjustment is the number of steps
+    needed to reach the next multiple of the step size"""
+    adjusted_length = -((end - start - adj) // -step)
+    return max(adjusted_length, 0)
+
+
+def _input_vals_pos_step(
+    seqlen: int, start: OptInt, stop: OptInt, step: int
+) -> tuple[int, int, int]:
+    """returns standardised start, stop, step values for positive step slicing."""
+    # The input values for start and stop can be +ve, -ve or None. The returned
+    # start and stop are strictly +ve and within the sequence length, and if not
+    # provided default to 0 and seqlen, respectively.
+
+    start = start or 0
+    if start > 0 and start >= seqlen:
+        # start beyond seq is an empty slice
+        return 0, 0, 1
+
+    stop = seqlen if stop is None else stop
+    if stop < 0 and abs(stop) >= seqlen:
+        # finished slice before we started seq!
+        return 0, 0, 1
+
+    start = max(seqlen + start, 0) if start < 0 else start
+
+    if stop > 0:
+        stop = min(seqlen, stop)
+    elif stop < 0:
+        stop += seqlen
+
+    if start >= stop:
+        start = stop = 0
+        step = 1
+
+    return start, stop, step
+
+
+def _input_vals_neg_step(
+    seqlen: int, start: OptInt, stop: OptInt, step: int
+) -> tuple[int, int, int]:
+    """returns standardised start, stop, step values for negative step slicing."""
+    # The input values for start and stop can be positive, negative or None. The
+    # returned start and stop are strictly negative and correspond to indices
+    # within the sequence length. If not provided, start defaults to -1 and stop
+    # to -seqlen-1.
+
+    # Note how Python reverse slicing works
+    # we need to make sure the start and stop are both negative, for example
+    # "abcd"[-1:-5:-1] returns "dcba". returning the complete string in reverse
+    # order is only possible with negative indexing
+
+    if start is None or start >= seqlen:  # set default
+        start = -1  # Done
+    elif start >= 0:  # convert to -ve index
+        start = start - seqlen
+    elif start < -seqlen:  # start is bounded by len(seq)
+        return 0, 0, 1
+
+    if stop is None:  # set default
+        stop = -seqlen - 1
+    elif stop >= 0:
+        stop -= seqlen
+
+    stop = max(stop, -seqlen - 1)  # stop should always be <= len(seq)
+
+    # checking for zero-length slice
+    return (0, 0, 1) if start < stop else (start, stop, step)
+
+
+@numba.jit
+def seq_to_align_index(
+    gap_pos: IntArrayTypes,
+    cum_lengths: IntArrayTypes,
+    parent_length: int,
+    num_gaps: int,
+    seq_index: int,
+    slice_stop: bool = False,
+) -> int:  # pragma: no cover
+    """convert a sequence index into an alignment index
+
+    Parameters
+    ----------
+    gap_pos
+        array of gap positions in sequence coordinates
+    cum_lengths
+        array of cumulative gap lengths
+    parent_length
+        length of parent sequence (i.e. aligned sequence without gaps)
+    num_gaps
+        the number of gaps
+    seq_index
+        coordinate on the sequence, must be < parent_length
+    slice_stop
+        set to True if the index is to be the end of an alignment slice.
+        In that case, and if seq_index is in gap_pos then it returns
+        the first alignment index of the gap run.
+    """
+    # NOTE I explicitly cast all returned values to python int's due to
+    # need for json serialisation, which does not support numpy int classes
+    assert len(gap_pos) == len(cum_lengths) == num_gaps
+    if seq_index < 0:
+        seq_index += parent_length
+
+    if seq_index < 0:
+        raise IndexError(f"{seq_index} negative seq_index beyond limit ")
+
+    if not num_gaps or seq_index < gap_pos[0]:
+        return int(seq_index)
+
+    # if slice_stop, check if the seq_index corresponds to a gap position
+    match = seq_index == gap_pos
+    if slice_stop and match.any():
+        # if so, we return the alignment coord for the first gap position
+        (idx,) = numpy.where(match)[0]
+        if idx:
+            gap_len = cum_lengths[idx] - cum_lengths[idx - 1]
+        else:
+            gap_len = cum_lengths[idx]
+        gap_end = gap_pos[idx] + cum_lengths[idx]
+        return int(gap_end - gap_len)
+
+    if seq_index >= gap_pos[-1]:
+        return int(seq_index + cum_lengths[-1])
+
+    # find gap position before seq_index
+    index = numpy.searchsorted(gap_pos, seq_index, side="left")
+    if seq_index < gap_pos[index]:
+        gap_lengths = cum_lengths[index - 1] if index else 0
+    else:
+        gap_lengths = cum_lengths[index]
+
+    return int(seq_index + gap_lengths)
+
+
+@numba.jit
+def align_to_seq_index(
+    gap_pos: IntArrayTypes,
+    cum_lengths: IntArrayTypes,
+    len_aligned: int,
+    num_gaps: int,
+    align_index: int,
+) -> int:  # pragma: no cover
+    """converts alignment index to sequence index
+
+    Parameters
+    ----------
+    gap_pos
+        array of gap positions in sequence coordinates
+    cum_lengths
+        array of cumulative gap lengths
+    len_aligned
+        length of aligned sequence
+    num_gaps
+        the number of gaps
+    align_index
+        coordinate on the alignment, must be < len_aligned
+    """
+    assert len(gap_pos) == len(cum_lengths) == num_gaps
+    # NOTE I explicitly cast all returned values to python int's due to
+    # need for json serialisation, which does not support numpy int classes
+    if align_index < 0:
+        align_index = len_aligned + align_index
+    if align_index < 0:
+        raise IndexError(f"{align_index} align_index beyond limit")
+
+    if not num_gaps or align_index < gap_pos[0]:
+        return align_index
+
+    # these are alignment indices for gaps
+    gap_starts, gap_ends = _gap_spans(gap_pos, cum_lengths)
+    if align_index >= gap_ends[-1]:
+        return int(align_index - cum_lengths[-1])
+
+    index = numpy.searchsorted(gap_ends, align_index, side="left")
+    if align_index < gap_starts[index]:
+        # before the gap at index
+        return int(align_index - cum_lengths[index - 1])
+
+    if align_index == gap_ends[index]:
+        # after the gap at index
+        return int(align_index - cum_lengths[index])
+
+    if gap_starts[index] <= align_index < gap_ends[index]:
+        # within the gap at index
+        # so the gap insertion position is the sequence position
+        return int(gap_pos[index])
+
+
+def all_gaps_modulo_factor(cum_lengths: numpy.ndarray, factor: int) -> bool:
+    """returns True if all gap lengths are multiples of factor"""
+    return numpy.all(cum_lengths % factor == 0)
+
+
 @dataclasses.dataclass
 class IndelMap(MapABC):
     """store locations of deletions in a Aligned sequence
@@ -1011,7 +869,7 @@ class IndelMap(MapABC):
         if ``True``, returns new instance with terminal gaps indicated as
         unknown character '?'
     parent_length
-        length of parent sequence (i.e. aligned sequence with gaps)
+        length of parent sequence (i.e. aligned sequence without gaps)
     """
 
     # gap data is gap positions, gap lengths on input, stored
@@ -1040,6 +898,9 @@ class IndelMap(MapABC):
                 f"gap position {self.gap_pos[-1]} outside parent_length {self.parent_length}"
             )
 
+        # force all to int32
+        self.gap_pos = self.gap_pos.astype(numpy.int32)
+        self.cum_gap_lengths = self.cum_gap_lengths.astype(numpy.int32)
         # make gap array immutable
         self.gap_pos.flags.writeable = False
         self.cum_gap_lengths.flags.writeable = False
@@ -1121,104 +982,177 @@ class IndelMap(MapABC):
         # we're assuming that this gap object is associated with a sequence
         # that will also be sliced. Hence, we need to shift the gap insertion
         # positions relative to this newly sliced sequence.
-        if item.step is not None:
-            raise NotImplementedError(
-                f"{type(self).__name__!r} does not yet support strides"
-            )
-        zero_array = numpy.array([], dtype=_DEFAULT_GAP_DTYPE)
-        start = item.start or 0
-        stop = item.stop if item.stop is not None else len(self)
 
-        # convert negative indices
-        start = start if start >= 0 else len(self) + start
-        stop = stop if stop >= 0 else len(self) + stop
-        if min((start, stop)) < 0:
-            raise IndexError("item.start or item.stop is out of range")
+        # refactor: simplify
 
-        if start >= stop:
-            # standard slice behaviour without negative step
-            return self.__class__(
-                gap_pos=zero_array.copy(),
-                cum_gap_lengths=zero_array.copy(),
-                parent_length=0,
-            )
+        step = 1 if item.step is None else item.step
+        func = _input_vals_pos_step if step > 0 else _input_vals_neg_step
+        start, stop, step = func(len(self), item.start, item.stop, step)
 
-        # we address three easy cases:
-        # 1 - no gaps; 2 - slice before first gap; 3 - after last gap
-        no_gaps = self.__class__(
-            gap_pos=zero_array.copy(),
-            cum_gap_lengths=zero_array.copy(),
-            parent_length=stop - start,
-        )
-        if not self.num_gaps:
-            return no_gaps
+        if step < 0:
+            start = -start - 1
+            stop = -stop - 1
+            return self.nucleic_reversed()[start:stop:-step]
 
-        first_gap = self.gap_pos[0]
-        last_gap = self.gap_pos[-1] + self.cum_gap_lengths[-1]
-        if stop < first_gap or start >= last_gap:
-            return no_gaps
+        if self._check_no_gap_slice(start, stop):
+            return self._zero_imap(start, stop, step)
 
         gap_starts, gap_ends = _gap_spans(self.gap_pos, self.cum_gap_lengths)
-        gap_pos = self.gap_pos.copy()
-        cum_lengths = self.cum_gap_lengths.copy()
-        # we find where the slice starts
-        l = numpy.searchsorted(gap_ends, start, side="left")
+
+        # determine the gap index where the slice starts
+        l = numpy.searchsorted(gap_ends, start + 1, side="left")
+
+        # check if entire slice is within a single gap
         if gap_starts[l] <= start < gap_ends[l] and stop <= gap_ends[l]:
-            # entire span is within a single gap
-            # pos now 0
-            gap_pos = numpy.array([0], dtype=_DEFAULT_GAP_DTYPE)
-            cum_lengths = cum_lengths[l : l + 1]
-            cum_lengths[0] = stop - start
-            return self.__class__(
-                gap_pos=gap_pos, cum_gap_lengths=cum_lengths, parent_length=0
+            return self._single_imap(start, stop, step)
+
+        cum_seq_length = 0
+        adj_gaps = []
+        lengths = self.get_gap_lengths()
+
+        # determine the beginning of the slice
+        if gap_starts[l] <= start < gap_ends[l]:
+            # start is within a gap
+            adj = start - gap_starts[l]
+            # we want "ceiling division" to determine how many steps are
+            # included which we can achieve with upside down "floor division"
+            # e.g., a gap of 3 with a step of 2 should be 2 steps
+            adj_gap_len = -((lengths[l] - adj) // -step)
+            adj_gaps.append([0, adj_gap_len])
+        else:
+            # start is within a ungapped segment
+            if stop <= gap_starts[l]:
+                # the stop is within the same ungapped segment
+                return self._zero_imap(start, stop, step)
+
+            # determine the preceding seq length
+            cum_seq_length += _step_adjusted_length(
+                start=start, end=gap_starts[l], adj=0, step=step
+            )
+            # adj is how many more steps we need to take from the beginning of
+            # the gap to reach a position which is a multiple of the step
+            adj = _step_adjustment(gap_starts[l], start, step)
+            # check gap is not stepped over entirely
+            if adj < lengths[l]:
+                adj_gap_len = -((lengths[l] - adj) // -step)
+                adj_gaps.append([cum_seq_length, adj_gap_len])
+
+        # start search for rhs index
+        r = numpy.searchsorted(gap_ends[l:], stop, side="right") + l
+
+        # iterate through the gaps that are fully within the slice
+        for j in range(l + 1, r):
+            # determine how long the preceding ungapped segment was
+            adj = _step_adjustment(gap_ends[j - 1], start, step)
+            adj_seq_len = _step_adjusted_length(
+                (gap_ends[j - 1]), gap_starts[j], adj, step
+            )
+            cum_seq_length += adj_seq_len
+
+            # calculate the adjustment to the gap
+            adj = _step_adjustment(gap_starts[j], start, step)
+            if adj < lengths[j]:
+                # if adj > length, then the gap is "stepped over" by the stride
+                adj_gap_len = -((lengths[j] - adj) // -step)
+
+                if adj_gaps and adj_gaps[-1][0] == cum_seq_length:
+                    # previous gap is contiguous with this one
+                    adj_gaps[-1][1] += adj_gap_len
+                else:
+                    adj_gaps.append([cum_seq_length, adj_gap_len])
+
+        # determine the end of the slice
+        if l == r:
+            # the stop was inside the first gap
+            adj = _step_adjustment(gap_starts[r], start, step)
+
+            if adj_gaps:
+                # start was in the gap
+                adj_gaps[-1][1] = _step_adjusted_length(gap_starts[r], stop, adj, step)
+            else:
+                # start was in the seq before the gap
+                adj_gaps.append(
+                    [
+                        cum_seq_length,
+                        _step_adjusted_length(gap_starts[r], stop, adj, step),
+                    ]
+                )
+
+        elif stop >= gap_ends[-1] or stop < gap_starts[r]:
+            # stop is within an ungapped segment
+            adj = _step_adjustment(gap_ends[r - 1], start, step)
+            cum_seq_length += _step_adjusted_length(gap_ends[r - 1], stop, adj, step)
+        else:
+            # stop is within a gap
+            # determine length of previous ungapped segment
+            adj = _step_adjustment(gap_ends[r - 1], start, step)
+            cum_seq_length += _step_adjusted_length(
+                gap_ends[r - 1], gap_starts[r], adj, step
             )
 
-        lengths = self.get_gap_lengths()
-        if start < first_gap:
-            # start is before the first gap, we don't slice or shift
-            shift = start
-            begin = 0
-        elif gap_starts[l] <= start < gap_ends[l]:
-            # start is within a gap
-            # so the absolute gap_pos value remains unchanged, but we shorten
-            # the gap length
-            begin = l
-            begin_diff = start - gap_starts[l]
-            lengths[l] -= begin_diff
-            shift = (start - cum_lengths[l - 1] - begin_diff) if l else gap_pos[0]
-        elif start == gap_ends[l]:
-            # at gap boundary, so beginning of non-gapped segment
-            # no adjustment to gap lengths
-            begin = l + 1
-            shift = start - cum_lengths[l]
-        else:
-            # not within a gap
-            begin = l
-            shift = start - cum_lengths[l - 1] if l else start
+            # determine length of the gap when considering the stop
+            adj = _step_adjustment(gap_starts[r], start, step)
+            adj_gap_len = _step_adjusted_length(gap_starts[r], stop, adj, step)
 
-        # start search for stop from l index
-        r = numpy.searchsorted(gap_ends[l:], stop, side="right") + l
-        if r == self.num_gaps:
-            # stop is after last gap
-            end = r
-        elif gap_starts[r] < stop <= gap_ends[r]:
-            # within gap
-            end = r + 1
-            end_diff = gap_ends[r] - stop
-            lengths[r] -= end_diff
-        else:
-            end = r
+            # check that we do not step over the gap entirely
+            if adj_gap_len > 0:
+                if adj_gaps and adj_gaps[-1][0] == cum_seq_length:
+                    # the previous gap is contiguous with this one
+                    adj_gaps[-1][1] += adj_gap_len
+                else:
+                    adj_gaps.append([cum_seq_length, adj_gap_len])
 
-        pos_result = gap_pos[begin:end]
-        pos_result -= shift
-        lengths = lengths[begin:end]
-        parent_length = self.get_seq_index(stop) - self.get_seq_index(start)
+        pos_result = numpy.array([x for x, _ in adj_gaps])
+        lengths = numpy.array([y for _, y in adj_gaps])
+        parent_length = cum_seq_length
 
         return self.__class__(
             gap_pos=pos_result,
             gap_lengths=lengths,
             parent_length=parent_length,
         )
+
+    def _zero_imap(self, start: int, stop: int, step: int) -> "IndelMap":
+        """returns a new IndelMap with zero gaps"""
+        zero_array = numpy.array([], dtype=_DEFAULT_GAP_DTYPE)
+        return self.__class__(
+            gap_pos=zero_array.copy(),
+            cum_gap_lengths=zero_array.copy(),
+            parent_length=_step_adjusted_length(start, stop, 0, step),
+        )
+
+    def _single_imap(self, start: int, stop: int, step: int) -> "IndelMap":
+        """returns a new IndelMap with a single gap"""
+        gap_pos = numpy.array([0], dtype=_DEFAULT_GAP_DTYPE)
+        cum_gap_length = numpy.array([_step_adjusted_length(start, stop, 0, step)])
+        return self.__class__(
+            gap_pos=gap_pos, cum_gap_lengths=cum_gap_length, parent_length=0
+        )
+
+    def _check_no_gap_slice(self, start: int, stop: int) -> bool:
+        """check for easy cases where slicing an indel maps results in no gaps.
+
+        Returns
+            True if no gaps are present in the slice
+        """
+        # note that this methods assumes positive indexing and a positive step
+        # (i.e. start, stop, step > 0)
+
+        # when slicing an indel maps, we can have four easy cases:
+        # 1 - invalid slice
+        if start == stop:
+            return True
+
+        # 2 - no gaps
+        if not self.num_gaps:
+            return True
+
+        first_gap = self.gap_pos[0]  # start of first gap
+        last_gap = self.gap_pos[-1] + self.cum_gap_lengths[-1]  # end of last gap
+
+        # 3 - slice before first gap; 4 - after last gap (for positive step)
+        if stop <= first_gap or start >= last_gap:
+            return True
 
     def get_align_index(self, seq_index: int, slice_stop: bool = False) -> int:
         """convert a sequence index into an alignment index
@@ -1232,73 +1166,30 @@ class IndelMap(MapABC):
             In that case, and if seq_index is in gap_pos then it returns
             the first alignment index of the gap run.
         """
-        cum_lengths = self.cum_gap_lengths
-        gap_pos = self.gap_pos
+        index = seq_to_align_index(
+            self.gap_pos,
+            self.cum_gap_lengths,
+            self.parent_length,
+            self.num_gaps,
+            seq_index,
+            slice_stop,
+        )
         # NOTE I explicitly cast all returned values to python int's due to
         # need for json serialisation, which does not support numpy int classes
-        if seq_index < 0:
-            seq_index += self.parent_length
-
-        if seq_index < 0:
-            raise IndexError(f"{seq_index} negative seq_index beyond limit ")
-
-        if not self.num_gaps or seq_index < gap_pos[0]:
-            return int(seq_index)
-
-        # if stop_index, check if the seq_index corresponds to a gap position
-        if slice_stop and (match := seq_index == gap_pos).any():
-            # if so, we return the alignment coord for the first gap position
-            (idx,) = numpy.where(match)[0]
-            if idx:
-                gap_len = cum_lengths[idx] - cum_lengths[idx - 1]
-            else:
-                gap_len = cum_lengths[idx]
-            gap_end = gap_pos[idx] + cum_lengths[idx]
-            return int(gap_end - gap_len)
-
-        if seq_index >= gap_pos[-1]:
-            return int(seq_index + cum_lengths[-1])
-
-        # find gap position before seq_index
-        index = numpy.searchsorted(gap_pos, seq_index, side="left")
-        if seq_index < gap_pos[index]:
-            gap_lengths = cum_lengths[index - 1] if index else 0
-        else:
-            gap_lengths = cum_lengths[index]
-
-        return int(seq_index + gap_lengths)
+        return int(index)
 
     def get_seq_index(self, align_index: int) -> int:
         """converts alignment index to sequence index"""
+        val = align_to_seq_index(
+            self.gap_pos,
+            self.cum_gap_lengths,
+            len(self),
+            self.num_gaps,
+            align_index,
+        )
         # NOTE I explicitly cast all returned values to python int's due to
         # need for json serialisation, which does not support numpy int classes
-        if align_index < 0:
-            align_index = len(self) + align_index
-        if align_index < 0:
-            raise IndexError(f"{align_index} align_index beyond limit")
-
-        if not self.num_gaps or align_index < self.gap_pos[0]:
-            return align_index
-
-        # these are alignment indices for gaps
-        cum_lengths = self.cum_gap_lengths
-        gap_starts, gap_ends = _gap_spans(self.gap_pos, cum_lengths)
-        if align_index >= gap_ends[-1]:
-            return int(align_index - cum_lengths[-1])
-
-        index = numpy.searchsorted(gap_ends, align_index, side="left")
-        if align_index < gap_starts[index]:
-            # before the gap at index
-            return int(align_index - cum_lengths[index - 1])
-
-        if align_index == gap_ends[index]:
-            # after the gap at index
-            return int(align_index - cum_lengths[index])
-
-        if gap_starts[index] <= align_index < gap_ends[index]:
-            # within the gap at index
-            # so the gap insertion position is the sequence position
-            return int(self.gap_pos[index])
+        return int(val)
 
     def __len__(self) -> int:
         length_gaps = self.cum_gap_lengths[-1] if self.num_gaps else 0
@@ -1565,7 +1456,7 @@ class IndelMap(MapABC):
         )
 
     def to_feature_map(self) -> "FeatureMap":
-        """returns a Map type, suited to Features"""
+        """returns a FeatureMap type, suited to Features"""
         return FeatureMap(spans=list(self.spans), parent_length=self.parent_length)
 
     def make_seq_feature_map(self, align_feature_map: "FeatureMap") -> "FeatureMap":
@@ -1669,6 +1560,46 @@ class IndelMap(MapABC):
             gap_lengths=gap_lengths,
             parent_length=self.parent_length,
         )
+
+    def scaled(self, scale_factor: float) -> "IndelMap":
+        """returns indel map scaled by scale_factor
+
+        Notes
+        -----
+        For usage with interconverting between codon and amino-acid alignments.
+        Set scale_factor to 3 for converting amino-acid alignment to codon
+        alignment. Set scale_factor to 1/3 for converting codon alignment to
+        amino-acid alignment.
+        """
+        if scale_factor == 1:
+            return self
+
+        # need to check that, if scale_factor is < 1, it's inverse is an integer
+        if scale_factor < 1:
+            if not numpy.allclose(1 / scale_factor, int(1 / scale_factor)):
+                raise ValueError(
+                    f"scale_factor {scale_factor} must be an integer or 1/integer"
+                )
+
+            if not all_gaps_modulo_factor(self.cum_gap_lengths, int(1 / scale_factor)):
+                raise ValueError(
+                    f"gap lengths must be multiples of {int(1 / scale_factor)}"
+                )
+
+        # make sure gap lengths are modulo factor
+        parent_len = int(self.parent_length * scale_factor)
+        gap_pos = (self.gap_pos * scale_factor).astype(self.gap_pos.dtype)
+        cum_gap_lengths = (self.cum_gap_lengths * scale_factor).astype(
+            self.cum_gap_lengths.dtype
+        )
+        return self.__class__(
+            gap_pos=gap_pos, cum_gap_lengths=cum_gap_lengths, parent_length=parent_len
+        )
+
+    @property
+    def array(self):
+        """returns 2D numpy array with columns gap position and cum gap lengths"""
+        return numpy.array([self.gap_pos, self.cum_gap_lengths]).T
 
 
 _empty = None, None
@@ -1885,7 +1816,7 @@ class FeatureMap(MapABC):
         )
 
     def covered(self) -> "FeatureMap":
-        """>>> Map([(10,20), (15, 25), (80, 90)]).covered().spans
+        """>>> FeatureMap([(10,20), (15, 25), (80, 90)]).covered().spans
         [Span(10,25), Span(80, 90)]"""
 
         delta = {}
@@ -2029,11 +1960,7 @@ class FeatureMap(MapABC):
         return self.__class__(spans=new_spans, parent_length=len(self))
 
     def get_coordinates(self) -> SeqCoordTypes:
-        """returns span coordinates as [(v1, v2), ...]
-
-        v1/v2 are (start, end) unless the map is reversed, in which case it will
-        be (end, start)"""
-
+        """returns span coordinates as [(v1, v2), ...]"""
         return [(s.start, s.end) for s in self.spans if not s.lost]
 
     def to_rich_dict(self) -> dict[str, Any]:
@@ -2153,7 +2080,7 @@ def gap_coords_to_map(
 
     Returns
     -------
-    Map
+    IndelMap instance
     """
 
     if not gaps_lengths:
@@ -2175,6 +2102,10 @@ def deserialise_indelmap(data: dict) -> IndelMap:
 @register_deserialiser(get_object_provenance(FeatureMap))
 def deserialise_featuremap(data: dict) -> FeatureMap:
     return FeatureMap.from_rich_dict(data)
+
+
+@register_deserialiser("cogent3.core.location.Map")
+def deserialise_map(data: dict) -> FeatureMap: ...
 
 
 @functools.singledispatch
