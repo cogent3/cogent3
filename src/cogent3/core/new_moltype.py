@@ -617,6 +617,8 @@ class MolType:
             raise new_alphabet.AlphabetError(
                 f"{seq[:4]!r} not valid for moltype {self.name!r}"
             )
+        if not self.is_nucleic:
+            raise MolTypeError(f"{self.name!r} cannot complement")
         return self._complement(seq)
 
     @complement.register
