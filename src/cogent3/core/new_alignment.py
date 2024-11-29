@@ -5008,39 +5008,35 @@ class Alignment(SequenceCollection):
     def distance_matrix(
         self,
         calc: str = "pdist",
-        show_progress: bool = False,
         drop_invalid: bool = False,
+        parallel: bool = False,
     ):
         """Returns pairwise distances between sequences.
 
         Parameters
         ----------
         calc
-            a pairwise distance calculator or name of one. For options see
-            cogent3.evolve.fast_distance.available_distances
-        show_progress
-            controls progress display for distance calculation
+            a pairwise distance calculator name. Presently only
+            'pdist', 'jc69', 'tn93', 'hamming', 'paralinear' are supported.
         drop_invalid
             If True, sequences for which a pairwise distance could not be
             calculated are excluded. If False, an ArithmeticError is raised if
             a distance could not be computed on observed data.
         """
-        from cogent3.evolve.fast_distance import get_distance_calculator
+        from cogent3.evolve.pairwise_distance_numba import get_distance_calculator
 
+        calc = get_distance_calculator(
+            calc,
+        )
         try:
-            calculator = get_distance_calculator(
-                calc,
-                moltype=self.moltype,
-                alignment=self,
-                invalid_raises=not drop_invalid,
-            )
-            calculator.run(show_progress=show_progress)
+            result = calc(self, invalid_raises=not drop_invalid, parallel=parallel)
         except ArithmeticError as e:
             msg = "not all pairwise distances could be computed, try drop_invalid=True"
             raise ArithmeticError(msg) from e
-        result = calculator.get_pairwise_distances()
+
         if drop_invalid:
             result = result.drop_invalid()
+
         return result
 
     @UI.display_wrap
@@ -5049,6 +5045,7 @@ class Alignment(SequenceCollection):
         calc: str = "pdist",
         bootstrap: OptInt = None,
         drop_invalid: bool = False,
+        parallel: bool = False,
         show_progress: bool = False,
         ui=None,  # refactor: type hint
     ):
@@ -5067,6 +5064,8 @@ class Alignment(SequenceCollection):
             If True, sequences for which a pairwise distance could not be
             calculated are excluded. If False, an ArithmeticError is raised if
             a distance could not be computed on observed data.
+        parallel
+            parallel execution of distance calculations
         show_progress
             controls progress display for distance calculation
 
@@ -5086,7 +5085,7 @@ class Alignment(SequenceCollection):
         from cogent3.phylo.nj import gnj
 
         dm = self.distance_matrix(
-            calc=calc, show_progress=show_progress, drop_invalid=drop_invalid
+            calc=calc, drop_invalid=drop_invalid, parallel=parallel
         )
         results = gnj(dm, keep=1, show_progress=show_progress)
         kept_names = set(dm.template.names[0])
@@ -5098,7 +5097,7 @@ class Alignment(SequenceCollection):
                 b = subaln.sample(with_replacement=True)
                 try:
                     bdist = b.distance_matrix(
-                        calc=calc, show_progress=show_progress, drop_invalid=False
+                        calc=calc, drop_invalid=drop_invalid, parallel=parallel
                     )
                 except ArithmeticError:
                     # all sequences must have a pairwise distance to allow

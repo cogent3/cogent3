@@ -4246,7 +4246,7 @@ def test_alignment_distance_matrix():
     """Alignment distance_matrix should produce correct scores"""
     data = dict([("s1", "ACGTACGTA"), ("s2", "GTGTACGTA")])
     aln = new_alignment.make_aligned_seqs(data, moltype="dna")
-    dists = aln.distance_matrix(calc="hamming", show_progress=False)
+    dists = aln.distance_matrix(calc="hamming")
     assert dists == {("s1", "s2"): 2.0, ("s2", "s1"): 2.0}
     # and for protein
     aa = aln.get_translation()

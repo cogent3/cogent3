@@ -12,6 +12,7 @@ from cogent3 import (
     make_aligned_seqs,
     make_unaligned_seqs,
 )
+from cogent3.evolve import pairwise_distance_numba as pdist_numba
 from cogent3.evolve.distance import EstimateDistances
 from cogent3.evolve.fast_distance import (
     DistanceMatrix,
@@ -22,18 +23,15 @@ from cogent3.evolve.fast_distance import (
     ProportionIdenticalPair,
     TN93Pair,
     _calculators,
-    _fill_diversity_matrix,
     _hamming,
     _jc69_from_matrix,
     available_distances,
+    fill_diversity_matrix,
     get_distance_calculator,
     get_moltype_index_array,
     seq_to_indices,
 )
 from cogent3.evolve.models import F81, HKY85, JC69
-from cogent3.evolve.pairwise_distance_numba import (
-    fill_diversity_matrix as numba_fill_diversity_matrix,
-)
 
 warnings.filterwarnings("ignore", "Not using MPI as mpi4py not found")
 
@@ -270,7 +268,7 @@ def test_fill_diversity_matrix_all(dna_char_indices):
     s2 = seq_to_indices("GTGTACGTAC", dna_char_indices)
     matrix = numpy.zeros((4, 4), float)
     # self-self should just be an identity matrix
-    _fill_diversity_matrix(matrix, s1, s1)
+    fill_diversity_matrix(matrix, s1, s1)
     assert_equal(matrix.sum(), len(s1))
     assert_equal(
         matrix,
@@ -279,7 +277,7 @@ def test_fill_diversity_matrix_all(dna_char_indices):
 
     # small diffs
     matrix.fill(0)
-    _fill_diversity_matrix(matrix, s1, s2)
+    fill_diversity_matrix(matrix, s1, s2)
     assert_equal(
         matrix,
         numpy.array([[2, 0, 0, 0], [1, 2, 0, 0], [0, 0, 2, 1], [0, 0, 0, 2]], float),
@@ -292,7 +290,7 @@ def test_fill_diversity_matrix_some(dna_char_indices):
     s2 = seq_to_indices("AGTGTACGTACA", dna_char_indices)
     matrix = numpy.zeros((4, 4), float)
     # self-self should just be an identity matrix
-    _fill_diversity_matrix(matrix, s1, s1)
+    fill_diversity_matrix(matrix, s1, s1)
     assert_equal(matrix.sum(), 10)  # 2 invalid chars
     assert_equal(
         matrix,
@@ -301,22 +299,11 @@ def test_fill_diversity_matrix_some(dna_char_indices):
 
     # small diffs
     matrix.fill(0)
-    _fill_diversity_matrix(matrix, s1, s2)
+    fill_diversity_matrix(matrix, s1, s2)
     assert_equal(
         matrix,
         numpy.array([[2, 0, 0, 0], [1, 2, 0, 0], [0, 0, 2, 1], [0, 0, 0, 2]], float),
     )
-
-
-def test_python_vs_numba_fill_matrix(dna_char_indices):
-    """python & cython fill_diversity_matrix give same answer"""
-    s1 = seq_to_indices("RACGTACGTACN", dna_char_indices)
-    s2 = seq_to_indices("AGTGTACGTACA", dna_char_indices)
-    matrix1 = numpy.zeros((4, 4), float)
-    matrix2 = numpy.zeros((4, 4), float)
-    _fill_diversity_matrix(matrix1, s1, s2)
-    numba_fill_diversity_matrix(matrix2, s1, s2)
-    assert_equal(matrix1, matrix2)
 
 
 def test_hamming_from_matrix(dna_char_indices):
@@ -324,7 +311,7 @@ def test_hamming_from_matrix(dna_char_indices):
     s1 = seq_to_indices("ACGTACGTAC", dna_char_indices)
     s2 = seq_to_indices("GTGTACGTAC", dna_char_indices)
     matrix = numpy.zeros((4, 4), float)
-    _fill_diversity_matrix(matrix, s1, s2)
+    fill_diversity_matrix(matrix, s1, s2)
     total = 0
     for i in range(4):
         total += matrix[i, i]
@@ -352,7 +339,7 @@ def test_jc69_from_matrix(dna_char_indices):
     s1 = seq_to_indices("ACGTACGTAC", dna_char_indices)
     s2 = seq_to_indices("GTGTACGTAC", dna_char_indices)
     matrix = numpy.zeros((4, 4), float)
-    _fill_diversity_matrix(matrix, s1, s2)
+    fill_diversity_matrix(matrix, s1, s2)
     total = 0
     for i in range(4):
         total += matrix[i, i]
@@ -1072,3 +1059,123 @@ def test_to_table():
     assert table.columns["names"].tolist() == list(darr.names)
     assert table["A", "B"] == 2
     assert table["A", "A"] == 0
+
+
+@pytest.mark.parametrize(
+    "aln", ["basic_alignment", "ambig_alignment", "diff_alignment"]
+)
+def test_jc69_dists(request, aln):
+    """full numba implementation matches original"""
+    aln = request.getfixturevalue(aln)
+    calc = JC69Pair(DNA, alignment=aln)
+    calc.run(show_progress=False)
+    expect = calc.dists.array
+    got = pdist_numba.jc69(aln)
+    assert_allclose(expect, got)
+
+
+@pytest.mark.parametrize("aln", ["basic_alignment", "diff_alignment"])
+def test_tn93_dists(request, aln):
+    """full numba implementation matches original"""
+    # note: I excluded the ambig_alignment case because the
+    # old and new approaches differ in how they compute the
+    # nucleotide frequencies. The old approach would effectively
+    # exclude data in aligned columns that contained a
+    # non-canonical state, the approach computes the nucleotide
+    # frequencies from the whole alignment and so does not exclude
+    # valid states just because another sequence has an ambiguity
+    aln = request.getfixturevalue(aln)
+    # convert to new type alignment
+    aln = make_aligned_seqs(data=aln.to_dict(), moltype="dna", new_type=True)
+    calc = TN93Pair(aln.moltype, alignment=aln)
+    calc.run(show_progress=False)
+    expect = calc.dists.array
+    got = pdist_numba.tn93(aln, parallel=False)
+    assert_allclose(got.array, expect)
+
+
+@pytest.mark.parametrize("aln", ["basic_alignment", "diff_alignment"])
+def test_paralinear_dists(request, aln):
+    aln = request.getfixturevalue(aln)
+    # convert to new type alignment
+    aln = make_aligned_seqs(data=aln.to_dict(), moltype="dna", new_type=True)
+    calc = ParalinearPair(aln.moltype, alignment=aln)
+    calc.run(show_progress=False)
+    expect = calc.dists.array
+    got = pdist_numba.paralinear(aln, parallel=False)
+    assert_allclose(got.array, expect, atol=1e-6)
+
+
+@pytest.mark.parametrize(
+    "aln", ["basic_alignment", "ambig_alignment", "diff_alignment"]
+)
+def test_hamming_dists(request, aln):
+    aln = request.getfixturevalue(aln)
+    # convert to new type alignment
+    aln = make_aligned_seqs(data=aln.to_dict(), moltype="dna", new_type=True)
+    calc = HammingPair(aln.moltype, alignment=aln)
+    calc.run(show_progress=False)
+    expect = calc.dists.array
+    got = pdist_numba.hamming(aln, parallel=False)
+    assert_allclose(got.array, expect)
+
+
+@pytest.mark.parametrize(
+    "aln", ["basic_alignment", "ambig_alignment", "diff_alignment"]
+)
+def test_prop_dists(request, aln):
+    aln = request.getfixturevalue(aln)
+    # convert to new type alignment
+    aln = make_aligned_seqs(data=aln.to_dict(), moltype="dna", new_type=True)
+    calc = ProportionIdenticalPair(aln.moltype, alignment=aln)
+    calc.run(show_progress=False)
+    expect = calc.dists.array
+    got = pdist_numba.pdist(aln, parallel=False)
+    assert_allclose(got.array, expect)
+
+
+@pytest.mark.parametrize("calc", ["jc69", "tn93", "paralinear", "hamming", "pdist"])
+def test_numba_get_dist(calc, basic_alignment) -> None:
+    aln = make_aligned_seqs(
+        data=basic_alignment.to_dict(), moltype="dna", new_type=True
+    )
+    calc = pdist_numba.get_distance_calculator(calc)
+    got = calc(aln)
+    assert isinstance(got, DistanceMatrix)
+
+
+@pytest.mark.parametrize("calc", ["tn93", "paralinear"])
+def test_invalid_moltype_fast_distances(calc, basic_alignment):
+    from cogent3.core import new_moltype
+
+    aln = make_aligned_seqs(
+        data=basic_alignment.to_dict(), moltype="protein", new_type=True
+    )
+    calc = pdist_numba.get_distance_calculator(calc)
+    with pytest.raises(new_moltype.MolTypeError):
+        calc(aln, invalid_raises=True)
+
+
+def test_new_paralinear_for_determinant_lte_zero():
+    """returns distance of None if the determinant is <= 0"""
+    data = dict(
+        seq1="AGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT",
+        seq2="TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC",
+    )
+    aln = make_aligned_seqs(data=data, moltype="dna", new_type=True)
+
+    dists = pdist_numba.paralinear(aln, parallel=False)
+    assert numpy.isnan(dists.array).any()
+
+    # raises ArithmeticError if told to
+    with pytest.raises(ArithmeticError):
+        dists = pdist_numba.paralinear(aln, parallel=False, invalid_raises=True)
+
+    # also raised if alignment method used
+    with pytest.raises(ArithmeticError):
+        aln.distance_matrix(calc="paralinear", drop_invalid=False)
+
+
+def test_unknown_dist():
+    with pytest.raises(ValueError):
+        pdist_numba.get_distance_calculator("blah")
