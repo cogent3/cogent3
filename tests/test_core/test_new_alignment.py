@@ -5257,3 +5257,14 @@ def test_load_with_pathlib(mk_cls, home_seqs):
     path = home_seqs
     got = mk_cls(path, moltype="dna")
     assert "Human" in got.names
+
+
+def test_load_from_url():
+    import cogent3
+
+    aln = cogent3.load_aligned_seqs(
+        "https://raw.githubusercontent.com/cogent3/cogent3/develop/doc/data/long_testseqs.fasta",
+        moltype="dna",
+        new_type=True,
+    )
+    assert isinstance(aln, new_alignment.Alignment)

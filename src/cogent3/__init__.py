@@ -41,7 +41,7 @@ from cogent3.parse.sequence import get_parser, is_genbank
 from cogent3.parse.table import load_delimited
 from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
 from cogent3.util import warning as c3warn
-from cogent3.util.io import get_format_suffixes, open_
+from cogent3.util.io import get_format_suffixes, is_url, open_
 from cogent3.util.progress_display import display_wrap
 from cogent3.util.table import Table as _Table
 from cogent3.util.table import cast_str_to_array
@@ -306,7 +306,8 @@ def _load_files_to_unaligned_seqs(
 
 def _load_seqs(file_format, filename, fmt, parser_kw):
     """utility function for loading sequences"""
-    filename = pathlib.Path(filename).expanduser()
+    if not is_url(filename):
+        filename = pathlib.Path(filename).expanduser()
     fmt = fmt or file_format
     if not fmt:
         msg = "could not determined file format, set using the format argument"
