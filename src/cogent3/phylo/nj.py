@@ -42,7 +42,7 @@ class LightweightTreeNode(frozenset):
         return type(self)(frozenset.__or__(self, other))
 
 
-class PartialTree(object):
+class PartialTree:
     """A candidate tree stored as
     (distance matrix, list of subtrees, list of tip sets, set of partitions, score).
     At each iteration (ie: call of the join method) the number of subtrees
@@ -83,7 +83,7 @@ class PartialTree(object):
 
         # Join i and k to make new node
         new_node = LightweightTreeNode(
-            [(left_length, nodes[i]), (right_length, nodes[j])]
+            [(left_length, nodes[i]), (right_length, nodes[j])],
         )
 
         # Store new node at i
@@ -115,12 +115,12 @@ class PartialTree(object):
         return (self.score + sum(lengths), tree)
 
 
-class Pair(object):
+class Pair:
     """A candidate neighbour join, not turned into an actual PartialTree until
     and unless we decide to use it, because calculating just the topology is
     faster than calculating the whole new distance matrix etc. as well."""
 
-    __slots__ = ["tree", "i", "j", "topology", "new_partition"]
+    __slots__ = ["i", "j", "new_partition", "topology", "tree"]
 
     def __init__(self, tree, i, j, topology, new_partition):
         self.tree = tree

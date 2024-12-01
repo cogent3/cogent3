@@ -28,8 +28,7 @@ def per_shortest(total, x, y):
     shortest = min(len(x), len(y))
     if not shortest:
         return 0
-    else:
-        return total / shortest
+    return total / shortest
 
 
 def per_longest(total, x, y):
@@ -42,11 +41,10 @@ def per_longest(total, x, y):
     longest = max(len(x), len(y))
     if not longest:
         return 0
-    else:
-        return total / longest
+    return total / longest
 
 
-class for_seq(object):
+class for_seq:
     """Returns function that applies f(i,j) to i,j in zip(first, second).
 
     f: f(i,j) applying to elements of the sequence.
@@ -70,16 +68,17 @@ class for_seq(object):
         f = self.f
         if self.normalizer is None:
             return self.aggregator([f(i, j) for i, j in zip(first, second)])
-        else:
-            return self.normalizer(
-                self.aggregator([f(i, j) for i, j in zip(first, second)]), first, second
-            )
+        return self.normalizer(
+            self.aggregator([f(i, j) for i, j in zip(first, second)]),
+            first,
+            second,
+        )
 
 
 # convenience functions for modifying objects
 
 
-class KeepChars(object):
+class KeepChars:
     """Returns a filter object o(s): call to return a filtered string.
 
     Specifically, strips out everything in s that is not in keep.

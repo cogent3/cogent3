@@ -51,7 +51,7 @@ def get_pairwise_distance_from_triad(data, summary_function="mean"):
     return pairwise_stats
 
 
-class EstimateDistances(object):
+class EstimateDistances:
     """base class used for estimating pairwise distances between sequences.
     Can also estimate other parameters from pairs."""
 
@@ -123,7 +123,8 @@ class EstimateDistances(object):
 
     def _make_pair_alignment(self, seqs, opt_kwargs):
         lf = self._sm.make_likelihood_function(
-            make_tree(tip_names=seqs.names), aligned=False
+            make_tree(tip_names=seqs.names),
+            aligned=False,
         )
         lf.set_sequences(seqs.named_seqs)
 
@@ -171,7 +172,8 @@ class EstimateDistances(object):
 
         # get the statistics
         stats_dict = lf.get_param_value_dict(
-            ["edge"], params=["length"] + self._est_params
+            ["edge"],
+            params=["length"] + self._est_params,
         )
 
         # if two-way, grab first distance only
@@ -256,7 +258,8 @@ class EstimateDistances(object):
 
         if self._threeway and param == "length":
             pairwise_stats = get_pairwise_distance_from_triad(
-                self._param_ests, summary_function=summary_function
+                self._param_ests,
+                summary_function=summary_function,
             )
         else:
             # no additional processing of the distances is required
@@ -278,7 +281,9 @@ class EstimateDistances(object):
 
         """
         dists = self.get_pairwise_param(
-            "length", summary_function=summary_function, **kwargs
+            "length",
+            summary_function=summary_function,
+            **kwargs,
         )
         return None if not dists else DistanceMatrix(dists)
 
@@ -318,8 +323,7 @@ class EstimateDistances(object):
                 for s2 in self._seqnames:
                     if s1 == s2:
                         continue
-                    else:
-                        d[(s1, s2)] = "Not Done"
+                    d[(s1, s2)] = "Not Done"
         twoD = []
         for s1 in self._seqnames:
             row = [s1]

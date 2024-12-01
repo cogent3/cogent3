@@ -17,12 +17,9 @@ REPLICATES = 2
 def float_ge_zero(num, epsilon=1e-6):
     """compare whether a floating point value is >= zero with epsilon
     tolerance."""
-    if num >= 0.0:
+    if num >= 0.0 or abs(num - 0.0) < epsilon:
         return True
-    elif abs(num - 0.0) < epsilon:
-        return True
-    else:
-        return False
+    return False
 
 
 class BootstrapTests(unittest.TestCase):
@@ -34,15 +31,16 @@ class BootstrapTests(unittest.TestCase):
     def getsubmod(self, choice="F81"):
         if choice == "F81":
             return substitution_model.TimeReversibleNucleotide(model_gaps=True)
-        else:
-            return substitution_model.TimeReversibleNucleotide(
-                model_gaps=True, predicates={"kappa": "transition"}
-            )
+        return substitution_model.TimeReversibleNucleotide(
+            model_gaps=True,
+            predicates={"kappa": "transition"},
+        )
 
     def getalignmentobj(self):
         moltype = self.getsubmod().moltype
         alignmentobj = load_aligned_seqs(
-            os.path.join(data_path, "brca1.fasta"), moltype=moltype
+            os.path.join(data_path, "brca1.fasta"),
+            moltype=moltype,
         )
         return alignmentobj.take_seqs(seqnames)[:1000]
 
@@ -79,7 +77,9 @@ class BootstrapTests(unittest.TestCase):
         alignobj = self.getalignmentobj()
 
         bstrap = bootstrap.EstimateConfidenceIntervals(
-            self.create_null_controller(alignobj), self.calclength, alignobj
+            self.create_null_controller(alignobj),
+            self.calclength,
+            alignobj,
         )
         bstrap.set_num_replicates(REPLICATES)
         bstrap.set_seed(1984)

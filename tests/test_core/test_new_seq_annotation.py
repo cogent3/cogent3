@@ -20,7 +20,7 @@ def makeSampleSequence(name, with_gaps=False):
     return seq
 
 
-@pytest.fixture()
+@pytest.fixture
 def ann_seq():
     return makeSampleSequence("seq1")
 
@@ -56,7 +56,10 @@ def test_features_survives_seq_rename(rev):
     gene_expect = str(seq[10:20]) + str(seq[25:30])
     assert str(gene.get_slice()) == gene_expect
     domain = seq.add_feature(
-        biotype="domain", name="domain1", spans=[(20, 25)], strand="-"
+        biotype="domain",
+        name="domain1",
+        spans=[(20, 25)],
+        strand="-",
     )
     domain_expect = str(seq[20:25].rc())
     domain_got = domain.get_slice()
@@ -79,12 +82,18 @@ def test_annotate_matches_to():
     seq = DNA.make_seq(seq="TTCCACTTCCGCTT", name="x")
     pattern = "CCRC"
     annot = seq.annotate_matches_to(
-        pattern=pattern, biotype="domain", name="fred", allow_multiple=True
+        pattern=pattern,
+        biotype="domain",
+        name="fred",
+        allow_multiple=True,
     )
     assert [a.get_slice() for a in annot] == ["CCAC", "CCGC"]
 
     annot = seq.annotate_matches_to(
-        pattern=pattern, biotype="domain", name="fred", allow_multiple=False
+        pattern=pattern,
+        biotype="domain",
+        name="fred",
+        allow_multiple=False,
     )
     assert len(annot) == 1
 
@@ -95,7 +104,10 @@ def test_annotate_matches_to():
     # should return an empty annotation.
     seq = ASCII.make_seq(seq="TTCCACTTCCGCTT")
     annot = seq.annotate_matches_to(
-        pattern=pattern, biotype="domain", name="fred", allow_multiple=False
+        pattern=pattern,
+        biotype="domain",
+        name="fred",
+        allow_multiple=False,
     )
     assert annot == []
 

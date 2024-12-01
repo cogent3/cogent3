@@ -181,7 +181,10 @@ class ReadingWritingFileFormats(unittest.TestCase):
         self.assertRaises(FileFormatError, aln.write, filename="blah")
         self.assertRaises(FileFormatError, aln.write, filename="blah.txt")
         self.assertRaises(
-            FileFormatError, aln.write, filename="blah.fasta", format="noway"
+            FileFormatError,
+            aln.write,
+            filename="blah.fasta",
+            format="noway",
         )
 
     def test_fasta(self):
@@ -203,7 +206,9 @@ class ReadingWritingFileFormats(unittest.TestCase):
 
     def test_phylip_interleaved(self):
         self._loadfromfile(
-            "interleaved.phylip", test_write=False, parser_kw=dict(interleaved=True)
+            "interleaved.phylip",
+            test_write=False,
+            parser_kw=dict(interleaved=True),
         )
 
     def test_paml(self):
@@ -221,7 +226,7 @@ class AlignmentTestMethods(unittest.TestCase):
 
     def setUp(self):
         self.alignment = load_aligned_seqs(
-            filename=os.path.join(DATA_DIR, "brca1_5.paml")
+            filename=os.path.join(DATA_DIR, "brca1_5.paml"),
         )
 
     def test_picklability(self):
@@ -292,20 +297,22 @@ class AlignmentTestMethods(unittest.TestCase):
     def test_slice_align(self):
         """test slicing of sequences"""
         alignment = make_aligned_seqs(
-            data={"seq1": "ACGTACGT", "seq2": "ACGTACGT", "seq3": "ACGTACGT"}
+            data={"seq1": "ACGTACGT", "seq2": "ACGTACGT", "seq3": "ACGTACGT"},
         )
         sub_align = alignment[2:5]
         self.assertEqual(len(sub_align), 3)
         self.assertEqual(len(sub_align.names), 3)
         self.assertEqual(
-            sub_align.to_dict(), {"seq1": "GTA", "seq2": "GTA", "seq3": "GTA"}
+            sub_align.to_dict(),
+            {"seq1": "GTA", "seq2": "GTA", "seq3": "GTA"},
         )
 
         sub_align = alignment[5:20]
         self.assertEqual(len(sub_align), 3)
         self.assertEqual(len(sub_align.names), 3)
         self.assertEqual(
-            sub_align.to_dict(), {"seq1": "CGT", "seq2": "CGT", "seq3": "CGT"}
+            sub_align.to_dict(),
+            {"seq1": "CGT", "seq2": "CGT", "seq3": "CGT"},
         )
 
         sub_align = alignment[2]
@@ -323,14 +330,16 @@ class AlignmentTestMethods(unittest.TestCase):
     def test_sliding_windows(self):
         """test slicing of sequences"""
         alignment = make_aligned_seqs(
-            data={"seq1": "ACGTACGT", "seq2": "ACGTACGT", "seq3": "ACGTACGT"}
+            data={"seq1": "ACGTACGT", "seq2": "ACGTACGT", "seq3": "ACGTACGT"},
         )
         result = [bit for bit in alignment.sliding_windows(5, 2)]
         self.assertEqual(
-            result[0].to_dict(), {"seq3": "ACGTA", "seq2": "ACGTA", "seq1": "ACGTA"}
+            result[0].to_dict(),
+            {"seq3": "ACGTA", "seq2": "ACGTA", "seq1": "ACGTA"},
         )
         self.assertEqual(
-            result[1].to_dict(), {"seq3": "GTACG", "seq2": "GTACG", "seq1": "GTACG"}
+            result[1].to_dict(),
+            {"seq3": "GTACG", "seq2": "GTACG", "seq1": "GTACG"},
         )
 
         # specify a starting window position
@@ -338,10 +347,12 @@ class AlignmentTestMethods(unittest.TestCase):
         for bit in alignment.sliding_windows(5, 2, start=1):
             result += [bit]
         self.assertEqual(
-            result[0].to_dict(), {"seq3": "CGTAC", "seq2": "CGTAC", "seq1": "CGTAC"}
+            result[0].to_dict(),
+            {"seq3": "CGTAC", "seq2": "CGTAC", "seq1": "CGTAC"},
         )
         self.assertEqual(
-            result[1].to_dict(), {"seq3": "TACGT", "seq2": "TACGT", "seq1": "TACGT"}
+            result[1].to_dict(),
+            {"seq3": "TACGT", "seq2": "TACGT", "seq1": "TACGT"},
         )
 
         # specify a ending window position
@@ -349,10 +360,12 @@ class AlignmentTestMethods(unittest.TestCase):
         for bit in alignment.sliding_windows(5, 1, start=1, end=3):
             result += [bit]
         self.assertEqual(
-            result[0].to_dict(), {"seq3": "CGTAC", "seq2": "CGTAC", "seq1": "CGTAC"}
+            result[0].to_dict(),
+            {"seq3": "CGTAC", "seq2": "CGTAC", "seq1": "CGTAC"},
         )
         self.assertEqual(
-            result[1].to_dict(), {"seq3": "GTACG", "seq2": "GTACG", "seq1": "GTACG"}
+            result[1].to_dict(),
+            {"seq3": "GTACG", "seq2": "GTACG", "seq1": "GTACG"},
         )
 
         # start conditions < window-size from end don't return a window
@@ -366,16 +379,20 @@ class AlignmentTestMethods(unittest.TestCase):
         for bit in alignment.sliding_windows(5, 1):
             result += [bit]
         self.assertEqual(
-            result[0].to_dict(), {"seq3": "ACGTA", "seq2": "ACGTA", "seq1": "ACGTA"}
+            result[0].to_dict(),
+            {"seq3": "ACGTA", "seq2": "ACGTA", "seq1": "ACGTA"},
         )
         self.assertEqual(
-            result[1].to_dict(), {"seq3": "CGTAC", "seq2": "CGTAC", "seq1": "CGTAC"}
+            result[1].to_dict(),
+            {"seq3": "CGTAC", "seq2": "CGTAC", "seq1": "CGTAC"},
         )
         self.assertEqual(
-            result[2].to_dict(), {"seq3": "GTACG", "seq2": "GTACG", "seq1": "GTACG"}
+            result[2].to_dict(),
+            {"seq3": "GTACG", "seq2": "GTACG", "seq1": "GTACG"},
         )
         self.assertEqual(
-            result[3].to_dict(), {"seq3": "TACGT", "seq2": "TACGT", "seq1": "TACGT"}
+            result[3].to_dict(),
+            {"seq3": "TACGT", "seq2": "TACGT", "seq1": "TACGT"},
         )
 
     def test_omit_gap_pos1(self):
@@ -385,11 +402,12 @@ class AlignmentTestMethods(unittest.TestCase):
                 "seq1": "--ACGT--GT---",
                 "seq2": "--ACGTA-GT---",
                 "seq3": "--ACGTA-GT---",
-            }
+            },
         )
         align_dict = alignment.omit_gap_pos().to_dict()
         self.assertEqual(
-            align_dict, {"seq1": "ACGT-GT", "seq2": "ACGTAGT", "seq3": "ACGTAGT"}
+            align_dict,
+            {"seq1": "ACGT-GT", "seq2": "ACGTAGT", "seq3": "ACGTAGT"},
         )
 
     def test_omit_gap_pos2(self):
@@ -399,15 +417,16 @@ class AlignmentTestMethods(unittest.TestCase):
                 "seq1": "--ACGT--GT---",
                 "seq2": "--ACGTA-GT---",
                 "seq3": "--ACGTA-GT---",
-            }
+            },
         )
         align_dict = alignment.omit_gap_pos(allowed_gap_frac=0).to_dict()
         self.assertEqual(
-            align_dict, {"seq1": "ACGTGT", "seq2": "ACGTGT", "seq3": "ACGTGT"}
+            align_dict,
+            {"seq1": "ACGTGT", "seq2": "ACGTGT", "seq3": "ACGTGT"},
         )
 
         alignment = make_aligned_seqs(
-            data={"seq1": "ACGT", "seq2": "----", "seq3": "----"}
+            data={"seq1": "ACGT", "seq2": "----", "seq3": "----"},
         )
         result = alignment.omit_gap_pos(allowed_gap_frac=0)
         self.assertEqual(result, None)
@@ -419,7 +438,7 @@ class AlignmentTestMethods(unittest.TestCase):
                 "seq1": "--ACGT--GT---",
                 "seq2": "--ACGTA-GT---",
                 "seq3": "--ACGTA-GT---",
-            }
+            },
         )
         observed = aln.degap()
         expect = {"seq1": "ACGTGT", "seq2": "ACGTAGT", "seq3": "ACGTAGT"}
@@ -525,7 +544,8 @@ class AlignmentTestMethods(unittest.TestCase):
         align = align1 + align2
         concatdict = align.to_dict()
         self.assertEqual(
-            concatdict, {"a": "AAAAGGGG", "b": "TTTT----", "c": "CCCCNNNN"}
+            concatdict,
+            {"a": "AAAAGGGG", "b": "TTTT----", "c": "CCCCNNNN"},
         )
 
     def test_replace_seqs(self):
@@ -562,7 +582,7 @@ class AlignmentTestMethods(unittest.TestCase):
     def test_sample(self):
         """Test sample generation"""
         alignment = make_aligned_seqs(
-            data={"seq1": "ABCDEFGHIJKLMNOP", "seq2": "ABCDEFGHIJKLMNOP"}
+            data={"seq1": "ABCDEFGHIJKLMNOP", "seq2": "ABCDEFGHIJKLMNOP"},
         )
         # effectively permute columns, preserving length
         alignment.sample()
@@ -587,7 +607,7 @@ class AlignmentTestMethods(unittest.TestCase):
             data={
                 "seq1": "AABBCCDDEEFFGGHHIIJJKKLLMMNNOOPP",
                 "seq2": "AABBCCDDEEFFGGHHIIJJKKLLMMNNOOPP",
-            }
+            },
         )
         shuffled = alignment.sample(motif_length=2)
         # ensure length correct
@@ -799,13 +819,15 @@ def multi_fasta(tmp_dir):
     for seq in brca1.seqs:
         with open(tmp_dir / f"{seq.name}.fa", mode="w") as outfile:
             outfile.write(seq.to_fasta())
-    yield tmp_dir
+    return tmp_dir
 
 
 def test_load_multi_files_collection(multi_fasta):
     # loads a directory of files matching a glob to a sequence collection
     collection = load_unaligned_seqs(
-        multi_fasta / "*.fa", moltype="dna", show_progress=False
+        multi_fasta / "*.fa",
+        moltype="dna",
+        show_progress=False,
     )
     assert collection.num_seqs == 5
 
@@ -846,7 +868,10 @@ def test_make_unaligned_seqs(new_type, seq_type, path_type):
 
     # source works
     got = make_unaligned_seqs(
-        data, source=path_type("somewhere"), moltype="dna", new_type=new_type
+        data,
+        source=path_type("somewhere"),
+        moltype="dna",
+        new_type=new_type,
     )
     assert got.info["source"] == "somewhere"
 
@@ -879,10 +904,10 @@ def test_load_unaligned_seqs_no_format(new_type):
             "brca1_5.250.paml",
         ),
         ("I", "AE017341", "NineBande"),
-    )
+    ),
 )
 def path_name(request):
-    yield request.param
+    return request.param
 
 
 def test_load_seq(path_name, tmp_path, DATA_DIR):
@@ -919,7 +944,9 @@ def test_make_seq(moltype, offset):
 def test_load_seq_moltype_offset(moltype, offset, DATA_DIR):
     """test loader propagates moltype and offset args"""
     seq = load_seq(
-        DATA_DIR / "brca1_5.250.paml", moltype=moltype, annotation_offset=offset
+        DATA_DIR / "brca1_5.250.paml",
+        moltype=moltype,
+        annotation_offset=offset,
     )
     assert seq.moltype.label == moltype
     assert seq.annotation_offset == offset

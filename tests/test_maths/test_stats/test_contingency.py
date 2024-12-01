@@ -123,7 +123,7 @@ class ContingencyTests(TestCase):
             {
                 "rest_of_tree": {"env1": 2, "env3": 1, "env2": 0},
                 "b": {"env1": 1, "env3": 1, "env2": 3},
-            }
+            },
         )
         str(table)
         obs = [2, 10, 8, 2, 4]
@@ -138,7 +138,7 @@ class ContingencyTests(TestCase):
             {
                 "rest_of_tree": {"env1": 2, "env3": 1, "env2": 0},
                 "b": {"env1": 1, "env3": 1, "env2": 3},
-            }
+            },
         )
         str(table)
         obs = [2, 10, 8, 2, 4]
@@ -154,7 +154,7 @@ class ContingencyTests(TestCase):
             {
                 "rest_of_tree": {"env1": 2, "env3": 1, "env2": 0},
                 "b": {"env1": 1, "env3": 1, "env2": 3},
-            }
+            },
         )
         got = table.observed["rest_of_tree"]["env1"]
         self.assertEqual(got, 2)
@@ -170,12 +170,13 @@ class ContingencyTests(TestCase):
             dict(
                 rest_of_tree=dict(env1=2, env3=1, env2=0),
                 b=dict(env1=1, env3=1, env2=3),
-            )
+            ),
         )
         assert_allclose(matrix.expected["rest_of_tree"]["env1"], 1.125)
         assert_allclose(matrix.expected["b"]["env1"], 1.875)
         assert_allclose(
-            matrix.expected.array.tolist(), [[1.875, 1.875, 1.25], [1.125, 1.125, 0.75]]
+            matrix.expected.array.tolist(),
+            [[1.875, 1.875, 1.25], [1.125, 1.125, 0.75]],
         )
 
     def test_validate_expecteds(self):
@@ -191,7 +192,7 @@ class ContingencyTests(TestCase):
             {
                 "rest_of_tree": {"env1": 2, "env3": 1, "env2": 0},
                 "b": {"env1": 1, "env3": 1, "env2": 3},
-            }
+            },
         )
         got_g1 = table.G_fit()
         got_g2 = table.G_independence()
@@ -207,7 +208,7 @@ class ContingencyTests(TestCase):
             {
                 "rest_of_tree": {"env1": 2, "env3": 1, "env2": 0},
                 "b": {"env1": 1, "env3": 1, "env2": 3},
-            }
+            },
         )
         got = table.chisq_test()
         stats = got.statistics

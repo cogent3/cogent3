@@ -144,7 +144,8 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=Non
 
         if max_workers > SIZE:
             warnings.warn(
-                "max_workers too large, reducing to UNIVERSE_SIZE-1", UserWarning
+                "max_workers too large, reducing to UNIVERSE_SIZE-1",
+                UserWarning,
             )
 
         max_workers = min(max_workers, SIZE - 1)
@@ -198,7 +199,8 @@ def _as_completed_mpi(f, s, max_workers, if_serial, chunksize=None):
         chunksize = get_default_chunksize(s, max_workers)
 
     with MPIfutures.MPIPoolExecutor(
-        max_workers=max_workers, chunksize=chunksize
+        max_workers=max_workers,
+        chunksize=chunksize,
     ) as executor:
         to_do = [executor.submit(f, e) for e in s]
         for result in concurrentfutures.as_completed(to_do):
@@ -218,7 +220,12 @@ def _as_completed_mproc(f, s, max_workers):
 
 @extend_docstring_from(imap, pre=True)
 def as_completed(
-    f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=None
+    f,
+    s,
+    max_workers=None,
+    use_mpi=False,
+    if_serial="raise",
+    chunksize=None,
 ):
     if_serial = if_serial.lower()
     assert if_serial in ("ignore", "raise", "warn"), f"invalid choice '{if_serial}'"

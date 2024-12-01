@@ -131,14 +131,14 @@ class fast_slow_dist:
         self.fast_calc = fast_calc
         if fast_calc and self._moltype and fast_calc.moltype != self._moltype:
             raise ValueError(
-                f"{self._moltype} incompatible moltype with fast calculator {fast_calc.moltype}"
+                f"{self._moltype} incompatible moltype with fast calculator {fast_calc.moltype}",
             )
-        elif fast_calc:
+        if fast_calc:
             self._moltype = fast_calc.moltype
 
         if slow_calc and self._moltype and slow_calc.moltype != self._moltype:
             raise ValueError("incompatible moltype with slow calculator")
-        elif slow_calc:
+        if slow_calc:
             self._moltype = slow_calc.moltype
         self._sm = slow_calc
 
@@ -153,7 +153,8 @@ class fast_slow_dist:
         return 2 * lf.get_param_value("length", edge=aln.names[0])
 
     def main(
-        self, aln: AlignedSeqsType
+        self,
+        aln: AlignedSeqsType,
     ) -> Union[SerialisableType, PairwiseDistanceType]:
         if self._moltype and self._moltype != aln.moltype:
             aln = aln.to_moltype(self._moltype)
@@ -297,7 +298,8 @@ def approx_pdist(jaccard_dists: PairwiseDistanceType) -> PairwiseDistanceType:
 
 @define_app
 def approx_jc69(
-    pdists: PairwiseDistanceType, num_states: int = 4
+    pdists: PairwiseDistanceType,
+    num_states: int = 4,
 ) -> PairwiseDistanceType:
     """Converts p-distances and returns pairwise JC69 distances
 

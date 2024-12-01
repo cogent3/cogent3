@@ -1,9 +1,7 @@
 """Writer for FASTA sequence format"""
 
-from typing import Iterable, Optional
-
-from cogent3.format.util import _AlignmentFormatter
-from cogent3.util import warning as c3warn
+from collections.abc import Iterable
+from typing import Optional
 
 
 def _iter_in_block_size(series: str, block_size: int) -> Iterable[str]:

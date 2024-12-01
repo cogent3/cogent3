@@ -396,7 +396,7 @@ def dist_chisq(datamtx, strict=True):
                     dist = 1.0
             else:
                 dist = sqrt_grand_sum * sqrt(
-                    sum(multiply((1.0 / colsums), square(r1 / r1sum - r2 / r2sum)))
+                    sum(multiply((1.0 / colsums), square(r1 / r1sum - r2 / r2sum))),
                 )
             dists[i, j] = dists[j, i] = dist
     return dists
@@ -1427,7 +1427,7 @@ if __name__ == "__main__":
             [1, 0, 8, 10],
             [0, 0, 0, 0],
             [8, 6, 2, 1],
-        ]
+        ],
     )
 
     res = dist_euclidean(matrix1)

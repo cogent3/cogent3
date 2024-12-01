@@ -179,7 +179,8 @@ class SequenceTests(TestCase):
         )
         self.assertEqual(self.RNA("@#^*($@!#&()!@QZX", check=False).strip_bad(), "")
         self.assertEqual(
-            self.RNA("aaaxggg---!ccc", check=False).strip_bad(), "AAAGGG---CCC"
+            self.RNA("aaaxggg---!ccc", check=False).strip_bad(),
+            "AAAGGG---CCC",
         )
 
     def test_strip_bad_and_gaps(self):  # ported
@@ -190,10 +191,12 @@ class SequenceTests(TestCase):
             "UCAGWSNYRHBNDD",
         )
         self.assertEqual(
-            self.RNA("@#^*($@!#&()!@QZX", check=False).strip_bad_and_gaps(), ""
+            self.RNA("@#^*($@!#&()!@QZX", check=False).strip_bad_and_gaps(),
+            "",
         )
         self.assertEqual(
-            self.RNA("aaa ggg ---!ccc", check=False).strip_bad_and_gaps(), "AAAGGGCCC"
+            self.RNA("aaa ggg ---!ccc", check=False).strip_bad_and_gaps(),
+            "AAAGGGCCC",
         )
 
     def test_shuffle(self):  # ported
@@ -305,10 +308,12 @@ class SequenceTests(TestCase):
         """Sequence disambiguate should remove degenerate bases"""
         self.assertEqual(self.RNA("").disambiguate(), "")
         self.assertEqual(
-            self.RNA("AGCUGAUGUA--CAGU").disambiguate(), "AGCUGAUGUA--CAGU"
+            self.RNA("AGCUGAUGUA--CAGU").disambiguate(),
+            "AGCUGAUGUA--CAGU",
         )
         self.assertEqual(
-            self.RNA("AUn-yrs-wkmCGwmrNMWRKY").disambiguate("strip"), "AU--CG"
+            self.RNA("AUn-yrs-wkmCGwmrNMWRKY").disambiguate("strip"),
+            "AU--CG",
         )
         s = self.RNA("AUn-yrs-wkmCGwmrNMWRKY")
         t = s.disambiguate("random")
@@ -326,7 +331,8 @@ class SequenceTests(TestCase):
         # doesn't preserve case
         self.assertEqual(self.RNA("").degap(), "")
         self.assertEqual(
-            self.RNA("GUCAGUCgcaugcnvuncdks").degap(), "GUCAGUCGCAUGCNVUNCDKS"
+            self.RNA("GUCAGUCgcaugcnvuncdks").degap(),
+            "GUCAGUCGCAUGCNVUNCDKS",
         )
         self.assertEqual(self.RNA("----------------").degap(), "")
         self.assertEqual(self.RNA("gcuauacg-").degap(), "GCUAUACG")
@@ -360,7 +366,8 @@ class SequenceTests(TestCase):
         )
         self.assertEqual(g("-DSHSUHDSS"), list(map(bool, list(map(int, "1000000000")))))
         self.assertEqual(
-            g("UACHASCAGDS-"), list(map(bool, list(map(int, "000000000001"))))
+            g("UACHASCAGDS-"),
+            list(map(bool, list(map(int, "000000000001")))),
         )
         self.assertEqual(
             g("---CGAUgCAU---ACGHc---ACGUCAGU--?"),
@@ -385,7 +392,8 @@ class SequenceTests(TestCase):
         self.assertEqual(gm(start_gaps), ({0: 2, 1: 3, 2: 4}, {2: 0, 3: 1, 4: 2}))
         self.assertEqual(gm(end_gaps), ({0: 0, 1: 1}, {0: 0, 1: 1}))
         self.assertEqual(
-            gm(mid_gaps), ({0: 2, 1: 5, 2: 7, 3: 8}, {2: 0, 5: 1, 7: 2, 8: 3})
+            gm(mid_gaps),
+            ({0: 2, 1: 5, 2: 7, 3: 8}, {2: 0, 5: 1, 7: 2, 8: 3}),
         )
 
     def test_count_gaps(self):  # ported
@@ -405,7 +413,8 @@ class SequenceTests(TestCase):
         self.assertEqual(self.PROT("N").count_degenerate(), 0)
         self.assertEqual(self.RNA("NRY").count_degenerate(), 3)
         self.assertEqual(
-            self.RNA("ACGUAVCUAGCAUNUCAGUCAGyUACGUCAGS").count_degenerate(), 4
+            self.RNA("ACGUAVCUAGCAUNUCAGUCAGyUACGUCAGS").count_degenerate(),
+            4,
         )
 
     def test_possibilites(self):  # ported
@@ -417,7 +426,8 @@ class SequenceTests(TestCase):
         self.assertEqual(self.RNA("H").possibilities(), 3)
         self.assertEqual(self.RNA("nRh").possibilities(), 24)
         self.assertEqual(
-            self.RNA("AUGCnGUCAg-aurGauc--gauhcgauacgws").possibilities(), 96
+            self.RNA("AUGCnGUCAg-aurGauc--gauhcgauacgws").possibilities(),
+            96,
         )
 
     def test_mw(self):  # ported
@@ -540,8 +550,7 @@ class SequenceTests(TestCase):
                 return 0
             if (a in "UC" and b in "UC") or (a in "AG" and b in "AG"):
                 return 1
-            else:
-                return 10
+            return 10
 
         # uses identity function by default
         self.assertEqual(self.RNA("UGCUGCUC").distance(""), 0)
@@ -712,7 +721,7 @@ class SequenceTests(TestCase):
                 ("U", "C"),
                 ("C", "U"),
                 ("C", "C"),
-            ]
+            ],
         )
 
         s1 = self.RNA("UCAGGCAA")
@@ -989,7 +998,7 @@ class SequenceSubclassTests(TestCase):
         self,
     ):  # ported tests for Generator and empty orig, dupes of test_get_kmers...()
         """correctly yield all k-mers"""
-        from typing import Generator
+        from collections.abc import Generator
 
         orig = "TCAGGA"
         r = self.SequenceClass(orig)
@@ -1026,7 +1035,7 @@ class SequenceSubclassTests(TestCase):
 
 
 # TODO move methods of this class onto the single class that inherits from it!
-class ModelSequenceTests(object):  # ported
+class ModelSequenceTests:  # ported
     """base class for tests of specific ArraySequence objects."""
 
     SequenceClass = None  # override in derived classes
@@ -1051,7 +1060,8 @@ class ModelSequenceTests(object):  # ported
 
 
 class DnaSequenceTests(
-    ModelSequenceTests, TestCase
+    ModelSequenceTests,
+    TestCase,
 ):  # not porting: not supporting ArraySeqs
     class SequenceClass(ArrayNucleicAcidSequence):
         alphabet = DNA.alphabets.base
@@ -1069,7 +1079,8 @@ class DnaSequenceTests(
 
 
 class CodonSequenceTests(
-    SequenceTests, TestCase
+    SequenceTests,
+    TestCase,
 ):  # not porting: not supporting ArraySeqs
     class SequenceClass(ArrayCodonSequence):
         alphabet = DNA.alphabets.base**3
@@ -1123,7 +1134,7 @@ class DnaSequenceGapTests(TestCase):  # not porting: not supporting ArraySeqs
 
     def test_degap_name(self):
         """degap preserves name attribute"""
-        # todo this should work for any seq class, but is not
+        # TODO this should work for any seq class, but is not
         seq = DNA.make_seq(seq="ACG---T", name="blah")
         got = seq.degap()
         self.assertEqual(str(got), "ACGT")
@@ -1804,7 +1815,15 @@ def test_subslice_3(sub_slices_triple):  # ported
 @pytest.mark.parametrize("stop_3", (4, 10, -10))
 @pytest.mark.parametrize("step_3", (2, -2))
 def test_triple_slice(
-    start, stop, step, start_2, stop_2, step_2, start_3, stop_3, step_3
+    start,
+    stop,
+    step,
+    start_2,
+    stop_2,
+    step_2,
+    start_3,
+    stop_3,
+    step_3,
 ):  # ported
     """SeqView should handle subsequent forward slice"""
     seq = "0123456789"
@@ -2132,7 +2151,7 @@ def test_absolute_position_positive(one_seq):  # ported
 
     # with an offset and start, the abs index should be offset + start + index
     view = one_seq[2::]
-    view._seq.offset = 2  # todo: do we want the annotation_offset to be preserved when slicing? I think yes
+    view._seq.offset = 2  # TODO: do we want the annotation_offset to be preserved when slicing? I think yes
     got = view._seq.absolute_position(2)
     assert got == 2 + 2 + 2
 
@@ -2205,7 +2224,7 @@ def test_seqview_copy(sliced, rev, integer_seq):  # ported
 
     assert copied.value == raw_data[slice_start:slice_end]
     assert copied.is_reversed == integer_seq.is_reversed
-    assert sliced and copied.seq is not sv.seq or copied.seq is integer_seq.seq
+    assert (sliced and copied.seq is not sv.seq) or copied.seq is integer_seq.seq
 
 
 def test_relative_position_with_remainder(integer_seq):  # ported
@@ -2229,7 +2248,12 @@ def test_relative_position_with_remainder(integer_seq):  # ported
 @pytest.mark.parametrize("stop", (None, 10, 11))
 @pytest.mark.parametrize("step", (None, 1, 2))
 def test_absolute_relative_roundtrip(
-    one_seq, value, offset, start, stop, step
+    one_seq,
+    value,
+    offset,
+    start,
+    stop,
+    step,
 ):  # ported
     # a round trip from relative to absolute then from absolute to relative, should return the same value we began with
     view = one_seq[start:stop:step]
@@ -2245,7 +2269,12 @@ def test_absolute_relative_roundtrip(
 @pytest.mark.parametrize("stop", (None, -10))
 @pytest.mark.parametrize("step", (-1, -2))
 def test_absolute_relative_roundtrip_reverse(
-    integer_seq, value, offset, start, stop, step
+    integer_seq,
+    value,
+    offset,
+    start,
+    stop,
+    step,
 ):  # ported
     # a round trip from relative to absolute then from absolute to relative, should return the same value we began with
     view = integer_seq[start:stop:step]
@@ -2515,7 +2544,8 @@ def test_has_terminal_stop_true(gc, seq):  # ported
 
 
 @pytest.mark.parametrize(
-    "gc,seq", ((1, "TCCAGG"), (2, "TCCAAA"), (1, "CCTGA"), (2, "CCAGG"))
+    "gc,seq",
+    ((1, "TCCAGG"), (2, "TCCAAA"), (1, "CCTGA"), (2, "CCAGG")),
 )
 def test_has_terminal_stop_false(gc, seq):  # ported
     gc = cogent3.get_code(gc)
@@ -2559,7 +2589,8 @@ def test_trim_terminal_stop_nostop(gc, seq):  # ported
 
 
 @pytest.mark.parametrize(
-    "gc,seq", ((1, "TCCAGG"), (2, "TCCAAA"), (1, "CCTGA"), (2, "CCAGG"))
+    "gc,seq",
+    ((1, "TCCAGG"), (2, "TCCAAA"), (1, "CCTGA"), (2, "CCAGG")),
 )
 def test_trim_terminal_stop_false(gc, seq):  # ported
     gc = cogent3.get_code(gc)
@@ -2681,7 +2712,11 @@ def test_coerce_to_seqview(cls):  # ported for Sequence, SeqView, str and bytes
     seqid = "seq1"
     if cls in (str, bytes):
         got = _coerce_to_seqview(
-            seq, seqid, preserve_case=True, checker=(lambda x: x), annotation_offset=0
+            seq,
+            seqid,
+            preserve_case=True,
+            checker=(lambda x: x),
+            annotation_offset=0,
         )
     elif cls is Aligned:
         got = _coerce_to_seqview(

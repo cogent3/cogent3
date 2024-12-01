@@ -89,7 +89,10 @@ def make_partial_likelihood_defns(edge, lht, psubs, fixed_motifs):
         if fixed_motifs:
             fixed_motif = fixed_motifs.select_from_dimension("edge", edge.name)
             plh = PartialLikelihoodProductDefnFixedMotif(
-                fixed_motif, lht_edge, *children, **kw
+                fixed_motif,
+                lht_edge,
+                *children,
+                **kw,
             )
         else:
             plh = PartialLikelihoodProductDefn(lht, *children, **kw)
@@ -120,7 +123,14 @@ class LikelihoodTreeDefn(CalculationDefn):
 
 
 def make_total_loglikelihood_defn(
-    tree, leaves, psubs, mprobs, bprobs, bin_names, locus_names, sites_independent
+    tree,
+    leaves,
+    psubs,
+    mprobs,
+    bprobs,
+    bin_names,
+    locus_names,
+    sites_independent,
 ):
     fixed_motifs = NonParamDefn("fixed_motif", ["edge"])
 
@@ -161,7 +171,7 @@ def log_sum_across_sites(root, root_lh):
     return root.get_log_sum_across_sites(root_lh)
 
 
-class BinnedSiteDistribution(object):
+class BinnedSiteDistribution:
     def __init__(self, bprobs):
         self.bprobs = bprobs
 
@@ -184,7 +194,7 @@ class BinnedSiteDistribution(object):
         return result
 
 
-class PatchSiteDistribution(object):
+class PatchSiteDistribution:
     def __init__(self, switch, bprobs):
         half = len(bprobs) // 2
         self.alloc = [0] * half + [1] * (len(bprobs) - half)
@@ -221,7 +231,7 @@ class PatchSiteDistribution(object):
         return result
 
 
-class BinnedLikelihood(object):
+class BinnedLikelihood:
     def __init__(self, distrib, root):
         self.distrib = distrib
         self.root = root
@@ -237,13 +247,13 @@ class BinnedLikelihood(object):
             [
                 b * self.root.get_full_length_likelihoods(p)
                 for (b, p) in zip(self.distrib.bprobs, lhs)
-            ]
+            ],
         )
         result /= result.sum(axis=0)
         return result
 
 
-class SiteHmm(object):
+class SiteHmm:
     def __init__(self, distrib, root):
         self.root = root
         self.distrib = distrib
@@ -269,7 +279,7 @@ class SiteHmm(object):
             [
                 b * self.root.get_full_length_likelihoods(p)
                 for (b, p) in zip(self.distrib.bprobs, blhs)
-            ]
+            ],
         )
 
         binsum = numpy.zeros(pprobs.shape, float)

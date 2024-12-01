@@ -33,7 +33,7 @@ class RecodeAlignmentTests(TestCase):
         self.orig = alphabets["orig"]
         self.aln = ArrayAlignment(data={"1": "CDDFBXZ", "2": "CDD-BXZ", "3": "AAAASS-"})
         self.aln2 = make_aligned_seqs(
-            data={"1": "CDDFBXZ", "2": "CDD-BXZ", "3": "AAAASS-"}
+            data={"1": "CDDFBXZ", "2": "CDD-BXZ", "3": "AAAASS-"},
         )
 
     def test_build_alphabet_map_handles_bad_data(self):
@@ -41,7 +41,9 @@ class RecodeAlignmentTests(TestCase):
         self.assertRaises(ValueError, build_alphabet_map)
         self.assertRaises(ValueError, build_alphabet_map, "not_a_valid_id")
         self.assertRaises(
-            ValueError, build_alphabet_map, alphabet_def=["A", "BCD", "B", "EFG"]
+            ValueError,
+            build_alphabet_map,
+            alphabet_def=["A", "BCD", "B", "EFG"],
         )
 
     def test_build_alphabet_map_w_alphabet_id(self):
@@ -71,7 +73,7 @@ class RecodeAlignmentTests(TestCase):
                 ("R", "M"),
                 ("E", "M"),
                 ("Z", "M"),
-            ]
+            ],
         )
         self.assertEqual(build_alphabet_map("size_2"), expected)
         self.assertEqual(build_alphabet_map("charge_3")["E"], "D")
@@ -105,11 +107,11 @@ class RecodeAlignmentTests(TestCase):
                 ("R", "L"),
                 ("E", "L"),
                 ("Z", "L"),
-            ]
+            ],
         )
         self.assertEqual(
             build_alphabet_map(
-                alphabet_def=[("S", "GAVLISPTCNDXB"), ("L", "MFYWQKHREZ")]
+                alphabet_def=[("S", "GAVLISPTCNDXB"), ("L", "MFYWQKHREZ")],
             ),
             expected,
         )
@@ -124,7 +126,7 @@ class RecodeAlignmentTests(TestCase):
             try:
                 build_alphabet_map(alphabet_def=alphabet_def)
             except ValueError:
-                raise AssertionError(f"Failed on def: {str(alphabet_def)}")
+                raise AssertionError(f"Failed on def: {alphabet_def!s}")
 
     def test_recode_dense_alignment_handles_all_ids_and_defs_wo_error(self):
         """recode_dense_alignment: handles pre-defined alphabets w/o error"""
@@ -136,7 +138,7 @@ class RecodeAlignmentTests(TestCase):
             try:
                 recode_dense_alignment(self.aln, alphabet_def=alphabet_def)
             except ValueError:
-                raise AssertionError(f"Failed on def: {str(alphabet_def)}")
+                raise AssertionError(f"Failed on def: {alphabet_def!s}")
 
     def test_recode_dense_alignment_leaves_original_alignment_intact(self):
         """recode_dense_alignment: leaves input alignment intact"""
@@ -150,13 +152,13 @@ class RecodeAlignmentTests(TestCase):
     def test_recode_dense_alignment(self):
         """recode_dense_alignment: recode alignment to charge_2 alpha works"""
         expected_c2 = ArrayAlignment(
-            data={"1": "AKKAKAK", "2": "AKK-KAK", "3": "AAAAAA-"}
+            data={"1": "AKKAKAK", "2": "AKK-KAK", "3": "AAAAAA-"},
         )
         expected_h3 = ArrayAlignment(
-            data={"1": "PRRPRPR", "2": "PRR-RPR", "3": "PPPPYY-"}
+            data={"1": "PRRPRPR", "2": "PRR-RPR", "3": "PPPPYY-"},
         )
         expected_aa = ArrayAlignment(
-            data={"1": "AAAAAAA", "2": "AAA-AAA", "3": "AAAAAA-"}
+            data={"1": "AAAAAAA", "2": "AAA-AAA", "3": "AAAAAA-"},
         )
 
         # provided with alphabet_id
@@ -191,7 +193,8 @@ class RecodeAlignmentTests(TestCase):
         self.assertEqual(recode_dense_alignment(self.aln, alphabet_id="orig"), self.aln)
         # provided with alphabet_def
         self.assertEqual(
-            recode_dense_alignment(self.aln, alphabet_def=self.orig), self.aln
+            recode_dense_alignment(self.aln, alphabet_def=self.orig),
+            self.aln,
         )
 
     def test_recode_freq_vector(self):
@@ -287,7 +290,9 @@ class RecodeMatrixTests(TestCase):
         aa_order = "ACDEFGHIKLMNPQRSTVWY"
         actual = recode_counts_and_freqs(alphabet)
         expected_matrix = recode_count_matrix(
-            alphabet, count_matrix=DSO78_matrix, aa_order=aa_order
+            alphabet,
+            count_matrix=DSO78_matrix,
+            aa_order=aa_order,
         )
         expected_freqs = {}.fromkeys(aa_order, 0.0)
         expected_freqs.update(recode_freq_vector(alphabet, DSO78_freqs))

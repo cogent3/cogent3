@@ -5,7 +5,7 @@ by a parameter controller"""
 from cogent3.util.misc import adjusted_gt_minprob
 
 
-class Setting(object):
+class Setting:
     def get_param_rule_dict(self, names=None, is_probs=False):
         """returns component for a param rule dict"""
         value = self.value
@@ -13,7 +13,7 @@ class Setting(object):
             assert len(self.value) == len(names)
             if is_probs:
                 value = adjusted_gt_minprob(
-                    adjusted_gt_minprob(self.value, minprob=1e-6)
+                    adjusted_gt_minprob(self.value, minprob=1e-6),
                 )
             if value.ndim == 1:
                 value = {n: v for n, v in zip(names, value)}
@@ -78,7 +78,7 @@ class ConstVal(Setting):
         return repr(self.value)  # short as in table
 
     def __repr__(self):
-        return f"ConstVal({repr(self.value)})"
+        return f"ConstVal({self.value!r})"
 
     # indep useful sometimes!
     # def __eq__(self, other):

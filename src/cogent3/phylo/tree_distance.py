@@ -19,7 +19,7 @@ def get_tree_distance_measure(method: str, is_rooted: bool):
         return _UNROOTED_TREE_DISTANCE_FUNCTIONS[method]
 
     raise ValueError(
-        f"Tree distance method '{method}' is not supported for {'' if is_rooted else 'un'}rooted trees."
+        f"Tree distance method '{method}' is not supported for {'' if is_rooted else 'un'}rooted trees.",
     )
 
 

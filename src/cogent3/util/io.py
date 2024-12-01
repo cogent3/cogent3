@@ -3,13 +3,14 @@ import functools
 import shutil
 import uuid
 from bz2 import open as bzip_open
+from collections.abc import Iterator
 from gzip import open as gzip_open
 from io import TextIOWrapper
 from lzma import open as lzma_open
 from os import PathLike, remove
 from pathlib import Path, PurePath
 from tempfile import mkdtemp
-from typing import IO, Callable, Iterator, Optional, Tuple, Union
+from typing import IO, Callable, Optional, Tuple, Union
 from urllib.parse import ParseResult, urlparse
 from urllib.request import urlopen
 from zipfile import ZipFile
@@ -43,7 +44,8 @@ def _(path: ParseResult) -> bool:
 
 
 def _get_compression_open(
-    path: Optional[PathType] = None, compression: Optional[str] = None
+    path: Optional[PathType] = None,
+    compression: Optional[str] = None,
 ) -> Optional[Callable]:
     """returns function for opening compression formats
 
@@ -61,7 +63,7 @@ def _get_compression_open(
     assert path or compression
     if compression is None:
         _, compression = get_format_suffixes(path)
-    return _compression_handlers.get(compression, None)
+    return _compression_handlers.get(compression)
 
 
 def open_zip(filename: PathType, mode: str = "r", **kwargs) -> IO:
@@ -161,15 +163,15 @@ def open_url(url: Union[str, ParseResult], mode="rt", **kwargs) -> IO:
     file object which reads binary if "b" in mode, else text.
     """
     _, compression = get_format_suffixes(
-        getattr(url, "path", url)
+        getattr(url, "path", url),
     )  # handling possibility of ParseResult
     mode = mode or "r"
 
     if "r" not in mode:
-        raise IOError("opening a url only allowed in read mode")
+        raise OSError("opening a url only allowed in read mode")
 
     if not is_url(url):
-        raise IOError(f"URL scheme must be http, https or file, not {str(url)[:20]!r}")
+        raise OSError(f"URL scheme must be http, https or file, not {str(url)[:20]!r}")
 
     url_parsed = url if isinstance(url, ParseResult) else urlparse(url)
 
@@ -205,7 +207,12 @@ class atomic_write:
     """performs atomic write operations, cleans up if fails"""
 
     def __init__(
-        self, path: PathType, tmpdir=None, in_zip=None, mode="w", encoding=None
+        self,
+        path: PathType,
+        tmpdir=None,
+        in_zip=None,
+        mode="w",
+        encoding=None,
     ):
         """
 
@@ -369,7 +376,8 @@ def path_exists(path: PathType) -> bool:
 
 
 def iter_splitlines(
-    path: PathType, chunk_size: Optional[int] = 1_000_000
+    path: PathType,
+    chunk_size: Optional[int] = 1_000_000,
 ) -> Iterator[str]:
     """yields line from file
 

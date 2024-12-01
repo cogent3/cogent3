@@ -101,7 +101,8 @@ def _read_map(line):
 
 
 sts_wrapper = FieldWrapper(
-    ["Name", "Chromosome", "StsId", "Segment", "SequenceKnown", "Evidence"], pipes
+    ["Name", "Chromosome", "StsId", "Segment", "SequenceKnown", "Evidence"],
+    pipes,
 )
 
 
@@ -159,7 +160,8 @@ def _read_pmid(line):
 
 
 go_wrapper = FieldWrapper(
-    ["Category", "Term", "EvidenceCode", "GoId", "Source", "PubMedId"], pipes
+    ["Category", "Term", "EvidenceCode", "GoId", "Source", "PubMedId"],
+    pipes,
 )
 
 
@@ -169,7 +171,8 @@ def _read_go(line):
 
 
 extannot_wrapper = FieldWrapper(
-    ["Category", "Term", "EvidenceCode", "Source", "PubMedId"], pipes
+    ["Category", "Term", "EvidenceCode", "Source", "PubMedId"],
+    pipes,
 )
 
 
@@ -202,7 +205,7 @@ def _read_contig(line):
 
 
 _ll_multi = dict.fromkeys(
-    "RELL NG NR NM NC NP PRODUCT TRANSVAR ASSEMBLY CONTIG XG XR EVID XM XP CDD ACCNUM TYPE PROT PREFERRED_PRODUCT ALIAS_SYMBOL ALIAS_PROT PHENOTYPE PHENOTYPE_ID SUMMARY UNIGENE OMIM CHR MAP MAPLINK STS COMP ECNUM BUTTON LINK DB_DESCR DB_LINK PMID GRIF SUMFUNC GO EXTANNOT".split()
+    "RELL NG NR NM NC NP PRODUCT TRANSVAR ASSEMBLY CONTIG XG XR EVID XM XP CDD ACCNUM TYPE PROT PREFERRED_PRODUCT ALIAS_SYMBOL ALIAS_PROT PHENOTYPE PHENOTYPE_ID SUMMARY UNIGENE OMIM CHR MAP MAPLINK STS COMP ECNUM BUTTON LINK DB_DESCR DB_LINK PMID GRIF SUMFUNC GO EXTANNOT".split(),
 )
 for i in list(_ll_multi.keys()):
     _ll_multi[i] = []

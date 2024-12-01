@@ -16,7 +16,7 @@
 
 # Minimization routines
 
-__all__ = ["fmin_powell", "brent", "bracket"]
+__all__ = ["bracket", "brent", "fmin_powell"]
 
 import builtins
 
@@ -227,8 +227,7 @@ class Brent:
     def get_result(self, full_output=False):
         if full_output:
             return self.xmin, self.fval, self.iter, self.funcalls
-        else:
-            return self.xmin
+        return self.xmin
 
 
 def brent(func, brack=None, tol=1.48e-8, full_output=0, maxiter=500):
@@ -341,7 +340,7 @@ def bracket(func, xa=0.0, xb=1.0, args=(), grow_limit=110.0, maxiter=1000):
                 fa = fb
                 fb = fw
                 return xa, xb, xc, fa, fb, fc, funcalls
-            elif fw > fb:
+            if fw > fb:
                 xc = w
                 fc = fw
                 return xa, xb, xc, fa, fb, fc, funcalls
@@ -499,7 +498,11 @@ def fmin_powell(
             direc1 = direc[i]
             fx2 = fval
             fval, x, direc1 = _linesearch_powell(
-                linesearch, func, x, direc1, xtol * 100
+                linesearch,
+                func,
+                x,
+                direc1,
+                xtol * 100,
             )
             if (fx2 - fval) > delta:
                 delta = fx2 - fval
@@ -530,7 +533,11 @@ def fmin_powell(
             t -= delta * temp * temp
             if t < 0.0:
                 fval, x, direc1 = _linesearch_powell(
-                    linesearch, func, x, direc1, xtol * 100
+                    linesearch,
+                    func,
+                    x,
+                    direc1,
+                    xtol * 100,
                 )
                 direc[bigind] = direc[-1]
                 direc[-1] = direc1
@@ -540,18 +547,17 @@ def fmin_powell(
         warnflag = 1
         if disp:
             print(
-                "Warning: Maximum number of function evaluations has " "been exceeded."
+                "Warning: Maximum number of function evaluations has been exceeded.",
             )
     elif iter >= maxiter:
         warnflag = 2
         if disp:
             print("Warning: Maximum number of iterations has been exceeded")
-    else:
-        if disp:
-            print("Optimization terminated successfully.")
-            print(f"         Current function value: {fval:f}")
-            print("         Iterations: %d" % iter)
-            print("         Function evaluations: %d" % fcalls[0])
+    elif disp:
+        print("Optimization terminated successfully.")
+        print(f"         Current function value: {fval:f}")
+        print("         Iterations: %d" % iter)
+        print("         Function evaluations: %d" % fcalls[0])
 
     x = squeeze(x)
 

@@ -68,8 +68,8 @@ class ArrayMathTests(TestCase):
                     [0.25, 0.2, 0.45, 0, 0],
                     [0.25, 0.3, 0.05, 0.75, 0],
                     [0.25, 0.3, 0.05, 0, 0],
-                ]
-            )
+                ],
+            ),
         )
         assert_allclose(row_uncertainty(b), [2, 1.97, 1.47, 0.81, 0], rtol=1e-2)
         # one-dimensional array
@@ -91,12 +91,14 @@ class ArrayMathTests(TestCase):
                 [0.25, 0.2, 0.45, 0, 0],
                 [0.25, 0.3, 0.05, 0.75, 0],
                 [0.25, 0.3, 0.05, 0, 0],
-            ]
+            ],
         )
         assert_allclose(column_uncertainty(b), [2, 1.97, 1.47, 0.81, 0], rtol=1e-2)
         # one-dimensional array
         self.assertRaises(
-            ValueError, column_uncertainty, array([0.25, 0.25, 0.25, 0.25])
+            ValueError,
+            column_uncertainty,
+            array([0.25, 0.25, 0.25, 0.25]),
         )
         # zeros
         assert_equal(column_uncertainty(array([[0, 0]])), array([0, 0]))
@@ -127,7 +129,9 @@ class ArrayMathTests(TestCase):
         assert_equal(column_degeneracy(a, cutoff=0.45), [1, 1, 2])
         # one-dimensional array
         self.assertRaises(
-            ValueError, column_degeneracy, array([0.25, 0.25, 0.25, 0.25])
+            ValueError,
+            column_degeneracy,
+            array([0.25, 0.25, 0.25, 0.25]),
         )
         # if cutoff value is not found, results are clipped to the
         # number of rows in the array

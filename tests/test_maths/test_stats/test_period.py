@@ -223,10 +223,18 @@ class TestPeriodStat(TestCase):
         hybrid_calc = Hybrid(len(s), llim=2, period=4)
         ipdft_calc = Ipdft(len(s), llim=2, period=4)
         stat, p = blockwise_bootstrap(
-            s, hybrid_calc, block_size=10, num_reps=1000, seq_to_symbols=seq_to_symbol
+            s,
+            hybrid_calc,
+            block_size=10,
+            num_reps=1000,
+            seq_to_symbols=seq_to_symbol,
         )
         stat, p = blockwise_bootstrap(
-            s, ipdft_calc, block_size=10, num_reps=1000, seq_to_symbols=seq_to_symbol
+            s,
+            ipdft_calc,
+            block_size=10,
+            num_reps=1000,
+            seq_to_symbols=seq_to_symbol,
         )
 
     def test_permutation_all(self):
@@ -239,7 +247,11 @@ class TestPeriodStat(TestCase):
         seq_to_symbol = SeqToSymbols(self.motifs, length=len(s))
         hybrid_calc = Hybrid(len(s), period=4, return_all=True)
         stat, p = blockwise_bootstrap(
-            s, hybrid_calc, block_size=10, num_reps=1000, seq_to_symbols=seq_to_symbol
+            s,
+            hybrid_calc,
+            block_size=10,
+            num_reps=1000,
+            seq_to_symbols=seq_to_symbol,
         )
         # print 's=%s; p=%s' % (stat, p)
 

@@ -38,7 +38,7 @@ def clustal_from_alignment(aln, wrap=None):
     if seqs.is_ragged():
         raise ValueError(
             "Sequences in alignment are not all the same length."
-            + "Cannot generate Clustal format."
+            + "Cannot generate Clustal format.",
         )
 
     aln_len = seqs.seq_len
@@ -60,7 +60,7 @@ def clustal_from_alignment(aln, wrap=None):
                 [
                     f"{x}{' ' * (max_spaces - len(x))}{y[curr_ix:curr_ix + wrap]}"
                     for x, y in zip(order, ordered_seqs)
-                ]
+                ],
             )
             clustal_list.append("")
             curr_ix += wrap
@@ -69,7 +69,7 @@ def clustal_from_alignment(aln, wrap=None):
             [
                 f"{x}{' ' * (max_spaces - len(x))}{y}"
                 for x, y in zip(order, ordered_seqs)
-            ]
+            ],
         )
         clustal_list.append("")
 

@@ -26,7 +26,8 @@ def extension_manager_factory():
     def _factory(extensions):
         with patch("stevedore.ExtensionManager") as mock_manager_constructor:
             mock_manager = ExtensionManager.make_test_instance(
-                extensions=extensions, namespace="TESTING"
+                extensions=extensions,
+                namespace="TESTING",
             )
             mock_manager_constructor.return_value = mock_manager
             return mock_manager
@@ -49,14 +50,18 @@ def mock_extension_manager(extension_manager_factory, monkeypatch):
 
 
 def create_extension(
-    plugin: object, name: str = None, module_name: str = "module1"
+    plugin: object,
+    name: str = None,
+    module_name: str = "module1",
 ) -> extension.Extension:
     if name is None:
         name = plugin.__name__
     return extension.Extension(
         name=name,
         entry_point=EntryPoint(
-            name=name, value=f"{module_name}:{name}", group="TESTING"
+            name=name,
+            value=f"{module_name}:{name}",
+            group="TESTING",
         ),
         plugin=plugin,
         obj=None,
@@ -131,14 +136,14 @@ def test_namespace_collision(mock_extension_manager):
         [
             create_extension(app1, module_name="module1"),
             create_extension(app2, name="app1", module_name="module2"),
-        ]
+        ],
     )
 
     assert cogent3.app.get_app_manager().names() == ["app1", "app1"]
 
     with pytest.raises(NameError):
         _ = get_app(
-            "app1"
+            "app1",
         )  # request app by name only, when there are multiple apps with the same name
 
     app_by_module_name_1 = get_app("module1.app1")  # request app by name and module
@@ -185,7 +190,8 @@ def test_unknown_app_name(mock_extension_manager):
     unknown_app_name = "".join(random.choices(string.ascii_lowercase, k=10))
 
     with pytest.raises(
-        ValueError, match=f"App '{unknown_app_name}' not found. Please check for typos."
+        ValueError,
+        match=f"App '{unknown_app_name}' not found. Please check for typos.",
     ):
         _ = get_app(unknown_app_name)
 
@@ -259,7 +265,8 @@ def test_app_with_app_as_default(mock_extension_manager):
 
 
 @pytest.mark.skipif(
-    sys.version_info[:2] == (3, 9), reason="Skipping test for Python 3.9"
+    sys.version_info[:2] == (3, 9),
+    reason="Skipping test for Python 3.9",
 )
 def test_app_help_mixed_type_hinting(mock_extension_manager):
     """apps can be initialized with other apps as arguments"""

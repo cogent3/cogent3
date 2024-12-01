@@ -20,7 +20,13 @@ class PsubMatrixDefn(PartitionDefn):
     independent_by_default = True
 
     def __init__(
-        self, default=None, name=None, dimensions=None, dimension=None, size=None, **kw
+        self,
+        default=None,
+        name=None,
+        dimensions=None,
+        dimension=None,
+        size=None,
+        **kw,
     ):
         PartitionDefn.__init__(self, default, name, dimensions, dimension, size, **kw)
 
@@ -38,7 +44,7 @@ class PsubMatrixDefn(PartitionDefn):
         if value.shape != (self.size, self.size):
             raise ValueError(
                 "Wrong array shape %s for %s, expected (%s,%s)"
-                % (value.shape, self.name, self.size, self.size)
+                % (value.shape, self.name, self.size, self.size),
             )
         for part in value:
             PartitionDefn.check_value_is_valid(self, part, is_constant)
@@ -60,7 +66,9 @@ class PsubMatrixDefn(PartitionDefn):
                 rows = []
                 for part in value:
                     (ratios, partition) = self._make_partition_cell(
-                        self.name + "_part", scope, part
+                        self.name + "_part",
+                        scope,
+                        part,
                     )
                     all_cells.extend(ratios)
                     rows.append(partition)
@@ -71,7 +79,7 @@ class PsubMatrixDefn(PartitionDefn):
         return (all_cells, uniq_cells)
 
 
-class PartialyDiscretePsubsDefn(object):
+class PartialyDiscretePsubsDefn:
     def __init__(self, alphabet, psubs, discrete_edges):
         motifs = tuple(alphabet)
         dpsubs = PsubMatrixDefn(

@@ -8,7 +8,6 @@ import re
 import typing
 from abc import ABC
 
-from cogent3.util import warning as c3warn
 from cogent3.util.io import PathType, open_
 
 OptionalCallable = typing.Optional[typing.Callable]
@@ -69,19 +68,19 @@ class GffRecordABC(ABC):
 
     # attributes that need to be on the instance
     __slots__ = (
-        "seqid",
-        "source",
+        "attrs",
         "biotype",
+        "comments",
         "name",
         "parent_id",
+        "phase",
+        "score",
+        "seqid",
+        "source",
+        "spans",
         "start",
         "stop",
-        "spans",
         "strand",
-        "score",
-        "phase",
-        "attrs",
-        "comments",
     )
 
     def __repr__(self):
@@ -124,19 +123,19 @@ class GffRecord(GffRecordABC):
     # should be a dataclass, but in py 3.9 they don't support slots
     # so until then ...
     __slots__ = (
-        "seqid",
-        "source",
+        "attrs",
         "biotype",
+        "comments",
         "name",
         "parent_id",
+        "phase",
+        "score",
+        "seqid",
+        "source",
+        "spans",
         "start",
         "stop",
-        "spans",
         "strand",
-        "score",
-        "phase",
-        "attrs",
-        "comments",
     )
 
     def __init__(
@@ -351,7 +350,8 @@ def parse_attributes_gff3(attributes: str) -> dict:
 
 
 def merged_gff_records(
-    records: list[GffRecordABC], num_fake_ids: int
+    records: list[GffRecordABC],
+    num_fake_ids: int,
 ) -> tuple[dict[str, GffRecordABC], int]:
     """merges GFF records that have the same ID
 

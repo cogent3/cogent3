@@ -30,10 +30,9 @@ def lookup_symmetric_dict(dists, a, b):
         pass
     if v1 is None and v2 is None:
         raise KeyError((a, b))
-    elif v1 is None or v2 is None or v1 == v2:
+    if v1 is None or v2 is None or v1 == v2:
         return v1 or v2
-    else:
-        raise ValueError(f"d[{a},{b}] != d[{b},{a}]")
+    raise ValueError(f"d[{a},{b}] != d[{b},{a}]")
 
 
 def distance_dict_to_2D(dists):
@@ -55,7 +54,7 @@ def triangular_order(keys):
     Yields (0,1), (0,2), (1, 2), (0,3), (1,3), (2,3), (0,4)..."""
     N = len(keys)
     for j in range(1, N):
-        for i in range(0, j):
+        for i in range(j):
             yield (keys[i], keys[j])
 
 

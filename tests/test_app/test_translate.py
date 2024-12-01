@@ -136,13 +136,15 @@ class TestFourFoldDegen(TestCase):
                 map(
                     lambda x: tuple(DNA.alphabet.to_indices(x)),
                     [di + n for n in "ACGT"],
-                )
+                ),
             )
             expect.update([frozenset(codons)])
 
         for i in range(1, 3):
             got = get_fourfold_degenerate_sets(
-                get_code(i), alphabet=DNA.alphabet, as_indices=True
+                get_code(i),
+                alphabet=DNA.alphabet,
+                as_indices=True,
             )
             self.assertEqual(got, expect)
 
@@ -188,7 +190,7 @@ def test_select_trabnslatable_exclude_internal_stop():
         {
             "internal_stop": "AATTAAATGTGA",
             "s2": "TATGACTAA",
-        }
+        },
     )
     app = select_translatable(frame=1)
     result = app(aln)  # pylint: disable=not-callable

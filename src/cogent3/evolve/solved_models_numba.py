@@ -14,7 +14,10 @@ def calc_TN93_P(mprobs, time, alpha1, alpha2, result):  # pragma: no cover
     alpha = np.array([alpha1, alpha2])
     pi_star = np.array([mprobs[0] + mprobs[1], mprobs[2] + mprobs[3]])
     mu = np.array(
-        [alpha1 * pi_star[0] + 1.0 * pi_star[1], 1.0 * pi_star[0] + alpha2 * pi_star[1]]
+        [
+            alpha1 * pi_star[0] + 1.0 * pi_star[1],
+            1.0 * pi_star[0] + alpha2 * pi_star[1],
+        ],
     )
     e_mu_t = np.zeros(2)
     transition = np.zeros(2)

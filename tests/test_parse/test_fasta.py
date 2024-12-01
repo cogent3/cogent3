@@ -150,14 +150,14 @@ class NcbiFastaLabelParserTests(TestCase):
     def test_init(self):
         """Labels from genpept.fsa should work as expected"""
         i = NcbiFastaLabelParser(
-            ">gi|37549575|ref|XP_352503.1| similar to EST gb|ATTS1136"
+            ">gi|37549575|ref|XP_352503.1| similar to EST gb|ATTS1136",
         )[1]
         self.assertEqual(i.GI, ["37549575"])
         self.assertEqual(i.RefSeq, ["XP_352503.1"])
         self.assertEqual(i.Description, "similar to EST gb|ATTS1136")
 
         i = NcbiFastaLabelParser(
-            ">gi|32398734|emb|CAD98694.1| (BX538350) dbj|baa86974.1, possible"
+            ">gi|32398734|emb|CAD98694.1| (BX538350) dbj|baa86974.1, possible",
         )[1]
         self.assertEqual(i.GI, ["32398734"])
         self.assertEqual(i.RefSeq, [])
@@ -230,7 +230,8 @@ class NcbiFastaParserTests(TestCase):
         self.assertEqual(a.info.RefSeq, ["NP_055147.1"])
         self.assertEqual(a.info.DDBJ, [])
         self.assertEqual(
-            a.info.Description, "small muscle protein, X-linked [Homo sapiens]"
+            a.info.Description,
+            "small muscle protein, X-linked [Homo sapiens]",
         )
 
         self.assertEqual(
@@ -365,7 +366,10 @@ class GroupFastaParsingTest(TestCase):
         # check we don't return a done group
         done_groups = ["group1"]
         parser = GroupFastaParser(
-            data, label_to_name, done_groups=done_groups, aligned=True
+            data,
+            label_to_name,
+            done_groups=done_groups,
+            aligned=True,
         )
         for group in parser:
             got = group.to_dict()

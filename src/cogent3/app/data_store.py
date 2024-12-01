@@ -9,12 +9,13 @@ import reprlib
 import zipfile
 from abc import ABC, abstractmethod
 from collections import defaultdict
+from collections.abc import Iterator
 from enum import Enum
 from functools import singledispatch
 from io import TextIOWrapper
 from os import PathLike
 from pathlib import Path
-from typing import Iterator, Optional, Union
+from typing import Optional, Union
 
 from scitrack import get_text_hexdigest
 
@@ -149,9 +150,9 @@ class DataStoreABC(ABC):
 
     def _check_writable(self, unique_id: str):
         if self.mode is READONLY:
-            raise IOError("datastore is readonly")
-        elif unique_id in self and self.mode is APPEND:
-            raise IOError("cannot overwrite existing record in append mode")
+            raise OSError("datastore is readonly")
+        if unique_id in self and self.mode is APPEND:
+            raise OSError("cannot overwrite existing record in append mode")
 
     @abstractmethod
     def write(self, *, unique_id: str, data: StrOrBytes) -> None:
@@ -210,7 +211,7 @@ class DataStoreABC(ABC):
                     data["user"],
                     data["command_string"],
                     data.get("composable function", ""),
-                ]
+                ],
             )
             rows.append(row)
         return Table(
@@ -302,7 +303,8 @@ class DataMember(DataMemberABC):
 
 
 def summary_not_completeds(
-    not_completed: list[DataMemberABC], deserialise: Optional[callable] = None
+    not_completed: list[DataMemberABC],
+    deserialise: Optional[callable] = None,
 ) -> Table:
     """
     Parameters
@@ -390,9 +392,8 @@ class DataStoreDirectory(DataStoreABC):
         source = self.source
         if mode is READONLY:
             if not source.exists():
-                raise IOError(f"'{source}' does not exist")
-            else:
-                return
+                raise OSError(f"'{source}' does not exist")
+            return
 
         if not source.exists():
             source.mkdir(parents=True, exist_ok=True)
@@ -472,13 +473,19 @@ class DataStoreDirectory(DataStoreABC):
                     break
                 self._not_completed.append(
                     DataMember(
-                        data_store=self, unique_id=Path(_NOT_COMPLETED_TABLE) / m.name
-                    )
+                        data_store=self,
+                        unique_id=Path(_NOT_COMPLETED_TABLE) / m.name,
+                    ),
                 )
         return self._not_completed
 
     def _write(
-        self, *, subdir: str, unique_id: str, suffix: str, data: str
+        self,
+        *,
+        subdir: str,
+        unique_id: str,
+        suffix: str,
+        data: str,
     ) -> DataMember:
         super().write(unique_id=unique_id, data=data)
         assert suffix, "Must provide suffix"
@@ -504,7 +511,8 @@ class DataStoreDirectory(DataStoreABC):
             return None
         if subdir == _NOT_COMPLETED_TABLE:
             member = DataMember(
-                data_store=self, unique_id=Path(_NOT_COMPLETED_TABLE) / unique_id
+                data_store=self,
+                unique_id=Path(_NOT_COMPLETED_TABLE) / unique_id,
             )
         elif not subdir:
             member = DataMember(data_store=self, unique_id=unique_id)
@@ -536,7 +544,10 @@ class DataStoreDirectory(DataStoreABC):
         Drops any not-completed member corresponding to this identifier
         """
         member = self._write(
-            subdir="", unique_id=unique_id, suffix=self.suffix, data=data
+            subdir="",
+            unique_id=unique_id,
+            suffix=self.suffix,
+            data=data,
         )
         self.drop_not_completed(unique_id=unique_id)
         if member is not None:
@@ -559,7 +570,10 @@ class DataStoreDirectory(DataStoreABC):
         """
         (self.source / _NOT_COMPLETED_TABLE).mkdir(parents=True, exist_ok=True)
         member = self._write(
-            subdir=_NOT_COMPLETED_TABLE, unique_id=unique_id, suffix="json", data=data
+            subdir=_NOT_COMPLETED_TABLE,
+            unique_id=unique_id,
+            suffix="json",
+            data=data,
         )
         if member is not None:
             self._not_completed.append(member)
@@ -606,7 +620,7 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
         source = Path(source)
         self._source = source.expanduser()
         if not self._source.exists():
-            raise IOError(f"{str(self._source)} does not exit")
+            raise OSError(f"{self._source!s} does not exit")
         self.suffix = suffix
         self._verbose = verbose
         self._limit = limit
@@ -665,7 +679,8 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
             for name in self._iter_matches(_NOT_COMPLETED_TABLE, "*.json"):
                 num_matches += 1
                 member = DataMember(
-                    data_store=self, unique_id=str(nc_dir_path / name.name)
+                    data_store=self,
+                    unique_id=str(nc_dir_path / name.name),
                 )
                 self._not_completed.append(member)
                 if self.limit and num_matches >= self.limit:
@@ -758,7 +773,7 @@ def _(data: dict):
     try:
         source = data.get("info", {})["source"]
     except KeyError:
-        source = data.get("source", None)
+        source = data.get("source", None)  # noqa
     return get_data_source(source)
 
 
@@ -768,7 +783,9 @@ def _(data: DataMemberABC):
 
 
 def convert_directory_datastore(
-    inpath: Path, outpath: Path, suffix: Optional[str] = None
+    inpath: Path,
+    outpath: Path,
+    suffix: Optional[str] = None,
 ) -> DataStoreABC:
     out_dstore = DataStoreDirectory(source=outpath, mode=OVERWRITE, suffix=suffix)
     filenames = inpath.glob(f"*{suffix}")
@@ -792,7 +809,7 @@ def convert_tinydb_to_sqlite(source: Path, dest: Optional[Path] = None) -> DataS
         from tinydb.storages import JSONStorage
     except ImportError as e:
         raise ImportError(
-            "You need to install tinydb to be able to migrate to new datastore."
+            "You need to install tinydb to be able to migrate to new datastore.",
         ) from e
 
     source = Path(source)
@@ -813,8 +830,8 @@ def convert_tinydb_to_sqlite(source: Path, dest: Optional[Path] = None) -> DataS
 
     dest = dest or Path(source.parent) / f"{source.stem}.sqlitedb"
     if dest.exists():
-        raise IOError(
-            f"Destination file {str(dest)} already exists. Delete or define new dest."
+        raise OSError(
+            f"Destination file {dest!s} already exists. Delete or define new dest.",
         )
 
     LOGGER = CachingLogger(create_dir=True)
@@ -829,7 +846,8 @@ def convert_tinydb_to_sqlite(source: Path, dest: Optional[Path] = None) -> DataS
             values = (data, id_)
             with contextlib.suppress(ValueError):
                 date = datetime.strptime(
-                    data.split("\t", maxsplit=1)[0], "%Y-%m-%d %H:%M:%S"
+                    data.split("\t", maxsplit=1)[0],
+                    "%Y-%m-%d %H:%M:%S",
                 )
                 cmnd = f"{cmnd}, date=?"
                 values += (date,)

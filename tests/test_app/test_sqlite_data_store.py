@@ -214,7 +214,7 @@ def test_contains(sql_dstore):
 
 def test_limit_datastore(full_dstore_sqlite):  # new
     assert len(full_dstore_sqlite) == len(full_dstore_sqlite.completed) + len(
-        full_dstore_sqlite.not_completed
+        full_dstore_sqlite.not_completed,
     )
     full_dstore_sqlite._limit = len(full_dstore_sqlite.completed) // 2
     full_dstore_sqlite._completed = []
@@ -225,7 +225,7 @@ def test_limit_datastore(full_dstore_sqlite):  # new
         == full_dstore_sqlite._limit
     )
     assert len(full_dstore_sqlite) == len(full_dstore_sqlite.completed) + len(
-        full_dstore_sqlite.not_completed
+        full_dstore_sqlite.not_completed,
     )
     full_dstore_sqlite.drop_not_completed()
     assert len(full_dstore_sqlite) == len(full_dstore_sqlite.completed)
@@ -325,7 +325,7 @@ def test_write_if_member_exists(sql_dstore, ro_dir_dstore):
     identifier = "brca1.fasta"
     m = sql_dstore.write(unique_id=identifier, data=expect)
     assert len_dstore == len(
-        sql_dstore
+        sql_dstore,
     )  # new, because previously added new member while updating the old one
     # got = sql_dstore.read(identifier)
     got = m.read()
@@ -385,7 +385,7 @@ def test_getitem(full_dstore_sqlite):
 
 def test_empty_data_store(db_dir):
     dstore = DataStoreSqlite(db_dir, mode=OVERWRITE)
-    assert 0 == len(dstore)
+    assert len(dstore) == 0
 
 
 def test_no_logs(db_dir):
@@ -395,7 +395,7 @@ def test_no_logs(db_dir):
 
 def test_limit_datastore(full_dstore_sqlite):
     assert len(full_dstore_sqlite) == len(full_dstore_sqlite.completed) + len(
-        full_dstore_sqlite.not_completed
+        full_dstore_sqlite.not_completed,
     )
     full_dstore_sqlite._limit = len(full_dstore_sqlite.completed)
     full_dstore_sqlite.drop_not_completed()
@@ -501,7 +501,8 @@ def test_db_without_logs(ro_sql_dstore):
 def md5_none(full_dstore_sqlite):
     """create a data store with empty md5 fields"""
     full_dstore_sqlite.db.execute(
-        "UPDATE results SET md5=? WHERE record_id LIKE '%'", (None,)
+        "UPDATE results SET md5=? WHERE record_id LIKE '%'",
+        (None,),
     )
     return full_dstore_sqlite
 
@@ -547,7 +548,8 @@ def _make_and_run_proc(out_path, suffix, members):
 
 
 @pytest.mark.parametrize(
-    "name,suffix", (("appended", "fa"), ("appended.sqlitedb", None))
+    "name,suffix",
+    (("appended", "fa"), ("appended.sqlitedb", None)),
 )
 def test_append_makes_logs(tmp_dir, ro_dir_dstore, name, suffix):
     # do half the records in the first call

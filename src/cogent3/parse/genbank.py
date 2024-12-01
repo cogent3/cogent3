@@ -177,8 +177,7 @@ def parse_feature(lines):
         if line.lstrip().startswith("/"):
             found_feature = True
             break
-        else:
-            location.append(line)
+        location.append(line)
     result["raw_location"] = location
     try:
         result["location"] = parse_location_line(location_line_tokenizer(location))
@@ -261,13 +260,12 @@ def parse_simple_location_segment(segment):
             [
                 Location(first, ambiguity=first_ambiguity),
                 Location(second, ambiguity=second_ambiguity),
-            ]
+            ],
         )
-    else:
-        if not segment[0].isdigit():
-            first_ambiguity = segment[0]
-            segment = segment[1:]
-        return Location(int(segment), ambiguity=first_ambiguity)
+    if not segment[0].isdigit():
+        first_ambiguity = segment[0]
+        segment = segment[1:]
+    return Location(int(segment), ambiguity=first_ambiguity)
 
 
 def parse_location_line(tokens, parser=parse_simple_location_segment):
@@ -297,7 +295,7 @@ def parse_location_line(tokens, parser=parse_simple_location_segment):
     return LocationList(stack)
 
 
-class Location(object):
+class Location:
     """GenBank location object. Integer, or low, high, or 2-base bound.
 
     Parameters
@@ -420,10 +418,9 @@ class LocationList(list):
         """Returns (normalized) string representation of self."""
         if len(self) == 0:
             return ""
-        elif len(self) == 1:
+        if len(self) == 1:
             return str(self[0])
-        else:
-            return "join(" + ",".join(map(str, self)) + ")"
+        return "join(" + ",".join(map(str, self)) + ")"
 
     def extract(self, sequence, trans_table=dna_trans):
         """Extracts pieces of self from sequence."""
@@ -457,7 +454,8 @@ def parse_feature_table(lines):
 
 reference_label_marker = " " * 11
 reference_field_finder = LabeledRecordFinder(
-    lambda x: not x.startswith(reference_label_marker), constructor=None
+    lambda x: not x.startswith(reference_label_marker),
+    constructor=None,
 )
 
 
@@ -528,10 +526,14 @@ handlers = {
 
 
 @c3warn.deprecated_callable(
-    "2024.12", reason="minimal_parser is faster and more flexible", is_discontinued=True
+    "2024.12",
+    reason="minimal_parser is faster and more flexible",
+    is_discontinued=True,
 )
 def MinimalGenbankParser(
-    lines, handlers=handlers, default_handler=generic_adaptor
+    lines,
+    handlers=handlers,
+    default_handler=generic_adaptor,
 ):  # pragma: no cover
     for rec in GbFinder(lines):
         curr = {}
@@ -665,7 +667,9 @@ def _(
         data: bytes = infile.read()
 
     return iter_genbank_records(
-        data, converter=converter, convert_features=convert_features
+        data,
+        converter=converter,
+        convert_features=convert_features,
     )
 
 
@@ -679,7 +683,9 @@ def _(
         data: bytes = infile.read()
 
     return iter_genbank_records(
-        data, converter=converter, convert_features=convert_features
+        data,
+        converter=converter,
+        convert_features=convert_features,
     )
 
 
@@ -692,7 +698,9 @@ def _(
     data: bytes = data.read().encode("utf8")
 
     return iter_genbank_records(
-        data, converter=converter, convert_features=convert_features
+        data,
+        converter=converter,
+        convert_features=convert_features,
     )
 
 
@@ -761,7 +769,9 @@ def rich_parser(
     moltype = get_moltype(moltype) if moltype else None
     feature_parser = parse_metadata_first_line if just_seq else default_parse_metadata
     for rec in minimal_parser(
-        handle, converter=default_seq_converter, convert_features=feature_parser
+        handle,
+        converter=default_seq_converter,
+        convert_features=feature_parser,
     ):
         info = {
             label: value
@@ -780,7 +790,9 @@ def rich_parser(
         info = Info(genbank_record=info)
         try:
             seq = rec_moltype.make_seq(
-                seq=rec["sequence"].upper(), info=info, name=rec["locus"]
+                seq=rec["sequence"].upper(),
+                info=info,
+                name=rec["locus"],
             )
         except KeyError:
             if "contig" in rec:
@@ -795,6 +807,8 @@ def rich_parser(
 
         if not just_seq:
             seq.annotation_db = GenbankAnnotationDb(
-                data=rec.pop("features", None), seqid=rec["locus"], db=db
+                data=rec.pop("features", None),
+                seqid=rec["locus"],
+                db=db,
             )
         yield rec["locus"], seq

@@ -77,7 +77,7 @@ class UPGMATests(TestCase):
         cluster = upgma(pairwise_dist)
         cluster = cluster.sorted()  # so we can make a stable comparison
         expect = make_tree(
-            treestring="(((a:0.5,b:0.5)edge.1:1.75,c:2.25)edge.0:5.875,(d:1.0,e:1.0)edge.2:7.125)root;"
+            treestring="(((a:0.5,b:0.5)edge.1:1.75,c:2.25)edge.0:5.875,(d:1.0,e:1.0)edge.2:7.125)root;",
         )
         self.assertTrue(cluster.same_topology(expect))
 
@@ -120,7 +120,8 @@ class UPGMATests(TestCase):
         large_number = 9999999999
         tree = UPGMA_cluster(matrix, node_order, large_number)
         self.assertEqual(
-            str(tree), "(((a:0.5,b:0.5):1.75,c:2.25):5.875,(d:1.0,e:1.0):7.125);"
+            str(tree),
+            "(((a:0.5,b:0.5):1.75,c:2.25):5.875,(d:1.0,e:1.0):7.125);",
         )
 
     def test_UPGMA_cluster_diag(self):
@@ -131,7 +132,8 @@ class UPGMATests(TestCase):
         large_number = 9999999999
         tree = UPGMA_cluster(matrix, node_order, large_number)
         self.assertEqual(
-            str(tree), "(((a:0.5,b:0.5):1.75,c:2.25):5.875,(d:1.0,e:1.0):7.125);"
+            str(tree),
+            "(((a:0.5,b:0.5):1.75,c:2.25):5.875,(d:1.0,e:1.0):7.125);",
         )
 
     def test_UPGMA_cluster_diag(self):
@@ -142,7 +144,8 @@ class UPGMATests(TestCase):
         large_number = 9999999999
         tree = UPGMA_cluster(matrix, node_order, large_number)
         self.assertEqual(
-            str(tree), "(((a:0.5,b:0.5):1.75,c:2.25):5.875,(d:1.0,e:1.0):7.125);"
+            str(tree),
+            "(((a:0.5,b:0.5):1.75,c:2.25):5.875,(d:1.0,e:1.0):7.125);",
         )
 
     def test_inputs_from_dict_array(self):

@@ -7,7 +7,7 @@ from cogent3.maths.stats.test import G_fit
 from cogent3.util.dict_array import DictArray
 
 
-# todo this should probably go into different module
+# TODO this should probably go into different module
 def shuffled_matrix(matrix):
     """returns a randomly sampled matrix with same marginals"""
     # SLOW algorithm
@@ -25,7 +25,7 @@ def shuffled_matrix(matrix):
     return shuffled
 
 
-# todo following functions should be moved into stats.test and replace
+# TODO following functions should be moved into stats.test and replace
 # or merge with the older implementations
 def calc_expected(observed):
     """returns the expected array from product of marginal frequencies"""
@@ -371,7 +371,15 @@ class TestResult:
     """result of a contingency test"""
 
     def __init__(
-        self, observed, expected, residuals, stat_name, stat, df, pvalue, test_name=""
+        self,
+        observed,
+        expected,
+        residuals,
+        stat_name,
+        stat,
+        df,
+        pvalue,
+        test_name="",
     ):
         """
         Parameters
@@ -424,7 +432,8 @@ class TestResult:
     def __repr__(self):
         result = str(self._get_repr_())
         components = CategoryCounts(
-            self.observed.to_dict(), expected=self.expected.to_dict()
+            self.observed.to_dict(),
+            expected=self.expected.to_dict(),
         )
         result = [result, str(components)]
         return "\n".join(result)
@@ -436,7 +445,8 @@ class TestResult:
         table = self._get_repr_()
         table.set_repr_policy(show_shape=False)
         components = CategoryCounts(
-            self.observed.to_dict(), expected=self.expected.to_dict()
+            self.observed.to_dict(),
+            expected=self.expected.to_dict(),
         )
         html = [table._repr_html_()]
         html.append(components._repr_html_())

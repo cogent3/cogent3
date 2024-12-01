@@ -7,7 +7,9 @@ from cogent3.format.util import _AlignmentFormatter
 def alignment_to_phylip(alignment_dict, block_size=60, order=None):
     """Returns a Phylip string given an alignment."""
     return PhylipFormatter().format(
-        alignment_dict, block_size, [] if order is None else order
+        alignment_dict,
+        block_size,
+        [] if order is None else order,
     )
 
 

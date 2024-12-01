@@ -94,7 +94,8 @@ class DelimitedSplitterTests(TestCase):
         self.assertEqual(semicolon("  a  ; b   ;  c  d"), ["a", "b   ;  c  d"])
         self.assertEqual(twosplits("  a  ; b   ;  c  d"), ["a", "b", "c  d"])
         self.assertEqual(
-            allsplits(" a ;  b  ; c;;d;e  ;"), ["a", "b", "c", "", "d", "e", ""]
+            allsplits(" a ;  b  ; c;;d;e  ;"),
+            ["a", "b", "c", "", "d", "e", ""],
         )
         self.assertEqual(lastone(" a ;  b  ; c;;d;e  ;"), ["a ;  b  ; c;;d;e", ""])
         self.assertEqual(lasttwo(" a ;  b  ; c;;d;e  ;"), ["a ;  b  ; c;;d", "e", ""])
@@ -242,7 +243,7 @@ class MappedRecordTests(TestCase):
         except AttributeError:
             pass
         else:
-            raise AssertionError("Allowed deletion of required attribute" "")
+            raise AssertionError("Allowed deletion of required attribute")
         s.a = 3
         self.assertEqual(s.a, 3)
         s.Aliases = {"xyz": "a"}
@@ -374,10 +375,8 @@ class MappedRecordTests(TestCase):
         assert a["abc"] == b["abc"]
 
 
-class dummy(object):
+class dummy:
     """Do-nothing class whose attributes can be freely abused."""
-
-    pass
 
 
 class TypeSetterTests(TestCase):
@@ -489,24 +488,31 @@ class LineOrientedConstructorTests(TestCase):
         constructor = rec
         strict = True
         loc_bad = LineOrientedConstructor(
-            data, label_splitter, maps, constructor, strict
+            data,
+            label_splitter,
+            maps,
+            constructor,
+            strict,
         )
         self.assertRaises(FieldError, loc_bad)
         strict = False
         loc_good = LineOrientedConstructor(
-            data, label_splitter, maps, constructor, strict
+            data,
+            label_splitter,
+            maps,
+            constructor,
+            strict,
         )
         result = loc_good()
         assert isinstance(result, rec)
         self.assertEqual(
-            result, {"abc": ["def", "xyz"], "3": "n", "fgh": False, "x": 3}
+            result,
+            {"abc": ["def", "xyz"], "3": "n", "fgh": False, "x": 3},
         )
 
 
 class fake_dict(dict):
     """Test that constructors return the correct subclass"""
-
-    pass
 
 
 class FieldWrapperTests(TestCase):
@@ -548,7 +554,8 @@ class StrictFieldWrapperTests(TestCase):
         fields = list("abcde")
         f = StrictFieldWrapper(fields)
         self.assertEqual(
-            f("1   2\t\t 3  \n4 5 "), {"a": "1", "b": "2", "c": "3", "d": "4", "e": "5"}
+            f("1   2\t\t 3  \n4 5 "),
+            {"a": "1", "b": "2", "c": "3", "d": "4", "e": "5"},
         )
         self.assertRaises(FieldError, f, "")
         self.assertRaises(FieldError, f, "xy za ")

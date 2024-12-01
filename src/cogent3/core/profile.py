@@ -16,9 +16,9 @@ class _MotifNumberArray(DictArray):
             row_indices correspond to original indexes, defaults to length of
             motif
         """
-        # todo validate that motifs are strings and row_indices are ints or
+        # TODO validate that motifs are strings and row_indices are ints or
         # strings
-        # todo change row_indices argument name to row_keys
+        # TODO change row_indices argument name to row_keys
         some_data = data.any() if isinstance(data, numpy.ndarray) else any(data)
         if not some_data or len(data) == 0:
             raise ValueError("Must provide data")
@@ -104,7 +104,7 @@ class _MotifNumberArray(DictArray):
         if not set(indices) <= set(current):
             if (
                 isinstance(indices[0], int)
-                and 0 <= min(indices)
+                and min(indices) >= 0
                 and max(indices) < len(current)
             ):
                 current = list(range(len(current)))
@@ -156,7 +156,7 @@ def _get_ordered_motifs_from_tabular(data, index=1):
 
     chars = []
     for entry in data:
-        if not entry[index] in chars:
+        if entry[index] not in chars:
             chars.append(entry[index])
     return chars
 
@@ -363,7 +363,13 @@ class MotifFreqsArray(_MotifNumberArray):
         )
 
     def logo(
-        self, height=400, width=800, wrap=None, ylim=None, vspace=0.05, colours=None
+        self,
+        height=400,
+        width=800,
+        wrap=None,
+        ylim=None,
+        vspace=0.05,
+        colours=None,
     ):
         """returns a sequence logo Drawable"""
         from cogent3.draw.drawable import get_domain
@@ -457,26 +463,30 @@ class PSSM(_MotifNumberArray):
         row_sum = data.sum(axis=1)
 
         # are we dealing with counts data?
-        if 0 <= data.min() and 1 < data.max():
+        if data.min() >= 0 and data.max() > 1:
             # convert to freqs data
             data = data / numpy.vstack(row_sum)
             row_sum = data.sum(axis=1)
 
         # are we dealing with freqs data?
         if (data >= 0).all() and numpy.allclose(
-            row_sum[numpy.isnan(row_sum) == False], 1
+            row_sum[numpy.isnan(row_sum) == False],
+            1,
         ):
             # standard PSSM object creation
             if background is None:
                 background = numpy.ones(len(motifs), dtype=float) / len(motifs)
             self._background = numpy.array(background)
             assert len(background) == len(
-                motifs
+                motifs,
             ), "Mismatch between number of motifs and the background"
             validate_freqs_array(self._background)
             pssm = safe_log(data) - safe_log(self._background)
             super(PSSM, self).__init__(
-                pssm, motifs, row_indices=row_indices, dtype=float
+                pssm,
+                motifs,
+                row_indices=row_indices,
+                dtype=float,
             )
             self._indices = numpy.arange(self.shape[0])  # used for scoring
             return

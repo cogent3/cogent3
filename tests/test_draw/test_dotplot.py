@@ -61,13 +61,15 @@ class TestUtilFunctions(TestCase):
         """correctly constructs a Display2d with rc"""
         # fail if specify rc but incompatible moltype
         seqs = make_unaligned_seqs(
-            {"a": "-TGATGTAAGGTAGTT", "b": "CTGG---AAG---GGT"}, moltype="text"
+            {"a": "-TGATGTAAGGTAGTT", "b": "CTGG---AAG---GGT"},
+            moltype="text",
         )
         with self.assertRaises(TypeError):
             Dotplot(*seqs.seqs, is_aligned=True, window=5, rc=True)
 
         seqs = make_unaligned_seqs(
-            {"a": "-TGATGTAAGGTAGTT", "b": "CTGG---AAG---GGT"}, moltype="dna"
+            {"a": "-TGATGTAAGGTAGTT", "b": "CTGG---AAG---GGT"},
+            moltype="dna",
         )
         dp = Dotplot(*seqs.seqs, is_aligned=True, window=5, rc=True)
         dp._build_fig()
@@ -78,7 +80,8 @@ class TestUtilFunctions(TestCase):
     def test_align_without_gaps(self):
         """dotplot has alignment coordinates if no gaps"""
         aln = ArrayAlignment(
-            {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}, moltype="dna"
+            {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"},
+            moltype="dna",
         )
         aln_plot = aln.dotplot("seq1")
         self.assertNotEqual(aln_plot._aligned_coords, None)
@@ -86,7 +89,8 @@ class TestUtilFunctions(TestCase):
     def test_dotplot_seqcoll(self):
         """dotplot sequence collection, gaps are removed"""
         seqs = make_unaligned_seqs(
-            {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}, moltype="dna"
+            {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"},
+            moltype="dna",
         )
         dp = seqs.dotplot("seq1", "seq3")
         self.assertNotEqual(dp._aligned_coords, None)
@@ -102,7 +106,8 @@ class TestUtilFunctions(TestCase):
     def test_dotplot_missing(self):
         """fail if a sequence name not present"""
         seqs = make_unaligned_seqs(
-            {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}, moltype="dna"
+            {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"},
+            moltype="dna",
         )
         with self.assertRaises(ValueError):
             _ = seqs.dotplot("seq1", "seq5")
@@ -114,7 +119,8 @@ class TestUtilFunctions(TestCase):
     def test_dotplot_title(self):
         """setting empty string title works"""
         seqs = make_unaligned_seqs(
-            {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}, moltype="dna"
+            {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"},
+            moltype="dna",
         )
         dp = seqs.dotplot("seq1", "seq3", title="")
         self.assertEqual(dp.figure.layout.title, "")

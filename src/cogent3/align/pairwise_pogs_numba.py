@@ -11,7 +11,7 @@ from numba.core.types.containers import Tuple
             Tuple(types=(int64, int64)),
             int64,
             float64,
-        )
+        ),
     )(
         int64[::1],
         int64[::1],
@@ -197,7 +197,9 @@ def calc_rows(
 
                             for prev_state in range(min_prev_state, N):
                                 exponent = exponents[
-                                    source_row_index, prev_j, prev_state
+                                    source_row_index,
+                                    prev_j,
+                                    prev_state,
                                 ]
                                 if exponent == MIN_SCALE:
                                     continue
@@ -205,7 +207,9 @@ def calc_rows(
                                 transition = T[prev_state, state]
 
                                 mantissa = mantissas[
-                                    source_row_index, prev_j, prev_state
+                                    source_row_index,
+                                    prev_j,
+                                    prev_state,
                                 ]
                                 mantissa *= transition
 
@@ -257,7 +261,9 @@ def calc_rows(
 
                             for prev_state in range(min_prev_state, N):
                                 mantissa = mantissas[
-                                    source_row_index, prev_j, prev_state
+                                    source_row_index,
+                                    prev_j,
+                                    prev_state,
                                 ]
                                 transition = T[prev_state, state]
                                 if use_logs:

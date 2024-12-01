@@ -25,7 +25,7 @@ class TreeParseError(FileFormatError):
     pass
 
 
-class _Tokeniser(object):
+class _Tokeniser:
     """Supplies an iterable stream of Newick tokens from 'text'
 
     By default this is very forgiving of non-standard unquoted labels.
@@ -164,7 +164,7 @@ def parse_string(text, constructor, **kw):
         elif token == "(":
             if children is not None:
                 raise tokeniser.error("Two subtrees in one node, missing comma?")
-            elif name or attributes:
+            if name or attributes:
                 raise tokeniser.error("Subtree must be first element of the node.")
             stack.append((nodes, sentinals, attributes))
             (nodes, sentinals, attributes) = ([], [")"], {})
@@ -187,7 +187,7 @@ def parse_string(text, constructor, **kw):
                 (nodes, sentinals, attributes) = stack.pop()
             elif token != "," or ")" not in sentinals:
                 raise tokeniser.error(
-                    f'Was expecting to end with {" or ".join([repr(s) for s in sentinals])}'
+                    f'Was expecting to end with {" or ".join([repr(s) for s in sentinals])}',
                 )
         elif name is None:
             name = token

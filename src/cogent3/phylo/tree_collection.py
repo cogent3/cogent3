@@ -23,8 +23,9 @@ class ScoredTreeCollection(_UserList):
             for score, tree in self:
                 f.writelines(
                     self.scored_tree_format(
-                        tree.get_newick(with_distances=True), str(score)
-                    )
+                        tree.get_newick(with_distances=True),
+                        str(score),
+                    ),
                 )
 
     def scored_tree_format(self, tree, score):
@@ -121,7 +122,7 @@ def make_trees(filename):
     or negative log likelihoods."""
     from cogent3 import make_tree
 
-    infile = open(filename, "r")
+    infile = open(filename)
     trees = []
     klass = list
     # expect score, tree
@@ -130,7 +131,7 @@ def make_trees(filename):
         lnL = float(line[0])
         if lnL > 1:
             raise ValueError(f"likelihoods expected, not {lnL}")
-        elif lnL > 0:
+        if lnL > 0:
             assert klass in [list, WeightedTreeCollection]
             klass = WeightedTreeCollection
         else:

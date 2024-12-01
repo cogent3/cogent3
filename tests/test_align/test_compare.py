@@ -340,7 +340,7 @@ def test_matched_paths_min_gap():
         [
             (segment(start=6, end=8), segment(start=10, end=12)),
             (segment(start=10, end=12), segment(start=14, end=16)),
-        ]
+        ],
     )
     got = path._get_segments(min_gap=1)
     assert got == path.paths
@@ -456,7 +456,14 @@ def test_extend_left_shifted(s1, diff):
     a, b = 3, 5
     matches = deque(_construct_matches(s1[a:], s2[b:], window), maxlen=4)
     start1, start2, matches = _extend_left(
-        matches, s1, a, s2, b, 3, threshold, sum(matches)
+        matches,
+        s1,
+        a,
+        s2,
+        b,
+        3,
+        threshold,
+        sum(matches),
     )
     assert start1 == a - diff
     assert start2 == b - diff

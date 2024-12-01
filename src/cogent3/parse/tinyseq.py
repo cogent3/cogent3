@@ -62,7 +62,7 @@ def TinyseqParser(doc):
         seq.add_feature(biotype="genbank_id", name=name, spans=[(0, len(seq))])
 
         organism = str(
-            record.getElementsByTagName("TSeq_orgname")[0].childNodes[0].nodeValue
+            record.getElementsByTagName("TSeq_orgname")[0].childNodes[0].nodeValue,
         )
 
         seq.add_feature(biotype="organism", name=organism, spans=[(0, len(seq))])

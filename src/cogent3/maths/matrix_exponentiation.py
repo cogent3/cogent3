@@ -17,13 +17,13 @@ from numpy.linalg import eig, inv, solve
 
 class _Exponentiator:
     def __repr__(self):
-        return f"{self.__class__.__name__}({repr(self.Q)})"
+        return f"{self.__class__.__name__}({self.Q!r})"
 
 
 class EigenExponentiator(_Exponentiator):
     """A matrix ready for fast exponentiation.  P=exp(Q*t)"""
 
-    __slots__ = ["Q", "ev", "roots", "evI", "evT"]
+    __slots__ = ["Q", "ev", "evI", "evT", "roots"]
 
     def __init__(self, Q, roots, ev, evT, evI):
         self.Q = Q

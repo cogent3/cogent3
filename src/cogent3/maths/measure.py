@@ -67,7 +67,7 @@ def paralinear_continuous_time(P, pi, Q, validate=False):
         off_diag = ~eye(Q.shape[0])
         assert not (Q[off_diag] < 0).any(), "invalid Q"
 
-    # todo need to implement a safe natural log to handle possible 0 elements
+    # TODO need to implement a safe natural log to handle possible 0 elements
     a = -log(pi).sum() / 2
     b = -diagonal(Q).sum()
     c = log(dot(pi, P)).sum() / 2
@@ -106,7 +106,7 @@ def jsd(*vectors, validate=False):
     if jsd_ < 0:
         if not isclose(jsd_, 0, atol=1e-10):
             raise ArithmeticError(
-                f"{jsd_} is negative and below defined precision threshold"
+                f"{jsd_} is negative and below defined precision threshold",
             )
         jsd_ = 0
 

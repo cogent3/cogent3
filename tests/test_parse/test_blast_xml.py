@@ -19,10 +19,10 @@ class GetTagTests(TestCase):
 
     def setUp(self):
         self.single_tag = xml.dom.minidom.parseString(
-            "<outer>bla <inner>content</inner>bla</outer>"
+            "<outer>bla <inner>content</inner>bla</outer>",
         )
         self.double_tag = xml.dom.minidom.parseString(
-            "<outer><inner>first content</inner><inner>second content</inner></outer>"
+            "<outer><inner>first content</inner><inner>second content</inner></outer>",
         )
         self.empty_tag = xml.dom.minidom.parseString("<outer></outer>")
 
@@ -31,7 +31,8 @@ class GetTagTests(TestCase):
         self.assertEqual(get_tag(self.double_tag, "inner"), "first content")
         self.assertEqual(get_tag(self.empty_tag, "inner"), None)
         self.assertEqual(
-            get_tag(self.empty_tag, "inner", "blue elephant"), "blue elephant"
+            get_tag(self.empty_tag, "inner", "blue elephant"),
+            "blue elephant",
         )
         self.assertEqual(get_tag(self.single_tag, "non-existing tag"), None)
         self.assertEqual(
@@ -44,7 +45,10 @@ class GetTagTests(TestCase):
         """Make sure the tag and name parameters are in the proper types."""
         self.assertRaises(AttributeError, get_tag, None, "h1")
         self.assertRaises(
-            AttributeError, get_tag, "<h1>This is not a XML tag object</h1>", "h1"
+            AttributeError,
+            get_tag,
+            "<h1>This is not a XML tag object</h1>",
+            "h1",
         )
 
 

@@ -3,7 +3,7 @@ import bisect
 import numpy
 
 
-class TransitionMatrix(object):
+class TransitionMatrix:
     """The transition matrix for a Markov process.  Just a square
     numpy array plus a list of state 'tags', eg:
 
@@ -101,11 +101,10 @@ class TransitionMatrix(object):
             for i in range(len(obs)):
                 state_probs = numpy.dot(state_probs, self.Matrix) * obs[i]
             return sum(state_probs)
-        else:
-            state_probs = numpy.ones([self.size], float)
-            for i in range(len(obs) - 1, -1, -1):
-                state_probs = numpy.dot(self.Matrix, state_probs * obs[i])
-            return sum(state_probs * self.StationaryProbs)
+        state_probs = numpy.ones([self.size], float)
+        for i in range(len(obs) - 1, -1, -1):
+            state_probs = numpy.dot(self.Matrix, state_probs * obs[i])
+        return sum(state_probs * self.StationaryProbs)
 
     def get_posterior_probs(self, obs):
         """'obs' is a sequence of state probability vectors"""

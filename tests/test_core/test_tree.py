@@ -226,7 +226,8 @@ class TreeNodeTests(TestCase):
                     got["newick"],
                 )
                 self.assertEqual(
-                    set(tree.get_node_names()), got["edge_attributes"].keys()
+                    set(tree.get_node_names()),
+                    got["edge_attributes"].keys(),
                 )
 
     def test_write_to_txt(self):
@@ -259,7 +260,8 @@ class TreeNodeTests(TestCase):
         obs = t.multifurcating(2)
         self.assertEqual(obs.get_newick(with_distances=True), exp_str)
         self.assertNotEqual(
-            t.get_newick(with_distances=True), obs.get_newick(with_distances=True)
+            t.get_newick(with_distances=True),
+            obs.get_newick(with_distances=True),
         )
 
         obs = t.multifurcating(2, 0.5)
@@ -717,18 +719,22 @@ class TreeNodeTests(TestCase):
 
         self.assertEqual([i.name for i in m.traverse()], ["a", "b", "c", "d"])
         self.assertEqual(
-            [i.name for i in m.traverse(True, True)], ["a", "b", "c", "d", "a"]
+            [i.name for i in m.traverse(True, True)],
+            ["a", "b", "c", "d", "a"],
         )
         self.assertEqual(
-            [i.name for i in m.traverse(True, False)], ["a", "b", "c", "d"]
+            [i.name for i in m.traverse(True, False)],
+            ["a", "b", "c", "d"],
         )
         self.assertEqual(
-            [i.name for i in m.traverse(False, True)], ["b", "c", "d", "a"]
+            [i.name for i in m.traverse(False, True)],
+            ["b", "c", "d", "a"],
         )
         self.assertEqual([i.name for i in m.traverse(False, False)], ["b", "c", "d"])
 
         self.assertEqual(
-            [i.name for i in r.traverse()], ["a", "b", "c", "d", "e", "f", "g", "h"]
+            [i.name for i in r.traverse()],
+            ["a", "b", "c", "d", "e", "f", "g", "h"],
         )
         self.assertEqual(
             [i.name for i in r.traverse(True, True)],
@@ -743,7 +749,8 @@ class TreeNodeTests(TestCase):
             ["d", "e", "g", "f", "c", "b", "h", "a"],
         )
         self.assertEqual(
-            [i.name for i in r.traverse(False, False)], ["d", "e", "g", "h"]
+            [i.name for i in r.traverse(False, False)],
+            ["d", "e", "g", "h"],
         )
         self.assertEqual(
             [i.name for i in r.traverse(True, True, False)],
@@ -758,7 +765,8 @@ class TreeNodeTests(TestCase):
             ["d", "e", "g", "f", "c", "b", "h"],
         )
         self.assertEqual(
-            [i.name for i in r.traverse(False, False, False)], ["d", "e", "g", "h"]
+            [i.name for i in r.traverse(False, False, False)],
+            ["d", "e", "g", "h"],
         )
 
         # this previously failed
@@ -780,7 +788,8 @@ class TreeNodeTests(TestCase):
         self.assertEqual(nodes["b"].ancestors(), [nodes["a"]])
         self.assertEqual(nodes["d"].ancestors(), nodes["f"].ancestors())
         self.assertEqual(
-            nodes["g"].ancestors(), [nodes["f"], nodes["c"], nodes["b"], nodes["a"]]
+            nodes["g"].ancestors(),
+            [nodes["f"], nodes["c"], nodes["b"], nodes["a"]],
         )
 
     def test_newick_with_labelled_nodes(self):
@@ -1111,7 +1120,8 @@ class TreeNodeTests(TestCase):
         tree = self.TreeRoot
         result, node_list = tree.make_tree_array()
         assert_equal(
-            result, array([[1, 1, 1, 1], [1, 1, 1, 0], [1, 1, 1, 0], [0, 0, 1, 0]])
+            result,
+            array([[1, 1, 1, 1], [1, 1, 1, 0], [1, 1, 1, 0], [0, 0, 1, 0]]),
         )
         nodes = [node.name for node in node_list]
         self.assertEqual(nodes, ["a", "b", "c", "f"])
@@ -1167,7 +1177,8 @@ class TreeNodeTests(TestCase):
     def test_remove_deleted(self):
         """remove_deleted should remove all nodes where is_deleted tests true."""
         tree = DndParser(
-            "((a:3,(b:2,(c:1,d:1):1):1):2,(e:3,f:3):2);", constructor=TreeNode
+            "((a:3,(b:2,(c:1,d:1):1):1):2,(e:3,f:3):2);",
+            constructor=TreeNode,
         )
         result_not_deleted = deepcopy(tree)
         tree.remove_deleted(lambda x: x.name in [])
@@ -1635,7 +1646,8 @@ class PhyloNodeTests(TestCase):
         rooted = make_tree(treestring="(B:0.2,(C:0.2,D:0.2)F:0.2)G;")
         unrooted = rooted.unrooted()
         self.assertEqual(
-            sorted(rooted.get_tip_names()), sorted(unrooted.get_tip_names())
+            sorted(rooted.get_tip_names()),
+            sorted(unrooted.get_tip_names()),
         )
         self.assertLess(len(unrooted.get_node_names()), len(rooted.get_node_names()))
 
@@ -1759,7 +1771,11 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
         expected = ["A", "B", "E", "ab"]
         for t in [t1, t2]:
             edges = t.get_edge_names(
-                "A", "E", stem=False, clade=True, outgroup_name="F"
+                "A",
+                "E",
+                stem=False,
+                clade=True,
+                outgroup_name="F",
             )
             edges.sort()
             self.assertEqual(expected, edges)
@@ -1855,7 +1871,8 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
         )
         self.assertRaises(ValueError, t.get_sub_tree, ["b", "c", "xxx"])
         self.assertEqual(
-            str(t.get_sub_tree(["b", "c", "xxx"], ignore_missing=True)), "(b:7,c)root;"
+            str(t.get_sub_tree(["b", "c", "xxx"], ignore_missing=True)),
+            "(b:7,c)root;",
         )
 
     def test_making_from_list(self):
@@ -1936,7 +1953,8 @@ class TestTree(TestCase):
     def test_getsubtree_2(self):
         """tree.get_sub_tree() has same pairwise tip dists as tree (len0 node)"""
         t1 = DndParser(
-            "((a:1,b:2):4,((c:3, j:17.2):0,(d:1,e:1):2):3)", PhyloNode
+            "((a:1,b:2):4,((c:3, j:17.2):0,(d:1,e:1):2):3)",
+            PhyloNode,
         )  # note c,j is len 0 node
         orig_dists = t1.get_distances()
         subtree = t1.get_sub_tree(set(["a", "b", "d", "e", "c"]))
@@ -1950,7 +1968,8 @@ class TestTree(TestCase):
         (nonzero nodes)
         """
         t1 = DndParser(
-            "((a:1,b:2):4,((c:3, j:17):0,(d:1,e:1):2):3)", PhyloNode
+            "((a:1,b:2):4,((c:3, j:17):0,(d:1,e:1):2):3)",
+            PhyloNode,
         )  # note c,j is len 0 node
         orig_dists = t1.get_distances()
         subtree = t1.get_sub_tree(set(["a", "b", "d", "e", "c"]))
@@ -1958,7 +1977,8 @@ class TestTree(TestCase):
         # for pair, dist in sub_dists.items():
         # self.assertEqual((pair,dist), (pair,orig_dists[pair]))
         t2 = DndParser(
-            "((a:1,b:2):4,((c:2, j:16):1,(d:1,e:1):2):3)", PhyloNode
+            "((a:1,b:2):4,((c:2, j:16):1,(d:1,e:1):2):3)",
+            PhyloNode,
         )  # note c,j similar to above
         t2_dists = t2.get_distances()
         # ensure t2 is same as t1, except j->c or c->j
@@ -2309,7 +2329,8 @@ def test_lrm_method():
 
 
 @pytest.mark.parametrize(
-    "nwk", ("(((g,b)gb,(c,d)cd),(e,f),a)", "(a,b,c)", ("(a,(b,(c,d)cd))"))
+    "nwk",
+    ("(((g,b)gb,(c,d)cd),(e,f),a)", "(a,b,c)", ("(a,(b,(c,d)cd))")),
 )
 def test_child_parent_map(nwk):
     tree = make_tree(nwk)
@@ -2369,7 +2390,7 @@ def test_split_name_and_support_invalid_support(invalid):
 def test_phylonode_support():
     tip_names = [str(i) for i in range(1, 13)]
     tree = make_tree(
-        treestring="(1,(((2,3)53,4)/53,(5,((6,(7,(8,9))def/25),(10,11)abc))),12);"
+        treestring="(1,(((2,3)53,4)/53,(5,((6,(7,(8,9))def/25),(10,11)abc))),12);",
     )
     assert tree.get_tip_names() == tip_names
 

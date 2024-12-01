@@ -6,7 +6,7 @@ from cogent3.core.moltype import CodonAlphabet
 from cogent3.evolve.predicate import MotifChange, parse
 
 
-class FakeModel(object):
+class FakeModel:
     def __init__(self, alphabet):
         self.alphabet = alphabet
         self.moltype = alphabet.moltype

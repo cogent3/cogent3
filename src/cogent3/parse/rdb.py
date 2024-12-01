@@ -57,7 +57,7 @@ def InfoMaker(header_lines):
 
 
 def is_seq_label(x):
-    "Check if x looks like a sequence label line." ""
+    "Check if x looks like a sequence label line."
     return x.startswith("seq:")
 
 
@@ -77,7 +77,7 @@ def MinimalRdbParser(infile, strict=True):
         if not index:
             if strict:
                 raise RecordError(
-                    "Found Rdb record without seq label " + f"line: {rec[0]}"
+                    "Found Rdb record without seq label " + f"line: {rec[0]}",
                 )
             else:
                 continue
@@ -113,7 +113,10 @@ def create_acceptable_sequence(sequence):
 
 
 def RdbParser(
-    lines, SeqConstructor=RnaSequence, LabelConstructor=InfoMaker, strict=True
+    lines,
+    SeqConstructor=RnaSequence,
+    LabelConstructor=InfoMaker,
+    strict=True,
 ):
     """Yield sequences from the Rdb record.
 
@@ -140,7 +143,7 @@ def RdbParser(
             except AlphabetError:
                 raise RecordError(
                     "Sequence construction failed on record with reference %s."
-                    % (info.Refs)
+                    % (info.Refs),
                 )
         else:
             # not strict: just skip any record that raises an exception

@@ -84,7 +84,7 @@ class GeneticCode:
         if len(code_sequence) != 64:
             raise GeneticCodeInitError(
                 "code_sequence: %s has length %d, but expected 64"
-                % (code_sequence, len(code_sequence))
+                % (code_sequence, len(code_sequence)),
             )
 
         self.code_sequence = code_sequence
@@ -149,17 +149,16 @@ class GeneticCode:
             second_doublet = False
         if first_doublet and second_doublet and aa[1] == aa[2]:
             return [codons]
+        blocks = []
+        if first_doublet:
+            blocks.append(codons[:2])
         else:
-            blocks = []
-            if first_doublet:
-                blocks.append(codons[:2])
-            else:
-                blocks.extend([[codons[0]], [codons[1]]])
-            if second_doublet:
-                blocks.append(codons[2:])
-            else:
-                blocks.extend([[codons[2]], [codons[3]]])
-            return blocks
+            blocks.extend([[codons[0]], [codons[1]]])
+        if second_doublet:
+            blocks.append(codons[2:])
+        else:
+            blocks.extend([[codons[2]], [codons[3]]])
+        return blocks
 
     def _get_blocks(self):
         """Returns list of lists of codon blocks in the genetic code.
@@ -178,26 +177,27 @@ class GeneticCode:
         """
         if hasattr(self, "_blocks"):
             return self._blocks
-        else:
-            blocks = []
-            curr_codons = []
-            curr_aa = []
-            for index, codon, aa in zip(
-                list(range(64)), self._codons, self.code_sequence
-            ):
-                # we're in a new block if it's a new quartet or a different aa
-                new_quartet = not index % 4
-                if new_quartet and curr_codons:
-                    blocks.extend(self._analyze_quartet(curr_codons, curr_aa))
-                    curr_codons = []
-                    curr_aa = []
-                curr_codons.append(codon)
-                curr_aa.append(aa)
-            # don't forget to append last block
-            if curr_codons:
+        blocks = []
+        curr_codons = []
+        curr_aa = []
+        for index, codon, aa in zip(
+            list(range(64)),
+            self._codons,
+            self.code_sequence,
+        ):
+            # we're in a new block if it's a new quartet or a different aa
+            new_quartet = not index % 4
+            if new_quartet and curr_codons:
                 blocks.extend(self._analyze_quartet(curr_codons, curr_aa))
-            self._blocks = blocks
-            return self._blocks
+                curr_codons = []
+                curr_aa = []
+            curr_codons.append(codon)
+            curr_aa.append(aa)
+        # don't forget to append last block
+        if curr_codons:
+            blocks.extend(self._analyze_quartet(curr_codons, curr_aa))
+        self._blocks = blocks
+        return self._blocks
 
     blocks = property(_get_blocks)
 
@@ -241,12 +241,11 @@ class GeneticCode:
         item = str(item)
         if len(item) == 1:  # amino acid
             return self.synonyms.get(item, [])
-        elif len(item) == 3:  # codon
+        if len(item) == 3:  # codon
             key = item.upper()
             key = key.replace("U", "T")
             return self.codons.get(key, "X")
-        else:
-            raise InvalidCodonError(f"Codon or aa {item} has wrong length")
+        raise InvalidCodonError(f"Codon or aa {item} has wrong length")
 
     def translate(self, dna, start=0):
         """Translates DNA to protein with current GeneticCode.

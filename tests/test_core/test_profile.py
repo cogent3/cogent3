@@ -130,7 +130,7 @@ class MotifCountsArrayTests(TestCase):
                 [5, 80, 5, 10],
                 [70, 10, 10, 10],
                 [60, 15, 5, 20],
-            ]
+            ],
         )
         marr = MotifCountsArray(array(data), "ACGT")
         got = marr.to_pssm()
@@ -141,7 +141,7 @@ class MotifCountsArrayTests(TestCase):
                 [-2.322, 1.678, -2.322, -1.322],
                 [1.485, -1.322, -1.322, -1.322],
                 [1.263, -0.737, -2.322, -0.322],
-            ]
+            ],
         )
         assert_allclose(got.array, expect, atol=1e-3)
 
@@ -154,7 +154,7 @@ class MotifCountsArrayTests(TestCase):
                 [5, 80, 0, 10],
                 [70, 10, 10, 10],
                 [60, 15, 0, 20],
-            ]
+            ],
         )
         marr = MotifCountsArray(array(data), "ACGT")
         got = marr.to_pssm(pseudocount=1)
@@ -393,7 +393,7 @@ class MotifFreqsArrayTests(TestCase):
                 [-2.322, 1.678, -2.322, -1.322],
                 [1.485, -1.322, -1.322, -1.322],
                 [1.263, -0.737, -2.322, -0.322],
-            ]
+            ],
         )
         assert_allclose(pssm.array, expect, atol=1e-3)
 
@@ -447,7 +447,7 @@ class PSSMTests(TestCase):
                 [-2.322, 1.678, -2.322, -1.322],
                 [1.485, -1.322, -1.322, -1.322],
                 [1.263, -0.737, -2.322, -0.322],
-            ]
+            ],
         )
         assert_allclose(pssm.array, expect, atol=1e-3)
 

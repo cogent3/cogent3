@@ -253,7 +253,8 @@ class NexusParserTests(TestCase):
         result = get_tree_info(Nexus_tree)
         self.assertEqual(len(result), 33)
         self.assertEqual(
-            result[0], "Begin trees;  [Treefile saved Wednesday, May 5, 2004  5:02 PM]"
+            result[0],
+            "Begin trees;  [Treefile saved Wednesday, May 5, 2004  5:02 PM]",
         )
         self.assertEqual(
             result[31],
@@ -272,7 +273,8 @@ class NexusParserTests(TestCase):
         self.assertEqual(len(dnd), 2)
 
         self.assertEqual(
-            header[0], "Begin trees;  [Treefile saved Wednesday, May 5, 2004  5:02 PM]"
+            header[0],
+            "Begin trees;  [Treefile saved Wednesday, May 5, 2004  5:02 PM]",
         )
         self.assertEqual(header[8], "\tTranslate")
 

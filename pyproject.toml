@@ -46,7 +46,7 @@ Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 
 [project.optional-dependencies]
 test = [
-    "ruff==0.6.7",
+    "ruff==0.8.1",
     "kaleido",
     "pandas",
     "plotly",
@@ -80,7 +80,7 @@ doc  = ["click",
         "sphinxcontrib-bibtex",
         "sphinxcontrib-video"]
 extra = ["pandas", "plotly", "psutil", "kaleido"]
-dev = ["ruff==0.6.7",
+dev = ["ruff==0.8.1",
        "flit",
        "ipykernel",
        "ipython",
@@ -165,7 +165,7 @@ exclude = [
 line-length = 88
 indent-width = 4
 
-target-version = "py39"
+target-version = "py310"
 
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.

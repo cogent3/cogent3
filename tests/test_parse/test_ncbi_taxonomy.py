@@ -306,7 +306,7 @@ class NcbiTaxonNodeTests(TestCase):
         1010\t|\t101\t|\tspecies\t|\tAC\t|\t0\t|\t1\t|\t11\t|\t1\t|\t0\t|\t1\t|\t0\t|\t0\t|\t\t|
         5555\t|\t555\t|\tspecies\t|\tAC\t|\t0\t|\t1\t|\t11\t|\t1\t|\t0\t|\t1\t|\t0\t|\t0\t|\t\t|
         555\t|\t3\t|\tsuperclass\t|\t\t|\t8\t|\t0\t|\t1\t|\t0\t|\t0\t|\t0\t|\t0\t|\t0\t|\t\t|""".split(
-            "\n"
+            "\n",
         )
         nested_names = [
             "3|a||scientific name|",

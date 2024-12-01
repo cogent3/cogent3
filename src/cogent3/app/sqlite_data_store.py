@@ -101,7 +101,7 @@ def open_sqlite_db_ro(path):
 
 
 def has_valid_schema(db):
-    # todo: should be a full schema check
+    # TODO: should be a full schema check
     query = "SELECT name FROM sqlite_master WHERE type='table'"
     result = db.execute(query).fetchall()
     table_names = {r["name"] for r in result}
@@ -130,7 +130,7 @@ class DataStoreSqlite(DataStoreABC):
         self._mode = Mode(mode)
         if mode is not READONLY and limit is not None:
             raise ValueError(
-                "Using limit argument is only valid for readonly datastores"
+                "Using limit argument is only valid for readonly datastores",
             )
         self._limit = limit
         self._verbose = verbose
@@ -174,7 +174,8 @@ class DataStoreSqlite(DataStoreABC):
         timestamp = datetime.datetime.now(tz=datetime.timezone.utc)
         self.db.execute(f"INSERT INTO {_LOG_TABLE}(date) VALUES (?)", (timestamp,))
         self._log_id = self._db.execute(
-            f"SELECT log_id FROM {_LOG_TABLE} where date = ?", (timestamp,)
+            f"SELECT log_id FROM {_LOG_TABLE} where date = ?",
+            (timestamp,),
         ).fetchone()["log_id"]
 
     def close(self):
@@ -208,7 +209,8 @@ class DataStoreSqlite(DataStoreABC):
     def completed(self):
         if not self._completed:
             self._completed = self._select_members(
-                table_name=_RESULT_TABLE, is_completed=True
+                table_name=_RESULT_TABLE,
+                is_completed=True,
             )
         return self._completed
 
@@ -217,12 +219,16 @@ class DataStoreSqlite(DataStoreABC):
         """returns database records of type NotCompleted"""
         if not self._not_completed:
             self._not_completed = self._select_members(
-                table_name=_RESULT_TABLE, is_completed=False
+                table_name=_RESULT_TABLE,
+                is_completed=False,
             )
         return self._not_completed
 
     def _select_members(
-        self, *, table_name: str, is_completed: bool
+        self,
+        *,
+        table_name: str,
+        is_completed: bool,
     ) -> list[DataMemberABC]:
         limit = f"LIMIT {self.limit}" if self.limit else ""
         cmnd = self.db.execute(
@@ -245,7 +251,12 @@ class DataStoreSqlite(DataStoreABC):
         ]
 
     def _write(
-        self, *, table_name: str, unique_id: str, data: str, is_completed: bool
+        self,
+        *,
+        table_name: str,
+        unique_id: str,
+        data: str,
+        is_completed: bool,
     ) -> DataMemberABC | None:
         """
         Parameters
@@ -267,7 +278,7 @@ class DataStoreSqlite(DataStoreABC):
             self._init_log()
 
         if table_name == _LOG_TABLE:
-            # todo how to evaluate whether writing a new log?
+            # TODO how to evaluate whether writing a new log?
             cmnd = f"UPDATE {table_name} SET data =?, log_name =? WHERE log_id=?"
             self.db.execute(cmnd, (data, unique_id, self._log_id))
             return None
@@ -317,9 +328,9 @@ class DataStoreSqlite(DataStoreABC):
         result = self._db.execute("SELECT state_id,lock_pid FROM state").fetchall()
         locked = result[0]["lock_pid"] if result else None
         if locked and self.mode is OVERWRITE:
-            raise IOError(
+            raise OSError(
                 f"You are trying to OVERWRITE {str(self.source)!r} which is "
-                "locked. Use APPEND mode or unlock."
+                "locked. Use APPEND mode or unlock.",
             )
 
         if result:
@@ -374,7 +385,10 @@ class DataStoreSqlite(DataStoreABC):
 
         super().write_log(unique_id=unique_id, data=data)
         _ = self._write(
-            table_name=_LOG_TABLE, unique_id=unique_id, data=data, is_completed=False
+            table_name=_LOG_TABLE,
+            unique_id=unique_id,
+            data=data,
+            is_completed=False,
         )
 
     @extend_docstring_from(DataStoreDirectory.write_not_completed)
@@ -384,7 +398,10 @@ class DataStoreSqlite(DataStoreABC):
 
         super().write_not_completed(unique_id=unique_id, data=data)
         member = self._write(
-            table_name=_RESULT_TABLE, unique_id=unique_id, data=data, is_completed=False
+            table_name=_RESULT_TABLE,
+            unique_id=unique_id,
+            data=data,
+            is_completed=False,
         )
         if member is not None:
             self._not_completed.append(member)
@@ -429,7 +446,7 @@ class DataStoreSqlite(DataStoreABC):
 
         rt = self.record_type
         if self.mode is OVERWRITE and rt:
-            raise IOError(f"cannot overwrite existing record_type {rt}")
+            raise OSError(f"cannot overwrite existing record_type {rt}")
 
         n = get_object_provenance(obj)
         self.db.execute("UPDATE state SET record_type=? WHERE state_id=1", (n,))
@@ -441,5 +458,6 @@ class DataStoreSqlite(DataStoreABC):
         from .io import DEFAULT_DESERIALISER
 
         return summary_not_completeds(
-            self.not_completed, deserialise=DEFAULT_DESERIALISER
+            self.not_completed,
+            deserialise=DEFAULT_DESERIALISER,
         )

@@ -44,7 +44,7 @@ def _is_Q_ok(Q):
 def is_generator_unique(Q):
     """Conservatively tests whether a transition rate matrix uniquely yields
     its transition probability matrix"""
-    if not Q.shape[0] in (3, 4):
+    if Q.shape[0] not in (3, 4):
         raise NotImplementedError("Only Q of 3x3 or 4x4 supported")
     assert _is_Q_ok(Q), "Q must be a valid transition rate matrix"
 
@@ -58,7 +58,7 @@ def is_generator_unique(Q):
     # Find the Perron-Frobenius eigenvalue
     PF_EV = argmin([norm(ones(n) / n - v / v.sum()) for v in V.T])
     # Don't mess with the P-F eigenvalue - it has a special job to do
-    ix = list(range(0, PF_EV)) + list(range(PF_EV + 1, n))
+    ix = list(range(PF_EV)) + list(range(PF_EV + 1, n))
 
     real_close = []
     expe = exp(e)

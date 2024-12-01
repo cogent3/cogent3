@@ -68,7 +68,8 @@ class TestGenericResult(TestCase):
         # works for string
         source = pathlib.Path("path/blah.fasta")
         aln = make_aligned_seqs(
-            {"A": "ACGT"}, info=dict(source=str(source), random_key=1234)
+            {"A": "ACGT"},
+            info=dict(source=str(source), random_key=1234),
         )
         gr = generic_result(aln)
         self.assertEqual(gr.source, source.name)
@@ -227,12 +228,14 @@ class TestModelResult(TestCase):
         }
         aln = make_aligned_seqs(data=_data, moltype="dna")
         model1 = evo_app.model(
-            "BH", opt_args=dict(max_evaluations=25, limit_action="ignore")
+            "BH",
+            opt_args=dict(max_evaluations=25, limit_action="ignore"),
         )
         result = model1(aln)
         got = result.tree
         self.assertEqual(
-            got.children[0].params["length"], got.children[0].params["paralinear"]
+            got.children[0].params["length"],
+            got.children[0].params["paralinear"],
         )
 
     def test_model_result_setitem(self):
@@ -281,13 +284,16 @@ class TestModelCollectionResult(TestCase):
         }
         aln = make_aligned_seqs(data=_data, moltype="dna")
         model1 = evo_app.model(
-            "F81", opt_args=dict(max_evaluations=25, limit_action="ignore")
+            "F81",
+            opt_args=dict(max_evaluations=25, limit_action="ignore"),
         )
         model2 = evo_app.model(
-            "HKY85", opt_args=dict(max_evaluations=25, limit_action="ignore")
+            "HKY85",
+            opt_args=dict(max_evaluations=25, limit_action="ignore"),
         )
         model3 = evo_app.model(
-            "GTR", opt_args=dict(max_evaluations=25, limit_action="ignore")
+            "GTR",
+            opt_args=dict(max_evaluations=25, limit_action="ignore"),
         )
         mr1 = model1(aln)
         mr2 = model2(aln)
@@ -377,10 +383,12 @@ class TestHypothesisResult(TestCase):
         }
         aln = make_aligned_seqs(data=_data, moltype="dna")
         model1 = evo_app.model(
-            "F81", opt_args=dict(max_evaluations=25, limit_action="ignore")
+            "F81",
+            opt_args=dict(max_evaluations=25, limit_action="ignore"),
         )
         model2 = evo_app.model(
-            "HKY85", opt_args=dict(max_evaluations=25, limit_action="ignore")
+            "HKY85",
+            opt_args=dict(max_evaluations=25, limit_action="ignore"),
         )
         hyp = evo_app.hypothesis(model1, model2)
         result = hyp(aln)

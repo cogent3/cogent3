@@ -22,7 +22,8 @@ from cogent3.align.align import (
 from cogent3.evolve.models import HKY85, get_model
 
 dna_model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
-    model_gaps=False, equal_motif_probs=True
+    model_gaps=False,
+    equal_motif_probs=True,
 )
 
 DNA = get_moltype("dna")
@@ -99,7 +100,9 @@ class AlignmentTestCase(unittest.TestCase):
         s1 = DNA.make_seq(seq="TACGCCGTA", name="A")
         s2 = DNA.make_seq(seq="TACGTA", name="B")
         codon_model = cogent3.evolve.substitution_model.TimeReversibleCodon(
-            model_gaps=False, equal_motif_probs=True, mprob_model="conditional"
+            model_gaps=False,
+            equal_motif_probs=True,
+            mprob_model="conditional",
         )
         tree = cogent3.make_tree(tip_names=["A", "B"])
         lf = codon_model.make_likelihood_function(tree, aligned=False)
@@ -146,7 +149,12 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         else:
             tree = cogent3.make_tree(treestring="(((A:.1,B:.1):.1,C:.1):.1,D:.1)")
         aln, tree = cogent3.align.progressive.tree_align(
-            model, seqs, tree=tree, param_vals=param_vals, show_progress=False, **kw
+            model,
+            seqs,
+            tree=tree,
+            param_vals=param_vals,
+            show_progress=False,
+            **kw,
         )
         return aln
 
@@ -188,7 +196,10 @@ class MultipleAlignmentTestCase(unittest.TestCase):
             moltype="dna",
         )
         aln, _ = cogent3.align.progressive.tree_align(
-            HKY85(), seqs, show_progress=False, param_vals={"kappa": 4.0}
+            HKY85(),
+            seqs,
+            show_progress=False,
+            param_vals={"kappa": 4.0},
         )
 
         expect = {
@@ -215,7 +226,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
     def test_align_info(self):
         """alignment info object has parameter values"""
         aln = self._make_aln(
-            {"A": "GCCTCGG", "B": "GCCTCGG", "C": "GCCTCGGAAACGT", "D": "AAACGT"}
+            {"A": "GCCTCGG", "B": "GCCTCGG", "C": "GCCTCGGAAACGT", "D": "AAACGT"},
         )
         self.assertTrue(aln.info["align_params"]["lnL"] < 0)
 
@@ -253,7 +264,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
                 "B": "GCCTCGG------",
                 "C": "GCCTCGGAAACGT",
                 "D": "-------AAACGT",
-            }
+            },
         )
 
     def test_tree_align_handles_zero_lengths(self):
@@ -313,13 +324,19 @@ def seqs(DATA_DIR):
 @pytest.mark.xfail(reason="fails on linux due to no effect of iters")
 def test_tree_align_pwise_iter(seqs):
     kwargs = dict(
-        model="F81", seqs=seqs, show_progress=False, indel_rate=1e-3, indel_length=1e-1
+        model="F81",
+        seqs=seqs,
+        show_progress=False,
+        indel_rate=1e-3,
+        indel_length=1e-1,
     )
     aln, _ = cogent3.align.progressive.tree_align(iters=None, **kwargs)
     one = aln.alignment_quality(app_name="sp_score", calc="pdist")
     for _ in range(10):
         aln, _ = cogent3.align.progressive.tree_align(
-            iters=1, approx_dists=True, **kwargs
+            iters=1,
+            approx_dists=True,
+            **kwargs,
         )
         two = aln.alignment_quality(app_name="sp_score", calc="pdist")
         # the quality scores will differ, but they're not deterministic
@@ -333,7 +350,10 @@ def test_tree_align_pwise_iter(seqs):
 def test_tree_align_dists_from_pairwise_align(seqs):
     # difficult to test reliably so only exercising use of option
     aln, tree = cogent3.align.progressive.tree_align(
-        model="F81", seqs=seqs, show_progress=False, approx_dists=False
+        model="F81",
+        seqs=seqs,
+        show_progress=False,
+        approx_dists=False,
     )
     assert aln
 
@@ -341,7 +361,11 @@ def test_tree_align_dists_from_pairwise_align(seqs):
 def test_tree_align_two(seqs):
     seqs = seqs.take_seqs(["Human", "NineBande"])
     aln, tree = cogent3.align.progressive.tree_align(
-        model="F81", seqs=seqs, show_progress=False, iters=1, approx_dists=True
+        model="F81",
+        seqs=seqs,
+        show_progress=False,
+        iters=1,
+        approx_dists=True,
     )
     # the tree should have equal branch lengths
     dist = set(tree.get_distances().values())

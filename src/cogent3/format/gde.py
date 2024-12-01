@@ -7,7 +7,9 @@ from cogent3.format.util import _AlignmentFormatter
 def alignment_to_gde(alignment_dict, block_size=60, order=None):
     """Returns a Gde string given an alignment."""
     return GDEFormatter().format(
-        alignment_dict, block_size, [] if order is None else order
+        alignment_dict,
+        block_size,
+        [] if order is None else order,
     )
 
 
@@ -42,9 +44,10 @@ class GDEFormatter(_AlignmentFormatter):
                     "%",
                     seq,
                     self.wrap_string_to_block_size(
-                        alignment_dict[seq], alt_block_size=block_size
+                        alignment_dict[seq],
+                        alt_block_size=block_size,
                     ),
                 )
                 for seq in self.align_order
-            ]
+            ],
         )

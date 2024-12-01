@@ -70,7 +70,6 @@ class EbiTests(TestCase):
 
     def setUp(self):
         """Construct some fake data for testing purposes"""
-        pass
 
     def test_item_empty_filter(self):
         """item_empty_filter: known values"""
@@ -125,7 +124,8 @@ class EbiTests(TestCase):
 
         # test 'overwrite_value'
         self.assertEqual(
-            pairs_to_dict(sorted_items, "overwrite_value"), {"a": 1, "b": 3}
+            pairs_to_dict(sorted_items, "overwrite_value"),
+            {"a": 1, "b": 3},
         )
 
         # test no_duplicated_key, raise
@@ -133,12 +133,14 @@ class EbiTests(TestCase):
 
         # test always_multi_value
         self.assertEqual(
-            pairs_to_dict(sorted_items, "always_multi_value"), {"a": [1], "b": [2, 3]}
+            pairs_to_dict(sorted_items, "always_multi_value"),
+            {"a": [1], "b": [2, 3]},
         )
 
         # test allow multi_value
         self.assertEqual(
-            pairs_to_dict(sorted_items, "allow_multi_value"), {"a": 1, "b": [2, 3]}
+            pairs_to_dict(sorted_items, "allow_multi_value"),
+            {"a": 1, "b": [2, 3]},
         )
 
         # test raise error when  key not found in all_keys
@@ -166,7 +168,8 @@ class EbiTests(TestCase):
         expected_linecodes = ["AA", "BB", "CC C", "DD dd."]
         # pprint(map(linecode_maker, tests))
         self.assertEqual(
-            list(map(linecode_maker, tests)), list(zip(expected_linecodes, tests))
+            list(map(linecode_maker, tests)),
+            list(zip(expected_linecodes, tests)),
         )
 
     def test_labeloff(self):
@@ -200,7 +203,8 @@ class EbiTests(TestCase):
 
         assertEqual(f(["aa; bb;", "cc."]), ["aa", "bb", "cc"])
         assertEqual(
-            f(["aa; bb, bbb;", "cc."], delimiters=";,"), ["aa", ["bb", "bbb"], "cc"]
+            f(["aa; bb, bbb;", "cc."], delimiters=";,"),
+            ["aa", ["bb", "bbb"], "cc"],
         )
         # test item_modifer
         got = f("aa (bb) (cc).", "(", item_modifier=rstrip_(") "))
@@ -280,14 +284,16 @@ class EbiTests(TestCase):
         # the first fake record use only the required labels, the header is
         # deleted of '', which was assigned to sequence
         self.assertEqual(
-            list(sorted(header.keys())), list(sorted(required_labels))[1:]
+            sorted(header.keys()),
+            sorted(required_labels)[1:],
         )  # [1:] to exclude the ''
 
         # test selected_labels
         selected_labels = ["ID", "DE"]
         select_result = list(f(fake_records_valid, selected_labels=selected_labels))
         self.assertEqual(
-            list(sorted(select_result[0][1].keys())), list(sorted(selected_labels))
+            sorted(select_result[0][1].keys()),
+            sorted(selected_labels),
         )
 
         # test bad record - unknown linecode or wrong line format
@@ -366,14 +372,16 @@ class RootParsersKnownValues(TestCase):
         """ac_parser should return expected list"""
         lines = ["AC   Q16653; O00713; O00714;", "AC   Q92892; Q92893;"]
         self.assertEqual(
-            ac_parser(lines), ["Q16653", "O00713", "O00714", "Q92892", "Q92893"]
+            ac_parser(lines),
+            ["Q16653", "O00713", "O00714", "Q92892", "Q92893"],
         )
 
     def test_oc_parser(self):
         """oc_parser should return expected list"""
         lines = ["OC   Eukaryota; Metazoa; Chordata;", "OC   Mammalia;"]
         self.assertEqual(
-            oc_parser(lines), ["Eukaryota", "Metazoa", "Chordata", "Mammalia"]
+            oc_parser(lines),
+            ["Eukaryota", "Metazoa", "Chordata", "Mammalia"],
         )
 
     def test_dt_parser(self):
@@ -427,7 +435,8 @@ class RootParsersKnownValues(TestCase):
         """os_parser should return expected list"""
         lines = ["OS   Solanum melongena (Eggplant) (Auber-", "OS   gine)."]
         self.assertEqual(
-            os_parser(lines), ["Solanum melongena", "Eggplant", "Auber- gine"]
+            os_parser(lines),
+            ["Solanum melongena", "Eggplant", "Auber- gine"],
         )
 
         lines = """OS   Escherichia coli.""".splitlines()
@@ -472,7 +481,7 @@ class RootParsersKnownValues(TestCase):
                     "Synonyms": ["bglY", "cur", "topS"],
                     "OrderedLocusNames": ["b1237", "c1701", "ECs1739"],
                     "name": "hns",
-                }
+                },
             ],
         )
 
@@ -579,7 +588,6 @@ class FT_Tests(TestCase):
 
     def test_ft_mutation_parser_raise(self):
         """ft_mutation_parser: raise ValueError"""
-        pass
 
     def test_ft_mutagen_parser(self):
         """ft_mutagen_parser: known values"""
@@ -602,7 +610,6 @@ class FT_Tests(TestCase):
 
     def test_ft_id_mutation_parser(self):
         """ft_id_mutation_parser: known values"""
-        pass
 
     def test_ft_parser(self):
         """ft_parser should return expected dict"""
@@ -653,7 +660,7 @@ class CC_Tests(TestCase):
                 "Self; NbExp=1; IntAct=EBI-123485, EBI-123485;",
                 "Q9W158:CG4612; NbExp=1; IntAct=EBI-123485, EBI-89895;",
                 "Q9VYI0:fne; NbExp=1; IntAct=EBI-123485, EBI-126770;",
-            ]
+            ],
         ]
         expects = [
             [
@@ -663,7 +670,7 @@ class CC_Tests(TestCase):
                     {"NbExp": "1", "IntAct": ["EBI-123485", "EBI-89895"]},
                 ),
                 ("Q9VYI0:fne", {"NbExp": "1", "IntAct": ["EBI-123485", "EBI-126770"]}),
-            ]
+            ],
         ]
         self.assertEqual(list(map(cc_interaction_parser, inputs)), expects)
 
@@ -679,7 +686,7 @@ class CC_Tests(TestCase):
                 "  Vmax=1.604 mmol/min/mg enzyme;",
                 "pH dependence:",
                 "  Optimum pH is 6.0. Active pH 4.5 to 10.5;",
-            ]
+            ],
         ]
         expects = [
             {
@@ -688,7 +695,7 @@ class CC_Tests(TestCase):
                     "Vmax": "1.604 mmol/min/mg enzyme",
                 },
                 "pH dependence": "Optimum pH is 6.0. Active pH 4.5 to 10.5",
-            }
+            },
         ]
         self.assertEqual(list(map(f, valid_inputs)), expects)
 
@@ -697,7 +704,7 @@ class CC_Tests(TestCase):
         f = cc_alternative_products_parser
         valid_inputs = [
             [
-                "Event=Alternative initiation;" "  Comment=Free text;",
+                "Event=Alternative initiation;  Comment=Free text;",
                 "Event=Alternative splicing; Named isoforms=3;",
                 "  Comment=Additional isoforms seem to exist.",
                 "  confirmation;",
@@ -706,7 +713,7 @@ class CC_Tests(TestCase):
                 "name=3; Synonyms=AIRE-3,",
                 "ai-2, ai-3;",  # broken the hanging_paragraph_finder
                 "  IsoId=O43918-3; Sequence=VSP_004089, VSP_004090;",
-            ]
+            ],
         ]
         expects = [
             [
@@ -730,7 +737,7 @@ class CC_Tests(TestCase):
                         },
                     ],
                 },
-            ]
+            ],
         ]
 
         # pprint(map(f,valid_inputs))
@@ -742,7 +749,7 @@ class CC_Tests(TestCase):
         # pprint(cc)
         # print cc.keys()
         self.assertEqual(
-            list(sorted(cc.keys())),
+            sorted(cc.keys()),
             [
                 "ALLERGEN",
                 "ALTERNATIVE PRODUCTS",
@@ -773,7 +780,7 @@ class CC_Tests(TestCase):
             cc["LICENSE"],
             [
                 "This SWISS-PROT entry is copyright. It is produced through a "
-                "collaboration removed"
+                "collaboration removed",
             ],
         )
 
@@ -785,7 +792,7 @@ class CC_Tests(TestCase):
                     "NAME": "CD40Lbase",
                     "NOTE": "European CD40L defect database (mutation db)",
                     "WWW": '"http://www.expasy.org/cd40lbase/"',
-                }
+                },
             ],
         )
 
@@ -794,7 +801,10 @@ class CC_Tests(TestCase):
         # pprint(cc_parser(cc_lines_with_unknown_topic))
         self.assertEqual(cc_parser(cc_lines_with_unknown_topic)["BLAHBLAH"], ["xxxxx"])
         self.assertRaises(
-            FieldError, cc_parser, cc_lines_with_unknown_topic, strict=True
+            FieldError,
+            cc_parser,
+            cc_lines_with_unknown_topic,
+            strict=True,
         )
 
 
@@ -803,11 +813,9 @@ class ReferenceTests(TestCase):
 
     def test_ref_finder(self):
         """ref_finder: should return a list of ref blocks"""
-        pass
 
     def test_refs_parser(self):
         """refs_parser: should return a dict of {RN: ref_dict}"""
-        pass
 
     def test_single_ref_parser(self):
         """single_ref_parser: should return the expected dict"""
@@ -826,7 +834,8 @@ class ReferenceTests(TestCase):
 
         # test strict: lacking required labels
         self.assertEqual(
-            len(single_ref_parser(fake_ref_block[:-1], strict=False)[1]), 5
+            len(single_ref_parser(fake_ref_block[:-1], strict=False)[1]),
+            5,
         )
         self.assertRaises(RecordError, single_ref_parser, fake_ref_block[:-1], True)
 
@@ -847,7 +856,7 @@ class ReferenceTests(TestCase):
             ["RX   MEDLINE=22709107; PubMed=12788972; DOI=10.1073/pnas.113"],
             [
                 "RX   PubMed=14577811; "
-                "DOI=10.1597/1545-1569(2003)040<0632:AMMITS>2.0.CO;2;"
+                "DOI=10.1597/1545-1569(2003)040<0632:AMMITS>2.0.CO;2;",
             ],
         ]
         expects = [
@@ -883,7 +892,8 @@ class ReferenceTests(TestCase):
             'RT   analysis and homology modeling.";',
         ]
         self.assertEqual(
-            rt_parser(lines), "New insulin-like proteins analysis and homology modeling"
+            rt_parser(lines),
+            "New insulin-like proteins analysis and homology modeling",
         )
 
     def test_rl_parser(self):
@@ -928,7 +938,7 @@ ft_expect = {
             "Description": {"Description": "Granzyme A", "Id": "PRO_0000027394"},
             "End": 262,
             "Start": 29,
-        }
+        },
     ],
     "CONFLICT": [
         {
@@ -939,7 +949,7 @@ ft_expect = {
             },
             "End": 282,
             "Start": 282,
-        }
+        },
     ],
     "SecondaryStructure": [("STRAND", 30, 30), ("STRAND", 33, 34), ("TURN", 37, 38)],
     "VARIANT": [

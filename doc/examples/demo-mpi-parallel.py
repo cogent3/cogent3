@@ -53,7 +53,7 @@ def main():
     start = time.time()
 
     result = Counter(
-        parallel.as_completed(is_prime, PRIMES, use_mpi=True, max_workers=PBS_NCPUS)
+        parallel.as_completed(is_prime, PRIMES, use_mpi=True, max_workers=PBS_NCPUS),
     )
     if sum(result.values()) != len(PRIMES):
         print(f" failed: {len(result)} != {len(PRIMES)} : {result=}")

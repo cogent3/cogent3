@@ -105,5 +105,5 @@ nbsphinx_thumbnails = make_nbsphinx_thumbnails()
 
 # -- Options for LaTeX output --------------------------------------------------
 latex_documents = [
-    ("index", "cogent3.tex", "cogent3 Documentation", "cogent3 Team", "manual")
+    ("index", "cogent3.tex", "cogent3 Documentation", "cogent3 Team", "manual"),
 ]

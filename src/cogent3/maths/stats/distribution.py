@@ -23,7 +23,6 @@ from cogent3.maths.stats.special import (
     log1p,
     ndtri,
 )
-from cogent3.util import warning as c3warn
 
 # ndtri import b/c it should be available via this module
 
@@ -74,10 +73,9 @@ def fprob(dfn, dfd, F, side="right"):
         raise ValueError(f"fprob: F must be >= 0 (got {F}).")
     if side == "right":
         return 2 * f.sf(F, dfn, dfd)
-    elif side == "left":
+    if side == "left":
         return 2 * f.cdf(F, dfn, dfd)
-    else:
-        raise ValueError(f"Not a valid value for side {side}")
+    raise ValueError(f"Not a valid value for side {side}")
 
 
 def stdtr(k, t):
@@ -150,8 +148,7 @@ def bdtr(k, n, p):
     dn = n - k
     if k == 0:
         return pow(1 - p, dn)
-    else:
-        return betai(dn, k + 1, 1 - p)
+    return betai(dn, k + 1, 1 - p)
 
 
 def bdtrc(k, n, p):

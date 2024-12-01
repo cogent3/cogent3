@@ -17,13 +17,19 @@ class AllTests(TestCase):
         self.rna2 = RnaSequence("YCU-RG", name="rna2")
         self.rna3 = RnaSequence("CAA-NR", name="rna3")
         self.model1 = ArraySequence(
-            "UCAGGG", name="rna1", alphabet=RNA.alphabets.degen_gapped
+            "UCAGGG",
+            name="rna1",
+            alphabet=RNA.alphabets.degen_gapped,
         )
         self.model2 = ArraySequence(
-            "YCU-RG", name="rna2", alphabet=RNA.alphabets.degen_gapped
+            "YCU-RG",
+            name="rna2",
+            alphabet=RNA.alphabets.degen_gapped,
         )
         self.model3 = ArraySequence(
-            "CAA-NR", name="rna3", alphabet=RNA.alphabets.degen_gapped
+            "CAA-NR",
+            name="rna3",
+            alphabet=RNA.alphabets.degen_gapped,
         )
 
         self.aln = Alignment([self.rna1, self.rna2, self.rna3], moltype=RNA)
@@ -237,7 +243,9 @@ class AllTests(TestCase):
     def test_seq_ungapping(self):
         rna1 = RnaSequence("U-C-A-G-", name="rna1")
         model1 = ArraySequence(
-            "U-C-A-G-", name="rna1", alphabet=RNA.alphabets.degen_gapped
+            "U-C-A-G-",
+            name="rna1",
+            alphabet=RNA.alphabets.degen_gapped,
         )
 
         self.assertEqual(rna1, "U-C-A-G-")
@@ -253,4 +261,3 @@ class AllTests(TestCase):
         """The class ArraySequence has 14 methods, but only 2 unittests.
         You might want to add some tests there..."""
         # note: mostly these are tested in derived classes, for convenience.
-        pass

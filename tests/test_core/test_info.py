@@ -111,7 +111,7 @@ class InfoTests(TestCase):
         except AttributeError:
             pass
         else:
-            raise Exception("Failed to prevent deletion of required key Refs" "")
+            raise Exception("Failed to prevent deletion of required key Refs")
         d.GenBank = ("qaz", "wsx")
         self.assertEqual(d.GenBank, ["qaz", "wsx"])
         self.assertIn("GenBank", d.Refs)

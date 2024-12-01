@@ -179,7 +179,7 @@ def test_composable():
     aseqfunc1 = app_dummyclass_1(1)
     aseqfunc2 = app_dummyclass_2(2)
     comb = aseqfunc1 + aseqfunc2
-    expect = "app_dummyclass_1(a=1) + " "app_dummyclass_2(b=2)"
+    expect = "app_dummyclass_1(a=1) + app_dummyclass_2(b=2)"
     got = str(comb)
     assert got == expect
 
@@ -380,7 +380,7 @@ def test_apply_to_non_unique_identifiers(tmp_dir):
     min_length = sample_app.min_length(10)
     outpath = tmp_dir / "test_apply_to_non_unique_identifiers"
     writer = io_app.write_seqs(
-        DataStoreDirectory(outpath, mode=OVERWRITE, suffix="fasta")
+        DataStoreDirectory(outpath, mode=OVERWRITE, suffix="fasta"),
     )
     process = reader + min_length + writer
     with pytest.raises(ValueError):
@@ -538,7 +538,7 @@ def test_str():
     func = select_translatable(allow_rc=True)
     got = str(func)
     assert got.startswith(
-        "select_translatable(moltype='dna', gc=1, allow_rc=True, trim_terminal_stop=True"
+        "select_translatable(moltype='dna', gc=1, allow_rc=True, trim_terminal_stop=True",
     )
 
     nodegen = omit_degenerates()
@@ -696,7 +696,7 @@ def test_composed_func_pickleable():
     no_degen = omit_degenerates(moltype="dna")
     app = ml + no_degen
 
-    unpickled = pickle.loads(pickle.dumps((app)))
+    unpickled = pickle.loads(pickle.dumps(app))
     assert unpickled.input is not None
 
 
@@ -956,7 +956,8 @@ def test_forbidden_methods_composable_app(meth):
 
 
 @pytest.mark.parametrize(
-    "meth", ["__call__", "__repr__", "__str__", "__new__", "_validate_data_type"]
+    "meth",
+    ["__call__", "__repr__", "__str__", "__new__", "_validate_data_type"],
 )
 def test_forbidden_methods_non_composable_app(meth):
     class app_forbidden_methods2:
@@ -991,8 +992,8 @@ def test_add_non_composable_apps():
         def main(self, val: int) -> int:
             return val
 
-    setattr(app_non_composable1, "__add__", _add)
-    setattr(app_non_composable2, "__add__", _add)
+    app_non_composable1.__add__ = _add
+    app_non_composable2.__add__ = _add
     app1 = app_non_composable1()
     app2 = app_non_composable2()
     with pytest.raises(TypeError):
@@ -1099,7 +1100,9 @@ def test_complex_type_allowed_depths(hint):
 
 def test_apply_to_only_appends(half_dstore1, half_dstore2):
     half_dstore1 = open_data_store(
-        half_dstore1.source, suffix=half_dstore1.suffix, mode=APPEND
+        half_dstore1.source,
+        suffix=half_dstore1.suffix,
+        mode=APPEND,
     )
     reader1 = io_app.load_aligned(format="fasta", moltype="dna")
     min_length1 = sample_app.min_length(10)
@@ -1116,7 +1119,9 @@ def test_apply_to_only_appends(half_dstore1, half_dstore2):
     assert {m.unique_id for m in got.members} == orig_members
 
     half_dstore2 = open_data_store(
-        half_dstore2.source, suffix=half_dstore2.suffix, mode=APPEND
+        half_dstore2.source,
+        suffix=half_dstore2.suffix,
+        mode=APPEND,
     )
 
     reader2 = io_app.load_aligned(format="fasta", moltype="dna")

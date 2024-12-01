@@ -311,7 +311,8 @@ def deserialise_tree(data):
 
 
 @register_deserialiser(
-    "cogent3.evolve.substitution_model", "cogent3.evolve.ns_substitution_model"
+    "cogent3.evolve.substitution_model",
+    "cogent3.evolve.ns_substitution_model",
 )
 def deserialise_substitution_model(data):
     """returns a cogent3 substitution model instance"""

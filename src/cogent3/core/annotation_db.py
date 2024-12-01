@@ -14,7 +14,6 @@ import warnings
 import numpy
 import typing_extensions
 
-import cogent3.util.warning as c3warn
 from cogent3._version import __version__
 from cogent3.parse.gff import merged_gff_records
 from cogent3.util.deserialise import register_deserialiser
@@ -357,7 +356,10 @@ def _del_records_sql(
         the SQL statement and the tuple of values
     """
     where, vals = _matching_conditions(
-        conditions=conditions, start=start, stop=stop, allow_partial=allow_partial
+        conditions=conditions,
+        start=start,
+        stop=stop,
+        allow_partial=allow_partial,
     )
     sql = f"DELETE FROM {table_name}"
     if not where:
@@ -399,7 +401,8 @@ def _select_records_sql(
     """
 
     where, vals = _matching_conditions(
-        conditions=conditions, allow_partial=allow_partial
+        conditions=conditions,
+        allow_partial=allow_partial,
     )
     columns = f"{', '.join(columns)}" if columns else "*"
     sql = f"SELECT {columns} FROM {table_name}"
@@ -442,7 +445,8 @@ def _count_records_sql(
     """
 
     where, vals = _matching_conditions(
-        conditions=conditions, allow_partial=allow_partial
+        conditions=conditions,
+        allow_partial=allow_partial,
     )
     sql = f"SELECT COUNT(*) FROM {table_name}"
     if not where:
@@ -455,7 +459,7 @@ def _count_records_sql(
 def _compatible_schema(db: sqlite3.Connection, schema: dict[str, set]) -> bool:
     """ensures the db instance is compatible with schema"""
     for table in db.execute(
-        "SELECT name FROM sqlite_master WHERE type='table'"
+        "SELECT name FROM sqlite_master WHERE type='table'",
     ).fetchall():
         table = table["name"]
         if table not in schema:
@@ -473,7 +477,10 @@ def _compatible_schema(db: sqlite3.Connection, schema: dict[str, set]) -> bool:
 
 
 def _rename_column_if_exists(
-    db: sqlite3.Connection, table_name: str, old_column: str, new_column: str
+    db: sqlite3.Connection,
+    table_name: str,
+    old_column: str,
+    new_column: str,
 ) -> None:
     """Rename a column in a sqlite3 database only if it exists.
 
@@ -622,7 +629,7 @@ class SqliteAnnotationDbMixin:
     @property
     def db(self) -> sqlite3.Connection:
         if self._db is None:
-            # todo gah understand serialisation issue
+            # TODO gah understand serialisation issue
             # the check_same_thread=False is required for multiprocess, even
             # when the db is empty (tests fail). This  appears unrelated to
             # our code, and does not affect pickling/unpickling on the same
@@ -689,10 +696,12 @@ class SqliteAnnotationDbMixin:
         self._execute_sql(sql, values=values)
 
     def _get_records_matching(
-        self, table_name: str, **kwargs
+        self,
+        table_name: str,
+        **kwargs,
     ) -> typing.Iterator[sqlite3.Row]:
         """return all fields"""
-        if kwargs.get("attributes", None) and "%%" not in kwargs["attributes"]:
+        if kwargs.get("attributes") and "%%" not in kwargs["attributes"]:
             kwargs["attributes"] = f'%{kwargs["attributes"]}%'
         columns = kwargs.pop("columns", None)
         allow_partial = kwargs.pop("allow_partial", False)
@@ -731,7 +740,10 @@ class SqliteAnnotationDbMixin:
             yield result
 
     def get_feature_children(
-        self, name: str, biotype: OptionalStr = None, **kwargs
+        self,
+        name: str,
+        biotype: OptionalStr = None,
+        **kwargs,
     ) -> typing.Iterator[FeatureDataType]:
         """yields children of name"""
         # kwargs is used because other classes need start / stop
@@ -752,7 +764,9 @@ class SqliteAnnotationDbMixin:
                 yield result
 
     def get_feature_parent(
-        self, name: str, **kwargs
+        self,
+        name: str,
+        **kwargs,
     ) -> typing.Iterator[FeatureDataType]:
         """yields parents of name"""
         for table_name in self.table_names:
@@ -767,7 +781,7 @@ class SqliteAnnotationDbMixin:
             ):
                 # multiple values for parent means this is better expressed
                 # as an OR clause
-                # todo modify the conditional SQL generation
+                # TODO modify the conditional SQL generation
                 if not result["parent_id"]:
                     return
 
@@ -778,11 +792,11 @@ class SqliteAnnotationDbMixin:
                             columns=columns,
                             column="name",
                             name=name,
-                        )
+                        ),
                     ):
                         parent = parent[0]
                         parent.pop(
-                            "parent_id"
+                            "parent_id",
                         )  # remove invalid field for the FeatureDataType
                         yield parent
 
@@ -839,7 +853,9 @@ class SqliteAnnotationDbMixin:
                 query_args.pop("on_alignment", None)
 
             for result in self._get_records_matching(
-                table_name=table_name, columns=columns, **query_args
+                table_name=table_name,
+                columns=columns,
+                **query_args,
             ):
                 result = dict(zip(result.keys(), result))
                 result["on_alignment"] = result.get("on_alignment")
@@ -894,7 +910,7 @@ class SqliteAnnotationDbMixin:
         """
         columns = {k for k, v in locals().items() if v is True}
         if not columns:
-            return
+            return None
 
         if constraints := {k: v for k, v in locals().items() if isinstance(v, str)}:
             where_clause, values = _matching_conditions(constraints)
@@ -938,7 +954,7 @@ class SqliteAnnotationDbMixin:
         row_counts = []
         for table in self.table_names:
             result = self._execute_sql(
-                f"SELECT COUNT(*) as count FROM {table}"
+                f"SELECT COUNT(*) as count FROM {table}",
             ).fetchone()
             row_counts.append(result["count"])
 
@@ -996,12 +1012,14 @@ class SqliteAnnotationDbMixin:
         return mine <= theirs or mine > theirs if symmetric else mine >= theirs
 
     def update(
-        self, annot_db: SupportsFeatures, seqids: OptionalStrList = None
+        self,
+        annot_db: SupportsFeatures,
+        seqids: OptionalStrList = None,
     ) -> None:
         """update records with those from an instance of the same type"""
         if not isinstance(annot_db, SupportsFeatures):
             raise TypeError(f"{type(annot_db)} does not satisfy SupportsFeatures")
-        elif not self.compatible(annot_db, symmetric=False):
+        if not self.compatible(annot_db, symmetric=False):
             raise TypeError(f"{type(self)} cannot be updated from {type(annot_db)}")
 
         if not annot_db or not len(annot_db):
@@ -1024,7 +1042,7 @@ class SqliteAnnotationDbMixin:
         """
         if annot_db and not isinstance(annot_db, SupportsFeatures):
             raise TypeError(f"{type(annot_db)} does not satisfy SupportsFeatures")
-        elif not annot_db:
+        if not annot_db:
             return copy.deepcopy(self)
 
         if self.compatible(annot_db, symmetric=False):
@@ -1033,7 +1051,7 @@ class SqliteAnnotationDbMixin:
             cls = type(annot_db)
         else:
             raise TypeError(
-                f"cannot make a union between {type(self)} and {type(annot_db)}"
+                f"cannot make a union between {type(self)} and {type(annot_db)}",
             )
 
         db = cls()
@@ -1057,19 +1075,22 @@ class SqliteAnnotationDbMixin:
         elif seqids is not None:
             seqids = set(seqids) - {None}  # make sure None is not part of this!
 
-        # todo gah prevent duplication of existing records
+        # TODO gah prevent duplication of existing records
         for table_name, records in data["tables"].items():
             for record in records:
                 if seqids and record["seqid"] not in seqids:
                     continue
                 record["spans"] = numpy.array(record["spans"], dtype=int)
                 sql, vals = _add_record_sql(
-                    table_name, {k: v for k, v in record.items() if v is not None}
+                    table_name,
+                    {k: v for k, v in record.items() if v is not None},
                 )
                 self._execute_sql(sql, vals)
 
     def _update_db_from_other_db(
-        self, other_db: SupportsFeatures, seqids: OptionalStrContainer = None
+        self,
+        other_db: SupportsFeatures,
+        seqids: OptionalStrContainer = None,
     ):
         if other_db == self:
             return
@@ -1175,7 +1196,11 @@ class BasicAnnotationDb(SqliteAnnotationDbMixin):
     _table_names = ("user",)
 
     def __init__(
-        self, *, data: T = None, db: SupportsFeatures = None, source=":memory:"
+        self,
+        *,
+        data: T = None,
+        db: SupportsFeatures = None,
+        source=":memory:",
     ):
         """
         Parameters
@@ -1245,7 +1270,11 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
 
     @extend_docstring_from(BasicAnnotationDb.__init__)
     def __init__(
-        self, *, data: T = None, db: SupportsFeatures = None, source=":memory:"
+        self,
+        *,
+        data: T = None,
+        db: SupportsFeatures = None,
+        source=":memory:",
     ):
         data = data or []
         # note that data is destroyed
@@ -1296,7 +1325,8 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
             return
 
         result = self._execute_sql(
-            cmnd="SELECT spans from gff WHERE name = ?", values=(name,)
+            cmnd="SELECT spans from gff WHERE name = ?",
+            values=(name,),
         ).fetchone()
 
         if result is None:
@@ -1304,7 +1334,8 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
 
         old_spans = _merge_spans(result["spans"], spans)
         self._execute_sql(
-            cmnd="UPDATE gff SET spans = ? WHERE name = ?", values=(old_spans, name)
+            cmnd="UPDATE gff SET spans = ? WHERE name = ?",
+            values=(old_spans, name),
         )
 
 
@@ -1561,7 +1592,11 @@ def convert_annotation_to_annotation_db(data: dict) -> SupportsFeatures:
         biotype = ann.pop("type")
         name = ann.pop("name")
         db.add_feature(
-            seqid=seqid, biotype=biotype, name=name, spans=spans, strand=strand
+            seqid=seqid,
+            biotype=biotype,
+            name=name,
+            spans=spans,
+            strand=strand,
         )
 
     return db
@@ -1569,9 +1604,11 @@ def convert_annotation_to_annotation_db(data: dict) -> SupportsFeatures:
 
 @display_wrap
 def _db_from_genbank(
-    path: PathType, db: typing.Optional[SupportsFeatures], write_path, **kwargs
+    path: PathType,
+    db: typing.Optional[SupportsFeatures],
+    write_path,
+    **kwargs,
 ):
-    from cogent3 import open_
     from cogent3.parse.genbank import minimal_parser
 
     paths = pathlib.Path(path)
@@ -1590,7 +1627,7 @@ def _db_from_genbank(
         one_valid_path = True
 
     if not one_valid_path:
-        raise IOError(f"{str(path)!r} not found")
+        raise OSError(f"{str(path)!r} not found")
 
     db.make_indexes()
     return db
@@ -1624,8 +1661,11 @@ def _db_from_gff(
         for block in iter_line_blocks(path, num_lines=num_lines):
             data = list(
                 gff_parser(
-                    block, seqids=seqids, attribute_parser=_leave_attributes, gff3=gff3
-                )
+                    block,
+                    seqids=seqids,
+                    attribute_parser=_leave_attributes,
+                    gff3=gff3,
+                ),
             )
             data, num_fake_ids = merged_gff_records(data, num_fake_ids)
             if already_seen := seen_ids & data.keys():
@@ -1636,7 +1676,7 @@ def _db_from_gff(
             db.add_records(data)
         one_valid_path = True
     if not one_valid_path:
-        raise IOError(f"{str(path)!r} not found")
+        raise OSError(f"{str(path)!r} not found")
 
     db.make_indexes()
     return db
@@ -1681,7 +1721,10 @@ def load_annotations(
     path = pathlib.Path(path)
     return (
         _db_from_genbank(
-            path, db=db, write_path=write_path, show_progress=show_progress
+            path,
+            db=db,
+            write_path=write_path,
+            show_progress=show_progress,
         )
         if {".gb", ".gbk"} & set(path.suffixes)
         else _db_from_gff(
@@ -1721,10 +1764,8 @@ def _update_array_format(data: bytes) -> bytes:
 
 def update_file_format(
     source_path: PathType,
-    db_class: typing.Union[
-        type[BasicAnnotationDb],
-        type[GenbankAnnotationDb],
-        type[GffAnnotationDb],
+    db_class: type[
+        typing.Union[BasicAnnotationDb, GenbankAnnotationDb, GffAnnotationDb]
     ],
     backup: bool = True,
 ) -> None:
@@ -1767,7 +1808,7 @@ def update_file_format(
                 f"Backup file already exists for {source_path}. "
                 f"If there was a problem with the conversion process, "
                 f"update_file_format should be run on the backed up file. "
-                f"Ensure update_file_format is run on the same OS used to generate the file."
+                f"Ensure update_file_format is run on the same OS used to generate the file.",
             )
         anno_db.write(backup_path)
 
@@ -1783,6 +1824,6 @@ def update_file_format(
 
         for column in array_columns:
             cursor.execute(
-                f"UPDATE {table_name} SET {column}=update_array_format({column});"
+                f"UPDATE {table_name} SET {column}=update_array_format({column});",
             )
         conn.commit()

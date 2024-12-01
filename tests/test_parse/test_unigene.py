@@ -37,11 +37,12 @@ class unigeneTests(TestCase):
         # execution and it's persistent class data
         UniGeneSeqRecord.found_fields = {}
         self.assertEqual(
-            _read_seq("ACC=BC025044.1\n"), UniGeneSeqRecord({"ACC": "BC025044.1"})
+            _read_seq("ACC=BC025044.1\n"),
+            UniGeneSeqRecord({"ACC": "BC025044.1"}),
         )
         self.assertEqual(
             _read_seq(
-                "ACC=AI842963.1; NID=g5477176; CLONE=UI-M-AO1-aem-f-10-0-UI; END=3'; LID=1944; SEQTYPE=EST; TRACE=158501677\n"
+                "ACC=AI842963.1; NID=g5477176; CLONE=UI-M-AO1-aem-f-10-0-UI; END=3'; LID=1944; SEQTYPE=EST; TRACE=158501677\n",
             ),
             UniGeneSeqRecord(
                 {
@@ -52,7 +53,7 @@ class unigeneTests(TestCase):
                     "LID": "1944",
                     "SEQTYPE": "EST",
                     "TRACE": "158501677",
-                }
+                },
             ),
         )
 
@@ -99,7 +100,8 @@ SEQUENCE    ACC=AW990320.1; NID=g8185938; CLONE=IMAGE:1513482; END=5'; LID=1043;
         self.assertEqual(first.CHROMOSOME, "3")
         self.assertEqual(first.LOCUSLINK, 20194)
         self.assertEqual(
-            first.EXPRESS, ["embryo", "whole body", "mammary gland", "brain"]
+            first.EXPRESS,
+            ["embryo", "whole body", "mammary gland", "brain"],
         )
         self.assertEqual(
             first.STS,
@@ -134,7 +136,7 @@ SEQUENCE    ACC=AW990320.1; NID=g8185938; CLONE=IMAGE:1513482; END=5'; LID=1043;
                         "ALN": "94",
                     },
                 ],
-            )
+            ),
         )
         for obs, exp in zip(first.PROTSIM, exp_prot_sim):
             self.assertEqual(obs, exp)
@@ -184,7 +186,7 @@ SEQUENCE    ACC=AW990320.1; NID=g8185938; CLONE=IMAGE:1513482; END=5'; LID=1043;
                         "SEQTYPE": "EST",
                     },
                 ],
-            )
+            ),
         )
         for obs, exp in zip(first.SEQUENCE, exp_seqs):
             self.assertEqual(obs, exp)
@@ -207,9 +209,9 @@ SEQUENCE    ACC=AW990320.1; NID=g8185938; CLONE=IMAGE:1513482; END=5'; LID=1043;
                             "PROTID": "pir:T31611",
                             "PCT": "30",
                             "ALN": "326",
-                        }
+                        },
                     ],
-                )
+                ),
             ),
         )
         self.assertEqual(second.SCOUNT, 1)
@@ -228,9 +230,9 @@ SEQUENCE    ACC=AW990320.1; NID=g8185938; CLONE=IMAGE:1513482; END=5'; LID=1043;
                             "LID": "1043",
                             "SEQTYPE": "EST",
                             "TRACE": "94472873",
-                        }
+                        },
                     ],
-                )
+                ),
             ),
         )
 

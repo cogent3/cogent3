@@ -23,8 +23,6 @@ from cogent3.evolve.fast_distance import (
     ProportionIdenticalPair,
     TN93Pair,
     _calculators,
-    _hamming,
-    _jc69_from_matrix,
     available_distances,
     fill_diversity_matrix,
     get_distance_calculator,
@@ -56,7 +54,8 @@ def rna_char_indices():
 def basic_alignment():
     """Fixture providing a basic alignment for tests"""
     return make_aligned_seqs(
-        data=[("s1", "ACGTACGTAC"), ("s2", "GTGTACGTAC")], moltype=DNA
+        data=[("s1", "ACGTACGTAC"), ("s2", "GTGTACGTAC")],
+        moltype=DNA,
     )
 
 
@@ -64,7 +63,8 @@ def basic_alignment():
 def ambig_alignment():
     """Fixture providing an ambiguous alignment for tests"""
     return make_aligned_seqs(
-        data=[("s1", "RACGTACGTACN"), ("s2", "AGTGTACGTACA")], moltype=DNA
+        data=[("s1", "RACGTACGTACN"), ("s2", "AGTGTACGTACA")],
+        moltype=DNA,
     )
 
 
@@ -72,14 +72,16 @@ def ambig_alignment():
 def diff_alignment():
     """Fixture providing a different alignment for tests"""
     return make_aligned_seqs(
-        data=[("s1", "ACGTACGTTT"), ("s2", "GTGTACGTAC")], moltype=DNA
+        data=[("s1", "ACGTACGTTT"), ("s2", "GTGTACGTAC")],
+        moltype=DNA,
     )
 
 
 @pytest.fixture
 def alignment():
     return make_aligned_seqs(
-        data=[("s1", "ACGTACGTAC"), ("s2", "GTGTACGTAC")], moltype=DNA
+        data=[("s1", "ACGTACGTAC"), ("s2", "GTGTACGTAC")],
+        moltype=DNA,
     )
 
 
@@ -139,7 +141,7 @@ def min_working_example_dmat():
             ("A", "B"): 1,
             ("A", "C"): 2,
             ("B", "C"): 3,
-        }
+        },
     )
 
 
@@ -183,7 +185,7 @@ def test_max_pair_tied():
             ("B", "C"): 3,
             ("B", "D"): 2,
             ("C", "D"): 2,
-        }
+        },
     )
 
     got = set(dmat.max_pair())
@@ -200,7 +202,7 @@ def test_min_pair_tied():
             ("B", "C"): 3,
             ("B", "D"): 2,
             ("C", "D"): 2,
-        }
+        },
     )
 
     got = set(dmat.min_pair())
@@ -255,7 +257,7 @@ def test_distance_matrix_from_array_names():
             [0.1, 0.7, 0.1, 0.3],
             [0.3, 0.2, 0.6, 0.3],
             [0.4, 0.1, 0.1, 0.7],
-        ]
+        ],
     )
     names = list("abcd")
     got = DistanceMatrix.from_array_names(data, names)
@@ -605,7 +607,7 @@ def test_paralinear_distance():
     numpy.linalg.inv(J)
     f = J.sum(1), J.sum(0)
     dist = -0.25 * numpy.log(
-        numpy.linalg.det(J) / numpy.sqrt(f[0].prod() * f[1].prod())
+        numpy.linalg.det(J) / numpy.sqrt(f[0].prod() * f[1].prod()),
     )
 
     assert_allclose(paralinear_calc.dists["seq1", "seq2"], dist)
@@ -723,9 +725,9 @@ def test_duplicated():
         ),
     ]
     calc = get_calc(data)
-    assert {"seq2": ["seq3"]} == calc.duplicated or {
-        "seq3": ["seq2"]
-    } == calc.duplicated
+    assert calc.duplicated == {"seq2": ["seq3"]} or calc.duplicated == {
+        "seq3": ["seq2"],
+    }
     # default to get all pairwise distances
     pwds = calc.get_pairwise_distances().to_dict()
     assert pwds[("seq2", "seq3")] == 0.0
@@ -886,7 +888,7 @@ def test_build_phylogeny():
     dists = DistanceMatrix(dists)
     got = dists.quick_tree(show_progress=False)
     expect = make_tree(
-        treestring="((TombBat,(DogFaced,FlyingFox)),LittleBro,FreeTaile)"
+        treestring="((TombBat,(DogFaced,FlyingFox)),LittleBro,FreeTaile)",
     )
     assert expect.same_topology(got)
 
@@ -1062,7 +1064,8 @@ def test_to_table():
 
 
 @pytest.mark.parametrize(
-    "aln", ["basic_alignment", "ambig_alignment", "diff_alignment"]
+    "aln",
+    ["basic_alignment", "ambig_alignment", "diff_alignment"],
 )
 def test_jc69_dists(request, aln):
     """full numba implementation matches original"""
@@ -1107,7 +1110,8 @@ def test_paralinear_dists(request, aln):
 
 
 @pytest.mark.parametrize(
-    "aln", ["basic_alignment", "ambig_alignment", "diff_alignment"]
+    "aln",
+    ["basic_alignment", "ambig_alignment", "diff_alignment"],
 )
 def test_hamming_dists(request, aln):
     aln = request.getfixturevalue(aln)
@@ -1121,7 +1125,8 @@ def test_hamming_dists(request, aln):
 
 
 @pytest.mark.parametrize(
-    "aln", ["basic_alignment", "ambig_alignment", "diff_alignment"]
+    "aln",
+    ["basic_alignment", "ambig_alignment", "diff_alignment"],
 )
 def test_prop_dists(request, aln):
     aln = request.getfixturevalue(aln)
@@ -1137,7 +1142,9 @@ def test_prop_dists(request, aln):
 @pytest.mark.parametrize("calc", ["jc69", "tn93", "paralinear", "hamming", "pdist"])
 def test_numba_get_dist(calc, basic_alignment) -> None:
     aln = make_aligned_seqs(
-        data=basic_alignment.to_dict(), moltype="dna", new_type=True
+        data=basic_alignment.to_dict(),
+        moltype="dna",
+        new_type=True,
     )
     calc = pdist_numba.get_distance_calculator(calc)
     got = calc(aln)
@@ -1149,7 +1156,9 @@ def test_invalid_moltype_fast_distances(calc, basic_alignment):
     from cogent3.core import new_moltype
 
     aln = make_aligned_seqs(
-        data=basic_alignment.to_dict(), moltype="protein", new_type=True
+        data=basic_alignment.to_dict(),
+        moltype="protein",
+        new_type=True,
     )
     calc = pdist_numba.get_distance_calculator(calc)
     with pytest.raises(new_moltype.MolTypeError):

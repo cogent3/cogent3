@@ -25,7 +25,7 @@ def classic_gap_scores(d, e):
     return pair_transition_matrix("XYM", T)
 
 
-class _SimpleIndelParams(object):
+class _SimpleIndelParams:
     def __init__(self, indel_rate, indel_length):
         assert 0.0 < indel_length < 1.0, indel_length
         assert 0.0 < indel_rate < 1.0, indel_rate
@@ -41,7 +41,12 @@ class SimpleIndelModel(_SimpleIndelParams):
         e = self.indel_length
         g = 0.0
         T = numpy.array(
-            [[0, d, d, 1 - 2 * d], [1 - e, e, 0, 0], [1 - e, 0, e, 0], [1 - g, 0, 0, g]]
+            [
+                [0, d, d, 1 - 2 * d],
+                [1 - e, e, 0, 0],
+                [1 - e, 0, e, 0],
+                [1 - g, 0, 0, g],
+            ],
         )
         return pair_transition_matrix("WXYM", T).withoutSilentStates()
 

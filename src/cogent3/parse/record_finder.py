@@ -30,7 +30,11 @@ def never_ignore(line):
 
 
 def DelimitedRecordFinder(
-    delimiter, constructor=strip, ignore=is_empty, keep_delimiter=True, strict=True
+    delimiter,
+    constructor=strip,
+    ignore=is_empty,
+    keep_delimiter=True,
+    strict=True,
 ):
     """Returns function that returns successive delimited records from file.
 
@@ -114,7 +118,7 @@ def TailedRecordFinder(is_tail_line, constructor=rstrip, ignore=is_empty, strict
         if curr:
             if strict:
                 raise RecordError(
-                    "lines exist after the last tail_line " "or no tail_line at all"
+                    "lines exist after the last tail_line or no tail_line at all",
                 )
             else:
                 yield curr

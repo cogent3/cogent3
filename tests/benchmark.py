@@ -3,12 +3,6 @@
 import sys  # ,hotshot
 
 from cogent3 import load_aligned_seqs, load_tree
-from cogent3.evolve.substitution_model import (
-    TimeReversibleCodon,
-    TimeReversibleDinucleotide,
-    TimeReversibleNucleotide,
-)
-from cogent3.maths import optimisers
 from cogent3.util import parallel
 
 ALIGNMENT = load_aligned_seqs(filename="data/brca1.fasta")
@@ -82,7 +76,7 @@ def evals_per_sec(*args):
     return speed
 
 
-class CompareImplementations(object):
+class CompareImplementations:
     def __init__(self, switch):
         self.switch = switch
 
@@ -130,9 +124,9 @@ def benchmarks(test):
                 " | ".join(
                     [""]
                     + ["-" * (len(sequence_lengths) * 5) for alphabet in alphabets]
-                    + [""]
+                    + [""],
                 )
-            )
+            ),
         )
         for treesize in treesizes:
             print(("%4s taxa    | " % treesize), end=" ")

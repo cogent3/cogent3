@@ -181,7 +181,8 @@ class EnumerationTests(TestCase):
         self.assertEqual(x.gap_index, 5)
         self.assertEqual(len(x), 6)
         self.assertEqual(
-            x, (("a", "x"), ("a", "z"), ("b", "x"), ("b", "z"), ("-", "x"), ("-", "z"))
+            x,
+            (("a", "x"), ("a", "z"), ("b", "x"), ("b", "z"), ("-", "x"), ("-", "z")),
         )
         # check that it doesn't work when only one seq has gaps
         c = Enumeration("c")

@@ -34,7 +34,6 @@ from numpy import (
 )
 
 from cogent3._version import __version__
-from cogent3.util import warning as c3warns
 from cogent3.util.misc import get_object_provenance
 
 
@@ -610,14 +609,13 @@ class CharAlphabet(Alphabet):
         s = data.shape
         if not s:
             return ""
-        elif len(s) == 1:
+        if len(s) == 1:
             val = self.to_chars(data)
             val = val.tobytes().decode("utf-8")
             return val
-        else:
-            return delimiter.join(
-                [i.tobytes().decode("utf-8") for i in self.to_chars(data)]
-            )
+        return delimiter.join(
+            [i.tobytes().decode("utf-8") for i in self.to_chars(data)],
+        )
 
     @singledispatchmethod
     def from_indices(self, data: ndarray) -> str:
@@ -668,7 +666,7 @@ class CharAlphabet(Alphabet):
         """
         result = array(
             memoryview(
-                bytearray(data.translate(self._chars_to_indices).encode("utf8"))
+                bytearray(data.translate(self._chars_to_indices).encode("utf8")),
             ),
             dtype=self.array_type,
         )
@@ -702,7 +700,10 @@ T = typing.Union[Alphabet, CharAlphabet]
 
 
 def make_alphabet(
-    *, motifset: typing.Iterable[str], moltype: "MolType", gap: str = "-"
+    *,
+    motifset: typing.Iterable[str],
+    moltype: "MolType",
+    gap: str = "-",
 ) -> T:
     """constructs an alphabet and registers moltype
 

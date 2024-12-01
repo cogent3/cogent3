@@ -45,7 +45,7 @@ data = np.array(
             17.25,
             9.52,
         ],
-    ]
+    ],
 )
 
 # factory function generator for the statistical function of interest
@@ -140,10 +140,14 @@ class JackknifeTests(TestCase):
         got_pseudovalues = test_knife._pseudovalues
         for index in range(data.shape[1]):
             np.testing.assert_almost_equal(
-                got_subsample_stats[index], expected_subsample_stats[index], 4
+                got_subsample_stats[index],
+                expected_subsample_stats[index],
+                4,
             )
             np.testing.assert_approx_equal(
-                got_pseudovalues[index], expected_pseudovalues[index], 4
+                got_pseudovalues[index],
+                expected_pseudovalues[index],
+                4,
             )
 
         # Vector

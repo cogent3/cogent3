@@ -19,31 +19,24 @@ class ScopeError(KeyError):
 class InvalidScopeError(ScopeError):
     """for scopes including an unknown value for a known dimension"""
 
-    pass
-
 
 class InvalidDimensionError(ScopeError):
     """for scopes including an unknown dimension"""
-
-    pass
 
 
 class IncompleteScopeError(ScopeError):
     """For underspecified scope when retrieving values"""
 
-    pass
-
 
 # Can be passed to _LeafDefn.interpret_scopes()
-class _ExistentialQualifier(object):
+class _ExistentialQualifier:
     def __init__(self, cats=None):
         self.cats = cats
 
     def __repr__(self):
         if self.cats is None:
             return self.__class__.__name__
-        else:
-            return f"{self.__class__.__name__}({self.cats})"
+        return f"{self.__class__.__name__}({self.cats})"
 
 
 class EACH(_ExistentialQualifier):
@@ -89,7 +82,7 @@ def _fmtrow(width, values, maxwidth):
     return s
 
 
-class Undefined(object):
+class Undefined:
     # Placeholder for a value that can't be calculated
     # because input 'name' has not been provided.
 
@@ -108,12 +101,11 @@ def nullor(name, f, recycled=False):
         undef = [x for x in args if isinstance(x, Undefined)]
         if undef:
             return undef[0]
-        elif any(arg is None for arg in args):
+        if any(arg is None for arg in args):
             return Undefined(name)
-        else:
-            if recycled:
-                args = (None,) + args
-            return f(*args)
+        if recycled:
+            args = (None,) + args
+        return f(*args)
 
     return g
 
@@ -129,7 +121,7 @@ def nullor(name, f, recycled=False):
 # This means defn.make_likelihood_function() can only be called once.
 
 
-class _Defn(object):
+class _Defn:
     name = "?"
     default = None
     user_param = False
@@ -219,7 +211,7 @@ class _Defn(object):
             raise InvalidScopeError(f"no value for {self.name} at {scope}")
         if len(posns) > 1:
             raise IncompleteScopeError(
-                f"{len(posns)} distinct values of {self.name} within {scope}"
+                f"{len(posns)} distinct values of {self.name} within {scope}",
             )
         return the_one_item_in(posns)
 
@@ -281,7 +273,7 @@ class _Defn(object):
         kw2 = {}
         independent_dimensions = []
         for i, dimension in enumerate(self.valid_dimensions):
-            selection = kw.get(dimension, None)
+            selection = kw.get(dimension)
             if selection in [EACH, ALL]:
                 dimension_independent = selection.independent
                 selection = None
@@ -397,7 +389,7 @@ class _Defn(object):
                 "%-10s%-10s%s"
                 % (label1[:9], label2[:9], _fmtrow(col_width + 1, settings, max_width))
                 for (label1, label2, settings) in body
-            ]
+            ],
         )
 
     def __repr__(self):
@@ -469,7 +461,7 @@ class _NonLeafDefn(_Defn):
         calc = self.make_calc_function()
         self.values = [
             nullor(self.name, calc, self.recycling)(
-                *[a.values[i] for (i, a) in zip(u, self.args)]
+                *[a.values[i] for (i, a) in zip(u, self.args)],
             )
             for u in self.uniq
         ]
@@ -495,7 +487,11 @@ class _LeafDefn(_Defn):
     internal_dimensions = ()
 
     def __init__(
-        self, name=None, extra_label=None, dimensions=None, independent_by_default=None
+        self,
+        name=None,
+        extra_label=None,
+        dimensions=None,
+        independent_by_default=None,
     ):
         super(_LeafDefn, self).__init__()
         if dimensions is not None:
@@ -538,7 +534,8 @@ class _LeafDefn(_Defn):
             const = self.const_by_default
 
         for scope in self.interpret_scopes(
-            independent=independent, **(scope_spec or {})
+            independent=independent,
+            **(scope_spec or {}),
         ):
             if value is None:
                 s_value = self.get_mean_current_value(scope, warn=warn)
@@ -550,7 +547,7 @@ class _LeafDefn(_Defn):
             elif not self.numeric:
                 if lower is not None or upper is not None:
                     raise ValueError(
-                        f"Non-scalar input '{self.name}' doesn't support bounds"
+                        f"Non-scalar input '{self.name}' doesn't support bounds",
                     )
                 setting = Var((None, s_value, None))
             else:
@@ -562,7 +559,7 @@ class _LeafDefn(_Defn):
 
                 if s_lower > s_upper:
                     raise ValueError("Bounds: upper < lower")
-                elif (s_lower is not None) and s_value < s_lower:
+                if (s_lower is not None) and s_value < s_lower:
                     s_value = s_lower
                     if warn:
                         warnings.warn(
@@ -642,7 +639,7 @@ class _LeafDefn(_Defn):
         )
 
 
-class ParameterController(object):
+class ParameterController:
     """Holds a set of activated CalculationDefns, including their parameter
     scopes.  Makes calculators on demand."""
 
@@ -736,7 +733,12 @@ class ParameterController(object):
         return self.defns[-1].get_current_value_for_scope()
 
     def get_param_value_dict(
-        self, dimensions, p=None, dropoff=None, params=None, xtol=None
+        self,
+        dimensions,
+        p=None,
+        dropoff=None,
+        params=None,
+        xtol=None,
     ):
         """A dict tree of parameter values, with parameter names as the
         top level keys, and the various dimensions ('edge', 'bin', etc.)

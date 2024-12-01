@@ -205,7 +205,8 @@ def test_method_deprecated_method_pickling(recwarn):
 
 
 @pytest.mark.parametrize(
-    "func,_type", ((foo2().old_meth, "method"), (cubed, "function"))
+    "func,_type",
+    ((foo2().old_meth, "method"), (cubed, "function")),
 )
 def test_deprecated_callable_resolves_type(recwarn, func, _type):
     func(2)
@@ -216,7 +217,10 @@ def test_function_deprecated_args_deprecated_callable_chained_decorators(recwarn
     @deprecated_args("2023.6", "x is not descriptive", old_new=[("x", "a")])
     @deprecated_args("2023.6", "b is no longer required", discontinued=["b"])
     @deprecated_callable(
-        "2023.6", "Improved change function", new="changed2", is_discontinued=True
+        "2023.6",
+        "Improved change function",
+        new="changed2",
+        is_discontinued=True,
     )
     def changed(a: int, b: int) -> int:
         return a + b

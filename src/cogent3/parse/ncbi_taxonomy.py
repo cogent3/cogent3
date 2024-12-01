@@ -46,7 +46,7 @@ RanksToNumbers = {
 
 
 @total_ordering
-class NcbiTaxon(object):
+class NcbiTaxon:
     """Extracts taxon information: init from one line of NCBI's nodes.dmp.
 
     Properties:
@@ -144,7 +144,7 @@ def NcbiTaxonLookup(taxa):
     return result
 
 
-class NcbiName(object):
+class NcbiName:
     """Extracts name information: init from one line of NCBI's names.dmp.
 
     Properties:
@@ -183,7 +183,7 @@ def NcbiNameLookup(names):
     return result
 
 
-class NcbiTaxonomy(object):
+class NcbiTaxonomy:
     """Holds root node of a taxonomy tree, plus lookup by id or name."""
 
     def __init__(self, taxa, names, strict=False):
@@ -225,10 +225,9 @@ class NcbiTaxonomy(object):
                 except KeyError:  # found a child whose parent doesn't exist
                     if strict:
                         raise MissingParentError(
-                            f"Node {t_id} has parent {t.ParentId}, which isn't in taxa."
+                            f"Node {t_id} has parent {t.ParentId}, which isn't in taxa.",
                         )
-                    else:
-                        deadbeats[t.ParentId] = t
+                    deadbeats[t.ParentId] = t
         self.Deadbeats = deadbeats
         self.Root = t.root()
 

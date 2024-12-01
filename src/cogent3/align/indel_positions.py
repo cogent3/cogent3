@@ -16,7 +16,7 @@ def pog_traceback(pogs, aligned_positions):
     return align_builder.get_pog()
 
 
-class POGBuilder(object):
+class POGBuilder:
     def __init__(self, children):
         self.children = children
         self.remap = [{} for _ in children]
@@ -93,7 +93,7 @@ class POGBuilder(object):
         return pog
 
 
-class POG(object):
+class POG:
     """A representation of the indel positions in a pairwise alignment, ie:
     those segments of the consensus sequence which may be inserts and so absent
     from the common ancestor.  Nearly equivalent to a generic Partial Order
@@ -204,7 +204,7 @@ class POG(object):
                 label = str(i)
             print("  ", (f"node{i}"), f'[label="{label}"]', file=dot)
         print("}", file=dot)
-        print("", file=dot)
+        print(file=dot)
 
 
 class LeafPOG(POG):

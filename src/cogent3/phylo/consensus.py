@@ -33,7 +33,10 @@ def majority_rule(trees, strict=False):
 
 
 def weighted_majority_rule(
-    weighted_trees, strict=False, attr="support", method="unrooted"
+    weighted_trees,
+    strict=False,
+    attr="support",
+    method="unrooted",
 ):
     """Calculate a greedy consensus tree in the sense of Bryant (2003), if
     weights are taken as counts. Branch lengths calculated as per Holland
@@ -69,10 +72,9 @@ def weighted_majority_rule(
     """
     if method == "rooted":
         return weighted_rooted_majority_rule(weighted_trees, strict, attr)
-    elif method == "unrooted":
+    if method == "unrooted":
         return weighted_unrooted_majority_rule(weighted_trees, strict, attr)
-    else:
-        raise ValueError('method must be "rooted" or "unrooted"')
+    raise ValueError('method must be "rooted" or "unrooted"')
 
 
 @extend_docstring_from(weighted_majority_rule)
@@ -90,7 +92,7 @@ def weighted_rooted_majority_rule(weighted_trees, strict=False, attr="support"):
                 cladecounts[tips] = 0
             cladecounts[tips] += weight
             length = edge.length and edge.length * weight
-            if edgelengths.get(tips, None):
+            if edgelengths.get(tips):
                 edgelengths[tips] += length
             else:
                 edgelengths[tips] = length
@@ -129,7 +131,7 @@ def weighted_rooted_majority_rule(weighted_trees, strict=False, attr="support"):
             params = {"length": edgelengths[clade], attr: counts[clade]}
             nodes[tip_name] = tree_build([], tip_name, params)
         else:
-            queue.append(((len(clade), clade)))
+            queue.append((len(clade), clade))
 
     while queue:
         queue.sort()
@@ -145,7 +147,9 @@ def weighted_rooted_majority_rule(weighted_trees, strict=False, attr="support"):
         children = [nodes.pop(c) for c in clade]
         assert len([children])
         nodes[clade] = tree_build(
-            children, None, {attr: counts[clade], "length": edgelengths[clade]}
+            children,
+            None,
+            {attr: counts[clade], "length": edgelengths[clade]},
         )
         queue = new_queue
 
@@ -176,7 +180,7 @@ def weighted_unrooted_majority_rule(weighted_trees, strict=False, attr="support"
 
     # Normalise split lengths by split weight and split weights by total weight
     for split in split_lengths:
-        if not split_lengths[split] is None:
+        if split_lengths[split] is not None:
             split_lengths[split] /= split_weights[split]
     total_weight = sum(w for w, t in weighted_trees[::-1])
     weighted_splits = [(w / total_weight, s) for s, w in list(split_weights.items())]

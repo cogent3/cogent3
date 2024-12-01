@@ -18,12 +18,15 @@ class FeaturesTest(TestCase):
     def setUp(self):
         # A Sequence with a couple of exons on it.
         self.s = DNA.make_seq(
-            seq="AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA", name="Orig"
+            seq="AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA",
+            name="Orig",
         )
         self.exon1 = self.s.add_feature(biotype="exon", name="fred", spans=[(10, 15)])
         self.exon2 = self.s.add_feature(biotype="exon", name="trev", spans=[(30, 40)])
         self.nested_feature = self.s.add_feature(
-            biotype="repeat", name="bob", spans=[(12, 17)]
+            biotype="repeat",
+            name="bob",
+            spans=[(12, 17)],
         )
 
     def test_exon_extraction(self):
@@ -44,7 +47,7 @@ class FeaturesTest(TestCase):
 
         exons = list(self.s.get_features(biotype="exon"))
         assert str(exons).startswith(
-            "[Feature(seqid='Orig', biotype='exon', name='fred', map=[10:15]/48, parent=DnaSequence"
+            "[Feature(seqid='Orig', biotype='exon', name='fred', map=[10:15]/48, parent=DnaSequence",
         )
 
     def test_union(self):
@@ -68,7 +71,7 @@ class FeaturesTest(TestCase):
         expect = str(
             self.s[: exons[0].map.start]
             + self.s[exons[0].map.end : exons[1].map.start]
-            + self.s[exons[1].map.end :]
+            + self.s[exons[1].map.end :],
         )
         exon1 = exons.pop(0)
         shadow = exon1.union(exons).shadow()
@@ -79,11 +82,17 @@ class FeaturesTest(TestCase):
         seq = DNA.make_seq(seq="TTCCACTTCCGCTT", name="x")
         pattern = "CCRC"
         annot = seq.annotate_matches_to(
-            pattern=pattern, biotype="domain", name="fred", allow_multiple=True
+            pattern=pattern,
+            biotype="domain",
+            name="fred",
+            allow_multiple=True,
         )
         self.assertEqual([a.get_slice() for a in annot], ["CCAC", "CCGC"])
         annot = seq.annotate_matches_to(
-            pattern=pattern, biotype="domain", name="fred", allow_multiple=False
+            pattern=pattern,
+            biotype="domain",
+            name="fred",
+            allow_multiple=False,
         )
         self.assertEqual(len(annot), 1)
         fred = annot[0].get_slice()
@@ -92,7 +101,10 @@ class FeaturesTest(TestCase):
         # should return an empty annotation.
         seq = ASCII.make_seq(seq="TTCCACTTCCGCTT")
         annot = seq.annotate_matches_to(
-            pattern=pattern, biotype="domain", name="fred", allow_multiple=False
+            pattern=pattern,
+            biotype="domain",
+            name="fred",
+            allow_multiple=False,
         )
         self.assertEqual(annot, [])
 
@@ -100,7 +112,8 @@ class FeaturesTest(TestCase):
 def test_copy_annotations():
     """copying features from a db"""
     aln = make_aligned_seqs(
-        data=[["x", "-AAAAAAAAA"], ["y", "TTTT--CCCT"]], array_align=False
+        data=[["x", "-AAAAAAAAA"], ["y", "TTTT--CCCT"]],
+        array_align=False,
     )
     db = GffAnnotationDb()
     db.add_feature(seqid="y", biotype="exon", name="A", spans=[(5, 8)])
@@ -112,7 +125,8 @@ def test_copy_annotations():
 def test_copy_annotations_onto_seq():
     """copying features onto a sequence"""
     aln = make_aligned_seqs(
-        data=[["x", "-AAAAAAAAA"], ["y", "TTTT--CCCT"]], array_align=False
+        data=[["x", "-AAAAAAAAA"], ["y", "TTTT--CCCT"]],
+        array_align=False,
     )
     db = BasicAnnotationDb()
     db.add_feature(seqid="y", biotype="exon", name="A", spans=[(5, 8)])
@@ -158,11 +172,15 @@ def test_feature_residue():
 def ann_seq():
     # A Sequence with a couple of exons on it.
     s = DNA.make_seq(
-        seq="AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA", name="Orig"
+        seq="AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA",
+        name="Orig",
     )
     s.add_feature(biotype="gene", name="a-gene", spans=[(10, 40)])
     s.add_feature(
-        biotype="exon", name="fred", spans=[(10, 15), (30, 40)], parent_id="a-gene"
+        biotype="exon",
+        name="fred",
+        spans=[(10, 15), (30, 40)],
+        parent_id="a-gene",
     )
     return s
 
@@ -258,7 +276,8 @@ def test_aln_feature_lost_spans():
     db.add_feature(seqid="y", biotype="repeat", name="A", spans=[(12, 14)])
     # If the sequence is shorter, again you get a lost span.
     aln = make_aligned_seqs(
-        data={"x": "-AAAAAAAAA", "y": "TTTT--TTTT"}, array_align=False
+        data={"x": "-AAAAAAAAA", "y": "TTTT--TTTT"},
+        array_align=False,
     )
     aln.annotation_db = db
     copied = list(aln.get_features(seqid="y", biotype="repeat"))
@@ -273,14 +292,16 @@ def test_terminal_gaps():
     feat = dict(seqid="x", biotype="exon", name="fred", spans=[(3, 8)])
     db.add_feature(**feat)
     aln = make_aligned_seqs(
-        data=[["x", "-AAAAAAAAA"], ["y", "------TTTT"]], array_align=False
+        data=[["x", "-AAAAAAAAA"], ["y", "------TTTT"]],
+        array_align=False,
     )
     aln.annotation_db = db
     aln_exons = list(aln.get_features(seqid="x", biotype="exon"))
     assert "biotype='exon', name='fred', map=[4:9]/10" in str(aln_exons)
     assert aln_exons[0].get_slice().to_dict() == dict(x="AAAAA", y="--TTT")
     aln = make_aligned_seqs(
-        data=[["x", "-AAAAAAAAA"], ["y", "TTTT--T---"]], array_align=False
+        data=[["x", "-AAAAAAAAA"], ["y", "TTTT--T---"]],
+        array_align=False,
     )
     aln.annotation_db = db
     aln_exons = list(aln.get_features(seqid="x", biotype="exon"))
@@ -329,7 +350,11 @@ def test_annotated_region_masks():  # ported to test_new_aln_annotation.py
     )
     assert (
         str(
-            aln.get_seq("x").with_masked_annotations("exon", mask_char="?", shadow=True)
+            aln.get_seq("x").with_masked_annotations(
+                "exon",
+                mask_char="?",
+                shadow=True,
+            ),
         )
         == "CCCC??????????"
     )
@@ -340,8 +365,10 @@ def test_annotated_region_masks():  # ported to test_new_aln_annotation.py
     assert (
         str(
             aln.get_seq("x").with_masked_annotations(
-                ["exon", "repeat"], mask_char="?", shadow=True
-            )
+                ["exon", "repeat"],
+                mask_char="?",
+                shadow=True,
+            ),
         )
         == "CCCC?????GGG??"
     )
@@ -356,8 +383,10 @@ def test_annotated_region_masks():  # ported to test_new_aln_annotation.py
     assert (
         str(
             aln.get_seq("y").with_masked_annotations(
-                "repeat", mask_char="?", shadow=True
-            )
+                "repeat",
+                mask_char="?",
+                shadow=True,
+            ),
         )
         == "?????GG??"
     )
@@ -369,14 +398,18 @@ def test_annotated_region_masks():  # ported to test_new_aln_annotation.py
         "y": "-T----TTTTG-GTT",
     }
     assert aln.with_masked_annotations(
-        "exon", mask_char="?", shadow=True
+        "exon",
+        mask_char="?",
+        shadow=True,
     ).to_dict() == {"x": "C-CCC??????????", "y": "-?----?????-???"}
     assert aln.with_masked_annotations("repeat", mask_char="?").to_dict() == {
         "x": "C-CCCAAAAA???AA",
         "y": "-T----TTTT?-?TT",
     }
     assert aln.with_masked_annotations(
-        "repeat", mask_char="?", shadow=True
+        "repeat",
+        mask_char="?",
+        shadow=True,
     ).to_dict() == {"x": "?-????????GGG??", "y": "-?----????G-G??"}
     assert aln.with_masked_annotations(["repeat", "exon"], mask_char="?").to_dict() == {
         "x": "?-???AAAAA???AA",
@@ -395,7 +428,8 @@ def test_nested_annotated_region_masks():  # ported to test_new_aln_annotation.p
     db.add_feature(seqid="x", biotype="repeat", name="blue", spans=[(1, 3)])
     db.add_feature(seqid="y", biotype="repeat", name="frog", spans=[(1, 4)])
     aln = make_aligned_seqs(
-        data=[["x", "C-GGCAAAAATTTAA"], ["y", "-T----TTTTG-GTT"]], array_align=False
+        data=[["x", "C-GGCAAAAATTTAA"], ["y", "-T----TTTTG-GTT"]],
+        array_align=False,
     )
     aln.annotation_db = db
     gene = list(aln.get_seq("x").get_features(biotype="gene"))[0]
@@ -426,7 +460,8 @@ def test_feature_from_alignment():
     # Sequence features can be accessed via a containing Alignment:
     db = GffAnnotationDb()
     aln = make_aligned_seqs(
-        data={"x": "-AAAAAAAAA", "y": "TTTT--TTTT"}, array_align=False
+        data={"x": "-AAAAAAAAA", "y": "TTTT--TTTT"},
+        array_align=False,
     )
     db.add_feature(seqid="x", biotype="exon", name="fred", spans=[(3, 8)])
     aln.annotation_db = db
@@ -450,7 +485,8 @@ def test_feature_from_alignment():
 def test_nested_get_slice():
     """check the get_slice method works on nested annotations"""
     s = DNA.make_seq(
-        seq="AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA", name="Orig"
+        seq="AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA",
+        name="Orig",
     )
     ex = s.add_feature(biotype="exon", name="fred", spans=[(10, 20)])
     s.add_feature(biotype="exon", name="trev", spans=[(30, 40)])
@@ -498,7 +534,10 @@ def test_roundtrip_rc_annotated_align():
 def test_masking_strand_agnostic_seq():
     db = GffAnnotationDb()
     db.add_feature(
-        seqid="plus", biotype="CDS", name="gene", spans=[(2, 6), (10, 15), (25, 35)]
+        seqid="plus",
+        biotype="CDS",
+        name="gene",
+        spans=[(2, 6), (10, 15), (25, 35)],
     )
 
     # Annotations should be correctly masked,
@@ -518,7 +557,10 @@ def test_masking_strand_agnostic_seq():
 def test_masking_strand_agnostic_aln():
     db = GffAnnotationDb()
     db.add_feature(
-        seqid="x", biotype="CDS", name="gene", spans=[(2, 6), (10, 15), (25, 35)]
+        seqid="x",
+        biotype="CDS",
+        name="gene",
+        spans=[(2, 6), (10, 15), (25, 35)],
     )
     aln = make_aligned_seqs(
         {
@@ -565,7 +607,8 @@ def test_roundtripped_alignment():
     """Alignment with annotations roundtrips correctly"""
     # annotations just on member sequences
     aln = make_aligned_seqs(
-        data=[["x", "-AAAAAAAAA"], ["y", "TTTT--TTTT"]], array_align=False
+        data=[["x", "-AAAAAAAAA"], ["y", "TTTT--TTTT"]],
+        array_align=False,
     )
     db = GffAnnotationDb()
     db.add_feature(seqid="x", biotype="exon", name="fred", spans=[(3, 8)])
@@ -580,7 +623,8 @@ def test_roundtripped_alignment():
 
     # annotations just on alignment
     aln = make_aligned_seqs(
-        data=[["x", "-AAAAAGGGG"], ["y", "TTTT--CCCC"]], array_align=False
+        data=[["x", "-AAAAAGGGG"], ["y", "TTTT--CCCC"]],
+        array_align=False,
     )
 
     f = aln.add_feature(biotype="generic", name="no name", spans=[(1, 4), (6, 10)])
@@ -591,7 +635,8 @@ def test_roundtripped_alignment():
     assert got.get_slice().to_dict() == expect
     # annotations on both alignment and sequence
     aln = make_aligned_seqs(
-        data=[["x", "-AAAAAGGGG"], ["y", "TTTT--CCCC"]], array_align=False
+        data=[["x", "-AAAAAGGGG"], ["y", "TTTT--CCCC"]],
+        array_align=False,
     )
     db = GffAnnotationDb()
     db.add_feature(
@@ -639,7 +684,7 @@ def test_search_with_ints(cast):
     db.add_feature(seqid="x", biotype="exon", name="E2", spans=[(10, 13)])
     seq.annotation_db = db
     feats = list(
-        seq.get_features(biotype="exon", allow_partial=True, start=start, stop=stop)
+        seq.get_features(biotype="exon", allow_partial=True, start=start, stop=stop),
     )
     assert len(feats) == 1
 
@@ -648,7 +693,8 @@ def test_roundtripped_alignment_with_slices():
     """Sliced Alignment with annotations roundtrips correctly"""
     # annotations just on member sequences
     aln = make_aligned_seqs(
-        data=[["x", "-AAAGGGGGAACCCT"], ["y", "TTTT--TTTTAGGGA"]], array_align=False
+        data=[["x", "-AAAGGGGGAACCCT"], ["y", "TTTT--TTTTAGGGA"]],
+        array_align=False,
     )
     db = GffAnnotationDb()
     db.add_feature(seqid="x", biotype="exon", name="E1", spans=[(3, 8)])
@@ -681,7 +727,9 @@ def test_feature_reverse():
 
     plus = DNA.make_seq(seq="AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA", name="plus")
     plus_cds = plus.add_feature(
-        biotype="CDS", name="gene", spans=[(2, 6), (10, 15), (25, 35)]
+        biotype="CDS",
+        name="gene",
+        spans=[(2, 6), (10, 15), (25, 35)],
     )
     assert str(plus_cds.get_slice()) == "GGGGCCCCCTTTTTTTTTT"
     minus = plus.rc()
@@ -694,7 +742,10 @@ def test_rc_feature_on_wrong_moltype(moltype):
     moltype = get_moltype(moltype)
     seq = moltype.make_seq(seq="AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA", name="s1")
     cds = seq.add_feature(
-        biotype="CDS", name="gene", spans=[(2, 6), (10, 15), (25, 35)], strand="-"
+        biotype="CDS",
+        name="gene",
+        spans=[(2, 6), (10, 15), (25, 35)],
+        strand="-",
     )
     with pytest.raises(TypeError):
         cds.get_slice()
@@ -744,7 +795,8 @@ def test_hash_feature(ann_seq):
 
 def test_seq_degap_preserves_annotations():
     s1 = DNA.make_seq(
-        seq="AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAGGGAACCCT", name="seq1"
+        seq="AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAGGGAACCCT",
+        name="seq1",
     )
     s1.add_feature(biotype="exon", name="A", spans=[(10, 15)])
     dg = s1.degap()

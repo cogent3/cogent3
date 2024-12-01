@@ -36,7 +36,8 @@ def test_convert_alphabet_mixed_length():
 
 
 @pytest.mark.parametrize(
-    "moltype", (new_moltype.DNA, new_moltype.DNA, new_moltype.ASCII)
+    "moltype",
+    (new_moltype.DNA, new_moltype.DNA, new_moltype.ASCII),
 )
 def test_to_bytes(moltype):
     alpha = moltype.alphabet
@@ -74,7 +75,8 @@ def test_arr2bytes():
 
 
 @pytest.mark.parametrize(
-    "seq", (b"AAGTA", "AAGTA", numpy.array([2, 2, 3, 0, 2], dtype=numpy.uint8))
+    "seq",
+    (b"AAGTA", "AAGTA", numpy.array([2, 2, 3, 0, 2], dtype=numpy.uint8)),
 )
 def test_charalphabet_to_indices(seq):
     alpha = new_alphabet.CharAlphabet(list("TCAG"))
@@ -145,7 +147,8 @@ def test_is_valid(seq):
 
 
 @pytest.mark.parametrize(
-    "seq", ("-ACGT", numpy.array([4, 2, 1, 3, 0], dtype=numpy.uint8))
+    "seq",
+    ("-ACGT", numpy.array([4, 2, 1, 3, 0], dtype=numpy.uint8)),
 )
 def test_not_is_valid(seq):
     alpha = new_alphabet.CharAlphabet(list("TCAG"))
@@ -264,7 +267,8 @@ def test_kmer_index_to_seq(gap):
     dinuc_alpha = alpha.get_kmer_alphabet(k=2, include_gap=bool(gap))
     seq = alpha.to_indices("ACTG")
     expect = numpy.array(
-        [dinuc_alpha.index(d) for d in ("AC", "TG")], dtype=numpy.uint8
+        [dinuc_alpha.index(d) for d in ("AC", "TG")],
+        dtype=numpy.uint8,
     )
     assert (dinuc_alpha.to_indices(seq) == expect).all()
 
@@ -274,7 +278,8 @@ def test_kmer_index_to_gapped_seq():
     dinuc_alpha = alpha.get_kmer_alphabet(k=2, include_gap=True)
     seq = alpha.to_indices("AC--TG")
     expect = numpy.array(
-        [dinuc_alpha.index(d) for d in ("AC", "--", "TG")], dtype=numpy.uint8
+        [dinuc_alpha.index(d) for d in ("AC", "--", "TG")],
+        dtype=numpy.uint8,
     )
     assert (dinuc_alpha.to_indices(seq) == expect).all()
 
@@ -363,7 +368,7 @@ def test_seq_to_kmer_indices():
     result = numpy.zeros(num, dtype=numpy.uint8)
     got = new_alphabet.seq_to_kmer_indices(arr, result, coeffs, 4, 3)
     expect = numpy.array(
-        [numpy_func(arr[i : i + 3], dims=dims) for i in range(0, 9, 3)]
+        [numpy_func(arr[i : i + 3], dims=dims) for i in range(0, 9, 3)],
     )
     assert_allclose(got, expect)
 
@@ -377,7 +382,7 @@ def test_kmer_alphabet_to_indices_independent():
     trinuc_alpha = dna.alphabet.get_kmer_alphabet(k=3, include_gap=False)
     got = trinuc_alpha.to_indices(arr, independent_kmer=True)
     expect = numpy.array(
-        [numpy_func(arr[i : i + 3], dims=dims) for i in range(0, 9, 3)]
+        [numpy_func(arr[i : i + 3], dims=dims) for i in range(0, 9, 3)],
     )
     assert_allclose(got, expect)
 
@@ -392,7 +397,7 @@ def test_kmer_alphabet_to_indices_non_independent():
     got = trinuc_alpha.to_indices(arr, independent_kmer=False)
     assert len(got) == len(seq) - 3 + 1
     expect = numpy.array(
-        [numpy_func(arr[i : i + 3], dims=dims) for i in range(0, 9 - 3 + 1)]
+        [numpy_func(arr[i : i + 3], dims=dims) for i in range(9 - 3 + 1)],
     )
     assert_allclose(got, expect)
 
@@ -460,7 +465,9 @@ def test_kmer_alphabet_from_indices_not_independent():
 @pytest.mark.parametrize("missing", ("", "?"))
 def test_char_alphabet_num_canonical(gap, missing):
     alpha = new_alphabet.CharAlphabet(
-        list(f"TCAG{gap}{missing}"), gap=gap or None, missing=missing or None
+        list(f"TCAG{gap}{missing}"),
+        gap=gap or None,
+        missing=missing or None,
     )
     assert alpha.num_canonical == 4
 
@@ -472,7 +479,9 @@ def test_char_kmer_alphabet_construct_gap_state(gap, include_gap, missing):
     gap_state = "--"
     missing_state = "??"
     alpha = new_alphabet.CharAlphabet(
-        list(f"TCAG{gap}{missing}"), gap=gap or None, missing=missing or None
+        list(f"TCAG{gap}{missing}"),
+        gap=gap or None,
+        missing=missing or None,
     )
     dinucs = alpha.get_kmer_alphabet(k=2, include_gap=include_gap)
     assert gap_state in dinucs if include_gap and gap else gap_state not in dinucs
@@ -506,7 +515,9 @@ def test_kmeralpha_from_index_invalid():
 @pytest.mark.parametrize("missing", ("", "?"))
 def test_serialise_charalphabet(gap, missing):
     alpha = new_alphabet.CharAlphabet(
-        list(f"TCAG{gap}{missing}"), gap=gap or None, missing=missing or None
+        list(f"TCAG{gap}{missing}"),
+        gap=gap or None,
+        missing=missing or None,
     )
     ser = alpha.to_rich_dict()
     deser = new_alphabet.CharAlphabet.from_rich_dict(ser)
@@ -518,7 +529,9 @@ def test_serialise_charalphabet(gap, missing):
 @pytest.mark.parametrize("include_gap", (True, False))
 def test_serialise_kmeralphabet(gap, missing, include_gap):
     alpha = new_alphabet.CharAlphabet(
-        list(f"TCAG{gap}{missing}"), gap=gap or None, missing=missing or None
+        list(f"TCAG{gap}{missing}"),
+        gap=gap or None,
+        missing=missing or None,
     )
     kmers = alpha.get_kmer_alphabet(k=2, include_gap=include_gap)
     ser = kmers.to_rich_dict()
@@ -551,7 +564,8 @@ def test_deserialise_alphas(alpha):
 def calpha():
     gc = new_genetic_code.get_code(1)
     return new_alphabet.SenseCodonAlphabet(
-        words=gc.sense_codons, monomers=gc.moltype.alphabet
+        words=gc.sense_codons,
+        monomers=gc.moltype.alphabet,
     )
 
 
@@ -597,7 +611,8 @@ def test_codon_alphabet_to_indices(calpha, as_array):
     seq = calpha.monomers.to_indices("GGGAAG") if as_array else "GGGAAG"
     got = calpha.to_indices(seq)
     expect = numpy.array(
-        [calpha.to_index("GGG"), calpha.to_index("AAG")], dtype=numpy.uint8
+        [calpha.to_index("GGG"), calpha.to_index("AAG")],
+        dtype=numpy.uint8,
     )
     assert_allclose(got, expect)
     assert isinstance(got, numpy.ndarray)
@@ -654,7 +669,7 @@ def test_codon_alphabet_moltype(calpha):
 
 @pytest.mark.parametrize(
     "seq",
-    ("GGTAC", "GGTAC".encode("utf8"), numpy.array([3, 3, 0, 2, 1], dtype=numpy.uint8)),
+    ("GGTAC", b"GGTAC", numpy.array([3, 3, 0, 2, 1], dtype=numpy.uint8)),
 )
 def test_char_alphabet_to_indices_types(seq):
     dna = new_moltype.get_moltype("dna")
@@ -666,7 +681,7 @@ def test_char_alphabet_to_indices_types(seq):
 
 @pytest.mark.parametrize(
     "seq",
-    ("GGTAC", "GGTAC".encode("utf8"), numpy.array([3, 3, 0, 2, 1], dtype=numpy.uint8)),
+    ("GGTAC", b"GGTAC", numpy.array([3, 3, 0, 2, 1], dtype=numpy.uint8)),
 )
 def test_char_alphabet_from_indices_types(seq):
     dna = new_moltype.get_moltype("dna")

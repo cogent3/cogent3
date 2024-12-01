@@ -103,8 +103,7 @@ def find_root(func, x, direction, bound, xtol=None, expected_exception=None):
             y = func(z)
             if y < 0:
                 return 0
-            else:
-                return 1
+            return 1
         except expected_exception:
             return -1
 

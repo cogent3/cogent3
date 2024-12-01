@@ -70,7 +70,9 @@ def _(data: os.PathLike):
 
 
 def _faster_parser(
-    data: typing.Iterable[str], label_to_name: RenamerType, label_char: str
+    data: typing.Iterable[str],
+    label_to_name: RenamerType,
+    label_char: str,
 ) -> typing.Iterable[typing.Tuple[str, str]]:
     label = None
     seq = []
@@ -93,7 +95,9 @@ def _faster_parser(
 
 
 def _strict_parser(
-    data: typing.Iterable[str], label_to_name: RenamerType, label_char: str
+    data: typing.Iterable[str],
+    label_to_name: RenamerType,
+    label_char: str,
 ) -> typing.Iterable[typing.Tuple[str, str]]:
     seq = []
     label = None
@@ -218,7 +222,7 @@ def FastaParser(infile, seq_maker=None, info_maker=MinimalInfo, strict=True):
                 yield name, seq_maker(seq, name=name, info=info)
             except Exception:
                 raise RecordError(
-                    f"Sequence construction failed on record with label {label}"
+                    f"Sequence construction failed on record with label {label}",
                 )
         else:
             # not strict: just skip any record that raises an exception
@@ -252,7 +256,10 @@ def NcbiFastaLabelParser(line):
 
 def NcbiFastaParser(infile, seq_maker=None, strict=True):
     return FastaParser(
-        infile, seq_maker=seq_maker, info_maker=NcbiFastaLabelParser, strict=strict
+        infile,
+        seq_maker=seq_maker,
+        info_maker=NcbiFastaLabelParser,
+        strict=strict,
     )
 
 
@@ -316,7 +323,7 @@ def LabelParser(display_template, field_formatters, split_with=":", DEBUG=False)
                     info[name] = converter(label[index])
                 except IndexError:
                     raise IndexError(
-                        f"parsing label {label} failed for property {name} at index {index}"
+                        f"parsing label {label} failed for property {name} at index {index}",
                     )
             else:
                 info[name] = label[index]
@@ -372,7 +379,8 @@ def GroupFastaParser(
                 info = Info(Group=group_ids[-1])
                 if DEBUG:
                     print(
-                        "GroupParser collection keys", list(current_collection.keys())
+                        "GroupParser collection keys",
+                        list(current_collection.keys()),
                     )
                 seqs = cogent3.make_aligned_seqs(current_collection, moltype=moltype)
                 seqs.info = info
@@ -397,7 +405,9 @@ class minimal_converter:
 
 @singledispatch
 def iter_fasta_records(
-    data, converter: OptConverterType = None, label_to_name: RenamerType = str
+    data,
+    converter: OptConverterType = None,
+    label_to_name: RenamerType = str,
 ) -> typing.Iterable[typing.Tuple[str, OutTypes]]:
     """generator returning sequence labels and sequences converted bytes from a fasta file
 
@@ -420,7 +430,9 @@ def iter_fasta_records(
 
 @iter_fasta_records.register
 def _(
-    data: bytes, converter: OptConverterType = None, label_to_name: RenamerType = str
+    data: bytes,
+    converter: OptConverterType = None,
+    label_to_name: RenamerType = str,
 ) -> typing.Iterable[typing.Tuple[str, OutTypes]]:
     if converter is None:
         converter = minimal_converter()
@@ -447,7 +459,7 @@ def _(data: str, converter: OptConverterType = None, label_to_name: RenamerType 
             os.stat(data)
         except OSError:
             raise TypeError(
-                "data is a string but not a file path, directly provided data must be bytes"
+                "data is a string but not a file path, directly provided data must be bytes",
             )
 
     with open_(data, mode="rb") as infile:

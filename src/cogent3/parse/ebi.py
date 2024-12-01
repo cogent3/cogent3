@@ -19,15 +19,13 @@ maketrans = str.maketrans
 def strip(x, chars=None):
     if chars:
         return x.strip(chars)
-    else:
-        return x.strip()
+    return x.strip()
 
 
 def rstrip(x, chars=None):
     if chars:
         return x.rstrip(chars)
-    else:
-        return x.rstrip()
+    return x.rstrip()
 
 
 all_chars = bytes(range(256))
@@ -49,7 +47,11 @@ period_tail_finder = TailedRecordFinder(endswith_period)
 #################################
 # pairs_to_dict
 def pairs_to_dict(
-    key_values, dict_mode=None, all_keys=None, handlers=None, default_handler=None
+    key_values,
+    dict_mode=None,
+    all_keys=None,
+    handlers=None,
+    default_handler=None,
 ):
     """generate a function which return a dict from a sequence of key_value
     pairs.
@@ -128,7 +130,7 @@ def pairs_to_dict(
         raise ValueError(
             "Unknown dict_mode:%s. \ndict_mode must be one of "
             "overwrite_value, no_duplicated_key, allow_multi_value and "
-            "always_multi_value." % dict_mode
+            "always_multi_value." % dict_mode,
         )
 
     # generate the handle_value function.
@@ -149,7 +151,7 @@ def pairs_to_dict(
     result = {}
     for key, raw_value in key_values:
         if all_keys and key not in all_keys:
-            raise ValueError(f"key: {repr(key)} not in all_keys: {all_keys}")
+            raise ValueError(f"key: {key!r} not in all_keys: {all_keys}")
         key, value = handle_value(key, raw_value)
         add_item(result, key, value)
     return result
@@ -189,7 +191,11 @@ def join_parser(lines, join_str=" ", chars_to_strip=" ;."):
 
 
 def join_split_parser(
-    lines, delimiters=";", item_modifier=strip, same_level=False, **kwargs
+    lines,
+    delimiters=";",
+    item_modifier=strip,
+    same_level=False,
+    **kwargs,
 ):
     """return a nested list from lines, join lines before using NestedSplitter.
 
@@ -207,12 +213,16 @@ def join_split_parser(
     result = join_parser(lines, **kwargs)
 
     return NestedSplitter(delimiters, constructor=item_modifier, same_level=same_level)(
-        result
+        result,
     )
 
 
 def join_split_dict_parser(
-    lines, delimiters=None, dict_mode=None, strict=True, **kwargs
+    lines,
+    delimiters=None,
+    dict_mode=None,
+    strict=True,
+    **kwargs,
 ):
     """return a dict from lines, using the splited pairs from
     join_split_parser and pairs_to_dict.
@@ -231,7 +241,10 @@ def join_split_dict_parser(
     delimiters = delimiters or [";", ("=", 1), ","]
     primary_delimiters, value_delimiters = delimiters[:2], delimiters[2:]
     pairs = join_split_parser(
-        lines, delimiters=primary_delimiters, same_level=True, **kwargs
+        lines,
+        delimiters=primary_delimiters,
+        same_level=True,
+        **kwargs,
     )
 
     try:
@@ -239,9 +252,8 @@ def join_split_dict_parser(
     except ValueError:  # dictionary update sequence element #1 has length 1;
         if strict:
             raise ValueError(f"e\nFailed to get a dict from pairs: {pairs}")
-        else:
-            # return the splitted list without constucting
-            return pairs
+        # return the splitted list without constucting
+        return pairs
 
     if value_delimiters:
         split_value = NestedSplitter(value_delimiters, same_level=False)
@@ -416,7 +428,10 @@ def gn_parser(lines):
 gn_itemparser = join_split_dict_parser
 
 gn_itemfinder = DelimitedRecordFinder(
-    "and", constructor=None, strict=False, keep_delimiter=False
+    "and",
+    constructor=None,
+    strict=False,
+    keep_delimiter=False,
 )
 
 
@@ -739,7 +754,7 @@ def ft_basic_itemparser(item_lines):
         following_lines = item_lines[1:]
         desc_start = cut_positions[-1]
         following_description = " ".join(
-            [e[desc_start:].strip() for e in following_lines]
+            [e[desc_start:].strip() for e in following_lines],
         )
         description = " ".join((description, following_description))
 
@@ -890,7 +905,7 @@ all_cc_topics = dict.fromkeys(
         "SUBUNIT",
         "TISSUE SPECIFICITY",
         "TOXIC DOSE",
-    ]
+    ],
 )
 
 
@@ -1046,10 +1061,10 @@ def cc_interaction_parser(content_list):
 
 
 cc_alternative_products_event_finder = LabeledRecordFinder(
-    lambda x: x.startswith("Event=")
+    lambda x: x.startswith("Event="),
 )
 cc_alternative_products_name_finder = LabeledRecordFinder(
-    lambda x: x.startswith("name=")
+    lambda x: x.startswith("name="),
 )
 
 
@@ -1462,7 +1477,9 @@ def linecode_merging_maker(line):
 def parse_header(header_dict, strict=True):
     """Parses a dictionary of header lines"""
     return pairs_to_dict(
-        list(header_dict.items()), "no_duplicated_key", handlers=_parsers
+        list(header_dict.items()),
+        "no_duplicated_key",
+        handlers=_parsers,
     )
 
 
@@ -1516,7 +1533,9 @@ def EbiParser(
     """
     selected_labels = selected_labels or []
     for sequence, header_dict in MinimalEbiParser(
-        lines, strict=strict, selected_labels=selected_labels
+        lines,
+        strict=strict,
+        selected_labels=selected_labels,
     ):
         if seq_constructor:
             sequence = seq_constructor(sequence)

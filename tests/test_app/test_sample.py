@@ -12,7 +12,8 @@ class TranslateTests(TestCase):
     def _codon_positions(self, array_align):
         """correctly return codon positions"""
         aln = make_aligned_seqs(
-            data=[("a", "ACGACGACG"), ("b", "GATGATGAT")], array_align=array_align
+            data=[("a", "ACGACGACG"), ("b", "GATGATGAT")],
+            array_align=array_align,
         )
         one = sample.take_codon_positions(1)
         got = one(aln)
@@ -58,7 +59,8 @@ class TranslateTests(TestCase):
 
         # we get back the alignment type we passed in
         aln = make_aligned_seqs(
-            data=[("a", "ACGA-GACG"), ("b", "GATGATGYT")], array_align=False
+            data=[("a", "ACGA-GACG"), ("b", "GATGATGYT")],
+            array_align=False,
         )
         got = degen(aln)
         self.assertIsInstance(got, alignment.Alignment)
@@ -96,7 +98,9 @@ class TranslateTests(TestCase):
         self.assertEqual(got.to_dict(), expect)
         # with motif length
         not_all_gaps = sample.omit_gap_pos(
-            moltype="dna", allowed_frac=0, motif_length=2
+            moltype="dna",
+            allowed_frac=0,
+            motif_length=2,
         )
         aln = make_aligned_seqs(data=data)
         expect = dict(a="ACGACG", b="GATGAT")
@@ -112,7 +116,8 @@ class TranslateTests(TestCase):
         """codon_positions correctly return fourfold degenerate bases"""
         #                           **4---**4---
         aln = make_aligned_seqs(
-            data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")], moltype=DNA
+            data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
+            moltype=DNA,
         )
         expect = dict([("a", "AT"), ("b", "TC")])
         ffold = sample.take_codon_positions(fourfold_degenerate=True)
@@ -137,7 +142,7 @@ class TranslateTests(TestCase):
                     ("b", "GCTTTTGTCAAT"),
                     ("c", "GC--GCGTTTAT"),
                     ("d", "GCAAGCNNTTAT"),
-                ]
+                ],
             ),
             make_aligned_seqs(
                 data=[
@@ -145,7 +150,7 @@ class TranslateTests(TestCase):
                     ("b", "GCTTTTGTCAAT"),
                     ("c", "GC--GCGTTTAT"),
                     ("d", "GCAAGCNNTTAT"),
-                ]
+                ],
             ),
         ]
         got = [aln.to_dict() for aln in map(select, alns) if aln]
@@ -169,7 +174,7 @@ class TranslateTests(TestCase):
                     ("a", "GGAAGCGTTTAT"),
                     ("b", "GCTTTTGTCAAT"),
                     ("c", "GC--GCGTTTAT"),
-                ]
+                ],
             ),
         ]
         got = [aln.to_dict() for aln in map(select, alns) if aln]
@@ -203,7 +208,8 @@ class TranslateTests(TestCase):
 
         alns = [
             make_aligned_seqs(
-                data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")], moltype=DNA
+                data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
+                moltype=DNA,
             ),
             make_aligned_seqs(data=[("a", "GGAAGCGT"), ("b", "GCTTT-GT")], moltype=DNA),
         ]
@@ -217,7 +223,10 @@ class TranslateTests(TestCase):
         self.assertTrue(type(got) == sample.NotCompleted)
 
         alns = [
-            make_unaligned_seqs(data=[("a", "GGAAGCGT"), ("b", "GCTTNGT")], moltype=DNA)
+            make_unaligned_seqs(
+                data=[("a", "GGAAGCGT"), ("b", "GCTTNGT")],
+                moltype=DNA,
+            ),
         ]
         ml = sample.min_length(6)
         got = [aln.to_dict() for aln in map(ml, alns) if aln]
@@ -243,7 +252,8 @@ class TranslateTests(TestCase):
 
         alns = [
             make_aligned_seqs(
-                data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")], moltype=DNA
+                data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
+                moltype=DNA,
             ),
             make_aligned_seqs(data=[("a", "GGAAGCGT"), ("b", "GCTTT-GT")], moltype=DNA),
         ]
@@ -370,7 +380,8 @@ class TranslateTests(TestCase):
         ccat = sample.concat(intersect=True)
         got = ccat(alns)
         self.assertEqual(
-            got.to_dict(), {"seq1": "AAATTTCC", "seq2": "AAATTTCC", "seq3": "AAATTTCC"}
+            got.to_dict(),
+            {"seq1": "AAATTTCC", "seq2": "AAATTTCC", "seq3": "AAATTTCC"},
         )
 
         ccat = sample.concat(intersect=False)
@@ -421,7 +432,8 @@ class TranslateTests(TestCase):
         """trims stop codons using the specified genetic code"""
         trimmer = sample.trim_stop_codons()  # defaults to standard code
         seqs = make_unaligned_seqs(
-            data={"seq1": "AAATTTCCC", "seq2": "AAATTTTAA"}, moltype="dna"
+            data={"seq1": "AAATTTCCC", "seq2": "AAATTTTAA"},
+            moltype="dna",
         )
         got = trimmer(seqs)
         expect = {"seq1": "AAATTTCCC", "seq2": "AAATTT"}
@@ -429,14 +441,16 @@ class TranslateTests(TestCase):
 
         trimmer = sample.trim_stop_codons(gc=1)  # standard code
         seqs = make_unaligned_seqs(
-            data={"seq1": "AAATTTCCC", "seq2": "AAATTTTAA"}, moltype="dna"
+            data={"seq1": "AAATTTCCC", "seq2": "AAATTTTAA"},
+            moltype="dna",
         )
         got = trimmer(seqs)
         expect = {"seq1": "AAATTTCCC", "seq2": "AAATTT"}
         self.assertEqual(got.to_dict(), expect)
         trimmer = sample.trim_stop_codons(gc=1)  # standard code
         aln = make_aligned_seqs(
-            data={"seq1": "AAATTTCCC", "seq2": "AAATTTTAA"}, moltype="dna"
+            data={"seq1": "AAATTTCCC", "seq2": "AAATTTTAA"},
+            moltype="dna",
         )
         got = trimmer(aln)
         expect = {"seq1": "AAATTTCCC", "seq2": "AAATTT---"}
@@ -445,7 +459,8 @@ class TranslateTests(TestCase):
         # different genetic code
         trimmer = sample.trim_stop_codons(gc=2)  # mt code
         seqs = make_unaligned_seqs(
-            data={"seq1": "AAATTTCCC", "seq2": "AAATTTAGA"}, moltype="dna"
+            data={"seq1": "AAATTTCCC", "seq2": "AAATTTAGA"},
+            moltype="dna",
         )
         got = trimmer(seqs)
         expect = {"seq1": "AAATTTCCC", "seq2": "AAATTT"}
@@ -464,7 +479,7 @@ class TranslateTests(TestCase):
                 "f": "RAAA",
                 "g": "YAAA",
                 "h": "GGGG",
-            }
+            },
         )
         seqs2 = seqs1.take_seqs(["a", "c", "e", "g", "h"])
 

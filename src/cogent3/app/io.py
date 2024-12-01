@@ -256,7 +256,7 @@ def _read_it(path) -> str:
     try:
         data = path.read()
     except AttributeError:
-        raise IOError(f"unexpected type {type(path)}")
+        raise OSError(f"unexpected type {type(path)}")
     return data
 
 
@@ -312,7 +312,10 @@ class load_unaligned:
     """Loads unaligned sequences. Returns a SequenceCollection."""
 
     def __init__(
-        self, *, moltype: Optional[Union[str, MolType]] = None, format: str = "fasta"
+        self,
+        *,
+        moltype: Optional[Union[str, MolType]] = None,
+        format: str = "fasta",
     ):
         """
         Parameters
@@ -399,7 +402,7 @@ class load_tabular:
                 num_records = len(line)
             if strict and len(line) != num_records:
                 raise AssertionError(
-                    f"Inconsistent number of fields: {len(line)} != {num_records}"
+                    f"Inconsistent number of fields: {len(line)} != {num_records}",
                 )
             rows.append(line)
 
@@ -464,7 +467,7 @@ class load_json:
         else:
             try:
                 identifier = getattr(result, "source", identifier)
-                setattr(result, "source", identifier)
+                result.source = identifier
             except AttributeError:
                 pass
         return result
@@ -487,7 +490,7 @@ class load_db:
             data = identifier.read()
         except AttributeError:
             raise AttributeError(
-                f"{identifier} failed because its of type {type(identifier)}"
+                f"{identifier} failed because its of type {type(identifier)}",
             )
 
         # do we need to inject identifier attribute?
@@ -497,7 +500,7 @@ class load_db:
         else:
             with contextlib.suppress(AttributeError):
                 identifier = getattr(result, "source", identifier)
-                setattr(result, "source", identifier)
+                result.source = identifier
         return result
 
 
@@ -531,12 +534,17 @@ class write_json:
         self._id_from_source = id_from_source
 
     def main(
-        self, /, data: SerialisableType, *, identifier: Optional[str] = None
+        self,
+        /,
+        data: SerialisableType,
+        *,
+        identifier: Optional[str] = None,
     ) -> IdentifierType:
         identifier = identifier or self._id_from_source(data)
         if isinstance(data, NotCompleted):
             return self.data_store.write_not_completed(
-                unique_id=f"{identifier}.json", data=data.to_json()
+                unique_id=f"{identifier}.json",
+                data=data.to_json(),
             )
 
         out = make_record_for_json(identifier, data, True)
@@ -577,12 +585,17 @@ class write_seqs:
         self._id_from_source = id_from_source
 
     def main(
-        self, /, data: SeqsCollectionType, *, identifier: Optional[str] = None
+        self,
+        /,
+        data: SeqsCollectionType,
+        *,
+        identifier: Optional[str] = None,
     ) -> IdentifierType:
         identifier = identifier or self._id_from_source(data)
         if isinstance(data, NotCompleted):
             return self.data_store.write_not_completed(
-                unique_id=f"{identifier}.json", data=data.to_json()
+                unique_id=f"{identifier}.json",
+                data=data.to_json(),
             )
 
         data = self._formatter(data.to_dict())
@@ -620,12 +633,17 @@ class write_tabular:
         self._format = format
 
     def main(
-        self, /, data: TabularType, *, identifier: Optional[str] = None
+        self,
+        /,
+        data: TabularType,
+        *,
+        identifier: Optional[str] = None,
     ) -> IdentifierType:
         identifier = identifier or self._id_from_source(data)
         if isinstance(data, NotCompleted):
             return self.data_store.write_not_completed(
-                unique_id=f"{identifier}.json", data=data.to_json()
+                unique_id=f"{identifier}.json",
+                data=data.to_json(),
             )
 
         output = data.to_string(format=self._format)
@@ -667,7 +685,11 @@ class write_db:
         self._id_from_source = id_from_source
 
     def main(
-        self, /, data: SerialisableType, *, identifier: Optional[str] = None
+        self,
+        /,
+        data: SerialisableType,
+        *,
+        identifier: Optional[str] = None,
     ) -> IdentifierType:
         identifier = identifier or self._id_from_source(data)
         blob = self._serialiser(data)

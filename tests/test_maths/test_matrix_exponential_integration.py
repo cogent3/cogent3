@@ -40,7 +40,7 @@ class TestIntegratingExponentiator(TestCase):
 
         def integral(t):
             return array(
-                [[exp(t) - 1.0, exp(t) * (t - 1.0) + 1.0], [0.0, exp(t) - 1.0]]
+                [[exp(t) - 1.0, exp(t) * (t - 1.0) + 1.0], [0.0, exp(t) - 1.0]],
             )
 
         assert_allclose(expm.VanLoanIntegratingExponentiator(Q)(1.0), integral(1.0))
@@ -73,19 +73,21 @@ class TestIntegratingExponentiator(TestCase):
                 [0.01827347, 0.93312148, 0.02109664, 0.02750842],
                 [0.04782582, 0.1375742, 0.80046869, 0.01413129],
                 [0.23022035, 0.22306947, 0.06995306, 0.47675713],
-            ]
+            ],
         )
 
         assert_allclose(
             expm.VonBingIntegratingExponentiator(p)(1.0),
             expm.VanLoanIntegratingExponentiator(
-                p, exponentiator=cmme.FastExponentiator
+                p,
+                exponentiator=cmme.FastExponentiator,
             )(1.0),
         )
         assert_allclose(
             expm.VonBingIntegratingExponentiator(p)(2.0),
             expm.VanLoanIntegratingExponentiator(
-                p, exponentiator=cmme.FastExponentiator
+                p,
+                exponentiator=cmme.FastExponentiator,
             )(2.0),
         )
 
@@ -121,7 +123,8 @@ class TestIntegratingExponentiator(TestCase):
         # case 2, length != ENS
 
         A = array(
-            [[0, 1, 1, 1], [2, 0, 1, 1], [1, 1, 0, 40], [1, 1, 1, 0]], dtype=float
+            [[0, 1, 1, 1], [2, 0, 1, 1], [1, 1, 0, 40], [1, 1, 1, 0]],
+            dtype=float,
         )
         Q = get_calibrated_Q(A)
         length = 0.2

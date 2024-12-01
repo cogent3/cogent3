@@ -14,7 +14,7 @@ from cogent3.util.transform import (
 )
 
 
-class has_x(object):
+class has_x:
     # convenience class for has_field and related functions
 
     def __init__(self, x):
@@ -27,7 +27,7 @@ class has_x(object):
         return str(self.x)
 
 
-class has_y(object):
+class has_y:
     # convenience class for has_field and related functions
 
     def __init__(self, y):

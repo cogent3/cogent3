@@ -20,7 +20,8 @@ class TestCigar(unittest.TestCase):
         self.map1, self.seq1 = self.aln_seq1.parse_out_gaps()
         self.slices = [(1, 4), (0, 8), (7, 12), (0, 1), (3, 5)]
         self.aln = make_aligned_seqs(
-            {"FAKE01": self.aln_seq, "FAKE02": self.aln_seq1}, array_align=False
+            {"FAKE01": self.aln_seq, "FAKE02": self.aln_seq1},
+            array_align=False,
         )
         self.cigars = {"FAKE01": self.cigar_text, "FAKE02": map_to_cigar(self.map1)}
         self.seqs = {"FAKE01": str(self.seq), "FAKE02": str(self.seq1)}
@@ -68,7 +69,10 @@ class TestCigar(unittest.TestCase):
         i = 1
         for start, end in self.slices:
             db.add_feature(
-                seqid="FAKE01", biotype=f"annot{i}", name="annot", spans=[(start, end)]
+                seqid="FAKE01",
+                biotype=f"annot{i}",
+                name="annot",
+                spans=[(start, end)],
             )
 
             annot = list(aln.get_features(biotype=f"annot{i}"))

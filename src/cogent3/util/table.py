@@ -23,7 +23,6 @@ import numpy
 
 from cogent3.format import bedgraph
 from cogent3.format import table as table_format
-from cogent3.util import warning as c3warn
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.io import atomic_write, get_format_suffixes
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
@@ -77,8 +76,7 @@ def _callback(callback, row, num_columns=None):
         if num_columns == 1:
             row = row[0]
         return callback(row)
-    else:
-        return eval(callback, {}, row)
+    return eval(callback, {}, row)
 
 
 _num_type = re.compile("^(float|int|complex)").search
@@ -352,7 +350,7 @@ class Columns(MutableMapping):
         unique = set(self[name])
         if len(unique) != self._num_rows:
             raise ValueError(
-                f"cannot use '{name}' as index_name, not all values unique"
+                f"cannot use '{name}' as index_name, not all values unique",
             )
 
         self._index_name = name
@@ -419,7 +417,7 @@ class Columns(MutableMapping):
     def to_rich_dict(self):
         data = self.__getstate__()
         data["type"] = get_object_provenance(self)
-        data["version"] = None  # todo
+        data["version"] = None  # TODO
         return data
 
 
@@ -502,7 +500,7 @@ class Table:
             dcols = len(data[0])
             if hlen != dcols:
                 raise ValueError(
-                    f"different number of elements in header {hlen} and data row 0 {dcols}"
+                    f"different number of elements in header {hlen} and data row 0 {dcols}",
                 )
 
             try:
@@ -519,11 +517,11 @@ class Table:
         has_index = index_name is not None
         if has_index and not isinstance(index_name, str):
             raise TypeError(
-                f"only str type supported for index_name, not {type(index_name)}"
+                f"only str type supported for index_name, not {type(index_name)}",
             )
 
         if len(data) if hasattr(data, "__len__") else 0:
-            row_order = kwargs.get("row_order", None)
+            row_order = kwargs.get("row_order")
             data = cast_to_1d_dict(data, row_order=row_order)
             if has_index:
                 try:
@@ -679,11 +677,11 @@ class Table:
         shape_info = ""
         if rn:
             indices = numpy.random.choice(self.shape[0], size=rn, replace=False)
-            indices = list(sorted(indices))
+            indices = sorted(indices)
             shape_info = f"Random selection of {rn} rows from"
         elif all([head, tail]):
             indices = list(range(head)) + list(
-                range(self.shape[0] - tail, self.shape[0])
+                range(self.shape[0] - tail, self.shape[0]),
             )
             if head + tail < self.shape[0]:
                 shape_info = f"Top {head} and bottom {tail} rows from"
@@ -742,7 +740,7 @@ class Table:
                     css_class = "c3col_left"
 
                 ellipsis.append(
-                    str(HE(HE("...", "span", css_classes=[css_class]), "td"))
+                    str(HE(HE("...", "span", css_classes=[css_class]), "td")),
                 )
 
             num_rows = 0
@@ -758,7 +756,7 @@ class Table:
                             "".join(ellipsis[col_num : col_num + num_col]),
                             "tr",
                             css_classes="ellipsis",
-                        )
+                        ),
                     )
                     col_num += num_col
                     num_rows = 0
@@ -828,7 +826,10 @@ class Table:
             ), "random must be a positive integer"
             head = tail = None
         self._repr_policy = dict(
-            head=head, tail=tail, random=random, show_shape=show_shape
+            head=head,
+            tail=tail,
+            random=random,
+            show_shape=show_shape,
         )
 
     @property
@@ -877,7 +878,10 @@ class Table:
         nrows = min(nrows, self.shape[0])
         show_shape = self._repr_policy["show_shape"]
         self._repr_policy = dict(
-            head=nrows, tail=None, random=None, show_shape=show_shape
+            head=nrows,
+            tail=None,
+            random=None,
+            show_shape=show_shape,
         )
         display(self)
         self._repr_policy = repr_policy
@@ -888,7 +892,10 @@ class Table:
         nrows = min(nrows, self.shape[0])
         show_shape = self._repr_policy["show_shape"]
         self._repr_policy = dict(
-            head=None, tail=nrows, random=None, show_shape=show_shape
+            head=None,
+            tail=nrows,
+            random=None,
+            show_shape=show_shape,
         )
         display(self)
         self._repr_policy = repr_policy
@@ -1020,7 +1027,7 @@ class Table:
 
         if len(columns_self) != len(columns_other):
             raise RuntimeError(
-                "Error during table join: key columns have different dimensions!"
+                "Error during table join: key columns have different dimensions!",
             )
 
         output_mask = [c for c in other.columns if c not in columns_other]
@@ -1087,9 +1094,9 @@ class Table:
             **kwargs,
         )
 
-    # todo check the type info
-    # todo implement negate argument
-    # todo implement check that callable returns bool
+    # TODO check the type info
+    # TODO implement negate argument
+    # TODO implement check that callable returns bool
     def get_row_indices(self, callback, columns, negate=False):
         """returns boolean array of callback values given columns"""
         subset = self[:, columns]
@@ -1104,7 +1111,7 @@ class Table:
                     else False
                 )
                 for row in data
-            ]
+            ],
         )
 
     def filtered(self, callback, columns=None, **kwargs):
@@ -1334,7 +1341,7 @@ class Table:
         data = subset if not isinstance(callback, Callable) else subset.array
         num_columns = len(columns)
         values = numpy.array(
-            [_callback(callback, row=row, num_columns=num_columns) for row in data]
+            [_callback(callback, row=row, num_columns=num_columns) for row in data],
         )
 
         if dtype:
@@ -1347,7 +1354,7 @@ class Table:
 
         return result
 
-    # todo deprecate this method
+    # TODO deprecate this method
     def with_new_header(self, old, new, **kwargs):
         """returns a new Table with old header labels replaced by new
 
@@ -1420,7 +1427,7 @@ class Table:
 
         return result
 
-    # todo change indices to columns
+    # TODO change indices to columns
     def summed(self, indices=None, col_sum=True, strict=True):
         """returns the sum of numerical values for column(s)/row(s)
 
@@ -1486,7 +1493,7 @@ class Table:
         """
         if "reversed" in kwargs:
             raise TypeError(
-                "got an unexpected keyword argument 'reversed', " "use 'reverse'"
+                "got an unexpected keyword argument 'reversed', use 'reverse'",
             )
 
         reverse = reverse if reverse is not None else []
@@ -1578,7 +1585,8 @@ class Table:
 
         """
         formatted_cols, _ = self._formatted_by_col(
-            missing_data=missing_data, pad=not stripped
+            missing_data=missing_data,
+            pad=not stripped,
         )
         ordered = [(self.columns.order.index(c.strip()), c) for c in formatted_cols]
         ordered.sort()
@@ -1607,11 +1615,19 @@ class Table:
         title = self.title if with_title else None
         legend = self.legend if with_legend else None
         return table_format.separator_format(
-            header, formatted_table, title=title, legend=legend, sep=","
+            header,
+            formatted_table,
+            title=title,
+            legend=legend,
+            sep=",",
         )
 
     def to_latex(
-        self, concat_title_legend=True, justify=None, label=None, position=None
+        self,
+        concat_title_legend=True,
+        justify=None,
+        label=None,
+        position=None,
     ):
         """Returns the text a LaTeX table.
 
@@ -1667,7 +1683,10 @@ class Table:
         formatted_table = self._formatted()
         header = formatted_table.pop(0)
         return table_format.markdown(
-            header, formatted_table, space=space, justify=justify
+            header,
+            formatted_table,
+            space=space,
+            justify=justify,
         )
 
     def to_rst(self, csv_table=False):
@@ -1687,11 +1706,17 @@ class Table:
         header = formatted_table.pop(0)
         if csv_table:
             result = table_format.rst_csv_table(
-                header, formatted_table, title=self.title, legend=self.legend
+                header,
+                formatted_table,
+                title=self.title,
+                legend=self.legend,
             )
         else:
             result = table_format.grid_table_format(
-                header, formatted_table, title=self.title, legend=self.legend
+                header,
+                formatted_table,
+                title=self.title,
+                legend=self.legend,
             )
         return result
 
@@ -1727,7 +1752,7 @@ class Table:
         end, value. In that order!
         """
         if format == "bedgraph":
-            # todo remove requirement for column order
+            # TODO remove requirement for column order
             assert self.shape[1] == 4, "bedgraph format is for 4 column tables"
             # assuming that header order is chrom, start, end, val
             formatted_table = bedgraph.bedgraph(self.sorted().array.tolist(), **kwargs)
@@ -1788,7 +1813,7 @@ class Table:
             return table_format.separator_format(*args, sep=sep)
 
         return table_format.simple_format(
-            *args + (self._max_width, self.index_name, borders, self.space)
+            *args + (self._max_width, self.index_name, borders, self.space),
         )
 
     def to_tsv(self, with_title=False, with_legend=False):
@@ -1810,7 +1835,11 @@ class Table:
         title = self.title if with_title else None
         legend = self.legend if with_legend else None
         return table_format.separator_format(
-            header, formatted_table, title=title, legend=legend, sep="\t"
+            header,
+            formatted_table,
+            title=title,
+            legend=legend,
+            sep="\t",
         )
 
     def to_html(self, column_alignment=None):
@@ -1915,16 +1944,23 @@ class Table:
 
             header = "".join(str(HtmlElement(c, "th")) for c in header)
             header = str(
-                HtmlElement(header, "thead", css_classes=["head_cell"], newline=True)
+                HtmlElement(header, "thead", css_classes=["head_cell"], newline=True),
             )
 
             subtable = HtmlElement(
-                "".join([caption, header, rows]), "table", newline=True
+                "".join([caption, header, rows]),
+                "table",
+                newline=True,
             )
             tables.append(str(subtable))
 
         return str(
-            HtmlElement("\n".join(tables), "div", css_classes=["c3table"], newline=True)
+            HtmlElement(
+                "\n".join(tables),
+                "div",
+                css_classes=["c3table"],
+                newline=True,
+            ),
         )
 
     def to_list(self, columns=None):
@@ -1962,7 +1998,7 @@ class Table:
     def to_rich_dict(self):
         data = self.__getstate__()
         data["type"] = get_object_provenance(self)
-        data["version"] = None  # todo
+        data["version"] = None  # TODO
         return data
 
     def to_json(self):
@@ -2015,7 +2051,8 @@ class Table:
                 align="center",
             ),
             cells=dict(
-                values=[columns[c] for c in self.header], fill=dict(color=colours)
+                values=[columns[c] for c in self.header],
+                fill=dict(color=colours),
             ),
         )
 

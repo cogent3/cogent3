@@ -329,13 +329,10 @@ class TreeNode:
         if self_before:
             if self_after:
                 return self.pre_and_postorder(include_self=include_self)
-            else:
-                return self.preorder(include_self=include_self)
-        else:
-            if self_after:
-                return self.postorder(include_self=include_self)
-            else:
-                return self.tips(include_self=include_self)
+            return self.preorder(include_self=include_self)
+        if self_after:
+            return self.postorder(include_self=include_self)
+        return self.tips(include_self=include_self)
 
     def levelorder(self, include_self=True):
         """Performs levelorder iteration over tree"""
@@ -584,7 +581,7 @@ class TreeNode:
             curr = t.parent
 
             while curr and not hasattr(curr, "black"):
-                setattr(curr, "black", [prev])
+                curr.black = [prev]
                 prev = curr
                 curr = curr.parent
 
@@ -618,9 +615,8 @@ class TreeNode:
                     count += 1
                     curr = curr._parent
                 return count
-            else:
-                count += 1
-                other = other._parent
+            count += 1
+            other = other._parent
         return None
 
     def descendant_array(self, tip_list=None):
@@ -760,14 +756,15 @@ class TreeNode:
                 if not self_child.same_shape(other_child):
                     return False
             return True
-        else:
-            return self.name == other.name
+        return self.name == other.name
 
     def to_rich_dict(self):
         """returns {'newick': with node names,
         'edge_attributes': {'tip1': {'length': ...}, ...}}"""
         newick = self.get_newick(
-            with_node_names=True, semicolon=False, escape_name=False
+            with_node_names=True,
+            semicolon=False,
+            escape_name=False,
         )
         attr = {}
         for edge in self.get_edge_vector(include_root=True):
@@ -829,7 +826,9 @@ class TreeNode:
                     result[-1] = ")"
 
                 if top_node.name_loaded or with_node_names:
-                    if top_node.name is None or with_node_names and top_node.is_root():
+                    if top_node.name is None or (
+                        with_node_names and top_node.is_root()
+                    ):
                         name = ""
                     else:
                         name = str(top_node.name)
@@ -856,12 +855,11 @@ class TreeNode:
 
         if len_result == 3:  # single node with name
             return f"{result[1]};" if semicolon else result[1]
+        if semicolon:
+            result[-1] = ";"
         else:
-            if semicolon:
-                result[-1] = ";"
-            else:
-                result.pop(-1)
-            return "".join(result)
+            result.pop(-1)
+        return "".join(result)
 
     def remove_node(self, target):
         """Removes node by identity instead of value.
@@ -878,7 +876,12 @@ class TreeNode:
         return True
 
     def get_edge_names(
-        self, tip1name, tip2name, clade=True, stem=False, outgroup_name=None
+        self,
+        tip1name,
+        tip2name,
+        clade=True,
+        stem=False,
+        outgroup_name=None,
     ):
         """Return the list of stem and/or sub tree (clade) edge name(s).
         This is done by finding the common intersection, and then getting
@@ -921,10 +924,9 @@ class TreeNode:
         if stem:
             if join_edge.isroot():
                 raise TreeError(
-                    f"LCA({tip1name},{tip2name}) is the root and so has no stem"
+                    f"LCA({tip1name},{tip2name}) is the root and so has no stem",
                 )
-            else:
-                edge_names.append(join_edge.name)
+            edge_names.append(join_edge.name)
 
         if clade:
             # get the list of names contained by join_edge
@@ -943,7 +945,11 @@ class TreeNode:
         ]
 
     def _get_sub_tree(
-        self, included_names, constructor=None, keep_root=False, tipsonly=False
+        self,
+        included_names,
+        constructor=None,
+        keep_root=False,
+        tipsonly=False,
     ):
         """An equivalent node with possibly fewer children, or None"""
 
@@ -951,64 +957,67 @@ class TreeNode:
         if constructor is None:
             constructor = self._default_tree_constructor()
 
-        if self.name in included_names and not tipsonly:
+        if (self.name in included_names and not tipsonly) or (
+            self.name in included_names and self.istip()
+        ):
             return self.deepcopy(constructor=constructor)
-        elif self.name in included_names and self.istip():
-            return self.deepcopy(constructor=constructor)
+        # don't need to pass keep_root to children, though
+        # internal nodes will be elminated this way
+        children = []
+        for child in self.children:
+            st = child._get_sub_tree(included_names, constructor, tipsonly=tipsonly)
+            children.append(st)
+
+        children = [child for child in children if child is not None]
+        if len(children) == 0:
+            result = None
+        elif len(children) == 1 and not keep_root:
+            # Merge parameter dictionaries by adding lengths and making
+            # weighted averages of other parameters.  This should probably
+            # be moved out of here into a ParameterSet class (Model?) or
+            # tree subclass.
+            params = {}
+            child = children[0]
+            if self.length is not None and child.length is not None:
+                shared_params = [
+                    n
+                    for (n, v) in list(self.params.items())
+                    if v is not None
+                    and child.params.get(n) is not None
+                    and n != "length"
+                ]
+                length = self.length + child.length
+                if length:
+                    params = {}
+                    for n in shared_params:
+                        self_val = self.params[n]
+                        child_val = child.params[n]
+                        is_scalar = True
+                        for i in (self_val, child_val):
+                            if not isinstance(i, numbers.Number):
+                                is_scalar = False
+                                break
+                        if is_scalar:
+                            val = (
+                                self_val * self.length + child_val * child.length
+                            ) / length
+                        else:
+                            val = self_val
+                        params[n] = val
+
+                    params["length"] = length
+            result = child
+            result.params = params
         else:
-            # don't need to pass keep_root to children, though
-            # internal nodes will be elminated this way
-            children = []
-            for child in self.children:
-                st = child._get_sub_tree(included_names, constructor, tipsonly=tipsonly)
-                children.append(st)
-
-            children = [child for child in children if child is not None]
-            if len(children) == 0:
-                result = None
-            elif len(children) == 1 and not keep_root:
-                # Merge parameter dictionaries by adding lengths and making
-                # weighted averages of other parameters.  This should probably
-                # be moved out of here into a ParameterSet class (Model?) or
-                # tree subclass.
-                params = {}
-                child = children[0]
-                if self.length is not None and child.length is not None:
-                    shared_params = [
-                        n
-                        for (n, v) in list(self.params.items())
-                        if v is not None
-                        and child.params.get(n) is not None
-                        and n != "length"
-                    ]
-                    length = self.length + child.length
-                    if length:
-                        params = {}
-                        for n in shared_params:
-                            self_val = self.params[n]
-                            child_val = child.params[n]
-                            is_scalar = True
-                            for i in (self_val, child_val):
-                                if not isinstance(i, numbers.Number):
-                                    is_scalar = False
-                                    break
-                            if is_scalar:
-                                val = (
-                                    self_val * self.length + child_val * child.length
-                                ) / length
-                            else:
-                                val = self_val
-                            params[n] = val
-
-                        params["length"] = length
-                result = child
-                result.params = params
-            else:
-                result = constructor(self, tuple(children))
+            result = constructor(self, tuple(children))
         return result
 
     def get_sub_tree(
-        self, name_list, ignore_missing=False, keep_root=False, tipsonly=False
+        self,
+        name_list,
+        ignore_missing=False,
+        keep_root=False,
+        tipsonly=False,
     ):
         """A new instance of a sub tree that contains all the otus that are
         listed in name_list.
@@ -1037,14 +1046,13 @@ class TreeNode:
         new_tree = self._get_sub_tree(name_list, keep_root=keep_root, tipsonly=tipsonly)
         if new_tree is None:
             raise TreeError("no tree created in make sub tree")
-        elif new_tree.istip():
+        if new_tree.istip():
             raise TreeError("only a tip was returned from selecting sub tree")
-        else:
-            new_tree.name = "root"
-            # keep unrooted
-            if len(self.children) > 2:
-                new_tree = new_tree.unrooted()
-            return new_tree
+        new_tree.name = "root"
+        # keep unrooted
+        if len(self.children) > 2:
+            new_tree = new_tree.unrooted()
+        return new_tree
 
     def _edgecount(self, parent, cache):
         """ "The number of edges beyond 'parent' in the direction of 'self',
@@ -1053,7 +1061,7 @@ class TreeNode:
         key = (id(parent), id(self))
         if key not in cache:
             cache[key] = 1 + sum(
-                [child._edgecount(self, cache) for child in neighbours]
+                [child._edgecount(self, cache) for child in neighbours],
             )
         return cache[key]
 
@@ -1088,7 +1096,7 @@ class TreeNode:
             scored_subtrees = [child._sorted(sort_order) for child in self.children]
             scored_subtrees.sort()
             children = tuple(
-                [child.deepcopy(constructor) for (score, child) in scored_subtrees]
+                [child.deepcopy(constructor) for (score, child) in scored_subtrees],
             )
             tree = constructor(self, children)
 
@@ -1144,8 +1152,7 @@ class TreeNode:
                 stem = result[mid]
                 result[mid] = stem[0] + namestr + stem[len(namestr) + 1 :]
             return (result, mid)
-        else:
-            return ([char1 + "-" + namestr], 0)
+        return ([char1 + "-" + namestr], 0)
 
     def ascii_art(self, show_internal=True, compact=False):
         """Returns a string containing an ascii drawing of the tree.
@@ -1171,7 +1178,7 @@ class TreeNode:
         if self.name_loaded:
             xml.append(f"{pad}   <name>{self.name}</name>")
         for n, v in list(self.params.items()):
-            if v == params.get(n, None):
+            if v == params.get(n):
                 continue
             xml.append(f"{pad}   <param><name>{n}</name><value>{v}</value></param>")
             params[n] = v
@@ -1395,8 +1402,7 @@ class TreeNode:
         for n in self.traverse():
             if n.name in res:
                 raise TreeError("get_nodes_dict requires unique node names")
-            else:
-                res[n.name] = n
+            res[n.name] = n
 
         return res
 
@@ -1526,7 +1532,8 @@ class TreeNode:
         cache = {}
         while 1:
             (max_weight, remaining_weight, next_edge) = edge._imbalance(
-                last_edge, cache
+                last_edge,
+                cache,
             )
             known_weight += remaining_weight
             if max_weight <= known_weight + 2:
@@ -1599,7 +1606,7 @@ class TreeNode:
         """
         newroot = self.get_node_matching_name(edge_name)
         if not newroot.children:
-            raise TreeError(f"Can't use a tip ({repr(edge_name)}) as the root")
+            raise TreeError(f"Can't use a tip ({edge_name!r}) as the root")
         return newroot.unrooted_deepcopy()
 
     def rooted_with_tip(self, outgroup_name):
@@ -1663,9 +1670,9 @@ class TreeNode:
             method = "matching"
 
         is_rooted = len(self) == 2
-        if is_rooted and len(other) != 2 or not is_rooted and len(other) == 2:
+        if (is_rooted and len(other) != 2) or (not is_rooted and len(other) == 2):
             raise ValueError(
-                "Both trees must be rooted or both trees must be unrooted."
+                "Both trees must be rooted or both trees must be unrooted.",
             )
 
         return get_tree_distance_measure(method, is_rooted)(self, other)
@@ -1703,7 +1710,7 @@ class TreeNode:
 
 class PhyloNode(TreeNode):
     def __init__(self, *args, **kwargs):
-        length = kwargs.get("length", None)
+        length = kwargs.get("length")
         params = kwargs.get("params", {})
         params["length"] = params.get("length", length)
         kwargs["params"] = params
@@ -1744,9 +1751,8 @@ class PhyloNode(TreeNode):
                         count += curr.length
                     curr = curr._parent
                 return count
-            else:
-                if other.length:
-                    count += other.length
+            if other.length:
+                count += other.length
             other = other._parent
         return None
 
@@ -1757,7 +1763,7 @@ class PhyloNode(TreeNode):
                 n.length
                 for n in self.traverse(include_self=False)
                 if n.length is not None
-            ]
+            ],
         )
 
     def total_length(self):
@@ -1777,8 +1783,7 @@ class PhyloNode(TreeNode):
         def get_distance(d1, d2):
             if d2 is None:
                 return d1
-            else:
-                return d1 + d2
+            return d1 + d2
 
         to_process = [(self, 0.0)]
         tips_to_save = []
@@ -1875,19 +1880,17 @@ class PhyloNode(TreeNode):
             climb_node = climb_node.parent
             if climb_node.is_tip():
                 raise RuntimeError("error trying to root tree at tip")
-            else:
-                # print climb_node.name, 'clmb node'
-                return climb_node.unrooted_deepcopy()
+            # print climb_node.name, 'clmb node'
+            return climb_node.unrooted_deepcopy()
 
-        else:
-            # make a new node on climb_node's branch to its parent
-            old_br_len = climb_node.length
-            new_root = type(self)()
-            new_root.parent = climb_node.parent
-            climb_node.parent = new_root
-            climb_node.length = half_max_dist - dist_climbed
-            new_root.length = old_br_len - climb_node.length
-            return new_root.unrooted_deepcopy()
+        # make a new node on climb_node's branch to its parent
+        old_br_len = climb_node.length
+        new_root = type(self)()
+        new_root.parent = climb_node.parent
+        climb_node.parent = new_root
+        climb_node.length = half_max_dist - dist_climbed
+        new_root.length = old_br_len - climb_node.length
+        return new_root.unrooted_deepcopy()
 
     def _find_midpoint_nodes(self, max_dist, tip_pair):
         """returns the nodes surrounding the max_tip_tip_distance midpoint
@@ -1910,7 +1913,7 @@ class PhyloNode(TreeNode):
         for node in self.traverse(self_before=False, self_after=True):
             if node.children:
                 node.TipDistance = max(
-                    [c.length + c.TipDistance for c in node.children]
+                    [c.length + c.TipDistance for c in node.children],
                 )
             else:
                 node.TipDistance = 0
@@ -1930,7 +1933,8 @@ class PhyloNode(TreeNode):
                 curr = node.length
                 if curr is not None:
                     node.ScaledBranchLength = max(
-                        1, int(round(1.0 * curr / orig_max * max_length))
+                        1,
+                        int(round(1.0 * curr / orig_max * max_length)),
                     )
         else:  # hard case -- need to make sure they all line up at the end
             for node in self.traverse(self_before=False, self_after=True):
@@ -2040,11 +2044,10 @@ class PhyloNode(TreeNode):
         all_tips = self.tips()
         if endpoints is None:
             tip_order = list(all_tips)
+        elif isinstance(endpoints[0], PhyloNode):
+            tip_order = endpoints
         else:
-            if isinstance(endpoints[0], PhyloNode):
-                tip_order = endpoints
-            else:
-                tip_order = [self.get_node_matching_name(n) for n in endpoints]
+            tip_order = [self.get_node_matching_name(n) for n in endpoints]
 
         # linearize all tips in postorder
         # .__start, .__stop compose the slice in tip_order.
@@ -2093,7 +2096,11 @@ class PhyloNode(TreeNode):
         return result + result.T, tip_order
 
     def compare_by_tip_distances(
-        self, other, sample=None, dist_f=distance_from_r, shuffle_f=shuffle
+        self,
+        other,
+        sample=None,
+        dist_f=distance_from_r,
+        shuffle_f=shuffle,
     ):
         """Compares self to other using tip-to-tip distance matrices.
 
@@ -2113,12 +2120,12 @@ class PhyloNode(TreeNode):
         self_names = dict([(i.name, i) for i in self.tips()])
         other_names = dict([(i.name, i) for i in other.tips()])
         common_names = frozenset(list(self_names.keys())) & frozenset(
-            list(other_names.keys())
+            list(other_names.keys()),
         )
         common_names = list(common_names)
 
         if not common_names:
-            raise ValueError("No names in common between the two trees." "")
+            raise ValueError("No names in common between the two trees.")
         if len(common_names) <= 2:
             return 1  # the two trees must match by definition in this case
 
@@ -2216,12 +2223,12 @@ def split_name_and_support(name_field: str | None) -> tuple[str | None, float | 
             support_value = float(support[0])
         except ValueError as e:
             raise ValueError(
-                f"Support value at node: {name!r} should be int or float not {support[0]!r}."
+                f"Support value at node: {name!r} should be int or float not {support[0]!r}.",
             ) from e
     # handle case where mutiple '/' in the name field
     elif len(support) > 1:
         raise ValueError(
-            f"Support value at node: {name!r} should be int or float not {'/'.join(support)!r}."
+            f"Support value at node: {name!r} should be int or float not {'/'.join(support)!r}.",
         )
     else:
         support_value = None
@@ -2229,7 +2236,7 @@ def split_name_and_support(name_field: str | None) -> tuple[str | None, float | 
     return name, support_value
 
 
-class TreeBuilder(object):
+class TreeBuilder:
     # Some tree code which isn't needed once the tree is finished.
     # Mostly exists to give edges unique names
     # children must be created before their parents.
@@ -2262,12 +2269,14 @@ class TreeBuilder(object):
         if edge is None:
             assert not params
             return self.create_edge(children, "root", {}, False)
-        else:
-            if params is None:
-                params = self._params_for_edge(edge)
-            return self.create_edge(
-                children, edge.name, params, name_loaded=edge.name_loaded
-            )
+        if params is None:
+            params = self._params_for_edge(edge)
+        return self.create_edge(
+            children,
+            edge.name,
+            params,
+            name_loaded=edge.name_loaded,
+        )
 
     def create_edge(self, children, name, params, name_loaded=True):
         """Callback for newick parser"""

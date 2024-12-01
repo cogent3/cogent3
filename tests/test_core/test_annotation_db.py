@@ -32,7 +32,7 @@ def gff_small_db(DATA_DIR):
     return load_annotations(path=path)
 
 
-@pytest.fixture()
+@pytest.fixture
 def seq_db(DATA_DIR):
     seq = load_seq(DATA_DIR / "c_elegans_WS199_dna_shortened.fasta", moltype="dna")
     db = load_annotations(path=DATA_DIR / "c_elegans_WS199_shortened_gff.gff3")
@@ -42,7 +42,7 @@ def seq_db(DATA_DIR):
     return seq
 
 
-@pytest.fixture()
+@pytest.fixture
 def seq() -> Sequence:
     return Sequence("ATTGTACGCCTTTTTTATTATT", name="test_seq")
 
@@ -53,7 +53,7 @@ def anno_db() -> BasicAnnotationDb:
     return BasicAnnotationDb()
 
 
-@pytest.fixture()
+@pytest.fixture
 def simple_seq_gff_db(DATA_DIR) -> Sequence:
     seq = Sequence("ATTGTACGCCTTTTTTATTATT", name="test_seq")
     seq.annotate_from_gff(DATA_DIR / "simple.gff")
@@ -77,7 +77,8 @@ def test_replace_annotation_db_nocheck_invalid(seq):
 
 
 @pytest.mark.parametrize(
-    "db_name,cls", (("gff_db", GenbankAnnotationDb), ("gb_db", GffAnnotationDb))
+    "db_name,cls",
+    (("gff_db", GenbankAnnotationDb), ("gb_db", GffAnnotationDb)),
 )
 def test_constructor_db_fail(db_name, cls, request):
     db = request.getfixturevalue(db_name)
@@ -86,7 +87,8 @@ def test_constructor_db_fail(db_name, cls, request):
 
 
 @pytest.mark.parametrize(
-    "db_name,cls", (("gff_db", GenbankAnnotationDb), ("gb_db", GffAnnotationDb))
+    "db_name,cls",
+    (("gff_db", GenbankAnnotationDb), ("gb_db", GffAnnotationDb)),
 )
 def test_constructor_wrong_db_schema(db_name, cls, request):
     db = request.getfixturevalue(db_name)
@@ -162,7 +164,9 @@ def test_count_distinct_gene_name(gb_db):
     assert {
         tuple(r)
         for r in gb_db.count_distinct(
-            seqid="AE017341", biotype="gene", name=True
+            seqid="AE017341",
+            biotype="gene",
+            name=True,
         ).to_list()
     } == expect
 
@@ -253,7 +257,11 @@ def test_gb_num_matches(gb_db):
 
 def test_gff_find_user_features(gff_db):
     record = dict(
-        seqid="2", name="gene-01", biotype="gene", spans=[(23, 33)], strand="+"
+        seqid="2",
+        name="gene-01",
+        biotype="gene",
+        spans=[(23, 33)],
+        strand="+",
     )
     gff_db.add_feature(**record)
     # by biotype
@@ -312,7 +320,7 @@ def test_gb_get_children(gb_db, parent_biotype, name):
             exclude_biotype=parent_biotype,
             start=coords.min(),
             stop=coords.max(),
-        )
+        ),
     )[0]
     assert child["biotype"] != parent["biotype"]
     assert child["name"] == parent["name"]
@@ -328,7 +336,7 @@ def test_gb_get_parent(gb_db):
             exclude_biotype="CDS",
             start=coords.min(),
             stop=coords.max(),
-        )
+        ),
     )[0]
     assert parent["biotype"] != cds["biotype"]
     assert parent["biotype"] == "gene"
@@ -353,7 +361,11 @@ def test_get_features_matching_no_matching_feature(seq, anno_db):
     """
     seq.annotation_db = anno_db
     anno_db.add_feature(
-        seqid=seq.name, biotype="exon", name="exon1", spans=[(1, 4)], strand="+"
+        seqid=seq.name,
+        biotype="exon",
+        name="exon1",
+        spans=[(1, 4)],
+        strand="+",
     )
 
     assert not list(seq.get_features(biotype="exon", name="non_matching"))
@@ -366,7 +378,11 @@ def test_get_features_matching_matching_feature(seq, anno_db):
     """
     seq.annotation_db = anno_db
     anno_db.add_feature(
-        seqid=seq.name, biotype="exon", name="exon1", spans=[(1, 4)], strand="+"
+        seqid=seq.name,
+        biotype="exon",
+        name="exon1",
+        spans=[(1, 4)],
+        strand="+",
     )
     got = list(seq.get_features(biotype="exon"))
 
@@ -428,7 +444,8 @@ def test_feature_nucleic():
     #                    0123456789012345
     seq = make_seq(seq="AACCTTTGGGGAATTT", moltype="dna")
     mmap = loc.FeatureMap.from_locations(
-        locations=[(4, 7), (10, 12)], parent_length=len(seq)
+        locations=[(4, 7), (10, 12)],
+        parent_length=len(seq),
     )
     expect = seq[mmap]
 
@@ -467,10 +484,18 @@ def test_get_features_matching_matching_features(anno_db: GffAnnotationDb, seq):
     seq.annotation_db = anno_db
 
     anno_db.add_feature(
-        seqid=seq.name, biotype="exon", name="exon1", spans=[(1, 4)], strand="+"
+        seqid=seq.name,
+        biotype="exon",
+        name="exon1",
+        spans=[(1, 4)],
+        strand="+",
     )
     anno_db.add_feature(
-        seqid=seq.name, biotype="exon", name="exon2", spans=[(6, 10)], strand="+"
+        seqid=seq.name,
+        biotype="exon",
+        name="exon2",
+        spans=[(6, 10)],
+        strand="+",
     )
     got = list(seq.get_features(biotype="exon"))
 
@@ -504,7 +529,8 @@ def test_matching_conditions():
 
 def test_matching_conditions_IN():
     got, cond = _matching_conditions(
-        {"biotype": ("CDS", "mRNA", "exon")}, allow_partial=True
+        {"biotype": ("CDS", "mRNA", "exon")},
+        allow_partial=True,
     )
     expect = "biotype IN (?,?,?)"
     assert got == expect
@@ -512,13 +538,17 @@ def test_matching_conditions_IN():
 
 
 @pytest.mark.parametrize(
-    "biotype_value_1", ["CDS", "mRNA", "exon", "three_prime_UTR", "intron"]
+    "biotype_value_1",
+    ["CDS", "mRNA", "exon", "three_prime_UTR", "intron"],
 )
 @pytest.mark.parametrize(
-    "biotype_value_2", ["CDS", "mRNA", "exon", "five_prime_UTR", "intron"]
+    "biotype_value_2",
+    ["CDS", "mRNA", "exon", "five_prime_UTR", "intron"],
 )
 def test_get_features_matching_multiple_biotype_tuple(
-    seq_db, biotype_value_1, biotype_value_2
+    seq_db,
+    biotype_value_1,
+    biotype_value_2,
 ):
     """querying for features with multiple values should return the
     same result as the sum of querying for each value seperately"""
@@ -535,7 +565,9 @@ def test_get_features_matching_multiple_biotype_tuple(
 @pytest.mark.parametrize("biotype_value_1", ["CDS", "mRNA", "exon", "intron"])
 @pytest.mark.parametrize("biotype_value_2", ["CDS", "mRNA", "exon", "intron"])
 def test_get_features_matching_multiple_biotype_list(
-    seq_db, biotype_value_1, biotype_value_2
+    seq_db,
+    biotype_value_1,
+    biotype_value_2,
 ):
     """querying for features with multiple values should return the
     same result as the sum of querying for each value seperately"""
@@ -552,7 +584,9 @@ def test_get_features_matching_multiple_biotype_list(
 @pytest.mark.parametrize("biotype_value_1", ["CDS", "mRNA", "exon", "intron"])
 @pytest.mark.parametrize("biotype_value_2", ["CDS", "mRNA", "exon", "intron"])
 def test_get_features_matching_multiple_biotype_set(
-    seq_db, biotype_value_1, biotype_value_2
+    seq_db,
+    biotype_value_1,
+    biotype_value_2,
 ):
     """querying for features with multiple values should return the
     same result as the sum of querying for each value seperately"""
@@ -577,7 +611,7 @@ def test_get_features_matching_start_stop_seqview(DATA_DIR, seq):
     # possibly a bug in the SQL generating code
     subseq = seq[9:]
     seq_features_features = list(
-        subseq.get_features(start=3, stop=10, allow_partial=True)
+        subseq.get_features(start=3, stop=10, allow_partial=True),
     )
     assert len(seq_features_features) == 1
 
@@ -673,7 +707,11 @@ def test_rc_get_slice_positive_feature(anno_db):
 
     seq.annotation_db = anno_db
     anno_db.add_feature(
-        seqid=seq.name, biotype="exon", name="exon1", spans=[(2, 6)], strand="+"
+        seqid=seq.name,
+        biotype="exon",
+        name="exon1",
+        spans=[(2, 6)],
+        strand="+",
     )
 
     feat = list(seq.get_features(name="exon1"))[0]
@@ -765,7 +803,7 @@ def test_seq_coll_query(DATA_DIR):
     seq = seq_coll.get_seq("test_seq")
     # the seq for which the seqid was provided is annotated
     assert seq.annotation_db is not None
-    # todo gah this test fails when allow_partial=False because start / stop
+    # TODO gah this test fails when allow_partial=False because start / stop
     # not used by seqcoll method
     expect = set(
         (f.seqid, f.biotype, f.name, str(f.map))
@@ -794,7 +832,7 @@ def test_gff_update_existing(gff_db, gff_small_db):
 @pytest.mark.parametrize("seqids", (None, "23", ["23"]))
 def test_gff_update_existing_specify_seqid(gff_db, gff_small_db, seqids):
     expect = gff_db.num_matches() + gff_small_db.num_matches(
-        seqid=seqids[0] if isinstance(seqids, list) else seqids
+        seqid=seqids[0] if isinstance(seqids, list) else seqids,
     )
     gff_db.update(gff_small_db, seqids=seqids)
     assert gff_db.num_matches() == expect
@@ -807,10 +845,13 @@ def test_gff_update_db_from_other_db_existing(gff_db, gff_small_db):
 
 
 @pytest.mark.parametrize(
-    "seqids", ("test_seq", ["test_seq"], "test_seq2", ["test_seq2"], None)
+    "seqids",
+    ("test_seq", ["test_seq"], "test_seq2", ["test_seq2"], None),
 )
 def test_gff_update_db_from_other_db_existing_specify_seqid(
-    gff_db, gff_small_db, seqids
+    gff_db,
+    gff_small_db,
+    seqids,
 ):
     expect = gff_db.num_matches() + gff_small_db.num_matches(seqid=seqids)
     gff_db._update_db_from_other_db(other_db=gff_small_db, seqids=seqids)
@@ -838,7 +879,11 @@ def test_relative_position_positive_feature(anno_db):
 
     seq.annotation_db = anno_db
     anno_db.add_feature(
-        seqid=seq.name, biotype="exon", name="exon1", spans=[(2, 6)], strand="+"
+        seqid=seq.name,
+        biotype="exon",
+        name="exon1",
+        spans=[(2, 6)],
+        strand="+",
     )
 
     orig_feat_span = list(seq.get_features(name="exon1"))[0].map
@@ -854,7 +899,11 @@ def test_deepcopy(gff_db):
 
     new = copy.deepcopy(gff_db)
     new.add_feature(
-        seqid="s1", biotype="exon", name="copied-exon", spans=[(2, 6)], strand="+"
+        seqid="s1",
+        biotype="exon",
+        name="copied-exon",
+        spans=[(2, 6)],
+        strand="+",
     )
     assert new.num_matches() == gff_db.num_matches() + 1
     assert len(list(new.get_features_matching(name="copied-exon"))) == 1
@@ -867,7 +916,11 @@ def test_pickling(gff_db):
     recon = pickle.loads(pickle.dumps(gff_db))
     assert isinstance(recon, type(gff_db))
     recon.add_feature(
-        seqid="s1", biotype="exon", name="copied-exon", spans=[(2, 6)], strand="+"
+        seqid="s1",
+        biotype="exon",
+        name="copied-exon",
+        spans=[(2, 6)],
+        strand="+",
     )
     assert recon.num_matches() == gff_db.num_matches() + 1
 
@@ -997,7 +1050,8 @@ def convert_spans_column(db, table_name):
 
 
 @pytest.mark.parametrize(
-    "db_name,cls", (("gb_db", GenbankAnnotationDb), ("gff_db", GffAnnotationDb))
+    "db_name,cls",
+    (("gb_db", GenbankAnnotationDb), ("gff_db", GffAnnotationDb)),
 )
 def test_read_old_format(db_name, cls, tmp_path, request):
     db = request.getfixturevalue(db_name)
@@ -1098,7 +1152,11 @@ def test_update_file_format_twice_fails(db_name, cls, tmp_path, request):
     ),
 )
 def test_update_file_format_does_not_modify_correct_file(
-    db_name, cls, backup, tmp_path, request
+    db_name,
+    cls,
+    backup,
+    tmp_path,
+    request,
 ):
     db = request.getfixturevalue(db_name)
 
@@ -1219,7 +1277,10 @@ def test_load_annotations_invalid_path(suffix):
 @pytest.mark.parametrize("integer", (int, numpy.int64))
 def test_subset_gff3_db(gff_db, integer):
     subset = gff_db.subset(
-        seqid="I", start=integer(40), stop=integer(70), allow_partial=True
+        seqid="I",
+        start=integer(40),
+        stop=integer(70),
+        allow_partial=True,
     )
     # manual inspection of the original GFF3 file indicates 7 records
     # BUT the CDS records get merged into a single row
@@ -1234,7 +1295,11 @@ def test_subset_empty_db(gff_db):
 
 def test_subset_gff3_db_with_user(gff_db):
     record = dict(
-        seqid="I", name="gene-01", biotype="gene", spans=[(23, 43)], strand="+"
+        seqid="I",
+        name="gene-01",
+        biotype="gene",
+        spans=[(23, 43)],
+        strand="+",
     )
     gff_db.add_feature(**record)
     subset = gff_db.subset(seqid="I", start=40, stop=70, allow_partial=True)
@@ -1252,7 +1317,11 @@ def test_subset_gb_db(gb_db):
 def test_subset_gff3_db_source(gff_db, tmp_dir):
     outpath = tmp_dir / "subset.gff3db"
     subset = gff_db.subset(
-        seqid="I", start=40, stop=70, allow_partial=True, source=outpath
+        seqid="I",
+        start=40,
+        stop=70,
+        allow_partial=True,
+        source=outpath,
     )
     subset.db.close()
 
@@ -1264,7 +1333,8 @@ def test_subset_gff3_db_source(gff_db, tmp_dir):
 
 
 @pytest.mark.parametrize(
-    "new_span", ([[22, 24]], [[9, 20]], [[0, 1]], [[9, 20], [29, 45], [59, 70]])
+    "new_span",
+    ([[22, 24]], [[9, 20]], [[0, 1]], [[9, 20], [29, 45], [59, 70]]),
 )
 def test_gffdb_update_record(gff_db, new_span):
     name = "CDS:B0019.1"
@@ -1304,7 +1374,8 @@ def test_db_close(request, db):
 
 @pytest.mark.parametrize("db", ("gff_db", "gb_db"))
 @pytest.mark.parametrize(
-    "col", ("biotype", "seqid", "name", "start", "stop", "parent_id")
+    "col",
+    ("biotype", "seqid", "name", "start", "stop", "parent_id"),
 )
 def test_db_make_index(request, db, col):
     ann_db = request.getfixturevalue(db)

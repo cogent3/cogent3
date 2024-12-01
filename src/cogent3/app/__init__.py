@@ -30,7 +30,7 @@ def _get_extension_attr(extension):
 
     if not is_app(obj):
         warnings.warn(
-            f"{obj!r} from {obj.__module__!r} is not a valid cogent3 app, skipping"
+            f"{obj!r} from {obj.__module__!r} is not a valid cogent3 app, skipping",
         )
 
     _types = _make_types(obj)
@@ -65,7 +65,8 @@ def get_app_manager() -> stevedore.ExtensionManager:
     global __apps
     if not __apps:
         __apps = stevedore.ExtensionManager(
-            namespace=APP_ENTRY_POINT, invoke_on_load=False
+            namespace=APP_ENTRY_POINT,
+            invoke_on_load=False,
         )
 
     return __apps
@@ -124,7 +125,7 @@ def _make_signature(app: type) -> str:
         if v.default is not empty_default and callable(v.default):
             val = val.split("=", maxsplit=1)
             if hasattr(v.default, "app_type"):
-                val[-1] = f" {str(v.default)}"
+                val[-1] = f" {v.default!s}"
             else:
                 val[-1] = f" {get_object_provenance(v.default)}"
             val = "=".join(val)
@@ -175,12 +176,11 @@ def _get_app_matching_name(name: str):
                 return extension.plugin
         raise ValueError(f"App {name!r} not found. Please check for typos.")
 
-    elif len(extensions_matching) == 1:
+    if len(extensions_matching) == 1:
         return extensions_matching[0].plugin
-    else:
-        raise NameError(
-            f"Too many apps matching name {name!r},\n{available_apps().filtered(lambda x: name == x, columns='name')}"
-        )
+    raise NameError(
+        f"Too many apps matching name {name!r},\n{available_apps().filtered(lambda x: name == x, columns='name')}",
+    )
 
 
 def get_app(_app_name: str, *args, **kwargs):

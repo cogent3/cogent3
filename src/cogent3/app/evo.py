@@ -1,5 +1,6 @@
+from collections.abc import Iterable
 from copy import deepcopy
-from typing import Callable, Iterable, Optional, Union
+from typing import Callable, Optional, Union
 
 import cogent3.util.io
 from cogent3 import load_tree, make_tree
@@ -292,7 +293,8 @@ class model:
 
         opt_args = deepcopy(opt_args or {})
         self._opt_args = {
-            **{"max_restarts": 5, "show_progress": show_progress},
+            "max_restarts": 5,
+            "show_progress": show_progress,
             **opt_args,
         }
 
@@ -334,11 +336,15 @@ class model:
                     print(lf)
             if self._time_het == "max":
                 lf.set_time_heterogeneity(
-                    is_independent=True, lower=self._lower, upper=self._upper
+                    is_independent=True,
+                    lower=self._lower,
+                    upper=self._upper,
                 )
             else:
                 lf.set_time_heterogeneity(
-                    edge_sets=self._time_het, lower=self._lower, upper=self._upper
+                    edge_sets=self._time_het,
+                    lower=self._lower,
+                    upper=self._upper,
                 )
 
         if initialise:
@@ -405,7 +411,7 @@ class model:
             msg = f"substitution model moltype '{self._sm.moltype.label}' and alignment moltype '{aln.moltype.label}' are incompatible"
             return NotCompleted("ERROR", self, msg, source=aln)
 
-        evaluation_limit = opt_args.get("max_evaluations", None)
+        evaluation_limit = opt_args.get("max_evaluations")
         if callable(self._tree_func):
             self._tree = self._tree_func(aln)
         elif self._tree is None or self._unique_trees:
@@ -426,7 +432,10 @@ class model:
         )
         if not self._split_codons:
             lf = self._fit_aln(
-                aln, initialise=initialise, construct=construct, **opt_args
+                aln,
+                initialise=initialise,
+                construct=construct,
+                **opt_args,
             )
             result[self.name] = lf
             result.num_evaluations = lf.calculator.evaluations
@@ -635,7 +644,8 @@ class ancestral_states:
     """Computes ancestral state probabilities from a model result."""
 
     def main(
-        self, result: ModelResultType
+        self,
+        result: ModelResultType,
     ) -> Union[SerialisableType, TabularResultType]:
         """returns a tabular_result of posterior probabilities of ancestral states"""
         anc = result.lf.reconstruct_ancestral_seqs()
@@ -656,7 +666,8 @@ class tabulate_stats:
     """Extracts all model statistics from model_result as Table."""
 
     def main(
-        self, result: ModelResultType
+        self,
+        result: ModelResultType,
     ) -> Union[SerialisableType, TabularResultType]:
         """returns Table for all statistics returned by likelihood function
         get_statistics
@@ -892,7 +903,11 @@ class natsel_zhang:
 
         if all([tip1, tip2]) and tree:
             edges = tree.get_edge_names(
-                tip1, tip2, stem=stem, clade=clade, outgroup_name=outgroup
+                tip1,
+                tip2,
+                stem=stem,
+                clade=clade,
+                outgroup_name=outgroup,
             )
         elif all([tip1, tip2]):
             edges = [tip1, tip2]
@@ -977,7 +992,7 @@ class natsel_zhang:
                 lower=1.0,
                 upper=upper_omega,
                 init=1 + epsilon,
-            )
+            ),
         )
         alt_args["param_rules"] = rules
         return model(**alt_args)
@@ -995,7 +1010,8 @@ class natsel_zhang:
             return alt_result
 
         result = hypothesis_result(
-            name_of_null=null_result.name, source=aln.info.source
+            name_of_null=null_result.name,
+            source=aln.info.source,
         )
         result.update({alt_result.name: alt_result, null_result.name: null_result})
         return result
@@ -1127,7 +1143,7 @@ class natsel_sitehet:
                 lower=1.0,
                 upper=upper_omega,
                 init=1 + epsilon,
-            )
+            ),
         )
         alt_args["param_rules"] = rules
         return model(**alt_args)
@@ -1145,7 +1161,8 @@ class natsel_sitehet:
             return alt_result
 
         result = hypothesis_result(
-            name_of_null=null_result.name, source=aln.info.source
+            name_of_null=null_result.name,
+            source=aln.info.source,
         )
         result.update({alt_result.name: alt_result, null_result.name: null_result})
         return result
@@ -1240,7 +1257,11 @@ class natsel_timehet:
 
         if all([tip1, tip2]) and tree:
             edges = tree.get_edge_names(
-                tip1, tip2, stem=stem, clade=clade, outgroup_name=outgroup
+                tip1,
+                tip2,
+                stem=stem,
+                clade=clade,
+                outgroup_name=outgroup,
             )
         elif all([tip1, tip2]):
             edges = [tip1, tip2]
@@ -1280,7 +1301,7 @@ class natsel_timehet:
                 edges=edges,
                 upper=upper_omega,
                 is_independent=is_independent,
-            )
+            ),
         ]
         alt = model(
             sm,

@@ -52,7 +52,7 @@ def test_min_max_x_y():
 def test_length_attr_valid():
     """Tests whether setting a custom length attribute provides valid x values"""
     tree = make_tree(
-        treestring="((a:0.1,b:0.25):0.1,(c:0.02,d:0.03, (e:0.035, f:0.04):0.15):0.3 , g:0.3)"
+        treestring="((a:0.1,b:0.25):0.1,(c:0.02,d:0.03, (e:0.035, f:0.04):0.15):0.3 , g:0.3)",
     )
     geom = SquareTreeGeometry(tree, length_attr="custom")
     geom.params["custom"] = 1

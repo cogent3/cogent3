@@ -41,8 +41,7 @@ def get_tree_info(tree_f):
         if in_tree:
             if line_lower.startswith("end;") or line_lower.startswith("endblock;"):
                 return result
-            else:
-                result.append(line)
+            result.append(line)
 
 
 def check_tree_info(tree_info):

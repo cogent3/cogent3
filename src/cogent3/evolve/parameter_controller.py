@@ -109,7 +109,7 @@ class _LikelihoodParameterController(_LF):
                             (edge.name, edge.params[par_name])
                             for edge in edges
                             if not edge.isroot()
-                        ]
+                        ],
                     )
                     (uniq, index) = _indexed(values)
                 except KeyError:
@@ -226,7 +226,11 @@ class _LikelihoodParameterController(_LF):
             if clade is None:
                 clade = not stem
             edges = self.tree.get_edge_names(
-                species1, species2, stem=stem, clade=clade, outgroup_name=outgroup_name
+                species1,
+                species2,
+                stem=stem,
+                clade=clade,
+                outgroup_name=outgroup_name,
             )
 
         return edges
@@ -280,7 +284,10 @@ class _LikelihoodParameterController(_LF):
             kwargs = dict(is_constant=True, value=value)
         else:
             kwargs = dict(
-                is_independent=is_independent, init=init, lower=lower, upper=upper
+                is_independent=is_independent,
+                init=init,
+                lower=lower,
+                upper=upper,
             )
 
         rate_terms = self._model.get_param_list()
@@ -428,7 +435,10 @@ class _LikelihoodParameterController(_LF):
         Note: This is just a convenient interface to setParameterRule.
         """
         self.set_param_rule(
-            "length", tip_names=[tip1name, tip2name], clade=True, is_independent=0
+            "length",
+            tip_names=[tip1name, tip2name],
+            clade=True,
+            is_independent=0,
         )
 
     def set_constant_lengths(self, tree=None, exclude_list=None):
@@ -455,7 +465,10 @@ class _LikelihoodParameterController(_LF):
                 if edge.length is None or edge.name in exclude_list:
                     continue
                 self.set_param_rule(
-                    "length", edge=edge.name, is_constant=1, value=edge.length
+                    "length",
+                    edge=edge.name,
+                    is_constant=1,
+                    value=edge.length,
                 )
 
     def get_aic(self, second_order=False):
@@ -503,7 +516,9 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
             from .discrete_markov import PartialyDiscretePsubsDefn
 
             defns["psubs"] = PartialyDiscretePsubsDefn(
-                self.motifs, defns["psubs"], discrete_edges
+                self.motifs,
+                defns["psubs"],
+                discrete_edges,
             )
         return likelihood_calculation.make_total_loglikelihood_defn(
             self.tree,
@@ -539,7 +554,10 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
         with self.updates_postponed():
             for locus_name, align in zip(self.locus_names, aligns):
                 self.assign_all(
-                    "alignment", {"locus": [locus_name]}, value=align, const=True
+                    "alignment",
+                    {"locus": [locus_name]},
+                    value=align,
+                    const=True,
                 )
                 if self.mprobs_from_alignment:
                     self.set_motif_probs_from_data(
@@ -555,7 +573,10 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
         pass
 
     def make_likelihood_defn(
-        self, sites_independent=None, with_indel_params=True, kn=True
+        self,
+        sites_independent=None,
+        with_indel_params=True,
+        kn=True,
     ):
         assert sites_independent is None or not sites_independent
         assert len(self.locus_names) == 1
@@ -600,7 +621,8 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
                 self.set_param_rule("leaf", edge=name, value=pog, is_constant=True)
             if self.mprobs_from_alignment:
                 counts = numpy.sum(
-                    [pog.leaf.get_motif_counts() for pog in list(leaves.values())], 0
+                    [pog.leaf.get_motif_counts() for pog in list(leaves.values())],
+                    0,
                 )
                 mprobs = counts / (1.0 * sum(counts))
                 self.set_motif_probs(mprobs, locus=locus, is_constant=True, warn=False)

@@ -155,7 +155,7 @@ class _ParamProjection:
         # construct following by calling the functions we wrote
         self._rich_coords = rich_model.get_param_matrix_coords(include_ref_cell=True)
         self._simple_coords = simple_model.get_param_matrix_coords(
-            include_ref_cell=True
+            include_ref_cell=True,
         )
         self._param_map = _get_param_mapping(self._rich_coords, self._simple_coords)
         self._same = same
@@ -168,9 +168,8 @@ class _ParamProjection:
         """returns the motif prob corresponding to the model reference cell"""
         if same:
             return 1
-        else:
-            i, j = list(self._rich_coords["ref_cell"])[0]
-            return self._motif_probs[j]
+        i, j = list(self._rich_coords["ref_cell"])[0]
+        return self._motif_probs[j]
 
     def _rate_not_same(self, simple_param, mle):
         """returns {rich_param: val, ...} from simple_param: val"""
@@ -235,7 +234,7 @@ def compatible_likelihood_functions(lf1, lf2):
     if lf1.model.get_motifs() != lf2.model.get_motifs():
         raise AssertionError("Motifs don't match")
     if lf1.tree.get_newick(with_node_names=True) != lf2.tree.get_newick(
-        with_node_names=True
+        with_node_names=True,
     ):
         raise AssertionError("Topology, Orientation or node names don't match")
     return True
@@ -280,7 +279,7 @@ class LikelihoodFunction(ParameterController):
         -------
         DictArray
         """
-        # todo handle case of multiple loci
+        # TODO handle case of multiple loci
         try:
             # For PartialyDiscretePsubsDefn
             array = self.get_param_value("dpsubs", edge=name, **kw)
@@ -330,7 +329,7 @@ class LikelihoodFunction(ParameterController):
         if not calibrated and rate_het:
             indices.add(bin_index)
 
-        indices = list(sorted(indices))
+        indices = sorted(indices)
         result = {}
         darr_template = DictArrayTemplate(self._motifs, self._motifs)
         for scope, index in defn.index.items():
@@ -369,7 +368,7 @@ class LikelihoodFunction(ParameterController):
         If ``calibrated=False``, ``expm(Q)`` will give the same result as
         ``self.get_psub_for_edge(name)``
         """
-        # todo handle case of multiple loci
+        # TODO handle case of multiple loci
         try:
             array = self.get_param_value("Q", edge=name, **kw)
             array = array.copy()
@@ -441,7 +440,8 @@ class LikelihoodFunction(ParameterController):
                     r.append(likelihoods)
                     if array_template is None:
                         array_template = DictArrayTemplate(
-                            likelihoods.shape[0], self._motifs
+                            likelihoods.shape[0],
+                            self._motifs,
                         )
             finally:
                 self.set_param_rule(
@@ -453,7 +453,7 @@ class LikelihoodFunction(ParameterController):
                 )
             # dict of site x motif arrays
             result[restricted_edge.name] = array_template.wrap(
-                numpy.transpose(numpy.asarray(r))
+                numpy.transpose(numpy.asarray(r)),
             )
         return result
 
@@ -716,7 +716,10 @@ class LikelihoodFunction(ParameterController):
             ]
             length = get_value_of("length", edge=edge.name, **value_of_kw)
             scaled_lengths[edge.name] = length * self._model.get_scale_from_Qs(
-                Qs, bprobs, mprobs, predicate
+                Qs,
+                bprobs,
+                mprobs,
+                predicate,
             )
         return scaled_lengths
 
@@ -783,7 +786,9 @@ class LikelihoodFunction(ParameterController):
             for e in edge_parent:
                 Q = self.get_rate_matrix_for_edge(e)
                 length = expected_number_subs(
-                    motif_probs[edge_parent[e]], Q, lengths[e]
+                    motif_probs[edge_parent[e]],
+                    Q,
+                    lengths[e],
                 )
                 ens[e] = length
 
@@ -836,7 +841,8 @@ class LikelihoodFunction(ParameterController):
         table_order.sort()
         for table_dims in table_order:
             raw_table = self.get_param_value_dict(
-                dimensions=table_dims, params=group[table_dims]
+                dimensions=table_dims,
+                params=group[table_dims],
             )
             param_names = group[table_dims]
             param_names.sort()
@@ -849,7 +855,7 @@ class LikelihoodFunction(ParameterController):
                         (e.name, e.parent.name)
                         for e in self._tree.get_edge_vector()
                         if not e.isroot()
-                    ]
+                    ],
                 )
                 param_names.insert(0, "parent")
             list_table = []
@@ -888,7 +894,7 @@ class LikelihoodFunction(ParameterController):
             if group[table_dims] == [mprob_name]:
                 # if stat_table.shape
                 # if mprobs, we use the motifs as header
-                motifs = list(sorted(set(stat_table.to_list("motif"))))
+                motifs = sorted(set(stat_table.to_list("motif")))
                 if stat_table.shape[1] == 2:
                     motif_prob = dict(stat_table.to_list())
                     heading_names = motifs
@@ -903,18 +909,23 @@ class LikelihoodFunction(ParameterController):
                     ][0]
                     for val in stat_table.distinct_values(other_col):
                         subtable = stat_table.filtered(
-                            lambda x: x == val, columns=other_col
+                            lambda x: x == val,
+                            columns=other_col,
                         )
                         motif_prob = dict(
                             subtable.to_list(
-                                [c for c in stat_table.header if c != other_col]
-                            )
+                                [c for c in stat_table.header if c != other_col],
+                            ),
                         )
                         rows.append([val] + [motif_prob[m] for m in motifs])
                     heading_names = [other_col] + motifs
                     list_table = rows
                 stat_table = table.Table(
-                    heading_names, list_table, max_width=80, title=title, **self._format
+                    heading_names,
+                    list_table,
+                    max_width=80,
+                    title=title,
+                    **self._format,
                 )
 
             result.append(stat_table)
@@ -1100,7 +1111,7 @@ class LikelihoodFunction(ParameterController):
                 sequence_length = len(lht.index)
             except AttributeError:
                 raise ValueError(
-                    "Must provide sequence_length since no alignment set on self"
+                    "Must provide sequence_length since no alignment set on self",
                 )
 
             leaves = self.get_param_value("leaf_likelihoods", locus=locus)
@@ -1188,4 +1199,3 @@ class LikelihoodFunction(ParameterController):
         my_rules = self.get_param_rules()
         my_rules = update_scoped_rules(my_rules, param_rules)
         self.apply_param_rules(my_rules)
-        return

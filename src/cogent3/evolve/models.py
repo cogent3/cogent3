@@ -92,7 +92,10 @@ def BH(optimise_motif_probs=True, **kw):
     Barry and Hartigan 1987. Biometrics 43: 261–76.
     """
     return DT(
-        optimise_motif_probs=optimise_motif_probs, motif_length=1, name="BH", **kw
+        optimise_motif_probs=optimise_motif_probs,
+        motif_length=1,
+        name="BH",
+        **kw,
     )
 
 
@@ -116,7 +119,9 @@ def GN(optimise_motif_probs=True, **kw):
 
     Kaehler, Yap, Zhang, Huttley, 2015, Sys Biol 64 (2): 281–93"""
     required = dict(
-        optimise_motif_probs=optimise_motif_probs, name="GN", predicates=_general_preds
+        optimise_motif_probs=optimise_motif_probs,
+        name="GN",
+        predicates=_general_preds,
     )
     kwargs = dict(recode_gaps=True, model_gaps=False)
     kwargs.update(kw)
@@ -131,7 +136,9 @@ def ssGN(optimise_motif_probs=True, **kw):
     Kaehler, 2017, Journal of Theoretical Biology 420: 144–51"""
     # note the StrandSymmetric class predefines the predicates and name
     return ns_substitution_model.StrandSymmetric(
-        optimise_motif_probs=optimise_motif_probs, name="ssGN", **kw
+        optimise_motif_probs=optimise_motif_probs,
+        name="ssGN",
+        **kw,
     )
 
 
@@ -161,7 +168,10 @@ def JC69(**kw):
 def GTR(**kw):
     """General Time Reversible nucleotide substitution model."""
     required = dict(
-        name="GTR", predicates=_gtr_preds, mprob_model="conditional", model_gaps=False
+        name="GTR",
+        predicates=_gtr_preds,
+        mprob_model="conditional",
+        model_gaps=False,
     )
     kwargs = dict(recode_gaps=True, motif_probs=None)
     kwargs.update(kw)
@@ -816,7 +826,7 @@ DSO78_matrix = numpy.array(
             6.10000000e01,
             0.00000000e00,
         ],
-    ]
+    ],
 )
 
 DSO78_freqs = {
@@ -1284,7 +1294,7 @@ JTT92_matrix = numpy.array(
             71.0,
             0.0,
         ],
-    ]
+    ],
 )
 
 JTT92_freqs = {
@@ -1752,7 +1762,7 @@ AH96_matrix = numpy.array(
             26.25,
             0.0,
         ],
-    ]
+    ],
 )
 
 AH96_freqs = {
@@ -2220,7 +2230,7 @@ AH96_mtmammals_matrix = numpy.array(
             1.40000000e01,
             0.00000000e00,
         ],
-    ]
+    ],
 )
 
 AH96_mtmammals_freqs = {
@@ -2688,7 +2698,7 @@ WG01_matrix = numpy.array(
             2.48539,
             0.0,
         ],
-    ]
+    ],
 )
 
 WG01_freqs = {
@@ -2724,7 +2734,10 @@ def DSO78(**kw):
     National Biomedical Research Foundation,  Washington D. C
     Matrix imported from PAML dayhoff.dat file"""
     return substitution_model.EmpiricalProteinMatrix(
-        DSO78_matrix, DSO78_freqs, name="DSO78", **kw
+        DSO78_matrix,
+        DSO78_freqs,
+        name="DSO78",
+        **kw,
     )
 
 
@@ -2736,7 +2749,10 @@ def JTT92(**kw):
     Comput Appl Biosci. 1992 Jun;8(3):275-82.
     Matrix imported from PAML jones.dat file"""
     return substitution_model.EmpiricalProteinMatrix(
-        JTT92_matrix, JTT92_freqs, name="JTT92", **kw
+        JTT92_matrix,
+        JTT92_freqs,
+        name="JTT92",
+        **kw,
     )
 
 
@@ -2748,7 +2764,10 @@ def AH96(**kw):
     J Mol Evol. 1996 Apr;42(4):459-68.
     Matrix imported from PAML mtREV24.dat file"""
     return substitution_model.EmpiricalProteinMatrix(
-        AH96_matrix, AH96_freqs, name="AH96_mtREV24", **kw
+        AH96_matrix,
+        AH96_freqs,
+        name="AH96_mtREV24",
+        **kw,
     )
 
 
@@ -2792,7 +2811,10 @@ def AH96_mtmammals(**kw):
     J Mol Evol. 1996 Apr;42(4):459-68.
     Matrix imported from PAML mtmam.dat file"""
     return substitution_model.EmpiricalProteinMatrix(
-        AH96_mtmammals_matrix, AH96_mtmammals_freqs, name="AH96_mtmammals", **kw
+        AH96_mtmammals_matrix,
+        AH96_mtmammals_freqs,
+        name="AH96_mtmammals",
+        **kw,
     )
 
 
@@ -2809,7 +2831,10 @@ def WG01(**kw):
     Mol Biol Evol. 2001 May;18(5):691-9.
     Matrix imported from PAML wag.dat file"""
     return substitution_model.EmpiricalProteinMatrix(
-        WG01_matrix, WG01_freqs, name="WG01", **kw
+        WG01_matrix,
+        WG01_freqs,
+        name="WG01",
+        **kw,
     )
 
 

@@ -55,7 +55,8 @@ base_path = os.getcwd()
 data_path = os.path.join(base_path, "data")
 
 ALIGNMENT = load_aligned_seqs(
-    moltype=DNA, filename=os.path.join(data_path, "brca1.fasta")
+    moltype=DNA,
+    filename=os.path.join(data_path, "brca1.fasta"),
 )
 
 OTU_NAMES = ["Human", "Mouse", "HowlerMon"]
@@ -83,7 +84,7 @@ def isTransition(motif1, motif2):
 
 def numdiffs_position(motif1, motif2):
     assert len(motif1) == len(
-        motif2
+        motif2,
     ), f"motif1[{motif1}] & motif2[{motif2}] have inconsistent length"
 
     ndiffs, position = 0, -1
@@ -113,7 +114,11 @@ def getposition(motif1, motif2):
 # funcs for testing the monomer weighted substitution matrices
 def _root_probs(x):
     return dict(
-        [(n1 + n2, p1 * p2) for n1, p1 in list(x.items()) for n2, p2 in list(x.items())]
+        [
+            (n1 + n2, p1 * p2)
+            for n1, p1 in list(x.items())
+            for n2, p2 in list(x.items())
+        ],
     )
 
 
@@ -164,7 +169,7 @@ class LikelihoodCalcs(TestCase):
         aln["root"] = one
         aln = make_aligned_seqs(data=aln)
         submod = get_model("TN93")
-        tree = make_tree(f"{str(tuple(aln.names))}")
+        tree = make_tree(f"{tuple(aln.names)!s}")
         lf = submod.make_likelihood_function(tree)
         try:
             lf.set_alignment(aln)
@@ -173,7 +178,7 @@ class LikelihoodCalcs(TestCase):
 
         collection = aln.degap().named_seqs
         collection.pop("Human")
-        tree = make_tree(f"{str(tuple(collection.keys()))}")
+        tree = make_tree(f"{tuple(collection.keys())!s}")
         lf = submod.make_likelihood_function(tree, aligned=False)
         try:
             lf.set_sequences(collection)
@@ -259,7 +264,9 @@ class LikelihoodCalcs(TestCase):
     def test_nucleotide(self):
         """test a nucleotide model."""
         submod = TimeReversibleNucleotide(
-            equal_motif_probs=True, motif_probs=None, predicates={"kappa": "transition"}
+            equal_motif_probs=True,
+            motif_probs=None,
+            predicates={"kappa": "transition"},
         )
         # now do using the evolve
         likelihood_function = self._makeLikelihoodFunction(submod)
@@ -281,10 +288,13 @@ class LikelihoodCalcs(TestCase):
         """test that partially discrete nucleotide model can be constructed,
         differs from continuous, and has the expected number of free params"""
         submod = TimeReversibleNucleotide(
-            equal_motif_probs=True, motif_probs=None, predicates={"kappa": "transition"}
+            equal_motif_probs=True,
+            motif_probs=None,
+            predicates={"kappa": "transition"},
         )
         likelihood_function = self._makeLikelihoodFunction(
-            submod, discrete_edges=["Human"]
+            submod,
+            discrete_edges=["Human"],
         )
         self.assertEqual(likelihood_function.get_num_free_params(), 12)
         evolve_lnL = likelihood_function.get_log_likelihood()
@@ -318,7 +328,10 @@ class LikelihoodCalcs(TestCase):
         lf = sm.make_likelihood_function(tree)
         lf.set_alignment(aln)
         lf.optimise(
-            local=True, show_progress=False, max_evaluations=10, limit_action="ignore"
+            local=True,
+            show_progress=False,
+            max_evaluations=10,
+            limit_action="ignore",
         )
         kappa_lo, kappa_mle, kappa_hi = lf.get_param_interval("kappa")
         assert kappa_lo < kappa_mle < kappa_hi
@@ -331,7 +344,8 @@ class LikelihoodFunctionTests(TestCase):
 
     def setUp(self):
         self.submodel = TimeReversibleNucleotide(
-            equal_motif_probs=True, predicates={"beta": "transition"}
+            equal_motif_probs=True,
+            predicates={"beta": "transition"},
         )
 
         self.data = load_aligned_seqs(
@@ -356,7 +370,10 @@ class LikelihoodFunctionTests(TestCase):
             ("Mouse", 0.5),
         ]:
             likelihood_function.set_param_rule(
-                "length", value=length, edge=species, is_constant=True
+                "length",
+                value=length,
+                edge=species,
+                is_constant=True,
             )
         for species1, species2, length in [
             ("Human", "HowlerMon", 0.7),
@@ -364,7 +381,10 @@ class LikelihoodFunctionTests(TestCase):
         ]:
             LCA = self.tree.get_connecting_node(species1, species2).name
             likelihood_function.set_param_rule(
-                "length", value=length, edge=LCA, is_constant=True
+                "length",
+                value=length,
+                edge=LCA,
+                is_constant=True,
             )
 
         likelihood_function.set_param_rule("beta", value=4.0, is_constant=True)
@@ -440,14 +460,18 @@ DogFaced   root      1.00  1.00
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
         self.assertAlmostEqual(
-            -250.686745262, likelihood_function.get_log_likelihood(), places=9
+            -250.686745262,
+            likelihood_function.get_log_likelihood(),
+            places=9,
         )
 
     def test_g_statistic(self):
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
         self.assertAlmostEqual(
-            230.77670557, likelihood_function.get_G_statistic(), places=6
+            230.77670557,
+            likelihood_function.get_G_statistic(),
+            places=6,
         )
 
     def test_ancestralsequences(self):
@@ -457,7 +481,9 @@ DogFaced   root      1.00  1.00
         a_column_with_mostly_Ts = -1
         motif_G = 2
         self.assertAlmostEqual(
-            2.28460181711e-05, result[a_column_with_mostly_Ts][motif_G], places=8
+            2.28460181711e-05,
+            result[a_column_with_mostly_Ts][motif_G],
+            places=8,
         )
         lf = self.submodel.make_likelihood_function(self.tree, bins=["low", "high"])
         lf.set_param_rule("beta", bin="low", value=0.1)
@@ -476,7 +502,8 @@ DogFaced   root      1.00  1.00
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
         simulated_alignment = likelihood_function.simulate_alignment(
-            20, exclude_internal=False
+            20,
+            exclude_internal=False,
         )
         self.assertEqual(len(simulated_alignment), 20)
         self.assertEqual(len(simulated_alignment.names), 8)
@@ -491,7 +518,9 @@ DogFaced   root      1.00  1.00
     def test_simulatePatchyHetergeneousAlignment(self):
         "Simulate patchy substitution-heterogeneous DNA alignment"
         lf = self.submodel.make_likelihood_function(
-            self.tree, bins=["low", "high"], sites_independent=False
+            self.tree,
+            bins=["low", "high"],
+            sites_independent=False,
         )
         lf.set_param_rule("beta", bin="low", value=0.1)
         lf.set_param_rule("beta", bin="high", value=10.0)
@@ -531,7 +560,8 @@ DogFaced   root      1.00  1.00
             lf = sm.make_likelihood_function(t)
             lf.set_alignment(al)
             simalign = lf.simulate_alignment(
-                exclude_internal=False, root_sequence=root_sequence
+                exclude_internal=False,
+                root_sequence=root_sequence,
             )
             root = simalign.named_seqs["root"]
             self.assertEqual(str(root), str(root_sequence))
@@ -586,7 +616,10 @@ DogFaced     root      4.0000
         """check behaviour when modify bound and reset param rule"""
         lf = self._makeLikelihoodFunction()
         lf.set_param_rule(
-            "beta", init=4.0, is_independent=True, edges=["DogFaced", "NineBande"]
+            "beta",
+            init=4.0,
+            is_independent=True,
+            edges=["DogFaced", "NineBande"],
         )
         lf.set_param_rule("beta", upper=2)
         val = lf.get_param_value("beta", edge="DogFaced")
@@ -783,7 +816,10 @@ DogFaced     root      1.0000    1.0000
         lf.set_alignment(self.data)
         lf.set_param_rule("beta", init=2.0)
         lf.set_param_rule(
-            "beta", value=2.0, edges=["Human", "HowlerMon"], is_constant=True
+            "beta",
+            value=2.0,
+            edges=["Human", "HowlerMon"],
+            is_constant=True,
         )
         lf.set_param_rule("length", init=0.5, edges="Human", upper=5)
         lf.set_param_rule("length", value=0.25, edges="HowlerMon", is_constant=True)
@@ -810,7 +846,7 @@ DogFaced     root      1.0000    1.0000
     def test_get_param_rules_multilocus(self):
         """correctly return rules from multilocus lf"""
         data = load_aligned_seqs(
-            filename=os.path.join(os.getcwd(), "data", "brca1_5.paml")
+            filename=os.path.join(os.getcwd(), "data", "brca1_5.paml"),
         )
         half = len(data) // 2
         aln1 = data[:half]
@@ -856,7 +892,10 @@ DogFaced     root      1.0000    1.0000
         lf.set_alignment(self.data)
         lf.set_param_rule("beta", init=2.0)
         lf.set_param_rule(
-            "beta", value=2.0, edges=["Human", "HowlerMon"], is_constant=True
+            "beta",
+            value=2.0,
+            edges=["Human", "HowlerMon"],
+            is_constant=True,
         )
         lf.set_param_rule("length", init=0.5, is_independent=False)
         rules = lf.get_param_rules()
@@ -1079,7 +1118,8 @@ DogFaced     root      1.0000    1.0000
         # if not specified, the edges are considered to be not-independent
         lf = self.submodel.make_likelihood_function(self.tree)
         lf.set_time_heterogeneity(
-            edge_sets=dict(edges=["Human", "HowlerMon"]), is_independent=False
+            edge_sets=dict(edges=["Human", "HowlerMon"]),
+            is_independent=False,
         )
         got = lf.get_num_free_params()
         self.assertEqual(got, nfp + 1)
@@ -1087,7 +1127,8 @@ DogFaced     root      1.0000    1.0000
         # making them independent
         lf = self.submodel.make_likelihood_function(self.tree)
         lf.set_time_heterogeneity(
-            edge_sets=dict(edges=["Human", "HowlerMon"]), is_independent=True
+            edge_sets=dict(edges=["Human", "HowlerMon"]),
+            is_independent=True,
         )
         got = lf.get_num_free_params()
         self.assertEqual(got, nfp + 2)
@@ -1095,7 +1136,8 @@ DogFaced     root      1.0000    1.0000
         # making them constant
         lf = self.submodel.make_likelihood_function(self.tree)
         lf.set_time_heterogeneity(
-            edge_sets=dict(edges=["Human", "HowlerMon"]), is_constant=True
+            edge_sets=dict(edges=["Human", "HowlerMon"]),
+            is_constant=True,
         )
         got = lf.get_num_free_params()
         self.assertEqual(got, nfp)
@@ -1106,7 +1148,7 @@ DogFaced     root      1.0000    1.0000
             edge_sets=[
                 dict(edges=["Human", "HowlerMon"], init=3),
                 dict(edges=["NineBande", "DogFaced"], value=5, is_constant=True),
-            ]
+            ],
         )
         got = lf.get_num_free_params()
         self.assertEqual(got, nfp + 1)
@@ -1578,7 +1620,10 @@ class ComparisonTests(TestCase):
         tree = load_tree("data/primate_brca1.tree")
         cnf = get_model("CNFGTR")
         rate_lf = cnf.make_likelihood_function(
-            tree, bins=["neutral", "adaptive"], digits=2, space=3
+            tree,
+            bins=["neutral", "adaptive"],
+            digits=2,
+            space=3,
         )
         rate_lf.set_alignment(aln)
 
@@ -1827,7 +1872,10 @@ class ComparisonTests(TestCase):
         tree = load_tree("data/primate_brca1.tree")
         cnf = get_model("CNFGTR")
         lf = cnf.make_likelihood_function(
-            tree, bins=["0", "1", "2a", "2b"], digits=2, space=3
+            tree,
+            bins=["0", "1", "2a", "2b"],
+            digits=2,
+            space=3,
         )
         lf.set_alignment(aln)
         epsilon = 1e-6
@@ -2245,7 +2293,7 @@ def test_simulate_alignment3():
             "b": "---C-CTCCT",
             "c": "-A-C-CTAT-",
             "d": "-A-C-CTAT-",
-        }
+        },
     )
     sm = TimeReversibleNucleotide(recode_gaps=True)
     lf = sm.make_likelihood_function(t)
@@ -2278,7 +2326,9 @@ def test_get_lengths_as_ens_matches_manual_calc(gn_mod):
     mprobs = numpy.array([0.1, 0.2, 0.3, 0.4])
     len_dict = gn_mod.get_lengths_as_ens()
     expect = expected_number_subs(
-        mprobs, gn_mod.get_rate_matrix_for_edge("a", calibrated=False), 1.0
+        mprobs,
+        gn_mod.get_rate_matrix_for_edge("a", calibrated=False),
+        1.0,
     )
     assert_allclose(len_dict["a"], expect)
 
@@ -2288,7 +2338,7 @@ def test_expm_zero_lengths(expm, DATA_DIR):
     aln = load_aligned_seqs((DATA_DIR / "brca1_5.paml"), moltype="dna")
     names = ["Mouse", "Human", "HowlerMon"]
     aln = aln.take_seqs(names)
-    tree = make_tree((f"({names[0]}:0.0,{names[1]}:0.0,{names[2]}:0.0)"))
+    tree = make_tree(f"({names[0]}:0.0,{names[1]}:0.0,{names[2]}:0.0)")
     sm = GTR()
     lf = sm.make_likelihood_function(tree=tree, expm=expm)
     lf.set_alignment(aln)
@@ -2299,7 +2349,7 @@ def test_lengths_as_ens_model_mix(DATA_DIR):
     aln = load_aligned_seqs((DATA_DIR / "brca1_5.paml"), moltype="dna")
     names = ["Mouse", "Human", "HowlerMon"]
     aln = aln.take_seqs(names)
-    tree = make_tree((f"({names[0]}:0.0,{names[1]}:0.0,{names[2]}:0.0)"))
+    tree = make_tree(f"({names[0]}:0.0,{names[1]}:0.0,{names[2]}:0.0)")
     sm = GTR()
     lf = sm.make_likelihood_function(tree=tree, discrete_edges=["Mouse"])
     lf.set_alignment(aln)
@@ -2313,10 +2363,11 @@ def test_get_annotated_tree_model_mix(DATA_DIR, discrete_time):
     aln = load_aligned_seqs((DATA_DIR / "brca1_5.paml"), moltype="dna")
     names = ["Mouse", "Human", "HowlerMon"]
     aln = aln.take_seqs(names)
-    tree = make_tree((f"({names[0]}:0.0,{names[1]}:0.0,{names[2]}:0.0)"))
+    tree = make_tree(f"({names[0]}:0.0,{names[1]}:0.0,{names[2]}:0.0)")
     sm = GTR()
     lf = sm.make_likelihood_function(
-        tree=tree, discrete_edges=["Mouse"] if discrete_time else None
+        tree=tree,
+        discrete_edges=["Mouse"] if discrete_time else None,
     )
     lf.set_alignment(aln)
     lf.optimise(max_evaluations=5, show_progress=False, limit_action="ignore")
@@ -2329,7 +2380,7 @@ def mixed_model(DATA_DIR):
     aln = load_aligned_seqs((DATA_DIR / "brca1_5.paml"), moltype="dna")
     names = ["Mouse", "Human", "HowlerMon"]
     aln = aln.take_seqs(names)
-    tree = make_tree((f"({names[0]}:0.0,{names[1]}:0.0,{names[2]}:0.0)"))
+    tree = make_tree(f"({names[0]}:0.0,{names[1]}:0.0,{names[2]}:0.0)")
     sm = GTR()
     lf = sm.make_likelihood_function(tree=tree, discrete_edges=["Mouse"])
     lf.set_alignment(aln)
@@ -2341,7 +2392,7 @@ def bh_model(DATA_DIR):
     aln = load_aligned_seqs((DATA_DIR / "brca1_5.paml"), moltype="dna")
     names = ["Mouse", "Human", "HowlerMon"]
     aln = aln.take_seqs(names)
-    tree = make_tree((f"({names[0]}:0.0,{names[1]}:0.0,{names[2]}:0.0)"))
+    tree = make_tree(f"({names[0]}:0.0,{names[1]}:0.0,{names[2]}:0.0)")
     sm = get_model("BH")
     lf = sm.make_likelihood_function(tree=tree)
     lf.set_alignment(aln)

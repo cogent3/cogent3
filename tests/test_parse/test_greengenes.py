@@ -17,7 +17,9 @@ class ParseGreengenesRecordsTests(TestCase):
     def test_MinimalGreengenesParser_mock(self):
         """Test MinimalGreengenesParser against mock data"""
         res = MinimalGreengenesParser(
-            mock_data.splitlines(), RecStart="my_starting", RecEnd="my_ending"
+            mock_data.splitlines(),
+            RecStart="my_starting",
+            RecEnd="my_ending",
         )
 
         records = list(res)

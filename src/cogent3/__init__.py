@@ -27,7 +27,7 @@ from cogent3.core.moltype import (
     PROTEIN,  # noqa
     RNA,  # noqa
     available_moltypes,  # noqa
-    get_moltype,  # noqa
+    get_moltype,
 )
 from cogent3.core.tree import PhyloNode, TreeBuilder, TreeError, TreeNode
 from cogent3.evolve.fast_distance import (
@@ -717,7 +717,7 @@ def load_table(
 
     if file_format == "json":
         return load_from_json(filename, (_Table,))
-    elif file_format in ("pickle", "pkl"):
+    if file_format in ("pickle", "pkl"):
         with open_(filename, mode="rb") as f:
             loaded_table = pickle.load(f)
 

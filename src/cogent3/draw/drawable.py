@@ -322,7 +322,7 @@ class AnnotatedDrawable(Drawable):
                 "yaxis": {"anchor": "x", "domain": [0.109, 1.0]},
                 "yaxis2": {"anchor": "x2", "domain": [0.109, 1.0]},
                 "yaxis3": {"anchor": "x3", "domain": [0.0, 0.099]},
-            }
+            },
         )
         layout |= self.layout
         fig = UnionDict(data=[], layout=layout)
@@ -373,11 +373,15 @@ class AnnotatedDrawable(Drawable):
         fig.data.extend(traces)
         # configure axes for titles, limits, border and ticks
         fig.layout.yaxis |= dict(
-            title=dict(text=self.ytitle), range=self.yrange, **ticks_on_kwargs
+            title=dict(text=self.ytitle),
+            range=self.yrange,
+            **ticks_on_kwargs,
         )
 
         fig.layout.xaxis3 |= dict(
-            title=dict(text=self.xtitle), range=self.xrange, **ticks_on_kwargs
+            title=dict(text=self.xtitle),
+            range=self.xrange,
+            **ticks_on_kwargs,
         )
 
         # adjust row width of left plot for number of feature tracks
@@ -388,10 +392,16 @@ class AnnotatedDrawable(Drawable):
         xaxis_domain = list(layout.xaxis.domain)
         xaxis_domain[1] = left_prop * xaxis_domain[1]
         fig.layout.xaxis |= dict(
-            title=None, range=left_range, domain=xaxis_domain, **ticks_off_kwargs
+            title=None,
+            range=left_range,
+            domain=xaxis_domain,
+            **ticks_off_kwargs,
         )
         fig.layout.xaxis |= dict(
-            title={}, range=left_range, domain=xaxis_domain, **ticks_off_kwargs
+            title={},
+            range=left_range,
+            domain=xaxis_domain,
+            **ticks_off_kwargs,
         )
 
         space = 0.01
@@ -403,7 +413,10 @@ class AnnotatedDrawable(Drawable):
         yaxis_domain = list(layout.yaxis3.domain)
         yaxis_domain[1] = bottom_prop * yaxis_domain[1]
         fig.layout.yaxis3 |= dict(
-            title={}, range=bottom_range, domain=yaxis_domain, **ticks_off_kwargs
+            title={},
+            range=bottom_range,
+            domain=yaxis_domain,
+            **ticks_off_kwargs,
         )
 
         # and bottom of the boxes above
@@ -437,10 +450,14 @@ class AnnotatedDrawable(Drawable):
         fig.data.extend(self.traces)
 
         fig.layout.xaxis |= dict(
-            title=dict(text=self.xtitle), range=self.xrange, **ticks_on_kwargs
+            title=dict(text=self.xtitle),
+            range=self.xrange,
+            **ticks_on_kwargs,
         )
         fig.layout.yaxis |= dict(
-            title=dict(text=self.ytitle), range=self.yrange, **ticks_on_kwargs
+            title=dict(text=self.ytitle),
+            range=self.yrange,
+            **ticks_on_kwargs,
         )
 
         # bottom traces
@@ -460,7 +477,9 @@ class AnnotatedDrawable(Drawable):
 
         fig.data.extend(traces)
         fig.layout.yaxis2 |= dict(
-            title={}, range=[0, int(max_y) + 1], **ticks_off_kwargs
+            title={},
+            range=[0, int(max_y) + 1],
+            **ticks_off_kwargs,
         )
         return fig
 
@@ -484,10 +503,14 @@ class AnnotatedDrawable(Drawable):
         fig.data.extend(self.traces)
 
         fig.layout.xaxis2 |= dict(
-            title=self.xtitle, range=self.xrange, **ticks_on_kwargs
+            title=self.xtitle,
+            range=self.xrange,
+            **ticks_on_kwargs,
         )
         fig.layout.yaxis |= dict(
-            title=self.ytitle, range=self.yrange, **ticks_on_kwargs
+            title=self.ytitle,
+            range=self.yrange,
+            **ticks_on_kwargs,
         )
 
         # left track
@@ -506,7 +529,9 @@ class AnnotatedDrawable(Drawable):
 
         fig.data.extend(traces)
         fig.layout.xaxis |= dict(
-            title=None, range=[0, int(max_x) + 1], **ticks_off_kwargs
+            title=None,
+            range=[0, int(max_x) + 1],
+            **ticks_off_kwargs,
         )
         return fig
 
@@ -583,15 +608,13 @@ class Shape:
     def top(self):
         if not isinstance(self.y, numpy.ndarray):
             return numpy.max(self.y)
-        else:
-            return numpy.max(self.y[self.y != None])
+        return numpy.max(self.y[self.y != None])
 
     @property
     def bottom(self):
         if not isinstance(self.y, numpy.ndarray):
             return numpy.min(self.y)
-        else:
-            return numpy.min(self.y[self.y != None])
+        return numpy.min(self.y[self.y != None])
 
     @property
     def middle(self):
@@ -711,7 +734,9 @@ def _make_arrow_head(
     x_coord = min(coord[0], coord[1])
     hh = height * head_width_frac * 2
     hw = _calc_arrow_width(
-        parent_length=parent_length, feature_width=width, frac=head_width_frac
+        parent_length=parent_length,
+        feature_width=width,
+        frac=head_width_frac,
     )
 
     # Coordinates for arrow head
@@ -743,7 +768,9 @@ def _make_arrow_head(
 
 
 def _connecting_lines(
-    x_grp: list[list[float]], y_grp: list[list[float]], connect_y: float
+    x_grp: list[list[float]],
+    y_grp: list[list[float]],
+    connect_y: float,
 ) -> tuple[list[typing.Union[float, None]]]:
     new_xs, new_ys = x_grp[0][:], y_grp[0][:]
     y_connect_coord = [None, connect_y, connect_y, None]

@@ -11,7 +11,7 @@ from numba.core.types.containers import Tuple
             Tuple(types=(int64, int64)),
             int64,
             float64,
-        )
+        ),
     )(
         int64[::1],
         int64[::1],

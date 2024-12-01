@@ -24,12 +24,15 @@ class TreeGeometryBase(PhyloNode):
         if tree is not None:
             children = [type(self)(child, *args, **kwargs) for child in tree.children]
             PhyloNode.__init__(
-                self, params=tree.params.copy(), children=children, name=tree.name
+                self,
+                params=tree.params.copy(),
+                children=children,
+                name=tree.name,
             )
         else:
             PhyloNode.__init__(self, **kwargs)
 
-        # todo do we need to validate the length_attr key exists?
+        # TODO do we need to validate the length_attr key exists?
         self._length = length_attr
         self._node_space = 1.3
         self._start = None
@@ -76,7 +79,7 @@ class TreeGeometryBase(PhyloNode):
             if len(edge.children) > 0:
                 # we order children by their length
                 children = sorted(
-                    [(c.params.get(self._length, 0) or 0, c) for c in edge.children]
+                    [(c.params.get(self._length, 0) or 0, c) for c in edge.children],
                 )
                 edge.children = [c for _, c in children]
 
@@ -204,7 +207,7 @@ class TreeGeometryBase(PhyloNode):
         -------
         (value of attr, (x, y)
         """
-        # todo, possibly also return a rotation?
+        # TODO, possibly also return a rotation?
         raise NotImplementedError("implement in sub-class")
 
     def support_text_coord(self, xshift, yshift, threshold=1, max_attr_length=4):
@@ -272,7 +275,7 @@ class SquareTreeGeometry(TreeGeometryBase):
 
         if not hasattr(self, "_ordered"):
             self._ordered = sorted(
-                [(c.y, c.start) for c in self.children] + [(self.y, self.end)]
+                [(c.y, c.start) for c in self.children] + [(self.y, self.end)],
             )
         ordered = self._ordered
         dist = child.y - self.y
@@ -287,14 +290,19 @@ class SquareTreeGeometry(TreeGeometryBase):
 
     @extend_docstring_from(TreeGeometryBase.value_and_coordinate)
     def value_and_coordinate(self, attr="name", padding=0.05, max_attr_length=None):
-        # todo, possibly also return a rotation?
+        # TODO, possibly also return a rotation?
         x = self.x + padding
         y = self.y
         value = self.params.get(attr, None)
         if value is None:
             value = getattr(self, attr, None)
         return UnionDict(
-            x=x, y=y, textangle=self.theta, showarrow=False, text=value, xanchor="left"
+            x=x,
+            y=y,
+            textangle=self.theta,
+            showarrow=False,
+            text=value,
+            xanchor="left",
         )
 
 
@@ -468,7 +476,7 @@ class CircularTreeGeometry(TreeGeometryBase):
 
         if not hasattr(self, "_ordered"):
             self._ordered = sorted(
-                [(c.theta, c.start) for c in self.children] + [(self.theta, self.end)]
+                [(c.theta, c.start) for c in self.children] + [(self.theta, self.end)],
             )
         ordered = self._ordered
         dist = child.theta - self.theta
@@ -518,7 +526,10 @@ class Dendrogram(Drawable):
     ):
         length_attr = kwargs.pop("length_attr", None)
         super(Dendrogram, self).__init__(
-            visible_axes=False, showlegend=False, *args, **kwargs
+            visible_axes=False,
+            showlegend=False,
+            *args,
+            **kwargs,
         )
         klass = {
             "square": SquareTreeGeometry,
@@ -646,7 +657,9 @@ class Dendrogram(Drawable):
         annotations = []
         for tip in self.tree.tips():
             anote = tip.value_and_coordinate(
-                "name", padding=self.label_pad, max_attr_length=self._max_label_length
+                "name",
+                padding=self.label_pad,
+                max_attr_length=self._max_label_length,
             )
             anote |= UnionDict(xref="x", yref="y", font=self.tip_font)
             annotations.append(anote)
@@ -706,7 +719,7 @@ class Dendrogram(Drawable):
                     "size": self._marker_size,
                 },
                 "showlegend": False,
-            }
+            },
         )
         support_text = []
         get_edge_group = self._edge_mapping.get
@@ -745,7 +758,7 @@ class Dendrogram(Drawable):
                         color=self._line_color,
                         shape="spline",
                         smoothing=1.3,
-                    )
+                    ),
                 ),
             )
             trace = UnionDict(type="scatter", x=group["x"], y=group["y"], mode="lines")
@@ -796,13 +809,13 @@ class Dendrogram(Drawable):
                     range=[
                         self.tree.min_x - (1.4 * max_span - x_diff) / 2,
                         self.tree.max_x + (1.4 * max_span - x_diff) / 2,
-                    ]
+                    ],
                 ),
                 yaxis=dict(
                     range=[
                         self.tree.min_y - (1.4 * max_span - y_diff) / 2,
                         self.tree.max_y + (1.4 * max_span - y_diff) / 2,
-                    ]
+                    ],
                 ),
             )
             self.layout |= axes_range
@@ -890,7 +903,11 @@ class Dendrogram(Drawable):
         list of edge names
         """
         return self.tree.get_edge_names(
-            tip1, tip2, stem=stem, clade=clade, outgroup_name=outgroup
+            tip1,
+            tip2,
+            stem=stem,
+            clade=clade,
+            outgroup_name=outgroup,
         )
 
     @property

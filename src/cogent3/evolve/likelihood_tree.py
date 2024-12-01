@@ -11,7 +11,7 @@ from . import likelihood_tree_numba as likelihood_tree
 numpy.seterr(all="ignore")
 
 
-class _LikelihoodTreeEdge(object):
+class _LikelihoodTreeEdge:
     def __init__(self, children, edge_name, alignment=None):
         self.edge_name = edge_name
         self.alphabet = children[0].alphabet
@@ -55,7 +55,7 @@ class _LikelihoodTreeEdge(object):
 
         # For faster math, a contiguous index array for each child
         self.indexes = numpy.ascontiguousarray(
-            [numpy.array(list(ch), int) for ch in numpy.transpose(self.uniq)]
+            [numpy.array(list(ch), int) for ch in numpy.transpose(self.uniq)],
         )
 
         # If this is the root it will need to weight the total
@@ -114,17 +114,15 @@ class _LikelihoodTreeEdge(object):
                 index_name="Pattern",
             )
             return (G, table)
-        else:
-            return G
+        return G
 
     def get_edge(self, name):
         if self.edge_name == name:
             return self
-        else:
-            for i, c in self._indexed_children:
-                r = c.get_edge(name)
-                if r is not None:
-                    return r
+        for i, c in self._indexed_children:
+            r = c.get_edge(name)
+            if r is not None:
+                return r
         return None
 
     def make_partial_likelihoods_array(self):
@@ -255,7 +253,7 @@ def make_likelihood_tree_leaf(sequence, alphabet, seq_name):
             moltype = sequence.moltype
         except AttributeError as e:
             raise ValueError(
-                "Cannot determine moltype from sequence or alphabet"
+                "Cannot determine moltype from sequence or alphabet",
             ) from e
 
     # Convert list of unique motifs to array of unique profiles
@@ -265,15 +263,21 @@ def make_likelihood_tree_leaf(sequence, alphabet, seq_name):
         motif = str(detail)
         posn = list(sequence2).index(motif) * motif_len
         raise ValueError(
-            f"{motif!r} at {seq_name!r}:{posn} not in alphabet"
+            f"{motif!r} at {seq_name!r}:{posn} not in alphabet",
         ) from detail
 
     return LikelihoodTreeLeaf(
-        uniq_motifs, likelihoods, counts, index, seq_name, alphabet, sequence
+        uniq_motifs,
+        likelihoods,
+        counts,
+        index,
+        seq_name,
+        alphabet,
+        sequence,
     )
 
 
-class LikelihoodTreeLeaf(object):
+class LikelihoodTreeLeaf:
     def __init__(self, uniq, likelihoods, counts, index, edge_name, alphabet, sequence):
         if sequence is not None:
             self.sequence = sequence
@@ -330,14 +334,19 @@ class LikelihoodTreeLeaf(object):
         uniq = [self.uniq[u] for u in keep]
         likelihoods = self.input_likelihoods[keep]
         return self.__class__(
-            uniq, likelihoods, counts, index, self.edge_name, self.alphabet, None
+            uniq,
+            likelihoods,
+            counts,
+            index,
+            self.edge_name,
+            self.alphabet,
+            None,
         )
 
     def get_edge(self, name):
         if self.edge_name == name:
             return self
-        else:
-            return None
+        return None
 
     def get_site_patterns(self, cols):
         return numpy.asarray(self.uniq)[cols]

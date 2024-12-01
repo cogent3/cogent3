@@ -144,7 +144,7 @@ AACTGATCAGCTTCTATAATT---------------------TAA
 AAATGATCTACCTCAATGCTT---------------------TAA
 AAATGATCTGTATCAATACTA---------------------TAA
 AACTGATCTTCATCAATACTA---GAAGCATCACTA------AGA
-        """
+        """,
         )
 
         self.space_interleaved = StringIO(
@@ -172,7 +172,7 @@ cox2_tborr   MLFFINQLLL LLVDTFVILE IFSLFVCVFI IVMYILFINY NIFLKNINVY
              SAIDVIHSFT LANLGIKVD? ?PGRCN
              SAVDVIHSFT ISSLGIKVEN PGRCNE
              TSIDVIHSFT ISTLGIKIDC IPGRCN
-                                                                                                                                                                """
+                                                                                                                                                                """,
         )
         self.interleaved_little = StringIO(
             """   6   39 I
@@ -189,7 +189,7 @@ AATTGTTAAT GTTAATTGT
 CGTTGTTAAT GTTCGTTGT
 CATCATCAAA ACCCATCAT
 AATCACGGCA GCCAATCAC
-"""
+""",
         )
         self.empty = []
 
@@ -204,7 +204,7 @@ B. virginiTAATGTTCGT TGTTAATGTT
 BrontosaurCAAAACCCAT CATCAAAACC
 B.subtilisGGCAGCCAAT CACGGCAGCC
 
-"""
+""",
         )
 
         self.noninterleaved_big = StringIO(
@@ -224,7 +224,7 @@ Pig       tgtggcacagatactcatgccagctcgttacagcatgagaacagcagtttattactcact
           gcaaagagccaacagagcagatgggctgaaagtaagggcacatgtaatgataggcagact
           cctaacacagagaaaaaggtagttctgaatactgatctcctgtatgggagaaacgaactg
           aataagcagaaacctgcgtgctctgacagtcctagagattcccaagatgttccttgg
-"""
+""",
         )
 
 

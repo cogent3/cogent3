@@ -66,7 +66,7 @@ class generic_result(MutableMapping):
     def __repr__(self):
         name = self.__class__.__name__
         num = len(self)
-        types = [f"{repr(k)}: {self[k].__class__.__name__}" for k in self]
+        types = [f"{k!r}: {self[k].__class__.__name__}" for k in self]
         types = types[:3] + ["..."] if num > 5 else types
         types = ", ".join(types)
         return f"{num}x {name}({types})"
@@ -142,7 +142,7 @@ class model_result(generic_result):
                 stat=stat.__name__,
                 elapsed_time=elapsed_time,
                 num_evaluations=num_evaluations,
-            )
+            ),
         )
         self._store = {}
         self._name = name
@@ -232,7 +232,7 @@ class model_result(generic_result):
         data = {}
         for n in seqnames:
             seq1, seq2, seq3 = sim[0][n], sim[1][n], sim[2][n]
-            seq = "".join(("".join(t) for t in zip(seq1, seq2, seq3)))
+            seq = "".join("".join(t) for t in zip(seq1, seq2, seq3))
             data[n] = seq
 
         return aln.__class__(data=data)
@@ -486,7 +486,7 @@ class model_collection_result(generic_result):
         """
         selected = self.select_models(stat=stat, threshold=threshold)
         if len(selected) != 1:
-            selected = list(sorted(self.values(), key=lambda x: x.nfp))
+            selected = sorted(self.values(), key=lambda x: x.nfp)
             selected = selected[:1]
 
         return selected[0]

@@ -45,7 +45,7 @@ css_c3table_template = "\n".join(
         ".c3col_left { text-align: left !important; display: block;}",
         ".c3col_right { text-align: right !important; display: block;}",
         ".c3col_center { text-align: center !important; display: block;}",
-    )
+    ),
 )
 
 
@@ -56,7 +56,10 @@ def _merged_cell_text_wrap(text, max_line_length, space):
         return [text]
     buffer = " " * space
     wrapped = textwrap.wrap(
-        text, width=max_line_width, initial_indent=buffer, subsequent_indent=buffer
+        text,
+        width=max_line_width,
+        initial_indent=buffer,
+        subsequent_indent=buffer,
     )
     wrapped = [f"{line.ljust(max_line_width + 2 * space)}" for line in wrapped]
     return wrapped
@@ -123,7 +126,7 @@ def rich_html(
         data.append(
             '<caption style="font-weight: bold;"'
             'background:rgba(30, 140, 200, 1)"; '
-            f'align="top">{caption}</caption>'
+            f'align="top">{caption}</caption>',
         )
 
     if row_cell_func is None:
@@ -242,7 +245,11 @@ def latex(
 
 
 def get_continuation_tables(
-    header, formatted_table, identifiers=None, space=2, max_width=1e100
+    header,
+    formatted_table,
+    identifiers=None,
+    space=2,
+    max_width=1e100,
 ):
     """returns series of tables segmented to not exceed max_width"""
     tables = []
@@ -344,7 +351,11 @@ def simple_format(
     # if we are to split the table, creating sub tables, determine
     # the boundaries
     subtables = get_continuation_tables(
-        header, formatted_table, identifiers, space, max_width
+        header,
+        formatted_table,
+        identifiers,
+        space,
+        max_width,
     )
     for i, (h, t) in enumerate(subtables):
         st = title if i == 0 else f"continued: {title}"
@@ -419,7 +430,7 @@ def markdown(header, formatted_table, space=1, justify=None):
     assert space >= 1, "space must be >= 1"
     if justify is not None:
         assert len(justify) == len(
-            header
+            header,
         ), "column number and justify entries must match"
         justify = [c.lower() for c in justify]
 
@@ -520,7 +531,9 @@ def grid_table_format(header, formatted_table, title=None, legend=None):
         table.append(contiguous_delineator)
         if len(title) > len(row_delineate) - 2:
             wrapped = _merged_cell_text_wrap(
-                title, len(contiguous_delineator) - 2, space
+                title,
+                len(contiguous_delineator) - 2,
+                space,
             )
             for wdex, line in enumerate(wrapped):
                 wrapped[wdex] = "|" + line + "|"
@@ -543,7 +556,9 @@ def grid_table_format(header, formatted_table, title=None, legend=None):
     if legend:
         if len(legend) > len(row_delineate) - 2:
             wrapped = _merged_cell_text_wrap(
-                legend, len(contiguous_delineator) - 2, space
+                legend,
+                len(contiguous_delineator) - 2,
+                space,
             )
             for wdex, line in enumerate(wrapped):
                 wrapped[wdex] = "|" + line + "|"
@@ -663,7 +678,12 @@ def separator_formatter(formatter=None, ignore=None, sep=","):
 
 
 def formatted_cells(
-    rows, header=None, digits=4, column_templates=None, missing_data="", center=False
+    rows,
+    header=None,
+    digits=4,
+    column_templates=None,
+    missing_data="",
+    center=False,
 ):
     """Return rows with each columns cells formatted as an equal length
     string.
@@ -719,7 +739,7 @@ def formatted_cells(
             elif isinstance(entry, float):
                 entry = float_template.format(float(entry))
             else:  # for any other python object
-                entry = f"{str(entry)}"
+                entry = f"{entry!s}"
 
             formatted.append(entry)
             col_widths[cdex] = max(col_widths[cdex], len(entry))
@@ -762,8 +782,7 @@ def phylip_matrix(rows, names):
 
         if not newname:
             raise RuntimeError(f"Can't create a unique name for {oldname}")
-        else:
-            print(f"WARN: Seqname {oldname} changed to {newname}")
+        print(f"WARN: Seqname {oldname} changed to {newname}")
         return newname
 
     def append_species(name, formatted_dists, mat_breaks):
@@ -812,7 +831,10 @@ def phylip_matrix(rows, names):
 
 
 def get_continuation_tables_headers(
-    cols_widths, index_name=None, space=2, max_width=1e100
+    cols_widths,
+    index_name=None,
+    space=2,
+    max_width=1e100,
 ):
     """
     returns column headers for continuation tables segmented to not exceed max_width
@@ -837,7 +859,7 @@ def get_continuation_tables_headers(
     for name, width in width_map.items():
         if index_width + width > max_width:
             raise ValueError(
-                f"{index_name}={index_width} + {name} width={width} > max_width={max_width}"
+                f"{index_name}={index_width} + {name} width={width} > max_width={max_width}",
             )
 
     if sum(v + space + index_width for _, v in cols_widths) < max_width:
@@ -868,7 +890,12 @@ class _MixedFormatter:
     """handles formatting of mixed data types"""
 
     def __init__(
-        self, alignment, length, precision=4, float_type="f", missing_data=None
+        self,
+        alignment,
+        length,
+        precision=4,
+        float_type="f",
+        missing_data=None,
     ):
         self.missing_data = missing_data
         self.length = length
@@ -963,12 +990,15 @@ def formatted_array(
             base_format = "d"
         elif "float" in type_name:
             base_format = f".{precision}f"
-        elif "bool" == type_name:
+        elif type_name == "bool":
             base_format = ""
         else:
             # handle mixed types with a custom formatter
             formatter = _MixedFormatter(
-                align, len(title), precision, missing_data=missing_data
+                align,
+                len(title),
+                precision,
+                missing_data=missing_data,
             )
             base_format = ""
 
@@ -987,8 +1017,7 @@ def formatted_array(
                 v = str(v)
 
         l = len(v)
-        if l > max_length:
-            max_length = l
+        max_length = max(l, max_length)
 
         formatted.append(v)
 

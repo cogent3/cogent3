@@ -82,7 +82,8 @@ class UnionDict(dict):
 
                 for attr in list(cd):
                     if isinstance(cd.get(attr), dict) and isinstance(
-                        cs.get(attr), dict
+                        cs.get(attr),
+                        dict,
                     ):
                         # go into dict
                         path.append(attr)

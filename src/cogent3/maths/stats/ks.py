@@ -53,8 +53,8 @@ def pkolmogorov1x(statistic, n):
         exp(
             coeffs
             + (n - j) * log(1 - statistic - j / n)
-            + (j - 1) * (log(statistic + j / n))
-        )
+            + (j - 1) * (log(statistic + j / n)),
+        ),
     )
     return 1 - statistic * p
 

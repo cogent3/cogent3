@@ -91,7 +91,10 @@ def nc_dstore(DATA_DIR, nc_dir):
     # write three not_completed file
     nc = [
         NotCompleted(
-            "FAIL", f"dummy{i}", f"dummy_message{i}", source=f"dummy_source{i}"
+            "FAIL",
+            f"dummy{i}",
+            f"dummy_message{i}",
+            source=f"dummy_source{i}",
         )
         for i in range(3)
     ]
@@ -166,7 +169,7 @@ def tinydbfile_unlocked(DATA_DIR, tmp_dir):
         from tinydb.storages import JSONStorage
     except ImportError as e:
         raise ImportError(
-            "You need to install tinydb to be able to migrate to new datastore."
+            "You need to install tinydb to be able to migrate to new datastore.",
         ) from e
 
     locked_path = tmp_dir / "sample_locked.tinydb"
@@ -198,7 +201,7 @@ def test_convert_tinydb_to_sqlite(tmp_dir, dest, tinydbfile_locked):
         dest.unlink(missing_ok=True)
     else:
         (Path(tinydbfile_locked.parent) / f"{tinydbfile_locked.stem}.sqlitedb").unlink(
-            missing_ok=True
+            missing_ok=True,
         )
     dstore_sqlite = convert_tinydb_to_sqlite(tinydbfile_locked, dest=dest)
     assert len(dstore_sqlite) == 6
@@ -248,7 +251,9 @@ def test_convert_tinydbs_to_sqlite(DATA_DIR, tmp_dir, orig, num_logs):
 
 def test_convert_directory_datastore(Sample_oldDirectoryDataStore, write_dir):
     new_dstore = convert_directory_datastore(
-        Sample_oldDirectoryDataStore, write_dir, ".fasta"
+        Sample_oldDirectoryDataStore,
+        write_dir,
+        ".fasta",
     )
     assert len(new_dstore) == 6
 
@@ -310,7 +315,7 @@ def test_pickleable_member_roundtrip(ro_dstore):
 
 def test_empty_directory(fasta_dir):
     dstore = DataStoreDirectory(fasta_dir, suffix=".txt")
-    assert 0 == len(dstore)
+    assert len(dstore) == 0
 
 
 def test_no_logs(ro_dstore):
@@ -497,7 +502,7 @@ def test_get_data_source_attr(klass):
     value = klass("some/path.txt")
     obj.source = value
     got = get_data_source(obj)
-    assert got == str("path.txt")
+    assert got == "path.txt"
 
 
 _types = tuple(product((dict, UnionDict), (str, Path)))
@@ -513,7 +518,8 @@ def test_get_data_source_dict(container_type, source_stype):
 
 
 @pytest.mark.parametrize(
-    "name", ("path/name.txt", "path/name.gz", "path/name.fasta.gz", "name.fasta.gz")
+    "name",
+    ("path/name.txt", "path/name.gz", "path/name.fasta.gz", "name.fasta.gz"),
 )
 def test_get_unique_id(name):
     got = get_unique_id(name)
@@ -532,7 +538,9 @@ def test_get_data_source_seqcoll(klass):
 
     value = klass("some/path.txt")
     obj = make_unaligned_seqs(
-        data=dict(seq1="ACGG"), moltype="dna", info=dict(source=value, random_key=1234)
+        data=dict(seq1="ACGG"),
+        moltype="dna",
+        info=dict(source=value, random_key=1234),
     )
     got = get_data_source(obj)
     assert got == "path.txt"
@@ -761,7 +769,9 @@ def test_directory_data_store_write_compressed(tmp_path):
     out = open_data_store(base_path=tmp_path / "demo", suffix="fa.gz", mode="w")
     writer = get_app("write_seqs", data_store=out)
     seqs = make_aligned_seqs(
-        dict(s1="CG--T", s2="CGTTT"), moltype="dna", info=dict(source="test")
+        dict(s1="CG--T", s2="CGTTT"),
+        moltype="dna",
+        info=dict(source="test"),
     )
     got = writer(seqs)  # pylint: disable=not-callable
     assert got, got

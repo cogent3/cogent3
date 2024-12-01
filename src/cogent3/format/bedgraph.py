@@ -50,10 +50,10 @@ def raise_invalid_vals(key, val):
     """raises RuntimeError on invalid values for keys"""
     if key not in valid_values:
         return True
-    if not str(val) in valid_values[key]:
+    if str(val) not in valid_values[key]:
         raise AssertionError(
             "Invalid bedgraph key/val pair: "
-            + f"got {key}={val}; valid values are {valid_values[key]}"
+            + f"got {key}={val}; valid values are {valid_values[key]}",
         )
 
 
@@ -76,14 +76,18 @@ def get_header(name=None, description=None, color=None, **kwargs):
     assert None not in (name, description, color)
     header = [
         min_header
-        % {"name": name, "description": description, "color": ",".join(map(str, color))}
+        % {
+            "name": name,
+            "description": description,
+            "color": ",".join(map(str, color)),
+        },
     ]
 
     if kwargs:
         if not set(kwargs) <= set(bedgraph_fields):
             not_allowed = set(kwargs) - set(bedgraph_fields)
             raise RuntimeError(
-                f"incorrect arguments provided to bedgraph {str(list(not_allowed))}"
+                f"incorrect arguments provided to bedgraph {list(not_allowed)!s}",
             )
 
         if "altColor" in kwargs:
@@ -103,7 +107,12 @@ def get_header(name=None, description=None, color=None, **kwargs):
 
 
 def bedgraph(
-    chrom_start_end_val, digits=2, name=None, description=None, color=None, **kwargs
+    chrom_start_end_val,
+    digits=2,
+    name=None,
+    description=None,
+    color=None,
+    **kwargs,
 ):
     """returns a bed formatted string. Input data must be provided as
     [(chrom, start, end, val), ...]. These will be merged such that adjacent

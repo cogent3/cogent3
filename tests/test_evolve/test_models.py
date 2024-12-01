@@ -102,7 +102,9 @@ class CannedModelsTest(TestCase):
 
 def get_sample_model_types(mod_type=None):
     opts = dict(
-        codon=codon_models, nucleotide=nucleotide_models, protein=protein_models
+        codon=codon_models,
+        nucleotide=nucleotide_models,
+        protein=protein_models,
     )
     return opts.get(mod_type, models)
 

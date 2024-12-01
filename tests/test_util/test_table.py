@@ -470,7 +470,9 @@ class TableTests(TestCase):
 
         o = [3, "abc", 3.456789]
         g, _, _ = formatted_array(
-            numpy.array(o, dtype="O"), "blah", format_spec=formatcol
+            numpy.array(o, dtype="O"),
+            "blah",
+            format_spec=formatcol,
         )
         self.assertEqual(g[0], "   3", g[0])
         self.assertEqual(g[1], " abc", g[1])
@@ -479,7 +481,10 @@ class TableTests(TestCase):
         # don't pad
         g, l, w = formatted_array(numpy.array(f), "    blah", format_spec="<.1f")
         g, l, w = formatted_array(
-            numpy.array(f), "    blah", format_spec="<.1f", pad=False
+            numpy.array(f),
+            "    blah",
+            format_spec="<.1f",
+            pad=False,
         )
         self.assertEqual(l, "blah")
         for v in g:
@@ -487,14 +492,22 @@ class TableTests(TestCase):
 
         # use the align argument, 'c'
         g, l, w = formatted_array(
-            numpy.array(f), "  blah  ", precision=1, pad=True, align="c"
+            numpy.array(f),
+            "  blah  ",
+            precision=1,
+            pad=True,
+            align="c",
         )
         for v in g:
             self.assertTrue(v.startswith(" ") and v.endswith(" "))
 
         # use the align argument, 'l'
         g, l, w = formatted_array(
-            numpy.array(f), "  blah  ", precision=1, pad=True, align="l"
+            numpy.array(f),
+            "  blah  ",
+            precision=1,
+            pad=True,
+            align="l",
         )
         for v in g:
             self.assertTrue(not v.startswith(" ") and v.endswith(" "))
@@ -502,7 +515,11 @@ class TableTests(TestCase):
         # use the align argument, 'r'
         col_title = "  blah  "
         g, l, w = formatted_array(
-            numpy.array(f), col_title, precision=1, pad=True, align="r"
+            numpy.array(f),
+            col_title,
+            precision=1,
+            pad=True,
+            align="r",
         )
         for v in g:
             self.assertTrue(v.startswith(" ") and not v.endswith(" "))
@@ -512,7 +529,11 @@ class TableTests(TestCase):
         # raises error if align invalid value
         with self.assertRaises(ValueError):
             formatted_array(
-                numpy.array(f), "  blah  ", precision=1, pad=True, align="blah"
+                numpy.array(f),
+                "  blah  ",
+                precision=1,
+                pad=True,
+                align="blah",
             )
 
     def test_get_continuation_tables_headers(self):
@@ -831,23 +852,27 @@ class TableTests(TestCase):
 
         # inner join test
         self.assertEqual(
-            t2.joined(t3, columns_self="foo", columns_other="foo").shape[0], 4
+            t2.joined(t3, columns_self="foo", columns_other="foo").shape[0],
+            4,
         )
         # merged 'foo' column, so (6-1) columns in join
         self.assertEqual(
-            t2.joined(t3, columns_self="foo", columns_other="foo").shape[1], 5
+            t2.joined(t3, columns_self="foo", columns_other="foo").shape[1],
+            5,
         )
         # non-inner join test (cartesian product of rows)
         got = t2.joined(t3, inner_join=False)
         self.assertEqual(got.shape[0], t2.shape[0] * t3.shape[0])
         self.assertEqual(
-            t2.joined(t3, inner_join=False).shape[1], t2.shape[1] + t3.shape[1]
+            t2.joined(t3, inner_join=False).shape[1],
+            t2.shape[1] + t3.shape[1],
         )
 
         got = t2.cross_join(t3)
         self.assertEqual(got.shape[0], t2.shape[0] * t3.shape[0])
         self.assertEqual(
-            t2.joined(t3, inner_join=False).shape[1], t2.shape[1] + t3.shape[1]
+            t2.joined(t3, inner_join=False).shape[1],
+            t2.shape[1] + t3.shape[1],
         )
 
     def test_joined_diff_indexing(self):
@@ -915,7 +940,7 @@ class TableTests(TestCase):
                     "ENSG00000019169",
                 ),
                 "length": [1353, 1827, 999, 1599, 1977, 1554, 4185, 2307, 1383, 1698],
-            }
+            },
         )
 
         table = table.sorted(columns=["chrom", "stableid"])
@@ -1110,7 +1135,8 @@ class TableTests(TestCase):
     def test_str_md_format(self):
         """str() produces markdown table"""
         md_table = make_table(
-            header=["a", "b"], data=[["val1", "val2"], ["has | symbol", "val4"]]
+            header=["a", "b"],
+            data=[["val1", "val2"], ["has | symbol", "val4"]],
         )
         md = md_table.to_string(format="md")
         self.assertTrue(r"has \| symbol" in md)
@@ -1118,7 +1144,8 @@ class TableTests(TestCase):
     def test_str_tex_format(self):
         """str() produces latex tabular table"""
         tex_table = make_table(
-            header=["a", "b"], data=[["val1", "val2"], ["val3", "val4"]]
+            header=["a", "b"],
+            data=[["val1", "val2"], ["val3", "val4"]],
         )
         tex = tex_table.to_string(format="tex", justify="cr")
         self.assertEqual(
@@ -1170,7 +1197,9 @@ class TableTests(TestCase):
         self.assertEqual(tex[2], r"\caption{a title.}")
         self.assertEqual(tex[-2], r"\caption*{a legend}")
         tex = tex_table.to_string(
-            format="tex", concat_title_legend=False, label="table"
+            format="tex",
+            concat_title_legend=False,
+            label="table",
         )
         tex = tex.splitlines()
         self.assertEqual(tex[2], r"\caption{a title.}")
@@ -1187,7 +1216,7 @@ class TableTests(TestCase):
         for tag in ("div", "style", "table", "thead"):
             self.assertEqual(len(re.findall(f"<[/]*{tag}.*>", got)), 2)
 
-        self.assertEqual(len(re.findall(f"<[/]*tr>", got)), 4)
+        self.assertEqual(len(re.findall("<[/]*tr>", got)), 4)
         # 2 columns should be left aligned, 4 right aligned
         # adding 1 for the CSS style definition
         self.assertEqual(got.count("c3col_left"), 4 + 1)
@@ -1217,7 +1246,10 @@ class TableTests(TestCase):
         self.assertNotIn("<br>", got)
 
         t = Table(
-            header=self.t8_header, data=self.t8_rows, title="a title", legend="a legend"
+            header=self.t8_header,
+            data=self.t8_rows,
+            title="a title",
+            legend="a legend",
         )
         got = t.to_html()
         self.assertEqual(got.count("cell_title"), 2)
@@ -1468,7 +1500,10 @@ class TableTests(TestCase):
         from cogent3.format.table import grid_table_format
 
         formatted_grid = grid_table_format(
-            self.t6_header, self.t6_rows, title="Test", legend="Units"
+            self.t6_header,
+            self.t6_rows,
+            title="Test",
+            legend="Units",
         )
         self.assertEqual(len(formatted_grid.split("\n")), len(self.t6_rows) * 2 + 7)
 
@@ -1607,7 +1642,8 @@ class TableTests(TestCase):
         got = t._repr_html_()
         # and the index_name column should contain "index_name" css class
         self.assertEqual(
-            got.count("index"), t.shape[0] + 1
+            got.count("index"),
+            t.shape[0] + 1,
         )  # add 1 for CSS style sheet
 
         # data has tuples in an array
@@ -1659,7 +1695,11 @@ class TableTests(TestCase):
         with self.assertRaises(RuntimeError):
             _ = separator_format(self.t6_header, self.t6_rows)
         separated_table = separator_format(
-            self.t6_header, self.t6_rows, sep=" | ", title="Test", legend="Units"
+            self.t6_header,
+            self.t6_rows,
+            sep=" | ",
+            title="Test",
+            legend="Units",
         )
         self.assertEqual(len(separated_table.split("\n")), len(self.t6_rows) + 3)
 
@@ -1801,7 +1841,9 @@ class TableTests(TestCase):
         lines = t.to_csv().splitlines()
         # no limit set
         reader = FilteringParser(
-            row_condition=lambda x: x[0] == "A", with_header=True, sep=","
+            row_condition=lambda x: x[0] == "A",
+            with_header=True,
+            sep=",",
         )
         got = [line for line in reader(lines)]
         self.assertEqual(got[0], self.t1_header)
@@ -1809,7 +1851,10 @@ class TableTests(TestCase):
 
         # limit set
         reader = FilteringParser(
-            lambda x: x[0] == "A", with_header=True, sep=",", limit=2
+            lambda x: x[0] == "A",
+            with_header=True,
+            sep=",",
+            limit=2,
         )
         got = [line for line in reader(lines)]
         self.assertEqual(got[0], self.t1_header)
@@ -1817,7 +1862,10 @@ class TableTests(TestCase):
 
         # negate
         reader = FilteringParser(
-            lambda x: x[0] == "A", negate=True, with_header=True, sep=","
+            lambda x: x[0] == "A",
+            negate=True,
+            with_header=True,
+            sep=",",
         )
         got = [line for line in reader(lines)]
         self.assertEqual(got[0], self.t1_header)
@@ -1864,7 +1912,9 @@ class TableTests(TestCase):
 
         # specified by name
         reader = FilteringParser(
-            columns=["chrom", "length"], with_header=True, sep="\t"
+            columns=["chrom", "length"],
+            with_header=True,
+            sep="\t",
         )
         got2 = load_table(path, reader=reader)
         self.assertEqual(got2.shape, (10, 2))

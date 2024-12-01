@@ -275,8 +275,6 @@ PROTEIN_WITH_STOP_ambiguities = {
 class FoundMatch(Exception):
     """Raised when a match is found in a deep loop to skip many levels"""
 
-    pass
-
 
 def make_matches(monomers=None, gaps=None, degenerates=None):
     """Makes a dict of symbol pairs (i,j) -> strictness.
@@ -388,7 +386,7 @@ for k, v in list(RnaPairingRules.items()):
     RnaPairingRules[k] = (v, make_pairs(v))
 
 
-class CoreObjectGroup(object):
+class CoreObjectGroup:
     """Container relating gapped, ungapped, degen, and non-degen objects."""
 
     _types = ["base", "degen", "gap", "degen_gap"]
@@ -460,7 +458,9 @@ class AlphabetGroup(CoreObjectGroup):
             degen=make_alphabet(motifset=chars + degens, moltype=moltype),
             gapped=make_alphabet(motifset=chars + gap, gap=gap, moltype=moltype),
             degen_gapped=make_alphabet(
-                motifset=chars + gap + degens + missing, gap=gap, moltype=moltype
+                motifset=chars + gap + degens + missing,
+                gap=gap,
+                moltype=moltype,
             ),
         )
 
@@ -497,7 +497,8 @@ _gray = _DefaultValue("gray")
 _base_colors = defaultdict(_gray)
 
 NT_COLORS = _expand_colors(
-    _base_colors, {"A": "#FF0102", "C": "black", "G": "green", "T": "blue", "U": "blue"}
+    _base_colors,
+    {"A": "#FF0102", "C": "black", "G": "green", "T": "blue", "U": "blue"},
 )
 
 AA_COLORS = _expand_colors(
@@ -638,10 +639,10 @@ class MolType:
             self.alphabet = make_alphabet(motifset=motifset, moltype=self)
 
         # set the other properties
-        self.degenerates = ambiguities and ambiguities.copy() or {}
+        self.degenerates = (ambiguities and ambiguities.copy()) or {}
         self.degenerates[self.missing] = "".join(motifset) + self.gap
         self.matches = make_matches(motifset, self.gaps, self.degenerates)
-        self.pairs = pairs and pairs.copy() or {}
+        self.pairs = (pairs and pairs.copy()) or {}
         self.pairs.update(make_pairs(pairs, motifset, self.gaps, self.degenerates))
         self.mw_calculator = mw_calculator
 
@@ -657,7 +658,7 @@ class MolType:
         self.gap_string = "".join(self.gaps)
         strict_gap = "".join(set(self.gap_string) - set(self.degenerates))
         self.strip_degenerate = FunctionWrapper(
-            KeepChars(strict_gap + "".join(self.alphabet))
+            KeepChars(strict_gap + "".join(self.alphabet)),
         )
         self.strip_bad = FunctionWrapper(KeepChars("".join(self.All)))
         to_keep = set(self.alphabet) ^ set(self.degenerates) - set(self.gaps)
@@ -910,7 +911,7 @@ class MolType:
 
         if not self.complements:
             raise TypeError(
-                "Tried to complement sequence using alphabet without complements."
+                "Tried to complement sequence using alphabet without complements.",
             )
         return item.__class__(data.translate(self.ComplementTable))
 
@@ -923,8 +924,7 @@ class MolType:
         comp.reverse()
         if isinstance(item, str):
             return item.__class__("".join(comp))
-        else:
-            return item.__class__(comp)
+        return item.__class__(comp)
 
     def strand_symmetric_motifs(self, motif_length=1):
         """returns ordered pairs of strand complementary motifs"""
@@ -1053,8 +1053,7 @@ class MolType:
                     result.append(i)
             if isinstance(sequence, str):
                 return sequence.__class__("".join(result))
-            else:
-                return sequence.__class__(result)
+            return sequence.__class__(result)
         else:
             raise NotImplementedError(f"Got unknown method {method}")
 
@@ -1300,7 +1299,7 @@ class MolType:
         label = self.label or ""
         styles = _style_defaults[label].copy()
         styles.update(
-            {c: "_".join([c, label]) for c in list(self.alphabet) + ["terminal_ambig"]}
+            {c: "_".join([c, label]) for c in list(self.alphabet) + ["terminal_ambig"]},
         )
 
         css = [
@@ -1471,7 +1470,7 @@ BYTES = MolType(
 # the None value catches cases where a moltype has no label attribute
 _style_defaults = {
     getattr(mt, "label", ""): defaultdict(
-        _DefaultValue(f"ambig_{getattr(mt, 'label', '')}")
+        _DefaultValue(f"ambig_{getattr(mt, 'label', '')}"),
     )
     for mt in (ASCII, BYTES, DNA, RNA, PROTEIN, PROTEIN_WITH_STOP, None)
 }
