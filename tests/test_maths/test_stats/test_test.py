@@ -530,7 +530,9 @@ class LikelihoodTests(TestCase):
 
         # should be the same if evidences don't sum to 1
         for obs, exp in zip(
-            likelihoods(not_unity, unequal), equal_answer, strict=False
+            likelihoods(not_unity, unequal),
+            equal_answer,
+            strict=False,
         ):
             assert_allclose(obs, exp)
 

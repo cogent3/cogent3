@@ -253,8 +253,8 @@ class BlastXMLResult(dict):
             else:
                 hits.append(
                     dict(
-                        list(zip(rec_data[0], ["" for _ in rec_data[0]], strict=False))
-                    )
+                        list(zip(rec_data[0], ["" for _ in rec_data[0]], strict=False)),
+                    ),
                 )
 
             # get blast version of query id

@@ -515,7 +515,7 @@ class SeqsData(SeqsDataABC):
                     (a, b)
                     for a, b in zip(self.alphabet, alphabet, strict=False)
                     if a != b
-                }
+                },
             )
             == 1
         ):
@@ -3621,7 +3621,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
                     (a, b)
                     for a, b in zip(self.alphabet, alphabet, strict=False)
                     if a != b
-                }
+                },
             )
             == 1
         ):

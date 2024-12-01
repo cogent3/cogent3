@@ -308,7 +308,10 @@ class GeneticCode:
         except AttributeError:  # try using other directly as sequence
             other_code = other
         for codon, old, new in zip(
-            self._codons, self.code_sequence, other_code, strict=False
+            self._codons,
+            self.code_sequence,
+            other_code,
+            strict=False,
         ):
             if old != new:
                 changes[codon] = old + new

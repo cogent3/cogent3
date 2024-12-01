@@ -403,7 +403,7 @@ def recode_dense_alignment(aln, alphabet_id=None, alphabet_def=None):
     # associated characters. This dict is then used for looking
     # up chars in the new and old alphabets.
     byte_map = dict(
-        list(zip(aln.alphabet, list(range(len(aln.alphabet))), strict=False))
+        list(zip(aln.alphabet, list(range(len(aln.alphabet))), strict=False)),
     )
 
     # Construct a dict mapping old characters to new characters.

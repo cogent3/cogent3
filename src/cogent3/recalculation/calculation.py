@@ -394,7 +394,7 @@ class Calculator:
         changes = [
             (i, new)
             for (i, (old, new)) in enumerate(
-                zip(self.last_values, values, strict=False)
+                zip(self.last_values, values, strict=False),
             )
             if old != new
         ]

@@ -200,7 +200,9 @@ class DirectedMotifChange(predicate):
         positions = set()
         for offset in range(len(query) - self.motiflen + 1):
             for q, ms in zip(
-                query[offset : offset + self.motiflen], motifs, strict=False
+                query[offset : offset + self.motiflen],
+                motifs,
+                strict=False,
             ):
                 if q not in ms:
                     break

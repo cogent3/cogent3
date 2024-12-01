@@ -5523,7 +5523,7 @@ def _coerce_to_unaligned_seqs(data, names, label_to_name=str, moltype=None) -> O
 
     if isinstance(first, (str, ndarray)):
         data = list(
-            zip(names or assign_sequential_names(None, len(data)), data, strict=False)
+            zip(names or assign_sequential_names(None, len(data)), data, strict=False),
         )
 
     if moltype is None:
@@ -5636,7 +5636,7 @@ def _coerce_to_array_aligned_seqs(data, names, label_to_name=str, moltype=None) 
 
     if isinstance(first, (str, ndarray)):
         data = list(
-            zip(names or assign_sequential_names(None, len(data)), data, strict=False)
+            zip(names or assign_sequential_names(None, len(data)), data, strict=False),
         )
 
     if moltype is None:
@@ -5737,7 +5737,7 @@ def _coerce_to_aligned_seqs(data, names, label_to_name=str, moltype=None) -> O:
 
     if isinstance(first, (str, ndarray)):
         data = list(
-            zip(names or assign_sequential_names(None, len(data)), data, strict=False)
+            zip(names or assign_sequential_names(None, len(data)), data, strict=False),
         )
 
     if moltype is None:

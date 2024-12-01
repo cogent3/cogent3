@@ -942,7 +942,7 @@ class Table:
         self_range = range(self.shape[0])
         other_range = range(other.shape[0])
         self_selected, other_selected = list(
-            zip(*product(self_range, other_range), strict=False)
+            zip(*product(self_range, other_range), strict=False),
         )
         joined_data = {c: self.columns[c].take(self_selected) for c in self.columns}
         other_data = {

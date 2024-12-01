@@ -83,7 +83,9 @@ class ParametricBootstrapCore:
 
         def one_replicate(i):
             for pc, start_point in zip(
-                self.parameter_controllers, starting_points, strict=False
+                self.parameter_controllers,
+                starting_points,
+                strict=False,
             ):
                 # may have fewer CPUs per replicate than for original
                 # using a calculator as a memo object to reset the params
