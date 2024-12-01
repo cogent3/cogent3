@@ -7,6 +7,10 @@ on:
   pull_request:
     branches-ignore:
       - master
+# NOTE:
+# if changeing python versions, also update versions in
+# - release.yml
+# - noxfile.py
 
 jobs:
   tests:
