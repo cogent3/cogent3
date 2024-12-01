@@ -254,7 +254,8 @@ PMID: 14499652"""
         self.assertEqual(second.LOCUSID, 386590)
         self.assertEqual(second.LOCUS_CONFIRMED, "yes")
         self.assertEqual(
-            second.LOCUS_TYPE, "gene with protein product, function known or inferred"
+            second.LOCUS_TYPE,
+            "gene with protein product, function known or inferred",
         )
         self.assertEqual(second.ORGANISM, "Danio rerio")
         self.assertEqual(
@@ -266,7 +267,7 @@ PMID: 14499652"""
                     "Strain": "na",
                     "Start": "na",
                     "End": "na",
-                }
+                },
             ],
         )
         self.assertEqual(second.TYPE, ["m"])
@@ -275,7 +276,8 @@ PMID: 14499652"""
         self.assertEqual(second.OFFICIAL_GENE_NAME, "tumor rejection antigen (gp96) 1")
         self.assertEqual(second.BUTTON, ["zfin.gif"])
         self.assertEqual(
-            second.LINK, ["http://zfin.org/cgi-bin/ZFIN_jump?record=ZDB-GENE-031002-1"]
+            second.LINK,
+            ["http://zfin.org/cgi-bin/ZFIN_jump?record=ZDB-GENE-031002-1"],
         )
         self.assertEqual(second.PMID, ["14499652"])
 
@@ -284,11 +286,13 @@ PMID: 14499652"""
         self.assertEqual(first.LOCUS_CONFIRMED, "yes")
         self.assertEqual(first.ORGANISM, "Homo sapiens")
         self.assertEqual(
-            first.LOCUS_TYPE, "gene with protein product, function known or inferred"
+            first.LOCUS_TYPE,
+            "gene with protein product, function known or inferred",
         )
         self.assertEqual(first.STATUS, "REVIEWED")
         self.assertEqual(
-            first.NM, [{"Accession": "NM_130786", "Gi": "21071029", "Strain": "na"}]
+            first.NM,
+            [{"Accession": "NM_130786", "Gi": "21071029", "Strain": "na"}],
         )
         self.assertEqual(first.NP, [{"Accession": "NP_570602", "Gi": "21071030"}])
         self.assertEqual(
@@ -300,7 +304,7 @@ PMID: 14499652"""
                     "Score": "103",
                     "EValue": "na",
                     "BitScore": "4.388540e+01",
-                }
+                },
             ],
         )
         self.assertEqual(first.PRODUCT, ["alpha 1B-glycoprotein"])
@@ -317,15 +321,17 @@ PMID: 14499652"""
                     "Orientation": "-",
                     "Chromosome": "19",
                     "Assembly": "reference",
-                }
+                },
             ],
         )
         self.assertEqual(first.EVID, ["supported by alignment with mRNA"])
         self.assertEqual(
-            first.XM, [{"Accession": "NM_130786", "Gi": "21071029", "Strain": "na"}]
+            first.XM,
+            [{"Accession": "NM_130786", "Gi": "21071029", "Strain": "na"}],
         )
         self.assertEqual(
-            first.XP, [{"Accession": "NP_570602", "Gi": "21071030", "Strain": "na"}]
+            first.XP,
+            [{"Accession": "NP_570602", "Gi": "21071030", "Strain": "na"}],
         )
         self.assertEqual(
             first.ACCNUM,
@@ -390,7 +396,7 @@ PMID: 14499652"""
         self.assertEqual(
             first.SUMMARY,
             [
-                """Summary: The protein encoded by this gene is a plasma glycoprotein of unknown function. The protein shows sequence similarity to the variable regions of some immunoglobulin supergene family member proteins."""
+                """Summary: The protein encoded by this gene is a plasma glycoprotein of unknown function. The protein shows sequence similarity to the variable regions of some immunoglobulin supergene family member proteins.""",
             ],
         )
         self.assertEqual(first.CHR, ["19"])
@@ -473,7 +479,8 @@ PMID: 14499652"""
         self.assertEqual(first.UNIGENE, ["Hs.390608"])
         self.assertEqual(first.OMIM, ["138670"])
         self.assertEqual(
-            first.MAP, [{"Location": "19q13.4", "Source": "RefSeq", "Type": "C"}]
+            first.MAP,
+            [{"Location": "19q13.4", "Source": "RefSeq", "Type": "C"}],
         )
         self.assertEqual(first.MAPLINK, ["default_human_gene|A1BG"])
         self.assertEqual(first.PMID, ["12477932", "8889549", "3458201", "2591067"])

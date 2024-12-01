@@ -14,7 +14,7 @@ import warnings
 import numpy
 
 
-class _CallablePredicate(object):
+class _CallablePredicate:
     # A predicate in the context of a particular model
 
     def __init__(self, pred, model):
@@ -50,7 +50,7 @@ class _CallablePredicate(object):
         return "\n".join(rows)
 
 
-class predicate(object):
+class predicate:
     def __and__(self, other):
         return All(self, other)
 
@@ -101,8 +101,7 @@ class _UnaryPredicate(predicate):
     def __repr__(self):
         if hasattr(self, "_op_repr"):
             return f"{self._op_repr}({self.subpredicate})"
-        else:
-            return f"{self.__class__.__name__}({self.subpredicate})"
+        return f"{self.__class__.__name__}({self.subpredicate})"
 
 
 class _GenericPredicate(predicate):
@@ -115,13 +114,12 @@ class _GenericPredicate(predicate):
     def __repr__(self):
         if hasattr(self, "_op_repr"):
             return "(%s)" % (" %s " % self._op_repr).join(
-                [repr(p) for p in self.subpredicates]
+                [repr(p) for p in self.subpredicates],
             )
-        else:
-            return "%s(%s)" % (
-                self.__class__.__name__,
-                ",".join(["(%s)" % repr(p) for p in self.subpredicates]),
-            )
+        return "%s(%s)" % (
+            self.__class__.__name__,
+            ",".join(["(%s)" % repr(p) for p in self.subpredicates]),
+        )
 
 
 # Boolean logic on motif pair predicates
@@ -224,7 +222,7 @@ class DirectedMotifChange(predicate):
         if alphabet.get_motif_len() < self.motiflen:
             raise ValueError(
                 "alphabet motifs (%s) too short for %s (%s)"
-                % (alphabet.get_motif_len(), repr(self), self.motiflen)
+                % (alphabet.get_motif_len(), repr(self), self.motiflen),
             )
 
         resolve = model.moltype.ambiguities.__getitem__
@@ -237,7 +235,7 @@ class DirectedMotifChange(predicate):
             matches = []
             for posn in self.test_motifs(from_motifs, to_motifs, x, y):
                 diff = list(numpy.nonzero(diffs[posn : posn + self.motiflen])[0])
-                if diff and self.diff_at is None or diff == [self.diff_at]:
+                if (diff and self.diff_at is None) or diff == [self.diff_at]:
                     matches.append(posn)
             return len(matches) == 1
 
@@ -271,8 +269,7 @@ def MotifChange(x, y=None, forward_only=False, diff_at=None):
                 y += x[i]
     if forward_only:
         return DirectedMotifChange(x, y, diff_at=diff_at)
-    else:
-        return UndirectedMotifChange(x, y, diff_at=diff_at)
+    return UndirectedMotifChange(x, y, diff_at=diff_at)
 
 
 class UserPredicate(predicate):

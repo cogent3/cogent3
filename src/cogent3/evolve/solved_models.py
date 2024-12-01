@@ -20,7 +20,11 @@ class PredefinedNucleotide(TimeReversibleNucleotide):
     # make_continuous_psub_defn to bypass the Q / Qd step.
 
     def make_continuous_psub_defn(
-        self, word_probs, mprobs_matrix, distance, rate_params
+        self,
+        word_probs,
+        mprobs_matrix,
+        distance,
+        rate_params,
     ):
         # Only one set of mprobs will be used
         assert word_probs is mprobs_matrix
@@ -31,7 +35,9 @@ class PredefinedNucleotide(TimeReversibleNucleotide):
         # Should produce the same P as an ordinary Q based model would:
         self.check_psub_calculations_match()
         return CalcDefn(self.calc_psub_matrix, name="psubs")(
-            word_probs, distance, *rate_params
+            word_probs,
+            distance,
+            *rate_params,
         )
 
     def calc_psub_matrix(self, pi, time, kappa_y=1.0, kappa_r=None):

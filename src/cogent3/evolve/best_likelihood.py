@@ -127,9 +127,7 @@ def BestLogLikelihood(
         whether to also return the number of alignment columns
 
     """
-    assert alphabet or motif_length, (
-        "Must provide either an alphabet or a" " motif_length"
-    )
+    assert alphabet or motif_length, "Must provide either an alphabet or a motif_length"
     # need to use the alphabet, so we can enforce character compliance
     if alphabet:
         kwargs = dict(moltype=alphabet.moltype)

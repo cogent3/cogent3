@@ -64,7 +64,7 @@ class NucleotideModelTestMethods(TestCase):
         f81 = F81()
         self.assertEqual(f81.get_param_matrix_coords(), {})
         self.assertTrue(
-            len(f81.get_param_matrix_coords(include_ref_cell=True)["ref_cell"]) == 12
+            len(f81.get_param_matrix_coords(include_ref_cell=True)["ref_cell"]) == 12,
         )
         hky85 = HKY85()
         coords = hky85.get_param_matrix_coords()
@@ -87,12 +87,14 @@ class NucleotideModelTestMethods(TestCase):
 class MultiLetterMotifSubstModelTests(TestCase):
     def setUp(self):
         self.submodel = substitution_model.TimeReversibleDinucleotide(
-            model_gaps=True, mprob_model="tuple"
+            model_gaps=True,
+            mprob_model="tuple",
         )
 
     def test_ascii_art(self):
         model = substitution_model.TimeReversibleDinucleotide(
-            mprob_model="tuple", predicates=["k:transition"]
+            mprob_model="tuple",
+            predicates=["k:transition"],
         )
         model.ascii_art()
         model = substitution_model.TimeReversibleDinucleotide(mprob_model="tuple")
@@ -172,7 +174,7 @@ class TupleModelMotifProbFuncs(TestCase):
                 (14, 13),
                 (15, 7),
                 (15, 13),
-            ]
+            ],
         ),
         A=set(
             [
@@ -200,7 +202,7 @@ class TupleModelMotifProbFuncs(TestCase):
                 (14, 10),
                 (15, 11),
                 (15, 14),
-            ]
+            ],
         ),
         G=set(
             [
@@ -228,7 +230,7 @@ class TupleModelMotifProbFuncs(TestCase):
                 (12, 15),
                 (13, 15),
                 (14, 15),
-            ]
+            ],
         ),
         T=set(
             [
@@ -256,7 +258,7 @@ class TupleModelMotifProbFuncs(TestCase):
                 (14, 12),
                 (15, 3),
                 (15, 12),
-            ]
+            ],
         ),
     )
 
@@ -264,7 +266,8 @@ class TupleModelMotifProbFuncs(TestCase):
 class ThreeLetterMotifSubstModelTests(TestCase):
     def setUp(self):
         self.submodel = substitution_model.TimeReversibleNucleotide(
-            motif_length=3, mprob_model="tuple"
+            motif_length=3,
+            mprob_model="tuple",
         )
 
     def test_isIndel(self):
@@ -301,10 +304,14 @@ class ThreeLetterMotifSubstModelTests(TestCase):
 class CodonSubstModelTests(TestCase):
     def setUp(self):
         self.standardcode = substitution_model.TimeReversibleCodon(
-            model_gaps=True, gc=1, mprob_model="tuple"
+            model_gaps=True,
+            gc=1,
+            mprob_model="tuple",
         )
         self.mitocode = substitution_model.TimeReversibleCodon(
-            model_gaps=False, gc=2, mprob_model="tuple"
+            model_gaps=False,
+            gc=2,
+            mprob_model="tuple",
         )
 
     def test_isTransition(self):
@@ -392,7 +399,7 @@ class ModelDataInteractionTestMethods(TestCase):
         self.assertEqual(model.get_param_list(), [])
 
         model = substitution_model.TimeReversibleNucleotide(
-            predicates=["beta:transition"]
+            predicates=["beta:transition"],
         )
         self.assertEqual(model.get_param_list(), ["beta"])
 

@@ -26,7 +26,7 @@ class FormatBedgraph(TestCase):
                     + 'description="test of bedgraph" color=255,0,0',
                     "1\t100\t110\t0",
                     "1\t150\t160\t10",
-                ]
+                ],
             ),
         )
 
@@ -51,7 +51,7 @@ class FormatBedgraph(TestCase):
                     + 'description="test of bedgraph" color=255,0,0',
                     "1\t100\t120\t0",
                     "1\t150\t160\t10",
-                ]
+                ],
             ),
         )
 
@@ -78,7 +78,7 @@ class FormatBedgraph(TestCase):
                     "1\t100\t120\t1",
                     "1\t150\t160\t10",
                     "2\t105\t120\t1",
-                ]
+                ],
             ),
         )
 
@@ -139,7 +139,7 @@ class FormatBedgraph(TestCase):
                     + 'description="test of bedgraph" color=255,0,0 autoScale=on',
                     "1\t100\t110\t1",
                     "1\t150\t160\t10",
-                ]
+                ],
             ),
         )
 
@@ -166,7 +166,7 @@ class FormatBedgraph(TestCase):
                     + 'description="test of bedgraph" color=255,0,0 smoothingWindow=10',
                     "1\t100\t110\t1",
                     "1\t150\t160\t10",
-                ]
+                ],
             ),
         )
 

@@ -250,10 +250,12 @@ class LineGrouperTests(TestCase):
 
         lines = ["abc", "\n", "1", "def", "#ignore", "2"]
         self.assertEqual(
-            list(LineGrouper(1)(lines)), [["abc"], ["1"], ["def"], ["#ignore"], ["2"]]
+            list(LineGrouper(1)(lines)),
+            [["abc"], ["1"], ["def"], ["#ignore"], ["2"]],
         )
         self.assertEqual(
-            list(LineGrouper(1, ignore=never)(lines)), [[i.strip()] for i in lines]
+            list(LineGrouper(1, ignore=never)(lines)),
+            [[i.strip()] for i in lines],
         )
         self.assertEqual(
             list(LineGrouper(2, ignore=ignore_labels)(lines)),

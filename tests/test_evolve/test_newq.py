@@ -30,7 +30,11 @@ def _dinuc_root_probs(x, y=None):
     if y is None:
         y = x
     return dict(
-        [(n1 + n2, p1 * p2) for n1, p1 in list(x.items()) for n2, p2 in list(y.items())]
+        [
+            (n1 + n2, p1 * p2)
+            for n1, p1 in list(x.items())
+            for n2, p2 in list(y.items())
+        ],
     )
 
 
@@ -41,7 +45,7 @@ def _trinuc_root_probs(x, y, z):
             for n1, p1 in list(x.items())
             for n2, p2 in list(y.items())
             for n3, p3 in list(z.items())
-        ]
+        ],
     )
 
 
@@ -80,7 +84,7 @@ class NewQ(TestCase):
             (n1 + n2, p1 * [0.1, 0.7][n1 == n2])
             for n1, p1 in list(asymm_nuc_probs.items())
             for n2 in "ATCG"
-        ]
+        ],
     )
 
     # Each of these (data, model) pairs should give a result different
@@ -100,7 +104,9 @@ class NewQ(TestCase):
         """newQ is an extension of an independent nucleotide process"""
         nuc = TimeReversibleNucleotide(motif_probs=self.asymm_nuc_probs)
         new_di = TimeReversibleNucleotide(
-            motif_length=2, mprob_model="monomer", motif_probs=self.asymm_root_probs
+            motif_length=2,
+            mprob_model="monomer",
+            motif_probs=self.asymm_root_probs,
         )
 
         nuc_lf = nuc.make_likelihood_function(self.tree)
@@ -125,7 +131,9 @@ class NewQ(TestCase):
         """get statistics should correctly apply arguments"""
         for mprobs, model in self.ordered_by_complexity:
             di = TimeReversibleNucleotide(
-                motif_length=2, motif_probs=mprobs, mprob_model=model
+                motif_length=2,
+                motif_probs=mprobs,
+                mprob_model=model,
             )
             lf = di.make_likelihood_function(self.tree)
             for wm, wt in [(True, True), (True, False), (False, True), (False, False)]:
@@ -143,7 +151,9 @@ class NewQ(TestCase):
         """exercise getting motif probs under all models"""
         for mprobs, model in self.ordered_by_complexity:
             di = TimeReversibleNucleotide(
-                motif_length=2, motif_probs=mprobs, mprob_model=model
+                motif_length=2,
+                motif_probs=mprobs,
+                mprob_model=model,
             )
             lf = di.make_likelihood_function(self.tree)
             lf.set_alignment(self.aln)
@@ -154,7 +164,9 @@ class NewQ(TestCase):
         """should be able to simulate an alignment under all models"""
         for mprobs, model in self.ordered_by_complexity:
             di = TimeReversibleNucleotide(
-                motif_length=2, motif_probs=mprobs, mprob_model=model
+                motif_length=2,
+                motif_probs=mprobs,
+                mprob_model=model,
             )
             lf = di.make_likelihood_function(self.tree)
             lf.set_param_rule("length", is_independent=False, init=0.4)
@@ -177,7 +189,9 @@ class NewQ(TestCase):
             results = []
             for dummy, model in self.ordered_by_complexity:
                 di = TimeReversibleNucleotide(
-                    motif_length=2, motif_probs=mprobs, mprob_model=model
+                    motif_length=2,
+                    motif_probs=mprobs,
+                    mprob_model=model,
                 )
                 lf = di.make_likelihood_function(self.tree)
                 lf.set_param_rule("length", is_independent=False, init=0.4)
@@ -259,7 +273,9 @@ class NewQ(TestCase):
         compare_models(self.posn_root_probs, 2)
         # trinucleotide
         trinuc_mprobs = _trinuc_root_probs(
-            self.asymm_nuc_probs, self.asymm_nuc_probs, self.asymm_nuc_probs
+            self.asymm_nuc_probs,
+            self.asymm_nuc_probs,
+            self.asymm_nuc_probs,
         )
         compare_models(trinuc_mprobs, 3)
 
@@ -285,28 +301,33 @@ class NewQ(TestCase):
         }
 
         mg = TimeReversibleNucleotide(
-            motif_length=2, motif_probs=dinuc_probs, mprob_model="monomer"
+            motif_length=2,
+            motif_probs=dinuc_probs,
+            mprob_model="monomer",
         )
         mg_lf = mg.make_likelihood_function(self.tree)
         mg_lf.set_param_rule("length", is_independent=False, init=0.4)
         mg_lf.set_alignment(self.aln)
 
         cd = TimeReversibleNucleotide(
-            motif_length=2, motif_probs=dinuc_probs, mprob_model="conditional"
+            motif_length=2,
+            motif_probs=dinuc_probs,
+            mprob_model="conditional",
         )
 
         cd_lf = cd.make_likelihood_function(self.tree)
         cd_lf.set_param_rule("length", is_independent=False, init=0.4)
         cd_lf.set_alignment(self.aln)
         self.assertNotAlmostEqual(
-            mg_lf.get_log_likelihood(), cd_lf.get_log_likelihood()
+            mg_lf.get_log_likelihood(),
+            cd_lf.get_log_likelihood(),
         )
 
     def test_getting_node_mprobs(self):
         """return correct motif probability vector for tree nodes"""
         tree = make_tree(treestring="(a:.2,b:.2,(c:.1,d:.1):.1)")
         aln = make_aligned_seqs(
-            data={"a": "TGTG", "b": "TGTG", "c": "TGTG", "d": "TGTG"}
+            data={"a": "TGTG", "b": "TGTG", "c": "TGTG", "d": "TGTG"},
         )
 
         motifs = ["T", "C", "A", "G"]
@@ -315,7 +336,8 @@ class NewQ(TestCase):
         edX = MotifChange(motifs[1], motifs[2], forward_only=True).aliased("edX")
         cX = MotifChange(motifs[2], motifs[1], forward_only=True).aliased("cX")
         sm = NonReversibleNucleotide(
-            predicates=[aX, bX, edX, cX], equal_motif_probs=True
+            predicates=[aX, bX, edX, cX],
+            equal_motif_probs=True,
         )
 
         lf = sm.make_likelihood_function(tree)
@@ -378,7 +400,9 @@ class NewQ(TestCase):
 
         # not imlemented for monomers variant
         sm = TimeReversibleCodon(
-            mprob_model="monomers", model_gaps=False, recode_gaps=True
+            mprob_model="monomers",
+            model_gaps=False,
+            recode_gaps=True,
         )
         lf = sm.make_likelihood_function(tree)
         lf.set_alignment(aln)

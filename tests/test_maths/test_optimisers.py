@@ -19,7 +19,7 @@ def quartic(x):
     return x**2 * (3 * x**2 + 8 * x - 48)
 
 
-class NullFile(object):
+class NullFile:
     def write(self, x):
         pass
 
@@ -76,7 +76,9 @@ class OptimiserTestCase(TestCase):
 
     def test_limited(self):
         self.assertRaises(
-            MaximumEvaluationsReached, self._test_optimisation, max_evaluations=5
+            MaximumEvaluationsReached,
+            self._test_optimisation,
+            max_evaluations=5,
         )
 
     # def test_limited_warning(self):

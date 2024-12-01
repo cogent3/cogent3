@@ -103,10 +103,12 @@ class TestAvailableApps(TestCase):
                 for app1 in applications
                 for app2 in applications
                 if app1.app_type is WRITER
-                or app2.app_type is LOADER
-                and app1 != app2
-                and not app1._return_types & app2._data_types
-                and not app1._return_types & {"SerialisableType", "IdentifierType"}
+                or (
+                    app2.app_type is LOADER
+                    and app1 != app2
+                    and not app1._return_types & app2._data_types
+                    and not app1._return_types & {"SerialisableType", "IdentifierType"}
+                )
             ]
 
             for app_a, app_b in incompatible_application_tuples:
@@ -139,7 +141,8 @@ def test_app_help(capsys):
 
 
 @pytest.mark.parametrize(
-    "app_name", ("bootstrap", "from_primitive", "load_db", "take_named_seqs")[:1]
+    "app_name",
+    ("bootstrap", "from_primitive", "load_db", "take_named_seqs")[:1],
 )
 def test_app_help_signature(capsys, app_name):
     from cogent3.app import _get_app_matching_name, _make_signature
@@ -163,7 +166,7 @@ def test_available_apps_filter():
     assert len(filtered_apps) > 0
     # check every returned table row 'name' has filter in it
     assert sum(app_name_filter in n for n in filtered_apps.columns["name"]) == len(
-        filtered_apps
+        filtered_apps,
     )
 
 

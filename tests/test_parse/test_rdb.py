@@ -76,7 +76,7 @@ class InfoMakerTests(TestCase):
 
 
 class GenericRdbTest(TestCase):
-    "SetUp data for all Rdb parsers" ""
+    "SetUp data for all Rdb parsers"
 
     def setUp(self):
         self.empty = []
@@ -85,7 +85,7 @@ class GenericRdbTest(TestCase):
         self.oneseq = "seq:H.Sapiens\nAGUCAUCUAGAUHCAUHC\n//".split("\n")
         self.multiline = "seq:H.Sapiens\nAGUCAUUAG\nAUHCAUHC\n//".split("\n")
         self.threeseq = "seq:bac\nAGU\n//\nseq:mit\nACU\n//\nseq:pla\nAAA\n//".split(
-            "\n"
+            "\n",
         )
         self.twogood = "seq:bac\n//\nseq:mit\nACU\n//\nseq:pla\nAAA\n//".split("\n")
         self.oneX = "seq:bac\nX\n//\nseq:mit\nACT\n//\nseq:pla\nAAA\n//".split("\n")
@@ -112,7 +112,9 @@ class MinimalRdbParserTests(GenericRdbTest):
         """MinimalRdbParser should return empty list form file w/o lables"""
         # should fail if strict (the default)
         self.assertRaises(
-            RecordError, list, MinimalRdbParser(self.nolabels, strict=True)
+            RecordError,
+            list,
+            MinimalRdbParser(self.nolabels, strict=True),
         )
         # if not strict, should skip the records
         self.assertEqual(list(MinimalRdbParser(self.nolabels, strict=False)), [])
@@ -206,7 +208,8 @@ class RdbParserTests(GenericRdbTest):
         a = f[0]
         self.assertEqual(a, "AGTCATCTAGATHCATHC")
         self.assertEqual(
-            a.info, Info({"Species": "H.Sapiens", "OriginalSeq": "AGUCAUCUAGAUHCAUHC"})
+            a.info,
+            Info({"Species": "H.Sapiens", "OriginalSeq": "AGUCAUCUAGAUHCAUHC"}),
         )
 
         def alternativeConstr(header_lines):
@@ -227,7 +230,7 @@ class RdbParserTests(GenericRdbTest):
         a = f[0]
         self.assertEqual(a, "AGTCATCTAGATHCATHC")
         exp_info = Info(
-            {"OriginalSeq": "AGUCAUCUAGAUHCAUHC", "Refs": {}, "SEQ": "H.SAPIENS"}
+            {"OriginalSeq": "AGUCAUCUAGAUHCAUHC", "Refs": {}, "SEQ": "H.SAPIENS"},
         )
         self.assertEqual(
             a.info,
@@ -263,7 +266,7 @@ class RdbParserTests(GenericRdbTest):
                     "Species": "unidentified Thermus OPB AF027020",
                     "Refs": {"rRNA": ["AF027020"]},
                     "OriginalSeq": "-o[oGG-U{G}AA--C^GC]U---ACGU-Nooo---",
-                }
+                },
             ),
         )
         r2 = RnaSequence(
@@ -273,7 +276,7 @@ class RdbParserTests(GenericRdbTest):
                     "Species": "Thermus silvanus X84211",
                     "Refs": {"rRNA": ["X84211"]},
                     "OriginalSeq": "---CGAU[C(G){--UA}U]ACG-Nooo-",
-                }
+                },
             ),
         )
         obs = list(RdbParser(RDB_LINES_ONLY_GOOD.split("\n"), strict=True))

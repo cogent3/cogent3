@@ -115,7 +115,13 @@ class TestsHelper(TestCase):
         self.p_val_tests = 10
 
     def assertCorrectPValue(
-        self, exp_min, exp_max, fn, args=None, kwargs=None, p_val_idx=0
+        self,
+        exp_min,
+        exp_max,
+        fn,
+        args=None,
+        kwargs=None,
+        p_val_idx=0,
     ):
         """Tests that the stochastic p-value falls in the specified range.
 
@@ -171,7 +177,7 @@ class TestsTests(TestCase):
                 [4, 5, 1, 2, 3],
                 [3, 4, 5, 1, 2],
                 [2, 3, 4, 5, 1],
-            ]
+            ],
         )
         assert_allclose(std(a, axis=0), expected_a)
         assert_allclose(std(a, axis=1), expected_a)
@@ -198,13 +204,13 @@ class TestsTests(TestCase):
                 [
                     [0.70710678, 4.94974747, 1.41421356],
                     [4.24264069, 4.24264069, 2.82842712],
-                ]
+                ],
             ),
             array(
                 [
                     [2.12132034, 1.41421356, 2.12132034],
                     [5.65685425, 0.70710678, 0.70710678],
-                ]
+                ],
             ),
             array([[1.15470054, 1.0], [4.93288286, 4.93288286]]),
         )
@@ -220,7 +226,10 @@ class TestsTests(TestCase):
     def test_multiple_comparisons(self):
         """multiple_comparisons should match values from R"""
         assert_allclose(
-            multiple_comparisons(1e-7, 10000), 1 - 0.9990005, rtol=1e-6, atol=1e-6
+            multiple_comparisons(1e-7, 10000),
+            1 - 0.9990005,
+            rtol=1e-6,
+            atol=1e-6,
         )
         assert_allclose(multiple_comparisons(0.05, 10), 0.4012631)
         assert_allclose(multiple_comparisons(1e-20, 1), 1e-20)
@@ -236,7 +245,10 @@ class TestsTests(TestCase):
         """multiple_inverse should invert multiple_comparisons results"""
         # NOTE: multiple_inverse not very accurate close to 1
         assert_allclose(
-            multiple_inverse(1 - 0.9990005, 10000), 1e-7, rtol=1e-6, atol=1e-6
+            multiple_inverse(1 - 0.9990005, 10000),
+            1e-7,
+            rtol=1e-6,
+            atol=1e-6,
         )
         assert_allclose(multiple_inverse(0.4012631, 10), 0.05, rtol=1e-6, atol=1e-6)
         assert_allclose(multiple_inverse(1e-20, 1), 1e-20)
@@ -405,17 +417,29 @@ class GTests(TestCase):
         """G_2_by_2 values should match values from codon_binding program"""
         # first up...the famous arginine case
         assert_allclose(
-            G_2_by_2(36, 16, 38, 106), (29.111609, 0), rtol=0.00001, atol=1e-6
+            G_2_by_2(36, 16, 38, 106),
+            (29.111609, 0),
+            rtol=0.00001,
+            atol=1e-6,
         )
         # then some other miscellaneous positive and negative values
         assert_allclose(
-            G_2_by_2(0, 52, 12, 132), (-7.259930, 0.996474), rtol=0.00001, atol=1e-6
+            G_2_by_2(0, 52, 12, 132),
+            (-7.259930, 0.996474),
+            rtol=0.00001,
+            atol=1e-6,
         )
         assert_allclose(
-            G_2_by_2(5, 47, 14, 130), (-0.000481, 0.508751), rtol=0.00001, atol=1e-6
+            G_2_by_2(5, 47, 14, 130),
+            (-0.000481, 0.508751),
+            rtol=0.00001,
+            atol=1e-6,
         )
         assert_allclose(
-            G_2_by_2(5, 47, 36, 108), (-6.065167, 0.993106), rtol=0.00001, atol=1e-6
+            G_2_by_2(5, 47, 36, 108),
+            (-6.065167, 0.993106),
+            rtol=0.00001,
+            atol=1e-6,
         )
 
     def test_Gfit_unequal_lists(self):
@@ -675,12 +699,14 @@ class StatTests(TestsHelper):
 
         # Two tailed: a < b
         self.assertEqual(
-            t_two_sample(y, x, none_on_zero_variance=False), (float("-inf"), 0.0)
+            t_two_sample(y, x, none_on_zero_variance=False),
+            (float("-inf"), 0.0),
         )
 
         # Two tailed: a > b
         self.assertEqual(
-            t_two_sample(x, y, none_on_zero_variance=False), (float("inf"), 0.0)
+            t_two_sample(x, y, none_on_zero_variance=False),
+            (float("inf"), 0.0),
         )
 
         # One-tailed 'high': a < b
@@ -711,7 +737,8 @@ class StatTests(TestsHelper):
         # have the same single value.
         self.assertEqual(t_two_sample(x, x, none_on_zero_variance=False), (None, None))
         self.assertEqual(
-            t_two_sample(x, [1, 1], none_on_zero_variance=False), (None, None)
+            t_two_sample(x, [1, 1], none_on_zero_variance=False),
+            (None, None),
         )
 
     def test_t_two_sample_invalid_input(self):
@@ -758,7 +785,8 @@ class StatTests(TestsHelper):
         # regardless of none_on_zero_variance.
         self.assertEqual(t_one_observation(1, sample), (None, None))
         self.assertEqual(
-            t_one_observation(1, sample, none_on_zero_variance=False), (None, None)
+            t_one_observation(1, sample, none_on_zero_variance=False),
+            (None, None),
         )
 
         # Test correct handling of none_on_zero_variance.
@@ -799,7 +827,12 @@ class StatTests(TestsHelper):
         assert_allclose(obs[:2], exp)
         self.assertEqual(len(obs[2]), 999)
         self.assertCorrectPValue(
-            0.4, 0.47, mc_t_two_sample, [I, II], {"tails": "low"}, p_val_idx=3
+            0.4,
+            0.47,
+            mc_t_two_sample,
+            [I, II],
+            {"tails": "low"},
+            p_val_idx=3,
         )
 
         exp = (-0.11858541225631833, 0.54621710341066287)
@@ -889,7 +922,12 @@ class StatTests(TestsHelper):
         self.assertEqual(obs[:2], exp)
         self.assertEqual(len(obs[2]), 1000)
         self.assertCorrectPValue(
-            0.09, 0.11, mc_t_two_sample, [x, y], {"permutations": 1000}, p_val_idx=3
+            0.09,
+            0.11,
+            mc_t_two_sample,
+            [x, y],
+            {"permutations": 1000},
+            p_val_idx=3,
         )
 
         exp = (float("inf"), 0.0)
@@ -898,7 +936,12 @@ class StatTests(TestsHelper):
         self.assertEqual(obs[:2], exp)
         self.assertEqual(len(obs[2]), 1000)
         self.assertCorrectPValue(
-            0.09, 0.11, mc_t_two_sample, [y, x], {"permutations": 1000}, p_val_idx=3
+            0.09,
+            0.11,
+            mc_t_two_sample,
+            [y, x],
+            {"permutations": 1000},
+            p_val_idx=3,
         )
 
         exp = (float("-inf"), 1.0)
@@ -941,16 +984,29 @@ class StatTests(TestsHelper):
         assert_allclose(obs[:2], exp)
         self.assertEqual(len(obs[2]), 10000)
         self.assertCorrectPValue(
-            0.97, 1.0, mc_t_two_sample, [x, y], {"permutations": 10000}, p_val_idx=3
+            0.97,
+            1.0,
+            mc_t_two_sample,
+            [x, y],
+            {"permutations": 10000},
+            p_val_idx=3,
         )
 
     def test_mc_t_two_sample_invalid_input(self):
         """Test fails on various invalid input."""
         self.assertRaises(
-            ValueError, mc_t_two_sample, [1, 2, 3], [4.0, 5.0, 4.0], tails="foo"
+            ValueError,
+            mc_t_two_sample,
+            [1, 2, 3],
+            [4.0, 5.0, 4.0],
+            tails="foo",
         )
         self.assertRaises(
-            ValueError, mc_t_two_sample, [1, 2, 3], [4.0, 5.0, 4.0], permutations=-1
+            ValueError,
+            mc_t_two_sample,
+            [1, 2, 3],
+            [4.0, 5.0, 4.0],
+            permutations=-1,
         )
         self.assertRaises(ValueError, mc_t_two_sample, [1], [4.0])
         self.assertRaises(ValueError, mc_t_two_sample, [1, 2], [])
@@ -989,10 +1045,12 @@ class StatTests(TestsHelper):
         assert_allclose(z_test(sample, 3, 2, "low"), (0, 0.5))
         # check that population mean and variance, and tails, can be set OK.
         assert_allclose(
-            z_test(sample, 0, 1), (6.7082039324993694, 1.9703444711798951e-11)
+            z_test(sample, 0, 1),
+            (6.7082039324993694, 1.9703444711798951e-11),
         )
         assert_allclose(
-            z_test(sample, 1, 10), (0.44721359549995793, 0.65472084601857694)
+            z_test(sample, 1, 10),
+            (0.44721359549995793, 0.65472084601857694),
         )
         assert_allclose(
             z_test(sample, 1, 10, "high"),
@@ -1054,14 +1112,22 @@ class CorrelationTests(TestsHelper):
         assert_allclose(stat, 1.0)
         self.assertEqual(len(perms), 999)
         self.assertCorrectPValue(
-            0.09, 0.25, mantel_test, (m1, m1, 999), {"alt": "greater"}
+            0.09,
+            0.25,
+            mantel_test,
+            (m1, m1, 999),
+            {"alt": "greater"},
         )
 
         p, stat, perms = mantel_test(m1, m2, 999, alt="greater")
         assert_allclose(stat, 0.755928946018)
         self.assertEqual(len(perms), 999)
         self.assertCorrectPValue(
-            0.2, 0.5, mantel_test, (m1, m2, 999), {"alt": "greater"}
+            0.2,
+            0.5,
+            mantel_test,
+            (m1, m2, 999),
+            {"alt": "greater"},
         )
 
     def test_mantel_test_one_sided_less(self):
@@ -1099,21 +1165,33 @@ class CorrelationTests(TestsHelper):
         assert_allclose(stat, 1.0)
         self.assertEqual(len(perms), 999)
         self.assertCorrectPValue(
-            0.20, 0.45, mantel_test, (m1, m1, 999), {"alt": "two sided"}
+            0.20,
+            0.45,
+            mantel_test,
+            (m1, m1, 999),
+            {"alt": "two sided"},
         )
 
         p, stat, perms = mantel_test(m1, m2, 999, alt="two sided")
         assert_allclose(stat, 0.755928946018)
         self.assertEqual(len(perms), 999)
         self.assertCorrectPValue(
-            0.6, 0.75, mantel_test, (m1, m2, 999), {"alt": "two sided"}
+            0.6,
+            0.75,
+            mantel_test,
+            (m1, m2, 999),
+            {"alt": "two sided"},
         )
 
         p, stat, perms = mantel_test(m1, m3, 999, alt="two sided")
         assert_allclose(stat, -0.989743318611)
         self.assertEqual(len(perms), 999)
         self.assertCorrectPValue(
-            0.2, 0.45, mantel_test, (m1, m3, 999), {"alt": "two sided"}
+            0.2,
+            0.45,
+            mantel_test,
+            (m1, m3, 999),
+            {"alt": "two sided"},
         )
 
     def test_mantel_test_invalid_distance_matrix(self):
@@ -1139,10 +1217,19 @@ class CorrelationTests(TestsHelper):
     def test_mantel_test_invalid_input(self):
         """Test mantel test with invalid input."""
         self.assertRaises(
-            ValueError, mantel_test, array([[1]]), array([[1]]), 999, alt="foo"
+            ValueError,
+            mantel_test,
+            array([[1]]),
+            array([[1]]),
+            999,
+            alt="foo",
         )
         self.assertRaises(
-            ValueError, mantel_test, array([[1]]), array([[1, 2], [3, 4]]), 999
+            ValueError,
+            mantel_test,
+            array([[1]]),
+            array([[1, 2], [3, 4]]),
+            999,
         )
         self.assertRaises(ValueError, mantel_test, array([[1]]), array([[1]]), 0)
         self.assertRaises(ValueError, mantel_test, array([[1]]), array([[1]]), -1)
@@ -1161,7 +1248,8 @@ class CorrelationTests(TestsHelper):
         self.assertEqual(_flatten_lower_triangle(array([[8]])), [])
         self.assertEqual(_flatten_lower_triangle(array([[1, 2], [3, 4]])), [3])
         self.assertEqual(
-            _flatten_lower_triangle(array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])), [4, 7, 8]
+            _flatten_lower_triangle(array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])),
+            [4, 7, 8],
         )
 
     def test_pearson(self):
@@ -1278,7 +1366,10 @@ class CorrelationTests(TestsHelper):
         assert_allclose(pearson_correlation(x, y), (0, 1), rtol=1e-3)
         assert_allclose(pearson_correlation(y, z), (0, 1))
         assert_allclose(
-            pearson_correlation(x, a), (0.9827076, 0.01729), rtol=1e-4, atol=1e-6
+            pearson_correlation(x, a),
+            (0.9827076, 0.01729),
+            rtol=1e-4,
+            atol=1e-6,
         )
         assert_allclose(pearson_correlation(x, b), (-0.9621405, 0.03786), rtol=1e-4)
         assert_allclose(pearson_correlation(x, c), (0.3779645, 0.622), 1e-3)
@@ -1382,31 +1473,67 @@ class CorrelationTests(TestsHelper):
     def test_correlation_test_invalid_input(self):
         """Test correlation_test using invalid input."""
         self.assertRaises(
-            ValueError, correlation_test, self.data1, self.data2, method="foo"
+            ValueError,
+            correlation_test,
+            self.data1,
+            self.data2,
+            method="foo",
         )
         self.assertRaises(
-            ValueError, correlation_test, self.data1, self.data2, tails="foo"
+            ValueError,
+            correlation_test,
+            self.data1,
+            self.data2,
+            tails="foo",
         )
         self.assertRaises(
-            ValueError, correlation_test, self.data1, self.data2, permutations=-1
+            ValueError,
+            correlation_test,
+            self.data1,
+            self.data2,
+            permutations=-1,
         )
         self.assertRaises(
-            ValueError, correlation_test, self.data1, self.data2, confidence_level=-1
+            ValueError,
+            correlation_test,
+            self.data1,
+            self.data2,
+            confidence_level=-1,
         )
         self.assertRaises(
-            ValueError, correlation_test, self.data1, self.data2, confidence_level=1.1
+            ValueError,
+            correlation_test,
+            self.data1,
+            self.data2,
+            confidence_level=1.1,
         )
         self.assertRaises(
-            ValueError, correlation_test, self.data1, self.data2, confidence_level=0
+            ValueError,
+            correlation_test,
+            self.data1,
+            self.data2,
+            confidence_level=0,
         )
         self.assertRaises(
-            ValueError, correlation_test, self.data1, self.data2, confidence_level=0.0
+            ValueError,
+            correlation_test,
+            self.data1,
+            self.data2,
+            confidence_level=0.0,
         )
         self.assertRaises(
-            ValueError, correlation_test, self.data1, self.data2, confidence_level=1
+            ValueError,
+            correlation_test,
+            self.data1,
+            self.data2,
+            confidence_level=1,
         )
         self.assertRaises(
-            ValueError, correlation_test, self.data1, self.data2, confidence_level=1.0
+            ValueError,
+            correlation_test,
+            self.data1,
+            self.data2,
+            confidence_level=1.0,
         )
 
     def test_correlation_test_no_permutations(self):
@@ -1421,7 +1548,7 @@ class CorrelationTests(TestsHelper):
         )
         obs = correlation_test([1, 2, 3, 4], [1, 2, 1, 1], permutations=0)
         for o, e in zip(obs, exp):
-            if isinstance(e, type(None)):
+            if e is None:
                 assert_equal(o, e)
             else:
                 assert_allclose(o, e)
@@ -1435,7 +1562,11 @@ class CorrelationTests(TestsHelper):
         for r in obs[2]:
             self.assertTrue(r >= -1.0 and r <= 1.0)
         self.assertCorrectPValue(
-            0.06, 0.09, correlation_test, ([1, 2, 3, 4], [1, 2, 3, 4]), p_val_idx=3
+            0.06,
+            0.09,
+            correlation_test,
+            ([1, 2, 3, 4], [1, 2, 3, 4]),
+            p_val_idx=3,
         )
         assert_allclose(obs[4], (0.99999999999998879, 1.0))
 
@@ -1448,7 +1579,11 @@ class CorrelationTests(TestsHelper):
         for r in obs[2]:
             self.assertTrue(r >= -1.0 and r <= 1.0)
         self.assertCorrectPValue(
-            0.3, 0.4, correlation_test, ([1, 2, 3], [1, 2, 3]), p_val_idx=3
+            0.3,
+            0.4,
+            correlation_test,
+            ([1, 2, 3], [1, 2, 3]),
+            p_val_idx=3,
         )
         self.assertEqual(obs[4], (None, None))
 
@@ -1716,10 +1851,14 @@ class Ftest(TestCase):
         assert_allclose(f_two_sample(a, b), (49, 49, 0.8575, 0.5925), rtol=error)
         assert_allclose(f_two_sample(b, a), (49, 49, 1.1662, 0.5925), rtol=error)
         assert_allclose(
-            f_two_sample(a, b, tails="low"), (49, 49, 0.8575, 0.2963), rtol=error
+            f_two_sample(a, b, tails="low"),
+            (49, 49, 0.8575, 0.2963),
+            rtol=error,
         )
         assert_allclose(
-            f_two_sample(a, b, tails="high"), (49, 49, 0.8575, 0.7037), rtol=error
+            f_two_sample(a, b, tails="high"),
+            (49, 49, 0.8575, 0.7037),
+            rtol=error,
         )
         assert_allclose(f_two_sample(a, c), (49, 59, 0.6587, 0.1345), rtol=error)
         # p value very small, so first check df's and F value
@@ -1753,7 +1892,7 @@ class MannWhitneyTests(TestCase):
             int,
             "104 109 112 114 116 118 118 119 121 123 125 126"
             " 126 128 128 128".split(),
-        )
+        ),
     )
     y = list(map(int, "100 105 107 107 108 111 116 120 121 123".split()))
 
@@ -1905,7 +2044,7 @@ class TestDistMatrixPermutationTest(TestCase):
     def setUp(self):
         """sets up variables for testing"""
         self.matrix = array(
-            [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]]
+            [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]],
         )
         self.cells = [(0, 1), (1, 3)]
         self.cells2 = [(0, 2), (2, 3)]
@@ -1926,7 +2065,10 @@ class TestDistMatrixPermutationTest(TestCase):
         # test that works for a symmetric matrix
         cells_sym = get_ltm_cells(cells)
         special_vals, other_vals = get_values_from_matrix(
-            matrix, cells_sym, cells2=None, is_symmetric=True
+            matrix,
+            cells_sym,
+            cells2=None,
+            is_symmetric=True,
         )
         special_vals.sort()
         other_vals.sort()
@@ -1935,7 +2077,10 @@ class TestDistMatrixPermutationTest(TestCase):
 
         # test that work for a non symmetric matrix
         special_vals, other_vals = get_values_from_matrix(
-            matrix, cells, cells2=None, is_symmetric=False
+            matrix,
+            cells,
+            cells2=None,
+            is_symmetric=False,
         )
         special_vals.sort()
         other_vals.sort()
@@ -1946,7 +2091,10 @@ class TestDistMatrixPermutationTest(TestCase):
         cells2 = [(3, 0), (3, 2), (0, 3)]
         cells2_sym = get_ltm_cells(cells2)
         special_vals, other_vals = get_values_from_matrix(
-            matrix, cells_sym, cells2=cells2_sym, is_symmetric=True
+            matrix,
+            cells_sym,
+            cells2=cells2_sym,
+            is_symmetric=True,
         )
         special_vals.sort()
         other_vals.sort()
@@ -1955,7 +2103,10 @@ class TestDistMatrixPermutationTest(TestCase):
 
         # test that works when cells2 is defined and not symmetric
         special_vals, other_vals = get_values_from_matrix(
-            matrix, cells, cells2=cells2, is_symmetric=False
+            matrix,
+            cells,
+            cells2=cells2,
+            is_symmetric=False,
         )
         special_vals.sort()
         other_vals.sort()
@@ -1990,11 +2141,19 @@ class TestDistMatrixPermutationTest(TestCase):
         r = make_result_list(m, [(0, 0), (0, 1), (0, 2)], n=n, is_symmetric=False)
         self.assertTrue(similar_means(r, 0.0 / 6.0))
         r = make_result_list(
-            m, [(0, 0), (0, 1), (0, 2)], n=n, is_symmetric=False, tails="high"
+            m,
+            [(0, 0), (0, 1), (0, 2)],
+            n=n,
+            is_symmetric=False,
+            tails="high",
         )
         self.assertTrue(similar_means(r, 4.0 / 6.0))
         r = make_result_list(
-            m, [(0, 0), (0, 1), (0, 2)], n=n, is_symmetric=False, tails="low"
+            m,
+            [(0, 0), (0, 1), (0, 2)],
+            n=n,
+            is_symmetric=False,
+            tails="low",
         )
         self.assertTrue(similar_means(r, 0.0 / 6.0))
 
@@ -2003,11 +2162,19 @@ class TestDistMatrixPermutationTest(TestCase):
         r = make_result_list(m, [(2, 0), (2, 1), (2, 2)], n=n, is_symmetric=False)
         self.assertTrue(similar_means(r, 0.0 / 6.0))
         r = make_result_list(
-            m, [(2, 0), (2, 1), (2, 2)], n=n, is_symmetric=False, tails="high"
+            m,
+            [(2, 0), (2, 1), (2, 2)],
+            n=n,
+            is_symmetric=False,
+            tails="high",
         )
         self.assertTrue(similar_means(r, 0.0 / 6.0))
         r = make_result_list(
-            m, [(2, 0), (2, 1), (2, 2)], n=n, is_symmetric=False, tails="low"
+            m,
+            [(2, 0), (2, 1), (2, 2)],
+            n=n,
+            is_symmetric=False,
+            tails="low",
         )
         self.assertTrue(similar_means(r, 4.0 / 6.0))
 
@@ -2054,7 +2221,10 @@ class TestDistMatrixPermutationTest(TestCase):
         m = array([[0, 1, 3], [1, 2, 4], [3, 4, 5]])
         self.assertEqual(
             distance_matrix_permutation_test(
-                m, [(0, 0), (0, 1), (0, 2)], n=5, f=fake_stat_test
+                m,
+                [(0, 0), (0, 1), (0, 2)],
+                n=5,
+                f=fake_stat_test,
             ),
             (42.0, 42.0, 0.0),
         )
@@ -2069,7 +2239,11 @@ class TestDistMatrixPermutationTest(TestCase):
         m = array([[0, 1, 3], [1, 2, 4], [3, 4, 5]])
         self.assertEqual(
             distance_matrix_permutation_test(
-                m, [(0, 0), (0, 1), (0, 2)], n=5, f=fake_stat_test, return_scores=True
+                m,
+                [(0, 0), (0, 1), (0, 2)],
+                n=5,
+                f=fake_stat_test,
+                return_scores=True,
             ),
             (42.0, 42.0, 0.0, [42.0] * 5),
         )
@@ -2087,7 +2261,8 @@ class TestDistMatrixPermutationTest(TestCase):
         assert_allclose(between_MS, 55.458333333333343)
         assert_allclose(within_MS, 2.9871794871794868)
         assert_allclose(
-            group_means, [8.4000000000000004, 2.1666666666666665, 6.2000000000000002]
+            group_means,
+            [8.4000000000000004, 2.1666666666666665, 6.2000000000000002],
         )
         assert_allclose(prob, 0.00015486238993089464)
 

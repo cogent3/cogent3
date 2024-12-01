@@ -88,7 +88,7 @@ class ProgressContext:
 
     def series(self, items, noun="", labels=None, start=None, end=1.0, count=None):
         """Wrap a looped-over list with a progress bar"""
-        # todo optimise label creation
+        # TODO optimise label creation
         if count is None:
             if not hasattr(items, "__len__"):
                 items = list(items)
@@ -108,7 +108,7 @@ class ProgressContext:
             if noun:
                 noun += " "
             template = f"{noun}%{len(str(count))}d/{count}"
-            labels = [template % (i + 1) for i in range(0, count)]
+            labels = [template % (i + 1) for i in range(count)]
         for i, item in enumerate(items):
             self.display(msg=labels[i], progress=start + step * i)
             yield item
@@ -123,7 +123,7 @@ class ProgressContext:
     def imap(self, f, s, mininterval=1.0, parallel=False, par_kw=None, **kw):
         self.mininterval = mininterval
         if parallel:
-            # todo document parallel.map arguments
+            # TODO document parallel.map arguments
             par_kw = par_kw or {}
             results = PAR.imap(f, s, **par_kw)
         else:
@@ -196,7 +196,6 @@ def display_wrap(slow_function):
 def subdemo(ui):
     for j in ui.series(list(range(10))):
         time.sleep(0.1)
-    return
 
 
 @display_wrap

@@ -99,7 +99,7 @@ def _hamming(matrix):
     total of the matrix, the proportion of changes, hamming distance, variance
     (the variance calculation is not yet implemented)
     """
-    # todo implement the estimate of the variance
+    # TODO implement the estimate of the variance
     invalid = None, None, None, None
     total = matrix.sum()
     dist = total - diag(matrix).sum()
@@ -131,7 +131,13 @@ def _jc69_from_matrix(matrix):
 
 
 def _tn93_from_matrix(
-    matrix, freqs, pur_indices, pyr_indices, pur_coords, pyr_coords, tv_coords
+    matrix,
+    freqs,
+    pur_indices,
+    pyr_indices,
+    pur_coords,
+    pyr_coords,
+    tv_coords,
 ):
     invalid = None, None, None, None
 
@@ -300,7 +306,11 @@ def _make_stat_table(stats, names, **kwargs):
         rows[i].insert(0, names[i])
 
     return Table(
-        header=header, data=rows, index_name=r"Seq1 \ Seq2", missing_data="*", **kwargs
+        header=header,
+        data=rows,
+        index_name=r"Seq1 \ Seq2",
+        missing_data="*",
+        **kwargs,
     )
 
 
@@ -338,7 +348,8 @@ class _PairwiseDistance:
 
     def _convert_seqs_to_indices(self, alignment):
         assert isinstance(
-            alignment.moltype, (type(self.moltype), new_moltype.MolType)
+            alignment.moltype,
+            (type(self.moltype), new_moltype.MolType),
         ), "Alignment does not have correct MolType"
 
         self._dists = {}
@@ -571,7 +582,8 @@ class _NucleicSeqPair(_PairwiseDistance):
     def __init__(self, moltype="dna", *args, **kwargs):
         super().__init__(moltype, *args, **kwargs)
         if not _same_moltype(DNA, self.moltype) and not _same_moltype(
-            RNA, self.moltype
+            RNA,
+            self.moltype,
         ):
             raise RuntimeError("Invalid MolType for this metric")
 
@@ -716,7 +728,6 @@ class DistanceMatrix(DictArray):
     def __setitem__(self, names, value):
         index, _ = self.template.interpret_index(names)
         self.array[index] = value
-        return
 
     def __getitem__(self, names):
         index, remaining = self.template.interpret_index(names)
@@ -858,7 +869,8 @@ class DistanceMatrix(DictArray):
         """
         dmat_copy = self.array.copy()
         numpy.fill_diagonal(
-            dmat_copy, numpy.inf
+            dmat_copy,
+            numpy.inf,
         )  # Exclude diagonal by setting diagonal elements to infinity
         min_index_flat = numpy.argmin(dmat_copy)
         min_index_1, min_index_2 = numpy.unravel_index(min_index_flat, self.shape)

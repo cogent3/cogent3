@@ -9,22 +9,16 @@ from cogent3.util.misc import iterable
 class FileFormatError(Exception):
     """Exception raised when a file can not be parsed."""
 
-    pass
-
 
 class RecordError(FileFormatError):
     """Exception raised when a record is bad."""
-
-    pass
 
 
 class FieldError(RecordError):
     """Exception raised when a field within a record is bad."""
 
-    pass
 
-
-class Grouper(object):
+class Grouper:
     """Acts as iterator that returns lists of n items at a time from seq.
 
     Note: returns a partial list if not evenly divisible by n.
@@ -41,7 +35,7 @@ class Grouper(object):
             assert num >= 1
         except:
             raise ValueError(
-                f"Grouper.NumItems must be positive int, not {self.NumItems}"
+                f"Grouper.NumItems must be positive int, not {self.NumItems}",
             )
         curr = []
         for i, item in enumerate(seq):
@@ -203,9 +197,9 @@ class MappedRecord(GenericRecord):
         """Returns a copy of item."""
         if hasattr(prototype, "copy"):
             return prototype.copy()
-        elif isinstance(prototype, list):
+        if isinstance(prototype, list):
             return prototype[:]
-        elif (
+        if (
             isinstance(prototype, str)
             or isinstance(prototype, int)
             or isinstance(prototype, int)
@@ -214,8 +208,7 @@ class MappedRecord(GenericRecord):
             or prototype is None
         ):
             return prototype  # immutable type: use directly
-        else:
-            return deepcopy(prototype)
+        return deepcopy(prototype)
 
     def __init__(self, *args, **kwargs):
         """Reads kwargs as properties of self."""
@@ -242,14 +235,13 @@ class MappedRecord(GenericRecord):
         """Returns None if field is absent, rather than raising exception."""
         if attr in self:
             return self[attr]
-        elif attr in self.__dict__:
+        if attr in self.__dict__:
             return self.__dict__[attr]
-        elif attr.startswith("__"):  # don't retrieve private class attrs
+        if attr.startswith("__"):  # don't retrieve private class attrs
             raise AttributeError
-        elif hasattr(self.__class__, attr):
+        if hasattr(self.__class__, attr):
             return getattr(self.__class__, attr)
-        else:
-            return self._copy(self.DefaultValue)
+        return self._copy(self.DefaultValue)
 
     def __setattr__(self, attr, value):
         """Sets attribute in self if absent, converting name if necessary."""
@@ -268,11 +260,10 @@ class MappedRecord(GenericRecord):
         normal_attr = self.unalias(attr)
         if normal_attr in self.Required:
             raise AttributeError(f"{attr} is a required attribute")
-        else:
-            try:
-                super(MappedRecord, self).__delattr__(normal_attr)
-            except AttributeError:
-                del self[normal_attr]
+        try:
+            super(MappedRecord, self).__delattr__(normal_attr)
+        except AttributeError:
+            del self[normal_attr]
 
     def __getitem__(self, item):
         """Returns default if item is absent, rather than raising exception."""
@@ -373,7 +364,7 @@ def dict_adder(obj, field, val):
         setattr(obj, field, {key: value})
 
 
-class LineOrientedConstructor(object):
+class LineOrientedConstructor:
     """Constructs a MappedRecord from a sequence of lines."""
 
     def __init__(
@@ -444,8 +435,7 @@ class LineOrientedConstructor(object):
                 else:
                     if self.Strict:
                         raise FieldError(f"Got unrecognized field {raw_field}")
-                    else:
-                        identity_setter(result, raw_field, val)
+                    identity_setter(result, raw_field, val)
                     continue
             # if we found the field in the fieldmap, apply the correct function
             try:
@@ -510,7 +500,7 @@ def StrictFieldWrapper(fields, splitter=None, constructor=None):
             items = splitter(line)
             if len(items) != len(fields):
                 raise FieldError(
-                    f"Expected {len(fields)} items but got {len(items)}: {items}"
+                    f"Expected {len(fields)} items but got {len(items)}: {items}",
                 )
             return constructor(dict(list(zip(fields, items))))
 
@@ -520,7 +510,7 @@ def StrictFieldWrapper(fields, splitter=None, constructor=None):
             items = splitter(line)
             if len(items) != len(fields):
                 raise FieldError(
-                    f"Expected {len(fields)} items but got {len(items)}: {items}"
+                    f"Expected {len(fields)} items but got {len(items)}: {items}",
                 )
             return dict(list(zip(fields, items)))
 
@@ -532,7 +522,7 @@ def raise_unknown_field(field, data):
     raise FieldError(f"Got unknown field {field} with data {data}")
 
 
-class FieldMorpher(object):
+class FieldMorpher:
     """When called, applies appropriate constructors to each value of dict.
 
     Initialize using a dict of fieldname:constructor pairs.

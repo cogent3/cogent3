@@ -1,27 +1,28 @@
-from typing import Iterable, Optional
+from collections.abc import Iterable
+from typing import Optional
 
 from numpy import array
 
 from .location import FeatureMap
 
 
-# todo gah write docstrings!
+# TODO gah write docstrings!
 class Feature:
     """new style annotation, created on demand"""
 
     # we make the object immutable by making public attributes a property
     __slots__ = (
+        "_biotype",
+        "_id",
+        "_map",
+        "_name",
         "_parent",
         "_seqid",
-        "_map",
-        "_biotype",
-        "_name",
         "_serialisable",
-        "_id",
         "_strand",
     )
 
-    # todo gah implement a __new__ to trap args for serialisation purposes?
+    # TODO gah implement a __new__ to trap args for serialisation purposes?
     def __init__(
         self,
         *,
@@ -134,11 +135,9 @@ class Feature:
         """returns new instance corresponding to disjoint of self coordinates"""
         kwargs = {
             **self._serialisable,
-            **{
-                "map": self.map.shadow(),
-                "biotype": f"not {self.biotype}",
-                "name": f"not {self.name}",
-            },
+            "map": self.map.shadow(),
+            "biotype": f"not {self.biotype}",
+            "name": f"not {self.name}",
         }
         return self.__class__(**kwargs)
 
@@ -162,7 +161,9 @@ class Feature:
         seqid = getattr(grandparent, "name", None) or f"from {self.seqid!r}"
         kwargs = {
             **self._serialisable,
-            **{"map": gmap[self.map], "parent": grandparent, "seqid": seqid},
+            "map": gmap[self.map],
+            "parent": grandparent,
+            "seqid": seqid,
         }
         return self.__class__(**kwargs)
 
@@ -259,13 +260,11 @@ class Feature:
         biotype = ", ".join(biotypes)
         kwargs = {
             **self._serialisable,
-            **{
-                "map": fmap,
-                "seqid": seqid,
-                "biotype": biotype,
-                "name": name,
-                "strand": strand,
-            },
+            "map": fmap,
+            "seqid": seqid,
+            "biotype": biotype,
+            "name": name,
+            "strand": strand,
         }
 
         return self.__class__(**kwargs)

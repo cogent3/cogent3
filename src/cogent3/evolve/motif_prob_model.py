@@ -11,17 +11,16 @@ from cogent3.recalculation.definition import CalcDefn, PartitionDefn
 def make_model(mprob_model, tuple_alphabet, mask):
     if mprob_model == "monomers":
         return PosnSpecificMonomerProbModel(tuple_alphabet, mask)
-    elif mprob_model == "monomer":
+    if mprob_model == "monomer":
         return MonomerProbModel(tuple_alphabet, mask)
-    elif mprob_model == "conditional":
+    if mprob_model == "conditional":
         return ConditionalMotifProbModel(tuple_alphabet, mask)
-    elif mprob_model in ["word", "tuple", None]:
+    if mprob_model in ["word", "tuple", None]:
         return SimpleMotifProbModel(tuple_alphabet)
-    else:
-        raise ValueError(f"Unknown mprob model '{str(mprob_model)}'")
+    raise ValueError(f"Unknown mprob model '{mprob_model!s}'")
 
 
-class MotifProbModel(object):
+class MotifProbModel:
     def __init__(self, *whatever, **kw):
         raise NotImplementedError
 
@@ -72,7 +71,7 @@ class MotifProbModel(object):
         import random
 
         motif_probs = numpy.array(
-            [random.uniform(0.2, 1.0) for m in self.get_counted_alphabet()]
+            [random.uniform(0.2, 1.0) for m in self.get_counted_alphabet()],
         )
         motif_probs /= sum(motif_probs)
         return motif_probs
@@ -173,7 +172,7 @@ class MonomerProbModel(ComplexMotifProbModel):
         monomer_probs = self.make_motif_probs_defn()
         word_probs = CalcDefn(self.calc_word_probs, name="wprobs")(monomer_probs)
         mprobs_matrix = CalcDefn(self.calc_word_weight_matrix, name="mprobs_matrix")(
-            monomer_probs
+            monomer_probs,
         )
         return (monomer_probs, word_probs, mprobs_matrix)
 
@@ -205,7 +204,8 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
             self.m2w.shape,
         )
         result = numpy.prod(
-            [monomer_probs[i].take(self.m2w[:, i]) for i in positions], axis=0
+            [monomer_probs[i].take(self.m2w[:, i]) for i in positions],
+            axis=0,
         )
         result /= result.sum()
         return result
@@ -226,14 +226,15 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
             dimension=("motif", tuple(self.get_input_alphabet())),
         )
         monomer_probs3 = monomer_probs.across_dimension(
-            "position", [str(i) for i in range(self.word_length)]
+            "position",
+            [str(i) for i in range(self.word_length)],
         )
         monomer_probs3 = CalcDefn(lambda *x: numpy.array(x), name="mprobs")(
-            *monomer_probs3
+            *monomer_probs3,
         )
         word_probs = CalcDefn(self.calc_word_probs, name="wprobs")(monomer_probs3)
         mprobs_matrix = CalcDefn(self.calc_word_weight_matrix, name="mprobs_matrix")(
-            monomer_probs3
+            monomer_probs3,
         )
         return (monomer_probs, word_probs, mprobs_matrix)
 
@@ -268,7 +269,7 @@ class ConditionalMotifProbModel(ComplexMotifProbModel):
     def make_motif_word_prob_defns(self):
         mprobs = self.make_motif_probs_defn()
         mprobs_matrix = CalcDefn(self.calc_word_weight_matrix, name="mprobs_matrix")(
-            mprobs
+            mprobs,
         )
         return (mprobs, mprobs, mprobs_matrix)
 
@@ -298,7 +299,7 @@ def adapt_motif_probs(alphabet: AlphaTypes, motif_probs: ProbsTypes) -> numpy.nd
 
     if len(alphabet) != len(motif_probs):
         raise ValueError(
-            f"Can't match {len(motif_probs)} probs to {len(alphabet)} alphabet"
+            f"Can't match {len(motif_probs)} probs to {len(alphabet)} alphabet",
         )
 
     if hasattr(motif_probs, "keys"):
@@ -306,10 +307,11 @@ def adapt_motif_probs(alphabet: AlphaTypes, motif_probs: ProbsTypes) -> numpy.nd
         if diff := set(motif_probs.keys()) - set(alphabet):
             raise ValueError(f"Can't find motif(s) {diff!r} in alphabet")
         return numpy.array([motif_probs[motif] for motif in alphabet])
-    else:
-        motif_probs = numpy.asarray(motif_probs)
+    motif_probs = numpy.asarray(motif_probs)
 
     numpy.testing.assert_allclose(
-        motif_probs.sum(), 1, err_msg=f"does not summ to 1 {motif_probs}"
+        motif_probs.sum(),
+        1,
+        err_msg=f"does not summ to 1 {motif_probs}",
     )
     return motif_probs

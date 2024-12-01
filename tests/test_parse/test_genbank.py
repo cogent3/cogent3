@@ -217,7 +217,7 @@ ORIGIN
         self.assertEqual(
             result["note"],
             [
-                "Protein sequence is in conflict with the conceptual translation; author given translation (not conceptual translation) start codon is created by C to U RNA editing"
+                "Protein sequence is in conflict with the conceptual translation; author given translation (not conceptual translation) start codon is created by C to U RNA editing",
             ],
         )
         self.assertEqual(result["codon_start"], ["1"])
@@ -228,7 +228,7 @@ ORIGIN
         self.assertEqual(
             result["translation"],
             [
-                "MYIAVPAEILGIILPLLLGVAFLVLAERKVMAFVQRRKGPDVVGSFGLLQPLADGSKLILKEPISPSSANFSLFRMAPVTTFMLSLVARAVVPFDYGMVLSDPNIGLLYLFAISSLGVYGIIIAGWSSNSKYAFLGALRSAAQMVPYEVSIGLILITVLICVGPRNSSEIVMAQKQIWSGIPLFPVLVMFFISCLAETNRAPFDLPEAERELVAGYNVEYSSMGSALFFLGEYANMILMSGLCTSLSPGGWPPILDLPISKRIPGSIWFSIKVILFLFLYIWVRAAFPRYRYDQLMGLGRKVFLPLSLARVVAVSGVLVTFQWLP"
+                "MYIAVPAEILGIILPLLLGVAFLVLAERKVMAFVQRRKGPDVVGSFGLLQPLADGSKLILKEPISPSSANFSLFRMAPVTTFMLSLVARAVVPFDYGMVLSDPNIGLLYLFAISSLGVYGIIIAGWSSNSKYAFLGALRSAAQMVPYEVSIGLILITVLICVGPRNSSEIVMAQKQIWSGIPLFPVLVMFFISCLAETNRAPFDLPEAERELVAGYNVEYSSMGSALFFLGEYANMILMSGLCTSLSPGGWPPILDLPISKRIPGSIWFSIKVILFLFLYIWVRAAFPRYRYDQLMGLGRKVFLPLSLARVVAVSGVLVTFQWLP",
             ],
         )
         self.assertEqual(len(result), 11)
@@ -259,10 +259,12 @@ ORIGIN
         llt = genbank.location_line_tokenizer
         self.assertEqual(list(llt(["123..456"])), ["123..456"])
         self.assertEqual(
-            list(llt(["complement(123..456)"])), ["complement(", "123..456", ")"]
+            list(llt(["complement(123..456)"])),
+            ["complement(", "123..456", ")"],
         )
         self.assertEqual(
-            list(llt(["join(1..2,3..4)"])), ["join(", "1..2", ",", "3..4", ")"]
+            list(llt(["join(1..2,3..4)"])),
+            ["join(", "1..2", ",", "3..4", ")"],
         )
         self.assertEqual(
             list(
@@ -270,8 +272,8 @@ ORIGIN
                     [
                         "join(complement(1..2, join(complement( 3..4),",
                         "\n5..6), 7..8\t))",
-                    ]
-                )
+                    ],
+                ),
             ),
             [
                 "join(",
@@ -332,7 +334,7 @@ ORIGIN
         r = genbank.parse_location_line(llt(["complement(join(123..456, 345..678))"]))
         self.assertEqual(str(r), "join(complement(345..678),complement(123..456))")
         r = genbank.parse_location_line(
-            llt(["join(complement(123..456), complement(345..678))"])
+            llt(["join(complement(123..456), complement(345..678))"]),
         )
         self.assertEqual(str(r), "join(complement(123..456),complement(345..678))")
         # try some nested joins and complements
@@ -341,8 +343,8 @@ ORIGIN
                 [
                     "complement(join(1..2,3..4,complement(5..6),",
                     "join(7..8,complement(9..10))))",
-                ]
-            )
+                ],
+            ),
         )
         self.assertEqual(
             str(r),
@@ -367,7 +369,8 @@ ORIGIN
             + "on translation termination in human cell lines",
         )
         self.assertEqual(
-            result["journal"], "(er) Nucleic Acids Res. 32 (15), 4491-4502 (2004)"
+            result["journal"],
+            "(er) Nucleic Acids Res. 32 (15), 4491-4502 (2004)",
         )
         self.assertEqual(result["pubmed"], "15326224")
 
@@ -589,7 +592,7 @@ def test_iter_genbank_records_inputs(gb_inputs):
 def test_iter_genbank_records_no_feature_conversion(cast, gb_rec):
     path = cast(gb_rec) if cast else gb_rec
     name, seq, features = list(
-        genbank.iter_genbank_records(path, convert_features=None)
+        genbank.iter_genbank_records(path, convert_features=None),
     )[0]
     assert len(seq) == 6201
     assert name == "AE017341"

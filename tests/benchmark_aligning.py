@@ -23,7 +23,14 @@ def test(r=1, **kw):
         # return_alignment is False in order to emphasise the quadratic part of
         # the work.
         aln = classic_align_pairwise(
-            seq1, seq2, S, 10, 2, local=False, return_alignment=False, **kw
+            seq1,
+            seq2,
+            S,
+            10,
+            2,
+            local=False,
+            return_alignment=False,
+            **kw,
         )
     except ArithmeticError:
         return "*"

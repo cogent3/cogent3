@@ -31,7 +31,9 @@ def suitable_threshold(window, desired_probability):
 
 
 def _ungapped_spans(
-    starts_ends: list[list[int, int]], align_length: int, aligned=False
+    starts_ends: list[list[int, int]],
+    align_length: int,
+    aligned=False,
 ) -> numpy.ndarray:
     """returns numpy array of [(non gap start, non gap stop), ...}"""
     if len(starts_ends) == 0:
@@ -68,7 +70,9 @@ def _convert_input(seq, moltype):
 
 
 def get_align_coords(
-    map1: location.IndelMap, map2: location.IndelMap, aligned=False
+    map1: location.IndelMap,
+    map2: location.IndelMap,
+    aligned=False,
 ) -> MatchedSeqPaths:
     """sequence coordinates of aligned segments"""
     from cogent3.align.pycompare import segment
@@ -197,7 +201,11 @@ class Dotplot(Drawable):
         sk = SeqKmers(seq1, k=k, canonical=set(seq1.moltype))
         seq2 = None if seq1 == seq2 else seq2
         fwd = find_matched_paths(
-            seq_kmers=sk, seq1=seq1, seq2=seq2, window=window, threshold=threshold
+            seq_kmers=sk,
+            seq1=seq1,
+            seq2=seq2,
+            window=window,
+            threshold=threshold,
         )
         fwd.name = "+ strand"
         if rc:
@@ -207,7 +215,11 @@ class Dotplot(Drawable):
             seq2 = seq1.rc() if seq2 is None else seq2.rc()
             seq2.name = f"{seq2.name}-rc"
             rev = find_matched_paths(
-                seq_kmers=sk, seq1=seq1, seq2=seq2, window=window, threshold=threshold
+                seq_kmers=sk,
+                seq1=seq1,
+                seq2=seq2,
+                window=window,
+                threshold=threshold,
             )
             rev.name = "- strand"
         else:
@@ -222,20 +234,27 @@ class Dotplot(Drawable):
         if self.xtitle:
             layout |= dict(
                 xaxis=dict(
-                    title=self.xtitle, mirror=True, showgrid=False, showline=True
-                )
+                    title=self.xtitle,
+                    mirror=True,
+                    showgrid=False,
+                    showline=True,
+                ),
             )
 
         if self.ytitle:
             layout |= dict(
                 yaxis=dict(
-                    title=self.ytitle, mirror=True, showgrid=False, showline=True
-                )
+                    title=self.ytitle,
+                    mirror=True,
+                    showgrid=False,
+                    showline=True,
+                ),
             )
 
         self.layout |= dict(layout)
         self.layout |= dict(
-            yaxis=dict(range=[0, len(self.seq2)]), xaxis=dict(range=[0, len(self.seq1)])
+            yaxis=dict(range=[0, len(self.seq2)]),
+            xaxis=dict(range=[0, len(self.seq1)]),
         )
 
         if self.title is None:

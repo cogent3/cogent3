@@ -27,18 +27,30 @@ def load_alignment(annotate1=False, annotate2=False):
     aln = aln.omit_gap_pos()
     if annotate1:
         db.add_feature(
-            seqid=aln.names[0], biotype="gene", name="abcde1", spans=[(20, 50)]
+            seqid=aln.names[0],
+            biotype="gene",
+            name="abcde1",
+            spans=[(20, 50)],
         )
         db.add_feature(
-            seqid=aln.names[0], biotype="variation", name="one", spans=[(11, 12)]
+            seqid=aln.names[0],
+            biotype="variation",
+            name="one",
+            spans=[(11, 12)],
         )
     if annotate2:
         db.add_feature(
-            seqid=aln.names[1], biotype="gene", name="abcde2", spans=[(20, 50)]
+            seqid=aln.names[1],
+            biotype="gene",
+            name="abcde2",
+            spans=[(20, 50)],
         )
 
         db.add_feature(
-            seqid=aln.names[1], biotype="domain", name="abcde2", spans=[(10, 15)]
+            seqid=aln.names[1],
+            biotype="domain",
+            name="abcde2",
+            spans=[(10, 15)],
         )
     aln.annotation_db = db
     return aln
@@ -392,7 +404,8 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
     def test_get_drawable(self):  # ported
         """sliced alignment with features returns a drawable"""
         aln = make_aligned_seqs(
-            data=dict(a="AAACGGTTT", b="CAA--GTAA"), array_align=False
+            data=dict(a="AAACGGTTT", b="CAA--GTAA"),
+            array_align=False,
         )
         db = GffAnnotationDb()
         db.add_feature(seqid="b", biotype="domain", name="1", spans=[(1, 5)])

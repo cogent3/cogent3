@@ -129,21 +129,23 @@ class RecalculationTest(TestCase):
         # falls bellow f(X,Y)-dropoff:
 
         self.assertEqual(
-            pc.get_param_interval("X", dropoff=4, xtol=0.0), (-2.0, 0.0, 2.0)
+            pc.get_param_interval("X", dropoff=4, xtol=0.0),
+            (-2.0, 0.0, 2.0),
         )
 
         # We test the ability to omit xtol. Due to precision issues we convert the returned value to a string.
 
         self.assertTrue(
-            "-2.0, 0.0, 2.0"
-            == "%.1f, %.1f, %.1f" % pc.get_param_interval("X", dropoff=4)
+            "%.1f, %.1f, %.1f" % pc.get_param_interval("X", dropoff=4)
+            == "-2.0, 0.0, 2.0",
         )
 
         # And finally intervals can be calculated in bulk by passing a dropoff value to
         # .get_param_value_dict():
 
         self.assertEqual(
-            pc.get_param_value_dict([], dropoff=4, xtol=0.0)["X"], (-2.0, 0.0, 2.0)
+            pc.get_param_value_dict([], dropoff=4, xtol=0.0)["X"],
+            (-2.0, 0.0, 2.0),
         )
 
         # For likelihood functions it is more convenient to provide 'p' rather than

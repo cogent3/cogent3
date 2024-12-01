@@ -44,17 +44,29 @@ def load_alignment():
         aln = aln.omit_gap_pos()
         if annotate1:
             db.add_feature(
-                seqid=aln.names[0], biotype="gene", name="abcde1", spans=[(20, 50)]
+                seqid=aln.names[0],
+                biotype="gene",
+                name="abcde1",
+                spans=[(20, 50)],
             )
             db.add_feature(
-                seqid=aln.names[0], biotype="variation", name="one", spans=[(11, 12)]
+                seqid=aln.names[0],
+                biotype="variation",
+                name="one",
+                spans=[(11, 12)],
             )
         if annotate2:
             db.add_feature(
-                seqid=aln.names[1], biotype="gene", name="abcde2", spans=[(20, 50)]
+                seqid=aln.names[1],
+                biotype="gene",
+                name="abcde2",
+                spans=[(20, 50)],
             )
             db.add_feature(
-                seqid=aln.names[1], biotype="domain", name="abcde2", spans=[(10, 15)]
+                seqid=aln.names[1],
+                biotype="domain",
+                name="abcde2",
+                spans=[(10, 15)],
             )
         aln.annotation_db = db
         return aln
@@ -69,7 +81,7 @@ def check_drawable_attrs(fig, type_):
     assert "data" in fig, "Expected 'data' key in fig"
     # data traces should be of type "scatter"
     assert {tr.type for tr in fig.data} == {
-        type_
+        type_,
     }, f"Expected data traces of type {type_}"
 
 
@@ -119,7 +131,8 @@ def test_dotplot_base_cases(dotplot_seqs):
 
 @pytest.mark.parametrize("with_annotations", [True, False])
 @pytest.mark.parametrize(
-    "mk_cls", [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs]
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
 )
 def test_dotplot_annotated(annotated_seq, with_annotations, mk_cls):
     if not with_annotations:
@@ -143,7 +156,7 @@ def test_dotplot_regression():
     trace_names = [tr.name for tr in dp.traces]
 
     assert [tr.name for tr in dp.traces] != [] and len(trace_names) == len(
-        dp.traces
+        dp.traces,
     ), "No traces found for dotplot"
     assert all(
         trace_names[i] == dp.traces[i]["name"] for i in range(len(trace_names))
@@ -300,7 +313,8 @@ def test_information_plot(load_alignment):
 def test_get_drawable():
     """sliced alignment with features returns a drawable"""
     aln = new_alignment.make_aligned_seqs(
-        dict(a="AAACGGTTT", b="CAA--GTAA"), moltype="dna"
+        dict(a="AAACGGTTT", b="CAA--GTAA"),
+        moltype="dna",
     )
     db = GffAnnotationDb()
     db.add_feature(seqid="b", biotype="domain", name="1", spans=[(1, 5)])

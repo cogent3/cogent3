@@ -68,9 +68,9 @@ def _get_alternate(value: str):
         {
             k: ALT_TWO_SIDED
             for k in ("two sided", "2", "two tailed", "two", "two.sided", "ts")
-        }
+        },
     )
-    alt = alts.get(value, None)
+    alt = alts.get(value)
     if alt is None:
         raise ValueError(f"alternate hypothesis '{value}' not in {sorted(alts)}")
     return alt
@@ -123,8 +123,6 @@ def std(x, axis=None):  # pragma: no cover
 
 class ZeroExpectedError(ValueError):
     """Class for handling tests where an expected value was zero."""
-
-    pass
 
 
 def G_2_by_2(a, b, c, d, williams=1, directional=1):
@@ -209,7 +207,7 @@ def G_2_by_2(a, b, c, d, williams=1, directional=1):
 
 def safe_sum_p_log_p(a, base=None):
     """Calculates p * log(p) safely for an array that may contain zeros."""
-    # todo rewrite using numpy funcs to be more succinct
+    # TODO rewrite using numpy funcs to be more succinct
     flat = ravel(a)
     nz = take(flat, nonzero(flat)[0])
     logs = log(nz)
@@ -223,7 +221,7 @@ def G_ind(m, williams=False):
 
     Requires input data as a numpy array. From Sokal and Rohlf p 738.
     """
-    # todo rewrite using numpy funcs to be more succinct
+    # TODO rewrite using numpy funcs to be more succinct
     f_ln_f_elements = safe_sum_p_log_p(m)
     f_ln_f_rows = safe_sum_p_log_p(npsum(m, 0))
     f_ln_f_cols = safe_sum_p_log_p(npsum(m, 1))
@@ -291,9 +289,9 @@ def G_fit(obs, exp, williams=1):
     exp = array(exp)
     if obs.shape != exp.shape:
         raise ValueError("requires data with equal dimensions.")
-    elif (obs < 0).any():
+    if (obs < 0).any():
         raise ValueError("requires all observed values to be positive.")
-    elif (exp == 0).any() or (exp < 0).any():
+    if (exp == 0).any() or (exp < 0).any():
         raise ZeroExpectedError("requires all expected values to be positive")
     non_zero = obs != 0
     G = 2 * (obs[non_zero] * (log(obs[non_zero]) - log(exp[non_zero]))).sum()
@@ -571,11 +569,10 @@ def _t_test_no_variance(mean1, mean2, tails):
             result = (float("-inf"), 1.0)
         else:
             result = (float("inf"), 0.0)
+    elif mean1 < mean2:
+        result = (float("-inf"), 0.0)
     else:
-        if mean1 < mean2:
-            result = (float("-inf"), 0.0)
-        else:
-            result = (float("inf"), 1.0)
+        result = (float("inf"), 1.0)
 
     return result
 
@@ -612,7 +609,7 @@ def mc_t_two_sample(x_items, y_items, tails=None, permutations=999, exp_diff=0):
     if permutations < 0:
         raise ValueError(
             "Invalid number of permutations: %d. Must be greater "
-            "than or equal to zero." % permutations
+            "than or equal to zero." % permutations,
         )
 
     if (len(x_items) == 1 and len(y_items) == 1) or (
@@ -621,12 +618,16 @@ def mc_t_two_sample(x_items, y_items, tails=None, permutations=999, exp_diff=0):
         raise ValueError(
             "At least one of the sequences of observations is "
             "empty, or the sequences each contain only a single "
-            "observation. Cannot perform the t-test."
+            "observation. Cannot perform the t-test.",
         )
 
     # Perform t-test using original observations.
     obs_t, param_p_val = t_two_sample(
-        x_items, y_items, tails=tails, exp_diff=exp_diff, none_on_zero_variance=False
+        x_items,
+        y_items,
+        tails=tails,
+        exp_diff=exp_diff,
+        none_on_zero_variance=False,
     )
 
     # Only perform the Monte Carlo test if we got a sane answer back from the
@@ -637,7 +638,9 @@ def mc_t_two_sample(x_items, y_items, tails=None, permutations=999, exp_diff=0):
         # Permute observations between x_items and y_items the specified number
         # of times.
         perm_x_items, perm_y_items = _permute_observations(
-            x_items, y_items, permutations
+            x_items,
+            y_items,
+            permutations,
         )
         perm_t_stats = [
             t_two_sample(
@@ -744,12 +747,12 @@ def pearson(x_items, y_items):
         raise ValueError(
             "The length of the two vectors must be the same in "
             "order to calculate the Pearson correlation "
-            "coefficient."
+            "coefficient.",
         )
     if len(x_items) < 2:
         raise ValueError(
             "The two vectors must both contain at least 2 "
-            "elements. The vectors are of length %d." % len(x_items)
+            "elements. The vectors are of length %d." % len(x_items),
         )
 
     sum_x = npsum(x_items)
@@ -802,12 +805,12 @@ def spearman(x_items, y_items):
     if len(x_items) != len(y_items):
         raise ValueError(
             "The length of the two vectors must be the same in "
-            "order to calculate Spearman's rho."
+            "order to calculate Spearman's rho.",
         )
     if len(x_items) < 2:
         raise ValueError(
             "The two vectors must both contain at least 2 "
-            "elements. The vectors are of length %d." % len(x_items)
+            "elements. The vectors are of length %d." % len(x_items),
         )
 
     # Rank the two input vectors.
@@ -827,7 +830,7 @@ def spearman(x_items, y_items):
         numerator = npsum([(x - x_bar) * (y - y_bar) for x, y in zip(rank1, rank2)])
         denominator = sqrt(
             npsum([(x - x_bar) ** 2 for x in rank1])
-            * npsum([(y - y_bar) ** 2 for y in rank2])
+            * npsum([(y - y_bar) ** 2 for y in rank2]),
         )
 
         # Calculate rho. Handle the case when there is no variation in one or
@@ -919,7 +922,11 @@ def correlation(x_items, y_items):
     correlation_test() for more control over how the test is performed.
     """
     return correlation_test(
-        x_items, y_items, method="pearson", tails=None, permutations=0
+        x_items,
+        y_items,
+        method="pearson",
+        tails=None,
+        permutations=0,
     )[:2]
 
 
@@ -995,21 +1002,21 @@ def correlation_test(
         corr_fn = spearman
     else:
         raise ValueError(
-            f"Invalid method '{method}'. Must be either 'pearson' or 'spearman'."
+            f"Invalid method '{method}'. Must be either 'pearson' or 'spearman'.",
         )
     if tails is not None and tails != "high" and tails != "low":
         raise ValueError(
-            f"Invalid tail type '{tails}'. Must be either None, 'high', or 'low'."
+            f"Invalid tail type '{tails}'. Must be either None, 'high', or 'low'.",
         )
     if permutations < 0:
         raise ValueError(
             "Invalid number of permutations: %d. Must be greater "
-            "than or equal to zero." % permutations
+            "than or equal to zero." % permutations,
         )
     if confidence_level <= 0 or confidence_level >= 1:
         raise ValueError(
             "Invalid confidence level: %.4f. Must be between "
-            "zero and one." % confidence_level
+            "zero and one." % confidence_level,
         )
 
     # Calculate the correlation coefficient.
@@ -1053,7 +1060,7 @@ def correlation_test(
             # don't want to return a p-value of 0 if someone passes in a bogus
             # tail type somehow.
             raise ValueError(
-                f"Invalid tail type '{tails}'. Must be either None, 'high', or 'low'."
+                f"Invalid tail type '{tails}'. Must be either None, 'high', or 'low'.",
             )
     if permutations > 0:
         nonparametric_p_val = (better + 1) / (permutations + 1)
@@ -1234,10 +1241,9 @@ def z_tailed_prob(z, tails):
     """Returns appropriate p-value for given z, depending on tails."""
     if tails == "high":
         return norm.sf(z)
-    elif tails == "low":
+    if tails == "low":
         return norm.cdf(z)
-    else:
-        return zprob(z)
+    return zprob(z)
 
 
 def t_tailed_prob(x, df, tails):
@@ -1247,10 +1253,9 @@ def t_tailed_prob(x, df, tails):
 
     if tails == ALT_HIGH:
         return t.sf(x, df)
-    elif tails == ALT_LOW:
+    if tails == ALT_LOW:
         return t.cdf(x, df)
-    else:
-        return tprob(x, df)
+    return tprob(x, df)
 
 
 def reverse_tails(tails):
@@ -1260,10 +1265,9 @@ def reverse_tails(tails):
 
     if tails == ALT_HIGH:
         return ALT_LOW
-    elif tails == ALT_LOW:
+    if tails == ALT_LOW:
         return ALT_HIGH
-    else:
-        return tails
+    return tails
 
 
 def tail(prob, test):
@@ -1271,8 +1275,7 @@ def tail(prob, test):
     prob /= 2
     if test:
         return prob
-    else:
-        return 1 - prob
+    return 1 - prob
 
 
 def multiple_comparisons(p, n):
@@ -1283,8 +1286,7 @@ def multiple_comparisons(p, n):
     """
     if p > 1e-6:  # if p is large and n small, calculate directly
         return 1 - (1 - p) ** n
-    else:
-        return one_minus_exp(-n * p)
+    return one_minus_exp(-n * p)
 
 
 def multiple_inverse(p_final, n):
@@ -1351,14 +1353,13 @@ def f_two_sample(a, b, tails=None):
     dfn, dfd, F = f_value(a, b)
     if tails == ALT_LOW:
         return dfn, dfd, F, f.cdf(F, dfn, dfd)
-    elif tails == ALT_HIGH:
+    if tails == ALT_HIGH:
         return dfn, dfd, F, f.sf(F, dfn, dfd)
+    if var(a) >= var(b):
+        side = "right"
     else:
-        if var(a) >= var(b):
-            side = "right"
-        else:
-            side = "left"
-        return dfn, dfd, F, fprob(dfn, dfd, F, side=side)
+        side = "left"
+    return dfn, dfd, F, fprob(dfn, dfd, F, side=side)
 
 
 def ANOVA_one_way(a):
@@ -1567,7 +1568,11 @@ def ks_boot(x, y, alt="two sided", num_reps=1000):
     num_greater = 0
     for sampled_x, sampled_y in _get_bootstrap_sample(x, y, num_reps):
         sample_stat, _p = ks_test(
-            sampled_x, sampled_y, alt=alt, exact=False, warn_for_ties=False
+            sampled_x,
+            sampled_y,
+            alt=alt,
+            exact=False,
+            warn_for_ties=False,
         )
         if sample_stat >= (observed_stat - tol):
             num_greater += 1
@@ -1591,7 +1596,8 @@ def mw_test(x, y):
     y = list(zip(y, ones(len(y), int), zeros(len(y), int)))
     combined = x + y
     combined = array(
-        combined, dtype=[("stat", float), ("sample", int), ("rank", float)]
+        combined,
+        dtype=[("stat", float), ("sample", int), ("rank", float)],
     )
     combined.sort(order="stat")
     prev = None
@@ -1680,7 +1686,11 @@ def mantel(m1, m2, n):
 
 
 def mantel_test(
-    m1, m2, n, alt="two sided", suppress_symmetry_and_hollowness_check=False
+    m1,
+    m2,
+    n,
+    alt="two sided",
+    suppress_symmetry_and_hollowness_check=False,
 ):
     """Runs a Mantel test on two distance matrices.
 
@@ -1722,12 +1732,12 @@ def mantel_test(
         raise ValueError("Both distance matrices must be the same size.")
     if n < 1:
         raise ValueError(
-            "The number of permutations must be greater than or " "equal to one."
+            "The number of permutations must be greater than or equal to one.",
         )
     if not suppress_symmetry_and_hollowness_check and not (
         is_symmetric_and_hollow(m1) and is_symmetric_and_hollow(m2)
     ):
-        raise ValueError("Both distance matrices must be symmetric and " "hollow.")
+        raise ValueError("Both distance matrices must be symmetric and hollow.")
 
     # Get a flattened list of lower-triangular matrix elements (excluding the
     # diagonal) in column-major order. Use these values to calculate the
@@ -1747,17 +1757,16 @@ def mantel_test(
         if alt == ALT_TWO_SIDED:
             if abs(r) >= abs(orig_stat):
                 better += 1
-        else:
-            if (alt == ALT_HIGH and r >= orig_stat) or (
-                alt == ALT_LOW and r <= orig_stat
-            ):
-                better += 1
+        elif (alt == ALT_HIGH and r >= orig_stat) or (
+            alt == ALT_LOW and r <= orig_stat
+        ):
+            better += 1
         perm_stats.append(r)
     return (better + 1) / (n + 1), orig_stat, perm_stats
 
 
 def is_symmetric_and_hollow(matrix):
-    return (matrix.T == matrix).all() and (trace(matrix) == 0)
+    return (matrix == matrix.T).all() and (trace(matrix) == 0)
 
 
 def _flatten_lower_triangle(matrix):
@@ -1877,7 +1886,10 @@ def distance_matrix_permutation_test(
             cells2 = get_ltm_cells(cells2)
     # pull out the special values
     special_values, other_values = get_values_from_matrix(
-        matrix, cells, cells2, is_symmetric
+        matrix,
+        cells,
+        cells2,
+        is_symmetric,
     )
     # calc the stat and parameteric p-value for real data
     stat, p = f(special_values, other_values, tails)
@@ -1889,7 +1901,10 @@ def distance_matrix_permutation_test(
         # shuffle the order of indices, and use those to permute the matrix
         permuted_matrix = permute_2d(matrix, permutation(indices))
         special_values, other_values = get_values_from_matrix(
-            permuted_matrix, cells, cells2, is_symmetric
+            permuted_matrix,
+            cells,
+            cells2,
+            is_symmetric,
         )
         # calc the stat and p for a random subset (we don't do anything
         # with these p-values, we only use the current_stat value)
@@ -1939,9 +1954,8 @@ def get_values_from_matrix(matrix, cells, cells2=None, is_symmetric=True):
                 if is_symmetric:
                     if (i, j) not in cells and i > j:
                         cells2_values.append(val)
-                else:
-                    if (i, j) not in cells:
-                        cells2_values.append(val)
+                elif (i, j) not in cells:
+                    cells2_values.append(val)
     return cells_values, cells2_values
 
 

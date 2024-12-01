@@ -34,7 +34,7 @@ DnaWeightCorrection = 61.96  # assumes 5' monophosphate, 3' OH
 RnaWeightCorrection = DnaWeightCorrection
 
 
-class WeightCalculator(object):
+class WeightCalculator:
     """Calculates molecular weight of a non-degenerate sequence."""
 
     # refactor: array

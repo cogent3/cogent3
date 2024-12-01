@@ -63,7 +63,7 @@ def goertzel(x, period):
     return calc(x)
 
 
-class _PeriodEstimator(object):
+class _PeriodEstimator:
     """parent class for period estimation"""
 
     def __init__(self, length, llim=None, ulim=None, period=None):

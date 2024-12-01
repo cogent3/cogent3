@@ -85,7 +85,12 @@ def tree_align(
         tree = tree.bifurcating(name_unnamed=True)
         tree = fix_lengths(tree)
         align = _progressive_hmm(
-            indel_length, indel_rate, model, param_vals, seqs, tree
+            indel_length,
+            indel_rate,
+            model,
+            param_vals,
+            seqs,
+            tree,
         )
 
         return align, tree
@@ -105,7 +110,11 @@ def tree_align(
     else:
         # we have to do the pairwise-alignment based approach
         dists, param_vals = _dists_from_pairwise_align(
-            est_params, params_from_pairwise, model, param_vals, seqs
+            est_params,
+            params_from_pairwise,
+            model,
+            param_vals,
+            seqs,
         )
         tree = NJ.nj(dists.to_dict())
 
@@ -118,7 +127,12 @@ def tree_align(
     ui.display("Doing progressive alignment")
     # this is the point at which we do the iterations
     align = _progressive_hmm(
-        indel_length, indel_rate, model, {**param_vals}, seqs, tree
+        indel_length,
+        indel_rate,
+        model,
+        {**param_vals},
+        seqs,
+        tree,
     )
     if iters is None:
         return align, tree
@@ -129,14 +143,23 @@ def tree_align(
         tree = tree.bifurcating(name_unnamed=True)
         tree = fix_lengths(tree)
         align = _progressive_hmm(
-            indel_length, indel_rate, model, {**param_vals}, seqs, tree
+            indel_length,
+            indel_rate,
+            model,
+            {**param_vals},
+            seqs,
+            tree,
         )
 
     return align, tree
 
 
 def _dists_from_pairwise_align(
-    est_params, params_from_pairwise, model, param_vals, seqs
+    est_params,
+    params_from_pairwise,
+    model,
+    param_vals,
+    seqs,
 ):
     dcalc = EstimateDistances(seqs, model, do_pair_align=True, est_params=est_params)
     dcalc.run()
@@ -188,7 +211,7 @@ def _progressive_hmm(indel_length, indel_rate, model, param_vals, seqs, tree):
             guide_tree=tree.get_newick(with_distances=True),
             model=model.name,
             lnL=lnL,
-        )
+        ),
     )
     align.info["align_params"] = param_vals
     return align

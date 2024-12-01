@@ -5,10 +5,11 @@ import textwrap
 import time
 import traceback
 import types
+from collections.abc import Generator
 from copy import deepcopy
 from enum import Enum
 from pathlib import Path
-from typing import Any, Generator, Tuple, Union
+from typing import Any, Tuple, Union
 from uuid import uuid4
 
 from scitrack import CachingLogger
@@ -61,7 +62,7 @@ class NotCompleted(int):
         source : str or instance with .info.source or .source attributes
             the data operated on that led to this result. Can
         """
-        # todo this approach to caching persistent arguments for reconstruction
+        # TODO this approach to caching persistent arguments for reconstruction
         # is fragile. Need an inspect module based approach
         origin = _get_origin(origin)
         try:
@@ -96,7 +97,8 @@ class NotCompleted(int):
         return {
             "type": get_object_provenance(self),
             "not_completed_construction": dict(
-                args=self._persistent[0], kwargs=self._persistent[1]
+                args=self._persistent[0],
+                kwargs=self._persistent[1],
             ),
             "version": __version__,
         }
@@ -125,7 +127,7 @@ def _get_raw_hints(main_func, min_params):
     params = inspect.signature(main_func)
     if len(params.parameters) < min_params:
         raise ValueError(
-            f"{main_func.__name__!r} must have at least {min_params} input parameters"
+            f"{main_func.__name__!r} must have at least {min_params} input parameters",
         )
     # annotation for first parameter other than self, params.parameters is an orderedDict
     first_param_type = [p.annotation for p in params.parameters.values()][
@@ -221,7 +223,7 @@ def _add(self, other):
 
     if other.input is not None:
         raise ValueError(
-            f"{other.__class__.__name__} already part of composed function, use disconnect() to free them up"
+            f"{other.__class__.__name__} already part of composed function, use disconnect() to free them up",
         )
 
     if other is self:
@@ -230,7 +232,7 @@ def _add(self, other):
     # Check order
     if self.app_type is WRITER:
         raise TypeError("Left hand side of add operator must not be of type writer")
-    elif other.app_type is LOADER:
+    if other.app_type is LOADER:
         raise TypeError("Right hand side of add operator must not be of type loader")
 
     if self._return_types & {"SerialisableType", "IdentifierType"}:
@@ -246,7 +248,7 @@ def _add(self, other):
         raise TypeError(
             f"{self.__class__.__name__!r} return_type {self._return_types} "
             f"incompatible with {other.__class__.__name__!r} input "
-            f"type {other._data_types}"
+            f"type {other._data_types}",
         )
     other.input = self
     return other
@@ -392,7 +394,7 @@ def _call(self, val, *args, **kwargs):
 
 def _validate_data_type(self, data):
     """checks data class name matches defined compatible types"""
-    # todo when move to python 3.8 define protocol checks for the two singular types
+    # TODO when move to python 3.8 define protocol checks for the two singular types
     if isinstance(data, NotCompleted) and self._skip_not_completed:
         return data
 
@@ -465,7 +467,10 @@ def _class_from_func(func):
 
 
 def define_app(
-    klass=None, *, app_type: AppType = GENERIC, skip_not_completed: bool = True
+    klass=None,
+    *,
+    app_type: AppType = GENERIC,
+    skip_not_completed: bool = True,
 ) -> type:
     """decorator for building callable apps
 
@@ -598,7 +603,7 @@ def define_app(
     if hasattr(klass, "app_type"):
         raise TypeError(
             f"The class {klass.__name__!r} is already decorated, avoid using "
-            "inheritance from a decorated class."
+            "inheritance from a decorated class.",
         )
 
     app_type = AppType(app_type)
@@ -619,17 +624,17 @@ def define_app(
         # check if user defined input for composable
         if composable and getattr(klass, "input", None):
             raise TypeError(
-                f"remove 'input' attribute in {klass.__name__!r}, this functionality provided by define_app"
+                f"remove 'input' attribute in {klass.__name__!r}, this functionality provided by define_app",
             )
         if composable and getattr(klass, "__add__", None):
             raise TypeError(
-                f"remove '__add__' method in {klass.__name__!r}, this functionality provided by define_app"
+                f"remove '__add__' method in {klass.__name__!r}, this functionality provided by define_app",
             )
         for meth in method_list:
             # make sure method not defined by user before adding
             if inspect.isfunction(getattr(klass, meth, None)):
                 raise TypeError(
-                    f"remove {meth!r} in {klass.__name__!r}, this functionality provided by define_app"
+                    f"remove {meth!r} in {klass.__name__!r}, this functionality provided by define_app",
                 )
             func = __mapping["__repr__"] if meth == "__str__" else __mapping[meth]
             func.__name__ = meth
@@ -637,13 +642,13 @@ def define_app(
 
         # Get type hints of main function in klass
         arg_hints, return_hint = _get_main_hints(klass)
-        setattr(klass, "_data_types", arg_hints)
-        setattr(klass, "_return_types", return_hint)
-        setattr(klass, "app_type", app_type)
-        setattr(klass, "_skip_not_completed", skip_not_completed)
+        klass._data_types = arg_hints
+        klass._return_types = return_hint
+        klass.app_type = app_type
+        klass._skip_not_completed = skip_not_completed
 
         if app_type is not LOADER:
-            setattr(klass, "input", None)
+            klass.input = None
 
         if hasattr(klass, "__slots__"):
             # not supporting this yet
@@ -667,7 +672,8 @@ def _proxy_input(dstore):
 
 
 def _source_wrapped(
-    self, value: Union[source_proxy, c3_typing.HasSource]
+    self,
+    value: Union[source_proxy, c3_typing.HasSource],
 ) -> c3_typing.HasSource:
     if not isinstance(value, source_proxy):
         return self(value)
@@ -791,7 +797,7 @@ def _apply_to(
     elif isinstance(dstore, DataStoreABC):
         dstore = dstore.completed
 
-    # todo this should fail if somebody provides data that cannot produce a unique_id
+    # TODO this should fail if somebody provides data that cannot produce a unique_id
     inputs = {}
     for m in dstore:
         input_id = Path(m.unique_id) if isinstance(m, DataMember) else m
@@ -816,7 +822,10 @@ def _apply_to(
 
     inputs = _proxy_input(inputs.values())
     for result in self.as_completed(
-        inputs, parallel=parallel, par_kw=par_kw, show_progress=show_progress
+        inputs,
+        parallel=parallel,
+        par_kw=par_kw,
+        show_progress=show_progress,
     ):
         member = self.main(
             data=getattr(result, "obj", result),
@@ -834,7 +843,8 @@ def _apply_to(
         log_file_path = Path(logger.log_file_path)
         logger.shutdown()
         self.data_store.write_log(
-            unique_id=log_file_path.name, data=log_file_path.read_text()
+            unique_id=log_file_path.name,
+            data=log_file_path.read_text(),
         )
         if cleanup:
             log_file_path.unlink(missing_ok=True)

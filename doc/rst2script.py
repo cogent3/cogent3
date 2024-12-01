@@ -113,7 +113,7 @@ def _rst_path(*args):
     path = pathlib.Path(args[-1])
     assert path.suffix == ".rst"
     if not path.exists():
-        click.secho(f"ERROR: {str(path)} does not exist", fg="red")
+        click.secho(f"ERROR: {path!s} does not exist", fg="red")
         exit(1)
     return path
 

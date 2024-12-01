@@ -62,7 +62,7 @@ def best_frame(
     # if min_stops > 1, cannot be translated
     if min_stops > 1:
         raise ValueError(f"{seq.name!r} cannot be robustly translated")
-    elif min_stops == 0 and require_stop:
+    if min_stops == 0 and require_stop:
         # find seq with 1 stop
         min_stops = 20  # nonsense value
         for n, fr in stops_in_frame:
@@ -116,7 +116,9 @@ def translate_frames(
 
 
 def get_fourfold_degenerate_sets(
-    gc: GeneticCodeTypes, alphabet: Optional[Alphabet] = None, as_indices: bool = True
+    gc: GeneticCodeTypes,
+    alphabet: Optional[Alphabet] = None,
+    as_indices: bool = True,
 ):
     """returns set() of codons that are 4-fold degenerate for genetic code gc
 
@@ -283,7 +285,9 @@ class select_translatable:
 
         if translatable:
             translatable = SequenceCollection(
-                data=translatable, moltype=self._moltype, info=seqs.info
+                data=translatable,
+                moltype=self._moltype,
+                info=seqs.info,
             )
             translatable.info["translation_errors"] = error_log
         else:

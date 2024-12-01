@@ -27,7 +27,7 @@ import random
 from cogent3.util import progress_display as UI
 
 
-class ParametricBootstrapCore(object):
+class ParametricBootstrapCore:
     """Core parametric bootstrap services."""
 
     def __init__(self):
@@ -49,7 +49,7 @@ class ParametricBootstrapCore(object):
         # self.simplify() is used as the entire LF result might not be picklable
         # for MPI. Subclass must provide self.alignment and
         # self.parameter_controllers
-        if "random_series" not in opt_args and not opt_args.get("local", None):
+        if "random_series" not in opt_args and not opt_args.get("local"):
             opt_args["random_series"] = random.Random()
 
         null_pc = self.parameter_controllers[0]

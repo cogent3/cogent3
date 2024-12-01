@@ -109,7 +109,10 @@ class FastSlowDistTests(TestCase):
 
         with self.assertRaises(ValueError):
             fast_slow_dist = get_app(
-                "fast_slow_dist", distance="TN93", fast_calc="TN93", slow_calc="TN93"
+                "fast_slow_dist",
+                distance="TN93",
+                fast_calc="TN93",
+                slow_calc="TN93",
             )
 
         with self.assertRaises(ValueError):
@@ -296,7 +299,7 @@ def test_approx_pdist():
             (("s1", "s2"), 0.4),
             (("s2", "s1"), 0.4),
             (("s2", "s2"), 0.0),
-        ]
+        ],
     )
     dm = DistanceMatrix(data)
 
@@ -325,7 +328,7 @@ def test_approx_jc69(moltype):
             (("s1", "s2"), 1 / 5),
             (("s2", "s1"), 1 / 5),
             (("s2", "s2"), 0.0),
-        ]
+        ],
     )
 
     dm = DistanceMatrix(data)
@@ -359,7 +362,7 @@ def test_approx_pdist_same_diff(moltype):
             ("s2", "ACGTC"),
             ("s3", "ACGTT"),
             ("s4", "ACGAT"),
-        ]
+        ],
     )
     pdist_app = jaccard_dist(k=3) + approx_pdist()
     collection = make_unaligned_seqs(data=data, moltype=moltype)

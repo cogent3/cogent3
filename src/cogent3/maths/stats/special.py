@@ -4,8 +4,6 @@
 
 from numpy import exp, floor, log, sin, sqrt
 
-from cogent3.util import warning as c3warn
-
 log_epsilon = 1e-6  # for threshold in log/exp close to 1
 # For IEEE arithmetic (IBMPC):
 MACHEP = 1.11022302462515654042e-16  # 2**-53
@@ -37,26 +35,23 @@ def fix_rounding_error(x):
     """
     if -ROUND_ERROR < x < 0:
         return 0
-    elif 1 < x < 1 + ROUND_ERROR:
+    if 1 < x < 1 + ROUND_ERROR:
         return 1
-    else:
-        return x
+    return x
 
 
 def log_one_minus(x):
     """Returns natural log of (1-x). Useful for probability calculations."""
     if abs(x) < log_epsilon:
         return -x
-    else:
-        return log(1 - x)
+    return log(1 - x)
 
 
 def one_minus_exp(x):
     """Returns 1-exp(x). Useful for probability calculations."""
     if abs(x) < log_epsilon:
         return -x
-    else:
-        return 1 - exp(x)
+    return 1 - exp(x)
 
 
 def ln_binomial(successes, trials, prob):
@@ -634,8 +629,7 @@ def Gamma(x):
 def Gamma_small(x, z):
     if x == 0:
         raise OverflowError("Bad value of x in Gamma function.")
-    else:
-        return z / ((1 + 0.5772156649015329 * x) * x)
+    return z / ((1 + 0.5772156649015329 * x) * x)
 
 
 def stirf(x):
@@ -759,9 +753,9 @@ def igami(a, y0):
     # handle easy cases
     if (y0 < 0.0) or (y0 > 1.0) or (a <= 0):
         raise ZeroDivisionError("y0 must be between 0 and 1; a >= 0")
-    elif y0 == 0.0:
+    if y0 == 0.0:
         return MAXNUM
-    elif y0 == 1.0:
+    if y0 == 1.0:
         return 0.0
     # approximation to inverse function
     d = 1.0 / (9.0 * a)
@@ -931,7 +925,7 @@ def ndtri(y0):
     # handle easy cases
     if y0 <= 0.0:
         return -MAXNUM
-    elif y0 >= 1.0:
+    if y0 >= 1.0:
         return MAXNUM
     code = 1
     y = y0
@@ -965,7 +959,7 @@ def incbi(aa, bb, yy0):
     # handle easy cases first
     if yy0 <= 0:
         return 0.0
-    elif yy0 >= 1.0:
+    if yy0 >= 1.0:
         return 1.0
 
     # define inscrutable parameters
@@ -984,10 +978,23 @@ def incbi(aa, bb, yy0):
         x = a / (a + b)
         y = incbet(a, b, x)
         return _incbi_ihalve(
-            dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, yy0
+            dithresh,
+            rflg,
+            nflg,
+            a,
+            b,
+            x0,
+            yl,
+            x1,
+            yh,
+            y0,
+            x,
+            y,
+            aa,
+            bb,
+            yy0,
         )
-    else:
-        dithresh = 1.0e-4
+    dithresh = 1.0e-4
 
     # approximation to inverse function
     yp = -ndtri(yy0)
@@ -1019,12 +1026,39 @@ def incbi(aa, bb, yy0):
     yp = (y - y0) / y0
     if abs(yp) < 0.2:
         return _incbi_newt(
-            dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, yy0
+            dithresh,
+            rflg,
+            nflg,
+            a,
+            b,
+            x0,
+            yl,
+            x1,
+            yh,
+            y0,
+            x,
+            y,
+            aa,
+            bb,
+            yy0,
         )
-    else:
-        return _incbi_ihalve(
-            dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, yy0
-        )
+    return _incbi_ihalve(
+        dithresh,
+        rflg,
+        nflg,
+        a,
+        b,
+        x0,
+        yl,
+        x1,
+        yh,
+        y0,
+        x,
+        y,
+        aa,
+        bb,
+        yy0,
+    )
 
 
 def _incbi_done(rflg, x):
@@ -1211,5 +1245,19 @@ def _incbi_newt(dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, yy
     # Did not converge.
     dithresh = 256.0 * MACHEP
     return _incbi_ihalve(
-        dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, yy0
+        dithresh,
+        rflg,
+        nflg,
+        a,
+        b,
+        x0,
+        yl,
+        x1,
+        yh,
+        y0,
+        x,
+        y,
+        aa,
+        bb,
+        yy0,
     )

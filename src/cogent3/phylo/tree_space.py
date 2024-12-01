@@ -48,8 +48,7 @@ def tree2ancestry(tree, order=None):
         def _ordered_tips_first(n):
             if n.children:
                 return len(order)
-            else:
-                return lookup[n.name]
+            return lookup[n.name]
 
         nodes.sort(key=_ordered_tips_first)
 
@@ -115,7 +114,7 @@ def grown(B, split_edge):
     return A
 
 
-class TreeEvaluator(object):
+class TreeEvaluator:
     """Subclass must provide make_tree_scorer and result2output"""
 
     def results2output(self, results):
@@ -189,11 +188,12 @@ class TreeEvaluator(object):
             for tree in start:
                 # check the start tree represents a subset of tips
                 assert set(tree.get_tip_names()) < set(
-                    self.names
+                    self.names,
                 ), "Starting tree names not a subset of the sequence names"
 
                 (ancestry, fixed_names2, lengths) = tree2ancestry(
-                    tree, order=fixed_names
+                    tree,
+                    order=fixed_names,
                 )
                 assert fixed_names2 == fixed_names
                 trees.append((None, None, ancestry))
@@ -205,10 +205,8 @@ class TreeEvaluator(object):
 
         tree_size = len(names)
         assert tree_size > 3
-        if a > tree_size:
-            a = tree_size
-        if a < 4:
-            a = 4
+        a = min(a, tree_size)
+        a = max(a, 4)
 
         # All trees of size a-1, no need to compare them
         for n in range(init_tree_size + 1, a):

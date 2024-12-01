@@ -82,7 +82,8 @@ class make_matches_tests(TestCase):
         """make_matches with only gaps should match all gaps to each other"""
         m = make_matches("", "~!")
         self.assertEqual(
-            m, {("~", "~"): True, ("!", "!"): True, ("!", "~"): True, ("~", "!"): True}
+            m,
+            {("~", "~"): True, ("!", "!"): True, ("!", "~"): True, ("~", "!"): True},
         )
 
     def test_init_degen(self):
@@ -112,7 +113,9 @@ class make_matches_tests(TestCase):
     def test_init_all(self):
         """make_matches with everything should produce correct dict"""
         m = make_matches(
-            "ABC", ("-", "~"), {"X": "AB", "Y": ("B", "C"), "N": list("ABC")}
+            "ABC",
+            ("-", "~"),
+            {"X": "AB", "Y": ("B", "C"), "N": list("ABC")},
         )
         exp = {
             ("-", "-"): True,
@@ -175,7 +178,12 @@ class make_pairs_tests(TestCase):
         p = make_pairs(self.pairs, None, "-~")
         self.assertNotEqual(p, self.pairs)
         self.pairs.update(
-            {("~", "~"): False, ("-", "~"): False, ("-", "-"): False, ("~", "-"): False}
+            {
+                ("~", "~"): False,
+                ("-", "~"): False,
+                ("-", "-"): False,
+                ("~", "-"): False,
+            },
         )
         self.assertEqual(p, self.pairs)
 
@@ -203,7 +211,7 @@ class make_pairs_tests(TestCase):
                 ("W", "R"): False,
                 ("W", "Y"): False,
                 ("W", "W"): False,
-            }
+            },
         )
         self.assertEqual(p, self.pairs)
 
@@ -214,7 +222,7 @@ class CoreObjectGroupTests(TestCase):
     def test_init(self):
         """CoreObjectGroup should init with basic list of objects."""
 
-        class o(object):
+        class o:
             def __init__(self, s):
                 self.s = s
 
@@ -547,7 +555,8 @@ class MolTypeTests(TestCase):
         )
         self.assertEqual(g("-DSHFUHDSF"), list(map(bool, list(map(int, "1000000000")))))
         self.assertEqual(
-            g("UACHASJAIDS-"), list(map(bool, list(map(int, "000000000001"))))
+            g("UACHASJAIDS-"),
+            list(map(bool, list(map(int, "000000000001")))),
         )
         self.assertEqual(
             g("---CGAUgCAU---ACGHc---ACGUCAGU---"),
@@ -578,7 +587,8 @@ class MolTypeTests(TestCase):
         self.assertEqual(gm(start_gaps), ({0: 2, 1: 3, 2: 4}, {2: 0, 3: 1, 4: 2}))
         self.assertEqual(gm(end_gaps), ({0: 0, 1: 1}, {0: 0, 1: 1}))
         self.assertEqual(
-            gm(mid_gaps), ({0: 2, 1: 5, 2: 7, 3: 8}, {2: 0, 5: 1, 7: 2, 8: 3})
+            gm(mid_gaps),
+            ({0: 2, 1: 5, 2: 7, 3: 8}, {2: 0, 5: 1, 7: 2, 8: 3}),
         )
 
     def test_count_gaps(self):
@@ -909,7 +919,9 @@ class DinucAlphabet(_AlphabetTestCase):
         self.assertEqualSeqs(alpha, ["AA", "CA", "GT"])
 
         self.assertRaises(
-            AlphabetError, alpha.get_subset, motif_subset=["AA", "CA", "GT", "TT"]
+            AlphabetError,
+            alpha.get_subset,
+            motif_subset=["AA", "CA", "GT", "TT"],
         )
 
     def test_usesubsetbyfreq(self):

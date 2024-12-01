@@ -83,14 +83,14 @@ def main():
     times.sort()
     mean = total_time / len(times)
     sd = standard_dev(times, mean)
-    print("")
+    print()
     print(f"Fastest time   : {times[0]:.3f}")
     print(f"Slowest time   : {times[len(times) - 1]:.3f}")
     print(f"Mean           : {mean:.3f}")
     print(f"Standard dev   : {sd:.3f}")
     print(f"Total time     : {total_time:.3f}")
 
-    print("")
+    print()
 
     corrected_total = 0.0
     corrected_times = []
@@ -106,7 +106,7 @@ def main():
         corrected_mean = corrected_total / len(corrected_times)
         corrected_sd = standard_dev(corrected_times, corrected_mean)
 
-        print("")
+        print()
         print("CORRECTED RESULTS")
         print(f"Fastest time   : {corrected_times[0]:.3f}")
         print(f"Slowest time   : {corrected_times[len(corrected_times) - 1]:.3f}")

@@ -138,7 +138,7 @@ class DictArrayTest(TestCase):
                 [0.1, 0.7, 0.1, 0.1],
                 [0.1, 0.1, 0.7, 0.1],
                 [0.1, 0.1, 0.1, 0.7],
-            ]
+            ],
         )
         mprobs = numpy.array([0.25, 0.25, 0.25, 0.25])
         assert_allclose(mprobs.dot(darr), [0.25, 0.25, 0.25, 0.25])
@@ -199,7 +199,7 @@ class DictArrayTest(TestCase):
         self.assertEqual(darr.to_dict(flatten=True), expect)
 
         darr = DictArrayTemplate(["s1", "s2"], ["s1", "s2"]).wrap(
-            [[0.0, 0.25], [0.25, 0.0]]
+            [[0.0, 0.25], [0.25, 0.0]],
         )
         self.assertEqual(
             darr.to_dict(flatten=True),
@@ -318,7 +318,7 @@ class DictArrayTest(TestCase):
                 [0.1, 0.7, 0.1, 0.1],
                 [0.1, 0.1, 0.7, 0.1],
                 [0.1, 0.1, 0.1, 0.7],
-            ]
+            ],
         )
         r = darr[:, "A":"G"]
         assert_allclose(r.to_array(), [[0.1], [0.1], [0.7], [0.1]])
@@ -387,7 +387,7 @@ class DictArrayTest(TestCase):
 
     def test_to_string(self):
         darr = DictArrayTemplate(2, 2).wrap(
-            [[3.123456789, 2 * 3.123456789], [3 * 3.123456789, 4 * 3.123456789]]
+            [[3.123456789, 2 * 3.123456789], [3 * 3.123456789, 4 * 3.123456789]],
         )
         self.assertEqual(
             darr.to_string(sep=","),
@@ -414,7 +414,7 @@ class DictArrayTest(TestCase):
         # 1D tables don't get an index_name column
         self.assertEqual(t.index_name, None)
         a2D = DictArrayTemplate(["a", "b"], ["c", "d"]).wrap(
-            numpy.array([0, 1, 2, 3]).reshape((2, 2))
+            numpy.array([0, 1, 2, 3]).reshape((2, 2)),
         )
         t = a2D.to_table()
         self.assertIsInstance(t, Table)
@@ -426,7 +426,7 @@ class DictArrayTest(TestCase):
         self.assertEqual(t["b", "d"], 3)
 
         a3D = DictArrayTemplate(["a", "b"], ["c", "d"], ["e", "f"]).wrap(
-            numpy.array([0, 1, 2, 3, 4, 5, 6, 7]).reshape((2, 2, 2))
+            numpy.array([0, 1, 2, 3, 4, 5, 6, 7]).reshape((2, 2, 2)),
         )
         with self.assertRaises(ValueError):
             _ = a3D.to_table()
@@ -448,7 +448,7 @@ class DictArrayTest(TestCase):
                 [0.1, 0.7, 0.1, 0.3],
                 [0.3, 0.2, 0.6, 0.3],
                 [0.4, 0.1, 0.1, 0.7],
-            ]
+            ],
         )
         got = darr["C":"G", "C":"G"]
         assert_allclose(got.array, numpy.array([[0.7, 0.1], [0.2, 0.6]]))
@@ -475,7 +475,7 @@ class DictArrayTest(TestCase):
                 [0.1, 0.7, 0.1, 0.3],
                 [0.3, 0.2, 0.6, 0.3],
                 [0.4, 0.1, 0.1, 0.7],
-            ]
+            ],
         )
         got = darr[[1, 2], [1, 2]]
         assert_allclose(got.array, numpy.array([[0.7, 0.1], [0.2, 0.6]]))

@@ -73,11 +73,15 @@ BlatFinder = LabeledRecordFinder(query_finder, constructor=strip, ignore=is_blat
 BlastFinder = LabeledRecordFinder(query_finder, constructor=strip, ignore=is_blast_junk)
 
 PsiBlastFinder = LabeledRecordFinder(
-    iter_finder, constructor=strip, ignore=is_blast_junk
+    iter_finder,
+    constructor=strip,
+    ignore=is_blast_junk,
 )
 
 PsiBlastQueryFinder = LabeledRecordFinder(
-    iteration_set_finder, constructor=strip, ignore=is_blast_junk
+    iteration_set_finder,
+    constructor=strip,
+    ignore=is_blast_junk,
 )
 
 
@@ -209,22 +213,19 @@ def get_blast_ids(props, data, filter_identity, threshold, keep_values):
     if not threshold:
         if keep_values:
             return [(x[p_ix], x[e_ix]) for x in data]
-        else:
-            return [x[p_ix] for x in data]
-    else:
-        # will raise exception if invalid threshold passed
-        max_val = float(threshold)
+        return [x[p_ix] for x in data]
+    # will raise exception if invalid threshold passed
+    max_val = float(threshold)
 
-        # figure out what we're keeping
-        def ok_val(val):
-            if threshold:
-                return val <= max_val
-            return val >= max_val
+    # figure out what we're keeping
+    def ok_val(val):
+        if threshold:
+            return val <= max_val
+        return val >= max_val
 
-        if keep_values:
-            return [(x[p_ix], x[e_ix]) for x in data if ok_val(float(x[e_ix]))]
-        else:
-            return [x[p_ix] for x in data if ok_val(float(x[e_ix]))]
+    if keep_values:
+        return [(x[p_ix], x[e_ix]) for x in data if ok_val(float(x[e_ix]))]
+    return [x[p_ix] for x in data if ok_val(float(x[e_ix]))]
 
 
 def AllProteinIds9(
@@ -261,7 +262,11 @@ def AllProteinIds9(
     for rec in mpbp:
         props, data = rec
         out_ids[out_ct] = get_blast_ids(
-            props, data, filter_identity, threshold, keep_values
+            props,
+            data,
+            filter_identity,
+            threshold,
+            keep_values,
         )
         out_ct += 1
     return out_ids

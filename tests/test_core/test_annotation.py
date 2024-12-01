@@ -33,7 +33,10 @@ def makeSampleAlignment():  # ported
     seqs = {seq1.name: seq1, seq2.name: seq2}
     aln = make_aligned_seqs(data=seqs, array_align=False)
     aln.add_feature(
-        biotype="misc_feature", name="misc", spans=[(12, 25)], on_alignment=True
+        biotype="misc_feature",
+        name="misc",
+        spans=[(12, 25)],
+        on_alignment=True,
     )
     aln.add_feature(biotype="CDS", name="blue", spans=[(15, 25)], on_alignment=True)
     aln.add_feature(biotype="5'UTR", name="red", spans=[(2, 4)], on_alignment=True)
@@ -81,7 +84,7 @@ class TestAnnotations(unittest.TestCase):
                 continue  # because seqs haven't been annotated with it
 
             observed = list(
-                self.aln.get_features(seqid=self.aln.names, biotype=annot_type)
+                self.aln.get_features(seqid=self.aln.names, biotype=annot_type),
             )[0]
             observed = observed.get_slice().to_dict()
             expected = seq_expecteds[annot_type]
@@ -140,7 +143,7 @@ def test_region_union_on_alignment(annot_type, reversed):  # ported
     assert expected == new, (annot_type, expected, new)
 
 
-@pytest.fixture()
+@pytest.fixture
 def ann_aln():
     # synthetic annotated alignment
     return makeSampleAlignment()
@@ -179,7 +182,7 @@ def test_feature_projection_gapped(ann_aln):  # ported
     assert seq_ltr.parent == ann_aln.get_seq(seq_name)
 
 
-@pytest.fixture()
+@pytest.fixture
 def ann_seq():
     return makeSampleSequence("seq1")
 
@@ -307,7 +310,10 @@ def test_features_survives_seq_rename(rev):  # ported
     gene_expect = str(seq[10:20]) + str(seq[25:30])
     assert str(gene.get_slice()) == gene_expect
     domain = seq.add_feature(
-        biotype="domain", name="domain1", spans=[(20, 25)], strand="-"
+        biotype="domain",
+        name="domain1",
+        spans=[(20, 25)],
+        strand="-",
     )
     domain_expect = str(seq[20:25].rc())
     domain_got = domain.get_slice()
@@ -332,10 +338,17 @@ def test_features_survives_aligned_seq_rename(rev, make_cls):  # ported
 
     seqs = make_cls({"original": "".join(segments)}, moltype="dna")
     seqs.annotation_db.add_feature(
-        seqid="original", biotype="gene", name="gene1", spans=[(10, 20), (25, 30)]
+        seqid="original",
+        biotype="gene",
+        name="gene1",
+        spans=[(10, 20), (25, 30)],
     )
     seqs.annotation_db.add_feature(
-        seqid="original", biotype="domain", name="domain1", spans=[(20, 25)], strand="-"
+        seqid="original",
+        biotype="domain",
+        name="domain1",
+        spans=[(20, 25)],
+        strand="-",
     )
     seqs = seqs.rename_seqs(lambda x: "newname")
     assert seqs.names == ["newname"]
@@ -353,7 +366,11 @@ def test_features_invalid_seqid(cls):  # ported
 
     seqs = cls({"original": "".join(segments)}, moltype="dna")
     seqs.annotation_db.add_feature(
-        seqid="original", biotype="domain", name="domain1", spans=[(20, 25)], strand="-"
+        seqid="original",
+        biotype="domain",
+        name="domain1",
+        spans=[(20, 25)],
+        strand="-",
     )
     with pytest.raises(ValueError):
         # seqid does not exist

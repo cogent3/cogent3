@@ -106,7 +106,13 @@ def slice_cigar(cigar_text, start, end, by_align=True):
 
 
 def CigarParser(
-    seqs, cigars, sliced=False, ref_seqname=None, start=None, end=None, moltype=DNA
+    seqs,
+    cigars,
+    sliced=False,
+    ref_seqname=None,
+    start=None,
+    end=None,
+    moltype=DNA,
 ):
     """return an alignment from raw sequences and cigar strings
     if sliced, will return an alignment correspondent to ref sequence start to end
@@ -123,12 +129,16 @@ def CigarParser(
     if not sliced:
         for seqname in list(seqs.keys()):
             aligned_seq = aligned_from_cigar(
-                cigars[seqname], seqs[seqname], moltype=moltype
+                cigars[seqname],
+                seqs[seqname],
+                moltype=moltype,
             )
             data[seqname] = aligned_seq
     else:
         ref_aln_seq = aligned_from_cigar(
-            cigars[ref_seqname], seqs[ref_seqname], moltype=moltype
+            cigars[ref_seqname],
+            seqs[ref_seqname],
+            moltype=moltype,
         )
         m, aln_loc = slice_cigar(cigars[ref_seqname], start, end, by_align=False)
         data[ref_seqname] = ref_aln_seq[aln_loc[0] : aln_loc[1]]

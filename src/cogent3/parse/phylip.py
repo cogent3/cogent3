@@ -99,14 +99,13 @@ def MinimalPhylipParser(data, id_map=None, interleaved=True):
                 raise RecordError(
                     "Length of sequence '%s' is not the same as in header "
                     "Found %d, Expected %d"
-                    % (interleaved_id_map[curr_id_ix], len(join_seq), seq_len)
+                    % (interleaved_id_map[curr_id_ix], len(join_seq), seq_len),
                 )
 
             yield interleaved_id_map[curr_id_ix], join_seq
     # return last seq if not interleaved
-    else:
-        if seq_cache:
-            yield seq_cache[0], "".join(seq_cache[1:])
+    elif seq_cache:
+        yield seq_cache[0], "".join(seq_cache[1:])
 
 
 def get_align_for_phylip(data, id_map=None):

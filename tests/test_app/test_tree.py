@@ -102,7 +102,8 @@ class TestTree(TestCase):
         self.assertIsInstance(tree, PhyloNode)
         self.assertIsNotNone(tree.children)
         self.assertEqual(
-            set(tree.get_tip_names()), set.union(*(set(tup) for tup in data))
+            set(tree.get_tip_names()),
+            set.union(*(set(tup) for tup in data)),
         )
 
         data = {
@@ -132,7 +133,8 @@ class TestTree(TestCase):
         self.assertIsInstance(tree, PhyloNode)
         self.assertIsNotNone(tree.children)
         self.assertEqual(
-            set(tree.get_tip_names()), set.union(*(set(tup) for tup in data))
+            set(tree.get_tip_names()),
+            set.union(*(set(tup) for tup in data)),
         )
 
         data = {
@@ -154,7 +156,8 @@ class TestTree(TestCase):
         self.assertIsInstance(tree, PhyloNode)
         self.assertIsNotNone(tree.children)
         self.assertEqual(
-            set(tree.get_tip_names()), set.union(*(set(tup) for tup in data))
+            set(tree.get_tip_names()),
+            set.union(*(set(tup) for tup in data)),
         )
 
         data = {
@@ -208,14 +211,16 @@ class TestTree(TestCase):
         self.assertIsInstance(tree, PhyloNode)
         self.assertIsNotNone(tree.children)
         self.assertEqual(
-            set(tree.get_tip_names()), set.union(*(set(tup) for tup in data))
+            set(tree.get_tip_names()),
+            set.union(*(set(tup) for tup in data)),
         )
 
         data = {"a": {"b": 0.1, "a": 0.0}, "b": {"a": 0.1, "b": 0.0}}
         darr = DistanceMatrix(data)
         tree = quick_tree(darr)
         self.assertEqual(
-            set(tree.get_tip_names()), set.union(*(set(tup) for tup in data))
+            set(tree.get_tip_names()),
+            set.union(*(set(tup) for tup in data)),
         )
 
     def test_uniformize_tree(self):
@@ -223,7 +228,8 @@ class TestTree(TestCase):
         a = make_tree(treestring="(a,(b,c),(d,e))")
         b = make_tree(treestring="(e,d,(a,(b,c)))")
         make_uniform = tree_app.uniformize_tree(
-            root_at="c", ordered_names=list("abcde")
+            root_at="c",
+            ordered_names=list("abcde"),
         )
         u_a = make_uniform(a).get_newick()
         u_b = make_uniform(b).get_newick()

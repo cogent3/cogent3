@@ -1659,7 +1659,15 @@ def get_character(
 
 class Letter:
     def __init__(
-        self, path, x, y, width=1, height=1, filled=True, fillcolor=None, axes=(0, 0)
+        self,
+        path,
+        x,
+        y,
+        width=1,
+        height=1,
+        filled=True,
+        fillcolor=None,
+        axes=(0, 0),
     ):
         """
         Parameters
@@ -1789,7 +1797,9 @@ class Letter:
                     pen_location["x"] = seg[1:][coord_index]
                     pen_location["y"] = seg[1:][coord_index + 1]
                     new_x, new_y = self._rotate_point(
-                        degrees, seg[1:][coord_index], seg[1:][coord_index + 1]
+                        degrees,
+                        seg[1:][coord_index],
+                        seg[1:][coord_index + 1],
                     )
                     edited_seg.append(new_x)
                     edited_seg.append(new_y)
@@ -1842,7 +1852,7 @@ class Letter:
         self._rotate(degrees=self.degrees)
 
         path = ",".join(
-            [" ".join([str(sub_seg) for sub_seg in seg]) for seg in self.path]
+            [" ".join([str(sub_seg) for sub_seg in seg]) for seg in self.path],
         )
         data = UnionDict(
             type="path",

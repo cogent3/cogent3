@@ -106,14 +106,14 @@ class TestModel(TestCase):
         aln = make_aligned_seqs(data=_data, moltype="dna")
         result = hyp(aln)
         self.assertTrue(
-            result["F81"].lf.lnL < result["HKY85"].lf.lnL < result["GTR"].lf.lnL
+            result["F81"].lf.lnL < result["HKY85"].lf.lnL < result["GTR"].lf.lnL,
         )
 
         # can be set to False, in which case all models start at defaults
         hyp = evo_app.hypothesis(model1, model2, model3, sequential=False)
         result = hyp(aln)
         self.assertFalse(
-            result["F81"].lf.lnL < result["HKY85"].lf.lnL < result["GTR"].lf.lnL
+            result["F81"].lf.lnL < result["HKY85"].lf.lnL < result["GTR"].lf.lnL,
         )
 
     def test_model_collection_init_sequential(self):
@@ -132,14 +132,14 @@ class TestModel(TestCase):
         aln = make_aligned_seqs(data=_data, moltype="dna", info=dict(source="blah"))
         result = mod_coll(aln)
         self.assertTrue(
-            result["F81"].lf.lnL < result["HKY85"].lf.lnL < result["GTR"].lf.lnL
+            result["F81"].lf.lnL < result["HKY85"].lf.lnL < result["GTR"].lf.lnL,
         )
 
         # can be set to False, in which case all models start at defaults
         mod_coll = evo_app.hypothesis(model1, model2, model3, sequential=False)
         result = mod_coll(aln)
         self.assertFalse(
-            result["F81"].lf.lnL < result["HKY85"].lf.lnL < result["GTR"].lf.lnL
+            result["F81"].lf.lnL < result["HKY85"].lf.lnL < result["GTR"].lf.lnL,
         )
 
         self.assertIsInstance(result, model_collection_result)
@@ -202,7 +202,8 @@ class TestModel(TestCase):
         )
         self.assertEqual(mod._param_rules[0].get("upper"), 50)
         mod = evo_app.model(
-            "GN", param_rules=[dict(par_name="length", edge="Mouse", is_constant=True)]
+            "GN",
+            param_rules=[dict(par_name="length", edge="Mouse", is_constant=True)],
         )
         self.assertEqual(mod._param_rules[0].get("upper", None), None)
 
@@ -217,7 +218,8 @@ class TestModel(TestCase):
         }
         aln = make_aligned_seqs(data=_data, moltype="dna")
         mod = evo_app.model(
-            "BH", opt_args=dict(max_evaluations=100, limit_action="ignore")
+            "BH",
+            opt_args=dict(max_evaluations=100, limit_action="ignore"),
         )
         r = mod(aln)
         self.assertNotIsInstance(r, NotCompleted)
@@ -233,10 +235,12 @@ class TestModel(TestCase):
         }
         aln = make_aligned_seqs(data=_data, moltype="dna")
         model1 = evo_app.model(
-            "F81", opt_args=dict(max_evaluations=25, limit_action="ignore")
+            "F81",
+            opt_args=dict(max_evaluations=25, limit_action="ignore"),
         )
         model2 = evo_app.model(
-            "HKY85", opt_args=dict(max_evaluations=25, limit_action="ignore")
+            "HKY85",
+            opt_args=dict(max_evaluations=25, limit_action="ignore"),
         )
         hyp = evo_app.hypothesis(model1, model2)
         result = hyp(aln)
@@ -313,14 +317,16 @@ class TestModel(TestCase):
         }
         aln = make_aligned_seqs(data=_data, moltype="dna")
         model1 = evo_app.model(
-            "F81", opt_args=dict(max_evaluations=25, limit_action="ignore")
+            "F81",
+            opt_args=dict(max_evaluations=25, limit_action="ignore"),
         )
         result = model1(aln)
         tree = result.lf.get_annotated_tree()
         assert_allclose(result.total_length(), tree.total_length())
         tree = result.lf.get_annotated_tree(length_as="paralinear")
         assert_allclose(
-            result.total_length(length_as="paralinear"), tree.total_length()
+            result.total_length(length_as="paralinear"),
+            tree.total_length(),
         )
 
     def test_model_result_total_length(self):
@@ -332,7 +338,8 @@ class TestModel(TestCase):
         }
         aln = make_aligned_seqs(data=_data, moltype="dna")
         model1 = evo_app.model(
-            "GN", opt_args=dict(max_evaluations=25, limit_action="ignore")
+            "GN",
+            opt_args=dict(max_evaluations=25, limit_action="ignore"),
         )
         result = model1(aln)
         expect_tree = result.lf.get_annotated_tree(length_as="ENS")
@@ -555,7 +562,8 @@ class TestAncestralStates(TestCase):
         }
         aln = make_aligned_seqs(data=_data, moltype="dna")
         mod = evo_app.model(
-            "GN", opt_args=dict(max_evaluations=25, limit_action="ignore")
+            "GN",
+            opt_args=dict(max_evaluations=25, limit_action="ignore"),
         )
         anc = evo_app.ancestral_states()
         result = anc(mod(aln))
@@ -611,7 +619,9 @@ class TestNatSel(TestCase):
         # fails if no tip names provided
         with self.assertRaises(ValueError):
             _ = evo_app.natsel_zhang(
-                "Y98", tree="data/primate_brca1.tree", opt_args=opt
+                "Y98",
+                tree="data/primate_brca1.tree",
+                opt_args=opt,
             )
 
     def test_zhang_mtseq(self):
@@ -639,7 +649,11 @@ class TestNatSel(TestCase):
 
         # optimising root probs
         natsel = evo_app.natsel_zhang(
-            "MG94HKY", tip1="Human", opt_args=opt, gc=2, optimise_motif_probs=True
+            "MG94HKY",
+            tip1="Human",
+            opt_args=opt,
+            gc=2,
+            optimise_motif_probs=True,
         )
         result = natsel(aln)
         self.assertEqual(result.null.lf.nfp, 9)
@@ -649,7 +663,9 @@ class TestNatSel(TestCase):
         opt = dict(max_evaluations=20, limit_action="ignore")
         aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
         neutral = evo_app.natsel_neutral(
-            "MG94HKY", tree="data/primate_brca1.tree", opt_args=opt
+            "MG94HKY",
+            tree="data/primate_brca1.tree",
+            opt_args=opt,
         )
         result = neutral(aln)
         self.assertEqual(result.df, 1)
@@ -684,7 +700,10 @@ class TestNatSel(TestCase):
 
         # optimising root probs
         natsel = evo_app.natsel_neutral(
-            "MG94HKY", opt_args=opt, gc=2, optimise_motif_probs=True
+            "MG94HKY",
+            opt_args=opt,
+            gc=2,
+            optimise_motif_probs=True,
         )
         result = natsel(aln)
         self.assertEqual(result.null.lf.nfp, 7)
@@ -704,7 +723,9 @@ class TestNatSel(TestCase):
         aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
         # default, not optimising root probs
         natsel = evo_app.natsel_sitehet(
-            "MG94HKY", tree="data/primate_brca1.tree", opt_args=opt
+            "MG94HKY",
+            tree="data/primate_brca1.tree",
+            opt_args=opt,
         )
         result = natsel(aln)
         # one free param for each edge, 1 for kappa, 1 for omega, 1 for bprobs
@@ -721,7 +742,10 @@ class TestNatSel(TestCase):
         aln = load_aligned_seqs("data/ENSG00000198712.fa", moltype="dna")
         # optimising root probs
         natsel = evo_app.natsel_sitehet(
-            "MG94HKY", opt_args=opt, gc=2, optimise_motif_probs=True
+            "MG94HKY",
+            opt_args=opt,
+            gc=2,
+            optimise_motif_probs=True,
         )
         # test of genetic code is implicit, if not correct, the following
         # call would return NotCompleted (for this mtDNA gene), which does not
@@ -760,7 +784,10 @@ class TestNatSel(TestCase):
 
         # handle specifying just single edge
         natsel = evo_app.natsel_timehet(
-            "MG94HKY", tree="data/primate_brca1.tree", tip1="Human", opt_args=opt
+            "MG94HKY",
+            tree="data/primate_brca1.tree",
+            tip1="Human",
+            opt_args=opt,
         )
         result = natsel(aln)
         self.assertEqual(result.df, 1)
@@ -802,7 +829,8 @@ class TestTabulateStats(TestCase):
         }
         aln = make_aligned_seqs(data=_data, moltype="dna")
         mod = evo_app.model(
-            "GN", opt_args=dict(max_evaluations=25, limit_action="ignore")
+            "GN",
+            opt_args=dict(max_evaluations=25, limit_action="ignore"),
         )
         result = mod(aln)
         tabulator = evo_app.tabulate_stats()
@@ -880,7 +908,7 @@ def test_model_opt_args():
         "GN",
         opt_args=opt_args,
     )
-    assert model._opt_args == {**opt_args, **{"show_progress": False}}
+    assert model._opt_args == {**opt_args, "show_progress": False}
 
 
 @pytest.mark.internet

@@ -4,7 +4,7 @@ import pickle
 import time
 
 
-class Checkpointer(object):
+class Checkpointer:
     def __init__(self, filename, interval=None, noisy=True):
         if interval is None:
             interval = 1800

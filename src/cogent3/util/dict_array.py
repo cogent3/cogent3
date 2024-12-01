@@ -44,7 +44,7 @@ def convert_1D_dict(data, row_order=None):
         keys are used.
     """
     if row_order is None:
-        row_order = list(sorted(data))
+        row_order = sorted(data)
 
     rows = [data[c] for c in row_order]
     return rows, row_order
@@ -72,7 +72,7 @@ def convert2Ddistance(dists, header=None, row_order=None):
         names = set()
         for pair in dists:
             names.update(set(pair))
-        header = list(sorted(names))
+        header = sorted(names)
 
     rows = []
     for i in range(len(header)):
@@ -113,7 +113,7 @@ def convert2DDict(twoDdict, header=None, row_order=None, make_symmetric=False):
         header.sort()
 
     if make_symmetric:
-        combined = list(sorted(set(header) | set(row_order)))
+        combined = sorted(set(header) | set(row_order))
         header = row_order = combined
         data = defaultdict(dict)
 
@@ -197,12 +197,12 @@ def convert_series(data, row_order=None, header=None):
         if dim_h is not None and dim_h != ncols:
             raise ValueError(
                 f"mismatch between number columns={dim_h} "
-                f"and number of elements in data={ncols}"
+                f"and number of elements in data={ncols}",
             )
-        elif dim_r is not None and dim_r != 1:
+        if dim_r is not None and dim_r != 1:
             raise ValueError(
                 f"mismatch between number rows={dim_r} "
-                f"and number of rows in data={ncols}"
+                f"and number of rows in data={ncols}",
             )
 
     if not header:
@@ -251,7 +251,7 @@ class DictArrayTemplate:
         for names in dimensions:
             if names is None:
                 continue
-            elif isinstance(names, int):
+            if isinstance(names, int):
                 names = list(range(names))
             else:
                 names = [NumericKey(v) if type(v) == int else v for v in names]
@@ -269,8 +269,7 @@ class DictArrayTemplate:
         # Unpack (possibly nested) dictionary into correct order of elements
         if depth < len(self._shape):
             return [self._dict2list(value[key], depth + 1) for key in self.names[depth]]
-        else:
-            return value
+        return value
 
     def unwrap(self, value):
         """Convert to a simple numpy array"""
@@ -359,7 +358,7 @@ class DictArray:
         """allow alternate ways of creating for time being"""
         if len(args) == 1:
             vals, row_keys, col_keys = convert_for_dictarray(args[0])
-            dtype = kwargs.get("dtype", None)
+            dtype = kwargs.get("dtype")
             self.array = numpy.asarray(vals, dtype=dtype)
             self.template = DictArrayTemplate(row_keys, col_keys)
         elif len(args) == 2:
@@ -407,7 +406,7 @@ class DictArray:
 
         if other.template.names != self.template.names:
             raise ValueError(
-                f"unequal dimension names {self.template.names} != {other.template.names}"
+                f"unequal dimension names {self.template.names} != {other.template.names}",
             )
 
         return self.template.wrap(self.array + other.array)
@@ -522,16 +521,15 @@ class DictArray:
     def __eq__(self, other):
         if self is other:
             return True
-        elif isinstance(other, DictArray):
+        if isinstance(other, DictArray):
             return self.template == other.template and numpy.all(
-                self.array == other.array
+                self.array == other.array,
             )
-        elif isinstance(other, type(self.array)):
+        if isinstance(other, type(self.array)):
             return self.array == other
-        elif isinstance(other, dict):
+        if isinstance(other, dict):
             return self.to_dict() == other
-        else:
-            return False
+        return False
 
     def to_normalized(self, by_row=False, by_column=False):
         """returns a DictArray as frequencies
@@ -544,7 +542,7 @@ class DictArray:
             columns sum to 1
         """
         assert not (by_row and by_column)
-        # todo need to check there are two dimension!
+        # TODO need to check there are two dimension!
         if by_row:
             axis = 1
         elif by_column:

@@ -76,12 +76,18 @@ class ParalinearTest(TestCase):
 
         with self.assertRaises(AssertionError):
             paralinear_continuous_time(
-                qp1[1], qp1[0], qp1[0], validate=True
+                qp1[1],
+                qp1[0],
+                qp1[0],
+                validate=True,
             )  # pi invalid shape
 
         with self.assertRaises(AssertionError):
             paralinear_continuous_time(
-                qp1[1], pi1, qp1[0], validate=True
+                qp1[1],
+                pi1,
+                qp1[0],
+                validate=True,
             )  # pi invalid values
 
         pi1 /= pi1.sum()
@@ -120,12 +126,16 @@ class TestJensenShannon(TestCase):
 
         with self.assertRaises(AssertionError):
             jsd(
-                freqs1, two_dimensional_freqs2, validate=True
+                freqs1,
+                two_dimensional_freqs2,
+                validate=True,
             )  # freqs1/freqs2 mismatched shape
 
         with self.assertRaises(AssertionError):
             jsd(
-                two_dimensional_freqs1, freqs2, validate=True
+                two_dimensional_freqs1,
+                freqs2,
+                validate=True,
             )  # freqs1/freqs2 mismatched shape
 
         with self.assertRaises(AssertionError):
@@ -136,17 +146,23 @@ class TestJensenShannon(TestCase):
 
         with self.assertRaises(AssertionError):
             jsd(
-                two_dimensional_freqs1, freqs2, validate=True
+                two_dimensional_freqs1,
+                freqs2,
+                validate=True,
             )  # freqs1 has incorrect dimension
 
         with self.assertRaises(AssertionError):
             jsd(
-                two_dimensional_freqs1, two_dimensional_freqs2, validate=True
+                two_dimensional_freqs1,
+                two_dimensional_freqs2,
+                validate=True,
             )  # freqs1 has incorrect dimension
 
         with self.assertRaises(AssertionError):
             jsd(
-                freqs1, two_dimensional_freqs2, validate=True
+                freqs1,
+                two_dimensional_freqs2,
+                validate=True,
             )  # freqs2 has incorrect dimension
 
         with self.assertRaises(AssertionError):

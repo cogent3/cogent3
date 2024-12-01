@@ -88,7 +88,8 @@ class MinimalClustalParserTests(TestCase):
         """MinimalClustalParser should handle two-sequence input correctly"""
         result = MinimalClustalParser(two)
         self.assertEqual(
-            result, ({"abc": ["uuu", "aaa"], "def": ["ccc", "ggg"]}, ["abc", "def"])
+            result,
+            ({"abc": ["uuu", "aaa"], "def": ["ccc", "ggg"]}, ["abc", "def"]),
         )
 
     def test_real(self):
@@ -127,5 +128,6 @@ class MinimalClustalParserTests(TestCase):
         """MinimalClustalParser should tolerate spaces in labels"""
         result = MinimalClustalParser(space_labels)
         self.assertEqual(
-            result, ({"abc": ["uca"], "def ggg": ["ccc"]}, ["abc", "def ggg"])
+            result,
+            ({"abc": ["uca"], "def ggg": ["ccc"]}, ["abc", "def ggg"]),
         )

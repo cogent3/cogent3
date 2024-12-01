@@ -19,7 +19,9 @@ class FastaTests(TestCase):
         self.sequences_with_labels = list(map(Sequence, self.strings))
         self.sequences_with_names = list(map(Sequence, self.strings))
         for l, sl, sn in zip(
-            self.labels, self.sequences_with_labels, self.sequences_with_names
+            self.labels,
+            self.sequences_with_labels,
+            self.sequences_with_names,
         ):
             sl.label = l
             sn.name = l

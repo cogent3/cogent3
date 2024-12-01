@@ -48,7 +48,7 @@ ece:Z4181	sfl:CP0138	33.98	103	57	2	8	110	6	97	6e-06	50.5
 ece:Z4181	spt:SPA2730	37.50	72	45	0	39	110	30	101	1e-05	49.8
 ece:Z4181	sec:SC2804	37.50	72	45	0	39	110	30	101	1e-05	49.8
 ece:Z4181	stm:STM2872	37.50	72	45	0	39	110	30	101	1e-05	49.8""".split(
-            "\n"
+            "\n",
         )
 
         self.rec2 = """# BLASTP 2.2.10 [Oct-19-2004]
@@ -79,7 +79,7 @@ ece:Z4181	stm:STM2872	37.50	72	45	0	39	110	30	101	1e-05	49.8
 ece:Z4182	ece:Z4182	100.00	110	0	0	1	110	1	110	3e-47	 187
 ece:Z4182	ecs:ECs3718	100.00	110	0	0	1	110	1	110	3e-47	 187
 ece:Z4182	cvi:CV2422	41.67	72	42	0	39	110	29	100	2e-06	52.8""".split(
-            "\n"
+            "\n",
         )
 
         self.rec3 = """# BLASTP 2.2.10 [Oct-19-2004]
@@ -104,7 +104,7 @@ ece:Z4181	cvi:CV2421	41.67	72	42	0	39	110	29	100	2e-08	59.0
 # Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
 ece:Z4182	ece:Z4182	100.00	110	0	0	1	110	1	110	3e-47	 187
 ece:Z4182	cvi:CV2422	41.67	72	42	0	39	110	29	100	2e-06	52.8""".split(
-            "\n"
+            "\n",
         )
 
     def test_iter_finder(self):
@@ -121,7 +121,8 @@ ece:Z4182	cvi:CV2422	41.67	72	42	0	39	110	29	100	2e-06	52.8""".split(
         """iter_finder should split on lines starting with '# Iteration:'"""
         lines = "abc\n# Iteration: 3\ndef\n# Iteration: 1".split("\n")
         self.assertEqual(
-            list(map(iteration_set_finder, lines)), [False, False, False, True]
+            list(map(iteration_set_finder, lines)),
+            [False, False, False, True],
         )
 
     def test_is_junk(self):
@@ -129,10 +130,12 @@ ece:Z4182	cvi:CV2422	41.67	72	42	0	39	110	29	100	2e-06	52.8""".split(
         # Note: testing two functions that call it instead of function itself
         lines = "abc\n# BLAST blah blah\n   \n# BLAT blah\n123".split("\n")
         self.assertEqual(
-            list(map(is_blast_junk, lines)), [False, True, True, False, False]
+            list(map(is_blast_junk, lines)),
+            [False, True, True, False, False],
         )
         self.assertEqual(
-            list(map(is_blat_junk, lines)), [False, False, True, True, False]
+            list(map(is_blat_junk, lines)),
+            [False, False, True, True, False],
         )
 
     def test_make_label(self):
@@ -172,7 +175,7 @@ ece:Z4182	cvi:CV2422	41.67	72	42	0	39	110	29	100	2e-06	52.8""".split(
         fields = [
             v.strip()
             for v in "Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score".split(
-                ","
+                ",",
             )
         ]
 
@@ -253,7 +256,8 @@ ece:Z4182	cvi:CV2422	41.67	72	42	0	39	110	29	100	2e-06	52.8""".split(
         # should also work if threshold set
         result = LastProteinIds9(self.rec, False, threshold=8e-6)
         self.assertEqual(
-            result, ["ece:Z4181", "ecs:ECs3717", "cvi:CV2421", "sfl:CP0138"]
+            result,
+            ["ece:Z4181", "ecs:ECs3717", "cvi:CV2421", "sfl:CP0138"],
         )
         # should work on multiple records
         result = list(map(LastProteinIds9, PsiBlastQueryFinder(self.rec2)))
@@ -285,7 +289,7 @@ ece:Z4182	cvi:CV2422	41.67	72	42	0	39	110	29	100	2e-06	52.8""".split(
                     ("ece:Z4182", "ece:Z4182", 3e-47),
                     ("ece:Z4182", "cvi:CV2422", 2e-6),
                 ],
-            )
+            ),
         )
         got = list(zip(*QMEBlast9(self.rec3)))
         assert_equal(got[:-1], expect[:-1])
@@ -300,8 +304,8 @@ ece:Z4182	cvi:CV2422	41.67	72	42	0	39	110	29	100	2e-06	52.8""".split(
                     ("ece:Z4181", "cvi:CV2421", 2e-8),
                     ("ece:Z4182", "ece:Z4182", 3e-47),
                     ("ece:Z4182", "cvi:CV2422", 2e-6),
-                ]
-            )
+                ],
+            ),
         )
         got = list(zip(*QMEPsiBlast9(self.rec3)))
         assert_equal(got[:-1], expect[:-1])
@@ -341,7 +345,8 @@ Scientific name: cf. Acremonium sp. KR21-2
         self.assertEqual(len(recs), 2)
         for r in recs:
             self.assertEqual(
-                sorted(r.keys()), ["common_name", "scientific_name", "seq_id", "tax_id"]
+                sorted(r.keys()),
+                ["common_name", "scientific_name", "seq_id", "tax_id"],
             )
         r0, r1 = recs
         self.assertEqual(r0["tax_id"], "3349")

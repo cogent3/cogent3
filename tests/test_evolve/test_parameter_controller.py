@@ -20,7 +20,7 @@ good_rule_sets = [
             "clade": True,
             "is_independent": True,
             "edges": ["a", "b"],
-        }
+        },
     ],
     [{"par_name": "length", "is_independent": True, "edges": ["a", "c", "e"]}],
     [{"par_name": "length", "is_independent": True, "edge": "a"}],
@@ -40,12 +40,15 @@ class test_parameter_controller(TestCase):
         )
         self.tree = make_tree(treestring="((a,b),(c,d),e);")
         self.model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
-            equal_motif_probs=True, model_gaps=True
+            equal_motif_probs=True,
+            model_gaps=True,
         )
 
     def test_scoped_local(self):
         model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
-            equal_motif_probs=True, model_gaps=True, predicates={"kappa": "transition"}
+            equal_motif_probs=True,
+            model_gaps=True,
+            predicates={"kappa": "transition"},
         )
         lf = model.make_likelihood_function(self.tree)
         lf.set_constant_lengths()
@@ -83,11 +86,14 @@ class test_parameter_controller(TestCase):
             # handle min val
             motifs = list(got)
             assert_almost_equal(
-                [got[m] for m in motifs], [exp[m] for m in motifs], decimal=5
+                [got[m] for m in motifs],
+                [exp[m] for m in motifs],
+                decimal=5,
             )
 
         model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
-            model_gaps=True, motif_probs=None
+            model_gaps=True,
+            motif_probs=None,
         )
         lf = model.make_likelihood_function(self.tree, motif_probs_from_align=False)
 
@@ -105,7 +111,7 @@ class test_parameter_controller(TestCase):
 
         # test with consideration of ambiguous states
         al = make_aligned_seqs(
-            data={"seq1": "ACGTAAGNA", "seq2": "ACGTANGTC", "seq3": "ACGTACGTG"}
+            data={"seq1": "ACGTAAGNA", "seq2": "ACGTANGTC", "seq3": "ACGTACGTG"},
         )
         lf.set_motif_probs_from_data(al, include_ambiguity=True, is_constant=True)
         motif_probs = dict(lf.get_motif_probs())
@@ -122,10 +128,12 @@ class test_parameter_controller(TestCase):
     def test_set_multilocus(self):
         """2 loci each with own mprobs"""
         model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
-            motif_probs=None
+            motif_probs=None,
         )
         lf = model.make_likelihood_function(
-            self.tree, motif_probs_from_align=False, loci=["a", "b"]
+            self.tree,
+            motif_probs_from_align=False,
+            loci=["a", "b"],
         )
 
         mprobs_a = dict(A=0.2, T=0.2, C=0.3, G=0.3)
@@ -150,7 +158,9 @@ class test_parameter_controller(TestCase):
         for rule_set in bad_rule_sets:
             lf.set_default_param_rules()
             self.assertRaises(
-                (KeyError, TypeError, AssertionError, ValueError), do_rules, rule_set
+                (KeyError, TypeError, AssertionError, ValueError),
+                do_rules,
+                rule_set,
             )
 
     def test_set_constant_lengths(self):
@@ -166,7 +176,9 @@ class test_parameter_controller(TestCase):
         al = make_aligned_seqs(data={"a": "agct", "b": "ggct"}, moltype="dna")
         tree = make_tree(treestring="(a,b);")
         model = cogent3.evolve.substitution_model.TimeReversibleDinucleotide(
-            equal_motif_probs=True, model_gaps=True, mprob_model="tuple"
+            equal_motif_probs=True,
+            model_gaps=True,
+            mprob_model="tuple",
         )
         lf = model.make_likelihood_function(tree)
         lf.set_local_clock("a", "b")
@@ -190,7 +202,9 @@ class test_parameter_controller(TestCase):
         # This test has many local minima and so does not cope
         # with changes to optimiser details.
         model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
-            equal_motif_probs=True, model_gaps=True, predicates={"kappa": "transition"}
+            equal_motif_probs=True,
+            model_gaps=True,
+            predicates={"kappa": "transition"},
         )
         lf = model.make_likelihood_function(self.tree)
         lf.set_param_rule(par_name="kappa", is_independent=True)

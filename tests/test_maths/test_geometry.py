@@ -138,7 +138,8 @@ class TestAitchison(TestCase):
         x = self.d[0]
         y = self.d[1]
         assert allclose(
-            aitchison_distance(x, y), norm(clr(x) - clr(y))
+            aitchison_distance(x, y),
+            norm(clr(x) - clr(y)),
         ), "Failed distance test."
 
     def test_multiplicative_replacement(self):
@@ -146,8 +147,11 @@ class TestAitchison(TestCase):
         y1 = insert(x1, 3, 0)
         u = multiplicative_replacement(y1)
         assert allclose(
-            y1, u, atol=1e-2
+            y1,
+            u,
+            atol=1e-2,
         ), "Multiplicative replacement peturbation is too large."
         assert isclose(
-            sum(u), 1
+            sum(u),
+            1,
         ), "Multiplicative replacement does not yield a composition."

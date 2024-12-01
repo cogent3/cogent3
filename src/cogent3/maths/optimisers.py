@@ -9,7 +9,6 @@ from typing import Tuple
 import numpy
 
 from cogent3.util import progress_display as UI
-from cogent3.util import warning as c3warn
 
 from .scipy_optimisers import Powell
 from .simannealingoptimiser import SimulatedAnnealing
@@ -45,8 +44,7 @@ def unsteadyProgressIndicator(display_progress, label="", start=0.0, end=1.0):
         # cast to a standard python type.
         v1 = _standardise_data(args[0])
         args = v1 + args[1:]
-        if remaining > goal[0]:
-            goal[0] = remaining
+        goal[0] = max(remaining, goal[0])
         progress = (goal[0] - remaining) / goal[0] * (end - start) + start
         msg = template % args + label
         return display_progress(msg, progress=progress)
@@ -98,11 +96,10 @@ def bounded_function(f, lower_bounds, upper_bounds, report_error=False):
     def _wrapper(x, **kw):
         if numpy.all(numpy.logical_and(lower_bounds <= x, x <= upper_bounds)):
             return f(x, **kw)
-        else:
-            pos = numpy.logical_or(x <= lower_bounds, x >= upper_bounds)
-            lower = numpy.array(lower_bounds)
-            upper = numpy.array(upper_bounds)
-            raise ParameterOutOfBoundsError((lower[pos], x[pos], upper[pos]))
+        pos = numpy.logical_or(x <= lower_bounds, x >= upper_bounds)
+        lower = numpy.array(lower_bounds)
+        upper = numpy.array(upper_bounds)
+        raise ParameterOutOfBoundsError((lower[pos], x[pos], upper[pos]))
 
     return _wrapper
 
@@ -218,12 +215,12 @@ def maximise(
         fval = f(x)
     except (ArithmeticError, ParameterOutOfBoundsError) as detail:
         raise ValueError(
-            f"Initial parameter values must be valid {detail.args!r}"
+            f"Initial parameter values must be valid {detail.args!r}",
         ) from detail
 
     if not numpy.isfinite(fval):
         raise ValueError(
-            f"Initial parameter values must evaluate to a finite value, not {fval}. {x}"
+            f"Initial parameter values must evaluate to a finite value, not {fval}. {x}",
         )
 
     f = bounds_exception_catching_function(f)

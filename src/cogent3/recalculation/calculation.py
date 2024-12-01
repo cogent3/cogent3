@@ -20,7 +20,7 @@ class CalculationInterupted(Exception):
     pass
 
 
-class OptPar(object):
+class OptPar:
     """One parameter, as seen by the optimiser, eg: length of one edge.
     An OptPar reports changes to the ParameterValueSet for its parameter.
     """
@@ -30,17 +30,17 @@ class OptPar(object):
     args = ()
     # Use of __slots__ here and in Cell gives 8% speedup on small calculators.
     __slots__ = [
-        "clients",
         "client_ranks",
-        "name",
-        "lower",
-        "default_value",
-        "upper",
-        "scope",
-        "order",
-        "label",
+        "clients",
         "consequences",
+        "default_value",
+        "label",
+        "lower",
+        "name",
+        "order",
         "rank",
+        "scope",
+        "upper",
     ]
 
     def __init__(self, name, scope, bounds):
@@ -100,20 +100,20 @@ class LogOptPar(OptPar):
             raise OverflowError(f"log({value})")
 
 
-class EvaluatedCell(object):
+class EvaluatedCell:
     __slots__ = [
-        "client_ranks",
-        "rank",
-        "calc",
-        "args",
-        "is_constant",
-        "clients",
-        "failure_count",
-        "name",
         "arg_ranks",
+        "args",
+        "calc",
+        "client_ranks",
+        "clients",
         "consequences",
-        "recycled",
         "default",
+        "failure_count",
+        "is_constant",
+        "name",
+        "rank",
+        "recycled",
     ]
 
     def __init__(self, name, calc, args, recycling=None, default=None):
@@ -165,8 +165,8 @@ class EvaluatedCell(object):
                 print(f"{i}: " + repr(data[arg]))
 
 
-class ConstCell(object):
-    __slots__ = ["name", "scope", "value", "rank", "consequences", "clients"]
+class ConstCell:
+    __slots__ = ["clients", "consequences", "name", "rank", "scope", "value"]
 
     recycled = False
     is_constant = True
@@ -181,7 +181,7 @@ class ConstCell(object):
         self.clients.append(client)
 
 
-class Calculator(object):
+class Calculator:
     """A complete hierarchical function with N evaluation steps to call
     for each change of inputs.  Made by a ParameterController."""
 
@@ -269,7 +269,7 @@ class Calculator(object):
                 for arg in cell.args:
                     if arg is not cell:
                         edges.append(
-                            f'"{arg.name}":{arg.rank} -> "{cell.name}":{cell.rank}'
+                            f'"{arg.name}":{arg.rank} -> "{cell.name}":{cell.rank}',
                         )
         for name in evs:
             all_const = True
@@ -523,7 +523,7 @@ class Calculator(object):
                 t0 = time.time()
                 data[cell.rank] = cell.calc(*[data[a] for a in cell.arg_ranks])
                 t1 = time.time()
-            except (ParameterOutOfBoundsError, ArithmeticError) as exception:
+            except (ParameterOutOfBoundsError, ArithmeticError):
                 error_cell = cell
                 break
             elapsed[cell.rank] = t1 - t0
@@ -534,7 +534,7 @@ class Calculator(object):
             elap = sum(elapsed.get(cell.rank, 0) for cell in cells)
             if len(text) > width - 4:
                 edge_width = min(len(text), (width - 4 - 3)) // 2
-                elipsis = ["   ", "..."][not not text.strip()]
+                elipsis = ["   ", "..."][bool(text.strip())]
                 text = text[:edge_width] + elipsis + text[-edge_width:]
             tds.append("%s%4s" % (text, int(TRACE_SCALE * elap + 0.5) or ""))
 
@@ -551,8 +551,7 @@ class Calculator(object):
             print("%15s | %s" % ("", par_descs))
             error_cell.report_error(exception, data)
             raise CalculationInterupted(cell, exception)
-        else:
-            print("%-15s | %s" % (repr(data[-1])[:15], par_descs))
+        print("%-15s | %s" % (repr(data[-1])[:15], par_descs))
 
     def measure_evals_per_second(self, time_limit=1.0, wall=True, sa=False):
         # Returns an estimate of the number of evaluations per second
@@ -589,16 +588,14 @@ class Calculator(object):
                 # is long enough to take SOME time.
                 rounds_per_sample *= 2
                 continue
-            else:
-                rate = rounds_per_sample * len(x) / delta
-                samples.append(rate)
-                elapsed += delta
+            rate = rounds_per_sample * len(x) / delta
+            samples.append(rate)
+            elapsed += delta
 
         if wall:
             samples.sort()
             return samples[len(samples) // 2]
-        else:
-            return sum(samples) / len(samples)
+        return sum(samples) / len(samples)
 
     def _get_current_cell_value(self, cell):
         return self.cell_values[self._switch][cell.rank]

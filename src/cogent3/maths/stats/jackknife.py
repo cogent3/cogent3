@@ -36,7 +36,7 @@ def index_gen(length):
     return gen
 
 
-class JackknifeStats(object):
+class JackknifeStats:
     """Computes the jackknife statistic for a particular statistical function
     as outlined by 'Tukey's Jackknife Method' Biometry by Sokal/Rohlf."""
 
@@ -187,7 +187,7 @@ class JackknifeStats(object):
         header = ["Sample Stat", "Jackknife Stat", "Standard Error"]
         title = "Summary Statistics"
         rows = np.vstack(
-            (self._sample_statistic, self._jackknifed_stat, self._standard_error)
+            (self._sample_statistic, self._jackknifed_stat, self._standard_error),
         )
         rows = rows.transpose()
         return Table(header=header, data=rows, title=title)

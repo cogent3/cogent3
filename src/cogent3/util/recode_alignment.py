@@ -43,8 +43,6 @@ from cogent3.evolve.models import DSO78_freqs, DSO78_matrix
 class RecodeError(Exception):
     """A generic error to be raised when errors occur in recoding"""
 
-    pass
-
 
 alphabets = {
     # Note: 3-STATE CHARGE ALPHAS ASSIGN B/Z TO UNCHARGED -- I FIGURE THAT'S
@@ -408,7 +406,8 @@ def recode_dense_alignment(aln, alphabet_id=None, alphabet_def=None):
 
     # Construct a dict mapping old characters to new characters.
     alphabet_map = build_alphabet_map(
-        alphabet_id=alphabet_id, alphabet_def=alphabet_def
+        alphabet_id=alphabet_id,
+        alphabet_def=alphabet_def,
     )
 
     # Create the recoded version of seqs.alphabet
@@ -419,7 +418,9 @@ def recode_dense_alignment(aln, alphabet_id=None, alphabet_def=None):
     # Map the old alphabet onto the new alphabet. Note: characters that
     # that are not mapped are ignored. Returns a new ArrayAlignment.
     return ArrayAlignment(
-        take(new_indices, aln.array_seqs), aln.names[:], moltype=aln.moltype
+        take(new_indices, aln.array_seqs),
+        aln.names[:],
+        moltype=aln.moltype,
     )
 
 

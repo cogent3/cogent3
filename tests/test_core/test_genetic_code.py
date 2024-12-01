@@ -27,7 +27,7 @@ class GeneticCodeTests(TestCase):
         self.AllG = "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
 
         self.WrongLength = [
-            "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG" "",
+            "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
             "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
         ]
         self.NcbiStandard = [
@@ -100,15 +100,17 @@ class GeneticCodeTests(TestCase):
         self.assertEqual(mtgc.is_stop("UGA"), False)
 
         self.assertEqual(
-            sgc_new.changes(mtgc), {"AGA": "R*", "AGG": "R*", "ATA": "IM", "TGA": "*W"}
+            sgc_new.changes(mtgc),
+            {"AGA": "R*", "AGG": "R*", "ATA": "IM", "TGA": "*W"},
         )
         self.assertEqual(
-            mtgc.changes(sgc_new), {"AGA": "*R", "AGG": "*R", "ATA": "MI", "TGA": "W*"}
+            mtgc.changes(sgc_new),
+            {"AGA": "*R", "AGG": "*R", "ATA": "MI", "TGA": "W*"},
         )
         self.assertEqual(mtgc.changes(mtgc), {})
         self.assertEqual(
             mtgc.changes(
-                "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG"
+                "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG",
             ),
             {"AGA": "*R", "AGG": "*R", "ATA": "MI", "TGA": "W*"},
         )
@@ -303,13 +305,15 @@ class GeneticCodeTests(TestCase):
         #                    .  .  .  .  .    .  .  .  .  .
         sgc = GeneticCode(self.SGC)
         self.assertEqual(
-            sgc.sixframes(test_rna), ["MLT*", "C*HK", "ANI", "FMLA", "LC*H", "YVS"]
+            sgc.sixframes(test_rna),
+            ["MLT*", "C*HK", "ANI", "FMLA", "LC*H", "YVS"],
         )
 
         # should also actually work with an RNA or DNA sequence!!!
         test_rna = RNA.make_seq(seq="AUGCUAACAUAAA")
         self.assertEqual(
-            sgc.sixframes(test_rna), ["MLT*", "C*HK", "ANI", "FMLA", "LC*H", "YVS"]
+            sgc.sixframes(test_rna),
+            ["MLT*", "C*HK", "ANI", "FMLA", "LC*H", "YVS"],
         )
 
     def test_stop_indexes(self):
@@ -399,7 +403,7 @@ class GeneticCodeTests(TestCase):
         gc = get_code(1)
         got = gc._repr_html_().strip()
         self.assertTrue(
-            '<div class="c3table">' in got or '<div class="c3align">' in got
+            '<div class="c3table">' in got or '<div class="c3align">' in got,
         )
         self.assertTrue("<table>" in got)
         self.assertTrue("</table>" in got)

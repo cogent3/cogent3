@@ -15,12 +15,12 @@ from numpy.linalg import LinAlgError, eig, inv
 import cogent3.maths.matrix_exponentiation as cme
 
 
-class _Exponentiator(object):
+class _Exponentiator:
     def __init__(self, Q):
         self.Q = Q
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({repr(self.Q)})"
+        return f"{self.__class__.__name__}({self.Q!r})"
 
 
 class VanLoanIntegratingExponentiator(_Exponentiator):
@@ -41,11 +41,10 @@ class VanLoanIntegratingExponentiator(_Exponentiator):
         Qdim = len(Q)
         if R is None:
             self.R = identity(Qdim)
+        elif len(R.shape) == 1:  # Be kind to rank-1 arrays
+            self.R = R.reshape((R.shape[0], 1))
         else:
-            if len(R.shape) == 1:  # Be kind to rank-1 arrays
-                self.R = R.reshape((R.shape[0], 1))
-            else:
-                self.R = R
+            self.R = R
         Cdim = Qdim + self.R.shape[1]
         C = zeros((Cdim, Cdim))
         C[:Qdim, :Qdim] = Q
@@ -77,7 +76,7 @@ class VonBingIntegratingExponentiator(_Exponentiator):
 
     def __call__(self, t=1.0):
         int_roots = array(
-            [t if abs(x.real) < 1e-6 else (exp(x * t) - 1) / x for x in self.roots]
+            [t if abs(x.real) < 1e-6 else (exp(x * t) - 1) / x for x in self.roots],
         )
         result = inner(self.evT * int_roots, self.evI)
         if result.dtype.kind == "c":

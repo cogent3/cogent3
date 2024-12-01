@@ -37,8 +37,7 @@ def center_of_mass(coordinates, weights=-1):
     """
     if isinstance(weights, int):
         return center_of_mass_one_array(coordinates, weights)
-    else:
-        return center_of_mass_two_array(coordinates, weights)
+    return center_of_mass_two_array(coordinates, weights)
 
 
 def center_of_mass_one_array(data, weight_idx=-1):
@@ -207,12 +206,12 @@ def aitchison_distance(x, y):
     if any(x <= 0):
         raise ValueError(
             "Cannot have negative \
-                or zero proportions - parameter 0."
+                or zero proportions - parameter 0.",
         )
     if any(y <= 0):
         raise ValueError(
             "Cannot have negative \
-                or zero proportions - parameter 1."
+                or zero proportions - parameter 1.",
         )
     return linalg.norm(clr(x / y))
 

@@ -57,7 +57,7 @@ class MakeCachedObjects:
         self.aln = self.lf.simulate_alignment(seq_length)
         self.results = dict(aln=self.aln)
         self.discrete_tree = make_tree(tip_names=self.aln.names)
-        self.opt_args = {**opt_args, **{"show_progress": False}}
+        self.opt_args = {**opt_args, "show_progress": False}
         self.tree = tree
 
     def fit_general(self, **kwargs):

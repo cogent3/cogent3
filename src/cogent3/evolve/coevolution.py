@@ -129,7 +129,8 @@ def _calc_joint_entropy(counts: numpy.ndarray) -> float:  # pragma: no cover
 
 @numba.jit
 def _calc_column_entropies(
-    columns: numpy.ndarray, num_states: int
+    columns: numpy.ndarray,
+    num_states: int,
 ) -> numpy.ndarray:  # pragma: no cover
     """
     Calculate the entropy for each column in the input array.
@@ -152,7 +153,8 @@ def _calc_column_entropies(
 
 @numba.jit
 def _make_weights(
-    counts: numpy.ndarray, weights: typing.Optional[numpy.ndarray] = None
+    counts: numpy.ndarray,
+    weights: typing.Optional[numpy.ndarray] = None,
 ) -> numpy.ndarray:  # pragma: no cover
     """Return the weights for replacement states for each possible character.
     We compute the weight as the normalized frequency of the replacement state
@@ -177,7 +179,8 @@ def _make_weights(
 
 @numba.jit
 def _calc_entropy_components(
-    counts: numpy.ndarray, total: int
+    counts: numpy.ndarray,
+    total: int,
 ) -> tuple[float, numpy.ndarray, numpy.ndarray]:  # pragma: no cover
     """Return the entropy and arrays of entropy components and non-zero status"""
     non_zero = counts != 0
@@ -378,7 +381,11 @@ def _rmi_calc(
         joint_states[:, 1] = alignment[:, j]
 
         counts_12, counts_1, counts_2 = _count_col_joint(
-            joint_states, counts_12, counts_1, counts_2, num_states
+            joint_states,
+            counts_12,
+            counts_1,
+            counts_2,
+            num_states,
         )
 
         weights_1 = _make_weights(counts_1, weights_1)
@@ -422,7 +429,11 @@ def _calc_all_entropies(
     num_states: int,
 ) -> tuple[float, float, float]:  # pragma: no cover
     joint_counts, counts_1, counts_2 = _count_col_joint(
-        joint_states, joint_counts, counts_1, counts_2, num_states
+        joint_states,
+        joint_counts,
+        counts_1,
+        counts_2,
+        num_states,
     )
     entropy_1 = _vector_entropy(counts_1)
     entropy_2 = _vector_entropy(counts_2)
@@ -646,7 +657,9 @@ _reason_3 = "discontinuing support due to poor performance, use coevolution_matr
 
 @c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
 def build_rate_matrix(
-    count_matrix, freqs, aa_order="ACDEFGHIKLMNPQRSTVWY"
+    count_matrix,
+    freqs,
+    aa_order="ACDEFGHIKLMNPQRSTVWY",
 ):  # pragma: no cover
     epm = EmpiricalProteinMatrix(count_matrix, freqs)
     word_probs = array([freqs[aa] for aa in aa_order])
@@ -1064,7 +1077,10 @@ def freqs_to_array(f, alphabet):  # pragma: no cover
 
 @c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
 def get_allowed_perturbations(
-    counts, cutoff, alphabet, num_seqs=100
+    counts,
+    cutoff,
+    alphabet,
+    num_seqs=100,
 ):  # pragma: no cover
     """Returns list of allowed perturbations as characters
 
@@ -1128,7 +1144,10 @@ def freqs_from_aln(aln, alphabet, scaled_aln_size=100):  # pragma: no cover
 
 @c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def get_positional_frequencies(
-    aln, position_number, alphabet, scaled_aln_size=100
+    aln,
+    position_number,
+    alphabet,
+    scaled_aln_size=100,
 ):  # pragma: no cover
     """Return the freqs in aln[position_number] of chars in alphabet's order
 
@@ -1156,7 +1175,9 @@ def get_positional_frequencies(
 
 @c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def get_positional_probabilities(
-    pos_freqs, natural_probs, scaled_aln_size=100
+    pos_freqs,
+    natural_probs,
+    scaled_aln_size=100,
 ):  # pragma: no cover
     """Get probs of observering the freq of each char given it's natural freq
     In Suel 2003 supplementary material, this step is defined as:
@@ -1352,10 +1373,16 @@ def sca_pair(
         pos2_freqs = position_freqs[pos2]
     else:
         pos1_freqs = get_positional_frequencies(
-            alignment, pos1, alphabet, scaled_aln_size
+            alignment,
+            pos1,
+            alphabet,
+            scaled_aln_size,
         )
         pos2_freqs = get_positional_frequencies(
-            alignment, pos2, alphabet, scaled_aln_size
+            alignment,
+            pos2,
+            alphabet,
+            scaled_aln_size,
         )
     # get positional probability vectors ("... each element is the binomial
     # probability of observing each amino acid residue at position j given its
@@ -1365,7 +1392,9 @@ def sca_pair(
         pos2_probs = position_probs[pos2]
     else:
         pos2_probs = get_positional_probabilities(
-            pos2_freqs, natural_probs, scaled_aln_size
+            pos2_freqs,
+            natural_probs,
+            scaled_aln_size,
         )
 
     # get statistical energies for pos2 in full alignment
@@ -1379,7 +1408,10 @@ def sca_pair(
         allowed_perturbations = perturbations[pos1]
     else:
         allowed_perturbations = get_allowed_perturbations(
-            pos1_freqs, cutoff, alphabet, scaled_aln_size
+            pos1_freqs,
+            cutoff,
+            alphabet,
+            scaled_aln_size,
         )
     # should we do something different here on return_all == True?
     if not allowed_perturbations:
@@ -1395,21 +1427,27 @@ def sca_pair(
         # Calculate dg for the subalignment
         subaln_freqs = freqs_from_aln(subalignment, alphabet, scaled_aln_size)
         subaln_probs = get_positional_probabilities(
-            subaln_freqs, natural_probs, scaled_aln_size
+            subaln_freqs,
+            natural_probs,
+            scaled_aln_size,
         )
         subaln_pos2_freqs = get_positional_frequencies(
-            subalignment, pos2, alphabet, scaled_aln_size
+            subalignment,
+            pos2,
+            alphabet,
+            scaled_aln_size,
         )
         subaln_pos2_probs = get_positional_probabilities(
-            subaln_pos2_freqs, natural_probs, scaled_aln_size
+            subaln_pos2_freqs,
+            natural_probs,
+            scaled_aln_size,
         )
         subaln_dg = get_dg(subaln_pos2_probs, subaln_probs)
         ddg_values.append(get_dgg(pos2_dg, subaln_dg, scaled_aln_size))
 
     if return_all:
         return list(zip(allowed_perturbations, ddg_values))
-    else:
-        return max(ddg_values)
+    return max(ddg_values)
 
 
 @c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
@@ -1478,7 +1516,7 @@ def sca_position(
         position_freqs = []
         for i in range(len(alignment)):
             position_freqs.append(
-                get_positional_frequencies(alignment, i, alphabet, scaled_aln_size)
+                get_positional_frequencies(alignment, i, alphabet, scaled_aln_size),
             )
 
     if not position_probs:
@@ -1486,8 +1524,10 @@ def sca_position(
         for i in range(len(alignment)):
             position_probs.append(
                 get_positional_probabilities(
-                    position_freqs[i], natural_probs, scaled_aln_size
-                )
+                    position_freqs[i],
+                    natural_probs,
+                    scaled_aln_size,
+                ),
             )
     if not dgs:
         dgs = []
@@ -1499,8 +1539,11 @@ def sca_position(
         for i in range(len(alignment)):
             perturbations.append(
                 get_allowed_perturbations(
-                    position_freqs[i], cutoff, alphabet, scaled_aln_size
-                )
+                    position_freqs[i],
+                    cutoff,
+                    alphabet,
+                    scaled_aln_size,
+                ),
             )
 
     result = []
@@ -1520,7 +1563,7 @@ def sca_position(
                 return_all=return_all,
                 alphabet=alphabet,
                 background_freqs=background_freqs,
-            )
+            ),
         )
     return array(result)
 
@@ -1567,7 +1610,7 @@ def sca_alignment(
     position_freqs = []
     for i in range(len(alignment)):
         position_freqs.append(
-            get_positional_frequencies(alignment, i, alphabet, scaled_aln_size)
+            get_positional_frequencies(alignment, i, alphabet, scaled_aln_size),
         )
 
     # get all positional probabilities
@@ -1575,8 +1618,10 @@ def sca_alignment(
     for i in range(len(alignment)):
         position_probs.append(
             get_positional_probabilities(
-                position_freqs[i], natural_probs, scaled_aln_size
-            )
+                position_freqs[i],
+                natural_probs,
+                scaled_aln_size,
+            ),
         )
 
     # get all delta_g vectors
@@ -1589,8 +1634,11 @@ def sca_alignment(
     for i in range(len(alignment)):
         perturbations.append(
             get_allowed_perturbations(
-                position_freqs[i], cutoff, alphabet, scaled_aln_size
-            )
+                position_freqs[i],
+                cutoff,
+                alphabet,
+                scaled_aln_size,
+            ),
         )
 
     result = []
@@ -1609,7 +1657,7 @@ def sca_alignment(
                 return_all=return_all,
                 alphabet=alphabet,
                 background_freqs=background_freqs,
-            )
+            ),
         )
     return array(result)
 
@@ -1808,7 +1856,11 @@ def resampled_mi_alignment(
 
 @c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
 def get_ancestral_seqs(
-    aln, tree, sm=None, pseudocount=1e-6, optimise=True
+    aln,
+    tree,
+    sm=None,
+    pseudocount=1e-6,
+    optimise=True,
 ):  # pragma: no cover
     """Calculates ancestral sequences by maximum likelihood
 
@@ -1838,7 +1890,10 @@ def get_ancestral_seqs(
 
 @c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
 def ancestral_state_alignment(
-    aln, tree, ancestral_seqs=None, null_value=DEFAULT_NULL_VALUE
+    aln,
+    tree,
+    ancestral_seqs=None,
+    null_value=DEFAULT_NULL_VALUE,
 ):  # pragma: no cover
     ancestral_seqs = ancestral_seqs or get_ancestral_seqs(aln, tree)
     result = []
@@ -1852,25 +1907,34 @@ def ancestral_state_alignment(
 
 @c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
 def ancestral_state_position(
-    aln, tree, position, ancestral_seqs=None, null_value=DEFAULT_NULL_VALUE
+    aln,
+    tree,
+    position,
+    ancestral_seqs=None,
+    null_value=DEFAULT_NULL_VALUE,
 ):  # pragma: no cover
     ancestral_seqs = ancestral_seqs or get_ancestral_seqs(aln, tree)
     result = []
     for i in range(len(aln)):
         result.append(
-            ancestral_state_pair(aln, tree, position, i, ancestral_seqs, null_value)
+            ancestral_state_pair(aln, tree, position, i, ancestral_seqs, null_value),
         )
     return array(result)
 
 
 @c3warn.deprecated_callable("2024.12", reason=_reason_1, is_discontinued=True)
 def ancestral_state_pair(
-    aln, tree, pos1, pos2, ancestral_seqs=None, null_value=DEFAULT_NULL_VALUE
+    aln,
+    tree,
+    pos1,
+    pos2,
+    ancestral_seqs=None,
+    null_value=DEFAULT_NULL_VALUE,
 ):  # pragma: no cover
     """ """
     ancestral_seqs = ancestral_seqs or get_ancestral_seqs(aln, tree)
     ancestral_names_to_seqs = dict(
-        list(zip(ancestral_seqs.names, ancestral_seqs.array_seqs))
+        list(zip(ancestral_seqs.names, ancestral_seqs.array_seqs)),
     )
     distances = tree.get_distances()
     tips = tree.get_node_names(tipsonly=True)
@@ -2006,7 +2070,7 @@ def validate_alphabet(alphabet, freqs):  # pragma: no cover
     freq_chars = set(freqs.keys())
     if alphabet_chars != freq_chars:
         raise ValueError(
-            "Alphabet and background freqs must contain identical sets of chars."
+            "Alphabet and background freqs must contain identical sets of chars.",
         )
 
 
@@ -2045,7 +2109,7 @@ def validate_ancestral_seqs(alignment, tree, ancestral_seqs):  # pragma: no cove
     seqs = set(ancestral_seqs.names)
     if edges != seqs:
         raise ValueError(
-            "Must be ancestral seqs for all edges and root in tree, and no more."
+            "Must be ancestral seqs for all edges and root in tree, and no more.",
         )
 
 
@@ -2066,7 +2130,7 @@ def validate_position(alignment, position):  # pragma: no cover
     """ValueError if position is outside the range of the alignment"""
     if not 0 <= position < len(alignment):
         raise ValueError(
-            "Position is outside the range of the alignment: " + str(position)
+            "Position is outside the range of the alignment: " + str(position),
         )
 
 
@@ -2079,24 +2143,29 @@ def validate_alignment(alignment):  # pragma: no cover
             bad_seqs.append(name)
     if bad_seqs:
         raise ValueError(
-            f"Ambiguous characters in sequences: {'; '.join(map(str, bad_seqs))}"
+            f"Ambiguous characters in sequences: {'; '.join(map(str, bad_seqs))}",
         )
 
 
 @c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def coevolve_alignments_validation(
-    method, alignment1, alignment2, min_num_seqs, max_num_seqs, **kwargs
+    method,
+    alignment1,
+    alignment2,
+    min_num_seqs,
+    max_num_seqs,
+    **kwargs,
 ):  # pragma: no cover
     """Validation steps required for intermolecular coevolution analyses"""
     valid_methods_for_different_moltypes = {}.fromkeys(
-        [mi_alignment, nmi_alignment, resampled_mi_alignment]
+        [mi_alignment, nmi_alignment, resampled_mi_alignment],
     )
     if (
         alignment1.moltype != alignment2.moltype
     ) and method not in valid_methods_for_different_moltypes:
         raise AssertionError(
             "Different MolTypes only supported for %s"
-            % " ".join(map(str, list(valid_methods_for_different_moltypes.keys())))
+            % " ".join(map(str, list(valid_methods_for_different_moltypes.keys()))),
         )
 
     alignment1_names = set([n.split("+")[0].strip() for n in alignment1.names])
@@ -2104,7 +2173,7 @@ def coevolve_alignments_validation(
 
     if "tree" in kwargs:
         tip_names = set(
-            [n.split("+")[0].strip() for n in kwargs["tree"].get_tip_names()]
+            [n.split("+")[0].strip() for n in kwargs["tree"].get_tip_names()],
         )
         assert (
             alignment1_names == alignment2_names == tip_names
@@ -2119,14 +2188,14 @@ def coevolve_alignments_validation(
     if alignment1.num_seqs < min_num_seqs:
         raise ValueError(
             "Too few sequences in merged alignment: %d < %d"
-            % (alignment1.num_seqs, min_num_seqs)
+            % (alignment1.num_seqs, min_num_seqs),
         )
 
     # Confirm that min_num_seqs <= max_num_seqs
     if max_num_seqs and min_num_seqs > max_num_seqs:
         raise ValueError(
             "min_num_seqs (%d) cannot be greater than max_num_seqs (%d)."
-            % (min_num_seqs, max_num_seqs)
+            % (min_num_seqs, max_num_seqs),
         )
 
 
@@ -2198,18 +2267,18 @@ def merge_alignments(alignment1, alignment2):  # pragma: no cover
     try:
         for merged_name, orig_name in list(aln1_name_map.items()):
             result[merged_name] = alignment1.get_gapped_seq(
-                orig_name
+                orig_name,
             ) + alignment2.get_gapped_seq(aln2_name_map[merged_name])
     except ValueError:  # Differing MolTypes
         for merged_name, orig_name in list(aln1_name_map.items()):
             result[merged_name] = Sequence(
-                alignment1.get_gapped_seq(orig_name)
+                alignment1.get_gapped_seq(orig_name),
             ) + Sequence(alignment2.get_gapped_seq(aln2_name_map[merged_name]))
     except KeyError:
         raise KeyError(
             "A sequence identifier is in alignment2 "
             + "but not alignment1 -- did you filter out sequences identifiers"
-            + " not common to both alignments?"
+            + " not common to both alignments?",
         )
     return make_aligned_seqs(result, array_align=True)
 
@@ -2314,7 +2383,12 @@ def coevolve_alignments(
     """
     # Perform general validation step
     coevolve_alignments_validation(
-        method, alignment1, alignment2, min_num_seqs, max_num_seqs, **kwargs
+        method,
+        alignment1,
+        alignment2,
+        min_num_seqs,
+        max_num_seqs,
+        **kwargs,
     )
     # Append alignment 2 to the end of alignment 1 in a new alignment object
     merged_alignment = merge_alignments(alignment1, alignment2)
@@ -2684,7 +2758,11 @@ def filter_non_parsimony_informative(
     column_frequencies = aln.counts_per_pos()
     for i in range(len(column_frequencies)):
         if not is_parsimony_informative(
-            column_frequencies[i], minimum_count, minimum_differences, ignored, strict
+            column_frequencies[i],
+            minimum_count,
+            minimum_differences,
+            ignored,
+            strict,
         ):
             if not intermolecular_data_only:
                 coevolution_matrix[i, :] = coevolution_matrix[:, i] = null_value
@@ -2697,7 +2775,8 @@ def filter_non_parsimony_informative(
 
 @c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def make_positional_exclude_percentage_function(
-    excludes, max_exclude_percent
+    excludes,
+    max_exclude_percent,
 ):  # pragma: no cover
     """return function to identify aln positions with > max_exclude_percent"""
     excludes = {}.fromkeys(excludes)
@@ -2765,7 +2844,8 @@ def filter_exclude_positions(
 
 @c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def pickle_coevolution_result(
-    coevolve_result, out_filepath="output.pkl"
+    coevolve_result,
+    out_filepath="output.pkl",
 ):  # pragma: no cover
     """Pickle coevolve_result and store it at output_filepath
 
@@ -2778,9 +2858,9 @@ def pickle_coevolution_result(
     try:
         infile = open(out_filepath, "wb")
         p = Pickler(infile)
-    except IOError:
+    except OSError:
         err = "Can't access filepath. Do you have write access? " + out_filepath
-        raise IOError(err)
+        raise OSError(err)
     p.dump(coevolve_result)
     infile.close()
 
@@ -2794,12 +2874,12 @@ def unpickle_coevolution_result(in_filepath):  # pragma: no cover
     try:
         infile = open(in_filepath, "rb")
         u = Unpickler(infile)
-    except IOError:
+    except OSError:
         err = (
             "Can't access filepath. Does it exist? Do you have read access? "
             + in_filepath
         )
-        raise IOError(err)
+        raise OSError(err)
     r = u.load()
     infile.close()
     return r
@@ -2807,7 +2887,8 @@ def unpickle_coevolution_result(in_filepath):  # pragma: no cover
 
 @c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def coevolution_matrix_to_csv(
-    coevolve_matrix, out_filepath="output.csv"
+    coevolve_matrix,
+    out_filepath="output.csv",
 ):  # pragma: no cover
     """Write coevolve_matrix as csv file at output_filepath
 
@@ -2817,9 +2898,9 @@ def coevolution_matrix_to_csv(
     """
     try:
         f = open(out_filepath, "w")
-    except IOError:
+    except OSError:
         err = "Can't access filepath. Do you have write access? " + out_filepath
-        raise IOError(err)
+        raise OSError(err)
     f.write("\n".join([",".join([str(v) for v in row]) for row in coevolve_matrix]))
     f.close()
 
@@ -2832,12 +2913,12 @@ def csv_to_coevolution_matrix(in_filepath):  # pragma: no cover
     """
     try:
         f = open(in_filepath)
-    except IOError:
+    except OSError:
         err = (
             "Can't access filepath. Does it exist? Do you have read access? "
             + in_filepath
         )
-        raise IOError(err)
+        raise OSError(err)
     result = []
     for line in f:
         values = line.strip().split(",")
@@ -2853,7 +2934,10 @@ def csv_to_coevolution_matrix(in_filepath):  # pragma: no cover
 
 @c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def identify_aln_positions_above_threshold(
-    coevolution_matrix, threshold, aln_position, null_value=DEFAULT_NULL_VALUE
+    coevolution_matrix,
+    threshold,
+    aln_position,
+    null_value=DEFAULT_NULL_VALUE,
 ):  # pragma: no cover
     """Returns the list of alignment positions which achieve a
     score >= threshold with aln_position.
@@ -2935,7 +3019,11 @@ def aln_position_pairs_le_threshold(
 ):  # pragma: no cover
     """wrapper function for aln_position_pairs_cmp_threshold"""
     return aln_position_pairs_cmp_threshold(
-        coevolution_matrix, threshold, less_equal, null_value, intermolecular_data_only
+        coevolution_matrix,
+        threshold,
+        less_equal,
+        null_value,
+        intermolecular_data_only,
     )
 
 
@@ -2965,16 +3053,15 @@ def count_cmp_threshold(
             ]
         else:
             values = m.flat
+    elif ignore_diagonal:
+        # has to be a better way to do this... tril doesn't work b/c it
+        # sets the upper triangle to zero -- if i could get it to set
+        # that to null_value, and then apply flat, that'd be fine.
+        # values = tril(m,-1)
+        values = [m[i, j] for i in range(len(m)) for j in range(i)]
     else:
-        if ignore_diagonal:
-            # has to be a better way to do this... tril doesn't work b/c it
-            # sets the upper triangle to zero -- if i could get it to set
-            # that to null_value, and then apply flat, that'd be fine.
-            # values = tril(m,-1)
-            values = [m[i, j] for i in range(len(m)) for j in range(i)]
-        else:
-            # values = tril(m)
-            values = [m[i, j] for i in range(len(m)) for j in range(i + 1)]
+        # values = tril(m)
+        values = [m[i, j] for i in range(len(m)) for j in range(i + 1)]
 
     if isnan(null_value):
 
@@ -2996,21 +3083,39 @@ def count_cmp_threshold(
 
 @c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def count_ge_threshold(
-    m, threshold, null_value=DEFAULT_NULL_VALUE, symmetric=False, ignore_diagonal=False
+    m,
+    threshold,
+    null_value=DEFAULT_NULL_VALUE,
+    symmetric=False,
+    ignore_diagonal=False,
 ):  # pragma: no cover
     """wrapper function for count_cmp_threshold"""
     return count_cmp_threshold(
-        m, threshold, greater_equal, null_value, symmetric, ignore_diagonal
+        m,
+        threshold,
+        greater_equal,
+        null_value,
+        symmetric,
+        ignore_diagonal,
     )
 
 
 @c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def count_le_threshold(
-    m, threshold, null_value=DEFAULT_NULL_VALUE, symmetric=False, ignore_diagonal=False
+    m,
+    threshold,
+    null_value=DEFAULT_NULL_VALUE,
+    symmetric=False,
+    ignore_diagonal=False,
 ):  # pragma: no cover
     """wrapper function for count_cmp_threshold"""
     return count_cmp_threshold(
-        m, threshold, less_equal, null_value, symmetric, ignore_diagonal
+        m,
+        threshold,
+        less_equal,
+        null_value,
+        symmetric,
+        ignore_diagonal,
     )
 
 
@@ -3033,7 +3138,11 @@ def ltm_to_symmetric(m):  # pragma: no cover
 # Script functionality
 @c3warn.deprecated_callable("2024.12", reason=_reason_3, is_discontinued=True)
 def build_coevolution_matrix_filepath(
-    input_filepath, output_dir="./", method=None, alphabet=None, parameter=None
+    input_filepath,
+    output_dir="./",
+    method=None,
+    alphabet=None,
+    parameter=None,
 ):  # pragma: no cover
     """ Build filepath from input filename, output dir, and list of suffixes
 
@@ -3120,7 +3229,7 @@ def parse_coevolution_matrix_filepath(filepath):  # pragma: no cover
     except IndexError:
         raise ValueError(
             "output filepath not in parsable format: %s. See doc string for format definition."
-            % filepath
+            % filepath,
         )
 
     return (alignment_id, alphabet_id, method_id)

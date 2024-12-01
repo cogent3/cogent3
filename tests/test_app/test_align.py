@@ -287,7 +287,7 @@ class RefalignmentTests(TestCase):
             result = []
             for n, seqs in data.items():
                 result.append(
-                    [n, make_aligned_seqs(data=seqs, moltype="dna", array_align=False)]
+                    [n, make_aligned_seqs(data=seqs, moltype="dna", array_align=False)],
                 )
             ref_seq = result[0][1].get_seq(ref_name)
             return result, ref_seq
@@ -323,7 +323,7 @@ class RefalignmentTests(TestCase):
 
 class ProgressiveAlignment(TestCase):
     seqs = make_unaligned_seqs(_seqs, moltype=DNA)
-    treestring = "(Bandicoot:0.4,FlyingFox:0.05,(Rhesus:0.06," "Human:0.0):0.04);"
+    treestring = "(Bandicoot:0.4,FlyingFox:0.05,(Rhesus:0.06,Human:0.0):0.04);"
 
     def test_progressive_align_protein_moltype(self):
         """tests guide_tree is None and moltype is protein"""
@@ -346,7 +346,7 @@ class ProgressiveAlignment(TestCase):
         self.assertIsInstance(aln, ArrayAlignment)
         self.assertEqual(len(aln), 42)
         self.assertEqual(aln.moltype, aligner._moltype)
-        # todo the following is not robust across operating systems
+        # TODO the following is not robust across operating systems
         # so commenting out for now, but needs to be checked
         # expect = {'Human': 'GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT',
         #           'Rhesus': 'GCCAGCTCATTACAGCATGAGAA---CAGTTTGTTACTCACT',
@@ -370,7 +370,8 @@ class ProgressiveAlignment(TestCase):
         """progressive align works with provided guide tree"""
         tree = make_tree(treestring=self.treestring)
         aligner = align_app.progressive_align(
-            model="nucleotide", guide_tree=self.treestring
+            model="nucleotide",
+            guide_tree=self.treestring,
         )
         aln = aligner(self.seqs)
         self.assertEqual(len(aln), 42)
@@ -379,7 +380,7 @@ class ProgressiveAlignment(TestCase):
         self.assertEqual(len(aln), 42)
         # even if it has underscores in name
         treestring = (
-            "(Bandicoot:0.4,FlyingFox:0.05,(Rhesus_macaque:0.06," "Human:0.0):0.04);"
+            "(Bandicoot:0.4,FlyingFox:0.05,(Rhesus_macaque:0.06,Human:0.0):0.04);"
         )
         aligner = align_app.progressive_align(model="nucleotide", guide_tree=treestring)
         data = self.seqs.to_dict()
@@ -431,7 +432,8 @@ class ProgressiveAlignment(TestCase):
         aln = aligner(seqs)
         self.assertEqual(len(aln), 14)
         aligner = align_app.progressive_align(
-            model="protein", guide_tree=self.treestring
+            model="protein",
+            guide_tree=self.treestring,
         )
         aln = aligner(seqs)
         self.assertEqual(len(aln), 14)
@@ -568,7 +570,8 @@ def test_sp_score_exclude_gap():
 
 def test_sp_fail():
     aln = make_aligned_seqs(
-        data={"a": "ATG---------AATCGAAGA", "b": "GTG---------GAAAAGCAG"}, moltype="dna"
+        data={"a": "ATG---------AATCGAAGA", "b": "GTG---------GAAAAGCAG"},
+        moltype="dna",
     )
     app = get_app("sp_score")
     got = app.main(aln)
@@ -661,7 +664,8 @@ def test_smith_waterman_matches_local_pairwise(seqs):
 def test_smith_waterman_score(seqs):
     aligner = smith_waterman()
     coll = make_unaligned_seqs(
-        data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot")], moltype="dna"
+        data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot")],
+        moltype="dna",
     )
     aln = aligner(coll)
     got = aln.info["align_params"]["sw_score"]
@@ -680,7 +684,8 @@ def test_smith_waterman_score(seqs):
 
 
 @pytest.mark.parametrize(
-    "moltype", ("text", "rna", "protein", "protein_with_stop", "bytes", "ab")
+    "moltype",
+    ("text", "rna", "protein", "protein_with_stop", "bytes", "ab"),
 )
 def test_smith_waterman_generic_moltype(moltype):
     """tests when the moltype is generic"""
@@ -706,7 +711,8 @@ def test_smith_waterman_wrong_moltype(moltype_1, moltype_2):
     """
     aligner = smith_waterman(moltype=moltype_1)
     coll = make_unaligned_seqs(
-        data={"Human": "AUUCGAUGG", "Bandicoot": "AUUGCCCGAUGG"}, moltype=moltype_2
+        data={"Human": "AUUCGAUGG", "Bandicoot": "AUUGCCCGAUGG"},
+        moltype=moltype_2,
     )
     aln = aligner(coll)
     assert aln.moltype.label == moltype_1

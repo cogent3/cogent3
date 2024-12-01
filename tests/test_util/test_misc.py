@@ -162,17 +162,21 @@ class UtilsTests(TestCase):
         """recursive_flatten should not remover more than max_depth levels"""
         self.assertEqual(recursive_flatten([1, [2, 3], [[4, [5]]]]), [1, 2, 3, 4, 5])
         self.assertEqual(
-            recursive_flatten([1, [2, 3], [[4, [5]]]], 0), [1, [2, 3], [[4, [5]]]]
+            recursive_flatten([1, [2, 3], [[4, [5]]]], 0),
+            [1, [2, 3], [[4, [5]]]],
         )
         self.assertEqual(
-            recursive_flatten([1, [2, 3], [[4, [5]]]], 1), [1, 2, 3, [4, [5]]]
+            recursive_flatten([1, [2, 3], [[4, [5]]]], 1),
+            [1, 2, 3, [4, [5]]],
         )
         self.assertEqual(
-            recursive_flatten([1, [2, 3], [[4, [5]]]], 2), [1, 2, 3, 4, [5]]
+            recursive_flatten([1, [2, 3], [[4, [5]]]], 2),
+            [1, 2, 3, 4, [5]],
         )
         self.assertEqual(recursive_flatten([1, [2, 3], [[4, [5]]]], 3), [1, 2, 3, 4, 5])
         self.assertEqual(
-            recursive_flatten([1, [2, 3], [[4, [5]]]], 5000), [1, 2, 3, 4, 5]
+            recursive_flatten([1, [2, 3], [[4, [5]]]], 5000),
+            [1, 2, 3, 4, 5],
         )
 
     def test_add_lowercase(self):
@@ -273,7 +277,7 @@ class UtilsTests(TestCase):
         # but randomly the first or second if random_tie_breaker is chosen
         got = get_independent_coords(data, random_tie_breaker=True)
         self.assertTrue(
-            got in ([(20, 30, "a"), (65, 75, "c")], [(25, 40, "b"), (65, 75, "c")])
+            got in ([(20, 30, "a"), (65, 75, "c")], [(25, 40, "b"), (65, 75, "c")]),
         )
 
         # over-lapping second/last returns first occurrence by default
@@ -283,7 +287,7 @@ class UtilsTests(TestCase):
         # but randomly the first or second if random_tie_breaker is chosen
         got = get_independent_coords(data, random_tie_breaker=True)
         self.assertTrue(
-            got in ([(20, 30, "a"), (50, 75, "c")], [(20, 30, "a"), (30, 60, "b")])
+            got in ([(20, 30, "a"), (50, 75, "c")], [(20, 30, "a"), (30, 60, "b")]),
         )
 
         # over-lapping middle returns first occurrence by default
@@ -298,7 +302,7 @@ class UtilsTests(TestCase):
             in (
                 [(20, 24, "a"), (25, 40, "b"), (65, 75, "d")],
                 [(20, 24, "a"), (30, 35, "c"), (65, 75, "d")],
-            )
+            ),
         )
 
     def test_get_merged_spans(self):
@@ -342,19 +346,22 @@ class UtilsTests(TestCase):
         # initial values same
         data = [[20, 21, 0], [21, 22, 0], [22, 23, 1], [23, 24, 0]]
         self.assertEqual(
-            get_merged_by_value_coords(data), [[20, 22, 0], [22, 23, 1], [23, 24, 0]]
+            get_merged_by_value_coords(data),
+            [[20, 22, 0], [22, 23, 1], [23, 24, 0]],
         )
 
         # middle values same
         data = [[20, 21, 0], [21, 22, 1], [22, 23, 1], [23, 24, 0]]
         self.assertEqual(
-            get_merged_by_value_coords(data), [[20, 21, 0], [21, 23, 1], [23, 24, 0]]
+            get_merged_by_value_coords(data),
+            [[20, 21, 0], [21, 23, 1], [23, 24, 0]],
         )
 
         # last values same
         data = [[20, 21, 0], [21, 22, 1], [22, 23, 0], [23, 24, 0]]
         self.assertEqual(
-            get_merged_by_value_coords(data), [[20, 21, 0], [21, 22, 1], [22, 24, 0]]
+            get_merged_by_value_coords(data),
+            [[20, 21, 0], [21, 22, 1], [22, 24, 0]],
         )
 
         # all unique values
@@ -392,7 +399,8 @@ class UtilsTests(TestCase):
         sm = get_model("HKY85")
         got = get_object_provenance(sm)
         self.assertEqual(
-            got, "cogent3.evolve.substitution_model.TimeReversibleNucleotide"
+            got,
+            "cogent3.evolve.substitution_model.TimeReversibleNucleotide",
         )
 
         # handle a type
@@ -500,8 +508,6 @@ class UtilsTests(TestCase):
 class _my_dict(dict):
     """Used for testing subclass behavior of ClassChecker"""
 
-    pass
-
 
 class ClassCheckerTests(TestCase):
     """Unit tests for the ClassChecker class."""
@@ -588,8 +594,6 @@ class ClassCheckerTests(TestCase):
 
 class modifiable_string(str):
     """Mutable class to allow arbitrary attributes to be set"""
-
-    pass
 
 
 class _list_and_string(list, Delegator):
@@ -708,7 +712,7 @@ class FunctionWrapperTests(TestCase):
     # can't copy a function.
 
 
-class _simple_container(object):
+class _simple_container:
     """example of a container to constrain"""
 
     def __init__(self, data):
@@ -776,7 +780,7 @@ class ConstrainedContainerTests(TestCase):
             pass
         else:
             raise AssertionError(
-                "Failed to raise ConstraintError with invalid constraint."
+                "Failed to raise ConstraintError with invalid constraint.",
             )
         self.alphabet.constraint = "abcdefghi"
         self.alphabet.constraint = ["a", "b", "c", 1, 2, 3]
@@ -938,17 +942,20 @@ class ConstrainedDictTests(TestCase):
     def test_init_good_data(self):
         """ConstrainedDict should init OK if list matches constraint"""
         self.assertEqual(
-            ConstrainedDict(dict.fromkeys("abc"), "abcd"), dict.fromkeys("abc")
+            ConstrainedDict(dict.fromkeys("abc"), "abcd"),
+            dict.fromkeys("abc"),
         )
         self.assertEqual(ConstrainedDict("", "abcd"), dict(""))
         items = [1, 2, 3.2234, tuple("xyz")]
         # should accept anything dict() does if no constraint is passed
         self.assertEqual(ConstrainedDict(dict.fromkeys(items)), dict.fromkeys(items))
         self.assertEqual(
-            ConstrainedDict(dict.fromkeys(items), None), dict.fromkeys(items)
+            ConstrainedDict(dict.fromkeys(items), None),
+            dict.fromkeys(items),
         )
         self.assertEqual(
-            ConstrainedDict([(x, 1) for x in "12345"]), dict.fromkeys("12345", 1)
+            ConstrainedDict([(x, 1) for x in "12345"]),
+            dict.fromkeys("12345", 1),
         )
         # check that list is formatted correctly and chars are all there
         test_dict = dict.fromkeys("12345")
@@ -961,10 +968,16 @@ class ConstrainedDictTests(TestCase):
     def test_init_bad_data(self):
         """ConstrainedDict should fail init with items not in constraint"""
         self.assertRaises(
-            ConstraintError, ConstrainedDict, dict.fromkeys("1234"), "123"
+            ConstraintError,
+            ConstrainedDict,
+            dict.fromkeys("1234"),
+            "123",
         )
         self.assertRaises(
-            ConstraintError, ConstrainedDict, dict.fromkeys([1, 2, 3]), ["1", "2", "3"]
+            ConstraintError,
+            ConstrainedDict,
+            dict.fromkeys([1, 2, 3]),
+            ["1", "2", "3"],
         )
 
     def test_setitem(self):
@@ -1041,7 +1054,7 @@ class ConstrainedDictTests(TestCase):
         e = d.copy()
         assert e.mask is d.mask
         assert "1" in d
-        assert not 1 in d
+        assert 1 not in d
 
 
 class MappedDictTests(TestCase):
@@ -1099,13 +1112,11 @@ class MappedDictTests(TestCase):
 
 def f():
     """This is a function docstring."""
-    pass
 
 
 @extend_docstring_from(f)
 def foo_append():
     """I am foo."""
-    pass
 
 
 @extend_docstring_from(f)
@@ -1116,14 +1127,12 @@ def foo_mirror():
 @extend_docstring_from(f, pre=True)
 def foo_prepend():
     """I am foo."""
-    pass
 
 
 class ExtendDocstringTests(TestCase):
     @extend_docstring_from(f)
     def foo_append(self):
         """I am foo."""
-        pass
 
     @extend_docstring_from(f)
     def foo_mirror(self):
@@ -1132,18 +1141,13 @@ class ExtendDocstringTests(TestCase):
     @extend_docstring_from(f, pre=True)
     def foo_prepend(self):
         """I am foo."""
-        pass
 
     class TemplateClass:
         """This is a class docstring."""
 
-        pass
-
     @extend_docstring_from(TemplateClass)
     class FooAppend:
         """I am foo."""
-
-        pass
 
     @extend_docstring_from(TemplateClass)
     class FooMirror:
@@ -1153,8 +1157,6 @@ class ExtendDocstringTests(TestCase):
     class FooPrepend:
         """I am foo."""
 
-        pass
-
     def test_function_append(self):
         self.assertEqual(foo_append.__doc__, "This is a function docstring.\nI am foo.")
 
@@ -1163,12 +1165,14 @@ class ExtendDocstringTests(TestCase):
 
     def test_function_prepend(self):
         self.assertEqual(
-            foo_prepend.__doc__, "I am foo.\nThis is a function docstring."
+            foo_prepend.__doc__,
+            "I am foo.\nThis is a function docstring.",
         )
 
     def test_method_append(self):
         self.assertEqual(
-            self.foo_append.__doc__, "This is a function docstring.\nI am foo."
+            self.foo_append.__doc__,
+            "This is a function docstring.\nI am foo.",
         )
 
     def test_method_mirror(self):
@@ -1176,12 +1180,14 @@ class ExtendDocstringTests(TestCase):
 
     def test_method_prepend(self):
         self.assertEqual(
-            self.foo_prepend.__doc__, "I am foo.\nThis is a function docstring."
+            self.foo_prepend.__doc__,
+            "I am foo.\nThis is a function docstring.",
         )
 
     def test_class_append(self):
         self.assertEqual(
-            self.FooAppend.__doc__, "This is a class docstring.\nI am foo."
+            self.FooAppend.__doc__,
+            "This is a class docstring.\nI am foo.",
         )
 
     def test_class_mirror(self):
@@ -1189,7 +1195,8 @@ class ExtendDocstringTests(TestCase):
 
     def test_class_prepend(self):
         self.assertEqual(
-            self.FooPrepend.__doc__, "I am foo.\nThis is a class docstring."
+            self.FooPrepend.__doc__,
+            "I am foo.\nThis is a class docstring.",
         )
 
 

@@ -41,7 +41,8 @@ class InvalidCodonError(KeyError, GeneticCodeError):
 
 
 def _make_mappings(
-    codons: new_alphabet.KmerAlphabet, code_sequence: str
+    codons: new_alphabet.KmerAlphabet,
+    code_sequence: str,
 ) -> typing.Tuple[typing.Dict[str, str], typing.Dict[str, SetStr], SetStr]:
     """makes amino acid / codon mappings and stop codon group
 
@@ -72,7 +73,9 @@ def _get_start_codon_indices(start_codon_map: str) -> tuple[int, ...]:
 
 
 def _make_converter(
-    kmer_alpha: new_alphabet.KmerAlphabet, codons: tuple[str, ...], code_sequence: str
+    kmer_alpha: new_alphabet.KmerAlphabet,
+    codons: tuple[str, ...],
+    code_sequence: str,
 ) -> typing.Callable[[bytes, bytes], bytes]:
     """returns a converter of codon indices into amino acid indices
 
@@ -92,7 +95,8 @@ def _make_converter(
     """
     # we get the index of the codon in the kmer alphabet
     kmers = numpy.array(
-        [kmer_alpha.to_index(codon) for codon in codons], dtype=numpy.uint8
+        [kmer_alpha.to_index(codon) for codon in codons],
+        dtype=numpy.uint8,
     )
     return new_alphabet.convert_alphabet(kmers.tobytes(), code_sequence.encode("utf8"))
 
@@ -114,7 +118,8 @@ class GeneticCode:
     moltype: new_moltype.MolType = new_moltype.DNA
     _codon_to_aa: typing.Dict[str, str] = dataclasses.field(init=False, default=None)
     _aa_to_codon: typing.Dict[str, typing.List[str]] = dataclasses.field(
-        init=False, default=None
+        init=False,
+        default=None,
     )
     _sense_codons: SetStr = dataclasses.field(init=False, default=None)
     _stop_codons: SetStr = dataclasses.field(init=False, default=None)
@@ -127,12 +132,14 @@ class GeneticCode:
 
     def __post_init__(self, ncbi_code_sequence: str, ncbi_start_codon_map: str):
         trinuc_alpha = self.moltype.gapped_alphabet.with_gap_motif().get_kmer_alphabet(
-            k=3, include_gap=True
+            k=3,
+            include_gap=True,
         )
         code_seq = f"{ncbi_code_sequence}-X"
         start_map = f"{ncbi_start_codon_map}--"
         self._codon_to_aa, self._aa_to_codon, self._stop_codons = _make_mappings(
-            trinuc_alpha, code_seq
+            trinuc_alpha,
+            code_seq,
         )
         self.codons = trinuc_alpha
         self._start_codons = {
@@ -272,7 +279,9 @@ class GeneticCode:
 
     @functools.cache
     def get_alphabet(
-        self, include_gap: bool = False, include_stop: bool = False
+        self,
+        include_gap: bool = False,
+        include_stop: bool = False,
     ) -> new_alphabet.SenseCodonAlphabet:
         """returns a codon alphabet
 
@@ -292,7 +301,9 @@ class GeneticCode:
             codons += (gap,)
 
         return new_alphabet.SenseCodonAlphabet(
-            words=codons, monomers=self.moltype.degen_gapped_alphabet, gap=gap
+            words=codons,
+            monomers=self.moltype.degen_gapped_alphabet,
+            gap=gap,
         )
 
     def to_regex(self, seq: typing.Union[str, "Sequence"]) -> str:

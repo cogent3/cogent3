@@ -206,7 +206,8 @@ def ratios_to_proportions(total, params) -> list:
     half = (len(params) + 1) // 2
     part = 1.0 / (params[0] + 1.0)  # ratio -> proportion
     return ratios_to_proportions(total * part, params[1:half]) + ratios_to_proportions(
-        total * (1.0 - part), params[half:]
+        total * (1.0 - part),
+        params[half:],
     )
 
 

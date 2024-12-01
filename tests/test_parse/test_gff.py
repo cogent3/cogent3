@@ -272,7 +272,8 @@ def test_gff_parser_path_types(worm_path, path_type):
 
 
 @pytest.mark.parametrize(
-    "obj", (make_gff_text().splitlines(), io.StringIO(make_gff_text()))
+    "obj",
+    (make_gff_text().splitlines(), io.StringIO(make_gff_text())),
 )
 def test_gff_parser_obj_types(obj):
     got = list(gff_parser(obj))
@@ -282,8 +283,10 @@ def test_gff_parser_obj_types(obj):
 def test_gff_parser_make_record_override_attr_parser(worm_path):
     got = list(
         gff_parser(
-            worm_path, attribute_parser=lambda x: x.split(";"), make_record=GffRecord
-        )
+            worm_path,
+            attribute_parser=lambda x: x.split(";"),
+            make_record=GffRecord,
+        ),
     )
     assert len(got) == 13
     # no split operation

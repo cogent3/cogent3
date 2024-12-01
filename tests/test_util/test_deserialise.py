@@ -308,7 +308,8 @@ class TestDeserialising(TestCase):
         for model in models:
             for i in range(1, 4):
                 self.assertIsInstance(
-                    mc_result[model.name][i], AlignmentLikelihoodFunction
+                    mc_result[model.name][i],
+                    AlignmentLikelihoodFunction,
                 )
 
         data = mc_result.to_json()
@@ -322,7 +323,8 @@ class TestDeserialising(TestCase):
         for model in models:
             for i in range(1, 4):
                 self.assertIsInstance(
-                    got_obj[model.name][i], AlignmentLikelihoodFunction
+                    got_obj[model.name][i],
+                    AlignmentLikelihoodFunction,
                 )
 
     def test_roundtrip_hypothesis_result(self):
@@ -455,7 +457,7 @@ class TestDeserialising(TestCase):
         """correctly deserialise data into likelihood function"""
         # tests single alignment
         aln = load_aligned_seqs(
-            filename=os.path.join(os.getcwd(), "data", "brca1_5.paml")
+            filename=os.path.join(os.getcwd(), "data", "brca1_5.paml"),
         )
         tree = make_tree(tip_names=aln.names)
         model = get_model("HKY85")
@@ -473,7 +475,7 @@ class TestDeserialising(TestCase):
         """correctly deserialise data of multilocus likelihood function"""
         # tests multiple alignments
         data = load_aligned_seqs(
-            filename=os.path.join(os.getcwd(), "data", "brca1_5.paml")
+            filename=os.path.join(os.getcwd(), "data", "brca1_5.paml"),
         )
         half = len(data) // 2
         aln1 = data[:half]
@@ -546,7 +548,7 @@ def test_convert_annotation_to_annotation_db():
                                 "reverse": False,
                                 "type": "cogent3.core.location.Span",
                                 "version": "2023.2.12a1",
-                            }
+                            },
                         ],
                         "parent_length": 5,
                         "type": "cogent3.core.location.FeatureMap",
@@ -555,7 +557,7 @@ def test_convert_annotation_to_annotation_db():
                 },
                 "type": "cogent3.core.annotation.AnnotatableFeature",
                 "version": "2023.2.12a1",
-            }
+            },
         ],
     }
     data = convert_annotation_to_annotation_db(data)
@@ -634,7 +636,7 @@ def test_deser_annotated_aln():
                 },
                 "type": "cogent3.core.annotation.AnnotatableFeature",
                 "version": "2023.2.12a1",
-            }
+            },
         ],
     }
     aln = deserialise_object(data)
@@ -654,7 +656,8 @@ def test_roundtrip_TN93_model(rate_matrix_required):
     aln = make_aligned_seqs(data=_data, moltype="dna")
     tree = make_tree(tip_names=["a", "b", "c"])
     tn93 = get_model(
-        "TN93", rate_matrix_required=rate_matrix_required
+        "TN93",
+        rate_matrix_required=rate_matrix_required,
     ).make_likelihood_function(tree)
     tn93.set_alignment(aln)
 

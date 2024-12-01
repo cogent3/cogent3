@@ -66,7 +66,10 @@ def zipped_full(fasta_dir):
     # converts the fasta_dir into a zipped archive
     source = fasta_dir
     path = shutil.make_archive(
-        base_name=source, format="zip", base_dir=source, root_dir=source.parent
+        base_name=source,
+        format="zip",
+        base_dir=source,
+        root_dir=source.parent,
     )
     return ReadOnlyDataStoreZipped(pathlib.Path(path), suffix="fasta")
 
@@ -89,7 +92,9 @@ def test_write_seqs(fasta_dir, tmp_dir):
     seqs = ArrayAlignment(data=data, moltype=None)
     seqs.info.source = datastore.source
     out_data_store = DataStoreDirectory(
-        tmp_dir / "test_write_seqs", mode=Mode.w, suffix="fasta"
+        tmp_dir / "test_write_seqs",
+        mode=Mode.w,
+        suffix="fasta",
     )
     writer = io_app.write_seqs(out_data_store, format="fasta")
     wrote = writer(seqs[0], identifier=datamember.unique_id)
@@ -319,7 +324,7 @@ def test_write_tabular_pssm(w_dir_dstore):
             [0.05, 0.8, 0.05, 0.1],
             [0.7, 0.1, 0.1, 0.1],
             [0.6, 0.15, 0.05, 0.2],
-        ]
+        ],
     )
     pssm = PSSM(data, "ACTG")
     loader = io_app.load_tabular(sep="\t")
@@ -394,7 +399,8 @@ def test_deserialiser(serialiser, deserialiser):
 
 
 @pytest.mark.parametrize(
-    "data,dser", (([1, 2, 3], None), (DNA, io_app.from_primitive()))
+    "data,dser",
+    (([1, 2, 3], None), (DNA, io_app.from_primitive())),
 )
 def test_pickle_unpickle_apps(data, dser):
     pkld = io_app.to_primitive() + io_app.pickle_it()
@@ -435,7 +441,7 @@ def test_pickled_compress_roundtrip(data):
     assert d.label == data.label
 
 
-# todo test objects where there is no unique_id provided, or inferrable,
+# TODO test objects where there is no unique_id provided, or inferrable,
 # should return NotCompletedError
 
 

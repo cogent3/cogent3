@@ -172,7 +172,7 @@ def _merged_gaps(a_gaps: dict, b_gaps: dict) -> dict:
     function to 'max'. Use 'sum' when the gaps derive from different
     sequences.
     """
-    # todo convert to using IndelMap functions
+    # TODO convert to using IndelMap functions
     if not a_gaps:
         return b_gaps
 
@@ -190,7 +190,9 @@ def _merged_gaps(a_gaps: dict, b_gaps: dict) -> dict:
 
 
 def _subset_gaps_to_align_coords(
-    subset_gaps: dict, orig_gaps: dict, seq_2_aln: _GapOffset
+    subset_gaps: dict,
+    orig_gaps: dict,
+    seq_2_aln: _GapOffset,
 ) -> dict:
     """compute alignment coords of subset gaps
 
@@ -252,7 +254,7 @@ def _gaps_for_injection(other_seq_gaps: dict, refseq_gaps: dict, seqlen: int) ->
     # sequence coordinates
     # we probably need to include the refseq gap union because we need to
     # establish whether a refseq gap overlaps with a gap in other seq
-    # todo convert these functions to using IndelMap and the numpy set
+    # TODO convert these functions to using IndelMap and the numpy set
     #  operation functions
     all_gaps = {}
     all_gaps.update(other_seq_gaps)
@@ -262,7 +264,7 @@ def _gaps_for_injection(other_seq_gaps: dict, refseq_gaps: dict, seqlen: int) ->
         gap_pos = min(seqlen, gap_pos)
         if gap_pos < 0:
             raise ValueError(
-                f"computed gap_pos {gap_pos} < 0, correct reference sequence?"
+                f"computed gap_pos {gap_pos} < 0, correct reference sequence?",
             )
         if gap_pos in all_gaps:
             gap_length += all_gaps[gap_pos]
@@ -313,7 +315,8 @@ def pairwise_to_multiple(pwise, ref_seq, moltype, info=None):
         aligned.append(other_seq)
     # default to ArrayAlign
     return Alignment(aligned, moltype=moltype, info=info).to_type(
-        array_align=True, moltype=moltype
+        array_align=True,
+        moltype=moltype,
     )
 
 
@@ -358,7 +361,10 @@ class align_to_ref:
             else make_generic_scoring_dict(10, self._moltype)
         )
         self._kwargs = dict(
-            S=S, d=insertion_penalty, e=extension_penalty, return_score=False
+            S=S,
+            d=insertion_penalty,
+            e=extension_penalty,
+            return_score=False,
         )
         if ref_seq.lower() == "longest":
             self._func = self.align_to_longest
@@ -506,7 +512,8 @@ class progressive_align:
             "nucleotide": dict(kappa=3),
         }.get(model, param_vals)
         sm = {"codon": "MG94HKY", "nucleotide": "HKY85", "protein": "JTT92"}.get(
-            model, model
+            model,
+            model,
         )
         kwargs = {} if gc is None else dict(gc=gc)
         sm = get_model(sm, **kwargs)
@@ -529,7 +536,8 @@ class progressive_align:
         else:
             al_to_ref = align_to_ref(moltype=self._moltype)
             dist_calc = dist.fast_slow_dist(
-                distance=self._distance, moltype=self._moltype
+                distance=self._distance,
+                moltype=self._moltype,
             )
             est_tree = quick_tree()
             self._make_tree = al_to_ref + dist_calc + est_tree
@@ -838,7 +846,10 @@ def cogent3_score(aln: AlignedSeqsType) -> float:
     return align_params.get(
         "lnL",
         NotCompleted(
-            "FAIL", "cogent3_score", "no alignment quality score", source=aln.info
+            "FAIL",
+            "cogent3_score",
+            "no alignment quality score",
+            source=aln.info,
         ),
     )
 
@@ -867,7 +878,10 @@ class sp_score:
     """
 
     def __init__(
-        self, calc: str = "JC69", gap_insert: float = 12.0, gap_extend: float = 1.0
+        self,
+        calc: str = "JC69",
+        gap_insert: float = 12.0,
+        gap_extend: float = 1.0,
     ):
         """
         Parameters

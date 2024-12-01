@@ -61,8 +61,7 @@ def get_tag(record, name, default=None):
     tag = record.getElementsByTagName(name)
     if len(tag) and len(tag[0].childNodes):
         return tag[0].childNodes[0].nodeValue
-    else:
-        return default
+    return default
 
 
 def parse_hit(hit_tag, query_id=1):
@@ -209,7 +208,7 @@ class BlastXMLResult(dict):
             SUBJECT_END,
             E_VALUE,
             BIT_SCORE,
-        ]
+        ],
     )
 
     _field_comparison_operators = {
@@ -267,7 +266,11 @@ class BlastXMLResult(dict):
             yield query_id, self[query_id][iteration]
 
     def best_hits_by_query(
-        self, iteration=-1, n=1, field="BIT_SCORE", return_self=False
+        self,
+        iteration=-1,
+        n=1,
+        field="BIT_SCORE",
+        return_self=False,
     ):
         """Iterates over all queries and returns best hit for each
         return_self: if False, will not return best hit as itself.
@@ -278,7 +281,7 @@ class BlastXMLResult(dict):
         if field not in self._field_comparison_operators:
             raise ValueError(
                 "Invalid field: %s. You must specify one of: %s"
-                % (field, str(self._field_comparison_operators))
+                % (field, str(self._field_comparison_operators)),
             )
         cmp_fun, cast_fun = self._field_comparison_operators[field]
 

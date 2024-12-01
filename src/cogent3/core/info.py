@@ -10,7 +10,7 @@ from cogent3.parse.record import MappedRecord
 from cogent3.util.misc import ConstrainedDict, Delegator, FunctionWrapper
 
 
-class DbRef(object):
+class DbRef:
     """Holds a database accession, and optionally other data.
 
     Accession:      id in the database: str or int
@@ -74,10 +74,9 @@ def _make_list(obj):
     """Returns list corresponding to or containing obj, depending on type."""
     if isinstance(obj, list):
         return obj
-    elif isinstance(obj, tuple):
+    if isinstance(obj, tuple):
         return list(obj)
-    else:
-        return [obj]
+    return [obj]
 
 
 class DbRefs(MappedRecord, ConstrainedDict):
@@ -126,7 +125,7 @@ KnownDatabases = dict.fromkeys(
         "EcoCyc",
         "HumanCyc",
         "BLOCKS",
-    ]
+    ],
 )
 
 
@@ -161,36 +160,31 @@ class Info(MappedRecord, Delegator):
         """Checks for attr in Refs first."""
         if attr in KnownDatabases:
             return getattr(self.Refs, attr)
-        else:
-            return super(Info, self).__getattr__(attr)
+        return super(Info, self).__getattr__(attr)
 
     def __setattr__(self, attr, val):
         """Try to set in Refs first."""
         if attr in KnownDatabases:
             return setattr(self.Refs, attr, val)
-        else:
-            return super(Info, self).__setattr__(attr, val)
+        return super(Info, self).__setattr__(attr, val)
 
     def __getitem__(self, item):
         """Checks for item in Refs first."""
         if item in KnownDatabases:
             return getattr(self.Refs, item)
-        else:
-            return super(Info, self).__getitem__(item)
+        return super(Info, self).__getitem__(item)
 
     def __setitem__(self, item, val):
         """Try to set in Refs first."""
         if item in KnownDatabases:
             return setattr(self.Refs, item, val)
-        else:
-            return super(Info, self).__setitem__(item, val)
+        return super(Info, self).__setitem__(item, val)
 
     def __contains__(self, item):
         """Checks for item in Refs first."""
         if item in KnownDatabases:
             return item in self.Refs
-        else:
-            return super(Info, self).__contains__(item)
+        return super(Info, self).__contains__(item)
 
     def update(self, item):
         """updates with another info object and warns when overwriting keys"""

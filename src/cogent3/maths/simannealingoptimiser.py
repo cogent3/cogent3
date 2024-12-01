@@ -17,7 +17,7 @@ import numpy
 from cogent3.util import checkpointing
 
 
-class AnnealingSchedule(object):
+class AnnealingSchedule:
     """Responsible for the shape of the simulated annealing temperature profile"""
 
     def __init__(self, temp_reduction, initial_temp, temp_iterations, step_cycles):
@@ -50,11 +50,11 @@ class AnnealingSchedule(object):
     def willAccept(self, newF, oldF, random_series):
         deltaF = newF - oldF
         return deltaF >= 0 or random_series.uniform(0.0, 1.0) < numpy.exp(
-            deltaF / self.T
+            deltaF / self.T,
         )
 
 
-class AnnealingHistory(object):
+class AnnealingHistory:
     """Keeps the last few results, for convergence testing"""
 
     def __init__(self, sample=4):
@@ -76,11 +76,11 @@ class AnnealingHistory(object):
                 i + 1
                 for (i, v) in enumerate(self.values)
                 if v is None or abs(v - last) > tolerance
-            ]
+            ],
         )
 
 
-class AnnealingState(object):
+class AnnealingState:
     def __init__(self, X, function, random_series):
         self.random_series = random_series
         self.NFCNEV = 1
@@ -127,7 +127,7 @@ class AnnealingState(object):
         self.NTRY = 0
 
 
-class AnnealingRun(object):
+class AnnealingRun:
     def __init__(self, function, X, schedule, random_series):
         self.history = AnnealingHistory()
         self.schedule = schedule
@@ -139,7 +139,7 @@ class AnnealingRun(object):
             raise ValueError(
                 "Number of parameters in checkpoint file '%s' (%s) "
                 "don't match current function (%s)"
-                % (checkpointing_filename, len(self.state.XOPT), len(xopt))
+                % (checkpointing_filename, len(self.state.XOPT), len(xopt)),
             )
         # if f(x) != g(x) then f isn't g.
         then = self.state.FOPT
@@ -147,7 +147,7 @@ class AnnealingRun(object):
         if not numpy.allclose(now, then, 1e-8):
             raise ValueError(
                 "Function to optimise doesn't match checkpoint file "
-                "'%s': F=%s now, %s in file." % (checkpointing_filename, now, then)
+                "'%s': F=%s now, %s in file." % (checkpointing_filename, now, then),
             )
 
     def run(self, function, tolerance, checkpointer, show_remaining):
@@ -192,7 +192,7 @@ class AnnealingRun(object):
         checkpointer.record(self, msg, final)
 
 
-class SimulatedAnnealing(object):
+class SimulatedAnnealing:
     """Simulated annealing optimiser for bounded functions"""
 
     def __init__(self, filename=None, interval=None, restore=True):
@@ -259,7 +259,10 @@ class SimulatedAnnealing(object):
             random_series.seed(seed)
 
         schedule = AnnealingSchedule(
-            temp_reduction, init_temp, temp_iterations, step_cycles
+            temp_reduction,
+            init_temp,
+            temp_iterations,
+            step_cycles,
         )
 
         if self.restore and self.checkpointer.available():

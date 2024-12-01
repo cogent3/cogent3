@@ -83,7 +83,7 @@ def seq_to_symbols(seq, motifs, motif_length, result=None):
     return result
 
 
-class SeqToSymbols(object):
+class SeqToSymbols:
     """class for converting all occurrences of motifs in passed sequence
     to 1/0 otherwise"""
 
@@ -169,7 +169,12 @@ def sampled_places(block_size, length):
 
 
 def blockwise_bootstrap(
-    signal, calc, block_size, num_reps, seq_to_symbols=None, num_stats=None
+    signal,
+    calc,
+    block_size,
+    num_reps,
+    seq_to_symbols=None,
+    num_stats=None,
 ):
     """returns observed statistic and the probability from the bootstrap
     test of observing more `power' by chance than that estimated from the

@@ -148,10 +148,10 @@ def test_rooted_rf_multifurcation():
 
 def test_rooted_rf_different_trees():
     a = make_tree(
-        treestring="((((a1,a2),(b1,b2,b3),x),(c1,c2,c3),(d1,d2)),(e1,(e2,e3)));"
+        treestring="((((a1,a2),(b1,b2,b3),x),(c1,c2,c3),(d1,d2)),(e1,(e2,e3)));",
     )
     b = make_tree(
-        treestring="((((a1,a2),(b1,b2,b3)),x,(c1,c2,c3),(d1,d2)),(e1,(e2,e3)));"
+        treestring="((((a1,a2),(b1,b2,b3)),x,(c1,c2,c3),(d1,d2)),(e1,(e2,e3)));",
     )
 
     # Moving the single x up one level creates two clades that are not in common.
@@ -227,10 +227,10 @@ def test_matching_cluster_distance_properties():
     # Test properties of the matching cluster distance paper shown as exampels
     # see reference in matching_cluster_distance
     a = make_tree(
-        treestring="((((a1,a2),(b1,b2,b3),x),(c1,c2,c3),(d1,d2)),(e1,(e2,e3)));"
+        treestring="((((a1,a2),(b1,b2,b3),x),(c1,c2,c3),(d1,d2)),(e1,(e2,e3)));",
     )
     b = make_tree(
-        treestring="((((a1,a2),(b1,b2,b3)),x,(c1,c2,c3),(d1,d2)),(e1,(e2,e3)));"
+        treestring="((((a1,a2),(b1,b2,b3)),x,(c1,c2,c3),(d1,d2)),(e1,(e2,e3)));",
     )
 
     distance = matching_cluster_distance(a, b)

@@ -37,7 +37,10 @@ class concat:
     """Creates a concatenated alignment from a series."""
 
     def __init__(
-        self, join_seq: str = "", intersect: bool = True, moltype: Optional[str] = None
+        self,
+        join_seq: str = "",
+        intersect: bool = True,
+        moltype: Optional[str] = None,
     ):
         """
         Parameters
@@ -104,7 +107,8 @@ class concat:
         self._join_seq = join_seq
 
     def main(
-        self, data: List[AlignedSeqsType]
+        self,
+        data: List[AlignedSeqsType],
     ) -> Union[SerialisableType, AlignedSeqsType]:
         """returns an alignment
 
@@ -145,8 +149,7 @@ class concat:
         combined = {n: self._join_seq.join(collated[n]) for n in names}
         if aln := ArrayAlignment(data=combined, moltype=self._moltype):
             return aln
-        else:
-            return NotCompleted("FAIL", self, message="result is empty")
+        return NotCompleted("FAIL", self, message="result is empty")
 
 
 @define_app
@@ -239,7 +242,8 @@ class omit_degenerates:
             aln = aln.to_moltype(self._moltype)
 
         return aln.no_degenerates(
-            motif_length=self._motif_length, allow_gap=self._allow_gap
+            motif_length=self._motif_length,
+            allow_gap=self._allow_gap,
         ) or NotCompleted("FAIL", self, "all columns contained degenerates", source=aln)
 
 
@@ -323,9 +327,13 @@ class omit_gap_pos:
             aln = aln.to_moltype(self._moltype)
 
         return aln.omit_gap_pos(
-            allowed_gap_frac=self._allowed_frac, motif_length=self._motif_length
+            allowed_gap_frac=self._allowed_frac,
+            motif_length=self._motif_length,
         ) or NotCompleted(
-            "FAIL", self, "all columns exceeded gap threshold", source=aln
+            "FAIL",
+            self,
+            "all columns exceeded gap threshold",
+            source=aln,
         )
 
 
@@ -410,7 +418,9 @@ class take_codon_positions:
         if fourfold_degenerate:
             gc = get_code(gc)
             sets = get_fourfold_degenerate_sets(
-                gc, alphabet=moltype.alphabet, as_indices=True
+                gc,
+                alphabet=moltype.alphabet,
+                as_indices=True,
             )
             self._fourfold_degen_sets = sets
             self._func = self.take_fourfold_positions
@@ -707,7 +717,7 @@ class min_length:
         if self._subtract_degen and not hasattr(data.alphabet, "non_degen"):
             raise ValueError(
                 f"{self.__class__.__name__}(subtract_degen=True) requires DNA, RNA or PROTEIN "
-                "moltype"
+                "moltype",
             )
 
         lengths = data.get_lengths(
@@ -850,9 +860,8 @@ class fixed_length:
         if len(aln) < self._length:
             msg = f"{len(aln)} < min_length {self._length}"
             return NotCompleted("FALSE", self.__class__.__name__, msg, source=aln)
-        else:
-            start = self._start(len(aln) - self._length)
-            return aln[start : start + self._length]
+        start = self._start(len(aln) - self._length)
+        return aln[start : start + self._length]
 
     def sample_positions(self, aln):
         if self._moltype and self._moltype != aln.moltype:
@@ -865,7 +874,9 @@ class fixed_length:
             number = self._length // self._motif_length
 
         pos = np_random.choice(
-            indices.shape[0] // self._motif_length, number, replace=False
+            indices.shape[0] // self._motif_length,
+            number,
+            replace=False,
         )
         if self._motif_length == 1:
             result = indices[pos]

@@ -140,7 +140,7 @@ class AlphabetABC(ABC):
 
     @property
     def moltype(self) -> typing.Union["MolType", None]:
-        return _alphabet_moltype_map.get(self, None)
+        return _alphabet_moltype_map.get(self)
 
 
 class MonomerAlphabetABC(ABC):
@@ -170,7 +170,8 @@ def get_array_type(num_elements: int):
 
 
 def consistent_words(
-    words: typing.Sequence[typing.Union[str, int]], length: OptInt = None
+    words: typing.Sequence[typing.Union[str, int]],
+    length: OptInt = None,
 ) -> None:
     """make sure all alphabet elements are unique and have the same length"""
     if not words:
@@ -203,7 +204,9 @@ class bytes_to_array:
         """
         # we want a bytes translation map
         self._converter = convert_alphabet(
-            chars, bytes(bytearray(range(len(chars)))), delete=delete
+            chars,
+            bytes(bytearray(range(len(chars)))),
+            delete=delete,
         )
         self.dtype = dtype
 
@@ -567,7 +570,7 @@ def seq_to_kmer_indices(
     return result
 
 
-# todo: profile this against pure python
+# TODO: profile this against pure python
 @numba.jit(nopython=True)
 def kmer_indices_to_seq(
     kmer_indices: numpy.ndarray,
@@ -691,7 +694,9 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
             assert missing in self
 
         self._coeffs = coord_conversion_coeffs(
-            self.monomers.num_canonical, k, dtype=self.dtype
+            self.monomers.num_canonical,
+            k,
+            dtype=self.dtype,
         )
         self._num_canonical = self.monomers.num_canonical**k
 
@@ -735,7 +740,7 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         it is assigned an index of (num. monomer states**k) + 1.
         If self.gap_char is None, then both of the above cases
         are defined as (num. monomer states**k)."""
-        # todo: handle case of non-modulo sequences
+        # TODO: handle case of non-modulo sequences
         raise TypeError(f"{type(seq)} is invalid")
 
     @to_indices.register
@@ -763,7 +768,9 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         )
 
     def from_indices(
-        self, kmer_indices: numpy.ndarray, independent_kmer: bool = True
+        self,
+        kmer_indices: numpy.ndarray,
+        independent_kmer: bool = True,
     ) -> numpy.ndarray:
         if independent_kmer:
             size = len(kmer_indices) * self.k
@@ -843,9 +850,9 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         """decodes an integer into a k-mer"""
         if self.gap_index is not None and kmer_index == self.gap_index:
             return numpy.array([self.monomers.gap_index] * self.k, dtype=self.dtype)
-        elif self.missing_index is not None and kmer_index == self.missing_index:
+        if self.missing_index is not None and kmer_index == self.missing_index:
             return numpy.array([self.monomers.missing_index] * self.k, dtype=self.dtype)
-        elif kmer_index >= len(self):
+        if kmer_index >= len(self):
             raise ValueError(f"{kmer_index} is out of range")
 
         return index_to_coord(kmer_index, self._coeffs)
@@ -860,7 +867,7 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
             a numpy array of integers
 
         Notes
-        -------
+        -----
         This will raise a TypeError for string or bytes. Using to_indices() to
         convert those ensures a valid result.
         """
@@ -988,7 +995,7 @@ class SenseCodonAlphabet(tuple, AlphabetABC):
         # we assume that this is a dna sequence encoded as a numpy array
         size = len(seq) // 3
         return self.to_indices(
-            [self.monomers.from_indices(c) for c in seq.reshape(size, 3)]
+            [self.monomers.from_indices(c) for c in seq.reshape(size, 3)],
         )
 
     def to_index(self, codon: str) -> int:

@@ -66,7 +66,9 @@ class TestGoldman93(TestCase):
         self.assertEqual(obs, expect)
 
         obs = aligned_columns_to_rows(
-            self.ambig_aln, 2, exclude_chars=IUPAC_DNA_ambiguities
+            self.ambig_aln,
+            2,
+            exclude_chars=IUPAC_DNA_ambiguities,
         )
         expect = [["AA", "CC", "CA"], ["CC", "CC", "CC"], ["TT", "TT", "TG"]]
         self.assertEqual(obs, expect)

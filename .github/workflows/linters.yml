@@ -27,7 +27,7 @@ jobs:
           echo "Click version: ruff_version"
           python -m pip install $ruff_version
       - name: Format code using ruff
-        run: ruff check --select I --fix . && ruff format .
+        run: ruff check --fix-only . && ruff format .
       - name: Commit changes
         uses: EndBug/add-and-commit@v9
         with:

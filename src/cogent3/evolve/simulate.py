@@ -27,7 +27,12 @@ def _randomMotifGenerator(random_series, motif_probs):
 
 
 def evolve_sequence(
-    random_series, motifs, parent_seq, site_cats, psubs, preserved_sites=()
+    random_series,
+    motifs,
+    parent_seq,
+    site_cats,
+    psubs,
+    preserved_sites=(),
 ):
     """Evolve a new sequence derived from parent_seq.  Uses psubs[site_cats[i]]
     to pick a new motif derived from parent_seq[i]"""
@@ -46,7 +51,8 @@ def evolve_sequence(
                     prob = psub[parent_motif_index, dest_motif_index]
                     mprobs[dest_motif] = prob
                 randomMotifSources[site_cat, parent_motif] = _randomMotifGenerator(
-                    random_series, mprobs
+                    random_series,
+                    mprobs,
                 )
             edge_motif = next(randomMotifSources[site_cat, parent_motif])
         seq.append(edge_motif)
@@ -58,7 +64,7 @@ def random_sequence(random_series, motif_probs, sequence_length):
     return [getRootRandomMotif() for i in range(sequence_length)]
 
 
-class AlignmentEvolver(object):
+class AlignmentEvolver:
     # Encapsulates settings that are constant throughout the recursive generation
     # of a synthetic alignment.
 

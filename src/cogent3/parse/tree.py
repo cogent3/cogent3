@@ -96,7 +96,7 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
     right_count = data.count(")")
     if left_count != right_count:
         raise RecordError(
-            f"Found {left_count} left parens but {right_count} right parens."
+            f"Found {left_count} left parens but {right_count} right parens.",
         )
 
     tokens = DndTokenizer(data)
@@ -111,12 +111,12 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
             start_comment = True
             comment = []
             continue
-        elif start_comment and t == ",":
+        if start_comment and t == ",":
             continue
-        elif start_comment and t != "]":
+        if start_comment and t != "]":
             comment.append(t)
             continue
-        elif t == "]":
+        if t == "]":
             start_comment = False
             curr_node.params["other"] = comment
             comment = []
@@ -156,9 +156,8 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
                 if t.startswith("'") and t.endswith("'"):
                     while t.startswith("'") and t.endswith("'"):
                         t = t[1:-1]
-                else:
-                    if "_" in t:
-                        t = t.replace("_", " ")
+                elif "_" in t:
+                    t = t.replace("_", " ")
             new_node.name = t
             curr_node = new_node
         elif state == "PreColon" and state1 == "PostClosed":

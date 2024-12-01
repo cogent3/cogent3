@@ -133,7 +133,11 @@ class CalculationDefn(_NonLeafDefn):
     def make_cell(self, *args):
         calc = self.make_calc_function()
         return EvaluatedCell(
-            self.name, calc, args, recycling=self.recycling, default=self.default
+            self.name,
+            calc,
+            args,
+            recycling=self.recycling,
+            default=self.default,
         )
 
     def make_cells(self, input_soup, variable=None):
@@ -158,7 +162,7 @@ class _FuncDefn(CalculationDefn):
 
 # Use this rather than having to subclass CalculationDefinition
 # just to supply the 'calc' method.
-class CalcDefn(object):
+class CalcDefn:
     """CalcDefn(function)(arg1, arg2)"""
 
     def __init__(self, calc, name=None, **kw):
@@ -184,7 +188,9 @@ class WeightedPartitionDefn(CalculationDefn):
         partition = PartitionDefn(size=N, name=name + "_partition")
         partition.user_param = False
         super(WeightedPartitionDefn, self).__init__(
-            weights, partition, name=name + "_distrib"
+            weights,
+            partition,
+            name=name + "_distrib",
         )
 
     def calc(self, weights, values):
@@ -211,11 +217,19 @@ class GammaDefn(MonotonicDefn):
     name = "gamma"
 
     def __init__(
-        self, weights, name=None, default_shape=1.0, extra_label=None, dimensions=()
+        self,
+        weights,
+        name=None,
+        default_shape=1.0,
+        extra_label=None,
+        dimensions=(),
     ):
         name = self.make_name(name, extra_label)
         shape = PositiveParamDefn(
-            name + "_shape", default=default_shape, dimensions=dimensions, lower=1e-2
+            name + "_shape",
+            default=default_shape,
+            dimensions=dimensions,
+            lower=1e-2,
         )
         CalculationDefn.__init__(self, weights, shape, name=name + "_distrib")
 
@@ -234,7 +248,13 @@ class _InputDefn(_LeafDefn):
     user_param = True
 
     def __init__(
-        self, name=None, default=None, dimensions=None, lower=None, upper=None, **kw
+        self,
+        name=None,
+        default=None,
+        dimensions=None,
+        lower=None,
+        upper=None,
+        **kw,
     ):
         _LeafDefn.__init__(self, name=name, dimensions=dimensions, **kw)
         if default is not None:
@@ -259,13 +279,13 @@ class _InputDefn(_LeafDefn):
             elif setting.lower and output < setting.lower:
                 if not numpy.allclose(output, setting.lower):
                     raise ParameterOutOfBoundsError(
-                        f"calculator value {output} for {self.name!r} is < {setting.lower}"
+                        f"calculator value {output} for {self.name!r} is < {setting.lower}",
                     )
                 output = setting.lower
             elif setting.upper and output > setting.upper:
                 if not numpy.allclose(output, setting.upper):
                     raise ParameterOutOfBoundsError(
-                        f"calculator value {output} for {self.name!r} is > {setting.upper}"
+                        f"calculator value {output} for {self.name!r} is > {setting.upper}",
                     )
                 output = setting.upper
             setting.value = output
@@ -278,7 +298,7 @@ class _InputDefn(_LeafDefn):
         result = {}
         for index in dim_indices:
             dim_name = self.valid_dimensions[index]
-            value = list(sorted(set([k[index] for k in keys])))
+            value = sorted(set([k[index] for k in keys]))
             dim_name, value = select_dim_label_value(dim_name, value)
             result[dim_name] = value
         return result
@@ -286,7 +306,7 @@ class _InputDefn(_LeafDefn):
     def get_param_rules(self):
         """returns list of param rule dicts for this parameter"""
         num_valid_dims = len(self.valid_dimensions)
-        # todo replace following with self.used_dimensions()
+        # TODO replace following with self.used_dimensions()
         dimensioned = {
             k: set(v) for k, v in zip(range(num_valid_dims), zip(*self.index))
         }
@@ -312,7 +332,7 @@ class _InputDefn(_LeafDefn):
             dimms = self._get_scoped_params(keys, dimensioned)
             rule.update(dimms)
             rule.update(
-                self.uniq[index].get_param_rule_dict(names=names, is_probs=is_probs)
+                self.uniq[index].get_param_rule_dict(names=names, is_probs=is_probs),
             )
             if self.independent_by_default:
                 for d in dimms:
@@ -393,8 +413,7 @@ class NonScalarDefn(_InputDefn):
     def make_default_setting(self):
         if self.default is None:
             return None
-        else:
-            return ConstVal(self.default)
+        return ConstVal(self.default)
 
     def check_setting_is_valid(self, setting):
         if not isinstance(setting, ConstVal):
@@ -434,7 +453,13 @@ class PartitionDefn(_InputDefn):
     independent_by_default = False
 
     def __init__(
-        self, default=None, name=None, dimensions=None, dimension=None, size=None, **kw
+        self,
+        default=None,
+        name=None,
+        dimensions=None,
+        dimension=None,
+        size=None,
+        **kw,
     ):
         assert name
         if size is not None:
@@ -457,7 +482,11 @@ class PartitionDefn(_InputDefn):
         else:
             default = numpy.asarray(default)
         _InputDefn.__init__(
-            self, name=name, default=default, dimensions=dimensions, **kw
+            self,
+            name=name,
+            default=default,
+            dimensions=dimensions,
+            **kw,
         )
         self.check_value_is_valid(default, True)
 
@@ -476,7 +505,7 @@ class PartitionDefn(_InputDefn):
         if value.shape != (self.size,):
             raise ValueError(
                 "Wrong array shape %s for %s, expected (%s,)"
-                % (value.shape, self.name, self.size)
+                % (value.shape, self.name, self.size),
             )
         for part in value:
             if part < 0:
@@ -491,7 +520,7 @@ class PartitionDefn(_InputDefn):
                     raise ValueError(f"Ones allowed in {self.name} only when constant")
         if abs(sum(value) - 1.0) > 0.00001:
             raise ValueError(
-                f"Elements of {self.name} must sum to 1.0, not {sum(value)}"
+                f"Elements of {self.name} must sum to 1.0, not {sum(value)}",
             )
 
     def _make_partition_cell(self, name, scope, value):
@@ -588,7 +617,9 @@ class SelectForDimension(_Defn):
         distribs = input_soup[id(self.arg)]
         for input_num, bin_num in self.uniq:
             cell = EvaluatedCell(
-                self.name, (lambda x, p=bin_num: x[p]), (distribs[input_num],)
+                self.name,
+                (lambda x, p=bin_num: x[p]),
+                (distribs[input_num],),
             )
             cells.append(cell)
         return (cells, cells)

@@ -97,7 +97,8 @@ class SpanTests(TestCase):
         self.assertEqual(list(iter(self.empty)), [])
         self.assertEqual(list(iter(self.full)), [30, 31, 32, 33, 34])
         self.assertEqual(
-            list(iter(self.spans_zero)), [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4]
+            list(iter(self.spans_zero)),
+            [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4],
         )
         self.assertEqual(list(iter(self.inside)), [31])
         self.assertEqual(list(self.reverse), [34, 33, 32, 31, 30])
@@ -452,7 +453,9 @@ def test_terminal_unknown():
     gap_pos, gap_lengths = gap_data.T
 
     m = IndelMap(
-        gap_pos=gap_pos.copy(), gap_lengths=gap_lengths.copy(), parent_length=6
+        gap_pos=gap_pos.copy(),
+        gap_lengths=gap_lengths.copy(),
+        parent_length=6,
     )
     # not unknown, by default
     m_spans = tuple(m.spans)
@@ -472,7 +475,9 @@ def test_terminal_unknown():
 
     # use the method
     m = IndelMap(
-        gap_pos=gap_pos.copy(), gap_lengths=gap_lengths.copy(), parent_length=6
+        gap_pos=gap_pos.copy(),
+        gap_lengths=gap_lengths.copy(),
+        parent_length=6,
     ).with_termini_unknown()
     m_spans = tuple(m.spans)
     assert isinstance(m_spans[0], TerminalPadding)
@@ -493,7 +498,9 @@ def test_terminal_unknown():
     assert len(m_spans) == 1 and not m_spans[0].lost
     # use the method
     m = IndelMap(
-        gap_pos=empty.copy(), gap_lengths=empty.copy(), parent_length=6
+        gap_pos=empty.copy(),
+        gap_lengths=empty.copy(),
+        parent_length=6,
     ).with_termini_unknown()
     m_spans = tuple(m.spans)
     assert len(m_spans) == 1 and not m_spans[0].lost
@@ -652,7 +659,9 @@ def test_get_coords():
 def test_indel_map_get_coords():
     """get_coordinates should return raw coordinates matching input"""
     imap = IndelMap(
-        gap_pos=numpy.array([9]), gap_lengths=numpy.array([10]), parent_length=20
+        gap_pos=numpy.array([9]),
+        gap_lengths=numpy.array([10]),
+        parent_length=20,
     )
     locations = [(0, 9), (9, 20)]
     coords = imap.get_coordinates()
@@ -668,7 +677,8 @@ def test_indel_map_get_gap_coords():
 
 
 @pytest.mark.parametrize(
-    "coords", ([(0, 3), (7, 11)], [(0, 3)], [(2, 4), (6, 10)], [(4, 6)])
+    "coords",
+    ([(0, 3), (7, 11)], [(0, 3)], [(2, 4), (6, 10)], [(4, 6)]),
 )
 def test_indelmap_joined_segments(coords):
     raw = "--AC--GGGG--"
@@ -826,7 +836,8 @@ def test_gapped_convert_seq2aln(data, index):
     ),
 )
 @pytest.mark.parametrize(
-    "start,end", list(combinations(range(6), 2))
+    "start,end",
+    list(combinations(range(6), 2)),
 )  # the ungapped sequence is 6 long
 def test_indelmap_align_index_slice_stop(data, start, end):
     # converting a sequence index to alignment index
@@ -1042,7 +1053,9 @@ def test_indelmap_joined():
 
 def test_indel_map_sliced_with_negative():
     imap = IndelMap(
-        gap_pos=numpy.array([0]), cum_gap_lengths=numpy.array([1]), parent_length=14
+        gap_pos=numpy.array([0]),
+        cum_gap_lengths=numpy.array([1]),
+        parent_length=14,
     )
     got = imap[:-3]
     assert got.parent_length == 14 - 3
@@ -1076,7 +1089,8 @@ def test_featuremap_roundtrip_json():
 
 
 @pytest.mark.parametrize(
-    "error_type,locations", ((ValueError, ((-2, 2),)), (RuntimeError, ((20, 25),)))
+    "error_type,locations",
+    ((ValueError, ((-2, 2),)), (RuntimeError, ((20, 25),))),
 )
 def test_invalid_locations(error_type, locations):
     with pytest.raises(error_type):
@@ -1299,7 +1313,8 @@ def test_indelmap_subtraction(seq_pairs, as_array):
     got1 = ig1.minus_gaps(arg)
     expect, _ = make_seq(unique_gaps, moltype="dna").parse_out_gaps()
     numpy.testing.assert_allclose(
-        got1.get_gap_coordinates(), expect.get_gap_coordinates()
+        got1.get_gap_coordinates(),
+        expect.get_gap_coordinates(),
     )
 
 
@@ -1324,16 +1339,21 @@ def test_indelmap_combined_and_subtract(seq_pairs):
     intersect = ig1.shared_gaps(ig2)
     got = ig1.minus_gaps(intersect)
     numpy.testing.assert_allclose(
-        got.get_gap_coordinates(), expect.get_gap_coordinates()
+        got.get_gap_coordinates(),
+        expect.get_gap_coordinates(),
     )
 
 
 def test_indelmap_shared_gap_error():
     ig1 = IndelMap(
-        gap_pos=numpy.array([1, 3]), gap_lengths=numpy.array([2, 1]), parent_length=5
+        gap_pos=numpy.array([1, 3]),
+        gap_lengths=numpy.array([2, 1]),
+        parent_length=5,
     )
     ig2 = IndelMap(
-        gap_pos=numpy.array([1, 3]), gap_lengths=numpy.array([2, 1]), parent_length=10
+        gap_pos=numpy.array([1, 3]),
+        gap_lengths=numpy.array([2, 1]),
+        parent_length=10,
     )
     with pytest.raises(AssertionError):
         ig1.shared_gaps(ig2)
@@ -1341,10 +1361,14 @@ def test_indelmap_shared_gap_error():
 
 def test_indelmap_minus_gap_error():
     ig1 = IndelMap(
-        gap_pos=numpy.array([1, 3]), gap_lengths=numpy.array([2, 1]), parent_length=5
+        gap_pos=numpy.array([1, 3]),
+        gap_lengths=numpy.array([2, 1]),
+        parent_length=5,
     )
     ig2 = IndelMap(
-        gap_pos=numpy.array([1, 3]), gap_lengths=numpy.array([2, 100]), parent_length=10
+        gap_pos=numpy.array([1, 3]),
+        gap_lengths=numpy.array([2, 100]),
+        parent_length=10,
     )
     with pytest.raises(AssertionError):
         ig1.minus_gaps(ig2.get_gap_align_coordinates())
@@ -1439,7 +1463,9 @@ def test_indelmap_negative_step_variant_slices(start, stop, step, data):
 @pytest.mark.parametrize("scale", [1 / 2, 1 / 1.1])
 def test_indelmap_scaled_invalid(scale):
     im = IndelMap(
-        gap_pos=numpy.array([1, 3]), gap_lengths=numpy.array([2, 1]), parent_length=5
+        gap_pos=numpy.array([1, 3]),
+        gap_lengths=numpy.array([2, 1]),
+        parent_length=5,
     )
     with pytest.raises(ValueError):
         im.scaled(scale)
@@ -1448,7 +1474,9 @@ def test_indelmap_scaled_invalid(scale):
 @pytest.mark.parametrize("scale", [1, 1.0])
 def test_indelmap_scaled_one(scale):
     im = IndelMap(
-        gap_pos=numpy.array([1, 3]), gap_lengths=numpy.array([2, 1]), parent_length=5
+        gap_pos=numpy.array([1, 3]),
+        gap_lengths=numpy.array([2, 1]),
+        parent_length=5,
     )
     got = im.scaled(scale)
     assert got is im
@@ -1460,7 +1488,9 @@ def codon_and_aa_maps():
 
     data = dict(s1="ATG --- --- GAT --- AAA", s2="ATG CAA TCG AAT GAA ATA")
     dna = cogent3.make_aligned_seqs(
-        {n: s.replace(" ", "") for n, s in data.items()}, moltype="dna", new_type=True
+        {n: s.replace(" ", "") for n, s in data.items()},
+        moltype="dna",
+        new_type=True,
     )
     aa = dna.get_translation()
     dna_1 = dna.seqs["s1"].map

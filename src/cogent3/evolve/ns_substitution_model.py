@@ -20,7 +20,7 @@ def _gen_sym_preds():
     for f, t in "AG", "AT", "CG", "CT", "GT":
         sym_preds.append(
             MotifChange(f, t, forward_only=True)
-            | MotifChange(pair[f], pair[t], forward_only=True)
+            | MotifChange(pair[f], pair[t], forward_only=True),
         )
     return sym_preds
 
@@ -143,7 +143,7 @@ class DiscreteSubstitutionModel(_SubstitutionModel):
         )
 
 
-# todo inheritance hierarchy and constructor signatures
+# TODO inheritance hierarchy and constructor signatures
 # should match that of the stationary models
 class NonReversibleNucleotide(Parametric):
     """Base non-reversible nucleotide substitution model."""
@@ -178,7 +178,7 @@ class NonReversibleTrinucleotide(NonReversibleNucleotide):
 class NonReversibleCodon(_Codon, NonReversibleNucleotide):
     """Base non-reversible codon substitution model."""
 
-    # todo deprecate alphabet argument
+    # TODO deprecate alphabet argument
     @extend_docstring_from(Parametric.__init__)
     def __init__(self, alphabet=None, gc=None, **kw):
         self.gc = genetic_code.get_code(gc)
@@ -191,7 +191,10 @@ class StrandSymmetric(NonReversibleNucleotide):
         for argname in ("predicates", "recode_gaps", "model_gaps"):
             kw.pop(argname, None)
         super(StrandSymmetric, self).__init__(
-            predicates=_sym_preds, recode_gaps=True, model_gaps=False, **kw
+            predicates=_sym_preds,
+            recode_gaps=True,
+            model_gaps=False,
+            **kw,
         )
 
 

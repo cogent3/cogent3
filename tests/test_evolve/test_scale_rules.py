@@ -59,7 +59,8 @@ class ScaleRuleTests(unittest.TestCase):
     def test_scaled_or(self):
         """Scale rule where matrix entries can have any of the pars specified"""
         model = self._makeModel(
-            {"k": trans, "ac": a_c}, {"or": (trans | a_c), "not": ~(trans | a_c)}
+            {"k": trans, "ac": a_c},
+            {"or": (trans | a_c), "not": ~(trans | a_c)},
         )
 
         self.assertEqual(
@@ -142,7 +143,8 @@ class ScaleRuleTests(unittest.TestCase):
         length = 0.1115
 
         a = self._get_scaled_lengths(
-            model, {"k": 3.6491, "r": 0.6317, "length": length}
+            model,
+            {"k": 3.6491, "r": 0.6317, "length": length},
         )
         b = self._get_scaled_lengths(model, {"k": 3.6491, "r": 1.0, "length": length})
         dN = length * a["dN"] / (3.0 * b["dN"])

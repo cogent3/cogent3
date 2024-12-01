@@ -77,7 +77,8 @@ class ClustalTests(TestCase):
         """should return correct clustal string."""
         self.assertEqual(clustal_from_alignment({}), "")
         self.assertEqual(
-            clustal_from_alignment(self.alignment_dict), self.clustal_with_label
+            clustal_from_alignment(self.alignment_dict),
+            self.clustal_with_label,
         )
         self.assertEqual(
             clustal_from_alignment(self.alignment_dict, wrap=2),

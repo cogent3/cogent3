@@ -72,7 +72,6 @@ class LogoTests(TestCase):
         expect = [base, base]
         got = _char_hts_as_lists(data)
         self.assertEqual(got, expect)
-        #
         data = [dict(A=0.1, C=0.2), {}]
         base = [("A", 0.1), ("C", 0.2)]
         expect = [base, None]

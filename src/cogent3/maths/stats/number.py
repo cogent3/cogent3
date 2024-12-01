@@ -98,7 +98,7 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         return self
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({repr(self.__dict__)})"
+        return f"{self.__class__.__name__}({self.__dict__!r})"
 
     def keys(self):
         return list(self)
@@ -306,7 +306,7 @@ class CategoryFreqs(MutableMapping, SummaryStatBase):
         return iter(self.__dict__)
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({repr(self.__dict__)})"
+        return f"{self.__class__.__name__}({self.__dict__!r})"
 
     def keys(self):
         return list(self)
@@ -363,7 +363,7 @@ class NumberCounter(CategoryCounter):
         return result
 
     def expanded_values(self, check=False):
-        # todo memory footprint can be improved by directly computing the
+        # TODO memory footprint can be improved by directly computing the
         #  summary statistics
         if check and not self.valid:
             raise ValueError("non-numeric keys")

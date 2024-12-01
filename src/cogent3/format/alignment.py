@@ -8,7 +8,7 @@ from cogent3.format.phylip import alignment_to_phylip
 from cogent3.parse.record import FileFormatError
 from cogent3.util.io import atomic_write
 
-# todo convert formatters so str(formatter) returns correctly formatted
+# TODO convert formatters so str(formatter) returns correctly formatted
 # string, and rename method names, rename base class name (sequences, not
 # alignment)
 

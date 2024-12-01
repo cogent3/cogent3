@@ -116,7 +116,8 @@ def test_hint_inherited_class():
 
 
 @pytest.mark.parametrize(
-    "hint,expect", ((int, 1), (Set[int], 2), (List[List[Set[float]]], 4))
+    "hint,expect",
+    ((int, 1), (Set[int], 2), (List[List[Set[float]]], 4)),
 )
 def test_typing_tree_depth(hint, expect):
     d, _ = type_tree(hint)

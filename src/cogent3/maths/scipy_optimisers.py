@@ -38,7 +38,7 @@ def bound_brent(func, brack=None, **kw):
     return brent(func, brack=(xa, xb), **kw)
 
 
-class _SciPyOptimiser(object):
+class _SciPyOptimiser:
     """This class is abstract.  Subclasses must provide a
     _minimise(self, f, x) that can sanely handle +inf.
 
@@ -52,7 +52,12 @@ class _SciPyOptimiser(object):
         return self.minimise(nf, *args, **kw)
 
     def minimise(
-        self, function, xopt, show_remaining, max_restarts=None, tolerance=None
+        self,
+        function,
+        xopt,
+        show_remaining,
+        max_restarts=None,
+        tolerance=None,
     ):
         if max_restarts is None:
             max_restarts = 0
@@ -72,7 +77,7 @@ class _SciPyOptimiser(object):
         else:
             _callback = None
 
-        for i in range((max_restarts + 1)):
+        for i in range(max_restarts + 1):
             (xopt, fval, iterations, func_calls, warnflag) = self._minimise(
                 function,
                 xopt,

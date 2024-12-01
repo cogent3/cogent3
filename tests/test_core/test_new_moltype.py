@@ -53,7 +53,8 @@ def test_is_compatible_alphabet_strict():
 
 
 @pytest.mark.parametrize(
-    "name", ("dna", "rna", "protein", "protein_with_stop", "bytes", "text")
+    "name",
+    ("dna", "rna", "protein", "protein_with_stop", "bytes", "text"),
 )
 def test_get_moltype(name):
     """correctly return a moltype by name"""
@@ -486,7 +487,7 @@ def test_disambiguate_strip(data_type):
 
 
 def test_disambiguate_random_str():
-    # todo: add tests for bytes and numpy.array
+    # TODO: add tests for bytes and numpy.array
     d = new_moltype.RNA.disambiguate
     s = "AUN-YRS-WKMCGWMRNMWRKY"
     t = d(s, "random")
