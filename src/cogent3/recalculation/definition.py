@@ -310,7 +310,9 @@ class _InputDefn(_LeafDefn):
         dimensioned = {
             k: set(v)
             for k, v in zip(
-                range(num_valid_dims), zip(*self.index, strict=False), strict=False
+                range(num_valid_dims),
+                zip(*self.index, strict=False),
+                strict=False,
             )
         }
 

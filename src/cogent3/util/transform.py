@@ -68,7 +68,7 @@ class for_seq:
         f = self.f
         if self.normalizer is None:
             return self.aggregator(
-                [f(i, j) for i, j in zip(first, second, strict=False)]
+                [f(i, j) for i, j in zip(first, second, strict=False)],
             )
         return self.normalizer(
             self.aggregator([f(i, j) for i, j in zip(first, second, strict=False)]),

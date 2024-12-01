@@ -649,7 +649,7 @@ class Sequence:
 
         is_gap = self.moltype.gaps.__contains__
         return sum(
-            [is_gap(i) == is_gap(j) for i, j in zip(self, other, strict=False)]
+            [is_gap(i) == is_gap(j) for i, j in zip(self, other, strict=False)],
         ) / min(
             len(self),
             len(other),

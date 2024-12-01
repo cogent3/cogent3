@@ -195,7 +195,7 @@ def PsiBlastParser9(lines):
                 first_query = False
             table, header = PsiBlastTableParser(record)
             curr_resultset.append(
-                [dict(list(zip(header, row, strict=False))) for row in table]
+                [dict(list(zip(header, row, strict=False))) for row in table],
             )
     return result
 

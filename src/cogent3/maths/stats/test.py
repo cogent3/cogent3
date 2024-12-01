@@ -828,7 +828,7 @@ def spearman(x_items, y_items):
         y_bar = avg(rank2)
 
         numerator = npsum(
-            [(x - x_bar) * (y - y_bar) for x, y in zip(rank1, rank2, strict=False)]
+            [(x - x_bar) * (y - y_bar) for x, y in zip(rank1, rank2, strict=False)],
         )
         denominator = sqrt(
             npsum([(x - x_bar) ** 2 for x in rank1])

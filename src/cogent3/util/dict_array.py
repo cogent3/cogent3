@@ -310,7 +310,10 @@ class DictArrayTemplate:
         index = []
         remaining = []
         for ordinals, allnames, name in zip(
-            self.ordinals, self.names, names, strict=False
+            self.ordinals,
+            self.names,
+            names,
+            strict=False,
         ):
             if type(name) not in (int, slice, list, numpy.ndarray):
                 name = ordinals[name]

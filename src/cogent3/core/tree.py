@@ -752,7 +752,9 @@ class TreeNode:
             return False
         if self.children:
             for self_child, other_child in zip(
-                self.children, other.children, strict=False
+                self.children,
+                other.children,
+                strict=False,
             ):
                 if not self_child.same_shape(other_child):
                     return False
