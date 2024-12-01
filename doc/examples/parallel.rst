@@ -32,7 +32,7 @@ If you are using a composed ``cogent3`` :ref:`app <apps>` **with** a writer, the
 .. note:: If you are using mpi, set ``par_kw=dict(max_workers=4, use_mpi=True)``.
 
 Using ``app.as_completed()``
-^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If you are using a composed ``cogent3`` :ref:`app <apps>` **without** a writer, then use the ``as_completed()`` method. The arguments are the same as for ``apply_to()`` but as this method returns a generator, you use a builtin type to execute the call.
 
