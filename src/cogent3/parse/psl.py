@@ -16,7 +16,7 @@ def make_header(lines):
                 line.append("")
 
     header = []
-    for t, b in zip(*lines):
+    for t, b in zip(*lines, strict=False):
         if t.strip().endswith("-"):
             c = t.strip() + b
         else:

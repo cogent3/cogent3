@@ -95,7 +95,7 @@ class NcbiTaxon:
         last = line_pieces[-1]
         if last.endswith("|"):
             line_pieces[-1] = last[:-1]
-        self.__dict__ = dict(list(zip(self.Fields, line_pieces)))
+        self.__dict__ = dict(list(zip(self.Fields, line_pieces, strict=False)))
         self.Name = ""  # will get name field from names.dmp; fillNames
         self.RankId = RanksToNumbers.get(self.Rank, None)
 
@@ -160,7 +160,7 @@ class NcbiName:
         """Returns new NcbiName from line containing name data."""
         line_pieces = list(map(strip, line.split("|")))
         line_pieces[0] = int(line_pieces[0])  # convert taxon_id
-        self.__dict__ = dict(list(zip(self.Fields, line_pieces)))
+        self.__dict__ = dict(list(zip(self.Fields, line_pieces, strict=False)))
 
     def __str__(self):
         """Writes data out in similar format as the one we got it from."""

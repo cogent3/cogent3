@@ -438,7 +438,7 @@ class LocationList(list):
             result.append(curr)
         return "".join(result)
 
-    def get_coordinates(self) -> typing.List[typing.Tuple[int, int]]:
+    def get_coordinates(self) -> list[tuple[int, int]]:
         """returns the segments in python coordinates"""
         return sorted((i.start, i.stop + 1) for i in self)
 
@@ -744,7 +744,7 @@ def rich_parser(
     info_excludes=None,
     moltype=None,
     skip_contigs=False,
-    db: typing.Optional[GenbankAnnotationDb] = None,
+    db: GenbankAnnotationDb | None = None,
     just_seq: bool = False,
 ):
     """Returns annotated sequences from GenBank formatted file.

@@ -6,7 +6,6 @@ import os
 import re
 import sqlite3
 from pathlib import Path
-from typing import Optional, Union
 
 from scitrack import get_text_hexdigest
 
@@ -50,7 +49,7 @@ sqlite3.register_converter("timestamp", _datetime_from_iso)
 
 
 # create db
-def open_sqlite_db_rw(path: Union[str, Path]):
+def open_sqlite_db_rw(path: str | Path):
     """creates a new sqlitedb for read/write at path, can be an in-memory db
 
     Notes
@@ -114,7 +113,7 @@ class DataStoreSqlite(DataStoreABC):
     def __init__(
         self,
         source,
-        mode: Union[Mode, str] = READONLY,
+        mode: Mode | str = READONLY,
         limit=None,
         verbose=False,
     ):
@@ -305,7 +304,7 @@ class DataStoreSqlite(DataStoreABC):
         self._not_completed = []
 
     @property
-    def _lock_id(self) -> Optional[int]:
+    def _lock_id(self) -> int | None:
         """returns lock_pid"""
         result = self.db.execute("SELECT lock_pid FROM state").fetchone()
         return result[0] if result else result
@@ -407,7 +406,7 @@ class DataStoreSqlite(DataStoreABC):
             self._not_completed.append(member)
         return member
 
-    def md5(self, unique_id: str) -> Union[str, NoneType]:  # we have it in base class
+    def md5(self, unique_id: str) -> str | NoneType:  # we have it in base class
         """
         Parameters
         ----------

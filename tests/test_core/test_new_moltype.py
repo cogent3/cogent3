@@ -494,7 +494,7 @@ def test_disambiguate_random_str():
 
     assert len(s) == len(t)
 
-    for i, j in zip(s, t):
+    for i, j in zip(s, t, strict=False):
         if i in new_moltype.RNA.ambiguities:
             assert j in new_moltype.RNA.ambiguities[i]
 

@@ -1,6 +1,5 @@
 import os
 import pathlib
-import typing
 
 import numpy
 
@@ -771,10 +770,10 @@ def _connecting_lines(
     x_grp: list[list[float]],
     y_grp: list[list[float]],
     connect_y: float,
-) -> tuple[list[typing.Union[float, None]]]:
+) -> tuple[list[float | None]]:
     new_xs, new_ys = x_grp[0][:], y_grp[0][:]
     y_connect_coord = [None, connect_y, connect_y, None]
-    for i, (xs, ys) in enumerate(zip(x_grp[1:], y_grp[1:]), 1):
+    for i, (xs, ys) in enumerate(zip(x_grp[1:], y_grp[1:], strict=False), 1):
         new_xs.extend([None, max(x_grp[i - 1]), min(x_grp[i]), None] + xs)
         new_ys.extend(y_connect_coord + ys)
     return new_xs, new_ys
@@ -788,7 +787,7 @@ class Arrow(Shape):
         height=0.25,
         arrow_head_w=0.05,
         reverse=False,
-        parent_length: typing.Optional[int] = None,
+        parent_length: int | None = None,
         **kwargs,
     ):
         super().__init__(**kwargs)

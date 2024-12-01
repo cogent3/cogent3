@@ -45,7 +45,7 @@ class _LikelihoodTreeEdge:
                         )
                     a.append(u)
                 assignments.append(a)
-        (uniq, counts, self.index) = _indexed(list(zip(*assignments)))
+        (uniq, counts, self.index) = _indexed(list(zip(*assignments, strict=False)))
 
         # extra column for gap
         uniq.append(tuple([len(c.uniq) - 1 for c in children]))
@@ -63,7 +63,7 @@ class _LikelihoodTreeEdge:
         self.counts = numpy.array(counts, float)
 
         # For product of child likelihoods
-        self._indexed_children = list(zip(self.indexes, children))
+        self._indexed_children = list(zip(self.indexes, children, strict=False))
         self.shape = [len(self.uniq), M]
 
         # Derive per-column degree of ambiguity from children's
@@ -106,7 +106,7 @@ class _LikelihoodTreeEdge:
 
         if return_table:
             motifs = self.get_site_patterns(unambig)
-            rows = list(zip(motifs, observed, expected))
+            rows = list(zip(motifs, observed, expected, strict=False))
             rows.sort(key=lambda row: (-row[1], row[0]))
             table = Table(
                 header=["Pattern", "Observed", "Expected"],

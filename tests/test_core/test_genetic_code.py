@@ -119,7 +119,7 @@ class GeneticCodeTests(TestCase):
         """GeneticCode str() should return its code string"""
         code_strings = self.SGC, self.mt, self.AllG
         codes = list(map(GeneticCode, code_strings))
-        for code, string in zip(codes, code_strings):
+        for code, string in zip(codes, code_strings, strict=False):
             self.assertEqual(str(code), string)
         # check an example directly in case strings are bad
         self.assertEqual(
@@ -146,11 +146,11 @@ class GeneticCodeTests(TestCase):
             self.assertEqual(sgc[i], "I")
         # full check for the standard code
         codons = [a + b + c for a in "UCAG" for b in "TCAG" for c in "UCAG"]
-        for codon, aa in zip(codons, self.SGC):
+        for codon, aa in zip(codons, self.SGC, strict=False):
             self.assertEqual(sgc[codon], aa)
         # full check for another code
         allg = GeneticCode(self.AllG)
-        for codon, aa in zip(codons, self.AllG):
+        for codon, aa in zip(codons, self.AllG, strict=False):
             self.assertEqual(allg[codon], aa)
         # check that degenerate codon returns X
         self.assertEqual(sgc["NNN"], "X")

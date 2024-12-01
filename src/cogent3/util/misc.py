@@ -8,8 +8,9 @@ import os
 import re
 import typing
 import warnings
+from collections.abc import Callable
 from random import choice
-from typing import Any, Callable, Tuple
+from typing import Any
 from urllib.parse import urlparse
 from warnings import warn
 
@@ -901,7 +902,7 @@ def get_merged_by_value_coords(spans_value, digits=None):
     """
     assert len(spans_value[0]) == 3, "spans_value must have 3 records per row"
 
-    starts, ends, vals = list(zip(*spans_value))
+    starts, ends, vals = list(zip(*spans_value, strict=False))
     indices_distinct_vals = get_run_start_indices(vals, digits=digits)
     data = []
     for index, val in indices_distinct_vals:
@@ -967,7 +968,7 @@ _doc_block = re.compile(
 )
 
 
-def docstring_to_summary_rest(text: str) -> Tuple[str, str]:
+def docstring_to_summary_rest(text: str) -> tuple[str, str]:
     """separates the summary at the start of a docstring from the rest
 
     Notes

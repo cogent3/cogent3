@@ -67,7 +67,7 @@ class MI_METHODS(enum.Enum):
 def _count_states(
     state_vector: numpy.ndarray,
     num_states: int,
-    counts: typing.Optional[numpy.ndarray] = None,
+    counts: numpy.ndarray | None = None,
 ) -> numpy.ndarray:  # pragma: no cover
     """computes counts from a single vector of states"""
     if counts is None:
@@ -101,7 +101,7 @@ def _vector_entropy(counts: numpy.ndarray) -> float:  # pragma: no cover
 def _count_joint_states(
     joint_states: numpy.ndarray,
     num_states: int,
-    counts: typing.Optional[numpy.ndarray] = None,
+    counts: numpy.ndarray | None = None,
 ) -> numpy.ndarray:  # pragma: no cover
     if counts is None:
         counts = numpy.empty((num_states, num_states), dtype=numpy.int64)
@@ -154,7 +154,7 @@ def _calc_column_entropies(
 @numba.jit
 def _make_weights(
     counts: numpy.ndarray,
-    weights: typing.Optional[numpy.ndarray] = None,
+    weights: numpy.ndarray | None = None,
 ) -> numpy.ndarray:  # pragma: no cover
     """Return the weights for replacement states for each possible character.
     We compute the weight as the normalized frequency of the replacement state
@@ -571,10 +571,10 @@ class calc_rmi:
 def coevolution_matrix(
     *,
     alignment: "Alignment",
-    positions: typing.Optional[typing.List[int]] = None,
+    positions: list[int] | None = None,
     stat: str = "nmi",
     parallel: bool = False,
-    par_kw: typing.Optional[dict] = None,
+    par_kw: dict | None = None,
     show_progress: bool = False,
     ui=None,
 ) -> dict_array.DictArray:
@@ -701,7 +701,7 @@ def join_positions(pos1, pos2):  # pragma: no cover
         >>> join_positions("ABCD", "1234")
             ['A1', 'B2', 'C3', 'D4']
     """
-    return ["".join([r1, r2]) for r1, r2 in zip(pos1, pos2)]
+    return ["".join([r1, r2]) for r1, r2 in zip(pos1, pos2, strict=False)]
 
 
 @c3warn.deprecated_callable("2024.12", reason=_reason_2, is_discontinued=True)
@@ -1097,7 +1097,7 @@ def get_allowed_perturbations(
     result = []
     abs_cutoff = cutoff * num_seqs
 
-    for char, count in zip(alphabet, counts):
+    for char, count in zip(alphabet, counts, strict=False):
         if count >= abs_cutoff:
             result.append(char)
     return result
@@ -1201,7 +1201,7 @@ def get_positional_probabilities(
 
     """
     results = []
-    for pos_freq, natural_prob in zip(pos_freqs, natural_probs):
+    for pos_freq, natural_prob in zip(pos_freqs, natural_probs, strict=False):
         try:
             results.append(binomial_exact(pos_freq, scaled_aln_size, natural_prob))
         # Because of the scaling of alignments to scaled_aln_size, pos_freq is
@@ -1253,7 +1253,7 @@ def get_dg(position_probs, aln_probs):  # pragma: no cover
 
     """
     results = []
-    for position_prob, aln_prob in zip(position_probs, aln_probs):
+    for position_prob, aln_prob in zip(position_probs, aln_probs, strict=False):
         results.append(log(position_prob / aln_prob))
     return array(results)
 
@@ -1446,7 +1446,7 @@ def sca_pair(
         ddg_values.append(get_dgg(pos2_dg, subaln_dg, scaled_aln_size))
 
     if return_all:
-        return list(zip(allowed_perturbations, ddg_values))
+        return list(zip(allowed_perturbations, ddg_values, strict=False))
     return max(ddg_values)
 
 
@@ -1766,7 +1766,7 @@ def resampled_mi_pair(
     positions = list(alignment.positions)
     col1 = positions[pos1]
     col2 = positions[pos2]
-    seqs = ["".join(p) for p in zip(col1, col2)]
+    seqs = ["".join(p) for p in zip(col1, col2, strict=False)]
     for col in (col1, col2):
         states = {}.fromkeys(col)
         for exclude in excludes:
@@ -1934,7 +1934,7 @@ def ancestral_state_pair(
     """ """
     ancestral_seqs = ancestral_seqs or get_ancestral_seqs(aln, tree)
     ancestral_names_to_seqs = dict(
-        list(zip(ancestral_seqs.names, ancestral_seqs.array_seqs)),
+        list(zip(ancestral_seqs.names, ancestral_seqs.array_seqs, strict=False)),
     )
     distances = tree.get_distances()
     tips = tree.get_node_names(tipsonly=True)
@@ -1946,7 +1946,7 @@ def ancestral_state_pair(
     # occuring on a single branch to be given the most weight
     distances.update(dict([((n, n), nodes[n].length) for n in nodes]))
     result = 0
-    names_to_seqs = dict(list(zip(aln.names, aln.array_seqs)))
+    names_to_seqs = dict(list(zip(aln.names, aln.array_seqs, strict=False)))
     for i in range(len(tips)):
         org1 = tips[i]
         seq1 = names_to_seqs[org1]

@@ -1,7 +1,6 @@
 """Writer for FASTA sequence format"""
 
 from collections.abc import Iterable
-from typing import Optional
 
 
 def _iter_in_block_size(series: str, block_size: int) -> Iterable[str]:
@@ -13,7 +12,7 @@ def _iter_in_block_size(series: str, block_size: int) -> Iterable[str]:
 def seqs_to_fasta(
     seqs: dict[str, str],
     block_size: int = 60,
-    order: Optional[list[str]] = None,
+    order: list[str] | None = None,
 ) -> str:
     """Returns a Fasta string given an alignment.
 

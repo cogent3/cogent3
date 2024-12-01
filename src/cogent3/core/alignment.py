@@ -33,10 +33,7 @@ from copy import deepcopy
 from functools import singledispatchmethod, total_ordering
 from typing import (
     Any,
-    List,
     Optional,
-    Tuple,
-    Union,
 )
 
 import numpy
@@ -604,7 +601,7 @@ class _SequenceCollectionBase:
 
     def take_seqs(
         self,
-        seqs: Union[str, typing.Sequence[str]],
+        seqs: str | typing.Sequence[str],
         negate=False,
         **kwargs,
     ):  # ported
@@ -928,7 +925,7 @@ class _SequenceCollectionBase:
 
         new = self.__class__(
             moltype=self.moltype,
-            data=list(zip(self.names, concatenated)),
+            data=list(zip(self.names, concatenated, strict=False)),
             info=self.info,
         )
         # cannot copy annotations on addition
@@ -1528,14 +1525,14 @@ class _SequenceCollectionBase:
 
     def dotplot(
         self,
-        name1: Optional[str] = None,
-        name2: Optional[str] = None,
+        name1: str | None = None,
+        name2: str | None = None,
         window: int = 20,
-        threshold: Optional[int] = None,
-        k: Optional[int] = None,
+        threshold: int | None = None,
+        k: int | None = None,
         min_gap: int = 0,
         width: int = 500,
-        title: Optional[str] = None,
+        title: str | None = None,
         rc: bool = False,
         show_progress: bool = False,
     ):  # ported
@@ -1895,7 +1892,7 @@ class SequenceCollection(_SequenceCollectionBase):
     def annotate_from_gff(
         self,
         f: os.PathLike,
-        seq_ids: Optional[Union[list[str], str]] = None,
+        seq_ids: list[str] | str | None = None,
     ):  # will not port
         """copies annotations from a gff file to a sequence in self
 
@@ -1950,8 +1947,8 @@ class SequenceCollection(_SequenceCollectionBase):
         seqid: str,
         biotype: str,
         name: str,
-        spans: List[Tuple[int, int]],
-        parent_id: Optional[str] = None,
+        spans: list[tuple[int, int]],
+        parent_id: str | None = None,
         strand: str = "+",
     ) -> Feature:  # ported
         """
@@ -1992,9 +1989,9 @@ class SequenceCollection(_SequenceCollectionBase):
     def get_features(
         self,
         *,
-        seqid: Union[str, Iterable[str]] = None,
-        biotype: Optional[str] = None,
-        name: Optional[str] = None,
+        seqid: str | Iterable[str] = None,
+        biotype: str | None = None,
+        name: str | None = None,
         allow_partial: bool = False,
     ) -> Iterator[Feature]:  # ported
         """yields Feature instances
@@ -2124,10 +2121,10 @@ class SequenceCollection(_SequenceCollectionBase):
 
     def to_html(
         self,
-        name_order: Optional[typing.Sequence[str]] = None,
+        name_order: typing.Sequence[str] | None = None,
         wrap: int = 60,
-        limit: Optional[int] = None,
-        colors: Optional[Mapping[str, str]] = None,
+        limit: int | None = None,
+        colors: Mapping[str, str] | None = None,
         font_size: int = 12,
         font_family: str = "Lucida Console",
     ) -> str:  # ported
@@ -2238,7 +2235,7 @@ class SequenceCollection(_SequenceCollectionBase):
         for i in range(0, max_truncated_len, wrap):
             table.append(num_row_.format(i))
             seqblock = seqs[:, i : i + wrap].tolist()
-            for n, s in zip(name_order, seqblock):
+            for n, s in zip(name_order, seqblock, strict=False):
                 s = "".join(s)
                 # Filter out rows that are empty (due to combination of shorter sequences + wrapping)
                 if len(s) > 0:
@@ -2693,7 +2690,7 @@ class AlignmentI:
         originals).
         """
         states = []
-        data = zip(*map(str, self.seqs))
+        data = zip(*map(str, self.seqs), strict=False)
         for pos in data:
             pos = CategoryCounter(pos)
             states.append(pos.mode)
@@ -3084,7 +3081,7 @@ class AlignmentI:
             seq = str(self.named_seqs[name])
             seqs.append(seq)
 
-        positions = list(zip(*seqs))
+        positions = list(zip(*seqs, strict=False))
 
         for position in positions:
             ref = position[0]
@@ -3111,11 +3108,11 @@ class AlignmentI:
 
     def to_html(
         self,
-        name_order: Optional[typing.Sequence[str]] = None,
+        name_order: typing.Sequence[str] | None = None,
         wrap: int = 60,
-        limit: Optional[int] = None,
+        limit: int | None = None,
         ref_name: str = "longest",
-        colors: Optional[Mapping[str, str]] = None,
+        colors: Mapping[str, str] | None = None,
         font_size: int = 12,
         font_family: str = "Lucida Console",
     ) -> str:  # ported
@@ -3240,7 +3237,7 @@ class AlignmentI:
         for i in range(0, seqlen, wrap):
             table.append(num_row_.format(i))
             seqblock = seqs[:, i : i + wrap].tolist()
-            for n, s in zip(names, seqblock):
+            for n, s in zip(names, seqblock, strict=False):
                 s = "".join(s)
                 row = "".join([label_ % n, seq_ % s])
                 table.append(f"<tr>{row}</tr>")
@@ -4043,7 +4040,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             if self.moltype:
                 seqs = [
                     self.moltype.make_seq(seq=seq, name=name, preserve_case=True)
-                    for seq, name in zip(seqs, self.names)
+                    for seq, name in zip(seqs, self.names, strict=False)
                 ]
             self._named_seqs = _make_named_seqs(self.names, seqs)
         return self._named_seqs
@@ -4140,7 +4137,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         """
         result = []
         seq2str = self.alphabet.from_indices
-        for l, s in zip(self.names, self.array_seqs):
+        for l, s in zip(self.names, self.array_seqs, strict=False):
             result.append(">" + str(l) + "\n" + "".join(seq2str(s)))
         return "\n".join(result) + "\n"
 
@@ -4454,7 +4451,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             mask_degen = False
 
         if not mask_degen:
-            seqs_names = list(zip(self.array_seqs.tolist(), self.names))
+            seqs_names = list(zip(self.array_seqs.tolist(), self.names, strict=False))
             seqs_names.sort()
             matched = None
             dupes = defaultdict(set)
@@ -4920,7 +4917,7 @@ class Alignment(AlignmentI, SequenceCollection):
             for n in self.names
         ]
 
-        positions = list(zip(*seqs))
+        positions = list(zip(*seqs, strict=False))
         for position, column in enumerate(positions):
             keep = predicate(column)
             if kept != keep:
@@ -4993,7 +4990,7 @@ class Alignment(AlignmentI, SequenceCollection):
             gsq = template.get_gapped_seq(name)
             assert len(gsq) == len(seq)
             combo = []
-            for s, g in zip(seq, gsq):
+            for s, g in zip(seq, gsq, strict=False):
                 if g == tgp:
                     combo.append(gap)
                 else:
@@ -5242,11 +5239,11 @@ class Alignment(AlignmentI, SequenceCollection):
         *,
         biotype: str,
         name: str,
-        spans: List[Tuple[int, int]],
-        seqid: Optional[str] = None,
-        parent_id: Optional[str] = None,
+        spans: list[tuple[int, int]],
+        seqid: str | None = None,
+        parent_id: str | None = None,
         strand: str = "+",
-        on_alignment: Optional[bool] = None,
+        on_alignment: bool | None = None,
     ) -> Feature:  # ported
         """
         add feature on named sequence, or on the alignment itself
@@ -5304,7 +5301,7 @@ class Alignment(AlignmentI, SequenceCollection):
         self,
         *,
         feature: FeatureDataType,
-        on_alignment: Optional[bool] = None,
+        on_alignment: bool | None = None,
     ) -> Feature:  # ported
         """
         create a feature on named sequence, or on the alignment itself
@@ -5351,9 +5348,9 @@ class Alignment(AlignmentI, SequenceCollection):
     def _get_seq_features(
         self,
         *,
-        seqid: Optional[str] = None,
-        biotype: Optional[str] = None,
-        name: Optional[str] = None,
+        seqid: str | None = None,
+        biotype: str | None = None,
+        name: str | None = None,
         allow_partial: bool = False,
     ) -> Iterator[Feature]:  # ported
         """yields Feature instances
@@ -5420,10 +5417,10 @@ class Alignment(AlignmentI, SequenceCollection):
     def get_features(
         self,
         *,
-        seqid: Optional[str] = None,
-        biotype: Optional[str] = None,
-        name: Optional[str] = None,
-        on_alignment: Optional[bool] = None,
+        seqid: str | None = None,
+        biotype: str | None = None,
+        name: str | None = None,
+        on_alignment: bool | None = None,
         allow_partial: bool = False,
     ) -> Iterator[Feature]:  # ported
         """yields Feature instances
@@ -5501,7 +5498,7 @@ def _make_name_seq_data(data):
 
 
 # prep for SequenceCollection
-O = typing.Tuple[typing.List[Sequence], typing.List[str]]
+O = tuple[list[Sequence], list[str]]
 
 
 @functools.singledispatch
@@ -5525,7 +5522,9 @@ def _coerce_to_unaligned_seqs(data, names, label_to_name=str, moltype=None) -> O
         data = _make_name_seq_data(data)
 
     if isinstance(first, (str, ndarray)):
-        data = list(zip(names or assign_sequential_names(None, len(data)), data))
+        data = list(
+            zip(names or assign_sequential_names(None, len(data)), data, strict=False)
+        )
 
     if moltype is None:
         val = get_first_value(data)
@@ -5612,7 +5611,7 @@ def _(
 
 
 # prep data for ArrayAlignment
-O = typing.Tuple[ndarray, typing.List[str]]
+O = tuple[ndarray, list[str]]
 
 
 @functools.singledispatch
@@ -5636,7 +5635,9 @@ def _coerce_to_array_aligned_seqs(data, names, label_to_name=str, moltype=None) 
         data = _make_name_seq_data(data)
 
     if isinstance(first, (str, ndarray)):
-        data = list(zip(names or assign_sequential_names(None, len(data)), data))
+        data = list(
+            zip(names or assign_sequential_names(None, len(data)), data, strict=False)
+        )
 
     if moltype is None:
         val = get_first_value(data)
@@ -5673,7 +5674,7 @@ def _(data: ndarray, names, label_to_name, moltype) -> O:
     if names is None:
         names = assign_sequential_names(None, data.shape[0])
     return _coerce_to_array_aligned_seqs(
-        tuple(zip(names, data)),
+        tuple(zip(names, data, strict=False)),
         names,
         label_to_name,
         moltype,
@@ -5711,7 +5712,7 @@ def _(
 
 
 # prep data for Alignment
-O = typing.Tuple[typing.List[Aligned], typing.List[str]]
+O = tuple[list[Aligned], list[str]]
 
 
 @functools.singledispatch
@@ -5735,7 +5736,9 @@ def _coerce_to_aligned_seqs(data, names, label_to_name=str, moltype=None) -> O:
         data = _make_name_seq_data(data)
 
     if isinstance(first, (str, ndarray)):
-        data = list(zip(names or assign_sequential_names(None, len(data)), data))
+        data = list(
+            zip(names or assign_sequential_names(None, len(data)), data, strict=False)
+        )
 
     if moltype is None:
         val = get_first_value(data)
@@ -5764,7 +5767,7 @@ def _(data: ndarray, names, label_to_name, moltype) -> O:
     names = names or assign_sequential_names(None, data.shape[0])
     seqs = ["".join(moltype.alphabet.to_string(d)) for d in data]
     return _coerce_to_aligned_seqs(
-        tuple(zip(names, seqs)),
+        tuple(zip(names, seqs, strict=False)),
         names,
         label_to_name,
         moltype,
@@ -5806,13 +5809,13 @@ def _make_named_seqs(
     seqs: typing.Sequence[Sequence],
 ) -> dict[str, Sequence]:
     """make a {name:seq, ...} where seq.name == name"""
-    name_seq_tuples = tuple(zip(names, seqs))
+    name_seq_tuples = tuple(zip(names, seqs, strict=False))
     for n, s in name_seq_tuples:
         s.name = n
     return dict(name_seq_tuples)
 
 
-T = typing.Sequence[typing.Union[Sequence, ndarray]]
+T = typing.Sequence[Sequence | ndarray]
 
 
 # sequence conversion functions

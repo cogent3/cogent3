@@ -16,7 +16,6 @@ import itertools
 import json
 import os
 import re
-import typing
 from collections import defaultdict
 from copy import deepcopy
 from random import choice
@@ -1158,7 +1157,7 @@ class MolType:
         gaps are only allowed to match other gaps.
         """
         m = self.matches
-        for pair in zip(first, second):
+        for pair in zip(first, second, strict=False):
             if pair not in m:
                 return False
         return True
@@ -1173,7 +1172,7 @@ class MolType:
         if not first or not second:
             return False
 
-        for pair in zip(first, second):
+        for pair in zip(first, second, strict=False):
             if not m.get(pair, None):
                 return True
         return False
@@ -1197,7 +1196,7 @@ class MolType:
         p = self.pairs
         sec = list(second)
         sec.reverse()
-        for pair in zip(first, sec):
+        for pair in zip(first, sec, strict=False):
             if pair not in p:
                 return False
         return True
@@ -1217,7 +1216,7 @@ class MolType:
 
         sec = list(second)
         sec.reverse()
-        for pair in zip(first, sec):
+        for pair in zip(first, sec, strict=False):
             if not p.get(pair, None):
                 return True
         return False
@@ -1312,9 +1311,9 @@ class MolType:
     def resolve_ambiguity(
         self,
         ambig_motif: str,
-        alphabet: typing.Optional[Alphabet] = None,
+        alphabet: Alphabet | None = None,
         allow_gap: bool = False,
-    ) -> typing.Tuple[str]:
+    ) -> tuple[str]:
         """Returns tuple of all possible canonical characters corresponding
         to ambig_motif
 

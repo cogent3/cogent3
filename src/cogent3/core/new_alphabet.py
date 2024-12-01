@@ -170,7 +170,7 @@ def get_array_type(num_elements: int):
 
 
 def consistent_words(
-    words: typing.Sequence[typing.Union[str, int]],
+    words: typing.Sequence[str | int],
     length: OptInt = None,
 ) -> None:
     """make sure all alphabet elements are unique and have the same length"""

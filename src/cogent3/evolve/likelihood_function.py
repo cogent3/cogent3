@@ -1,6 +1,5 @@
 import json
 import random
-import typing
 from collections import defaultdict
 from copy import deepcopy
 
@@ -563,7 +562,7 @@ class LikelihoodFunction(ParameterController):
         results = [title, lnL, nfp] + results if lnL else [title, nfp] + results
         return "\n".join(map(str, results))
 
-    def get_annotated_tree(self, length_as: typing.Optional[str] = None) -> PhyloNode:
+    def get_annotated_tree(self, length_as: str | None = None) -> PhyloNode:
         """returns tree with model attributes on node.params
 
         length_as : str or None
@@ -875,7 +874,7 @@ class LikelihoodFunction(ParameterController):
                         row_used = True
                     row[param] = d
                 if row_used:
-                    row.update(dict(list(zip(table_dims, scope))))
+                    row.update(dict(list(zip(table_dims, scope, strict=False))))
                     row = [row[k] for k in heading_names]
                     list_table.append(row)
             if table_dims:
@@ -1149,7 +1148,7 @@ class LikelihoodFunction(ParameterController):
         else:
             mprobs = self.get_param_value("mprobs", locus=locus, edge="root")
             mprobs = self._model.calc_word_probs(mprobs)
-            mprobs = dict((m, p) for (m, p) in zip(self._motifs, mprobs))
+            mprobs = dict((m, p) for (m, p) in zip(self._motifs, mprobs, strict=False))
             root_sequence = random_sequence(random_series, mprobs, sequence_length)
 
         simulated_sequences = evolver(self._tree, root_sequence)

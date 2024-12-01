@@ -1,7 +1,7 @@
 import warnings
 from bisect import bisect_left
 from itertools import combinations
-from typing import Optional, Union
+from typing import Union
 
 from numpy import array, isnan
 
@@ -423,7 +423,7 @@ class progressive_align:
         indel_length=1e-1,
         indel_rate=1e-10,
         distance="pdist",
-        iters: Optional[int] = None,
+        iters: int | None = None,
         approx_dists: bool = True,
     ):
         """

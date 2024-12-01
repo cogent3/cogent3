@@ -32,7 +32,6 @@ called Q) is determined.
 from __future__ import annotations
 
 import json
-import typing
 import warnings
 from collections.abc import Callable
 from copy import deepcopy
@@ -227,7 +226,7 @@ class _SubstitutionModel:
             motif_probs = self.count_motifs(motif_probs_alignment)
             motif_probs = motif_probs.astype(float) / sum(motif_probs)
             assert len(alphabet) == len(motif_probs)
-            motif_probs = dict(list(zip(alphabet, motif_probs)))
+            motif_probs = dict(list(zip(alphabet, motif_probs, strict=False)))
         if motif_probs:
             self.adapt_motif_probs(motif_probs)  # to check
             self.motif_probs = motif_probs
@@ -307,12 +306,12 @@ class _SubstitutionModel:
     def make_likelihood_function(
         self,
         tree: PhyloNode,
-        motif_probs_from_align: typing.Optional[bool] = None,
-        optimise_motif_probs: typing.Optional[bool] = None,
+        motif_probs_from_align: bool | None = None,
+        optimise_motif_probs: bool | None = None,
         aligned: bool = True,
-        expm: typing.Optional[str] = None,
-        digits: typing.Optional[int] = None,
-        space: typing.Optional[str] = None,
+        expm: str | None = None,
+        digits: int | None = None,
+        space: str | None = None,
         default_length: float = 1.0,
         warn=False,
         **kw,
@@ -567,7 +566,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
                 raise ValueError(f'{desc} param "{param}" unknown')
 
     def _is_instantaneous(self, x, y):
-        diffs = sum([X != Y for (X, Y) in zip(x, y)])
+        diffs = sum([X != Y for (X, Y) in zip(x, y, strict=False)])
         return diffs == 1 or (
             diffs > 1
             and self.long_indels_are_instantaneous
@@ -580,7 +579,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         if x == y:
             return False
         gap_start = gap_end = gap_strand = None
-        for i, (X, Y) in enumerate(zip(x, y)):
+        for i, (X, Y) in enumerate(zip(x, y, strict=False)):
             G = self.gapmotif[i]
             if X != Y:
                 if X != G and Y != G:
@@ -804,7 +803,7 @@ class Parametric(_ContinuousSubstitutionModel):
     def calc_exchangeability_matrix(self, mprobs, *params):
         assert len(params) == len(self.predicate_indices), self.parameter_order
         R = self._instantaneous_mask_f.copy()
-        for indices, par in zip(self.predicate_indices, params):
+        for indices, par in zip(self.predicate_indices, params, strict=False):
             R[indices] *= par
         return R
 
@@ -884,7 +883,7 @@ class Parametric(_ContinuousSubstitutionModel):
         rule = self.get_predicate_mask(rule)
         weighted_scale = 0.0
         bin_probs = numpy.asarray(bin_probs)
-        for Q, bin_prob, motif_probs in zip(Qs, bin_probs, motif_probss):
+        for Q, bin_prob, motif_probs in zip(Qs, bin_probs, motif_probss, strict=False):
             row_totals = numpy.sum(rule * Q, axis=1)
             motif_probs = numpy.asarray(motif_probs)
             word_probs = self.calc_word_probs(motif_probs)
@@ -1055,7 +1054,7 @@ class _Codon:
     def _is_instantaneous(self, x, y):
         if x == self.gapmotif or y == self.gapmotif:
             return x != y
-        ndiffs = sum([X != Y for (X, Y) in zip(x, y)])
+        ndiffs = sum([X != Y for (X, Y) in zip(x, y, strict=False)])
         return ndiffs == 1
 
     def get_predefined_predicates(self):

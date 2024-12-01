@@ -904,6 +904,7 @@ def test_load_unaligned_seqs_no_format(new_type):
             "brca1_5.250.paml",
         ),
         ("I", "AE017341", "NineBande"),
+        strict=False,
     ),
 )
 def path_name(request):

@@ -192,7 +192,7 @@ class RefalignmentTests(TestCase):
             [dict([(0, 3)]), dict([(5, 2), (6, 1)])],
             [dict([(2, 1), (5, 3), (6, 3)]), {}],
         ]
-        for seq, (plain, overlap) in zip(seqs, expects):
+        for seq, (plain, overlap) in zip(seqs, expects, strict=False):
             seq_gaps = dict(seq.map.get_gap_coordinates())
             got_plain, got_overlap = _gap_difference(seq_gaps, union)
             self.assertEqual(got_plain, dict(plain))

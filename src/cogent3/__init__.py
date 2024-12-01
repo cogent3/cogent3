@@ -6,7 +6,8 @@ import os
 import pathlib
 import pickle
 import warnings
-from typing import Callable, Optional, Union
+from collections.abc import Callable
+from typing import Optional, Union
 
 from cogent3._version import __version__
 from cogent3.app import app_help, available_apps, get_app, open_data_store  # noqa
@@ -76,7 +77,7 @@ def make_seq(
     moltype=None,
     new_type: bool = False,
     annotation_offset: int = 0,
-    annotation_db: Optional[_anno_db.SupportsFeatures] = None,
+    annotation_db: _anno_db.SupportsFeatures | None = None,
     **kw: dict,
 ):  # refactor: type hinting, need to capture optional args and the return type
     """
@@ -272,11 +273,11 @@ def make_aligned_seqs(
 def _load_files_to_unaligned_seqs(
     *,
     path: os.PathLike,
-    format: Optional[str] = None,
-    moltype: Optional[str] = None,
-    label_to_name: Optional[Callable] = None,
-    parser_kw: Optional[dict] = None,
-    info: Optional[dict] = None,
+    format: str | None = None,
+    moltype: str | None = None,
+    label_to_name: Callable | None = None,
+    parser_kw: dict | None = None,
+    info: dict | None = None,
     new_type: bool = False,
     ui=None,
 ) -> SequenceCollection:
@@ -346,12 +347,12 @@ def _load_genbank_seq(
 
 def load_seq(
     filename: os.PathLike,
-    annotation_path: Optional[os.PathLike] = None,
-    format: Optional[str] = None,
-    moltype: Optional[str] = None,
-    label_to_name: Optional[Callable] = None,
-    parser_kw: Optional[dict] = None,
-    info: Optional[dict] = None,
+    annotation_path: os.PathLike | None = None,
+    format: str | None = None,
+    moltype: str | None = None,
+    label_to_name: Callable | None = None,
+    parser_kw: dict | None = None,
+    info: dict | None = None,
     new_type: bool = False,
     annotation_offset: int = 0,
     **kw: dict,
@@ -433,12 +434,12 @@ def load_seq(
 
 @display_wrap
 def load_unaligned_seqs(
-    filename: Union[str, pathlib.Path],
+    filename: str | pathlib.Path,
     format=None,
     moltype=None,
     label_to_name=None,
-    parser_kw: Optional[dict] = None,
-    info: Optional[dict] = None,
+    parser_kw: dict | None = None,
+    info: dict | None = None,
     new_type: bool = False,
     **kw,
 ) -> SequenceCollection:
@@ -507,7 +508,7 @@ def load_unaligned_seqs(
 
 
 def load_aligned_seqs(
-    filename: Union[str, pathlib.Path],
+    filename: str | pathlib.Path,
     format=None,
     array_align=True,
     moltype=None,
@@ -648,7 +649,7 @@ def make_table(
 
 
 def load_table(
-    filename: Union[str, pathlib.Path],
+    filename: str | pathlib.Path,
     sep=None,
     reader=None,
     digits=4,
@@ -729,7 +730,7 @@ def load_table(
         with open_(filename, newline=None) as f:
             data = list(reader(f))
             header = data[0]
-            data = {column[0]: column[1:] for column in zip(*data)}
+            data = {column[0]: column[1:] for column in zip(*data, strict=False)}
     else:
         if file_format == "csv":
             sep = sep or ","
@@ -752,7 +753,7 @@ def load_table(
                 raise ValueError(msg)
 
         title = title or loaded_title
-        data = {column[0]: column[1:] for column in zip(header, *rows)}
+        data = {column[0]: column[1:] for column in zip(header, *rows, strict=False)}
 
     for key, value in data.items():
         data[key] = cast_str_to_array(value, static_type=static_column_types)
@@ -830,7 +831,7 @@ def make_tree(
 
 
 def load_tree(
-    filename: Union[str, pathlib.Path],
+    filename: str | pathlib.Path,
     format=None,
     underscore_unmunge=False,
 ):

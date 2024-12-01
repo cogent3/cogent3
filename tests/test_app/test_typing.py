@@ -1,5 +1,5 @@
 import sys
-from typing import List, Set, Tuple, Union
+from typing import Union
 
 import pytest
 
@@ -90,7 +90,7 @@ def test_hints_resolved_from_str():
         assert got == expected
 
 
-@pytest.mark.parametrize("container", (List, Tuple, Set))
+@pytest.mark.parametrize("container", (list, tuple, set))
 def test_hints_from_container_type(container):
     got = get_constraint_names(container[AlignedSeqsType])
     assert got == {"Alignment", "ArrayAlignment"}
@@ -117,7 +117,7 @@ def test_hint_inherited_class():
 
 @pytest.mark.parametrize(
     "hint,expect",
-    ((int, 1), (Set[int], 2), (List[List[Set[float]]], 4)),
+    ((int, 1), (set[int], 2), (list[list[set[float]]], 4)),
 )
 def test_typing_tree_depth(hint, expect):
     d, _ = type_tree(hint)
@@ -128,8 +128,8 @@ def test_typing_tree_depth(hint, expect):
     "hint,expect",
     (
         (int, int),
-        (Set[int], (set, (int,))),
-        (List[Set[int]], (list, (set, (int,)))),
+        (set[int], (set, (int,))),
+        (list[set[int]], (list, (set, (int,)))),
     ),
 )
 def test_type_tree(hint, expect):

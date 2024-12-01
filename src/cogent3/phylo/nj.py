@@ -109,7 +109,7 @@ class PartialTree:
     def asScoreTreeTuple(self):
         assert len(self.nodes) == 3  # otherwise next line needs generalizing
         lengths = numpy.sum(self.d, axis=0) - numpy.sum(self.d) / 4
-        root = LightweightTreeNode(list(zip(lengths, self.nodes)))
+        root = LightweightTreeNode(list(zip(lengths, self.nodes, strict=False)))
         tree = root.convert()
         tree.name = "root"
         return (self.score + sum(lengths), tree)
@@ -183,7 +183,7 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
         tips = [frozenset([n]) for n in names]
         dist = d.max() / 2
         tips = [LightweightTreeTip(name) for name in names]
-        root = LightweightTreeNode(list(zip([dist, dist], tips)))
+        root = LightweightTreeNode(list(zip([dist, dist], tips, strict=False)))
         tree = root.convert()
         tree.name = "root"
         return ScoredTreeCollection([(dist * 2, tree)])
@@ -254,7 +254,7 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
         # Now take up to dkeep joins, an equal number of the best at each
         # topological distance, while not calculating any more TDs than
         # necessary.
-        prior_td = dict(list(zip(list(map(id, trees)), prior_td)))
+        prior_td = dict(list(zip(list(map(id, trees)), prior_td, strict=False)))
         target_td = 1
         while (candidates or queued) and len(next_trees) < all_keep:
             if candidates and not queue[target_td]:

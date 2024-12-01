@@ -199,7 +199,9 @@ class DirectedMotifChange(predicate):
         """positions where motif pattern is found in query"""
         positions = set()
         for offset in range(len(query) - self.motiflen + 1):
-            for q, ms in zip(query[offset : offset + self.motiflen], motifs):
+            for q, ms in zip(
+                query[offset : offset + self.motiflen], motifs, strict=False
+            ):
                 if q not in ms:
                     break
             else:
@@ -231,7 +233,7 @@ class DirectedMotifChange(predicate):
         to_motifs = [resolve(m) for m in self.to_motif]
 
         def call(x, y):
-            diffs = [X != Y for (X, Y) in zip(x, y)]
+            diffs = [X != Y for (X, Y) in zip(x, y, strict=False)]
             matches = []
             for posn in self.test_motifs(from_motifs, to_motifs, x, y):
                 diff = list(numpy.nonzero(diffs[posn : posn + self.motiflen])[0])

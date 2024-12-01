@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 from numpy import array
 from numpy import random as np_random
@@ -40,7 +40,7 @@ class concat:
         self,
         join_seq: str = "",
         intersect: bool = True,
-        moltype: Optional[str] = None,
+        moltype: str | None = None,
     ):
         """
         Parameters
@@ -108,8 +108,8 @@ class concat:
 
     def main(
         self,
-        data: List[AlignedSeqsType],
-    ) -> Union[SerialisableType, AlignedSeqsType]:
+        data: list[AlignedSeqsType],
+    ) -> SerialisableType | AlignedSeqsType:
         """returns an alignment
 
         Parameters
@@ -159,7 +159,7 @@ class omit_degenerates:
 
     def __init__(
         self,
-        moltype: Optional[str] = None,
+        moltype: str | None = None,
         gap_is_degen: bool = True,
         motif_length: int = 1,
     ):
@@ -256,7 +256,7 @@ class omit_gap_pos:
         self,
         allowed_frac: float = 0.99,
         motif_length: int = 1,
-        moltype: Optional[str] = None,
+        moltype: str | None = None,
     ):
         """
         Parameters
@@ -345,7 +345,7 @@ class take_codon_positions:
         self,
         *positions: int,
         fourfold_degenerate: bool = False,
-        gc: Union[str, int] = "Standard",
+        gc: str | int = "Standard",
         moltype: str = "dna",
     ):
         """
@@ -537,7 +537,7 @@ class take_n_seqs:
         self,
         number: int,
         random: bool = False,
-        seed: Optional[int] = None,
+        seed: int | None = None,
         fixed_choice: bool = True,
     ):
         """
@@ -655,7 +655,7 @@ class min_length:
         length: int,
         motif_length: int = 1,
         subtract_degen: bool = True,
-        moltype: Optional[MolTypes] = None,
+        moltype: MolTypes | None = None,
     ):
         """
         Parameters
@@ -759,9 +759,9 @@ class fixed_length:
         length: int,
         start: int = 0,
         random: bool = False,
-        seed: Optional[int] = None,
+        seed: int | None = None,
         motif_length: int = 1,
-        moltype: Optional[MolTypes] = None,
+        moltype: MolTypes | None = None,
     ):
         """
         Parameters
@@ -902,7 +902,7 @@ class omit_bad_seqs:
 
     def __init__(
         self,
-        quantile: Optional[float] = None,
+        quantile: float | None = None,
         gap_fraction: int = 1,
         ambig_fraction: OptInt = None,  # refactor: set default to 1 when support for old style aln is dropped
         moltype: MolTypes = "dna",
@@ -1019,8 +1019,8 @@ class omit_duplicated:
         self,
         mask_degen: bool = False,
         choose: str = "longest",
-        seed: Optional[int] = None,
-        moltype: Optional[MolTypes] = None,
+        seed: int | None = None,
+        moltype: MolTypes | None = None,
     ):
         """
         Parameters
@@ -1160,7 +1160,7 @@ class omit_duplicated:
 class trim_stop_codons:
     """Removes terminal stop codons."""
 
-    def __init__(self, gc: Union[str, int] = 1):
+    def __init__(self, gc: str | int = 1):
         """
         Parameters
         ----------

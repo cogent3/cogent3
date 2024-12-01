@@ -348,7 +348,7 @@ def test_sequence_disambiguate():
     s = new_moltype.RNA.make_seq(seq="AUN-YRS-WKMCGWMRNMWRKY")
     t = s.disambiguate("random")
     u = s.disambiguate("random")
-    for i, j in zip(str(s), str(t)):
+    for i, j in zip(str(s), str(t), strict=False):
         if i in s.moltype.ambiguities:
             assert j in s.moltype.ambiguities[i]
         else:

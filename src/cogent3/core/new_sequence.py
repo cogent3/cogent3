@@ -140,12 +140,12 @@ class Sequence:
     def __init__(
         self,
         moltype: MolType,
-        seq: typing.Union[StrORBytesORArray, SeqViewABC],
+        seq: StrORBytesORArray | SeqViewABC,
         *,
         name: OptStr = None,
-        info: typing.Optional[typing.Union[dict, InfoClass]] = None,
+        info: dict | InfoClass | None = None,
         annotation_offset: int = 0,
-        annotation_db: typing.Optional[SupportsFeatures] = None,
+        annotation_db: SupportsFeatures | None = None,
     ):
         """Initialize a sequence.
 
@@ -594,7 +594,7 @@ class Sequence:
             # use identity scoring function
             function = lambda a, b: a != b
         distance = 0
-        for first, second in zip(self, other):
+        for first, second in zip(self, other, strict=False):
             distance += function(first, second)
         return distance
 
@@ -648,7 +648,9 @@ class Sequence:
             return 0.0
 
         is_gap = self.moltype.gaps.__contains__
-        return sum([is_gap(i) == is_gap(j) for i, j in zip(self, other)]) / min(
+        return sum(
+            [is_gap(i) == is_gap(j) for i, j in zip(self, other, strict=False)]
+        ) / min(
             len(self),
             len(other),
         )
@@ -685,7 +687,7 @@ class Sequence:
         is_gap = self.moltype.gaps.__contains__
         count = 0
         identities = 0
-        for i, j in zip(self, other):
+        for i, j in zip(self, other, strict=False):
             if is_gap(i) or is_gap(j):
                 continue
             count += 1
@@ -713,7 +715,7 @@ class Sequence:
         is_gap = self.moltype.gaps.__contains__
         count = 0
         diffs = 0
-        for i, j in zip(self, other):
+        for i, j in zip(self, other, strict=False):
             if is_gap(i) or is_gap(j):
                 continue
             count += 1
@@ -786,7 +788,7 @@ class Sequence:
         self,
         wrap: int = 60,
         limit: OptInt = None,
-        colors: typing.Optional[typing.Mapping[str, str]] = None,
+        colors: typing.Mapping[str, str] | None = None,
         font_size: int = 12,
         font_family: str = "Lucida Console",
     ):
@@ -1217,7 +1219,7 @@ class Sequence:
             feature_data.pop(discard)
         return self.make_feature(feature_data)
 
-    def to_moltype(self, moltype: typing.Union[str, new_moltype.MolType]) -> Sequence:
+    def to_moltype(self, moltype: str | new_moltype.MolType) -> Sequence:
         """returns copy of self with moltype seq
 
         Parameters
@@ -1608,7 +1610,7 @@ class Sequence:
 
     def is_annotated(
         self,
-        biotype: typing.Optional[typing.Union[str, tuple[str]]] = None,
+        biotype: str | tuple[str] | None = None,
     ) -> bool:
         """returns True if sequence parent name has any annotations
 
@@ -1672,7 +1674,7 @@ class Sequence:
     def get_drawables(
         self,
         *,
-        biotype: typing.Optional[StrORIterableStr] = None,
+        biotype: StrORIterableStr | None = None,
     ) -> dict:
         """returns a dict of drawables, keyed by type
 
@@ -1692,7 +1694,7 @@ class Sequence:
     def get_drawable(
         self,
         *,
-        biotype: typing.Optional[StrORIterableStr] = None,
+        biotype: StrORIterableStr | None = None,
         width: int = 600,
         vertical: bool = False,
     ):
@@ -2301,7 +2303,7 @@ class SliceRecordABC(ABC):
     def __len__(self):
         return abs((self.start - self.stop) // self.step)
 
-    def __getitem__(self, segment: typing.Union[int, slice]):
+    def __getitem__(self, segment: int | slice):
         kwargs = self._get_init_kwargs()
 
         if _is_int(segment):
@@ -2715,7 +2717,7 @@ class SeqViewABC(ABC):
     def __bytes__(self): ...
 
     @abstractmethod
-    def __getitem__(self, segment: typing.Union[int, slice]) -> SeqViewABC: ...
+    def __getitem__(self, segment: int | slice) -> SeqViewABC: ...
 
     def __len__(self):
         return len(self.slice_record)
@@ -2846,7 +2848,7 @@ class SeqView(SeqViewABC):
     def __bytes__(self) -> bytes:
         return self.bytes_value
 
-    def __getitem__(self, segment: typing.Union[int, slice]) -> SeqViewABC:
+    def __getitem__(self, segment: int | slice) -> SeqViewABC:
         return self.__class__(
             parent=self.parent,
             seqid=self.seqid,

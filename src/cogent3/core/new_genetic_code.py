@@ -22,7 +22,7 @@ from cogent3.core import new_alphabet, new_moltype
 from cogent3.util.table import Table
 
 OptStr = typing.Optional[str]
-SetStr = typing.Set[str]
+SetStr = set[str]
 ConverterType = typing.Callable[[bytes, bytes], bytes]
 StrORInt = typing.Union[str, int]
 StrORBytesORArray = typing.Union[str, numpy.ndarray]
@@ -43,7 +43,7 @@ class InvalidCodonError(KeyError, GeneticCodeError):
 def _make_mappings(
     codons: new_alphabet.KmerAlphabet,
     code_sequence: str,
-) -> typing.Tuple[typing.Dict[str, str], typing.Dict[str, SetStr], SetStr]:
+) -> tuple[dict[str, str], dict[str, SetStr], SetStr]:
     """makes amino acid / codon mappings and stop codon group
 
     Parameters
@@ -60,7 +60,7 @@ def _make_mappings(
     stops = set()
     codon_to_aa = {}
     aa_to_codon = collections.defaultdict(set)
-    for codon, aa in zip(codons, code_sequence):
+    for codon, aa in zip(codons, code_sequence, strict=False):
         if aa == "*":
             stops.add(codon)
         codon_to_aa[codon] = aa
@@ -116,8 +116,8 @@ class GeneticCode:
     ncbi_code_sequence: dataclasses.InitVar[str]
     ncbi_start_codon_map: dataclasses.InitVar[str]
     moltype: new_moltype.MolType = new_moltype.DNA
-    _codon_to_aa: typing.Dict[str, str] = dataclasses.field(init=False, default=None)
-    _aa_to_codon: typing.Dict[str, typing.List[str]] = dataclasses.field(
+    _codon_to_aa: dict[str, str] = dataclasses.field(init=False, default=None)
+    _aa_to_codon: dict[str, list[str]] = dataclasses.field(
         init=False,
         default=None,
     )
@@ -125,7 +125,7 @@ class GeneticCode:
     _stop_codons: SetStr = dataclasses.field(init=False, default=None)
     _start_codons: SetStr = dataclasses.field(init=False, default=None)
     codons: new_alphabet.KmerAlphabet = dataclasses.field(init=False, default=None)
-    anticodons: typing.Tuple[str, ...] = dataclasses.field(init=False, default=None)
+    anticodons: tuple[str, ...] = dataclasses.field(init=False, default=None)
     # callables for translating on the plus strand, or the minus strand
     _translate_plus: ConverterType = dataclasses.field(init=False, default=None)
     _translate_minus: ConverterType = dataclasses.field(init=False, default=None)
@@ -262,7 +262,7 @@ class GeneticCode:
 
         return self._translate_plus(seq.tobytes()).decode("utf8")
 
-    def sixframes(self, seq: str) -> typing.Iterable[typing.Tuple[str, int, str]]:
+    def sixframes(self, seq: str) -> typing.Iterable[tuple[str, int, str]]:
         """Returns the six reading frames of the genetic code.
 
         Returns
@@ -499,7 +499,7 @@ code_mapping = (
 )
 _CODES = {}
 for mapping in code_mapping:
-    code = GeneticCode(**dict(zip(_mapping_cols, mapping)))
+    code = GeneticCode(**dict(zip(_mapping_cols, mapping, strict=False)))
     _CODES[code.ID] = code
     _CODES[code.name] = code
     _CODES[code] = code

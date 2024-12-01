@@ -1,6 +1,6 @@
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from copy import deepcopy
-from typing import Callable, Optional, Union
+from typing import Union
 
 import cogent3.util.io
 from cogent3 import load_tree, make_tree
@@ -58,17 +58,17 @@ class model:
 
     def __init__(
         self,
-        sm: Union[str, _SubstitutionModel],
-        tree: Optional[Union[TreeNode, str]] = None,
+        sm: str | _SubstitutionModel,
+        tree: TreeNode | str | None = None,
         unique_trees: bool = False,
-        tree_func: Optional[Callable] = None,
-        name: Optional[str] = None,
+        tree_func: Callable | None = None,
+        name: str | None = None,
         optimise_motif_probs: bool = False,
-        sm_args: Optional[dict] = None,
-        lf_args: Optional[dict[str, Union[list, str]]] = None,
-        time_het: Optional[Union[str, list[dict[str, Union[list, str]]]]] = None,
-        param_rules: Optional[list[dict[str, Union[list, str]]]] = None,
-        opt_args: Optional[dict] = None,
+        sm_args: dict | None = None,
+        lf_args: dict[str, list | str] | None = None,
+        time_het: str | list[dict[str, list | str]] | None = None,
+        param_rules: list[dict[str, list | str]] | None = None,
+        opt_args: dict | None = None,
         lower: float = 1e-6,
         upper: float = 50,
         split_codons: bool = False,
@@ -355,7 +355,7 @@ class model:
     def _fit_aln(
         self,
         aln: AlignedSeqsType,
-        identifier: Optional[str] = None,
+        identifier: str | None = None,
         initialise: Callable = None,
         construct: bool = True,
         **opt_args,
@@ -386,7 +386,7 @@ class model:
         initialise: Callable = None,
         construct: bool = True,
         **opt_args,
-    ) -> Union[SerialisableType, ModelResultType]:
+    ) -> SerialisableType | ModelResultType:
         """
         Parameters
         ----------
@@ -487,7 +487,7 @@ class _ModelCollectionBase:
         null: model,
         *alternates: Iterable[model],
         sequential: bool = True,
-        init_alt: Optional[Callable] = None,
+        init_alt: Callable | None = None,
     ):
         """
         Parameters
@@ -646,7 +646,7 @@ class ancestral_states:
     def main(
         self,
         result: ModelResultType,
-    ) -> Union[SerialisableType, TabularResultType]:
+    ) -> SerialisableType | TabularResultType:
         """returns a tabular_result of posterior probabilities of ancestral states"""
         anc = result.lf.reconstruct_ancestral_seqs()
         fl = result.lf.get_full_length_likelihoods()
@@ -668,7 +668,7 @@ class tabulate_stats:
     def main(
         self,
         result: ModelResultType,
-    ) -> Union[SerialisableType, TabularResultType]:
+    ) -> SerialisableType | TabularResultType:
         """returns Table for all statistics returned by likelihood function
         get_statistics
 

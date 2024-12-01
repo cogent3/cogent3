@@ -36,7 +36,6 @@ from functools import reduce
 from itertools import combinations
 from operator import or_
 from random import choice, shuffle
-from typing import Union
 
 from numpy import argsort, ceil, log, zeros
 
@@ -752,7 +751,9 @@ class TreeNode:
         if len(self.children) != len(other.children):
             return False
         if self.children:
-            for self_child, other_child in zip(self.children, other.children):
+            for self_child, other_child in zip(
+                self.children, other.children, strict=False
+            ):
                 if not self_child.same_shape(other_child):
                     return False
             return True
@@ -1147,7 +1148,7 @@ class TreeNode:
             )
             mid = (lo + hi) // 2
             prefixes[mid] = char1 + "-" * (LEN - 2) + prefixes[mid][-1]
-            result = [p + l for (p, l) in zip(prefixes, result)]
+            result = [p + l for (p, l) in zip(prefixes, result, strict=False)]
             if show_internal:
                 stem = result[mid]
                 result[mid] = stem[0] + namestr + stem[len(namestr) + 1 :]
@@ -1717,11 +1718,11 @@ class PhyloNode(TreeNode):
         super().__init__(*args, **kwargs)
 
     @property
-    def length(self) -> Union[float, None]:
+    def length(self) -> float | None:
         return self.params.get("length", None)
 
     @length.setter
-    def length(self, value: Union[float, None]) -> None:
+    def length(self, value: float | None) -> None:
         if not hasattr(self, "params"):
             self.params = {}
         self.params["length"] = value

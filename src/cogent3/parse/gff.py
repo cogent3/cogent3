@@ -11,11 +11,11 @@ from abc import ABC
 from cogent3.util.io import PathType, open_
 
 OptionalCallable = typing.Optional[typing.Callable]
-OptionalStrContainer = typing.Optional[typing.Union[str, typing.Sequence[str]]]
+OptionalStrContainer = typing.Optional[str | typing.Sequence[str]]
 OptionalIntList = typing.Optional[list[list[int]]]
 OptionalStr = typing.Optional[str]
 OptionalInt = typing.Optional[int]
-OptionalStrDict = typing.Optional[typing.Union[str, dict[str, str]]]
+OptionalStrDict = typing.Optional[str | dict[str, str]]
 OptionalBool = typing.Optional[bool]
 
 
@@ -171,7 +171,7 @@ class GffRecord(GffRecordABC):
 
 @functools.singledispatch
 def gff_parser(
-    f: typing.Union[PathType, typing.IO, OptionalStrContainer],
+    f: PathType | typing.IO | OptionalStrContainer,
     attribute_parser: OptionalCallable = None,
     seqids: OptionalStrContainer = None,
     gff3: OptionalBool = None,
@@ -263,7 +263,7 @@ def _(
 
 
 def _gff_parser(
-    f: typing.Union[PathType, typing.IO, OptionalStrContainer],
+    f: PathType | typing.IO | OptionalStrContainer,
     attribute_parser: OptionalCallable = None,
     seqids: OptionalStrContainer = None,
     gff3: bool = True,

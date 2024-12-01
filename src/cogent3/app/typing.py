@@ -6,9 +6,16 @@ from __future__ import annotations
 import inspect
 import re
 import sys
-from typing import Any, ForwardRef, Protocol, TypeVar, Union, runtime_checkable
-
-from typing_extensions import get_args, get_origin
+from typing import (
+    Any,
+    ForwardRef,
+    Protocol,
+    TypeVar,
+    Union,
+    get_args,
+    get_origin,
+    runtime_checkable,
+)
 
 if sys.version_info.minor >= 10:
     from types import UnionType

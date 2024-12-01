@@ -24,11 +24,11 @@ from cogent3.util.table import Table
 
 OptionalInt = typing.Optional[int]
 OptionalStr = typing.Optional[str]
-OptionalStrList = typing.Optional[typing.Union[str, typing.List[str]]]
-OptionalStrContainer = typing.Optional[typing.Union[str, typing.Sequence]]
+OptionalStrList = typing.Optional[str | list[str]]
+OptionalStrContainer = typing.Optional[str | typing.Sequence]
 OptionalBool = typing.Optional[bool]
 OptionalDbCursor = typing.Optional[sqlite3.Cursor]
-ReturnType = typing.Tuple[str, tuple]  # the sql statement and corresponding values
+ReturnType = tuple[str, tuple]  # the sql statement and corresponding values
 # data type for sqlitedb constructors
 T = typing.Optional[typing.Iterable[dict]]
 
@@ -125,7 +125,7 @@ class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
         start: OptionalInt = None,
         stop: OptionalInt = None,
         **kwargs,
-    ) -> typing.List[FeatureDataType]: ...
+    ) -> list[FeatureDataType]: ...
 
     def get_feature_parent(
         self,
@@ -134,7 +134,7 @@ class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
         start: OptionalInt = None,
         stop: OptionalInt = None,
         **kwargs,
-    ) -> typing.List[FeatureDataType]: ...
+    ) -> list[FeatureDataType]: ...
 
     def num_matches(
         self,
@@ -168,7 +168,7 @@ class SupportsWriteFeatures(typing.Protocol):  # pragma: no cover
         *,
         biotype: str,
         name: str,
-        spans: typing.List[typing.Tuple[int, int]],
+        spans: list[tuple[int, int]],
         seqid: OptionalStr = None,
         parent_id: OptionalStr = None,
         attributes: OptionalStr = None,
@@ -372,7 +372,7 @@ def _del_records_sql(
 def _select_records_sql(
     table_name: str,
     conditions: dict,
-    columns: typing.Optional[typing.List[str]] = None,
+    columns: list[str] | None = None,
     start: OptionalInt = None,
     stop: OptionalInt = None,
     allow_partial=True,
@@ -416,7 +416,7 @@ def _select_records_sql(
 def _count_records_sql(
     table_name: str,
     conditions: dict,
-    columns: typing.Optional[typing.List[str]] = None,
+    columns: list[str] | None = None,
     start: OptionalInt = None,
     stop: OptionalInt = None,
     allow_partial=True,
@@ -590,7 +590,7 @@ class SqliteAnnotationDbMixin:
     def table_names(self) -> tuple[str]:
         return self._table_names
 
-    def _setup_db(self, db: typing.Union[SupportsFeatures, sqlite3.Connection]) -> None:
+    def _setup_db(self, db: SupportsFeatures | sqlite3.Connection) -> None:
         """initialises the db, using the db passed to the constructor"""
         if isinstance(db, self.__class__):
             self._db = db.db
@@ -659,7 +659,7 @@ class SqliteAnnotationDbMixin:
         seqid: str,
         biotype: str,
         name: str,
-        spans: typing.List[typing.Tuple[int, int]],
+        spans: list[tuple[int, int]],
         parent_id: OptionalStr = None,
         strand: OptionalStr = None,
         attributes: OptionalStr = None,
@@ -716,14 +716,14 @@ class SqliteAnnotationDbMixin:
     def _get_feature_by_id(
         self,
         table_name: str,
-        columns: typing.Optional[typing.Iterable[str]],
+        columns: typing.Iterable[str] | None,
         column: str,
         name: str,
         start: OptionalInt = None,
         stop: OptionalInt = None,
         biotype: OptionalStr = None,
         allow_partial: bool = False,
-    ) -> typing.List[FeatureDataType]:
+    ) -> list[FeatureDataType]:
         # we return the parent_id because `get_feature_parent()` requires it
         sql, vals = _select_records_sql(
             table_name=table_name,
@@ -734,7 +734,7 @@ class SqliteAnnotationDbMixin:
             allow_partial=allow_partial,
         )
         for result in self._execute_sql(sql, values=vals):
-            result = dict(zip(result.keys(), result))
+            result = dict(zip(result.keys(), result, strict=False))
             result["on_alignment"] = result.get("on_alignment")
             result["spans"] = [tuple(c) for c in result["spans"]]
             yield result
@@ -822,7 +822,7 @@ class SqliteAnnotationDbMixin:
         table_names = ["user"] if on_alignment else self.table_names
         for table_name in table_names:
             for result in self._get_records_matching(table_name, **kwargs):
-                yield dict(zip(result.keys(), result))
+                yield dict(zip(result.keys(), result, strict=False))
 
     def get_features_matching(
         self,
@@ -857,7 +857,7 @@ class SqliteAnnotationDbMixin:
                 columns=columns,
                 **query_args,
             ):
-                result = dict(zip(result.keys(), result))
+                result = dict(zip(result.keys(), result, strict=False))
                 result["on_alignment"] = result.get("on_alignment")
                 result["spans"] = [tuple(c) for c in result["spans"]]
                 yield result
@@ -889,7 +889,7 @@ class SqliteAnnotationDbMixin:
         seqid: StrOrBool = False,
         biotype: StrOrBool = False,
         name: StrOrBool = False,
-    ) -> typing.Optional[Table]:
+    ) -> Table | None:
         """return table of counts of distinct values
 
         Parameters
@@ -988,7 +988,11 @@ class SqliteAnnotationDbMixin:
         for table_name in self.table_names:
             table_data = []
             for record in self._get_records_matching(table_name):
-                store = {k: v for k, v in zip(record.keys(), record) if v is not None}
+                store = {
+                    k: v
+                    for k, v in zip(record.keys(), record, strict=False)
+                    if v is not None
+                }
                 store["spans"] = store["spans"].tolist()
                 table_data.append(store)
             tables[table_name] = table_data
@@ -1439,7 +1443,7 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         self.db.commit()
         del records
 
-    def _default_namer(self, record: dict) -> typing.Union[typing.List[str], None]:
+    def _default_namer(self, record: dict) -> list[str] | None:
         # we evaluate potential tokens in the genbank record in order of
         # preference for naming. If none of these are found, a fake name
         # will be generated
@@ -1460,7 +1464,7 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
 
         return None
 
-    def _make_fake_id(self, record: dict) -> typing.List[str]:
+    def _make_fake_id(self, record: dict) -> list[str]:
         name = [f"{record.get('type', 'fakeid')}-{self._num_fakeids}"]
         self._num_fakeids += 1
         return name
@@ -1605,7 +1609,7 @@ def convert_annotation_to_annotation_db(data: dict) -> SupportsFeatures:
 @display_wrap
 def _db_from_genbank(
     path: PathType,
-    db: typing.Optional[SupportsFeatures],
+    db: SupportsFeatures | None,
     write_path,
     **kwargs,
 ):
@@ -1641,7 +1645,7 @@ def _leave_attributes(*attrs):
 def _db_from_gff(
     path: PathType,
     seqids: OptionalStrContainer,
-    db: typing.Optional[SupportsFeatures],
+    db: SupportsFeatures | None,
     write_path: PathType,
     num_lines: OptionalInt,
     **kwargs,
@@ -1686,7 +1690,7 @@ def load_annotations(
     *,
     path: PathType,
     seqids: OptionalStr = None,
-    db: typing.Optional[SupportsFeatures] = None,
+    db: SupportsFeatures | None = None,
     write_path: PathType = ":memory:",
     lines_per_block: OptionalInt = 500_000,
     show_progress: bool = False,
@@ -1764,9 +1768,7 @@ def _update_array_format(data: bytes) -> bytes:
 
 def update_file_format(
     source_path: PathType,
-    db_class: type[
-        typing.Union[BasicAnnotationDb, GenbankAnnotationDb, GffAnnotationDb]
-    ],
+    db_class: type[BasicAnnotationDb | GenbankAnnotationDb | GffAnnotationDb],
     backup: bool = True,
 ) -> None:
     """Update the database file to the latest format.

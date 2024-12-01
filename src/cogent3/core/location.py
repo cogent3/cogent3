@@ -886,8 +886,8 @@ class IndelMap(MapABC):
 
     # gap data is gap positions, gap lengths on input, stored
     gap_pos: IntArrayTypes
-    cum_gap_lengths: Optional[IntArrayTypes] = None
-    gap_lengths: dataclasses.InitVar[Optional[IntArrayTypes]] = None
+    cum_gap_lengths: IntArrayTypes | None = None
+    gap_lengths: dataclasses.InitVar[IntArrayTypes | None] = None
     termini_unknown: bool = False
     parent_length: int = 0
     _serialisable: dict = dataclasses.field(init=False, repr=False)
@@ -1335,7 +1335,7 @@ class IndelMap(MapABC):
             # does not start with a gap
             starts = [0, int(self.gap_pos[0])]
             ends = [int(self.gap_pos[0]), self.parent_length]
-            return list(zip(starts, ends))
+            return list(zip(starts, ends, strict=False))
 
         starts = self.gap_pos[:-1].tolist()
         ends = self.gap_pos[1:].tolist()
@@ -1349,7 +1349,7 @@ class IndelMap(MapABC):
             starts.append(ends[-1])
             ends.append(self.parent_length)
 
-        return list(zip(starts, ends))
+        return list(zip(starts, ends, strict=False))
 
     def get_gap_coordinates(self) -> SeqCoordTypes:
         """returns [(gap pos, gap length), ...]"""
@@ -1373,7 +1373,7 @@ class IndelMap(MapABC):
     def merge_maps(
         self,
         other: "IndelMap",
-        parent_length: Optional[int] = None,
+        parent_length: int | None = None,
     ) -> "IndelMap":
         """merge gaps of other with self
 
@@ -1682,7 +1682,7 @@ def coords_minus_coords(
 def span_and_span(
     spans1: tuple[int, int],
     spans2: tuple[int, int],
-) -> Union[tuple[int, int], tuple[None, None]]:
+) -> tuple[int, int] | tuple[None, None]:
     """returns the intersection of two spans
 
     Parameters
@@ -1757,15 +1757,15 @@ def coords_intersect(
 class FeatureMap(MapABC):
     """A map holds a list of spans."""
 
-    spans: dataclasses.InitVar[Optional[SeqSpanTypes]] = ()
+    spans: dataclasses.InitVar[SeqSpanTypes | None] = ()
     parent_length: int = 0
     offsets: list[int] = dataclasses.field(init=False, repr=False)
     useful: bool = dataclasses.field(init=False, repr=False, default=False)
     complete: bool = dataclasses.field(init=False, repr=False, default=True)
     _serialisable: dict = dataclasses.field(init=False, repr=False)
     _spans: SeqSpanTypes = dataclasses.field(default=(), init=False)
-    _start: Optional[int] = dataclasses.field(default=None, init=False)
-    _end: Optional[int] = dataclasses.field(default=None, init=False)
+    _start: int | None = dataclasses.field(default=None, init=False)
+    _end: int | None = dataclasses.field(default=None, init=False)
 
     def __post_init__(self, spans: SeqSpanTypes):
         assert self.parent_length is not None
@@ -2130,7 +2130,7 @@ def gap_coords_to_map(
         gap_pos = numpy.array([], dtype=_DEFAULT_GAP_DTYPE)
         lengths = gap_pos.copy()
     else:
-        gap_pos, lengths = list(zip(*sorted(gaps_lengths.items())))
+        gap_pos, lengths = list(zip(*sorted(gaps_lengths.items()), strict=False))
         gap_pos = numpy.array(gap_pos, dtype=_DEFAULT_GAP_DTYPE)
         lengths = numpy.array(lengths, dtype=_DEFAULT_GAP_DTYPE)
 
@@ -2152,7 +2152,7 @@ def deserialise_map(data: dict) -> FeatureMap: ...
 
 
 @functools.singledispatch
-def _norm_slice(index, length: int) -> tuple[int, int, Union[int, None]]:
+def _norm_slice(index, length: int) -> tuple[int, int, int | None]:
     """_norm_slice(slice(1, -2, 3), 10) -> (1,8,3)"""
     start = index
     if start < 0:
@@ -2163,21 +2163,21 @@ def _norm_slice(index, length: int) -> tuple[int, int, Union[int, None]]:
 
 
 @_norm_slice.register
-def _(index: slice, length: int) -> tuple[int, int, Union[int, None]]:
+def _(index: slice, length: int) -> tuple[int, int, int | None]:
     start = _norm_index(index.start, length, 0)
     end = _norm_index(index.stop, length, length)
     return start, end, index.step
 
 
 @_norm_slice.register
-def _(index: Span, length) -> tuple[int, int, Union[int, None]]:
+def _(index: Span, length) -> tuple[int, int, int | None]:
     start = _norm_index(index.start, length, 0)
     end = _norm_index(index.end, length, length)
     return start, end, None
 
 
 @_norm_slice.register
-def _(index: FeatureMap, length) -> tuple[int, int, Union[int, None]]:
+def _(index: FeatureMap, length) -> tuple[int, int, int | None]:
     start = _norm_index(index.start, length, 0)
     end = _norm_index(index.end, length, length)
     return start, end, None

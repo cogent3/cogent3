@@ -152,7 +152,7 @@ class TestPeriod(TestCase):
         )
         py_result = py_ipdft_inner(x, X, W, ulim, N)
         numba_result = numba_ipdft_inner(x, X, W, ulim, N)
-        for i, j in zip(py_result, numba_result):
+        for i, j in zip(py_result, numba_result, strict=False):
             assert_allclose(abs(i), abs(j), rtol=1e-6)
 
         x = array(
@@ -264,7 +264,7 @@ class TestPeriod(TestCase):
         N = 100
         py_autocorr_inner(x, py_xc, N)
         numba_autocorr_inner(x, numba_xc, N)
-        for i, j in zip(py_xc, numba_xc):
+        for i, j in zip(py_xc, numba_xc, strict=False):
             assert_allclose(i, j)
 
     def test_autocorr(self):

@@ -8,7 +8,7 @@ from functools import singledispatch
 from gzip import compress as gzip_compress
 from gzip import decompress as gzip_decompress
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any, Union
 
 import numpy
 
@@ -101,10 +101,10 @@ register_datastore_reader("sqlitedb")(DataStoreSqlite)
 
 
 def open_data_store(
-    base_path: Union[str, Path],
-    suffix: Optional[str] = None,
-    limit: Optional[int] = None,
-    mode: Union[str, Mode] = READONLY,
+    base_path: str | Path,
+    suffix: str | None = None,
+    limit: int | None = None,
+    mode: str | Mode = READONLY,
     **kwargs,
 ) -> DataStoreABC:
     """returns DataStore instance of a type specified by the path suffix
@@ -314,7 +314,7 @@ class load_unaligned:
     def __init__(
         self,
         *,
-        moltype: Optional[Union[str, MolType]] = None,
+        moltype: str | MolType | None = None,
         format: str = "fasta",
     ):
         """
@@ -407,7 +407,7 @@ class load_tabular:
             rows.append(line)
 
         records = []
-        for record in zip(*rows):
+        for record in zip(*rows, strict=False):
             record = numpy.array(record, dtype="O")
             try:
                 record = record.astype(int)
@@ -538,7 +538,7 @@ class write_json:
         /,
         data: SerialisableType,
         *,
-        identifier: Optional[str] = None,
+        identifier: str | None = None,
     ) -> IdentifierType:
         identifier = identifier or self._id_from_source(data)
         if isinstance(data, NotCompleted):
@@ -589,7 +589,7 @@ class write_seqs:
         /,
         data: SeqsCollectionType,
         *,
-        identifier: Optional[str] = None,
+        identifier: str | None = None,
     ) -> IdentifierType:
         identifier = identifier or self._id_from_source(data)
         if isinstance(data, NotCompleted):
@@ -637,7 +637,7 @@ class write_tabular:
         /,
         data: TabularType,
         *,
-        identifier: Optional[str] = None,
+        identifier: str | None = None,
     ) -> IdentifierType:
         identifier = identifier or self._id_from_source(data)
         if isinstance(data, NotCompleted):
@@ -689,7 +689,7 @@ class write_db:
         /,
         data: SerialisableType,
         *,
-        identifier: Optional[str] = None,
+        identifier: str | None = None,
     ) -> IdentifierType:
         identifier = identifier or self._id_from_source(data)
         blob = self._serialiser(data)

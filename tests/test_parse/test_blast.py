@@ -289,9 +289,10 @@ ece:Z4182	cvi:CV2422	41.67	72	42	0	39	110	29	100	2e-06	52.8""".split(
                     ("ece:Z4182", "ece:Z4182", 3e-47),
                     ("ece:Z4182", "cvi:CV2422", 2e-6),
                 ],
+                strict=False,
             ),
         )
-        got = list(zip(*QMEBlast9(self.rec3)))
+        got = list(zip(*QMEBlast9(self.rec3), strict=False))
         assert_equal(got[:-1], expect[:-1])
         assert_allclose(got[-1], expect[-1])
 
@@ -305,9 +306,10 @@ ece:Z4182	cvi:CV2422	41.67	72	42	0	39	110	29	100	2e-06	52.8""".split(
                     ("ece:Z4182", "ece:Z4182", 3e-47),
                     ("ece:Z4182", "cvi:CV2422", 2e-6),
                 ],
+                strict=False,
             ),
         )
-        got = list(zip(*QMEPsiBlast9(self.rec3)))
+        got = list(zip(*QMEPsiBlast9(self.rec3), strict=False))
         assert_equal(got[:-1], expect[:-1])
         assert_allclose(got[-1], expect[-1])
 

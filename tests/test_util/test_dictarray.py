@@ -150,7 +150,7 @@ class DictArrayTest(TestCase):
         data = [0, 35, 45]
         keys = "a", "b", "c"
         darr = DictArrayTemplate(keys).wrap(data)
-        self.assertEqual(darr.to_dict(), dict(zip(keys, data)))
+        self.assertEqual(darr.to_dict(), dict(zip(keys, data, strict=False)))
         # 2D data, 2D keys, both string, provided
         data = [[0, 35, 45]]
         darr = DictArrayTemplate(["0"], keys).wrap(data)

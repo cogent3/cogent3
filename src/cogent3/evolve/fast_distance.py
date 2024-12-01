@@ -1,6 +1,5 @@
 from collections import defaultdict, namedtuple
 from numbers import Number
-from typing import Tuple
 
 import numba
 import numpy
@@ -389,7 +388,7 @@ class _PairwiseDistance:
         off_diag = [
             (i, j) for i in range(self._dim) for j in range(self._dim) if i != j
         ]
-        off_diag = tuple(tuple(a) for a in zip(*off_diag))
+        off_diag = tuple(tuple(a) for a in zip(*off_diag, strict=False))
 
         done = 0.0
         to_do = (len(names) ** 2 - 1) / 2
@@ -837,7 +836,7 @@ class DistanceMatrix(DictArray):
         dists = dists.to_dict()
         return nj(dists, show_progress=show_progress)
 
-    def max_pair(self) -> Tuple[str, str]:
+    def max_pair(self) -> tuple[str, str]:
         """returns the pair of names with the maximum distance
 
         Returns
@@ -855,7 +854,7 @@ class DistanceMatrix(DictArray):
 
         return max_pair
 
-    def min_pair(self) -> Tuple[str, str]:
+    def min_pair(self) -> tuple[str, str]:
         """returns the pair of names with the minimum distance (excluding the diagonal)
 
         Returns

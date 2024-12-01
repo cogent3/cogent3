@@ -3,14 +3,14 @@ import functools
 import shutil
 import uuid
 from bz2 import open as bzip_open
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from gzip import open as gzip_open
 from io import TextIOWrapper
 from lzma import open as lzma_open
 from os import PathLike, remove
 from pathlib import Path, PurePath
 from tempfile import mkdtemp
-from typing import IO, Callable, Optional, Tuple, Union
+from typing import IO, Optional, Union
 from urllib.parse import ParseResult, urlparse
 from urllib.request import urlopen
 from zipfile import ZipFile
@@ -23,7 +23,7 @@ PathType = Union[str, PathLike, PurePath]
 
 
 @functools.singledispatch
-def is_url(path: Union[str, bytes, Path]) -> bool:
+def is_url(path: str | bytes | Path) -> bool:
     """whether a path is a url"""
     return False
 
@@ -44,9 +44,9 @@ def _(path: ParseResult) -> bool:
 
 
 def _get_compression_open(
-    path: Optional[PathType] = None,
-    compression: Optional[str] = None,
-) -> Optional[Callable]:
+    path: PathType | None = None,
+    compression: str | None = None,
+) -> Callable | None:
     """returns function for opening compression formats
 
     Parameters
@@ -144,7 +144,7 @@ def open_(filename: PathType, mode="rt", **kwargs) -> IO:
     return op(filename, mode, encoding=encoding, **kwargs)
 
 
-def open_url(url: Union[str, ParseResult], mode="rt", **kwargs) -> IO:
+def open_url(url: str | ParseResult, mode="rt", **kwargs) -> IO:
     """open a url
 
     Parameters
@@ -334,7 +334,7 @@ class atomic_write:
 T = Optional[str]
 
 
-def get_format_suffixes(filename: PathType) -> Tuple[T, T]:
+def get_format_suffixes(filename: PathType) -> tuple[T, T]:
     """returns file, compression suffixes"""
     filename = Path(filename)
     if not filename.suffix:
@@ -377,7 +377,7 @@ def path_exists(path: PathType) -> bool:
 
 def iter_splitlines(
     path: PathType,
-    chunk_size: Optional[int] = 1_000_000,
+    chunk_size: int | None = 1_000_000,
 ) -> Iterator[str]:
     """yields line from file
 
@@ -429,8 +429,8 @@ def iter_splitlines(
 
 def iter_line_blocks(
     path: PathType,
-    num_lines: Optional[int] = 1000,
-    chunk_size: Optional[int] = 5_000_000,
+    num_lines: int | None = 1000,
+    chunk_size: int | None = 5_000_000,
 ) -> Iterator[list[str]]:
     """yields list with num_lines str from path
 

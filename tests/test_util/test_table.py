@@ -1683,7 +1683,7 @@ class TableTests(TestCase):
             key=numpy.array([("a", "c"), ("b", "c"), ("a", "d")], dtype="O"),
             count=[1, 3, 2],
         )
-        expect = [list(v) for v in zip(data["key"][:], data["count"])]
+        expect = [list(v) for v in zip(data["key"][:], data["count"], strict=False)]
         t = Table(data=data)
         arr = t.array
         assert_equal(arr.tolist(), expect)

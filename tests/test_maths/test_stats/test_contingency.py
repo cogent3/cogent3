@@ -69,7 +69,10 @@ class ContingencyTests(TestCase):
         obs = [2, 10, 8, 2, 4]
         exp = [5.2] * 5
         keys = ["Marl", "Chalk", "Sandstone", "Clay", "Limestone"]
-        table = CategoryCounts(dict(zip(keys, obs)), expected=dict(zip(keys, exp)))
+        table = CategoryCounts(
+            dict(zip(keys, obs, strict=False)),
+            expected=dict(zip(keys, exp, strict=False)),
+        )
 
         got = table.G_fit()
         assert_allclose(got.G, 9.849234)
@@ -82,8 +85,8 @@ class ContingencyTests(TestCase):
         obs = [2, 10, 8, 2, 4]
         exp = [5.2] * 5
         keys = ["Marl", "Chalk", "Sandstone", "Clay", "Limestone"]
-        table = CategoryCounts(dict(zip(keys, obs)))
-        table.expected = dict(zip(keys, exp))
+        table = CategoryCounts(dict(zip(keys, obs, strict=False)))
+        table.expected = dict(zip(keys, exp, strict=False))
         got = table.G_fit()
         assert_allclose(got.G, 9.849234)
         table.expected = None
@@ -112,7 +115,10 @@ class ContingencyTests(TestCase):
         obs = [2, 10, 8, 2, 4]
         exp = [5.2] * 5
         keys = ["Marl", "Chalk", "Sandstone", "Clay", "Limestone"]
-        table = CategoryCounts(dict(zip(keys, obs)), expected=dict(zip(keys, exp)))
+        table = CategoryCounts(
+            dict(zip(keys, obs, strict=False)),
+            expected=dict(zip(keys, exp, strict=False)),
+        )
         got = table.to_dict()
         assert_allclose(got["expected"]["Marl"], 5.2)
         assert_allclose(got["observed"]["Sandstone"], 8)
@@ -129,7 +135,10 @@ class ContingencyTests(TestCase):
         obs = [2, 10, 8, 2, 4]
         exp = [5.2] * 5
         keys = ["Marl", "Chalk", "Sandstone", "Clay", "Limestone"]
-        table = CategoryCounts(dict(zip(keys, obs)), expected=dict(zip(keys, exp)))
+        table = CategoryCounts(
+            dict(zip(keys, obs, strict=False)),
+            expected=dict(zip(keys, exp, strict=False)),
+        )
         str(table)
 
     def test_repr_contingency(self):
@@ -144,7 +153,10 @@ class ContingencyTests(TestCase):
         obs = [2, 10, 8, 2, 4]
         exp = [5.2] * 5
         keys = ["Marl", "Chalk", "Sandstone", "Clay", "Limestone"]
-        table = CategoryCounts(dict(zip(keys, obs)), expected=dict(zip(keys, exp)))
+        table = CategoryCounts(
+            dict(zip(keys, obs, strict=False)),
+            expected=dict(zip(keys, exp, strict=False)),
+        )
         _ = table._get_repr_()
         _ = table._get_repr_(html=True)
 
@@ -160,7 +172,7 @@ class ContingencyTests(TestCase):
         self.assertEqual(got, 2)
         obs = [2, 10, 8, 2, 4]
         keys = ["Marl", "Chalk", "Sandstone", "Clay", "Limestone"]
-        table = CategoryCounts(dict(zip(keys, obs)))
+        table = CategoryCounts(dict(zip(keys, obs, strict=False)))
         got = table.expected["Clay"]
         assert_allclose(got, 5.2)
 

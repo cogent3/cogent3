@@ -98,7 +98,7 @@ class DndTokenizerTests(TestCase):
         # split it up for debugging on an item-by-item basis
         obs = list(DndTokenizer(sample))
         self.assertEqual(len(obs), len(exp))
-        for i, j in zip(obs, exp):
+        for i, j in zip(obs, exp, strict=False):
             self.assertEqual(i, j)
         # try it all in one go
         self.assertEqual(list(DndTokenizer(sample)), exp)

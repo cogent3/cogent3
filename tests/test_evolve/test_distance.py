@@ -528,9 +528,9 @@ def test_logdet_variance():
     logdet_calc.run(use_tk_adjustment=True, show_progress=False)
     assert logdet_calc.variances[1, 1] is None
 
-    index = dict(list(zip("ACGT", list(range(4)))))
+    index = dict(list(zip("ACGT", list(range(4)), strict=False)))
     J = numpy.zeros((4, 4))
-    for p in zip(data[0][1], data[1][1]):
+    for p in zip(data[0][1], data[1][1], strict=False):
         J[index[p[0]], index[p[1]]] += 1
     for i in range(4):
         if J[i, i] == 0:
@@ -596,9 +596,9 @@ def test_paralinear_distance():
     paralinear_calc = ParalinearPair(moltype=DNA, alignment=aln)
     paralinear_calc.run(show_progress=False)
 
-    index = dict(list(zip("ACGT", list(range(4)))))
+    index = dict(list(zip("ACGT", list(range(4)), strict=False)))
     J = numpy.zeros((4, 4))
-    for p in zip(data[0][1], data[1][1]):
+    for p in zip(data[0][1], data[1][1], strict=False):
         J[index[p[0]], index[p[1]]] += 1
     for i in range(4):
         if J[i, i] == 0:
@@ -629,9 +629,9 @@ def test_paralinear_variance():
     paralinear_calc = ParalinearPair(moltype=DNA, alignment=aln)
     paralinear_calc.run(show_progress=False)
 
-    index = dict(list(zip("ACGT", list(range(4)))))
+    index = dict(list(zip("ACGT", list(range(4)), strict=False)))
     J = numpy.zeros((4, 4))
-    for p in zip(data[0][1], data[1][1]):
+    for p in zip(data[0][1], data[1][1], strict=False):
         J[index[p[0]], index[p[1]]] += 1
     for i in range(4):
         if J[i, i] == 0:

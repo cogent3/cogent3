@@ -15,7 +15,7 @@ from functools import singledispatch
 from io import TextIOWrapper
 from os import PathLike
 from pathlib import Path
-from typing import Optional, Union
+from typing import Union
 
 from scitrack import get_text_hexdigest
 
@@ -243,7 +243,7 @@ class DataStoreABC(ABC):
         )
 
     @abstractmethod
-    def drop_not_completed(self, *, unique_id: Optional[str] = None) -> None: ...
+    def drop_not_completed(self, *, unique_id: str | None = None) -> None: ...
 
     def validate(self) -> TabularType:
         correct_md5 = len(self.members)
@@ -272,7 +272,7 @@ class DataStoreABC(ABC):
         )
 
     @abstractmethod
-    def md5(self, unique_id: str) -> Union[str, NoneType]:
+    def md5(self, unique_id: str) -> str | NoneType:
         """
         Parameters
         ----------
@@ -304,7 +304,7 @@ class DataMember(DataMemberABC):
 
 def summary_not_completeds(
     not_completed: list[DataMemberABC],
-    deserialise: Optional[callable] = None,
+    deserialise: callable | None = None,
 ) -> Table:
     """
     Parameters
@@ -342,7 +342,7 @@ def summary_not_completeds(
     reprlib.aRepr.maxstring = 45
     limit_len = 45
     for record in types:
-        messages, sources = list(zip(*types[record]))
+        messages, sources = list(zip(*types[record], strict=False))
         messages = reprlib.repr(", ".join(m.splitlines()[-1] for m in set(messages)))
         sources = ", ".join(s.splitlines()[-1] for s in sources if s)
         if len(sources) > limit_len:
@@ -362,9 +362,9 @@ def summary_not_completeds(
 class DataStoreDirectory(DataStoreABC):
     def __init__(
         self,
-        source: Union[str, Path],
-        mode: Union[Mode, str] = READONLY,
-        suffix: Optional[str] = None,
+        source: str | Path,
+        mode: Mode | str = READONLY,
+        suffix: str | None = None,
         limit: int = None,
         verbose=False,
     ):
@@ -583,7 +583,7 @@ class DataStoreDirectory(DataStoreABC):
         (self.source / _LOG_TABLE).mkdir(parents=True, exist_ok=True)
         _ = self._write(subdir=_LOG_TABLE, unique_id=unique_id, suffix="log", data=data)
 
-    def md5(self, unique_id: str) -> Union[str, NoneType]:
+    def md5(self, unique_id: str) -> str | NoneType:
         """
         Parameters
         ----------
@@ -604,9 +604,9 @@ class DataStoreDirectory(DataStoreABC):
 class ReadOnlyDataStoreZipped(DataStoreABC):
     def __init__(
         self,
-        source: Union[str, Path],
-        mode: Union[Mode, str] = READONLY,
-        suffix: Optional[str] = None,
+        source: str | Path,
+        mode: Mode | str = READONLY,
+        suffix: str | None = None,
         limit: int = None,
         verbose=False,
     ):
@@ -697,7 +697,7 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
             logs.append(m)
         return logs
 
-    def md5(self, unique_id: str) -> Union[str, NoneType]:
+    def md5(self, unique_id: str) -> str | NoneType:
         """
         Parameters
         ----------
@@ -715,7 +715,7 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
             m = DataMember(data_store=self, unique_id=str(md5_dir / name.name))
             return m.read()
 
-    def drop_not_completed(self, *, unique_id: Optional[str] = None) -> None:
+    def drop_not_completed(self, *, unique_id: str | None = None) -> None:
         raise TypeError("zip data stores are read only")
 
     def write(self, *, unique_id: str, data: StrOrBytes) -> None:
@@ -785,7 +785,7 @@ def _(data: DataMemberABC):
 def convert_directory_datastore(
     inpath: Path,
     outpath: Path,
-    suffix: Optional[str] = None,
+    suffix: str | None = None,
 ) -> DataStoreABC:
     out_dstore = DataStoreDirectory(source=outpath, mode=OVERWRITE, suffix=suffix)
     filenames = inpath.glob(f"*{suffix}")
@@ -794,7 +794,7 @@ def convert_directory_datastore(
     return out_dstore
 
 
-def convert_tinydb_to_sqlite(source: Path, dest: Optional[Path] = None) -> DataStoreABC:
+def convert_tinydb_to_sqlite(source: Path, dest: Path | None = None) -> DataStoreABC:
     from datetime import datetime
     from fnmatch import translate
 

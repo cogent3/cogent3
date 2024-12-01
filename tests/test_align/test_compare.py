@@ -27,7 +27,7 @@ def _brute_force(
         subseq1 = seq1[s1 : s1 + window]
         for s2 in range(len(seq2) - window + 1):
             subseq2 = seq2[s2 : s2 + window]
-            total = sum(b1 == b2 for b1, b2 in zip(subseq1, subseq2))
+            total = sum(b1 == b2 for b1, b2 in zip(subseq1, subseq2, strict=False))
             if total >= threshold:
                 mp[s2 - s1].append((segment(s1, s1 + window), segment(s2, s2 + window)))
 
@@ -425,7 +425,7 @@ def test_plotly_trace(aseq1, aseq2):
 
 
 def _construct_matches(s1, s2, window):
-    return [a == b for a, b in zip(s1, s2)][:window]
+    return [a == b for a, b in zip(s1, s2, strict=False)][:window]
 
 
 @pytest.mark.parametrize("a,b", [(3, 5), (3, 0), (0, 4), (0, 0)])
@@ -469,7 +469,9 @@ def test_extend_left_shifted(s1, diff):
     assert start2 == b - diff
     assert (
         list(matches)
-        == [a == b for a, b in zip(s1[a - diff :], s2[b - diff :])][:window]
+        == [a == b for a, b in zip(s1[a - diff :], s2[b - diff :], strict=False)][
+            :window
+        ]
     )
 
 
@@ -496,4 +498,7 @@ def test_extend_left_truncated(left_limit):
     )
     assert start1 == a - 1
     assert start2 == b - 1
-    assert list(matches) == [a == b for a, b in zip(s1[a - 1 :], s2[b - 1 :])][:window]
+    assert (
+        list(matches)
+        == [a == b for a, b in zip(s1[a - 1 :], s2[b - 1 :], strict=False)][:window]
+    )

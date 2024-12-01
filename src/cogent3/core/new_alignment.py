@@ -9,11 +9,11 @@ import typing
 import warnings
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from collections.abc import Iterable, Iterator, Mapping
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from collections.abc import Sequence as PySeq
 from functools import singledispatch, singledispatchmethod
 from pathlib import Path
-from typing import Any, Callable, Optional, Union
+from typing import Any, Optional, Union
 
 import numba
 import numpy
@@ -316,8 +316,8 @@ class SeqsDataABC(ABC):
     @abstractmethod
     def __getitem__(
         self,
-        index: Union[str, int],
-    ) -> Union[new_sequence.Sequence, new_sequence.SeqViewABC]: ...
+        index: str | int,
+    ) -> new_sequence.Sequence | new_sequence.SeqViewABC: ...
 
 
 class SeqsData(SeqsDataABC):
@@ -510,7 +510,14 @@ class SeqsData(SeqsDataABC):
         # converting between DNA and RNA alphabets, which we can achieved easily.
         if (
             len(self.alphabet) == len(alphabet)
-            and len({(a, b) for a, b in zip(self.alphabet, alphabet) if a != b}) == 1
+            and len(
+                {
+                    (a, b)
+                    for a, b in zip(self.alphabet, alphabet, strict=False)
+                    if a != b
+                }
+            )
+            == 1
         ):
             return self.__class__(
                 data=self._data,
@@ -549,7 +556,7 @@ class SeqsData(SeqsDataABC):
         return len(self.names)
 
     @singledispatchmethod
-    def __getitem__(self, index: Union[str, int]) -> new_sequence.SeqViewABC:
+    def __getitem__(self, index: str | int) -> new_sequence.SeqViewABC:
         raise NotImplementedError(f"__getitem__ not implemented for {type(index)}")
 
     @__getitem__.register
@@ -577,9 +584,9 @@ class SequenceCollection:
         *,
         seqs_data: SeqsDataABC,
         moltype: new_moltype.MolType,
-        info: Optional[Union[dict, InfoClass]] = None,
+        info: dict | InfoClass | None = None,
         source: OptPathType = None,
-        annotation_db: Optional[SupportsFeatures] = None,
+        annotation_db: SupportsFeatures | None = None,
         name_map: OptDict = None,
         is_reversed: bool = False,
     ):
@@ -683,7 +690,7 @@ class SequenceCollection:
     def iter_seqs(
         self,
         seq_order: OptList = None,
-    ) -> Iterator[Union[new_sequence.Sequence, new_sequence.SeqViewABC]]:
+    ) -> Iterator[new_sequence.Sequence | new_sequence.SeqViewABC]:
         """Iterates over sequences in the collection, in order.
 
         Parameters
@@ -700,7 +707,7 @@ class SequenceCollection:
 
     def take_seqs(
         self,
-        names: Union[str, typing.Sequence[str]],
+        names: str | typing.Sequence[str],
         negate: bool = False,
         copy_annotations: bool = False,
         **kwargs,
@@ -835,7 +842,7 @@ class SequenceCollection:
 
     def add_seqs(
         self,
-        seqs: Union[dict[str, StrORBytesORArray], SeqsData, list],
+        seqs: dict[str, StrORBytesORArray] | SeqsData | list,
         **kwargs,
     ) -> SequenceCollection:
         """Returns new collection with additional sequences.
@@ -853,7 +860,7 @@ class SequenceCollection:
         )
 
         if not name_map:
-            name_map = dict(zip(data, data))
+            name_map = dict(zip(data, data, strict=False))
 
         kwargs["offset"] = offsets
         seqs_data = self._seqs_data.add_seqs(data, **kwargs)
@@ -879,7 +886,7 @@ class SequenceCollection:
 
         return self.__class__(**init_args)
 
-    def to_dict(self, as_array: bool = False) -> dict[str, Union[str, numpy.ndarray]]:
+    def to_dict(self, as_array: bool = False) -> dict[str, str | numpy.ndarray]:
         """Return a dictionary of sequences.
 
         Parameters
@@ -1225,7 +1232,7 @@ class SequenceCollection:
     def get_features(
         self,
         *,
-        seqid: Union[str, Iterator[str]] = None,
+        seqid: str | Iterator[str] = None,
         biotype: OptStr = None,
         name: OptStr = None,
         start: OptInt = None,
@@ -1354,7 +1361,7 @@ class SequenceCollection:
         width: int = 500,
         title: OptStr = None,
         rc: bool = False,
-        biotype: typing.Union[str, tuple[str]] = "gene",
+        biotype: str | tuple[str] = "gene",
         show_progress: bool = False,
     ):
         """make a dotplot between specified sequences. Random sequences
@@ -2084,10 +2091,10 @@ class SequenceCollection:
 
     def to_html(
         self,
-        name_order: Optional[typing.Sequence[str]] = None,
+        name_order: typing.Sequence[str] | None = None,
         wrap: int = 60,
         limit: OptInt = None,
-        colors: Optional[Mapping[str, str]] = None,
+        colors: Mapping[str, str] | None = None,
         font_size: int = 12,
         font_family: str = "Lucida Console",
     ) -> str:
@@ -2188,7 +2195,7 @@ class SequenceCollection:
         for i in range(0, max_truncated_len, wrap):
             table.append(num_row_.format(i))
             seqblock = seqs[:, i : i + wrap].tolist()
-            for n, s in zip(name_order, seqblock):
+            for n, s in zip(name_order, seqblock, strict=False):
                 s = "".join(s)
                 # Filter out rows that are empty (due to combination of shorter sequences + wrapping)
                 if s != "":
@@ -2459,15 +2466,15 @@ def _(
 
 @singledispatch
 def make_unaligned_seqs(
-    data: Union[dict[str, StrORBytesORArray], list, SeqsDataABC],
+    data: dict[str, StrORBytesORArray] | list | SeqsDataABC,
     *,
-    moltype: Union[str, new_moltype.MolType],
+    moltype: str | new_moltype.MolType,
     label_to_name: OptRenamerCallable = None,
     info: OptDict = None,
     source: OptPathType = None,
     annotation_db: SupportsFeatures = None,
-    offset: typing.Optional[DictStrInt] = None,
-    name_map: typing.Optional[DictStrStr] = None,
+    offset: DictStrInt | None = None,
+    name_map: DictStrStr | None = None,
     is_reversed: OptBool = None,
 ) -> SequenceCollection:
     """Initialise an unaligned collection of sequences.
@@ -2565,7 +2572,7 @@ def make_unaligned_seqs(
 def _(
     data: SeqsDataABC,
     *,
-    moltype: Union[str, new_moltype.MolType],
+    moltype: str | new_moltype.MolType,
     label_to_name: OptRenamerCallable = None,
     info: dict = None,
     source: OptPathType = None,
@@ -2776,7 +2783,7 @@ class Aligned:
         data: AlignedDataView,
         moltype: new_moltype.MolType,
         name: OptStr = None,
-        annotation_db: typing.Optional[SupportsFeatures] = None,
+        annotation_db: SupportsFeatures | None = None,
     ):
         self._data = data
         self._moltype = moltype
@@ -2877,7 +2884,7 @@ class Aligned:
         yield from self.gapped_seq
 
     @singledispatchmethod
-    def __getitem__(self, span: Union[int, slice]):
+    def __getitem__(self, span: int | slice):
         raise NotImplementedError(f"__getitem__ not implemented for {type(span)}")
 
     @__getitem__.register
@@ -3153,9 +3160,9 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         gapped_seqs: numpy.ndarray,
         names: tuple[str],
         alphabet: new_alphabet.AlphabetABC,
-        ungapped_seqs: Optional[dict[str, numpy.ndarray]] = None,
-        gaps: Optional[dict[str, numpy.ndarray]] = None,
-        offset: Optional[DictStrInt] = None,
+        ungapped_seqs: dict[str, numpy.ndarray] | None = None,
+        gaps: dict[str, numpy.ndarray] | None = None,
+        offset: DictStrInt | None = None,
         align_len: OptInt = None,
         check: bool = True,
     ):
@@ -3373,7 +3380,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         return self.align_len
 
     @singledispatchmethod
-    def __getitem__(self, index: Union[str, int]) -> AlignedDataViewABC:
+    def __getitem__(self, index: str | int) -> AlignedDataViewABC:
         return self.get_view(index)
 
     def get_seq_length(self, seqid: str) -> int:
@@ -3581,7 +3588,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
                 "All sequences must be the same length as existing sequences",
             )
 
-        new_seqs = dict(zip(self.names, self._gapped))
+        new_seqs = dict(zip(self.names, self._gapped, strict=False))
         for name, seq in seqs.items():
             seq = self.alphabet.to_indices(seq)
             if not self.alphabet.is_valid(seq):
@@ -3609,7 +3616,14 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         with a new alphabet."""
         if (
             len(alphabet) == len(self.alphabet)
-            and len({(a, b) for a, b in zip(self.alphabet, alphabet) if a != b}) == 1
+            and len(
+                {
+                    (a, b)
+                    for a, b in zip(self.alphabet, alphabet, strict=False)
+                    if a != b
+                }
+            )
+            == 1
         ):
             # special case where mapping between dna and rna
             return self.__class__(
@@ -3928,8 +3942,8 @@ class _IndexableSeqs:
 
     def __init__(
         self,
-        parent: Union[SequenceCollection, Alignment],
-        make_seq: typing.Callable[[str], typing.Union[new_sequence.Sequence, Aligned]],
+        parent: SequenceCollection | Alignment,
+        make_seq: typing.Callable[[str], new_sequence.Sequence | Aligned],
     ):
         """
         Parameters
@@ -3945,16 +3959,16 @@ class _IndexableSeqs:
     @singledispatchmethod
     def __getitem__(
         self,
-        key: Union[str, int, slice],
-    ) -> Union[new_sequence.Sequence, Aligned]:
+        key: str | int | slice,
+    ) -> new_sequence.Sequence | Aligned:
         raise TypeError(f"indexing not supported for {type(key)}, try .take_seqs()")
 
     @__getitem__.register
-    def _(self, key: int) -> Union[new_sequence.Sequence, Aligned]:
+    def _(self, key: int) -> new_sequence.Sequence | Aligned:
         return self[self.parent.names[key]]
 
     @__getitem__.register
-    def _(self, key: str) -> Union[new_sequence.Sequence, Aligned]:
+    def _(self, key: str) -> new_sequence.Sequence | Aligned:
         return self._make_seq(key)
 
     def __repr__(self) -> str:
@@ -4326,7 +4340,7 @@ class Alignment(SequenceCollection):
         """Returns consensus sequence containing most frequent item at each
         position."""
         states = []
-        data = zip(*map(str, self.seqs))
+        data = zip(*map(str, self.seqs), strict=False)
         for pos in data:
             pos = CategoryCounter(pos)
             states.append(pos.mode)
@@ -4877,7 +4891,7 @@ class Alignment(SequenceCollection):
             for n in self.names
         ]
 
-        positions = list(zip(*seqs))
+        positions = list(zip(*seqs, strict=False))
         for position, column in enumerate(positions):
             keep = predicate(column)
             if kept != keep:
@@ -5423,9 +5437,9 @@ class Alignment(SequenceCollection):
     def _get_seq_features(
         self,
         *,
-        seqid: Optional[str] = None,
-        biotype: Optional[str] = None,
-        name: Optional[str] = None,
+        seqid: str | None = None,
+        biotype: str | None = None,
+        name: str | None = None,
         allow_partial: bool = False,
     ) -> Iterator[Feature]:
         """yields Feature instances
@@ -5488,10 +5502,10 @@ class Alignment(SequenceCollection):
     def get_features(
         self,
         *,
-        seqid: Optional[str] = None,
-        biotype: Optional[str] = None,
-        name: Optional[str] = None,
-        on_alignment: Optional[bool] = None,
+        seqid: str | None = None,
+        biotype: str | None = None,
+        name: str | None = None,
+        on_alignment: bool | None = None,
         allow_partial: bool = False,
     ) -> Iterator[Feature]:
         """yields Feature instances
@@ -6024,11 +6038,11 @@ class Alignment(SequenceCollection):
 
     def to_html(
         self,
-        name_order: Optional[typing.Sequence[str]] = None,
+        name_order: typing.Sequence[str] | None = None,
         wrap: int = 60,
-        limit: Optional[int] = None,
+        limit: int | None = None,
         ref_name: str = "longest",
-        colors: Optional[Mapping[str, str]] = None,
+        colors: Mapping[str, str] | None = None,
         font_size: int = 12,
         font_family: str = "Lucida Console",
     ) -> str:
@@ -6153,7 +6167,7 @@ class Alignment(SequenceCollection):
         for i in range(0, seqlen, wrap):
             table.append(num_row_.format(i))
             seqblock = seqs[:, i : i + wrap].tolist()
-            for n, s in zip(names, seqblock):
+            for n, s in zip(names, seqblock, strict=False):
                 s = "".join(s)
                 row = "".join([label_ % n, seq_ % s])
                 table.append(f"<tr>{row}</tr>")
@@ -6200,7 +6214,7 @@ class Alignment(SequenceCollection):
         num_seqs = len(names)
 
         seqs = [str(self.seqs[name]) for name in names]
-        positions = list(zip(*seqs))
+        positions = list(zip(*seqs, strict=False))
 
         for position in positions:
             ref = position[0]
@@ -6417,15 +6431,15 @@ def deserialise_alignment(data: dict[str, str | dict[str, str]]) -> Alignment:
 
 @singledispatch
 def make_aligned_seqs(
-    data: Union[dict[str, StrORBytesORArray], list, AlignedSeqsDataABC],
+    data: dict[str, StrORBytesORArray] | list | AlignedSeqsDataABC,
     *,
-    moltype: typing.Union[str, new_moltype.MolType],
+    moltype: str | new_moltype.MolType,
     label_to_name: OptRenamerCallable = None,
     info: OptDict = None,
     source: OptPathType = None,
-    annotation_db: typing.Optional[SupportsFeatures] = None,
-    offset: typing.Optional[DictStrInt] = None,
-    name_map: typing.Optional[DictStrStr] = None,
+    annotation_db: SupportsFeatures | None = None,
+    offset: DictStrInt | None = None,
+    name_map: DictStrStr | None = None,
     is_reversed: OptBool = None,
 ) -> Alignment:
     if len(data) == 0:
@@ -6482,13 +6496,13 @@ def make_aligned_seqs(
 def _(
     data: AlignedSeqsDataABC,
     *,
-    moltype: typing.Union[str, new_moltype.MolType],
+    moltype: str | new_moltype.MolType,
     label_to_name: OptRenamerCallable = None,
     info: OptDict = None,
     source: OptPathType = None,
-    annotation_db: typing.Optional[SupportsFeatures] = None,
-    offset: typing.Optional[DictStrInt] = None,
-    name_map: typing.Optional[DictStrStr] = None,
+    annotation_db: SupportsFeatures | None = None,
+    offset: DictStrInt | None = None,
+    name_map: DictStrStr | None = None,
     is_reversed: OptBool = None,
 ) -> Alignment:
     moltype = new_moltype.get_moltype(moltype)

@@ -281,7 +281,7 @@ def mapping_parser(line, fields, delimiters=None, flatten=list_flatten):
     splits = NestedSplitter(delimiters=delimiters)(line)
     values = flatten(splits)
     result = {}
-    for f, v in zip(fields, values):
+    for f, v in zip(fields, values, strict=False):
         if isinstance(f, (tuple, list)):
             name, type = f
             result[name] = type(v)
@@ -616,7 +616,7 @@ def de_parser(lines):
     # Process Primary
     primary = de_itemparser(joined)
 
-    result = dict(list(zip(keys, (includes, contains, fragment))))
+    result = dict(list(zip(keys, (includes, contains, fragment), strict=False)))
     result.update(primary)
     return result
 
@@ -633,7 +633,7 @@ def de_itemparser(line):
     fieldnames = ["OfficalName", "Synonyms"]
     fields = [e.strip(") ") for e in line.split("(")]
     # if no '(', fields[1:] will be []
-    return dict(list(zip(fieldnames, [fields[0], fields[1:]])))
+    return dict(list(zip(fieldnames, [fields[0], fields[1:]], strict=False)))
 
 
 def pr_parser(line):
@@ -725,7 +725,7 @@ def ft_parser(lines):
             description = ft_description_parsers[keyname](description)
 
         # group current item result (as a dict) into result[keyname]
-        curr = dict(list(zip(fieldnames, [start, end, description])))
+        curr = dict(list(zip(fieldnames, [start, end, description], strict=False)))
         result.setdefault(keyname, []).append(curr)
     return result
 
@@ -746,7 +746,7 @@ def ft_basic_itemparser(item_lines):
     first_line = item_lines[0]
     keyname, from_point, to_point, description = [
         first_line[i:j].strip()
-        for i, j in zip([0] + cut_positions, cut_positions + [None])
+        for i, j in zip([0] + cut_positions, cut_positions + [None], strict=False)
     ]
 
     # extend the description if provided following lines
@@ -794,7 +794,7 @@ def ft_id_parser(description):
         desc, id = description, ""
 
     # replace desc in fields with (desc, id) to get the result
-    result = dict(list(zip(fieldnames, [desc, id])))
+    result = dict(list(zip(fieldnames, [desc, id], strict=False)))
     return result
 
 
@@ -831,7 +831,7 @@ def ft_mutation_parser(description, mutation_comment_delimiter="("):
 
     # replace desc in fields with mut_from, mut_to and comment to get the
     # result
-    result = dict(list(zip(fieldnames, [mut_from, mut_to, comment])))
+    result = dict(list(zip(fieldnames, [mut_from, mut_to, comment], strict=False)))
     return result
 
 

@@ -169,7 +169,7 @@ class EbiTests(TestCase):
         # pprint(map(linecode_maker, tests))
         self.assertEqual(
             list(map(linecode_maker, tests)),
-            list(zip(expected_linecodes, tests)),
+            list(zip(expected_linecodes, tests, strict=False)),
         )
 
     def test_labeloff(self):
@@ -266,7 +266,7 @@ class EbiTests(TestCase):
         lines = ["ID   id.", "RN   rn.", "RR   invalid", "RN  rn."]
         labels = ["ID", "REF", "RR", "RN  rn."]
 
-        self.assertEqual(list(map(f, lines)), list(zip(labels, lines)))
+        self.assertEqual(list(map(f, lines)), list(zip(labels, lines, strict=False)))
 
     def test_parse_header(lines):
         pass

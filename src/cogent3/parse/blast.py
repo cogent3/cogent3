@@ -126,7 +126,9 @@ def TableToValues(table, constructors=None, header=None):
         header = table[0]
         table = table[1:]
     c_list = [constructors.get(k, str) for k in header]
-    return [[c(val) for c, val in zip(c_list, row)] for row in table], header
+    return [
+        [c(val) for c, val in zip(c_list, row, strict=False)] for row in table
+    ], header
 
 
 psiblast_constructors = {
@@ -192,7 +194,9 @@ def PsiBlastParser9(lines):
                 result[properties["QUERY"].split()[0]] = curr_resultset
                 first_query = False
             table, header = PsiBlastTableParser(record)
-            curr_resultset.append([dict(list(zip(header, row))) for row in table])
+            curr_resultset.append(
+                [dict(list(zip(header, row, strict=False))) for row in table]
+            )
     return result
 
 

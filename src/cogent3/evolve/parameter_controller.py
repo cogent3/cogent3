@@ -552,7 +552,7 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
             )
             assert "root" not in aln.names, "'root' is a reserved name."
         with self.updates_postponed():
-            for locus_name, align in zip(self.locus_names, aligns):
+            for locus_name, align in zip(self.locus_names, aligns, strict=False):
                 self.assign_all(
                     "alignment",
                     {"locus": [locus_name]},

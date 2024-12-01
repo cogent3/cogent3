@@ -1,5 +1,3 @@
-from typing import Optional, Tuple
-
 from cogent3 import get_app, get_model, make_unaligned_seqs
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
 from cogent3.core.tree import TreeNode
@@ -12,15 +10,15 @@ from cogent3.util import progress_display as UI
 def tree_align(
     model: str,
     seqs: SequenceCollection,
-    tree: Optional[TreeNode] = None,
+    tree: TreeNode | None = None,
     indel_rate: float = 1e-10,
     indel_length: float = 1e-1,
     ui=None,
     params_from_pairwise: bool = True,
     param_vals: dict = None,
-    iters: Optional[int] = None,
+    iters: int | None = None,
     approx_dists: bool = True,
-) -> Tuple[ArrayAlignment, TreeNode]:
+) -> tuple[ArrayAlignment, TreeNode]:
     """Returns a multiple sequence alignment and tree.
 
     Parameters

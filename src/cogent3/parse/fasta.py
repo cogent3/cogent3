@@ -50,7 +50,7 @@ def is_blank(x):
 
 FastaFinder = LabeledRecordFinder(is_fasta_label, ignore=is_blank_or_comment)
 
-PathOrIterableType = typing.Union[os.PathLike, typing.List[str], typing.Tuple[str]]
+PathOrIterableType = typing.Union[os.PathLike, list[str], tuple[str]]
 
 
 @singledispatch
@@ -73,7 +73,7 @@ def _faster_parser(
     data: typing.Iterable[str],
     label_to_name: RenamerType,
     label_char: str,
-) -> typing.Iterable[typing.Tuple[str, str]]:
+) -> typing.Iterable[tuple[str, str]]:
     label = None
     seq = []
     for line in data:
@@ -98,7 +98,7 @@ def _strict_parser(
     data: typing.Iterable[str],
     label_to_name: RenamerType,
     label_char: str,
-) -> typing.Iterable[typing.Tuple[str, str]]:
+) -> typing.Iterable[tuple[str, str]]:
     seq = []
     label = None
     for line in data:
@@ -132,7 +132,7 @@ def MinimalFastaParser(
     strict: bool = True,
     label_to_name: RenamerType = str,
     label_characters: str = ">",
-) -> typing.Iterable[typing.Tuple[str, str]]:
+) -> typing.Iterable[tuple[str, str]]:
     """
     Yields successive sequences from infile as (label, seq) tuples.
 
@@ -408,7 +408,7 @@ def iter_fasta_records(
     data,
     converter: OptConverterType = None,
     label_to_name: RenamerType = str,
-) -> typing.Iterable[typing.Tuple[str, OutTypes]]:
+) -> typing.Iterable[tuple[str, OutTypes]]:
     """generator returning sequence labels and sequences converted bytes from a fasta file
 
     Parameters
@@ -433,7 +433,7 @@ def _(
     data: bytes,
     converter: OptConverterType = None,
     label_to_name: RenamerType = str,
-) -> typing.Iterable[typing.Tuple[str, OutTypes]]:
+) -> typing.Iterable[tuple[str, OutTypes]]:
     if converter is None:
         converter = minimal_converter()
 

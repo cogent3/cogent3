@@ -16,7 +16,7 @@ class Setting:
                     adjusted_gt_minprob(self.value, minprob=1e-6),
                 )
             if value.ndim == 1:
-                value = {n: v for n, v in zip(names, value)}
+                value = {n: v for n, v in zip(names, value, strict=False)}
             else:
                 result = {}
                 for i, n1 in enumerate(names):

@@ -24,7 +24,7 @@ def makeSampleAlignment(gaps=False, ambiguities=False):
         seqs_list = ["AARNCCTTTGGC", "CCNYCCTTTGSG", "CAACCCTGWGGG"]
     else:
         seqs_list = ["AAACCCGGGTTTA", "CCCGGGTTTAAAC", "GGGTTTAAACCCG"]
-    seqs = list(zip("abc", seqs_list))
+    seqs = list(zip("abc", seqs_list, strict=False))
     return make_aligned_seqs(data=seqs)
 
 

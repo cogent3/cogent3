@@ -502,7 +502,7 @@ class MolTypeTests(TestCase):
         s = "AUn-yrs-wkmCGwmrNMWRKY"
         t = d(s, "random")
         u = d(s, "random")
-        for i, j in zip(s, t):
+        for i, j in zip(s, t, strict=False):
             if i in RnaMolType.degenerates:
                 self.assertIn(j, RnaMolType.degenerates[i])
             else:

@@ -291,7 +291,7 @@ def get_continuation_tables(
             width = id_width + col_widths[i]
 
     boundaries.append((begin, len(header)))
-    data = {c[0].strip(): c[1:] for c in zip(header, *formatted_table)}
+    data = {c[0].strip(): c[1:] for c in zip(header, *formatted_table, strict=False)}
     for start, end in boundaries:
         if identifiers:
             subhead = header[:1] + header[start:end]

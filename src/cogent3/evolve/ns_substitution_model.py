@@ -72,7 +72,7 @@ class GeneralStationary(Stationary):
         param_pick = numpy.zeros([N, N], int)
         predicates = []
         last_in_column = []
-        for d, (row, col) in enumerate(zip(mask, mask.T)):
+        for d, (row, col) in enumerate(zip(mask, mask.T, strict=False)):
             row = list(numpy.flatnonzero(row[d:]) + d)
             col = list(numpy.flatnonzero(col[d:]) + d)
             if col:

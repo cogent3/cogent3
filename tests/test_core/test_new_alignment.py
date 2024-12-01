@@ -4995,7 +4995,7 @@ def names_seqs():
 @pytest.mark.parametrize("index", (True, False))
 def test_indexing_seqs_prop(names_seqs, func, index):
     names, seqs = names_seqs
-    raw = dict(zip(names, seqs))
+    raw = dict(zip(names, seqs, strict=False))
     obj = func(raw, moltype="dna")
     got = obj.seqs[0 if index else "seq1"]
     assert str(got) == raw["seq1"]
@@ -5003,7 +5003,7 @@ def test_indexing_seqs_prop(names_seqs, func, index):
 
 def test_sequence_collection_indexing_seqs_repr(names_seqs):
     names, seqs = names_seqs
-    raw = dict(zip(names, seqs))
+    raw = dict(zip(names, seqs, strict=False))
     obj = new_alignment.make_unaligned_seqs(raw, moltype="dna")
     got = repr(obj.seqs)
     class_name = obj.seqs[0].__class__.__name__
@@ -5013,7 +5013,7 @@ def test_sequence_collection_indexing_seqs_repr(names_seqs):
 
 def test_alignment_indexing_seqs_repr(names_seqs):
     names, seqs = names_seqs
-    raw = dict(zip(names, seqs))
+    raw = dict(zip(names, seqs, strict=False))
     obj = new_alignment.make_aligned_seqs(raw, moltype="dna")
     got = repr(obj.seqs)
     class_name = "Aligned"
@@ -5039,7 +5039,7 @@ def test_aligned_repr():
 )
 def test_indexing_seqs_iter(names_seqs, func):
     names, seqs = names_seqs
-    raw = dict(zip(names, seqs))
+    raw = dict(zip(names, seqs, strict=False))
     obj = func(raw, moltype="dna")
     # exercise __iter__
     got = list(map(str, obj.seqs))

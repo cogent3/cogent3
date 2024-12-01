@@ -261,7 +261,7 @@ class RecodeMatrixTests(TestCase):
             [0, 0, 0, 0, 0],
         ]
         self.aa_order1 = "DELIV"
-        self.input_freqs1 = dict(list(zip(self.aa_order1, [0.2] * 5)))
+        self.input_freqs1 = dict(list(zip(self.aa_order1, [0.2] * 5, strict=False)))
         self.alphabet1 = [("D", "DE"), ("L", "LIV")]
 
         # create_recoded_rate_matrix(alphabets['a1_4'])
@@ -280,7 +280,7 @@ class RecodeMatrixTests(TestCase):
             [1, 0, 2, 0, 0],
         ]
         self.aa_order2 = "DELIC"
-        self.input_freqs2 = dict(list(zip(self.aa_order2, [0.2] * 5)))
+        self.input_freqs2 = dict(list(zip(self.aa_order2, [0.2] * 5, strict=False)))
         self.alphabet2 = [("D", "DE"), ("L", "LI"), ("C", "C")]
         self.alphabet2_w_ambig = [("D", "DEX"), ("L", "LIB"), ("C", "CZ")]
 

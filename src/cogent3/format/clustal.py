@@ -59,7 +59,7 @@ def clustal_from_alignment(aln, wrap=None):
             clustal_list.extend(
                 [
                     f"{x}{' ' * (max_spaces - len(x))}{y[curr_ix:curr_ix + wrap]}"
-                    for x, y in zip(order, ordered_seqs)
+                    for x, y in zip(order, ordered_seqs, strict=False)
                 ],
             )
             clustal_list.append("")
@@ -68,7 +68,7 @@ def clustal_from_alignment(aln, wrap=None):
         clustal_list.extend(
             [
                 f"{x}{' ' * (max_spaces - len(x))}{y}"
-                for x, y in zip(order, ordered_seqs)
+                for x, y in zip(order, ordered_seqs, strict=False)
             ],
         )
         clustal_list.append("")

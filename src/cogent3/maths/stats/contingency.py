@@ -20,7 +20,7 @@ def shuffled_matrix(matrix):
 
     shuffled = zeros(matrix.shape, dtype=int)
     shuffle(expanded_col)
-    for i, j in zip(expanded_row, expanded_col):
+    for i, j in zip(expanded_row, expanded_col, strict=False):
         shuffled[i, j] += 1
     return shuffled
 

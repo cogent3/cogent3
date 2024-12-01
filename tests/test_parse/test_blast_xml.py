@@ -95,7 +95,7 @@ class MinimalBlastParser7Tests(TestCase):
         """Should return a list with all values for a hit+hsp."""
         data = parse_hit(self.hit1)
         self.assertEqual(len(data), 1)
-        d = dict(list(zip(HIT_XML_FIELDNAMES, data[0])))
+        d = dict(list(zip(HIT_XML_FIELDNAMES, data[0], strict=False)))
         self.assertEqual(d["SUBJECT_ID"], "gi|148670104|gb|EDL02051.1|")
         self.assertEqual(
             d["HIT_DEF"],
@@ -111,7 +111,7 @@ class MinimalBlastParser7Tests(TestCase):
     def test_parse_hsp(self):
         """Should return list with all values for a hsp."""
         data = parse_hsp(self.hsp1)
-        d = dict(list(zip(HSP_XML_FIELDNAMES, data)))
+        d = dict(list(zip(HSP_XML_FIELDNAMES, data, strict=False)))
         self.assertEqual(float(d["BIT_SCORE"]), 1023.46)
         self.assertEqual(float(d["SCORE"]), 2645)
         self.assertEqual(float(d["E_VALUE"]), 0.333)

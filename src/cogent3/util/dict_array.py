@@ -309,7 +309,9 @@ class DictArrayTemplate:
 
         index = []
         remaining = []
-        for ordinals, allnames, name in zip(self.ordinals, self.names, names):
+        for ordinals, allnames, name in zip(
+            self.ordinals, self.names, names, strict=False
+        ):
             if type(name) not in (int, slice, list, numpy.ndarray):
                 name = ordinals[name]
             elif isinstance(name, slice):
@@ -437,13 +439,13 @@ class DictArray:
             for indices in product(*[range(n) for n in shape]):
                 value = self.array[indices]
                 value = value.item() if hasattr(value, "item") else value
-                coord = tuple(n[i] for n, i in zip(names, indices))
+                coord = tuple(n[i] for n, i in zip(names, indices, strict=False))
                 result[coord] = value
         else:
             for indices in product(*[range(n) for n in shape]):
                 value = self.array[indices]
                 value = value.item() if hasattr(value, "item") else value
-                coord = tuple(n[i] for n, i in zip(names, indices))
+                coord = tuple(n[i] for n, i in zip(names, indices, strict=False))
                 current = result
                 nested = coord[0]
                 for nested in coord[:-1]:
@@ -614,7 +616,7 @@ class DictArray:
         header = self.template.names[0] if ndim == 1 else self.template.names[1]
         index = "" if ndim == 2 else None
         if ndim == 1:
-            data = {c: [v] for c, v in zip(header, self.array)}
+            data = {c: [v] for c, v in zip(header, self.array, strict=False)}
         else:
             data = {c: self.array[:, i].tolist() for i, c in enumerate(header)}
             data[""] = self.template.names[0]

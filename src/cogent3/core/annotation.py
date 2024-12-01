@@ -1,5 +1,4 @@
 from collections.abc import Iterable
-from typing import Optional
 
 from numpy import array
 
@@ -172,7 +171,7 @@ class Feature:
         [(start1, end1), ...]"""
         return self.map.get_coordinates()
 
-    def get_children(self, biotype: Optional[str] = None, **kwargs):
+    def get_children(self, biotype: str | None = None, **kwargs):
         """generator returns sub-features of self optionally matching biotype"""
         offset = getattr(self.parent, "annotation_offset", 0)
         start = self.map.start + offset

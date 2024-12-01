@@ -1158,7 +1158,7 @@ DogFaced     root      1.0000    1.0000
 
     def test_initialise_from_nested_diff_scoped(self):
         """non-reversible likelihood initialised from nested, scoped, time-reversible"""
-        mprobs = {b: p for b, p in zip(DNA, [0.1, 0.2, 0.3, 0.4])}
+        mprobs = {b: p for b, p in zip(DNA, [0.1, 0.2, 0.3, 0.4], strict=False)}
         rate_params = {"A/C": 2.0, "A/G": 3.0, "A/T": 4.0, "C/G": 5.0, "C/T": 6.0}
 
         rate_params1 = {"A/C": 4.0, "A/G": 6.0, "C/T": 3.0}
@@ -1175,7 +1175,9 @@ DogFaced     root      1.0000    1.0000
         for param, val in rate_params1.items():
             slf.set_param_rule(param, init=val, edges=["Human"])
 
-        lengths = {e: v for e, v in zip(tree.get_tip_names(), (0.2, 0.4, 0.1))}
+        lengths = {
+            e: v for e, v in zip(tree.get_tip_names(), (0.2, 0.4, 0.1), strict=False)
+        }
         for e, val in lengths.items():
             slf.set_param_rule("length", edge=e, init=val)
 
@@ -1188,7 +1190,7 @@ DogFaced     root      1.0000    1.0000
 
     def test_initialise_from_nested_diff(self):
         """non-reversible likelihood initialised from nested, non-scoped, time-reversible"""
-        mprobs = {b: p for b, p in zip(DNA, [0.1, 0.2, 0.3, 0.4])}
+        mprobs = {b: p for b, p in zip(DNA, [0.1, 0.2, 0.3, 0.4], strict=False)}
         rate_params = {"A/C": 2.0, "A/G": 3.0, "A/T": 4.0, "C/G": 5.0, "C/T": 6.0}
 
         simple = GTR()
@@ -1199,7 +1201,9 @@ DogFaced     root      1.0000    1.0000
         slf.set_motif_probs(mprobs)
         for param, val in rate_params.items():
             slf.set_param_rule(param, init=val)
-        lengths = {e: v for e, v in zip(tree.get_tip_names(), (0.2, 0.4, 0.1))}
+        lengths = {
+            e: v for e, v in zip(tree.get_tip_names(), (0.2, 0.4, 0.1), strict=False)
+        }
         for e, val in lengths.items():
             slf.set_param_rule("length", edge=e, init=val)
 
@@ -1213,7 +1217,7 @@ DogFaced     root      1.0000    1.0000
 
     def test_initialise_from_nested_diff_stat(self):
         """non-reversible stationary initialised from nested time-reversible"""
-        mprobs = {b: p for b, p in zip(DNA, [0.1, 0.2, 0.3, 0.4])}
+        mprobs = {b: p for b, p in zip(DNA, [0.1, 0.2, 0.3, 0.4], strict=False)}
         rate_params = {"A/C": 2.0, "A/G": 3.0, "A/T": 4.0, "C/G": 5.0, "C/T": 6.0}
 
         simple = GTR()
@@ -1224,7 +1228,9 @@ DogFaced     root      1.0000    1.0000
         slf.set_motif_probs(mprobs)
         for param, val in rate_params.items():
             slf.set_param_rule(param, init=val)
-        lengths = {e: v for e, v in zip(tree.get_tip_names(), (0.2, 0.4, 0.1))}
+        lengths = {
+            e: v for e, v in zip(tree.get_tip_names(), (0.2, 0.4, 0.1), strict=False)
+        }
         for e, val in lengths.items():
             slf.set_param_rule("length", edge=e, init=val)
 
@@ -1240,7 +1246,7 @@ DogFaced     root      1.0000    1.0000
 
     def test_initialise_from_nested_same_type_tr(self):
         """time-reversible likelihood initialised from nested, non-scoped, time-reversible"""
-        mprobs = {b: p for b, p in zip(DNA, [0.1, 0.2, 0.3, 0.4])}
+        mprobs = {b: p for b, p in zip(DNA, [0.1, 0.2, 0.3, 0.4], strict=False)}
         rate_params = {"kappa": 6}
         simple = HKY85()
         tree = make_tree(tip_names=["Human", "Mouse", "Opossum"])
@@ -1251,7 +1257,9 @@ DogFaced     root      1.0000    1.0000
         for param, val in rate_params.items():
             slf.set_param_rule(param, init=val)
 
-        lengths = {e: v for e, v in zip(tree.get_tip_names(), (0.2, 0.4, 0.1))}
+        lengths = {
+            e: v for e, v in zip(tree.get_tip_names(), (0.2, 0.4, 0.1), strict=False)
+        }
         for e, val in lengths.items():
             slf.set_param_rule("length", edge=e, init=val)
 
@@ -1264,7 +1272,7 @@ DogFaced     root      1.0000    1.0000
 
     def test_initialise_from_nested_same_type_tr_scoped(self):
         """time-reversible likelihood initialised from nested, scoped, time-reversible"""
-        mprobs = {b: p for b, p in zip(DNA, [0.1, 0.2, 0.3, 0.4])}
+        mprobs = {b: p for b, p in zip(DNA, [0.1, 0.2, 0.3, 0.4], strict=False)}
         rate_params = {"kappa": 6}
         rate_params1 = {"kappa": 3}
         simple = HKY85()
@@ -1278,7 +1286,9 @@ DogFaced     root      1.0000    1.0000
         for param, val in rate_params1.items():
             slf.set_param_rule(param, init=val, edges=["Human"])
 
-        lengths = {e: v for e, v in zip(tree.get_tip_names(), (0.2, 0.4, 0.1))}
+        lengths = {
+            e: v for e, v in zip(tree.get_tip_names(), (0.2, 0.4, 0.1), strict=False)
+        }
         for e, val in lengths.items():
             slf.set_param_rule("length", edge=e, init=val)
 
@@ -1291,7 +1301,7 @@ DogFaced     root      1.0000    1.0000
 
     def test_initialise_from_nested_same_type_nr(self):
         """non-reversible likelihood initialised from nested, non-scoped, non-reversible"""
-        mprobs = {b: p for b, p in zip(DNA, [0.1, 0.2, 0.3, 0.4])}
+        mprobs = {b: p for b, p in zip(DNA, [0.1, 0.2, 0.3, 0.4], strict=False)}
         rate_params = {
             "(A>G | T>C)": 5,
             "(A>T | T>A)": 4,
@@ -1309,7 +1319,9 @@ DogFaced     root      1.0000    1.0000
         for param, val in rate_params.items():
             slf.set_param_rule(param, init=val)
 
-        lengths = {e: v for e, v in zip(tree.get_tip_names(), (0.2, 0.4, 0.1))}
+        lengths = {
+            e: v for e, v in zip(tree.get_tip_names(), (0.2, 0.4, 0.1), strict=False)
+        }
         for e, val in lengths.items():
             slf.set_param_rule("length", edge=e, init=val)
 
@@ -1324,7 +1336,7 @@ DogFaced     root      1.0000    1.0000
 
     def test_initialise_from_nested_same_type_nr_scoped(self):
         """non-reversible likelihood initialised from nested, scoped, non-reversible"""
-        mprobs = {b: p for b, p in zip(DNA, [0.1, 0.2, 0.3, 0.4])}
+        mprobs = {b: p for b, p in zip(DNA, [0.1, 0.2, 0.3, 0.4], strict=False)}
         rate_params = {
             "(A>G | T>C)": 5,
             "(A>T | T>A)": 4,
@@ -1346,7 +1358,9 @@ DogFaced     root      1.0000    1.0000
         for param, val in rate_params1.items():
             slf.set_param_rule(param, init=val, edges=["Human"])
 
-        lengths = {e: v for e, v in zip(tree.get_tip_names(), (0.2, 0.4, 0.1))}
+        lengths = {
+            e: v for e, v in zip(tree.get_tip_names(), (0.2, 0.4, 0.1), strict=False)
+        }
         for e, val in lengths.items():
             slf.set_param_rule("length", edge=e, init=val)
 

@@ -20,7 +20,7 @@ from cogent3.util.io import iter_splitlines
 _lc_to_wc = "".join([[chr(x), "?"]["A" <= chr(x) <= "Z"] for x in range(256)])
 
 
-ParserOutputType = typing.Iterable[typing.Tuple[str, str]]
+ParserOutputType = typing.Iterable[tuple[str, str]]
 
 
 class LineBasedParser:

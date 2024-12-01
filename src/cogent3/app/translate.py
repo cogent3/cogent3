@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Optional, Union
+from typing import Union
 
 from cogent3.core.alignment import SequenceCollection
 from cogent3.core.genetic_code import GeneticCode, get_code
@@ -83,7 +83,7 @@ def best_frame(
 
 def translate_frames(
     seq: SeqsCollectionType,
-    moltype: Optional[MolTypes] = None,
+    moltype: MolTypes | None = None,
     gc: GeneticCodeTypes = 1,
     allow_rc: bool = False,
 ):
@@ -117,7 +117,7 @@ def translate_frames(
 
 def get_fourfold_degenerate_sets(
     gc: GeneticCodeTypes,
-    alphabet: Optional[Alphabet] = None,
+    alphabet: Alphabet | None = None,
     as_indices: bool = True,
 ):
     """returns set() of codons that are 4-fold degenerate for genetic code gc
@@ -168,7 +168,7 @@ class select_translatable:
         gc: GeneticCodeTypes = 1,
         allow_rc: bool = False,
         trim_terminal_stop: bool = True,
-        frame: Optional[int] = None,
+        frame: int | None = None,
     ):
         """
         Parameters

@@ -32,6 +32,6 @@ def PamlMatrixParser(f):
 
     assert numpy.all(matrix == numpy.transpose(matrix))
 
-    freqs = dict(list(zip(three_letter_order, freqs)))
+    freqs = dict(list(zip(three_letter_order, freqs, strict=False)))
 
     return (matrix, freqs)

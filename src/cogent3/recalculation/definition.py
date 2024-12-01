@@ -146,7 +146,7 @@ class CalculationDefn(_NonLeafDefn):
         cells = []
         for input_nums in self.uniq:
             args = []
-            for arg, u in zip(self.args, input_nums):
+            for arg, u in zip(self.args, input_nums, strict=False):
                 arg = input_soup[id(arg)][u]
                 args.append(arg)
             cell = self.make_cell(*args)
@@ -272,7 +272,7 @@ class _InputDefn(_LeafDefn):
 
     def update_from_calculator(self, calc):
         outputs = calc.get_current_cell_values_for_defn(self)
-        for output, setting in zip(outputs, self.uniq):
+        for output, setting in zip(outputs, self.uniq, strict=False):
             # catch cases where parameters fall outside bounds due to precision
             if setting.is_constant:
                 ...  # block trying other conditions
@@ -308,7 +308,10 @@ class _InputDefn(_LeafDefn):
         num_valid_dims = len(self.valid_dimensions)
         # TODO replace following with self.used_dimensions()
         dimensioned = {
-            k: set(v) for k, v in zip(range(num_valid_dims), zip(*self.index))
+            k: set(v)
+            for k, v in zip(
+                range(num_valid_dims), zip(*self.index, strict=False), strict=False
+            )
         }
 
         discard = [k for k, v in dimensioned.items() if len(v) == 1]
@@ -599,7 +602,7 @@ class SelectForDimension(_Defn):
 
     def update(self):
         for scope_t in self.assignments:
-            scope = dict(list(zip(self.valid_dimensions, scope_t)))
+            scope = dict(list(zip(self.valid_dimensions, scope_t, strict=False)))
             scope2 = dict(
                 (n, v) for (n, v) in list(scope.items()) if n != self.dimension
             )

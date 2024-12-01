@@ -134,10 +134,10 @@ class SpanTests(TestCase):
         first.sort()
         second = [r, o, f, s, e, i, n]
         second.sort()
-        for i, j in zip(first, second):
+        for i, j in zip(first, second, strict=False):
             self.assertIs(i, j)
 
-        for i, j in zip(first, expected_order):
+        for i, j in zip(first, expected_order, strict=False):
             self.assertIs(i, j)
 
     def test_sort(self):
@@ -155,7 +155,7 @@ class SpanTests(TestCase):
         first = expected_order[:]
         first.sort()
 
-        for i, j in zip(first, expected_order):
+        for i, j in zip(first, expected_order, strict=False):
             self.assertIs(i, j)
 
     def test_starts_before(self):
@@ -1293,7 +1293,8 @@ def test_indelmap_shared_gaps(seq_pairs, as_array):
     # gaps are retained
     s1, s2 = seq_pairs
     common = "".join(
-        "-" if f"{a}{b}" == "--" else "X" for a, b in zip(str(s1), str(s2))
+        "-" if f"{a}{b}" == "--" else "X"
+        for a, b in zip(str(s1), str(s2), strict=False)
     )
     expect = [(m.start(), m.end()) for m in gap_run.finditer(common)]
     ig1, s1 = s1.parse_out_gaps()
@@ -1306,7 +1307,9 @@ def test_indelmap_shared_gaps(seq_pairs, as_array):
 @pytest.mark.parametrize("as_array", (True, False))
 def test_indelmap_subtraction(seq_pairs, as_array):
     s1, s2 = seq_pairs
-    unique_gaps = "".join(a for a, b in zip(str(s1), str(s2)) if f"{a}{b}" != "--")
+    unique_gaps = "".join(
+        a for a, b in zip(str(s1), str(s2), strict=False) if f"{a}{b}" != "--"
+    )
     ig1, s1 = s1.parse_out_gaps()
     ig2, s2 = s2.parse_out_gaps()
     arg = ig2.get_gap_align_coordinates() if as_array else ig2
@@ -1323,7 +1326,9 @@ def test_indelmap_subtraction_build_aligned(seq_pairs):
 
     s1, s2 = seq_pairs
 
-    unique_gaps = "".join(a for a, b in zip(str(s1), str(s2)) if f"{a}{b}" != "--")
+    unique_gaps = "".join(
+        a for a, b in zip(str(s1), str(s2), strict=False) if f"{a}{b}" != "--"
+    )
     ig1, s1 = s1.parse_out_gaps()
     ig2, s2 = s2.parse_out_gaps()
     got1 = ig1.minus_gaps(ig2.get_gap_align_coordinates())

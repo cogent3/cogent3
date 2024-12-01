@@ -232,7 +232,7 @@ class model_result(generic_result):
         data = {}
         for n in seqnames:
             seq1, seq2, seq3 = sim[0][n], sim[1][n], sim[2][n]
-            seq = "".join("".join(t) for t in zip(seq1, seq2, seq3))
+            seq = "".join("".join(t) for t in zip(seq1, seq2, seq3, strict=False))
             data[n] = seq
 
         return aln.__class__(data=data)

@@ -151,7 +151,7 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
             darr = DictArrayTemplate(names).wrap(vals, dtype=int)
             return darr
 
-        categories = [sorted(set(labels)) for labels in zip(*self)]
+        categories = [sorted(set(labels)) for labels in zip(*self, strict=False)]
         shape = tuple(len(c) for c in categories)
         darr = DictArrayTemplate(*categories).wrap(numpy.zeros(shape, dtype=int))
         for comb in product(*categories):
@@ -196,7 +196,10 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
             or not hasattr(column_names, "__len__")
         ):
             key = column_names if column_names is not None else "key"
-            data = {c[0]: c[1:] for c in zip([key, "count"], *list(self.items()))}
+            data = {
+                c[0]: c[1:]
+                for c in zip([key, "count"], *list(self.items()), strict=False)
+            }
             header = [key, "count"]
             # if keys are tuples, construct the numpy array manually so the
             # elements remain as tuples. numpy's object type casting converts
@@ -212,7 +215,7 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
             assert len(key) == len(column_names), "mismatched dimensions"
             data = defaultdict(list)
             for key, count in self.items():
-                for c, e in zip(column_names, key):
+                for c, e in zip(column_names, key, strict=False):
                     data[c].append(e)
                 data["count"].append(count)
             header = list(column_names) + ["count"]

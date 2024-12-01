@@ -150,7 +150,7 @@ class TestDeserialising(TestCase):
         sm = get_model("HKY85")
         lf = sm.make_likelihood_function(tree)
         lf.set_alignment(aln)
-        edge_vals = zip(aln.names, (2, 3, 4))
+        edge_vals = zip(aln.names, (2, 3, 4), strict=False)
         for edge, val in edge_vals:
             lf.set_param_rule("kappa", edge=edge, init=val)
         lnL = lf.get_log_likelihood()
@@ -204,7 +204,7 @@ class TestDeserialising(TestCase):
         sm = get_model("HKY85")
         lf = sm.make_likelihood_function(tree)
         lf.set_alignment(aln)
-        edge_vals = zip(aln.names, (2, 3, 4))
+        edge_vals = zip(aln.names, (2, 3, 4), strict=False)
         for edge, val in edge_vals:
             lf.set_param_rule("kappa", edge=edge, init=val)
         lnL = lf.get_log_likelihood()
@@ -229,7 +229,7 @@ class TestDeserialising(TestCase):
         sm = get_model("HKY85")
         lf = sm.make_likelihood_function(tree)
         lf.set_alignment(aln)
-        edge_vals = zip(aln.names, (2, 3, 4))
+        edge_vals = zip(aln.names, (2, 3, 4), strict=False)
         for edge, val in edge_vals:
             lf.set_param_rule("kappa", edge=edge, init=val)
         result = model_result(name="test", source="blah")

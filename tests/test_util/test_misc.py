@@ -448,7 +448,7 @@ class UtilsTests(TestCase):
             [["ii", "0"], ["oo", ["9", "6 5;  ; xx"], "8;"]],
             [["ii", "0; oo", ["9", "6 5;  ; xx"], "8"], ""],
         ]
-        for cmd, result in zip(cmds, results):
+        for cmd, result in zip(cmds, results, strict=False):
             self.assertEqual(eval(cmd), result)
 
         # test uncontinous level of delimiters

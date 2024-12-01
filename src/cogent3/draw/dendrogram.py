@@ -729,7 +729,7 @@ class Dendrogram(Drawable):
                 grouped[key] = defaultdict(list)
             group = grouped[key]
             coords = edge.get_segment_to_parent()
-            xs, ys = list(zip(*coords))
+            xs, ys = list(zip(*coords, strict=False))
             group["x"].extend(xs + (None,))
             group["y"].extend(ys + (None,))
 

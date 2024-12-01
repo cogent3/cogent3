@@ -67,9 +67,11 @@ class for_seq:
     def __call__(self, first, second):
         f = self.f
         if self.normalizer is None:
-            return self.aggregator([f(i, j) for i, j in zip(first, second)])
+            return self.aggregator(
+                [f(i, j) for i, j in zip(first, second, strict=False)]
+            )
         return self.normalizer(
-            self.aggregator([f(i, j) for i, j in zip(first, second)]),
+            self.aggregator([f(i, j) for i, j in zip(first, second, strict=False)]),
             first,
             second,
         )

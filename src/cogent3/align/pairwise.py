@@ -191,7 +191,7 @@ class TrackBack:
         bin_map = dict((state, bin) for (state, bin, dx, dy) in state_directions)
         result = []
         for state, posn, (dx, dy) in self.tlist:
-            pos = [[None, i - 1][d] for (i, d) in zip(posn, [dx, dy])]
+            pos = [[None, i - 1][d] for (i, d) in zip(posn, [dx, dy], strict=False)]
             result.append((bin_map.get(int(state), None), pos))
         return result
 
@@ -241,7 +241,9 @@ class Pair:
 
     def make_simple_emission_probs(self, mprobs, psubs1):
         psubs2 = [numpy.identity(len(psub)) for psub in psubs1]
-        bins = [PairBinData(mprobs, *ppsubs) for ppsubs in zip(psubs1, psubs2)]
+        bins = [
+            PairBinData(mprobs, *ppsubs) for ppsubs in zip(psubs1, psubs2, strict=False)
+        ]
         return PairEmissionProbs(self, bins)
 
     def make_emission_probs(self, bins):
@@ -258,7 +260,8 @@ class Pair:
     def __getitem__(self, index):
         assert len(index) == 2, index
         children = [
-            child[dim_index] for (child, dim_index) in zip(self.children, index)
+            child[dim_index]
+            for (child, dim_index) in zip(self.children, index, strict=False)
         ]
         return Pair(*children)
 
@@ -661,7 +664,7 @@ class PairEmissionProbs:
     def _makeEmissionProbs(self, use_cost_function):
         (plhs, gap_scores) = self.make_partial_likelihoods(use_cost_function)
         match_scores = numpy.zeros([len(self.bins)] + self.pair.uniq_size, float)
-        for b, (x, y, bin) in enumerate(zip(plhs[0], plhs[1], self.bins)):
+        for b, (x, y, bin) in enumerate(zip(plhs[0], plhs[1], self.bins, strict=False)):
             match_scores[b] = numpy.inner(x * bin.mprobs, y)
         match_scores[:, 0, 0] = match_scores[:, -1, -1] = 1.0
         return (match_scores, gap_scores)

@@ -14,13 +14,13 @@ from cogent3.maths.stats.number import CategoryCounter
 def as_paired_ranks(x, y):
     """return as matrix of paired ranks"""
     n = len(x)
-    paired = list(zip(x, y))
+    paired = list(zip(x, y, strict=False))
     x = list(x)
     y = list(y)
     x.sort()
     y.sort()
-    rank_val_map_x = dict(list(zip(x, list(range(n)))))
-    rank_val_map_y = dict(list(zip(y, list(range(n)))))
+    rank_val_map_x = dict(list(zip(x, list(range(n)), strict=False)))
+    rank_val_map_y = dict(list(zip(y, list(range(n)), strict=False)))
     ranked = []
     for i in range(n):
         ranked += [[rank_val_map_x[paired[i][0]], rank_val_map_y[paired[i][1]]]]

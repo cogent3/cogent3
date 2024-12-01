@@ -23,7 +23,7 @@ def read(filepath):
                 states.append(line.pop(0).upper())
                 matrix.append([int(i) for i in line])
 
-    matrix = dict(zip(states, matrix))
+    matrix = dict(zip(states, matrix, strict=False))
     if len(states) == 4:
         name = "rna" if "U" in states else "dna"
     else:

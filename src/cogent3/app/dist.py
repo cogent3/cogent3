@@ -1,7 +1,7 @@
 import itertools
+from collections.abc import Callable
 from copy import deepcopy
 from itertools import combinations
-from typing import Callable, Optional, Union
 
 import numpy
 from numpy import polyval, triu_indices
@@ -53,10 +53,10 @@ class fast_slow_dist:
 
     def __init__(
         self,
-        distance: Optional[str] = None,
-        moltype: Optional[str] = None,
-        fast_calc: Optional[str] = None,
-        slow_calc: Optional[str] = None,
+        distance: str | None = None,
+        moltype: str | None = None,
+        fast_calc: str | None = None,
+        slow_calc: str | None = None,
     ):
         """
         Parameters
@@ -155,7 +155,7 @@ class fast_slow_dist:
     def main(
         self,
         aln: AlignedSeqsType,
-    ) -> Union[SerialisableType, PairwiseDistanceType]:
+    ) -> SerialisableType | PairwiseDistanceType:
         if self._moltype and self._moltype != aln.moltype:
             aln = aln.to_moltype(self._moltype)
 
@@ -416,7 +416,7 @@ class gap_dist:
 
     def main(self, aln: AlignedSeqsType) -> PairwiseDistanceType:
         gap_diffs = {}
-        gap_data = dict(zip(aln.names, aln.get_gap_array()))
+        gap_data = dict(zip(aln.names, aln.get_gap_array(), strict=False))
         # convert each gap vector to gap spans
         for k, gap_vector in gap_data.items():
             gap_data[k] = set(tuple(pr) for pr in get_true_spans(gap_vector).tolist())

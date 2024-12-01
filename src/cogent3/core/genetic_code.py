@@ -93,11 +93,11 @@ class GeneticCode:
         self.start_codon_sequence = start_codon_sequence
         start_codons = {}
         if start_codon_sequence:
-            for codon, aa in zip(self._codons, start_codon_sequence):
+            for codon, aa in zip(self._codons, start_codon_sequence, strict=False):
                 if aa != "-":
                     start_codons[codon] = aa
         self.start_codons = start_codons
-        codon_lookup = dict(list(zip(self._codons, code_sequence)))
+        codon_lookup = dict(list(zip(self._codons, code_sequence, strict=False)))
         self.codons = codon_lookup
         # create synonyms for each aa
         aa_lookup = {}
@@ -184,6 +184,7 @@ class GeneticCode:
             list(range(64)),
             self._codons,
             self.code_sequence,
+            strict=False,
         ):
             # we're in a new block if it's a new quartet or a different aa
             new_quartet = not index % 4
@@ -306,7 +307,9 @@ class GeneticCode:
             other_code = other.code_sequence
         except AttributeError:  # try using other directly as sequence
             other_code = other
-        for codon, old, new in zip(self._codons, self.code_sequence, other_code):
+        for codon, old, new in zip(
+            self._codons, self.code_sequence, other_code, strict=False
+        ):
             if old != new:
                 changes[codon] = old + new
         return changes

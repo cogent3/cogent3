@@ -1,7 +1,7 @@
 import functools
 import inspect
-from collections.abc import Sequence
-from typing import Any, Callable, Optional, Tuple
+from collections.abc import Callable, Sequence
+from typing import Any
 from warnings import catch_warnings, simplefilter
 from warnings import warn as _warn
 
@@ -65,7 +65,7 @@ _discontinued = discontinued  # renamed to avoid name clash with discontinued ar
 def deprecated_args(
     version: str,
     reason: str,
-    old_new: Sequence[Tuple[str, str]] = None,
+    old_new: Sequence[tuple[str, str]] = None,
     discontinued: Sequence[str] = None,
     stack_level=2,
 ) -> Callable[..., Any]:
@@ -160,7 +160,7 @@ def deprecated_args(
 def deprecated_callable(
     version: str,
     reason: str,
-    new: Optional[str] = None,
+    new: str | None = None,
     is_discontinued: bool = False,
     stack_level=2,
 ) -> Callable:

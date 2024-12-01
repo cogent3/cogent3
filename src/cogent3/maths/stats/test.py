@@ -317,7 +317,7 @@ def likelihoods(d_given_h, priors):
         raise ValueError("Lists not equal lengths.")
     # find weighted sum of Pr(H_i) * Pr(D|H_i)
     wt_sum = 0
-    for d, p in zip(d_given_h, priors):
+    for d, p in zip(d_given_h, priors, strict=False):
         wt_sum += d * p
     # divide each Pr(D|H_i) by the weighted sum and multiply by its prior
     # to get its likelihood
@@ -336,7 +336,7 @@ def posteriors(likelihoods, priors):
     if len(likelihoods) != len(priors):
         raise ValueError("Lists not equal lengths.")
     # Posterior probability is defined as prior * likelihood
-    return [l * p for l, p in zip(likelihoods, priors)]
+    return [l * p for l, p in zip(likelihoods, priors, strict=False)]
 
 
 def bayes_updates(ds_given_h, priors=None):
@@ -819,7 +819,7 @@ def spearman(x_items, y_items):
 
     if ties1 == 0 and ties2 == 0:
         n = len(rank1)
-        sum_sqr = npsum([(x - y) ** 2 for x, y in zip(rank1, rank2)])
+        sum_sqr = npsum([(x - y) ** 2 for x, y in zip(rank1, rank2, strict=False)])
         rho = 1 - (6 * sum_sqr / (n * (n**2 - 1)))
     else:
         avg = lambda x: npsum(x) / len(x)
@@ -827,7 +827,9 @@ def spearman(x_items, y_items):
         x_bar = avg(rank1)
         y_bar = avg(rank2)
 
-        numerator = npsum([(x - x_bar) * (y - y_bar) for x, y in zip(rank1, rank2)])
+        numerator = npsum(
+            [(x - x_bar) * (y - y_bar) for x, y in zip(rank1, rank2, strict=False)]
+        )
         denominator = sqrt(
             npsum([(x - x_bar) ** 2 for x in rank1])
             * npsum([(y - y_bar) ** 2 for y in rank2]),
@@ -1146,7 +1148,7 @@ def regress_R2(x, y):
     fourth edition. 1999
     """
     slope, intercept = regress(x, y)
-    coords = list(zip(x, y))
+    coords = list(zip(x, y, strict=False))
     Sx = Sy = Syy = SXY = 0.0
     n = float(len(y))
     for x, y in coords:
@@ -1163,7 +1165,7 @@ def regress_R2(x, y):
 def regress_residuals(x, y):
     """reports the residual (error) for each point from the linear regression"""
     slope, intercept = regress(x, y)
-    coords = list(zip(x, y))
+    coords = list(zip(x, y, strict=False))
     residuals = []
     for x, y in coords:
         e = y - (slope * x) - intercept
@@ -1482,11 +1484,11 @@ def ks_test(x, y=None, alt="two sided", exact=None, warn_for_ties=True):
     alt = _get_alternate(str(alt))
 
     num_x = len(x)
-    x = list(zip(x, zeros(len(x), int)))
+    x = list(zip(x, zeros(len(x), int), strict=False))
     Pval = None
     if y is not None:  # in anticipation of actually implementing the 1-sample cases
         num_y = len(y)
-        y = list(zip(y, ones(len(y), int)))
+        y = list(zip(y, ones(len(y), int), strict=False))
         n = num_x * num_y / (num_x + num_y)
         combined = x + y
         ties = len(set(combined)) < num_x + num_y
@@ -1592,8 +1594,8 @@ def mw_test(x, y):
     num_x = len(x)
     num_y = len(y)
 
-    x = list(zip(x, zeros(len(x), int), zeros(len(x), int)))
-    y = list(zip(y, ones(len(y), int), zeros(len(y), int)))
+    x = list(zip(x, zeros(len(x), int), zeros(len(x), int), strict=False))
+    y = list(zip(y, ones(len(y), int), zeros(len(y), int), strict=False))
     combined = x + y
     combined = array(
         combined,

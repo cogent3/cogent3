@@ -113,7 +113,8 @@ class LogLikelihoodScoredTreeCollection(UsefullyScoredTreeCollection):
         denominator = sum(weights)
         weights.reverse()
         return WeightedTreeCollection(
-            (weight / denominator, tree) for (weight, (lnL, tree)) in zip(weights, self)
+            (weight / denominator, tree)
+            for (weight, (lnL, tree)) in zip(weights, self, strict=False)
         )
 
 

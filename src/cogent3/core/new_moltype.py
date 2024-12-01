@@ -384,14 +384,14 @@ class MolType:
 
     name: str
     monomers: dataclasses.InitVar[StrORBytes]
-    make_seq: dataclasses.InitVar[typing.Type]
+    make_seq: dataclasses.InitVar[type]
     gap: OptStr = IUPAC_gap
     missing: OptStr = IUPAC_missing
-    complements: dataclasses.InitVar[typing.Optional[dict[str, str]]] = None
-    ambiguities: typing.Optional[dict[str, tuple[str, ...]]] = None
-    colors: dataclasses.InitVar[typing.Optional[dict[str, str]]] = None
-    pairing_rules: typing.Optional[dict[str, dict[frozenset[str], bool]]] = None
-    mw_calculator: typing.Optional[WeightCalculator] = None
+    complements: dataclasses.InitVar[dict[str, str] | None] = None
+    ambiguities: dict[str, tuple[str, ...]] | None = None
+    colors: dataclasses.InitVar[dict[str, str] | None] = None
+    pairing_rules: dict[str, dict[frozenset[str], bool]] | None = None
+    mw_calculator: WeightCalculator | None = None
 
     # private attributes to be delivered via properties
     _monomers: new_alphabet.CharAlphabet = dataclasses.field(init=False)
@@ -409,9 +409,9 @@ class MolType:
     def __post_init__(
         self,
         monomers: StrORBytes,
-        make_seq: typing.Type,
-        complements: typing.Optional[dict[str, str]],
-        colors: typing.Optional[dict[str, str]],
+        make_seq: type,
+        complements: dict[str, str] | None,
+        colors: dict[str, str] | None,
     ):
         self._colors = colors or defaultdict(_DefaultValue("black"))
         self._make_seq = make_seq
@@ -832,10 +832,10 @@ class MolType:
     def resolve_ambiguity(
         self,
         ambig_motif: str,
-        alphabet: typing.Optional[new_alphabet.CharAlphabet] = None,
+        alphabet: new_alphabet.CharAlphabet | None = None,
         allow_gap: bool = False,
         validate: bool = True,
-    ) -> typing.Tuple[str]:
+    ) -> tuple[str]:
         """Returns tuple of all possible canonical characters corresponding
         to ambig_motif
 
@@ -1142,7 +1142,7 @@ class MolType:
         # refactor: design
         # is this method necessary?
         m = self.matching_rules
-        return all(pair in m for pair in zip(first, second))
+        return all(pair in m for pair in zip(first, second, strict=False))
 
     def can_pair(self, first: str, second: str) -> bool:
         pairs = make_pairs(
@@ -1153,7 +1153,7 @@ class MolType:
         )
         sec = list(second)
         sec.reverse()
-        for pair in zip(first, sec):
+        for pair in zip(first, sec, strict=False):
             if frozenset(pair) not in pairs:
                 return False
         return True
@@ -1174,14 +1174,14 @@ class MolType:
         if not first or not second:
             return False
 
-        for pair in zip(first, second[::-1]):
+        for pair in zip(first, second[::-1], strict=False):
             if not p.get(frozenset(pair), None):
                 return True
         return False
 
     def get_css_style(
         self,
-        colors: typing.Optional[dict[str, str]] = None,
+        colors: dict[str, str] | None = None,
         font_size: int = 12,
         font_family="Lucida Console",
     ):
@@ -1246,7 +1246,7 @@ def _make_moltype_dict() -> dict[str, MolType]:
     return moltypes
 
 
-def get_moltype(name: typing.Union[str, MolType]) -> MolType:
+def get_moltype(name: str | MolType) -> MolType:
     """returns the moltype with the matching name attribute"""
     if isinstance(name, MolType):
         return name

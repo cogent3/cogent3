@@ -138,7 +138,7 @@ SEQUENCE    ACC=AW990320.1; NID=g8185938; CLONE=IMAGE:1513482; END=5'; LID=1043;
                 ],
             ),
         )
-        for obs, exp in zip(first.PROTSIM, exp_prot_sim):
+        for obs, exp in zip(first.PROTSIM, exp_prot_sim, strict=False):
             self.assertEqual(obs, exp)
         self.assertEqual(first.SCOUNT, 5)
         exp_seqs = list(
@@ -188,7 +188,7 @@ SEQUENCE    ACC=AW990320.1; NID=g8185938; CLONE=IMAGE:1513482; END=5'; LID=1043;
                 ],
             ),
         )
-        for obs, exp in zip(first.SEQUENCE, exp_seqs):
+        for obs, exp in zip(first.SEQUENCE, exp_seqs, strict=False):
             self.assertEqual(obs, exp)
         self.assertEqual(second.ID, "Mm.5")
         self.assertEqual(second.TITLE, "homeo box A10")

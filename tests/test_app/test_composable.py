@@ -3,7 +3,6 @@ import pickle
 import shutil
 from pathlib import Path
 from pickle import dumps, loads
-from typing import Set, Tuple, Union
 from unittest.mock import Mock
 
 import pytest
@@ -319,7 +318,7 @@ def test_as_completed_empty_data(data):
 )
 def test_as_completed_w_wout_source(data):
     @define_app
-    def pass_through(val: Union[dict, UnionDict, Alignment]) -> dict:
+    def pass_through(val: dict | UnionDict | Alignment) -> dict:
         return val
 
     app = pass_through()  # pylint: disable=not-callable,no-value-for-parameter
@@ -1067,7 +1066,7 @@ def test_validate_data_type_not_completed_pass_through():
     assert got.origin == "take_int1"
 
 
-@pytest.mark.parametrize("first,ret", ((Tuple[Set[str]], int), (int, Tuple[Set[str]])))
+@pytest.mark.parametrize("first,ret", ((tuple[set[str]], int), (int, tuple[set[str]])))
 def test_complex_type(first, ret):
     # disallow >2-deep nesting of types for first arg and return type
     with pytest.raises(TypeError):
@@ -1078,7 +1077,7 @@ def test_complex_type(first, ret):
                 return data
 
 
-@pytest.mark.parametrize("hint", (Tuple[Set[str]], Tuple[Tuple[Set[str]]]))
+@pytest.mark.parametrize("hint", (tuple[set[str]], tuple[tuple[set[str]]]))
 def test_complex_type_depths(hint):
     # disallow >2-deep nesting of types for first arg and return type
     with pytest.raises(TypeError):
@@ -1089,7 +1088,7 @@ def test_complex_type_depths(hint):
                 return True
 
 
-@pytest.mark.parametrize("hint", (int, Set[str]))
+@pytest.mark.parametrize("hint", (int, set[str]))
 def test_complex_type_allowed_depths(hint):
     # allowed <=2-deep nesting of types
     @define_app

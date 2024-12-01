@@ -9,7 +9,7 @@ from collections.abc import Generator
 from copy import deepcopy
 from enum import Enum
 from pathlib import Path
-from typing import Any, Tuple, Union
+from typing import Any
 from uuid import uuid4
 
 from scitrack import CachingLogger
@@ -176,7 +176,7 @@ def _get_raw_hints(main_func, min_params):
     return first_param_type, return_type
 
 
-def _get_main_hints(klass) -> Tuple[set, set]:
+def _get_main_hints(klass) -> tuple[set, set]:
     """return type hints for main method
     Returns
     -------
@@ -673,7 +673,7 @@ def _proxy_input(dstore):
 
 def _source_wrapped(
     self,
-    value: Union[source_proxy, c3_typing.HasSource],
+    value: source_proxy | c3_typing.HasSource,
 ) -> c3_typing.HasSource:
     if not isinstance(value, source_proxy):
         return self(value)

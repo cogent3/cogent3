@@ -338,7 +338,7 @@ alphabets = {
     # orig does no recoding, but is provided for convenience so if you want to
     # iterate over all reduced alphabets and the full alphabet, you can do that
     # without having specify the original alphabet differently.
-    "orig": list(zip("ACDEFGHIKLMNPQRSTVWY", "ACDEFGHIKLMNPQRSTVWY")),
+    "orig": list(zip("ACDEFGHIKLMNPQRSTVWY", "ACDEFGHIKLMNPQRSTVWY", strict=False)),
 }
 
 
@@ -402,7 +402,9 @@ def recode_dense_alignment(aln, alphabet_id=None, alphabet_def=None):
     # Construct a dict mapping from UInt8s in alignment to their
     # associated characters. This dict is then used for looking
     # up chars in the new and old alphabets.
-    byte_map = dict(list(zip(aln.alphabet, list(range(len(aln.alphabet))))))
+    byte_map = dict(
+        list(zip(aln.alphabet, list(range(len(aln.alphabet))), strict=False))
+    )
 
     # Construct a dict mapping old characters to new characters.
     alphabet_map = build_alphabet_map(
@@ -458,8 +460,8 @@ def recode_freq_vector(alphabet_def, freqs, ignores="BXZ"):
 
 def square_matrix_to_dict(matrix, key_order="ACDEFGHIKLMNPQRSTVWY"):
     result = {}
-    for c, row in zip(key_order, matrix):
-        result[c] = dict(list(zip(key_order, row)))
+    for c, row in zip(key_order, matrix, strict=False):
+        result[c] = dict(list(zip(key_order, row, strict=False)))
     return result
 
 

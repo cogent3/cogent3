@@ -25,7 +25,7 @@ from collections.abc import Generator, Iterable
 from functools import singledispatch, total_ordering
 from operator import eq, ne
 from random import shuffle
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, Optional
 
 from numpy import (
     arange,
@@ -491,7 +491,7 @@ class SequenceI:
             function = lambda a, b: a != b
 
         distance = 0
-        for first, second in zip(self, other):
+        for first, second in zip(self, other, strict=False):
             distance += function(first, second)
         return distance
 
@@ -539,7 +539,9 @@ class SequenceI:
             return 0.0
 
         is_gap = self.moltype.gaps.__contains__
-        return sum([is_gap(i) == is_gap(j) for i, j in zip(self, other)]) / min(
+        return sum(
+            [is_gap(i) == is_gap(j) for i, j in zip(self, other, strict=False)]
+        ) / min(
             len(self),
             len(other),
         )
@@ -574,7 +576,7 @@ class SequenceI:
         is_gap = self.moltype.gaps.__contains__
         count = 0
         identities = 0
-        for i, j in zip(self, other):
+        for i, j in zip(self, other, strict=False):
             if is_gap(i) or is_gap(j):
                 continue
             count += 1
@@ -602,7 +604,7 @@ class SequenceI:
         is_gap = self.moltype.gaps.__contains__
         count = 0
         diffs = 0
-        for i, j in zip(self, other):
+        for i, j in zip(self, other, strict=False):
             if is_gap(i) or is_gap(j):
                 continue
             count += 1
@@ -914,10 +916,10 @@ class Sequence(SequenceI):
     def get_features(
         self,
         *,
-        biotype: Optional[str] = None,
-        name: Optional[str] = None,
-        start: Optional[int] = None,
-        stop: Optional[int] = None,
+        biotype: str | None = None,
+        name: str | None = None,
+        start: int | None = None,
+        stop: int | None = None,
         allow_partial: bool = False,
     ):
         """yields Feature instances
@@ -1111,11 +1113,11 @@ class Sequence(SequenceI):
         *,
         biotype: str,
         name: str,
-        spans: List[Tuple[int, int]],
-        parent_id: Optional[str] = None,
-        strand: Optional[str] = None,
+        spans: list[tuple[int, int]],
+        parent_id: str | None = None,
+        strand: str | None = None,
         on_alignment: bool = False,
-        seqid: Optional[str] = None,
+        seqid: str | None = None,
     ) -> Feature:
         """
         add a feature to annotation_db
@@ -1402,7 +1404,7 @@ class Sequence(SequenceI):
         """Return the sequence type as moltype label."""
         return self.moltype.label
 
-    def resolved_ambiguities(self) -> List[Tuple[str]]:
+    def resolved_ambiguities(self) -> list[tuple[str]]:
         """Returns a list of tuples of strings."""
         ambigs = self.moltype.ambiguities
         return [ambigs[motif] for motif in self._seq]
@@ -1424,7 +1426,7 @@ class Sequence(SequenceI):
             if not strict or all(char in canonical for char in kmer):
                 yield kmer
 
-    def get_kmers(self, k: int, strict: bool = True) -> List[str]:
+    def get_kmers(self, k: int, strict: bool = True) -> list[str]:
         """return all overlapping k-mers"""
         return list(self.iter_kmers(k, strict))
 
@@ -1660,7 +1662,7 @@ class Sequence(SequenceI):
         drawer.layout.update(xaxis=xaxis, yaxis=yaxis)
         return drawer
 
-    def parent_coordinates(self) -> Tuple[str, int, int, int]:
+    def parent_coordinates(self) -> tuple[str, int, int, int]:
         """returns seqid, start, stop, strand of this sequence on its parent
 
         Notes
@@ -2091,7 +2093,7 @@ class SliceRecordABC(ABC):
     def __len__(self):
         return abs((self.start - self.stop) // self.step)
 
-    def __getitem__(self, segment: Union[int, slice]):
+    def __getitem__(self, segment: int | slice):
         kwargs = self._get_init_kwargs()
 
         if _is_int(segment):
@@ -2364,12 +2366,12 @@ class SeqView(SliceRecordABC):
         self,
         *,
         seq: str,
-        start: Optional[int] = None,
-        stop: Optional[int] = None,
-        step: Optional[int] = None,
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
         offset: int = 0,
-        seqid: Optional[str] = None,
-        seq_len: Optional[int] = None,
+        seqid: str | None = None,
+        seq_len: int | None = None,
     ):
         if step == 0:
             raise ValueError("step cannot be 0")
@@ -2775,7 +2777,7 @@ class ArraySequenceBase:
                     other_seq = other.alphabet.from_indices(other._data)
                 else:
                     other_seq = other
-            for first, second in zip(self_seq, other_seq):
+            for first, second in zip(self_seq, other_seq, strict=False):
                 distance += function(first, second)
         return distance
 
@@ -2883,8 +2885,8 @@ class ArraySequence(ArraySequenceBase, SequenceI):
         indices = arange(len(self)).compress(nongaps)
         new_indices = arange(len(indices))
         return (
-            dict(list(zip(new_indices, indices))),
-            dict(list(zip(indices, new_indices))),
+            dict(list(zip(new_indices, indices, strict=False))),
+            dict(list(zip(indices, new_indices, strict=False))),
         )
 
     def first_gap(self):

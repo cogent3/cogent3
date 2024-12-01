@@ -61,7 +61,9 @@ class TransitionMatrix:
             label = f"{label} ({i})"
             labels.append(label)
         heading = [""] + labels
-        a = [[name] + list(row) for (name, row) in zip(labels, self.Matrix)]
+        a = [
+            [name] + list(row) for (name, row) in zip(labels, self.Matrix, strict=False)
+        ]
         return str(Table(header=heading, data=a))
 
     def withoutSilentStates(self):

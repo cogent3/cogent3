@@ -22,6 +22,7 @@ class FastaTests(TestCase):
             self.labels,
             self.sequences_with_labels,
             self.sequences_with_names,
+            strict=False,
         ):
             sl.label = l
             sn.name = l
@@ -37,7 +38,7 @@ class FastaTests(TestCase):
             "4th": "UUUU",
         }
         self.alignment_object = Alignment(self.alignment_dict)
-        for label, info in zip(self.labels, self.infos):
+        for label, info in zip(self.labels, self.infos, strict=False):
             self.alignment_object.named_seqs[label].info = Info(species=info)
         self.fasta_with_label_species = (
             ">1st:Dog\nAAAA\n>2nd:Cat\nCCCC\n>3rd:Mouse\nGGGG\n>4th:Rat\nUUUU\n"

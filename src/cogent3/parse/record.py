@@ -468,12 +468,12 @@ def FieldWrapper(fields, splitter=None, constructor=None):
     if constructor:
 
         def parser(line):
-            return constructor(dict(list(zip(fields, splitter(line)))))
+            return constructor(dict(list(zip(fields, splitter(line), strict=False))))
 
     else:
 
         def parser(line):
-            return dict(list(zip(fields, splitter(line))))
+            return dict(list(zip(fields, splitter(line), strict=False)))
 
     return parser
 
@@ -502,7 +502,7 @@ def StrictFieldWrapper(fields, splitter=None, constructor=None):
                 raise FieldError(
                     f"Expected {len(fields)} items but got {len(items)}: {items}",
                 )
-            return constructor(dict(list(zip(fields, items))))
+            return constructor(dict(list(zip(fields, items, strict=False))))
 
     else:
 
@@ -512,7 +512,7 @@ def StrictFieldWrapper(fields, splitter=None, constructor=None):
                 raise FieldError(
                     f"Expected {len(fields)} items but got {len(items)}: {items}",
                 )
-            return dict(list(zip(fields, items)))
+            return dict(list(zip(fields, items, strict=False)))
 
     return parser
 

@@ -47,7 +47,7 @@ class OptPar:
         self.clients = []
         self.client_ranks = []
         self.name = name
-        for attr, v in zip(["lower", "default_value", "upper"], bounds):
+        for attr, v in zip(["lower", "default_value", "upper"], bounds, strict=False):
             setattr(self, attr, float(v))
 
         # controls order in optimiser - group for LF
@@ -339,7 +339,7 @@ class Calculator:
             for name, cells in groups:
                 width = 4 + len(cells)
                 widths.append(min(15, width))
-            self._cellsGroupedForDisplay = list(zip(groups, widths))
+            self._cellsGroupedForDisplay = list(zip(groups, widths, strict=False))
             for (name, cells), width in self._cellsGroupedForDisplay:
                 print(name[:width].ljust(width), "|", end=" ")
             print()
@@ -378,7 +378,7 @@ class Calculator:
         if seed is not None:
             random_series.seed(seed)
         X = self.get_value_array()
-        for i, (l, u) in enumerate(zip(*self.get_bounds_vectors())):
+        for i, (l, u) in enumerate(zip(*self.get_bounds_vectors(), strict=False)):
             sign = random_series.choice([-1, +1])
             step = random_series.uniform(+0.05, +0.025)
             X[i] = max(l, min(u, (1.0 + sign * step * X[i])))
@@ -393,7 +393,9 @@ class Calculator:
         assert len(values) == len(self.opt_pars)
         changes = [
             (i, new)
-            for (i, (old, new)) in enumerate(zip(self.last_values, values))
+            for (i, (old, new)) in enumerate(
+                zip(self.last_values, values, strict=False)
+            )
             if old != new
         ]
         return self.change(changes)

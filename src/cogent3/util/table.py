@@ -212,7 +212,7 @@ class Columns(MutableMapping):
 
         if type(key) in (list, tuple):
             if all(type(e) == bool for e in key) and len(key) == len(self.order):
-                key = [k for k, b in zip(self.order, key) if b]
+                key = [k for k, b in zip(self.order, key, strict=False) if b]
             else:
                 key = [self._get_key_(k) for k in key]
 
@@ -329,7 +329,7 @@ class Columns(MutableMapping):
 
     def iter_rows(self):
         columns = [self[c] for c in self]
-        for row in zip(*columns):
+        for row in zip(*columns, strict=False):
             yield self._template.wrap(row, dtype=object)
 
     @property
@@ -510,7 +510,7 @@ class Table:
                 if set(len(r) for r in data) != {hlen}:
                     raise ValueError(f"not all rows have {hlen} elements")
 
-                data = dict(zip(header, zip(*data)))
+                data = dict(zip(header, zip(*data, strict=False), strict=False))
 
         if header is None:
             header = list(data) if isinstance(data, dict) else []
@@ -941,7 +941,9 @@ class Table:
         """
         self_range = range(self.shape[0])
         other_range = range(other.shape[0])
-        self_selected, other_selected = list(zip(*product(self_range, other_range)))
+        self_selected, other_selected = list(
+            zip(*product(self_range, other_range), strict=False)
+        )
         joined_data = {c: self.columns[c].take(self_selected) for c in self.columns}
         other_data = {
             f"{col_prefix}{c}": other.columns[c].take(other_selected)
@@ -1591,7 +1593,7 @@ class Table:
         ordered = [(self.columns.order.index(c.strip()), c) for c in formatted_cols]
         ordered.sort()
         formatted = [[c] + formatted_cols[c] for _, c in ordered]
-        formatted = [list(e) for e in zip(*formatted)]
+        formatted = [list(e) for e in zip(*formatted, strict=False)]
         if not formatted and self.header:
             formatted = [self.header]
         return formatted
@@ -1930,7 +1932,7 @@ class Table:
 
             caption = str(HtmlElement(st, "caption", newline=True)) if st else ""
             rows = []
-            for i, row in enumerate(zip(*[cols[c] for c in header])):
+            for i, row in enumerate(zip(*[cols[c] for c in header], strict=False)):
                 txt = HtmlElement("".join(str(e) for e in row), "tr")
                 rows.append(str(txt))
 

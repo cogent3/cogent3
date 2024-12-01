@@ -164,7 +164,7 @@ class _Defn:
             for scope_t in self.assignments:
                 sel = {}
                 sel.update(self.selection)
-                for d, c in zip(self.valid_dimensions, scope_t):
+                for d, c in zip(self.valid_dimensions, scope_t, strict=False):
                     if d in arg_dimensions:
                         sel[d] = c
                 result.append(sel)
@@ -238,7 +238,7 @@ class _Defn:
     def interpret_positional_scope_args(self, *args, **scope):
         # Carefully turn scope args into scope kwargs
         assert len(args) <= len(self.valid_dimensions), args
-        for dimension, arg in zip(self.valid_dimensions, args):
+        for dimension, arg in zip(self.valid_dimensions, args, strict=False):
             assert dimension not in scope, dimension
             scope[dimension] = arg
         return scope
@@ -418,7 +418,7 @@ class SelectFromDimension(_Defn):
 
     def update(self):
         for scope_t in self.assignments:
-            scope = dict(list(zip(self.valid_dimensions, scope_t)))
+            scope = dict(list(zip(self.valid_dimensions, scope_t, strict=False)))
             scope.update(self.selection)
             input_num = self.arg.output_ordinal_for(scope)
             self.assignments[scope_t] = (input_num,)
@@ -454,14 +454,14 @@ class _NonLeafDefn(_Defn):
 
     def update(self):
         for scope_t in self.assignments:
-            scope = dict(list(zip(self.valid_dimensions, scope_t)))
+            scope = dict(list(zip(self.valid_dimensions, scope_t, strict=False)))
             input_nums = [arg.output_ordinal_for(scope) for arg in self.args]
             self.assignments[scope_t] = tuple(input_nums)
         self._update_from_assignments()
         calc = self.make_calc_function()
         self.values = [
             nullor(self.name, calc, self.recycling)(
-                *[a.values[i] for (i, a) in zip(u, self.args)],
+                *[a.values[i] for (i, a) in zip(u, self.args, strict=False)],
             )
             for u in self.uniq
         ]

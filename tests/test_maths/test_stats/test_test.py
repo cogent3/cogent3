@@ -192,7 +192,7 @@ class TestsTests(TestCase):
             array([1.0, 1.0]),
         )
         results = tuple(std(inp, ax) for ax in [None, 0, 1])
-        for obs, exp in zip(results, exps):
+        for obs, exp in zip(results, exps, strict=False):
             testing.assert_almost_equal(obs, exp)
 
     def test_std_3d(self):
@@ -215,7 +215,7 @@ class TestsTests(TestCase):
             array([[1.15470054, 1.0], [4.93288286, 4.93288286]]),
         )
         res = tuple(std(inp3d, ax) for ax in [None, 0, 1, 2])
-        for obs, exp in zip(res, exp3d):
+        for obs, exp in zip(res, exp3d, strict=False):
             testing.assert_almost_equal(obs, exp)
 
     def test_tail(self):
@@ -512,10 +512,10 @@ class LikelihoodTests(TestCase):
         unequal = [0.5, 0.25, 0.125, 0.125]
         equal_answer = [1, 1, 1, 1]
         unequal_answer = [2, 1, 0.5, 0.5]
-        for obs, exp in zip(likelihoods(equal, equal), equal_answer):
+        for obs, exp in zip(likelihoods(equal, equal), equal_answer, strict=False):
             assert_allclose(obs, exp)
 
-        for obs, exp in zip(likelihoods(unequal, equal), unequal_answer):
+        for obs, exp in zip(likelihoods(unequal, equal), unequal_answer, strict=False):
             assert_allclose(obs, exp)
 
     def test_likelihoods_equal_evidence(self):
@@ -525,11 +525,13 @@ class LikelihoodTests(TestCase):
         equal_answer = [1, 1, 1, 1]
         not_unity = [0.7, 0.7, 0.7, 0.7]
 
-        for obs, exp in zip(likelihoods(equal, unequal), equal_answer):
+        for obs, exp in zip(likelihoods(equal, unequal), equal_answer, strict=False):
             assert_allclose(obs, exp)
 
         # should be the same if evidences don't sum to 1
-        for obs, exp in zip(likelihoods(not_unity, unequal), equal_answer):
+        for obs, exp in zip(
+            likelihoods(not_unity, unequal), equal_answer, strict=False
+        ):
             assert_allclose(obs, exp)
 
     def test_likelihoods_unequal_evidence(self):
@@ -540,7 +542,7 @@ class LikelihoodTests(TestCase):
 
         # if priors and evidence both unequal, likelihoods should change
         # (calculated using StarCalc)
-        for obs, exp in zip(likelihoods(not_unity, unequal), products):
+        for obs, exp in zip(likelihoods(not_unity, unequal), products, strict=False):
             assert_allclose(obs, exp)
 
     def test_posteriors_unequal_lists(self):
@@ -552,7 +554,7 @@ class LikelihoodTests(TestCase):
         first = [0, 0.25, 0.5, 1, 0.25]
         second = [0.25, 0.5, 0, 0.1, 1]
         product = [0, 0.125, 0, 0.1, 0.25]
-        for obs, exp in zip(posteriors(first, second), product):
+        for obs, exp in zip(posteriors(first, second), product, strict=False):
             assert_allclose(obs, exp)
 
 
@@ -582,21 +584,21 @@ class BayesUpdateTests(TestCase):
     def test_bayes_updates_good_data(self):
         """bayes_updates should match hand calculations of probability updates"""
         # result for first -> fourth calculated by hand
-        for obs, exp in zip(bayes_updates(self.test), self.result):
+        for obs, exp in zip(bayes_updates(self.test), self.result, strict=False):
             assert_allclose(obs, exp, rtol=1e-11, atol=1e-6)
 
     def test_bayes_updates_permuted(self):
         """bayes_updates should not be affected by order of inputs"""
-        for obs, exp in zip(bayes_updates(self.permuted), self.result):
+        for obs, exp in zip(bayes_updates(self.permuted), self.result, strict=False):
             assert_allclose(obs, exp, rtol=1e-11, atol=1e-6)
 
     def test_bayes_update_nondiscriminating(self):
         """bayes_updates should be unaffected by extra nondiscriminating data"""
         # deletion of non-discriminating evidence should not affect result
-        for obs, exp in zip(bayes_updates(self.deleted), self.result):
+        for obs, exp in zip(bayes_updates(self.deleted), self.result, strict=False):
             assert_allclose(obs, exp, rtol=1e-5, atol=1e-6)
         # additional non-discriminating evidence should not affect result
-        for obs, exp in zip(bayes_updates(self.extra), self.result):
+        for obs, exp in zip(bayes_updates(self.extra), self.result, strict=False):
             assert_allclose(obs, exp, rtol=1e-5, atol=1e-6)
 
 
@@ -1547,7 +1549,7 @@ class CorrelationTests(TestsHelper):
             (-0.97687328610475876, 0.93488023560400879),
         )
         obs = correlation_test([1, 2, 3, 4], [1, 2, 1, 1], permutations=0)
-        for o, e in zip(obs, exp):
+        for o, e in zip(obs, exp, strict=False):
             if e is None:
                 assert_equal(o, e)
             else:

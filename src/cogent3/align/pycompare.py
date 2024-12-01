@@ -4,7 +4,6 @@ from collections import deque
 from collections.abc import Generator
 from dataclasses import InitVar, dataclass, field
 from itertools import product
-from typing import Optional
 
 from cogent3.core.sequence import Sequence
 
@@ -204,7 +203,7 @@ def _extend_from_position(
     total = sum(matches)
     offset = -1
     for offset, (s1, s2) in enumerate(
-        zip(seq1[idx1 + window :], seq2[idx2 + window :]),
+        zip(seq1[idx1 + window :], seq2[idx2 + window :], strict=False),
     ):
         prev = matches[0]
         matches.append(s1 == s2 if {s1, s2} < canonical else 0)
@@ -270,7 +269,7 @@ class SeqKmers:
     kmers: dict = field(init=False)
     num_seqs: int = field(init=False)
     ref_name: str = field(init=False)
-    other_name: Optional[str] = field(init=False)
+    other_name: str | None = field(init=False)
 
     def __post_init__(self, seq):
         self.canonical = set(self.canonical)
@@ -316,7 +315,7 @@ class SeqKmers:
 
         self.num_seqs += 1
 
-    def drop_seq(self, seq_name: Optional[str] = None) -> None:
+    def drop_seq(self, seq_name: str | None = None) -> None:
         """removes other seq from all k-mers"""
         seq_name = seq_name if seq_name else self.other_name
         if seq_name is None:
@@ -462,7 +461,7 @@ class MatchedSeqPaths:
     def get_coords(
         self,
         rc: bool = False,
-        length: Optional[int] = None,
+        length: int | None = None,
         min_gap: int = 0,
     ):
         """returns x, y coordinates for plotting
@@ -494,7 +493,7 @@ class MatchedSeqPaths:
     def plotly_trace(
         self,
         rc: bool = False,
-        length: Optional[int] = None,
+        length: int | None = None,
         min_gap: int = 0,
     ):
         x, y = self.get_coords(rc=rc, length=length, min_gap=min_gap)
@@ -548,7 +547,7 @@ def find_matched_paths(
     *,
     seq_kmers: SeqKmers,
     seq1: Sequence,
-    seq2: Optional[Sequence] = None,
+    seq2: Sequence | None = None,
     window: int = 20,
     threshold: int = 17,
 ) -> MatchedSeqPaths:

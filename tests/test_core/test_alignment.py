@@ -1820,7 +1820,7 @@ class ArrayAlignmentSpecificTests(TestCase):
     def test_iter(self):
         """ArrayAlignment iter should iterate over positions"""
         result = list(iter(self.a2))
-        for i, j in zip(result, ["AD", "BE", "CF"]):
+        for i, j in zip(result, ["AD", "BE", "CF"], strict=False):
             self.assertEqual(i, list(j))
 
     def test_getitem(self):

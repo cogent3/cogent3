@@ -1,6 +1,5 @@
 import os
 from functools import singledispatch
-from typing import Union
 
 from cogent3 import load_tree, make_tree
 from cogent3.core.tree import TreeNode
@@ -45,7 +44,7 @@ class scale_branches:
         self._scalar = scalar
         self._min_length = min_length
 
-    def main(self, tree: TreeType) -> Union[SerialisableType, TreeType]:
+    def main(self, tree: TreeType) -> SerialisableType | TreeType:
         scalar = self._scalar
         min_length = self._min_length
         tree = tree.deepcopy()
@@ -76,7 +75,7 @@ class uniformize_tree:
         self._root_at = root_at
         self._ordered_names = ordered_names
 
-    def main(self, tree: TreeType) -> Union[SerialisableType, TreeType]:
+    def main(self, tree: TreeType) -> SerialisableType | TreeType:
         if self._root_at == "midpoint":
             new = tree.root_at_midpoint()
         else:
@@ -105,7 +104,7 @@ class quick_tree:
         """
         self._drop_invalid = drop_invalid
 
-    def main(self, dists: PairwiseDistanceType) -> Union[SerialisableType, TreeType]:
+    def main(self, dists: PairwiseDistanceType) -> SerialisableType | TreeType:
         """estimates a neighbor joining tree"""
         size = dists.shape[0]
         dists = dists.drop_invalid() if self._drop_invalid else dists
@@ -126,7 +125,7 @@ class quick_tree:
 
 
 @singledispatch
-def interpret_tree_arg(tree) -> Union[NoneType, TreeNode]:
+def interpret_tree_arg(tree) -> NoneType | TreeNode:
     raise TypeError(f"invalid tree type {type(tree)}")
 
 
