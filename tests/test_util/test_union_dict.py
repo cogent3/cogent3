@@ -1,5 +1,6 @@
 """Unit tests for union_dict."""
 
+
 from cogent3.util.union_dict import UnionDict
 
 
@@ -14,13 +15,11 @@ def test_attr():
     assert d.c == 0
     assert d.d.f == 0
 
-
 def test_construction():
     """should handle deeply nested dict"""
     data = {"width": 600.0, "xaxis": {"title": {"text": "Alignment Position"}}}
     d = UnionDict(data)
     assert d.xaxis.title.text == "Alignment Position"
-
 
 def test_construct_from_empty():
     """successfully define from an empty"""
@@ -32,7 +31,6 @@ def test_construct_from_empty():
     d.update(data)
     assert d.xaxis.title.text == "Alignment Position"
 
-
 def test_construct_from_kwargs():
     """successfully define from an kwargs"""
     data = {"width": 600.0, "xaxis": {"title": {"text": "Alignment Position"}}}
@@ -40,9 +38,8 @@ def test_construct_from_kwargs():
     d = UnionDict(**data)
     assert d.xaxis.title.text == "Alignment Position"
 
-
 def test_union():
-    """correctly adjust a prob vector so all values > minval"""
+    """correctly merges two UnionDicts"""
     d = UnionDict({"a": 1, "b": 2, "c": 3, "d": {"e": 5, "f": 6}})
     e = UnionDict({"b": 0, "d": {"f": 0, "g": 7}})
     d |= e
@@ -51,7 +48,6 @@ def test_union():
     assert d.d.e == 5
     assert d.d.f == 0
     assert d.d.g == 7
-
 
 def test_or():
     """should not modify original"""
@@ -65,7 +61,6 @@ def test_or():
     assert f.d.g == 7
     assert f.d is not e.d
 
-
 def test_union_value_dict():
     """replacing union or of a value with a dict should be dict"""
     d = UnionDict({"A": {"B": "Blah"}})
@@ -76,7 +71,6 @@ def test_union_value_dict():
     e |= d
     assert d == e
 
-
 def test_union_with_empty_sub_dict():
     """unioning with a dict that has an empty sub-dict"""
     d = UnionDict({"title": {}})
@@ -84,7 +78,6 @@ def test_union_with_empty_sub_dict():
     f = UnionDict(e.copy())
     e |= d
     assert e == f
-
 
 def test_sub_dicts_are_union():
     """checks if UnionDict is propogated to children"""
@@ -96,14 +89,12 @@ def test_sub_dicts_are_union():
     assert isinstance(d.e, UnionDict)
     assert isinstance(d.e.g, UnionDict)
 
-
 def test_get_subattr():
     """_getsubattr_ returns nested values via key"""
     d = UnionDict({"a": 1, "b": 2, "c": 3, "d": {"e": 5, "f": 6}})
     assert d._getsubattr_([], "a") == 1
     assert d._getsubattr_([], "d") == UnionDict({"e": 5, "f": 6})
     assert d._getsubattr_(["d"], "e") == 5
-
 
 def test_setitem():
     """should work via property or key"""
