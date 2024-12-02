@@ -5005,7 +5005,9 @@ class Alignment(SequenceCollection):
         return indices
 
     def omit_gap_pos(
-        self, allowed_gap_frac: float | None = None, motif_length: int = 1,
+        self,
+        allowed_gap_frac: float | None = None,
+        motif_length: int = 1,
     ):
         """Returns new alignment where all cols (motifs) have <= allowed_gap_frac gaps.
 
@@ -5028,7 +5030,7 @@ class Alignment(SequenceCollection):
             return self
 
         allowed_num = (
-            self.num_seqs-1
+            self.num_seqs - 1
             if allowed_gap_frac is None
             else int(numpy.floor(self.num_seqs * allowed_gap_frac))
         )
