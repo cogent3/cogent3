@@ -1319,6 +1319,11 @@ class SequenceCollection:
 
         return alignment_to_phylip(self.to_dict())
 
+    @c3warn.deprecated_args(
+        version="2025.3",
+        reason="duplicates builtin name",
+        old_new=[("format", "file_format")],
+    )
     def write(self, filename: str, file_format: OptStr = None, **kwargs):
         """Write the sequences to a file, preserving order of sequences.
 
@@ -4999,14 +5004,20 @@ class Alignment(SequenceCollection):
             indices[i : i + motif_length] = ok
         return indices
 
-    def omit_gap_pos(self, allowed_gap_frac: float = 1 - EPS, motif_length: int = 1):
+    def omit_gap_pos(
+        self,
+        allowed_gap_frac: float | None = None,
+        motif_length: int = 1,
+    ):
         """Returns new alignment where all cols (motifs) have <= allowed_gap_frac gaps.
 
         Parameters
         ----------
         allowed_gap_frac
             specifies proportion of gaps is allowed in each column. Set to 0 to
-            exclude columns with any gaps, 1 to include all columns.
+            exclude columns with any gaps, 1 to include all columns. Default is
+            None which is equivalent to (num_seqs-1)/num_seqs and leads to
+            elimination of columns that are only gaps.
         motif_length
             set's the "column" width, e.g. setting to 3 corresponds to codons.
             A motif that includes a gap at any position is included in the
@@ -5018,7 +5029,11 @@ class Alignment(SequenceCollection):
         if not gap_index and not missing_index:
             return self
 
-        allowed_num = int(numpy.floor(self.num_seqs * allowed_gap_frac))
+        allowed_num = (
+            self.num_seqs - 1
+            if allowed_gap_frac is None
+            else int(numpy.floor(self.num_seqs * allowed_gap_frac))
+        )
 
         # we are assuming gap and missing data have same value on other strand
         positions = self.array_positions
