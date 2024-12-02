@@ -1319,6 +1319,11 @@ class SequenceCollection:
 
         return alignment_to_phylip(self.to_dict())
 
+    @c3warn.deprecated_args(
+        version="2025.3",
+        reason="duplicates builtin name",
+        old_new=[("format", "file_format")],
+    )
     def write(self, filename: str, file_format: OptStr = None, **kwargs):
         """Write the sequences to a file, preserving order of sequences.
 
