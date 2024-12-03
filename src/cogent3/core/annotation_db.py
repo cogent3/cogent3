@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import abc
 import collections
 import copy
 import inspect
@@ -116,6 +117,7 @@ class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
         strand: OptionalStr = None,
         attributes: OptionalStr = None,
         on_alignment: OptionalBool = None,
+        **kwargs,
     ) -> typing.Iterator[FeatureDataType]: ...
 
     def get_feature_children(
@@ -145,6 +147,7 @@ class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
         strand: OptionalStr = None,
         attributes: OptionalStr = None,
         on_alignment: OptionalBool = None,
+        **kwargs,
     ) -> int: ...
 
     def subset(
@@ -157,6 +160,7 @@ class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
         stop: OptionalInt = None,
         strand: OptionalStr = None,
         attributes: OptionalStr = None,
+        **kwargs,
     ): ...
 
 
@@ -174,6 +178,7 @@ class SupportsWriteFeatures(typing.Protocol):  # pragma: no cover
         attributes: OptionalStr = None,
         strand: OptionalStr = None,
         on_alignment: bool = False,
+        **kwargs,
     ) -> None: ...
 
     def add_records(
@@ -182,13 +187,23 @@ class SupportsWriteFeatures(typing.Protocol):  # pragma: no cover
         records: typing.Sequence[dict],
         # seqid required for genbank
         seqid: OptionalStr = None,
+        **kwargs,
     ) -> None: ...
 
-    def update(self, annot_db, seqids: OptionalStrList = None) -> None:
+    def update(
+        self,
+        annot_db,
+        seqids: OptionalStrList = None,
+        **kwargs,
+    ) -> None:
         # update records with those from an instance of the same type
         ...
 
-    def union(self, annot_db):
+    def union(
+        self,
+        annot_db,
+        **kwargs,
+    ):
         # returns a new instance of the more complex class
         ...
 
@@ -209,6 +224,88 @@ class SupportsFeatures(
     def __eq__(self, other):
         # equality based on class and identity of the bound db
         ...
+
+
+class AnnotationDbABC(abc.ABC, SupportsFeatures):
+    @abc.abstractmethod
+    def __len__(self): ...
+
+    @abc.abstractmethod
+    def __eq__(self, other): ...
+
+    @abc.abstractmethod
+    def get_features_matching(
+        self,
+        *,
+        seqid: str | None = None,
+        biotype: str | None = None,
+        name: str | None = None,
+        start: int | None = None,
+        stop: int | None = None,
+        strand: str | None = None,
+        attributes: str | None = None,
+        on_alignment: bool | None = None,
+        **kwargs,
+    ) -> collections.Iterator[FeatureDataType]: ...
+
+    @abc.abstractmethod
+    def get_feature_children(
+        self,
+        *,
+        name: str,
+        start: int | None = None,
+        stop: int | None = None,
+        **kwargs,
+    ) -> list[FeatureDataType]: ...
+
+    @abc.abstractmethod
+    def get_feature_parent(
+        self,
+        *,
+        name: str,
+        start: int | None = None,
+        stop: int | None = None,
+        **kwargs,
+    ) -> list[FeatureDataType]: ...
+
+    @abc.abstractmethod
+    def num_matches(
+        self,
+        *,
+        seqid: str | None = None,
+        biotype: str | None = None,
+        name: str | None = None,
+        strand: str | None = None,
+        attributes: str | None = None,
+        on_alignment: bool | None = None,
+        **kwargs,
+    ) -> int: ...
+
+    @abc.abstractmethod
+    def subset(
+        self,
+        *,
+        seqid: str | None = None,
+        biotype: str | None = None,
+        name: str | None = None,
+        start: int | None = None,
+        stop: int | None = None,
+        strand: str | None = None,
+        attributes: str | None = None,
+        **kwargs,
+    ): ...
+
+    @abc.abstractmethod
+    def add_feature(self, **kwargs): ...
+
+    @abc.abstractmethod
+    def add_records(self, **kwargs): ...
+
+    @abc.abstractmethod
+    def update(self, **kwargs): ...
+
+    @abc.abstractmethod
+    def union(self, **kwargs): ...
 
 
 def _make_table_sql(
@@ -1188,7 +1285,7 @@ class SqliteAnnotationDbMixin:
             )
 
 
-class BasicAnnotationDb(SqliteAnnotationDbMixin):
+class BasicAnnotationDb(SqliteAnnotationDbMixin, AnnotationDbABC):
     """Provides a user table for annotations. This can be merged with
     either the Gff or Genbank versions.
 
@@ -1250,7 +1347,7 @@ def _merge_spans(old: numpy.ndarray, new: list[list[int]]) -> numpy.ndarray:
     return numpy.unique(numpy.concatenate([old, new]), axis=0)
 
 
-class GffAnnotationDb(SqliteAnnotationDbMixin):
+class GffAnnotationDb(SqliteAnnotationDbMixin, AnnotationDbABC):
     """Support for annotations from gff files. Records that span multiple
     rows in the gff are merged into a single record."""
 
@@ -1354,7 +1451,7 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
 # has the same ID as their child but their span contains the childs.
 
 
-class GenbankAnnotationDb(SqliteAnnotationDbMixin):
+class GenbankAnnotationDb(SqliteAnnotationDbMixin, AnnotationDbABC):
     """Support for annotations from Genbank files.
 
     Notes
