@@ -10,7 +10,7 @@ from lzma import open as lzma_open
 from os import PathLike, remove
 from pathlib import Path, PurePath
 from tempfile import mkdtemp
-from typing import IO, Optional, Union
+from typing import IO
 from urllib.parse import ParseResult, urlparse
 from urllib.request import urlopen
 from zipfile import ZipFile
@@ -19,7 +19,7 @@ from chardet import detect
 
 from cogent3.util.misc import _wout_period
 
-PathType = Union[str, PathLike, PurePath]
+PathType = str | PathLike | PurePath | Path
 
 
 @functools.singledispatch
@@ -331,7 +331,7 @@ class atomic_write:
         self.__exit__(None, None, None)
 
 
-T = Optional[str]
+T = str | None
 
 
 def get_format_suffixes(filename: PathType) -> tuple[T, T]:
