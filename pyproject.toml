@@ -187,7 +187,22 @@ target-version = "py310"
 # Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
 # McCabe complexity (`C901`) by default.
 select = ["ALL"]
-ignore = ["EXE002", "FA100", "E501", "D"]
+# ICN001 not adhering to nuimpy as np convention due to
+# name collision, where np is used as num params
+# N801 CamelCase is not always appropriate
+# PLR0913 number of arguments sometimes needs to be > 5
+# FBT001 and FBT002, positional boolean arguments are allowed!
+ignore = [
+    "EXE002", 
+    "FA100", 
+    "E501", 
+    "D", 
+    "N801", 
+    "ICN001", 
+    "PLR0913",
+    "FBT001",
+    "FBT002",
+    ]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
@@ -202,7 +217,8 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "INP001", # __init__.py files are not required...
     "ANN",
     "N802",
-    "N803"
+    "N803",
+    "S608",  # sql injection unlikely
 ]
 "noxfile.py" = [
     "S101", # asserts allowed in tests...
