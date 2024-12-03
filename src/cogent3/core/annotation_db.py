@@ -303,7 +303,12 @@ class AnnotationDbABC(abc.ABC, SupportsFeatures):
     def add_records(self, **kwargs): ...
 
     @abc.abstractmethod
-    def update(self, **kwargs): ...
+    def update(
+        self,
+        annot_db,
+        seqids: OptionalStrList = None,
+        **kwargs,
+    ): ...
 
     @abc.abstractmethod
     def union(self, **kwargs): ...
@@ -1117,6 +1122,7 @@ class SqliteAnnotationDbMixin:
         self,
         annot_db: SupportsFeatures,
         seqids: OptionalStrList = None,
+        **kwargs: dict[str, typing.Any],
     ) -> None:
         """update records with those from an instance of the same type"""
         if not isinstance(annot_db, SupportsFeatures):
