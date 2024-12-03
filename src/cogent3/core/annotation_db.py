@@ -92,6 +92,7 @@ class FeatureDataType(typing.TypedDict):
     spans: list[tuple[int, int]]
     strand: str  # "-" if feature on reverse strand
     on_alignment: bool  # True if feature on an alignment
+    xattr: dict[str, typing.Any]  # extra attributes
 
 
 @typing.runtime_checkable
