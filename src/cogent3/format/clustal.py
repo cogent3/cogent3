@@ -5,7 +5,7 @@ Writer for Clustal format.
 
 from copy import copy
 
-from cogent3.core.alignment import SequenceCollection
+import cogent3
 
 
 def clustal_from_alignment(aln, wrap=None):
@@ -32,7 +32,7 @@ def clustal_from_alignment(aln, wrap=None):
         order = list(aln.keys())
         order.sort()
 
-    seqs = SequenceCollection(aln)
+    seqs = cogent3.make_unaligned_seqs(aln, moltype="text")
     clustal_list = ["CLUSTAL\n"]
 
     if seqs.is_ragged():

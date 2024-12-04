@@ -6,9 +6,9 @@ import numpy
 from numpy import array, diag, dot, eye, float64, int32, log, sqrt, zeros
 from numpy.linalg import det, inv
 
+import cogent3
 from cogent3._version import __version__
 from cogent3.core import new_moltype
-from cogent3.core.moltype import DNA, RNA, get_moltype
 from cogent3.util.dict_array import DictArray
 from cogent3.util.misc import get_object_provenance
 from cogent3.util.progress_display import display_wrap
@@ -320,7 +320,7 @@ class _PairwiseDistance:
 
     def __init__(self, moltype, invalid=-9, alignment=None, invalid_raises=False):
         super().__init__()
-        moltype = get_moltype(moltype)
+        moltype = cogent3.get_moltype(moltype)
         if moltype.label not in self.valid_moltypes:
             name = self.__class__.__name__
             msg = (
@@ -580,8 +580,11 @@ class _NucleicSeqPair(_PairwiseDistance):
 
     def __init__(self, moltype="dna", *args, **kwargs):
         super().__init__(moltype, *args, **kwargs)
-        if not _same_moltype(DNA, self.moltype) and not _same_moltype(
-            RNA,
+        if not _same_moltype(
+            cogent3.get_moltype("dna"),
+            self.moltype,
+        ) and not _same_moltype(
+            cogent3.get_moltype("rna"),
             self.moltype,
         ):
             raise RuntimeError("Invalid MolType for this metric")

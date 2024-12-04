@@ -4,7 +4,7 @@ import warnings
 import numpy
 import pytest
 
-from cogent3 import DNA, SequenceCollection, _Table, load_seq
+import cogent3
 from cogent3.core.annotation_db import (
     BasicAnnotationDb,
     GenbankAnnotationDb,
@@ -18,6 +18,8 @@ from cogent3.core.annotation_db import (
 from cogent3.core.sequence import Sequence
 from cogent3.parse import genbank
 from cogent3.util import deserialise
+
+DNA = cogent3.get_moltype("dna")
 
 
 @pytest.fixture
@@ -34,7 +36,10 @@ def gff_small_db(DATA_DIR):
 
 @pytest.fixture
 def seq_db(DATA_DIR):
-    seq = load_seq(DATA_DIR / "c_elegans_WS199_dna_shortened.fasta", moltype="dna")
+    seq = cogent3.load_seq(
+        DATA_DIR / "c_elegans_WS199_dna_shortened.fasta",
+        moltype="dna",
+    )
     db = load_annotations(path=DATA_DIR / "c_elegans_WS199_shortened_gff.gff3")
 
     seq.annotation_db = db
@@ -127,8 +132,10 @@ def test_constructor_db_connection_works(db_name, cls, request):
 
 
 def test_gff_describe(gff_db):
+    from cogent3.util.table import Table
+
     result = gff_db.describe
-    assert isinstance(result, _Table)
+    assert isinstance(result, Table)
 
 
 def test_count_distinct(gff_db):
@@ -775,7 +782,7 @@ def test_sequence_collection_annotate_from_gff(DATA_DIR):
     to the same AnnotationDb instance
     """
     seqs = {"test_seq": "ATCGATCGATCG", "test_seq2": "GATCGATCGATC"}
-    seq_coll = SequenceCollection(seqs)
+    seq_coll = cogent3.make_unaligned_seqs(seqs, moltype="dna")
     seq_coll.annotate_from_gff(DATA_DIR / "simple.gff", seq_ids="test_seq")
 
     # the seq for which the seqid was provided is annotated
@@ -802,7 +809,7 @@ def test_sequence_collection_annotate_from_gff(DATA_DIR):
 def test_seq_coll_query(DATA_DIR):
     """obtain same results when querying from collection as from seq"""
     seqs = {"test_seq": "ATCGATCGATCG", "test_seq2": "GATCGATCGATC"}
-    seq_coll = SequenceCollection(seqs)
+    seq_coll = cogent3.make_unaligned_seqs(seqs, moltype="dna")
     seq_coll.annotate_from_gff(DATA_DIR / "simple.gff", seq_ids="test_seq")
 
     seq = seq_coll.get_seq("test_seq")

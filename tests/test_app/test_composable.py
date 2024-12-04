@@ -36,7 +36,6 @@ from cogent3.app.sqlite_data_store import DataStoreSqlite
 from cogent3.app.translate import select_translatable
 from cogent3.app.tree import quick_tree
 from cogent3.app.typing import AlignedSeqsType, PairwiseDistanceType
-from cogent3.core.alignment import Alignment, SequenceCollection
 from cogent3.util.union_dict import UnionDict
 
 
@@ -293,7 +292,7 @@ def test_as_completed(DATA_DIR):
     path = str(Path(dstore[0].data_store.source) / dstore[0].unique_id)
     got = list(proc.as_completed(path, show_progress=False))
     assert len(got) == 1
-    assert isinstance(got[0].obj, SequenceCollection)
+    assert got[0].obj.__class__.__name__.endswith("SequenceCollection")
 
 
 @pytest.mark.parametrize("data", [(), ("", "")])
@@ -313,12 +312,16 @@ def test_as_completed_empty_data(data):
     [
         dict(a=2),
         UnionDict(a=2, source="blah.txt"),
-        Alignment(data=dict(a="ACGT"), info=dict(source="blah.txt")),
+        make_aligned_seqs(
+            data=dict(a="ACGT"),
+            info=dict(source="blah.txt"),
+            moltype="dna",
+        ),
     ],
 )
 def test_as_completed_w_wout_source(data):
     @define_app
-    def pass_through(val: dict | UnionDict | Alignment) -> dict:
+    def pass_through(val: dict | UnionDict | AlignedSeqsType) -> dict:
         return val
 
     app = pass_through()  # pylint: disable=not-callable,no-value-for-parameter
@@ -645,7 +648,7 @@ def test_user_function_multiple():
 
     aln_1 = make_aligned_seqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
     data = dict([("s1", "ACGTACGTA"), ("s2", "GTGTACGTA")])
-    aln_2 = Alignment(data=data, moltype="dna")
+    aln_2 = make_aligned_seqs(data=data, moltype="dna")
 
     got_1 = u_function_1(aln_1)
     got_2 = u_function_2(aln_2)

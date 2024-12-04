@@ -7,7 +7,7 @@ from unittest import TestCase
 import numpy
 import pytest
 
-from cogent3 import DNA, make_seq
+import cogent3
 from cogent3.core import new_moltype
 from cogent3.core.location import (
     FeatureMap,
@@ -20,6 +20,8 @@ from cogent3.core.location import (
     gap_coords_to_map,
     span_and_span,
 )
+
+DNA = cogent3.get_moltype("dna")
 
 
 class SpanTests(TestCase):
@@ -816,7 +818,7 @@ def test_indelmap_slice_one_gap():
 def test_gapped_convert_seq2aln(data, index):
     # converting a sequence index to alignment index
     ungapped = data.replace("-", "")
-    seq = make_seq(data, moltype="text")
+    seq = cogent3.make_seq(data, moltype="text")
     gaps, _ = seq.parse_out_gaps()
     idx = gaps.get_align_index(index)
     assert data[idx] == ungapped[index]
@@ -842,7 +844,7 @@ def test_gapped_convert_seq2aln(data, index):
 def test_indelmap_align_index_slice_stop(data, start, end):
     # converting a sequence index to alignment index
     ungapped = data.replace("-", "")
-    seq = make_seq(data, moltype="text")
+    seq = cogent3.make_seq(data, moltype="text")
     gaps, _ = seq.parse_out_gaps()
     stop = gaps.get_align_index(end, slice_stop=True)
     assert data[stop - 1] == ungapped[end - 1]
@@ -864,7 +866,7 @@ def test_indelmap_align_index_slice_stop(data, start, end):
 @pytest.mark.parametrize("index", range(6))  # the ungapped sequence is 6 long
 def test_gapped_convert_seq2aln2seq(data, index):
     # round tripping seq to alignment to seq indices
-    gaps, _ = make_seq(data, moltype="text").parse_out_gaps()
+    gaps, _ = cogent3.make_seq(data, moltype="text").parse_out_gaps()
     align_index = gaps.get_align_index(index)
     got = gaps.get_seq_index(align_index)
     assert got == index
@@ -917,7 +919,7 @@ def test_gapped_convert_aln2seq_nongap_char(data, seq_index):
     # test alignment indexes when aligned position is NOT a gap
     ungapped = "ABCDEFG"
     align_index = data.find(ungapped[seq_index])
-    gaps, _ = make_seq(data, moltype="text").parse_out_gaps()
+    gaps, _ = cogent3.make_seq(data, moltype="text").parse_out_gaps()
     idx = gaps.get_seq_index(align_index)
     assert idx == seq_index
 
@@ -960,13 +962,13 @@ def test_gapped_convert_aln2seq_gapchar(data, gap_number):
     assert data[align_index] == "-", (data, gap_number)
     # find nearest non-gap
     seq_index = _get_expected_seqindex(data, align_index)
-    gaps, _ = make_seq(data, moltype="text").parse_out_gaps()
+    gaps, _ = cogent3.make_seq(data, moltype="text").parse_out_gaps()
     idx = gaps.get_seq_index(align_index)
     assert idx == seq_index
 
 
 def test_gapped_convert_aln2seq_invalid():
-    gaps, _ = make_seq(seq="AC--GTA-TG", moltype="dna").parse_out_gaps()
+    gaps, _ = cogent3.make_seq(seq="AC--GTA-TG", moltype="dna").parse_out_gaps()
     with pytest.raises(IndexError):
         # absolute value of negative indices must be < seq length
         gaps.get_seq_index(-100)
@@ -1004,11 +1006,11 @@ def test_all_gaps_in_slice():
     # slicing GapPositions
     # sample seq 1
     data = "AC--GTA-TG"
-    gp, _ = make_seq(data, moltype="dna").parse_out_gaps()
+    gp, _ = cogent3.make_seq(data, moltype="dna").parse_out_gaps()
     sl = slice(1, 9)
 
     got = gp[sl]
-    expect_gaps, _ = make_seq(data[sl], moltype="dna").parse_out_gaps()
+    expect_gaps, _ = cogent3.make_seq(data[sl], moltype="dna").parse_out_gaps()
     assert got.get_gap_coordinates() == expect_gaps.get_gap_coordinates()
     assert got.parent_length == 5
 
@@ -1030,10 +1032,13 @@ def test_all_gaps_in_slice():
     [slice(i, j) for i, j in combinations(range(10), 2)],
 )
 def test_variant_slices(data, aslice):
-    gaps, _ = make_seq(data, moltype="dna").parse_out_gaps()
+    gaps, _ = cogent3.make_seq(data, moltype="dna").parse_out_gaps()
     got = gaps[aslice]
 
-    expect_gaps, expect_seq = make_seq(data[aslice], moltype="dna").parse_out_gaps()
+    expect_gaps, expect_seq = cogent3.make_seq(
+        data[aslice],
+        moltype="dna",
+    ).parse_out_gaps()
     assert got.parent_length == len(expect_seq)
     assert (got.gap_pos == expect_gaps.gap_pos).all()
     assert (got.cum_gap_lengths == expect_gaps.cum_gap_lengths).all()
@@ -1138,7 +1143,7 @@ def test_get_gap_align_coordinates1(seq, expected):
     expected = numpy.array(expected, dtype=int)
     if not len(expected):
         expected = expected.reshape((0, 2))
-    im, _ = make_seq(seq).parse_out_gaps()
+    im, _ = cogent3.make_seq(seq).parse_out_gaps()
     result = im.get_gap_align_coordinates()
     assert (result == expected).all(), f"{expected=}, {result=}"
 
@@ -1156,7 +1161,7 @@ def test_get_gap_align_coordinates_edge_cases(seq, expected):
     if not len(expected):
         expected = expected.reshape((0, 2))
 
-    im, _ = make_seq(seq).parse_out_gaps()
+    im, _ = cogent3.make_seq(seq).parse_out_gaps()
     result = im.get_gap_align_coordinates()
     assert (result == expected).all(), f"{expected=}, {result=}"
 
@@ -1284,7 +1289,7 @@ gap_run = re.compile("-+")
 @pytest.fixture(scope="session", params=combinations(RAW_SEQS, 2))
 def seq_pairs(request):
     raw1, raw2 = request.param
-    return make_seq(raw1, moltype="dna"), make_seq(raw2, moltype="dna")
+    return cogent3.make_seq(raw1, moltype="dna"), cogent3.make_seq(raw2, moltype="dna")
 
 
 @pytest.mark.parametrize("as_array", (True, False))
@@ -1314,7 +1319,7 @@ def test_indelmap_subtraction(seq_pairs, as_array):
     ig2, s2 = s2.parse_out_gaps()
     arg = ig2.get_gap_align_coordinates() if as_array else ig2
     got1 = ig1.minus_gaps(arg)
-    expect, _ = make_seq(unique_gaps, moltype="dna").parse_out_gaps()
+    expect, _ = cogent3.make_seq(unique_gaps, moltype="dna").parse_out_gaps()
     numpy.testing.assert_allclose(
         got1.get_gap_coordinates(),
         expect.get_gap_coordinates(),

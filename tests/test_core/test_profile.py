@@ -6,7 +6,10 @@ from unittest import TestCase
 from numpy import array, log2, nan, vstack
 from numpy.testing import assert_allclose
 
+import cogent3
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
+
+DNA = cogent3.get_moltype("dna")
 
 
 class MotifCountsArrayTests(TestCase):
@@ -524,7 +527,6 @@ class PSSMTests(TestCase):
 
     def test_score_seq_obj(self):
         """produce correct score from seq"""
-        from cogent3 import DNA
 
         data = [
             [0.1, 0.3, 0.5, 0.1],

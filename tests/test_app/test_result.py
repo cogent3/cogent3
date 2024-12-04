@@ -1,7 +1,7 @@
 import pathlib
 from unittest import TestCase
 
-from cogent3 import make_aligned_seqs, make_table
+import cogent3
 from cogent3.app import evo as evo_app
 from cogent3.app.data_store import DataMember
 from cogent3.app.result import (
@@ -18,8 +18,7 @@ from cogent3.util.dict_array import DictArray
 class TestGenericResult(TestCase):
     def test_deserialised_values(self):
         """correctly deserialises values"""
-        from cogent3 import DNA
-
+        DNA = cogent3.get_moltype("dna")
         data = {"type": "cogent3.core.moltype.MolType", "moltype": "dna"}
         result = generic_result(source="blah.json")
         result["key"] = data
@@ -67,7 +66,7 @@ class TestGenericResult(TestCase):
         """flexible handling of data source"""
         # works for string
         source = pathlib.Path("path/blah.fasta")
-        aln = make_aligned_seqs(
+        aln = cogent3.make_aligned_seqs(
             {"A": "ACGT"},
             info=dict(source=str(source), random_key=1234),
         )
@@ -97,7 +96,7 @@ class TestModelResult(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
         mod = evo_app.model(
             "F81",
             show_progress=False,
@@ -115,7 +114,7 @@ class TestModelResult(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
         mod = evo_app.model(
             "F81",
             show_progress=False,
@@ -132,7 +131,7 @@ class TestModelResult(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
         mod = evo_app.model(
             "F81",
             name="blah",
@@ -149,7 +148,7 @@ class TestModelResult(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
         mod = evo_app.model(
             "F81",
             split_codons=True,
@@ -169,7 +168,7 @@ class TestModelResult(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
         mod = evo_app.model(
             "F81",
             split_codons=True,
@@ -186,7 +185,7 @@ class TestModelResult(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
         mod = evo_app.model(
             "F81",
             split_codons=True,
@@ -206,7 +205,7 @@ class TestModelResult(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
         mod = evo_app.model(
             "F81",
             split_codons=True,
@@ -226,7 +225,7 @@ class TestModelResult(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
         model1 = evo_app.model(
             "BH",
             opt_args=dict(max_evaluations=25, limit_action="ignore"),
@@ -253,7 +252,7 @@ class TestModelResult(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
         with self.assertRaises(TypeError):
             r["name"] = aln
 
@@ -282,7 +281,7 @@ class TestModelCollectionResult(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
         model1 = evo_app.model(
             "F81",
             opt_args=dict(max_evaluations=25, limit_action="ignore"),
@@ -381,7 +380,7 @@ class TestHypothesisResult(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
         model1 = evo_app.model(
             "F81",
             opt_args=dict(max_evaluations=25, limit_action="ignore"),
@@ -405,7 +404,7 @@ class TestTabularResult(TestCase):
     def test_valid_setitem(self):
         """tabular_result works when set correct item type"""
         tr = tabular_result("null")
-        tr["result"] = make_table(data={"A": [0, 1]})
+        tr["result"] = cogent3.make_table(data={"A": [0, 1]})
         darr = DictArray({"A": [0, 1]})
         tr["result2"] = darr
         js = tr.to_json()

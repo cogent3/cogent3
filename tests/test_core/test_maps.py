@@ -1,7 +1,9 @@
 import unittest
 
-from cogent3 import DNA, make_aligned_seqs
+import cogent3
 from cogent3.core.location import FeatureMap, Span
+
+DNA = cogent3.get_moltype("dna")
 
 
 class MapTest(unittest.TestCase):
@@ -47,9 +49,10 @@ class MapTest(unittest.TestCase):
 
 
 def test_get_by_seq_annotation_allow_gaps():
-    aln = make_aligned_seqs(
+    aln = cogent3.make_aligned_seqs(
         data={"a": "ATCGAAATCGAT", "b": "ATCGA--TCGAT"},
         array_align=False,
+        moltype="dna",
     )
     # original version was putting annotation directly on seq
     f = aln.add_feature(

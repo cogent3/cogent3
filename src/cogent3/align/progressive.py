@@ -1,15 +1,19 @@
 from cogent3 import get_app, get_model, make_unaligned_seqs
-from cogent3.core.alignment import ArrayAlignment, SequenceCollection
+from cogent3.core import alignment as old_alignment
+from cogent3.core import new_alignment
 from cogent3.core.tree import TreeNode
 from cogent3.evolve.distance import EstimateDistances
 from cogent3.phylo import nj as NJ
 from cogent3.util import progress_display as UI
 
+SeqCollType = old_alignment.SequenceCollection | new_alignment.SequenceCollection
+AlignType = old_alignment.ArrayAlignment | new_alignment.Alignment
+
 
 @UI.display_wrap
 def tree_align(
     model: str,
-    seqs: SequenceCollection,
+    seqs: SeqCollType,
     tree: TreeNode | None = None,
     indel_rate: float = 1e-10,
     indel_length: float = 1e-1,
@@ -18,7 +22,7 @@ def tree_align(
     param_vals: dict = None,
     iters: int | None = None,
     approx_dists: bool = True,
-) -> tuple[ArrayAlignment, TreeNode]:
+) -> tuple[AlignType, TreeNode]:
     """Returns a multiple sequence alignment and tree.
 
     Parameters

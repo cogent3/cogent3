@@ -4,9 +4,9 @@ from typing import Optional, Union
 from numpy import array
 from numpy import random as np_random
 
-from cogent3.core.alignment import Alignment, ArrayAlignment
-from cogent3.core.genetic_code import get_code
-from cogent3.core.moltype import MolType, get_moltype
+import cogent3
+from cogent3.core import moltype as old_moltype
+from cogent3.core import new_moltype
 
 from .composable import NON_COMPOSABLE, NotCompleted, define_app
 from .translate import get_fourfold_degenerate_sets
@@ -15,7 +15,7 @@ from .typing import AlignedSeqsType, SeqsCollectionType, SerialisableType
 # TODO need a function to filter sequences based on divergence, ala divergent
 # set.
 
-MolTypes = Union[str, MolType]
+MolTypes = Union[str, old_moltype.MolType, new_moltype.MolType]
 OptInt = Optional[int]
 
 
@@ -124,9 +124,6 @@ class concat:
         for aln in data:
             if self._moltype is None:
                 self._moltype = aln.moltype
-
-            if not isinstance(aln, (ArrayAlignment, Alignment)):
-                raise TypeError(f"{type(aln)} invalid for concat")
             names.append(aln.names)
 
         names = self._name_callback(names)
@@ -147,7 +144,11 @@ class concat:
                 collated[name].append(seqs[name])
 
         combined = {n: self._join_seq.join(collated[n]) for n in names}
-        if aln := ArrayAlignment(data=combined, moltype=self._moltype):
+        if aln := cogent3.make_aligned_seqs(
+            data=combined,
+            moltype=self._moltype,
+            array_align=True,
+        ):
             return aln
         return NotCompleted("FAIL", self, message="result is empty")
 
@@ -227,7 +228,7 @@ class omit_degenerates:
         'Traceback...
         """
         if moltype:
-            moltype = get_moltype(moltype)
+            moltype = cogent3.get_moltype(moltype)
             assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
 
         self._moltype = moltype
@@ -312,7 +313,7 @@ class omit_gap_pos:
         'all columns exceeded gap threshold'
         """
         if moltype:
-            moltype = get_moltype(moltype)
+            moltype = cogent3.get_moltype(moltype)
             assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
 
         self._moltype = moltype
@@ -407,7 +408,7 @@ class take_codon_positions:
         'Traceback ...
         """
         assert moltype is not None
-        moltype = get_moltype(moltype)
+        moltype = cogent3.get_moltype(moltype)
 
         assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
 
@@ -416,7 +417,7 @@ class take_codon_positions:
         self._fourfold_degen_sets = None
 
         if fourfold_degenerate:
-            gc = get_code(gc)
+            gc = cogent3.get_code(gc)
             sets = get_fourfold_degenerate_sets(
                 gc,
                 alphabet=moltype.alphabet,
@@ -457,12 +458,12 @@ class take_codon_positions:
         return new[2::3]
 
     def take_codon_position(self, aln):
-        if isinstance(aln, Alignment):
-            indices = list(range(self._positions, len(aln), 3))
-            result = aln.take_positions(indices)
-        elif isinstance(aln, ArrayAlignment):
-            result = aln[self._positions :: 3]
-        return result
+        from cogent3.core.alignment import Alignment
+
+        if not isinstance(aln, Alignment):
+            return aln[self._positions :: 3]
+        indices = list(range(self._positions, len(aln), 3))
+        return aln.take_positions(indices)
 
     def take_codon_positions(self, aln):
         """takes multiple positions"""
@@ -705,7 +706,7 @@ class min_length:
         self._motif_length = motif_length
         self._subtract_degen = subtract_degen
         if moltype:
-            moltype = get_moltype(moltype)
+            moltype = cogent3.get_moltype(moltype)
         self._moltype = moltype
 
     T = Union[SerialisableType, SeqsCollectionType]
@@ -835,7 +836,7 @@ class fixed_length:
         self._length = length
         self._motif_length = motif_length
         if moltype:
-            moltype = get_moltype(moltype)
+            moltype = cogent3.get_moltype(moltype)
         self._moltype = moltype
         if type(start) == str:
             assert start.lower().startswith("rand")
@@ -967,7 +968,7 @@ class omit_bad_seqs:
         s5    ..A...GGG..T
         """
         if moltype:
-            moltype = get_moltype(moltype)
+            moltype = cogent3.get_moltype(moltype)
         assert (
             moltype.label.lower() in "dna rna protein protein_with_stop"
         ), "moltype must be one of DNA, RNA or PROTEIN"
@@ -1097,7 +1098,7 @@ class omit_duplicated:
         """
         assert not choose or choose in "longestrandom"
         if moltype:
-            moltype = get_moltype(moltype)
+            moltype = cogent3.get_moltype(moltype)
         self._moltype = moltype
         if choose == "random" and seed:
             np_random.seed(seed)

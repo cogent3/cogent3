@@ -39,8 +39,8 @@ from copy import deepcopy
 import numpy
 from numpy.linalg import svd
 
+import cogent3
 from cogent3._version import __version__
-from cogent3.core import genetic_code, moltype
 from cogent3.core.tree import PhyloNode
 from cogent3.evolve import motif_prob_model, parameter_controller, predicate
 from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
@@ -975,7 +975,7 @@ class TimeReversibleNucleotide(_TimeReversibleNucleotide):
     """A nucleotide substitution model."""
 
     def __init__(self, *args, **kw):
-        kw["alphabet"] = kw.get("alphabet", moltype.DNA.alphabet)
+        kw["alphabet"] = kw.get("alphabet", cogent3.get_moltype("dna").alphabet)
         _TimeReversibleNucleotide.__init__(self, *args, **kw)
 
 
@@ -983,7 +983,7 @@ class TimeReversibleDinucleotide(_TimeReversibleNucleotide):
     """A dinucleotide substitution model."""
 
     def __init__(self, *args, **kw):
-        kw["alphabet"] = kw.get("alphabet", moltype.DNA.alphabet)
+        kw["alphabet"] = kw.get("alphabet", cogent3.get_moltype("dna").alphabet)
         kw["motif_length"] = 2
         _TimeReversibleNucleotide.__init__(self, *args, **kw)
 
@@ -992,7 +992,7 @@ class TimeReversibleTrinucleotide(_TimeReversibleNucleotide):
     """A trinucleotide substitution model."""
 
     def __init__(self, *args, **kw):
-        kw["alphabet"] = kw.get("alphabet", moltype.DNA.alphabet)
+        kw["alphabet"] = kw.get("alphabet", cogent3.get_moltype("dna").alphabet)
         kw["motif_length"] = 3
         _TimeReversibleNucleotide.__init__(self, *args, **kw)
 
@@ -1001,7 +1001,7 @@ class TimeReversibleProtein(TimeReversible):
     """base protein substitution model."""
 
     def __init__(self, with_selenocysteine=False, *args, **kw):
-        alph = moltype.PROTEIN.alphabet
+        alph = cogent3.get_moltype("protein").alphabet
         if not with_selenocysteine:
             alph = alph.get_subset("U", excluded=True)
 
@@ -1016,7 +1016,7 @@ def EmpiricalProteinMatrix(
     recode_gaps=True,
     **kw,
 ):
-    alph = moltype.PROTEIN.alphabet.get_subset("U", excluded=True)
+    alph = cogent3.get_moltype("protein").alphabet.get_subset("U", excluded=True)
     return Empirical(
         alph,
         rate_matrix=matrix,
@@ -1078,6 +1078,6 @@ class TimeReversibleCodon(_Codon, _TimeReversibleNucleotide):
     # TODO deprecate alphabet argument
     @extend_docstring_from(_TimeReversibleNucleotide.__init__)
     def __init__(self, alphabet=None, gc=None, **kw):
-        self.gc = genetic_code.get_code(gc)
+        self.gc = cogent3.get_code(gc)
         kw["alphabet"] = self.gc.get_alphabet()
         _TimeReversibleNucleotide.__init__(self, **kw)

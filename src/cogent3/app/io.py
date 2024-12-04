@@ -13,7 +13,8 @@ from pathlib import Path
 import numpy
 
 import cogent3
-from cogent3.core.moltype import MolType, get_moltype
+from cogent3.core import moltype as old_moltype
+from cogent3.core import new_moltype
 from cogent3.core.profile import (
     make_motif_counts_from_tabular,
     make_motif_freqs_from_tabular,
@@ -47,6 +48,8 @@ from .typing import (
 )
 
 _datastore_reader_map = {}
+
+MolTypes = old_moltype.MolType | new_moltype.MolType
 
 
 class register_datastore_reader:
@@ -297,7 +300,7 @@ class load_aligned:
         --------
         See https://cogent3.org/doc/app/app_cookbook/load-aligned.html
         """
-        self.moltype = moltype if moltype is None else get_moltype(moltype)
+        self.moltype = moltype if moltype is None else cogent3.get_moltype(moltype)
         self._parser = PARSERS[format.lower()]
 
     T = SerialisableType | AlignedSeqsType
@@ -314,7 +317,7 @@ class load_unaligned:
     def __init__(
         self,
         *,
-        moltype: str | MolType | None = None,
+        moltype: str | MolTypes | None = None,
         format: str = "fasta",
     ):
         """
@@ -329,7 +332,7 @@ class load_unaligned:
         --------
         See https://cogent3.org/doc/app/app_cookbook/load-unaligned.html
         """
-        self.moltype = moltype if moltype is None else get_moltype(moltype)
+        self.moltype = moltype if moltype is None else cogent3.get_moltype(moltype)
         self._parser = PARSERS[format.lower()]
 
     T = SerialisableType | UnalignedSeqsType
