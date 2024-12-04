@@ -49,7 +49,8 @@ def execute_ipynb(file_paths, exit_on_first, verbose):
 
 @define_app
 def test_file(
-    test: pathlib.Path | pathlib.PosixPath | str, exit_on_first: bool = True,
+    test: pathlib.Path | pathlib.PosixPath | str,
+    exit_on_first: bool = True,
 ) -> bool:
     test = pathlib.Path(test).absolute()
     orig_wd = pathlib.Path(os.getcwd())
