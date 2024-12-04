@@ -6,6 +6,7 @@ This will doctest all files ending with .rst in this directory.
 import os
 import pathlib
 import subprocess
+import sys
 import tempfile
 
 import click
@@ -47,7 +48,9 @@ def execute_ipynb(file_paths, exit_on_first, verbose):
 
 
 @define_app
-def test_file(test: pathlib.Path | str, exit_on_first: bool = True) -> bool:
+def test_file(
+    test: pathlib.Path | pathlib.PosixPath | str, exit_on_first: bool = True,
+) -> bool:
     test = pathlib.Path(test).absolute()
     orig_wd = pathlib.Path(os.getcwd())
     rst_to_py = orig_wd / "rst2script.py"
@@ -87,8 +90,9 @@ def test_file(test: pathlib.Path | str, exit_on_first: bool = True) -> bool:
 def execute_rsts(file_paths, exit_on_first, parallel, verbose):
     runfile = test_file(exit_on_first=exit_on_first)
     for result in runfile.as_completed(file_paths, parallel=parallel):
-        if result is False and exit_on_first:
-            exit(1)
+        if not result and exit_on_first:
+            print(result)
+            sys.exit(1)
 
 
 @click.command()
@@ -132,7 +136,7 @@ def main(file_paths, just, exclude, exit_on_first, suffix, parallel, verbose):
         suffix = p.suffix[1:]
         file_paths = [p]
     else:
-        file_paths = list(pathlib.Path(file_paths).glob(f"*.{suffix}"))
+        file_paths = list(pathlib.Path(file_paths).rglob(f"*.{suffix}"))
 
     if verbose:
         print(file_paths)
