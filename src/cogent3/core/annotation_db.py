@@ -186,8 +186,6 @@ class SupportsWriteFeatures(typing.Protocol):  # pragma: no cover
         self,
         *,
         records: typing.Sequence[dict],
-        # seqid required for genbank
-        seqid: OptionalStr = None,
         **kwargs: dict[str, typing.Any],
     ) -> None: ...
 
@@ -300,7 +298,12 @@ class AnnotationDbABC(abc.ABC, SupportsFeatures):
     def add_feature(self, **kwargs: dict[str, typing.Any]) -> None: ...
 
     @abc.abstractmethod
-    def add_records(self, **kwargs: dict[str, typing.Any]) -> None: ...
+    def add_records(self,
+        *,
+        records: typing.Sequence[dict],
+        **kwargs: dict[str, typing.Any],
+    ) -> None: ...
+
 
     @abc.abstractmethod
     def update(
