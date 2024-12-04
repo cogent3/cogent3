@@ -298,12 +298,12 @@ class AnnotationDbABC(abc.ABC, SupportsFeatures):
     def add_feature(self, **kwargs: dict[str, typing.Any]) -> None: ...
 
     @abc.abstractmethod
-    def add_records(self,
+    def add_records(
+        self,
         *,
         records: typing.Sequence[dict],
         **kwargs: dict[str, typing.Any],
     ) -> None: ...
-
 
     @abc.abstractmethod
     def update(
@@ -1340,7 +1340,7 @@ class BasicAnnotationDb(SqliteAnnotationDbMixin, AnnotationDbABC):
 
         self.add_records(data)
 
-    def add_records(self, data: T) -> None:
+    def add_records(self, data: T, **kwargs: dict[str, typing.Any]) -> None:
         table_name = self.table_names[0]  # only one name for this class
         for record in data:
             record["spans"] = numpy.array(record["spans"], dtype=int)
@@ -1406,7 +1406,7 @@ class GffAnnotationDb(SqliteAnnotationDbMixin, AnnotationDbABC):
         data, self._num_fakeids = merged_gff_records(data, self._num_fakeids)
         self.add_records(data)
 
-    def add_records(self, reduced: dict) -> None:
+    def add_records(self, reduced: dict, **kwargs: dict[str, typing.Any]) -> None:
         col_order = [
             r["name"] for r in self.db.execute("PRAGMA table_info(gff)").fetchall()
         ]
