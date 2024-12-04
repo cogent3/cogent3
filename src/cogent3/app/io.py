@@ -2,17 +2,17 @@ import contextlib
 import json
 import os
 import pickle
+import typing
 import zipfile
 from enum import Enum
 from functools import singledispatch
 from gzip import compress as gzip_compress
 from gzip import decompress as gzip_decompress
 from pathlib import Path
-from typing import Any, Union
 
 import numpy
 
-from cogent3.core.alignment import ArrayAlignment, SequenceCollection
+import cogent3
 from cogent3.core.moltype import MolType, get_moltype
 from cogent3.core.profile import (
     make_motif_counts_from_tabular,
@@ -200,7 +200,7 @@ class decompress:
         return self.decompressor(data)
 
 
-def as_dict(obj: Any) -> dict:
+def as_dict(obj: typing.Any) -> dict:
     """returns result of to_rich_dict method if it exists"""
     with contextlib.suppress(AttributeError):
         obj = obj.to_rich_dict()
@@ -271,11 +271,11 @@ def _(path: str) -> os.PathLike:
     return _read_it(Path(path))
 
 
-def _load_seqs(path, klass, parser, moltype):
+def _load_seqs(path, coll_maker, parser, moltype):
     data = _read_it(path)
     data = data.splitlines()
     data = dict(iter(parser(data)))
-    seqs = klass(data=data, moltype=moltype)
+    seqs = coll_maker(data=data, moltype=moltype)
     seqs.info.source = str(path)
     return seqs
 
@@ -300,11 +300,11 @@ class load_aligned:
         self.moltype = moltype if moltype is None else get_moltype(moltype)
         self._parser = PARSERS[format.lower()]
 
-    T = Union[SerialisableType, AlignedSeqsType]
+    T = SerialisableType | AlignedSeqsType
 
     def main(self, path: IdentifierType) -> T:
         """returns alignment"""
-        return _load_seqs(path, ArrayAlignment, self._parser, self.moltype)
+        return _load_seqs(path, cogent3.make_aligned_seqs, self._parser, self.moltype)
 
 
 @define_app(app_type=LOADER)
@@ -332,11 +332,11 @@ class load_unaligned:
         self.moltype = moltype if moltype is None else get_moltype(moltype)
         self._parser = PARSERS[format.lower()]
 
-    T = Union[SerialisableType, UnalignedSeqsType]
+    T = SerialisableType | UnalignedSeqsType
 
     def main(self, path: IdentifierType) -> T:
         """returns sequence collection"""
-        seqs = _load_seqs(path, SequenceCollection, self._parser, self.moltype)
+        seqs = _load_seqs(path, cogent3.make_unaligned_seqs, self._parser, self.moltype)
         return seqs.degap()
 
 
