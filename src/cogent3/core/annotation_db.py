@@ -298,12 +298,12 @@ class AnnotationDbABC(abc.ABC, SupportsFeatures):
     def add_feature(self, **kwargs: dict[str, typing.Any]) -> None: ...
 
     @abc.abstractmethod
-    def add_records(self,
+    def add_records(
+        self,
         *,
         records: typing.Sequence[dict],
         **kwargs: dict[str, typing.Any],
     ) -> None: ...
-
 
     @abc.abstractmethod
     def update(
