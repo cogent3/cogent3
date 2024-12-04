@@ -4171,14 +4171,35 @@ class Alignment(SequenceCollection):
         reason="naming consistency",
         old_new=[("seq_name", "seqname")],
     )
-    def get_gapped_seq(self, seqname: str) -> new_sequence.Sequence:
+    def get_gapped_seq(
+        self,
+        seqname: str,
+        recode_gaps: bool = False,
+    ) -> new_sequence.Sequence:
         """Return a gapped Sequence object for the specified seqname.
+
+
+        Parameters
+        ----------
+        seqname
+            sequence name
+        recode_gaps
+            if True, gap characters are replaced by the most general
+            ambiguity code, e.g. N for DNA and RNA
 
         Notes
         -----
         This method breaks the connection to the annotation database.
         """
-        return self.seqs[seqname].gapped_seq
+        s = self.seqs[seqname].gapped_seq
+        if recode_gaps:
+            s = str(s)
+            non_ambig = list(self.moltype)
+            ambig = self.moltype.degenerate_from_seq(non_ambig)
+            for gapchar in self.moltype.gaps:
+                s = s.replace(gapchar, ambig)
+
+        return self.moltype.make_seq(seq=s, name=seqname)
 
     def rc(self):
         """Returns the reverse complement of all sequences in the alignment.

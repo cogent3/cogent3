@@ -4960,6 +4960,23 @@ def test_get_gapped_seq_with_sliced_aln(name):
 
 
 @pytest.mark.parametrize("name", ("s1", "s2", "s3"))
+def test_get_gapped_seq_recode_gaps(name):
+    seqs = {
+        "s1": "G-TG--?TAGTAGAAGTTCCAAATAATGAA",
+        "s2": "GTG??----GTAGAAGTTCCAAATAATGAA",
+        "s3": "GC--AAGTAGTGGAAGTTGCAAAT--?GAA",
+    }
+    aln = new_alignment.make_aligned_seqs(seqs, moltype="dna")
+    start, stop = 1, 10
+    a1 = aln[start:stop]
+
+    seq = a1.get_gapped_seq(name, recode_gaps=True)
+    got = str(seq)
+    expect = seqs[name][start:stop].replace("?", "N").replace("-", "N")
+    assert got == expect, (got, expect)
+
+
+@pytest.mark.parametrize("name", ("s1", "s2", "s3"))
 def test_aln_rev_slice(name):
     seqs = {
         "s1": "AAGGTTCC",
