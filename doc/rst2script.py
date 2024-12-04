@@ -19,7 +19,7 @@ ipython_magic = re.compile(r"^\s*%[a-zA-Z]+")
 
 def _end_of_block(line, indent):
     if match := not_wsp.search(line):
-        return match.start() == indent
+        return match.start() in (0, indent)
 
     return False
 
