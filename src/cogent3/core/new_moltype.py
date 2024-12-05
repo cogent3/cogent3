@@ -18,6 +18,8 @@ StrORBytes = typing.Union[str, bytes]
 StrORArray = typing.Union[str, numpy.ndarray]
 StrORBytesORArray = typing.Union[str, bytes, numpy.ndarray]
 SeqStrBytesType = typing.Union[list[StrORBytes], tuple[StrORBytes, ...]]
+OptTranslater = typing.Optional[typing.Callable[[bytes], bytes]]
+
 
 IUPAC_gap = "-"
 
@@ -370,6 +372,10 @@ def _strictly_upper(monomers: tuple[StrORBytes]):
     return all(cast(c).isupper() for c in monomers)
 
 
+coerce_to_rna = new_alphabet.convert_alphabet(b"tT", b"uU")
+coerce_to_dna = new_alphabet.convert_alphabet(b"uU", b"tT")
+
+
 @dataclasses.dataclass
 class MolType:
     """MolType handles operations that depend on the sequence type.
@@ -392,6 +398,7 @@ class MolType:
     colors: dataclasses.InitVar[dict[str, str] | None] = None
     pairing_rules: dict[str, dict[frozenset[str], bool]] | None = None
     mw_calculator: WeightCalculator | None = None
+    coerce_to: OptTranslater | None = None
 
     # private attributes to be delivered via properties
     _monomers: new_alphabet.CharAlphabet = dataclasses.field(init=False)
@@ -588,9 +595,18 @@ class MolType:
         **kwargs
             additional keyword arguments that may be required for creating the
             Sequence object
+
+        Notes
+        -----
+        If seq is a string, and the moltype has a coerce_to attribute, the
+        string will be converted via that callable into a character set
+        compatible with the moltype. Only applies to nucleic acid moltypes.
         """
         if hasattr(seq, "moltype"):
             return seq if seq.moltype is self else seq.to_moltype(self)
+
+        if isinstance(seq, str):
+            seq = self.coerce_to(seq.encode("utf8")) if self.coerce_to else seq
 
         if check_seq:
             assert self.is_valid(
@@ -1313,6 +1329,7 @@ DNA = MolType(
     make_seq=new_sequence.DnaSequence,
     pairing_rules=DNA_STANDARD_PAIRS,
     mw_calculator=DnaMW,
+    coerce_to=coerce_to_dna,
 )
 
 RNA = MolType(
@@ -1324,6 +1341,7 @@ RNA = MolType(
     make_seq=new_sequence.RnaSequence,
     pairing_rules=RNA_STANDARD_PAIRS,
     mw_calculator=RnaMW,
+    coerce_to=coerce_to_rna,
 )
 PROTEIN = MolType(
     monomers="".join(IUPAC_PROTEIN_chars),

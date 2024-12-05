@@ -633,3 +633,16 @@ def test_is_nucleic(moltype):
 def test_not_is_nucleic(moltype):
     mt = new_moltype.get_moltype(moltype)
     assert not mt.is_nucleic
+
+
+def test_moltype_coerce_seqs():
+    dna = new_moltype.get_moltype("dna")
+    rna_seq = "AUUG"
+    dna_seq = "ATTG"
+    rna = new_moltype.get_moltype("rna")
+    assert str(dna.make_seq(seq=rna_seq)) == dna_seq
+    assert str(rna.make_seq(seq=dna_seq)) == rna_seq
+
+    # no coercion in protein seq
+    prot = new_moltype.get_moltype("protein")
+    assert str(prot.make_seq(seq=rna_seq)) == rna_seq
