@@ -599,6 +599,17 @@ class MolType:
         seq = "" if seq is None else seq
         return self._make_seq(moltype=self, seq=seq, name=name, **kwargs)
 
+    def make_array_seq(
+        self,
+        *args,
+        **kwargs,
+    ) -> new_sequence.Sequence:
+        # TODO: add deprecation warning when new_type=True is default
+        if args:
+            kwargs["seq"] = args[0]
+
+        return self.make_seq(**kwargs)
+
     @functools.singledispatchmethod
     def complement(self, seq: StrORBytesORArray, validate: bool = True) -> str:
         """converts a string or bytes into it's nucleic acid complement
