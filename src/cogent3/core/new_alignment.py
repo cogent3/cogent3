@@ -6459,6 +6459,10 @@ class Alignment(SequenceCollection):
         data["init_args"].pop("annotation_db", None)
         return make_aligned_seqs(data["seqs"], **data["init_args"])
 
+    def to_type(self, **kwargs):  # pragma: no cover
+        # TODO remove when new_type is the default
+        return self
+
 
 @register_deserialiser(get_object_provenance(Alignment))
 def deserialise_alignment(data: dict[str, str | dict[str, str]]) -> Alignment:
