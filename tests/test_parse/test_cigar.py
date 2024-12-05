@@ -1,6 +1,6 @@
 import unittest
 
-from cogent3 import DNA, make_aligned_seqs
+import cogent3
 from cogent3.core.annotation_db import GffAnnotationDb
 from cogent3.parse.cigar import (
     CigarParser,
@@ -9,6 +9,8 @@ from cogent3.parse.cigar import (
     map_to_cigar,
     slice_cigar,
 )
+
+DNA = cogent3.get_moltype("dna")
 
 
 class TestCigar(unittest.TestCase):
@@ -19,9 +21,10 @@ class TestCigar(unittest.TestCase):
         self.map, self.seq = self.aln_seq.parse_out_gaps()
         self.map1, self.seq1 = self.aln_seq1.parse_out_gaps()
         self.slices = [(1, 4), (0, 8), (7, 12), (0, 1), (3, 5)]
-        self.aln = make_aligned_seqs(
+        self.aln = cogent3.make_aligned_seqs(
             {"FAKE01": self.aln_seq, "FAKE02": self.aln_seq1},
             array_align=False,
+            moltype="dna",
         )
         self.cigars = {"FAKE01": self.cigar_text, "FAKE02": map_to_cigar(self.map1)}
         self.seqs = {"FAKE01": str(self.seq), "FAKE02": str(self.seq1)}
@@ -89,7 +92,3 @@ class TestCigar(unittest.TestCase):
                 end=end,
             )
             assert cmp_aln.to_dict() == slice_aln.to_dict(), (start, end)
-
-
-if __name__ == "__main__":
-    unittest.main()

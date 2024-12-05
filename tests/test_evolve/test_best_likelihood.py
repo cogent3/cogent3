@@ -3,7 +3,7 @@ from unittest import TestCase
 
 from numpy.testing import assert_allclose
 
-from cogent3 import DNA, make_aligned_seqs
+import cogent3
 from cogent3.evolve.best_likelihood import (
     BestLogLikelihood,
     _take,
@@ -15,6 +15,7 @@ from cogent3.evolve.best_likelihood import (
 )
 
 IUPAC_DNA_ambiguities = "NRYWSKMBDHV"
+DNA = cogent3.get_moltype("dna")
 
 
 def makeSampleAlignment(gaps=False, ambiguities=False):
@@ -25,7 +26,7 @@ def makeSampleAlignment(gaps=False, ambiguities=False):
     else:
         seqs_list = ["AAACCCGGGTTTA", "CCCGGGTTTAAAC", "GGGTTTAAACCCG"]
     seqs = list(zip("abc", seqs_list, strict=False))
-    return make_aligned_seqs(data=seqs)
+    return cogent3.make_aligned_seqs(data=seqs, moltype="dna")
 
 
 class TestGoldman93(TestCase):

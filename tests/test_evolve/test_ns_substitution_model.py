@@ -5,7 +5,7 @@ import numpy
 from numpy import array, dot, empty
 from numpy.testing import assert_allclose
 
-from cogent3 import DNA, make_aligned_seqs, make_tree
+import cogent3
 from cogent3.evolve.ns_substitution_model import (
     DiscreteSubstitutionModel,
     General,
@@ -19,6 +19,8 @@ from cogent3.evolve.ns_substitution_model import (
 )
 from cogent3.evolve.predicate import MotifChange
 from cogent3.evolve.substitution_model import TimeReversibleNucleotide
+
+DNA = cogent3.get_moltype("dna")
 
 
 def _make_likelihood(model, tree, results, is_discrete=False):
@@ -56,7 +58,7 @@ class MakeCachedObjects:
         self.lf.set_motif_probs(dict(A=0.1, C=0.2, G=0.3, T=0.4))
         self.aln = self.lf.simulate_alignment(seq_length)
         self.results = dict(aln=self.aln)
-        self.discrete_tree = make_tree(tip_names=self.aln.names)
+        self.discrete_tree = cogent3.make_tree(tip_names=self.aln.names)
         self.opt_args = {**opt_args, "show_progress": False}
         self.tree = tree
 
@@ -137,7 +139,7 @@ class MakeCachedObjects:
 class NonStatMarkov(TestCase):
     """test discrete and general markov"""
 
-    tree = make_tree(treestring="(a:0.4,b:0.4,c:0.6)")
+    tree = cogent3.make_tree(treestring="(a:0.4,b:0.4,c:0.6)")
     opt_args = dict(max_restarts=1, local=True, show_progress=False)
     make_cached = MakeCachedObjects(TimeReversibleNucleotide(), tree, 100000, opt_args)
 
@@ -223,9 +225,9 @@ class NonStatMarkov(TestCase):
         """StrandSymmetric should fit a strand symmetric model"""
         warnings.filterwarnings("ignore", "Model not reversible", UserWarning)
         taxa = "Human", "Mouse", "Opossum"
-        aln = make_aligned_seqs(data=_aln, moltype=DNA)
+        aln = cogent3.make_aligned_seqs(data=_aln, moltype=DNA)
         aln = aln[2::3].no_degenerates()
-        tree = make_tree(tip_names=taxa)
+        tree = cogent3.make_tree(tip_names=taxa)
         model = StrandSymmetric(optimise_motif_probs=True)
         lf = model.make_likelihood_function(tree)
         lf.set_alignment(aln)

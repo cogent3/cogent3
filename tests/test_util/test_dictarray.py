@@ -7,7 +7,7 @@ import numpy
 import pytest
 from numpy.testing import assert_allclose
 
-from cogent3 import DNA
+import cogent3
 from cogent3.util.dict_array import (
     DictArray,
     DictArrayTemplate,
@@ -18,6 +18,8 @@ from cogent3.util.dict_array import (
     convert_for_dictarray,
     convert_series,
 )
+
+DNA = cogent3.get_moltype("dna")
 
 
 class DictArrayTest(TestCase):
