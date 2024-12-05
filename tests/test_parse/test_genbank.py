@@ -545,7 +545,7 @@ def test_rich_genbank_just_seq():
         parser = genbank.rich_parser(infile, just_seq=True)
         seq = [s for l, s in parser][0]
 
-    assert not len(seq.annotation_db)
+    assert not seq.annotation_db
 
 
 @pytest.fixture(params=("\r\n", "\n"))
