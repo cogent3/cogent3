@@ -55,7 +55,7 @@ def aligned_from_cigar(cigar_text, seq, moltype="dna"):
     """returns an Aligned sequence from a cigar string, sequence and moltype"""
     moltype = cogent3.get_moltype(moltype)
     if isinstance(seq, str):
-        seq = moltype.make_seq(seq)
+        seq = moltype.make_seq(seq=seq)
     map = cigar_to_map(cigar_text)
     return seq.gapped_by_map(map)
 
@@ -152,7 +152,7 @@ def CigarParser(
                 start, stop = seq_loc
                 seq = seqs[seqname][start:stop]
                 if isinstance(seq, str):
-                    seq = moltype.make_seq(seq)
+                    seq = moltype.make_seq(seq=seq)
                 data[seqname] = seq.gapped_by_map(m)
             else:
                 data[seqname] = moltype.make_seq("-" * (aln_loc[1] - aln_loc[0]))

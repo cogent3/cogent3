@@ -10,7 +10,6 @@ import cogent3
 from cogent3.core import new_alphabet
 from cogent3.core.annotation_db import GenbankAnnotationDb
 from cogent3.core.info import Info
-from cogent3.core.moltype import get_moltype
 from cogent3.parse.record import FieldWrapper
 from cogent3.parse.record_finder import (
     DelimitedRecordFinder,
@@ -766,7 +765,7 @@ def rich_parser(
         does not create an annotation_db. Overrides db argument.
     """
     info_excludes = info_excludes or ["sequence", "features"]
-    moltype = get_moltype(moltype) if moltype else None
+    moltype = cogent3.get_moltype(moltype) if moltype else None
     feature_parser = parse_metadata_first_line if just_seq else default_parse_metadata
     for rec in minimal_parser(
         handle,
@@ -783,7 +782,7 @@ def rich_parser(
             rec_moltype = (
                 rec_moltype if rec_moltype in ("dna", "rna", "protein") else "text"
             )
-            rec_moltype = get_moltype(rec_moltype)
+            rec_moltype = cogent3.get_moltype(rec_moltype)
         else:
             rec_moltype = moltype
 

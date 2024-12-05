@@ -87,5 +87,5 @@ def phylip_file(DATA_DIR, tmp_path, request):
 def test_select_parser_phylip_suffixes(phylip_file):
     from cogent3 import load_aligned_seqs
 
-    got = load_aligned_seqs(phylip_file)
+    got = load_aligned_seqs(phylip_file, moltype="dna")
     assert set(got.names) == {"human", "chimp", "mouse"}
