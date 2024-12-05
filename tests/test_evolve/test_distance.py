@@ -1134,6 +1134,27 @@ def test_prop_dists(request, aln):
     assert_allclose(got.array, expect)
 
 
+@pytest.mark.parametrize(
+    ("oldcalc", "newcalc"),
+    [
+        (ProportionIdenticalPair, pdist_numba.pdist),
+        (JC69Pair, pdist_numba.jc69),
+    ],
+)
+def test_prop_dists_big(DATA_DIR, oldcalc, newcalc):
+    aln = cogent3.load_aligned_seqs(
+        DATA_DIR / "brca1.fasta",
+        moltype="dna",
+        new_type=True,
+    )
+    aln = aln.take_seqs(aln.names[:15])
+    calc = oldcalc(aln.moltype, alignment=aln)
+    calc.run(show_progress=False)
+    expect = calc.dists.take_dists(aln.names)
+    got = newcalc(aln, parallel=False).take_dists(aln.names)
+    assert_allclose(got.array, expect.array)
+
+
 @pytest.mark.parametrize("calc", ["jc69", "tn93", "paralinear", "hamming", "pdist"])
 def test_numba_get_dist(calc, basic_alignment) -> None:
     aln = cogent3.make_aligned_seqs(
