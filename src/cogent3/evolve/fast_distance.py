@@ -798,9 +798,9 @@ class DistanceMatrix(DictArray):
 
         current_names = array(self.names)
         if negate:
-            keep = [i for i, n in enumerate(current_names) if n not in names]
+            keep = [self.names.index(n) for n in current_names if n not in names]
         else:
-            keep = [i for i, n in enumerate(current_names) if n in names]
+            keep = [self.names.index(n) for n in names if n in current_names]
 
         if len(keep) <= 1:
             return None
