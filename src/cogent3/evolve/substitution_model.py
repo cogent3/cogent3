@@ -191,7 +191,7 @@ class _SubstitutionModel:
         if motifs is not None:
             alphabet = alphabet.get_subset(motifs)
         self.alphabet = alphabet
-        self.gapmotif = alphabet.get_gap_motif()
+        self.gapmotif = alphabet.gap_char
         self._word_length = alphabet.motif_len
 
         # MOTIF PROB ALPHABET MAPPING
@@ -361,7 +361,7 @@ class _SubstitutionModel:
             klass = parameter_controller.AlignmentLikelihoodFunction
         else:
             alphabet = self.get_alphabet()
-            assert alphabet.get_gap_motif() not in alphabet
+            assert alphabet.gap_char not in alphabet
             klass = parameter_controller.SequenceLikelihoodFunction
 
         result = klass(self, tree, default_length=default_length, **kw)
