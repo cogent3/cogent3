@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 """A collection of pre-defined models.  These are provided for convenience so that
 users do not need to keep reconstructing the standard models.  We encourage users
 to think about the assumptions in these models and consider if their problem could
@@ -13,7 +12,7 @@ from itertools import permutations
 # The models are constructed in a strait forward manner with no attempt to condense
 import numpy
 
-from cogent3 import DNA
+import cogent3
 from cogent3.evolve import ns_substitution_model, substitution_model
 from cogent3.evolve.predicate import MotifChange, omega
 from cogent3.evolve.solved_models import _solved_nucleotide
@@ -106,7 +105,7 @@ def DT(optimise_motif_probs=True, motif_length=1, **kw):
     motif_length=2 makes this a dinucleotide model, motif_length=3 a
     trinucleotide model.
     """
-    alpha = DNA.alphabet.get_word_alphabet(motif_length)
+    alpha = cogent3.get_moltype("dna").alphabet.get_word_alphabet(motif_length)
     kw["optimise_motif_probs"] = optimise_motif_probs
     kw["mprob_model"] = "tuple"
     kw["name"] = kw.get("name", f"DT-{motif_length}")

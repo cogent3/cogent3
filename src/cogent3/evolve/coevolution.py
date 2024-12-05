@@ -24,7 +24,6 @@ from numpy.linalg import norm
 
 from cogent3 import PROTEIN, make_aligned_seqs
 from cogent3.core import new_alphabet
-from cogent3.core.alignment import ArrayAlignment
 from cogent3.core.alphabet import CharAlphabet
 from cogent3.core.moltype import IUPAC_gap, IUPAC_missing
 from cogent3.core.sequence import Sequence
@@ -1880,6 +1879,8 @@ def get_ancestral_seqs(
          to be what what described in Tuffery 2000, although they're
          not perfectly clear about it.
     """
+    from cogent3.core.alignment import ArrayAlignment
+
     sm = sm or Parametric(aln.alphabet, recode_gaps=True)
     lf = sm.make_likelihood_function(tree, sm.motif_probs)
     lf.set_alignment(aln, motif_pseudocount=pseudocount)

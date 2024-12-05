@@ -11,6 +11,7 @@ import numpy
 import pytest
 from numpy.testing import assert_allclose
 
+import cogent3
 from cogent3 import get_app, get_moltype, open_data_store
 from cogent3.app import io as io_app
 from cogent3.app.composable import NotCompleted, source_proxy
@@ -21,7 +22,6 @@ from cogent3.app.data_store import (
     ReadOnlyDataStoreZipped,
 )
 from cogent3.app.io import DEFAULT_DESERIALISER, DEFAULT_SERIALISER
-from cogent3.core.alignment import ArrayAlignment, SequenceCollection
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
 from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.maths.util import safe_log
@@ -89,7 +89,7 @@ def test_write_seqs(fasta_dir, tmp_dir):
     datamember = datastore[0]
     data = datamember.read().splitlines()
     data = dict(iter(PARSERS["fasta".lower()](data)))
-    seqs = ArrayAlignment(data=data, moltype=None)
+    seqs = cogent3.make_aligned_seqs(data=data, moltype="text")
     seqs.info.source = datastore.source
     out_data_store = DataStoreDirectory(
         tmp_dir / "test_write_seqs",
@@ -133,16 +133,23 @@ def test_load_aligned(DATA_DIR, suffix):
     dstore = DataStoreDirectory(DATA_DIR, suffix=suffix, limit=2)
     loader = io_app.load_aligned(format=suffix)
     results = [loader(m) for m in dstore]
+    # TODO: checking class name rather than isinstance during
+    #  migration to new_type, revert to isinstance when
+    #  that migration is complete
     for result in results:
-        assert isinstance(result, ArrayAlignment)
+        assert result.__class__.__name__.endswith("Alignment")
 
 
 def test_load_unaligned(DATA_DIR):
     """load_unaligned returns degapped sequence collections"""
     fasta_paths = DataStoreDirectory(DATA_DIR, suffix=".fasta", limit=2)
     fasta_loader = io_app.load_unaligned(format="fasta")
+    # TODO: checking class name rather than isinstance during
+    #  migration to new_type, revert to isinstance when
+    #  that migration is complete
+
     for i, seqs in enumerate(map(fasta_loader, fasta_paths)):
-        assert isinstance(seqs, SequenceCollection)
+        assert seqs.__class__.__name__ == "SequenceCollection"
         assert "-" not in "".join(seqs.to_dict().values())
         assert seqs.info.source == fasta_paths[i].unique_id
 
@@ -664,4 +671,7 @@ def test_expand_user(relpath, type_):
     loader = get_app("load_aligned", format="paml")
     # define path using the "~" prefix
     seqs = loader(type_(relpath))
-    assert isinstance(seqs, ArrayAlignment)
+    # TODO: checking class name rather than isinstance during
+    #  migration to new_type, revert to isinstance when
+    #  that migration is complete
+    assert seqs.__class__.__name__.endswith("Alignment")

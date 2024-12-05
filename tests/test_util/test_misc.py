@@ -8,6 +8,7 @@ import pytest
 from numpy import array
 from numpy.testing import assert_allclose
 
+import cogent3
 from cogent3.util.misc import (
     ClassChecker,
     ConstrainedContainer,
@@ -388,15 +389,14 @@ class UtilsTests(TestCase):
 
     def test_get_object_provenance(self):
         """correctly deduce object provenance"""
-        from cogent3 import DNA, SequenceCollection, get_model
-
         result = get_object_provenance("abncd")
         self.assertEqual(result, "str")
 
+        DNA = cogent3.get_moltype("dna")
         got = get_object_provenance(DNA)
-        self.assertEqual(got, "cogent3.core.moltype.MolType")
+        self.assertEqual(got, f"{DNA.__module__}.MolType")
 
-        sm = get_model("HKY85")
+        sm = cogent3.get_model("HKY85")
         got = get_object_provenance(sm)
         self.assertEqual(
             got,
@@ -404,10 +404,13 @@ class UtilsTests(TestCase):
         )
 
         # handle a type
-        instance = SequenceCollection(dict(a="ACG", b="GGG"))
+        instance = cogent3.make_unaligned_seqs(
+            data=dict(a="ACG", b="GGG"),
+            moltype="dna",
+        )
         instance_prov = get_object_provenance(instance)
-        self.assertEqual(instance_prov, "cogent3.core.alignment.SequenceCollection")
-        type_prov = get_object_provenance(SequenceCollection)
+        self.assertEqual(instance_prov, f"{instance.__module__}.SequenceCollection")
+        type_prov = get_object_provenance(type(instance))
         self.assertEqual(instance_prov, type_prov)
 
     def test_get_object_provenance_builtins(self):

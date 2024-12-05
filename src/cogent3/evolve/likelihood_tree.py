@@ -222,7 +222,7 @@ def get_matched_array(alphabet, moltype, motifs, dtype=float) -> numpy.ndarray:
 
 
 def make_likelihood_tree_leaf(sequence, alphabet, seq_name):
-    motif_len = alphabet.get_motif_len()
+    motif_len = alphabet.motif_len
     sequence2 = sequence.get_in_motif_size(motif_len)
 
     # Convert sequence to indexed list of unique motifs

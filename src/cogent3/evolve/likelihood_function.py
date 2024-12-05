@@ -5,8 +5,10 @@ from copy import deepcopy
 
 import numpy
 
+import cogent3
 from cogent3._version import __version__
-from cogent3.core.alignment import ArrayAlignment
+from cogent3.core import alignment as old_alignment
+from cogent3.core import new_alignment
 from cogent3.core.tree import PhyloNode
 from cogent3.evolve import substitution_model
 from cogent3.evolve.simulate import AlignmentEvolver, random_sequence
@@ -27,6 +29,8 @@ from cogent3.util.misc import adjusted_gt_minprob, get_object_provenance
 # recalculation Calculator.  It adds methods which are useful for examining
 # the parameter, psub, mprob and likelihood values after the optimisation is
 # complete.
+
+AlignType = old_alignment.ArrayAlignment | new_alignment.Alignment
 
 
 def _get_keyed_rule_indices(rules):
@@ -456,7 +460,7 @@ class LikelihoodFunction(ParameterController):
             )
         return result
 
-    def likely_ancestral_seqs(self, locus=None) -> ArrayAlignment:
+    def likely_ancestral_seqs(self, locus=None) -> AlignType:
         """Returns the most likely reconstructed ancestral sequences as an
         alignment.
 
@@ -473,7 +477,11 @@ class LikelihoodFunction(ParameterController):
                 by_p = [(p, state) for state, p in list(row.items())]
                 seq.append(max(by_p)[1])
             seqs += [(edge, self.model.moltype.make_seq("".join(seq)))]
-        return ArrayAlignment(data=seqs, moltype=self.model.moltype)
+        return cogent3.make_aligned_seqs(
+            data=seqs,
+            moltype=self.model.moltype,
+            array_align=True,
+        )
 
     def get_bin_probs(self, locus=None):
         hmm = self.get_param_value("bindex", locus=locus)
@@ -1143,7 +1151,7 @@ class LikelihoodFunction(ParameterController):
         if root_sequence is not None:  # we convert to a vector of motifs
             if isinstance(root_sequence, str):
                 root_sequence = self._model.moltype.make_seq(root_sequence)
-            motif_len = self._model.get_alphabet().get_motif_len()
+            motif_len = self._model.get_alphabet().motif_len
             root_sequence = root_sequence.get_in_motif_size(motif_len)
         else:
             mprobs = self.get_param_value("mprobs", locus=locus, edge="root")
@@ -1153,7 +1161,11 @@ class LikelihoodFunction(ParameterController):
 
         simulated_sequences = evolver(self._tree, root_sequence)
 
-        return ArrayAlignment(data=simulated_sequences, moltype=self._model.moltype)
+        return cogent3.make_aligned_seqs(
+            data=simulated_sequences,
+            moltype=self._model.moltype,
+            array_align=True,
+        )
 
     def all_psubs_DLC(self):
         """Returns True if every Psub matrix is Diagonal Largest in Column"""

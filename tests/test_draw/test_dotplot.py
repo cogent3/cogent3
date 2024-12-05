@@ -3,8 +3,8 @@ from unittest import TestCase
 import numpy
 import pytest
 
-from cogent3 import get_moltype, make_unaligned_seqs
-from cogent3.core.alignment import Aligned, ArrayAlignment
+from cogent3 import get_moltype, make_aligned_seqs, make_unaligned_seqs
+from cogent3.core.alignment import Aligned
 from cogent3.core.location import IndelMap
 from cogent3.draw.dotplot import Dotplot, _convert_input, _prep_seqs, get_align_coords
 
@@ -79,8 +79,8 @@ class TestUtilFunctions(TestCase):
 
     def test_align_without_gaps(self):
         """dotplot has alignment coordinates if no gaps"""
-        aln = ArrayAlignment(
-            {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"},
+        aln = make_aligned_seqs(
+            data={"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"},
             moltype="dna",
         )
         aln_plot = aln.dotplot("seq1")

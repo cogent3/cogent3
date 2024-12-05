@@ -17,7 +17,7 @@ the aligned sequence will be:
 
 import re
 
-from cogent3 import DNA, make_aligned_seqs
+import cogent3
 from cogent3.core.location import IndelMap, LostSpan, Span
 
 _pattern = re.compile("([0-9]*)([DM])")
@@ -51,8 +51,9 @@ def cigar_to_map(cigar_text):
     return IndelMap.from_spans(spans=spans, parent_length=posn)
 
 
-def aligned_from_cigar(cigar_text, seq, moltype=DNA):
+def aligned_from_cigar(cigar_text, seq, moltype="dna"):
     """returns an Aligned sequence from a cigar string, sequence and moltype"""
+    moltype = cogent3.get_moltype(moltype)
     if isinstance(seq, str):
         seq = moltype.make_seq(seq)
     map = cigar_to_map(cigar_text)
@@ -112,7 +113,7 @@ def CigarParser(
     ref_seqname=None,
     start=None,
     end=None,
-    moltype=DNA,
+    moltype="dna",
 ):
     """return an alignment from raw sequences and cigar strings
     if sliced, will return an alignment correspondent to ref sequence start to end
@@ -122,9 +123,10 @@ def CigarParser(
         seqs - raw sequences as {seqname: seq}
         cigars - corresponding cigar text as {seqname: cigar_text}
         cigars and seqs should have the same seqnames
-        moltype - optional default to DNA
+        moltype - optional default to 'dna'
 
     """
+    moltype = cogent3.get_moltype(moltype)
     data = {}
     if not sliced:
         for seqname in list(seqs.keys()):
@@ -153,5 +155,5 @@ def CigarParser(
                     seq = moltype.make_seq(seq)
                 data[seqname] = seq.gapped_by_map(m)
             else:
-                data[seqname] = DNA.make_seq("-" * (aln_loc[1] - aln_loc[0]))
-    return make_aligned_seqs(data)
+                data[seqname] = moltype.make_seq("-" * (aln_loc[1] - aln_loc[0]))
+    return cogent3.make_aligned_seqs(data, moltype=moltype)

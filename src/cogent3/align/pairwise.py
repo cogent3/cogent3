@@ -478,7 +478,7 @@ class AlignablePOG(_Alignable):
         return make_aligned_seqs(self.aligneds)
 
     def _calcAligneds(self, children):
-        word_length = self.alphabet.get_motif_len()
+        word_length = self.alphabet.motif_len
         (starts, ends, maps) = map_traceback(self.pog.get_full_aligned_positions())
         aligneds = []
         for dim, child in enumerate(children):
@@ -1166,7 +1166,7 @@ class LocalViterbiPath(_ViterbiPath):
     def get_alignment(self):
         """The alignment as a standard PyCogent Alignment object"""
         seqs = self.pair_hmm.emission_probs.pair.get_seq_name_pairs()
-        word_length = self.pair_hmm.emission_probs.pair.alphabet.get_motif_len()
+        word_length = self.pair_hmm.emission_probs.pair.alphabet.motif_len
         aligned_positions = [posn for (bin, posn) in self.aligned_positions]
         return alignment_traceback(seqs, aligned_positions, word_length)
 

@@ -8,7 +8,6 @@ from cogent3 import (
     make_aligned_seqs,
     make_unaligned_seqs,
 )
-from cogent3.core.alignment import Alignment, SequenceCollection
 from cogent3.core.location import FeatureMap, Span
 
 DNA = get_moltype("dna")
@@ -331,12 +330,16 @@ def test_features_survives_seq_rename(rev):  # ported
     assert str(got) == domain_expect
 
 
+def make_aligned(**kwargs):
+    return make_aligned_seqs(array_align=False, **kwargs)
+
+
 @pytest.mark.parametrize("rev", (False, True))
-@pytest.mark.parametrize("make_cls", (make_unaligned_seqs, Alignment))
+@pytest.mark.parametrize("make_cls", (make_unaligned_seqs, make_aligned))
 def test_features_survives_aligned_seq_rename(rev, make_cls):  # ported
     segments = ["A" * 10, "C" * 10, "T" * 5, "C" * 5, "A" * 5]
 
-    seqs = make_cls({"original": "".join(segments)}, moltype="dna")
+    seqs = make_cls(data={"original": "".join(segments)}, moltype="dna")
     seqs.annotation_db.add_feature(
         seqid="original",
         biotype="gene",
@@ -360,11 +363,11 @@ def test_features_survives_aligned_seq_rename(rev, make_cls):  # ported
     assert sliced == "C" * 15
 
 
-@pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
-def test_features_invalid_seqid(cls):  # ported
+@pytest.mark.parametrize("make", (make_unaligned_seqs, make_aligned))
+def test_features_invalid_seqid(make):  # ported
     segments = ["A" * 10, "C" * 10, "T" * 5, "C" * 5, "A" * 5]
 
-    seqs = cls({"original": "".join(segments)}, moltype="dna")
+    seqs = make(data={"original": "".join(segments)}, moltype="dna")
     seqs.annotation_db.add_feature(
         seqid="original",
         biotype="domain",

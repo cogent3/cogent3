@@ -256,8 +256,3 @@ class AllTests(TestCase):
         assert_equal(model1._data, [0, 4, 1, 4, 2, 4, 3, 4])
         # ArraySequence should maybe have the same degap method as normal seq
         self.assertEqual(str(model1.degap()), "UCAG")
-
-    def test_the_rest_of_ModelSequence(self):
-        """The class ArraySequence has 14 methods, but only 2 unittests.
-        You might want to add some tests there..."""
-        # note: mostly these are tested in derived classes, for convenience.

@@ -267,6 +267,10 @@ class Enumeration(tuple):
             moltype = None
         return JointEnumeration([self, other], moltype=moltype)
 
+    @property
+    def motif_len(self):  # pragma: no cover
+        return self._motiflen
+
 
 class JointEnumeration(Enumeration):
     """Holds an enumeration composed of subenumerations. Immutable.
@@ -508,12 +512,16 @@ class Alphabet(Enumeration):
         """
         return self._gapmotif
 
+    @property
+    def gap_char(self):  # pragma: no cover
+        return self._gapmotif
+
     def includes_gap_motif(self):
         """Returns True if self includes the gap motif, False otherwise."""
         return self._gapmotif in self
 
     def _with(self, motifset):
-        """Returns a new Alphabet object with same class and moltype as self.
+        self.same__ = """Returns a new Alphabet object with same class and moltype as self.
 
         Will always return a new Alphabet object even if the motifset is the
         same.
@@ -528,7 +536,7 @@ class Alphabet(Enumeration):
         if self.includes_gap_motif():
             return self
         if not hasattr(self, "gapped"):
-            self.gapped = self._with(list(self) + [self.get_gap_motif()])
+            self.gapped = self._with(list(self) + [self.gap_char])
         return self.gapped
 
     def get_subset(self, motif_subset, excluded=False):

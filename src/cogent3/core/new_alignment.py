@@ -18,7 +18,7 @@ from typing import Any, Optional, Union
 import numba
 import numpy
 
-from cogent3 import get_app
+import cogent3
 from cogent3._version import __version__
 from cogent3.core import (
     new_alphabet,
@@ -4227,7 +4227,7 @@ class Alignment(SequenceCollection):
         -------
         float or a NotCompleted instance if the score could not be computed
         """
-        app = get_app(app_name, **kwargs)
+        app = cogent3.get_app(app_name, **kwargs)
         return app(self)
 
     def rename_seqs(self, renamer: Callable[[str], str]):

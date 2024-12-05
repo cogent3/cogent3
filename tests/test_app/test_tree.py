@@ -3,7 +3,7 @@ from unittest import TestCase
 
 import pytest
 
-from cogent3 import DNA, load_aligned_seqs, make_aligned_seqs, make_tree
+import cogent3
 from cogent3.app import dist
 from cogent3.app import tree as tree_app
 from cogent3.app.composable import NotCompleted
@@ -12,6 +12,8 @@ from cogent3.evolve.fast_distance import DistanceMatrix
 
 DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
 
+DNA = cogent3.get_moltype("dna")
+
 
 class TestTree(TestCase):
     def test_scale_tree_lengths(self):
@@ -19,7 +21,7 @@ class TestTree(TestCase):
         with self.assertRaises(AssertionError):
             _ = tree_app.scale_branches(nuc_to_codon=True, codon_to_nuc=True)
 
-        tree = make_tree(treestring="(a:3,b:6,c:9)")
+        tree = cogent3.make_tree(treestring="(a:3,b:6,c:9)")
         scale_to_codon = tree_app.scale_branches(nuc_to_codon=True)
         d = scale_to_codon(tree)
         got = {e.name: e.length for e in d.get_edge_vector(include_root=False)}
@@ -40,7 +42,7 @@ class TestTree(TestCase):
 
         # handle case where a length is not defined, setting to minimum
         min_length = tree_app.scale_branches(min_length=66)
-        tree = make_tree(treestring="(a:3,b:6,c)")
+        tree = cogent3.make_tree(treestring="(a:3,b:6,c)")
         new = min_length(tree)
         got = {e.name: e.length for e in new.get_edge_vector(include_root=False)}
         expect = {"a": 3.0, "b": 6.0, "c": 66.0}
@@ -49,7 +51,7 @@ class TestTree(TestCase):
     def test_quick_tree(self):
         """correctly calc a nj tree"""
         path = DATA_DIR / "brca1_5.paml"
-        aln = load_aligned_seqs(path, moltype=DNA)
+        aln = cogent3.load_aligned_seqs(path, moltype=DNA)
         fast_slow_dist = dist.fast_slow_dist(fast_calc="hamming", moltype="dna")
         dist_matrix = fast_slow_dist(aln)
         quick1 = tree_app.quick_tree()
@@ -59,7 +61,7 @@ class TestTree(TestCase):
     def test_composable_apps(self):
         """checks the ability of these two apps(fast_slow_dist and quick_tree) to communicate"""
         path = DATA_DIR / "brca1_5.paml"
-        aln1 = load_aligned_seqs(path, moltype=DNA)
+        aln1 = cogent3.load_aligned_seqs(path, moltype=DNA)
         calc_dist = dist.fast_slow_dist(fast_calc="hamming", moltype="dna")
         quick = tree_app.quick_tree(drop_invalid=False)
         proc = calc_dist + quick
@@ -81,7 +83,7 @@ class TestTree(TestCase):
         data = dict(
             seq1="AGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT",
         )
-        aln2 = make_aligned_seqs(data=data, moltype=DNA)
+        aln2 = cogent3.make_aligned_seqs(data=data, moltype=DNA)
         tree2 = proc(aln2)
         self.assertIsInstance(tree2, NotCompleted)
 
@@ -225,8 +227,8 @@ class TestTree(TestCase):
 
     def test_uniformize_tree(self):
         """equivalent topologies should be the same"""
-        a = make_tree(treestring="(a,(b,c),(d,e))")
-        b = make_tree(treestring="(e,d,(a,(b,c)))")
+        a = cogent3.make_tree(treestring="(a,(b,c),(d,e))")
+        b = cogent3.make_tree(treestring="(e,d,(a,(b,c)))")
         make_uniform = tree_app.uniformize_tree(
             root_at="c",
             ordered_names=list("abcde"),
@@ -235,7 +237,7 @@ class TestTree(TestCase):
         u_b = make_uniform(b).get_newick()
         self.assertTrue(u_a == u_b)
         # but different ones different
-        c = make_tree(treestring="(e,c,(a,(b,d)))")
+        c = cogent3.make_tree(treestring="(e,c,(a,(b,d)))")
         u_c = make_uniform(c).get_newick()
         self.assertFalse(u_a == u_c)
 
@@ -250,7 +252,7 @@ def test_interpret_tree_arg_none():
         DATA_DIR / "brca1_5.tree",
         str(DATA_DIR / "brca1_5.tree"),
         "(a,b,c)",
-        make_tree(tip_names=["a", "b", "c"]),
+        cogent3.make_tree(tip_names=["a", "b", "c"]),
     ),
 )
 def test_interpret_tree_arg_valid(tree):
@@ -262,7 +264,7 @@ def test_interpret_tree_arg_valid(tree):
     "tree",
     (
         1,
-        make_tree,
+        cogent3.make_tree,
     ),
 )
 def test_interpret_tree_arg_invalid(tree):

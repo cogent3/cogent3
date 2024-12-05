@@ -2,16 +2,17 @@ from unittest import TestCase
 
 import pytest
 
-from cogent3 import DNA, make_aligned_seqs, make_unaligned_seqs
+import cogent3
 from cogent3.app.composable import NotCompleted
 from cogent3.app.translate import (
     best_frame,
-    get_code,
     get_fourfold_degenerate_sets,
     select_translatable,
     translate_frames,
     translate_seqs,
 )
+
+DNA = cogent3.get_moltype("dna")
 
 
 class TestTranslatable(TestCase):
@@ -53,7 +54,7 @@ class TestTranslatable(TestCase):
             "a": "AATATAAATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTTCATAAAGTCATA",
             "rc": "TATGACTTTATGAAGTAATAAACTGCTGTTCTCATGCTGTAATGAGCTGGCATTTATATT",
         }
-        seqs = make_unaligned_seqs(data=data, moltype=DNA)
+        seqs = cogent3.make_unaligned_seqs(data=data, moltype=DNA)
         trans = select_translatable(allow_rc=False)
         tr = trans(seqs)  # pylint: disable=not-callable
         ex = data.copy()
@@ -67,7 +68,7 @@ class TestTranslatable(TestCase):
 
         # if seqs not translatable returns NotCompletedResult
         data = dict(a="TAATTGATTAA", b="GCAGTTTATTA")
-        seqs = make_unaligned_seqs(data=data, moltype=DNA)
+        seqs = cogent3.make_unaligned_seqs(data=data, moltype=DNA)
         got = select_translatable(allow_rc=False)(seqs)  # pylint: disable=not-callable
         self.assertTrue(type(got), NotCompleted)
 
@@ -85,7 +86,7 @@ class TestTranslate(TestCase):
     def test_translate_seqcoll(self):
         """correctly translate a sequence collection"""
         seqs = dict(a="ATGAGG", b="ATGTAA")
-        seqs = make_unaligned_seqs(seqs, moltype="dna")
+        seqs = cogent3.make_unaligned_seqs(seqs, moltype="dna")
         # trim terminal stops
         translater = translate_seqs()
         aa = translater(seqs)  # pylint: disable=not-callable
@@ -100,7 +101,7 @@ class TestTranslate(TestCase):
         """correctly translates alignments"""
         data = dict(a="ATGAGGCCC", b="ATGTTT---")
         # an array alignment
-        aln = make_aligned_seqs(data)
+        aln = cogent3.make_aligned_seqs(data, moltype="dna")
         translater = translate_seqs()
         aa = translater(aln)  # pylint: disable=not-callable
         self.assertEqual(aa.to_dict(), dict(a="MRP", b="MF-"))
@@ -123,12 +124,12 @@ class TestFourFoldDegen(TestCase):
             expect.update([frozenset(di + n for n in "ACGT")])
 
         for i in range(1, 3):
-            got = get_fourfold_degenerate_sets(get_code(i), as_indices=False)
+            got = get_fourfold_degenerate_sets(cogent3.get_code(i), as_indices=False)
             self.assertEqual(got, expect)
 
         with self.assertRaises(AssertionError):
             # as_indices requires an alphabet
-            get_fourfold_degenerate_sets(get_code(1), as_indices=True)
+            get_fourfold_degenerate_sets(cogent3.get_code(1), as_indices=True)
 
         expect = set()
         for di in "GC", "GG", "CT", "CC", "TC", "CG", "AC", "GT":
@@ -142,7 +143,7 @@ class TestFourFoldDegen(TestCase):
 
         for i in range(1, 3):
             got = get_fourfold_degenerate_sets(
-                get_code(i),
+                cogent3.get_code(i),
                 alphabet=DNA.alphabet,
                 as_indices=True,
             )
@@ -164,7 +165,7 @@ def framed_seqs(DATA_DIR, request):
     frame = None if request.param is None else request.param + 1
     for k, s in data.items():
         data[k] = prefix + s
-    return make_unaligned_seqs(data=data, moltype="dna", info={"frame": frame})
+    return cogent3.make_unaligned_seqs(data=data, moltype="dna", info={"frame": frame})
 
 
 def test_select_translatable_with_frame_terminal_stop(framed_seqs):
@@ -186,11 +187,12 @@ def test_select_translatable_with_frame_no_stop(framed_seqs):
 
 
 def test_select_trabnslatable_exclude_internal_stop():
-    aln = make_unaligned_seqs(
+    aln = cogent3.make_unaligned_seqs(
         {
             "internal_stop": "AATTAAATGTGA",
             "s2": "TATGACTAA",
         },
+        moltype="dna",
     )
     app = select_translatable(frame=1)
     result = app(aln)  # pylint: disable=not-callable
