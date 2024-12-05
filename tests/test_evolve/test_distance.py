@@ -4,14 +4,7 @@ import numpy
 import pytest
 from numpy.testing import assert_allclose, assert_equal
 
-from cogent3 import (
-    DNA,
-    PROTEIN,
-    RNA,
-    load_aligned_seqs,
-    make_aligned_seqs,
-    make_unaligned_seqs,
-)
+import cogent3
 from cogent3.evolve import pairwise_distance_numba as pdist_numba
 from cogent3.evolve.distance import EstimateDistances
 from cogent3.evolve.fast_distance import (
@@ -37,6 +30,10 @@ warnings.filterwarnings("ignore", "Not using MPI as mpi4py not found")
 # hides the warning from taking log of -ve determinant
 numpy.seterr(invalid="ignore")
 
+DNA = cogent3.get_moltype("dna")
+PROTEIN = cogent3.get_moltype("protein")
+RNA = cogent3.get_moltype("rna")
+
 
 @pytest.fixture
 def dna_char_indices():
@@ -53,7 +50,7 @@ def rna_char_indices():
 @pytest.fixture
 def basic_alignment():
     """Fixture providing a basic alignment for tests"""
-    return make_aligned_seqs(
+    return cogent3.make_aligned_seqs(
         data=[("s1", "ACGTACGTAC"), ("s2", "GTGTACGTAC")],
         moltype=DNA,
     )
@@ -62,7 +59,7 @@ def basic_alignment():
 @pytest.fixture
 def ambig_alignment():
     """Fixture providing an ambiguous alignment for tests"""
-    return make_aligned_seqs(
+    return cogent3.make_aligned_seqs(
         data=[("s1", "RACGTACGTACN"), ("s2", "AGTGTACGTACA")],
         moltype=DNA,
     )
@@ -71,7 +68,7 @@ def ambig_alignment():
 @pytest.fixture
 def diff_alignment():
     """Fixture providing a different alignment for tests"""
-    return make_aligned_seqs(
+    return cogent3.make_aligned_seqs(
         data=[("s1", "ACGTACGTTT"), ("s2", "GTGTACGTAC")],
         moltype=DNA,
     )
@@ -79,7 +76,7 @@ def diff_alignment():
 
 @pytest.fixture
 def alignment():
-    return make_aligned_seqs(
+    return cogent3.make_aligned_seqs(
         data=[("s1", "ACGTACGTAC"), ("s2", "GTGTACGTAC")],
         moltype=DNA,
     )
@@ -87,7 +84,7 @@ def alignment():
 
 @pytest.fixture(scope="session")
 def brca1_5(DATA_DIR):
-    return load_aligned_seqs(DATA_DIR / "brca1_5.paml", moltype=DNA)
+    return cogent3.load_aligned_seqs(DATA_DIR / "brca1_5.paml", moltype=DNA)
 
 
 def test_char_to_index(dna_char_indices, rna_char_indices):
@@ -103,7 +100,7 @@ def test_char_to_index(dna_char_indices, rna_char_indices):
 
 @pytest.fixture(scope="session")
 def al():
-    return make_aligned_seqs(
+    return cogent3.make_aligned_seqs(
         data={
             "a": "GTACGTACGATC",
             "b": "GTACGTACGTAC",
@@ -116,7 +113,7 @@ def al():
 
 @pytest.fixture(scope="session")
 def collection():
-    return make_unaligned_seqs(
+    return cogent3.make_unaligned_seqs(
         data={
             "a": "GTACGTACGATC",
             "b": "GTACGTACGTAC",
@@ -128,8 +125,8 @@ def collection():
 
 
 def assert_dists_approx_equal(expected, observed, atol=1e-6):
-    observed = dict([(frozenset(k), v) for (k, v) in list(observed.items())])
-    expected = dict([(frozenset(k), v) for (k, v) in list(expected.items())])
+    observed = {frozenset(k): v for (k, v) in list(observed.items())}
+    expected = {frozenset(k): v for (k, v) in list(expected.items())}
     for key in expected:
         assert_allclose(expected[key], observed[key], rtol=1e-6, atol=atol)
 
@@ -154,7 +151,7 @@ def test_min_pair_mwe(min_working_example_dmat):
 
 
 def test_max_pair_has_max_val():
-    aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
+    aln = cogent3.load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
     dmat = aln.distance_matrix()
     got = dmat[dmat.max_pair()]
     expect = dmat.array.max()
@@ -162,7 +159,7 @@ def test_max_pair_has_max_val():
 
 
 def test_min_pair_has_min_val():
-    aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
+    aln = cogent3.load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
     dmat = aln.distance_matrix()
     got = dmat[dmat.min_pair()]
     numpy.fill_diagonal(dmat.array, numpy.inf)
@@ -499,16 +496,16 @@ def test_logdet_missing_states():
             "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTNTTTTTTTTTTTTCCCCCCCCCCCCCCCCC",
         ),
     ]
-    aln = make_aligned_seqs(data=data, moltype=DNA)
+    aln = cogent3.make_aligned_seqs(data=data, moltype=DNA)
     logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
     logdet_calc.run(use_tk_adjustment=True, show_progress=False)
 
     dists = logdet_calc.get_pairwise_distances().to_dict()
-    assert list(dists.values())[0] is not None
+    assert next(iter(dists.values())) is not None
 
     logdet_calc.run(use_tk_adjustment=False, show_progress=False)
     dists = logdet_calc.get_pairwise_distances().to_dict()
-    assert list(dists.values())[0] is not None
+    assert next(iter(dists.values())) is not None
 
 
 def test_logdet_variance():
@@ -523,7 +520,7 @@ def test_logdet_variance():
             "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC",
         ),
     ]
-    aln = make_aligned_seqs(data=data, moltype=DNA)
+    aln = cogent3.make_aligned_seqs(data=data, moltype=DNA)
     logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
     logdet_calc.run(use_tk_adjustment=True, show_progress=False)
     assert logdet_calc.variances[1, 1] is None
@@ -550,19 +547,19 @@ def test_logdet_variance():
 
 def test_logdet_for_determinant_lte_zero():
     """returns distance of None if the determinant is <= 0"""
-    data = dict(
-        seq1="AGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT",
-        seq2="TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC",
-    )
-    aln = make_aligned_seqs(data=data, moltype=DNA)
+    data = {
+        "seq1": "AGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT",
+        "seq2": "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC",
+    }
+    aln = cogent3.make_aligned_seqs(data=data, moltype=DNA)
 
     logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
     logdet_calc.run(use_tk_adjustment=True, show_progress=False)
     dists = logdet_calc.get_pairwise_distances().to_dict()
-    assert numpy.isnan(list(dists.values())[0])
+    assert numpy.isnan(next(iter(dists.values())))
     logdet_calc.run(use_tk_adjustment=False, show_progress=False)
     dists = logdet_calc.get_pairwise_distances().to_dict()
-    assert numpy.isnan(list(dists.values())[0])
+    assert numpy.isnan(next(iter(dists.values())))
 
     # but raises ArithmeticError if told to
     logdet_calc = LogDetPair(moltype=DNA, alignment=aln, invalid_raises=True)
@@ -572,7 +569,7 @@ def test_logdet_for_determinant_lte_zero():
 
 def test_paralinear_pair_aa():
     """paralinear shouldn't fail to produce distances for aa seqs"""
-    aln = load_aligned_seqs("data/brca1_5.paml", moltype=DNA)
+    aln = cogent3.load_aligned_seqs("data/brca1_5.paml", moltype=DNA)
     aln = aln.get_translation()
     paralinear_calc = ParalinearPair(moltype=PROTEIN, alignment=aln)
     paralinear_calc.run(show_progress=False)
@@ -592,7 +589,7 @@ def test_paralinear_distance():
             "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC",
         ),
     ]
-    aln = make_aligned_seqs(data=data, moltype=DNA)
+    aln = cogent3.make_aligned_seqs(data=data, moltype=DNA)
     paralinear_calc = ParalinearPair(moltype=DNA, alignment=aln)
     paralinear_calc.run(show_progress=False)
 
@@ -625,7 +622,7 @@ def test_paralinear_variance():
             "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC",
         ),
     ]
-    aln = make_aligned_seqs(data=data, moltype=DNA)
+    aln = cogent3.make_aligned_seqs(data=data, moltype=DNA)
     paralinear_calc = ParalinearPair(moltype=DNA, alignment=aln)
     paralinear_calc.run(show_progress=False)
 
@@ -651,19 +648,19 @@ def test_paralinear_variance():
 
 def test_paralinear_for_determinant_lte_zero():
     """returns distance of None if the determinant is <= 0"""
-    data = dict(
-        seq1="AGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT",
-        seq2="TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC",
-    )
-    aln = make_aligned_seqs(data=data, moltype=DNA)
+    data = {
+        "seq1": "AGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT",
+        "seq2": "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC",
+    }
+    aln = cogent3.make_aligned_seqs(data=data, moltype=DNA)
 
     paralinear_calc = ParalinearPair(moltype=DNA, alignment=aln)
     paralinear_calc.run(show_progress=False)
     dists = paralinear_calc.get_pairwise_distances().to_dict()
-    assert numpy.isnan(list(dists.values())[0])
+    assert numpy.isnan(next(iter(dists.values())))
     paralinear_calc.run(show_progress=False)
     dists = paralinear_calc.get_pairwise_distances().to_dict()
-    assert numpy.isnan(list(dists.values())[0])
+    assert numpy.isnan(next(iter(dists.values())))
 
 
 def test_paralinear_pair_dna():
@@ -678,7 +675,7 @@ def test_paralinear_pair_dna():
             "AAAAAAAAAAAAAAAACCCCCCCCCCCCCCCCTTTTTTTTTTTTTTTTGGGGGGGGGGGGGGGG",
         ),
     ]
-    aln = make_aligned_seqs(data=data, moltype=DNA)
+    aln = cogent3.make_aligned_seqs(data=data, moltype=DNA)
     paralinear_calc = ParalinearPair(moltype=DNA, alignment=aln)
     paralinear_calc.run(show_progress=False)
     logdet_calc = LogDetPair(moltype=DNA, alignment=aln)
@@ -688,7 +685,7 @@ def test_paralinear_pair_dna():
 
 
 def get_calc(data):
-    aln = make_aligned_seqs(data=data, moltype=DNA)
+    aln = cogent3.make_aligned_seqs(data=data, moltype=DNA)
     calc = ParalinearPair(moltype=DNA, alignment=aln)
     calc(show_progress=False)
     return calc
@@ -725,9 +722,7 @@ def test_duplicated():
         ),
     ]
     calc = get_calc(data)
-    assert calc.duplicated == {"seq2": ["seq3"]} or calc.duplicated == {
-        "seq3": ["seq2"],
-    }
+    assert calc.duplicated in ({"seq2": ["seq3"]}, {"seq3": ["seq2"]})
     # default to get all pairwise distances
     pwds = calc.get_pairwise_distances().to_dict()
     assert pwds[("seq2", "seq3")] == 0.0
@@ -736,7 +731,7 @@ def test_duplicated():
     # only unique seqs when using include_duplicates=False
 
     pwds = calc.get_pairwise_distances(include_duplicates=False).to_dict()
-    present = list(calc.duplicated.keys())[0]
+    present = next(iter(calc.duplicated.keys()))
     missing = calc.duplicated[present][0]
     assert {(present, missing)} == {("seq2", "seq3")}
     assert (present, "seq1") in pwds
@@ -1040,7 +1035,7 @@ def test_get_raw_estimates(al):
 
 def test_no_calc():
     """returns None if no calculation done"""
-    al = load_aligned_seqs("data/brca1_5.paml")
+    al = cogent3.load_aligned_seqs("data/brca1_5.paml")
     d = EstimateDistances(al, submodel=HKY85())
     assert d.get_pairwise_distances() is None
 
@@ -1089,7 +1084,7 @@ def test_tn93_dists(request, aln):
     # valid states just because another sequence has an ambiguity
     aln = request.getfixturevalue(aln)
     # convert to new type alignment
-    aln = make_aligned_seqs(data=aln.to_dict(), moltype="dna", new_type=True)
+    aln = cogent3.make_aligned_seqs(data=aln.to_dict(), moltype="dna", new_type=True)
     calc = TN93Pair(aln.moltype, alignment=aln)
     calc.run(show_progress=False)
     expect = calc.dists.array
@@ -1101,7 +1096,7 @@ def test_tn93_dists(request, aln):
 def test_paralinear_dists(request, aln):
     aln = request.getfixturevalue(aln)
     # convert to new type alignment
-    aln = make_aligned_seqs(data=aln.to_dict(), moltype="dna", new_type=True)
+    aln = cogent3.make_aligned_seqs(data=aln.to_dict(), moltype="dna", new_type=True)
     calc = ParalinearPair(aln.moltype, alignment=aln)
     calc.run(show_progress=False)
     expect = calc.dists.array
@@ -1116,7 +1111,7 @@ def test_paralinear_dists(request, aln):
 def test_hamming_dists(request, aln):
     aln = request.getfixturevalue(aln)
     # convert to new type alignment
-    aln = make_aligned_seqs(data=aln.to_dict(), moltype="dna", new_type=True)
+    aln = cogent3.make_aligned_seqs(data=aln.to_dict(), moltype="dna", new_type=True)
     calc = HammingPair(aln.moltype, alignment=aln)
     calc.run(show_progress=False)
     expect = calc.dists.array
@@ -1131,7 +1126,7 @@ def test_hamming_dists(request, aln):
 def test_prop_dists(request, aln):
     aln = request.getfixturevalue(aln)
     # convert to new type alignment
-    aln = make_aligned_seqs(data=aln.to_dict(), moltype="dna", new_type=True)
+    aln = cogent3.make_aligned_seqs(data=aln.to_dict(), moltype="dna", new_type=True)
     calc = ProportionIdenticalPair(aln.moltype, alignment=aln)
     calc.run(show_progress=False)
     expect = calc.dists.array
@@ -1139,9 +1134,30 @@ def test_prop_dists(request, aln):
     assert_allclose(got.array, expect)
 
 
+@pytest.mark.parametrize(
+    ("oldcalc", "newcalc"),
+    [
+        (ProportionIdenticalPair, pdist_numba.pdist),
+        (JC69Pair, pdist_numba.jc69),
+    ],
+)
+def test_prop_dists_big(DATA_DIR, oldcalc, newcalc):
+    aln = cogent3.load_aligned_seqs(
+        DATA_DIR / "brca1.fasta",
+        moltype="dna",
+        new_type=True,
+    )
+    aln = aln.take_seqs(aln.names[:15])
+    calc = oldcalc(aln.moltype, alignment=aln)
+    calc.run(show_progress=False)
+    expect = calc.dists.take_dists(aln.names)
+    got = newcalc(aln, parallel=False).take_dists(aln.names)
+    assert_allclose(got.array, expect.array)
+
+
 @pytest.mark.parametrize("calc", ["jc69", "tn93", "paralinear", "hamming", "pdist"])
 def test_numba_get_dist(calc, basic_alignment) -> None:
-    aln = make_aligned_seqs(
+    aln = cogent3.make_aligned_seqs(
         data=basic_alignment.to_dict(),
         moltype="dna",
         new_type=True,
@@ -1155,7 +1171,7 @@ def test_numba_get_dist(calc, basic_alignment) -> None:
 def test_invalid_moltype_fast_distances(calc, basic_alignment):
     from cogent3.core import new_moltype
 
-    aln = make_aligned_seqs(
+    aln = cogent3.make_aligned_seqs(
         data=basic_alignment.to_dict(),
         moltype="protein",
         new_type=True,
@@ -1167,11 +1183,11 @@ def test_invalid_moltype_fast_distances(calc, basic_alignment):
 
 def test_new_paralinear_for_determinant_lte_zero():
     """returns distance of None if the determinant is <= 0"""
-    data = dict(
-        seq1="AGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT",
-        seq2="TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC",
-    )
-    aln = make_aligned_seqs(data=data, moltype="dna", new_type=True)
+    data = {
+        "seq1": "AGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT",
+        "seq2": "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC",
+    }
+    aln = cogent3.make_aligned_seqs(data=data, moltype="dna", new_type=True)
 
     dists = pdist_numba.paralinear(aln, parallel=False)
     assert numpy.isnan(dists.array).any()
@@ -1192,7 +1208,11 @@ def test_unknown_dist():
 
 @pytest.mark.parametrize("calc", ["jc69", "tn93", "paralinear", "hamming", "pdist"])
 def test_compare_parallel_serial(DATA_DIR, calc):
-    aln = load_aligned_seqs(DATA_DIR / "brca1.fasta", moltype="dna", new_type=True)
+    aln = cogent3.load_aligned_seqs(
+        DATA_DIR / "brca1.fasta",
+        moltype="dna",
+        new_type=True,
+    )
     serial = aln.distance_matrix(calc=calc, parallel=False)
     parallel = aln.distance_matrix(calc=calc, parallel=True)
     assert_allclose(serial.array, parallel.array)

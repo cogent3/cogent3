@@ -106,24 +106,25 @@ def jc69_dist_matrix(array_seqs, num_states, parallel=True):  # pragma: no cover
     zero = numpy.float32(0.0)
     frac = numpy.float32(num_states / (num_states - 1))
     dist_scale = numpy.float32((num_states - 1) / -num_states)
+    num_pairs = n_seqs * (n_seqs - 1) // 2
+    # loop is parallelised
+    for index in numba.prange(num_pairs):
+        i = int((1 + (1 + 8 * index) ** 0.5) / 2)
+        j = index - i * (i - 1) // 2
+        num_diffs, num_valid = num_diffs_and_valid(
+            array_seqs[i],
+            array_seqs[j],
+            num_states,
+        )
 
-    # outer loop is parallelised
-    for i in numba.prange(n_seqs - 1):
-        for j in range(i + 1, n_seqs):
-            num_diffs, num_valid = num_diffs_and_valid(
-                array_seqs[i],
-                array_seqs[j],
-                num_states,
-            )
-
-            if num_valid == 0:
-                d = nan
-            elif num_diffs == 0:
-                d = zero
-            else:
-                p = num_diffs / num_valid
-                d = nan if p >= 0.75 else dist_scale * numpy.log(1.0 - frac * p)
-            dists[i, j] = dists[j, i] = d
+        if num_valid == 0:
+            d = nan
+        elif num_diffs == 0:
+            d = zero
+        else:
+            p = num_diffs / num_valid
+            d = nan if p >= 0.75 else dist_scale * numpy.log(1.0 - frac * p)
+        dists[i, j] = dists[j, i] = d
 
     if not parallel:
         # restore original number of threads
@@ -212,35 +213,37 @@ def tn93_dist_matrix(
         (numba.get_num_threads(), num_states, num_states),
         dtype=numpy.int32,
     )
-    # outer parallel loop
-    for i in numba.prange(n_seqs - 1):
+    num_pairs = n_seqs * (n_seqs - 1) // 2
+    # loop is parallelised
+    for index in numba.prange(num_pairs):
+        i = int((1 + (1 + 8 * index) ** 0.5) / 2)
+        j = index - i * (i - 1) // 2
         # get a working matrix for this thread
         div_matrix = matrices[numba.get_thread_id()]
-        for j in range(i + 1, n_seqs):
-            div_matrix.fill(0)
-            div_matrix, num_diffs, num_valid = _get_matrix_and_counts(
-                div_matrix,
-                array_seqs[i],
-                array_seqs[j],
+        div_matrix.fill(0)
+        div_matrix, num_diffs, num_valid = _get_matrix_and_counts(
+            div_matrix,
+            array_seqs[i],
+            array_seqs[j],
+        )
+        if num_valid == 0:
+            d = nan
+        elif num_diffs == 0:
+            d = zero
+        else:
+            d = _calc_tn93_dist(
+                div_matrix.flatten(),
+                pur_coords,
+                pyr_coords,
+                tv_coords,
+                pur_freqs,
+                pyr_freqs,
+                coeff1,
+                coeff2,
+                coeff3,
+                num_valid,
             )
-            if num_valid == 0:
-                d = nan
-            elif num_diffs == 0:
-                d = zero
-            else:
-                d = _calc_tn93_dist(
-                    div_matrix.flatten(),
-                    pur_coords,
-                    pyr_coords,
-                    tv_coords,
-                    pur_freqs,
-                    pyr_freqs,
-                    coeff1,
-                    coeff2,
-                    coeff3,
-                    num_valid,
-                )
-            dists[i, j] = dists[j, i] = d
+        dists[i, j] = dists[j, i] = d
 
     if not parallel:
         # restore original number of threads
@@ -401,27 +404,29 @@ def paralinear_distance_matrix(
         (numba.get_num_threads(), num_states, num_states),
         dtype=numpy.int32,
     )
-    # outer parallel loop
-    for i in numba.prange(n_seqs - 1):
+    num_pairs = n_seqs * (n_seqs - 1) // 2
+    # loop is parallelised
+    for index in numba.prange(num_pairs):
+        i = int((1 + (1 + 8 * index) ** 0.5) / 2)
+        j = index - i * (i - 1) // 2
         # get a working matrix for this thread
         div_matrix = matrices[numba.get_thread_id()]
-        for j in range(i + 1, n_seqs):
-            div_matrix.fill(0)
-            div_matrix, num_diffs, num_valid = _get_matrix_and_counts(
+        div_matrix.fill(0)
+        div_matrix, num_diffs, num_valid = _get_matrix_and_counts(
+            div_matrix,
+            array_seqs[i],
+            array_seqs[j],
+        )
+        if num_valid == 0:
+            d = nan
+        elif num_diffs == 0:
+            d = zero
+        else:
+            d = _paralinear(
                 div_matrix,
-                array_seqs[i],
-                array_seqs[j],
+                num_states,
             )
-            if num_valid == 0:
-                d = nan
-            elif num_diffs == 0:
-                d = zero
-            else:
-                d = _paralinear(
-                    div_matrix,
-                    num_states,
-                )
-            dists[i, j] = dists[j, i] = d
+        dists[i, j] = dists[j, i] = d
 
     if not parallel:
         # restore original number of threads
