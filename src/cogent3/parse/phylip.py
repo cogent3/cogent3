@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-from cogent3.core.alignment import Alignment
+import cogent3
 from cogent3.parse.record import RecordError
 
 
@@ -124,4 +123,4 @@ def get_align_for_phylip(data, id_map=None):
     tuples = []
     for tup in mpp:
         tuples.append(tup)
-    return Alignment(tuples)
+    return cogent3.make_aligned_seqs(tuples, moltype="text")

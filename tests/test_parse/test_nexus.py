@@ -403,10 +403,10 @@ class NexusParserTests(TestCase):
 
     def test_load_seqs_interface(self):
         """load_aligned_seqs correctly loads nexus alignments"""
-        aln = load_aligned_seqs("data/nexus_mixed.nex")
+        aln = load_aligned_seqs("data/nexus_mixed.nex", moltype="text")
         self.assertEqual(aln.num_seqs, 4)
         self.assertEqual(len(aln), 20)
 
-        aln = load_aligned_seqs("data/nexus_aa.nxs")
+        aln = load_aligned_seqs("data/nexus_aa.nxs", moltype="text")
         self.assertEqual(aln.num_seqs, 10)
         self.assertEqual(len(aln), 234)

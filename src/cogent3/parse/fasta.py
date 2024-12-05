@@ -13,7 +13,7 @@ import numpy
 
 import cogent3
 from cogent3.core.info import Info
-from cogent3.core.moltype import ASCII, BYTES
+from cogent3.core.moltype import BYTES
 from cogent3.parse.record import RecordError
 from cogent3.parse.record_finder import LabeledRecordFinder
 from cogent3.util.io import is_url, open_
@@ -337,7 +337,7 @@ def GroupFastaParser(
     label_to_name,
     group_key="Group",
     aligned=False,
-    moltype=ASCII,
+    moltype="text",
     done_groups=None,
     DEBUG=False,
 ):
@@ -359,13 +359,13 @@ def GroupFastaParser(
         series of group keys to be excluded
 
     """
-
+    moltype = cogent3.get_moltype(moltype)
     done_groups = [[], done_groups][done_groups is not None]
     parser = MinimalFastaParser(data, label_to_name=label_to_name)
     group_ids = []
     current_collection = {}
     for label, seq in parser:
-        seq = moltype.make_seq(seq, name=label, info=label.info)
+        seq = moltype.make_seq(seq=seq, name=label, info=label.info)
         if DEBUG:
             print(f"{label=} {label=!r}")
         if not group_ids:
