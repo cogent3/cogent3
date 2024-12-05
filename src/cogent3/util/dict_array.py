@@ -31,6 +31,9 @@ from cogent3._version import __version__
 from cogent3.util.io import atomic_write
 from cogent3.util.misc import get_object_provenance
 
+PySeq = typing.Sequence
+PySeqStr = PySeq[str]
+
 
 def convert_1D_dict(data, row_order=None):
     """returns a 1D list and header as dict keys
@@ -383,7 +386,7 @@ class DictArray:
         self.shape = self.array.shape
 
     @classmethod
-    def from_array_names(cls, array: numpy.ndarray, *names: typing.Sequence[str]):
+    def from_array_names(cls, array: numpy.ndarray, *names: tuple[PySeqStr, ...]):
         """creates instance directly from a numpy array and series of names
 
         Parameters

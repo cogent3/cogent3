@@ -1,3 +1,4 @@
+import typing
 from collections import defaultdict, namedtuple
 from numbers import Number
 
@@ -12,6 +13,9 @@ from cogent3.core import new_moltype
 from cogent3.util.dict_array import DictArray
 from cogent3.util.misc import get_object_provenance
 from cogent3.util.progress_display import display_wrap
+
+PySeq = typing.Sequence
+PySeqStr = PySeq[str]
 
 
 @numba.jit(cache=True)
@@ -722,7 +726,7 @@ class DistanceMatrix(DictArray):
         self._invalid = invalid
 
     @classmethod
-    def from_array_names(cls, matrix: numpy.ndarray, names, invalid=None):
+    def from_array_names(cls, matrix: numpy.ndarray, names: PySeqStr, invalid=None):
         """construct a distance matrix from numpy array and names"""
         darr = DictArray.from_array_names(matrix, names, names)
         return cls(darr, invalid=invalid)
