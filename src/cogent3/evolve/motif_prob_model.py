@@ -101,7 +101,7 @@ class ComplexMotifProbModel(MotifProbModel):
         self.mask = mask
         self.tuple_alphabet = tuple_alphabet
         self.monomer_alphabet = monomers = tuple_alphabet.moltype.alphabet
-        self.word_length = length = tuple_alphabet.get_motif_len()
+        self.word_length = length = tuple_alphabet.motif_len
         size = len(tuple_alphabet)
 
         # m2w[AC, 1] = C

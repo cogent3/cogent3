@@ -192,7 +192,7 @@ class _SubstitutionModel:
             alphabet = alphabet.get_subset(motifs)
         self.alphabet = alphabet
         self.gapmotif = alphabet.get_gap_motif()
-        self._word_length = alphabet.get_motif_len()
+        self._word_length = alphabet.motif_len
 
         # MOTIF PROB ALPHABET MAPPING
         if mprob_model is None:

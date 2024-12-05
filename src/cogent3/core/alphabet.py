@@ -267,6 +267,10 @@ class Enumeration(tuple):
             moltype = None
         return JointEnumeration([self, other], moltype=moltype)
 
+    @property
+    def motif_len(self):  # pragma: no cover
+        return self._motiflen
+
 
 class JointEnumeration(Enumeration):
     """Holds an enumeration composed of subenumerations. Immutable.

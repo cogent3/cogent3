@@ -1151,7 +1151,7 @@ class LikelihoodFunction(ParameterController):
         if root_sequence is not None:  # we convert to a vector of motifs
             if isinstance(root_sequence, str):
                 root_sequence = self._model.moltype.make_seq(root_sequence)
-            motif_len = self._model.get_alphabet().get_motif_len()
+            motif_len = self._model.get_alphabet().motif_len
             root_sequence = root_sequence.get_in_motif_size(motif_len)
         else:
             mprobs = self.get_param_value("mprobs", locus=locus, edge="root")
