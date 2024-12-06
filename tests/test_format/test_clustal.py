@@ -2,7 +2,7 @@
 
 from unittest import TestCase
 
-from cogent3.core.alignment import Alignment
+import cogent3
 from cogent3.format.clustal import clustal_from_alignment
 
 
@@ -24,7 +24,10 @@ class ClustalTests(TestCase):
             "4th": "UUUU",
         }
         # create alignment change order.
-        self.alignment_object = Alignment(self.alignment_dict)
+        self.alignment_object = cogent3.make_aligned_seqs(
+            self.alignment_dict,
+            moltype="text",
+        )
         self.alignment_order = ["2nd", "4th", "3rd", "1st"]
         self.alignment_object.RowOrder = self.alignment_order
 
