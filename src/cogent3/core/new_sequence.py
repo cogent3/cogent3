@@ -139,7 +139,7 @@ class Sequence:
 
     def __init__(
         self,
-        moltype: MolType,
+        moltype: new_moltype.MolType,
         seq: StrORBytesORArray | SeqViewABC,
         *,
         name: OptStr = None,

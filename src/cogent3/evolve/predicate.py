@@ -229,7 +229,7 @@ class DirectedMotifChange(predicate):
                 % (alphabet.motif_len, repr(self), self.motiflen),
             )
 
-        resolve = model.moltype.ambiguities.__getitem__
+        resolve = model.moltype.resolve_ambiguity
 
         from_motifs = [resolve(m) for m in self.from_motif]
         to_motifs = [resolve(m) for m in self.to_motif]

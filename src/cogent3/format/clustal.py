@@ -41,7 +41,7 @@ def clustal_from_alignment(aln, wrap=None):
             + "Cannot generate Clustal format.",
         )
 
-    aln_len = seqs.seq_len
+    aln_len = len(seqs.seqs[0])
     # Get all labels
     labels = copy(seqs.names)
 
