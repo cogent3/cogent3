@@ -197,6 +197,7 @@ def test_kmer_alphabet_construction(k):
     monomers = dna.alphabet
     kmers = monomers.get_kmer_alphabet(k)
     assert len(kmers) == 4**k
+    assert kmers.motif_len == k
 
 
 @pytest.mark.parametrize("gap_index", (-1, 4))
@@ -571,6 +572,7 @@ def calpha():
 
 def test_codon_alphabet_init(calpha):
     assert len(calpha) == 61
+    assert calpha.motif_len == 3
 
 
 def test_codon_alphabet_index(calpha):

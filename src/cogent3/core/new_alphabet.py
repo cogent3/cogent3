@@ -908,6 +908,10 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
             missing=data["missing"],
         )
 
+    @property
+    def motif_len(self) -> int:
+        return self.k
+
 
 @register_deserialiser(get_object_provenance(KmerAlphabet))
 def deserialise_kmer_alphabet(data: dict) -> KmerAlphabet:
@@ -955,7 +959,7 @@ class SenseCodonAlphabet(tuple, AlphabetABC):
         self._words = set(self)  # for quick lookup
         self._to_indices = {codon: i for i, codon in enumerate(self)}
         self._from_indices = {i: codon for codon, i in self._to_indices.items()}
-        self.motif_length = 3
+        self._motif_len = 3
         if monomers.moltype:
             _alphabet_moltype_map[self] = monomers.moltype
 
@@ -1066,6 +1070,10 @@ class SenseCodonAlphabet(tuple, AlphabetABC):
         data.pop("type", None)
         data.pop("version", None)
         return cls(**data)
+
+    @property
+    def motif_len(self):
+        return self._motif_len
 
 
 @register_deserialiser(get_object_provenance(SenseCodonAlphabet))
