@@ -403,11 +403,24 @@ def test_kmer_alphabet_to_indices_non_independent():
     assert_allclose(got, expect)
 
 
+@pytest.mark.parametrize("cast", (list, tuple))
+def test_kmer_alphabet_to_indices_list_tuple(cast):
+    seq = cast(["ACG", "TCC"])
+    dna = new_moltype.get_moltype("dna")
+    trinuc_alpha = dna.alphabet.get_kmer_alphabet(k=3, include_gap=False)
+    got = trinuc_alpha.to_indices(seq)
+    expect = numpy.array(
+        [trinuc_alpha.to_index(kmer) for kmer in seq],
+        dtype=trinuc_alpha.dtype,
+    )
+    assert_allclose(got, expect)
+
+
 def test_kmer_alphabet_to_indices_invalid():
     dna = new_moltype.get_moltype("dna")
     trinuc_alpha = dna.alphabet.get_kmer_alphabet(k=3, include_gap=False)
     with pytest.raises(TypeError):
-        trinuc_alpha.to_indices(["ACG", "TGG"])
+        trinuc_alpha.to_indices({"ACG", "TGG"})
 
 
 @pytest.mark.parametrize("seq", ("ACGT", "ACYG", "NN"))
@@ -671,7 +684,12 @@ def test_codon_alphabet_moltype(calpha):
 
 @pytest.mark.parametrize(
     "seq",
-    ("GGTAC", b"GGTAC", numpy.array([3, 3, 0, 2, 1], dtype=numpy.uint8)),
+    (
+        "GGTAC",
+        b"GGTAC",
+        numpy.array([3, 3, 0, 2, 1], dtype=numpy.uint8),
+        tuple("GGTAC"),
+    ),
 )
 def test_char_alphabet_to_indices_types(seq):
     dna = new_moltype.get_moltype("dna")
@@ -691,3 +709,14 @@ def test_char_alphabet_from_indices_types(seq):
     got = alpha.from_indices(seq)
     expect = "GGTAC"
     assert got == expect
+
+
+@pytest.mark.parametrize("cast", (list, tuple))
+def test_sensecodon_alphabet_to_indices_list_tuple(cast, calpha):
+    seq = cast(["ACG", "TCC"])
+    got = calpha.to_indices(seq)
+    expect = numpy.array(
+        [calpha.to_index(kmer) for kmer in seq],
+        dtype=calpha.dtype,
+    )
+    assert_allclose(got, expect)

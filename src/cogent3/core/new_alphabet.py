@@ -332,8 +332,15 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         return self.motif_len
 
     @functools.singledispatchmethod
-    def to_indices(self, seq: StrORBytesORArray) -> numpy.ndarray[int]:
+    def to_indices(self, seq: StrORBytesORArray | tuple) -> numpy.ndarray[int]:
         raise TypeError(f"{type(seq)} is invalid")
+
+    @to_indices.register
+    def _(self, seq: tuple) -> numpy.ndarray[int]:
+        indices = []
+        for c in seq:
+            indices.extend(self.to_indices(c).tolist())
+        return numpy.array(indices, dtype=self.dtype)
 
     @to_indices.register
     def _(self, seq: bytes) -> numpy.ndarray[int]:
@@ -744,6 +751,14 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         raise TypeError(f"{type(seq)} is invalid")
 
     @to_indices.register
+    def _(self, seq: tuple, **kwargs) -> numpy.ndarray[int]:
+        return numpy.array([self.to_index(c) for c in seq], dtype=self.dtype)
+
+    @to_indices.register
+    def _(self, seq: list, **kwargs) -> numpy.ndarray:
+        return numpy.array([self.to_index(c) for c in seq], dtype=self.dtype)
+
+    @to_indices.register
     def _(self, seq: str, independent_kmer: bool = True) -> numpy.ndarray:
         seq = self.monomers.to_indices(seq)
         return self.to_indices(seq, independent_kmer=independent_kmer)
@@ -993,6 +1008,10 @@ class SenseCodonAlphabet(tuple, AlphabetABC):
     @to_indices.register
     def _(self, seq: list) -> numpy.ndarray:
         return numpy.array([self.to_index(c) for c in seq], dtype=self.dtype)
+
+    @to_indices.register
+    def _(self, seq: tuple) -> numpy.ndarray[int]:
+        return self.to_indices(list(seq))
 
     @to_indices.register
     def _(self, seq: numpy.ndarray) -> numpy.ndarray:
