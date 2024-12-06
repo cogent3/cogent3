@@ -4,13 +4,7 @@ from unittest import TestCase
 from numpy import dot, ones
 from numpy.testing import assert_allclose
 
-from cogent3 import (
-    DNA,
-    load_aligned_seqs,
-    load_tree,
-    make_aligned_seqs,
-    make_tree,
-)
+import cogent3
 from cogent3.evolve.ns_substitution_model import (
     NonReversibleCodon,
     NonReversibleNucleotide,
@@ -24,6 +18,8 @@ from cogent3.maths.matrix_exponentiation import PadeExponentiator as expm
 
 warnings.filterwarnings("ignore", "Motif probs overspecified")
 warnings.filterwarnings("ignore", "Model not reversible")
+
+DNA = cogent3.get_moltype("dna")
 
 
 def _dinuc_root_probs(x, y=None):
@@ -65,14 +61,14 @@ def make_p(length, coord, val):
 
 
 class NewQ(TestCase):
-    aln = make_aligned_seqs(
+    aln = cogent3.make_aligned_seqs(
         data={
             "seq1": "TGTGGCACAAATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
             "seq2": "TGTGGCACAAATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
         },
         moltype=DNA,
     )
-    tree = make_tree(tip_names=["seq1", "seq2"])
+    tree = cogent3.make_tree(tip_names=["seq1", "seq2"])
 
     symm_nuc_probs = dict(A=0.25, T=0.25, C=0.25, G=0.25)
     symm_root_probs = _dinuc_root_probs(symm_nuc_probs)
@@ -216,8 +212,8 @@ class NewQ(TestCase):
             posn2.append([name, "".join(p2)])
 
         # the position specific alignments
-        posn1 = make_aligned_seqs(data=posn1)
-        posn2 = make_aligned_seqs(data=posn2)
+        posn1 = cogent3.make_aligned_seqs(data=posn1, moltype=DNA)
+        posn2 = cogent3.make_aligned_seqs(data=posn2, moltype=DNA)
 
         # a newQ dinucleotide model
         sm = TimeReversibleNucleotide(motif_length=2, mprob_model="monomer")
@@ -325,9 +321,10 @@ class NewQ(TestCase):
 
     def test_getting_node_mprobs(self):
         """return correct motif probability vector for tree nodes"""
-        tree = make_tree(treestring="(a:.2,b:.2,(c:.1,d:.1):.1)")
-        aln = make_aligned_seqs(
+        tree = cogent3.make_tree(treestring="(a:.2,b:.2,(c:.1,d:.1):.1)")
+        aln = cogent3.make_aligned_seqs(
             data={"a": "TGTG", "b": "TGTG", "c": "TGTG", "d": "TGTG"},
+            moltype="dna",
         )
 
         motifs = ["T", "C", "A", "G"]
@@ -376,10 +373,10 @@ class NewQ(TestCase):
         """handles different statespace dimensions from process and stationary distribution"""
         from cogent3.evolve.models import get_model
 
-        aln = load_aligned_seqs("data/primates_brca1.fasta", moltype="dna")
+        aln = cogent3.load_aligned_seqs("data/primates_brca1.fasta", moltype="dna")
         aln = aln.no_degenerates(motif_length=3)
 
-        tree = load_tree("data/primates_brca1.tree")
+        tree = cogent3.load_tree("data/primates_brca1.tree")
 
         # root mprobs are constant
         sm = get_model("MG94HKY")

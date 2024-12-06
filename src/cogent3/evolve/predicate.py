@@ -229,10 +229,10 @@ class DirectedMotifChange(predicate):
                 % (alphabet.motif_len, repr(self), self.motiflen),
             )
 
-        resolve = model.moltype.ambiguities.__getitem__
+        ambigs = model.moltype.ambiguities
 
-        from_motifs = [resolve(m) for m in self.from_motif]
-        to_motifs = [resolve(m) for m in self.to_motif]
+        from_motifs = [ambigs[m] for m in self.from_motif]
+        to_motifs = [ambigs[m] for m in self.to_motif]
 
         def call(x, y):
             diffs = [X != Y for (X, Y) in zip(x, y, strict=False)]

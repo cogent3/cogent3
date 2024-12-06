@@ -10,6 +10,9 @@ import numpy
 from cogent3.core import new_alphabet, new_sequence
 from cogent3.data.molecular_weight import DnaMW, ProteinMW, RnaMW, WeightCalculator
 
+if typing.TYPE_CHECKING:
+    from cogent3.core.sequence import SeqViewABC
+
 OptStr = typing.Optional[str]
 OptFloat = typing.Optional[float]
 OptCallable = typing.Optional[typing.Callable]
@@ -198,12 +201,7 @@ def make_matches(
     monomers = monomers or {}
     gaps = gaps or {}
     degenerates = degenerates or {}
-    result = {}
-
-    # all monomers always match themselves and no other monomers
-    for i in monomers:
-        result[(i, i)] = True
-
+    result = {(i, i): True for i in monomers}
     # all gaps always match all other gaps
     for i, j in itertools.combinations_with_replacement(gaps, 2):
         result[(i, j)], result[(j, i)] = True, True
