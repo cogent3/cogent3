@@ -4041,29 +4041,20 @@ class Alignment(SequenceCollection):
     @__getitem__.register
     def _(self, index: int):
         new_slice = self._slice_record[index]
-        return self.__class__(
-            seqs_data=self._seqs_data,
-            slice_record=new_slice,
-            moltype=self.moltype,
-            info=self.info,
-        )
+        kwargs = self._get_init_kwargs()
+        kwargs["slice_record"] = new_slice
+        return self.__class__(**kwargs)
 
     @__getitem__.register
     def _(self, index: slice):
         new_slice = self._slice_record[index]
-        new = self.__class__(
-            seqs_data=self._seqs_data,
-            slice_record=new_slice,
-            moltype=self.moltype,
-            info=self.info,
-        )
-        if abs(new_slice.step or 1) > 1:
-            return new
+        kwargs = self._get_init_kwargs()
+        kwargs["slice_record"] = new_slice
+        if new_slice.plus_step > 1:
+            # we retain the annotation database only for "simple" slices
+            kwargs.pop("annotation_db", None)
 
-        # for simple slices, we retain the annotation database
-        if self.annotation_db is not None:
-            new.annotation_db = self.annotation_db
-        return new
+        return self.__class__(**kwargs)
 
     @__getitem__.register
     def _(self, index: FeatureMap):
@@ -4317,12 +4308,11 @@ class Alignment(SequenceCollection):
             data=new_data,
             alphabet=self.moltype.most_degen_alphabet(),
         )
-        return self.__class__(
-            seqs_data=seqs_data,
-            name_map=self._name_map,
-            info=self.info,
-            moltype=self.moltype,
-        )
+        kwargs = self._get_init_kwargs()
+        kwargs["seqs_data"] = seqs_data
+        kwargs.pop("annotation_db", None)
+        kwargs.pop("slice_record", None)
+        return self.__class__(**kwargs)
 
     def take_positions_if(self, f, negate=False):
         """Returns new Alignment containing cols where f(col) is True."""
@@ -4813,13 +4803,11 @@ class Alignment(SequenceCollection):
             data=new,
             alphabet=self.moltype.most_degen_alphabet(),
         )
-
-        return self.__class__(
-            seqs_data=new_seq_data,
-            name_map=self._name_map,
-            moltype=self.moltype,
-            info=self.info,
-        )
+        kwargs = self._get_init_kwargs()
+        kwargs["seqs_data"] = new_seq_data
+        kwargs.pop("annotation_db", None)
+        kwargs.pop("slice_record", None)
+        return self.__class__(**kwargs)
 
     def matching_ref(self, ref_name: str, gap_fraction: float, gap_run: int):
         """Returns new alignment with seqs well aligned with a reference.
@@ -4878,7 +4866,12 @@ class Alignment(SequenceCollection):
             data=seqs,
             alphabet=self.moltype.most_degen_alphabet(),
         )
-        return self.__class__(seqs_data=seqs_data, moltype=self.moltype, **kwargs)
+        init_kwargs = self._get_init_kwargs()
+        init_kwargs.pop("annotation_db", None)
+        init_kwargs |= kwargs
+        init_kwargs["seqs_data"] = seqs_data
+        init_kwargs.pop("slice_record", None)
+        return self.__class__(**init_kwargs)
 
     def filtered(
         self,
@@ -4980,11 +4973,11 @@ class Alignment(SequenceCollection):
             data=selected,
             alphabet=self.moltype.most_degen_alphabet(),
         )
-        return self.__class__(
-            seqs_data=aligned_seqs_data,
-            info=self.info,
-            moltype=self.moltype,
-        )
+        kwargs = self._get_init_kwargs()
+        kwargs["seqs_data"] = aligned_seqs_data
+        kwargs.pop("annotation_db", None)
+        kwargs.pop("slice_record", None)
+        return self.__class__(**kwargs)
 
     def _omit_gap_pos_single(
         self,
@@ -5164,11 +5157,11 @@ class Alignment(SequenceCollection):
             data=new_seqs,
             alphabet=self.moltype.most_degen_alphabet(),
         )
-        return self.__class__(
-            seqs_data=new_seqs_data,
-            info=self.info,
-            moltype=self.moltype,
-        )
+        kwargs = self._get_init_kwargs()
+        kwargs["seqs_data"] = new_seqs_data
+        kwargs.pop("annotation_db", None)
+        kwargs.pop("slice_record", None)
+        return self.__class__(**kwargs)
 
     def distance_matrix(
         self,
@@ -5306,18 +5299,11 @@ class Alignment(SequenceCollection):
             data=data,
             alphabet=self.moltype.most_degen_alphabet(),
         )
-
-        result = self.__class__(
-            seqs_data=seqs_data,
-            info=self.info,
-            moltype=self.moltype,
-            **kwargs,
-        )
-
-        if hasattr(self, "annotation_db"):
-            result.annotation_db = self.annotation_db
-
-        return result
+        init_kwargs = self._get_init_kwargs()
+        init_kwargs["seqs_data"] = seqs_data
+        init_kwargs.pop("slice_record", None)
+        init_kwargs |= kwargs
+        return self.__class__(**init_kwargs)
 
     @extend_docstring_from(SequenceCollection.get_translation)
     def get_translation(
@@ -6289,13 +6275,11 @@ class Alignment(SequenceCollection):
             gaps=maps,
             alphabet=self.moltype.most_degen_alphabet(),
         )
-
-        return self.__class__(
-            seqs_data=data,
-            moltype=self.moltype,
-            name_map=self._name_map,
-            info=self.info,
-        )
+        kwargs = self._get_init_kwargs()
+        kwargs["seqs_data"] = data
+        kwargs.pop("slice_record", None)
+        kwargs.pop("annotation_db", None)
+        return self.__class__(**kwargs)
 
     def apply_scaled_gaps(
         self,
@@ -6388,9 +6372,7 @@ class Alignment(SequenceCollection):
             if self._slice_record.is_reversed
             else None
         )
-        return self.__class__(
-            **kwargs,
-        )
+        return self.__class__(**kwargs)
 
     def with_masked_annotations(
         self,

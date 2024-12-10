@@ -5470,3 +5470,15 @@ def test_load_from_url():
         new_type=True,
     )
     assert isinstance(aln, new_alignment.Alignment)
+
+
+def test_slice_preserves_selected_names(DATA_DIR):
+    aln = load_aligned_seqs(
+        DATA_DIR / "brca1.fasta",
+        moltype="dna",
+        new_type=True,
+    )
+    seqnames = ["Chimpanzee", "Rhesus", "Orangutan", "Human"]
+    aln = aln.take_seqs(seqnames)
+    aln = aln[:1000]
+    assert set(aln.names) == set(seqnames)
