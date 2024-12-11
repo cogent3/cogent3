@@ -2795,6 +2795,41 @@ class Aligned:
         self._name = name or data.seqid
         self._annotation_db = annotation_db
 
+    @classmethod
+    def from_map_and_seq(cls, indel_map: IndelMap, seq: new_sequence.Sequence):
+        moltype = seq.moltype
+        # refactor: design
+        # this is a temporary approach during migration to new_types
+        # to support the sequence alignment algorithms
+        # a better solution is to create a AlignedDataView instance the
+        # map and seq directly without requiring a parent AlignedSeqsData
+        asd = AlignedSeqsData.from_seqs_and_gaps(
+            seqs={seq.name: numpy.array(seq)},
+            gaps={seq.name: indel_map.array},
+            alphabet=moltype.most_degen_alphabet(),
+        )
+
+        return cls(asd.get_view(seq.name), moltype)
+
+    @classmethod
+    def from_map_and_aligned_data_view(
+        cls,
+        indel_map: IndelMap,
+        seq: AlignedDataViewABC,
+    ):
+        moltype = seq.alphabet.moltype
+        seqid = seq.seqid
+        seq = seq.array_value
+        # refactor: design
+        # see above comment in from_map_and_seq
+        asd = AlignedSeqsData.from_seqs_and_gaps(
+            seqs={seqid: seq},
+            gaps={seqid: indel_map.array},
+            alphabet=moltype.most_degen_alphabet(),
+        )
+
+        return cls(asd.get_view(seqid), moltype)
+
     def __len__(self) -> int:
         return len(self.map)
 
