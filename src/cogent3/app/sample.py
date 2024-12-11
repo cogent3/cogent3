@@ -448,7 +448,7 @@ class take_codon_positions:
         fourfold_codon_sets = self._fourfold_degen_sets
 
         def ffold(x):
-            x = {tuple(e) for e in list(x)}
+            x = {tuple(array(e)) for e in list(x)}
             for codon_set in fourfold_codon_sets:
                 if x <= codon_set:
                     return True

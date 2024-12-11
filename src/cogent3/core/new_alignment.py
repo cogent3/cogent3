@@ -4071,7 +4071,7 @@ class Alignment(SequenceCollection):
 
     @__getitem__.register
     def _(self, index: str):
-        return self._make_aligned(seqid=index)
+        return self.seqs[index]
 
     @__getitem__.register
     def _(self, index: int):
@@ -4910,7 +4910,7 @@ class Alignment(SequenceCollection):
 
     def filtered(
         self,
-        predicate,
+        predicate: typing.Callable[[typing_extensions.Self], bool],
         motif_length: int = 1,
         drop_remainder: bool = True,
         **kwargs,
@@ -4930,39 +4930,22 @@ class Alignment(SequenceCollection):
             remaining columns
         """
         # refactor: type hint for predicate
-        # refactor: array
-        # add argument array_type: bool=True which allows the user to specify what
-        # type their callable can handle and what type the method should return
         length = len(self)
-        if length % motif_length != 0 and not drop_remainder:
+        drop = length % motif_length
+        if drop != 0 and not drop_remainder:
             raise ValueError(
                 f"aligned length not divisible by motif_length={motif_length}",
             )
-        gv = []
-        kept = False
-        seqs = [
-            self.get_gapped_seq(n).get_in_motif_size(motif_length, **kwargs)
-            for n in self.names
-        ]
+        length -= drop
+        kept = numpy.zeros(length, dtype=bool)
+        for pos in range(0, length, motif_length):
+            seqs = [seq[pos : pos + motif_length] for seq in self.seqs]
+            if predicate(seqs):
+                kept[pos : pos + motif_length] = True
 
-        positions = list(zip(*seqs, strict=False))
-        for position, column in enumerate(positions):
-            keep = predicate(column)
-            if kept != keep:
-                gv.append(position * motif_length)
-                kept = keep
+        indices = numpy.where(kept)[0]
 
-        if kept:
-            gv.append(len(positions) * motif_length)
-
-        if not gv:
-            return None
-
-        locations = [(gv[i], gv[i + 1]) for i in range(0, len(gv), 2)]
-        # these are alignment coordinate locations
-        keep = FeatureMap.from_locations(locations=locations, parent_length=len(self))
-
-        return self.gapped_by_map(keep, info=self.info)
+        return self.take_positions(indices.tolist())
 
     def no_degenerates(self, motif_length: int = 1, allow_gap: bool = False):
         """returns new alignment without degenerate characters
