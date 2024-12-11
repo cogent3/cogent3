@@ -649,7 +649,8 @@ def test_moltype_coerce_seqs():
 
 
 @pytest.mark.parametrize(
-    "moltype", ("protein", "text", "bytes", "protein_with_stop", "dna", "rna")
+    "moltype",
+    ("protein", "text", "bytes", "protein_with_stop", "dna", "rna"),
 )
 def test_json_roundtrip_moltype(moltype):
     from cogent3.util.deserialise import deserialise_object

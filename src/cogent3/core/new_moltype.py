@@ -373,6 +373,15 @@ def _strictly_upper(monomers: tuple[StrORBytes]):
     return all(cast(c).isupper() for c in monomers)
 
 
+def _combined_chars(*parts):
+    concat = parts[0]
+    for part in parts[1:]:
+        if not part or part in concat:
+            continue
+        concat = concat + part
+    return concat
+
+
 coerce_to_rna = new_alphabet.convert_alphabet(b"tT", b"uU")
 coerce_to_dna = new_alphabet.convert_alphabet(b"uU", b"tT")
 
@@ -435,7 +444,7 @@ class MolType:
         )
         self._degen = (
             new_alphabet.make_alphabet(
-                chars=monomers + ambigs + missing,
+                chars=_combined_chars(monomers, ambigs, missing),
                 gap=None,
                 missing=missing or None,
                 moltype=self,
@@ -445,8 +454,8 @@ class MolType:
         )
         self._gapped = (
             new_alphabet.make_alphabet(
-                chars=monomers + gap,
-                gap=self.gap,
+                chars=_combined_chars(monomers, gap),
+                gap=gap,
                 missing=None,
                 moltype=self,
             )
@@ -455,9 +464,9 @@ class MolType:
         )
         self._gapped_missing = (
             new_alphabet.make_alphabet(
-                chars=monomers + gap + missing,
-                gap=self.gap,
-                missing=missing or None,
+                chars=_combined_chars(monomers, gap, missing),
+                gap=gap,
+                missing=missing,
                 moltype=self,
             )
             if missing and gap
@@ -465,9 +474,9 @@ class MolType:
         )
         self._degen_gapped = (
             new_alphabet.make_alphabet(
-                chars=monomers + gap + ambigs + missing,
-                gap=self.gap,
-                missing=missing or None,
+                chars=_combined_chars(monomers, gap, ambigs, missing),
+                gap=gap,
+                missing=missing,
                 moltype=self,
             )
             if ambigs and gap
@@ -890,8 +899,9 @@ class MolType:
             )
 
         # refactor: simplify
+        ambigs = self.ambiguities or {}
         ambiguities = {
-            **self.ambiguities,
+            **ambigs,
             self.gap: frozenset(self.gap),
             self.missing: set([*self.alphabet, self.gap]),
         }
@@ -1103,7 +1113,8 @@ class MolType:
             return next(iter(symbols))
 
         # all degenerate symbols should be added to the sets that they encompass
-        degens = self.ambiguities.copy()
+        ambigs = self.ambiguities or {}
+        degens = ambigs.copy()
         for degen1 in degens:
             for degen2, char_set in self.ambiguities.items():
                 if self.ambiguities[degen1] <= char_set:
