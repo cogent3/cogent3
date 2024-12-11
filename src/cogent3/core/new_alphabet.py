@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 
 import numba
 import numpy
+import typing_extensions
 
 from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
