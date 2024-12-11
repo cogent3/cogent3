@@ -1,6 +1,7 @@
 import dataclasses
 import functools
 import itertools
+import json
 import typing
 from collections import defaultdict
 from string import ascii_letters
@@ -9,6 +10,8 @@ import numpy
 
 from cogent3.core import new_alphabet, new_sequence
 from cogent3.data.molecular_weight import DnaMW, ProteinMW, RnaMW, WeightCalculator
+from cogent3.util.deserialise import register_deserialiser
+from cogent3.util.misc import get_object_provenance
 
 if typing.TYPE_CHECKING:
     from cogent3.core.sequence import SeqViewABC
@@ -1257,6 +1260,20 @@ class MolType:
             expanded = self.ambiguities[seq[index]]
             seq[index] = f"[{''.join(sorted(expanded))}]"
         return "".join(seq)
+
+    def to_rich_dict(self, **kwargs):
+        data = dict(type=get_object_provenance(self), moltype=self.label)
+        return data
+
+    def to_json(self):
+        """returns result of json formatted string"""
+        data = self.to_rich_dict()
+        return json.dumps(data)
+
+
+@register_deserialiser(get_object_provenance(MolType))
+def deserialise_new_moltype(data, **kwargs):
+    return get_moltype(data.pop("moltype"))
 
 
 def _make_moltype_dict() -> dict[str, MolType]:

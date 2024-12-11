@@ -5482,3 +5482,24 @@ def test_slice_preserves_selected_names(DATA_DIR):
     aln = aln.take_seqs(seqnames)
     aln = aln[:1000]
     assert set(aln.names) == set(seqnames)
+
+
+def test_aligned_from_indel_map_and_seqs():
+    dna = new_moltype.get_moltype("dna")
+    seq = dna.make_seq(seq="AC--GTC", name="s1")
+    im, s = seq.parse_out_gaps()
+    al = new_alignment.Aligned.from_map_and_seq(im, s)
+    assert al.name == "s1"
+    assert str(al) == str(seq)
+
+
+def test_aligned_from_indel_map_and_aligned_seq_view():
+    aln = new_alignment.make_aligned_seqs({"s1": "AC--GTC"}, moltype="dna")
+    al = aln.seqs["s1"]
+    new_map = type(al.data.map)(
+        cum_gap_lengths=numpy.array([3, 5], dtype=numpy.int32),
+        gap_pos=numpy.array([0, 2], dtype=numpy.int32),
+        parent_length=4,
+    )
+    new_al = new_alignment.Aligned.from_map_and_aligned_data_view(new_map, al.data)
+    assert str(new_al) == "---AC--GTC"

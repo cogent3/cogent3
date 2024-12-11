@@ -646,3 +646,16 @@ def test_moltype_coerce_seqs():
     # no coercion in protein seq
     prot = new_moltype.get_moltype("protein")
     assert str(prot.make_seq(seq=rna_seq)) == rna_seq
+
+
+@pytest.mark.parametrize(
+    "moltype", ("protein", "text", "bytes", "protein_with_stop", "dna", "rna")
+)
+def test_json_roundtrip_moltype(moltype):
+    from cogent3.util.deserialise import deserialise_object
+
+    mt = new_moltype.get_moltype(moltype)
+    got = deserialise_object(mt.to_json())
+    # because our moltype instances are singletons,
+    # we expect the same object
+    assert got is mt

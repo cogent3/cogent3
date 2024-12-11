@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 
 import numba
 import numpy
+import typing_extensions
 
 from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
@@ -129,14 +130,17 @@ class AlphabetABC(ABC):
     def missing_index(self) -> OptInt: ...
 
     @abstractmethod
-    def to_rich_dict(self) -> dict: ...
+    def to_rich_dict(self, for_pickle: bool = False) -> dict[str, typing.Any]: ...
 
     @abstractmethod
     def to_json(self) -> str: ...
 
     @classmethod
     @abstractmethod
-    def from_rich_dict(cls, data: dict) -> None: ...
+    def from_rich_dict(cls, data: dict) -> typing_extensions.Self: ...
+
+    def __deepcopy__(self, memo):
+        return type(self).from_rich_dict(self.to_rich_dict())
 
     @property
     def moltype(self) -> typing.Union["MolType", None]:
@@ -455,17 +459,20 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         """returns seq as a byte string"""
         return self._arr2bytes(seq)
 
-    def to_rich_dict(self) -> dict:
+    def to_rich_dict(self, for_pickle: bool = False) -> dict[str, typing.Any]:
         """returns a serialisable dictionary"""
         from cogent3._version import __version__
 
-        return {
+        data = {
             "chars": list(self),
             "gap": self.gap_char,
             "missing": self.missing_char,
-            "version": __version__,
-            "type": get_object_provenance(self),
         }
+        if not for_pickle:
+            data["type"] = get_object_provenance(self)
+            data["version"] = __version__
+
+        return data
 
     def to_json(self) -> str:
         """returns a serialisable string"""
@@ -893,19 +900,21 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         max_val = max(self.missing_index or 0, self.gap_index or 0, self.num_canonical)
         return seq.min() >= 0 and seq.max() <= max_val if len(seq) else True
 
-    def to_rich_dict(self) -> dict:
+    def to_rich_dict(self, for_pickle: bool = False) -> dict:
         """returns a serialisable dictionary"""
         from cogent3._version import __version__
 
-        return {
+        data = {
             "words": list(self),
             "monomers": self.monomers.to_rich_dict(),
             "k": self.k,
             "gap": self.gap_char,
             "missing": self.missing_char,
-            "version": __version__,
-            "type": get_object_provenance(self),
         }
+        if not for_pickle:
+            data["type"] = get_object_provenance(self)
+            data["version"] = __version__
+        return data
 
     def to_json(self) -> str:
         """returns a serialisable string"""
@@ -1070,21 +1079,23 @@ class SenseCodonAlphabet(tuple, AlphabetABC):
         words = tuple(self) + (gap_char,)
         return self.__class__(words=words, monomers=monomers, gap=gap_char)
 
-    def to_rich_dict(self):
+    def to_rich_dict(self, for_pickle: bool = False):
         from cogent3._version import __version__
 
-        return {
+        data = {
             "monomers": self.monomers.to_rich_dict(),
-            "type": get_object_provenance(self),
-            "version": __version__,
             "words": list(self),
         }
+        if not for_pickle:
+            data["type"] = get_object_provenance(self)
+            data["version"] = __version__
+        return data
 
     def to_json(self):
         return json.dumps(self.to_rich_dict())
 
     @classmethod
-    def from_rich_dict(cls, data):
+    def from_rich_dict(cls, data: dict[str, typing.Any]):
         data["monomers"] = deserialise_char_alphabet(data["monomers"])
         data.pop("type", None)
         data.pop("version", None)

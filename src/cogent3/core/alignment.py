@@ -2520,6 +2520,22 @@ class Aligned:
         """returns True if sequence has any annotations"""
         return self.data.is_annotated()
 
+    @classmethod
+    def from_map_and_seq(cls, indel_map, seq):  # pragma: no cover
+        # method for forwards compatability
+        # no coverage due to class deprecation
+        return cls(indel_map, seq)
+
+    @classmethod
+    def from_map_and_aligned_data_view(
+        cls,
+        indel_map,
+        seq,
+    ):  # pragma: no cover
+        # method for forwards compatability
+        # no coverage due to class deprecation
+        return cls(indel_map, seq)
+
 
 class AlignmentI:
     """Alignment interface object. Contains methods shared by implementations.
