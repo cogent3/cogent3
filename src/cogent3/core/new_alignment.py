@@ -6480,6 +6480,10 @@ class Alignment(SequenceCollection):
         # TODO remove when new_type is the default
         return self
 
+    def is_ragged(self) -> bool:
+        """by definition False for an Alignment"""
+        return False
+
 
 @register_deserialiser(get_object_provenance(Alignment))
 def deserialise_alignment(data: dict[str, str | dict[str, str]]) -> Alignment:
