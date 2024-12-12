@@ -615,8 +615,8 @@ def test_make_seq_with_seq(seq):
 
 
 def test_make_seq_with_seq_invalid_moltype():
-    seq = new_moltype.PROTEIN.make_seq(seq="ACQK")
-    with pytest.raises(ValueError):
+    seq = new_moltype.BYTES.make_seq(seq=b"".join([bytes([i]) for i in range(4)]))
+    with pytest.raises(new_moltype.MolTypeError):
         _ = new_moltype.DNA.make_seq(seq=seq)
 
 

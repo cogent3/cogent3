@@ -504,10 +504,6 @@ class SeqsData(SeqsDataABC):
         alphabet: new_alphabet.AlphabetABC,
         check_valid: bool = True,
     ) -> SeqsData:
-        # refactor: design -- map directly between arrays?
-        # if the length of the two alphabets are the same and the only difference
-        # between the sets of characters is U/T, then we have the special case of
-        # converting between DNA and RNA alphabets, which we can achieved easily.
         if (
             len(self.alphabet) == len(alphabet)
             and len(
@@ -519,6 +515,7 @@ class SeqsData(SeqsDataABC):
             )
             == 1
         ):
+            # rna <-> dna swap just replace alphabet
             return self.__class__(
                 data=self._data,
                 alphabet=alphabet,
@@ -526,20 +523,15 @@ class SeqsData(SeqsDataABC):
             )
 
         new_data = {}
-        old = self.alphabet.as_bytes()
-        new = alphabet.as_bytes()
-        convert_old_to_bytes = new_alphabet.array_to_bytes(old)
-        convert_bytes_to_new = new_alphabet.bytes_to_array(
-            new,
-            dtype=new_alphabet.get_array_type(len(new)),
-        )
-
         for seqid in self.names:
             seq_data = self.get_seq_array(seqid=seqid)
-            as_new_alpha = convert_bytes_to_new(convert_old_to_bytes(seq_data))
-
+            as_new_alpha = self.alphabet.convert_seq_array_to(
+                seq=seq_data,
+                alphabet=alphabet,
+                check_valid=False,
+            )
             if check_valid and not alphabet.is_valid(as_new_alpha):
-                raise new_moltype.MolTypeError(
+                raise new_alphabet.AlphabetError(
                     f"Changing from old alphabet={self.alphabet} to new "
                     f"{alphabet=} is not valid for this data",
                 )
