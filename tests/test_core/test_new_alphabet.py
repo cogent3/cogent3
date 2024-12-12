@@ -720,3 +720,23 @@ def test_sensecodon_alphabet_to_indices_list_tuple(cast, calpha):
         dtype=calpha.dtype,
     )
     assert_allclose(got, expect)
+
+
+def test_get_subset():
+    dna_alpha = new_moltype.get_moltype("dna").gapped_alphabet
+    got = dna_alpha.get_subset(("A", "G"))
+    assert len(got) == 2
+    assert got.gap_char is None
+    assert got.missing_char is None
+    got = dna_alpha.get_subset(("A", "G", "-"))
+    assert got.gap_char == "-"
+    assert len(got) == 3
+    got = dna_alpha.get_subset("-", excluded=True)
+    assert got.gap_char is None
+    assert len(got) == 4
+
+
+def test_get_subset_invalid():
+    dna_alpha = new_moltype.get_moltype("dna").alphabet
+    with pytest.raises(new_alphabet.AlphabetError):
+        dna_alpha.get_subset(("A", "G", "-"))
