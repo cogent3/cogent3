@@ -155,6 +155,13 @@ class MonomerAlphabetABC(ABC):
     @abstractmethod
     def as_bytes(self) -> bytes: ...
 
+    @abstractmethod
+    def convert_seq_array_to(
+        self,
+        other: "MonomerAlphabetABC",
+        seq: numpy.ndarray,
+    ) -> numpy.ndarray: ...
+
 
 def get_array_type(num_elements: int):
     """Returns the smallest numpy integer dtype that can contain elements
@@ -518,6 +525,80 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         gap = self.gap_char if self.gap_char in motif_subset else None
         missing = self.missing_char if self.missing_char in motif_subset else None
         return self.__class__(tuple(motif_subset), gap=gap, missing=missing)
+
+    def convert_seq_array_to(
+        self,
+        *,
+        alphabet: typing_extensions.Self,
+        seq: numpy.ndarray,
+        check_valid: bool = True,
+    ) -> numpy.ndarray:
+        """converts a numpy array with indices from self to other
+
+        Parameters
+        ----------
+        alphabet
+            alphabet to convert to
+        seq
+            ndarray of uint8 integers
+        check_valid
+            validates both input and out sequences are valid for self and
+            other respectively. Validation failure raises an AlphabetError.
+
+        Returns
+        -------
+        the indices of characters in common between self and other
+        are swapped
+        """
+        if check_valid and not self.is_valid(seq):
+            raise AlphabetError(f"input sequence not valid for {self}")
+
+        converter = make_converter(self, alphabet)
+        output = numpy.frombuffer(converter(seq.tobytes()), dtype=alphabet.dtype)
+        if check_valid and not alphabet.is_valid(output):
+            raise AlphabetError(f"output sequence not valid for {alphabet}")
+
+        return output
+
+
+@functools.cache
+def make_converter(
+    src_alpha: CharAlphabet,
+    dest_alpha: CharAlphabet,
+) -> convert_alphabet:
+    """makes a convert_alphabet instance between two CharAlphabet alphabets
+
+    Parameters
+    ----------
+    src_alpha, dest_alpha
+        the two CharAlphabet instances
+
+    Notes
+    -----
+    The common characters between the two alphabets are used to create the
+    convert_alphabet() instance. The result of applying the convertor to a
+    sequence should be validated by the caller to only shared characters
+    were present.
+    """
+    # we need to make a converter that maps the indices of common characters
+    # to new their values in dest_alpha and maps chars unique to src_alpha
+    # to a single value that exceeds the length of dest_alpha so it's
+    # easy to validate
+    src_bytes = {bytes([c]) for c in src_alpha.as_bytes()}
+    other_bytes = {bytes([c]) for c in dest_alpha.as_bytes()}
+    common = b"".join(src_bytes & other_bytes)
+
+    diff = b"".join(src_bytes - other_bytes)
+    src_indices = numpy.concatenate(
+        [src_alpha.to_indices(common), src_alpha.to_indices(diff)],
+    )
+    dest_indices = numpy.concatenate(
+        [
+            dest_alpha.to_indices(common),
+            numpy.array([len(dest_alpha)] * len(diff), dtype=dest_alpha.dtype),
+        ],
+    )
+    return convert_alphabet(src_indices.tobytes(), dest_indices.tobytes())
 
 
 @register_deserialiser(get_object_provenance(CharAlphabet))
