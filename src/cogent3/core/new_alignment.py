@@ -502,7 +502,7 @@ class SeqsData(SeqsDataABC):
     def to_alphabet(
         self,
         alphabet: new_alphabet.AlphabetABC,
-        check_valid=True,
+        check_valid: bool = True,
     ) -> SeqsData:
         # refactor: design -- map directly between arrays?
         # if the length of the two alphabets are the same and the only difference

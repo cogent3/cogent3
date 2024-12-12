@@ -484,7 +484,7 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         return json.dumps(self.to_rich_dict())
 
     @classmethod
-    def from_rich_dict(cls, data: dict) -> "CharAlphabet":
+    def from_rich_dict(cls, data: dict) -> typing_extensions.Self:
         """returns an instance from a serialised dictionary"""
         return cls(data["chars"], gap=data["gap"], missing=data["missing"])
 
