@@ -373,8 +373,12 @@ def test_most_degenerate_alphabet(label):
     got = moltype.most_degen_alphabet()
     # expected value for number of characters is
     # length of monomers + len(moltype gaps) + len(ambiguities)
-    num_ambigs = len(moltype.ambiguities or [])
-    expected = len(moltype.alphabet) + len(moltype.gaps or []) + num_ambigs
+    ambigs = set(moltype.ambiguities or ())
+    ambigs |= set(moltype.missing) if moltype.missing else set()
+    num_ambigs = len(ambigs)
+    expected = len(moltype.alphabet) + len(moltype.gap or "") + num_ambigs
+    assert len(got) == expected
+
     assert len(got) == expected
 
 

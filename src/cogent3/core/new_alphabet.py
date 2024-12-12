@@ -277,6 +277,10 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
             assert _coerce_to_type(chars[0], missing) in chars
 
         consistent_words(chars, length=1)
+        if isinstance(chars, bytes):
+            # we need to convert to tuple in a way the preserves elements
+            # as bytes
+            chars = tuple(bytes([c]) for c in chars)
         return tuple.__new__(cls, chars, gap=gap, missing=missing)
 
     def __init__(
@@ -450,8 +454,8 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
     def as_bytes(self) -> bytes:
         """returns self as a byte string"""
-        if not isinstance(self[0], str):
-            return bytes(bytearray(self))
+        if isinstance(self[0], bytes):
+            return b"".join(self)
 
         return "".join(self).encode("utf8")
 

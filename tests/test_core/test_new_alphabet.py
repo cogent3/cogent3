@@ -665,12 +665,12 @@ def test_codon_alphabet_serlialise_round_trip(calpha):
 
 
 @pytest.fixture(params=new_moltype.DNA.iter_alphabets())
-def alpha(request):
+def dna_alpha(request):
     return request.param
 
 
-def test_alphabet_moltype(alpha):
-    assert alpha.moltype is new_moltype.DNA
+def test_alphabet_moltype(dna_alpha):
+    assert dna_alpha.moltype is new_moltype.DNA
 
 
 def test_alpha_no_moltype():
