@@ -379,8 +379,6 @@ def test_most_degenerate_alphabet(label):
     expected = len(moltype.alphabet) + len(moltype.gap or "") + num_ambigs
     assert len(got) == expected
 
-    assert len(got) == expected
-
 
 def test_validate_seq():
     moltype = new_moltype.ASCII
@@ -574,6 +572,11 @@ def test_degenerate_from_seq():
     assert p("ABD") == "X"
     assert p("ACX") == "X"
     assert p("AC-") == "?"
+
+
+def test_degenerate_from_seq_general():
+    dna = new_moltype.get_moltype("dna")
+    assert dna.degenerate_from_seq("ACGT--") == "?"
 
 
 @pytest.mark.parametrize(
