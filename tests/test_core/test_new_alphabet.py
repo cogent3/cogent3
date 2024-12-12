@@ -22,7 +22,7 @@ def test_get_array_type(num, expect):
 
 def test_get_array_type_invalid():
     with pytest.raises(NotImplementedError):
-        new_alphabet.get_array_type(2**64)
+        new_alphabet.get_array_type(2**64 + 1)
 
 
 def test_make_char_alphabet():
