@@ -160,6 +160,7 @@ class MonomerAlphabetABC(ABC):
         self,
         other: "MonomerAlphabetABC",
         seq: numpy.ndarray,
+        check_valid: bool = True,
     ) -> numpy.ndarray: ...
 
 
