@@ -22,7 +22,7 @@ def test_get_array_type(num, expect):
 
 def test_get_array_type_invalid():
     with pytest.raises(NotImplementedError):
-        new_alphabet.get_array_type(2**64)
+        new_alphabet.get_array_type(2**64 + 1)
 
 
 def test_make_char_alphabet():
@@ -740,3 +740,17 @@ def test_get_subset_invalid():
     dna_alpha = new_moltype.get_moltype("dna").alphabet
     with pytest.raises(new_alphabet.AlphabetError):
         dna_alpha.get_subset(("A", "G", "-"))
+
+
+def test_convert_seq_array_to_check_valid():
+    bytes_alpha = new_moltype.BYTES.most_degen_alphabet()
+    dna_alpha = new_moltype.DNA.most_degen_alphabet()
+    # seq is invalid for DNA
+    seq = numpy.array([65, 67, 71, 84], dtype=numpy.uint8)
+    with pytest.raises(new_alphabet.AlphabetError):
+        dna_alpha.convert_seq_array_to(alphabet=bytes_alpha, seq=seq, check_valid=True)
+
+    # bytes alphabet seq with these low ordinals invalid for DNA output
+    seq = numpy.array([0, 1, 2, 3], dtype=numpy.uint8)
+    with pytest.raises(new_alphabet.AlphabetError):
+        bytes_alpha.convert_seq_array_to(alphabet=dna_alpha, seq=seq, check_valid=True)

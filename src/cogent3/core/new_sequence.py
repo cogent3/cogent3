@@ -1244,20 +1244,19 @@ class Sequence:
         if moltype is self.moltype:
             return self
 
-        if len(self.moltype.alphabet) == len(moltype.alphabet):
-            # converting between dna and rna
-            seq = (
-                moltype.most_degen_alphabet()
-                .array_to_bytes(array(self))
-                .decode("utf-8")
+        seq = array(self)
+        self_alpha = self.moltype.most_degen_alphabet()
+        other_alpha = moltype.most_degen_alphabet()
+        if len(self.moltype.alphabet) != len(moltype.alphabet):
+            # use alphabet converter
+            seq = self_alpha.convert_seq_array_to(
+                seq=seq,
+                alphabet=other_alpha,
+                check_valid=False,
             )
 
-        else:
-            # assume converting between ASCII/BYTES and nucleic acid
-            seq = str(self)
-
-        if not moltype.most_degen_alphabet().is_valid(seq):
-            raise ValueError(
+        if not other_alpha.is_valid(seq):
+            raise new_moltype.MolTypeError(
                 f"Changing from old moltype={self.moltype.label!r} to new "
                 f"moltype={moltype.label!r} is not valid for this data",
             )

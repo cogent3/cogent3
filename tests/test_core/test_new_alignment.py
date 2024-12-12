@@ -337,7 +337,7 @@ def test_seqs_data_to_alphabet_invalid():
         data={"a": "AAA", "b": "TTT", "c": "LLL"},
         alphabet=ASCII,
     )
-    with pytest.raises(new_moltype.MolTypeError):
+    with pytest.raises(new_alphabet.AlphabetError):
         _ = seqs.to_alphabet(DNA)
 
 
@@ -2081,10 +2081,14 @@ def test_sequence_collection_to_moltype_with_gaps(mk_cls):
     # we can convert from text to dna to rna
     rna_seqs = dna_seqs.to_moltype("rna")
     assert rna_seqs.moltype.label == "rna"
+    assert rna_seqs.to_dict() != dna_seqs.to_dict()
 
-    # but not from text to rna directly
-    with pytest.raises(new_moltype.MolTypeError):
-        seqs.to_moltype("rna")
+    # and reverse this back to text
+    text_seqs = rna_seqs.to_moltype("text")
+    assert text_seqs.to_dict() == rna_seqs.to_dict()
+    # but this does not equal the original text seqs
+    # because of changing T to U
+    assert text_seqs.to_dict() != seqs.to_dict()
 
 
 @pytest.mark.parametrize(
