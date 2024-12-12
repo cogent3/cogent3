@@ -158,7 +158,8 @@ class MonomerAlphabetABC(ABC):
     @abstractmethod
     def convert_seq_array_to(
         self,
-        other: "MonomerAlphabetABC",
+        *,
+        alphabet: typing_extensions.Self,
         seq: numpy.ndarray,
         check_valid: bool = True,
     ) -> numpy.ndarray: ...
