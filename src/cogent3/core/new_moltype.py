@@ -148,6 +148,22 @@ RNA_EXTENDED_PAIRS = {
 }
 
 
+def ambigs_and_missing(
+    ambiguities: dict[str, frozenset[str]],
+    gap_char: str | None,
+) -> dict[str, frozenset[str]]:
+    """returns new ambiguity dict with IUPAC missing as a key to most general code
+
+    Notes
+    -----
+    Includes the gap character if gap is not None
+    """
+    val = max(ambiguities.values(), key=len)
+    if gap_char:
+        val = val | frozenset((gap_char,))
+    return {**ambiguities, IUPAC_missing: val}
+
+
 class MolTypeError(TypeError): ...
 
 
@@ -403,8 +419,8 @@ class MolType:
     make_seq: dataclasses.InitVar[type]
     gap: OptStr = IUPAC_gap
     missing: OptStr = IUPAC_missing
-    complements: dataclasses.InitVar[dict[str, str] | None] = None
-    ambiguities: dict[str, tuple[str, ...]] | None = None
+    complements: dataclasses.InitVar[dict[str, frozenset[str]] | None] = None
+    ambiguities: dict[str, frozenset[str]] | None = None
     colors: dataclasses.InitVar[dict[str, str] | None] = None
     pairing_rules: dict[str, dict[frozenset[str], bool]] | None = None
     mw_calculator: WeightCalculator | None = None
@@ -427,7 +443,7 @@ class MolType:
         self,
         monomers: StrORBytes,
         make_seq: type,
-        complements: dict[str, str] | None,
+        complements: dict[str, frozenset[str]] | None,
         colors: dict[str, str] | None,
     ):
         self._colors = colors or defaultdict(_DefaultValue("black"))
@@ -482,6 +498,11 @@ class MolType:
             if ambigs and gap
             else None
         )
+
+        if self.missing and self.ambiguities:
+            # this MUST occur after the creation of the different alphabets otherwise
+            # missing data is added twice into an alphabet
+            self.ambiguities = ambigs_and_missing(self.ambiguities, self.gap)
 
         if complements:
             # assume we have a nucleic acid moltype
@@ -1106,6 +1127,9 @@ class MolType:
 
     def degenerate_from_seq(self, seq: str) -> str:
         """Returns least degenerate symbol that encompasses a set of characters"""
+        if not self.ambiguities:
+            return self.missing
+
         symbols = frozenset(seq)
 
         # if the length of the set is 1, return the single character
@@ -1343,7 +1367,6 @@ ASCII = MolType(
     monomers="".join(ascii_letters),
     name="text",
     make_seq=new_sequence.Sequence,
-    missing=IUPAC_missing,
 )
 
 DNA = MolType(
@@ -1391,9 +1414,9 @@ BYTES = MolType(
     # want to prematurely assume _anything_ about the data.
     monomers=bytes(bytearray(range(2**8))),
     name="bytes",
+    make_seq=new_sequence.ByteSequence,
     gap=None,
     missing=None,
-    make_seq=new_sequence.ByteSequence,
 )
 
 # the None value catches cases where a moltype has no label attribute

@@ -18,6 +18,7 @@ StrORBytesORArray = typing.Union[str, bytes, numpy.ndarray]
 OptInt = typing.Optional[int]
 OptStr = typing.Optional[str]
 OptBytes = typing.Optional[bytes]
+PySeqStrOrBytes = typing.Sequence[str | bytes]
 
 
 @functools.singledispatch
@@ -277,6 +278,10 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
             assert _coerce_to_type(chars[0], missing) in chars
 
         consistent_words(chars, length=1)
+        if isinstance(chars, bytes):
+            # we need to convert to tuple in a way the preserves elements
+            # as bytes
+            chars = tuple(bytes([c]) for c in chars)
         return tuple.__new__(cls, chars, gap=gap, missing=missing)
 
     def __init__(
@@ -450,8 +455,8 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
     def as_bytes(self) -> bytes:
         """returns self as a byte string"""
-        if not isinstance(self[0], str):
-            return bytes(bytearray(self))
+        if isinstance(self[0], bytes):
+            return b"".join(self)
 
         return "".join(self).encode("utf8")
 
@@ -490,6 +495,29 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
     )
     def get_word_alphabet(self, k: int, include_gap: bool = True) -> "KmerAlphabet":
         return self.get_kmer_alphabet(k, include_gap=include_gap)
+
+    def get_subset(
+        self,
+        motif_subset: PySeqStrOrBytes,
+        excluded: bool = False,
+    ) -> typing_extensions.Self:
+        """Returns a new Alphabet object containing a subset of motifs in self.
+
+        Raises an exception if any of the items in the subset are not already
+        in self.
+        """
+        self_set = set(self)
+        self_set |= {self.gap_char, self.missing_char}
+        self_set.discard(None)
+
+        if diff := set(motif_subset) - self_set:
+            raise AlphabetError(f"{diff!r} not members in self")
+
+        if excluded:
+            motif_subset = [m for m in self if m not in motif_subset]
+        gap = self.gap_char if self.gap_char in motif_subset else None
+        missing = self.missing_char if self.missing_char in motif_subset else None
+        return self.__class__(tuple(motif_subset), gap=gap, missing=missing)
 
 
 @register_deserialiser(get_object_provenance(CharAlphabet))

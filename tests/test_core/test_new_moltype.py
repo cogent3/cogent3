@@ -373,8 +373,10 @@ def test_most_degenerate_alphabet(label):
     got = moltype.most_degen_alphabet()
     # expected value for number of characters is
     # length of monomers + len(moltype gaps) + len(ambiguities)
-    num_ambigs = len(moltype.ambiguities or [])
-    expected = len(moltype.alphabet) + len(moltype.gaps or []) + num_ambigs
+    ambigs = set(moltype.ambiguities or ())
+    ambigs |= set(moltype.missing) if moltype.missing else set()
+    num_ambigs = len(ambigs)
+    expected = len(moltype.alphabet) + len(moltype.gap or "") + num_ambigs
     assert len(got) == expected
 
 
@@ -570,6 +572,11 @@ def test_degenerate_from_seq():
     assert p("ABD") == "X"
     assert p("ACX") == "X"
     assert p("AC-") == "?"
+
+
+def test_degenerate_from_seq_general():
+    dna = new_moltype.get_moltype("dna")
+    assert dna.degenerate_from_seq("ACGT--") == "?"
 
 
 @pytest.mark.parametrize(
