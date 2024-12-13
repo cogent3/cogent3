@@ -2561,6 +2561,7 @@ def test_sequence_collection_to_rich_dict():
             "moltype": seqs.moltype.label,
             "name_map": seqs._name_map,
             "info": seqs.info,
+            "source": "unknown",
         },
     }
     assert got == expect
@@ -2578,6 +2579,7 @@ def test_sequence_collection_to_rich_dict_reversed_seqs():
             "moltype": seqs.moltype.label,
             "name_map": seqs._name_map,
             "info": seqs.info,
+            "source": "unknown",
         },
         "type": get_object_provenance(seqs),
         "version": __version__,
