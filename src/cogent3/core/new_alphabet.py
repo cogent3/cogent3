@@ -57,7 +57,13 @@ class AlphabetError(TypeError): ...
 class convert_alphabet:
     """convert one character set into another"""
 
-    def __init__(self, src: bytes, dest: bytes, delete: OptBytes = None):
+    def __init__(
+        self,
+        src: bytes,
+        dest: bytes,
+        delete: OptBytes = None,
+        allow_duplicates: bool = False,
+    ):
         """
         Parameters
         ----------
@@ -67,6 +73,8 @@ class convert_alphabet:
             characters in src will be mapped to these in order
         delete
             characters to be deleted from the result
+        allow_duplicates
+            whether to allow duplicates in src and dest
 
         Notes
         -----
@@ -84,7 +92,8 @@ class convert_alphabet:
         if len(src) != len(dest):
             raise ValueError(f"length of src={len(src)} != length of new {len(dest)}")
 
-        consistent_words(src, length=1)
+        if not allow_duplicates:
+            consistent_words(src, length=1)
 
         self._table = b"".maketrans(src, dest)
         self._delete = delete or b""
@@ -591,16 +600,31 @@ def make_converter(
     common = b"".join(src_bytes & other_bytes)
 
     diff = b"".join(src_bytes - other_bytes)
-    src_indices = numpy.concatenate(
-        [src_alpha.to_indices(common), src_alpha.to_indices(diff)],
+    src_indices = [src_alpha.to_indices(common), src_alpha.to_indices(diff)]
+    dest_indices = [
+        dest_alpha.to_indices(common),
+        numpy.array([len(dest_alpha)] * len(diff), dtype=dest_alpha.dtype),
+    ]
+
+    # if we are going to a nucleic acid alphabet, we need to add an alias
+    # mapping for the character NOT present in that alphabet, i.e. if dest is
+    # RNA, we need to map T to U, if dest is DNA we need to map U to T
+    # we do this by adding these on at the end of the common characters
+    if dest_alpha.moltype.is_nucleic and "T" in dest_alpha:
+        src_indices.append(src_alpha.to_indices("U"))
+        dest_indices.append(dest_alpha.to_indices("T"))
+    elif dest_alpha.moltype.is_nucleic:
+        src_indices.append(src_alpha.to_indices("T"))
+        dest_indices.append(dest_alpha.to_indices("U"))
+
+    src_indices = numpy.concatenate(src_indices)
+    dest_indices = numpy.concatenate(dest_indices)
+
+    return convert_alphabet(
+        src_indices.tobytes(),
+        dest_indices.tobytes(),
+        allow_duplicates=True,
     )
-    dest_indices = numpy.concatenate(
-        [
-            dest_alpha.to_indices(common),
-            numpy.array([len(dest_alpha)] * len(diff), dtype=dest_alpha.dtype),
-        ],
-    )
-    return convert_alphabet(src_indices.tobytes(), dest_indices.tobytes())
 
 
 @register_deserialiser(get_object_provenance(CharAlphabet))

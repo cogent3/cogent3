@@ -5519,3 +5519,20 @@ def test_coerce_moltype(mk_cls, moltype, seq):
     assert coll.moltype.name == moltype
     expect = "ATGC" if moltype == "dna" else "AUGC"
     assert str(coll.get_seq("s1")) == expect
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_coerce_moltype_obj(mk_cls):
+    data = dict(
+        [
+            ("s1", "ACGTA"),
+            ("s2", "ACGTC"),
+            ("s3", "ACGTT"),
+            ("s4", "ACGAT"),
+        ],
+    )
+    coll = mk_cls(data, moltype="text")
+    coll = coll.to_moltype("rna")
