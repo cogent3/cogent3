@@ -645,6 +645,7 @@ class SequenceCollection:
             "info": self.info.copy(),
             "annotation_db": self.annotation_db,
             "is_reversed": self._is_reversed,
+            "source": self.source,
         }
 
     @property
@@ -2513,16 +2514,11 @@ def make_unaligned_seqs(
     # rename offset to offsets as it could track potentially multiple offsets
 
     # refactor: design
-    # define a source attribute rather than storing as .info["source"]
-    # this will also replace the previous name attribute
-
-    # refactor: design
     # currently reversal can only be applied to the entire collection.
     # This should be made more flexible.
 
     moltype = new_moltype.get_moltype(moltype)
     alphabet = moltype.most_degen_alphabet()
-
     if len(data) == 0:
         raise ValueError("data must be at least one sequence.")
 
@@ -2591,7 +2587,7 @@ def _(
         raise ValueError(f"Setting offset is not supported for {data=}")
 
     info = info if isinstance(info, dict) else {}
-    info["source"] = str(source) if source else str(info.get("source", "unknown"))
+    source = str(source) if source else str(info.get("source", "unknown"))
     seqs = SequenceCollection(
         seqs_data=data,
         moltype=moltype,
@@ -4054,6 +4050,7 @@ class Alignment(SequenceCollection):
             "info": self.info.copy(),
             "annotation_db": self.annotation_db,
             "slice_record": self._slice_record,
+            "source": self.source,
         }
 
     @singledispatchmethod
@@ -6552,7 +6549,7 @@ def _(
         raise ValueError(f"Setting offset is not supported for {data=}")
 
     info = info if isinstance(info, dict) else {}
-    info["source"] = str(source) if source else str(info.get("source", "unknown"))
+    source = str(source) if source else str(info.get("source", "unknown"))
 
     sr = (
         new_sequence.SliceRecord(parent_len=data.align_len, step=-1)
