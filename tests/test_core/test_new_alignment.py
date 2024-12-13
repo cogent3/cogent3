@@ -726,11 +726,11 @@ def test_sequence_collection_init_ordered(ordered1, ordered2):
 
 
 @pytest.mark.parametrize("load_cls", [load_aligned_seqs, load_unaligned_seqs])
-def test_sequence_collection_info_source(load_cls):
-    """info.source exists if load seqs given a filename"""
+def test_sequence_collection_source(load_cls):
+    """.source exists if load seqs given a filename"""
     path = pathlib.Path("data/brca1.fasta")
     seqs = load_cls(path, moltype="dna", new_type=True)
-    assert seqs.info.source == str(path)
+    assert seqs.source == str(path)
 
 
 @pytest.mark.parametrize(
@@ -2561,6 +2561,7 @@ def test_sequence_collection_to_rich_dict():
             "moltype": seqs.moltype.label,
             "name_map": seqs._name_map,
             "info": seqs.info,
+            "source": "unknown",
         },
     }
     assert got == expect
@@ -2578,6 +2579,7 @@ def test_sequence_collection_to_rich_dict_reversed_seqs():
             "moltype": seqs.moltype.label,
             "name_map": seqs._name_map,
             "info": seqs.info,
+            "source": "unknown",
         },
         "type": get_object_provenance(seqs),
         "version": __version__,
@@ -5536,3 +5538,15 @@ def test_coerce_moltype_obj(mk_cls):
     )
     coll = mk_cls(data, moltype="text")
     coll = coll.to_moltype("rna")
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [load_aligned_seqs, load_unaligned_seqs],
+)
+def test_source_propagates(mk_cls, DATA_DIR):
+    fn = DATA_DIR / "brca1.fasta"
+    coll = mk_cls(fn, moltype="dna", new_type=True)
+    assert coll.source == str(fn)
+    subcoll = coll.take_seqs(["Human", "Chimpanzee"])
+    assert subcoll.source == str(fn)
