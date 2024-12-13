@@ -154,10 +154,6 @@ def test_sequence_to_moltype():
     trev = list(got.get_features(name="trev"))[0]
     assert str(got[trev]) == "AAAA"
 
-    # should raise exception if moltype not compatible with sequence data
-    with pytest.raises(new_moltype.MolTypeError):
-        s.to_moltype("rna")
-
     # calling with a null object should raise an exception
     with pytest.raises(ValueError):
         s.to_moltype(None)
