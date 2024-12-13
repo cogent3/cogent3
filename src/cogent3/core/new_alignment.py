@@ -2381,7 +2381,7 @@ def _(
 
 @coerce_to_raw_seq_data.register
 def _(seq: str, moltype: new_moltype.MolType, name: OptStr = None) -> raw_seq_data:
-    return raw_seq_data(seq=seq, name=name)
+    return coerce_to_raw_seq_data(seq.encode("utf8"), moltype, name)
 
 
 @coerce_to_raw_seq_data.register
@@ -2395,6 +2395,8 @@ def _(
 
 @coerce_to_raw_seq_data.register
 def _(seq: bytes, moltype: new_moltype.MolType, name: OptStr = None) -> raw_seq_data:
+    seq = seq.upper()
+    seq = moltype.coerce_to(seq) if moltype.coerce_to else seq
     return raw_seq_data(seq=seq, name=name)
 
 

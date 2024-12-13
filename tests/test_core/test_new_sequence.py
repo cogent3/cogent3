@@ -3015,3 +3015,10 @@ def test_make_seq_wrong_order_alpha():
 def test_make_seq_from_types(raw_seq):
     seq = new_moltype.DNA.make_seq(seq=raw_seq)
     assert str(seq) == "GGTAC"
+
+
+@pytest.mark.parametrize(("moltype", "seq"), [("dna", "AUGC"), ("rna", "ATGC")])
+def test_coerce_moltype(moltype, seq):
+    seq = cogent3.make_seq(seq=seq, moltype=moltype, new_type=True)
+    # indirectly checking correct construction of seq
+    assert seq.moltype.name == moltype
