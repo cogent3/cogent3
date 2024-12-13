@@ -535,7 +535,12 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
             motif_subset = [m for m in self if m not in motif_subset]
         gap = self.gap_char if self.gap_char in motif_subset else None
         missing = self.missing_char if self.missing_char in motif_subset else None
-        return self.__class__(tuple(motif_subset), gap=gap, missing=missing)
+        return make_alphabet(
+            chars=tuple(motif_subset),
+            gap=gap,
+            missing=missing,
+            moltype=self.moltype,
+        )
 
     def convert_seq_array_to(
         self,
