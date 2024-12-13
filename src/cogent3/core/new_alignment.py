@@ -2588,6 +2588,7 @@ def _(
 
     info = info if isinstance(info, dict) else {}
     source = str(source) if source else str(info.get("source", "unknown"))
+    info["source"] = source
     seqs = SequenceCollection(
         seqs_data=data,
         moltype=moltype,
@@ -6550,6 +6551,7 @@ def _(
 
     info = info if isinstance(info, dict) else {}
     source = str(source) if source else str(info.get("source", "unknown"))
+    info["source"] = source
 
     sr = (
         new_sequence.SliceRecord(parent_len=data.align_len, step=-1)
