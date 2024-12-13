@@ -734,6 +734,7 @@ def test_get_subset():
     got = dna_alpha.get_subset("-", excluded=True)
     assert got.gap_char is None
     assert len(got) == 4
+    assert got.moltype is new_moltype.DNA
 
 
 def test_get_subset_invalid():

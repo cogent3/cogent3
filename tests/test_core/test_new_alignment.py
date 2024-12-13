@@ -5507,3 +5507,32 @@ def test_aligned_from_indel_map_and_aligned_seq_view():
     )
     new_al = new_alignment.Aligned.from_map_and_aligned_data_view(new_map, al.data)
     assert str(new_al) == "---AC--GTC"
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+@pytest.mark.parametrize(("moltype", "seq"), [("dna", "AUGC"), ("rna", "ATGC")])
+def test_coerce_moltype(mk_cls, moltype, seq):
+    coll = mk_cls({"s1": seq}, moltype=moltype)
+    assert coll.moltype.name == moltype
+    expect = "ATGC" if moltype == "dna" else "AUGC"
+    assert str(coll.get_seq("s1")) == expect
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_coerce_moltype_obj(mk_cls):
+    data = dict(
+        [
+            ("s1", "ACGTA"),
+            ("s2", "ACGTC"),
+            ("s3", "ACGTT"),
+            ("s4", "ACGAT"),
+        ],
+    )
+    coll = mk_cls(data, moltype="text")
+    coll = coll.to_moltype("rna")

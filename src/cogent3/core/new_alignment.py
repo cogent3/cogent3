@@ -2381,7 +2381,7 @@ def _(
 
 @coerce_to_raw_seq_data.register
 def _(seq: str, moltype: new_moltype.MolType, name: OptStr = None) -> raw_seq_data:
-    return raw_seq_data(seq=seq, name=name)
+    return coerce_to_raw_seq_data(seq.encode("utf8"), moltype, name)
 
 
 @coerce_to_raw_seq_data.register
@@ -2395,6 +2395,8 @@ def _(
 
 @coerce_to_raw_seq_data.register
 def _(seq: bytes, moltype: new_moltype.MolType, name: OptStr = None) -> raw_seq_data:
+    seq = seq.upper()
+    seq = moltype.coerce_to(seq) if moltype.coerce_to else seq
     return raw_seq_data(seq=seq, name=name)
 
 
@@ -3666,21 +3668,18 @@ class AlignedSeqsData(AlignedSeqsDataABC):
                 names=self.names,
             )
 
-        old = self.alphabet.as_bytes()
-        new = alphabet.as_bytes()
-        convert_old_to_bytes = new_alphabet.array_to_bytes(old)
-        convert_bytes_to_new = new_alphabet.bytes_to_array(
-            new,
-            dtype=new_alphabet.get_array_type(len(new)),
-        )
         gapped = numpy.empty(
             (len(self.names), self.align_len),
             dtype=self.alphabet.dtype,
         )
 
         for i in range(len(self.names)):
-            as_new_alpha = convert_bytes_to_new(convert_old_to_bytes(self._gapped[i]))
-
+            seq_data = self._gapped[i]
+            as_new_alpha = self.alphabet.convert_seq_array_to(
+                seq=seq_data,
+                alphabet=alphabet,
+                check_valid=False,
+            )
             if check_valid and not alphabet.is_valid(as_new_alpha):
                 raise new_moltype.MolTypeError(
                     f"Changing from old alphabet={self.alphabet} to new "
