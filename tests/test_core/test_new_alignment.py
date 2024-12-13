@@ -5516,5 +5516,6 @@ def test_aligned_from_indel_map_and_aligned_seq_view():
 @pytest.mark.parametrize(("moltype", "seq"), [("dna", "AUGC"), ("rna", "ATGC")])
 def test_coerce_moltype(mk_cls, moltype, seq):
     coll = mk_cls({"s1": seq}, moltype=moltype)
-    # indirectly checking correct construction of collection
     assert coll.moltype.name == moltype
+    expect = "ATGC" if moltype == "dna" else "AUGC"
+    assert str(coll.get_seq("s1")) == expect

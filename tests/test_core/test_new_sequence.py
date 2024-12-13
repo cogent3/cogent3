@@ -3020,5 +3020,6 @@ def test_make_seq_from_types(raw_seq):
 @pytest.mark.parametrize(("moltype", "seq"), [("dna", "AUGC"), ("rna", "ATGC")])
 def test_coerce_moltype(moltype, seq):
     seq = cogent3.make_seq(seq=seq, moltype=moltype, new_type=True)
-    # indirectly checking correct construction of seq
     assert seq.moltype.name == moltype
+    expect = "ATGC" if moltype == "dna" else "AUGC"
+    assert str(seq) == expect
