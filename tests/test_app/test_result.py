@@ -69,6 +69,7 @@ class TestGenericResult(TestCase):
         aln = cogent3.make_aligned_seqs(
             {"A": "ACGT"},
             info=dict(source=str(source), random_key=1234),
+            moltype="dna",
         )
         gr = generic_result(aln)
         self.assertEqual(gr.source, source.name)

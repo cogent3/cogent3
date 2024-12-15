@@ -1035,7 +1035,7 @@ def test_get_raw_estimates(al):
 
 def test_no_calc():
     """returns None if no calculation done"""
-    al = cogent3.load_aligned_seqs("data/brca1_5.paml")
+    al = cogent3.load_aligned_seqs("data/brca1_5.paml", moltype="dna")
     d = EstimateDistances(al, submodel=HKY85())
     assert d.get_pairwise_distances() is None
 

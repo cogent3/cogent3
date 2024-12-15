@@ -112,6 +112,7 @@ class test_parameter_controller(TestCase):
         # test with consideration of ambiguous states
         al = make_aligned_seqs(
             data={"seq1": "ACGTAAGNA", "seq2": "ACGTANGTC", "seq3": "ACGTACGTG"},
+            moltype="dna",
         )
         lf.set_motif_probs_from_data(al, include_ambiguity=True, is_constant=True)
         motif_probs = dict(lf.get_motif_probs())

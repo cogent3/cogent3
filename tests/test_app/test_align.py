@@ -6,7 +6,6 @@ from numpy import log2
 from numpy.testing import assert_allclose
 
 from cogent3 import (
-    DNA,
     get_app,
     get_moltype,
     load_aligned_seqs,
@@ -34,6 +33,7 @@ from cogent3.app.composable import NotCompleted
 from cogent3.core.alignment import Aligned
 from cogent3.core.location import gap_coords_to_map
 
+DNA = get_moltype("dna")
 _seqs = {
     "Human": "GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
     "Bandicoot": "NACTCATTAATGCTTGAAACCAGCAGTTTATTGTCCAAC",
@@ -673,7 +673,10 @@ def test_progressive_align_iters(seqs):
 
 def test_smith_waterman_matches_local_pairwise(seqs):
     aligner = smith_waterman()
-    coll = make_unaligned_seqs(data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot")])
+    coll = make_unaligned_seqs(
+        data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot")],
+        moltype="dna",
+    )
     got = aligner(coll)
     s = make_dna_scoring_dict(10, -1, -8)
     insertion = 20
@@ -726,7 +729,10 @@ def test_smith_waterman_no_moltype(seqs):
     default moltype ('dna') should be used.
     """
     aligner = smith_waterman()
-    coll = make_unaligned_seqs(data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot")])
+    coll = make_unaligned_seqs(
+        data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot")],
+        moltype="dna",
+    )
     aln = aligner(coll)
     assert aln.moltype.label == "dna"
 

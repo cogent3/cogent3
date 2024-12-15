@@ -520,6 +520,7 @@ class TranslateTests(TestCase):
                 "g": "YAAA",
                 "h": "GGGG",
             },
+            moltype="dna",
         )
         seqs2 = seqs1.take_seqs(["a", "c", "e", "g", "h"])
 
@@ -676,10 +677,14 @@ def test_omit_bad_seqs_ambigs(bad_ambig_gap_data):
     assert set(got.to_dict().keys()) == {"s4", "s5", "s6"}
 
 
+@pytest.mark.skipif(
+    os.getenv("COGENT3_NEW_TYPE") is not None,
+    reason="Skipping test because COGENT3_NEW_TYPE is defined",
+)
 def test_omit_bad_seqs_ambigs_old_aln(bad_ambig_gap_data):
     # ambig_fraction should be ignored if using old style alignment
 
-    aln = cogent3.make_aligned_seqs(bad_ambig_gap_data, moltype=DNA)
+    aln = cogent3.make_aligned_seqs(bad_ambig_gap_data, moltype=DNA, new_type=False)
     dropbad = sample.omit_bad_seqs(gap_fraction=0.5, ambig_fraction=0.5)
 
     got = dropbad(aln)

@@ -27,6 +27,7 @@ dna_model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
 )
 
 DNA = get_moltype("dna")
+PROTEIN = get_moltype("protein")
 seq1 = DNA.make_seq(seq="AAACCGGACATTACGTGCGTA", name="FAKE01")
 seq2 = DNA.make_seq(seq="CCGGTCAGGTTACGTACGTT", name="FAKE02")
 
@@ -60,8 +61,6 @@ class AlignmentTestCase(unittest.TestCase):
 
     def test_pwise_protein(self):
         """works for pairwise protein alignment"""
-        from cogent3 import PROTEIN
-
         S = make_generic_scoring_dict(1, PROTEIN)
         seq1 = PROTEIN.make_seq(seq="MAYPFQLGLQD", name="seq1")
         seq2 = PROTEIN.make_seq(seq="MAYPFGLQD", name="seq2")

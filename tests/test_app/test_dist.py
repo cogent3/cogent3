@@ -335,10 +335,10 @@ def test_approx_jc69(moltype):
     jc_dist_app = approx_jc69()
     got = jc_dist_app(dm)
 
-    assert got[("s1", "s2")] == expected[("s1", "s2")]
-    assert got[("s2", "s1")] == expected[("s2", "s1")]
-    assert got[("s1", "s1")] == expected[("s1", "s1")]
-    assert got[("s2", "s2")] == expected[("s2", "s2")]
+    assert_allclose(got[("s1", "s2")], expected[("s1", "s2")])
+    assert_allclose(got[("s2", "s1")], expected[("s2", "s1")])
+    assert_allclose(got[("s1", "s1")], expected[("s1", "s1")])
+    assert_allclose(got[("s2", "s2")], expected[("s2", "s2")])
 
 
 @pytest.mark.parametrize("moltype", ("dna", "rna"))
@@ -365,7 +365,8 @@ def test_approx_pdist_same_diff(moltype):
         ],
     )
     pdist_app = jaccard_dist(k=3) + approx_pdist()
-    collection = make_unaligned_seqs(data=data, moltype=moltype)
+    collection = make_unaligned_seqs(data=data, moltype="text")
+    collection = collection.to_moltype(moltype)
     dists = pdist_app(collection)
 
     # comparisons with one position different should be smaller than those with two

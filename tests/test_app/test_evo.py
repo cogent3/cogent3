@@ -186,7 +186,10 @@ class TestModel(TestCase):
             upper=upper,
         )
 
-        aln = make_aligned_seqs(data=dict(s1="ACGT", s2="ACGC", s3="AAGT"))
+        aln = make_aligned_seqs(
+            data=dict(s1="ACGT", s2="ACGC", s3="AAGT"),
+            moltype="dna",
+        )
         result = app(aln)
         rules = result.lf.get_param_rules()
         kappa_bounds = {
@@ -975,7 +978,7 @@ def test_model_bounds_allpar():
         upper=upper,
     )
 
-    aln = make_aligned_seqs(data=dict(s1="ACGT", s2="ACGC", s3="AAGT"))
+    aln = make_aligned_seqs(data=dict(s1="ACGT", s2="ACGC", s3="AAGT"), moltype="dna")
     result = app(aln)
     rules = result.lf.get_param_rules()
     par_bounds = {
@@ -998,7 +1001,7 @@ def test_model_bounds_kappa():
         param_rules=[{"par_name": "kappa", "upper": upper_kappa, "lower": lower_kappa}],
     )
 
-    aln = make_aligned_seqs(data=dict(s1="ACGT", s2="ACGC", s3="AAGT"))
+    aln = make_aligned_seqs(data=dict(s1="ACGT", s2="ACGC", s3="AAGT"), moltype="dna")
     result = app(aln)
     rules = result.lf.get_param_rules()
     kappa_bounds = {(r["lower"], r["upper"]) for r in rules if r["par_name"] == "kappa"}

@@ -616,7 +616,7 @@ def foo_without_arg_kwargs(val: AlignedSeqsType) -> AlignedSeqsType:
 
 @define_app
 def bar(val: AlignedSeqsType, num=3) -> PairwiseDistanceType:
-    return val.distance_matrix(calc="hamming", show_progress=False)
+    return val.distance_matrix(calc="hamming")
 
 
 def test_user_function():
@@ -624,7 +624,10 @@ def test_user_function():
 
     u_function = foo()
 
-    aln = make_aligned_seqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
+    aln = make_aligned_seqs(
+        data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
+        moltype="dna",
+    )
     got = u_function(aln)
 
     assert got.to_dict() == {"a": "GCAA", "b": "GCTT"}
@@ -635,7 +638,10 @@ def test_user_function_without_arg_kwargs():
 
     u_function = foo_without_arg_kwargs()
 
-    aln = make_aligned_seqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
+    aln = make_aligned_seqs(
+        data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
+        moltype="dna",
+    )
     got = u_function(aln)
 
     assert got.to_dict() == {"a": "GCAA", "b": "GCTT"}
@@ -646,7 +652,10 @@ def test_user_function_multiple():
     u_function_1 = foo()
     u_function_2 = bar()
 
-    aln_1 = make_aligned_seqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
+    aln_1 = make_aligned_seqs(
+        data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
+        moltype="dna",
+    )
     data = dict([("s1", "ACGTACGTA"), ("s2", "GTGTACGTA")])
     aln_2 = make_aligned_seqs(data=data, moltype="dna")
 
