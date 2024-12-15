@@ -18,7 +18,7 @@ def test_slow(session):
 
 @nox.session(python=[f"3.{v}" for v in _py_versions])
 def test(session):
-    session.install("-e.[test]")
+    session.install(".[test]")
     # doctest modules within cogent3/app
     session.chdir("src/cogent3/app")
     session.run(
@@ -93,3 +93,38 @@ def testdocs(session):
             "rst",
             external=True,
         )
+
+
+@nox.session(python=[f"3.{v}" for v in _py_versions])
+def test_new_type(session):
+    py = pathlib.Path(session.bin_paths[0]) / "python"
+    session.install(".[test]")
+    session.env["COGENT3_NEW_TYPE"] = "1"
+    session.chdir("tests")
+    session.run(
+        "pytest",
+        "-s",
+        "--ignore",
+        "test_app_mpi.py",
+        "--ignore",
+        "test_core/test_alignment.py",
+        "--ignore",
+        "test_core/test_alphabet.py",
+        "--ignore",
+        "test_core/test_annotation.py",
+        "--ignore",
+        "test_core/test_genetic_code.py",
+        "--ignore",
+        "test_core/test_moltype.py",
+        "--ignore",
+        "test_core/test_sequence.py",
+        "--ignore",
+        "test_core/test_seq_aln_integration.py",
+        "--ignore",
+        "test_core/test_core_standalone.py",
+        "--ignore",
+        "test_util/test_recode_alignment.py",
+        "-m",
+        "not slow",
+        *session.posargs,
+    )
