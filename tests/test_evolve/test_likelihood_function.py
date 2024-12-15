@@ -529,7 +529,6 @@ DogFaced   root      1.00  1.00
 
     def test_simulate_alignment1(self):
         "Simulate alignment when no alignment set"
-        al = make_aligned_seqs(data={"a": "ggaatt", "c": "cctaat"}, moltype="dna")
         t = make_tree("(a,c);")
         sm = get_model("F81")
         lf = sm.make_likelihood_function(t)

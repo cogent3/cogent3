@@ -97,7 +97,6 @@ def testdocs(session):
 
 @nox.session(python=[f"3.{v}" for v in _py_versions])
 def test_new_type(session):
-    py = pathlib.Path(session.bin_paths[0]) / "python"
     session.install(".[test]")
     session.env["COGENT3_NEW_TYPE"] = "1"
     session.chdir("tests")
