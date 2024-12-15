@@ -12,6 +12,7 @@ tests to do:
 
 import json
 import os
+import re
 import warnings
 from unittest import TestCase
 
@@ -167,7 +168,7 @@ class LikelihoodCalcs(TestCase):
         aln = aln.to_dict()
         one = aln.pop("Mouse")
         aln["root"] = one
-        aln = make_aligned_seqs(data=aln)
+        aln = make_aligned_seqs(data=aln, moltype="dna")
         submod = get_model("TN93")
         tree = make_tree(f"{tuple(aln.names)!s}")
         lf = submod.make_likelihood_function(tree)
@@ -323,7 +324,7 @@ class LikelihoodCalcs(TestCase):
     def test_get_param_interval(self):
         """get param interval succeeds"""
         tree = load_tree("data/primate_brca1.tree")
-        aln = load_aligned_seqs("data/primate_brca1.fasta")
+        aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
         sm = get_model("HKY85")
         lf = sm.make_likelihood_function(tree)
         lf.set_alignment(aln)
@@ -528,7 +529,6 @@ DogFaced   root      1.00  1.00
 
     def test_simulate_alignment1(self):
         "Simulate alignment when no alignment set"
-        al = make_aligned_seqs(data={"a": "ggaatt", "c": "cctaat"})
         t = make_tree("(a,c);")
         sm = get_model("F81")
         lf = sm.make_likelihood_function(t)
@@ -847,6 +847,7 @@ DogFaced     root      1.0000    1.0000
         """correctly return rules from multilocus lf"""
         data = load_aligned_seqs(
             filename=os.path.join(os.getcwd(), "data", "brca1_5.paml"),
+            moltype="dna",
         )
         half = len(data) // 2
         aln1 = data[:half]
@@ -2156,7 +2157,7 @@ class ComparisonTests(TestCase):
         """recap multiple-loci"""
         from cogent3.recalculation.scope import ALL, EACH
 
-        aln = load_aligned_seqs("data/long_testseqs.fasta")
+        aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")
         half = len(aln) // 2
         aln1 = aln[:half]
         aln2 = aln[half:]
@@ -2308,6 +2309,7 @@ def test_simulate_alignment3():
             "c": "-A-C-CTAT-",
             "d": "-A-C-CTAT-",
         },
+        moltype="dna",
     )
     sm = TimeReversibleNucleotide(recode_gaps=True)
     lf = sm.make_likelihood_function(t)
@@ -2316,9 +2318,8 @@ def test_simulate_alignment3():
 
     simulated = lf.simulate_alignment()
     assert len(simulated.names) == 4
-    import re
 
-    assert re.sub("[ATCG]", "x", simulated.to_dict()["a"]) == "x??xxxxxx?"
+    assert re.sub("[ATCG]", "x", simulated.to_dict()["a"]) == "xNNxxxxxxN"
 
 
 @pytest.fixture(scope="session")

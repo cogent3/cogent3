@@ -406,6 +406,7 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         aln = make_aligned_seqs(
             data=dict(a="AAACGGTTT", b="CAA--GTAA"),
             array_align=False,
+            moltype="dna",
         )
         db = GffAnnotationDb()
         db.add_feature(seqid="b", biotype="domain", name="1", spans=[(1, 5)])

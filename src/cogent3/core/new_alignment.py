@@ -944,7 +944,6 @@ class SequenceCollection:
             data[name] = self.moltype.degap(seq)
 
         init_kwargs = self._get_init_kwargs()
-        init_kwargs.pop("annotation_db", None)
         init_kwargs["seqs_data"] = self._seqs_data.from_seqs(
             data=data,
             alphabet=self._seqs_data.alphabet,
@@ -4799,6 +4798,7 @@ class Alignment(SequenceCollection):
             if step < 0
             else data
         )
+        kwargs["annotation_db"] = self.annotation_db
         return make_unaligned_seqs(data, moltype=self.moltype, info=self.info, **kwargs)
 
     def get_degapped_relative_to(self, name: str):

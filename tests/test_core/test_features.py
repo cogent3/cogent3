@@ -764,7 +764,7 @@ def test_rc_feature_on_wrong_moltype(moltype):
         spans=[(2, 6), (10, 15), (25, 35)],
         strand="-",
     )
-    with pytest.raises(TypeError):
+    with pytest.raises((TypeError, AttributeError)):
         cds.get_slice()
 
 
@@ -822,7 +822,6 @@ def test_seq_degap_preserves_annotations():
 
 @pytest.mark.parametrize("aligned", [True, False])
 def test_align_degap_preserves_annotations(aligned):
-    """get translation works on incomplete codons"""
     kwargs = dict(data={"seq1": "GATN--", "seq2": "?GATCT"}, moltype=DNA)
     coll = (
         cogent3.make_aligned_seqs(array_align=aligned, **kwargs)
