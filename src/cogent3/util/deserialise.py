@@ -168,7 +168,7 @@ def deserialise_result(data):
 @register_deserialiser("cogent3.core.moltype")
 def deserialise_moltype(data):
     """returns a cogent3 MolType instance, or a CodonAlphabet"""
-    from cogent3.core.moltype import get_moltype
+    from cogent3 import get_moltype
 
     data.pop("version", None)
     label = data["moltype"]
@@ -182,7 +182,7 @@ def deserialise_moltype(data):
 @register_deserialiser("cogent3.core.alphabet")
 def deserialise_alphabet(data):
     """returns a cogent3 Alphabet instance"""
-    from cogent3.core.moltype import get_moltype
+    from cogent3 import get_moltype
 
     data.pop("version", None)
     label = data["moltype"]
@@ -220,8 +220,8 @@ def deserialise_seq(data, aligned=False):
     -------
 
     """
+    from cogent3 import get_moltype
     from cogent3.core.alignment import Aligned
-    from cogent3.core.moltype import get_moltype
 
     data.pop("version", None)
     data["moltype"] = get_moltype(data.pop("moltype"))
@@ -262,7 +262,7 @@ def deserialise_seq(data, aligned=False):
 def deserialise_seq_collections(data):
     """returns a cogent3 sequence/collection/alignment instance"""
     # We first try to load moltype/alphabet using get_moltype
-    from cogent3.core.moltype import get_moltype
+    from cogent3 import get_moltype
 
     data.pop("version", None)
     data["moltype"] = get_moltype(data.pop("moltype"))
@@ -329,7 +329,7 @@ def deserialise_substitution_model(data):
             pass
 
     if sm is None:
-        alphabet = deserialise_alphabet(data.pop("alphabet"))
+        alphabet = deserialise_object(data.pop("alphabet"))
         klass = _get_class(data.pop("type"))
         data["alphabet"] = alphabet
         sm = klass(**data)
@@ -354,13 +354,13 @@ def deserialise_likelihood_function(data):
     if isinstance(constructor_args["loci"], list):
         locus_names = constructor_args["loci"]
         align = data["alignment"]
-        aln = [deserialise_seq_collections(align[k]) for k in locus_names]
+        aln = [deserialise_object(align[k]) for k in locus_names]
         if locus_names[0] in motif_probs:
             mprobs = [motif_probs[k] for k in motif_probs]
         else:
             mprobs = [motif_probs]
     else:
-        aln = deserialise_seq_collections(data.pop("alignment"))
+        aln = deserialise_object(data.pop("alignment"))
         mprobs = [motif_probs]
 
     lf.set_alignment(aln)
