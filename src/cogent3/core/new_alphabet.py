@@ -1173,6 +1173,10 @@ class SenseCodonAlphabet(tuple, AlphabetABC):
     def to_index(self, codon: str) -> int:
         if len(codon) != 3:
             raise ValueError(f"{codon=!r} is not of length 3")
+        if not self.monomers.is_valid(codon):
+            raise AlphabetError(f"{codon=!r} elements not nucleotides")
+        if self.moltype.has_ambiguity(codon):
+            return len(self)
         try:
             return self._to_indices[codon]
         except KeyError as e:

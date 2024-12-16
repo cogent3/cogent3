@@ -2049,7 +2049,7 @@ class NucleicAcidSequenceMixin:
 
         if not incomplete_ok and "X" in pep:
             raise new_alphabet.AlphabetError(
-                "Incomplete codon in translation, set incomplete_ok=True to "
+                "A codon is incomplete or contains an ambiguity, set incomplete_ok=True to "
                 "allow translation",
             )
         return protein.make_seq(seq=pep, name=self.name)

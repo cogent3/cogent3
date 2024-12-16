@@ -715,6 +715,29 @@ class MolType:
         """
         return callable(self._complement)
 
+    @functools.singledispatchmethod
+    def has_ambiguity(self, seq: StrORBytesORArray) -> bool:
+        raise TypeError(f"{type(seq)} not supported")
+
+    @has_ambiguity.register
+    def _(self, seq: str) -> bool:
+        if not self.ambiguities:
+            return False
+        return any(self.is_ambiguity(c) for c in seq)
+
+    @has_ambiguity.register
+    def _(self, seq: bytes) -> bool:
+        return self.has_ambiguity(seq.decode("utf8"))
+
+    @has_ambiguity.register
+    def _(self, seq: numpy.ndarray) -> bool:
+        if not self.ambiguities:
+            return False
+
+        min_canonical = len(self.alphabet) - 1
+        max_degen = len(self.degen_alphabet)
+        return ((seq > min_canonical) & (seq < max_degen)).any()
+
     def rc(self, seq: str, validate: bool = True) -> str:
         """reverse reverse complement of a sequence"""
         if validate and not self.is_valid(seq):
@@ -874,8 +897,13 @@ class MolType:
         ----------
         query_motif
             the motif being queried.
-
+        validate
+            if True, checks the sequence is validated against the most
+            degenerate alphabet
         """
+        if not self.ambiguities:
+            return False
+
         if validate and not self.is_valid(query_motif):
             raise new_alphabet.AlphabetError(
                 f"{query_motif[:4]!r} not valid for moltype {self.name!r}",

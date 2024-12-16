@@ -667,3 +667,52 @@ def test_json_roundtrip_moltype(moltype):
     # because our moltype instances are singletons,
     # we expect the same object
     assert got is mt
+
+
+@pytest.mark.parametrize(
+    "moltype, seq, expect",
+    [
+        (new_moltype.DNA, "ACGT", False),  # No ambiguity
+        (new_moltype.DNA, "ACGTN", True),  # N is ambiguous
+        (new_moltype.DNA, "ACGTY", True),  # Y is ambiguous
+        (new_moltype.RNA, "ACGU", False),  # No ambiguity
+        (new_moltype.RNA, "ACGUN", True),  # N is ambiguous
+        (new_moltype.RNA, "ACGUY", True),  # Y is ambiguous
+        (new_moltype.PROTEIN, "ACDEFGHIKLMNPQRSTVWY", False),  # No ambiguity
+        (new_moltype.PROTEIN, "ACDEFGHIKLMNPQRSTVWYX", True),  # X is ambiguous
+        (
+            new_moltype.PROTEIN_WITH_STOP,
+            "ACDEFGHIKLM*NPQRSTVWY",
+            False,
+        ),  # * is not ambiguous (stop)
+    ],
+)
+@pytest.mark.parametrize("cast", (str, bytes, numpy.ndarray))
+def test_has_ambiguity(moltype, seq, expect, cast):
+    seq = make_typed(seq, cast, moltype)
+    assert moltype.has_ambiguity(seq) == expect
+
+
+@pytest.mark.parametrize(
+    "seq",
+    ["ACGT", "ACGTN"],
+)
+@pytest.mark.parametrize("moltype", ("text", "bytes"))
+@pytest.mark.parametrize("cast", (str, bytes, numpy.ndarray))
+def test_has_ambiguity_all_false(moltype, seq, cast):
+    moltype = new_moltype.get_moltype(moltype)
+    # these moltypes don't have an ambuity code
+    seq = make_typed(seq, cast, moltype)
+    assert not moltype.has_ambiguity(seq)
+
+
+def test_has_ambiguity_validation():
+    """raises TypeError if input not a string"""
+    with pytest.raises(TypeError):
+        new_moltype.DNA.has_ambiguity(None)
+
+    with pytest.raises(TypeError):
+        new_moltype.DNA.has_ambiguity([])
+
+    with pytest.raises(TypeError):
+        new_moltype.DNA.has_ambiguity(1)
