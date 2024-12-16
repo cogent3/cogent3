@@ -189,3 +189,24 @@ def test_to_regex():
     aa = make_seq(aa, moltype="protein", new_type=True)
     pattern = new_genetic_code.DEFAULT.to_regex(aa)
     assert "".join(re.findall(pattern, dna)) == dna
+
+
+@pytest.mark.parametrize("include_stop", [True, False])
+@pytest.mark.parametrize("include_missing", [True, False])
+def test_get_alphabet_missing(include_stop, include_missing):
+    # handles include_missing argument
+    gc = new_genetic_code.get_code(1)
+    alpha = gc.get_alphabet(include_stop=include_stop, include_missing=include_missing)
+
+    base_size = 61  # standard genetic code has 61 sense codons
+    if include_stop:
+        base_size += 3  # standard genetic code has 3 stop codons
+    if include_missing:
+        base_size += 1  # adds '???' when include_missing is True, hence + 1
+
+    assert len(alpha) == base_size
+
+    # Check presence/absence of missing character
+    missing = "???"
+    result = (missing in alpha) if include_missing else (missing not in alpha)
+    assert result

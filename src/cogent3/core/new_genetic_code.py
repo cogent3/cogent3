@@ -21,6 +21,9 @@ import numpy
 from cogent3.core import new_alphabet, new_moltype
 from cogent3.util.table import Table
 
+if typing.TYPE_CHECKING:
+    from cogent3.core.sequence import Sequence
+
 OptStr = typing.Optional[str]
 SetStr = set[str]
 ConverterType = typing.Callable[[bytes, bytes], bytes]
@@ -280,7 +283,9 @@ class GeneticCode:
     @functools.cache
     def get_alphabet(
         self,
+        *,
         include_gap: bool = False,
+        include_missing: bool = False,
         include_stop: bool = False,
     ) -> new_alphabet.SenseCodonAlphabet:
         """returns a codon alphabet
@@ -289,19 +294,30 @@ class GeneticCode:
         ----------
         include_gap
             alphabet includes the gap motif
+        include_missing
+            alphabet includes the missing state as 3 * IUPAC_missing
+        include_stop
+            if True, this is just a kmer alphabet
         """
         if include_stop:
-            codons = tuple(self.moltype.alphabet.get_kmer_alphabet(k=3))
+            words = tuple(self.moltype.alphabet.get_kmer_alphabet(k=3))
         else:
-            codons = tuple(self.sense_codons)
+            words = tuple(self.sense_codons)
 
         gap = self.moltype.gapped_alphabet.gap_char * 3 if include_gap else None
-
+        missing = (
+            self.moltype.degen_gapped_alphabet.missing_char * 3
+            if include_missing
+            else None
+        )
         if include_gap:
-            codons += (gap,)
+            words += (gap,)
+
+        if include_missing:
+            words += (missing,)
 
         return new_alphabet.SenseCodonAlphabet(
-            words=codons,
+            words=words,
             monomers=self.moltype.degen_gapped_alphabet,
             gap=gap,
         )
