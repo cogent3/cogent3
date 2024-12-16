@@ -2913,6 +2913,19 @@ def test_translation(seq, rc):
     assert str(aa) == "MF"
 
 
+@pytest.mark.parametrize("seq", ("ATGNTT", "ATGCAY"))
+def test_translation_ambig(seq):
+    seq = new_moltype.DNA.make_seq(seq=seq)
+    aa = seq.get_translation(incomplete_ok=True)
+    assert str(aa) == "MX"
+
+
+def test_translation_gapped():
+    seq = new_moltype.DNA.make_seq(seq="ATG---")
+    aa = seq.get_translation()
+    assert str(aa) == "M-"
+
+
 def test_get_translation_include_stop():
     s = new_moltype.DNA.make_seq(seq="ATTTAACTT", name="s1")
     aa = s.get_translation(include_stop=True)

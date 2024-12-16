@@ -1374,6 +1374,22 @@ def test_get_translation_trim_stop(mk_cls, expect):
     "mk_cls",
     (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
 )
+@pytest.mark.parametrize("seq", ("ATG---NTT", "ATGCAY"))
+def test_get_translation_ambigs(mk_cls, seq):
+    data = {"s1": seq}
+    expect = "M-X" if "-" in seq else "MX"
+    seqs = mk_cls(data, moltype="dna")
+    got = seqs.get_translation(incomplete_ok=True)
+    assert str(got.seqs["s1"]) == expect
+    with pytest.raises(new_alphabet.AlphabetError):
+        # ambiguity codes raise an exception unless explicitly allowed
+        _ = seqs.get_translation(incomplete_ok=False)
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    (new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs),
+)
 def test_get_translation_raises(mk_cls):
     """should raise error if self.moltype is not a nucleic acid"""
     data = {"seq1": "PAR", "seq2": "PQR"}

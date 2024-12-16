@@ -55,6 +55,14 @@ def test_translate():
     assert code.translate("ATGGGG") == code["ATG"] + code["GGG"]
 
 
+@pytest.mark.parametrize("incomplete_ok", (False, True))
+@pytest.mark.parametrize("seq", ("ATGNTT", "ATGCAY"))
+def test_translation_ambig(seq, incomplete_ok):
+    code = new_genetic_code.DEFAULT
+    aa = code.translate(seq, incomplete_ok=incomplete_ok)
+    assert aa == "MX"
+
+
 def test_translate_rc():
     code = new_genetic_code.DEFAULT
     seq = "ATGGGG"
