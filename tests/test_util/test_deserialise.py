@@ -1,5 +1,4 @@
 import json
-import os
 
 import numpy
 import pytest
@@ -33,7 +32,7 @@ def test_roundtrip_codon_alphabet():
     STANDARD_CODON = get_code(1).get_alphabet()
     data = STANDARD_CODON.to_json()
     got = deserialise_object(data)
-    assert type(got) == type(STANDARD_CODON)
+    assert isinstance(got, type(STANDARD_CODON))
     assert list(got) == list(STANDARD_CODON)
 
 
@@ -42,7 +41,7 @@ def test_roundtrip_alphabet():
     dna = moltype.get_moltype("dna")
     data = dna.alphabet.to_json()
     got = deserialise_object(data)
-    assert type(got) == type(dna.alphabet)
+    assert isinstance(got, type(dna.alphabet))
     assert list(got) == list(dna.alphabet)
 
 
@@ -51,7 +50,7 @@ def test_roundtrip_moltype():
     dna = moltype.get_moltype("dna")
     data = dna.to_json()
     got = deserialise_object(data)
-    assert type(got) == type(dna)
+    assert isinstance(got, type(dna))
     assert list(got) == list(dna)
     assert dna == got
 
@@ -185,13 +184,13 @@ def test_roundtrip_discrete_time_likelihood_function():
     assert_allclose(got_obj.get_log_likelihood(), lnL)
 
 
-def test_roundtrip_het_lf():
+def test_roundtrip_het_lf(DATA_DIR):
     """correctly round trips a site-het model"""
-    with open("data/site-het-param-rules.json") as infile:
+    with open(DATA_DIR / "site-het-param-rules.json") as infile:
         rules = json.load(infile)
 
-    aln = load_aligned_seqs("data/primates_brca1.fasta", moltype="dna")
-    tree = load_tree("data/primates_brca1.tree")
+    aln = load_aligned_seqs(DATA_DIR / "primates_brca1.fasta", moltype="dna")
+    tree = load_tree(DATA_DIR / "primates_brca1.tree")
     rule_lnL = rules.pop("phylohmm-gamma-kappa")
     sm = get_model("HKY85", ordered_param="rate", distribution="gamma")
     lf1 = sm.make_likelihood_function(tree, bins=4, sites_independent=False)
@@ -468,11 +467,12 @@ def test_deserialise_python_builtins():
     assert got is data
 
 
-def test_deserialise_likelihood_function1():
+def test_deserialise_likelihood_function1(DATA_DIR):
     """correctly deserialise data into likelihood function"""
     # tests single alignment
     aln = load_aligned_seqs(
-        filename=os.path.join(os.getcwd(), "data", "brca1_5.paml"),
+        filename=DATA_DIR / "brca1_5.paml",
+        moltype="dna",
     )
     tree = make_tree(tip_names=aln.names)
     model = get_model("HKY85")
@@ -486,11 +486,11 @@ def test_deserialise_likelihood_function1():
     )
 
 
-def test_deserialise_likelihood_function_multilocus():
+def test_deserialise_likelihood_function_multilocus(DATA_DIR):
     """correctly deserialise data of multilocus likelihood function"""
     # tests multiple alignments
     data = load_aligned_seqs(
-        filename=os.path.join(os.getcwd(), "data", "brca1_5.paml"),
+        filename=DATA_DIR / "brca1_5.paml",
     )
     half = len(data) // 2
     aln1 = data[:half]
