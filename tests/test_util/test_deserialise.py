@@ -490,7 +490,8 @@ def test_deserialise_likelihood_function_multilocus(DATA_DIR):
     """correctly deserialise data of multilocus likelihood function"""
     # tests multiple alignments
     data = load_aligned_seqs(
-        filename=DATA_DIR / "brca1_5.paml", moltype="dna"
+        filename=DATA_DIR / "brca1_5.paml",
+        moltype="dna",
     )
     half = len(data) // 2
     aln1 = data[:half]
