@@ -2825,7 +2825,6 @@ def test_plus_attrs_slicing(start, stop, step):
         else data[plus_start:plus_stop:plus_step]
     )
     expect = data[start:stop:step]
-    print(start, stop, step, plus_start, plus_stop, plus_step)
     assert got == expect
 
 

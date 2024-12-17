@@ -564,7 +564,7 @@ DogFaced   root      1.00  1.00
                 exclude_internal=False,
                 root_sequence=root_sequence,
             )
-            root = simalign.named_seqs["root"]
+            root = simalign.get_seq("root")
             self.assertEqual(str(root), str(root_sequence))
 
         root_sequence = DNA.make_seq(seq="GTAATT")

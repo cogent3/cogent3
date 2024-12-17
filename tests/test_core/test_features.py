@@ -583,13 +583,13 @@ def test_masking_strand_agnostic_aln():
     masked = aln.with_masked_annotations("CDS")
     assert masked.to_dict() == {
         "x": "AA????AAAA?????AAAAAAAAAA??????????AAA",
-        "y": str(aln.named_seqs["y"]),
+        "y": str(aln.get_seq("y")),
     }
     rc = aln.rc()
     masked = rc.with_masked_annotations("CDS")
     assert masked.to_dict() == {
         "x": "TTT??????????TTTTTTTTTT?????TTTT????TT",
-        "y": str(rc.named_seqs["y"]),
+        "y": str(rc.get_seq("y")),
     }
 
 

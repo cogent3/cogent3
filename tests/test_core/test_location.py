@@ -758,7 +758,7 @@ def test_indelmap_slice_cum_length():
     start, end = 7, 11
     raw = "--AC--GGGG--"
     expect, _ = DNA.make_seq(seq=raw[start:end]).parse_out_gaps()
-    imap, _ = DNA.make_seq(raw).parse_out_gaps()
+    imap, _ = DNA.make_seq(seq=raw).parse_out_gaps()
     imap = imap[start:end]
     assert imap.gap_pos.tolist() == expect.gap_pos.tolist()
     assert imap.cum_gap_lengths.tolist() == expect.cum_gap_lengths.tolist()
