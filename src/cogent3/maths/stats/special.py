@@ -307,7 +307,8 @@ def lgam(x):
         w = lgam(q)
         p = floor(q)
         if p == q:
-            raise OverflowError("lgam returned infinity.")
+            msg = "lgam returned infinity."
+            raise OverflowError(msg)
 
         z = q - p
         if z > 0.5:
@@ -315,9 +316,9 @@ def lgam(x):
             z = p - q
         z = q * sin(PI * z)
         if z == 0:
-            raise OverflowError("lgam returned infinity.")
-        z = LOGPI - log(z) - w
-        return z
+            msg = "lgam returned infinity."
+            raise OverflowError(msg)
+        return LOGPI - log(z) - w
 
     if x < 13:
         z = 1
@@ -329,7 +330,8 @@ def lgam(x):
             z *= u
         while u < 2:
             if u == 0:
-                raise OverflowError("lgam returned infinity.")
+                msg = "lgam returned infinity."
+                raise OverflowError(msg)
             z /= u
             p += 1
             u = x + p
@@ -342,7 +344,8 @@ def lgam(x):
         p = x * polevl(x, GB) / polevl(x, GC)
         return log(z) + p
     if x > MAXLGM:
-        raise OverflowError("Too large a value of x in lgam.")
+        msg = "Too large a value of x in lgam."
+        raise OverflowError(msg)
     q = (x - 0.5) * log(x) - x + LS2PI
     if x > 1.0e8:
         return q
@@ -363,13 +366,15 @@ def betai(aa, bb, xx):
     See Cephes docs for details.
     """
     if aa <= 0 or bb <= 0:
-        raise ValueError("betai: a and b must both be > 0.")
+        msg = "betai: a and b must both be > 0."
+        raise ValueError(msg)
     if xx == 0:
         return 0
     if xx == 1:
         return 1
     if xx < 0 or xx > 1:
-        raise ValueError("betai: x must be between 0 and 1.")
+        msg = "betai: x must be between 0 and 1."
+        raise ValueError(msg)
     flag = 0
     if (bb * xx <= 1) and (xx <= 0.95):
         t = pseries(aa, bb, xx)
@@ -392,10 +397,7 @@ def betai(aa, bb, xx):
         return betai_result(t, flag)
     # choose expansion for better convergence
     y = x * (a + b - 2) - (a - 1)
-    if y < 0:
-        w = incbcf(a, b, x)
-    else:
-        w = incbd(a, b, x) / xc
+    w = incbcf(a, b, x) if y < 0 else incbd(a, b, x) / xc
     y = a * log(x)
     t = b * log(xc)
     if ((a + b) < MAXGAM) and (abs(y) < MAXLOG) and (abs(t) < MAXLOG):
@@ -408,19 +410,13 @@ def betai(aa, bb, xx):
     # resort to logarithms
     y += t + lgam(a + b) - lgam(a) - lgam(b)
     y += log(w / a)
-    if y < MINLOG:
-        t = 0
-    else:
-        t = exp(y)
+    t = 0 if y < MINLOG else exp(y)
     return betai_result(t, flag)
 
 
 def betai_result(t, flag):
     if flag == 1:
-        if t <= MACHEP:
-            t = 1 - MACHEP
-        else:
-            t = 1 - t
+        t = 1 - MACHEP if t <= MACHEP else 1 - t
     return t
 
 
@@ -498,6 +494,7 @@ def incbcf(a, b, x):
         n += 1
         if n >= 300:
             return ans
+    return None
 
 
 def incbd(a, b, x):
@@ -573,6 +570,7 @@ def incbd(a, b, x):
         n += 1
         if n >= 300:
             return ans
+    return None
 
 
 def Gamma(x):
@@ -590,7 +588,8 @@ def Gamma(x):
         if x < 0:
             p = floor(q)
             if p == q:
-                raise OverflowError("Bad value of x in Gamma function.")
+                msg = "Bad value of x in Gamma function."
+                raise OverflowError(msg)
             i = p
             if (i & 1) == 0:
                 sgngam = -1
@@ -600,7 +599,8 @@ def Gamma(x):
                 z = q - p
             z = q * sin(PI * z)
             if z == 0:
-                raise OverflowError("Bad value of x in Gamma function.")
+                msg = "Bad value of x in Gamma function."
+                raise OverflowError(msg)
             z = abs(z)
             z = PI / (z * stirf(q))
         else:
@@ -628,7 +628,8 @@ def Gamma(x):
 
 def Gamma_small(x, z):
     if x == 0:
-        raise OverflowError("Bad value of x in Gamma function.")
+        msg = "Bad value of x in Gamma function."
+        raise OverflowError(msg)
     return z / ((1 + 0.5772156649015329 * x) * x)
 
 
@@ -681,10 +682,7 @@ def pseries(a, b, x):
         s = s * t * pow(x, a)
     else:
         t = lgam(a + b) - lgam(a) - lgam(b) + u + log(s)
-        if t < MINLOG:
-            s = 0
-        else:
-            s = exp(t)
+        s = 0 if t < MINLOG else exp(t)
     return s
 
 
@@ -752,7 +750,8 @@ def igami(a, y0):
 
     # handle easy cases
     if (y0 < 0.0) or (y0 > 1.0) or (a <= 0):
-        raise ZeroDivisionError("y0 must be between 0 and 1; a >= 0")
+        msg = "y0 must be between 0 and 1; a >= 0"
+        raise ZeroDivisionError(msg)
     if y0 == 0.0:
         return MAXNUM
     if y0 == 1.0:
@@ -764,7 +763,7 @@ def igami(a, y0):
 
     lgm = lgam(a)
 
-    for i in range(10):
+    for _i in range(10):
         # this loop is just to eliminate gotos
         while 1:
             if x > x0 or x < x1:
@@ -806,7 +805,7 @@ def igami(a, y0):
     d = 0.5
     dir = 0
 
-    for i in range(400):
+    for _i in range(400):
         x = x1 + d * (x0 - x1)
         y = igamc(a, x)
         lgm = (x0 - x1) / (x1 + x0)
@@ -937,8 +936,7 @@ def ndtri(y0):
         y -= 0.5
         y2 = y * y
         x = y + y * (y2 * polevl(y2, P0) / polevl(y2, Q0))
-        x = x * s2pi
-        return x
+        return x * s2pi
 
     x = sqrt(-2.0 * log(y))
     x0 = x - log(x) / x
@@ -1064,10 +1062,7 @@ def incbi(aa, bb, yy0):
 def _incbi_done(rflg, x):
     """Final test in incbi."""
     if rflg:
-        if x <= MACHEP:
-            x = 1.0 - MACHEP
-        else:
-            x = 1.0 - x
+        x = 1.0 - MACHEP if x <= MACHEP else 1.0 - x
     return x
 
 
@@ -1192,6 +1187,7 @@ def _incbi_ihalve(dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, 
                 return _incbi_under(rflg, x)
         except IhalveRepeat:
             continue
+    return None
 
 
 def _incbi_newt(dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, yy0):
@@ -1217,7 +1213,7 @@ def _incbi_newt(dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, yy
         else:
             x1 = x
             yh = y
-        if x == 1.0 or x == 0.0:
+        if x in (1.0, 0.0):
             break
         # Compute the derivative of the function at this point.
         d = (a - 1.0) * log(x) + (b - 1.0) * log(1.0 - x) + lgm

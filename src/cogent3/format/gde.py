@@ -39,8 +39,7 @@ class GDEFormatter(_AlignmentFormatter):
 
         return "".join(
             [
-                "%s%s\n%s"
-                % (
+                "{}{}\n{}".format(
                     "%",
                     seq,
                     self.wrap_string_to_block_size(

@@ -32,7 +32,7 @@ INVSQRT2PI = 1 / sqrt(2 * pi)
 def mpower(A, exponent):
     """matrix power"""
     new = A
-    for i in range(1, exponent):
+    for _i in range(1, exponent):
         new = matrixmultiply(new, A)
     return new
 

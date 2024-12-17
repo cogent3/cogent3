@@ -35,13 +35,13 @@ import json
 import warnings
 from collections.abc import Callable
 from copy import deepcopy
+from typing import TYPE_CHECKING
 
 import numpy
 from numpy.linalg import svd
 
 import cogent3
 from cogent3._version import __version__
-from cogent3.core.tree import PhyloNode
 from cogent3.evolve import motif_prob_model, parameter_controller, predicate
 from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
 from cogent3.evolve.substitution_calculation import (
@@ -65,6 +65,9 @@ from cogent3.recalculation.definition import (
     WeightedPartitionDefn,
 )
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
+
+if TYPE_CHECKING:
+    from cogent3.core.tree import PhyloNode
 
 kappa_y = predicate.MotifChange("T", "C").aliased("kappa_y")
 kappa_r = predicate.MotifChange("A", "G").aliased("kappa_r")
@@ -128,7 +131,7 @@ class _SubstitutionModel:
         motif_length=1,
         name="",
         motifs=None,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -175,7 +178,10 @@ class _SubstitutionModel:
         # ALPHABET
         if recode_gaps:
             if model_gaps:
-                warnings.warn("Converting gaps to wildcards AND modeling gaps")
+                warnings.warn(
+                    "Converting gaps to wildcards AND modeling gaps",
+                    stacklevel=2,
+                )
             else:
                 model_gaps = False
 
@@ -201,7 +207,8 @@ class _SubstitutionModel:
             mprob_model = "tuple"
 
         if model_gaps and mprob_model != "tuple":
-            raise ValueError("mprob_model must be 'tuple' to model gaps")
+            msg = "mprob_model must be 'tuple' to model gaps"
+            raise ValueError(msg)
 
         isinst = self._is_instantaneous
         self._instantaneous_mask = predicate2matrix(self.alphabet, isinst)
@@ -245,7 +252,7 @@ class _SubstitutionModel:
     def to_rich_dict(self, for_pickle=False):
         data = deepcopy(self._serialisable)
         # make sure kw matching higher level kw removed
-        for key in data.keys() - set(["kw"]):
+        for key in data.keys() - {"kw"}:
             data.get("kw", {}).pop(key, None)
 
         if not for_pickle:
@@ -272,7 +279,7 @@ class _SubstitutionModel:
     def get_param_list(self):
         return []
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         s = []
         s.append(f"name={getattr(self, 'name', None)!r};")
         if hasattr(self, "predicate_masks"):
@@ -493,7 +500,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         distribution=None,
         partitioned_params=None,
         **kw,
-    ):
+    ) -> None:
         """
         with_rate: bool
             Add a 'rate' parameter which varies by bin.
@@ -516,15 +523,16 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         # BINS
         if not ordered_param:
             if ordered_param is not None:
-                warnings.warn("ordered_param should be a string or None")
+                warnings.warn("ordered_param should be a string or None", stacklevel=2)
                 ordered_param = None
             if distribution:
                 if with_rate:
                     ordered_param = "rate"
                 else:
-                    raise ValueError("distribution provided without ordered_param")
+                    msg = "distribution provided without ordered_param"
+                    raise ValueError(msg)
         elif not isinstance(ordered_param, str):
-            warnings.warn("ordered_param should be a string or None")
+            warnings.warn("ordered_param should be a string or None", stacklevel=2)
             assert len(ordered_param) == 1, "More than one ordered_param"
             ordered_param = ordered_param[0]
             assert ordered_param, "False value hidden in list"
@@ -535,7 +543,8 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         elif distribution in [None, "free"]:
             distribution = MonotonicDefn
         elif isinstance(distribution, str):
-            raise ValueError(f'Unknown distribution "{distribution}"')
+            msg = f'Unknown distribution "{distribution}"'
+            raise ValueError(msg)
         self.distrib_class = distribution
 
         if not partitioned_params:
@@ -544,9 +553,8 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
             partitioned_params = (partitioned_params,)
         else:
             partitioned_params = tuple(partitioned_params)
-        if self.ordered_param:
-            if self.ordered_param not in partitioned_params:
-                partitioned_params += (self.ordered_param,)
+        if self.ordered_param and self.ordered_param not in partitioned_params:
+            partitioned_params += (self.ordered_param,)
         self.partitioned_params = partitioned_params
 
         if "rate" in partitioned_params:
@@ -557,13 +565,14 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         self._exponentiator = None
         # self._ident = numpy.identity(len(self.alphabet), float)
 
-    def check_params_exist(self):
+    def check_params_exist(self) -> None:
         """Raise an error if the parameters specified to be partitioned or
         ordered don't actually exist."""
         for param in self.partitioned_params:
             if param not in self.parameter_order and param != "rate":
                 desc = ["partitioned", "ordered"][param == self.ordered_param]
-                raise ValueError(f'{desc} param "{param}" unknown')
+                msg = f'{desc} param "{param}" unknown'
+                raise ValueError(msg)
 
     def _is_instantaneous(self, x, y):
         diffs = sum([X != Y for (X, Y) in zip(x, y, strict=False)])
@@ -573,7 +582,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
             and self._is_any_indel(x, y)
         )
 
-    def _is_any_indel(self, x, y):
+    def _is_any_indel(self, x, y) -> bool:
         """An indel of any length"""
         # Things get complicated when a contigous indel of any length is OK:
         if x == y:
@@ -582,7 +591,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         for i, (X, Y) in enumerate(zip(x, y, strict=False)):
             G = self.gapmotif[i] if self.gapmotif else self.gapmotif
             if X != Y:
-                if X != G and Y != G:
+                if G not in (X, Y):
                     return False  # non-gap differences had their chance above
                 if gap_start is None:
                     gap_start = i
@@ -718,7 +727,7 @@ class Empirical(StationaryQ, _ContinuousSubstitutionModel):
     matrix."""
 
     @extend_docstring_from(_ContinuousSubstitutionModel.__init__)
-    def __init__(self, alphabet, rate_matrix, **kw):
+    def __init__(self, alphabet, rate_matrix, **kw) -> None:
         """
         - rate_matrix: The instantaneous rate matrix
         """
@@ -748,7 +757,7 @@ class Parametric(_ContinuousSubstitutionModel):
     via predicates, non-reversible"""
 
     @extend_docstring_from(_ContinuousSubstitutionModel.__init__)
-    def __init__(self, alphabet, predicates=None, scales=None, **kw):
+    def __init__(self, alphabet, predicates=None, scales=None, **kw) -> None:
         """
         predicates: dict
             a dict of {name:predicate}. See cogent3.evolve.predicate
@@ -771,18 +780,24 @@ class Parametric(_ContinuousSubstitutionModel):
         # Give a clearer error in simple cases like always false or true.
         for name, matrix in list(predicate_masks.items()):
             if (matrix == 0).all():
-                raise ValueError(f"Predicate {name} is always false.")
+                msg = f"Predicate {name} is always false."
+                raise ValueError(msg)
         predicates_plus_scale = predicate_masks.copy()
         predicates_plus_scale[None] = self._instantaneous_mask
         for name, matrix in list(predicate_masks.items()):
             if numpy.all((matrix == self._instantaneous_mask).flat):
-                raise ValueError(f"Predicate {name} is always true.")
+                msg = f"Predicate {name} is always true."
+                raise ValueError(msg)
         if redundancy_in_predicate_masks(predicate_masks):
-            raise ValueError("Redundancy in predicates.")
+            msg = "Redundancy in predicates."
+            raise ValueError(msg)
         if redundancy_in_predicate_masks(predicates_plus_scale):
-            raise ValueError(
+            msg = (
                 "Some combination of predicates is"
-                " equivalent to the overall rate parameter.",
+                " equivalent to the overall rate parameter."
+            )
+            raise ValueError(
+                msg,
             )
 
         self.predicate_masks = predicate_masks
@@ -812,7 +827,7 @@ class Parametric(_ContinuousSubstitutionModel):
         parameter names, 'delim2' delimits motifs"""
         from cogent3.util.table import Table
 
-        labels = [m for m in self.alphabet]
+        labels = list(self.alphabet)
         pars = self.get_matrix_params()
         rows = []
         for i, row in enumerate(pars):
@@ -821,10 +836,7 @@ class Parametric(_ContinuousSubstitutionModel):
             rows.append(r)
 
         labels.insert(0, r"From\To")
-        if self.name:
-            title = f"{self.name} rate matrix"
-        else:
-            title = "rate matrix"
+        title = f"{self.name} rate matrix" if self.name else "rate matrix"
 
         t = Table(
             header=labels,
@@ -833,8 +845,7 @@ class Parametric(_ContinuousSubstitutionModel):
             title=title,
             index_name=r"From\To",
         )
-        result = t if return_table else t.to_string(center=True)
-        return result
+        return t if return_table else t.to_string(center=True)
 
     def get_matrix_params(self):
         """Return the parameter assignment matrix."""
@@ -859,7 +870,7 @@ class Parametric(_ContinuousSubstitutionModel):
         return self._is_instantaneous(x, y)
 
     def get_substitution_rate_value_from_Q(self, Q, motif_probs, pred):
-        pred_mask = list(self._adapt_predicates([pred])[0].values())[0]
+        pred_mask = next(iter(self._adapt_predicates([pred])[0].values()))
         pred_row_totals = numpy.sum(pred_mask * Q, axis=1)
         inst_row_totals = numpy.sum(self._instantaneous_mask * Q, axis=1)
         r = sum(pred_row_totals * motif_probs)
@@ -912,7 +923,8 @@ class Parametric(_ContinuousSubstitutionModel):
         for key, pred in rules:
             label, mask = self.adapt_predicate(pred, key)
             if label in predicate_masks:
-                raise KeyError(f'Duplicate predicate name "{label}"')
+                msg = f'Duplicate predicate name "{label}"'
+                raise KeyError(msg)
             predicate_masks[label] = mask
             order.append(label)
         return predicate_masks, order
@@ -943,19 +955,20 @@ class Parametric(_ContinuousSubstitutionModel):
 
 class Stationary(StationaryQ, Parametric):
     @extend_docstring_from(Parametric.__init__)
-    def __init__(self, *args, **kw):
+    def __init__(self, *args, **kw) -> None:
         """ """
         Parametric.__init__(self, *args, **kw)
 
 
 class TimeReversible(Stationary):
     @extend_docstring_from(Stationary.__init__)
-    def __init__(self, *args, **kw):
+    def __init__(self, *args, **kw) -> None:
         """ """
         Stationary.__init__(self, *args, **kw)
         if not self.symmetric:
+            msg = "TimeReversible exchangeability terms must be fully balanced"
             raise ValueError(
-                "TimeReversible exchangeability terms must be fully balanced",
+                msg,
             )
 
 
@@ -974,7 +987,7 @@ class _TimeReversibleNucleotide(TimeReversible):
 class TimeReversibleNucleotide(_TimeReversibleNucleotide):
     """A nucleotide substitution model."""
 
-    def __init__(self, *args, **kw):
+    def __init__(self, *args, **kw) -> None:
         kw["alphabet"] = kw.get("alphabet", cogent3.get_moltype("dna").alphabet)
         _TimeReversibleNucleotide.__init__(self, *args, **kw)
 
@@ -982,7 +995,7 @@ class TimeReversibleNucleotide(_TimeReversibleNucleotide):
 class TimeReversibleDinucleotide(_TimeReversibleNucleotide):
     """A dinucleotide substitution model."""
 
-    def __init__(self, *args, **kw):
+    def __init__(self, *args, **kw) -> None:
         if "alphabet" not in kw:
             dna = cogent3.get_moltype("dna")
             kw["alphabet"] = dna.alphabet
@@ -994,7 +1007,7 @@ class TimeReversibleDinucleotide(_TimeReversibleNucleotide):
 class TimeReversibleTrinucleotide(_TimeReversibleNucleotide):
     """A trinucleotide substitution model."""
 
-    def __init__(self, *args, **kw):
+    def __init__(self, *args, **kw) -> None:
         kw["alphabet"] = kw.get("alphabet", cogent3.get_moltype("dna").alphabet)
         kw["motif_length"] = 3
         _TimeReversibleNucleotide.__init__(self, *args, **kw)
@@ -1003,7 +1016,7 @@ class TimeReversibleTrinucleotide(_TimeReversibleNucleotide):
 class TimeReversibleProtein(TimeReversible):
     """base protein substitution model."""
 
-    def __init__(self, with_selenocysteine=False, *args, **kw):
+    def __init__(self, with_selenocysteine=False, *args, **kw) -> None:
         alph = cogent3.get_moltype("protein").alphabet
         if not with_selenocysteine:
             alph = alph.get_subset("U", excluded=True)
@@ -1034,7 +1047,7 @@ def EmpiricalProteinMatrix(
 class _CodonPredicates:
     """predicates for silent and replacement substitutions"""
 
-    def __init__(self, gc):
+    def __init__(self, gc) -> None:
         """
         Parameters
         ----------
@@ -1055,7 +1068,7 @@ class _Codon:
     long_indels_are_instantaneous = True
 
     def _is_instantaneous(self, x, y):
-        if x == self.gapmotif or y == self.gapmotif:
+        if self.gapmotif in (x, y):
             return x != y
         ndiffs = sum([X != Y for (X, Y) in zip(x, y, strict=False)])
         return ndiffs == 1
@@ -1080,7 +1093,7 @@ class TimeReversibleCodon(_Codon, _TimeReversibleNucleotide):
 
     # TODO deprecate alphabet argument
     @extend_docstring_from(_TimeReversibleNucleotide.__init__)
-    def __init__(self, alphabet=None, gc=None, **kw):
+    def __init__(self, alphabet=None, gc=None, **kw) -> None:
         self.gc = cogent3.get_code(gc)
         kw["alphabet"] = self.gc.get_alphabet()
         _TimeReversibleNucleotide.__init__(self, **kw)

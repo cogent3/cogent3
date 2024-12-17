@@ -1668,7 +1668,7 @@ class Letter:
         filled=True,
         fillcolor=None,
         axes=(0, 0),
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -1698,31 +1698,31 @@ class Letter:
         self.filled = filled
         self.fillcolor = fillcolor
 
-    def _update_boundaries(self):
+    def _update_boundaries(self) -> None:
         min_x = None
         max_x = None
         min_y = None
         max_y = None
         for seg in self.path:
             if seg[0] == "H":
-                if min_x == None or (seg[1] < min_x):
+                if min_x is None or (seg[1] < min_x):
                     min_x = seg[1]
-                if max_x == None or (seg[1] > max_x):
+                if max_x is None or (seg[1] > max_x):
                     max_x = seg[1]
             elif seg[0] == "V":
-                if min_y == None or (seg[1] < min_y):
+                if min_y is None or (seg[1] < min_y):
                     min_y = seg[1]
-                if max_y == None or (seg[1] > max_y):
+                if max_y is None or (seg[1] > max_y):
                     max_y = seg[1]
             else:
                 for coord_index in range(0, len(seg[1:]), 2):
-                    if min_x == None or (seg[1:][coord_index] < min_x):
+                    if min_x is None or (seg[1:][coord_index] < min_x):
                         min_x = seg[1:][coord_index]
-                    if max_x == None or (seg[1:][coord_index] > max_x):
+                    if max_x is None or (seg[1:][coord_index] > max_x):
                         max_x = seg[1:][coord_index]
-                    if min_y == None or (seg[1:][coord_index + 1] < min_y):
+                    if min_y is None or (seg[1:][coord_index + 1] < min_y):
                         min_y = seg[1:][coord_index + 1]
-                    if max_y == None or (seg[1:][coord_index + 1] > max_y):
+                    if max_y is None or (seg[1:][coord_index + 1] > max_y):
                         max_y = seg[1:][coord_index + 1]
         self.left = min_x
         self.right = max_x
@@ -1734,7 +1734,7 @@ class Letter:
         self.y += y
         return self
 
-    def _shift(self, x, y):
+    def _shift(self, x, y) -> None:
         new_path = []
         for seg in self.path:
             edited_seg = [seg[0]]
@@ -1778,7 +1778,7 @@ class Letter:
         self.degrees += degrees
         return self
 
-    def _rotate(self, degrees):
+    def _rotate(self, degrees) -> None:
         new_path = []
 
         pen_location = {"x": self.path[0][1], "y": self.path[0][2]}
@@ -1854,7 +1854,7 @@ class Letter:
         path = ",".join(
             [" ".join([str(sub_seg) for sub_seg in seg]) for seg in self.path],
         )
-        data = UnionDict(
+        return UnionDict(
             type="path",
             xref=self.xref,
             yref=self.yref,
@@ -1862,4 +1862,3 @@ class Letter:
             line={"width": 0},
             fillcolor=self.fillcolor,
         )
-        return data

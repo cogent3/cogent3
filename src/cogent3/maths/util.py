@@ -59,7 +59,8 @@ def row_uncertainty(a):
     try:
         return sum(safe_p_log_p(a), 1)
     except ValueError:
-        raise ValueError("Array has to be two-dimensional")
+        msg = "Array has to be two-dimensional"
+        raise ValueError(msg)
 
 
 def column_uncertainty(a):
@@ -78,7 +79,8 @@ def column_uncertainty(a):
 
     """
     if len(a.shape) < 2:
-        raise ValueError("Array has to be two-dimensional")
+        msg = "Array has to be two-dimensional"
+        raise ValueError(msg)
     return sum(safe_p_log_p(a), axis=0)
 
 
@@ -110,7 +112,8 @@ def row_degeneracy(a, cutoff=0.5):
     try:
         b = cumsum(sort(a)[:, ::-1], 1)
     except IndexError:
-        raise ValueError("Array has to be two dimensional")
+        msg = "Array has to be two dimensional"
+        raise ValueError(msg)
     degen = [searchsorted(aln_pos, cutoff) for aln_pos in b]
     # degen contains now the indices at which the cutoff was hit
     # to change to the number of characters, add 1
@@ -146,13 +149,14 @@ def column_degeneracy(a, cutoff=0.5):
     try:
         degen = [searchsorted(b[:, idx], cutoff) for idx in range(len(b[0]))]
     except TypeError:
-        raise ValueError("Array has to be two dimensional")
+        msg = "Array has to be two dimensional"
+        raise ValueError(msg)
     # degen contains now the indices at which the cutoff was hit
     # to change to the number of characters, add 1
     return clip(array(degen) + 1, 0, a.shape[0])
 
 
-def validate_freqs_array(data, axis=None):
+def validate_freqs_array(data, axis=None) -> None:
     """input data is a valid frequency array
     Parameters
     ----------
@@ -166,12 +170,14 @@ def validate_freqs_array(data, axis=None):
     Raises ValueError if any element < 0 or series do not sum to 1
     """
     if (data < 0).any():
-        raise ValueError("negative frequency not allowed")
+        msg = "negative frequency not allowed"
+        raise ValueError(msg)
 
     # we explicitly ignore nan
     result = data.sum(axis=axis)
-    if not numpy.allclose(result[numpy.isnan(result) == False], 1):
-        raise ValueError("invalid frequencies, sum(axis=1) is not equal to 1")
+    if not numpy.allclose(result[numpy.isnan(result) == False], 1):  # noqa
+        msg = "invalid frequencies, sum(axis=1) is not equal to 1"
+        raise ValueError(msg)
 
 
 def ratios_to_proportions(total, params) -> list:
@@ -253,10 +259,10 @@ def proportions_to_ratios(values) -> list:
         return []
     half = len(values) // 2
     (num, denom) = (sum(values[half:]), sum(values[:half]))
-    assert num > 0 and denom > 0
+    assert (num > 0) and (denom > 0)  # noqa
     ratio = num / denom
-    return (
-        [ratio]
-        + proportions_to_ratios(values[:half])
-        + proportions_to_ratios(values[half:])
-    )
+    return [
+        ratio,
+        *proportions_to_ratios(values[:half]),
+        *proportions_to_ratios(values[half:]),
+    ]

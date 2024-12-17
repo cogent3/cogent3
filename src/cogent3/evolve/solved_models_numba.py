@@ -7,9 +7,10 @@ from numba import njit
 
 
 @njit(cache=True)
-def calc_TN93_P(mprobs, time, alpha1, alpha2, result):  # pragma: no cover
+def calc_TN93_P(mprobs, time, alpha1, alpha2, result) -> None:  # pragma: no cover
     if not (mprobs.shape[0] == result.shape[0] == result.shape[1] == 4):
-        raise ValueError("all array dimensions must equal 4")
+        msg = "all array dimensions must equal 4"
+        raise ValueError(msg)
 
     alpha = np.array([alpha1, alpha2])
     pi_star = np.array([mprobs[0] + mprobs[1], mprobs[2] + mprobs[3]])
@@ -43,10 +44,7 @@ def calc_TN93_P(mprobs, time, alpha1, alpha2, result):  # pragma: no cover
         i = row // 2
         for column in range(4):
             j = column // 2
-            if i == j:
-                p = transition[i]
-            else:
-                p = transversion
+            p = transition[i] if i == j else transversion
             p *= mprobs[column]
             if row == column:
                 p += e_mu_t[i]

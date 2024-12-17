@@ -95,7 +95,7 @@ def find_root(func, x, direction, bound, xtol=None, expected_exception=None):
     if xtol is None:
         xtol = 1e-10
 
-    def sign_func(z):
+    def sign_func(z) -> int | None:
         # +ve if f(z) is +ve
         # zero if f(z) is -ve (what we want)
         # -ve if f(z) causes an error

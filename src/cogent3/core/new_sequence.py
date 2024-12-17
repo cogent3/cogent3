@@ -10,7 +10,6 @@ from __future__ import annotations
 import contextlib
 import copy
 import json
-import os
 import re
 import typing
 import warnings
@@ -52,6 +51,9 @@ from cogent3.util.misc import (
     get_setting_from_environ,
 )
 from cogent3.util.transform import for_seq, per_shortest
+
+if typing.TYPE_CHECKING:
+    import os
 
 OptGeneticCodeType = typing.Optional[typing.Union[int, str, "GeneticCode"]]
 OptStr = typing.Optional[str]
@@ -146,7 +148,7 @@ class Sequence:
         info: dict | InfoClass | None = None,
         annotation_offset: int = 0,
         annotation_db: SupportsFeatures | None = None,
-    ):
+    ) -> None:
         """Initialize a sequence.
 
         Parameters
@@ -180,17 +182,17 @@ class Sequence:
 
         info = info or {}
         self.info = InfoClass(**info)
-        self._repr_policy = dict(num_pos=60)
+        self._repr_policy = {"num_pos": 60}
         self._annotation_db = annotation_db
 
-    def __str__(self):
+    def __str__(self) -> str:
         result = str(self._seq)
         if self._seq.is_reversed:
             with contextlib.suppress(TypeError):
                 result = self.moltype.complement(result)
         return result
 
-    def __bytes__(self):
+    def __bytes__(self) -> bytes:
         result = bytes(self._seq)
         if self._seq.is_reversed:
             with contextlib.suppress(TypeError):
@@ -272,17 +274,17 @@ class Sequence:
             info.pop("Refs")
 
         info = info or None
-        data = dict(
-            name=self.name,
-            seq=str(self),
-            moltype=self.moltype.label,
-            info=info,
-            type=get_object_provenance(self),
-            version=__version__,
-        )
+        data = {
+            "name": self.name,
+            "seq": str(self),
+            "moltype": self.moltype.label,
+            "info": info,
+            "type": get_object_provenance(self),
+            "version": __version__,
+        }
         if hasattr(self, "annotation_offset"):
             offset = int(self._seq.slice_record.parent_start)
-            data |= dict(annotation_offset=offset)
+            data |= {"annotation_offset": offset}
 
         if (
             hasattr(self, "annotation_db")
@@ -344,6 +346,7 @@ class Sequence:
             if warn and len(data) % motif_length != 0:
                 warnings.warn(
                     f"{self.name} length not divisible by {motif_length}, truncating",
+                    stacklevel=2,
                 )
             limit = (len(data) // motif_length) * motif_length
             data = data[:limit]
@@ -389,7 +392,7 @@ class Sequence:
         """__hash__ behaves like the sequence string for dict lookup."""
         return hash(str(self))
 
-    def __contains__(self, other):
+    def __contains__(self, other) -> bool:
         """__contains__ checks whether other is in the sequence string."""
         return other in str(self)
 
@@ -554,7 +557,7 @@ class Sequence:
     def distance(
         self,
         other,
-        function: typing.Callable[[str, str], IntORFloat] = None,
+        function: typing.Callable[[str, str], IntORFloat] | None = None,
     ) -> IntORFloat:
         """Returns distance between self and other using function(i,j).
 
@@ -592,7 +595,9 @@ class Sequence:
         """
         if function is None:
             # use identity scoring function
-            function = lambda a, b: a != b
+            def function(a, b):
+                return a != b
+
         distance = 0
         for first, second in zip(self, other, strict=False):
             distance += function(first, second)
@@ -779,7 +784,7 @@ class Sequence:
         settings = self._repr_policy.copy()
         env_vals = get_setting_from_environ(
             "COGENT3_ALIGNMENT_REPR_POLICY",
-            dict(num_pos=int),
+            {"num_pos": int},
         )
         settings.update(env_vals)
         return self.to_html(limit=settings["num_pos"])
@@ -881,16 +886,19 @@ class Sequence:
 
     def __add__(self, other):
         """Adds two sequences (other can be a string as well)."""
-        if hasattr(other, "moltype"):
-            if self.moltype != other.moltype:
-                raise ValueError(
-                    f"MolTypes don't match: ({self.moltype},{other.moltype})",
-                )
+        if hasattr(other, "moltype") and self.moltype != other.moltype:
+            msg = f"MolTypes don't match: ({self.moltype},{other.moltype})"
+            raise ValueError(
+                msg,
+            )
         other_seq = str(other)
 
         if not self.moltype.most_degen_alphabet().is_valid(str(other)):
+            msg = (
+                f"Invalid sequence characters in other for moltype={self.moltype.label}"
+            )
             raise new_alphabet.AlphabetError(
-                f"Invalid sequence characters in other for moltype={self.moltype.label}",
+                msg,
             )
 
         # If two sequences with the same name are being added together the name should not be None
@@ -929,7 +937,7 @@ class Sequence:
         return self._annotation_db
 
     @annotation_db.setter
-    def annotation_db(self, value: SupportsFeatures):
+    def annotation_db(self, value: SupportsFeatures) -> None:
         # Without knowing the contents of the db we cannot
         # establish whether self.moltype is compatible, so
         # we rely on the user to get that correct
@@ -962,7 +970,8 @@ class Sequence:
             return
 
         if check and value and not isinstance(value, SupportsFeatures):
-            raise TypeError(f"{type(value)} does not satisfy SupportsFeatures")
+            msg = f"{type(value)} does not satisfy SupportsFeatures"
+            raise TypeError(msg)
 
         self._annotation_db = value
 
@@ -1152,7 +1161,7 @@ class Sequence:
         feature.pop("seqid", None)
         return Feature(parent=self, seqid=self.name, map=fmap, **feature)
 
-    def annotate_from_gff(self, f: os.PathLike, offset=None):
+    def annotate_from_gff(self, f: os.PathLike, offset=None) -> None:
         """copies annotations from a gff file to self,
 
         Parameters
@@ -1161,7 +1170,8 @@ class Sequence:
         offset : Optional, the offset between annotation coordinates and sequence coordinates.
         """
         if isinstance(self.annotation_db, GenbankAnnotationDb):
-            raise ValueError("GenbankAnnotationDb already attached")
+            msg = "GenbankAnnotationDb already attached"
+            raise ValueError(msg)
 
         self.annotation_db = load_annotations(
             path=f,
@@ -1237,7 +1247,8 @@ class Sequence:
         """
 
         if not moltype:
-            raise ValueError(f"unknown moltype '{moltype}'")
+            msg = f"unknown moltype '{moltype}'"
+            raise ValueError(msg)
 
         moltype = new_moltype.get_moltype(moltype)
 
@@ -1256,9 +1267,12 @@ class Sequence:
             )
 
         if not other_alpha.is_valid(seq):
-            raise new_moltype.MolTypeError(
+            msg = (
                 f"Changing from old moltype={self.moltype.label!r} to new "
-                f"moltype={moltype.label!r} is not valid for this data",
+                f"moltype={moltype.label!r} is not valid for this data"
+            )
+            raise new_moltype.MolTypeError(
+                msg,
             )
         sv = SeqView(
             parent=seq,
@@ -1282,15 +1296,17 @@ class Sequence:
         Only copies annotations for records with seqid equal to self.name
         """
         if not isinstance(seq_db, SupportsFeatures):
+            msg = f"type {type(seq_db)} does not match SupportsFeatures interface"
             raise TypeError(
-                f"type {type(seq_db)} does not match SupportsFeatures interface",
+                msg,
             )
 
         if not seq_db.num_matches(seqid=self.name):
             return
 
         if self.annotation_db and not self.annotation_db.compatible(seq_db):
-            raise TypeError(f"type {type(seq_db)} != {type(self.annotation_db)}")
+            msg = f"type {type(seq_db)} != {type(self.annotation_db)}"
+            raise TypeError(msg)
 
         if self.annotation_db is None:
             self.annotation_db = type(seq_db)()
@@ -1327,7 +1343,7 @@ class Sequence:
     def with_masked_annotations(
         self,
         annot_types: StrORIterableStr,
-        mask_char: str = None,
+        mask_char: str | None = None,
         shadow: bool = False,
         extend_query: bool = False,
     ):
@@ -1400,7 +1416,8 @@ class Sequence:
         recode_gaps: bool = False,
     ) -> typing.Iterator[str, str, str]:
         if not allow_gaps and not segment_map.complete:
-            raise ValueError(f"gap(s) in map {segment_map}")
+            msg = f"gap(s) in map {segment_map}"
+            raise ValueError(msg)
 
         for span in segment_map.spans:
             if span.lost:
@@ -1442,7 +1459,7 @@ class Sequence:
             info=self.info,
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         myclass = f"{self.__class__.__name__}"
         myclass = myclass.split(".")[-1]
         seq = f"{str(self)[:7]}... {len(self):,}" if len(self) > 10 else str(self)
@@ -1452,13 +1469,14 @@ class Sequence:
         preserve_offset = False
         if hasattr(index, "get_slice"):
             if index.parent is not self:
-                raise ValueError("cannot slice Feature not bound to self")
+                msg = "cannot slice Feature not bound to self"
+                raise ValueError(msg)
             return index.get_slice()
 
         if hasattr(index, "map"):
             index = index.map
 
-        if isinstance(index, (FeatureMap, IndelMap)):
+        if isinstance(index, FeatureMap | IndelMap):
             new = self._mapped(index)
             # annotations have no meaning if disjoint slicing segments
             preserve_offset = index.num_spans == 1
@@ -1473,14 +1491,16 @@ class Sequence:
             stride = getattr(index, "step", 1) or 1
             preserve_offset = stride > 0
 
-        if isinstance(index, (list, tuple)):
-            raise TypeError("cannot slice using list or tuple")
+        if isinstance(index, list | tuple):
+            msg = "cannot slice using list or tuple"
+            raise TypeError(msg)
 
         if self.annotation_db is not None and preserve_offset:
             new.replace_annotation_db(self.annotation_db, check=False)
 
         if _is_float(index):
-            raise TypeError("cannot slice using float")
+            msg = "cannot slice using float"
+            raise TypeError(msg)
 
         if hasattr(self, "_repr_policy"):
             new._repr_policy.update(self._repr_policy)
@@ -1494,7 +1514,7 @@ class Sequence:
         """Return the sequence name -- should just use name instead."""
         return self.name
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._seq)
 
     def get_type(self):
@@ -1511,10 +1531,12 @@ class Sequence:
         When strict is True, the characters in the k-mer must be
         a subset of the canonical characters for the moltype"""
         if k <= 0:
-            raise ValueError(f"k must be an int > 0, not {k}")
+            msg = f"k must be an int > 0, not {k}"
+            raise ValueError(msg)
 
         if not isinstance(k, int):
-            raise ValueError(f"k must be an int, not {k}")
+            msg = f"k must be an int, not {k}"
+            raise ValueError(msg)
 
         canonical = set(self.moltype)
         seq = str(self)
@@ -1572,6 +1594,7 @@ class Sequence:
         if remainder and warn:
             warnings.warn(
                 f'Dropped remainder "{seq[-remainder:]}" from end of sequence',
+                stacklevel=2,
             )
         return [
             seq[i : i + motif_length]
@@ -1742,8 +1765,13 @@ class Sequence:
 
         top += space
         height = max((top / len(self)) * width, 300)
-        xaxis = dict(range=[0, len(self)], zeroline=False, showline=True)
-        yaxis = dict(range=[0, top], visible=False, zeroline=True, showline=True)
+        xaxis = {"range": [0, len(self)], "zeroline": False, "showline": True}
+        yaxis = {
+            "range": [0, top],
+            "visible": False,
+            "zeroline": True,
+            "showline": True,
+        }
 
         if vertical:
             all_traces = [t.T.as_trace() for t in annotes]
@@ -1825,7 +1853,7 @@ def deserialise_protein_with_stop_sequence(data) -> ProteinWithStopSequence:
 class NucleicAcidSequenceMixin:
     """Mixin class for DNA and RNA sequences."""
 
-    def __str__(self):
+    def __str__(self) -> str:
         result = str(self._seq)
         if self._seq.is_reversed:
             with contextlib.suppress(TypeError):
@@ -1929,7 +1957,8 @@ class NucleicAcidSequenceMixin:
             return gc.is_stop(end3)
 
         if strict:
-            raise new_alphabet.AlphabetError(f"{self.name!r} length not divisible by 3")
+            msg = f"{self.name!r} length not divisible by 3"
+            raise new_alphabet.AlphabetError(msg)
 
         return False
 
@@ -2026,8 +2055,9 @@ class NucleicAcidSequenceMixin:
         from cogent3.core import new_genetic_code, new_moltype
 
         if not self.moltype.is_nucleic:
+            msg = f"moltype must be a DNA/RNA, not {self.moltype.name!r}"
             raise new_moltype.MolTypeError(
-                f"moltype must be a DNA/RNA, not {self.moltype.name!r}",
+                msg,
             )
 
         protein = new_moltype.get_moltype(
@@ -2045,12 +2075,16 @@ class NucleicAcidSequenceMixin:
         pep = gc.translate(array(seq), rc=False, incomplete_ok=incomplete_ok)
 
         if not include_stop and "*" in pep:
-            raise new_alphabet.AlphabetError("stop codon in translation")
+            msg = "stop codon in translation"
+            raise new_alphabet.AlphabetError(msg)
 
         if not incomplete_ok and "X" in pep:
-            raise new_alphabet.AlphabetError(
+            msg = (
                 "A codon is incomplete or contains an ambiguity, set incomplete_ok=True to "
-                "allow translation",
+                "allow translation"
+            )
+            raise new_alphabet.AlphabetError(
+                msg,
             )
         return protein.make_seq(seq=pep, name=self.name)
 
@@ -2155,7 +2189,7 @@ class SliceRecordABC(ABC):
         return self._offset
 
     @offset.setter
-    def offset(self, value: int):
+    def offset(self, value: int) -> None:
         value = value or 0
         self._offset = int(value)
 
@@ -2252,7 +2286,8 @@ class SliceRecordABC(ABC):
             return 0
 
         if rel_index < 0:
-            raise IndexError("only positive indexing supported!")
+            msg = "only positive indexing supported!"
+            raise IndexError(msg)
 
         # _get_index return the absolute position relative to the underlying sequence
         seq_index, _, _ = self._get_index(rel_index, include_boundary=include_boundary)
@@ -2277,7 +2312,8 @@ class SliceRecordABC(ABC):
             return 0
 
         if abs_index < 0:
-            raise IndexError("Index must be +ve and relative to the + strand")
+            msg = "Index must be +ve and relative to the + strand"
+            raise IndexError(msg)
 
         if self.is_reversed:
             offset = self.offset
@@ -2299,7 +2335,7 @@ class SliceRecordABC(ABC):
 
         return rel_pos
 
-    def __len__(self):
+    def __len__(self) -> int:
         return abs((self.start - self.stop) // self.step)
 
     def __getitem__(self, segment: int | slice):
@@ -2331,8 +2367,9 @@ class SliceRecordABC(ABC):
             return self._get_slice(segment, slice_step, **kwargs)
         if slice_step < 0:
             return self._get_reverse_slice(segment, slice_step, **kwargs)
+        msg = f"{self.__class__.__name__} cannot be sliced with a step of 0"
         raise ValueError(
-            f"{self.__class__.__name__} cannot be sliced with a step of 0",
+            msg,
         )
 
     def _get_index(self, val: int, include_boundary: bool = False):
@@ -2362,6 +2399,7 @@ class SliceRecordABC(ABC):
                 val = self.start + len(self) * self.step + val * self.step
 
             return val, val - 1, -1
+        return None
 
     def _get_slice(self, segment: slice, step: int, **kwargs):
         slice_start = segment.start if segment.start is not None else 0
@@ -2382,6 +2420,7 @@ class SliceRecordABC(ABC):
                 step,
                 **kwargs,
             )
+        return None
 
     def _get_forward_slice_from_forward_seqview_(
         self,
@@ -2476,6 +2515,7 @@ class SliceRecordABC(ABC):
                 step,
                 **kwargs,
             )
+        return None
 
     def _get_reverse_slice_from_forward_seqview_(
         self,
@@ -2587,7 +2627,7 @@ class SliceRecord(SliceRecordABC):
         stop: OptInt = None,
         step: OptInt = None,
         offset: int = 0,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -2604,7 +2644,8 @@ class SliceRecord(SliceRecordABC):
             length of the underlying data (not including offset)
         """
         if step == 0:
-            raise ValueError("step cannot be 0")
+            msg = "step cannot be 0"
+            raise ValueError(msg)
         step = step if step is not None else 1
         func = _input_vals_pos_step if step > 0 else _input_vals_neg_step
         start, stop, step = func(parent_len, start, stop, step)
@@ -2637,7 +2678,7 @@ class SliceRecord(SliceRecordABC):
         # TODO: kath
         return self
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"{self.__class__.__name__}(start={self.start}, stop={self.stop}, step={self.step}, "
             f"parent_len={self.parent_len}, offset={self.offset})"
@@ -2713,18 +2754,19 @@ class SeqViewABC(ABC):
     def __array__(self, dtype=None, copy=None): ...
 
     @abstractmethod
-    def __bytes__(self): ...
+    def __bytes__(self) -> bytes: ...
 
     @abstractmethod
     def __getitem__(self, segment: int | slice) -> SeqViewABC: ...
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.slice_record)
 
     def with_offset(self, offset: int):
         if self._slice_record.offset:
+            msg = f"cannot set {offset=} on a SeqView with an offset {self._slice_record.offset=}"
             raise ValueError(
-                f"cannot set {offset=} on a SeqView with an offset {self._slice_record.offset=}",
+                msg,
             )
 
         init_kwargs = self._get_init_kwargs()
@@ -2773,7 +2815,7 @@ class SeqView(SeqViewABC):
         seqid: OptStr = None,
         slice_record: SliceRecordABC = None,
         offset: int = 0,
-    ):
+    ) -> None:
         self.alphabet = alphabet
         self.parent = parent
         self._seqid = seqid
@@ -2785,8 +2827,9 @@ class SeqView(SeqViewABC):
             else SliceRecord(parent_len=self._parent_len)
         )
         if offset and self._slice_record.offset:
+            msg = f"cannot set {offset=} on a SeqView with an offset {self._slice_record.offset=}"
             raise ValueError(
-                f"cannot set {offset=} on a SeqView with an offset {self._slice_record.offset=}",
+                msg,
             )
         if offset:
             self._slice_record.offset = offset
@@ -2909,9 +2952,10 @@ def _coerce_to_seqview(
     from cogent3.core.sequence import Sequence as old_Sequence
     from cogent3.core.sequence import SeqView as old_SeqView
 
-    if isinstance(data, (Aligned, old_Sequence, old_SeqView)):
+    if isinstance(data, Aligned | old_Sequence | old_SeqView):
         return _coerce_to_seqview(str(data), seqid, alphabet, offset)
-    raise NotImplementedError(f"{type(data)}")
+    msg = f"{type(data)}"
+    raise NotImplementedError(msg)
 
 
 @_coerce_to_seqview.register
@@ -2928,13 +2972,15 @@ def _(
     if hasattr(data, "alphabet"):
         n = min(len(data.alphabet), len(alphabet))
         if data.alphabet[:n] != alphabet[:n]:
+            msg = f"element order {data.alphabet=} != to that in {alphabet=} for {data=!r}"
             raise new_alphabet.AlphabetError(
-                f"element order {data.alphabet=} != to that in {alphabet=} for {data=!r}",
+                msg,
             )
 
     if offset and data.offset:
+        msg = f"cannot set {offset=} on a SeqView with an offset {data.offset=}"
         raise ValueError(
-            f"cannot set {offset=} on a SeqView with an offset {data.offset=}",
+            msg,
         )
     if offset:
         return data.with_offset(offset)

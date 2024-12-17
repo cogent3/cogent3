@@ -31,7 +31,7 @@ class Feature:
         biotype: str,
         name: str,
         strand: str,
-    ):
+    ) -> None:
         # _serialisable is used for creating derivative instances
         d = locals()
         exclude = ("self", "__class__", "kw")
@@ -119,14 +119,15 @@ class Feature:
         if self.map.complete:
             return self
         keep = self.map.nongap()
-        kwargs = {**self._serialisable, **dict(map=self.map[keep])}
+        kwargs = {**self._serialisable, "map": self.map[keep]}
         return self.__class__(**kwargs)
 
     def as_one_span(self):
         """returns a feature that preserves any gaps"""
         kwargs = {
             **self._serialisable,
-            **dict(map=self.map.get_covering_span(), name=f"one-span {self.name}"),
+            "map": self.map.get_covering_span(),
+            "name": f"one-span {self.name}",
         }
         return self.__class__(**kwargs)
 
@@ -140,10 +141,10 @@ class Feature:
         }
         return self.__class__(**kwargs)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.map)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         name = self.__class__.__name__
         txt = ", ".join(
             f"{attr}={getattr(self, attr)!r}"
@@ -235,7 +236,8 @@ class Feature:
         same_orientation = True
         for feature in features:
             if feature.parent is not self.parent:
-                raise ValueError("cannot merge annotations from different objects")
+                msg = "cannot merge annotations from different objects"
+                raise ValueError(msg)
 
             if same_orientation and feature.reversed != self.reversed:
                 same_orientation = False
@@ -278,9 +280,7 @@ class Feature:
         """returns"""
         result = {
             **self._serialisable,
-            **dict(
-                spans=self.map.get_coordinates(),
-            ),
+            "spans": self.map.get_coordinates(),
         }
         for key in ("map", "parent"):
             result.pop(key, None)

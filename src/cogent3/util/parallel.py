@@ -22,10 +22,7 @@ else:
             MPI = None
 
 
-if MPI is not None:
-    USING_MPI = True
-else:
-    USING_MPI = False
+USING_MPI = MPI is not None
 
 
 def get_rank():
@@ -69,10 +66,11 @@ def is_master_process():
     process_file = process_cmd.split(os.sep)[-1]
     if process_file == "server.py":
         return False
+    return None
 
 
 class PicklableAndCallable:
-    def __init__(self, func):
+    def __init__(self, func) -> None:
         self.func = func
 
     def __call__(self, *args, **kw):
@@ -127,7 +125,8 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=Non
     # minus 1 to leave for master process
     if use_mpi:
         if not USING_MPI:
-            raise RuntimeError("Cannot use MPI")
+            msg = "Cannot use MPI"
+            raise RuntimeError(msg)
 
         if SIZE == 1:
             err_msg = (
@@ -138,7 +137,7 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=Non
             if if_serial == "raise":
                 raise RuntimeError(err_msg)
             elif if_serial == "warn":
-                warnings.warn(err_msg, UserWarning)
+                warnings.warn(err_msg, UserWarning, stacklevel=2)
 
         max_workers = max_workers or 1
 
@@ -146,6 +145,7 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=Non
             warnings.warn(
                 "max_workers too large, reducing to UNIVERSE_SIZE-1",
                 UserWarning,
+                stacklevel=2,
             )
 
         max_workers = min(max_workers, SIZE - 1)
@@ -174,7 +174,8 @@ def map(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=None
 def _as_completed_mpi(f, s, max_workers, if_serial, chunksize=None):
     """MPI version of as_completed"""
     if not USING_MPI:
-        raise RuntimeError("Cannot use MPI")
+        msg = "Cannot use MPI"
+        raise RuntimeError(msg)
 
     if SIZE == 1:
         err_msg = (
@@ -185,14 +186,18 @@ def _as_completed_mpi(f, s, max_workers, if_serial, chunksize=None):
         if if_serial == "raise":
             raise RuntimeError(err_msg)
         elif if_serial == "warn":
-            warnings.warn(err_msg, UserWarning)
+            warnings.warn(err_msg, UserWarning, stacklevel=2)
 
     max_workers = max_workers or 1
 
     f = PicklableAndCallable(f)
 
     if max_workers > SIZE:
-        warnings.warn("max_workers too large, reducing to UNIVERSE_SIZE-1", UserWarning)
+        warnings.warn(
+            "max_workers too large, reducing to UNIVERSE_SIZE-1",
+            UserWarning,
+            stacklevel=2,
+        )
 
     max_workers = min(max_workers, SIZE - 1)
     if not chunksize:

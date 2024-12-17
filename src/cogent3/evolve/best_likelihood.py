@@ -46,7 +46,9 @@ def aligned_columns_to_rows(aln, motif_len, exclude_chars=None, allowed_chars="A
         exclude_func = exclude_chars.intersection
     else:
         allowed_chars = set(allowed_chars)
-        exclude_func = lambda x: not allowed_chars.issuperset(x)
+
+        def exclude_func(x) -> bool:
+            return not allowed_chars.issuperset(x)
 
     exclude_indices = set()
     array = []
@@ -61,8 +63,7 @@ def aligned_columns_to_rows(aln, motif_len, exclude_chars=None, allowed_chars="A
     include_indices = list(include_indices)
     include_indices.sort()
     array = _transpose(array)
-    array = _take(array, include_indices)
-    return array
+    return _take(array, include_indices)
 
 
 def count_column_freqs(columns_list):
@@ -84,10 +85,7 @@ def get_ML_probs(columns_list, with_patterns=False):
     col_lnL_freqs = []
     for column_pattern, freq in list(col_freq_dict.items()):
         # note, the behaviour of / is changed due to the __future__ import
-        if with_patterns:
-            row = [column_pattern, freq / n, freq]
-        else:
-            row = [freq / n, freq]
+        row = [column_pattern, freq / n, freq] if with_patterns else [freq / n, freq]
         col_lnL_freqs.append(row)
     return col_lnL_freqs
 
@@ -130,7 +128,7 @@ def BestLogLikelihood(
     assert alphabet or motif_length, "Must provide either an alphabet or a motif_length"
     # need to use the alphabet, so we can enforce character compliance
     if alphabet:
-        kwargs = dict(moltype=alphabet.moltype)
+        kwargs = {"moltype": alphabet.moltype}
         motif_length = alphabet.motif_len
     else:
         kwargs = {}

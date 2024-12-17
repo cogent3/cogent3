@@ -24,10 +24,7 @@ def read(filepath):
                 matrix.append([int(i) for i in line])
 
     matrix = dict(zip(states, matrix, strict=False))
-    if len(states) == 4:
-        name = "rna" if "U" in states else "dna"
-    else:
-        name = "protein"
+    name = ("rna" if "U" in states else "dna") if len(states) == 4 else "protein"
 
     states = list(get_moltype(name))
     matrix = array([matrix[s] for s in states], dtype=int).T

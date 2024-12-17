@@ -54,7 +54,8 @@ def get_array_type(num_elements):
     elif num_elements < 2**64:
         dtype = uint64
     else:
-        raise NotImplementedError(f"{num_elements} is too big for 64-bit integer")
+        msg = f"{num_elements} is too big for 64-bit integer"
+        raise NotImplementedError(msg)
 
     return dtype
 
@@ -116,7 +117,7 @@ class Enumeration(tuple):
         register_alphabet_moltype(alphabet=result, moltype=moltype)
         return result
 
-    def __init__(self, data=None, gap=None, moltype=None):
+    def __init__(self, data=None, gap=None, moltype=None) -> None:
         """Initializes self from data, and optionally a gap.
 
         An Enumeration object mainly provides the mapping between objects and
@@ -153,7 +154,7 @@ class Enumeration(tuple):
             if len(motif_lengths) > 1:
                 self._motiflen = None
             else:
-                self._motiflen = list(motif_lengths)[0]
+                self._motiflen = next(iter(motif_lengths))
         except TypeError:  # some motifs don't support __len__, e.g. ints
             self._motiflen = None
 
@@ -207,7 +208,7 @@ class Enumeration(tuple):
         """
         return [self._obj_to_index[e] for e in data]
 
-    def is_valid(self, seq):
+    def is_valid(self, seq) -> bool | None:
         """Returns True if seq contains only items in self."""
         try:
             self.to_indices(seq)
@@ -261,10 +262,7 @@ class Enumeration(tuple):
         JointEnumerations are useful as the basis for contingency tables,
         transition matrices, counts of dinucleotides, etc.
         """
-        if self.moltype is other.moltype:
-            moltype = self.moltype
-        else:
-            moltype = None
+        moltype = self.moltype if self.moltype is other.moltype else None
         return JointEnumeration([self, other], moltype=moltype)
 
     @property
@@ -290,7 +288,7 @@ class JointEnumeration(Enumeration):
         sub_enums = cls._coerce_enumerations(data)
         return Enumeration.__new__(cls, product(*sub_enums), moltype=moltype)
 
-    def __init__(self, data=None, gap=None, moltype=None):
+    def __init__(self, data=None, gap=None, moltype=None) -> None:
         """Returns a new JointEnumeration object. See class docstring for info.
 
         Expects a list of Enumeration objects, or objects that can be coerced
@@ -307,7 +305,7 @@ class JointEnumeration(Enumeration):
         sub_enum_factors = [curr_factor]
         for i in sub_enum_lengths[-1:0:-1]:
             curr_factor *= i
-            sub_enum_factors = [curr_factor] + sub_enum_factors
+            sub_enum_factors = [curr_factor, *sub_enum_factors]
         self._sub_enum_factors = transpose(array([sub_enum_factors]))
 
         try:
@@ -320,7 +318,7 @@ class JointEnumeration(Enumeration):
         except (TypeError, AttributeError):  # index not settable
             self.gap = None
 
-        super(JointEnumeration, self).__init__(self, self.gap)
+        super().__init__(self, self.gap)
         # remember to reset shape after superclass init
         self.shape = tuple(sub_enum_lengths)
 
@@ -346,7 +344,7 @@ class JointEnumeration(Enumeration):
         data = self.to_rich_dict(for_pickle=False)
         return json.dumps(data)
 
-    def _coerce_enumerations(cls, enums):
+    def _coerce_enumerations(self, enums):
         """Coerces putative enumerations into Enumeration objects.
 
         For each object passed in, if it's an Enumeration object already, use
@@ -468,9 +466,9 @@ class Alphabet(Enumeration):
         """Returns a new Alphabet object."""
         return Enumeration.__new__(cls, data=motifset, gap=gap, moltype=moltype)
 
-    def __init__(self, motifset, gap="-", moltype=None):
+    def __init__(self, motifset, gap="-", moltype=None) -> None:
         """Returns a new Alphabet object."""
-        super(Alphabet, self).__init__(data=motifset, gap=gap, moltype=moltype)
+        super().__init__(data=motifset, gap=gap, moltype=moltype)
 
     def __getnewargs_ex__(self, *args, **kw):
         data = self.to_rich_dict(for_pickle=True)
@@ -537,7 +535,7 @@ class Alphabet(Enumeration):
         if self.includes_gap_motif():
             return self
         if not hasattr(self, "gapped"):
-            self.gapped = self._with(list(self) + [self.gap_char])
+            self.gapped = self._with([*list(self), self.gap_char])
         return self.gapped
 
     def get_subset(self, motif_subset, excluded=False):
@@ -568,7 +566,7 @@ class CharAlphabet(Alphabet):
     searately for remapping.
     """
 
-    def __init__(self, data=None, gap="-", moltype=None):
+    def __init__(self, data=None, gap="-", moltype=None) -> None:
         """Initializes self from items.
 
         data should be a sequence (string, list, etc.) of characters that
@@ -577,7 +575,7 @@ class CharAlphabet(Alphabet):
         gap should be a single character that represents the gap, e.g. '-'.
         """
         data = data or []
-        super(CharAlphabet, self).__init__(data, gap, moltype=moltype)
+        super().__init__(data, gap, moltype=moltype)
         self._indices_to_chars, self._chars_to_indices = _make_translation_tables(data)
         self._char_nums_to_indices = array(range(256), self.array_type)
         for c, i in self._chars_to_indices.items():
@@ -620,8 +618,7 @@ class CharAlphabet(Alphabet):
             return ""
         if len(s) == 1:
             val = self.to_chars(data)
-            val = val.tobytes().decode("utf-8")
-            return val
+            return val.tobytes().decode("utf-8")
         return delimiter.join(
             [i.tobytes().decode("utf-8") for i in self.to_chars(data)],
         )
@@ -684,7 +681,8 @@ class CharAlphabet(Alphabet):
         if (result >= max_val).any():
             invalid_chars = result >= max_val
             invalid = array(list(data))[invalid_chars]
-            raise AlphabetError(f"invalid character(s) found: {invalid.tolist()}")
+            msg = f"invalid character(s) found: {invalid.tolist()}"
+            raise AlphabetError(msg)
 
         return result
 

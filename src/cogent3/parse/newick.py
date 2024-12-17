@@ -37,17 +37,14 @@ class _Tokeniser:
     is often inconvenient for other purposes.
     """
 
-    def __init__(self, text, strict_labels=False, underscore_unmunge=True):
+    def __init__(self, text, strict_labels=False, underscore_unmunge=True) -> None:
         self.text = text
         self.posn = None
         self.strict_unquoted_labels = strict_labels
         self.underscore_unmunge = underscore_unmunge
 
     def error(self, detail=""):
-        if self.token:
-            msg = f'Unexpected "{self.token}" at '
-        else:
-            msg = "At "
+        msg = f'Unexpected "{self.token}" at ' if self.token else "At "
         (line, column) = self.posn
         sample = self.text.split("\n")[line][:column]
         if column > 30:
@@ -66,7 +63,7 @@ class _Tokeniser:
         in_comment = False
         comment = []
         splits = re.split(r"""([\t ]+|\n|''|""|[]['"(),:;\[\]])""", self.text)
-        for token in splits + [EOT]:
+        for token in [*splits, EOT]:
             label_complete = False
             token_consumed = True
             self.token = token
@@ -78,7 +75,8 @@ class _Tokeniser:
 
             if in_comment:
                 if token is EOT:
-                    raise self.error("Ended with unclosed comment")
+                    msg = "Ended with unclosed comment"
+                    raise self.error(msg)
                 if token == "]":
                     in_comment = False
                     text = "".join(comment)
@@ -89,9 +87,11 @@ class _Tokeniser:
 
             if closing_quote_token:
                 if token is EOT:
-                    raise self.error("Text ended inside quoted label")
+                    msg = "Text ended inside quoted label"
+                    raise self.error(msg)
                 if token == "\n":
-                    raise self.error("Line ended inside quoted label")
+                    msg = "Line ended inside quoted label"
+                    raise self.error(msg)
                 if token == closing_quote_token:
                     label_complete = True
                     closing_quote_token = None
@@ -146,7 +146,8 @@ def parse_string(text, constructor, **kw):
     """
     if "(" not in text and ";" not in text and text.strip():
         # otherwise "filename" is a valid (if small) tree
-        raise TreeParseError(f'Not a Newick tree: "{text[:10]}"')
+        msg = f'Not a Newick tree: "{text[:10]}"'
+        raise TreeParseError(msg)
     sentinals = [";", EOT]
     stack = []
     nodes = []
@@ -159,22 +160,27 @@ def parse_string(text, constructor, **kw):
             try:
                 attributes[attr_name] = attr_cast(token)
             except ValueError:
-                raise tokeniser.error(f"Can't convert {attr_name!r} '{token}'")
+                msg = f"Can't convert {attr_name!r} '{token}'"
+                raise tokeniser.error(msg)
             expected_attribute = None
         elif token == "(":
             if children is not None:
-                raise tokeniser.error("Two subtrees in one node, missing comma?")
+                msg = "Two subtrees in one node, missing comma?"
+                raise tokeniser.error(msg)
             if name or attributes:
-                raise tokeniser.error("Subtree must be first element of the node.")
+                msg = "Subtree must be first element of the node."
+                raise tokeniser.error(msg)
             stack.append((nodes, sentinals, attributes))
             (nodes, sentinals, attributes) = ([], [")"], {})
         elif token == ":":
             if "length" in attributes:
-                raise tokeniser.error("Already have a length.")
+                msg = "Already have a length."
+                raise tokeniser.error(msg)
             expected_attribute = ("length", float)
         elif token == "[":
             if "other" in attributes:
-                raise tokeniser.error("Already have a 'other'.")
+                msg = "Already have a 'other'."
+                raise tokeniser.error(msg)
             expected_attribute = ("other", lambda x: x.split(","))
         elif token in [")", ";", ",", EOT]:
             nodes.append(constructor(children, name, attributes))
@@ -186,13 +192,15 @@ def parse_string(text, constructor, **kw):
                 children = nodes
                 (nodes, sentinals, attributes) = stack.pop()
             elif token != "," or ")" not in sentinals:
+                msg = f'Was expecting to end with {" or ".join([repr(s) for s in sentinals])}'
                 raise tokeniser.error(
-                    f'Was expecting to end with {" or ".join([repr(s) for s in sentinals])}',
+                    msg,
                 )
         elif name is None:
             name = token
         else:
-            raise tokeniser.error(f"Already have a name {name!r} for this node.")
+            msg = f"Already have a name {name!r} for this node."
+            raise tokeniser.error(msg)
     assert not stack, stack
     assert len(nodes) == 1, len(nodes)
     return nodes[0]

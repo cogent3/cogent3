@@ -5,13 +5,15 @@ import inspect
 import re
 import textwrap
 import warnings
+from typing import TYPE_CHECKING
 
 import stevedore
 
-from cogent3.util.table import Table
-
 from .composable import is_app, is_app_composable
 from .io import open_data_store
+
+if TYPE_CHECKING:
+    from cogent3.util.table import Table
 
 # Entry_point for apps to register themselves as plugins
 APP_ENTRY_POINT = "cogent3.app"
@@ -31,6 +33,7 @@ def _get_extension_attr(extension):
     if not is_app(obj):
         warnings.warn(
             f"{obj!r} from {obj.__module__!r} is not a valid cogent3 app, skipping",
+            stacklevel=2,
         )
 
     _types = _make_types(obj)
@@ -102,7 +105,8 @@ def _make_signature(app: type) -> str:
     from cogent3.util.misc import get_object_provenance
 
     if app is None:
-        raise ValueError("app cannot be None")
+        msg = "app cannot be None"
+        raise ValueError(msg)
 
     # if app is an instance, get the underlying class
     if not inspect.isclass(app):
@@ -168,18 +172,21 @@ def _get_app_matching_name(name: str):
         extension for extension in get_app_manager() if extension.name == name
     ]
     if not extensions_matching:
-        raise ValueError(f"App {name!r} not found. Please check for typos.")
+        msg = f"App {name!r} not found. Please check for typos."
+        raise ValueError(msg)
 
     if modname:
         for extension in extensions_matching:
             if extension.module_name.endswith(modname):
                 return extension.plugin
-        raise ValueError(f"App {name!r} not found. Please check for typos.")
+        msg = f"App {name!r} not found. Please check for typos."
+        raise ValueError(msg)
 
     if len(extensions_matching) == 1:
         return extensions_matching[0].plugin
+    msg = f"Too many apps matching name {name!r},\n{available_apps().filtered(lambda x: name == x, columns='name')}"
     raise NameError(
-        f"Too many apps matching name {name!r},\n{available_apps().filtered(lambda x: name == x, columns='name')}",
+        msg,
     )
 
 
@@ -226,22 +233,22 @@ def _make_apphelp_docstring(app):
     docs = []
     app_doc = app.__doc__ or ""
     if app_doc.strip():
-        docs.extend(_make_head("Overview") + [_clean_overview(app_doc)] + [""])
+        docs.extend([*_make_head("Overview"), _clean_overview(app_doc), ""])
 
-    docs.extend(_make_head("Options for making the app") + [_make_signature(app)])
+    docs.extend([*_make_head("Options for making the app"), _make_signature(app)])
 
     init_doc = app.__init__.__doc__ or ""
     if init_doc.strip():
         docs.extend(["", _clean_params_docs(init_doc)])
 
     types = _make_types(app)
-    docs.extend([""] + _make_head("Input type") + [", ".join(types["_data_types"])])
-    docs.extend([""] + _make_head("Output type") + [", ".join(types["_return_types"])])
+    docs.extend(["", *_make_head("Input type"), ", ".join(types["_data_types"])])
+    docs.extend(["", *_make_head("Output type"), ", ".join(types["_return_types"])])
 
     return "\n".join(docs)
 
 
-def app_help(name: str):
+def app_help(name: str) -> None:
     """displays help for the named app
 
     Parameters
@@ -253,4 +260,4 @@ def app_help(name: str):
         to name.
     """
     app = _get_app_matching_name(name)
-    print(_make_apphelp_docstring(app))
+    print(_make_apphelp_docstring(app))  # noqa

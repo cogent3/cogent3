@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+import contextlib
+
 import numpy
 from numpy.linalg import solve as solve_linear_equations
 
@@ -33,20 +35,18 @@ def _ancestry2paths(A):
 class WLS(TreeEvaluator):
     """(err, best_tree) = WLS(dists).trex()"""
 
-    def __init__(self, dists, weights=None):
+    def __init__(self, dists, weights=None) -> None:
         """Arguments:
         - dists: a dict with structure (seq1, seq2): distance
         - weights: an equivalently structured dict with measurements of
           variability of the distance estimates. By default, the sqrt of
           distance is used."""
-        try:
+        with contextlib.suppress(AttributeError):
             dists = dists.to_dict()
-        except AttributeError:
-            pass
         self.dists = dists
-        self.weights = weights or dict(
-            (key, 1.0 / (self.dists[key] ** 2)) for key in self.dists
-        )
+        self.weights = weights or {
+            key: 1.0 / (self.dists[key] ** 2) for key in self.dists
+        }
         (self.names, dists) = distance_dict_to_1D(self.dists)
 
     def make_tree_scorer(self, names):

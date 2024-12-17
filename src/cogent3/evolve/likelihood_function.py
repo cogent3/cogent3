@@ -40,7 +40,7 @@ def _get_keyed_rule_indices(rules):
         edges = rule.get("edges", rule.get("edge", None)) or []
         edges = [edges] if type(edges) == str else edges
         par_name = rule["par_name"]
-        key = frozenset([par_name] + edges)
+        key = frozenset([par_name, *edges])
         new[key] = i
     return new
 
@@ -111,7 +111,8 @@ def update_scoped_rules(rich, null):
             continue
 
         if len(matches) > 1 and enames is not None:
-            raise ValueError(f"{rich_key} has too many mappings {matches}")
+            msg = f"{rich_key} has too many mappings {matches}"
+            raise ValueError(msg)
 
         match = matches[0]
         new_rules.append(update_rule_value(rich_rule, match))
@@ -154,7 +155,7 @@ def _get_param_mapping(rich, simple):
 class _ParamProjection:
     """projects parameter names, values between nested models"""
 
-    def __init__(self, simple_model, rich_model, motif_probs, same=True):
+    def __init__(self, simple_model, rich_model, motif_probs, same=True) -> None:
         # construct following by calling the functions we wrote
         self._rich_coords = rich_model.get_param_matrix_coords(include_ref_cell=True)
         self._simple_coords = simple_model.get_param_matrix_coords(
@@ -171,7 +172,7 @@ class _ParamProjection:
         """returns the motif prob corresponding to the model reference cell"""
         if same:
             return 1
-        i, j = list(self._rich_coords["ref_cell"])[0]
+        i, j = next(iter(self._rich_coords["ref_cell"]))
         return self._motif_probs[j]
 
     def _rate_not_same(self, simple_param, mle):
@@ -181,7 +182,7 @@ class _ParamProjection:
         for rich_param in self._param_map[simple_param]:
             if rich_param == "ref_cell":
                 continue
-            for i, j in self._rich_coords[rich_param]:
+            for _i, j in self._rich_coords[rich_param]:
                 new_terms[rich_param] = self._motif_probs[j] * mle / ref_val
 
         return new_terms
@@ -191,14 +192,14 @@ class _ParamProjection:
         for rich_param in self._param_map[simple_param]:
             if rich_param == "ref_cell":
                 continue
-            for i, j in self._rich_coords[rich_param]:
+            for _i, _j in self._rich_coords[rich_param]:
                 new_terms[rich_param] = mle
         return new_terms
 
     def update_param_rules(self, rules):
         new_rules = []
         if not self._same:
-            rules = rules[:] + [dict(par_name="ref_cell", init=1.0, edges=None)]
+            rules = rules[:] + [{"par_name": "ref_cell", "init": 1.0, "edges": None}]
 
         for rule in rules:
             # get the param name, mle, call self.projected_rate
@@ -207,10 +208,7 @@ class _ParamProjection:
                 new_rules.append(rule)
                 continue
 
-            if rule.get("is_constant", False):
-                par_val_key = "value"
-            else:
-                par_val_key = "init"
+            par_val_key = "value" if rule.get("is_constant", False) else "init"
 
             mle = rule[par_val_key]
 
@@ -225,21 +223,25 @@ class _ParamProjection:
         return new_rules
 
 
-def compatible_likelihood_functions(lf1, lf2):
+def compatible_likelihood_functions(lf1, lf2) -> bool:
     """returns True if all attributes of the two likelihood functions are compatible
     for mapping parameters, else raises ValueError or an AssertionError"""
     # tree's must have the same topology AND be oriented the same way
     # plus have the same edge names
     if len(lf1.bin_names) != 1 or len(lf1.bin_names) != len(lf2.bin_names):
-        raise NotImplementedError("Too many bins")
+        msg = "Too many bins"
+        raise NotImplementedError(msg)
     if len(lf1.locus_names) != 1 or len(lf1.locus_names) != len(lf2.locus_names):
-        raise NotImplementedError("Too many loci")
+        msg = "Too many loci"
+        raise NotImplementedError(msg)
     if lf1.model.get_motifs() != lf2.model.get_motifs():
-        raise AssertionError("Motifs don't match")
+        msg = "Motifs don't match"
+        raise AssertionError(msg)
     if lf1.tree.get_newick(with_node_names=True) != lf2.tree.get_newick(
         with_node_names=True,
     ):
-        raise AssertionError("Topology, Orientation or node names don't match")
+        msg = "Topology, Orientation or node names don't match"
+        raise AssertionError(msg)
     return True
 
 
@@ -514,7 +516,7 @@ class LikelihoodFunction(ParameterController):
             new_result = []
             for r in result:
                 for cat in self._valuesForDimension(dim):
-                    new_result.append(r + [cat])
+                    new_result.append([*r, cat])
             result = new_result
         return result
 
@@ -548,13 +550,13 @@ class LikelihoodFunction(ParameterController):
             table_.title = table_.title.capitalize()
             table_.set_repr_policy(show_shape=False)
             results[i] = table_._repr_html_()
-        results = [f"<h4>{title}</h4>", lnL, nfp] + results
+        results = [f"<h4>{title}</h4>", lnL, nfp, *results]
         return "\n".join(results)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         title, results = self._for_display()
 
         try:
@@ -567,7 +569,7 @@ class LikelihoodFunction(ParameterController):
         for table_ in results:
             table_.title = ""
 
-        results = [title, lnL, nfp] + results if lnL else [title, nfp] + results
+        results = [title, lnL, nfp, *results] if lnL else [title, nfp, *results]
         return "\n".join(map(str, results))
 
     def get_annotated_tree(self, length_as: str | None = None) -> PhyloNode:
@@ -589,7 +591,8 @@ class LikelihoodFunction(ParameterController):
         is_discrete = isinstance(self.model, DiscreteSubstitutionModel)
 
         if is_discrete and length_as != "paralinear":
-            raise ValueError(f"{length_as} invalid for discrete time process")
+            msg = f"{length_as} invalid for discrete time process"
+            raise ValueError(msg)
 
         assert length_as in ("ENS", "paralinear", None)
         d = self.get_param_value_dict(["edge"])
@@ -640,7 +643,8 @@ class LikelihoodFunction(ParameterController):
 
         mprobs = self.get_motif_probs_by_node()
         if isinstance(self.model, DiscreteSubstitutionModel):
-            raise TypeError("cannot get ENS for discrete-time models")
+            msg = "cannot get ENS for discrete-time models"
+            raise TypeError(msg)
 
         ens = self.get_lengths_as_ens(motif_probs=mprobs)
 
@@ -668,11 +672,11 @@ class LikelihoodFunction(ParameterController):
         If 1D, returns DictArray, else a dict of DictArray
         """
         param_names = self.get_param_names()
-        mprob_name = [n for n in param_names if "mprob" in n][0]
+        mprob_name = next(n for n in param_names if "mprob" in n)
         dims = tuple(self.get_used_dimensions(mprob_name))
         mprobs = self.get_param_value_dict(dimensions=dims, params=[mprob_name])
         if len(dims) == 2:
-            var = [c for c in dims if c != mprob_name][0]
+            var = next(c for c in dims if c != mprob_name)
             key = locals().get(var, None)
             mprobs = mprobs[mprob_name]
             if key is not None:
@@ -681,7 +685,7 @@ class LikelihoodFunction(ParameterController):
 
         # these can fall below the minimum allowed value due to
         # rounding errors, so I adjust these
-        for k, value in mprobs.items():
+        for value in mprobs.values():
             value.array = adjusted_gt_minprob(value.array, minprob=1e-6)
 
         if len(mprobs) == 1:
@@ -699,17 +703,11 @@ class LikelihoodFunction(ParameterController):
             return {}
 
         get_value_of = self.get_param_value
-        value_of_kw = dict(locus=locus)
+        value_of_kw = {"locus": locus}
 
-        if bin is None:
-            bin_names = self.bin_names
-        else:
-            bin_names = [bin]
+        bin_names = self.bin_names if bin is None else [bin]
 
-        if len(bin_names) == 1:
-            bprobs = [1.0]
-        else:
-            bprobs = get_value_of("bprobs", **value_of_kw)
+        bprobs = [1.0] if len(bin_names) == 1 else get_value_of("bprobs", **value_of_kw)
 
         mprobs = [get_value_of("mprobs", bin=b, **value_of_kw) for b in bin_names]
 
@@ -857,13 +855,11 @@ class LikelihoodFunction(ParameterController):
                 if "length" in param_names:
                     param_names.remove("length")
                     param_names.insert(0, "length")
-                raw_table["parent"] = dict(
-                    [
-                        (e.name, e.parent.name)
-                        for e in self._tree.get_edge_vector()
-                        if not e.isroot()
-                    ],
-                )
+                raw_table["parent"] = {
+                    e.name: e.parent.name
+                    for e in self._tree.get_edge_vector()
+                    if not e.isroot()
+                }
                 param_names.insert(0, "parent")
             list_table = []
             heading_names = list(table_dims) + param_names
@@ -909,11 +905,11 @@ class LikelihoodFunction(ParameterController):
                     list_table = [list_table]
                 elif stat_table.shape[1] == 3:
                     rows = []
-                    other_col = [
+                    other_col = next(
                         c
                         for c in stat_table.header
                         if "motif" not in c and "mprobs" not in c
-                    ][0]
+                    )
                     for val in stat_table.distinct_values(other_col):
                         subtable = stat_table.filtered(
                             lambda x: x == val,
@@ -925,7 +921,7 @@ class LikelihoodFunction(ParameterController):
                             ),
                         )
                         rows.append([val] + [motif_prob[m] for m in motifs])
-                    heading_names = [other_col] + motifs
+                    heading_names = [other_col, *motifs]
                     list_table = rows
                 stat_table = table.Table(
                     heading_names,
@@ -984,27 +980,25 @@ class LikelihoodFunction(ParameterController):
             # for "storage", make this indeterminate in those cases
             unique_Q = None
 
-        data = dict(
-            model=model,
-            tree=tree,
-            alignment=alignment,
-            likelihood_construction=data,
-            param_rules=self.get_param_rules(),
-            lnL=self.get_log_likelihood(),
-            nfp=self.get_num_free_params(),
-            motif_probs=mprobs,
-            DLC=DLC,
-            unique_Q=unique_Q,
-            type=get_object_provenance(self),
-            name=self.get_name(),
-            version=__version__,
-        )
-        return data
+        return {
+            "model": model,
+            "tree": tree,
+            "alignment": alignment,
+            "likelihood_construction": data,
+            "param_rules": self.get_param_rules(),
+            "lnL": self.get_log_likelihood(),
+            "nfp": self.get_num_free_params(),
+            "motif_probs": mprobs,
+            "DLC": DLC,
+            "unique_Q": unique_Q,
+            "type": get_object_provenance(self),
+            "name": self.get_name(),
+            "version": __version__,
+        }
 
     def to_json(self):
         data = self.to_rich_dict()
-        data = json.dumps(data)
-        return data
+        return json.dumps(data)
 
     @property
     def name(self):
@@ -1014,22 +1008,22 @@ class LikelihoodFunction(ParameterController):
         return self._name
 
     @name.setter
-    def name(self, name):
+    def name(self, name) -> None:
         self._name = name
 
     # For tests.  Compat with old LF interface
-    def set_name(self, name):
+    def set_name(self, name) -> None:
         self.name = name
 
     def get_name(self):
         return self.name
 
-    def set_tables_format(self, space=4, digits=4):
+    def set_tables_format(self, space=4, digits=4) -> None:
         """sets display properties for statistics tables. This affects results
         of str(lf) too."""
         space = [space, 4][type(space) != int]
         digits = [digits, 4][type(digits) != int]
-        self._format = dict(space=space, digits=digits)
+        self._format = {"space": space, "digits": digits}
 
     def _get_motif_probs_by_node_tr(self, edges=None, bin=None, locus=None):
         """returns motif probs by node for time-reversible models"""
@@ -1063,7 +1057,7 @@ class LikelihoodFunction(ParameterController):
         if isinstance(self.model, TimeReversible):
             return self._get_motif_probs_by_node_tr(edges=edges, bin=bin, locus=locus)
 
-        kw = dict(bin=bin, locus=locus)
+        kw = {"bin": bin, "locus": locus}
         mprobs = self.get_param_value("mprobs", **kw)
         mprobs = self._model.calc_word_probs(mprobs)
         result = self._nodeMotifProbs(self._tree, mprobs, kw)
@@ -1117,8 +1111,9 @@ class LikelihoodFunction(ParameterController):
             try:
                 sequence_length = len(lht.index)
             except AttributeError:
+                msg = "Must provide sequence_length since no alignment set on self"
                 raise ValueError(
-                    "Must provide sequence_length since no alignment set on self",
+                    msg,
                 )
 
             leaves = self.get_param_value("leaf_likelihoods", locus=locus)
@@ -1156,7 +1151,7 @@ class LikelihoodFunction(ParameterController):
         else:
             mprobs = self.get_param_value("mprobs", locus=locus, edge="root")
             mprobs = self._model.calc_word_probs(mprobs)
-            mprobs = dict((m, p) for (m, p) in zip(self._motifs, mprobs, strict=False))
+            mprobs = dict(zip(self._motifs, mprobs, strict=False))
             root_sequence = random_sequence(random_series, mprobs, sequence_length)
 
         simulated_sequences = evolver(self._tree, root_sequence)
@@ -1167,15 +1162,12 @@ class LikelihoodFunction(ParameterController):
             array_align=True,
         )
 
-    def all_psubs_DLC(self):
+    def all_psubs_DLC(self) -> bool:
         """Returns True if every Psub matrix is Diagonal Largest in Column"""
         all_psubs = self.get_all_psubs()
-        for P in all_psubs.values():
-            if (P.to_array().diagonal() < P).any():
-                return False
-        return True
+        return all(not (P.to_array().diagonal() < P).any() for P in all_psubs.values())
 
-    def all_rate_matrices_unique(self):
+    def all_rate_matrices_unique(self) -> bool:
         """Returns True if every rate matrix is unique for its Psub matrix"""
         # get all possible Q, as products of t, and any rate-het terms
         all_Q = self.get_all_rate_matrices(calibrated=False)
@@ -1185,7 +1177,7 @@ class LikelihoodFunction(ParameterController):
                 return False
         return True
 
-    def initialise_from_nested(self, nested_lf):
+    def initialise_from_nested(self, nested_lf) -> None:
         from cogent3.evolve.substitution_model import Stationary
 
         assert (

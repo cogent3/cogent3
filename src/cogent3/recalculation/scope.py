@@ -30,10 +30,10 @@ class IncompleteScopeError(ScopeError):
 
 # Can be passed to _LeafDefn.interpret_scopes()
 class _ExistentialQualifier:
-    def __init__(self, cats=None):
+    def __init__(self, cats=None) -> None:
         self.cats = cats
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self.cats is None:
             return self.__class__.__name__
         return f"{self.__class__.__name__}({self.cats})"
@@ -72,7 +72,7 @@ def _indexed(values):
 
 
 def _fmtrow(width, values, maxwidth):
-    if len(dict([(id(v), 1) for v in values])) == 1 and len(str(values[0])) > width:
+    if len({id(v): 1 for v in values}) == 1 and len(str(values[0])) > width:
         s = str(values[0]).replace("\n", " ")
         if len(s) > maxwidth:
             s = s[: maxwidth - 4] + "..."
@@ -86,10 +86,10 @@ class Undefined:
     # Placeholder for a value that can't be calculated
     # because input 'name' has not been provided.
 
-    def __init__(self, name):
+    def __init__(self, name) -> None:
         self.name = name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Undef({self.name})"
 
 
@@ -104,7 +104,7 @@ def nullor(name, f, recycled=False):
         if any(arg is None for arg in args):
             return Undefined(name)
         if recycled:
-            args = (None,) + args
+            args = (None, *args)
         return f(*args)
 
     return g
@@ -126,7 +126,7 @@ class _Defn:
     default = None
     user_param = False
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.clients = []
         self.selection = {}
         self.assignments = {}
@@ -139,10 +139,10 @@ class _Defn:
             name += extra_label
         return name
 
-    def get_default_setting(self):
+    def get_default_setting(self) -> None:
         return None
 
-    def add_client(self, client):
+    def add_client(self, client) -> None:
         assert not self.activated, self.name
         assert not self.assignments, self.assignments
         self.clients.append(client)
@@ -158,7 +158,8 @@ class _Defn:
         # Defn needs from an input Defn with `arg_dimensions`
         if not self.activated:
             assert not self.clients, self.clients
-            raise RuntimeError(f'Value at "{self.name}" step never used')
+            msg = f'Value at "{self.name}" step never used'
+            raise RuntimeError(msg)
         if self.assignments:
             result = []
             for scope_t in self.assignments:
@@ -172,7 +173,7 @@ class _Defn:
             result = [self.selection]
         return result
 
-    def add_scopes(self, scopes):
+    def add_scopes(self, scopes) -> None:
         assert not self.activated
         for scope in scopes:
             scope_t = [scope.get(d, "all") for d in self.valid_dimensions]
@@ -208,16 +209,19 @@ class _Defn:
         for scope_t in self.interpret_scope(**scope):
             posns.add(self.index[scope_t])
         if len(posns) == 0:
-            raise InvalidScopeError(f"no value for {self.name} at {scope}")
+            msg = f"no value for {self.name} at {scope}"
+            raise InvalidScopeError(msg)
         if len(posns) > 1:
+            msg = f"{len(posns)} distinct values of {self.name} within {scope}"
             raise IncompleteScopeError(
-                f"{len(posns)} distinct values of {self.name} within {scope}",
+                msg,
             )
         return the_one_item_in(posns)
 
     def wrap_value(self, value):
         if isinstance(value, Undefined):
-            raise ValueError(f'Input "{value.name}" is not defined')
+            msg = f'Input "{value.name}" is not defined'
+            raise ValueError(msg)
         if getattr(self, "array_template", None) is not None:
             value = self.array_template.wrap(value)
         return value
@@ -277,7 +281,7 @@ class _Defn:
             if selection in [EACH, ALL]:
                 dimension_independent = selection.independent
                 selection = None
-            elif isinstance(selection, (EACH, ALL)):
+            elif isinstance(selection, EACH | ALL):
                 dimension_independent = selection.independent
                 selection = selection.cats
             else:
@@ -335,7 +339,7 @@ class _Defn:
 
         return result
 
-    def fill_par_value_dict(self, result, dimensions, cell_value_lookup):
+    def fill_par_value_dict(self, result, dimensions, cell_value_lookup) -> None:
         """Low level method for extracting values.  Pushes values of this
         particular parameter/defn into the dict tree 'result',
         eg: length_defn.fill_par_value_dict(['edge']) populates 'result' like
@@ -366,7 +370,7 @@ class _Defn:
                 raise IncompleteScopeError(msg)
             d[key] = value
 
-    def _update_from_assignments(self):
+    def _update_from_assignments(self) -> None:
         (self.uniq, self.index) = _indexed(self.assignments)
 
     def _local_repr(self, col_width, max_width):
@@ -392,8 +396,8 @@ class _Defn:
             ],
         )
 
-    def __repr__(self):
-        return "%s(%s x %s)" % (
+    def __repr__(self) -> str:
+        return "{}({} x {})".format(
             self.__class__.__name__,
             self.name,
             len(getattr(self, "cells", [])),
@@ -407,7 +411,7 @@ class SelectFromDimension(_Defn):
 
     name = "select"
 
-    def __init__(self, arg, **kw):
+    def __init__(self, arg, **kw) -> None:
         assert not arg.activated, arg.name
         _Defn.__init__(self)
         self.args = (arg,)
@@ -416,7 +420,7 @@ class SelectFromDimension(_Defn):
         self.selection = kw
         arg.add_client(self)
 
-    def update(self):
+    def update(self) -> None:
         for scope_t in self.assignments:
             scope = dict(list(zip(self.valid_dimensions, scope_t, strict=False)))
             scope.update(self.selection)
@@ -432,8 +436,8 @@ class SelectFromDimension(_Defn):
 
 
 class _NonLeafDefn(_Defn):
-    def __init__(self, *args, **kw):
-        super(_NonLeafDefn, self).__init__()
+    def __init__(self, *args, **kw) -> None:
+        super().__init__()
         valid_dimensions = []
         for arg in args:
             assert isinstance(arg, _Defn), type(arg)
@@ -449,10 +453,10 @@ class _NonLeafDefn(_Defn):
             self.name = kw.pop("name")
         self.setup(**kw)
 
-    def setup(self):
+    def setup(self) -> None:
         pass
 
-    def update(self):
+    def update(self) -> None:
         for scope_t in self.assignments:
             scope = dict(list(zip(self.valid_dimensions, scope_t, strict=False)))
             input_nums = [arg.output_ordinal_for(scope) for arg in self.args]
@@ -492,8 +496,8 @@ class _LeafDefn(_Defn):
         extra_label=None,
         dimensions=None,
         independent_by_default=None,
-    ):
-        super(_LeafDefn, self).__init__()
+    ) -> None:
+        super().__init__()
         if dimensions is not None:
             assert type(dimensions) in [list, tuple], type(dimensions)
             self.valid_dimensions = tuple(dimensions)
@@ -514,9 +518,12 @@ class _LeafDefn(_Defn):
             self._default_setting = self.make_default_setting()
         return self._default_setting
 
-    def update(self):
+    def update(self) -> None:
         self._update_from_assignments()
-        gdv = lambda x: x.get_default_value()
+
+        def gdv(x):
+            return x.get_default_value()
+
         self.values = [nullor(self.name, gdv)(u) for u in self.uniq]
 
     def assign_all(
@@ -528,7 +535,7 @@ class _LeafDefn(_Defn):
         const=None,
         independent=None,
         warn=False,
-    ):
+    ) -> None:
         settings = []
         if const is None:
             const = self.const_by_default
@@ -546,8 +553,9 @@ class _LeafDefn(_Defn):
                 setting = ConstVal(s_value)
             elif not self.numeric:
                 if lower is not None or upper is not None:
+                    msg = f"Non-scalar input '{self.name}' doesn't support bounds"
                     raise ValueError(
-                        f"Non-scalar input '{self.name}' doesn't support bounds",
+                        msg,
                     )
                 setting = Var((None, s_value, None))
             else:
@@ -558,7 +566,8 @@ class _LeafDefn(_Defn):
                     s_upper = upper
 
                 if s_lower > s_upper:
-                    raise ValueError("Bounds: upper < lower")
+                    msg = "Bounds: upper < lower"
+                    raise ValueError(msg)
                 if (s_lower is not None) and s_value < s_lower:
                     s_value = s_lower
                     if warn:
@@ -614,16 +623,15 @@ class _LeafDefn(_Defn):
             (lowest, default, highest) = self.get_default_setting().get_bounds()
         return (lowest, highest)
 
-    def __repr__(self):
-        return "%s(%s)" % (
-            self.__class__.__name__,
-            self._local_repr(col_width=6, max_width=60),
+    def __repr__(self) -> str:
+        return (
+            f"{self.__class__.__name__}({self._local_repr(col_width=6, max_width=60)})"
         )
 
-    def _local_repr(self, col_width, max_width):
+    def _local_repr(self, col_width, max_width) -> str:
         template = f"%{col_width}.{(col_width - 1) // 2}f"
         assignments = []
-        for i, a in list(self.assignments.items()):
+        for _i, a in list(self.assignments.items()):
             if a is None:
                 assignments.append("None")
             elif a.is_constant:
@@ -643,7 +651,7 @@ class ParameterController:
     """Holds a set of activated CalculationDefns, including their parameter
     scopes.  Makes calculators on demand."""
 
-    def __init__(self, top_defn):
+    def __init__(self, top_defn) -> None:
         # topological sort
         indegree = {id(top_defn): 0}
         Q = [top_defn]
@@ -784,13 +792,13 @@ class ParameterController:
         self._update_suspended = old
         self._updateIntermediateValues()
 
-    def update_intermediate_values(self, changed=None):
+    def update_intermediate_values(self, changed=None) -> None:
         if changed is None:
             changed = self.defns  # all
         self._changed.update(id(defn) for defn in changed)
         self._updateIntermediateValues()
 
-    def _updateIntermediateValues(self):
+    def _updateIntermediateValues(self) -> None:
         if self._update_suspended:
             return
         # use topological sort order
@@ -801,7 +809,7 @@ class ParameterController:
                     self._changed.add(id(c))
         self._changed.clear()
 
-    def assign_all(self, par_name, *args, **kw):
+    def assign_all(self, par_name, *args, **kw) -> None:
         defn = self.defn_for[par_name]
         if not isinstance(defn, _LeafDefn):
             args = " and ".join([f'"{a.name}"' for a in defn.args])
@@ -825,7 +833,7 @@ class ParameterController:
             calculatorClass = Calculator
         return calculatorClass(cells, input_soup, **kw)
 
-    def update_from_calculator(self, calc):
+    def update_from_calculator(self, calc) -> None:
         changed = []
         for defn in list(self.defn_for.values()):
             if isinstance(defn, _LeafDefn):
@@ -887,6 +895,7 @@ class ParameterController:
             self.update_from_calculator(lc)
         if return_calculator:
             return lc
+        return None
 
     def graphviz(self):
         lc = self.make_calculator()

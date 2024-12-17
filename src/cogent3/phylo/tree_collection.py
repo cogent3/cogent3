@@ -18,7 +18,7 @@ class _UserList(list):
 class ScoredTreeCollection(_UserList):
     """An ordered list of (score, tree) tuples"""
 
-    def write(self, filename):
+    def write(self, filename) -> None:
         with atomic_write(filename, mode="wt") as f:
             for score, tree in self:
                 f.writelines(
@@ -59,7 +59,7 @@ class WeightedTreeCollection(UsefullyScoredTreeCollection):
 class LogLikelihoodScoredTreeCollection(UsefullyScoredTreeCollection):
     """An ordered list of (log likelihood, tree) tuples"""
 
-    def __init__(self, trees):
+    def __init__(self, trees) -> None:
         list.__init__(self, trees)
         # Quick and very dirty check of order
         assert self[0][0] >= self[-1][0]
@@ -131,7 +131,8 @@ def make_trees(filename):
         line = line.split(None, 1)
         lnL = float(line[0])
         if lnL > 1:
-            raise ValueError(f"likelihoods expected, not {lnL}")
+            msg = f"likelihoods expected, not {lnL}"
+            raise ValueError(msg)
         if lnL > 0:
             assert klass in [list, WeightedTreeCollection]
             klass = WeightedTreeCollection

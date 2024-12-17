@@ -113,10 +113,9 @@ def bounds_exception_catching_function(f):
     def _wrapper(x, **kw):
         try:
             result = f(x, **kw)
-            if not numpy.isfinite(result):
-                if not acceptable_inf(result):
-                    warnings.warn(f"Non-finite f {result} from {x}")
-                    raise ParameterOutOfBoundsError
+            if not numpy.isfinite(result) and not acceptable_inf(result):
+                warnings.warn(f"Non-finite f {result} from {x}", stacklevel=2)
+                raise ParameterOutOfBoundsError
         except (ArithmeticError, ParameterOutOfBoundsError):
             result = out_of_bounds_value
         return result
@@ -213,13 +212,17 @@ def maximise(
     try:
         fval = f(x)
     except (ArithmeticError, ParameterOutOfBoundsError) as detail:
+        msg = f"Initial parameter values must be valid {detail.args!r}"
         raise ValueError(
-            f"Initial parameter values must be valid {detail.args!r}",
+            msg,
         ) from detail
 
     if not numpy.isfinite(fval):
+        msg = (
+            f"Initial parameter values must evaluate to a finite value, not {fval}. {x}"
+        )
         raise ValueError(
-            f"Initial parameter values must evaluate to a finite value, not {fval}. {x}",
+            msg,
         )
 
     f = bounds_exception_catching_function(f)
@@ -235,7 +238,7 @@ def maximise(
         else:
             gend = 0.0
             if warn:
-                warnings.warn(f"Unused args for local optimisation: {kw}")
+                warnings.warn(f"Unused args for local optimisation: {kw}", stacklevel=2)
 
         # Local optimisation
         if do_local:

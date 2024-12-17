@@ -27,16 +27,19 @@ def load_from_json(filename, classes):
     try:
         _, data, completed = load_record_from_json(content)
         if not completed:
-            raise TypeError("json file is a record for type NotCompleted.")
+            msg = "json file is a record for type NotCompleted."
+            raise TypeError(msg)
     except (KeyError, TypeError):
         data = content
 
     type_ = data.get("type", None)
     if type_ is None:
-        raise TypeError("json does not contain 'type' key")
+        msg = "json does not contain 'type' key"
+        raise TypeError(msg)
 
     valid_types = {get_object_provenance(klass) for klass in classes}
     if type_ not in valid_types:
-        raise TypeError(f"Invalid data type: {type_} is not one of {valid_types}")
+        msg = f"Invalid data type: {type_} is not one of {valid_types}"
+        raise TypeError(msg)
 
     return deserialise_object(data)

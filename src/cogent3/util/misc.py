@@ -8,7 +8,6 @@ import os
 import re
 import typing
 import warnings
-from collections.abc import Callable
 from random import choice
 from typing import Any
 from urllib.parse import urlparse
@@ -16,6 +15,9 @@ from warnings import warn
 
 import numpy
 from numpy import array, finfo, float64, ndarray, zeros
+
+if typing.TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 def _adjusted_gt_minprob_vector(probs, minprob):
@@ -92,7 +94,7 @@ def adjusted_within_bounds(value, lower, upper, eps=1e-7, action="warn"):
     elif (lower > value or value > upper) and action == "raise":
         raise ValueError(err_msg)
     else:
-        warn(wrn_msg, category=UserWarning)
+        warn(wrn_msg, category=UserWarning, stacklevel=2)
         value = upper if value > upper else lower
 
     return value
@@ -102,7 +104,7 @@ def bytes_to_string(data):
     """returns a string if data is bytes, otherwise returns original"""
     if isinstance(data, bytes):
         data = data.decode("utf_8")
-    elif isinstance(data, (list, tuple)):
+    elif isinstance(data, list | tuple):
         data = "".join(str(d) for d in data)
     else:
         data = str(data)
@@ -135,7 +137,7 @@ def curry(f, *a, **kw):
     # make docstring for curried funtion
     curry_params = []
     if a:
-        curry_params.extend([e for e in a])
+        curry_params.extend(list(a))
     if kw:
         curry_params.extend([f"{k}={v}" for k, v in list(kw.items())])
     # str it to prevent error in join()
@@ -146,7 +148,7 @@ def curry(f, *a, **kw):
     except:  # e.g.  itertools.groupby failed .func_name
         f_name = "?"
 
-    curried.__doc__ = " curry(%s,%s)\n== curried from %s ==\n %s" % (
+    curried.__doc__ = " curry({},{})\n== curried from {} ==\n {}".format(
         f_name,
         ", ".join(curry_params),
         f_name,
@@ -159,7 +161,7 @@ def curry(f, *a, **kw):
 # end curry
 
 
-def is_iterable(obj):
+def is_iterable(obj) -> bool:
     """return True if obj is iterable"""
     try:
         iter(obj)
@@ -213,9 +215,9 @@ def recursive_flatten(
     return result
 
 
-def not_list_tuple(obj):
+def not_list_tuple(obj) -> bool:
     """return False if obj is a list or a tuple"""
-    return not isinstance(obj, (list, tuple))
+    return not isinstance(obj, list | tuple)
 
 
 list_flatten = curry(recursive_flatten, is_leaf=not_list_tuple)
@@ -276,24 +278,22 @@ def DistanceFromMatrix(matrix):
 class ClassChecker:
     """Container for classes: 'if t in x == True' if t is the right class."""
 
-    def __init__(self, *Classes):
+    def __init__(self, *Classes) -> None:
         """Returns a new ClassChecker that accepts specified classes."""
         type_type = type(str)
         for c in Classes:
             if type(c) != type_type:
+                msg = f"ClassChecker found non-type object '{c}' in parameter list."
                 raise TypeError(
-                    f"ClassChecker found non-type object '{c}' in parameter list.",
+                    msg,
                 )
         self.Classes = list(Classes)
 
-    def __contains__(self, item):
+    def __contains__(self, item) -> bool:
         """Returns True if item is a subclass of one of the classes in self."""
-        for c in self.Classes:
-            if isinstance(item, c):
-                return True
-        return False
+        return any(isinstance(item, c) for c in self.Classes)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Informal string representation: returns list"""
         return str(self.Classes)
 
@@ -314,7 +314,7 @@ class Delegator:
     Warning: will not work on classes that use __slots__ instead of __dict__.
     """
 
-    def __init__(self, obj):
+    def __init__(self, obj) -> None:
         """Returns a new Delegator that uses methods of obj.
 
         NOTE: It's important that this bypasses the normal attribute setting
@@ -332,7 +332,7 @@ class Delegator:
         handler = self.__dict__.setdefault("_handler", None)
         return getattr(handler, attr)
 
-    def __setattr__(self, attr, value):
+    def __setattr__(self, attr, value) -> None:
         """Forwards requests to change unhandled attributes to self._handler.
 
         This logic is rather complicated because of GenericRecord objects, which
@@ -350,7 +350,8 @@ class Delegator:
         # it's self).
         if attr == "_handler":
             if value is self:
-                raise ValueError("Can't set object to be its own handler.")
+                msg = "Can't set object to be its own handler."
+                raise ValueError(msg)
             self.__dict__["_handler"] = value
             return None
         # check if the attribute is in this object's dict
@@ -368,7 +369,7 @@ class Delegator:
 class FunctionWrapper:
     """Wraps a function to hide it from a class so that it isn't a method."""
 
-    def __init__(self, Function):
+    def __init__(self, Function) -> None:
         self.Function = Function
 
     def __call__(self, *args, **kwargs):
@@ -407,7 +408,7 @@ class ConstrainedContainer:
             return self.mask
         return None
 
-    def __init__(self, constraint=None, mask=None):
+    def __init__(self, constraint=None, mask=None) -> None:
         """Returns new ConstrainedContainer, incorporating constraint.
 
         WARNING: Does not perform validation. It is the subclass's
@@ -418,7 +419,7 @@ class ConstrainedContainer:
         if mask is not None:
             self.mask = mask
 
-    def matches_constraint(self, constraint):
+    def matches_constraint(self, constraint) -> bool:
         """Returns True if all items in self are allowed."""
         # First checks if constraints are compatible. If not, or if the current
         # sequence has no constraint, does item by item search.
@@ -451,7 +452,7 @@ class ConstrainedContainer:
                 return False
         return True
 
-    def other_is_valid(self, other):
+    def other_is_valid(self, other) -> bool:
         """Returns True if other has only items allowed in self.constraint."""
         # First, checks other.Constrant for compatibility.
         # If other.constraint is incompatible, checks items in other.
@@ -479,34 +480,30 @@ class ConstrainedContainer:
             return False  # e.g. tried to check int in str alphabet
         return True
 
-    def item_is_valid(self, item):
+    def item_is_valid(self, item) -> bool | None:
         """Returns True if single item is in self.constraint."""
         try:
-            if (not self.constraint) or self.mask(item) in self.constraint:
-                return True
-            return False
+            return bool(not self.constraint or self.mask(item) in self.constraint)
         except (TypeError, ConstraintError):  # wrong type or not allowed
             return False
 
-    def sequence_is_valid(self, sequence):
+    def sequence_is_valid(self, sequence) -> bool:
         """Returns True if all items in sequence are in self.constraint."""
         is_valid = self.item_is_valid
-        for i in map(self.mask, sequence):
-            if not is_valid(i):
-                return False
-        return True
+        return all(is_valid(i) for i in map(self.mask, sequence))
 
     def _get_constraint(self):
         """Accessor for constraint."""
         return self._constraint
 
-    def _set_constraint(self, constraint):
+    def _set_constraint(self, constraint) -> None:
         """Mutator for constraint."""
         if self.matches_constraint(constraint):
             self._constraint = constraint
         else:
+            msg = f"Sequence '{self}' incompatible with constraint '{constraint}'"
             raise ConstraintError(
-                f"Sequence '{self}' incompatible with constraint '{constraint}'",
+                msg,
             )
 
     constraint = property(_get_constraint, _set_constraint)
@@ -515,7 +512,7 @@ class ConstrainedContainer:
 class ConstrainedList(ConstrainedContainer, list):
     """List that is always valid on a specified constraint."""
 
-    def __init__(self, data=None, constraint=None, mask=None):
+    def __init__(self, data=None, constraint=None, mask=None) -> None:
         """Constructor for validated ConstrainedList."""
         ConstrainedContainer.__init__(self, constraint, mask)
         if data:
@@ -537,8 +534,9 @@ class ConstrainedList(ConstrainedContainer, list):
         other = list(map(self.mask, other))
         if self.other_is_valid(other):
             return list.__iadd__(self, other)
+        msg = f"Sequence '{other}' has items not in constraint '{self.constraint}'"
         raise ConstraintError(
-            f"Sequence '{other}' has items not in constraint '{self.constraint}'",
+            msg,
         )
 
     def __mul__(self, multiplier):
@@ -557,19 +555,20 @@ class ConstrainedList(ConstrainedContainer, list):
             result.mask = mask
         return result
 
-    def __setitem__(self, index, item):
+    def __setitem__(self, index, item) -> None:
         """Sets self[index] to item if item in constraint. Handles slices"""
         if isinstance(index, slice):
             if not self.other_is_valid(item):
+                msg = f"Sequence '{item}' contains items not in constraint '{self.constraint}'."
                 raise ConstraintError(
-                    "Sequence '%s' contains items not in constraint '%s'."
-                    % (item, self.constraint),
+                    msg,
                 )
             item = list(map(self.mask, item))
         else:
             if not self.item_is_valid(item):
+                msg = f"Item '{item}' not in constraint '{self.constraint}'"
                 raise ConstraintError(
-                    f"Item '{item}' not in constraint '{self.constraint}'",
+                    msg,
                 )
             item = self.mask(item)
         list.__setitem__(self, index, item)
@@ -579,32 +578,38 @@ class ConstrainedList(ConstrainedContainer, list):
         if self.other_is_valid(sequence):
             list.__setslice__(self, start, end, list(map(self.mask, sequence)))
         else:
+            msg = (
+                f"Sequence '{sequence}' has items not in constraint '{self.constraint}'"
+            )
             raise ConstraintError(
-                f"Sequence '{sequence}' has items not in constraint '{self.constraint}'",
+                msg,
             )
 
-    def append(self, item):
+    def append(self, item) -> None:
         """Appends item to self."""
         if not self.item_is_valid(item):
+            msg = f"Item '{item}' not in constraint '{self.constraint}'"
             raise ConstraintError(
-                f"Item '{item}' not in constraint '{self.constraint}'",
+                msg,
             )
         list.append(self, self.mask(item))
 
-    def extend(self, sequence):
+    def extend(self, sequence) -> None:
         """Appends sequence to self."""
         if self.other_is_valid(sequence):
             list.extend(self, list(map(self.mask, sequence)))
         else:
+            msg = f"Some items in '{sequence}' not in constraint '{self.constraint}'"
             raise ConstraintError(
-                f"Some items in '{sequence}' not in constraint '{self.constraint}'",
+                msg,
             )
 
-    def insert(self, position, item):
+    def insert(self, position, item) -> None:
         """Inserts item at position in self."""
         if not self.item_is_valid(item):
+            msg = f"Item '{item}' not in constraint '{self.constraint}'"
             raise ConstraintError(
-                f"Item '{item}' not in constraint '{self.constraint}'",
+                msg,
             )
         list.insert(self, position, self.mask(item))
 
@@ -621,8 +626,7 @@ class ConstrainedList(ConstrainedContainer, list):
     def __getitem__(self, *args, **kwargs):
         """Make sure slice remembers the constraint."""
         if len(args) == 1 and type(args[0]) == int and not kwargs:
-            val = list.__getitem__(self, args[0])
-            return val
+            return list.__getitem__(self, args[0])
 
         val = list.__getitem__(self, *args, **kwargs)
         result = self.__class__(val, constraint=self.constraint)
@@ -635,10 +639,10 @@ class ConstrainedList(ConstrainedContainer, list):
 class MappedList(ConstrainedList):
     """As for ConstrainedList, but maps items on contains and getitem."""
 
-    def __contains__(self, item):
+    def __contains__(self, item) -> bool:
         """Ensure that contains applies the mask."""
         try:
-            return super(MappedList, self).__contains__(self.mask(item))
+            return super().__contains__(self.mask(item))
         except (TypeError, ValueError):
             return False
 
@@ -655,10 +659,7 @@ class ConstrainedDict(ConstrainedContainer, dict):
 
     def _get_mask_and_valmask(self):
         """Helper method to check whether mask and value_mask were set."""
-        if self.mask is self.__class__.mask:
-            mask = None
-        else:
-            mask = self.mask
+        mask = None if self.mask is self.__class__.mask else self.mask
 
         if self.value_mask is self.__class__.value_mask:
             valmask = None
@@ -666,7 +667,7 @@ class ConstrainedDict(ConstrainedContainer, dict):
             valmask = self.value_mask
         return mask, valmask
 
-    def __init__(self, data=None, constraint=None, mask=None, value_mask=None):
+    def __init__(self, data=None, constraint=None, mask=None, value_mask=None) -> None:
         """Constructor for validated ConstrainedDict."""
         ConstrainedContainer.__init__(self, constraint, mask)
         if value_mask is not None:
@@ -679,10 +680,11 @@ class ConstrainedDict(ConstrainedContainer, dict):
                     curr = self.get(d, 0)
                     self[d] = curr + 1
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key, value) -> None:
         """Sets self[key] to value if value in constraint."""
         if not self.item_is_valid(key):
-            raise ConstraintError(f"Item '{key}' not in constraint '{self.constraint}'")
+            msg = f"Item '{key}' not in constraint '{self.constraint}'"
+            raise ConstraintError(msg)
         key, value = self.mask(key), self.value_mask(value)
         dict.__setitem__(self, key, value)
 
@@ -713,7 +715,7 @@ class ConstrainedDict(ConstrainedContainer, dict):
             self[key] = default
         return self[key]
 
-    def update(self, other):
+    def update(self, other) -> None:
         """Updates self with items in other.
 
         Implementation note: currently uses __setitem__, so no need to apply
@@ -728,24 +730,24 @@ class ConstrainedDict(ConstrainedContainer, dict):
 class MappedDict(ConstrainedDict):
     """As for ConstrainedDict, but maps keys on contains and getitem."""
 
-    def __contains__(self, item):
+    def __contains__(self, item) -> bool:
         """Ensure that contains applies the mask."""
         try:
-            return super(MappedDict, self).__contains__(self.mask(item))
+            return super().__contains__(self.mask(item))
         except (TypeError, ValueError):
             return False
 
     def __getitem__(self, item):
         """Ensure that getitem applies the mask."""
-        return super(MappedDict, self).__getitem__(self.mask(item))
+        return super().__getitem__(self.mask(item))
 
     def get(self, item, default=None):
         """Ensure that get applies the mask."""
-        return super(MappedDict, self).get(self.mask(item), default)
+        return super().get(self.mask(item), default)
 
     def has_key(self, item):
         """Ensure that has_key applies the mask."""
-        return self.mask(item) in super(MappedDict, self)
+        return self.mask(item) in super()
 
 
 def NestedSplitter(
@@ -771,13 +773,14 @@ def NestedSplitter(
     def parser(line, index=0):
         # split line with curr delimiter
         curr = delimiters[index]
-        if isinstance(curr, (list, tuple)):
+        if isinstance(curr, list | tuple):
             try:
                 delim, maxsplits = curr
             except ValueError:
+                msg = "delimiter tuple/list should be \
+                        [delimiter_str, maxsplits]"
                 raise ValueError(
-                    "delimiter tuple/list should be \
-                        [delimiter_str, maxsplits]",
+                    msg,
                 )
             if maxsplits < 0:
                 result = line.rsplit(delim, -maxsplits)
@@ -909,10 +912,8 @@ def get_merged_by_value_coords(spans_value, digits=None):
         start = starts[index]
         end = ends[index]
         prev_index = max(index - 1, 0)
-        try:
+        with contextlib.suppress(IndexError):
             data[-1][1] = ends[prev_index]
-        except IndexError:
-            pass
 
         data.append([start, end, val])
 
@@ -934,11 +935,7 @@ def get_object_provenance(obj):
         mod = obj.__class__.__module__
         name = obj.__class__.__name__
 
-    if mod is None or mod == "builtins":
-        result = name
-    else:
-        result = ".".join([mod, name])
-    return result
+    return name if mod is None or mod == "builtins" else f"{mod}.{name}"
 
 
 def extend_docstring_from(source, pre=False):
@@ -1029,6 +1026,7 @@ def get_setting_from_environ(environ_var, params_types):
         except Exception:
             warnings.warn(
                 f"could not cast {name}={val} to type {params_types[name]}, skipping",
+                stacklevel=2,
             )
 
     return result

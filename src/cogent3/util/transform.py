@@ -59,7 +59,7 @@ class for_seq:
     of zip).
     """
 
-    def __init__(self, f, aggregator=sum, normalizer=per_shortest):
+    def __init__(self, f, aggregator=sum, normalizer=per_shortest) -> None:
         self.f = f
         self.aggregator = aggregator
         self.normalizer = normalizer
@@ -89,7 +89,7 @@ class KeepChars:
 
     allchars = bytes(range(256))
 
-    def __init__(self, keep, case_sens=True):
+    def __init__(self, keep, case_sens=True) -> None:
         """Returns a new KeepChars object, based on string keep"""
         if not case_sens:
             low = keep.lower()
@@ -97,7 +97,7 @@ class KeepChars:
             keep = low + up
 
         keep = keep.encode("utf-8")
-        self._strip_table = dict([(c, None) for c in self.allchars if c not in keep])
+        self._strip_table = {c: None for c in self.allchars if c not in keep}
 
     def __call__(self, s):
         """f(s) -> s, translates using self.allchars and self.delchars"""
@@ -114,3 +114,4 @@ def first_index_in_set(seq, items):
     for i, s in enumerate(seq):
         if s in items:
             return i
+    return None

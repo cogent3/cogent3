@@ -72,8 +72,7 @@ def paralinear_continuous_time(P, pi, Q, validate=False):
     b = -diagonal(Q).sum()
     c = log(dot(pi, P)).sum() / 2
     pl = a + b + c
-    pl = getattr(pl, "real", pl)
-    return pl
+    return getattr(pl, "real", pl)
 
 
 def jsd(*vectors, validate=False):
@@ -98,15 +97,17 @@ def jsd(*vectors, validate=False):
             for v in vectors:
                 validate_freqs_array(v)
         except ValueError as err:
-            raise AssertionError("freqs not valid") from err
+            msg = "freqs not valid"
+            raise AssertionError(msg) from err
 
     H_mn = fsum(safe_p_log_p(array(vectors).mean(axis=0)))
     mn_H = fsum([fsum(i) for i in map(safe_p_log_p, vectors)]) / num_vectors
     jsd_ = H_mn - mn_H
     if jsd_ < 0:
         if not isclose(jsd_, 0, atol=1e-10):
+            msg = f"{jsd_} is negative and below defined precision threshold"
             raise ArithmeticError(
-                f"{jsd_} is negative and below defined precision threshold",
+                msg,
             )
         jsd_ = 0
 

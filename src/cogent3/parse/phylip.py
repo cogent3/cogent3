@@ -2,7 +2,7 @@ import cogent3
 from cogent3.parse.record import RecordError
 
 
-def is_blank(x):
+def is_blank(x) -> bool:
     """Checks if x is blank."""
     return not x.strip()
 

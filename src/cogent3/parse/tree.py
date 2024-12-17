@@ -85,18 +85,16 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
     (by default, although you can pass in an alternative constructor
     explicitly).
     """
-    if isinstance(lines, str):
-        data = lines
-    else:
-        data = "".join(lines)
+    data = lines if isinstance(lines, str) else "".join(lines)
     # skip arb comment stuff if present: start at first paren
     paren_index = data.find("(")
     data = data[paren_index:]
     left_count = data.count("(")
     right_count = data.count(")")
     if left_count != right_count:
+        msg = f"Found {left_count} left parens but {right_count} right parens."
         raise RecordError(
-            f"Found {left_count} left parens but {right_count} right parens.",
+            msg,
         )
 
     tokens = DndTokenizer(data)
@@ -126,7 +124,7 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
             # prevent state reset
             last_token = t
             continue
-        if t == ")" and (last_token == "," or last_token == "("):  # node without name
+        if t == ")" and (last_token in (",", "(")):  # node without name
             new_node = _new_child(curr_node, constructor)
             new_node.name = None
             curr_node = new_node.parent
@@ -144,7 +142,7 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
             last_token = t
             break
         # node without name
-        elif t == "," and (last_token == "," or last_token == "("):
+        elif t == "," and (last_token in (",", "(")):
             new_node = _new_child(curr_node, constructor)
             new_node.name = None
             curr_node = new_node.parent
@@ -168,13 +166,15 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
         elif state == "PostColon":  # length data for the current node
             curr_node.length = float(t)
         else:  # can't think of a reason to get here
-            raise RecordError(f"Incorrect PhyloNode state? {t}")
+            msg = f"Incorrect PhyloNode state? {t}"
+            raise RecordError(msg)
         state = "PreColon"  # get here for any non-colon token
         state1 = "PreClosed"
         last_token = t
 
     if curr_node is not None and curr_node.parent is not None:
-        raise RecordError("Didn't get back to root of tree.")
+        msg = "Didn't get back to root of tree."
+        raise RecordError(msg)
 
     if curr_node is None:  # no data -- return empty node
         return constructor()

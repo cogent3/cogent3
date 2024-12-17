@@ -25,16 +25,13 @@ def iteration_set_finder(line):
     return line.startswith("# Iteration: 1")
 
 
-def _is_junk(line, t_strs):
+def _is_junk(line, t_strs) -> bool:
     """Ignore empty line, line with blast info, or whitespace line"""
     # empty or white space
     if not line or not line.strip():
         return True
     # blast info line
-    for t_str in t_strs:
-        if line.startswith(f"# {t_str}"):
-            return True
-    return False
+    return any(line.startswith(f"# {t_str}") for t_str in t_strs)
 
 
 def is_blast_junk(line):
@@ -56,10 +53,12 @@ def make_label(line):
     WARNING: Only maps the data type if the key is in label_constructors above.
     """
     if not line.startswith("#"):
-        raise ValueError("Labels must start with a # symbol.")
+        msg = "Labels must start with a # symbol."
+        raise ValueError(msg)
 
     if line.find(":") == -1:
-        raise ValueError("Labels must contain a : symbol.")
+        msg = "Labels must contain a : symbol."
+        raise ValueError(msg)
 
     key, value = list(map(strip, line[1:].split(":", 1)))
     key = key.upper()
@@ -209,10 +208,7 @@ def get_blast_ids(props, data, filter_identity, threshold, keep_values):
     # get column index of protein ids we want
     p_ix = fields.index("SUBJECT ID")
     # get column index to screen by
-    if filter_identity:
-        e_ix = fields.index("% IDENTITY")
-    else:
-        e_ix = fields.index("E-VALUE")
+    e_ix = fields.index("% IDENTITY") if filter_identity else fields.index("E-VALUE")
     # no filter, returh all
     if not threshold:
         if keep_values:

@@ -73,7 +73,7 @@ load_annotations = _anno_db.load_annotations
 
 def make_seq(
     seq,
-    name: str = None,
+    name: str | None = None,
     moltype=None,
     new_type: bool = False,
     annotation_offset: int = 0,
@@ -185,7 +185,8 @@ def make_unaligned_seqs(
 
     if new_type or "COGENT3_NEW_TYPE" in os.environ:
         if moltype is None:
-            raise ValueError("Argument 'moltype' is required when 'new_type=True'")
+            msg = "Argument 'moltype' is required when 'new_type=True'"
+            raise ValueError(msg)
 
         from cogent3.core import new_alignment
 
@@ -245,7 +246,8 @@ def make_aligned_seqs(
     """
     if new_type or "COGENT3_NEW_TYPE" in os.environ:
         if moltype is None:
-            raise ValueError("Argument 'moltype' is required when 'new_type=True'")
+            msg = "Argument 'moltype' is required when 'new_type=True'"
+            raise ValueError(msg)
 
         from cogent3.core import new_alignment
 
@@ -332,7 +334,8 @@ def _load_genbank_seq(
     for name, seq, features in iter_genbank_records(filename, **parser_kw):
         break
     else:
-        raise ValueError(f"No sequences found in {filename}")
+        msg = f"No sequences found in {filename}"
+        raise ValueError(msg)
 
     db = (
         None
@@ -620,14 +623,16 @@ def make_table(
 
     """
     if any(isinstance(a, str) for a in (header, data)):
-        raise TypeError("str type invalid, if it's a path use load_table()")
+        msg = "str type invalid, if it's a path use load_table()"
+        raise TypeError(msg)
 
     data = kwargs.get("rows", data)
     if data_frame is not None:
         from pandas import DataFrame
 
         if not isinstance(data_frame, DataFrame):
-            raise TypeError(f"expecting a DataFrame, got{type(data_frame)}")
+            msg = f"expecting a DataFrame, got{type(data_frame)}"
+            raise TypeError(msg)
 
         data = {c: data_frame[c].to_numpy() for c in data_frame}
 
@@ -709,8 +714,9 @@ def load_table(
         skips rows that have different length to header row
     """
     if not any(isinstance(filename, t) for t in (str, pathlib.PurePath)):
+        msg = "filename must be string or Path, perhaps you want make_table()"
         raise TypeError(
-            "filename must be string or Path, perhaps you want make_table()",
+            msg,
         )
 
     sep = sep or kwargs.pop("delimiter", None)
@@ -747,7 +753,7 @@ def load_table(
             num_fields = len(header)
             rows = [r for r in rows if len(r) == num_fields]
         else:
-            lengths = set(map(len, [header] + rows))
+            lengths = set(map(len, [header, *rows]))
             if len(lengths) != 1:
                 msg = f"inconsistent number of fields {lengths}"
                 raise ValueError(msg)
@@ -807,8 +813,7 @@ def make_tree(
     if tip_names:
         tree_builder = TreeBuilder().create_edge
         tips = [tree_builder([], str(tip_name), {}) for tip_name in tip_names]
-        tree = tree_builder(tips, "root", {})
-        return tree
+        return tree_builder(tips, "root", {})
 
     if format is None and treestring.startswith("<"):
         format = "xml"

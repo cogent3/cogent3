@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 from collections import deque
-from collections.abc import Generator
 from dataclasses import InitVar, dataclass, field
 from itertools import product
+from typing import TYPE_CHECKING
 
-from cogent3.core.sequence import Sequence
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    from cogent3.core.sequence import Sequence
 
 
 @dataclass
@@ -15,10 +18,10 @@ class segment:
     start: int
     end: int
 
-    def __contains__(self, index: int):
+    def __contains__(self, index: int) -> bool:
         return self.start <= index < self.end
 
-    def __len__(self):
+    def __len__(self) -> int:
         return abs(self.end - self.start)
 
     def __sub__(self, other):
@@ -63,8 +66,9 @@ class segment:
 
         """
         if strict and not self.overlap(other):
+            msg = f"failed strict merge as {self} and {other} do not overlap"
             raise AssertionError(
-                f"failed strict merge as {self} and {other} do not overlap",
+                msg,
             )
         return segment(min(self.start, other.start), max(self.end, other.end))
 
@@ -235,7 +239,7 @@ class Kmer:
     def __eq__(self, __o: object) -> bool:
         return getattr(__o, "kmer", __o) == self.kmer
 
-    def add_location(self, seq_name: str, index: int):
+    def add_location(self, seq_name: str, index: int) -> None:
         """add a location of self for seq_name
 
         Parameters
@@ -253,8 +257,9 @@ class Kmer:
         indices.append(index)
         self.indices[seq_name] = indices
         if len(self.indices) > 2:
+            msg = f"Maximum of 2 sequences allowed, have {list(self.indices.keys())}"
             raise NotImplementedError(
-                f"Maximum of 2 sequences allowed, have {list(self.indices.keys())}",
+                msg,
             )
 
 
@@ -305,7 +310,8 @@ class SeqKmers:
         k-mers unique to this sequence are ignored.
         """
         if seq.name == self.ref_name:
-            raise ValueError(f"seq name {seq.name} matches ref seq name")
+            msg = f"seq name {seq.name} matches ref seq name"
+            raise ValueError(msg)
 
         self.other_name = name = seq.name
 

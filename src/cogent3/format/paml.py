@@ -40,8 +40,7 @@ class PamlFormatter(_AlignmentFormatter):
         header = "%d  %d\n" % (self.number_sequences, self.align_length)
         return header + "".join(
             [
-                "%s\n%s"
-                % (
+                "{}\n{}".format(
                     seq,
                     self.wrap_string_to_block_size(
                         alignment_dict[seq],

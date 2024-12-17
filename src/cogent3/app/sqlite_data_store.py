@@ -6,10 +6,10 @@ import os
 import re
 import sqlite3
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from scitrack import get_text_hexdigest
 
-from cogent3.app import typing as c3_types
 from cogent3.app.data_store import (
     _LOG_TABLE,
     APPEND,
@@ -23,6 +23,9 @@ from cogent3.app.data_store import (
     StrOrBytes,
 )
 from cogent3.util.misc import extend_docstring_from
+
+if TYPE_CHECKING:
+    from cogent3.app import typing as c3_types
 
 _RESULT_TABLE = "results"
 _MEMORY = ":memory:"
@@ -116,7 +119,7 @@ class DataStoreSqlite(DataStoreABC):
         mode: Mode | str = READONLY,
         limit=None,
         verbose=False,
-    ):
+    ) -> None:
         if _mem_pattern.search(str(source)):
             self._source = _MEMORY
         else:
@@ -128,8 +131,9 @@ class DataStoreSqlite(DataStoreABC):
             )
         self._mode = Mode(mode)
         if mode is not READONLY and limit is not None:
+            msg = "Using limit argument is only valid for readonly datastores"
             raise ValueError(
-                "Using limit argument is only valid for readonly datastores",
+                msg,
             )
         self._limit = limit
         self._verbose = verbose
@@ -169,7 +173,7 @@ class DataStoreSqlite(DataStoreABC):
 
         return self._db
 
-    def _init_log(self):
+    def _init_log(self) -> None:
         timestamp = datetime.datetime.now(tz=datetime.timezone.utc)
         self.db.execute(f"INSERT INTO {_LOG_TABLE}(date) VALUES (?)", (timestamp,))
         self._log_id = self._db.execute(
@@ -177,7 +181,7 @@ class DataStoreSqlite(DataStoreABC):
             (timestamp,),
         ).fetchone()["log_id"]
 
-    def close(self):
+    def close(self) -> None:
         with contextlib.suppress(sqlite3.ProgrammingError):
             self.db.close()
         self._open = False
@@ -192,7 +196,8 @@ class DataStoreSqlite(DataStoreABC):
             ".",
             _LOG_TABLE,
         ):
-            raise ValueError(f"unknown table for {str(identifier)!r}")
+            msg = f"unknown table for {str(identifier)!r}"
+            raise ValueError(msg)
 
         if table_name != _LOG_TABLE:
             cmnd = f"SELECT * FROM {_RESULT_TABLE} WHERE record_id = ?"
@@ -314,7 +319,7 @@ class DataStoreSqlite(DataStoreABC):
         """returns if lock_pid is NULL or doesn't exist."""
         return self._lock_id is not None
 
-    def lock(self):
+    def lock(self) -> None:
         """if writable, and not locked, locks the database to this pid"""
         # if mode=w and the data store exists AND has a lock_pid
         # value already, then we should fail. The user might
@@ -327,9 +332,12 @@ class DataStoreSqlite(DataStoreABC):
         result = self._db.execute("SELECT state_id,lock_pid FROM state").fetchall()
         locked = result[0]["lock_pid"] if result else None
         if locked and self.mode is OVERWRITE:
-            raise OSError(
+            msg = (
                 f"You are trying to OVERWRITE {str(self.source)!r} which is "
-                "locked. Use APPEND mode or unlock.",
+                "locked. Use APPEND mode or unlock."
+            )
+            raise OSError(
+                msg,
             )
 
         if result:
@@ -342,7 +350,7 @@ class DataStoreSqlite(DataStoreABC):
             vals = [os.getpid()]
         self._db.execute(cmnd, tuple(vals))
 
-    def unlock(self, force=False):
+    def unlock(self, force=False) -> None:
         """remove a lock if pid matches. If force, ignores pid. ignored if mode is READONLY"""
         if self.mode is READONLY:
             return
@@ -440,12 +448,13 @@ class DataStoreSqlite(DataStoreABC):
         return result["record_type"]
 
     @record_type.setter
-    def record_type(self, obj):
+    def record_type(self, obj) -> None:
         from cogent3.util.misc import get_object_provenance
 
         rt = self.record_type
         if self.mode is OVERWRITE and rt:
-            raise OSError(f"cannot overwrite existing record_type {rt}")
+            msg = f"cannot overwrite existing record_type {rt}"
+            raise OSError(msg)
 
         n = get_object_provenance(obj)
         self.db.execute("UPDATE state SET record_type=? WHERE state_id=1", (n,))

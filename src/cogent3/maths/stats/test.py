@@ -72,7 +72,8 @@ def _get_alternate(value: str):
     )
     alt = alts.get(value)
     if alt is None:
-        raise ValueError(f"alternate hypothesis '{value}' not in {sorted(alts)}")
+        msg = f"alternate hypothesis '{value}' not in {sorted(alts)}"
+        raise ValueError(msg)
     return alt
 
 
@@ -96,10 +97,7 @@ def var(x, axis=None):
     """
     x = asarray(x)
     # figure out sample size along the axis
-    if axis is None:
-        n = x.size
-    else:
-        n = x.shape[axis]
+    n = x.size if axis is None else x.shape[axis]
     # compute the sum of squares from the mean(s)
     sample_SS = npsum(x**2, axis) - npsum(x, axis) ** 2 / n
     return sample_SS / (n - 1)
@@ -165,7 +163,8 @@ def G_2_by_2(a, b, c, d, williams=1, directional=1):
         return (0, 1)
     # raise error if any counts were negative
     if min(cells) < 0:
-        raise ValueError("G_2_by_2 got negative cell counts(s): must all be >= 0.")
+        msg = "G_2_by_2 got negative cell counts(s): must all be >= 0."
+        raise ValueError(msg)
 
     G = 0
     # Add x ln x for items, adding zero for items whose counts are zero
@@ -288,11 +287,14 @@ def G_fit(obs, exp, williams=1):
     obs = array(obs)
     exp = array(exp)
     if obs.shape != exp.shape:
-        raise ValueError("requires data with equal dimensions.")
+        msg = "requires data with equal dimensions."
+        raise ValueError(msg)
     if (obs < 0).any():
-        raise ValueError("requires all observed values to be positive.")
+        msg = "requires all observed values to be positive."
+        raise ValueError(msg)
     if (exp == 0).any() or (exp < 0).any():
-        raise ZeroExpectedError("requires all expected values to be positive")
+        msg = "requires all expected values to be positive"
+        raise ZeroExpectedError(msg)
     non_zero = obs != 0
     G = 2 * (obs[non_zero] * (log(obs[non_zero]) - log(exp[non_zero]))).sum()
     k = len(obs)
@@ -314,7 +316,8 @@ def likelihoods(d_given_h, priors):
     # check that the lists of Pr(D|H_i) and priors are equal
     length = len(d_given_h)
     if length != len(priors):
-        raise ValueError("Lists not equal lengths.")
+        msg = "Lists not equal lengths."
+        raise ValueError(msg)
     # find weighted sum of Pr(H_i) * Pr(D|H_i)
     wt_sum = 0
     for d, p in zip(d_given_h, priors, strict=False):
@@ -334,7 +337,8 @@ def posteriors(likelihoods, priors):
     """
     # Check that there is a prior for each likelihood
     if len(likelihoods) != len(priors):
-        raise ValueError("Lists not equal lengths.")
+        msg = "Lists not equal lengths."
+        raise ValueError(msg)
     # Posterior probability is defined as prior * likelihood
     return [l * p for l, p in zip(likelihoods, priors, strict=False)]
 
@@ -355,7 +359,7 @@ def bayes_updates(ds_given_h, priors=None):
         if not priors:
             priors = [1 / length] * length
         # apply each form of data to the priors to get posterior probabilities
-        for index, d in enumerate(ds_given_h):
+        for _index, d in enumerate(ds_given_h):
             # first, ignore the form of data if all the d's are the same
             all_the_same = True
             first_element = d[0]
@@ -365,7 +369,8 @@ def bayes_updates(ds_given_h, priors=None):
                     break
             if not all_the_same:  # probabilities won't change
                 if len(d) != length:
-                    raise ValueError("bayes_updates requires equal-length lists.")
+                    msg = "bayes_updates requires equal-length lists."
+                    raise ValueError(msg)
                 liks = likelihoods(d, priors)
                 pr = posteriors(liks, priors)
                 priors = pr
@@ -399,7 +404,8 @@ def t_paired(a, b, tails=None, exp_diff=0):
     """
     n = len(a)
     if n != len(b):
-        raise ValueError("Unequal length lists in t_paired.")
+        msg = "Unequal length lists in t_paired."
+        raise ValueError(msg)
     try:
         diffs = array(a) - array(b)
         return t_one_sample(diffs, popmean=exp_diff, tails=tails)
@@ -496,10 +502,7 @@ def t_two_sample(a, b, tails=None, exp_diff=0, none_on_zero_variance=True):
             )
 
         b = array(b)
-        if b.shape:
-            n2 = len(b)
-        else:
-            n2 = 1
+        n2 = len(b) if b.shape else 1
 
         if n2 < 2:
             t, prob = t_one_observation(
@@ -560,15 +563,9 @@ def _t_test_no_variance(mean1, mean2, tails):
     tails = _get_alternate(str(tails))
 
     if tails == ALT_TWO_SIDED:
-        if mean1 < mean2:
-            result = (float("-inf"), 0.0)
-        else:
-            result = (float("inf"), 0.0)
+        result = (float("-inf"), 0.0) if mean1 < mean2 else (float("inf"), 0.0)
     elif tails == ALT_HIGH:
-        if mean1 < mean2:
-            result = (float("-inf"), 1.0)
-        else:
-            result = (float("inf"), 0.0)
+        result = (float("-inf"), 1.0) if mean1 < mean2 else (float("inf"), 0.0)
     elif mean1 < mean2:
         result = (float("-inf"), 0.0)
     else:
@@ -615,10 +612,13 @@ def mc_t_two_sample(x_items, y_items, tails=None, permutations=999, exp_diff=0):
     if (len(x_items) == 1 and len(y_items) == 1) or (
         len(x_items) < 1 or len(y_items) < 1
     ):
-        raise ValueError(
+        msg = (
             "At least one of the sequences of observations is "
             "empty, or the sequences each contain only a single "
-            "observation. Cannot perform the t-test.",
+            "observation. Cannot perform the t-test."
+        )
+        raise ValueError(
+            msg,
         )
 
     # Perform t-test using original observations.
@@ -744,10 +744,13 @@ def pearson(x_items, y_items):
     x_items, y_items = array(x_items), array(y_items)
 
     if len(x_items) != len(y_items):
-        raise ValueError(
+        msg = (
             "The length of the two vectors must be the same in "
             "order to calculate the Pearson correlation "
-            "coefficient.",
+            "coefficient."
+        )
+        raise ValueError(
+            msg,
         )
     if len(x_items) < 2:
         raise ValueError(
@@ -803,9 +806,12 @@ def spearman(x_items, y_items):
     x_items, y_items = array(x_items), array(y_items)
 
     if len(x_items) != len(y_items):
-        raise ValueError(
+        msg = (
             "The length of the two vectors must be the same in "
-            "order to calculate Spearman's rho.",
+            "order to calculate Spearman's rho."
+        )
+        raise ValueError(
+            msg,
         )
     if len(x_items) < 2:
         raise ValueError(
@@ -822,7 +828,9 @@ def spearman(x_items, y_items):
         sum_sqr = npsum([(x - y) ** 2 for x, y in zip(rank1, rank2, strict=False)])
         rho = 1 - (6 * sum_sqr / (n * (n**2 - 1)))
     else:
-        avg = lambda x: npsum(x) / len(x)
+
+        def avg(x):
+            return npsum(x) / len(x)
 
         x_bar = avg(rank1)
         y_bar = avg(rank2)
@@ -837,10 +845,7 @@ def spearman(x_items, y_items):
 
         # Calculate rho. Handle the case when there is no variation in one or
         # both of the input vectors.
-        if denominator == 0.0:
-            rho = 0.0
-        else:
-            rho = numerator / denominator
+        rho = 0.0 if denominator == 0.0 else numerator / denominator
     return rho
 
 
@@ -1003,12 +1008,14 @@ def correlation_test(
     elif method == "spearman":
         corr_fn = spearman
     else:
+        msg = f"Invalid method '{method}'. Must be either 'pearson' or 'spearman'."
         raise ValueError(
-            f"Invalid method '{method}'. Must be either 'pearson' or 'spearman'.",
+            msg,
         )
-    if tails is not None and tails != "high" and tails != "low":
+    if tails is not None and tails not in ("high", "low"):
+        msg = f"Invalid tail type '{tails}'. Must be either None, 'high', or 'low'."
         raise ValueError(
-            f"Invalid tail type '{tails}'. Must be either None, 'high', or 'low'.",
+            msg,
         )
     if permutations < 0:
         raise ValueError(
@@ -1016,9 +1023,12 @@ def correlation_test(
             "than or equal to zero." % permutations,
         )
     if confidence_level <= 0 or confidence_level >= 1:
+        msg = (
+            f"Invalid confidence level: {confidence_level:.4f}. Must be between "
+            "zero and one."
+        )
         raise ValueError(
-            "Invalid confidence level: %.4f. Must be between "
-            "zero and one." % confidence_level,
+            msg,
         )
 
     # Calculate the correlation coefficient.
@@ -1042,7 +1052,7 @@ def correlation_test(
     permuted_corr_coeffs = []
     nonparametric_p_val = None
     better = 0
-    for i in range(permutations):
+    for _i in range(permutations):
         permuted_y_items = y_items[permutation(n)]
         permuted_corr_coeff = corr_fn(x_items, permuted_y_items)
         permuted_corr_coeffs.append(permuted_corr_coeff)
@@ -1061,8 +1071,9 @@ def correlation_test(
             # for safety in case the above check gets removed or messed up. We
             # don't want to return a p-value of 0 if someone passes in a bogus
             # tail type somehow.
+            msg = f"Invalid tail type '{tails}'. Must be either None, 'high', or 'low'."
             raise ValueError(
-                f"Invalid tail type '{tails}'. Must be either None, 'high', or 'low'.",
+                msg,
             )
     if permutations > 0:
         nonparametric_p_val = (better + 1) / (permutations + 1)
@@ -1332,7 +1343,8 @@ def f_value(a, b):
     variances.
     """
     if not any(a) or not any(b) or len(a) <= 1 or len(b) <= 1:
-        raise ValueError("Vectors should contain more than 1 element")
+        msg = "Vectors should contain more than 1 element"
+        raise ValueError(msg)
     F = var(a) / var(b)
     dfn = len(a) - 1
     dfd = len(b) - 1
@@ -1357,10 +1369,7 @@ def f_two_sample(a, b, tails=None):
         return dfn, dfd, F, f.cdf(F, dfn, dfd)
     if tails == ALT_HIGH:
         return dfn, dfd, F, f.sf(F, dfn, dfd)
-    if var(a) >= var(b):
-        side = "right"
-    else:
-        side = "left"
+    side = "right" if var(a) >= var(b) else "left"
     return dfn, dfd, F, fprob(dfn, dfd, F, side=side)
 
 
@@ -1508,7 +1517,8 @@ def ks_test(x, y=None, alt="two sided", exact=None, warn_for_ties=True):
         elif alt == ALT_HIGH:
             stat = cumsum.max()
         else:
-            raise RuntimeError(f"Unknown alt: {alt}")
+            msg = f"Unknown alt: {alt}"
+            raise RuntimeError(msg)
         if exact and alt == ALT_TWO_SIDED and not ties:
             Pval = 1 - psmirnov2x(stat, num_x, num_y)
     else:
@@ -1521,7 +1531,7 @@ def ks_test(x, y=None, alt="two sided", exact=None, warn_for_ties=True):
             else exp(-2 * n * stat**2)
         )
     if ties and warn_for_ties:
-        warnings.warn("Cannot compute correct KS probability with ties")
+        warnings.warn("Cannot compute correct KS probability with ties", stacklevel=2)
 
     try:  # if numpy arrays were input, the Pval can be an array of len==1
         Pval = Pval[0]
@@ -1731,15 +1741,18 @@ def mantel_test(
     alt = _get_alternate(str(alt))
     m1, m2 = asarray(m1), asarray(m2)
     if m1.shape != m2.shape:
-        raise ValueError("Both distance matrices must be the same size.")
+        msg = "Both distance matrices must be the same size."
+        raise ValueError(msg)
     if n < 1:
+        msg = "The number of permutations must be greater than or equal to one."
         raise ValueError(
-            "The number of permutations must be greater than or equal to one.",
+            msg,
         )
     if not suppress_symmetry_and_hollowness_check and not (
         is_symmetric_and_hollow(m1) and is_symmetric_and_hollow(m2)
     ):
-        raise ValueError("Both distance matrices must be symmetric and hollow.")
+        msg = "Both distance matrices must be symmetric and hollow."
+        raise ValueError(msg)
 
     # Get a flattened list of lower-triangular matrix elements (excluding the
     # diagonal) in column-major order. Use these values to calculate the
@@ -1821,7 +1834,7 @@ def kendall_correlation(x, y, alt="two sided", exact=None, warn=True):
     num = len(x)
     ties = len(set(x)) != num or len(set(y)) != num
     if ties and warn:
-        warnings.warn("Tied values, using normal approximation")
+        warnings.warn("Tied values, using normal approximation", stacklevel=2)
 
     if not ties and num < 50:
         exact = True
@@ -1918,9 +1931,8 @@ def distance_matrix_permutation_test(
         elif tails == ALT_LOW:
             if current_stat < stat:
                 count_more_extreme += 1
-        elif tails == ALT_HIGH:
-            if current_stat > stat:
-                count_more_extreme += 1
+        elif tails == ALT_HIGH and current_stat > stat:
+            count_more_extreme += 1
 
     # pack up the parametric stat, parametric p, and empirical p; calc the
     # the latter in the process
@@ -1978,5 +1990,4 @@ def get_ltm_cells(cells):
 
         new_cells.append((i, j))
     # remove duplicates
-    new_cells = sorted(set(new_cells))
-    return new_cells
+    return sorted(set(new_cells))

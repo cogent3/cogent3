@@ -11,6 +11,7 @@ the MolType. It is thus essential that the connection between these other
 types and the MolType can be made after the objects are created.
 """
 
+import contextlib
 import functools
 import itertools
 import json
@@ -390,7 +391,7 @@ class CoreObjectGroup:
 
     _types = ["base", "degen", "gap", "degen_gap"]
 
-    def __init__(self, base, degen=None, gapped=None, degen_gapped=None):
+    def __init__(self, base, degen=None, gapped=None, degen_gapped=None) -> None:
         """Returns new CoreObjectGroup. Only base is required"""
         self.base = base
         self.degen = degen
@@ -399,7 +400,7 @@ class CoreObjectGroup:
         self._items = [base, degen, gapped, degen_gapped]
         self._set_relationships()
 
-    def _set_relationships(self):
+    def _set_relationships(self) -> None:
         """Sets relationships between the different "flavors"."""
         self.base.gapped = self.gapped
         self.base.ungapped = self.base
@@ -421,10 +422,8 @@ class CoreObjectGroup:
             "self.degen_gapped.non_degen = self.gapped",
         ]
         for s in statements:
-            try:
+            with contextlib.suppress(AttributeError):
                 exec(s)
-            except AttributeError:
-                pass
 
     def __getitem__(self, i):
         """Allows container to be indexed into, by type of object (e.g. gap)."""
@@ -446,13 +445,13 @@ class AlphabetGroup(CoreObjectGroup):
         missing=IUPAC_missing,
         moltype=None,
         constructor=None,
-    ):
+    ) -> None:
         """Returns new AlphabetGroup."""
         if max(list(map(len, chars))) == 1:
             chars = "".join(chars)
             degens = "".join(degens)
 
-        super(AlphabetGroup, self).__init__(
+        super().__init__(
             base=make_alphabet(motifset=chars, moltype=moltype),
             degen=make_alphabet(motifset=chars + degens, moltype=moltype),
             gapped=make_alphabet(motifset=chars + gap, gap=gap, moltype=moltype),
@@ -485,7 +484,7 @@ def _expand_colors(base, colors):
 
 
 class _DefaultValue:
-    def __init__(self, value):
+    def __init__(self, value) -> None:
         self.value = value
 
     def __call__(self):
@@ -551,7 +550,7 @@ class MolType:
         array_seq_constructor=None,
         colors=None,
         coerce_string=None,
-    ):
+    ) -> None:
         """Returns a new MolType object. Note that the parameters are in flux.
 
         Parameters
@@ -621,7 +620,7 @@ class MolType:
         self._make_seq = seq_constructor
 
         # set the ambiguities
-        ambigs = {self.missing: tuple(motifset) + (self.gap,), self.gap: (self.gap,)}
+        ambigs = {self.missing: (*tuple(motifset), self.gap), self.gap: (self.gap,)}
         if ambiguities:
             ambigs.update(ambiguities)
         for c in motifset:
@@ -693,7 +692,7 @@ class MolType:
 
         register_alphabet_moltype(alphabet=self.alphabet, moltype=self)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """String representation of MolType.
 
         WARNING: This doesn't allow you to reconstruct the object in its present
@@ -711,7 +710,7 @@ class MolType:
     def to_rich_dict(self, for_pickle=False):
         data = deepcopy(self._serialisable)
         if not for_pickle:  # we rely on reconstruction from label
-            data = dict(type=get_object_provenance(self), moltype=self.label)
+            data = {"type": get_object_provenance(self), "moltype": self.label}
             data["version"] = __version__
         return data
 
@@ -723,7 +722,8 @@ class MolType:
     def to_regex(self, seq):
         """returns a regex pattern with ambiguities expanded to a character set"""
         if not self.is_valid(seq):
-            raise ValueError(f"'{seq}' is invalid for this moltype")
+            msg = f"'{seq}' is invalid for this moltype"
+            raise ValueError(msg)
 
         degen_indices = self.get_degenerate_positions(sequence=seq, include_gap=False)
         seq = list(seq)  # seq can now be modified
@@ -789,7 +789,7 @@ class MolType:
             alphabet = self.alphabet
         return self._make_array_seq(seq, alphabet=alphabet, name=name, **kwargs)
 
-    def verify_sequence(self, seq, gaps_allowed=True, wildcards_allowed=True):
+    def verify_sequence(self, seq, gaps_allowed=True, wildcards_allowed=True) -> None:
         """Checks whether sequence is valid on the default alphabet.
 
         Has special-case handling for gaps and wild-cards. This mechanism is
@@ -807,11 +807,13 @@ class MolType:
             badchar = nonalpha.search(seq)
             if badchar:
                 motif = badchar.group()
-                raise AlphabetError(f"{motif!r}")
+                msg = f"{motif!r}"
+                raise AlphabetError(msg)
         except TypeError:  # not alphabetic sequence: try slow method
             for motif in seq:
                 if motif not in alpha:
-                    raise AlphabetError(f"{motif!r}")
+                    msg = f"{motif!r}"
+                    raise AlphabetError(msg)
 
     def is_ambiguity(self, querymotif):
         """Return True if querymotif is an amibiguity character in alphabet.
@@ -854,7 +856,7 @@ class MolType:
             self._reverse_ambiguities[motifs] = self._what_ambiguity(motifs)
         return self._reverse_ambiguities[motifs]
 
-    def _add_lowercase(self):
+    def _add_lowercase(self) -> None:
         """Adds lowercase versions of keys and vals to each internal dict."""
         for name in [
             "alphabet",
@@ -871,7 +873,7 @@ class MolType:
             new = add_lowercase(curr)
             setattr(self, name, new)
 
-    def _make_all(self):
+    def _make_all(self) -> None:
         """Sets self.All, which contains all the symbols self knows about.
 
         Note that the value of items in self.All will be the string containing
@@ -886,7 +888,7 @@ class MolType:
             all[i] = i
         self.All = all
 
-    def _make_comp_table(self):
+    def _make_comp_table(self) -> None:
         """Sets self.ComplementTable, which maps items onto their complements.
 
         Note: self.ComplementTable is only set if self.complements exists.
@@ -903,14 +905,12 @@ class MolType:
         Always tries to return same type as item: if item looks like a dict,
         will return list of keys.
         """
-        if isinstance(item, (list, tuple)):
-            data = "".join(item)
-        else:
-            data = str(item)
+        data = "".join(item) if isinstance(item, list | tuple) else str(item)
 
         if not self.complements:
+            msg = "Tried to complement sequence using alphabet without complements."
             raise TypeError(
-                "Tried to complement sequence using alphabet without complements.",
+                msg,
             )
         return item.__class__(data.translate(self.ComplementTable))
 
@@ -928,7 +928,8 @@ class MolType:
     def strand_symmetric_motifs(self, motif_length=1):
         """returns ordered pairs of strand complementary motifs"""
         if not self.pairs:
-            raise TypeError("moltype must be DNA or RNA")
+            msg = "moltype must be DNA or RNA"
+            raise TypeError(msg)
 
         motif_set = self.alphabet.get_word_alphabet(word_length=motif_length)
         motif_pairs = []
@@ -936,10 +937,9 @@ class MolType:
             pair = tuple(sorted([m, self.complement(m)]))
             motif_pairs.append(pair)
 
-        motif_pairs = set(motif_pairs)
-        return motif_pairs
+        return set(motif_pairs)
 
-    def __contains__(self, item):
+    def __contains__(self, item) -> bool:
         """A MolType contains every character it knows about."""
         return item in self.All
 
@@ -1054,16 +1054,17 @@ class MolType:
                 return sequence.__class__("".join(result))
             return sequence.__class__(result)
         else:
-            raise NotImplementedError(f"Got unknown method {method}")
+            msg = f"Got unknown method {method}"
+            raise NotImplementedError(msg)
 
     def degap(self, sequence):
         """Deletes all gap characters from sequence."""
-        if isinstance(sequence, (tuple, list)):
+        if isinstance(sequence, tuple | list):
             data = "".join(sequence)
         else:
             data = str(sequence)
 
-        trans = dict([(i, None) for i in map(ord, self.gaps)])
+        trans = {i: None for i in map(ord, self.gaps)}
         return sequence.__class__(data.translate(trans))
 
     def gap_indices(self, sequence):
@@ -1102,8 +1103,7 @@ class MolType:
     def count_gaps(self, sequence):
         """Counts the gaps in the specified sequence."""
         gaps = self.gaps
-        gap_count = sum(1 for s in sequence if s in gaps)
-        return gap_count
+        return sum(1 for s in sequence if s in gaps)
 
     def get_degenerate_positions(self, sequence, include_gap=True):
         """returns indices matching degenerate characters"""
@@ -1150,19 +1150,16 @@ class MolType:
         except KeyError:  # assume sequence was ambiguous
             return self.mw_calculator(self.disambiguate(sequence, method), delta)
 
-    def can_match(self, first, second):
+    def can_match(self, first, second) -> bool:
         """Returns True if every pos in 1st could match same pos in 2nd.
 
         Truncates at length of shorter sequence.
         gaps are only allowed to match other gaps.
         """
         m = self.matches
-        for pair in zip(first, second, strict=False):
-            if pair not in m:
-                return False
-        return True
+        return all(pair in m for pair in zip(first, second, strict=False))
 
-    def can_mismatch(self, first, second):
+    def can_mismatch(self, first, second) -> bool:
         """Returns True if any position in 1st could cause a mismatch with 2nd.
 
         Truncates at length of shorter sequence.
@@ -1172,16 +1169,13 @@ class MolType:
         if not first or not second:
             return False
 
-        for pair in zip(first, second, strict=False):
-            if not m.get(pair, None):
-                return True
-        return False
+        return any(not m.get(pair, None) for pair in zip(first, second, strict=False))
 
-    def must_match(self, first, second):
+    def must_match(self, first, second) -> bool:
         """Returns True if all positions in 1st must match positions in second."""
         return not self.can_mismatch(first, second)
 
-    def can_pair(self, first, second):
+    def can_pair(self, first, second) -> bool:
         """Returns True if first and second could pair.
 
         Pairing occurs in reverse order, i.e. last position of second with
@@ -1196,12 +1190,9 @@ class MolType:
         p = self.pairs
         sec = list(second)
         sec.reverse()
-        for pair in zip(first, sec, strict=False):
-            if pair not in p:
-                return False
-        return True
+        return all(pair in p for pair in zip(first, sec, strict=False))
 
-    def can_mispair(self, first, second):
+    def can_mispair(self, first, second) -> bool:
         """Returns True if any position in 1st could mispair with 2nd.
 
         Pairing occurs in reverse order, i.e. last position of second with
@@ -1216,12 +1207,9 @@ class MolType:
 
         sec = list(second)
         sec.reverse()
-        for pair in zip(first, sec, strict=False):
-            if not p.get(pair, None):
-                return True
-        return False
+        return any(not p.get(pair, None) for pair in zip(first, sec, strict=False))
 
-    def must_pair(self, first, second):
+    def must_pair(self, first, second) -> bool:
         """Returns True if all positions in 1st must pair with second.
 
         Pairing occurs in reverse order, i.e. last position of second with
@@ -1274,7 +1262,8 @@ class MolType:
             return inv_degens[lengths[sorted[0]]]
 
         # if we got here, nothing worked
-        raise TypeError(f"Cannot find degenerate char for symbols: {symbols}")
+        msg = f"Cannot find degenerate char for symbols: {symbols}"
+        raise TypeError(msg)
 
     def get_css_style(self, colors=None, font_size=12, font_family="Lucida Console"):
         """returns string of CSS classes and {character: <CSS class name>, ...}
@@ -1298,12 +1287,12 @@ class MolType:
         label = self.label or ""
         styles = _style_defaults[label].copy()
         styles.update(
-            {c: "_".join([c, label]) for c in list(self.alphabet) + ["terminal_ambig"]},
+            {c: f"{c}_{label}" for c in [*list(self.alphabet), "terminal_ambig"]},
         )
 
         css = [
             template % (char, label, font_family, font_size, colors[char])
-            for char in list(styles) + ["ambig"]
+            for char in [*list(styles), "ambig"]
         ]
 
         return css, styles
@@ -1555,7 +1544,8 @@ def get_moltype(name, new_type: bool = False):
 
     name = name.lower()
     if name not in moltypes:
-        raise ValueError(f"unknown moltype {name!r}")
+        msg = f"unknown moltype {name!r}"
+        raise ValueError(msg)
     return moltypes[name]
 
 

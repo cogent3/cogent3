@@ -30,20 +30,20 @@ from cogent3.util import progress_display as UI
 class ParametricBootstrapCore:
     """Core parametric bootstrap services."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Constructor for core parametric bootstrap services class."""
         self._numreplicates = 10
         self.seed = None
         self.results = []
 
-    def set_num_replicates(self, num):
+    def set_num_replicates(self, num) -> None:
         self._numreplicates = num
 
-    def set_seed(self, seed):
+    def set_seed(self, seed) -> None:
         self.seed = seed
 
     @UI.display_wrap
-    def run(self, ui, **opt_args):
+    def run(self, ui, **opt_args) -> None:
         # Sets self.observed and self.results (a list _numreplicates long) to
         # whatever is returned from self.simplify([LF result from each PC]).
         # self.simplify() is used as the entire LF result might not be picklable
@@ -111,7 +111,12 @@ class ParametricBootstrapCore:
 class EstimateProbability(ParametricBootstrapCore):
     # 2 parameter controllers, LR
 
-    def __init__(self, null_parameter_controller, alt_parameter_controller, alignment):
+    def __init__(
+        self,
+        null_parameter_controller,
+        alt_parameter_controller,
+        alignment,
+    ) -> None:
         ParametricBootstrapCore.__init__(self)
         self.alignment = alignment
         self.null_parameter_controller = null_parameter_controller
@@ -159,7 +164,7 @@ class EstimateConfidenceIntervals(ParametricBootstrapCore):
     """Estimate confidence interval(s) for one or many statistics
     by parametric bootstrapping."""
 
-    def __init__(self, parameter_controller, func_calcstats, alignment):
+    def __init__(self, parameter_controller, func_calcstats, alignment) -> None:
         # func_calcstats takes a param dict and returns the statistic of
         # interest
         ParametricBootstrapCore.__init__(self)

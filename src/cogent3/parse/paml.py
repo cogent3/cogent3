@@ -33,4 +33,5 @@ def PamlParser(data):
             n += 1
 
     if n != num_seqs:
-        raise ValueError(f"read {n} seqs, expected {num_seqs}")
+        msg = f"read {n} seqs, expected {num_seqs}"
+        raise ValueError(msg)

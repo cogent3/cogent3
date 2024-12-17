@@ -1,3 +1,4 @@
+import contextlib
 import os
 import re
 
@@ -15,30 +16,30 @@ from cogent3.util.io import atomic_write
 _compression = re.compile(r"\.(gz|bz2)$")
 
 
-def save_to_filename(alignment, filename, format, **kw):
+def save_to_filename(alignment, filename, format, **kw) -> None:
     """Arguments:
     - alignment: to be written
     - filename: name of the sequence alignment file
     - format: the multiple sequence file format
     """
     if format is None:
-        raise FileFormatError("format not known")
+        msg = "format not known"
+        raise FileFormatError(msg)
 
     with atomic_write(filename, mode="wt") as f:
         try:
             write_alignment_to_file(f, alignment, format, **kw)
         except Exception:
-            try:
+            with contextlib.suppress(Exception):
                 os.unlink(filename)
-            except Exception:
-                pass
             raise
 
 
-def write_alignment_to_file(f, alignment, format, **kw):
+def write_alignment_to_file(f, alignment, format, **kw) -> None:
     format = format.lower()
     if format not in FORMATTERS:
-        raise FileFormatError(f"Unsupported file format {format}")
+        msg = f"Unsupported file format {format}"
+        raise FileFormatError(msg)
     contents = FORMATTERS[format](alignment, **kw)
     f.write(contents)
     f.close()

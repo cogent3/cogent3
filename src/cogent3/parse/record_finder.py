@@ -24,7 +24,7 @@ def is_empty(line):
     return (not line) or line.isspace()
 
 
-def never_ignore(line):
+def never_ignore(line) -> bool:
     """Always returns False."""
     return False
 
@@ -74,7 +74,8 @@ def DelimitedRecordFinder(
                 curr.append(line)
         if curr:
             if strict:
-                raise RecordError(f"Found additional data after records: {curr}")
+                msg = f"Found additional data after records: {curr}"
+                raise RecordError(msg)
             else:
                 yield curr
 
@@ -117,8 +118,9 @@ def TailedRecordFinder(is_tail_line, constructor=rstrip, ignore=is_empty, strict
         # don't forget to return the last record in the file
         if curr:
             if strict:
+                msg = "lines exist after the last tail_line or no tail_line at all"
                 raise RecordError(
-                    "lines exist after the last tail_line or no tail_line at all",
+                    msg,
                 )
             else:
                 yield curr
@@ -147,17 +149,13 @@ def LabeledRecordFinder(is_label_line, constructor=strip, ignore=is_empty):
     def parser(lines):
         curr = []
         for l in lines:
-            if constructor:
-                line = constructor(l)
-            else:
-                line = l
+            line = constructor(l) if constructor else l
             if ignore(line):
                 continue
             # if we find the label, return the previous record
-            if is_label_line(line):
-                if curr:
-                    yield curr
-                    curr = []
+            if is_label_line(line) and curr:
+                yield curr
+                curr = []
             curr.append(line)
         # don't forget to return the last record in the file
         if curr:
@@ -190,10 +188,7 @@ def LineGrouper(num, constructor=strip, ignore=is_empty):
     def parser(lines):
         curr = []
         for l in lines:
-            if constructor:
-                line = constructor(l)
-            else:
-                line = l
+            line = constructor(l) if constructor else l
             if ignore(line):
                 continue
             curr.append(line)
@@ -201,6 +196,7 @@ def LineGrouper(num, constructor=strip, ignore=is_empty):
                 yield curr
                 curr = []
         if curr:
-            raise RecordError(f"Non-blank lines not even multiple of {num}")
+            msg = f"Non-blank lines not even multiple of {num}"
+            raise RecordError(msg)
 
     return parser

@@ -30,7 +30,7 @@ from .data_store import (
 _builtin_seqs = list, set, tuple
 
 
-def _make_logfile_name(process):
+def _make_logfile_name(process) -> str:
     text = re.split(r"\s+\+\s+", str(process))
     parts = []
     for part in text:
@@ -84,10 +84,10 @@ class NotCompleted(int):
     def __getnewargs_ex__(self, *args, **kw):
         return self._persistent[0], self._persistent[1]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         name = self.__class__.__name__
         source = self.source or "Unknown"
         return f'{name}(type={self.type}, origin={self.origin}, source="{source}", message="{self.message}")'
@@ -96,10 +96,10 @@ class NotCompleted(int):
         """returns components for to_json"""
         return {
             "type": get_object_provenance(self),
-            "not_completed_construction": dict(
-                args=self._persistent[0],
-                kwargs=self._persistent[1],
-            ),
+            "not_completed_construction": {
+                "args": self._persistent[0],
+                "kwargs": self._persistent[1],
+            },
             "version": __version__,
         }
 
@@ -126,8 +126,9 @@ def _get_raw_hints(main_func, min_params):
     _no_value = inspect.Parameter.empty
     params = inspect.signature(main_func)
     if len(params.parameters) < min_params:
+        msg = f"{main_func.__name__!r} must have at least {min_params} input parameters"
         raise ValueError(
-            f"{main_func.__name__!r} must have at least {min_params} input parameters",
+            msg,
         )
     # annotation for first parameter other than self, params.parameters is an orderedDict
     first_param_type = [p.annotation for p in params.parameters.values()][
@@ -135,14 +136,18 @@ def _get_raw_hints(main_func, min_params):
     ]
     return_type = params.return_annotation
     if return_type is _no_value:
-        raise TypeError("must specify type hint for return type")
+        msg = "must specify type hint for return type"
+        raise TypeError(msg)
     if first_param_type is _no_value:
-        raise TypeError("must specify type hint for first parameter")
+        msg = "must specify type hint for first parameter"
+        raise TypeError(msg)
 
     if first_param_type is None:
-        raise TypeError("NoneType invalid type for first parameter")
+        msg = "NoneType invalid type for first parameter"
+        raise TypeError(msg)
     if return_type is None:
-        raise TypeError("NoneType invalid type for return value")
+        msg = "NoneType invalid type for return value"
+        raise TypeError(msg)
 
     # we disallow type hints with too many levels of testing,
     # e.g set[int] is ok but tuple[set[int]] is not
@@ -189,7 +194,8 @@ def _get_main_hints(klass) -> tuple[set, set]:
         or not inspect.isclass(klass)
         or not inspect.isfunction(main_func)
     ):
-        raise ValueError(f"must define a callable main() method in {klass.__name__!r}")
+        msg = f"must define a callable main() method in {klass.__name__!r}"
+        raise ValueError(msg)
 
     first_param_type, return_type = _get_raw_hints(main_func, 2)
     first_param_type = c3_typing.get_constraint_names(first_param_type)
@@ -206,7 +212,7 @@ def _set_hints(main_meth, first_param_type, return_type):
 
 
 # Added new function to decorator, doesn't have function body yet
-def _disconnect(self):
+def _disconnect(self) -> None:
     """resets input to None
     Breaks all connections among members of a composed function."""
     if self.app_type is LOADER:
@@ -219,36 +225,46 @@ def _disconnect(self):
 
 def _add(self, other):
     if getattr(other, "app_type", None) not in {WRITER, LOADER, GENERIC}:
-        raise TypeError(f"{other!r} is not composable")
+        msg = f"{other!r} is not composable"
+        raise TypeError(msg)
 
     if other.input is not None:
+        msg = f"{other.__class__.__name__} already part of composed function, use disconnect() to free them up"
         raise ValueError(
-            f"{other.__class__.__name__} already part of composed function, use disconnect() to free them up",
+            msg,
         )
 
     if other is self:
-        raise ValueError("cannot add an app to itself")
+        msg = "cannot add an app to itself"
+        raise ValueError(msg)
 
     # Check order
     if self.app_type is WRITER:
-        raise TypeError("Left hand side of add operator must not be of type writer")
+        msg = "Left hand side of add operator must not be of type writer"
+        raise TypeError(msg)
     if other.app_type is LOADER:
-        raise TypeError("Right hand side of add operator must not be of type loader")
+        msg = "Right hand side of add operator must not be of type loader"
+        raise TypeError(msg)
 
     if self._return_types & {"SerialisableType", "IdentifierType"}:
         pass
     # validate that self._return_types ia a non-empty set.
     elif not self._return_types:
-        raise TypeError(f"return type not defined for {self.__class__.__name__!r}")
+        msg = f"return type not defined for {self.__class__.__name__!r}"
+        raise TypeError(msg)
     # validate that other._data_types a non-empty set.
     elif not other._data_types:
-        raise TypeError(f"input type not defined for {other.__class__.__name__!r}")
+        msg = f"input type not defined for {other.__class__.__name__!r}"
+        raise TypeError(msg)
     # Check if self._return_types & other._data_types is incompatible.
     elif not (self._return_types & other._data_types):
-        raise TypeError(
+        msg = (
             f"{self.__class__.__name__!r} return_type {self._return_types} "
             f"incompatible with {other.__class__.__name__!r} input "
-            f"type {other._data_types}",
+            f"type {other._data_types}"
+        )
+        raise TypeError(
+            msg,
         )
     other.input = self
     return other
@@ -265,8 +281,7 @@ def _repr(self):
     )
     data += ", ".join(f"{k}={v!r}" for k, v in all_args.items())
     data = f"{val}{self.__class__.__name__}({data})"
-    data = textwrap.fill(data, width=80, break_long_words=False, break_on_hyphens=False)
-    return data
+    return textwrap.fill(data, width=80, break_long_words=False, break_on_hyphens=False)
 
 
 def _new(klass, *args, **kwargs):
@@ -304,7 +319,7 @@ class source_proxy:
     def obj(self):
         return self._obj
 
-    def set_obj(self, obj):
+    def set_obj(self, obj) -> None:
         self._obj = obj
 
     @property
@@ -313,7 +328,7 @@ class source_proxy:
         return self._src
 
     @source.setter
-    def source(self, src: Any):
+    def source(self, src: Any) -> None:
         # need to check whether src is hashable, how to cope if it isn't?
         # might need to make this instance hashable perhaps using a uuid?
         self._src = src
@@ -327,19 +342,19 @@ class source_proxy:
         else:
             setattr(self._obj, name, value)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return bool(self._obj)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.obj.__repr__()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.obj.__str__()
 
     def __eq__(self, other):
         return self.obj.__eq__(other)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.obj.__len__()
 
     # pickling induces infinite recursion on python 3.9/3.10
@@ -434,14 +449,14 @@ def _class_from_func(func):
 
     # these methods MUST be in function scope so that separate instances are
     # created for each decorated function
-    def _init(self, *args, **kwargs):
+    def _init(self, *args, **kwargs) -> None:
         self._args = args
         self._kwargs = kwargs
 
     def _main(self, arg, *args, **kwargs):
         kw_args = deepcopy(self._kwargs)
         kw_args = {**kw_args, **kwargs}
-        args = (arg,) + args + deepcopy(self._args)
+        args = (arg, *args, *deepcopy(self._args))
         bound = self._func_sig.bind(*args, **kw_args)
         return self._user_func(**bound.arguments)
 
@@ -601,9 +616,12 @@ def define_app(
     """
 
     if hasattr(klass, "app_type"):
-        raise TypeError(
+        msg = (
             f"The class {klass.__name__!r} is already decorated, avoid using "
-            "inheritance from a decorated class.",
+            "inheritance from a decorated class."
+        )
+        raise TypeError(
+            msg,
         )
 
     app_type = AppType(app_type)
@@ -613,7 +631,8 @@ def define_app(
         if inspect.isfunction(klass):
             klass = _class_from_func(klass)
         if not inspect.isclass(klass):
-            raise ValueError(f"{klass} is not a class")
+            msg = f"{klass} is not a class"
+            raise ValueError(msg)
 
         excludes = []
         if not composable:
@@ -623,18 +642,21 @@ def define_app(
         method_list = [item for item in __mapping if item not in excludes] + ["__str__"]
         # check if user defined input for composable
         if composable and getattr(klass, "input", None):
+            msg = f"remove 'input' attribute in {klass.__name__!r}, this functionality provided by define_app"
             raise TypeError(
-                f"remove 'input' attribute in {klass.__name__!r}, this functionality provided by define_app",
+                msg,
             )
         if composable and getattr(klass, "__add__", None):
+            msg = f"remove '__add__' method in {klass.__name__!r}, this functionality provided by define_app"
             raise TypeError(
-                f"remove '__add__' method in {klass.__name__!r}, this functionality provided by define_app",
+                msg,
             )
         for meth in method_list:
             # make sure method not defined by user before adding
             if inspect.isfunction(getattr(klass, meth, None)):
+                msg = f"remove {meth!r} in {klass.__name__!r}, this functionality provided by define_app"
                 raise TypeError(
-                    f"remove {meth!r} in {klass.__name__!r}, this functionality provided by define_app",
+                    msg,
                 )
             func = __mapping["__repr__"] if meth == "__str__" else __mapping[meth]
             func.__name__ = meth
@@ -652,7 +674,8 @@ def define_app(
 
         if hasattr(klass, "__slots__"):
             # not supporting this yet
-            raise NotImplementedError("slots are not currently supported")
+            msg = "slots are not currently supported"
+            raise NotImplementedError(msg)
 
         return klass
 
@@ -790,9 +813,10 @@ def _apply_to(
     If run in parallel, this instance spawns workers and aggregates results.
     """
     if not self.input:
-        raise RuntimeError(f"{self!r} is not part of a composed function")
+        msg = f"{self!r} is not part of a composed function"
+        raise RuntimeError(msg)
 
-    if isinstance(dstore, (str, Path)):  # one filename
+    if isinstance(dstore, str | Path):  # one filename
         dstore = [dstore]
     elif isinstance(dstore, DataStoreABC):
         dstore = dstore.completed
@@ -803,7 +827,8 @@ def _apply_to(
         input_id = Path(m.unique_id) if isinstance(m, DataMember) else m
         input_id = id_from_source(input_id)
         if input_id in inputs:
-            raise ValueError("non-unique identifier detected in data")
+            msg = "non-unique identifier detected in data"
+            raise ValueError(msg)
         if input_id in self.data_store:
             # we are assuming that this query returns True only when
             # an input_id is completed, we will not hit this if not_completed
@@ -811,7 +836,8 @@ def _apply_to(
         inputs[input_id] = m
 
     if not dstore:  # this should just return datastore, because if all jobs are done!
-        raise ValueError("dstore is empty")
+        msg = "dstore is empty"
+        raise ValueError(msg)
 
     self.set_logger(logger)
     if self.logger:
@@ -852,14 +878,15 @@ def _apply_to(
     return self.data_store
 
 
-def _set_logger(self, logger=None):
+def _set_logger(self, logger=None) -> None:
     if logger is False:
         self.logger = None
         return
     if logger is None:
         logger = CachingLogger(create_dir=True)
     if not isinstance(logger, CachingLogger):
-        raise TypeError(f"logger must be of type CachingLogger not {type(logger)}")
+        msg = f"logger must be of type CachingLogger not {type(logger)}"
+        raise TypeError(msg)
     if not logger.log_file_path:
         src = Path(self.data_store.source).parent
         logger.log_file_path = str(src / _make_logfile_name(self))

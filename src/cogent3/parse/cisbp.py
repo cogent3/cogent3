@@ -22,14 +22,10 @@ def read(filepath):
         matrix.append([float(i) for i in row[1:]])
 
     matrix = dict(zip(states, matrix, strict=False))
-    if len(states) == 4:
-        name = "rna" if "U" in states else "dna"
-    else:
-        name = "protein"
+    name = ("rna" if "U" in states else "dna") if len(states) == 4 else "protein"
 
     states = list(get_moltype(name))
     matrix = [matrix[s] for s in states]
     matrix = array(matrix, dtype=float)
 
-    pfm = MotifFreqsArray(matrix.T, states)
-    return pfm
+    return MotifFreqsArray(matrix.T, states)

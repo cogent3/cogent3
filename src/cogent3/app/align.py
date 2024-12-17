@@ -59,7 +59,7 @@ class _GapOffset:
     2
     """
 
-    def __init__(self, gaps_lengths, invert=False):
+    def __init__(self, gaps_lengths, invert=False) -> None:
         """
         Parameters
         ----------
@@ -90,10 +90,10 @@ class _GapOffset:
         self._ordered = None
         self._invert = invert
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return repr(self._store)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self._store)
 
     def __getitem__(self, index):
@@ -126,11 +126,13 @@ def _gap_union(seqs) -> dict:
     all_gaps = {}
     for seq in seqs:
         if not isinstance(seq, Aligned):
-            raise TypeError(f"must be Aligned instances, not {type(seq)}")
+            msg = f"must be Aligned instances, not {type(seq)}"
+            raise TypeError(msg)
         if seq_name is None:
             seq_name = seq.name
         if seq.name != seq_name:
-            raise ValueError("all sequences must have the same name")
+            msg = "all sequences must have the same name"
+            raise ValueError(msg)
 
         gaps_lengths = dict(seq.map.get_gap_coordinates())
         all_gaps = _merged_gaps(all_gaps, gaps_lengths)
@@ -271,8 +273,9 @@ def _gaps_for_injection(other_seq_gaps: dict, refseq_gaps: dict, seqlen: int) ->
         gap_pos -= offset
         gap_pos = min(seqlen, gap_pos)
         if gap_pos < 0:
+            msg = f"computed gap_pos {gap_pos} < 0, correct reference sequence?"
             raise ValueError(
-                f"computed gap_pos {gap_pos} < 0, correct reference sequence?",
+                msg,
             )
         if gap_pos in all_gaps:
             gap_length += all_gaps[gap_pos]
@@ -303,7 +306,8 @@ def pairwise_to_multiple(pwise, ref_seq, moltype, info=None):
     ArrayAlign
     """
     if not hasattr(ref_seq, "name"):
-        raise TypeError(f"ref_seq must be a cogent3 sequence, not {type(ref_seq)}")
+        msg = f"ref_seq must be a cogent3 sequence, not {type(ref_seq)}"
+        raise TypeError(msg)
 
     refseqs = [s for _, aln in pwise for s in aln.seqs if s.name == ref_seq.name]
     ref_gaps = _gap_union(refseqs)
@@ -346,7 +350,7 @@ class align_to_ref:
         insertion_penalty=20,
         extension_penalty=2,
         moltype="dna",
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -370,12 +374,12 @@ class align_to_ref:
             if self._moltype.label == "dna"
             else make_generic_scoring_dict(10, self._moltype)
         )
-        self._kwargs = dict(
-            S=S,
-            d=insertion_penalty,
-            e=extension_penalty,
-            return_score=False,
-        )
+        self._kwargs = {
+            "S": S,
+            "d": insertion_penalty,
+            "e": extension_penalty,
+            "return_score": False,
+        }
         if ref_seq.lower() == "longest":
             self._func = self.align_to_longest
         else:
@@ -435,7 +439,7 @@ class progressive_align:
         distance="pdist",
         iters: int | None = None,
         approx_dists: bool = True,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -518,14 +522,14 @@ class progressive_align:
         FlyingFox    ........T.................---.......TA....
         """
         self._param_vals = {
-            "codon": dict(omega=0.4, kappa=3),
-            "nucleotide": dict(kappa=3),
+            "codon": {"omega": 0.4, "kappa": 3},
+            "nucleotide": {"kappa": 3},
         }.get(model, param_vals)
         sm = {"codon": "MG94HKY", "nucleotide": "HKY85", "protein": "JTT92"}.get(
             model,
             model,
         )
-        kwargs = {} if gc is None else dict(gc=gc)
+        kwargs = {} if gc is None else {"gc": gc}
         sm = get_model(sm, **kwargs)
         moltype = sm.moltype
         self._model = sm
@@ -555,19 +559,20 @@ class progressive_align:
         if guide_tree is not None:
             guide_tree = interpret_tree_arg(guide_tree)
             if guide_tree.children[0].length is None:
-                raise ValueError("Guide tree must have branch lengths")
+                msg = "Guide tree must have branch lengths"
+                raise ValueError(msg)
             # make sure no zero lengths
             guide_tree = scale_branches()(guide_tree)
 
         self._guide_tree = guide_tree
-        self._kwargs = dict(
-            indel_length=self._indel_length,
-            indel_rate=self._indel_rate,
-            tree=self._guide_tree,
-            param_vals=self._param_vals,
-            show_progress=False,
-            iters=self._iters,
-        )
+        self._kwargs = {
+            "indel_length": self._indel_length,
+            "indel_rate": self._indel_rate,
+            "tree": self._guide_tree,
+            "param_vals": self._param_vals,
+            "show_progress": False,
+            "iters": self._iters,
+        }
 
     def _build_guide(self, seqs):
         tree = self._make_tree(seqs)
@@ -590,9 +595,7 @@ class progressive_align:
             self._kwargs["tree"] = self._guide_tree
             diff = set(self._guide_tree.get_tip_names()) ^ set(seqs.names)
             if diff:
-                numtips = len(set(self._guide_tree.get_tip_names()))
-                print(f"numseqs={len(seqs.names)} not equal to numtips={numtips}")
-                print(f"These were different: {diff}")
+                len(set(self._guide_tree.get_tip_names()))
                 seqs = seqs.take_seqs(self._guide_tree.get_tip_names())
 
         kwargs = self._kwargs.copy()
@@ -607,8 +610,7 @@ class progressive_align:
                 result.info.update(seqs.info)
             except ValueError as err:
                 # probably an internal stop
-                result = NotCompleted("ERROR", self, err.args[0], source=seqs)
-                return result
+                return NotCompleted("ERROR", self, err.args[0], source=seqs)
         return result
 
 
@@ -624,11 +626,11 @@ class smith_waterman:
 
     def __init__(
         self,
-        score_matrix: dict = None,
+        score_matrix: dict | None = None,
         insertion_penalty: int = 20,
         extension_penalty: int = 2,
         moltype: str = "dna",
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -708,12 +710,12 @@ class smith_waterman:
             return_score=True,
         )
 
-        aln.info["align_params"] = dict(
-            score_matrix=self._score_matrix,
-            insertion_penalty=self._insertion_penalty,
-            extension_penalty=self._extension_penalty,
-            sw_score=score,
-        )
+        aln.info["align_params"] = {
+            "score_matrix": self._score_matrix,
+            "insertion_penalty": self._insertion_penalty,
+            "extension_penalty": self._extension_penalty,
+            "sw_score": score,
+        }
         return aln.to_moltype(self.moltype)
 
 
@@ -734,7 +736,7 @@ class ic_score:
     Bioinformatics vol. 15 563–577 (Oxford University Press, 1999)
     """
 
-    def __init__(self, equifreq_mprobs=True):
+    def __init__(self, equifreq_mprobs=True) -> None:
         """
         Parameters
         ----------
@@ -893,7 +895,7 @@ class sp_score:
         calc: str = "JC69",
         gap_insert: float = 12.0,
         gap_extend: float = 1.0,
-    ):
+    ) -> None:
         """
         Parameters
         ----------

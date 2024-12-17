@@ -14,7 +14,7 @@ class TransitionMatrix:
     >>> T = TransitionMatrix(a, ["x", "y", "m"])
     """
 
-    def __init__(self, matrix, tags, stationary_probs=None):
+    def __init__(self, matrix, tags, stationary_probs=None) -> None:
         self.Matrix = numpy.array(matrix, float)
         self.Tags = list(tags)
         self.size = len(matrix)
@@ -50,7 +50,7 @@ class TransitionMatrix:
             x = random_series.uniform(0.0, 1.0)
             state = bisect.bisect_left(partitions[state], x)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         from cogent3.util.table import Table
 
         labels = []
@@ -60,9 +60,9 @@ class TransitionMatrix:
             # Table needs unique labels
             label = f"{label} ({i})"
             labels.append(label)
-        heading = [""] + labels
+        heading = ["", *labels]
         a = [
-            [name] + list(row) for (name, row) in zip(labels, self.Matrix, strict=False)
+            [name, *list(row)] for (name, row) in zip(labels, self.Matrix, strict=False)
         ]
         return str(Table(header=heading, data=a))
 
@@ -91,7 +91,7 @@ class TransitionMatrix:
     def getLikelihoodOfSequence(self, obs, backward=False):
         """Just for testing really"""
         profile = numpy.zeros([len(obs), self.size], float)
-        for i, a in enumerate(obs):
+        for i, _a in enumerate(obs):
             # This is suspiciously alphabet-like!
             profile[i, self.Tags.index(obs[i])] = 1.0
         return self.getLikelihoodOfProfile(profile, backward=backward)
@@ -138,7 +138,10 @@ class TransitionMatrix:
         defined by 'self'"""
 
         if blended is None:
-            blended = lambda a, b: (a + b) / 2.0
+
+            def blended(a, b):
+                return (a + b) / 2.0
+
             # blended = lambda a,b: numpy.sqrt(a*b)
             # blended = lambda a,b: b
 

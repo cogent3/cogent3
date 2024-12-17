@@ -39,7 +39,7 @@ class WeightCalculator:
 
     # refactor: array
 
-    def __init__(self, Weights, Correction):
+    def __init__(self, Weights, Correction) -> None:
         """Returns a new WeightCalculator object (class, so serializable)."""
         self.Weights = Weights
         self.Correction = Correction

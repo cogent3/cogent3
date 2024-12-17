@@ -3,6 +3,8 @@
 Compatible with blat v.34
 """
 
+import contextlib
+
 from cogent3.util.table import Table
 
 
@@ -12,15 +14,12 @@ def make_header(lines):
     max_length = max(lengths)
     for index, line in enumerate(lines):
         if lengths[index] != max_length:
-            for i in range(lengths[index], max_length):
+            for _i in range(lengths[index], max_length):
                 line.append("")
 
     header = []
     for t, b in zip(*lines, strict=False):
-        if t.strip().endswith("-"):
-            c = t.strip() + b
-        else:
-            c = " ".join([t.strip(), b.strip()])
+        c = t.strip() + b if t.strip().endswith("-") else f"{t.strip()} {b.strip()}"
         header += [c.strip()]
     return header
 
@@ -55,10 +54,8 @@ def MinimalPslParser(data):
             yield rows[0]
             rows = []
 
-    try:
+    with contextlib.suppress(AttributeError):
         data.close()
-    except AttributeError:
-        pass
 
 
 def PslToTable(data):
@@ -66,5 +63,5 @@ def PslToTable(data):
     parser = MinimalPslParser(data)
     version = next(parser)
     header = next(parser)
-    rows = [row for row in parser]
+    rows = list(parser)
     return Table(header=header, data=rows, title=version)

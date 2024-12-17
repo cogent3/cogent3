@@ -35,14 +35,16 @@ def MsfParser(f):
     # consistency check
     if len(sequences) != len(seqinfo):
         warnings.warn(
-            "Number of loaded seqs[%s] not same as "
-            "expected[%s]." % (len(sequences), len(seqinfo)),
+            f"Number of loaded seqs[{len(sequences)}] not same as "
+            f"expected[{len(seqinfo)}].",
+            stacklevel=2,
         )
     for name, value_ in sequences.items():
         if len(value_) != seqinfo[name]:
             warnings.warn(
-                "Length of loaded seqs [%s] is [%s] not "
-                "[%s] as expected." % (name, len(sequences[name]), seqinfo[name]),
+                f"Length of loaded seqs [{name}] is [{len(sequences[name])}] not "
+                f"[{seqinfo[name]}] as expected.",
+                stacklevel=2,
             )
 
     # yield sequences

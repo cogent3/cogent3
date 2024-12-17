@@ -23,10 +23,11 @@ class register_deserialiser:
         must be unique
     """
 
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         for type_str in args:
             if not isinstance(type_str, str):
-                raise TypeError(f"{type_str!r} is not a string")
+                msg = f"{type_str!r} is not a string"
+                raise TypeError(msg)
             assert (
                 type_str not in _deserialise_func_map
             ), f"{type_str!r} already in {list(_deserialise_func_map)}"
@@ -45,8 +46,7 @@ def _get_class(provenance):
     nc = "NotCompleted"
     klass = nc if nc in klass else klass
     mod = import_module(provenance[:index])
-    klass = getattr(mod, klass)
-    return klass
+    return getattr(mod, klass)
 
 
 _pat = re.compile("[a-z]")
@@ -130,7 +130,7 @@ def deserialise_map_spans(map_element):
     return map_klass(**map_element)
 
 
-def deserialise_annotation(data, parent):
+def deserialise_annotation(data, parent) -> None:
     annots = []
     for element in data:
         element.pop("version", None)
@@ -173,10 +173,8 @@ def deserialise_moltype(data):
     data.pop("version", None)
     label = data["moltype"]
     data["moltype"] = get_moltype(label)
-    klass = _get_class(data.pop("type"))
-    result = data["moltype"]
-
-    return result
+    _get_class(data.pop("type"))
+    return data["moltype"]
 
 
 @register_deserialiser("cogent3.core.alphabet")
@@ -190,8 +188,7 @@ def deserialise_alphabet(data):
     key = "data" if "data" in data else "motifset"
     motifs = data.pop(key)
     klass = _get_class(data.pop("type"))
-    result = klass(motifs, **data)
-    return result
+    return klass(motifs, **data)
 
 
 def _from_seqview(data):

@@ -48,7 +48,7 @@ class SubstitutionParameterDefn(RatioParamDefn):
 class _EigenPade:
     """class that tries expm via eig first, then Pade if that fails"""
 
-    def __init__(self, eigen):
+    def __init__(self, eigen) -> None:
         self.eigen = eigen
         self.given_expm_warning = False
 
@@ -57,7 +57,10 @@ class _EigenPade:
             return self.eigen(Q)
         except (ArithmeticError, LinAlgError) as detail:
             if not self.given_expm_warning:
-                warnings.warn(f"using slow exponentiator because '{detail!s}'")
+                warnings.warn(
+                    f"using slow exponentiator because '{detail!s}'",
+                    stacklevel=2,
+                )
                 self.given_expm_warning = True
             return PadeExponentiator(Q)
 

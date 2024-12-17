@@ -32,16 +32,16 @@ import xml.sax
 
 
 class TreeHandler(xml.sax.ContentHandler):
-    def __init__(self, tree_builder):
+    def __init__(self, tree_builder) -> None:
         self.build_edge = tree_builder
 
-    def startDocument(self):
+    def startDocument(self) -> None:
         self.stack = [({}, None, None)]
         self.data = {"clades": [], "params": {}}
         self.in_clade = False
         self.current = None
 
-    def startElement(self, name, attrs):
+    def startElement(self, name, attrs) -> None:
         self.parent = self.data
         self.stack.append((self.data, self.in_clade, self.current))
         self.current = ""
@@ -56,28 +56,28 @@ class TreeHandler(xml.sax.ContentHandler):
             self.data = {}
             self.in_clade = False
 
-    def characters(self, text):
+    def characters(self, text) -> None:
         self.current += str(text)
 
-    def endElement(self, name):
+    def endElement(self, name) -> None:
         getattr(self, f"process_{name}")(self.current, **self.data)
         (self.data, self.in_clade, self.current) = self.stack.pop()
         self.parent = self.stack[-1][0]
 
-    def endDocument(self):
+    def endDocument(self) -> None:
         pass
 
-    def process_clade(self, text, name, params, clades):
+    def process_clade(self, text, name, params, clades) -> None:
         edge = self.build_edge(clades, name, params)
         self.parent["clades"].append(edge)
 
-    def process_param(self, text, name, value):
+    def process_param(self, text, name, value) -> None:
         self.parent["params"][name] = value
 
-    def process_name(self, text):
+    def process_name(self, text) -> None:
         self.parent["name"] = text.strip()
 
-    def process_value(self, text):
+    def process_value(self, text) -> None:
         if text == "None":
             self.parent["value"] = None
         else:

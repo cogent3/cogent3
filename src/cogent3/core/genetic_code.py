@@ -64,7 +64,13 @@ class GeneticCode:
     _nt = _bases
     _codons = tuple(map("".join, product(_bases, _bases, _bases)))
 
-    def __init__(self, code_sequence, ID=None, name=None, start_codon_sequence=None):
+    def __init__(
+        self,
+        code_sequence,
+        ID=None,
+        name=None,
+        start_codon_sequence=None,
+    ) -> None:
         """Returns new GeneticCode object.
 
         code_sequence :
@@ -139,14 +145,8 @@ class GeneticCode:
         would also apply to a block like AUC AUA AUG -> [[AUC],[AUA,AUG]],
         although this latter pattern is not observed in the standard code.
         """
-        if aa[0] == aa[1]:
-            first_doublet = True
-        else:
-            first_doublet = False
-        if aa[2] == aa[3]:
-            second_doublet = True
-        else:
-            second_doublet = False
+        first_doublet = aa[0] == aa[1]
+        second_doublet = aa[2] == aa[3]
         if first_doublet and second_doublet and aa[1] == aa[2]:
             return [codons]
         blocks = []
@@ -214,11 +214,11 @@ class GeneticCode:
             rows.append(row)
         return Table(header=headers, data=rows, title=self.name)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Returns code_sequence that constructs the GeneticCode."""
         return self.code_sequence
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         display = self.to_table()
         return str(display)
 
@@ -246,7 +246,8 @@ class GeneticCode:
             key = item.upper()
             key = key.replace("U", "T")
             return self.codons.get(key, "X")
-        raise InvalidCodonError(f"Codon or aa {item} has wrong length")
+        msg = f"Codon or aa {item} has wrong length"
+        raise InvalidCodonError(msg)
 
     def translate(self, dna, start=0):
         """Translates DNA to protein with current GeneticCode.
@@ -266,7 +267,8 @@ class GeneticCode:
         if not dna:
             return ""
         if start + 1 > len(dna):
-            raise ValueError("Translation starts after end of RNA")
+            msg = "Translation starts after end of RNA"
+            raise ValueError(msg)
         return "".join([self[dna[i : i + 3]] for i in range(start, len(dna) - 2, 3)])
 
     def get_stop_indices(self, dna, start=0):
@@ -276,8 +278,7 @@ class GeneticCode:
         stop_pattern = re.compile(stop_pattern)
         seq = str(dna)
         found = [hit.start() for hit in stop_pattern.finditer(seq)]
-        found = [index for index in found if index % 3 == start]
-        return found
+        return [index for index in found if index % 3 == start]
 
     def sixframes(self, dna):
         """Returns six-frame translation as dict containing {frame:translation}"""
@@ -330,10 +331,7 @@ class GeneticCode:
         seq = list(str(seq))
         mappings = []
         for aa in seq:
-            if aa in ambigs:
-                aa = ambigs[aa]
-            else:
-                aa = [aa]
+            aa = ambigs.get(aa, [aa])
 
             codons = []
             for a in aa:
@@ -522,7 +520,7 @@ NcbiGeneticCodeData = [
 ]
 
 # build dict of GeneticCodes keyed by ID (as int, not str)
-GeneticCodes = dict([(i.ID, i) for i in NcbiGeneticCodeData])
+GeneticCodes = {i.ID: i for i in NcbiGeneticCodeData}
 # add str versions for convenience
 for key, value in list(GeneticCodes.items()):
     GeneticCodes[str(key)] = value
@@ -561,7 +559,8 @@ def get_code(code_id: int = 1, new_type: bool = False):
                 code = gc
 
     if code is None:
-        raise ValueError(f'No genetic code matching "{code_id}"')
+        msg = f'No genetic code matching "{code_id}"'
+        raise ValueError(msg)
 
     return code
 

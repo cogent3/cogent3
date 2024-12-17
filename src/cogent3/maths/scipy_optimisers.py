@@ -70,14 +70,14 @@ class _SciPyOptimiser:
 
         if show_remaining:
 
-            def _callback(fcalls, x, fval, delta):
+            def _callback(fcalls, x, fval, delta) -> None:
                 remaining = math.log(max(abs(delta) / tolerance, 1.0))
                 show_remaining(remaining, -fval, delta, fcalls)
 
         else:
             _callback = None
 
-        for i in range(max_restarts + 1):
+        for _i in range(max_restarts + 1):
             (xopt, fval, iterations, func_calls, warnflag) = self._minimise(
                 function,
                 xopt,

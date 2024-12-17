@@ -19,7 +19,7 @@ def tree_align(
     indel_length: float = 1e-1,
     ui=None,
     params_from_pairwise: bool = True,
-    param_vals: dict = None,
+    param_vals: dict | None = None,
     iters: int | None = None,
     approx_dists: bool = True,
 ) -> tuple[AlignType, TreeNode]:
@@ -189,31 +189,17 @@ def _progressive_hmm(indel_length, indel_rate, model, param_vals, seqs, tree):
         align = edge.get_viterbi_path().get_alignment()
     except ArithmeticError:
         # trying to narrow down conditions for difficult to reproduce exception
-        print(
-            "###" * 30,
-            "",
-            tree.get_newick(with_distances=True),
-            "",
-            "#" * 20,
-            "",
-            str(LF),
-            "",
-            "#" * 20,
-            "",
-            seqs.to_fasta(),
-            sep="\n",
-        )
         raise
 
     align = align.to_moltype(model.moltype)
     param_vals.update(
-        dict(
-            indel_length=indel_length,
-            indel_rate=indel_rate,
-            guide_tree=tree.get_newick(with_distances=True),
-            model=model.name,
-            lnL=lnL,
-        ),
+        {
+            "indel_length": indel_length,
+            "indel_rate": indel_rate,
+            "guide_tree": tree.get_newick(with_distances=True),
+            "model": model.name,
+            "lnL": lnL,
+        },
     )
     align.info["align_params"] = param_vals
     return align

@@ -14,7 +14,7 @@ from cogent3.util import dict_array
 from cogent3.util import parallel as PAR
 from cogent3.util import progress_display as UI
 
-DEFAULT_EXCLUDES = "".join([IUPAC_gap, IUPAC_missing])
+DEFAULT_EXCLUDES = f"{IUPAC_gap}{IUPAC_missing}"
 DEFAULT_NULL_VALUE = nan
 
 
@@ -484,7 +484,12 @@ class calc_mi:
     callable with positions to calculate the statistic for.
     """
 
-    def __init__(self, data: numpy.ndarray, num_states: int, metric_id: enum.Enum):
+    def __init__(
+        self,
+        data: numpy.ndarray,
+        num_states: int,
+        metric_id: enum.Enum,
+    ) -> None:
         """
         Parameters
         ----------
@@ -522,7 +527,7 @@ class calc_rmi:
     When called, it returns the positions and their corresponding statistic.
     """
 
-    def __init__(self, data: numpy.ndarray, num_states: int):
+    def __init__(self, data: numpy.ndarray, num_states: int) -> None:
         """
         Parameters
         ----------
@@ -591,10 +596,7 @@ def coevolution_matrix(
 
     num_pos = data.shape[1]
 
-    if stat == 3:
-        calc = calc_rmi(data, num_states)
-    else:
-        calc = calc_mi(data, num_states, stat)
+    calc = calc_rmi(data, num_states) if stat == 3 else calc_mi(data, num_states, stat)
 
     mutual_info = numpy.empty((num_pos, num_pos), dtype=numpy.float64)
     mutual_info.fill(numpy.nan)

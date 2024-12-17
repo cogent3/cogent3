@@ -67,7 +67,7 @@ class register_datastore_reader:
         must be unique, a preceding '.' will be added if not already present
     """
 
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         args = list(args)
         for i, suffix in enumerate(args):
             if suffix is None:
@@ -77,10 +77,12 @@ class register_datastore_reader:
                 continue
 
             if not isinstance(suffix, str):
-                raise TypeError(f"{suffix!r} is not a string")
+                msg = f"{suffix!r} is not a string"
+                raise TypeError(msg)
 
             if suffix.strip() == suffix and not suffix:
-                raise ValueError("cannot have white-space suffix")
+                msg = "cannot have white-space suffix"
+                raise ValueError(msg)
 
             suffix = suffix.strip()
             if suffix:
@@ -126,8 +128,9 @@ def open_data_store(
         opening mode, either r, w, a as per file opening modes
     """
     mode = Mode(mode)
-    if not isinstance(suffix, (str, type(None))):
-        raise ValueError(f"suffix {type(suffix)} not one of string or None")
+    if not isinstance(suffix, str | type(None)):
+        msg = f"suffix {type(suffix)} not one of string or None"
+        raise ValueError(msg)
 
     kwargs = {"limit": limit, "mode": mode, "suffix": suffix, **kwargs}
     base_path = Path(base_path)
@@ -148,10 +151,12 @@ def open_data_store(
         ds_suffix = None
 
     if base_path.name == _MEMORY and mode is READONLY:
-        raise NotImplementedError("in memory readonly sqlitedb")
+        msg = "in memory readonly sqlitedb"
+        raise NotImplementedError(msg)
 
     if ds_suffix is None and suffix is None:
-        raise ValueError("a suffix is required if using a directory data store")
+        msg = "a suffix is required if using a directory data store"
+        raise ValueError(msg)
 
     klass = _datastore_reader_map[ds_suffix]
 
@@ -174,7 +179,7 @@ def unpickle_it(data: bytes) -> SerialisableType:
 class compress:
     """Compresses bytes data."""
 
-    def __init__(self, compressor: callable = gzip_compress):
+    def __init__(self, compressor: callable = gzip_compress) -> None:
         """
         Parameters
         ----------
@@ -191,7 +196,7 @@ class compress:
 class decompress:
     """Decompresses data."""
 
-    def __init__(self, decompressor: callable = gzip_decompress):
+    def __init__(self, decompressor: callable = gzip_decompress) -> None:
         """
         Parameters
         ----------
@@ -216,7 +221,7 @@ def as_dict(obj: typing.Any) -> dict:
 class to_primitive:
     """convert an object to primitive python types suitable for serialisation"""
 
-    def __init__(self, convertor: callable = as_dict):
+    def __init__(self, convertor: callable = as_dict) -> None:
         self.convertor = convertor
 
     def main(self, data: SerialisableType) -> SerialisableType:
@@ -228,7 +233,7 @@ class to_primitive:
 class from_primitive:
     """deserialises from primitive python types"""
 
-    def __init__(self, deserialiser: callable = deserialise_object):
+    def __init__(self, deserialiser: callable = deserialise_object) -> None:
         self.deserialiser = deserialiser
 
     def main(self, data: SerialisableType) -> SerialisableType:
@@ -261,7 +266,8 @@ def _read_it(path) -> str:
     try:
         data = path.read()
     except AttributeError:
-        raise OSError(f"unexpected type {type(path)}")
+        msg = f"unexpected type {type(path)}"
+        raise OSError(msg)
     return data
 
 
@@ -300,7 +306,7 @@ class load_aligned:
         self,
         moltype: str | MolTypes | None = None,
         format: str = "fasta",
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -333,7 +339,7 @@ class load_unaligned:
         *,
         moltype: str | MolTypes | None = None,
         format: str = "fasta",
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -370,7 +376,7 @@ class load_tabular:
         sep="\t",
         strict=True,
         as_type: tabular = "table",
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -419,8 +425,9 @@ class load_tabular:
             if num_records is None:
                 num_records = len(line)
             if strict and len(line) != num_records:
+                msg = f"Inconsistent number of fields: {len(line)} != {num_records}"
                 raise AssertionError(
-                    f"Inconsistent number of fields: {len(line)} != {num_records}",
+                    msg,
                 )
             rows.append(line)
 
@@ -430,10 +437,8 @@ class load_tabular:
             try:
                 record = record.astype(int)
             except ValueError:
-                try:
+                with contextlib.suppress(ValueError):
                     record = record.astype(float)
-                except ValueError:
-                    pass
             records.append(record)
         records = numpy.array(records, dtype="O").T
         return header, records, title
@@ -467,7 +472,7 @@ class load_json:
     """Loads json serialised cogent3 objects from a json file.
     Returns whatever object type was stored."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Examples
         --------
@@ -499,7 +504,7 @@ class load_db:
     """Loads serialised cogent3 objects from a db.
     Returns whatever object type was stored."""
 
-    def __init__(self, deserialiser: callable = DEFAULT_DESERIALISER):
+    def __init__(self, deserialiser: callable = DEFAULT_DESERIALISER) -> None:
         self.deserialiser = deserialiser
 
     def main(self, identifier: IdentifierType) -> SerialisableType:
@@ -507,8 +512,9 @@ class load_db:
         try:
             data = identifier.read()
         except AttributeError:
+            msg = f"{identifier} failed because its of type {type(identifier)}"
             raise AttributeError(
-                f"{identifier} failed because its of type {type(identifier)}",
+                msg,
             )
 
         # do we need to inject identifier attribute?
@@ -530,7 +536,7 @@ class write_json:
         self,
         data_store: DataStoreABC,
         id_from_source: callable = get_unique_id,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -546,7 +552,8 @@ class write_json:
         See https://cogent3.org/doc/app/app_cookbook/write-json.html
         """
         if not isinstance(data_store, DataStoreABC):
-            raise TypeError(f"invalid type {type(data_store)!r} for data_store")
+            msg = f"invalid type {type(data_store)!r} for data_store"
+            raise TypeError(msg)
         self.data_store = data_store
         self._format = "json"
         self._id_from_source = id_from_source
@@ -579,7 +586,7 @@ class write_seqs:
         data_store: DataStoreABC,
         id_from_source: callable = get_unique_id,
         format: str = "fasta",
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -597,7 +604,8 @@ class write_seqs:
         See https://cogent3.org/doc/app/app_cookbook/write-seqs.html
         """
         if not isinstance(data_store, DataStoreABC):
-            raise TypeError(f"invalid type {type(data_store)!r} for data_store")
+            msg = f"invalid type {type(data_store)!r} for data_store"
+            raise TypeError(msg)
         self.data_store = data_store
         self._formatter = FORMATTERS[format]
         self._id_from_source = id_from_source
@@ -629,7 +637,7 @@ class write_tabular:
         data_store: DataStoreABC,
         id_from_source: callable = get_unique_id,
         format: str = "tsv",
-    ):
+    ) -> None:
         """
         data_store
             A writeable data store.
@@ -645,7 +653,8 @@ class write_tabular:
         See https://cogent3.org/doc/app/app_cookbook/write-tabular.html
         """
         if not isinstance(data_store, DataStoreABC):
-            raise TypeError(f"invalid type {type(data_store)!r} for data_store")
+            msg = f"invalid type {type(data_store)!r} for data_store"
+            raise TypeError(msg)
         self.data_store = data_store
         self._id_from_source = id_from_source
         self._format = format
@@ -680,7 +689,7 @@ class write_db:
         data_store: DataStoreABC,
         id_from_source: callable = get_unique_id,
         serialiser: callable = DEFAULT_SERIALISER,
-    ):
+    ) -> None:
         """
         data_store
             A writeable data store.
@@ -697,7 +706,8 @@ class write_db:
         See https://cogent3.org/doc/app/app_cookbook/write-db.html
         """
         if not isinstance(data_store, DataStoreABC):
-            raise TypeError(f"invalid type {type(data_store)!r} for data_store")
+            msg = f"invalid type {type(data_store)!r} for data_store"
+            raise TypeError(msg)
         self.data_store = data_store
         self._serialiser = serialiser
         self._id_from_source = id_from_source

@@ -96,7 +96,9 @@ def calc_rows(
     for j in range(row_length):
         assert 0 <= y_index[j] <= max_y
 
-    assert j_low >= 0 and j_high > j_low and j_high <= row_length
+    assert j_low >= 0
+    assert j_high > j_low
+    assert j_high <= row_length
 
     row_length = max(mantissas.shape[1], row_length)
     N = max(mantissas.shape[2], N)
@@ -105,10 +107,7 @@ def calc_rows(
         row_length = max(exponents.shape[1], row_length)
         N = max(exponents.shape[2], N)
 
-    if use_logs:
-        impossible = -np.inf
-    else:
-        impossible = 0.0
+    impossible = -np.inf if use_logs else 0.0
 
     if viterbi and track is not None and track_enc is not None:
         N = max(track.shape[2], N)
@@ -177,7 +176,8 @@ def calc_rows(
                         if mantissa < MIN_FLOAT_VALUE:
                             if mantissa == 0.0:
                                 continue
-                            assert mantissa >= 0.0 and transition >= 0.0
+                            assert mantissa >= 0.0
+                            assert transition >= 0.0
 
                             while mantissa < MIN_FLOAT_VALUE:
                                 mantissa *= SCALE_STEP
@@ -239,10 +239,7 @@ def calc_rows(
 
                 if dy:
                     y = y_index[j]
-                    if dx:
-                        d_score = match_scores[bin, x, y]
-                    else:
-                        d_score = ygap_scores[bin, y]
+                    d_score = match_scores[bin, x, y] if dx else ygap_scores[bin, y]
                 elif dx:
                     d_score = xgap_scores[bin, x]
                 elif use_logs:

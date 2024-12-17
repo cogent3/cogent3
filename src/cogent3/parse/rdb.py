@@ -90,7 +90,8 @@ def MinimalRdbParser(infile, strict=True):
         # if there are no sequences throw error or skip
         if not sequence:
             if strict:
-                raise RecordError(f"Found Rdb record without sequences: {rec[0]}")
+                msg = f"Found Rdb record without sequences: {rec[0]}"
+                raise RecordError(msg)
             else:
                 continue
 
@@ -106,7 +107,7 @@ def create_acceptable_sequence(sequence):
     Will replace 'o' by '?'.
     Will strip out secondary structure annotation.
     """
-    trans_table = dict([(ord(c), None) for c in "{}[]()^"])
+    trans_table = {ord(c): None for c in "{}[]()^"}
     trans_table[ord("o")] = ord("?")
     # strip out secondary structure annotation {}[]()^
     return str(sequence).translate(trans_table)  # should be accepted by RnaSequence
@@ -141,9 +142,9 @@ def RdbParser(
             try:
                 yield SeqConstructor(clean_seq, info=info)
             except AlphabetError:
+                msg = f"Sequence construction failed on record with reference {info.Refs}."
                 raise RecordError(
-                    "Sequence construction failed on record with reference %s."
-                    % (info.Refs),
+                    msg,
                 )
         else:
             # not strict: just skip any record that raises an exception
@@ -157,6 +158,5 @@ if __name__ == "__main__":
     from sys import argv
 
     filename = argv[1]
-    for sequence in RdbParser(open(filename)):
-        print(sequence.info.Species)
-        print(sequence)
+    for _sequence in RdbParser(open(filename)):
+        pass
