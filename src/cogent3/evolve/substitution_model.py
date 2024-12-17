@@ -183,7 +183,7 @@ class _SubstitutionModel:
 
         self.moltype = alphabet.moltype
         if model_gaps:
-            alphabet = alphabet.with_gap_motif()
+            alphabet = alphabet.with_gap_motif(gap_as_state=True)
 
         if motif_length > 1:
             alphabet = alphabet.get_word_alphabet(motif_length)
@@ -580,7 +580,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
             return False
         gap_start = gap_end = gap_strand = None
         for i, (X, Y) in enumerate(zip(x, y, strict=False)):
-            G = self.gapmotif[i]
+            G = self.gapmotif[i] if self.gapmotif else self.gapmotif
             if X != Y:
                 if X != G and Y != G:
                     return False  # non-gap differences had their chance above
@@ -764,7 +764,7 @@ class Parametric(_ContinuousSubstitutionModel):
         d = {k: v for k, v in d.items() if k not in exclude}
         self._serialisable.update(d)
 
-        (predicate_masks, predicate_order) = self._adapt_predicates(predicates or [])
+        predicate_masks, predicate_order = self._adapt_predicates(predicates or [])
 
         # Check for redundancy in predicates, ie: 1 or more than combine
         # to be equivalent to 1 or more others, or the distance params.
@@ -983,7 +983,10 @@ class TimeReversibleDinucleotide(_TimeReversibleNucleotide):
     """A dinucleotide substitution model."""
 
     def __init__(self, *args, **kw):
-        kw["alphabet"] = kw.get("alphabet", cogent3.get_moltype("dna").alphabet)
+        if "alphabet" not in kw:
+            dna = cogent3.get_moltype("dna")
+            kw["alphabet"] = dna.alphabet
+
         kw["motif_length"] = 2
         _TimeReversibleNucleotide.__init__(self, *args, **kw)
 
