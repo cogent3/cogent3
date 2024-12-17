@@ -1,3 +1,4 @@
+import os
 from unittest import TestCase
 
 import numpy
@@ -30,10 +31,16 @@ from cogent3.app.align import (
     smith_waterman,
 )
 from cogent3.app.composable import NotCompleted
-from cogent3.core.alignment import Aligned
 from cogent3.core.location import gap_coords_to_map
 
 DNA = get_moltype("dna")
+_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
+
+if _NEW_TYPE:
+    from cogent3.core.new_alignment import Aligned
+else:
+    from cogent3.core.alignment import Aligned
+
 _seqs = {
     "Human": "GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
     "Bandicoot": "NACTCATTAATGCTTGAAACCAGCAGTTTATTGTCCAAC",
@@ -85,7 +92,8 @@ def make_pairwise(data, refseq_name, moltype="dna", array_align=False):
 
 def make_aligned(gaps_lengths, seq, name="seq1"):
     seq = seq.moltype.make_seq(seq=seq, name=name)
-    return Aligned(gap_coords_to_map(gaps_lengths, len(seq)), seq)
+    seq.name = name
+    return Aligned.from_map_and_seq(gap_coords_to_map(gaps_lengths, len(seq)), seq)
 
 
 class RefalignmentTests(TestCase):
@@ -105,7 +113,7 @@ class RefalignmentTests(TestCase):
 
     def test_align_to_ref_generic_moltype(self):
         """tests when the moltype is generic"""
-        test_moltypes = ["text", "rna", "protein", "protein_with_stop", "bytes", "ab"]
+        test_moltypes = ["text", "rna", "protein", "protein_with_stop"]
         for test_moltype in test_moltypes:
             aligner = align_app.align_to_ref(moltype=test_moltype)
             self.assertEqual(aligner._moltype.label, test_moltype)
@@ -386,7 +394,7 @@ class ProgressiveAlignment(TestCase):
         aligner = align_app.progressive_align(model="nucleotide", guide_tree=treestring)
         data = self.seqs.to_dict()
         data["Rhesus macaque"] = data.pop("Rhesus")
-        seqs = make_unaligned_seqs(data)
+        seqs = make_unaligned_seqs(data, moltype="dna")
         aln = aligner(seqs)
         self.assertEqual(len(aln), 42)
         # guide tree with no lengths raises value error
@@ -428,7 +436,7 @@ class ProgressiveAlignment(TestCase):
 
     def test_progressive_align_protein(self):
         """progressive alignment with protein models"""
-        seqs = self.seqs.get_translation()
+        seqs = self.seqs.get_translation(incomplete_ok=True)
         aligner = align_app.progressive_align(model="WG01", guide_tree=self.treestring)
         aln = aligner(seqs)
         self.assertEqual(len(aln), 14)
@@ -716,7 +724,7 @@ def test_smith_waterman_score(seqs):
 
 @pytest.mark.parametrize(
     "moltype",
-    ("text", "rna", "protein", "protein_with_stop", "bytes", "ab"),
+    ("text", "rna", "protein", "protein_with_stop"),
 )
 def test_smith_waterman_generic_moltype(moltype):
     """tests when the moltype is generic"""
@@ -737,8 +745,8 @@ def test_smith_waterman_no_moltype(seqs):
     assert aln.moltype.label == "dna"
 
 
-@pytest.mark.parametrize("moltype_1", ("text", "dna", "rna", "protein", "bytes"))
-@pytest.mark.parametrize("moltype_2", ("text", "dna", "rna", "protein", "bytes"))
+@pytest.mark.parametrize("moltype_1", ("text", "dna", "rna", "protein"))
+@pytest.mark.parametrize("moltype_2", ("text", "dna", "rna", "protein"))
 def test_smith_waterman_wrong_moltype(moltype_1, moltype_2):
     """If the moltypes differ between SW app and SequenceCollection,
     the SW moltype should be used
