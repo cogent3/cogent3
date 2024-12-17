@@ -6,13 +6,12 @@ produced by the same code."""
 # How many cells before using linear space alignment algorithm.
 # Should probably set to about half of physical memory / PointerEncoder.bytes
 HIRSCHBERG_LIMIT = 10**8
-
+import os
 import warnings
 
 import numpy
 
 from cogent3.align.traceback import alignment_traceback, map_traceback
-from cogent3.core.alignment import Aligned
 from cogent3.core.location import IndelMap
 from cogent3.evolve.likelihood_tree import LikelihoodTreeEdge
 from cogent3.util.misc import ascontiguousarray
@@ -20,6 +19,11 @@ from cogent3.util.misc import ascontiguousarray
 from . import pairwise_pogs_numba as align_module
 from . import pairwise_seqs_numba as seq_align_module
 from .indel_positions import leaf2pog
+
+if "COGENT3_NEW_TYPE" in os.environ:
+    from cogent3.core.new_alignment import Aligned
+else:
+    from cogent3.core.alignment import Aligned
 
 
 def _as_combined_arrays(preds):
@@ -475,7 +479,9 @@ class AlignablePOG(_Alignable):
     def get_alignment(self):
         from cogent3 import make_aligned_seqs
 
-        return make_aligned_seqs(self.aligneds)
+        moltype = next(iter(self.aligneds))[1].moltype
+        data = {n: str(s) for n, s in self.aligneds}
+        return make_aligned_seqs(data, moltype=moltype)
 
     def _calcAligneds(self, children):
         word_length = self.alphabet.motif_len
@@ -496,7 +502,9 @@ class AlignablePOG(_Alignable):
                     if new_map.parent_length == len(aligned.data)
                     else aligned.data[: new_map.parent_length]
                 )
-                aligneds.append((seq_name, Aligned(new_map, data)))
+                aligneds.append(
+                    (seq_name, Aligned.from_map_and_aligned_data_view(new_map, data)),
+                )
         return aligneds
 
     def backward(self):
@@ -548,7 +556,7 @@ class AlignableSeq(_Alignable):
                 locations=[(0, seqlen)],
                 aligned_length=seqlen,
             )
-            aligned = Aligned(imap, self.seq)
+            aligned = Aligned.from_map_and_seq(imap, self.seq)
             self.aligneds = [(self.leaf.edge_name, aligned)]
         self.max_preds = 1
         self._pog = None
