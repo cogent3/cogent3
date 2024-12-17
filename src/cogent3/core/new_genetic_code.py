@@ -372,6 +372,10 @@ class GeneticCode:
 
         return "".join(mappings)
 
+    @property
+    def synonyms(self):
+        return self._aa_to_codon
+
 
 _mapping_cols = "ncbi_code_sequence", "ID", "name", "ncbi_start_codon_map"
 # code mappings are based on the product of bases in order TCAG
