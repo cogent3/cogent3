@@ -51,6 +51,8 @@ _datastore_reader_map = {}
 
 MolTypes = old_moltype.MolType | new_moltype.MolType
 
+_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
+
 
 class register_datastore_reader:
     """
@@ -279,7 +281,14 @@ def _load_seqs(path, coll_maker, parser, moltype):
     data = data.splitlines()
     data = dict(iter(parser(data)))
     seqs = coll_maker(data=data, moltype=moltype)
-    seqs.info.source = str(path)
+    path = str(path)
+    seqs.info.source = path
+
+    # TODO replace above statement with direct assignment in conditional
+    #   when new_type=True becomes default
+    if _NEW_TYPE:  # pragma: no cover
+        seqs.source = path
+
     return seqs
 
 
