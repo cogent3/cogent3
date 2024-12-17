@@ -17,6 +17,7 @@ from typing import Any, Optional, Union
 
 import numba
 import numpy
+import typing_extensions
 
 import cogent3
 from cogent3._version import __version__
