@@ -33,19 +33,19 @@ class MapTest(unittest.TestCase):
         seq.add_feature(biotype="test_type", name="test_label2", spans=[(15, 18)])
 
         answer = list(seq.get_features(biotype="test_type"))
-        self.assertEqual(len(answer), 2)
-        self.assertEqual(str(seq[answer[0]]), "TCGAT")
-        self.assertEqual(str(seq[answer[1]]), "TCG")
+        assert len(answer) == 2
+        assert str(seq[answer[0]]) == "TCGAT"
+        assert str(seq[answer[1]]) == "TCG"
 
         answer = list(seq.get_features(biotype="test_type", name="test_label"))
-        self.assertEqual(len(answer), 1)
-        self.assertEqual(str(seq[answer[0]]), "TCGAT")
+        assert len(answer) == 1
+        assert str(seq[answer[0]]) == "TCGAT"
 
         # test ignoring of a partial annotation
         sliced_seq = seq[:17]
         answer = list(sliced_seq.get_features(biotype="test_type", allow_partial=False))
-        self.assertEqual(len(answer), 1)
-        self.assertEqual(str(sliced_seq[answer[0]]), "TCGAT")
+        assert len(answer) == 1
+        assert str(sliced_seq[answer[0]]) == "TCGAT"
 
 
 def test_get_by_seq_annotation_allow_gaps():
@@ -67,7 +67,7 @@ def test_get_by_seq_annotation_allow_gaps():
     # so what was returned was an alignment slice compared to below,
     # which is only non-gap positions of "b"
     # when we set allow_gaps, we get gaps in an alignment
-    f = list(aln.get_features(seqid="b", biotype="test_type"))[0]
+    f = next(iter(aln.get_features(seqid="b", biotype="test_type")))
     got = f.get_slice(allow_gaps=True).to_dict()
     assert got == {"b": "A--T", "a": "AAAT"}
     # otherwise we only get the exact positions represented

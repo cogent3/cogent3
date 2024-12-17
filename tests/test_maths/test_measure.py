@@ -1,5 +1,6 @@
 from unittest import TestCase
 
+import pytest
 from numpy import diag_indices, dot, finfo, float64
 from numpy.random import random
 from numpy.testing import assert_allclose
@@ -74,7 +75,7 @@ class ParalinearTest(TestCase):
         qp1, qp2, qp3 = gen_qs_ps()
         pi1 = random(4)
 
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             paralinear_continuous_time(
                 qp1[1],
                 qp1[0],
@@ -82,7 +83,7 @@ class ParalinearTest(TestCase):
                 validate=True,
             )  # pi invalid shape
 
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             paralinear_continuous_time(
                 qp1[1],
                 pi1,
@@ -91,18 +92,18 @@ class ParalinearTest(TestCase):
             )  # pi invalid values
 
         pi1 /= pi1.sum()
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             paralinear_continuous_time(qp1[1], pi1, qp1[1], validate=True)  # invalid Q
 
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             paralinear_continuous_time(qp1[0], pi1, qp1[0], validate=True)  # invalid P
 
         qp2[0][0, 0] = 9
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             paralinear_continuous_time(qp1[1], pi1, qp2[0], validate=True)  # invalid Q
 
         qp2[1][0, 3] = 9
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             paralinear_continuous_time(qp2[1], pi1, qp1[0], validate=True)  # invalid P
 
 
@@ -124,54 +125,54 @@ class TestJensenShannon(TestCase):
         two_dimensional_freqs2 = [freqs2, freqs2]
         shorter_freqs2 = freqs2[:4]
 
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             jsd(
                 freqs1,
                 two_dimensional_freqs2,
                 validate=True,
             )  # freqs1/freqs2 mismatched shape
 
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             jsd(
                 two_dimensional_freqs1,
                 freqs2,
                 validate=True,
             )  # freqs1/freqs2 mismatched shape
 
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             jsd(freqs1, shorter_freqs2, validate=True)  # freqs1/freqs2 mismatched shape
 
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             jsd(shorter_freqs1, freqs2, validate=True)  # freqs1/freqs2 mismatched shape
 
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             jsd(
                 two_dimensional_freqs1,
                 freqs2,
                 validate=True,
             )  # freqs1 has incorrect dimension
 
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             jsd(
                 two_dimensional_freqs1,
                 two_dimensional_freqs2,
                 validate=True,
             )  # freqs1 has incorrect dimension
 
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             jsd(
                 freqs1,
                 two_dimensional_freqs2,
                 validate=True,
             )  # freqs2 has incorrect dimension
 
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             jsd(freqs1, freqs2, validate=True)  # invalid freqs1
 
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             jsd(freqs1, normalised_freqs2, validate=True)  # invalid freqs1
 
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             jsd(normalised_freqs1, freqs2, validate=True)  # invalid freqs2
 
     def test_jsd(self):
@@ -242,7 +243,7 @@ class TestJensenShannon(TestCase):
             0.07928484187525933,
         ]
         result = jsd(pi_0, pi_1)
-        self.assertTrue(result >= 0)
+        assert result >= 0
 
     def test_general_jsd(self):
         """check correctness of JSD for > 2 distributions"""
@@ -253,7 +254,7 @@ class TestJensenShannon(TestCase):
 
         # with invalid freqs
         freqs = (0.1, 0.2, 0.3, 0.4), (0.4, 0.3, 0.1, 0.2), (0.1, 0.4, 0.4, 0.3)
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             jsd(*freqs, validate=True)
 
     def test_jsm(self):

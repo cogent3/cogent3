@@ -91,7 +91,7 @@ def make_seq(
         name of a moltype or moltype instance
     new_type
         if True, returns a new type Sequence (cogent3.core.new_sequence.Sequence).
-        The default will be changed to True in 2024.12. Support for the old
+        The default will be changed to True in 2025.1. Support for the old
         style will be removed as of 2025.6.
     annotation_offset
         integer indicating start position relative to annotations
@@ -177,7 +177,7 @@ def make_unaligned_seqs(
     new_type
         if True, the returned SequenceCollection will be of the new type,
         (cogent3.core.new_sequence.SequenceCollection). The default will be
-        changed to True in 2024.12. Support for the old style will be removed
+        changed to True in 2025.1. Support for the old style will be removed
         as of 2025.6.
     **kw
         other keyword arguments passed to SequenceCollection
@@ -378,7 +378,7 @@ def load_seq(
         a dict from which to make an info object
     new_type
         if True, returns a new type Sequence (cogent3.core.new_sequence.Sequence)
-        The default will be changed to True in 2024.12. Support for the old
+        The default will be changed to True in 2025.1. Support for the old
         style will be removed as of 2025.6.
     annotation_offset
         integer indicating start position relative to annotations
@@ -464,7 +464,7 @@ def load_unaligned_seqs(
     new_type
         if True, the returned SequenceCollection will be of the new type,
         (cogent3.core.new_sequence.SequenceCollection). The default will be
-        changed to True in 2024.12. Support for the old style will be removed
+        changed to True in 2025.1. Support for the old style will be removed
         as of 2025.6.
     **kw
         other keyword arguments passed to SequenceCollection, or show_progress.
@@ -538,7 +538,7 @@ def load_aligned_seqs(
     new_type
         if True, the returned Alignment will be of the new type,
         (cogent3.core.new_alignment.Alignment). The default will be
-        changed to True in 2024.12. Support for the old style will be removed
+        changed to True in 2025.1. Support for the old style will be removed
         as of 2025.6.
     kw
         passed to make_aligned_seqs
@@ -773,11 +773,6 @@ def load_table(
     )
 
 
-@c3warn.deprecated_args(
-    version="2024.12",
-    reason="argument has no effect",
-    discontinued="name_nodes",
-)
 def make_tree(
     treestring=None,
     tip_names=None,

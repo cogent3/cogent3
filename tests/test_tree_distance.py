@@ -270,11 +270,11 @@ def test_matching_cluster_distance_same_tree():
 # different tips
 @pytest.mark.parametrize(
     "b",
-    (
+    [
         "(e, d, (a, b));",
         "(a, d, (a, b));",
         "(a, b, (c, (d, e)));",
-    ),
+    ],
 )
 def test_unrooted_rf_fails_different_tips(b):
     t1 = make_tree(treestring="(a, b, (c, d));")
@@ -287,11 +287,11 @@ def test_unrooted_rf_fails_different_tips(b):
 
 @pytest.mark.parametrize(
     "b",
-    (
+    [
         "(e, d, (a, b));",
         "(a, d, (a, b));",
         "(a, b, (c, (d, e)));",
-    ),
+    ],
 )
 def test_lrm_fails_different_tips(b):
     t1 = make_tree(treestring="(a, b, (c, d));")
@@ -304,11 +304,11 @@ def test_lrm_fails_different_tips(b):
 
 @pytest.mark.parametrize(
     "b",
-    (
+    [
         "((e, d), (a, b));",
         "((a, d), (a, b));",
         "(a, (b, (c, (d, e))));",
-    ),
+    ],
 )
 def test_rooted_rf_fails_different_tips(b):
     t1 = make_tree(treestring="((a, b), (c, d));")
@@ -321,11 +321,11 @@ def test_rooted_rf_fails_different_tips(b):
 
 @pytest.mark.parametrize(
     "b",
-    (
+    [
         "((e, d), (a, b));",
         "((a, d), (a, b));",
         "(a, (b, (c, (d, e))));",
-    ),
+    ],
 )
 def test_matching_cluster_fails_different_tips(b):
     t1 = make_tree(treestring="((a, b), (c, d));")
@@ -338,12 +338,12 @@ def test_matching_cluster_fails_different_tips(b):
 
 # unrooted distance measures applied to examples with rooted trees
 @pytest.mark.parametrize(
-    "a,b",
-    (
+    ("a", "b"),
+    [
         ("((a, b), (c, d));", "(d, c, (a, b));"),
         ("(a, b, (c, d));", "((d, c), (a, b));"),
         ("((a, b), (c, d));", "((a, c), (b, d));"),
-    ),
+    ],
 )
 def test_unrooted_dist_fails_rooted_trees(a, b):
     t1 = make_tree(treestring=a)
@@ -356,12 +356,12 @@ def test_unrooted_dist_fails_rooted_trees(a, b):
 
 # rooted distance measures applied to examples with unrooted trees
 @pytest.mark.parametrize(
-    "a,b",
-    (
+    ("a", "b"),
+    [
         ("((a, b), (c, d));", "(d, c, (a, b));"),
         ("(a, b, (c, d));", "((d, c), (a, b));"),
         ("(a, b, (c, d));", "(d, c, (a, b));"),
-    ),
+    ],
 )
 def test_rooted_dist_fails_unrooted_trees(a, b):
     t1 = make_tree(treestring=a)

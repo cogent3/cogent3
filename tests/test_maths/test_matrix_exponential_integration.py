@@ -99,7 +99,7 @@ class TestIntegratingExponentiator(TestCase):
         ):
             i = klass(self.q)
             g = repr(i)
-            self.assertIsInstance(g, str)
+            assert isinstance(g, str)
 
     def test_calc_number_subs(self):
         """correctly compute ENS"""

@@ -90,7 +90,7 @@ def test_hints_resolved_from_str():
         assert got == expected
 
 
-@pytest.mark.parametrize("container", (list, tuple, set))
+@pytest.mark.parametrize("container", [list, tuple, set])
 def test_hints_from_container_type(container):
     got = get_constraint_names(container[AlignedSeqsType])
     assert got == {"Alignment", "ArrayAlignment"}
@@ -100,7 +100,7 @@ def test_hints_from_container_type(container):
     (sys.version_info.major, sys.version_info.minor) == (3, 8),
     reason="type object subscripting supported in >= 3.9",
 )
-@pytest.mark.parametrize("container", (list, set, tuple))
+@pytest.mark.parametrize("container", [list, set, tuple])
 def test_hints_from_container_type_obj(container):
     got = get_constraint_names(container[AlignedSeqsType])
     assert got == {"Alignment", "ArrayAlignment"}
@@ -116,8 +116,8 @@ def test_hint_inherited_class():
 
 
 @pytest.mark.parametrize(
-    "hint,expect",
-    ((int, 1), (set[int], 2), (list[list[set[float]]], 4)),
+    ("hint", "expect"),
+    [(int, 1), (set[int], 2), (list[list[set[float]]], 4)],
 )
 def test_typing_tree_depth(hint, expect):
     d, _ = type_tree(hint)
@@ -125,12 +125,12 @@ def test_typing_tree_depth(hint, expect):
 
 
 @pytest.mark.parametrize(
-    "hint,expect",
-    (
+    ("hint", "expect"),
+    [
         (int, int),
         (set[int], (set, (int,))),
         (list[set[int]], (list, (set, (int,)))),
-    ),
+    ],
 )
 def test_type_tree(hint, expect):
     _, t = type_tree(hint)

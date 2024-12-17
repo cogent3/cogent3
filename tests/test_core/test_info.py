@@ -12,51 +12,51 @@ class DbRefTests(TestCase):
 
     def setUp(self):
         """Define a standard DbRef object"""
-        self.data = dict(
-            Accession="xyz",
-            Db="abc",
-            name="qwe",
-            Description="blah",
-            Data=list(range(20)),
-        )
+        self.data = {
+            "Accession": "xyz",
+            "Db": "abc",
+            "name": "qwe",
+            "Description": "blah",
+            "Data": list(range(20)),
+        }
         self.db = DbRef(**self.data)
 
     def test_init_minimal(self):
         """DbRef minimal init should fill fields as expected"""
         d = DbRef("abc")
-        self.assertEqual(d.Accession, "abc")
-        self.assertEqual(d.Db, "")
-        self.assertEqual(d.name, "")
-        self.assertEqual(d.Description, "")
-        self.assertEqual(d.Data, None)
+        assert d.Accession == "abc"
+        assert d.Db == ""
+        assert d.name == ""
+        assert d.Description == ""
+        assert d.Data is None
         # empty init not allowed
         self.assertRaises(TypeError, DbRef)
 
     def test_init(self):
         """DbRef init should insert correct data"""
         for attr, val in list(self.data.items()):
-            self.assertEqual(getattr(self.db, attr), val)
+            assert getattr(self.db, attr) == val
 
     def test_str(self):
         """DbRef str should be the same as the accession str"""
-        self.assertEqual(str(self.db), "xyz")
+        assert str(self.db) == "xyz"
         self.db.Accession = 12345
-        self.assertEqual(str(self.db), "12345")
+        assert str(self.db) == "12345"
 
     def test_int(self):
         """DbRef int should be the same as the accession int"""
         self.assertRaises(ValueError, int, self.db)
         self.db.Accession = "12345"
-        self.assertEqual(int(self.db), 12345)
+        assert int(self.db) == 12345
 
     def test_cmp(self):
         """DbRef cmp should first try numeric, then alphabetic, cmp."""
-        self.assertLess(DbRef("abc"), DbRef("xyz"))
-        self.assertEqual(DbRef("abc"), DbRef("abc"))
-        self.assertGreater(DbRef("123"), DbRef("14"))
-        self.assertLess(DbRef("123"), DbRef("abc"))
+        assert DbRef("abc") < DbRef("xyz")
+        assert DbRef("abc") == DbRef("abc")
+        assert DbRef("123") > DbRef("14")
+        assert DbRef("123") < DbRef("abc")
         # check that it ignores other attributes
-        self.assertEqual(DbRef("x", "y", "z", "a", "b"), DbRef("x"))
+        assert DbRef("x", "y", "z", "a", "b") == DbRef("x")
 
 
 class infoTests(TestCase):
@@ -64,11 +64,11 @@ class infoTests(TestCase):
 
     def test_make_list(self):
         """_make_list should always return a list"""
-        self.assertEqual(_make_list("abc"), ["abc"])
-        self.assertEqual(_make_list([]), [])
-        self.assertEqual(_make_list(None), [None])
-        self.assertEqual(_make_list({"x": "y"}), [{"x": "y"}])
-        self.assertEqual(_make_list([1, 2, 3]), [1, 2, 3])
+        assert _make_list("abc") == ["abc"]
+        assert _make_list([]) == []
+        assert _make_list(None) == [None]
+        assert _make_list({"x": "y"}) == [{"x": "y"}]
+        assert _make_list([1, 2, 3]) == [1, 2, 3]
 
 
 class DbRefsTests(TestCase):
@@ -76,14 +76,14 @@ class DbRefsTests(TestCase):
 
     def test_init_empty(self):
         """DbRefs empty init should work as expected"""
-        self.assertEqual(DbRefs(), {})
+        assert DbRefs() == {}
 
     def test_init_data(self):
         """DbRefs init with data should produce expected results"""
         d = DbRefs({"GenBank": "ab", "GO": (3, 44), "PDB": ["asdf", "ghjk"]})
-        self.assertEqual(d, {"GenBank": ["ab"], "GO": [3, 44], "PDB": ["asdf", "ghjk"]})
+        assert d == {"GenBank": ["ab"], "GO": [3, 44], "PDB": ["asdf", "ghjk"]}
         d.GenBank = "xyz"
-        self.assertEqual(d["GenBank"], ["xyz"])
+        assert d["GenBank"] == ["xyz"]
 
 
 class InfoTests(TestCase):
@@ -92,10 +92,10 @@ class InfoTests(TestCase):
     def test_init_empty(self):
         """Info empty init should work as expected"""
         d = Info()
-        self.assertEqual(len(d), 1)
-        self.assertIn("Refs", d)
-        self.assertEqual(d.Refs, DbRefs())
-        self.assertTrue(isinstance(d.Refs, DbRefs))
+        assert len(d) == 1
+        assert "Refs" in d
+        assert d.Refs == DbRefs()
+        assert isinstance(d.Refs, DbRefs)
 
     def test_init_data(self):
         """Info init with data should put items in correct places"""
@@ -103,38 +103,39 @@ class InfoTests(TestCase):
         # in the Info object and attributes that belong in Info.Refs. Also need
         # to check __getitem__, __setitem__, and __contains__.
         d = Info({"x": 3, "GO": 12345})
-        self.assertEqual(d.x, 3)
-        self.assertEqual(d.GO, [12345])
-        self.assertEqual(d.Refs.GO, [12345])
+        assert d.x == 3
+        assert d.GO == [12345]
+        assert d.Refs.GO == [12345]
         try:
             del d.Refs
         except AttributeError:
             pass
         else:
-            raise Exception("Failed to prevent deletion of required key Refs")
+            msg = "Failed to prevent deletion of required key Refs"
+            raise Exception(msg)
         d.GenBank = ("qaz", "wsx")
-        self.assertEqual(d.GenBank, ["qaz", "wsx"])
-        self.assertIn("GenBank", d.Refs)
-        self.assertIn("GenBank", d)
+        assert d.GenBank == ["qaz", "wsx"]
+        assert "GenBank" in d.Refs
+        assert "GenBank" in d
         d.GenBank = "xyz"
-        self.assertEqual(d.GenBank, ["xyz"])
-        self.assertIs(d.GenBank, d.Refs.GenBank)
+        assert d.GenBank == ["xyz"]
+        assert d.GenBank is d.Refs.GenBank
         d.GO = "x"
-        self.assertEqual(d.GO, ["x"])
+        assert d.GO == ["x"]
         d.GO.append("y")
-        self.assertEqual(d.GO, ["x", "y"])
+        assert d.GO == ["x", "y"]
         d.ZZZ = "zzz"
-        self.assertEqual(d.ZZZ, "zzz")
-        self.assertNotIn("ZZZ", d.Refs)
-        self.assertNotIn("XXX", d)
-        self.assertEqual(d.XXX, None)
+        assert d.ZZZ == "zzz"
+        assert "ZZZ" not in d.Refs
+        assert "XXX" not in d
+        assert d.XXX is None
 
     def test_identity(self):
         """Info should get its own new Refs when created"""
         i = Info()
         j = Info()
-        self.assertIsNot(i, j)
-        self.assertIsNot(i.Refs, j.Refs)
+        assert i is not j
+        assert i.Refs is not j.Refs
 
     def test_update(self):
         """update should warn the user of overlapping keys"""
@@ -142,7 +143,7 @@ class InfoTests(TestCase):
             d1 = Info({"key1": "value1", "key2": "value2", "key3": "value3"})
             d2 = Info({"key2": "value2", "key3": "value3", "key4": "value4"})
             d1.update(d2)
-            self.assertEqual(len(w), 1)
+            assert len(w) == 1
 
 
 # run the following if invoked from command-line

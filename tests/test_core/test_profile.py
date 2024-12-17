@@ -3,6 +3,7 @@
 from collections import Counter
 from unittest import TestCase
 
+import pytest
 from numpy import array, log2, nan, vstack
 from numpy.testing import assert_allclose
 
@@ -24,31 +25,31 @@ class MotifCountsArrayTests(TestCase):
 
         data = [[2, 4], [3, 5], [4, 8]]
         got = MotifCountsArray(array(data), "AB")
-        self.assertEqual(got.array.tolist(), data)
+        assert got.array.tolist() == data
 
         got = MotifCountsArray(data, "AB")
-        self.assertEqual(got.array.tolist(), data)
+        assert got.array.tolist() == data
 
     def test_construct_fails(self):
         """fails if given wrong data type or no data"""
         # can't use a string
         data = [["A", "A"], ["A", "A"], ["A", "A"]]
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             MotifCountsArray(data, "AB")
 
         # or a float
         data = [[1.1, 2.1], [0.0, 2.1], [3.0, 4.5]]
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             MotifCountsArray(data, "AB")
         # or be empty
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             MotifCountsArray([], "AB")
 
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             MotifCountsArray([[], []], "AB")
 
         data = [[2, 4], [3, 5], [4, 8]]
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             PSSM(data, "ACGT")
 
     def test_str_repr(self):
@@ -63,19 +64,19 @@ class MotifCountsArrayTests(TestCase):
         data = array([[2, 4], [3, 5], [4, 8]])
         marr = MotifCountsArray(array(data), "AB")
         # print(marr[[1, 2], :])
-        self.assertEqual(marr[0].array.tolist(), [2, 4])
-        self.assertEqual(marr[0, "B"], 4)
-        self.assertEqual(marr[0, :].array.tolist(), [2, 4])
-        self.assertEqual(marr[:, "A"].array.tolist(), [[2], [3], [4]])
-        self.assertEqual(marr[:, "A":"B"].array.tolist(), [[2], [3], [4]])
-        self.assertEqual(marr[1, "A"], 3)
+        assert marr[0].array.tolist() == [2, 4]
+        assert marr[0, "B"] == 4
+        assert marr[0, :].array.tolist() == [2, 4]
+        assert marr[:, "A"].array.tolist() == [[2], [3], [4]]
+        assert marr[:, "A":"B"].array.tolist() == [[2], [3], [4]]
+        assert marr[1, "A"] == 3
         marr = MotifCountsArray(array(data), "AB", row_indices=["a", "b", "c"])
-        self.assertEqual(marr["a"].array.tolist(), [2, 4])
-        self.assertEqual(marr["a", "B"], 4)
-        self.assertEqual(marr["a", :].array.tolist(), [2, 4])
-        self.assertEqual(marr[:, "A"].array.tolist(), [[2], [3], [4]])
-        self.assertEqual(marr[:, "A":"B"].array.tolist(), [[2], [3], [4]])
-        self.assertEqual(marr["b", "A"], 3)
+        assert marr["a"].array.tolist() == [2, 4]
+        assert marr["a", "B"] == 4
+        assert marr["a", :].array.tolist() == [2, 4]
+        assert marr[:, "A"].array.tolist() == [[2], [3], [4]]
+        assert marr[:, "A":"B"].array.tolist() == [[2], [3], [4]]
+        assert marr["b", "A"] == 3
 
     def test_sliced_range(self):
         """a sliced range should preserve row indices"""
@@ -83,16 +84,16 @@ class MotifCountsArrayTests(TestCase):
         names = ["FlyingFox", "DogFaced", "FreeTaile"]
         data = [[316, 134, 133, 317], [321, 136, 123, 314], [331, 143, 127, 315]]
         counts = MotifCountsArray(data, motifs, row_indices=names)
-        self.assertEqual(counts.keys(), names)
+        assert counts.keys() == names
         subset = counts[:2]
-        self.assertEqual(subset.keys(), names[:2])
+        assert subset.keys() == names[:2]
 
     def test_to_dict(self):
         """correctly converts to a dict"""
         motifs = ["A", "C", "D"]
         counts = [[4, 0, 0]]
         marr = MotifCountsArray(counts, motifs)
-        self.assertEqual(marr.to_dict(), {0: {"A": 4, "C": 0, "D": 0}})
+        assert marr.to_dict() == {0: {"A": 4, "C": 0, "D": 0}}
 
     def test_to_freqs(self):
         """produces a freqs array"""
@@ -170,14 +171,14 @@ class MotifCountsArrayTests(TestCase):
         data = [[2, 4], [3, 5], [4, 8]]
         got = MotifCountsArray(array(data), "AB")
         for row in got:
-            self.assertEqual(row.shape, (2,))
+            assert row.shape == (2,)
 
     def test_take(self):
         """take works like numpy take, supporting negation"""
         data = array([[2, 4, 9, 2], [3, 5, 8, 0], [4, 8, 25, 13]])
         marr = MotifCountsArray(data, ["A", "B", "C", "D"])
         # fails if don't provide an indexable indices
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             marr.take(1, axis=1)
 
         # indexing columns using keys
@@ -221,21 +222,21 @@ class MotifFreqsArrayTests(TestCase):
         """valid freqs only"""
         # no negatives
         data = [[-2 / 6, 4 / 6], [3 / 8, 5 / 8], [4 / 12, 8 / 12]]
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             MotifFreqsArray(data, "AB")
 
         # must sum to 1 on axis=1
         data = [[2 / 5, 4 / 6], [3 / 8, 5 / 8], [4 / 12, 8 / 12]]
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             MotifFreqsArray(data, "AB")
 
         data = [["A", "A"], ["A", "A"], ["A", "A"]]
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             MotifFreqsArray(data, "AB")
 
         # int's not allowed
         data = [[2, 4], [3, 5], [4, 8]]
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             MotifFreqsArray(data, "AB")
 
     def test_entropy_terms(self):
@@ -266,10 +267,10 @@ class MotifFreqsArrayTests(TestCase):
         expected = [[0.5, 0, -0.125, -0.125], [0, -0.25, -0.375, -0.375]]
         assert_allclose(rel_entropy, expected)
 
-        with self.assertRaises(ValueError):
-            got.relative_entropy_terms(background=dict(A=-0.5, B=1.5))
+        with pytest.raises(ValueError):
+            got.relative_entropy_terms(background={"A": -0.5, "B": 1.5})
 
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             got.relative_entropy_terms(background={"A": 0.5, "B": 0.25, "C": 0.125})
 
     def test_relative_entropy(self):
@@ -294,7 +295,7 @@ class MotifFreqsArrayTests(TestCase):
         expect = jsd(data[0], data[1])
         freqs = MotifFreqsArray(array(data), "ACGT")
         got = freqs.pairwise_jsd()
-        assert_allclose(list(got.values())[0], expect)
+        assert_allclose(next(iter(got.values())), expect)
 
         data = []
         for _ in range(6):
@@ -304,7 +305,7 @@ class MotifFreqsArrayTests(TestCase):
 
         freqs = MotifFreqsArray(array(data), "ACGT")
         pwise = freqs.pairwise_jsd()
-        self.assertEqual(len(pwise), 6 * 6 - 6)
+        assert len(pwise) == 6 * 6 - 6
 
     def test_pairwise_jsm(self):
         """correctly constructs pairwise JS metric dict"""
@@ -316,7 +317,7 @@ class MotifFreqsArrayTests(TestCase):
         expect = jsm(data[0], data[1])
         freqs = MotifFreqsArray(array(data), "ACGT")
         got = freqs.pairwise_jsm()
-        assert_allclose(list(got.values())[0], expect)
+        assert_allclose(next(iter(got.values())), expect)
 
         data = []
         for _ in range(6):
@@ -326,7 +327,7 @@ class MotifFreqsArrayTests(TestCase):
 
         freqs = MotifFreqsArray(array(data), "ACGT")
         pwise = freqs.pairwise_jsm()
-        self.assertEqual(len(pwise), 6 * 6 - 6)
+        assert len(pwise) == 6 * 6 - 6
 
     def test_pairwise_(self):
         """returns None when single row"""
@@ -334,13 +335,13 @@ class MotifFreqsArrayTests(TestCase):
         data = [0.25, 0.25, 0.25, 0.25]
         freqs = MotifFreqsArray(array(data), "ACGT")
         got = freqs.pairwise_jsm()
-        self.assertEqual(got, None)
+        assert got is None
 
         # ndim=2
         data = array([[0.25, 0.25, 0.25, 0.25]])
         freqs = MotifFreqsArray(data, "ACGT")
         got = freqs.pairwise_jsm()
-        self.assertEqual(got, None)
+        assert got is None
 
     def test_information(self):
         """calculates entropies correctly"""
@@ -358,14 +359,14 @@ class MotifFreqsArrayTests(TestCase):
         num = 1000
         for _ in range(num):
             seq = farr.simulate_seq()
-            self.assertEqual(len(seq), 2)
+            assert len(seq) == 2
             pos1[seq[0]] += 1
             pos2[seq[1]] += 1
-        self.assertEqual(len(pos1), 4)
-        self.assertEqual(len(pos2), 2)
-        self.assertTrue(min(pos1.values()) > 0)
+        assert len(pos1) == 4
+        assert len(pos2) == 2
+        assert min(pos1.values()) > 0
         assert_allclose(pos2["C"] + pos2["A"], num)
-        self.assertTrue(0 < pos2["C"] / num < 1)
+        assert 0 < pos2["C"] / num < 1
 
     def test_slicing(self):
         """slice by keys should work"""
@@ -413,22 +414,22 @@ class MotifFreqsArrayTests(TestCase):
         # with defaults, has a single x/y axes and number of shapes
         logo = farr.logo(ylim=0.5)
         fig = logo.figure
-        self.assertEqual(fig.data, [{}])
-        self.assertTrue(len(fig.layout.xaxis) > 10)
-        self.assertTrue(len(fig.layout.yaxis) > 10)
-        self.assertEqual(fig.layout.yaxis.range, [0, 0.5])
+        assert fig.data == [{}]
+        assert len(fig.layout.xaxis) > 10
+        assert len(fig.layout.yaxis) > 10
+        assert fig.layout.yaxis.range == [0, 0.5]
         # since the second row are equi-frequent, their information is 0 so
         # we substract 4 shapes from that column
-        self.assertEqual(len(fig.layout.shapes), farr.shape[0] * farr.shape[1] - 4)
+        assert len(fig.layout.shapes) == farr.shape[0] * farr.shape[1] - 4
         # wrapping across multiple rows should produce multiple axes
         logo = farr.logo(ylim=0.5, wrap=3)
         fig = logo.figure
         for axis in ("axis", "axis2"):
-            self.assertIn(f"x{axis}", fig.layout)
-            self.assertIn(f"y{axis}", fig.layout)
+            assert f"x{axis}" in fig.layout
+            assert f"y{axis}" in fig.layout
 
         # fails if vspace not in range 0-1
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             farr.logo(vspace=20)
 
 
@@ -463,7 +464,7 @@ class PSSMTests(TestCase):
             [0.0, 0.0, 0.0, 0.0],
             [0.0, 0.0, 0.0, 0.0],
         ]
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             PSSM(data_all_zero, "ACTG")
 
         # fails for numpy.nan
@@ -473,7 +474,7 @@ class PSSMTests(TestCase):
             [-1.485, -1.322, -1.322, -1.322],
             [-1.263, -0.737, -2.322, -0.322],
         ]
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             PSSM(data_nan, "ACTG")
 
         # fails for entries all negative numbers
@@ -483,7 +484,7 @@ class PSSMTests(TestCase):
             [-1.485, -1.322, -1.322, -1.322],
             [-1.263, -0.737, -2.322, -0.322],
         ]
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             PSSM(data, "ACTG")
 
     def test_score_indices(self):
@@ -506,7 +507,7 @@ class PSSMTests(TestCase):
         assert_allclose(scores, [-3.158, -5.703, -2.966], atol=1e-3)
 
         # fails if sequence too short
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             pssm.score_indexed_seq(indices[:3])
 
     def test_score_str(self):
@@ -522,7 +523,7 @@ class PSSMTests(TestCase):
         seq = "".join("ACTG"[i] for i in [3, 1, 2, 0, 2, 2, 3])
         scores = pssm.score_seq(seq)
         assert_allclose(scores, [-4.481, -5.703, -2.966], atol=1e-3)
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             pssm.score_seq(seq[:3])
 
     def test_score_seq_obj(self):

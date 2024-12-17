@@ -58,14 +58,14 @@ class AllTests(TestCase):
         # Note: the newline trailing each sequence is intentional, because
         # we want each FASTA-format record to be separated.
         exp_lines_general = [">rna1", "UCAGGG", ">rna2", "YCU-RG", ">rna3", "CAA-NR"]
-        self.assertEqual(str(self.aln), "\n".join(exp_lines_general) + "\n")
-        self.assertEqual(str(self.da), "\n".join(exp_lines_general) + "\n")
+        assert str(self.aln) == "\n".join(exp_lines_general) + "\n"
+        assert str(self.da) == "\n".join(exp_lines_general) + "\n"
 
     def test_printing_unnamed_seqs(self):
         """Printing unnamed sequences should work the same on Aln and DenseAln"""
         exp_lines_gen = [">seq_0", "UCAGGG", ">seq_1", "YCU-RG", ">seq_2", "CAA-NR\n"]
-        self.assertEqual(str(self.nn_aln), "\n".join(exp_lines_gen))
-        self.assertEqual(str(self.nn_da), "\n".join(exp_lines_gen))
+        assert str(self.nn_aln) == "\n".join(exp_lines_gen)
+        assert str(self.nn_da) == "\n".join(exp_lines_gen)
 
     def test_ArrayAlignment_without_moltype(self):
         """Expect MolType to be picked up from the sequences."""
@@ -74,15 +74,15 @@ class AllTests(TestCase):
         m2 = ArraySequence("CCCR", alphabet=RNA.alphabets.degen_gapped, name="rna2")
         da = ArrayAlignment([m1, m2])
         exp_lines = [">rna1", "UCAG", ">rna2", "CCCR"]
-        self.assertEqual(str(da), "\n".join(exp_lines) + "\n")
+        assert str(da) == "\n".join(exp_lines) + "\n"
 
     def test_names(self):
         # Should both alignments handle names the same way?
-        self.assertEqual(self.aln.names, ["rna1", "rna2", "rna3"])
-        self.assertEqual(self.da.names, ["rna1", "rna2", "rna3"])
+        assert self.aln.names == ["rna1", "rna2", "rna3"]
+        assert self.da.names == ["rna1", "rna2", "rna3"]
         # On unnamed sequences the behavior is now the same.
-        self.assertEqual(self.nn_aln.names, ["seq_0", "seq_1", "seq_2"])
-        self.assertEqual(self.nn_da.names, ["seq_0", "seq_1", "seq_2"])
+        assert self.nn_aln.names == ["seq_0", "seq_1", "seq_2"]
+        assert self.nn_da.names == ["seq_0", "seq_1", "seq_2"]
 
     def test_seqFreqs(self):
         """seqFreqs should work the same on Alignment and ArrayAlignment"""
@@ -100,8 +100,8 @@ class AllTests(TestCase):
         got2 = self.aln.counts_per_seq(allow_gap=True, include_ambiguity=True)
         for pos, counts in expected_counts.items():
             for char in counts:
-                self.assertEqual(got1[pos, char], expected_counts[pos][char])
-                self.assertEqual(got2[pos, char], expected_counts[pos][char])
+                assert got1[pos, char] == expected_counts[pos][char]
+                assert got2[pos, char] == expected_counts[pos][char]
 
     def test_subset_positions_ArrayAlignment(self):
         # because dict order volatile, need to grab the
@@ -137,14 +137,14 @@ class AllTests(TestCase):
         obs_sub_da_SA = self.da.get_sub_alignment(pos=[0, 1, 5])
 
         # When using the get_sub_alignment method the data is right
-        self.assertEqual(obs_sub_da_SA, sub_da)
-        self.assertNotEqual(obs_sub_da_SA, self.da)
+        assert obs_sub_da_SA == sub_da
+        assert obs_sub_da_SA != self.da
         assert_equal(obs_sub_da_SA.array_seqs, sub_data)
         assert_equal(obs_sub_da_SA.array_positions, transpose(sub_data))
 
         # For the take_positions method: Why does this work
-        self.assertEqual(obs_sub_da_TP, sub_da)
-        self.assertNotEqual(obs_sub_da_TP, self.da)
+        assert obs_sub_da_TP == sub_da
+        assert obs_sub_da_TP != self.da
         # If the data doesn't match?
         assert_equal(obs_sub_da_TP.array_seqs, sub_data)
         assert_equal(obs_sub_da_TP.array_positions, transpose(sub_data))
@@ -158,22 +158,22 @@ class AllTests(TestCase):
         sub_aln = Alignment([rna1, rna2, rna3], moltype=RNA)
 
         obs_sub_aln = self.aln.take_positions([0, 1, 5])
-        self.assertEqual(obs_sub_aln, sub_aln)
-        self.assertNotEqual(obs_sub_aln, self.aln)
+        assert obs_sub_aln == sub_aln
+        assert obs_sub_aln != self.aln
         # string representations should be the same. This fails right
         # now, because sequence order is not maintained. See separate test.
-        self.assertEqual(str(obs_sub_aln), str(sub_aln))
+        assert str(obs_sub_aln) == str(sub_aln)
 
     def test_take_positions_sequence_order(self):
         """Alignment take_positions should maintain seq order"""
         # This works
-        self.assertEqual(self.da.names, ["rna1", "rna2", "rna3"])
+        assert self.da.names == ["rna1", "rna2", "rna3"]
         sub_da = self.da.get_sub_alignment(pos=[0, 1, 5])
-        self.assertEqual(sub_da.names, ["rna1", "rna2", "rna3"])
+        assert sub_da.names == ["rna1", "rna2", "rna3"]
         # seq order not maintained in Alignment
-        self.assertEqual(self.aln.names, ["rna1", "rna2", "rna3"])
+        assert self.aln.names == ["rna1", "rna2", "rna3"]
         sub_aln = self.aln.take_positions([0, 1, 5])
-        self.assertEqual(sub_aln.names, ["rna1", "rna2", "rna3"])
+        assert sub_aln.names == ["rna1", "rna2", "rna3"]
 
     def test_subset_seqs_Alignment(self):
         rna1 = RnaSequence("UCG", name="rna1")
@@ -184,19 +184,19 @@ class AllTests(TestCase):
         aln = Alignment([rna1, rna2, rna3], moltype=RNA)
         obs_sub_aln = aln.take_seqs(["rna2", "rna3"])
 
-        self.assertEqual(obs_sub_aln, sub_aln)
-        self.assertEqual(str(obs_sub_aln), str(sub_aln))
+        assert obs_sub_aln == sub_aln
+        assert str(obs_sub_aln) == str(sub_aln)
 
         # Selected sequences should be in specified order?
         obs_sub_aln_1 = self.aln.take_seqs(["rna3", "rna2"])
         obs_sub_aln_2 = self.aln.take_seqs(["rna2", "rna3"])
-        self.assertNotEqual(str(obs_sub_aln_1), str(obs_sub_aln_2))
+        assert str(obs_sub_aln_1) != str(obs_sub_aln_2)
 
     def test_subset_seqs_ArrayAlignment(self):
         model1 = ArraySequence("UCG", name="rna1", alphabet=RNA.alphabets.degen_gapped)
         model2 = ArraySequence("YCG", name="rna2", alphabet=RNA.alphabets.degen_gapped)
         model3 = ArraySequence("CAR", name="rna3", alphabet=RNA.alphabets.degen_gapped)
-        sub_da = ArrayAlignment(
+        ArrayAlignment(
             [model1, model2, model3],
             moltype=RNA,
         )
@@ -207,38 +207,38 @@ class AllTests(TestCase):
         obs_sub_da_SA = self.da.get_sub_alignment(seqs=[0])
 
         # These two are now the same. Fixed mapping of key to char array.
-        self.assertEqual(obs_sub_da_TS, obs_sub_da_SA)
-        self.assertEqual(str(obs_sub_da_TS), str(obs_sub_da_SA))
+        assert obs_sub_da_TS == obs_sub_da_SA
+        assert str(obs_sub_da_TS) == str(obs_sub_da_SA)
 
     def test_aln_equality(self):
         # When does something compare equal?
-        self.assertEqual(self.da == self.da, True)
+        assert (self.da == self.da) is True
         # one sequence less
         other_da1 = ArrayAlignment(
             [self.model1, self.model2],
             moltype=RNA,
         )
-        self.assertEqual(self.da == other_da1, False)
+        assert (self.da == other_da1) is False
         # seqs in different order -- doesn't matter
         other_da2 = ArrayAlignment(
             [self.model1, self.model3, self.model2],
             moltype=RNA,
         )
-        self.assertEqual(self.da == other_da2, True)
+        assert (self.da == other_da2) is True
         # seqs in different encoding -- doesn't matter, only looks at data
         other_da3 = ArrayAlignment([self.model1, self.model2, self.model3])
         # Should this compare False even though the data is exactly the same?
         # The moltype is different...
-        self.assertEqual(self.da == other_da3, True)
+        assert (self.da == other_da3) is True
         assert alltrue(list(map(alltrue, self.da.array_seqs == other_da3.array_seqs)))
 
     def test_seq_equality(self):
         model1 = ArraySequence("UCG", name="rna1", alphabet=RNA.alphabets.degen_gapped)
         model2 = ArraySequence("UCG", name="rna1", alphabet=RNA.alphabets.degen_gapped)
         # Shouldn't the above two sequences be equal?
-        self.assertEqual(model1, model2)
+        assert model1 == model2
         # string comparison is True
-        self.assertEqual(str(model1), str(model2))
+        assert str(model1) == str(model2)
 
     def test_seq_ungapping(self):
         rna1 = RnaSequence("U-C-A-G-", name="rna1")
@@ -248,11 +248,11 @@ class AllTests(TestCase):
             alphabet=RNA.alphabets.degen_gapped,
         )
 
-        self.assertEqual(rna1, "U-C-A-G-")
-        self.assertEqual(rna1.degap(), "UCAG")
+        assert rna1 == "U-C-A-G-"
+        assert rna1.degap() == "UCAG"
 
         # check is produces the right string from the beginning
-        self.assertEqual(str(model1), "U-C-A-G-")
+        assert str(model1) == "U-C-A-G-"
         assert_equal(model1._data, [0, 4, 1, 4, 2, 4, 3, 4])
         # ArraySequence should maybe have the same degap method as normal seq
-        self.assertEqual(str(model1.degap()), "UCAG")
+        assert str(model1.degap()) == "UCAG"

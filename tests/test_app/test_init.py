@@ -60,8 +60,8 @@ class TestAvailableApps(TestCase):
         from cogent3.util.table import Table
 
         apps = available_apps()
-        self.assertIsInstance(apps, Table)
-        self.assertTrue(apps.shape[0] > 10)
+        assert isinstance(apps, Table)
+        assert apps.shape[0] > 10
 
     def test_composable_pairwise_applications(self):
         """Properly compose two composable applications"""
@@ -69,7 +69,7 @@ class TestAvailableApps(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             applications = _get_all_composables(os.path.join(dirname, "delme"))
             for app in applications:
-                self.assertTrue(is_app(app), msg=app)
+                assert is_app(app), app
 
             composable_application_tuples = [
                 (app1, app2)
@@ -96,7 +96,7 @@ class TestAvailableApps(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             applications = _get_all_composables(os.path.join(dirname, "delme"))
             for app in applications:
-                self.assertTrue(is_app(app))
+                assert is_app(app)
 
             incompatible_application_tuples = [
                 (app1, app2)
@@ -117,11 +117,11 @@ class TestAvailableApps(TestCase):
                 app_b.disconnect()
 
                 # Compose two incompatible applications, there should be exceptions.
-                with self.assertRaises(err_type):
+                with pytest.raises(err_type):
                     app_a + app_b
 
 
-@pytest.mark.parametrize("name", ("sample.min_length", "min_length"))
+@pytest.mark.parametrize("name", ["sample.min_length", "min_length"])
 def test_get_app(name):
     app = get_app(name, 500)
     assert app.__class__.__name__.endswith(name.split(".")[-1])

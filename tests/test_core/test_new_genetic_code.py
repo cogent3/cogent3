@@ -3,7 +3,7 @@ import pytest
 from cogent3.core import new_alphabet, new_genetic_code
 
 
-@pytest.mark.parametrize("gc", (1, "Standard", new_genetic_code.DEFAULT))
+@pytest.mark.parametrize("gc", [1, "Standard", new_genetic_code.DEFAULT])
 def test_get_code(gc):
     code = new_genetic_code.get_code(gc)
     assert code.name == "Standard"
@@ -20,7 +20,7 @@ def test_stop_codons():
     assert code.stop_codons == {"TAA", "TAG", "TGA"}
 
 
-@pytest.mark.parametrize("codons", ("TAA", "TAG", "TGA"))
+@pytest.mark.parametrize("codons", ["TAA", "TAG", "TGA"])
 def test_is_stop_true(codons):
     code = new_genetic_code.DEFAULT
     assert code.is_stop(codons)
@@ -44,7 +44,7 @@ def test_sense_codons():
     assert len(code.sense_codons) == 61
 
 
-@pytest.mark.parametrize("invalid", ("AT", "TAAA", 23))
+@pytest.mark.parametrize("invalid", ["AT", "TAAA", 23])
 def test_invalid_index(invalid):
     with pytest.raises(new_genetic_code.InvalidCodonError):
         new_genetic_code.DEFAULT[invalid]
@@ -55,8 +55,8 @@ def test_translate():
     assert code.translate("ATGGGG") == code["ATG"] + code["GGG"]
 
 
-@pytest.mark.parametrize("incomplete_ok", (False, True))
-@pytest.mark.parametrize("seq", ("ATGNTT", "ATGCAY"))
+@pytest.mark.parametrize("incomplete_ok", [False, True])
+@pytest.mark.parametrize("seq", ["ATGNTT", "ATGCAY"])
 def test_translation_ambig(seq, incomplete_ok):
     code = new_genetic_code.DEFAULT
     aa = code.translate(seq, incomplete_ok=incomplete_ok)
@@ -123,7 +123,7 @@ def test_eq_false(code_id):
 
 
 @pytest.mark.parametrize(
-    "seq, expect",
+    ("seq", "expect"),
     [
         ("?GATCT", "XS"),
         ("GAT-T-", "D-"),
@@ -139,7 +139,7 @@ def test_translate_incomplete(seq, expect):
 
 
 @pytest.mark.parametrize(
-    "seq, expect",
+    ("seq", "expect"),
     [
         ("AGATC?", "XS"),
         ("-A-ATC", "D-"),
@@ -173,7 +173,7 @@ def test_get_alphabet_with_stop():
     assert len(alpha_gap) == 65
 
 
-@pytest.mark.parametrize("repr_method", ("__str__", "__repr__", "_repr_html_"))
+@pytest.mark.parametrize("repr_method", ["__str__", "__repr__", "_repr_html_"])
 def test_code_repr(repr_method):
     gc = new_genetic_code.get_code(1)
     got = getattr(gc, repr_method)()

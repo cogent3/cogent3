@@ -382,24 +382,25 @@ class ConsensusTests(unittest.TestCase):
         """Tests for majority rule consensus trees"""
         trees = self.rooted_trees
         outtrees = majority_rule(trees, strict=False)
-        self.assertEqual(len(outtrees), 1)
-        self.assertTrue(outtrees[0].same_topology(Tree("((c,d),(a,b));")))
+        assert len(outtrees) == 1
+        assert outtrees[0].same_topology(Tree("((c,d),(a,b));"))
         outtrees = majority_rule(trees, strict=True)
-        self.assertEqual(len(outtrees), 1)
-        self.assertTrue(outtrees[0].same_topology(Tree("(c,d,(a,b));")))
+        assert len(outtrees) == 1
+        assert outtrees[0].same_topology(Tree("(c,d,(a,b));"))
 
     def test_get_tree_get_splits(self):
         """get_tree should provide a reciprocal map of get_splits"""
         tree = load_tree(os.path.join(data_path, "murphy.tree"))
-        self.assertTrue(tree.same_topology(get_tree(get_splits(tree))))
+        assert tree.same_topology(get_tree(get_splits(tree)))
 
     def test_consensus_tree_branch_lengths(self):
         """consensus trees should average branch lengths properly"""
 
         def get_ac(tree):
             for edge in tree.get_edge_vector(include_root=False):
-                if set("ac") == set([c.name for c in edge.children]):
+                if set("ac") == {c.name for c in edge.children}:
                     return edge
+            return None
 
         sct = ScoredTreeCollection(self.unrooted_trees_lengths)
         ct = sct.get_consensus_tree()
@@ -410,12 +411,12 @@ class ConsensusTests(unittest.TestCase):
         ct = ct.rooted_with_tip("d")
         ct = ct.sorted(tip_names)
 
-        self.assertTrue(abs(get_ac(ct).length - get_ac(maj_tree).length) < 1e-9)
+        assert abs(get_ac(ct).length - get_ac(maj_tree).length) < 1e-09
 
         sct = ScoredTreeCollection(self.rooted_trees_lengths)
         ct = sct.get_consensus_tree(method="rooted")
         maj_tree = self.rooted_trees_lengths[0][1]
-        self.assertTrue(abs(get_ac(ct).length - get_ac(maj_tree).length) < 1e-9)
+        assert abs(get_ac(ct).length - get_ac(maj_tree).length) < 1e-09
 
     def test_scored_trees_collection_write(self):
         """writes a tree collection"""
@@ -430,7 +431,7 @@ class ConsensusTests(unittest.TestCase):
         tree_list = [(i * -1, t) for i, t in enumerate(self.trees)]
         sct = LogLikelihoodScoredTreeCollection(tree_list)
         ct = sct.get_consensus_tree()
-        self.assertTrue(ct.same_topology(Tree("((c,d),a,b);")))
+        assert ct.same_topology(Tree("((c,d),a,b);"))
 
     def test_consensus_from_scored_trees_collection_ii(self):
         """strict consensus should handle conflicting trees"""
@@ -438,14 +439,14 @@ class ConsensusTests(unittest.TestCase):
             list(zip([1] * 3, self.unrooted_conflicting_trees, strict=False)),
         )
         ct = sct.get_consensus_trees()[0]
-        self.assertTrue(ct.same_topology(Tree("(a,b,c,d);")))
+        assert ct.same_topology(Tree("(a,b,c,d);"))
 
         sct = ScoredTreeCollection(
             list(zip([1] * 3, self.rooted_conflicting_trees, strict=False)),
         )
         # cts = sct.get_consensus_trees(method='rooted')
         ct = sct.get_consensus_trees(method="rooted")[0]
-        self.assertTrue(ct.same_topology(Tree("(a,b,c,d);")))
+        assert ct.same_topology(Tree("(a,b,c,d);"))
         # for tree in cts:
         #    print str(tree)
         # self.assertTrue(set(map(str, cts))==set(['('+c+');' for c in 'abcd']))
@@ -454,7 +455,7 @@ class ConsensusTests(unittest.TestCase):
         """weighted consensus from a tree collection should be different"""
         sct = LogLikelihoodScoredTreeCollection(self.scored_trees)
         ct = sct.get_consensus_tree()
-        self.assertTrue(ct.same_topology(Tree("((a,b),c,d);")))
+        assert ct.same_topology(Tree("((a,b),c,d);"))
 
     def test_weighted_consensus_from_scored_trees_collection_ii(self):
         """root positions in input tree collection should not effect result"""
@@ -462,17 +463,17 @@ class ConsensusTests(unittest.TestCase):
         ctrr = sct.get_consensus_tree()
         sct = LogLikelihoodScoredTreeCollection(self.trees_rooted_at_A)
         ctra = sct.get_consensus_tree()
-        self.assertTrue(ctrr.same_topology(ctra))
+        assert ctrr.same_topology(ctra)
 
     def test_weighted_trees_satisyfing_cutoff(self):
         """build consensus tree from those satisfying cutoff"""
         sct = LogLikelihoodScoredTreeCollection(self.scored_trees)
         cts = sct.get_weighted_trees(cutoff=0.8)
-        for weight, tree in cts:
-            self.assertTrue(tree.same_topology(Tree("((a,b),c,d);")))
+        for _weight, tree in cts:
+            assert tree.same_topology(Tree("((a,b),c,d);"))
 
         ct = cts.get_consensus_tree()
-        self.assertTrue(ct.same_topology(Tree("((a,b),c,d);")))
+        assert ct.same_topology(Tree("((a,b),c,d);"))
 
     def test_tree_collection_read_write_file(self):
         """should correctly read / write a collection from a file"""
@@ -480,7 +481,7 @@ class ConsensusTests(unittest.TestCase):
         def eval_klass(coll):
             coll.write("sample.trees")
             read = make_trees("sample.trees")
-            self.assertTrue(type(read) == type(coll))
+            assert type(read) == type(coll)
 
         eval_klass(LogLikelihoodScoredTreeCollection(self.scored_trees))
 
@@ -497,7 +498,7 @@ class TreeReconstructionTests(unittest.TestCase):
     def assertTreeDistancesEqual(self, t1, t2):
         d1 = t1.get_distances()
         d2 = t2.get_distances()
-        self.assertEqual(len(d1), len(d2))
+        assert len(d1) == len(d2)
         for key in d2:
             self.assertAlmostEqual(d1[key], d2[key])
 
@@ -534,8 +535,8 @@ class TreeReconstructionTests(unittest.TestCase):
         }
         results = gnj(tied_dists, keep=3, show_progress=False)
         scores = [score for (score, tree) in results]
-        self.assertEqual(scores[:2], [7.75, 7.75])
-        self.assertNotEqual(scores[2], 7.75)
+        assert scores[:2] == [7.75, 7.75]
+        assert scores[2] != 7.75
 
     def test_wls(self):
         """testing wls"""
@@ -546,16 +547,16 @@ class TreeReconstructionTests(unittest.TestCase):
         """testing wls with order option"""
         order = ["e", "b", "c", "d"]
         reconstructed = wls(self.dists, order=order, show_progress=False)
-        self.assertEqual(set(reconstructed.get_tip_names()), set(order))
+        assert set(reconstructed.get_tip_names()) == set(order)
 
     def test_limited_wls(self):
         """testing (well, exercising at least), wls with constrained start"""
         init = make_tree(treestring="((a,c),b,d)")
         reconstructed = wls(self.dists, start=init, show_progress=False)
-        self.assertEqual(len(reconstructed.get_tip_names()), 6)
+        assert len(reconstructed.get_tip_names()) == 6
         init2 = make_tree(treestring="((a,d),b,c)")
         reconstructed = wls(self.dists, start=[init, init2], show_progress=False)
-        self.assertEqual(len(reconstructed.get_tip_names()), 6)
+        assert len(reconstructed.get_tip_names()) == 6
         init3 = make_tree(treestring="((a,d),b,z)")
         self.assertRaises(Exception, wls, self.dists, start=[init, init3])
         # if start tree has all seq names, should raise an error
@@ -576,7 +577,7 @@ class TreeReconstructionTests(unittest.TestCase):
         model = get_model("JC69")
         lnL, tree = ML(model, aln).trex(a=3, k=1, show_progress=False)
         assert_allclose(lnL, -8882.217502905267)
-        self.assertTrue(tree.same_topology(make_tree("(Mouse,Rat,(Human,Dog));")))
+        assert tree.same_topology(make_tree("(Mouse,Rat,(Human,Dog));"))
 
 
 def test_gnj_two():

@@ -41,7 +41,7 @@ class Test(TestCase):
         next(parser)
         header = next(parser)
         infile.close()
-        self.assertEqual(header, expect)
+        assert header == expect
 
     def test_psl_to_table(self):
         PslToTable(fname)
@@ -50,6 +50,6 @@ class Test(TestCase):
         """get correct sequence coordinates to produce a trimmed sequence"""
         table = PslToTable(fname)
         for row in table:
-            query_name = row["Q name"]
-            query_strand = row["strand"]
-            q_start = row["Q start"]
+            row["Q name"]
+            row["strand"]
+            row["Q start"]

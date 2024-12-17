@@ -50,35 +50,35 @@ class LogoTests(TestCase):
         """exercising some Letter methods"""
         # shift
         l = get_character("G")
-        self.assertEqual(l.x, 0)
-        self.assertEqual(l.y, 0)
+        assert l.x == 0
+        assert l.y == 0
         l.shift(2, 2)
-        self.assertEqual(l.x, 2)
-        self.assertEqual(l.y, 2)
+        assert l.x == 2
+        assert l.y == 2
         # scale adjusts the scale attributes
         orig_width = l.scale_x
         orig_height = l.scale_y
         l.scale(x=0.5, y=2)
-        self.assertEqual(l.scale_x, orig_width / 2)
-        self.assertEqual(l.scale_y, orig_height * 2)
+        assert l.scale_x == orig_width / 2
+        assert l.scale_y == orig_height * 2
         # invert changes the degree attr
         l.rotate(180)
-        self.assertEqual(l.degrees, 180)
+        assert l.degrees == 180
 
     def test_input_conversion(self):
         """correctly convert a series of dicts or a DictArray to lists"""
-        data = [dict(A=0.1, C=0.2), dict(A=0.1, C=0.2)]
+        data = [{"A": 0.1, "C": 0.2}, {"A": 0.1, "C": 0.2}]
         base = [("A", 0.1), ("C", 0.2)]
         expect = [base, base]
         got = _char_hts_as_lists(data)
-        self.assertEqual(got, expect)
-        data = [dict(A=0.1, C=0.2), {}]
+        assert got == expect
+        data = [{"A": 0.1, "C": 0.2}, {}]
         base = [("A", 0.1), ("C", 0.2)]
         expect = [base, None]
         got = _char_hts_as_lists(data)
-        self.assertEqual(got, expect)
-        data = [dict(A=0.1, C=0.2), None]
+        assert got == expect
+        data = [{"A": 0.1, "C": 0.2}, None]
         base = [("A", 0.1), ("C", 0.2)]
         expect = [base, None]
         got = _char_hts_as_lists(data)
-        self.assertEqual(got, expect)
+        assert got == expect

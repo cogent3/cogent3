@@ -40,10 +40,10 @@ class ScaleRuleTests(unittest.TestCase):
         """Scale rule requiring matrix entries to have all pars specified"""
         model = self._makeModel({"k": trans}, {"ts": trans, "tv": ~trans})
 
-        self.assertEqual(
-            self._get_scaled_lengths(model, {"k": 6.0, "length": 4.0}),
-            {"ts": 3.0, "tv": 1.0},
-        )
+        assert self._get_scaled_lengths(model, {"k": 6.0, "length": 4.0}) == {
+            "ts": 3.0,
+            "tv": 1.0,
+        }
 
     def test_binned(self):
         model = self._makeModel({"k": trans}, {"ts": trans, "tv": ~trans})
@@ -54,7 +54,7 @@ class ScaleRuleTests(unittest.TestCase):
         LF.set_param_rule("k", value=1.0, bin="bin1", is_constant=True)
 
         for bin, expected in [("bin0", 3.0), ("bin1", 4.0 / 3), (None, 13.0 / 6)]:
-            self.assertEqual(LF.get_scaled_lengths("ts", bin=bin)["a"], expected)
+            assert LF.get_scaled_lengths("ts", bin=bin)["a"] == expected
 
     def test_scaled_or(self):
         """Scale rule where matrix entries can have any of the pars specified"""
@@ -63,10 +63,10 @@ class ScaleRuleTests(unittest.TestCase):
             {"or": (trans | a_c), "not": ~(trans | a_c)},
         )
 
-        self.assertEqual(
-            self._get_scaled_lengths(model, {"k": 6.0, "length": 6.0, "ac": 3.0}),
-            {"or": 5.0, "not": 1.0},
-        )
+        assert self._get_scaled_lengths(
+            model,
+            {"k": 6.0, "length": 6.0, "ac": 3.0},
+        ) == {"or": 5.0, "not": 1.0}
 
     def test_scaling(self):
         """Testing scaling calculations using Dn and Ds as an example."""
@@ -150,8 +150,8 @@ class ScaleRuleTests(unittest.TestCase):
         dN = length * a["dN"] / (3.0 * b["dN"])
         dS = length * a["dS"] / (3.0 * b["dS"])
         # following are results from PAML
-        self.assertEqual(f"{dN:.4f}", "0.0325")
-        self.assertEqual(f"{dS:.4f}", "0.0514")
+        assert f"{dN:.4f}" == "0.0325"
+        assert f"{dS:.4f}" == "0.0514"
 
 
 if __name__ == "__main__":

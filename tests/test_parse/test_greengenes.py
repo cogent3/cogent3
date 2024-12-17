@@ -29,26 +29,26 @@ class ParseGreengenesRecordsTests(TestCase):
             {"q": "asdasd", "c": "taco"},
         ]
 
-        self.assertEqual(records, exp)
+        assert records == exp
 
     def test_MinimalGreengenesParser_real(self):
         """Test MinimalGreengenesParser against real data"""
         res = MinimalGreengenesParser(real_data.splitlines())
         record1, record2 = list(res)
 
-        self.assertEqual(record1["G2_chip_tax_string"], "Unclassified")
-        self.assertEqual(
-            record1["authors"],
-            "Hernanandez-Eugenio,G., Silva-Rojas,H.V., Zelaya-Molina,L.X.",
+        assert record1["G2_chip_tax_string"] == "Unclassified"
+        assert (
+            record1["authors"]
+            == "Hernanandez-Eugenio,G., Silva-Rojas,H.V., Zelaya-Molina,L.X."
         )
-        self.assertEqual(record1["bel3_div_ratio"], "")
-        self.assertEqual(len(record1), 72)
+        assert record1["bel3_div_ratio"] == ""
+        assert len(record1) == 72
 
-        self.assertEqual(record2["ncbi_acc_w_ver"], "FJ832719.1")
-        self.assertEqual(record2["timestamp"], "2010-03-23 14:08:27")
-        self.assertEqual(
-            record2["title"],
-            "Developmental Microbial Ecology of the Crop of the Folivorous Hoatzin",
+        assert record2["ncbi_acc_w_ver"] == "FJ832719.1"
+        assert record2["timestamp"] == "2010-03-23 14:08:27"
+        assert (
+            record2["title"]
+            == "Developmental Microbial Ecology of the Crop of the Folivorous Hoatzin"
         )
 
     def test_SpecificGreengenesParser_real(self):
@@ -57,25 +57,25 @@ class ParseGreengenesRecordsTests(TestCase):
         res = SpecificGreengenesParser(real_data.splitlines(), fields)
         records = list(res)
         exp = [("604868", ""), ("604867", "ISME J (2010) In press")]
-        self.assertEqual(records, exp)
+        assert records == exp
 
         ids = ["604867", "12312312323"]
         res = SpecificGreengenesParser(real_data.splitlines(), fields, ids)
         records = list(res)
         exp = [("604867", "ISME J (2010) In press")]
-        self.assertEqual(records, exp)
+        assert records == exp
 
     def test_make_ignore_f(self):
         """Properly ignore empty records and the start line"""
         f = make_ignore_f("testing")
-        self.assertFalse(f(["asasdasd", ""]))
-        self.assertFalse(f(["test", ""]))
-        self.assertFalse(f(["testing2", ""]))
-        self.assertFalse(f(["testing", "asd"]))
-        self.assertTrue(f(["", ""]))
-        self.assertTrue(f(None))
-        self.assertTrue(f(["", ""]))
-        self.assertTrue(f(["testing", ""]))
+        assert not f(["asasdasd", ""])
+        assert not f(["test", ""])
+        assert not f(["testing2", ""])
+        assert not f(["testing", "asd"])
+        assert f(["", ""])
+        assert f(None)
+        assert f(["", ""])
+        assert f(["testing", ""])
 
 
 mock_data = """my_starting
@@ -111,11 +111,11 @@ authors=Hernanandez-Eugenio,G., Silva-Rojas,H.V., Zelaya-Molina,L.X.
 bel3_div_ratio=
 bellerophon=
 blast_perc_ident_to_template=
-clone=51a 
+clone=51a
 contact_info=Irrigacion, Universidad Autonoma Chapingo, Carretera Mexico-Texcoco Km 37.5, Texcoco, Mexico 56230, Mexico
 core_set_member=
 core_set_member2=
-country=Mexico: Mexico City 
+country=Mexico: Mexico City
 create_date=21-NOV-2009
 db_name=
 decision=clone
@@ -124,7 +124,7 @@ email=
 gold_id=
 img_oid=
 isolate=
-isolation_source=mesophilic anaerobic reactor fed with effluent from the chemical industry 
+isolation_source=mesophilic anaerobic reactor fed with effluent from the chemical industry
 journal=
 longest_insertion=
 medline_ids=
@@ -186,11 +186,11 @@ authors=Brodie,E.L., Dominguez-Bello,M.G., Garcia-Amado,M.A., Godoy-Vitorino,F.,
 bel3_div_ratio=
 bellerophon=
 blast_perc_ident_to_template=
-clone=J3Q101_11C02 
+clone=J3Q101_11C02
 contact_info=Biology, University of Puerto Rico, Rio Piedras Campus, PO Box 23360, San Juan, PR 00931-3360, USA
 core_set_member=
 core_set_member2=
-country=Venezuela 
+country=Venezuela
 create_date=10-DEC-2009
 db_name=
 decision=clone
@@ -199,7 +199,7 @@ email=
 gold_id=
 img_oid=
 isolate=
-isolation_source=crop contents 
+isolation_source=crop contents
 journal=ISME J (2010) In press
 longest_insertion=
 medline_ids=

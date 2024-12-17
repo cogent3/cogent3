@@ -15,19 +15,19 @@ class TestUtilFunctions(TestCase):
     def test_len_seq(self):
         """returns length of sequence minus gaps"""
         m, _ = DNA.make_seq(seq="ACGGT--A").parse_out_gaps()
-        self.assertEqual(m.parent_length, 6)
+        assert m.parent_length == 6
 
     def test_convert_input(self):
         """converts data for dotplotting"""
         m, seq = DNA.make_seq(seq="ACGGT--A").parse_out_gaps()
         aligned_seq = Aligned(m, seq)
         mapped_gap, new_seq = _convert_input(aligned_seq, None)
-        self.assertIs(new_seq.moltype, DNA)
-        self.assertIs(mapped_gap, m)
-        self.assertIs(new_seq, seq)
+        assert new_seq.moltype is DNA
+        assert mapped_gap is m
+        assert new_seq is seq
         mapped_gap, new_seq = _convert_input("ACGGT--A", DNA)
-        self.assertEqual(str(mapped_gap), str(m))
-        self.assertEqual(str(new_seq), str(seq))
+        assert str(mapped_gap) == str(m)
+        assert str(new_seq) == str(seq)
 
     def test_display2d(self):
         """correctly constructs a Display2d"""
@@ -41,21 +41,21 @@ class TestUtilFunctions(TestCase):
         # check alignment coords are correct
         dp = Dotplot("-TGATGTAAGGTAGTT", "CTGG---AAG---GGT", is_aligned=True, window=5)
         expect = [0, 2, None, 6, 8, None, 12, 14], [1, 3, None, 4, 6, None, 7, 9]
-        self.assertEqual(dp._aligned_coords.get_coords(), expect)
+        assert dp._aligned_coords.get_coords() == expect
         dp._build_fig()
         traces = dp.traces
-        self.assertEqual(len(traces), 2)  # no rev complement
+        assert len(traces) == 2  # no rev complement
         # we nudge alignment coordinates by 0.2 on x-axis
         expect = [0.2, 2.2, None, 6.2, 8.2, None, 12.2, 14.2]
-        self.assertEqual(traces[-1].x, expect)
-        self.assertEqual(traces[-1].name, "Alignment")
-        self.assertEqual(traces[0].name, "+ strand")
+        assert traces[-1].x == expect
+        assert traces[-1].name == "Alignment"
+        assert traces[0].name == "+ strand"
         # check + strand has integers/float/None
         expect = {int, float, type(None), numpy.int64, numpy.int32}
         for trace in traces:
             for axis in "xy":
                 got = {type(v) for v in trace[axis]}
-                self.assertTrue(got <= expect, trace[axis])
+                assert got <= expect, trace[axis]
 
     def test_display2d_rc(self):
         """correctly constructs a Display2d with rc"""
@@ -64,7 +64,7 @@ class TestUtilFunctions(TestCase):
             {"a": "-TGATGTAAGGTAGTT", "b": "CTGG---AAG---GGT"},
             moltype="text",
         )  # new seqs raise AttributeError
-        with self.assertRaises((TypeError, AttributeError)):
+        with pytest.raises((TypeError, AttributeError)):
             Dotplot(*seqs.seqs, is_aligned=True, window=5, rc=True)
 
         seqs = make_unaligned_seqs(
@@ -74,8 +74,8 @@ class TestUtilFunctions(TestCase):
         dp = Dotplot(*seqs.seqs, is_aligned=True, window=5, rc=True)
         dp._build_fig()
         traces = dp.traces
-        self.assertEqual(len(traces), 3)
-        self.assertEqual(traces[1].name, "- strand")
+        assert len(traces) == 3
+        assert traces[1].name == "- strand"
 
     def test_align_without_gaps(self):
         """dotplot has alignment coordinates if no gaps"""
@@ -84,7 +84,7 @@ class TestUtilFunctions(TestCase):
             moltype="dna",
         )
         aln_plot = aln.dotplot("seq1")
-        self.assertNotEqual(aln_plot._aligned_coords, None)
+        assert aln_plot._aligned_coords is not None
 
     def test_dotplot_seqcoll(self):
         """dotplot sequence collection, gaps are removed"""
@@ -93,15 +93,15 @@ class TestUtilFunctions(TestCase):
             moltype="dna",
         )
         dp = seqs.dotplot("seq1", "seq3")
-        self.assertNotEqual(dp._aligned_coords, None)
-        self.assertEqual(len(dp.seq1), 4)
-        self.assertEqual(len(dp.seq2), 3)
+        assert dp._aligned_coords is not None
+        assert len(dp.seq1) == 4
+        assert len(dp.seq2) == 3
 
     def test_dotplot_single(self):
         """dotplot with single sequence should not fail"""
         seqs = make_unaligned_seqs({"seq1": "CACACCACTGCAGTCGGATAGACC"}, moltype="dna")
         dp = seqs.dotplot(window=4, threshold=4, rc=True)
-        self.assertEqual(dp.seq1, dp.seq2)
+        assert dp.seq1 == dp.seq2
 
     def test_dotplot_missing(self):
         """fail if a sequence name not present"""
@@ -109,11 +109,11 @@ class TestUtilFunctions(TestCase):
             {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"},
             moltype="dna",
         )
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             _ = seqs.dotplot("seq1", "seq5")
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             _ = seqs.dotplot("seq5", "seq1")
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             _ = seqs.dotplot("seq5", "seq6")
 
     def test_dotplot_title(self):
@@ -123,7 +123,7 @@ class TestUtilFunctions(TestCase):
             moltype="dna",
         )
         dp = seqs.dotplot("seq1", "seq3", title="")
-        self.assertEqual(dp.figure.layout.title, "")
+        assert dp.figure.layout.title == ""
 
 
 def test_aligned_path():
@@ -147,7 +147,7 @@ def test_aligned_path():
 
 
 def test_dotplot_unaligned():
-    seqs = make_unaligned_seqs(dict(a="ACGGT", b="CGTT"), moltype="dna")
+    seqs = make_unaligned_seqs({"a": "ACGGT", "b": "CGTT"}, moltype="dna")
     dp = seqs.dotplot(window=3, k=2)
     assert dp
     # trigger building traces

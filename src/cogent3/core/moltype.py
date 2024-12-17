@@ -1541,7 +1541,7 @@ def get_moltype(name, new_type: bool = False):
         the name of the moltype
     new_type
         if True, returns new type Moltype (cogent3.core.new_moltype.MolType).
-        The default will be changed to True in 2024.12. Support for the old
+        The default will be changed to True in 2025.1. Support for the old
         style will be removed as of 2025.6.
     """
     from cogent3.core import new_moltype

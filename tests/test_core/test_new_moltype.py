@@ -54,7 +54,7 @@ def test_is_compatible_alphabet_strict():
 
 @pytest.mark.parametrize(
     "name",
-    ("dna", "rna", "protein", "protein_with_stop", "bytes", "text"),
+    ["dna", "rna", "protein", "protein_with_stop", "bytes", "text"],
 )
 def test_get_moltype(name):
     """correctly return a moltype by name"""
@@ -79,14 +79,14 @@ def test_str_moltype():
 
 
 @pytest.mark.parametrize(
-    "seq, data_type",
-    (
+    ("seq", "data_type"),
+    [
         ("ACCCG", str),
         (b"ACCCG", bytes),
         (numpy.array([2, 1, 1, 1, 3], dtype=numpy.uint8), numpy.ndarray),
-    ),
+    ],
 )
-@pytest.mark.parametrize("name", ("dna", "rna"))
+@pytest.mark.parametrize("name", ["dna", "rna"])
 def test_complement(name, seq, data_type):
     moltype = new_moltype.get_moltype(name)
     expect = "TGGGC" if name == "dna" else "UGGGC"
@@ -106,17 +106,17 @@ def make_typed(seq, data_type, moltype):
     return seq
 
 
-@pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
+@pytest.mark.parametrize("data_type", [str, bytes, numpy.ndarray])
 @pytest.mark.parametrize(
     "seq",
-    (
+    [
         "N",
         "R",
         "Y",
         "?",  # IUPAC missing is also a degenerate
         "GCAUGUAGCUCGUCAGUCAGUACGUGCASCUAG",
         "ACGYAUGCUGYEWEWNFMNFUWBYBCWUYBCJWBEIWFUB",
-    ),
+    ],
 )
 def test_is_degenerate(seq, data_type):
     seq = make_typed(seq, data_type, new_moltype.RNA)
@@ -125,14 +125,14 @@ def test_is_degenerate(seq, data_type):
     assert new_moltype.RNA.is_degenerate(seq, validate=False)
 
 
-@pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
+@pytest.mark.parametrize("data_type", [str, bytes, numpy.ndarray])
 @pytest.mark.parametrize(
     "seq",
-    (
+    [
         "",
         "A",
         "UACGCUACAUGUACGUCAGUGCUAGCUA",
-    ),
+    ],
 )
 def test_is_not_degenerate(seq, data_type):
     seq = make_typed(seq, data_type, new_moltype.RNA)
@@ -144,13 +144,13 @@ def test_is_degenerate_invalid():
         new_moltype.RNA.is_degenerate(list("GAG"))
 
 
-@pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
+@pytest.mark.parametrize("data_type", [str, bytes, numpy.ndarray])
 @pytest.mark.parametrize(
     "seq",
-    (
+    [
         "",
         "QWERTYUIOPASDFGHJKLZXCVBNM",
-    ),
+    ],
 )
 def test_text_moltype_is_not_degenerate(seq, data_type):
     """Text moltype should not be degenerate"""
@@ -158,44 +158,44 @@ def test_text_moltype_is_not_degenerate(seq, data_type):
     assert not new_moltype.ASCII.is_degenerate(seq)
 
 
-@pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
+@pytest.mark.parametrize("data_type", [str, bytes, numpy.ndarray])
 @pytest.mark.parametrize(
     "seq",
-    (
+    [
         "-",
         "Y-",
         "GC--A",
         "-ACGYA",
-    ),
+    ],
 )
 def test_is_gapped(seq, data_type):
     seq = make_typed(seq, data_type, new_moltype.RNA)
     assert new_moltype.RNA.is_gapped(seq)
 
 
-@pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
+@pytest.mark.parametrize("data_type", [str, bytes, numpy.ndarray])
 @pytest.mark.parametrize(
     "seq",
-    (
+    [
         "",
         "Y",
         "GCA",
         "ACGYA",
-    ),
+    ],
 )
 def test_not_is_gapped(seq, data_type):
     seq = make_typed(seq, data_type, new_moltype.RNA)
     assert not new_moltype.RNA.is_gapped(seq)
 
 
-@pytest.mark.parametrize("moltype", (new_moltype.DNA, new_moltype.RNA))
+@pytest.mark.parametrize("moltype", [new_moltype.DNA, new_moltype.RNA])
 def test_gap_index_constant(moltype):
     # make sure gap index is always the same
     assert moltype.gapped_alphabet.gap_index == moltype.degen_gapped_alphabet.gap_index
 
 
-@pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
-@pytest.mark.parametrize("moltype", (new_moltype.DNA, new_moltype.RNA))
+@pytest.mark.parametrize("data_type", [str, bytes, numpy.ndarray])
+@pytest.mark.parametrize("moltype", [new_moltype.DNA, new_moltype.RNA])
 def test_get_degenerate_positions(data_type, moltype):
     seq = make_typed("ASA", data_type, moltype)
     got = moltype.get_degenerate_positions(seq)
@@ -256,21 +256,21 @@ def test_resolve_ambiguity_codons():
         new_moltype.DNA.resolve_ambiguity("---", alphabet=codon_alpha)
 
 
-@pytest.mark.parametrize("char", ("N", "R", "Y", "W", "S", "M", "?"))
+@pytest.mark.parametrize("char", ["N", "R", "Y", "W", "S", "M", "?"])
 def test_is_ambiguity_true(char):
     assert new_moltype.DNA.is_ambiguity(char)
 
 
-@pytest.mark.parametrize("char", ("-", "A", "T", "C", "G"))
+@pytest.mark.parametrize("char", ["-", "A", "T", "C", "G"])
 def test_is_ambiguity_false(char):
     assert not new_moltype.DNA.is_ambiguity(char)
 
 
-@pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
-@pytest.mark.parametrize("moltype", ("text", "rna"))
+@pytest.mark.parametrize("data_type", [str, bytes, numpy.ndarray])
+@pytest.mark.parametrize("moltype", ["text", "rna"])
 @pytest.mark.parametrize(
-    "seq, expect",
-    (
+    ("seq", "expect"),
+    [
         ("", ""),
         ("GAUGgaug", "GAUGgaug"),
         ("----", ""),
@@ -279,7 +279,7 @@ def test_is_ambiguity_false(char):
         ("-gaug", "gaug"),
         ("gaug-", "gaug"),
         ("-g?a-u?g-", "gaug"),
-    ),
+    ],
 )
 def test_degap(seq, expect, data_type, moltype):
     """MolType degap should remove all gaps from sequence"""
@@ -301,10 +301,10 @@ def test_strand_symmetric_motifs():
         new_moltype.PROTEIN.strand_symmetric_motifs()
 
     got = new_moltype.DNA.strand_symmetric_motifs(motif_length=1)
-    expect = set([("A", "T"), ("C", "G")])
+    expect = {("A", "T"), ("C", "G")}
     assert got == expect
     got = new_moltype.RNA.strand_symmetric_motifs(motif_length=1)
-    expect = set([("A", "U"), ("C", "G")])
+    expect = {("A", "U"), ("C", "G")}
     assert got == expect
     got = new_moltype.DNA.strand_symmetric_motifs(motif_length=2)
     assert len(got) == 8
@@ -314,13 +314,13 @@ def test_strand_symmetric_motifs():
 
 @pytest.mark.parametrize(
     "moltype",
-    (
+    [
         new_moltype.ASCII,
         new_moltype.DNA,
         new_moltype.RNA,
         new_moltype.PROTEIN,
         new_moltype.PROTEIN_WITH_STOP,
-    ),
+    ],
 )
 def test_gaps(moltype):
     got = moltype.gaps
@@ -359,14 +359,14 @@ def test_gaps_none():
 
 @pytest.mark.parametrize(
     "label",
-    (
+    [
         "bytes",
         "dna",
         "rna",
         "protein",
         "protein_with_stop",
         "text",
-    ),
+    ],
 )
 def test_most_degenerate_alphabet(label):
     moltype = new_moltype.get_moltype(label)
@@ -397,7 +397,7 @@ def test_is_invalid_rna():
     assert not rna.is_valid(seq)
 
 
-@pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
+@pytest.mark.parametrize("data_type", [str, bytes, numpy.ndarray])
 def test_strip_degenerate(data_type):
     seq = make_typed("N-TCGA-N-TCNGA", data_type, new_moltype.DNA)
     got = new_moltype.DNA.strip_degenerate(seq)
@@ -421,7 +421,7 @@ def test_strip_degenerate(data_type):
     )
 
 
-@pytest.mark.parametrize("data_type", (str, bytes))
+@pytest.mark.parametrize("data_type", [str, bytes])
 def test_strip_bad(data_type):
     """removes characters that are not in the alphabet"""
 
@@ -444,7 +444,7 @@ def test_strip_bad(data_type):
     assert got == expect
 
 
-@pytest.mark.parametrize("data_type", (str, bytes))
+@pytest.mark.parametrize("data_type", [str, bytes])
 def test_strip_bad_and_gaps(data_type):
     """removes characters that are not in the alphabet and gaps"""
 
@@ -467,7 +467,7 @@ def test_strip_bad_and_gaps(data_type):
     assert got == expect
 
 
-@pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
+@pytest.mark.parametrize("data_type", [str, bytes, numpy.ndarray])
 def test_disambiguate_empty(data_type):
     d = new_moltype.RNA.disambiguate
     seq = make_typed("", data_type, new_moltype.RNA)
@@ -476,7 +476,7 @@ def test_disambiguate_empty(data_type):
     )
 
 
-@pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
+@pytest.mark.parametrize("data_type", [str, bytes, numpy.ndarray])
 def test_disambiguate_strip(data_type):
     """MolType disambiguate should remove degenerate bases"""
     d = new_moltype.RNA.disambiguate
@@ -505,10 +505,10 @@ def test_disambiguate_random_str():
         d(s, method="xyz")
 
 
-@pytest.mark.parametrize("data_type", (str, bytes))
+@pytest.mark.parametrize("data_type", [str, bytes])
 @pytest.mark.parametrize(
-    "data, expect",
-    (("---CGAUGCAU---ACGHC---ACGUCAGU---", 12), ("", 0), ("ACGU", 0), ("-", 1)),
+    ("data", "expect"),
+    [("---CGAUGCAU---ACGHC---ACGUCAGU---", 12), ("", 0), ("ACGU", 0), ("-", 1)],
 )
 def test_count_gaps(data, expect, data_type):
     seq = make_typed(data, data_type, new_moltype.RNA)
@@ -580,13 +580,13 @@ def test_degenerate_from_seq_general():
 
 
 @pytest.mark.parametrize(
-    "moltype,zero,second,last",
-    (
+    ("moltype", "zero", "second", "last"),
+    [
         ("DNA", "T", "A", "G"),
         ("RNA", "U", "A", "G"),
         ("PROTEIN", "A", "D", "Y"),
         ("PROTEIN_WITH_STOP", "A", "D", "*"),
-    ),
+    ],
 )
 def test_char_order(moltype, zero, second, last):
     prefix = "IUPAC_" if "STOP" not in moltype else ""
@@ -630,13 +630,13 @@ def test_to_regex():
         new_moltype.DNA.to_regex("(?:GAT|GAC)(?:GGT|GGC|GGA|GGG)(?:GAT|GAC)(?:CAA|CAG)")
 
 
-@pytest.mark.parametrize("moltype", ("dna", "rna"))
+@pytest.mark.parametrize("moltype", ["dna", "rna"])
 def test_is_nucleic(moltype):
     mt = new_moltype.get_moltype(moltype)
     assert mt.is_nucleic
 
 
-@pytest.mark.parametrize("moltype", ("protein", "text", "bytes", "protein_with_stop"))
+@pytest.mark.parametrize("moltype", ["protein", "text", "bytes", "protein_with_stop"])
 def test_not_is_nucleic(moltype):
     mt = new_moltype.get_moltype(moltype)
     assert not mt.is_nucleic
@@ -657,7 +657,7 @@ def test_moltype_coerce_seqs():
 
 @pytest.mark.parametrize(
     "moltype",
-    ("protein", "text", "bytes", "protein_with_stop", "dna", "rna"),
+    ["protein", "text", "bytes", "protein_with_stop", "dna", "rna"],
 )
 def test_json_roundtrip_moltype(moltype):
     from cogent3.util.deserialise import deserialise_object
@@ -670,7 +670,7 @@ def test_json_roundtrip_moltype(moltype):
 
 
 @pytest.mark.parametrize(
-    "moltype, seq, expect",
+    ("moltype", "seq", "expect"),
     [
         (new_moltype.DNA, "ACGT", False),  # No ambiguity
         (new_moltype.DNA, "ACGTN", True),  # N is ambiguous
@@ -687,7 +687,7 @@ def test_json_roundtrip_moltype(moltype):
         ),  # * is not ambiguous (stop)
     ],
 )
-@pytest.mark.parametrize("cast", (str, bytes, numpy.ndarray))
+@pytest.mark.parametrize("cast", [str, bytes, numpy.ndarray])
 def test_has_ambiguity(moltype, seq, expect, cast):
     seq = make_typed(seq, cast, moltype)
     assert moltype.has_ambiguity(seq) == expect
@@ -697,8 +697,8 @@ def test_has_ambiguity(moltype, seq, expect, cast):
     "seq",
     ["ACGT", "ACGTN"],
 )
-@pytest.mark.parametrize("moltype", ("text", "bytes"))
-@pytest.mark.parametrize("cast", (str, bytes, numpy.ndarray))
+@pytest.mark.parametrize("moltype", ["text", "bytes"])
+@pytest.mark.parametrize("cast", [str, bytes, numpy.ndarray])
 def test_has_ambiguity_all_false(moltype, seq, cast):
     moltype = new_moltype.get_moltype(moltype)
     # these moltypes don't have an ambuity code

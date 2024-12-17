@@ -6,7 +6,7 @@ from cogent3 import get_app, open_data_store
 from cogent3.util import parallel
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def tmp_dir(tmpdir_factory):
     return Path(tmpdir_factory.mktemp("mpirun"))
 
@@ -22,11 +22,11 @@ def test_write_db(tmp_dir):
     writer = get_app("write_db", out_dstore)
     process = reader + aligner + writer
 
-    r = process.apply_to(
+    process.apply_to(
         members,
         show_progress=False,
         parallel=True,
-        par_kw=dict(use_mpi=True),
+        par_kw={"use_mpi": True},
     )
 
     expect = [str(m) for m in process.data_store]

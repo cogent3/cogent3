@@ -540,7 +540,7 @@ def get_code(code_id: int = 1, new_type: bool = False):
         standard genetic code
     new_type
         if True, the returned genetic code object will be the new type.
-        The default will be changed to True in 2024.12. Support for the old
+        The default will be changed to True in 2025.1. Support for the old
         style will be removed as of 2025.6.
     """
     if new_type or "COGENT3_NEW_TYPE" in os.environ:

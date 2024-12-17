@@ -6,6 +6,7 @@
 from unittest import TestCase
 from warnings import filterwarnings
 
+import pytest
 from numpy import array, transpose
 from numpy.testing import assert_allclose, assert_equal
 
@@ -31,7 +32,7 @@ class ArrayMathTests(TestCase):
         a = array([[0, 0], [0, 0]])
         assert_equal(safe_p_log_p(a), array([[0, 0], [0, 0]]))
         # negative number -- throw error
-        with self.assertRaises(FloatingPointError):
+        with pytest.raises(FloatingPointError):
             safe_p_log_p(array([-4]))
         # integer input, float output
         assert_allclose(safe_p_log_p(array([3])), array([-4.75488750]))
@@ -50,7 +51,7 @@ class ArrayMathTests(TestCase):
         assert_equal(safe_log(a), array([[0, 0], [0, 0]]))
         # negative number
 
-        with self.assertRaises(FloatingPointError):
+        with pytest.raises(FloatingPointError):
             safe_log(array([0, 3, -4]))
 
         # empty array
@@ -80,7 +81,7 @@ class ArrayMathTests(TestCase):
         assert_equal(row_uncertainty(array([[]])), array([0]))
         assert_equal(row_uncertainty(array([[], []])), array([0, 0]))
         # negative number -- throw error
-        with self.assertRaises(FloatingPointError):
+        with pytest.raises(FloatingPointError):
             row_uncertainty(array([[-2]]))
 
     def test_col_uncertainty(self):
@@ -106,7 +107,7 @@ class ArrayMathTests(TestCase):
         assert_equal(column_uncertainty(array([[]])), array([]))
         assert_equal(column_uncertainty(array([[], []])), array([]))
         # negative number -- throw error
-        with self.assertRaises(FloatingPointError):
+        with pytest.raises(FloatingPointError):
             column_uncertainty(array([[-2]]))
 
     def test_row_degeneracy(self):
@@ -160,12 +161,12 @@ class TestUtils(TestCase):
         assert_allclose(got, probs)
 
         probs = array([0.3, 0.1, -0.1, 0.5])
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             proportions_to_ratios(probs)
 
         probs = array([0.3, 0.1, 0.0, 0.5])
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             proportions_to_ratios(probs)
 
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             ratios_to_proportions(1.0, [2.3, 1.1, -0.3])

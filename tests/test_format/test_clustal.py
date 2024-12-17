@@ -78,23 +78,20 @@ class ClustalTests(TestCase):
 
     def test_clustal_from_alignment(self):
         """should return correct clustal string."""
-        self.assertEqual(clustal_from_alignment({}), "")
-        self.assertEqual(
-            clustal_from_alignment(self.alignment_dict),
-            self.clustal_with_label,
-        )
-        self.assertEqual(
-            clustal_from_alignment(self.alignment_dict, wrap=2),
-            self.clustal_with_label_lw2,
+        assert clustal_from_alignment({}) == ""
+        assert clustal_from_alignment(self.alignment_dict) == self.clustal_with_label
+        assert (
+            clustal_from_alignment(self.alignment_dict, wrap=2)
+            == self.clustal_with_label_lw2
         )
 
     def test_clustal_from_alignment_reordered(self):
         """should return correct clustal string."""
-        self.assertEqual(
-            clustal_from_alignment(self.alignment_object),
-            self.clustal_with_label_reordered,
+        assert (
+            clustal_from_alignment(self.alignment_object)
+            == self.clustal_with_label_reordered
         )
-        self.assertEqual(
-            clustal_from_alignment(self.alignment_object, wrap=2),
-            self.clustal_with_label_lw2_reordered,
+        assert (
+            clustal_from_alignment(self.alignment_object, wrap=2)
+            == self.clustal_with_label_lw2_reordered
         )

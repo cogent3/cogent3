@@ -79,13 +79,13 @@ class UPGMATests(TestCase):
         expect = make_tree(
             treestring="(((a:0.5,b:0.5)edge.1:1.75,c:2.25)edge.0:5.875,(d:1.0,e:1.0)edge.2:7.125)root;",
         )
-        self.assertTrue(cluster.same_topology(expect))
+        assert cluster.same_topology(expect)
 
     def test_find_smallest_index(self):
         """find_smallest_index returns the index of smallest value in array"""
         matrix = self.matrix
         index = find_smallest_index(matrix)
-        self.assertEqual(index, (0, 1))
+        assert index == (0, 1)
 
     def test_condense_matrix(self):
         """condense_array joins two rows and columns identified by indices"""
@@ -93,13 +93,13 @@ class UPGMATests(TestCase):
         index = find_smallest_index(matrix)
         result = condense_matrix(matrix, index, 9999999999)
         assert_allclose(result[0, 0], 5000000.0)
-        self.assertEqual(result[1, 4], 9999999999)
-        self.assertEqual(result[0, 1], 9999999999)
-        self.assertEqual(result[0, 2], 4.5)
-        self.assertEqual(result[2, 0], 4.5)
-        self.assertEqual(result[0, 4], 22.5)
-        self.assertEqual(result[4, 4], 9999999)
-        self.assertEqual(result[4, 0], 22.5)
+        assert result[1, 4] == 9999999999
+        assert result[0, 1] == 9999999999
+        assert result[0, 2] == 4.5
+        assert result[2, 0] == 4.5
+        assert result[0, 4] == 22.5
+        assert result[4, 4] == 9999999
+        assert result[4, 0] == 22.5
 
     def test_condense_node_order(self):
         """condense_node_order condenses nodes in list based on index info"""
@@ -107,11 +107,11 @@ class UPGMATests(TestCase):
         index = find_smallest_index(matrix)
         node_order = self.node_order
         node_order = condense_node_order(matrix, index, node_order)
-        self.assertEqual(node_order[1], None)
-        self.assertEqual(node_order[0].__str__(), "(a:0.5,b:0.5);")
-        self.assertEqual(node_order[2].__str__(), "c;")
-        self.assertEqual(node_order[3].__str__(), "d;")
-        self.assertEqual(node_order[4].__str__(), "e;")
+        assert node_order[1] is None
+        assert node_order[0].__str__() == "(a:0.5,b:0.5);"
+        assert node_order[2].__str__() == "c;"
+        assert node_order[3].__str__() == "d;"
+        assert node_order[4].__str__() == "e;"
 
     def test_upgma_cluster(self):
         """UPGMA_cluster clusters nodes based on info in a matrix with UPGMA"""
@@ -119,10 +119,7 @@ class UPGMATests(TestCase):
         node_order = self.node_order
         large_number = 9999999999
         tree = UPGMA_cluster(matrix, node_order, large_number)
-        self.assertEqual(
-            str(tree),
-            "(((a:0.5,b:0.5):1.75,c:2.25):5.875,(d:1.0,e:1.0):7.125);",
-        )
+        assert str(tree) == "(((a:0.5,b:0.5):1.75,c:2.25):5.875,(d:1.0,e:1.0):7.125);"
 
     def test_UPGMA_cluster_diag(self):
         """UPGMA_cluster works when the diagonal has lowest values"""
@@ -131,10 +128,7 @@ class UPGMATests(TestCase):
         node_order = self.node_order
         large_number = 9999999999
         tree = UPGMA_cluster(matrix, node_order, large_number)
-        self.assertEqual(
-            str(tree),
-            "(((a:0.5,b:0.5):1.75,c:2.25):5.875,(d:1.0,e:1.0):7.125);",
-        )
+        assert str(tree) == "(((a:0.5,b:0.5):1.75,c:2.25):5.875,(d:1.0,e:1.0):7.125);"
 
     def test_UPGMA_cluster_diag(self):
         """UPGMA_cluster works when the diagonal has intermediate values"""
@@ -143,10 +137,7 @@ class UPGMATests(TestCase):
         node_order = self.node_order
         large_number = 9999999999
         tree = UPGMA_cluster(matrix, node_order, large_number)
-        self.assertEqual(
-            str(tree),
-            "(((a:0.5,b:0.5):1.75,c:2.25):5.875,(d:1.0,e:1.0):7.125);",
-        )
+        assert str(tree) == "(((a:0.5,b:0.5):1.75,c:2.25):5.875,(d:1.0,e:1.0):7.125);"
 
     def test_inputs_from_dict_array(self):
         """inputs_from_dict_array makes an array object and PhyloNode list"""
@@ -158,8 +149,8 @@ class UPGMATests(TestCase):
         matrix_d2d = DictArray(twod)
 
         matrix_array, PhyloNode_order = inputs_from_dict_array(matrix_d2d)
-        self.assertEqual(PhyloNode_order[0].name, "1")
-        self.assertEqual(PhyloNode_order[2].name, "3")
+        assert PhyloNode_order[0].name == "1"
+        assert PhyloNode_order[2].name == "3"
         assert_allclose(matrix_array[0][2], 0.92)
         assert_allclose(matrix_array[1][0], 0.86)
 

@@ -16,44 +16,44 @@ class GenBankTests(TestCase):
         """genbank.parse_locus should give correct results on specimen locus lines"""
         line = "LOCUS       AF108830                5313 bp    mRNA    linear   PRI 19-MAY-1999"
         result = genbank.parse_locus(line)
-        self.assertEqual(len(result), 6)
-        self.assertEqual(result["locus"], "AF108830")
-        self.assertEqual(result["length"], 5313)  # note: int, not str
-        self.assertEqual(result["mol_type"], "mRNA")
-        self.assertEqual(result["topology"], "linear")
-        self.assertEqual(result["db"], "PRI")
-        self.assertEqual(result["date"], "19-MAY-1999")
+        assert len(result) == 6
+        assert result["locus"] == "AF108830"
+        assert result["length"] == 5313  # note: int, not str
+        assert result["mol_type"] == "mRNA"
+        assert result["topology"] == "linear"
+        assert result["db"] == "PRI"
+        assert result["date"] == "19-MAY-1999"
         # should work if some of the fields are missing
         line = "LOCUS       AF108830                5313"
         result = genbank.parse_locus(line)
-        self.assertEqual(len(result), 2)
-        self.assertEqual(result["locus"], "AF108830")
-        self.assertEqual(result["length"], 5313)  # note: int, not str
+        assert len(result) == 2
+        assert result["locus"] == "AF108830"
+        assert result["length"] == 5313  # note: int, not str
 
     def test_parse_single_line(self):
         """parse_single_line should split off the label and return the rest"""
         line_1 = "VERSION     AF108830.1  GI:4868112\n"
-        self.assertEqual(genbank.parse_single_line(line_1), "AF108830.1  GI:4868112")
+        assert genbank.parse_single_line(line_1) == "AF108830.1  GI:4868112"
         # should work if leading spaces
         line_2 = "      VERSION     AF108830.1  GI:4868112\n"
-        self.assertEqual(genbank.parse_single_line(line_2), "AF108830.1  GI:4868112")
+        assert genbank.parse_single_line(line_2) == "AF108830.1  GI:4868112"
 
     def test_indent_splitter(self):
         """genbank.indent_splitter should split lines at correct locations"""
         # if lines have same indent, should not group together
         lines = ["abc    xxx", "def    yyy"]
-        self.assertEqual(list(genbank.indent_splitter(lines)), [[lines[0]], [lines[1]]])
+        assert list(genbank.indent_splitter(lines)) == [[lines[0]], [lines[1]]]
         # if second line is indented, should group with first
         lines = ["abc    xxx", " def    yyy"]
-        self.assertEqual(list(genbank.indent_splitter(lines)), [[lines[0], lines[1]]])
+        assert list(genbank.indent_splitter(lines)) == [[lines[0], lines[1]]]
 
         # if both lines indented but second is more, should group with first
         lines = [" abc    xxx", "  def    yyy"]
-        self.assertEqual(list(genbank.indent_splitter(lines)), [[lines[0], lines[1]]])
+        assert list(genbank.indent_splitter(lines)) == [[lines[0], lines[1]]]
 
         # if both lines indented equally, should not group
         lines = ["   abc    xxx", "   def    yyy"]
-        self.assertEqual(list(genbank.indent_splitter(lines)), [[lines[0]], [lines[1]]])
+        assert list(genbank.indent_splitter(lines)) == [[lines[0]], [lines[1]]]
 
         # for more complex situation, should produce correct grouping
         lines = [
@@ -70,10 +70,13 @@ class GenBankTests(TestCase):
             "   bg",  # 10
             "  aaa",  # 11 -
         ]
-        self.assertEqual(
-            list(genbank.indent_splitter(lines)),
-            [[lines[0]], lines[1:5], [lines[5]], lines[6:11], [lines[11]]],
-        )
+        assert list(genbank.indent_splitter(lines)) == [
+            [lines[0]],
+            lines[1:5],
+            [lines[5]],
+            lines[6:11],
+            [lines[11]],
+        ]
 
         # real example from genbank file
         lines = """LOCUS       NT_016354           92123751 bp    DNA     linear   CON 29-AUG-2006
@@ -95,19 +98,16 @@ SOURCE      Homo sapiens (human)
 REFERENCE   2  (bases 1 to 92123751)
   AUTHORS   International Human Genome Sequencing Consortium.
   TITLE     Finishing the euchromatic sequence of the human genome""".split("\n")
-        self.assertEqual(
-            list(genbank.indent_splitter(lines)),
-            [
-                [lines[0]],
-                [lines[1]],
-                lines[2:8],
-                [lines[8]],
-                [lines[9]],
-                lines[10:15],
-                [lines[15]],
-                lines[16:],
-            ],
-        )
+        assert list(genbank.indent_splitter(lines)) == [
+            [lines[0]],
+            [lines[1]],
+            lines[2:8],
+            [lines[8]],
+            [lines[9]],
+            lines[10:15],
+            [lines[15]],
+            lines[16:],
+        ]
 
     def test_parse_sequence(self):
         """genbank.parse_sequence should strip bad chars out of sequence lines"""
@@ -115,12 +115,12 @@ REFERENCE   2  (bases 1 to 92123751)
 ORIGIN
         1 gggagcgcgg cgcgggagcc cgaggctgag actcaccgga ggaagcggcg cgagcgcccc
        61   gccatcgtcc \t\t cggctgaagt 123 \ngcagtg  \n
-      121 cctgggctta agcagtcttc45ccacctcagc 
+      121 cctgggctta agcagtcttc45ccacctcagc
 //\n\n\n""".split("\n")
         result = genbank.parse_sequence(lines)
-        self.assertEqual(
-            result,
-            "gggagcgcggcgcgggagcccgaggctgagactcaccggaggaagcggcgcgagcgccccgccatcgtcccggctgaagtgcagtgcctgggcttaagcagtcttcccacctcagc",
+        assert (
+            result
+            == "gggagcgcggcgcgggagcccgaggctgagactcaccggaggaagcggcgcgagcgccccgccatcgtcccggctgaagtgcagtgcctgggcttaagcagtcttcccacctcagc"
         )
 
     def test_block_consolidator(self):
@@ -130,29 +130,23 @@ ORIGIN
             Mammalia; Eutheria; Euarchontoglires; Primates; Catarrhini;
             Hominidae; Homo.""".split("\n")
         label, data = genbank.block_consolidator(lines)
-        self.assertEqual(label, "ORGANISM")
-        self.assertEqual(
-            data,
-            [
-                "Homo sapiens",
-                "            Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi;",
-                "            Mammalia; Eutheria; Euarchontoglires; Primates; Catarrhini;",
-                "            Hominidae; Homo.",
-            ],
-        )
+        assert label == "ORGANISM"
+        assert data == [
+            "Homo sapiens",
+            "            Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi;",
+            "            Mammalia; Eutheria; Euarchontoglires; Primates; Catarrhini;",
+            "            Hominidae; Homo.",
+        ]
         lines = r"""COMMENT
                     Contact: Spindel ER
                     Division of Neuroscience""".splitlines()
         label, data = genbank.block_consolidator(lines)
-        self.assertEqual(label, "COMMENT")
-        self.assertEqual(
-            data,
-            [
-                "",
-                "                    Contact: Spindel ER",
-                "                    Division of Neuroscience",
-            ],
-        )
+        assert label == "COMMENT"
+        assert data == [
+            "",
+            "                    Contact: Spindel ER",
+            "                    Division of Neuroscience",
+        ]
 
     def test_parse_organism(self):
         """genbank.parse_organism should return species, taxonomy (up to genus)"""
@@ -165,23 +159,20 @@ ORIGIN
         Mammalia; Eutheria; Euarchontoglires; Primates \t abc.  2.; Catarrhini
         Hominidae; Homo.""".split("\n")
         species, taxonomy = genbank.parse_organism(lines)
-        self.assertEqual(species, "Homo sapiens")
-        self.assertEqual(
-            taxonomy,
-            [
-                "Eukaryota",
-                "Metazoa",
-                "Chordata Craniata",
-                "Vertebrata",
-                "Euteleostomi",
-                "Mammalia",
-                "Eutheria",
-                "Euarchontoglires",
-                "Primates abc. 2.",
-                "Catarrhini Hominidae",
-                "Homo",
-            ],
-        )
+        assert species == "Homo sapiens"
+        assert taxonomy == [
+            "Eukaryota",
+            "Metazoa",
+            "Chordata Craniata",
+            "Vertebrata",
+            "Euteleostomi",
+            "Mammalia",
+            "Eutheria",
+            "Euarchontoglires",
+            "Primates abc. 2.",
+            "Catarrhini Hominidae",
+            "Homo",
+        ]
 
     def test_parse_feature(self):
         """parse_feature should return dict containing annotations of feature"""
@@ -205,38 +196,29 @@ ORIGIN
                      EYSSMGSALFFLGEYANMILMSGLCTSLSPGGWPPILDLPISKRIPGSIWFSIKVILF
                      LFLYIWVRAAFPRYRYDQLMGLGRKVFLPLSLARVVAVSGVLVTFQWLP"""
         result = genbank.parse_feature(example_feature.split("\n"))
-        self.assertEqual(result["type"], "CDS")
-        self.assertEqual(
-            result["raw_location"],
-            [
-                "complement(join(102262..102647,105026..105217,",
-                "                     106638..106719,152424..152682,243209..243267))",
-            ],
-        )
-        self.assertEqual(result["gene"], ["nad1"])
-        self.assertEqual(
-            result["note"],
-            [
-                "Protein sequence is in conflict with the conceptual translation; author given translation (not conceptual translation) start codon is created by C to U RNA editing",
-            ],
-        )
-        self.assertEqual(result["codon_start"], ["1"])
-        self.assertEqual(result["exception"], ["RNA editing"])
-        self.assertEqual(result["product"], ["NADH dehydrogenase subunit 1"])
-        self.assertEqual(result["protein_id"], ["NP_064011.1"])
-        self.assertEqual(result["db_xref"], ["GI:9838451", "IPI:12345"])
-        self.assertEqual(
-            result["translation"],
-            [
-                "MYIAVPAEILGIILPLLLGVAFLVLAERKVMAFVQRRKGPDVVGSFGLLQPLADGSKLILKEPISPSSANFSLFRMAPVTTFMLSLVARAVVPFDYGMVLSDPNIGLLYLFAISSLGVYGIIIAGWSSNSKYAFLGALRSAAQMVPYEVSIGLILITVLICVGPRNSSEIVMAQKQIWSGIPLFPVLVMFFISCLAETNRAPFDLPEAERELVAGYNVEYSSMGSALFFLGEYANMILMSGLCTSLSPGGWPPILDLPISKRIPGSIWFSIKVILFLFLYIWVRAAFPRYRYDQLMGLGRKVFLPLSLARVVAVSGVLVTFQWLP",
-            ],
-        )
-        self.assertEqual(len(result), 11)
+        assert result["type"] == "CDS"
+        assert result["raw_location"] == [
+            "complement(join(102262..102647,105026..105217,",
+            "                     106638..106719,152424..152682,243209..243267))",
+        ]
+        assert result["gene"] == ["nad1"]
+        assert result["note"] == [
+            "Protein sequence is in conflict with the conceptual translation; author given translation (not conceptual translation) start codon is created by C to U RNA editing",
+        ]
+        assert result["codon_start"] == ["1"]
+        assert result["exception"] == ["RNA editing"]
+        assert result["product"] == ["NADH dehydrogenase subunit 1"]
+        assert result["protein_id"] == ["NP_064011.1"]
+        assert result["db_xref"] == ["GI:9838451", "IPI:12345"]
+        assert result["translation"] == [
+            "MYIAVPAEILGIILPLLLGVAFLVLAERKVMAFVQRRKGPDVVGSFGLLQPLADGSKLILKEPISPSSANFSLFRMAPVTTFMLSLVARAVVPFDYGMVLSDPNIGLLYLFAISSLGVYGIIIAGWSSNSKYAFLGALRSAAQMVPYEVSIGLILITVLICVGPRNSSEIVMAQKQIWSGIPLFPVLVMFFISCLAETNRAPFDLPEAERELVAGYNVEYSSMGSALFFLGEYANMILMSGLCTSLSPGGWPPILDLPISKRIPGSIWFSIKVILFLFLYIWVRAAFPRYRYDQLMGLGRKVFLPLSLARVVAVSGVLVTFQWLP",
+        ]
+        assert len(result) == 11
 
         short_feature = ["D-loop          15418..16866"]
         result = genbank.parse_feature(short_feature)
-        self.assertEqual(result["type"], "D-loop")
-        self.assertEqual(result["raw_location"], ["15418..16866"])
+        assert result["type"] == "D-loop"
+        assert result["raw_location"] == ["15418..16866"]
         # can get more than one = in a line
         # from AF260826
         bad_feature = """     tRNA            1173..1238
@@ -244,7 +226,7 @@ ORIGIN
                      /product="tRNA-Ile"
                      /anticodon=(pos:1203..1205,aa:Ile)"""
         result = genbank.parse_feature(bad_feature.split("\n"))
-        self.assertEqual(result["note"], ["codon recognized: AUC; Cove score = 16.56"])
+        assert result["note"] == ["codon recognized: AUC; Cove score = 16.56"]
         # need not always have an = in a line
         # from NC_001807
         bad_feature = '''     mRNA            556
@@ -252,91 +234,77 @@ ORIGIN
      /citation=[6]
      /product="H-strand"'''
         result = genbank.parse_feature(bad_feature.split("\n"))
-        self.assertEqual(result["partial"], [""])
+        assert result["partial"] == [""]
 
     def test_location_line_tokenizer(self):
         """location_line_tokenizer should tokenize location lines"""
         llt = genbank.location_line_tokenizer
-        self.assertEqual(list(llt(["123..456"])), ["123..456"])
-        self.assertEqual(
-            list(llt(["complement(123..456)"])),
-            ["complement(", "123..456", ")"],
-        )
-        self.assertEqual(
-            list(llt(["join(1..2,3..4)"])),
-            ["join(", "1..2", ",", "3..4", ")"],
-        )
-        self.assertEqual(
-            list(
-                llt(
-                    [
-                        "join(complement(1..2, join(complement( 3..4),",
-                        "\n5..6), 7..8\t))",
-                    ],
-                ),
-            ),
-            [
-                "join(",
-                "complement(",
-                "1..2",
-                ",",
-                "join(",
-                "complement(",
-                "3..4",
-                ")",
-                ",",
-                "5..6",
-                ")",
-                ",",
-                "7..8",
-                ")",
-                ")",
-            ],
-        )
+        assert list(llt(["123..456"])) == ["123..456"]
+        assert list(llt(["complement(123..456)"])) == ["complement(", "123..456", ")"]
+        assert list(llt(["join(1..2,3..4)"])) == ["join(", "1..2", ",", "3..4", ")"]
+        assert list(
+            llt(["join(complement(1..2, join(complement( 3..4),", "\n5..6), 7..8\t))"]),
+        ) == [
+            "join(",
+            "complement(",
+            "1..2",
+            ",",
+            "join(",
+            "complement(",
+            "3..4",
+            ")",
+            ",",
+            "5..6",
+            ")",
+            ",",
+            "7..8",
+            ")",
+            ")",
+        ]
 
     def test_parse_simple_location_segment(self):
         """parse_simple_location_segment should parse simple segments"""
         lsp = genbank.parse_simple_location_segment
         l = lsp("37")
-        self.assertEqual(l._data, 37)
-        self.assertEqual(str(l), "37")
-        self.assertEqual(l.strand, 1)
+        assert l._data == 37
+        assert str(l) == "37"
+        assert l.strand == 1
         l = lsp("40..50")
         first, second = l._data
-        self.assertEqual(first._data, 40)
-        self.assertEqual(second._data, 50)
-        self.assertEqual(str(l), "40..50")
-        self.assertEqual(l.strand, 1)
+        assert first._data == 40
+        assert second._data == 50
+        assert str(l) == "40..50"
+        assert l.strand == 1
         # should handle ambiguous starts and ends
         l = lsp(">37")
-        self.assertEqual(l._data, 37)
-        self.assertEqual(str(l), ">37")
+        assert l._data == 37
+        assert str(l) == ">37"
         l = lsp("<37")
-        self.assertEqual(l._data, 37)
-        self.assertEqual(str(l), "<37")
+        assert l._data == 37
+        assert str(l) == "<37"
         l = lsp("<37..>42")
         first, second = l._data
-        self.assertEqual(first._data, 37)
-        self.assertEqual(second._data, 42)
-        self.assertEqual(str(first), "<37")
-        self.assertEqual(str(second), ">42")
-        self.assertEqual(str(l), "<37..>42")
+        assert first._data == 37
+        assert second._data == 42
+        assert str(first) == "<37"
+        assert str(second) == ">42"
+        assert str(l) == "<37..>42"
 
     def test_parse_location_line(self):
         """genbank.parse_location_line should give correct list of location objects"""
         llt = genbank.location_line_tokenizer
         r = genbank.parse_location_line(llt(["123..456"]))
-        self.assertEqual(str(r), "123..456")
+        assert str(r) == "123..456"
         r = genbank.parse_location_line(llt(["complement(123..456)"]))
-        self.assertEqual(str(r), "complement(123..456)")
+        assert str(r) == "complement(123..456)"
         r = genbank.parse_location_line(llt(["complement(123..456, 345..678)"]))
-        self.assertEqual(str(r), "join(complement(345..678),complement(123..456))")
+        assert str(r) == "join(complement(345..678),complement(123..456))"
         r = genbank.parse_location_line(llt(["complement(join(123..456, 345..678))"]))
-        self.assertEqual(str(r), "join(complement(345..678),complement(123..456))")
+        assert str(r) == "join(complement(345..678),complement(123..456))"
         r = genbank.parse_location_line(
             llt(["join(complement(123..456), complement(345..678))"]),
         )
-        self.assertEqual(str(r), "join(complement(123..456),complement(345..678))")
+        assert str(r) == "join(complement(123..456),complement(345..678))"
         # try some nested joins and complements
         r = genbank.parse_location_line(
             llt(
@@ -346,9 +314,9 @@ ORIGIN
                 ],
             ),
         )
-        self.assertEqual(
-            str(r),
-            "join(9..10,complement(7..8),5..6,complement(3..4),complement(1..2))",
+        assert (
+            str(r)
+            == "join(9..10,complement(7..8),5..6,complement(3..4),complement(1..2))"
         )
 
     def test_parse_reference(self):
@@ -360,19 +328,16 @@ ORIGIN
   JOURNAL   (er) Nucleic Acids Res. 32 (15), 4491-4502 (2004)
    PUBMED   15326224"""
         result = genbank.parse_reference(r.split("\n"))
-        self.assertEqual(len(result), 5)
-        self.assertEqual(result["reference"], "2  (bases 1 to 2587)")
-        self.assertEqual(result["authors"], "Janzen,D.M. and Geballe,A.P.")
-        self.assertEqual(
-            result["title"],
-            "The effect of eukaryotic release factor depletion "
-            + "on translation termination in human cell lines",
+        assert len(result) == 5
+        assert result["reference"] == "2  (bases 1 to 2587)"
+        assert result["authors"] == "Janzen,D.M. and Geballe,A.P."
+        assert (
+            result["title"]
+            == "The effect of eukaryotic release factor depletion "
+            + "on translation termination in human cell lines"
         )
-        self.assertEqual(
-            result["journal"],
-            "(er) Nucleic Acids Res. 32 (15), 4491-4502 (2004)",
-        )
-        self.assertEqual(result["pubmed"], "15326224")
+        assert result["journal"] == "(er) Nucleic Acids Res. 32 (15), 4491-4502 (2004)"
+        assert result["pubmed"] == "15326224"
 
     def test_parse_source(self):
         """genbank.parse_source should split into source and organism"""
@@ -381,25 +346,22 @@ ORIGIN
             Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi;
             Mammalia; Eutheria; Proboscidea; Elephantidae; Loxodonta.""".split("\n")
         r = genbank.parse_source(s)
-        self.assertEqual(len(r), 3)
-        self.assertEqual(r["source"], "African elephant.")
-        self.assertEqual(r["species"], "Mitochondrion Loxodonta africana")
-        self.assertEqual(
-            r["taxonomy"],
-            [
-                "Eukaryota",
-                "Metazoa",
-                "Chordata",
-                "Craniata",
-                "Vertebrata",
-                "Euteleostomi",
-                "Mammalia",
-                "Eutheria",
-                "Proboscidea",
-                "Elephantidae",
-                "Loxodonta",
-            ],
-        )
+        assert len(r) == 3
+        assert r["source"] == "African elephant."
+        assert r["species"] == "Mitochondrion Loxodonta africana"
+        assert r["taxonomy"] == [
+            "Eukaryota",
+            "Metazoa",
+            "Chordata",
+            "Craniata",
+            "Vertebrata",
+            "Euteleostomi",
+            "Mammalia",
+            "Eutheria",
+            "Proboscidea",
+            "Elephantidae",
+            "Loxodonta",
+        ]
 
 
 class LocationTests(TestCase):
@@ -408,28 +370,28 @@ class LocationTests(TestCase):
     def test_init(self):
         """genbank.Location should init with 1 or 2 values, plus params."""
         l = genbank.Location(37)
-        self.assertEqual(str(l), "37")
+        assert str(l) == "37"
         l = genbank.Location(37, ambiguity=">")
-        self.assertEqual(str(l), ">37")
+        assert str(l) == ">37"
         l = genbank.Location(37, ambiguity="<")
-        self.assertEqual(str(l), "<37")
+        assert str(l) == "<37"
         l = genbank.Location(37, accession="AB123")
-        self.assertEqual(str(l), "AB123:37")
+        assert str(l) == "AB123:37"
         l = genbank.Location(37, accession="AB123", db="Kegg")
-        self.assertEqual(str(l), "Kegg::AB123:37")
+        assert str(l) == "Kegg::AB123:37"
 
         l1 = genbank.Location(37)
         l2 = genbank.Location(42)
         l = genbank.Location([l1, l2])
-        self.assertEqual(str(l), "37..42")
+        assert str(l) == "37..42"
         l3 = genbank.Location([l1, l2], is_bounds=True)
-        self.assertEqual(str(l3), "(37.42)")
+        assert str(l3) == "(37.42)"
         l4 = genbank.Location([l1, l2], is_between=True)
-        self.assertEqual(str(l4), "37^42")
+        assert str(l4) == "37^42"
         l5 = genbank.Location([l4, l3])
-        self.assertEqual(str(l5), "37^42..(37.42)")
+        assert str(l5) == "37^42..(37.42)"
         l5 = genbank.Location([l4, l3], strand=-1)
-        self.assertEqual(str(l5), "complement(37^42..(37.42))")
+        assert str(l5) == "complement(37^42..(37.42))"
 
 
 def test_Location_start():
@@ -478,13 +440,12 @@ def test_location_list_get_coordinates():
 def rich_gb():
     with open("data/annotated_seq.gb") as infile:
         parser = genbank.rich_parser(infile)
-        seq = [s for l, s in parser][0]
-    return seq
+        return next(s for l, s in parser)
 
 
 def test_rich_parser(rich_gb):
     """correctly constructs +/- strand features"""
-    cds = dict([(f.name, f) for f in rich_gb.get_features(biotype="CDS")])
+    cds = {f.name: f for f in rich_gb.get_features(biotype="CDS")}
     expects = {
         "CNA00110": "MAGYDARYGNPLDPMSGGRPSPPETSQQDAYEYSKHGSSSGYLGQLPLGAD"
         "SAQAETASALRTLFGEGADVQALQEPPNQINTLAEGAAVAETGGVLGGDTTRSDNEALAIDPSL"
@@ -522,12 +483,12 @@ def test_rich_parser_moltype(rich_gb):
     assert got == feature_ids
 
 
-@pytest.mark.parametrize("moltype", ("dna", "rna", "text"))
+@pytest.mark.parametrize("moltype", ["dna", "rna", "text"])
 def test_moltype_overrides(moltype, rich_gb):
     # moltype is overridden by user setting moltype explicitly
     with open("data/annotated_seq.gb") as infile:
         parser = genbank.rich_parser(infile, moltype=moltype)
-        got_2 = [s for _, s in parser][0]
+        got_2 = next(s for _, s in parser)
 
     assert rich_gb.annotation_db.num_matches() == got_2.annotation_db.num_matches()
 
@@ -543,7 +504,7 @@ def test_rich_parser_info(rich_gb):
 def test_rich_genbank_just_seq():
     with open("data/annotated_seq.gb") as infile:
         parser = genbank.rich_parser(infile, just_seq=True)
-        seq = [s for l, s in parser][0]
+        seq = next(s for l, s in parser)
 
     assert not seq.annotation_db
 
@@ -560,7 +521,7 @@ def gb_rec(DATA_DIR, tmp_path, request):
 
 
 def test_iter_genbank_records(gb_rec):
-    name, seq, features = list(genbank.iter_genbank_records(gb_rec))[0]
+    name, seq, features = next(iter(genbank.iter_genbank_records(gb_rec)))
     assert len(seq) == 6201
     assert name == "AE017341"
     assert seq.startswith("CAATACCCAC")
@@ -580,7 +541,7 @@ def gb_inputs(DATA_DIR, request):
 
 
 def test_iter_genbank_records_inputs(gb_inputs):
-    name, seq, features = list(genbank.iter_genbank_records(gb_inputs))[0]
+    name, seq, features = next(iter(genbank.iter_genbank_records(gb_inputs)))
     assert len(seq) == 6201
     assert name == "AE017341"
     assert seq.startswith("CAATACCCAC")
@@ -588,12 +549,12 @@ def test_iter_genbank_records_inputs(gb_inputs):
     assert features["locus"] == "AE017341"
 
 
-@pytest.mark.parametrize("cast", (None, str))
+@pytest.mark.parametrize("cast", [None, str])
 def test_iter_genbank_records_no_feature_conversion(cast, gb_rec):
     path = cast(gb_rec) if cast else gb_rec
-    name, seq, features = list(
-        genbank.iter_genbank_records(path, convert_features=None),
-    )[0]
+    name, seq, features = next(
+        iter(genbank.iter_genbank_records(path, convert_features=None)),
+    )
     assert len(seq) == 6201
     assert name == "AE017341"
     assert seq.startswith("CAATACCCAC")
@@ -614,14 +575,14 @@ def gb_no_seq(DATA_DIR, tmp_path, request):
 
 
 def test_iter_genbank_records_noseq(gb_no_seq):
-    name, seq, _ = list(genbank.iter_genbank_records(gb_no_seq))[0]
+    name, seq, _ = next(iter(genbank.iter_genbank_records(gb_no_seq)))
     assert name == "AE017341"
     assert len(seq) == 0
     assert seq == ""
 
 
 def test_minimal_parser_no_feature_conversion(gb_rec):
-    got = list(genbank.minimal_parser(gb_rec, convert_features=None))[0]
+    got = next(iter(genbank.minimal_parser(gb_rec, convert_features=None)))
     assert len(got["sequence"]) == 6201
     assert got["locus"] == "AE017341"
     assert len(got) == 3
@@ -634,9 +595,11 @@ def test_iter_genbank_records_invalid_input(gb_rec):
         list(genbank.iter_genbank_records(data))
 
 
-@pytest.mark.parametrize("as_string", (True, False))
+@pytest.mark.parametrize("as_string", [True, False])
 def test_default_parse_metadata(gb_rec, as_string):
-    *_, features = list(genbank.iter_genbank_records(gb_rec, convert_features=None))[0]
+    *_, features = next(
+        iter(genbank.iter_genbank_records(gb_rec, convert_features=None)),
+    )
     features = features if as_string else features.encode("utf8")
     got = genbank.default_parse_metadata(features)
     assert got["locus"] == "AE017341"
@@ -644,6 +607,6 @@ def test_default_parse_metadata(gb_rec, as_string):
 
 def test_default_parse_metadata_invalid(DATA_DIR):
     path = DATA_DIR / "annotated_seq.gb"
-    *_, features = list(genbank.iter_genbank_records(path, convert_features=None))[0]
+    *_, features = next(iter(genbank.iter_genbank_records(path, convert_features=None)))
     with pytest.raises(TypeError):
         genbank.default_parse_metadata(features.splitlines())

@@ -57,18 +57,18 @@ class clustalTests(TestCase):
 
     def test_last_space(self):
         """last_space should split on last whitespace"""
-        self.assertEqual(last_space("a\t\t\t  b    c"), ["a b", "c"])
-        self.assertEqual(last_space("xyz"), ["xyz"])
-        self.assertEqual(last_space("  a b"), ["a", "b"])
+        assert last_space("a\t\t\t  b    c") == ["a b", "c"]
+        assert last_space("xyz") == ["xyz"]
+        assert last_space("  a b") == ["a", "b"]
 
     def test_delete_trailing_number(self):
         """delete_trailing_number should delete the trailing number if present"""
         dtn = delete_trailing_number
-        self.assertEqual(dtn("abc"), "abc")
-        self.assertEqual(dtn("a b c"), "a b c")
-        self.assertEqual(dtn("a \t  b  \t  c"), "a \t  b  \t  c")
-        self.assertEqual(dtn("a b 3"), "a b")
-        self.assertEqual(dtn("a b c \t 345"), "a b c")
+        assert dtn("abc") == "abc"
+        assert dtn("a b c") == "a b c"
+        assert dtn("a \t  b  \t  c") == "a \t  b  \t  c"
+        assert dtn("a b 3") == "a b"
+        assert dtn("a b c \t 345") == "a b c"
 
 
 class MinimalClustalParserTests(TestCase):
@@ -77,57 +77,51 @@ class MinimalClustalParserTests(TestCase):
     def test_null(self):
         """MinimalClustalParser should return empty dict and list on null input"""
         result = MinimalClustalParser([])
-        self.assertEqual(result, ({}, []))
+        assert result == ({}, [])
 
     def test_minimal(self):
         """MinimalClustalParser should handle single-line input correctly"""
         result = MinimalClustalParser([minimal])  # expects seq of lines
-        self.assertEqual(result, ({"abc": ["ucag"]}, ["abc"]))
+        assert result == ({"abc": ["ucag"]}, ["abc"])
 
     def test_two(self):
         """MinimalClustalParser should handle two-sequence input correctly"""
         result = MinimalClustalParser(two)
-        self.assertEqual(
-            result,
-            ({"abc": ["uuu", "aaa"], "def": ["ccc", "ggg"]}, ["abc", "def"]),
+        assert result == (
+            {"abc": ["uuu", "aaa"], "def": ["ccc", "ggg"]},
+            ["abc", "def"],
         )
 
     def test_real(self):
         """MinimalClustalParser should handle real Clustal output"""
         data, labels = MinimalClustalParser(real)
-        self.assertEqual(labels, ["abc", "def", "xyz"])
-        self.assertEqual(
-            data,
-            {
-                "abc": [
-                    "GCAUGCAUGCAUGAUCGUACGUCAGCAUGCUAGACUGCAUACGUACGUACGCAUGCAUCA",
-                    "GUCGAUACGUACGUCAGUCAGUACGUCAGCAUGCAUACGUACGUCGUACGUACGU-CGAC",
-                    "UGACUAGUCAGCUAGCAUCGAUCAGU",
-                ],
-                "def": [
-                    "------------------------------------------------------------",
-                    "-----------------------------------------CGCGAUGCAUGCAU-CGAU",
-                    "CGAUCAGUCAGUCGAU----------",
-                ],
-                "xyz": [
-                    "------------------------------------------------------------",
-                    "-------------------------------------CAUGCAUCGUACGUACGCAUGAC",
-                    "UGCUGCAUCA----------------",
-                ],
-            },
-        )
+        assert labels == ["abc", "def", "xyz"]
+        assert data == {
+            "abc": [
+                "GCAUGCAUGCAUGAUCGUACGUCAGCAUGCUAGACUGCAUACGUACGUACGCAUGCAUCA",
+                "GUCGAUACGUACGUCAGUCAGUACGUCAGCAUGCAUACGUACGUCGUACGUACGU-CGAC",
+                "UGACUAGUCAGCUAGCAUCGAUCAGU",
+            ],
+            "def": [
+                "------------------------------------------------------------",
+                "-----------------------------------------CGCGAUGCAUGCAU-CGAU",
+                "CGAUCAGUCAGUCGAU----------",
+            ],
+            "xyz": [
+                "------------------------------------------------------------",
+                "-------------------------------------CAUGCAUCGUACGUACGCAUGAC",
+                "UGCUGCAUCA----------------",
+            ],
+        }
 
     def test_bad(self):
         """MinimalClustalParser should reject bad data if strict"""
         result = MinimalClustalParser(bad, strict=False)
-        self.assertEqual(result, ({}, []))
+        assert result == ({}, [])
         # should fail unless we turned strict processing off
         self.assertRaises(RecordError, MinimalClustalParser, bad)
 
     def test_space_labels(self):
         """MinimalClustalParser should tolerate spaces in labels"""
         result = MinimalClustalParser(space_labels)
-        self.assertEqual(
-            result,
-            ({"abc": ["uca"], "def ggg": ["ccc"]}, ["abc", "def ggg"]),
-        )
+        assert result == ({"abc": ["uca"], "def ggg": ["ccc"]}, ["abc", "def ggg"])

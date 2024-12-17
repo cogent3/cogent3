@@ -3,6 +3,7 @@
 from random import randint, sample, seed
 from unittest import TestCase
 
+import pytest
 from numpy import array, ones, shape, sqrt
 from numpy.testing import assert_allclose
 
@@ -388,7 +389,7 @@ class functionTests(TestCase):
     def test_jaccard_other(self):
         """tests jaccard using types not covered with single dispatch"""
         for a, b in ((1, 2), ([1], [2]), ("a", "b"), (1.0, 2.0)):
-            with self.assertRaises(NotImplementedError):
+            with pytest.raises(NotImplementedError):
                 jaccard(a, b)
 
     def test_binary_dist_ochiai(self):

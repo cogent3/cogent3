@@ -28,15 +28,15 @@ class TestPredicates(unittest.TestCase):
         """correctly construction"""
         ag = MotifChange("A", "G")
         got = parse(str(ag))
-        self.assertEqual(str(got), "A/G")
+        assert str(got) == "A/G"
         ts = MotifChange("A", "G") | MotifChange("C", "T")
         got = parse(str(ts))
-        self.assertEqual(str(got), "(A/G | C/T)")
+        assert str(got) == "(A/G | C/T)"
         a_g = MotifChange("A", "G", forward_only=True)
         t_c = MotifChange("T", "C", forward_only=True)
         sym = a_g | t_c
         got = parse(str(sym))
-        self.assertEqual(str(got), "(A>G | T>C)")
+        assert str(got) == "(A>G | T>C)"
 
     def assertMatch(self, pred, seq1, seq2):
         assert pred(seq1, seq2), (pred.__doc__, (seq1, seq2))

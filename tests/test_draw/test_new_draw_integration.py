@@ -10,7 +10,7 @@ from cogent3.draw.drawable import AnnotatedDrawable, Drawable
 from cogent3.util.union_dict import UnionDict
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def seqs_dict():
     return {
         "seq1": "CAGGTCGACCTCGGC---------CACGAC",
@@ -22,7 +22,7 @@ def seqs_dict():
     }
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def annotated_seq(DATA_DIR):
     return load_seq(
         DATA_DIR / "c_elegans_WS199_dna_shortened.fasta",
@@ -91,7 +91,7 @@ def check_drawable_styles(method, styles, **kwargs):
         check_drawable_attrs(obj.drawable.figure, style)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def dotplot_seqs():
     data = {
         "Human": "CAGATTTGGCAGTT-",
@@ -313,7 +313,7 @@ def test_information_plot(load_alignment):
 def test_get_drawable():
     """sliced alignment with features returns a drawable"""
     aln = new_alignment.make_aligned_seqs(
-        dict(a="AAACGGTTT", b="CAA--GTAA"),
+        {"a": "AAACGGTTT", "b": "CAA--GTAA"},
         moltype="dna",
     )
     db = GffAnnotationDb()

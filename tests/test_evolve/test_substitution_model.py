@@ -1,6 +1,8 @@
 import os
 from unittest import TestCase
 
+import pytest
+
 from cogent3.evolve import predicate, substitution_model
 from cogent3.evolve.models import F81, GN, HKY85
 from cogent3.evolve.predicate import MotifChange
@@ -56,25 +58,23 @@ class NucleotideModelTestMethods(TestCase):
     def test_nonrev_exception(self):
         """constructing a Nucleotide model with non-reversible preds raises exception"""
         preds = predicate.MotifChange("A", "G", forward_only=True)
-        with self.assertRaises(ValueError):
-            sm = substitution_model.TimeReversibleNucleotide(predicates=[preds])
+        with pytest.raises(ValueError):
+            substitution_model.TimeReversibleNucleotide(predicates=[preds])
 
     def test_get_param_matrix_coords(self):
         """return correct coords for continuous-time models"""
         f81 = F81()
-        self.assertEqual(f81.get_param_matrix_coords(), {})
-        self.assertTrue(
-            len(f81.get_param_matrix_coords(include_ref_cell=True)["ref_cell"]) == 12,
-        )
+        assert f81.get_param_matrix_coords() == {}
+        assert len(f81.get_param_matrix_coords(include_ref_cell=True)["ref_cell"]) == 12
         hky85 = HKY85()
         coords = hky85.get_param_matrix_coords()
-        self.assertEqual(set(coords), set(["kappa"]))
+        assert set(coords) == {"kappa"}
         coords = hky85.get_param_matrix_coords(include_ref_cell=True)
-        self.assertEqual(set(coords), set(["kappa", "ref_cell"]))
+        assert set(coords) == {"kappa", "ref_cell"}
         gn = GN()
         coords = gn.get_param_matrix_coords(include_ref_cell=True)
-        self.assertTrue(len(coords) == 12)
-        self.assertTrue(len(coords["ref_cell"]) == 1)
+        assert len(coords) == 12
+        assert len(coords["ref_cell"]) == 1
 
     def test_to_rich_dict(self):
         """returns complete dict of attributes"""
@@ -120,7 +120,7 @@ class MultiLetterMotifSubstModelTests(TestCase):
     def test_to_rich_dict(self):
         """returns complete dict of attributes"""
         got = self.submodel.to_rich_dict()
-        self.assertEqual(got["motif_length"], 2)
+        assert got["motif_length"] == 2
 
 
 nuc_probs = [("T", 0.1), ("C", 0.2), ("A", 0.3), ("G", 0.4)]
@@ -147,120 +147,112 @@ class TupleModelMotifProbFuncs(TestCase):
     )
     nuc_probs = nuc_probs
     dinuc_probs = [(m2 + m1, p1 * p2) for m1, p1 in nuc_probs for m2, p2 in nuc_probs]
-    mat_indices = dict(
-        C=set(
-            [
-                (0, 1),
-                (0, 4),
-                (1, 5),
-                (2, 1),
-                (2, 6),
-                (3, 1),
-                (3, 7),
-                (4, 5),
-                (6, 5),
-                (7, 5),
-                (8, 4),
-                (8, 9),
-                (9, 5),
-                (10, 6),
-                (10, 9),
-                (11, 7),
-                (11, 9),
-                (12, 4),
-                (12, 13),
-                (13, 5),
-                (14, 6),
-                (14, 13),
-                (15, 7),
-                (15, 13),
-            ],
-        ),
-        A=set(
-            [
-                (0, 2),
-                (0, 8),
-                (1, 2),
-                (1, 9),
-                (2, 10),
-                (3, 2),
-                (3, 11),
-                (4, 6),
-                (4, 8),
-                (5, 6),
-                (5, 9),
-                (6, 10),
-                (7, 6),
-                (7, 11),
-                (8, 10),
-                (9, 10),
-                (11, 10),
-                (12, 8),
-                (12, 14),
-                (13, 9),
-                (13, 14),
-                (14, 10),
-                (15, 11),
-                (15, 14),
-            ],
-        ),
-        G=set(
-            [
-                (0, 3),
-                (0, 12),
-                (1, 3),
-                (1, 13),
-                (2, 3),
-                (2, 14),
-                (3, 15),
-                (4, 7),
-                (4, 12),
-                (5, 7),
-                (5, 13),
-                (6, 7),
-                (6, 14),
-                (7, 15),
-                (8, 11),
-                (8, 12),
-                (9, 11),
-                (9, 13),
-                (10, 11),
-                (10, 14),
-                (11, 15),
-                (12, 15),
-                (13, 15),
-                (14, 15),
-            ],
-        ),
-        T=set(
-            [
-                (1, 0),
-                (2, 0),
-                (3, 0),
-                (4, 0),
-                (5, 1),
-                (5, 4),
-                (6, 2),
-                (6, 4),
-                (7, 3),
-                (7, 4),
-                (8, 0),
-                (9, 1),
-                (9, 8),
-                (10, 2),
-                (10, 8),
-                (11, 3),
-                (11, 8),
-                (12, 0),
-                (13, 1),
-                (13, 12),
-                (14, 2),
-                (14, 12),
-                (15, 3),
-                (15, 12),
-            ],
-        ),
-    )
+    mat_indices = {
+        "C": {
+            (0, 1),
+            (0, 4),
+            (1, 5),
+            (2, 1),
+            (2, 6),
+            (3, 1),
+            (3, 7),
+            (4, 5),
+            (6, 5),
+            (7, 5),
+            (8, 4),
+            (8, 9),
+            (9, 5),
+            (10, 6),
+            (10, 9),
+            (11, 7),
+            (11, 9),
+            (12, 4),
+            (12, 13),
+            (13, 5),
+            (14, 6),
+            (14, 13),
+            (15, 7),
+            (15, 13),
+        },
+        "A": {
+            (0, 2),
+            (0, 8),
+            (1, 2),
+            (1, 9),
+            (2, 10),
+            (3, 2),
+            (3, 11),
+            (4, 6),
+            (4, 8),
+            (5, 6),
+            (5, 9),
+            (6, 10),
+            (7, 6),
+            (7, 11),
+            (8, 10),
+            (9, 10),
+            (11, 10),
+            (12, 8),
+            (12, 14),
+            (13, 9),
+            (13, 14),
+            (14, 10),
+            (15, 11),
+            (15, 14),
+        },
+        "G": {
+            (0, 3),
+            (0, 12),
+            (1, 3),
+            (1, 13),
+            (2, 3),
+            (2, 14),
+            (3, 15),
+            (4, 7),
+            (4, 12),
+            (5, 7),
+            (5, 13),
+            (6, 7),
+            (6, 14),
+            (7, 15),
+            (8, 11),
+            (8, 12),
+            (9, 11),
+            (9, 13),
+            (10, 11),
+            (10, 14),
+            (11, 15),
+            (12, 15),
+            (13, 15),
+            (14, 15),
+        },
+        "T": {
+            (1, 0),
+            (2, 0),
+            (3, 0),
+            (4, 0),
+            (5, 1),
+            (5, 4),
+            (6, 2),
+            (6, 4),
+            (7, 3),
+            (7, 4),
+            (8, 0),
+            (9, 1),
+            (9, 8),
+            (10, 2),
+            (10, 8),
+            (11, 3),
+            (11, 8),
+            (12, 0),
+            (13, 1),
+            (13, 12),
+            (14, 2),
+            (14, 12),
+            (15, 3),
+            (15, 12),
+        },
+    }
 
 
 class ThreeLetterMotifSubstModelTests(TestCase):
@@ -286,7 +278,7 @@ class ThreeLetterMotifSubstModelTests(TestCase):
     def test_to_rich_dict(self):
         """returns complete dict of attributes"""
         got = self.submodel.to_rich_dict()
-        self.assertEqual(got["motif_length"], 3)
+        assert got["motif_length"] == 3
 
     def test_nr_trinuc(self):
         """This is exercising a TimeReversibleTriucleotide"""
@@ -297,8 +289,8 @@ class ThreeLetterMotifSubstModelTests(TestCase):
         ]
         sm = substitution_model.TimeReversibleTrinucleotide(predicates=preds)
         got = sm.get_param_list()
-        self.assertEqual(got, ["A/C", "G/A", "CGA/TGA"])
-        self.assertEqual(len(sm.get_motifs()), 64)
+        assert got == ["A/C", "G/A", "CGA/TGA"]
+        assert len(sm.get_motifs()) == 64
 
 
 class CodonSubstModelTests(TestCase):
@@ -396,12 +388,12 @@ class ModelDataInteractionTestMethods(TestCase):
     def test_get_param_list(self):
         """testing getting the parameter list"""
         model = substitution_model.TimeReversibleNucleotide()
-        self.assertEqual(model.get_param_list(), [])
+        assert model.get_param_list() == []
 
         model = substitution_model.TimeReversibleNucleotide(
             predicates=["beta:transition"],
         )
-        self.assertEqual(model.get_param_list(), ["beta"])
+        assert model.get_param_list() == ["beta"]
 
     # need to ensure entering motif probs that sum to 1, that motif sets are
     # the same

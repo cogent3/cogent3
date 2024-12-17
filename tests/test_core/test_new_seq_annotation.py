@@ -47,7 +47,7 @@ def test_seq_feature_to_dict():
     assert str(f.get_slice()) == str(c.get_slice())
 
 
-@pytest.mark.parametrize("rev", (False, True))
+@pytest.mark.parametrize("rev", [False, True])
 def test_features_survives_seq_rename(rev):
     segments = ["A" * 10, "C" * 10, "T" * 5, "C" * 5, "A" * 5]
 
@@ -68,11 +68,11 @@ def test_features_survives_seq_rename(rev):
     sliced.name = "sliced"
     sliced = sliced.rc() if rev else sliced
 
-    got = list(sliced.get_features(name="gene1"))[0]
+    got = next(iter(sliced.get_features(name="gene1")))
     got = got.get_slice()
     assert str(got) == gene_expect
 
-    got = list(sliced.get_features(name="domain1"))[0]
+    got = next(iter(sliced.get_features(name="domain1")))
     got = got.get_slice()
     assert str(got) == domain_expect
 
@@ -112,18 +112,18 @@ def test_annotate_matches_to():
     assert annot == []
 
 
-@pytest.mark.parametrize("annot_type", ("CDS", "5'UTR"))
+@pytest.mark.parametrize("annot_type", ["CDS", "5'UTR"])
 def test_slice_seq_with_full_annotations(ann_seq, annot_type):
     # this slice contains both features intact
     newseq = ann_seq[10:]
-    orig = list(ann_seq.get_features(biotype=annot_type))[0]
-    new = list(newseq.get_features(biotype=annot_type))[0]
+    orig = next(iter(ann_seq.get_features(biotype=annot_type)))
+    new = next(iter(newseq.get_features(biotype=annot_type)))
     assert orig.name == new.name
     assert len(orig) == len(new)
     assert str(newseq[new]) == str(ann_seq[orig]), annot_type
 
 
-@pytest.mark.parametrize("annot_type,num", (("CDS", 0), ("5'UTR", 1)))
+@pytest.mark.parametrize(("annot_type", "num"), [("CDS", 0), ("5'UTR", 1)])
 def test_slice_seq_with_partial_end(ann_seq, annot_type, num):
     # this slice contains both features intact
     newseq = ann_seq[:14]
@@ -133,13 +133,13 @@ def test_slice_seq_with_partial_end(ann_seq, annot_type, num):
     if num:
         feat = new[0]
         # length of the feature is the same as the original
-        assert len(feat) == len(list(ann_seq.get_features(biotype=annot_type))[0])
+        assert len(feat) == len(next(iter(ann_seq.get_features(biotype=annot_type))))
         gapless = feat.without_lost_spans()
         # the sliced feature without gaps is shorter
         assert len(gapless) < len(feat)
 
 
-@pytest.mark.parametrize("annot_type,num", (("CDS", 1), ("5'UTR", 0)))
+@pytest.mark.parametrize(("annot_type", "num"), [("CDS", 1), ("5'UTR", 0)])
 def test_slice_seq_with_partial_start(ann_seq, annot_type, num):
     # this slice contains both features intact
     newseq = ann_seq[18:]
@@ -149,7 +149,7 @@ def test_slice_seq_with_partial_start(ann_seq, annot_type, num):
     if num:
         feat = new[0]
         # length of the feature is the same as the original
-        assert len(feat) == len(list(ann_seq.get_features(biotype=annot_type))[0])
+        assert len(feat) == len(next(iter(ann_seq.get_features(biotype=annot_type))))
         gapless = feat.without_lost_spans()
         # the sliced feature without gaps is shorter
         assert len(gapless) < len(feat)

@@ -65,12 +65,12 @@ def test_line_based_url(DATA_DIR):
     assert from_url == from_local
 
 
-@pytest.mark.parametrize("fmt", ("gb", "gbk", "gbff", "genbank"))
+@pytest.mark.parametrize("fmt", ["gb", "gbk", "gbff", "genbank"])
 def test_is_genbank(fmt):
     assert sequence.is_genbank(fmt)
 
 
-@pytest.mark.parametrize("fmt", ("blah", "fa", "xml", "nex", None))
+@pytest.mark.parametrize("fmt", ["blah", "fa", "xml", "nex", None])
 def test_is_not_genbank(fmt):
     assert not sequence.is_genbank(fmt)
 

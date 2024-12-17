@@ -57,9 +57,9 @@ class OptimiserTestCase(TestCase):
         f, last, evals = MakeF()
 
         x = quiet(maximise, f, [xinit], bounds, show_progress=False, **kw)
-        self.assertEqual(x, last[0])  # important for Calculator
+        assert x == last[0]  # important for Calculator
         error = abs(x[0] - target)
-        self.assertTrue(error < 0.0001, (kw, x, target, x))
+        assert error < 0.0001, (kw, x, target, x)
 
     def test_global(self):
         # Should find global minimum
@@ -97,7 +97,7 @@ class OptimiserTestCase(TestCase):
             show_progress=False,
         )
         # picking arbitrary numerical value
-        self.assertGreaterEqual(e, 10)
+        assert e >= 10
 
     def test_checkpointing(self):
         filename = "checkpoint.tmp.pickle"
@@ -116,13 +116,13 @@ class OptimiserTestCase(TestCase):
             os.remove(filename)
 
 
-@pytest.mark.parametrize("val", (numpy.array(3.7), numpy.array([3.7]), 3.7))
+@pytest.mark.parametrize("val", [numpy.array(3.7), numpy.array([3.7]), 3.7])
 def test_standardise_data(val):
     got = _standardise_data(val)
     assert got == (3.7,)
 
 
-@pytest.mark.parametrize("val", (37, "37"))
+@pytest.mark.parametrize("val", [37, "37"])
 def test_standardise_data_str(val):
     got = _standardise_data(val)
     assert got == ("37",)

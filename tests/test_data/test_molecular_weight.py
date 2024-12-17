@@ -15,8 +15,8 @@ class WeightCalculatorTests(TestCase):
         """WeightCalculator should return correct molecular weight"""
         r = RnaMW
         p = ProteinMW
-        self.assertEqual(p(""), 0)
-        self.assertEqual(r(""), 0)
+        assert p("") == 0
+        assert r("") == 0
         assert_allclose(p("A"), 89.09)
         assert_allclose(r("A"), 375.17)
         assert_allclose(p("AAA"), 231.27)

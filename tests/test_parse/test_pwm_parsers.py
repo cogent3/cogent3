@@ -22,8 +22,8 @@ class TestPwmParsers(TestCase):
             [2, 2, 5, 0, 10, 44, 157],
         ]
         assert_array_equal(pwm.array, array(expect).T)
-        self.assertEqual(pwm[0, "A"], 352)
-        self.assertEqual(pwm[3, "T"], 121)
+        assert pwm[0, "A"] == 352
+        assert pwm[3, "T"] == 121
 
     def test_cisbp(self):
         """correctly read a wights matrix"""
@@ -37,4 +37,4 @@ class TestPwmParsers(TestCase):
         ]
         assert_allclose(pfm.array, array(expect).T, atol=1e-2)
         assert_allclose(pfm[0, "A"], 0.199862209150251)
-        self.assertEqual(pfm[6, "C"], 0.0787969447816471)
+        assert pfm[6, "C"] == 0.0787969447816471
