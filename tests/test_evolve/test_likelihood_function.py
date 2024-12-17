@@ -173,19 +173,15 @@ class LikelihoodCalcs(TestCase):
         submod = get_model("TN93")
         tree = make_tree(f"{tuple(aln.names)!s}")
         lf = submod.make_likelihood_function(tree)
-        try:
+        with self.assertRaises(AssertionError):
             lf.set_alignment(aln)
-        except AssertionError:
-            pass
 
-        collection = aln.degap().seqs if _NEW_TYPE else aln.degap().named_seqs
-        collection.pop("Human")
-        tree = make_tree(f"{tuple(collection.keys())!s}")
+        collection = aln.degap()
+        collection = collection.take_seqs("Human", negate=True)
+        tree = make_tree(f"{tuple(collection.names)!s}")
         lf = submod.make_likelihood_function(tree, aligned=False)
-        try:
+        with self.assertRaises(AssertionError):
             lf.set_sequences(collection)
-        except AssertionError:
-            pass
 
     def test_binned_gamma(self):
         """just rate is gamma distributed"""

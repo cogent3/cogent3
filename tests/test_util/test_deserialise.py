@@ -586,6 +586,7 @@ def test_convert_annotation_to_annotation_db():
     assert db.num_matches() == 1
 
 
+@pytest.mark.skipif(_NEW_TYPE, reason="not supported in new_type")
 def test_deserialise_old_style_annotated(DATA_DIR):
     from cogent3.core.alignment import SequenceCollection
 
