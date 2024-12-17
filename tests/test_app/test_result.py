@@ -1,3 +1,4 @@
+import os
 import pathlib
 
 import pytest
@@ -14,6 +15,8 @@ from cogent3.app.result import (
 )
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.dict_array import DictArray
+
+_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
 
 
 def test_deserialised_values():
@@ -88,7 +91,10 @@ def test_infers_source():
     gr = generic_result(aln)
     assert str(gr.source) == source.name
 
-    aln.info = {}
+    if _NEW_TYPE:
+        aln.source = None
+    else:
+        aln.info = {}
     with pytest.raises(ValueError):
         generic_result(aln)
 

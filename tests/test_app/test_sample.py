@@ -10,6 +10,8 @@ from cogent3.core import alignment
 
 DNA = cogent3.get_moltype("dna")
 
+_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
+
 
 class TranslateTests(TestCase):
     def _codon_positions(self, array_align):
@@ -679,8 +681,8 @@ def test_omit_bad_seqs_ambigs(bad_ambig_gap_data):
 
 
 @pytest.mark.skipif(
-    os.getenv("COGENT3_NEW_TYPE") is not None,
-    reason="Skipping test because COGENT3_NEW_TYPE is defined",
+    _NEW_TYPE,
+    reason="new_type does not yet support mixed strand collections",
 )
 def test_omit_bad_seqs_ambigs_old_aln(bad_ambig_gap_data):
     # ambig_fraction should be ignored if using old style alignment

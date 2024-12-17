@@ -3,9 +3,12 @@
 Writer for Clustal format.
 """
 
+import os
 from copy import copy
 
 import cogent3
+
+_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
 
 
 def clustal_from_alignment(aln, wrap=None):
@@ -51,7 +54,8 @@ def clustal_from_alignment(aln, wrap=None):
     max_spaces = label_max + 4
 
     # Get ordered seqs
-    ordered_seqs = [seqs.named_seqs[label] for label in order]
+    named_seqs = seqs.seqs if _NEW_TYPE else seqs.named_seqs
+    ordered_seqs = [named_seqs[label] for label in order]
 
     if wrap is not None:
         curr_ix = 0

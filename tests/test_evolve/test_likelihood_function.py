@@ -70,6 +70,7 @@ _data = {
 _aln = make_aligned_seqs(data=_data, moltype=DNA)
 
 
+_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
 ########################################################
 # some funcs for assembling Q-matrices for 'manual' calc
 
@@ -177,7 +178,7 @@ class LikelihoodCalcs(TestCase):
         except AssertionError:
             pass
 
-        collection = aln.degap().named_seqs
+        collection = aln.degap().seqs if _NEW_TYPE else aln.degap().named_seqs
         collection.pop("Human")
         tree = make_tree(f"{tuple(collection.keys())!s}")
         lf = submod.make_likelihood_function(tree, aligned=False)

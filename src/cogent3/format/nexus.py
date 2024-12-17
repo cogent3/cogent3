@@ -1,3 +1,8 @@
+import os
+
+_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
+
+
 def nexus_from_alignment(aln, seq_type, wrap=50):
     """returns a nexus formatted string
 
@@ -24,7 +29,8 @@ def nexus_from_alignment(aln, seq_type, wrap=50):
     )
     nexus_out.append("    matrix")
     cur_ix = 0
-    names_seqs = sorted(aln.named_seqs.items())
+    named_seqs = {a.name: a for a in aln.seqs} if _NEW_TYPE else aln.named_seqs
+    names_seqs = sorted(named_seqs.items())
     while cur_ix < aln_len:
         nexus_out.extend(
             [f"    {x}    {y[cur_ix:cur_ix + wrap]}" for x, y in names_seqs],

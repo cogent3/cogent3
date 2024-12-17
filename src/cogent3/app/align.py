@@ -1,3 +1,4 @@
+import os
 import warnings
 from bisect import bisect_left
 from itertools import combinations
@@ -24,6 +25,8 @@ from cogent3.maths.util import safe_log
 from .composable import NotCompleted, define_app
 from .tree import quick_tree, scale_branches
 from .typing import AlignedSeqsType, SerialisableType, UnalignedSeqsType
+
+_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
 
 
 class _GapOffset:
@@ -303,9 +306,9 @@ def pairwise_to_multiple(pwise, ref_seq, moltype, info=None):
     m = gap_coords_to_map(ref_gaps, len(ref_seq))
     aligned = [Aligned(m, ref_seq)]
     for other_name, aln in pwise:
-        curr_ref = aln.named_seqs[ref_seq.name]
+        curr_ref = aln.seqs[ref_seq.name] if _NEW_TYPE else aln.named_seqs[ref_seq.name]
         curr_ref_gaps = dict(curr_ref.map.get_gap_coordinates())
-        other_seq = aln.named_seqs[other_name]
+        other_seq = aln.seqs[other_name] if _NEW_TYPE else aln.named_seqs[other_name]
         other_gaps = dict(other_seq.map.get_gap_coordinates())
         diff_gaps = _combined_refseq_gaps(curr_ref_gaps, ref_gaps)
         if inject := _gaps_for_injection(other_gaps, diff_gaps, len(other_seq.data)):
