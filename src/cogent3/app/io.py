@@ -296,12 +296,16 @@ def _load_seqs(path, coll_maker, parser, moltype):
 class load_aligned:
     """Loads aligned sequences. Returns an Alignment object."""
 
-    def __init__(self, moltype=None, format="fasta"):
+    def __init__(
+        self,
+        moltype: str | MolTypes | None = None,
+        format: str = "fasta",
+    ):
         """
         Parameters
         ----------
         moltype
-            molecular type, string or instance
+            molecular type, string or instance, defaults to 'text'
         format : str
             sequence file format
 
@@ -309,7 +313,8 @@ class load_aligned:
         --------
         See https://cogent3.org/doc/app/app_cookbook/load-aligned.html
         """
-        self.moltype = moltype if moltype is None else cogent3.get_moltype(moltype)
+        moltype = moltype or ("text" if _NEW_TYPE else "bytes")
+        self.moltype = cogent3.get_moltype(moltype)
         self._parser = PARSERS[format.lower()]
 
     T = SerialisableType | AlignedSeqsType
@@ -341,7 +346,8 @@ class load_unaligned:
         --------
         See https://cogent3.org/doc/app/app_cookbook/load-unaligned.html
         """
-        self.moltype = moltype if moltype is None else cogent3.get_moltype(moltype)
+        moltype = moltype or ("text" if _NEW_TYPE else "bytes")
+        self.moltype = cogent3.get_moltype(moltype)
         self._parser = PARSERS[format.lower()]
 
     T = SerialisableType | UnalignedSeqsType
