@@ -316,7 +316,9 @@ def pairwise_to_multiple(pwise, ref_seq, moltype, info=None):
         other_seq = aln.seqs[other_name] if _NEW_TYPE else aln.named_seqs[other_name]
         other_gaps = dict(other_seq.map.get_gap_coordinates())
         diff_gaps = _combined_refseq_gaps(curr_ref_gaps, ref_gaps)
-        if inject := _gaps_for_injection(other_gaps, diff_gaps, len(other_seq.data)):
+        # difference between new_type and old type Aligned data attributes
+        parent_len = len(other_seq.seq) if _NEW_TYPE else len(other_seq.data)
+        if inject := _gaps_for_injection(other_gaps, diff_gaps, parent_len):
             m = gap_coords_to_map(inject, len(other_seq.data))
             other_seq = Aligned.from_map_and_aligned_data_view(m, other_seq.data)
 

@@ -299,20 +299,32 @@ def test_pairwise_to_multiple(refalignment_seqs):
             pairwise_to_multiple(pwise, "ACGG", DNA)
 
 
-def test_pairwise_to_multiple_2(refalignment_seqs):
-    """correctly handle alignments with gaps beyond end of query"""
+def make_pwise_from_dict(data, ref_name):
+    """Helper function to create pairwise alignments from a dictionary of sequences
 
-    # cogent3.core.alignment.DataError: Not all sequences are the same length:
-    # max is 425, min is 419
-    def make_pwise(data, ref_name):
-        result = []
-        for n, seqs in data.items():
-            result.append(
-                [n, make_aligned_seqs(data=seqs, moltype="dna", array_align=False)],
-            )
-        ref_seq = result[0][1].get_seq(ref_name)
-        return result, ref_seq
+    Parameters
+    ----------
+    data : dict
+        Nested dictionary of sequences with structure {name: {ref_name: seq, name: seq}}
+    ref_name : str
+        Name of the reference sequence
 
+    Returns
+    -------
+    list, cogent3.core.sequence.Sequence
+        List of [name, alignment] pairs and reference sequence
+    """
+    result = []
+    for n, seqs in data.items():
+        result.append(
+            [n, make_aligned_seqs(data=seqs, moltype="dna", array_align=False)],
+        )
+    ref_seq = result[0][1].get_seq(ref_name)
+    return result, ref_seq
+
+
+def test_pairwise_to_multiple_long_seqs():
+    """correctly handle alignments with long sequences"""
     pwise = {
         "Platypus": {
             "Opossum": "-----------------GTGC------GAT-------------------------------CCAAAAACCTGTGTC--ACCGT--------GCC----CAGAGCCTCC----CTCAGGCCGCTCGGGGAG---TG-------GCCCCCCG--GC-GGAGGGCAGGGATGGGGAGT-AGGGGTGGCAGTC----GGAACTGGAAGAGCTT-TACAAACC---------GA--------------------GGCT-AGAGGGTC-TGCTTAC-------TTTTTACCTTGG------------GTTTG-CCAGGAGGTAG----------AGGATGA-----------------CTAC--ATCAAG----AGC------------TGGG-------------",
@@ -323,10 +335,13 @@ def test_pairwise_to_multiple_2(refalignment_seqs):
             "Wombat": "--------CA----------TCACCGC-CCCTGCACC---------CGGCTCGGCGGAGGGGGATTCTAA-GGGGGTCAAGGATGGCGAG-ACCCCTGGCAATTTCA--TGGAGGA------CGAGCAATGGCT-----GTC-GTCCATCTCCCAGTATAGCGGCAAGATCAAGCACTGGAACCGCTTCCGAGACGATGACTACATCAAGAGCTGGGAGGACAGTCAGCAAGGAGATGAAGCGC",
         },
     }
-    pwise, ref_seq = make_pwise(pwise, "Opossum")
+    pwise, ref_seq = make_pwise_from_dict(pwise, "Opossum")
     aln = pairwise_to_multiple(pwise, ref_seq, ref_seq.moltype)
     assert not isinstance(aln, NotCompleted)
 
+
+def test_pairwise_to_multiple_short_seqs():
+    """correctly handle alignments with short sequences"""
     pwise = {
         "Platypus": {
             "Opossum": "-----------------GTGC------GAT-------------------------------CCAAAAACCTGTGTC",
@@ -337,7 +352,7 @@ def test_pairwise_to_multiple_2(refalignment_seqs):
             "Wombat": "--------CA----------TC",
         },
     }
-    pwise, ref_seq = make_pwise(pwise, "Opossum")
+    pwise, ref_seq = make_pwise_from_dict(pwise, "Opossum")
     aln = pairwise_to_multiple(pwise, ref_seq, ref_seq.moltype)
     assert not isinstance(aln, NotCompleted)
 
