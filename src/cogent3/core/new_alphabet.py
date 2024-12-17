@@ -1127,7 +1127,7 @@ def deserialise_kmer_alphabet(data: dict) -> KmerAlphabet:
     return KmerAlphabet.from_rich_dict(data)
 
 
-class SenseCodonAlphabet(tuple, AlphabetABC):
+class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
     """represents the sense-codons of a GeneticCode"""
 
     def __new__(
