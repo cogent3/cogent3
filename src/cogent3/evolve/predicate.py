@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Matching motifs: MotifChange("a", "g")
 Boolean logic: Any, All, Not (or &, |, ~)
@@ -231,8 +230,8 @@ class DirectedMotifChange(predicate):
 
         ambigs = model.moltype.ambiguities
 
-        from_motifs = [ambigs[m] for m in self.from_motif]
-        to_motifs = [ambigs[m] for m in self.to_motif]
+        from_motifs = [ambigs.get(m, m) for m in self.from_motif]
+        to_motifs = [ambigs.get(m, m) for m in self.to_motif]
 
         def call(x, y):
             diffs = [X != Y for (X, Y) in zip(x, y, strict=False)]

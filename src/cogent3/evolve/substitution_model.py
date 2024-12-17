@@ -770,7 +770,7 @@ class Parametric(_ContinuousSubstitutionModel):
         # to be equivalent to 1 or more others, or the distance params.
         # Give a clearer error in simple cases like always false or true.
         for name, matrix in list(predicate_masks.items()):
-            if numpy.all((matrix == 0).flat):
+            if (matrix == 0).all():
                 raise ValueError(f"Predicate {name} is always false.")
         predicates_plus_scale = predicate_masks.copy()
         predicates_plus_scale[None] = self._instantaneous_mask
@@ -910,7 +910,7 @@ class Parametric(_ContinuousSubstitutionModel):
         predicate_masks = {}
         order = []
         for key, pred in rules:
-            (label, mask) = self.adapt_predicate(pred, key)
+            label, mask = self.adapt_predicate(pred, key)
             if label in predicate_masks:
                 raise KeyError(f'Duplicate predicate name "{label}"')
             predicate_masks[label] = mask
