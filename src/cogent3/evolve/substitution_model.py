@@ -183,7 +183,7 @@ class _SubstitutionModel:
 
         self.moltype = alphabet.moltype
         if model_gaps:
-            alphabet = alphabet.with_gap_motif()
+            alphabet = alphabet.with_gap_motif(gap_as_state=True)
 
         if motif_length > 1:
             alphabet = alphabet.get_word_alphabet(motif_length)
@@ -580,7 +580,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
             return False
         gap_start = gap_end = gap_strand = None
         for i, (X, Y) in enumerate(zip(x, y, strict=False)):
-            G = self.gapmotif[i]
+            G = self.gapmotif[i] if self.gapmotif else self.gapmotif
             if X != Y:
                 if X != G and Y != G:
                     return False  # non-gap differences had their chance above
@@ -764,13 +764,13 @@ class Parametric(_ContinuousSubstitutionModel):
         d = {k: v for k, v in d.items() if k not in exclude}
         self._serialisable.update(d)
 
-        (predicate_masks, predicate_order) = self._adapt_predicates(predicates or [])
+        predicate_masks, predicate_order = self._adapt_predicates(predicates or [])
 
         # Check for redundancy in predicates, ie: 1 or more than combine
         # to be equivalent to 1 or more others, or the distance params.
         # Give a clearer error in simple cases like always false or true.
         for name, matrix in list(predicate_masks.items()):
-            if numpy.all((matrix == 0).flat):
+            if (matrix == 0).all():
                 raise ValueError(f"Predicate {name} is always false.")
         predicates_plus_scale = predicate_masks.copy()
         predicates_plus_scale[None] = self._instantaneous_mask
@@ -910,7 +910,7 @@ class Parametric(_ContinuousSubstitutionModel):
         predicate_masks = {}
         order = []
         for key, pred in rules:
-            (label, mask) = self.adapt_predicate(pred, key)
+            label, mask = self.adapt_predicate(pred, key)
             if label in predicate_masks:
                 raise KeyError(f'Duplicate predicate name "{label}"')
             predicate_masks[label] = mask
@@ -983,7 +983,10 @@ class TimeReversibleDinucleotide(_TimeReversibleNucleotide):
     """A dinucleotide substitution model."""
 
     def __init__(self, *args, **kw):
-        kw["alphabet"] = kw.get("alphabet", cogent3.get_moltype("dna").alphabet)
+        if "alphabet" not in kw:
+            dna = cogent3.get_moltype("dna")
+            kw["alphabet"] = dna.alphabet
+
         kw["motif_length"] = 2
         _TimeReversibleNucleotide.__init__(self, *args, **kw)
 

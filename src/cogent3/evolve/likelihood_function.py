@@ -476,7 +476,7 @@ class LikelihoodFunction(ParameterController):
             for row in probs:
                 by_p = [(p, state) for state, p in list(row.items())]
                 seq.append(max(by_p)[1])
-            seqs += [(edge, self.model.moltype.make_seq("".join(seq)))]
+            seqs += [(edge, self.model.moltype.make_seq(seq="".join(seq)))]
         return cogent3.make_aligned_seqs(
             data=seqs,
             moltype=self.model.moltype,
@@ -1097,7 +1097,7 @@ class LikelihoodFunction(ParameterController):
         Parameters
         ----------
         sequence_length
-            the legnth of the alignment to be simulated,
+            the length of the alignment to be simulated,
             default is the length of the attached alignment.
         random_series
             a random number generator.
@@ -1150,7 +1150,7 @@ class LikelihoodFunction(ParameterController):
 
         if root_sequence is not None:  # we convert to a vector of motifs
             if isinstance(root_sequence, str):
-                root_sequence = self._model.moltype.make_seq(root_sequence)
+                root_sequence = self._model.moltype.make_seq(seq=root_sequence)
             motif_len = self._model.get_alphabet().motif_len
             root_sequence = root_sequence.get_in_motif_size(motif_len)
         else:

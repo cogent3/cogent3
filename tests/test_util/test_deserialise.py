@@ -1,4 +1,5 @@
 import json
+import os
 
 import numpy
 import pytest
@@ -14,7 +15,7 @@ from cogent3 import (
     make_unaligned_seqs,
 )
 from cogent3.app.result import model_collection_result, model_result
-from cogent3.core import alignment, moltype
+from cogent3.core import moltype
 from cogent3.evolve.models import get_model
 from cogent3.evolve.ns_substitution_model import (
     NonReversibleDinucleotide,
@@ -25,6 +26,8 @@ from cogent3.util.deserialise import (
     deserialise_likelihood_function,
     deserialise_object,
 )
+
+_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
 
 
 def test_roundtrip_codon_alphabet():
@@ -61,15 +64,16 @@ def test_roundtrip_seqcoll():
     seqcoll = make_unaligned_seqs(data=data, moltype="dna")
     got = deserialise_object(seqcoll.to_json())
     assert got.rc().to_dict() == seqcoll.rc().to_dict()
-    assert isinstance(got, alignment.SequenceCollection)
+    assert got.__class__.__name__ == "SequenceCollection"
 
 
+@pytest.mark.skipif(_NEW_TYPE, reason="not supported in new_type")
 def test_roundtrip_annotated_seqcoll():
     """SequenceCollection to_json enables roundtrip of annotated sequences"""
     data = {"A": "TTGTA", "B": "GGCT"}
     seqs = make_unaligned_seqs(data=data, moltype="dna")
 
-    f = seqs.named_seqs["A"].add_feature(biotype="gene", name="n1", spans=[(2, 5)])
+    f = seqs.get_seq("A").add_feature(biotype="gene", name="n1", spans=[(2, 5)])
     data = seqs.to_json()
     expect = str(f.get_slice())
     got = deserialise_object(data)
@@ -83,7 +87,7 @@ def test_roundtrip_arrayalign():
     arrayalign = make_aligned_seqs(data=data, moltype="dna")
     got = deserialise_object(arrayalign.to_json())
     assert got.rc().to_dict() == arrayalign.rc().to_dict()
-    assert isinstance(got, alignment.ArrayAlignment)
+    assert got.__class__.__name__.endswith("Alignment")
 
 
 def test_roundtrip_align():
@@ -92,7 +96,7 @@ def test_roundtrip_align():
     align = make_aligned_seqs(data=data, moltype="dna", array_align=False)
     got = deserialise_object(align.to_json())
     assert got.rc().to_dict() == align.rc().to_dict()
-    assert isinstance(got, alignment.Alignment)
+    assert got.__class__.__name__.endswith("Alignment")
 
 
 def test_roundtrip_tree():
@@ -582,6 +586,7 @@ def test_convert_annotation_to_annotation_db():
     assert db.num_matches() == 1
 
 
+@pytest.mark.skipif(_NEW_TYPE, reason="not supported in new_type")
 def test_deserialise_old_style_annotated(DATA_DIR):
     from cogent3.core.alignment import SequenceCollection
 

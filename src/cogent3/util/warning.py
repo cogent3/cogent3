@@ -149,6 +149,7 @@ def deprecated_args(
                             reason,
                             stack_level=stack_level,
                         )
+                        kwargs.pop(dropped)
 
             return func(*args, **kwargs)
 

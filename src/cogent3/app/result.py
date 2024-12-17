@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy
 from scipy.stats.distributions import chi2
 
+import cogent3
 from cogent3._version import __version__
 from cogent3.app.data_store import get_data_source
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
@@ -235,7 +236,7 @@ class model_result(generic_result):
             seq = "".join("".join(t) for t in zip(seq1, seq2, seq3, strict=False))
             data[n] = seq
 
-        return aln.__class__(data=data)
+        return cogent3.make_aligned_seqs(data, moltype=aln.moltype)
 
     def __lt__(self, other):
         self_lnL = self.lnL

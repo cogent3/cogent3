@@ -70,6 +70,7 @@ _data = {
 _aln = make_aligned_seqs(data=_data, moltype=DNA)
 
 
+_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
 ########################################################
 # some funcs for assembling Q-matrices for 'manual' calc
 
@@ -172,19 +173,15 @@ class LikelihoodCalcs(TestCase):
         submod = get_model("TN93")
         tree = make_tree(f"{tuple(aln.names)!s}")
         lf = submod.make_likelihood_function(tree)
-        try:
+        with self.assertRaises(AssertionError):
             lf.set_alignment(aln)
-        except AssertionError:
-            pass
 
-        collection = aln.degap().named_seqs
-        collection.pop("Human")
-        tree = make_tree(f"{tuple(collection.keys())!s}")
+        collection = aln.degap()
+        collection = collection.take_seqs("Human", negate=True)
+        tree = make_tree(f"{tuple(collection.names)!s}")
         lf = submod.make_likelihood_function(tree, aligned=False)
-        try:
+        with self.assertRaises(AssertionError):
             lf.set_sequences(collection)
-        except AssertionError:
-            pass
 
     def test_binned_gamma(self):
         """just rate is gamma distributed"""
@@ -563,7 +560,7 @@ DogFaced   root      1.00  1.00
                 exclude_internal=False,
                 root_sequence=root_sequence,
             )
-            root = simalign.named_seqs["root"]
+            root = simalign.get_seq("root")
             self.assertEqual(str(root), str(root_sequence))
 
         root_sequence = DNA.make_seq(seq="GTAATT")

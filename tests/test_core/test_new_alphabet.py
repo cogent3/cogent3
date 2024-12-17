@@ -755,3 +755,19 @@ def test_convert_seq_array_to_check_valid():
     seq = numpy.array([0, 1, 2, 3], dtype=numpy.uint8)
     with pytest.raises(new_alphabet.AlphabetError):
         bytes_alpha.convert_seq_array_to(alphabet=dna_alpha, seq=seq, check_valid=True)
+
+
+@pytest.mark.parametrize(
+    "alpha",
+    (
+        new_moltype.DNA.alphabet,
+        new_moltype.DNA.alphabet.get_kmer_alphabet(k=2),
+        new_genetic_code.DEFAULT.get_alphabet(include_stop=False),
+    ),
+)
+def test_pickling_alphabet(alpha):
+    import pickle
+
+    ser = pickle.dumps(alpha)
+    got = pickle.loads(ser)
+    assert got == alpha

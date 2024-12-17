@@ -51,6 +51,8 @@ _datastore_reader_map = {}
 
 MolTypes = old_moltype.MolType | new_moltype.MolType
 
+_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
+
 
 class register_datastore_reader:
     """
@@ -279,7 +281,14 @@ def _load_seqs(path, coll_maker, parser, moltype):
     data = data.splitlines()
     data = dict(iter(parser(data)))
     seqs = coll_maker(data=data, moltype=moltype)
-    seqs.info.source = str(path)
+    path = str(path)
+    seqs.info.source = path
+
+    # TODO replace above statement with direct assignment in conditional
+    #   when new_type=True becomes default
+    if _NEW_TYPE:  # pragma: no cover
+        seqs.source = path
+
     return seqs
 
 
@@ -287,12 +296,16 @@ def _load_seqs(path, coll_maker, parser, moltype):
 class load_aligned:
     """Loads aligned sequences. Returns an Alignment object."""
 
-    def __init__(self, moltype=None, format="fasta"):
+    def __init__(
+        self,
+        moltype: str | MolTypes | None = None,
+        format: str = "fasta",
+    ):
         """
         Parameters
         ----------
         moltype
-            molecular type, string or instance
+            molecular type, string or instance, defaults to 'text'
         format : str
             sequence file format
 
@@ -300,7 +313,8 @@ class load_aligned:
         --------
         See https://cogent3.org/doc/app/app_cookbook/load-aligned.html
         """
-        self.moltype = moltype if moltype is None else cogent3.get_moltype(moltype)
+        moltype = moltype or ("text" if _NEW_TYPE else "bytes")
+        self.moltype = cogent3.get_moltype(moltype)
         self._parser = PARSERS[format.lower()]
 
     T = SerialisableType | AlignedSeqsType
@@ -332,7 +346,8 @@ class load_unaligned:
         --------
         See https://cogent3.org/doc/app/app_cookbook/load-unaligned.html
         """
-        self.moltype = moltype if moltype is None else cogent3.get_moltype(moltype)
+        moltype = moltype or ("text" if _NEW_TYPE else "bytes")
+        self.moltype = cogent3.get_moltype(moltype)
         self._parser = PARSERS[format.lower()]
 
     T = SerialisableType | UnalignedSeqsType

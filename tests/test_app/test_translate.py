@@ -1,4 +1,4 @@
-from unittest import TestCase
+import os
 
 import pytest
 
@@ -14,140 +14,132 @@ from cogent3.app.translate import (
 
 DNA = cogent3.get_moltype("dna")
 
-
-class TestTranslatable(TestCase):
-    """testing translation functions"""
-
-    def test_best_frame(self):
-        """correctly identify best frame with/without allowing rc"""
-        make_seq = DNA.make_seq
-        seq = make_seq(seq="ATGCTAACATAAA", name="fake1")
-        f = best_frame(seq)
-        self.assertEqual(f, 1)
-        f = best_frame(seq, require_stop=True)
-        self.assertEqual(f, 1)
-
-        # a challenging seq, translatable in 1 and 3 frames, ending on stop in
-        # frame 1. Should return frame 1 irrespective of require_stop
-        seq = make_seq(seq="ATGTTACGGACGATGCTGAAGTCGAAGATCCACCGCGCCACGGTGACCTGCTGA")
-        f = best_frame(seq)
-        self.assertEqual(f, 1)
-
-        # a rc seq
-        f = best_frame(seq)
-        seq = make_seq(
-            seq="AATATAAATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTTCATAAAGTCATA",
-            name="fake2",
-        )
-        f = best_frame(seq, allow_rc=True)
-        self.assertEqual(f, 1)
-        with self.assertRaises(ValueError):
-            f = best_frame(seq, allow_rc=True, require_stop=True)
-
-        rc = seq.rc()
-        f = best_frame(rc, allow_rc=True)
-        self.assertEqual(f, -1)
-
-    def test_select_translatable(self):
-        """correctly get translatable seqs"""
-        data = {
-            "a": "AATATAAATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTTCATAAAGTCATA",
-            "rc": "TATGACTTTATGAAGTAATAAACTGCTGTTCTCATGCTGTAATGAGCTGGCATTTATATT",
-        }
-        seqs = cogent3.make_unaligned_seqs(data=data, moltype=DNA)
-        trans = select_translatable(allow_rc=False)
-        tr = trans(seqs)  # pylint: disable=not-callable
-        ex = data.copy()
-        ex.pop("rc")
-        self.assertEqual(tr.to_dict(), ex)
-        trans = select_translatable(allow_rc=True)
-        tr = trans(seqs)  # pylint: disable=not-callable
-        ex = data.copy()
-        ex["rc"] = data["a"]
-        self.assertEqual(tr.to_dict(), ex)
-
-        # if seqs not translatable returns NotCompletedResult
-        data = dict(a="TAATTGATTAA", b="GCAGTTTATTA")
-        seqs = cogent3.make_unaligned_seqs(data=data, moltype=DNA)
-        got = select_translatable(allow_rc=False)(seqs)  # pylint: disable=not-callable
-        self.assertTrue(type(got), NotCompleted)
-
-    def test_translate_frames(self):
-        """returns translated sequences"""
-        seq = DNA.make_seq(seq="ATGCTGACATAAA", name="fake1")
-        tr = translate_frames(seq)
-        self.assertEqual(tr, ["MLT*", "C*HK", "ADI"])
-        # with the bacterial nuclear and plant plastid code
-        tr = translate_frames(seq, gc="Euplotid Nuclear")
-        self.assertEqual(tr, ["MLT*", "CCHK", "ADI"])
+_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
 
 
-class TestTranslate(TestCase):
-    def test_translate_seqcoll(self):
-        """correctly translate a sequence collection"""
-        seqs = dict(a="ATGAGG", b="ATGTAA")
-        seqs = cogent3.make_unaligned_seqs(seqs, moltype="dna")
-        # trim terminal stops
-        translater = translate_seqs()
-        aa = translater(seqs)  # pylint: disable=not-callable
-        self.assertEqual(aa.to_dict(), dict(a="MR", b="M"))
-        self.assertEqual(aa.moltype.label, "protein")
-        # don't trim terminal stops, returns NotCompleted
-        translater = translate_seqs(trim_terminal_stop=False)
-        aa = translater(seqs)  # pylint: disable=not-callable
-        self.assertIsInstance(aa, NotCompleted)
+def test_best_frame():
+    """correctly identify best frame with/without allowing rc"""
+    seq = DNA.make_seq(seq="ATGCTAACATAAA", name="fake1")
+    assert best_frame(seq) == 1
+    assert best_frame(seq, require_stop=True) == 1
 
-    def test_translate_aln(self):
-        """correctly translates alignments"""
-        data = dict(a="ATGAGGCCC", b="ATGTTT---")
-        # an array alignment
-        aln = cogent3.make_aligned_seqs(data, moltype="dna")
-        translater = translate_seqs()
-        aa = translater(aln)  # pylint: disable=not-callable
-        self.assertEqual(aa.to_dict(), dict(a="MRP", b="MF-"))
-        self.assertEqual(aa.moltype.label, "protein")
-        self.assertIsInstance(aa, type(aln))
-        # Alignment
-        aln = aln.to_type(array_align=True)
-        aa = translater(aln)  # pylint: disable=not-callable
-        self.assertEqual(aa.to_dict(), dict(a="MRP", b="MF-"))
-        self.assertEqual(aa.moltype.label, "protein")
-        self.assertIsInstance(aa, type(aln))
+    # a challenging seq, translatable in 1 and 3 frames, ending on stop in
+    # frame 1. Should return frame 1 irrespective of require_stop
+    seq = DNA.make_seq(seq="ATGTTACGGACGATGCTGAAGTCGAAGATCCACCGCGCCACGGTGACCTGCTGA")
+    assert best_frame(seq) == 1
+
+    # a rc seq
+    seq = DNA.make_seq(
+        seq="AATATAAATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTTCATAAAGTCATA",
+        name="fake2",
+    )
+    assert best_frame(seq, allow_rc=True) == 1
+    with pytest.raises(ValueError):
+        best_frame(seq, allow_rc=True, require_stop=True)
+
+    rc = seq.rc()
+    assert best_frame(rc, allow_rc=True) == -1
 
 
-class TestFourFoldDegen(TestCase):
-    def test_get_fourfold_degenerate_sets(self):
-        """correctly identify 4-fold degenerate codons"""
-        # using straight characters
-        expect = set()
-        for di in "GC", "GG", "CT", "CC", "TC", "CG", "AC", "GT":
-            expect.update([frozenset(di + n for n in "ACGT")])
+@pytest.mark.skipif(
+    _NEW_TYPE,
+    reason="new_type does not yet support mixed strand collections",
+)
+def test_select_translatable():
+    """correctly get translatable seqs"""
+    data = {
+        "a": "AATATAAATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTTCATAAAGTCATA",
+        "rc": "TATGACTTTATGAAGTAATAAACTGCTGTTCTCATGCTGTAATGAGCTGGCATTTATATT",
+    }
+    seqs = cogent3.make_unaligned_seqs(data=data, moltype=DNA)
+    trans = select_translatable(allow_rc=False)
+    tr = trans(seqs)  # pylint: disable=not-callable
+    ex = data.copy()
+    ex.pop("rc")
+    assert tr.to_dict() == ex
 
-        for i in range(1, 3):
-            got = get_fourfold_degenerate_sets(cogent3.get_code(i), as_indices=False)
-            self.assertEqual(got, expect)
+    trans = select_translatable(allow_rc=True)
+    tr = trans(seqs)  # pylint: disable=not-callable
+    ex = data.copy()
+    ex["rc"] = data["a"]
+    assert tr.to_dict() == ex
 
-        with self.assertRaises(AssertionError):
-            # as_indices requires an alphabet
-            get_fourfold_degenerate_sets(cogent3.get_code(1), as_indices=True)
+    # if seqs not translatable returns NotCompletedResult
+    data = dict(a="TAATTGATTAA", b="GCATAATTA")
+    seqs = cogent3.make_unaligned_seqs(data=data, moltype=DNA)
+    got = select_translatable(allow_rc=False, frame=1)(seqs)  # pylint: disable=not-callable
+    assert isinstance(got, NotCompleted)
 
-        expect = set()
-        for di in "GC", "GG", "CT", "CC", "TC", "CG", "AC", "GT":
-            codons = list(
-                map(
-                    lambda x: tuple(DNA.alphabet.to_indices(x)),
-                    [di + n for n in "ACGT"],
-                ),
-            )
-            expect.update([frozenset(codons)])
 
-        for i in range(1, 3):
-            got = get_fourfold_degenerate_sets(
-                cogent3.get_code(i),
-                alphabet=DNA.alphabet,
-                as_indices=True,
-            )
-            self.assertEqual(got, expect)
+def test_translate_frames():
+    """returns translated sequences"""
+    seq = DNA.make_seq(seq="ATGCTGACATAAA", name="fake1")
+    tr = translate_frames(seq)
+    assert tr == ["MLT*", "C*HK", "ADI"]
+    # with the bacterial nuclear and plant plastid code
+    tr = translate_frames(seq, gc="Euplotid Nuclear")
+    assert tr == ["MLT*", "CCHK", "ADI"]
+
+
+def test_translate_seqcoll():
+    """correctly translate a sequence collection"""
+    seqs = dict(a="ATGAGG", b="ATGTAA")
+    seqs = cogent3.make_unaligned_seqs(seqs, moltype="dna")
+    # trim terminal stops
+    translater = translate_seqs()
+    aa = translater(seqs)  # pylint: disable=not-callable
+    assert aa.to_dict() == dict(a="MR", b="M")
+    assert aa.moltype.label == "protein"
+    # don't trim terminal stops, returns NotCompleted
+    translater = translate_seqs(trim_terminal_stop=False)
+    aa = translater(seqs)  # pylint: disable=not-callable
+    assert isinstance(aa, NotCompleted)
+
+
+def test_translate_aln():
+    """correctly translates alignments"""
+    data = dict(a="ATGAGGCCC", b="ATGTTT---")
+    # an array alignment
+    aln = cogent3.make_aligned_seqs(data, moltype="dna")
+    translater = translate_seqs()
+    aa = translater(aln)  # pylint: disable=not-callable
+    assert aa.to_dict() == dict(a="MRP", b="MF-")
+    assert aa.moltype.label == "protein"
+    assert isinstance(aa, type(aln))
+    # Alignment
+    aln = aln.to_type(array_align=True)
+    aa = translater(aln)  # pylint: disable=not-callable
+    assert aa.to_dict() == dict(a="MRP", b="MF-")
+    assert aa.moltype.label == "protein"
+    assert isinstance(aa, type(aln))
+
+
+@pytest.mark.parametrize("code_id", range(1, 3))
+def test_get_fourfold_degenerate_sets(code_id):
+    """correctly identify 4-fold degenerate codons"""
+    # using straight characters
+    expect = set()
+    for di in "GC", "GG", "CT", "CC", "TC", "CG", "AC", "GT":
+        expect.update([frozenset(di + n for n in "ACGT")])
+
+    got = get_fourfold_degenerate_sets(cogent3.get_code(code_id), as_indices=False)
+    assert got == expect
+
+    with pytest.raises(AssertionError):
+        # as_indices requires an alphabet
+        get_fourfold_degenerate_sets(cogent3.get_code(1), as_indices=True)
+
+    expect = set()
+    for di in "GC", "GG", "CT", "CC", "TC", "CG", "AC", "GT":
+        codons = [tuple(DNA.alphabet.to_indices(x)) for x in [di + n for n in "ACGT"]]
+        expect.update([frozenset(codons)])
+
+    got = get_fourfold_degenerate_sets(
+        cogent3.get_code(code_id),
+        alphabet=DNA.alphabet,
+        as_indices=True,
+    )
+    assert got == expect
 
 
 @pytest.fixture(params=(None, 0, 1, 2))
@@ -186,7 +178,7 @@ def test_select_translatable_with_frame_no_stop(framed_seqs):
     assert got.to_dict() == expect
 
 
-def test_select_trabnslatable_exclude_internal_stop():
+def test_select_translatable_exclude_internal_stop():
     aln = cogent3.make_unaligned_seqs(
         {
             "internal_stop": "AATTAAATGTGA",
@@ -200,7 +192,7 @@ def test_select_trabnslatable_exclude_internal_stop():
     assert result.to_dict() == expect
 
 
-@pytest.mark.parametrize("frame", (-1, 0, 4))
+@pytest.mark.parametrize("frame", [-1, 0, 4])
 def test_select_translatable_invalid_frame(frame):
     with pytest.raises(AssertionError):
         _ = select_translatable(frame=frame)

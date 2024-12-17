@@ -17,6 +17,7 @@ from typing import Any, Optional, Union
 
 import numba
 import numpy
+import typing_extensions
 
 import cogent3
 from cogent3._version import __version__
@@ -2539,6 +2540,7 @@ def make_unaligned_seqs(
     elif rvd in {0, len(seqs_data)}:
         rvd = bool(rvd)
     else:
+        # redesign: handle case of a mix of reversed and not
         rvd = False
         if annotation_db and len(annotation_db) > 0:
             warnings.warn(
@@ -6455,6 +6457,12 @@ class Alignment(SequenceCollection):
     def is_ragged(self) -> bool:
         """by definition False for an Alignment"""
         return False
+
+    def strand_symmetry(self, motif_length: int = 1):
+        """returns dict of strand symmetry test results per ungapped seq"""
+        return {
+            s.name: s.seq.strand_symmetry(motif_length=motif_length) for s in self.seqs
+        }
 
 
 @register_deserialiser(get_object_provenance(Alignment))

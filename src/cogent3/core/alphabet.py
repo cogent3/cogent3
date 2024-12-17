@@ -528,11 +528,12 @@ class Alphabet(Enumeration):
         """
         return self.__class__(tuple(motifset), moltype=self.moltype)
 
-    def with_gap_motif(self):
+    def with_gap_motif(self, **kwargs):
         """Returns an Alphabet object resembling self but including the gap.
 
         Always returns the same object.
         """
+        # kwargs is for forwards compatibility with new_type CharAlphabet
         if self.includes_gap_motif():
             return self
         if not hasattr(self, "gapped"):

@@ -8,6 +8,7 @@ from string import ascii_letters
 
 import numpy
 
+import cogent3.util.warning as c3_warn
 from cogent3.core import new_alphabet, new_sequence
 from cogent3.data.molecular_weight import DnaMW, ProteinMW, RnaMW, WeightCalculator
 from cogent3.util.deserialise import register_deserialiser
@@ -602,6 +603,11 @@ class MolType:
 
         return any(alpha == alphabet for alpha in self.iter_alphabets())
 
+    @c3_warn.deprecated_args(
+        "2025.6",
+        "no longer supported",
+        discontinued="preserve_case",
+    )
     def make_seq(
         self,
         *,

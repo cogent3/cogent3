@@ -12,6 +12,9 @@ from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.misc import get_object_provenance
 
+if typing.TYPE_CHECKING:
+    from cogent3.evolve.new_moltype import MolType
+
 StrORBytes = typing.Union[str, bytes]
 StrORArray = typing.Union[str, numpy.ndarray]
 StrORBytesORArray = typing.Union[str, bytes, numpy.ndarray]
@@ -115,9 +118,6 @@ class AlphabetABC(ABC):
     def is_valid(self, seq) -> bool: ...
 
     @abstractmethod
-    def with_gap_motif(self): ...
-
-    @abstractmethod
     def to_indices(self, seq: StrORBytesORArray) -> numpy.ndarray: ...
 
     @abstractmethod
@@ -159,7 +159,11 @@ class AlphabetABC(ABC):
 
 class MonomerAlphabetABC(ABC):
     @abstractmethod
-    def get_kmer_alphabet(self, size: int): ...
+    def get_kmer_alphabet(
+        self,
+        k: int,
+        include_gap: bool = True,
+    ) -> "KmerAlphabet": ...
 
     @abstractmethod
     def as_bytes(self) -> bytes: ...
@@ -172,6 +176,15 @@ class MonomerAlphabetABC(ABC):
         seq: numpy.ndarray,
         check_valid: bool = True,
     ) -> numpy.ndarray: ...
+
+    @abstractmethod
+    def with_gap_motif(
+        self,
+        gap_char: str = "-",
+        missing_char: str = "?",
+        include_missing: bool = False,
+        gap_as_state: bool = False,
+    ) -> typing_extensions.Self: ...
 
 
 def get_array_type(num_elements: int):
@@ -399,7 +412,13 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
     def _(self, seq: numpy.ndarray) -> str:
         return self._arr2bytes(seq).decode("utf8")
 
-    def with_gap_motif(self, gap_char="-", missing_char="?"):
+    def with_gap_motif(
+        self,
+        gap_char: str = "-",
+        missing_char: str = "?",
+        include_missing: bool = False,
+        gap_as_state: bool = False,
+    ) -> typing_extensions.Self:
         """returns new monomer alphabet with gap and missing characters added
 
         Parameters
@@ -408,14 +427,23 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
             the IUPAC gap character "-"
         missing_char
             the IUPAC missing character "?"
+        include_missing
+            if True, and self.missing_char, it is included in the new alphabet
+        gap_as_state
+            include the gap character as a state in the alphabet, drops gap_char
+            attribute in resulting KmerAlphabet
         """
         if self.gap_char and self.missing_char:
             return self
+
+        missing_char = self._missing_char or missing_char if include_missing else None
         chars = (
             tuple(self[: self._num_canonical]) + (gap_char, missing_char)
             if missing_char
-            else (gap_char,)
+            else tuple(self[: self._num_canonical]) + (gap_char,)
         )
+        if gap_as_state:
+            gap_char = None
         return self.__class__(chars, gap=gap_char, missing=missing_char)
 
     @functools.cache
@@ -429,6 +457,11 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         include_gap
             if True, and self.gap_char, we set
             KmerAlphabet.gap_char = self.gap_char * k
+
+        Notes
+        -----
+        If self.missing_char is present, it is included in the new alphabet as
+        missing_char * k
         """
         # refactor: revisit whether the include_gap argument makes sense
         if k == 1:
@@ -767,6 +800,13 @@ class KmerAlphabetABC(ABC):
     @abstractmethod
     def from_index(self, kmer_index: int) -> str: ...
 
+    @abstractmethod
+    def with_gap_motif(
+        self,
+        include_missing: bool = False,
+        **kwargs,
+    ) -> typing_extensions.Self: ...
+
 
 class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
     """k-mer alphabet represents complete non-monomer alphabets
@@ -853,6 +893,14 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
             dtype=self.dtype,
         )
         self._num_canonical = self.monomers.num_canonical**k
+
+    def __reduce__(self):
+        """support for pickling"""
+        return (
+            self.__class__,
+            (tuple(self), self.monomers, self.k, self.gap_char, self.missing_char),
+            None,
+        )
 
     @property
     def gap_char(self) -> OptStr:
@@ -952,13 +1000,19 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
             independent_kmer=independent_kmer,
         )
 
-    def with_gap_motif(self, include_missing: bool = False):
+    def with_gap_motif(
+        self,
+        include_missing: bool = False,
+        **kwargs,
+    ) -> typing_extensions.Self:
         """returns a new KmerAlphabet with the gap motif added
 
         Notes
         -----
         Adds gap state to monomers and recreates k-mer alphabet
         for self
+
+        kwargs is for compatibility with the CharAlphabet method
         """
         if self.gap_char:
             return self
@@ -1082,7 +1136,7 @@ def deserialise_kmer_alphabet(data: dict) -> KmerAlphabet:
     return KmerAlphabet.from_rich_dict(data)
 
 
-class SenseCodonAlphabet(tuple, AlphabetABC):
+class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
     """represents the sense-codons of a GeneticCode"""
 
     def __new__(
@@ -1126,6 +1180,14 @@ class SenseCodonAlphabet(tuple, AlphabetABC):
         self._motif_len = 3
         if monomers.moltype:
             _alphabet_moltype_map[self] = monomers.moltype
+
+    def __reduce__(self):
+        """support for pickling"""
+        return (
+            self.__class__,
+            (tuple(self), self.monomers, self.gap_char),
+            None,
+        )
 
     @property
     def gap_char(self) -> str:
@@ -1215,7 +1277,13 @@ class SenseCodonAlphabet(tuple, AlphabetABC):
     def _(self, seq: numpy.ndarray) -> bool:
         return seq.min() >= 0 and seq.max() < len(self)
 
-    def with_gap_motif(self):
+    def with_gap_motif(self, **kwargs) -> typing_extensions.Self:
+        """returns a new SenseCodonAlphabet with the gap motif '---' added
+
+        Notes
+        -----
+        kwargs is for compatibility with the ABC method
+        """
         if self.gap_char:
             return self
         monomers = self.monomers.with_gap_motif()

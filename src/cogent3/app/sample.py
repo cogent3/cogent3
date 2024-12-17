@@ -715,7 +715,8 @@ class min_length:
         if self._moltype and self._moltype != data.moltype:
             data = data.to_moltype(self._moltype)
 
-        if self._subtract_degen and not hasattr(data.alphabet, "non_degen"):
+        diff = len(data.moltype.ambiguities or ()) - len(data.moltype.alphabet)
+        if self._subtract_degen and (diff < 0 or diff < 3):
             raise ValueError(
                 f"{self.__class__.__name__}(subtract_degen=True) requires DNA, RNA or PROTEIN "
                 "moltype",

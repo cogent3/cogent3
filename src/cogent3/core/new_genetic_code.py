@@ -134,7 +134,8 @@ class GeneticCode:
     _translate_minus: ConverterType = dataclasses.field(init=False, default=None)
 
     def __post_init__(self, ncbi_code_sequence: str, ncbi_start_codon_map: str):
-        trinuc_alpha = self.moltype.gapped_alphabet.with_gap_motif().get_kmer_alphabet(
+        alpha = self.moltype.alphabet.with_gap_motif(include_missing=True)
+        trinuc_alpha = alpha.get_kmer_alphabet(
             k=3,
             include_gap=True,
         )
@@ -276,7 +277,18 @@ class GeneticCode:
 
         return self._translate_plus(seq.tobytes()).decode("utf8")
 
-    def sixframes(self, seq: str) -> typing.Iterable[tuple[str, int, str]]:
+    @functools.singledispatchmethod
+    def sixframes(self, seq) -> typing.Iterable[tuple[str, int, str]]:
+        """Returns the six reading frames of the genetic code.
+
+        Returns
+        -------
+        A dictionary with keys (strand, start) where strand is "+"/"-"
+        """
+        return self.sixframes(str(seq))
+
+    @sixframes.register
+    def _(self, seq: str) -> typing.Iterable[tuple[str, int, str]]:
         """Returns the six reading frames of the genetic code.
 
         Returns
@@ -309,6 +321,11 @@ class GeneticCode:
             alphabet includes the missing state as 3 * IUPAC_missing
         include_stop
             if True, this is just a kmer alphabet
+
+        Notes
+        -----
+        If include_stop, the returned alphabet includes all codons,
+        and is thus a KmerAlphabet. Otherwise its a SenseCodonAlphabet.
         """
         if include_stop:
             words = tuple(self.moltype.alphabet.get_kmer_alphabet(k=3))
@@ -355,6 +372,10 @@ class GeneticCode:
             mappings.append(f"(?:{'|'.join(codons)})")
 
         return "".join(mappings)
+
+    @property
+    def synonyms(self):
+        return self._aa_to_codon
 
 
 _mapping_cols = "ncbi_code_sequence", "ID", "name", "ncbi_start_codon_map"

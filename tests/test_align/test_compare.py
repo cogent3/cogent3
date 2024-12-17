@@ -76,7 +76,8 @@ def test_segment():
     s, e = c
     assert (s, e) == (2, 4)
     c2 = segment(4, 6)
-    assert not c.overlap(c2) and not c2.overlap(c)
+    assert not c.overlap(c2)
+    assert not c2.overlap(c)
     assert c.overlap(c)
     c3 = segment(1, 3)
     c4 = segment(3, 4)
@@ -122,9 +123,12 @@ def test_segment_adjacent():
     c2 = segment(3, 7)
     c3 = segment(4, 5)
 
-    assert c1.adjacent(c2) and c2.adjacent(c1)
-    assert not c1.adjacent(c3) and not c3.adjacent(c1)
-    assert not c2.adjacent(c3) and not c3.adjacent(c2)
+    assert c1.adjacent(c2)
+    assert c2.adjacent(c1)
+    assert not c1.adjacent(c3)
+    assert not c3.adjacent(c1)
+    assert not c2.adjacent(c3)
+    assert not c3.adjacent(c2)
 
 
 def test_segment_rc():
@@ -179,7 +183,7 @@ def test_seqkmers_1seq(smallseq):
         assert kmer.kmer != "A"
 
 
-@pytest.mark.parametrize("k,expect", [(1, 3), (2, 5), (7, 0)])
+@pytest.mark.parametrize(("k", "expect"), [(1, 3), (2, 5), (7, 0)])
 def test_seqkmers_1seq_degenerate(k, expect):
     # k-mers with degenerate characters are not stored
     seq1 = make_seq(seq="NCCGGTT", name="seq1", moltype="dna")
@@ -330,7 +334,8 @@ def test_matched_paths_rc():
     path[4].append((segment(start=6, end=14), segment(start=10, end=18)))
     xrc, yrc = path.get_coords(rc=True, length=24)
     # slope must be negative
-    assert xrc[0] < xrc[1] and yrc[0] > yrc[1]
+    assert xrc[0] < xrc[1]
+    assert yrc[0] > yrc[1]
 
 
 def test_matched_paths_min_gap():
@@ -400,7 +405,7 @@ def test_find_matched_with_small_seed():
     assert got.paths == expect.paths
 
 
-@pytest.mark.parametrize("w,t", [(4, 4), (3, 3)])
+@pytest.mark.parametrize(("w", "t"), [(4, 4), (3, 3)])
 def test_find_matched_1seq(w, t):
     s = make_seq(seq="CACACCACTGCAGTCGGATAGACC", moltype="dna", name="s1")
     expect = _brute_force(s, s, w, t)
@@ -421,14 +426,15 @@ def test_plotly_trace(aseq1, aseq2):
     trace = got.plotly_trace()
     assert isinstance(trace, dict)
     assert trace["type"] == "scatter"
-    assert len(trace["x"]) == len(trace["y"]) and len(trace["x"]) > 0
+    assert len(trace["x"]) == len(trace["y"])
+    assert len(trace["x"]) > 0
 
 
 def _construct_matches(s1, s2, window):
     return [a == b for a, b in zip(s1, s2, strict=False)][:window]
 
 
-@pytest.mark.parametrize("a,b", [(3, 5), (3, 0), (0, 4), (0, 0)])
+@pytest.mark.parametrize(("a", "b"), [(3, 5), (3, 0), (0, 4), (0, 0)])
 def test_extend_left_no_shifts(a, b):
     window, threshold = 4, 3
     # preceeding base is mismatch, so starts should be unchanged
@@ -442,13 +448,15 @@ def test_extend_left_no_shifts(a, b):
 
     # if either seq index is 0, just returns original values
     start1, start2, m = _extend_left(matches, s1, a, s2, b, 3, threshold, total)
-    assert start1 == a and start2 == b and m == expect
+    assert start1 == a
+    assert start2 == b
+    assert m == expect
 
 
 _input_data = [("TTACGTTGCA", 1), ("ATCCGTCGCA", 2), ("TCCCGTCGCA", 3)]
 
 
-@pytest.mark.parametrize("s1,diff", _input_data)
+@pytest.mark.parametrize(("s1", "diff"), _input_data)
 def test_extend_left_shifted(s1, diff):
     window, threshold = 4, 3
     #          ****

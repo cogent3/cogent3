@@ -29,6 +29,12 @@ from .typing import (
 )
 
 
+def _get_source(aln):
+    if src := getattr(aln, "source", None):
+        return src
+    return aln.info.source
+
+
 def _config_rules(param_rules, lower, upper, overwrite=False):
     """fill the bounds in `param_rules` whenever no bound defined for a parameter"""
     param_rules = deepcopy(param_rules)
@@ -391,7 +397,7 @@ class model:
         Parameters
         ----------
         aln
-            Alignment instance. aln.info.source indicates the origin of the
+            Alignment instance. aln.source indicates the origin of the
             alignment and will be propagated to the model_result so it can
             be written
         initialise
@@ -427,7 +433,7 @@ class model:
         result = model_result(
             name=self.name,
             stat=sum,
-            source=aln.info.source,
+            source=_get_source(aln),
             evaluation_limit=evaluation_limit,
         )
         if not self._split_codons:
@@ -546,7 +552,7 @@ class _ModelCollectionBase:
         try:
             null = self.null(aln)
         except ValueError:
-            msg = f"Hypothesis null had bounds error {aln.info.source}"
+            msg = f"Hypothesis null had bounds error {_get_source(aln)}"
             return NotCompleted("ERROR", self, msg, source=aln)
 
         if not null:
@@ -555,7 +561,7 @@ class _ModelCollectionBase:
         try:
             alts = list(self._initialised_alt(null, aln))
         except ValueError:
-            msg = f"Hypothesis alt had bounds error {aln.info.source}"
+            msg = f"Hypothesis alt had bounds error {_get_source(aln)}"
             return NotCompleted("ERROR", self, msg, source=aln)
 
         # check if any did not complete
@@ -576,7 +582,7 @@ class model_collection(_ModelCollectionBase):
     """Fits a collection of models."""
 
     def _make_result(self, aln: AlignedSeqsType) -> ModelCollectionResultType:
-        return model_collection_result(source=aln.info)
+        return model_collection_result(source=_get_source(aln))
 
 
 @define_app
@@ -584,7 +590,7 @@ class hypothesis(_ModelCollectionBase):
     """Specify a hypothesis through defining two models."""
 
     def _make_result(self, aln: AlignedSeqsType) -> HypothesisResultType:
-        return hypothesis_result(name_of_null=self.null.name, source=aln.info)
+        return hypothesis_result(name_of_null=self.null.name, source=_get_source(aln))
 
 
 @define_app
@@ -616,7 +622,7 @@ class bootstrap:
     T = Union[SerialisableType, BootstrapResultType]
 
     def main(self, aln: AlignedSeqsType) -> T:
-        result = bootstrap_result(aln.info.source)
+        result = bootstrap_result(_get_source(aln))
         try:
             obs = self._hyp(aln)
             if not obs:
@@ -626,7 +632,7 @@ class bootstrap:
             return result
         result.observed = obs
         self._null = obs.null
-        self._inpath = aln.info.source
+        self._inpath = _get_source(aln)
 
         map_fun = parallel.imap if self._parallel else map
         sym_results = [r for r in map_fun(self._fit_sim, range(self._num_reps)) if r]
@@ -1011,7 +1017,7 @@ class natsel_zhang:
 
         result = hypothesis_result(
             name_of_null=null_result.name,
-            source=aln.info.source,
+            source=_get_source(aln),
         )
         result.update({alt_result.name: alt_result, null_result.name: null_result})
         return result
@@ -1162,7 +1168,7 @@ class natsel_sitehet:
 
         result = hypothesis_result(
             name_of_null=null_result.name,
-            source=aln.info.source,
+            source=_get_source(aln),
         )
         result.update({alt_result.name: alt_result, null_result.name: null_result})
         return result

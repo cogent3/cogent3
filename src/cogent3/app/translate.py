@@ -1,3 +1,4 @@
+import os
 from collections import defaultdict
 from typing import Union
 
@@ -15,6 +16,10 @@ GeneticCodeTypes = (
 )
 MolTypes = str | old_moltype.MolType | new_moltype.MolType
 AlphabetTypes = old_alphabet.Alphabet | new_alphabet.CharAlphabet
+
+_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
+
+_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
 
 
 def best_frame(
@@ -51,7 +56,11 @@ def best_frame(
         or the stop codon is not at the sequence end
     """
     gc = cogent3.get_code(gc)
-    translations = gc.sixframes(seq)
+    if _NEW_TYPE:
+        translations = [tr for *_, tr in gc.sixframes(str(seq))]
+    else:
+        translations = gc.sixframes(seq)
+
     if not allow_rc:
         translations = translations[:3]
 
@@ -113,7 +122,10 @@ def translate_frames(
         moltype = cogent3.get_moltype(moltype)
         seq = moltype.make_seq(seq)
 
-    translations = gc.sixframes(seq)
+    if _NEW_TYPE:
+        translations = [tr for *_, tr in gc.sixframes(seq)]
+    else:
+        translations = gc.sixframes(seq)
     if not allow_rc:
         translations = translations[:3]
 

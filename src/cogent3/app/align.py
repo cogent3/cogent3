@@ -1,3 +1,4 @@
+import os
 import warnings
 from bisect import bisect_left
 from itertools import combinations
@@ -5,6 +6,7 @@ from typing import Union
 
 from numpy import array, isnan
 
+import cogent3
 from cogent3.align import (
     classic_align_pairwise,
     global_pairwise,
@@ -14,7 +16,6 @@ from cogent3.align import (
 from cogent3.align.progressive import tree_align
 from cogent3.app import dist
 from cogent3.app.tree import interpret_tree_arg
-from cogent3.core.alignment import Aligned, Alignment
 from cogent3.core.location import gap_coords_to_map
 from cogent3.core.moltype import get_moltype
 from cogent3.evolve.fast_distance import get_distance_calculator
@@ -24,6 +25,13 @@ from cogent3.maths.util import safe_log
 from .composable import NotCompleted, define_app
 from .tree import quick_tree, scale_branches
 from .typing import AlignedSeqsType, SerialisableType, UnalignedSeqsType
+
+_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
+
+if _NEW_TYPE:
+    from cogent3.core.new_alignment import Aligned
+else:
+    from cogent3.core.alignment import Aligned
 
 
 class _GapOffset:
@@ -301,20 +309,22 @@ def pairwise_to_multiple(pwise, ref_seq, moltype, info=None):
     ref_gaps = _gap_union(refseqs)
 
     m = gap_coords_to_map(ref_gaps, len(ref_seq))
-    aligned = [Aligned(m, ref_seq)]
+    aligned = [Aligned.from_map_and_seq(m, ref_seq)]
     for other_name, aln in pwise:
-        curr_ref = aln.named_seqs[ref_seq.name]
+        curr_ref = aln.seqs[ref_seq.name] if _NEW_TYPE else aln.named_seqs[ref_seq.name]
         curr_ref_gaps = dict(curr_ref.map.get_gap_coordinates())
-        other_seq = aln.named_seqs[other_name]
+        other_seq = aln.seqs[other_name] if _NEW_TYPE else aln.named_seqs[other_name]
         other_gaps = dict(other_seq.map.get_gap_coordinates())
         diff_gaps = _combined_refseq_gaps(curr_ref_gaps, ref_gaps)
-        if inject := _gaps_for_injection(other_gaps, diff_gaps, len(other_seq.data)):
+        # difference between new_type and old type Aligned data attributes
+        parent_len = len(other_seq.seq) if _NEW_TYPE else len(other_seq.data)
+        if inject := _gaps_for_injection(other_gaps, diff_gaps, parent_len):
             m = gap_coords_to_map(inject, len(other_seq.data))
-            other_seq = Aligned(m, other_seq.data)
+            other_seq = Aligned.from_map_and_aligned_data_view(m, other_seq.data)
 
         aligned.append(other_seq)
     # default to ArrayAlign
-    return Alignment(aligned, moltype=moltype, info=info).to_type(
+    return cogent3.make_aligned_seqs(aligned, moltype=moltype, info=info).to_type(
         array_align=True,
         moltype=moltype,
     )
@@ -739,7 +749,8 @@ class ic_score:
 
         >>> from cogent3 import make_aligned_seqs, get_app
         >>> aln = make_aligned_seqs(
-        ...     {"s1": "AATTGA", "s2": "AGGTCC", "s3": "AGGATG", "s4": "AGGCGT"}
+        ...     {"s1": "AATTGA", "s2": "AGGTCC", "s3": "AGGATG", "s4": "AGGCGT"},
+        ...     moltype="dna",
         ... )
         >>> app = get_app("ic_score")
         >>> result = app(aln)
@@ -904,7 +915,9 @@ class sp_score:
         alignment score with ``calc="pdist"`` and no gap penalties.
 
         >>> from cogent3 import make_aligned_seqs, get_app
-        >>> aln = make_aligned_seqs({"s1": "AAGAA-A", "s2": "-ATAATG", "s3": "C-TGG-G"})
+        >>> aln = make_aligned_seqs(
+        ...     {"s1": "AAGAA-A", "s2": "-ATAATG", "s3": "C-TGG-G"}, moltype="dna"
+        ... )
         >>> app = get_app("sp_score", calc="pdist", gap_extend=0, gap_insert=0)
         >>> result = app(aln)
         >>> print(result)

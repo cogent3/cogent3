@@ -1374,6 +1374,11 @@ class MolType:
 
         return any(alpha == alphabet for alpha in self.alphabets.iter_alphabets())
 
+    @property
+    def is_nucleic(self) -> bool:  # pragma: no cover
+        """for forward compatibility"""
+        return bool(self.ambiguities) and len(tuple(self)) == 4
+
 
 @functools.singledispatch
 def _convert_to_rna(seq: str) -> str:

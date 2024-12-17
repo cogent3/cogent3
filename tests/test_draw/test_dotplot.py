@@ -63,8 +63,8 @@ class TestUtilFunctions(TestCase):
         seqs = make_unaligned_seqs(
             {"a": "-TGATGTAAGGTAGTT", "b": "CTGG---AAG---GGT"},
             moltype="text",
-        )
-        with self.assertRaises(TypeError):
+        )  # new seqs raise AttributeError
+        with self.assertRaises((TypeError, AttributeError)):
             Dotplot(*seqs.seqs, is_aligned=True, window=5, rc=True)
 
         seqs = make_unaligned_seqs(
