@@ -854,6 +854,14 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         )
         self._num_canonical = self.monomers.num_canonical**k
 
+    def __reduce__(self):
+        """support for pickling"""
+        return (
+            self.__class__,
+            (tuple(self), self.monomers, self.k, self.gap_char, self.missing_char),
+            None,
+        )
+
     @property
     def gap_char(self) -> OptStr:
         return self._gap_char
@@ -1126,6 +1134,14 @@ class SenseCodonAlphabet(tuple, AlphabetABC):
         self._motif_len = 3
         if monomers.moltype:
             _alphabet_moltype_map[self] = monomers.moltype
+
+    def __reduce__(self):
+        """support for pickling"""
+        return (
+            self.__class__,
+            (tuple(self), self.monomers, self.gap_char),
+            None,
+        )
 
     @property
     def gap_char(self) -> str:
