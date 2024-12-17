@@ -915,8 +915,9 @@ class sp_score:
         alignment score with ``calc="pdist"`` and no gap penalties.
 
         >>> from cogent3 import make_aligned_seqs, get_app
-        >>> aln = make_aligned_seqs({"s1": "AAGAA-A", "s2": "-ATAATG", "s3": "C-TGG-G"}
-        ... moltype="dna")
+        >>> aln = make_aligned_seqs(
+        ...     {"s1": "AAGAA-A", "s2": "-ATAATG", "s3": "C-TGG-G"}, moltype="dna"
+        ... )
         >>> app = get_app("sp_score", calc="pdist", gap_extend=0, gap_insert=0)
         >>> result = app(aln)
         >>> print(result)
