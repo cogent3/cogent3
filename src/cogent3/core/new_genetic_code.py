@@ -134,7 +134,8 @@ class GeneticCode:
     _translate_minus: ConverterType = dataclasses.field(init=False, default=None)
 
     def __post_init__(self, ncbi_code_sequence: str, ncbi_start_codon_map: str):
-        trinuc_alpha = self.moltype.gapped_alphabet.with_gap_motif().get_kmer_alphabet(
+        alpha = self.moltype.alphabet.with_gap_motif(include_missing=True)
+        trinuc_alpha = alpha.get_kmer_alphabet(
             k=3,
             include_gap=True,
         )

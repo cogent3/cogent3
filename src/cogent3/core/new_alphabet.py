@@ -166,7 +166,11 @@ class AlphabetABC(ABC):
 
 class MonomerAlphabetABC(ABC):
     @abstractmethod
-    def get_kmer_alphabet(self, size: int): ...
+    def get_kmer_alphabet(
+        self,
+        k: int,
+        include_gap: bool = True,
+    ) -> "KmerAlphabet": ...
 
     @abstractmethod
     def as_bytes(self) -> bytes: ...
