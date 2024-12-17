@@ -276,7 +276,18 @@ class GeneticCode:
 
         return self._translate_plus(seq.tobytes()).decode("utf8")
 
-    def sixframes(self, seq: str) -> typing.Iterable[tuple[str, int, str]]:
+    @functools.singledispatchmethod
+    def sixframes(self, seq) -> typing.Iterable[tuple[str, int, str]]:
+        """Returns the six reading frames of the genetic code.
+
+        Returns
+        -------
+        A dictionary with keys (strand, start) where strand is "+"/"-"
+        """
+        return self.sixframes(str(seq))
+
+    @sixframes.register
+    def _(self, seq: str) -> typing.Iterable[tuple[str, int, str]]:
         """Returns the six reading frames of the genetic code.
 
         Returns
@@ -309,6 +320,11 @@ class GeneticCode:
             alphabet includes the missing state as 3 * IUPAC_missing
         include_stop
             if True, this is just a kmer alphabet
+
+        Notes
+        -----
+        If include_stop, the returned alphabet includes all codons,
+        and is thus a KmerAlphabet. Otherwise its a SenseCodonAlphabet.
         """
         if include_stop:
             words = tuple(self.moltype.alphabet.get_kmer_alphabet(k=3))

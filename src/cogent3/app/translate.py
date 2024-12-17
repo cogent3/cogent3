@@ -19,6 +19,8 @@ AlphabetTypes = old_alphabet.Alphabet | new_alphabet.CharAlphabet
 
 _NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
 
+_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
+
 
 def best_frame(
     seq: SeqsCollectionType,
@@ -120,7 +122,10 @@ def translate_frames(
         moltype = cogent3.get_moltype(moltype)
         seq = moltype.make_seq(seq)
 
-    translations = gc.sixframes(seq)
+    if _NEW_TYPE:
+        translations = [tr for *_, tr in gc.sixframes(seq)]
+    else:
+        translations = gc.sixframes(seq)
     if not allow_rc:
         translations = translations[:3]
 
