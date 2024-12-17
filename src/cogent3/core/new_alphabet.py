@@ -118,13 +118,6 @@ class AlphabetABC(ABC):
     def is_valid(self, seq) -> bool: ...
 
     @abstractmethod
-    def with_gap_motif(
-        self,
-        include_missing: bool = False,
-        gap_as_state: bool = False,
-    ) -> typing_extensions.Self: ...
-
-    @abstractmethod
     def to_indices(self, seq: StrORBytesORArray) -> numpy.ndarray: ...
 
     @abstractmethod
@@ -183,6 +176,15 @@ class MonomerAlphabetABC(ABC):
         seq: numpy.ndarray,
         check_valid: bool = True,
     ) -> numpy.ndarray: ...
+
+    @abstractmethod
+    def with_gap_motif(
+        self,
+        gap_char: str = "-",
+        missing_char: str = "?",
+        include_missing: bool = False,
+        gap_as_state: bool = False,
+    ) -> typing_extensions.Self: ...
 
 
 def get_array_type(num_elements: int):
@@ -797,6 +799,13 @@ class KmerAlphabetABC(ABC):
 
     @abstractmethod
     def from_index(self, kmer_index: int) -> str: ...
+
+    @abstractmethod
+    def with_gap_motif(
+        self,
+        include_missing: bool = False,
+        **kwargs,
+    ) -> typing_extensions.Self: ...
 
 
 class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):

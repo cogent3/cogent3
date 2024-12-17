@@ -102,7 +102,7 @@ def refalignment_seqs():
 def test_align_to_ref(refalignment_seqs):
     """correctly aligns to a reference"""
     aligner = align_app.align_to_ref(ref_seq="Human")
-    aln = aligner(refalignment_seqs)
+    aln = aligner(refalignment_seqs)  # pylint: disable=not-callable
     expect = {
         "Bandicoot": "---NACTCATTAATGCTTGAAACCAGCAGTTTATTGTCCAAC",
         "FlyingFox": "GCCAGCTCTTTACAGCATGAGAACAG---TTTATTATACACT",
@@ -129,7 +129,7 @@ def test_align_to_ref_generic_moltype(test_moltype):
 def test_align_to_ref_result_has_moltype(refalignment_seqs):
     """aligned object has correct moltype"""
     aligner = align_app.align_to_ref(moltype="dna")
-    got = aligner(refalignment_seqs)
+    got = aligner(refalignment_seqs)  # pylint: disable=not-callable
     assert got.moltype.label == "dna"
 
 
@@ -141,7 +141,7 @@ def test_merged_gaps(refalignment_seqs):
     assert _merged_gaps(a, {}) is a
     assert _merged_gaps({}, b) is b
     got = _merged_gaps(a, b)
-    assert got == [(2, 6), (4, 9), (8, 5)]
+    assert got == dict([(2, 6), (4, 9), (8, 5)])
 
 
 def test_aln_to_ref_known(refalignment_seqs):
@@ -193,7 +193,6 @@ def test_gap_union(refalignment_seqs):
 def test_gap_difference(refalignment_seqs):
     """correctly identifies the difference in gaps"""
     seq = DNA.make_seq(seq="AACCCGTT")
-    {0: 3, 2: 1, 5: 3, 6: 3}
     gap_sets = [
         {5: 1, 6: 3},
         {2: 1, 5: 3},
@@ -215,7 +214,7 @@ def test_gap_difference(refalignment_seqs):
         assert got_overlap == dict(overlap)
 
 
-def test_merged_gaps(refalignment_seqs):
+def test_merged_gaps2(refalignment_seqs):
     """correctly handles gap values"""
     a_gaps = {0: 2}
     b_gaps = {2: 2}
@@ -377,17 +376,17 @@ def test_progressive_align_protein_moltype():
     seqs = seqs.degap()
     seqs = seqs.take_seqs(["Rat", "Cow", "Human", "Mouse", "Whale"])
     aligner = align_app.progressive_align(model="WG01")
-    got = aligner(seqs)
+    got = aligner(seqs)  # pylint: disable=not-callable
     assert not isinstance(got, NotCompleted)
     aligner = align_app.progressive_align(model="protein")
-    got = aligner(seqs)
+    got = aligner(seqs)  # pylint: disable=not-callable
     assert not isinstance(got, NotCompleted)
 
 
 def test_progressive_align_nuc(progressive_seqs):
     """progressive alignment with nuc models"""
     aligner = align_app.progressive_align(model="TN93", distance="TN93")
-    aln = aligner(progressive_seqs)
+    aln = aligner(progressive_seqs)  # pylint: disable=not-callable
     # TODO: revert to isinstance when new_type is merged
     assert aln.__class__.__name__.endswith("Alignment")
     assert len(aln) == 42
@@ -410,7 +409,7 @@ def test_progressive_fails():
         moltype="dna",
     )
     aligner = align_app.progressive_align(model="codon")
-    got = aligner(seqs)
+    got = aligner(seqs)  # pylint: disable=not-callable
     assert isinstance(got, NotCompleted)
 
 
@@ -418,7 +417,7 @@ def test_progressive_fails():
 def test_progressive_align_nuc_model(progressive_seqs, model):
     """progressive alignment with all nuc models"""
     aligner = align_app.progressive_align(model=model)
-    aln = aligner(progressive_seqs)
+    aln = aligner(progressive_seqs)  # pylint: disable=not-callable
     assert not isinstance(aln, NotCompleted)
 
 
@@ -426,7 +425,7 @@ def test_progressive_align_nuc_model(progressive_seqs, model):
 def test_progressive_align_codon_model(progressive_seqs, model):
     """progressive alignment with all codon models"""
     aligner = align_app.progressive_align(model=model)
-    aln = aligner(progressive_seqs)
+    aln = aligner(progressive_seqs)  # pylint: disable=not-callable
     assert not isinstance(aln, NotCompleted)
 
 
@@ -434,7 +433,7 @@ def test_progressive_align_guide_tree(progressive_seqs, progressive_treestring):
     """progressive alignment works with guide tree"""
     tree = make_tree(treestring=progressive_treestring)
     aligner = align_app.progressive_align(model="TN93", guide_tree=tree)
-    aln = aligner(progressive_seqs)
+    aln = aligner(progressive_seqs)  # pylint: disable=not-callable
     assert not isinstance(aln, NotCompleted)
     assert len(aln) == 42
     assert aln.moltype == aligner._moltype
@@ -444,7 +443,7 @@ def test_progressive_align_model_guide_tree(progressive_seqs, progressive_treest
     """progressive alignment works with model guide tree"""
     tree = make_tree(treestring=progressive_treestring)
     aligner = align_app.progressive_align(model="TN93", guide_tree=tree)
-    aln = aligner(progressive_seqs)
+    aln = aligner(progressive_seqs)  # pylint: disable=not-callable
     assert not isinstance(aln, NotCompleted)
     assert len(aln) == 42
     assert aln.moltype == aligner._moltype
@@ -505,7 +504,7 @@ def test_information_content_score(array_align):
         moltype="dna",
         array_align=array_align,
     )
-    got = app_equifreq(aln)
+    got = app_equifreq(aln)  # pylint: disable=not-callable
     expect = log2(4) + (3 / 2) * log2(3) + (1 / 2) * log2(2) + (1 / 2) * log2(2)
     assert_allclose(got, expect)
     # should be the same with the default moltype too
@@ -514,7 +513,7 @@ def test_information_content_score(array_align):
         moltype="text",
         array_align=array_align,
     )
-    got = app_equifreq(aln)
+    got = app_equifreq(aln)  # pylint: disable=not-callable
     assert_allclose(got, expect)
 
     aln = make_aligned_seqs(
@@ -522,7 +521,7 @@ def test_information_content_score(array_align):
         moltype="dna",
         array_align=array_align,
     )
-    got = app_not_equifreq(aln)
+    got = app_not_equifreq(aln)  # pylint: disable=not-callable
     expect = (
         2 * log2(1 / 0.4)
         + log2(1 / (4 * 0.4))
@@ -537,12 +536,12 @@ def test_information_content_score(array_align):
         moltype="dna",
         array_align=array_align,
     )
-    got = app_equifreq(aln)
+    got = app_equifreq(aln)  # pylint: disable=not-callable
     assert_allclose(got, 0.0)
 
     # 2 Just one sequence - alignment_quality returns 0.0
     aln = make_aligned_seqs(data=["AAAC"], moltype="dna", array_align=array_align)
-    got = app_equifreq(aln)
+    got = app_equifreq(aln)  # pylint: disable=not-callable
     assert_allclose(got, 0.0)
 
     # 3.1 Two seqs, one all gaps. (equifreq_mprobs=True)
@@ -551,7 +550,7 @@ def test_information_content_score(array_align):
         moltype="dna",
         array_align=array_align,
     )
-    got = app_equifreq(aln)
+    got = app_equifreq(aln)  # pylint: disable=not-callable
     assert_allclose(got, 1.1699250014423124)
 
     # 3.2 Two seqs, one all gaps. (equifreq_mprobs=False)
@@ -560,7 +559,7 @@ def test_information_content_score(array_align):
         moltype="dna",
         array_align=array_align,
     )
-    got = app_not_equifreq(aln)
+    got = app_not_equifreq(aln)  # pylint: disable=not-callable
     assert_allclose(got, -2)
 
 
@@ -578,7 +577,7 @@ def seqs():
 
 def test_cogent3_score(aln):
     get_score = get_app("cogent3_score")
-    score = get_score(aln)
+    score = get_score(aln)  # pylint: disable=not-callable
     assert score < -100
 
 
@@ -589,7 +588,7 @@ def test_cogent3_score_missing(aln, del_all_params):
         aln.info.pop("align_params")
     else:
         aln.info["align_params"].pop("lnL")
-    score = get_score(aln)
+    score = get_score(aln)  # pylint: disable=not-callable
     assert isinstance(score, NotCompleted)
 
 
@@ -646,7 +645,7 @@ def test_progressive_align_one_seq(seqs):
     will use a quick alignment to build the tree"""
     aligner = align_app.progressive_align(model="TN93", approx_dists=True)
     seqs = seqs.take_seqs(seqs.names[0])
-    got = aligner(seqs)
+    got = aligner(seqs)  # pylint: disable=not-callable
     assert isinstance(got, NotCompleted)
 
 
@@ -654,7 +653,7 @@ def test_progressive_align_tree_from_reference(seqs):
     """progressive alignment with no provided tree and approx_dists=False
     will use a quick alignment to build the tree"""
     aligner = align_app.progressive_align(model="TN93", approx_dists=False)
-    aln = aligner(seqs)
+    aln = aligner(seqs)  # pylint: disable=not-callable
     # TODO: revert to isinstance when new_type is merged
     assert aln.__class__.__name__.endswith("Alignment")
     assert len(aln) == 42
@@ -665,7 +664,7 @@ def test_progressive_align_tree_from_approx_dist(seqs):
     """progressive alignment with no provided tree and approx_dists=True
     will use an approximated distance measure to build the tree"""
     aligner = align_app.progressive_align(model="TN93", approx_dists=True)
-    aln = aligner(seqs)
+    aln = aligner(seqs)  # pylint: disable=not-callable
     # TODO: revert to isinstance when new_type is merged
     assert aln.__class__.__name__.endswith("Alignment")
     assert len(aln) == 42
@@ -675,7 +674,7 @@ def test_progressive_align_tree_from_approx_dist(seqs):
 def test_progressive_align_iters(seqs):
     """progressive alignment works with iters>1"""
     aligner = align_app.progressive_align(model="TN93")
-    aln = aligner(seqs)
+    aln = aligner(seqs)  # pylint: disable=not-callable
     # TODO: revert to isinstance when new_type is merged
     assert aln.__class__.__name__.endswith("Alignment")
     assert len(aln) == 42
@@ -688,7 +687,7 @@ def test_smith_waterman_matches_local_pairwise(seqs):
         data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot")],
         moltype="dna",
     )
-    got = aligner(coll)
+    got = aligner(coll)  # pylint: disable=not-callable
     s = make_dna_scoring_dict(10, -1, -8)
     insertion = 20
     extension = 2
@@ -709,7 +708,7 @@ def test_smith_waterman_score(seqs):
         data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot")],
         moltype="dna",
     )
-    aln = aligner(coll)
+    aln = aligner(coll)  # pylint: disable=not-callable
     got = aln.info["align_params"]["sw_score"]
     s = make_dna_scoring_dict(10, -1, -8)
     insertion = 20
@@ -744,7 +743,7 @@ def test_smith_waterman_no_moltype(seqs):
         data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot")],
         moltype="dna",
     )
-    aln = aligner(coll)
+    aln = aligner(coll)  # pylint: disable=not-callable
     assert aln.moltype.label == "dna"
 
 
@@ -759,7 +758,7 @@ def test_smith_waterman_wrong_moltype(moltype_1, moltype_2):
         data={"Human": "AUUCGAUGG", "Bandicoot": "AUUGCCCGAUGG"},
         moltype=moltype_2,
     )
-    aln = aligner(coll)
+    aln = aligner(coll)  # pylint: disable=not-callable
     assert aln.moltype.label == moltype_1
 
 
@@ -770,11 +769,11 @@ def test_smith_waterman_raises(seqs):
         data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot"), seqs.get_seq("Rhesus")],
         moltype="dna",
     )
-    aln = aligner(coll)
+    aln = aligner(coll)  # pylint: disable=not-callable
     assert isinstance(aln, NotCompleted)
 
     coll = make_unaligned_seqs(data=[seqs.get_seq("Human")], moltype="dna")
-    aln = aligner(coll)
+    aln = aligner(coll)  # pylint: disable=not-callable
     assert isinstance(aln, NotCompleted)
 
 
@@ -799,7 +798,7 @@ def test_codon_incomplete(DATA_DIR):
     aln = load_aligned_seqs(DATA_DIR / "brca1.fasta", moltype="dna")
     seqs = aln.take_seqs(names)[2700:3000].degap()
     aligner = align_app.progressive_align("codon")
-    aln = aligner(seqs)
+    aln = aligner(seqs)  # pylint: disable=not-callable
     assert aln  # will fail if aln is a NotCompleted instance
     # now make sure the resulting ungapped sequences are modulo 3
     seqs = aln.degap().to_dict().values()

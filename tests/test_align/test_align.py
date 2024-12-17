@@ -181,7 +181,6 @@ def _test_aln_hirschberg(seqs, **kw):
         result = _test_aln_standard(seqs, **kw)
     finally:
         cogent3.align.pairwise.HIRSCHBERG_LIMIT = tmp
-    return result
 
 
 @pytest.fixture(params=[_test_aln_standard, _test_aln_hirschberg])
@@ -202,7 +201,7 @@ def test_progessive_model_name(_test_aln):
     _test_aln({"A": "TACAGTA", "B": "TAC-GTC", "C": "TA---TA", "D": "TAC-GTC"})
 
 
-def test_progressive_est_tree(_test_aln):
+def test_progressive_est_tree():
     """exercise progressive alignment without a guide tree"""
     seqs = make_unaligned_seqs(
         data={
@@ -241,7 +240,7 @@ def test_progressive_est_tree(_test_aln):
     assert aln.to_dict() == expect
 
 
-def test_align_info(_test_aln):
+def test_align_info():
     """alignment info object has parameter values"""
     aln = make_aln(
         {"A": "GCCTCGG", "B": "GCCTCGG", "C": "GCCTCGGAAACGT", "D": "AAACGT"},
@@ -292,7 +291,7 @@ def test_difficult_end_gaps(_test_aln):
     )
 
 
-def test_tree_align_handles_zero_lengths(_test_aln):
+def test_tree_align_handles_zero_lengths():
     seqs = make_unaligned_seqs(
         data={
             "A": "TTAATTTTAGTAGTGCTATCCCC",

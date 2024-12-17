@@ -602,24 +602,24 @@ def test_omit_gapped():
     data = [("a", "ACGA-GA-CG"), ("b", "GATGATG-AT")]
     aln = cogent3.make_aligned_seqs(data=data, moltype=DNA)
     nogaps = sample.omit_gap_pos(moltype="dna", allowed_frac=0)  # default
-    got = nogaps(aln)
+    got = nogaps(aln)  # pylint: disable=not-callable
     # not doing isinstance during transition to new_type
     assert got.__class__.__name__.endswith("Alignment")
     expect = dict(a="ACGAGACG", b="GATGTGAT")
     assert got.to_dict() == expect
     # standard alignment
     aln = cogent3.make_aligned_seqs(data=data, array_align=False, moltype=DNA)
-    got = nogaps(aln)
+    got = nogaps(aln)  # pylint: disable=not-callable
     assert got.__class__.__name__.endswith("Alignment")
     assert got.to_dict() == expect
     # non-exclusive gaps
     not_all_gaps = sample.omit_gap_pos(moltype="dna")  # default
     expect = dict(a="ACGA-GACG", b="GATGATGAT")
     aln = cogent3.make_aligned_seqs(data=data, moltype=DNA)
-    got = not_all_gaps(aln)
+    got = not_all_gaps(aln)  # pylint: disable=not-callable
     assert got.to_dict() == expect
     aln = cogent3.make_aligned_seqs(data=data, array_align=False, moltype=DNA)
-    got = not_all_gaps(aln)
+    got = not_all_gaps(aln)  # pylint: disable=not-callable
     assert got.to_dict() == expect
     # with motif length
     not_all_gaps = sample.omit_gap_pos(
@@ -629,7 +629,7 @@ def test_omit_gapped():
     )
     aln = cogent3.make_aligned_seqs(data=data, moltype=DNA)
     expect = dict(a="ACGACG", b="GATGAT")
-    got = not_all_gaps(aln)
+    got = not_all_gaps(aln)  # pylint: disable=not-callable
     assert got.to_dict() == expect
 
     # no ungapped columns returns NotCompleted
@@ -637,7 +637,7 @@ def test_omit_gapped():
         data=[("a", "-C-A-G-C-"), ("b", "G-T-A-G-T")],
         moltype=DNA,
     )
-    got = nogaps(aln)
+    got = nogaps(aln)  # pylint: disable=not-callable
     assert isinstance(got, composable.NotCompleted)
 
 
@@ -650,17 +650,17 @@ def test_minlength():
 
     # if using subtract_degen, fails if incorect moltype
     ml = sample.min_length(9, subtract_degen=True)
-    got = ml(aln)
+    got = ml(aln)  # pylint: disable=not-callable
     assert isinstance(got, composable.NotCompleted)
     assert got.type == "ERROR"
 
     # but works if subtract_degen is False
     ml = sample.min_length(9, subtract_degen=False)
-    aln = ml(aln)
+    aln = ml(aln)  # pylint: disable=not-callable
     assert len(aln) == 12
     # or if moltype provided
     ml = sample.min_length(9, subtract_degen=True, moltype="dna")
-    aln = ml(aln)
+    aln = ml(aln)  # pylint: disable=not-callable
     assert len(aln) == 12
 
     alns = [
@@ -674,13 +674,13 @@ def test_minlength():
         ),
     ]
     ml = sample.min_length(9)
-    got = [aln.to_dict() for aln in map(ml, alns) if aln]
+    got = [aln.to_dict() for aln in map(ml, alns) if aln]  # pylint: disable=not-callable
     expected = [dict((("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")))]
     assert got == expected
 
     # returns NotCompletedResult if nothing satisifies
-    got = ml(alns[1])
-    assert type(got) == sample.NotCompleted
+    got = ml(alns[1])  # pylint: disable=not-callable
+    assert isinstance(got, sample.NotCompleted)
 
     alns = [
         cogent3.make_unaligned_seqs(
@@ -689,11 +689,11 @@ def test_minlength():
         ),
     ]
     ml = sample.min_length(6)
-    got = [aln.to_dict() for aln in map(ml, alns) if aln]
+    got = [aln.to_dict() for aln in map(ml, alns) if aln]  # pylint: disable=not-callable
     expected = [dict((("a", "GGAAGCGT"), ("b", "GCTTNGT")))]
     assert got == expected
 
     ml = sample.min_length(7)
-    got = [aln.to_dict() for aln in map(ml, alns) if aln]
+    got = [aln.to_dict() for aln in map(ml, alns) if aln]  # pylint: disable=not-callable
     expected = []
     assert got == expected
