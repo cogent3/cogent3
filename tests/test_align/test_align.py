@@ -178,7 +178,7 @@ def _test_aln_hirschberg(seqs, **kw):
     tmp = cogent3.align.pairwise.HIRSCHBERG_LIMIT
     try:
         cogent3.align.pairwise.HIRSCHBERG_LIMIT = 100
-        result = _test_aln_standard(seqs, **kw)
+        _test_aln_standard(seqs, **kw)
     finally:
         cogent3.align.pairwise.HIRSCHBERG_LIMIT = tmp
 

@@ -562,7 +562,7 @@ def test_filter_degen():
         moltype=DNA,
     )
     degen = sample.omit_degenerates(moltype="dna")
-    got = degen(aln)
+    got = degen(aln)  # pylint: disable=not-callable
     assert got.to_dict() == {"a": "ACGAGAG", "b": "GATGTGT"}
     # not doing isinstance during transition to new_type
     assert got.__class__.__name__.endswith("Alignment")
