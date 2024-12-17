@@ -2539,6 +2539,7 @@ def make_unaligned_seqs(
     elif rvd in {0, len(seqs_data)}:
         rvd = bool(rvd)
     else:
+        # redesign: handle case of a mix of reversed and not
         rvd = False
         if annotation_db and len(annotation_db) > 0:
             warnings.warn(

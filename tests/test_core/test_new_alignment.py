@@ -5566,3 +5566,20 @@ def test_source_propagates(mk_cls, DATA_DIR):
     assert coll.source == str(fn)
     subcoll = coll.take_seqs(["Human", "Chimpanzee"])
     assert subcoll.source == str(fn)
+
+
+@pytest.mark.xfail(
+    reasone="seq collection backends currently don't support mixed plus/minus strand",
+)
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_make_with_mixed_rc(mk_cls, dna_moltype):
+    raw_seq = "AATATAAATGCC"
+    expect = dna_moltype.rc(raw_seq)
+    a = dna_moltype.make_seq(seq=raw_seq, name="a")
+    rc = dna_moltype.make_seq(seq=raw_seq, name="rc").rc()
+    seqs = mk_cls({"a": a, "rc": rc}, moltype=dna_moltype)
+    assert str(seqs.seqs["rc"]) == expect
+    assert str(seqs.seqs["a"]) == raw_seq
