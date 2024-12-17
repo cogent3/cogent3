@@ -6457,6 +6457,12 @@ class Alignment(SequenceCollection):
         """by definition False for an Alignment"""
         return False
 
+    def strand_symmetry(self, motif_length: int = 1):
+        """returns dict of strand symmetry test results per ungapped seq"""
+        return {
+            s.name: s.seq.strand_symmetry(motif_length=motif_length) for s in self.seqs
+        }
+
 
 @register_deserialiser(get_object_provenance(Alignment))
 def deserialise_alignment(data: dict[str, str | dict[str, str]]) -> Alignment:

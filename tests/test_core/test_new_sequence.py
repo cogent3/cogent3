@@ -847,9 +847,6 @@ def test_count_ambiguous(data, expect):
 
 def test_strand_symmetry():
     """correctly compute test of strand symmetry"""
-    from cogent3 import get_moltype
-    from cogent3.core.alignment import Aligned
-
     seq = new_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG")
     ssym = seq.strand_symmetry(motif_length=1)
     assert numpy.allclose(ssym.observed.array, [[7, 5], [7, 9]])
@@ -860,16 +857,8 @@ def test_strand_symmetry():
     ssym = seq.strand_symmetry(motif_length=1)
     assert numpy.allclose(ssym.observed.array, [[7, 5], [7, 9]])
 
-    # Aligned
-    seq = new_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG")
-    m, s = seq.parse_out_gaps()
-    seq = Aligned(m, s)
-    ssym = seq.strand_symmetry(motif_length=1)
-    assert numpy.allclose(ssym.observed.array, [[7, 5], [7, 9]])
-
     with pytest.raises(TypeError):
-        text = get_moltype("text")
-        m, s = text.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG").parse_out_gaps()
+        s = seq.to_moltype("text")
         s.strand_symmetry(motif_length=1)
 
     # with motif_length=2
