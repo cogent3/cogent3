@@ -28,7 +28,7 @@ jobs:
         run: "nox -db uv -s test-${{ matrix.python-version }}"
 
   docbuild:
-    name: "Build docs"
+    name: "Test the docs"
     runs-on: ubuntu-latest
     steps:
       - uses: "actions/checkout@v4"
@@ -44,10 +44,8 @@ jobs:
           pip install --upgrade pip uv
           python -m uv pip install ".[doc]"
 
-      - name: "making docs"
-        run: |
-          cd doc
-          make html
+      - name: "test the docs code"
+        run: "nox -db uv -s testdocs-3.12"
 
   build:
     name: Build wheel and sdist
