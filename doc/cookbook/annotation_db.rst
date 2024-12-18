@@ -174,7 +174,7 @@ For example, the adhesin protein of *M. genitalium* is organised in an operon be
     :raises:
 
     operon_cds = list(
-        gff_db.get_features_matching(start=220600, end=229067, biotype="CDS")
+        gff_db.get_features_matching(start=220600, stop=229067, biotype="CDS")
     )
     operon_cds
 

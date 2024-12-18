@@ -43,6 +43,7 @@ from cogent3.core.location import (
 from cogent3.format.fasta import seqs_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts
 from cogent3.maths.stats.number import CategoryCounter
+from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import (
@@ -1161,7 +1162,16 @@ class Sequence:
         feature.pop("seqid", None)
         return Feature(parent=self, seqid=self.name, map=fmap, **feature)
 
-    def annotate_from_gff(self, f: os.PathLike, offset=None) -> None:
+    @c3warn.deprecated_callable(
+        "2025.6",
+        is_discontinued=True,
+        reason="directly assign the annotation_db instead",
+    )
+    def annotate_from_gff(
+        self,
+        f: os.PathLike,
+        offset: int | None = None,
+    ) -> None:  # pragma: no cover
         """copies annotations from a gff file to self,
 
         Parameters

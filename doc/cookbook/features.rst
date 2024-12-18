@@ -10,6 +10,8 @@ Features
 
 This guide provides instructions on creating, querying, and utilising features to manipulate biological sequence data.
 
+.. note:: The ``new_type`` Alignment class directly supports annotations, and more efficient alignment operations. Try it with ``load_aligned_seqs(..., new_type=True)`` or ``make_aligned_seqs(..., new_type=True)``.
+
 How to create a custom ``Feature``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -202,50 +204,28 @@ Because the names above are different, for FASTA its ``"I dna:chromosome chromos
 How to load features and associate them with an existing sequence
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-We can use the ``annotate_from_gff()`` method to associate the features from a GFF file with the existing ``Sequence``.
+We load with the ``load_annotations()`` function and directly assign to the ``.annotation_db`` attribute.
 
 If we know that the features and the sequence share the same coordinate space, then we only need to provide the path to the annotation file.
 
 .. jupyter-execute::
-    :hide-code:
+    :raises:
 
-    from cogent3 import load_seq
+    from cogent3 import load_seq, load_annotations
 
     loaded_seq = load_seq(
         "data/C-elegans-chromosome-I.fa",
         label_to_name=lambda x: x.split()[0],
         moltype="dna",
     )
-
-.. jupyter-execute::
-    :raises:
-
-    # loaded_seq = < loaded / created the seq>
-    loaded_seq.annotate_from_gff("data/C-elegans-chromosome-I.gff")
+    db = load_annotations(path="data/C-elegans-chromosome-I.gff")
+    loaded_seq.annotation_db = db
     loaded_seq.annotation_db
-
-If the feature coordinates precede the sequence, for example, a sequence corresponds to a gene that starts 600 base pairs from the beginning of chromosome, but the annotation file is for the entire chromosome, we need to provide an offset to the ``annotate_from_gff()`` method.
-
-.. jupyter-execute::
-    :hide-code:
-
-    from cogent3 import make_seq
-
-    sub_seq = make_seq(
-        "GCCTAATACTAAGCCTAAGCCTAAGACTAAGCCTAATACTAAGCCTAAGCCTAAGACTAAGCCTAAGACTAAGCCTAAGA",
-        name="I",
-        moltype="dna",
-    )
-
-.. jupyter-execute::
-    :raises:
-
-    # sub_seq = <genomic region starting at the 600th nt>
-    sub_seq.annotate_from_gff("data/C-elegans-chromosome-I.gff", offset=600)
-    sub_seq.annotation_db
 
 How to load features and associate them with sequences in an existing alignment
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+.. note:: ``annotate_from_gff()`` methods are being deprecated. The ``new_type`` objects will provide a different approach.
 
 To annotate one or more ``Sequence`` in an ``Alignment``, call ``annotate_from_gff()`` on the ``Alignment`` instance, passing in the path to the GFF annotation file and a list of sequence names to annotate to the ``seq_ids`` argument.
 
@@ -276,7 +256,7 @@ Note that the ``AnnotationDb`` is accessible via the ``Alignment`` (above) and `
 
     brca1_aln.get_seq("Human").annotation_db
 
-.. note:: ``Alignment.annotate_from_gff()`` does not support setting an offset. If you need to set the offset for a sequence within an alignment, you can do so directly using the ``Sequence.annotation_offset`` attribute.
+.. note:: ``Alignment.annotate_from_gff()`` does not support setting an offset and the method is being discontinued. The solution is to use the ``new_type`` classes where you can provide offsets directly.
 
 .. _query_for_features:
 

@@ -28,17 +28,12 @@ def tmp_dir(tmp_path_factory):
 
 
 @pytest.fixture
-def home_file(DATA_DIR) -> str:
+def home_file(DATA_DIR, HOME_TMP_DIR) -> str:
     """makes a temporary directory with file"""
-    import tempfile
-
-    HOME = pathlib.Path("~")
     fn = "sample.tsv"
     contents = (DATA_DIR / fn).read_text()
-    with tempfile.TemporaryDirectory(dir=HOME.expanduser()) as dn:
-        outpath = HOME / pathlib.Path(dn).name / fn
-        outpath.expanduser().write_text(contents)
-        yield str(outpath)
+    (HOME_TMP_DIR / fn).expanduser().write_text(contents)
+    return str(HOME_TMP_DIR / fn)
 
 
 @pytest.mark.parametrize("transform", [str, pathlib.Path])

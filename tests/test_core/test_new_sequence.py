@@ -2273,8 +2273,7 @@ def test_annotate_gff_nested_features(DATA_DIR):
         name="22",
     )
     gff3_path = DATA_DIR / "ensembl_sample.gff3"
-    # TODO: directly assign an annotation_db, annotate_from_gff to be discontinued
-    seq.annotate_from_gff(gff3_path)
+    seq.annotation_db = cogent3.load_annotations(path=gff3_path)
     # we have 8 records in the gff file
     assert seq.annotation_db.num_matches() == 8
 

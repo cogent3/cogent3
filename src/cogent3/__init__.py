@@ -416,10 +416,10 @@ def load_seq(
         data = _load_seqs(file_format, filename, format, parser_kw)
         name, seq = data[0]
 
+    name = label_to_name(name) if label_to_name else name
+
     if annotation_path is not None:
         db = load_annotations(path=annotation_path, seqids=[name])
-
-    name = label_to_name(name) if label_to_name else name
 
     result = make_seq(
         seq,
