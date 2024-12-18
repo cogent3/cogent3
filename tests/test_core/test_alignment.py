@@ -16,6 +16,7 @@ from cogent3 import (
     get_code,
     get_moltype,
     load_aligned_seqs,
+    load_annotations,
     load_seq,
     load_unaligned_seqs,
     make_aligned_seqs,
@@ -2104,7 +2105,7 @@ def test_annotate_from_gff3(cls):  # will not port
 
     # using annotate_from_gff will nest annotations
     seq_coll = cls({seq.name: seq})
-    seq_coll.annotate_from_gff(gff3_path)
+    seq_coll.annotation_db = load_annotations(path=gff3_path)
     member_seq = seq_coll.get_seq(seq.name)
 
     matches = list(member_seq.get_features())
@@ -2124,7 +2125,7 @@ def seqcoll_db():
     gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
     seq = load_seq(fasta_path, moltype="dna")
     seq_coll = SequenceCollection({seq.name: seq})
-    seq_coll.annotate_from_gff(gff3_path)
+    seq_coll.annotation_db = load_annotations(path=gff3_path)
     return seq_coll
 
 
@@ -2237,15 +2238,11 @@ def test_annotate_matches_to():  # ported
 
 @pytest.fixture
 def gb_db(DATA_DIR):
-    from cogent3.core.annotation_db import load_annotations
-
     return load_annotations(path=DATA_DIR / "annotated_seq.gb")
 
 
 @pytest.fixture
 def gff_db(DATA_DIR):
-    from cogent3.core.annotation_db import load_annotations
-
     return load_annotations(path=DATA_DIR / "simple.gff")
 
 

@@ -62,7 +62,7 @@ def anno_db() -> BasicAnnotationDb:
 @pytest.fixture
 def simple_seq_gff_db(DATA_DIR) -> Sequence:
     seq = Sequence("ATTGTACGCCTTTTTTATTATT", name="test_seq")
-    seq.annotate_from_gff(DATA_DIR / "simple.gff")
+    seq.annotation_db = load_annotations(path=DATA_DIR / "simple.gff")
     return seq
 
 
@@ -515,7 +515,7 @@ def test_get_features_matching_matching_features(anno_db: GffAnnotationDb, seq):
 
 
 def test_annotate_from_gff(DATA_DIR, seq):
-    seq.annotate_from_gff(DATA_DIR / "simple.gff")
+    seq.annotation_db = load_annotations(path=DATA_DIR / "simple.gff")
 
     got = list(seq.get_features(biotype="exon"))
     assert len(got) == 2
@@ -528,7 +528,7 @@ def test_annotate_from_gff(DATA_DIR, seq):
 
 
 def test_get_features_matching_start_stop(DATA_DIR, seq):
-    seq.annotate_from_gff(DATA_DIR / "simple.gff")
+    seq.annotation_db = load_annotations(path=DATA_DIR / "simple.gff")
     got = list(seq.get_features(start=2, stop=10, allow_partial=True))
     assert len(got) == 4
 
@@ -617,7 +617,7 @@ def test_get_features_matching_multiple_biotype_set(
 
 def test_get_features_matching_start_stop_seqview(DATA_DIR, seq):
     """testing that get_features_matching adjusts"""
-    seq.annotate_from_gff(DATA_DIR / "simple.gff")
+    seq.annotation_db = load_annotations(path=DATA_DIR / "simple.gff")
     seq_features = list(seq.get_features(start=0, stop=3, allow_partial=True))
     assert len(seq_features) == 3
 
@@ -770,13 +770,6 @@ def test__getitem__(simple_seq_gff_db):
     assert seq_sliced.annotation_db is simple_seq_gff_db.annotation_db
 
 
-def test_annotate_from_gff_multiple_calls(DATA_DIR, seq):
-    """5 records in each gff file, total features on seq should be 10"""
-    seq.annotate_from_gff(DATA_DIR / "simple.gff")
-    seq.annotate_from_gff(DATA_DIR / "simple2.gff")
-    assert len(list(seq.get_features())) == 10
-
-
 def test_sequence_collection_annotate_from_gff(DATA_DIR):
     """providing a seqid to SequenceCollection.annotate_from_gff will
     annotate the SequenceCollection, and the Sequence. Both of these will point
@@ -784,7 +777,7 @@ def test_sequence_collection_annotate_from_gff(DATA_DIR):
     """
     seqs = {"test_seq": "ATCGATCGATCG", "test_seq2": "GATCGATCGATC"}
     seq_coll = cogent3.make_unaligned_seqs(seqs, moltype="dna")
-    seq_coll.annotate_from_gff(DATA_DIR / "simple.gff", seq_ids="test_seq")
+    seq_coll.annotation_db = cogent3.load_annotations(path=DATA_DIR / "simple.gff")
 
     # the seq for which the seqid was provided is annotated
     seq = seq_coll.get_seq("test_seq")
@@ -811,7 +804,7 @@ def test_seq_coll_query(DATA_DIR):
     """obtain same results when querying from collection as from seq"""
     seqs = {"test_seq": "ATCGATCGATCG", "test_seq2": "GATCGATCGATC"}
     seq_coll = cogent3.make_unaligned_seqs(seqs, moltype="dna")
-    seq_coll.annotate_from_gff(DATA_DIR / "simple.gff", seq_ids="test_seq")
+    seq_coll.annotation_db = cogent3.load_annotations(path=DATA_DIR / "simple.gff")
 
     seq = seq_coll.get_seq("test_seq")
     # the seq for which the seqid was provided is annotated

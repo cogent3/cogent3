@@ -1895,11 +1895,16 @@ class SequenceCollection(_SequenceCollectionBase):
             # sequences
             self.annotation_db = self.annotation_db.union(seq_db)
 
+    @c3warn.deprecated_callable(
+        "2025.6",
+        is_discontinued=True,
+        reason="directly assign the annotation_db instead",
+    )
     def annotate_from_gff(
         self,
         f: os.PathLike,
         seq_ids: list[str] | str | None = None,
-    ) -> None:  # will not port
+    ) -> None:  # pragma: no cover
         """copies annotations from a gff file to a sequence in self
 
         Parameters

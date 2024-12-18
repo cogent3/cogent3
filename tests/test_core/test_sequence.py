@@ -2069,22 +2069,6 @@ def worm_gff_path(DATA_DIR):
     return DATA_DIR / "c_elegans_WS199_shortened_gff.gff3"
 
 
-def test_annotate_from_gff(worm_seq_path, worm_gff_path):
-    """correctly annotates a Sequence from a gff file"""
-    # duplicated in test_alignment on seq collection
-    seq = cogent3.load_seq(worm_seq_path, moltype="dna")
-
-    seq.annotate_from_gff(worm_gff_path)
-    matches = list(seq.get_features())
-    assert len(matches) == 11
-    matches = list(seq.get_features(biotype="gene"))
-    assert len(matches) == 1
-    matches = list(matches[0].get_children(biotype="mRNA"))
-    assert len(matches) == 1
-    matches = list(matches[0].get_children(biotype="exon"))
-    assert len(matches) == 3
-
-
 @pytest.mark.parametrize("rc", [False, True])
 def test_seq_repr(one_seq, rc):  # ported
     pat = re.compile("[ACGT]+")
@@ -2280,7 +2264,7 @@ def test_annotate_gff_nested_features(DATA_DIR):  # ported
     # ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC...
     seq = DNA.make_seq(seq="ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC", name="22")
     gff3_path = DATA_DIR / "ensembl_sample.gff3"
-    seq.annotate_from_gff(gff3_path)
+    seq.annotation_db = cogent3.load_annotations(path=gff3_path)
     # we have 8 records in the gff file
     assert seq.annotation_db.num_matches() == 8
 
@@ -2383,7 +2367,7 @@ def test_offset_with_multiple_slices(DATA_DIR):  # ported
 
     seq = DNA.make_seq(seq="ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC", name="22")
     gff3_path = DATA_DIR / "ensembl_sample.gff3"
-    seq.annotate_from_gff(gff3_path)
+    seq.annotation_db = cogent3.load_annotations(path=gff3_path)
     rd = seq[2:].to_rich_dict()
     s1 = deserialise_object(rd)
     assert s1.annotation_offset == 2
