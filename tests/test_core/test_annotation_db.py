@@ -1,4 +1,5 @@
 import io
+import pathlib
 import warnings
 
 import numpy
@@ -1407,3 +1408,18 @@ def test_db_repr(request, db):
     ann_db = request.getfixturevalue(db)
     got = repr(ann_db)
     assert isinstance(got, str)
+
+
+@pytest.fixture
+def home_gff(HOME_TMP_DIR, DATA_DIR) -> str:
+    gff = DATA_DIR / "simple.gff"
+    hgff = HOME_TMP_DIR / "simple.gff"
+    hgff.expanduser().write_text(gff.read_text())
+    return f"~/{HOME_TMP_DIR.name}/simple.gff"
+
+
+@pytest.mark.parametrize("transform", [str, pathlib.Path])
+def test_load_annotations_home_dir(home_gff, transform):
+    got = load_annotations(path=transform(home_gff))
+    assert len(got) == 6
+    assert isinstance(got, GffAnnotationDb)

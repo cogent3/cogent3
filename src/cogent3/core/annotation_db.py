@@ -1838,7 +1838,7 @@ def load_annotations(
     """
     if seqids is not None:
         seqids = {seqids} if isinstance(seqids, str) else set(seqids)
-    path = pathlib.Path(path)
+    path = pathlib.Path(path).expanduser()
     return (
         _db_from_genbank(
             path,
