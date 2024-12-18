@@ -65,7 +65,7 @@ def test_select_translatable():
     assert tr.to_dict() == ex
 
     # if seqs not translatable returns NotCompletedResult
-    data = dict(a="TAATTGATTAA", b="GCATAATTA")
+    data = {"a": "TAATTGATTAA", "b": "GCATAATTA"}
     seqs = cogent3.make_unaligned_seqs(data=data, moltype=DNA)
     got = select_translatable(allow_rc=False, frame=1)(seqs)  # pylint: disable=not-callable
     assert isinstance(got, NotCompleted)
@@ -83,12 +83,12 @@ def test_translate_frames():
 
 def test_translate_seqcoll():
     """correctly translate a sequence collection"""
-    seqs = dict(a="ATGAGG", b="ATGTAA")
+    seqs = {"a": "ATGAGG", "b": "ATGTAA"}
     seqs = cogent3.make_unaligned_seqs(seqs, moltype="dna")
     # trim terminal stops
     translater = translate_seqs()
     aa = translater(seqs)  # pylint: disable=not-callable
-    assert aa.to_dict() == dict(a="MR", b="M")
+    assert aa.to_dict() == {"a": "MR", "b": "M"}
     assert aa.moltype.label == "protein"
     # don't trim terminal stops, returns NotCompleted
     translater = translate_seqs(trim_terminal_stop=False)
@@ -98,18 +98,18 @@ def test_translate_seqcoll():
 
 def test_translate_aln():
     """correctly translates alignments"""
-    data = dict(a="ATGAGGCCC", b="ATGTTT---")
+    data = {"a": "ATGAGGCCC", "b": "ATGTTT---"}
     # an array alignment
     aln = cogent3.make_aligned_seqs(data, moltype="dna")
     translater = translate_seqs()
     aa = translater(aln)  # pylint: disable=not-callable
-    assert aa.to_dict() == dict(a="MRP", b="MF-")
+    assert aa.to_dict() == {"a": "MRP", "b": "MF-"}
     assert aa.moltype.label == "protein"
     assert isinstance(aa, type(aln))
     # Alignment
     aln = aln.to_type(array_align=True)
     aa = translater(aln)  # pylint: disable=not-callable
-    assert aa.to_dict() == dict(a="MRP", b="MF-")
+    assert aa.to_dict() == {"a": "MRP", "b": "MF-"}
     assert aa.moltype.label == "protein"
     assert isinstance(aa, type(aln))
 

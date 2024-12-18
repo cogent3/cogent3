@@ -35,7 +35,7 @@ class FloatWithAttrs(float):
     def __new__(cls, value, **kw):
         return float.__new__(cls, value)
 
-    def __init__(self, value, **kw):
+    def __init__(self, value, **kw) -> None:
         float.__init__(self)
         for n, v in list(kw.items()):
             setattr(self, n, v)
@@ -61,13 +61,13 @@ def Edge(seq1, seq2, length, bin_data, switch=1.0, bprobs=None):
 
 
 class BinData:
-    def __init__(self, mprobs, indel, Qd, rate=1.0):
+    def __init__(self, mprobs, indel, Qd, rate=1.0) -> None:
         self.mprobs = mprobs
         self.indel = indel
         self.Qd = Qd
         self.rate = rate
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Bin(Pi, Qd, {self.rate}, {vars(self.indel)})"
 
 
@@ -93,7 +93,7 @@ class FwdDefn(CalculationDefn):
 
 
 class _GetAlign:
-    def __init__(self, edge, length1, length2):
+    def __init__(self, edge, length1, length2) -> None:
         try:
             ratio = length1 / (length1 + length2)
         except (ZeroDivisionError, FloatingPointError):

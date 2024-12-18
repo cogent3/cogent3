@@ -19,42 +19,38 @@ class unigeneTests(TestCase):
 
     def test_read_sts(self):
         """_read_sts should perform correct conversions"""
-        self.assertEqual(
-            _read_sts("ACC=RH128467 UNISTS=211775\n"),
-            {"ACC": "RH128467", "UNISTS": "211775"},
-        )
+        assert _read_sts("ACC=RH128467 UNISTS=211775\n") == {
+            "ACC": "RH128467",
+            "UNISTS": "211775",
+        }
 
     def test_read_expression(self):
         """_read_expression should perform correct conversions"""
-        self.assertEqual(
-            _read_expression("embryo ; whole body ; mammary gland ; brain\n"),
-            ["embryo", "whole body", "mammary gland", "brain"],
-        )
+        assert _read_expression("embryo ; whole body ; mammary gland ; brain\n") == [
+            "embryo",
+            "whole body",
+            "mammary gland",
+            "brain",
+        ]
 
     def test_read_seq(self):
         """_read_seq should perform correct conversions"""
         # reset the found fields, since we can't guarantee order of test
         # execution and it's persistent class data
         UniGeneSeqRecord.found_fields = {}
-        self.assertEqual(
-            _read_seq("ACC=BC025044.1\n"),
-            UniGeneSeqRecord({"ACC": "BC025044.1"}),
-        )
-        self.assertEqual(
-            _read_seq(
-                "ACC=AI842963.1; NID=g5477176; CLONE=UI-M-AO1-aem-f-10-0-UI; END=3'; LID=1944; SEQTYPE=EST; TRACE=158501677\n",
-            ),
-            UniGeneSeqRecord(
-                {
-                    "ACC": "AI842963.1",
-                    "NID": "g5477176",
-                    "CLONE": "UI-M-AO1-aem-f-10-0-UI",
-                    "END": "3'",
-                    "LID": "1944",
-                    "SEQTYPE": "EST",
-                    "TRACE": "158501677",
-                },
-            ),
+        assert _read_seq("ACC=BC025044.1\n") == UniGeneSeqRecord({"ACC": "BC025044.1"})
+        assert _read_seq(
+            "ACC=AI842963.1; NID=g5477176; CLONE=UI-M-AO1-aem-f-10-0-UI; END=3'; LID=1944; SEQTYPE=EST; TRACE=158501677\n",
+        ) == UniGeneSeqRecord(
+            {
+                "ACC": "AI842963.1",
+                "NID": "g5477176",
+                "CLONE": "UI-M-AO1-aem-f-10-0-UI",
+                "END": "3'",
+                "LID": "1944",
+                "SEQTYPE": "EST",
+                "TRACE": "158501677",
+            },
         )
 
     def test_LinesToUniGene(self):
@@ -91,25 +87,19 @@ SEQUENCE    ACC=AW990320.1; NID=g8185938; CLONE=IMAGE:1513482; END=5'; LID=1043;
 //
 """
         records = list(GbFinder(fake_file.split("\n")))
-        self.assertEqual(len(records), 2)
+        assert len(records) == 2
         first, second = list(map(LinesToUniGene, records))
-        self.assertEqual(first.ID, "Mm.1")
-        self.assertEqual(first.TITLE, "S100 calcium binder")
-        self.assertEqual(first.GENE, "S100a10")
-        self.assertEqual(first.CYTOBAND, "3 41.7 cM")
-        self.assertEqual(first.CHROMOSOME, "3")
-        self.assertEqual(first.LOCUSLINK, 20194)
-        self.assertEqual(
-            first.EXPRESS,
-            ["embryo", "whole body", "mammary gland", "brain"],
-        )
-        self.assertEqual(
-            first.STS,
-            [
-                {"ACC": "RH128467", "UNISTS": "211775"},
-                {"ACC": "M16465", "UNISTS": "178878"},
-            ],
-        )
+        assert first.ID == "Mm.1"
+        assert first.TITLE == "S100 calcium binder"
+        assert first.GENE == "S100a10"
+        assert first.CYTOBAND == "3 41.7 cM"
+        assert first.CHROMOSOME == "3"
+        assert first.LOCUSLINK == 20194
+        assert first.EXPRESS == ["embryo", "whole body", "mammary gland", "brain"]
+        assert first.STS == [
+            {"ACC": "RH128467", "UNISTS": "211775"},
+            {"ACC": "M16465", "UNISTS": "178878"},
+        ]
         exp_prot_sim = list(
             map(
                 UniGeneProtSimRecord,
@@ -139,8 +129,8 @@ SEQUENCE    ACC=AW990320.1; NID=g8185938; CLONE=IMAGE:1513482; END=5'; LID=1043;
             ),
         )
         for obs, exp in zip(first.PROTSIM, exp_prot_sim, strict=False):
-            self.assertEqual(obs, exp)
-        self.assertEqual(first.SCOUNT, 5)
+            assert obs == exp
+        assert first.SCOUNT == 5
         exp_seqs = list(
             map(
                 UniGeneSeqRecord,
@@ -189,16 +179,15 @@ SEQUENCE    ACC=AW990320.1; NID=g8185938; CLONE=IMAGE:1513482; END=5'; LID=1043;
             ),
         )
         for obs, exp in zip(first.SEQUENCE, exp_seqs, strict=False):
-            self.assertEqual(obs, exp)
-        self.assertEqual(second.ID, "Mm.5")
-        self.assertEqual(second.TITLE, "homeo box A10")
-        self.assertEqual(second.GENE, "Hoxa10")
-        self.assertEqual(second.CYTOBAND, "6 26.33 cM")
-        self.assertEqual(second.LOCUSLINK, 15395)
-        self.assertEqual(second.EXPRESS, ["kidney", "colon", "mammary gland"])
-        self.assertEqual(second.CHROMOSOME, "6")
-        self.assertEqual(
-            second.PROTSIM,
+            assert obs == exp
+        assert second.ID == "Mm.5"
+        assert second.TITLE == "homeo box A10"
+        assert second.GENE == "Hoxa10"
+        assert second.CYTOBAND == "6 26.33 cM"
+        assert second.LOCUSLINK == 15395
+        assert second.EXPRESS == ["kidney", "colon", "mammary gland"]
+        assert second.CHROMOSOME == "6"
+        assert (
             list(
                 map(
                     UniGeneProtSimRecord,
@@ -212,12 +201,12 @@ SEQUENCE    ACC=AW990320.1; NID=g8185938; CLONE=IMAGE:1513482; END=5'; LID=1043;
                         },
                     ],
                 ),
-            ),
+            )
+            == second.PROTSIM
         )
-        self.assertEqual(second.SCOUNT, 1)
-        self.assertEqual(second.STS, [])
-        self.assertEqual(
-            second.SEQUENCE,
+        assert second.SCOUNT == 1
+        assert second.STS == []
+        assert (
             list(
                 map(
                     UniGeneSeqRecord,
@@ -233,8 +222,9 @@ SEQUENCE    ACC=AW990320.1; NID=g8185938; CLONE=IMAGE:1513482; END=5'; LID=1043;
                         },
                     ],
                 ),
-            ),
+            )
+            == second.SEQUENCE
         )
 
         # test that the synonym mapping works OK
-        self.assertEqual(second.SequenceIds[0].NucleotideId, "g8185938")
+        assert second.SequenceIds[0].NucleotideId == "g8185938"

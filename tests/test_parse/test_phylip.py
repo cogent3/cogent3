@@ -160,13 +160,13 @@ cox2_tborr   MLFFINQLLL LLVDTFVILE IFSLFVCVFI IVMYILFINY NIFLKNINVY
              WDFISAKFID LYWFTLGCLF IVCLLIRLCL LLYFSCLNFV CFDLCKCIGF
              WDFISSKFID TYWFVLGMMF ILCLLLRLCL LLYFSCINFV SFDLCKVIGF
              LDFIGSKYLD LYWFLIGIFF VIVLLIRLCL LLYYSWISLL IFDLCKIMGF
-             
+
              QWYWVYFIFG ETTIFSNLIL ESDYMIGDLR LLQCNHVLTL LSLVIYKLWL
              QWYWVYFIFG ETTIFSNLIL ESDYLIGDLR LLQCNHVLTL LSLVIYKLWL
              QWYWVYFIFG ETTIFSNLIL ESDYLIGDLR LLQCNHVLTL LSLVIYKVWL
              QWYWVYFLFG ETTIFSNLIL ESDYLIGDLR ILQCNHVLTL LSLVIYKLWV
              QWYWIFFVFK ENVIFSNLLI ESDYWIGDLR LLQCNNTFNL ICLVVYKIWV
-             
+
              SAVDVIHSFA ISSLGVKVEN LVAVMK
              SAVDVIHSFA VSSLGIKVDC IPGRCN
              SAIDVIHSFT LANLGIKVD? ?PGRCN
@@ -233,46 +233,46 @@ class MinimalPhylipParserTests(PhylipGenericTest):
 
     def test_empty(self):
         """MinimalFastaParser should return empty list from 'file' w/o labels"""
-        self.assertEqual(list(MinimalPhylipParser(self.empty)), [])
+        assert list(MinimalPhylipParser(self.empty)) == []
 
     def test_minimal_parser(self):
         """MinimalFastaParser should read single record as (label, seq) tuple"""
         seqs = list(MinimalPhylipParser(self.big_interleaved))
-        self.assertEqual(len(seqs), 10)
+        assert len(seqs) == 10
         label, seq = seqs[-1]
-        self.assertEqual(label, "Frog")
-        self.assertEqual(
-            seq,
-            "ATGGCACACCCATCACAATTAGGTTTTCAAGACGCAGCCTCTCCAATTATAGAAGAATTACTTCACTTCCACGACCATACCCTCATAGCCGTTTTTCTTATTAGTACGCTAGTTCTTTACATTATTACTATTATAATAACTACTAAACTAACTAATACAAACCTAATGGACGCACAAGAGATCGAAATAGTGTGAACTATTATACCAGCTATTAGCCTCATCATAATTGCCCTTCCATCCCTTCGTATCCTATATTTAATAGATGAAGTTAATGATCCACACTTAACAATTAAAGCAATCGGCCACCAATGATACTGAAGCTACGAATATACTAACTATGAGGATCTCTCATTTGACTCTTATATAATTCCAACTAATGACCTTACCCCTGGACAATTCCGGCTGCTAGAAGTTGATAATCGAATAGTAGTCCCAATAGAATCTCCAACCCGACTTTTAGTTACAGCCGAAGACGTCCTCCACTCGTGAGCTGTACCCTCCTTGGGTGTCAAAACAGATGCAATCCCAGGACGACTTCATCAAACATCATTTATTGCTACTCGTCCGGGAGTATTTTACGGACAATGTTCAGAAATTTGCGGAGCAAACCACAGCTTTATACCAATTGTAGTTGAAGCAGTACCGCTAACCGACTTTGAAAACTGATCTTCATCAATACTA---GAAGCATCACTA------AGA",
+        assert label == "Frog"
+        assert (
+            seq
+            == "ATGGCACACCCATCACAATTAGGTTTTCAAGACGCAGCCTCTCCAATTATAGAAGAATTACTTCACTTCCACGACCATACCCTCATAGCCGTTTTTCTTATTAGTACGCTAGTTCTTTACATTATTACTATTATAATAACTACTAAACTAACTAATACAAACCTAATGGACGCACAAGAGATCGAAATAGTGTGAACTATTATACCAGCTATTAGCCTCATCATAATTGCCCTTCCATCCCTTCGTATCCTATATTTAATAGATGAAGTTAATGATCCACACTTAACAATTAAAGCAATCGGCCACCAATGATACTGAAGCTACGAATATACTAACTATGAGGATCTCTCATTTGACTCTTATATAATTCCAACTAATGACCTTACCCCTGGACAATTCCGGCTGCTAGAAGTTGATAATCGAATAGTAGTCCCAATAGAATCTCCAACCCGACTTTTAGTTACAGCCGAAGACGTCCTCCACTCGTGAGCTGTACCCTCCTTGGGTGTCAAAACAGATGCAATCCCAGGACGACTTCATCAAACATCATTTATTGCTACTCGTCCGGGAGTATTTTACGGACAATGTTCAGAAATTTGCGGAGCAAACCACAGCTTTATACCAATTGTAGTTGAAGCAGTACCGCTAACCGACTTTGAAAACTGATCTTCATCAATACTA---GAAGCATCACTA------AGA"
         )
-        self.assertEqual(seqs[0][0], "Cow")
+        assert seqs[0][0] == "Cow"
 
         seqs = list(MinimalPhylipParser(self.space_interleaved))
-        self.assertEqual(len(seqs), 5)
-        self.assertEqual(seqs[0][0], "cox2_leita")
-        self.assertEqual(seqs[-1][0], "cox2_tborr")
-        self.assertEqual(len(seqs[0][1]), 176)
-        self.assertEqual(len(seqs[-1][1]), 176)
+        assert len(seqs) == 5
+        assert seqs[0][0] == "cox2_leita"
+        assert seqs[-1][0] == "cox2_tborr"
+        assert len(seqs[0][1]) == 176
+        assert len(seqs[-1][1]) == 176
 
         seqs = list(MinimalPhylipParser(self.interleaved_little))
-        self.assertEqual(len(seqs), 6)
-        self.assertEqual(seqs[1][0], "Hesperorni")
-        self.assertEqual(seqs[-1][0], "B.subtilis")
-        self.assertEqual(seqs[-1][1], "GGCAGCCAATCACGGCAGCCAATCACGGCAGCCAATCAC")
+        assert len(seqs) == 6
+        assert seqs[1][0] == "Hesperorni"
+        assert seqs[-1][0] == "B.subtilis"
+        assert seqs[-1][1] == "GGCAGCCAATCACGGCAGCCAATCACGGCAGCCAATCAC"
 
         seqs = list(MinimalPhylipParser(self.noninterleaved_little))
-        self.assertEqual(len(seqs), 6)
-        self.assertEqual(seqs[0][0], "Archaeopt")
-        self.assertEqual(seqs[-1][0], "B.subtilis")
-        self.assertEqual(seqs[-1][-1], "GGCAGCCAATCACGGCAGCC")
+        assert len(seqs) == 6
+        assert seqs[0][0] == "Archaeopt"
+        assert seqs[-1][0] == "B.subtilis"
+        assert seqs[-1][-1] == "GGCAGCCAATCACGGCAGCC"
 
         seqs = list(MinimalPhylipParser(self.noninterleaved_big))
-        self.assertEqual(len(seqs), 3)
-        self.assertEqual(seqs[0][0], "Rhesus")
-        self.assertEqual(seqs[-1][0], "Pig")
-        self.assertEqual(
-            seqs[-1][1],
-            "tgtggcacagatactcatgccagctcgttacagcatgagaacagcagtttattactcactaaagacagaatgaatgtagaaaaggctgaattttgtaataaaagcaagcagcctgtcttagcaaagagccaacagagcagatgggctgaaagtaagggcacatgtaatgataggcagactcctaacacagagaaaaaggtagttctgaatactgatctcctgtatgggagaaacgaactgaataagcagaaacctgcgtgctctgacagtcctagagattcccaagatgttccttgg",
+        assert len(seqs) == 3
+        assert seqs[0][0] == "Rhesus"
+        assert seqs[-1][0] == "Pig"
+        assert (
+            seqs[-1][1]
+            == "tgtggcacagatactcatgccagctcgttacagcatgagaacagcagtttattactcactaaagacagaatgaatgtagaaaaggctgaattttgtaataaaagcaagcagcctgtcttagcaaagagccaacagagcagatgggctgaaagtaagggcacatgtaatgataggcagactcctaacacagagaaaaaggtagttctgaatactgatctcctgtatgggagaaacgaactgaataagcagaaacctgcgtgctctgacagtcctagagattcccaagatgttccttgg"
         )
 
     def test_get_align(self):
@@ -280,37 +280,13 @@ class MinimalPhylipParserTests(PhylipGenericTest):
         align = get_align_for_phylip(self.big_interleaved)
         align = get_align_for_phylip(self.interleaved_little)
         s = str(align)
-        self.assertEqual(
-            s,
-            """>Archaeopt
-CGATGCTTACCGCCGATGCTTACCGCCGATGCTTACCGC
->Hesperorni
-CGTTACTCGTTGTCGTTACTCGTTGTCGTTACTCGTTGT
->Baluchithe
-TAATGTTAATTGTTAATGTTAATTGTTAATGTTAATTGT
->B. virgini
-TAATGTTCGTTGTTAATGTTCGTTGTTAATGTTCGTTGT
->Brontosaur
-CAAAACCCATCATCAAAACCCATCATCAAAACCCATCAT
->B.subtilis
-GGCAGCCAATCACGGCAGCCAATCACGGCAGCCAATCAC
-""",
+        assert (
+            s
+            == ">Archaeopt\nCGATGCTTACCGCCGATGCTTACCGCCGATGCTTACCGC\n>Hesperorni\nCGTTACTCGTTGTCGTTACTCGTTGTCGTTACTCGTTGT\n>Baluchithe\nTAATGTTAATTGTTAATGTTAATTGTTAATGTTAATTGT\n>B. virgini\nTAATGTTCGTTGTTAATGTTCGTTGTTAATGTTCGTTGT\n>Brontosaur\nCAAAACCCATCATCAAAACCCATCATCAAAACCCATCAT\n>B.subtilis\nGGCAGCCAATCACGGCAGCCAATCACGGCAGCCAATCAC\n"
         )
         align = get_align_for_phylip(self.noninterleaved_little)
         s = str(align)
-        self.assertEqual(
-            s,
-            """>Archaeopt
-CGATGCTTACCGCCGATGCT
->Hesperorni
-CGTTACTCGTTGTCGTTACT
->Baluchithe
-TAATGTTAATTGTTAATGTT
->B. virgini
-TAATGTTCGTTGTTAATGTT
->Brontosaur
-CAAAACCCATCATCAAAACC
->B.subtilis
-GGCAGCCAATCACGGCAGCC
-""",
+        assert (
+            s
+            == ">Archaeopt\nCGATGCTTACCGCCGATGCT\n>Hesperorni\nCGTTACTCGTTGTCGTTACT\n>Baluchithe\nTAATGTTAATTGTTAATGTT\n>B. virgini\nTAATGTTCGTTGTTAATGTT\n>Brontosaur\nCAAAACCCATCATCAAAACC\n>B.subtilis\nGGCAGCCAATCACGGCAGCC\n"
         )

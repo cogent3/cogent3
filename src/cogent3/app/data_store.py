@@ -9,23 +9,26 @@ import reprlib
 import zipfile
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from collections.abc import Iterator
 from enum import Enum
 from functools import singledispatch
 from io import TextIOWrapper
-from os import PathLike
 from pathlib import Path
-from typing import Union
+from typing import TYPE_CHECKING, Union
 
 from scitrack import get_text_hexdigest
 
-from cogent3.app.typing import TabularType
 from cogent3.core import alignment as old_alignment
 from cogent3.core import new_alignment
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.io import get_format_suffixes, open_
 from cogent3.util.parallel import is_master_process
 from cogent3.util.table import Table
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+    from os import PathLike
+
+    from cogent3.app.typing import TabularType
 
 _NOT_COMPLETED_TABLE = "not_completed"
 _LOG_TABLE = "logs"
@@ -64,10 +67,10 @@ class DataMemberABC(ABC):
     @abstractmethod
     def unique_id(self): ...
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.unique_id
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__}(data_store={self.data_store.source}, unique_id={self.unique_id})"
 
     def read(self) -> StrOrBytes:
@@ -89,11 +92,11 @@ class DataMemberABC(ABC):
 class DataStoreABC(ABC):
     """Abstract base class for DataStore"""
 
-    def __new__(klass, *args, **kwargs):
-        obj = object.__new__(klass)
+    def __new__(cls, *args, **kwargs):
+        obj = object.__new__(cls)
 
-        init_sig = inspect.signature(klass.__init__)
-        bargs = init_sig.bind_partial(klass, *args, **kwargs)
+        init_sig = inspect.signature(cls.__init__)
+        bargs = init_sig.bind_partial(cls, *args, **kwargs)
         bargs.apply_defaults()
         init_vals = bargs.arguments
         init_vals.pop("self", None)
@@ -119,12 +122,12 @@ class DataStoreABC(ABC):
     @abstractmethod
     def limit(self): ...
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         name = self.__class__.__name__
         construction = ", ".join(f"{k}={v}" for k, v in self._init_vals.items())
         return f"{name}({construction})"
 
-    def __str__(self):
+    def __str__(self) -> str:
         num = len(self.members)
         name = self.__class__.__name__
         sample = f"{list(self[:2])}..." if num > 2 else list(self)
@@ -133,10 +136,10 @@ class DataStoreABC(ABC):
     def __getitem__(self, index):
         return self.members[index]
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.members)
 
-    def __contains__(self, identifier):
+    def __contains__(self, identifier) -> bool:
         """whether relative identifier has been stored"""
         # following breaks some tests, what is the expected behaviour?
         # return any(m.unique_id.endswith(identifier) for m in self)
@@ -145,11 +148,13 @@ class DataStoreABC(ABC):
     @abstractmethod
     def read(self, unique_id: str) -> StrOrBytes: ...
 
-    def _check_writable(self, unique_id: str):
+    def _check_writable(self, unique_id: str) -> None:
         if self.mode is READONLY:
-            raise OSError("datastore is readonly")
+            msg = "datastore is readonly"
+            raise OSError(msg)
         if unique_id in self and self.mode is APPEND:
-            raise OSError("cannot overwrite existing record in append mode")
+            msg = "cannot overwrite existing record in append mode"
+            raise OSError(msg)
 
     @abstractmethod
     def write(self, *, unique_id: str, data: StrOrBytes) -> None:
@@ -286,7 +291,7 @@ class DataMember(DataMemberABC):
     """Generic DataMember class, bound to a data store. All read operations
     delivered by the parent."""
 
-    def __init__(self, *, data_store: DataStoreABC, unique_id: str):
+    def __init__(self, *, data_store: DataStoreABC, unique_id: str) -> None:
         self._data_store = data_store
         self._unique_id = str(unique_id)
 
@@ -326,7 +331,7 @@ def summary_not_completeds(
         key = tuple(getattr(record, k, None) for k in indices)
         match = err_pat.findall(record.message)
         types[key].append([match[-1] if match else record.message, record.source])
-    header = list(indices) + ["message", "num", "source"]
+    header = [*list(indices), "message", "num", "source"]
     if num_bytes == len(not_completed):
         return Table(
             header=header,
@@ -346,11 +351,7 @@ def summary_not_completeds(
             idx = sources.rfind(",", None, limit_len) + 1
             idx = idx if idx > 0 else limit_len
             sources = f"{sources[:idx]} ..."
-        row = list(record) + [
-            messages,
-            len(types[record]),
-            sources,
-        ]
+        row = [*list(record), messages, len(types[record]), sources]
         rows.append(row)
     reprlib.aRepr.maxstring = maxtring  # restoring original val
     return Table(header=header, data=rows, title="not completed records")
@@ -362,9 +363,9 @@ class DataStoreDirectory(DataStoreABC):
         source: str | Path,
         mode: Mode | str = READONLY,
         suffix: str | None = None,
-        limit: int = None,
+        limit: int | None = None,
         verbose=False,
-    ):
+    ) -> None:
         self._mode = Mode(mode)
         suffix = suffix or ""
         if suffix != "*":  # wild card search for all
@@ -376,7 +377,7 @@ class DataStoreDirectory(DataStoreABC):
         self._source_check_create(mode)
         self._limit = limit
 
-    def __contains__(self, item: str):
+    def __contains__(self, item: str) -> bool:
         if not _special_suffixes.search(item):
             item = f"{item}.{self.suffix}" if self.suffix not in item else item
         return super().__contains__(item)
@@ -389,7 +390,8 @@ class DataStoreDirectory(DataStoreABC):
         source = self.source
         if mode is READONLY:
             if not source.exists():
-                raise OSError(f"'{source}' does not exist")
+                msg = f"'{source}' does not exist"
+                raise OSError(msg)
             return
 
         if not source.exists():
@@ -415,8 +417,7 @@ class DataStoreDirectory(DataStoreABC):
     def read(self, unique_id: str) -> str:
         """reads data corresponding to identifier"""
         with open_(self.source / unique_id) as infile:
-            data = infile.read()
-        return data
+            return infile.read()
 
     def drop_not_completed(self, *, unique_id: str = "") -> None:
         unique_id = unique_id.replace(f".{self.suffix}", "")
@@ -604,12 +605,13 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
         source: str | Path,
         mode: Mode | str = READONLY,
         suffix: str | None = None,
-        limit: int = None,
+        limit: int | None = None,
         verbose=False,
-    ):
+    ) -> None:
         self._mode = Mode(mode)
         if self._mode is not READONLY:
-            raise ValueError("this is a read only data store")
+            msg = "this is a read only data store"
+            raise ValueError(msg)
 
         suffix = suffix or ""
         if suffix != "*":  # wild card search for all
@@ -617,7 +619,8 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
         source = Path(source)
         self._source = source.expanduser()
         if not self._source.exists():
-            raise OSError(f"{self._source!s} does not exit")
+            msg = f"{self._source!s} does not exit"
+            raise OSError(msg)
         self.suffix = suffix
         self._verbose = verbose
         self._limit = limit
@@ -711,18 +714,23 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
         for name in self._iter_matches(_MD5_TABLE, unique_id):
             m = DataMember(data_store=self, unique_id=str(md5_dir / name.name))
             return m.read()
+        return None
 
     def drop_not_completed(self, *, unique_id: str | None = None) -> None:
-        raise TypeError("zip data stores are read only")
+        msg = "zip data stores are read only"
+        raise TypeError(msg)
 
     def write(self, *, unique_id: str, data: StrOrBytes) -> None:
-        raise TypeError("zip data stores are read only")
+        msg = "zip data stores are read only"
+        raise TypeError(msg)
 
     def write_not_completed(self, *, unique_id: str, data: StrOrBytes) -> None:
-        raise TypeError("zip data stores are read only")
+        msg = "zip data stores are read only"
+        raise TypeError(msg)
 
     def write_log(self, *, unique_id: str, data: StrOrBytes) -> None:
-        raise TypeError("zip data stores are read only")
+        msg = "zip data stores are read only"
+        raise TypeError(msg)
 
 
 def get_unique_id(name: str) -> str:
@@ -815,8 +823,9 @@ def convert_tinydb_to_sqlite(source: Path, dest: Path | None = None) -> DataStor
         from tinydb.middlewares import CachingMiddleware
         from tinydb.storages import JSONStorage
     except ImportError as e:
+        msg = "You need to install tinydb to be able to migrate to new datastore."
         raise ImportError(
-            "You need to install tinydb to be able to migrate to new datastore.",
+            msg,
         ) from e
 
     source = Path(source)
@@ -837,8 +846,9 @@ def convert_tinydb_to_sqlite(source: Path, dest: Path | None = None) -> DataStor
 
     dest = dest or Path(source.parent) / f"{source.stem}.sqlitedb"
     if dest.exists():
+        msg = f"Destination file {dest!s} already exists. Delete or define new dest."
         raise OSError(
-            f"Destination file {dest!s} already exists. Delete or define new dest.",
+            msg,
         )
 
     LOGGER = CachingLogger(create_dir=True)
@@ -885,7 +895,7 @@ def make_record_for_json(identifier, data, completed):
         data = data.to_rich_dict()
 
     data = json.dumps(data)
-    return dict(identifier=identifier, data=data, completed=completed)
+    return {"identifier": identifier, "data": data, "completed": completed}
 
 
 def load_record_from_json(data):

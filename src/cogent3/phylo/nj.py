@@ -9,6 +9,7 @@ Biological sequence analysis by Durbin et al
 Generalised as described by Pearson, Robins & Zhang, 1999.
 """
 
+import contextlib
 from collections import deque
 
 import numpy
@@ -50,7 +51,7 @@ class PartialTree:
     increased as a new edge is introduced.
     """
 
-    def __init__(self, d, nodes, tips, score):
+    def __init__(self, d, nodes, tips, score) -> None:
         self.d = d
         self.nodes = nodes
         self.tips = tips
@@ -122,7 +123,7 @@ class Pair:
 
     __slots__ = ["i", "j", "new_partition", "topology", "tree"]
 
-    def __init__(self, tree, i, j, topology, new_partition):
+    def __init__(self, tree, i, j, topology, new_partition) -> None:
         self.tree = tree
         self.i = i
         self.j = j
@@ -171,10 +172,8 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
     Result:
         - a sorted list of (tree length, tree) tuples
     """
-    try:
+    with contextlib.suppress(AttributeError):
         dists = dists.to_dict()
-    except AttributeError:
-        pass
 
     (names, d) = distance_dict_to_2D(dists)
 
@@ -211,7 +210,7 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
     trees = [star_tree]
 
     # Progress display auxiliary code
-    template = " size %%s/%s  trees %%%si" % (len(names), len(str(all_keep)))
+    template = f" size %s/{len(names)}  trees %{len(str(all_keep))}i"
     total_work = 0
     max_candidates = 1
     total_work_before = {}
@@ -220,7 +219,7 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
         max_candidates = min(all_keep, max_candidates * L * (L - 1) // 2)
         total_work += max_candidates
 
-    def _show_progress():
+    def _show_progress() -> None:
         t = len(next_trees)
         work_done = total_work_before[L] + t
         ui.display(msg=template % (L, t), progress=work_done / total_work)

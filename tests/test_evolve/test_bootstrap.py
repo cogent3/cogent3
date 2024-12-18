@@ -21,8 +21,7 @@ def alignobj(DATA_DIR):
         moltype="dna",
     )
     aln = aln.take_seqs(seqnames)
-    aln = aln[:1000]
-    return aln
+    return aln[:1000]
 
 
 @pytest.fixture

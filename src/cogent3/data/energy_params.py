@@ -18,7 +18,7 @@ sequence is self-complementary (seq = Reverse Comp of seq)
 class EnergyParams:
     """A data structure to hold parameters used in energy calculations"""
 
-    def __init__(self, nearest_neighbor_vals, gc_init, at_init, sym_correct):
+    def __init__(self, nearest_neighbor_vals, gc_init, at_init, sym_correct) -> None:
         """Store the input params for later reference
 
         nearest_neighbor_vals: a dictionary or dictionary-castable object

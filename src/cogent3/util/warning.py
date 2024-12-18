@@ -6,7 +6,7 @@ from warnings import catch_warnings, simplefilter
 from warnings import warn as _warn
 
 
-def deprecated(_type, old, new, version, reason=None, stack_level=3):
+def deprecated(_type, old, new, version, reason=None, stack_level=3) -> None:
     """a convenience function for deprecating classes, functions, arguments.
 
     Parameters
@@ -33,7 +33,7 @@ def deprecated(_type, old, new, version, reason=None, stack_level=3):
         _warn(msg, DeprecationWarning, stacklevel=stack_level)
 
 
-def discontinued(_type, old, version, reason=None, stack_level=3):
+def discontinued(_type, old, version, reason=None, stack_level=3) -> None:
     """convenience func to warn about discontinued attributes
 
     Parameters
@@ -65,8 +65,8 @@ _discontinued = discontinued  # renamed to avoid name clash with discontinued ar
 def deprecated_args(
     version: str,
     reason: str,
-    old_new: Sequence[tuple[str, str]] = None,
-    discontinued: Sequence[str] = None,
+    old_new: Sequence[tuple[str, str]] | None = None,
+    discontinued: Sequence[str] | None = None,
     stack_level=2,
 ) -> Callable[..., Any]:
     """
@@ -210,13 +210,13 @@ def deprecated_callable(
             old = func.__qualname__.split(".")[-2]
             _type = "class"
 
-        params = dict(
-            _type=_type,
-            old=old,
-            version=version,
-            reason=reason,
-            stack_level=stack_level,
-        )
+        params = {
+            "_type": _type,
+            "old": old,
+            "version": version,
+            "reason": reason,
+            "stack_level": stack_level,
+        }
         if is_discontinued:
             depr_func = discontinued
         else:

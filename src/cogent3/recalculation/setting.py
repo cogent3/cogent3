@@ -16,7 +16,7 @@ class Setting:
                     adjusted_gt_minprob(self.value, minprob=1e-6),
                 )
             if value.ndim == 1:
-                value = {n: v for n, v in zip(names, value, strict=False)}
+                value = dict(zip(names, value, strict=False))
             else:
                 result = {}
                 for i, n1 in enumerate(names):
@@ -26,9 +26,9 @@ class Setting:
                 value = result
 
         if self.is_constant:
-            result = dict(value=value, is_constant=True)
+            result = {"value": value, "is_constant": True}
         else:
-            result = dict(init=value, lower=self.lower, upper=self.upper)
+            result = {"init": value, "lower": self.lower, "upper": self.upper}
         return result
 
 
@@ -36,7 +36,7 @@ class Var(Setting):
     # placeholder for a single optimiser parameter
     is_constant = False
 
-    def __init__(self, bounds=None):
+    def __init__(self, bounds=None) -> None:
         if bounds is None:
             bounds = (None, None, None)
         else:
@@ -49,10 +49,10 @@ class Var(Setting):
     def get_default_value(self):
         return self.value
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Var"  # short as in table
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         constraints = []
         for template, bound in [
             ("%s<", self.lower),
@@ -71,13 +71,13 @@ class ConstVal(Setting):
     is_constant = True
 
     # Val interface
-    def __init__(self, value):
+    def __init__(self, value) -> None:
         self.value = value
 
-    def __str__(self):
+    def __str__(self) -> str:
         return repr(self.value)  # short as in table
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"ConstVal({self.value!r})"
 
     # indep useful sometimes!

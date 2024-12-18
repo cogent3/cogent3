@@ -1,3 +1,4 @@
+import contextlib
 import json
 from collections import OrderedDict
 from collections.abc import MutableMapping
@@ -19,16 +20,17 @@ class generic_result(MutableMapping):
 
     _item_types = ()
 
-    def __init__(self, source):
+    def __init__(self, source) -> None:
         source = get_data_source(source)
-        if not isinstance(source, (str, Path)):
-            raise ValueError(f"Cannot infer source from type {type(source)}")
+        if not isinstance(source, str | Path):
+            msg = f"Cannot infer source from type {type(source)}"
+            raise ValueError(msg)
 
         self._store = {}
-        self._construction_kwargs = dict(source=source)
+        self._construction_kwargs = {"source": source}
         self.source = source
 
-    def __setitem__(self, key, val):
+    def __setitem__(self, key, val) -> None:
         if isinstance(val, dict):
             type_name = val.get("type", None)
             type_name = type_name or ""
@@ -55,16 +57,16 @@ class generic_result(MutableMapping):
     def __getitem__(self, key):
         return self._store[key]
 
-    def __delitem__(self, key):
+    def __delitem__(self, key) -> None:
         raise NotImplementedError
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._store)
 
     def __iter__(self):
         return iter(self._store)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         name = self.__class__.__name__
         num = len(self)
         types = [f"{k!r}: {self[k].__class__.__name__}" for k in self]
@@ -72,7 +74,7 @@ class generic_result(MutableMapping):
         types = ", ".join(types)
         return f"{num}x {name}({types})"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return repr(self)
 
     def keys(self):
@@ -87,10 +89,8 @@ class generic_result(MutableMapping):
         }
         items = []
         for key, val in self.items():
-            try:
+            with contextlib.suppress(AttributeError):
                 val = val.to_rich_dict()
-            except AttributeError:
-                pass
             items.append([key, val])
         result["items"] = items
         return result
@@ -99,7 +99,7 @@ class generic_result(MutableMapping):
         data = self.to_rich_dict()
         return json.dumps(data)
 
-    def deserialised_values(self):
+    def deserialised_values(self) -> None:
         """deserialises any cogent3 members"""
         from cogent3.util.deserialise import deserialise_object
 
@@ -132,18 +132,18 @@ class model_result(generic_result):
         nfp=None,
         DLC=None,
         unique_Q=None,
-    ):
-        super(model_result, self).__init__(source)
+    ) -> None:
+        super().__init__(source)
         if type(stat) == str:
             stat = eval(stat)
 
         self._construction_kwargs.update(
-            dict(
-                name=name,
-                stat=stat.__name__,
-                elapsed_time=elapsed_time,
-                num_evaluations=num_evaluations,
-            ),
+            {
+                "name": name,
+                "stat": stat.__name__,
+                "elapsed_time": elapsed_time,
+                "num_evaluations": num_evaluations,
+            },
         )
         self._store = {}
         self._name = name
@@ -171,7 +171,7 @@ class model_result(generic_result):
                 row = [repr(key), self[key].lnL, self[key].nfp, "", ""]
                 rows.append(row)
         else:
-            rows[0][0] = repr(list(self)[0])
+            rows[0][0] = repr(next(iter(self)))
 
         return Table(header=header, data=rows, title=self.name)
 
@@ -180,15 +180,15 @@ class model_result(generic_result):
         table.set_repr_policy(show_shape=False)
         return table._repr_html_()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         table = self._get_repr_data_()
         return repr(table)
 
-    def __setitem__(self, key, lf):
+    def __setitem__(self, key, lf) -> None:
         super(self.__class__, self).__setitem__(key, lf)
         self._init_stats()
 
-    def _init_stats(self):
+    def _init_stats(self) -> None:
         """reset the values for stat attr to None, triggers recalc in properties"""
         for attr in self._stat_attrs:
             setattr(self, f"_{attr}", None)
@@ -198,7 +198,7 @@ class model_result(generic_result):
         return self._num_evaluations
 
     @num_evaluations.setter
-    def num_evaluations(self, value):
+    def num_evaluations(self, value) -> None:
         value = int(value)
         self._num_evaluations = value
         self._construction_kwargs["num_evaluations"] = value
@@ -208,7 +208,7 @@ class model_result(generic_result):
         return self._elapsed_time
 
     @elapsed_time.setter
-    def elapsed_time(self, value):
+    def elapsed_time(self, value) -> None:
         self._elapsed_time = value
         self._construction_kwargs["elapsed_time"] = value
 
@@ -219,8 +219,7 @@ class model_result(generic_result):
     def simulate_alignment(self):
         self.deserialised_values()
         if len(self) == 1:
-            aln = self.lf.simulate_alignment()
-            return aln
+            return self.lf.simulate_alignment()
         # assume we have results from 3 codon positions
         sim = []
         seqnames = None
@@ -248,7 +247,7 @@ class model_result(generic_result):
         self.deserialised_values()
         self._init_stats()
         if len(self) == 1:
-            result = list(self.values())[0]
+            result = next(iter(self.values()))
             result.name = self.name
         else:
             result = OrderedDict()
@@ -290,7 +289,7 @@ class model_result(generic_result):
             DLC = []
             for v in self.values():
                 d = v.get("DLC") if isinstance(v, dict) else v.all_psubs_DLC()
-                DLC.append(d != False)
+                DLC.append(d is not False)
 
             self._DLC = all(DLC)
 
@@ -309,7 +308,7 @@ class model_result(generic_result):
                     except (NotImplementedError, KeyError):
                         # KeyError happens on discrete time model
                         u = None  # non-primary root issue
-                unique.append(u != False)
+                unique.append(u is not False)
 
             self._unique_Q = all(unique)
 
@@ -392,14 +391,14 @@ class model_collection_result(generic_result):
 
     _item_types = ("model_result",)
 
-    def __init__(self, name=None, source=None):
+    def __init__(self, name=None, source=None) -> None:
         """
         name : str
             name of this hypothesis
         source : str
             string describing source of the data, e.g. a path
         """
-        super(model_collection_result, self).__init__(source)
+        super().__init__(source)
         self._construction_kwargs.update({"name": name})
         self._name = name
 
@@ -411,16 +410,15 @@ class model_collection_result(generic_result):
             row = [repr(key)] + [getattr(member, a) for a in attrs]
             rows.append(row)
 
-        table = Table(header=["key"] + attrs, data=rows, title=self.name)
-        table = table.sorted(columns="nfp")
-        return table
+        table = Table(header=["key", *attrs], data=rows, title=self.name)
+        return table.sorted(columns="nfp")
 
     def _repr_html_(self):
         table = self._get_repr_data_()
         table.set_repr_policy(show_shape=False)
         return table._repr_html_()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if len(self) == 0:
             return f"{self.__class__.__name__}(name={self.name}, source={self.source})"
 
@@ -515,13 +513,13 @@ class hypothesis_result(model_collection_result):
     _item_types = ("model_result",)
 
     @extend_docstring_from(model_collection_result.__init__, pre=True)
-    def __init__(self, name_of_null, name=None, source=None):
+    def __init__(self, name_of_null, name=None, source=None) -> None:
         """
         name_of_null
             key for the null hypothesis
         """
-        super(hypothesis_result, self).__init__(name=name, source=source)
-        self._construction_kwargs.update(dict(name_of_null=name_of_null))
+        super().__init__(name=name, source=source)
+        self._construction_kwargs.update({"name_of_null": name_of_null})
 
         self._name_of_null = name_of_null
 
@@ -537,7 +535,7 @@ class hypothesis_result(model_collection_result):
             row = status_name + [getattr(member, a) for a in attrs]
             rows.append(row)
 
-        table = Table(header=["hypothesis", "key"] + attrs, data=rows, title=self.name)
+        table = Table(header=["hypothesis", "key", *attrs], data=rows, title=self.name)
         table = table.sorted(columns="nfp")
         table.set_repr_policy(show_shape=False)
         stats = [[self.LR, self.df, self.pvalue]]
@@ -562,7 +560,7 @@ class hypothesis_result(model_collection_result):
         result = [t._repr_html_() for t in (stats, table)]
         return "\n".join(result)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if len(self) == 0:
             return f"{self.__class__.__name__}(name={self.name}, source={self.source})"
 
@@ -612,8 +610,8 @@ class hypothesis_result(model_collection_result):
 class bootstrap_result(generic_result):
     _item_types = ("hypothesis_result", "model_collection_result")
 
-    def __init__(self, source=None):
-        super(bootstrap_result, self).__init__(source)
+    def __init__(self, source=None) -> None:
+        super().__init__(source)
 
     @property
     def observed(self):
@@ -621,10 +619,10 @@ class bootstrap_result(generic_result):
         return self["observed"]
 
     @observed.setter
-    def observed(self, data):
-        self.update(dict(observed=data))
+    def observed(self, data) -> None:
+        self.update({"observed": data})
 
-    def add_to_null(self, data):
+    def add_to_null(self, data) -> None:
         """add results for a synthetic data set"""
         size = len(self)
         self[size + 1] = data
@@ -648,5 +646,5 @@ class tabular_result(generic_result):
         "DistanceMatrix",
     )
 
-    def __init__(self, source=None):
-        super(tabular_result, self).__init__(source)
+    def __init__(self, source=None) -> None:
+        super().__init__(source)

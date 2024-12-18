@@ -51,12 +51,12 @@ _seqs4 = {
 _seqs5 = {"Human": "ASSLQHENSSLLLT", "Bandicoot": "XSLMLETSSLLSN"}
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def _seqs1_collection():
     return make_unaligned_seqs(data=_seqs1, moltype="dna")
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def _seqs2_collection():
     return make_unaligned_seqs(data=_seqs2, moltype="dna")
 
@@ -94,20 +94,20 @@ class FastSlowDistTests(TestCase):
         """tests if fast_slow_dist can be initialised correctly"""
 
         fast_slow_dist = get_app("fast_slow_dist", fast_calc="hamming", moltype="dna")
-        self.assertIsInstance(fast_slow_dist.fast_calc, HammingPair)
-        self.assertIsNone(fast_slow_dist._sm)
+        assert isinstance(fast_slow_dist.fast_calc, HammingPair)
+        assert fast_slow_dist._sm is None
 
         fast_slow_dist = get_app("fast_slow_dist", distance="TN93")
-        self.assertIsInstance(fast_slow_dist.fast_calc, TN93Pair)
-        self.assertEqual(fast_slow_dist._sm.name, "TN93")
+        assert isinstance(fast_slow_dist.fast_calc, TN93Pair)
+        assert fast_slow_dist._sm.name == "TN93"
         fast_slow_dist = get_app("fast_slow_dist", distance="GTR")
-        self.assertEqual(fast_slow_dist._sm.name, "GTR")
+        assert fast_slow_dist._sm.name == "GTR"
 
         fast_slow_dist = get_app("fast_slow_dist", slow_calc="TN93")
-        self.assertEqual(fast_slow_dist._sm.name, "TN93")
-        self.assertIsNone(fast_slow_dist.fast_calc)
+        assert fast_slow_dist._sm.name == "TN93"
+        assert fast_slow_dist.fast_calc is None
 
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             fast_slow_dist = get_app(
                 "fast_slow_dist",
                 distance="TN93",
@@ -115,31 +115,31 @@ class FastSlowDistTests(TestCase):
                 slow_calc="TN93",
             )
 
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             fast_slow_dist = get_app("fast_slow_dist", fast_calc="GTR")
 
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             fast_slow_dist = get_app("fast_slow_dist", slow_calc="hamming")
 
     def test_compatible_parameters(self):
         """tests if the input parameters are compatible with fast_slow_dist initialisation"""
         for kwargs in (
-            dict(fast_calc="hamming", moltype="dna"),
-            dict(fast_calc="TN93"),
-            dict(slow_calc="GTR"),
-            dict(fast_calc="TN93"),
+            {"fast_calc": "hamming", "moltype": "dna"},
+            {"fast_calc": "TN93"},
+            {"slow_calc": "GTR"},
+            {"fast_calc": "TN93"},
         ):
             _ = get_app("fast_slow_dist", **kwargs)
 
     def test_incompatible_parameters(self):
         """tests incompatible input parameters with fast_slow_dist initialisation"""
         for kwargs in (
-            dict(fast_calc="hamming"),
-            dict(slow_calc="paralinear"),
-            dict(fast_calc="GTR"),
-            dict(slow_calc="hamming", moltype="dna"),
+            {"fast_calc": "hamming"},
+            {"slow_calc": "paralinear"},
+            {"fast_calc": "GTR"},
+            {"slow_calc": "hamming", "moltype": "dna"},
         ):
-            with self.assertRaises(ValueError):
+            with pytest.raises(ValueError):
                 _ = get_app("fast_slow_dist", **kwargs)
 
     def test_composable_apps(self):
@@ -152,11 +152,11 @@ class FastSlowDistTests(TestCase):
                 continue
             # Compose two composable applications, there should not be exceptions.
             got = app + calc_dist
-            self.assertIsInstance(got, type(calc_dist))
-            self.assertIs(got.input, app)
-            self.assertIsInstance(got._data_types, frozenset)
-            self.assertIsInstance(got._return_types, frozenset)
-            self.assertIs(got.input, app)
+            assert isinstance(got, type(calc_dist))
+            assert got.input is app
+            assert isinstance(got._data_types, frozenset)
+            assert isinstance(got._return_types, frozenset)
+            assert got.input is app
             app.disconnect()
             calc_dist.disconnect()
 
@@ -169,11 +169,11 @@ class FastSlowDistTests(TestCase):
         fast_slow_dist = get_app("fast_slow_dist", slow_calc="GTR")
         got = fast_slow_dist(aln3)
         assert_allclose(got.to_dict()[("Human", "Mouse")], got[("Mouse", "Human")])
-        self.assertTrue(got[("Mouse", "Human")] >= 0)
+        assert got["Mouse", "Human"] >= 0
         fast_slow_dist = get_app("fast_slow_dist", slow_calc="TN93")
         got = fast_slow_dist(aln3).to_dict()
         assert_allclose(got[("Human", "Mouse")], got[("Mouse", "Human")])
-        self.assertTrue(got[("Mouse", "Human")] >= 0)
+        assert got["Mouse", "Human"] >= 0
 
         aligner = get_app("align_to_ref", ref_seq="Human")
         aln3 = aligner(self.seqs3)
@@ -183,16 +183,16 @@ class FastSlowDistTests(TestCase):
         fast_slow_dist = get_app("fast_slow_dist", slow_calc="TN93")
         got = fast_slow_dist(aln3).to_dict()
         assert_allclose(got[("Human", "Mouse")], got[("Mouse", "Human")])
-        self.assertTrue(got[("Mouse", "Human")] >= 0)
+        assert got["Mouse", "Human"] >= 0
 
         aligner = get_app("align_to_ref", ref_seq="Mouse")
         aln3 = aligner(self.seqs3)
         fast_slow_dist = get_app("fast_slow_dist", slow_calc="GTR")
         got = fast_slow_dist(aln3).to_dict()
-        self.assertTrue(got[("Mouse", "Human")] >= 0)
+        assert got["Mouse", "Human"] >= 0
         fast_slow_dist = get_app("fast_slow_dist", slow_calc="TN93")
         got = fast_slow_dist(aln3).to_dict()
-        self.assertTrue(got[("Mouse", "Human")] >= 0)
+        assert got["Mouse", "Human"] >= 0
 
         aligner = get_app(
             "align_to_ref",
@@ -200,35 +200,35 @@ class FastSlowDistTests(TestCase):
         aln3 = aligner(self.seqs4)
         fast_slow_dist = get_app("fast_slow_dist", slow_calc="GTR")
         got = fast_slow_dist(aln3).to_dict()
-        self.assertTrue(got[("Human", "Opossum")] >= 0)
+        assert got["Human", "Opossum"] >= 0
         fast_slow_dist = get_app("fast_slow_dist", slow_calc="TN93")
         got = fast_slow_dist(aln3).to_dict()
-        self.assertTrue(got[("Human", "Opossum")] >= 0)
+        assert got["Human", "Opossum"] >= 0
 
         aligner = get_app("align_to_ref", ref_seq="Human")
         aln3 = aligner(self.seqs4)
         fast_slow_dist = get_app("fast_slow_dist", slow_calc="GTR")
         got = fast_slow_dist(aln3).to_dict()
-        self.assertTrue(got[("Human", "Opossum")] >= 0)
+        assert got["Human", "Opossum"] >= 0
         fast_slow_dist = get_app("fast_slow_dist", slow_calc="TN93")
         got = fast_slow_dist(aln3).to_dict()
-        self.assertTrue(got[("Human", "Opossum")] >= 0)
+        assert got["Human", "Opossum"] >= 0
 
         aligner = get_app("align_to_ref", ref_seq="Opossum")
         aln3 = aligner(self.seqs4)
         fast_slow_dist = get_app("fast_slow_dist", slow_calc="GTR")
         got = fast_slow_dist(aln3).to_dict()
-        self.assertTrue(got[("Human", "Opossum")] >= 0)
+        assert got["Human", "Opossum"] >= 0
         fast_slow_dist = get_app("fast_slow_dist", slow_calc="TN93")
         got = fast_slow_dist(aln3).to_dict()
-        self.assertTrue(got[("Human", "Opossum")] >= 0)
+        assert got["Human", "Opossum"] >= 0
 
         # now as a process
         proc = get_app(
             "align_to_ref",
         ) + get_app("fast_slow_dist", fast_calc="hamming", moltype="dna")
         got = proc(self.seqs1)
-        self.assertEqual(got[("Human", "Rhesus")], 1)
+        assert got["Human", "Rhesus"] == 1
 
         treestring = "(Human:0.2,Bandicoot:0.2)"
         aligner = get_app("progressive_align", model="WG01", guide_tree=treestring)
@@ -255,10 +255,10 @@ class FastSlowDistTests(TestCase):
             proc = loader + dist + writer
             _ = proc("data/brca1_5.paml")
             output = dirname / "brca1_5.tsv"
-            self.assertTrue(output.exists())
+            assert output.exists()
 
 
-@pytest.mark.parametrize("moltype", ("dna", "rna"))
+@pytest.mark.parametrize("moltype", ["dna", "rna"])
 def test_jaccard_dist(moltype):
     """jaccard_dist app should work for the simple case
 
@@ -275,7 +275,7 @@ def test_jaccard_dist(moltype):
     J(s1, s2) = 1 - 3 / 5
     J(s1, s2) = 0.4
     """
-    data = dict([("s1", "ACGTA"), ("s2", "ACGTC")])
+    data = {"s1": "ACGTA", "s2": "ACGTC"}
     collection = make_unaligned_seqs(data=data, moltype=moltype)
 
     jdist_k2 = jaccard_dist(k=2)
@@ -293,14 +293,7 @@ def test_approx_pdist():
     y = polyval(JACCARD_PDIST_POLY_COEFFS, x)
     """
 
-    data = dict(
-        [
-            (("s1", "s1"), 0.0),
-            (("s1", "s2"), 0.4),
-            (("s2", "s1"), 0.4),
-            (("s2", "s2"), 0.0),
-        ],
-    )
+    data = {("s1", "s1"): 0.0, ("s1", "s2"): 0.4, ("s2", "s1"): 0.4, ("s2", "s2"): 0.0}
     dm = DistanceMatrix(data)
 
     pdist_app = approx_pdist()
@@ -315,21 +308,19 @@ def test_approx_pdist():
     assert pdists[("s2", "s2")] == expect_same
 
 
-@pytest.mark.parametrize("moltype", ("dna", "rna"))
+@pytest.mark.parametrize("moltype", ["dna", "rna"])
 def test_approx_jc69(moltype):
     """approx_jc69 should work the same as exact jc69 when given exact pdist"""
-    seq_data = dict([("s1", "ACGAA"), ("s2", "ACGAC")])
+    seq_data = {"s1": "ACGAA", "s2": "ACGAC"}
     aln = make_aligned_seqs(data=seq_data, moltype=moltype)
     expected = aln.distance_matrix(calc="jc69")
 
-    data = dict(
-        [
-            (("s1", "s1"), 0.0),
-            (("s1", "s2"), 1 / 5),
-            (("s2", "s1"), 1 / 5),
-            (("s2", "s2"), 0.0),
-        ],
-    )
+    data = {
+        ("s1", "s1"): 0.0,
+        ("s1", "s2"): 1 / 5,
+        ("s2", "s1"): 1 / 5,
+        ("s2", "s2"): 0.0,
+    }
 
     dm = DistanceMatrix(data)
     jc_dist_app = approx_jc69()
@@ -341,7 +332,7 @@ def test_approx_jc69(moltype):
     assert_allclose(got[("s2", "s2")], expected[("s2", "s2")])
 
 
-@pytest.mark.parametrize("moltype", ("dna", "rna"))
+@pytest.mark.parametrize("moltype", ["dna", "rna"])
 def test_approx_pdist_same_diff(moltype):
     """comparisons between seqs with the same position different should be equal.
     comparison between seqs with more positions different should yield a higher
@@ -356,14 +347,7 @@ def test_approx_pdist_same_diff(moltype):
     ("s4", "---AT"),
     """
 
-    data = dict(
-        [
-            ("s1", "ACGTA"),
-            ("s2", "ACGTC"),
-            ("s3", "ACGTT"),
-            ("s4", "ACGAT"),
-        ],
-    )
+    data = {"s1": "ACGTA", "s2": "ACGTC", "s3": "ACGTT", "s4": "ACGAT"}
     pdist_app = jaccard_dist(k=3) + approx_pdist()
     collection = make_unaligned_seqs(data=data, moltype="text")
     collection = collection.to_moltype(moltype)

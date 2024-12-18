@@ -22,7 +22,7 @@ def test(r=1, **kw):
     try:
         # return_alignment is False in order to emphasise the quadratic part of
         # the work.
-        aln = classic_align_pairwise(
+        classic_align_pairwise(
             seq1,
             seq2,
             S,
@@ -44,8 +44,5 @@ if __name__ == "__main__":
     e = 1
     options = [(False, False), (True, False), (False, True)]
     template = "%10s " * 4
-    print("               1000s positions^2 per second")
-    print(template % ("length", "simple", "logs", "scaled"))
     for r in [100, 200, 300, 400, 500]:
         times = [test(r, use_logs=l, use_scaling=s) for (l, s) in options]
-        print(template % tuple([r * 10] + times))

@@ -193,11 +193,14 @@ def dist_bray_curtis(datamtx, strict=True):
     """
     if strict:
         if not all(isfinite(datamtx)):
-            raise ValueError("non finite number in input matrix")
+            msg = "non finite number in input matrix"
+            raise ValueError(msg)
         if any(datamtx < 0.0):
-            raise ValueError("negative value in input matrix")
+            msg = "negative value in input matrix"
+            raise ValueError(msg)
         if rank(datamtx) != 2:
-            raise ValueError("input matrix not 2D")
+            msg = "input matrix not 2D"
+            raise ValueError(msg)
         numrows, numcols = shape(datamtx)
     else:
         try:
@@ -249,11 +252,14 @@ def dist_bray_curtis_magurran(datamtx, strict=True):
     """
     if strict:
         if not numpy.all(numpy.isfinite(datamtx)):
-            raise ValueError("non finite number in input matrix")
+            msg = "non finite number in input matrix"
+            raise ValueError(msg)
         if numpy.any(datamtx < 0.0):
-            raise ValueError("negative value in input matrix")
+            msg = "negative value in input matrix"
+            raise ValueError(msg)
         if rank(datamtx) != 2:
-            raise ValueError("input matrix not 2D")
+            msg = "input matrix not 2D"
+            raise ValueError(msg)
         numrows, numcols = numpy.shape(datamtx)
     else:
         try:
@@ -305,11 +311,14 @@ def dist_canberra(datamtx, strict=True):
     """
     if strict:
         if not all(isfinite(datamtx)):
-            raise ValueError("non finite number in input matrix")
+            msg = "non finite number in input matrix"
+            raise ValueError(msg)
         if any(datamtx < 0.0):
-            raise ValueError("negative value in input matrix")
+            msg = "negative value in input matrix"
+            raise ValueError(msg)
         if rank(datamtx) != 2:
-            raise ValueError("input matrix not 2D")
+            msg = "input matrix not 2D"
+            raise ValueError(msg)
         numrows, numcols = shape(datamtx)
     else:
         try:
@@ -362,11 +371,14 @@ def dist_chisq(datamtx, strict=True):
     """
     if strict:
         if not all(isfinite(datamtx)):
-            raise ValueError("non finite number in input matrix")
+            msg = "non finite number in input matrix"
+            raise ValueError(msg)
         if any(datamtx < 0.0):
-            raise ValueError("negative value in input matrix")
+            msg = "negative value in input matrix"
+            raise ValueError(msg)
         if rank(datamtx) != 2:
-            raise ValueError("input matrix not 2D")
+            msg = "input matrix not 2D"
+            raise ValueError(msg)
         numrows, numcols = shape(datamtx)
     else:
         try:
@@ -390,10 +402,7 @@ def dist_chisq(datamtx, strict=True):
             r2 = datamtx[j]
             r2sum = rowsums[j]
             if r1sum == 0.0 or r2sum == 0.0:
-                if r1sum == 0.0 and r2sum == 0.0:
-                    dist = 0.0
-                else:
-                    dist = 1.0
+                dist = 0.0 if r1sum == 0.0 and r2sum == 0.0 else 1.0
             else:
                 dist = sqrt_grand_sum * sqrt(
                     sum(multiply((1.0 / colsums), square(r1 / r1sum - r2 / r2sum))),
@@ -423,9 +432,11 @@ def dist_chord(datamtx, strict=True):
     """
     if strict:
         if not all(isfinite(datamtx)):
-            raise ValueError("non finite number in input matrix")
+            msg = "non finite number in input matrix"
+            raise ValueError(msg)
         if rank(datamtx) != 2:
-            raise ValueError("input matrix not 2D")
+            msg = "input matrix not 2D"
+            raise ValueError(msg)
         numrows, numcols = shape(datamtx)
     else:
         try:
@@ -443,10 +454,7 @@ def dist_chord(datamtx, strict=True):
             r2 = datamtx[j]
             r2norm = norm(r2)
             if r1norm == 0.0 or r2norm == 0.0:
-                if r1norm == 0.0 and r2norm == 0.0:
-                    dist = 0.0
-                else:
-                    dist = 1.0
+                dist = 0.0 if r1norm == 0.0 and r2norm == 0.0 else 1.0
             else:
                 dist = norm(r1 / r1norm - r2 / r2norm)
             dists[i, j] = dists[j, i] = dist
@@ -472,9 +480,11 @@ def dist_euclidean(datamtx, strict=True):
     datamtx = asarray(datamtx, "d")
     if strict:
         if not all(isfinite(datamtx)):
-            raise ValueError("non finite number in input matrix")
+            msg = "non finite number in input matrix"
+            raise ValueError(msg)
         if rank(datamtx) != 2:
-            raise ValueError("input matrix not 2D")
+            msg = "input matrix not 2D"
+            raise ValueError(msg)
         numrows, numcols = shape(datamtx)
     else:
         try:
@@ -489,7 +499,8 @@ def dist_euclidean(datamtx, strict=True):
         for c in range(r):
             dist = norm(datamtx[r] - datamtx[c])
             if isnan(dist):
-                raise RuntimeError("ERROR: overflow when computing euclidean distance")
+                msg = "ERROR: overflow when computing euclidean distance"
+                raise RuntimeError(msg)
             dists[r, c] = dists[c, r] = dist
 
     return dists
@@ -519,9 +530,11 @@ def dist_gower(datamtx, strict=True):
     """
     if strict:
         if not all(isfinite(datamtx)):
-            raise ValueError("non finite number in input matrix")
+            msg = "non finite number in input matrix"
+            raise ValueError(msg)
         if rank(datamtx) != 2:
-            raise ValueError("input matrix not 2D")
+            msg = "input matrix not 2D"
+            raise ValueError(msg)
         numrows, numcols = shape(datamtx)
     else:
         try:
@@ -565,11 +578,14 @@ def dist_hellinger(datamtx, strict=True):
     """
     if strict:
         if not all(isfinite(datamtx)):
-            raise ValueError("non finite number in input matrix")
+            msg = "non finite number in input matrix"
+            raise ValueError(msg)
         if any(datamtx < 0.0):
-            raise ValueError("negative value in input matrix")
+            msg = "negative value in input matrix"
+            raise ValueError(msg)
         if rank(datamtx) != 2:
-            raise ValueError("input matrix not 2D")
+            msg = "input matrix not 2D"
+            raise ValueError(msg)
         numrows, numcols = shape(datamtx)
     else:
         try:
@@ -587,10 +603,7 @@ def dist_hellinger(datamtx, strict=True):
             r2 = datamtx[j]
             r2sum = sum(r2)
             if r1sum == 0.0 or r2sum == 0.0:
-                if r1sum == 0.0 and r2sum == 0.0:
-                    dist = 0.0
-                else:
-                    dist = 1.0
+                dist = 0.0 if r1sum == 0.0 and r2sum == 0.0 else 1.0
             else:
                 dist = norm(sqrt(r1 / r1sum) - sqrt(r2 / r2sum))
             dists[i, j] = dists[j, i] = dist
@@ -620,11 +633,14 @@ def dist_kulczynski(datamtx, strict=True):
     """
     if strict:
         if not all(isfinite(datamtx)):
-            raise ValueError("non finite number in input matrix")
+            msg = "non finite number in input matrix"
+            raise ValueError(msg)
         if any(datamtx < 0.0):
-            raise ValueError("negative value in input matrix")
+            msg = "negative value in input matrix"
+            raise ValueError(msg)
         if rank(datamtx) != 2:
-            raise ValueError("input matrix not 2D")
+            msg = "input matrix not 2D"
+            raise ValueError(msg)
         numrows, numcols = shape(datamtx)
     else:
         try:
@@ -681,9 +697,11 @@ def dist_manhattan(datamtx, strict=True):
 
     if strict:
         if not all(isfinite(datamtx)):
-            raise ValueError("non finite number in input matrix")
+            msg = "non finite number in input matrix"
+            raise ValueError(msg)
         if rank(datamtx) != 2:
-            raise ValueError("input matrix not 2D")
+            msg = "input matrix not 2D"
+            raise ValueError(msg)
         numrows, numcols = shape(datamtx)
     else:
         try:
@@ -695,10 +713,7 @@ def dist_manhattan(datamtx, strict=True):
         return zeros((0, 0), "d")
     dists = zeros((numrows, numrows), "d")
 
-    if datamtx.dtype == "bool":
-        diff = bool_diff
-    else:
-        diff = number_diff
+    diff = bool_diff if datamtx.dtype == "bool" else number_diff
 
     for i in range(numrows):
         r1 = datamtx[i]  # cache here
@@ -736,11 +751,14 @@ def dist_abund_jaccard(datamtx, strict=True):
     """
     if strict:
         if not all(isfinite(datamtx)):
-            raise ValueError("non finite number in input matrix")
+            msg = "non finite number in input matrix"
+            raise ValueError(msg)
         if any(datamtx < 0.0):
-            raise ValueError("negative value in input matrix")
+            msg = "negative value in input matrix"
+            raise ValueError(msg)
         if rank(datamtx) != 2:
-            raise ValueError("input matrix not 2D")
+            msg = "input matrix not 2D"
+            raise ValueError(msg)
         numrows, numcols = shape(datamtx)
     else:
         try:
@@ -771,10 +789,7 @@ def dist_abund_jaccard(datamtx, strict=True):
                 u = sum(row1[shared]) / N1
                 v = sum(row2[shared]) / N2
                 # Verified by graphical inspection
-                if u == 0.0 and v == 0.0:
-                    similarity = 0.0
-                else:
-                    similarity = (u * v) / (u + v - (u * v))
+                similarity = 0.0 if u == 0.0 and v == 0.0 else u * v / (u + v - u * v)
 
             dists[i][j] = dists[j][i] = 1 - similarity
     return dists
@@ -802,11 +817,14 @@ def dist_morisita_horn(datamtx, strict=True):
     """
     if strict:
         if not all(isfinite(datamtx)):
-            raise ValueError("non finite number in input matrix")
+            msg = "non finite number in input matrix"
+            raise ValueError(msg)
         if any(datamtx < 0.0):
-            raise ValueError("negative value in input matrix")
+            msg = "negative value in input matrix"
+            raise ValueError(msg)
         if rank(datamtx) != 2:
-            raise ValueError("input matrix not 2D")
+            msg = "input matrix not 2D"
+            raise ValueError(msg)
         numrows, numcols = shape(datamtx)
     else:
         try:
@@ -875,9 +893,11 @@ def dist_pearson(datamtx, strict=True):
     """
     if strict:
         if not all(isfinite(datamtx)):
-            raise ValueError("non finite number in input matrix")
+            msg = "non finite number in input matrix"
+            raise ValueError(msg)
         if rank(datamtx) != 2:
-            raise ValueError("input matrix not 2D")
+            msg = "input matrix not 2D"
+            raise ValueError(msg)
         numrows, numcols = shape(datamtx)
     else:
         try:
@@ -937,11 +957,14 @@ def dist_soergel(datamtx, strict=True):
     """
     if strict:
         if not all(isfinite(datamtx)):
-            raise ValueError("non finite number in input matrix")
+            msg = "non finite number in input matrix"
+            raise ValueError(msg)
         if any(datamtx < 0.0):
-            raise ValueError("negative value in input matrix")
+            msg = "negative value in input matrix"
+            raise ValueError(msg)
         if rank(datamtx) != 2:
-            raise ValueError("input matrix not 2D")
+            msg = "input matrix not 2D"
+            raise ValueError(msg)
         numrows, numcols = shape(datamtx)
     else:
         try:
@@ -958,10 +981,7 @@ def dist_soergel(datamtx, strict=True):
             r2 = datamtx[j, :]
             top = float(sum(abs(r1 - r2)))
             bot = float(sum(where(r1 > r2, r1, r2)))
-            if bot <= 0.0:
-                cur_d = 0.0
-            else:
-                cur_d = top / bot
+            cur_d = 0.0 if bot <= 0.0 else top / bot
             dists[i][j] = dists[j][i] = cur_d
     return dists
 
@@ -990,12 +1010,15 @@ def dist_spearman_approx(datamtx, strict=True):
     """
     if strict:
         if not all(isfinite(datamtx)):
-            raise ValueError("non finite number in input matrix")
+            msg = "non finite number in input matrix"
+            raise ValueError(msg)
         if rank(datamtx) != 2:
-            raise ValueError("input matrix not 2D")
+            msg = "input matrix not 2D"
+            raise ValueError(msg)
         numrows, numcols = shape(datamtx)
         if numcols < 2:
-            raise ValueError("input matrix has < 2 colunms")
+            msg = "input matrix has < 2 colunms"
+            raise ValueError(msg)
     else:
         try:
             numrows, numcols = shape(datamtx)
@@ -1041,11 +1064,14 @@ def dist_specprof(datamtx, strict=True):
     """
     if strict:
         if not all(isfinite(datamtx)):
-            raise ValueError("non finite number in input matrix")
+            msg = "non finite number in input matrix"
+            raise ValueError(msg)
         if any(datamtx < 0.0):
-            raise ValueError("negative value in input matrix")
+            msg = "negative value in input matrix"
+            raise ValueError(msg)
         if rank(datamtx) != 2:
-            raise ValueError("input matrix not 2D")
+            msg = "input matrix not 2D"
+            raise ValueError(msg)
         numrows, numcols = shape(datamtx)
     else:
         try:
@@ -1063,10 +1089,7 @@ def dist_specprof(datamtx, strict=True):
             r2 = datamtx[j]
             r2sum = sum(r2)
             if r1sum == 0.0 or r2sum == 0.0:
-                if r1sum == 0.0 and r2sum == 0.0:
-                    dist = 0.0
-                else:
-                    dist = 1.0
+                dist = 0.0 if r1sum == 0.0 and r2sum == 0.0 else 1.0
             else:
                 dist = norm((r1 / r1sum) - (r2 / r2sum))
             dists[i, j] = dists[j, i] = dist
@@ -1147,11 +1170,14 @@ def binary_dist_sorensen_dice(datamtx, strict=True):
     datamtx = datamtx.astype(float)
     if strict:
         if not all(isfinite(datamtx)):
-            raise ValueError("non finite number in input matrix")
+            msg = "non finite number in input matrix"
+            raise ValueError(msg)
         if any(datamtx < 0.0):
-            raise ValueError("negative value in input matrix")
+            msg = "negative value in input matrix"
+            raise ValueError(msg)
         if rank(datamtx) != 2:
-            raise ValueError("input matrix not 2D")
+            msg = "input matrix not 2D"
+            raise ValueError(msg)
         numrows, numcols = shape(datamtx)
     else:
         try:
@@ -1216,11 +1242,14 @@ def binary_dist_hamming(datamtx, strict=True):
     datamtx = datamtx.astype(float)
     if strict:
         if not all(isfinite(datamtx)):
-            raise ValueError("non finite number in input matrix")
+            msg = "non finite number in input matrix"
+            raise ValueError(msg)
         if any(datamtx < 0.0):
-            raise ValueError("negative value in input matrix")
+            msg = "negative value in input matrix"
+            raise ValueError(msg)
         if rank(datamtx) != 2:
-            raise ValueError("input matrix not 2D")
+            msg = "input matrix not 2D"
+            raise ValueError(msg)
         numrows, numcols = shape(datamtx)
     else:
         try:
@@ -1252,7 +1281,8 @@ T = Union[set, frozenset, numpy.ndarray]
 def jaccard(x: T, y: T) -> float:
     """Jaccard distance between two sets is a measure of similarity between two sets (or two ndarrays)
     (0) identical, (1) dissimilar"""
-    raise NotImplementedError(f"jaccard distance not implemented for {type(x)}")
+    msg = f"jaccard distance not implemented for {type(x)}"
+    raise NotImplementedError(msg)
 
 
 @jaccard.register
@@ -1306,11 +1336,14 @@ def binary_dist_lennon(datamtx, strict=True):
     datamtx = datamtx.astype(float)
     if strict:
         if not all(isfinite(datamtx)):
-            raise ValueError("non finite number in input matrix")
+            msg = "non finite number in input matrix"
+            raise ValueError(msg)
         if any(datamtx < 0.0):
-            raise ValueError("negative value in input matrix")
+            msg = "negative value in input matrix"
+            raise ValueError(msg)
         if rank(datamtx) != 2:
-            raise ValueError("input matrix not 2D")
+            msg = "input matrix not 2D"
+            raise ValueError(msg)
         numrows, numcols = shape(datamtx)
     else:
         try:
@@ -1370,11 +1403,14 @@ def binary_dist_ochiai(datamtx, strict=True):
     datamtx = datamtx.astype(float)
     if strict:
         if not all(isfinite(datamtx)):
-            raise ValueError("non finite number in input matrix")
+            msg = "non finite number in input matrix"
+            raise ValueError(msg)
         if any(datamtx < 0.0):
-            raise ValueError("negative value in input matrix")
+            msg = "negative value in input matrix"
+            raise ValueError(msg)
         if rank(datamtx) != 2:
-            raise ValueError("input matrix not 2D")
+            msg = "input matrix not 2D"
+            raise ValueError(msg)
         numrows, numcols = shape(datamtx)
     else:
         try:
@@ -1431,5 +1467,3 @@ if __name__ == "__main__":
     )
 
     res = dist_euclidean(matrix1)
-    print("euclidean distance result: \n")
-    print(res)

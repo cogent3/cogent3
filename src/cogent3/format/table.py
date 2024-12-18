@@ -7,6 +7,7 @@ Current formats include restructured text (keyed by 'rest'), latex, html,
 columns separated by a provided string, and a simple text format.
 """
 
+import contextlib
 import re
 import textwrap
 from xml.sax.saxutils import escape
@@ -28,25 +29,7 @@ known_formats = (
     "tsv",
 )
 
-css_c3table_template = "\n".join(
-    (
-        ".c3table table {margin: 10px 0;}",
-        ".c3table tr:last-child {border-bottom: 1px solid #000;} ",
-        ".c3table tr > th {text-align: left; padding: 0 5px;}",
-        ".c3table tr > td {text-align: left; padding: 5px;}",
-        ".c3table tr:nth-child(even) {background: #f7f7f7 !important;}",
-        ".c3table .ellipsis {background: rgba(0, 0, 0, .01);}",
-        ".c3table .index {background: %(colour)s; margin: 10px; font-weight: 600;}",
-        ".c3table .head_cell {background: %(head_colour)s; font-weight: bold; text-align: center;}",
-        ".c3table caption {color: rgb(250, 250, 250); background: "
-        "rgba(30, 140, 200, 1); padding: 3px; white-space: nowrap; "
-        "caption-side: top;}",
-        ".c3table .cell_title {font-weight: bold;}",
-        ".c3col_left { text-align: left !important; display: block;}",
-        ".c3col_right { text-align: right !important; display: block;}",
-        ".c3col_center { text-align: center !important; display: block;}",
-    ),
-)
+css_c3table_template = ".c3table table {margin: 10px 0;}\n.c3table tr:last-child {border-bottom: 1px solid #000;} \n.c3table tr > th {text-align: left; padding: 0 5px;}\n.c3table tr > td {text-align: left; padding: 5px;}\n.c3table tr:nth-child(even) {background: #f7f7f7 !important;}\n.c3table .ellipsis {background: rgba(0, 0, 0, .01);}\n.c3table .index {background: %(colour)s; margin: 10px; font-weight: 600;}\n.c3table .head_cell {background: %(head_colour)s; font-weight: bold; text-align: center;}\n.c3table caption {color: rgb(250, 250, 250); background: rgba(30, 140, 200, 1); padding: 3px; white-space: nowrap; caption-side: top;}\n.c3table .cell_title {font-weight: bold;}\n.c3col_left { text-align: left !important; display: block;}\n.c3col_right { text-align: right !important; display: block;}\n.c3col_center { text-align: center !important; display: block;}"
 
 
 def _merged_cell_text_wrap(text, max_line_length, space):
@@ -61,8 +44,7 @@ def _merged_cell_text_wrap(text, max_line_length, space):
         initial_indent=buffer,
         subsequent_indent=buffer,
     )
-    wrapped = [f"{line.ljust(max_line_width + 2 * space)}" for line in wrapped]
-    return wrapped
+    return [f"{line.ljust(max_line_width + 2 * space)}" for line in wrapped]
 
 
 def _merge_cells(row):
@@ -131,23 +113,20 @@ def rich_html(
 
     if row_cell_func is None:
 
-        def row_cell_func(v, r, c):
+        def row_cell_func(v, r, c) -> str:
             return f"<td>{v}</td>"
 
     if header_cell_func is None:
 
-        def header_cell_func(v, c):
+        def header_cell_func(v, c) -> str:
             return f"<th>{v}</th>"
 
-    if merge_identical:
-        row_iterator = _merge_cells
-    else:
-        row_iterator = enumerate
+    row_iterator = _merge_cells if merge_identical else enumerate
 
     if header:
         thead = formatted("thead", '<thead style="font-weight: bold;">')
         row = [header_cell_func(escape(label), i) for i, label in enumerate(header)]
-        data += [thead] + row + ["</thead>"]
+        data += [thead, *row, "</thead>"]
 
     formatted_rows = []
     for ridx, row in enumerate(rows):
@@ -158,13 +137,9 @@ def rich_html(
         formatted_rows += new
 
     tbody = formatted("tbody", "<tbody>")
-    data += [tbody] + formatted_rows + ["</tbody>"]
+    data += [tbody, *formatted_rows, "</tbody>"]
     data += ["</table>"]
-    if compact:
-        data = "".join(data)
-    else:
-        data = "\n".join(data)
-    return data
+    return "".join(data) if compact else "\n".join(data)
 
 
 def latex(
@@ -206,15 +181,17 @@ def latex(
         numcols = [len(header), len(rows[0])][not header]
         justify = "r" * numcols
 
-    justify = "{ %s }" % " ".join(list(justify))
+    justify = "{{ {} }}".format(" ".join(list(justify)))
     if header:
-        header = "%s \\\\" % " & ".join([r"\bf{%s}" % head.strip() for head in header])
+        header = "{} \\\\".format(
+            " & ".join([rf"\bf{{{head.strip()}}}" for head in header]),
+        )
     rows = [f"{' & '.join(row)} \\\\" for row in rows]
     position = position or "htp!"
     table_format = [
-        r"\begin{table}[%s]" % position,
+        rf"\begin{{table}}[{position}]",
         r"\centering",
-        r"\begin{tabular}%s" % justify,
+        rf"\begin{{tabular}}{justify}",
         r"\hline",
         header,
         r"\hline",
@@ -224,9 +201,9 @@ def latex(
     table_format.append(r"\hline")
     table_format.append(r"\end{tabular}")
 
-    caption = r"\caption{%s}" % caption if caption else ""
-    label = r"\label{%s}" % label if label else ""
-    legend = r"\caption*{%s}" % legend if isinstance(legend, str) else None
+    caption = rf"\caption{{{caption}}}" if caption else ""
+    label = rf"\label{{{label}}}" if label else ""
+    legend = rf"\caption*{{{legend}}}" if isinstance(legend, str) else None
     if caption and label:
         caption = f"{caption}\n{label}"
     elif caption or label:
@@ -253,10 +230,8 @@ def get_continuation_tables(
 ):
     """returns series of tables segmented to not exceed max_width"""
     tables = []
-    try:
+    with contextlib.suppress(TypeError):
         space = " " * space
-    except TypeError:
-        pass
 
     # if we are to split the table, creating sub tables, determine
     # the boundaries
@@ -270,7 +245,8 @@ def get_continuation_tables(
     min_length = col_widths[0]
 
     if min_length > max_width:
-        raise RuntimeError("Maximum width too small for identifiers")
+        msg = "Maximum width too small for identifiers"
+        raise RuntimeError(msg)
 
     # if we have an index column, every new table block includes that width
     # in calculating the number of columns; otherwise it's simply the sum
@@ -293,15 +269,9 @@ def get_continuation_tables(
     boundaries.append((begin, len(header)))
     data = {c[0].strip(): c[1:] for c in zip(header, *formatted_table, strict=False)}
     for start, end in boundaries:
-        if identifiers:
-            subhead = header[:1] + header[start:end]
-        else:
-            subhead = header[start:end]
+        subhead = header[:1] + header[start:end] if identifiers else header[start:end]
         rows = numpy.array([data[c.strip()] for c in subhead], dtype="<U15")
-        if rows.ndim == 1:
-            rows = [rows.tolist()]
-        else:
-            rows = rows.T.tolist()
+        rows = [rows.tolist()] if rows.ndim == 1 else rows.T.tolist()
         tables.append((subhead, rows))
 
     return tables
@@ -343,10 +313,8 @@ def simple_format(
 
     """
     table = []
-    try:
+    with contextlib.suppress(TypeError):
         space = " " * space
-    except TypeError:
-        pass
 
     # if we are to split the table, creating sub tables, determine
     # the boundaries
@@ -449,7 +417,8 @@ def markdown(header, formatted_table, space=1, justify=None):
             elif justify[i] == "l":
                 d = f":{d[:-1]}"
             else:
-                raise ValueError(f"invalid justfication character '{justify[i]}'")
+                msg = f"invalid justfication character '{justify[i]}'"
+                raise ValueError(msg)
             divider[i] = d
 
     divider = f"|{'|'.join(divider)}|"
@@ -595,7 +564,8 @@ def separator_format(header, formatted_table, title=None, legend=None, sep=None)
 
     """
     if sep is None:
-        raise RuntimeError("no separator provided")
+        msg = "no separator provided"
+        raise RuntimeError(msg)
 
     if title:
         title = " ".join(" ".join(title.splitlines()).split())
@@ -614,9 +584,9 @@ def separator_format(header, formatted_table, title=None, legend=None, sep=None)
     table = "\n".join(new_table)
     # add the title to top of list
     if title:
-        table = "\n".join([title, table])
+        table = f"{title}\n{table}"
     if legend:
-        table = "\n".join([table, legend])
+        table = f"{table}\n{legend}"
 
     return table
 
@@ -639,8 +609,7 @@ def format_fields(formats):
             index_format = ["%s" for index in range(len(line))]
             for index, format in formats:
                 index_format[index] = format
-        formatted = [index_format[i] % line[i] for i in range(len(line))]
-        return formatted
+        return [index_format[i] % line[i] for i in range(len(line))]
 
     return callable
 
@@ -781,8 +750,8 @@ def phylip_matrix(rows, names):
                 break
 
         if not newname:
-            raise RuntimeError(f"Can't create a unique name for {oldname}")
-        print(f"WARN: Seqname {oldname} changed to {newname}")
+            msg = f"Can't create a unique name for {oldname}"
+            raise RuntimeError(msg)
         return newname
 
     def append_species(name, formatted_dists, mat_breaks):
@@ -858,8 +827,9 @@ def get_continuation_tables_headers(
     index_width = 0 if index_name is None else width_map[index_name]
     for name, width in width_map.items():
         if index_width + width > max_width:
+            msg = f"{index_name}={index_width} + {name} width={width} > max_width={max_width}"
             raise ValueError(
-                f"{index_name}={index_width} + {name} width={width} > max_width={max_width}",
+                msg,
             )
 
     if sum(v + space + index_width for _, v in cols_widths) < max_width:
@@ -896,7 +866,7 @@ class _MixedFormatter:
         precision=4,
         float_type="f",
         missing_data=None,
-    ):
+    ) -> None:
         self.missing_data = missing_data
         self.length = length
         self.alignment = alignment
@@ -963,7 +933,8 @@ def formatted_array(
     """
     assert isinstance(series, numpy.ndarray), "must be numpy array"
     if pad and align.lower() not in set("lrc"):
-        raise ValueError(f"align value '{align}' not in 'l,c,r'")
+        msg = f"align value '{align}' not in 'l,c,r'"
+        raise ValueError(msg)
 
     if pad:
         align = {"l": "<", "c": "^", "r": ">"}[align]
@@ -1006,7 +977,7 @@ def formatted_array(
 
     formatted = []
     max_length = len(title)
-    for i, v in enumerate(series):
+    for _i, v in enumerate(series):
         if formatter:
             v = formatter(v)
         else:
@@ -1040,7 +1011,7 @@ def formatted_array(
 class HtmlElement:
     """wrapper for text to become a HTML element"""
 
-    def __init__(self, text, tag, css_classes=None, newline=False):
+    def __init__(self, text, tag, css_classes=None, newline=False) -> None:
         """
         Parameters
         ----------
@@ -1059,18 +1030,18 @@ class HtmlElement:
         self.css_classes = css_classes
         self.newline = newline
 
-    def __str__(self):
+    def __str__(self) -> str:
         txt = self.text
         classes = "" if self.css_classes is None else " ".join(self.css_classes)
         classes = f' class="{classes}"' if classes else ""
         nl = "\n" if self.newline else ""
         return f"{nl}<{self.tag}{classes}>{nl}{txt}{nl}</{self.tag}>"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return repr(self.text)
 
 
-def is_html_markup(text):
+def is_html_markup(text) -> bool:
     """checks if text contains balanced html markup
 
     <token ...> body </token>

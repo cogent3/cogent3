@@ -27,19 +27,16 @@ class GetTagTests(TestCase):
         self.empty_tag = xml.dom.minidom.parseString("<outer></outer>")
 
     def test_get_tag_works(self):
-        self.assertEqual(get_tag(self.single_tag, "inner"), "content")
-        self.assertEqual(get_tag(self.double_tag, "inner"), "first content")
-        self.assertEqual(get_tag(self.empty_tag, "inner"), None)
-        self.assertEqual(
-            get_tag(self.empty_tag, "inner", "blue elephant"),
-            "blue elephant",
+        assert get_tag(self.single_tag, "inner") == "content"
+        assert get_tag(self.double_tag, "inner") == "first content"
+        assert get_tag(self.empty_tag, "inner") is None
+        assert get_tag(self.empty_tag, "inner", "blue elephant") == "blue elephant"
+        assert get_tag(self.single_tag, "non-existing tag") is None
+        assert (
+            get_tag(self.single_tag, "non-existing tag", "pink elephant")
+            == "pink elephant"
         )
-        self.assertEqual(get_tag(self.single_tag, "non-existing tag"), None)
-        self.assertEqual(
-            get_tag(self.single_tag, "non-existing tag", "pink elephant"),
-            "pink elephant",
-        )
-        self.assertEqual(get_tag(self.single_tag, "inner"), "content")
+        assert get_tag(self.single_tag, "inner") == "content"
 
     def test_get_tag_fail(self):
         """Make sure the tag and name parameters are in the proper types."""
@@ -69,62 +66,62 @@ class MinimalBlastParser7Tests(TestCase):
     def test_parse_header(self):
         """Fields from XML header tag should be available as dict."""
         data = parse_header(self.header)
-        self.assertEqual(data.get("application"), "my Grandma")
-        self.assertEqual(data.get("version"), "has")
-        self.assertEqual(data.get("reference"), "furry")
-        self.assertEqual(data.get("query_letters"), 27)
-        self.assertEqual(data.get("database"), "Cats")
+        assert data.get("application") == "my Grandma"
+        assert data.get("version") == "has"
+        assert data.get("reference") == "furry"
+        assert data.get("query_letters") == 27
+        assert data.get("database") == "Cats"
 
     def test_parse_parameters(self):
         """Fields from XML parameter tag should be available as dict."""
         data = parse_parameters(self.param)
-        self.assertEqual(data.get("matrix"), "BLOSUM62")
-        self.assertEqual(data.get("expect"), "10")
-        self.assertEqual(data.get("gap_open_penalty"), 11.1)
-        self.assertEqual(data.get("gap_extend_penalty"), 22.2)
-        self.assertEqual(data.get("filter"), "F")
+        assert data.get("matrix") == "BLOSUM62"
+        assert data.get("expect") == "10"
+        assert data.get("gap_open_penalty") == 11.1
+        assert data.get("gap_extend_penalty") == 22.2
+        assert data.get("filter") == "F"
 
     def test_parse_header_complete(self):
         """Fields from header+param tag should be available as dict."""
         # try to process header with parameters etc in the XML
         data = parse_header(self.complete)
-        self.assertEqual(data.get("database"), "Cats")
-        self.assertEqual(data.get("matrix"), "BLOSUM62")
+        assert data.get("database") == "Cats"
+        assert data.get("matrix") == "BLOSUM62"
 
     def test_parse_hit(self):
         """Should return a list with all values for a hit+hsp."""
         data = parse_hit(self.hit1)
-        self.assertEqual(len(data), 1)
+        assert len(data) == 1
         d = dict(list(zip(HIT_XML_FIELDNAMES, data[0], strict=False)))
-        self.assertEqual(d["SUBJECT_ID"], "gi|148670104|gb|EDL02051.1|")
-        self.assertEqual(
-            d["HIT_DEF"],
-            "insulin-like growth factor 2 receptor, isoform CRA_c [Mus musculus]",
+        assert d["SUBJECT_ID"] == "gi|148670104|gb|EDL02051.1|"
+        assert (
+            d["HIT_DEF"]
+            == "insulin-like growth factor 2 receptor, isoform CRA_c [Mus musculus]"
         )
-        self.assertEqual(d["HIT_ACCESSION"], "2001")
-        self.assertEqual(int(d["HIT_LENGTH"]), 707)
+        assert d["HIT_ACCESSION"] == "2001"
+        assert int(d["HIT_LENGTH"]) == 707
         # check hit with more HSPs
         data = parse_hit(self.hit2)
-        self.assertEqual(len(data), 2)
-        self.assertNotEqual(data[0], data[1])
+        assert len(data) == 2
+        assert data[0] != data[1]
 
     def test_parse_hsp(self):
         """Should return list with all values for a hsp."""
         data = parse_hsp(self.hsp1)
         d = dict(list(zip(HSP_XML_FIELDNAMES, data, strict=False)))
-        self.assertEqual(float(d["BIT_SCORE"]), 1023.46)
-        self.assertEqual(float(d["SCORE"]), 2645)
-        self.assertEqual(float(d["E_VALUE"]), 0.333)
-        self.assertEqual(int(d["QUERY_START"]), 4)
-        self.assertEqual(int(d["QUERY_END"]), 18)
-        self.assertEqual(int(d["SUBJECT_START"]), 5)
-        self.assertEqual(int(d["SUBJECT_END"]), 19)
-        self.assertEqual(int(d["GAP_OPENINGS"]), 0)
-        self.assertEqual(int(d["ALIGNMENT_LENGTH"]), 14)
+        assert float(d["BIT_SCORE"]) == 1023.46
+        assert float(d["SCORE"]) == 2645
+        assert float(d["E_VALUE"]) == 0.333
+        assert int(d["QUERY_START"]) == 4
+        assert int(d["QUERY_END"]) == 18
+        assert int(d["SUBJECT_START"]) == 5
+        assert int(d["SUBJECT_END"]) == 19
+        assert int(d["GAP_OPENINGS"]) == 0
+        assert int(d["ALIGNMENT_LENGTH"]) == 14
 
-        self.assertEqual(d["QUERY_ALIGN"], "ELEPHANTTHISISAHITTIGER")
-        self.assertEqual(d["MIDLINE_ALIGN"], "ORCA-WHALE")
-        self.assertEqual(d["SUBJECT_ALIGN"], "SEALSTHIS---HIT--GER")
+        assert d["QUERY_ALIGN"] == "ELEPHANTTHISISAHITTIGER"
+        assert d["MIDLINE_ALIGN"] == "ORCA-WHALE"
+        assert d["SUBJECT_ALIGN"] == "SEALSTHIS---HIT--GER"
 
 
 class BlastXmlResultTests(TestCase):
@@ -136,7 +133,7 @@ class BlastXmlResultTests(TestCase):
     def test_options(self):
         """Constructor should take parser as an option."""
         result = BlastXMLResult(COMPLETE_XML, parser=minimal_blast_parser_7)
-        self.assertEqual(len(list(result.keys())), 1)
+        assert len(list(result.keys())) == 1
         # make sure whether normal Blast parser still works upon code merge!
 
     def test_parsed_query_sequence(self):
@@ -144,84 +141,84 @@ class BlastXmlResultTests(TestCase):
         # The full query sequence is not given in the XML file.
         # Thus it is not checked explicitly, only whether there is
         # exactly one found.
-        self.assertEqual(len(list(self.result.keys())), 1)
+        assert len(list(self.result.keys())) == 1
 
     def test_parsed_iterations(self):
         """The result should have the right number of iterations."""
         n_iter = 0
-        for query_id, hits in self.result.iter_hits_by_query():
+        for _query_id, _hits in self.result.iter_hits_by_query():
             n_iter += 1
-        self.assertEqual(n_iter, 1)
+        assert n_iter == 1
 
     def test_parsed_hsps(self):
         """The result should have the right number of hsps."""
         n_hsps = 0
-        for query_id, hsps in self.result.iter_hits_by_query():
+        for _query_id, hsps in self.result.iter_hits_by_query():
             n_hsps += len(hsps)
-        self.assertEqual(n_hsps, 3)
+        assert n_hsps == 3
 
     def test_parse_hit_details(self):
         """The result should have data from hit fields."""
         for query in self.result:
             first_hsp = self.result[query][0][0]
-            self.assertEqual(first_hsp["SUBJECT_ID"], "gi|148670104|gb|EDL02051.1|")
-            self.assertEqual(
-                first_hsp["HIT_DEF"],
-                "insulin-like growth factor 2 receptor, isoform CRA_c [Mus musculus]",
+            assert first_hsp["SUBJECT_ID"] == "gi|148670104|gb|EDL02051.1|"
+            assert (
+                first_hsp["HIT_DEF"]
+                == "insulin-like growth factor 2 receptor, isoform CRA_c [Mus musculus]"
             )
-            self.assertEqual(first_hsp["HIT_ACCESSION"], "2001")
-            self.assertEqual(first_hsp["HIT_LENGTH"], 707)
+            assert first_hsp["HIT_ACCESSION"] == "2001"
+            assert first_hsp["HIT_LENGTH"] == 707
 
     def test_parse_hsp_details(self):
         """The result should have data from hsp fields."""
         for query in self.result:
             # should check integers in next version.
             first_hsp = self.result[query][0][0]
-            self.assertEqual(first_hsp["QUERY ID"], 1)
-            self.assertEqual(first_hsp["BIT_SCORE"], "1023.46")
-            self.assertEqual(first_hsp["SCORE"], "2645")
-            self.assertEqual(first_hsp["E_VALUE"], "0.333")
-            self.assertEqual(first_hsp["QUERY_START"], "4")
-            self.assertEqual(first_hsp["QUERY_END"], "18")
-            self.assertEqual(first_hsp["QUERY_ALIGN"], "ELEPHANTTHISISAHITTIGER")
-            self.assertEqual(first_hsp["MIDLINE_ALIGN"], "ORCA-WHALE")
-            self.assertEqual(first_hsp["SUBJECT_ALIGN"], "SEALSTHIS---HIT--GER")
-            self.assertEqual(first_hsp["SUBJECT_START"], "5")
-            self.assertEqual(first_hsp["SUBJECT_END"], "19")
-            self.assertEqual(first_hsp["PERCENT_IDENTITY"], "55")
-            self.assertEqual(first_hsp["POSITIVE"], "555")
-            self.assertEqual(first_hsp["GAP_OPENINGS"], 0)
-            self.assertEqual(first_hsp["ALIGNMENT_LENGTH"], "14")
+            assert first_hsp["QUERY ID"] == 1
+            assert first_hsp["BIT_SCORE"] == "1023.46"
+            assert first_hsp["SCORE"] == "2645"
+            assert first_hsp["E_VALUE"] == "0.333"
+            assert first_hsp["QUERY_START"] == "4"
+            assert first_hsp["QUERY_END"] == "18"
+            assert first_hsp["QUERY_ALIGN"] == "ELEPHANTTHISISAHITTIGER"
+            assert first_hsp["MIDLINE_ALIGN"] == "ORCA-WHALE"
+            assert first_hsp["SUBJECT_ALIGN"] == "SEALSTHIS---HIT--GER"
+            assert first_hsp["SUBJECT_START"] == "5"
+            assert first_hsp["SUBJECT_END"] == "19"
+            assert first_hsp["PERCENT_IDENTITY"] == "55"
+            assert first_hsp["POSITIVE"] == "555"
+            assert first_hsp["GAP_OPENINGS"] == 0
+            assert first_hsp["ALIGNMENT_LENGTH"] == "14"
 
             gap_hsp = self.result[query][0][1]
-            self.assertEqual(gap_hsp["GAP_OPENINGS"], "33")
+            assert gap_hsp["GAP_OPENINGS"] == "33"
 
     def test_best_hits_by_query(self):
         """Exercising best hits"""
         q, best_hits = next(self.result.best_hits_by_query())
         best_hit = best_hits[0]
-        self.assertEqual(best_hit["QUERY ID"], 1)
-        self.assertEqual(best_hit["BIT_SCORE"], "1023.46")
-        self.assertEqual(best_hit["SCORE"], "2645")
-        self.assertEqual(best_hit["E_VALUE"], "0.333")
-        self.assertEqual(best_hit["QUERY_START"], "4")
-        self.assertEqual(best_hit["QUERY_END"], "18")
-        self.assertEqual(best_hit["QUERY_ALIGN"], "ELEPHANTTHISISAHITTIGER")
-        self.assertEqual(best_hit["MIDLINE_ALIGN"], "ORCA-WHALE")
-        self.assertEqual(best_hit["SUBJECT_ALIGN"], "SEALSTHIS---HIT--GER")
-        self.assertEqual(best_hit["SUBJECT_START"], "5")
-        self.assertEqual(best_hit["SUBJECT_END"], "19")
-        self.assertEqual(best_hit["PERCENT_IDENTITY"], "55")
-        self.assertEqual(best_hit["POSITIVE"], "555")
-        self.assertEqual(best_hit["GAP_OPENINGS"], 0)
-        self.assertEqual(best_hit["ALIGNMENT_LENGTH"], "14")
+        assert best_hit["QUERY ID"] == 1
+        assert best_hit["BIT_SCORE"] == "1023.46"
+        assert best_hit["SCORE"] == "2645"
+        assert best_hit["E_VALUE"] == "0.333"
+        assert best_hit["QUERY_START"] == "4"
+        assert best_hit["QUERY_END"] == "18"
+        assert best_hit["QUERY_ALIGN"] == "ELEPHANTTHISISAHITTIGER"
+        assert best_hit["MIDLINE_ALIGN"] == "ORCA-WHALE"
+        assert best_hit["SUBJECT_ALIGN"] == "SEALSTHIS---HIT--GER"
+        assert best_hit["SUBJECT_START"] == "5"
+        assert best_hit["SUBJECT_END"] == "19"
+        assert best_hit["PERCENT_IDENTITY"] == "55"
+        assert best_hit["POSITIVE"] == "555"
+        assert best_hit["GAP_OPENINGS"] == 0
+        assert best_hit["ALIGNMENT_LENGTH"] == "14"
 
     def test_best_hits_unique(self):
         """The result should never contain identical hits"""
-        records = [h for _, h in self.result.best_hits_by_query(n=5)][0]
-        self.assertEqual(len(records), 3)
+        records = next(h for _, h in self.result.best_hits_by_query(n=5))
+        assert len(records) == 3
         values = {tuple(h.values()) for h in records}
-        self.assertEqual(len(values), 3)
+        assert len(values) == 3
 
 
 HSP_XML = """
@@ -294,7 +291,7 @@ PARAM_XML = """
       <Parameters_gap-extend>22.2</Parameters_gap-extend>
       <Parameters_filter>F</Parameters_filter>
     </Parameters>
-</BlastOutput_param>    
+</BlastOutput_param>
 """
 
 HEADER_XML = """
@@ -304,7 +301,7 @@ HEADER_XML = """
   <BlastOutput_db>Cats</BlastOutput_db>
   <BlastOutput_reference>furry</BlastOutput_reference>
   <BlastOutput_query-len>27</BlastOutput_query-len>
-  
+
   %s
 </BlastOutput>
 """

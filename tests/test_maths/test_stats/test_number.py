@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 import numpy
+import pytest
 from numpy.testing import assert_allclose
 
 from cogent3 import make_aligned_seqs
@@ -10,51 +11,51 @@ from cogent3.maths.stats import number
 class TestNumber(TestCase):
     def test_construction(self):
         nums = number.CategoryCounter("AAAACCCGGGGT")
-        self.assertEqual(nums.to_dict(), dict(A=4, C=3, G=4, T=1))
-        self.assertEqual(nums.sum, 12)
+        assert nums.to_dict() == {"A": 4, "C": 3, "G": 4, "T": 1}
+        assert nums.sum == 12
         nums["A"] += 1
 
     def test_copy(self):
         """copy works"""
         nums = number.CategoryCounter("AAAACCCGGGGT")
         new = nums.copy()
-        self.assertNotEqual(id(new), id(nums))
-        self.assertEqual(new.to_dict(), nums.to_dict())
+        assert id(new) != id(nums)
+        assert new.to_dict() == nums.to_dict()
 
         nums = number.NumberCounter(data=[0, 0, 2, 4, 4, 4])
         new = nums.copy()
-        self.assertNotEqual(id(new), id(nums))
-        self.assertEqual(new.to_dict(), nums.to_dict())
+        assert id(new) != id(nums)
+        assert new.to_dict() == nums.to_dict()
 
     def test_construct_from_dict(self):
         """construction from dict of counts"""
         data = {"A": 20, "Q": 30, "X": 20}
         got = number.CategoryCounter(data)
-        self.assertEqual(got["A"], 20)
-        self.assertEqual(got.to_dict(), data)
+        assert got["A"] == 20
+        assert got.to_dict() == data
 
     def test_add(self):
         """allow adding elements, or series"""
         nums = number.CategoryCounter("AAAACCCGGGGT")
         nums += "A"
-        self.assertEqual(nums["A"], 5)
+        assert nums["A"] == 5
 
     def test_sub(self):
         """allow removing elements"""
         nums = number.CategoryCounter("AAAACCCGGGGT")
         nums -= "A"
-        self.assertEqual(nums["A"], 3)
+        assert nums["A"] == 3
 
     def test_to_methods(self):
         """successfully convert to dict, list, array"""
         nums = number.CategoryCounter("AAAACCCGGGGT")
         got = nums.tolist()
-        self.assertEqual(got, [4, 3, 4, 1])
+        assert got == [4, 3, 4, 1]
         got = nums.tolist(keys="TCAG")
-        self.assertEqual(got, [1, 3, 4, 4])
+        assert got == [1, 3, 4, 4]
         got = nums.to_array(keys="TCAG")
         assert_allclose(got, numpy.array([1, 3, 4, 4], dtype=int))
-        self.assertEqual(nums.to_dict(), dict(A=4, C=3, G=4, T=1))
+        assert nums.to_dict() == {"A": 4, "C": 3, "G": 4, "T": 1}
 
     def test_to_table(self):
         """produces correct Table structure"""
@@ -66,92 +67,92 @@ class TestNumber(TestCase):
         ]
         nums = number.CategoryCounter(data)
         t = nums.to_table(column_names=None, title="blah")
-        self.assertEqual(t.header, ("key", "count"))
+        assert t.header == ("key", "count")
         # if the key is a tuple, then the unexpanded column values are also
-        self.assertIsInstance(t[0, 0], tuple)
-        self.assertEqual(t.title, "blah")
+        assert isinstance(t[0, 0], tuple)
+        assert t.title == "blah"
         # you can use any data type as a key, but Table column is a str
         t = nums.to_table(column_names=2)
-        self.assertEqual(t.header, ("2", "count"))
+        assert t.header == ("2", "count")
         t = nums.to_table(column_names="blah")
-        self.assertEqual(t.header, ("blah", "count"))
+        assert t.header == ("blah", "count")
         t = nums.to_table(column_names=["A", "B"])
-        self.assertEqual(t.header, ("A", "B", "count"))
+        assert t.header == ("A", "B", "count")
 
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             # key does not have 3 dimensions
             _ = nums.to_table(column_names=["A", "B", "C"])
 
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             # key does not have 1 dimension
             _ = nums.to_table(column_names=[1])
 
     def test_valid(self):
         """correctly identify when numbers contains numbers"""
         wrong = number.NumberCounter([0, "a", 1, 1])
-        self.assertFalse(wrong.valid)
+        assert not wrong.valid
         ints = number.NumberCounter([0, 1, 1])
-        self.assertTrue(ints.valid)
+        assert ints.valid
         floats = number.NumberCounter([0.1, 1.0, 1.0])
-        self.assertTrue(floats.valid)
+        assert floats.valid
         cmplx = number.NumberCounter([1j, 0.2j])
-        self.assertTrue(cmplx.valid)
+        assert cmplx.valid
         mixed = number.NumberCounter([0.1, 1, 1.1j])
-        self.assertTrue(mixed.valid)
+        assert mixed.valid
         for dtype in (numpy.uint8, numpy.int32, numpy.float64):
             data = numpy.arange(0, 4)
             npy = number.NumberCounter(data.astype(dtype))
-            self.assertTrue(npy.valid)
+            assert npy.valid
 
     def test_number_counter_stats(self):
         """stats from NumberCounter correct"""
         data = [0, 0, 2, 4, 4, 4]
         nums = number.NumberCounter(data)
-        self.assertEqual(nums.mean, numpy.mean(data))
-        self.assertEqual(nums.std, numpy.std(data, ddof=1))
-        self.assertEqual(nums.median, numpy.median(data))
-        self.assertEqual(nums.quantile(q=0.75), numpy.quantile(data, q=0.75))
-        self.assertEqual(nums.mode, 4)
-        self.assertEqual(len(nums), 6)
+        assert nums.mean == numpy.mean(data)
+        assert nums.std == numpy.std(data, ddof=1)
+        assert nums.median == numpy.median(data)
+        assert nums.quantile(q=0.75) == numpy.quantile(data, q=0.75)
+        assert nums.mode == 4
+        assert len(nums) == 6
 
     def test_keys_values_items(self):
         """return a list of these elements"""
         data = [0, 0, 2, 4, 4, 4]
         nums = number.CategoryCounter(data)
-        self.assertEqual(nums.keys(), [0, 2, 4])
-        self.assertEqual(nums.values(), [2, 1, 3])
-        self.assertEqual(nums.items(), [(0, 2), (2, 1), (4, 3)])
+        assert nums.keys() == [0, 2, 4]
+        assert nums.values() == [2, 1, 3]
+        assert nums.items() == [(0, 2), (2, 1), (4, 3)]
 
         freqs = nums.to_freqs()
-        self.assertEqual(freqs.keys(), [0, 2, 4])
+        assert freqs.keys() == [0, 2, 4]
         assert_allclose(freqs.values(), [0.3333333333333333, 0.16666666666666666, 0.5])
-        self.assertEqual(len(freqs.items()), 3)
-        self.assertEqual(freqs.items()[-1], (4, 0.5))
+        assert len(freqs.items()) == 3
+        assert freqs.items()[-1] == (4, 0.5)
 
     def test_repr(self):
         """should precede with class name"""
         data = [0, 0, 2, 4, 4, 4]
         nums = number.CategoryCounter(data)
         got = repr(nums)
-        self.assertTrue(got.startswith(nums.__class__.__name__))
+        assert got.startswith(nums.__class__.__name__)
         freqs = nums.to_freqs()
         got = repr(freqs)
-        self.assertTrue(got.startswith(freqs.__class__.__name__))
+        assert got.startswith(freqs.__class__.__name__)
         nums = number.NumberCounter(data)
         got = repr(nums)
-        self.assertTrue(got.startswith(nums.__class__.__name__))
+        assert got.startswith(nums.__class__.__name__)
 
     def test_category_counter_stats(self):
         """stats from CategoryCounter correct"""
         data = "TCTTTAGAGAACAGTTTATTATACACTAAA"
         values = [data.count(b) for b in "ACGT"]
         nums = number.CategoryCounter(data)
-        self.assertEqual(len(nums), len(data))
-        self.assertEqual(nums.mean, numpy.mean(values))
-        self.assertEqual(nums.std, numpy.std(values, ddof=1))
-        self.assertEqual(nums.median, numpy.median(values))
-        self.assertEqual(nums.quantile(q=0.75), numpy.quantile(values, q=0.75))
-        self.assertEqual(nums.mode, "A")
+        assert len(nums) == len(data)
+        assert nums.mean == numpy.mean(values)
+        assert nums.std == numpy.std(values, ddof=1)
+        assert nums.median == numpy.median(values)
+        assert nums.quantile(q=0.75) == numpy.quantile(values, q=0.75)
+        assert nums.mode == "A"
         data = [
             ("T", "C"),
             ("T", "T"),
@@ -172,11 +173,11 @@ class TestNumber(TestCase):
         ]
         values = [1, 3, 3, 2, 4, 1, 1, 1]
         nums = number.CategoryCounter(data)
-        self.assertEqual(nums.mean, numpy.mean(values))
-        self.assertEqual(nums.std, numpy.std(values, ddof=1))
-        self.assertEqual(nums.median, numpy.median(values))
-        self.assertEqual(nums.quantile(q=0.75), numpy.quantile(values, q=0.75))
-        self.assertEqual(nums.mode, ("A", "C"))
+        assert nums.mean == numpy.mean(values)
+        assert nums.std == numpy.std(values, ddof=1)
+        assert nums.median == numpy.median(values)
+        assert nums.quantile(q=0.75) == numpy.quantile(values, q=0.75)
+        assert nums.mode == ("A", "C")
 
     def test_usage(self):
         """Alignment.counts_per_seq method correctly applies CategoryCounter"""
@@ -194,11 +195,11 @@ class TestNumber(TestCase):
         }
         aln = make_aligned_seqs(data=data, moltype="dna")
         got = aln.counts_per_pos(motif_length=3)
-        self.assertEqual(got[0, "TCA"], 8)
-        self.assertEqual(got[0, "TCT"], 2)
-        self.assertEqual(got[1, "TTA"], 7)
-        self.assertEqual(got[1, "GTA"], 1)
-        self.assertEqual(got[1, "TTG"], 2)
+        assert got[0, "TCA"] == 8
+        assert got[0, "TCT"] == 2
+        assert got[1, "TTA"] == 7
+        assert got[1, "GTA"] == 1
+        assert got[1, "TTG"] == 2
 
     def test_entropy(self):
         """CategoryCounter correctly calculates entropy"""
@@ -219,7 +220,7 @@ class TestNumber(TestCase):
         """correctly reconstitutes original series content"""
         nums = number.CategoryCounter("AAAACCCGGGGT")
         expanded = nums.expand()
-        self.assertEqual(expanded, list("AAAACCCGGGGT"))
+        assert expanded == list("AAAACCCGGGGT")
 
     def test_categoryfreqs_entropy(self):
         """correctly returns frequencies"""
@@ -231,14 +232,14 @@ class TestNumber(TestCase):
     def test_to_normalized(self):
         """correctly recalibrate CategoryFreqs"""
         freqs = number.CategoryFreqs({"A": 4, "C": 2, "G": 4}, total=12)
-        self.assertEqual(freqs["A"], 4 / 12)
+        assert freqs["A"] == 4 / 12
         freqs = freqs.to_normalized()
-        self.assertEqual(freqs["A"], 4 / 10)
+        assert freqs["A"] == 4 / 10
 
         # from an empty dict
         freqs = number.CategoryFreqs()
         d = freqs.to_normalized()
-        self.assertEqual(d.to_dict(), {})
+        assert d.to_dict() == {}
 
     def test_numbers_update(self):
         """correctly update number counts"""
@@ -247,18 +248,18 @@ class TestNumber(TestCase):
         data = [2, 4, 4, 4, 6, 5]
         nums2 = number.NumberCounter(data)
         nums.update_from_counts(nums2)
-        self.assertEqual(nums[2], 2)
-        self.assertEqual(nums[4], 6)
-        self.assertEqual(nums[1], 0)
+        assert nums[2] == 2
+        assert nums[4] == 6
+        assert nums[1] == 0
 
         data = [0, 0, 2, 4, 4, 4]
         nums = number.NumberCounter(data)
         nums.update_from_series([2, 4, 4, 4, 6, 5])
-        self.assertEqual(nums[2], 2)
-        self.assertEqual(nums[4], 6)
-        self.assertEqual(nums[1], 0)
+        assert nums[2] == 2
+        assert nums[4] == 6
+        assert nums[1] == 0
 
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             counts = number.CategoryCounter("AAAACCCGGGGT")
             nums.update_from_counts(counts)
 
@@ -284,28 +285,28 @@ class TestNumber(TestCase):
         ]
         nums = number.CategoryCounter(data)
         i0 = nums.count(0)
-        self.assertEqual(i0["T"], 7)
-        self.assertEqual(i0["G"], 2)
-        self.assertEqual(i0["A"], 7)
-        self.assertEqual(i0["C"], 0)
+        assert i0["T"] == 7
+        assert i0["G"] == 2
+        assert i0["A"] == 7
+        assert i0["C"] == 0
         # works same if keys are strings
         nums = number.CategoryCounter(["".join(e) for e in data])
         i0 = nums.count(0)
-        self.assertEqual(i0["T"], 7)
-        self.assertEqual(i0["G"], 2)
-        self.assertEqual(i0["A"], 7)
-        self.assertEqual(i0["C"], 0)
-        with self.assertRaises(IndexError):
+        assert i0["T"] == 7
+        assert i0["G"] == 2
+        assert i0["A"] == 7
+        assert i0["C"] == 0
+        with pytest.raises(IndexError):
             _ = nums.count([0, 3])
 
         i0 = nums.count([0])
-        self.assertEqual(i0["G"], 2)
-        with self.assertRaises(IndexError):
+        assert i0["G"] == 2
+        with pytest.raises(IndexError):
             _ = nums.count([0, 3])
         i1 = nums.count(1)
-        self.assertEqual(i1["A"], 6)
-        self.assertEqual(i1["C"], 5)
-        self.assertEqual(i1["T"], 4)
+        assert i1["A"] == 6
+        assert i1["C"] == 5
+        assert i1["T"] == 4
 
         data = {
             ("A", "C", "G"): 10,
@@ -315,9 +316,9 @@ class TestNumber(TestCase):
         }
         nums = number.CategoryCounter(data)
         i02 = nums.count([0, 2])
-        self.assertEqual(i02[("A", "G")], 14)
-        self.assertEqual(i02[("C", "G")], 3)
-        self.assertEqual(i02[("G", "G")], 6)
+        assert i02["A", "G"] == 14
+        assert i02["C", "G"] == 3
+        assert i02["G", "G"] == 6
 
     def test_to_dictarray(self):
         """correctly constructs dict arrays"""
@@ -368,6 +369,6 @@ class TestNumber(TestCase):
             cat_count = cats.to_categorical()
             assert_allclose(cat_count.observed.array, expect, err_msg=d)
 
-        with self.assertRaises(NotImplementedError):
+        with pytest.raises(NotImplementedError):
             cats = number.CategoryCounter(d3)
             cats.to_categorical()

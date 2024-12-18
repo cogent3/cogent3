@@ -25,7 +25,7 @@ from cogent3.recalculation.definition import (
 
 
 class _PartialLikelihoodDefn(CalculationDefn):
-    def setup(self, edge_name):
+    def setup(self, edge_name) -> None:
         self.edge_name = edge_name
 
 
@@ -62,7 +62,7 @@ class PartialLikelihoodProductDefnFixedMotif(PartialLikelihoodProductDefn):
 class LhtEdgeLookupDefn(CalculationDefn):
     name = "col_index"
 
-    def setup(self, edge_name):
+    def setup(self, edge_name) -> None:
         self.edge_name = edge_name
         # so that it can be found by reconstruct_ancestral_seqs etc:
         if edge_name == "root":
@@ -115,7 +115,7 @@ def recursive_lht_build(edge, leaves):
 class LikelihoodTreeDefn(CalculationDefn):
     name = "lht"
 
-    def setup(self, tree):
+    def setup(self, tree) -> None:
         self.tree = tree
 
     def calc(self, leaves):
@@ -153,7 +153,7 @@ def make_total_loglikelihood_defn(
             switch = ProbabilityParamDefn("bin_switch", dimensions=["locus"])
             site_pattern = CalcDefn(PatchSiteDistribution, name="bdist")(switch, bprobs)
         blh = CallDefn(site_pattern, lht, name="bindex")
-        tll = CallDefn(blh, *lh.across_dimension("bin", bin_names), **dict(name="tll"))
+        tll = CallDefn(blh, *lh.across_dimension("bin", bin_names), name="tll")
     else:
         lh = lh.select_from_dimension("bin", bin_names[0])
         tll = CalcDefn(log_sum_across_sites, name="logsum")(lht, lh)
@@ -172,7 +172,7 @@ def log_sum_across_sites(root, root_lh):
 
 
 class BinnedSiteDistribution:
-    def __init__(self, bprobs):
+    def __init__(self, bprobs) -> None:
         self.bprobs = bprobs
 
     def get_weighted_sum_lh(self, lhs):
@@ -195,7 +195,7 @@ class BinnedSiteDistribution:
 
 
 class PatchSiteDistribution:
-    def __init__(self, switch, bprobs):
+    def __init__(self, switch, bprobs) -> None:
         half = len(bprobs) // 2
         self.alloc = [0] * half + [1] * (len(bprobs) - half)
 
@@ -207,7 +207,7 @@ class PatchSiteDistribution:
         self.transition_matrix = SiteClassTransitionMatrix(switch, pprobs)
 
     def get_weighted_sum_lhs(self, lhs):
-        result = numpy.zeros((2,) + lhs[0].shape, lhs[0].dtype.char)
+        result = numpy.zeros((2, *lhs[0].shape), lhs[0].dtype.char)
         temp = numpy.empty(lhs[0].shape, result.dtype.char)
         for patch, weight, lh in zip(self.alloc, self.bprobs, lhs, strict=False):
             temp[:] = lh
@@ -236,7 +236,7 @@ class PatchSiteDistribution:
 
 
 class BinnedLikelihood:
-    def __init__(self, distrib, root):
+    def __init__(self, distrib, root) -> None:
         self.distrib = distrib
         self.root = root
 
@@ -258,7 +258,7 @@ class BinnedLikelihood:
 
 
 class SiteHmm:
-    def __init__(self, distrib, root):
+    def __init__(self, distrib, root) -> None:
         self.root = root
         self.distrib = distrib
 

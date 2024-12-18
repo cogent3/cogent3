@@ -35,30 +35,30 @@ def get_base_logo_layout(axnum, xtick_fontsize, ytick_fontsize):
     layout = UnionDict()
 
     # set x and y range, set y ticks
-    axis_lines = dict(
-        mirror=True,
-        linewidth=1,
-        showgrid=False,
-        linecolor="black",
-        showline=True,
-        visible=True,
-        zeroline=False,
-    )
+    axis_lines = {
+        "mirror": True,
+        "linewidth": 1,
+        "showgrid": False,
+        "linecolor": "black",
+        "showline": True,
+        "visible": True,
+        "zeroline": False,
+    }
     axis = "axis" if axnum == 1 else f"axis{axnum}"
     xanchor = "x" if axnum == 1 else f"x{axnum}"
     yanchor = "y" if axnum == 1 else f"y{axnum}"
-    layout[f"x{axis}"] = dict(
-        anchor=yanchor,
-        tickfont=dict(size=xtick_fontsize),
-        ticks="inside",
-    )
+    layout[f"x{axis}"] = {
+        "anchor": yanchor,
+        "tickfont": {"size": xtick_fontsize},
+        "ticks": "inside",
+    }
 
-    layout[f"y{axis}"] = dict(
-        tickfont=dict(size=ytick_fontsize),
-        title="Bits",
-        anchor=xanchor,
-        ticks="inside",
-    )
+    layout[f"y{axis}"] = {
+        "tickfont": {"size": ytick_fontsize},
+        "title": "Bits",
+        "anchor": xanchor,
+        "ticks": "inside",
+    }
     layout[f"x{axis}"] |= axis_lines
     layout[f"y{axis}"] |= axis_lines
     layout.template = "plotly_white"
@@ -76,16 +76,13 @@ def _char_hts_as_lists(data):
             # assume it's just a dict
             pass
 
-        if d:
-            d = list(d.items())
-        else:
-            d = None
+        d = list(d.items()) if d else None
         result.append(d)
 
     return result
 
 
-_dna_colours = dict(A="green", T="red", C="blue", G="orange")
+_dna_colours = {"A": "green", "T": "red", "C": "blue", "G": "orange"}
 
 
 def get_logo(
@@ -139,7 +136,7 @@ def get_logo(
         d = sorted(d, key=lambda x: x[1])
 
         if ylim is None:
-            est_ylim = max(est_ylim, max([e[-1] for e in d]))
+            est_ylim = max(est_ylim, *[e[-1] for e in d])
         stack_data.append(d)
 
     stacks = []

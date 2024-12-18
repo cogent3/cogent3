@@ -39,15 +39,15 @@ def calc_expected(observed):
         cfreq = csum / csum.sum()
         expecteds = outer(rfreq, cfreq) * rsum.sum()
     else:
-        raise NotImplementedError("too many dimensions")
+        msg = "too many dimensions"
+        raise NotImplementedError(msg)
     return expecteds
 
 
 def calc_chisq(observed, expected):
     """returns the chisq statistic for the two numpy arrays"""
     stat = (observed - expected) ** 2
-    stat = (stat / expected).sum()
-    return stat
+    return (stat / expected).sum()
 
 
 def calc_G(observed, expected, williams=True):
@@ -101,7 +101,7 @@ def estimate_pval(observed, stat_func, num_reps=1000):
     expected = calc_expected(observed)
     obs_stat = stat_func(observed, expected)
     num_gt = 0
-    for i in range(num_reps):
+    for _i in range(num_reps):
         resamp_obs = shuffled_matrix(observed)
         resamp_exp = calc_expected(resamp_obs)
         resamp_stat = stat_func(resamp_obs, resamp_exp)
@@ -133,7 +133,7 @@ class CategoryCounts:
     are provided, G-test of independence if not provided.
     """
 
-    def __init__(self, observed, expected=None):
+    def __init__(self, observed, expected=None) -> None:
         """Parameters
         -------------
         observed
@@ -150,13 +150,16 @@ class CategoryCounts:
         observed.array = _astype(observed.array, int)
 
         if observed.array.sum() == 0:
-            raise ValueError("at least one value must be > 0")
+            msg = "at least one value must be > 0"
+            raise ValueError(msg)
 
         if observed.array.min() < 0:
-            raise ValueError("negative values encountered")
+            msg = "negative values encountered"
+            raise ValueError(msg)
 
         if observed.array.ndim > 2:
-            raise NotImplementedError("not designed for >2D")
+            msg = "not designed for >2D"
+            raise NotImplementedError(msg)
 
         self._observed = observed
         self.expected = expected
@@ -202,10 +205,10 @@ class CategoryCounts:
     def _repr_html_(self):
         return self._get_repr_(html=True)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self._get_repr_(html=False)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self._get_repr_(html=False)
 
     @property
@@ -222,7 +225,7 @@ class CategoryCounts:
         return self._expected
 
     @expected.setter
-    def expected(self, expected):
+    def expected(self, expected) -> None:
         if expected is None:
             self._expected = None
             return
@@ -231,7 +234,8 @@ class CategoryCounts:
         expected.array = _astype(expected.array, float)
 
         if expected.array.min() < 0:
-            raise ValueError("negative values encountered")
+            msg = "negative values encountered"
+            raise ValueError(msg)
 
         (
             assert_allclose(self.observed.array.sum(), expected.array.sum()),
@@ -360,11 +364,11 @@ class CategoryCounts:
         )
 
     def to_dict(self):
-        return dict(
-            observed=self.observed.to_dict(),
-            expected=self.expected.to_dict(),
-            residuals=self.residuals.to_dict(),
-        )
+        return {
+            "observed": self.observed.to_dict(),
+            "expected": self.expected.to_dict(),
+            "residuals": self.residuals.to_dict(),
+        }
 
 
 class TestResult:
@@ -380,7 +384,7 @@ class TestResult:
         df,
         pvalue,
         test_name="",
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -429,7 +433,7 @@ class TestResult:
         table.set_repr_policy(show_shape=False)
         return table
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         result = str(self._get_repr_())
         components = CategoryCounts(
             self.observed.to_dict(),
@@ -438,7 +442,7 @@ class TestResult:
         result = [result, str(components)]
         return "\n".join(result)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return repr(self)
 
     def _repr_html_(self):

@@ -74,39 +74,51 @@ class SequenceFunctionsTests(TestCase):
 
     def test_per_shortest(self):
         """per_shortest should divide by min(len(x), len(y))"""
-        self.assertEqual(per_shortest(20, "aaaaaa", "bbbb"), 5)
-        self.assertEqual(per_shortest(20, "aaaaaa", "b"), 20)
-        self.assertEqual(per_shortest(20, "a", "bbbbb"), 20)
-        self.assertEqual(per_shortest(20, "", "b"), 0)
-        self.assertEqual(per_shortest(20, "", ""), 0)
+        assert per_shortest(20, "aaaaaa", "bbbb") == 5
+        assert per_shortest(20, "aaaaaa", "b") == 20
+        assert per_shortest(20, "a", "bbbbb") == 20
+        assert per_shortest(20, "", "b") == 0
+        assert per_shortest(20, "", "") == 0
         # check that it does it in floating-point
-        self.assertEqual(per_shortest(1, "aaaaaa", "bbbb"), 0.25)
+        assert per_shortest(1, "aaaaaa", "bbbb") == 0.25
         # check that it raises TypeError on non-seq
         self.assertRaises(TypeError, per_shortest, 1, 2, 3)
 
     def test_per_longest(self):
         """per_longest should divide by max(len(x), len(y))"""
-        self.assertEqual(per_longest(20, "aaaaaa", "bbbb"), 20 / 6.0)
-        self.assertEqual(per_longest(20, "aaaaaa", "b"), 20 / 6.0)
-        self.assertEqual(per_longest(20, "a", "bbbbb"), 20 / 5.0)
-        self.assertEqual(per_longest(20, "", "b"), 20)
-        self.assertEqual(per_longest(20, "", ""), 0)
+        assert per_longest(20, "aaaaaa", "bbbb") == 20 / 6.0
+        assert per_longest(20, "aaaaaa", "b") == 20 / 6.0
+        assert per_longest(20, "a", "bbbbb") == 20 / 5.0
+        assert per_longest(20, "", "b") == 20
+        assert per_longest(20, "", "") == 0
         # check that it does it in floating-point
-        self.assertEqual(per_longest(1, "aaaaaa", "bbbb"), 1 / 6.0)
+        assert per_longest(1, "aaaaaa", "bbbb") == 1 / 6.0
         # check that it raises TypeError on non-seq
         self.assertRaises(TypeError, per_longest, 1, 2, 3)
 
     def test_for_seq(self):
         """for_seq should return the correct function"""
-        is_eq = lambda x, y: x == y
-        is_ne = lambda x, y: x != y
-        lt_5 = lambda x, y: x + y < 5
-        diff = lambda x, y: x - y
 
-        sumsq = lambda x: sum([i * i for i in x])
+        def is_eq(x, y):
+            return x == y
 
-        long_norm = lambda s, x, y: (s + 0.0) / max(len(x), len(y))
-        times_two = lambda s, x, y: 2 * s
+        def is_ne(x, y):
+            return x != y
+
+        def lt_5(x, y):
+            return x + y < 5
+
+        def diff(x, y):
+            return x - y
+
+        def sumsq(x):
+            return sum([i * i for i in x])
+
+        def long_norm(s, x, y):
+            return (s + 0.0) / max(len(x), len(y))
+
+        def times_two(s, x, y):
+            return 2 * s
 
         s1 = [1, 2, 3, 4, 5]
         s2 = [1, 3, 2, 4, 5]
@@ -169,24 +181,24 @@ class Filter_Criteria_Tests(TestCase):
     def test_KeepChars(self):
         """KeepChars returns a string containing only chars in keep"""
         f = KeepChars("ab c3*[")
-        self.assertEqual(f(""), "")  # empty
+        assert f("") == ""  # empty
         self.assertRaises(TypeError, f, None)  # None
 
         # one character, case sensitive
-        self.assertEqual(f("b"), "b")
-        self.assertEqual(f("g"), "")
-        self.assertEqual(f("xyz123"), "3")
-        self.assertEqual(f("xyz  123"), "  3")
+        assert f("b") == "b"
+        assert f("g") == ""
+        assert f("xyz123") == "3"
+        assert f("xyz  123") == "  3"
 
         # more characters, case sensitive
-        self.assertEqual(f("kjbwherzcagebcujrkcs"), "bcabcc")
-        self.assertEqual(f("f[ffff*ff*fff3fff"), "[**3")
+        assert f("kjbwherzcagebcujrkcs") == "bcabcc"
+        assert f("f[ffff*ff*fff3fff") == "[**3"
 
         # case insensitive
         f = KeepChars("AbC", False)
-        self.assertEqual(f("abcdef"), "abc")
-        self.assertEqual(f("ABCDEF"), "ABC")
-        self.assertEqual(f("aBcDeF"), "aBc")
+        assert f("abcdef") == "abc"
+        assert f("ABCDEF") == "ABC"
+        assert f("aBcDeF") == "aBc"
 
     def test_first_index_in_set(self):
         """first_index_in_set should return index of first occurrence"""
@@ -195,7 +207,7 @@ class Filter_Criteria_Tests(TestCase):
         s2 = "bcbae"
         s3 = ""
         s4 = "cbd"
-        self.assertEqual(first_index_in_set(s1, vowels), 0)
-        self.assertEqual(first_index_in_set(s2, vowels), 3)
-        self.assertEqual(first_index_in_set(s3, vowels), None)
-        self.assertEqual(first_index_in_set(s4, vowels), None)
+        assert first_index_in_set(s1, vowels) == 0
+        assert first_index_in_set(s2, vowels) == 3
+        assert first_index_in_set(s3, vowels) is None
+        assert first_index_in_set(s4, vowels) is None

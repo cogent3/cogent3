@@ -23,8 +23,7 @@ def pmcc(data, axis=1):
     sum_squares = np.sum(np.square(data_less_mean), axis=axis)
     sum_products = np.sum(np.prod(data_less_mean, axis=other_axis))
     pmcc = np.divide(sum_products, np.sqrt(np.prod(sum_squares)))
-    z_trans = np.arctanh(pmcc)
-    return z_trans
+    return np.arctanh(pmcc)
 
 
 # test data from Box 15.2; Biometry by Sokal/Rohlf
@@ -72,14 +71,14 @@ class JackknifeTests(TestCase):
         # Scalar
         pmcc_stat = stat_maker(pmcc, data, 1)
         test_knife = JackknifeStats(data.shape[1], pmcc_stat)
-        self.assertEqual(test_knife.n, data.shape[1])
-        self.assertEqual(test_knife._jackknifed_stat, None)
+        assert test_knife.n == data.shape[1]
+        assert test_knife._jackknifed_stat is None
 
         # Vector
         mean_stat = stat_maker(mean, data, 1)
         test_knife = JackknifeStats(data.shape[1], mean_stat)
-        self.assertEqual(test_knife.n, data.shape[1])
-        self.assertEqual(test_knife._jackknifed_stat, None)
+        assert test_knife.n == data.shape[1]
+        assert test_knife._jackknifed_stat is None
 
     def test_jackknife_stats(self):
         """jackknife results should match Sokal & Rolf example"""
@@ -88,7 +87,7 @@ class JackknifeTests(TestCase):
         test_knife = JackknifeStats(data.shape[1], pmcc_stat)
         assert_allclose(test_knife.jackknifed_stat, 1.2905845)
         assert_allclose(test_knife.standard_error, 0.2884490)
-        self.assertTrue(test_knife._jackknifed_stat != None)
+        assert test_knife._jackknifed_stat is not None
 
         # Vector
         mean_stat = stat_maker(mean, data, 1)
@@ -191,9 +190,9 @@ class JackknifeTests(TestCase):
         pmcc_stat = stat_maker(pmcc, data, 1)
         test_knife = JackknifeStats(data.shape[1], pmcc_stat)
         ss = test_knife.sub_sample_stats
-        self.assertEqual(ss.shape, (12, 2))
+        assert ss.shape == (12, 2)
         ss = test_knife.sample_stat
         pvs = test_knife.pseudovalues
-        self.assertEqual(pvs.shape, (12, 2))
+        assert pvs.shape == (12, 2)
         ss = test_knife.summary_stats
-        self.assertEqual(ss.shape, (1, 3))
+        assert ss.shape == (1, 3)

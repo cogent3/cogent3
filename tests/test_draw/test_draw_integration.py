@@ -96,8 +96,8 @@ class UtilDrawablesTests(unittest.TestCase):
 
     def test_domain_element_size(self):
         """domain element value must not exceed num domains - 1"""
-        with self.assertRaises(ValueError):
-            x = get_domain(2, 2, is_y=False)
+        with pytest.raises(ValueError):
+            get_domain(2, 2, is_y=False)
 
 
 class DrawableObjectTests(unittest.TestCase):
@@ -106,23 +106,23 @@ class DrawableObjectTests(unittest.TestCase):
     def test_traces(self):
         """test trace initialisation"""
         d = Drawable()
-        self.assertEqual(d.traces, [])
-        trace = dict(type="scatter", x=[0, 1], y=[0, 1])
+        assert d.traces == []
+        trace = {"type": "scatter", "x": [0, 1], "y": [0, 1]}
         d = Drawable(traces=[trace])
-        self.assertEqual(d.traces, [trace])
-        self.assertTrue(isinstance(d.traces[0], UnionDict))
-        with self.assertRaises(TypeError):
-            trace = dict(type="scatter", x=[0, 1], y=[0, 1])
+        assert d.traces == [trace]
+        assert isinstance(d.traces[0], UnionDict)
+        with pytest.raises(TypeError):
+            trace = {"type": "scatter", "x": [0, 1], "y": [0, 1]}
             _ = Drawable(traces=trace)
 
     def test_add_traces(self):
         """test trace add method"""
         d = Drawable()
-        self.assertEqual(d.traces, [])
-        trace = dict(type="scatter", x=[0, 1], y=[0, 1])
+        assert d.traces == []
+        trace = {"type": "scatter", "x": [0, 1], "y": [0, 1]}
         d.add_trace(trace)
-        self.assertEqual(d.traces, [trace])
-        self.assertTrue(isinstance(d.traces[0], UnionDict))
+        assert d.traces == [trace]
+        assert isinstance(d.traces[0], UnionDict)
 
     def test_bound_to(self):
         """bound object should have the drawable object and show methods"""
@@ -133,27 +133,27 @@ class DrawableObjectTests(unittest.TestCase):
         o = TestObj()
         d = Drawable()
         b = d.bound_to(o)
-        self.assertEqual(b.drawable, d)
-        self.assertTrue(hasattr(b, "iplot"))
-        self.assertTrue(hasattr(b, "show"))
+        assert b.drawable == d
+        assert hasattr(b, "iplot")
+        assert hasattr(b, "show")
 
     def test_figure(self):
         """figure should contain the same data and layout as Drawable"""
-        trace = dict(type="scatter", x=[0, 1], y=[0, 1])
-        layout = dict(title="layout", width=20)
+        trace = {"type": "scatter", "x": [0, 1], "y": [0, 1]}
+        layout = {"title": "layout", "width": 20}
         d = Drawable(traces=[trace], layout=layout)
         f = d.figure
-        self.assertEqual(f.data, d.traces)
-        self.assertEqual(f.layout, d.layout)
+        assert f.data == d.traces
+        assert f.layout == d.layout
 
     def test_plotly_figure(self):
         """is a plotly graph object Figure instance"""
         from plotly.graph_objects import Figure
 
-        trace = dict(type="scatter", x=[0, 1], y=[0, 1])
-        layout = dict(title="layout", width=20)
+        trace = {"type": "scatter", "x": [0, 1], "y": [0, 1]}
+        layout = {"title": "layout", "width": 20}
         d = Drawable(traces=[trace], layout=layout)
-        self.assertIsInstance(d.plotly_figure, Figure)
+        assert isinstance(d.plotly_figure, Figure)
 
 
 class AnnotatedDrawableObjectTests(unittest.TestCase):
@@ -161,42 +161,54 @@ class AnnotatedDrawableObjectTests(unittest.TestCase):
 
     def test__build_fig(self):
         """figure built should have the same traces as core and set yaxis to y3 if yaxis2 is overlaying"""
-        trace = dict(type="scatter", x=[0, 1], y=[0, 1], xaxis="x", yaxis="y")
-        layout = dict(title="layout", width=20, yaxis2=dict(overlaying="free"))
+        trace = {
+            "type": "scatter",
+            "x": [0, 1],
+            "y": [0, 1],
+            "xaxis": "x",
+            "yaxis": "y",
+        }
+        layout = {"title": "layout", "width": 20, "yaxis2": {"overlaying": "free"}}
         cd = Drawable(traces=[trace])
 
         ad = AnnotatedDrawable(cd, layout=layout)
         f = ad._build_fig()
-        self.assertEqual(ad._traces, f["data"])
-        self.assertNotEqual(f["data"][0]["yaxis"], "y3")
+        assert ad._traces == f["data"]
+        assert f["data"][0]["yaxis"] != "y3"
 
-        layout = dict(title="layout", width=20, yaxis2=dict(overlaying="y"))
+        layout = {"title": "layout", "width": 20, "yaxis2": {"overlaying": "y"}}
         ad = AnnotatedDrawable(cd, layout=layout)
         f = ad._build_fig()
-        self.assertEqual(f["data"][0]["yaxis"], "y3")
+        assert f["data"][0]["yaxis"] == "y3"
 
     def test_plotly_figure(self):
         """is a plotly graph object Figure instance"""
         from plotly.graph_objects import Figure
 
-        trace = dict(type="scatter", x=[0, 1], y=[0, 1], xaxis="x", yaxis="y")
-        layout = dict(title="layout", width=20, yaxis2=dict(overlaying="free"))
+        trace = {
+            "type": "scatter",
+            "x": [0, 1],
+            "y": [0, 1],
+            "xaxis": "x",
+            "yaxis": "y",
+        }
+        layout = {"title": "layout", "width": 20, "yaxis2": {"overlaying": "free"}}
         cd = Drawable(traces=[trace])
 
         ad = AnnotatedDrawable(cd, layout=layout)
-        self.assertIsInstance(ad.plotly_figure, Figure)
+        assert isinstance(ad.plotly_figure, Figure)
 
 
 class BaseDrawablesTests(unittest.TestCase):
     """methods for checking drawables"""
 
     def _check_drawable_attrs(self, fig, type_):
-        self.assertIsInstance(fig, UnionDict)
+        assert isinstance(fig, UnionDict)
         # should have a layout and a data key
-        self.assertTrue("layout" in fig)
-        self.assertTrue("data" in fig)
+        assert "layout" in fig
+        assert "data" in fig
         # data traces should be of type "scatter"
-        self.assertEqual({tr.type for tr in fig.data}, {type_})
+        assert {tr.type for tr in fig.data} == {type_}
 
     def _check_drawable_styles(self, method, styles, **kwargs):
         for style in styles:
@@ -211,51 +223,51 @@ class CustomDrawable(BaseDrawablesTests):
         """should still produce a valid figure"""
         d = Drawable()
         f = d.figure
-        self.assertEqual(f.data, [{}])
+        assert f.data == [{}]
 
     def test_one_trace(self):
         """should still produce a valid figure"""
         d = Drawable()
-        trace = dict(type="scatter", x=[0, 1], y=[0, 1])
+        trace = {"type": "scatter", "x": [0, 1], "y": [0, 1]}
         d.add_trace(trace)
         f = d.figure
-        self.assertEqual(f.data, [trace])
+        assert f.data == [trace]
 
     def test_layout_with_titles(self):
         """if provided layout has axis titles, keep them"""
-        layout = dict(xaxis=dict(title="X"), yaxis=dict(title="Y"))
+        layout = {"xaxis": {"title": "X"}, "yaxis": {"title": "Y"}}
         d = Drawable(layout=layout)
         fig = d.figure
-        self.assertEqual(fig.layout.xaxis.title, "X")
-        self.assertEqual(fig.layout.yaxis.title, "Y")
+        assert fig.layout.xaxis.title == "X"
+        assert fig.layout.yaxis.title == "Y"
         d = Drawable()
         fig = d.figure
-        self.assertEqual(fig.layout.xaxis.title, None)
-        self.assertEqual(fig.layout.yaxis.title, None)
+        assert fig.layout.xaxis.title is None
+        assert fig.layout.yaxis.title is None
 
     def test_layout_with_overrides(self):
         """provided layout attributes should be overridden with provided parameters"""
-        layout = dict(title="layout", width=20)
+        layout = {"title": "layout", "width": 20}
         d = Drawable(layout=layout)
         fig = d.figure
-        self.assertEqual(fig.layout.title, None)
-        self.assertEqual(fig.layout.width, None)
+        assert fig.layout.title is None
+        assert fig.layout.width is None
         d = Drawable(layout=layout, title="parameter", width=50)
         fig = d.figure
-        self.assertEqual(fig.layout.title.text, "parameter")
-        self.assertEqual(fig.layout.width, 50)
+        assert fig.layout.title.text == "parameter"
+        assert fig.layout.width == 50
 
 
 class AlignmentDrawablesTests(BaseDrawablesTests):
     """methods on SequenceCollection produce Drawables"""
 
     def _check_drawable_attrs(self, fig, type_):
-        self.assertIsInstance(fig, UnionDict)
+        assert isinstance(fig, UnionDict)
         # should have a layout and a data key
-        self.assertTrue("layout" in fig)
-        self.assertTrue("data" in fig)
+        assert "layout" in fig
+        assert "data" in fig
         # data traces should be of type "scatter"
-        self.assertEqual({tr.type for tr in fig.data}, {type_})
+        assert {tr.type for tr in fig.data} == {type_}
 
     def _check_drawable_styles(self, method, styles, **kwargs):
         for style in styles:
@@ -271,23 +283,20 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         _ = dp.figure
         trace_names = [tr.name for tr in dp.traces]
 
-        self.assertTrue(
-            [tr.name for tr in dp.traces] != [] and len(trace_names) == len(dp.traces),
-            "No traces found for dotplot",
-        )
-        self.assertTrue(
-            [trace_names[i] == dp.traces[i]["name"] for i in range(len(trace_names))],
-            "Order of traces don't match with dp traces",
-        )
+        assert [tr.name for tr in dp.traces] != [] and len(trace_names) == len(
+            dp.traces,
+        ), "No traces found for dotplot"
+        assert [
+            trace_names[i] == dp.traces[i]["name"] for i in range(len(trace_names))
+        ], "Order of traces don't match with dp traces"
 
         for trace_name in trace_names:
             index = [tr.name for tr in dp.traces].index(trace_name)
             dp.traces.pop(index)
 
-            self.assertFalse(
-                trace_name in [tr.name for tr in dp.traces],
-                "Trace name still present in dp traces even after popping off trace",
-            )
+            assert trace_name not in [
+                tr.name for tr in dp.traces
+            ], "Trace name still present in dp traces even after popping off trace"
 
     def test_dotplot_annotated(self):  # ported
         """alignment with / without annotated seqs"""
@@ -297,34 +306,34 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         # no annotation
         dp = aln.dotplot(name1=aln.names[0], name2=aln.names[1])
         self._check_drawable_attrs(dp.figure, "scatter")
-        self.assertIsInstance(dp, Dotplot)
+        assert isinstance(dp, Dotplot)
 
         # seq1 annotated
         aln = load_alignment(annotate1=True)
         dp = aln.dotplot(name1=aln.names[0], name2=aln.names[1])
-        self.assertIsInstance(dp, AnnotatedDrawable)
+        assert isinstance(dp, AnnotatedDrawable)
         fig = dp.figure
         self._check_drawable_attrs(fig, "scatter")
-        self.assertIs(dp.left_track, None)
-        self.assertIsInstance(dp.bottom_track, Drawable)
+        assert dp.left_track is None
+        assert isinstance(dp.bottom_track, Drawable)
 
         # seq2 annotated
         aln = load_alignment(annotate2=True)
         dp = aln.dotplot(name1=aln.names[0], name2=aln.names[1])
-        self.assertIsInstance(dp, AnnotatedDrawable)
+        assert isinstance(dp, AnnotatedDrawable)
         fig = dp.figure
         self._check_drawable_attrs(fig, "scatter")
-        self.assertIs(dp.bottom_track, None)
-        self.assertIsInstance(dp.left_track, Drawable)
+        assert dp.bottom_track is None
+        assert isinstance(dp.left_track, Drawable)
 
         # both annotated
         aln = load_alignment(True, True)
         dp = aln.dotplot(name1=aln.names[0], name2=aln.names[1])
-        self.assertIsInstance(dp, AnnotatedDrawable)
+        assert isinstance(dp, AnnotatedDrawable)
         fig = dp.figure
         self._check_drawable_attrs(fig, "scatter")
-        self.assertIsInstance(dp.bottom_track, Drawable)
-        self.assertIsInstance(dp.left_track, Drawable)
+        assert isinstance(dp.bottom_track, Drawable)
+        assert isinstance(dp.left_track, Drawable)
 
     def test_annotated_dotplot_remove_tracks(self):  # ported
         """removing annotation tracks from dotplot should work"""
@@ -334,27 +343,27 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         orig_fig = dp.figure
         # remove left
         dp.remove_track(left_track=True)
-        self.assertIs(dp.left_track, None)
-        self.assertEqual(dp._traces, [])
-        self.assertIsNot(dp.figure, orig_fig)
-        self.assertIsInstance(dp.figure, UnionDict)
+        assert dp.left_track is None
+        assert dp._traces == []
+        assert dp.figure is not orig_fig
+        assert isinstance(dp.figure, UnionDict)
 
         # both annotated, remove right
         dp = aln.dotplot(name1=aln.names[0], name2=aln.names[1])
         dp.remove_track(bottom_track=True)
-        self.assertIs(dp.bottom_track, None)
-        self.assertEqual(dp._traces, [])
-        self.assertIsNot(dp.figure, orig_fig)
-        self.assertIsInstance(dp.figure, UnionDict)
+        assert dp.bottom_track is None
+        assert dp._traces == []
+        assert dp.figure is not orig_fig
+        assert isinstance(dp.figure, UnionDict)
 
         # both annotated, remove both
         dp = aln.dotplot(name1=aln.names[0], name2=aln.names[1])
         dp.remove_track(True, True)
-        self.assertIs(dp.bottom_track, None)
-        self.assertIs(dp.left_track, None)
-        self.assertEqual(dp._traces, [])
-        self.assertIsNot(dp.figure, orig_fig)
-        self.assertIsInstance(dp.figure, UnionDict)
+        assert dp.bottom_track is None
+        assert dp.left_track is None
+        assert dp._traces == []
+        assert dp.figure is not orig_fig
+        assert isinstance(dp.figure, UnionDict)
 
     def test_count_gaps_per_seq(self):  # ported
         """creation of drawables works"""
@@ -362,7 +371,7 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         aln = load_alignment(False, False)
         # no drawable
         counts = aln.count_gaps_per_seq()
-        self.assertFalse(hasattr(counts, "drawable"))
+        assert not hasattr(counts, "drawable")
         self._check_drawable_styles(aln.count_gaps_per_seq, styles)
         # now ArrayAlignment
         aln = aln.to_type(array_align=True)
@@ -374,7 +383,7 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         aln = load_alignment(False, False)
         aln = aln[:10]
         coevo = aln.coevolution(show_progress=False)
-        self.assertFalse(hasattr(coevo, "drawable"))
+        assert not hasattr(coevo, "drawable")
         self._check_drawable_styles(aln.coevolution, styles, show_progress=False)
         # now ArrayAlignment
         aln = aln.to_type(array_align=True)
@@ -386,15 +395,15 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         aln = aln[:30]
         coevo = aln.coevolution(show_progress=False, drawable="heatmap")
         drawable = coevo.drawable
-        self.assertIsInstance(drawable, AnnotatedDrawable)
-        self.assertIsInstance(drawable.left_track, Drawable)
-        self.assertIsInstance(drawable.bottom_track, Drawable)
+        assert isinstance(drawable, AnnotatedDrawable)
+        assert isinstance(drawable.left_track, Drawable)
+        assert isinstance(drawable.bottom_track, Drawable)
 
     def test_information_plot(self):  # ported
         """infoprmation plot makes a drawable"""
         aln = load_alignment(False, False)
         drawable = aln.information_plot()
-        self.assertIsInstance(drawable, Drawable)
+        assert isinstance(drawable, Drawable)
         self._check_drawable_attrs(drawable.figure, "scatter")
         # ArrayAlignment
         aln = aln.to_type(array_align=True)
@@ -404,7 +413,7 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
     def test_get_drawable(self):  # ported
         """sliced alignment with features returns a drawable"""
         aln = make_aligned_seqs(
-            data=dict(a="AAACGGTTT", b="CAA--GTAA"),
+            data={"a": "AAACGGTTT", "b": "CAA--GTAA"},
             array_align=False,
             moltype="dna",
         )
@@ -425,7 +434,7 @@ class TableDrawablesTest(BaseDrawablesTests):
         """exercise producing a plotly table"""
         table = make_table(header=["a", "b"], data=[[0, 1]], index_name="a")
         drawable = table.to_plotly()
-        self.assertIsInstance(drawable, Drawable)
+        assert isinstance(drawable, Drawable)
         self._check_drawable_attrs(drawable.figure, "table")
 
 
@@ -445,7 +454,7 @@ def test_colour_choice():
     assert shape1.fillcolor == shape2.fillcolor == make_shape._colors[label]
 
 
-@pytest.mark.parametrize("biotype", ("mRNA", "MRNA", "gene", "misc_RNA", "tRNA", "CDS"))
+@pytest.mark.parametrize("biotype", ["mRNA", "MRNA", "gene", "misc_RNA", "tRNA", "CDS"])
 def test_arrow_shapes(biotype):
     shape = make_shape(type_=biotype, coords=[(10, 20)], parent_length=20)
     assert isinstance(shape, Arrow)

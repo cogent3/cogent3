@@ -64,13 +64,13 @@ class UtilsTests(TestCase):
         vector = [0.8, 0.2, 0.0, 0.0]
         minprob = 1e-3
         got = adjusted_gt_minprob(vector, minprob=minprob)
-        self.assertTrue(got.min() > minprob)
+        assert got.min() > minprob
         minprob = 1e-6
         got = adjusted_gt_minprob(vector, minprob=minprob)
-        self.assertTrue(got.min() > minprob)
+        assert got.min() > minprob
         minprob = 0
         got = adjusted_gt_minprob(vector, minprob=minprob)
-        self.assertTrue(got.min() > minprob)
+        assert got.min() > minprob
 
     def test_adjusted_probs_2D(self):
         """correctly adjust a 2D array"""
@@ -91,94 +91,98 @@ class UtilsTests(TestCase):
         assert_allclose(got, l)
         got = adjusted_within_bounds(u + eps, l, u, eps=eps)
         assert_allclose(got, u)
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             got = adjusted_within_bounds(u + 4, l, u, eps=eps, action="raise")
 
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             got = adjusted_within_bounds(u - 4, l, u, eps=eps, action="raise")
 
     def test_identity(self):
         """should return same object"""
         foo = [1, "a", lambda x: x]
         exp = id(foo)
-        self.assertEqual(id(identity(foo)), exp)
+        assert id(identity(foo)) == exp
 
     def test_iterable(self):
         """iterable(x) should return x or [x], always an iterable result"""
-        self.assertEqual(iterable("x"), "x")
-        self.assertEqual(iterable(""), "")
-        self.assertEqual(iterable(3), [3])
-        self.assertEqual(iterable(None), [None])
-        self.assertEqual(iterable({"a": 1}), {"a": 1})
-        self.assertEqual(iterable(["a", "b", "c"]), ["a", "b", "c"])
+        assert iterable("x") == "x"
+        assert iterable("") == ""
+        assert iterable(3) == [3]
+        assert iterable(None) == [None]
+        assert iterable({"a": 1}) == {"a": 1}
+        assert iterable(["a", "b", "c"]) == ["a", "b", "c"]
 
     def test_is_iterable(self):
         """is_iterable should return True for iterables"""
         # test str
-        self.assertEqual(is_iterable("aa"), True)
+        assert is_iterable("aa") is True
         # test list
-        self.assertEqual(is_iterable([3, "aa"]), True)
+        assert is_iterable([3, "aa"]) is True
         # test Number, expect False
-        self.assertEqual(is_iterable(3), False)
+        assert is_iterable(3) is False
 
     def test_is_char(self):
         """is_char(obj) should return True when obj is a char"""
-        self.assertEqual(is_char("a"), True)
-        self.assertEqual(is_char("ab"), False)
-        self.assertEqual(is_char(""), True)
-        self.assertEqual(is_char([3]), False)
-        self.assertEqual(is_char(3), False)
+        assert is_char("a") is True
+        assert is_char("ab") is False
+        assert is_char("") is True
+        assert is_char([3]) is False
+        assert is_char(3) is False
 
     def test_is_char_or_noniterable(self):
         """is_char_or_noniterable should return True or False"""
-        self.assertEqual(is_char_or_noniterable("a"), True)
-        self.assertEqual(is_char_or_noniterable("ab"), False)
-        self.assertEqual(is_char_or_noniterable(3), True)
-        self.assertEqual(is_char_or_noniterable([3]), False)
+        assert is_char_or_noniterable("a") is True
+        assert is_char_or_noniterable("ab") is False
+        assert is_char_or_noniterable(3) is True
+        assert is_char_or_noniterable([3]) is False
 
     def test_recursive_flatten(self):
         """recursive_flatten should remove all nesting from nested sequences"""
-        self.assertEqual(recursive_flatten([1, [2, 3], [[4, [5]]]]), [1, 2, 3, 4, 5])
+        assert recursive_flatten([1, [2, 3], [[4, [5]]]]) == [1, 2, 3, 4, 5]
 
         # test default behavior on str unpacking
-        self.assertEqual(
-            recursive_flatten(["aa", [8, "cc", "dd"], ["ee", ["ff", "gg"]]]),
-            ["a", "a", 8, "c", "c", "d", "d", "e", "e", "f", "f", "g", "g"],
-        )
+        assert recursive_flatten(["aa", [8, "cc", "dd"], ["ee", ["ff", "gg"]]]) == [
+            "a",
+            "a",
+            8,
+            "c",
+            "c",
+            "d",
+            "d",
+            "e",
+            "e",
+            "f",
+            "f",
+            "g",
+            "g",
+        ]
 
     def test_not_list_tuple(self):
         """not_list_tuple(obj) should return False when obj is list or tuple"""
-        self.assertEqual(not_list_tuple([8, 3]), False)
-        self.assertEqual(not_list_tuple((8, 3)), False)
-        self.assertEqual(not_list_tuple("34"), True)
+        assert not_list_tuple([8, 3]) is False
+        assert not_list_tuple((8, 3)) is False
+        assert not_list_tuple("34") is True
 
     def test_list_flatten(self):
         """list_flatten should remove all nesting, str is untouched"""
-        self.assertEqual(
-            list_flatten(["aa", [8, "cc", "dd"], ["ee", ["ff", "gg"]]]),
-            ["aa", 8, "cc", "dd", "ee", "ff", "gg"],
-        )
+        assert list_flatten(["aa", [8, "cc", "dd"], ["ee", ["ff", "gg"]]]) == [
+            "aa",
+            8,
+            "cc",
+            "dd",
+            "ee",
+            "ff",
+            "gg",
+        ]
 
     def test_recursive_flatten_max_depth(self):
         """recursive_flatten should not remover more than max_depth levels"""
-        self.assertEqual(recursive_flatten([1, [2, 3], [[4, [5]]]]), [1, 2, 3, 4, 5])
-        self.assertEqual(
-            recursive_flatten([1, [2, 3], [[4, [5]]]], 0),
-            [1, [2, 3], [[4, [5]]]],
-        )
-        self.assertEqual(
-            recursive_flatten([1, [2, 3], [[4, [5]]]], 1),
-            [1, 2, 3, [4, [5]]],
-        )
-        self.assertEqual(
-            recursive_flatten([1, [2, 3], [[4, [5]]]], 2),
-            [1, 2, 3, 4, [5]],
-        )
-        self.assertEqual(recursive_flatten([1, [2, 3], [[4, [5]]]], 3), [1, 2, 3, 4, 5])
-        self.assertEqual(
-            recursive_flatten([1, [2, 3], [[4, [5]]]], 5000),
-            [1, 2, 3, 4, 5],
-        )
+        assert recursive_flatten([1, [2, 3], [[4, [5]]]]) == [1, 2, 3, 4, 5]
+        assert recursive_flatten([1, [2, 3], [[4, [5]]]], 0) == [1, [2, 3], [[4, [5]]]]
+        assert recursive_flatten([1, [2, 3], [[4, [5]]]], 1) == [1, 2, 3, [4, [5]]]
+        assert recursive_flatten([1, [2, 3], [[4, [5]]]], 2) == [1, 2, 3, 4, [5]]
+        assert recursive_flatten([1, [2, 3], [[4, [5]]]], 3) == [1, 2, 3, 4, 5]
+        assert recursive_flatten([1, [2, 3], [[4, [5]]]], 5000) == [1, 2, 3, 4, 5]
 
     def test_add_lowercase(self):
         """add_lowercase should add lowercase version of each key w/ same val"""
@@ -196,66 +200,60 @@ class UtilsTests(TestCase):
         add_lowercase(d)
         assert d["d"] is d["D"]
         d["D"].append(3)
-        self.assertEqual(d["D"], [3])
-        self.assertEqual(d["d"], [3])
-        self.assertNotEqual(d["a"], d["A"])
-        self.assertEqual(
-            d,
-            {
-                "a": 1,
-                "b": "test",
-                "A": 5,
-                "C": 123,
-                "c": 123,
-                "D": [3],
-                "d": [3],
-                "AbC": "XyZ",
-                "abc": "xyz",
-                None: "3",
-                "$": "abc",
-                145: "5",
-            },
-        )
+        assert d["D"] == [3]
+        assert d["d"] == [3]
+        assert d["a"] != d["A"]
+        assert d == {
+            "a": 1,
+            "b": "test",
+            "A": 5,
+            "C": 123,
+            "c": 123,
+            "D": [3],
+            "d": [3],
+            "AbC": "XyZ",
+            "abc": "xyz",
+            None: "3",
+            "$": "abc",
+            145: "5",
+        }
 
         # should work with strings
         d = "ABC"
-        self.assertEqual(add_lowercase(d), "ABCabc")
+        assert add_lowercase(d) == "ABCabc"
         # should work with tuples
         d = tuple("ABC")
-        self.assertEqual(add_lowercase(d), tuple("ABCabc"))
+        assert add_lowercase(d) == tuple("ABCabc")
         # should work with lists
         d = list("ABC")
-        self.assertEqual(add_lowercase(d), list("ABCabc"))
+        assert add_lowercase(d) == list("ABCabc")
         # should work with sets
         d = set("ABC")
-        self.assertEqual(add_lowercase(d), set("ABCabc"))
+        assert add_lowercase(d) == set("ABCabc")
         # ...even frozensets
         d = frozenset("ABC")
-        self.assertEqual(add_lowercase(d), frozenset("ABCabc"))
+        assert add_lowercase(d) == frozenset("ABCabc")
 
     def test_add_lowercase_tuple(self):
         """add_lowercase should deal with tuples correctly"""
         d = {("A", "B"): "C", ("D", "e"): "F", ("b", "c"): "H"}
         add_lowercase(d)
-        self.assertEqual(
-            d,
-            {
-                ("A", "B"): "C",
-                ("a", "b"): "c",
-                ("D", "e"): "F",
-                ("d", "e"): "f",
-                ("b", "c"): "H",
-            },
-        )
+        assert d == {
+            ("A", "B"): "C",
+            ("a", "b"): "c",
+            ("D", "e"): "F",
+            ("d", "e"): "f",
+            ("b", "c"): "H",
+        }
 
     def test_DistanceFromMatrix(self):
         """DistanceFromMatrix should return correct elements"""
         m = {"a": {"3": 4, 6: 1}, "b": {"3": 5, "6": 2}}
         d = DistanceFromMatrix(m)
-        self.assertEqual(d("a", "3"), 4)
-        self.assertEqual(d("a", 6), 1)
-        self.assertEqual(d("b", "3"), 5)
-        self.assertEqual(d("b", "6"), 2)
+        assert d("a", "3") == 4
+        assert d("a", 6) == 1
+        assert d("b", "3") == 5
+        assert d("b", "6") == 2
         self.assertRaises(KeyError, d, "c", 1)
         self.assertRaises(KeyError, d, "b", 3)
 
@@ -264,46 +262,39 @@ class UtilsTests(TestCase):
         # single span is returned
         data = [(0, 20, "a")]
         got = get_independent_coords(data)
-        self.assertEqual(got, data)
+        assert got == data
 
         # multiple non-overlapping
         data = [(20, 30, "a"), (35, 40, "b"), (65, 75, "c")]
         got = get_independent_coords(data)
-        self.assertEqual(got, data)
+        assert got == data
 
         # over-lapping first/second returns first occurrence by default
         data = [(20, 30, "a"), (25, 40, "b"), (65, 75, "c")]
         got = get_independent_coords(data)
-        self.assertEqual(got, [(20, 30, "a"), (65, 75, "c")])
+        assert got == [(20, 30, "a"), (65, 75, "c")]
         # but randomly the first or second if random_tie_breaker is chosen
         got = get_independent_coords(data, random_tie_breaker=True)
-        self.assertTrue(
-            got in ([(20, 30, "a"), (65, 75, "c")], [(25, 40, "b"), (65, 75, "c")]),
-        )
+        assert got in ([(20, 30, "a"), (65, 75, "c")], [(25, 40, "b"), (65, 75, "c")])
 
         # over-lapping second/last returns first occurrence by default
         data = [(20, 30, "a"), (30, 60, "b"), (50, 75, "c")]
         got = get_independent_coords(data)
-        self.assertEqual(got, [(20, 30, "a"), (30, 60, "b")])
+        assert got == [(20, 30, "a"), (30, 60, "b")]
         # but randomly the first or second if random_tie_breaker is chosen
         got = get_independent_coords(data, random_tie_breaker=True)
-        self.assertTrue(
-            got in ([(20, 30, "a"), (50, 75, "c")], [(20, 30, "a"), (30, 60, "b")]),
-        )
+        assert got in ([(20, 30, "a"), (50, 75, "c")], [(20, 30, "a"), (30, 60, "b")])
 
         # over-lapping middle returns first occurrence by default
         data = [(20, 24, "a"), (25, 40, "b"), (30, 35, "c"), (65, 75, "d")]
         got = get_independent_coords(data)
-        self.assertEqual(got, [(20, 24, "a"), (25, 40, "b"), (65, 75, "d")])
+        assert got == [(20, 24, "a"), (25, 40, "b"), (65, 75, "d")]
 
         # but randomly the first or second if random_tie_breaker is chosen
         got = get_independent_coords(data, random_tie_breaker=True)
-        self.assertTrue(
-            got
-            in (
-                [(20, 24, "a"), (25, 40, "b"), (65, 75, "d")],
-                [(20, 24, "a"), (30, 35, "c"), (65, 75, "d")],
-            ),
+        assert got in (
+            [(20, 24, "a"), (25, 40, "b"), (65, 75, "d")],
+            [(20, 24, "a"), (30, 35, "c"), (65, 75, "d")],
         )
 
     def test_get_merged_spans(self):
@@ -311,16 +302,16 @@ class UtilsTests(TestCase):
         sample = [[0, 10], [12, 15], [13, 16], [18, 25], [19, 20]]
         result = get_merged_overlapping_coords(sample)
         expect = [[0, 10], [12, 16], [18, 25]]
-        self.assertEqual(result, expect)
+        assert result == expect
         sample = [[0, 10], [5, 9], [12, 16], [18, 20], [19, 25]]
         result = get_merged_overlapping_coords(sample)
         expect = [[0, 10], [12, 16], [18, 25]]
-        self.assertEqual(result, expect)
+        assert result == expect
         # test with tuples
         sample = tuple(map(tuple, sample))
         result = get_merged_overlapping_coords(sample)
         expect = [[0, 10], [12, 16], [18, 25]]
-        self.assertEqual(result, expect)
+        assert result == expect
 
     def test_get_run_start_indices(self):
         """return indices corresponding to start of a run of identical values"""
@@ -328,14 +319,14 @@ class UtilsTests(TestCase):
         data = [1, 2, 3, 3, 3, 4, 4, 5]
         expect = [[0, 1], [1, 2], [2, 3], [5, 4], [7, 5]]
         got = get_run_start_indices(data)
-        self.assertEqual(list(got), expect)
+        assert list(got) == expect
 
         # raise an exception if try and provide a converter and num digits
         def wrap_gen():  # need to wrap generator so we can actually test this
             gen = get_run_start_indices(data, digits=1, converter_func=lambda x: x)
 
             def call():
-                for v in gen:
+                for _v in gen:
                     pass
 
             return call
@@ -346,72 +337,76 @@ class UtilsTests(TestCase):
         """correctly merge adjacent spans with the same value"""
         # initial values same
         data = [[20, 21, 0], [21, 22, 0], [22, 23, 1], [23, 24, 0]]
-        self.assertEqual(
-            get_merged_by_value_coords(data),
-            [[20, 22, 0], [22, 23, 1], [23, 24, 0]],
-        )
+        assert get_merged_by_value_coords(data) == [
+            [20, 22, 0],
+            [22, 23, 1],
+            [23, 24, 0],
+        ]
 
         # middle values same
         data = [[20, 21, 0], [21, 22, 1], [22, 23, 1], [23, 24, 0]]
-        self.assertEqual(
-            get_merged_by_value_coords(data),
-            [[20, 21, 0], [21, 23, 1], [23, 24, 0]],
-        )
+        assert get_merged_by_value_coords(data) == [
+            [20, 21, 0],
+            [21, 23, 1],
+            [23, 24, 0],
+        ]
 
         # last values same
         data = [[20, 21, 0], [21, 22, 1], [22, 23, 0], [23, 24, 0]]
-        self.assertEqual(
-            get_merged_by_value_coords(data),
-            [[20, 21, 0], [21, 22, 1], [22, 24, 0]],
-        )
+        assert get_merged_by_value_coords(data) == [
+            [20, 21, 0],
+            [21, 22, 1],
+            [22, 24, 0],
+        ]
 
         # all unique values
         data = [[20, 21, 0], [21, 22, 1], [22, 23, 2], [23, 24, 0]]
-        self.assertEqual(
-            get_merged_by_value_coords(data),
-            [[20, 21, 0], [21, 22, 1], [22, 23, 2], [23, 24, 0]],
-        )
+        assert get_merged_by_value_coords(data) == [
+            [20, 21, 0],
+            [21, 22, 1],
+            [22, 23, 2],
+            [23, 24, 0],
+        ]
 
         # all values same
         data = [[20, 21, 0], [21, 22, 0], [22, 23, 0], [23, 24, 0]]
-        self.assertEqual(get_merged_by_value_coords(data), [[20, 24, 0]])
+        assert get_merged_by_value_coords(data) == [[20, 24, 0]]
 
         # all unique values to 2nd decimal
         data = [[20, 21, 0.11], [21, 22, 0.12], [22, 23, 0.13], [23, 24, 0.14]]
-        self.assertEqual(
-            get_merged_by_value_coords(data),
-            [[20, 21, 0.11], [21, 22, 0.12], [22, 23, 0.13], [23, 24, 0.14]],
-        )
+        assert get_merged_by_value_coords(data) == [
+            [20, 21, 0.11],
+            [21, 22, 0.12],
+            [22, 23, 0.13],
+            [23, 24, 0.14],
+        ]
 
         # all values same at 1st decimal
         data = [[20, 21, 0.11], [21, 22, 0.12], [22, 23, 0.13], [23, 24, 0.14]]
-        self.assertEqual(get_merged_by_value_coords(data, digits=1), [[20, 24, 0.1]])
+        assert get_merged_by_value_coords(data, digits=1) == [[20, 24, 0.1]]
 
     def test_get_object_provenance(self):
         """correctly deduce object provenance"""
         result = get_object_provenance("abncd")
-        self.assertEqual(result, "str")
+        assert result == "str"
 
         DNA = cogent3.get_moltype("dna")
         got = get_object_provenance(DNA)
-        self.assertEqual(got, f"{DNA.__module__}.MolType")
+        assert got == f"{DNA.__module__}.MolType"
 
         sm = cogent3.get_model("HKY85")
         got = get_object_provenance(sm)
-        self.assertEqual(
-            got,
-            "cogent3.evolve.substitution_model.TimeReversibleNucleotide",
-        )
+        assert got == "cogent3.evolve.substitution_model.TimeReversibleNucleotide"
 
         # handle a type
         instance = cogent3.make_unaligned_seqs(
-            data=dict(a="ACG", b="GGG"),
+            data={"a": "ACG", "b": "GGG"},
             moltype="dna",
         )
         instance_prov = get_object_provenance(instance)
-        self.assertEqual(instance_prov, f"{instance.__module__}.SequenceCollection")
+        assert instance_prov == f"{instance.__module__}.SequenceCollection"
         type_prov = get_object_provenance(type(instance))
-        self.assertEqual(instance_prov, type_prov)
+        assert instance_prov == type_prov
 
     def test_get_object_provenance_builtins(self):
         """allow identifying builtins too"""
@@ -419,22 +414,22 @@ class UtilsTests(TestCase):
 
         obj_prov = get_object_provenance(compress)
 
-        self.assertEqual(obj_prov, "gzip.compress")
+        assert obj_prov == "gzip.compress"
 
         obj_prov = get_object_provenance(GzipFile)
-        self.assertEqual(obj_prov, "gzip.GzipFile")
+        assert obj_prov == "gzip.GzipFile"
 
-        d = dict(a=23, b=1)
+        d = {"a": 23, "b": 1}
         obj_prov = get_object_provenance(d)
-        self.assertEqual(obj_prov, "dict")
+        assert obj_prov == "dict"
 
         obj_prov = get_object_provenance(dict)
-        self.assertEqual(obj_prov, "dict")
+        assert obj_prov == "dict"
 
     def test_NestedSplitter(self):
         """NestedSplitter should make a function which return expected list"""
         # test delimiters, constructor, filter_
-        line = "ii=0; oo= 9, 6 5;  ; xx=  8;  "
+        line = "ii=0; oo= 9, 6 5;  ; xx=  8;  "  # noqa
         cmds = [
             "NestedSplitter(';=,')(line)",
             "NestedSplitter([';', '=', ','])(line)",
@@ -452,26 +447,29 @@ class UtilsTests(TestCase):
             [["ii", "0; oo", ["9", "6 5;  ; xx"], "8"], ""],
         ]
         for cmd, result in zip(cmds, results, strict=False):
-            self.assertEqual(eval(cmd), result)
+            assert eval(cmd) == result
 
         # test uncontinous level of delimiters
         test = "a; b,c; d,e:f; g:h;"  # g:h should get [[g,h]] instead of [g,h]
-        self.assertEqual(
-            NestedSplitter(";,:")(test),
-            ["a", ["b", "c"], ["d", ["e", "f"]], [["g", "h"]], ""],
-        )
+        assert NestedSplitter(";,:")(test) == [
+            "a",
+            ["b", "c"],
+            ["d", ["e", "f"]],
+            [["g", "h"]],
+            "",
+        ]
 
         # test empty
-        self.assertEqual(NestedSplitter(";,:")(""), [""])
-        self.assertEqual(NestedSplitter(";,:")("  "), [""])
-        self.assertEqual(NestedSplitter(";,:", filter_=None)(" ;, :"), [[[]]])
+        assert NestedSplitter(";,:")("") == [""]
+        assert NestedSplitter(";,:")("  ") == [""]
+        assert NestedSplitter(";,:", filter_=None)(" ;, :") == [[[]]]
 
     def test_curry(self):
         """curry should generate the function with parameters setted"""
         curry_test = curry(lambda x, y: x == y, 5)
         knowns = ((3, False), (9, False), (5, True))
         for arg2, result in knowns:
-            self.assertEqual(curry_test(arg2), result)
+            assert curry_test(arg2) == result
 
     @pytest.mark.filterwarnings("ignore::UserWarning")
     def test_get_setting_from_environ(self):
@@ -483,27 +481,27 @@ class UtilsTests(TestCase):
 
         env_name = "DUMMY_SETTING"
         os.environ.pop(env_name, None)
-        setting = dict(num_pos=2, num_seq=4, name="blah")
-        single_setting = dict(num_pos=2)
-        correct_names_types = dict(num_pos=int, num_seq=int, name=str)
-        incorrect_names_types = dict(num_pos=int, num_seq=int, name=float)
+        setting = {"num_pos": 2, "num_seq": 4, "name": "blah"}
+        single_setting = {"num_pos": 2}
+        correct_names_types = {"num_pos": int, "num_seq": int, "name": str}
+        incorrect_names_types = {"num_pos": int, "num_seq": int, "name": float}
 
         for stng in (setting, single_setting):
             os.environ[env_name] = make_env_setting(stng)
             got = get_setting_from_environ(env_name, correct_names_types)
             for key in got:
-                self.assertEqual(got[key], setting[key])
+                assert got[key] == setting[key]
 
         os.environ[env_name] = make_env_setting(setting)
         got = get_setting_from_environ(env_name, incorrect_names_types)
         assert "name" not in got
         for key in got:
-            self.assertEqual(got[key], setting[key])
+            assert got[key] == setting[key]
 
         # malformed env setting
         os.environ[env_name] = make_env_setting(setting).replace("=", "")
         got = get_setting_from_environ(env_name, correct_names_types)
-        self.assertEqual(got, {})
+        assert got == {}
 
         os.environ.pop(env_name, None)
 
@@ -526,9 +524,9 @@ class ClassCheckerTests(TestCase):
 
     def test_init_good(self):
         """ClassChecker should init OK when initialized with classes"""
-        self.assertEqual(self.strcheck.Classes, [str])
-        self.assertEqual(self.numcheck.Classes, [float, int, int])
-        self.assertEqual(self.emptycheck.Classes, [])
+        assert self.strcheck.Classes == [str]
+        assert self.numcheck.Classes == [float, int, int]
+        assert self.emptycheck.Classes == []
 
     def test_init_bad(self):
         """ClassChecker should raise TypeError if initialized with non-class"""
@@ -537,34 +535,34 @@ class ClassCheckerTests(TestCase):
 
     def test_contains(self):
         """ClassChecker should return True only if given instance of class"""
-        self.assertEqual(self.strcheck.__contains__("3"), True)
-        self.assertEqual(self.strcheck.__contains__("ahsdahisad"), True)
-        self.assertEqual(self.strcheck.__contains__(3), False)
-        self.assertEqual(self.strcheck.__contains__({3: "c"}), False)
+        assert self.strcheck.__contains__("3") is True
+        assert self.strcheck.__contains__("ahsdahisad") is True
+        assert self.strcheck.__contains__(3) is False
+        assert self.strcheck.__contains__({3: "c"}) is False
 
-        self.assertEqual(self.intcheck.__contains__("ahsdahisad"), False)
-        self.assertEqual(self.intcheck.__contains__("3"), False)
-        self.assertEqual(self.intcheck.__contains__(3.0), False)
-        self.assertEqual(self.intcheck.__contains__(3), True)
-        self.assertEqual(self.intcheck.__contains__(4**60), True)
-        self.assertEqual(self.intcheck.__contains__(4**60 * -1), True)
+        assert self.intcheck.__contains__("ahsdahisad") is False
+        assert self.intcheck.__contains__("3") is False
+        assert self.intcheck.__contains__(3.0) is False
+        assert self.intcheck.__contains__(3) is True
+        assert self.intcheck.__contains__(4**60) is True
+        assert self.intcheck.__contains__(4**60 * -1) is True
 
         d = _my_dict()
-        self.assertEqual(self.dictcheck.__contains__(d), True)
-        self.assertEqual(self.dictcheck.__contains__({"d": 1}), True)
-        self.assertEqual(self.mydictcheck.__contains__(d), True)
-        self.assertEqual(self.mydictcheck.__contains__({"d": 1}), False)
+        assert self.dictcheck.__contains__(d) is True
+        assert self.dictcheck.__contains__({"d": 1}) is True
+        assert self.mydictcheck.__contains__(d) is True
+        assert self.mydictcheck.__contains__({"d": 1}) is False
 
-        self.assertEqual(self.emptycheck.__contains__("d"), False)
+        assert self.emptycheck.__contains__("d") is False
 
-        self.assertEqual(self.numcheck.__contains__(3), True)
-        self.assertEqual(self.numcheck.__contains__(3.0), True)
-        self.assertEqual(self.numcheck.__contains__(-3), True)
-        self.assertEqual(self.numcheck.__contains__(-3.0), True)
-        self.assertEqual(self.numcheck.__contains__(3e-300), True)
-        self.assertEqual(self.numcheck.__contains__(0), True)
-        self.assertEqual(self.numcheck.__contains__(4**1000), True)
-        self.assertEqual(self.numcheck.__contains__("4**1000"), False)
+        assert self.numcheck.__contains__(3) is True
+        assert self.numcheck.__contains__(3.0) is True
+        assert self.numcheck.__contains__(-3) is True
+        assert self.numcheck.__contains__(-3.0) is True
+        assert self.numcheck.__contains__(3e-300) is True
+        assert self.numcheck.__contains__(0) is True
+        assert self.numcheck.__contains__(4**1000) is True
+        assert self.numcheck.__contains__("4**1000") is False
 
     def test_str(self):
         """ClassChecker str should be the same as str(self.Classes)"""
@@ -576,7 +574,7 @@ class ClassCheckerTests(TestCase):
             self.dictcheck,
             self.mydictcheck,
         ]:
-            self.assertEqual(str(c), str(c.Classes))
+            assert str(c) == str(c.Classes)
 
     def test_copy(self):
         """copy.copy should work correctly on ClassChecker"""
@@ -636,27 +634,27 @@ class DelegatorTests(TestCase):
         """Delegator should find attributes in correct places"""
         ls = _list_and_string([1, 2, 3], "abcd")
         # behavior as list
-        self.assertEqual(len(ls), 3)
-        self.assertEqual(ls[0], 1)
+        assert len(ls) == 3
+        assert ls[0] == 1
         ls.reverse()
-        self.assertEqual(ls, [3, 2, 1])
+        assert ls == [3, 2, 1]
         # behavior as string
-        self.assertEqual(ls.upper(), "ABCD")
-        self.assertEqual(len(ls.upper()), 4)
-        self.assertEqual(ls.replace("a", "x"), "xbcd")
+        assert ls.upper() == "ABCD"
+        assert len(ls.upper()) == 4
+        assert ls.replace("a", "x") == "xbcd"
         # behavior of normal attributes
-        self.assertEqual(ls.NormalAttribute, "default")
+        assert ls.NormalAttribute == "default"
         # behavior of properties
-        self.assertEqual(ls.prop, None)
-        self.assertEqual(ls.constant, "c")
+        assert ls.prop is None
+        assert ls.constant == "c"
         # shouldn't be allowed to get unknown properties
         self.assertRaises(AttributeError, getattr, ls, "xyz")
         # if the unknown property can be set in the forwarder, do it there
         flex = modifiable_string("abcd")
         ls_flex = _list_and_string([1, 2, 3], flex)
         ls_flex.blah = "zxc"
-        self.assertEqual(ls_flex.blah, "zxc")
-        self.assertEqual(flex.blah, "zxc")
+        assert ls_flex.blah == "zxc"
+        assert flex.blah == "zxc"
         # should get AttributeError if changing a read-only property
         self.assertRaises(AttributeError, setattr, ls, "constant", "xyz")
 
@@ -665,13 +663,13 @@ class DelegatorTests(TestCase):
         ls = _list_and_string([1, 2, 3], "abcd")
         # ability to create a new attribute
         ls.xyz = 3
-        self.assertEqual(ls.xyz, 3)
+        assert ls.xyz == 3
         # modify a normal attribute
         ls.NormalAttribute = "changed"
-        self.assertEqual(ls.NormalAttribute, "changed")
+        assert ls.NormalAttribute == "changed"
         # modify a read/write property
         ls.prop = "xyz"
-        self.assertEqual(ls.prop, "xyz")
+        assert ls.prop == "xyz"
 
     def test_copy(self):
         """copy.copy should work correctly on Delegator"""
@@ -700,9 +698,9 @@ class FunctionWrapperTests(TestCase):
         g = FunctionWrapper(id)
         h = FunctionWrapper(iterable)
         x = 3
-        self.assertEqual(f(x), "3")
-        self.assertEqual(g(x), id(x))
-        self.assertEqual(h(x), [3])
+        assert f(x) == "3"
+        assert g(x) == id(x)
+        assert h(x) == [3]
 
     def test_copy(self):
         """copy should work for FunctionWrapper objects"""
@@ -745,35 +743,35 @@ class ConstrainedContainerTests(TestCase):
 
     def test_matchesConstraint(self):
         """ConstrainedContainer matchesConstraint should return true if items ok"""
-        self.assertEqual(self.alphabet.matches_constraint(self.alphacontainer), True)
-        self.assertEqual(self.alphabet.matches_constraint(self.numbercontainer), False)
-        self.assertEqual(self.numbers.matches_constraint(self.alphacontainer), False)
-        self.assertEqual(self.numbers.matches_constraint(self.numbercontainer), True)
+        assert self.alphabet.matches_constraint(self.alphacontainer) is True
+        assert self.alphabet.matches_constraint(self.numbercontainer) is False
+        assert self.numbers.matches_constraint(self.alphacontainer) is False
+        assert self.numbers.matches_constraint(self.numbercontainer) is True
 
     def test_other_is_valid(self):
         """ConstrainedContainer should use constraint for checking other"""
-        self.assertEqual(self.alphabet.other_is_valid("12d8jc"), True)
+        assert self.alphabet.other_is_valid("12d8jc") is True
         self.alphabet.constraint = self.alphacontainer
-        self.assertEqual(self.alphabet.other_is_valid("12d8jc"), False)
+        assert self.alphabet.other_is_valid("12d8jc") is False
         self.alphabet.constraint = list("abcdefghijkl12345678")
-        self.assertEqual(self.alphabet.other_is_valid("12d8jc"), True)
-        self.assertEqual(self.alphabet.other_is_valid("z"), False)
+        assert self.alphabet.other_is_valid("12d8jc") is True
+        assert self.alphabet.other_is_valid("z") is False
 
     def test_item_is_valid(self):
         """ConstrainedContainer should use constraint for checking item"""
-        self.assertEqual(self.alphabet.item_is_valid(3), True)
+        assert self.alphabet.item_is_valid(3) is True
         self.alphabet.constraint = self.alphacontainer
-        self.assertEqual(self.alphabet.item_is_valid(3), False)
-        self.assertEqual(self.alphabet.item_is_valid("a"), True)
+        assert self.alphabet.item_is_valid(3) is False
+        assert self.alphabet.item_is_valid("a") is True
 
     def test_sequence_is_valid(self):
         """ConstrainedContainer should use constraint for checking sequence"""
-        self.assertEqual(self.alphabet.sequence_is_valid("12d8jc"), True)
+        assert self.alphabet.sequence_is_valid("12d8jc") is True
         self.alphabet.constraint = self.alphacontainer
-        self.assertEqual(self.alphabet.sequence_is_valid("12d8jc"), False)
+        assert self.alphabet.sequence_is_valid("12d8jc") is False
         self.alphabet.constraint = list("abcdefghijkl12345678")
-        self.assertEqual(self.alphabet.sequence_is_valid("12d8jc"), True)
-        self.assertEqual(self.alphabet.sequence_is_valid("z"), False)
+        assert self.alphabet.sequence_is_valid("12d8jc") is True
+        assert self.alphabet.sequence_is_valid("z") is False
 
     def test_Constraint(self):
         """ConstrainedContainer should only allow valid constraints to be set"""
@@ -782,8 +780,9 @@ class ConstrainedContainerTests(TestCase):
         except ConstraintError:
             pass
         else:
+            msg = "Failed to raise ConstraintError with invalid constraint."
             raise AssertionError(
-                "Failed to raise ConstraintError with invalid constraint.",
+                msg,
             )
         self.alphabet.constraint = "abcdefghi"
         self.alphabet.constraint = ["a", "b", "c", 1, 2, 3]
@@ -799,16 +798,16 @@ class ConstrainedListTests(TestCase):
 
     def test_init_good_data(self):
         """ConstrainedList should init OK if list matches constraint"""
-        self.assertEqual(ConstrainedList("abc", "abcd"), list("abc"))
-        self.assertEqual(ConstrainedList("", "abcd"), list(""))
+        assert ConstrainedList("abc", "abcd") == list("abc")
+        assert ConstrainedList("", "abcd") == list("")
         items = [1, 2, 3.2234, (["a"], ["b"]), list("xyz")]
         # should accept anything str() does if no constraint is passed
-        self.assertEqual(ConstrainedList(items), items)
-        self.assertEqual(ConstrainedList(items, None), items)
-        self.assertEqual(ConstrainedList("12345"), list("12345"))
+        assert ConstrainedList(items) == items
+        assert ConstrainedList(items, None) == items
+        assert ConstrainedList("12345") == list("12345")
         # check that list is formatted correctly and chars are all there
         test_list = list("12345")
-        self.assertEqual(ConstrainedList(test_list, "12345"), test_list)
+        assert ConstrainedList(test_list, "12345") == test_list
 
     def test_init_bad_data(self):
         """ConstrainedList should fail init with items not in constraint"""
@@ -821,14 +820,14 @@ class ConstrainedListTests(TestCase):
         b = ConstrainedList("444", "4")
         c = ConstrainedList("45", "12345")
         d = ConstrainedList("x")
-        self.assertEqual(a + b, list("123444"))
-        self.assertEqual(a + c, list("12345"))
+        assert a + b == list("123444")
+        assert a + c == list("12345")
         self.assertRaises(ConstraintError, b.__add__, c)
         self.assertRaises(ConstraintError, c.__add__, d)
         # should be OK if constraint removed
         b.constraint = None
-        self.assertEqual(b + c, list("44445"))
-        self.assertEqual(b + d, list("444x"))
+        assert b + c == list("44445")
+        assert b + d == list("444x")
         # should fail if we add the constraint back
         b.constraint = {"4": 1, 5: 2}
         self.assertRaises(ConstraintError, b.__add__, c)
@@ -837,85 +836,85 @@ class ConstrainedListTests(TestCase):
         """ConstrainedList should allow in-place addition only of compliant data"""
         a = ConstrainedList("12", "123")
         a += "2"
-        self.assertEqual(a, list("122"))
-        self.assertEqual(a.constraint, "123")
+        assert a == list("122")
+        assert a.constraint == "123"
         self.assertRaises(ConstraintError, a.__iadd__, "4")
 
     def test_imul(self):
         """ConstrainedList imul should preserve constraint"""
         a = ConstrainedList("12", "123")
         a *= 3
-        self.assertEqual(a, list("121212"))
-        self.assertEqual(a.constraint, "123")
+        assert a == list("121212")
+        assert a.constraint == "123"
 
     def test_mul(self):
         """ConstrainedList mul should preserve constraint"""
         a = ConstrainedList("12", "123")
         b = a * 3
-        self.assertEqual(b, list("121212"))
-        self.assertEqual(b.constraint, "123")
+        assert b == list("121212")
+        assert b.constraint == "123"
 
     def test_rmul(self):
         """ConstrainedList rmul should preserve constraint"""
         a = ConstrainedList("12", "123")
         b = 3 * a
-        self.assertEqual(b, list("121212"))
-        self.assertEqual(b.constraint, "123")
+        assert b == list("121212")
+        assert b.constraint == "123"
 
     def test_setitem(self):
         """ConstrainedList setitem should work only if item in constraint"""
         a = ConstrainedList("12", "123")
         a[0] = "3"
-        self.assertEqual(a, list("32"))
+        assert a == list("32")
         self.assertRaises(ConstraintError, a.__setitem__, 0, 3)
         a = ConstrainedList("1" * 20, "123")
         self.assertRaises(ConstraintError, a.__setitem__, slice(0, 1, 1), [3])
         self.assertRaises(ConstraintError, a.__setitem__, slice(0, 1, 1), ["111"])
         a[2:9:2] = "3333"
-        self.assertEqual(a, list("11313131311111111111"))
+        assert a == list("11313131311111111111")
 
     def test_append(self):
         """ConstrainedList append should work only if item in constraint"""
         a = ConstrainedList("12", "123")
         a.append("3")
-        self.assertEqual(a, list("123"))
+        assert a == list("123")
         self.assertRaises(ConstraintError, a.append, 3)
 
     def test_extend(self):
         """ConstrainedList extend should work only if all items in constraint"""
         a = ConstrainedList("12", "123")
         a.extend("321")
-        self.assertEqual(a, list("12321"))
+        assert a == list("12321")
         self.assertRaises(ConstraintError, a.extend, ["1", "2", 3])
 
     def test_insert(self):
         """ConstrainedList insert should work only if item in constraint"""
         a = ConstrainedList("12", "123")
         a.insert(0, "2")
-        self.assertEqual(a, list("212"))
+        assert a == list("212")
         self.assertRaises(ConstraintError, a.insert, 0, [2])
 
     def test_getslice(self):
         """ConstrainedList getslice should remember constraint"""
         a = ConstrainedList("123333", "12345")
         b = a[2:4]
-        self.assertEqual(b, list("33"))
-        self.assertEqual(b.constraint, "12345")
+        assert b == list("33")
+        assert b.constraint == "12345"
 
     def test_setslice(self):
         """ConstrainedList setslice should fail if slice has invalid chars"""
         a = ConstrainedList("123333", "12345")
         a[2:4] = ["2", "2"]
-        self.assertEqual(a, list("122233"))
+        assert a == list("122233")
         self.assertRaises(ConstraintError, a.__setslice__, 2, 4, [2, 2])
         a[:] = []
-        self.assertEqual(a, [])
-        self.assertEqual(a.constraint, "12345")
+        assert a == []
+        assert a.constraint == "12345"
 
     def test_setitem_masks(self):
         """ConstrainedList setitem with masks should transform input"""
         a = ConstrainedList("12333", list(range(5)), lambda x: int(x) + 1)
-        self.assertEqual(a, [2, 3, 4, 4, 4])
+        assert a == [2, 3, 4, 4, 4]
         self.assertRaises(ConstraintError, a.append, 4)
         b = a[1:3]
         assert b.mask is a.mask
@@ -931,7 +930,7 @@ class MappedListTests(TestCase):
     def test_setitem_masks(self):
         """MappedList setitem with masks should transform input"""
         a = MappedList("12333", list(range(5)), lambda x: int(x) + 1)
-        self.assertEqual(a, [2, 3, 4, 4, 4])
+        assert a == [2, 3, 4, 4, 4]
         self.assertRaises(ConstraintError, a.append, 4)
         b = a[1:3]
         assert b.mask is a.mask
@@ -944,29 +943,20 @@ class ConstrainedDictTests(TestCase):
 
     def test_init_good_data(self):
         """ConstrainedDict should init OK if list matches constraint"""
-        self.assertEqual(
-            ConstrainedDict(dict.fromkeys("abc"), "abcd"),
-            dict.fromkeys("abc"),
-        )
-        self.assertEqual(ConstrainedDict("", "abcd"), dict(""))
+        assert ConstrainedDict(dict.fromkeys("abc"), "abcd") == dict.fromkeys("abc")
+        assert ConstrainedDict("", "abcd") == dict("")
         items = [1, 2, 3.2234, tuple("xyz")]
         # should accept anything dict() does if no constraint is passed
-        self.assertEqual(ConstrainedDict(dict.fromkeys(items)), dict.fromkeys(items))
-        self.assertEqual(
-            ConstrainedDict(dict.fromkeys(items), None),
-            dict.fromkeys(items),
-        )
-        self.assertEqual(
-            ConstrainedDict([(x, 1) for x in "12345"]),
-            dict.fromkeys("12345", 1),
-        )
+        assert ConstrainedDict(dict.fromkeys(items)) == dict.fromkeys(items)
+        assert ConstrainedDict(dict.fromkeys(items), None) == dict.fromkeys(items)
+        assert ConstrainedDict([(x, 1) for x in "12345"]) == dict.fromkeys("12345", 1)
         # check that list is formatted correctly and chars are all there
         test_dict = dict.fromkeys("12345")
-        self.assertEqual(ConstrainedDict(test_dict, "12345"), test_dict)
+        assert ConstrainedDict(test_dict, "12345") == test_dict
 
     def test_init_sequence(self):
         """ConstrainedDict should init from sequence, unlike normal dict"""
-        self.assertEqual(ConstrainedDict("abcda"), {"a": 2, "b": 1, "c": 1, "d": 1})
+        assert ConstrainedDict("abcda") == {"a": 2, "b": 1, "c": 1, "d": 1}
 
     def test_init_bad_data(self):
         """ConstrainedDict should fail init with items not in constraint"""
@@ -987,14 +977,14 @@ class ConstrainedDictTests(TestCase):
         """ConstrainedDict setitem should work only if key in constraint"""
         a = ConstrainedDict(dict.fromkeys("12"), "123")
         a["1"] = "3"
-        self.assertEqual(a, {"1": "3", "2": None})
+        assert a == {"1": "3", "2": None}
         self.assertRaises(ConstraintError, a.__setitem__, 1, "3")
 
     def test_copy(self):
         """ConstrainedDict copy should retain constraint"""
         a = ConstrainedDict(dict.fromkeys("12"), "123")
         b = a.copy()
-        self.assertEqual(a.constraint, b.constraint)
+        assert a.constraint == b.constraint
         self.assertRaises(ConstraintError, a.__setitem__, 1, "3")
         self.assertRaises(ConstraintError, b.__setitem__, 1, "3")
 
@@ -1002,20 +992,20 @@ class ConstrainedDictTests(TestCase):
         """ConstrainedDict instance fromkeys should retain constraint"""
         a = ConstrainedDict(dict.fromkeys("12"), "123")
         b = a.fromkeys("23")
-        self.assertEqual(a.constraint, b.constraint)
+        assert a.constraint == b.constraint
         self.assertRaises(ConstraintError, a.__setitem__, 1, "3")
         self.assertRaises(ConstraintError, b.__setitem__, 1, "3")
         b["2"] = 5
-        self.assertEqual(b, {"2": 5, "3": None})
+        assert b == {"2": 5, "3": None}
 
     def test_setdefault(self):
         """ConstrainedDict setdefault shouldn't allow bad keys"""
         a = ConstrainedDict({"1": None, "2": "xyz"}, "123")
-        self.assertEqual(a.setdefault("2", None), "xyz")
-        self.assertEqual(a.setdefault("1", None), None)
+        assert a.setdefault("2", None) == "xyz"
+        assert a.setdefault("1", None) is None
         self.assertRaises(ConstraintError, a.setdefault, "x", 3)
         a.setdefault("3", 12345)
-        self.assertEqual(a, {"1": None, "2": "xyz", "3": 12345})
+        assert a == {"1": None, "2": "xyz", "3": 12345}
 
     def test_update(self):
         """ConstrainedDict should allow update only of compliant data"""
@@ -1024,22 +1014,22 @@ class ConstrainedDictTests(TestCase):
         c = ConstrainedDict(dict.fromkeys("45"), "12345")
         d = ConstrainedDict([["x", "y"]])
         a.update(b)
-        self.assertEqual(a, dict.fromkeys("1234"))
+        assert a == dict.fromkeys("1234")
         a.update(c)
-        self.assertEqual(a, dict.fromkeys("12345"))
+        assert a == dict.fromkeys("12345")
         self.assertRaises(ConstraintError, b.update, c)
         self.assertRaises(ConstraintError, c.update, d)
         # should be OK if constraint removed
         b.constraint = None
         b.update(c)
-        self.assertEqual(b, dict.fromkeys("45"))
+        assert b == dict.fromkeys("45")
         b.update(d)
-        self.assertEqual(b, {"4": None, "5": None, "x": "y"})
+        assert b == {"4": None, "5": None, "x": "y"}
         # should fail if we add the constraint back
         b.constraint = {"4": 1, 5: 2, "5": 1, "x": 1}
         self.assertRaises(ConstraintError, b.update, {4: 1})
         b.update({5: 1})
-        self.assertEqual(b, {"4": None, "5": None, "x": "y", 5: 1})
+        assert b == {"4": None, "5": None, "x": "y", 5: 1}
 
     def test_setitem_masks(self):
         """ConstrainedDict setitem should work only if key in constraint"""
@@ -1050,9 +1040,9 @@ class ConstrainedDictTests(TestCase):
 
         d = ConstrainedDict({1: 4, 2: 6}, "123", key_mask, val_mask)
         d[1] = "456"
-        self.assertEqual(d, {"1": 459, "2": 9})
+        assert d == {"1": 459, "2": 9}
         d["1"] = 234
-        self.assertEqual(d, {"1": 237, "2": 9})
+        assert d == {"1": 237, "2": 9}
         self.assertRaises(ConstraintError, d.__setitem__, 4, "3")
         e = d.copy()
         assert e.mask is d.mask
@@ -1072,9 +1062,9 @@ class MappedDictTests(TestCase):
 
         d = MappedDict({1: 4, 2: 6}, "123", key_mask, val_mask)
         d[1] = "456"
-        self.assertEqual(d, {"1": 459, "2": 9})
+        assert d == {"1": 459, "2": 9}
         d["1"] = 234
-        self.assertEqual(d, {"1": 237, "2": 9})
+        assert d == {"1": 237, "2": 9}
         self.assertRaises(ConstraintError, d.__setitem__, 4, "3")
         e = d.copy()
         assert e.mask is d.mask
@@ -1087,26 +1077,26 @@ class MappedDictTests(TestCase):
         """MappedDict getitem should automatically map key."""
         key_mask = str
         d = MappedDict({}, "123", key_mask)
-        self.assertEqual(d, {})
+        assert d == {}
         d["1"] = 5
-        self.assertEqual(d, {"1": 5})
-        self.assertEqual(d[1], 5)
+        assert d == {"1": 5}
+        assert d[1] == 5
 
     def test_get(self):
         """MappedDict get should automatically map key."""
         key_mask = str
         d = MappedDict({}, "123", key_mask)
-        self.assertEqual(d, {})
+        assert d == {}
         d["1"] = 5
-        self.assertEqual(d, {"1": 5})
-        self.assertEqual(d.get(1, "x"), 5)
-        self.assertEqual(d.get(5, "x"), "x")
+        assert d == {"1": 5}
+        assert d.get(1, "x") == 5
+        assert d.get(5, "x") == "x"
 
     def test_has_key(self):
         """MappedDict has_key should automatically map key."""
         key_mask = str
         d = MappedDict({}, "123", key_mask)
-        self.assertEqual(d, {})
+        assert d == {}
         d["1"] = 5
         assert "1" in d
         assert 1 in d
@@ -1161,46 +1151,31 @@ class ExtendDocstringTests(TestCase):
         """I am foo."""
 
     def test_function_append(self):
-        self.assertEqual(foo_append.__doc__, "This is a function docstring.\nI am foo.")
+        assert foo_append.__doc__ == "This is a function docstring.\nI am foo."
 
     def test_function_mirror(self):
-        self.assertEqual(foo_mirror.__doc__, "This is a function docstring.\n")
+        assert foo_mirror.__doc__ == "This is a function docstring.\n"
 
     def test_function_prepend(self):
-        self.assertEqual(
-            foo_prepend.__doc__,
-            "I am foo.\nThis is a function docstring.",
-        )
+        assert foo_prepend.__doc__ == "I am foo.\nThis is a function docstring."
 
     def test_method_append(self):
-        self.assertEqual(
-            self.foo_append.__doc__,
-            "This is a function docstring.\nI am foo.",
-        )
+        assert self.foo_append.__doc__ == "This is a function docstring.\nI am foo."
 
     def test_method_mirror(self):
-        self.assertEqual(self.foo_mirror.__doc__, "This is a function docstring.\n")
+        assert self.foo_mirror.__doc__ == "This is a function docstring.\n"
 
     def test_method_prepend(self):
-        self.assertEqual(
-            self.foo_prepend.__doc__,
-            "I am foo.\nThis is a function docstring.",
-        )
+        assert self.foo_prepend.__doc__ == "I am foo.\nThis is a function docstring."
 
     def test_class_append(self):
-        self.assertEqual(
-            self.FooAppend.__doc__,
-            "This is a class docstring.\nI am foo.",
-        )
+        assert self.FooAppend.__doc__ == "This is a class docstring.\nI am foo."
 
     def test_class_mirror(self):
-        self.assertEqual(self.FooMirror.__doc__, "This is a class docstring.\n")
+        assert self.FooMirror.__doc__ == "This is a class docstring.\n"
 
     def test_class_prepend(self):
-        self.assertEqual(
-            self.FooPrepend.__doc__,
-            "I am foo.\nThis is a class docstring.",
-        )
+        assert self.FooPrepend.__doc__ == "I am foo.\nThis is a class docstring."
 
 
 def test_not_in_jupyter():
@@ -1249,17 +1224,18 @@ _body_expect = ["Notes", "-----", "body"]
 
 
 @pytest.mark.parametrize(
-    "foo,sum_exp,body_exp",
-    (
+    ("foo", "sum_exp", "body_exp"),
+    [
         (foo1, _sum_expect, []),
         (foo2, _sum_expect, _body_expect),
         (foo3, "", _body_expect),
         (foo4, "", []),
-    ),
+    ],
 )
 def test_docstring_to_summary_rest(foo, sum_exp, body_exp):
     summary, body = docstring_to_summary_rest(foo.__doc__)
-    assert summary == sum_exp and body.split() == body_exp
+    assert summary == sum_exp
+    assert body.split() == body_exp
 
 
 def test_get_true_spans_absolute():
@@ -1303,6 +1279,6 @@ def test_negate_condition():
     result_true = negator(3)
     result_false = negator(8)
 
-    assert result_true == True
-    assert result_false == False
+    assert result_true is True
+    assert result_false is False
     assert greater_than_5(3) != negator(3)

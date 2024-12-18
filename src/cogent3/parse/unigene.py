@@ -97,22 +97,22 @@ class UniGene(MappedRecord):
     }
 
 
-def _expressions_setter(obj, field, val):
+def _expressions_setter(obj, field, val) -> None:
     """Sets specified field to a list of expressions"""
     setattr(obj, field, semi_splitter(val))
 
 
-def _sts_adder(obj, field, val):
+def _sts_adder(obj, field, val) -> None:
     """Appends the current STS-type record to specified field"""
     list_adder(obj, field, _read_sts(val))
 
 
-def _seq_adder(obj, field, val):
+def _seq_adder(obj, field, val) -> None:
     """Appends the current Sequence-type record to specified field"""
     list_adder(obj, field, _read_seq(val))
 
 
-def _protsim_adder(obj, field, val):
+def _protsim_adder(obj, field, val) -> None:
     """Appends the current ProtSim record to specified field"""
     list_adder(obj, field, _read_protsim(val))
 
@@ -142,8 +142,7 @@ if __name__ == "__main__":
 
     filename = argv[1]
     count = 0
-    for record in UniGeneParser(open(filename)):
+    for _record in UniGeneParser(open(filename)):
         stdout.write(".")
         stdout.flush()
         count += 1
-    print(f"read {count} records")

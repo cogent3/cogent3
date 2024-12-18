@@ -17,7 +17,7 @@ def pog_traceback(pogs, aligned_positions):
 
 
 class POGBuilder:
-    def __init__(self, children):
+    def __init__(self, children) -> None:
         self.children = children
         self.remap = [{} for _ in children]
         self.started = [False, False]
@@ -27,14 +27,14 @@ class POGBuilder:
         self.aligned_positions = []
         self.states = []
 
-    def add_skipped(self, dim, start, end, old_gap=True):
+    def add_skipped(self, dim, start, end, old_gap=True) -> None:
         for p in range(start, end):
             fp = [None, None]
             fp[dim] = p
             fp = tuple(fp)
             self.add_aligned(fp, old_gap=old_gap)
 
-    def add_aligned(self, posn, old_gap=False):
+    def add_aligned(self, posn, old_gap=False) -> None:
         pre_merged = set()
         assert len(posn) == 2
         for dim, pos in enumerate(posn):
@@ -61,7 +61,7 @@ class POGBuilder:
         # Build a list of gaps (ie: segments of X or Y state) in
         # the alignment and a dict which maps from seq posn to the
         # start of the surrounding gap.
-        for i, state in enumerate(self.states + ["."]):
+        for i, state in enumerate([*self.states, "."]):
             gap = state in "XYxy"
             if gap and not ingap:
                 start = i
@@ -110,7 +110,7 @@ class POG:
     alignment of sequences with insertions. PNAS 102:10557-10562
     """
 
-    def __init__(self, length, jumps, child_jumps):
+    def __init__(self, length, jumps, child_jumps) -> None:
         self.jumps = jumps
         self.child_jumps = child_jumps
         self.all_jumps = self.jumps + self.child_jumps
@@ -151,25 +151,19 @@ class POG:
     def get_full_aligned_positions(self):
         return self.aligned_positions
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.length
 
     def midlinks(self):
         # for the hirchberg algorithm.
         half = self.length // 2
         jumps = [(i, j) for (i, j) in self.all_jumps if i <= half and j >= half]
-        return [(half, half)] + jumps
+        return [(half, half), *jumps]
 
     def __getitem__(self, index):
         # POGs need to be sliceable for the hirchberg algorithm.
-        if index.start is None:
-            start = 0
-        else:
-            start = index.start
-        if index.stop is None:
-            end = self.length
-        else:
-            end = index.stop
+        start = 0 if index.start is None else index.start
+        end = self.length if index.stop is None else index.stop
         assert end >= start, (start, end, index, self.length)
 
         def moved(i, j):
@@ -189,7 +183,7 @@ class POG:
         cjumps = [(length - j, length - i) for (i, j) in self.child_jumps]
         return POG(length, jumps, cjumps)
 
-    def write_to_dot(self, dot):
+    def write_to_dot(self, dot) -> None:
         pred_sets = self.as_list_of_pred_lists()
         print("digraph POG {", file=dot)
         for i, preds in enumerate(pred_sets):
@@ -210,16 +204,16 @@ class POG:
 class LeafPOG(POG):
     """The POG for a known sequence contains no indels."""
 
-    def __init__(self, length):
+    def __init__(self, length) -> None:
         self.length = length
         self.all_jumps = []
         self.jumps = []
 
     def as_list_of_pred_lists(self):
         pog = [[[i]] for i in range(self.length)]
-        return [[]] + pog + [[len(pog)]]
+        return [[], *pog, [len(pog)]]
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.length
 
     def backward(self):

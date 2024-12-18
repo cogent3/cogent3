@@ -71,7 +71,7 @@ class logarithm_tests(TestCase):
                 [9.95494662, 0.63789574, 1.39069539, -11.98353775],
             ],
         )
-        self.assertFalse(is_generator_unique(q_fail))
+        assert not is_generator_unique(q_fail)
 
         q_pass = array(
             [
@@ -81,7 +81,7 @@ class logarithm_tests(TestCase):
                 [1.2387180594, 0.1873997167, 0.9202488686, -2.3463666447],
             ],
         )
-        self.assertTrue(is_generator_unique(q_pass))
+        assert is_generator_unique(q_pass)
 
         q_raise = array(
             [

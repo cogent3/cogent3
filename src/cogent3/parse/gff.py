@@ -22,7 +22,8 @@ OptionalBool = typing.Optional[bool]
 @functools.singledispatch
 def is_gff3(f) -> bool:
     """True if gff-version is 3"""
-    raise TypeError(f"unsupported type {type(f)}")
+    msg = f"unsupported type {type(f)}"
+    raise TypeError(msg)
 
 
 @is_gff3.register
@@ -83,7 +84,7 @@ class GffRecordABC(ABC):
         "strand",
     )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         name = self.__class__.__name__
         return (
             f"{name}(seqid={self.seqid!r}, name={self.name!r}, "
@@ -95,11 +96,11 @@ class GffRecordABC(ABC):
         item = item.lower()
         return getattr(self, _gff_item_map.get(item, item))
 
-    def __setitem__(self, key: str, value: typing.Any):
+    def __setitem__(self, key: str, value: typing.Any) -> None:
         key = key.lower()
         setattr(self, _gff_item_map.get(key, key), value)
 
-    def update(self, values: dict[str, typing.Any]):
+    def update(self, values: dict[str, typing.Any]) -> None:
         for key, value in values.items():
             self[key] = value
 
@@ -153,7 +154,7 @@ class GffRecord(GffRecordABC):
         phase: OptionalInt = None,
         comments: OptionalStr = None,
         attrs: OptionalStrDict = None,
-    ):
+    ) -> None:
         self.seqid = seqid
         self.source = source
         self.biotype = biotype

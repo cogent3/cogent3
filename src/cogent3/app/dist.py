@@ -57,7 +57,7 @@ class fast_slow_dist:
         moltype: str | None = None,
         fast_calc: str | None = None,
         slow_calc: str | None = None,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -105,7 +105,8 @@ class fast_slow_dist:
         self._sm = None
 
         if (fast_calc or slow_calc) and distance:
-            raise ValueError("cannot combine distance and fast/slow")
+            msg = "cannot combine distance and fast/slow"
+            raise ValueError(msg)
 
         if distance:
             fast_calc = distance
@@ -113,7 +114,8 @@ class fast_slow_dist:
 
         d = {"hamming", "pdist", "paralinear", "logdet"} & {slow_calc, fast_calc}
         if d and not self._moltype:
-            raise ValueError(f"you must provide a moltype for {d}")
+            msg = f"you must provide a moltype for {d}"
+            raise ValueError(msg)
 
         try:
             fast_calc = get_distance_calculator(fast_calc, moltype=self._moltype)
@@ -126,18 +128,21 @@ class fast_slow_dist:
             slow_calc = None
 
         if not (fast_calc or slow_calc):
-            raise ValueError(f"invalid values for {slow_calc} or {fast_calc}")
+            msg = f"invalid values for {slow_calc} or {fast_calc}"
+            raise ValueError(msg)
 
         self.fast_calc = fast_calc
         if fast_calc and self._moltype and fast_calc.moltype != self._moltype:
+            msg = f"{self._moltype} incompatible moltype with fast calculator {fast_calc.moltype}"
             raise ValueError(
-                f"{self._moltype} incompatible moltype with fast calculator {fast_calc.moltype}",
+                msg,
             )
         if fast_calc:
             self._moltype = fast_calc.moltype
 
         if slow_calc and self._moltype and slow_calc.moltype != self._moltype:
-            raise ValueError("incompatible moltype with slow calculator")
+            msg = "incompatible moltype with slow calculator"
+            raise ValueError(msg)
         if slow_calc:
             self._moltype = slow_calc.moltype
         self._sm = slow_calc
@@ -367,7 +372,8 @@ def get_approx_dist_calc(dist: str, num_states: int = 4) -> Callable:
             jaccard_dist() + approx_pdist() + approx_jc69(num_states=num_states)
         )
     else:
-        raise ValueError(f"No support for calc={dist}. Use either 'pdist' or 'jc69'")
+        msg = f"No support for calc={dist}. Use either 'pdist' or 'jc69'"
+        raise ValueError(msg)
     return dist_calc_app
 
 
@@ -375,7 +381,7 @@ def get_approx_dist_calc(dist: str, num_states: int = 4) -> Callable:
 class gap_dist:
     """compute the pairwise difference in gaps using affine gap score"""
 
-    def __init__(self, gap_insert: float = 12.0, gap_extend: float = 1.0):
+    def __init__(self, gap_insert: float = 12.0, gap_extend: float = 1.0) -> None:
         """
         Parameters
         ----------
@@ -419,7 +425,7 @@ class gap_dist:
         gap_data = dict(zip(aln.names, aln.get_gap_array(), strict=False))
         # convert each gap vector to gap spans
         for k, gap_vector in gap_data.items():
-            gap_data[k] = set(tuple(pr) for pr in get_true_spans(gap_vector).tolist())
+            gap_data[k] = {tuple(pr) for pr in get_true_spans(gap_vector).tolist()}
 
         for i, j in combinations(range(aln.num_seqs), 2):
             n1, n2 = aln.names[i], aln.names[j]

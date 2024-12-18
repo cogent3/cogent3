@@ -27,7 +27,7 @@ from numpy.linalg import inv as inverse
 from numpy.linalg import norm
 
 
-def _is_Q_ok(Q):
+def _is_Q_ok(Q) -> bool:
     """Tests whether a square matrix is a valid transition rate matrix"""
     n = Q.shape[0]
     if not allclose(Q.imag, 0.0):
@@ -36,16 +36,15 @@ def _is_Q_ok(Q):
     if not allclose(offd[offd < 0.0], 0.0):
         return False
     one = ones(n)
-    if not allclose(Q.dot(one), 0.0):
-        return False
-    return True
+    return allclose(Q.dot(one), 0.0)
 
 
-def is_generator_unique(Q):
+def is_generator_unique(Q) -> bool:
     """Conservatively tests whether a transition rate matrix uniquely yields
     its transition probability matrix"""
     if Q.shape[0] not in (3, 4):
-        raise NotImplementedError("Only Q of 3x3 or 4x4 supported")
+        msg = "Only Q of 3x3 or 4x4 supported"
+        raise NotImplementedError(msg)
     assert _is_Q_ok(Q), "Q must be a valid transition rate matrix"
 
     e, V = eigenvectors(Q)
@@ -53,7 +52,8 @@ def is_generator_unique(Q):
 
     # Assert that the matrix is diagonalisable
     if not allclose(V.dot(diag(e)).dot(inverse(V)), Q):
-        raise ArithmeticError("matrix not diagonalisable")
+        msg = "matrix not diagonalisable"
+        raise ArithmeticError(msg)
 
     # Find the Perron-Frobenius eigenvalue
     PF_EV = argmin([norm(ones(n) / n - v / v.sum()) for v in V.T])
@@ -97,7 +97,8 @@ def logm(P):
     evI = inverse(ev.T)
     evT = ev
     if not allclose(P, innerproduct(evT * roots, evI)):
-        raise ArithmeticError("eigendecomposition failed")
+        msg = "eigendecomposition failed"
+        raise ArithmeticError(msg)
 
     log_roots = log(roots)
     return innerproduct(evT * log_roots, evI)

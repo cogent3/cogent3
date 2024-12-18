@@ -41,7 +41,7 @@ def home_file(DATA_DIR) -> str:
         yield str(outpath)
 
 
-@pytest.mark.parametrize("transform", (str, pathlib.Path))
+@pytest.mark.parametrize("transform", [str, pathlib.Path])
 def test_open_home(DATA_DIR, home_file, transform):
     """expands tilde for opening / writing to home"""
     data_path = DATA_DIR / "sample.tsv"
@@ -54,14 +54,13 @@ def test_open_home(DATA_DIR, home_file, transform):
 def test_does_not_write_if_exception(tmp_dir):
     """file does not exist if an exception raised before closing"""
     test_filepath = tmp_dir / "Atomic_write_test"
-    with pytest.raises(AssertionError):
-        with atomic_write(test_filepath, mode="w") as f:
-            f.write("abc")
-            raise AssertionError
+    with pytest.raises(AssertionError), atomic_write(test_filepath, mode="w") as f:
+        f.write("abc")
+        raise AssertionError
     assert not test_filepath.exists()
 
 
-@pytest.mark.parametrize("suffix", ("gz", "bz2", "zip", "lmza", "xz"))
+@pytest.mark.parametrize("suffix", ["gz", "bz2", "zip", "lmza", "xz"])
 def test_writes_compressed_formats(DATA_DIR, tmp_dir, suffix):
     """correctly writes / reads different compression formats"""
     fpath = DATA_DIR / "sample.tsv"
@@ -128,7 +127,7 @@ def test_open_handles_bom(tmp_dir):
             assert got == text, f"failed reading {path}"
 
 
-@pytest.mark.parametrize("non", (None, ""))
+@pytest.mark.parametrize("non", [None, ""])
 def test_open_empty_raises(non):
     with pytest.raises(ValueError):
         open_(non)
@@ -205,14 +204,14 @@ def test_remove_files():
 
 
 @pytest.mark.parametrize(
-    "name,expect",
-    (
+    ("name", "expect"),
+    [
         ("suffixes.GZ", (None, "gz")),
         ("suffixes.ABCD", ("abcd", None)),
         ("suffixes.ABCD.BZ2", ("abcd", "bz2")),
         ("suffixes.abcd.BZ2", ("abcd", "bz2")),
         ("suffixes.ABCD.bz2", ("abcd", "bz2")),
-    ),
+    ],
 )
 def test_get_format_suffixes_returns_lower_case(name, expect):
     """should always return lower case"""
@@ -221,14 +220,14 @@ def test_get_format_suffixes_returns_lower_case(name, expect):
 
 
 @pytest.mark.parametrize(
-    "name,expect",
-    (
+    ("name", "expect"),
+    [
         ("no_suffixes", (None, None)),
         ("suffixes.gz", (None, "gz")),
         ("suffixes.abcd", ("abcd", None)),
         ("suffixes.abcd.bz2", ("abcd", "bz2")),
         ("suffixes.zip", (None, "zip")),
-    ),
+    ],
 )
 def test_get_format_suffixes(name, expect):
     """correctly return suffixes for compressed etc.. formats"""
@@ -237,14 +236,14 @@ def test_get_format_suffixes(name, expect):
 
 
 @pytest.mark.parametrize(
-    "name,expect",
-    (
+    ("name", "expect"),
+    [
         ("no_suffixes", (None, None)),
         ("suffixes.gz", (None, "gz")),
         ("suffixes.abcd", ("abcd", None)),
         ("suffixes.abcd.bz2", ("abcd", "bz2")),
         ("suffixes.zip", (None, "zip")),
-    ),
+    ],
 )
 def test_get_format_suffixes_pathlib(name, expect):
     """correctly return suffixes for compressed etc.. formats from pathlib"""
@@ -253,8 +252,8 @@ def test_get_format_suffixes_pathlib(name, expect):
 
 
 @pytest.mark.parametrize(
-    "val,expect",
-    (
+    ("val", "expect"),
+    [
         ({}, False),
         ("not an existing path", False),
         ("(a,b,(c,d))", False),
@@ -262,7 +261,7 @@ def test_get_format_suffixes_pathlib(name, expect):
         (__file__, True),
         (pathlib.Path(__file__), True),
         (NotCompleted("FAIL", "test", message="none", source="unknown"), False),
-    ),
+    ],
 )
 def test_path_exists(val, expect):
     """robustly identifies whether an object is a valid path and exists"""
@@ -317,7 +316,7 @@ def test_open_zip_multi(tmp_dir):
 
 @pytest.mark.parametrize(
     "mode",
-    ("r", "rb", "rt", None),
+    ["r", "rb", "rt", None],
 )
 @pytest.mark.internet
 def test_open_url(DATA_DIR, mode):
@@ -399,7 +398,7 @@ def test_iter_splitlines_one(tmp_path):
     assert got == [value]
 
 
-@pytest.mark.parametrize("newline", ("\n", "\r\n"))
+@pytest.mark.parametrize("newline", ["\n", "\r\n"])
 def test_iter_splitlines_line_diff_newline(tmp_path, newline):
     path = tmp_path / "multi-line.txt"
     value = ["We have some", "text on different lines", "which load"]
@@ -410,7 +409,7 @@ def test_iter_splitlines_line_diff_newline(tmp_path, newline):
     assert got == value
 
 
-@pytest.mark.parametrize("newline", ("\n", "\r\n"))
+@pytest.mark.parametrize("newline", ["\n", "\r\n"])
 def test_iter_splitlines_file_endswith_newline(tmp_path, newline):
     path = tmp_path / "multi-line.txt"
     value = ["We have some", "text on different lines", "which load"]
@@ -432,12 +431,12 @@ def test_iter_splitlines_chunk_size_exceeds_file_size(tmp_path):
 
 @pytest.mark.parametrize(
     "value",
-    (
+    [
         # creates a one line block ending on newline
         "With text\nending on a\nended in newline.",
         # creates a two line block ending on newline
         "With text\nending\non a\nended in newline.",
-    ),
+    ],
 )
 def test_iter_splitlines_chunk_endswith_newline(tmp_path, value):
     path = tmp_path / "multi-line.txt"
@@ -456,7 +455,7 @@ def test_iter_splitlines_chunk_empty_file(tmp_path):
     assert not got
 
 
-@pytest.mark.parametrize("transform", (str, pathlib.Path))
+@pytest.mark.parametrize("transform", [str, pathlib.Path])
 def test_iter_splitlines_tilde(home_file, transform):
     expect = pathlib.Path(home_file).expanduser().read_text().splitlines()
     got = list(iter_splitlines(transform(home_file)))
@@ -504,11 +503,11 @@ def test_iter_line_blocks_none_num_lines(tmp_path):
 
 @pytest.mark.parametrize(
     "url",
-    (
+    [
         "http://example.com",
         b"file://example.txt",
         pathlib.Path("example.txt").absolute().as_uri(),
-    ),
+    ],
 )
 def test_is_url(url):
     assert is_url(url)
@@ -516,7 +515,7 @@ def test_is_url(url):
 
 @pytest.mark.parametrize(
     "url",
-    ("example.txt", pathlib.Path("example.txt"), b"example.txt", r"D:\foo\example.txt"),
+    ["example.txt", pathlib.Path("example.txt"), b"example.txt", r"D:\foo\example.txt"],
 )
 def test_not_is_url(url):
     assert not is_url(url)
@@ -533,7 +532,7 @@ def gzip_uri(DATA_DIR, tmp_path):
     return outpath.as_uri()
 
 
-@pytest.mark.parametrize("mode", ("r", "rb", "rt"))
+@pytest.mark.parametrize("mode", ["r", "rb", "rt"])
 def test_open_url_gzip_mode(gzip_uri, mode):
     with open_url(gzip_uri, mode=mode) as infile:
         got = infile.read()

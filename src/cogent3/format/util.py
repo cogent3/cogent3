@@ -11,7 +11,7 @@ class _AlignmentFormatter:
     align_order = None
 
     # other utility function
-    def set_block_size(self, size):
+    def set_block_size(self, size) -> None:
         """Set the length of the sequence to be printed to each line.
 
         Parameters
@@ -23,7 +23,7 @@ class _AlignmentFormatter:
 
         self.block_size = size
 
-    def set_align_info(self, alignment_dict, order=None):
+    def set_align_info(self, alignment_dict, order=None) -> None:
         """Set alignment attributes for writing.
 
         Parameters
@@ -40,7 +40,7 @@ class _AlignmentFormatter:
         self.number_sequences = len(alignment_dict)
         # supersede the use of alignment length
         if len(alignment_dict) > 0:
-            self.align_length = len(alignment_dict[list(alignment_dict.keys())[0]])
+            self.align_length = len(alignment_dict[next(iter(alignment_dict.keys()))])
 
         if order != [] and len(order) == len(alignment_dict):
             # not testing contents - possibly should.
@@ -64,10 +64,7 @@ class _AlignmentFormatter:
 
         """
 
-        if alt_block_size:
-            block_size = alt_block_size
-        else:
-            block_size = self.block_size
+        block_size = alt_block_size if alt_block_size else self.block_size
 
         block_list = []
         seq_length = len(seq_string)

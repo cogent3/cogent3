@@ -16,7 +16,7 @@ from numpy.linalg import eig, inv, solve
 
 
 class _Exponentiator:
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.Q!r})"
 
 
@@ -25,7 +25,7 @@ class EigenExponentiator(_Exponentiator):
 
     __slots__ = ["Q", "ev", "evI", "evT", "roots"]
 
-    def __init__(self, Q, roots, ev, evT, evI):
+    def __init__(self, Q, roots, ev, evT, evI) -> None:
         self.Q = Q
         self.evI = evI
         self.evT = evT
@@ -37,8 +37,7 @@ class EigenExponentiator(_Exponentiator):
         result = numpy.inner(self.evT * exp_roots, self.evI)
         if result.dtype.kind == "c":
             result = numpy.asarray(result.real)
-        result = numpy.maximum(result, 0.0)
-        return result
+        return numpy.maximum(result, 0.0)
 
 
 def SemiSymmetricExponentiator(motif_probs, Q):
@@ -64,7 +63,7 @@ def SemiSymmetricExponentiator(motif_probs, Q):
 
 
 class TaylorExponentiator(_Exponentiator):
-    def __init__(self, Q):
+    def __init__(self, Q) -> None:
         self.Q = Q
         self.q = 21
 
@@ -82,13 +81,16 @@ class TaylorExponentiator(_Exponentiator):
             trm = numpy.dot(trm, A / float(k))
             eA += trm
         if k >= self.q:
-            warnings.warn(f"Taylor series lengthened from {self.q} to {k + 1}")
+            warnings.warn(
+                f"Taylor series lengthened from {self.q} to {k + 1}",
+                stacklevel=2,
+            )
             self.q = k + 1
         return eA
 
 
 class PadeExponentiator(_Exponentiator):
-    def __init__(self, Q):
+    def __init__(self, Q) -> None:
         self.Q = Q
 
     def __call__(self, t=1.0):
@@ -120,10 +122,7 @@ class PadeExponentiator(_Exponentiator):
             X = numpy.dot(A, X)
             cX = c * X
             N = N + cX
-            if not k % 2:
-                D = D + cX
-            else:
-                D = D - cX
+            D = D + cX if not k % 2 else D - cX
         F = solve(D, N)
         for k in range(1, j + 1):
             F = numpy.dot(F, F)
@@ -142,7 +141,8 @@ def CheckedExponentiator(Q):
     evI = inv(ev)
     reQ = numpy.inner(ev.T * roots, evI).real
     if not numpy.allclose(Q, reQ):
-        raise ArithmeticError("eigen failed precision test")
+        msg = "eigen failed precision test"
+        raise ArithmeticError(msg)
     return EigenExponentiator(Q, roots, ev, evT, evI)
 
 

@@ -5,7 +5,7 @@ import time
 
 
 class Checkpointer:
-    def __init__(self, filename, interval=None, noisy=True):
+    def __init__(self, filename, interval=None, noisy=True) -> None:
         if interval is None:
             interval = 1800
         self.filename = filename
@@ -18,22 +18,19 @@ class Checkpointer:
 
     def load(self):
         assert self.filename is not None, "check .available() first"
-        print(f"RESUMING from file '{self.filename}'")
         with open(self.filename, "rb") as f:
             obj = pickle.load(f)
         self.last_time = time.time()
         return obj
 
-    def record(self, obj, msg=None, always=False):
+    def record(self, obj, msg=None, always=False) -> None:
         if self.filename is None:
             return
         now = time.time()
         elapsed = now - self.last_time
         if always or elapsed > self.interval:
-            if self.noisy:
-                print(f"CHECKPOINTING to file '{self.filename}'")
-                if msg is not None:
-                    print(msg)
+            if self.noisy and msg is not None:
+                pass
             with open(self.filename, "wb") as f:
                 pickle.dump(obj, f)
             self.last_time = now

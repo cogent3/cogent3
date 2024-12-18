@@ -3,6 +3,7 @@ This file defines a class for controlling the scope and heterogeneity of
 parameters involved in a maximum-likelihood based tree analysis.
 """
 
+import contextlib
 import pickle
 
 import numpy
@@ -57,7 +58,7 @@ class _LikelihoodParameterController(_LF):
         motif_probs_from_align=False,
         default_length=1.0,
         **kw,
-    ):
+    ) -> None:
         # cache of arguments used to construct
         d = locals()
         exclude = ("self", "__class__", "kw")
@@ -73,7 +74,7 @@ class _LikelihoodParameterController(_LF):
         self.motifs = self._motifs = model.get_motifs()
         self._mprob_motifs = list(model.get_mprob_alphabet())
         defn = self.make_likelihood_defn(**kw)
-        super(_LikelihoodParameterController, self).__init__(defn)
+        super().__init__(defn)
         self.set_default_param_rules()
         self.set_default_tree_parameter_rules(default_length=default_length)
         self.mprobs_from_alignment = motif_probs_from_align
@@ -81,7 +82,7 @@ class _LikelihoodParameterController(_LF):
         self._name = None
         self._format = {}
 
-    def save(self, filename):
+    def save(self, filename) -> None:
         with open(filename, "w") as f:
             temp = {}
             try:
@@ -94,7 +95,7 @@ class _LikelihoodParameterController(_LF):
                     if id(d) in temp:
                         d.values = temp[id(d)]
 
-    def set_default_tree_parameter_rules(self, default_length=1.0):
+    def set_default_tree_parameter_rules(self, default_length=1.0) -> None:
         """Lengths are set to the values found in the tree (if any), and
         free to be optimised independently.
         Other parameters are scoped based on the unique values found in the
@@ -104,13 +105,11 @@ class _LikelihoodParameterController(_LF):
             edges = self.tree.get_edge_vector()
             for par_name in self.model.get_param_list():
                 try:
-                    values = dict(
-                        [
-                            (edge.name, edge.params[par_name])
-                            for edge in edges
-                            if not edge.isroot()
-                        ],
-                    )
+                    values = {
+                        edge.name: edge.params[par_name]
+                        for edge in edges
+                        if not edge.isroot()
+                    }
                     (uniq, index) = _indexed(values)
                 except KeyError:
                     continue  # new parameter
@@ -125,7 +124,7 @@ class _LikelihoodParameterController(_LF):
 
             exclude_edges = {"root"}
             if dp := self.defn_for.get("dpsubs", None):
-                exclude_edges |= {n for _, n in dp.assignments.keys()}
+                exclude_edges |= {n for _, n in dp.assignments}
 
             for edge in edges:
                 if edge.name in exclude_edges:
@@ -144,7 +143,7 @@ class _LikelihoodParameterController(_LF):
         warn=False,
         pseudocount=None,
         **kwargs,
-    ):
+    ) -> None:
         counts = self.model.count_motifs(align, include_ambiguity=include_ambiguity)
         if is_constant is None:
             is_constant = not self.optimise_motif_probs
@@ -172,7 +171,7 @@ class _LikelihoodParameterController(_LF):
         auto=False,
         warn=False,
         **kwargs,
-    ):
+    ) -> None:
         motif_probs = self.model.adapt_motif_probs(motif_probs, warn=warn)
         motif_probs = adjusted_gt_minprob(motif_probs, minprob=1e-6)
         if is_constant is None:
@@ -189,12 +188,12 @@ class _LikelihoodParameterController(_LF):
         if not auto:
             self.mprobs_from_alignment = False  # should be done per-locus
 
-    def set_expm(self, expm):
+    def set_expm(self, expm) -> None:
         assert expm in ["pade", "either", "eigen", "checked"], expm
         self.set_param_rule("expm", is_constant=True, value=expm)
 
     def make_calculator(self, **kw):
-        return super(_LikelihoodParameterController, self).make_calculator(**kw)
+        return super().make_calculator(**kw)
 
     def _process_scope_info(
         self,
@@ -210,15 +209,18 @@ class _LikelihoodParameterController(_LF):
 
         if edges is not None:
             if tip_names or edge:
-                raise TreeError("Only ONE of edge, edges or tip_names")
+                msg = "Only ONE of edge, edges or tip_names"
+                raise TreeError(msg)
         elif edge is not None:
             if tip_names:
-                raise TreeError("Only ONE of edge, edges or tip_names")
+                msg = "Only ONE of edge, edges or tip_names"
+                raise TreeError(msg)
             edges = [edge]
         elif tip_names is None:
             edges = None  # meaning all edges
         elif len(tip_names) != 2:
-            raise TreeError("tip_names must contain 2 species")
+            msg = "tip_names must contain 2 species"
+            raise TreeError(msg)
         else:
             (species1, species2) = tip_names
             if stem is None:
@@ -235,7 +237,7 @@ class _LikelihoodParameterController(_LF):
 
         return edges
 
-    def apply_param_rules(self, rules):
+    def apply_param_rules(self, rules) -> None:
         """batch applies a collection of param rules"""
         with self.updates_postponed():
             for rule in rules:
@@ -251,7 +253,7 @@ class _LikelihoodParameterController(_LF):
         lower=None,
         init=None,
         upper=None,
-    ):
+    ) -> None:
         """modifies the scope of substitution model rate params
 
         Parameters
@@ -278,17 +280,18 @@ class _LikelihoodParameterController(_LF):
             Overridden by edge_sets values.
         """
         if is_constant and any([lower, init, upper]):
-            raise ValueError("cannot specify bounds or init for a constant param")
+            msg = "cannot specify bounds or init for a constant param"
+            raise ValueError(msg)
 
         if is_constant:
-            kwargs = dict(is_constant=True, value=value)
+            kwargs = {"is_constant": True, "value": value}
         else:
-            kwargs = dict(
-                is_independent=is_independent,
-                init=init,
-                lower=lower,
-                upper=upper,
-            )
+            kwargs = {
+                "is_independent": is_independent,
+                "init": init,
+                "lower": lower,
+                "upper": upper,
+            }
 
         rate_terms = self._model.get_param_list()
         exclude_params = exclude_params or []
@@ -297,7 +300,8 @@ class _LikelihoodParameterController(_LF):
 
         for param in exclude_params:
             if param not in rate_terms:
-                raise ValueError(f"'{param}' not a valid rate param")
+                msg = f"'{param}' not a valid rate param"
+                raise ValueError(msg)
 
             rate_terms.remove(param)
 
@@ -313,7 +317,7 @@ class _LikelihoodParameterController(_LF):
                     exclude_edges.add(k[index])
 
             edge_sets = [
-                dict(edges=[n])
+                {"edges": [n]}
                 for n in self.tree.get_node_names(includeself=False)
                 if n not in exclude_edges
             ]
@@ -335,7 +339,7 @@ class _LikelihoodParameterController(_LF):
             rule_base.update(edge_set)
             for param in rate_terms:
                 rule = rule_base.copy()
-                rule.update(dict(par_name=param))
+                rule.update({"par_name": param})
                 param_rules.append(rule)
 
         self.apply_param_rules(param_rules)
@@ -351,7 +355,7 @@ class _LikelihoodParameterController(_LF):
         upper=None,
         warn=False,
         **scope_info,
-    ):
+    ) -> None:
         """Define a model constraint for par_name. Parameters can be set
         constant or split according to tree/bin scopes.
 
@@ -404,15 +408,16 @@ class _LikelihoodParameterController(_LF):
                     assert isinstance(v, str), f"{plural}=, maybe?"
                     assert plural not in scope_info
                     scopes[single] = [v]
-            elif plural in scope_info:
-                if v := scope_info.pop(plural):
-                    scopes[single] = v
+            elif plural in scope_info and (v := scope_info.pop(plural)):
+                scopes[single] = v
 
         if edges := self._process_scope_info(**scope_info):
             scopes["edge"] = edges
 
         if is_constant:
-            assert not (init or lower or upper)
+            assert not init
+            assert not lower
+            assert not upper
         elif init is not None:
             assert not value
             value = init
@@ -427,7 +432,7 @@ class _LikelihoodParameterController(_LF):
             warn=warn,
         )
 
-    def set_local_clock(self, tip1name, tip2name):
+    def set_local_clock(self, tip1name, tip2name) -> None:
         """Constrain branch lengths for tip1name and tip2name to be equal.
         This is a molecular clock condition. Currently only valid for tips
         connected to the same node.
@@ -441,7 +446,7 @@ class _LikelihoodParameterController(_LF):
             is_independent=0,
         )
 
-    def set_constant_lengths(self, tree=None, exclude_list=None):
+    def set_constant_lengths(self, tree=None, exclude_list=None) -> None:
         """Constrains edge lengths to those in the tree.
 
         Parameters
@@ -504,11 +509,9 @@ class _LikelihoodParameterController(_LF):
 
 
 class AlignmentLikelihoodFunction(_LikelihoodParameterController):
-    def set_default_param_rules(self):
-        try:
+    def set_default_param_rules(self) -> None:
+        with contextlib.suppress(KeyError):
             self.assign_all("fixed_motif", None, value=-1, const=True, independent=True)
-        except KeyError:
-            pass
 
     def make_likelihood_defn(self, sites_independent=True, discrete_edges=None):
         defns = self.model.make_param_controller_defns(bin_names=self.bin_names)
@@ -531,7 +534,7 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
             sites_independent,
         )
 
-    def set_alignment(self, aligns, motif_pseudocount=None):
+    def set_alignment(self, aligns, motif_pseudocount=None) -> None:
         """set the alignment to be used for computing the likelihood."""
         if type(aligns) is not list:
             aligns = [aligns]
@@ -542,14 +545,11 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
                 locus_name = f"for locus '{self.locus_names[index]}'"
             else:
                 locus_name = ""
-            assert not set(aln.names).symmetric_difference(tip_names), (
-                "Tree tip names %s and aln seq names %s don't match %s"
-                % (
-                    self.tree.get_tip_names(),
-                    aln.names,
-                    locus_name,
-                )
-            )
+            assert not set(
+                aln.names,
+            ).symmetric_difference(
+                tip_names,
+            ), f"Tree tip names {self.tree.get_tip_names()} and aln seq names {aln.names} don't match {locus_name}"
             assert "root" not in aln.names, "'root' is a reserved name."
         with self.updates_postponed():
             for locus_name, align in zip(self.locus_names, aligns, strict=False):
@@ -569,7 +569,7 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
 
 
 class SequenceLikelihoodFunction(_LikelihoodParameterController):
-    def set_default_param_rules(self):
+    def set_default_param_rules(self) -> None:
         pass
 
     def make_likelihood_defn(
@@ -588,7 +588,7 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
             kn=kn,
         )
 
-    def set_sequences(self, seqs, locus=None):
+    def set_sequences(self, seqs, locus=None) -> None:
         leaves = {}
 
         # refactor: simplify
@@ -609,7 +609,7 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
             assert name != "root", "'root' is a reserved name."
         self.set_pogs(leaves, locus=locus)
 
-    def set_pogs(self, leaves, locus=None):
+    def set_pogs(self, leaves, locus=None) -> None:
         with self.updates_postponed():
             for name, pog in list(leaves.items()):
                 self.set_param_rule("leaf", edge=name, value=pog, is_constant=True)

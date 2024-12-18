@@ -90,7 +90,7 @@ def parse_sequence(lines, constructor="".join):
     """Parses a GenBank sequence block. Doesn't care about ORIGIN line."""
     result = []
     exclude = b"0123456789 \t\n\r/"
-    strip_table = dict([(c, None) for c in exclude])
+    strip_table = {c: None for c in exclude}
 
     for i in lines:
         if i.startswith("ORIGIN"):
@@ -331,7 +331,7 @@ class Location:
         accession=None,
         db=None,
         strand=1,
-    ):
+    ) -> None:
         """Returns new LocalLocation object."""
 
         try:
@@ -346,7 +346,7 @@ class Location:
         self.db = db
         self.strand = strand
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Returns self in string format.
 
         WARNING: More permissive than GenBank's Backus-Naur form allows. If
@@ -363,10 +363,7 @@ class Location:
             try:
                 data = int(self._data)
                 # if the above line succeeds, we've got a single item
-                if self.ambiguity:
-                    curr = self.ambiguity + str(data)
-                else:
-                    curr = str(data)
+                curr = self.ambiguity + str(data) if self.ambiguity else str(data)
             except TypeError:
                 # if long conversion failed, should have two LocalLocation
                 # objects
@@ -410,9 +407,9 @@ class LocationList(list):
     def strand(self):
         """Returns strand of components: 1=forward, -1=reverse, 0=both"""
         curr = {i.strand: 1 for i in self}
-        return 0 if len(curr) >= 2 else list(curr.keys())[0]
+        return 0 if len(curr) >= 2 else next(iter(curr.keys()))
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Returns (normalized) string representation of self."""
         if len(self) == 0:
             return ""
@@ -483,31 +480,31 @@ def parse_source(lines):
 # adaptors to update curr with data from each parser
 
 
-def locus_adaptor(lines, curr):
+def locus_adaptor(lines, curr) -> None:
     curr.update(parse_locus(lines[0]))
 
 
-def source_adaptor(lines, curr):
+def source_adaptor(lines, curr) -> None:
     curr.update(parse_source(lines))
 
 
-def ref_adaptor(lines, curr):
+def ref_adaptor(lines, curr) -> None:
     if "references" not in curr:
         curr["references"] = []
     curr["references"].append(parse_reference(lines))
 
 
-def feature_table_adaptor(lines, curr):
+def feature_table_adaptor(lines, curr) -> None:
     if "features" not in curr:
         curr["features"] = []
     curr["features"].extend(parse_feature_table(lines))
 
 
-def sequence_adaptor(lines, curr):
+def sequence_adaptor(lines, curr) -> None:
     curr["sequence"] = parse_sequence(lines)
 
 
-def generic_adaptor(lines, curr):
+def generic_adaptor(lines, curr) -> None:
     label, data = block_consolidator(lines)
     curr[label.lower()] = " ".join(map(strip, lines))
 
@@ -526,14 +523,14 @@ handlers = {
 def parse_metadata_first_line(features: str) -> dict[str, str]:
     """extracts key information from the first line only"""
     line, _ = features.split("\n", maxsplit=1)
-    data = parse_locus(line)
-    return data
+    return parse_locus(line)
 
 
 @functools.singledispatch
 def default_parse_metadata(data) -> dict[str, dict]:
     """convert genbank record metadata in a dict"""
-    raise TypeError(f"not implemented for {type(data)}")
+    msg = f"not implemented for {type(data)}"
+    raise TypeError(msg)
 
 
 @default_parse_metadata.register
@@ -594,7 +591,8 @@ def iter_genbank_records(
     -------
     the sequence label as a string and the sequence as transformed by converter
     """
-    raise TypeError(f"iter_fasta_records not implemented for {type(data)}")
+    msg = f"iter_fasta_records not implemented for {type(data)}"
+    raise TypeError(msg)
 
 
 @iter_genbank_records.register

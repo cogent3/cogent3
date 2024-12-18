@@ -221,7 +221,10 @@ def test_scaled_mi(pos_pair):
     assert_allclose(got, 8 / 42)
 
 
-@pytest.mark.parametrize("met1, met2", [("mi", "nmi"), ("mi", "rmi"), ("nmi", "rmi")])
+@pytest.mark.parametrize(
+    ("met1", "met2"),
+    [("mi", "nmi"), ("mi", "rmi"), ("nmi", "rmi")],
+)
 def test_diff_mi_metrics(pos_pair, met1, met2):
     met1 = c3_coevo.coevolution_matrix(
         alignment=pos_pair,
@@ -305,7 +308,7 @@ def test_calc_weights_new(cols):
 @pytest.fixture
 def protein_aln4():
     return make_aligned_seqs(
-        dict([("A1", "AACF"), ("A12", "AADF"), ("A123", "ADCF"), ("A111", "AAD-")]),
+        {"A1": "AACF", "A12": "AADF", "A123": "ADCF", "A111": "AAD-"},
         moltype="protein",
     )
 

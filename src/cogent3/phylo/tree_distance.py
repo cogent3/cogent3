@@ -18,8 +18,9 @@ def get_tree_distance_measure(method: str, is_rooted: bool):
     if not is_rooted and method in _UNROOTED_TREE_DISTANCE_FUNCTIONS:
         return _UNROOTED_TREE_DISTANCE_FUNCTIONS[method]
 
+    msg = f"Tree distance method '{method}' is not supported for {'' if is_rooted else 'un'}rooted trees."
     raise ValueError(
-        f"Tree distance method '{method}' is not supported for {'' if is_rooted else 'un'}rooted trees.",
+        msg,
     )
 
 
@@ -54,9 +55,11 @@ def unrooted_robinson_foulds(tree1: "TreeNode", tree2: "TreeNode") -> int:
     names = tree1.get_tip_names()
 
     if set(names) != set(tree2.get_tip_names()):
-        raise ValueError("tree tip names must match")
+        msg = "tree tip names must match"
+        raise ValueError(msg)
     if len(tree1.children) == 2 or len(tree2.children) == 2:
-        raise ValueError("trees must be unrooted")
+        msg = "trees must be unrooted"
+        raise ValueError(msg)
 
     tree1_clusters = tree1.subsets()
     tree2_clusters = tree2.subsets()
@@ -102,18 +105,18 @@ def lin_rajan_moret(tree1: "TreeNode", tree2: "TreeNode") -> int:
     names = tree1.get_tip_names()
 
     if set(names) != set(tree2.get_tip_names()):
-        raise ValueError("tree tip names must match")
+        msg = "tree tip names must match"
+        raise ValueError(msg)
     if len(tree1.children) == 2 or len(tree2.children) == 2:
-        raise ValueError("trees must be unrooted")
+        msg = "trees must be unrooted"
+        raise ValueError(msg)
 
     names.sort()
 
     vector1 = _convert_tree_to_vectors(tree1, names)
     vector2 = _convert_tree_to_vectors(tree2, names)
 
-    matching_distance = _matched_distance(vector1, vector2)
-
-    return matching_distance
+    return _matched_distance(vector1, vector2)
 
 
 def rooted_robinson_foulds(tree1: "TreeNode", tree2: "TreeNode") -> int:
@@ -144,9 +147,11 @@ def rooted_robinson_foulds(tree1: "TreeNode", tree2: "TreeNode") -> int:
        Mathematical biosciences 53.1-2 (1981): 131-147.
     """
     if set(tree1.get_tip_names()) != set(tree2.get_tip_names()):
-        raise ValueError("tree tip names must match")
+        msg = "tree tip names must match"
+        raise ValueError(msg)
     if len(tree1.children) != 2 or len(tree2.children) != 2:
-        raise ValueError("trees must be rooted")
+        msg = "trees must be rooted"
+        raise ValueError(msg)
 
     tree1_clusters = tree1.subsets()
     tree2_clusters = tree2.subsets()
@@ -191,9 +196,11 @@ def matching_cluster_distance(tree1: "TreeNode", tree2: "TreeNode") -> int:
     """
 
     if set(tree1.get_tip_names()) != set(tree2.get_tip_names()):
-        raise ValueError("tree tip names must match")
+        msg = "tree tip names must match"
+        raise ValueError(msg)
     if len(tree1.children) != 2 or len(tree2.children) != 2:
-        raise ValueError("trees must be rooted")
+        msg = "trees must be rooted"
+        raise ValueError(msg)
 
     tree1_clusters = list(tree1.subsets())
     tree2_clusters = list(tree2.subsets())
@@ -210,9 +217,7 @@ def matching_cluster_distance(tree1: "TreeNode", tree2: "TreeNode") -> int:
             adjacency[i, j] = len(cluster_1.symmetric_difference(cluster_2))
 
     row_ind, col_ind = linear_sum_assignment(adjacency)
-    distance = int(adjacency[row_ind, col_ind].sum())
-
-    return distance
+    return int(adjacency[row_ind, col_ind].sum())
 
 
 def _convert_tree_to_vectors(tree: "TreeNode", tip_names: list) -> np.ndarray:
@@ -226,10 +231,7 @@ def _convert_tree_to_vectors(tree: "TreeNode", tip_names: list) -> np.ndarray:
         row = rows[i]
         # Cogent only returns one side of a
         # split, so we build the other side
-        if ref_tip in split:
-            names = list(split)
-        else:
-            names = list(name_set - split)
+        names = list(split) if ref_tip in split else list(name_set - split)
         indices = [name_index[n] for n in names]
         row[indices] = True
     return rows
@@ -244,8 +246,9 @@ def _weight(vector1: np.ndarray, vector2: np.ndarray) -> int:
 
 
 def _bipartite_graph(vector1: np.ndarray, vector2: np.ndarray) -> np.ndarray:
-    if not len(vector1) == len(vector2):
-        raise ValueError("number of edges must be equal")
+    if len(vector1) != len(vector2):
+        msg = "number of edges must be equal"
+        raise ValueError(msg)
 
     B = np.empty([len(vector1)] * 2, int)
     for i, j in product(*[range(len(vector1))] * 2):

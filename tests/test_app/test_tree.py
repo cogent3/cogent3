@@ -18,7 +18,7 @@ DNA = cogent3.get_moltype("dna")
 class TestTree(TestCase):
     def test_scale_tree_lengths(self):
         """correctly scales tree lengths"""
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             _ = tree_app.scale_branches(nuc_to_codon=True, codon_to_nuc=True)
 
         tree = cogent3.make_tree(treestring="(a:3,b:6,c:9)")
@@ -26,19 +26,19 @@ class TestTree(TestCase):
         d = scale_to_codon(tree)
         got = {e.name: e.length for e in d.get_edge_vector(include_root=False)}
         expect = {"a": 1.0, "b": 2.0, "c": 3.0}
-        self.assertEqual(got, expect)
+        assert got == expect
 
         scale_from_codon = tree_app.scale_branches(codon_to_nuc=True)
         d = scale_from_codon(d)
         got = {e.name: e.length for e in d.get_edge_vector(include_root=False)}
         expect = {"a": 3.0, "b": 6.0, "c": 9.0}
-        self.assertEqual(got, expect)
+        assert got == expect
 
         by_scalar = tree_app.scale_branches(scalar=0.5)
         d = by_scalar(tree)
         got = {e.name: e.length for e in d.get_edge_vector(include_root=False)}
         expect = {"a": 6.0, "b": 12.0, "c": 18.0}
-        self.assertEqual(got, expect)
+        assert got == expect
 
         # handle case where a length is not defined, setting to minimum
         min_length = tree_app.scale_branches(min_length=66)
@@ -46,7 +46,7 @@ class TestTree(TestCase):
         new = min_length(tree)
         got = {e.name: e.length for e in new.get_edge_vector(include_root=False)}
         expect = {"a": 3.0, "b": 6.0, "c": 66.0}
-        self.assertEqual(got, expect)
+        assert got == expect
 
     def test_quick_tree(self):
         """correctly calc a nj tree"""
@@ -56,7 +56,7 @@ class TestTree(TestCase):
         dist_matrix = fast_slow_dist(aln)
         quick1 = tree_app.quick_tree()
         tree1 = quick1(dist_matrix)
-        self.assertEqual(set(tree1.get_tip_names()), set(aln.names))
+        assert set(tree1.get_tip_names()) == set(aln.names)
 
     def test_composable_apps(self):
         """checks the ability of these two apps(fast_slow_dist and quick_tree) to communicate"""
@@ -65,27 +65,25 @@ class TestTree(TestCase):
         calc_dist = dist.fast_slow_dist(fast_calc="hamming", moltype="dna")
         quick = tree_app.quick_tree(drop_invalid=False)
         proc = calc_dist + quick
-        self.assertEqual(
-            str(proc),
-            "fast_slow_dist(distance=None, moltype='dna', "
-            "fast_calc='hamming',\nslow_calc=None) + quick_tree("
-            "drop_invalid=False)",
+        assert (
+            str(proc)
+            == "fast_slow_dist(distance=None, moltype='dna', fast_calc='hamming',\nslow_calc=None) + quick_tree(drop_invalid=False)"
         )
-        self.assertIsInstance(proc, tree_app.quick_tree)
-        self.assertIsInstance(proc.input, dist.fast_slow_dist)
+        assert isinstance(proc, tree_app.quick_tree)
+        assert isinstance(proc.input, dist.fast_slow_dist)
 
         tree1 = proc(aln1)
-        self.assertIsInstance(tree1, PhyloNode)
-        self.assertIsNotNone(tree1.children)
-        self.assertEqual(set(tree1.get_tip_names()), set(aln1.names))
+        assert isinstance(tree1, PhyloNode)
+        assert tree1.children is not None
+        assert set(tree1.get_tip_names()) == set(aln1.names)
 
         # tests when distances contain None
-        data = dict(
-            seq1="AGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT",
-        )
+        data = {
+            "seq1": "AGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT",
+        }
         aln2 = cogent3.make_aligned_seqs(data=data, moltype=DNA)
         tree2 = proc(aln2)
-        self.assertIsInstance(tree2, NotCompleted)
+        assert isinstance(tree2, NotCompleted)
 
     def test_quick_tree_taking_distance_matrix(self):
         """quick_tree should take a distance matrix"""
@@ -101,12 +99,9 @@ class TestTree(TestCase):
 
         darr = DistanceMatrix(data)
         tree = quick_tree(darr)
-        self.assertIsInstance(tree, PhyloNode)
-        self.assertIsNotNone(tree.children)
-        self.assertEqual(
-            set(tree.get_tip_names()),
-            set.union(*(set(tup) for tup in data)),
-        )
+        assert isinstance(tree, PhyloNode)
+        assert tree.children is not None
+        assert set(tree.get_tip_names()) == set.union(*(set(tup) for tup in data))
 
         data = {
             ("DogFaced", "FlyingFox"): 0.05,
@@ -132,12 +127,9 @@ class TestTree(TestCase):
         }
         darr = DistanceMatrix(data)
         tree = quick_tree(darr)
-        self.assertIsInstance(tree, PhyloNode)
-        self.assertIsNotNone(tree.children)
-        self.assertEqual(
-            set(tree.get_tip_names()),
-            set.union(*(set(tup) for tup in data)),
-        )
+        assert isinstance(tree, PhyloNode)
+        assert tree.children is not None
+        assert set(tree.get_tip_names()) == set.union(*(set(tup) for tup in data))
 
         data = {
             ("ABAYE2984", "Atu3667"): 0.25,
@@ -155,12 +147,9 @@ class TestTree(TestCase):
         }
         darr = DistanceMatrix(data)
         tree = quick_tree(darr)
-        self.assertIsInstance(tree, PhyloNode)
-        self.assertIsNotNone(tree.children)
-        self.assertEqual(
-            set(tree.get_tip_names()),
-            set.union(*(set(tup) for tup in data)),
-        )
+        assert isinstance(tree, PhyloNode)
+        assert tree.children is not None
+        assert set(tree.get_tip_names()) == set.union(*(set(tup) for tup in data))
 
         data = {
             ("ABAYE2984", "Atu3667"): None,
@@ -179,10 +168,10 @@ class TestTree(TestCase):
 
         darr = DistanceMatrix(data)
         # must explicitly call main() method to avoid error trapping by decorator
-        with self.assertRaises(KeyError):
+        with pytest.raises(KeyError):
             quick_tree.main(darr)
         # when distance_matrix is None after dropping invalid
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             quick_tree = tree_app.quick_tree(drop_invalid=True)
             quick_tree.main(darr)
 
@@ -210,20 +199,14 @@ class TestTree(TestCase):
         }
         darr = DistanceMatrix(data)
         tree = quick_tree(darr)
-        self.assertIsInstance(tree, PhyloNode)
-        self.assertIsNotNone(tree.children)
-        self.assertEqual(
-            set(tree.get_tip_names()),
-            set.union(*(set(tup) for tup in data)),
-        )
+        assert isinstance(tree, PhyloNode)
+        assert tree.children is not None
+        assert set(tree.get_tip_names()) == set.union(*(set(tup) for tup in data))
 
         data = {"a": {"b": 0.1, "a": 0.0}, "b": {"a": 0.1, "b": 0.0}}
         darr = DistanceMatrix(data)
         tree = quick_tree(darr)
-        self.assertEqual(
-            set(tree.get_tip_names()),
-            set.union(*(set(tup) for tup in data)),
-        )
+        assert set(tree.get_tip_names()) == set.union(*(set(tup) for tup in data))
 
     def test_uniformize_tree(self):
         """equivalent topologies should be the same"""
@@ -235,11 +218,11 @@ class TestTree(TestCase):
         )
         u_a = make_uniform(a).get_newick()
         u_b = make_uniform(b).get_newick()
-        self.assertTrue(u_a == u_b)
+        assert u_a == u_b
         # but different ones different
         c = cogent3.make_tree(treestring="(e,c,(a,(b,d)))")
         u_c = make_uniform(c).get_newick()
-        self.assertFalse(u_a == u_c)
+        assert u_a != u_c
 
 
 def test_interpret_tree_arg_none():
@@ -248,12 +231,12 @@ def test_interpret_tree_arg_none():
 
 @pytest.mark.parametrize(
     "tree",
-    (
+    [
         DATA_DIR / "brca1_5.tree",
         str(DATA_DIR / "brca1_5.tree"),
         "(a,b,c)",
         cogent3.make_tree(tip_names=["a", "b", "c"]),
-    ),
+    ],
 )
 def test_interpret_tree_arg_valid(tree):
     got = tree_app.interpret_tree_arg(tree)
@@ -262,10 +245,10 @@ def test_interpret_tree_arg_valid(tree):
 
 @pytest.mark.parametrize(
     "tree",
-    (
+    [
         1,
         cogent3.make_tree,
-    ),
+    ],
 )
 def test_interpret_tree_arg_invalid(tree):
     with pytest.raises(TypeError):

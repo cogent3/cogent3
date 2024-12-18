@@ -5,7 +5,7 @@ class UnionDict(dict):
     """dictionary class that can be updated as a union with another dict
     entries are also accessible directly as attributes on the object"""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """
 
         Parameters
@@ -34,15 +34,16 @@ class UnionDict(dict):
         try:
             return super().__getattr__(item)
         except AttributeError:
-            raise AttributeError(f"'{item}' not a key or attribute")
+            msg = f"'{item}' not a key or attribute"
+            raise AttributeError(msg)
 
-    def __setattr__(self, key, value):
+    def __setattr__(self, key, value) -> None:
         if isinstance(value, dict):
             value = UnionDict(value)
 
         self.update({key: value})
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key, value) -> None:
         if isinstance(value, dict):
             value = UnionDict(value)
 
@@ -57,7 +58,7 @@ class UnionDict(dict):
         self.union(other)
         return self
 
-    def union(self, other):
+    def union(self, other) -> None:
         """returns the union of self with other
 
         keys unique to other are introduced, keys in self shared with other
@@ -98,7 +99,7 @@ class UnionDict(dict):
             d = d.get(node)
         return d.get(name)
 
-    def update(self, *args, **kwargs):
+    def update(self, *args, **kwargs) -> None:
         """Converts to UnionDict."""
         assert not (args and kwargs)
         if args:

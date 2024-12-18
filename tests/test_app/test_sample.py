@@ -22,24 +22,24 @@ class TranslateTests(TestCase):
         )
         one = sample.take_codon_positions(1)
         got = one(aln)
-        self.assertEqual(got.to_dict(), {"a": "AAA", "b": "GGG"})
+        assert got.to_dict() == {"a": "AAA", "b": "GGG"}
 
         two = sample.take_codon_positions(2)
         got = two(aln)
-        self.assertEqual(got.to_dict(), {"a": "CCC", "b": "AAA"})
+        assert got.to_dict() == {"a": "CCC", "b": "AAA"}
         three = sample.take_codon_positions(3)
         got = three(aln)
-        self.assertEqual(got.to_dict(), {"a": "GGG", "b": "TTT"})
+        assert got.to_dict() == {"a": "GGG", "b": "TTT"}
 
         one_two = sample.take_codon_positions(1, 2)
         got = one_two(aln)
-        self.assertEqual(got.to_dict(), {"a": "ACACAC", "b": "GAGAGA"})
+        assert got.to_dict() == {"a": "ACACAC", "b": "GAGAGA"}
         one_three = sample.take_codon_positions(1, 3)
         got = one_three(aln)
-        self.assertEqual(got.to_dict(), {"a": "AGAGAG", "b": "GTGTGT"})
+        assert got.to_dict() == {"a": "AGAGAG", "b": "GTGTGT"}
         two_three = sample.take_codon_positions(2, 3)
         got = two_three(aln)
-        self.assertEqual(got.to_dict(), {"a": "CGCGCG", "b": "ATATAT"})
+        assert got.to_dict() == {"a": "CGCGCG", "b": "ATATAT"}
 
     def test_take_codon_positions_array_align(self):
         """correctly return codon positions from ArrayAlignment"""
@@ -56,12 +56,12 @@ class TranslateTests(TestCase):
             data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
             moltype=DNA,
         )
-        expect = dict([("a", "AT"), ("b", "TC")])
+        expect = {"a": "AT", "b": "TC"}
         ffold = sample.take_codon_positions(fourfold_degenerate=True)
         got = ffold(aln)
-        self.assertEqual(got.to_dict(), expect)
+        assert got.to_dict() == expect
         # error if no moltype
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             _ = sample.take_codon_positions(moltype=None)
 
     def test_take_named_3(self):
@@ -94,18 +94,18 @@ class TranslateTests(TestCase):
         ]
         got = [aln.to_dict() for aln in map(select, alns) if aln]
         expected = [
-            dict((("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT"))),
-            dict((("a", "GGAAGCGTTTAT"), ("b", "GCTTTTGTCAAT"))),
+            {"a": "GCAAGCGTTTAT", "b": "GCTTTTGTCAAT"},
+            {"a": "GGAAGCGTTTAT", "b": "GCTTTTGTCAAT"},
         ]
-        self.assertEqual(got, expected)
+        assert got == expected
         # return False if a named seq absent
         aln = cogent3.make_aligned_seqs(
             data=[("c", "GC--GCGTTTAT"), ("d", "GCAAGCNNTTAT")],
             moltype=DNA,
         )
         got = select(aln)
-        self.assertFalse(got)
-        self.assertTrue(type(got) == composable.NotCompleted)
+        assert not got
+        assert type(got) == composable.NotCompleted
 
         # using negate
         select = sample.take_named_seqs("c", negate=True)
@@ -131,7 +131,7 @@ class TranslateTests(TestCase):
                 [("a", "GGAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
             ]
         ]
-        self.assertEqual(got, expect)
+        assert got == expect
 
     def test_fixedlength(self):
         """correctly returns data with specified length"""
@@ -142,11 +142,11 @@ class TranslateTests(TestCase):
 
         fl = sample.fixed_length(4)
         got = fl(aln)
-        self.assertEqual(len(got), 4)
+        assert len(got) == 4
         fl = sample.fixed_length(9, moltype="dna")
         got = fl(aln)
-        self.assertEqual(len(got), 9)
-        self.assertEqual(list(got.moltype), list(DNA))
+        assert len(got) == 9
+        assert list(got.moltype) == list(DNA)
 
         alns = [
             cogent3.make_aligned_seqs(
@@ -160,22 +160,22 @@ class TranslateTests(TestCase):
         ]
         fl = sample.fixed_length(9)
         got = [a for a in map(fl, alns) if a]
-        self.assertEqual(len(got[0]), 9)
-        expected = dict((("a", "GCAAGCGTT"), ("b", "GCTTTTGTC")))
-        self.assertEqual(got[0].to_dict(), expected)
+        assert len(got[0]) == 9
+        expected = {"a": "GCAAGCGTT", "b": "GCTTTTGTC"}
+        assert got[0].to_dict() == expected
 
         fl = sample.fixed_length(600)
         got = [a for a in map(fl, alns) if a]
         expected = []
-        self.assertEqual(got, expected)
+        assert got == expected
         # returns NotCompletedResult if nothing satisifies
         got = fl(alns[0])
-        self.assertTrue(type(got) == sample.NotCompleted)
+        assert type(got) == sample.NotCompleted
 
         fl = sample.fixed_length(9, random=True)
         got = fl(aln)
-        self.assertEqual(len(got), 9)
-        self.assertEqual(set(aln.names), set("ab"))
+        assert len(got) == 9
+        assert set(aln.names) == set("ab")
 
         # these will be just a subset as sampling one triplet
         fl = sample.fixed_length(3, random=True, motif_length=3)
@@ -185,27 +185,27 @@ class TranslateTests(TestCase):
         )
         expect = d.to_dict()
         got = fl(d)
-        self.assertEqual(len(got), 3)
+        assert len(got) == 3
         for name, seq in got.to_dict().items():
-            self.assertIn(seq, expect[name])
+            assert seq in expect[name]
         # as above, but with moltype defined
         fl = sample.fixed_length(3, random=True, motif_length=3, moltype="dna")
         got = fl(d)
-        self.assertEqual(len(got), 3)
+        assert len(got) == 3
         for name, seq in got.to_dict().items():
-            self.assertIn(seq, expect[name])
+            assert seq in expect[name]
 
         fl = sample.fixed_length(9, start=2)
         got = fl(aln)
-        self.assertEqual(len(got), 9)
-        self.assertEqual(got.to_dict(), aln[2:11].to_dict())
+        assert len(got) == 9
+        assert got.to_dict() == aln[2:11].to_dict()
 
         fl = sample.fixed_length(4, start="random")
         expect = aln.to_dict()
         got = fl(aln)
-        self.assertEqual(len(got), 4)
+        assert len(got) == 4
         for name, seq in got.to_dict().items():
-            self.assertIn(seq, expect[name])
+            assert seq in expect[name]
 
     def test_omit_duplicated(self):
         """correctly drop duplicated sequences"""
@@ -227,7 +227,7 @@ class TranslateTests(TestCase):
         # {'g', 'f'}] are dupe sets. Only 'h' unique
         drop = sample.omit_duplicated(mask_degen=True, choose=None, moltype="dna")
         got = drop(seqs)
-        self.assertEqual(got.to_dict(), {"h": "GGGG"})
+        assert got.to_dict() == {"h": "GGGG"}
         # mask_degen = False : [{'a', 'b'}, {'k', 'd', 'e'}]
         # c, f, g, h
         drop = sample.omit_duplicated(mask_degen=False, choose=None, moltype="dna")
@@ -240,7 +240,7 @@ class TranslateTests(TestCase):
             "g": "YAAA",
             "h": "GGGG",
         }
-        self.assertEqual(got.to_dict(), expect)
+        assert got.to_dict() == expect
 
     def test_omit_duplicated_aligned(self):
         """omit_duplicated works on aligned sequences"""
@@ -260,7 +260,7 @@ class TranslateTests(TestCase):
         drop = sample.omit_duplicated(mask_degen=True, choose="longest", moltype="dna")
         got = drop(seqs)
         expect = {"a": "ACGT", "k": "ACGG", "g": "YAAA", "h": "GGGG"}
-        self.assertEqual(got.to_dict(), expect)
+        assert got.to_dict() == expect
 
         # choose random
         drop = sample.omit_duplicated(mask_degen=True, choose="random", moltype="dna")
@@ -269,7 +269,7 @@ class TranslateTests(TestCase):
         duplicates = [{"a", "c", "b"}, {"k", "d", "e"}, {"g", "f"}]
         # should only be one of each group
         for dupes in duplicates:
-            self.assertTrue(len(dupes & seqnames) == 1)
+            assert len(dupes & seqnames) == 1
 
     def test_concat(self):
         """returns concatenated alignment"""
@@ -283,22 +283,20 @@ class TranslateTests(TestCase):
         ]
         ccat = sample.concat(intersect=True)
         got = ccat(alns)
-        self.assertEqual(
-            got.to_dict(),
-            {"seq1": "AAATTTCC", "seq2": "AAATTTCC", "seq3": "AAATTTCC"},
-        )
+        assert got.to_dict() == {
+            "seq1": "AAATTTCC",
+            "seq2": "AAATTTCC",
+            "seq3": "AAATTTCC",
+        }
 
         ccat = sample.concat(intersect=False)
         got = ccat(alns)
-        self.assertEqual(
-            got.to_dict(),
-            {
-                "seq1": "AAATTTCC",
-                "seq2": "AAATTTCC",
-                "seq3": "AAATTTCC",
-                "seq4": "???TTT??",
-            },
-        )
+        assert got.to_dict() == {
+            "seq1": "AAATTTCC",
+            "seq2": "AAATTTCC",
+            "seq3": "AAATTTCC",
+            "seq4": "???TTT??",
+        }
 
     def test_concat_handles_moltype(self):
         """coerces to type"""
@@ -312,7 +310,7 @@ class TranslateTests(TestCase):
         ]
         ccat = sample.concat()
         got = ccat(alns)
-        self.assertIsInstance(got.moltype, type(DNA))
+        assert isinstance(got.moltype, type(DNA))
 
     def test_concat_validates_type(self):
         """raises TypeError if not known alignment type"""
@@ -326,11 +324,11 @@ class TranslateTests(TestCase):
         ccat = sample.concat()
         # triggered by first record
         got = ccat(data)
-        self.assertIsInstance(got, composable.NotCompleted)
+        assert isinstance(got, composable.NotCompleted)
 
         # triggered by second record
         got = ccat(data[::-1])
-        self.assertIsInstance(got, composable.NotCompleted)
+        assert isinstance(got, composable.NotCompleted)
 
     def test_trim_stop_codons(self):
         """trims stop codons using the specified genetic code"""
@@ -341,7 +339,7 @@ class TranslateTests(TestCase):
         )
         got = trimmer(seqs)
         expect = {"seq1": "AAATTTCCC", "seq2": "AAATTT"}
-        self.assertEqual(got.to_dict(), expect)
+        assert got.to_dict() == expect
 
         trimmer = sample.trim_stop_codons(gc=1)  # standard code
         seqs = cogent3.make_unaligned_seqs(
@@ -350,7 +348,7 @@ class TranslateTests(TestCase):
         )
         got = trimmer(seqs)
         expect = {"seq1": "AAATTTCCC", "seq2": "AAATTT"}
-        self.assertEqual(got.to_dict(), expect)
+        assert got.to_dict() == expect
         trimmer = sample.trim_stop_codons(gc=1)  # standard code
         aln = cogent3.make_aligned_seqs(
             data={"seq1": "AAATTTCCC", "seq2": "AAATTTTAA"},
@@ -358,7 +356,7 @@ class TranslateTests(TestCase):
         )
         got = trimmer(aln)
         expect = {"seq1": "AAATTTCCC", "seq2": "AAATTT---"}
-        self.assertEqual(got.to_dict(), expect)
+        assert got.to_dict() == expect
 
         # different genetic code
         trimmer = sample.trim_stop_codons(gc=2)  # mt code
@@ -368,7 +366,7 @@ class TranslateTests(TestCase):
         )
         got = trimmer(seqs)
         expect = {"seq1": "AAATTTCCC", "seq2": "AAATTT"}
-        self.assertEqual(got.to_dict(), expect)
+        assert got.to_dict() == expect
 
     def test_take_n_seqs(self):
         """select specified number of sequences from a collection"""
@@ -391,33 +389,33 @@ class TranslateTests(TestCase):
         # by order, fixed
         take = sample.take_n_seqs(3, fixed_choice=True)
         got = take(seqs1)
-        self.assertEqual(len(got.names), 3)
+        assert len(got.names) == 3
         # this should return NotCompleted because it applies the names present in 1 to the next one
         got = take(seqs2)
-        self.assertIsInstance(got, NotCompleted)
+        assert isinstance(got, NotCompleted)
 
         take = sample.take_n_seqs(30)
         # this should fail because too few seqs
         got = take(seqs1)
-        self.assertIsInstance(got, NotCompleted)
+        assert isinstance(got, NotCompleted)
 
         # by order, not fixed
         take = sample.take_n_seqs(3, fixed_choice=False)
         got1 = take(seqs1)
         got2 = take(seqs2)
-        self.assertNotEqual(set(got1.names), set(got2.names))
+        assert set(got1.names) != set(got2.names)
 
         # random choice, fixed
         take = sample.take_n_seqs(3, random=True, fixed_choice=True)
-        self.assertEqual(take._fixed_choice, True)
+        assert take._fixed_choice is True
 
         got1 = take(seqs2)
         got2 = take(seqs1)
-        self.assertEqual(got1.names, got2.names)
+        assert got1.names == got2.names
 
         # random choice, not fixed
         take = sample.take_n_seqs(2, random=True, fixed_choice=False)
-        self.assertEqual(take._fixed_choice, False)
+        assert take._fixed_choice is False
         # testing this is hard, we simply expect the labels to differ on subsequent call
         # the probability of drawing a specific pair of names on one call is 1/(9 choose 2) = 1/36
         # at n = 11, the probability all the pairs will be identical is ~=0
@@ -428,12 +426,12 @@ class TranslateTests(TestCase):
             if different:
                 break
 
-        self.assertTrue(different, msg="failed to generate different random sample")
+        assert different, "failed to generate different random sample"
 
         # try setting the seed
         take = sample.take_n_seqs(2, random=True, seed=123)
         got = take(seqs1)
-        self.assertNotIsInstance(got, NotCompleted)
+        assert not isinstance(got, NotCompleted)
 
 
 def test_concat_coerced_moltype():
@@ -453,7 +451,7 @@ def test_concat_coerced_moltype():
 
 @pytest.mark.parametrize(
     "data",
-    ([], [cogent3.make_aligned_seqs({"s1": "", "s2": ""}, moltype=DNA)]),
+    [[], [cogent3.make_aligned_seqs({"s1": "", "s2": ""}, moltype=DNA)]],
 )
 def test_concat_empty(data):
     # triggered by empty alignment
@@ -476,7 +474,7 @@ def bad_gap_data():
 
 
 @pytest.mark.parametrize(
-    "gap_fraction, quantile, expected_keys",
+    ("gap_fraction", "quantile", "expected_keys"),
     [
         (
             1,
@@ -605,7 +603,7 @@ def test_omit_gapped():
     got = nogaps(aln)  # pylint: disable=not-callable
     # not doing isinstance during transition to new_type
     assert got.__class__.__name__.endswith("Alignment")
-    expect = dict(a="ACGAGACG", b="GATGTGAT")
+    expect = {"a": "ACGAGACG", "b": "GATGTGAT"}
     assert got.to_dict() == expect
     # standard alignment
     aln = cogent3.make_aligned_seqs(data=data, array_align=False, moltype=DNA)
@@ -614,7 +612,7 @@ def test_omit_gapped():
     assert got.to_dict() == expect
     # non-exclusive gaps
     not_all_gaps = sample.omit_gap_pos(moltype="dna")  # default
-    expect = dict(a="ACGA-GACG", b="GATGATGAT")
+    expect = {"a": "ACGA-GACG", "b": "GATGATGAT"}
     aln = cogent3.make_aligned_seqs(data=data, moltype=DNA)
     got = not_all_gaps(aln)  # pylint: disable=not-callable
     assert got.to_dict() == expect
@@ -628,7 +626,7 @@ def test_omit_gapped():
         motif_length=2,
     )
     aln = cogent3.make_aligned_seqs(data=data, moltype=DNA)
-    expect = dict(a="ACGACG", b="GATGAT")
+    expect = {"a": "ACGACG", "b": "GATGAT"}
     got = not_all_gaps(aln)  # pylint: disable=not-callable
     assert got.to_dict() == expect
 
@@ -675,7 +673,7 @@ def test_minlength():
     ]
     ml = sample.min_length(9)
     got = [aln.to_dict() for aln in map(ml, alns) if aln]  # pylint: disable=not-callable
-    expected = [dict((("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")))]
+    expected = [{"a": "GCAAGCGTTTAT", "b": "GCTTTTGTCAAT"}]
     assert got == expected
 
     # returns NotCompletedResult if nothing satisifies
@@ -690,7 +688,7 @@ def test_minlength():
     ]
     ml = sample.min_length(6)
     got = [aln.to_dict() for aln in map(ml, alns) if aln]  # pylint: disable=not-callable
-    expected = [dict((("a", "GGAAGCGT"), ("b", "GCTTNGT")))]
+    expected = [{"a": "GGAAGCGT", "b": "GCTTNGT"}]
     assert got == expected
 
     ml = sample.min_length(7)

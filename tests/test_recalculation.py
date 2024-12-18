@@ -1,5 +1,7 @@
 from unittest import TestCase
 
+import pytest
+
 from cogent3.recalculation.definition import CalcDefn, ParamDefn
 from cogent3.recalculation.scope import (
     InvalidDimensionError,
@@ -16,10 +18,10 @@ class RecalculationTest(TestCase):
         pc = top.make_likelihood_function()
         f = pc.make_calculator()
 
-        self.assertEqual(f.get_value_array(), [1.0, 1.0])
-        self.assertEqual(f([3.0, 4.25]), 7.25)
-        self.assertEqual(f.change([(1, 4.5)]), 7.5)
-        self.assertEqual(f.get_value_array(), [3.0, 4.5])
+        assert f.get_value_array() == [1.0, 1.0]
+        assert f([3.0, 4.25]) == 7.25
+        assert f.change([(1, 4.5)]) == 7.5
+        assert f.get_value_array() == [3.0, 4.5]
 
         # Now with scopes.  We will set up the calculation
         # result = (Ax+Bx) + (Ay+By) + (Az+Bz)
@@ -46,7 +48,7 @@ class RecalculationTest(TestCase):
         pc = top.make_likelihood_function()
         f = pc.make_calculator()
 
-        self.assertEqual(str(f.get_value_array()), "[1.0, 1.0]")
+        assert str(f.get_value_array()) == "[1.0, 1.0]"
 
         # There are still only 2 inputs because the default scope
         # is global, ie: Ax == Ay == Az.  If we allow A to be
@@ -56,14 +58,14 @@ class RecalculationTest(TestCase):
         pc.assign_all("A", value=2.0, independent=True)
         f = pc.make_calculator()
 
-        self.assertEqual(str(f.get_value_array()), "[1.0, 2.0, 2.0, 2.0]")
+        assert str(f.get_value_array()) == "[1.0, 2.0, 2.0, 2.0]"
 
         # Now we have A local and B still global, so the calculation is
         # (Ax+B) + (Ay+B) + (Az+B) with the input parameters being
         # [B, Ax, Ay, Az], so:
 
-        self.assertEqual(f([1.0, 2.0, 2.0, 2.0]), 9.0)
-        self.assertEqual(f([0.25, 2.0, 2.0, 2.0]), 6.75)
+        assert f([1.0, 2.0, 2.0, 2.0]) == 9.0
+        assert f([0.25, 2.0, 2.0, 2.0]) == 6.75
 
         # Constants do not appear in the optimisable inputs.
         # Set one of the 3 A values to be a constant and there
@@ -72,14 +74,14 @@ class RecalculationTest(TestCase):
         pc.assign_all("A", scope_spec={"category": "z"}, const=True)
         f = pc.make_calculator()
 
-        self.assertEqual(str(f.get_value_array()), "[1.0, 2.0, 2.0]")
+        assert str(f.get_value_array()) == "[1.0, 2.0, 2.0]"
 
         # The parameter controller should catch cases where the specified scope
         # does not exist:
 
-        with self.assertRaises(InvalidScopeError):
+        with pytest.raises(InvalidScopeError):
             pc.assign_all("A", scope_spec={"category": "nosuch"})
-        with self.assertRaises(InvalidDimensionError):
+        with pytest.raises(InvalidDimensionError):
             pc.assign_all("A", scope_spec={"nonsuch": "nosuch"})
 
         # It is complicated guesswork matching the parameters you expect with positions in
@@ -89,19 +91,19 @@ class RecalculationTest(TestCase):
         # interface:
 
         pc.update_from_calculator(f)
-        self.assertEqual(pc.get_param_value("A", category="x"), 2, 0)
-        self.assertEqual(pc.get_param_value("B", category=["x", "y"]), 1.0)
+        assert pc.get_param_value("A", category="x") == 2, 0
+        assert pc.get_param_value("B", category=["x", "y"]) == 1.0
 
         # Despite the name, .get_param_value can get the value from any step in the
         # calculation, so long as it has a unique name.
 
-        self.assertEqual(pc.get_param_value("mid", category="x"), 3.0)
+        assert pc.get_param_value("mid", category="x") == 3.0
 
         # For bulk retrieval of parameter values by parameter name and scope name there is
         # the .get_param_value_dict() method:
 
         vals = pc.get_param_value_dict(["category"])
-        self.assertEqual(vals["A"]["x"], 2.0)
+        assert vals["A"]["x"] == 2.0
 
         # Here is a function that is more like a likelihood function, in that it has a
         # maximum:
@@ -121,32 +123,26 @@ class RecalculationTest(TestCase):
 
         # There were two parameters, X and Y, and at the maximum they should both be 0.0:
 
-        self.assertEqual(pc.get_param_value("Y"), 0.0)
-        self.assertEqual(pc.get_param_value("X"), 0.0)
+        assert pc.get_param_value("Y") == 0.0
+        assert pc.get_param_value("X") == 0.0
 
         # Because this function has a maximum it is possible to ask it for a confidence
         # interval around a parameter, ie: how far from 0.0 can we move x before f(x,y)
         # falls bellow f(X,Y)-dropoff:
 
-        self.assertEqual(
-            pc.get_param_interval("X", dropoff=4, xtol=0.0),
-            (-2.0, 0.0, 2.0),
-        )
+        assert pc.get_param_interval("X", dropoff=4, xtol=0.0) == (-2.0, 0.0, 2.0)
 
         # We test the ability to omit xtol. Due to precision issues we convert the returned value to a string.
 
-        self.assertTrue(
-            "%.1f, %.1f, %.1f" % pc.get_param_interval("X", dropoff=4)
-            == "-2.0, 0.0, 2.0",
+        assert (
+            "{:.1f}, {:.1f}, {:.1f}".format(*pc.get_param_interval("X", dropoff=4))
+            == "-2.0, 0.0, 2.0"
         )
 
         # And finally intervals can be calculated in bulk by passing a dropoff value to
         # .get_param_value_dict():
 
-        self.assertEqual(
-            pc.get_param_value_dict([], dropoff=4, xtol=0.0)["X"],
-            (-2.0, 0.0, 2.0),
-        )
+        assert pc.get_param_value_dict([], dropoff=4, xtol=0.0)["X"] == (-2.0, 0.0, 2.0)
 
         # For likelihood functions it is more convenient to provide 'p' rather than
         # 'dropoff', dropoff = chi2.isf(1, p) / 2.0.  Also in general you won't need ultra precise answers,

@@ -15,12 +15,12 @@ from cogent3.util.deserialise import deserialise_object
 from cogent3.util.misc import get_object_provenance
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def dna_alphabet():
     return new_moltype.DNA.degen_gapped_alphabet
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def ascii_alphabet():
     return new_moltype.ASCII.alphabet
 
@@ -30,7 +30,7 @@ def bytes_alphabet():
     return new_moltype.BYTES.most_degen_alphabet()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def integer_seq(bytes_alphabet):
     """Used for slicing tests"""
     return new_sequence.SeqView(
@@ -40,7 +40,7 @@ def integer_seq(bytes_alphabet):
     )
 
 
-@pytest.mark.parametrize("name", ("dna", "rna", "protein", "protein_with_stop", "text"))
+@pytest.mark.parametrize("name", ["dna", "rna", "protein", "protein_with_stop", "text"])
 def test_moltype_make_seq(name):
     raw = "ACGGA"
     moltype = new_moltype.get_moltype(name)
@@ -63,7 +63,7 @@ def test_moltype_make_bytes_seq():
 
 @pytest.mark.parametrize(
     "moltype",
-    ("dna", "rna", "protein", "protein_with_stop", "text"),
+    ["dna", "rna", "protein", "protein_with_stop", "text"],
 )
 def test_sequence_copy(moltype):
     """correctly returns a copy version of self"""
@@ -72,8 +72,8 @@ def test_sequence_copy(moltype):
     annot1 = s.add_feature(biotype="exon", name="annot1", spans=[(0, 10)])
     annot2 = s.add_feature(biotype="exon", name="annot2", spans=[(10, 14)])
     got = s.copy()
-    got_annot1 = list(got.get_features(biotype="exon", name="annot1"))[0]
-    got_annot2 = list(got.get_features(biotype="exon", name="annot2"))[0]
+    got_annot1 = next(iter(got.get_features(biotype="exon", name="annot1")))
+    got_annot2 = next(iter(got.get_features(biotype="exon", name="annot2")))
     assert got is not s
     assert got_annot1 is not annot1
     assert got_annot2 is not annot2
@@ -91,9 +91,9 @@ def test_sequence_copy(moltype):
 
 @pytest.mark.parametrize(
     "moltype",
-    ("dna", "rna", "protein", "protein_with_stop", "text"),
+    ["dna", "rna", "protein", "protein_with_stop", "text"],
 )
-@pytest.mark.parametrize("seq", ("ACG", "AC-G", "-A-C"))
+@pytest.mark.parametrize("seq", ["ACG", "AC-G", "-A-C"])
 def test_sequence_compare_to_string(moltype, seq):
     """Sequence should compare equal to same string."""
     mt = new_moltype.get_moltype(moltype)
@@ -149,9 +149,9 @@ def test_sequence_to_moltype():
     s.add_feature(biotype="exon", name="fred", spans=[(0, 10)])
     s.add_feature(biotype="exon", name="trev", spans=[(10, 14)])
     got = s.to_moltype("dna")
-    fred = list(got.get_features(name="fred"))[0]
+    fred = next(iter(got.get_features(name="fred")))
     assert str(got[fred]) == "TTTTTTTTTT"
-    trev = list(got.get_features(name="trev"))[0]
+    trev = next(iter(got.get_features(name="trev")))
     assert str(got[trev]) == "AAAA"
 
     # calling with a null object should raise an exception
@@ -163,8 +163,8 @@ def test_sequence_to_moltype():
 
 
 @pytest.mark.parametrize(
-    "seq, expect",
-    (("UCAG-", "UCAG-"), ("NRYSW", ""), ("USNG", "UG")),
+    ("seq", "expect"),
+    [("UCAG-", "UCAG-"), ("NRYSW", ""), ("USNG", "UG")],
 )
 def test_sequence_strip_degenerate(seq, expect):
     """Sequence strip_degenerate should remove any degenerate bases"""
@@ -190,7 +190,7 @@ def test_add_bad():
 
 
 @pytest.mark.parametrize(
-    "moltype,label",
+    ("moltype", "label"),
     [
         (new_moltype.ASCII, "text"),
         (new_moltype.BYTES, "bytes"),
@@ -204,10 +204,10 @@ def test_get_type(moltype, label):
 
 
 @pytest.mark.parametrize(
-    "s, expect",
+    ("s", "expect"),
     [
-        ("ARC", [set("A"), set(("A", "G")), set(("C",))]),
-        ("AGC", [set(("A",)), set(("G",)), set(("C",))]),
+        ("ARC", [set("A"), {"A", "G"}, {"C"}]),
+        ("AGC", [{"A"}, {"G"}, {"C"}]),
     ],
 )
 def test_resolved_ambiguities(s, expect):
@@ -218,12 +218,12 @@ def test_resolved_ambiguities(s, expect):
 
 
 @pytest.mark.parametrize(
-    "seq, expect",
-    (
+    ("seq", "expect"),
+    [
         ("UCXXXAGWSNYRHBNZZZD-D", "UCAGWSNYRHBND-D"),
         ("@#^*($@!#&()!@QZX", ""),
         ("aaaxggg---!ccc", "---"),
-    ),
+    ],
 )
 def test_sequence_strip_bad(seq, expect):
     """Sequence strip_bad should remove any non-base, non-gap chars"""
@@ -234,12 +234,12 @@ def test_sequence_strip_bad(seq, expect):
 
 
 @pytest.mark.parametrize(
-    "seq, expect",
-    (
+    ("seq", "expect"),
+    [
         ("UXXCAGWSNYRHBNZ#!D-D", "UCAGWSNYRHBNDD"),
         ("@#^*($@!#&()!@QZX", ""),
         ("AAA GGG ---!CCC", "AAAGGGCCC"),
-    ),
+    ],
 )
 def test_sequence_strip_bad_and_gaps(seq, expect):
     """Sequence strip_bad_and_gaps should remove gaps and bad chars"""
@@ -785,38 +785,38 @@ def test_counts():
     seq = new_moltype.DNA.make_seq(seq=orig)
     # no gaps, no ambiguities
     got = seq.counts()
-    expect = dict(A=3, C=2, G=2, T=3)
+    expect = {"A": 3, "C": 2, "G": 2, "T": 3}
     assert dict(got) == expect
     # gaps allowed
     got = seq.counts(allow_gap=True)
-    expect = dict(A=3, C=2, G=2, T=3)
+    expect = {"A": 3, "C": 2, "G": 2, "T": 3}
     expect.update({"-": 1})
     assert dict(got) == expect
     # ambig allowed
     got = seq.counts(include_ambiguity=True)
-    expect = dict(A=3, C=2, G=2, T=3, N=1)
+    expect = {"A": 3, "C": 2, "G": 2, "T": 3, "N": 1}
     assert dict(got) == expect
     # ambig and gap allowed
     got = seq.counts(include_ambiguity=True, allow_gap=True)
-    expect = dict(A=3, C=2, G=2, T=3, N=1)
+    expect = {"A": 3, "C": 2, "G": 2, "T": 3, "N": 1}
     expect.update({"-": 1})
     assert dict(got) == expect
 
     # test DNA seq motif length of 2
     got = seq.counts(motif_length=2)
-    expect = dict(AA=1, CC=1, GG=1, TT=1)
+    expect = {"AA": 1, "CC": 1, "GG": 1, "TT": 1}
     assert dict(got) == expect
     # gap allowed
     got = seq.counts(motif_length=2, allow_gap=True)
-    expect = dict(AA=1, CC=1, GG=1, TT=1)
+    expect = {"AA": 1, "CC": 1, "GG": 1, "TT": 1}
     expect.update({"-T": 1})
     # ambig allowed
     got = seq.counts(motif_length=2, include_ambiguity=True)
-    expect = dict(AA=1, CC=1, GG=1, TT=1, AN=1)
+    expect = {"AA": 1, "CC": 1, "GG": 1, "TT": 1, "AN": 1}
     assert dict(got) == expect
     # ambig and gap allowed
     got = seq.counts(motif_length=2, include_ambiguity=True, allow_gap=True)
-    expect = dict(AA=1, CC=1, GG=1, TT=1, AN=1)
+    expect = {"AA": 1, "CC": 1, "GG": 1, "TT": 1, "AN": 1}
     expect.update({"-T": 1})
     assert dict(got) == expect
 
@@ -824,7 +824,7 @@ def test_counts():
     orig = "AACCGGTTAN-T?"
     seq = new_moltype.DNA.make_seq(seq=orig)
     got = seq.counts()
-    expect = dict(A=3, C=2, G=2, T=3)
+    expect = {"A": 3, "C": 2, "G": 2, "T": 3}
     assert dict(got) == expect
     got = seq.counts(allow_gap=True, include_ambiguity=True)
     expect.update({"-": 1, "N": 1, "?": 1})
@@ -832,7 +832,7 @@ def test_counts():
 
 
 @pytest.mark.parametrize(
-    "data, expect",
+    ("data", "expect"),
     [
         ("CCTTNN", 2),
         ("???MMM", 6),
@@ -878,7 +878,7 @@ def test_is_annotated():
     assert s.is_annotated()
 
 
-@pytest.mark.parametrize("biotype", ("gene", "exon", ("gene", "exon")))
+@pytest.mark.parametrize("biotype", ["gene", "exon", ("gene", "exon")])
 def test_is_annotated_biotype(biotype):
     """is_annotated operates correctly"""
     s = new_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG", name="s1")
@@ -966,14 +966,14 @@ def test_repr_html():
     moltype = new_moltype.get_moltype("text")
     seq = new_sequence.Sequence(seq="AAAAA", moltype=moltype)
 
-    orig = [l for l in seq._repr_html_().splitlines() if token in l][0]
+    orig = next(l for l in seq._repr_html_().splitlines() if token in l)
     orig_num = len(re.findall(r"\bA\b", orig))
     assert orig_num == 5
 
     # using environment variable
     env_name = "COGENT3_ALIGNMENT_REPR_POLICY"
     os.environ[env_name] = "num_pos=2"
-    got = [l for l in seq._repr_html_().splitlines() if token in l][0]
+    got = next(l for l in seq._repr_html_().splitlines() if token in l)
     got_num = len(re.findall(r"\bA\b", got))
     assert got_num == 2
     os.environ.pop(env_name, None)
@@ -1009,7 +1009,7 @@ def test_sequence_add_propogates_name():
 
 
 @pytest.mark.parametrize(
-    "size, expect",
+    ("size", "expect"),
     [
         (60, ">even\nTCAGAT\n"),  # default block_size
         (2, ">even\nTC\nAG\nAT\n"),
@@ -1024,7 +1024,7 @@ def test_to_fasta_even(size, expect):
 
 
 @pytest.mark.parametrize(
-    "size, expect",
+    ("size", "expect"),
     [
         (60, ">odd\nTCAGATAAA\n"),  # default block_size
         (2, ">odd\nTC\nAG\nAT\nAA\nA\n"),
@@ -1046,9 +1046,9 @@ def test_to_phylip():
     assert got == expect
 
 
-@pytest.mark.parametrize("start", (None, 0, 1, 10, -1, -10))
-@pytest.mark.parametrize("stop", (None, 10, 8, 1, 0, -1, -11))
-@pytest.mark.parametrize("step", (None, 1, 2, -1, -2))
+@pytest.mark.parametrize("start", [None, 0, 1, 10, -1, -10])
+@pytest.mark.parametrize("stop", [None, 10, 8, 1, 0, -1, -11])
+@pytest.mark.parametrize("step", [None, 1, 2, -1, -2])
 def test_seqview_initialisation(start, stop, step, bytes_alphabet):
     """Initialising a SeqView should work with range of provided values"""
     seq_data = "0123456789"
@@ -1068,7 +1068,7 @@ def test_seqview_initialisation(start, stop, step, bytes_alphabet):
     assert got.str_value == expected
 
 
-@pytest.mark.parametrize("index", (-10, -5, 0, 5, 9))  # -10 and 9 are boundary
+@pytest.mark.parametrize("index", [-10, -5, 0, 5, 9])  # -10 and 9 are boundary
 def test_seqview_index(index, bytes_alphabet):
     """SeqView with default values can be sliced with a single index, when within the length of the sequence"""
     seq_data = "0123456789"
@@ -1109,7 +1109,7 @@ def test_seqview_step_0(bytes_alphabet):
         )
 
 
-@pytest.mark.parametrize("start", (0, 2, 4))
+@pytest.mark.parametrize("start", [0, 2, 4])
 def test_seqview_invalid_index(start, bytes_alphabet):
     "indexing out of bounds with a forward step should raise an IndexError"
     seq = "0123456789"
@@ -1130,7 +1130,7 @@ def test_seqview_invalid_index(start, bytes_alphabet):
         _ = sv[neg_boundary_index]
 
 
-@pytest.mark.parametrize("start", (0, 2, 4))
+@pytest.mark.parametrize("start", [0, 2, 4])
 def test_seqview_invalid_index_positive_step_gt_1(start, bytes_alphabet):
     "boundary condition for indexing out of bounds with a forward step greater than 1"
     seq = "0123456789"
@@ -1152,7 +1152,7 @@ def test_seqview_invalid_index_positive_step_gt_1(start, bytes_alphabet):
         _ = sv[neg_boundary_index]
 
 
-@pytest.mark.parametrize("stop", (0, 2, -11))
+@pytest.mark.parametrize("stop", [0, 2, -11])
 def test_seqview_invalid_index_reverse_step(stop, bytes_alphabet):
     "boundary condition for indexing out of bounds with a reverse step"
     seq = "0123456789"
@@ -1180,7 +1180,7 @@ def test_seqview_invalid_index_reverse_step(stop, bytes_alphabet):
         _ = sv[neg_boundary_index]
 
 
-@pytest.mark.parametrize("stop", (0, 2, -6))
+@pytest.mark.parametrize("stop", [0, 2, -6])
 def test_seqview_invalid_index_reverse_step_gt_1(stop, bytes_alphabet):
     "boundary condition for indexing out of bounds with a reverse step less than -1"
     seq = "0123456789"
@@ -1283,13 +1283,13 @@ def test_seqview_start_out_of_bounds_reverse_step(bytes_alphabet):
 
 @pytest.mark.parametrize(
     "simple_slices",
-    (
+    [
         slice(None, None, 1),
         slice(None, 3, None),
         slice(1, None, None),
         slice(1, 3, None),
         slice(None, None, None),
-    ),
+    ],
 )
 def test_seqview_defaults(simple_slices, bytes_alphabet):
     """SeqView should accept slices with all combinations of default parameters"""
@@ -1303,17 +1303,17 @@ def test_seqview_defaults(simple_slices, bytes_alphabet):
     assert got.str_value == expected
 
 
-@pytest.mark.parametrize("index", (-8, -5, 0, 5, 8))
+@pytest.mark.parametrize("index", [-8, -5, 0, 5, 8])
 @pytest.mark.parametrize(
     "simple_slices",
-    (
+    [
         slice(None, None, 1),
         slice(None, 10, None),
         slice(1, None, None),
         slice(1, 10, None),
         slice(1, 10, 1),
         slice(None, None, None),
-    ),
+    ],
 )
 def test_seqview_sliced_index(index, simple_slices, bytes_alphabet):
     """SeqView that has been sliced with default parameters, can then be indexed"""
@@ -1324,8 +1324,8 @@ def test_seqview_sliced_index(index, simple_slices, bytes_alphabet):
     assert got.str_value == expected
 
 
-@pytest.mark.parametrize("first_step", (1, 2, -1, -2))
-@pytest.mark.parametrize("second_step", (1, 2, -1, -2))
+@pytest.mark.parametrize("first_step", [1, 2, -1, -2])
+@pytest.mark.parametrize("second_step", [1, 2, -1, -2])
 def test_seqview_reverse_slice(first_step, second_step, bytes_alphabet):
     """subsequent slices may reverse the previous slice"""
     seq = "0123456789"
@@ -1341,11 +1341,11 @@ def test_seqview_reverse_slice(first_step, second_step, bytes_alphabet):
     assert got.str_value == expected
 
 
-@pytest.mark.parametrize("seq", ("0123456789", "01234567890"))
-@pytest.mark.parametrize("index", (-10, -4, 0, 6, 10))
-@pytest.mark.parametrize("start", (None, 10, -1, -10))
-@pytest.mark.parametrize("stop", (None, 9, -10, -11))
-@pytest.mark.parametrize("step", (-1, -2))
+@pytest.mark.parametrize("seq", ["0123456789", "01234567890"])
+@pytest.mark.parametrize("index", [-10, -4, 0, 6, 10])
+@pytest.mark.parametrize("start", [None, 10, -1, -10])
+@pytest.mark.parametrize("stop", [None, 9, -10, -11])
+@pytest.mark.parametrize("step", [-1, -2])
 def test_seqview_rev_sliced_index(index, start, stop, step, seq, bytes_alphabet):
     """SeqView that has been reverse sliced, can then be sliced with a single index"""
     seq_data = seq
@@ -1381,10 +1381,10 @@ def test_seqview_rev_sliced_index(index, start, stop, step, seq, bytes_alphabet)
         assert got == expected
 
 
-@pytest.mark.parametrize("seq", ("0123456789", "012345678"))
-@pytest.mark.parametrize("start", (None, 0, 1, 9, -1, -10))
-@pytest.mark.parametrize("stop", (None, 0, 10, -7, -11))
-@pytest.mark.parametrize("step", (1, 2, -1, -2))
+@pytest.mark.parametrize("seq", ["0123456789", "012345678"])
+@pytest.mark.parametrize("start", [None, 0, 1, 9, -1, -10])
+@pytest.mark.parametrize("stop", [None, 0, 10, -7, -11])
+@pytest.mark.parametrize("step", [1, 2, -1, -2])
 def test_seqview_init_with_negatives(seq, start, stop, step, bytes_alphabet):
     "SeqView initialisation should handle any combination of positive and negative slices"
     sr = new_sequence.SliceRecord(
@@ -1403,10 +1403,10 @@ def test_seqview_init_with_negatives(seq, start, stop, step, bytes_alphabet):
     assert got.str_value == expected
 
 
-@pytest.mark.parametrize("seq", ("0123456789", "012345678"))
-@pytest.mark.parametrize("start", (None, 0, 1, 9, -1, -10))
-@pytest.mark.parametrize("stop", (None, 0, 10, -7, -11))
-@pytest.mark.parametrize("step", (1, 2, -1, -2))
+@pytest.mark.parametrize("seq", ["0123456789", "012345678"])
+@pytest.mark.parametrize("start", [None, 0, 1, 9, -1, -10])
+@pytest.mark.parametrize("stop", [None, 0, 10, -7, -11])
+@pytest.mark.parametrize("step", [1, 2, -1, -2])
 def test_seqview_slice_with_negatives(seq, start, stop, step, bytes_alphabet):
     """SeqView should handle any combination of positive and negative slices"""
     sv = new_sequence.SeqView(parent=seq, parent_len=len(seq), alphabet=bytes_alphabet)
@@ -1415,12 +1415,12 @@ def test_seqview_slice_with_negatives(seq, start, stop, step, bytes_alphabet):
     assert got.str_value == expected
 
 
-@pytest.mark.parametrize("start", (None, 0, 2))
-@pytest.mark.parametrize("stop", (None, 5, 7, 10))
-@pytest.mark.parametrize("step", (1, 2))
-@pytest.mark.parametrize("start_2", (None, 0, 1, 2))
-@pytest.mark.parametrize("stop_2", (None, 2, 4, 10))
-@pytest.mark.parametrize("step_2", (1, 2))
+@pytest.mark.parametrize("start", [None, 0, 2])
+@pytest.mark.parametrize("stop", [None, 5, 7, 10])
+@pytest.mark.parametrize("step", [1, 2])
+@pytest.mark.parametrize("start_2", [None, 0, 1, 2])
+@pytest.mark.parametrize("stop_2", [None, 2, 4, 10])
+@pytest.mark.parametrize("step_2", [1, 2])
 def test_subsequent_slice_forward(
     start,
     stop,
@@ -1440,8 +1440,8 @@ def test_subsequent_slice_forward(
 
 
 @pytest.mark.parametrize(
-    "slice_1, slice_2",
-    (
+    ("slice_1", "slice_2"),
+    [
         # WITH DEFAULTS
         # first stop -ve
         (slice(None, -3, None), slice(None, None, None)),
@@ -1548,7 +1548,7 @@ def test_subsequent_slice_forward(
         # first stop +ve, second stop -ve, second slice OUTSIDE first
         (slice(1, 6, 2), slice(None, -7, 3)),
         # first stop +ve, second stop -ve, second slice OUTSIDE first
-    ),
+    ],
 )
 def test_subsequent_slice_neg_stop(slice_1, slice_2, ascii_alphabet):
     """SeqView should handle subsequence slices with >=1 negative stop values,
@@ -1564,8 +1564,8 @@ def test_subsequent_slice_neg_stop(slice_1, slice_2, ascii_alphabet):
 
 
 @pytest.mark.parametrize(
-    "slice_1, slice_2",
-    (
+    ("slice_1", "slice_2"),
+    [
         # WITH DEFAULTS
         # first start -ve
         (slice(-6, None, None), slice(None, None, None)),
@@ -1635,7 +1635,7 @@ def test_subsequent_slice_neg_stop(slice_1, slice_2, ascii_alphabet):
         # first start +ve, second start -ve, second slice OUTSIDE first
         (slice(3, None, 3), slice(-9, None, 2)),
         (slice(-9, 7, 3), slice(-2, None, None)),
-    ),
+    ],
 )
 def test_subsequent_slice_neg_start(slice_1, slice_2, ascii_alphabet):
     """SeqView should handle subsequence slices with >=1 negative start values,
@@ -1651,8 +1651,8 @@ def test_subsequent_slice_neg_start(slice_1, slice_2, ascii_alphabet):
 
 
 @pytest.mark.parametrize(
-    "slice_1, slice_2",
-    (
+    ("slice_1", "slice_2"),
+    [
         # WITH DEFAULTS
         # first step -ve
         (slice(None, None, -1), slice(None, None, None)),
@@ -1678,7 +1678,7 @@ def test_subsequent_slice_neg_start(slice_1, slice_2, ascii_alphabet):
         (slice(10, 1, -1), slice(-8, 11, 2)),
         # first step -ve, second step +ve, second start/stop +ve
         (slice(10, 1, -1), slice(-19, 0, -2)),
-    ),
+    ],
 )
 def test_subsequent_slice_neg_step(slice_1, slice_2, ascii_alphabet):
     """SeqView should handle subsequence slices with negative step values,
@@ -1695,12 +1695,12 @@ def test_subsequent_slice_neg_step(slice_1, slice_2, ascii_alphabet):
 
 @pytest.mark.parametrize(
     "sub_slices_triple",
-    (
+    [
         (slice(None, None, None), slice(None, None, None), slice(None, None, None)),
         (slice(1, 9, 1), slice(2, 8, 1), slice(3, 7, 1)),
         (slice(1, 9, 1), slice(2, 8, 1), slice(3, 9, 1)),
         (slice(1, 9, 1), slice(2, 8, 2), slice(3, 7, -3)),
-    ),
+    ],
 )
 def test_subslice_3(sub_slices_triple, ascii_alphabet):
     """SeqView should handle three subsequent slices"""
@@ -1716,15 +1716,15 @@ def test_subslice_3(sub_slices_triple, ascii_alphabet):
     )
 
 
-@pytest.mark.parametrize("start", (0, 2, -1))
-@pytest.mark.parametrize("stop", (7, 10, -11))
-@pytest.mark.parametrize("step", (1, -2))
-@pytest.mark.parametrize("start_2", (0, 2, -8))
-@pytest.mark.parametrize("stop_2", (2, 4))
-@pytest.mark.parametrize("step_2", (2, -1))
-@pytest.mark.parametrize("start_3", (0, 1, -6))
-@pytest.mark.parametrize("stop_3", (4, 10, -10))
-@pytest.mark.parametrize("step_3", (2, -2))
+@pytest.mark.parametrize("start", [0, 2, -1])
+@pytest.mark.parametrize("stop", [7, 10, -11])
+@pytest.mark.parametrize("step", [1, -2])
+@pytest.mark.parametrize("start_2", [0, 2, -8])
+@pytest.mark.parametrize("stop_2", [2, 4])
+@pytest.mark.parametrize("step_2", [2, -1])
+@pytest.mark.parametrize("start_3", [0, 1, -6])
+@pytest.mark.parametrize("stop_3", [4, 10, -10])
+@pytest.mark.parametrize("step_3", [2, -2])
 def test_triple_slice(
     integer_seq,
     start,
@@ -1826,7 +1826,7 @@ def test_iter_kmers_empty():
     assert not list(got)
 
 
-@pytest.mark.parametrize("k", (0, -1, 1.1))
+@pytest.mark.parametrize("k", [0, -1, 1.1])
 def test_iter_kmers_handles_invalid(k):
     orig = ""
     mt = new_moltype.DNA
@@ -1837,7 +1837,7 @@ def test_iter_kmers_handles_invalid(k):
 
 
 @pytest.mark.parametrize(
-    "k, strict, expect",
+    ("k", "strict", "expect"),
     [
         (1, True, ["T", "C", "A", "G", "G", "A"]),
         (2, True, ["TC", "CA", "AG", "GG", "GA"]),
@@ -1865,7 +1865,7 @@ def test_get_kmers_strict_dna(k, strict, expect):
 
 
 @pytest.mark.parametrize(
-    "k, strict, expect",
+    ("k", "strict", "expect"),
     [
         (1, True, ["U", "C", "A", "G", "G", "A"]),
         (2, True, ["UC", "CA", "AG", "GG", "GA"]),
@@ -1893,7 +1893,7 @@ def test_get_kmers_strict_rna(k, strict, expect):
 
 
 @pytest.mark.parametrize(
-    "k, strict, expect",
+    ("k", "strict", "expect"),
     [
         (1, True, ["C", "E", "F", "G", "M", "N"]),
         (2, True, ["CE", "EF", "FG", "GM", "MN"]),
@@ -1919,7 +1919,7 @@ def test_get_kmers_strict_protein(k, strict, expect):
 
 
 @pytest.mark.parametrize(
-    "k, strict, expect",
+    ("k", "strict", "expect"),
     [
         (1, True, ["T", "C", "A", "G", "A", "T"]),
         (2, True, ["TC", "CA", "GA", "AT"]),
@@ -1944,7 +1944,7 @@ def test_get_kmers_strict_dna_gaps(k, strict, expect):
 
 
 @pytest.mark.parametrize(
-    "k, strict, expect",
+    ("k", "strict", "expect"),
     [
         (1, True, ["U", "C", "A", "G", "A", "U"]),
         (2, True, ["UC", "CA", "GA", "AU"]),
@@ -1969,7 +1969,7 @@ def test_get_kmers_strict_rna_gaps(k, strict, expect):
 
 
 @pytest.mark.parametrize(
-    "k, strict, expect",
+    ("k", "strict", "expect"),
     [
         (1, True, ["C", "E", "F", "G", "M", "N"]),
         (2, True, ["CE", "EF", "GM", "MN"]),
@@ -1995,7 +1995,7 @@ def test_get_kmers_strict_protein_gaps(k, strict, expect):
 
 @pytest.mark.parametrize(
     "moltype",
-    (new_moltype.DNA, new_moltype.RNA, new_moltype.PROTEIN),
+    [new_moltype.DNA, new_moltype.RNA, new_moltype.PROTEIN],
 )
 def test_get_kmers_allgap(moltype):
     orig = "-------"
@@ -2010,7 +2010,7 @@ def test_get_kmers_allgap(moltype):
 
 
 @pytest.mark.parametrize(
-    "k, strict, expect",
+    ("k", "strict", "expect"),
     [
         (1, True, ["G", "A", "T", "A"]),
         (2, True, ["GA", "TA"]),
@@ -2033,7 +2033,7 @@ def test_get_kmers_mixed_ambiguities_dna(k, strict, expect):
 
 
 @pytest.mark.parametrize(
-    "k, strict, expect",
+    ("k", "strict", "expect"),
     [
         (1, True, ["G", "A", "U", "A"]),
         (2, True, ["GA", "UA"]),
@@ -2056,7 +2056,7 @@ def test_get_kmers_mixed_ambiguities_rna(k, strict, expect):
 
 
 @pytest.mark.parametrize(
-    "k, strict, expect",
+    ("k", "strict", "expect"),
     [
         (1, True, ["Q", "M", "N", "R"]),
         (2, True, ["QM", "NR"]),
@@ -2078,7 +2078,7 @@ def test_get_kmers_mixed_ambiguities_protein(k, strict, expect):
     assert got == expect
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def one_seq():
     return new_moltype.DNA.make_seq(seq="AACCTGGAACC")
 
@@ -2105,10 +2105,10 @@ def test_seq_repr_rc(one_seq):
 def test_annotation_from_slice_with_stride():
     seq = new_moltype.DNA.make_seq(seq="AAACGCGCGAAAAAAA", name="s1")
     seq.add_feature(biotype="exon", name="ex1", spans=[(3, 9)])
-    f = list(seq.get_features(name="ex1"))[0]
+    f = next(iter(seq.get_features(name="ex1")))
     assert str(f.get_slice()) == "CGCGCG"
     s1 = seq[1::2]
-    f = list(s1.get_features(name="ex1"))[0]
+    f = next(iter(s1.get_features(name="ex1")))
     assert str(f.get_slice()) == "CCC"
 
 
@@ -2186,8 +2186,8 @@ def test_relative_position_step_GT_one(integer_seq):
     assert got == 4
 
 
-@pytest.mark.parametrize("sliced", (False, True))
-@pytest.mark.parametrize("rev", (False, True))
+@pytest.mark.parametrize("sliced", [False, True])
+@pytest.mark.parametrize("rev", [False, True])
 def test_seqview_copy(sliced, rev, integer_seq):
     raw_data = integer_seq.parent
     integer_seq = integer_seq[::-1] if rev else integer_seq
@@ -2219,11 +2219,11 @@ def test_relative_position_with_remainder(integer_seq):
     assert got == 3
 
 
-@pytest.mark.parametrize("value", (0, 3))
-@pytest.mark.parametrize("offset", (None, 1, 2))
-@pytest.mark.parametrize("start", (None, 1, 2))
-@pytest.mark.parametrize("stop", (None, 10, 11))
-@pytest.mark.parametrize("step", (None, 1, 2))
+@pytest.mark.parametrize("value", [0, 3])
+@pytest.mark.parametrize("offset", [None, 1, 2])
+@pytest.mark.parametrize("start", [None, 1, 2])
+@pytest.mark.parametrize("stop", [None, 10, 11])
+@pytest.mark.parametrize("step", [None, 1, 2])
 def test_absolute_relative_roundtrip(one_seq, value, offset, start, stop, step):
     # a round trip from relative to absolute then from absolute to relative, should return the same value we began with
     seq = one_seq[start:stop:step]
@@ -2233,11 +2233,11 @@ def test_absolute_relative_roundtrip(one_seq, value, offset, start, stop, step):
     assert rel_val == value
 
 
-@pytest.mark.parametrize("value", (0, 2))
-@pytest.mark.parametrize("offset", (None, 1, 2))
-@pytest.mark.parametrize("start", (None, -1, -2))
-@pytest.mark.parametrize("stop", (None, -10))
-@pytest.mark.parametrize("step", (-1, -2))
+@pytest.mark.parametrize("value", [0, 2])
+@pytest.mark.parametrize("offset", [None, 1, 2])
+@pytest.mark.parametrize("start", [None, -1, -2])
+@pytest.mark.parametrize("stop", [None, -10])
+@pytest.mark.parametrize("step", [-1, -2])
 def test_absolute_relative_roundtrip_reverse(
     integer_seq,
     value,
@@ -2356,14 +2356,14 @@ def test_sequence_to_json():
 
 @pytest.mark.parametrize(
     "sl",
-    (
+    [
         slice(2, 5, 1),  # positive indices, positive step
         slice(-8, -5, 1),  # negative indices, positive step
         slice(4, 1, -1),  # positive indices, negative step
         slice(-6, -9, -1),  # negative indices, negative step
-    ),
+    ],
 )
-@pytest.mark.parametrize("offset", (4, 0))
+@pytest.mark.parametrize("offset", [4, 0])
 def test_parent_start_stop(sl, offset, ascii_alphabet):
     data = "0123456789"
     # check our slice matches the expectation for rest of test
@@ -2387,10 +2387,10 @@ def test_parent_start_stop(sl, offset, ascii_alphabet):
 
 @pytest.mark.parametrize(
     "sl",
-    (
+    [
         slice(None, None, 1),  # slice whole sequence plus strand
         slice(None, None, -1),  # slice whole sequence minus strand
-    ),
+    ],
 )
 def test_parent_start_stop_limits(sl, ascii_alphabet):
     data = "0123456789"
@@ -2408,7 +2408,7 @@ def test_parent_start_stop_limits(sl, ascii_alphabet):
     assert (sv.slice_record.parent_start, sv.slice_record.parent_stop) == (0, 10)
 
 
-@pytest.mark.parametrize("rev", (False, True))
+@pytest.mark.parametrize("rev", [False, True])
 def test_parent_start_stop_empty(rev, ascii_alphabet):
     data = "0123456789"
     # check our slice matches the expectation for rest of test
@@ -2425,7 +2425,7 @@ def test_parent_start_stop_empty(rev, ascii_alphabet):
     assert (sv.slice_record.parent_start, sv.slice_record.parent_stop) == (0, 0)
 
 
-@pytest.mark.parametrize("rev", (False, True))
+@pytest.mark.parametrize("rev", [False, True])
 @pytest.mark.parametrize("index", range(9))
 def test_parent_start_stop_singletons(index, rev, ascii_alphabet):
     data = "0123456789"
@@ -2464,7 +2464,10 @@ def test_get_drawable(DATA_DIR):
         assert "(incomplete)" in trace.text
 
 
-@pytest.mark.parametrize("gc,seq", ((1, "TCCTGA"), (1, "ACGTAA---"), (2, "TCCAGG")))
+@pytest.mark.parametrize(
+    ("gc", "seq"),
+    [(1, "TCCTGA"), (1, "ACGTAA---"), (2, "TCCAGG")],
+)
 def test_has_terminal_stop_true(gc, seq):
     gc = new_genetic_code.get_code(gc)
     seq = new_moltype.DNA.make_seq(seq=seq)
@@ -2472,8 +2475,8 @@ def test_has_terminal_stop_true(gc, seq):
 
 
 @pytest.mark.parametrize(
-    "gc,seq",
-    ((1, "TCCAGG"), (2, "TCCAAA"), (1, "CCTGA"), (2, "CCAGG")),
+    ("gc", "seq"),
+    [(1, "TCCAGG"), (2, "TCCAAA"), (1, "CCTGA"), (2, "CCAGG")],
 )
 def test_has_terminal_stop_false(gc, seq):
     gc = new_genetic_code.get_code(gc)
@@ -2489,13 +2492,13 @@ def test_has_terminal_stop_strict():
 
 
 @pytest.mark.parametrize(
-    "gc,seq",
-    (
+    ("gc", "seq"),
+    [
         (2, "TCCAGG"),
         (1, "TAATGA"),
         (1, "ACGTGA---"),
         (1, "--AT-CTGA"),
-    ),
+    ],
 )
 def test_trim_terminal_stop_true(gc, seq):
     gc = new_genetic_code.get_code(gc)
@@ -2506,7 +2509,7 @@ def test_trim_terminal_stop_true(gc, seq):
     assert got == expect
 
 
-@pytest.mark.parametrize("gc,seq", ((1, "T?CTGC"), (2, "TCCAAG")))
+@pytest.mark.parametrize(("gc", "seq"), [(1, "T?CTGC"), (2, "TCCAAG")])
 def test_trim_terminal_stop_nostop(gc, seq):
     gc = new_genetic_code.get_code(gc)
     seq = new_moltype.DNA.make_seq(seq=seq)
@@ -2517,8 +2520,8 @@ def test_trim_terminal_stop_nostop(gc, seq):
 
 
 @pytest.mark.parametrize(
-    "gc,seq",
-    ((1, "TCCAGG"), (2, "TCCAAA"), (1, "CCTGA"), (2, "CCAGG")),
+    ("gc", "seq"),
+    [(1, "TCCAGG"), (2, "TCCAAA"), (1, "CCTGA"), (2, "CCAGG")],
 )
 def test_trim_terminal_stop_false(gc, seq):
     gc = new_genetic_code.get_code(gc)
@@ -2533,14 +2536,14 @@ def test_trim_terminal_stop_strict():
         seq.trim_stop_codon(gc=gc, strict=True)
 
 
-@pytest.mark.parametrize("cast", (int, numpy.int32, numpy.int64, numpy.uint8))
+@pytest.mark.parametrize("cast", [int, numpy.int32, numpy.int64, numpy.uint8])
 def test_index_a_seq(cast):
     seq = new_moltype.DNA.make_seq(seq="TCCAG")
     got = seq[cast(1)]
     assert isinstance(got, new_sequence.Sequence)
 
 
-@pytest.mark.parametrize("cast", (float, numpy.float32))
+@pytest.mark.parametrize("cast", [float, numpy.float32])
 def test_index_a_seq_float_fail(cast):
     seq = new_moltype.DNA.make_seq(seq="TCCAG")
     index = cast(1)
@@ -2548,7 +2551,7 @@ def test_index_a_seq_float_fail(cast):
         seq[index]  # pylint: disable=W0104
 
 
-@pytest.mark.parametrize("moltype", ("dna", "protein"))
+@pytest.mark.parametrize("moltype", ["dna", "protein"])
 def test_same_moltype(moltype):
     moltype = new_moltype.get_moltype(moltype)
     seq = moltype.make_seq(seq="TCCAG")
@@ -2563,9 +2566,9 @@ def test_gapped_by_map_segment_iter():
     assert g == ["-", "TCC", "--", "AG"]
 
 
-@pytest.mark.parametrize("rev", (False, True))
-@pytest.mark.parametrize("sliced", (False, True))
-@pytest.mark.parametrize("start_stop", ((None, None), (3, 7)))
+@pytest.mark.parametrize("rev", [False, True])
+@pytest.mark.parametrize("sliced", [False, True])
+@pytest.mark.parametrize("start_stop", [(None, None), (3, 7)])
 def test_copied_parent_coordinates(sliced, rev, start_stop):
     orig_name = "orig"
     seq = new_moltype.DNA.make_seq(seq="ACGGTGGGAC", name=orig_name)
@@ -2586,7 +2589,7 @@ def test_copied_parent_coordinates(sliced, rev, start_stop):
     assert copied.parent_coordinates() == (orig_name, start, stop, -1 if rev else 1)
 
 
-@pytest.mark.parametrize("rev", (False, True))
+@pytest.mark.parametrize("rev", [False, True])
 def test_parent_coordinates(one_seq, rev):
     seq = one_seq[1:1]
     seq = seq.rc() if rev else seq
@@ -2595,7 +2598,7 @@ def test_parent_coordinates(one_seq, rev):
     assert seq.parent_coordinates() == (None, 0, 0, 1)
 
 
-@pytest.mark.parametrize("cls", (str, bytes))
+@pytest.mark.parametrize("cls", [str, bytes])
 def test_coerce_to_seqview_str_bytes(cls, dna_alphabet):
     seq = "AC--GGTGGGAC"
     seqid = "seq1"
@@ -2717,10 +2720,10 @@ def test_empty_seqview_translate_position(dna_alphabet):
     assert sv.slice_record.relative_position(0) == 0
 
 
-@pytest.mark.parametrize("start", (None, 0, 1, 10, -1, -10))
-@pytest.mark.parametrize("stop", (None, 10, 8, 1, 0, -1, -11))
-@pytest.mark.parametrize("step", (None, 1, 2, -1, -2))
-@pytest.mark.parametrize("length", (1, 8, 999))
+@pytest.mark.parametrize("start", [None, 0, 1, 10, -1, -10])
+@pytest.mark.parametrize("stop", [None, 10, 8, 1, 0, -1, -11])
+@pytest.mark.parametrize("step", [None, 1, 2, -1, -2])
+@pytest.mark.parametrize("length", [1, 8, 999])
 def test_seqview_seq_len_init(start, stop, step, length, dna_alphabet):
     # seq_len is length of seq when None
     seq_data = "A" * length
@@ -2737,8 +2740,8 @@ def test_seqview_seq_len_init(start, stop, step, length, dna_alphabet):
     assert sv._parent_len == expect
 
 
-@pytest.mark.parametrize("step", (1, 3))
-@pytest.mark.parametrize("rev", (False, True))
+@pytest.mark.parametrize("step", [1, 3])
+@pytest.mark.parametrize("rev", [False, True])
 def test_seqview_plus_attrs(rev, step):
     # always equal values from plus strand
     start = 2
@@ -2748,7 +2751,7 @@ def test_seqview_plus_attrs(rev, step):
     assert (sr.plus_start, sr.plus_stop, sr.plus_step) == (start, stop, step)
 
 
-@pytest.mark.parametrize("rev", (False, True))
+@pytest.mark.parametrize("rev", [False, True])
 def test_seqview_attrs_non_modulo(rev):
     # for when the stop value does not align with the step, the plus_[stop/start]
     # is adjusted
@@ -2799,9 +2802,9 @@ def test_seqview_attrs_non_modulo(rev):
     assert sr.plus_stop == 0
 
 
-@pytest.mark.parametrize("start", (0, 1, 10, -1, -10))
-@pytest.mark.parametrize("stop", (0, 10, 8, 1, -1, -11))
-@pytest.mark.parametrize("step", (1, 2, -1, -2))
+@pytest.mark.parametrize("start", [0, 1, 10, -1, -10])
+@pytest.mark.parametrize("stop", [0, 10, 8, 1, -1, -11])
+@pytest.mark.parametrize("step", [1, 2, -1, -2])
 def test_plus_attrs_slicing(start, stop, step):
     """slicing with plus attributes then reversing should match native python slicing"""
     data = "0123456789"
@@ -2817,7 +2820,7 @@ def test_plus_attrs_slicing(start, stop, step):
     assert got == expect
 
 
-@pytest.mark.parametrize("rev", (False, True))
+@pytest.mark.parametrize("rev", [False, True])
 def test_seqview_attrs_zero_slice(rev):
     sr = new_sequence.SliceRecord(start=0, stop=0, step=1, parent_len=0)
     sr = sr[::-1] if rev else sr
@@ -2890,7 +2893,7 @@ def test_sequence_to_array_method():
     assert numpy.array_equal(rc.to_array(apply_transforms=False), expect_plus)
 
 
-@pytest.mark.parametrize("seq,rc", (("ATGTTT", False), ("AAACAT", True)))
+@pytest.mark.parametrize(("seq", "rc"), [("ATGTTT", False), ("AAACAT", True)])
 def test_translation(seq, rc):
     seq = new_moltype.DNA.make_seq(seq=seq)
     if rc:
@@ -2901,7 +2904,7 @@ def test_translation(seq, rc):
     assert str(aa) == "MF"
 
 
-@pytest.mark.parametrize("seq", ("ATGNTT", "ATGCAY"))
+@pytest.mark.parametrize("seq", ["ATGNTT", "ATGCAY"])
 def test_translation_ambig(seq):
     seq = new_moltype.DNA.make_seq(seq=seq)
     aa = seq.get_translation(incomplete_ok=True)
@@ -2931,14 +2934,14 @@ def test_get_translation_trim_stop():
 
 
 @pytest.mark.parametrize(
-    "moltype, data",
-    (
+    ("moltype", "data"),
+    [
         ("dna", "ACGT"),
         ("rna", "ACGU"),
         ("protein", "ACDE"),
         ("protein_with_stop", "ACDE*"),
         ("bytes", "ACDE"),
-    ),
+    ],
 )
 def test_sequence_serialisation_round_trip(moltype, data):
     moltype = new_moltype.get_moltype(moltype)
@@ -2978,7 +2981,7 @@ def seqview(request):
 
 @pytest.mark.parametrize(
     "alpha",
-    (new_moltype.DNA.alphabet, new_moltype.DNA.degen_gapped_alphabet),
+    [new_moltype.DNA.alphabet, new_moltype.DNA.degen_gapped_alphabet],
 )
 def test_make_seq_compatible_alpha(seqview, alpha):
     got = new_sequence._coerce_to_seqview(seqview, seqview.seqid, alpha, 0)
@@ -3007,7 +3010,7 @@ def test_make_seq_wrong_order_alpha():
 
 @pytest.mark.parametrize(
     "raw_seq",
-    ("GGTAC", b"GGTAC", numpy.array([3, 3, 0, 2, 1], dtype=numpy.uint8)),
+    ["GGTAC", b"GGTAC", numpy.array([3, 3, 0, 2, 1], dtype=numpy.uint8)],
 )
 def test_make_seq_from_types(raw_seq):
     seq = new_moltype.DNA.make_seq(seq=raw_seq)

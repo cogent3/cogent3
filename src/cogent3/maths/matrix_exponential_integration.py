@@ -16,10 +16,10 @@ import cogent3.maths.matrix_exponentiation as cme
 
 
 class _Exponentiator:
-    def __init__(self, Q):
+    def __init__(self, Q) -> None:
         self.Q = Q
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.Q!r})"
 
 
@@ -29,7 +29,7 @@ class VanLoanIntegratingExponentiator(_Exponentiator):
     [1] Van Loan, C. F. (1978). Computing integrals involving the matrix
     exponential. IEEE Trans. Autmat. Control 23(3), 395-404."""
 
-    def __init__(self, Q, R=None, exponentiator=cme.RobustExponentiator):
+    def __init__(self, Q, R=None, exponentiator=cme.RobustExponentiator) -> None:
         """
         Q -- an n x n matrix.
         R -- an n x m matrix. Defaults to the identity matrix. Can be a rank-1
@@ -37,7 +37,7 @@ class VanLoanIntegratingExponentiator(_Exponentiator):
         exponentiator -- Exponentiator used in Van Loan method. Defaults to
         RobustEstimator.
         """
-        super(VanLoanIntegratingExponentiator, self).__init__(Q)
+        super().__init__(Q)
         Qdim = len(Q)
         if R is None:
             self.R = identity(Qdim)
@@ -59,7 +59,7 @@ class VonBingIntegratingExponentiator(_Exponentiator):
     """An exponentiator that evaluates int_0^t exp(Q*s)ds
     using the method of Von Bing Yap (Personal Communication)."""
 
-    def __init__(self, Q):
+    def __init__(self, Q) -> None:
         """
         Parameters
         ----------
@@ -72,7 +72,8 @@ class VonBingIntegratingExponentiator(_Exponentiator):
         # Remove following check if performance is a concern
         reQ = inner(self.evT * self.roots, self.evI).real
         if not allclose(Q, reQ):
-            raise ArithmeticError("eigendecomposition failed")
+            msg = "eigendecomposition failed"
+            raise ArithmeticError(msg)
 
     def __call__(self, t=1.0):
         int_roots = array(
@@ -81,8 +82,7 @@ class VonBingIntegratingExponentiator(_Exponentiator):
         result = inner(self.evT * int_roots, self.evI)
         if result.dtype.kind == "c":
             result = asarray(result.real)
-        result = maximum(result, 0.0)
-        return result
+        return maximum(result, 0.0)
 
 
 def expected_number_subs(p0, Q, t):

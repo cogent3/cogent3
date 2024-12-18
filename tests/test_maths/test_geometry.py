@@ -88,20 +88,20 @@ class CenterOfMassTests(TestCase):
         # for single dimension, should return difference
         a1 = array([3])
         a2 = array([-1])
-        self.assertEqual(distance(a1, a2), 4)
+        assert distance(a1, a2) == 4
         # for two dimensions, should work e.g. for 3, 4, 5 triangle
         a1 = array([0, 0])
         a2 = array([3, 4])
-        self.assertEqual(distance(a1, a2), 5)
+        assert distance(a1, a2) == 5
         # vector should be the same as itself for any dimensions
         a1 = array([1.3, 23, 5.4, 2.6, -1.2])
-        self.assertEqual(distance(a1, a1), 0)
+        assert distance(a1, a1) == 0
         # should match hand-calculated case for an array
         a1 = array([[1, -2], [3, 4]])
         a2 = array([[1, 0], [-1, 2.5]])
-        self.assertEqual(distance(a1, a1), 0)
-        self.assertEqual(distance(a2, a2), 0)
-        self.assertEqual(distance(a1, a2), distance(a2, a1))
+        assert distance(a1, a1) == 0
+        assert distance(a2, a2) == 0
+        assert distance(a1, a2) == distance(a2, a1)
         assert_allclose(distance(a1, a2), sqrt(22.25))
 
     def test_sphere_points(self):

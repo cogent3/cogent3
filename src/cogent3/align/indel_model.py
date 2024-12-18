@@ -26,7 +26,7 @@ def classic_gap_scores(d, e):
 
 
 class _SimpleIndelParams:
-    def __init__(self, indel_rate, indel_length):
+    def __init__(self, indel_rate, indel_length) -> None:
         assert 0.0 < indel_length < 1.0, indel_length
         assert 0.0 < indel_rate < 1.0, indel_rate
         self.indel_rate = indel_rate

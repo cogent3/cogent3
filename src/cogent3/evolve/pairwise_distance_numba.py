@@ -18,7 +18,7 @@ if typing.TYPE_CHECKING:
 # fills in a diversity matrix from sequences of integers
 
 
-def _is_nucleic(moltype):
+def _is_nucleic(moltype) -> bool:
     # TODO delete when new_type alignments and moltypes are the norm
     try:
         _ = moltype.complement("A")
@@ -152,7 +152,8 @@ def jc69(
     num_states = len(aln.moltype.alphabet)
     mat = jc69_dist_matrix(aln.array_seqs, num_states, parallel=parallel)
     if invalid_raises and numpy.isnan(mat).any():
-        raise ArithmeticError("nan's in matrix")
+        msg = "nan's in matrix"
+        raise ArithmeticError(msg)
     return DistanceMatrix.from_array_names(mat, aln.names)
 
 
@@ -317,8 +318,9 @@ def tn93(
         If True, uses parallel processing via numba.
     """
     if not _is_nucleic(aln.moltype):
+        msg = f"tn93 distance only works with nucleotide alignments, not {aln.moltype}"
         raise new_moltype.MolTypeError(
-            f"tn93 distance only works with nucleotide alignments, not {aln.moltype}",
+            msg,
         )
 
     alpha = aln.moltype.alphabet
@@ -361,7 +363,8 @@ def tn93(
         parallel=parallel,
     )
     if invalid_raises and numpy.isnan(mat).any():
-        raise ArithmeticError("nan's in matrix")
+        msg = "nan's in matrix"
+        raise ArithmeticError(msg)
     return DistanceMatrix.from_array_names(mat, aln.names)
 
 
@@ -455,15 +458,17 @@ def paralinear(
     This is limited to 4-state alphabets for now.
     """
     if not _is_nucleic(aln.moltype):
+        msg = f"paralinear distance only works with nucleotide alignments, not {aln.moltype}"
         raise new_moltype.MolTypeError(
-            f"paralinear distance only works with nucleotide alignments, not {aln.moltype}",
+            msg,
         )
 
     num_states = len(aln.moltype.alphabet)
 
     mat = paralinear_distance_matrix(aln.array_seqs, num_states, parallel=parallel)
     if invalid_raises and numpy.isnan(mat).any():
-        raise ArithmeticError("nan's in matrix")
+        msg = "nan's in matrix"
+        raise ArithmeticError(msg)
     return DistanceMatrix.from_array_names(mat, aln.names)
 
 
@@ -550,6 +555,7 @@ def get_distance_calculator(name):
     name is converted to lower case"""
     name = name.lower()
     if name not in _calculators:
-        raise ValueError(f'Unknown pairwise distance calculator "{name}"')
+        msg = f'Unknown pairwise distance calculator "{name}"'
+        raise ValueError(msg)
 
     return _calculators[name]

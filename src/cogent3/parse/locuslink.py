@@ -261,72 +261,72 @@ class LocusLink(MappedRecord):
     }
 
 
-def _accession_adder(obj, field, line):
+def _accession_adder(obj, field, line) -> None:
     """Adds accessions to relevant field"""
     list_adder(obj, field, _read_accession(line))
 
 
-def _accnum_adder(obj, field, line):
+def _accnum_adder(obj, field, line) -> None:
     """Adds accnum to relevant field"""
     list_adder(obj, field, _read_accnum(line))
 
 
-def _rell_adder(obj, field, line):
+def _rell_adder(obj, field, line) -> None:
     """Adds rell to relevant field"""
     list_adder(obj, field, _read_rell(line))
 
 
-def _map_adder(obj, field, line):
+def _map_adder(obj, field, line) -> None:
     """Adds map to relevant field"""
     list_adder(obj, field, _read_map(line))
 
 
-def _sts_adder(obj, field, line):
+def _sts_adder(obj, field, line) -> None:
     """Adds sts to relevant field"""
     list_adder(obj, field, _read_sts(line))
 
 
-def _cdd_adder(obj, field, line):
+def _cdd_adder(obj, field, line) -> None:
     """Adds cdd to relevant field"""
     list_adder(obj, field, _read_cdd(line))
 
 
-def _comp_adder(obj, field, line):
+def _comp_adder(obj, field, line) -> None:
     """Adds comp to relevant field"""
     list_adder(obj, field, _read_comp(line))
 
 
-def _grif_adder(obj, field, line):
+def _grif_adder(obj, field, line) -> None:
     """Adds grif to relevant field"""
     list_adder(obj, field, _read_grif(line))
 
 
-def _pmid_adder(obj, field, line):
+def _pmid_adder(obj, field, line) -> None:
     """Adds pmid to relevant field"""
     list_extender(obj, field, _read_pmid(line))
 
 
-def _assembly_adder(obj, field, line):
+def _assembly_adder(obj, field, line) -> None:
     """Adds assembly to relevant field"""
     list_adder(obj, field, commas(line))
 
 
-def _go_adder(obj, field, line):
+def _go_adder(obj, field, line) -> None:
     """Adds go to relevant field"""
     list_adder(obj, field, _read_go(line))
 
 
-def _extannot_adder(obj, field, line):
+def _extannot_adder(obj, field, line) -> None:
     """Adds pmid to relevant field"""
     list_adder(obj, field, _read_extannot(line))
 
 
-def _generic_adder(obj, field, line):
+def _generic_adder(obj, field, line) -> None:
     """Adds line to relevant field, unparsed"""
     list_adder(obj, field, line.strip())
 
 
-def _contig_adder(obj, field, line):
+def _contig_adder(obj, field, line) -> None:
     """Adds contig to relevant field"""
     list_adder(obj, field, _read_contig(line))
 

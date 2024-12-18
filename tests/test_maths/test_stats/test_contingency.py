@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 import numpy
+import pytest
 from numpy.testing import assert_allclose
 
 from cogent3.maths.stats.contingency import CategoryCounts, calc_expected
@@ -12,8 +13,8 @@ class ContingencyTests(TestCase):
         """correctly compute chisq test"""
         table = CategoryCounts([[762, 327, 468], [484, 239, 477]])
         got = table.chisq_test()
-        self.assertEqual(round(got.chisq, 5), 30.07015)
-        self.assertEqual(got.df, 2)
+        assert round(got.chisq, 5) == 30.07015
+        assert got.df == 2
         assert_allclose(got.pvalue, 2.95358918321e-07)
 
     def test_residuals(self):
@@ -47,15 +48,15 @@ class ContingencyTests(TestCase):
         table = CategoryCounts([762, 327])
         got = table.chisq_test()
         assert_allclose(got.chisq, 173.7603305785124)
-        self.assertLess(got.pvalue, 2.2e-16)  # value from R
+        assert got.pvalue < 2.2e-16  # value from R
         _ = got._repr_html_()  # shouldn't fail
-        self.assertIn("1.12e-39", str(got))  # used sci formatting
+        assert "1.12e-39" in str(got)  # used sci formatting
 
     def test_G_ind(self):
         """correctly produce G test of independence"""
         table = CategoryCounts([[762, 327, 468], [484, 239, 477]])
         got = table.G_independence(williams=True)
-        self.assertEqual(got.df, 2)
+        assert got.df == 2
 
     def test_G_ind_with_pseudocount(self):
         """G test of independence with pseudocount"""
@@ -78,7 +79,7 @@ class ContingencyTests(TestCase):
         assert_allclose(got.G, 9.849234)
         assert_allclose(got.pvalue, 0.04304536)
         _ = got._repr_html_()  # shouldn't fail
-        self.assertIn("0.0430", str(got))  # used normal formatting
+        assert "0.0430" in str(got)  # used normal formatting
 
     def test_assign_expected(self):
         """assign expected property"""
@@ -94,16 +95,16 @@ class ContingencyTests(TestCase):
 
     def test_zero_observeds(self):
         """raises ValueError"""
-        with self.assertRaises(ValueError):
-            CategoryCounts(dict(a=0, b=0))
+        with pytest.raises(ValueError):
+            CategoryCounts({"a": 0, "b": 0})
 
     def test_shuffling(self):
         """resampling works for G-independence"""
         table = CategoryCounts([[762, 327], [750, 340]])
         got = table.G_independence(shuffled=50)
-        self.assertTrue(0 < got.pvalue < 1)  # a large interval
+        assert 0 < got.pvalue < 1  # a large interval
         got = table.chisq_test(shuffled=50)
-        self.assertTrue(0 < got.pvalue < 1)  # a large interval
+        assert 0 < got.pvalue < 1  # a large interval
 
     def test_to_dict(self):
         """returns a dict of contents"""
@@ -169,7 +170,7 @@ class ContingencyTests(TestCase):
             },
         )
         got = table.observed["rest_of_tree"]["env1"]
-        self.assertEqual(got, 2)
+        assert got == 2
         obs = [2, 10, 8, 2, 4]
         keys = ["Marl", "Chalk", "Sandstone", "Clay", "Limestone"]
         table = CategoryCounts(dict(zip(keys, obs, strict=False)))
@@ -179,10 +180,10 @@ class ContingencyTests(TestCase):
     def test_calc_expected(self):
         """expected returns new matrix with expected freqs"""
         matrix = CategoryCounts(
-            dict(
-                rest_of_tree=dict(env1=2, env3=1, env2=0),
-                b=dict(env1=1, env3=1, env2=3),
-            ),
+            {
+                "rest_of_tree": {"env1": 2, "env3": 1, "env2": 0},
+                "b": {"env1": 1, "env3": 1, "env2": 3},
+            },
         )
         assert_allclose(matrix.expected["rest_of_tree"]["env1"], 1.125)
         assert_allclose(matrix.expected["b"]["env1"], 1.875)
@@ -193,8 +194,8 @@ class ContingencyTests(TestCase):
 
     def test_validate_expecteds(self):
         """test provided expecteds total same as observed"""
-        with self.assertRaises(AssertionError):
-            obs = dict(a=10, b=2, c=2)
+        with pytest.raises(AssertionError):
+            obs = {"a": 10, "b": 2, "c": 2}
             exp = [5, 5, 5]
             CategoryCounts(obs, expected=exp)
 
@@ -224,7 +225,7 @@ class ContingencyTests(TestCase):
         )
         got = table.chisq_test()
         stats = got.statistics
-        self.assertEqual(stats[0, "pvalue"], got.pvalue)
+        assert stats[0, "pvalue"] == got.pvalue
 
     def test_calc_expected2(self):
         """handle case where expected is a single column vector"""
@@ -240,13 +241,13 @@ class ContingencyTests(TestCase):
         assert_allclose(got.observed.array.tolist(), a.tolist())
 
         for dtype in (object, float):
-            with self.assertRaises(TypeError):
+            with pytest.raises(TypeError):
                 a = numpy.array([[31.3, 36], [58, 138]], dtype=dtype)
                 darr = DictArrayTemplate(["syn", "nsyn"], ["Ts", "Tv"]).wrap(a)
                 _ = CategoryCounts(darr)
 
         # negative values disallowed
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             a = numpy.array([[31, -36], [58, 138]], dtype=int)
             darr = DictArrayTemplate(["syn", "nsyn"], ["Ts", "Tv"]).wrap(a)
             _ = CategoryCounts(darr)

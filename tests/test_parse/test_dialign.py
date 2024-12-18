@@ -6,28 +6,28 @@ from cogent3 import PROTEIN
 from cogent3.parse.dialign import DialignParser, parse_data_line
 
 data = """
-                           DIALIGN 2.2.1 
+                           DIALIGN 2.2.1
                            *************
 
-          Program code written by Burkhard Morgenstern and Said Abdeddaim 
-             e-mail contact: dialign (at) gobics (dot) de 
+          Program code written by Burkhard Morgenstern and Said Abdeddaim
+             e-mail contact: dialign (at) gobics (dot) de
 
-          Published research assisted by DIALIGN 2 should cite:  
+          Published research assisted by DIALIGN 2 should cite:
 
              Burkhard Morgenstern (1999).
              DIALIGN 2: improvement of the segment-to-segment
              approach to multiple sequence alignment.
-             Bioinformatics 15, 211 - 218. 
+             Bioinformatics 15, 211 - 218.
 
-          For more information, please visit the DIALIGN home page at 
+          For more information, please visit the DIALIGN home page at
 
-             http://bibiserv.techfak.uni-bielefeld.de/dialign/ 
+             http://bibiserv.techfak.uni-bielefeld.de/dialign/
 
          ************************************************************
 
 
 
-   program call:  dialign -fa -fn /tmp/ct/seq1.fasta /tmp/ct/seq1.txt  
+   program call:  dialign -fa -fn /tmp/ct/seq1.fasta /tmp/ct/seq1.txt
 
 
    Aligned sequences:          length:
@@ -38,28 +38,28 @@ data = """
    3) HEPB                        62
    4) ECOL                        54
 
-   Average seq. length:           57.8 
+   Average seq. length:           57.8
 
 
-   Please note that only upper-case letters are considered to be aligned. 
+   Please note that only upper-case letters are considered to be aligned.
 
 
    Alignment (DIALIGN format):
    ===========================
 
-HTL2               1   ldtapC-LFS DGS------P QKAAYVL--- ----WDQTIL QQDITPLPSH 
-MMLV               1   pdadhtw-YT DGSSLLQEGQ RKAGAAVtte teviWa---- KALDAG---T 
-HEPB               1   rpgl-CQVFA DAT------P TGWGLVM--- ----GHQRMR GTFSAPLPIH 
-ECOL               1   mlkqv-EIFT DGSCLGNPGP GGYGAIL--- ----RYRGRE KTFSAGytrT 
+HTL2               1   ldtapC-LFS DGS------P QKAAYVL--- ----WDQTIL QQDITPLPSH
+MMLV               1   pdadhtw-YT DGSSLLQEGQ RKAGAAVtte teviWa---- KALDAG---T
+HEPB               1   rpgl-CQVFA DAT------P TGWGLVM--- ----GHQRMR GTFSAPLPIH
+ECOL               1   mlkqv-EIFT DGSCLGNPGP GGYGAIL--- ----RYRGRE KTFSAGytrT
 
-                       0000000588 8882222229 9999999000 0000666666 6666633334 
+                       0000000588 8882222229 9999999000 0000666666 6666633334
 
-HTL2              37   ethSAQKGEL LALICGLRAa k--------- --- 
-MMLV              43   ---SAQRAEL IALTQALKm- ---------- --- 
-HEPB              37   t------AEL LAA-CFARSr sganiigtdn svv 
-ECOL              43   ---TNNRMEL MAAIv----- ---------- --- 
+HTL2              37   ethSAQKGEL LALICGLRAa k--------- ---
+MMLV              43   ---SAQRAEL IALTQALKm- ---------- ---
+HEPB              37   t------AEL LAA-CFARSr sganiigtdn svv
+ECOL              43   ---TNNRMEL MAAIv----- ---------- ---
 
-                       0003333455 5533333300 0000000000 000 
+                       0003333455 5533333300 0000000000 000
 
 
 
@@ -94,17 +94,11 @@ class TestDialign(unittest.TestCase):
         result = parse_data_line(
             "HTL2               1   ldtapcLFSD GS------PQ KAAYVLWDQT ILQQDITPLP SHethsaqkg ",
         )
-        self.assertEqual(
-            result,
-            ("HTL2", "ldtapcLFSDGS------PQKAAYVLWDQTILQQDITPLPSHethsaqkg"),
-        )
+        assert result == ("HTL2", "ldtapcLFSDGS------PQKAAYVLWDQTILQQDITPLPSHethsaqkg")
         result = parse_data_line(
             "                       1111111111 1000001111 1111033333 3333333333 3000000000 ",
         )
-        self.assertEqual(
-            result,
-            (None, "11111111111000001111111103333333333333333000000000"),
-        )
+        assert result == (None, "11111111111000001111111103333333333333333000000000")
 
     def test_aligned_from_dialign(self):
         """test getting aligned seqs"""

@@ -1,3 +1,4 @@
+import contextlib
 from random import choice
 
 import numpy
@@ -9,7 +10,8 @@ try:
 except ImportError:  # python version < 2.6
     from cogent3.maths.stats.special import Gamma
 
-    factorial = lambda x: Gamma(x + 1)
+    def factorial(x):
+        return Gamma(x + 1)
 
 
 def chi_square(x, p, df=1):
@@ -87,15 +89,13 @@ class SeqToSymbols:
     """class for converting all occurrences of motifs in passed sequence
     to 1/0 otherwise"""
 
-    def __init__(self, motifs, length=None, motif_length=None):
-        super(SeqToSymbols, self).__init__()
+    def __init__(self, motifs, length=None, motif_length=None) -> None:
+        super().__init__()
         if type(motifs) == str:
             motifs = [motifs]
         for i in range(len(motifs)):
-            try:
+            with contextlib.suppress(AttributeError):
                 motifs[i] = motifs[i].encode("utf8")
-            except AttributeError:
-                pass
         self.motifs = motifs
         self.length = length
         self.motif_length = motif_length or len(motifs[0])
@@ -103,17 +103,16 @@ class SeqToSymbols:
         if length is not None:
             self.set_result_array(length)
 
-    def set_result_array(self, length):
+    def set_result_array(self, length) -> None:
         """sets a result array for length"""
         self.working = numpy.zeros(length, numpy.uint8)
         self.length = length
 
     def __call__(self, seq, result=None):
-        if result is None and self.working is None:
+        if (result is None and self.working is None) or (
+            self.working is not None and len(seq) != self.working.shape[0]
+        ):
             self.set_result_array(len(seq))
-        elif self.working is not None:
-            if len(seq) != self.working.shape[0]:
-                self.set_result_array(len(seq))
 
         result = self.working
         result.fill(0)

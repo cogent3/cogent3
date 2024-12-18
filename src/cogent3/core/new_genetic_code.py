@@ -185,7 +185,7 @@ class GeneticCode:
             rows.append(row)
         return Table(header=headers, data=rows, title=self.name)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         display = self.to_table()
         return str(display)
 
@@ -205,7 +205,8 @@ class GeneticCode:
             return self._aa_to_codon.get(item, set())
 
         if len(item) != 3:
-            raise InvalidCodonError(f"Codon or aa {item!r} has wrong length")
+            msg = f"Codon or aa {item!r} has wrong length"
+            raise InvalidCodonError(msg)
 
         key = item.upper()
         key = key.replace("U", "T")
@@ -363,7 +364,7 @@ class GeneticCode:
         seq = list(str(seq))
         mappings = []
         for aa in seq:
-            aa = ambigs[aa] if aa in ambigs else [aa]
+            aa = ambigs.get(aa, [aa])
             codons = []
             for a in aa:
                 codons.extend(self[a])
@@ -574,7 +575,8 @@ def get_code(code_id: StrORInt = 1) -> GeneticCode:
         code_id = int(code_id)
 
     if code_id not in _CODES:
-        raise GeneticCodeError(f"Unknown genetic code {code_id!r}")
+        msg = f"Unknown genetic code {code_id!r}"
+        raise GeneticCodeError(msg)
     return _CODES[code_id]
 
 

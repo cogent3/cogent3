@@ -37,7 +37,7 @@ class General(Parametric):
     # k<=N:   apply Kth exchangeability parameter
     # k==N+1: no parameter, should be 1.0 in unscaled Q
 
-    def __init__(self, alphabet, **kw):
+    def __init__(self, alphabet, **kw) -> None:
         Parametric.__init__(self, alphabet, **kw)
 
         alphabet = self.get_alphabet()  # as may be altered by recode_gaps etc.
@@ -55,7 +55,7 @@ class General(Parametric):
         self.check_params_exist()
 
     def calc_exchangeability_matrix(self, mprobs, *params):
-        return numpy.array((0.0,) + params + (1.0,)).take(self.param_pick)
+        return numpy.array((0.0, *params, 1.0)).take(self.param_pick)
 
 
 class GeneralStationary(Stationary):
@@ -63,7 +63,7 @@ class GeneralStationary(Stationary):
     every possible instantaneous substitution, except the last in each column.
     As general as can be while still having stationary motif probabilities"""
 
-    def __init__(self, alphabet, **kw):
+    def __init__(self, alphabet, **kw) -> None:
         Stationary.__init__(self, alphabet, **kw)
 
         alphabet = self.get_alphabet()  # as may be altered by recode_gaps etc.
@@ -106,7 +106,7 @@ class GeneralStationary(Stationary):
         self.check_params_exist()
 
     def calc_exchangeability_matrix(self, mprobs, *params):
-        R = numpy.array((0.0,) + params + (1.0,)).take(self.param_pick)
+        R = numpy.array((0.0, *params, 1.0)).take(self.param_pick)
         for i, j in self.last_in_column:
             assert i > j
             row_total = numpy.dot(mprobs, R[j])
@@ -122,7 +122,7 @@ class GeneralStationary(Stationary):
 class DiscreteSubstitutionModel(_SubstitutionModel):
     _default_expm_setting = None
 
-    def _is_instantaneous(self, x, y):
+    def _is_instantaneous(self, x, y) -> bool:
         return True
 
     def get_param_list(self):
@@ -149,7 +149,7 @@ class NonReversibleNucleotide(Parametric):
     """Base non-reversible nucleotide substitution model."""
 
     @extend_docstring_from(Parametric.__init__)
-    def __init__(self, predicates=None, *args, **kw):
+    def __init__(self, predicates=None, *args, **kw) -> None:
         kw["alphabet"] = kw.get("alphabet", moltype.DNA.alphabet)
         kw["predicates"] = predicates
         Parametric.__init__(self, *args, **kw)
@@ -159,7 +159,7 @@ class NonReversibleDinucleotide(NonReversibleNucleotide):
     """Base non-reversible dinucleotide substitution model."""
 
     @extend_docstring_from(Parametric.__init__)
-    def __init__(self, predicates=None, *args, **kw):
+    def __init__(self, predicates=None, *args, **kw) -> None:
         kw["predicates"] = predicates
         kw["motif_length"] = 2
         NonReversibleNucleotide.__init__(self, *args, **kw)
@@ -169,7 +169,7 @@ class NonReversibleTrinucleotide(NonReversibleNucleotide):
     """Base non-reversible trinucleotide substitution model."""
 
     @extend_docstring_from(Parametric.__init__)
-    def __init__(self, predicates=None, *args, **kw):
+    def __init__(self, predicates=None, *args, **kw) -> None:
         kw["predicates"] = predicates
         kw["motif_length"] = 3
         NonReversibleNucleotide.__init__(self, *args, **kw)
@@ -180,17 +180,17 @@ class NonReversibleCodon(_Codon, NonReversibleNucleotide):
 
     # TODO deprecate alphabet argument
     @extend_docstring_from(Parametric.__init__)
-    def __init__(self, alphabet=None, gc=None, **kw):
+    def __init__(self, alphabet=None, gc=None, **kw) -> None:
         self.gc = genetic_code.get_code(gc)
         kw["alphabet"] = self.gc.get_alphabet()
         NonReversibleNucleotide.__init__(self, **kw)
 
 
 class StrandSymmetric(NonReversibleNucleotide):
-    def __init__(self, **kw):
+    def __init__(self, **kw) -> None:
         for argname in ("predicates", "recode_gaps", "model_gaps"):
             kw.pop(argname, None)
-        super(StrandSymmetric, self).__init__(
+        super().__init__(
             predicates=_sym_preds,
             recode_gaps=True,
             model_gaps=False,
@@ -201,7 +201,7 @@ class StrandSymmetric(NonReversibleNucleotide):
 class NonReversibleProtein(Parametric):
     """Base non-reversible protein substitution model."""
 
-    def __init__(self, with_selenocysteine=False, *args, **kw):
+    def __init__(self, with_selenocysteine=False, *args, **kw) -> None:
         alph = moltype.PROTEIN.alphabet
         if not with_selenocysteine:
             alph = alph.get_subset("U", excluded=True)

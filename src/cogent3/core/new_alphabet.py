@@ -26,7 +26,8 @@ PySeqStrOrBytes = typing.Sequence[str | bytes]
 
 @functools.singledispatch
 def _coerce_to_type(orig: StrORBytes, text: str) -> StrORBytes:
-    raise TypeError(f"{type(orig)} is invalid")
+    msg = f"{type(orig)} is invalid"
+    raise TypeError(msg)
 
 
 @_coerce_to_type.register
@@ -66,7 +67,7 @@ class convert_alphabet:
         dest: bytes,
         delete: OptBytes = None,
         allow_duplicates: bool = False,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -93,7 +94,8 @@ class convert_alphabet:
         b'RYYR'
         """
         if len(src) != len(dest):
-            raise ValueError(f"length of src={len(src)} != length of new {len(dest)}")
+            msg = f"length of src={len(src)} != length of new {len(dest)}"
+            raise ValueError(msg)
 
         if not allow_duplicates:
             consistent_words(src, length=1)
@@ -200,7 +202,8 @@ def get_array_type(num_elements: int):
     elif num_elements <= 2**64:
         dtype = numpy.uint64
     else:
-        raise NotImplementedError(f"{num_elements} is too big for 64-bit integer")
+        msg = f"{num_elements} is too big for 64-bit integer"
+        raise NotImplementedError(msg)
 
     return dtype
 
@@ -211,17 +214,21 @@ def consistent_words(
 ) -> None:
     """make sure all alphabet elements are unique and have the same length"""
     if not words:
-        raise ValueError("no words provided")
+        msg = "no words provided"
+        raise ValueError(msg)
 
     if len(set(words)) != len(words):
-        raise ValueError(f"duplicate elements in {words}")
+        msg = f"duplicate elements in {words}"
+        raise ValueError(msg)
 
     lengths = {1} if isinstance(words[0], int) else {len(w) for w in words}
     if len(lengths) != 1:
-        raise ValueError(f"mixed lengths {lengths} in {words}")
-    l = list(lengths)[0]
+        msg = f"mixed lengths {lengths} in {words}"
+        raise ValueError(msg)
+    l = next(iter(lengths))
     if length and l != length:
-        raise ValueError(f"word length {l} does not match expected {length}")
+        msg = f"word length {l} does not match expected {length}"
+        raise ValueError(msg)
 
 
 class bytes_to_array:
@@ -229,7 +236,7 @@ class bytes_to_array:
     characters to uint8. The resulting object is callable, taking a bytes object
     and returning a numpy array."""
 
-    def __init__(self, chars: bytes, dtype, delete: OptBytes = None):
+    def __init__(self, chars: bytes, dtype, delete: OptBytes = None) -> None:
         """
         Parameters
         ----------
@@ -257,7 +264,7 @@ class array_to_bytes:
     taking a numpy array and returning a bytes object.
     """
 
-    def __init__(self, chars: bytes):
+    def __init__(self, chars: bytes) -> None:
         # we want a bytes translation map
         self._converter = convert_alphabet(
             bytes(bytearray(range(len(chars)))),
@@ -295,7 +302,8 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
             character representing the missing data, typically '?'.
         """
         if not chars:
-            raise ValueError(f"cannot create empty {cls.__name__!r}")
+            msg = f"cannot create empty {cls.__name__!r}"
+            raise ValueError(msg)
 
         if gap is not None:
             assert _coerce_to_type(chars[0], gap) in chars
@@ -320,7 +328,7 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         chars: typing.Sequence[StrORBytes],
         gap: OptStr = None,
         missing: OptStr = None,
-    ):
+    ) -> None:
         self.dtype = get_array_type(len(self))
         self._gap_char = gap
         self._gap_index = self.dtype(self.index(gap)) if gap else None
@@ -373,7 +381,8 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
     @functools.singledispatchmethod
     def to_indices(self, seq: StrORBytesORArray | tuple) -> numpy.ndarray[int]:
-        raise TypeError(f"{type(seq)} is invalid")
+        msg = f"{type(seq)} is invalid"
+        raise TypeError(msg)
 
     @to_indices.register
     def _(self, seq: tuple) -> numpy.ndarray[int]:
@@ -398,7 +407,8 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
     @functools.singledispatchmethod
     def from_indices(self, seq: StrORBytesORArray) -> str:
-        raise TypeError(f"{type(seq)} is invalid")
+        msg = f"{type(seq)} is invalid"
+        raise TypeError(msg)
 
     @from_indices.register
     def _(self, seq: str) -> str:
@@ -438,9 +448,9 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
         missing_char = self._missing_char or missing_char if include_missing else None
         chars = (
-            tuple(self[: self._num_canonical]) + (gap_char, missing_char)
+            (*tuple(self[: self._num_canonical]), gap_char, missing_char)
             if missing_char
-            else tuple(self[: self._num_canonical]) + (gap_char,)
+            else (*tuple(self[: self._num_canonical]), gap_char)
         )
         if gap_as_state:
             gap_char = None
@@ -490,7 +500,8 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         if hasattr(seq, "alphabet"):
             # assume a SeqView instance
             return seq.alphabet == self
-        raise TypeError(f"{type(seq)} is invalid")
+        msg = f"{type(seq)} is invalid"
+        raise TypeError(msg)
 
     @is_valid.register
     def _(self, seq: str) -> bool:
@@ -562,7 +573,8 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         self_set.discard(None)
 
         if diff := set(motif_subset) - self_set:
-            raise AlphabetError(f"{diff!r} not members in self")
+            msg = f"{diff!r} not members in self"
+            raise AlphabetError(msg)
 
         if excluded:
             motif_subset = [m for m in self if m not in motif_subset]
@@ -600,12 +612,14 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         are swapped
         """
         if check_valid and not self.is_valid(seq):
-            raise AlphabetError(f"input sequence not valid for {self}")
+            msg = f"input sequence not valid for {self}"
+            raise AlphabetError(msg)
 
         converter = make_converter(self, alphabet)
         output = numpy.frombuffer(converter(seq.tobytes()), dtype=alphabet.dtype)
         if check_valid and not alphabet.is_valid(output):
-            raise AlphabetError(f"output sequence not valid for {alphabet}")
+            msg = f"output sequence not valid for {alphabet}"
+            raise AlphabetError(msg)
 
         return output
 
@@ -738,7 +752,8 @@ def seq_to_kmer_indices(
     step: int = k if independent_kmer else 1
     size: int = int(numpy.ceil((len(seq) - k + 1) / step))
     if len(result) < size:
-        raise ValueError(f"size of result {len(result)} <= {size}")
+        msg = f"size of result {len(result)} <= {size}"
+        raise ValueError(msg)
 
     missing_index: int = gap_index + 1 if gap_char_index > 0 else num_states**k
     if gap_char_index > 0:
@@ -840,7 +855,8 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
             k monomer missing characters
         """
         if not words:
-            raise ValueError(f"cannot create empty {cls.__name__!r}")
+            msg = f"cannot create empty {cls.__name__!r}"
+            raise ValueError(msg)
 
         if gap is not None:
             assert _coerce_to_type(words[0], gap) in words
@@ -855,7 +871,7 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         k: int,
         gap: OptStr = None,
         missing: OptStr = None,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -943,7 +959,8 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         If self.gap_char is None, then both of the above cases
         are defined as (num. monomer states**k)."""
         # TODO: handle case of non-modulo sequences
-        raise TypeError(f"{type(seq)} is invalid")
+        msg = f"{type(seq)} is invalid"
+        raise TypeError(msg)
 
     @to_indices.register
     def _(self, seq: tuple, **kwargs) -> numpy.ndarray[int]:
@@ -1039,7 +1056,8 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         otherwise returns num_states**k + 1 if a k-mer contains a
         non-canonical character. If self.gap_char is not defined,
         returns num_states**k for both cases."""
-        raise TypeError(f"{type(seq)} not supported")
+        msg = f"{type(seq)} not supported"
+        raise TypeError(msg)
 
     @to_index.register
     def _(self, seq: str) -> int:
@@ -1069,7 +1087,8 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         if self.missing_index is not None and kmer_index == self.missing_index:
             return numpy.array([self.monomers.missing_index] * self.k, dtype=self.dtype)
         if kmer_index >= len(self):
-            raise ValueError(f"{kmer_index} is out of range")
+            msg = f"{kmer_index} is out of range"
+            raise ValueError(msg)
 
         return index_to_coord(kmer_index, self._coeffs)
 
@@ -1087,7 +1106,8 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         This will raise a TypeError for string or bytes. Using to_indices() to
         convert those ensures a valid result.
         """
-        raise TypeError(f"{type(seq)} is invalid, must be numpy.ndarray")
+        msg = f"{type(seq)} is invalid, must be numpy.ndarray"
+        raise TypeError(msg)
 
     @is_valid.register
     def _(self, seq: numpy.ndarray) -> bool:
@@ -1146,7 +1166,8 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         gap: OptStr = None,
     ):
         if not words:
-            raise ValueError(f"cannot create empty {cls.__name__!r}")
+            msg = f"cannot create empty {cls.__name__!r}"
+            raise ValueError(msg)
 
         if gap is not None:
             assert _coerce_to_type(words[0], gap) in words
@@ -1159,7 +1180,7 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         words: tuple[StrORBytes, ...],
         monomers: CharAlphabet,
         gap: OptStr = None,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -1198,19 +1219,20 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         return self._to_indices[self.gap_char] if self._gap_char else None
 
     @property
-    def missing_char(self):
+    def missing_char(self) -> None:
         """not supported on CodonAlphabet"""
         return None
 
     @property
-    def missing_index(self):
+    def missing_index(self) -> None:
         """not supported on CodonAlphabet"""
         return None
 
     @functools.singledispatchmethod
     def to_indices(self, seq) -> numpy.ndarray:
         """returns a sequence of codon indices"""
-        raise TypeError(f"{type(seq)} is not supported")
+        msg = f"{type(seq)} is not supported"
+        raise TypeError(msg)
 
     @to_indices.register
     def _(self, seq: str) -> numpy.ndarray:
@@ -1234,24 +1256,29 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
 
     def to_index(self, codon: str) -> int:
         if len(codon) != 3:
-            raise ValueError(f"{codon=!r} is not of length 3")
+            msg = f"{codon=!r} is not of length 3"
+            raise ValueError(msg)
         if not self.monomers.is_valid(codon):
-            raise AlphabetError(f"{codon=!r} elements not nucleotides")
+            msg = f"{codon=!r} elements not nucleotides"
+            raise AlphabetError(msg)
         if self.moltype.has_ambiguity(codon):
             return len(self)
         try:
             return self._to_indices[codon]
         except KeyError as e:
-            raise AlphabetError(f"{codon=!r} not in alphabet") from e
+            msg = f"{codon=!r} not in alphabet"
+            raise AlphabetError(msg) from e
 
     def from_index(self, index: int) -> str:
         if index > len(self) or index < 0:
-            raise ValueError(f"{index=!r} is not within range")
+            msg = f"{index=!r} is not within range"
+            raise ValueError(msg)
 
         try:
             return self._from_indices[index]
         except KeyError as e:
-            raise ValueError(f"invalid {index=}") from e
+            msg = f"invalid {index=}"
+            raise ValueError(msg) from e
 
     def from_indices(self, indices: numpy.ndarray) -> list[str]:
         return [self.from_index(index) for index in indices]
@@ -1263,7 +1290,8 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
     @functools.singledispatchmethod
     def is_valid(self, seq) -> bool:
         """seq is valid for alphabet"""
-        raise TypeError(f"{type(seq)} not supported")
+        msg = f"{type(seq)} not supported"
+        raise TypeError(msg)
 
     @is_valid.register
     def _(self, seq: str) -> bool:
@@ -1288,7 +1316,7 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
             return self
         monomers = self.monomers.with_gap_motif()
         gap_char = monomers.gap_char * 3
-        words = tuple(self) + (gap_char,)
+        words = (*tuple(self), gap_char)
         return self.__class__(words=words, monomers=monomers, gap=gap_char)
 
     def to_rich_dict(self, for_pickle: bool = False):

@@ -16,11 +16,23 @@ def test_geometry():
     tree = make_tree(treestring="(a,b,(c,(d,e)e1)e2)")
     geom = SquareTreeGeometry(tree)
     series = [
-        dict(tip1name="d", tip2name="c", clade=True, stem=False),
-        dict(tip1name="d", tip2name="c", clade=True, stem=True),
-        dict(tip1name="d", tip2name="c", clade=False, stem=True),
-        dict(tip1name="d", tip2name="c", clade=True, stem=False, outgroup_name="e"),
-        dict(tip1name="d", tip2name="c", clade=False, stem=True, outgroup_name="e"),
+        {"tip1name": "d", "tip2name": "c", "clade": True, "stem": False},
+        {"tip1name": "d", "tip2name": "c", "clade": True, "stem": True},
+        {"tip1name": "d", "tip2name": "c", "clade": False, "stem": True},
+        {
+            "tip1name": "d",
+            "tip2name": "c",
+            "clade": True,
+            "stem": False,
+            "outgroup_name": "e",
+        },
+        {
+            "tip1name": "d",
+            "tip2name": "c",
+            "clade": False,
+            "stem": True,
+            "outgroup_name": "e",
+        },
     ]
     for kwargs in series[-1:]:
         expect = tree.get_edge_names(**kwargs)
@@ -109,7 +121,7 @@ def test_square_dendrogram_regression():
     assert_allclose(actual_vals, expected_vals)
 
 
-@pytest.mark.parametrize("style", ("square", "angular", "circular", "radial"))
+@pytest.mark.parametrize("style", ["square", "angular", "circular", "radial"])
 def test_dendro_shape(style):
     """exercising using different values of shape parameter"""
     tree = make_tree(treestring="(a:0.1,b:0.1,(c:0.05,(d:0.01,e:0.02):0.01):0.1)")
@@ -124,7 +136,7 @@ def test_dendro_shape(style):
     assert {tr.type for tr in fig.data} == {"scatter"}
 
 
-@pytest.mark.parametrize("style", ("square", "angular"))
+@pytest.mark.parametrize("style", ["square", "angular"])
 def test_dendro_with_support(style):
     """exercising creating dendrograms with support measure"""
     data = {
@@ -157,16 +169,16 @@ def test_style_edges():
     """test style_edges only accepts edges present in tree"""
     tree = make_tree(treestring="(a,b,(c,(d,e)e1)e2)")
     dnd = Dendrogram(tree=tree)
-    dnd.style_edges("a", line=dict(color="magenta"))
+    dnd.style_edges("a", line={"color": "magenta"})
     with pytest.raises(ValueError):
-        dnd.style_edges("foo", line=dict(color="magenta"))
+        dnd.style_edges("foo", line={"color": "magenta"})
 
 
 def test_tip_font():
     """test tip_font settable"""
     tree = make_tree(treestring="(a,b,(c,(d,e)e1)e2)")
     dnd = Dendrogram(tree=tree)
-    dnd.tip_font |= dict(size=18)
+    dnd.tip_font |= {"size": 18}
     assert dnd.tip_font.size == 18
     dnd.tip_font.size = 10
     assert dnd.tip_font.size == 10
@@ -174,15 +186,17 @@ def test_tip_font():
     assert dnd.tip_font["color"] == "red"
 
 
-@pytest.mark.parametrize("style", ("square", "angular", "circular", "radial"))
-@pytest.mark.parametrize("vert", ("top", "bottom"))
-@pytest.mark.parametrize("horizontal", ("left", "right"))
+@pytest.mark.parametrize("style", ["square", "angular", "circular", "radial"])
+@pytest.mark.parametrize("vert", ["top", "bottom"])
+@pytest.mark.parametrize("horizontal", ["left", "right"])
 def test_scale_bar_place(style, vert, horizontal):
     """outside rectangle containing dendrogram"""
     tree = make_tree("((a:0.1,b:0.25):0.1,(c:0.02,(e:0.035,f:0.04):0.15):0.3,g:0.3)")
     dnd = tree.get_figure(style=style)
     dnd.scale_bar = f"{vert} {horizontal}"
-    scale_bar = [s for s in dnd.figure.layout.shapes if s.get("name") == "scale_bar"][0]
+    scale_bar = next(
+        s for s in dnd.figure.layout.shapes if s.get("name") == "scale_bar"
+    )
     scale_y = scale_bar["y0"]
     min_y, max_y = dnd.tree.min_y, dnd.tree.max_y
     assert not (min_y <= scale_y <= max_y)

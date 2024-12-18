@@ -48,7 +48,7 @@ class PredefinedNucleotide(TimeReversibleNucleotide):
         _solved_models.calc_TN93_P(pi, time, kappa_y, kappa_r, result)
         return result
 
-    def check_psub_calculations_match(self):
+    def check_psub_calculations_match(self) -> None:
         pi = numpy.array([0.1, 0.2, 0.3, 0.4])
         params = [4, 6][: len(self.parameter_order)]
         Q = self.calcQ(pi, pi, *params)

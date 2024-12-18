@@ -77,7 +77,7 @@ class AlignmentEvolver:
         site_bins,
         psub_for,
         motifs,
-    ):
+    ) -> None:
         self.random_series = random_series
         self.orig_ambig = orig_ambig
         self.exclude_internal = exclude_internal
@@ -117,10 +117,7 @@ class AlignmentEvolver:
             # The result for this edge - a list of motifs
 
             # Keep original ambiguity codes
-            if edge.name in self.orig_ambig:
-                orig_seq_ambig = self.orig_ambig[edge.name]
-            else:
-                orig_seq_ambig = {}
+            orig_seq_ambig = self.orig_ambig.get(edge.name, {})
 
             # Matrix of substitution probabilities
             psubs = [self.psub_for(edge.name, bin) for bin in self.bin_names]

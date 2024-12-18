@@ -141,7 +141,7 @@ def test_merged_gaps(refalignment_seqs):
     assert _merged_gaps(a, {}) is a
     assert _merged_gaps({}, b) is b
     got = _merged_gaps(a, b)
-    assert got == dict([(2, 6), (4, 9), (8, 5)])
+    assert got == {2: 6, 4: 9, 8: 5}
 
 
 def test_aln_to_ref_known(refalignment_seqs):

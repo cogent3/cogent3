@@ -18,10 +18,10 @@ from cogent3.parse.gff import (
 )
 
 headers = [
-    """##gff-version 2 
-##source-version <source> <version text> 
-##date <date> 
-##Type <type> [<seqname>] 
+    """##gff-version 2
+##source-version <source> <version text>
+##date <date>
+##Type <type> [<seqname>]
 ##DNA <seqname>
 ##acggctcggattggcgctggatgatagatcagacgac
 ##...
@@ -92,16 +92,18 @@ class GffTest(TestCase):
 
     def test_parse_attributes_gff2(self):
         """Test the parse_attributes_gff2 method"""
-        self.assertEqual(
-            [parse_attributes_gff2(x[1][8])["ID"] for x in data_lines],
-            ["HBA_HUMAN", "dJ102G20.C1.1", "", "BROADO5"],
-        )
+        assert [parse_attributes_gff2(x[1][8])["ID"] for x in data_lines] == [
+            "HBA_HUMAN",
+            "dJ102G20.C1.1",
+            "",
+            "BROADO5",
+        ]
 
     def test_custom_attr_func(self):
         """user provided attr parser"""
         gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
         for result in gff_parser(gff3_path, attribute_parser=lambda x: x):
-            self.assertIsInstance(result["Attributes"], str)
+            assert isinstance(result["Attributes"], str)
 
 
 @pytest.fixture
@@ -131,7 +133,7 @@ def _modify_lines(change, seqid: str) -> list:
     return result
 
 
-@pytest.mark.parametrize("seqids", ("22", ("3",), ("3", "4")))
+@pytest.mark.parametrize("seqids", ["22", ("3",), ("3", "4")])
 def test_seq_names(multi_seqid_path, seqids):
     got = {r["SeqID"] for r in gff_parser(multi_seqid_path, seqids=seqids)}
     expect = {seqids} if isinstance(seqids, str) else set(seqids)
@@ -156,7 +158,7 @@ def test_parse_field_spaces(DATA_DIR):
                 assert value.strip() == value, f"{attr} should not have spaces!"
 
 
-@pytest.mark.parametrize("line,canned_result", data_lines)
+@pytest.mark.parametrize(("line", "canned_result"), data_lines)
 def test_gff_parser_data(line, canned_result):
     """Test gff_parser with valid data lines"""
     result = next(gff_parser(StringIO(line))).to_dict()
@@ -224,12 +226,12 @@ def make_gff_text():
 
 @pytest.mark.parametrize(
     "source",
-    (
+    [
         data_lines,
         io.StringIO(make_gff_text()),
         pathlib.Path("data/c_elegans_WS199_shortened_gff.gff3"),
         "data/c_elegans_WS199_shortened_gff.gff3",
-    ),
+    ],
 )
 def test_is_gfg3(source):
     assert isinstance(is_gff3(source), bool)
@@ -265,7 +267,7 @@ def worm_path(DATA_DIR):
     return DATA_DIR / "c_elegans_WS199_shortened_gff.gff3"
 
 
-@pytest.mark.parametrize("path_type", (str, pathlib.Path))
+@pytest.mark.parametrize("path_type", [str, pathlib.Path])
 def test_gff_parser_path_types(worm_path, path_type):
     got = list(gff_parser(path_type(worm_path), gff3=True))
     assert len(got) == 13
@@ -273,7 +275,7 @@ def test_gff_parser_path_types(worm_path, path_type):
 
 @pytest.mark.parametrize(
     "obj",
-    (make_gff_text().splitlines(), io.StringIO(make_gff_text())),
+    [make_gff_text().splitlines(), io.StringIO(make_gff_text())],
 )
 def test_gff_parser_obj_types(obj):
     got = list(gff_parser(obj))

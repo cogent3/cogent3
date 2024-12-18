@@ -28,8 +28,7 @@ def intersection(groups):
 def union(groups):
     """returns the intersection of all groups"""
     union = set(groups.pop())
-    union = union.union(*map(set, groups))
-    return union
+    return union.union(*map(set, groups))
 
 
 @define_app(app_type=NON_COMPOSABLE)
@@ -41,7 +40,7 @@ class concat:
         join_seq: str = "",
         intersect: bool = True,
         moltype: str | None = None,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -163,7 +162,7 @@ class omit_degenerates:
         moltype: str | None = None,
         gap_is_degen: bool = True,
         motif_length: int = 1,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -258,7 +257,7 @@ class omit_gap_pos:
         allowed_frac: float = 0.99,
         motif_length: int = 1,
         moltype: str | None = None,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -348,7 +347,7 @@ class take_codon_positions:
         fourfold_degenerate: bool = False,
         gc: str | int = "Standard",
         moltype: str = "dna",
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -447,12 +446,9 @@ class take_codon_positions:
 
         fourfold_codon_sets = self._fourfold_degen_sets
 
-        def ffold(x):
+        def ffold(x) -> bool:
             x = {tuple(array(e)) for e in list(x)}
-            for codon_set in fourfold_codon_sets:
-                if x <= codon_set:
-                    return True
-            return False
+            return any(x <= codon_set for codon_set in fourfold_codon_sets)
 
         new = aln.filtered(ffold, motif_length=3)
         return new[2::3]
@@ -481,7 +477,7 @@ class take_codon_positions:
 class take_named_seqs:
     """Selects named sequences from a collection."""
 
-    def __init__(self, *names: str, negate: bool = False):
+    def __init__(self, *names: str, negate: bool = False) -> None:
         """
         Parameters
         ----------
@@ -540,7 +536,7 @@ class take_n_seqs:
         random: bool = False,
         seed: int | None = None,
         fixed_choice: bool = True,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -620,7 +616,7 @@ class take_n_seqs:
         self._random = random
         self._fixed_choice = fixed_choice
 
-    def _set_names(self, data):
+    def _set_names(self, data) -> None:
         """set the names attribute"""
         if not self._random:
             self._names = data.names[: self._number]
@@ -657,7 +653,7 @@ class min_length:
         motif_length: int = 1,
         subtract_degen: bool = True,
         moltype: MolTypes | None = None,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -717,9 +713,12 @@ class min_length:
 
         diff = len(data.moltype.ambiguities or ()) - len(data.moltype.alphabet)
         if self._subtract_degen and (diff < 0 or diff < 3):
-            raise ValueError(
+            msg = (
                 f"{self.__class__.__name__}(subtract_degen=True) requires DNA, RNA or PROTEIN "
-                "moltype",
+                "moltype"
+            )
+            raise ValueError(
+                msg,
             )
 
         lengths = data.get_lengths(
@@ -738,7 +737,7 @@ class min_length:
 class _GetStart:
     choose = np_random.choice
 
-    def __init__(self, start):
+    def __init__(self, start) -> None:
         self._start = start
         self.func = {True: self._int}.get(type(start) == int, self._rand)
 
@@ -764,7 +763,7 @@ class fixed_length:
         seed: int | None = None,
         motif_length: int = 1,
         moltype: MolTypes | None = None,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -888,8 +887,7 @@ class fixed_length:
             result = indices[pos, :]
 
         result.sort(axis=0)
-        result = aln.take_positions(result.flatten().tolist())
-        return result
+        return aln.take_positions(result.flatten().tolist())
 
     T = Union[SerialisableType, AlignedSeqsType]
 
@@ -908,7 +906,7 @@ class omit_bad_seqs:
         gap_fraction: int = 1,
         ambig_fraction: OptInt = None,  # refactor: set default to 1 when support for old style aln is dropped
         moltype: MolTypes = "dna",
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -1023,7 +1021,7 @@ class omit_duplicated:
         choose: str = "longest",
         seed: int | None = None,
         moltype: MolTypes | None = None,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -1124,8 +1122,7 @@ class omit_duplicated:
             group_lengths.sort(reverse=True)
             excludes.extend([n for l, n in group_lengths[1:]])
 
-        seqs = seqs.take_seqs(excludes, negate=True)
-        return seqs
+        return seqs.take_seqs(excludes, negate=True)
 
     def choose_random(self, seqs):
         if self._moltype and self._moltype != seqs.moltype:
@@ -1138,8 +1135,7 @@ class omit_duplicated:
             group.remove(chosen)
             excludes.extend(group)
 
-        seqs = seqs.take_seqs(excludes, negate=True)
-        return seqs
+        return seqs.take_seqs(excludes, negate=True)
 
     def take_unique(self, seqs):
         if self._moltype and self._moltype != seqs.moltype:
@@ -1149,8 +1145,7 @@ class omit_duplicated:
         names = set()
         for dupes in duplicates:
             names.update(dupes)
-        seqs = seqs.take_seqs(names, negate=True)
-        return seqs
+        return seqs.take_seqs(names, negate=True)
 
     T = Union[SerialisableType, SeqsCollectionType]
 
@@ -1162,7 +1157,7 @@ class omit_duplicated:
 class trim_stop_codons:
     """Removes terminal stop codons."""
 
-    def __init__(self, gc: str | int = 1):
+    def __init__(self, gc: str | int = 1) -> None:
         """
         Parameters
         ----------
@@ -1212,5 +1207,4 @@ class trim_stop_codons:
     T = Union[SerialisableType, SeqsCollectionType]
 
     def main(self, data: SeqsCollectionType) -> T:
-        data = data.trim_stop_codons(gc=self._gc)
-        return data
+        return data.trim_stop_codons(gc=self._gc)

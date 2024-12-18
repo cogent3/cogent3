@@ -38,17 +38,16 @@ def _ipdft_inner(x, X, W, ulim, N):  # naive python
 
 def _ipdft_inner2(x, X, W, ulim, N):  # fastest python
     p = x[::-1]  # reversed
-    X = polyval(p, W)
-    return X
+    return polyval(p, W)
 
 
-def _autocorr_inner2(x, xc, N):  # fastest python
+def _autocorr_inner2(x, xc, N) -> None:  # fastest python
     products = multiply.outer(x, x)
     v = [products.trace(offset=m) for m in range(-len(x) + 1, len(x))]
     xc.put(range(xc.shape[0]), v)
 
 
-def _autocorr_inner(x, xc, N):  # naive python
+def _autocorr_inner(x, xc, N) -> None:  # naive python
     for m in range(-N + 1, N):
         for n in range(N):
             if 0 <= n - m < N:
@@ -66,18 +65,19 @@ def goertzel(x, period):
 class _PeriodEstimator:
     """parent class for period estimation"""
 
-    def __init__(self, length, llim=None, ulim=None, period=None):
-        super(_PeriodEstimator, self).__init__()
+    def __init__(self, length, llim=None, ulim=None, period=None) -> None:
+        super().__init__()
         self.length = length
         self.llim = llim or 2
         self.ulim = ulim or (length - 1)
 
         if self.ulim > length:
-            raise RuntimeError("Error: ulim > length")
+            msg = "Error: ulim > length"
+            raise RuntimeError(msg)
 
         self.period = period
 
-    def get_num_stats(self):
+    def get_num_stats(self) -> int:
         """returns the number of statistics computed by this calculator"""
         return 1
 
@@ -86,7 +86,7 @@ class AutoCorrelation(_PeriodEstimator):
     """class for repetitive calculation of autocorrelation for series of
     fixed length"""
 
-    def __init__(self, length, llim=None, ulim=None, period=None):
+    def __init__(self, length, llim=None, ulim=None, period=None) -> None:
         """
         Parameters
         ----------
@@ -106,7 +106,7 @@ class AutoCorrelation(_PeriodEstimator):
         The middle element of xc corresponds to a lag (period) of 0
         ``xc`` is always symmetric for real ``x``
         """
-        super(AutoCorrelation, self).__init__(length, llim, ulim, period)
+        super().__init__(length, llim, ulim, period)
 
         periods = list(range(-length + 1, length))
 
@@ -138,7 +138,14 @@ def auto_corr(x, llim=None, ulim=None):
 
 
 class Ipdft(_PeriodEstimator):
-    def __init__(self, length, llim=None, ulim=None, period=None, abs_ft_sig=True):
+    def __init__(
+        self,
+        length,
+        llim=None,
+        ulim=None,
+        period=None,
+        abs_ft_sig=True,
+    ) -> None:
         """factory function for computing the integer period discrete Fourier
         transform for repeated application to signals of the same length.
 
@@ -158,7 +165,7 @@ class Ipdft(_PeriodEstimator):
         if period is not None:
             llim = period
             ulim = period
-        super(Ipdft, self).__init__(length, llim, ulim, period)
+        super().__init__(length, llim, ulim, period)
         self.periods = array(list(range(self.llim, self.ulim + 1)))
         self.W = exp(-1j * 2 * pi / arange(1, self.ulim + 1))
         self.X = array([0 + 0j] * self.length)
@@ -182,9 +189,9 @@ class Ipdft(_PeriodEstimator):
 class Goertzel(_PeriodEstimator):
     """Computes the power of a signal for a specific period"""
 
-    def __init__(self, length=None, period=None, **kwargs):
+    def __init__(self, length=None, period=None, **kwargs) -> None:
         assert period is not None, "Goertzel requires a period"
-        super(Goertzel, self).__init__(length=length, period=period)
+        super().__init__(length=length, period=period)
 
     def __call__(self, x):
         x = array(x, float64)
@@ -204,7 +211,7 @@ class Hybrid(_PeriodEstimator):
         period=None,
         abs_ft_sig=True,
         return_all=False,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -222,7 +229,7 @@ class Hybrid(_PeriodEstimator):
             whether to return the hybrid, ipdft, autocorr statistics as
             a numpy array, or just the hybrid statistic
         """
-        super(Hybrid, self).__init__(length, llim, ulim, period)
+        super().__init__(length, llim, ulim, period)
         self.ipdft = Ipdft(length, llim, ulim, period, abs_ft_sig)
         self.auto = AutoCorrelation(length, llim, ulim, period)
         self._return_all = return_all

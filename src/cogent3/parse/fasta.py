@@ -109,10 +109,12 @@ def _strict_parser(
         if line[0] in label_char:
             if label is not None:
                 if not seq:
-                    raise RecordError(f"{label} has no data")
+                    msg = f"{label} has no data"
+                    raise RecordError(msg)
                 yield label_to_name(label), _white_space.sub("", "".join(seq))
             elif seq:
-                raise RecordError("missing a label")
+                msg = "missing a label"
+                raise RecordError(msg)
 
             label = line[1:].strip()
             seq = []
@@ -120,9 +122,11 @@ def _strict_parser(
             seq.append(line.strip())
 
     if not seq:
-        raise RecordError(f"{label} has no data")
+        msg = f"{label} has no data"
+        raise RecordError(msg)
     if label is None:
-        raise RecordError("missing a label")
+        msg = "missing a label"
+        raise RecordError(msg)
 
     yield label_to_name(label), _white_space.sub("", "".join(seq))
 
@@ -164,7 +168,7 @@ def MinimalGdeParser(infile, strict=True, label_to_name=str):
     return MinimalFastaParser(infile, strict, label_to_name, label_characters="%#")
 
 
-def xmfa_label_to_name(line):
+def xmfa_label_to_name(line) -> str:
     (loc, strand, contig) = line.split()
     (sp, loc) = loc.split(":")
     (lo, hi) = [int(x) for x in loc.split("-")]
@@ -221,8 +225,9 @@ def FastaParser(infile, seq_maker=None, info_maker=MinimalInfo, strict=True):
                 name, info = info_maker(label)  # will raise exception if bad
                 yield name, seq_maker(seq, name=name, info=info)
             except Exception:
+                msg = f"Sequence construction failed on record with label {label}"
                 raise RecordError(
-                    f"Sequence construction failed on record with label {label}",
+                    msg,
                 )
         else:
             # not strict: just skip any record that raises an exception
@@ -247,7 +252,8 @@ def NcbiFastaLabelParser(line):
     try:
         ignore, gi, db, db_ref, description = list(map(strip, line.split("|", 4)))
     except ValueError:  # probably got wrong value
-        raise RecordError(f"Unable to parse label line {line}")
+        msg = f"Unable to parse label line {line}"
+        raise RecordError(msg)
     info.GI = gi
     info[NcbiLabels[db]] = db_ref
     info.Description = description
@@ -305,7 +311,7 @@ def LabelParser(display_template, field_formatters, split_with=":", DEBUG=False)
 
     """
     indexed = False
-    for index, field, converter in field_formatters:
+    for _index, field, _converter in field_formatters:
         if field in display_template:
             indexed = True
     assert indexed, f"display_template [{display_template}] does not use a field name"
@@ -315,15 +321,16 @@ def LabelParser(display_template, field_formatters, split_with=":", DEBUG=False)
         label = [label, label[1:]][label[0] == ">"]
         label = sep.split(label)
         if DEBUG:
-            print(label)
+            pass
         info = Info()
         for index, name, converter in field_formatters:
             if isinstance(converter, Callable):
                 try:
                     info[name] = converter(label[index])
                 except IndexError:
+                    msg = f"parsing label {label} failed for property {name} at index {index}"
                     raise IndexError(
-                        f"parsing label {label} failed for property {name} at index {index}",
+                        msg,
                     )
             else:
                 info[name] = label[index]
@@ -367,7 +374,7 @@ def GroupFastaParser(
     for label, seq in parser:
         seq = moltype.make_seq(seq=seq, name=label, info=label.info)
         if DEBUG:
-            print(f"{label=} {label=!r}")
+            pass
         if not group_ids:
             current_collection[label] = seq
             group_ids.append(label.info[group_key])
@@ -378,10 +385,7 @@ def GroupFastaParser(
             if group_ids[-1] not in done_groups:
                 info = Info(Group=group_ids[-1])
                 if DEBUG:
-                    print(
-                        "GroupParser collection keys",
-                        list(current_collection.keys()),
-                    )
+                    pass
                 seqs = cogent3.make_aligned_seqs(current_collection, moltype=moltype)
                 seqs.info = info
                 yield seqs
@@ -425,7 +429,8 @@ def iter_fasta_records(
     -------
     the sequence label as a string and the sequence as transformed by converter
     """
-    raise TypeError(f"iter_fasta_records not implemented for {type(data)}")
+    msg = f"iter_fasta_records not implemented for {type(data)}"
+    raise TypeError(msg)
 
 
 @iter_fasta_records.register
@@ -458,8 +463,9 @@ def _(data: str, converter: OptConverterType = None, label_to_name: RenamerType 
         try:
             os.stat(data)
         except OSError:
+            msg = "data is a string but not a file path, directly provided data must be bytes"
             raise TypeError(
-                "data is a string but not a file path, directly provided data must be bytes",
+                msg,
             )
 
     with open_(data, mode="rb") as infile:

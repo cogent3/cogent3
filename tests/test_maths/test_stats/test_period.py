@@ -175,13 +175,13 @@ class TestPeriodStat(TestCase):
 
     def test_chi_square(self):
         D, cs_p_val = chi_square(self.x, 10)
-        self.assertEqual(f"{D:.4f}", "0.4786")
-        self.assertEqual(f"{cs_p_val:.4f}", "0.4891")
+        assert f"{D:.4f}" == "0.4786"
+        assert f"{cs_p_val:.4f}" == "0.4891"
 
     def test_factorial(self):
-        self.assertEqual(factorial(1), 1)
-        self.assertEqual(factorial(4), 24)
-        self.assertEqual(factorial(0), 1)
+        assert factorial(1) == 1
+        assert factorial(4) == 24
+        assert factorial(0) == 1
 
     def test_g_statitic(self):
         """calc g-stat correctly"""
@@ -192,9 +192,9 @@ class TestPeriodStat(TestCase):
 
     def test_circular_indices(self):
         v = list(range(10))
-        self.assertEqual(circular_indices(v, 8, 10, 4), [8, 9, 0, 1])
-        self.assertEqual(circular_indices(v, 9, 10, 4), [9, 0, 1, 2])
-        self.assertEqual(circular_indices(v, 4, 10, 4), [4, 5, 6, 7])
+        assert circular_indices(v, 8, 10, 4) == [8, 9, 0, 1]
+        assert circular_indices(v, 9, 10, 4) == [9, 0, 1, 2]
+        assert circular_indices(v, 4, 10, 4) == [4, 5, 6, 7]
 
     def test_seq_to_symbol(self):
         """both py and pyx seq_to_symbol versions correctly convert a sequence"""
@@ -260,11 +260,11 @@ class TestPeriodStat(TestCase):
         hybrid_calc = Hybrid(150, llim=2, period=4)
         ipdft_calc = Ipdft(150, llim=2, period=4)
         autocorr_calc = AutoCorrelation(150, llim=2, period=4)
-        self.assertEqual(hybrid_calc.get_num_stats(), 1)
-        self.assertEqual(ipdft_calc.get_num_stats(), 1)
-        self.assertEqual(autocorr_calc.get_num_stats(), 1)
+        assert hybrid_calc.get_num_stats() == 1
+        assert ipdft_calc.get_num_stats() == 1
+        assert autocorr_calc.get_num_stats() == 1
         hybrid_calc = Hybrid(150, llim=2, period=4, return_all=True)
-        self.assertEqual(hybrid_calc.get_num_stats(), 3)
+        assert hybrid_calc.get_num_stats() == 3
 
     def test_permutation_skips(self):
         """permutation test correctly handles data without symbols"""
@@ -279,5 +279,5 @@ class TestPeriodStat(TestCase):
             seq_to_symbols=seq_to_symbol,
             num_stats=1,
         )
-        self.assertEqual(stat, 0.0)
-        self.assertEqual(p, 1.0)
+        assert stat == 0.0
+        assert p == 1.0

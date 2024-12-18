@@ -73,7 +73,7 @@ class TestAnnotations(unittest.TestCase):
         }
         for annot_type in ["misc_feature", "CDS", "5'UTR", "LTR"]:
             observed = (
-                list(self.aln.get_features(biotype=annot_type, on_alignment=True))[0]
+                next(iter(self.aln.get_features(biotype=annot_type, on_alignment=True)))
                 .get_slice()
                 .to_dict()
             )
@@ -82,9 +82,9 @@ class TestAnnotations(unittest.TestCase):
             if annot_type in ["misc_feature", "LTR"]:
                 continue  # because seqs haven't been annotated with it
 
-            observed = list(
-                self.aln.get_features(seqid=self.aln.names, biotype=annot_type),
-            )[0]
+            observed = next(
+                iter(self.aln.get_features(seqid=self.aln.names, biotype=annot_type)),
+            )
             observed = observed.get_slice().to_dict()
             expected = seq_expecteds[annot_type]
             assert observed == expected
@@ -101,7 +101,7 @@ class TestMapSpans(unittest.TestCase):
         assert reverse.reversed_relative_to(100) == forward
 
 
-@pytest.mark.parametrize("alignment", (False, True))
+@pytest.mark.parametrize("alignment", [False, True])
 def test_constructing_collections(alignment):  # ported
     seq1 = makeSampleSequence("FAKE01")
     seq2 = makeSampleSequence("FAKE02", with_gaps=True)
@@ -115,8 +115,8 @@ def test_constructing_collections(alignment):  # ported
     assert coll.annotation_db.num_matches() == expect
 
 
-@pytest.mark.parametrize("reversed", (False, True))
-@pytest.mark.parametrize("annot_type", ("LTR", "misc_feature", "CDS", "5'UTR"))
+@pytest.mark.parametrize("reversed", [False, True])
+@pytest.mark.parametrize("annot_type", ["LTR", "misc_feature", "CDS", "5'UTR"])
 def test_region_union_on_alignment(annot_type, reversed):  # ported
     # >FAKE01
     # AACCCAAAATTTTTTGGGGGGGGGGCCCC
@@ -151,7 +151,7 @@ def ann_aln():
 def test_feature_projection_ungapped(ann_aln):  # ported
     # projection onto ungapped sequence
     expecteds = {"FAKE01": "CCCAAAATTTTTT", "FAKE02": "CCC-----TTTTT"}
-    aln_ltr = list(ann_aln.get_features(biotype="LTR"))[0]
+    aln_ltr = next(iter(ann_aln.get_features(biotype="LTR")))
     seq_name = "FAKE01"
     expected = expecteds[seq_name]
     num = ann_aln.annotation_db.num_matches()
@@ -165,7 +165,7 @@ def test_feature_projection_ungapped(ann_aln):  # ported
 def test_feature_projection_gapped(ann_aln):  # ported
     # projection onto gapped sequence
     expecteds = {"FAKE01": "CCCAAAATTTTTT", "FAKE02": "CCC-----TTTTT"}
-    aln_ltr = list(ann_aln.get_features(biotype="LTR"))[0]
+    aln_ltr = next(iter(ann_aln.get_features(biotype="LTR")))
     seq_name = "FAKE02"
     expected = expecteds[seq_name]
     seq_ltr = ann_aln.get_projected_feature(seqid=seq_name, feature=aln_ltr)
@@ -186,18 +186,18 @@ def ann_seq():
     return makeSampleSequence("seq1")
 
 
-@pytest.mark.parametrize("annot_type", ("CDS", "5'UTR"))
+@pytest.mark.parametrize("annot_type", ["CDS", "5'UTR"])
 def test_slice_seq_with_full_annotations(ann_seq, annot_type):  # ported
     # this slice contains both features intact
     newseq = ann_seq[10:]
-    orig = list(ann_seq.get_features(biotype=annot_type))[0]
-    new = list(newseq.get_features(biotype=annot_type))[0]
+    orig = next(iter(ann_seq.get_features(biotype=annot_type)))
+    new = next(iter(newseq.get_features(biotype=annot_type)))
     assert orig.name == new.name
     assert len(orig) == len(new)
     assert str(newseq[new]) == str(ann_seq[orig]), annot_type
 
 
-@pytest.mark.parametrize("annot_type,num", (("CDS", 0), ("5'UTR", 1)))
+@pytest.mark.parametrize(("annot_type", "num"), [("CDS", 0), ("5'UTR", 1)])
 def test_slice_seq_with_partial_end(ann_seq, annot_type, num):  # ported
     # this slice contains both features intact
     newseq = ann_seq[:14]
@@ -207,13 +207,13 @@ def test_slice_seq_with_partial_end(ann_seq, annot_type, num):  # ported
     if num:
         feat = new[0]
         # length of the feature is the same as the original
-        assert len(feat) == len(list(ann_seq.get_features(biotype=annot_type))[0])
+        assert len(feat) == len(next(iter(ann_seq.get_features(biotype=annot_type))))
         gapless = feat.without_lost_spans()
         # the sliced feature without gaps is shorter
         assert len(gapless) < len(feat)
 
 
-@pytest.mark.parametrize("annot_type,num", (("CDS", 1), ("5'UTR", 0)))  # ported
+@pytest.mark.parametrize(("annot_type", "num"), [("CDS", 1), ("5'UTR", 0)])  # ported
 def test_slice_seq_with_partial_start(ann_seq, annot_type, num):
     # this slice contains both features intact
     newseq = ann_seq[18:]
@@ -223,7 +223,7 @@ def test_slice_seq_with_partial_start(ann_seq, annot_type, num):
     if num:
         feat = new[0]
         # length of the feature is the same as the original
-        assert len(feat) == len(list(ann_seq.get_features(biotype=annot_type))[0])
+        assert len(feat) == len(next(iter(ann_seq.get_features(biotype=annot_type))))
         gapless = feat.without_lost_spans()
         # the sliced feature without gaps is shorter
         assert len(gapless) < len(feat)
@@ -274,8 +274,8 @@ def test_aln_feature_to_dict():  # ported
     assert d == expect
 
 
-@pytest.mark.parametrize("fix", ("ann_seq", "ann_aln"))
-@pytest.mark.parametrize("type_", (list, tuple))
+@pytest.mark.parametrize("fix", ["ann_seq", "ann_aln"])
+@pytest.mark.parametrize("type_", [list, tuple])
 def test_aln_slice_feat_invalid(type_, fix, request):  # ported
     # incorrect parent
     obj = request.getfixturevalue(fix)
@@ -288,7 +288,7 @@ def test_seq_slice_seqfeat_invalid(ann_aln):  # ported
     seq1 = ann_aln.get_seq("FAKE01")
     seq2 = ann_aln.get_seq("FAKE02")
     with pytest.raises(ValueError):
-        _ = seq2[list(seq1.get_features(biotype="CDS"))[0]]
+        _ = seq2[next(iter(seq1.get_features(biotype="CDS")))]
 
 
 def test_gbdb_get_children_get_parent(DATA_DIR):  # ported
@@ -300,7 +300,7 @@ def test_gbdb_get_children_get_parent(DATA_DIR):  # ported
     assert parent == orig
 
 
-@pytest.mark.parametrize("rev", (False, True))
+@pytest.mark.parametrize("rev", [False, True])
 def test_features_survives_seq_rename(rev):  # ported
     segments = ["A" * 10, "C" * 10, "T" * 5, "C" * 5, "A" * 5]
 
@@ -321,11 +321,11 @@ def test_features_survives_seq_rename(rev):  # ported
     sliced.name = "sliced"
     sliced = sliced.rc() if rev else sliced
 
-    got = list(sliced.get_features(name="gene1"))[0]
+    got = next(iter(sliced.get_features(name="gene1")))
     got = got.get_slice()
     assert str(got) == gene_expect
 
-    got = list(sliced.get_features(name="domain1"))[0]
+    got = next(iter(sliced.get_features(name="domain1")))
     got = got.get_slice()
     assert str(got) == domain_expect
 
@@ -334,8 +334,8 @@ def make_aligned(**kwargs):
     return make_aligned_seqs(array_align=False, **kwargs)
 
 
-@pytest.mark.parametrize("rev", (False, True))
-@pytest.mark.parametrize("make_cls", (make_unaligned_seqs, make_aligned))
+@pytest.mark.parametrize("rev", [False, True])
+@pytest.mark.parametrize("make_cls", [make_unaligned_seqs, make_aligned])
 def test_features_survives_aligned_seq_rename(rev, make_cls):  # ported
     segments = ["A" * 10, "C" * 10, "T" * 5, "C" * 5, "A" * 5]
 
@@ -358,12 +358,12 @@ def test_features_survives_aligned_seq_rename(rev, make_cls):  # ported
     seqs = seqs.rc() if rev else seqs
     # quite different behaviour from Alignment and SequenceCollection
     # so we convert to string to make comparison simpler
-    got = list(seqs.get_features(name="gene1"))[0]
+    got = next(iter(seqs.get_features(name="gene1")))
     sliced = str(got.get_slice()).splitlines()[-1]
     assert sliced == "C" * 15
 
 
-@pytest.mark.parametrize("make", (make_unaligned_seqs, make_aligned))
+@pytest.mark.parametrize("make", [make_unaligned_seqs, make_aligned])
 def test_features_invalid_seqid(make):  # ported
     segments = ["A" * 10, "C" * 10, "T" * 5, "C" * 5, "A" * 5]
 

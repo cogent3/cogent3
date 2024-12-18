@@ -75,7 +75,8 @@ def best_frame(
     min_stops, frame = stops_in_frame[0]
     # if min_stops > 1, cannot be translated
     if min_stops > 1:
-        raise ValueError(f"{seq.name!r} cannot be robustly translated")
+        msg = f"{seq.name!r} cannot be robustly translated"
+        raise ValueError(msg)
     if min_stops == 0 and require_stop:
         # find seq with 1 stop
         min_stops = 20  # nonsense value
@@ -85,10 +86,12 @@ def best_frame(
                 break
 
     if not 0 <= min_stops <= 1:
-        raise ValueError(f"{seq.name!r} cannot be robustly translated")
+        msg = f"{seq.name!r} cannot be robustly translated"
+        raise ValueError(msg)
 
     if min_stops == 1 and not translations[frame].endswith("*"):
-        raise ValueError(f"{seq.name!r} cannot be robustly translated")
+        msg = f"{seq.name!r} cannot be robustly translated"
+        raise ValueError(msg)
     frame += 1
     if allow_rc and frame > 3:
         frame = 3 - frame
@@ -186,7 +189,7 @@ class select_translatable:
         allow_rc: bool = False,
         trim_terminal_stop: bool = True,
         frame: int | None = None,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -267,7 +270,8 @@ class select_translatable:
         if self._frame is not None:
             tr = self._gc.translate(str(seq), start=self._frame - 1)
             if "*" in tr[:-1]:
-                raise ValueError(f"internal stop in {seq.name}")
+                msg = f"internal stop in {seq.name}"
+                raise ValueError(msg)
             return self._frame
         return best_frame(seq, self._gc, allow_rc=self._allow_rc)
 
@@ -324,7 +328,7 @@ class translate_seqs:
         gc: GeneticCodeTypes = 1,
         allow_rc: bool = False,
         trim_terminal_stop: bool = True,
-    ):
+    ) -> None:
         """
         Parameters
         ----------

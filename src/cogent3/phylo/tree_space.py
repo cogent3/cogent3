@@ -43,7 +43,7 @@ def ismallest(data, size):
 def tree2ancestry(tree, order=None):
     nodes = tree.unrooted().get_edge_vector()[:-1]
     if order is not None:
-        lookup = dict([(k, i) for (i, k) in enumerate(order)])
+        lookup = {k: i for (i, k) in enumerate(order)}
 
         def _ordered_tips_first(n):
             if n.children:
@@ -80,14 +80,8 @@ def ancestry2tree(A, lengths, tip_names):
     for i in numpy.argsort(numpy.sum(A, axis=0)):
         children = [j for j in range(len(A)) if A[j, i] and j != i]
         child_nodes = [free.pop(j) for j in children if j in free]
-        if child_nodes:
-            name = None
-        else:
-            name = tips[i]
-        if lengths is None:
-            params = {}
-        else:
-            params = {"length": lengths[i]}
+        name = None if child_nodes else tips[i]
+        params = {} if lengths is None else {"length": lengths[i]}
         node = constructor(child_nodes, name, params)
         free[i] = node
     return constructor(list(free.values()), "root", {})
@@ -211,7 +205,7 @@ class TreeEvaluator:
         # All trees of size a-1, no need to compare them
         for n in range(init_tree_size + 1, a):
             trees2 = []
-            for err2, lengths2, ancestry in trees:
+            for _err2, _lengths2, ancestry in trees:
                 for split_edge in range(len(ancestry)):
                     ancestry2 = grown(ancestry, split_edge)
                     trees2.append((None, None, ancestry2))
@@ -266,8 +260,4 @@ class TreeEvaluator:
             self.result2output(err, ancestry, lengths, names)
             for (err, lengths, ancestry) in trees
         )
-        if return_all:
-            result = self.results2output(results)
-        else:
-            result = next(results)
-        return result
+        return self.results2output(results) if return_all else next(results)

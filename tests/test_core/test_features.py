@@ -37,8 +37,8 @@ class FeaturesTest(TestCase):
         # slice notation or by asking the feature to do it,
         # since the feature knows what sequence it belongs to.
 
-        self.assertEqual(str(self.s[self.exon1]), "CCCCC")
-        self.assertEqual(str(self.exon1.get_slice()), "CCCCC")
+        assert str(self.s[self.exon1]) == "CCCCC"
+        assert str(self.exon1.get_slice()) == "CCCCC"
 
     def test_get_features(self):
         """correctly identifies all features of a given type"""
@@ -61,7 +61,7 @@ class FeaturesTest(TestCase):
         exons = list(self.s.get_features(biotype="exon"))
         exon1 = exons.pop(0)
         combined = exon1.union(exons)
-        self.assertEqual(str(combined.get_slice()), "CCCCCTTTTTAAAAA")
+        assert str(combined.get_slice()) == "CCCCCTTTTTAAAAA"
 
     def test_shadow(self):
         """combines multiple features into shadow"""
@@ -89,16 +89,16 @@ class FeaturesTest(TestCase):
             name="fred",
             allow_multiple=True,
         )
-        self.assertEqual([a.get_slice() for a in annot], ["CCAC", "CCGC"])
+        assert [a.get_slice() for a in annot] == ["CCAC", "CCGC"]
         annot = seq.annotate_matches_to(
             pattern=pattern,
             biotype="domain",
             name="fred",
             allow_multiple=False,
         )
-        self.assertEqual(len(annot), 1)
+        assert len(annot) == 1
         fred = annot[0].get_slice()
-        self.assertEqual(str(fred), "CCAC")
+        assert str(fred) == "CCAC"
         # For Sequence objects of a non-IUPAC MolType, annotate_matches_to
         # should return an empty annotation.
         seq = ASCII.make_seq(seq="TTCCACTTCCGCTT")
@@ -108,7 +108,7 @@ class FeaturesTest(TestCase):
             name="fred",
             allow_multiple=False,
         )
-        self.assertEqual(annot, [])
+        assert annot == []
 
 
 def test_copy_annotations():
@@ -121,8 +121,8 @@ def test_copy_annotations():
     db = GffAnnotationDb()
     db.add_feature(seqid="y", biotype="exon", name="A", spans=[(5, 8)])
     aln.copy_annotations(db)
-    feat = list(aln.get_features(seqid="y", biotype="exon"))[0]
-    assert feat.get_slice().to_dict() == dict(x="AAA", y="CCT")
+    feat = next(iter(aln.get_features(seqid="y", biotype="exon")))
+    assert feat.get_slice().to_dict() == {"x": "AAA", "y": "CCT"}
 
 
 def test_copy_annotations_onto_seq():
@@ -136,8 +136,8 @@ def test_copy_annotations_onto_seq():
     db.add_feature(seqid="y", biotype="exon", name="A", spans=[(5, 8)])
     y = aln.get_seq("y")
     y.copy_annotations(db)
-    feat = list(aln.get_features(seqid="y", biotype="exon"))[0]
-    assert feat.get_slice().to_dict() == dict(x="AAA", y="CCT")
+    feat = next(iter(aln.get_features(seqid="y", biotype="exon")))
+    assert feat.get_slice().to_dict() == {"x": "AAA", "y": "CCT"}
 
 
 def test_feature_residue():
@@ -157,22 +157,22 @@ def test_feature_residue():
     assert "biotype='exon', name='ex1', map=[0:1, 2:5]/10" in str(aln_exons)
     exon = aln_exons[0]
     exon_seq = exon.get_slice()
-    assert exon_seq.to_dict() == dict(x="CCCC", y="----")
+    assert exon_seq.to_dict() == {"x": "CCCC", "y": "----"}
     # Feature.as_one_span(), is applied to the exon that
     # straddles the gap in x. The result is we preserve that feature.
     exon_full_aln = aln_exons[0].as_one_span()
-    assert exon_full_aln.get_slice().to_dict() == dict(x="C-CCC", y="-T---")
+    assert exon_full_aln.get_slice().to_dict() == {"x": "C-CCC", "y": "-T---"}
 
     # These properties also are consistently replicated with reverse
     # complemented sequences.
 
     aln_rc = aln.rc()
-    rc_exons = list(aln_rc.get_features(biotype="exon"))[0]
-    assert rc_exons.get_slice().to_dict() == dict(x="CCCC", y="----")
-    assert rc_exons.as_one_span().get_slice().to_dict() == dict(x="C-CCC", y="-T---")
+    rc_exons = next(iter(aln_rc.get_features(biotype="exon")))
+    assert rc_exons.get_slice().to_dict() == {"x": "CCCC", "y": "----"}
+    assert rc_exons.as_one_span().get_slice().to_dict() == {"x": "C-CCC", "y": "-T---"}
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def ann_seq():
     # A Sequence with a couple of exons on it.
     s = DNA.make_seq(
@@ -201,7 +201,7 @@ def test_get_features_no_matches(ann_seq):
 
 
 def _add_features(obj, on_alignment):
-    kwargs = dict(on_alignment=on_alignment) if on_alignment else {}
+    kwargs = {"on_alignment": on_alignment} if on_alignment else {}
     obj.add_feature(biotype="CDS", name="GG", spans=[(0, 10)], strand="+", **kwargs)
     obj.add_feature(
         biotype="exon",
@@ -225,7 +225,7 @@ def _add_features(obj, on_alignment):
 def test_feature_query_child_seq():
     s = DNA.make_seq(seq="AAAGGGAAAA", name="s1")
     s = _add_features(s, on_alignment=False)
-    gene = list(s.get_features(biotype="CDS"))[0]
+    gene = next(iter(s.get_features(biotype="CDS")))
     child = list(gene.get_children())
     assert len(child) == 1
     child = child[0]
@@ -236,7 +236,7 @@ def test_feature_query_child_seq():
 def test_feature_query_parent_seq():
     s = DNA.make_seq(seq="AAAGGGAAAA", name="s1")
     s = _add_features(s, on_alignment=False)
-    exon = list(s.get_features(name="child"))[0]
+    exon = next(iter(s.get_features(name="child")))
     parent = list(exon.get_parent())
     assert len(parent) == 1
     parent = parent[0]
@@ -251,7 +251,7 @@ def test_feature_query_child_aln():
         moltype="dna",
     )
     aln = _add_features(aln, on_alignment=True)
-    gene = list(aln.get_features(biotype="CDS"))[0]
+    gene = next(iter(aln.get_features(biotype="CDS")))
     child = list(gene.get_children())
     assert len(child) == 1
     child = child[0]
@@ -266,7 +266,7 @@ def test_feature_query_parent_aln():
         moltype="dna",
     )
     aln = _add_features(aln, on_alignment=True)
-    child = list(aln.get_features(name="child"))[0]
+    child = next(iter(aln.get_features(name="child")))
     parent = list(child.get_parent())
     assert len(parent) == 1
     parent = parent[0]
@@ -294,7 +294,7 @@ def test_terminal_gaps():
 
     # We consider cases where there are terminal gaps.
     db = GffAnnotationDb()
-    feat = dict(seqid="x", biotype="exon", name="fred", spans=[(3, 8)])
+    feat = {"seqid": "x", "biotype": "exon", "name": "fred", "spans": [(3, 8)]}
     db.add_feature(**feat)
     aln = cogent3.make_aligned_seqs(
         data=[["x", "-AAAAAAAAA"], ["y", "------TTTT"]],
@@ -304,7 +304,7 @@ def test_terminal_gaps():
     aln.annotation_db = db
     aln_exons = list(aln.get_features(seqid="x", biotype="exon"))
     assert "biotype='exon', name='fred', map=[4:9]/10" in str(aln_exons)
-    assert aln_exons[0].get_slice().to_dict() == dict(x="AAAAA", y="--TTT")
+    assert aln_exons[0].get_slice().to_dict() == {"x": "AAAAA", "y": "--TTT"}
     aln = cogent3.make_aligned_seqs(
         data=[["x", "-AAAAAAAAA"], ["y", "TTTT--T---"]],
         array_align=False,
@@ -312,7 +312,7 @@ def test_terminal_gaps():
     )
     aln.annotation_db = db
     aln_exons = list(aln.get_features(seqid="x", biotype="exon"))
-    assert aln_exons[0].get_slice().to_dict() == dict(x="AAAAA", y="--T--")
+    assert aln_exons[0].get_slice().to_dict() == {"x": "AAAAA", "y": "--T--"}
 
 
 def test_annotated_region_masks():  # ported to test_new_aln_annotation.py
@@ -341,11 +341,11 @@ def test_annotated_region_masks():  # ported to test_new_aln_annotation.py
     assert aln.to_dict() == {"x": "C-CCCAAAAAGGGAA", "y": "-T----TTTTG-GTT"}
     x = aln.get_seq("x")
     y = aln.get_seq("y")
-    exon = list(x.get_features(biotype="exon"))[0]
+    exon = next(iter(x.get_features(biotype="exon")))
     assert str(exon.get_slice()) == "CCCC"
-    repeat_x = list(x.get_features(biotype="repeat"))[0]
+    repeat_x = next(iter(x.get_features(biotype="repeat")))
     assert str(repeat_x.get_slice()) == "GGG"
-    repeat_y = list(y.get_features(biotype="repeat"))[0]
+    repeat_y = next(iter(y.get_features(biotype="repeat")))
     assert str(repeat_y.get_slice()) == "GG"
 
     # Each sequence should correctly mask either the single feature,
@@ -440,14 +440,14 @@ def test_nested_annotated_region_masks():  # ported to test_new_aln_annotation.p
         moltype="dna",
     )
     aln.annotation_db = db
-    gene = list(aln.get_seq("x").get_features(biotype="gene"))[0]
+    gene = next(iter(aln.get_seq("x").get_features(biotype="gene")))
     assert str(gene.get_slice()) == "CGGC"
 
     # evaluate the sequence directly
     masked = str(aln.get_seq("x").with_masked_annotations("repeat", mask_char="?"))
     assert masked == "C??CAAAAATTTAA"
 
-    exon = list(aln.get_seq("y").get_features(biotype="repeat", name="frog"))[0]
+    exon = next(iter(aln.get_seq("y").get_features(biotype="repeat", name="frog")))
     assert str(exon.get_slice()) == "TTT"
     # evaluate the sequence directly
     masked = str(aln.get_seq("y").with_masked_annotations("repeat", mask_char="?"))
@@ -500,7 +500,7 @@ def test_nested_get_slice():
     ex = s.add_feature(biotype="exon", name="fred", spans=[(10, 20)])
     s.add_feature(biotype="exon", name="trev", spans=[(30, 40)])
     s.add_feature(biotype="repeat", name="bob", spans=[(12, 17)], parent_id="fred")
-    f = list(ex.get_children())[0]
+    f = next(iter(ex.get_children()))
     assert str(s[f]) == str(s[12:17])
 
 
@@ -600,7 +600,7 @@ def test_roundtrip_json():
     seq.add_feature(biotype="exon", name="myname", spans=[(0, 5)])
     got = seq.to_json()
     new = deserialise_object(got)
-    feat = list(new.get_features(biotype="exon"))[0]
+    feat = next(iter(new.get_features(biotype="exon")))
     assert str(feat.get_slice()) == "AAAAA"
 
     # now with a list span
@@ -608,7 +608,7 @@ def test_roundtrip_json():
     got = seq.to_json()
     new = deserialise_object(got)
     assert new.annotation_offset == 3
-    feat = list(new.get_features(biotype="exon", allow_partial=True))[0]
+    feat = next(iter(new.get_features(biotype="exon", allow_partial=True)))
     assert str(feat.get_slice()) == "AA"
 
 
@@ -623,12 +623,12 @@ def test_roundtripped_alignment():
     db = GffAnnotationDb()
     db.add_feature(seqid="x", biotype="exon", name="fred", spans=[(3, 8)])
     aln.annotation_db = db
-    seq_exon = list(aln.get_features(seqid="x", biotype="exon"))[0]
+    seq_exon = next(iter(aln.get_features(seqid="x", biotype="exon")))
     expect = seq_exon.get_slice()
 
     json = aln.to_json()
     new = deserialise_object(json)
-    got_exons = list(new.get_features(seqid="x", biotype="exon"))[0]
+    got_exons = next(iter(new.get_features(seqid="x", biotype="exon")))
     assert got_exons.get_slice().to_dict() == expect.to_dict()
 
     # annotations just on alignment
@@ -642,7 +642,7 @@ def test_roundtripped_alignment():
     expect = f.get_slice().to_dict()
     json = aln.to_json()
     new = deserialise_object(json)
-    got = list(new.get_features(biotype="generic"))[0]
+    got = next(iter(new.get_features(biotype="generic")))
     assert got.get_slice().to_dict() == expect
     # annotations on both alignment and sequence
     aln = cogent3.make_aligned_seqs(
@@ -663,18 +663,18 @@ def test_roundtripped_alignment():
     json = aln.to_json()
     new = deserialise_object(json)
     ## get back the exon
-    seq_exon = list(aln.get_features(seqid="x", biotype="exon"))[0]
+    seq_exon = next(iter(aln.get_features(seqid="x", biotype="exon")))
     expect = seq_exon.get_slice().to_dict()
-    got_exons = list(new.get_features(seqid="x", biotype="exon"))[0]
+    got_exons = next(iter(new.get_features(seqid="x", biotype="exon")))
     assert got_exons.get_slice().to_dict() == expect
     ## get back the generic
     expect = f.get_slice().to_dict()
-    got = list(new.get_features(biotype="generic"))[0]
+    got = next(iter(new.get_features(biotype="generic")))
     assert got.get_slice().to_dict() == expect
 
     # check masking of seq features still works
     new = new.with_masked_annotations("exon", mask_char="?")
-    assert new[4:9].to_dict() == dict(x="?????", y="--CCC")
+    assert new[4:9].to_dict() == {"x": "?????", "y": "--CCC"}
 
 
 def test_feature_out_range():
@@ -690,7 +690,7 @@ def test_feature_out_range():
     assert not f
 
 
-@pytest.mark.parametrize("cast", (list, numpy.array))
+@pytest.mark.parametrize("cast", [list, numpy.array])
 def test_search_with_ints(cast):
     """searching for features with numpy ints should work"""
     start, stop = cast([2, 5])
@@ -750,11 +750,11 @@ def test_feature_reverse():
     )
     assert str(plus_cds.get_slice()) == "GGGGCCCCCTTTTTTTTTT"
     minus = plus.rc()
-    minus_cds = list(minus.get_features(biotype="CDS"))[0]
+    minus_cds = next(iter(minus.get_features(biotype="CDS")))
     assert str(minus_cds.get_slice()) == "GGGGCCCCCTTTTTTTTTT"
 
 
-@pytest.mark.parametrize("moltype", ("protein", "bytes", "text"))
+@pytest.mark.parametrize("moltype", ["protein", "bytes", "text"])
 def test_rc_feature_on_wrong_moltype(moltype):
     moltype = cogent3.get_moltype(moltype)
     seq = moltype.make_seq(seq="AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA", name="s1")
@@ -786,17 +786,17 @@ def test_feature_not_equal(ann_seq):
     assert nf1 != f1
 
 
-@pytest.mark.parametrize("attr", ("seqid", "biotype", "name", "map"))
+@pytest.mark.parametrize("attr", ["seqid", "biotype", "name", "map"])
 def test_feature_not_equal_attr(ann_seq, attr):
     (f1,) = list(ann_seq.get_features(biotype="gene"))
-    attrs = dict(
-        parent=f1.parent,
-        seqid=f1.seqid,
-        biotype=f1.biotype,
-        map=f1.map,
-        name=f1.name,
-        strand="-" if f1.reversed else "+",
-    )
+    attrs = {
+        "parent": f1.parent,
+        "seqid": f1.seqid,
+        "biotype": f1.biotype,
+        "map": f1.map,
+        "name": f1.name,
+        "strand": "-" if f1.reversed else "+",
+    }
     value = attrs["map"][:4] if attr == "map" else "different"
     attrs[attr] = value
     f2 = Feature(**attrs)
@@ -822,7 +822,7 @@ def test_seq_degap_preserves_annotations():
 
 @pytest.mark.parametrize("aligned", [True, False])
 def test_align_degap_preserves_annotations(aligned):
-    kwargs = dict(data={"seq1": "GATN--", "seq2": "?GATCT"}, moltype=DNA)
+    kwargs = {"data": {"seq1": "GATN--", "seq2": "?GATCT"}, "moltype": DNA}
     coll = (
         cogent3.make_aligned_seqs(array_align=aligned, **kwargs)
         if aligned

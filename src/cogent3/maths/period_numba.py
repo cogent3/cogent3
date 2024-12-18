@@ -16,8 +16,7 @@ def goertzel_inner(x, N, period):  # pragma: no cover
         s_prev2 = s_prev
         s_prev = s
 
-    power = numpy.sqrt(s_prev2**2 + s_prev**2 - coeff * s_prev2 * s_prev)
-    return power
+    return numpy.sqrt(s_prev2**2 + s_prev**2 - coeff * s_prev2 * s_prev)
 
 
 @njit(
@@ -41,7 +40,7 @@ def ipdft_inner(x, X, W, ulim, N):  # pragma: no cover
 
 
 @njit(numba.void(numba.float64[:], numba.float64[:], numba.int64), cache=True)
-def autocorr_inner(x, xc, N):  # pragma: no cover
+def autocorr_inner(x, xc, N) -> None:  # pragma: no cover
     for m in range(-N + 1, N):
         for n in range(N):
             if 0 <= n - m < N:

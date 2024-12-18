@@ -75,73 +75,74 @@ class EbiTests(TestCase):
         """item_empty_filter: known values"""
         inputs = [{1: 0, 2: 1, 3: "", 4: [], 5: False, 6: {}}]
         expects = [{2: 1}]
-        self.assertEqual(list(map(item_empty_filter, inputs)), expects)
+        assert list(map(item_empty_filter, inputs)) == expects
 
     def test_rstrip_(self):
         """rstrip_ should generate the expected function"""
         test = " aaa;  "
-        self.assertEqual(rstrip_("; ")(test), test.rstrip("; "))
+        assert rstrip_("; ")(test) == test.rstrip("; ")
         # test default
-        self.assertEqual(rstrip_()(test), test.rstrip())
+        assert rstrip_()(test) == test.rstrip()
 
     def test_hanging_paragraph_finder(self):
         """hanging_paragraph_finder should give expected results"""
         f = hanging_paragraph_finder
         test = ["-aaa:", "  content", "    content", "-bbb:", "  bbb", "c"]  # 3
-        self.assertEqual(list(f(test)), [test[0:3], test[3:-1], test[-1:]])
+        assert list(f(test)) == [test[0:3], test[3:-1], test[-1:]]
 
         # test all indent lines
         all_indent = ["  aa", "  bb"]
-        self.assertEqual(list(f(all_indent)), [all_indent])
+        assert list(f(all_indent)) == [all_indent]
 
         # test empty lines
-        self.assertEqual(list(f(["", " "])), [])
+        assert list(f(["", " "])) == []
 
     def test_period_tail_finder(self):
         """period_tail_finder should yield each group of expected lines."""
         test = "a\naa.\nb\nbb.".splitlines()
-        self.assertEqual(list(period_tail_finder(test)), [["a", "aa."], ["b", "bb."]])
+        assert list(period_tail_finder(test)) == [["a", "aa."], ["b", "bb."]]
 
     def test_EbiFinder(self):
         """EbiFinder should return expected list"""
         test = "a\n//\nb\n//".splitlines()
-        self.assertEqual(list(EbiFinder(test)), [["a", "//"], ["b", "//"]])
+        assert list(EbiFinder(test)) == [["a", "//"], ["b", "//"]]
 
-        test_fail = test + ["c"]
+        test_fail = [*test, "c"]
         self.assertRaises(RecordError, list, EbiFinder(test_fail))
 
     def test_pairs_to_dict(self):
         """pairs_to_dict should return the expected dict"""
         test_dict = {"a": 1, "b": 2, "b": 3}
         sorted_items = [("a", 1), ("b", 2), ("b", 3)]
-        add_one = lambda x: x + 1
-        double = lambda x: x * 2
-        set_zero = lambda x: 0
+
+        def add_one(x):
+            return x + 1
+
+        def double(x):
+            return x * 2
+
+        def set_zero(x):
+            return 0
+
         handlers = {"a": add_one, "b": double}
 
         # test default all
-        self.assertEqual(pairs_to_dict(sorted_items), {"a": 1, "b": 3})
+        assert pairs_to_dict(sorted_items) == {"a": 1, "b": 3}
 
         # test 'overwrite_value'
-        self.assertEqual(
-            pairs_to_dict(sorted_items, "overwrite_value"),
-            {"a": 1, "b": 3},
-        )
+        assert pairs_to_dict(sorted_items, "overwrite_value") == {"a": 1, "b": 3}
 
         # test no_duplicated_key, raise
         self.assertRaises(ValueError, pairs_to_dict, sorted_items, "no_duplicated_key")
 
         # test always_multi_value
-        self.assertEqual(
-            pairs_to_dict(sorted_items, "always_multi_value"),
-            {"a": [1], "b": [2, 3]},
-        )
+        assert pairs_to_dict(sorted_items, "always_multi_value") == {
+            "a": [1],
+            "b": [2, 3],
+        }
 
         # test allow multi_value
-        self.assertEqual(
-            pairs_to_dict(sorted_items, "allow_multi_value"),
-            {"a": 1, "b": [2, 3]},
-        )
+        assert pairs_to_dict(sorted_items, "allow_multi_value") == {"a": 1, "b": [2, 3]}
 
         # test raise error when  key not found in all_keys
         f = curry(pairs_to_dict, all_keys=["a", "c"])
@@ -149,10 +150,11 @@ class EbiTests(TestCase):
 
         # test handlers
         sorted_items.append(("c", 4))
-        self.assertEqual(
-            pairs_to_dict(sorted_items, handlers=handlers, default_handler=set_zero),
-            {"a": 2, "b": 6, "c": 0},
-        )
+        assert pairs_to_dict(
+            sorted_items,
+            handlers=handlers,
+            default_handler=set_zero,
+        ) == {"a": 2, "b": 6, "c": 0}
 
         # test raise error when  no valid handlers were found
         f = curry(pairs_to_dict, handlers=handlers)
@@ -160,16 +162,15 @@ class EbiTests(TestCase):
 
         # test sanity
         test_dict = dict(sorted_items)
-        self.assertEqual(pairs_to_dict(list(test_dict.items())), test_dict)
+        assert pairs_to_dict(list(test_dict.items())) == test_dict
 
     def test_linecode_maker(self):
         """linecode_maker: should return expected tuple"""
         tests = ["AA   aa.", "BB    bb.", "CC C   cc.", "DD dd."]
         expected_linecodes = ["AA", "BB", "CC C", "DD dd."]
         # pprint(map(linecode_maker, tests))
-        self.assertEqual(
-            list(map(linecode_maker, tests)),
-            list(zip(expected_linecodes, tests, strict=False)),
+        assert list(map(linecode_maker, tests)) == list(
+            zip(expected_linecodes, tests, strict=False),
         )
 
     def test_labeloff(self):
@@ -177,24 +178,24 @@ class EbiTests(TestCase):
         tests = ["AA   aa.", "BB    bb.", "CC C   cc.", "DD dd.", "EE", ""]
         # expects = [line[5:] for line in tests]
         expects = ["aa.", " bb.", "  cc.", ".", "", ""]
-        self.assertEqual(labeloff(tests), expects)
+        assert labeloff(tests) == expects
 
     def test_join_parser(self):
         """join parser should return expected str."""
         test_list = '"aaa\nbbb \nccc"; \n'.splitlines()
         test_str = "aaa bb. "
         # test default, list input
-        self.assertEqual(join_parser(test_list), '"aaa bbb  ccc"')
+        assert join_parser(test_list) == '"aaa bbb  ccc"'
         # test default, str input
-        self.assertEqual(join_parser(test_str), "aaa bb")
+        assert join_parser(test_str) == "aaa bb"
         # test no strip
-        self.assertEqual(join_parser(test_list, chars_to_strip=""), '"aaa bbb  ccc"; ')
+        assert join_parser(test_list, chars_to_strip="") == '"aaa bbb  ccc"; '
         # test strip
-        self.assertEqual(join_parser(test_list, chars_to_strip='"; '), "aaa bbb  ccc")
+        assert join_parser(test_list, chars_to_strip='"; ') == "aaa bbb  ccc"
         # test empty
-        self.assertEqual(join_parser([]), "")
-        self.assertEqual(join_parser(["", " "]), "")
-        self.assertEqual(join_parser(""), "")
+        assert join_parser([]) == ""
+        assert join_parser(["", " "]) == ""
+        assert join_parser("") == ""
 
     def test_join_split_parser(self):
         """join_split_parser: should return expected"""
@@ -223,18 +224,20 @@ class EbiTests(TestCase):
         """join_split_dict_parser: should return expected"""
         f = join_split_dict_parser
         # test default
-        self.assertEqual(
-            f("aa=1; bb=2,3; cc=4 (if aa=1);"),
-            {"aa": "1", "bb": ["2", "3"], "cc": "4 (if aa=1)"},
-        )
+        assert f("aa=1; bb=2,3; cc=4 (if aa=1);") == {
+            "aa": "1",
+            "bb": ["2", "3"],
+            "cc": "4 (if aa=1)",
+        }
 
-        self.assertEqual(
-            f("aa=1; bb=2,3; cc=4:5", delimiters=";=,:"),
-            {"aa": "1", "bb": ["2", "3"], "cc": "4:5"},
-        )
+        assert f("aa=1; bb=2,3; cc=4:5", delimiters=";=,:") == {
+            "aa": "1",
+            "bb": ["2", "3"],
+            "cc": "4:5",
+        }
 
         # test strict=False -> splits without dict()
-        self.assertEqual(f("aa=1; bb.", strict=False), [["aa", "1"], ["bb"]])
+        assert f("aa=1; bb.", strict=False) == [["aa", "1"], ["bb"]]
 
         # test strict -> raise ValueError
         self.assertRaises(ValueError, f, "aa=1; bb.")
@@ -246,19 +249,19 @@ class EbiTests(TestCase):
         fields = [None, "A", "B", ("C", int), ("D", float)]
         line = "blah aa bb; 2 3.1;"
 
-        expect = dict(A="aa", B="bb", C=2, D=3.1)
-        self.assertEqual(mapping_parser(line, fields), expect)
+        expect = {"A": "aa", "B": "bb", "C": 2, "D": 3.1}
+        assert mapping_parser(line, fields) == expect
 
         # test more splits -> ignore the last splits
         line_leftover = line + "blah blah"
-        self.assertEqual(mapping_parser(line_leftover, fields), expect)
+        assert mapping_parser(line_leftover, fields) == expect
 
         # test more fields -> truncate the last fields
-        fields_leftover = fields + ["E"]
-        self.assertEqual(mapping_parser(line, fields_leftover), expect)
+        fields_leftover = [*fields, "E"]
+        assert mapping_parser(line, fields_leftover) == expect
 
         # test empty
-        self.assertEqual(mapping_parser("", fields), {})
+        assert mapping_parser("", fields) == {}
 
     def test_linecode_merging_maker(self):
         """linecode_merging_maker:"""
@@ -266,9 +269,9 @@ class EbiTests(TestCase):
         lines = ["ID   id.", "RN   rn.", "RR   invalid", "RN  rn."]
         labels = ["ID", "REF", "RR", "RN  rn."]
 
-        self.assertEqual(list(map(f, lines)), list(zip(labels, lines, strict=False)))
+        assert list(map(f, lines)) == list(zip(labels, lines, strict=False))
 
-    def test_parse_header(lines):
+    def test_parse_header(self):
         pass
 
     def test_MinimalEbiParser_valid(self):
@@ -277,65 +280,61 @@ class EbiTests(TestCase):
 
         # test valid result: sequence, number of records, keys of a header
         valid_result = list(f(fake_records_valid))
-        self.assertEqual(len(valid_result), 2)
+        assert len(valid_result) == 2
 
         sequence, header = valid_result[0]
-        self.assertEqual(sequence, "aaccppgghhh")
+        assert sequence == "aaccppgghhh"
         # the first fake record use only the required labels, the header is
         # deleted of '', which was assigned to sequence
-        self.assertEqual(
-            sorted(header.keys()),
-            sorted(required_labels)[1:],
+        assert (
+            sorted(header.keys()) == sorted(required_labels)[1:]
         )  # [1:] to exclude the ''
 
         # test selected_labels
         selected_labels = ["ID", "DE"]
         select_result = list(f(fake_records_valid, selected_labels=selected_labels))
-        self.assertEqual(
-            sorted(select_result[0][1].keys()),
-            sorted(selected_labels),
-        )
+        assert sorted(select_result[0][1].keys()) == sorted(selected_labels)
 
         # test bad record - unknown linecode or wrong line format
         self.assertRaises(
             ValueError,
             list,
-            f(fake_records_valid + ["ID   id.", "RR   not valid.", "//"]),
+            f([*fake_records_valid, "ID   id.", "RR   not valid.", "//"]),
         )
         self.assertRaises(
             ValueError,
             list,
-            f(fake_records_valid + ["ID   id.", " RN   bad format.", "//"]),
+            f([*fake_records_valid, "ID   id.", " RN   bad format.", "//"]),
         )
         self.assertRaises(
             ValueError,
             list,
-            f(fake_records_valid + ["ID   id.", "RN  bad format.", "//"]),
+            f([*fake_records_valid, "ID   id.", "RN  bad format.", "//"]),
         )
 
         # test bad record - not end with '//'
         self.assertRaises(
             RecordError,
             list,
-            f(fake_records_valid + ["ID   not end with //", "   seq"]),
+            f([*fake_records_valid, "ID   not end with //", "   seq"]),
         )
 
         # test strict: lacking required linecodes
         # ?? How to test the error message?  warn message?
         # the first record, [:-5], is valid even when strict=True.
-        the_first_valid = list(f(fake_records_valid[:-5], strict=True))[0]
+        the_first_valid = next(iter(f(fake_records_valid[:-5], strict=True)))
         # [1] get the header_dict
-        self.assertEqual(len(the_first_valid[1]), 9)
+        assert len(the_first_valid[1]) == 9
 
         self.assertRaises(RecordError, list, f(fake_records_valid, strict=True))
 
     def test_EbiParser(self):
         """EbiParser:"""
         f = curry(EbiParser, strict=False)
-        first_valid = fake_records_valid[:-5]
+        fake_records_valid[:-5]
 
         # test valid
-        self.assertEqual(len(list(f(fake_records_valid))), 2)
+        assert len(list(f(fake_records_valid))) == 2
         # test skipping bad record which strict=False
         # self.assertEqual(len(list(f(fake_records_valid[:-1] +
         #    ['OX   xx=no equal.', '//']))), 1)
@@ -350,39 +349,31 @@ class RootParsersKnownValues(TestCase):
     def test_id_parser(self):
         """id_parser should return expected dict"""
         id_line = ["ID   CYC_BOVIN      STANDARD;      PRT;   104 AA."]
-        self.assertEqual(
-            id_parser(id_line),
-            {
-                "DataClass": "STANDARD",
-                "Length": 104,
-                "moltype": "PRT",
-                "EntryName": "CYC_BOVIN",
-            },
-        )
+        assert id_parser(id_line) == {
+            "DataClass": "STANDARD",
+            "Length": 104,
+            "moltype": "PRT",
+            "EntryName": "CYC_BOVIN",
+        }
 
     def test_sq_parser(self):
         """sq_parser should return expected dict"""
         lines = ["SQ   SEQUENCE   486 AA;  55639 MW;  D7862E867AD74383 CRC64;"]
-        self.assertEqual(
-            sq_parser(lines),
-            {"Crc64": "D7862E867AD74383", "Length": 486, "MolWeight": 55639},
-        )
+        assert sq_parser(lines) == {
+            "Crc64": "D7862E867AD74383",
+            "Length": 486,
+            "MolWeight": 55639,
+        }
 
     def test_ac_parser(self):
         """ac_parser should return expected list"""
         lines = ["AC   Q16653; O00713; O00714;", "AC   Q92892; Q92893;"]
-        self.assertEqual(
-            ac_parser(lines),
-            ["Q16653", "O00713", "O00714", "Q92892", "Q92893"],
-        )
+        assert ac_parser(lines) == ["Q16653", "O00713", "O00714", "Q92892", "Q92893"]
 
     def test_oc_parser(self):
         """oc_parser should return expected list"""
         lines = ["OC   Eukaryota; Metazoa; Chordata;", "OC   Mammalia;"]
-        self.assertEqual(
-            oc_parser(lines),
-            ["Eukaryota", "Metazoa", "Chordata", "Mammalia"],
-        )
+        assert oc_parser(lines) == ["Eukaryota", "Metazoa", "Chordata", "Mammalia"]
 
     def test_dt_parser(self):
         """dt_parser should return expected list of list"""
@@ -391,14 +382,11 @@ class RootParsersKnownValues(TestCase):
             "DT   30-MAY-2000 (Rel. 39, Last sequence update)\n"
             "DT   10-MAY-2005 (Rel. 47, Last annotation update)\n".splitlines()
         )
-        self.assertEqual(
-            dt_parser(lines),
-            [
-                "01-AUG-1988 (Rel. 08, Created)",
-                "30-MAY-2000 (Rel. 39, Last sequence update)",
-                "10-MAY-2005 (Rel. 47, Last annotation update)",
-            ],
-        )
+        assert dt_parser(lines) == [
+            "01-AUG-1988 (Rel. 08, Created)",
+            "30-MAY-2000 (Rel. 39, Last sequence update)",
+            "10-MAY-2005 (Rel. 47, Last annotation update)",
+        ]
 
     def test_de_itemparser(self):
         """de_itemparser: known values"""
@@ -410,14 +398,14 @@ class RootParsersKnownValues(TestCase):
             {"OfficalName": "", "Synonyms": []},
         ]
         # pprint(map(de_itemparser, inputs))
-        self.assertEqual(list(map(de_itemparser, inputs)), expects)
+        assert list(map(de_itemparser, inputs)) == expects
 
     def test_pr_parser(self):
         """pr_parser should return expected list"""
         inpr = "PR   Project:PRJNA38045; Project:PRJNA41539;"
         exp = ["PRJNA38045", "PRJNA41539"]
         obs = pr_parser(inpr)
-        self.assertEqual(obs, exp)
+        assert obs == exp
 
     def test_de_parser(self):
         """de_parser should return expected list"""
@@ -429,18 +417,15 @@ class RootParsersKnownValues(TestCase):
             "DE   A (aa).",
         ]
         filtered_dicts = [item_empty_filter(de_parser([e])) for e in inputs]
-        self.assertEqual(list(map(len, filtered_dicts)), [4, 3, 2, 2, 2])
+        assert list(map(len, filtered_dicts)) == [4, 3, 2, 2, 2]
 
     def test_os_parser(self):
         """os_parser should return expected list"""
         lines = ["OS   Solanum melongena (Eggplant) (Auber-", "OS   gine)."]
-        self.assertEqual(
-            os_parser(lines),
-            ["Solanum melongena", "Eggplant", "Auber- gine"],
-        )
+        assert os_parser(lines) == ["Solanum melongena", "Eggplant", "Auber- gine"]
 
         lines = """OS   Escherichia coli.""".splitlines()
-        self.assertEqual(os_parser(lines), ["Escherichia coli"])
+        assert os_parser(lines) == ["Escherichia coli"]
 
     def test_og_parser(self):
         """og_parser should return expected list"""
@@ -449,23 +434,20 @@ class RootParsersKnownValues(TestCase):
             "OG   Plasmid R6-5, Plasmid IncFII R100 (NR1), and",
             "OG   Plasmid IncFII R1-19 (R1 drd-19).",
         ]
-        self.assertEqual(
-            og_parser(lines),
+        assert og_parser(lines) == [
+            "XXX; xx",
             [
-                "XXX; xx",
-                [
-                    "Plasmid R6-5",
-                    "Plasmid IncFII R100 (NR1)",
-                    "Plasmid IncFII R1-19 (R1 drd-19)",
-                ],
+                "Plasmid R6-5",
+                "Plasmid IncFII R100 (NR1)",
+                "Plasmid IncFII R1-19 (R1 drd-19)",
             ],
-        )
+        ]
 
     def test_ox_parser(self):
         """ox_parser should return expected dict"""
         lines = ["OX   NCBI_TaxID=9606;"]
 
-        self.assertEqual(ox_parser(lines), {"NCBI_TaxID": "9606"})
+        assert ox_parser(lines) == {"NCBI_TaxID": "9606"}
 
     def test_gn_parser(self):
         """gn_parser should return expected list of dict"""
@@ -474,42 +456,32 @@ class RootParsersKnownValues(TestCase):
             "GN   name=hns; Synonyms=bglY, cur, topS;",
             "GN   OrderedLocusNames=b1237, c1701, ECs1739;",
         ]
-        self.assertEqual(
-            gn_parser(lines),
-            [
-                {
-                    "Synonyms": ["bglY", "cur", "topS"],
-                    "OrderedLocusNames": ["b1237", "c1701", "ECs1739"],
-                    "name": "hns",
-                },
-            ],
-        )
+        assert gn_parser(lines) == [
+            {
+                "Synonyms": ["bglY", "cur", "topS"],
+                "OrderedLocusNames": ["b1237", "c1701", "ECs1739"],
+                "name": "hns",
+            },
+        ]
 
         lines = [
             "GN   name=Jon99Cii; Synonyms=SER1, Ser99Da; ORFNames=CG7877;",
             "GN   and",
             "GN   name=Jon99Ciii; Synonyms=SER2, Ser99Db; ORFNames=CG15519;",
         ]
-        self.assertEqual(
-            gn_parser(lines),
-            [
-                {
-                    "ORFNames": "CG7877",
-                    "Synonyms": ["SER1", "Ser99Da"],
-                    "name": "Jon99Cii",
-                },
-                {
-                    "ORFNames": "CG15519",
-                    "Synonyms": ["SER2", "Ser99Db"],
-                    "name": "Jon99Ciii",
-                },
-            ],
-        )
+        assert gn_parser(lines) == [
+            {"ORFNames": "CG7877", "Synonyms": ["SER1", "Ser99Da"], "name": "Jon99Cii"},
+            {
+                "ORFNames": "CG15519",
+                "Synonyms": ["SER2", "Ser99Db"],
+                "name": "Jon99Ciii",
+            },
+        ]
 
     def test_dr_parser(self):
         """dr_parser should return expected dict"""
         lines = dr_lines
-        self.assertEqual(dr_parser(lines), dr_expect)
+        assert dr_parser(lines) == dr_expect
 
 
 class FT_Tests(TestCase):
@@ -536,13 +508,13 @@ class FT_Tests(TestCase):
             ("VARIANT", 214, 214, "V -> I. /FTId=VAR_009122"),
         ]
         # pprint(map(ft_basic_itemparser, inputs))
-        self.assertEqual(list(map(ft_basic_itemparser, inputs)), expects)
+        assert list(map(ft_basic_itemparser, inputs)) == expects
 
     def test_try_int(self):
         """try_int: known values"""
         inputs = ["9", "0", "-3", "2.3", "<9", ">9", "?", "?35", ""]
         expects = [9, 0, -3, "2.3", "<9", ">9", "?", "?35", ""]
-        self.assertEqual(list(map(try_int, inputs)), expects)
+        assert list(map(try_int, inputs)) == expects
 
     def test_ft_id_parser(self):
         """ft_id_parser: known values"""
@@ -562,7 +534,7 @@ class FT_Tests(TestCase):
         ]
 
         # pprint(map(ft_id_parser, inputs))
-        self.assertEqual(list(map(ft_id_parser, inputs)), expects)
+        assert list(map(ft_id_parser, inputs)) == expects
 
     def test_ft_mutation_parser(self):
         """ft_mutation_parser: known values"""
@@ -584,7 +556,7 @@ class FT_Tests(TestCase):
         ]
 
         # pprint(map(ft_mutation_parser, inputs))
-        self.assertEqual(list(map(ft_mutation_parser, inputs)), expects)
+        assert list(map(ft_mutation_parser, inputs)) == expects
 
     def test_ft_mutation_parser_raise(self):
         """ft_mutation_parser: raise ValueError"""
@@ -606,7 +578,7 @@ class FT_Tests(TestCase):
         ]
 
         # pprint(map(ft_mutagen_parser, inputs))
-        self.assertEqual(list(map(ft_mutagen_parser, inputs)), expects)
+        assert list(map(ft_mutagen_parser, inputs)) == expects
 
     def test_ft_id_mutation_parser(self):
         """ft_id_mutation_parser: known values"""
@@ -615,7 +587,7 @@ class FT_Tests(TestCase):
         """ft_parser should return expected dict"""
         lines = ft_lines
         # pprint(ft_parser(lines))
-        self.assertEqual(ft_parser(lines), ft_expect)
+        assert ft_parser(lines) == ft_expect
 
 
 class CC_Tests(TestCase):
@@ -625,10 +597,10 @@ class CC_Tests(TestCase):
         """cc_itemfinder: yield each expected block."""
         # pprint(list(cc_itemfinder(labeloff(cc_lines))))
         input_with_license = labeloff(cc_lines)
-        self.assertEqual(len(list(cc_itemfinder(input_with_license))), 9)
+        assert len(list(cc_itemfinder(input_with_license))) == 9
 
         input_without_license = labeloff(cc_lines[:-4])
-        self.assertEqual(len(list(cc_itemfinder(input_without_license))), 8)
+        assert len(list(cc_itemfinder(input_without_license))) == 8
 
     def test_cc_itemfinder_raise(self):
         """cc_itemfinder: raise RecordError if license block bad."""
@@ -648,7 +620,7 @@ class CC_Tests(TestCase):
             ("topic3", ["not treated invalid topic format"]),
         ]
 
-        self.assertEqual(list(map(cc_basic_itemparser, valid_topics)), expects)
+        assert list(map(cc_basic_itemparser, valid_topics)) == expects
 
         bad_topic = ["-!- bad_topic without colon", "    FieldError"]
         self.assertRaises(FieldError, cc_basic_itemparser, bad_topic)
@@ -672,7 +644,7 @@ class CC_Tests(TestCase):
                 ("Q9VYI0:fne", {"NbExp": "1", "IntAct": ["EBI-123485", "EBI-126770"]}),
             ],
         ]
-        self.assertEqual(list(map(cc_interaction_parser, inputs)), expects)
+        assert list(map(cc_interaction_parser, inputs)) == expects
 
     def test_cc_biophysicochemical_properties_parser(self):
         """cc_biophysicochemical_properties_parser: known values"""
@@ -697,7 +669,7 @@ class CC_Tests(TestCase):
                 "pH dependence": "Optimum pH is 6.0. Active pH 4.5 to 10.5",
             },
         ]
-        self.assertEqual(list(map(f, valid_inputs)), expects)
+        assert list(map(f, valid_inputs)) == expects
 
     def test_cc_alternative_products_parser(self):
         """cc_alternative_products_parser: know values"""
@@ -741,65 +713,49 @@ class CC_Tests(TestCase):
         ]
 
         # pprint(map(f,valid_inputs))
-        self.assertEqual(list(map(f, valid_inputs)), expects)
+        assert list(map(f, valid_inputs)) == expects
 
     def test_cc_parser(self):
         """cc_parser: known values and raise when strict"""
         cc = cc_parser(cc_lines)
         # pprint(cc)
         # print cc.keys()
-        self.assertEqual(
-            sorted(cc.keys()),
-            [
-                "ALLERGEN",
-                "ALTERNATIVE PRODUCTS",
-                "BIOPHYSICOCHEMICAL PROPERTIES",
-                "DATABASE",
-                "DISEASE",
-                "INTERACTION",
-                "LICENSE",
-                "MASS SPECTROMETRY",
-            ],
-        )
+        assert sorted(cc.keys()) == [
+            "ALLERGEN",
+            "ALTERNATIVE PRODUCTS",
+            "BIOPHYSICOCHEMICAL PROPERTIES",
+            "DATABASE",
+            "DISEASE",
+            "INTERACTION",
+            "LICENSE",
+            "MASS SPECTROMETRY",
+        ]
 
         # test Disease topic (default_handler)
-        self.assertEqual(
-            cc["DISEASE"],
-            [
-                "Defects in PHKA1 are linked to X-linked muscle glycogenosis "
-                "[MIM:311870]",
-                "Defects in ABCD1 are the cause of recessive X-linked "
-                "adrenoleukodystrophy (X-ALD) [MIM:300100]. X-ALD is a rare "
-                "phenotype",
-            ],
-        )
+        assert cc["DISEASE"] == [
+            "Defects in PHKA1 are linked to X-linked muscle glycogenosis [MIM:311870]",
+            "Defects in ABCD1 are the cause of recessive X-linked adrenoleukodystrophy (X-ALD) [MIM:300100]. X-ALD is a rare phenotype",
+        ]
 
         # test License (default_handler)
         # pprint(cc['LICENSE'])
-        self.assertEqual(
-            cc["LICENSE"],
-            [
-                "This SWISS-PROT entry is copyright. It is produced through a "
-                "collaboration removed",
-            ],
-        )
+        assert cc["LICENSE"] == [
+            "This SWISS-PROT entry is copyright. It is produced through a collaboration removed",
+        ]
 
         # pprint(cc['DATABASE'])  #join_split_dict
-        self.assertEqual(
-            cc["DATABASE"],
-            [
-                {
-                    "NAME": "CD40Lbase",
-                    "NOTE": "European CD40L defect database (mutation db)",
-                    "WWW": '"http://www.expasy.org/cd40lbase/"',
-                },
-            ],
-        )
+        assert cc["DATABASE"] == [
+            {
+                "NAME": "CD40Lbase",
+                "NOTE": "European CD40L defect database (mutation db)",
+                "WWW": '"http://www.expasy.org/cd40lbase/"',
+            },
+        ]
 
         # test strict
-        cc_lines_with_unknown_topic = ["CC   -!- BLAHBLAH: xxxxx"] + cc_lines
+        cc_lines_with_unknown_topic = ["CC   -!- BLAHBLAH: xxxxx", *cc_lines]
         # pprint(cc_parser(cc_lines_with_unknown_topic))
-        self.assertEqual(cc_parser(cc_lines_with_unknown_topic)["BLAHBLAH"], ["xxxxx"])
+        assert cc_parser(cc_lines_with_unknown_topic)["BLAHBLAH"] == ["xxxxx"]
         self.assertRaises(
             FieldError,
             cc_parser,
@@ -829,14 +785,11 @@ class ReferenceTests(TestCase):
             "RL   J. Biol. Chem. 276:10.",
         ]
         rn, others = single_ref_parser(fake_ref_block)
-        self.assertEqual(rn, 1)
-        self.assertEqual(len(others), 6)
+        assert rn == 1
+        assert len(others) == 6
 
         # test strict: lacking required labels
-        self.assertEqual(
-            len(single_ref_parser(fake_ref_block[:-1], strict=False)[1]),
-            5,
-        )
+        assert len(single_ref_parser(fake_ref_block[:-1], strict=False)[1]) == 5
         self.assertRaises(RecordError, single_ref_parser, fake_ref_block[:-1], True)
 
     def test_ra_parser(self):
@@ -845,10 +798,13 @@ class ReferenceTests(TestCase):
             "RA   Galinier A., Bleicher F., Negre D.,\n"
             "RA   Cozzone A.J., Cortay J.-C.;\n".splitlines()
         )
-        self.assertEqual(
-            ra_parser(lines),
-            ["Galinier A.", "Bleicher F.", "Negre D.", "Cozzone A.J.", "Cortay J.-C."],
-        )
+        assert ra_parser(lines) == [
+            "Galinier A.",
+            "Bleicher F.",
+            "Negre D.",
+            "Cozzone A.J.",
+            "Cortay J.-C.",
+        ]
 
     def test_rx_parser(self):
         """rx_parser should return expected dict"""
@@ -867,7 +823,7 @@ class ReferenceTests(TestCase):
             },
         ]
 
-        self.assertEqual(list(map(rx_parser, inputs)), expects)
+        assert list(map(rx_parser, inputs)) == expects
 
     def test_rc_parser(self):
         """rc_parser should return expected dict"""
@@ -876,14 +832,11 @@ class ReferenceTests(TestCase):
             "RC   STRAIN=AL.012, AZ.026;",
         ]
 
-        self.assertEqual(
-            rc_parser(lines),
-            {
-                "TRANSPOSON": "Tn3",
-                "PLASMID": "R1 (R7268)",
-                "STRAIN": ["AL.012", "AZ.026"],
-            },
-        )
+        assert rc_parser(lines) == {
+            "TRANSPOSON": "Tn3",
+            "PLASMID": "R1 (R7268)",
+            "STRAIN": ["AL.012", "AZ.026"],
+        }
 
     def test_rt_parser(self):
         """rt_parser should return expected str"""
@@ -891,30 +844,30 @@ class ReferenceTests(TestCase):
             'RT   "New insulin-like proteins',
             'RT   analysis and homology modeling.";',
         ]
-        self.assertEqual(
-            rt_parser(lines),
-            "New insulin-like proteins analysis and homology modeling",
+        assert (
+            rt_parser(lines)
+            == "New insulin-like proteins analysis and homology modeling"
         )
 
     def test_rl_parser(self):
         """rl_parser should return expected str"""
         lines = ["RL   J. Mol. Biol. 168:321-331(1983)."]
-        self.assertEqual(rl_parser(lines), "J. Mol. Biol. 168:321-331(1983)")
+        assert rl_parser(lines) == "J. Mol. Biol. 168:321-331(1983)"
 
     def test_rn_parser(self):
         """rn_parser should return expected str"""
         lines = ["RN   [8]"]
-        self.assertEqual(rn_parser(lines), 8)
+        assert rn_parser(lines) == 8
 
     def test_rg_parser(self):
         """rg_parser should return expected str"""
         lines = ["RG   The mouse genome sequencing consortium;"]
-        self.assertEqual(rg_parser(lines), ["The mouse genome sequencing consortium"])
+        assert rg_parser(lines) == ["The mouse genome sequencing consortium"]
 
     def test_rp_parser(self):
         """rp_parser should return expected str"""
         lines = ["RP   X-RAY CRYSTALLOGRAPHY (1.8 ANGSTROMS)."]
-        self.assertEqual(rp_parser(lines), "X-RAY CRYSTALLOGRAPHY (1.8 ANGSTROMS)")
+        assert rp_parser(lines) == "X-RAY CRYSTALLOGRAPHY (1.8 ANGSTROMS)"
 
 
 #################################
@@ -1022,7 +975,7 @@ CC   -!- DATABASE: NAME=CD40Lbase;
 CC       NOTE=European CD40L defect database (mutation db);
 CC       WWW="http://www.expasy.org/cd40lbase/".
 CC   -!- DISEASE: Defects in PHKA1 are linked to X-linked muscle
-CC       glycogenosis [MIM:311870]. 
+CC       glycogenosis [MIM:311870].
 CC   -!- DISEASE: Defects in ABCD1 are the cause of recessive X-linked
 CC       adrenoleukodystrophy (X-ALD) [MIM:300100]. X-ALD is a rare
 CC       phenotype.

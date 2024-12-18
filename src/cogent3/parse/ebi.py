@@ -2,7 +2,6 @@
 """Provide a parser for SwissProt EBI format files."""
 
 import sys
-from pprint import pprint
 
 from cogent3.core.sequence import Sequence
 from cogent3.parse.record import FieldError, RecordError
@@ -37,10 +36,18 @@ def rstrip_(chars=None):
 
 EbiFinder = DelimitedRecordFinder("//", constructor=rstrip)
 
-no_indent = lambda s: not s.startswith(" ")
+
+def no_indent(s) -> bool:
+    return not s.startswith(" ")
+
+
 hanging_paragraph_finder = LabeledRecordFinder(no_indent, constructor=None)
 
-endswith_period = lambda x: x.endswith(".")
+
+def endswith_period(x):
+    return x.endswith(".")
+
+
 period_tail_finder = TailedRecordFinder(endswith_period)
 
 
@@ -93,14 +100,14 @@ def pairs_to_dict(
     # generate add_item for different dict_mode.
     if dict_mode == "always_multi_value":
 
-        def add_item(dictionary, key, value):
+        def add_item(dictionary, key, value) -> None:
             """add key, value to dictionary in place"""
             dictionary.setdefault(key, []).append(value)
 
     elif dict_mode == "allow_multi_value":
         multiples = {}  # auxillary dict recording the keys with multi_values
 
-        def add_item(dictionary, key, value):
+        def add_item(dictionary, key, value) -> None:
             """add key, value to dictionary in place
 
             Warning: using outer auxillary dictionary: multiples"""
@@ -114,28 +121,34 @@ def pairs_to_dict(
 
     elif dict_mode == "no_duplicated_key":
 
-        def add_item(dictionary, key, value):
+        def add_item(dictionary, key, value) -> None:
             """add key, value to dictionary in place"""
             if key in dictionary:
-                raise ValueError("Duplicated Key")
+                msg = "Duplicated Key"
+                raise ValueError(msg)
             dictionary[key] = value
 
     elif dict_mode == "overwrite_value":
 
-        def add_item(dictionary, key, value):
+        def add_item(dictionary, key, value) -> None:
             """add key, value to dictionary in place"""
             dictionary[key] = value
 
     else:  # unknown dict_mode
-        raise ValueError(
-            "Unknown dict_mode:%s. \ndict_mode must be one of "
+        msg = (
+            f"Unknown dict_mode:{dict_mode}. \ndict_mode must be one of "
             "overwrite_value, no_duplicated_key, allow_multi_value and "
-            "always_multi_value." % dict_mode,
+            "always_multi_value."
+        )
+        raise ValueError(
+            msg,
         )
 
     # generate the handle_value function.
     if not handlers and not default_handler:
-        handle_value = lambda x, y: (x, y)
+
+        def handle_value(x, y):
+            return x, y
 
     else:  # handlers not empty,
 
@@ -144,14 +157,16 @@ def pairs_to_dict(
             if handler:
                 value = handler(raw_value)
             else:  # no handler found for key
-                raise ValueError(f"No handler found for {key}")
+                msg = f"No handler found for {key}"
+                raise ValueError(msg)
             return key, value
 
     # build the result dict.
     result = {}
     for key, raw_value in key_values:
         if all_keys and key not in all_keys:
-            raise ValueError(f"key: {key!r} not in all_keys: {all_keys}")
+            msg = f"key: {key!r} not in all_keys: {all_keys}"
+            raise ValueError(msg)
         key, value = handle_value(key, raw_value)
         add_item(result, key, value)
     return result
@@ -182,10 +197,7 @@ def join_parser(lines, join_str=" ", chars_to_strip=" ;."):
     """return a joined str from a list of lines, strip off chars requested from
     the joined str"""
     # a str will not be joined
-    if isinstance(lines, str):
-        result = lines
-    else:
-        result = join_str.join(lines)
+    result = lines if isinstance(lines, str) else join_str.join(lines)
 
     return result.strip(chars_to_strip)
 
@@ -251,14 +263,15 @@ def join_split_dict_parser(
         dict(pairs)  # catch error for any not splitted pair.
     except ValueError:  # dictionary update sequence element #1 has length 1;
         if strict:
-            raise ValueError(f"e\nFailed to get a dict from pairs: {pairs}")
+            msg = f"e\nFailed to get a dict from pairs: {pairs}"
+            raise ValueError(msg)
         # return the splitted list without constucting
         return pairs
 
     if value_delimiters:
         split_value = NestedSplitter(value_delimiters, same_level=False)
         # should raise ValueError here if a pair donot have two elems.
-        for i, (k, v) in enumerate(pairs):
+        for i, (_k, v) in enumerate(pairs):
             v = split_value(v)
             # modify v only if splitted by the first dilimiter
             if len(v) > 1:
@@ -282,7 +295,7 @@ def mapping_parser(line, fields, delimiters=None, flatten=list_flatten):
     values = flatten(splits)
     result = {}
     for f, v in zip(fields, values, strict=False):
-        if isinstance(f, (tuple, list)):
+        if isinstance(f, tuple | list):
             name, type = f
             result[name] = type(v)
         else:
@@ -392,8 +405,7 @@ def dt_parser(lines):
         DT   30-MAY-2000 (Rel. 39, Last sequence update)
         DT   10-MAY-2005 (Rel. 47, Last annotation update)
     """
-    lines = labeloff(lines)
-    return lines
+    return labeloff(lines)
 
 
 #################################
@@ -746,7 +758,7 @@ def ft_basic_itemparser(item_lines):
     first_line = item_lines[0]
     keyname, from_point, to_point, description = [
         first_line[i:j].strip()
-        for i, j in zip([0] + cut_positions, cut_positions + [None], strict=False)
+        for i, j in zip([0, *cut_positions], [*cut_positions, None], strict=False)
     ]
 
     # extend the description if provided following lines
@@ -756,7 +768,7 @@ def ft_basic_itemparser(item_lines):
         following_description = " ".join(
             [e[desc_start:].strip() for e in following_lines],
         )
-        description = " ".join((description, following_description))
+        description = f"{description} {following_description}"
 
     # convert start and end points to int, is possible
     from_point, to_point = list(map(try_int, (from_point, to_point)))
@@ -794,8 +806,7 @@ def ft_id_parser(description):
         desc, id = description, ""
 
     # replace desc in fields with (desc, id) to get the result
-    result = dict(list(zip(fieldnames, [desc, id], strict=False)))
-    return result
+    return dict(list(zip(fieldnames, [desc, id], strict=False)))
 
 
 def ft_mutation_parser(description, mutation_comment_delimiter="("):
@@ -831,8 +842,7 @@ def ft_mutation_parser(description, mutation_comment_delimiter="("):
 
     # replace desc in fields with mut_from, mut_to and comment to get the
     # result
-    result = dict(list(zip(fieldnames, [mut_from, mut_to, comment], strict=False)))
-    return result
+    return dict(list(zip(fieldnames, [mut_from, mut_to, comment], strict=False)))
 
 
 def ft_mutagen_parser(description):
@@ -970,14 +980,14 @@ def cc_parser(lines, strict=False):
             handlers=cc_content_parsers,
             default_handler=join_parser,
         )
-    except Exception as e:
-        pprint(lines)
-        raise e
+    except Exception:
+        raise
 
     if strict:
         for topic in result:
             if topic not in all_cc_topics:
-                raise FieldError(f"Invalid topic: {topic}")
+                msg = f"Invalid topic: {topic}"
+                raise FieldError(msg)
 
     return result
 
@@ -996,12 +1006,10 @@ def cc_basic_itemparser(topic):
     try:
         keyname, content_head = list(map(strip, topic_head.split(":", 1)))
     except ValueError:  # need more than 1 value to unpack
-        raise FieldError("Not a valid topic line: %s", topic[0])
+        msg = "Not a valid topic line: %s"
+        raise FieldError(msg, topic[0])
 
-    if content_head:
-        content = [content_head]
-    else:
-        content = []
+    content = [content_head] if content_head else []
 
     # the following lines be stripped off the format leading spaces
     if len(topic) > 1:
@@ -1029,7 +1037,8 @@ def cc_itemfinder(lines):
         if lines[-1] == license_border:
             lines.pop()
         else:
-            raise FieldError(f"No bottom line for license: {lines}")
+            msg = f"No bottom line for license: {lines}"
+            raise FieldError(msg)
 
         # normalize license lines to the format of topic lines
         license_idx = lines.index(license_border)
@@ -1171,7 +1180,10 @@ def refs_parser(lines):
     return pairs_to_dict(rn_ref_pairs)
 
 
-is_ref_line = lambda x: x.startswith("RN")
+def is_ref_line(x):
+    return x.startswith("RN")
+
+
 ref_finder = LabeledRecordFinder(is_ref_line)
 
 required_ref_labels = "RN RP RL RA/RG RL".split()
@@ -1200,7 +1212,8 @@ def single_ref_parser(lines, strict=False):
             labels["RA/RG"] = True
         for rlabel in required_ref_labels:
             if rlabel not in labels:
-                raise RecordError(f"The reference block lacks required label: {rlabel}")
+                msg = f"The reference block lacks required label: {rlabel}"
+                raise RecordError(msg)
 
     # parse each field with relevant parser
     parsed_dict = pairs_to_dict(list(raw_dict.items()), handlers=ref_parsers)
@@ -1378,7 +1391,7 @@ ref_parsers = {
     "RL": rl_parser,
 }
 
-required_labels = "ID AC DT DE OS OC OX SQ REF".split() + [""]
+required_labels = [*"ID AC DT DE OS OC OX SQ REF".split(), ""]
 #################################
 # Minimal Ebi parser
 
@@ -1427,11 +1440,12 @@ def MinimalEbiParser(lines, strict=True, selected_labels=None):
     for one exception: CC lines that contain the 'DATABASE' topic"""
     selected_labels = selected_labels or []
     exclude = b" \t\n\r/"
-    strip_table = dict([(c, None) for c in exclude])
+    strip_table = {c: None for c in exclude}
 
     for record in EbiFinder(lines):
         if strict and not record[0].startswith("ID"):
-            raise RecordError("Record must begin with ID line")
+            msg = "Record must begin with ID line"
+            raise RecordError(msg)
         del record[-1]  # which must be //, ensured by Finder
 
         keyvalues = list(map(linecode_merging_maker, record))
@@ -1440,7 +1454,8 @@ def MinimalEbiParser(lines, strict=True, selected_labels=None):
         if strict:
             for rlabel in required_labels:
                 if rlabel not in raw_dict:
-                    raise RecordError(f"The record lacks required label: {rlabel}")
+                    msg = f"The record lacks required label: {rlabel}"
+                    raise RecordError(msg)
 
         # no sequence found
         if "" not in raw_dict:
@@ -1565,17 +1580,14 @@ Examples:
     try:
         opts, args = getopt(sys.argv[1:], "hd", ["help"])
     except GetoptError:
-        print(usage)
         sys.exit(2)
-    for opt, arg in opts:
+    for opt, _arg in opts:
         if opt in ("-h", "--help"):
-            print(usage)
             sys.exit()
     if args:
         lines = open(args[0])
-        print("Parsing the file")
-        for i, rec in enumerate(EbiParser(lines, strict=True)):
-            print(f"\r {i}: {rec[1]['ID']['EntryName']}", end=" ")
+        for _i, _rec in enumerate(EbiParser(lines, strict=True)):
+            pass
     else:
         lines = """\
 ID   Q9U9C5_CAEEL   PRELIMINARY;      PRT;   218 AA.
@@ -1670,4 +1682,3 @@ SQ   SEQUENCE   218 AA;  24367 MW;  F24AE5E8A102FAC6 CRC64;
      MISVMQQMIN NDSPEDSKES ITSVQQTPFF WPSAAAAIPS IQGESRSERE
 //
 """.split("\n")
-        pprint(list(EbiParser(lines, strict=False, selected_labels=[])))

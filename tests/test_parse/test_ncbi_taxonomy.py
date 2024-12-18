@@ -56,18 +56,18 @@ class NcbiTaxonTests(TestCase):
         node_2 = NcbiTaxon(good_2)  # from the corresponding
         node_3 = NcbiTaxon(good_3)  # line.
         node_4 = NcbiTaxon(good_4)
-        self.assertEqual(node_1.Rank, "no rank")  # confirm object holds
-        self.assertEqual(node_1.RankId, 28)  # right data
-        self.assertEqual(node_1.ParentId, 1)
-        self.assertEqual(node_2.Rank, "superkingdom")
-        self.assertEqual(node_2.RankId, 27)
-        self.assertEqual(node_2.ParentId, 1)
-        self.assertEqual(node_3.Rank, "genus")
-        self.assertEqual(node_3.RankId, 8)
-        self.assertEqual(node_3.ParentId, 2)
-        self.assertEqual(node_4.Rank, "species")
-        self.assertEqual(node_4.RankId, 4)
-        self.assertEqual(node_4.ParentId, 6)
+        assert node_1.Rank == "no rank"  # confirm object holds
+        assert node_1.RankId == 28  # right data
+        assert node_1.ParentId == 1
+        assert node_2.Rank == "superkingdom"
+        assert node_2.RankId == 27
+        assert node_2.ParentId == 1
+        assert node_3.Rank == "genus"
+        assert node_3.RankId == 8
+        assert node_3.ParentId == 2
+        assert node_4.Rank == "species"
+        assert node_4.RankId == 4
+        assert node_4.ParentId == 6
         # test some comparisons
         assert node_1 > node_2
         assert node_1 > node_3
@@ -82,10 +82,10 @@ class NcbiTaxonTests(TestCase):
         """NcbiTaxon str should write data in input format from nodes.dmp"""
         good = """2\t|\t1\t|\tsuperkingdom\t|\t\t|\t0\t|\t0\t|\t11\t|\t0\t|\t0\t|\t0\t|\t0\t|\t0\t|\t\t|\n"""
         node = NcbiTaxon(good)
-        self.assertEqual(str(node), good)
+        assert str(node) == good
         root = """1\t|\t1\t|\tno rank\t|\t\t|\t8\t|\t0\t|\t1\t|\t0\t|\t0\t|\t0\t|\t0\t|\t0\t|\t\t|"""
         NcbiTaxon(root)
-        self.assertEqual(str(root), root)
+        assert str(root) == root
 
     def test_bad_input(self):
         """NcbiTaxon init should raise ValueError if nodes missing"""
@@ -108,20 +108,20 @@ class NcbiNameTests(TestCase):
         name_2 = NcbiName(line_2)  # from the corresponding line
         name_3 = NcbiName(line_3)
         name_4 = NcbiName(line_4)
-        self.assertEqual(name_1.TaxonId, 1)  # test that the data
-        self.assertEqual(name_1.NameClass, "synonym")  # fields in the object
-        self.assertEqual(name_2.TaxonId, 1)  # hold right data
-        self.assertEqual(name_2.NameClass, "scientific name")
-        self.assertEqual(name_3.TaxonId, 2)
-        self.assertEqual(name_3.NameClass, "scientific name")
-        self.assertEqual(name_4.TaxonId, 7)
-        self.assertEqual(name_4.NameClass, "scientific name")
+        assert name_1.TaxonId == 1  # test that the data
+        assert name_1.NameClass == "synonym"  # fields in the object
+        assert name_2.TaxonId == 1  # hold right data
+        assert name_2.NameClass == "scientific name"
+        assert name_3.TaxonId == 2
+        assert name_3.NameClass == "scientific name"
+        assert name_4.TaxonId == 7
+        assert name_4.NameClass == "scientific name"
 
     def test_str(self):
         """NcbiName str should return line in original format"""
         line = """1\t|\troot\t|\t\t|\tscientific name|\n"""
         name = NcbiName(line)
-        self.assertEqual(str(name), line)
+        assert str(name) == line
 
     def test_bad_input(self):
         """NcbiName init should raise correct errors on bad data"""
@@ -144,10 +144,10 @@ class NcbiNameLookupTest(TestCase):
         assert sci_names[2] is bacteria  # NcbiNameLookup object and
         assert sci_names[6] is azorhizobium  # asks if it is the original
         assert sci_names[7] is caulinodans  # NcbiName object
-        self.assertEqual(sci_names[1].Name, "root")
-        self.assertEqual(sci_names[2].Name, "Bacteria")
-        self.assertEqual(sci_names[7].Name, "Azorhizobium caulinodans")
-        self.assertEqual(sci_names[9].Name, "Buchnera aphidicola")
+        assert sci_names[1].Name == "root"
+        assert sci_names[2].Name == "Bacteria"
+        assert sci_names[7].Name == "Azorhizobium caulinodans"
+        assert sci_names[9].Name == "Buchnera aphidicola"
 
 
 class NcbiTaxonLookupTest(TestCase):
@@ -174,22 +174,22 @@ class NcbiTaxonLookupTest(TestCase):
         assert self.taxID_to_obj[6] is line3_obj
         assert self.taxID_to_obj[7] is line4_obj  # NcbiTaxon object
         assert self.taxID_to_obj[9] is line5_obj
-        self.assertEqual(self.taxID_to_obj[1].ParentId, 1)  # checking a few
-        self.assertEqual(self.taxID_to_obj[2].ParentId, 1)  # individual
-        self.assertEqual(self.taxID_to_obj[6].ParentId, 2)  # fields of the
-        self.assertEqual(self.taxID_to_obj[7].ParentId, 6)  # NcbiTaxon objs
-        self.assertEqual(self.taxID_to_obj[9].ParentId, 7)
-        self.assertEqual(self.taxID_to_obj[1].Rank, "no rank")
-        self.assertEqual(self.taxID_to_obj[2].Rank, "superkingdom")
-        self.assertEqual(self.taxID_to_obj[6].Rank, "genus")
-        self.assertEqual(self.taxID_to_obj[7].Rank, "species")
-        self.assertEqual(self.taxID_to_obj[7].EmblCode, "AC")
-        self.assertEqual(self.taxID_to_obj[7].DivisionId, "0")
-        self.assertEqual(self.taxID_to_obj[7].DivisionInherited, 1)
-        self.assertEqual(self.taxID_to_obj[7].TranslTable, 11)
-        self.assertEqual(self.taxID_to_obj[7].TranslTableInherited, 1)
-        self.assertEqual(self.taxID_to_obj[7].TranslTableMt, 0)
-        self.assertEqual(self.taxID_to_obj[7].TranslTableMtInherited, 1)
+        assert self.taxID_to_obj[1].ParentId == 1  # checking a few
+        assert self.taxID_to_obj[2].ParentId == 1  # individual
+        assert self.taxID_to_obj[6].ParentId == 2  # fields of the
+        assert self.taxID_to_obj[7].ParentId == 6  # NcbiTaxon objs
+        assert self.taxID_to_obj[9].ParentId == 7
+        assert self.taxID_to_obj[1].Rank == "no rank"
+        assert self.taxID_to_obj[2].Rank == "superkingdom"
+        assert self.taxID_to_obj[6].Rank == "genus"
+        assert self.taxID_to_obj[7].Rank == "species"
+        assert self.taxID_to_obj[7].EmblCode == "AC"
+        assert self.taxID_to_obj[7].DivisionId == "0"
+        assert self.taxID_to_obj[7].DivisionInherited == 1
+        assert self.taxID_to_obj[7].TranslTable == 11
+        assert self.taxID_to_obj[7].TranslTableInherited == 1
+        assert self.taxID_to_obj[7].TranslTableMt == 0
+        assert self.taxID_to_obj[7].TranslTableMtInherited == 1
 
 
 class NcbiTaxonomyTests(TestCase):
@@ -200,24 +200,24 @@ class NcbiTaxonomyTests(TestCase):
 
     def test_init_good(self):
         """NcbiTaxonomyFromFiles should pass spot-checks of resulting objects"""
-        self.assertEqual(len(self.tx.ByName), 6)
-        self.assertEqual(len(self.tx.ById), 6)
-        self.assertEqual(self.tx[10].Name, "Fakus namus")
-        self.assertEqual(self.tx["1"].Name, "root")
-        self.assertEqual(self.tx["root"].parent, None)
-        self.assertEqual(self.tx.Deadbeats, {})
+        assert len(self.tx.ByName) == 6
+        assert len(self.tx.ById) == 6
+        assert self.tx[10].Name == "Fakus namus"
+        assert self.tx["1"].Name == "root"
+        assert self.tx["root"].parent is None
+        assert self.tx.Deadbeats == {}
 
     def test_init_bad(self):
         """NcbiTaxonomyFromFiles should produce deadbeats by default"""
         bad_tx = NcbiTaxonomyFromFiles(bad_nodes, good_names)
-        self.assertEqual(len(bad_tx.Deadbeats), 2)
+        assert len(bad_tx.Deadbeats) == 2
         assert 777 in bad_tx.Deadbeats
         assert 666 in bad_tx.Deadbeats
         assert bad_tx.Deadbeats[777] == bad_tx[9]
 
     def test_init_strict(self):
         """NcbiTaxonomyFromFiles should fail if strict and deadbeats exist"""
-        tx = NcbiTaxonomyFromFiles(good_nodes, good_names, strict=True)
+        NcbiTaxonomyFromFiles(good_nodes, good_names, strict=True)
         self.assertRaises(
             MissingParentError,
             NcbiTaxonomyFromFiles,
@@ -230,7 +230,7 @@ class NcbiTaxonomyTests(TestCase):
         """NcbiTaxonomy should support Ancestors correctly, not incl. self"""
         result = self.tx["7"].ancestors()
         tax_ids = [taxon_obj.TaxonId for taxon_obj in result]
-        self.assertEqual(tax_ids, [6, 2, 1])
+        assert tax_ids == [6, 2, 1]
 
     def test_Parent(self):
         """NcbiTaxonomy should support parent correctly"""
@@ -242,26 +242,26 @@ class NcbiTaxonomyTests(TestCase):
     def test_Siblings(self):
         """NcbiTaxonomy should support Siblings correctly"""
         sibs = self.tx[7].siblings()
-        self.assertEqual(len(sibs), 1)
+        assert len(sibs) == 1
         assert sibs[0] is self.tx[10]
 
     def test_Children(self):
         """NcbiTaxonomy should support children correctly"""
         children = self.tx[6].children
-        self.assertEqual(len(children), 2)
+        assert len(children) == 2
         assert children[0] is self.tx[7]
         assert children[1] is self.tx[10]
         root_kids = self.tx["root"]
-        self.assertEqual(len(root_kids), 1)
+        assert len(root_kids) == 1
         assert root_kids[0] is self.tx[2]
-        self.assertEqual(len(self.tx[10].children), 0)
+        assert len(self.tx[10].children) == 0
 
     def test_Names(self):
         """NcbiTaxonomy should fill in names correctly"""
-        self.assertEqual(self.tx["6"].Name, "Azorhizobium")
-        self.assertEqual(self.tx["1"].Name, "root")
-        self.assertEqual(self.tx["2"].Name, "Bacteria")
-        self.assertEqual(self.tx["7"].Name, "Azorhizobium caulinodans")
+        assert self.tx["6"].Name == "Azorhizobium"
+        assert self.tx["1"].Name == "root"
+        assert self.tx["2"].Name == "Bacteria"
+        assert self.tx["7"].Name == "Azorhizobium caulinodans"
 
     def test_last_common_ancestor(self):
         """NcbiTaxonomy should support last_common_ancestor()"""
@@ -334,12 +334,12 @@ class NcbiTaxonNodeTests(TestCase):
         ]
         tx = NcbiTaxonomyFromFiles(nested_species, nested_names)
         dec = tx[3].getRankedDescendants("superclass")
-        self.assertEqual(len(dec), 1)
+        assert len(dec) == 1
         assert dec[0] is tx[555]
         sp = tx["f"].getRankedDescendants("species")
         self.assertCountEqual(sp, [tx[1010], tx[9999], tx[7777], tx[6666]])
         empty = tx[11].getRankedDescendants("superclass")
-        self.assertEqual(empty, [])
+        assert empty == []
         gr = tx[3].getRankedDescendants("group")
-        self.assertEqual(gr, [tx[123]])
+        assert gr == [tx[123]]
         assert tx[3] is tx["a"]

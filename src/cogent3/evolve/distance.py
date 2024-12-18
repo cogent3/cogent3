@@ -15,7 +15,7 @@ _NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
 
 def get_name_combinations(names, group_size):
     """returns combinations of names"""
-    combined = list(tuple(sorted(p)) for p in combinations(names, group_size))
+    combined = [tuple(sorted(p)) for p in combinations(names, group_size)]
     combined.sort()
     return combined
 
@@ -67,7 +67,7 @@ class EstimateDistances:
         rigorous_align=False,
         est_params=None,
         modify_lf=None,
-    ):
+    ) -> None:
         """Arguments:
             - seqs: an Alignment or SeqCollection instance with > 1 sequence
             - submodel: substitution model object Predefined models can
@@ -120,7 +120,7 @@ class EstimateDistances:
 
         self._run = False  # a flag indicating whether estimation completed
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.get_table())
 
     def _make_pair_alignment(self, seqs, opt_kwargs):
@@ -175,23 +175,23 @@ class EstimateDistances:
         # get the statistics
         stats_dict = lf.get_param_value_dict(
             ["edge"],
-            params=["length"] + self._est_params,
+            params=["length", *self._est_params],
         )
 
         # if two-way, grab first distance only
         if not self._threeway:
-            result = {"length": list(stats_dict["length"].values())[0] * 2.0}
+            result = {"length": next(iter(stats_dict["length"].values())) * 2.0}
         else:
             result = {"length": stats_dict["length"]}
 
         # include any other params requested
         for param in self._est_params:
-            result[param] = list(stats_dict[param].values())[0]
+            result[param] = next(iter(stats_dict[param].values()))
 
         return result
 
     @UI.display_wrap
-    def run(self, dist_opt_args=None, aln_opt_args=None, ui=None, **kwargs):
+    def run(self, dist_opt_args=None, aln_opt_args=None, ui=None, **kwargs) -> None:
         """Start estimating the distances between sequences. Distance estimation
         is done using the Powell local optimiser. This can be changed using the
         dist_opt_args and aln_opt_args.
@@ -254,7 +254,7 @@ class EstimateDistances:
 
         """
         pairwise_stats = {}
-        assert param in self._est_params + ["length"], f"unrecognised param {param}"
+        assert param in [*self._est_params, "length"], f"unrecognised param {param}"
         if not self._param_ests:
             return None
 
@@ -339,7 +339,7 @@ class EstimateDistances:
                     row.append(d[(s2, s1)])
             twoD.append(row)
         return table.Table(
-            [r"Seq1 \ Seq2"] + self._seqnames,
+            ["Seq1 \\ Seq2", *self._seqnames],
             twoD,
             index_name=r"Seq1 \ Seq2",
             missing_data="*",
@@ -356,7 +356,13 @@ class EstimateDistances:
 
         return trees
 
-    def write(self, filename, summary_function="mean", format="phylip", **kwargs):
+    def write(
+        self,
+        filename,
+        summary_function="mean",
+        format="phylip",
+        **kwargs,
+    ) -> None:
         """Save the pairwise distances to a file using phylip format. Other
         formats can be obtained by getting to a Table.
 

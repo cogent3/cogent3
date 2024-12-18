@@ -12,7 +12,7 @@ numpy.seterr(all="ignore")
 
 
 class _LikelihoodTreeEdge:
-    def __init__(self, children, edge_name, alignment=None):
+    def __init__(self, children, edge_name, alignment=None) -> None:
         self.edge_name = edge_name
         self.alphabet = children[0].alphabet
 
@@ -78,7 +78,7 @@ class _LikelihoodTreeEdge:
         ]
         return ["".join(child[u] for child in child_motifs) for u in range(len(cols))]
 
-    def restrict_motif(self, input_likelihoods, fixed_motif):
+    def restrict_motif(self, input_likelihoods, fixed_motif) -> None:
         # for reconstruct_ancestral_seqs
         mask = numpy.zeros([input_likelihoods.shape[-1]], float)
         mask[fixed_motif] = 1.0
@@ -86,7 +86,7 @@ class _LikelihoodTreeEdge:
 
     def select_columns(self, cols):
         children = []
-        for index, child in self._indexed_children:
+        for _index, child in self._indexed_children:
             child = child.select_columns(cols)
             children.append(child)
         return self.__class__(children, self.edge_name)
@@ -119,7 +119,7 @@ class _LikelihoodTreeEdge:
     def get_edge(self, name):
         if self.edge_name == name:
             return self
-        for i, c in self._indexed_children:
+        for _i, c in self._indexed_children:
             r = c.get_edge(name)
             if r is not None:
                 return r
@@ -243,7 +243,7 @@ def make_likelihood_tree_leaf(sequence, alphabet, seq_name):
     if isinstance(sequence, Sequence):
         # we can rely on getting the moltype from the sequence
         moltype = sequence.moltype
-    elif isinstance(alphabet, (CharAlphabet, Alphabet)):
+    elif isinstance(alphabet, CharAlphabet | Alphabet):
         # we can rely on getting the moltype from the alphabet
         moltype = alphabet.moltype
     else:
@@ -252,8 +252,9 @@ def make_likelihood_tree_leaf(sequence, alphabet, seq_name):
         try:
             moltype = sequence.moltype
         except AttributeError as e:
+            msg = "Cannot determine moltype from sequence or alphabet"
             raise ValueError(
-                "Cannot determine moltype from sequence or alphabet",
+                msg,
             ) from e
 
     # Convert list of unique motifs to array of unique profiles
@@ -262,8 +263,9 @@ def make_likelihood_tree_leaf(sequence, alphabet, seq_name):
     except (AlphabetError, new_AlphabetError) as detail:
         motif = str(detail)
         posn = list(sequence2).index(motif) * motif_len
+        msg = f"{motif!r} at {seq_name!r}:{posn} not in alphabet"
         raise ValueError(
-            f"{motif!r} at {seq_name!r}:{posn} not in alphabet",
+            msg,
         ) from detail
 
     return LikelihoodTreeLeaf(
@@ -278,7 +280,16 @@ def make_likelihood_tree_leaf(sequence, alphabet, seq_name):
 
 
 class LikelihoodTreeLeaf:
-    def __init__(self, uniq, likelihoods, counts, index, edge_name, alphabet, sequence):
+    def __init__(
+        self,
+        uniq,
+        likelihoods,
+        counts,
+        index,
+        edge_name,
+        alphabet,
+        sequence,
+    ) -> None:
         if sequence is not None:
             self.sequence = sequence
         self.alphabet = alphabet
@@ -303,7 +314,7 @@ class LikelihoodTreeLeaf:
             None,
         )
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.index)
 
     def __getitem__(self, index):

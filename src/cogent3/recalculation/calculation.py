@@ -43,7 +43,7 @@ class OptPar:
         "upper",
     ]
 
-    def __init__(self, name, scope, bounds):
+    def __init__(self, name, scope, bounds) -> None:
         self.clients = []
         self.client_ranks = []
         self.name = name
@@ -55,7 +55,7 @@ class OptPar:
         self.order = (len(scope), scope and min(scope), name)
         self.label = self.name
 
-    def add_client(self, client):
+    def add_client(self, client) -> None:
         self.clients.append(client)
 
     def __lt__(self, other):
@@ -70,7 +70,7 @@ class OptPar:
         # optimisation is more efficient if params for one edge are neighbours
         return self.order != other.order
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.label})"
 
     def get_optimiser_bounds(self):
@@ -97,7 +97,8 @@ class LogOptPar(OptPar):
         try:
             return numpy.log(value)
         except OverflowError:
-            raise OverflowError(f"log({value})")
+            msg = f"log({value})"
+            raise OverflowError(msg)
 
 
 class EvaluatedCell:
@@ -116,7 +117,7 @@ class EvaluatedCell:
         "recycled",
     ]
 
-    def __init__(self, name, calc, args, recycling=None, default=None):
+    def __init__(self, name, calc, args, recycling=None, default=None) -> None:
         self.name = name
         self.rank = None
         self.calc = calc
@@ -125,7 +126,7 @@ class EvaluatedCell:
 
         self.recycled = recycling
         if recycling:
-            self.args = (self,) + self.args
+            self.args = (self, *self.args)
 
         self.is_constant = True
         for arg in args:
@@ -137,13 +138,13 @@ class EvaluatedCell:
         self.client_ranks = []
         self.failure_count = 0
 
-    def add_client(self, client):
+    def add_client(self, client) -> None:
         self.clients.append(client)
 
-    def update(self, data):
+    def update(self, data) -> None:
         data[self.rank] = self.calc(*[data[arg_rank] for arg_rank in self.arg_ranks])
 
-    def prime(self, data_sets):
+    def prime(self, data_sets) -> None:
         if self.is_constant:
             # Just calc once
             self.update(data_sets[0])
@@ -153,16 +154,15 @@ class EvaluatedCell:
             for data in data_sets:
                 self.update(data)
 
-    def report_error(self, detail, data):
+    def report_error(self, detail, data) -> None:
         self.failure_count += 1
         if self.failure_count <= 5:
-            print(("%s in calculating %s:", detail.__class__.__name__, self.name))
+            pass
         if self.failure_count == 5:
-            print("Additional failures of this type will not be reported.")
+            pass
         if self.failure_count < 2:
-            print("%s inputs were:", len(self.arg_ranks))
-            for i, arg in enumerate(self.arg_ranks):
-                print(f"{i}: " + repr(data[arg]))
+            for _i, _arg in enumerate(self.arg_ranks):
+                pass
 
 
 class ConstCell:
@@ -172,12 +172,12 @@ class ConstCell:
     is_constant = True
     args = ()
 
-    def __init__(self, name, value):
+    def __init__(self, name, value) -> None:
         self.name = name
         self.clients = []
         self.value = value
 
-    def add_client(self, client):
+    def add_client(self, client) -> None:
         self.clients.append(client)
 
 
@@ -185,7 +185,7 @@ class Calculator:
     """A complete hierarchical function with N evaluation steps to call
     for each change of inputs.  Made by a ParameterController."""
 
-    def __init__(self, cells, defns, trace=None, with_undo=True):
+    def __init__(self, cells, defns, trace=None, with_undo=True) -> None:
         if trace is None:
             trace = TRACE_DEFAULT
         self.with_undo = with_undo
@@ -226,10 +226,12 @@ class Calculator:
                     warnings.warn(
                         f"Failed initial calculation of {cell.name}",
                         category=UserWarning,
+                        stacklevel=2,
                     )
                     raise
             else:
-                raise RuntimeError(f"Unexpected Cell type {type(cell)}")
+                msg = f"Unexpected Cell type {type(cell)}"
+                raise RuntimeError(msg)
 
         self._switch = 0
         self.recycled_cells = [cell.rank for cell in self._cells if cell.recycled]
@@ -261,7 +263,7 @@ class Calculator:
         for cell in self._cells:
             if cell.name not in evs:
                 evs.append(cell.name)
-        nodes = dict([(name, []) for name in evs])
+        nodes = {name: [] for name in evs}
         edges = []
         for cell in self._cells:
             if hasattr(cell, "name"):
@@ -277,10 +279,7 @@ class Calculator:
             enodes = [name.replace("edge", "QQQ")]
             for cell in nodes[name]:
                 value = self._get_current_cell_value(cell)
-                if isinstance(value, float):
-                    label = f"{value:5.2e}"
-                else:
-                    label = "[]"
+                label = f"{value:5.2e}" if isinstance(value, float) else "[]"
                 label = f"<{cell.rank}> {label}"
                 enodes.append(label)
                 all_const = all_const and cell.is_constant
@@ -293,7 +292,7 @@ class Calculator:
         lines.append("}")
         return "\n".join(lines).replace("edge", "egde").replace("QQQ", "edge")
 
-    def optimise(self, **kw):
+    def optimise(self, **kw) -> None:
         x = self.get_value_array()
         low, high = self.get_bounds_vectors()
         # due to numerical precision, it occasionally happens that
@@ -311,18 +310,14 @@ class Calculator:
         maximise(self, x, (low, high), **kw)
         self.optimised = True
 
-    def set_tracing(self, trace=False):
+    def set_tracing(self, trace=False) -> None:
         """With 'trace' true every evaluated is printed.  Useful for profiling
         and debugging."""
 
         self.trace = trace
         if trace:
-            print()
-            n_opars = len(self.opt_pars)
-            n_cells = len([c for c in self._cells if not c.is_constant])
-            print(n_opars, "OptPars and", n_cells - n_opars, "derived values")
-            print("OptPars: ", ", ".join([par.name for par in self.opt_pars]))
-            print(f"Times in 1/{TRACE_SCALE}ths of a second")
+            len(self.opt_pars)
+            len([c for c in self._cells if not c.is_constant])
 
             groups = []
             groupd = {}
@@ -336,16 +331,14 @@ class Calculator:
                 groupd[cell.name].append(cell)
 
             widths = []
-            for name, cells in groups:
+            for _name, cells in groups:
                 width = 4 + len(cells)
                 widths.append(min(15, width))
             self._cellsGroupedForDisplay = list(zip(groups, widths, strict=False))
-            for (name, cells), width in self._cellsGroupedForDisplay:
-                print(name[:width].ljust(width), "|", end=" ")
-            print()
+            for (_name, cells), width in self._cellsGroupedForDisplay:
+                pass
             for width in widths:
-                print("-" * width, "|", end=" ")
-            print()
+                pass
 
     def get_value_array(self):
         """This being a caching function, you can ask it for its current
@@ -368,7 +361,7 @@ class Calculator:
             upper[i] = ub
         return (lower, upper)
 
-    def fuzz(self, random_series=None, seed=None):
+    def fuzz(self, random_series=None, seed=None) -> None:
         # Slight randomisation suitable for removing right-on-the-
         # ridge starting points before local optimisation.
         if random_series is None:
@@ -440,10 +433,9 @@ class Calculator:
                     self.spare[rank] = data[rank]
             data[:] = base[:]
             for cell in program:
-                if cell.recycled:
-                    if data[cell.rank] is base[cell.rank]:
-                        data[cell.rank] = self.spare[cell.rank]
-                        assert data[cell.rank] is not base[cell.rank]
+                if cell.recycled and data[cell.rank] is base[cell.rank]:
+                    data[cell.rank] = self.spare[cell.rank]
+                    assert data[cell.rank] is not base[cell.rank]
         else:
             data = self.cell_values[self._switch]
 
@@ -501,7 +493,7 @@ class Calculator:
             ]
         return program
 
-    def plain_update(self, program, data):
+    def plain_update(self, program, data) -> None:
         try:
             for cell in program:
                 data[cell.rank] = cell.calc(*[data[a] for a in cell.arg_ranks])
@@ -513,7 +505,7 @@ class Calculator:
             cell.report_error(detail, data)
             raise CalculationInterupted(cell, detail)
 
-    def tracing_update(self, changes, program, data):
+    def tracing_update(self, changes, program, data) -> None:
         # Does the same thing as plain_update, but also produces lots of
         # output showing how long each step of the calculation takes.
         # One line per call, '-' for undo, '+' for calculation
@@ -548,12 +540,9 @@ class Calculator:
             else:
                 par_descs.append(f"{cell.name}=?")
         par_descs = ", ".join(par_descs)[:22].ljust(22)
-        print(" | ".join(tds + [""]), end=" ")
         if exception:
-            print("%15s | %s" % ("", par_descs))
             error_cell.report_error(exception, data)
             raise CalculationInterupted(cell, exception)
-        print("%-15s | %s" % (repr(data[-1])[:15], par_descs))
 
     def measure_evals_per_second(self, time_limit=1.0, wall=True, sa=False):
         # Returns an estimate of the number of evaluations per second
@@ -562,10 +551,7 @@ class Calculator:
         # so.  'wall'=False causes process time to be used instead of
         # wall time.
         # 'sa' makes it simulated-annealing-like, with frequent backtracks
-        if wall:
-            now = time.time
-        else:
-            now = time.clock
+        now = time.time if wall else time.clock
         x = self.get_value_array()
         samples = []
         elapsed = 0.0
@@ -577,11 +563,8 @@ class Calculator:
             for j in range(rounds_per_sample):
                 for i, v in enumerate(x):
                     # Not a real change, but works like one.
-                    self.change(last + [(i, v)])
-                    if sa and (i + j) % 2:
-                        last = [(i, v)]
-                    else:
-                        last = []
+                    self.change([*last, (i, v)])
+                    last = [(i, v)] if sa and (i + j) % 2 else []
             # Use one agreed on delta otherwise different cpus will finish the
             # loop at different times causing chaos.
             delta = now() - t0

@@ -20,10 +20,7 @@ def seq_traceback(s1, s2, aligned_positions, gap_value):
 
     for posn in aligned_positions:
         for dimension, pos in enumerate(posn):
-            if pos is not None:
-                c = seqs[dimension][pos]
-            else:
-                c = gap_value
+            c = seqs[dimension][pos] if pos is not None else gap_value
             alignments[dimension].append(c)
 
     for dimension in [0, 1]:
