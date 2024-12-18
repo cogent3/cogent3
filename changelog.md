@@ -11,7 +11,7 @@
 - Improved load balancing in parallel execution of `new_alignment.Alignment.distance_matrix()`
   calculations. This can deliver pretty substantial speedups for large numbers of sequences.
 
-- Major effort in improving compatability of `new_type` core objects with the
+- Major effort in improving compatibility of `new_type` core objects with the
   rest of the codebase. There remain some missing capabilities, and some edge-case
   test failures. However, the core functionality is now working.
 
