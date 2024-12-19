@@ -536,7 +536,7 @@ class _SequenceCollectionBase:
         else:
             *_, strand = self.seqs[0].parent_coordinates()
 
-        reversed = strand == "-"
+        reversed = strand == -1
         new_seqs = {}
         db = None if reversed and sliced else deepcopy(self.annotation_db)
         for seq in self.seqs:
@@ -2362,7 +2362,7 @@ class Aligned:
         return str(self) == str(other)
 
     def __hash__(self):
-        return hash(self.data)
+        return hash((self.name, str(self)))
 
     def __ne__(self, other):
         """Compares based on string representations."""

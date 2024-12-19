@@ -1,4 +1,31 @@
 
+<a id='changelog-2024.12.19a1'></a>
+# Changes in release "2024.12.19a1"
+
+## Contributors
+
+- @GavinHuttley
+
+## ENH
+
+- Improved load balancing in parallel execution of `new_alignment.Alignment.distance_matrix()`
+  calculations. This can deliver pretty substantial speedups for large numbers of sequences.
+
+- Major effort in improving compatibility of `new_type` core objects with the
+  rest of the codebase. There remain some missing capabilities, and some edge-case
+  test failures. However, the core functionality is now working.
+
+## Deprecations
+
+- The nominated release for setting `new_type=True` as the default for new
+  core objects has been pushed back to 2025.1. This will allow time for
+  the remaining issues to be resolved.
+
+- All `annotate_from_gff()` methods are deprecated, they will be removed in 2025.6.
+  Users should assign the result of `cogent3.load_annotations()` to an object's
+  `annotation_db` attribute, or provide the `annotation_path` argument to the standard
+  `load_(un)aligned_seqs()` functions.
+
 <a id='changelog-2024.11.29a1'></a>
 # Changes in release "2024.11.29a1"
 
