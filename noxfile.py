@@ -2,12 +2,12 @@ import pathlib
 
 import nox
 
-_py_versions = range(10, 13)
+_py_versions = range(10, 14)
 
 
 @nox.session(python=[f"3.{v}" for v in _py_versions])
 def test_slow(session):
-    session.install(".[test]")
+    session.install(".[test]", "--prerelease=allow")
     session.chdir("tests")
     session.run(
         "pytest",
@@ -18,7 +18,7 @@ def test_slow(session):
 
 @nox.session(python=[f"3.{v}" for v in _py_versions])
 def test(session):
-    session.install(".[test]")
+    session.install(".[test]", "--prerelease=allow")
     # doctest modules within cogent3/app
     session.chdir("src/cogent3/app")
     session.run(
@@ -45,7 +45,7 @@ def test(session):
 @nox.session(python=[f"3.{v}" for v in _py_versions])
 def test_module_docs(session):
     """doctest examples in a module"""
-    session.install(".[test]")
+    session.install(".[test]", "--prerelease=allow")
     # doctest modules within cogent3/app
     session.chdir("src/cogent3/app")
     session.run(
@@ -58,7 +58,7 @@ def test_module_docs(session):
 
 @nox.session(python=[f"3.{v}" for v in _py_versions])
 def testmpi(session):
-    session.install(".[test]")
+    session.install(".[test]", "--prerelease=allow")
     session.install("mpi4py")
     py = pathlib.Path(session.bin_paths[0]) / "python"
     session.chdir("tests")
@@ -80,7 +80,7 @@ def testmpi(session):
 @nox.session(python=[f"3.{v}" for v in _py_versions])
 def testdocs(session):
     py = pathlib.Path(session.bin_paths[0]) / "python"
-    session.install(".[doc]")
+    session.install(".[doc]", "--prerelease=allow")
     session.chdir("doc")
     for docdir in ("app", "cookbook", "draw", "examples"):
         session.run(
