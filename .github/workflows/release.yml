@@ -21,8 +21,7 @@ jobs:
 
       - name: "Installs for ${{ matrix.python-version }}"
         run: |
-          pip install --upgrade pip
-          pip install nox uv
+          pip install --upgrade pip nox
 
       - name: "Run nox for Python ${{ matrix.python-version }}"
         run: "nox -s test-${{ matrix.python-version }}"
@@ -41,11 +40,11 @@ jobs:
 
       - name: "Installs for docs"
         run: |
-          pip install --upgrade pip uv
+          pip install --upgrade pip nox
           pip install ".[doc]"
 
       - name: "test the docs code"
-        run: "nox -s testdocs-3.13"
+        run: "nox -s testdocs-3.12"
 
   build:
     name: Build wheel and sdist
