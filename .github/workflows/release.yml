@@ -25,7 +25,7 @@ jobs:
           pip install nox uv
 
       - name: "Run nox for Python ${{ matrix.python-version }}"
-        run: "nox -db uv -s test-${{ matrix.python-version }}"
+        run: "nox -s test-${{ matrix.python-version }}"
 
   docbuild:
     name: "Test the docs"
