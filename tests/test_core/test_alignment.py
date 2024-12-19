@@ -3404,7 +3404,7 @@ def test_sliced_deepcopy(data, name, rev):
     }
     # if not sliced in copy, underlying seq data is identical to original
     assert (
-        notsliced.named_seqs[name].data._seq.seq is orig.named_seqs[name].data._seq.seq
+        notsliced.named_seqs[name].data._seq.seq == orig.named_seqs[name].data._seq.seq
     )
     # but not the same for sliced
     assert (
