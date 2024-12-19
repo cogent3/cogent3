@@ -37,12 +37,12 @@ jobs:
 
       - uses: "actions/setup-python@v5"
         with:
-            python-version: "3.13"
+            python-version: "3.12"
 
       - name: "Installs for docs"
         run: |
           pip install --upgrade pip uv
-          python -m uv pip install ".[doc]"
+          pip install ".[doc]"
 
       - name: "test the docs code"
         run: "nox -s testdocs-3.13"
