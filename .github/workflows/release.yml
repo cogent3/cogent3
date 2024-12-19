@@ -45,7 +45,7 @@ jobs:
           python -m uv pip install ".[doc]"
 
       - name: "test the docs code"
-        run: "nox -db uv -s testdocs-3.13"
+        run: "nox -s testdocs-3.13"
 
   build:
     name: Build wheel and sdist
