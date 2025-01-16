@@ -1,4 +1,21 @@
 
+<a id='changelog-2024.12.19a2'></a>
+# Changes in release "2024.12.19a2"
+
+This is a minor bug-fix release with a minor new feature.
+
+## ENH
+
+- Slicing a new type sequence with a feature defaults to applying
+  the feature.name attribute to the resulting seq.name. This can be
+  controlled by the new apply_name argument to the
+  Feature.get_slice() method.
+
+## BUG
+
+- new_alphabet.KmerAlphabet.to_indices() consistently applies alphabet
+  dtype to the resulting array.
+
 <a id='changelog-2024.12.19a1'></a>
 # Changes in release "2024.12.19a1"
 
