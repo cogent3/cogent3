@@ -786,3 +786,21 @@ def test_trinucs_to_indices_dtype(alpha):
     assert len(small) == len(small.tobytes())
     full = alpha.to_indices(s)
     assert len(full) == len(full.tobytes())
+
+
+@pytest.mark.parametrize(
+    "alpha",
+    [
+        new_moltype.DNA.alphabet,
+        new_moltype.DNA.alphabet.get_kmer_alphabet(k=2),
+        new_moltype.DNA.alphabet.get_kmer_alphabet(k=3),
+        new_moltype.DNA.alphabet.get_kmer_alphabet(k=4),
+        new_genetic_code.DEFAULT.get_alphabet(include_stop=False),
+    ],
+)
+@pytest.mark.parametrize("cast", [numpy.array, str])
+def test_consistent_dtype(alpha, cast):
+    seq = new_moltype.DNA.make_seq(seq="ATG" * 600, name="s1")
+    seq = cast(seq)
+    indices = alpha.to_indices(seq)
+    assert indices.dtype == alpha.dtype

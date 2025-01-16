@@ -74,7 +74,12 @@ class Feature:
     def name(self):
         return self._name
 
-    def get_slice(self, complete: bool = False, allow_gaps: bool = False):
+    def get_slice(
+        self,
+        complete: bool = False,
+        allow_gaps: bool = False,
+        apply_name: bool = True,
+    ):
         """
         The corresponding sequence fragment.
 
@@ -85,6 +90,8 @@ class Feature:
             raised. If False, gaps are removed.
         allow_gaps
             if on an alignment, includes the gap positions
+        apply_name
+            assigns self.name to the resulting seq.name
 
         Returns
         -------
@@ -101,17 +108,19 @@ class Feature:
             fmap = fmap.without_gaps()
         if not allow_gaps:
             result = self.parent[fmap]
-            return self._do_seq_slice(result)
+            return self._do_seq_slice(result, apply_name)
         # all slicing now requires start < end
         result = self.parent[fmap.start : fmap.end]
-        return self._do_seq_slice(result)
+        return self._do_seq_slice(result, apply_name)
 
-    def _do_seq_slice(self, result):
+    def _do_seq_slice(self, result, apply_name):
         if self.reversed:
             result = result.rc()
         if self.map.num_spans > 1:
             # db querying will be incorrect so make sure it can't be done
             result.annotation_db = None
+        if apply_name:
+            result.name = self.name
         return result
 
     def without_lost_spans(self):
