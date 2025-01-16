@@ -1231,7 +1231,7 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
     @functools.singledispatchmethod
     def to_indices(self, seq) -> numpy.ndarray:
         """returns a sequence of codon indices"""
-        msg = f"{type(seq)} is not supported"
+        msg = f"{type(seq)} is invalid"
         raise TypeError(msg)
 
     @to_indices.register
