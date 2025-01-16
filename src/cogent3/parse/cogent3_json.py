@@ -18,9 +18,9 @@ def load_from_json(filename, classes):
     classes : Sequence[type]
         A series of the Cogent3 types, for example: (Alignment, ArrayAlignment)
     """
-    assert all(
-        isinstance(klass, type) for klass in classes
-    ), "classes should be a series of Cogent3 types, for example: (Alignment, ArrayAlignment)"
+    assert all(isinstance(klass, type) for klass in classes), (
+        "classes should be a series of Cogent3 types, for example: (Alignment, ArrayAlignment)"
+    )
 
     with open_(filename) as f:
         content = json.loads(f.read())

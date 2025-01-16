@@ -1180,9 +1180,9 @@ class LikelihoodFunction(ParameterController):
     def initialise_from_nested(self, nested_lf) -> None:
         from cogent3.evolve.substitution_model import Stationary
 
-        assert (
-            self.get_num_free_params() > nested_lf.get_num_free_params()
-        ), "wrong order for likelihood functions"
+        assert self.get_num_free_params() > nested_lf.get_num_free_params(), (
+            "wrong order for likelihood functions"
+        )
         compatible_likelihood_functions(self, nested_lf)
 
         same = (

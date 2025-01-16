@@ -549,7 +549,9 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
                 aln.names,
             ).symmetric_difference(
                 tip_names,
-            ), f"Tree tip names {self.tree.get_tip_names()} and aln seq names {aln.names} don't match {locus_name}"
+            ), (
+                f"Tree tip names {self.tree.get_tip_names()} and aln seq names {aln.names} don't match {locus_name}"
+            )
             assert "root" not in aln.names, "'root' is a reserved name."
         with self.updates_postponed():
             for locus_name, align in zip(self.locus_names, aligns, strict=False):

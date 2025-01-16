@@ -67,8 +67,7 @@ def best_frame(
     if not require_stop:
         # don't count stops if they're at the end of the aa sequence
         for i in range(len(translations)):
-            if translations[i].endswith("*"):
-                translations[i] = translations[i][:-1]
+            translations[i] = translations[i].removesuffix("*")
 
     stops_in_frame = [(tr.count("*"), i) for i, tr in enumerate(translations)]
     stops_in_frame.sort()

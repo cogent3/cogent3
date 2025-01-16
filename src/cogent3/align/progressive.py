@@ -81,9 +81,9 @@ def tree_align(
         tip_names = set(tree.get_tip_names())
 
         seq_names = set(seqs.names)
-        assert (
-            tip_names == seq_names
-        ), f"names don't match between seqs and tree: {tip_names ^ seq_names}"
+        assert tip_names == seq_names, (
+            f"names don't match between seqs and tree: {tip_names ^ seq_names}"
+        )
         tree = tree.bifurcating(name_unnamed=True)
         tree = fix_lengths(tree)
         align = _progressive_hmm(

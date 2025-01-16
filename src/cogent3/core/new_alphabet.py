@@ -757,9 +757,9 @@ def seq_to_kmer_indices(
 
     missing_index: int = gap_index + 1 if gap_char_index > 0 else num_states**k
     if gap_char_index > 0:
-        assert (
-            gap_index > 0
-        ), f"gap_index={gap_index} but gap_char_index={gap_char_index}"
+        assert gap_index > 0, (
+            f"gap_index={gap_index} but gap_char_index={gap_char_index}"
+        )
 
     for result_idx, i in enumerate(range(0, len(seq) - k + 1, step)):
         segment = seq[i : i + k]
@@ -784,9 +784,9 @@ def kmer_indices_to_seq(
     independent_kmer: bool = True,
 ) -> numpy.ndarray:  # pragma: no cover
     if gap_index > 0:
-        assert (
-            gap_char_index > 0
-        ), f"gap_index={gap_index} but gap_char_index={gap_char_index}"
+        assert gap_char_index > 0, (
+            f"gap_index={gap_index} but gap_char_index={gap_char_index}"
+        )
         gap_state = numpy.array([gap_char_index] * k, dtype=result.dtype)
     else:
         gap_state = numpy.empty(0, dtype=result.dtype)

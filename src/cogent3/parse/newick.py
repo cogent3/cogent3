@@ -192,7 +192,7 @@ def parse_string(text, constructor, **kw):
                 children = nodes
                 (nodes, sentinals, attributes) = stack.pop()
             elif token != "," or ")" not in sentinals:
-                msg = f'Was expecting to end with {" or ".join([repr(s) for s in sentinals])}'
+                msg = f"Was expecting to end with {' or '.join([repr(s) for s in sentinals])}"
                 raise tokeniser.error(
                     msg,
                 )

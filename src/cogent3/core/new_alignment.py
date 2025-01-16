@@ -365,9 +365,9 @@ class SeqsData(SeqsDataABC):
         self._alphabet = alphabet
         self._offset = offset or {}
         if check:
-            assert (
-                self._offset.keys() <= data.keys()
-            ), "sequence name provided in offset not found in data"
+            assert self._offset.keys() <= data.keys(), (
+                "sequence name provided in offset not found in data"
+            )
             if any(not alphabet.is_valid(seq) for seq in data.values()):
                 msg = f"One or more sequences are invalid for alphabet {alphabet}"
                 raise new_alphabet.AlphabetError(
@@ -437,9 +437,9 @@ class SeqsData(SeqsDataABC):
         stop = stop if stop is not None else self.get_seq_length(seqid)
         step = step or 1
 
-        assert (
-            start >= 0 and stop >= 0 and step > 0
-        ), "start, stop, and step must be >= 0"
+        assert start >= 0 and stop >= 0 and step > 0, (
+            "start, stop, and step must be >= 0"
+        )
 
         out_len = (stop - start + step - 1) // step
         out = numpy.empty(out_len, dtype=self.alphabet.dtype)
@@ -3498,9 +3498,9 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         stop = stop if stop is not None else self.get_seq_length(seqid)
         step = step or 1
 
-        assert (
-            start >= 0 and stop >= 0 and step > 0
-        ), "start, stop, and step must be >= 0"
+        assert start >= 0 and stop >= 0 and step > 0, (
+            "start, stop, and step must be >= 0"
+        )
 
         out_len = (stop - start + step - 1) // step
 
@@ -3523,9 +3523,9 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         start = start or 0
         stop = stop if stop is not None else self.align_len
         step = step or 1
-        assert (
-            start >= 0 and stop >= 0 and step > 0
-        ), "start, stop, and step must be >= 0"
+        assert start >= 0 and stop >= 0 and step > 0, (
+            "start, stop, and step must be >= 0"
+        )
 
         index = self._name_to_index[seqid]
         out_len = (stop - start + step - 1) // step
@@ -3913,7 +3913,7 @@ class AlignedDataView(new_sequence.SeqViewABC):
         # TODO: once design is settled, need to be tested
         seq_preview = (
             f"{self.parent.get_seq_array(seqid=self.seqid, start=0, stop=10)}..."
-            f"{self.parent.get_seq_array(seqid=self.seqid, start=self.parent_len-5)}"
+            f"{self.parent.get_seq_array(seqid=self.seqid, start=self.parent_len - 5)}"
             if self.parent_len > 15
             else self.parent.get_seq_array(seqid=self.seqid)
         )
@@ -4036,7 +4036,7 @@ class _IndexableSeqs:
 
     def __repr__(self) -> str:
         one_seq = self[self.parent.names[0]]
-        return f"({one_seq!r}, + {self.parent.num_seqs-1} seqs)"
+        return f"({one_seq!r}, + {self.parent.num_seqs - 1} seqs)"
 
     def __len__(self) -> int:
         return self.parent.num_seqs

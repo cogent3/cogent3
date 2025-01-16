@@ -33,7 +33,7 @@ def nexus_from_alignment(aln, seq_type, wrap=50):
     names_seqs = sorted(named_seqs.items())
     while cur_ix < aln_len:
         nexus_out.extend(
-            [f"    {x}    {y[cur_ix:cur_ix + wrap]}" for x, y in names_seqs],
+            [f"    {x}    {y[cur_ix : cur_ix + wrap]}" for x, y in names_seqs],
         )
         nexus_out.append("")
         cur_ix += wrap

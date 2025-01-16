@@ -1042,7 +1042,7 @@ def test_to_phylip():
     mt = new_moltype.DNA
     seq = mt.make_seq(seq="TCAGAT", name="xyz")
     got = seq.to_phylip()
-    expect = f"xyz{' '*27}TCAGAT"
+    expect = f"xyz{' ' * 27}TCAGAT"
     assert got == expect
 
 

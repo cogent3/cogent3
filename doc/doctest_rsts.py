@@ -43,7 +43,7 @@ def execute_ipynb(file_paths, exit_on_first, verbose):
 
         if failed and exit_on_first:
             raise SystemExit(
-                f"notebook execution failed in {test}, error saved " "in notebook",
+                f"notebook execution failed in {test}, error saved in notebook",
             )
 
 
@@ -72,7 +72,7 @@ def test_file(
             click.secho(r.stderr.decode("utf8"), fg="red")
             exit(1)
 
-        py_path = pathlib.Path(f'{str(test).removesuffix("rst")}py')
+        py_path = pathlib.Path(f"{str(test).removesuffix('rst')}py")
 
         cmnd = f"python {py_path!s}"
         r = subprocess.run(cmnd.split(), capture_output=True, check=False)

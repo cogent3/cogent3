@@ -426,9 +426,9 @@ class take_codon_positions:
             self._func = self.take_fourfold_positions
             return
 
-        assert (
-            1 <= min(positions) <= 3 and 1 <= max(positions) <= 3
-        ), "Invalid codon positions"
+        assert 1 <= min(positions) <= 3 and 1 <= max(positions) <= 3, (
+            "Invalid codon positions"
+        )
 
         by_index = len(positions) == 1
         if by_index:
@@ -968,9 +968,9 @@ class omit_bad_seqs:
         """
         if moltype:
             moltype = cogent3.get_moltype(moltype)
-        assert (
-            moltype.label.lower() in "dna rna protein protein_with_stop"
-        ), "moltype must be one of DNA, RNA or PROTEIN"
+        assert moltype.label.lower() in "dna rna protein protein_with_stop", (
+            "moltype must be one of DNA, RNA or PROTEIN"
+        )
         # refactor: design, this should raise a MolTypeError
         self._quantile = quantile
         self._gap_fraction = gap_fraction

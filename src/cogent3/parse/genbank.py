@@ -191,8 +191,7 @@ def parse_feature(lines):
         except ValueError:  # sometimes not delimited by =
             label, first_line = first, ""
         # chop off leading quote if appropriate
-        if first_line.startswith('"'):
-            first_line = first_line[1:]
+        first_line = first_line.removeprefix('"')
         remainder = [first_line] + feature_component[1:]
         # chop off trailing quote, if appropriate
         last_line = remainder[-1].rstrip()

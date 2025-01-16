@@ -28,9 +28,9 @@ class register_deserialiser:
             if not isinstance(type_str, str):
                 msg = f"{type_str!r} is not a string"
                 raise TypeError(msg)
-            assert (
-                type_str not in _deserialise_func_map
-            ), f"{type_str!r} already in {list(_deserialise_func_map)}"
+            assert type_str not in _deserialise_func_map, (
+                f"{type_str!r} already in {list(_deserialise_func_map)}"
+            )
         self._type_str = args
 
     def __call__(self, func):
@@ -54,7 +54,7 @@ _pat = re.compile("[a-z]")
 
 def str_to_version(v):
     letter = _pat.search(v)
-    return tuple(f"{v[:letter.start()]}.{letter.group()}.{letter.end():}".split("."))
+    return tuple(f"{v[: letter.start()]}.{letter.group()}.{letter.end():}".split("."))
 
 
 @register_deserialiser(

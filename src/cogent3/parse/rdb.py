@@ -84,8 +84,7 @@ def MinimalRdbParser(infile, strict=True):
 
         headerLines = rec[:index]
         sequence = "".join(rec[index:-1])  # strip off the delimiter
-        if sequence.endswith("*"):
-            sequence = sequence[:-1]  # strip off '*'
+        sequence = sequence.removesuffix("*")  # strip off '*'
 
         # if there are no sequences throw error or skip
         if not sequence:

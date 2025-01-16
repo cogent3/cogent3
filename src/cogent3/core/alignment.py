@@ -962,9 +962,9 @@ class _SequenceCollectionBase:
             combined = self.seqs + list(other)
 
         for seq in combined:
-            assert (
-                seq.__class__ == self_seq_class
-            ), f"Seq classes different: Expected {seq.__class__}, Got {self_seq_class}"
+            assert seq.__class__ == self_seq_class, (
+                f"Seq classes different: Expected {seq.__class__}, Got {self_seq_class}"
+            )
 
         combined_aln = self.__class__(
             data=combined,

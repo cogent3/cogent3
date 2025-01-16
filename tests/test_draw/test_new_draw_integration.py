@@ -165,9 +165,9 @@ def test_dotplot_regression():
     for trace_name in trace_names:
         index = [tr.name for tr in dp.traces].index(trace_name)
         dp.traces.pop(index)
-        assert trace_name not in [
-            tr.name for tr in dp.traces
-        ], "Trace name still present in dp traces even after popping off trace"
+        assert trace_name not in [tr.name for tr in dp.traces], (
+            "Trace name still present in dp traces even after popping off trace"
+        )
 
 
 def test_dotplot_with_diff_annotation_permutations(load_alignment):
