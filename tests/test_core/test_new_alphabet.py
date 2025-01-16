@@ -771,3 +771,18 @@ def test_pickling_alphabet(alpha):
     ser = pickle.dumps(alpha)
     got = pickle.loads(ser)
     assert got == alpha
+
+
+@pytest.mark.parametrize(
+    "alpha",
+    [
+        new_moltype.DNA.alphabet.get_kmer_alphabet(k=3),
+        new_genetic_code.DEFAULT.get_alphabet(include_stop=False),
+    ],
+)
+def test_trinucs_to_indices_dtype(alpha):
+    s = numpy.array([2, 0, 3] * 1000, dtype=numpy.uint8)
+    small = alpha.to_indices(s[:24])
+    assert len(small) == len(small.tobytes())
+    full = alpha.to_indices(s)
+    assert len(full) == len(full.tobytes())

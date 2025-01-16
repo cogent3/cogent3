@@ -980,7 +980,7 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         size = len(seq) - self.k + 1
         if independent_kmer:
             size = int(numpy.ceil(size / self.k))
-        result = numpy.zeros(size, dtype=get_array_type(size))
+        result = numpy.zeros(size, dtype=self.dtype)
         gap_char_index = self.monomers.gap_index or -1
         gap_index = self.gap_index or -1
         return seq_to_kmer_indices(
