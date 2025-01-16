@@ -294,9 +294,9 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
             index = [tr.name for tr in dp.traces].index(trace_name)
             dp.traces.pop(index)
 
-            assert trace_name not in [
-                tr.name for tr in dp.traces
-            ], "Trace name still present in dp traces even after popping off trace"
+            assert trace_name not in [tr.name for tr in dp.traces], (
+                "Trace name still present in dp traces even after popping off trace"
+            )
 
     def test_dotplot_annotated(self):  # ported
         """alignment with / without annotated seqs"""

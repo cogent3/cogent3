@@ -71,9 +71,9 @@ class register_datastore_reader:
         args = list(args)
         for i, suffix in enumerate(args):
             if suffix is None:
-                assert (
-                    suffix not in _datastore_reader_map
-                ), f"{suffix!r} already in {list(_datastore_reader_map)}"
+                assert suffix not in _datastore_reader_map, (
+                    f"{suffix!r} already in {list(_datastore_reader_map)}"
+                )
                 continue
 
             if not isinstance(suffix, str):
@@ -88,9 +88,9 @@ class register_datastore_reader:
             if suffix:
                 suffix = suffix if suffix[0] == "." else f".{suffix}"
 
-            assert (
-                suffix not in _datastore_reader_map
-            ), f"{suffix!r} already in {list(_datastore_reader_map)}"
+            assert suffix not in _datastore_reader_map, (
+                f"{suffix!r} already in {list(_datastore_reader_map)}"
+            )
             args[i] = suffix
 
         self._type_str = tuple(args)

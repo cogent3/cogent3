@@ -302,9 +302,9 @@ class DictArrayTemplate:
             array, _, _ = convert_for_dictarray(array, h, r)
         array = numpy.asarray(array, dtype=dtype)
         for dim, categories in enumerate(self.names):
-            assert (
-                len(categories) == numpy.shape(array)[dim]
-            ), f"cats={categories}; dim={dim}"
+            assert len(categories) == numpy.shape(array)[dim], (
+                f"cats={categories}; dim={dim}"
+            )
         return DictArray(array, self)
 
     def interpret_index(self, names):

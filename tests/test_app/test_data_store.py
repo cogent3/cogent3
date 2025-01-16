@@ -392,7 +392,7 @@ def test_append(w_dstore):
 
 
 def test_no_not_completed_subdir(nc_dstore):
-    expect = f"{len(nc_dstore.completed)+len(nc_dstore.not_completed)}x member"
+    expect = f"{len(nc_dstore.completed) + len(nc_dstore.not_completed)}x member"
     assert str(nc_dstore).startswith(expect)
     # first remove not_completed directory
     nc_dstore.drop_not_completed()

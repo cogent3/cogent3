@@ -1376,9 +1376,9 @@ class Sequence:
                 self.moltype.missing
                 or max(self.moltype.ambiguities.items(), key=lambda x: len(x[1]))[0]
             )
-        assert (
-            mask_char in self.moltype.most_degen_alphabet()
-        ), f"Invalid mask_char {mask_char}"
+        assert mask_char in self.moltype.most_degen_alphabet(), (
+            f"Invalid mask_char {mask_char}"
+        )
 
         annotations = []
         annot_types = [annot_types] if isinstance(annot_types, str) else annot_types

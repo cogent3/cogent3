@@ -168,9 +168,9 @@ class _SubstitutionModel:
         exclude = ("self", "__class__")
         self._serialisable = {k: v for k, v in d.items() if k not in exclude}
         # MISC
-        assert (
-            len(alphabet) < 65
-        ), "Alphabet too big. Try explicitly setting alphabet to PROTEIN or DNA"
+        assert len(alphabet) < 65, (
+            "Alphabet too big. Try explicitly setting alphabet to PROTEIN or DNA"
+        )
 
         self.name = name
         self._optimise_motif_probs = optimise_motif_probs
@@ -222,14 +222,14 @@ class _SubstitutionModel:
 
         # MOTIF PROBS
         if equal_motif_probs:
-            assert not (
-                motif_probs or motif_probs_alignment
-            ), "Motif probs equal or provided but not both"
+            assert not (motif_probs or motif_probs_alignment), (
+                "Motif probs equal or provided but not both"
+            )
             motif_probs = self.mprob_model.make_equal_motif_probs()
         elif motif_probs_alignment is not None:
-            assert (
-                not motif_probs
-            ), "Motif probs from alignment or provided but not both"
+            assert not motif_probs, (
+                "Motif probs from alignment or provided but not both"
+            )
             motif_probs = self.count_motifs(motif_probs_alignment)
             motif_probs = motif_probs.astype(float) / sum(motif_probs)
             assert len(alphabet) == len(motif_probs)

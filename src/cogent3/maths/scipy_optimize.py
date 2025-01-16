@@ -100,7 +100,7 @@ class Brent:
                 dum = xa
                 xa = xc
                 xc = dum
-            assert (xa < xb) and (xb < xc), "Not a bracketing interval."
+            assert xa < xb < xc, "Not a bracketing interval."
             fa = func(xa)
             fb = func(xb)
             fc = func(xc)

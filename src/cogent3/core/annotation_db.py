@@ -810,7 +810,7 @@ class SqliteAnnotationDbMixin:
     ) -> typing.Iterator[sqlite3.Row]:
         """return all fields"""
         if kwargs.get("attributes") and "%%" not in kwargs["attributes"]:
-            kwargs["attributes"] = f'%{kwargs["attributes"]}%'
+            kwargs["attributes"] = f"%{kwargs['attributes']}%"
         columns = kwargs.pop("columns", None)
         allow_partial = kwargs.pop("allow_partial", False)
         sql, vals = _select_records_sql(

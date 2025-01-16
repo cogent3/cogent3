@@ -91,8 +91,7 @@ def parse_trans_table(trans_table):
         if line != ";":
             label, name = line.split(None, 1)
             # take comma out of name if it is there
-            if name.endswith(","):
-                name = name[:-1]
+            name = name.removesuffix(",")
             # remove single quotes
             if name.startswith("'") and name.endswith("'"):
                 name = name[1:-1]

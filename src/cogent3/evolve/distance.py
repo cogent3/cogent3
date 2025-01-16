@@ -210,8 +210,7 @@ class EstimateDistances:
 
         if "local" in kwargs:
             warn(
-                "local argument ignored, provide it to dist_opt_args or"
-                " aln_opt_args",
+                "local argument ignored, provide it to dist_opt_args or aln_opt_args",
                 DeprecationWarning,
                 stacklevel=2,
             )

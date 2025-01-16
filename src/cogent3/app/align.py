@@ -508,7 +508,7 @@ class progressive_align:
 
         Optionally, a pre-computed guide tree can be provided.
 
-        >>> newick = "(Bandicoot:0.4,FlyingFox:0.05,(Rhesus:0.06," "Human:0.0):0.04);"
+        >>> newick = "(Bandicoot:0.4,FlyingFox:0.05,(Rhesus:0.06,Human:0.0):0.04);"
         >>> app_guided = get_app("progressive_align", model="HKY85", guide_tree=newick)
         >>> result = app_guided(aln)
         >>> print(
@@ -834,7 +834,7 @@ def cogent3_score(aln: AlignedSeqsType) -> float:
     ...     },
     ...     moltype="dna",
     ... )
-    >>> newick = "(Bandicoot:0.4,FlyingFox:0.05,(Rhesus:0.06," "Human:0.0):0.04);"
+    >>> newick = "(Bandicoot:0.4,FlyingFox:0.05,(Rhesus:0.06,Human:0.0):0.04);"
     >>> aligner = get_app("progressive_align", model="HKY85")
 
     Create a composable app that aligns the sequences and returns the

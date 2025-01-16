@@ -272,9 +272,9 @@ class model:
         self._verbose = verbose
         self._lower = lower
         self._upper = upper
-        assert not (
-            tree and unique_trees
-        ), "cannot provide a tree when unique_trees is True"
+        assert not (tree and unique_trees), (
+            "cannot provide a tree when unique_trees is True"
+        )
         self._unique_trees = unique_trees
         sm_args = deepcopy(sm_args or {})
         if "optimise_motif_probs" in sm_args:

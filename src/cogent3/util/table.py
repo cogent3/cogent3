@@ -830,9 +830,9 @@ class Table:
             self._repr_policy["show_shape"] = show_shape
             return
         if random:
-            assert (
-                type(random) == int and random > 0
-            ), "random must be a positive integer"
+            assert type(random) == int and random > 0, (
+                "random must be a positive integer"
+            )
             head = tail = None
         self._repr_policy = {
             "head": head,
@@ -1092,9 +1092,9 @@ class Table:
         other. See docstring for inner_join, or cross_join
         """
         if not inner_join:
-            assert (
-                columns_self is columns_other is None
-            ), "Cannot specify column indices for a cross join"
+            assert columns_self is columns_other is None, (
+                "Cannot specify column indices for a cross join"
+            )
             return self.cross_join(other, **kwargs)
 
         return self.inner_join(
@@ -2139,9 +2139,9 @@ class Table:
             as the header. Defaults to the first column.
         """
         select_as_header = select_as_header or self.columns.order[0]
-        assert (
-            select_as_header in self.columns
-        ), f'"{select_as_header}" not in table header'
+        assert select_as_header in self.columns, (
+            f'"{select_as_header}" not in table header'
+        )
 
         if len(self.distinct_values(select_as_header)) != len(self):
             msg = f"not all '{select_as_header}' values unique"
