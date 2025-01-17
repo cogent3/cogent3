@@ -14,12 +14,14 @@ import json
 import pathlib
 import pickle
 import re
+import typing
 from collections import defaultdict
 from collections.abc import Callable, MutableMapping
 from itertools import product
 from xml.sax.saxutils import escape
 
 import numpy
+import typing_extensions
 
 from cogent3.format import bedgraph
 from cogent3.format import table as table_format
@@ -1314,7 +1316,14 @@ class Table:
             columns = [self.index_name] + [c for c in columns if c != self.index_name]
         return self[:, columns]
 
-    def with_new_column(self, new_column, callback, columns=None, dtype=None, **kwargs):
+    def with_new_column(
+        self,
+        new_column: str,
+        callback: typing.Callable[[numpy.ndarray], typing.Iterable] | str,
+        columns: str | tuple[str, ...] | None = None,
+        dtype: numpy.dtype | None = None,
+        **kwargs,
+    ) -> typing_extensions.Self:
         """Returns new table with an additional column, computed using callback.
 
         Parameters

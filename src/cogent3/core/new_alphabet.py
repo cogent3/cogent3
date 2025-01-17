@@ -685,7 +685,11 @@ def deserialise_char_alphabet(data: dict) -> CharAlphabet:
 
 
 @numba.jit(nopython=True)
-def coord_conversion_coeffs(num_states, k, dtype=None):  # pragma: no cover
+def coord_conversion_coeffs(
+    num_states: int,
+    k: int,
+    dtype: numpy.dtype | None = None,
+) -> numpy.ndarray:  # pragma: no cover
     """coefficients for multi-dimensional coordinate conversion into 1D index"""
     return numpy.array([num_states ** (i - 1) for i in range(k, 0, -1)], dtype=dtype)
 

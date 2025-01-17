@@ -4842,6 +4842,18 @@ def test_aligned_view_parent_coords_reversed(alignment):
     assert got == expect
 
 
+@pytest.mark.parametrize("seq_coords", [True, False])
+def test_aligned_parent_coords_seq_coords(seq_coords):
+    data = {"s1": "GTTGAAGTAGTA", "s2": "GTG------GTA", "s3": "GCTGAAGTAGTG"}
+    s2_len = len(data["s2"].replace("-", "")) if seq_coords else len(data["s2"])
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    coords = {
+        aln.seqs[n].parent_coordinates(seq_coords=seq_coords)
+        for n in ["s1", "s2", "s3"]
+    }
+    assert coords == {("s2", 0, s2_len, 1), ("s3", 0, 12, 1), ("s1", 0, 12, 1)}
+
+
 @pytest.mark.parametrize("rced", [True, False])
 def test_get_seq_from_slice(alignment, rced):
     seqid = "seq2"

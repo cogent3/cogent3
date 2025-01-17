@@ -1,3 +1,5 @@
+import typing
+
 import numpy
 from numpy import array, digitize
 from numpy.random import random
@@ -8,10 +10,17 @@ from cogent3.util.misc import extend_docstring_from
 
 
 class _MotifNumberArray(DictArray):
-    def __init__(self, data, motifs, row_indices=None, dtype=None) -> None:
+    def __init__(
+        self,
+        data,
+        motifs: typing.Iterable[str],
+        row_indices: typing.Iterable[int] | None = None,
+        dtype: numpy.dtype | None = None,
+    ) -> None:
         """
         data
             series of numbers, can be numpy array, CategoryCounter, dict instances
+
         row_indices
             row_indices correspond to original indexes, defaults to length of
             motif
@@ -45,7 +54,7 @@ class _MotifNumberArray(DictArray):
         try:
             darr.array.astype(dtype, casting="safe")
         except TypeError as err:
-            raise ValueError(err)
+            raise ValueError(err) from err
         self.__dict__.update(darr.__dict__)
         self.motifs = motifs
         self.motif_length = len(motifs[0])
@@ -206,7 +215,7 @@ def make_pssm_from_tabular(tab_data):
 
 class MotifCountsArray(_MotifNumberArray):
     def __init__(self, counts, motifs, row_indices=None) -> None:
-        super().__init__(counts, motifs, row_indices, dtype=int)
+        super().__init__(counts, motifs, row_indices, dtype=numpy.int64)
 
     def _to_freqs(self, pseudocount=0):
         data = self.array
