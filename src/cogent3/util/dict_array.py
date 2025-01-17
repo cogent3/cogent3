@@ -293,7 +293,11 @@ class DictArrayTemplate:
         assert value.shape == self._shape, (value.shape, self._shape)
         return value
 
-    def wrap(self, array, dtype=None):
+    def wrap(
+        self,
+        array: numpy.ndarray,
+        dtype: numpy.dtype | None = None,
+    ) -> "DictArray":
         if hasattr(array, "keys"):
             if len(self._shape) == 2:
                 r, h = self.names[:2]
@@ -427,7 +431,11 @@ class DictArray:
 
         return self.template.wrap(self.array + other.array)
 
-    def __array__(self, dtype=None, copy=False):
+    def __array__(
+        self,
+        dtype: numpy.dtype | None = None,
+        copy: bool = False,
+    ) -> numpy.ndarray:
         array = self.array
         if dtype is not None:
             array = array.astype(dtype)

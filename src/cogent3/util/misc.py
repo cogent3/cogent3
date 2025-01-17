@@ -984,7 +984,10 @@ def docstring_to_summary_rest(text: str) -> tuple[str, str]:
     return summary, text.lstrip("\n").rstrip(" ")
 
 
-def ascontiguousarray(source_array, dtype=None):
+def ascontiguousarray(
+    source_array: numpy.ndarray,
+    dtype: numpy.dtype | None = None,
+) -> numpy.ndarray:
     if source_array is not None:
         return numpy.ascontiguousarray(source_array, dtype=dtype)
     return source_array
