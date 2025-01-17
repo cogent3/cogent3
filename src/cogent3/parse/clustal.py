@@ -40,9 +40,9 @@ def LabelLineParser(record, splitter, strict=True):
             key, val = splitter(line.rstrip())
         except:
             if strict:
-                raise RecordError(f"Failed to extract key and value from line {line}")
-            else:
-                continue  # just skip the line if not strict
+                msg = f"Failed to extract key and value from line {line}"
+                raise RecordError(msg)
+            continue  # just skip the line if not strict
 
         if key in result:
             result[key].append(val)

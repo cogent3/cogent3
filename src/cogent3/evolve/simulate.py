@@ -27,7 +27,12 @@ def _randomMotifGenerator(random_series, motif_probs):
 
 
 def evolve_sequence(
-    random_series, motifs, parent_seq, site_cats, psubs, preserved_sites=()
+    random_series,
+    motifs,
+    parent_seq,
+    site_cats,
+    psubs,
+    preserved_sites=(),
 ):
     """Evolve a new sequence derived from parent_seq.  Uses psubs[site_cats[i]]
     to pick a new motif derived from parent_seq[i]"""
@@ -46,7 +51,8 @@ def evolve_sequence(
                     prob = psub[parent_motif_index, dest_motif_index]
                     mprobs[dest_motif] = prob
                 randomMotifSources[site_cat, parent_motif] = _randomMotifGenerator(
-                    random_series, mprobs
+                    random_series,
+                    mprobs,
                 )
             edge_motif = next(randomMotifSources[site_cat, parent_motif])
         seq.append(edge_motif)
@@ -58,7 +64,7 @@ def random_sequence(random_series, motif_probs, sequence_length):
     return [getRootRandomMotif() for i in range(sequence_length)]
 
 
-class AlignmentEvolver(object):
+class AlignmentEvolver:
     # Encapsulates settings that are constant throughout the recursive generation
     # of a synthetic alignment.
 
@@ -71,7 +77,7 @@ class AlignmentEvolver(object):
         site_bins,
         psub_for,
         motifs,
-    ):
+    ) -> None:
         self.random_series = random_series
         self.orig_ambig = orig_ambig
         self.exclude_internal = exclude_internal
@@ -111,10 +117,7 @@ class AlignmentEvolver(object):
             # The result for this edge - a list of motifs
 
             # Keep original ambiguity codes
-            if edge.name in self.orig_ambig:
-                orig_seq_ambig = self.orig_ambig[edge.name]
-            else:
-                orig_seq_ambig = {}
+            orig_seq_ambig = self.orig_ambig.get(edge.name, {})
 
             # Matrix of substitution probabilities
             psubs = [self.psub_for(edge.name, bin) for bin in self.bin_names]

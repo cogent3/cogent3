@@ -20,8 +20,14 @@ class PsubMatrixDefn(PartitionDefn):
     independent_by_default = True
 
     def __init__(
-        self, default=None, name=None, dimensions=None, dimension=None, size=None, **kw
-    ):
+        self,
+        default=None,
+        name=None,
+        dimensions=None,
+        dimension=None,
+        size=None,
+        **kw,
+    ) -> None:
         PartitionDefn.__init__(self, default, name, dimensions, dimension, size, **kw)
 
         (dim_name, dim_cats) = self.internal_dimension
@@ -34,11 +40,11 @@ class PsubMatrixDefn(PartitionDefn):
         diag = numpy.identity(self.size, float)
         return (flat + diag) / 2
 
-    def check_value_is_valid(self, value, is_constant):
+    def check_value_is_valid(self, value, is_constant) -> None:
         if value.shape != (self.size, self.size):
+            msg = f"Wrong array shape {value.shape} for {self.name}, expected ({self.size},{self.size})"
             raise ValueError(
-                "Wrong array shape %s for %s, expected (%s,%s)"
-                % (value.shape, self.name, self.size, self.size)
+                msg,
             )
         for part in value:
             PartitionDefn.check_value_is_valid(self, part, is_constant)
@@ -46,9 +52,10 @@ class PsubMatrixDefn(PartitionDefn):
     def make_cells(self, input_soup=None, variable=None):
         uniq_cells = []
         all_cells = []
-        for i, v in enumerate(self.uniq):
+        for _i, v in enumerate(self.uniq):
             if v is None:
-                raise ValueError(f"input {self.name} not set")
+                msg = f"input {self.name} not set"
+                raise ValueError(msg)
             assert hasattr(v, "get_default_value"), v
             value = v.get_default_value()
             assert hasattr(value, "shape"), value
@@ -60,7 +67,9 @@ class PsubMatrixDefn(PartitionDefn):
                 rows = []
                 for part in value:
                     (ratios, partition) = self._make_partition_cell(
-                        self.name + "_part", scope, part
+                        self.name + "_part",
+                        scope,
+                        part,
                     )
                     all_cells.extend(ratios)
                     rows.append(partition)
@@ -71,8 +80,8 @@ class PsubMatrixDefn(PartitionDefn):
         return (all_cells, uniq_cells)
 
 
-class PartialyDiscretePsubsDefn(object):
-    def __init__(self, alphabet, psubs, discrete_edges):
+class PartialyDiscretePsubsDefn:
+    def __init__(self, alphabet, psubs, discrete_edges) -> None:
         motifs = tuple(alphabet)
         dpsubs = PsubMatrixDefn(
             name="dpsubs",

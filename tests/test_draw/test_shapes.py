@@ -27,4 +27,4 @@ class Test_Shapes(TestCase):
         rectangle = drawable.Rectangle([(5, 11)], 6, 7)
         rectangle.shift(5, 2)
 
-        self.assertTrue(rectangle.height == 7, "Height is consistent with shift")
+        assert rectangle.height == 7, "Height is consistent with shift"

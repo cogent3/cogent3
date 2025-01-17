@@ -1,14 +1,9 @@
 #!/usr/bin/env python
 
+import contextlib
 import sys  # ,hotshot
 
 from cogent3 import load_aligned_seqs, load_tree
-from cogent3.evolve.substitution_model import (
-    TimeReversibleCodon,
-    TimeReversibleDinucleotide,
-    TimeReversibleNucleotide,
-)
-from cogent3.maths import optimisers
 from cogent3.util import parallel
 
 ALIGNMENT = load_aligned_seqs(filename="data/brca1.fasta")
@@ -78,11 +73,10 @@ def quiet(f, *args, **kw):
 def evals_per_sec(*args):
     pc, aln = makePC(*args)  # quiet(makeLF, *args)
     speed1 = measure_evals_per_sec(pc, aln)
-    speed = str(int(speed1))
-    return speed
+    return str(int(speed1))
 
 
-class CompareImplementations(object):
+class CompareImplementations:
     def __init__(self, switch):
         self.switch = switch
 
@@ -112,34 +106,17 @@ def benchmarks(test):
         (False, "local"),
         (True, "global"),
     ]:
-        print(parameterisation, ["", "opt motifs"][optimise_motifs])
-        print(" " * 14, end=" ")
-        wcol = 5 * len(sequence_lengths) + 2
+        5 * len(sequence_lengths) + 2
         for alphabet in alphabets:
-            print(str(alphabet).ljust(wcol), end=" ")
-        print()
-        print("%-15s" % "", end=" ")  # "length"
+            pass
         for alphabet in alphabets:
             for sequence_length in sequence_lengths:
-                print("%4s" % sequence_length, end=" ")
-            print("  ", end=" ")
-        print()
-        print(
-            " " * 12
-            + (
-                " | ".join(
-                    [""]
-                    + ["-" * (len(sequence_lengths) * 5) for alphabet in alphabets]
-                    + [""]
-                )
-            )
-        )
+                pass
         for treesize in treesizes:
-            print(("%4s taxa    | " % treesize), end=" ")
             (taxa, tree) = subtree(treesize)
             for alphabet in alphabets:
                 for sequence_length in sequence_lengths:
-                    speed = test(
+                    test(
                         alphabet,
                         parameterisation == "local",
                         sequence_length,
@@ -147,11 +124,6 @@ def benchmarks(test):
                         tree,
                         optimise_motifs,
                     )
-                    print("%4s" % speed, end=" ")
-                print("| ", end=" ")
-            print()
-        print()
-    print()
 
 
 def silly_predicate(a, b):
@@ -182,7 +154,5 @@ if parallel.get_rank() > 0:
     # benchmarks(test)
     quiet(benchmarks, test)
 else:
-    try:
+    with contextlib.suppress(KeyboardInterrupt):
         benchmarks(test)
-    except KeyboardInterrupt:
-        print(" OK")

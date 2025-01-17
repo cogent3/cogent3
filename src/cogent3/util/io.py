@@ -3,13 +3,14 @@ import functools
 import shutil
 import uuid
 from bz2 import open as bzip_open
+from collections.abc import Callable, Iterator
 from gzip import open as gzip_open
 from io import TextIOWrapper
 from lzma import open as lzma_open
 from os import PathLike, remove
 from pathlib import Path, PurePath
 from tempfile import mkdtemp
-from typing import IO, Callable, Iterator, Optional, Tuple, Union
+from typing import IO
 from urllib.parse import ParseResult, urlparse
 from urllib.request import urlopen
 from zipfile import ZipFile
@@ -18,11 +19,11 @@ from chardet import detect
 
 from cogent3.util.misc import _wout_period
 
-PathType = Union[str, PathLike, PurePath]
+PathType = str | PathLike | PurePath | Path
 
 
 @functools.singledispatch
-def is_url(path: Union[str, bytes, Path]) -> bool:
+def is_url(path: str | bytes | Path) -> bool:
     """whether a path is a url"""
     return False
 
@@ -43,8 +44,9 @@ def _(path: ParseResult) -> bool:
 
 
 def _get_compression_open(
-    path: Optional[PathType] = None, compression: Optional[str] = None
-) -> Optional[Callable]:
+    path: PathType | None = None,
+    compression: str | None = None,
+) -> Callable | None:
     """returns function for opening compression formats
 
     Parameters
@@ -61,7 +63,7 @@ def _get_compression_open(
     assert path or compression
     if compression is None:
         _, compression = get_format_suffixes(path)
-    return _compression_handlers.get(compression, None)
+    return _compression_handlers.get(compression)
 
 
 def open_zip(filename: PathType, mode: str = "r", **kwargs) -> IO:
@@ -88,7 +90,8 @@ def open_zip(filename: PathType, mode: str = "r", **kwargs) -> IO:
     mode = mode.strip("t")
     with ZipFile(filename) as zf:
         if len(zf.namelist()) != 1:
-            raise ValueError("Archive is supposed to have only one record.")
+            msg = "Archive is supposed to have only one record."
+            raise ValueError(msg)
 
         opened = zf.open(zf.namelist()[0], mode=mode, **kwargs)
 
@@ -121,7 +124,8 @@ def open_(filename: PathType, mode="rt", **kwargs) -> IO:
     an object compatible with the file protocol
     """
     if not filename:
-        raise ValueError(f"{filename} not a valid file name or url")
+        msg = f"{filename} not a valid file name or url"
+        raise ValueError(msg)
 
     if is_url(filename):
         return open_url(filename, mode=mode, **kwargs)
@@ -142,7 +146,7 @@ def open_(filename: PathType, mode="rt", **kwargs) -> IO:
     return op(filename, mode, encoding=encoding, **kwargs)
 
 
-def open_url(url: Union[str, ParseResult], mode="rt", **kwargs) -> IO:
+def open_url(url: str | ParseResult, mode="rt", **kwargs) -> IO:
     """open a url
 
     Parameters
@@ -161,15 +165,17 @@ def open_url(url: Union[str, ParseResult], mode="rt", **kwargs) -> IO:
     file object which reads binary if "b" in mode, else text.
     """
     _, compression = get_format_suffixes(
-        getattr(url, "path", url)
+        getattr(url, "path", url),
     )  # handling possibility of ParseResult
     mode = mode or "r"
 
     if "r" not in mode:
-        raise IOError("opening a url only allowed in read mode")
+        msg = "opening a url only allowed in read mode"
+        raise OSError(msg)
 
     if not is_url(url):
-        raise IOError(f"URL scheme must be http, https or file, not {str(url)[:20]!r}")
+        msg = f"URL scheme must be http, https or file, not {str(url)[:20]!r}"
+        raise OSError(msg)
 
     url_parsed = url if isinstance(url, ParseResult) else urlparse(url)
 
@@ -205,8 +211,13 @@ class atomic_write:
     """performs atomic write operations, cleans up if fails"""
 
     def __init__(
-        self, path: PathType, tmpdir=None, in_zip=None, mode="w", encoding=None
-    ):
+        self,
+        path: PathType,
+        tmpdir=None,
+        in_zip=None,
+        mode="w",
+        encoding=None,
+    ) -> None:
         """
 
         Parameters
@@ -273,10 +284,10 @@ class atomic_write:
         tmpdir = Path(mkdtemp(dir=parent)) if tmpdir is None else Path(tmpdir)
 
         if not tmpdir.exists():
-            raise FileNotFoundError(f"{tmpdir} directory does not exist")
+            msg = f"{tmpdir} directory does not exist"
+            raise FileNotFoundError(msg)
 
-        tmp_path = tmpdir / name
-        return tmp_path
+        return tmpdir / name
 
     def _get_fileobj(self):
         """returns file to be written to"""
@@ -288,7 +299,7 @@ class atomic_write:
     def __enter__(self) -> IO:
         return self._get_fileobj()
 
-    def _close_rename_standard(self, src):
+    def _close_rename_standard(self, src) -> None:
         dest = Path(self._path)
         try:
             dest.unlink()
@@ -299,7 +310,7 @@ class atomic_write:
 
         shutil.rmtree(src.parent)
 
-    def _close_rename_zip(self, src):
+    def _close_rename_zip(self, src) -> None:
         with ZipFile(self._in_zip, "a") as out:
             out.write(str(src), arcname=self._path)
 
@@ -314,30 +325,27 @@ class atomic_write:
             self.succeeded = False
             shutil.rmtree(self._tmppath.parent)
 
-    def write(self, text):
+    def write(self, text) -> None:
         """writes text to file"""
         fileobj = self._get_fileobj()
         fileobj.write(text)
 
-    def close(self):
+    def close(self) -> None:
         """closes file"""
         self.__exit__(None, None, None)
 
 
-T = Optional[str]
+T = str | None
 
 
-def get_format_suffixes(filename: PathType) -> Tuple[T, T]:
+def get_format_suffixes(filename: PathType) -> tuple[T, T]:
     """returns file, compression suffixes"""
     filename = Path(filename)
     if not filename.suffix:
         return None, None
 
     suffixes = [_wout_period.sub("", sfx).lower() for sfx in filename.suffixes[-2:]]
-    if suffixes[-1] in _compression_handlers:
-        cmp_suffix = suffixes[-1]
-    else:
-        cmp_suffix = None
+    cmp_suffix = suffixes[-1] if suffixes[-1] in _compression_handlers else None
 
     if len(suffixes) == 2 and cmp_suffix is not None:
         suffix = suffixes[0]
@@ -348,7 +356,7 @@ def get_format_suffixes(filename: PathType) -> Tuple[T, T]:
     return suffix, cmp_suffix
 
 
-def remove_files(list_of_filepaths, error_on_missing=True):
+def remove_files(list_of_filepaths, error_on_missing=True) -> None:
     """Remove list of filepaths, optionally raising an error if any are missing"""
     missing = []
     for fp in list_of_filepaths:
@@ -358,7 +366,8 @@ def remove_files(list_of_filepaths, error_on_missing=True):
             missing.append(fp)
 
     if error_on_missing and missing:
-        raise OSError("Some filepaths were not accessible: %s" % "\t".join(missing))
+        msg = "Some filepaths were not accessible: {}".format("\t".join(missing))
+        raise OSError(msg)
 
 
 def path_exists(path: PathType) -> bool:
@@ -369,7 +378,8 @@ def path_exists(path: PathType) -> bool:
 
 
 def iter_splitlines(
-    path: PathType, chunk_size: Optional[int] = 1_000_000
+    path: PathType,
+    chunk_size: int | None = 1_000_000,
 ) -> Iterator[str]:
     """yields line from file
 
@@ -421,8 +431,8 @@ def iter_splitlines(
 
 def iter_line_blocks(
     path: PathType,
-    num_lines: Optional[int] = 1000,
-    chunk_size: Optional[int] = 5_000_000,
+    num_lines: int | None = 1000,
+    chunk_size: int | None = 5_000_000,
 ) -> Iterator[list[str]]:
     """yields list with num_lines str from path
 

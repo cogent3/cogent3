@@ -1,6 +1,5 @@
 import os
 import pathlib
-import typing
 
 import numpy
 
@@ -30,7 +29,8 @@ def get_domain(total, element, is_y, space=0.01):
         return [0, 1]
 
     if element > total - 1:
-        raise ValueError(f"{element} index too big for {total}")
+        msg = f"{element} index too big for {total}"
+        raise ValueError(msg)
 
     per_element = 1 / total
     space = min(space / 2, per_element / 10)
@@ -44,7 +44,7 @@ def get_domain(total, element, is_y, space=0.01):
     return domains[element]
 
 
-def _show_(cls, renderer=None, **kwargs):
+def _show_(cls, renderer=None, **kwargs) -> None:
     """display figure
 
     Parameters
@@ -70,7 +70,8 @@ def _show_(cls, renderer=None, **kwargs):
     drawable = getattr(cls, "drawable", None) or cls
     fig = getattr(drawable, "figure", None)
     if fig is None:
-        raise TypeError(f"{cls} does not have a drawable or figure attribute")
+        msg = f"{cls} does not have a drawable or figure attribute"
+        raise TypeError(msg)
 
     width = kwargs.get("width", fig.layout.width)
     height = kwargs.get("height", fig.layout.height)
@@ -79,7 +80,7 @@ def _show_(cls, renderer=None, **kwargs):
     show(fig, **kwargs)
 
 
-def _iplot_(cls, width=None, height=None):
+def _iplot_(cls, width=None, height=None) -> None:
     from plotly.offline import iplot as _iplot
 
     layout = {}
@@ -116,24 +117,25 @@ class Drawable:
         layout=None,
         xtitle=None,
         ytitle=None,
-    ):
+    ) -> None:
         if traces is None:
             self._traces = []
         else:
             try:
                 self._traces = [UnionDict(trace) for trace in traces]
             except ValueError:
-                raise TypeError(f"expected a series of dicts, got {traces}")
-        title = title if title is None else dict(text=title)
+                msg = f"expected a series of dicts, got {traces}"
+                raise TypeError(msg)
+        title = title if title is None else {"text": title}
         self._default_layout = UnionDict(
-            font=dict(family="Balto", size=14),
+            font={"family": "Balto", "size": 14},
             autosize=False,
             hovermode="closest",
             template=None,
             plot_bgcolor=None,
-            margin=dict(l=50, r=50, t=50, b=50, pad=4),
-            xaxis=dict(visible=visible_axes),
-            yaxis=dict(visible=visible_axes),
+            margin={"l": 50, "r": 50, "t": 50, "b": 50, "pad": 4},
+            xaxis={"visible": visible_axes},
+            yaxis={"visible": visible_axes},
             title=title,
             width=width,
             height=height,
@@ -148,22 +150,22 @@ class Drawable:
             width=width,
             height=height,
             showlegend=showlegend,
-            xaxis=dict(visible=visible_axes),
-            yaxis=dict(visible=visible_axes),
+            xaxis={"visible": visible_axes},
+            yaxis={"visible": visible_axes},
         )
         self.layout |= overrides
         self.xtitle = xtitle
         self.ytitle = ytitle
         self.title = title
 
-    def _repr_html_(self):
+    def _repr_html_(self) -> None:
         self.show()
 
     @property
     def traces(self):
         return self._traces
 
-    def add_trace(self, trace):
+    def add_trace(self, trace) -> None:
         self.traces.append(UnionDict(trace))
 
     def bound_to(self, obj):
@@ -191,10 +193,10 @@ class Drawable:
         return Figure(**self.figure)
 
     @extend_docstring_from(_show_)
-    def show(self, renderer=None, **kwargs):
+    def show(self, renderer=None, **kwargs) -> None:
         _show_(self, renderer, **kwargs)
 
-    def write(self, path, **kwargs):
+    def write(self, path, **kwargs) -> None:
         """writes static image file, suffix dictates format"""
         from plotly.io import write_image
 
@@ -221,7 +223,7 @@ class Drawable:
         return self.layout.width
 
     @fig_width.setter
-    def fig_width(self, width):
+    def fig_width(self, width) -> None:
         self.layout.width = width
 
     @property
@@ -230,7 +232,7 @@ class Drawable:
         return self.layout.height
 
     @fig_height.setter
-    def fig_height(self, height):
+    def fig_height(self, height) -> None:
         self.layout.height = height
 
 
@@ -266,8 +268,8 @@ class AnnotatedDrawable(Drawable):
         width=500,
         height=500,
         layout=None,
-    ):
-        super(AnnotatedDrawable, self).__init__(
+    ) -> None:
+        super().__init__(
             visible_axes=True,
             showlegend=True,
             width=width,
@@ -322,7 +324,7 @@ class AnnotatedDrawable(Drawable):
                 "yaxis": {"anchor": "x", "domain": [0.109, 1.0]},
                 "yaxis2": {"anchor": "x2", "domain": [0.109, 1.0]},
                 "yaxis3": {"anchor": "x3", "domain": [0.0, 0.099]},
-            }
+            },
         )
         layout |= self.layout
         fig = UnionDict(data=[], layout=layout)
@@ -373,11 +375,15 @@ class AnnotatedDrawable(Drawable):
         fig.data.extend(traces)
         # configure axes for titles, limits, border and ticks
         fig.layout.yaxis |= dict(
-            title=dict(text=self.ytitle), range=self.yrange, **ticks_on_kwargs
+            title={"text": self.ytitle},
+            range=self.yrange,
+            **ticks_on_kwargs,
         )
 
         fig.layout.xaxis3 |= dict(
-            title=dict(text=self.xtitle), range=self.xrange, **ticks_on_kwargs
+            title={"text": self.xtitle},
+            range=self.xrange,
+            **ticks_on_kwargs,
         )
 
         # adjust row width of left plot for number of feature tracks
@@ -388,10 +394,16 @@ class AnnotatedDrawable(Drawable):
         xaxis_domain = list(layout.xaxis.domain)
         xaxis_domain[1] = left_prop * xaxis_domain[1]
         fig.layout.xaxis |= dict(
-            title=None, range=left_range, domain=xaxis_domain, **ticks_off_kwargs
+            title=None,
+            range=left_range,
+            domain=xaxis_domain,
+            **ticks_off_kwargs,
         )
         fig.layout.xaxis |= dict(
-            title={}, range=left_range, domain=xaxis_domain, **ticks_off_kwargs
+            title={},
+            range=left_range,
+            domain=xaxis_domain,
+            **ticks_off_kwargs,
         )
 
         space = 0.01
@@ -403,7 +415,10 @@ class AnnotatedDrawable(Drawable):
         yaxis_domain = list(layout.yaxis3.domain)
         yaxis_domain[1] = bottom_prop * yaxis_domain[1]
         fig.layout.yaxis3 |= dict(
-            title={}, range=bottom_range, domain=yaxis_domain, **ticks_off_kwargs
+            title={},
+            range=bottom_range,
+            domain=yaxis_domain,
+            **ticks_off_kwargs,
         )
 
         # and bottom of the boxes above
@@ -437,10 +452,14 @@ class AnnotatedDrawable(Drawable):
         fig.data.extend(self.traces)
 
         fig.layout.xaxis |= dict(
-            title=dict(text=self.xtitle), range=self.xrange, **ticks_on_kwargs
+            title={"text": self.xtitle},
+            range=self.xrange,
+            **ticks_on_kwargs,
         )
         fig.layout.yaxis |= dict(
-            title=dict(text=self.ytitle), range=self.yrange, **ticks_on_kwargs
+            title={"text": self.ytitle},
+            range=self.yrange,
+            **ticks_on_kwargs,
         )
 
         # bottom traces
@@ -460,7 +479,9 @@ class AnnotatedDrawable(Drawable):
 
         fig.data.extend(traces)
         fig.layout.yaxis2 |= dict(
-            title={}, range=[0, int(max_y) + 1], **ticks_off_kwargs
+            title={},
+            range=[0, int(max_y) + 1],
+            **ticks_off_kwargs,
         )
         return fig
 
@@ -484,10 +505,14 @@ class AnnotatedDrawable(Drawable):
         fig.data.extend(self.traces)
 
         fig.layout.xaxis2 |= dict(
-            title=self.xtitle, range=self.xrange, **ticks_on_kwargs
+            title=self.xtitle,
+            range=self.xrange,
+            **ticks_on_kwargs,
         )
         fig.layout.yaxis |= dict(
-            title=self.ytitle, range=self.yrange, **ticks_on_kwargs
+            title=self.ytitle,
+            range=self.yrange,
+            **ticks_on_kwargs,
         )
 
         # left track
@@ -506,7 +531,9 @@ class AnnotatedDrawable(Drawable):
 
         fig.data.extend(traces)
         fig.layout.xaxis |= dict(
-            title=None, range=[0, int(max_x) + 1], **ticks_off_kwargs
+            title=None,
+            range=[0, int(max_x) + 1],
+            **ticks_off_kwargs,
         )
         return fig
 
@@ -523,7 +550,7 @@ class AnnotatedDrawable(Drawable):
 
         return func()
 
-    def remove_track(self, left_track=False, bottom_track=False):
+    def remove_track(self, left_track=False, bottom_track=False) -> None:
         """
         Parameters
         ----------
@@ -556,7 +583,7 @@ class Shape:
         hoverinfo=None,
         fillcolor=None,
         **kwargs,
-    ):
+    ) -> None:
         self.filled = filled
         self.fillcolor = fillcolor
         self._legendgroup = legendgroup
@@ -570,8 +597,8 @@ class Shape:
             self.x += x
             self.y += y
         else:
-            self.x[self.x != None] += x
-            self.y[self.y != None] += y
+            self.x[self.x != None] += x  # noqa
+            self.y[self.y != None] += y  # noqa
 
         return self
 
@@ -583,15 +610,13 @@ class Shape:
     def top(self):
         if not isinstance(self.y, numpy.ndarray):
             return numpy.max(self.y)
-        else:
-            return numpy.max(self.y[self.y != None])
+        return numpy.max(self.y[self.y != None])  # noqa
 
     @property
     def bottom(self):
         if not isinstance(self.y, numpy.ndarray):
             return numpy.min(self.y)
-        else:
-            return numpy.min(self.y[self.y != None])
+        return numpy.min(self.y[self.y != None])  # noqa
 
     @property
     def middle(self):
@@ -612,7 +637,7 @@ class Shape:
             mode=self._mode,
             fill="toself",
             fillcolor=self.fillcolor,
-            line=dict(color=self.fillcolor),
+            line={"color": self.fillcolor},
             text=self.text,
             name=name,
             legendgroup=self._legendgroup,
@@ -622,8 +647,8 @@ class Shape:
 
 
 class Rectangle(Shape):
-    def __init__(self, coords, y=0, height=0.25, **kwargs):
-        super(Rectangle, self).__init__(**kwargs)
+    def __init__(self, coords, y=0, height=0.25, **kwargs) -> None:
+        super().__init__(**kwargs)
         width = abs(coords[0][0] - coords[0][1])
         x_coord = min(coords[0][0], coords[0][1])
         xs = [x_coord, x_coord, x_coord + width, x_coord + width, x_coord]
@@ -642,8 +667,8 @@ class Rectangle(Shape):
 
 
 class Diamond(Shape):
-    def __init__(self, coords, y=0, height=0.25, **kwargs):
-        super(Diamond, self).__init__(**kwargs)
+    def __init__(self, coords, y=0, height=0.25, **kwargs) -> None:
+        super().__init__(**kwargs)
         width = abs(coords[0][0] - coords[0][1])
         x_coord = min(coords[0][0], coords[0][1])
         hh = height / 2
@@ -711,7 +736,9 @@ def _make_arrow_head(
     x_coord = min(coord[0], coord[1])
     hh = height * head_width_frac * 2
     hw = _calc_arrow_width(
-        parent_length=parent_length, feature_width=width, frac=head_width_frac
+        parent_length=parent_length,
+        feature_width=width,
+        frac=head_width_frac,
     )
 
     # Coordinates for arrow head
@@ -743,12 +770,14 @@ def _make_arrow_head(
 
 
 def _connecting_lines(
-    x_grp: list[list[float]], y_grp: list[list[float]], connect_y: float
-) -> tuple[list[typing.Union[float, None]]]:
+    x_grp: list[list[float]],
+    y_grp: list[list[float]],
+    connect_y: float,
+) -> tuple[list[float | None]]:
     new_xs, new_ys = x_grp[0][:], y_grp[0][:]
     y_connect_coord = [None, connect_y, connect_y, None]
-    for i, (xs, ys) in enumerate(zip(x_grp[1:], y_grp[1:]), 1):
-        new_xs.extend([None, max(x_grp[i - 1]), min(x_grp[i]), None] + xs)
+    for i, (xs, ys) in enumerate(zip(x_grp[1:], y_grp[1:], strict=False), 1):
+        new_xs.extend([None, max(x_grp[i - 1]), min(x_grp[i]), None, *xs])
         new_ys.extend(y_connect_coord + ys)
     return new_xs, new_ys
 
@@ -761,9 +790,9 @@ class Arrow(Shape):
         height=0.25,
         arrow_head_w=0.05,
         reverse=False,
-        parent_length: typing.Optional[int] = None,
+        parent_length: int | None = None,
         **kwargs,
-    ):
+    ) -> None:
         super().__init__(**kwargs)
 
         if len(coords) == 1 or reverse:
@@ -803,8 +832,8 @@ class Arrow(Shape):
 class Point(Shape):
     _mode = "markers"
 
-    def __init__(self, x, y, size=14, symbol="square", **kwargs):
-        super(Point, self).__init__(**kwargs)
+    def __init__(self, x, y, size=14, symbol="square", **kwargs) -> None:
+        super().__init__(**kwargs)
         self.x = numpy.array([x], dtype="O")
         self.y = numpy.array([y], dtype="O")
         self._size = size
@@ -814,32 +843,32 @@ class Point(Shape):
 class _MakeShape:
     """container class that builds annotation shapes"""
 
-    _colors = dict(
-        cds="rgba(0,0,150,0.75)",
-        rrna="rgba(0,0,150,0.75)",
-        misc_rna="rgba(0,0,150,0.75)",
-        trna="rgba(0,0,150,0.75)",
-        exon="rgba(0,0,100,0.75)",
-        gene="rgba(161,0,0,0.75)",
-        transcript="rgba(140,102,139,0.75)",
-        mrna="rgba(140,102,139,0.75)",
-        snp="rgba(200,0,0,0.75)",
-        snv="rgba(200,0,0,0.75)",
-    )
-    _shapes = dict(
-        cds=Arrow,
-        rrna=Arrow,
-        misc_rna=Arrow,
-        trna=Arrow,
-        exon=Arrow,
-        transcript=Arrow,
-        mrna=Arrow,
-        gene=Arrow,
-        repeat=Rectangle,
-        snp=Point,
-        snv=Point,
-        variation=Diamond,
-    )
+    _colors = {
+        "cds": "rgba(0,0,150,0.75)",
+        "rrna": "rgba(0,0,150,0.75)",
+        "misc_rna": "rgba(0,0,150,0.75)",
+        "trna": "rgba(0,0,150,0.75)",
+        "exon": "rgba(0,0,100,0.75)",
+        "gene": "rgba(161,0,0,0.75)",
+        "transcript": "rgba(140,102,139,0.75)",
+        "mrna": "rgba(140,102,139,0.75)",
+        "snp": "rgba(200,0,0,0.75)",
+        "snv": "rgba(200,0,0,0.75)",
+    }
+    _shapes = {
+        "cds": Arrow,
+        "rrna": Arrow,
+        "misc_rna": Arrow,
+        "trna": Arrow,
+        "exon": Arrow,
+        "transcript": Arrow,
+        "mrna": Arrow,
+        "gene": Arrow,
+        "repeat": Rectangle,
+        "snp": Point,
+        "snv": Point,
+        "variation": Diamond,
+    }
 
     def __call__(self, type_=None, name=None, coords=None, **kwargs):
         if hasattr(type_, "map"):
@@ -853,8 +882,9 @@ class _MakeShape:
         else:
             reverse = coords[0][0] > coords[-1][1]
             if coords is None:
-                raise ValueError("No coordinates defined")
-        kwargs |= dict(reverse=reverse)
+                msg = "No coordinates defined"
+                raise ValueError(msg)
+        kwargs |= {"reverse": reverse}
 
         klass = self._shapes.get(type_.lower(), Rectangle)
         color = self.get_colour(type_)

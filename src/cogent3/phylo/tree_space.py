@@ -43,13 +43,12 @@ def ismallest(data, size):
 def tree2ancestry(tree, order=None):
     nodes = tree.unrooted().get_edge_vector()[:-1]
     if order is not None:
-        lookup = dict([(k, i) for (i, k) in enumerate(order)])
+        lookup = {k: i for (i, k) in enumerate(order)}
 
         def _ordered_tips_first(n):
             if n.children:
                 return len(order)
-            else:
-                return lookup[n.name]
+            return lookup[n.name]
 
         nodes.sort(key=_ordered_tips_first)
 
@@ -81,14 +80,8 @@ def ancestry2tree(A, lengths, tip_names):
     for i in numpy.argsort(numpy.sum(A, axis=0)):
         children = [j for j in range(len(A)) if A[j, i] and j != i]
         child_nodes = [free.pop(j) for j in children if j in free]
-        if child_nodes:
-            name = None
-        else:
-            name = tips[i]
-        if lengths is None:
-            params = {}
-        else:
-            params = {"length": lengths[i]}
+        name = None if child_nodes else tips[i]
+        params = {} if lengths is None else {"length": lengths[i]}
         node = constructor(child_nodes, name, params)
         free[i] = node
     return constructor(list(free.values()), "root", {})
@@ -115,7 +108,7 @@ def grown(B, split_edge):
     return A
 
 
-class TreeEvaluator(object):
+class TreeEvaluator:
     """Subclass must provide make_tree_scorer and result2output"""
 
     def results2output(self, results):
@@ -189,11 +182,12 @@ class TreeEvaluator(object):
             for tree in start:
                 # check the start tree represents a subset of tips
                 assert set(tree.get_tip_names()) < set(
-                    self.names
+                    self.names,
                 ), "Starting tree names not a subset of the sequence names"
 
                 (ancestry, fixed_names2, lengths) = tree2ancestry(
-                    tree, order=fixed_names
+                    tree,
+                    order=fixed_names,
                 )
                 assert fixed_names2 == fixed_names
                 trees.append((None, None, ancestry))
@@ -205,15 +199,13 @@ class TreeEvaluator(object):
 
         tree_size = len(names)
         assert tree_size > 3
-        if a > tree_size:
-            a = tree_size
-        if a < 4:
-            a = 4
+        a = min(a, tree_size)
+        a = max(a, 4)
 
         # All trees of size a-1, no need to compare them
         for n in range(init_tree_size + 1, a):
             trees2 = []
-            for err2, lengths2, ancestry in trees:
+            for _err2, _lengths2, ancestry in trees:
                 for split_edge in range(len(ancestry)):
                     ancestry2 = grown(ancestry, split_edge)
                     trees2.append((None, None, ancestry2))
@@ -268,8 +260,4 @@ class TreeEvaluator(object):
             self.result2output(err, ancestry, lengths, names)
             for (err, lengths, ancestry) in trees
         )
-        if return_all:
-            result = self.results2output(results)
-        else:
-            result = next(results)
-        return result
+        return self.results2output(results) if return_all else next(results)

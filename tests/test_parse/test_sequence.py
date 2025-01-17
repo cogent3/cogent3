@@ -28,13 +28,13 @@ def test_line_based_wrap_invalid_types():
 @pytest.fixture(params=(str, pathlib.Path))
 def gde_path(DATA_DIR, request):
     path = DATA_DIR / "formattest.gde"
-    yield request.param(path)
+    return request.param(path)
 
 
 @pytest.fixture(params=(list, tuple))
 def gde_data(DATA_DIR, request):
     path = DATA_DIR / "formattest.gde"
-    yield request.param(path.read_text().splitlines())
+    return request.param(path.read_text().splitlines())
 
 
 def test_line_based_wrap_load_valid_path_types(gde_path):
@@ -65,19 +65,19 @@ def test_line_based_url(DATA_DIR):
     assert from_url == from_local
 
 
-@pytest.mark.parametrize("fmt", ("gb", "gbk", "gbff", "genbank"))
+@pytest.mark.parametrize("fmt", ["gb", "gbk", "gbff", "genbank"])
 def test_is_genbank(fmt):
     assert sequence.is_genbank(fmt)
 
 
-@pytest.mark.parametrize("fmt", ("blah", "fa", "xml", "nex", None))
+@pytest.mark.parametrize("fmt", ["blah", "fa", "xml", "nex", None])
 def test_is_not_genbank(fmt):
     assert not sequence.is_genbank(fmt)
 
 
 @pytest.fixture(params=("phylip", "phy"))
 def phylip_file(DATA_DIR, tmp_path, request):
-    with open(DATA_DIR / "interleaved.phylip", mode="rt") as f:
+    with open(DATA_DIR / "interleaved.phylip") as f:
         data = f.read()
     outpath = tmp_path / f"interleaved.{request.param}"
     outpath.write_text(data)
@@ -87,5 +87,5 @@ def phylip_file(DATA_DIR, tmp_path, request):
 def test_select_parser_phylip_suffixes(phylip_file):
     from cogent3 import load_aligned_seqs
 
-    got = load_aligned_seqs(phylip_file)
+    got = load_aligned_seqs(phylip_file, moltype="dna")
     assert set(got.names) == {"human", "chimp", "mouse"}

@@ -129,7 +129,7 @@ def UPGMA_cluster(matrix, node_order, large_number):
     """
     num_entries = len(node_order)
     tree = None
-    for i in range(num_entries - 1):
+    for _i in range(num_entries - 1):
         smallest_index = find_smallest_index(matrix)
         index1, index2 = smallest_index
         # if smallest_index is on the diagonal set the diagonal to large_number

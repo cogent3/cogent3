@@ -10,7 +10,7 @@ from cogent3.draw.drawable import AnnotatedDrawable, Drawable
 from cogent3.util.union_dict import UnionDict
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def seqs_dict():
     return {
         "seq1": "CAGGTCGACCTCGGC---------CACGAC",
@@ -22,7 +22,7 @@ def seqs_dict():
     }
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def annotated_seq(DATA_DIR):
     return load_seq(
         DATA_DIR / "c_elegans_WS199_dna_shortened.fasta",
@@ -44,17 +44,29 @@ def load_alignment():
         aln = aln.omit_gap_pos()
         if annotate1:
             db.add_feature(
-                seqid=aln.names[0], biotype="gene", name="abcde1", spans=[(20, 50)]
+                seqid=aln.names[0],
+                biotype="gene",
+                name="abcde1",
+                spans=[(20, 50)],
             )
             db.add_feature(
-                seqid=aln.names[0], biotype="variation", name="one", spans=[(11, 12)]
+                seqid=aln.names[0],
+                biotype="variation",
+                name="one",
+                spans=[(11, 12)],
             )
         if annotate2:
             db.add_feature(
-                seqid=aln.names[1], biotype="gene", name="abcde2", spans=[(20, 50)]
+                seqid=aln.names[1],
+                biotype="gene",
+                name="abcde2",
+                spans=[(20, 50)],
             )
             db.add_feature(
-                seqid=aln.names[1], biotype="domain", name="abcde2", spans=[(10, 15)]
+                seqid=aln.names[1],
+                biotype="domain",
+                name="abcde2",
+                spans=[(10, 15)],
             )
         aln.annotation_db = db
         return aln
@@ -69,7 +81,7 @@ def check_drawable_attrs(fig, type_):
     assert "data" in fig, "Expected 'data' key in fig"
     # data traces should be of type "scatter"
     assert {tr.type for tr in fig.data} == {
-        type_
+        type_,
     }, f"Expected data traces of type {type_}"
 
 
@@ -79,7 +91,7 @@ def check_drawable_styles(method, styles, **kwargs):
         check_drawable_attrs(obj.drawable.figure, style)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def dotplot_seqs():
     data = {
         "Human": "CAGATTTGGCAGTT-",
@@ -119,7 +131,8 @@ def test_dotplot_base_cases(dotplot_seqs):
 
 @pytest.mark.parametrize("with_annotations", [True, False])
 @pytest.mark.parametrize(
-    "mk_cls", [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs]
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
 )
 def test_dotplot_annotated(annotated_seq, with_annotations, mk_cls):
     if not with_annotations:
@@ -143,7 +156,7 @@ def test_dotplot_regression():
     trace_names = [tr.name for tr in dp.traces]
 
     assert [tr.name for tr in dp.traces] != [] and len(trace_names) == len(
-        dp.traces
+        dp.traces,
     ), "No traces found for dotplot"
     assert all(
         trace_names[i] == dp.traces[i]["name"] for i in range(len(trace_names))
@@ -152,9 +165,9 @@ def test_dotplot_regression():
     for trace_name in trace_names:
         index = [tr.name for tr in dp.traces].index(trace_name)
         dp.traces.pop(index)
-        assert trace_name not in [
-            tr.name for tr in dp.traces
-        ], "Trace name still present in dp traces even after popping off trace"
+        assert trace_name not in [tr.name for tr in dp.traces], (
+            "Trace name still present in dp traces even after popping off trace"
+        )
 
 
 def test_dotplot_with_diff_annotation_permutations(load_alignment):
@@ -300,7 +313,8 @@ def test_information_plot(load_alignment):
 def test_get_drawable():
     """sliced alignment with features returns a drawable"""
     aln = new_alignment.make_aligned_seqs(
-        dict(a="AAACGGTTT", b="CAA--GTAA"), moltype="dna"
+        {"a": "AAACGGTTT", "b": "CAA--GTAA"},
+        moltype="dna",
     )
     db = GffAnnotationDb()
     db.add_feature(seqid="b", biotype="domain", name="1", spans=[(1, 5)])

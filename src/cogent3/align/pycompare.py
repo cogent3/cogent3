@@ -3,9 +3,12 @@ from __future__ import annotations
 from collections import deque
 from dataclasses import InitVar, dataclass, field
 from itertools import product
-from typing import Generator, Optional
+from typing import TYPE_CHECKING
 
-from cogent3.core.sequence import Sequence
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    from cogent3.core.sequence import Sequence
 
 
 @dataclass
@@ -15,10 +18,10 @@ class segment:
     start: int
     end: int
 
-    def __contains__(self, index: int):
+    def __contains__(self, index: int) -> bool:
         return self.start <= index < self.end
 
-    def __len__(self):
+    def __len__(self) -> int:
         return abs(self.end - self.start)
 
     def __sub__(self, other):
@@ -63,8 +66,9 @@ class segment:
 
         """
         if strict and not self.overlap(other):
+            msg = f"failed strict merge as {self} and {other} do not overlap"
             raise AssertionError(
-                f"failed strict merge as {self} and {other} do not overlap"
+                msg,
             )
         return segment(min(self.start, other.start), max(self.end, other.end))
 
@@ -144,7 +148,14 @@ def _extend_left(
 
 
 def _extend_from_position(
-    seq1, idx1, seq2, idx2, window, threshold, canonical, left_limit=0
+    seq1,
+    idx1,
+    seq2,
+    idx2,
+    window,
+    threshold,
+    canonical,
+    left_limit=0,
 ) -> tuple[segment, segment]:
     """extend a matching seed
 
@@ -183,13 +194,20 @@ def _extend_from_position(
         maxlen=window,
     )
     idx1, idx2, matches = _extend_left(
-        matches, seq1, idx1, seq2, idx2, left_limit, threshold, total
+        matches,
+        seq1,
+        idx1,
+        seq2,
+        idx2,
+        left_limit,
+        threshold,
+        total,
     )
 
     total = sum(matches)
     offset = -1
     for offset, (s1, s2) in enumerate(
-        zip(seq1[idx1 + window :], seq2[idx2 + window :])
+        zip(seq1[idx1 + window :], seq2[idx2 + window :], strict=False),
     ):
         prev = matches[0]
         matches.append(s1 == s2 if {s1, s2} < canonical else 0)
@@ -221,7 +239,7 @@ class Kmer:
     def __eq__(self, __o: object) -> bool:
         return getattr(__o, "kmer", __o) == self.kmer
 
-    def add_location(self, seq_name: str, index: int):
+    def add_location(self, seq_name: str, index: int) -> None:
         """add a location of self for seq_name
 
         Parameters
@@ -239,8 +257,9 @@ class Kmer:
         indices.append(index)
         self.indices[seq_name] = indices
         if len(self.indices) > 2:
+            msg = f"Maximum of 2 sequences allowed, have {list(self.indices.keys())}"
             raise NotImplementedError(
-                f"Maximum of 2 sequences allowed, have {list(self.indices.keys())}"
+                msg,
             )
 
 
@@ -255,7 +274,7 @@ class SeqKmers:
     kmers: dict = field(init=False)
     num_seqs: int = field(init=False)
     ref_name: str = field(init=False)
-    other_name: Optional[str] = field(init=False)
+    other_name: str | None = field(init=False)
 
     def __post_init__(self, seq):
         self.canonical = set(self.canonical)
@@ -291,7 +310,8 @@ class SeqKmers:
         k-mers unique to this sequence are ignored.
         """
         if seq.name == self.ref_name:
-            raise ValueError(f"seq name {seq.name} matches ref seq name")
+            msg = f"seq name {seq.name} matches ref seq name"
+            raise ValueError(msg)
 
         self.other_name = name = seq.name
 
@@ -301,7 +321,7 @@ class SeqKmers:
 
         self.num_seqs += 1
 
-    def drop_seq(self, seq_name: Optional[str] = None) -> None:
+    def drop_seq(self, seq_name: str | None = None) -> None:
         """removes other seq from all k-mers"""
         seq_name = seq_name if seq_name else self.other_name
         if seq_name is None:
@@ -445,7 +465,10 @@ class MatchedSeqPaths:
         return paths
 
     def get_coords(
-        self, rc: bool = False, length: Optional[int] = None, min_gap: int = 0
+        self,
+        rc: bool = False,
+        length: int | None = None,
+        min_gap: int = 0,
     ):
         """returns x, y coordinates for plotting
 
@@ -474,7 +497,10 @@ class MatchedSeqPaths:
         return x[:-1], y[:-1]  # discard last None
 
     def plotly_trace(
-        self, rc: bool = False, length: Optional[int] = None, min_gap: int = 0
+        self,
+        rc: bool = False,
+        length: int | None = None,
+        min_gap: int = 0,
     ):
         x, y = self.get_coords(rc=rc, length=length, min_gap=min_gap)
         trace = {
@@ -517,7 +543,7 @@ def _calc_seed_size(w: int, t: int, min_val: int = 5) -> int:
     d = w - t
     if w == t:
         return w
-    elif d > t:
+    if d > t:
         return t
     k = t // d
     return max(k, min_val)
@@ -527,7 +553,7 @@ def find_matched_paths(
     *,
     seq_kmers: SeqKmers,
     seq1: Sequence,
-    seq2: Optional[Sequence] = None,
+    seq2: Sequence | None = None,
     window: int = 20,
     threshold: int = 17,
 ) -> MatchedSeqPaths:

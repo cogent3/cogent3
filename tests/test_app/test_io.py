@@ -11,6 +11,7 @@ import numpy
 import pytest
 from numpy.testing import assert_allclose
 
+import cogent3
 from cogent3 import get_app, get_moltype, open_data_store
 from cogent3.app import io as io_app
 from cogent3.app.composable import NotCompleted, source_proxy
@@ -21,7 +22,6 @@ from cogent3.app.data_store import (
     ReadOnlyDataStoreZipped,
 )
 from cogent3.app.io import DEFAULT_DESERIALISER, DEFAULT_SERIALISER
-from cogent3.core.alignment import ArrayAlignment, SequenceCollection
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
 from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.maths.util import safe_log
@@ -32,12 +32,12 @@ from cogent3.util.table import Table
 DNA = get_moltype("dna")
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def tmp_dir(tmp_path_factory):
     return tmp_path_factory.mktemp("io")
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def w_dir_dstore(tmp_dir):
     return DataStoreDirectory(tmp_dir, mode="w")
 
@@ -49,7 +49,7 @@ def workingdir(tmp_dir, monkeypatch):
     monkeypatch.chdir(tmp_dir)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def fasta_dir(DATA_DIR, tmp_dir):
     tmp_dir = pathlib.Path(tmp_dir)
     filenames = DATA_DIR.glob("*.fasta")
@@ -66,7 +66,10 @@ def zipped_full(fasta_dir):
     # converts the fasta_dir into a zipped archive
     source = fasta_dir
     path = shutil.make_archive(
-        base_name=source, format="zip", base_dir=source, root_dir=source.parent
+        base_name=source,
+        format="zip",
+        base_dir=source,
+        root_dir=source.parent,
     )
     return ReadOnlyDataStoreZipped(pathlib.Path(path), suffix="fasta")
 
@@ -86,10 +89,12 @@ def test_write_seqs(fasta_dir, tmp_dir):
     datamember = datastore[0]
     data = datamember.read().splitlines()
     data = dict(iter(PARSERS["fasta".lower()](data)))
-    seqs = ArrayAlignment(data=data, moltype=None)
+    seqs = cogent3.make_aligned_seqs(data=data, moltype="text")
     seqs.info.source = datastore.source
     out_data_store = DataStoreDirectory(
-        tmp_dir / "test_write_seqs", mode=Mode.w, suffix="fasta"
+        tmp_dir / "test_write_seqs",
+        mode=Mode.w,
+        suffix="fasta",
     )
     writer = io_app.write_seqs(out_data_store, format="fasta")
     wrote = writer(seqs[0], identifier=datamember.unique_id)
@@ -112,7 +117,7 @@ def test_source_proxy_simple(fasta_dir):
     path = datamember.data_store.source / datamember.unique_id
     data = reader(path)
     # direct call gives you back the annotated type
-    assert isinstance(data, (bytes, bytearray))
+    assert isinstance(data, bytes | bytearray)
     # directly calling the intermediate wrap method should work
     got = reader._source_wrapped(source_proxy(path))
     assert isinstance(got, source_proxy)
@@ -122,29 +127,36 @@ def test_source_proxy_simple(fasta_dir):
     assert isinstance(got[0], source_proxy)
 
 
-@pytest.mark.parametrize("suffix", ("nex", "paml", "fasta"))
+@pytest.mark.parametrize("suffix", ["nex", "paml", "fasta"])
 def test_load_aligned(DATA_DIR, suffix):
     """should handle nexus too"""
     dstore = DataStoreDirectory(DATA_DIR, suffix=suffix, limit=2)
     loader = io_app.load_aligned(format=suffix)
     results = [loader(m) for m in dstore]
+    # TODO: checking class name rather than isinstance during
+    #  migration to new_type, revert to isinstance when
+    #  that migration is complete
     for result in results:
-        assert isinstance(result, ArrayAlignment)
+        assert result.__class__.__name__.endswith("Alignment")
 
 
 def test_load_unaligned(DATA_DIR):
     """load_unaligned returns degapped sequence collections"""
     fasta_paths = DataStoreDirectory(DATA_DIR, suffix=".fasta", limit=2)
     fasta_loader = io_app.load_unaligned(format="fasta")
+    # TODO: checking class name rather than isinstance during
+    #  migration to new_type, revert to isinstance when
+    #  that migration is complete
+
     for i, seqs in enumerate(map(fasta_loader, fasta_paths)):
-        assert isinstance(seqs, SequenceCollection)
+        assert seqs.__class__.__name__ == "SequenceCollection"
         assert "-" not in "".join(seqs.to_dict().values())
         assert seqs.info.source == fasta_paths[i].unique_id
 
 
 @pytest.mark.parametrize(
     "loader",
-    (io_app.load_aligned, io_app.load_unaligned, io_app.load_tabular, io_app.load_db),
+    [io_app.load_aligned, io_app.load_unaligned, io_app.load_tabular, io_app.load_db],
 )
 def test_load_nonpath(loader):
     # returns NotCompleted when it's given an alignment/sequence
@@ -198,7 +210,6 @@ def test_load_tabular_motif_counts_array(w_dir_dstore):
     mca = MotifCountsArray(data, "AB")
     loader = io_app.load_tabular(sep="\t", as_type="motif_counts")
     writer = io_app.write_tabular(data_store=w_dir_dstore, format="tsv")
-    outpath = "delme.tsv"
     m = writer.main(data=mca, identifier="delme")
     new = loader(m)
     assert mca.to_dict() == new.to_dict()
@@ -211,7 +222,6 @@ def test_load_tabular_motif_freqs_array(w_dir_dstore):
     mfa = MotifFreqsArray(data, "AB")
     loader = io_app.load_tabular(sep="\t", as_type="motif_freqs")
     writer = io_app.write_tabular(data_store=w_dir_dstore, format="tsv")
-    outpath = "delme"
     m = writer.main(mfa, identifier="delme")
     new = loader(m)
     assert mfa.to_dict() == new.to_dict()
@@ -319,7 +329,7 @@ def test_write_tabular_pssm(w_dir_dstore):
             [0.05, 0.8, 0.05, 0.1],
             [0.7, 0.1, 0.1, 0.1],
             [0.6, 0.15, 0.05, 0.2],
-        ]
+        ],
     )
     pssm = PSSM(data, "ACTG")
     loader = io_app.load_tabular(sep="\t")
@@ -380,12 +390,12 @@ def test_write_json_with_info(w_dir_dstore):
 
 
 @pytest.mark.parametrize(
-    "serialiser,deserialiser",
-    (
+    ("serialiser", "deserialiser"),
+    [
         (json.dumps, json.loads),
         (pickle.dumps, pickle.loads),
         (lambda x: x, deserialise_object),
-    ),
+    ],
 )
 def test_deserialiser(serialiser, deserialiser):
     data = {"1": 1, "abc": [1, 2]}
@@ -394,7 +404,8 @@ def test_deserialiser(serialiser, deserialiser):
 
 
 @pytest.mark.parametrize(
-    "data,dser", (([1, 2, 3], None), (DNA, io_app.from_primitive()))
+    ("data", "dser"),
+    [([1, 2, 3], None), (DNA, io_app.from_primitive())],
 )
 def test_pickle_unpickle_apps(data, dser):
     pkld = io_app.to_primitive() + io_app.pickle_it()
@@ -414,8 +425,8 @@ def test_pickle_it_unpickleable():
 
 
 @pytest.mark.parametrize(
-    "compress,decompress",
-    ((bz2.compress, bz2.decompress), (gzip.compress, gzip.decompress)),
+    ("compress", "decompress"),
+    [(bz2.compress, bz2.decompress), (gzip.compress, gzip.decompress)],
 )
 def test_compress_decompress(compress, decompress):
     data = pickle.dumps({"1": 1, "abc": [1, 2]})
@@ -435,7 +446,7 @@ def test_pickled_compress_roundtrip(data):
     assert d.label == data.label
 
 
-# todo test objects where there is no unique_id provided, or inferrable,
+# TODO test objects where there is no unique_id provided, or inferrable,
 # should return NotCompletedError
 
 
@@ -529,9 +540,9 @@ def seqs():
     from cogent3 import make_unaligned_seqs
 
     return make_unaligned_seqs(
-        data=dict(a="ACGG", b="GGC"),
+        data={"a": "ACGG", "b": "GGC"},
         moltype="dna",
-        info=dict(source="dummy/blah.1.2.fa"),
+        info={"source": "dummy/blah.1.2.fa"},
     )
 
 
@@ -539,7 +550,7 @@ def table():
     from cogent3 import make_table
 
     table = make_table(
-        data=dict(a=[0, 1, 2], b=[0, 1, 2]),
+        data={"a": [0, 1, 2], "b": [0, 1, 2]},
     )
     table.source = "dummy/blah.1.2.fa"
     return table
@@ -554,13 +565,13 @@ def db_dstore(tmp_dir):
 
 
 @pytest.mark.parametrize(
-    "writer,data,dstore",
-    (
+    ("writer", "data", "dstore"),
+    [
         ("write_seqs", seqs(), dir_dstore),
         ("write_db", seqs(), db_dstore),
         ("write_json", seqs(), dir_dstore),
         ("write_tabular", table(), dir_dstore),
-    ),
+    ],
 )
 def test_writer_unique_id_arg(tmp_dir, writer, data, dstore):
     def uniqid(source):
@@ -580,12 +591,12 @@ def test_writer_unique_id_arg(tmp_dir, writer, data, dstore):
 
 @pytest.mark.parametrize(
     "writer",
-    (
+    [
         "write_seqs",
         "write_db",
         "write_json",
         "write_tabular",
-    ),
+    ],
 )
 def test_writer_fails_on_data_store(writer):
     # should raise a type error if not a data store provided
@@ -601,7 +612,7 @@ def test_open_suffix_dirname(tmp_dir):
     assert isinstance(dstore, DataStoreDirectory)
 
 
-@pytest.mark.parametrize("data", ({"a": [0, 1]}, DNA))
+@pytest.mark.parametrize("data", [{"a": [0, 1]}, DNA])
 def test_default_serialiser_deserialiser(data):
     # the default deserialiser should successfully reverse the
     # default serialiser
@@ -641,7 +652,7 @@ def test_open_zipped(zipped_full):
     assert isinstance(got, type(zipped_full))
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def relpath(DATA_DIR):
     # express the data path as relative to user home
     # have to make a tempdir for this to work in github actions
@@ -653,9 +664,12 @@ def relpath(DATA_DIR):
         yield str(user / out_path.parent.name / "brca1_5.paml")
 
 
-@pytest.mark.parametrize("type_", (str, pathlib.Path))
+@pytest.mark.parametrize("type_", [str, pathlib.Path])
 def test_expand_user(relpath, type_):
     loader = get_app("load_aligned", format="paml")
     # define path using the "~" prefix
     seqs = loader(type_(relpath))
-    assert isinstance(seqs, ArrayAlignment)
+    # TODO: checking class name rather than isinstance during
+    #  migration to new_type, revert to isinstance when
+    #  that migration is complete
+    assert seqs.__class__.__name__.endswith("Alignment")

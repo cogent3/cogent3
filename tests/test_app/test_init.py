@@ -60,8 +60,8 @@ class TestAvailableApps(TestCase):
         from cogent3.util.table import Table
 
         apps = available_apps()
-        self.assertIsInstance(apps, Table)
-        self.assertTrue(apps.shape[0] > 10)
+        assert isinstance(apps, Table)
+        assert apps.shape[0] > 10
 
     def test_composable_pairwise_applications(self):
         """Properly compose two composable applications"""
@@ -69,7 +69,7 @@ class TestAvailableApps(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             applications = _get_all_composables(os.path.join(dirname, "delme"))
             for app in applications:
-                self.assertTrue(is_app(app), msg=app)
+                assert is_app(app), app
 
             composable_application_tuples = [
                 (app1, app2)
@@ -96,17 +96,19 @@ class TestAvailableApps(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             applications = _get_all_composables(os.path.join(dirname, "delme"))
             for app in applications:
-                self.assertTrue(is_app(app))
+                assert is_app(app)
 
             incompatible_application_tuples = [
                 (app1, app2)
                 for app1 in applications
                 for app2 in applications
                 if app1.app_type is WRITER
-                or app2.app_type is LOADER
-                and app1 != app2
-                and not app1._return_types & app2._data_types
-                and not app1._return_types & {"SerialisableType", "IdentifierType"}
+                or (
+                    app2.app_type is LOADER
+                    and app1 != app2
+                    and not app1._return_types & app2._data_types
+                    and not app1._return_types & {"SerialisableType", "IdentifierType"}
+                )
             ]
 
             for app_a, app_b in incompatible_application_tuples:
@@ -115,11 +117,11 @@ class TestAvailableApps(TestCase):
                 app_b.disconnect()
 
                 # Compose two incompatible applications, there should be exceptions.
-                with self.assertRaises(err_type):
+                with pytest.raises(err_type):
                     app_a + app_b
 
 
-@pytest.mark.parametrize("name", ("sample.min_length", "min_length"))
+@pytest.mark.parametrize("name", ["sample.min_length", "min_length"])
 def test_get_app(name):
     app = get_app(name, 500)
     assert app.__class__.__name__.endswith(name.split(".")[-1])
@@ -139,7 +141,8 @@ def test_app_help(capsys):
 
 
 @pytest.mark.parametrize(
-    "app_name", ("bootstrap", "from_primitive", "load_db", "take_named_seqs")[:1]
+    "app_name",
+    ("bootstrap", "from_primitive", "load_db", "take_named_seqs")[:1],
 )
 def test_app_help_signature(capsys, app_name):
     from cogent3.app import _get_app_matching_name, _make_signature
@@ -163,7 +166,7 @@ def test_available_apps_filter():
     assert len(filtered_apps) > 0
     # check every returned table row 'name' has filter in it
     assert sum(app_name_filter in n for n in filtered_apps.columns["name"]) == len(
-        filtered_apps
+        filtered_apps,
     )
 
 

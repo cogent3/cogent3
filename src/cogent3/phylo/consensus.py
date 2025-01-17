@@ -33,7 +33,10 @@ def majority_rule(trees, strict=False):
 
 
 def weighted_majority_rule(
-    weighted_trees, strict=False, attr="support", method="unrooted"
+    weighted_trees,
+    strict=False,
+    attr="support",
+    method="unrooted",
 ):
     """Calculate a greedy consensus tree in the sense of Bryant (2003), if
     weights are taken as counts. Branch lengths calculated as per Holland
@@ -69,10 +72,10 @@ def weighted_majority_rule(
     """
     if method == "rooted":
         return weighted_rooted_majority_rule(weighted_trees, strict, attr)
-    elif method == "unrooted":
+    if method == "unrooted":
         return weighted_unrooted_majority_rule(weighted_trees, strict, attr)
-    else:
-        raise ValueError('method must be "rooted" or "unrooted"')
+    msg = 'method must be "rooted" or "unrooted"'
+    raise ValueError(msg)
 
 
 @extend_docstring_from(weighted_majority_rule)
@@ -90,7 +93,7 @@ def weighted_rooted_majority_rule(weighted_trees, strict=False, attr="support"):
                 cladecounts[tips] = 0
             cladecounts[tips] += weight
             length = edge.length and edge.length * weight
-            if edgelengths.get(tips, None):
+            if edgelengths.get(tips):
                 edgelengths[tips] += length
             else:
                 edgelengths[tips] = length
@@ -129,13 +132,13 @@ def weighted_rooted_majority_rule(weighted_trees, strict=False, attr="support"):
             params = {"length": edgelengths[clade], attr: counts[clade]}
             nodes[tip_name] = tree_build([], tip_name, params)
         else:
-            queue.append(((len(clade), clade)))
+            queue.append((len(clade), clade))
 
     while queue:
         queue.sort()
         (size, clade) = queue.pop(0)
         new_queue = []
-        for size2, ancestor in queue:
+        for _size2, ancestor in queue:
             if clade.issubset(ancestor):
                 new_ancestor = (ancestor - clade) | frozenset([clade])
                 counts[new_ancestor] = counts.pop(ancestor)
@@ -145,14 +148,16 @@ def weighted_rooted_majority_rule(weighted_trees, strict=False, attr="support"):
         children = [nodes.pop(c) for c in clade]
         assert len([children])
         nodes[clade] = tree_build(
-            children, None, {attr: counts[clade], "length": edgelengths[clade]}
+            children,
+            None,
+            {attr: counts[clade], "length": edgelengths[clade]},
         )
         queue = new_queue
 
     for root in list(nodes.values()):
         root.name = "root"  # Yuk
 
-    return [root for root in list(nodes.values())]
+    return list(nodes.values())
 
 
 @extend_docstring_from(weighted_majority_rule)
@@ -172,11 +177,12 @@ def weighted_unrooted_majority_rule(weighted_trees, strict=False, attr="support"
         if tips is None:
             tips = frozenset.union(*split)
         elif tips != frozenset.union(*split):
-            raise NotImplementedError("all trees must have the same taxa")
+            msg = "all trees must have the same taxa"
+            raise NotImplementedError(msg)
 
     # Normalise split lengths by split weight and split weights by total weight
     for split in split_lengths:
-        if not split_lengths[split] is None:
+        if split_lengths[split] is not None:
             split_lengths[split] /= split_weights[split]
     total_weight = sum(w for w, t in weighted_trees[::-1])
     weighted_splits = [(w / total_weight, s) for s, w in list(split_weights.items())]
@@ -205,7 +211,10 @@ def get_splits(tree):
     Values are {'length' : edge.length} for the corresponding edge.
     """
     if len(tree.children) < 3:
-        warnings.warn("tree is rooted - will return splits for unrooted tree")
+        warnings.warn(
+            "tree is rooted - will return splits for unrooted tree",
+            stacklevel=2,
+        )
 
     def getTipsAndSplits(tree):
         if tree.is_tip():
@@ -278,8 +287,7 @@ def get_tree(splits):
                 break
 
     # Balance the tree for the sake of reproducibility
-    tree = tree.balanced()
-    return tree
+    return tree.balanced()
 
 
 if __name__ == "__main__":
@@ -289,7 +297,6 @@ if __name__ == "__main__":
     for filename in sys.argv[1:]:
         for tree in open(filename):
             trees.append(make_tree(treestring=tree))
-    print(f"Consensus of {len(trees)} trees from {sys.argv[1:]}")
     outtrees = majority_rule(trees, strict=True)
     for tree in outtrees:
-        print(tree.ascii_art(compact=True, show_internal=False))
+        pass

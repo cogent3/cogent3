@@ -36,16 +36,21 @@ def make_generic_scoring_dict(match, mtype):
     S = {}
     for a in mtype:
         for b in mtype:
-            if a == b:
-                score = match
-            else:
-                score = -1
+            score = match if a == b else -1
             S[a, b] = score
     return S
 
 
 def _align_pairwise(
-    s1, s2, mprobs, psub, TM, local, return_alignment=True, return_score=False, **kw
+    s1,
+    s2,
+    mprobs,
+    psub,
+    TM,
+    local,
+    return_alignment=True,
+    return_score=False,
+    **kw,
 ):
     """Generic alignment with any substitution model and indel model"""
     [p1, p2] = [
@@ -62,10 +67,8 @@ def _align_pairwise(
         alignment = vpath.get_alignment()
         if return_score:
             return (alignment, score)
-        else:
-            return alignment
-    else:
-        return score
+        return alignment
+    return score
 
 
 def classic_align_pairwise(s1, s2, Sd, d, e, local, return_score=False, **kw):
@@ -80,7 +83,14 @@ def classic_align_pairwise(s1, s2, Sd, d, e, local, return_score=False, **kw):
     psub = numpy.exp(S)
     mprobs = numpy.ones(len(psub), float) / len(psub)
     return _align_pairwise(
-        s1, s2, mprobs, psub, TM, local, return_score=return_score, **kw
+        s1,
+        s2,
+        mprobs,
+        psub,
+        TM,
+        local,
+        return_score=return_score,
+        **kw,
     )
 
 

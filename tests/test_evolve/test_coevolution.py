@@ -205,7 +205,8 @@ def pos_pair(request):
         "TC",
     ]
     return make_aligned_seqs(
-        data={f"s{i}": p for i, p in enumerate(data)}, moltype=request.param
+        data={f"s{i}": p for i, p in enumerate(data)},
+        moltype=request.param,
     )
 
 
@@ -220,7 +221,10 @@ def test_scaled_mi(pos_pair):
     assert_allclose(got, 8 / 42)
 
 
-@pytest.mark.parametrize("met1, met2", [("mi", "nmi"), ("mi", "rmi"), ("nmi", "rmi")])
+@pytest.mark.parametrize(
+    ("met1", "met2"),
+    [("mi", "nmi"), ("mi", "rmi"), ("nmi", "rmi")],
+)
 def test_diff_mi_metrics(pos_pair, met1, met2):
     met1 = c3_coevo.coevolution_matrix(
         alignment=pos_pair,
@@ -304,7 +308,7 @@ def test_calc_weights_new(cols):
 @pytest.fixture
 def protein_aln4():
     return make_aligned_seqs(
-        dict([("A1", "AACF"), ("A12", "AADF"), ("A123", "ADCF"), ("A111", "AAD-")]),
+        {"A1": "AACF", "A12": "AADF", "A123": "ADCF", "A111": "AAD-"},
         moltype="protein",
     )
 
@@ -313,7 +317,9 @@ def protein_aln4():
 def test_alignment_analyses_moltype_protein(protein_aln4, stat):
     """alignment methods work with moltype = PROTEIN"""
     r = c3_coevo.coevolution_matrix(
-        alignment=protein_aln4, show_progress=False, stat=stat
+        alignment=protein_aln4,
+        show_progress=False,
+        stat=stat,
     )
     assert r.shape == (4, 4)
 
@@ -330,7 +336,9 @@ def zero_case(request):
 def test_mi_pair_0(zero_case, stat):
     """all MI 0.0"""
     got = c3_coevo.coevolution_matrix(
-        alignment=zero_case, stat=stat, show_progress=False
+        alignment=zero_case,
+        stat=stat,
+        show_progress=False,
     )[1, 0]
     assert_allclose(got, 0.0)
 
@@ -347,6 +355,8 @@ def one_case(request):
 def test_mi_pair_1(one_case, stat):
     """all MI 1"""
     got = c3_coevo.coevolution_matrix(
-        alignment=one_case, stat=stat, show_progress=False
+        alignment=one_case,
+        stat=stat,
+        show_progress=False,
     )[1, 0]
     assert_allclose(got, 1.0)

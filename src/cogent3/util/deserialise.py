@@ -23,13 +23,14 @@ class register_deserialiser:
         must be unique
     """
 
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         for type_str in args:
             if not isinstance(type_str, str):
-                raise TypeError(f"{type_str!r} is not a string")
-            assert (
-                type_str not in _deserialise_func_map
-            ), f"{type_str!r} already in {list(_deserialise_func_map)}"
+                msg = f"{type_str!r} is not a string"
+                raise TypeError(msg)
+            assert type_str not in _deserialise_func_map, (
+                f"{type_str!r} already in {list(_deserialise_func_map)}"
+            )
         self._type_str = args
 
     def __call__(self, func):
@@ -45,8 +46,7 @@ def _get_class(provenance):
     nc = "NotCompleted"
     klass = nc if nc in klass else klass
     mod = import_module(provenance[:index])
-    klass = getattr(mod, klass)
-    return klass
+    return getattr(mod, klass)
 
 
 _pat = re.compile("[a-z]")
@@ -54,7 +54,7 @@ _pat = re.compile("[a-z]")
 
 def str_to_version(v):
     letter = _pat.search(v)
-    return tuple(f"{v[:letter.start()]}.{letter.group()}.{letter.end():}".split("."))
+    return tuple(f"{v[: letter.start()]}.{letter.group()}.{letter.end():}".split("."))
 
 
 @register_deserialiser(
@@ -130,7 +130,7 @@ def deserialise_map_spans(map_element):
     return map_klass(**map_element)
 
 
-def deserialise_annotation(data, parent):
+def deserialise_annotation(data, parent) -> None:
     annots = []
     for element in data:
         element.pop("version", None)
@@ -168,21 +168,19 @@ def deserialise_result(data):
 @register_deserialiser("cogent3.core.moltype")
 def deserialise_moltype(data):
     """returns a cogent3 MolType instance, or a CodonAlphabet"""
-    from cogent3.core.moltype import get_moltype
+    from cogent3 import get_moltype
 
     data.pop("version", None)
     label = data["moltype"]
     data["moltype"] = get_moltype(label)
-    klass = _get_class(data.pop("type"))
-    result = data["moltype"]
-
-    return result
+    _get_class(data.pop("type"))
+    return data["moltype"]
 
 
 @register_deserialiser("cogent3.core.alphabet")
 def deserialise_alphabet(data):
     """returns a cogent3 Alphabet instance"""
-    from cogent3.core.moltype import get_moltype
+    from cogent3 import get_moltype
 
     data.pop("version", None)
     label = data["moltype"]
@@ -190,8 +188,7 @@ def deserialise_alphabet(data):
     key = "data" if "data" in data else "motifset"
     motifs = data.pop(key)
     klass = _get_class(data.pop("type"))
-    result = klass(motifs, **data)
-    return result
+    return klass(motifs, **data)
 
 
 def _from_seqview(data):
@@ -220,8 +217,8 @@ def deserialise_seq(data, aligned=False):
     -------
 
     """
+    from cogent3 import get_moltype
     from cogent3.core.alignment import Aligned
-    from cogent3.core.moltype import get_moltype
 
     data.pop("version", None)
     data["moltype"] = get_moltype(data.pop("moltype"))
@@ -262,7 +259,7 @@ def deserialise_seq(data, aligned=False):
 def deserialise_seq_collections(data):
     """returns a cogent3 sequence/collection/alignment instance"""
     # We first try to load moltype/alphabet using get_moltype
-    from cogent3.core.moltype import get_moltype
+    from cogent3 import get_moltype
 
     data.pop("version", None)
     data["moltype"] = get_moltype(data.pop("moltype"))
@@ -311,7 +308,8 @@ def deserialise_tree(data):
 
 
 @register_deserialiser(
-    "cogent3.evolve.substitution_model", "cogent3.evolve.ns_substitution_model"
+    "cogent3.evolve.substitution_model",
+    "cogent3.evolve.ns_substitution_model",
 )
 def deserialise_substitution_model(data):
     """returns a cogent3 substitution model instance"""
@@ -328,7 +326,7 @@ def deserialise_substitution_model(data):
             pass
 
     if sm is None:
-        alphabet = deserialise_alphabet(data.pop("alphabet"))
+        alphabet = deserialise_object(data.pop("alphabet"))
         klass = _get_class(data.pop("type"))
         data["alphabet"] = alphabet
         sm = klass(**data)
@@ -353,13 +351,13 @@ def deserialise_likelihood_function(data):
     if isinstance(constructor_args["loci"], list):
         locus_names = constructor_args["loci"]
         align = data["alignment"]
-        aln = [deserialise_seq_collections(align[k]) for k in locus_names]
+        aln = [deserialise_object(align[k]) for k in locus_names]
         if locus_names[0] in motif_probs:
             mprobs = [motif_probs[k] for k in motif_probs]
         else:
             mprobs = [motif_probs]
     else:
-        aln = deserialise_seq_collections(data.pop("alignment"))
+        aln = deserialise_object(data.pop("alignment"))
         mprobs = [motif_probs]
 
     lf.set_alignment(aln)

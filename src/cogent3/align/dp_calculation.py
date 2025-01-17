@@ -26,17 +26,16 @@ def make_indel_model_defn(with_indel_params=True, kn=True):
         a = IndelParameterDefn("indel_length")  # P(extend indel)
         r = IndelParameterDefn("indel_rate")  # indels per substitution
         return CalcDefn(klass, name="indels")(r, a)
-    else:
-        # not optimisable parameter, a constant. Another example is the
-        # alignment in an LikFunc
-        return NonParamDefn("indel_model")
+    # not optimisable parameter, a constant. Another example is the
+    # alignment in an LikFunc
+    return NonParamDefn("indel_model")
 
 
 class FloatWithAttrs(float):
     def __new__(cls, value, **kw):
         return float.__new__(cls, value)
 
-    def __init__(self, value, **kw):
+    def __init__(self, value, **kw) -> None:
         float.__init__(self)
         for n, v in list(kw.items()):
             setattr(self, n, v)
@@ -47,7 +46,8 @@ def Edge(seq1, seq2, length, bin_data, switch=1.0, bprobs=None):
     bins = len(bin_data)
     pair = pairwise.Pair(seq1, seq2)
     EP = pair.make_reversible_emission_probs(
-        [(bin.mprobs, bin.Qd) for bin in bin_data], length
+        [(bin.mprobs, bin.Qd) for bin in bin_data],
+        length,
     )
     tms = [bin.indel.calc_transition_matrix(length) for bin in bin_data]
     if bins == 1:
@@ -60,14 +60,14 @@ def Edge(seq1, seq2, length, bin_data, switch=1.0, bprobs=None):
     return EP.make_pair_HMM(TM)
 
 
-class BinData(object):
-    def __init__(self, mprobs, indel, Qd, rate=1.0):
+class BinData:
+    def __init__(self, mprobs, indel, Qd, rate=1.0) -> None:
         self.mprobs = mprobs
         self.indel = indel
         self.Qd = Qd
         self.rate = rate
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Bin(Pi, Qd, {self.rate}, {vars(self.indel)})"
 
 
@@ -93,7 +93,7 @@ class FwdDefn(CalculationDefn):
 
 
 class _GetAlign:
-    def __init__(self, edge, length1, length2):
+    def __init__(self, edge, length1, length2) -> None:
         try:
             ratio = length1 / (length1 + length2)
         except (ZeroDivisionError, FloatingPointError):
@@ -140,7 +140,11 @@ def _recursive_defns(edge, subst, leaf, edge_defn_constructor, bin_args):
             args.append(leaf.select_from_dimension("edge", child.name))
         else:
             (child_defn, scores2) = _recursive_defns(
-                child, subst, leaf, edge_defn_constructor, bin_args
+                child,
+                subst,
+                leaf,
+                edge_defn_constructor,
+                bin_args,
             )
             child_defn = ViterbiPogDefn(child_defn)
             scores.extend(scores2)
@@ -157,7 +161,11 @@ def _recursive_defns(edge, subst, leaf, edge_defn_constructor, bin_args):
 
 
 def make_forward_tree_defn(
-    subst_model, tree, bin_names, with_indel_params=True, kn=True
+    subst_model,
+    tree,
+    bin_names,
+    with_indel_params=True,
+    kn=True,
 ):
     """Pairwise Fwd"""
     indel = make_indel_model_defn(with_indel_params, kn)
@@ -184,7 +192,11 @@ def make_forward_tree_defn(
     edge_args.extend(bin_data)
 
     (top, scores) = _recursive_defns(
-        tree, subst, leaf, edge_defn_constructor, edge_args
+        tree,
+        subst,
+        leaf,
+        edge_defn_constructor,
+        edge_args,
     )
     defn = FwdDefn(top)
     # defn = SumDefn(*scores)

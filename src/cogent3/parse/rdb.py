@@ -57,7 +57,7 @@ def InfoMaker(header_lines):
 
 
 def is_seq_label(x):
-    "Check if x looks like a sequence label line." ""
+    "Check if x looks like a sequence label line."
     return x.startswith("seq:")
 
 
@@ -77,20 +77,20 @@ def MinimalRdbParser(infile, strict=True):
         if not index:
             if strict:
                 raise RecordError(
-                    "Found Rdb record without seq label " + f"line: {rec[0]}"
+                    "Found Rdb record without seq label " + f"line: {rec[0]}",
                 )
             else:
                 continue
 
         headerLines = rec[:index]
         sequence = "".join(rec[index:-1])  # strip off the delimiter
-        if sequence.endswith("*"):
-            sequence = sequence[:-1]  # strip off '*'
+        sequence = sequence.removesuffix("*")  # strip off '*'
 
         # if there are no sequences throw error or skip
         if not sequence:
             if strict:
-                raise RecordError(f"Found Rdb record without sequences: {rec[0]}")
+                msg = f"Found Rdb record without sequences: {rec[0]}"
+                raise RecordError(msg)
             else:
                 continue
 
@@ -106,14 +106,17 @@ def create_acceptable_sequence(sequence):
     Will replace 'o' by '?'.
     Will strip out secondary structure annotation.
     """
-    trans_table = dict([(ord(c), None) for c in "{}[]()^"])
+    trans_table = {ord(c): None for c in "{}[]()^"}
     trans_table[ord("o")] = ord("?")
     # strip out secondary structure annotation {}[]()^
     return str(sequence).translate(trans_table)  # should be accepted by RnaSequence
 
 
 def RdbParser(
-    lines, SeqConstructor=RnaSequence, LabelConstructor=InfoMaker, strict=True
+    lines,
+    SeqConstructor=RnaSequence,
+    LabelConstructor=InfoMaker,
+    strict=True,
 ):
     """Yield sequences from the Rdb record.
 
@@ -138,9 +141,9 @@ def RdbParser(
             try:
                 yield SeqConstructor(clean_seq, info=info)
             except AlphabetError:
+                msg = f"Sequence construction failed on record with reference {info.Refs}."
                 raise RecordError(
-                    "Sequence construction failed on record with reference %s."
-                    % (info.Refs)
+                    msg,
                 )
         else:
             # not strict: just skip any record that raises an exception
@@ -154,6 +157,5 @@ if __name__ == "__main__":
     from sys import argv
 
     filename = argv[1]
-    for sequence in RdbParser(open(filename)):
-        print(sequence.info.Species)
-        print(sequence)
+    for _sequence in RdbParser(open(filename)):
+        pass

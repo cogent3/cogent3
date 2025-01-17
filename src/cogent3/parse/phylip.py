@@ -1,9 +1,8 @@
-#!/usr/bin/env python
-from cogent3.core.alignment import Alignment
+import cogent3
 from cogent3.parse.record import RecordError
 
 
-def is_blank(x):
+def is_blank(x) -> bool:
     """Checks if x is blank."""
     return not x.strip()
 
@@ -99,14 +98,13 @@ def MinimalPhylipParser(data, id_map=None, interleaved=True):
                 raise RecordError(
                     "Length of sequence '%s' is not the same as in header "
                     "Found %d, Expected %d"
-                    % (interleaved_id_map[curr_id_ix], len(join_seq), seq_len)
+                    % (interleaved_id_map[curr_id_ix], len(join_seq), seq_len),
                 )
 
             yield interleaved_id_map[curr_id_ix], join_seq
     # return last seq if not interleaved
-    else:
-        if seq_cache:
-            yield seq_cache[0], "".join(seq_cache[1:])
+    elif seq_cache:
+        yield seq_cache[0], "".join(seq_cache[1:])
 
 
 def get_align_for_phylip(data, id_map=None):
@@ -125,4 +123,4 @@ def get_align_for_phylip(data, id_map=None):
     tuples = []
     for tup in mpp:
         tuples.append(tup)
-    return Alignment(tuples)
+    return cogent3.make_aligned_seqs(tuples, moltype="text")

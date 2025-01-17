@@ -14,14 +14,29 @@ code_block = re.compile(r".. (jupyter-execute|doctest)::")
 block_option = re.compile(r"\s+:[a-z\-]+:")
 raise_option = re.compile(r"\s+:raises:")
 plotly_show = re.compile(r"\s*[a-z]+.*\.show\(")
+png_assignment = re.compile(r"^\s*(\w+)\s*=\s*.*\".*\.png\"\s*$")
+plotly_write = re.compile(r"\.write\(\s*(\w+)\s*\)")
 ipython_magic = re.compile(r"^\s*%[a-zA-Z]+")
+
+
+def png_var_name(line):
+    return match.group(1) if (match := png_assignment.search(line)) else None
 
 
 def _end_of_block(line, indent):
     if match := not_wsp.search(line):
-        return match.start() == indent
+        return match.start() in (0, indent)
 
     return False
+
+
+def is_plotly_write(line, vars):
+    if not vars:
+        return False
+    varnames_pattern = "|".join(re.escape(name) for name in vars)
+    # Build the regex pattern
+    pattern = rf"\.write\(\s*({varnames_pattern})\s*\)"
+    return re.search(pattern, line) is not None
 
 
 def get_error_type(line):
@@ -91,8 +106,16 @@ def format_block(block, indent):
         code.insert(0, "try:")
         code.extend([f"except {error_type}:", "    pass"])
 
+    png_vars = set()
     for i, l in enumerate(code):
-        if plotly_show.search(l) or ipython_magic.search(l):
+        if png_var := png_var_name(l):
+            png_vars.add(png_var)
+
+        if (
+            plotly_show.search(l)
+            or ipython_magic.search(l)
+            or is_plotly_write(l, png_vars)
+        ):
             # comment out as cannot be executed in script
             code[i] = f"# {l}"
 
@@ -113,7 +136,7 @@ def _rst_path(*args):
     path = pathlib.Path(args[-1])
     assert path.suffix == ".rst"
     if not path.exists():
-        click.secho(f"ERROR: {str(path)} does not exist", fg="red")
+        click.secho(f"ERROR: {path!s} does not exist", fg="red")
         exit(1)
     return path
 

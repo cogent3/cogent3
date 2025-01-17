@@ -1,26 +1,28 @@
-from typing import Optional, Tuple
-
 from cogent3 import get_app, get_model, make_unaligned_seqs
-from cogent3.core.alignment import ArrayAlignment, SequenceCollection
+from cogent3.core import alignment as old_alignment
+from cogent3.core import new_alignment
 from cogent3.core.tree import TreeNode
 from cogent3.evolve.distance import EstimateDistances
 from cogent3.phylo import nj as NJ
 from cogent3.util import progress_display as UI
 
+SeqCollType = old_alignment.SequenceCollection | new_alignment.SequenceCollection
+AlignType = old_alignment.ArrayAlignment | new_alignment.Alignment
+
 
 @UI.display_wrap
 def tree_align(
     model: str,
-    seqs: SequenceCollection,
-    tree: Optional[TreeNode] = None,
+    seqs: SeqCollType,
+    tree: TreeNode | None = None,
     indel_rate: float = 1e-10,
     indel_length: float = 1e-1,
     ui=None,
     params_from_pairwise: bool = True,
-    param_vals: dict = None,
-    iters: Optional[int] = None,
+    param_vals: dict | None = None,
+    iters: int | None = None,
     approx_dists: bool = True,
-) -> Tuple[ArrayAlignment, TreeNode]:
+) -> tuple[AlignType, TreeNode]:
     """Returns a multiple sequence alignment and tree.
 
     Parameters
@@ -79,13 +81,18 @@ def tree_align(
         tip_names = set(tree.get_tip_names())
 
         seq_names = set(seqs.names)
-        assert (
-            tip_names == seq_names
-        ), f"names don't match between seqs and tree: {tip_names ^ seq_names}"
+        assert tip_names == seq_names, (
+            f"names don't match between seqs and tree: {tip_names ^ seq_names}"
+        )
         tree = tree.bifurcating(name_unnamed=True)
         tree = fix_lengths(tree)
         align = _progressive_hmm(
-            indel_length, indel_rate, model, param_vals, seqs, tree
+            indel_length,
+            indel_rate,
+            model,
+            param_vals,
+            seqs,
+            tree,
         )
 
         return align, tree
@@ -105,7 +112,11 @@ def tree_align(
     else:
         # we have to do the pairwise-alignment based approach
         dists, param_vals = _dists_from_pairwise_align(
-            est_params, params_from_pairwise, model, param_vals, seqs
+            est_params,
+            params_from_pairwise,
+            model,
+            param_vals,
+            seqs,
         )
         tree = NJ.nj(dists.to_dict())
 
@@ -118,7 +129,12 @@ def tree_align(
     ui.display("Doing progressive alignment")
     # this is the point at which we do the iterations
     align = _progressive_hmm(
-        indel_length, indel_rate, model, {**param_vals}, seqs, tree
+        indel_length,
+        indel_rate,
+        model,
+        {**param_vals},
+        seqs,
+        tree,
     )
     if iters is None:
         return align, tree
@@ -129,14 +145,23 @@ def tree_align(
         tree = tree.bifurcating(name_unnamed=True)
         tree = fix_lengths(tree)
         align = _progressive_hmm(
-            indel_length, indel_rate, model, {**param_vals}, seqs, tree
+            indel_length,
+            indel_rate,
+            model,
+            {**param_vals},
+            seqs,
+            tree,
         )
 
     return align, tree
 
 
 def _dists_from_pairwise_align(
-    est_params, params_from_pairwise, model, param_vals, seqs
+    est_params,
+    params_from_pairwise,
+    model,
+    param_vals,
+    seqs,
 ):
     dcalc = EstimateDistances(seqs, model, do_pair_align=True, est_params=est_params)
     dcalc.run()
@@ -164,31 +189,17 @@ def _progressive_hmm(indel_length, indel_rate, model, param_vals, seqs, tree):
         align = edge.get_viterbi_path().get_alignment()
     except ArithmeticError:
         # trying to narrow down conditions for difficult to reproduce exception
-        print(
-            "###" * 30,
-            "",
-            tree.get_newick(with_distances=True),
-            "",
-            "#" * 20,
-            "",
-            str(LF),
-            "",
-            "#" * 20,
-            "",
-            seqs.to_fasta(),
-            sep="\n",
-        )
         raise
 
     align = align.to_moltype(model.moltype)
     param_vals.update(
-        dict(
-            indel_length=indel_length,
-            indel_rate=indel_rate,
-            guide_tree=tree.get_newick(with_distances=True),
-            model=model.name,
-            lnL=lnL,
-        )
+        {
+            "indel_length": indel_length,
+            "indel_rate": indel_rate,
+            "guide_tree": tree.get_newick(with_distances=True),
+            "model": model.name,
+            "lnL": lnL,
+        },
     )
     align.info["align_params"] = param_vals
     return align

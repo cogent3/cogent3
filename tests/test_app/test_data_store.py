@@ -30,7 +30,7 @@ from cogent3.util.table import Table
 from cogent3.util.union_dict import UnionDict
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def tmp_dir(tmp_path_factory):
     return Path(tmp_path_factory.mktemp("datastore"))
 
@@ -42,7 +42,7 @@ def workingdir(tmp_dir, monkeypatch):
     monkeypatch.chdir(tmp_dir)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def fasta_dir(DATA_DIR, tmp_dir):
     tmp_dir = Path(tmp_dir)
     filenames = DATA_DIR.glob("*.fasta")
@@ -54,7 +54,7 @@ def fasta_dir(DATA_DIR, tmp_dir):
     return fasta_dir
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def write_dir(tmp_dir):
     tmp_dir = Path(tmp_dir)
     write_dir = tmp_dir / "write"
@@ -63,7 +63,7 @@ def write_dir(tmp_dir):
     shutil.rmtree(write_dir)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def nc_dir(tmp_dir):
     tmp_dir = Path(tmp_dir)
     nc_dir = tmp_dir / "nc_dir"
@@ -72,17 +72,17 @@ def nc_dir(tmp_dir):
     shutil.rmtree(nc_dir)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def ro_dstore(fasta_dir):
     return DataStoreDirectory(fasta_dir, suffix="fasta", mode=READONLY)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def w_dstore(write_dir):
     return DataStoreDirectory(write_dir, suffix="fasta", mode=OVERWRITE)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def nc_dstore(DATA_DIR, nc_dir):
     dstore = DataStoreDirectory(nc_dir, suffix="fasta", mode=OVERWRITE)
     # write one log file
@@ -91,7 +91,10 @@ def nc_dstore(DATA_DIR, nc_dir):
     # write three not_completed file
     nc = [
         NotCompleted(
-            "FAIL", f"dummy{i}", f"dummy_message{i}", source=f"dummy_source{i}"
+            "FAIL",
+            f"dummy{i}",
+            f"dummy_message{i}",
+            source=f"dummy_source{i}",
         )
         for i in range(3)
     ]
@@ -107,12 +110,12 @@ def nc_dstore(DATA_DIR, nc_dir):
     return dstore
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def completed_objects(ro_dstore):
     return {f"{Path(m.unique_id).stem}": m.read() for m in ro_dstore}
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def nc_objects():
     return {
         f"id_{i}": NotCompleted("ERROR", "location", "message", source=f"id_{i}")
@@ -120,7 +123,7 @@ def nc_objects():
     }
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def Sample_oldDirectoryDataStore(DATA_DIR, tmp_dir):
     tmp_dir = Path(tmp_dir)
     filenames = DATA_DIR.glob("*.fasta")
@@ -138,7 +141,7 @@ def log_data(DATA_DIR):
     return path.read_text()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def full_dstore(write_dir, nc_objects, completed_objects, log_data):
     dstore = DataStoreDirectory(write_dir, suffix="fasta", mode=OVERWRITE)
     for id, data in nc_objects.items():
@@ -151,22 +154,23 @@ def full_dstore(write_dir, nc_objects, completed_objects, log_data):
     return dstore
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def tinydbfile_locked(DATA_DIR, tmp_dir):
     path = tmp_dir / "sample_locked.tinydb"
     shutil.copy(DATA_DIR / path.name, path)
     return Path(path)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def tinydbfile_unlocked(DATA_DIR, tmp_dir):
     try:
         from tinydb import Query, TinyDB
         from tinydb.middlewares import CachingMiddleware
         from tinydb.storages import JSONStorage
     except ImportError as e:
+        msg = "You need to install tinydb to be able to migrate to new datastore."
         raise ImportError(
-            "You need to install tinydb to be able to migrate to new datastore."
+            msg,
         ) from e
 
     locked_path = tmp_dir / "sample_locked.tinydb"
@@ -186,19 +190,19 @@ def tinydbfile_unlocked(DATA_DIR, tmp_dir):
 def test_data_member_eq(ro_dstore, fasta_dir):
     ro_dstore2 = DataStoreDirectory(fasta_dir, mode="r", suffix="fasta")
     name = "brca1.fasta"
-    mem1 = [m for m in ro_dstore.completed if m.unique_id == name][0]
-    mem2 = [m for m in ro_dstore2.completed if m.unique_id == name][0]
+    mem1 = next(m for m in ro_dstore.completed if m.unique_id == name)
+    mem2 = next(m for m in ro_dstore2.completed if m.unique_id == name)
     assert mem1 != mem2
 
 
-@pytest.mark.parametrize("dest", (None, "mydata1.sqlitedb"))
+@pytest.mark.parametrize("dest", [None, "mydata1.sqlitedb"])
 def test_convert_tinydb_to_sqlite(tmp_dir, dest, tinydbfile_locked):
     dest = dest if dest is None else tmp_dir / dest
     if dest:
         dest.unlink(missing_ok=True)
     else:
         (Path(tinydbfile_locked.parent) / f"{tinydbfile_locked.stem}.sqlitedb").unlink(
-            missing_ok=True
+            missing_ok=True,
         )
     dstore_sqlite = convert_tinydb_to_sqlite(tinydbfile_locked, dest=dest)
     assert len(dstore_sqlite) == 6
@@ -206,7 +210,7 @@ def test_convert_tinydb_to_sqlite(tmp_dir, dest, tinydbfile_locked):
     assert dstore_sqlite._lock_id == 123
 
 
-@pytest.mark.parametrize("dest", (None, "mydata2.sqlitedb"))
+@pytest.mark.parametrize("dest", [None, "mydata2.sqlitedb"])
 def test_convert_tinydb_unlocked_to_sqlite(tmp_dir, dest, tinydbfile_unlocked):
     dest = dest if dest is None else tmp_dir / dest
     if dest:
@@ -217,7 +221,7 @@ def test_convert_tinydb_unlocked_to_sqlite(tmp_dir, dest, tinydbfile_unlocked):
         ).unlink(missing_ok=True)
     dstore_sqlite = convert_tinydb_to_sqlite(tinydbfile_unlocked, dest=dest)
     assert len(dstore_sqlite) == 6
-    assert dstore_sqlite._lock_id == None
+    assert dstore_sqlite._lock_id is None
 
 
 def test_convert_tinydb_to_sqlite_error(DATA_DIR, tmp_dir):
@@ -231,11 +235,11 @@ def test_convert_tinydb_to_sqlite_error(DATA_DIR, tmp_dir):
 
 
 @pytest.mark.parametrize(
-    "orig,num_logs",
-    (
+    ("orig", "num_logs"),
+    [
         ("sample_locked.tinydb", 1),
         ("sample_locked_w_log.tinydb", 2),
-    ),
+    ],
 )
 def test_convert_tinydbs_to_sqlite(DATA_DIR, tmp_dir, orig, num_logs):
     orig = DATA_DIR / orig
@@ -248,14 +252,16 @@ def test_convert_tinydbs_to_sqlite(DATA_DIR, tmp_dir, orig, num_logs):
 
 def test_convert_directory_datastore(Sample_oldDirectoryDataStore, write_dir):
     new_dstore = convert_directory_datastore(
-        Sample_oldDirectoryDataStore, write_dir, ".fasta"
+        Sample_oldDirectoryDataStore,
+        write_dir,
+        ".fasta",
     )
     assert len(new_dstore) == 6
 
 
 def test_fail_try_append(full_dstore, completed_objects):
     full_dstore._mode = APPEND
-    id, data = list(completed_objects.items())[0]
+    id, data = next(iter(completed_objects.items()))
     with pytest.raises(IOError):
         full_dstore.write(unique_id=id, data=data)
 
@@ -310,7 +316,7 @@ def test_pickleable_member_roundtrip(ro_dstore):
 
 def test_empty_directory(fasta_dir):
     dstore = DataStoreDirectory(fasta_dir, suffix=".txt")
-    assert 0 == len(dstore)
+    assert len(dstore) == 0
 
 
 def test_no_logs(ro_dstore):
@@ -386,7 +392,7 @@ def test_append(w_dstore):
 
 
 def test_no_not_completed_subdir(nc_dstore):
-    expect = f"{len(nc_dstore.completed)+len(nc_dstore.not_completed)}x member"
+    expect = f"{len(nc_dstore.completed) + len(nc_dstore.not_completed)}x member"
     assert str(nc_dstore).startswith(expect)
     # first remove not_completed directory
     nc_dstore.drop_not_completed()
@@ -444,7 +450,7 @@ def test_summary_logs_missing_field(nc_dstore):
     assert isinstance(nc_dstore.summary_logs, Table)
 
 
-@pytest.mark.parametrize("use_dser", (False, True))
+@pytest.mark.parametrize("use_dser", [False, True])
 def test_summary_not_completed_func(nc_objects, use_dser):
     dstore = io_app.open_data_store(":memory:", mode="w")
     writer = io_app.write_db(dstore)
@@ -486,7 +492,7 @@ def test_write_success_replaces_not_completed(full_dstore):
     assert len(full_dstore) == num
 
 
-@pytest.mark.parametrize("klass", (str, Path))
+@pytest.mark.parametrize("klass", [str, Path])
 def test_get_data_source_attr(klass):
     """handles case where input has source attribute string object or pathlib object"""
 
@@ -497,13 +503,13 @@ def test_get_data_source_attr(klass):
     value = klass("some/path.txt")
     obj.source = value
     got = get_data_source(obj)
-    assert got == str("path.txt")
+    assert got == "path.txt"
 
 
 _types = tuple(product((dict, UnionDict), (str, Path)))
 
 
-@pytest.mark.parametrize("container_type,source_stype", _types)
+@pytest.mark.parametrize(("container_type", "source_stype"), _types)
 def test_get_data_source_dict(container_type, source_stype):
     """handles case where input is dict (sub)class instance with top level source key"""
     value = source_stype("some/path.txt")
@@ -513,26 +519,29 @@ def test_get_data_source_dict(container_type, source_stype):
 
 
 @pytest.mark.parametrize(
-    "name", ("path/name.txt", "path/name.gz", "path/name.fasta.gz", "name.fasta.gz")
+    "name",
+    ["path/name.txt", "path/name.gz", "path/name.fasta.gz", "name.fasta.gz"],
 )
 def test_get_unique_id(name):
     got = get_unique_id(name)
     assert got == "name"
 
 
-@pytest.mark.parametrize("data", (dict(), set(), dict(info=dict())))
+@pytest.mark.parametrize("data", [{}, set(), {"info": {}}])
 def test_get_data_source_none(data):
     assert get_data_source(data) is None
 
 
-@pytest.mark.parametrize("klass", (str, Path))
+@pytest.mark.parametrize("klass", [str, Path])
 def test_get_data_source_seqcoll(klass):
     """handles case where input is sequence collection object"""
     from cogent3 import make_unaligned_seqs
 
     value = klass("some/path.txt")
     obj = make_unaligned_seqs(
-        data=dict(seq1="ACGG"), moltype="dna", info=dict(source=value, random_key=1234)
+        data={"seq1": "ACGG"},
+        moltype="dna",
+        info={"source": value, "random_key": 1234},
     )
     got = get_data_source(obj)
     assert got == "path.txt"
@@ -549,7 +558,7 @@ def test_load_record_from_json():
         Id, data_, compl = load_record_from_json(d)
         assert Id == "some.json"
         assert data_ == expected
-        assert compl == True
+        assert compl is True
 
 
 def test_write_read_not_completed(nc_dstore):
@@ -672,13 +681,13 @@ def test_zipped_md5(zipped_full, full_dstore):
     assert got == expect
 
 
-@pytest.mark.parametrize("dstore", ("full_dstore", "zipped_full"))
+@pytest.mark.parametrize("dstore", ["full_dstore", "zipped_full"])
 def test_zipped_contains(dstore, request):
     full_dstore = request.getfixturevalue(dstore)
     assert "formattest.fasta" in full_dstore
 
 
-@pytest.mark.parametrize("dstore", ("full_dstore", "zipped_full"))
+@pytest.mark.parametrize("dstore", ["full_dstore", "zipped_full"])
 def test_members(dstore, request):
     full_dstore = request.getfixturevalue(dstore)
     completed = full_dstore.completed
@@ -686,7 +695,7 @@ def test_members(dstore, request):
     assert full_dstore.members == completed + not_completed
 
 
-@pytest.mark.parametrize("dstore", ("full_dstore", "zipped_full"))
+@pytest.mark.parametrize("dstore", ["full_dstore", "zipped_full"])
 def test_describe(dstore, request):
     full_dstore = request.getfixturevalue(dstore)
     got = full_dstore.describe
@@ -694,24 +703,24 @@ def test_describe(dstore, request):
     assert isinstance(got, Table)
 
 
-@pytest.mark.parametrize("dstore", ("full_dstore", "zipped_full"))
+@pytest.mark.parametrize("dstore", ["full_dstore", "zipped_full"])
 def test_iter(dstore, request):
     full_dstore = request.getfixturevalue(dstore)
     members = list(full_dstore)
     assert members == full_dstore.members
 
 
-@pytest.mark.parametrize("dstore", ("full_dstore", "zipped_full"))
+@pytest.mark.parametrize("dstore", ["full_dstore", "zipped_full"])
 def test_validate(dstore, request):
     full_dstore = request.getfixturevalue(dstore)
     validation_table = full_dstore.validate()
     assert isinstance(validation_table, Table)
     assert validation_table["Num md5sum correct", "Value"] == len(full_dstore)
     assert validation_table["Num md5sum incorrect", "Value"] == 0
-    assert validation_table["Has log", "Value"] == True
+    assert validation_table["Has log", "Value"] is True
 
 
-@pytest.mark.parametrize("dstore", ("full_dstore", "zipped_full"))
+@pytest.mark.parametrize("dstore", ["full_dstore", "zipped_full"])
 def test_summary_logs(dstore, request):
     full_dstore = request.getfixturevalue(dstore)
     # log summary has a row per log file and a column for each property
@@ -720,7 +729,7 @@ def test_summary_logs(dstore, request):
     assert isinstance(got, Table)
 
 
-@pytest.mark.parametrize("dstore", ("full_dstore", "zipped_full"))
+@pytest.mark.parametrize("dstore", ["full_dstore", "zipped_full"])
 def test_summary_not_completed(dstore, request):
     full_dstore = request.getfixturevalue(dstore)
     got = full_dstore.summary_not_completed
@@ -728,7 +737,7 @@ def test_summary_not_completed(dstore, request):
     assert isinstance(got, Table)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def app_dstore_in(tmp_path):
     from cogent3 import get_app, open_data_store
 
@@ -761,7 +770,9 @@ def test_directory_data_store_write_compressed(tmp_path):
     out = open_data_store(base_path=tmp_path / "demo", suffix="fa.gz", mode="w")
     writer = get_app("write_seqs", data_store=out)
     seqs = make_aligned_seqs(
-        dict(s1="CG--T", s2="CGTTT"), moltype="dna", info=dict(source="test")
+        {"s1": "CG--T", "s2": "CGTTT"},
+        moltype="dna",
+        info={"source": "test"},
     )
     got = writer(seqs)  # pylint: disable=not-callable
     assert got, got

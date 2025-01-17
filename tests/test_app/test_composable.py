@@ -3,7 +3,6 @@ import pickle
 import shutil
 from pathlib import Path
 from pickle import dumps, loads
-from typing import Set, Tuple, Union
 from unittest.mock import Mock
 
 import pytest
@@ -37,16 +36,15 @@ from cogent3.app.sqlite_data_store import DataStoreSqlite
 from cogent3.app.translate import select_translatable
 from cogent3.app.tree import quick_tree
 from cogent3.app.typing import AlignedSeqsType, PairwiseDistanceType
-from cogent3.core.alignment import Alignment, SequenceCollection
 from cogent3.util.union_dict import UnionDict
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def tmp_dir(tmp_path_factory):
     return tmp_path_factory.mktemp("datastore")
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def fasta_dir(DATA_DIR, tmp_dir):
     filenames = DATA_DIR.glob("*.fasta")
     fasta_dir = tmp_dir / "fasta"
@@ -57,7 +55,7 @@ def fasta_dir(DATA_DIR, tmp_dir):
     return fasta_dir
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def write_dir1(tmp_dir):
     write_dir1 = tmp_dir / "write1"
     write_dir1.mkdir(parents=True, exist_ok=True)
@@ -65,7 +63,7 @@ def write_dir1(tmp_dir):
     shutil.rmtree(write_dir1)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def write_dir2(tmp_dir):
     write_dir2 = tmp_dir / "write2"
     write_dir2.mkdir(parents=True, exist_ok=True)
@@ -73,17 +71,17 @@ def write_dir2(tmp_dir):
     shutil.rmtree(write_dir2)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def ro_dstore(fasta_dir):
     return DataStoreDirectory(fasta_dir, suffix="fasta", mode=READONLY)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def completed_objects(ro_dstore):
     return {f"{Path(m.unique_id).stem}": m.read() for m in ro_dstore}
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def nc_objects():
     return {
         f"id_{i}": NotCompleted("ERROR", "location", "message", source=f"id_{i}")
@@ -91,13 +89,13 @@ def nc_objects():
     }
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def log_data(DATA_DIR):
     path = DATA_DIR / "scitrack.log"
     return path.read_text()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def full_dstore(write_dir1, nc_objects, completed_objects, log_data):
     dstore = DataStoreDirectory(write_dir1, suffix="fasta", mode=OVERWRITE)
     for id, data in nc_objects.items():
@@ -110,7 +108,7 @@ def full_dstore(write_dir1, nc_objects, completed_objects, log_data):
     return dstore
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def nc_dstore(tmp_dir, nc_objects):
     dstore = DataStoreDirectory(tmp_dir, suffix="fasta", mode=OVERWRITE)
     for id, data in nc_objects.items():
@@ -119,7 +117,7 @@ def nc_dstore(tmp_dir, nc_objects):
     return dstore
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def half_dstore1(write_dir1, nc_objects, completed_objects, log_data):
     dstore = DataStoreDirectory(write_dir1, suffix="fasta", mode=OVERWRITE)
     i = 0
@@ -138,7 +136,7 @@ def half_dstore1(write_dir1, nc_objects, completed_objects, log_data):
     return dstore
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def half_dstore2(write_dir2, nc_objects, completed_objects, log_data):
     dstore = DataStoreDirectory(write_dir2, suffix="fasta", mode=OVERWRITE)
     i = -1
@@ -179,7 +177,7 @@ def test_composable():
     aseqfunc1 = app_dummyclass_1(1)
     aseqfunc2 = app_dummyclass_2(2)
     comb = aseqfunc1 + aseqfunc2
-    expect = "app_dummyclass_1(a=1) + " "app_dummyclass_2(b=2)"
+    expect = "app_dummyclass_1(a=1) + app_dummyclass_2(b=2)"
     got = str(comb)
     assert got == expect
 
@@ -294,7 +292,7 @@ def test_as_completed(DATA_DIR):
     path = str(Path(dstore[0].data_store.source) / dstore[0].unique_id)
     got = list(proc.as_completed(path, show_progress=False))
     assert len(got) == 1
-    assert isinstance(got[0].obj, SequenceCollection)
+    assert got[0].obj.__class__.__name__.endswith("SequenceCollection")
 
 
 @pytest.mark.parametrize("data", [(), ("", "")])
@@ -312,14 +310,18 @@ def test_as_completed_empty_data(data):
 @pytest.mark.parametrize(
     "data",
     [
-        dict(a=2),
+        {"a": 2},
         UnionDict(a=2, source="blah.txt"),
-        Alignment(data=dict(a="ACGT"), info=dict(source="blah.txt")),
+        make_aligned_seqs(
+            data={"a": "ACGT"},
+            info={"source": "blah.txt"},
+            moltype="dna",
+        ),
     ],
 )
 def test_as_completed_w_wout_source(data):
     @define_app
-    def pass_through(val: Union[dict, UnionDict, Alignment]) -> dict:
+    def pass_through(val: dict | UnionDict | AlignedSeqsType) -> dict:
         return val
 
     app = pass_through()  # pylint: disable=not-callable,no-value-for-parameter
@@ -327,8 +329,8 @@ def test_as_completed_w_wout_source(data):
     assert bool(got), got
 
 
-@pytest.mark.parametrize("klass", (DataStoreDirectory, DataStoreSqlite))
-@pytest.mark.parametrize("cast", (str, Path))
+@pytest.mark.parametrize("klass", [DataStoreDirectory, DataStoreSqlite])
+@pytest.mark.parametrize("cast", [str, Path])
 def test_apply_to_strings(DATA_DIR, tmp_dir, klass, cast):
     """apply_to handles non-DataMember"""
     dname = "test_apply_to_strings"
@@ -348,8 +350,8 @@ def test_apply_to_strings(DATA_DIR, tmp_dir, klass, cast):
     assert len(process.data_store.logs) == 1
 
 
-@pytest.mark.parametrize("klass", (DataStoreDirectory, DataStoreSqlite))
-@pytest.mark.parametrize("cast", (str, Path))
+@pytest.mark.parametrize("klass", [DataStoreDirectory, DataStoreSqlite])
+@pytest.mark.parametrize("cast", [str, Path])
 def test_as_completed_strings(DATA_DIR, tmp_dir, klass, cast):
     """as_completed handles non-DataMember"""
     dname = "test_apply_to_strings"
@@ -380,7 +382,7 @@ def test_apply_to_non_unique_identifiers(tmp_dir):
     min_length = sample_app.min_length(10)
     outpath = tmp_dir / "test_apply_to_non_unique_identifiers"
     writer = io_app.write_seqs(
-        DataStoreDirectory(outpath, mode=OVERWRITE, suffix="fasta")
+        DataStoreDirectory(outpath, mode=OVERWRITE, suffix="fasta"),
     )
     process = reader + min_length + writer
     with pytest.raises(ValueError):
@@ -395,7 +397,7 @@ def test_apply_to_logging(DATA_DIR, tmp_dir):
     out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="w")
     writer = io_app.write_db(out_dstore)
     process = reader + min_length + writer
-    r = process.apply_to(dstore, show_progress=False)
+    process.apply_to(dstore, show_progress=False)
     # always creates a log
     assert len(process.data_store.logs) == 1
 
@@ -426,7 +428,7 @@ def test_apply_to_no_logger(DATA_DIR, tmp_dir):
     assert process.logger is None
 
 
-@pytest.mark.parametrize("logger_val", (True, "somepath.log"))
+@pytest.mark.parametrize("logger_val", [True, "somepath.log"])
 def test_apply_to_invalid_logger(DATA_DIR, tmp_dir, logger_val):
     """incorrect logger value raises TypeError"""
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
@@ -488,7 +490,7 @@ def test_apply_to_not_partially_done(DATA_DIR, tmp_dir):
 
 
 @pytest.mark.xfail(reason="passes except when run in full test suite")
-@pytest.mark.parametrize("show", (True, False))
+@pytest.mark.parametrize("show", [True, False])
 def test_as_completed_progress(full_dstore, capsys, show):
     loader = get_app("load_unaligned", format="fasta", moltype="dna")
     omit = get_app("omit_degenerates")
@@ -519,7 +521,8 @@ def test_err_result():
 
     try:
         _ = 0
-        raise ValueError("error message")
+        msg = "error message"
+        raise ValueError(msg)
     except ValueError as err:
         result = NotCompleted("SKIP", "this", err.args[0])
 
@@ -538,7 +541,7 @@ def test_str():
     func = select_translatable(allow_rc=True)
     got = str(func)
     assert got.startswith(
-        "select_translatable(moltype='dna', gc=1, allow_rc=True, trim_terminal_stop=True"
+        "select_translatable(moltype='dna', gc=1, allow_rc=True, trim_terminal_stop=True",
     )
 
     nodegen = omit_degenerates()
@@ -614,7 +617,7 @@ def foo_without_arg_kwargs(val: AlignedSeqsType) -> AlignedSeqsType:
 
 @define_app
 def bar(val: AlignedSeqsType, num=3) -> PairwiseDistanceType:
-    return val.distance_matrix(calc="hamming", show_progress=False)
+    return val.distance_matrix(calc="hamming")
 
 
 def test_user_function():
@@ -622,7 +625,10 @@ def test_user_function():
 
     u_function = foo()
 
-    aln = make_aligned_seqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
+    aln = make_aligned_seqs(
+        data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
+        moltype="dna",
+    )
     got = u_function(aln)
 
     assert got.to_dict() == {"a": "GCAA", "b": "GCTT"}
@@ -633,7 +639,10 @@ def test_user_function_without_arg_kwargs():
 
     u_function = foo_without_arg_kwargs()
 
-    aln = make_aligned_seqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
+    aln = make_aligned_seqs(
+        data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
+        moltype="dna",
+    )
     got = u_function(aln)
 
     assert got.to_dict() == {"a": "GCAA", "b": "GCTT"}
@@ -644,9 +653,12 @@ def test_user_function_multiple():
     u_function_1 = foo()
     u_function_2 = bar()
 
-    aln_1 = make_aligned_seqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
-    data = dict([("s1", "ACGTACGTA"), ("s2", "GTGTACGTA")])
-    aln_2 = Alignment(data=data, moltype="dna")
+    aln_1 = make_aligned_seqs(
+        data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
+        moltype="dna",
+    )
+    data = {"s1": "ACGTACGTA", "s2": "GTGTACGTA"}
+    aln_2 = make_aligned_seqs(data=data, moltype="dna")
 
     got_1 = u_function_1(aln_1)
     got_2 = u_function_2(aln_2)
@@ -696,7 +708,7 @@ def test_composed_func_pickleable():
     no_degen = omit_degenerates(moltype="dna")
     app = ml + no_degen
 
-    unpickled = pickle.loads(pickle.dumps((app)))
+    unpickled = pickle.loads(pickle.dumps(app))
     assert unpickled.input is not None
 
 
@@ -900,7 +912,7 @@ def test_decorated_func_repr():
         return val**pow
 
     fns = {fn: func for fn, func in locals().items() if callable(func)}
-    args = {"pos": 4, "kw": dict(pow=3)}
+    args = {"pos": 4, "kw": {"pow": 3}}
     for name, func in fns.items():
         app = define_app(func)
         if len(name.split("_")) == 1:
@@ -956,7 +968,8 @@ def test_forbidden_methods_composable_app(meth):
 
 
 @pytest.mark.parametrize(
-    "meth", ["__call__", "__repr__", "__str__", "__new__", "_validate_data_type"]
+    "meth",
+    ["__call__", "__repr__", "__str__", "__new__", "_validate_data_type"],
 )
 def test_forbidden_methods_non_composable_app(meth):
     class app_forbidden_methods2:
@@ -991,8 +1004,8 @@ def test_add_non_composable_apps():
         def main(self, val: int) -> int:
             return val
 
-    setattr(app_non_composable1, "__add__", _add)
-    setattr(app_non_composable2, "__add__", _add)
+    app_non_composable1.__add__ = _add
+    app_non_composable2.__add__ = _add
     app1 = app_non_composable1()
     app2 = app_non_composable2()
     with pytest.raises(TypeError):
@@ -1002,7 +1015,7 @@ def test_add_non_composable_apps():
 _types_null = (list, []), (tuple, ())
 
 
-@pytest.mark.parametrize("in_type,input", _types_null)
+@pytest.mark.parametrize(("in_type", "input"), _types_null)
 def test_handles_null_series_input(in_type, input):
     """apps correctly handle null output"""
 
@@ -1015,7 +1028,7 @@ def test_handles_null_series_input(in_type, input):
     assert isinstance(got, NotCompleted)
 
 
-@pytest.mark.parametrize("ret_type", (0, array([]), [], {}))
+@pytest.mark.parametrize("ret_type", [0, array([]), [], {}])
 def test_handles_null_output(ret_type):
     """apps correctly handle null output"""
 
@@ -1066,7 +1079,10 @@ def test_validate_data_type_not_completed_pass_through():
     assert got.origin == "take_int1"
 
 
-@pytest.mark.parametrize("first,ret", ((Tuple[Set[str]], int), (int, Tuple[Set[str]])))
+@pytest.mark.parametrize(
+    ("first", "ret"),
+    [(tuple[set[str]], int), (int, tuple[set[str]])],
+)
 def test_complex_type(first, ret):
     # disallow >2-deep nesting of types for first arg and return type
     with pytest.raises(TypeError):
@@ -1077,7 +1093,7 @@ def test_complex_type(first, ret):
                 return data
 
 
-@pytest.mark.parametrize("hint", (Tuple[Set[str]], Tuple[Tuple[Set[str]]]))
+@pytest.mark.parametrize("hint", [tuple[set[str]], tuple[tuple[set[str]]]])
 def test_complex_type_depths(hint):
     # disallow >2-deep nesting of types for first arg and return type
     with pytest.raises(TypeError):
@@ -1088,7 +1104,7 @@ def test_complex_type_depths(hint):
                 return True
 
 
-@pytest.mark.parametrize("hint", (int, Set[str]))
+@pytest.mark.parametrize("hint", [int, set[str]])
 def test_complex_type_allowed_depths(hint):
     # allowed <=2-deep nesting of types
     @define_app
@@ -1099,7 +1115,9 @@ def test_complex_type_allowed_depths(hint):
 
 def test_apply_to_only_appends(half_dstore1, half_dstore2):
     half_dstore1 = open_data_store(
-        half_dstore1.source, suffix=half_dstore1.suffix, mode=APPEND
+        half_dstore1.source,
+        suffix=half_dstore1.suffix,
+        mode=APPEND,
     )
     reader1 = io_app.load_aligned(format="fasta", moltype="dna")
     min_length1 = sample_app.min_length(10)
@@ -1116,7 +1134,9 @@ def test_apply_to_only_appends(half_dstore1, half_dstore2):
     assert {m.unique_id for m in got.members} == orig_members
 
     half_dstore2 = open_data_store(
-        half_dstore2.source, suffix=half_dstore2.suffix, mode=APPEND
+        half_dstore2.source,
+        suffix=half_dstore2.suffix,
+        mode=APPEND,
     )
 
     reader2 = io_app.load_aligned(format="fasta", moltype="dna")

@@ -7,7 +7,7 @@ from unittest import TestCase
 import numpy
 import pytest
 
-from cogent3 import DNA, make_seq
+import cogent3
 from cogent3.core import new_moltype
 from cogent3.core.location import (
     FeatureMap,
@@ -20,6 +20,8 @@ from cogent3.core.location import (
     gap_coords_to_map,
     span_and_span,
 )
+
+DNA = cogent3.get_moltype("dna")
 
 
 class SpanTests(TestCase):
@@ -39,81 +41,79 @@ class SpanTests(TestCase):
     def test_init(self):
         """Span object should init with start, end, and Length"""
         s = Span(0)
-        self.assertEqual(s.start, 0)
-        self.assertEqual(s.end, 1)
-        self.assertEqual(s.reverse, False)
+        assert s.start == 0
+        assert s.end == 1
+        assert s.reverse is False
         # to get an empty interval, must specify start and end explicitly
         t = Span(0, 0)
-        self.assertEqual(t.start, 0)
-        self.assertEqual(t.end, 0)
-        self.assertEqual(t.reverse, False)
+        assert t.start == 0
+        assert t.end == 0
+        assert t.reverse is False
         # should be able to specify direction also
         u = Span(5, 15, reverse=True)
-        self.assertEqual(u.start, 5)
-        self.assertEqual(u.end, 15)
-        self.assertEqual(u.reverse, True)
+        assert u.start == 5
+        assert u.end == 15
+        assert u.reverse is True
         # should be able to init from another span
         v = Span(u)
-        self.assertEqual(v.start, 5)
-        self.assertEqual(v.end, 15)
-        self.assertEqual(v.reverse, True)
+        assert v.start == 5
+        assert v.end == 15
+        assert v.reverse is True
 
     def test_contains(self):
         """Span object contains its start but not its end"""
-        self.assertNotIn(0, self.empty)
-        self.assertIn(30, self.full)
-        self.assertIn(34, self.full)
-        self.assertNotIn(35, self.full)
-        self.assertIn(self.inside, self.full)
-        self.assertNotIn(self.overlapping, self.full)
-        self.assertIn(0, self.spans_zero)
-        self.assertIn(-5, self.spans_zero)
-        self.assertNotIn(5, self.spans_zero)
+        assert 0 not in self.empty
+        assert 30 in self.full
+        assert 34 in self.full
+        assert 35 not in self.full
+        assert self.inside in self.full
+        assert self.overlapping not in self.full
+        assert 0 in self.spans_zero
+        assert -5 in self.spans_zero
+        assert 5 not in self.spans_zero
 
     def test_overlaps(self):
         """Span objects should be able to overlap points or spans"""
-        self.assertTrue(self.full.overlaps(self.overlapping))
-        self.assertFalse(self.full.overlaps(self.before))
-        self.assertFalse(self.before.overlaps(self.overlapping))
-        self.assertFalse(self.full.overlaps(self.after))
-        self.assertFalse(self.after.overlaps(self.before))
-        self.assertTrue(self.full.overlaps(self.inside))
-        self.assertTrue(self.spans_zero.overlaps(self.empty))
-        self.assertTrue(self.empty.overlaps(self.spans_zero))
+        assert self.full.overlaps(self.overlapping)
+        assert not self.full.overlaps(self.before)
+        assert not self.before.overlaps(self.overlapping)
+        assert not self.full.overlaps(self.after)
+        assert not self.after.overlaps(self.before)
+        assert self.full.overlaps(self.inside)
+        assert self.spans_zero.overlaps(self.empty)
+        assert self.empty.overlaps(self.spans_zero)
 
     def test_reverses(self):
         """Span.reverses should change direction"""
-        self.assertFalse(self.empty.reverse)
+        assert not self.empty.reverse
         self.empty.reverses()
-        self.assertTrue(self.empty.reverse)
+        assert self.empty.reverse
         self.empty.reverses()
-        self.assertFalse(self.empty.reverse)
-        self.assertTrue(self.reverse.reverse)
+        assert not self.empty.reverse
+        assert self.reverse.reverse
         self.reverse.reverses()
-        self.assertFalse(self.reverse.reverse)
+        assert not self.reverse.reverse
 
     def test_iter(self):
         """Span iter should loop through (integer) contents"""
-        self.assertEqual(list(iter(self.empty)), [])
-        self.assertEqual(list(iter(self.full)), [30, 31, 32, 33, 34])
-        self.assertEqual(
-            list(iter(self.spans_zero)), [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4]
-        )
-        self.assertEqual(list(iter(self.inside)), [31])
-        self.assertEqual(list(self.reverse), [34, 33, 32, 31, 30])
+        assert list(iter(self.empty)) == []
+        assert list(iter(self.full)) == [30, 31, 32, 33, 34]
+        assert list(iter(self.spans_zero)) == [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4]
+        assert list(iter(self.inside)) == [31]
+        assert list(self.reverse) == [34, 33, 32, 31, 30]
 
     def test_str(self):
         """Span str should print start, stop, reverse"""
-        self.assertEqual(str(self.empty), "(0,0,False)")
-        self.assertEqual(str(self.full), "(30,35,False)")
-        self.assertEqual(str(self.reverse), "(30,35,True)")
+        assert str(self.empty) == "(0,0,False)"
+        assert str(self.full) == "(30,35,False)"
+        assert str(self.reverse) == "(30,35,True)"
 
     def test_len(self):
         """Span len should return difference between start and end"""
-        self.assertEqual(len(self.empty), 0)
-        self.assertEqual(len(self.full), 5)
-        self.assertEqual(len(self.inside), 1)
-        self.assertEqual(len(self.spans_zero), 10)
+        assert len(self.empty) == 0
+        assert len(self.full) == 5
+        assert len(self.inside) == 1
+        assert len(self.spans_zero) == 10
 
     def test_cmp(self):
         """Span cmp should support sort by 1st/2nd index and direction"""
@@ -133,15 +133,15 @@ class SpanTests(TestCase):
         first.sort()
         second = [r, o, f, s, e, i, n]
         second.sort()
-        for i, j in zip(first, second):
-            self.assertIs(i, j)
+        for i, j in zip(first, second, strict=False):
+            assert i is j
 
-        for i, j in zip(first, expected_order):
-            self.assertIs(i, j)
+        for i, j in zip(first, expected_order, strict=False):
+            assert i is j
 
     def test_sort(self):
         """Span should support sort by 1st/2nd index and direction"""
-        s, e, f, r, i, o = (
+        s, e, _f, _r, i, _o = (
             self.spans_zero,
             self.empty,
             self.full,
@@ -154,117 +154,117 @@ class SpanTests(TestCase):
         first = expected_order[:]
         first.sort()
 
-        for i, j in zip(first, expected_order):
-            self.assertIs(i, j)
+        for i, j in zip(first, expected_order, strict=False):
+            assert i is j
 
     def test_starts_before(self):
         """Span starts_before should match hand-calculated results"""
         e, f = self.empty, self.full
-        self.assertTrue(e.starts_before(f))
-        self.assertFalse(f.starts_before(e))
-        self.assertTrue(e.starts_before(1))
-        self.assertTrue(e.starts_before(1000))
-        self.assertFalse(e.starts_before(0))
-        self.assertFalse(e.starts_before(-1))
-        self.assertFalse(f.starts_before(30))
-        self.assertTrue(f.starts_before(31))
-        self.assertTrue(f.starts_before(1000))
+        assert e.starts_before(f)
+        assert not f.starts_before(e)
+        assert e.starts_before(1)
+        assert e.starts_before(1000)
+        assert not e.starts_before(0)
+        assert not e.starts_before(-1)
+        assert not f.starts_before(30)
+        assert f.starts_before(31)
+        assert f.starts_before(1000)
 
     def test_starts_after(self):
         """Span starts_after should match hand-calculated results"""
         e, f = self.empty, self.full
-        self.assertFalse(e.starts_after(f))
-        self.assertTrue(f.starts_after(e))
-        self.assertFalse(e.starts_after(1))
-        self.assertFalse(e.starts_after(1000))
-        self.assertFalse(e.starts_after(0))
-        self.assertTrue(e.starts_after(-1))
-        self.assertTrue(f.starts_after(29))
-        self.assertFalse(f.starts_after(30))
-        self.assertFalse(f.starts_after(31))
-        self.assertFalse(f.starts_after(1000))
+        assert not e.starts_after(f)
+        assert f.starts_after(e)
+        assert not e.starts_after(1)
+        assert not e.starts_after(1000)
+        assert not e.starts_after(0)
+        assert e.starts_after(-1)
+        assert f.starts_after(29)
+        assert not f.starts_after(30)
+        assert not f.starts_after(31)
+        assert not f.starts_after(1000)
 
     def test_startsAt(self):
         """Span startsAt should return True if input matches"""
         e, f = self.empty, self.full
         s = Span(30, 1000)
-        self.assertTrue(e.starts_at(0))
-        self.assertTrue(f.starts_at(30))
-        self.assertTrue(s.starts_at(30))
-        self.assertTrue(f.starts_at(s))
-        self.assertTrue(s.starts_at(f))
-        self.assertFalse(e.starts_at(f))
-        self.assertFalse(e.starts_at(-1))
-        self.assertFalse(e.starts_at(1))
-        self.assertFalse(f.starts_at(29))
+        assert e.starts_at(0)
+        assert f.starts_at(30)
+        assert s.starts_at(30)
+        assert f.starts_at(s)
+        assert s.starts_at(f)
+        assert not e.starts_at(f)
+        assert not e.starts_at(-1)
+        assert not e.starts_at(1)
+        assert not f.starts_at(29)
 
     def test_startsInside(self):
         """Span startsInside should return True if input starts inside span"""
         e, f, i, o = self.empty, self.full, self.inside, self.overlapping
-        self.assertFalse(e.starts_inside(0))
-        self.assertFalse(f.starts_inside(30))
-        self.assertFalse(e.starts_inside(f))
-        self.assertTrue(i.starts_inside(f))
-        self.assertFalse(f.starts_inside(i))
-        self.assertTrue(o.starts_inside(f))
-        self.assertFalse(o.ends_inside(i))
+        assert not e.starts_inside(0)
+        assert not f.starts_inside(30)
+        assert not e.starts_inside(f)
+        assert i.starts_inside(f)
+        assert not f.starts_inside(i)
+        assert o.starts_inside(f)
+        assert not o.ends_inside(i)
 
     def test_endsBefore(self):
         """Span endsBefore should match hand-calculated results"""
         e, f = self.empty, self.full
-        self.assertTrue(e.ends_before(f))
-        self.assertFalse(f.ends_before(e))
-        self.assertTrue(e.ends_before(1))
-        self.assertTrue(e.ends_before(1000))
-        self.assertFalse(e.ends_before(0))
-        self.assertFalse(e.ends_before(-1))
-        self.assertFalse(f.ends_before(30))
-        self.assertFalse(f.ends_before(31))
-        self.assertTrue(f.ends_before(1000))
+        assert e.ends_before(f)
+        assert not f.ends_before(e)
+        assert e.ends_before(1)
+        assert e.ends_before(1000)
+        assert not e.ends_before(0)
+        assert not e.ends_before(-1)
+        assert not f.ends_before(30)
+        assert not f.ends_before(31)
+        assert f.ends_before(1000)
 
     def test_endsAfter(self):
         """Span endsAfter should match hand-calculated results"""
         e, f = self.empty, self.full
-        self.assertFalse(e.ends_after(f))
-        self.assertTrue(f.ends_after(e))
-        self.assertFalse(e.ends_after(1))
-        self.assertFalse(e.ends_after(1000))
-        self.assertFalse(e.ends_after(0))
-        self.assertTrue(e.ends_after(-1))
-        self.assertTrue(f.ends_after(29))
-        self.assertTrue(f.ends_after(30))
-        self.assertTrue(f.ends_after(34))
-        self.assertFalse(f.ends_after(35))
-        self.assertFalse(f.ends_after(1000))
+        assert not e.ends_after(f)
+        assert f.ends_after(e)
+        assert not e.ends_after(1)
+        assert not e.ends_after(1000)
+        assert not e.ends_after(0)
+        assert e.ends_after(-1)
+        assert f.ends_after(29)
+        assert f.ends_after(30)
+        assert f.ends_after(34)
+        assert not f.ends_after(35)
+        assert not f.ends_after(1000)
 
     def test_endsAt(self):
         """Span endsAt should return True if input matches"""
         e, f = self.empty, self.full
         s = Span(30, 1000)
         t = Span(-100, 35)
-        self.assertTrue(e.ends_at(0))
-        self.assertTrue(f.ends_at(35))
-        self.assertTrue(s.ends_at(1000))
-        self.assertFalse(f.ends_at(s))
-        self.assertFalse(s.ends_at(f))
-        self.assertTrue(f.ends_at(t))
-        self.assertTrue(t.ends_at(f))
+        assert e.ends_at(0)
+        assert f.ends_at(35)
+        assert s.ends_at(1000)
+        assert not f.ends_at(s)
+        assert not s.ends_at(f)
+        assert f.ends_at(t)
+        assert t.ends_at(f)
 
     def test_ends_inside(self):
         """Span ends_inside should return True if input ends inside span"""
         e, f, i, o = self.empty, self.full, self.inside, self.overlapping
-        self.assertFalse(e.ends_inside(0))
-        self.assertFalse(f.ends_inside(30))
-        self.assertFalse(f.ends_inside(34))
-        self.assertFalse(f.ends_inside(35))
-        self.assertFalse(e.ends_inside(f))
-        self.assertTrue(i.ends_inside(f))
-        self.assertFalse(f.ends_inside(i))
-        self.assertFalse(o.ends_inside(f))
-        self.assertFalse(o.ends_inside(i))
-        self.assertTrue(e.ends_inside(Span(-1, 1)))
-        self.assertTrue(e.ends_inside(Span(0, 1)))
-        self.assertFalse(e.ends_inside(Span(-1, 0)))
+        assert not e.ends_inside(0)
+        assert not f.ends_inside(30)
+        assert not f.ends_inside(34)
+        assert not f.ends_inside(35)
+        assert not e.ends_inside(f)
+        assert i.ends_inside(f)
+        assert not f.ends_inside(i)
+        assert not o.ends_inside(f)
+        assert not o.ends_inside(i)
+        assert e.ends_inside(Span(-1, 1))
+        assert e.ends_inside(Span(0, 1))
+        assert not e.ends_inside(Span(-1, 0))
 
 
 class MapTests(TestCase):
@@ -274,7 +274,7 @@ class MapTests(TestCase):
         """returns gap start and lengths"""
         m, _ = DNA.make_seq(seq="-AC--GT-TTA--").parse_out_gaps()
         got = m.get_gap_coordinates()
-        self.assertEqual(dict(got), {0: 1, 2: 2, 4: 1, 7: 2})
+        assert dict(got) == {0: 1, 2: 2, 4: 1, 7: 2}
 
 
 def test_map_plus_position():
@@ -304,7 +304,7 @@ def test_map_plus_position():
     # plus coords  876543210
     rc = orig.nucleic_reversed()
     rcsubseq = rc[2:7]
-    abs_coord = rcsubseq.absolute_position(0)
+    rcsubseq.absolute_position(0)
 
 
 def test_indel_map_useful_complete():
@@ -331,7 +331,7 @@ def test_map_nucleic_reversed():
     assert coords == expect
 
 
-@pytest.mark.parametrize("cls", (FeatureMap, IndelMap))
+@pytest.mark.parametrize("cls", [FeatureMap, IndelMap])
 def test_coordinate(cls):
     # coordinates are for ungapped segments in underlying sequence
     #                       01   2 345
@@ -342,7 +342,7 @@ def test_coordinate(cls):
     assert got == [(0, 2), (2, 3), (3, 6)]
 
 
-@pytest.mark.parametrize("cls", (FeatureMap, IndelMap))
+@pytest.mark.parametrize("cls", [FeatureMap, IndelMap])
 def test_gap_coordinate(cls):
     seq = DNA.make_seq(seq="AC---G-TAA--")
     m, _ = seq.parse_out_gaps()
@@ -362,7 +362,7 @@ def test_gaps():
     assert got == [(2, 5), (6, 7), (10, 12)]
 
 
-@pytest.mark.parametrize("cls", (IndelMap, FeatureMap))
+@pytest.mark.parametrize("cls", [IndelMap, FeatureMap])
 def test_nongap(cls):
     # returns spans corresponding to position on "aligned" seq of nongaps
     #                       000000000011
@@ -375,7 +375,7 @@ def test_nongap(cls):
     assert got == [(0, 2), (5, 6), (7, 10)]
 
 
-@pytest.mark.parametrize("cls", (IndelMap, FeatureMap))
+@pytest.mark.parametrize("cls", [IndelMap, FeatureMap])
 def test_nongap_startswith(cls):
     # returns spans corresponding to position on "aligned" seq of nongaps
     #                   012345678
@@ -387,7 +387,7 @@ def test_nongap_startswith(cls):
     assert got == [(2, 3), (4, 7)]
 
 
-@pytest.mark.parametrize("cls", (IndelMap, FeatureMap))
+@pytest.mark.parametrize("cls", [IndelMap, FeatureMap])
 def test_nongap_not_endswith(cls):
     # returns spans corresponding to position on "aligned" seq of nongaps
     #                   0123456
@@ -452,11 +452,14 @@ def test_terminal_unknown():
     gap_pos, gap_lengths = gap_data.T
 
     m = IndelMap(
-        gap_pos=gap_pos.copy(), gap_lengths=gap_lengths.copy(), parent_length=6
+        gap_pos=gap_pos.copy(),
+        gap_lengths=gap_lengths.copy(),
+        parent_length=6,
     )
     # not unknown, by default
     m_spans = tuple(m.spans)
-    assert m_spans[0].lost and not isinstance(m_spans[0], TerminalPadding)
+    assert m_spans[0].lost
+    assert not isinstance(m_spans[0], TerminalPadding)
     # use the constructor arg
     m = IndelMap(
         gap_pos=gap_pos.copy(),
@@ -467,12 +470,16 @@ def test_terminal_unknown():
     m_spans = tuple(m.spans)
     assert isinstance(m_spans[0], TerminalPadding)
     assert isinstance(m_spans[-1], TerminalPadding)
-    assert m_spans[2].lost and not isinstance(m_spans[1], TerminalPadding)
-    assert m_spans[4].lost and not isinstance(m_spans[2], TerminalPadding)
+    assert m_spans[2].lost
+    assert not isinstance(m_spans[1], TerminalPadding)
+    assert m_spans[4].lost
+    assert not isinstance(m_spans[2], TerminalPadding)
 
     # use the method
     m = IndelMap(
-        gap_pos=gap_pos.copy(), gap_lengths=gap_lengths.copy(), parent_length=6
+        gap_pos=gap_pos.copy(),
+        gap_lengths=gap_lengths.copy(),
+        parent_length=6,
     ).with_termini_unknown()
     m_spans = tuple(m.spans)
     assert isinstance(m_spans[0], TerminalPadding)
@@ -490,13 +497,17 @@ def test_terminal_unknown():
         termini_unknown=True,
     )
     m_spans = tuple(m.spans)
-    assert len(m_spans) == 1 and not m_spans[0].lost
+    assert len(m_spans) == 1
+    assert not m_spans[0].lost
     # use the method
     m = IndelMap(
-        gap_pos=empty.copy(), gap_lengths=empty.copy(), parent_length=6
+        gap_pos=empty.copy(),
+        gap_lengths=empty.copy(),
+        parent_length=6,
     ).with_termini_unknown()
     m_spans = tuple(m.spans)
-    assert len(m_spans) == 1 and not m_spans[0].lost
+    assert len(m_spans) == 1
+    assert not m_spans[0].lost
 
 
 def test_featuremap_inverse():
@@ -505,7 +516,8 @@ def test_featuremap_inverse():
     mi = m.inverse()
     assert len(mi) == 6
     mi_spans = tuple(mi.spans)
-    assert mi_spans[1].lost and len(mi_spans[1]) == 2
+    assert mi_spans[1].lost
+    assert len(mi_spans[1]) == 2
     # invert the inversion, should give us back the original
     re_inv = mi.inverse()
     expect = m.to_rich_dict()
@@ -520,10 +532,11 @@ def test_indelmap_from_aligned_segments():
     expected_length = sum(e - s for s, e in locations)
     assert im.parent_length == expected_length
     im_spans = tuple(im.spans)
-    assert im_spans[1].lost and len(im_spans[1]) == 2
+    assert im_spans[1].lost
+    assert len(im_spans[1]) == 2
 
 
-@pytest.mark.parametrize("swap", (False, True))
+@pytest.mark.parametrize("swap", [False, True])
 def test_indelmap_inconsistent_input(swap):
     a = numpy.array([0, 1], dtype=int)
     b = numpy.array([3], dtype=int)
@@ -603,10 +616,10 @@ def test_compare_map_indexed():
     assert got == expect
 
 
-@pytest.mark.parametrize("slice_it", (True, False))
+@pytest.mark.parametrize("slice_it", [True, False])
 def test_feature_map_zeroed(slice_it):
     spans = [LostSpan(2), Span(2, 4), LostSpan(2), Span(4, 8), LostSpan(2)]
-    kwargs = dict(spans=spans, parent_length=6)
+    kwargs = {"spans": spans, "parent_length": 6}
 
     fm = FeatureMap(**kwargs)
     if slice_it:
@@ -619,13 +632,13 @@ def test_feature_map_zeroed(slice_it):
 
 def test_indelmap_to_feature_map():
     spans = [LostSpan(2), Span(2, 4), LostSpan(2), Span(4, 8), LostSpan(2)]
-    kwargs = dict(spans=spans, parent_length=8)
+    kwargs = {"spans": spans, "parent_length": 8}
     im = IndelMap.from_spans(**kwargs)
     mm = im.to_feature_map()
     assert mm.get_coordinates() == im.get_coordinates()
 
 
-@pytest.mark.parametrize("raw", ("--AC--GGGG--", "A-A-A", "-A-AA----A"))
+@pytest.mark.parametrize("raw", ["--AC--GGGG--", "A-A-A", "-A-AA----A"])
 def test_indelmap_nucleic_reversed(raw):
     from cogent3.core.alignment import Aligned
 
@@ -652,7 +665,9 @@ def test_get_coords():
 def test_indel_map_get_coords():
     """get_coordinates should return raw coordinates matching input"""
     imap = IndelMap(
-        gap_pos=numpy.array([9]), gap_lengths=numpy.array([10]), parent_length=20
+        gap_pos=numpy.array([9]),
+        gap_lengths=numpy.array([10]),
+        parent_length=20,
     )
     locations = [(0, 9), (9, 20)]
     coords = imap.get_coordinates()
@@ -668,7 +683,8 @@ def test_indel_map_get_gap_coords():
 
 
 @pytest.mark.parametrize(
-    "coords", ([(0, 3), (7, 11)], [(0, 3)], [(2, 4), (6, 10)], [(4, 6)])
+    "coords",
+    [[(0, 3), (7, 11)], [(0, 3)], [(2, 4), (6, 10)], [(4, 6)]],
 )
 def test_indelmap_joined_segments(coords):
     raw = "--AC--GGGG--"
@@ -746,7 +762,7 @@ def test_indelmap_slice_cum_length():
     start, end = 7, 11
     raw = "--AC--GGGG--"
     expect, _ = DNA.make_seq(seq=raw[start:end]).parse_out_gaps()
-    imap, _ = DNA.make_seq(raw).parse_out_gaps()
+    imap, _ = DNA.make_seq(seq=raw).parse_out_gaps()
     imap = imap[start:end]
     assert imap.gap_pos.tolist() == expect.gap_pos.tolist()
     assert imap.cum_gap_lengths.tolist() == expect.cum_gap_lengths.tolist()
@@ -791,7 +807,7 @@ def test_indelmap_slice_one_gap():
 
 @pytest.mark.parametrize(
     "data",
-    (
+    [
         "AB---CD--EF",
         "---ABCD--EF",
         "ABCD---EF--",
@@ -800,13 +816,13 @@ def test_indelmap_slice_one_gap():
         "-ABCDEF----",
         "-A-B-C-D-EF",
         "A-B-C-D-EF-",
-    ),
+    ],
 )
 @pytest.mark.parametrize("index", range(4, 6))  # the ungapped sequence is 6 long
 def test_gapped_convert_seq2aln(data, index):
     # converting a sequence index to alignment index
     ungapped = data.replace("-", "")
-    seq = make_seq(data, moltype="text")
+    seq = cogent3.make_seq(data, moltype="text")
     gaps, _ = seq.parse_out_gaps()
     idx = gaps.get_align_index(index)
     assert data[idx] == ungapped[index]
@@ -814,7 +830,7 @@ def test_gapped_convert_seq2aln(data, index):
 
 @pytest.mark.parametrize(
     "data",
-    (
+    [
         "AB---CD--EF",
         "---ABCD--EF",
         "ABCD---EF--",
@@ -823,15 +839,16 @@ def test_gapped_convert_seq2aln(data, index):
         "-ABCDEF----",
         "-A-B-C-D-EF",
         "A-B-C-D-EF-",
-    ),
+    ],
 )
 @pytest.mark.parametrize(
-    "start,end", list(combinations(range(6), 2))
+    ("start", "end"),
+    list(combinations(range(6), 2)),
 )  # the ungapped sequence is 6 long
 def test_indelmap_align_index_slice_stop(data, start, end):
     # converting a sequence index to alignment index
     ungapped = data.replace("-", "")
-    seq = make_seq(data, moltype="text")
+    seq = cogent3.make_seq(data, moltype="text")
     gaps, _ = seq.parse_out_gaps()
     stop = gaps.get_align_index(end, slice_stop=True)
     assert data[stop - 1] == ungapped[end - 1]
@@ -839,7 +856,7 @@ def test_indelmap_align_index_slice_stop(data, start, end):
 
 @pytest.mark.parametrize(
     "data",
-    (
+    [
         "AB---CD--EF",
         "---ABCD--EF",
         "ABCD---EF--",
@@ -848,12 +865,12 @@ def test_indelmap_align_index_slice_stop(data, start, end):
         "-ABCDEF----",
         "-A-B-C-D-EF",
         "A-B-C-D-EF-",
-    ),
+    ],
 )
 @pytest.mark.parametrize("index", range(6))  # the ungapped sequence is 6 long
 def test_gapped_convert_seq2aln2seq(data, index):
     # round tripping seq to alignment to seq indices
-    gaps, _ = make_seq(data, moltype="text").parse_out_gaps()
+    gaps, _ = cogent3.make_seq(data, moltype="text").parse_out_gaps()
     align_index = gaps.get_align_index(index)
     got = gaps.get_seq_index(align_index)
     assert got == index
@@ -892,21 +909,21 @@ def test_indelmap_get_align_index_negative(expect):
 
 @pytest.mark.parametrize(
     "data",
-    (
+    [
         "AB--CDE-FG",
         "--ABC-DEFG",
         "AB--CDE-FG--",
         "ABCDE--FG---",
         "-----ABCDEFG",
         "-A-B-C-D-E-F-G-",
-    ),
+    ],
 )
 @pytest.mark.parametrize("seq_index", range(7))
 def test_gapped_convert_aln2seq_nongap_char(data, seq_index):
     # test alignment indexes when aligned position is NOT a gap
     ungapped = "ABCDEFG"
     align_index = data.find(ungapped[seq_index])
-    gaps, _ = make_seq(data, moltype="text").parse_out_gaps()
+    gaps, _ = cogent3.make_seq(data, moltype="text").parse_out_gaps()
     idx = gaps.get_seq_index(align_index)
     assert idx == seq_index
 
@@ -918,7 +935,8 @@ def _find_nth_gap_index(data: str, n: int) -> int:
             num += 1
         if num == n:
             return i
-    raise ValueError(f"{data=}, {n=}")
+    msg = f"{data=}, {n=}"
+    raise ValueError(msg)
 
 
 def _get_expected_seqindex(data: str, align_index: int) -> int:
@@ -930,14 +948,14 @@ def _get_expected_seqindex(data: str, align_index: int) -> int:
 
 @pytest.mark.parametrize(
     "data",
-    (
+    [
         "AB-----CDE-F--G",
         "----ABC-DEFG---",
         "AB--CDE-FG-----",
         "ABCDE--FG------",
         "--------ABCDEFG",
         "-A-B-C-D-E-F-G-",
-    ),
+    ],
 )
 @pytest.mark.parametrize("gap_number", range(8))
 def test_gapped_convert_aln2seq_gapchar(data, gap_number):
@@ -949,13 +967,13 @@ def test_gapped_convert_aln2seq_gapchar(data, gap_number):
     assert data[align_index] == "-", (data, gap_number)
     # find nearest non-gap
     seq_index = _get_expected_seqindex(data, align_index)
-    gaps, _ = make_seq(data, moltype="text").parse_out_gaps()
+    gaps, _ = cogent3.make_seq(data, moltype="text").parse_out_gaps()
     idx = gaps.get_seq_index(align_index)
     assert idx == seq_index
 
 
 def test_gapped_convert_aln2seq_invalid():
-    gaps, _ = make_seq(seq="AC--GTA-TG", moltype="dna").parse_out_gaps()
+    gaps, _ = cogent3.make_seq(seq="AC--GTA-TG", moltype="dna").parse_out_gaps()
     with pytest.raises(IndexError):
         # absolute value of negative indices must be < seq length
         gaps.get_seq_index(-100)
@@ -963,10 +981,10 @@ def test_gapped_convert_aln2seq_invalid():
 
 @pytest.mark.parametrize(
     "aslice",
-    (
+    [
         slice(3, 7),
         slice(20, None),
-    ),
+    ],
 )
 def test_no_gaps_in_slice(aslice):
     # aligned length is 25
@@ -993,18 +1011,18 @@ def test_all_gaps_in_slice():
     # slicing GapPositions
     # sample seq 1
     data = "AC--GTA-TG"
-    gp, _ = make_seq(data, moltype="dna").parse_out_gaps()
+    gp, _ = cogent3.make_seq(data, moltype="dna").parse_out_gaps()
     sl = slice(1, 9)
 
     got = gp[sl]
-    expect_gaps, _ = make_seq(data[sl], moltype="dna").parse_out_gaps()
+    expect_gaps, _ = cogent3.make_seq(data[sl], moltype="dna").parse_out_gaps()
     assert got.get_gap_coordinates() == expect_gaps.get_gap_coordinates()
     assert got.parent_length == 5
 
 
 @pytest.mark.parametrize(
     "data",
-    (
+    [
         "----GTA-TG",
         "AC--GTA---",
         "AC--GTA-TG",
@@ -1012,17 +1030,20 @@ def test_all_gaps_in_slice():
         "-A-C-G-T-A",
         "ACGTAACGTA",
         "----------",
-    ),
+    ],
 )
 @pytest.mark.parametrize(
     "aslice",
     [slice(i, j) for i, j in combinations(range(10), 2)],
 )
 def test_variant_slices(data, aslice):
-    gaps, _ = make_seq(data, moltype="dna").parse_out_gaps()
+    gaps, _ = cogent3.make_seq(data, moltype="dna").parse_out_gaps()
     got = gaps[aslice]
 
-    expect_gaps, expect_seq = make_seq(data[aslice], moltype="dna").parse_out_gaps()
+    expect_gaps, expect_seq = cogent3.make_seq(
+        data[aslice],
+        moltype="dna",
+    ).parse_out_gaps()
     assert got.parent_length == len(expect_seq)
     assert (got.gap_pos == expect_gaps.gap_pos).all()
     assert (got.cum_gap_lengths == expect_gaps.cum_gap_lengths).all()
@@ -1042,7 +1063,9 @@ def test_indelmap_joined():
 
 def test_indel_map_sliced_with_negative():
     imap = IndelMap(
-        gap_pos=numpy.array([0]), cum_gap_lengths=numpy.array([1]), parent_length=14
+        gap_pos=numpy.array([0]),
+        cum_gap_lengths=numpy.array([1]),
+        parent_length=14,
     )
     got = imap[:-3]
     assert got.parent_length == 14 - 3
@@ -1076,7 +1099,8 @@ def test_featuremap_roundtrip_json():
 
 
 @pytest.mark.parametrize(
-    "error_type,locations", ((ValueError, ((-2, 2),)), (RuntimeError, ((20, 25),)))
+    ("error_type", "locations"),
+    [(ValueError, ((-2, 2),)), (RuntimeError, ((20, 25),))],
 )
 def test_invalid_locations(error_type, locations):
     with pytest.raises(error_type):
@@ -1110,7 +1134,7 @@ def test_gap_coords_to_map():
 
 
 @pytest.mark.parametrize(
-    "seq, expected",
+    ("seq", "expected"),
     [
         ("ACGTACGT", []),
         ("----ACGTACGT----", [(0, 4), (12, 16)]),
@@ -1124,13 +1148,13 @@ def test_get_gap_align_coordinates1(seq, expected):
     expected = numpy.array(expected, dtype=int)
     if not len(expected):
         expected = expected.reshape((0, 2))
-    im, _ = make_seq(seq).parse_out_gaps()
+    im, _ = cogent3.make_seq(seq).parse_out_gaps()
     result = im.get_gap_align_coordinates()
     assert (result == expected).all(), f"{expected=}, {result=}"
 
 
 @pytest.mark.parametrize(
-    "seq, expected",
+    ("seq", "expected"),
     [
         ("", []),
         ("A", []),
@@ -1142,7 +1166,7 @@ def test_get_gap_align_coordinates_edge_cases(seq, expected):
     if not len(expected):
         expected = expected.reshape((0, 2))
 
-    im, _ = make_seq(seq).parse_out_gaps()
+    im, _ = cogent3.make_seq(seq).parse_out_gaps()
     result = im.get_gap_align_coordinates()
     assert (result == expected).all(), f"{expected=}, {result=}"
 
@@ -1150,7 +1174,7 @@ def test_get_gap_align_coordinates_edge_cases(seq, expected):
 def test_featuremap_add():
     spans_a = [LostSpan(2), Span(2, 4)]
     spans_b = [LostSpan(2), Span(4, 8), LostSpan(2)]
-    kwargs = dict(parent_length=6)
+    kwargs = {"parent_length": 6}
 
     fm_a = FeatureMap(spans=spans_a, **kwargs)
     fm_b = FeatureMap(spans=spans_b, **kwargs)
@@ -1179,7 +1203,7 @@ EMPTY = None, None
 
 
 @pytest.mark.parametrize(
-    "span1, span2, expected",
+    ("span1", "span2", "expected"),
     [
         ((1, 5), (2, 4), (2, 4)),  # span1 contains span2
         ((2, 4), (1, 5), (2, 4)),  # span1 within span2
@@ -1198,7 +1222,7 @@ def test_span_and_span(span1, span2, expected):
 
 
 @pytest.mark.parametrize(
-    "span1, span2",
+    ("span1", "span2"),
     [
         ((5, 1), (2, 4)),
         ((1, 5), (4, 2)),
@@ -1210,7 +1234,7 @@ def test_span_and_span_error_cases(span1, span2):
 
 
 @pytest.mark.parametrize(
-    "arr1, arr2, expected",
+    ("arr1", "arr2", "expected"),
     [
         # unique or equal
         ([[1, 3], [5, 7]], [[2, 4], [6, 8]], [[1, 2], [5, 6]]),
@@ -1228,7 +1252,7 @@ def test_coords_sub_coords(arr1, arr2, expected):
 
 
 @pytest.mark.parametrize(
-    "arr1, arr2, expected",
+    ("arr1", "arr2", "expected"),
     [
         ([(1, 5)], [(2, 3)], [(2, 3)]),
         ([(1, 5)], [(0, 2), (3, 4)], [(1, 2), (3, 4)]),
@@ -1270,16 +1294,17 @@ gap_run = re.compile("-+")
 @pytest.fixture(scope="session", params=combinations(RAW_SEQS, 2))
 def seq_pairs(request):
     raw1, raw2 = request.param
-    return make_seq(raw1, moltype="dna"), make_seq(raw2, moltype="dna")
+    return cogent3.make_seq(raw1, moltype="dna"), cogent3.make_seq(raw2, moltype="dna")
 
 
-@pytest.mark.parametrize("as_array", (True, False))
+@pytest.mark.parametrize("as_array", [True, False])
 def test_indelmap_shared_gaps(seq_pairs, as_array):
     # we check against a sequence modified such that only the shared
     # gaps are retained
     s1, s2 = seq_pairs
     common = "".join(
-        "-" if f"{a}{b}" == "--" else "X" for a, b in zip(str(s1), str(s2))
+        "-" if f"{a}{b}" == "--" else "X"
+        for a, b in zip(str(s1), str(s2), strict=False)
     )
     expect = [(m.start(), m.end()) for m in gap_run.finditer(common)]
     ig1, s1 = s1.parse_out_gaps()
@@ -1289,17 +1314,20 @@ def test_indelmap_shared_gaps(seq_pairs, as_array):
     numpy.testing.assert_allclose(got, expect)
 
 
-@pytest.mark.parametrize("as_array", (True, False))
+@pytest.mark.parametrize("as_array", [True, False])
 def test_indelmap_subtraction(seq_pairs, as_array):
     s1, s2 = seq_pairs
-    unique_gaps = "".join(a for a, b in zip(str(s1), str(s2)) if f"{a}{b}" != "--")
+    unique_gaps = "".join(
+        a for a, b in zip(str(s1), str(s2), strict=False) if f"{a}{b}" != "--"
+    )
     ig1, s1 = s1.parse_out_gaps()
     ig2, s2 = s2.parse_out_gaps()
     arg = ig2.get_gap_align_coordinates() if as_array else ig2
     got1 = ig1.minus_gaps(arg)
-    expect, _ = make_seq(unique_gaps, moltype="dna").parse_out_gaps()
+    expect, _ = cogent3.make_seq(unique_gaps, moltype="dna").parse_out_gaps()
     numpy.testing.assert_allclose(
-        got1.get_gap_coordinates(), expect.get_gap_coordinates()
+        got1.get_gap_coordinates(),
+        expect.get_gap_coordinates(),
     )
 
 
@@ -1308,7 +1336,9 @@ def test_indelmap_subtraction_build_aligned(seq_pairs):
 
     s1, s2 = seq_pairs
 
-    unique_gaps = "".join(a for a, b in zip(str(s1), str(s2)) if f"{a}{b}" != "--")
+    unique_gaps = "".join(
+        a for a, b in zip(str(s1), str(s2), strict=False) if f"{a}{b}" != "--"
+    )
     ig1, s1 = s1.parse_out_gaps()
     ig2, s2 = s2.parse_out_gaps()
     got1 = ig1.minus_gaps(ig2.get_gap_align_coordinates())
@@ -1324,16 +1354,21 @@ def test_indelmap_combined_and_subtract(seq_pairs):
     intersect = ig1.shared_gaps(ig2)
     got = ig1.minus_gaps(intersect)
     numpy.testing.assert_allclose(
-        got.get_gap_coordinates(), expect.get_gap_coordinates()
+        got.get_gap_coordinates(),
+        expect.get_gap_coordinates(),
     )
 
 
 def test_indelmap_shared_gap_error():
     ig1 = IndelMap(
-        gap_pos=numpy.array([1, 3]), gap_lengths=numpy.array([2, 1]), parent_length=5
+        gap_pos=numpy.array([1, 3]),
+        gap_lengths=numpy.array([2, 1]),
+        parent_length=5,
     )
     ig2 = IndelMap(
-        gap_pos=numpy.array([1, 3]), gap_lengths=numpy.array([2, 1]), parent_length=10
+        gap_pos=numpy.array([1, 3]),
+        gap_lengths=numpy.array([2, 1]),
+        parent_length=10,
     )
     with pytest.raises(AssertionError):
         ig1.shared_gaps(ig2)
@@ -1341,10 +1376,14 @@ def test_indelmap_shared_gap_error():
 
 def test_indelmap_minus_gap_error():
     ig1 = IndelMap(
-        gap_pos=numpy.array([1, 3]), gap_lengths=numpy.array([2, 1]), parent_length=5
+        gap_pos=numpy.array([1, 3]),
+        gap_lengths=numpy.array([2, 1]),
+        parent_length=5,
     )
     ig2 = IndelMap(
-        gap_pos=numpy.array([1, 3]), gap_lengths=numpy.array([2, 100]), parent_length=10
+        gap_pos=numpy.array([1, 3]),
+        gap_lengths=numpy.array([2, 100]),
+        parent_length=10,
     )
     with pytest.raises(AssertionError):
         ig1.minus_gaps(ig2.get_gap_align_coordinates())
@@ -1379,7 +1418,7 @@ def test_indelmap_make_seq_feature_map():
     assert got.parent_length == expect.parent_length
 
     # ignoring lost spans
-    align_map = FeatureMap(spans=orig_spans + [LostSpan(4)], parent_length=11)
+    align_map = FeatureMap(spans=[*orig_spans, LostSpan(4)], parent_length=11)
     got = im.make_seq_feature_map(align_map)
     assert got.get_coordinates() == expect.get_coordinates()
     assert got.parent_length == expect.parent_length
@@ -1439,7 +1478,9 @@ def test_indelmap_negative_step_variant_slices(start, stop, step, data):
 @pytest.mark.parametrize("scale", [1 / 2, 1 / 1.1])
 def test_indelmap_scaled_invalid(scale):
     im = IndelMap(
-        gap_pos=numpy.array([1, 3]), gap_lengths=numpy.array([2, 1]), parent_length=5
+        gap_pos=numpy.array([1, 3]),
+        gap_lengths=numpy.array([2, 1]),
+        parent_length=5,
     )
     with pytest.raises(ValueError):
         im.scaled(scale)
@@ -1448,7 +1489,9 @@ def test_indelmap_scaled_invalid(scale):
 @pytest.mark.parametrize("scale", [1, 1.0])
 def test_indelmap_scaled_one(scale):
     im = IndelMap(
-        gap_pos=numpy.array([1, 3]), gap_lengths=numpy.array([2, 1]), parent_length=5
+        gap_pos=numpy.array([1, 3]),
+        gap_lengths=numpy.array([2, 1]),
+        parent_length=5,
     )
     got = im.scaled(scale)
     assert got is im
@@ -1458,9 +1501,11 @@ def test_indelmap_scaled_one(scale):
 def codon_and_aa_maps():
     import cogent3
 
-    data = dict(s1="ATG --- --- GAT --- AAA", s2="ATG CAA TCG AAT GAA ATA")
+    data = {"s1": "ATG --- --- GAT --- AAA", "s2": "ATG CAA TCG AAT GAA ATA"}
     dna = cogent3.make_aligned_seqs(
-        {n: s.replace(" ", "") for n, s in data.items()}, moltype="dna", new_type=True
+        {n: s.replace(" ", "") for n, s in data.items()},
+        moltype="dna",
+        new_type=True,
     )
     aa = dna.get_translation()
     dna_1 = dna.seqs["s1"].map

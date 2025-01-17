@@ -4,12 +4,10 @@ from __future__ import annotations
 
 import warnings
 from functools import singledispatch
-from typing import Tuple
 
 import numpy
 
 from cogent3.util import progress_display as UI
-from cogent3.util import warning as c3warn
 
 from .scipy_optimisers import Powell
 from .simannealingoptimiser import SimulatedAnnealing
@@ -19,18 +17,18 @@ LocalOptimiser = Powell
 
 
 @singledispatch
-def _standardise_data(val) -> Tuple[float]:
+def _standardise_data(val) -> tuple[float]:
     return (str(val),)
 
 
 @_standardise_data.register
-def _(val: numpy.ndarray) -> Tuple[float]:
+def _(val: numpy.ndarray) -> tuple[float]:
     val = val.tolist() if val.ndim else [val.tolist()]
     return tuple(val)
 
 
 @_standardise_data.register
-def _(val: float) -> Tuple[float]:
+def _(val: float) -> tuple[float]:
     return (val,)
 
 
@@ -45,8 +43,7 @@ def unsteadyProgressIndicator(display_progress, label="", start=0.0, end=1.0):
         # cast to a standard python type.
         v1 = _standardise_data(args[0])
         args = v1 + args[1:]
-        if remaining > goal[0]:
-            goal[0] = remaining
+        goal[0] = max(remaining, goal[0])
         progress = (goal[0] - remaining) / goal[0] * (end - start) + start
         msg = template % args + label
         return display_progress(msg, progress=progress)
@@ -98,11 +95,10 @@ def bounded_function(f, lower_bounds, upper_bounds, report_error=False):
     def _wrapper(x, **kw):
         if numpy.all(numpy.logical_and(lower_bounds <= x, x <= upper_bounds)):
             return f(x, **kw)
-        else:
-            pos = numpy.logical_or(x <= lower_bounds, x >= upper_bounds)
-            lower = numpy.array(lower_bounds)
-            upper = numpy.array(upper_bounds)
-            raise ParameterOutOfBoundsError((lower[pos], x[pos], upper[pos]))
+        pos = numpy.logical_or(x <= lower_bounds, x >= upper_bounds)
+        lower = numpy.array(lower_bounds)
+        upper = numpy.array(upper_bounds)
+        raise ParameterOutOfBoundsError((lower[pos], x[pos], upper[pos]))
 
     return _wrapper
 
@@ -117,10 +113,9 @@ def bounds_exception_catching_function(f):
     def _wrapper(x, **kw):
         try:
             result = f(x, **kw)
-            if not numpy.isfinite(result):
-                if not acceptable_inf(result):
-                    warnings.warn(f"Non-finite f {result} from {x}")
-                    raise ParameterOutOfBoundsError
+            if not numpy.isfinite(result) and not acceptable_inf(result):
+                warnings.warn(f"Non-finite f {result} from {x}", stacklevel=2)
+                raise ParameterOutOfBoundsError
         except (ArithmeticError, ParameterOutOfBoundsError):
             result = out_of_bounds_value
         return result
@@ -217,13 +212,17 @@ def maximise(
     try:
         fval = f(x)
     except (ArithmeticError, ParameterOutOfBoundsError) as detail:
+        msg = f"Initial parameter values must be valid {detail.args!r}"
         raise ValueError(
-            f"Initial parameter values must be valid {detail.args!r}"
+            msg,
         ) from detail
 
     if not numpy.isfinite(fval):
-        raise ValueError(
+        msg = (
             f"Initial parameter values must evaluate to a finite value, not {fval}. {x}"
+        )
+        raise ValueError(
+            msg,
         )
 
     f = bounds_exception_catching_function(f)
@@ -239,7 +238,7 @@ def maximise(
         else:
             gend = 0.0
             if warn:
-                warnings.warn(f"Unused args for local optimisation: {kw}")
+                warnings.warn(f"Unused args for local optimisation: {kw}", stacklevel=2)
 
         # Local optimisation
         if do_local:

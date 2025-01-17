@@ -9,7 +9,7 @@ from cogent3.core.annotation_db import GffAnnotationDb, load_annotations
 DNA = new_moltype.get_moltype("dna")
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def gff_db(DATA_DIR):
     return load_annotations(path=DATA_DIR / "simple.gff")
 
@@ -33,7 +33,10 @@ def makeSampleAlignment():
     seqs = {seq1.name: seq1, seq2.name: seq2}
     aln = new_alignment.make_aligned_seqs(seqs, moltype="dna")
     aln.add_feature(
-        biotype="misc_feature", name="misc", spans=[(12, 25)], on_alignment=True
+        biotype="misc_feature",
+        name="misc",
+        spans=[(12, 25)],
+        on_alignment=True,
     )
     aln.add_feature(biotype="CDS", name="blue", spans=[(15, 25)], on_alignment=True)
     aln.add_feature(biotype="5'UTR", name="red", spans=[(2, 4)], on_alignment=True)
@@ -41,13 +44,13 @@ def makeSampleAlignment():
     return aln
 
 
-@pytest.fixture()
+@pytest.fixture
 def ann_aln():
     # synthetic annotated alignment
     return makeSampleAlignment()
 
 
-@pytest.fixture()
+@pytest.fixture
 def ann_seq():
     return makeSampleSequence("seq1")
 
@@ -63,7 +66,8 @@ def _make_seq(name):
 
 
 @pytest.mark.parametrize(
-    "mk_cls", (new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs)
+    "mk_cls",
+    [new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs],
 )
 def test_init_seqs_have_annotations(mk_cls):
     """annotations on input seqs correctly merged and propagated"""
@@ -78,7 +82,8 @@ def test_init_seqs_have_annotations(mk_cls):
 
 
 @pytest.mark.parametrize(
-    "mk_cls", (new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs)
+    "mk_cls",
+    [new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs],
 )
 def test_constructing_collections(mk_cls):
     seq1 = makeSampleSequence("FAKE01")
@@ -92,7 +97,8 @@ def test_constructing_collections(mk_cls):
 
 
 @pytest.mark.parametrize(
-    "mk_cls", [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs]
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
 )
 def test_init_annotated_seqs(mk_cls):
     """correctly construct from list with annotated seq"""
@@ -104,7 +110,8 @@ def test_init_annotated_seqs(mk_cls):
 
 
 @pytest.mark.parametrize(
-    "mk_cls", (new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs)
+    "mk_cls",
+    [new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs],
 )
 def test_sequence_collection_add_feature(mk_cls):
     seqs = mk_cls({"seq1": "AAAAAA", "seq2": "TTTTTT", "seq3": "ATTCCC"}, moltype="dna")
@@ -117,7 +124,8 @@ def test_sequence_collection_add_feature(mk_cls):
 
 
 @pytest.mark.parametrize(
-    "mk_cls", [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs]
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
 )
 def test_sequence_collection_get_annotations_from_any_seq(mk_cls):
     """get_annotations_from_any_seq returns correct annotations"""
@@ -147,7 +155,7 @@ def test_sequence_collection_get_annotations_from_any_seq(mk_cls):
     assert "biotype='exon', name='annotation3', map=[3:6]/9" in str(got[0])
 
 
-@pytest.mark.parametrize("rc", (False, True))
+@pytest.mark.parametrize("rc", [False, True])
 def test_alignment_get_slice(rc):
     """get_slice should return the same as slicing the sequence directly"""
     seq = DNA.make_seq(seq="ATTGTACGCCCCTGA", name="test_seq")
@@ -175,12 +183,12 @@ def test_align_get_features():
     #                      *****      the CDS feature
     seq2.add_feature(biotype="CDS", name="fake01", spans=[(2, 7)], strand="+")
     aln = new_alignment.make_aligned_seqs([seq1, seq2], moltype="dna")
-    feat = list(aln.get_features(biotype="CDS"))[0]
+    feat = next(iter(aln.get_features(biotype="CDS")))
     sl = aln[feat]
     # slice is correct length
     assert len(sl) == (7 - 2)
     # returns correct value
-    assert sl.to_dict() == dict(seq1="G--AC", seq2="GGGCC")
+    assert sl.to_dict() == {"seq1": "G--AC", "seq2": "GGGCC"}
 
 
 @pytest.fixture(scope="session")
@@ -207,7 +215,7 @@ def test_seqcoll_query(seqcoll_db):
 def test_feature_projection_ungapped(ann_aln):
     # projection onto ungapped sequence
     expecteds = {"FAKE01": "CCCAAAATTTTTT", "FAKE02": "CCC-----TTTTT"}
-    aln_ltr = list(ann_aln.get_features(biotype="LTR"))[0]
+    aln_ltr = next(iter(ann_aln.get_features(biotype="LTR")))
     seq_name = "FAKE01"
     expected = expecteds[seq_name]
     num = ann_aln.annotation_db.num_matches()
@@ -222,7 +230,7 @@ def test_feature_projection_ungapped(ann_aln):
 def test_feature_projection_gapped(ann_aln):
     # projection onto gapped sequence
     expecteds = {"FAKE01": "CCCAAAATTTTTT", "FAKE02": "CCC-----TTTTT"}
-    aln_ltr = list(ann_aln.get_features(biotype="LTR"))[0]
+    aln_ltr = next(iter(ann_aln.get_features(biotype="LTR")))
     seq_name = "FAKE02"
     expected = expecteds[seq_name]
     seq_ltr = ann_aln.get_projected_feature(seqid=seq_name, feature=aln_ltr)
@@ -240,14 +248,15 @@ def test_feature_projection_gapped(ann_aln):
 
 def test_get_feature():
     aln = new_alignment.make_aligned_seqs(
-        {"x": "-AAAAAAAAA", "y": "TTTT--CCCT"}, moltype="dna"
+        {"x": "-AAAAAAAAA", "y": "TTTT--CCCT"},
+        moltype="dna",
     )
 
     db = aln.annotation_db
     db.add_feature(seqid="y", biotype="exon", name="A", spans=[(5, 8)])
-    feat = list(aln.get_features(seqid="y", biotype="exon", on_alignment=False))[0]
+    feat = next(iter(aln.get_features(seqid="y", biotype="exon", on_alignment=False)))
     sliced = feat.get_slice()
-    assert sliced.to_dict() == dict(x="AAA", y="CCT")
+    assert sliced.to_dict() == {"x": "AAA", "y": "CCT"}
 
 
 def test_aln_feature_to_dict():
@@ -273,26 +282,34 @@ def test_aln_feature_to_dict():
     assert d == expect
 
 
-@pytest.mark.parametrize("rev", (False, True))
+@pytest.mark.parametrize("rev", [False, True])
 @pytest.mark.parametrize(
-    "make_cls", (new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs)
+    "make_cls",
+    [new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs],
 )
 def test_features_survives_aligned_seq_rename(rev, make_cls):
     segments = ["A" * 10, "C" * 10, "T" * 5, "C" * 5, "A" * 5]
 
     seqs = make_cls({"original": "".join(segments)}, moltype="dna")
     seqs.annotation_db.add_feature(
-        seqid="original", biotype="gene", name="gene1", spans=[(10, 20), (25, 30)]
+        seqid="original",
+        biotype="gene",
+        name="gene1",
+        spans=[(10, 20), (25, 30)],
     )
     seqs.annotation_db.add_feature(
-        seqid="original", biotype="domain", name="domain1", spans=[(20, 25)], strand="-"
+        seqid="original",
+        biotype="domain",
+        name="domain1",
+        spans=[(20, 25)],
+        strand="-",
     )
     seqs = seqs.rename_seqs(lambda x: "newname")
     assert seqs.names == ["newname"]
     seqs = seqs.rc() if rev else seqs
     # quite different behaviour from Alignment and SequenceCollection
     # so we convert to string to make comparison simpler
-    got = list(seqs.get_features(name="gene1"))[0]
+    got = next(iter(seqs.get_features(name="gene1")))
     sliced = str(got.get_slice()).splitlines()[-1]
     assert sliced == "C" * 15
 
@@ -313,7 +330,7 @@ def test_alignment_annotations():
     }
     for annot_type in ["misc_feature", "CDS", "5'UTR", "LTR"]:
         observed = (
-            list(aln.get_features(biotype=annot_type, on_alignment=True))[0]
+            next(iter(aln.get_features(biotype=annot_type, on_alignment=True)))
             .get_slice()
             .to_dict()
         )
@@ -322,14 +339,15 @@ def test_alignment_annotations():
         if annot_type in ["misc_feature", "LTR"]:
             continue  # because seqs haven't been annotated with it
 
-        observed = list(aln.get_features(seqid=aln.names, biotype=annot_type))[0]
+        observed = next(iter(aln.get_features(seqid=aln.names, biotype=annot_type)))
         observed = observed.get_slice().to_dict()
         expected = seq_expecteds[annot_type]
         assert observed == expected
 
 
 @pytest.mark.parametrize(
-    "mk_cls", (new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs)
+    "mk_cls",
+    [new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs],
 )
 def test_add_to_seq_updates_coll(mk_cls):
     """annotating a seq updates the db of the propagated"""
@@ -348,7 +366,8 @@ def test_add_to_seq_updates_coll(mk_cls):
 
 
 @pytest.mark.parametrize(
-    "mk_cls", (new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs)
+    "mk_cls",
+    [new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs],
 )
 def test_annotation_db_assign_none(mk_cls):
     """assigning None to annotation_db breaks conection"""
@@ -362,7 +381,8 @@ def test_annotation_db_assign_none(mk_cls):
 
 
 @pytest.mark.parametrize(
-    "mk_cls", (new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs)
+    "mk_cls",
+    [new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs],
 )
 def test_annotation_db_assign_same(gff_db, mk_cls):
     """assigning the same annotation_db"""
@@ -372,8 +392,8 @@ def test_annotation_db_assign_same(gff_db, mk_cls):
     assert seq_coll.annotation_db is gff_db
 
 
-@pytest.mark.parametrize("rved", (False, True))
-@pytest.mark.parametrize("annot_type", ("LTR", "misc_feature", "CDS", "5'UTR"))
+@pytest.mark.parametrize("rved", [False, True])
+@pytest.mark.parametrize("annot_type", ["LTR", "misc_feature", "CDS", "5'UTR"])
 def test_region_union_on_alignment(annot_type, rved):
     # >FAKE01
     # AACCCAAAATTTTTTGGGGGGGGGGCCCC
@@ -403,41 +423,52 @@ def test_region_union_on_alignment(annot_type, rved):
 def test_annotate_matches_to():
     """Aligned.annotate_matches_to correctly delegates to sequence"""
 
-    aln = new_alignment.make_aligned_seqs(dict(x="TTCCACTTCCGCTT"), moltype="dna")
+    aln = new_alignment.make_aligned_seqs({"x": "TTCCACTTCCGCTT"}, moltype="dna")
     aln.annotation_db = GffAnnotationDb()
     seq = aln.seqs["x"]
     pattern = "CCRC"
     annot = seq.annotate_matches_to(
-        pattern=pattern, biotype="domain", name="fred", allow_multiple=True
+        pattern=pattern,
+        biotype="domain",
+        name="fred",
+        allow_multiple=True,
     )
     got = [str(a.get_slice()) for a in annot]
     matches = ["CCAC", "CCGC"]
     assert got == matches
     annot = seq.annotate_matches_to(
-        pattern=pattern, biotype="domain", name="fred", allow_multiple=False
+        pattern=pattern,
+        biotype="domain",
+        name="fred",
+        allow_multiple=False,
     )
     got = [a.get_slice() for a in annot]
     assert got == matches[:1]
 
     # handles regex from aa
-    aln = new_alignment.make_aligned_seqs(dict(x="TTCCACTTCCGCTT"), moltype="dna")
+    aln = new_alignment.make_aligned_seqs({"x": "TTCCACTTCCGCTT"}, moltype="dna")
     aln.annotation_db = GffAnnotationDb()
     gc = new_genetic_code.get_code(1)
     aa_regex = gc.to_regex("FHF")
     aln.seqs["x"].annotate_matches_to(aa_regex, "domain", "test", allow_multiple=False)
-    a = list(aln.get_features(seqid="x"))[0]
+    a = next(iter(aln.get_features(seqid="x")))
     assert str(aln[a].seqs["x"]) == "TTCCACTTC"
 
 
 @pytest.mark.parametrize(
-    "mk_cls", (new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs)
+    "mk_cls",
+    [new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs],
 )
 def test_features_invalid_seqid(mk_cls):
     segments = ["A" * 10, "C" * 10, "T" * 5, "C" * 5, "A" * 5]
 
     seqs = mk_cls({"original": "".join(segments)}, moltype="dna")
     seqs.annotation_db.add_feature(
-        seqid="original", biotype="domain", name="domain1", spans=[(20, 25)], strand="-"
+        seqid="original",
+        biotype="domain",
+        name="domain1",
+        spans=[(20, 25)],
+        strand="-",
     )
     with pytest.raises(ValueError):
         # seqid does not exist
@@ -445,7 +476,8 @@ def test_features_invalid_seqid(mk_cls):
 
 
 @pytest.mark.parametrize(
-    "mk_cls", (new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs)
+    "mk_cls",
+    [new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs],
 )
 def test_copy_annotations(gff_db, mk_cls):
     """copy_annotations copies records from annotation db"""
@@ -464,7 +496,8 @@ def test_copy_annotations(gff_db, mk_cls):
 
 
 @pytest.mark.parametrize(
-    "mk_cls", (new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs)
+    "mk_cls",
+    [new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs],
 )
 def test_copy_annotations_same_annotations(gff_db, mk_cls):
     data = {"seq1": "ACGU", "seq2": "CGUA", "test_seq": "CCGU"}
@@ -479,7 +512,8 @@ def test_copy_annotations_same_annotations(gff_db, mk_cls):
 
 
 @pytest.mark.parametrize(
-    "mk_cls", (new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs)
+    "mk_cls",
+    [new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs],
 )
 def test_copy_annotations_none_matching(gff_db, mk_cls):
     """copy annotations should old copy annotations for matching seqids"""
@@ -494,7 +528,8 @@ def test_copy_annotations_none_matching(gff_db, mk_cls):
 
 
 @pytest.mark.parametrize(
-    "mk_cls", (new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs)
+    "mk_cls",
+    [new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs],
 )
 def test_copy_annotations_no_db(gff_db, mk_cls):
     data = {"seq1": "ACGU", "seq2": "CGUA", "test_seq": "CCGU"}
@@ -507,7 +542,8 @@ def test_copy_annotations_no_db(gff_db, mk_cls):
 def test_project_features_onto_specified_seqid():
     db = GffAnnotationDb()
     aln = new_alignment.make_aligned_seqs(
-        {"x": "-AAAAAAAAA", "y": "TTTT--TTTT"}, moltype="dna"
+        {"x": "-AAAAAAAAA", "y": "TTTT--TTTT"},
+        moltype="dna",
     )
     db.add_feature(seqid="x", biotype="exon", name="fred", spans=[(3, 8)])
     aln.annotation_db = db
@@ -521,7 +557,8 @@ def test_project_features_onto_specified_seqid():
 def test_project_features_no_features_for_specified_seqid():
     db = GffAnnotationDb()
     aln = new_alignment.make_aligned_seqs(
-        {"seq1": "ATGCGT", "seq2": "AT--GT"}, moltype="dna"
+        {"seq1": "ATGCGT", "seq2": "AT--GT"},
+        moltype="dna",
     )
     db.add_feature(seqid="seq1", biotype="gene", name="gene1", spans=[(0, 6)])
     aln.annotation_db = db
@@ -559,11 +596,11 @@ def test_annotated_region_masks():
     assert aln.to_dict() == {"x": "C-CCCAAAAAGGGAA", "y": "-T----TTTTG-GTT"}
     x = aln.get_seq("x")
     y = aln.get_seq("y")
-    exon = list(x.get_features(biotype="exon"))[0]
+    exon = next(iter(x.get_features(biotype="exon")))
     assert str(exon.get_slice()) == "CCCC"
-    repeat_x = list(x.get_features(biotype="repeat"))[0]
+    repeat_x = next(iter(x.get_features(biotype="repeat")))
     assert str(repeat_x.get_slice()) == "GGG"
-    repeat_y = list(y.get_features(biotype="repeat"))[0]
+    repeat_y = next(iter(y.get_features(biotype="repeat")))
     assert str(repeat_y.get_slice()) == "GG"
 
     # Each sequence should correctly mask either the single feature,
@@ -575,7 +612,11 @@ def test_annotated_region_masks():
     )
     assert (
         str(
-            aln.get_seq("x").with_masked_annotations("exon", mask_char="?", shadow=True)
+            aln.get_seq("x").with_masked_annotations(
+                "exon",
+                mask_char="?",
+                shadow=True,
+            ),
         )
         == "CCCC??????????"
     )
@@ -586,8 +627,10 @@ def test_annotated_region_masks():
     assert (
         str(
             aln.get_seq("x").with_masked_annotations(
-                ["exon", "repeat"], mask_char="?", shadow=True
-            )
+                ["exon", "repeat"],
+                mask_char="?",
+                shadow=True,
+            ),
         )
         == "CCCC?????GGG??"
     )
@@ -602,8 +645,10 @@ def test_annotated_region_masks():
     assert (
         str(
             aln.get_seq("y").with_masked_annotations(
-                "repeat", mask_char="?", shadow=True
-            )
+                "repeat",
+                mask_char="?",
+                shadow=True,
+            ),
         )
         == "?????GG??"
     )
@@ -615,14 +660,18 @@ def test_annotated_region_masks():
         "y": "-T----TTTTG-GTT",
     }
     assert aln.with_masked_annotations(
-        "exon", mask_char="?", shadow=True
+        "exon",
+        mask_char="?",
+        shadow=True,
     ).to_dict() == {"x": "C-CCC??????????", "y": "-?----?????-???"}
     assert aln.with_masked_annotations("repeat", mask_char="?").to_dict() == {
         "x": "C-CCCAAAAA???AA",
         "y": "-T----TTTT?-?TT",
     }
     assert aln.with_masked_annotations(
-        "repeat", mask_char="?", shadow=True
+        "repeat",
+        mask_char="?",
+        shadow=True,
     ).to_dict() == {"x": "?-????????GGG??", "y": "-?----????G-G??"}
     assert aln.with_masked_annotations(["repeat", "exon"], mask_char="?").to_dict() == {
         "x": "?-???AAAAA???AA",
@@ -638,7 +687,10 @@ def test_masking_strand_agnostic_aln():
     # ported from test_features.py
     db = GffAnnotationDb()
     db.add_feature(
-        seqid="x", biotype="CDS", name="gene", spans=[(2, 6), (10, 15), (25, 35)]
+        seqid="x",
+        biotype="CDS",
+        name="gene",
+        spans=[(2, 6), (10, 15), (25, 35)],
     )
     # Annotations should be correctly masked,
     # whether the sequence has been reverse complemented or not.
@@ -677,14 +729,14 @@ def test_nested_annotated_region_masks():
         annotation_db=db,
         moltype="text",
     )
-    gene = list(aln.get_seq("x").get_features(biotype="gene"))[0]
+    gene = next(iter(aln.get_seq("x").get_features(biotype="gene")))
     assert str(gene.get_slice()) == "CGGC"
 
     # evaluate the sequence directly
     masked = str(aln.get_seq("x").with_masked_annotations("repeat", mask_char="?"))
     assert masked == "C??CAAAAATTTAA"
 
-    exon = list(aln.get_seq("y").get_features(biotype="repeat", name="frog"))[0]
+    exon = next(iter(aln.get_seq("y").get_features(biotype="repeat", name="frog")))
     assert str(exon.get_slice()) == "TTT"
     # evaluate the sequence directly
     masked = str(aln.get_seq("y").with_masked_annotations("repeat", mask_char="?"))

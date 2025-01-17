@@ -9,6 +9,7 @@ Biological sequence analysis by Durbin et al
 Generalised as described by Pearson, Robins & Zhang, 1999.
 """
 
+import contextlib
 from collections import deque
 
 import numpy
@@ -42,7 +43,7 @@ class LightweightTreeNode(frozenset):
         return type(self)(frozenset.__or__(self, other))
 
 
-class PartialTree(object):
+class PartialTree:
     """A candidate tree stored as
     (distance matrix, list of subtrees, list of tip sets, set of partitions, score).
     At each iteration (ie: call of the join method) the number of subtrees
@@ -50,7 +51,7 @@ class PartialTree(object):
     increased as a new edge is introduced.
     """
 
-    def __init__(self, d, nodes, tips, score):
+    def __init__(self, d, nodes, tips, score) -> None:
         self.d = d
         self.nodes = nodes
         self.tips = tips
@@ -83,7 +84,7 @@ class PartialTree(object):
 
         # Join i and k to make new node
         new_node = LightweightTreeNode(
-            [(left_length, nodes[i]), (right_length, nodes[j])]
+            [(left_length, nodes[i]), (right_length, nodes[j])],
         )
 
         # Store new node at i
@@ -109,20 +110,20 @@ class PartialTree(object):
     def asScoreTreeTuple(self):
         assert len(self.nodes) == 3  # otherwise next line needs generalizing
         lengths = numpy.sum(self.d, axis=0) - numpy.sum(self.d) / 4
-        root = LightweightTreeNode(list(zip(lengths, self.nodes)))
+        root = LightweightTreeNode(list(zip(lengths, self.nodes, strict=False)))
         tree = root.convert()
         tree.name = "root"
         return (self.score + sum(lengths), tree)
 
 
-class Pair(object):
+class Pair:
     """A candidate neighbour join, not turned into an actual PartialTree until
     and unless we decide to use it, because calculating just the topology is
     faster than calculating the whole new distance matrix etc. as well."""
 
-    __slots__ = ["tree", "i", "j", "topology", "new_partition"]
+    __slots__ = ["i", "j", "new_partition", "topology", "tree"]
 
-    def __init__(self, tree, i, j, topology, new_partition):
+    def __init__(self, tree, i, j, topology, new_partition) -> None:
         self.tree = tree
         self.i = i
         self.j = j
@@ -171,10 +172,8 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
     Result:
         - a sorted list of (tree length, tree) tuples
     """
-    try:
+    with contextlib.suppress(AttributeError):
         dists = dists.to_dict()
-    except AttributeError:
-        pass
 
     (names, d) = distance_dict_to_2D(dists)
 
@@ -183,7 +182,7 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
         tips = [frozenset([n]) for n in names]
         dist = d.max() / 2
         tips = [LightweightTreeTip(name) for name in names]
-        root = LightweightTreeNode(list(zip([dist, dist], tips)))
+        root = LightweightTreeNode(list(zip([dist, dist], tips, strict=False)))
         tree = root.convert()
         tree.name = "root"
         return ScoredTreeCollection([(dist * 2, tree)])
@@ -211,7 +210,7 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
     trees = [star_tree]
 
     # Progress display auxiliary code
-    template = " size %%s/%s  trees %%%si" % (len(names), len(str(all_keep)))
+    template = f" size %s/{len(names)}  trees %{len(str(all_keep))}i"
     total_work = 0
     max_candidates = 1
     total_work_before = {}
@@ -220,7 +219,7 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
         max_candidates = min(all_keep, max_candidates * L * (L - 1) // 2)
         total_work += max_candidates
 
-    def _show_progress():
+    def _show_progress() -> None:
         t = len(next_trees)
         work_done = total_work_before[L] + t
         ui.display(msg=template % (L, t), progress=work_done / total_work)
@@ -254,7 +253,7 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
         # Now take up to dkeep joins, an equal number of the best at each
         # topological distance, while not calculating any more TDs than
         # necessary.
-        prior_td = dict(list(zip(list(map(id, trees)), prior_td)))
+        prior_td = dict(list(zip(list(map(id, trees)), prior_td, strict=False)))
         target_td = 1
         while (candidates or queued) and len(next_trees) < all_keep:
             if candidates and not queue[target_td]:

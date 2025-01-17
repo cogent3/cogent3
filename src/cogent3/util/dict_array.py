@@ -31,6 +31,9 @@ from cogent3._version import __version__
 from cogent3.util.io import atomic_write
 from cogent3.util.misc import get_object_provenance
 
+PySeq = typing.Sequence
+PySeqStr = PySeq[str]
+
 
 def convert_1D_dict(data, row_order=None):
     """returns a 1D list and header as dict keys
@@ -44,7 +47,7 @@ def convert_1D_dict(data, row_order=None):
         keys are used.
     """
     if row_order is None:
-        row_order = list(sorted(data))
+        row_order = sorted(data)
 
     rows = [data[c] for c in row_order]
     return rows, row_order
@@ -72,7 +75,7 @@ def convert2Ddistance(dists, header=None, row_order=None):
         names = set()
         for pair in dists:
             names.update(set(pair))
-        header = list(sorted(names))
+        header = sorted(names)
 
     rows = []
     for i in range(len(header)):
@@ -113,7 +116,7 @@ def convert2DDict(twoDdict, header=None, row_order=None, make_symmetric=False):
         header.sort()
 
     if make_symmetric:
-        combined = list(sorted(set(header) | set(row_order)))
+        combined = sorted(set(header) | set(row_order))
         header = row_order = combined
         data = defaultdict(dict)
 
@@ -153,7 +156,7 @@ def convert_dict(data, header=None, row_order=None):
     row_order
         a specified order to generate the rows
     """
-    first_key = list(data)[0]
+    first_key = next(iter(data))
     if type(first_key) == tuple and len(first_key) == 2:
         rows, row_order, header = convert2Ddistance(data, header, row_order)
     elif hasattr(data[first_key], "keys"):
@@ -195,14 +198,20 @@ def convert_series(data, row_order=None, header=None):
 
     if nrows == 1 and ncols > 1:
         if dim_h is not None and dim_h != ncols:
-            raise ValueError(
+            msg = (
                 f"mismatch between number columns={dim_h} "
                 f"and number of elements in data={ncols}"
             )
-        elif dim_r is not None and dim_r != 1:
             raise ValueError(
+                msg,
+            )
+        if dim_r is not None and dim_r != 1:
+            msg = (
                 f"mismatch between number rows={dim_r} "
                 f"and number of rows in data={ncols}"
+            )
+            raise ValueError(
+                msg,
             )
 
     if not header:
@@ -245,19 +254,19 @@ class NumericKey(int):
 
 
 class DictArrayTemplate:
-    def __init__(self, *dimensions):
+    def __init__(self, *dimensions) -> None:
         self.names = []
         self.ordinals = []
         for names in dimensions:
             if names is None:
                 continue
-            elif isinstance(names, int):
+            if isinstance(names, int):
                 names = list(range(names))
             else:
                 names = [NumericKey(v) if type(v) == int else v for v in names]
 
             self.names.append(names)
-            self.ordinals.append(dict((c, i) for (i, c) in enumerate(names)))
+            self.ordinals.append({c: i for (i, c) in enumerate(names)})
         self._shape = tuple(len(keys) for keys in self.names)
 
     def __eq__(self, other):
@@ -269,8 +278,7 @@ class DictArrayTemplate:
         # Unpack (possibly nested) dictionary into correct order of elements
         if depth < len(self._shape):
             return [self._dict2list(value[key], depth + 1) for key in self.names[depth]]
-        else:
-            return value
+        return value
 
     def unwrap(self, value):
         """Convert to a simple numpy array"""
@@ -285,7 +293,11 @@ class DictArrayTemplate:
         assert value.shape == self._shape, (value.shape, self._shape)
         return value
 
-    def wrap(self, array, dtype=None):
+    def wrap(
+        self,
+        array: numpy.ndarray,
+        dtype: numpy.dtype | None = None,
+    ) -> "DictArray":
         if hasattr(array, "keys"):
             if len(self._shape) == 2:
                 r, h = self.names[:2]
@@ -294,9 +306,8 @@ class DictArrayTemplate:
             array, _, _ = convert_for_dictarray(array, h, r)
         array = numpy.asarray(array, dtype=dtype)
         for dim, categories in enumerate(self.names):
-            assert len(categories) == numpy.shape(array)[dim], "cats=%s; dim=%s" % (
-                categories,
-                dim,
+            assert len(categories) == numpy.shape(array)[dim], (
+                f"cats={categories}; dim={dim}"
             )
         return DictArray(array, self)
 
@@ -310,7 +321,12 @@ class DictArrayTemplate:
 
         index = []
         remaining = []
-        for ordinals, allnames, name in zip(self.ordinals, self.names, names):
+        for ordinals, allnames, name in zip(
+            self.ordinals,
+            self.names,
+            names,
+            strict=False,
+        ):
             if type(name) not in (int, slice, list, numpy.ndarray):
                 name = ordinals[name]
             elif isinstance(name, slice):
@@ -355,11 +371,11 @@ class DictArray:
     the result would instead be the elements at [0, 1], [2, 2].
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """allow alternate ways of creating for time being"""
         if len(args) == 1:
             vals, row_keys, col_keys = convert_for_dictarray(args[0])
-            dtype = kwargs.get("dtype", None)
+            dtype = kwargs.get("dtype")
             self.array = numpy.asarray(vals, dtype=dtype)
             self.template = DictArrayTemplate(row_keys, col_keys)
         elif len(args) == 2:
@@ -379,7 +395,7 @@ class DictArray:
         self.shape = self.array.shape
 
     @classmethod
-    def from_array_names(cls, array: numpy.ndarray, *names: typing.Sequence[str]):
+    def from_array_names(cls, array: numpy.ndarray, *names: tuple[PySeqStr, ...]):
         """creates instance directly from a numpy array and series of names
 
         Parameters
@@ -393,7 +409,8 @@ class DictArray:
         if len(names) != array.ndim or any(
             len(labels) != array.shape[dim] for dim, labels in enumerate(names)
         ):
-            raise ValueError("names must match array dimensions")
+            msg = "names must match array dimensions"
+            raise ValueError(msg)
 
         template = DictArrayTemplate(*names)
         return DictArray(array, template)
@@ -403,16 +420,22 @@ class DictArray:
 
     def __add__(self, other):
         if not isinstance(other, type(self)):
-            raise TypeError(f"Incompatible types: {type(self)} and {type(other)}")
+            msg = f"Incompatible types: {type(self)} and {type(other)}"
+            raise TypeError(msg)
 
         if other.template.names != self.template.names:
+            msg = f"unequal dimension names {self.template.names} != {other.template.names}"
             raise ValueError(
-                f"unequal dimension names {self.template.names} != {other.template.names}"
+                msg,
             )
 
         return self.template.wrap(self.array + other.array)
 
-    def __array__(self, dtype=None, copy=False):
+    def __array__(
+        self,
+        dtype: numpy.dtype | None = None,
+        copy: bool = False,
+    ) -> numpy.ndarray:
         array = self.array
         if dtype is not None:
             array = array.astype(dtype)
@@ -438,13 +461,13 @@ class DictArray:
             for indices in product(*[range(n) for n in shape]):
                 value = self.array[indices]
                 value = value.item() if hasattr(value, "item") else value
-                coord = tuple(n[i] for n, i in zip(names, indices))
+                coord = tuple(n[i] for n, i in zip(names, indices, strict=False))
                 result[coord] = value
         else:
             for indices in product(*[range(n) for n in shape]):
                 value = self.array[indices]
                 value = value.item() if hasattr(value, "item") else value
-                coord = tuple(n[i] for n, i in zip(names, indices))
+                coord = tuple(n[i] for n, i in zip(names, indices, strict=False))
                 current = result
                 nested = coord[0]
                 for nested in coord[:-1]:
@@ -499,7 +522,7 @@ class DictArray:
             else:
                 yield remaining.wrap(elt)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.template.names[0])
 
     def keys(self):
@@ -508,7 +531,7 @@ class DictArray:
     def items(self):
         return [(n, self[n]) for n in list(self.keys())]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self.array.ndim > 2:
             return f"{self.array.ndim} dimensional {type(self).__name__}"
 
@@ -522,16 +545,15 @@ class DictArray:
     def __eq__(self, other):
         if self is other:
             return True
-        elif isinstance(other, DictArray):
+        if isinstance(other, DictArray):
             return self.template == other.template and numpy.all(
-                self.array == other.array
+                self.array == other.array,
             )
-        elif isinstance(other, type(self.array)):
+        if isinstance(other, type(self.array)):
             return self.array == other
-        elif isinstance(other, dict):
+        if isinstance(other, dict):
             return self.to_dict() == other
-        else:
-            return False
+        return False
 
     def to_normalized(self, by_row=False, by_column=False):
         """returns a DictArray as frequencies
@@ -544,7 +566,7 @@ class DictArray:
             columns sum to 1
         """
         assert not (by_row and by_column)
-        # todo need to check there are two dimension!
+        # TODO need to check there are two dimension!
         if by_row:
             axis = 1
         elif by_column:
@@ -595,8 +617,7 @@ class DictArray:
 
         data = self.to_dict(flatten=True)
         rows = [[f"dim-{i + 1}" for i in range(self.array.ndim)] + ["value"]] + [
-            list(map(lambda x: str(x), row))
-            for row in [list(k) + [v] for k, v in data.items()]
+            [str(x) for x in row] for row in [[*list(k), v] for k, v in data.items()]
         ]
         return "\n".join([sep.join(row) for row in rows])
 
@@ -609,21 +630,22 @@ class DictArray:
         """
         ndim = self.array.ndim
         if ndim > 2:
-            raise ValueError(f"cannot make 2D table from {ndim}D array")
+            msg = f"cannot make 2D table from {ndim}D array"
+            raise ValueError(msg)
 
         from .table import Table
 
         header = self.template.names[0] if ndim == 1 else self.template.names[1]
         index = "" if ndim == 2 else None
         if ndim == 1:
-            data = {c: [v] for c, v in zip(header, self.array)}
+            data = {c: [v] for c, v in zip(header, self.array, strict=False)}
         else:
             data = {c: self.array[:, i].tolist() for i, c in enumerate(header)}
             data[""] = self.template.names[0]
 
         return Table(header=header, data=data, index_name=index)
 
-    def write(self, path, format="tsv", sep="\t"):
+    def write(self, path, format="tsv", sep="\t") -> None:
         """writes a flattened version to path
 
         Parameters

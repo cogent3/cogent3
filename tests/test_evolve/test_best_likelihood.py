@@ -3,7 +3,7 @@ from unittest import TestCase
 
 from numpy.testing import assert_allclose
 
-from cogent3 import DNA, make_aligned_seqs
+import cogent3
 from cogent3.evolve.best_likelihood import (
     BestLogLikelihood,
     _take,
@@ -15,6 +15,7 @@ from cogent3.evolve.best_likelihood import (
 )
 
 IUPAC_DNA_ambiguities = "NRYWSKMBDHV"
+DNA = cogent3.get_moltype("dna")
 
 
 def makeSampleAlignment(gaps=False, ambiguities=False):
@@ -24,8 +25,8 @@ def makeSampleAlignment(gaps=False, ambiguities=False):
         seqs_list = ["AARNCCTTTGGC", "CCNYCCTTTGSG", "CAACCCTGWGGG"]
     else:
         seqs_list = ["AAACCCGGGTTTA", "CCCGGGTTTAAAC", "GGGTTTAAACCCG"]
-    seqs = list(zip("abc", seqs_list))
-    return make_aligned_seqs(data=seqs)
+    seqs = list(zip("abc", seqs_list, strict=False))
+    return cogent3.make_aligned_seqs(data=seqs, moltype="dna")
 
 
 class TestGoldman93(TestCase):
@@ -60,22 +61,24 @@ class TestGoldman93(TestCase):
             ["T", "A", "C"],
             ["A", "C", "G"],
         ]
-        self.assertEqual(obs, expect)
+        assert obs == expect
         obs = aligned_columns_to_rows(self.gapped_aln[:-1], 3, allowed_chars="ACGT")
         expect = [["TTT", "TAT", "TTT"]]
-        self.assertEqual(obs, expect)
+        assert obs == expect
 
         obs = aligned_columns_to_rows(
-            self.ambig_aln, 2, exclude_chars=IUPAC_DNA_ambiguities
+            self.ambig_aln,
+            2,
+            exclude_chars=IUPAC_DNA_ambiguities,
         )
         expect = [["AA", "CC", "CA"], ["CC", "CC", "CC"], ["TT", "TT", "TG"]]
-        self.assertEqual(obs, expect)
+        assert obs == expect
 
     def test_count_column_freqs(self):
         columns = aligned_columns_to_rows(self.aln, 1)
         obs = count_column_freqs(columns)
         expect = {"A C G": 4, "C G T": 3, "G T A": 3, "T A C": 3}
-        self.assertEqual(obs, expect)
+        assert obs == expect
 
         columns = aligned_columns_to_rows(self.aln[:-1], 2)
         obs = count_column_freqs(columns)
@@ -87,20 +90,20 @@ class TestGoldman93(TestCase):
             "GT TA AC": 1,
             "TT AA CC": 1,
         }
-        self.assertEqual(obs, expect)
+        assert obs == expect
 
     def test__transpose(self):
         """test transposing an array"""
         a = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11]]
         e = [[0, 3, 6, 9], [1, 4, 7, 10], [2, 5, 8, 11]]
-        self.assertEqual(_transpose(a), e)
+        assert _transpose(a) == e
 
     def test__take(self):
         """test taking selected rows from an array"""
         e = [[0, 3, 6, 9], [1, 4, 7, 10], [2, 5, 8, 11]]
-        self.assertEqual(_take(e, [0, 1]), [[0, 3, 6, 9], [1, 4, 7, 10]])
-        self.assertEqual(_take(e, [1, 2]), [[1, 4, 7, 10], [2, 5, 8, 11]])
-        self.assertEqual(_take(e, [0, 2]), [[0, 3, 6, 9], [2, 5, 8, 11]])
+        assert _take(e, [0, 1]) == [[0, 3, 6, 9], [1, 4, 7, 10]]
+        assert _take(e, [1, 2]) == [[1, 4, 7, 10], [2, 5, 8, 11]]
+        assert _take(e, [0, 2]) == [[0, 3, 6, 9], [2, 5, 8, 11]]
 
     def test_get_ML_probs(self):
         columns = aligned_columns_to_rows(self.aln, 1)
@@ -112,10 +115,10 @@ class TestGoldman93(TestCase):
             "T A C": 3 / 13.0,
         }
         sum = 0
-        for pattern, lnL, freq in obs:
+        for pattern, lnL, _freq in obs:
             assert_allclose(lnL, expect[pattern])
             sum += lnL
-            self.assertTrue(lnL >= 0)
+            assert lnL >= 0
         assert_allclose(sum, 1)
 
     def test_get_G93_lnL_from_array(self):
@@ -129,4 +132,4 @@ class TestGoldman93(TestCase):
         expect = math.log(math.pow(4 / 13.0, 4)) + 3 * math.log(math.pow(3 / 13.0, 3))
         assert_allclose(obs, expect)
         lnL, l = BestLogLikelihood(self.aln, DNA.alphabet, return_length=True)
-        self.assertEqual(l, len(self.aln))
+        assert l == len(self.aln)

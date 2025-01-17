@@ -1,14 +1,21 @@
 """defined type hints for app composability"""
 
-# todo write more extensive docstring explaining limited use of these types
+# TODO write more extensive docstring explaining limited use of these types
 from __future__ import annotations
 
 import inspect
 import re
 import sys
-from typing import Any, ForwardRef, Protocol, TypeVar, Union, runtime_checkable
-
-from typing_extensions import get_args, get_origin
+from typing import (
+    Any,
+    ForwardRef,
+    Protocol,
+    TypeVar,
+    Union,
+    get_args,
+    get_origin,
+    runtime_checkable,
+)
 
 if sys.version_info.minor >= 10:
     from types import UnionType
@@ -49,7 +56,8 @@ SerialisableType = TypeVar("SerialisableType")
 BootstrapResultType = TypeVar("BootstrapResultType", bound="bootstrap_result")
 HypothesisResultType = TypeVar("HypothesisResultType", bound="hypothesis_result")
 ModelCollectionResultType = TypeVar(
-    "ModelCollectionResultType", bound="model_collection_result"
+    "ModelCollectionResultType",
+    bound="model_collection_result",
 )
 ModelResultType = TypeVar("ModelResultType", bound="model_result")
 TabularResultType = TypeVar("TabularResultType", bound="tabular_result")

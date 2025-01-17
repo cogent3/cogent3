@@ -15,10 +15,10 @@ sequence is self-complementary (seq = Reverse Comp of seq)
 """
 
 
-class EnergyParams(object):
+class EnergyParams:
     """A data structure to hold parameters used in energy calculations"""
 
-    def __init__(self, nearest_neighbor_vals, gc_init, at_init, sym_correct):
+    def __init__(self, nearest_neighbor_vals, gc_init, at_init, sym_correct) -> None:
         """Store the input params for later reference
 
         nearest_neighbor_vals: a dictionary or dictionary-castable object
@@ -95,9 +95,15 @@ _ENTROPY_SYM = -1.4
 # --------------------------
 # Module level public EnergyParams instances (one for entropy, one for energy)
 ENTHALPY_PARAMS = EnergyParams(
-    _NN_ENTHALPIES, _ENTHALPY_GC_INIT, _ENTHALPY_AT_INIT, _ENTHALPY_SYM
+    _NN_ENTHALPIES,
+    _ENTHALPY_GC_INIT,
+    _ENTHALPY_AT_INIT,
+    _ENTHALPY_SYM,
 )
 ENTROPY_PARAMS = EnergyParams(
-    _NN_ENTROPIES, _ENTROPY_GC_INIT, _ENTROPY_AT_INIT, _ENTROPY_SYM
+    _NN_ENTROPIES,
+    _ENTROPY_GC_INIT,
+    _ENTROPY_AT_INIT,
+    _ENTROPY_SYM,
 )
 # --------------------------

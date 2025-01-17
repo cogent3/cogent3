@@ -6,11 +6,10 @@ import os
 import re
 import sqlite3
 from pathlib import Path
-from typing import Optional, Union
+from typing import TYPE_CHECKING
 
 from scitrack import get_text_hexdigest
 
-from cogent3.app import typing as c3_types
 from cogent3.app.data_store import (
     _LOG_TABLE,
     APPEND,
@@ -24,6 +23,9 @@ from cogent3.app.data_store import (
     StrOrBytes,
 )
 from cogent3.util.misc import extend_docstring_from
+
+if TYPE_CHECKING:
+    from cogent3.app import typing as c3_types
 
 _RESULT_TABLE = "results"
 _MEMORY = ":memory:"
@@ -50,7 +52,7 @@ sqlite3.register_converter("timestamp", _datetime_from_iso)
 
 
 # create db
-def open_sqlite_db_rw(path: Union[str, Path]):
+def open_sqlite_db_rw(path: str | Path):
     """creates a new sqlitedb for read/write at path, can be an in-memory db
 
     Notes
@@ -101,7 +103,7 @@ def open_sqlite_db_ro(path):
 
 
 def has_valid_schema(db):
-    # todo: should be a full schema check
+    # TODO: should be a full schema check
     query = "SELECT name FROM sqlite_master WHERE type='table'"
     result = db.execute(query).fetchall()
     table_names = {r["name"] for r in result}
@@ -114,10 +116,10 @@ class DataStoreSqlite(DataStoreABC):
     def __init__(
         self,
         source,
-        mode: Union[Mode, str] = READONLY,
+        mode: Mode | str = READONLY,
         limit=None,
         verbose=False,
-    ):
+    ) -> None:
         if _mem_pattern.search(str(source)):
             self._source = _MEMORY
         else:
@@ -129,8 +131,9 @@ class DataStoreSqlite(DataStoreABC):
             )
         self._mode = Mode(mode)
         if mode is not READONLY and limit is not None:
+            msg = "Using limit argument is only valid for readonly datastores"
             raise ValueError(
-                "Using limit argument is only valid for readonly datastores"
+                msg,
             )
         self._limit = limit
         self._verbose = verbose
@@ -170,14 +173,15 @@ class DataStoreSqlite(DataStoreABC):
 
         return self._db
 
-    def _init_log(self):
+    def _init_log(self) -> None:
         timestamp = datetime.datetime.now(tz=datetime.timezone.utc)
         self.db.execute(f"INSERT INTO {_LOG_TABLE}(date) VALUES (?)", (timestamp,))
         self._log_id = self._db.execute(
-            f"SELECT log_id FROM {_LOG_TABLE} where date = ?", (timestamp,)
+            f"SELECT log_id FROM {_LOG_TABLE} where date = ?",
+            (timestamp,),
         ).fetchone()["log_id"]
 
-    def close(self):
+    def close(self) -> None:
         with contextlib.suppress(sqlite3.ProgrammingError):
             self.db.close()
         self._open = False
@@ -192,7 +196,8 @@ class DataStoreSqlite(DataStoreABC):
             ".",
             _LOG_TABLE,
         ):
-            raise ValueError(f"unknown table for {str(identifier)!r}")
+            msg = f"unknown table for {str(identifier)!r}"
+            raise ValueError(msg)
 
         if table_name != _LOG_TABLE:
             cmnd = f"SELECT * FROM {_RESULT_TABLE} WHERE record_id = ?"
@@ -208,7 +213,8 @@ class DataStoreSqlite(DataStoreABC):
     def completed(self):
         if not self._completed:
             self._completed = self._select_members(
-                table_name=_RESULT_TABLE, is_completed=True
+                table_name=_RESULT_TABLE,
+                is_completed=True,
             )
         return self._completed
 
@@ -217,12 +223,16 @@ class DataStoreSqlite(DataStoreABC):
         """returns database records of type NotCompleted"""
         if not self._not_completed:
             self._not_completed = self._select_members(
-                table_name=_RESULT_TABLE, is_completed=False
+                table_name=_RESULT_TABLE,
+                is_completed=False,
             )
         return self._not_completed
 
     def _select_members(
-        self, *, table_name: str, is_completed: bool
+        self,
+        *,
+        table_name: str,
+        is_completed: bool,
     ) -> list[DataMemberABC]:
         limit = f"LIMIT {self.limit}" if self.limit else ""
         cmnd = self.db.execute(
@@ -245,7 +255,12 @@ class DataStoreSqlite(DataStoreABC):
         ]
 
     def _write(
-        self, *, table_name: str, unique_id: str, data: str, is_completed: bool
+        self,
+        *,
+        table_name: str,
+        unique_id: str,
+        data: str,
+        is_completed: bool,
     ) -> DataMemberABC | None:
         """
         Parameters
@@ -267,7 +282,7 @@ class DataStoreSqlite(DataStoreABC):
             self._init_log()
 
         if table_name == _LOG_TABLE:
-            # todo how to evaluate whether writing a new log?
+            # TODO how to evaluate whether writing a new log?
             cmnd = f"UPDATE {table_name} SET data =?, log_name =? WHERE log_id=?"
             self.db.execute(cmnd, (data, unique_id, self._log_id))
             return None
@@ -294,7 +309,7 @@ class DataStoreSqlite(DataStoreABC):
         self._not_completed = []
 
     @property
-    def _lock_id(self) -> Optional[int]:
+    def _lock_id(self) -> int | None:
         """returns lock_pid"""
         result = self.db.execute("SELECT lock_pid FROM state").fetchone()
         return result[0] if result else result
@@ -304,7 +319,7 @@ class DataStoreSqlite(DataStoreABC):
         """returns if lock_pid is NULL or doesn't exist."""
         return self._lock_id is not None
 
-    def lock(self):
+    def lock(self) -> None:
         """if writable, and not locked, locks the database to this pid"""
         # if mode=w and the data store exists AND has a lock_pid
         # value already, then we should fail. The user might
@@ -317,9 +332,12 @@ class DataStoreSqlite(DataStoreABC):
         result = self._db.execute("SELECT state_id,lock_pid FROM state").fetchall()
         locked = result[0]["lock_pid"] if result else None
         if locked and self.mode is OVERWRITE:
-            raise IOError(
+            msg = (
                 f"You are trying to OVERWRITE {str(self.source)!r} which is "
                 "locked. Use APPEND mode or unlock."
+            )
+            raise OSError(
+                msg,
             )
 
         if result:
@@ -332,7 +350,7 @@ class DataStoreSqlite(DataStoreABC):
             vals = [os.getpid()]
         self._db.execute(cmnd, tuple(vals))
 
-    def unlock(self, force=False):
+    def unlock(self, force=False) -> None:
         """remove a lock if pid matches. If force, ignores pid. ignored if mode is READONLY"""
         if self.mode is READONLY:
             return
@@ -374,7 +392,10 @@ class DataStoreSqlite(DataStoreABC):
 
         super().write_log(unique_id=unique_id, data=data)
         _ = self._write(
-            table_name=_LOG_TABLE, unique_id=unique_id, data=data, is_completed=False
+            table_name=_LOG_TABLE,
+            unique_id=unique_id,
+            data=data,
+            is_completed=False,
         )
 
     @extend_docstring_from(DataStoreDirectory.write_not_completed)
@@ -384,13 +405,16 @@ class DataStoreSqlite(DataStoreABC):
 
         super().write_not_completed(unique_id=unique_id, data=data)
         member = self._write(
-            table_name=_RESULT_TABLE, unique_id=unique_id, data=data, is_completed=False
+            table_name=_RESULT_TABLE,
+            unique_id=unique_id,
+            data=data,
+            is_completed=False,
         )
         if member is not None:
             self._not_completed.append(member)
         return member
 
-    def md5(self, unique_id: str) -> Union[str, NoneType]:  # we have it in base class
+    def md5(self, unique_id: str) -> str | NoneType:  # we have it in base class
         """
         Parameters
         ----------
@@ -424,12 +448,13 @@ class DataStoreSqlite(DataStoreABC):
         return result["record_type"]
 
     @record_type.setter
-    def record_type(self, obj):
+    def record_type(self, obj) -> None:
         from cogent3.util.misc import get_object_provenance
 
         rt = self.record_type
         if self.mode is OVERWRITE and rt:
-            raise IOError(f"cannot overwrite existing record_type {rt}")
+            msg = f"cannot overwrite existing record_type {rt}"
+            raise OSError(msg)
 
         n = get_object_provenance(obj)
         self.db.execute("UPDATE state SET record_type=? WHERE state_id=1", (n,))
@@ -441,5 +466,6 @@ class DataStoreSqlite(DataStoreABC):
         from .io import DEFAULT_DESERIALISER
 
         return summary_not_completeds(
-            self.not_completed, deserialise=DEFAULT_DESERIALISER
+            self.not_completed,
+            deserialise=DEFAULT_DESERIALISER,
         )

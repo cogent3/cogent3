@@ -14,16 +14,17 @@ import json
 import pathlib
 import pickle
 import re
+import typing
 from collections import defaultdict
 from collections.abc import Callable, MutableMapping
 from itertools import product
 from xml.sax.saxutils import escape
 
 import numpy
+import typing_extensions
 
 from cogent3.format import bedgraph
 from cogent3.format import table as table_format
-from cogent3.util import warning as c3warn
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.io import atomic_write, get_format_suffixes
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
@@ -32,7 +33,9 @@ from cogent3.util.union_dict import UnionDict
 try:
     from IPython.display import display
 except ImportError:
-    display = lambda x: print(repr(x))
+
+    def display(x) -> None:
+        pass
 
 
 # making reversed characters for use in reverse order sorting
@@ -68,8 +71,7 @@ def _numeric_sum(data):
             valid = True
         except TypeError:
             pass
-    result = total if valid else numpy.nan
-    return result
+    return total if valid else numpy.nan
 
 
 def _callback(callback, row, num_columns=None):
@@ -77,8 +79,7 @@ def _callback(callback, row, num_columns=None):
         if num_columns == 1:
             row = row[0]
         return callback(row)
-    else:
-        return eval(callback, {}, row)
+    return eval(callback, {}, row)
 
 
 _num_type = re.compile("^(float|int|complex)").search
@@ -86,7 +87,7 @@ _num_type = re.compile("^(float|int|complex)").search
 
 def array_is_num_type(data):
     """whether data has a dtype for int, float or complex"""
-    return _num_type(data.dtype.name) != None
+    return _num_type(data.dtype.name) is not None
 
 
 def cast_str_to_numeric(values):
@@ -125,12 +126,7 @@ def cast_str_to_array(values, static_type=False):
             pass
         result.append(v)
 
-    if not all_fail:
-        result = numpy.array(result, dtype="O")
-    else:
-        result = values
-
-    return result
+    return numpy.array(result, dtype="O") if not all_fail else values
 
 
 _numeric_types = {int, float, complex}
@@ -158,7 +154,7 @@ def cast_to_array(values):
 def cast_2d_to_1d_dict(data, row_order=None):
     """converts a 2D dict to a 1D dict"""
     if not row_order:
-        key = list(data.keys())[0]
+        key = next(iter(data.keys()))
         row_order = list(data[key])
 
     return {c: [data[c][r] for r in row_order] for c in data}
@@ -185,7 +181,7 @@ def cast_to_1d_dict(data, row_order=None):
 class Columns(MutableMapping):
     """Collection of columns. iter operates over columns."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._order = ()
         self._num_rows = 0
         self._template = None
@@ -198,15 +194,15 @@ class Columns(MutableMapping):
             try:
                 value = self._order[value]
             except IndexError:
-                raise KeyError(f"no key corresponding to index {value}")
+                msg = f"no key corresponding to index {value}"
+                raise KeyError(msg)
 
         return value
 
     def _get_keys_(self, key):
         """returns series of str corresponding to columns"""
-        if isinstance(key, str) or isinstance(key, int):
-            key = self._get_key_(key)
-            return key
+        if isinstance(key, str | int):
+            return self._get_key_(key)
 
         if isinstance(key, slice):
             key, _ = self._template.interpret_index(key)
@@ -214,7 +210,7 @@ class Columns(MutableMapping):
 
         if type(key) in (list, tuple):
             if all(type(e) == bool for e in key) and len(key) == len(self.order):
-                key = [k for k, b in zip(self.order, key) if b]
+                key = [k for k, b in zip(self.order, key, strict=False) if b]
             else:
                 key = [self._get_key_(k) for k in key]
 
@@ -231,13 +227,14 @@ class Columns(MutableMapping):
 
             return key
 
-        raise KeyError(f"{key}")
+        msg = f"{key}"
+        raise KeyError(msg)
 
-    def __contains__(self, key):
+    def __contains__(self, key) -> bool:
         return key in self._order
 
     def __getitem__(self, key):
-        if isinstance(key, str) or isinstance(key, int):
+        if isinstance(key, str | int):
             key = self._get_key_(key)
             return self.__dict__[key]
 
@@ -251,11 +248,12 @@ class Columns(MutableMapping):
         if type(key) in (list, tuple):
             result = [self.__dict__[self._get_key_(k)] for k in key]
         else:
-            raise KeyError(f"{key}")
+            msg = f"{key}"
+            raise KeyError(msg)
 
         return result
 
-    def __delitem__(self, key):
+    def __delitem__(self, key) -> None:
         key = self._get_key_(key)
         del self.__dict__[key]
         self._order = tuple(k for k in self._order if k != key)
@@ -264,10 +262,10 @@ class Columns(MutableMapping):
     def __iter__(self):
         return iter(k for k in self._order)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._order)
 
-    def __setitem__(self, key, val):
+    def __setitem__(self, key, val) -> None:
         key = str(key).strip()
         if isinstance(val, str):
             val = [val]
@@ -279,7 +277,8 @@ class Columns(MutableMapping):
         if self._num_rows == 0:
             self._num_rows = len(val)
         elif len(val) != self._num_rows:
-            raise ValueError("number rows incorrect")
+            msg = "number rows incorrect"
+            raise ValueError(msg)
 
         if key not in self._order:
             self._order += (key,)
@@ -301,7 +300,7 @@ class Columns(MutableMapping):
             dtype = v.dtype.name
             if dtype.startswith("str"):
                 dtype = dtype.replace("str", "U")
-            result["columns"][c] = dict(values=v.tolist(), dtype=dtype)
+            result["columns"][c] = {"values": v.tolist(), "dtype": dtype}
         return result
 
     def __setstate__(self, data):
@@ -318,7 +317,7 @@ class Columns(MutableMapping):
 
         self.__dict__.update(new.__dict__)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         d = [f"'{c}': {v.dtype}" for c, v in self.items()]
         num = len(d)
         v = d[:5]
@@ -326,12 +325,12 @@ class Columns(MutableMapping):
             v.append(f"... + {num - 5} more")
         return f"{self.__class__.__name__}({', '.join(v)})"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return repr(self)
 
     def iter_rows(self):
         columns = [self[c] for c in self]
-        for row in zip(*columns):
+        for row in zip(*columns, strict=False):
             yield self._template.wrap(row, dtype=object)
 
     @property
@@ -340,26 +339,28 @@ class Columns(MutableMapping):
         return self._index_name
 
     @index_name.setter
-    def index_name(self, name):
+    def index_name(self, name) -> None:
         if name is None:
             self._index_name = None
             return
 
         if name not in self:
-            raise ValueError(f"'{name}' unknown, index_name must be an existing column")
+            msg = f"'{name}' unknown, index_name must be an existing column"
+            raise ValueError(msg)
 
         # make sure index_name has unique values
         unique = set(self[name])
         if len(unique) != self._num_rows:
+            msg = f"cannot use '{name}' as index_name, not all values unique"
             raise ValueError(
-                f"cannot use '{name}' as index_name, not all values unique"
+                msg,
             )
 
         self._index_name = name
         order = [name] + [c for c in self._order if c != name]
         self._order = tuple(order)
 
-    def add_column_from_str(self, name, values):
+    def add_column_from_str(self, name, values) -> None:
         """adds a column from series of str
 
         Parameters
@@ -419,7 +420,7 @@ class Columns(MutableMapping):
     def to_rich_dict(self):
         data = self.__getstate__()
         data["type"] = get_object_provenance(self)
-        data["version"] = None  # todo
+        data["version"] = None  # TODO
         return data
 
 
@@ -440,7 +441,7 @@ class Table:
         format="simple",
         missing_data="",
         **kwargs,
-    ):
+    ) -> None:
         """
 
         Parameters
@@ -501,35 +502,39 @@ class Table:
             hlen = len(header)
             dcols = len(data[0])
             if hlen != dcols:
+                msg = f"different number of elements in header {hlen} and data row 0 {dcols}"
                 raise ValueError(
-                    f"different number of elements in header {hlen} and data row 0 {dcols}"
+                    msg,
                 )
 
             try:
                 data = dict(zip(header, zip(*data, strict=True), strict=True))
             except TypeError:  # handle python versions <3.10
                 # check that number of elements per row is correct
-                if set(len(r) for r in data) != {hlen}:
-                    raise ValueError(f"not all rows have {hlen} elements")
+                if {len(r) for r in data} != {hlen}:
+                    msg = f"not all rows have {hlen} elements"
+                    raise ValueError(msg)
 
-                data = dict(zip(header, zip(*data)))
+                data = dict(zip(header, zip(*data, strict=False), strict=False))
 
         if header is None:
             header = list(data) if isinstance(data, dict) else []
         has_index = index_name is not None
         if has_index and not isinstance(index_name, str):
+            msg = f"only str type supported for index_name, not {type(index_name)}"
             raise TypeError(
-                f"only str type supported for index_name, not {type(index_name)}"
+                msg,
             )
 
         if len(data) if hasattr(data, "__len__") else 0:
-            row_order = kwargs.get("row_order", None)
+            row_order = kwargs.get("row_order")
             data = cast_to_1d_dict(data, row_order=row_order)
             if has_index:
                 try:
                     self.columns[index_name] = data[index_name]
                 except KeyError:
-                    raise ValueError(f"'{index_name}' not in data")
+                    msg = f"'{index_name}' not in data"
+                    raise ValueError(msg)
 
             for c in header:
                 if c == index_name:
@@ -563,14 +568,19 @@ class Table:
         self._column_templates = column_templates or {}
         # define the repr() display policy
         random = 0
-        self._repr_policy = dict(head=None, tail=None, random=random, show_shape=True)
+        self._repr_policy = {
+            "head": None,
+            "tail": None,
+            "random": random,
+            "show_shape": True,
+        }
         self.format = format
         self._missing_data = missing_data
 
     def __iter__(self):
         return iter(self.columns.iter_rows())
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.columns._num_rows
 
     def __getitem__(self, names):
@@ -627,7 +637,7 @@ class Table:
 
     def __getstate__(self):
         attrs = self._get_persistent_attrs()
-        data = dict(init_table=attrs)
+        data = {"init_table": attrs}
         cols = self.columns.to_rich_dict()
         data["data"] = cols
         return data
@@ -644,13 +654,13 @@ class Table:
         table.index_name = index
         self.__dict__.update(table.__dict__)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self.shape == (0, 0):
             return "0 rows x 0 columns"
 
         table, shape_info, unset_columns = self._get_repr_()
         if self.shape[0] == 0:
-            return "\n".join([shape_info, unset_columns])
+            return f"{shape_info}\n{unset_columns}"
 
         if not self._repr_policy["show_shape"]:
             shape_info = ""
@@ -660,7 +670,7 @@ class Table:
             else "\n".join([str(table), shape_info])
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.shape == (0, 0):
             return ""
 
@@ -679,11 +689,11 @@ class Table:
         shape_info = ""
         if rn:
             indices = numpy.random.choice(self.shape[0], size=rn, replace=False)
-            indices = list(sorted(indices))
+            indices = sorted(indices)
             shape_info = f"Random selection of {rn} rows from"
         elif all([head, tail]):
             indices = list(range(head)) + list(
-                range(self.shape[0] - tail, self.shape[0])
+                range(self.shape[0] - tail, self.shape[0]),
             )
             if head + tail < self.shape[0]:
                 shape_info = f"Top {head} and bottom {tail} rows from"
@@ -742,7 +752,7 @@ class Table:
                     css_class = "c3col_left"
 
                 ellipsis.append(
-                    str(HE(HE("...", "span", css_classes=[css_class]), "td"))
+                    str(HE(HE("...", "span", css_classes=[css_class]), "td")),
                 )
 
             num_rows = 0
@@ -758,7 +768,7 @@ class Table:
                             "".join(ellipsis[col_num : col_num + num_col]),
                             "tr",
                             css_classes="ellipsis",
-                        )
+                        ),
                     )
                     col_num += num_col
                     num_rows = 0
@@ -767,8 +777,7 @@ class Table:
                     ellipsis_slice = ""
 
         html.insert(-1, shape_info)
-        html = "\n".join(html)
-        return html
+        return "\n".join(html)
 
     def _get_persistent_attrs(self):
         return UnionDict(self._persistent_attrs.copy())
@@ -778,7 +787,7 @@ class Table:
         return self._title
 
     @title.setter
-    def title(self, value):
+    def title(self, value) -> None:
         self._title = value
         self._persistent_attrs["title"] = value
 
@@ -787,7 +796,7 @@ class Table:
         return self._legend
 
     @legend.setter
-    def legend(self, value):
+    def legend(self, value) -> None:
         self._legend = value
         self._persistent_attrs["legend"] = value
 
@@ -796,7 +805,7 @@ class Table:
         return self._space
 
     @space.setter
-    def space(self, value):
+    def space(self, value) -> None:
         try:
             self._space = " " * value
         except TypeError:
@@ -804,7 +813,7 @@ class Table:
 
         self._persistent_attrs["space"] = value
 
-    def set_repr_policy(self, head=None, tail=None, random=0, show_shape=True):
+    def set_repr_policy(self, head=None, tail=None, random=0, show_shape=True) -> None:
         """specify policy for repr(self)
 
         Parameters
@@ -823,13 +832,16 @@ class Table:
             self._repr_policy["show_shape"] = show_shape
             return
         if random:
-            assert (
-                type(random) == int and random > 0
-            ), "random must be a positive integer"
+            assert type(random) == int and random > 0, (
+                "random must be a positive integer"
+            )
             head = tail = None
-        self._repr_policy = dict(
-            head=head, tail=tail, random=random, show_shape=show_shape
-        )
+        self._repr_policy = {
+            "head": head,
+            "tail": tail,
+            "random": random,
+            "show_shape": show_shape,
+        }
 
     @property
     def format(self):
@@ -837,7 +849,7 @@ class Table:
         return self._format
 
     @format.setter
-    def format(self, new="simple"):
+    def format(self, new="simple") -> None:
         """the str display format"""
         new = new.lower()
         if new not in table_format.known_formats:
@@ -848,7 +860,7 @@ class Table:
 
         self._format = new
 
-    def format_column(self, column_head, format_template):
+    def format_column(self, column_head, format_template) -> None:
         """Provide a formatting template for a named column.
 
         Parameters
@@ -871,25 +883,31 @@ class Table:
 
         self._column_templates[column_head] = format_template
 
-    def head(self, nrows=5):
+    def head(self, nrows=5) -> None:
         """displays top nrows"""
         repr_policy = self._repr_policy
         nrows = min(nrows, self.shape[0])
         show_shape = self._repr_policy["show_shape"]
-        self._repr_policy = dict(
-            head=nrows, tail=None, random=None, show_shape=show_shape
-        )
+        self._repr_policy = {
+            "head": nrows,
+            "tail": None,
+            "random": None,
+            "show_shape": show_shape,
+        }
         display(self)
         self._repr_policy = repr_policy
 
-    def tail(self, nrows=5):
+    def tail(self, nrows=5) -> None:
         """displays bottom nrows"""
         repr_policy = self._repr_policy
         nrows = min(nrows, self.shape[0])
         show_shape = self._repr_policy["show_shape"]
-        self._repr_policy = dict(
-            head=None, tail=nrows, random=None, show_shape=show_shape
-        )
+        self._repr_policy = {
+            "head": None,
+            "tail": nrows,
+            "random": None,
+            "show_shape": show_shape,
+        }
         display(self)
         self._repr_policy = repr_policy
 
@@ -903,7 +921,7 @@ class Table:
         return self._index_name
 
     @index_name.setter
-    def index_name(self, name):
+    def index_name(self, name) -> None:
         self.columns.index_name = name
         self._index_name = name
         self._persistent_attrs["index_name"] = name
@@ -934,7 +952,9 @@ class Table:
         """
         self_range = range(self.shape[0])
         other_range = range(other.shape[0])
-        self_selected, other_selected = list(zip(*product(self_range, other_range)))
+        self_selected, other_selected = list(
+            zip(*product(self_range, other_range), strict=False),
+        )
         joined_data = {c: self.columns[c].take(self_selected) for c in self.columns}
         other_data = {
             f"{col_prefix}{c}": other.columns[c].take(other_selected)
@@ -1019,8 +1039,9 @@ class Table:
             columns_other = columns_self or columns_other
 
         if len(columns_self) != len(columns_other):
+            msg = "Error during table join: key columns have different dimensions!"
             raise RuntimeError(
-                "Error during table join: key columns have different dimensions!"
+                msg,
             )
 
         output_mask = [c for c in other.columns if c not in columns_other]
@@ -1073,9 +1094,9 @@ class Table:
         other. See docstring for inner_join, or cross_join
         """
         if not inner_join:
-            assert (
-                columns_self is columns_other is None
-            ), "Cannot specify column indices for a cross join"
+            assert columns_self is columns_other is None, (
+                "Cannot specify column indices for a cross join"
+            )
             return self.cross_join(other, **kwargs)
 
         return self.inner_join(
@@ -1087,9 +1108,9 @@ class Table:
             **kwargs,
         )
 
-    # todo check the type info
-    # todo implement negate argument
-    # todo implement check that callable returns bool
+    # TODO check the type info
+    # TODO implement negate argument
+    # TODO implement check that callable returns bool
     def get_row_indices(self, callback, columns, negate=False):
         """returns boolean array of callback values given columns"""
         subset = self[:, columns]
@@ -1098,13 +1119,9 @@ class Table:
         match = not negate
         return numpy.array(
             [
-                (
-                    True
-                    if _callback(callback, row=row, num_columns=num_columns) == match
-                    else False
-                )
+                (_callback(callback, row=row, num_columns=num_columns) == match)
                 for row in data
-            ]
+            ],
         )
 
     def filtered(self, callback, columns=None, **kwargs):
@@ -1217,8 +1234,7 @@ class Table:
         """returns the set of distinct values for the named column(s)"""
         data = [tuple(r) for r in self[:, columns].array.tolist()]
         result = set(data)
-        result = {d[0] if len(d) == 1 else d for d in result}
-        return result
+        return {d[0] if len(d) == 1 else d for d in result}
 
     def appended(self, new_column, *tables, **kwargs):
         """Concatenates an arbitrary number of tables together
@@ -1251,7 +1267,7 @@ class Table:
         # equivalent length vector of its title
         columns = set(self.columns.order)
         new_col = []
-        table_series = (self,) + tables
+        table_series = (self, *tables)
         raw_data = defaultdict(list)
         dtypes = defaultdict(set)
         for table in table_series:
@@ -1267,7 +1283,7 @@ class Table:
                 raw_data[c].extend(v)
 
         if new_column is not None:
-            columns = (new_column,) + self.columns.order
+            columns = (new_column, *self.columns.order)
             raw_data[new_column] = new_col
             dtypes[new_column] = {"U"}
         else:
@@ -1300,7 +1316,14 @@ class Table:
             columns = [self.index_name] + [c for c in columns if c != self.index_name]
         return self[:, columns]
 
-    def with_new_column(self, new_column, callback, columns=None, dtype=None, **kwargs):
+    def with_new_column(
+        self,
+        new_column: str,
+        callback: typing.Callable[[numpy.ndarray], typing.Iterable] | str,
+        columns: str | tuple[str, ...] | None = None,
+        dtype: numpy.dtype | None = None,
+        **kwargs,
+    ) -> typing_extensions.Self:
         """Returns new table with an additional column, computed using callback.
 
         Parameters
@@ -1334,7 +1357,7 @@ class Table:
         data = subset if not isinstance(callback, Callable) else subset.array
         num_columns = len(columns)
         values = numpy.array(
-            [_callback(callback, row=row, num_columns=num_columns) for row in data]
+            [_callback(callback, row=row, num_columns=num_columns) for row in data],
         )
 
         if dtype:
@@ -1347,7 +1370,7 @@ class Table:
 
         return result
 
-    # todo deprecate this method
+    # TODO deprecate this method
     def with_new_header(self, old, new, **kwargs):
         """returns a new Table with old header labels replaced by new
 
@@ -1388,7 +1411,7 @@ class Table:
         if columns is None:
             columns = self.columns.order
 
-        if isinstance(columns, str) or isinstance(columns, int):
+        if isinstance(columns, str | int):
             columns = [columns]
 
         columns = self.columns[columns]
@@ -1420,7 +1443,7 @@ class Table:
 
         return result
 
-    # todo change indices to columns
+    # TODO change indices to columns
     def summed(self, indices=None, col_sum=True, strict=True):
         """returns the sum of numerical values for column(s)/row(s)
 
@@ -1485,8 +1508,9 @@ class Table:
         strings. If only reverse is provided, that order is used.
         """
         if "reversed" in kwargs:
+            msg = "got an unexpected keyword argument 'reversed', use 'reverse'"
             raise TypeError(
-                "got an unexpected keyword argument 'reversed', " "use 'reverse'"
+                msg,
             )
 
         reverse = reverse if reverse is not None else []
@@ -1578,12 +1602,13 @@ class Table:
 
         """
         formatted_cols, _ = self._formatted_by_col(
-            missing_data=missing_data, pad=not stripped
+            missing_data=missing_data,
+            pad=not stripped,
         )
         ordered = [(self.columns.order.index(c.strip()), c) for c in formatted_cols]
         ordered.sort()
         formatted = [[c] + formatted_cols[c] for _, c in ordered]
-        formatted = [list(e) for e in zip(*formatted)]
+        formatted = [list(e) for e in zip(*formatted, strict=False)]
         if not formatted and self.header:
             formatted = [self.header]
         return formatted
@@ -1607,11 +1632,19 @@ class Table:
         title = self.title if with_title else None
         legend = self.legend if with_legend else None
         return table_format.separator_format(
-            header, formatted_table, title=title, legend=legend, sep=","
+            header,
+            formatted_table,
+            title=title,
+            legend=legend,
+            sep=",",
         )
 
     def to_latex(
-        self, concat_title_legend=True, justify=None, label=None, position=None
+        self,
+        concat_title_legend=True,
+        justify=None,
+        label=None,
+        position=None,
     ):
         """Returns the text a LaTeX table.
 
@@ -1667,7 +1700,10 @@ class Table:
         formatted_table = self._formatted()
         header = formatted_table.pop(0)
         return table_format.markdown(
-            header, formatted_table, space=space, justify=justify
+            header,
+            formatted_table,
+            space=space,
+            justify=justify,
         )
 
     def to_rst(self, csv_table=False):
@@ -1687,11 +1723,17 @@ class Table:
         header = formatted_table.pop(0)
         if csv_table:
             result = table_format.rst_csv_table(
-                header, formatted_table, title=self.title, legend=self.legend
+                header,
+                formatted_table,
+                title=self.title,
+                legend=self.legend,
             )
         else:
             result = table_format.grid_table_format(
-                header, formatted_table, title=self.title, legend=self.legend
+                header,
+                formatted_table,
+                title=self.title,
+                legend=self.legend,
             )
         return result
 
@@ -1727,11 +1769,10 @@ class Table:
         end, value. In that order!
         """
         if format == "bedgraph":
-            # todo remove requirement for column order
+            # TODO remove requirement for column order
             assert self.shape[1] == 4, "bedgraph format is for 4 column tables"
             # assuming that header order is chrom, start, end, val
-            formatted_table = bedgraph.bedgraph(self.sorted().array.tolist(), **kwargs)
-            return formatted_table
+            return bedgraph.bedgraph(self.sorted().array.tolist(), **kwargs)
 
         if format.lower() in ("tsv", "csv"):
             sep = sep or {"tsv": "\t", "csv": ","}[format.lower()]
@@ -1788,7 +1829,7 @@ class Table:
             return table_format.separator_format(*args, sep=sep)
 
         return table_format.simple_format(
-            *args + (self._max_width, self.index_name, borders, self.space)
+            *(*args, self._max_width, self.index_name, borders, self.space),
         )
 
     def to_tsv(self, with_title=False, with_legend=False):
@@ -1810,7 +1851,11 @@ class Table:
         title = self.title if with_title else None
         legend = self.legend if with_legend else None
         return table_format.separator_format(
-            header, formatted_table, title=title, legend=legend, sep="\t"
+            header,
+            formatted_table,
+            title=title,
+            legend=legend,
+            sep="\t",
         )
 
     def to_html(self, column_alignment=None):
@@ -1835,7 +1880,8 @@ class Table:
         for c, v in column_alignment.items():
             v = v.lower()
             if v not in "clr":
-                raise ValueError(f"invalid column alignment value {v} for '{c}'")
+                msg = f"invalid column alignment value {v} for '{c}'"
+                raise ValueError(msg)
 
             column_alignment[c] = {
                 "c": "c3col_center",
@@ -1847,10 +1893,10 @@ class Table:
         # alpha applied to the index_name column background
         alpha = 0.0 if self.index_name is None else 0.25
 
-        style = table_format.css_c3table_template % dict(
-            colour=base_colour.format(alpha=alpha),
-            head_colour=base_colour.format(alpha=0.75),
-        )
+        style = table_format.css_c3table_template % {
+            "colour": base_colour.format(alpha=alpha),
+            "head_colour": base_colour.format(alpha=0.75),
+        }
 
         HtmlElement = table_format.HtmlElement
         tables = [str(HtmlElement(style, "style", newline=True))]
@@ -1901,7 +1947,7 @@ class Table:
 
             caption = str(HtmlElement(st, "caption", newline=True)) if st else ""
             rows = []
-            for i, row in enumerate(zip(*[cols[c] for c in header])):
+            for i, row in enumerate(zip(*[cols[c] for c in header], strict=False)):
                 txt = HtmlElement("".join(str(e) for e in row), "tr")
                 rows.append(str(txt))
 
@@ -1915,16 +1961,23 @@ class Table:
 
             header = "".join(str(HtmlElement(c, "th")) for c in header)
             header = str(
-                HtmlElement(header, "thead", css_classes=["head_cell"], newline=True)
+                HtmlElement(header, "thead", css_classes=["head_cell"], newline=True),
             )
 
             subtable = HtmlElement(
-                "".join([caption, header, rows]), "table", newline=True
+                f"{caption}{header}{rows}",
+                "table",
+                newline=True,
             )
             tables.append(str(subtable))
 
         return str(
-            HtmlElement("\n".join(tables), "div", css_classes=["c3table"], newline=True)
+            HtmlElement(
+                "\n".join(tables),
+                "div",
+                css_classes=["c3table"],
+                newline=True,
+            ),
         )
 
     def to_list(self, columns=None):
@@ -1944,13 +1997,10 @@ class Table:
 
         columns = [columns] if isinstance(columns, str) else columns
         if len(columns) == 1:
-            result = self.columns[columns[0]].tolist()
-            return result
+            return self.columns[columns[0]].tolist()
 
         subtable = self.get_columns(columns)
-        result = subtable.columns.array.tolist()
-
-        return result
+        return subtable.columns.array.tolist()
 
     @extend_docstring_from(DictArray.to_dict)
     def to_dict(self, flatten=False):
@@ -1962,7 +2012,7 @@ class Table:
     def to_rich_dict(self):
         data = self.__getstate__()
         data["type"] = get_object_provenance(self)
-        data["version"] = None  # todo
+        data["version"] = None  # TODO
         return data
 
     def to_json(self):
@@ -1981,7 +2031,8 @@ class Table:
         try:
             from pandas import DataFrame
         except ImportError:
-            raise ImportError("pandas not installed")
+            msg = "pandas not installed"
+            raise ImportError(msg)
 
         index = None if not self.index_name else self.columns[self.index_name]
         data = {c: self.columns[c] for c in self.columns if c != self.index_name}
@@ -2008,27 +2059,28 @@ class Table:
 
         tab = UnionDict(
             type="table",
-            header=dict(
-                values=header,
-                fill=dict(color="rgba(161, 195, 209, 1)"),
-                font=dict(size=font_size),
-                align="center",
-            ),
-            cells=dict(
-                values=[columns[c] for c in self.header], fill=dict(color=colours)
-            ),
+            header={
+                "values": header,
+                "fill": {"color": "rgba(161, 195, 209, 1)"},
+                "font": {"size": font_size},
+                "align": "center",
+            },
+            cells={
+                "values": [columns[c] for c in self.header],
+                "fill": {"color": colours},
+            },
         )
 
         draw = Drawable()
         aspect_ratio = self.shape[0] / self.shape[1]
         layout = layout or {}
-        default_layout = dict(
-            width=width,
-            height=aspect_ratio * width,
-            autosize=False,
-            title=self.title,
-            margin=dict(l=10, r=10, t=30, b=10, pad=10),
-        )
+        default_layout = {
+            "width": width,
+            "height": aspect_ratio * width,
+            "autosize": False,
+            "title": self.title,
+            "margin": {"l": 10, "r": 10, "t": 30, "b": 10, "pad": 10},
+        }
         default_layout.update(layout)
         draw.traces.append(tab)
         draw.layout |= default_layout
@@ -2059,13 +2111,15 @@ class Table:
 
         self.index_name = index_name if index_name is not None else self.index_name
         if self.index_name is None:
-            raise ValueError("requires index_name be set")
+            msg = "requires index_name be set"
+            raise ValueError(msg)
 
         columns = list(self.header) if columns is None else columns
 
         columns = [columns] if isinstance(columns, str) else columns
         if not set(columns) <= set(self.header):
-            raise ValueError(f"unknown columns {columns}")
+            msg = f"unknown columns {columns}"
+            raise ValueError(msg)
 
         if self.index_name in columns:
             columns.remove(self.index_name)
@@ -2073,7 +2127,8 @@ class Table:
         # must be convertible to int
         for col in columns:
             if "int" not in self.columns[col].dtype.name:
-                raise TypeError(f"{col} is not of int type")
+                msg = f"{col} is not of int type"
+                raise TypeError(msg)
 
         matrix = self.get_columns(columns, with_index=False).array.astype(int)
 
@@ -2093,12 +2148,13 @@ class Table:
             as the header. Defaults to the first column.
         """
         select_as_header = select_as_header or self.columns.order[0]
-        assert (
-            select_as_header in self.columns
-        ), f'"{select_as_header}" not in table header'
+        assert select_as_header in self.columns, (
+            f'"{select_as_header}" not in table header'
+        )
 
         if len(self.distinct_values(select_as_header)) != len(self):
-            raise ValueError(f"not all '{select_as_header}' values unique")
+            msg = f"not all '{select_as_header}' values unique"
+            raise ValueError(msg)
 
         attr = self._get_persistent_attrs()
         # on transpose, a row index_name becomes a column, so pop
@@ -2127,7 +2183,7 @@ class Table:
         sep=None,
         compress=None,
         **kwargs,
-    ):
+    ) -> None:
         """Write table to filename in the specified format.
 
         Parameters

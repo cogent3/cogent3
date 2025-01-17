@@ -3,6 +3,7 @@
 from random import randint, sample, seed
 from unittest import TestCase
 
+import pytest
 from numpy import array, ones, shape, sqrt
 from numpy.testing import assert_allclose
 
@@ -53,13 +54,15 @@ class functionTests(TestCase):
         self.dense1 = array([[1, 3], [5, 2], [0.1, 22]], "d")
 
         self.zeromtx = array(
-            [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]], "d"
+            [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
+            "d",
         )
         self.sparse1 = array(
-            [[0.0, 0.0, 5.33], [0.0, 0.0, 0.4], [1.0, 0.0, 0.0], [0.0, 0.0, 0.0]], "d"
+            [[0.0, 0.0, 5.33], [0.0, 0.0, 0.4], [1.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
+            "d",
         )
         self.input_binary_dist_otu_gain1 = array(
-            [[2, 1, 0, 0], [1, 0, 0, 1], [0, 0, 3, 0], [0, 0, 0, 1]]
+            [[2, 1, 0, 0], [1, 0, 0, 1], [0, 0, 3, 0], [0, 0, 0, 1]],
         )
 
     def get_sym_mtx_from_uptri(self, mtx):
@@ -93,7 +96,7 @@ class functionTests(TestCase):
     def test_dist_canberra_bug(self):
         i = array([[0, 0, 1], [0, 1, 1]])
         d = (1.0 / 2.0) * sum(
-            [abs(0.0 - 1.0) / (0.0 + 1.0), abs(1.0 - 1.0) / (1.0 + 1.0)]
+            [abs(0.0 - 1.0) / (0.0 + 1.0), abs(1.0 - 1.0) / (1.0 + 1.0)],
         )
         expected = array([[0.0, d], [d, 0.0]])
         actual = dist_canberra(i)
@@ -148,7 +151,8 @@ class functionTests(TestCase):
         assert_allclose(dist_manhattan(self.zeromtx), zeros((4, 4), "d"))
 
         dense1expected = array(
-            [[0.0, 5.0, 019.9], [5.0, 0.0, 24.9], [19.9, 24.90, 0.0]], "d"
+            [[0.0, 5.0, 019.9], [5.0, 0.0, 24.9], [19.9, 24.90, 0.0]],
+            "d",
         )
         assert_allclose(dist_manhattan(self.dense1), dense1expected)
 
@@ -385,7 +389,7 @@ class functionTests(TestCase):
     def test_jaccard_other(self):
         """tests jaccard using types not covered with single dispatch"""
         for a, b in ((1, 2), ([1], [2]), ("a", "b"), (1.0, 2.0)):
-            with self.assertRaises(NotImplementedError):
+            with pytest.raises(NotImplementedError):
                 jaccard(a, b)
 
     def test_binary_dist_ochiai(self):
@@ -422,7 +426,8 @@ class functionTests(TestCase):
         assert_allclose(binary_dist_sorensen_dice(self.mtx1), mtx1expected)
 
         sparse1expected = array(
-            [[0, 0, 1.0, 1.0], [0, 0, 1, 1], [1, 1, 0, 1], [1, 1, 1, 0]], "d"
+            [[0, 0, 1.0, 1.0], [0, 0, 1, 1], [1, 1, 0, 1], [1, 1, 1, 0]],
+            "d",
         )
 
         assert_allclose(binary_dist_sorensen_dice(self.sparse1), sparse1expected)
@@ -550,6 +555,6 @@ class functionTests(TestCase):
                     [0, 1 - 14 / 17, 1 - (0.4)],
                     [1 - 14 / 17, 0, 1 - 4 / 11],
                     [1 - 0.4, 1 - 4 / 11, 0],
-                ]
+                ],
             ),
         )

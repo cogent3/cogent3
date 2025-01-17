@@ -11,18 +11,18 @@ from cogent3.recalculation.definition import CalcDefn, PartitionDefn
 def make_model(mprob_model, tuple_alphabet, mask):
     if mprob_model == "monomers":
         return PosnSpecificMonomerProbModel(tuple_alphabet, mask)
-    elif mprob_model == "monomer":
+    if mprob_model == "monomer":
         return MonomerProbModel(tuple_alphabet, mask)
-    elif mprob_model == "conditional":
+    if mprob_model == "conditional":
         return ConditionalMotifProbModel(tuple_alphabet, mask)
-    elif mprob_model in ["word", "tuple", None]:
+    if mprob_model in ["word", "tuple", None]:
         return SimpleMotifProbModel(tuple_alphabet)
-    else:
-        raise ValueError(f"Unknown mprob model '{str(mprob_model)}'")
+    msg = f"Unknown mprob model '{mprob_model!s}'"
+    raise ValueError(msg)
 
 
-class MotifProbModel(object):
-    def __init__(self, *whatever, **kw):
+class MotifProbModel:
+    def __init__(self, *whatever, **kw) -> None:
         raise NotImplementedError
 
     def calc_word_probs(self, *monomer_probs):
@@ -43,7 +43,7 @@ class MotifProbModel(object):
             dimension=("motif", tuple(self.get_input_alphabet())),
         )
 
-    def set_param_controller_motif_probs(self, pc, motif_probs, **kw):
+    def set_param_controller_motif_probs(self, pc, motif_probs, **kw) -> None:
         pc.set_param_rule("mprobs", value=motif_probs, **kw)
 
     def count_motifs(self, alignment, include_ambiguity=False, recode_gaps=True):
@@ -60,26 +60,25 @@ class MotifProbModel(object):
         return result
 
     def adapt_motif_probs(self, motif_probs, **kwargs):
-        motif_probs = adapt_motif_probs(self.get_input_alphabet(), motif_probs)
-        return motif_probs
+        return adapt_motif_probs(self.get_input_alphabet(), motif_probs)
 
     def make_equal_motif_probs(self):
         alphabet = self.get_input_alphabet()
         p = 1.0 / len(alphabet)
-        return dict([(m, p) for m in alphabet])
+        return {m: p for m in alphabet}
 
     def make_sample_motif_probs(self):
         import random
 
         motif_probs = numpy.array(
-            [random.uniform(0.2, 1.0) for m in self.get_counted_alphabet()]
+            [random.uniform(0.2, 1.0) for m in self.get_counted_alphabet()],
         )
         motif_probs /= sum(motif_probs)
         return motif_probs
 
 
 class SimpleMotifProbModel(MotifProbModel):
-    def __init__(self, alphabet):
+    def __init__(self, alphabet) -> None:
         self.alphabet = alphabet
 
     def get_input_alphabet(self):
@@ -94,7 +93,7 @@ class SimpleMotifProbModel(MotifProbModel):
 
 
 class ComplexMotifProbModel(MotifProbModel):
-    def __init__(self, tuple_alphabet, mask):
+    def __init__(self, tuple_alphabet, mask) -> None:
         """Arguments:
         - tuple_alphabet: series of multi-letter motifs
         - monomers: the monomers from which the motifs are made
@@ -102,7 +101,7 @@ class ComplexMotifProbModel(MotifProbModel):
         self.mask = mask
         self.tuple_alphabet = tuple_alphabet
         self.monomer_alphabet = monomers = tuple_alphabet.moltype.alphabet
-        self.word_length = length = tuple_alphabet.get_motif_len()
+        self.word_length = length = tuple_alphabet.motif_len
         size = len(tuple_alphabet)
 
         # m2w[AC, 1] = C
@@ -124,7 +123,7 @@ class ComplexMotifProbModel(MotifProbModel):
         self.mutant_motif = numpy.zeros(mask.shape, int)
         self.context_indices = numpy.zeros(mask.shape, int)
 
-        for i, old_word, j, new_word, diff in self._mutations():
+        for i, _old_word, j, new_word, diff in self._mutations():
             self.mutated_posn[i, j] = diff
             mutant_motif = new_word[diff]
             context = new_word[:diff] + new_word[diff + 1 :]
@@ -133,7 +132,9 @@ class ComplexMotifProbModel(MotifProbModel):
             self.context_indices[i, j] = c * length + diff
 
     def _mutations(self):
-        diff_pos = lambda x, y: [i for i in range(len(x)) if x[i] != y[i]]
+        def diff_pos(x, y):
+            return [i for i in range(len(x)) if x[i] != y[i]]
+
         num_states = len(self.tuple_alphabet)
         for i in range(num_states):
             old_word = self.tuple_alphabet[i]
@@ -173,7 +174,7 @@ class MonomerProbModel(ComplexMotifProbModel):
         monomer_probs = self.make_motif_probs_defn()
         word_probs = CalcDefn(self.calc_word_probs, name="wprobs")(monomer_probs)
         mprobs_matrix = CalcDefn(self.calc_word_weight_matrix, name="mprobs_matrix")(
-            monomer_probs
+            monomer_probs,
         )
         return (monomer_probs, word_probs, mprobs_matrix)
 
@@ -205,7 +206,8 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
             self.m2w.shape,
         )
         result = numpy.prod(
-            [monomer_probs[i].take(self.m2w[:, i]) for i in positions], axis=0
+            [monomer_probs[i].take(self.m2w[:, i]) for i in positions],
+            axis=0,
         )
         result /= result.sum()
         return result
@@ -215,8 +217,7 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
         size = monomer_probs.shape[-1]
         # should be constant
         extended_indices = self.mutated_posn * size + self.mutant_motif
-        result = monomer_probs.take(extended_indices) * self.mask
-        return result
+        return monomer_probs.take(extended_indices) * self.mask
 
     def make_motif_word_prob_defns(self):
         monomer_probs = PartitionDefn(
@@ -226,18 +227,19 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
             dimension=("motif", tuple(self.get_input_alphabet())),
         )
         monomer_probs3 = monomer_probs.across_dimension(
-            "position", [str(i) for i in range(self.word_length)]
+            "position",
+            [str(i) for i in range(self.word_length)],
         )
         monomer_probs3 = CalcDefn(lambda *x: numpy.array(x), name="mprobs")(
-            *monomer_probs3
+            *monomer_probs3,
         )
         word_probs = CalcDefn(self.calc_word_probs, name="wprobs")(monomer_probs3)
         mprobs_matrix = CalcDefn(self.calc_word_weight_matrix, name="mprobs_matrix")(
-            monomer_probs3
+            monomer_probs3,
         )
         return (monomer_probs, word_probs, mprobs_matrix)
 
-    def set_param_controller_motif_probs(self, pc, motif_probs, **kw):
+    def set_param_controller_motif_probs(self, pc, motif_probs, **kw) -> None:
         assert len(motif_probs) == self.word_length
         for i, m in enumerate(motif_probs):
             pc.set_param_rule("psmprobs", value=m, position=str(i), **kw)
@@ -268,7 +270,7 @@ class ConditionalMotifProbModel(ComplexMotifProbModel):
     def make_motif_word_prob_defns(self):
         mprobs = self.make_motif_probs_defn()
         mprobs_matrix = CalcDefn(self.calc_word_weight_matrix, name="mprobs_matrix")(
-            mprobs
+            mprobs,
         )
         return (mprobs, mprobs, mprobs_matrix)
 
@@ -297,19 +299,22 @@ def adapt_motif_probs(alphabet: AlphaTypes, motif_probs: ProbsTypes) -> numpy.nd
     """
 
     if len(alphabet) != len(motif_probs):
+        msg = f"Can't match {len(motif_probs)} probs to {len(alphabet)} alphabet"
         raise ValueError(
-            f"Can't match {len(motif_probs)} probs to {len(alphabet)} alphabet"
+            msg,
         )
 
     if hasattr(motif_probs, "keys"):
         # need to wrap the keys method because it can be a DictArray
         if diff := set(motif_probs.keys()) - set(alphabet):
-            raise ValueError(f"Can't find motif(s) {diff!r} in alphabet")
+            msg = f"Can't find motif(s) {diff!r} in alphabet"
+            raise ValueError(msg)
         return numpy.array([motif_probs[motif] for motif in alphabet])
-    else:
-        motif_probs = numpy.asarray(motif_probs)
+    motif_probs = numpy.asarray(motif_probs)
 
     numpy.testing.assert_allclose(
-        motif_probs.sum(), 1, err_msg=f"does not summ to 1 {motif_probs}"
+        motif_probs.sum(),
+        1,
+        err_msg=f"does not summ to 1 {motif_probs}",
     )
     return motif_probs

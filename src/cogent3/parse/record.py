@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 """Provides support functions and classes for parsers."""
 
+import contextlib
 from copy import deepcopy
+from typing import NoReturn
 
 from cogent3.util.misc import iterable
 
@@ -9,28 +11,22 @@ from cogent3.util.misc import iterable
 class FileFormatError(Exception):
     """Exception raised when a file can not be parsed."""
 
-    pass
-
 
 class RecordError(FileFormatError):
     """Exception raised when a record is bad."""
-
-    pass
 
 
 class FieldError(RecordError):
     """Exception raised when a field within a record is bad."""
 
-    pass
 
-
-class Grouper(object):
+class Grouper:
     """Acts as iterator that returns lists of n items at a time from seq.
 
     Note: returns a partial list if not evenly divisible by n.
     """
 
-    def __init__(self, NumItems=1):
+    def __init__(self, NumItems=1) -> None:
         """Returns new Grouper object: will return n items at a time from seq"""
         self.NumItems = NumItems
 
@@ -40,8 +36,9 @@ class Grouper(object):
             num = int(self.NumItems)
             assert num >= 1
         except:
+            msg = f"Grouper.NumItems must be positive int, not {self.NumItems}"
             raise ValueError(
-                f"Grouper.NumItems must be positive int, not {self.NumItems}"
+                msg,
             )
         curr = []
         for i, item in enumerate(seq):
@@ -75,7 +72,7 @@ def DelimitedSplitter(delimiter=None, max_splits=1):
 
     Note: leaves empty fields in place.
     """
-    is_int = isinstance(max_splits, int) or isinstance(max_splits, int)
+    is_int = isinstance(max_splits, int | int)
     if is_int and (max_splits > 0):
 
         def parser(line):
@@ -86,7 +83,7 @@ def DelimitedSplitter(delimiter=None, max_splits=1):
         def parser(line):
             to_insert = delimiter or " "  # re-join fields w/ space if None
             fields = line.split(delimiter)
-            if (fields == []) or (fields == [""]):
+            if fields in ([], [""]):
                 return []  # empty string or only delimiter: return nothing
             # if not enough fields, count from the start, not the end
             if len(fields) < max_splits:
@@ -138,7 +135,7 @@ class GenericRecord(dict):
 
     Required = {}
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """Reads kwargs as properties of self."""
         # perform init on temp dict to preserve interface: will then translate
         # aliased keys when loading into self
@@ -149,21 +146,20 @@ class GenericRecord(dict):
             if name not in self:
                 self[name] = deepcopy(prototype)
 
-    def __delitem__(self, item):
+    def __delitem__(self, item) -> None:
         """Deletes item or raises exception if item required.
 
         Note: Fails silently if item absent.
         """
         if item in self.Required:
-            raise AttributeError(f"{item} is a required item")
-        try:
-            super(GenericRecord, self).__delitem__(item)
-        except KeyError:
-            pass
+            msg = f"{item} is a required item"
+            raise AttributeError(msg)
+        with contextlib.suppress(KeyError):
+            super().__delitem__(item)
 
     def copy(self):
         """Coerces copy to correct type"""
-        temp = self.__class__(super(GenericRecord, self).copy())
+        temp = self.__class__(super().copy())
         # don't forget to copy attributes!
         for attr, val in self.__dict__.items():
             temp.__dict__[attr] = deepcopy(val)
@@ -203,21 +199,16 @@ class MappedRecord(GenericRecord):
         """Returns a copy of item."""
         if hasattr(prototype, "copy"):
             return prototype.copy()
-        elif isinstance(prototype, list):
+        if isinstance(prototype, list):
             return prototype[:]
-        elif (
-            isinstance(prototype, str)
-            or isinstance(prototype, int)
-            or isinstance(prototype, int)
-            or isinstance(prototype, tuple)
-            or isinstance(prototype, complex)
+        if (
+            isinstance(prototype, str | int | int | tuple | complex)
             or prototype is None
         ):
             return prototype  # immutable type: use directly
-        else:
-            return deepcopy(prototype)
+        return deepcopy(prototype)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """Reads kwargs as properties of self."""
         # perform init on temp dict to preserve interface: will then translate
         # aliased keys when loading into self
@@ -242,68 +233,67 @@ class MappedRecord(GenericRecord):
         """Returns None if field is absent, rather than raising exception."""
         if attr in self:
             return self[attr]
-        elif attr in self.__dict__:
+        if attr in self.__dict__:
             return self.__dict__[attr]
-        elif attr.startswith("__"):  # don't retrieve private class attrs
+        if attr.startswith("__"):  # don't retrieve private class attrs
             raise AttributeError
-        elif hasattr(self.__class__, attr):
+        if hasattr(self.__class__, attr):
             return getattr(self.__class__, attr)
-        else:
-            return self._copy(self.DefaultValue)
+        return self._copy(self.DefaultValue)
 
-    def __setattr__(self, attr, value):
+    def __setattr__(self, attr, value) -> None:
         """Sets attribute in self if absent, converting name if necessary."""
         normal_attr = self.unalias(attr)
         # we overrode __getattr__, so have to simulate getattr(self, attr) by
         # calling superclass method and checking for AttributeError.
         # BEWARE: dict defines __getattribute__, not __getattr__!
         try:
-            super(MappedRecord, self).__getattribute__(normal_attr)
-            super(MappedRecord, self).__setattr__(normal_attr, value)
+            super().__getattribute__(normal_attr)
+            super().__setattr__(normal_attr, value)
         except AttributeError:
             self[normal_attr] = value
 
-    def __delattr__(self, attr):
+    def __delattr__(self, attr) -> None:
         """Deletes attribute, converting name if necessary. Fails silently."""
         normal_attr = self.unalias(attr)
         if normal_attr in self.Required:
-            raise AttributeError(f"{attr} is a required attribute")
-        else:
-            try:
-                super(MappedRecord, self).__delattr__(normal_attr)
-            except AttributeError:
-                del self[normal_attr]
+            msg = f"{attr} is a required attribute"
+            raise AttributeError(msg)
+        try:
+            super().__delattr__(normal_attr)
+        except AttributeError:
+            del self[normal_attr]
 
     def __getitem__(self, item):
         """Returns default if item is absent, rather than raising exception."""
         normal_item = self.unalias(item)
         return self.get(normal_item, self._copy(self.DefaultValue))
 
-    def __setitem__(self, item, val):
+    def __setitem__(self, item, val) -> None:
         """Sets item, converting name if necessary."""
-        super(MappedRecord, self).__setitem__(self.unalias(item), val)
+        super().__setitem__(self.unalias(item), val)
 
-    def __delitem__(self, item):
+    def __delitem__(self, item) -> None:
         """Deletes item, converting name if necessary. Fails silently."""
         normal_item = self.unalias(item)
-        super(MappedRecord, self).__delitem__(normal_item)
+        super().__delitem__(normal_item)
 
-    def __contains__(self, item):
+    def __contains__(self, item) -> bool:
         """Tests membership, converting name if necessary."""
-        return super(MappedRecord, self).__contains__(self.unalias(item))
+        return super().__contains__(self.unalias(item))
 
     def get(self, item, default):
         """Returns self[item] or default if not present. Silent when unhashable."""
         try:
-            return super(MappedRecord, self).get(self.unalias(item), default)
+            return super().get(self.unalias(item), default)
         except TypeError:
             return default
 
     def setdefault(self, key, default=None):
         """Returns self[key] or default (and sets self[key]=default)"""
-        return super(MappedRecord, self).setdefault(self.unalias(key), default)
+        return super().setdefault(self.unalias(key), default)
 
-    def update(self, *args, **kwargs):
+    def update(self, *args, **kwargs) -> None:
         """Updates self with items in other"""
         temp = {}
         unalias = self.unalias
@@ -323,12 +313,12 @@ def TypeSetter(constructor=None):
     """
     if constructor:
 
-        def setter(obj, field, val):
+        def setter(obj, field, val) -> None:
             setattr(obj, field, constructor(val))
 
     else:
 
-        def setter(obj, field, val):
+        def setter(obj, field, val) -> None:
             setattr(obj, field, val)
 
     return setter
@@ -345,7 +335,7 @@ bool_setter = TypeSetter(bool)
 identity_setter = TypeSetter()
 
 
-def list_adder(obj, field, val):
+def list_adder(obj, field, val) -> None:
     """Adds val to list in obj.field, creating list if necessary."""
     try:
         getattr(obj, field).append(val)
@@ -353,7 +343,7 @@ def list_adder(obj, field, val):
         setattr(obj, field, [val])
 
 
-def list_extender(obj, field, val):
+def list_extender(obj, field, val) -> None:
     """Adds val to list in obj.field, creating list if necessary."""
     try:
         getattr(obj, field).extend(iterable(val))
@@ -361,7 +351,7 @@ def list_extender(obj, field, val):
         setattr(obj, field, list(val))
 
 
-def dict_adder(obj, field, val):
+def dict_adder(obj, field, val) -> None:
     """If val is a sequence, adds key/value pair in obj.field: else adds key."""
     try:
         key, value = val
@@ -373,7 +363,7 @@ def dict_adder(obj, field, val):
         setattr(obj, field, {key: value})
 
 
-class LineOrientedConstructor(object):
+class LineOrientedConstructor:
     """Constructs a MappedRecord from a sequence of lines."""
 
     def __init__(
@@ -383,7 +373,7 @@ class LineOrientedConstructor(object):
         FieldMap=None,
         Constructor=MappedRecord,
         Strict=False,
-    ):
+    ) -> None:
         """Returns new LineOrientedConstructor.
 
         Fields:
@@ -443,9 +433,9 @@ class LineOrientedConstructor(object):
                     field, mapper = new_field, fieldmap[new_field]
                 else:
                     if self.Strict:
-                        raise FieldError(f"Got unrecognized field {raw_field}")
-                    else:
-                        identity_setter(result, raw_field, val)
+                        msg = f"Got unrecognized field {raw_field}"
+                        raise FieldError(msg)
+                    identity_setter(result, raw_field, val)
                     continue
             # if we found the field in the fieldmap, apply the correct function
             try:
@@ -453,7 +443,8 @@ class LineOrientedConstructor(object):
             except:  # Warning: this is a catchall for _any_ exception,
                 # and may mask what's actually going wrong.
                 if self.Strict:
-                    raise FieldError(f"Could not handle line {line}")
+                    msg = f"Could not handle line {line}"
+                    raise FieldError(msg)
         return result
 
 
@@ -478,12 +469,12 @@ def FieldWrapper(fields, splitter=None, constructor=None):
     if constructor:
 
         def parser(line):
-            return constructor(dict(list(zip(fields, splitter(line)))))
+            return constructor(dict(list(zip(fields, splitter(line), strict=False))))
 
     else:
 
         def parser(line):
-            return dict(list(zip(fields, splitter(line))))
+            return dict(list(zip(fields, splitter(line), strict=False)))
 
     return parser
 
@@ -509,36 +500,39 @@ def StrictFieldWrapper(fields, splitter=None, constructor=None):
         def parser(line):
             items = splitter(line)
             if len(items) != len(fields):
+                msg = f"Expected {len(fields)} items but got {len(items)}: {items}"
                 raise FieldError(
-                    f"Expected {len(fields)} items but got {len(items)}: {items}"
+                    msg,
                 )
-            return constructor(dict(list(zip(fields, items))))
+            return constructor(dict(list(zip(fields, items, strict=False))))
 
     else:
 
         def parser(line):
             items = splitter(line)
             if len(items) != len(fields):
+                msg = f"Expected {len(fields)} items but got {len(items)}: {items}"
                 raise FieldError(
-                    f"Expected {len(fields)} items but got {len(items)}: {items}"
+                    msg,
                 )
-            return dict(list(zip(fields, items)))
+            return dict(list(zip(fields, items, strict=False)))
 
     return parser
 
 
-def raise_unknown_field(field, data):
+def raise_unknown_field(field, data) -> NoReturn:
     """Raises a FieldError, displaying the offending field and data."""
-    raise FieldError(f"Got unknown field {field} with data {data}")
+    msg = f"Got unknown field {field} with data {data}"
+    raise FieldError(msg)
 
 
-class FieldMorpher(object):
+class FieldMorpher:
     """When called, applies appropriate constructors to each value of dict.
 
     Initialize using a dict of fieldname:constructor pairs.
     """
 
-    def __init__(self, Constructors, Default=raise_unknown_field):
+    def __init__(self, Constructors, Default=raise_unknown_field) -> None:
         """Returns a new FieldMorpher, using appropriate constructors.
 
         If a field is unknown, will try to set key and value to the results

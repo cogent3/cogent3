@@ -25,16 +25,13 @@ def iteration_set_finder(line):
     return line.startswith("# Iteration: 1")
 
 
-def _is_junk(line, t_strs):
+def _is_junk(line, t_strs) -> bool:
     """Ignore empty line, line with blast info, or whitespace line"""
     # empty or white space
     if not line or not line.strip():
         return True
     # blast info line
-    for t_str in t_strs:
-        if line.startswith(f"# {t_str}"):
-            return True
-    return False
+    return any(line.startswith(f"# {t_str}") for t_str in t_strs)
 
 
 def is_blast_junk(line):
@@ -56,10 +53,12 @@ def make_label(line):
     WARNING: Only maps the data type if the key is in label_constructors above.
     """
     if not line.startswith("#"):
-        raise ValueError("Labels must start with a # symbol.")
+        msg = "Labels must start with a # symbol."
+        raise ValueError(msg)
 
     if line.find(":") == -1:
-        raise ValueError("Labels must contain a : symbol.")
+        msg = "Labels must contain a : symbol."
+        raise ValueError(msg)
 
     key, value = list(map(strip, line[1:].split(":", 1)))
     key = key.upper()
@@ -73,11 +72,15 @@ BlatFinder = LabeledRecordFinder(query_finder, constructor=strip, ignore=is_blat
 BlastFinder = LabeledRecordFinder(query_finder, constructor=strip, ignore=is_blast_junk)
 
 PsiBlastFinder = LabeledRecordFinder(
-    iter_finder, constructor=strip, ignore=is_blast_junk
+    iter_finder,
+    constructor=strip,
+    ignore=is_blast_junk,
 )
 
 PsiBlastQueryFinder = LabeledRecordFinder(
-    iteration_set_finder, constructor=strip, ignore=is_blast_junk
+    iteration_set_finder,
+    constructor=strip,
+    ignore=is_blast_junk,
 )
 
 
@@ -122,7 +125,9 @@ def TableToValues(table, constructors=None, header=None):
         header = table[0]
         table = table[1:]
     c_list = [constructors.get(k, str) for k in header]
-    return [[c(val) for c, val in zip(c_list, row)] for row in table], header
+    return [
+        [c(val) for c, val in zip(c_list, row, strict=False)] for row in table
+    ], header
 
 
 psiblast_constructors = {
@@ -188,7 +193,9 @@ def PsiBlastParser9(lines):
                 result[properties["QUERY"].split()[0]] = curr_resultset
                 first_query = False
             table, header = PsiBlastTableParser(record)
-            curr_resultset.append([dict(list(zip(header, row))) for row in table])
+            curr_resultset.append(
+                [dict(list(zip(header, row, strict=False))) for row in table],
+            )
     return result
 
 
@@ -201,30 +208,24 @@ def get_blast_ids(props, data, filter_identity, threshold, keep_values):
     # get column index of protein ids we want
     p_ix = fields.index("SUBJECT ID")
     # get column index to screen by
-    if filter_identity:
-        e_ix = fields.index("% IDENTITY")
-    else:
-        e_ix = fields.index("E-VALUE")
+    e_ix = fields.index("% IDENTITY") if filter_identity else fields.index("E-VALUE")
     # no filter, returh all
     if not threshold:
         if keep_values:
             return [(x[p_ix], x[e_ix]) for x in data]
-        else:
-            return [x[p_ix] for x in data]
-    else:
-        # will raise exception if invalid threshold passed
-        max_val = float(threshold)
+        return [x[p_ix] for x in data]
+    # will raise exception if invalid threshold passed
+    max_val = float(threshold)
 
-        # figure out what we're keeping
-        def ok_val(val):
-            if threshold:
-                return val <= max_val
-            return val >= max_val
+    # figure out what we're keeping
+    def ok_val(val):
+        if threshold:
+            return val <= max_val
+        return val >= max_val
 
-        if keep_values:
-            return [(x[p_ix], x[e_ix]) for x in data if ok_val(float(x[e_ix]))]
-        else:
-            return [x[p_ix] for x in data if ok_val(float(x[e_ix]))]
+    if keep_values:
+        return [(x[p_ix], x[e_ix]) for x in data if ok_val(float(x[e_ix]))]
+    return [x[p_ix] for x in data if ok_val(float(x[e_ix]))]
 
 
 def AllProteinIds9(
@@ -261,7 +262,11 @@ def AllProteinIds9(
     for rec in mpbp:
         props, data = rec
         out_ids[out_ct] = get_blast_ids(
-            props, data, filter_identity, threshold, keep_values
+            props,
+            data,
+            filter_identity,
+            threshold,
+            keep_values,
         )
         out_ct += 1
     return out_ids

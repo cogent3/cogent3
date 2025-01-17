@@ -3,7 +3,7 @@ import bisect
 import numpy
 
 
-class TransitionMatrix(object):
+class TransitionMatrix:
     """The transition matrix for a Markov process.  Just a square
     numpy array plus a list of state 'tags', eg:
 
@@ -14,7 +14,7 @@ class TransitionMatrix(object):
     >>> T = TransitionMatrix(a, ["x", "y", "m"])
     """
 
-    def __init__(self, matrix, tags, stationary_probs=None):
+    def __init__(self, matrix, tags, stationary_probs=None) -> None:
         self.Matrix = numpy.array(matrix, float)
         self.Tags = list(tags)
         self.size = len(matrix)
@@ -50,7 +50,7 @@ class TransitionMatrix(object):
             x = random_series.uniform(0.0, 1.0)
             state = bisect.bisect_left(partitions[state], x)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         from cogent3.util.table import Table
 
         labels = []
@@ -60,8 +60,10 @@ class TransitionMatrix(object):
             # Table needs unique labels
             label = f"{label} ({i})"
             labels.append(label)
-        heading = [""] + labels
-        a = [[name] + list(row) for (name, row) in zip(labels, self.Matrix)]
+        heading = ["", *labels]
+        a = [
+            [name, *list(row)] for (name, row) in zip(labels, self.Matrix, strict=False)
+        ]
         return str(Table(header=heading, data=a))
 
     def withoutSilentStates(self):
@@ -89,7 +91,7 @@ class TransitionMatrix(object):
     def getLikelihoodOfSequence(self, obs, backward=False):
         """Just for testing really"""
         profile = numpy.zeros([len(obs), self.size], float)
-        for i, a in enumerate(obs):
+        for i, _a in enumerate(obs):
             # This is suspiciously alphabet-like!
             profile[i, self.Tags.index(obs[i])] = 1.0
         return self.getLikelihoodOfProfile(profile, backward=backward)
@@ -101,11 +103,10 @@ class TransitionMatrix(object):
             for i in range(len(obs)):
                 state_probs = numpy.dot(state_probs, self.Matrix) * obs[i]
             return sum(state_probs)
-        else:
-            state_probs = numpy.ones([self.size], float)
-            for i in range(len(obs) - 1, -1, -1):
-                state_probs = numpy.dot(self.Matrix, state_probs * obs[i])
-            return sum(state_probs * self.StationaryProbs)
+        state_probs = numpy.ones([self.size], float)
+        for i in range(len(obs) - 1, -1, -1):
+            state_probs = numpy.dot(self.Matrix, state_probs * obs[i])
+        return sum(state_probs * self.StationaryProbs)
 
     def get_posterior_probs(self, obs):
         """'obs' is a sequence of state probability vectors"""
@@ -137,7 +138,10 @@ class TransitionMatrix(object):
         defined by 'self'"""
 
         if blended is None:
-            blended = lambda a, b: (a + b) / 2.0
+
+            def blended(a, b):
+                return (a + b) / 2.0
+
             # blended = lambda a,b: numpy.sqrt(a*b)
             # blended = lambda a,b: b
 

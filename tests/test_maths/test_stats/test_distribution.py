@@ -58,9 +58,9 @@ class DistributionsTests(TestCase):
             ]
         ]
 
-        for z, p in zip(self.values, probs):
+        for z, p in zip(self.values, probs, strict=False):
             assert_allclose(zprob(z), p, rtol=1e-6)
-        for z, p in zip(self.negvalues, probs):
+        for z, p in zip(self.negvalues, probs, strict=False):
             assert_allclose(zprob(z), p, rtol=1e-6)
 
     def test_tprob(self):
@@ -120,7 +120,7 @@ class DistributionsTests(TestCase):
             ],
         }
         for df in self.df:
-            for x, p in zip(self.values, probs[df]):
+            for x, p in zip(self.values, probs[df], strict=False):
                 assert_almost_equal(tprob(x, df), p, decimal=4)
 
     def test_binomial_series(self):
@@ -129,7 +129,7 @@ class DistributionsTests(TestCase):
             map(
                 float,
                 "0.0282475249 0.1210608210 0.2334744405 0.2668279320 0.2001209490 0.1029193452 0.0367569090 0.0090016920 0.0014467005 0.0001377810 0.0000059049".split(),
-            )
+            ),
         )
 
         for i in range(len(expected)):

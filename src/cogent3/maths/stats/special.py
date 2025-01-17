@@ -4,8 +4,6 @@
 
 from numpy import exp, floor, log, sin, sqrt
 
-from cogent3.util import warning as c3warn
-
 log_epsilon = 1e-6  # for threshold in log/exp close to 1
 # For IEEE arithmetic (IBMPC):
 MACHEP = 1.11022302462515654042e-16  # 2**-53
@@ -37,26 +35,23 @@ def fix_rounding_error(x):
     """
     if -ROUND_ERROR < x < 0:
         return 0
-    elif 1 < x < 1 + ROUND_ERROR:
+    if 1 < x < 1 + ROUND_ERROR:
         return 1
-    else:
-        return x
+    return x
 
 
 def log_one_minus(x):
     """Returns natural log of (1-x). Useful for probability calculations."""
     if abs(x) < log_epsilon:
         return -x
-    else:
-        return log(1 - x)
+    return log(1 - x)
 
 
 def one_minus_exp(x):
     """Returns 1-exp(x). Useful for probability calculations."""
     if abs(x) < log_epsilon:
         return -x
-    else:
-        return 1 - exp(x)
+    return 1 - exp(x)
 
 
 def ln_binomial(successes, trials, prob):
@@ -312,7 +307,8 @@ def lgam(x):
         w = lgam(q)
         p = floor(q)
         if p == q:
-            raise OverflowError("lgam returned infinity.")
+            msg = "lgam returned infinity."
+            raise OverflowError(msg)
 
         z = q - p
         if z > 0.5:
@@ -320,9 +316,9 @@ def lgam(x):
             z = p - q
         z = q * sin(PI * z)
         if z == 0:
-            raise OverflowError("lgam returned infinity.")
-        z = LOGPI - log(z) - w
-        return z
+            msg = "lgam returned infinity."
+            raise OverflowError(msg)
+        return LOGPI - log(z) - w
 
     if x < 13:
         z = 1
@@ -334,7 +330,8 @@ def lgam(x):
             z *= u
         while u < 2:
             if u == 0:
-                raise OverflowError("lgam returned infinity.")
+                msg = "lgam returned infinity."
+                raise OverflowError(msg)
             z /= u
             p += 1
             u = x + p
@@ -347,7 +344,8 @@ def lgam(x):
         p = x * polevl(x, GB) / polevl(x, GC)
         return log(z) + p
     if x > MAXLGM:
-        raise OverflowError("Too large a value of x in lgam.")
+        msg = "Too large a value of x in lgam."
+        raise OverflowError(msg)
     q = (x - 0.5) * log(x) - x + LS2PI
     if x > 1.0e8:
         return q
@@ -368,13 +366,15 @@ def betai(aa, bb, xx):
     See Cephes docs for details.
     """
     if aa <= 0 or bb <= 0:
-        raise ValueError("betai: a and b must both be > 0.")
+        msg = "betai: a and b must both be > 0."
+        raise ValueError(msg)
     if xx == 0:
         return 0
     if xx == 1:
         return 1
     if xx < 0 or xx > 1:
-        raise ValueError("betai: x must be between 0 and 1.")
+        msg = "betai: x must be between 0 and 1."
+        raise ValueError(msg)
     flag = 0
     if (bb * xx <= 1) and (xx <= 0.95):
         t = pseries(aa, bb, xx)
@@ -397,10 +397,7 @@ def betai(aa, bb, xx):
         return betai_result(t, flag)
     # choose expansion for better convergence
     y = x * (a + b - 2) - (a - 1)
-    if y < 0:
-        w = incbcf(a, b, x)
-    else:
-        w = incbd(a, b, x) / xc
+    w = incbcf(a, b, x) if y < 0 else incbd(a, b, x) / xc
     y = a * log(x)
     t = b * log(xc)
     if ((a + b) < MAXGAM) and (abs(y) < MAXLOG) and (abs(t) < MAXLOG):
@@ -413,19 +410,13 @@ def betai(aa, bb, xx):
     # resort to logarithms
     y += t + lgam(a + b) - lgam(a) - lgam(b)
     y += log(w / a)
-    if y < MINLOG:
-        t = 0
-    else:
-        t = exp(y)
+    t = 0 if y < MINLOG else exp(y)
     return betai_result(t, flag)
 
 
 def betai_result(t, flag):
     if flag == 1:
-        if t <= MACHEP:
-            t = 1 - MACHEP
-        else:
-            t = 1 - t
+        t = 1 - MACHEP if t <= MACHEP else 1 - t
     return t
 
 
@@ -503,6 +494,7 @@ def incbcf(a, b, x):
         n += 1
         if n >= 300:
             return ans
+    return None
 
 
 def incbd(a, b, x):
@@ -578,6 +570,7 @@ def incbd(a, b, x):
         n += 1
         if n >= 300:
             return ans
+    return None
 
 
 def Gamma(x):
@@ -595,7 +588,8 @@ def Gamma(x):
         if x < 0:
             p = floor(q)
             if p == q:
-                raise OverflowError("Bad value of x in Gamma function.")
+                msg = "Bad value of x in Gamma function."
+                raise OverflowError(msg)
             i = p
             if (i & 1) == 0:
                 sgngam = -1
@@ -605,7 +599,8 @@ def Gamma(x):
                 z = q - p
             z = q * sin(PI * z)
             if z == 0:
-                raise OverflowError("Bad value of x in Gamma function.")
+                msg = "Bad value of x in Gamma function."
+                raise OverflowError(msg)
             z = abs(z)
             z = PI / (z * stirf(q))
         else:
@@ -633,9 +628,9 @@ def Gamma(x):
 
 def Gamma_small(x, z):
     if x == 0:
-        raise OverflowError("Bad value of x in Gamma function.")
-    else:
-        return z / ((1 + 0.5772156649015329 * x) * x)
+        msg = "Bad value of x in Gamma function."
+        raise OverflowError(msg)
+    return z / ((1 + 0.5772156649015329 * x) * x)
 
 
 def stirf(x):
@@ -687,10 +682,7 @@ def pseries(a, b, x):
         s = s * t * pow(x, a)
     else:
         t = lgam(a + b) - lgam(a) - lgam(b) + u + log(s)
-        if t < MINLOG:
-            s = 0
-        else:
-            s = exp(t)
+        s = 0 if t < MINLOG else exp(t)
     return s
 
 
@@ -758,10 +750,11 @@ def igami(a, y0):
 
     # handle easy cases
     if (y0 < 0.0) or (y0 > 1.0) or (a <= 0):
-        raise ZeroDivisionError("y0 must be between 0 and 1; a >= 0")
-    elif y0 == 0.0:
+        msg = "y0 must be between 0 and 1; a >= 0"
+        raise ZeroDivisionError(msg)
+    if y0 == 0.0:
         return MAXNUM
-    elif y0 == 1.0:
+    if y0 == 1.0:
         return 0.0
     # approximation to inverse function
     d = 1.0 / (9.0 * a)
@@ -770,7 +763,7 @@ def igami(a, y0):
 
     lgm = lgam(a)
 
-    for i in range(10):
+    for _i in range(10):
         # this loop is just to eliminate gotos
         while 1:
             if x > x0 or x < x1:
@@ -812,7 +805,7 @@ def igami(a, y0):
     d = 0.5
     dir = 0
 
-    for i in range(400):
+    for _i in range(400):
         x = x1 + d * (x0 - x1)
         y = igamc(a, x)
         lgm = (x0 - x1) / (x1 + x0)
@@ -931,7 +924,7 @@ def ndtri(y0):
     # handle easy cases
     if y0 <= 0.0:
         return -MAXNUM
-    elif y0 >= 1.0:
+    if y0 >= 1.0:
         return MAXNUM
     code = 1
     y = y0
@@ -943,8 +936,7 @@ def ndtri(y0):
         y -= 0.5
         y2 = y * y
         x = y + y * (y2 * polevl(y2, P0) / polevl(y2, Q0))
-        x = x * s2pi
-        return x
+        return x * s2pi
 
     x = sqrt(-2.0 * log(y))
     x0 = x - log(x) / x
@@ -965,7 +957,7 @@ def incbi(aa, bb, yy0):
     # handle easy cases first
     if yy0 <= 0:
         return 0.0
-    elif yy0 >= 1.0:
+    if yy0 >= 1.0:
         return 1.0
 
     # define inscrutable parameters
@@ -984,10 +976,23 @@ def incbi(aa, bb, yy0):
         x = a / (a + b)
         y = incbet(a, b, x)
         return _incbi_ihalve(
-            dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, yy0
+            dithresh,
+            rflg,
+            nflg,
+            a,
+            b,
+            x0,
+            yl,
+            x1,
+            yh,
+            y0,
+            x,
+            y,
+            aa,
+            bb,
+            yy0,
         )
-    else:
-        dithresh = 1.0e-4
+    dithresh = 1.0e-4
 
     # approximation to inverse function
     yp = -ndtri(yy0)
@@ -1019,21 +1024,45 @@ def incbi(aa, bb, yy0):
     yp = (y - y0) / y0
     if abs(yp) < 0.2:
         return _incbi_newt(
-            dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, yy0
+            dithresh,
+            rflg,
+            nflg,
+            a,
+            b,
+            x0,
+            yl,
+            x1,
+            yh,
+            y0,
+            x,
+            y,
+            aa,
+            bb,
+            yy0,
         )
-    else:
-        return _incbi_ihalve(
-            dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, yy0
-        )
+    return _incbi_ihalve(
+        dithresh,
+        rflg,
+        nflg,
+        a,
+        b,
+        x0,
+        yl,
+        x1,
+        yh,
+        y0,
+        x,
+        y,
+        aa,
+        bb,
+        yy0,
+    )
 
 
 def _incbi_done(rflg, x):
     """Final test in incbi."""
     if rflg:
-        if x <= MACHEP:
-            x = 1.0 - MACHEP
-        else:
-            x = 1.0 - x
+        x = 1.0 - MACHEP if x <= MACHEP else 1.0 - x
     return x
 
 
@@ -1158,6 +1187,7 @@ def _incbi_ihalve(dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, 
                 return _incbi_under(rflg, x)
         except IhalveRepeat:
             continue
+    return None
 
 
 def _incbi_newt(dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, yy0):
@@ -1183,7 +1213,7 @@ def _incbi_newt(dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, yy
         else:
             x1 = x
             yh = y
-        if x == 1.0 or x == 0.0:
+        if x in (1.0, 0.0):
             break
         # Compute the derivative of the function at this point.
         d = (a - 1.0) * log(x) + (b - 1.0) * log(1.0 - x) + lgm
@@ -1211,5 +1241,19 @@ def _incbi_newt(dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, yy
     # Did not converge.
     dithresh = 256.0 * MACHEP
     return _incbi_ihalve(
-        dithresh, rflg, nflg, a, b, x0, yl, x1, yh, y0, x, y, aa, bb, yy0
+        dithresh,
+        rflg,
+        nflg,
+        a,
+        b,
+        x0,
+        yl,
+        x1,
+        yh,
+        y0,
+        x,
+        y,
+        aa,
+        bb,
+        yy0,
     )

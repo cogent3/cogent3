@@ -21,8 +21,11 @@ import numpy
 from cogent3.core import new_alphabet, new_moltype
 from cogent3.util.table import Table
 
+if typing.TYPE_CHECKING:
+    from cogent3.core.sequence import Sequence
+
 OptStr = typing.Optional[str]
-SetStr = typing.Set[str]
+SetStr = set[str]
 ConverterType = typing.Callable[[bytes, bytes], bytes]
 StrORInt = typing.Union[str, int]
 StrORBytesORArray = typing.Union[str, numpy.ndarray]
@@ -41,8 +44,9 @@ class InvalidCodonError(KeyError, GeneticCodeError):
 
 
 def _make_mappings(
-    codons: new_alphabet.KmerAlphabet, code_sequence: str
-) -> typing.Tuple[typing.Dict[str, str], typing.Dict[str, SetStr], SetStr]:
+    codons: new_alphabet.KmerAlphabet,
+    code_sequence: str,
+) -> tuple[dict[str, str], dict[str, SetStr], SetStr]:
     """makes amino acid / codon mappings and stop codon group
 
     Parameters
@@ -59,7 +63,7 @@ def _make_mappings(
     stops = set()
     codon_to_aa = {}
     aa_to_codon = collections.defaultdict(set)
-    for codon, aa in zip(codons, code_sequence):
+    for codon, aa in zip(codons, code_sequence, strict=False):
         if aa == "*":
             stops.add(codon)
         codon_to_aa[codon] = aa
@@ -72,7 +76,9 @@ def _get_start_codon_indices(start_codon_map: str) -> tuple[int, ...]:
 
 
 def _make_converter(
-    kmer_alpha: new_alphabet.KmerAlphabet, codons: tuple[str, ...], code_sequence: str
+    kmer_alpha: new_alphabet.KmerAlphabet,
+    codons: tuple[str, ...],
+    code_sequence: str,
 ) -> typing.Callable[[bytes, bytes], bytes]:
     """returns a converter of codon indices into amino acid indices
 
@@ -92,7 +98,8 @@ def _make_converter(
     """
     # we get the index of the codon in the kmer alphabet
     kmers = numpy.array(
-        [kmer_alpha.to_index(codon) for codon in codons], dtype=numpy.uint8
+        [kmer_alpha.to_index(codon) for codon in codons],
+        dtype=numpy.uint8,
     )
     return new_alphabet.convert_alphabet(kmers.tobytes(), code_sequence.encode("utf8"))
 
@@ -112,27 +119,31 @@ class GeneticCode:
     ncbi_code_sequence: dataclasses.InitVar[str]
     ncbi_start_codon_map: dataclasses.InitVar[str]
     moltype: new_moltype.MolType = new_moltype.DNA
-    _codon_to_aa: typing.Dict[str, str] = dataclasses.field(init=False, default=None)
-    _aa_to_codon: typing.Dict[str, typing.List[str]] = dataclasses.field(
-        init=False, default=None
+    _codon_to_aa: dict[str, str] = dataclasses.field(init=False, default=None)
+    _aa_to_codon: dict[str, list[str]] = dataclasses.field(
+        init=False,
+        default=None,
     )
     _sense_codons: SetStr = dataclasses.field(init=False, default=None)
     _stop_codons: SetStr = dataclasses.field(init=False, default=None)
     _start_codons: SetStr = dataclasses.field(init=False, default=None)
     codons: new_alphabet.KmerAlphabet = dataclasses.field(init=False, default=None)
-    anticodons: typing.Tuple[str, ...] = dataclasses.field(init=False, default=None)
+    anticodons: tuple[str, ...] = dataclasses.field(init=False, default=None)
     # callables for translating on the plus strand, or the minus strand
     _translate_plus: ConverterType = dataclasses.field(init=False, default=None)
     _translate_minus: ConverterType = dataclasses.field(init=False, default=None)
 
     def __post_init__(self, ncbi_code_sequence: str, ncbi_start_codon_map: str):
-        trinuc_alpha = self.moltype.gapped_alphabet.with_gap_motif().get_kmer_alphabet(
-            k=3, include_gap=True
+        alpha = self.moltype.alphabet.with_gap_motif(include_missing=True)
+        trinuc_alpha = alpha.get_kmer_alphabet(
+            k=3,
+            include_gap=True,
         )
         code_seq = f"{ncbi_code_sequence}-X"
         start_map = f"{ncbi_start_codon_map}--"
         self._codon_to_aa, self._aa_to_codon, self._stop_codons = _make_mappings(
-            trinuc_alpha, code_seq
+            trinuc_alpha,
+            code_seq,
         )
         self.codons = trinuc_alpha
         self._start_codons = {
@@ -174,7 +185,7 @@ class GeneticCode:
             rows.append(row)
         return Table(header=headers, data=rows, title=self.name)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         display = self.to_table()
         return str(display)
 
@@ -194,7 +205,8 @@ class GeneticCode:
             return self._aa_to_codon.get(item, set())
 
         if len(item) != 3:
-            raise InvalidCodonError(f"Codon or aa {item!r} has wrong length")
+            msg = f"Codon or aa {item!r} has wrong length"
+            raise InvalidCodonError(msg)
 
         key = item.upper()
         key = key.replace("U", "T")
@@ -246,16 +258,38 @@ class GeneticCode:
         # convert to indices and then bytes
         if incomplete_ok:
             seq = self.codons.to_indices(dna)
+            missing = seq >= len(self.codons)
         else:
-            codons = self.get_alphabet(include_stop=True, include_gap=True)
+            codons = self.get_alphabet(
+                include_stop=True,
+                include_gap=True,
+                include_missing=True,
+            )
             seq = codons.to_indices(dna)
+            missing = seq >= len(codons)
+        # any codon indices include missing data, they will have an index ==
+        # length of the alphabet employed, so we need to modify that index
+        # to represent the missing state which is X
+        if missing.any():
+            seq[missing] = len(self._codon_to_aa) - 1
 
         if rc:
             return self._translate_minus(seq.tobytes()).decode("utf8")[::-1]
 
         return self._translate_plus(seq.tobytes()).decode("utf8")
 
-    def sixframes(self, seq: str) -> typing.Iterable[typing.Tuple[str, int, str]]:
+    @functools.singledispatchmethod
+    def sixframes(self, seq) -> typing.Iterable[tuple[str, int, str]]:
+        """Returns the six reading frames of the genetic code.
+
+        Returns
+        -------
+        A dictionary with keys (strand, start) where strand is "+"/"-"
+        """
+        return self.sixframes(str(seq))
+
+    @sixframes.register
+    def _(self, seq: str) -> typing.Iterable[tuple[str, int, str]]:
         """Returns the six reading frames of the genetic code.
 
         Returns
@@ -272,7 +306,11 @@ class GeneticCode:
 
     @functools.cache
     def get_alphabet(
-        self, include_gap: bool = False, include_stop: bool = False
+        self,
+        *,
+        include_gap: bool = False,
+        include_missing: bool = False,
+        include_stop: bool = False,
     ) -> new_alphabet.SenseCodonAlphabet:
         """returns a codon alphabet
 
@@ -280,19 +318,37 @@ class GeneticCode:
         ----------
         include_gap
             alphabet includes the gap motif
+        include_missing
+            alphabet includes the missing state as 3 * IUPAC_missing
+        include_stop
+            if True, this is just a kmer alphabet
+
+        Notes
+        -----
+        If include_stop, the returned alphabet includes all codons,
+        and is thus a KmerAlphabet. Otherwise its a SenseCodonAlphabet.
         """
         if include_stop:
-            codons = tuple(self.moltype.alphabet.get_kmer_alphabet(k=3))
+            words = tuple(self.moltype.alphabet.get_kmer_alphabet(k=3))
         else:
-            codons = tuple(self.sense_codons)
+            words = tuple(self.sense_codons)
 
         gap = self.moltype.gapped_alphabet.gap_char * 3 if include_gap else None
-
+        missing = (
+            self.moltype.degen_gapped_alphabet.missing_char * 3
+            if include_missing
+            else None
+        )
         if include_gap:
-            codons += (gap,)
+            words += (gap,)
+
+        if include_missing:
+            words += (missing,)
 
         return new_alphabet.SenseCodonAlphabet(
-            words=codons, monomers=self.moltype.degen_gapped_alphabet, gap=gap
+            words=words,
+            monomers=self.moltype.degen_gapped_alphabet,
+            gap=gap,
         )
 
     def to_regex(self, seq: typing.Union[str, "Sequence"]) -> str:
@@ -308,7 +364,7 @@ class GeneticCode:
         seq = list(str(seq))
         mappings = []
         for aa in seq:
-            aa = ambigs[aa] if aa in ambigs else [aa]
+            aa = ambigs.get(aa, [aa])
             codons = []
             for a in aa:
                 codons.extend(self[a])
@@ -317,6 +373,10 @@ class GeneticCode:
             mappings.append(f"(?:{'|'.join(codons)})")
 
         return "".join(mappings)
+
+    @property
+    def synonyms(self):
+        return self._aa_to_codon
 
 
 _mapping_cols = "ncbi_code_sequence", "ID", "name", "ncbi_start_codon_map"
@@ -488,7 +548,7 @@ code_mapping = (
 )
 _CODES = {}
 for mapping in code_mapping:
-    code = GeneticCode(**dict(zip(_mapping_cols, mapping)))
+    code = GeneticCode(**dict(zip(_mapping_cols, mapping, strict=False)))
     _CODES[code.ID] = code
     _CODES[code.name] = code
     _CODES[code] = code
@@ -515,7 +575,8 @@ def get_code(code_id: StrORInt = 1) -> GeneticCode:
         code_id = int(code_id)
 
     if code_id not in _CODES:
-        raise GeneticCodeError(f"Unknown genetic code {code_id!r}")
+        msg = f"Unknown genetic code {code_id!r}"
+        raise GeneticCodeError(msg)
     return _CODES[code_id]
 
 

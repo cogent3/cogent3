@@ -6,6 +6,7 @@ This will doctest all files ending with .rst in this directory.
 import os
 import pathlib
 import subprocess
+import sys
 import tempfile
 
 import click
@@ -28,7 +29,9 @@ def execute_ipynb(file_paths, exit_on_first, verbose):
         with open(test) as f:
             nb = nbformat.read(f, as_version=4)
         ep = ExecutePreprocessor(
-            timeout=600, kernel_name="python3", store_widget_state=True
+            timeout=600,
+            kernel_name="python3",
+            store_widget_state=True,
         )
         try:
             ep.preprocess(nb, {"metadata": {"path": path.parent}})
@@ -40,12 +43,15 @@ def execute_ipynb(file_paths, exit_on_first, verbose):
 
         if failed and exit_on_first:
             raise SystemExit(
-                f"notebook execution failed in {test}, error saved " "in notebook"
+                f"notebook execution failed in {test}, error saved in notebook",
             )
 
 
 @define_app
-def test_file(test: pathlib.Path | str, exit_on_first: bool = True) -> bool:
+def test_file(
+    test: pathlib.Path | pathlib.PosixPath | str,
+    exit_on_first: bool = True,
+) -> bool:
     test = pathlib.Path(test).absolute()
     orig_wd = pathlib.Path(os.getcwd())
     rst_to_py = orig_wd / "rst2script.py"
@@ -58,21 +64,21 @@ def test_file(test: pathlib.Path | str, exit_on_first: bool = True) -> bool:
         dest = working_dir / test.name
         dest.write_text(test.read_text())
         test = dest
-        cmnd = f"python {str(rst_to_py)} -wd {str(working_dir)} {str(test)}"
+        cmnd = f"python {rst_to_py!s} -wd {working_dir!s} {test!s}"
         r = subprocess.run(cmnd.split(), capture_output=True, check=False)
         if r.returncode != 0:
-            click.secho(f"FAILED: {str(rst_to_py)}", fg="red")
+            click.secho(f"FAILED: {rst_to_py!s}", fg="red")
             click.secho(r.stdout.decode("utf8"), fg="red")
             click.secho(r.stderr.decode("utf8"), fg="red")
             exit(1)
 
-        py_path = pathlib.Path(f'{str(test).removesuffix("rst")}py')
+        py_path = pathlib.Path(f"{str(test).removesuffix('rst')}py")
 
-        cmnd = f"python {str(py_path)}"
-        r = subprocess.run(cmnd.split(), capture_output=True)
+        cmnd = f"python {py_path!s}"
+        r = subprocess.run(cmnd.split(), capture_output=True, check=False)
 
         if r.returncode != 0:
-            click.secho(f"FAILED: {str(py_path)}", fg="red")
+            click.secho(f"FAILED: {py_path!s}", fg="red")
             click.secho(r.stdout.decode("utf8"), fg="red")
             click.secho(r.stderr.decode("utf8"), fg="red")
 
@@ -85,8 +91,9 @@ def test_file(test: pathlib.Path | str, exit_on_first: bool = True) -> bool:
 def execute_rsts(file_paths, exit_on_first, parallel, verbose):
     runfile = test_file(exit_on_first=exit_on_first)
     for result in runfile.as_completed(file_paths, parallel=parallel):
-        if result is False and exit_on_first:
-            exit(1)
+        if not result and exit_on_first:
+            print(result)
+            sys.exit(1)
 
 
 @click.command()
@@ -109,7 +116,10 @@ def execute_rsts(file_paths, exit_on_first, parallel, verbose):
 )
 @click.option("-1", "--exit_on_first", is_flag=True, help="exit on first failure")
 @click.option(
-    "-s", "--suffix", type=click.Choice(["rst", "ipynb"]), help="suffix of docs to test"
+    "-s",
+    "--suffix",
+    type=click.Choice(["rst", "ipynb"]),
+    help="suffix of docs to test",
 )
 @click.option("-p", "--parallel", is_flag=True, help="run tests in parallel")
 @click.option("-v", "--verbose", is_flag=True, help="verbose output")
@@ -127,7 +137,7 @@ def main(file_paths, just, exclude, exit_on_first, suffix, parallel, verbose):
         suffix = p.suffix[1:]
         file_paths = [p]
     else:
-        file_paths = list(pathlib.Path(file_paths).glob(f"*.{suffix}"))
+        file_paths = list(pathlib.Path(file_paths).rglob(f"*.{suffix}"))
 
     if verbose:
         print(file_paths)
@@ -148,7 +158,7 @@ def main(file_paths, just, exclude, exit_on_first, suffix, parallel, verbose):
         file_paths = new
 
     if verbose:
-        print(f"File paths, after filtering: {str(file_paths)}")
+        print(f"File paths, after filtering: {file_paths!s}")
 
     if suffix == "rst":
         execute_rsts(file_paths, exit_on_first, parallel, verbose)

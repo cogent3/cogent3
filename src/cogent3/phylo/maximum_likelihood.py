@@ -10,7 +10,7 @@ class ML(TreeEvaluator):
     equivalent to Parametric.make_likelihood_function(tree).
     If 'dists' is provided uses WLS to get initial values for lengths"""
 
-    def __init__(self, model, alignment, dists=None, opt_args=None):
+    def __init__(self, model, alignment, dists=None, opt_args=None) -> None:
         opt_args = opt_args or {}
         self.opt_args = opt_args
         self.names = alignment.names
@@ -22,7 +22,10 @@ class ML(TreeEvaluator):
         if dists:
             self.wlsMakeTreeScorer = WLS(dists).make_tree_scorer
         else:
-            fake_wls = lambda a: (None, None)
+
+            def fake_wls(a):
+                return None, None
+
             self.wlsMakeTreeScorer = lambda n: fake_wls
 
     def evaluate_tree(self, tree):

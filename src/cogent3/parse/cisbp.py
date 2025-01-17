@@ -14,22 +14,18 @@ def read(filepath):
         data = filepath
 
     data = [l.split() for l in data]
-    revised = list(zip(*data))
+    revised = list(zip(*data, strict=False))
     states = []
     matrix = []
     for row in revised[1:]:
         states.append(row[0])
         matrix.append([float(i) for i in row[1:]])
 
-    matrix = dict(zip(states, matrix))
-    if len(states) == 4:
-        name = "rna" if "U" in states else "dna"
-    else:
-        name = "protein"
+    matrix = dict(zip(states, matrix, strict=False))
+    name = ("rna" if "U" in states else "dna") if len(states) == 4 else "protein"
 
     states = list(get_moltype(name))
     matrix = [matrix[s] for s in states]
     matrix = array(matrix, dtype=float)
 
-    pfm = MotifFreqsArray(matrix.T, states)
-    return pfm
+    return MotifFreqsArray(matrix.T, states)

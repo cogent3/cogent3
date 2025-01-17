@@ -39,18 +39,19 @@ def get_tree_info(tree_f):
         if line_lower.startswith("begin trees;"):
             in_tree = True
         if in_tree:
-            if line_lower.startswith("end;") or line_lower.startswith("endblock;"):
+            if line_lower.startswith(("end;", "endblock;")):
                 return result
-            else:
-                result.append(line)
+            result.append(line)
+    return None
 
 
-def check_tree_info(tree_info):
+def check_tree_info(tree_info) -> None:
     """makes sure that there is a tree section in the file"""
     if tree_info:
         pass
     else:
-        raise RecordError("not a valid Nexus Tree File")
+        msg = "not a valid Nexus Tree File"
+        raise RecordError(msg)
 
 
 def split_tree_info(tree_info):
@@ -90,8 +91,7 @@ def parse_trans_table(trans_table):
         if line != ";":
             label, name = line.split(None, 1)
             # take comma out of name if it is there
-            if name.endswith(","):
-                name = name[:-1]
+            name = name.removesuffix(",")
             # remove single quotes
             if name.startswith("'") and name.endswith("'"):
                 name = name[1:-1]
@@ -184,10 +184,7 @@ def parse_PAUP_log(branch_lengths):
 
 def MinimalNexusAlignParser(align_path):
     """returns {label: seq, ...}"""
-    if type(align_path) == str:
-        infile = open_(align_path)
-    else:
-        infile = align_path
+    infile = open_(align_path) if type(align_path) == str else align_path
 
     isblock = re.compile(r"begin\s+(data|characters)").search
     inblock = False
@@ -198,7 +195,8 @@ def MinimalNexusAlignParser(align_path):
         line = next(iter(infile))
 
     if not line.lower().startswith("#nexus"):
-        raise ValueError("not a nexus file")
+        msg = "not a nexus file"
+        raise ValueError(msg)
 
     block = []
     index = None
@@ -218,9 +216,11 @@ def MinimalNexusAlignParser(align_path):
         infile.close()
 
     if not block:
-        raise ValueError("not found DATA or CHARACTER block")
+        msg = "not found DATA or CHARACTER block"
+        raise ValueError(msg)
     elif index is None:
-        raise RecordError("malformed block, no 'matrix' line")
+        msg = "malformed block, no 'matrix' line"
+        raise RecordError(msg)
 
     block = block[index:]
     seqs = defaultdict(list)

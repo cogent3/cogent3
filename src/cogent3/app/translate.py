@@ -1,15 +1,25 @@
+import os
 from collections import defaultdict
-from typing import Optional, Union
+from typing import Union
 
-from cogent3.core.alignment import SequenceCollection
-from cogent3.core.genetic_code import GeneticCode, get_code
-from cogent3.core.moltype import Alphabet, MolType, get_moltype
+import cogent3
+from cogent3.core import alphabet as old_alphabet
+from cogent3.core import genetic_code as old_genetic_code
+from cogent3.core import moltype as old_moltype
+from cogent3.core import new_alphabet, new_genetic_code, new_moltype
 
 from .composable import NotCompleted, define_app
 from .typing import SeqsCollectionType, SeqType, SerialisableType
 
-GeneticCodeTypes = Union[str, int, GeneticCode]
-MolTypes = Union[str, MolType]
+GeneticCodeTypes = (
+    str | int | old_genetic_code.GeneticCode | new_genetic_code.GeneticCode
+)
+MolTypes = str | old_moltype.MolType | new_moltype.MolType
+AlphabetTypes = old_alphabet.Alphabet | new_alphabet.CharAlphabet
+
+_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
+
+_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
 
 
 def best_frame(
@@ -43,26 +53,30 @@ def best_frame(
     ------
     ValueError
         if the minimum number of stop codons across all frames exceeds 1,
-        or the the stop codon is not at the sequence end
+        or the stop codon is not at the sequence end
     """
-    gc = get_code(gc)
-    translations = gc.sixframes(seq)
+    gc = cogent3.get_code(gc)
+    if _NEW_TYPE:
+        translations = [tr for *_, tr in gc.sixframes(str(seq))]
+    else:
+        translations = gc.sixframes(seq)
+
     if not allow_rc:
         translations = translations[:3]
 
     if not require_stop:
         # don't count stops if they're at the end of the aa sequence
         for i in range(len(translations)):
-            if translations[i].endswith("*"):
-                translations[i] = translations[i][:-1]
+            translations[i] = translations[i].removesuffix("*")
 
     stops_in_frame = [(tr.count("*"), i) for i, tr in enumerate(translations)]
     stops_in_frame.sort()
     min_stops, frame = stops_in_frame[0]
     # if min_stops > 1, cannot be translated
     if min_stops > 1:
-        raise ValueError(f"{seq.name!r} cannot be robustly translated")
-    elif min_stops == 0 and require_stop:
+        msg = f"{seq.name!r} cannot be robustly translated"
+        raise ValueError(msg)
+    if min_stops == 0 and require_stop:
         # find seq with 1 stop
         min_stops = 20  # nonsense value
         for n, fr in stops_in_frame:
@@ -71,10 +85,12 @@ def best_frame(
                 break
 
     if not 0 <= min_stops <= 1:
-        raise ValueError(f"{seq.name!r} cannot be robustly translated")
+        msg = f"{seq.name!r} cannot be robustly translated"
+        raise ValueError(msg)
 
     if min_stops == 1 and not translations[frame].endswith("*"):
-        raise ValueError(f"{seq.name!r} cannot be robustly translated")
+        msg = f"{seq.name!r} cannot be robustly translated"
+        raise ValueError(msg)
     frame += 1
     if allow_rc and frame > 3:
         frame = 3 - frame
@@ -83,7 +99,7 @@ def best_frame(
 
 def translate_frames(
     seq: SeqsCollectionType,
-    moltype: Optional[MolTypes] = None,
+    moltype: MolTypes | None = None,
     gc: GeneticCodeTypes = 1,
     allow_rc: bool = False,
 ):
@@ -103,12 +119,15 @@ def translate_frames(
     [(frame, translation), ..]
     Reverse complement frame numbers are negative
     """
-    gc = get_code(gc)
+    gc = cogent3.get_code(gc)
     if moltype:
-        moltype = get_moltype(moltype)
+        moltype = cogent3.get_moltype(moltype)
         seq = moltype.make_seq(seq)
 
-    translations = gc.sixframes(seq)
+    if _NEW_TYPE:
+        translations = [tr for *_, tr in gc.sixframes(seq)]
+    else:
+        translations = gc.sixframes(seq)
     if not allow_rc:
         translations = translations[:3]
 
@@ -116,7 +135,9 @@ def translate_frames(
 
 
 def get_fourfold_degenerate_sets(
-    gc: GeneticCodeTypes, alphabet: Optional[Alphabet] = None, as_indices: bool = True
+    gc: GeneticCodeTypes,
+    alphabet: AlphabetTypes | None = None,
+    as_indices: bool = True,
 ):
     """returns set() of codons that are 4-fold degenerate for genetic code gc
 
@@ -166,8 +187,8 @@ class select_translatable:
         gc: GeneticCodeTypes = 1,
         allow_rc: bool = False,
         trim_terminal_stop: bool = True,
-        frame: Optional[int] = None,
-    ):
+        frame: int | None = None,
+    ) -> None:
         """
         Parameters
         ----------
@@ -230,7 +251,7 @@ class select_translatable:
         >>> result.to_dict()
         {'s2': 'TATGAC'}
         """
-        moltype = get_moltype(moltype)
+        moltype = cogent3.get_moltype(moltype)
         assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
 
         if frame is not None:
@@ -238,7 +259,7 @@ class select_translatable:
         self._frame = frame
 
         self._moltype = moltype
-        self._gc = get_code(gc)
+        self._gc = cogent3.get_code(gc)
         self._allow_rc = allow_rc
         self._trim_terminal_stop = trim_terminal_stop
 
@@ -248,7 +269,8 @@ class select_translatable:
         if self._frame is not None:
             tr = self._gc.translate(str(seq), start=self._frame - 1)
             if "*" in tr[:-1]:
-                raise ValueError(f"internal stop in {seq.name}")
+                msg = f"internal stop in {seq.name}"
+                raise ValueError(msg)
             return self._frame
         return best_frame(seq, self._gc, allow_rc=self._allow_rc)
 
@@ -282,8 +304,10 @@ class select_translatable:
                 error_log.append([seq.name, msg.args[0]])
 
         if translatable:
-            translatable = SequenceCollection(
-                data=translatable, moltype=self._moltype, info=seqs.info
+            translatable = cogent3.make_unaligned_seqs(
+                data=translatable,
+                moltype=self._moltype,
+                info=seqs.info,
             )
             translatable.info["translation_errors"] = error_log
         else:
@@ -303,7 +327,7 @@ class translate_seqs:
         gc: GeneticCodeTypes = 1,
         allow_rc: bool = False,
         trim_terminal_stop: bool = True,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -336,11 +360,11 @@ class translate_seqs:
         s1    MR
         s2    .-
         """
-        moltype = get_moltype(moltype)
+        moltype = cogent3.get_moltype(moltype)
         assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
 
         self._moltype = moltype
-        self._gc = get_code(gc)
+        self._gc = cogent3.get_code(gc)
         self._trim_terminal_stop = trim_terminal_stop
 
     T = Union[SerialisableType, SeqsCollectionType]

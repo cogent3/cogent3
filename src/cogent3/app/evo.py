@@ -1,5 +1,7 @@
+import contextlib
+from collections.abc import Callable, Iterable
 from copy import deepcopy
-from typing import Callable, Iterable, Optional, Union
+from typing import Union
 
 import cogent3.util.io
 from cogent3 import load_tree, make_tree
@@ -26,6 +28,12 @@ from .typing import (
     SerialisableType,
     TabularResultType,
 )
+
+
+def _get_source(aln):
+    if src := getattr(aln, "source", None):
+        return src
+    return aln.info.source
 
 
 def _config_rules(param_rules, lower, upper, overwrite=False):
@@ -57,23 +65,23 @@ class model:
 
     def __init__(
         self,
-        sm: Union[str, _SubstitutionModel],
-        tree: Optional[Union[TreeNode, str]] = None,
+        sm: str | _SubstitutionModel,
+        tree: TreeNode | str | None = None,
         unique_trees: bool = False,
-        tree_func: Optional[Callable] = None,
-        name: Optional[str] = None,
+        tree_func: Callable | None = None,
+        name: str | None = None,
         optimise_motif_probs: bool = False,
-        sm_args: Optional[dict] = None,
-        lf_args: Optional[dict[str, Union[list, str]]] = None,
-        time_het: Optional[Union[str, list[dict[str, Union[list, str]]]]] = None,
-        param_rules: Optional[list[dict[str, Union[list, str]]]] = None,
-        opt_args: Optional[dict] = None,
+        sm_args: dict | None = None,
+        lf_args: dict[str, list | str] | None = None,
+        time_het: str | list[dict[str, list | str]] | None = None,
+        param_rules: list[dict[str, list | str]] | None = None,
+        opt_args: dict | None = None,
         lower: float = 1e-6,
         upper: float = 50,
         split_codons: bool = False,
         show_progress: bool = False,
         verbose: bool = False,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -264,14 +272,15 @@ class model:
         self._verbose = verbose
         self._lower = lower
         self._upper = upper
-        assert not (
-            tree and unique_trees
-        ), "cannot provide a tree when unique_trees is True"
+        assert not (tree and unique_trees), (
+            "cannot provide a tree when unique_trees is True"
+        )
         self._unique_trees = unique_trees
         sm_args = deepcopy(sm_args or {})
         if "optimise_motif_probs" in sm_args:
+            msg = "'optimise_motif_probs' value in sm_args is IGNORED, use explicit argument instead"
             raise ValueError(
-                "'optimise_motif_probs' value in sm_args is IGNORED, use explicit argument instead",
+                msg,
             )
 
         sm_args["optimise_motif_probs"] = optimise_motif_probs
@@ -292,7 +301,8 @@ class model:
 
         opt_args = deepcopy(opt_args or {})
         self._opt_args = {
-            **{"max_restarts": 5, "show_progress": show_progress},
+            "max_restarts": 5,
+            "show_progress": show_progress,
             **opt_args,
         }
 
@@ -307,7 +317,7 @@ class model:
 
         self._split_codons = split_codons
 
-    def _configure_lf(self, aln, identifier, initialise=None):
+    def _configure_lf(self, aln, identifier, initialise=None) -> None:
         lf = self._sm.make_likelihood_function(self._tree, **self._lf_args)
 
         lf.set_alignment(aln)
@@ -324,21 +334,25 @@ class model:
         if self._time_het:
             if not initialise:
                 if self._verbose:
-                    print("Time homogeneous fit..")
+                    pass
 
                 # we opt with a time-homogeneous process first
                 opt_args = self._opt_args.copy()
-                opt_args.update(dict(max_restart=1, tolerance=1e-3))
+                opt_args.update({"max_restart": 1, "tolerance": 1e-3})
                 lf.optimise(**self._opt_args)
                 if self._verbose:
-                    print(lf)
+                    pass
             if self._time_het == "max":
                 lf.set_time_heterogeneity(
-                    is_independent=True, lower=self._lower, upper=self._upper
+                    is_independent=True,
+                    lower=self._lower,
+                    upper=self._upper,
                 )
             else:
                 lf.set_time_heterogeneity(
-                    edge_sets=self._time_het, lower=self._lower, upper=self._upper
+                    edge_sets=self._time_het,
+                    lower=self._lower,
+                    upper=self._upper,
                 )
 
         if initialise:
@@ -349,8 +363,8 @@ class model:
     def _fit_aln(
         self,
         aln: AlignedSeqsType,
-        identifier: Optional[str] = None,
-        initialise: Callable = None,
+        identifier: str | None = None,
+        initialise: Callable | None = None,
         construct: bool = True,
         **opt_args,
     ):
@@ -361,7 +375,7 @@ class model:
         kwargs.update(opt_args)
 
         if self._verbose:
-            print("Fit...")
+            pass
 
         calc = lf.optimise(return_calculator=True, **kwargs)
         lf.calculator = calc
@@ -370,22 +384,22 @@ class model:
             lf.set_name(f"LF id: {identifier}")
 
         if self._verbose:
-            print(lf)
+            pass
 
         return lf
 
     def main(
         self,
         aln: AlignedSeqsType,
-        initialise: Callable = None,
+        initialise: Callable | None = None,
         construct: bool = True,
         **opt_args,
-    ) -> Union[SerialisableType, ModelResultType]:
+    ) -> SerialisableType | ModelResultType:
         """
         Parameters
         ----------
         aln
-            Alignment instance. aln.info.source indicates the origin of the
+            Alignment instance. aln.source indicates the origin of the
             alignment and will be propagated to the model_result so it can
             be written
         initialise
@@ -405,7 +419,7 @@ class model:
             msg = f"substitution model moltype '{self._sm.moltype.label}' and alignment moltype '{aln.moltype.label}' are incompatible"
             return NotCompleted("ERROR", self, msg, source=aln)
 
-        evaluation_limit = opt_args.get("max_evaluations", None)
+        evaluation_limit = opt_args.get("max_evaluations")
         if callable(self._tree_func):
             self._tree = self._tree_func(aln)
         elif self._tree is None or self._unique_trees:
@@ -421,12 +435,15 @@ class model:
         result = model_result(
             name=self.name,
             stat=sum,
-            source=aln.info.source,
+            source=_get_source(aln),
             evaluation_limit=evaluation_limit,
         )
         if not self._split_codons:
             lf = self._fit_aln(
-                aln, initialise=initialise, construct=construct, **opt_args
+                aln,
+                initialise=initialise,
+                construct=construct,
+                **opt_args,
             )
             result[self.name] = lf
             result.num_evaluations = lf.calculator.evaluations
@@ -456,17 +473,15 @@ class model:
 class _InitFrom:
     """holds a likelihood function that will be used to initialise others"""
 
-    def __init__(self, nested):
+    def __init__(self, nested) -> None:
         """nested: a model_result or a likelihood function"""
         if hasattr(nested, "lf"):
             nested = nested.lf
         self.nested = nested
 
     def __call__(self, other, *args, **kwargs):
-        try:
+        with contextlib.suppress(Exception):
             other.initialise_from_nested(self.nested)
-        except Exception:
-            pass
         return other
 
 
@@ -478,8 +493,8 @@ class _ModelCollectionBase:
         null: model,
         *alternates: Iterable[model],
         sequential: bool = True,
-        init_alt: Optional[Callable] = None,
-    ):
+        init_alt: Callable | None = None,
+    ) -> None:
         """
         Parameters
         ----------
@@ -537,7 +552,7 @@ class _ModelCollectionBase:
         try:
             null = self.null(aln)
         except ValueError:
-            msg = f"Hypothesis null had bounds error {aln.info.source}"
+            msg = f"Hypothesis null had bounds error {_get_source(aln)}"
             return NotCompleted("ERROR", self, msg, source=aln)
 
         if not null:
@@ -546,7 +561,7 @@ class _ModelCollectionBase:
         try:
             alts = list(self._initialised_alt(null, aln))
         except ValueError:
-            msg = f"Hypothesis alt had bounds error {aln.info.source}"
+            msg = f"Hypothesis alt had bounds error {_get_source(aln)}"
             return NotCompleted("ERROR", self, msg, source=aln)
 
         # check if any did not complete
@@ -567,7 +582,7 @@ class model_collection(_ModelCollectionBase):
     """Fits a collection of models."""
 
     def _make_result(self, aln: AlignedSeqsType) -> ModelCollectionResultType:
-        return model_collection_result(source=aln.info)
+        return model_collection_result(source=_get_source(aln))
 
 
 @define_app
@@ -575,7 +590,7 @@ class hypothesis(_ModelCollectionBase):
     """Specify a hypothesis through defining two models."""
 
     def _make_result(self, aln: AlignedSeqsType) -> HypothesisResultType:
-        return hypothesis_result(name_of_null=self.null.name, source=aln.info)
+        return hypothesis_result(name_of_null=self.null.name, source=_get_source(aln))
 
 
 @define_app
@@ -588,7 +603,7 @@ class bootstrap:
         num_reps: int,
         parallel: bool = False,
         verbose: bool = False,
-    ):
+    ) -> None:
         self._hyp = hyp
         self._num_reps = num_reps
         self._verbose = verbose
@@ -607,17 +622,16 @@ class bootstrap:
     T = Union[SerialisableType, BootstrapResultType]
 
     def main(self, aln: AlignedSeqsType) -> T:
-        result = bootstrap_result(aln.info.source)
+        result = bootstrap_result(_get_source(aln))
         try:
             obs = self._hyp(aln)
             if not obs:
                 return obs
         except ValueError as err:
-            result = NotCompleted("ERROR", str(self._hyp), err.args[0])
-            return result
+            return NotCompleted("ERROR", str(self._hyp), err.args[0])
         result.observed = obs
         self._null = obs.null
-        self._inpath = aln.info.source
+        self._inpath = _get_source(aln)
 
         map_fun = parallel.imap if self._parallel else map
         sym_results = [r for r in map_fun(self._fit_sim, range(self._num_reps)) if r]
@@ -635,8 +649,9 @@ class ancestral_states:
     """Computes ancestral state probabilities from a model result."""
 
     def main(
-        self, result: ModelResultType
-    ) -> Union[SerialisableType, TabularResultType]:
+        self,
+        result: ModelResultType,
+    ) -> SerialisableType | TabularResultType:
         """returns a tabular_result of posterior probabilities of ancestral states"""
         anc = result.lf.reconstruct_ancestral_seqs()
         fl = result.lf.get_full_length_likelihoods()
@@ -656,8 +671,9 @@ class tabulate_stats:
     """Extracts all model statistics from model_result as Table."""
 
     def main(
-        self, result: ModelResultType
-    ) -> Union[SerialisableType, TabularResultType]:
+        self,
+        result: ModelResultType,
+    ) -> SerialisableType | TabularResultType:
         """returns Table for all statistics returned by likelihood function
         get_statistics
 
@@ -720,7 +736,7 @@ class natsel_neutral:
         opt_args=None,
         show_progress=False,
         verbose=False,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -750,7 +766,8 @@ class natsel_neutral:
             prints intermediate states to screen during fitting
         """
         if not is_codon_model(sm):
-            raise ValueError(f"{sm} is not a codon model")
+            msg = f"{sm} is not a codon model"
+            raise ValueError(msg)
 
         if cogent3.util.io.path_exists(tree):
             tree = load_tree(filename=tree, underscore_unmunge=True)
@@ -758,7 +775,8 @@ class natsel_neutral:
             tree = make_tree(treestring=tree, underscore_unmunge=True)
 
         if tree and not isinstance(tree, TreeNode):
-            raise TypeError(f"invalid tree type {type(tree)}")
+            msg = f"invalid tree type {type(tree)}"
+            raise TypeError(msg)
 
         # instantiate model, ensuring genetic code setting passed on
         sm_args = sm_args or {}
@@ -777,7 +795,7 @@ class natsel_neutral:
             sm_args=deepcopy(sm_args),
             opt_args=opt_args,
             show_progress=show_progress,
-            param_rules=[dict(par_name="omega", is_constant=True, value=1.0)],
+            param_rules=[{"par_name": "omega", "is_constant": True, "value": 1.0}],
             lf_args=deepcopy(lf_args),
             verbose=verbose,
         )
@@ -828,7 +846,7 @@ class natsel_zhang:
         opt_args=None,
         show_progress=False,
         verbose=False,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -877,10 +895,12 @@ class natsel_zhang:
         foreground edges.
         """
         if not is_codon_model(sm):
-            raise ValueError(f"{sm} is not a codon model")
+            msg = f"{sm} is not a codon model"
+            raise ValueError(msg)
 
         if not any([tip1, tip2]):
-            raise ValueError("must provide at least a single tip name")
+            msg = "must provide at least a single tip name"
+            raise ValueError(msg)
 
         if cogent3.util.io.path_exists(tree):
             tree = load_tree(filename=tree, underscore_unmunge=True)
@@ -888,11 +908,16 @@ class natsel_zhang:
             tree = make_tree(treestring=tree, underscore_unmunge=True)
 
         if tree and not isinstance(tree, TreeNode):
-            raise TypeError(f"invalid tree type {type(tree)}")
+            msg = f"invalid tree type {type(tree)}"
+            raise TypeError(msg)
 
         if all([tip1, tip2]) and tree:
             edges = tree.get_edge_names(
-                tip1, tip2, stem=stem, clade=clade, outgroup_name=outgroup
+                tip1,
+                tip2,
+                stem=stem,
+                clade=clade,
+                outgroup_name=outgroup,
             )
         elif all([tip1, tip2]):
             edges = [tip1, tip2]
@@ -913,12 +938,17 @@ class natsel_zhang:
         # defining the null model
         epsilon = 1e-6
         null_param_rules = [
-            dict(par_name="omega", bins="0", upper=1 - epsilon, init=1 - epsilon),
-            dict(par_name="omega", bins="1", is_constant=True, value=1.0),
+            {
+                "par_name": "omega",
+                "bins": "0",
+                "upper": 1 - epsilon,
+                "init": 1 - epsilon,
+            },
+            {"par_name": "omega", "bins": "1", "is_constant": True, "value": 1.0},
         ]
         lf_args = lf_args or {}
         null_lf_args = deepcopy(lf_args)
-        null_lf_args.update(dict(bins=("0", "1")))
+        null_lf_args.update({"bins": ("0", "1")})
         self.null = model(
             sm,
             tree,
@@ -934,20 +964,20 @@ class natsel_zhang:
 
         # defining the alternate model, param rules to be completed each call
         alt_lf_args = lf_args
-        alt_lf_args.update(dict(bins=("0", "1", "2a", "2b")))
-        self.alt_args = dict(
-            sm=sm,
-            tree=tree,
-            name=f"{model_name}-alt",
-            optimise_motif_probs=optimise_motif_probs,
-            sm_args=deepcopy(sm_args),
-            edges=edges,
-            lf_args=alt_lf_args,
-            opt_args=opt_args,
-            show_progress=show_progress,
-            verbose=verbose,
-            upper_omega=upper_omega,
-        )
+        alt_lf_args.update({"bins": ("0", "1", "2a", "2b")})
+        self.alt_args = {
+            "sm": sm,
+            "tree": tree,
+            "name": f"{model_name}-alt",
+            "optimise_motif_probs": optimise_motif_probs,
+            "sm_args": deepcopy(sm_args),
+            "edges": edges,
+            "lf_args": alt_lf_args,
+            "opt_args": opt_args,
+            "show_progress": show_progress,
+            "verbose": verbose,
+            "upper_omega": upper_omega,
+        }
 
     def _get_alt_from_null(self, null):
         rules = null.lf.get_param_rules()
@@ -970,14 +1000,14 @@ class natsel_zhang:
         edges = alt_args.pop("edges")
         upper_omega = alt_args.pop("upper_omega")
         rules.append(
-            dict(
-                par_name="omega",
-                bins=["2a", "2b"],
-                edges=edges,
-                lower=1.0,
-                upper=upper_omega,
-                init=1 + epsilon,
-            )
+            {
+                "par_name": "omega",
+                "bins": ["2a", "2b"],
+                "edges": edges,
+                "lower": 1.0,
+                "upper": upper_omega,
+                "init": 1 + epsilon,
+            },
         )
         alt_args["param_rules"] = rules
         return model(**alt_args)
@@ -995,7 +1025,8 @@ class natsel_zhang:
             return alt_result
 
         result = hypothesis_result(
-            name_of_null=null_result.name, source=aln.info.source
+            name_of_null=null_result.name,
+            source=_get_source(aln),
         )
         result.update({alt_result.name: alt_result, null_result.name: null_result})
         return result
@@ -1019,7 +1050,7 @@ class natsel_sitehet:
         opt_args=None,
         show_progress=False,
         verbose=False,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -1051,7 +1082,8 @@ class natsel_sitehet:
             prints intermediate states to screen during fitting
         """
         if not is_codon_model(sm):
-            raise ValueError(f"{sm} is not a codon model")
+            msg = f"{sm} is not a codon model"
+            raise ValueError(msg)
 
         if cogent3.util.io.path_exists(tree):
             tree = load_tree(filename=tree, underscore_unmunge=True)
@@ -1059,7 +1091,8 @@ class natsel_sitehet:
             tree = make_tree(treestring=tree, underscore_unmunge=True)
 
         if tree and not isinstance(tree, TreeNode):
-            raise TypeError(f"invalid tree type {type(tree)}")
+            msg = f"invalid tree type {type(tree)}"
+            raise TypeError(msg)
 
         # instantiate model, ensuring genetic code setting passed on
         sm_args = sm_args or {}
@@ -1071,12 +1104,17 @@ class natsel_sitehet:
         # defining the null model
         epsilon = 1e-6
         null_param_rules = [
-            dict(par_name="omega", bins="-ve", upper=1 - epsilon, init=1 - epsilon),
-            dict(par_name="omega", bins="neutral", is_constant=True, value=1.0),
+            {
+                "par_name": "omega",
+                "bins": "-ve",
+                "upper": 1 - epsilon,
+                "init": 1 - epsilon,
+            },
+            {"par_name": "omega", "bins": "neutral", "is_constant": True, "value": 1.0},
         ]
         lf_args = lf_args or {}
         null_lf_args = deepcopy(lf_args)
-        null_lf_args.update(dict(bins=("-ve", "neutral")))
+        null_lf_args.update({"bins": ("-ve", "neutral")})
         self.null = model(
             sm,
             tree,
@@ -1092,19 +1130,19 @@ class natsel_sitehet:
 
         # defining the alternate model, param rules to be completed each call
         alt_lf_args = deepcopy(lf_args)
-        alt_lf_args.update(dict(bins=("-ve", "neutral", "+ve")))
-        self.alt_args = dict(
-            sm=sm,
-            tree=tree,
-            name=f"{model_name}-alt",
-            optimise_motif_probs=optimise_motif_probs,
-            sm_args=deepcopy(sm_args),
-            lf_args=alt_lf_args,
-            opt_args=opt_args,
-            show_progress=show_progress,
-            verbose=verbose,
-            upper_omega=upper_omega,
-        )
+        alt_lf_args.update({"bins": ("-ve", "neutral", "+ve")})
+        self.alt_args = {
+            "sm": sm,
+            "tree": tree,
+            "name": f"{model_name}-alt",
+            "optimise_motif_probs": optimise_motif_probs,
+            "sm_args": deepcopy(sm_args),
+            "lf_args": alt_lf_args,
+            "opt_args": opt_args,
+            "show_progress": show_progress,
+            "verbose": verbose,
+            "upper_omega": upper_omega,
+        }
 
     def _get_alt_from_null(self, null):
         rules = null.lf.get_param_rules()
@@ -1121,13 +1159,13 @@ class natsel_sitehet:
         alt_args = deepcopy(self.alt_args)
         upper_omega = alt_args.pop("upper_omega")
         rules.append(
-            dict(
-                par_name="omega",
-                bin="+ve",
-                lower=1.0,
-                upper=upper_omega,
-                init=1 + epsilon,
-            )
+            {
+                "par_name": "omega",
+                "bin": "+ve",
+                "lower": 1.0,
+                "upper": upper_omega,
+                "init": 1 + epsilon,
+            },
         )
         alt_args["param_rules"] = rules
         return model(**alt_args)
@@ -1145,7 +1183,8 @@ class natsel_sitehet:
             return alt_result
 
         result = hypothesis_result(
-            name_of_null=null_result.name, source=aln.info.source
+            name_of_null=null_result.name,
+            source=_get_source(aln),
         )
         result.update({alt_result.name: alt_result, null_result.name: null_result})
         return result
@@ -1177,7 +1216,7 @@ class natsel_timehet:
         opt_args=None,
         show_progress=False,
         verbose=False,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -1225,10 +1264,12 @@ class natsel_timehet:
             prints intermediate states to screen during fitting
         """
         if not is_codon_model(sm):
-            raise ValueError(f"{sm} is not a codon model")
+            msg = f"{sm} is not a codon model"
+            raise ValueError(msg)
 
         if not any([tip1, tip2]):
-            raise ValueError("must provide at least a single tip name")
+            msg = "must provide at least a single tip name"
+            raise ValueError(msg)
 
         if cogent3.util.io.path_exists(tree):
             tree = load_tree(filename=tree, underscore_unmunge=True)
@@ -1236,11 +1277,16 @@ class natsel_timehet:
             tree = make_tree(treestring=tree, underscore_unmunge=True)
 
         if tree and not isinstance(tree, TreeNode):
-            raise TypeError(f"invalid tree type {type(tree)}")
+            msg = f"invalid tree type {type(tree)}"
+            raise TypeError(msg)
 
         if all([tip1, tip2]) and tree:
             edges = tree.get_edge_names(
-                tip1, tip2, stem=stem, clade=clade, outgroup_name=outgroup
+                tip1,
+                tip2,
+                stem=stem,
+                clade=clade,
+                outgroup_name=outgroup,
             )
         elif all([tip1, tip2]):
             edges = [tip1, tip2]
@@ -1275,12 +1321,12 @@ class natsel_timehet:
 
         # defining the alternate model
         param_rules = [
-            dict(
-                par_name="omega",
-                edges=edges,
-                upper=upper_omega,
-                is_independent=is_independent,
-            )
+            {
+                "par_name": "omega",
+                "edges": edges,
+                "upper": upper_omega,
+                "is_independent": is_independent,
+            },
         ]
         alt = model(
             sm,

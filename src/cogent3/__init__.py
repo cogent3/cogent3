@@ -6,7 +6,8 @@ import os
 import pathlib
 import pickle
 import warnings
-from typing import Callable, Optional, Union
+from collections.abc import Callable
+from typing import Optional, Union
 
 from cogent3._version import __version__
 from cogent3.app import app_help, available_apps, get_app, open_data_store  # noqa
@@ -27,7 +28,7 @@ from cogent3.core.moltype import (
     PROTEIN,  # noqa
     RNA,  # noqa
     available_moltypes,  # noqa
-    get_moltype,  # noqa
+    get_moltype,
 )
 from cogent3.core.tree import PhyloNode, TreeBuilder, TreeError, TreeNode
 from cogent3.evolve.fast_distance import (
@@ -72,11 +73,11 @@ load_annotations = _anno_db.load_annotations
 
 def make_seq(
     seq,
-    name: str = None,
+    name: str | None = None,
     moltype=None,
     new_type: bool = False,
     annotation_offset: int = 0,
-    annotation_db: Optional[_anno_db.SupportsFeatures] = None,
+    annotation_db: _anno_db.SupportsFeatures | None = None,
     **kw: dict,
 ):  # refactor: type hinting, need to capture optional args and the return type
     """
@@ -90,7 +91,7 @@ def make_seq(
         name of a moltype or moltype instance
     new_type
         if True, returns a new type Sequence (cogent3.core.new_sequence.Sequence).
-        The default will be changed to True in 2024.12. Support for the old
+        The default will be changed to True in 2025.1. Support for the old
         style will be removed as of 2025.6.
     annotation_offset
         integer indicating start position relative to annotations
@@ -176,7 +177,7 @@ def make_unaligned_seqs(
     new_type
         if True, the returned SequenceCollection will be of the new type,
         (cogent3.core.new_sequence.SequenceCollection). The default will be
-        changed to True in 2024.12. Support for the old style will be removed
+        changed to True in 2025.1. Support for the old style will be removed
         as of 2025.6.
     **kw
         other keyword arguments passed to SequenceCollection
@@ -184,7 +185,8 @@ def make_unaligned_seqs(
 
     if new_type or "COGENT3_NEW_TYPE" in os.environ:
         if moltype is None:
-            raise ValueError("Argument 'moltype' is required when 'new_type=True'")
+            msg = "Argument 'moltype' is required when 'new_type=True'"
+            raise ValueError(msg)
 
         from cogent3.core import new_alignment
 
@@ -244,7 +246,8 @@ def make_aligned_seqs(
     """
     if new_type or "COGENT3_NEW_TYPE" in os.environ:
         if moltype is None:
-            raise ValueError("Argument 'moltype' is required when 'new_type=True'")
+            msg = "Argument 'moltype' is required when 'new_type=True'"
+            raise ValueError(msg)
 
         from cogent3.core import new_alignment
 
@@ -272,11 +275,11 @@ def make_aligned_seqs(
 def _load_files_to_unaligned_seqs(
     *,
     path: os.PathLike,
-    format: Optional[str] = None,
-    moltype: Optional[str] = None,
-    label_to_name: Optional[Callable] = None,
-    parser_kw: Optional[dict] = None,
-    info: Optional[dict] = None,
+    format: str | None = None,
+    moltype: str | None = None,
+    label_to_name: Callable | None = None,
+    parser_kw: dict | None = None,
+    info: dict | None = None,
     new_type: bool = False,
     ui=None,
 ) -> SequenceCollection:
@@ -331,7 +334,8 @@ def _load_genbank_seq(
     for name, seq, features in iter_genbank_records(filename, **parser_kw):
         break
     else:
-        raise ValueError(f"No sequences found in {filename}")
+        msg = f"No sequences found in {filename}"
+        raise ValueError(msg)
 
     db = (
         None
@@ -346,12 +350,12 @@ def _load_genbank_seq(
 
 def load_seq(
     filename: os.PathLike,
-    annotation_path: Optional[os.PathLike] = None,
-    format: Optional[str] = None,
-    moltype: Optional[str] = None,
-    label_to_name: Optional[Callable] = None,
-    parser_kw: Optional[dict] = None,
-    info: Optional[dict] = None,
+    annotation_path: os.PathLike | None = None,
+    format: str | None = None,
+    moltype: str | None = None,
+    label_to_name: Callable | None = None,
+    parser_kw: dict | None = None,
+    info: dict | None = None,
     new_type: bool = False,
     annotation_offset: int = 0,
     **kw: dict,
@@ -377,7 +381,7 @@ def load_seq(
         a dict from which to make an info object
     new_type
         if True, returns a new type Sequence (cogent3.core.new_sequence.Sequence)
-        The default will be changed to True in 2024.12. Support for the old
+        The default will be changed to True in 2025.1. Support for the old
         style will be removed as of 2025.6.
     annotation_offset
         integer indicating start position relative to annotations
@@ -412,10 +416,10 @@ def load_seq(
         data = _load_seqs(file_format, filename, format, parser_kw)
         name, seq = data[0]
 
+    name = label_to_name(name) if label_to_name else name
+
     if annotation_path is not None:
         db = load_annotations(path=annotation_path, seqids=[name])
-
-    name = label_to_name(name) if label_to_name else name
 
     result = make_seq(
         seq,
@@ -433,12 +437,12 @@ def load_seq(
 
 @display_wrap
 def load_unaligned_seqs(
-    filename: Union[str, pathlib.Path],
+    filename: str | pathlib.Path,
     format=None,
     moltype=None,
     label_to_name=None,
-    parser_kw: Optional[dict] = None,
-    info: Optional[dict] = None,
+    parser_kw: dict | None = None,
+    info: dict | None = None,
     new_type: bool = False,
     **kw,
 ) -> SequenceCollection:
@@ -463,7 +467,7 @@ def load_unaligned_seqs(
     new_type
         if True, the returned SequenceCollection will be of the new type,
         (cogent3.core.new_sequence.SequenceCollection). The default will be
-        changed to True in 2024.12. Support for the old style will be removed
+        changed to True in 2025.1. Support for the old style will be removed
         as of 2025.6.
     **kw
         other keyword arguments passed to SequenceCollection, or show_progress.
@@ -507,7 +511,7 @@ def load_unaligned_seqs(
 
 
 def load_aligned_seqs(
-    filename: Union[str, pathlib.Path],
+    filename: str | pathlib.Path,
     format=None,
     array_align=True,
     moltype=None,
@@ -537,7 +541,7 @@ def load_aligned_seqs(
     new_type
         if True, the returned Alignment will be of the new type,
         (cogent3.core.new_alignment.Alignment). The default will be
-        changed to True in 2024.12. Support for the old style will be removed
+        changed to True in 2025.1. Support for the old style will be removed
         as of 2025.6.
     kw
         passed to make_aligned_seqs
@@ -619,14 +623,16 @@ def make_table(
 
     """
     if any(isinstance(a, str) for a in (header, data)):
-        raise TypeError("str type invalid, if it's a path use load_table()")
+        msg = "str type invalid, if it's a path use load_table()"
+        raise TypeError(msg)
 
     data = kwargs.get("rows", data)
     if data_frame is not None:
         from pandas import DataFrame
 
         if not isinstance(data_frame, DataFrame):
-            raise TypeError(f"expecting a DataFrame, got{type(data_frame)}")
+            msg = f"expecting a DataFrame, got{type(data_frame)}"
+            raise TypeError(msg)
 
         data = {c: data_frame[c].to_numpy() for c in data_frame}
 
@@ -648,7 +654,7 @@ def make_table(
 
 
 def load_table(
-    filename: Union[str, pathlib.Path],
+    filename: str | pathlib.Path,
     sep=None,
     reader=None,
     digits=4,
@@ -708,8 +714,9 @@ def load_table(
         skips rows that have different length to header row
     """
     if not any(isinstance(filename, t) for t in (str, pathlib.PurePath)):
+        msg = "filename must be string or Path, perhaps you want make_table()"
         raise TypeError(
-            "filename must be string or Path, perhaps you want make_table()",
+            msg,
         )
 
     sep = sep or kwargs.pop("delimiter", None)
@@ -717,7 +724,7 @@ def load_table(
 
     if file_format == "json":
         return load_from_json(filename, (_Table,))
-    elif file_format in ("pickle", "pkl"):
+    if file_format in ("pickle", "pkl"):
         with open_(filename, mode="rb") as f:
             loaded_table = pickle.load(f)
 
@@ -729,7 +736,7 @@ def load_table(
         with open_(filename, newline=None) as f:
             data = list(reader(f))
             header = data[0]
-            data = {column[0]: column[1:] for column in zip(*data)}
+            data = {column[0]: column[1:] for column in zip(*data, strict=False)}
     else:
         if file_format == "csv":
             sep = sep or ","
@@ -746,13 +753,13 @@ def load_table(
             num_fields = len(header)
             rows = [r for r in rows if len(r) == num_fields]
         else:
-            lengths = set(map(len, [header] + rows))
+            lengths = set(map(len, [header, *rows]))
             if len(lengths) != 1:
                 msg = f"inconsistent number of fields {lengths}"
                 raise ValueError(msg)
 
         title = title or loaded_title
-        data = {column[0]: column[1:] for column in zip(header, *rows)}
+        data = {column[0]: column[1:] for column in zip(header, *rows, strict=False)}
 
     for key, value in data.items():
         data[key] = cast_str_to_array(value, static_type=static_column_types)
@@ -772,11 +779,6 @@ def load_table(
     )
 
 
-@c3warn.deprecated_args(
-    version="2024.12",
-    reason="argument has no effect",
-    discontinued="name_nodes",
-)
 def make_tree(
     treestring=None,
     tip_names=None,
@@ -811,8 +813,7 @@ def make_tree(
     if tip_names:
         tree_builder = TreeBuilder().create_edge
         tips = [tree_builder([], str(tip_name), {}) for tip_name in tip_names]
-        tree = tree_builder(tips, "root", {})
-        return tree
+        return tree_builder(tips, "root", {})
 
     if format is None and treestring.startswith("<"):
         format = "xml"
@@ -830,7 +831,7 @@ def make_tree(
 
 
 def load_tree(
-    filename: Union[str, pathlib.Path],
+    filename: str | pathlib.Path,
     format=None,
     underscore_unmunge=False,
 ):

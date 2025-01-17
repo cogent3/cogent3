@@ -17,7 +17,7 @@ class FilteringParser:
         columns=None,
         sep=",",
         limit=None,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -43,9 +43,10 @@ class FilteringParser:
         The line elements are strings.
         """
         self.with_header = with_header
-        columns = [columns] if isinstance(columns, (int, str)) else columns
+        columns = [columns] if isinstance(columns, int | str) else columns
         if columns is not None and isinstance(columns[0], str) and not with_header:
-            raise ValueError("with_header must be True for columns with str values")
+            msg = "with_header must be True for columns with str values"
+            raise ValueError(msg)
 
         self.columns = columns
 
@@ -54,13 +55,14 @@ class FilteringParser:
         self.sep = sep
         self.limit = limit
 
-    def _column_names_to_indices(self, header):
+    def _column_names_to_indices(self, header) -> None:
         if isinstance(self.columns[0], int):
             return
 
         absent = set(self.columns) - set(header)
         if absent:
-            raise ValueError(f"columns not present in header {absent}")
+            msg = f"columns not present in header {absent}"
+            raise ValueError(msg)
 
         indices = [header.index(c) for c in self.columns]
         self.columns = indices
@@ -80,7 +82,7 @@ class FilteringParser:
         Elements within a row are strings
         """
         input_from_path = False
-        if isinstance(lines, (str, pathlib.Path)):
+        if isinstance(lines, str | pathlib.Path):
             path = pathlib.Path(lines).expanduser()
             input_from_path = path.exists()
 

@@ -1,10 +1,12 @@
+import os
 import warnings
 from bisect import bisect_left
 from itertools import combinations
-from typing import Optional, Union
+from typing import Union
 
 from numpy import array, isnan
 
+import cogent3
 from cogent3.align import (
     classic_align_pairwise,
     global_pairwise,
@@ -14,7 +16,6 @@ from cogent3.align import (
 from cogent3.align.progressive import tree_align
 from cogent3.app import dist
 from cogent3.app.tree import interpret_tree_arg
-from cogent3.core.alignment import Aligned, Alignment
 from cogent3.core.location import gap_coords_to_map
 from cogent3.core.moltype import get_moltype
 from cogent3.evolve.fast_distance import get_distance_calculator
@@ -24,6 +25,13 @@ from cogent3.maths.util import safe_log
 from .composable import NotCompleted, define_app
 from .tree import quick_tree, scale_branches
 from .typing import AlignedSeqsType, SerialisableType, UnalignedSeqsType
+
+_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
+
+if _NEW_TYPE:
+    from cogent3.core.new_alignment import Aligned
+else:
+    from cogent3.core.alignment import Aligned
 
 
 class _GapOffset:
@@ -51,7 +59,7 @@ class _GapOffset:
     2
     """
 
-    def __init__(self, gaps_lengths, invert=False):
+    def __init__(self, gaps_lengths, invert=False) -> None:
         """
         Parameters
         ----------
@@ -82,10 +90,10 @@ class _GapOffset:
         self._ordered = None
         self._invert = invert
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return repr(self._store)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self._store)
 
     def __getitem__(self, index):
@@ -118,11 +126,13 @@ def _gap_union(seqs) -> dict:
     all_gaps = {}
     for seq in seqs:
         if not isinstance(seq, Aligned):
-            raise TypeError(f"must be Aligned instances, not {type(seq)}")
+            msg = f"must be Aligned instances, not {type(seq)}"
+            raise TypeError(msg)
         if seq_name is None:
             seq_name = seq.name
         if seq.name != seq_name:
-            raise ValueError("all sequences must have the same name")
+            msg = "all sequences must have the same name"
+            raise ValueError(msg)
 
         gaps_lengths = dict(seq.map.get_gap_coordinates())
         all_gaps = _merged_gaps(all_gaps, gaps_lengths)
@@ -172,7 +182,7 @@ def _merged_gaps(a_gaps: dict, b_gaps: dict) -> dict:
     function to 'max'. Use 'sum' when the gaps derive from different
     sequences.
     """
-    # todo convert to using IndelMap functions
+    # TODO convert to using IndelMap functions
     if not a_gaps:
         return b_gaps
 
@@ -190,7 +200,9 @@ def _merged_gaps(a_gaps: dict, b_gaps: dict) -> dict:
 
 
 def _subset_gaps_to_align_coords(
-    subset_gaps: dict, orig_gaps: dict, seq_2_aln: _GapOffset
+    subset_gaps: dict,
+    orig_gaps: dict,
+    seq_2_aln: _GapOffset,
 ) -> dict:
     """compute alignment coords of subset gaps
 
@@ -252,7 +264,7 @@ def _gaps_for_injection(other_seq_gaps: dict, refseq_gaps: dict, seqlen: int) ->
     # sequence coordinates
     # we probably need to include the refseq gap union because we need to
     # establish whether a refseq gap overlaps with a gap in other seq
-    # todo convert these functions to using IndelMap and the numpy set
+    # TODO convert these functions to using IndelMap and the numpy set
     #  operation functions
     all_gaps = {}
     all_gaps.update(other_seq_gaps)
@@ -261,8 +273,9 @@ def _gaps_for_injection(other_seq_gaps: dict, refseq_gaps: dict, seqlen: int) ->
         gap_pos -= offset
         gap_pos = min(seqlen, gap_pos)
         if gap_pos < 0:
+            msg = f"computed gap_pos {gap_pos} < 0, correct reference sequence?"
             raise ValueError(
-                f"computed gap_pos {gap_pos} < 0, correct reference sequence?"
+                msg,
             )
         if gap_pos in all_gaps:
             gap_length += all_gaps[gap_pos]
@@ -293,27 +306,31 @@ def pairwise_to_multiple(pwise, ref_seq, moltype, info=None):
     ArrayAlign
     """
     if not hasattr(ref_seq, "name"):
-        raise TypeError(f"ref_seq must be a cogent3 sequence, not {type(ref_seq)}")
+        msg = f"ref_seq must be a cogent3 sequence, not {type(ref_seq)}"
+        raise TypeError(msg)
 
     refseqs = [s for _, aln in pwise for s in aln.seqs if s.name == ref_seq.name]
     ref_gaps = _gap_union(refseqs)
 
     m = gap_coords_to_map(ref_gaps, len(ref_seq))
-    aligned = [Aligned(m, ref_seq)]
+    aligned = [Aligned.from_map_and_seq(m, ref_seq)]
     for other_name, aln in pwise:
-        curr_ref = aln.named_seqs[ref_seq.name]
+        curr_ref = aln.seqs[ref_seq.name] if _NEW_TYPE else aln.named_seqs[ref_seq.name]
         curr_ref_gaps = dict(curr_ref.map.get_gap_coordinates())
-        other_seq = aln.named_seqs[other_name]
+        other_seq = aln.seqs[other_name] if _NEW_TYPE else aln.named_seqs[other_name]
         other_gaps = dict(other_seq.map.get_gap_coordinates())
         diff_gaps = _combined_refseq_gaps(curr_ref_gaps, ref_gaps)
-        if inject := _gaps_for_injection(other_gaps, diff_gaps, len(other_seq.data)):
+        # difference between new_type and old type Aligned data attributes
+        parent_len = len(other_seq.seq) if _NEW_TYPE else len(other_seq.data)
+        if inject := _gaps_for_injection(other_gaps, diff_gaps, parent_len):
             m = gap_coords_to_map(inject, len(other_seq.data))
-            other_seq = Aligned(m, other_seq.data)
+            other_seq = Aligned.from_map_and_aligned_data_view(m, other_seq.data)
 
         aligned.append(other_seq)
     # default to ArrayAlign
-    return Alignment(aligned, moltype=moltype, info=info).to_type(
-        array_align=True, moltype=moltype
+    return cogent3.make_aligned_seqs(aligned, moltype=moltype, info=info).to_type(
+        array_align=True,
+        moltype=moltype,
     )
 
 
@@ -333,7 +350,7 @@ class align_to_ref:
         insertion_penalty=20,
         extension_penalty=2,
         moltype="dna",
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -357,9 +374,12 @@ class align_to_ref:
             if self._moltype.label == "dna"
             else make_generic_scoring_dict(10, self._moltype)
         )
-        self._kwargs = dict(
-            S=S, d=insertion_penalty, e=extension_penalty, return_score=False
-        )
+        self._kwargs = {
+            "S": S,
+            "d": insertion_penalty,
+            "e": extension_penalty,
+            "return_score": False,
+        }
         if ref_seq.lower() == "longest":
             self._func = self.align_to_longest
         else:
@@ -417,9 +437,9 @@ class progressive_align:
         indel_length=1e-1,
         indel_rate=1e-10,
         distance="pdist",
-        iters: Optional[int] = None,
+        iters: int | None = None,
         approx_dists: bool = True,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -488,7 +508,7 @@ class progressive_align:
 
         Optionally, a pre-computed guide tree can be provided.
 
-        >>> newick = "(Bandicoot:0.4,FlyingFox:0.05,(Rhesus:0.06," "Human:0.0):0.04);"
+        >>> newick = "(Bandicoot:0.4,FlyingFox:0.05,(Rhesus:0.06,Human:0.0):0.04);"
         >>> app_guided = get_app("progressive_align", model="HKY85", guide_tree=newick)
         >>> result = app_guided(aln)
         >>> print(
@@ -502,13 +522,14 @@ class progressive_align:
         FlyingFox    ........T.................---.......TA....
         """
         self._param_vals = {
-            "codon": dict(omega=0.4, kappa=3),
-            "nucleotide": dict(kappa=3),
+            "codon": {"omega": 0.4, "kappa": 3},
+            "nucleotide": {"kappa": 3},
         }.get(model, param_vals)
         sm = {"codon": "MG94HKY", "nucleotide": "HKY85", "protein": "JTT92"}.get(
-            model, model
+            model,
+            model,
         )
-        kwargs = {} if gc is None else dict(gc=gc)
+        kwargs = {} if gc is None else {"gc": gc}
         sm = get_model(sm, **kwargs)
         moltype = sm.moltype
         self._model = sm
@@ -529,7 +550,8 @@ class progressive_align:
         else:
             al_to_ref = align_to_ref(moltype=self._moltype)
             dist_calc = dist.fast_slow_dist(
-                distance=self._distance, moltype=self._moltype
+                distance=self._distance,
+                moltype=self._moltype,
             )
             est_tree = quick_tree()
             self._make_tree = al_to_ref + dist_calc + est_tree
@@ -537,19 +559,20 @@ class progressive_align:
         if guide_tree is not None:
             guide_tree = interpret_tree_arg(guide_tree)
             if guide_tree.children[0].length is None:
-                raise ValueError("Guide tree must have branch lengths")
+                msg = "Guide tree must have branch lengths"
+                raise ValueError(msg)
             # make sure no zero lengths
             guide_tree = scale_branches()(guide_tree)
 
         self._guide_tree = guide_tree
-        self._kwargs = dict(
-            indel_length=self._indel_length,
-            indel_rate=self._indel_rate,
-            tree=self._guide_tree,
-            param_vals=self._param_vals,
-            show_progress=False,
-            iters=self._iters,
-        )
+        self._kwargs = {
+            "indel_length": self._indel_length,
+            "indel_rate": self._indel_rate,
+            "tree": self._guide_tree,
+            "param_vals": self._param_vals,
+            "show_progress": False,
+            "iters": self._iters,
+        }
 
     def _build_guide(self, seqs):
         tree = self._make_tree(seqs)
@@ -572,9 +595,7 @@ class progressive_align:
             self._kwargs["tree"] = self._guide_tree
             diff = set(self._guide_tree.get_tip_names()) ^ set(seqs.names)
             if diff:
-                numtips = len(set(self._guide_tree.get_tip_names()))
-                print(f"numseqs={len(seqs.names)} not equal to numtips={numtips}")
-                print(f"These were different: {diff}")
+                len(set(self._guide_tree.get_tip_names()))
                 seqs = seqs.take_seqs(self._guide_tree.get_tip_names())
 
         kwargs = self._kwargs.copy()
@@ -589,8 +610,7 @@ class progressive_align:
                 result.info.update(seqs.info)
             except ValueError as err:
                 # probably an internal stop
-                result = NotCompleted("ERROR", self, err.args[0], source=seqs)
-                return result
+                return NotCompleted("ERROR", self, err.args[0], source=seqs)
         return result
 
 
@@ -606,11 +626,11 @@ class smith_waterman:
 
     def __init__(
         self,
-        score_matrix: dict = None,
+        score_matrix: dict | None = None,
         insertion_penalty: int = 20,
         extension_penalty: int = 2,
         moltype: str = "dna",
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -690,12 +710,12 @@ class smith_waterman:
             return_score=True,
         )
 
-        aln.info["align_params"] = dict(
-            score_matrix=self._score_matrix,
-            insertion_penalty=self._insertion_penalty,
-            extension_penalty=self._extension_penalty,
-            sw_score=score,
-        )
+        aln.info["align_params"] = {
+            "score_matrix": self._score_matrix,
+            "insertion_penalty": self._insertion_penalty,
+            "extension_penalty": self._extension_penalty,
+            "sw_score": score,
+        }
         return aln.to_moltype(self.moltype)
 
 
@@ -716,7 +736,7 @@ class ic_score:
     Bioinformatics vol. 15 563–577 (Oxford University Press, 1999)
     """
 
-    def __init__(self, equifreq_mprobs=True):
+    def __init__(self, equifreq_mprobs=True) -> None:
         """
         Parameters
         ----------
@@ -731,7 +751,8 @@ class ic_score:
 
         >>> from cogent3 import make_aligned_seqs, get_app
         >>> aln = make_aligned_seqs(
-        ...     {"s1": "AATTGA", "s2": "AGGTCC", "s3": "AGGATG", "s4": "AGGCGT"}
+        ...     {"s1": "AATTGA", "s2": "AGGTCC", "s3": "AGGATG", "s4": "AGGCGT"},
+        ...     moltype="dna",
         ... )
         >>> app = get_app("ic_score")
         >>> result = app(aln)
@@ -813,7 +834,7 @@ def cogent3_score(aln: AlignedSeqsType) -> float:
     ...     },
     ...     moltype="dna",
     ... )
-    >>> newick = "(Bandicoot:0.4,FlyingFox:0.05,(Rhesus:0.06," "Human:0.0):0.04);"
+    >>> newick = "(Bandicoot:0.4,FlyingFox:0.05,(Rhesus:0.06,Human:0.0):0.04);"
     >>> aligner = get_app("progressive_align", model="HKY85")
 
     Create a composable app that aligns the sequences and returns the
@@ -838,7 +859,10 @@ def cogent3_score(aln: AlignedSeqsType) -> float:
     return align_params.get(
         "lnL",
         NotCompleted(
-            "FAIL", "cogent3_score", "no alignment quality score", source=aln.info
+            "FAIL",
+            "cogent3_score",
+            "no alignment quality score",
+            source=aln.info,
         ),
     )
 
@@ -867,8 +891,11 @@ class sp_score:
     """
 
     def __init__(
-        self, calc: str = "JC69", gap_insert: float = 12.0, gap_extend: float = 1.0
-    ):
+        self,
+        calc: str = "JC69",
+        gap_insert: float = 12.0,
+        gap_extend: float = 1.0,
+    ) -> None:
         """
         Parameters
         ----------
@@ -890,7 +917,9 @@ class sp_score:
         alignment score with ``calc="pdist"`` and no gap penalties.
 
         >>> from cogent3 import make_aligned_seqs, get_app
-        >>> aln = make_aligned_seqs({"s1": "AAGAA-A", "s2": "-ATAATG", "s3": "C-TGG-G"})
+        >>> aln = make_aligned_seqs(
+        ...     {"s1": "AAGAA-A", "s2": "-ATAATG", "s3": "C-TGG-G"}, moltype="dna"
+        ... )
         >>> app = get_app("sp_score", calc="pdist", gap_extend=0, gap_insert=0)
         >>> result = app(aln)
         >>> print(result)

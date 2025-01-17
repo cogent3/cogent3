@@ -4,23 +4,22 @@
 Installation
 ************
 
-Minimal installation
-====================
-
-Suitable for when you don't need plotting.
-
-.. code-block:: bash
-
-   $ pip install cogent3
-
-Install with graphing tools
-===========================
-
-The graphing dependency Plotly_ is installed too.
+For most users we recommend
 
 .. code-block:: bash
 
    $ pip install "cogent3[extra]"
+
+This installs support for data visualisation (which requires Plotly_) and extensions for jupyter notebooks.
+
+Minimal installation
+====================
+
+If you don't need plotting, such as if you're running on a high-performance computing system, we recommend
+
+.. code-block:: bash
+
+   $ pip install cogent3
 
 Install with developer tools
 ============================

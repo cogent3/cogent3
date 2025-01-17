@@ -19,7 +19,7 @@ def PamlMatrixParser(f):
     matrix = numpy.zeros([20, 20], float)
     next_number = numbers_in(f).__next__
     for row in range(1, 20):
-        for col in range(0, row):
+        for col in range(row):
             matrix[row, col] = matrix[col, row] = next_number()
 
     freqs = [next_number() for i in range(20)]
@@ -32,6 +32,6 @@ def PamlMatrixParser(f):
 
     assert numpy.all(matrix == numpy.transpose(matrix))
 
-    freqs = dict(list(zip(three_letter_order, freqs)))
+    freqs = dict(list(zip(three_letter_order, freqs, strict=False)))
 
     return (matrix, freqs)

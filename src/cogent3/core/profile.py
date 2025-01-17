@@ -1,3 +1,5 @@
+import typing
+
 import numpy
 from numpy import array, digitize
 from numpy.random import random
@@ -8,20 +10,28 @@ from cogent3.util.misc import extend_docstring_from
 
 
 class _MotifNumberArray(DictArray):
-    def __init__(self, data, motifs, row_indices=None, dtype=None):
+    def __init__(
+        self,
+        data,
+        motifs: typing.Iterable[str],
+        row_indices: typing.Iterable[int] | None = None,
+        dtype: numpy.dtype | None = None,
+    ) -> None:
         """
         data
             series of numbers, can be numpy array, CategoryCounter, dict instances
+
         row_indices
             row_indices correspond to original indexes, defaults to length of
             motif
         """
-        # todo validate that motifs are strings and row_indices are ints or
+        # TODO validate that motifs are strings and row_indices are ints or
         # strings
-        # todo change row_indices argument name to row_keys
+        # TODO change row_indices argument name to row_keys
         some_data = data.any() if isinstance(data, numpy.ndarray) else any(data)
         if not some_data or len(data) == 0:
-            raise ValueError("Must provide data")
+            msg = "Must provide data"
+            raise ValueError(msg)
 
         try:
             len(data[0])
@@ -31,7 +41,8 @@ class _MotifNumberArray(DictArray):
             ndim = 2
         num_elements = len(data) if ndim == 1 else len(data[0])
         if num_elements != len(motifs):
-            raise ValueError(f"number of data elements {len(data[0])} != {len(motifs)}")
+            msg = f"number of data elements {len(data[0])} != {len(motifs)}"
+            raise ValueError(msg)
         motifs = tuple(motifs)
 
         # create template
@@ -43,7 +54,7 @@ class _MotifNumberArray(DictArray):
         try:
             darr.array.astype(dtype, casting="safe")
         except TypeError as err:
-            raise ValueError(err)
+            raise ValueError(err) from err
         self.__dict__.update(darr.__dict__)
         self.motifs = motifs
         self.motif_length = len(motifs[0])
@@ -91,7 +102,8 @@ class _MotifNumberArray(DictArray):
         try:
             indices[0]
         except TypeError:
-            raise ValueError("must provide indexable series to take")
+            msg = "must provide indexable series to take"
+            raise ValueError(msg)
 
         one_dim = self.array.ndim == 1
         if one_dim:
@@ -104,14 +116,16 @@ class _MotifNumberArray(DictArray):
         if not set(indices) <= set(current):
             if (
                 isinstance(indices[0], int)
-                and 0 <= min(indices)
+                and min(indices) >= 0
                 and max(indices) < len(current)
             ):
                 current = list(range(len(current)))
             elif isinstance(indices[0], int):
-                raise IndexError(f"{indices} out of bounds")
+                msg = f"{indices} out of bounds"
+                raise IndexError(msg)
             else:
-                raise ValueError("unexpected indices")
+                msg = "unexpected indices"
+                raise ValueError(msg)
 
         if negate:
             indices = tuple(v for v in current if v not in indices)
@@ -156,7 +170,7 @@ def _get_ordered_motifs_from_tabular(data, index=1):
 
     chars = []
     for entry in data:
-        if not entry[index] in chars:
+        if entry[index] not in chars:
             chars.append(entry[index])
     return chars
 
@@ -200,8 +214,8 @@ def make_pssm_from_tabular(tab_data):
 
 
 class MotifCountsArray(_MotifNumberArray):
-    def __init__(self, counts, motifs, row_indices=None):
-        super(MotifCountsArray, self).__init__(counts, motifs, row_indices, dtype=int)
+    def __init__(self, counts, motifs, row_indices=None) -> None:
+        super().__init__(counts, motifs, row_indices, dtype=numpy.int64)
 
     def _to_freqs(self, pseudocount=0):
         data = self.array
@@ -209,11 +223,7 @@ class MotifCountsArray(_MotifNumberArray):
             data = data + pseudocount
         axis = None if self.array.ndim == 1 else 1
         row_sum = data.sum(axis=axis)
-        if axis is not None:
-            freqs = data / numpy.vstack(row_sum)
-        else:
-            freqs = data / row_sum
-        return freqs
+        return data / numpy.vstack(row_sum) if axis is not None else data / row_sum
 
     def to_freq_array(self, pseudocount=0):
         """
@@ -264,8 +274,8 @@ class MotifCountsArray(_MotifNumberArray):
 
 
 class MotifFreqsArray(_MotifNumberArray):
-    def __init__(self, data, motifs, row_indices=None):
-        super(MotifFreqsArray, self).__init__(data, motifs, row_indices, dtype=float)
+    def __init__(self, data, motifs, row_indices=None) -> None:
+        super().__init__(data, motifs, row_indices, dtype=float)
         axis = 0 if self.array.ndim == 1 else 1
         validate_freqs_array(self.array, axis=axis)
 
@@ -344,8 +354,7 @@ class MotifFreqsArray(_MotifNumberArray):
         series = [
             digitize(random(), cumsum[i], right=False) for i in range(self.shape[0])
         ]
-        seq = "".join([self.motifs[i] for i in series])
-        return seq
+        return "".join([self.motifs[i] for i in series])
 
     def to_pssm(self, background=None):
         """returns a PSSM array
@@ -363,7 +372,13 @@ class MotifFreqsArray(_MotifNumberArray):
         )
 
     def logo(
-        self, height=400, width=800, wrap=None, ylim=None, vspace=0.05, colours=None
+        self,
+        height=400,
+        width=800,
+        wrap=None,
+        ylim=None,
+        vspace=0.05,
+        colours=None,
     ):
         """returns a sequence logo Drawable"""
         from cogent3.draw.drawable import get_domain
@@ -375,8 +390,7 @@ class MotifFreqsArray(_MotifNumberArray):
 
         if wrap is None:
             mit = get_mi_char_heights(self)
-            logo = get_logo(mit, height=height, width=width, ylim=ylim, colours=colours)
-            return logo
+            return get_logo(mit, height=height, width=width, ylim=ylim, colours=colours)
 
         wrap = min(wrap, self.shape[0])
         rows, remainder = divmod(self.shape[0], wrap)
@@ -452,40 +466,45 @@ class PSSM(_MotifNumberArray):
 
     A log-odds matrix"""
 
-    def __init__(self, data, motifs, row_indices=None, background=None):
+    def __init__(self, data, motifs, row_indices=None, background=None) -> None:
         data = numpy.array(data)
         row_sum = data.sum(axis=1)
 
         # are we dealing with counts data?
-        if 0 <= data.min() and 1 < data.max():
+        if data.min() >= 0 and data.max() > 1:
             # convert to freqs data
             data = data / numpy.vstack(row_sum)
             row_sum = data.sum(axis=1)
 
         # are we dealing with freqs data?
         if (data >= 0).all() and numpy.allclose(
-            row_sum[numpy.isnan(row_sum) == False], 1
+            row_sum[numpy.isnan(row_sum) == False],  # noqa
+            1,
         ):
             # standard PSSM object creation
             if background is None:
                 background = numpy.ones(len(motifs), dtype=float) / len(motifs)
             self._background = numpy.array(background)
             assert len(background) == len(
-                motifs
+                motifs,
             ), "Mismatch between number of motifs and the background"
             validate_freqs_array(self._background)
             pssm = safe_log(data) - safe_log(self._background)
-            super(PSSM, self).__init__(
-                pssm, motifs, row_indices=row_indices, dtype=float
+            super().__init__(
+                pssm,
+                motifs,
+                row_indices=row_indices,
+                dtype=float,
             )
             self._indices = numpy.arange(self.shape[0])  # used for scoring
             return
 
         if not (data.min() < 0 < data.max()):
-            raise ValueError("PSSM has been supplied invalid data")
+            msg = "PSSM has been supplied invalid data"
+            raise ValueError(msg)
 
         # we dealing with pssm data
-        super(PSSM, self).__init__(data, motifs, row_indices=row_indices, dtype=float)
+        super().__init__(data, motifs, row_indices=row_indices, dtype=float)
         self._indices = numpy.arange(self.shape[0])  # used for scoring
 
     def get_indexed_seq(self, seq):
@@ -500,8 +519,7 @@ class PSSM(_MotifNumberArray):
             indexed = []
             for i in range(0, self.shape[0] - self.motif_length + 1, self.motif_length):
                 indexed.append(get_index(seq[i : i + self.motif_length], num_motifs))
-        indexed = numpy.array(indexed)
-        return indexed
+        return numpy.array(indexed)
 
     def score_seq(self, seq):
         """return score for a sequence"""
@@ -549,7 +567,8 @@ def load_pssm(path: str, background: numpy.ndarray = None, pseudocount: int = 0)
     is_cisbp = path.endswith("cisbp")
     is_jaspar = path.endswith("jaspar")
     if not (is_cisbp or is_jaspar):
-        raise NotImplementedError(f"Unknown format {path.split('.')[-1]}")
+        msg = f"Unknown format {path.split('.')[-1]}"
+        raise NotImplementedError(msg)
 
     if is_cisbp:
         pfp = cisbp.read(path)

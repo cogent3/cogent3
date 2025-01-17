@@ -11,8 +11,8 @@ from . import likelihood_tree_numba as likelihood_tree
 numpy.seterr(all="ignore")
 
 
-class _LikelihoodTreeEdge(object):
-    def __init__(self, children, edge_name, alignment=None):
+class _LikelihoodTreeEdge:
+    def __init__(self, children, edge_name, alignment=None) -> None:
         self.edge_name = edge_name
         self.alphabet = children[0].alphabet
 
@@ -45,7 +45,7 @@ class _LikelihoodTreeEdge(object):
                         )
                     a.append(u)
                 assignments.append(a)
-        (uniq, counts, self.index) = _indexed(list(zip(*assignments)))
+        (uniq, counts, self.index) = _indexed(list(zip(*assignments, strict=False)))
 
         # extra column for gap
         uniq.append(tuple([len(c.uniq) - 1 for c in children]))
@@ -55,7 +55,7 @@ class _LikelihoodTreeEdge(object):
 
         # For faster math, a contiguous index array for each child
         self.indexes = numpy.ascontiguousarray(
-            [numpy.array(list(ch), int) for ch in numpy.transpose(self.uniq)]
+            [numpy.array(list(ch), int) for ch in numpy.transpose(self.uniq)],
         )
 
         # If this is the root it will need to weight the total
@@ -63,7 +63,7 @@ class _LikelihoodTreeEdge(object):
         self.counts = numpy.array(counts, float)
 
         # For product of child likelihoods
-        self._indexed_children = list(zip(self.indexes, children))
+        self._indexed_children = list(zip(self.indexes, children, strict=False))
         self.shape = [len(self.uniq), M]
 
         # Derive per-column degree of ambiguity from children's
@@ -78,7 +78,7 @@ class _LikelihoodTreeEdge(object):
         ]
         return ["".join(child[u] for child in child_motifs) for u in range(len(cols))]
 
-    def restrict_motif(self, input_likelihoods, fixed_motif):
+    def restrict_motif(self, input_likelihoods, fixed_motif) -> None:
         # for reconstruct_ancestral_seqs
         mask = numpy.zeros([input_likelihoods.shape[-1]], float)
         mask[fixed_motif] = 1.0
@@ -86,7 +86,7 @@ class _LikelihoodTreeEdge(object):
 
     def select_columns(self, cols):
         children = []
-        for index, child in self._indexed_children:
+        for _index, child in self._indexed_children:
             child = child.select_columns(cols)
             children.append(child)
         return self.__class__(children, self.edge_name)
@@ -106,7 +106,7 @@ class _LikelihoodTreeEdge(object):
 
         if return_table:
             motifs = self.get_site_patterns(unambig)
-            rows = list(zip(motifs, observed, expected))
+            rows = list(zip(motifs, observed, expected, strict=False))
             rows.sort(key=lambda row: (-row[1], row[0]))
             table = Table(
                 header=["Pattern", "Observed", "Expected"],
@@ -114,17 +114,15 @@ class _LikelihoodTreeEdge(object):
                 index_name="Pattern",
             )
             return (G, table)
-        else:
-            return G
+        return G
 
     def get_edge(self, name):
         if self.edge_name == name:
             return self
-        else:
-            for i, c in self._indexed_children:
-                r = c.get_edge(name)
-                if r is not None:
-                    return r
+        for _i, c in self._indexed_children:
+            r = c.get_edge(name)
+            if r is not None:
+                return r
         return None
 
     def make_partial_likelihoods_array(self):
@@ -224,7 +222,7 @@ def get_matched_array(alphabet, moltype, motifs, dtype=float) -> numpy.ndarray:
 
 
 def make_likelihood_tree_leaf(sequence, alphabet, seq_name):
-    motif_len = alphabet.get_motif_len()
+    motif_len = alphabet.motif_len
     sequence2 = sequence.get_in_motif_size(motif_len)
 
     # Convert sequence to indexed list of unique motifs
@@ -245,7 +243,7 @@ def make_likelihood_tree_leaf(sequence, alphabet, seq_name):
     if isinstance(sequence, Sequence):
         # we can rely on getting the moltype from the sequence
         moltype = sequence.moltype
-    elif isinstance(alphabet, (CharAlphabet, Alphabet)):
+    elif isinstance(alphabet, CharAlphabet | Alphabet):
         # we can rely on getting the moltype from the alphabet
         moltype = alphabet.moltype
     else:
@@ -254,8 +252,9 @@ def make_likelihood_tree_leaf(sequence, alphabet, seq_name):
         try:
             moltype = sequence.moltype
         except AttributeError as e:
+            msg = "Cannot determine moltype from sequence or alphabet"
             raise ValueError(
-                "Cannot determine moltype from sequence or alphabet"
+                msg,
             ) from e
 
     # Convert list of unique motifs to array of unique profiles
@@ -264,17 +263,33 @@ def make_likelihood_tree_leaf(sequence, alphabet, seq_name):
     except (AlphabetError, new_AlphabetError) as detail:
         motif = str(detail)
         posn = list(sequence2).index(motif) * motif_len
+        msg = f"{motif!r} at {seq_name!r}:{posn} not in alphabet"
         raise ValueError(
-            f"{motif!r} at {seq_name!r}:{posn} not in alphabet"
+            msg,
         ) from detail
 
     return LikelihoodTreeLeaf(
-        uniq_motifs, likelihoods, counts, index, seq_name, alphabet, sequence
+        uniq_motifs,
+        likelihoods,
+        counts,
+        index,
+        seq_name,
+        alphabet,
+        sequence,
     )
 
 
-class LikelihoodTreeLeaf(object):
-    def __init__(self, uniq, likelihoods, counts, index, edge_name, alphabet, sequence):
+class LikelihoodTreeLeaf:
+    def __init__(
+        self,
+        uniq,
+        likelihoods,
+        counts,
+        index,
+        edge_name,
+        alphabet,
+        sequence,
+    ) -> None:
         if sequence is not None:
             self.sequence = sequence
         self.alphabet = alphabet
@@ -299,7 +314,7 @@ class LikelihoodTreeLeaf(object):
             None,
         )
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.index)
 
     def __getitem__(self, index):
@@ -330,14 +345,19 @@ class LikelihoodTreeLeaf(object):
         uniq = [self.uniq[u] for u in keep]
         likelihoods = self.input_likelihoods[keep]
         return self.__class__(
-            uniq, likelihoods, counts, index, self.edge_name, self.alphabet, None
+            uniq,
+            likelihoods,
+            counts,
+            index,
+            self.edge_name,
+            self.alphabet,
+            None,
         )
 
     def get_edge(self, name):
         if self.edge_name == name:
             return self
-        else:
-            return None
+        return None
 
     def get_site_patterns(self, cols):
         return numpy.asarray(self.uniq)[cols]

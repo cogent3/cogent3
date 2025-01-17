@@ -1,9 +1,6 @@
 """Writer for FASTA sequence format"""
 
-from typing import Iterable, Optional
-
-from cogent3.format.util import _AlignmentFormatter
-from cogent3.util import warning as c3warn
+from collections.abc import Iterable
 
 
 def _iter_in_block_size(series: str, block_size: int) -> Iterable[str]:
@@ -15,7 +12,7 @@ def _iter_in_block_size(series: str, block_size: int) -> Iterable[str]:
 def seqs_to_fasta(
     seqs: dict[str, str],
     block_size: int = 60,
-    order: Optional[list[str]] = None,
+    order: list[str] | None = None,
 ) -> str:
     """Returns a Fasta string given an alignment.
 

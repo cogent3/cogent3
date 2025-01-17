@@ -31,7 +31,9 @@ def suitable_threshold(window, desired_probability):
 
 
 def _ungapped_spans(
-    starts_ends: list[list[int, int]], align_length: int, aligned=False
+    starts_ends: list[list[int, int]],
+    align_length: int,
+    aligned=False,
 ) -> numpy.ndarray:
     """returns numpy array of [(non gap start, non gap stop), ...}"""
     if len(starts_ends) == 0:
@@ -41,7 +43,7 @@ def _ungapped_spans(
     if starts_ends[0][0] != 0:
         # does not start with a gap, so we adjust to get an ungapped span at
         # the start
-        starts_ends = [(0, 0)] + starts_ends
+        starts_ends = [(0, 0), *starts_ends]
     if starts_ends[-1][1] != align_length:
         # does not end with a gap, so we adjust to get an ungapped span at
         # the end
@@ -68,7 +70,9 @@ def _convert_input(seq, moltype):
 
 
 def get_align_coords(
-    map1: location.IndelMap, map2: location.IndelMap, aligned=False
+    map1: location.IndelMap,
+    map2: location.IndelMap,
+    aligned=False,
 ) -> MatchedSeqPaths:
     """sequence coordinates of aligned segments"""
     from cogent3.align.pycompare import segment
@@ -127,7 +131,7 @@ class Dotplot(Drawable):
         title=None,
         width=500,
         show_progress=False,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -197,7 +201,11 @@ class Dotplot(Drawable):
         sk = SeqKmers(seq1, k=k, canonical=set(seq1.moltype))
         seq2 = None if seq1 == seq2 else seq2
         fwd = find_matched_paths(
-            seq_kmers=sk, seq1=seq1, seq2=seq2, window=window, threshold=threshold
+            seq_kmers=sk,
+            seq1=seq1,
+            seq2=seq2,
+            window=window,
+            threshold=threshold,
         )
         fwd.name = "+ strand"
         if rc:
@@ -207,7 +215,11 @@ class Dotplot(Drawable):
             seq2 = seq1.rc() if seq2 is None else seq2.rc()
             seq2.name = f"{seq2.name}-rc"
             rev = find_matched_paths(
-                seq_kmers=sk, seq1=seq1, seq2=seq2, window=window, threshold=threshold
+                seq_kmers=sk,
+                seq1=seq1,
+                seq2=seq2,
+                window=window,
+                threshold=threshold,
             )
             rev.name = "- strand"
         else:
@@ -216,27 +228,34 @@ class Dotplot(Drawable):
         self._fwd = fwd
         self._rev = rev
 
-    def _build_fig(self, xaxis="x", yaxis="y"):
+    def _build_fig(self, xaxis="x", yaxis="y") -> None:
         # calculate the width based on ratio of seq lengths
         layout = UnionDict()
         if self.xtitle:
-            layout |= dict(
-                xaxis=dict(
-                    title=self.xtitle, mirror=True, showgrid=False, showline=True
-                )
-            )
+            layout |= {
+                "xaxis": {
+                    "title": self.xtitle,
+                    "mirror": True,
+                    "showgrid": False,
+                    "showline": True,
+                },
+            }
 
         if self.ytitle:
-            layout |= dict(
-                yaxis=dict(
-                    title=self.ytitle, mirror=True, showgrid=False, showline=True
-                )
-            )
+            layout |= {
+                "yaxis": {
+                    "title": self.ytitle,
+                    "mirror": True,
+                    "showgrid": False,
+                    "showline": True,
+                },
+            }
 
         self.layout |= dict(layout)
-        self.layout |= dict(
-            yaxis=dict(range=[0, len(self.seq2)]), xaxis=dict(range=[0, len(self.seq1)])
-        )
+        self.layout |= {
+            "yaxis": {"range": [0, len(self.seq2)]},
+            "xaxis": {"range": [0, len(self.seq1)]},
+        }
 
         if self.title is None:
             title = (
@@ -246,9 +265,9 @@ class Dotplot(Drawable):
         else:
             title = self.title
 
-        self.layout |= dict(title=title)
+        self.layout |= {"title": title}
         trace = UnionDict(
-            line=dict(color="blue"),
+            line={"color": "blue"},
             xaxis=xaxis,
             yaxis=yaxis,
         )
@@ -257,7 +276,7 @@ class Dotplot(Drawable):
 
         if self._rev:
             trace = UnionDict(
-                line=dict(color="red"),
+                line={"color": "red"},
                 xaxis=xaxis,
                 yaxis=yaxis,
             )
@@ -266,7 +285,7 @@ class Dotplot(Drawable):
 
         if self._aligned_coords:
             trace = UnionDict(
-                line=dict(color="black", dash="dot"),
+                line={"color": "black", "dash": "dot"},
                 xaxis=xaxis,
                 yaxis=yaxis,
             )

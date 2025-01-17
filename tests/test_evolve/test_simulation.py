@@ -28,16 +28,13 @@ def _est_simulations():
     lf = sm.make_likelihood_function(t)
     lf.set_constant_lengths()
     lf.set_name("True JC model")
-    print(lf)
     simulated = lf.simulate_alignment(sequence_length=length_of_align)
-    print(simulated)
 
     new_lf = sm.make_likelihood_function(t)
     new_lf = new_lf.set_alignment(simulated)
     new_lf.optimise(tolerance=1.0, show_progress=False)
     new_lf.optimise(local=True, show_progress=False)
     new_lf.set_name("True JC model")
-    print(new_lf)
 
     #########################
     #
@@ -55,13 +52,10 @@ def _est_simulations():
     lf.set_param_rule("kappa", is_constant=True, value=3.0, edge_name="d")
     lf.set_param_rule("kappa", is_constant=True, value=2.0, edge_name="edge.0")
     lf.set_name("True Kappa model")
-    print(lf)
     simulated = lf.simulate_alignment(sequence_length=length_of_align)
-    print(simulated)
     new_lf = sm.make_likelihood_function(t)
     new_lf.set_param_rule("kappa", is_independent=True)
     new_lf.set_alignment(simulated)
     new_lf.optimise(tolerance=1.0, show_progress=False)
     new_lf.optimise(local=True, show_progress=False)
     new_lf.set_name("Estimated Kappa model")
-    print(new_lf)

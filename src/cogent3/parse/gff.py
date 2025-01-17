@@ -8,22 +8,22 @@ import re
 import typing
 from abc import ABC
 
-from cogent3.util import warning as c3warn
 from cogent3.util.io import PathType, open_
 
 OptionalCallable = typing.Optional[typing.Callable]
-OptionalStrContainer = typing.Optional[typing.Union[str, typing.Sequence[str]]]
+OptionalStrContainer = typing.Optional[str | typing.Sequence[str]]
 OptionalIntList = typing.Optional[list[list[int]]]
 OptionalStr = typing.Optional[str]
 OptionalInt = typing.Optional[int]
-OptionalStrDict = typing.Optional[typing.Union[str, dict[str, str]]]
+OptionalStrDict = typing.Optional[str | dict[str, str]]
 OptionalBool = typing.Optional[bool]
 
 
 @functools.singledispatch
 def is_gff3(f) -> bool:
     """True if gff-version is 3"""
-    raise TypeError(f"unsupported type {type(f)}")
+    msg = f"unsupported type {type(f)}"
+    raise TypeError(msg)
 
 
 @is_gff3.register
@@ -69,22 +69,22 @@ class GffRecordABC(ABC):
 
     # attributes that need to be on the instance
     __slots__ = (
-        "seqid",
-        "source",
+        "attrs",
         "biotype",
+        "comments",
         "name",
         "parent_id",
+        "phase",
+        "score",
+        "seqid",
+        "source",
+        "spans",
         "start",
         "stop",
-        "spans",
         "strand",
-        "score",
-        "phase",
-        "attrs",
-        "comments",
     )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         name = self.__class__.__name__
         return (
             f"{name}(seqid={self.seqid!r}, name={self.name!r}, "
@@ -96,11 +96,11 @@ class GffRecordABC(ABC):
         item = item.lower()
         return getattr(self, _gff_item_map.get(item, item))
 
-    def __setitem__(self, key: str, value: typing.Any):
+    def __setitem__(self, key: str, value: typing.Any) -> None:
         key = key.lower()
         setattr(self, _gff_item_map.get(key, key), value)
 
-    def update(self, values: dict[str, typing.Any]):
+    def update(self, values: dict[str, typing.Any]) -> None:
         for key, value in values.items():
             self[key] = value
 
@@ -124,19 +124,19 @@ class GffRecord(GffRecordABC):
     # should be a dataclass, but in py 3.9 they don't support slots
     # so until then ...
     __slots__ = (
-        "seqid",
-        "source",
+        "attrs",
         "biotype",
+        "comments",
         "name",
         "parent_id",
+        "phase",
+        "score",
+        "seqid",
+        "source",
+        "spans",
         "start",
         "stop",
-        "spans",
         "strand",
-        "score",
-        "phase",
-        "attrs",
-        "comments",
     )
 
     def __init__(
@@ -154,7 +154,7 @@ class GffRecord(GffRecordABC):
         phase: OptionalInt = None,
         comments: OptionalStr = None,
         attrs: OptionalStrDict = None,
-    ):
+    ) -> None:
         self.seqid = seqid
         self.source = source
         self.biotype = biotype
@@ -172,7 +172,7 @@ class GffRecord(GffRecordABC):
 
 @functools.singledispatch
 def gff_parser(
-    f: typing.Union[PathType, typing.IO, OptionalStrContainer],
+    f: PathType | typing.IO | OptionalStrContainer,
     attribute_parser: OptionalCallable = None,
     seqids: OptionalStrContainer = None,
     gff3: OptionalBool = None,
@@ -264,7 +264,7 @@ def _(
 
 
 def _gff_parser(
-    f: typing.Union[PathType, typing.IO, OptionalStrContainer],
+    f: PathType | typing.IO | OptionalStrContainer,
     attribute_parser: OptionalCallable = None,
     seqids: OptionalStrContainer = None,
     gff3: bool = True,
@@ -351,7 +351,8 @@ def parse_attributes_gff3(attributes: str) -> dict:
 
 
 def merged_gff_records(
-    records: list[GffRecordABC], num_fake_ids: int
+    records: list[GffRecordABC],
+    num_fake_ids: int,
 ) -> tuple[dict[str, GffRecordABC], int]:
     """merges GFF records that have the same ID
 

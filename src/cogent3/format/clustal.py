@@ -3,9 +3,12 @@
 Writer for Clustal format.
 """
 
+import os
 from copy import copy
 
-from cogent3.core.alignment import SequenceCollection
+import cogent3
+
+_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
 
 
 def clustal_from_alignment(aln, wrap=None):
@@ -32,16 +35,16 @@ def clustal_from_alignment(aln, wrap=None):
         order = list(aln.keys())
         order.sort()
 
-    seqs = SequenceCollection(aln)
+    seqs = cogent3.make_unaligned_seqs(aln, moltype="text")
     clustal_list = ["CLUSTAL\n"]
 
     if seqs.is_ragged():
         raise ValueError(
             "Sequences in alignment are not all the same length."
-            + "Cannot generate Clustal format."
+            + "Cannot generate Clustal format.",
         )
 
-    aln_len = seqs.seq_len
+    aln_len = len(seqs.seqs[0])
     # Get all labels
     labels = copy(seqs.names)
 
@@ -51,16 +54,17 @@ def clustal_from_alignment(aln, wrap=None):
     max_spaces = label_max + 4
 
     # Get ordered seqs
-    ordered_seqs = [seqs.named_seqs[label] for label in order]
+    named_seqs = seqs.seqs if _NEW_TYPE else seqs.named_seqs
+    ordered_seqs = [named_seqs[label] for label in order]
 
     if wrap is not None:
         curr_ix = 0
         while curr_ix < aln_len:
             clustal_list.extend(
                 [
-                    f"{x}{' ' * (max_spaces - len(x))}{y[curr_ix:curr_ix + wrap]}"
-                    for x, y in zip(order, ordered_seqs)
-                ]
+                    f"{x}{' ' * (max_spaces - len(x))}{y[curr_ix : curr_ix + wrap]}"
+                    for x, y in zip(order, ordered_seqs, strict=False)
+                ],
             )
             clustal_list.append("")
             curr_ix += wrap
@@ -68,8 +72,8 @@ def clustal_from_alignment(aln, wrap=None):
         clustal_list.extend(
             [
                 f"{x}{' ' * (max_spaces - len(x))}{y}"
-                for x, y in zip(order, ordered_seqs)
-            ]
+                for x, y in zip(order, ordered_seqs, strict=False)
+            ],
         )
         clustal_list.append("")
 

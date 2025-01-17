@@ -1,3 +1,4 @@
+import contextlib
 import warnings
 from unittest import TestCase
 
@@ -5,7 +6,7 @@ import numpy
 from numpy import array, dot, empty
 from numpy.testing import assert_allclose
 
-from cogent3 import DNA, make_aligned_seqs, make_tree
+import cogent3
 from cogent3.evolve.ns_substitution_model import (
     DiscreteSubstitutionModel,
     General,
@@ -20,15 +21,14 @@ from cogent3.evolve.ns_substitution_model import (
 from cogent3.evolve.predicate import MotifChange
 from cogent3.evolve.substitution_model import TimeReversibleNucleotide
 
+DNA = cogent3.get_moltype("dna")
+
 
 def _make_likelihood(model, tree, results, is_discrete=False):
     """creates the likelihood function"""
     # discrete model fails to make a likelihood function if tree has
     # lengths
-    if is_discrete:
-        kwargs = {}
-    else:
-        kwargs = dict(expm="pade")
+    kwargs = {} if is_discrete else {"expm": "pade"}
 
     lf = model.make_likelihood_function(tree, optimise_motif_probs=True, **kwargs)
 
@@ -53,11 +53,11 @@ class MakeCachedObjects:
     def __init__(self, model, tree, seq_length, opt_args):
         """simulates an alignment under F81, all models should be the same"""
         self.lf = model.make_likelihood_function(tree)
-        self.lf.set_motif_probs(dict(A=0.1, C=0.2, G=0.3, T=0.4))
+        self.lf.set_motif_probs({"A": 0.1, "C": 0.2, "G": 0.3, "T": 0.4})
         self.aln = self.lf.simulate_alignment(seq_length)
-        self.results = dict(aln=self.aln)
-        self.discrete_tree = make_tree(tip_names=self.aln.names)
-        self.opt_args = {**opt_args, **{"show_progress": False}}
+        self.results = {"aln": self.aln}
+        self.discrete_tree = cogent3.make_tree(tip_names=self.aln.names)
+        self.opt_args = {**opt_args, "show_progress": False}
         self.tree = tree
 
     def fit_general(self, **kwargs):
@@ -123,12 +123,12 @@ class MakeCachedObjects:
 
     def __call__(self, obj_name, **kwargs):
         if obj_name not in self.results:
-            funcs = dict(
-                general=self.fit_general,
-                gen_stat=self.fit_gen_stat,
-                discrete=self.fit_discrete,
-                constructed_gen=self.fit_constructed_gen,
-            )
+            funcs = {
+                "general": self.fit_general,
+                "gen_stat": self.fit_gen_stat,
+                "discrete": self.fit_discrete,
+                "constructed_gen": self.fit_constructed_gen,
+            }
 
             funcs[obj_name](results=self.results, **kwargs)
         return self.results[obj_name]
@@ -137,8 +137,8 @@ class MakeCachedObjects:
 class NonStatMarkov(TestCase):
     """test discrete and general markov"""
 
-    tree = make_tree(treestring="(a:0.4,b:0.4,c:0.6)")
-    opt_args = dict(max_restarts=1, local=True, show_progress=False)
+    tree = cogent3.make_tree(treestring="(a:0.4,b:0.4,c:0.6)")
+    opt_args = {"max_restarts": 1, "local": True, "show_progress": False}
     make_cached = MakeCachedObjects(TimeReversibleNucleotide(), tree, 100000, opt_args)
 
     def _setup_discrete_from_general(self, gen_lf):
@@ -146,7 +146,7 @@ class NonStatMarkov(TestCase):
         dis_lf = _make_likelihood(
             DiscreteSubstitutionModel(DNA.alphabet),
             discrete_tree,
-            dict(aln=self.make_cached.aln),
+            {"aln": self.make_cached.aln},
             is_discrete=True,
         )
 
@@ -188,13 +188,13 @@ class NonStatMarkov(TestCase):
         gen_lf = self.make_cached("general", max_evaluations=25)
         gen_stat_lnL = gen_stat_lf.get_log_likelihood()
         gen_lnL = gen_lf.get_log_likelihood()
-        self.assertLess(gen_stat_lnL, gen_lnL)
+        assert gen_stat_lnL < gen_lnL
 
     def test_general_stationary_param_list(self):
         """general stationary returns parameter list"""
         gs = GeneralStationary(DNA.alphabet)
         params = gs.get_param_list()
-        self.assertTrue(params != [])
+        assert params != []
 
     def test_general_stationary_is_stationary(self):
         """should be stationary"""
@@ -214,18 +214,16 @@ class NonStatMarkov(TestCase):
         for edge in self.tree:
             psub = gen_lf.get_psub_for_edge(edge.name)
             pi = dot(mprobs, psub.array)
-            try:
+            with contextlib.suppress(AssertionError):
                 assert_allclose(mprobs, pi)
-            except AssertionError:
-                pass
 
     def test_strand_symmetric(self):
         """StrandSymmetric should fit a strand symmetric model"""
         warnings.filterwarnings("ignore", "Model not reversible", UserWarning)
         taxa = "Human", "Mouse", "Opossum"
-        aln = make_aligned_seqs(data=_aln, moltype=DNA)
+        aln = cogent3.make_aligned_seqs(data=_aln, moltype=DNA)
         aln = aln[2::3].no_degenerates()
-        tree = make_tree(tip_names=taxa)
+        tree = cogent3.make_tree(tip_names=taxa)
         model = StrandSymmetric(optimise_motif_probs=True)
         lf = model.make_likelihood_function(tree)
         lf.set_alignment(aln)
@@ -266,7 +264,7 @@ class NonStatMarkov(TestCase):
         ]
         sm = NonReversibleNucleotide(predicates=preds)
         got = sm.get_param_list()
-        self.assertEqual(got, ["A>C", "G>A"])
+        assert got == ["A>C", "G>A"]
 
     def test_nr_dinucleotide(self):
         """This is exercising a NonReversibleDinucleotide"""
@@ -277,7 +275,7 @@ class NonStatMarkov(TestCase):
         ]
         sm = NonReversibleDinucleotide(predicates=preds)
         got = sm.get_param_list()
-        self.assertEqual(got, ["A>C", "G>A", "CG>TG"])
+        assert got == ["A>C", "G>A", "CG>TG"]
 
     def test_nr_trinucleotide(self):
         """This is exercising a NonReversibleTrinucleotide"""
@@ -288,8 +286,8 @@ class NonStatMarkov(TestCase):
         ]
         sm = NonReversibleTrinucleotide(predicates=preds)
         got = sm.get_param_list()
-        self.assertEqual(got, ["A>C", "G>A", "CGA>TGA"])
-        self.assertEqual(len(sm.get_motifs()), 64)
+        assert got == ["A>C", "G>A", "CGA>TGA"]
+        assert len(sm.get_motifs()) == 64
 
     def test_nr_codon(self):
         """This is exercising a NonReversibleCodon"""
@@ -301,7 +299,7 @@ class NonStatMarkov(TestCase):
         ]
         sm = NonReversibleCodon(predicates=preds)
         got = sm.get_param_list()
-        self.assertEqual(got, ["A>C", "G>A", "CG>TG", "replacement"])
+        assert got == ["A>C", "G>A", "CG>TG", "replacement"]
 
     def test_nr_protein(self):
         """This is exercising a NonReversibleProtein"""
@@ -311,4 +309,4 @@ class NonStatMarkov(TestCase):
         ]
         sm = NonReversibleProtein(predicates=preds)
         got = sm.get_param_list()
-        self.assertEqual(got, ["D>K", "R>V"])
+        assert got == ["D>K", "R>V"]

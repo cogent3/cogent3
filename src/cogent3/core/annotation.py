@@ -1,27 +1,27 @@
-from typing import Iterable, Optional
+from collections.abc import Iterable
 
 from numpy import array
 
 from .location import FeatureMap
 
 
-# todo gah write docstrings!
+# TODO gah write docstrings!
 class Feature:
     """new style annotation, created on demand"""
 
     # we make the object immutable by making public attributes a property
     __slots__ = (
+        "_biotype",
+        "_id",
+        "_map",
+        "_name",
         "_parent",
         "_seqid",
-        "_map",
-        "_biotype",
-        "_name",
         "_serialisable",
-        "_id",
         "_strand",
     )
 
-    # todo gah implement a __new__ to trap args for serialisation purposes?
+    # TODO gah implement a __new__ to trap args for serialisation purposes?
     def __init__(
         self,
         *,
@@ -31,7 +31,7 @@ class Feature:
         biotype: str,
         name: str,
         strand: str,
-    ):
+    ) -> None:
         # _serialisable is used for creating derivative instances
         d = locals()
         exclude = ("self", "__class__", "kw")
@@ -74,7 +74,12 @@ class Feature:
     def name(self):
         return self._name
 
-    def get_slice(self, complete: bool = False, allow_gaps: bool = False):
+    def get_slice(
+        self,
+        complete: bool = False,
+        allow_gaps: bool = False,
+        apply_name: bool = True,
+    ):
         """
         The corresponding sequence fragment.
 
@@ -85,6 +90,8 @@ class Feature:
             raised. If False, gaps are removed.
         allow_gaps
             if on an alignment, includes the gap positions
+        apply_name
+            assigns self.name to the resulting seq.name
 
         Returns
         -------
@@ -101,17 +108,19 @@ class Feature:
             fmap = fmap.without_gaps()
         if not allow_gaps:
             result = self.parent[fmap]
-            return self._do_seq_slice(result)
+            return self._do_seq_slice(result, apply_name)
         # all slicing now requires start < end
         result = self.parent[fmap.start : fmap.end]
-        return self._do_seq_slice(result)
+        return self._do_seq_slice(result, apply_name)
 
-    def _do_seq_slice(self, result):
+    def _do_seq_slice(self, result, apply_name):
         if self.reversed:
             result = result.rc()
         if self.map.num_spans > 1:
             # db querying will be incorrect so make sure it can't be done
             result.annotation_db = None
+        if apply_name:
+            result.name = self.name
         return result
 
     def without_lost_spans(self):
@@ -119,14 +128,15 @@ class Feature:
         if self.map.complete:
             return self
         keep = self.map.nongap()
-        kwargs = {**self._serialisable, **dict(map=self.map[keep])}
+        kwargs = {**self._serialisable, "map": self.map[keep]}
         return self.__class__(**kwargs)
 
     def as_one_span(self):
         """returns a feature that preserves any gaps"""
         kwargs = {
             **self._serialisable,
-            **dict(map=self.map.get_covering_span(), name=f"one-span {self.name}"),
+            "map": self.map.get_covering_span(),
+            "name": f"one-span {self.name}",
         }
         return self.__class__(**kwargs)
 
@@ -134,18 +144,16 @@ class Feature:
         """returns new instance corresponding to disjoint of self coordinates"""
         kwargs = {
             **self._serialisable,
-            **{
-                "map": self.map.shadow(),
-                "biotype": f"not {self.biotype}",
-                "name": f"not {self.name}",
-            },
+            "map": self.map.shadow(),
+            "biotype": f"not {self.biotype}",
+            "name": f"not {self.name}",
         }
         return self.__class__(**kwargs)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.map)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         name = self.__class__.__name__
         txt = ", ".join(
             f"{attr}={getattr(self, attr)!r}"
@@ -162,7 +170,9 @@ class Feature:
         seqid = getattr(grandparent, "name", None) or f"from {self.seqid!r}"
         kwargs = {
             **self._serialisable,
-            **{"map": gmap[self.map], "parent": grandparent, "seqid": seqid},
+            "map": gmap[self.map],
+            "parent": grandparent,
+            "seqid": seqid,
         }
         return self.__class__(**kwargs)
 
@@ -171,7 +181,7 @@ class Feature:
         [(start1, end1), ...]"""
         return self.map.get_coordinates()
 
-    def get_children(self, biotype: Optional[str] = None, **kwargs):
+    def get_children(self, biotype: str | None = None, **kwargs):
         """generator returns sub-features of self optionally matching biotype"""
         offset = getattr(self.parent, "annotation_offset", 0)
         start = self.map.start + offset
@@ -235,7 +245,8 @@ class Feature:
         same_orientation = True
         for feature in features:
             if feature.parent is not self.parent:
-                raise ValueError("cannot merge annotations from different objects")
+                msg = "cannot merge annotations from different objects"
+                raise ValueError(msg)
 
             if same_orientation and feature.reversed != self.reversed:
                 same_orientation = False
@@ -259,13 +270,11 @@ class Feature:
         biotype = ", ".join(biotypes)
         kwargs = {
             **self._serialisable,
-            **{
-                "map": fmap,
-                "seqid": seqid,
-                "biotype": biotype,
-                "name": name,
-                "strand": strand,
-            },
+            "map": fmap,
+            "seqid": seqid,
+            "biotype": biotype,
+            "name": name,
+            "strand": strand,
         }
 
         return self.__class__(**kwargs)
@@ -280,9 +289,7 @@ class Feature:
         """returns"""
         result = {
             **self._serialisable,
-            **dict(
-                spans=self.map.get_coordinates(),
-            ),
+            "spans": self.map.get_coordinates(),
         }
         for key in ("map", "parent"):
             result.pop(key, None)

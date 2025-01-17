@@ -125,12 +125,13 @@ class TestPeriod(TestCase):
                 -1.0067146,
                 -1.0037422,
                 -0.68011283,
-            ]
+            ],
         )
         N = 100
         period = 10
         assert_allclose(
-            py_goertzel_inner(x, N, period), numba_goertzel_inner(x, N, period)
+            py_goertzel_inner(x, N, period),
+            numba_goertzel_inner(x, N, period),
         )
 
         ulim = 8
@@ -147,11 +148,11 @@ class TestPeriod(TestCase):
                 5.00000000e-01 - 8.66025404e-01j,
                 6.23489802e-01 - 7.81831482e-01j,
                 7.07106781e-01 - 7.07106781e-01j,
-            ]
+            ],
         )
         py_result = py_ipdft_inner(x, X, W, ulim, N)
         numba_result = numba_ipdft_inner(x, X, W, ulim, N)
-        for i, j in zip(py_result, numba_result):
+        for i, j in zip(py_result, numba_result, strict=False):
             assert_allclose(abs(i), abs(j), rtol=1e-6)
 
         x = array(
@@ -256,14 +257,14 @@ class TestPeriod(TestCase):
                 -0.99363909,
                 -1.02963821,
                 -0.64249996,
-            ]
+            ],
         )
         py_xc = zeros(2 * len(x) - 1, dtype=float64)
         numba_xc = py_xc.copy()
         N = 100
         py_autocorr_inner(x, py_xc, N)
         numba_autocorr_inner(x, numba_xc, N)
-        for i, j in zip(py_xc, numba_xc):
+        for i, j in zip(py_xc, numba_xc, strict=False):
             assert_allclose(i, j)
 
     def test_autocorr(self):
@@ -276,7 +277,7 @@ class TestPeriod(TestCase):
         auto_x, auto_periods = auto_corr(self.sig, llim=2, ulim=50)
         max_idx = list(auto_x).index(max(auto_x))
         auto_p = auto_periods[max_idx]
-        self.assertEqual(auto_p, self.p)
+        assert auto_p == self.p
 
     def test_dft(self):
         """correctly compute discrete fourier transform"""
@@ -284,7 +285,7 @@ class TestPeriod(TestCase):
         dft_x = abs(dft_x)
         max_idx = list(dft_x).index(max(dft_x))
         dft_p = dft_periods[max_idx]
-        self.assertEqual(int(dft_p), self.p)
+        assert int(dft_p) == self.p
 
     def test_ipdft(self):
         """correctly compute integer discrete fourier transform"""
@@ -301,8 +302,8 @@ class TestPeriod(TestCase):
                     1.5 + 0.866j,
                     0.302 + 0.627j,
                     0,
-                ]
-            )
+                ],
+            ),
         )
         X = abs(X)
         assert_almost_equal(X, exp_X, decimal=4)
@@ -311,7 +312,7 @@ class TestPeriod(TestCase):
         ipdft_x = abs(ipdft_x)
         max_idx = list(ipdft_x).index(max(ipdft_x))
         ipdft_p = ipdft_periods[max_idx]
-        self.assertEqual(ipdft_p, self.p)
+        assert ipdft_p == self.p
 
     def test_goertzel(self):
         """goertzel and ipdft should be the same"""
@@ -324,7 +325,7 @@ class TestPeriod(TestCase):
         hybrid_x = abs(hybrid_x)
         max_idx = list(hybrid_x).index(max(hybrid_x))
         hybrid_p = hybrid_periods[max_idx]
-        self.assertEqual(hybrid_p, self.p)
+        assert hybrid_p == self.p
 
     def test_hybrid_returns_all(self):
         """correctly returns hybrid, ipdft and autocorr statistics"""
@@ -332,7 +333,10 @@ class TestPeriod(TestCase):
         auto_x, auto_periods = auto_corr(self.sig, llim=2, ulim=50)
         hybrid_x, hybrid_periods = hybrid(self.sig, llim=None, ulim=50)
         hybrid_ipdft_autocorr_stats, hybrid_periods = hybrid(
-            self.sig, llim=None, ulim=50, return_all=True
+            self.sig,
+            llim=None,
+            ulim=50,
+            return_all=True,
         )
         assert_equal(hybrid_ipdft_autocorr_stats[0], hybrid_x)
         assert_equal(hybrid_ipdft_autocorr_stats[1], ipdft_pwr)
@@ -342,8 +346,11 @@ class TestPeriod(TestCase):
         auto_x, auto_periods = auto_corr(self.sig, llim=10, ulim=10)
         hybrid_x, hybrid_periods = hybrid(self.sig, llim=10, ulim=10)
         hybrid_ipdft_autocorr_stats, hybrid_periods = hybrid(
-            self.sig, llim=10, ulim=10, return_all=True
+            self.sig,
+            llim=10,
+            ulim=10,
+            return_all=True,
         )
-        self.assertEqual(hybrid_ipdft_autocorr_stats[0], hybrid_x)
-        self.assertEqual(hybrid_ipdft_autocorr_stats[1], ipdft_pwr)
-        self.assertEqual(hybrid_ipdft_autocorr_stats[2], auto_x)
+        assert hybrid_ipdft_autocorr_stats[0] == hybrid_x
+        assert hybrid_ipdft_autocorr_stats[1] == ipdft_pwr
+        assert hybrid_ipdft_autocorr_stats[2] == auto_x

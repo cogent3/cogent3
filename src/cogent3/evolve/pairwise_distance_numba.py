@@ -18,8 +18,8 @@ if typing.TYPE_CHECKING:
 # fills in a diversity matrix from sequences of integers
 
 
-def _is_nucleic(moltype):
-    # todo delete when new_type alignments and moltypes are the norm
+def _is_nucleic(moltype) -> bool:
+    # TODO delete when new_type alignments and moltypes are the norm
     try:
         _ = moltype.complement("A")
     except (ValueError, new_moltype.MolTypeError):
@@ -106,22 +106,25 @@ def jc69_dist_matrix(array_seqs, num_states, parallel=True):  # pragma: no cover
     zero = numpy.float32(0.0)
     frac = numpy.float32(num_states / (num_states - 1))
     dist_scale = numpy.float32((num_states - 1) / -num_states)
+    num_pairs = n_seqs * (n_seqs - 1) // 2
+    # loop is parallelised
+    for index in numba.prange(num_pairs):
+        i = int((1 + (1 + 8 * index) ** 0.5) / 2)
+        j = index - i * (i - 1) // 2
+        num_diffs, num_valid = num_diffs_and_valid(
+            array_seqs[i],
+            array_seqs[j],
+            num_states,
+        )
 
-    # outer loop is parallelised
-    for i in numba.prange(n_seqs - 1):
-        for j in range(i + 1, n_seqs):
-            num_diffs, num_valid = num_diffs_and_valid(
-                array_seqs[i], array_seqs[j], num_states
-            )
-
-            if num_valid == 0:
-                d = nan
-            elif num_diffs == 0:
-                d = zero
-            else:
-                p = num_diffs / num_valid
-                d = nan if p >= 0.75 else dist_scale * numpy.log(1.0 - frac * p)
-            dists[i, j] = dists[j, i] = d
+        if num_valid == 0:
+            d = nan
+        elif num_diffs == 0:
+            d = zero
+        else:
+            p = num_diffs / num_valid
+            d = nan if p >= 0.75 else dist_scale * numpy.log(1.0 - frac * p)
+        dists[i, j] = dists[j, i] = d
 
     if not parallel:
         # restore original number of threads
@@ -130,7 +133,9 @@ def jc69_dist_matrix(array_seqs, num_states, parallel=True):  # pragma: no cover
 
 
 def jc69(
-    aln: "Alignment", invalid_raises: bool = False, parallel: bool = False
+    aln: "Alignment",
+    invalid_raises: bool = False,
+    parallel: bool = False,
 ) -> DistanceMatrix:
     """returns JC69 pairwise distances for an alignment
 
@@ -147,7 +152,8 @@ def jc69(
     num_states = len(aln.moltype.alphabet)
     mat = jc69_dist_matrix(aln.array_seqs, num_states, parallel=parallel)
     if invalid_raises and numpy.isnan(mat).any():
-        raise ArithmeticError("nan's in matrix")
+        msg = "nan's in matrix"
+        raise ArithmeticError(msg)
     return DistanceMatrix.from_array_names(mat, aln.names)
 
 
@@ -205,35 +211,40 @@ def tn93_dist_matrix(
 
     # making working matrices for each thread
     matrices = numpy.zeros(
-        (numba.get_num_threads(), num_states, num_states), dtype=numpy.int32
+        (numba.get_num_threads(), num_states, num_states),
+        dtype=numpy.int32,
     )
-    # outer parallel loop
-    for i in numba.prange(n_seqs - 1):
+    num_pairs = n_seqs * (n_seqs - 1) // 2
+    # loop is parallelised
+    for index in numba.prange(num_pairs):
+        i = int((1 + (1 + 8 * index) ** 0.5) / 2)
+        j = index - i * (i - 1) // 2
         # get a working matrix for this thread
         div_matrix = matrices[numba.get_thread_id()]
-        for j in range(i + 1, n_seqs):
-            div_matrix.fill(0)
-            div_matrix, num_diffs, num_valid = _get_matrix_and_counts(
-                div_matrix, array_seqs[i], array_seqs[j]
+        div_matrix.fill(0)
+        div_matrix, num_diffs, num_valid = _get_matrix_and_counts(
+            div_matrix,
+            array_seqs[i],
+            array_seqs[j],
+        )
+        if num_valid == 0:
+            d = nan
+        elif num_diffs == 0:
+            d = zero
+        else:
+            d = _calc_tn93_dist(
+                div_matrix.flatten(),
+                pur_coords,
+                pyr_coords,
+                tv_coords,
+                pur_freqs,
+                pyr_freqs,
+                coeff1,
+                coeff2,
+                coeff3,
+                num_valid,
             )
-            if num_valid == 0:
-                d = nan
-            elif num_diffs == 0:
-                d = zero
-            else:
-                d = _calc_tn93_dist(
-                    div_matrix.flatten(),
-                    pur_coords,
-                    pyr_coords,
-                    tv_coords,
-                    pur_freqs,
-                    pyr_freqs,
-                    coeff1,
-                    coeff2,
-                    coeff3,
-                    num_valid,
-                )
-            dists[i, j] = dists[j, i] = d
+        dists[i, j] = dists[j, i] = d
 
     if not parallel:
         # restore original number of threads
@@ -268,13 +279,14 @@ def _count_states(array_seqs, num_states, parallel=True):
 def _get_symmetric_within(indices: numpy.ndarray) -> numpy.ndarray:
     dims = 4, 4
     coords = numpy.array(
-        [(i, j) for i, j in itertools.product(indices, indices) if i != j]
+        [(i, j) for i, j in itertools.product(indices, indices) if i != j],
     )
     return numpy.ravel_multi_index(coords.T, dims=dims)
 
 
 def _get_symmetric_between(
-    indices1: numpy.ndarray, indices2: numpy.ndarray
+    indices1: numpy.ndarray,
+    indices2: numpy.ndarray,
 ) -> numpy.ndarray:
     # coordinates
     dims = 4, 4
@@ -283,14 +295,16 @@ def _get_symmetric_between(
             itertools.chain(
                 itertools.product(indices1, indices2),
                 itertools.product(indices2, indices1),
-            )
-        )
+            ),
+        ),
     )
     return numpy.ravel_multi_index(coords.T, dims=dims)
 
 
 def tn93(
-    aln: "Alignment", invalid_raises: bool = False, parallel: bool = False
+    aln: "Alignment",
+    invalid_raises: bool = False,
+    parallel: bool = False,
 ) -> DistanceMatrix:
     """returns TN93 pairwise distances for an alignment
 
@@ -304,8 +318,9 @@ def tn93(
         If True, uses parallel processing via numba.
     """
     if not _is_nucleic(aln.moltype):
+        msg = f"tn93 distance only works with nucleotide alignments, not {aln.moltype}"
         raise new_moltype.MolTypeError(
-            f"tn93 distance only works with nucleotide alignments, not {aln.moltype}"
+            msg,
         )
 
     alpha = aln.moltype.alphabet
@@ -348,7 +363,8 @@ def tn93(
         parallel=parallel,
     )
     if invalid_raises and numpy.isnan(mat).any():
-        raise ArithmeticError("nan's in matrix")
+        msg = "nan's in matrix"
+        raise ArithmeticError(msg)
     return DistanceMatrix.from_array_names(mat, aln.names)
 
 
@@ -388,27 +404,32 @@ def paralinear_distance_matrix(
 
     # making working matrices for each thread
     matrices = numpy.zeros(
-        (numba.get_num_threads(), num_states, num_states), dtype=numpy.int32
+        (numba.get_num_threads(), num_states, num_states),
+        dtype=numpy.int32,
     )
-    # outer parallel loop
-    for i in numba.prange(n_seqs - 1):
+    num_pairs = n_seqs * (n_seqs - 1) // 2
+    # loop is parallelised
+    for index in numba.prange(num_pairs):
+        i = int((1 + (1 + 8 * index) ** 0.5) / 2)
+        j = index - i * (i - 1) // 2
         # get a working matrix for this thread
         div_matrix = matrices[numba.get_thread_id()]
-        for j in range(i + 1, n_seqs):
-            div_matrix.fill(0)
-            div_matrix, num_diffs, num_valid = _get_matrix_and_counts(
-                div_matrix, array_seqs[i], array_seqs[j]
+        div_matrix.fill(0)
+        div_matrix, num_diffs, num_valid = _get_matrix_and_counts(
+            div_matrix,
+            array_seqs[i],
+            array_seqs[j],
+        )
+        if num_valid == 0:
+            d = nan
+        elif num_diffs == 0:
+            d = zero
+        else:
+            d = _paralinear(
+                div_matrix,
+                num_states,
             )
-            if num_valid == 0:
-                d = nan
-            elif num_diffs == 0:
-                d = zero
-            else:
-                d = _paralinear(
-                    div_matrix,
-                    num_states,
-                )
-            dists[i, j] = dists[j, i] = d
+        dists[i, j] = dists[j, i] = d
 
     if not parallel:
         # restore original number of threads
@@ -417,7 +438,9 @@ def paralinear_distance_matrix(
 
 
 def paralinear(
-    aln: "Alignment", invalid_raises: bool = False, parallel: bool = False
+    aln: "Alignment",
+    invalid_raises: bool = False,
+    parallel: bool = False,
 ) -> DistanceMatrix:
     """returns matrix of pairwise paralinear distances
 
@@ -435,21 +458,26 @@ def paralinear(
     This is limited to 4-state alphabets for now.
     """
     if not _is_nucleic(aln.moltype):
+        msg = f"paralinear distance only works with nucleotide alignments, not {aln.moltype}"
         raise new_moltype.MolTypeError(
-            f"paralinear distance only works with nucleotide alignments, not {aln.moltype}"
+            msg,
         )
 
     num_states = len(aln.moltype.alphabet)
 
     mat = paralinear_distance_matrix(aln.array_seqs, num_states, parallel=parallel)
     if invalid_raises and numpy.isnan(mat).any():
-        raise ArithmeticError("nan's in matrix")
+        msg = "nan's in matrix"
+        raise ArithmeticError(msg)
     return DistanceMatrix.from_array_names(mat, aln.names)
 
 
 @numba.jit(parallel=True)
 def simple_distance_matrix(
-    array_seqs, num_states, parallel=True, hamming=True
+    array_seqs,
+    num_states,
+    parallel=True,
+    hamming=True,
 ):  # pragma: no cover
     num_threads = numba.get_num_threads()
     if not parallel:
@@ -484,7 +512,10 @@ def hamming(aln: "Alignment", parallel: bool = False, **kwargs) -> DistanceMatri
     """
     num_states = len(aln.moltype.alphabet)
     mat = simple_distance_matrix(
-        aln.array_seqs, num_states, parallel=parallel, hamming=True
+        aln.array_seqs,
+        num_states,
+        parallel=parallel,
+        hamming=True,
     )
     return DistanceMatrix.from_array_names(mat, aln.names)
 
@@ -501,7 +532,10 @@ def pdist(aln: "Alignment", parallel: bool = False, **kwargs) -> DistanceMatrix:
     """
     num_states = len(aln.moltype.alphabet)
     mat = simple_distance_matrix(
-        aln.array_seqs, num_states, parallel=parallel, hamming=False
+        aln.array_seqs,
+        num_states,
+        parallel=parallel,
+        hamming=False,
     )
     return DistanceMatrix.from_array_names(mat, aln.names)
 
@@ -521,6 +555,7 @@ def get_distance_calculator(name):
     name is converted to lower case"""
     name = name.lower()
     if name not in _calculators:
-        raise ValueError(f'Unknown pairwise distance calculator "{name}"')
+        msg = f'Unknown pairwise distance calculator "{name}"'
+        raise ValueError(msg)
 
     return _calculators[name]

@@ -37,8 +37,7 @@ def center_of_mass(coordinates, weights=-1):
     """
     if isinstance(weights, int):
         return center_of_mass_one_array(coordinates, weights)
-    else:
-        return center_of_mass_two_array(coordinates, weights)
+    return center_of_mass_two_array(coordinates, weights)
 
 
 def center_of_mass_one_array(data, weight_idx=-1):
@@ -116,9 +115,11 @@ def alr(x, col=-1):
          alr-transformed data projected into R^(n-1)."""
     x = x.squeeze()
     if x.ndim != 1:
-        raise ValueError("Input array must be 1D")
+        msg = "Input array must be 1D"
+        raise ValueError(msg)
     if any(x <= 0):
-        raise ValueError("Cannot have negative or zero proportions")
+        msg = "Cannot have negative or zero proportions"
+        raise ValueError(msg)
     logx = log(x)
     logx_short = delete(logx, col)
     return (logx_short - logx[col]).squeeze()
@@ -138,9 +139,11 @@ def clr(x):
 
     x = x.squeeze()
     if x.ndim != 1:
-        raise ValueError("Input array must be 1D")
+        msg = "Input array must be 1D"
+        raise ValueError(msg)
     if any(x <= 0):
-        raise ValueError("Cannot have negative or zero proportions")
+        msg = "Cannot have negative or zero proportions"
+        raise ValueError(msg)
     logx = log(x)
     gx = mean(logx)
     return (logx - gx).squeeze()
@@ -160,7 +163,8 @@ def clr_inv(x):
 
     x = x.squeeze()
     if x.ndim != 1:
-        raise ValueError("Input array must be 1D")
+        msg = "Input array must be 1D"
+        raise ValueError(msg)
     ex = exp(x)
     sumexp = sum(ex)
     return ex / sumexp
@@ -183,11 +187,9 @@ def alr_inv(x, col=-1):
          A composition (sum = 1)."""
     x = x.squeeze()
     if x.ndim != 1:
-        raise ValueError("Input array must be 1D")
-    if col == -1:
-        x = append(x, 0)
-    else:
-        x = insert(x, col, 0)
+        msg = "Input array must be 1D"
+        raise ValueError(msg)
+    x = append(x, 0) if col == -1 else insert(x, col, 0)
     ex = exp(x)
     sumexp = sum(ex)
     return ex / sumexp
@@ -205,14 +207,16 @@ def aitchison_distance(x, y):
     numpy.float64
          A real value of this distance metric >= 0."""
     if any(x <= 0):
-        raise ValueError(
-            "Cannot have negative \
+        msg = "Cannot have negative \
                 or zero proportions - parameter 0."
+        raise ValueError(
+            msg,
         )
     if any(y <= 0):
-        raise ValueError(
-            "Cannot have negative \
+        msg = "Cannot have negative \
                 or zero proportions - parameter 1."
+        raise ValueError(
+            msg,
         )
     return linalg.norm(clr(x / y))
 
@@ -233,10 +237,12 @@ def multiplicative_replacement(x, eps=0.01):
     numpy.ndarray
          Composition with no zero proportions."""
     if sum(x) == 0:
-        raise ValueError("Input vector cannot total zero.")
+        msg = "Input vector cannot total zero."
+        raise ValueError(msg)
     delta = min(x[nonzero(x)]) * eps
     if delta < 0:
-        raise ValueError("Cannot have negative proportions.")
+        msg = "Cannot have negative proportions."
+        raise ValueError(msg)
     shape_zeros = x < delta
     y = x + shape_zeros * delta
     return y / sum(y)

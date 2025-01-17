@@ -34,7 +34,10 @@ def test_function_deprecated_args_docstring():
     assert changed.__doc__ == "This is a test function"
 
 
-@pytest.mark.parametrize("kwargs", (dict(x=5, y=3), dict(a=5, y=3), dict(x=5, b=3)))
+@pytest.mark.parametrize(
+    "kwargs",
+    [{"x": 5, "y": 3}, {"a": 5, "y": 3}, {"x": 5, "b": 3}],
+)
 def test_function_deprecated_args_warn(kwargs):
     # Example target function to be decorated
     @deprecated_args(
@@ -110,7 +113,10 @@ def test_method_deprecated_args_docstring():
     assert foo_instance.changed.__doc__ == "This is a test function"
 
 
-@pytest.mark.parametrize("kwargs", (dict(x=5, y=3), dict(a=5, y=3), dict(x=5, b=3)))
+@pytest.mark.parametrize(
+    "kwargs",
+    [{"x": 5, "y": 3}, {"a": 5, "y": 3}, {"x": 5, "b": 3}],
+)
 def test_method_deprecated_args_warn(kwargs):
     with pytest.deprecated_call():
         foo().changed(**kwargs)  # pylint: disable=no-value-for-parameter
@@ -168,13 +174,13 @@ def cubed(v):
     return v * v
 
 
-@pytest.mark.parametrize("func", (foo2().old_meth, foo2().squared, old_func, cubed))
+@pytest.mark.parametrize("func", [foo2().old_meth, foo2().squared, old_func, cubed])
 def test_deprecated_callable_warn(func):
     with pytest.deprecated_call():
         func(2)
 
 
-@pytest.mark.parametrize("func", (cubed, old_func))
+@pytest.mark.parametrize("func", [cubed, old_func])
 def test_method_deprecated_function_pickling(recwarn, func):
     # using pytest recwarn fixture here since the filterwarning decorator
     # does not seem to play nice with parametrize
@@ -205,7 +211,8 @@ def test_method_deprecated_method_pickling(recwarn):
 
 
 @pytest.mark.parametrize(
-    "func,_type", ((foo2().old_meth, "method"), (cubed, "function"))
+    ("func", "_type"),
+    [(foo2().old_meth, "method"), (cubed, "function")],
 )
 def test_deprecated_callable_resolves_type(recwarn, func, _type):
     func(2)
@@ -216,13 +223,16 @@ def test_function_deprecated_args_deprecated_callable_chained_decorators(recwarn
     @deprecated_args("2023.6", "x is not descriptive", old_new=[("x", "a")])
     @deprecated_args("2023.6", "b is no longer required", discontinued=["b"])
     @deprecated_callable(
-        "2023.6", "Improved change function", new="changed2", is_discontinued=True
+        "2023.6",
+        "Improved change function",
+        new="changed2",
+        is_discontinued=True,
     )
-    def changed(a: int, b: int) -> int:
-        return a + b
+    def changed(a: int) -> int:
+        return a
 
     got = changed(x=5, b=3)  # pylint: disable=no-value-for-parameter
-    assert got == 8
+    assert got == 5
     warnings = [warning.message.args[0] for warning in recwarn.list]
     assert any("argument x which will be removed" in warning for warning in warnings)
     assert any("argument b is discontinued" in warning for warning in warnings)

@@ -30,8 +30,8 @@ class ParallelTests(TestCase):
         result = parallel.map(get_process_value, index, max_workers=None, use_mpi=False)
         result_processes = [v[0] for v in result]
         result_values = [v[1] for v in result]
-        self.assertEqual(sorted(list(result_values)), index)
-        self.assertEqual(len(set(result_processes)), max_worker_count)
+        assert sorted(result_values) == index
+        assert len(set(result_processes)) == max_worker_count
 
     def test_random_seeding(self):
         """Random seed should be set every function call"""
@@ -41,8 +41,8 @@ class ParallelTests(TestCase):
         index2 = [2, 2, 2, 2, 2, 2, 2, 2, 2]
         result1 = parallel.map(get_ranint, index1, max_workers=1, use_mpi=False)
         result2 = parallel.map(get_ranint, index2, max_workers=1, use_mpi=False)
-        self.assertEqual(result1[0], result2[0])
-        self.assertNotEqual(result1, result2)
+        assert result1[0] == result2[0]
+        assert result1 != result2
 
 
 def test_is_master_process():

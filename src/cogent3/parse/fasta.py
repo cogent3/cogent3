@@ -13,7 +13,7 @@ import numpy
 
 import cogent3
 from cogent3.core.info import Info
-from cogent3.core.moltype import ASCII, BYTES
+from cogent3.core.moltype import BYTES
 from cogent3.parse.record import RecordError
 from cogent3.parse.record_finder import LabeledRecordFinder
 from cogent3.util.io import is_url, open_
@@ -50,7 +50,7 @@ def is_blank(x):
 
 FastaFinder = LabeledRecordFinder(is_fasta_label, ignore=is_blank_or_comment)
 
-PathOrIterableType = typing.Union[os.PathLike, typing.List[str], typing.Tuple[str]]
+PathOrIterableType = typing.Union[os.PathLike, list[str], tuple[str]]
 
 
 @singledispatch
@@ -70,8 +70,10 @@ def _(data: os.PathLike):
 
 
 def _faster_parser(
-    data: typing.Iterable[str], label_to_name: RenamerType, label_char: str
-) -> typing.Iterable[typing.Tuple[str, str]]:
+    data: typing.Iterable[str],
+    label_to_name: RenamerType,
+    label_char: str,
+) -> typing.Iterable[tuple[str, str]]:
     label = None
     seq = []
     for line in data:
@@ -93,8 +95,10 @@ def _faster_parser(
 
 
 def _strict_parser(
-    data: typing.Iterable[str], label_to_name: RenamerType, label_char: str
-) -> typing.Iterable[typing.Tuple[str, str]]:
+    data: typing.Iterable[str],
+    label_to_name: RenamerType,
+    label_char: str,
+) -> typing.Iterable[tuple[str, str]]:
     seq = []
     label = None
     for line in data:
@@ -105,10 +109,12 @@ def _strict_parser(
         if line[0] in label_char:
             if label is not None:
                 if not seq:
-                    raise RecordError(f"{label} has no data")
+                    msg = f"{label} has no data"
+                    raise RecordError(msg)
                 yield label_to_name(label), _white_space.sub("", "".join(seq))
             elif seq:
-                raise RecordError("missing a label")
+                msg = "missing a label"
+                raise RecordError(msg)
 
             label = line[1:].strip()
             seq = []
@@ -116,9 +122,11 @@ def _strict_parser(
             seq.append(line.strip())
 
     if not seq:
-        raise RecordError(f"{label} has no data")
+        msg = f"{label} has no data"
+        raise RecordError(msg)
     if label is None:
-        raise RecordError("missing a label")
+        msg = "missing a label"
+        raise RecordError(msg)
 
     yield label_to_name(label), _white_space.sub("", "".join(seq))
 
@@ -128,7 +136,7 @@ def MinimalFastaParser(
     strict: bool = True,
     label_to_name: RenamerType = str,
     label_characters: str = ">",
-) -> typing.Iterable[typing.Tuple[str, str]]:
+) -> typing.Iterable[tuple[str, str]]:
     """
     Yields successive sequences from infile as (label, seq) tuples.
 
@@ -160,7 +168,7 @@ def MinimalGdeParser(infile, strict=True, label_to_name=str):
     return MinimalFastaParser(infile, strict, label_to_name, label_characters="%#")
 
 
-def xmfa_label_to_name(line):
+def xmfa_label_to_name(line) -> str:
     (loc, strand, contig) = line.split()
     (sp, loc) = loc.split(":")
     (lo, hi) = [int(x) for x in loc.split("-")]
@@ -217,8 +225,9 @@ def FastaParser(infile, seq_maker=None, info_maker=MinimalInfo, strict=True):
                 name, info = info_maker(label)  # will raise exception if bad
                 yield name, seq_maker(seq, name=name, info=info)
             except Exception:
+                msg = f"Sequence construction failed on record with label {label}"
                 raise RecordError(
-                    f"Sequence construction failed on record with label {label}"
+                    msg,
                 )
         else:
             # not strict: just skip any record that raises an exception
@@ -243,7 +252,8 @@ def NcbiFastaLabelParser(line):
     try:
         ignore, gi, db, db_ref, description = list(map(strip, line.split("|", 4)))
     except ValueError:  # probably got wrong value
-        raise RecordError(f"Unable to parse label line {line}")
+        msg = f"Unable to parse label line {line}"
+        raise RecordError(msg)
     info.GI = gi
     info[NcbiLabels[db]] = db_ref
     info.Description = description
@@ -252,7 +262,10 @@ def NcbiFastaLabelParser(line):
 
 def NcbiFastaParser(infile, seq_maker=None, strict=True):
     return FastaParser(
-        infile, seq_maker=seq_maker, info_maker=NcbiFastaLabelParser, strict=strict
+        infile,
+        seq_maker=seq_maker,
+        info_maker=NcbiFastaLabelParser,
+        strict=strict,
     )
 
 
@@ -298,7 +311,7 @@ def LabelParser(display_template, field_formatters, split_with=":", DEBUG=False)
 
     """
     indexed = False
-    for index, field, converter in field_formatters:
+    for _index, field, _converter in field_formatters:
         if field in display_template:
             indexed = True
     assert indexed, f"display_template [{display_template}] does not use a field name"
@@ -308,15 +321,16 @@ def LabelParser(display_template, field_formatters, split_with=":", DEBUG=False)
         label = [label, label[1:]][label[0] == ">"]
         label = sep.split(label)
         if DEBUG:
-            print(label)
+            pass
         info = Info()
         for index, name, converter in field_formatters:
             if isinstance(converter, Callable):
                 try:
                     info[name] = converter(label[index])
                 except IndexError:
+                    msg = f"parsing label {label} failed for property {name} at index {index}"
                     raise IndexError(
-                        f"parsing label {label} failed for property {name} at index {index}"
+                        msg,
                     )
             else:
                 info[name] = label[index]
@@ -330,7 +344,7 @@ def GroupFastaParser(
     label_to_name,
     group_key="Group",
     aligned=False,
-    moltype=ASCII,
+    moltype="text",
     done_groups=None,
     DEBUG=False,
 ):
@@ -352,15 +366,15 @@ def GroupFastaParser(
         series of group keys to be excluded
 
     """
-
+    moltype = cogent3.get_moltype(moltype)
     done_groups = [[], done_groups][done_groups is not None]
     parser = MinimalFastaParser(data, label_to_name=label_to_name)
     group_ids = []
     current_collection = {}
     for label, seq in parser:
-        seq = moltype.make_seq(seq, name=label, info=label.info)
+        seq = moltype.make_seq(seq=seq, name=label, info=label.info)
         if DEBUG:
-            print(f"{label=} {label=!r}")
+            pass
         if not group_ids:
             current_collection[label] = seq
             group_ids.append(label.info[group_key])
@@ -371,9 +385,7 @@ def GroupFastaParser(
             if group_ids[-1] not in done_groups:
                 info = Info(Group=group_ids[-1])
                 if DEBUG:
-                    print(
-                        "GroupParser collection keys", list(current_collection.keys())
-                    )
+                    pass
                 seqs = cogent3.make_aligned_seqs(current_collection, moltype=moltype)
                 seqs.info = info
                 yield seqs
@@ -397,8 +409,10 @@ class minimal_converter:
 
 @singledispatch
 def iter_fasta_records(
-    data, converter: OptConverterType = None, label_to_name: RenamerType = str
-) -> typing.Iterable[typing.Tuple[str, OutTypes]]:
+    data,
+    converter: OptConverterType = None,
+    label_to_name: RenamerType = str,
+) -> typing.Iterable[tuple[str, OutTypes]]:
     """generator returning sequence labels and sequences converted bytes from a fasta file
 
     Parameters
@@ -415,13 +429,16 @@ def iter_fasta_records(
     -------
     the sequence label as a string and the sequence as transformed by converter
     """
-    raise TypeError(f"iter_fasta_records not implemented for {type(data)}")
+    msg = f"iter_fasta_records not implemented for {type(data)}"
+    raise TypeError(msg)
 
 
 @iter_fasta_records.register
 def _(
-    data: bytes, converter: OptConverterType = None, label_to_name: RenamerType = str
-) -> typing.Iterable[typing.Tuple[str, OutTypes]]:
+    data: bytes,
+    converter: OptConverterType = None,
+    label_to_name: RenamerType = str,
+) -> typing.Iterable[tuple[str, OutTypes]]:
     if converter is None:
         converter = minimal_converter()
 
@@ -446,8 +463,9 @@ def _(data: str, converter: OptConverterType = None, label_to_name: RenamerType 
         try:
             os.stat(data)
         except OSError:
+            msg = "data is a string but not a file path, directly provided data must be bytes"
             raise TypeError(
-                "data is a string but not a file path, directly provided data must be bytes"
+                msg,
             )
 
     with open_(data, mode="rb") as infile:

@@ -1,6 +1,8 @@
+import contextlib
 import functools
 from collections import defaultdict
 from math import floor
+from typing import NoReturn
 
 import numpy as np
 
@@ -13,7 +15,7 @@ from cogent3.util.union_dict import UnionDict
 class TreeGeometryBase(PhyloNode):
     """base class that computes geometric coordinates for display"""
 
-    def __init__(self, tree=None, length_attr="length", *args, **kwargs):
+    def __init__(self, tree=None, length_attr="length", *args, **kwargs) -> None:
         """
         Parameters
         ----------
@@ -24,12 +26,15 @@ class TreeGeometryBase(PhyloNode):
         if tree is not None:
             children = [type(self)(child, *args, **kwargs) for child in tree.children]
             PhyloNode.__init__(
-                self, params=tree.params.copy(), children=children, name=tree.name
+                self,
+                params=tree.params.copy(),
+                children=children,
+                name=tree.name,
             )
         else:
             PhyloNode.__init__(self, **kwargs)
 
-        # todo do we need to validate the length_attr key exists?
+        # TODO do we need to validate the length_attr key exists?
         self._length = length_attr
         self._node_space = 1.3
         self._start = None
@@ -44,7 +49,7 @@ class TreeGeometryBase(PhyloNode):
         self._theta = 0
         self._num_tips = 1
 
-    def propagate_properties(self):
+    def propagate_properties(self) -> None:
         self._init_length_depth_attr()
         self._init_tip_ranks()
 
@@ -57,14 +62,14 @@ class TreeGeometryBase(PhyloNode):
             self.params["max_child_depth"] = max(depths)
         return self.params["max_child_depth"]
 
-    def _init_tip_ranks(self):
+    def _init_tip_ranks(self) -> None:
         tips = self.tips()
         num_tips = len(tips)
         for index, tip in enumerate(tips):
             tip._tip_rank = index
             tip._y = ((num_tips - 1) / 2 - index) * self.node_space
 
-    def _init_length_depth_attr(self):
+    def _init_length_depth_attr(self) -> None:
         """check it exists, if not, creates with default value of 1"""
         # we compute cumulative lengths first with sorting, as that dictates the ordering of children
         # then determin
@@ -76,7 +81,7 @@ class TreeGeometryBase(PhyloNode):
             if len(edge.children) > 0:
                 # we order children by their length
                 children = sorted(
-                    [(c.params.get(self._length, 0) or 0, c) for c in edge.children]
+                    [(c.params.get(self._length, 0) or 0, c) for c in edge.children],
                 )
                 edge.children = [c for _, c in children]
 
@@ -141,9 +146,10 @@ class TreeGeometryBase(PhyloNode):
         return self._node_space
 
     @node_space.setter
-    def node_space(self, value):
+    def node_space(self, value) -> None:
         if value < 0:
-            raise ValueError("node spacing must be > 0")
+            msg = "node spacing must be > 0"
+            raise ValueError(msg)
         self._node_space = value
 
     @property
@@ -159,11 +165,7 @@ class TreeGeometryBase(PhyloNode):
         """x, y coordinate for line connecting parent to this node"""
         # needs to ask parent, but has to do more than just get the parent
         # end, parent needs to know
-        if self.is_root():
-            val = 0, self.y
-        else:
-            val = self.parent.x, self.y
-        return val
+        return (0, self.y) if self.is_root() else (self.parent.x, self.y)
 
     @property
     def end(self):
@@ -181,7 +183,7 @@ class TreeGeometryBase(PhyloNode):
 
         segment_start = self.parent.get_segment_to_child(self)
         if isinstance(segment_start, list):
-            result = segment_start + [(None, None), self.start, self.end]
+            result = [*segment_start, (None, None), self.start, self.end]
         else:
             result = segment_start, self.start, (None, None), self.start, self.end
         return tuple(result)
@@ -190,7 +192,7 @@ class TreeGeometryBase(PhyloNode):
         """returns coordinates connecting a child to self and descendants"""
         return self.end
 
-    def value_and_coordinate(self, attr, padding=0.1, max_attr_length=None):
+    def value_and_coordinate(self, attr, padding=0.1, max_attr_length=None) -> NoReturn:
         """
         Parameters
         ----------
@@ -204,8 +206,9 @@ class TreeGeometryBase(PhyloNode):
         -------
         (value of attr, (x, y)
         """
-        # todo, possibly also return a rotation?
-        raise NotImplementedError("implement in sub-class")
+        # TODO, possibly also return a rotation?
+        msg = "implement in sub-class"
+        raise NotImplementedError(msg)
 
     def support_text_coord(self, xshift, yshift, threshold=1, max_attr_length=4):
         """
@@ -251,8 +254,8 @@ class TreeGeometryBase(PhyloNode):
 class SquareTreeGeometry(TreeGeometryBase):
     """represents Square dendrograms, contemporaneous or not"""
 
-    def __init__(self, *args, **kwargs):
-        super(SquareTreeGeometry, self).__init__(*args, **kwargs)
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
     @property
     def y(self):
@@ -272,7 +275,7 @@ class SquareTreeGeometry(TreeGeometryBase):
 
         if not hasattr(self, "_ordered"):
             self._ordered = sorted(
-                [(c.y, c.start) for c in self.children] + [(self.y, self.end)]
+                [(c.y, c.start) for c in self.children] + [(self.y, self.end)],
             )
         ordered = self._ordered
         dist = child.y - self.y
@@ -287,14 +290,19 @@ class SquareTreeGeometry(TreeGeometryBase):
 
     @extend_docstring_from(TreeGeometryBase.value_and_coordinate)
     def value_and_coordinate(self, attr="name", padding=0.05, max_attr_length=None):
-        # todo, possibly also return a rotation?
+        # TODO, possibly also return a rotation?
         x = self.x + padding
         y = self.y
         value = self.params.get(attr, None)
         if value is None:
             value = getattr(self, attr, None)
         return UnionDict(
-            x=x, y=y, textangle=self.theta, showarrow=False, text=value, xanchor="left"
+            x=x,
+            y=y,
+            textangle=self.theta,
+            showarrow=False,
+            text=value,
+            xanchor="left",
         )
 
 
@@ -304,16 +312,12 @@ class _AngularGeometry:
     @property
     def start(self):
         """x, y coordinate for line connecting parent to this node"""
-        if self.is_root():
-            val = 0, self.y
-        else:
-            val = self.parent.end
-        return val
+        return (0, self.y) if self.is_root() else self.parent.end
 
 
 class AngularTreeGeometry(_AngularGeometry, SquareTreeGeometry):
-    def __init__(self, *args, **kwargs):
-        super(AngularTreeGeometry, self).__init__(*args, **kwargs)
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
 
 r_2_d = np.pi / 180
@@ -327,13 +331,13 @@ def polar_2_cartesian(θ, radius):
 
 
 class CircularTreeGeometry(TreeGeometryBase):
-    def __init__(self, *args, **kwargs):
-        super(CircularTreeGeometry, self).__init__(*args, **kwargs)
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
         self._num_tips = 1
         self._theta = None
         self._node_space = None
 
-    def propagate_properties(self):
+    def propagate_properties(self) -> None:
         self._num_tips = len(self.tips())
         self._init_length_depth_attr()
         self._init_tip_ranks()
@@ -345,11 +349,13 @@ class CircularTreeGeometry(TreeGeometryBase):
         return self._node_space
 
     @node_space.setter
-    def node_space(self, value):
+    def node_space(self, value) -> None:
         if value < 0:
-            raise ValueError("node spacing must be > 0")
+            msg = "node spacing must be > 0"
+            raise ValueError(msg)
         if self._num_tips * value > 360:
-            raise ValueError(f"{value} * {(self._num_tips + 1)} is > 360")
+            msg = f"{value} * {(self._num_tips + 1)} is > 360"
+            raise ValueError(msg)
         self._node_space = value
 
     @property
@@ -468,7 +474,7 @@ class CircularTreeGeometry(TreeGeometryBase):
 
         if not hasattr(self, "_ordered"):
             self._ordered = sorted(
-                [(c.theta, c.start) for c in self.children] + [(self.theta, self.end)]
+                [(c.theta, c.start) for c in self.children] + [(self.theta, self.end)],
             )
         ordered = self._ordered
         dist = child.theta - self.theta
@@ -496,8 +502,8 @@ class CircularTreeGeometry(TreeGeometryBase):
 
 
 class RadialTreeGeometry(_AngularGeometry, CircularTreeGeometry):
-    def __init__(self, *args, **kwargs):
-        super(RadialTreeGeometry, self).__init__(*args, **kwargs)
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
     def get_segment_to_child(self, child):
         """returns coordinates connecting a child to self and descendants"""
@@ -515,10 +521,13 @@ class Dendrogram(Drawable):
         threshold=1.0,
         *args,
         **kwargs,
-    ):
+    ) -> None:
         length_attr = kwargs.pop("length_attr", None)
-        super(Dendrogram, self).__init__(
-            visible_axes=False, showlegend=False, *args, **kwargs
+        super().__init__(
+            visible_axes=False,
+            showlegend=False,
+            *args,
+            **kwargs,
         )
         klass = {
             "square": SquareTreeGeometry,
@@ -567,7 +576,7 @@ class Dendrogram(Drawable):
         return self._label_pad
 
     @label_pad.setter
-    def label_pad(self, value):
+    def label_pad(self, value) -> None:
         self._label_pad = value
         self._traces = []
 
@@ -577,7 +586,7 @@ class Dendrogram(Drawable):
         return self._support_xshift
 
     @support_xshift.setter
-    def support_xshift(self, value):
+    def support_xshift(self, value) -> None:
         if value == self._support_xshift:
             return
         self._support_xshift = value
@@ -589,7 +598,7 @@ class Dendrogram(Drawable):
         return self._support_yshift
 
     @support_yshift.setter
-    def support_yshift(self, value):
+    def support_yshift(self, value) -> None:
         if value == self._support_yshift:
             return
         self._support_yshift = value
@@ -600,7 +609,7 @@ class Dendrogram(Drawable):
         return self._contemporaneous
 
     @contemporaneous.setter
-    def contemporaneous(self, value):
+    def contemporaneous(self, value) -> None:
         if type(value) != bool:
             raise TypeError
         if self._contemporaneous != value:
@@ -609,17 +618,18 @@ class Dendrogram(Drawable):
             self.tree = klass(self.tree, length_attr=length_attr)
             self.tree.propagate_properties()
             self._traces = []
-            self.layout.xaxis |= dict(range=None, autorange=True)
-            self.layout.yaxis |= dict(range=None, autorange=True)
+            self.layout.xaxis |= {"range": None, "autorange": True}
+            self.layout.yaxis |= {"range": None, "autorange": True}
             if value:  # scale bar not needed
                 self._scale_bar = False
 
         self._contemporaneous = value
 
     @functools.singledispatchmethod
-    def _update_tip_font(self, val):
+    def _update_tip_font(self, val) -> NoReturn:
         """update tip font settings"""
-        raise TypeError(f"{type(val)} not a supported type for tip_font")
+        msg = f"{type(val)} not a supported type for tip_font"
+        raise TypeError(msg)
 
     @_update_tip_font.register
     def _(self, val: dict) -> None:
@@ -634,7 +644,7 @@ class Dendrogram(Drawable):
         return self._tip_font
 
     @tip_font.setter
-    def tip_font(self, val):
+    def tip_font(self, val) -> None:
         """update tip font settings"""
         self._update_tip_font(val)
 
@@ -646,7 +656,9 @@ class Dendrogram(Drawable):
         annotations = []
         for tip in self.tree.tips():
             anote = tip.value_and_coordinate(
-                "name", padding=self.label_pad, max_attr_length=self._max_label_length
+                "name",
+                padding=self.label_pad,
+                max_attr_length=self._max_label_length,
             )
             anote |= UnionDict(xref="x", yref="y", font=self.tip_font)
             annotations.append(anote)
@@ -688,7 +700,7 @@ class Dendrogram(Drawable):
         )
         return shape, annotation
 
-    def _build_fig(self, **kwargs):
+    def _build_fig(self, **kwargs) -> None:
         grouped = {}
 
         tree = self.tree
@@ -706,7 +718,7 @@ class Dendrogram(Drawable):
                     "size": self._marker_size,
                 },
                 "showlegend": False,
-            }
+            },
         )
         support_text = []
         get_edge_group = self._edge_mapping.get
@@ -716,9 +728,9 @@ class Dendrogram(Drawable):
                 grouped[key] = defaultdict(list)
             group = grouped[key]
             coords = edge.get_segment_to_parent()
-            xs, ys = list(zip(*coords))
-            group["x"].extend(xs + (None,))
-            group["y"].extend(ys + (None,))
+            xs, ys = list(zip(*coords, strict=False))
+            group["x"].extend((*xs, None))
+            group["y"].extend((*ys, None))
 
             edge_label = edge.value_and_coordinate("name", padding=0)
             text["x"].append(edge_label.x)
@@ -745,7 +757,7 @@ class Dendrogram(Drawable):
                         color=self._line_color,
                         shape="spline",
                         smoothing=1.3,
-                    )
+                    ),
                 ),
             )
             trace = UnionDict(type="scatter", x=group["x"], y=group["y"], mode="lines")
@@ -766,7 +778,7 @@ class Dendrogram(Drawable):
             self.layout.annotations = self.layout.annotations + tuple(support_text)
 
         if scale_shape:
-            self.layout.shapes = self.layout.get("shape", []) + [scale_shape]
+            self.layout.shapes = [*self.layout.get("shape", []), scale_shape]
             self.layout.annotations += (scale_text,)
         else:
             self.layout.pop("shapes", None)
@@ -791,23 +803,23 @@ class Dendrogram(Drawable):
             max_span = max(x_diff, y_diff)
 
             # Use maximum span along both axes and pad the smaller one accordingly
-            axes_range = dict(
-                xaxis=dict(
-                    range=[
+            axes_range = {
+                "xaxis": {
+                    "range": [
                         self.tree.min_x - (1.4 * max_span - x_diff) / 2,
                         self.tree.max_x + (1.4 * max_span - x_diff) / 2,
-                    ]
-                ),
-                yaxis=dict(
-                    range=[
+                    ],
+                },
+                "yaxis": {
+                    "range": [
                         self.tree.min_y - (1.4 * max_span - y_diff) / 2,
                         self.tree.max_y + (1.4 * max_span - y_diff) / 2,
-                    ]
-                ),
-            )
+                    ],
+                },
+            }
             self.layout |= axes_range
 
-    def style_edges(self, edges, line, legendgroup=None, tip2=None, **kwargs):
+    def style_edges(self, edges, line, legendgroup=None, tip2=None, **kwargs) -> None:
         """adjust display layout for the edges
 
         Parameters
@@ -831,7 +843,8 @@ class Dendrogram(Drawable):
             edges = [edges]
         edges = frozenset(edges)
         if not edges.issubset({edge.name for edge in self.tree.preorder()}):
-            raise ValueError("edge not present in tree")
+            msg = "edge not present in tree"
+            raise ValueError(msg)
         style = UnionDict(width=self._line_width, color=self._line_color)
         style.update(line)
         self._edge_sets[edges] = UnionDict(legendgroup=legendgroup, line=style)
@@ -843,7 +856,7 @@ class Dendrogram(Drawable):
         # need to trigger recreation of figure
         self._traces = []
 
-    def reorient(self, name, tip2=None, **kwargs):
+    def reorient(self, name, tip2=None, **kwargs) -> None:
         """change orientation of tree
         Parameters
         ----------
@@ -857,7 +870,7 @@ class Dendrogram(Drawable):
             keyword arguments passed onto get_edge_names
         """
         if tip2:
-            kwargs.update(dict(stem=True, clade=False))
+            kwargs.update({"stem": True, "clade": False})
             edges = self.get_edge_names(name, tip2, **kwargs)
             name = edges[0]
 
@@ -890,7 +903,11 @@ class Dendrogram(Drawable):
         list of edge names
         """
         return self.tree.get_edge_names(
-            tip1, tip2, stem=stem, clade=clade, outgroup_name=outgroup
+            tip1,
+            tip2,
+            stem=stem,
+            clade=clade,
+            outgroup_name=outgroup,
         )
 
     @property
@@ -899,7 +916,7 @@ class Dendrogram(Drawable):
         return self._scale_bar
 
     @scale_bar.setter
-    def scale_bar(self, value):
+    def scale_bar(self, value) -> None:
         if value is True:
             value = "bottom left"
 
@@ -916,7 +933,7 @@ class Dendrogram(Drawable):
         return self._tips_as_text
 
     @tips_as_text.setter
-    def tips_as_text(self, value):
+    def tips_as_text(self, value) -> None:
         assert type(value) is bool
         if value == self._tips_as_text:
             return
@@ -931,25 +948,23 @@ class Dendrogram(Drawable):
         return self._line_width
 
     @line_width.setter
-    def line_width(self, width):
+    def line_width(self, width) -> None:
         self._line_width = width
         if self.traces:
-            setting = dict(width=width)
+            setting = {"width": width}
             for trace in self.traces:
-                try:
+                with contextlib.suppress(KeyError):
                     trace["line"] |= setting
-                except KeyError:
-                    pass
 
     @property
     def marker(self):
         return self._marker_size
 
     @marker.setter
-    def marker(self, size):
+    def marker(self, size) -> None:
         self._marker_size = size
         if self.traces:
-            setting = dict(size=size)
+            setting = {"size": size}
             for trace in self.traces:
                 if trace.get("mode", None) == "markers":
                     trace["marker"] |= setting
@@ -960,7 +975,7 @@ class Dendrogram(Drawable):
         return self._show_support
 
     @show_support.setter
-    def show_support(self, value):
+    def show_support(self, value) -> None:
         """whether tree edge support entries are displayed"""
         assert type(value) is bool
         if value == self._show_support:
@@ -976,7 +991,7 @@ class Dendrogram(Drawable):
         return self._threshold
 
     @support_threshold.setter
-    def support_threshold(self, value):
+    def support_threshold(self, value) -> None:
         assert 0 <= value <= 1, "Must be in [0, 1] interval"
         if value == self._threshold:
             return

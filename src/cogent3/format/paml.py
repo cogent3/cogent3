@@ -7,7 +7,9 @@ from cogent3.format.util import _AlignmentFormatter
 def alignment_to_paml(alignment_dict, block_size=60, order=None):
     """Returns a Paml string given an alignment."""
     return PamlFormatter().format(
-        alignment_dict, block_size, [] if order is None else order
+        alignment_dict,
+        block_size,
+        [] if order is None else order,
     )
 
 
@@ -38,13 +40,13 @@ class PamlFormatter(_AlignmentFormatter):
         header = "%d  %d\n" % (self.number_sequences, self.align_length)
         return header + "".join(
             [
-                "%s\n%s"
-                % (
+                "{}\n{}".format(
                     seq,
                     self.wrap_string_to_block_size(
-                        alignment_dict[seq], alt_block_size=block_size
+                        alignment_dict[seq],
+                        alt_block_size=block_size,
                     ),
                 )
                 for seq in self.align_order
-            ]
+            ],
         )

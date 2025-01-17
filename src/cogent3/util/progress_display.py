@@ -13,20 +13,20 @@ from cogent3.util.misc import in_jupyter
 class LogFileOutput:
     """A fake progress bar for when progress bars are impossible"""
 
-    def __init__(self, **kw):
+    def __init__(self, **kw) -> None:
         self.n = 0
         self.message = ""
         self.t0 = time.time()
         self.lpad = ""
         self.output = sys.stdout  # sys.stderr
 
-    def set_description(self, desc="", refresh=False):
+    def set_description(self, desc="", refresh=False) -> None:
         self.message = desc
 
-    def close(self):
+    def close(self) -> None:
         pass
 
-    def refresh(self):
+    def refresh(self) -> None:
         if self.message:
             delta = f"+{int(time.time() - self.t0)}"
             progress = int(100 * self.n + 0.5)
@@ -37,7 +37,13 @@ class LogFileOutput:
 
 
 class ProgressContext:
-    def __init__(self, progress_bar_type=None, depth=-1, message=None, mininterval=1.0):
+    def __init__(
+        self,
+        progress_bar_type=None,
+        depth=-1,
+        message=None,
+        mininterval=1.0,
+    ) -> None:
         self.progress_bar_type = progress_bar_type
         self.progress_bar = None
         self.progress = 0
@@ -45,7 +51,7 @@ class ProgressContext:
         self.message = message
         self.mininterval = mininterval
 
-    def set_new_progress_bar(self):
+    def set_new_progress_bar(self) -> None:
         if self.progress_bar_type:
             self.progress_bar = self.progress_bar_type(
                 total=1,
@@ -64,7 +70,7 @@ class ProgressContext:
             mininterval=self.mininterval,
         )
 
-    def display(self, msg=None, progress=None):
+    def display(self, msg=None, progress=None) -> None:
         if not self.progress_bar:
             self.set_new_progress_bar()
         updated = False
@@ -81,14 +87,14 @@ class ProgressContext:
         if updated:
             self.progress_bar.refresh()
 
-    def done(self):
+    def done(self) -> None:
         if self.progress_bar:
             self.progress_bar.close()
             self.progress_bar = None
 
     def series(self, items, noun="", labels=None, start=None, end=1.0, count=None):
         """Wrap a looped-over list with a progress bar"""
-        # todo optimise label creation
+        # TODO optimise label creation
         if count is None:
             if not hasattr(items, "__len__"):
                 items = list(items)
@@ -108,28 +114,27 @@ class ProgressContext:
             if noun:
                 noun += " "
             template = f"{noun}%{len(str(count))}d/{count}"
-            labels = [template % (i + 1) for i in range(0, count)]
+            labels = [template % (i + 1) for i in range(count)]
         for i, item in enumerate(items):
             self.display(msg=labels[i], progress=start + step * i)
             yield item
         self.display(progress=end)
 
-    def write(self, *args, **kw):
+    def write(self, *args, **kw) -> None:
         if self.progress_bar_type and len(kw) < 3 and not in_jupyter():
             self.progress_bar_type.write(*args, **kw)
         else:
-            print(*args, **kw)
+            pass
 
     def imap(self, f, s, mininterval=1.0, parallel=False, par_kw=None, **kw):
         self.mininterval = mininterval
         if parallel:
-            # todo document parallel.map arguments
+            # TODO document parallel.map arguments
             par_kw = par_kw or {}
             results = PAR.imap(f, s, **par_kw)
         else:
             results = map(f, s)
-        for result in self.series(results, count=len(s), **kw):
-            yield result
+        yield from self.series(results, count=len(s), **kw)
 
     def map(self, f, s, **kw):
         return list(self.imap(f, s, **kw))
@@ -142,10 +147,10 @@ class NullContext(ProgressContext):
     def subcontext(self, *args, **kw):
         return self
 
-    def display(self, *args, **kw):
+    def display(self, *args, **kw) -> None:
         pass
 
-    def done(self):
+    def done(self) -> None:
         pass
 
 
@@ -177,10 +182,7 @@ def display_wrap(slow_function):
                 CURRENT.context = ProgressContext(klass)
         parent = CURRENT.context
         show_progress = kw.pop("show_progress", None)
-        if show_progress is False:
-            subcontext = NULL_CONTEXT
-        else:
-            subcontext = parent.subcontext()
+        subcontext = NULL_CONTEXT if show_progress is False else parent.subcontext()
         kw["ui"] = CURRENT.context = subcontext
         try:
             result = slow_function(*args, **kw)
@@ -193,14 +195,13 @@ def display_wrap(slow_function):
 
 
 @display_wrap
-def subdemo(ui):
-    for j in ui.series(list(range(10))):
+def subdemo(ui) -> None:
+    for _j in ui.series(list(range(10))):
         time.sleep(0.1)
-    return
 
 
 @display_wrap
-def demo(ui):
+def demo(ui) -> None:
     ui.write("non-linebuffered output, tricky but look:")
     for i in ui.series(list(range(10))):
         time.sleep(0.6)
@@ -212,8 +213,7 @@ def demo(ui):
 
 @display_wrap
 def imap(f, s, ui):
-    for result in ui.imap(f, s):
-        yield result
+    yield from ui.imap(f, s)
 
 
 def fun(inp):

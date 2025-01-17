@@ -1,6 +1,6 @@
-#!/usr/bin/env python
 """Estimating pairwise distances between sequences."""
 
+import os
 from itertools import combinations
 from warnings import warn
 
@@ -10,10 +10,12 @@ from cogent3.maths.stats.number import NumberCounter
 from cogent3.util import progress_display as UI
 from cogent3.util import table
 
+_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
+
 
 def get_name_combinations(names, group_size):
     """returns combinations of names"""
-    combined = list(tuple(sorted(p)) for p in combinations(names, group_size))
+    combined = [tuple(sorted(p)) for p in combinations(names, group_size)]
     combined.sort()
     return combined
 
@@ -51,7 +53,7 @@ def get_pairwise_distance_from_triad(data, summary_function="mean"):
     return pairwise_stats
 
 
-class EstimateDistances(object):
+class EstimateDistances:
     """base class used for estimating pairwise distances between sequences.
     Can also estimate other parameters from pairs."""
 
@@ -65,7 +67,7 @@ class EstimateDistances(object):
         rigorous_align=False,
         est_params=None,
         modify_lf=None,
-    ):
+    ) -> None:
         """Arguments:
             - seqs: an Alignment or SeqCollection instance with > 1 sequence
             - submodel: substitution model object Predefined models can
@@ -118,14 +120,15 @@ class EstimateDistances(object):
 
         self._run = False  # a flag indicating whether estimation completed
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.get_table())
 
     def _make_pair_alignment(self, seqs, opt_kwargs):
         lf = self._sm.make_likelihood_function(
-            make_tree(tip_names=seqs.names), aligned=False
+            make_tree(tip_names=seqs.names),
+            aligned=False,
         )
-        lf.set_sequences(seqs.named_seqs)
+        lf.set_sequences(seqs.seqs if _NEW_TYPE else seqs.named_seqs)
 
         # allow user to modify the lf config
         if self._modify_lf:
@@ -171,23 +174,24 @@ class EstimateDistances(object):
 
         # get the statistics
         stats_dict = lf.get_param_value_dict(
-            ["edge"], params=["length"] + self._est_params
+            ["edge"],
+            params=["length", *self._est_params],
         )
 
         # if two-way, grab first distance only
         if not self._threeway:
-            result = {"length": list(stats_dict["length"].values())[0] * 2.0}
+            result = {"length": next(iter(stats_dict["length"].values())) * 2.0}
         else:
             result = {"length": stats_dict["length"]}
 
         # include any other params requested
         for param in self._est_params:
-            result[param] = list(stats_dict[param].values())[0]
+            result[param] = next(iter(stats_dict[param].values()))
 
         return result
 
     @UI.display_wrap
-    def run(self, dist_opt_args=None, aln_opt_args=None, ui=None, **kwargs):
+    def run(self, dist_opt_args=None, aln_opt_args=None, ui=None, **kwargs) -> None:
         """Start estimating the distances between sequences. Distance estimation
         is done using the Powell local optimiser. This can be changed using the
         dist_opt_args and aln_opt_args.
@@ -206,8 +210,7 @@ class EstimateDistances(object):
 
         if "local" in kwargs:
             warn(
-                "local argument ignored, provide it to dist_opt_args or"
-                " aln_opt_args",
+                "local argument ignored, provide it to dist_opt_args or aln_opt_args",
                 DeprecationWarning,
                 stacklevel=2,
             )
@@ -250,13 +253,14 @@ class EstimateDistances(object):
 
         """
         pairwise_stats = {}
-        assert param in self._est_params + ["length"], f"unrecognised param {param}"
+        assert param in [*self._est_params, "length"], f"unrecognised param {param}"
         if not self._param_ests:
             return None
 
         if self._threeway and param == "length":
             pairwise_stats = get_pairwise_distance_from_triad(
-                self._param_ests, summary_function=summary_function
+                self._param_ests,
+                summary_function=summary_function,
             )
         else:
             # no additional processing of the distances is required
@@ -278,7 +282,9 @@ class EstimateDistances(object):
 
         """
         dists = self.get_pairwise_param(
-            "length", summary_function=summary_function, **kwargs
+            "length",
+            summary_function=summary_function,
+            **kwargs,
         )
         return None if not dists else DistanceMatrix(dists)
 
@@ -318,8 +324,7 @@ class EstimateDistances(object):
                 for s2 in self._seqnames:
                     if s1 == s2:
                         continue
-                    else:
-                        d[(s1, s2)] = "Not Done"
+                    d[(s1, s2)] = "Not Done"
         twoD = []
         for s1 in self._seqnames:
             row = [s1]
@@ -333,7 +338,7 @@ class EstimateDistances(object):
                     row.append(d[(s2, s1)])
             twoD.append(row)
         return table.Table(
-            [r"Seq1 \ Seq2"] + self._seqnames,
+            ["Seq1 \\ Seq2", *self._seqnames],
             twoD,
             index_name=r"Seq1 \ Seq2",
             missing_data="*",
@@ -350,7 +355,13 @@ class EstimateDistances(object):
 
         return trees
 
-    def write(self, filename, summary_function="mean", format="phylip", **kwargs):
+    def write(
+        self,
+        filename,
+        summary_function="mean",
+        format="phylip",
+        **kwargs,
+    ) -> None:
         """Save the pairwise distances to a file using phylip format. Other
         formats can be obtained by getting to a Table.
 

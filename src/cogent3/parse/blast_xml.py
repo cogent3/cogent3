@@ -61,8 +61,7 @@ def get_tag(record, name, default=None):
     tag = record.getElementsByTagName(name)
     if len(tag) and len(tag[0].childNodes):
         return tag[0].childNodes[0].nodeValue
-    else:
-        return default
+    return default
 
 
 def parse_hit(hit_tag, query_id=1):
@@ -186,31 +185,29 @@ class BlastXMLResult(dict):
     #        }
     # .. to be done
 
-    hit_keys = set(
-        [
-            HIT_DEF,
-            HIT_ACCESSION,
-            HIT_LENGTH,
-            SCORE,
-            POSITIVE,
-            QUERY_ALIGN,
-            SUBJECT_ALIGN,
-            MIDLINE_ALIGN,
-            ITERATION,
-            QUERY_ID,
-            SUBJECT_ID,
-            PERCENT_IDENTITY,
-            ALIGNMENT_LENGTH,
-            MISMATCHES,
-            GAP_OPENINGS,
-            QUERY_START,
-            QUERY_END,
-            SUBJECT_START,
-            SUBJECT_END,
-            E_VALUE,
-            BIT_SCORE,
-        ]
-    )
+    hit_keys = {
+        HIT_DEF,
+        HIT_ACCESSION,
+        HIT_LENGTH,
+        SCORE,
+        POSITIVE,
+        QUERY_ALIGN,
+        SUBJECT_ALIGN,
+        MIDLINE_ALIGN,
+        ITERATION,
+        QUERY_ID,
+        SUBJECT_ID,
+        PERCENT_IDENTITY,
+        ALIGNMENT_LENGTH,
+        MISMATCHES,
+        GAP_OPENINGS,
+        QUERY_START,
+        QUERY_END,
+        SUBJECT_START,
+        SUBJECT_END,
+        E_VALUE,
+        BIT_SCORE,
+    }
 
     _field_comparison_operators = {
         PERCENT_IDENTITY: (_gt, float),
@@ -220,7 +217,7 @@ class BlastXMLResult(dict):
         BIT_SCORE: (_gt, float),
     }
 
-    def __init__(self, data, psiblast=False, parser=None, xml=False):
+    def __init__(self, data, psiblast=False, parser=None, xml=False) -> None:
         # iterate blast results, generate data structure
         """
         Init using blast 7 or blast 9 results
@@ -250,9 +247,13 @@ class BlastXMLResult(dict):
             # check if found any hits
             if len(rec_data) > 1:
                 for h in rec_data[1:]:
-                    hits.append(dict(list(zip(rec_data[0], h))))
+                    hits.append(dict(list(zip(rec_data[0], h, strict=False))))
             else:
-                hits.append(dict(list(zip(rec_data[0], ["" for _ in rec_data[0]]))))
+                hits.append(
+                    dict(
+                        list(zip(rec_data[0], ["" for _ in rec_data[0]], strict=False)),
+                    ),
+                )
 
             # get blast version of query id
             query_id = hits[0][self.QUERY_ID]
@@ -267,7 +268,11 @@ class BlastXMLResult(dict):
             yield query_id, self[query_id][iteration]
 
     def best_hits_by_query(
-        self, iteration=-1, n=1, field="BIT_SCORE", return_self=False
+        self,
+        iteration=-1,
+        n=1,
+        field="BIT_SCORE",
+        return_self=False,
     ):
         """Iterates over all queries and returns best hit for each
         return_self: if False, will not return best hit as itself.
@@ -276,9 +281,9 @@ class BlastXMLResult(dict):
 
         # check that given valid comparison field
         if field not in self._field_comparison_operators:
+            msg = f"Invalid field: {field}. You must specify one of: {self._field_comparison_operators!s}"
             raise ValueError(
-                "Invalid field: %s. You must specify one of: %s"
-                % (field, str(self._field_comparison_operators))
+                msg,
             )
         cmp_fun, cast_fun = self._field_comparison_operators[field]
 
@@ -287,9 +292,8 @@ class BlastXMLResult(dict):
             best_hits = []
             for hit in hits:
                 # check if want to skip self hit
-                if not return_self:
-                    if hit[self.SUBJECT_ID] == q:
-                        continue
+                if not return_self and hit[self.SUBJECT_ID] == q:
+                    continue
                 # check if better hit than ones we have
                 if len(best_hits) < n:
                     best_hits.append(hit)

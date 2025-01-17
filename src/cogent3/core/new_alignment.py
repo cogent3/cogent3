@@ -9,15 +9,17 @@ import typing
 import warnings
 from abc import ABC, abstractmethod
 from collections import defaultdict
+from collections.abc import Callable, Iterable, Iterator, Mapping
+from collections.abc import Sequence as PySeq
 from functools import singledispatch, singledispatchmethod
 from pathlib import Path
-from typing import Any, Callable, Iterable, Iterator, Mapping, Optional, Union
-from typing import Sequence as PySeq
+from typing import Any, Optional, Union
 
 import numba
 import numpy
+import typing_extensions
 
-from cogent3 import get_app
+import cogent3
 from cogent3._version import __version__
 from cogent3.core import (
     new_alphabet,
@@ -94,7 +96,7 @@ class _SeqNamer:
         name_func: OptRenamerCallable = None,
         base_name: str = "seq",
         start_at: int = 0,
-    ):
+    ) -> None:
         self._base_name = base_name
         self._num = start_at
         self._name_func = name_func
@@ -121,9 +123,9 @@ def _gap_ok_vector_single(
     """returns indicies for which the number of gaps & missing data is less than or equal to num_allowed"""
     num = 0
     for i in range(len(data)):
-        if data[i] == gap_index:
-            num += 1
-        elif missing_index is not None and data[i] == missing_index:
+        if data[i] == gap_index or (
+            missing_index is not None and data[i] == missing_index
+        ):
             num += 1
 
         if num > num_allowed:
@@ -144,10 +146,8 @@ def _gap_ok_vector_multi(
     num = 0
     for motif in motifs:
         for j in range(motif_length):
-            if (
-                motif[j] == gap_index
-                or missing_index is not None
-                and motif[j] == missing_index
+            if motif[j] == gap_index or (
+                missing_index is not None and motif[j] == missing_index
             ):
                 num += 1
                 break
@@ -169,7 +169,7 @@ class SeqDataView(new_sequence.SeqView):
     The latter is done by the ``Sequence`` object which has a moltype.
     """
 
-    __slots__ = ("parent", "alphabet", "_seqid", "_parent_len", "_slice_record")
+    __slots__ = ("_parent_len", "_seqid", "_slice_record", "alphabet", "parent")
 
     @property
     def str_value(self) -> str:
@@ -277,17 +277,29 @@ class SeqsDataABC(ABC):
 
     @abstractmethod
     def get_seq_array(
-        self, *, seqid: str, start: OptInt = None, stop: OptInt = None
+        self,
+        *,
+        seqid: str,
+        start: OptInt = None,
+        stop: OptInt = None,
     ) -> numpy.ndarray: ...
 
     @abstractmethod
     def get_seq_str(
-        self, *, seqid: str, start: OptInt = None, stop: OptInt = None
+        self,
+        *,
+        seqid: str,
+        start: OptInt = None,
+        stop: OptInt = None,
     ) -> str: ...
 
     @abstractmethod
     def get_seq_bytes(
-        self, *, seqid: str, start: OptInt = None, stop: OptInt = None
+        self,
+        *,
+        seqid: str,
+        start: OptInt = None,
+        stop: OptInt = None,
     ) -> bytes: ...
 
     @abstractmethod
@@ -304,8 +316,9 @@ class SeqsDataABC(ABC):
 
     @abstractmethod
     def __getitem__(
-        self, index: Union[str, int]
-    ) -> Union[new_sequence.Sequence, new_sequence.SeqViewABC]: ...
+        self,
+        index: str | int,
+    ) -> new_sequence.Sequence | new_sequence.SeqViewABC: ...
 
 
 class SeqsData(SeqsDataABC):
@@ -321,16 +334,16 @@ class SeqsData(SeqsDataABC):
     for a sequence as used by IndelMap.
     """
 
-    __slots__ = ("_data", "_alphabet", "_offset")
+    __slots__ = ("_alphabet", "_data", "_offset")
 
     def __init__(
         self,
         *,
         data: dict[str, StrORBytesORArray],
         alphabet: new_alphabet.AlphabetABC,
-        offset: dict[str, int] = None,
+        offset: dict[str, int] | None = None,
         check: bool = True,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -352,12 +365,13 @@ class SeqsData(SeqsDataABC):
         self._alphabet = alphabet
         self._offset = offset or {}
         if check:
-            assert (
-                self._offset.keys() <= data.keys()
-            ), "sequence name provided in offset not found in data"
+            assert self._offset.keys() <= data.keys(), (
+                "sequence name provided in offset not found in data"
+            )
             if any(not alphabet.is_valid(seq) for seq in data.values()):
+                msg = f"One or more sequences are invalid for alphabet {alphabet}"
                 raise new_alphabet.AlphabetError(
-                    f"One or more sequences are invalid for alphabet {alphabet}"
+                    msg,
                 )
         self._data: dict[str, numpy.ndarray] = {}
         for name, seq in data.items():
@@ -423,9 +437,9 @@ class SeqsData(SeqsDataABC):
         stop = stop if stop is not None else self.get_seq_length(seqid)
         step = step or 1
 
-        assert (
-            start >= 0 and stop >= 0 and step > 0
-        ), "start, stop, and step must be >= 0"
+        assert start >= 0 and stop >= 0 and step > 0, (
+            "start, stop, and step must be >= 0"
+        )
 
         out_len = (stop - start + step - 1) // step
         out = numpy.empty(out_len, dtype=self.alphabet.dtype)
@@ -442,7 +456,7 @@ class SeqsData(SeqsDataABC):
         step: OptInt = None,
     ) -> str:
         return self._alphabet.from_indices(
-            self.get_seq_array(seqid=seqid, start=start, stop=stop, step=step)
+            self.get_seq_array(seqid=seqid, start=start, stop=stop, step=step),
         )
 
     def get_seq_bytes(
@@ -454,7 +468,7 @@ class SeqsData(SeqsDataABC):
         step: OptInt = None,
     ) -> bytes:
         return self.get_seq_str(seqid=seqid, start=start, stop=stop, step=step).encode(
-            "utf8"
+            "utf8",
         )
 
     def get_view(self, seqid: str) -> SeqDataView:
@@ -476,7 +490,8 @@ class SeqsData(SeqsDataABC):
         """Returns a new SeqsData object with added sequences. If force_unique_keys
         is True, raises ValueError if any names already exist in the collection."""
         if force_unique_keys and any(name in self.names for name in seqs):
-            raise ValueError("One or more sequence names already exist in collection")
+            msg = "One or more sequence names already exist in collection"
+            raise ValueError(msg)
         new_data = {
             **self._data,
             **{name: self.alphabet.to_indices(seq) for name, seq in seqs.items()},
@@ -488,16 +503,22 @@ class SeqsData(SeqsDataABC):
         )
 
     def to_alphabet(
-        self, alphabet: new_alphabet.AlphabetABC, check_valid=True
+        self,
+        alphabet: new_alphabet.AlphabetABC,
+        check_valid: bool = True,
     ) -> SeqsData:
-        # refactor: design -- map directly between arrays?
-        # if the length of the two alphabets are the same and the only difference
-        # between the sets of characters is U/T, then we have the special case of
-        # converting between DNA and RNA alphabets, which we can achieved easily.
         if (
             len(self.alphabet) == len(alphabet)
-            and len({(a, b) for a, b in zip(self.alphabet, alphabet) if a != b}) == 1
+            and len(
+                {
+                    (a, b)
+                    for a, b in zip(self.alphabet, alphabet, strict=False)
+                    if a != b
+                },
+            )
+            == 1
         ):
+            # rna <-> dna swap just replace alphabet
             return self.__class__(
                 data=self._data,
                 alphabet=alphabet,
@@ -505,21 +526,20 @@ class SeqsData(SeqsDataABC):
             )
 
         new_data = {}
-        old = self.alphabet.as_bytes()
-        new = alphabet.as_bytes()
-        convert_old_to_bytes = new_alphabet.array_to_bytes(old)
-        convert_bytes_to_new = new_alphabet.bytes_to_array(
-            new, dtype=new_alphabet.get_array_type(len(new))
-        )
-
         for seqid in self.names:
             seq_data = self.get_seq_array(seqid=seqid)
-            as_new_alpha = convert_bytes_to_new(convert_old_to_bytes(seq_data))
-
+            as_new_alpha = self.alphabet.convert_seq_array_to(
+                seq=seq_data,
+                alphabet=alphabet,
+                check_valid=False,
+            )
             if check_valid and not alphabet.is_valid(as_new_alpha):
-                raise new_moltype.MolTypeError(
+                msg = (
                     f"Changing from old alphabet={self.alphabet} to new "
                     f"{alphabet=} is not valid for this data"
+                )
+                raise new_alphabet.AlphabetError(
+                    msg,
                 )
             new_data[seqid] = as_new_alpha
 
@@ -530,12 +550,13 @@ class SeqsData(SeqsDataABC):
             check=False,
         )
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.names)
 
     @singledispatchmethod
-    def __getitem__(self, index: Union[str, int]) -> new_sequence.SeqViewABC:
-        raise NotImplementedError(f"__getitem__ not implemented for {type(index)}")
+    def __getitem__(self, index: str | int) -> new_sequence.SeqViewABC:
+        msg = f"__getitem__ not implemented for {type(index)}"
+        raise NotImplementedError(msg)
 
     @__getitem__.register
     def _(self, index: str) -> new_sequence.SeqViewABC:
@@ -562,12 +583,12 @@ class SequenceCollection:
         *,
         seqs_data: SeqsDataABC,
         moltype: new_moltype.MolType,
-        info: Optional[Union[dict, InfoClass]] = None,
+        info: dict | InfoClass | None = None,
         source: OptPathType = None,
-        annotation_db: Optional[SupportsFeatures] = None,
+        annotation_db: SupportsFeatures | None = None,
         name_map: OptDict = None,
         is_reversed: bool = False,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -596,13 +617,18 @@ class SequenceCollection:
             info = InfoClass(info) if info else InfoClass()
         self.info = info
         self.source = source
-        self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60)
+        self._repr_policy = {
+            "num_seqs": 10,
+            "num_pos": 60,
+            "ref_name": "longest",
+            "wrap": 60,
+        }
         self._annotation_db = annotation_db or DEFAULT_ANNOTATION_DB()
         self._seqs = None
         self._is_reversed = is_reversed
         self._post_init()
 
-    def _post_init(self):
+    def _post_init(self) -> None:
         # override in subclasses
         self._seqs = _IndexableSeqs(self, make_seq=self._make_seq)
 
@@ -613,7 +639,9 @@ class SequenceCollection:
         sv = self._seqs_data.get_view(seqid)
         sv = sv[::-1] if self._is_reversed else sv
         return self.moltype.make_seq(
-            seq=sv, name=name, annotation_db=self.annotation_db
+            seq=sv,
+            name=name,
+            annotation_db=self.annotation_db,
         )
 
     def _get_init_kwargs(self) -> dict:
@@ -629,6 +657,7 @@ class SequenceCollection:
             "info": self.info.copy(),
             "annotation_db": self.annotation_db,
             "is_reversed": self._is_reversed,
+            "source": self.source,
         }
 
     @property
@@ -648,7 +677,7 @@ class SequenceCollection:
         return self._annotation_db
 
     @annotation_db.setter
-    def annotation_db(self, value):
+    def annotation_db(self, value) -> None:
         if value == self._annotation_db:
             return
 
@@ -656,14 +685,17 @@ class SequenceCollection:
 
     @property
     @c3warn.deprecated_callable(
-        version="2025.5", reason=".seqs can now be indexed by name", new=".seqs"
+        version="2025.5",
+        reason=".seqs can now be indexed by name",
+        new=".seqs",
     )
     def named_seqs(self) -> SeqsDataABC:  # pragma: no cover
         return self.seqs
 
     def iter_seqs(
-        self, seq_order: OptList = None
-    ) -> Iterator[Union[new_sequence.Sequence, new_sequence.SeqViewABC]]:
+        self,
+        seq_order: OptList = None,
+    ) -> Iterator[new_sequence.Sequence | new_sequence.SeqViewABC]:
         """Iterates over sequences in the collection, in order.
 
         Parameters
@@ -680,7 +712,7 @@ class SequenceCollection:
 
     def take_seqs(
         self,
-        names: Union[str, typing.Sequence[str]],
+        names: str | typing.Sequence[str],
         negate: bool = False,
         copy_annotations: bool = False,
         **kwargs,
@@ -715,10 +747,11 @@ class SequenceCollection:
             names = [name for name in self.names if name not in names]
 
         if not names:
-            raise ValueError(f"{names=} and {negate=} resulted in no names")
+            msg = f"{names=} and {negate=} resulted in no names"
+            raise ValueError(msg)
 
         assert set(names) <= set(
-            self.names
+            self.names,
         ), f"The following provided names not found in collection: {names - self.names}"
 
         selected_name_map = {name: self._name_map[name] for name in names}
@@ -731,14 +764,17 @@ class SequenceCollection:
             if copy_annotations:
                 result.annotation_db = type(self.annotation_db)()
                 result.annotation_db.update(
-                    annot_db=self.annotation_db, seqids=result.names
+                    annot_db=self.annotation_db,
+                    seqids=result.names,
                 )
             else:
                 result.annotation_db = self.annotation_db
         return result
 
     def get_seq_names_if(
-        self, f: Callable[[new_sequence.Sequence], bool], negate: bool = False
+        self,
+        f: Callable[[new_sequence.Sequence], bool],
+        negate: bool = False,
     ):
         """Returns list of names of seqs where f(seq) is True.
 
@@ -761,7 +797,9 @@ class SequenceCollection:
         return [name for name in self.names if new_f(get[name])]
 
     def take_seqs_if(
-        self, f: Callable[[new_sequence.Sequence], bool], negate: bool = False
+        self,
+        f: Callable[[new_sequence.Sequence], bool],
+        negate: bool = False,
     ):
         """Returns new collection containing seqs where f(seq) is True.
 
@@ -780,7 +818,9 @@ class SequenceCollection:
         return self.take_seqs(self.get_seq_names_if(f, negate))
 
     def get_seq(
-        self, seqname: str, copy_annotations: bool = False
+        self,
+        seqname: str,
+        copy_annotations: bool = False,
     ) -> new_sequence.Sequence:
         """Return a sequence object for the specified seqname.
 
@@ -807,7 +847,9 @@ class SequenceCollection:
         return seq
 
     def add_seqs(
-        self, seqs: Union[dict[str, StrORBytesORArray], SeqsData, list], **kwargs
+        self,
+        seqs: dict[str, StrORBytesORArray] | SeqsData | list,
+        **kwargs,
     ) -> SequenceCollection:
         """Returns new collection with additional sequences.
 
@@ -818,11 +860,13 @@ class SequenceCollection:
         """
         assign_names = _SeqNamer()
         data, offsets, is_reversed, name_map = prep_for_seqs_data(
-            seqs, self.moltype, assign_names
+            seqs,
+            self.moltype,
+            assign_names,
         )
 
         if not name_map:
-            name_map = dict(zip(data, data))
+            name_map = dict(zip(data, data, strict=False))
 
         kwargs["offset"] = offsets
         seqs_data = self._seqs_data.add_seqs(data, **kwargs)
@@ -841,14 +885,15 @@ class SequenceCollection:
             renamer(name): old_name for name, old_name in self._name_map.items()
         }
         if len(new_name_map) != len(self._name_map):
-            raise ValueError(f"non-unique names produced by {renamer=}")
+            msg = f"non-unique names produced by {renamer=}"
+            raise ValueError(msg)
 
         init_args = self._get_init_kwargs()
         init_args["name_map"] = new_name_map
 
         return self.__class__(**init_args)
 
-    def to_dict(self, as_array: bool = False) -> dict[str, Union[str, numpy.ndarray]]:
+    def to_dict(self, as_array: bool = False) -> dict[str, str | numpy.ndarray]:
         """Return a dictionary of sequences.
 
         Parameters
@@ -871,7 +916,8 @@ class SequenceCollection:
         kwargs["moltype"] = self.moltype.label
         kwargs.pop("annotation_db", None)
         kwargs.pop(
-            "offset", None
+            "offset",
+            None,
         )  # no need for offset if we dont have an annotation_db
         kwargs.pop("seqs_data", None)  # we serialise the seqs_data directly
 
@@ -886,7 +932,8 @@ class SequenceCollection:
 
     @classmethod
     def from_rich_dict(
-        cls, data: dict[str, str | dict[str, str]]
+        cls,
+        data: dict[str, str | dict[str, str]],
     ) -> SequenceCollection:
         """returns a new instance from a rich dict"""
         return make_unaligned_seqs(data["seqs"], **data["init_args"])
@@ -911,7 +958,6 @@ class SequenceCollection:
             data[name] = self.moltype.degap(seq)
 
         init_kwargs = self._get_init_kwargs()
-        init_kwargs.pop("annotation_db", None)
         init_kwargs["seqs_data"] = self._seqs_data.from_seqs(
             data=data,
             alphabet=self._seqs_data.alphabet,
@@ -942,8 +988,9 @@ class SequenceCollection:
         try:
             new_seqs_data = self._seqs_data.to_alphabet(alpha)
         except new_moltype.MolTypeError as e:
+            msg = f"Failed to convert moltype from {self.moltype.label} to {moltype}"
             raise new_moltype.MolTypeError(
-                f"Failed to convert moltype from {self.moltype.label} to {moltype}"
+                msg,
             ) from e
 
         init_kwargs = self._get_init_kwargs()
@@ -994,8 +1041,9 @@ class SequenceCollection:
         Translating will break the relationship to an annotation_db if present.
         """
         if not self.moltype.is_nucleic:
+            msg = f"moltype must be a DNA/RNA, not {self.moltype.name!r}"
             raise new_moltype.MolTypeError(
-                f"moltype must be a DNA/RNA, not {self.moltype.name!r}"
+                msg,
             )
 
         translated = {}
@@ -1010,7 +1058,7 @@ class SequenceCollection:
             translated[seq._seq.seqid] = numpy.array(pep)
 
         pep_moltype = new_moltype.get_moltype(
-            "protein_with_stop" if include_stop else "protein"
+            "protein_with_stop" if include_stop else "protein",
         )
         seqs_data = self._seqs_data.from_seqs(
             data=translated,
@@ -1071,17 +1119,22 @@ class SequenceCollection:
 
         # check moltype
         if len(self.moltype.alphabet) != 4:
-            raise NotImplementedError("only defined for DNA/RNA molecular types")
+            msg = "only defined for DNA/RNA molecular types"
+            raise NotImplementedError(msg)
 
         # assert we have more than one sequence in the SequenceCollection
         if self.num_seqs == 1:
-            raise ValueError(
+            msg = (
                 "Pairwise distance cannot be computed for a single sequence. "
                 "Please provide at least two sequences."
             )
+            raise ValueError(
+                msg,
+            )
 
         dist_calc_app = get_approx_dist_calc(
-            dist=calc, num_states=len(self.moltype.alphabet)
+            dist=calc,
+            num_states=len(self.moltype.alphabet),
         )
 
         return dist_calc_app(self)
@@ -1099,8 +1152,9 @@ class SequenceCollection:
         Only copies annotations for records with seqid in self.names
         """
         if not isinstance(seq_db, SupportsFeatures):
+            msg = f"type {type(seq_db)} does not match SupportsFeatures interface"
             raise TypeError(
-                f"type {type(seq_db)} does not match SupportsFeatures interface"
+                msg,
             )
 
         num = 0
@@ -1180,7 +1234,8 @@ class SequenceCollection:
         Feature
         """
         if seqid and seqid not in self.names:
-            raise ValueError(f"unknown {seqid=}")
+            msg = f"unknown {seqid=}"
+            raise ValueError(msg)
 
         feature = {k: v for k, v in locals().items() if k != "self"}
 
@@ -1191,7 +1246,7 @@ class SequenceCollection:
     def get_features(
         self,
         *,
-        seqid: Union[str, Iterator[str]] = None,
+        seqid: str | Iterator[str] | None = None,
         biotype: OptStr = None,
         name: OptStr = None,
         start: OptInt = None,
@@ -1232,7 +1287,8 @@ class SequenceCollection:
             return None
 
         if seqid and (seqid not in self.names):
-            raise ValueError(f"unknown {seqid=}")
+            msg = f"unknown {seqid=}"
+            raise ValueError(msg)
 
         for feature in self.annotation_db.get_features_matching(
             seqid=seqid,
@@ -1274,11 +1330,17 @@ class SequenceCollection:
         raises exception if sequences do not all have the same length
         """
         if self.is_ragged():
-            raise ValueError("not all seqs same length, cannot convert to phylip")
+            msg = "not all seqs same length, cannot convert to phylip"
+            raise ValueError(msg)
 
         return alignment_to_phylip(self.to_dict())
 
-    def write(self, filename: str, file_format: OptStr = None, **kwargs):
+    @c3warn.deprecated_args(
+        version="2025.3",
+        reason="duplicates builtin name",
+        old_new=[("format", "file_format")],
+    )
+    def write(self, filename: str, file_format: OptStr = None, **kwargs) -> None:
         """Write the sequences to a file, preserving order of sequences.
 
         Parameters
@@ -1320,7 +1382,7 @@ class SequenceCollection:
         width: int = 500,
         title: OptStr = None,
         rc: bool = False,
-        biotype: typing.Union[str, tuple[str]] = "gene",
+        biotype: str | tuple[str] = "gene",
         show_progress: bool = False,
     ):
         """make a dotplot between specified sequences. Random sequences
@@ -1368,8 +1430,8 @@ class SequenceCollection:
         elif name1 is None and name2 is None:
             name1, name2 = list(numpy.random.choice(self.names, size=2, replace=False))
         elif not (name1 and name2):
-            names = list(set(self.names + [None]) ^ {name1, name2})
-            name = list(numpy.random.choice(names, size=1))[0]
+            names = list({*self.names, None} ^ {name1, name2})
+            name = next(iter(numpy.random.choice(names, size=1)))
             name1 = name1 or name
             name2 = name2 or name
 
@@ -1380,7 +1442,7 @@ class SequenceCollection:
         seq1 = self.get_seq(seqname=name1, copy_annotations=False)
         seq2 = self.get_seq(seqname=name2, copy_annotations=False)
         annotated = seq1.is_annotated(biotype=biotype) or seq2.is_annotated(
-            biotype=biotype
+            biotype=biotype,
         )
         dotplot = Dotplot(
             seq1,
@@ -1494,7 +1556,7 @@ class SequenceCollection:
 
         new_seqs = {
             s.name: s.trim_stop_codon(gc=gc, strict=strict).to_array(
-                apply_transforms=False
+                apply_transforms=False,
             )
             for s in self.seqs
         }
@@ -1553,7 +1615,7 @@ class SequenceCollection:
             )
             motifs.update(c.keys())
             counts.append(c)
-        motifs = list(sorted(motifs))
+        motifs = sorted(motifs)
         for i, c in enumerate(counts):
             counts[i] = c.tolist(motifs)
         return MotifCountsArray(counts, motifs, row_indices=self.names)
@@ -1753,7 +1815,9 @@ class SequenceCollection:
         return None if probs is None else probs.entropy()
 
     def get_lengths(
-        self, include_ambiguity: bool = False, allow_gap: bool = False
+        self,
+        include_ambiguity: bool = False,
+        allow_gap: bool = False,
     ) -> dict[str, int]:
         """returns sequence lengths as a dict of {seqid: length}
 
@@ -1767,7 +1831,9 @@ class SequenceCollection:
 
         """
         counts = self.counts_per_seq(
-            motif_length=1, include_ambiguity=include_ambiguity, allow_gap=allow_gap
+            motif_length=1,
+            include_ambiguity=include_ambiguity,
+            allow_gap=allow_gap,
         )
         return counts.row_sum()
 
@@ -1785,9 +1851,7 @@ class SequenceCollection:
             self._seqs_data.get_seq_length(n) for n in self._name_map.values()
         )
 
-        if pad_length is None:
-            pad_length = max_len
-        elif pad_length < max_len:
+        if pad_length is None or pad_length < max_len:
             pad_length = max_len
 
         padded_seqs = {}
@@ -1822,7 +1886,7 @@ class SequenceCollection:
 
     def is_ragged(self) -> bool:
         return (
-            len(set(self._seqs_data.get_seq_length(n) for n in self._name_map.values()))
+            len({self._seqs_data.get_seq_length(n) for n in self._name_map.values()})
             > 1
         )
 
@@ -1845,7 +1909,8 @@ class SequenceCollection:
         return False
 
     def get_identical_sets(
-        self, mask_degen: bool = False
+        self,
+        mask_degen: bool = False,
     ) -> list[set]:  # refactor: array/simplify
         """returns sets of names for sequences that are identical
 
@@ -1857,13 +1922,15 @@ class SequenceCollection:
         """
 
         if self.is_ragged():
-            raise ValueError("not all seqs same length, cannot get identical sets")
+            msg = "not all seqs same length, cannot get identical sets"
+            raise ValueError(msg)
 
         if mask_degen and not self.moltype.degen_alphabet:
             warnings.warn(
                 "in get_identical_sets, mask_degen has no effect as moltype "
                 f"{self.moltype.label!r} has no degenerate characters",
                 UserWarning,
+                stacklevel=2,
             )
             mask_degen = False
 
@@ -1886,8 +1953,7 @@ class SequenceCollection:
                     dupes[matched].update([seqs_names[i + 1][1], matched])
                 else:
                     matched = None
-            identical_sets = list(dupes.values())
-            return identical_sets
+            return list(dupes.values())
 
         mask_posns = {
             name: self.moltype.get_degenerate_positions(seq, include_gap=True)
@@ -1928,9 +1994,10 @@ class SequenceCollection:
         min_similarity: float = 0.0,
         max_similarity: float = 1.0,
         metric: Callable[
-            [new_sequence.Sequence, new_sequence.Sequence], float
+            [new_sequence.Sequence, new_sequence.Sequence],
+            float,
         ] = new_sequence.frac_same,
-        transform: bool = None,
+        transform: bool | None = None,
     ) -> SequenceCollection:
         """Returns new SequenceCollection containing sequences similar to target.
 
@@ -1985,7 +2052,7 @@ class SequenceCollection:
 
         return self.take_seqs_if(f)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Returns self in FASTA-format, respecting name order."""
         from cogent3.format.alignment import FORMATTERS
 
@@ -2005,7 +2072,7 @@ class SequenceCollection:
     def __ne__(self, other: SequenceCollection) -> bool:
         return not self.__eq__(other)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         seqs = []
         limit = 10
         delimiter = ""
@@ -2015,7 +2082,7 @@ class SequenceCollection:
             # In case of a tie, min and max return first.
             # reversed ensures if all seqs are of same length, different seqs are returned
             repr_seq_names.append(
-                max(reversed(self.names), key=lambda name: len(self.seqs[name]))
+                max(reversed(self.names), key=lambda name: len(self.seqs[name])),
             )
 
         for name in repr_seq_names:
@@ -2035,7 +2102,7 @@ class SequenceCollection:
         settings = self._repr_policy.copy()
         env_vals = get_setting_from_environ(
             "COGENT3_ALIGNMENT_REPR_POLICY",
-            dict(num_seqs=int, num_pos=int, wrap=int),
+            {"num_seqs": int, "num_pos": int, "wrap": int},
         )
         settings.update(env_vals)
         return self.to_html(
@@ -2046,10 +2113,10 @@ class SequenceCollection:
 
     def to_html(
         self,
-        name_order: Optional[typing.Sequence[str]] = None,
+        name_order: typing.Sequence[str] | None = None,
         wrap: int = 60,
         limit: OptInt = None,
-        colors: Optional[Mapping[str, str]] = None,
+        colors: Mapping[str, str] | None = None,
         font_size: int = 12,
         font_family: str = "Lucida Console",
     ) -> str:
@@ -2090,11 +2157,13 @@ class SequenceCollection:
             HTML(seq_col.to_html())
         """
         css, styles = self.moltype.get_css_style(
-            colors=colors, font_size=font_size, font_family=font_family
+            colors=colors,
+            font_size=font_size,
+            font_family=font_family,
         )
 
         seq_lengths = numpy.array(
-            list(self._seqs_data.get_seq_length(n) for n in self._name_map.values())
+            [self._seqs_data.get_seq_length(n) for n in self._name_map.values()],
         )
         min_val = seq_lengths.min()
         max_val = seq_lengths.max()
@@ -2136,7 +2205,7 @@ class SequenceCollection:
         for name in styled_seqs:
             if len(styled_seqs[name]) < max_truncated_len:
                 styled_seqs[name].extend(
-                    [""] * (max_truncated_len - len(styled_seqs[name]))
+                    [""] * (max_truncated_len - len(styled_seqs[name])),
                 )
 
         # Make html table
@@ -2148,38 +2217,19 @@ class SequenceCollection:
         for i in range(0, max_truncated_len, wrap):
             table.append(num_row_.format(i))
             seqblock = seqs[:, i : i + wrap].tolist()
-            for n, s in zip(name_order, seqblock):
+            for n, s in zip(name_order, seqblock, strict=False):
                 s = "".join(s)
                 # Filter out rows that are empty (due to combination of shorter sequences + wrapping)
                 if s != "":
                     row = "".join([label_ % n, seq_ % s])
                     table.append(f"<tr>{row}</tr>")
         table.append("</table>")
-        if (
-            limit
-            and limit < len(selected.names)
-            or name_order
-            and len(name_order) < len(selected.names)
+        if (limit and limit < len(selected.names)) or (
+            name_order and len(name_order) < len(selected.names)
         ):
-            summary = (
-                "%s x {min=%s, median=%s, max=%s} (truncated to %s x %s) %s sequence collection"
-            ) % (
-                self.num_seqs,
-                min_val,
-                med_val,
-                max_val,
-                len(name_order) if name_order else len(selected.names),
-                limit or len(selected),
-                selected.moltype.label,
-            )
+            summary = f"{self.num_seqs} x {{min={min_val}, median={med_val}, max={max_val}}} (truncated to {len(name_order) if name_order else len(selected.names)} x {limit or len(selected)}) {selected.moltype.label} sequence collection"
         else:
-            summary = ("%s x {min=%s, median=%s, max=%s} %s sequence collection") % (
-                self.num_seqs,
-                min_val,
-                med_val,
-                max_val,
-                selected.moltype.label,
-            )
+            summary = f"{self.num_seqs} x {{min={min_val}, median={med_val}, max={max_val}}} {selected.moltype.label} sequence collection"
 
         text = [
             "<style>",
@@ -2206,7 +2256,7 @@ class SequenceCollection:
         num_pos: OptInt = None,
         ref_name: OptInt = None,
         wrap: OptInt = None,
-    ):
+    ) -> None:
         """specify policy for repr(self)
 
         Parameters
@@ -2223,26 +2273,31 @@ class SequenceCollection:
         """
         if num_seqs:
             if not isinstance(num_seqs, int):
-                raise TypeError("num_seqs is not an integer")
+                msg = "num_seqs is not an integer"
+                raise TypeError(msg)
             self._repr_policy["num_seqs"] = num_seqs
 
         if num_pos:
             if not isinstance(num_pos, int):
-                raise TypeError("num_pos is not an integer")
+                msg = "num_pos is not an integer"
+                raise TypeError(msg)
             self._repr_policy["num_pos"] = num_pos
 
         if ref_name:
             if not isinstance(ref_name, str):
-                raise TypeError("ref_name is not a string")
+                msg = "ref_name is not a string"
+                raise TypeError(msg)
 
             if ref_name != "longest" and ref_name not in self.names:
-                raise ValueError(f"no sequence name matching {ref_name}")
+                msg = f"no sequence name matching {ref_name}"
+                raise ValueError(msg)
 
             self._repr_policy["ref_name"] = ref_name
 
         if wrap:
             if not isinstance(wrap, int):
-                raise TypeError("wrap is not an integer")
+                msg = "wrap is not an integer"
+                raise TypeError(msg)
             self._repr_policy["wrap"] = wrap
 
 
@@ -2277,7 +2332,7 @@ def merged_db_collection(seqs) -> SupportsFeatures:
         db = seq.annotation_db
 
         if first is None and db:
-            # todo gah should this be a copy so immutable?
+            # TODO gah should this be a copy so immutable?
             first = db
             merged = first
             continue
@@ -2305,18 +2360,23 @@ class raw_seq_data:
 
 @singledispatch
 def coerce_to_raw_seq_data(
-    seq, moltype: new_moltype.MolType, name: OptStr = None
+    seq,
+    moltype: new_moltype.MolType,
+    name: OptStr = None,
 ) -> raw_seq_data:
     if isinstance(seq, Aligned):
         name = name or seq.name
         seq = str(seq)
         return coerce_to_raw_seq_data(seq, moltype, name)
-    raise TypeError(f"coerce_to_seq_data not implemented for {type(seq)}")
+    msg = f"coerce_to_seq_data not implemented for {type(seq)}"
+    raise TypeError(msg)
 
 
 @coerce_to_raw_seq_data.register
 def _(
-    seq: new_sequence.Sequence, moltype: new_moltype.MolType, name: str
+    seq: new_sequence.Sequence,
+    moltype: new_moltype.MolType,
+    name: str,
 ) -> raw_seq_data:
     seq = seq.to_moltype(moltype)
     parent_name, start, _, step = seq.parent_coordinates()
@@ -2336,18 +2396,22 @@ def _(
 
 @coerce_to_raw_seq_data.register
 def _(seq: str, moltype: new_moltype.MolType, name: OptStr = None) -> raw_seq_data:
-    return raw_seq_data(seq=seq, name=name)
+    return coerce_to_raw_seq_data(seq.encode("utf8"), moltype, name)
 
 
 @coerce_to_raw_seq_data.register
 def _(
-    seq: numpy.ndarray, moltype: new_moltype.MolType, name: OptStr = None
+    seq: numpy.ndarray,
+    moltype: new_moltype.MolType,
+    name: OptStr = None,
 ) -> raw_seq_data:
     return raw_seq_data(seq=seq, name=name)
 
 
 @coerce_to_raw_seq_data.register
 def _(seq: bytes, moltype: new_moltype.MolType, name: OptStr = None) -> raw_seq_data:
+    seq = seq.upper()
+    seq = moltype.coerce_to(seq) if moltype.coerce_to else seq
     return raw_seq_data(seq=seq, name=name)
 
 
@@ -2357,8 +2421,9 @@ CT = tuple[dict[str, StrORBytesORArray], dict[str, int], int, dict[str, str]]
 @singledispatch
 def prep_for_seqs_data(data, moltype: new_moltype.MolType, seq_namer: _SeqNamer) -> CT:
     # refactor: handle conversion of SeqView to SeqDataView.
+    msg = f"coerce_to_seqs_data_dict not implemented for {type(data)}"
     raise NotImplementedError(
-        f"coerce_to_seqs_data_dict not implemented for {type(data)}"
+        msg,
     )
 
 
@@ -2407,22 +2472,24 @@ def _(data: set, moltype: new_moltype.MolType, seq_namer: _SeqNamer) -> CT:
 
 @prep_for_seqs_data.register
 def _(
-    data: SequenceCollection, moltype: new_moltype.MolType, seq_namer: _SeqNamer
+    data: SequenceCollection,
+    moltype: new_moltype.MolType,
+    seq_namer: _SeqNamer,
 ) -> CT:
     return prep_for_seqs_data({seq_namer(s): s for s in data.seqs}, moltype, seq_namer)
 
 
 @singledispatch
 def make_unaligned_seqs(
-    data: Union[dict[str, StrORBytesORArray], list, SeqsDataABC],
+    data: dict[str, StrORBytesORArray] | list | SeqsDataABC,
     *,
-    moltype: Union[str, new_moltype.MolType],
+    moltype: str | new_moltype.MolType,
     label_to_name: OptRenamerCallable = None,
     info: OptDict = None,
     source: OptPathType = None,
     annotation_db: SupportsFeatures = None,
-    offset: typing.Optional[DictStrInt] = None,
-    name_map: typing.Optional[DictStrStr] = None,
+    offset: DictStrInt | None = None,
+    name_map: DictStrStr | None = None,
     is_reversed: OptBool = None,
 ) -> SequenceCollection:
     """Initialise an unaligned collection of sequences.
@@ -2462,18 +2529,14 @@ def make_unaligned_seqs(
     # rename offset to offsets as it could track potentially multiple offsets
 
     # refactor: design
-    # define a source attribute rather than storing as .info["source"]
-    # this will also replace the previous name attribute
-
-    # refactor: design
     # currently reversal can only be applied to the entire collection.
     # This should be made more flexible.
 
     moltype = new_moltype.get_moltype(moltype)
     alphabet = moltype.most_degen_alphabet()
-
     if len(data) == 0:
-        raise ValueError("data must be at least one sequence.")
+        msg = "data must be at least one sequence."
+        raise ValueError(msg)
 
     annotation_db = annotation_db or merged_db_collection(data)
 
@@ -2493,11 +2556,13 @@ def make_unaligned_seqs(
     elif rvd in {0, len(seqs_data)}:
         rvd = bool(rvd)
     else:
+        # redesign: handle case of a mix of reversed and not
         rvd = False
         if annotation_db and len(annotation_db) > 0:
             warnings.warn(
                 "Sequence strand is inconsistent, not applying the annotation db.",
                 UserWarning,
+                stacklevel=2,
             )
             annotation_db = None
 
@@ -2520,27 +2585,30 @@ def make_unaligned_seqs(
 def _(
     data: SeqsDataABC,
     *,
-    moltype: Union[str, new_moltype.MolType],
+    moltype: str | new_moltype.MolType,
     label_to_name: OptRenamerCallable = None,
-    info: dict = None,
+    info: dict | None = None,
     source: OptPathType = None,
     annotation_db: SupportsFeatures = None,
-    offset: dict[str, int] = None,
-    name_map: dict[str, str] = None,
+    offset: dict[str, int] | None = None,
+    name_map: dict[str, str] | None = None,
     is_reversed: OptBool = None,
 ) -> SequenceCollection:
     moltype = new_moltype.get_moltype(moltype)
     if not moltype.is_compatible_alphabet(data.alphabet):
+        msg = f"Provided moltype: {moltype} is not compatible with SeqsData alphabet {data.alphabet}"
         raise ValueError(
-            f"Provided moltype: {moltype} is not compatible with SeqsData alphabet {data.alphabet}"
+            msg,
         )
 
     # we cannot set offset when creating from an SeqsData
     if offset:
-        raise ValueError(f"Setting offset is not supported for {data=}")
+        msg = f"Setting offset is not supported for {data=}"
+        raise ValueError(msg)
 
     info = info if isinstance(info, dict) else {}
-    info["source"] = str(source) if source else str(info.get("source", "unknown"))
+    source = str(source) if source else str(info.get("source", "unknown"))
+    info["source"] = source
     seqs = SequenceCollection(
         seqs_data=data,
         moltype=moltype,
@@ -2565,8 +2633,9 @@ def decompose_gapped_seq(
     Takes a sequence with (or without) gaps and returns an ungapped sequence
     and a map of the position and length of gaps in the original parent sequence
     """
+    msg = f"decompose_gapped_seq not implemented for type {type(seq)}"
     raise NotImplementedError(
-        f"decompose_gapped_seq not implemented for type {type(seq)}"
+        msg,
     )
 
 
@@ -2581,24 +2650,31 @@ def _(
 
 @decompose_gapped_seq.register
 def _(
-    seq: str, *, alphabet: new_alphabet.AlphabetABC
+    seq: str,
+    *,
+    alphabet: new_alphabet.AlphabetABC,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
     if not alphabet.is_valid(seq):
-        raise new_alphabet.AlphabetError(f"Sequence is invalid for alphabet {alphabet}")
+        msg = f"Sequence is invalid for alphabet {alphabet}"
+        raise new_alphabet.AlphabetError(msg)
 
     return decompose_gapped_seq(alphabet.to_indices(seq), alphabet=alphabet)
 
 
 @decompose_gapped_seq.register
 def _(
-    seq: bytes, *, alphabet: new_alphabet.AlphabetABC
+    seq: bytes,
+    *,
+    alphabet: new_alphabet.AlphabetABC,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
     return decompose_gapped_seq(seq.decode("utf-8"), alphabet=alphabet)
 
 
 @decompose_gapped_seq.register
 def _(
-    seq: new_sequence.Sequence, *, alphabet: new_alphabet.AlphabetABC
+    seq: new_sequence.Sequence,
+    *,
+    alphabet: new_alphabet.AlphabetABC,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
     return decompose_gapped_seq(numpy.array(seq), alphabet=alphabet)
 
@@ -2639,7 +2715,7 @@ def decompose_gapped_seq_array(
     num_gaps = 0
     start = 0
     for i, base in enumerate(seq):
-        gapped = base == gap_index or base == missing_index
+        gapped = base == gap_index or base == missing_index  # noqa
         if gapped and not in_gap:
             start = i
             in_gap = True
@@ -2674,7 +2750,9 @@ def decompose_gapped_seq_array(
 
 @numba.jit(cache=True)
 def compose_gapped_seq(
-    ungapped_seq: numpy.ndarray, gaps: numpy.ndarray, gap_index: int
+    ungapped_seq: numpy.ndarray,
+    gaps: numpy.ndarray,
+    gap_index: int,
 ) -> numpy.ndarray:  # pragma: no cover
     """reconstruct a gapped sequence from an ungapped sequence and gap data"""
     if not len(gaps):
@@ -2716,19 +2794,54 @@ class Aligned:
     integer array.
     """
 
-    __slots__ = ("_data", "_moltype", "_name", "_annotation_db")
+    __slots__ = ("_annotation_db", "_data", "_moltype", "_name")
 
     def __init__(
         self,
         data: AlignedDataView,
         moltype: new_moltype.MolType,
         name: OptStr = None,
-        annotation_db: typing.Optional[SupportsFeatures] = None,
-    ):
+        annotation_db: SupportsFeatures | None = None,
+    ) -> None:
         self._data = data
         self._moltype = moltype
         self._name = name or data.seqid
         self._annotation_db = annotation_db
+
+    @classmethod
+    def from_map_and_seq(cls, indel_map: IndelMap, seq: new_sequence.Sequence):
+        moltype = seq.moltype
+        # refactor: design
+        # this is a temporary approach during migration to new_types
+        # to support the sequence alignment algorithms
+        # a better solution is to create a AlignedDataView instance the
+        # map and seq directly without requiring a parent AlignedSeqsData
+        asd = AlignedSeqsData.from_seqs_and_gaps(
+            seqs={seq.name: numpy.array(seq)},
+            gaps={seq.name: indel_map.array},
+            alphabet=moltype.most_degen_alphabet(),
+        )
+
+        return cls(asd.get_view(seq.name), moltype)
+
+    @classmethod
+    def from_map_and_aligned_data_view(
+        cls,
+        indel_map: IndelMap,
+        seq: AlignedDataViewABC,
+    ):
+        moltype = seq.alphabet.moltype
+        seqid = seq.seqid
+        seq = seq.array_value
+        # refactor: design
+        # see above comment in from_map_and_seq
+        asd = AlignedSeqsData.from_seqs_and_gaps(
+            seqs={seqid: seq},
+            gaps={seqid: indel_map.array},
+            alphabet=moltype.most_degen_alphabet(),
+        )
+
+        return cls(asd.get_view(seqid), moltype)
 
     def __len__(self) -> int:
         return len(self.map)
@@ -2787,7 +2900,7 @@ class Aligned:
         return self._annotation_db
 
     @annotation_db.setter
-    def annotation_db(self, value: SupportsFeatures):
+    def annotation_db(self, value: SupportsFeatures) -> None:
         if value == self._annotation_db:
             return
 
@@ -2797,11 +2910,11 @@ class Aligned:
         """Returns gap_vector of positions."""
         return self.gapped_seq.gap_vector()
 
-    def make_feature(self, feature: FeatureDataType, alignment: "Alignment") -> Feature:
+    def make_feature(self, feature: FeatureDataType, alignment: Alignment) -> Feature:
         """returns a feature, not written into annotation_db"""
         annot = self.seq.make_feature(feature)
         inverted = self.map.to_feature_map().inverse()
-        # todo should indicate whether tidy or not
+        # TODO should indicate whether tidy or not
         return annot.remapped_to(alignment, inverted)
 
     def __repr__(self) -> str:
@@ -2813,7 +2926,11 @@ class Aligned:
     def __str__(self) -> str:
         return str(self.gapped_seq)
 
-    def __array__(self, dtype=None, copy=None) -> numpy.ndarray:
+    def __array__(
+        self,
+        dtype: numpy.dtype | None = None,
+        copy: bool | None = None,
+    ) -> numpy.ndarray[int]:
         return numpy.array(self.gapped_seq, dtype=dtype)
 
     def __bytes__(self) -> bytes:
@@ -2824,8 +2941,9 @@ class Aligned:
         yield from self.gapped_seq
 
     @singledispatchmethod
-    def __getitem__(self, span: Union[int, slice]):
-        raise NotImplementedError(f"__getitem__ not implemented for {type(span)}")
+    def __getitem__(self, span: int | slice):
+        msg = f"__getitem__ not implemented for {type(span)}"
+        raise NotImplementedError(msg)
 
     @__getitem__.register
     def _(self, span: int):
@@ -2901,8 +3019,12 @@ class Aligned:
 
     @extend_docstring_from(new_sequence.Sequence.annotate_matches_to)
     def annotate_matches_to(
-        self, pattern: str, biotype: str, name: str, allow_multiple: bool = False
-    ):  # noqa
+        self,
+        pattern: str,
+        biotype: str,
+        name: str,
+        allow_multiple: bool = False,
+    ):
         return self.seq.annotate_matches_to(
             pattern=pattern,
             biotype=biotype,
@@ -3080,14 +3202,14 @@ class AlignedSeqsData(AlignedSeqsDataABC):
     """
 
     __slots__ = (
-        "_names",
-        "_name_to_index",
-        "_ungapped",
+        "_align_len",
+        "_alphabet",
         "_gapped",
         "_gaps",
-        "_alphabet",
-        "_align_len",
+        "_name_to_index",
+        "_names",
         "_offset",
+        "_ungapped",
     )
 
     def __init__(
@@ -3096,12 +3218,12 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         gapped_seqs: numpy.ndarray,
         names: tuple[str],
         alphabet: new_alphabet.AlphabetABC,
-        ungapped_seqs: Optional[dict[str, numpy.ndarray]] = None,
-        gaps: Optional[dict[str, numpy.ndarray]] = None,
-        offset: Optional[DictStrInt] = None,
+        ungapped_seqs: dict[str, numpy.ndarray] | None = None,
+        gaps: dict[str, numpy.ndarray] | None = None,
+        offset: DictStrInt | None = None,
         align_len: OptInt = None,
         check: bool = True,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -3141,16 +3263,19 @@ class AlignedSeqsData(AlignedSeqsDataABC):
 
         if check:
             if not set(names) >= set(self._gaps.keys()) or not set(names) >= set(
-                self._ungapped.keys()
+                self._ungapped.keys(),
             ):
+                msg = "Keys in ungapped seqs and gaps must be subsets of names."
                 raise ValueError(
-                    "Keys in ungapped seqs and gaps must be subsets of names."
+                    msg,
                 )
             if not set(names) >= set(self._offset):
-                raise ValueError("Keys in offset must be a subset of names.")
+                msg = "Keys in offset must be a subset of names."
+                raise ValueError(msg)
 
             if len(names) != gapped_seqs.shape[0]:
-                raise ValueError(f"{len(names)=} != {gapped_seqs.shape[0]=}")
+                msg = f"{len(names)=} != {gapped_seqs.shape[0]=}"
+                raise ValueError(msg)
 
     def __eq__(self, other: AlignedSeqsDataABC) -> bool:
         if not isinstance(other, self.__class__):
@@ -3193,7 +3318,8 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         """
         seq_lengths = {len(v) for v in data.values()}
         if len(seq_lengths) != 1:
-            raise ValueError("All sequence lengths must be the same.")
+            msg = "All sequence lengths must be the same."
+            raise ValueError(msg)
 
         align_len = seq_lengths.pop()
         names = tuple(data.keys())
@@ -3201,8 +3327,9 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         for i, name in enumerate(names):
             array_seqs[i] = alphabet.to_indices(data[name])
             if not alphabet.is_valid(data[name]):
+                msg = f"Sequence {name} contains invalid characters."
                 raise new_alphabet.AlphabetError(
-                    f"Sequence {name} contains invalid characters."
+                    msg,
                 )
 
         array_seqs.flags.writeable = False
@@ -3238,7 +3365,8 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         """
         names = tuple(kwargs.pop("names", seqs.keys()))
         if not len(names):
-            raise ValueError("seqs cannot be empty")
+            msg = "seqs cannot be empty"
+            raise ValueError(msg)
 
         align_len = kwargs.pop("align_len", None)
         if align_len is None:
@@ -3249,7 +3377,8 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             seq = alphabet.to_indices(seqs[name])
             seqs[name] = seq
             if name not in gaps:
-                raise ValueError(f"Missing gap data for sequence {name!r}")
+                msg = f"Missing gap data for sequence {name!r}"
+                raise ValueError(msg)
             gapped_seqs[i] = compose_gapped_seq(seq, gaps[name], alphabet.gap_index)
             assert len(gapped_seqs[i]) == align_len, "aligned lengths do not match"
 
@@ -3285,7 +3414,8 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             alphabet object for the sequences
         """
         if len(names) != data.shape[0] or not len(names):
-            raise ValueError("Number of names must match number of rows in data.")
+            msg = "Number of names must match number of rows in data."
+            raise ValueError(msg)
 
         gapped_seqs = data.astype(alphabet.dtype)
         gapped_seqs.flags.writeable = False
@@ -3316,7 +3446,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         return self.align_len
 
     @singledispatchmethod
-    def __getitem__(self, index: Union[str, int]) -> AlignedDataViewABC:
+    def __getitem__(self, index: str | int) -> AlignedDataViewABC:
         return self.get_view(index)
 
     def get_seq_length(self, seqid: str) -> int:
@@ -3348,10 +3478,11 @@ class AlignedSeqsData(AlignedSeqsDataABC):
     def get_gaps(self, seqid: str) -> numpy.ndarray:
         return self._get_gaps(seqid)
 
-    def _make_gaps_and_ungapped(self, seqid):
+    def _make_gaps_and_ungapped(self, seqid) -> None:
         index = self._name_to_index[seqid]
         ungapped, gaps = decompose_gapped_seq(
-            self._gapped[index], alphabet=self.alphabet
+            self._gapped[index],
+            alphabet=self.alphabet,
         )
         self._gaps[seqid] = gaps
         self._ungapped[seqid] = ungapped
@@ -3371,9 +3502,9 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         stop = stop if stop is not None else self.get_seq_length(seqid)
         step = step or 1
 
-        assert (
-            start >= 0 and stop >= 0 and step > 0
-        ), "start, stop, and step must be >= 0"
+        assert start >= 0 and stop >= 0 and step > 0, (
+            "start, stop, and step must be >= 0"
+        )
 
         out_len = (stop - start + step - 1) // step
 
@@ -3396,9 +3527,9 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         start = start or 0
         stop = stop if stop is not None else self.align_len
         step = step or 1
-        assert (
-            start >= 0 and stop >= 0 and step > 0
-        ), "start, stop, and step must be >= 0"
+        assert start >= 0 and stop >= 0 and step > 0, (
+            "start, stop, and step must be >= 0"
+        )
 
         index = self._name_to_index[seqid]
         out_len = (stop - start + step - 1) // step
@@ -3418,7 +3549,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         """Return ungapped sequence corresponding to seqid as a string.
         start/stop are in sequence coordinates. Excludes gaps."""
         return self.alphabet.from_indices(
-            self.get_seq_array(seqid=seqid, start=start, stop=stop, step=step)
+            self.get_seq_array(seqid=seqid, start=start, stop=stop, step=step),
         )
 
     def get_gapped_seq_str(
@@ -3432,7 +3563,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         """Return sequence corresponding to seqid as a string.
         start/stop are in alignment coordinates. Includes gaps."""
         return self.alphabet.from_indices(
-            self.get_gapped_seq_array(seqid=seqid, start=start, stop=stop, step=step)
+            self.get_gapped_seq_array(seqid=seqid, start=start, stop=stop, step=step),
         )
 
     def get_seq_bytes(
@@ -3446,7 +3577,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         """Return ungapped sequence corresponding to seqid as a bytes string.
         start/stop are in sequence coordinates. Excludes gaps."""
         return self.get_seq_str(seqid=seqid, start=start, stop=stop, step=step).encode(
-            "utf8"
+            "utf8",
         )
 
     def get_gapped_seq_bytes(
@@ -3460,7 +3591,10 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         """Return sequence corresponding to seqid as a bytes string.
         start/stop are in alignment coordinates. Includes gaps."""
         return self.get_gapped_seq_str(
-            seqid=seqid, start=start, stop=stop, step=step
+            seqid=seqid,
+            start=start,
+            stop=stop,
+            step=step,
         ).encode("utf8")
 
     @extend_docstring_from(AlignedSeqsDataABC.get_ungapped)
@@ -3476,7 +3610,8 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         # convert alignment coords into sequence coords using the location.align_to_seq_index function
         # this means we will need to convert coordinates to a plus strand slice
         seq_array = numpy.empty(
-            (len(name_map), self.align_len), dtype=self.alphabet.dtype
+            (len(name_map), self.align_len),
+            dtype=self.alphabet.dtype,
         )
         names = tuple(name_map.values())
         for i, name in enumerate(names):
@@ -3499,7 +3634,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         self,
         seqs: dict[str, StrORArray],
         force_unique_keys: bool = True,
-        offset: dict[str, int] = None,
+        offset: dict[str, int] | None = None,
     ) -> AlignedSeqsData:
         """Returns a new AlignedSeqsData object with added sequences.
 
@@ -3511,20 +3646,23 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             if True, raises ValueError if any sequence names already exist in the collection
         """
         if force_unique_keys and any(name in self.names for name in seqs):
-            raise ValueError("One or more sequence names already exist in collection")
+            msg = "One or more sequence names already exist in collection"
+            raise ValueError(msg)
 
         new_seq_lens = {len(seq) for seq in seqs.values()}
         if len(new_seq_lens) != 1 or new_seq_lens.pop() != self.align_len:
+            msg = "All sequences must be the same length as existing sequences"
             raise ValueError(
-                "All sequences must be the same length as existing sequences"
+                msg,
             )
 
-        new_seqs = dict(zip(self.names, self._gapped))
+        new_seqs = dict(zip(self.names, self._gapped, strict=False))
         for name, seq in seqs.items():
             seq = self.alphabet.to_indices(seq)
             if not self.alphabet.is_valid(seq):
+                msg = f"Sequence {name!r} contains invalid characters."
                 raise new_alphabet.AlphabetError(
-                    f"Sequence {name!r} contains invalid characters."
+                    msg,
                 )
             seq.flags.writeable = False
             new_seqs[name] = seq
@@ -3547,7 +3685,14 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         with a new alphabet."""
         if (
             len(alphabet) == len(self.alphabet)
-            and len({(a, b) for a, b in zip(self.alphabet, alphabet) if a != b}) == 1
+            and len(
+                {
+                    (a, b)
+                    for a, b in zip(self.alphabet, alphabet, strict=False)
+                    if a != b
+                },
+            )
+            == 1
         ):
             # special case where mapping between dna and rna
             return self.__class__(
@@ -3558,23 +3703,25 @@ class AlignedSeqsData(AlignedSeqsDataABC):
                 names=self.names,
             )
 
-        old = self.alphabet.as_bytes()
-        new = alphabet.as_bytes()
-        convert_old_to_bytes = new_alphabet.array_to_bytes(old)
-        convert_bytes_to_new = new_alphabet.bytes_to_array(
-            new, dtype=new_alphabet.get_array_type(len(new))
-        )
         gapped = numpy.empty(
-            (len(self.names), self.align_len), dtype=self.alphabet.dtype
+            (len(self.names), self.align_len),
+            dtype=self.alphabet.dtype,
         )
 
         for i in range(len(self.names)):
-            as_new_alpha = convert_bytes_to_new(convert_old_to_bytes(self._gapped[i]))
-
+            seq_data = self._gapped[i]
+            as_new_alpha = self.alphabet.convert_seq_array_to(
+                seq=seq_data,
+                alphabet=alphabet,
+                check_valid=False,
+            )
             if check_valid and not alphabet.is_valid(as_new_alpha):
-                raise new_moltype.MolTypeError(
+                msg = (
                     f"Changing from old alphabet={self.alphabet} to new "
                     f"{alphabet=} is not valid for this data"
+                )
+                raise new_moltype.MolTypeError(
+                    msg,
                 )
             gapped[i] = as_new_alpha
 
@@ -3641,12 +3788,12 @@ class AlignedDataView(new_sequence.SeqViewABC):
     """
 
     __slots__ = (
-        "parent",
-        "_seqid",
-        "alphabet",
         "_offset",
         "_parent_len",
+        "_seqid",
         "_slice_record",
+        "alphabet",
+        "parent",
     )
 
     def __init__(
@@ -3656,7 +3803,7 @@ class AlignedDataView(new_sequence.SeqViewABC):
         seqid: str,
         alphabet: new_alphabet.AlphabetABC,
         slice_record: OptSliceRecord = None,
-    ):
+    ) -> None:
         self.parent = parent
         self._seqid = seqid
         self.alphabet = alphabet
@@ -3672,7 +3819,7 @@ class AlignedDataView(new_sequence.SeqViewABC):
         return self._slice_record
 
     @slice_record.setter
-    def slice_record(self, value: new_sequence.SliceRecordABC):
+    def slice_record(self, value: new_sequence.SliceRecordABC) -> None:
         self._slice_record = value
 
     @property
@@ -3748,7 +3895,11 @@ class AlignedDataView(new_sequence.SeqViewABC):
     def __str__(self) -> str:
         return self.str_value
 
-    def __array__(self, dtype=None, copy=None) -> numpy.ndarray:
+    def __array__(
+        self,
+        dtype: numpy.dtype | None = None,
+        copy: bool | None = None,
+    ) -> numpy.ndarray[int]:
         arr = self.array_value
         if dtype:
             arr = arr.astype(dtype)
@@ -3757,7 +3908,7 @@ class AlignedDataView(new_sequence.SeqViewABC):
     def __bytes__(self) -> bytes:
         return self.bytes_value
 
-    def __getitem__(self, segment) -> AlignedDataViewABC:
+    def __getitem__(self, segment) -> typing_extensions.Self:
         return self.__class__(
             parent=self.parent,
             seqid=self.seqid,
@@ -3766,11 +3917,9 @@ class AlignedDataView(new_sequence.SeqViewABC):
         )
 
     def __repr__(self) -> str:
-        # refactor: design
-        # todo: once design is settled, need to be tested
         seq_preview = (
             f"{self.parent.get_seq_array(seqid=self.seqid, start=0, stop=10)}..."
-            f"{self.parent.get_seq_array(seqid=self.seqid, start=self.parent_len-5)}"
+            f"{self.parent.get_seq_array(seqid=self.seqid, start=self.parent_len - 5)}"
             if self.parent_len > 15
             else self.parent.get_seq_array(seqid=self.seqid)
         )
@@ -3835,29 +3984,23 @@ def make_gap_filter(template, gap_fraction, gap_run):
     """
     template_gaps = numpy.array(template.gap_vector())
 
-    def result(seq):
+    def result(seq) -> bool:
         """Returns True if seq adhers to the gap threshold and gap fraction."""
         seq_gaps = numpy.array(seq.gap_vector())
         # check if gap amount bad
         if sum(seq_gaps != template_gaps) / float(len(seq)) > gap_fraction:
             return False
         # check if gap runs bad
-        if (
+        return not (
             b"\x01" * gap_run
             in numpy.logical_and(seq_gaps, numpy.logical_not(template_gaps))
             .astype(numpy.uint8)
             .tobytes()
-        ):
-            return False
-        # check if insertion runs bad
-        elif (
-            b"\x01" * gap_run
+            or b"\x01" * gap_run
             in numpy.logical_and(template_gaps, numpy.logical_not(seq_gaps))
             .astype(numpy.uint8)
             .tobytes()
-        ):
-            return False
-        return True
+        )
 
     return result
 
@@ -3867,9 +4010,9 @@ class _IndexableSeqs:
 
     def __init__(
         self,
-        parent: Union[SequenceCollection, Alignment],
-        make_seq: typing.Callable[[str], typing.Union[new_sequence.Sequence, Aligned]],
-    ):
+        parent: SequenceCollection | Alignment,
+        make_seq: typing.Callable[[str], new_sequence.Sequence | Aligned],
+    ) -> None:
         """
         Parameters
         ----------
@@ -3883,21 +4026,23 @@ class _IndexableSeqs:
 
     @singledispatchmethod
     def __getitem__(
-        self, key: Union[str, int, slice]
-    ) -> Union[new_sequence.Sequence, Aligned]:
-        raise TypeError(f"indexing not supported for {type(key)}, try .take_seqs()")
+        self,
+        key: str | int | slice,
+    ) -> new_sequence.Sequence | Aligned:
+        msg = f"indexing not supported for {type(key)}, try .take_seqs()"
+        raise TypeError(msg)
 
     @__getitem__.register
-    def _(self, key: int) -> Union[new_sequence.Sequence, Aligned]:
+    def _(self, key: int) -> new_sequence.Sequence | Aligned:
         return self[self.parent.names[key]]
 
     @__getitem__.register
-    def _(self, key: str) -> Union[new_sequence.Sequence, Aligned]:
+    def _(self, key: str) -> new_sequence.Sequence | Aligned:
         return self._make_seq(key)
 
     def __repr__(self) -> str:
         one_seq = self[self.parent.names[0]]
-        return f"({one_seq!r}, + {self.parent.num_seqs-1} seqs)"
+        return f"({one_seq!r}, + {self.parent.num_seqs - 1} seqs)"
 
     def __len__(self) -> int:
         return self.parent.num_seqs
@@ -3920,7 +4065,7 @@ class Alignment(SequenceCollection):
         seqs_data: AlignedSeqsDataABC,  # seqs_data
         slice_record: OptSliceRecord = None,
         **kwargs,
-    ):
+    ) -> None:
         super().__init__(seqs_data=seqs_data, **kwargs)
         self._slice_record = (
             slice_record
@@ -3929,13 +4074,13 @@ class Alignment(SequenceCollection):
         )
         self._array_seqs = None
 
-    def _post_init(self):
+    def _post_init(self) -> None:
         self._seqs = _IndexableSeqs(self, make_seq=self._make_aligned)
 
-    def __eq__(self, other: "Alignment") -> bool:
+    def __eq__(self, other: Alignment) -> bool:
         return super().__eq__(other) and self._slice_record == other._slice_record
 
-    def __ne__(self, other: "Alignment") -> bool:
+    def __ne__(self, other: Alignment) -> bool:
         return not self == other
 
     def _get_init_kwargs(self) -> dict:
@@ -3947,42 +4092,35 @@ class Alignment(SequenceCollection):
             "info": self.info.copy(),
             "annotation_db": self.annotation_db,
             "slice_record": self._slice_record,
+            "source": self.source,
         }
 
     @singledispatchmethod
     def __getitem__(self, index):
-        raise NotImplementedError(f"__getitem__ not implemented for {type(index)}")
+        msg = f"__getitem__ not implemented for {type(index)}"
+        raise NotImplementedError(msg)
 
     @__getitem__.register
     def _(self, index: str):
-        return self._make_aligned(seqid=index)
+        return self.seqs[index]
 
     @__getitem__.register
     def _(self, index: int):
         new_slice = self._slice_record[index]
-        return self.__class__(
-            seqs_data=self._seqs_data,
-            slice_record=new_slice,
-            moltype=self.moltype,
-            info=self.info,
-        )
+        kwargs = self._get_init_kwargs()
+        kwargs["slice_record"] = new_slice
+        return self.__class__(**kwargs)
 
     @__getitem__.register
     def _(self, index: slice):
         new_slice = self._slice_record[index]
-        new = self.__class__(
-            seqs_data=self._seqs_data,
-            slice_record=new_slice,
-            moltype=self.moltype,
-            info=self.info,
-        )
-        if abs(new_slice.step or 1) > 1:
-            return new
+        kwargs = self._get_init_kwargs()
+        kwargs["slice_record"] = new_slice
+        if new_slice.plus_step > 1:
+            # we retain the annotation database only for "simple" slices
+            kwargs.pop("annotation_db", None)
 
-        # for simple slices, we retain the annotation database
-        if self.annotation_db is not None:
-            new.annotation_db = self.annotation_db
-        return new
+        return self.__class__(**kwargs)
 
     @__getitem__.register
     def _(self, index: FeatureMap):
@@ -3991,10 +4129,11 @@ class Alignment(SequenceCollection):
     @__getitem__.register
     def _(self, index: Feature):
         if index.parent is not self:
-            raise ValueError("This feature applied to the wrong sequence / alignment")
+            msg = "This feature applied to the wrong sequence / alignment"
+            raise ValueError(msg)
         return index.get_slice()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         seqs = []
         limit = 10
         delimiter = ""
@@ -4010,10 +4149,14 @@ class Alignment(SequenceCollection):
 
         return f"{len(self.names)} x {len(self)} {self.moltype.label} alignment: {seqs}"
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._slice_record)
 
-    def __array__(self):
+    def __array__(
+        self,
+        dtype: numpy.dtype | None = None,
+        copy: bool | None = None,
+    ) -> numpy.ndarray[int]:
         return self.array_seqs
 
     def _make_aligned(self, seqid: str) -> Aligned:
@@ -4061,7 +4204,9 @@ class Alignment(SequenceCollection):
         return self.array_seqs.T
 
     def get_seq(
-        self, seqname: str, copy_annotations: bool = False
+        self,
+        seqname: str,
+        copy_annotations: bool = False,
     ) -> new_sequence.Sequence:
         """Return a Sequence object for the specified seqname.
 
@@ -4084,16 +4229,39 @@ class Alignment(SequenceCollection):
         return seq
 
     @c3warn.deprecated_args(
-        version="2025.6", reason="naming consistency", old_new=[("seq_name", "seqname")]
+        version="2025.6",
+        reason="naming consistency",
+        old_new=[("seq_name", "seqname")],
     )
-    def get_gapped_seq(self, seqname: str) -> new_sequence.Sequence:
+    def get_gapped_seq(
+        self,
+        seqname: str,
+        recode_gaps: bool = False,
+    ) -> new_sequence.Sequence:
         """Return a gapped Sequence object for the specified seqname.
+
+
+        Parameters
+        ----------
+        seqname
+            sequence name
+        recode_gaps
+            if True, gap characters are replaced by the most general
+            ambiguity code, e.g. N for DNA and RNA
 
         Notes
         -----
         This method breaks the connection to the annotation database.
         """
-        return self.seqs[seqname].gapped_seq
+        s = self.seqs[seqname].gapped_seq
+        if recode_gaps:
+            s = str(s)
+            non_ambig = list(self.moltype)
+            ambig = self.moltype.degenerate_from_seq(non_ambig)
+            for gapchar in self.moltype.gaps:
+                s = s.replace(gapchar, ambig)
+
+        return self.moltype.make_seq(seq=s, name=seqname)
 
     def rc(self):
         """Returns the reverse complement of all sequences in the alignment.
@@ -4121,7 +4289,7 @@ class Alignment(SequenceCollection):
         -------
         float or a NotCompleted instance if the score could not be computed
         """
-        app = get_app(app_name, **kwargs)
+        app = cogent3.get_app(app_name, **kwargs)
         return app(self)
 
     def rename_seqs(self, renamer: Callable[[str], str]):
@@ -4130,7 +4298,8 @@ class Alignment(SequenceCollection):
             renamer(name): old_name for name, old_name in self._name_map.items()
         }
         if len(new_name_map) != len(self._name_map):
-            raise ValueError(f"non-unique names produced by {renamer=}")
+            msg = f"non-unique names produced by {renamer=}"
+            raise ValueError(msg)
 
         init_kwargs = self._get_init_kwargs()
         init_kwargs["name_map"] = new_name_map
@@ -4142,7 +4311,8 @@ class Alignment(SequenceCollection):
         return new
 
     def iter_positions(
-        self, pos_order: list = None
+        self,
+        pos_order: list | None = None,
     ) -> typing.Iterator[list, list, list]:
         """Iterates over positions in the alignment, in order.
 
@@ -4164,7 +4334,10 @@ class Alignment(SequenceCollection):
             yield [str(self[seq][pos]) for seq in self.names]
 
     def get_position_indices(
-        self, f: Callable, native: bool = False, negate: bool = False
+        self,
+        f: Callable,
+        native: bool = False,
+        negate: bool = False,
     ) -> list[int]:
         """Returns list of column indices for which f(col) is True.
 
@@ -4204,14 +4377,14 @@ class Alignment(SequenceCollection):
             for aligned in self.seqs
         }
         seqs_data = self._seqs_data.from_seqs(
-            data=new_data, alphabet=self.moltype.most_degen_alphabet()
+            data=new_data,
+            alphabet=self.moltype.most_degen_alphabet(),
         )
-        return self.__class__(
-            seqs_data=seqs_data,
-            name_map=self._name_map,
-            info=self.info,
-            moltype=self.moltype,
-        )
+        kwargs = self._get_init_kwargs()
+        kwargs["seqs_data"] = seqs_data
+        kwargs.pop("annotation_db", None)
+        kwargs.pop("slice_record", None)
+        return self.__class__(**kwargs)
 
     def take_positions_if(self, f, negate=False):
         """Returns new Alignment containing cols where f(col) is True."""
@@ -4255,7 +4428,7 @@ class Alignment(SequenceCollection):
         """Returns consensus sequence containing most frequent item at each
         position."""
         states = []
-        data = zip(*map(str, self.seqs))
+        data = zip(*map(str, self.seqs), strict=False)
         for pos in data:
             pos = CategoryCounter(pos)
             states.append(pos.mode)
@@ -4292,7 +4465,7 @@ class Alignment(SequenceCollection):
         align_len = len(self._slice_record)
         length = (align_len // motif_length) * motif_length
         if warn and align_len != length:
-            warnings.warn(f"trimmed {align_len - length}", UserWarning)
+            warnings.warn(f"trimmed {align_len - length}", UserWarning, stacklevel=2)
 
         data = list(self.to_dict().values())
         alpha = self.moltype.alphabet.get_kmer_alphabet(motif_length)
@@ -4322,8 +4495,7 @@ class Alignment(SequenceCollection):
         for i, counts in enumerate(result):
             result[i] = counts.tolist(alpha)
 
-        result = MotifCountsArray(result, alpha)
-        return result
+        return MotifCountsArray(result, alpha)
 
     def probs_per_pos(
         self,
@@ -4384,7 +4556,7 @@ class Alignment(SequenceCollection):
         """
         length = (len(self) // motif_length) * motif_length
         if warn and len(self) != length:
-            warnings.warn(f"trimmed {len(self) - length}", UserWarning)
+            warnings.warn(f"trimmed {len(self) - length}", UserWarning, stacklevel=2)
 
         counts = []
         motifs = set()
@@ -4402,7 +4574,7 @@ class Alignment(SequenceCollection):
         if not exclude_unobserved:
             motifs.update(self.moltype.alphabet.get_kmer_alphabet(motif_length))
 
-        motifs = list(sorted(motifs))
+        motifs = sorted(motifs)
         if not motifs:
             return None
 
@@ -4498,8 +4670,7 @@ class Alignment(SequenceCollection):
         darr = DictArrayTemplate(range(len(self)))
 
         result = gap_array.sum(axis=0)
-        result = darr.wrap(result)
-        return result
+        return darr.wrap(result)
 
     def count_gaps_per_seq(
         self,
@@ -4532,11 +4703,11 @@ class Alignment(SequenceCollection):
         if unique:
             # we identify cols with a single non-gap character
             gap_cols = gap_array.sum(axis=0) == self.num_seqs - 1
-            gap_array = gap_array[:, gap_cols] == False
+            gap_array = gap_array[:, gap_cols] == False  # noqa
         elif induced_by:
             # identify all columns with gap opposite
             gap_cols = gap_array.sum(axis=0) > 0
-            gap_array = gap_array[:, gap_cols] == False
+            gap_array = gap_array[:, gap_cols] == False  # noqa
         else:
             gap_cols = gap_array.sum(axis=0) > 0
             gap_array = gap_array[:, gap_cols]
@@ -4549,12 +4720,15 @@ class Alignment(SequenceCollection):
                 os.path.basename(self.info.source) if self.info.source else None
             )
             draw = Drawable("Gaps Per Sequence", showlegend=False)
-            draw.layout |= dict(yaxis=dict(title="Gap counts"))
+            draw.layout |= {"yaxis": {"title": "Gap counts"}}
             if drawable == "bar":
                 trace = UnionDict(type="bar", y=result.array, x=self.names)
             else:
                 trace = UnionDict(
-                    type=drawable, y=result.array, text=self.names, name=trace_name
+                    type=drawable,
+                    y=result.array,
+                    text=self.names,
+                    name=trace_name,
                 )
 
             draw.add_trace(trace)
@@ -4658,7 +4832,10 @@ class Alignment(SequenceCollection):
             self._slice_record.step,
         )
         data, kwargs = self._seqs_data.get_ungapped(
-            name_map=self._name_map, start=start, stop=stop, step=step
+            name_map=self._name_map,
+            start=start,
+            stop=stop,
+            step=step,
         )
         # the SeqsData classes will return the data corresponding to the slice,
         # however, will not complement the data if the step is negative. We do
@@ -4668,6 +4845,7 @@ class Alignment(SequenceCollection):
             if step < 0
             else data
         )
+        kwargs["annotation_db"] = self.annotation_db
         return make_unaligned_seqs(data, moltype=self.moltype, info=self.info, **kwargs)
 
     def get_degapped_relative_to(self, name: str):
@@ -4684,7 +4862,8 @@ class Alignment(SequenceCollection):
         """
 
         if name not in self.names:
-            raise ValueError(f"Alignment missing sequence named {name!r}")
+            msg = f"Alignment missing sequence named {name!r}"
+            raise ValueError(msg)
 
         gapindex = self.moltype.most_degen_alphabet().gap_index
         seqindex = self.names.index(name)
@@ -4692,15 +4871,15 @@ class Alignment(SequenceCollection):
         new = self.array_seqs[:, indices]
 
         new_seq_data = self._seqs_data.from_names_and_array(
-            names=self.names, data=new, alphabet=self.moltype.most_degen_alphabet()
+            names=self.names,
+            data=new,
+            alphabet=self.moltype.most_degen_alphabet(),
         )
-
-        return self.__class__(
-            seqs_data=new_seq_data,
-            name_map=self._name_map,
-            moltype=self.moltype,
-            info=self.info,
-        )
+        kwargs = self._get_init_kwargs()
+        kwargs["seqs_data"] = new_seq_data
+        kwargs.pop("annotation_db", None)
+        kwargs.pop("slice_record", None)
+        return self.__class__(**kwargs)
 
     def matching_ref(self, ref_name: str, gap_fraction: float, gap_run: int):
         """Returns new alignment with seqs well aligned with a reference.
@@ -4721,7 +4900,11 @@ class Alignment(SequenceCollection):
         return self.take_seqs_if(gap_filter)
 
     def sliding_windows(
-        self, window: int, step: int, start: OptInt = None, end: OptInt = None
+        self,
+        window: int,
+        step: int,
+        start: OptInt = None,
+        end: OptInt = None,
     ):
         """Generator yielding new alignments of given length and interval.
 
@@ -4745,19 +4928,29 @@ class Alignment(SequenceCollection):
 
     def gapped_by_map(self, keep: FeatureMap, **kwargs):
         # refactor: docstring
-        # todo: kath, not explicitly tested
+        # TODO: kath, not explicitly tested
         seqs = {}
         for seq in self.seqs:
             selected = seq[keep]
             seqs[seq.name] = numpy.array(selected.gapped_seq)
 
         seqs_data = self._seqs_data.from_seqs(
-            data=seqs, alphabet=self.moltype.most_degen_alphabet()
+            data=seqs,
+            alphabet=self.moltype.most_degen_alphabet(),
         )
-        return self.__class__(seqs_data=seqs_data, moltype=self.moltype, **kwargs)
+        init_kwargs = self._get_init_kwargs()
+        init_kwargs.pop("annotation_db", None)
+        init_kwargs |= kwargs
+        init_kwargs["seqs_data"] = seqs_data
+        init_kwargs.pop("slice_record", None)
+        return self.__class__(**init_kwargs)
 
     def filtered(
-        self, predicate, motif_length: int = 1, drop_remainder: bool = True, **kwargs
+        self,
+        predicate: typing.Callable[[typing_extensions.Self], bool],
+        motif_length: int = 1,
+        drop_remainder: bool = True,
+        **kwargs,
     ):
         """The alignment positions where predicate(column) is true.
 
@@ -4774,39 +4967,23 @@ class Alignment(SequenceCollection):
             remaining columns
         """
         # refactor: type hint for predicate
-        # refactor: array
-        # add argument array_type: bool=True which allows the user to specify what
-        # type their callable can handle and what type the method should return
         length = len(self)
-        if length % motif_length != 0 and not drop_remainder:
+        drop = length % motif_length
+        if drop != 0 and not drop_remainder:
+            msg = f"aligned length not divisible by motif_length={motif_length}"
             raise ValueError(
-                f"aligned length not divisible by motif_length={motif_length}"
+                msg,
             )
-        gv = []
-        kept = False
-        seqs = [
-            self.get_gapped_seq(n).get_in_motif_size(motif_length, **kwargs)
-            for n in self.names
-        ]
+        length -= drop
+        kept = numpy.zeros(length, dtype=bool)
+        for pos in range(0, length, motif_length):
+            seqs = [seq[pos : pos + motif_length] for seq in self.seqs]
+            if predicate(seqs):
+                kept[pos : pos + motif_length] = True
 
-        positions = list(zip(*seqs))
-        for position, column in enumerate(positions):
-            keep = predicate(column)
-            if kept != keep:
-                gv.append(position * motif_length)
-                kept = keep
+        indices = numpy.where(kept)[0]
 
-        if kept:
-            gv.append(len(positions) * motif_length)
-
-        if not gv:
-            return None
-
-        locations = [(gv[i], gv[i + 1]) for i in range(0, len(gv), 2)]
-        # these are alignment coordinate locations
-        keep = FeatureMap.from_locations(locations=locations, parent_length=len(self))
-
-        return self.gapped_by_map(keep, info=self.info)
+        return self.take_positions(indices.tolist())
 
     def no_degenerates(self, motif_length: int = 1, allow_gap: bool = False):
         """returns new alignment without degenerate characters
@@ -4822,9 +4999,12 @@ class Alignment(SequenceCollection):
             gaps as N).
         """
         if self.moltype.degen_alphabet is None:
-            raise new_moltype.MolTypeError(
+            msg = (
                 f"Invalid MolType={self.moltype.label} (no degenerate characters), "
                 "create the alignment using DNA, RNA or PROTEIN"
+            )
+            raise new_moltype.MolTypeError(
+                msg,
             )
 
         chars = len(self.moltype)
@@ -4848,25 +5028,39 @@ class Alignment(SequenceCollection):
         selected = array_pos[indices].T
 
         aligned_seqs_data = self._seqs_data.from_names_and_array(
-            names=self.names, data=selected, alphabet=self.moltype.most_degen_alphabet()
+            names=self.names,
+            data=selected,
+            alphabet=self.moltype.most_degen_alphabet(),
         )
-        return self.__class__(
-            seqs_data=aligned_seqs_data, info=self.info, moltype=self.moltype
-        )
+        kwargs = self._get_init_kwargs()
+        kwargs["seqs_data"] = aligned_seqs_data
+        kwargs.pop("annotation_db", None)
+        kwargs.pop("slice_record", None)
+        return self.__class__(**kwargs)
 
     def _omit_gap_pos_single(
-        self, gap_index: int, missing_index: OptInt, allowed_num: int
+        self,
+        gap_index: int,
+        missing_index: OptInt,
+        allowed_num: int,
     ) -> numpy.ndarray[bool]:
         # for motif_length == 1
         indices = numpy.empty(len(self), dtype=bool)
         for i, col in enumerate(self.array_seqs.T):
             indices[i] = _gap_ok_vector_single(
-                col, gap_index, missing_index, allowed_num
+                col,
+                gap_index,
+                missing_index,
+                allowed_num,
             )
         return indices
 
     def _omit_gap_pos_multi(
-        self, gap_index: int, missing_index: OptInt, allowed_num: int, motif_length: int
+        self,
+        gap_index: int,
+        missing_index: OptInt,
+        allowed_num: int,
+        motif_length: int,
     ) -> numpy.ndarray[bool]:
         # for motif_length > 1
         num_motifs = len(self) // motif_length
@@ -4874,19 +5068,29 @@ class Alignment(SequenceCollection):
         for i in range(0, len(self), motif_length):
             col = self.array_seqs.T[i : i + motif_length].T
             ok = _gap_ok_vector_multi(
-                col, gap_index, missing_index, motif_length, allowed_num
+                col,
+                gap_index,
+                missing_index,
+                motif_length,
+                allowed_num,
             )
             indices[i : i + motif_length] = ok
         return indices
 
-    def omit_gap_pos(self, allowed_gap_frac: float = 1 - EPS, motif_length: int = 1):
+    def omit_gap_pos(
+        self,
+        allowed_gap_frac: float | None = None,
+        motif_length: int = 1,
+    ):
         """Returns new alignment where all cols (motifs) have <= allowed_gap_frac gaps.
 
         Parameters
         ----------
         allowed_gap_frac
             specifies proportion of gaps is allowed in each column. Set to 0 to
-            exclude columns with any gaps, 1 to include all columns.
+            exclude columns with any gaps, 1 to include all columns. Default is
+            None which is equivalent to (num_seqs-1)/num_seqs and leads to
+            elimination of columns that are only gaps.
         motif_length
             set's the "column" width, e.g. setting to 3 corresponds to codons.
             A motif that includes a gap at any position is included in the
@@ -4898,7 +5102,11 @@ class Alignment(SequenceCollection):
         if not gap_index and not missing_index:
             return self
 
-        allowed_num = int(numpy.floor(self.num_seqs * allowed_gap_frac))
+        allowed_num = (
+            self.num_seqs - 1
+            if allowed_gap_frac is None
+            else int(numpy.floor(self.num_seqs * allowed_gap_frac))
+        )
 
         # we are assuming gap and missing data have same value on other strand
         positions = self.array_positions
@@ -4907,12 +5115,17 @@ class Alignment(SequenceCollection):
         else:
             positions = positions[: motif_length * (len(positions) // motif_length)]
             indices = self._omit_gap_pos_multi(
-                gap_index, missing_index, allowed_num, motif_length
+                gap_index,
+                missing_index,
+                allowed_num,
+                motif_length,
             )
         selected = positions[indices, :].T
 
         aligned_seqs_data = self._seqs_data.from_names_and_array(
-            names=self.names, data=selected, alphabet=alpha
+            names=self.names,
+            data=selected,
+            alphabet=alpha,
         )
         kwargs = self._get_init_kwargs()
         kwargs["seqs_data"] = aligned_seqs_data
@@ -4940,7 +5153,7 @@ class Alignment(SequenceCollection):
     def sample(
         self,
         *,
-        n: int = None,
+        n: int | None = None,
         with_replacement: bool = False,
         motif_length: int = 1,
         randint=numpy.random.randint,
@@ -4990,7 +5203,8 @@ class Alignment(SequenceCollection):
         positions = numpy.empty(n * motif_length, dtype=int)
         for i, loc in enumerate(locations):
             positions[i * motif_length : (i + 1) * motif_length] = range(
-                loc * motif_length, (loc + 1) * motif_length
+                loc * motif_length,
+                (loc + 1) * motif_length,
             )
 
         new_seqs = {}
@@ -4999,11 +5213,14 @@ class Alignment(SequenceCollection):
             new_seqs[aligned.data.seqid] = sampled
 
         new_seqs_data = self._seqs_data.from_seqs(
-            data=new_seqs, alphabet=self.moltype.most_degen_alphabet()
+            data=new_seqs,
+            alphabet=self.moltype.most_degen_alphabet(),
         )
-        return self.__class__(
-            seqs_data=new_seqs_data, info=self.info, moltype=self.moltype
-        )
+        kwargs = self._get_init_kwargs()
+        kwargs["seqs_data"] = new_seqs_data
+        kwargs.pop("annotation_db", None)
+        kwargs.pop("slice_record", None)
+        return self.__class__(**kwargs)
 
     def distance_matrix(
         self,
@@ -5085,7 +5302,9 @@ class Alignment(SequenceCollection):
         from cogent3.phylo.nj import gnj
 
         dm = self.distance_matrix(
-            calc=calc, drop_invalid=drop_invalid, parallel=parallel
+            calc=calc,
+            drop_invalid=drop_invalid,
+            parallel=parallel,
         )
         results = gnj(dm, keep=1, show_progress=show_progress)
         kept_names = set(dm.template.names[0])
@@ -5097,7 +5316,9 @@ class Alignment(SequenceCollection):
                 b = subaln.sample(with_replacement=True)
                 try:
                     bdist = b.distance_matrix(
-                        calc=calc, drop_invalid=drop_invalid, parallel=parallel
+                        calc=calc,
+                        drop_invalid=drop_invalid,
+                        parallel=parallel,
                     )
                 except ArithmeticError:
                     # all sequences must have a pairwise distance to allow
@@ -5134,30 +5355,28 @@ class Alignment(SequenceCollection):
             data[name] = seq
 
         seqs_data = self._seqs_data.from_seqs(
-            data=data, alphabet=self.moltype.most_degen_alphabet()
+            data=data,
+            alphabet=self.moltype.most_degen_alphabet(),
         )
-
-        result = self.__class__(
-            seqs_data=seqs_data, info=self.info, moltype=self.moltype, **kwargs
-        )
-
-        if hasattr(self, "annotation_db"):
-            result.annotation_db = self.annotation_db
-
-        return result
+        init_kwargs = self._get_init_kwargs()
+        init_kwargs["seqs_data"] = seqs_data
+        init_kwargs.pop("slice_record", None)
+        init_kwargs |= kwargs
+        return self.__class__(**init_kwargs)
 
     @extend_docstring_from(SequenceCollection.get_translation)
     def get_translation(
         self,
-        gc: int = None,
+        gc: int | None = None,
         incomplete_ok: bool = False,
         include_stop: bool = False,
         trim_stop: bool = True,
         **kwargs,
     ):
         if not self.moltype.is_nucleic:
+            msg = f"moltype must be a DNA/RNA, not {self.moltype.name!r}"
             raise new_moltype.MolTypeError(
-                f"moltype must be a DNA/RNA, not {self.moltype.name!r}"
+                msg,
             )
 
         translated = {}
@@ -5177,7 +5396,7 @@ class Alignment(SequenceCollection):
             translated[seqname] = numpy.array(pep)
 
         pep_moltype = new_moltype.get_moltype(
-            "protein_with_stop" if include_stop else "protein"
+            "protein_with_stop" if include_stop else "protein",
         )
         seqs_data = self._seqs_data.from_seqs(
             data=translated,
@@ -5228,7 +5447,8 @@ class Alignment(SequenceCollection):
         revd = feature.pop("strand", None) == "-"
         feature["strand"] = "-" if revd else "+"
         fmap = FeatureMap.from_locations(
-            locations=feature.pop("spans"), parent_length=len(self)
+            locations=feature.pop("spans"),
+            parent_length=len(self),
         )
         if revd:
             fmap = fmap.nucleic_reversed()
@@ -5281,10 +5501,12 @@ class Alignment(SequenceCollection):
             on_alignment = on_alignment is None
 
         if seqid and on_alignment:
-            raise ValueError("seqid and on_alignment are incomatible")
+            msg = "seqid and on_alignment are incomatible"
+            raise ValueError(msg)
 
         if seqid and seqid not in self.names:
-            raise ValueError(f"unknown {seqid=}")
+            msg = f"unknown {seqid=}"
+            raise ValueError(msg)
 
         if not self.annotation_db:
             self.annotation_db = DEFAULT_ANNOTATION_DB()
@@ -5299,9 +5521,9 @@ class Alignment(SequenceCollection):
     def _get_seq_features(
         self,
         *,
-        seqid: Optional[str] = None,
-        biotype: Optional[str] = None,
-        name: Optional[str] = None,
+        seqid: str | None = None,
+        biotype: str | None = None,
+        name: str | None = None,
         allow_partial: bool = False,
     ) -> Iterator[Feature]:
         """yields Feature instances
@@ -5338,7 +5560,8 @@ class Alignment(SequenceCollection):
             # already correct
             pass
         else:
-            raise ValueError(f"unknown {seqid=}")
+            msg = f"unknown {seqid=}"
+            raise ValueError(msg)
 
         for seqid in seqids:
             seqname = seqid_to_seqname[seqid]
@@ -5364,10 +5587,10 @@ class Alignment(SequenceCollection):
     def get_features(
         self,
         *,
-        seqid: Optional[str] = None,
-        biotype: Optional[str] = None,
-        name: Optional[str] = None,
-        on_alignment: Optional[bool] = None,
+        seqid: str | None = None,
+        biotype: str | None = None,
+        name: str | None = None,
+        on_alignment: bool | None = None,
         allow_partial: bool = False,
     ) -> Iterator[Feature]:
         """yields Feature instances
@@ -5400,7 +5623,7 @@ class Alignment(SequenceCollection):
             kwargs.pop("on_alignment")
             yield from self._get_seq_features(**kwargs)
 
-        if on_alignment == False:
+        if on_alignment == False:  # noqa
             return
 
         if self.annotation_db is None:
@@ -5421,7 +5644,8 @@ class Alignment(SequenceCollection):
                 continue
             on_al = feature.pop("on_alignment", on_alignment)
             if feature["seqid"]:
-                raise RuntimeError(f"{on_alignment=} {feature=}")
+                msg = f"{on_alignment=} {feature=}"
+                raise RuntimeError(msg)
             if seq_map is None:
                 seq_map = self.seqs[0].map.to_feature_map()
                 *_, strand = self.seqs[0].seq.parent_coordinates()
@@ -5456,11 +5680,12 @@ class Alignment(SequenceCollection):
         """
         target_aligned = self.seqs[seqid]
         if feature.parent is not self:
-            raise ValueError("Feature does not belong to this alignment")
+            msg = "Feature does not belong to this alignment"
+            raise ValueError(msg)
         result = feature.remapped_to(target_aligned.seq, target_aligned.map)
 
         if not self.annotation_db:
-            # todo gah improve bound db initialisation
+            # TODO gah improve bound db initialisation
             self.annotation_db = DEFAULT_ANNOTATION_DB()
 
         self.annotation_db.add_feature(**feature.to_dict())
@@ -5476,7 +5701,9 @@ class Alignment(SequenceCollection):
         return [self.get_projected_feature(seqid=seqid, feature=a) for a in annots]
 
     def get_drawables(
-        self, *, biotype: Optional[str, typing.Iterable[str]] = None
+        self,
+        *,
+        biotype: Optional[str, typing.Iterable[str]] = None,
     ) -> dict:
         """returns a dict of drawables, keyed by type
 
@@ -5517,7 +5744,7 @@ class Alignment(SequenceCollection):
         -------
         a Drawable instance
         """
-        # todo gah I think this needs to be modified to make row-blocks
+        # TODO gah I think this needs to be modified to make row-blocks
         # for each sequence in the alignment, or are we displaying the
         # sequence name in the feature label?
         from cogent3.draw.drawable import Drawable
@@ -5544,8 +5771,13 @@ class Alignment(SequenceCollection):
 
         top += space
         height = max((top / len(self)) * width, 300)
-        xaxis = dict(range=[0, len(self)], zeroline=False, showline=True)
-        yaxis = dict(range=[0, top], visible=False, zeroline=True, showline=True)
+        xaxis = {"range": [0, len(self)], "zeroline": False, "showline": True}
+        yaxis = {
+            "range": [0, top],
+            "visible": False,
+            "zeroline": True,
+            "showline": True,
+        }
 
         if vertical:
             all_traces = [t.T.as_trace() for t in annotes]
@@ -5564,7 +5796,7 @@ class Alignment(SequenceCollection):
         height: float = 100,
         wrap: OptInt = None,
         vspace: float = 0.005,
-        colours: dict = None,
+        colours: dict | None = None,
     ):
         """returns Drawable sequence logo using mutual information
 
@@ -5592,16 +5824,17 @@ class Alignment(SequenceCollection):
             colours = self.moltype._colors
 
         return freqs.logo(
-            width=width, height=height, wrap=wrap, vspace=vspace, colours=colours
+            width=width,
+            height=height,
+            wrap=wrap,
+            vspace=vspace,
+            colours=colours,
         )
 
-    @c3warn.deprecated_args(
-        "2024.12", reason="consistency", old_new=[("method", "stat")]
-    )
     def coevolution(
         self,
         stat: str = "nmi",
-        segments: list[tuple[int, int]] = None,
+        segments: list[tuple[int, int]] | None = None,
         drawable: OptStr = None,
         show_progress: bool = False,
         parallel: bool = False,
@@ -5660,22 +5893,28 @@ class Alignment(SequenceCollection):
         trace_name = os.path.basename(self.info.source) if self.info.source else None
         if drawable in ("box", "violin"):
             trace = UnionDict(
-                type=drawable, y=result.array.flatten(), showlegend=False, name=""
+                type=drawable,
+                y=result.array.flatten(),
+                showlegend=False,
+                name="",
             )
             draw = Drawable(
-                width=500, height=500, title=trace_name, ytitle=stat.upper()
+                width=500,
+                height=500,
+                title=trace_name,
+                ytitle=stat.upper(),
             )
             draw.add_trace(trace)
             result = draw.bound_to(result)
         elif drawable:
             axis_title = "Alignment Position"
-            axis_args = dict(
-                showticklabels=True,
-                mirror=True,
-                showgrid=False,
-                showline=True,
-                zeroline=False,
-            )
+            axis_args = {
+                "showticklabels": True,
+                "mirror": True,
+                "showgrid": False,
+                "showline": True,
+                "zeroline": False,
+            }
             height = 500
             width = height
             draw = Drawable(
@@ -5689,7 +5928,7 @@ class Alignment(SequenceCollection):
             trace = UnionDict(
                 type="heatmap",
                 z=result.array,
-                colorbar=dict(title=dict(text=stat.upper(), font=dict(size=16))),
+                colorbar={"title": {"text": stat.upper(), "font": {"size": 16}}},
             )
             draw.add_trace(trace)
             draw.layout.xaxis.update(axis_args)
@@ -5704,7 +5943,7 @@ class Alignment(SequenceCollection):
             if bottom and drawable != "box":
                 xlim = 1.2
                 draw.layout.width = height * xlim
-                layout = dict(legend=dict(x=xlim, y=1))
+                layout = {"legend": {"x": xlim, "y": 1}}
                 draw = AnnotatedDrawable(
                     draw,
                     left_track=left,
@@ -5754,13 +5993,14 @@ class Alignment(SequenceCollection):
         nan_indices = numpy.isnan(y)
         if nan_indices.sum() == y.shape[0]:  # assuming 1D array
             y.fill(0.0)
-        max_entropy = y[nan_indices == False].max()
+        max_entropy = y[nan_indices == False].max()  # noqa
         y = max_entropy - y  # convert to information
         # now make all nan's 0
         y[nan_indices] = 0
         stats = {"mean": numpy.mean, "median": numpy.median}
         if stat not in stats:
-            raise ValueError('stat must be either "mean" or "median"')
+            msg = 'stat must be either "mean" or "median"'
+            raise ValueError(msg)
         calc_stat = stats[stat]
         num = len(y) - window
         v = [calc_stat(y[i : i + window]) for i in range(num)]
@@ -5772,7 +6012,7 @@ class Alignment(SequenceCollection):
             y=v,
             mode="lines",
             name=f"smoothed {stat}",
-            line=dict(shape="spline", smoothing=1.3),
+            line={"shape": "spline", "smoothing": 1.3},
         )
         trace_marks = UnionDict(
             type="scatter",
@@ -5787,10 +6027,13 @@ class Alignment(SequenceCollection):
             width=width,
             height=height,
             showlegend=True,
-            yaxis=dict(range=[0, max(y) * 1.2], showgrid=False),
-            xaxis=dict(
-                showgrid=False, range=[0, len(self)], mirror=True, showline=True
-            ),
+            yaxis={"range": [0, max(y) * 1.2], "showgrid": False},
+            xaxis={
+                "showgrid": False,
+                "range": [0, len(self)],
+                "mirror": True,
+                "showline": True,
+            },
         )
 
         traces = [trace_marks, trace_line]
@@ -5804,17 +6047,17 @@ class Alignment(SequenceCollection):
                 yaxis="y2",
                 name="Gaps",
                 mode="lines",
-                line=dict(shape="spline", smoothing=1.3),
+                line={"shape": "spline", "smoothing": 1.3},
             )
             traces += [trace_g]
-            layout.yaxis2 = dict(
-                title="Count",
-                side="right",
-                overlaying="y",
-                range=[0, max(gap_counts) * 1.2],
-                showgrid=False,
-                showline=True,
-            )
+            layout.yaxis2 = {
+                "title": "Count",
+                "side": "right",
+                "overlaying": "y",
+                "range": [0, max(gap_counts) * 1.2],
+                "showgrid": False,
+                "showline": True,
+            }
 
         draw = Drawable(
             title="Information per position",
@@ -5823,7 +6066,7 @@ class Alignment(SequenceCollection):
         )
         draw.traces.extend(traces)
         draw.layout |= layout
-        draw.layout.legend = dict(x=1.1, y=1)
+        draw.layout.legend = {"x": 1.1, "y": 1}
 
         try:
             drawable = self.get_drawable()
@@ -5854,9 +6097,9 @@ class Alignment(SequenceCollection):
         names, output = self._get_raw_pretty(name_order=name_order)
         label_width = max(list(map(len, names)))
         name_template = "{:>%d}" % label_width
-        display_names = dict([(n, name_template.format(n)) for n in names])
+        display_names = {n: name_template.format(n) for n in names}
 
-        def make_line(label, seq):
+        def make_line(label, seq) -> str:
             return f"{label}    {seq}"
 
         if wrap is None:
@@ -5871,7 +6114,7 @@ class Alignment(SequenceCollection):
                     make_line(
                         display_names[n],
                         "".join(output[n][start : start + wrap]),
-                    )
+                    ),
                 )
 
             result.append("")
@@ -5883,11 +6126,11 @@ class Alignment(SequenceCollection):
 
     def to_html(
         self,
-        name_order: Optional[typing.Sequence[str]] = None,
+        name_order: typing.Sequence[str] | None = None,
         wrap: int = 60,
-        limit: Optional[int] = None,
+        limit: int | None = None,
         ref_name: str = "longest",
-        colors: Optional[Mapping[str, str]] = None,
+        colors: Mapping[str, str] | None = None,
         font_size: int = 12,
         font_family: str = "Lucida Console",
     ) -> str:
@@ -5915,7 +6158,7 @@ class Alignment(SequenceCollection):
             string denoting font family
 
         Examples
-        ---------
+        --------
 
         In a jupyter notebook, this code is used to provide the representation.
 
@@ -5932,7 +6175,9 @@ class Alignment(SequenceCollection):
             HTML(aln.to_html())
         """
         css, styles = self.moltype.get_css_style(
-            colors=colors, font_size=font_size, font_family=font_family
+            colors=colors,
+            font_size=font_size,
+            font_family=font_family,
         )
         if name_order:
             selected = self.take_seqs(name_order)
@@ -5954,7 +6199,8 @@ class Alignment(SequenceCollection):
 
         elif ref_name:
             if ref_name not in selected.names:
-                raise ValueError(f"Unknown sequence name {ref_name}")
+                msg = f"Unknown sequence name {ref_name}"
+                raise ValueError(msg)
             ref = ref_name
 
         name_order.remove(ref)
@@ -6010,16 +6256,13 @@ class Alignment(SequenceCollection):
         for i in range(0, seqlen, wrap):
             table.append(num_row_.format(i))
             seqblock = seqs[:, i : i + wrap].tolist()
-            for n, s in zip(names, seqblock):
+            for n, s in zip(names, seqblock, strict=False):
                 s = "".join(s)
                 row = "".join([label_ % n, seq_ % s])
                 table.append(f"<tr>{row}</tr>")
         table.append("</table>")
-        if (
-            limit
-            and limit < len(selected)
-            or name_order
-            and len(name_order) < len(selected.names)
+        if (limit and limit < len(selected)) or (
+            name_order and len(name_order) < len(selected.names)
         ):
             summary = (
                 f"{self.num_seqs} x {len(self)} (truncated to "
@@ -6060,7 +6303,7 @@ class Alignment(SequenceCollection):
         num_seqs = len(names)
 
         seqs = [str(self.seqs[name]) for name in names]
-        positions = list(zip(*seqs))
+        positions = list(zip(*seqs, strict=False))
 
         for position in positions:
             ref = position[0]
@@ -6075,7 +6318,7 @@ class Alignment(SequenceCollection):
         settings = self._repr_policy.copy()
         env_vals = get_setting_from_environ(
             "COGENT3_ALIGNMENT_REPR_POLICY",
-            dict(num_seqs=int, num_pos=int, wrap=int, ref_name=str),
+            {"num_seqs": int, "num_pos": int, "wrap": int, "ref_name": str},
         )
         settings.update(env_vals)
         return self.to_html(
@@ -6095,32 +6338,36 @@ class Alignment(SequenceCollection):
             maps[name] = im
 
         data = self._seqs_data.from_seqs_and_gaps(
-            seqs=seqs, gaps=maps, alphabet=self.moltype.most_degen_alphabet()
+            seqs=seqs,
+            gaps=maps,
+            alphabet=self.moltype.most_degen_alphabet(),
         )
-
-        return self.__class__(
-            seqs_data=data,
-            moltype=self.moltype,
-            name_map=self._name_map,
-            info=self.info,
-        )
+        kwargs = self._get_init_kwargs()
+        kwargs["seqs_data"] = data
+        kwargs.pop("slice_record", None)
+        kwargs.pop("annotation_db", None)
+        return self.__class__(**kwargs)
 
     def apply_scaled_gaps(
-        self, other: SequenceCollection, aa_to_codon: bool | None = None
+        self,
+        other: SequenceCollection,
+        aa_to_codon: bool | None = None,
     ):
         """applies gaps in self to unagpped sequences"""
         assert set(other.names) == set(self.names), "Names must match"
         if aa_to_codon and not all(
-            (not self.moltype.is_nucleic, other.moltype.is_nucleic)
+            (not self.moltype.is_nucleic, other.moltype.is_nucleic),
         ):
+            msg = "aa_to_codon True requires nucleic moltype destination not {self.moltype.name!r}"
             raise ValueError(
-                "aa_to_codon True requires nucleic moltype destination not {self.moltype.name!r}"
+                msg,
             )
-        elif not aa_to_codon and not all(
-            (self.moltype.is_nucleic, not other.moltype.is_nucleic)
+        if not aa_to_codon and not all(
+            (self.moltype.is_nucleic, not other.moltype.is_nucleic),
         ):
+            msg = f"aa_to_codon False requires protein moltype destination not {other.moltype.name!r}"
             raise ValueError(
-                f"aa_to_codon False requires protein moltype destination not {other.moltype.name!r}"
+                msg,
             )
 
         assert aa_to_codon is not None
@@ -6135,12 +6382,15 @@ class Alignment(SequenceCollection):
             seqs[parent_name] = ungapped
             seq_len = self._seqs_data.get_seq_length(parent_name)
             if len(ungapped) != int(seq_len * scale):
+                msg = f"Destination sequence for {seq.name!r} != {scale:.2f} x {seq_len} sequence"
                 raise ValueError(
-                    f"Destination sequence for {seq.name!r} != {scale:.2f} x {seq_len} sequence"
+                    msg,
                 )
 
         seq_data = self._seqs_data.from_seqs_and_gaps(
-            seqs=seqs, gaps=gaps, alphabet=other.moltype.most_degen_alphabet()
+            seqs=seqs,
+            gaps=gaps,
+            alphabet=other.moltype.most_degen_alphabet(),
         )
         init_args = self._get_init_kwargs()
         init_args.pop("slice_record")  # slice is realised
@@ -6192,12 +6442,13 @@ class Alignment(SequenceCollection):
             if self._slice_record.is_reversed
             else None
         )
-        return self.__class__(
-            **kwargs,
-        )
+        return self.__class__(**kwargs)
 
     def with_masked_annotations(
-        self, biotypes: PySeqStr, mask_char: str = "?", shadow: bool = False
+        self,
+        biotypes: PySeqStr,
+        mask_char: str = "?",
+        shadow: bool = False,
     ):
         """returns an alignment with regions replaced by mask_char
 
@@ -6221,11 +6472,13 @@ class Alignment(SequenceCollection):
             parent_name = self._name_map[seq.name]
             gaps[parent_name] = seq.map.array
             ungapped[parent_name] = numpy.array(
-                seq.seq.with_masked_annotations(biotypes, mask_char, shadow)
+                seq.seq.with_masked_annotations(biotypes, mask_char, shadow),
             )
 
         seq_data = self._seqs_data.from_seqs_and_gaps(
-            seqs=ungapped, gaps=gaps, alphabet=self.moltype.most_degen_alphabet()
+            seqs=ungapped,
+            gaps=gaps,
+            alphabet=self.moltype.most_degen_alphabet(),
         )
         init = self._get_init_kwargs()
         init["seqs_data"] = seq_data
@@ -6240,7 +6493,8 @@ class Alignment(SequenceCollection):
         kwargs["moltype"] = self.moltype.label
         kwargs.pop("annotation_db", None)  # we dont serialise the annotation db
         kwargs.pop(
-            "offset", None
+            "offset",
+            None,
         )  # no need for offset since annotation db is not serialised
         kwargs.pop("seqs_data")
 
@@ -6257,6 +6511,20 @@ class Alignment(SequenceCollection):
         data["init_args"].pop("annotation_db", None)
         return make_aligned_seqs(data["seqs"], **data["init_args"])
 
+    def to_type(self, **kwargs):  # pragma: no cover
+        # TODO remove when new_type is the default
+        return self
+
+    def is_ragged(self) -> bool:
+        """by definition False for an Alignment"""
+        return False
+
+    def strand_symmetry(self, motif_length: int = 1):
+        """returns dict of strand symmetry test results per ungapped seq"""
+        return {
+            s.name: s.seq.strand_symmetry(motif_length=motif_length) for s in self.seqs
+        }
+
 
 @register_deserialiser(get_object_provenance(Alignment))
 def deserialise_alignment(data: dict[str, str | dict[str, str]]) -> Alignment:
@@ -6265,19 +6533,20 @@ def deserialise_alignment(data: dict[str, str | dict[str, str]]) -> Alignment:
 
 @singledispatch
 def make_aligned_seqs(
-    data: Union[dict[str, StrORBytesORArray], list, AlignedSeqsDataABC],
+    data: dict[str, StrORBytesORArray] | list | AlignedSeqsDataABC,
     *,
-    moltype: typing.Union[str, new_moltype.MolType],
+    moltype: str | new_moltype.MolType,
     label_to_name: OptRenamerCallable = None,
     info: OptDict = None,
     source: OptPathType = None,
-    annotation_db: typing.Optional[SupportsFeatures] = None,
-    offset: typing.Optional[DictStrInt] = None,
-    name_map: typing.Optional[DictStrStr] = None,
+    annotation_db: SupportsFeatures | None = None,
+    offset: DictStrInt | None = None,
+    name_map: DictStrStr | None = None,
     is_reversed: OptBool = None,
 ) -> Alignment:
     if len(data) == 0:
-        raise ValueError("data must be at least one sequence.")
+        msg = "data must be at least one sequence."
+        raise ValueError(msg)
 
     moltype = new_moltype.get_moltype(moltype)
     alphabet = moltype.most_degen_alphabet()
@@ -6302,6 +6571,7 @@ def make_aligned_seqs(
             warnings.warn(
                 "Sequence strand is inconsistent, not applying the annotation db.",
                 UserWarning,
+                stacklevel=2,
             )
             annotation_db = None
 
@@ -6330,28 +6600,33 @@ def make_aligned_seqs(
 def _(
     data: AlignedSeqsDataABC,
     *,
-    moltype: typing.Union[str, new_moltype.MolType],
+    moltype: str | new_moltype.MolType,
     label_to_name: OptRenamerCallable = None,
     info: OptDict = None,
     source: OptPathType = None,
-    annotation_db: typing.Optional[SupportsFeatures] = None,
-    offset: typing.Optional[DictStrInt] = None,
-    name_map: typing.Optional[DictStrStr] = None,
+    annotation_db: SupportsFeatures | None = None,
+    offset: DictStrInt | None = None,
+    name_map: DictStrStr | None = None,
     is_reversed: OptBool = None,
 ) -> Alignment:
     moltype = new_moltype.get_moltype(moltype)
     if not moltype.is_compatible_alphabet(data.alphabet):
+        msg = (
+            f"Provided moltype: {moltype.label} is not compatible with AlignedSeqsData"
+        )
         raise ValueError(
-            f"Provided moltype: {moltype.label} is not compatible with AlignedSeqsData",
+            msg,
             f" alphabet: {data.alphabet}",
         )
 
     # we cannot set offset when creating from an AlignedSeqsData
     if offset:
-        raise ValueError(f"Setting offset is not supported for {data=}")
+        msg = f"Setting offset is not supported for {data=}"
+        raise ValueError(msg)
 
     info = info if isinstance(info, dict) else {}
-    info["source"] = str(source) if source else str(info.get("source", "unknown"))
+    source = str(source) if source else str(info.get("source", "unknown"))
+    info["source"] = source
 
     sr = (
         new_sequence.SliceRecord(parent_len=data.align_len, step=-1)
@@ -6374,7 +6649,9 @@ def _(
 
 @numba.jit(cache=True)
 def _var_pos_canonical_or_gap(
-    arr: numpy.ndarray, gap_index: int, missing_index: int
+    arr: numpy.ndarray,
+    gap_index: int,
+    missing_index: int,
 ) -> numpy.ndarray:  # pragma: no cover
     """return boolean array indicating columns with more than one value below threshold
 
@@ -6410,7 +6687,8 @@ def _var_pos_canonical_or_gap(
 
 @numba.jit(cache=True)
 def _var_pos_canonical(
-    arr: numpy.ndarray, gap_index: int
+    arr: numpy.ndarray,
+    gap_index: int,
 ) -> numpy.ndarray:  # pragma: no cover
     """return boolean array indicating columns with more than one value below threshold
 

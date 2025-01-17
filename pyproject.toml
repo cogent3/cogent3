@@ -13,19 +13,22 @@ authors = [
 keywords = ["biology", "genomics", "statistics", "phylogeny", "evolution", "bioinformatics"]
 readme = "README.md"
 license = { file = "LICENSE" }
-dependencies = ["chardet",
-        "loky",
-        "numpy",
-        "numba>0.54; python_version>='3.10' and python_version <'3.12'",
-        "numba>=0.57.0; python_version=='3.11'",
-        "numba>=0.59.0; python_version=='3.12'",
-        "scipy",
-        "scitrack",
-        "stevedore",
-        "tqdm",
-        "typing_extensions"]
+dependencies = [
+    "chardet",
+    "loky",
+    "numpy",
+    "numba>0.54; python_version>='3.10' and python_version <'3.12'",
+    "numba>=0.57.0; python_version=='3.11'",
+    "numba>=0.59.0; python_version=='3.12'",
+    "numba>=0.61.0rc2; python_version=='3.13'",
+    "scipy",
+    "scitrack",
+    "stevedore",
+    "tqdm",
+    "typing_extensions"
+]
 # remember to update version in requires-python and classifiers
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.10,<3.14"
 classifiers = [
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Science/Research",
@@ -36,6 +39,7 @@ classifiers = [
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
     ]
 
 [project.urls]
@@ -46,7 +50,7 @@ Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 
 [project.optional-dependencies]
 test = [
-    "ruff==0.6.7",
+    "ruff==0.9.1",
     "kaleido",
     "pandas",
     "plotly",
@@ -55,61 +59,73 @@ test = [
     "pytest-cov",
     "pytest-xdist",
     "tinydb",
-    "nox"]
-doc  = ["click",
-        "ipykernel",
-        "ipython",
-        "ipywidgets",
-        "jupyter-sphinx",
-        "jupyter_client",
-        "jupyterlab",
-        "jupytext",
-        "kaleido",
-        "nbconvert>5.4",
-        "nbformat",
-        "nbsphinx",
-        "numpydoc",
-        "pandas",
-        "pillow",
-        "plotly",
-        "psutil",
-        "sphinx",
-        "sphinx-autobuild",
-        "pydata_sphinx_theme",
-        "sphinx_design",
-        "sphinxcontrib-bibtex",
-        "sphinxcontrib-video"]
-extra = ["pandas", "plotly", "psutil", "kaleido"]
-dev = ["ruff==0.6.7",
-       "flit",
-       "ipykernel",
-       "ipython",
-       "ipywidgets",
-       "jupyter-sphinx",
-       "jupyter_client",
-       "jupyterlab",
-       "jupytext",
-       "kaleido",
-       "nbconvert>5.4",
-       "nbformat",
-       "nbsphinx",
-       "nox",
-       "numpydoc",
-       "pandas",
-       "pillow",
-       "plotly",
-       "psutil",
-       "pytest",
-       "pytest-cov",
-       "pytest-xdist",
-       "scriv",
-       "sphinx",
-       "sphinx-autobuild",
-       "pydata_sphinx_theme",
-       "sphinx_design",
-       "sphinxcontrib-bibtex",
-       "sphinxcontrib-video",
-       "tinydb"
+    "nox"
+]
+doc  = [
+    "click",
+    "ipykernel",
+    "ipython",
+    "ipywidgets",
+    "jupyter-sphinx",
+    "jupyter_client",
+    "jupyterlab",
+    "jupytext",
+    "kaleido",
+    "nbconvert>5.4",
+    "nbformat",
+    "nbsphinx",
+    "numpydoc",
+    "pandas",
+    "pillow",
+    "plotly",
+    "psutil",
+    "sphinx",
+    "sphinx-autobuild",
+    "pydata_sphinx_theme",
+    "sphinx_design",
+    "sphinxcontrib-bibtex",
+    "sphinxcontrib-video"
+]
+extra = [
+    "ipywidgets",
+    "jupyterlab",
+    "kaleido",
+    "notebook",
+    "pandas",
+    "plotly",
+    "psutil"
+]
+dev = [
+    "ruff==0.9.1",
+    "flit",
+    "ipykernel",
+    "ipython",
+    "ipywidgets",
+    "jupyter-sphinx",
+    "jupyter_client",
+    "jupyterlab",
+    "jupytext",
+    "kaleido",
+    "nbconvert>5.4",
+    "nbformat",
+    "nbsphinx",
+    "nox",
+    "numpydoc",
+    "pandas",
+    "pillow",
+    "plotly",
+    "psutil",
+    "pytest",
+    "pytest-cov",
+    "pytest-xdist",
+    "scriv",
+    "sphinx",
+    "sphinx-autobuild",
+    "pydata_sphinx_theme",
+    "sphinx_design",
+    "sphinxcontrib-bibtex",
+    "sphinxcontrib-video",
+    "tinydb"
 ]
 
 [tool.flit.sdist]
@@ -130,6 +146,9 @@ filterwarnings = [
     'ignore:Motif probs overspecified',
     'ignore:Model not reversible',
 ]
+
+[tool.uv]
+reinstall-package = ["cogent3"]
 
 [tool.ruff]
 exclude = [
@@ -159,20 +178,36 @@ exclude = [
     "node_modules",
     "site-packages",
     "venv",
+    "working",
 ]
 
 # Same as Black.
 line-length = 88
 indent-width = 4
 
-target-version = "py39"
+target-version = "py310"
 
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
 # Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
 # McCabe complexity (`C901`) by default.
 select = ["ALL"]
-ignore = ["EXE002", "FA100", "E501", "D"]
+# ICN001 not adhering to nuimpy as np convention due to
+# name collision, where np is used as num params
+# N801 CamelCase is not always appropriate
+# PLR0913 number of arguments sometimes needs to be > 5
+# FBT001 and FBT002, positional boolean arguments are allowed!
+ignore = [
+    "EXE002", 
+    "FA100", 
+    "E501", 
+    "D", 
+    "N801", 
+    "ICN001", 
+    "PLR0913",
+    "FBT001",
+    "FBT002",
+    ]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
@@ -187,7 +222,8 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "INP001", # __init__.py files are not required...
     "ANN",
     "N802",
-    "N803"
+    "N803",
+    "S608",  # sql injection unlikely
 ]
 "noxfile.py" = [
     "S101", # asserts allowed in tests...

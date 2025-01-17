@@ -114,7 +114,7 @@ class SpecialTests(TestCase):
             0.698134722071,
             1.09861228867,
         ]
-        for p, e in zip(p_s, exp):
+        for p, e in zip(p_s, exp, strict=False):
             assert_allclose(log1p(p), e)
 
     def test_igami(self):
@@ -154,7 +154,7 @@ class SpecialTests(TestCase):
             196.108740945,
             188.010915412,
         ]
-        for o, e in zip(obs, exp):
+        for o, e in zip(obs, exp, strict=False):
             assert_allclose(o, e)
 
     def test_ndtri(self):

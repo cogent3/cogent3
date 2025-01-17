@@ -24,23 +24,22 @@ from cogent3.app.sqlite_data_store import (
 from cogent3.util.table import Table
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def tmp_dir(tmpdir_factory):
     return tmpdir_factory.mktemp("sqldb")
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def db_dir(tmp_dir):
-    db_dir = tmp_dir / "data.sqlitedb"
-    return db_dir
+    return tmp_dir / "data.sqlitedb"
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def ro_dir_dstore(DATA_DIR):
     return DataStoreDirectory(DATA_DIR, suffix="fasta")
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def sql_dstore(ro_dir_dstore, db_dir):
     # we now need to write these out to a path
     sql_dstore = DataStoreSqlite(db_dir, mode=OVERWRITE)
@@ -49,19 +48,18 @@ def sql_dstore(ro_dir_dstore, db_dir):
     return sql_dstore
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def ro_sql_dstore(sql_dstore):
     # we now need to write these out to a path
-    sql_dstore = DataStoreSqlite(source=sql_dstore.source, mode=READONLY)
-    return sql_dstore
+    return DataStoreSqlite(source=sql_dstore.source, mode=READONLY)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def completed_objects(ro_dir_dstore):
     return {f"{Path(m.unique_id).stem}": m.read() for m in ro_dir_dstore}
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def nc_objects():
     return {
         f"id_{i}": NotCompleted("ERROR", "location", "message", source=f"id_{i}")
@@ -69,13 +67,13 @@ def nc_objects():
     }
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def log_data():
     path = Path(__file__).parent.parent / "data" / "scitrack.log"
     return path.read_text()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def full_dstore_directory(db_dir, nc_objects, completed_objects, log_data):
     dstore = DataStoreDirectory(db_dir, suffix="fasta", mode=OVERWRITE)
     for id, data in nc_objects.items():
@@ -88,7 +86,7 @@ def full_dstore_directory(db_dir, nc_objects, completed_objects, log_data):
     return dstore
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def full_dstore_sqlite(db_dir, nc_objects, completed_objects, log_data):
     dstore = DataStoreSqlite(db_dir, mode=OVERWRITE)
     for id, data in nc_objects.items():
@@ -99,7 +97,7 @@ def full_dstore_sqlite(db_dir, nc_objects, completed_objects, log_data):
     return dstore
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def dstore_on_disk(full_dstore_sqlite):
     path = full_dstore_sqlite.source
     full_dstore_sqlite.close()
@@ -123,11 +121,11 @@ def test_open_existing(dstore_on_disk):
 
 
 def test_open_to_append(dstore_on_disk):
-    ro = DataStoreSqlite(dstore_on_disk, mode=APPEND)
+    DataStoreSqlite(dstore_on_disk, mode=APPEND)
 
 
 def test_open_to_write(dstore_on_disk):
-    ro = DataStoreSqlite(dstore_on_disk, mode=OVERWRITE)
+    DataStoreSqlite(dstore_on_disk, mode=OVERWRITE)
 
 
 def test_db_creation():
@@ -214,7 +212,7 @@ def test_contains(sql_dstore):
 
 def test_limit_datastore(full_dstore_sqlite):  # new
     assert len(full_dstore_sqlite) == len(full_dstore_sqlite.completed) + len(
-        full_dstore_sqlite.not_completed
+        full_dstore_sqlite.not_completed,
     )
     full_dstore_sqlite._limit = len(full_dstore_sqlite.completed) // 2
     full_dstore_sqlite._completed = []
@@ -225,7 +223,7 @@ def test_limit_datastore(full_dstore_sqlite):  # new
         == full_dstore_sqlite._limit
     )
     assert len(full_dstore_sqlite) == len(full_dstore_sqlite.completed) + len(
-        full_dstore_sqlite.not_completed
+        full_dstore_sqlite.not_completed,
     )
     full_dstore_sqlite.drop_not_completed()
     assert len(full_dstore_sqlite) == len(full_dstore_sqlite.completed)
@@ -297,7 +295,7 @@ def test_read_log(sql_dstore, log_data):
     assert got == log_data
 
 
-@pytest.mark.parametrize("binary", (False, True))
+@pytest.mark.parametrize("binary", [False, True])
 def test_write_text_binary(sql_dstore, ro_dir_dstore, binary):
     """correctly write content whether text or binary data"""
     db = DataStoreSqlite(":memory:", mode=OVERWRITE)
@@ -325,7 +323,7 @@ def test_write_if_member_exists(sql_dstore, ro_dir_dstore):
     identifier = "brca1.fasta"
     m = sql_dstore.write(unique_id=identifier, data=expect)
     assert len_dstore == len(
-        sql_dstore
+        sql_dstore,
     )  # new, because previously added new member while updating the old one
     # got = sql_dstore.read(identifier)
     got = m.read()
@@ -340,7 +338,7 @@ def test_summary_logs(full_dstore_sqlite):
 
 
 def test_no_not_completed_subdir(full_dstore_sqlite):
-    expect = f"{len(full_dstore_sqlite.completed)+len(full_dstore_sqlite.not_completed)}x member"
+    expect = f"{len(full_dstore_sqlite.completed) + len(full_dstore_sqlite.not_completed)}x member"
     assert str(full_dstore_sqlite).startswith(expect)
     # first remove not_completed directory
     full_dstore_sqlite.drop_not_completed()
@@ -385,7 +383,7 @@ def test_getitem(full_dstore_sqlite):
 
 def test_empty_data_store(db_dir):
     dstore = DataStoreSqlite(db_dir, mode=OVERWRITE)
-    assert 0 == len(dstore)
+    assert len(dstore) == 0
 
 
 def test_no_logs(db_dir):
@@ -395,7 +393,7 @@ def test_no_logs(db_dir):
 
 def test_limit_datastore(full_dstore_sqlite):
     assert len(full_dstore_sqlite) == len(full_dstore_sqlite.completed) + len(
-        full_dstore_sqlite.not_completed
+        full_dstore_sqlite.not_completed,
     )
     full_dstore_sqlite._limit = len(full_dstore_sqlite.completed)
     full_dstore_sqlite.drop_not_completed()
@@ -443,7 +441,7 @@ def test_limit_on_writable(ro_dir_dstore, db_dir):
         _ = DataStoreSqlite(db_dir, mode=OVERWRITE, limit=3)
 
 
-@pytest.mark.parametrize("table_name", ("", _RESULT_TABLE))
+@pytest.mark.parametrize("table_name", ["", _RESULT_TABLE])
 def test_new_write_id_includes_table(full_dstore_sqlite, table_name):
     """correctly handles table name if included in unique id"""
     identifier = "test1.fasta"
@@ -497,11 +495,12 @@ def test_db_without_logs(ro_sql_dstore):
     assert len(ro_sql_dstore.logs) == 0
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def md5_none(full_dstore_sqlite):
     """create a data store with empty md5 fields"""
     full_dstore_sqlite.db.execute(
-        "UPDATE results SET md5=? WHERE record_id LIKE '%'", (None,)
+        "UPDATE results SET md5=? WHERE record_id LIKE '%'",
+        (None,),
     )
     return full_dstore_sqlite
 
@@ -547,7 +546,8 @@ def _make_and_run_proc(out_path, suffix, members):
 
 
 @pytest.mark.parametrize(
-    "name,suffix", (("appended", "fa"), ("appended.sqlitedb", None))
+    ("name", "suffix"),
+    [("appended", "fa"), ("appended.sqlitedb", None)],
 )
 def test_append_makes_logs(tmp_dir, ro_dir_dstore, name, suffix):
     # do half the records in the first call

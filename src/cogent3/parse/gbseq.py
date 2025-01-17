@@ -65,12 +65,13 @@ def GbSeqXmlParser(doc):
         seq = alphabet.make_seq(raw_string, name=name)
 
         feat = location.FeatureMap.from_locations(
-            locations=[(0, len(seq))], parent_length=len(seq)
+            locations=[(0, len(seq))],
+            parent_length=len(seq),
         )
         seq.add_feature(biotype="source", name=name, spans=feat.get_coordinates())
 
         organism = str(
-            record.getElementsByTagName("GBSeq_organism")[0].childNodes[0].nodeValue
+            record.getElementsByTagName("GBSeq_organism")[0].childNodes[0].nodeValue,
         )
 
         seq.add_feature(biotype="organism", name=organism, spans=[(0, len(seq))])
@@ -78,7 +79,9 @@ def GbSeqXmlParser(doc):
         features = record.getElementsByTagName("GBFeature")
         for feature in features:
             key = str(
-                feature.getElementsByTagName("GBFeature_key")[0].childNodes[0].nodeValue
+                feature.getElementsByTagName("GBFeature_key")[0]
+                .childNodes[0]
+                .nodeValue,
             )
 
             if key == "source":
@@ -92,19 +95,19 @@ def GbSeqXmlParser(doc):
                     start = int(
                         interval.getElementsByTagName("GBInterval_from")[0]
                         .childNodes[0]
-                        .nodeValue
+                        .nodeValue,
                     )
                     end = int(
                         interval.getElementsByTagName("GBInterval_to")[0]
                         .childNodes[0]
-                        .nodeValue
+                        .nodeValue,
                     )
                     spans.append((start - 1, end))
                 except IndexError:
                     point = int(
                         interval.getElementsByTagName("GBInterval_point")[0]
                         .childNodes[0]
-                        .nodeValue
+                        .nodeValue,
                     )
                     spans.append((point - 1, point))
             if not spans:

@@ -36,11 +36,11 @@ def index_gen(length):
     return gen
 
 
-class JackknifeStats(object):
+class JackknifeStats:
     """Computes the jackknife statistic for a particular statistical function
     as outlined by 'Tukey's Jackknife Method' Biometry by Sokal/Rohlf."""
 
-    def __init__(self, length, calc_stat, gen_index=index_gen):
+    def __init__(self, length, calc_stat, gen_index=index_gen) -> None:
         """
 
         Parameters
@@ -53,7 +53,7 @@ class JackknifeStats(object):
             A callback function that generates a list of indices that are used to sub-sample the dataset.
         """
 
-        super(JackknifeStats, self).__init__()
+        super().__init__()
         self.n = length
         self.calc_stat = calc_stat
         self.gen_index = gen_index(self.n)
@@ -63,7 +63,7 @@ class JackknifeStats(object):
         self._sample_statistic = None
         self._standard_error = None
 
-    def jackknife(self):
+    def jackknife(self) -> None:
         """Computes the jackknife statistics and standard error"""
         n = self.n
         n_minus_1 = n - 1
@@ -187,7 +187,7 @@ class JackknifeStats(object):
         header = ["Sample Stat", "Jackknife Stat", "Standard Error"]
         title = "Summary Statistics"
         rows = np.vstack(
-            (self._sample_statistic, self._jackknifed_stat, self._standard_error)
+            (self._sample_statistic, self._jackknifed_stat, self._standard_error),
         )
         rows = rows.transpose()
         return Table(header=header, data=rows, title=title)

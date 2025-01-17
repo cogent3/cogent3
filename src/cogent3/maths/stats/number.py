@@ -41,19 +41,19 @@ class SummaryStatBase:
 class CategoryCounter(MutableMapping, SummaryStatBase):
     """counting class with summary statistic attributes"""
 
-    def __init__(self, data=None):
+    def __init__(self, data=None) -> None:
         if data is not None:
             if isinstance(data, dict):
                 self.update_from_counts(data)
             else:
                 self.update_from_series(data)
 
-    def update_from_counts(self, data):
+    def update_from_counts(self, data) -> None:
         """updates values of self using counts dict"""
         for k, v in data.items():
             self[k] += v
 
-    def update_from_series(self, data):
+    def update_from_series(self, data) -> None:
         """updates values of self from raw series"""
         for element in data:
             self[element] += 1
@@ -72,16 +72,16 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         data = self.to_dict().copy()
         return self.__class__(data)
 
-    def __setitem__(self, key, val):
+    def __setitem__(self, key, val) -> None:
         self.__dict__[key] = val
 
     def __getitem__(self, key):
-        return 0 if key not in self.__dict__ else self.__dict__[key]
+        return self.__dict__.get(key, 0)
 
-    def __delitem__(self, key):
+    def __delitem__(self, key) -> None:
         del self.__dict__[key]
 
-    def __len__(self):
+    def __len__(self) -> int:
         return sum(self.values())
 
     def __iter__(self):
@@ -97,8 +97,8 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
             del self[other]
         return self
 
-    def __repr__(self):
-        return f"{self.__class__.__name__}({repr(self.__dict__)})"
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.__dict__!r})"
 
     def keys(self):
         return list(self)
@@ -121,8 +121,7 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
     def to_array(self, keys=None):
         """return values for these keys as an array"""
         data = self.tolist(keys=keys)
-        data = numpy.array(data, dtype=int)
-        return data
+        return numpy.array(data, dtype=int)
 
     def to_dictarray(self):
         """construct fully enumerated dictarray
@@ -148,10 +147,9 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         if ndim == 1:
             names = sorted(self)
             vals = [self[n] for n in names]
-            darr = DictArrayTemplate(names).wrap(vals, dtype=int)
-            return darr
+            return DictArrayTemplate(names).wrap(vals, dtype=int)
 
-        categories = [sorted(set(labels)) for labels in zip(*self)]
+        categories = [sorted(set(labels)) for labels in zip(*self, strict=False)]
         shape = tuple(len(c) for c in categories)
         darr = DictArrayTemplate(*categories).wrap(numpy.zeros(shape, dtype=int))
         for comb in product(*categories):
@@ -196,7 +194,10 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
             or not hasattr(column_names, "__len__")
         ):
             key = column_names if column_names is not None else "key"
-            data = {c[0]: c[1:] for c in zip([key, "count"], *list(self.items()))}
+            data = {
+                c[0]: c[1:]
+                for c in zip([key, "count"], *list(self.items()), strict=False)
+            }
             header = [key, "count"]
             # if keys are tuples, construct the numpy array manually so the
             # elements remain as tuples. numpy's object type casting converts
@@ -212,10 +213,10 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
             assert len(key) == len(column_names), "mismatched dimensions"
             data = defaultdict(list)
             for key, count in self.items():
-                for c, e in zip(column_names, key):
+                for c, e in zip(column_names, key, strict=False):
                     data[c].append(e)
                 data["count"].append(count)
-            header = list(column_names) + ["count"]
+            header = [*list(column_names), "count"]
             data = dict(data)
         return Table(header=header, data=data, **kwargs)
 
@@ -260,7 +261,7 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
 class CategoryFreqs(MutableMapping, SummaryStatBase):
     """category frequencies with summary statistic attributes"""
 
-    def __init__(self, data=None, total=None, assert_unity=False):
+    def __init__(self, data=None, total=None, assert_unity=False) -> None:
         """
         Parameters
         ----------
@@ -290,23 +291,23 @@ class CategoryFreqs(MutableMapping, SummaryStatBase):
         data = self.to_dict().copy()
         return self.__class__(data=data)
 
-    def __setitem__(self, key, val):
+    def __setitem__(self, key, val) -> None:
         self.__dict__[key] = val
 
     def __getitem__(self, key):
-        return 0 if key not in self.__dict__ else self.__dict__[key]
+        return self.__dict__.get(key, 0)
 
-    def __delitem__(self, key):
+    def __delitem__(self, key) -> None:
         del self.__dict__[key]
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.__dict__)
 
     def __iter__(self):
         return iter(self.__dict__)
 
-    def __repr__(self):
-        return f"{self.__class__.__name__}({repr(self.__dict__)})"
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.__dict__!r})"
 
     def keys(self):
         return list(self)
@@ -329,8 +330,7 @@ class CategoryFreqs(MutableMapping, SummaryStatBase):
     def to_array(self, keys=None):
         """return just these keys as an array"""
         data = self.tolist(keys=keys)
-        data = numpy.array(data, dtype=float)
-        return data
+        return numpy.array(data, dtype=float)
 
     @property
     def entropy(self):
@@ -345,8 +345,8 @@ class CategoryFreqs(MutableMapping, SummaryStatBase):
 class NumberCounter(CategoryCounter):
     """counts occurrences of numbers"""
 
-    def __init__(self, data=None):
-        super(NumberCounter, self).__init__(data=data)
+    def __init__(self, data=None) -> None:
+        super().__init__(data=data)
 
     @property
     def valid(self):
@@ -363,16 +363,17 @@ class NumberCounter(CategoryCounter):
         return result
 
     def expanded_values(self, check=False):
-        # todo memory footprint can be improved by directly computing the
+        # TODO memory footprint can be improved by directly computing the
         #  summary statistics
         if check and not self.valid:
-            raise ValueError("non-numeric keys")
+            msg = "non-numeric keys"
+            raise ValueError(msg)
         values = []
         for k, v in self.items():
             values.extend([k] * v)
         return values
 
-    def __len__(self):
+    def __len__(self) -> int:
         return sum(self.values())
 
     @property
@@ -392,11 +393,12 @@ class NumberCounter(CategoryCounter):
     def std(self):
         return numpy.sqrt(self.var)
 
-    def update_from_counts(self, data):
+    def update_from_counts(self, data) -> None:
         """updates values of self using counts dict"""
         for k, v in data.items():
             try:
                 k**2
             except TypeError:
-                raise TypeError(f"key {k} is not numeric")
+                msg = f"key {k} is not numeric"
+                raise TypeError(msg)
             self[k] += v

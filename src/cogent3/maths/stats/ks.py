@@ -32,7 +32,7 @@ INVSQRT2PI = 1 / sqrt(2 * pi)
 def mpower(A, exponent):
     """matrix power"""
     new = A
-    for i in range(1, exponent):
+    for _i in range(1, exponent):
         new = matrixmultiply(new, A)
     return new
 
@@ -53,8 +53,8 @@ def pkolmogorov1x(statistic, n):
         exp(
             coeffs
             + (n - j) * log(1 - statistic - j / n)
-            + (j - 1) * (log(statistic + j / n))
-        )
+            + (j - 1) * (log(statistic + j / n)),
+        ),
     )
     return 1 - statistic * p
 

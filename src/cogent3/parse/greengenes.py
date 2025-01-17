@@ -15,7 +15,7 @@ def make_ignore_f(start_line):
 
     def ignore(line):
         """Return false if line is bad"""
-        return not line or ["", ""] == line or [start_line, ""] == line
+        return not line or line in (["", ""], [start_line, ""])
 
     return ignore
 
@@ -50,15 +50,22 @@ def MinimalGreengenesParser(lines, LineDelim="=", RecStart="BEGIN", RecEnd="END"
     ignore = make_ignore_f(RecStart)
 
     parser = DelimitedRecordFinder(
-        RecordDelim, constructor=line_parser, keep_delimiter=False, ignore=ignore
+        RecordDelim,
+        constructor=line_parser,
+        keep_delimiter=False,
+        ignore=ignore,
     )
 
     for record in parser(lines):
         yield GenericRecord(record)
 
 
-all_ids = lambda x, y: True
-specific_ids = lambda x, y: x in y
+def all_ids(x, y) -> bool:
+    return True
+
+
+def specific_ids(x, y):
+    return x in y
 
 
 def SpecificGreengenesParser(lines, fields, ids=None, **kwargs):

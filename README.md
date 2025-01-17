@@ -103,29 +103,25 @@ Our `cogent3.app` module provides a very different approach to using the library
     </video>
 </details>
 
-## Installation?
+## Installation
 
-```bash
-$ pip install cogent3
-```
-
-### Install `extra` -- adds visualisation support
-
-The `extra` group includes python libraries required for visualisation, i.e. [plotly](https://pypi.org/project/plotly/), [kaleido](https://pypi.org/project/kaleido/), [psutil](https://pypi.org/project/psutil/) and [pandas](https://pypi.org/project/pandas/).
+For most users we recommend
 
 ```bash
 $ pip install "cogent3[extra]"
 ```
 
-### Install `dev` -- adds `cogent3` development related libraries
+which installs support for data visualisation and jupyter notebooks.
 
-The `dev` group includes python libraries required for development of `cogent3`.
+If you're running on a high-performance computing system we recommend
 
 ```bash
-$ pip install "cogent3[dev]"
+$ pip install cogent3
 ```
 
-### Install the development version
+which skips the data visualisation and notebook support.
+
+To install the development version directly from GitHub
 
 ```bash
 $ pip install git+https://github.com/cogent3/cogent3.git@develop#egg=cogent3
@@ -139,14 +135,11 @@ $ pip install git+https://github.com/cogent3/cogent3.git@develop#egg=cogent3
 
 `cogent3` is a descendant of [PyCogent](https://github.com/pycogent/pycogent.github.com). While there is much in common with PyCogent, the amount of change has been substantial, motivating the name change to `cogent3`. This name has been chosen because `cogent` was always the import name (dating back to [PyEvolve in 2004](https://www.ncbi.nlm.nih.gov/pubmed/14706121)) and it's Python 3 only.
 
-Given this history, we are grateful to the multitude of individuals who have made contributions over the years. Many of these contributors were also co-authors on the original [PyEvolve](https://www.ncbi.nlm.nih.gov/pubmed/14706121) and [PyCogent](https://www.ncbi.nlm.nih.gov/pubmed/17708774) publications. Individual contributions can be seen by using "view git blame" on individual lines of code on GitHub , through git log in the terminal, and more recently the changelog.
-
-Compared to PyCogent version 1.9, there has been a massive amount of changes. These include integration of many of the new developments on algorithms and modelling published by the [Huttley lab](https://biology.anu.edu.au/research/groups/huttley-group-bioinformatics-molecular-evolution-genomes) over the last decade. We have also modernised our dependencies. For example, we now use `plotly` for visualisation, `tqdm` for progress bar display, `concurrent.futures` and `mpi4py.futures` for parallel process execution, `nox` and `pytest` for unit testing.
+Given this history, we are grateful to the multitude of individuals who have made contributions over the years. Many of these contributors were also co-authors on the original [PyEvolve](https://www.ncbi.nlm.nih.gov/pubmed/14706121) and [PyCogent](https://www.ncbi.nlm.nih.gov/pubmed/17708774) publications. Individual contributions can be seen by using "view git blame" on individual lines of code on GitHub, through git log in the terminal, and more recently the changelog.
 
 ## Funding
 
 Cogent3 has received funding support from the Australian National University and an [Essential Open Source Software for Science Grant](https://chanzuckerberg.com/eoss/proposals/cogent3-python-apis-for-iq-tree-and-graphbin-via-a-plug-in-architecture/) from the Chan Zuckerberg Initiative.
-
 
 <p align="center">
   &nbsp;&nbsp;&nbsp;&nbsp;

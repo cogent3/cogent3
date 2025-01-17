@@ -3,7 +3,6 @@
 import functools
 import pathlib
 import typing
-import xml.dom.minidom
 
 from cogent3.parse import (
     clustal,
@@ -16,14 +15,12 @@ from cogent3.parse import (
     phylip,
     tinyseq,
 )
-from cogent3.parse.record import FileFormatError
-from cogent3.util import warning as c3warn
-from cogent3.util.io import get_format_suffixes, iter_splitlines, open_
+from cogent3.util.io import iter_splitlines
 
 _lc_to_wc = "".join([[chr(x), "?"]["A" <= chr(x) <= "Z"] for x in range(256)])
 
 
-ParserOutputType = typing.Iterable[typing.Tuple[str, str]]
+ParserOutputType = typing.Iterable[tuple[str, str]]
 
 
 class LineBasedParser:
@@ -34,7 +31,8 @@ class LineBasedParser:
 
     @functools.singledispatchmethod
     def __call__(self, data, **kwargs) -> ParserOutputType:
-        raise TypeError(f"Unsupported data type {type(data)}")
+        msg = f"Unsupported data type {type(data)}"
+        raise TypeError(msg)
 
     @__call__.register
     def _(self, data: str, **kwargs) -> ParserOutputType:
@@ -43,7 +41,8 @@ class LineBasedParser:
     @__call__.register
     def _(self, data: pathlib.Path, **kwargs) -> ParserOutputType:
         if not data.exists():
-            raise FileNotFoundError(f"File '{data}' does not exist")
+            msg = f"File '{data}' does not exist"
+            raise FileNotFoundError(msg)
         yield from self._parse(iter_splitlines(data), **kwargs)
 
     @__call__.register
@@ -90,7 +89,8 @@ def get_parser(fmt: str) -> typing.Callable[[SeqParserInputTypes], ParserOutputT
     try:
         return PARSERS[fmt]
     except KeyError:
-        raise ValueError(f"Unsupported format {fmt!r}")
+        msg = f"Unsupported format {fmt!r}"
+        raise ValueError(msg)
 
 
 def is_genbank(fmt: str) -> bool:

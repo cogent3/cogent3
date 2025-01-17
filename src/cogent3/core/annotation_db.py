@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import abc
 import collections
 import copy
 import inspect
@@ -14,7 +15,6 @@ import warnings
 import numpy
 import typing_extensions
 
-import cogent3.util.warning as c3warn
 from cogent3._version import __version__
 from cogent3.parse.gff import merged_gff_records
 from cogent3.util.deserialise import register_deserialiser
@@ -23,15 +23,15 @@ from cogent3.util.misc import extend_docstring_from, get_object_provenance
 from cogent3.util.progress_display import display_wrap
 from cogent3.util.table import Table
 
-OptionalInt = typing.Optional[int]
-OptionalStr = typing.Optional[str]
-OptionalStrList = typing.Optional[typing.Union[str, typing.List[str]]]
-OptionalStrContainer = typing.Optional[typing.Union[str, typing.Sequence]]
-OptionalBool = typing.Optional[bool]
-OptionalDbCursor = typing.Optional[sqlite3.Cursor]
-ReturnType = typing.Tuple[str, tuple]  # the sql statement and corresponding values
+OptionalInt = int | None
+OptionalStr = str | None
+OptionalStrList = str | list[str] | None
+OptionalStrContainer = str | typing.Sequence[str] | None
+OptionalBool = bool | None
+OptionalDbCursor = sqlite3.Cursor | None
+ReturnType = tuple[str, tuple[typing.Any]]  # the sql statement and corresponding values
 # data type for sqlitedb constructors
-T = typing.Optional[typing.Iterable[dict]]
+T = typing.Iterable[dict] | None
 
 # used for presence of sqlite feature
 _is_ge_3_11 = (sys.version_info.major, sys.version_info.minor) >= (3, 11)
@@ -43,8 +43,7 @@ def array_to_sqlite(data: numpy.ndarray) -> bytes:
     with io.BytesIO() as out:
         numpy.save(out, data)
         out.seek(0)
-        output = out.read()
-    return output
+        return out.read()
 
 
 def sqlite_to_array(data: bytes) -> numpy.ndarray:
@@ -65,6 +64,7 @@ def sqlite_to_array(data: bytes) -> numpy.ndarray:
                 "Update the file format using cogent3.core.annotation_db.update_file_format() "
                 "For reason see https://github.com/cogent3/cogent3/issues/1776.",
                 UserWarning,
+                stacklevel=2,
             )
 
     return result
@@ -74,7 +74,7 @@ def dict_to_sqlite_as_json(data: dict) -> str:
     return json.dumps(data)
 
 
-def sqlite_json_to_dict(data):
+def sqlite_json_to_dict(data: str) -> dict[str, typing.Any]:
     return json.loads(data)
 
 
@@ -92,6 +92,7 @@ class FeatureDataType(typing.TypedDict):
     spans: list[tuple[int, int]]
     strand: str  # "-" if feature on reverse strand
     on_alignment: bool  # True if feature on an alignment
+    xattr: dict[str, typing.Any]  # extra attributes
 
 
 @typing.runtime_checkable
@@ -100,7 +101,7 @@ class SerialisableType(typing.Protocol):  # pragma: no cover
 
     def to_json(self) -> str: ...
 
-    def from_dict(self, data): ...
+    def from_dict(self, data: dict[str, typing.Any]) -> None: ...
 
 
 @typing.runtime_checkable
@@ -117,6 +118,7 @@ class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
         strand: OptionalStr = None,
         attributes: OptionalStr = None,
         on_alignment: OptionalBool = None,
+        **kwargs: dict[str, typing.Any],
     ) -> typing.Iterator[FeatureDataType]: ...
 
     def get_feature_children(
@@ -125,8 +127,8 @@ class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
         name: str,
         start: OptionalInt = None,
         stop: OptionalInt = None,
-        **kwargs,
-    ) -> typing.List[FeatureDataType]: ...
+        **kwargs: dict[str, typing.Any],
+    ) -> list[FeatureDataType]: ...
 
     def get_feature_parent(
         self,
@@ -134,8 +136,8 @@ class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
         name: str,
         start: OptionalInt = None,
         stop: OptionalInt = None,
-        **kwargs,
-    ) -> typing.List[FeatureDataType]: ...
+        **kwargs: dict[str, typing.Any],
+    ) -> list[FeatureDataType]: ...
 
     def num_matches(
         self,
@@ -146,6 +148,7 @@ class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
         strand: OptionalStr = None,
         attributes: OptionalStr = None,
         on_alignment: OptionalBool = None,
+        **kwargs: dict[str, typing.Any],
     ) -> int: ...
 
     def subset(
@@ -158,7 +161,8 @@ class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
         stop: OptionalInt = None,
         strand: OptionalStr = None,
         attributes: OptionalStr = None,
-    ): ...
+        **kwargs: dict[str, typing.Any],
+    ) -> None: ...
 
 
 @typing.runtime_checkable
@@ -169,27 +173,36 @@ class SupportsWriteFeatures(typing.Protocol):  # pragma: no cover
         *,
         biotype: str,
         name: str,
-        spans: typing.List[typing.Tuple[int, int]],
+        spans: list[tuple[int, int]],
         seqid: OptionalStr = None,
         parent_id: OptionalStr = None,
         attributes: OptionalStr = None,
         strand: OptionalStr = None,
         on_alignment: bool = False,
+        **kwargs: dict[str, typing.Any],
     ) -> None: ...
 
     def add_records(
         self,
         *,
         records: typing.Sequence[dict],
-        # seqid required for genbank
-        seqid: OptionalStr = None,
+        **kwargs: dict[str, typing.Any],
     ) -> None: ...
 
-    def update(self, annot_db, seqids: OptionalStrList = None) -> None:
+    def update(
+        self,
+        annot_db: AnnotationDbABC,
+        seqids: OptionalStrList = None,
+        **kwargs: dict[str, typing.Any],
+    ) -> None:
         # update records with those from an instance of the same type
         ...
 
-    def union(self, annot_db):
+    def union(
+        self,
+        annot_db: AnnotationDbABC,
+        **kwargs: dict[str, typing.Any],
+    ) -> SupportsFeatures:
         # returns a new instance of the more complex class
         ...
 
@@ -203,13 +216,109 @@ class SupportsFeatures(
     typing.Protocol,
 ):  # pragma: no cover
     # should be defined centrally
-    def __len__(self):
+    def __len__(self) -> int:
         # the number of records
         ...
 
-    def __eq__(self, other):
+    def __eq__(self, other: typing_extensions.Self) -> bool:
         # equality based on class and identity of the bound db
         ...
+
+
+class AnnotationDbABC(abc.ABC, SupportsFeatures):
+    @abc.abstractmethod
+    def __len__(self) -> int: ...
+
+    @abc.abstractmethod
+    def __eq__(self, other: typing_extensions.Self) -> bool: ...
+
+    @abc.abstractmethod
+    def get_features_matching(
+        self,
+        *,
+        seqid: str | None = None,
+        biotype: str | None = None,
+        name: str | None = None,
+        start: int | None = None,
+        stop: int | None = None,
+        strand: str | None = None,
+        attributes: str | None = None,
+        on_alignment: bool | None = None,
+        **kwargs: dict[str, typing.Any],
+    ) -> collections.Iterator[FeatureDataType]: ...
+
+    @abc.abstractmethod
+    def get_feature_children(
+        self,
+        *,
+        name: str,
+        start: int | None = None,
+        stop: int | None = None,
+        **kwargs: dict[str, typing.Any],
+    ) -> list[FeatureDataType]: ...
+
+    @abc.abstractmethod
+    def get_feature_parent(
+        self,
+        *,
+        name: str,
+        start: int | None = None,
+        stop: int | None = None,
+        **kwargs: dict[str, typing.Any],
+    ) -> list[FeatureDataType]: ...
+
+    @abc.abstractmethod
+    def num_matches(
+        self,
+        *,
+        seqid: str | None = None,
+        biotype: str | None = None,
+        name: str | None = None,
+        strand: str | None = None,
+        attributes: str | None = None,
+        on_alignment: bool | None = None,
+        **kwargs: dict[str, typing.Any],
+    ) -> int: ...
+
+    @abc.abstractmethod
+    def subset(
+        self,
+        *,
+        seqid: str | None = None,
+        biotype: str | None = None,
+        name: str | None = None,
+        start: int | None = None,
+        stop: int | None = None,
+        strand: str | None = None,
+        attributes: str | None = None,
+        **kwargs: dict[str, typing.Any],
+    ) -> typing_extensions.Self: ...
+
+    @abc.abstractmethod
+    def add_feature(self, **kwargs: dict[str, typing.Any]) -> None: ...
+
+    @abc.abstractmethod
+    def add_records(
+        self,
+        *,
+        records: typing.Sequence[dict],
+        **kwargs: dict[str, typing.Any],
+    ) -> None: ...
+
+    @abc.abstractmethod
+    def update(
+        self,
+        annot_db: AnnotationDbABC,
+        seqids: OptionalStrList = None,
+        **kwargs: dict[str, typing.Any],
+    ) -> None: ...
+
+    @abc.abstractmethod
+    def union(
+        self,
+        annot_db: AnnotationDbABC,
+        **kwargs: dict[str, typing.Any],
+    ) -> SupportsFeatures: ...
 
 
 def _make_table_sql(
@@ -261,9 +370,9 @@ def _add_record_sql(
 
 
 def _matching_conditions(
-    conditions: dict,
+    conditions: dict[str, typing.Any],
     allow_partial: bool = True,
-):
+) -> ReturnType:
     """creates WHERE clause
 
     Parameters
@@ -290,7 +399,7 @@ def _matching_conditions(
         for col, val in conditions.items():
             # conditions are filtered for None before here, so we should add
             # an else where the op is assigned !=
-            if isinstance(val, (tuple, set, list)):
+            if isinstance(val, tuple | set | list):
                 placeholders = ",".join(["?" for _ in val])
                 op = "IN"
                 conds.append(f"{col} {op} ({placeholders})")
@@ -334,7 +443,7 @@ def _del_records_sql(
     conditions: dict,
     start: OptionalInt = None,
     stop: OptionalInt = None,
-    allow_partial=True,
+    allow_partial: bool = True,
 ) -> ReturnType:
     """creates the SQL and values for identifying records to be deleted
 
@@ -357,7 +466,10 @@ def _del_records_sql(
         the SQL statement and the tuple of values
     """
     where, vals = _matching_conditions(
-        conditions=conditions, start=start, stop=stop, allow_partial=allow_partial
+        conditions=conditions,
+        start=start,
+        stop=stop,
+        allow_partial=allow_partial,
     )
     sql = f"DELETE FROM {table_name}"
     if not where:
@@ -370,25 +482,20 @@ def _del_records_sql(
 def _select_records_sql(
     table_name: str,
     conditions: dict,
-    columns: typing.Optional[typing.List[str]] = None,
-    start: OptionalInt = None,
-    stop: OptionalInt = None,
-    allow_partial=True,
+    columns: list[str] | None = None,
+    allow_partial: bool = True,
 ) -> ReturnType:
     """create SQL select statement and values
 
     Parameters
     ----------
-    table_name : str
+    table_name
         containing the data to be selected from
-    columns : Tuple[str]
+    columns
         values to select
-    conditions : dict
+    conditions
         the WHERE conditions
-    start, stop : OptionalInt
-        select records whose (start, stop) values lie between start and stop,
-        or overlap them if (allow_partial is True)
-    allow_partial : bool, optional
+    allow_partial
         if False, only records within start, stop are included. If True,
         all records that overlap the segment defined by start, stop are included.
 
@@ -399,7 +506,8 @@ def _select_records_sql(
     """
 
     where, vals = _matching_conditions(
-        conditions=conditions, allow_partial=allow_partial
+        conditions=conditions,
+        allow_partial=allow_partial,
     )
     columns = f"{', '.join(columns)}" if columns else "*"
     sql = f"SELECT {columns} FROM {table_name}"
@@ -413,10 +521,7 @@ def _select_records_sql(
 def _count_records_sql(
     table_name: str,
     conditions: dict,
-    columns: typing.Optional[typing.List[str]] = None,
-    start: OptionalInt = None,
-    stop: OptionalInt = None,
-    allow_partial=True,
+    allow_partial: bool = True,
 ) -> ReturnType:
     """create SQL count statement and values
 
@@ -442,7 +547,8 @@ def _count_records_sql(
     """
 
     where, vals = _matching_conditions(
-        conditions=conditions, allow_partial=allow_partial
+        conditions=conditions,
+        allow_partial=allow_partial,
     )
     sql = f"SELECT COUNT(*) FROM {table_name}"
     if not where:
@@ -455,9 +561,9 @@ def _count_records_sql(
 def _compatible_schema(db: sqlite3.Connection, schema: dict[str, set]) -> bool:
     """ensures the db instance is compatible with schema"""
     for table in db.execute(
-        "SELECT name FROM sqlite_master WHERE type='table'"
+        "SELECT name FROM sqlite_master WHERE type='table'",
     ).fetchall():
-        table = table["name"]
+        table = table["name"]  # noqa: PLW2901
         if table not in schema:
             return False
 
@@ -473,7 +579,10 @@ def _compatible_schema(db: sqlite3.Connection, schema: dict[str, set]) -> bool:
 
 
 def _rename_column_if_exists(
-    db: sqlite3.Connection, table_name: str, old_column: str, new_column: str
+    db: sqlite3.Connection,
+    table_name: str,
+    old_column: str,
+    new_column: str,
 ) -> None:
     """Rename a column in a sqlite3 database only if it exists.
 
@@ -506,7 +615,7 @@ def _rename_column_if_exists(
 
 class SqliteAnnotationDbMixin:
     # table schema for user provided annotations
-    _user_schema = {
+    _user_schema: typing.ClassVar = {
         "biotype": "TEXT",
         "seqid": "TEXT",
         "name": "TEXT",
@@ -521,7 +630,7 @@ class SqliteAnnotationDbMixin:
     # args to exclude from serialisation init
     _exclude_init = "db", "data"
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args, **kwargs: dict[str, typing.Any]):
         obj = object.__new__(cls)
         init_sig = inspect.signature(cls.__init__)
         bargs = init_sig.bind_partial(cls, *args, **kwargs)
@@ -531,10 +640,10 @@ class SqliteAnnotationDbMixin:
             init_vals.pop(param)
         init_vals.pop("self", None)
 
-        obj._serialisable = init_vals
+        obj._serialisable = init_vals  # noqa: SLF001
         return obj
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         name = self.__class__.__name__
         total_records = len(self)
         args = ", ".join(
@@ -544,7 +653,7 @@ class SqliteAnnotationDbMixin:
         )
         return f"{name}({args}, total_records={total_records})"
 
-    def __deepcopy__(self, memodict=None):
+    def __deepcopy__(self, memodict: dict | None = None) -> typing_extensions.Self:
         memodict = memodict or {}
         if _is_ge_3_11:
             new = self.__class__(source=self.source)
@@ -555,16 +664,16 @@ class SqliteAnnotationDbMixin:
         rd = self.to_rich_dict()
         return type(self).from_dict(rd)
 
-    def __getstate__(self):
+    def __getstate__(self) -> dict[str, typing.Any]:
         if _is_ge_3_11:
             return {"data": self._db.serialize(), "source": self.source}
 
         return self.to_rich_dict()
 
-    def __setstate__(self, state):
+    def __setstate__(self, state: dict[str, typing.Any]) -> typing_extensions.Self:
         if _is_ge_3_11:
             new = self.__class__(source=state.pop("source", None))
-            new._db.deserialize(state["data"])
+            new._db.deserialize(state["data"])  # noqa: SLF001
             self.__dict__.update(new.__dict__)
             return self
 
@@ -573,17 +682,17 @@ class SqliteAnnotationDbMixin:
         self.__dict__.update(data.__dict__)
         return self
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.num_matches()
 
-    def __eq__(self, other):
+    def __eq__(self, other: typing_extensions.Self) -> bool:
         return isinstance(other, self.__class__) and other.db is self.db
 
     @property
     def table_names(self) -> tuple[str]:
         return self._table_names
 
-    def _setup_db(self, db: typing.Union[SupportsFeatures, sqlite3.Connection]) -> None:
+    def _setup_db(self, db: SupportsFeatures | sqlite3.Connection) -> None:
         """initialises the db, using the db passed to the constructor"""
         if isinstance(db, self.__class__):
             self._db = db.db
@@ -596,14 +705,16 @@ class SqliteAnnotationDbMixin:
                 schema[table_name] = set(attr.items())
 
             if not _compatible_schema(db, schema):
-                raise TypeError("incompatible schema")
+                msg = "incompatible schema"
+                raise TypeError(msg)
 
             self._db = db
             self._init_tables()
             return
 
         if db and not self.compatible(db):
-            raise TypeError(f"cannot initialise annotation db from {type(db)}")
+            msg = f"cannot initialise annotation db from {type(db)}"
+            raise TypeError(msg)
 
         self._init_tables()
 
@@ -622,7 +733,7 @@ class SqliteAnnotationDbMixin:
     @property
     def db(self) -> sqlite3.Connection:
         if self._db is None:
-            # todo gah understand serialisation issue
+            # TODO: gah understand serialisation issue
             # the check_same_thread=False is required for multiprocess, even
             # when the db is empty (tests fail). This  appears unrelated to
             # our code, and does not affect pickling/unpickling on the same
@@ -639,7 +750,11 @@ class SqliteAnnotationDbMixin:
 
         return self._db
 
-    def _execute_sql(self, cmnd, values=None):
+    def _execute_sql(
+        self,
+        cmnd: str,
+        values: tuple[typing.Any] | None = None,
+    ) -> sqlite3.Cursor:
         with self.db:
             # context manager ensures safe transactions
             cursor = self.db.cursor()
@@ -652,7 +767,7 @@ class SqliteAnnotationDbMixin:
         seqid: str,
         biotype: str,
         name: str,
-        spans: typing.List[typing.Tuple[int, int]],
+        spans: list[tuple[int, int]],
         parent_id: OptionalStr = None,
         strand: OptionalStr = None,
         attributes: OptionalStr = None,
@@ -689,11 +804,13 @@ class SqliteAnnotationDbMixin:
         self._execute_sql(sql, values=values)
 
     def _get_records_matching(
-        self, table_name: str, **kwargs
+        self,
+        table_name: str,
+        **kwargs: dict[str, typing.Any],
     ) -> typing.Iterator[sqlite3.Row]:
         """return all fields"""
-        if kwargs.get("attributes", None) and "%%" not in kwargs["attributes"]:
-            kwargs["attributes"] = f'%{kwargs["attributes"]}%'
+        if kwargs.get("attributes") and "%%" not in kwargs["attributes"]:
+            kwargs["attributes"] = f"%{kwargs['attributes']}%"
         columns = kwargs.pop("columns", None)
         allow_partial = kwargs.pop("allow_partial", False)
         sql, vals = _select_records_sql(
@@ -707,31 +824,31 @@ class SqliteAnnotationDbMixin:
     def _get_feature_by_id(
         self,
         table_name: str,
-        columns: typing.Optional[typing.Iterable[str]],
+        columns: typing.Iterable[str] | None,
         column: str,
         name: str,
-        start: OptionalInt = None,
-        stop: OptionalInt = None,
         biotype: OptionalStr = None,
         allow_partial: bool = False,
-    ) -> typing.List[FeatureDataType]:
+        **kwargs: dict[str, typing.Any],  # noqa: ARG002
+    ) -> typing.Iterator[FeatureDataType]:
         # we return the parent_id because `get_feature_parent()` requires it
         sql, vals = _select_records_sql(
             table_name=table_name,
             conditions={column: name, "biotype": biotype},
             columns=columns,
-            start=start,
-            stop=stop,
             allow_partial=allow_partial,
         )
         for result in self._execute_sql(sql, values=vals):
-            result = dict(zip(result.keys(), result))
+            result = dict(zip(result.keys(), result, strict=False))  # noqa: PLW2901
             result["on_alignment"] = result.get("on_alignment")
             result["spans"] = [tuple(c) for c in result["spans"]]
             yield result
 
     def get_feature_children(
-        self, name: str, biotype: OptionalStr = None, **kwargs
+        self,
+        name: str,
+        biotype: OptionalStr = None,
+        **kwargs: dict[str, typing.Any],
     ) -> typing.Iterator[FeatureDataType]:
         """yields children of name"""
         # kwargs is used because other classes need start / stop
@@ -752,7 +869,9 @@ class SqliteAnnotationDbMixin:
                 yield result
 
     def get_feature_parent(
-        self, name: str, **kwargs
+        self,
+        name: str,
+        **kwargs: dict[str, typing.Any],  # noqa: ARG002
     ) -> typing.Iterator[FeatureDataType]:
         """yields parents of name"""
         for table_name in self.table_names:
@@ -767,36 +886,36 @@ class SqliteAnnotationDbMixin:
             ):
                 # multiple values for parent means this is better expressed
                 # as an OR clause
-                # todo modify the conditional SQL generation
+                # TODO modify the conditional SQL generation
                 if not result["parent_id"]:
                     return
 
-                for name in result["parent_id"].replace(" ", "").split(","):
+                for name in result["parent_id"].replace(" ", "").split(","):  # noqa: PLR1704
                     if parent := list(
                         self._get_feature_by_id(
                             table_name=table_name,
                             columns=columns,
                             column="name",
                             name=name,
-                        )
+                        ),
                     ):
                         parent = parent[0]
                         parent.pop(
-                            "parent_id"
+                            "parent_id",
                         )  # remove invalid field for the FeatureDataType
                         yield parent
 
     def get_records_matching(
         self,
         *,
-        biotype: str = None,
-        seqid: str = None,
-        name: str = None,
-        start: int = None,
-        stop: int = None,
+        biotype: str | None = None,
+        seqid: str | None = None,
+        name: str | None = None,
+        start: int | None = None,
+        stop: int | None = None,
         strand: OptionalStr = None,
         attributes: OptionalStr = None,
-        on_alignment: bool = None,
+        on_alignment: bool | None = None,
         allow_partial: bool = False,
     ) -> typing.Iterator[dict]:
         """return all fields for matching records"""
@@ -808,19 +927,19 @@ class SqliteAnnotationDbMixin:
         table_names = ["user"] if on_alignment else self.table_names
         for table_name in table_names:
             for result in self._get_records_matching(table_name, **kwargs):
-                yield dict(zip(result.keys(), result))
+                yield dict(zip(result.keys(), result, strict=False))
 
     def get_features_matching(
         self,
         *,
-        biotype: str = None,
-        seqid: str = None,
-        name: str = None,
-        start: int = None,
-        stop: int = None,
+        biotype: str | None = None,
+        seqid: str | None = None,
+        name: str | None = None,
+        start: int | None = None,
+        stop: int | None = None,
         strand: OptionalStr = None,
         attributes: OptionalStr = None,
-        on_alignment: bool = None,
+        on_alignment: bool | None = None,
         allow_partial: bool = False,
     ) -> typing.Iterator[FeatureDataType]:
         # returns essential values to create a Feature
@@ -839,9 +958,11 @@ class SqliteAnnotationDbMixin:
                 query_args.pop("on_alignment", None)
 
             for result in self._get_records_matching(
-                table_name=table_name, columns=columns, **query_args
+                table_name=table_name,
+                columns=columns,
+                **query_args,
             ):
-                result = dict(zip(result.keys(), result))
+                result = dict(zip(result.keys(), result, strict=False))  # noqa: PLW2901
                 result["on_alignment"] = result.get("on_alignment")
                 result["spans"] = [tuple(c) for c in result["spans"]]
                 yield result
@@ -861,11 +982,11 @@ class SqliteAnnotationDbMixin:
         num = 0
         for table_name in self.table_names:
             sql, values = _count_records_sql(table_name, conditions=kwargs)
-            result = list(self._execute_sql(sql, values=values).fetchone())[0]
+            result = next(iter(self._execute_sql(sql, values=values).fetchone()))
             num += result
         return num
 
-    StrOrBool = typing.Union[str, bool]
+    StrOrBool = str | bool
 
     def count_distinct(
         self,
@@ -873,7 +994,7 @@ class SqliteAnnotationDbMixin:
         seqid: StrOrBool = False,
         biotype: StrOrBool = False,
         name: StrOrBool = False,
-    ) -> typing.Optional[Table]:
+    ) -> Table | None:
         """return table of counts of distinct values
 
         Parameters
@@ -894,7 +1015,7 @@ class SqliteAnnotationDbMixin:
         """
         columns = {k for k, v in locals().items() if v is True}
         if not columns:
-            return
+            return None
 
         if constraints := {k: v for k, v in locals().items() if isinstance(v, str)}:
             where_clause, values = _matching_conditions(constraints)
@@ -916,9 +1037,9 @@ class SqliteAnnotationDbMixin:
                 data.extend(tuple(r) for r in result)
 
         return Table(
-            header=header + ["count"],
+            header=[*header, "count"],
             data=data,
-            column_templates=dict(count=lambda x: f"{x:,}"),
+            column_templates={"count": lambda x: f"{x:,}"},
         )
 
     @property
@@ -938,7 +1059,7 @@ class SqliteAnnotationDbMixin:
         row_counts = []
         for table in self.table_names:
             result = self._execute_sql(
-                f"SELECT COUNT(*) as count FROM {table}"
+                f"SELECT COUNT(*) as count FROM {table}",
             ).fetchone()
             row_counts.append(result["count"])
 
@@ -947,7 +1068,7 @@ class SqliteAnnotationDbMixin:
                 "": list(data.keys()) + [f"num_rows({t!r})" for t in self.table_names],
                 "count": list(data.values()) + row_counts,
             },
-            column_templates=dict(count=lambda x: f"{x:,}"),
+            column_templates={"count": lambda x: f"{x:,}"},
         )
 
     def biotype_counts(self) -> dict:
@@ -972,7 +1093,11 @@ class SqliteAnnotationDbMixin:
         for table_name in self.table_names:
             table_data = []
             for record in self._get_records_matching(table_name):
-                store = {k: v for k, v in zip(record.keys(), record) if v is not None}
+                store = {
+                    k: v
+                    for k, v in zip(record.keys(), record, strict=False)
+                    if v is not None
+                }
                 store["spans"] = store["spans"].tolist()
                 table_data.append(store)
             tables[table_name] = table_data
@@ -990,24 +1115,30 @@ class SqliteAnnotationDbMixin:
             mine
         """
         if not isinstance(other_db, SupportsFeatures):
-            raise TypeError(f"{type(other_db)} does not support features")
+            msg = f"{type(other_db)} does not support features"
+            raise TypeError(msg)
         mine = set(self.table_names)
         theirs = set(other_db.table_names)
         return mine <= theirs or mine > theirs if symmetric else mine >= theirs
 
     def update(
-        self, annot_db: SupportsFeatures, seqids: OptionalStrList = None
+        self,
+        annot_db: SupportsFeatures,
+        seqids: OptionalStrList = None,
+        **kwargs: dict[str, typing.Any],
     ) -> None:
         """update records with those from an instance of the same type"""
         if not isinstance(annot_db, SupportsFeatures):
-            raise TypeError(f"{type(annot_db)} does not satisfy SupportsFeatures")
-        elif not self.compatible(annot_db, symmetric=False):
-            raise TypeError(f"{type(self)} cannot be updated from {type(annot_db)}")
+            msg = f"{type(annot_db)} does not satisfy SupportsFeatures"
+            raise TypeError(msg)
+        if not self.compatible(annot_db, symmetric=False):
+            msg = f"{type(self)} cannot be updated from {type(annot_db)}"
+            raise TypeError(msg)
 
         if not annot_db or not len(annot_db):
             return
 
-        self._update_db_from_other_db(annot_db, seqids=seqids)
+        self._update_db_from_other_db(annot_db, seqids=seqids, **kwargs)
 
     def union(self, annot_db: SupportsFeatures) -> SupportsFeatures:
         """returns a new instance with merged records with other
@@ -1023,8 +1154,9 @@ class SqliteAnnotationDbMixin:
         The class whose schema contains the other
         """
         if annot_db and not isinstance(annot_db, SupportsFeatures):
-            raise TypeError(f"{type(annot_db)} does not satisfy SupportsFeatures")
-        elif not annot_db:
+            msg = f"{type(annot_db)} does not satisfy SupportsFeatures"
+            raise TypeError(msg)
+        if not annot_db:
             return copy.deepcopy(self)
 
         if self.compatible(annot_db, symmetric=False):
@@ -1032,8 +1164,9 @@ class SqliteAnnotationDbMixin:
         elif self.compatible(annot_db, symmetric=True):
             cls = type(annot_db)
         else:
+            msg = f"cannot make a union between {type(self)} and {type(annot_db)}"
             raise TypeError(
-                f"cannot make a union between {type(self)} and {type(annot_db)}"
+                msg,
             )
 
         db = cls()
@@ -1042,14 +1175,14 @@ class SqliteAnnotationDbMixin:
         return db
 
     @classmethod
-    def from_dict(cls, data: dict):
+    def from_dict(cls, data: dict) -> AnnotationDbABC:
         # make an empty db
         init_args = data.pop("init_args")
         db = cls(**init_args)
         db._update_db_from_rich_dict(data)
         return db
 
-    def _update_db_from_rich_dict(self, data: dict, seqids: OptionalStr = None):
+    def _update_db_from_rich_dict(self, data: dict, seqids: OptionalStr = None) -> None:
         data.pop("type", None)
         data.pop("version")
         if isinstance(seqids, str):
@@ -1057,20 +1190,23 @@ class SqliteAnnotationDbMixin:
         elif seqids is not None:
             seqids = set(seqids) - {None}  # make sure None is not part of this!
 
-        # todo gah prevent duplication of existing records
+        # TODO gah prevent duplication of existing records
         for table_name, records in data["tables"].items():
             for record in records:
                 if seqids and record["seqid"] not in seqids:
                     continue
                 record["spans"] = numpy.array(record["spans"], dtype=int)
                 sql, vals = _add_record_sql(
-                    table_name, {k: v for k, v in record.items() if v is not None}
+                    table_name,
+                    {k: v for k, v in record.items() if v is not None},
                 )
                 self._execute_sql(sql, vals)
 
     def _update_db_from_other_db(
-        self, other_db: SupportsFeatures, seqids: OptionalStrContainer = None
-    ):
+        self,
+        other_db: SupportsFeatures,
+        seqids: OptionalStrContainer = None,
+    ) -> None:
         if other_db == self:
             return
 
@@ -1107,9 +1243,9 @@ class SqliteAnnotationDbMixin:
         self,
         *,
         source: PathType = ":memory:",
-        biotype: str = None,
-        seqid: str = None,
-        name: str = None,
+        biotype: str | None = None,
+        seqid: str | None = None,
+        name: str | None = None,
         start: OptionalInt = None,
         stop: OptionalInt = None,
         strand: OptionalStr = None,
@@ -1134,27 +1270,30 @@ class SqliteAnnotationDbMixin:
             ]
             pos = ", ".join("?" * len(cols))
             sql = f"INSERT INTO {table_name} ({','.join(cols)}) VALUES ({pos});"
-            records = []
-            for record in self._get_records_matching(table_name=table_name, **kwargs):
-                records.append(tuple(record[c] for c in cols))
-
+            records = [
+                tuple(record[c] for c in cols)
+                for record in self._get_records_matching(
+                    table_name=table_name,
+                    **kwargs,
+                )
+            ]
             with result.db as cursor:
                 cursor.executemany(sql, records)
                 cursor.commit()
 
         return result
 
-    def close(self):
+    def close(self) -> None:
         """closes the db"""
         self.db.close()
 
-    def _make_index(self, *, table_name: str, col_names: tuple[str, ...]):
+    def _make_index(self, *, table_name: str, col_names: tuple[str, ...]) -> None:
         """index columns for faster search"""
         sql = f"CREATE INDEX IF NOT EXISTS %s on {table_name}(%s)"
         for col in col_names:
             self._execute_sql(sql % (col, col))
 
-    def make_indexes(self):
+    def make_indexes(self) -> None:
         """adds db indexes for core attributes"""
         for table_name in self.table_names:
             self._make_index(
@@ -1163,7 +1302,7 @@ class SqliteAnnotationDbMixin:
             )
 
 
-class BasicAnnotationDb(SqliteAnnotationDbMixin):
+class BasicAnnotationDb(SqliteAnnotationDbMixin, AnnotationDbABC):
     """Provides a user table for annotations. This can be merged with
     either the Gff or Genbank versions.
 
@@ -1172,11 +1311,15 @@ class BasicAnnotationDb(SqliteAnnotationDbMixin):
     This is the default db on Sequence, SequenceCollection and Alignment
     """
 
-    _table_names = ("user",)
+    _table_names: typing.ClassVar = ("user",)
 
     def __init__(
-        self, *, data: T = None, db: SupportsFeatures = None, source=":memory:"
-    ):
+        self,
+        *,
+        data: T = None,
+        db: SupportsFeatures = None,
+        source: PathType = ":memory:",
+    ) -> None:
         """
         Parameters
         ----------
@@ -1197,7 +1340,7 @@ class BasicAnnotationDb(SqliteAnnotationDbMixin):
 
         self.add_records(data)
 
-    def add_records(self, data: T) -> None:
+    def add_records(self, data: T, **kwargs: dict[str, typing.Any]) -> None:
         table_name = self.table_names[0]  # only one name for this class
         for record in data:
             record["spans"] = numpy.array(record["spans"], dtype=int)
@@ -1221,13 +1364,13 @@ def _merge_spans(old: numpy.ndarray, new: list[list[int]]) -> numpy.ndarray:
     return numpy.unique(numpy.concatenate([old, new]), axis=0)
 
 
-class GffAnnotationDb(SqliteAnnotationDbMixin):
+class GffAnnotationDb(SqliteAnnotationDbMixin, AnnotationDbABC):
     """Support for annotations from gff files. Records that span multiple
     rows in the gff are merged into a single record."""
 
-    _table_names = "gff", "user"
+    _table_names: typing.ClassVar = "gff", "user"
     # We are relying on an attribute name structured as _<table name>_schema
-    _gff_schema = {
+    _gff_schema: typing.ClassVar = {
         "seqid": "TEXT",
         "source": "TEXT",
         "biotype": "TEXT",  # type in GFF
@@ -1245,8 +1388,12 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
 
     @extend_docstring_from(BasicAnnotationDb.__init__)
     def __init__(
-        self, *, data: T = None, db: SupportsFeatures = None, source=":memory:"
-    ):
+        self,
+        *,
+        data: T = None,
+        db: SupportsFeatures = None,
+        source: PathType = ":memory:",
+    ) -> None:
         data = data or []
         # note that data is destroyed
         self._num_fakeids = 0
@@ -1259,7 +1406,7 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         data, self._num_fakeids = merged_gff_records(data, self._num_fakeids)
         self.add_records(data)
 
-    def add_records(self, reduced: dict) -> None:
+    def add_records(self, reduced: dict, **kwargs: dict[str, typing.Any]) -> None:
         col_order = [
             r["name"] for r in self.db.execute("PRAGMA table_info(gff)").fetchall()
         ]
@@ -1296,7 +1443,8 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
             return
 
         result = self._execute_sql(
-            cmnd="SELECT spans from gff WHERE name = ?", values=(name,)
+            cmnd="SELECT spans from gff WHERE name = ?",
+            values=(name,),
         ).fetchone()
 
         if result is None:
@@ -1304,7 +1452,8 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
 
         old_spans = _merge_spans(result["spans"], spans)
         self._execute_sql(
-            cmnd="UPDATE gff SET spans = ? WHERE name = ?", values=(old_spans, name)
+            cmnd="UPDATE gff SET spans = ? WHERE name = ?",
+            values=(old_spans, name),
         )
 
 
@@ -1319,7 +1468,7 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
 # has the same ID as their child but their span contains the childs.
 
 
-class GenbankAnnotationDb(SqliteAnnotationDbMixin):
+class GenbankAnnotationDb(SqliteAnnotationDbMixin, AnnotationDbABC):
     """Support for annotations from Genbank files.
 
     Notes
@@ -1327,9 +1476,9 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
     Extended attributes are stored as json in the gb, attributes column.
     """
 
-    _table_names = "gb", "user"
+    _table_names: typing.ClassVar = "gb", "user"
     # We are relying on an attribute name structured as _<table name>_schema
-    _gb_schema = {
+    _gb_schema: typing.ClassVar = {
         "seqid": "TEXT",
         "source": "TEXT",
         "biotype": "TEXT",  # type in GFF
@@ -1351,9 +1500,9 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         data: T = None,
         seqid: OptionalStr = None,
         db: SupportsFeatures = None,
-        source=":memory:",
-        namer: typing.Callable = None,
-    ):
+        source: PathType = ":memory:",
+        namer: typing.Callable | None = None,
+    ) -> None:
         """
         seqid
             name of the sequence data is associated with
@@ -1374,7 +1523,7 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         self._namer = namer if callable(namer) else self._default_namer
         self.add_records(data, seqid)
 
-    def add_records(self, records, seqid):
+    def add_records(self, records: typing.Sequence[dict], seqid: str) -> None:
         col_order = [
             r["name"] for r in self.db.execute("PRAGMA table_info(gb)").fetchall()
         ]
@@ -1408,7 +1557,7 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         self.db.commit()
         del records
 
-    def _default_namer(self, record: dict) -> typing.Union[typing.List[str], None]:
+    def _default_namer(self, record: dict) -> list[str] | None:
         # we evaluate potential tokens in the genbank record in order of
         # preference for naming. If none of these are found, a fake name
         # will be generated
@@ -1429,7 +1578,7 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
 
         return None
 
-    def _make_fake_id(self, record: dict) -> typing.List[str]:
+    def _make_fake_id(self, record: dict) -> list[str]:
         name = [f"{record.get('type', 'fakeid')}-{self._num_fakeids}"]
         self._num_fakeids += 1
         return name
@@ -1531,17 +1680,17 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
 
 
 @register_deserialiser(get_object_provenance(BasicAnnotationDb))
-def deserialise_basic_db(data: dict):
+def deserialise_basic_db(data: dict) -> BasicAnnotationDb:
     return BasicAnnotationDb.from_dict(data)
 
 
 @register_deserialiser(get_object_provenance(GffAnnotationDb))
-def deserialise_gff_db(data: dict):
+def deserialise_gff_db(data: dict) -> GffAnnotationDb:
     return GffAnnotationDb.from_dict(data)
 
 
 @register_deserialiser(get_object_provenance(GenbankAnnotationDb))
-def deserialise_gb_db(data: dict):
+def deserialise_gb_db(data: dict) -> GenbankAnnotationDb:
     return GenbankAnnotationDb.from_dict(data)
 
 
@@ -1554,14 +1703,18 @@ def convert_annotation_to_annotation_db(data: dict) -> SupportsFeatures:
     seqid = data.pop("name", data.pop("seqid", None))
     anns = data.pop("data")
     for ann in anns:
-        ann = ann.pop("annotation_construction")
+        ann = ann.pop("annotation_construction")  # noqa: PLW2901
         m = deserialise_map_spans(ann.pop("map"))
         spans = m.get_coordinates()
         strand = "-" if any(s.reverse for s in m.spans) else "+"
         biotype = ann.pop("type")
         name = ann.pop("name")
         db.add_feature(
-            seqid=seqid, biotype=biotype, name=name, spans=spans, strand=strand
+            seqid=seqid,
+            biotype=biotype,
+            name=name,
+            spans=spans,
+            strand=strand,
         )
 
     return db
@@ -1569,9 +1722,11 @@ def convert_annotation_to_annotation_db(data: dict) -> SupportsFeatures:
 
 @display_wrap
 def _db_from_genbank(
-    path: PathType, db: typing.Optional[SupportsFeatures], write_path, **kwargs
-):
-    from cogent3 import open_
+    path: PathType,
+    db: SupportsFeatures | None,
+    write_path: PathType,
+    **kwargs: dict[str, typing.Any],
+) -> AnnotationDbABC:
     from cogent3.parse.genbank import minimal_parser
 
     paths = pathlib.Path(path)
@@ -1579,8 +1734,8 @@ def _db_from_genbank(
 
     ui = kwargs.pop("ui")
     one_valid_path = False
-    for path in ui.series(paths):
-        rec = list(minimal_parser(path))[0]
+    for path in ui.series(paths):  # noqa: PLR1704
+        rec = next(iter(minimal_parser(path)))
         db = GenbankAnnotationDb(
             source=write_path,
             data=rec.pop("features", None),
@@ -1590,13 +1745,14 @@ def _db_from_genbank(
         one_valid_path = True
 
     if not one_valid_path:
-        raise IOError(f"{str(path)!r} not found")
+        msg = f"{str(path)!r} not found"
+        raise OSError(msg)
 
     db.make_indexes()
     return db
 
 
-def _leave_attributes(*attrs):
+def _leave_attributes(*attrs: tuple[str, ...]) -> str:
     return attrs[0]
 
 
@@ -1604,10 +1760,10 @@ def _leave_attributes(*attrs):
 def _db_from_gff(
     path: PathType,
     seqids: OptionalStrContainer,
-    db: typing.Optional[SupportsFeatures],
+    db: SupportsFeatures | None,
     write_path: PathType,
     num_lines: OptionalInt,
-    **kwargs,
+    **kwargs: dict[str, typing.Any],
 ) -> SupportsFeatures:
     from cogent3.parse.gff import gff_parser, is_gff3
 
@@ -1617,15 +1773,18 @@ def _db_from_gff(
     ui = kwargs.pop("ui")
     one_valid_path = False
     seen_ids = set()
-    for path in ui.series(paths):
+    for path in ui.series(paths):  # noqa: PLR1704
         num_fake_ids = 0
         gff3 = is_gff3(path)
         db = GffAnnotationDb(source=write_path, db=db)
         for block in iter_line_blocks(path, num_lines=num_lines):
             data = list(
                 gff_parser(
-                    block, seqids=seqids, attribute_parser=_leave_attributes, gff3=gff3
-                )
+                    block,
+                    seqids=seqids,
+                    attribute_parser=_leave_attributes,
+                    gff3=gff3,
+                ),
             )
             data, num_fake_ids = merged_gff_records(data, num_fake_ids)
             if already_seen := seen_ids & data.keys():
@@ -1636,7 +1795,8 @@ def _db_from_gff(
             db.add_records(data)
         one_valid_path = True
     if not one_valid_path:
-        raise IOError(f"{str(path)!r} not found")
+        msg = f"{str(path)!r} not found"
+        raise OSError(msg)
 
     db.make_indexes()
     return db
@@ -1646,7 +1806,7 @@ def load_annotations(
     *,
     path: PathType,
     seqids: OptionalStr = None,
-    db: typing.Optional[SupportsFeatures] = None,
+    db: SupportsFeatures | None = None,
     write_path: PathType = ":memory:",
     lines_per_block: OptionalInt = 500_000,
     show_progress: bool = False,
@@ -1678,10 +1838,13 @@ def load_annotations(
     """
     if seqids is not None:
         seqids = {seqids} if isinstance(seqids, str) else set(seqids)
-    path = pathlib.Path(path)
+    path = pathlib.Path(path).expanduser()
     return (
         _db_from_genbank(
-            path, db=db, write_path=write_path, show_progress=show_progress
+            path,
+            db=db,
+            write_path=write_path,
+            show_progress=show_progress,
         )
         if {".gb", ".gbk"} & set(path.suffixes)
         else _db_from_gff(
@@ -1715,17 +1878,12 @@ def _update_array_format(data: bytes) -> bytes:
     """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        new_data = array_to_sqlite(sqlite_to_array(data))
-    return new_data
+        return array_to_sqlite(sqlite_to_array(data))
 
 
 def update_file_format(
     source_path: PathType,
-    db_class: typing.Union[
-        type[BasicAnnotationDb],
-        type[GenbankAnnotationDb],
-        type[GffAnnotationDb],
-    ],
+    db_class: type[BasicAnnotationDb | GenbankAnnotationDb | GffAnnotationDb],
     backup: bool = True,
 ) -> None:
     """Update the database file to the latest format.
@@ -1745,29 +1903,33 @@ def update_file_format(
 
     Parameters
     ----------
-    source_path : PathType
+    source_path
         The database file to reformat.
-    db_class : typing.Union[ type[BasicAnnotationDb], type[GenbankAnnotationDb], type[GffAnnotationDb], ]
+    db_class[GenbankAnnotationDb], type[GffAnnotationDb], ]
         The type of database the file is.
-    backup : bool, optional
+    backup
         If True (default), performs a backup of the database before updating.
         Otherwise does not perform a backup prior to update (not recommended).
     """
     source_path = pathlib.Path(source_path).expanduser()
 
     if not source_path.exists():
-        raise OSError(f"File {source_path} does not exist.")
+        msg = f"File {source_path} does not exist."
+        raise OSError(msg)
 
     anno_db = db_class(source=source_path)
 
     if backup:
         backup_path = source_path.parent / f"{source_path.name}.bak"
         if backup_path.exists():
-            raise FileExistsError(
+            msg = (
                 f"Backup file already exists for {source_path}. "
                 f"If there was a problem with the conversion process, "
                 f"update_file_format should be run on the backed up file. "
                 f"Ensure update_file_format is run on the same OS used to generate the file."
+            )
+            raise FileExistsError(
+                msg,
             )
         anno_db.write(backup_path)
 
@@ -1783,6 +1945,6 @@ def update_file_format(
 
         for column in array_columns:
             cursor.execute(
-                f"UPDATE {table_name} SET {column}=update_array_format({column});"
+                f"UPDATE {table_name} SET {column}=update_array_format({column});",
             )
         conn.commit()

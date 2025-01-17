@@ -1,12 +1,12 @@
 from collections import defaultdict
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 from numpy import array
 from numpy import random as np_random
 
-from cogent3.core.alignment import Alignment, ArrayAlignment
-from cogent3.core.genetic_code import get_code
-from cogent3.core.moltype import MolType, get_moltype
+import cogent3
+from cogent3.core import moltype as old_moltype
+from cogent3.core import new_moltype
 
 from .composable import NON_COMPOSABLE, NotCompleted, define_app
 from .translate import get_fourfold_degenerate_sets
@@ -15,7 +15,7 @@ from .typing import AlignedSeqsType, SeqsCollectionType, SerialisableType
 # TODO need a function to filter sequences based on divergence, ala divergent
 # set.
 
-MolTypes = Union[str, MolType]
+MolTypes = Union[str, old_moltype.MolType, new_moltype.MolType]
 OptInt = Optional[int]
 
 
@@ -28,8 +28,7 @@ def intersection(groups):
 def union(groups):
     """returns the intersection of all groups"""
     union = set(groups.pop())
-    union = union.union(*map(set, groups))
-    return union
+    return union.union(*map(set, groups))
 
 
 @define_app(app_type=NON_COMPOSABLE)
@@ -37,8 +36,11 @@ class concat:
     """Creates a concatenated alignment from a series."""
 
     def __init__(
-        self, join_seq: str = "", intersect: bool = True, moltype: Optional[str] = None
-    ):
+        self,
+        join_seq: str = "",
+        intersect: bool = True,
+        moltype: str | None = None,
+    ) -> None:
         """
         Parameters
         ----------
@@ -104,8 +106,9 @@ class concat:
         self._join_seq = join_seq
 
     def main(
-        self, data: List[AlignedSeqsType]
-    ) -> Union[SerialisableType, AlignedSeqsType]:
+        self,
+        data: list[AlignedSeqsType],
+    ) -> SerialisableType | AlignedSeqsType:
         """returns an alignment
 
         Parameters
@@ -120,9 +123,6 @@ class concat:
         for aln in data:
             if self._moltype is None:
                 self._moltype = aln.moltype
-
-            if not isinstance(aln, (ArrayAlignment, Alignment)):
-                raise TypeError(f"{type(aln)} invalid for concat")
             names.append(aln.names)
 
         names = self._name_callback(names)
@@ -143,10 +143,13 @@ class concat:
                 collated[name].append(seqs[name])
 
         combined = {n: self._join_seq.join(collated[n]) for n in names}
-        if aln := ArrayAlignment(data=combined, moltype=self._moltype):
+        if aln := cogent3.make_aligned_seqs(
+            data=combined,
+            moltype=self._moltype,
+            array_align=True,
+        ):
             return aln
-        else:
-            return NotCompleted("FAIL", self, message="result is empty")
+        return NotCompleted("FAIL", self, message="result is empty")
 
 
 @define_app
@@ -156,10 +159,10 @@ class omit_degenerates:
 
     def __init__(
         self,
-        moltype: Optional[str] = None,
+        moltype: str | None = None,
         gap_is_degen: bool = True,
         motif_length: int = 1,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -224,7 +227,7 @@ class omit_degenerates:
         'Traceback...
         """
         if moltype:
-            moltype = get_moltype(moltype)
+            moltype = cogent3.get_moltype(moltype)
             assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
 
         self._moltype = moltype
@@ -239,7 +242,8 @@ class omit_degenerates:
             aln = aln.to_moltype(self._moltype)
 
         return aln.no_degenerates(
-            motif_length=self._motif_length, allow_gap=self._allow_gap
+            motif_length=self._motif_length,
+            allow_gap=self._allow_gap,
         ) or NotCompleted("FAIL", self, "all columns contained degenerates", source=aln)
 
 
@@ -252,8 +256,8 @@ class omit_gap_pos:
         self,
         allowed_frac: float = 0.99,
         motif_length: int = 1,
-        moltype: Optional[str] = None,
-    ):
+        moltype: str | None = None,
+    ) -> None:
         """
         Parameters
         ----------
@@ -308,7 +312,7 @@ class omit_gap_pos:
         'all columns exceeded gap threshold'
         """
         if moltype:
-            moltype = get_moltype(moltype)
+            moltype = cogent3.get_moltype(moltype)
             assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
 
         self._moltype = moltype
@@ -323,9 +327,13 @@ class omit_gap_pos:
             aln = aln.to_moltype(self._moltype)
 
         return aln.omit_gap_pos(
-            allowed_gap_frac=self._allowed_frac, motif_length=self._motif_length
+            allowed_gap_frac=self._allowed_frac,
+            motif_length=self._motif_length,
         ) or NotCompleted(
-            "FAIL", self, "all columns exceeded gap threshold", source=aln
+            "FAIL",
+            self,
+            "all columns exceeded gap threshold",
+            source=aln,
         )
 
 
@@ -337,9 +345,9 @@ class take_codon_positions:
         self,
         *positions: int,
         fourfold_degenerate: bool = False,
-        gc: Union[str, int] = "Standard",
+        gc: str | int = "Standard",
         moltype: str = "dna",
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -399,7 +407,7 @@ class take_codon_positions:
         'Traceback ...
         """
         assert moltype is not None
-        moltype = get_moltype(moltype)
+        moltype = cogent3.get_moltype(moltype)
 
         assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
 
@@ -408,17 +416,19 @@ class take_codon_positions:
         self._fourfold_degen_sets = None
 
         if fourfold_degenerate:
-            gc = get_code(gc)
+            gc = cogent3.get_code(gc)
             sets = get_fourfold_degenerate_sets(
-                gc, alphabet=moltype.alphabet, as_indices=True
+                gc,
+                alphabet=moltype.alphabet,
+                as_indices=True,
             )
             self._fourfold_degen_sets = sets
             self._func = self.take_fourfold_positions
             return
 
-        assert (
-            1 <= min(positions) <= 3 and 1 <= max(positions) <= 3
-        ), "Invalid codon positions"
+        assert 1 <= min(positions) <= 3 and 1 <= max(positions) <= 3, (
+            "Invalid codon positions"
+        )
 
         by_index = len(positions) == 1
         if by_index:
@@ -436,23 +446,20 @@ class take_codon_positions:
 
         fourfold_codon_sets = self._fourfold_degen_sets
 
-        def ffold(x):
-            x = {tuple(e) for e in list(x)}
-            for codon_set in fourfold_codon_sets:
-                if x <= codon_set:
-                    return True
-            return False
+        def ffold(x) -> bool:
+            x = {tuple(array(e)) for e in list(x)}
+            return any(x <= codon_set for codon_set in fourfold_codon_sets)
 
         new = aln.filtered(ffold, motif_length=3)
         return new[2::3]
 
     def take_codon_position(self, aln):
-        if isinstance(aln, Alignment):
-            indices = list(range(self._positions, len(aln), 3))
-            result = aln.take_positions(indices)
-        elif isinstance(aln, ArrayAlignment):
-            result = aln[self._positions :: 3]
-        return result
+        from cogent3.core.alignment import Alignment
+
+        if not isinstance(aln, Alignment):
+            return aln[self._positions :: 3]
+        indices = list(range(self._positions, len(aln), 3))
+        return aln.take_positions(indices)
 
     def take_codon_positions(self, aln):
         """takes multiple positions"""
@@ -470,7 +477,7 @@ class take_codon_positions:
 class take_named_seqs:
     """Selects named sequences from a collection."""
 
-    def __init__(self, *names: str, negate: bool = False):
+    def __init__(self, *names: str, negate: bool = False) -> None:
         """
         Parameters
         ----------
@@ -527,9 +534,9 @@ class take_n_seqs:
         self,
         number: int,
         random: bool = False,
-        seed: Optional[int] = None,
+        seed: int | None = None,
         fixed_choice: bool = True,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -609,7 +616,7 @@ class take_n_seqs:
         self._random = random
         self._fixed_choice = fixed_choice
 
-    def _set_names(self, data):
+    def _set_names(self, data) -> None:
         """set the names attribute"""
         if not self._random:
             self._names = data.names[: self._number]
@@ -645,8 +652,8 @@ class min_length:
         length: int,
         motif_length: int = 1,
         subtract_degen: bool = True,
-        moltype: Optional[MolTypes] = None,
-    ):
+        moltype: MolTypes | None = None,
+    ) -> None:
         """
         Parameters
         ----------
@@ -695,7 +702,7 @@ class min_length:
         self._motif_length = motif_length
         self._subtract_degen = subtract_degen
         if moltype:
-            moltype = get_moltype(moltype)
+            moltype = cogent3.get_moltype(moltype)
         self._moltype = moltype
 
     T = Union[SerialisableType, SeqsCollectionType]
@@ -704,10 +711,14 @@ class min_length:
         if self._moltype and self._moltype != data.moltype:
             data = data.to_moltype(self._moltype)
 
-        if self._subtract_degen and not hasattr(data.alphabet, "non_degen"):
-            raise ValueError(
+        diff = len(data.moltype.ambiguities or ()) - len(data.moltype.alphabet)
+        if self._subtract_degen and (diff < 0 or diff < 3):
+            msg = (
                 f"{self.__class__.__name__}(subtract_degen=True) requires DNA, RNA or PROTEIN "
                 "moltype"
+            )
+            raise ValueError(
+                msg,
             )
 
         lengths = data.get_lengths(
@@ -726,7 +737,7 @@ class min_length:
 class _GetStart:
     choose = np_random.choice
 
-    def __init__(self, start):
+    def __init__(self, start) -> None:
         self._start = start
         self.func = {True: self._int}.get(type(start) == int, self._rand)
 
@@ -749,10 +760,10 @@ class fixed_length:
         length: int,
         start: int = 0,
         random: bool = False,
-        seed: Optional[int] = None,
+        seed: int | None = None,
         motif_length: int = 1,
-        moltype: Optional[MolTypes] = None,
-    ):
+        moltype: MolTypes | None = None,
+    ) -> None:
         """
         Parameters
         ----------
@@ -825,7 +836,7 @@ class fixed_length:
         self._length = length
         self._motif_length = motif_length
         if moltype:
-            moltype = get_moltype(moltype)
+            moltype = cogent3.get_moltype(moltype)
         self._moltype = moltype
         if type(start) == str:
             assert start.lower().startswith("rand")
@@ -850,9 +861,8 @@ class fixed_length:
         if len(aln) < self._length:
             msg = f"{len(aln)} < min_length {self._length}"
             return NotCompleted("FALSE", self.__class__.__name__, msg, source=aln)
-        else:
-            start = self._start(len(aln) - self._length)
-            return aln[start : start + self._length]
+        start = self._start(len(aln) - self._length)
+        return aln[start : start + self._length]
 
     def sample_positions(self, aln):
         if self._moltype and self._moltype != aln.moltype:
@@ -865,7 +875,9 @@ class fixed_length:
             number = self._length // self._motif_length
 
         pos = np_random.choice(
-            indices.shape[0] // self._motif_length, number, replace=False
+            indices.shape[0] // self._motif_length,
+            number,
+            replace=False,
         )
         if self._motif_length == 1:
             result = indices[pos]
@@ -875,8 +887,7 @@ class fixed_length:
             result = indices[pos, :]
 
         result.sort(axis=0)
-        result = aln.take_positions(result.flatten().tolist())
-        return result
+        return aln.take_positions(result.flatten().tolist())
 
     T = Union[SerialisableType, AlignedSeqsType]
 
@@ -891,11 +902,11 @@ class omit_bad_seqs:
 
     def __init__(
         self,
-        quantile: Optional[float] = None,
+        quantile: float | None = None,
         gap_fraction: int = 1,
         ambig_fraction: OptInt = None,  # refactor: set default to 1 when support for old style aln is dropped
         moltype: MolTypes = "dna",
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -956,10 +967,10 @@ class omit_bad_seqs:
         s5    ..A...GGG..T
         """
         if moltype:
-            moltype = get_moltype(moltype)
-        assert (
-            moltype.label.lower() in "dna rna protein protein_with_stop"
-        ), "moltype must be one of DNA, RNA or PROTEIN"
+            moltype = cogent3.get_moltype(moltype)
+        assert moltype.label.lower() in "dna rna protein protein_with_stop", (
+            "moltype must be one of DNA, RNA or PROTEIN"
+        )
         # refactor: design, this should raise a MolTypeError
         self._quantile = quantile
         self._gap_fraction = gap_fraction
@@ -1008,9 +1019,9 @@ class omit_duplicated:
         self,
         mask_degen: bool = False,
         choose: str = "longest",
-        seed: Optional[int] = None,
-        moltype: Optional[MolTypes] = None,
-    ):
+        seed: int | None = None,
+        moltype: MolTypes | None = None,
+    ) -> None:
         """
         Parameters
         ----------
@@ -1086,7 +1097,7 @@ class omit_duplicated:
         """
         assert not choose or choose in "longestrandom"
         if moltype:
-            moltype = get_moltype(moltype)
+            moltype = cogent3.get_moltype(moltype)
         self._moltype = moltype
         if choose == "random" and seed:
             np_random.seed(seed)
@@ -1111,8 +1122,7 @@ class omit_duplicated:
             group_lengths.sort(reverse=True)
             excludes.extend([n for l, n in group_lengths[1:]])
 
-        seqs = seqs.take_seqs(excludes, negate=True)
-        return seqs
+        return seqs.take_seqs(excludes, negate=True)
 
     def choose_random(self, seqs):
         if self._moltype and self._moltype != seqs.moltype:
@@ -1125,8 +1135,7 @@ class omit_duplicated:
             group.remove(chosen)
             excludes.extend(group)
 
-        seqs = seqs.take_seqs(excludes, negate=True)
-        return seqs
+        return seqs.take_seqs(excludes, negate=True)
 
     def take_unique(self, seqs):
         if self._moltype and self._moltype != seqs.moltype:
@@ -1136,8 +1145,7 @@ class omit_duplicated:
         names = set()
         for dupes in duplicates:
             names.update(dupes)
-        seqs = seqs.take_seqs(names, negate=True)
-        return seqs
+        return seqs.take_seqs(names, negate=True)
 
     T = Union[SerialisableType, SeqsCollectionType]
 
@@ -1149,7 +1157,7 @@ class omit_duplicated:
 class trim_stop_codons:
     """Removes terminal stop codons."""
 
-    def __init__(self, gc: Union[str, int] = 1):
+    def __init__(self, gc: str | int = 1) -> None:
         """
         Parameters
         ----------
@@ -1199,5 +1207,4 @@ class trim_stop_codons:
     T = Union[SerialisableType, SeqsCollectionType]
 
     def main(self, data: SeqsCollectionType) -> T:
-        data = data.trim_stop_codons(gc=self._gc)
-        return data
+        return data.trim_stop_codons(gc=self._gc)

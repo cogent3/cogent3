@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Matching motifs: MotifChange("a", "g")
 Boolean logic: Any, All, Not (or &, |, ~)
@@ -14,10 +13,10 @@ import warnings
 import numpy
 
 
-class _CallablePredicate(object):
+class _CallablePredicate:
     # A predicate in the context of a particular model
 
-    def __init__(self, pred, model):
+    def __init__(self, pred, model) -> None:
         self.model = model
         self.alphabet = model.get_alphabet()
         self.name = repr(pred)
@@ -27,11 +26,11 @@ class _CallablePredicate(object):
     def __call__(self, x, y):
         return self.f(x, y)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.name
 
     def ascii_art(self):
-        l = len(self.alphabet.get_gap_motif())
+        l = len(self.alphabet.gap_char)
         rows = []
         for i in range(l):
             row = [a[i] for a in list(self.alphabet)]
@@ -46,11 +45,11 @@ class _CallablePredicate(object):
                 else:
                     c = "-"
                 row.append(c)
-            rows.append(" ".join([y] + row))
+            rows.append(" ".join([y, *row]))
         return "\n".join(rows)
 
 
-class predicate(object):
+class predicate:
     def __and__(self, other):
         return All(self, other)
 
@@ -60,7 +59,7 @@ class predicate(object):
     def __invert__(self):
         return Not(self)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         warnings.warn(
             "alphabet predicate used as truth value. Use only binary operators: &, | and ~",
             stacklevel=2,
@@ -68,7 +67,10 @@ class predicate(object):
         return True
 
     def __eq__(self, other):
-        warnings.warn("Warning: alphabet pair predicate used as value. Use parentheses")
+        warnings.warn(
+            "Warning: alphabet pair predicate used as value. Use parentheses",
+            stacklevel=2,
+        )
         return self is other
 
     def aliased(self, new_name):
@@ -81,11 +83,11 @@ class predicate(object):
 
 
 class PredicateAlias(predicate):
-    def __init__(self, name, subpredicate):
+    def __init__(self, name, subpredicate) -> None:
         self.name = name
         self.subpredicate = subpredicate
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.name
 
     def interpret(self, model):
@@ -93,35 +95,35 @@ class PredicateAlias(predicate):
 
 
 class _UnaryPredicate(predicate):
-    def __init__(self, subpredicate):
+    def __init__(self, subpredicate) -> None:
         assert isinstance(subpredicate, predicate), subpredicate
         self.subpredicate = subpredicate
         self.__doc__ = repr(self)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if hasattr(self, "_op_repr"):
             return f"{self._op_repr}({self.subpredicate})"
-        else:
-            return f"{self.__class__.__name__}({self.subpredicate})"
+        return f"{self.__class__.__name__}({self.subpredicate})"
 
 
 class _GenericPredicate(predicate):
-    def __init__(self, *subpredicates):
+    def __init__(self, *subpredicates) -> None:
         for p in subpredicates:
             assert isinstance(p, predicate), p
         self.subpredicates = subpredicates
         self.__doc__ = repr(self)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if hasattr(self, "_op_repr"):
-            return "(%s)" % (" %s " % self._op_repr).join(
-                [repr(p) for p in self.subpredicates]
+            return "({})".format(
+                (f" {self._op_repr} ").join(
+                    [repr(p) for p in self.subpredicates],
+                ),
             )
-        else:
-            return "%s(%s)" % (
-                self.__class__.__name__,
-                ",".join(["(%s)" % repr(p) for p in self.subpredicates]),
-            )
+        return "{}({})".format(
+            self.__class__.__name__,
+            ",".join([f"({p!r})" for p in self.subpredicates]),
+        )
 
 
 # Boolean logic on motif pair predicates
@@ -133,7 +135,7 @@ class Not(_UnaryPredicate):
     def interpret(self, model):
         subpred = self.subpredicate.interpret(model)
 
-        def call(*args):
+        def call(*args) -> bool:
             return not subpred(*args)
 
         call.__doc__ = repr(self)
@@ -146,11 +148,8 @@ class All(_GenericPredicate):
     def interpret(self, model):
         subpreds = [p.interpret(model) for p in self.subpredicates]
 
-        def call(*args):
-            for subpredicate in subpreds:
-                if not subpredicate(*args):
-                    return False
-            return True
+        def call(*args) -> bool:
+            return all(subpredicate(*args) for subpredicate in subpreds)
 
         call.__doc__ = repr(self)
         return call
@@ -162,21 +161,18 @@ class Any(_GenericPredicate):
     def interpret(self, model):
         subpreds = [p.interpret(model) for p in self.subpredicates]
 
-        def call(*args):
-            for subpredicate in subpreds:
-                if subpredicate(*args):
-                    return True
-            return False
+        def call(*args) -> bool:
+            return any(subpredicate(*args) for subpredicate in subpreds)
 
         call.__doc__ = repr(self)
         return call
 
 
 class ModelSays(predicate):
-    def __init__(self, name):
+    def __init__(self, name) -> None:
         self.name = name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.name
 
     def interpret(self, model):
@@ -184,24 +180,25 @@ class ModelSays(predicate):
 
 
 class DirectedMotifChange(predicate):
-    def __init__(self, from_motif, to_motif, diff_at=None):
+    def __init__(self, from_motif, to_motif, diff_at=None) -> None:
         self.from_motif = from_motif
         self.motiflen = len(from_motif)
         self.to_motif = to_motif
         self.diff_at = diff_at
 
-    def __repr__(self):
-        if self.diff_at is not None:
-            diff = "[%d]" % self.diff_at
-        else:
-            diff = ""
+    def __repr__(self) -> str:
+        diff = "[%d]" % self.diff_at if self.diff_at is not None else ""
         return f"{self.from_motif}>{self.to_motif}{diff}"
 
     def test_motif(self, motifs, query):
         """positions where motif pattern is found in query"""
         positions = set()
         for offset in range(len(query) - self.motiflen + 1):
-            for q, ms in zip(query[offset : offset + self.motiflen], motifs):
+            for q, ms in zip(
+                query[offset : offset + self.motiflen],
+                motifs,
+                strict=False,
+            ):
                 if q not in ms:
                     break
             else:
@@ -221,23 +218,23 @@ class DirectedMotifChange(predicate):
         # may be looking for a 2nt pattern in a 3nt alphabet, but not
         # 3nt pattern in dinucleotide alphabet.
         alphabet = model.get_alphabet()
-        if alphabet.get_motif_len() < self.motiflen:
+        if alphabet.motif_len < self.motiflen:
+            msg = f"alphabet motifs ({alphabet.motif_len}) too short for {self!r} ({self.motiflen})"
             raise ValueError(
-                "alphabet motifs (%s) too short for %s (%s)"
-                % (alphabet.get_motif_len(), repr(self), self.motiflen)
+                msg,
             )
 
-        resolve = model.moltype.ambiguities.__getitem__
+        ambigs = model.moltype.ambiguities
 
-        from_motifs = [resolve(m) for m in self.from_motif]
-        to_motifs = [resolve(m) for m in self.to_motif]
+        from_motifs = [ambigs.get(m, m) for m in self.from_motif]
+        to_motifs = [ambigs.get(m, m) for m in self.to_motif]
 
         def call(x, y):
-            diffs = [X != Y for (X, Y) in zip(x, y)]
+            diffs = [X != Y for (X, Y) in zip(x, y, strict=False)]
             matches = []
             for posn in self.test_motifs(from_motifs, to_motifs, x, y):
                 diff = list(numpy.nonzero(diffs[posn : posn + self.motiflen])[0])
-                if diff and self.diff_at is None or diff == [self.diff_at]:
+                if (diff and self.diff_at is None) or diff == [self.diff_at]:
                     matches.append(posn)
             return len(matches) == 1
 
@@ -246,11 +243,8 @@ class DirectedMotifChange(predicate):
 
 
 class UndirectedMotifChange(DirectedMotifChange):
-    def __repr__(self):
-        if self.diff_at is not None:
-            diff = "[%d]" % self.diff_at
-        else:
-            diff = ""
+    def __repr__(self) -> str:
+        diff = "[%d]" % self.diff_at if self.diff_at is not None else ""
         return f"{self.from_motif}/{self.to_motif}{diff}"
 
     def test_motifs(self, from_motifs, to_motifs, x, y):
@@ -271,15 +265,14 @@ def MotifChange(x, y=None, forward_only=False, diff_at=None):
                 y += x[i]
     if forward_only:
         return DirectedMotifChange(x, y, diff_at=diff_at)
-    else:
-        return UndirectedMotifChange(x, y, diff_at=diff_at)
+    return UndirectedMotifChange(x, y, diff_at=diff_at)
 
 
 class UserPredicate(predicate):
-    def __init__(self, f):
+    def __init__(self, f) -> None:
         self.f = f
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "UserPredicate(%s)" % (getattr(self.f, "__name__", None) or repr(self.f))
 
     def interpret(self, model):

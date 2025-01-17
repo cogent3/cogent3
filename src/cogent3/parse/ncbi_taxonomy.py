@@ -46,7 +46,7 @@ RanksToNumbers = {
 
 
 @total_ordering
-class NcbiTaxon(object):
+class NcbiTaxon:
     """Extracts taxon information: init from one line of NCBI's nodes.dmp.
 
     Properties:
@@ -86,7 +86,7 @@ class NcbiTaxon(object):
         "Comments",
     ]
 
-    def __init__(self, line):
+    def __init__(self, line) -> None:
         """Returns new NcbiTaxon from line containing taxonomy data."""
         line_pieces = list(map(strip, line.split("|")))
         for i in [0, 1, 5, 6, 7, 8, 9, 10, 11]:
@@ -95,11 +95,11 @@ class NcbiTaxon(object):
         last = line_pieces[-1]
         if last.endswith("|"):
             line_pieces[-1] = last[:-1]
-        self.__dict__ = dict(list(zip(self.Fields, line_pieces)))
+        self.__dict__ = dict(list(zip(self.Fields, line_pieces, strict=False)))
         self.Name = ""  # will get name field from names.dmp; fillNames
         self.RankId = RanksToNumbers.get(self.Rank, None)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Writes data out in format we got it."""
         pieces = [str(getattr(self, f)) for f in self.Fields]
         # remember to set the parent of the root to itself
@@ -144,7 +144,7 @@ def NcbiTaxonLookup(taxa):
     return result
 
 
-class NcbiName(object):
+class NcbiName:
     """Extracts name information: init from one line of NCBI's names.dmp.
 
     Properties:
@@ -156,13 +156,13 @@ class NcbiName(object):
 
     Fields = ["TaxonId", "Name", "UniqueName", "NameClass"]
 
-    def __init__(self, line):
+    def __init__(self, line) -> None:
         """Returns new NcbiName from line containing name data."""
         line_pieces = list(map(strip, line.split("|")))
         line_pieces[0] = int(line_pieces[0])  # convert taxon_id
-        self.__dict__ = dict(list(zip(self.Fields, line_pieces)))
+        self.__dict__ = dict(list(zip(self.Fields, line_pieces, strict=False)))
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Writes data out in similar format as the one we got it from."""
         return "\t|\t".join([str(getattr(self, f)) for f in self.Fields]) + "|\n"
 
@@ -183,10 +183,10 @@ def NcbiNameLookup(names):
     return result
 
 
-class NcbiTaxonomy(object):
+class NcbiTaxonomy:
     """Holds root node of a taxonomy tree, plus lookup by id or name."""
 
-    def __init__(self, taxa, names, strict=False):
+    def __init__(self, taxa, names, strict=False) -> None:
         """Creates new taxonomy, using data in Taxa and Names.
 
         taxa should be the product of NcbiTaxonLookup.
@@ -202,10 +202,7 @@ class NcbiTaxonomy(object):
         ids_to_nodes = {}
         for t_id, t in taxa.items():
             name_rec = names.get(t_id, None)
-            if name_rec:
-                name = name_rec.Name
-            else:
-                name = "Unknown"
+            name = name_rec.Name if name_rec else "Unknown"
             t.Name = name
 
             node = NcbiTaxonNode(t)
@@ -224,11 +221,13 @@ class NcbiTaxonomy(object):
                     ids_to_nodes[t.ParentId].append(t)
                 except KeyError:  # found a child whose parent doesn't exist
                     if strict:
-                        raise MissingParentError(
+                        msg = (
                             f"Node {t_id} has parent {t.ParentId}, which isn't in taxa."
                         )
-                    else:
-                        deadbeats[t.ParentId] = t
+                        raise MissingParentError(
+                            msg,
+                        )
+                    deadbeats[t.ParentId] = t
         self.Deadbeats = deadbeats
         self.Root = t.root()
 
@@ -247,7 +246,7 @@ class NcbiTaxonomy(object):
 class NcbiTaxonNode(TreeNode):
     """Provides some additional methods specific to Ncbi taxa."""
 
-    def __init__(self, Data):
+    def __init__(self, Data) -> None:
         """Returns a new NcbiTaxonNode object; requires NcbiTaxon to initialize."""
         self.Data = Data
         self._parent = None
@@ -256,10 +255,7 @@ class NcbiTaxonNode(TreeNode):
     def getRankedDescendants(self, rank):
         """Returns all descendants of self with specified rank as flat list."""
         curr = self.Rank
-        if curr == rank:
-            result = [self]
-        else:
-            result = []
+        result = [self] if curr == rank else []
         for i in self:
             result.extend(i.getRankedDescendants(rank))
         return result

@@ -1,6 +1,5 @@
 import os
 from functools import singledispatch
-from typing import Union
 
 from cogent3 import load_tree, make_tree
 from cogent3.core.tree import TreeNode
@@ -19,7 +18,13 @@ class scale_branches:
     """Transforms tree branch lengths from nucleotide to codon, or the
     converse. Returns a new tree with lengths divided by scalar"""
 
-    def __init__(self, nuc_to_codon=None, codon_to_nuc=None, scalar=1, min_length=1e-6):
+    def __init__(
+        self,
+        nuc_to_codon=None,
+        codon_to_nuc=None,
+        scalar=1,
+        min_length=1e-6,
+    ) -> None:
         """
         Parameters
         ----------
@@ -45,7 +50,7 @@ class scale_branches:
         self._scalar = scalar
         self._min_length = min_length
 
-    def main(self, tree: TreeType) -> Union[SerialisableType, TreeType]:
+    def main(self, tree: TreeType) -> SerialisableType | TreeType:
         scalar = self._scalar
         min_length = self._min_length
         tree = tree.deepcopy()
@@ -63,7 +68,7 @@ class scale_branches:
 class uniformize_tree:
     """Standardises the orientation of unrooted trees."""
 
-    def __init__(self, root_at="midpoint", ordered_names=None):
+    def __init__(self, root_at="midpoint", ordered_names=None) -> None:
         """
         Parameters
         ----------
@@ -76,7 +81,7 @@ class uniformize_tree:
         self._root_at = root_at
         self._ordered_names = ordered_names
 
-    def main(self, tree: TreeType) -> Union[SerialisableType, TreeType]:
+    def main(self, tree: TreeType) -> SerialisableType | TreeType:
         if self._root_at == "midpoint":
             new = tree.root_at_midpoint()
         else:
@@ -84,15 +89,14 @@ class uniformize_tree:
 
         if self._ordered_names is None:
             self._ordered_names = tree.get_tip_names()
-        new = new.sorted(self._ordered_names)
-        return new
+        return new.sorted(self._ordered_names)
 
 
 @define_app
 class quick_tree:
     """Computes a Neighbour Joining tree from pairwise distances."""
 
-    def __init__(self, drop_invalid=False):
+    def __init__(self, drop_invalid=False) -> None:
         """
         Parameters
         ----------
@@ -105,12 +109,13 @@ class quick_tree:
         """
         self._drop_invalid = drop_invalid
 
-    def main(self, dists: PairwiseDistanceType) -> Union[SerialisableType, TreeType]:
+    def main(self, dists: PairwiseDistanceType) -> SerialisableType | TreeType:
         """estimates a neighbor joining tree"""
         size = dists.shape[0]
         dists = dists.drop_invalid() if self._drop_invalid else dists
         if dists is None or (dists.shape[0] != size and not self._drop_invalid):
-            raise ValueError("invalid pairwise distances")
+            msg = "invalid pairwise distances"
+            raise ValueError(msg)
 
         # how many species do we have
         if size == 2:
@@ -126,8 +131,9 @@ class quick_tree:
 
 
 @singledispatch
-def interpret_tree_arg(tree) -> Union[NoneType, TreeNode]:
-    raise TypeError(f"invalid tree type {type(tree)}")
+def interpret_tree_arg(tree) -> NoneType | TreeNode:
+    msg = f"invalid tree type {type(tree)}"
+    raise TypeError(msg)
 
 
 @interpret_tree_arg.register

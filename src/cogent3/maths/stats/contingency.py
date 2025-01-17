@@ -7,7 +7,7 @@ from cogent3.maths.stats.test import G_fit
 from cogent3.util.dict_array import DictArray
 
 
-# todo this should probably go into different module
+# TODO this should probably go into different module
 def shuffled_matrix(matrix):
     """returns a randomly sampled matrix with same marginals"""
     # SLOW algorithm
@@ -20,12 +20,12 @@ def shuffled_matrix(matrix):
 
     shuffled = zeros(matrix.shape, dtype=int)
     shuffle(expanded_col)
-    for i, j in zip(expanded_row, expanded_col):
+    for i, j in zip(expanded_row, expanded_col, strict=False):
         shuffled[i, j] += 1
     return shuffled
 
 
-# todo following functions should be moved into stats.test and replace
+# TODO following functions should be moved into stats.test and replace
 # or merge with the older implementations
 def calc_expected(observed):
     """returns the expected array from product of marginal frequencies"""
@@ -39,15 +39,15 @@ def calc_expected(observed):
         cfreq = csum / csum.sum()
         expecteds = outer(rfreq, cfreq) * rsum.sum()
     else:
-        raise NotImplementedError("too many dimensions")
+        msg = "too many dimensions"
+        raise NotImplementedError(msg)
     return expecteds
 
 
 def calc_chisq(observed, expected):
     """returns the chisq statistic for the two numpy arrays"""
     stat = (observed - expected) ** 2
-    stat = (stat / expected).sum()
-    return stat
+    return (stat / expected).sum()
 
 
 def calc_G(observed, expected, williams=True):
@@ -101,7 +101,7 @@ def estimate_pval(observed, stat_func, num_reps=1000):
     expected = calc_expected(observed)
     obs_stat = stat_func(observed, expected)
     num_gt = 0
-    for i in range(num_reps):
+    for _i in range(num_reps):
         resamp_obs = shuffled_matrix(observed)
         resamp_exp = calc_expected(resamp_obs)
         resamp_stat = stat_func(resamp_obs, resamp_exp)
@@ -133,7 +133,7 @@ class CategoryCounts:
     are provided, G-test of independence if not provided.
     """
 
-    def __init__(self, observed, expected=None):
+    def __init__(self, observed, expected=None) -> None:
         """Parameters
         -------------
         observed
@@ -150,13 +150,16 @@ class CategoryCounts:
         observed.array = _astype(observed.array, int)
 
         if observed.array.sum() == 0:
-            raise ValueError("at least one value must be > 0")
+            msg = "at least one value must be > 0"
+            raise ValueError(msg)
 
         if observed.array.min() < 0:
-            raise ValueError("negative values encountered")
+            msg = "negative values encountered"
+            raise ValueError(msg)
 
         if observed.array.ndim > 2:
-            raise NotImplementedError("not designed for >2D")
+            msg = "not designed for >2D"
+            raise NotImplementedError(msg)
 
         self._observed = observed
         self.expected = expected
@@ -202,10 +205,10 @@ class CategoryCounts:
     def _repr_html_(self):
         return self._get_repr_(html=True)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self._get_repr_(html=False)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self._get_repr_(html=False)
 
     @property
@@ -222,7 +225,7 @@ class CategoryCounts:
         return self._expected
 
     @expected.setter
-    def expected(self, expected):
+    def expected(self, expected) -> None:
         if expected is None:
             self._expected = None
             return
@@ -231,7 +234,8 @@ class CategoryCounts:
         expected.array = _astype(expected.array, float)
 
         if expected.array.min() < 0:
-            raise ValueError("negative values encountered")
+            msg = "negative values encountered"
+            raise ValueError(msg)
 
         (
             assert_allclose(self.observed.array.sum(), expected.array.sum()),
@@ -360,19 +364,27 @@ class CategoryCounts:
         )
 
     def to_dict(self):
-        return dict(
-            observed=self.observed.to_dict(),
-            expected=self.expected.to_dict(),
-            residuals=self.residuals.to_dict(),
-        )
+        return {
+            "observed": self.observed.to_dict(),
+            "expected": self.expected.to_dict(),
+            "residuals": self.residuals.to_dict(),
+        }
 
 
 class TestResult:
     """result of a contingency test"""
 
     def __init__(
-        self, observed, expected, residuals, stat_name, stat, df, pvalue, test_name=""
-    ):
+        self,
+        observed,
+        expected,
+        residuals,
+        stat_name,
+        stat,
+        df,
+        pvalue,
+        test_name="",
+    ) -> None:
         """
         Parameters
         ----------
@@ -421,22 +433,24 @@ class TestResult:
         table.set_repr_policy(show_shape=False)
         return table
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         result = str(self._get_repr_())
         components = CategoryCounts(
-            self.observed.to_dict(), expected=self.expected.to_dict()
+            self.observed.to_dict(),
+            expected=self.expected.to_dict(),
         )
         result = [result, str(components)]
         return "\n".join(result)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return repr(self)
 
     def _repr_html_(self):
         table = self._get_repr_()
         table.set_repr_policy(show_shape=False)
         components = CategoryCounts(
-            self.observed.to_dict(), expected=self.expected.to_dict()
+            self.observed.to_dict(),
+            expected=self.expected.to_dict(),
         )
         html = [table._repr_html_()]
         html.append(components._repr_html_())
