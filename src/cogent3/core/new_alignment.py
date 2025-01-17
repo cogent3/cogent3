@@ -2926,7 +2926,11 @@ class Aligned:
     def __str__(self) -> str:
         return str(self.gapped_seq)
 
-    def __array__(self, dtype=None, copy=None) -> numpy.ndarray[int]:
+    def __array__(
+        self,
+        dtype: numpy.dtype | None = None,
+        copy: bool | None = None,
+    ) -> numpy.ndarray[int]:
         return numpy.array(self.gapped_seq, dtype=dtype)
 
     def __bytes__(self) -> bytes:
@@ -3891,7 +3895,11 @@ class AlignedDataView(new_sequence.SeqViewABC):
     def __str__(self) -> str:
         return self.str_value
 
-    def __array__(self, dtype=None, copy=None) -> numpy.ndarray[int]:
+    def __array__(
+        self,
+        dtype: numpy.dtype | None = None,
+        copy: bool | None = None,
+    ) -> numpy.ndarray[int]:
         arr = self.array_value
         if dtype:
             arr = arr.astype(dtype)
@@ -4144,7 +4152,11 @@ class Alignment(SequenceCollection):
     def __len__(self) -> int:
         return len(self._slice_record)
 
-    def __array__(self, dtype=None, copy=None) -> numpy.ndarray[int]:
+    def __array__(
+        self,
+        dtype: numpy.dtype | None = None,
+        copy: bool | None = None,
+    ) -> numpy.ndarray[int]:
         return self.array_seqs
 
     def _make_aligned(self, seqid: str) -> Aligned:

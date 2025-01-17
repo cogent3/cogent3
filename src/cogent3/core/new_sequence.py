@@ -200,7 +200,11 @@ class Sequence:
                 result = self.moltype.complement(result)
         return result
 
-    def __array__(self, dtype=None, copy=None) -> numpy.ndarray[int]:
+    def __array__(
+        self,
+        dtype: numpy.dtype | None = None,
+        copy: bool | None = None,
+    ) -> numpy.ndarray[int]:
         result = array(self._seq, dtype=dtype)
         if self._seq.is_reversed:
             with contextlib.suppress(TypeError):
@@ -2761,7 +2765,11 @@ class SeqViewABC(ABC):
     def __str__(self) -> str: ...
 
     @abstractmethod
-    def __array__(self, dtype=None, copy=None) -> numpy.ndarray[int]: ...
+    def __array__(
+        self,
+        dtype: numpy.dtype | None = None,
+        copy: bool | None = None,
+    ) -> numpy.ndarray[int]: ...
 
     @abstractmethod
     def __bytes__(self) -> bytes: ...
@@ -2891,7 +2899,11 @@ class SeqView(SeqViewABC):
     def __str__(self) -> str:
         return self.str_value
 
-    def __array__(self, dtype=None, copy=None) -> numpy.ndarray[int]:
+    def __array__(
+        self,
+        dtype: numpy.dtype | None = None,
+        copy: bool | None = None,
+    ) -> numpy.ndarray[int]:
         arr = self.array_value
         if dtype is not None:
             arr = arr.astype(dtype)
