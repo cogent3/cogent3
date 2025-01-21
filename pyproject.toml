@@ -50,7 +50,7 @@ Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 
 [project.optional-dependencies]
 test = [
-    "ruff==0.9.1",
+    "ruff==0.9.2",
     "kaleido",
     "pandas",
     "plotly",
@@ -96,7 +96,7 @@ extra = [
     "psutil"
 ]
 dev = [
-    "ruff==0.9.1",
+    "ruff==0.9.2",
     "flit",
     "ipykernel",
     "ipython",
