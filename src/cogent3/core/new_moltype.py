@@ -645,10 +645,13 @@ class MolType:
         if isinstance(seq, str):
             seq = self.coerce_to(seq.encode("utf8")) if self.coerce_to else seq
 
-        if check_seq:
-            assert self.is_valid(
-                seq,
-            ), f"{seq[:4]!r} not valid for moltype {self.name!r}"
+        if check_seq and not self.is_valid(seq):
+            alpha = self.most_degen_alphabet()
+            s = alpha.from_indices(seq)
+            values = tuple(set(s) - set(alpha))
+            msg = f"{values} not valid for moltype {self.name!r} alphabet {alpha}"
+            raise new_alphabet.AlphabetError(msg)
+
         seq = "" if seq is None else seq
         return self._make_seq(moltype=self, seq=seq, name=name, **kwargs)
 
