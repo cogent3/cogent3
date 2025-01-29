@@ -2963,8 +2963,7 @@ def aa_moltype(DATA_DIR, tmp_path):
 
 
 def test_load_invalid_moltype(aa_moltype):
-    with pytest.raises(AssertionError):
-        # this should be an AlphabetError
+    with pytest.raises(new_alphabet.AlphabetError):
         cogent3.load_seq(aa_moltype, moltype="dna", new_type=True)
 
 
@@ -3014,6 +3013,16 @@ def test_make_seq_wrong_order_alpha():
 def test_make_seq_from_types(raw_seq):
     seq = new_moltype.DNA.make_seq(seq=raw_seq)
     assert str(seq) == "GGTAC"
+
+
+@pytest.mark.parametrize(
+    "raw_seq",
+    ["GGTac", b"GGTac", numpy.array([3, 3, 0, 23, 43], dtype=numpy.uint8)],
+)
+def test_make_seq_invalid(raw_seq):
+    # seq only valid if all upper case
+    with pytest.raises(new_alphabet.AlphabetError):
+        new_moltype.DNA.make_seq(seq=raw_seq)
 
 
 @pytest.mark.parametrize(("moltype", "seq"), [("dna", "AUGC"), ("rna", "ATGC")])
