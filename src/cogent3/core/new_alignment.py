@@ -3057,6 +3057,16 @@ class AlignedSeqsDataABC(SeqsDataABC):
         alphabet: new_alphabet.AlphabetABC,
     ) -> typing_extensions.Self: ...
 
+    @abstractmethod
+    def get_view(
+        self,
+        seqid: str,
+        slice_record: new_sequence.SliceRecord | None = None,
+    ) -> AlignedDataViewABC:
+        # overriding the SeqsDataABC method as we support directly
+        # providing the slice_record instance
+        ...
+
     @classmethod
     @abstractmethod
     def from_names_and_array(
@@ -3465,11 +3475,16 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         return len(self._get_ungapped(seqid))
 
     @singledispatchmethod
-    def get_view(self, seqid: str):
+    def get_view(
+        self,
+        seqid: str,
+        slice_record: new_sequence.SliceRecord | None = None,
+    ):
         return AlignedDataView(
             parent=self,
             seqid=seqid,
             alphabet=self.alphabet,
+            slice_record=slice_record,
         )
 
     @get_view.register
@@ -4197,8 +4212,10 @@ class Alignment(SequenceCollection):
         return self.array_seqs
 
     def _make_aligned(self, seqid: str) -> Aligned:
-        adv = self._seqs_data.get_view(self._name_map.get(seqid, seqid))
-        adv.slice_record = self._slice_record
+        adv = self._seqs_data.get_view(
+            self._name_map.get(seqid, seqid),
+            slice_record=self._slice_record,
+        )
         aligned = Aligned(data=adv, moltype=self.moltype, name=seqid)
         aligned.annotation_db = self.annotation_db
         return aligned
