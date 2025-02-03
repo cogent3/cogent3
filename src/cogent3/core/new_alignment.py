@@ -244,6 +244,17 @@ class SeqsDataABC(ABC):
 
     __slots__ = ()
 
+    @abstractmethod
+    def __init__(
+        self,
+        *,
+        data: dict[str, StrORBytesORArray],
+        alphabet: new_alphabet.AlphabetABC,
+        offset: dict[str, int] | None = None,
+        check: bool = True,
+        reversed_seqs: set[str] | None = None,
+    ) -> None: ...
+
     @classmethod
     @abstractmethod
     def from_seqs(
@@ -3056,6 +3067,21 @@ class AlignedSeqsDataABC(SeqsDataABC):
         gaps: dict[str, numpy.ndarray],
         alphabet: new_alphabet.AlphabetABC,
     ) -> typing_extensions.Self: ...
+
+    @abstractmethod
+    def __init__(
+        self,
+        *,
+        gapped_seqs: numpy.ndarray,
+        names: tuple[str],
+        alphabet: new_alphabet.AlphabetABC,
+        ungapped_seqs: dict[str, numpy.ndarray] | None = None,
+        gaps: dict[str, numpy.ndarray] | None = None,
+        offset: DictStrInt | None = None,
+        align_len: OptInt = None,
+        check: bool = True,
+        reversed_seqs: set[str] | None = None,
+    ) -> None: ...
 
     @abstractmethod
     def get_view(
