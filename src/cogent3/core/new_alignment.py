@@ -451,9 +451,9 @@ class SeqsData(SeqsDataABC):
         stop = stop if stop is not None else self.get_seq_length(seqid)
         step = step or 1
 
-        assert start >= 0 and stop >= 0 and step > 0, (
-            "start, stop, and step must be >= 0"
-        )
+        if start < 0 or stop < 0 or step < 1:
+            msg = f"{start=}, {stop=}, {step=} not >= 1"
+            raise ValueError(msg)
 
         out_len = (stop - start + step - 1) // step
         out = numpy.empty(out_len, dtype=self.alphabet.dtype)
@@ -3530,7 +3530,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
     def get_gaps(self, seqid: str) -> numpy.ndarray:
         return self._get_gaps(seqid)
 
-    def _make_gaps_and_ungapped(self, seqid) -> None:
+    def _make_gaps_and_ungapped(self, seqid: str) -> None:
         index = self._name_to_index[seqid]
         ungapped, gaps = decompose_gapped_seq(
             self._gapped[index],
@@ -3554,9 +3554,9 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         stop = stop if stop is not None else self.get_seq_length(seqid)
         step = step or 1
 
-        assert start >= 0 and stop >= 0 and step > 0, (
-            "start, stop, and step must be >= 0"
-        )
+        if start < 0 or stop < 0 or step < 1:
+            msg = f"{start=}, {stop=}, {step=} not >= 1"
+            raise ValueError(msg)
 
         out_len = (stop - start + step - 1) // step
 
@@ -3579,9 +3579,9 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         start = start or 0
         stop = stop if stop is not None else self.align_len
         step = step or 1
-        assert start >= 0 and stop >= 0 and step > 0, (
-            "start, stop, and step must be >= 0"
-        )
+        if start < 0 or stop < 0 or step < 1:
+            msg = f"{start=}, {stop=}, {step=} not >= 1"
+            raise ValueError(msg)
 
         index = self._name_to_index[seqid]
         out_len = (stop - start + step - 1) // step
@@ -3661,6 +3661,10 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         # if gaps exist, don't go via gapped seq
         # convert alignment coords into sequence coords using the location.align_to_seq_index function
         # this means we will need to convert coordinates to a plus strand slice
+        if (start or 0) < 0 or (stop or 0) < 0 or (step or 1) <= 0:
+            msg = f"{start=}, {stop=}, {step=} not >= 0"
+            raise ValueError(msg)
+
         seq_array = numpy.empty(
             (len(name_map), self.align_len),
             dtype=self.alphabet.dtype,
@@ -3797,6 +3801,12 @@ class AlignedSeqsData(AlignedSeqsDataABC):
     ) -> numpy.ndarray:
         """returns an array of the selected positions for names."""
         indices = tuple(self._name_to_index[name] for name in names)
+        start = start or 0
+        stop = stop or self.align_len
+        step = step or 1
+        if start < 0 or stop < 0 or step < 1:
+            msg = f"{start=}, {stop=}, {step=} not >= 1"
+            raise ValueError(msg)
 
         if abs((start - stop) // step) == self.align_len:
             return self._gapped[indices, :] if step > 0 else self._gapped[indices, ::-1]
@@ -4258,20 +4268,20 @@ class Alignment(SequenceCollection):
         """Returns a numpy array of sequences, axis 0 is seqs in order
         corresponding to names"""
         if self._array_seqs is None:
+            names = [self._name_map[n] for n in self.names]
             # create the dest array dim
             arr_seqs = self._seqs_data.get_positions(
-                names=list(self._name_map.values()),
-                start=self._slice_record.start,
-                stop=self._slice_record.stop,
-                step=self._slice_record.step,
+                names=names,
+                start=self._slice_record.plus_start,
+                stop=self._slice_record.plus_stop,
+                step=self._slice_record.plus_step,
             )
-            # if we are reversed and a nucleic acid moltype we will complement the array
             if self.moltype.is_nucleic and self._slice_record.is_reversed:
+                rev_complement = self.moltype.rc
                 arr_seqs = arr_seqs.copy()
                 arr_seqs.flags.writeable = True
-                make_complement = self.moltype.complement
                 for i in range(arr_seqs.shape[0]):
-                    arr_seqs[i] = make_complement(arr_seqs[i])
+                    arr_seqs[i] = rev_complement(arr_seqs[i])
 
             arr_seqs.flags.writeable = False  # make sure data is immutable
             self._array_seqs = arr_seqs
@@ -4912,18 +4922,20 @@ class Alignment(SequenceCollection):
             self._slice_record.stop,
             self._slice_record.step,
         )
+        sr = self._slice_record
         data, kwargs = self._seqs_data.get_ungapped(
             name_map=self._name_map,
-            start=start,
-            stop=stop,
-            step=step,
+            start=sr.plus_start,
+            stop=sr.plus_stop,
+            step=sr.plus_step,
         )
         # the SeqsData classes will return the data corresponding to the slice,
         # however, will not complement the data if the step is negative. We do
         # this here.
+        rev_complement = self.moltype.rc
         data = (
-            {name: self.moltype.complement(seq) for name, seq in data.items()}
-            if step < 0
+            {name: rev_complement(seq) for name, seq in data.items()}
+            if sr.step < 0
             else data
         )
         kwargs["annotation_db"] = self.annotation_db
