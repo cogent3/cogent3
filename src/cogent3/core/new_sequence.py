@@ -56,6 +56,8 @@ from cogent3.util.transform import for_seq, per_shortest
 if typing.TYPE_CHECKING:
     import os
 
+    from cogent3.core.new_genetic_code import GeneticCode
+
 OptGeneticCodeType = typing.Optional[typing.Union[int, str, "GeneticCode"]]
 OptStr = typing.Optional[str]
 OptInt = typing.Optional[int]
@@ -187,7 +189,10 @@ class Sequence:
         self._annotation_db = annotation_db
 
     def __str__(self) -> str:
-        result = str(self._seq)
+        # using the str_value attribute means we can have
+        # a aligned or seq data view here and the outcome will be the
+        # same -- just the sequence is returned
+        result = self._seq.str_value
         if self._seq.is_reversed:
             with contextlib.suppress(TypeError):
                 result = self.moltype.complement(result)

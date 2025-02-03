@@ -487,8 +487,8 @@ class SeqsData(SeqsDataABC):
     def add_seqs(
         self,
         seqs: dict[str, StrORBytesORArray],
-        force_unique_keys=True,
-        offset=None,
+        force_unique_keys: bool = True,
+        offset: dict[str, int] | None = None,
     ) -> SeqsData:
         """Returns a new SeqsData object with added sequences. If force_unique_keys
         is True, raises ValueError if any names already exist in the collection."""
@@ -575,7 +575,6 @@ class SeqsData(SeqsDataABC):
             "data": self._data,
             "alphabet": self._alphabet,
             "offset": self._offset,
-            "reversed_seqs": self._reversed,
             **kwargs,
         }
         return self.__class__(**init_args)
@@ -1084,7 +1083,7 @@ class SequenceCollection:
             **kwargs,
         )
 
-    def rc(self):
+    def rc(self) -> typing_extensions.Self:
         """Returns the reverse complement of all sequences in the collection.
         A synonym for reverse_complement.
         """
@@ -1092,7 +1091,7 @@ class SequenceCollection:
         init_kwargs["is_reversed"] = not self._is_reversed
         return self.__class__(**init_kwargs)
 
-    def reverse_complement(self):
+    def reverse_complement(self) -> typing_extensions.Self:
         """Returns the reverse complement of all sequences in the collection.
         A synonym for rc.
         """
@@ -1330,7 +1329,7 @@ class SequenceCollection:
         """
         return seqs_to_fasta(self.to_dict(), block_size=block_size)
 
-    def to_phylip(self):
+    def to_phylip(self) -> str:
         """
         Return collection in PHYLIP format and mapping to sequence ids
 
@@ -2870,7 +2869,7 @@ class Aligned:
         # to the underlying aligned seq data container because the gaps are
         # not going to be modulo the step.
         if self.data.slice_record.plus_step == 1:
-            # to complement or not handled by seq view
+            # to complement or not handled by the view
             seq = self.data.get_seq_view()
         elif self.data.slice_record.step > 1:
             # we have a step, but no complementing will be required
@@ -3056,7 +3055,7 @@ class AlignedSeqsDataABC(SeqsDataABC):
         seqs: dict[str, StrORBytesORArray],
         gaps: dict[str, numpy.ndarray],
         alphabet: new_alphabet.AlphabetABC,
-    ): ...
+    ) -> typing_extensions.Self: ...
 
     @classmethod
     @abstractmethod
@@ -3066,7 +3065,7 @@ class AlignedSeqsDataABC(SeqsDataABC):
         names: list[str],
         data: numpy.ndarray,
         alphabet: new_alphabet.AlphabetABC,
-    ): ...
+    ) -> typing_extensions.Self: ...
 
     @property
     @abstractmethod
@@ -3317,7 +3316,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         data: dict[str, StrORArray],
         alphabet: new_alphabet.AlphabetABC,
         **kwargs,
-    ):
+    ) -> typing_extensions.Self:
         """Construct an AlignedSeqsData object from a dict of aligned sequences
 
         Parameters
@@ -3362,7 +3361,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         gaps: dict[str, numpy.ndarray],
         alphabet: new_alphabet.AlphabetABC,
         **kwargs,
-    ):
+    ) -> typing_extensions.Self:
         """Construct an AlignedSeqsData object from a dict of ungapped sequences
         and a corresponding dict of gap data.
 
@@ -3412,7 +3411,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         names: PySeq[str],
         data: numpy.ndarray,
         alphabet: new_alphabet.AlphabetABC,
-    ):
+    ) -> typing_extensions.Self:
         """Construct an AlignedSeqsData object from a list of names and a numpy
         array of aligned sequence data.
 
@@ -3692,7 +3691,11 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             align_len=self.align_len,
         )
 
-    def to_alphabet(self, alphabet: new_alphabet.AlphabetABC, check_valid: bool = True):
+    def to_alphabet(
+        self,
+        alphabet: new_alphabet.AlphabetABC,
+        check_valid: bool = True,
+    ) -> typing_extensions.Self:
         """Returns a new AlignedSeqsData object with the same underlying data
         with a new alphabet."""
         if (
@@ -4229,6 +4232,7 @@ class Alignment(SequenceCollection):
 
             arr_seqs.flags.writeable = False  # make sure data is immutable
             self._array_seqs = arr_seqs
+
         return self._array_seqs
 
     @property
