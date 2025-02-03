@@ -8,7 +8,7 @@ numba>0.54; python_version>='3.10'
 numba>=0.57.0; python_version=='3.11'
 scipy==1.15.1
 nox==2024.10.9
-plotly==5.24.1
+plotly==6.0.0
 typing_extensions>=3.7
 stevedore==5.4.0
 .[dev]
