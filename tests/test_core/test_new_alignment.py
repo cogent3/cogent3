@@ -1104,12 +1104,12 @@ def gap_ambig_seqs():
 def test_sequence_collection_degap(mk_cls, gap_ambig_seqs, rced):
     """SequenceCollection.degap should strip gaps from each seq"""
 
-    seqs = mk_cls(gap_ambig_seqs, moltype="dna")
-    # Test normal case
-    degapped = seqs.rc().degap() if rced else seqs.degap()
-    got = degapped.to_dict()
-
     expect = {"s1": "RYCAT", "s2": "CTA"} if rced else {"s1": "ATGRY", "s2": "TAG"}
+    seqs = mk_cls(gap_ambig_seqs, moltype="dna")
+    seqs = seqs.rc() if rced else seqs
+    # Test normal case
+    degapped = seqs.degap()
+    got = degapped.to_dict()
     assert got == expect
 
     # Test empty sequences case
@@ -2002,22 +2002,9 @@ def test_sequence_collection_init_seqs_rc(rc):
     data = {"seq1": _make_seq("seq1"), "seq2": _make_seq("seq2")}
     data = {k: v.rc() for k, v in data.items()} if rc else data
     seq_coll = new_alignment.make_unaligned_seqs(data, moltype="dna")
-    assert seq_coll._is_reversed == rc
     assert len(seq_coll.annotation_db) > 0
     got = seq_coll.to_dict()
     expect = {k: str(v) for k, v in data.items()}
-    assert got == expect
-
-    # when is_reversed is specified, it should override the rc status of the input seqs
-    seq_coll = new_alignment.make_unaligned_seqs(
-        data,
-        moltype="dna",
-        is_reversed=not rc,
-    )
-    assert seq_coll._is_reversed == (not rc)
-    assert len(seq_coll.annotation_db) > 0
-    got = seq_coll.to_dict()
-    expect = {k: str(v.rc()) for k, v in data.items()}
     assert got == expect
 
 
@@ -2029,8 +2016,7 @@ def test_sequence_collection_init_seqs_mixed_rc():
         filterwarnings("ignore", category=UserWarning)
         seq_coll = new_alignment.make_unaligned_seqs(data, moltype="dna")
     coll_db = seq_coll.annotation_db
-    assert not len(coll_db)
-    assert not seq_coll._is_reversed
+    assert len(coll_db)
 
 
 def test_sequence_collection_copy_annotations_incompat_type_fails(seqcoll_db, seqs):
@@ -5252,7 +5238,6 @@ def test_alignment_copy_rc(simple_aln):
     rc = simple_aln.rc()
     got = rc.copy()
     assert got.to_dict() == rc.to_dict()
-    assert got._is_reversed == rc._is_reversed
     assert got._slice_record is rc._slice_record
 
 
@@ -5282,7 +5267,6 @@ def test_alignment_deepcopy_rc(simple_aln):
     rc = simple_aln.rc()
     got = rc.deepcopy()
     assert got.to_dict() == rc.to_dict()
-    assert got._is_reversed == rc._is_reversed
     assert got._slice_record is not simple_aln._slice_record
 
 
@@ -5309,7 +5293,7 @@ def test_collections_equal(aligned_dict, mk_cls):
 )
 @pytest.mark.parametrize(
     "kwargs",
-    [{"moltype": "protein"}, {"is_reversed": True}, {"name_map": {"A": "a"}}, {}],
+    [{"moltype": "protein"}, {"name_map": {"A": "a"}}, {}],
 )
 def test_collections_not_equal(aligned_dict, mk_cls, kwargs):
     coll1 = mk_cls(aligned_dict, moltype="dna")
@@ -5379,7 +5363,6 @@ def test_alignment_to_rich_dict_round_trip_rc(mk_cls):
     rd = aln.to_rich_dict()
     got = deserialise_object(rd)
     assert got.to_dict() == aln.to_dict()
-    assert got._is_reversed is False
 
 
 @pytest.mark.parametrize(
@@ -5584,9 +5567,8 @@ def test_source_propagates(mk_cls, DATA_DIR):
 )
 def test_make_with_mixed_rc(mk_cls, dna_moltype):
     raw_seq = "AATATAAATGCC"
-    expect = dna_moltype.rc(raw_seq)
-    a = dna_moltype.make_seq(seq=raw_seq, name="a")
-    rc = dna_moltype.make_seq(seq=raw_seq, name="rc").rc()
-    seqs = mk_cls({"a": a, "rc": rc}, moltype=dna_moltype)
-    assert str(seqs.seqs["rc"]) == expect
-    assert str(seqs.seqs["a"]) == raw_seq
+    plus = dna_moltype.make_seq(seq=raw_seq, name="plus")
+    minus = dna_moltype.make_seq(seq=dna_moltype.rc(raw_seq), name="minus").rc()
+    seqs = mk_cls({"plus": plus, "minus": minus}, moltype=dna_moltype)
+    assert str(seqs.seqs["minus"]) == str(minus)
+    assert str(seqs.seqs["plus"]) == raw_seq

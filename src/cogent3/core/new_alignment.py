@@ -236,6 +236,10 @@ class SeqDataView(new_sequence.SeqView):
         data["init_args"]["alphabet"] = self.alphabet.to_rich_dict()
         return data
 
+    @property
+    def is_reversed(self) -> bool:
+        return self.slice_record.is_reversed or self.seqid in self.parent.reversed_seqs
+
 
 class SeqsDataABC(ABC):
     """Abstract base class for respresenting the collection of sequences underlying
@@ -273,6 +277,10 @@ class SeqsDataABC(ABC):
 
     @abstractmethod
     def get_seq_length(self, seqid: str) -> int: ...
+
+    @property
+    @abstractmethod
+    def reversed_seqs(self) -> frozenset: ...
 
     @property
     @abstractmethod
@@ -348,7 +356,7 @@ class SeqsData(SeqsDataABC):
     for a sequence as used by IndelMap.
     """
 
-    __slots__ = ("_alphabet", "_data", "_offset")
+    __slots__ = ("_alphabet", "_data", "_offset", "_reversed")
 
     def __init__(
         self,
@@ -357,6 +365,7 @@ class SeqsData(SeqsDataABC):
         alphabet: new_alphabet.AlphabetABC,
         offset: dict[str, int] | None = None,
         check: bool = True,
+        reversed_seqs: set[str] | None = None,
     ) -> None:
         """
         Parameters
@@ -371,6 +380,8 @@ class SeqsData(SeqsDataABC):
             dict indicating annotation offsets for each sequence
         check
             use the alphabet to check the sequences are valid
+        reversed_seqs
+            names of seqs that are reverse complemented
 
         Raises
         ------
@@ -392,6 +403,8 @@ class SeqsData(SeqsDataABC):
             arr = self._alphabet.to_indices(seq)
             arr.flags.writeable = False
             self._data[str(name)] = arr
+
+        self._reversed = frozenset(reversed_seqs or set())
 
     def __eq__(self, other: SeqsDataABC) -> bool:
         if not isinstance(other, self.__class__):
@@ -426,6 +439,10 @@ class SeqsData(SeqsDataABC):
     @property
     def names(self) -> list:
         return list(self._data.keys())
+
+    @property
+    def reversed_seqs(self) -> frozenset:
+        return self._reversed
 
     @property
     def alphabet(self) -> new_alphabet.AlphabetABC:
@@ -487,13 +504,16 @@ class SeqsData(SeqsDataABC):
 
     def get_view(self, seqid: str) -> SeqDataView:
         seq_len = len(self._data[seqid])
-        return SeqDataView(
+        sv = SeqDataView(
             parent=self,
             seqid=seqid,
             parent_len=seq_len,
             alphabet=self.alphabet,
             offset=self._offset.get(seqid, 0),
         )
+        if seqid in self._reversed:
+            sv = sv[::-1]
+        return sv
 
     def add_seqs(
         self,
@@ -586,6 +606,7 @@ class SeqsData(SeqsDataABC):
             "data": self._data,
             "alphabet": self._alphabet,
             "offset": self._offset,
+            "reversed_seqs": self._reversed,
             **kwargs,
         }
         return self.__class__(**init_args)
@@ -599,6 +620,7 @@ class SequenceCollection:
     Should be constructed using ``make_unaligned_seqs()``.
     """
 
+    @c3warn.deprecated_args("2025.6", "no longer used", discontinued="is_reversed")
     def __init__(
         self,
         *,
@@ -608,7 +630,6 @@ class SequenceCollection:
         source: OptPathType = None,
         annotation_db: SupportsFeatures | None = None,
         name_map: OptDict = None,
-        is_reversed: bool = False,
     ) -> None:
         """
         Parameters
@@ -627,9 +648,6 @@ class SequenceCollection:
             map between the names specified in the collection and names used in
             the underlying seqs_data. Used for when the names have been changed,
             but we want to query for annotations using the original names.
-        is_reversed
-            flag indicating the sequences are reversed with respect to the
-            underlying data in seqs_data
         """
         self._seqs_data = seqs_data
         self.moltype = moltype
@@ -646,7 +664,6 @@ class SequenceCollection:
         }
         self._annotation_db = annotation_db or DEFAULT_ANNOTATION_DB()
         self._seqs = None
-        self._is_reversed = is_reversed
         self._post_init()
 
     def _post_init(self) -> None:
@@ -658,7 +675,6 @@ class SequenceCollection:
         # the sequence is given the current name
         seqid = self._name_map.get(name, name)
         sv = self._seqs_data.get_view(seqid)
-        sv = sv[::-1] if self._is_reversed else sv
         return self.moltype.make_seq(
             seq=sv,
             name=name,
@@ -677,7 +693,6 @@ class SequenceCollection:
             "name_map": self._name_map.copy(),
             "info": self.info.copy(),
             "annotation_db": self.annotation_db,
-            "is_reversed": self._is_reversed,
             "source": self.source,
         }
 
@@ -1090,7 +1105,6 @@ class SequenceCollection:
             name_map=self._name_map,
             info=self.info,
             source=self.source,
-            is_reversed=False,  # reversed not meaningful for a protein
             **kwargs,
         )
 
@@ -1099,7 +1113,9 @@ class SequenceCollection:
         A synonym for reverse_complement.
         """
         init_kwargs = self._get_init_kwargs()
-        init_kwargs["is_reversed"] = not self._is_reversed
+        reversed_seqs = set(self._name_map.values()) - self._seqs_data.reversed_seqs
+        sd = self._seqs_data.copy(reversed_seqs=reversed_seqs, check=False)
+        init_kwargs["seqs_data"] = sd
         return self.__class__(**init_kwargs)
 
     def reverse_complement(self) -> typing_extensions.Self:
@@ -1891,7 +1907,6 @@ class SequenceCollection:
         # when we access .seqs, if the collection has been reversed, this will have
         # been applied to the returned Sequence, so we reset it to False for the
         # returned collection
-        init_kwargs["is_reversed"] = False
         init_kwargs["seqs_data"] = self._seqs_data.from_seqs(
             data=padded_seqs,
             alphabet=self._seqs_data.alphabet,
@@ -2450,7 +2465,7 @@ def prep_for_seqs_data(data, moltype: new_moltype.MolType, seq_namer: _SeqNamer)
 def _(data: dict, moltype: new_moltype.MolType, seq_namer: _SeqNamer) -> CT:
     seqs = {}  # for the (Aligned)SeqsDataABC
     offsets = {}  # for the (Aligned)SeqsDataABC
-    rvd = 0
+    rvd = set()
     name_map = {}  # for the sequence collection
     # if we have a dict of Sequences, {name: seq, ...}, then the provided names
     # may differ to the name attribute on the Sequences. If the Sequences have
@@ -2463,7 +2478,8 @@ def _(data: dict, moltype: new_moltype.MolType, seq_namer: _SeqNamer) -> CT:
         seq_data = coerce_to_raw_seq_data(seq, moltype, name=name)
         offsets[seq_data.parent_name or name] = seq_data.offset
         seqs[seq_data.parent_name or seq_data.name] = seq_data.seq
-        rvd += 1 if seq_data.is_reversed else 0
+        if seq_data.is_reversed:
+            rvd.add(name)
         name_map[name] = seq_data.parent_name or name
 
     return seqs, offsets, rvd, name_map
@@ -2509,7 +2525,6 @@ def make_unaligned_seqs(
     annotation_db: SupportsFeatures = None,
     offset: DictStrInt | None = None,
     name_map: DictStrStr | None = None,
-    is_reversed: OptBool = None,
 ) -> SequenceCollection:
     """Initialise an unaligned collection of sequences.
 
@@ -2533,9 +2548,6 @@ def make_unaligned_seqs(
     name_map
         a dict mapping sequence names to "parent" sequence names. The parent
         name will be used for querying a annotation_db.
-    is_reversed
-        flag indicating whether the sequences are reversed with respect to the
-        underlying data.
 
     Notes
     -----
@@ -2566,28 +2578,14 @@ def make_unaligned_seqs(
     seqs_data, offs, rvd, nm = prep_for_seqs_data(data, moltype, assign_names)
     offset = offset or {}
     offset = {**offs, **offset}
-    # rvd is the count of sequences that have been reversed. It should be equal 0
-    # or the number of sequences. If inbetween, the sequences are a mix of the two
-    # which for now we do not support. However, if the user has provided a value
-    # for is_reversed, we will use that.
-    if is_reversed is not None:
-        rvd = is_reversed
-    elif rvd in {0, len(seqs_data)}:
-        rvd = bool(rvd)
-    else:
-        # redesign: handle case of a mix of reversed and not
-        rvd = False
-        if annotation_db and len(annotation_db) > 0:
-            warnings.warn(
-                "Sequence strand is inconsistent, not applying the annotation db.",
-                UserWarning,
-                stacklevel=2,
-            )
-            annotation_db = None
-
     name_map = nm if name_map is None else name_map
     # seqs_data keys should be the same as the value of name_map, not the keys
-    seqs_data = SeqsData(data=seqs_data, alphabet=alphabet, offset=offset)
+    seqs_data = SeqsData(
+        data=seqs_data,
+        alphabet=alphabet,
+        offset=offset,
+        reversed_seqs=rvd,
+    )
     # we do not pass on offset/label_to_name as they are handled in this function
     return make_unaligned_seqs(
         seqs_data,
@@ -2596,7 +2594,6 @@ def make_unaligned_seqs(
         source=source,
         annotation_db=annotation_db,
         name_map=name_map,
-        is_reversed=rvd,
     )
 
 
@@ -2611,7 +2608,6 @@ def _(
     annotation_db: SupportsFeatures = None,
     offset: dict[str, int] | None = None,
     name_map: dict[str, str] | None = None,
-    is_reversed: OptBool = None,
 ) -> SequenceCollection:
     moltype = new_moltype.get_moltype(moltype)
     if not moltype.is_compatible_alphabet(data.alphabet):
@@ -2635,7 +2631,6 @@ def _(
         annotation_db=annotation_db,
         source=source,
         name_map=name_map,
-        is_reversed=is_reversed or False,
     )
     if label_to_name:
         seqs = seqs.rename_seqs(label_to_name)
@@ -3256,6 +3251,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         "_name_to_index",
         "_names",
         "_offset",
+        "_reversed",
         "_ungapped",
     )
 
@@ -3270,6 +3266,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         offset: DictStrInt | None = None,
         align_len: OptInt = None,
         check: bool = True,
+        reversed_seqs: set[str] | None = None,
     ) -> None:
         """
         Parameters
@@ -3294,6 +3291,8 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             length of the alignment, which must equal the gapped_seqs.shape[1]
         check
             validate any keys in offset, ungapped_seqs, gaps are a subset of names
+        reversed_seqs
+            names of seqs that are reverse complemented
         """
         self._alphabet = alphabet
         self._names = tuple(names)
@@ -3302,6 +3301,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         self._ungapped = ungapped_seqs or {}
         self._gaps = gaps or {}
         align_len = align_len or gapped_seqs.shape[1]
+        self._reversed = frozenset(reversed_seqs or set())
         if align_len:
             assert align_len == gapped_seqs.shape[1], "mismatch in alignment length"
 
@@ -3475,6 +3475,10 @@ class AlignedSeqsData(AlignedSeqsDataABC):
     @property
     def names(self) -> tuple[str]:
         return self._names
+
+    @property
+    def reversed_seqs(self) -> frozenset:
+        return self._reversed
 
     @property
     def alphabet(self) -> new_alphabet.CharAlphabet:
@@ -6683,7 +6687,7 @@ def make_aligned_seqs(
         annotation_db=annotation_db,
         source=source,
         name_map=name_map,
-        is_reversed=rvd,
+        is_reversed=is_reversed,
     )
 
 
