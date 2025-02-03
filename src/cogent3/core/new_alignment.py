@@ -200,7 +200,7 @@ class SeqDataView(new_sequence.SeqView):
         )
 
     # refactor: design, do we support copy? do we support copy with sliced?
-    def copy(self, sliced: bool = False):
+    def copy(self, sliced: bool = False) -> typing_extensions.Self:
         """returns copy"""
         return self
 
@@ -319,6 +319,9 @@ class SeqsDataABC(ABC):
         self,
         index: str | int,
     ) -> new_sequence.Sequence | new_sequence.SeqViewABC: ...
+
+    @abstractmethod
+    def copy(self, **kwargs) -> SeqsDataABC: ...
 
 
 class SeqsData(SeqsDataABC):
@@ -496,7 +499,7 @@ class SeqsData(SeqsDataABC):
             **self._data,
             **{name: self.alphabet.to_indices(seq) for name, seq in seqs.items()},
         }
-        return self.__class__(
+        return self.copy(
             data=new_data,
             alphabet=self.alphabet,
             offset={**self._offset, **(offset or {})},
@@ -519,11 +522,7 @@ class SeqsData(SeqsDataABC):
             == 1
         ):
             # rna <-> dna swap just replace alphabet
-            return self.__class__(
-                data=self._data,
-                alphabet=alphabet,
-                offset=self._offset,
-            )
+            return self.copy(alphabet=alphabet)
 
         new_data = {}
         for seqid in self.names:
@@ -543,10 +542,9 @@ class SeqsData(SeqsDataABC):
                 )
             new_data[seqid] = as_new_alpha
 
-        return self.__class__(
+        return self.copy(
             data=new_data,
             alphabet=alphabet,
-            offset=self._offset,
             check=False,
         )
 
@@ -560,14 +558,27 @@ class SeqsData(SeqsDataABC):
 
     @__getitem__.register
     def _(self, index: str) -> new_sequence.SeqViewABC:
-        # refactor: design
-        # note that this will always return the plus strand, even if the collection
-        # has been reversed
         return self.get_view(seqid=index)
 
     @__getitem__.register
     def _(self, index: int) -> new_sequence.SeqViewABC:
         return self[self.names[index]]
+
+    def copy(self, **kwargs) -> typing_extensions.Self:
+        """shallow copy of self
+
+        Notes
+        -------
+        kwargs are passed to constructor and will over-ride existing values
+        """
+        init_args = {
+            "data": self._data,
+            "alphabet": self._alphabet,
+            "offset": self._offset,
+            "reversed_seqs": self._reversed,
+            **kwargs,
+        }
+        return self.__class__(**init_args)
 
 
 class SequenceCollection:
@@ -958,10 +969,8 @@ class SequenceCollection:
             data[name] = self.moltype.degap(seq)
 
         init_kwargs = self._get_init_kwargs()
-        init_kwargs["seqs_data"] = self._seqs_data.from_seqs(
+        init_kwargs["seqs_data"] = self._seqs_data.copy(
             data=data,
-            alphabet=self._seqs_data.alphabet,
-            offset=self._seqs_data.offset,
             check=False,
         )
 
@@ -3169,6 +3178,9 @@ class AlignedSeqsDataABC(SeqsDataABC):
         step: OptInt = None,
     ) -> numpy.ndarray: ...
 
+    @abstractmethod
+    def copy(self, **kwargs) -> typing_extensions.Self: ...
+
 
 def _gapped_seq_len(seq: numpy.ndarray, gap_map: numpy.ndarray) -> int:
     """calculate the gapped sequence length from a ungapped sequence and gap map
@@ -3747,6 +3759,28 @@ class AlignedSeqsData(AlignedSeqsDataABC):
 
         return self._gapped[indices, start:stop:step]
 
+    def copy(self, **kwargs) -> typing_extensions.Self:
+        """shallow copy of self
+
+        Notes
+        -------
+        kwargs are passed to constructor and will over-ride existing values
+        """
+        init_args = {
+            "gapped_seqs": self._gapped,
+            "names": self._names,
+            "alphabet": self._alphabet,
+            "ungapped_seqs": self._ungapped,
+            "gaps": self._gaps,
+            "offset": self._offset,
+            "align_len": self._align_len,
+            "check": False,
+            "reversed_seqs": self._reversed,
+            **kwargs,
+        }
+
+        return self.__class__(**init_args)
+
 
 class AlignedDataViewABC(new_sequence.SeqViewABC):
     __slots__ = ()
@@ -3940,7 +3974,7 @@ class AlignedDataView(new_sequence.SeqViewABC):
 
         return self.seqid, start, stop, strand
 
-    def copy(self, sliced: bool = False):
+    def copy(self, sliced: bool = False) -> typing_extensions.Self:
         return self
 
     def _get_init_kwargs(self) -> dict:
@@ -6399,7 +6433,7 @@ class Alignment(SequenceCollection):
         init_args["annotation_db"] = other.annotation_db
         return self.__class__(**init_args)
 
-    def copy(self):
+    def copy(self) -> typing_extensions.Self:
         """creates new instance, only mutable attributes are copied"""
         kwargs = self._get_init_kwargs()
         return self.__class__(**kwargs)
