@@ -5558,9 +5558,6 @@ def test_source_propagates(mk_cls, DATA_DIR):
     assert subcoll.source == str(fn)
 
 
-@pytest.mark.xfail(
-    reasone="seq collection backends currently don't support mixed plus/minus strand",
-)
 @pytest.mark.parametrize(
     "mk_cls",
     [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
@@ -5572,3 +5569,55 @@ def test_make_with_mixed_rc(mk_cls, dna_moltype):
     seqs = mk_cls({"plus": plus, "minus": minus}, moltype=dna_moltype)
     assert str(seqs.seqs["minus"]) == str(minus)
     assert str(seqs.seqs["plus"]) == raw_seq
+
+
+def test_make_with_mixed_rc_plus_gaps(dna_moltype):
+    alpha = dna_moltype.most_degen_alphabet()
+    raw_plus = "AATATAAATGCC"
+    plus = dna_moltype.make_seq(seq=raw_plus, name="plus")
+    # this is the reversed commplement of the aligned seq
+    raw_minus = "AA---AAATGCC"
+    minus = dna_moltype.make_seq(seq=raw_minus, name="minus")
+    data = {"plus": numpy.array(plus), "minus": numpy.array(minus)}
+    asd = new_alignment.AlignedSeqsData.from_seqs(
+        data=data,
+        alphabet=alpha,
+        reversed_seqs={"minus"},
+    )
+    got = asd["minus"]
+    assert got.is_reversed
+    expect = alpha.to_indices(raw_minus)
+    assert (got.gapped_array_value == expect).all()
+    aln = new_alignment.make_aligned_seqs(asd, moltype="dna")
+    minus = aln.seqs["minus"]
+    assert str(minus) == raw_minus
+    assert str(minus.seq) == raw_minus.replace("-", "")
+
+
+def test_make_asd_revd(dna_alphabet, dna_moltype):
+    data = {
+        "a": dna_alphabet.to_indices("T--CA"),
+        "b": dna_alphabet.to_indices("TAAC-"),
+        "c": dna_alphabet.to_indices("TA-CA"),
+    }
+    array_seqs = numpy.array([data[n] for n in "abc"], dtype=numpy.uint8)
+    names = list("abc")
+    asd = new_alignment.AlignedSeqsData(
+        gapped_seqs=array_seqs,
+        names=names,
+        alphabet=dna_alphabet,
+        reversed_seqs={"a"},
+    )
+    # the gapped sequences should be as input
+    assert (asd.get_gapped_seq_array(seqid="a") == data["a"]).all()
+    # the ungapped sequence should be as if it was in its forward orientation
+    expect = dna_alphabet.to_indices("TGA")
+    got = asd.get_seq_array(seqid="a")
+    assert (got == expect).all()
+    # this should work on a data view too
+    view = asd.get_view("a")
+    got = view.array_value
+    assert (got == expect).all()
+    # with the gapped seq as before
+    got = view.gapped_array_value
+    assert (got == data["a"]).all()
