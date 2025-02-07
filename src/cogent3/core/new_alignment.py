@@ -786,9 +786,9 @@ class SequenceCollection:
             msg = f"{names=} and {negate=} resulted in no names"
             raise ValueError(msg)
 
-        assert set(names) <= set(
-            self.names,
-        ), f"The following provided names not found in collection: {names - self.names}"
+        if diff := set(names) - set(self.names):
+            msg = f"The following provided names not found in collection: {diff}"
+            raise ValueError(msg)
 
         selected_name_map = {name: self._name_map[name] for name in names}
 

@@ -997,6 +997,20 @@ def test_sequence_collection_take_seqs_empty_names(
 
 
 @pytest.mark.parametrize(
+    "collection_maker",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_sequence_collection_take_seqs_wrong_name(
+    ragged_padded_dict,
+    collection_maker,
+):
+    """take_seqs should raise ValueError if no seqs are selected."""
+    orig = new_alignment.make_unaligned_seqs(ragged_padded_dict, moltype="dna")
+    with pytest.raises(ValueError):
+        _ = orig.take_seqs(["a", "mouse"])
+
+
+@pytest.mark.parametrize(
     "mk_cls",
     [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
 )
