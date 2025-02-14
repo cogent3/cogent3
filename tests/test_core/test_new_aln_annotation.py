@@ -164,7 +164,7 @@ def test_alignment_get_slice(rc):
         "biotype": "CDS",
         "name": "fake",
         "spans": [
-            (5, 10),
+            (5, 9),
         ],
         "strand": "+",
     }
@@ -173,7 +173,7 @@ def test_alignment_get_slice(rc):
     feature = aln.make_feature(feature=feature_data)
     got_aln = feature.get_slice()
     got_seq = got_aln.get_seq("test_seq")
-    assert str(got_seq) == str(seq[5:10])
+    assert str(got_seq) == str(seq[5:9])
 
 
 def test_align_get_features():
@@ -269,7 +269,7 @@ def test_aln_feature_to_dict():
         "biotype": "CDS",
         "name": "fake",
         "spans": [
-            (5, 10),
+            (5, 9),
         ],
         "strand": "+",
         "seqid": None,
@@ -745,3 +745,176 @@ def test_nested_annotated_region_masks():
     got = masked.to_dict()
     assert got["x"] == "?-???AAAAATTTAA"
     assert got["y"] == "-T----TTTTG-GTT"
+
+
+@pytest.mark.parametrize("aligned", [True, False])
+def test_mixed_strand_get_feature(aligned):
+    plus = {"s1": "GTTGAAGTAGTA", "s2": "---AAG---GTA", "s3": "GCTGAAGTAGTG"}
+    s2_plus = "TACCTT"
+    aln = new_alignment.make_aligned_seqs(
+        plus,
+        moltype="dna",
+        reversed_seqs={"s2"},
+    )
+    assert aln.seqs["s2"].seq == "AAGGTA"
+    assert aln.seqs["s2"].seq.parent_coordinates()[-1] == -1
+    assert str(aln.seqs["s2"].seq.rc()) == s2_plus
+    seqcoll = aln if aligned else aln.degap()
+    # we add a feature to the reversed seq
+    # the feature is defined for the plus strand of s2
+    db = seqcoll.annotation_db
+    db.add_feature(seqid="s2", biotype="CDS", name="fake", strand="+", spans=[(3, 6)])
+    # get the sequence feature
+    s2 = seqcoll.seqs["s2"].seq if aligned else seqcoll.seqs["s2"]
+    assert s2.annotation_db
+    f = list(s2.get_features(biotype="CDS"))[0]
+    expect = DNA.rc(plus["s2"].replace("-", ""))[3:6]
+    got = f.get_slice()
+    assert got == expect
+
+
+def test_alignment_mixed_strand_get_feature1():
+    plus = {
+        "s1": "GTTGAAGTAGTA",
+        "s2": "--TAAG---GTA",
+        "s3": "GCTGAAGTAGTG",
+    }
+    # s2 is reverse complemented in the alignment
+    aln = new_alignment.make_aligned_seqs(
+        plus,
+        moltype="dna",
+        reversed_seqs={"s2"},
+    )
+    # so this feature corresponds to TAAG on the '-' strand
+    aln.annotation_db.add_feature(
+        seqid="s2",
+        biotype="CDS",
+        name="fake",
+        strand="+",
+        spans=[(3, 7)],
+    )
+    expect = {
+        "s1": "TTCA",
+        "s2": "CTTA",
+        "s3": "TTCA",
+    }
+    f = next(iter(aln.get_features(biotype="CDS")))
+    faln = f.get_slice(allow_gaps=True)
+    assert faln.to_dict() == expect
+
+    got = f.get_slice(allow_gaps=False)
+    assert got.to_dict() == expect
+
+    rc = aln.rc()
+    f = next(iter(rc.get_features(biotype="CDS")))
+    faln = f.get_slice(allow_gaps=True)
+    assert faln.to_dict() == expect
+
+
+def test_alignment_mixed_strand_get_feature2():
+    dna = new_moltype.DNA
+    plus = {
+        "s1": "GTTGAAGTAGTA",
+        "s2": "--TAAG---GTA",
+        "s3": "GCTGAAGTAGTG",
+    }
+    # s2 is reverse complemented in the alignment
+    aln = new_alignment.make_aligned_seqs(
+        plus,
+        moltype="dna",
+        reversed_seqs={"s2"},
+    )
+    # so this feature corresponds to 'AG---GT' on the '-' strand
+    aln.annotation_db.add_feature(
+        seqid="s2",
+        biotype="CDS",
+        name="fake",
+        strand="+",
+        spans=[(1, 5)],
+    )
+    expect_gapped = {
+        "s1": dna.rc("AAGTAGT"),
+        "s2": dna.rc("AG---GT"),
+        "s3": dna.rc("AAGTAGT"),
+    }
+    expect_ungapped = {
+        "s1": dna.rc("AAGT"),
+        "s2": dna.rc("AGGT"),
+        "s3": dna.rc("AAGT"),
+    }
+    f = next(iter(aln.get_features(biotype="CDS")))
+    faln = f.get_slice(allow_gaps=True)
+    assert faln.to_dict() == expect_gapped
+
+    got = f.get_slice(allow_gaps=False)
+    assert got.to_dict() == expect_ungapped
+
+    rc = aln.rc()
+    f = next(iter(rc.get_features(biotype="CDS")))
+    faln = f.get_slice(allow_gaps=True)
+    assert faln.to_dict() == expect_gapped
+
+
+@pytest.mark.parametrize("rc", [True, False])
+def test_alignment_mixed_strand_masked_annotations(rc):
+    dna = new_moltype.DNA
+    plus = {"s1": "GTTGAAGTAGTA", "s2": "---AAG---GTA", "s3": "GCTGAAGTAGTG"}
+    s2_expect = dna.rc("---???---GTA") if rc else "---???---GTA"
+    s3_expect = dna.rc("G??GAAGTAGTG") if rc else "G??GAAGTAGTG"
+    aln = new_alignment.make_aligned_seqs(
+        plus,
+        moltype="dna",
+        reversed_seqs={"s2"},
+    )
+    aln.annotation_db.add_feature(
+        seqid="s2",
+        biotype="CDS",
+        name="fake",
+        strand="+",
+        spans=[(3, 6)],
+    )
+    aln.annotation_db.add_feature(
+        seqid="s3",
+        biotype="CDS",
+        name="fake2",
+        strand="+",
+        spans=[(1, 3)],
+    )
+    aln = aln.rc() if rc else aln
+    aln = aln.with_masked_annotations(biotypes="CDS")
+    s2 = aln.seqs["s2"]
+    assert str(s2) == s2_expect
+    s3 = aln.seqs["s3"]
+    assert str(s3) == s3_expect
+
+
+def test_slice_featuremap():
+    from cogent3.core import location
+
+    fmap = location.FeatureMap.from_rich_dict(
+        {
+            "spans": [
+                {
+                    "start": 2,
+                    "end": 6,
+                    "tidy_start": False,
+                    "tidy_end": False,
+                    "value": None,
+                    "reverse": False,
+                    "type": "cogent3.core.location.Span",
+                    "version": "2024.12.19a2",
+                },
+            ],
+            "parent_length": 12,
+            "type": "cogent3.core.location.FeatureMap",
+            "version": "2024.12.19a2",
+        },
+    )
+    plus = {"s1": "GTTGAAGTAGTA", "s2": "--TAAG---GTA", "s3": "GCTGAAGTAGTG"}
+    aln = new_alignment.make_aligned_seqs(
+        plus,
+        moltype="dna",
+        reversed_seqs={"s2"},
+    )
+    got = aln[fmap].seqs["s2"]
+    assert str(got) == "TAAG"

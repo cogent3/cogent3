@@ -34,8 +34,7 @@ class Feature:
     ) -> None:
         # _serialisable is used for creating derivative instances
         d = locals()
-        exclude = ("self", "__class__", "kw")
-        self._serialisable = {k: v for k, v in d.items() if k not in exclude}
+        self._serialisable = {k: v for k, v in d.items() if k not in ("self", "d")}
         self._parent = parent
         self._seqid = seqid
         assert map.parent_length == len(parent), (map, len(parent))

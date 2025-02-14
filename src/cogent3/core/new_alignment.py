@@ -61,6 +61,8 @@ from cogent3.util.union_dict import UnionDict
 # have no concept of strand. All transformations with respect to strand
 # are applied by the sequence record objects that have a .moltype
 # attribute, i.e. Sequence and Aligned.
+# both collections can indicate sequences that are reverse complemented
+# by providing their names to the reversed_seqs argument.
 
 
 DEFAULT_ANNOTATION_DB = BasicAnnotationDb
@@ -179,13 +181,17 @@ class SeqDataView(new_sequence.SeqView):
     @property
     def array_value(self) -> numpy.ndarray:
         """returns the sequence as a numpy array"""
+        # we select the data using plus strand coords
         raw = self.parent.get_seq_array(
             seqid=self.seqid,
             start=self.slice_record.plus_start,
             stop=self.slice_record.plus_stop,
             step=self.slice_record.plus_step,
         )
-        return raw[::-1] if self.slice_record.is_reversed else raw
+        if self.slice_record.is_reversed:
+            # and reverse result when a reversed slice
+            raw = raw[::-1]
+        return raw
 
     @property
     def bytes_value(self) -> bytes:
@@ -200,7 +206,7 @@ class SeqDataView(new_sequence.SeqView):
         )
 
     # refactor: design, do we support copy? do we support copy with sliced?
-    def copy(self, sliced: bool = False):
+    def copy(self, sliced: bool = False) -> typing_extensions.Self:
         """returns copy"""
         return self
 
@@ -236,6 +242,14 @@ class SeqDataView(new_sequence.SeqView):
         data["init_args"]["alphabet"] = self.alphabet.to_rich_dict()
         return data
 
+    @property
+    def is_reversed(self) -> bool:
+        if self.seqid in self.parent.reversed_seqs:
+            # seqid is reversed relative to everything else
+            # hence is_reversed is the opposite of the slice record
+            return not self.slice_record.is_reversed
+        return self.slice_record.is_reversed
+
 
 class SeqsDataABC(ABC):
     """Abstract base class for respresenting the collection of sequences underlying
@@ -243,6 +257,17 @@ class SeqsDataABC(ABC):
     """
 
     __slots__ = ()
+
+    @abstractmethod
+    def __init__(
+        self,
+        *,
+        data: dict[str, StrORBytesORArray],
+        alphabet: new_alphabet.AlphabetABC,
+        offset: dict[str, int] | None = None,
+        check: bool = True,
+        reversed_seqs: set[str] | None = None,
+    ) -> None: ...
 
     @classmethod
     @abstractmethod
@@ -262,6 +287,10 @@ class SeqsDataABC(ABC):
 
     @abstractmethod
     def get_seq_length(self, seqid: str) -> int: ...
+
+    @property
+    @abstractmethod
+    def reversed_seqs(self) -> frozenset: ...
 
     @property
     @abstractmethod
@@ -320,6 +349,9 @@ class SeqsDataABC(ABC):
         index: str | int,
     ) -> new_sequence.Sequence | new_sequence.SeqViewABC: ...
 
+    @abstractmethod
+    def copy(self, **kwargs) -> SeqsDataABC: ...
+
 
 class SeqsData(SeqsDataABC):
     """The builtin ``cogent3`` implementation of a collection of sequences underlying
@@ -334,7 +366,7 @@ class SeqsData(SeqsDataABC):
     for a sequence as used by IndelMap.
     """
 
-    __slots__ = ("_alphabet", "_data", "_offset")
+    __slots__ = ("_alphabet", "_data", "_offset", "_reversed")
 
     def __init__(
         self,
@@ -343,6 +375,7 @@ class SeqsData(SeqsDataABC):
         alphabet: new_alphabet.AlphabetABC,
         offset: dict[str, int] | None = None,
         check: bool = True,
+        reversed_seqs: set[str] | None = None,
     ) -> None:
         """
         Parameters
@@ -357,6 +390,8 @@ class SeqsData(SeqsDataABC):
             dict indicating annotation offsets for each sequence
         check
             use the alphabet to check the sequences are valid
+        reversed_seqs
+            names of seqs that are reverse complemented
 
         Raises
         ------
@@ -364,6 +399,7 @@ class SeqsData(SeqsDataABC):
         """
         self._alphabet = alphabet
         self._offset = offset or {}
+        self._reversed = frozenset(reversed_seqs or set())
         if check:
             assert self._offset.keys() <= data.keys(), (
                 "sequence name provided in offset not found in data"
@@ -414,6 +450,10 @@ class SeqsData(SeqsDataABC):
         return list(self._data.keys())
 
     @property
+    def reversed_seqs(self) -> frozenset:
+        return self._reversed
+
+    @property
     def alphabet(self) -> new_alphabet.AlphabetABC:
         return self._alphabet
 
@@ -437,9 +477,9 @@ class SeqsData(SeqsDataABC):
         stop = stop if stop is not None else self.get_seq_length(seqid)
         step = step or 1
 
-        assert start >= 0 and stop >= 0 and step > 0, (
-            "start, stop, and step must be >= 0"
-        )
+        if start < 0 or stop < 0 or step < 1:
+            msg = f"{start=}, {stop=}, {step=} not >= 1"
+            raise ValueError(msg)
 
         out_len = (stop - start + step - 1) // step
         out = numpy.empty(out_len, dtype=self.alphabet.dtype)
@@ -484,8 +524,8 @@ class SeqsData(SeqsDataABC):
     def add_seqs(
         self,
         seqs: dict[str, StrORBytesORArray],
-        force_unique_keys=True,
-        offset=None,
+        force_unique_keys: bool = True,
+        offset: dict[str, int] | None = None,
     ) -> SeqsData:
         """Returns a new SeqsData object with added sequences. If force_unique_keys
         is True, raises ValueError if any names already exist in the collection."""
@@ -496,7 +536,7 @@ class SeqsData(SeqsDataABC):
             **self._data,
             **{name: self.alphabet.to_indices(seq) for name, seq in seqs.items()},
         }
-        return self.__class__(
+        return self.copy(
             data=new_data,
             alphabet=self.alphabet,
             offset={**self._offset, **(offset or {})},
@@ -519,11 +559,7 @@ class SeqsData(SeqsDataABC):
             == 1
         ):
             # rna <-> dna swap just replace alphabet
-            return self.__class__(
-                data=self._data,
-                alphabet=alphabet,
-                offset=self._offset,
-            )
+            return self.copy(alphabet=alphabet)
 
         new_data = {}
         for seqid in self.names:
@@ -543,10 +579,9 @@ class SeqsData(SeqsDataABC):
                 )
             new_data[seqid] = as_new_alpha
 
-        return self.__class__(
+        return self.copy(
             data=new_data,
             alphabet=alphabet,
-            offset=self._offset,
             check=False,
         )
 
@@ -560,14 +595,27 @@ class SeqsData(SeqsDataABC):
 
     @__getitem__.register
     def _(self, index: str) -> new_sequence.SeqViewABC:
-        # refactor: design
-        # note that this will always return the plus strand, even if the collection
-        # has been reversed
         return self.get_view(seqid=index)
 
     @__getitem__.register
     def _(self, index: int) -> new_sequence.SeqViewABC:
         return self[self.names[index]]
+
+    def copy(self, **kwargs) -> typing_extensions.Self:
+        """shallow copy of self
+
+        Notes
+        -------
+        kwargs are passed to constructor and will over-ride existing values
+        """
+        init_args = {
+            "data": self._data,
+            "alphabet": self._alphabet,
+            "offset": self._offset,
+            "reversed_seqs": self._reversed,
+            **kwargs,
+        }
+        return self.__class__(**init_args)
 
 
 class SequenceCollection:
@@ -607,12 +655,12 @@ class SequenceCollection:
             the underlying seqs_data. Used for when the names have been changed,
             but we want to query for annotations using the original names.
         is_reversed
-            flag indicating the sequences are reversed with respect to the
-            underlying data in seqs_data
+            entire collection is reverse complemented
         """
         self._seqs_data = seqs_data
         self.moltype = moltype
         self._name_map = name_map or {name: name for name in seqs_data.names}
+        self._is_reversed = is_reversed
         if not isinstance(info, InfoClass):
             info = InfoClass(info) if info else InfoClass()
         self.info = info
@@ -625,7 +673,6 @@ class SequenceCollection:
         }
         self._annotation_db = annotation_db or DEFAULT_ANNOTATION_DB()
         self._seqs = None
-        self._is_reversed = is_reversed
         self._post_init()
 
     def _post_init(self) -> None:
@@ -637,7 +684,8 @@ class SequenceCollection:
         # the sequence is given the current name
         seqid = self._name_map.get(name, name)
         sv = self._seqs_data.get_view(seqid)
-        sv = sv[::-1] if self._is_reversed else sv
+        if self._is_reversed:
+            sv = sv[::-1]
         return self.moltype.make_seq(
             seq=sv,
             name=name,
@@ -656,8 +704,8 @@ class SequenceCollection:
             "name_map": self._name_map.copy(),
             "info": self.info.copy(),
             "annotation_db": self.annotation_db,
-            "is_reversed": self._is_reversed,
             "source": self.source,
+            "is_reversed": self._is_reversed,
         }
 
     @property
@@ -750,9 +798,9 @@ class SequenceCollection:
             msg = f"{names=} and {negate=} resulted in no names"
             raise ValueError(msg)
 
-        assert set(names) <= set(
-            self.names,
-        ), f"The following provided names not found in collection: {names - self.names}"
+        if diff := set(names) - set(self.names):
+            msg = f"The following provided names not found in collection: {diff}"
+            raise ValueError(msg)
 
         selected_name_map = {name: self._name_map[name] for name in names}
 
@@ -958,10 +1006,8 @@ class SequenceCollection:
             data[name] = self.moltype.degap(seq)
 
         init_kwargs = self._get_init_kwargs()
-        init_kwargs["seqs_data"] = self._seqs_data.from_seqs(
+        init_kwargs["seqs_data"] = self._seqs_data.copy(
             data=data,
-            alphabet=self._seqs_data.alphabet,
-            offset=self._seqs_data.offset,
             check=False,
         )
 
@@ -1047,7 +1093,6 @@ class SequenceCollection:
             )
 
         translated = {}
-        # do the translation
         for seq in self.seqs:
             pep = seq.get_translation(
                 gc,
@@ -1071,11 +1116,10 @@ class SequenceCollection:
             name_map=self._name_map,
             info=self.info,
             source=self.source,
-            is_reversed=False,  # reversed not meaningful for a protein
             **kwargs,
         )
 
-    def rc(self):
+    def rc(self) -> typing_extensions.Self:
         """Returns the reverse complement of all sequences in the collection.
         A synonym for reverse_complement.
         """
@@ -1083,7 +1127,7 @@ class SequenceCollection:
         init_kwargs["is_reversed"] = not self._is_reversed
         return self.__class__(**init_kwargs)
 
-    def reverse_complement(self):
+    def reverse_complement(self) -> typing_extensions.Self:
         """Returns the reverse complement of all sequences in the collection.
         A synonym for rc.
         """
@@ -1321,7 +1365,7 @@ class SequenceCollection:
         """
         return seqs_to_fasta(self.to_dict(), block_size=block_size)
 
-    def to_phylip(self):
+    def to_phylip(self) -> str:
         """
         Return collection in PHYLIP format and mapping to sequence ids
 
@@ -1872,12 +1916,12 @@ class SequenceCollection:
         # when we access .seqs, if the collection has been reversed, this will have
         # been applied to the returned Sequence, so we reset it to False for the
         # returned collection
-        init_kwargs["is_reversed"] = False
         init_kwargs["seqs_data"] = self._seqs_data.from_seqs(
             data=padded_seqs,
             alphabet=self._seqs_data.alphabet,
             offset=self._seqs_data.offset,
         )
+        init_kwargs["is_reversed"] = False
         return self.__class__(**init_kwargs)
 
     def strand_symmetry(self, motif_length: int = 1):
@@ -2365,9 +2409,9 @@ def coerce_to_raw_seq_data(
     name: OptStr = None,
 ) -> raw_seq_data:
     if isinstance(seq, Aligned):
-        name = name or seq.name
-        seq = str(seq)
-        return coerce_to_raw_seq_data(seq, moltype, name)
+        # convert the Aligned instance
+        # into a Sequence instance that includes the gaps
+        return coerce_to_raw_seq_data(seq.gapped_seq, moltype, name)
     msg = f"coerce_to_seq_data not implemented for {type(seq)}"
     raise TypeError(msg)
 
@@ -2380,11 +2424,7 @@ def _(
 ) -> raw_seq_data:
     seq = seq.to_moltype(moltype)
     parent_name, start, _, step = seq.parent_coordinates()
-    # we always get the "plus strand" seq
-    # because reverse complementing is done via the Sequence instance
-    # and the orientation with respect to records in a bound db needs
-    # to be preserved (that annotation db is extracted elsewhere)
-    raw_seq = seq.to_array(apply_transforms=False)
+    raw_seq = numpy.array(seq)
     return raw_seq_data(
         seq=raw_seq,
         name=name or seq.name,
@@ -2395,7 +2435,11 @@ def _(
 
 
 @coerce_to_raw_seq_data.register
-def _(seq: str, moltype: new_moltype.MolType, name: OptStr = None) -> raw_seq_data:
+def _(
+    seq: str,
+    moltype: new_moltype.MolType,
+    name: OptStr = None,
+) -> raw_seq_data:
     return coerce_to_raw_seq_data(seq.encode("utf8"), moltype, name)
 
 
@@ -2409,17 +2453,25 @@ def _(
 
 
 @coerce_to_raw_seq_data.register
-def _(seq: bytes, moltype: new_moltype.MolType, name: OptStr = None) -> raw_seq_data:
+def _(
+    seq: bytes,
+    moltype: new_moltype.MolType,
+    name: OptStr = None,
+) -> raw_seq_data:
     seq = seq.upper()
     seq = moltype.coerce_to(seq) if moltype.coerce_to else seq
     return raw_seq_data(seq=seq, name=name)
 
 
-CT = tuple[dict[str, StrORBytesORArray], dict[str, int], int, dict[str, str]]
+CT = tuple[dict[str, StrORBytesORArray], dict[str, int], set[str], dict[str, str]]
 
 
 @singledispatch
-def prep_for_seqs_data(data, moltype: new_moltype.MolType, seq_namer: _SeqNamer) -> CT:
+def prep_for_seqs_data(
+    data,
+    moltype: new_moltype.MolType,
+    seq_namer: _SeqNamer,
+) -> CT:
     # refactor: handle conversion of SeqView to SeqDataView.
     msg = f"coerce_to_seqs_data_dict not implemented for {type(data)}"
     raise NotImplementedError(
@@ -2428,10 +2480,14 @@ def prep_for_seqs_data(data, moltype: new_moltype.MolType, seq_namer: _SeqNamer)
 
 
 @prep_for_seqs_data.register
-def _(data: dict, moltype: new_moltype.MolType, seq_namer: _SeqNamer) -> CT:
+def _(
+    data: dict,
+    moltype: new_moltype.MolType,
+    seq_namer: _SeqNamer,
+) -> CT:
     seqs = {}  # for the (Aligned)SeqsDataABC
     offsets = {}  # for the (Aligned)SeqsDataABC
-    rvd = 0
+    rvd = set()
     name_map = {}  # for the sequence collection
     # if we have a dict of Sequences, {name: seq, ...}, then the provided names
     # may differ to the name attribute on the Sequences. If the Sequences have
@@ -2444,14 +2500,19 @@ def _(data: dict, moltype: new_moltype.MolType, seq_namer: _SeqNamer) -> CT:
         seq_data = coerce_to_raw_seq_data(seq, moltype, name=name)
         offsets[seq_data.parent_name or name] = seq_data.offset
         seqs[seq_data.parent_name or seq_data.name] = seq_data.seq
-        rvd += 1 if seq_data.is_reversed else 0
+        if seq_data.is_reversed:
+            rvd.add(name)
         name_map[name] = seq_data.parent_name or name
 
     return seqs, offsets, rvd, name_map
 
 
 @prep_for_seqs_data.register
-def _(data: list, moltype: new_moltype.MolType, seq_namer: _SeqNamer) -> CT:
+def _(
+    data: list,
+    moltype: new_moltype.MolType,
+    seq_namer: _SeqNamer,
+) -> CT:
     if not isinstance(data[0], new_sequence.Sequence):
         with contextlib.suppress(ValueError):
             return prep_for_seqs_data(dict(data), moltype, seq_namer)
@@ -2461,12 +2522,20 @@ def _(data: list, moltype: new_moltype.MolType, seq_namer: _SeqNamer) -> CT:
 
 
 @prep_for_seqs_data.register
-def _(data: tuple, moltype: new_moltype.MolType, seq_namer: _SeqNamer) -> CT:
+def _(
+    data: tuple,
+    moltype: new_moltype.MolType,
+    seq_namer: _SeqNamer,
+) -> CT:
     return prep_for_seqs_data(list(data), moltype, seq_namer)
 
 
 @prep_for_seqs_data.register
-def _(data: set, moltype: new_moltype.MolType, seq_namer: _SeqNamer) -> CT:
+def _(
+    data: set,
+    moltype: new_moltype.MolType,
+    seq_namer: _SeqNamer,
+) -> CT:
     return prep_for_seqs_data(list(data), moltype, seq_namer)
 
 
@@ -2490,7 +2559,8 @@ def make_unaligned_seqs(
     annotation_db: SupportsFeatures = None,
     offset: DictStrInt | None = None,
     name_map: DictStrStr | None = None,
-    is_reversed: OptBool = None,
+    is_reversed: bool = False,
+    **kwargs,
 ) -> SequenceCollection:
     """Initialise an unaligned collection of sequences.
 
@@ -2515,8 +2585,9 @@ def make_unaligned_seqs(
         a dict mapping sequence names to "parent" sequence names. The parent
         name will be used for querying a annotation_db.
     is_reversed
-        flag indicating whether the sequences are reversed with respect to the
-        underlying data.
+        entire collection has been reverse complemented
+    kwargs
+        keyword arguments for the SeqsData constructor
 
     Notes
     -----
@@ -2547,28 +2618,16 @@ def make_unaligned_seqs(
     seqs_data, offs, rvd, nm = prep_for_seqs_data(data, moltype, assign_names)
     offset = offset or {}
     offset = {**offs, **offset}
-    # rvd is the count of sequences that have been reversed. It should be equal 0
-    # or the number of sequences. If inbetween, the sequences are a mix of the two
-    # which for now we do not support. However, if the user has provided a value
-    # for is_reversed, we will use that.
-    if is_reversed is not None:
-        rvd = is_reversed
-    elif rvd in {0, len(seqs_data)}:
-        rvd = bool(rvd)
-    else:
-        # redesign: handle case of a mix of reversed and not
-        rvd = False
-        if annotation_db and len(annotation_db) > 0:
-            warnings.warn(
-                "Sequence strand is inconsistent, not applying the annotation db.",
-                UserWarning,
-                stacklevel=2,
-            )
-            annotation_db = None
-
     name_map = nm if name_map is None else name_map
     # seqs_data keys should be the same as the value of name_map, not the keys
-    seqs_data = SeqsData(data=seqs_data, alphabet=alphabet, offset=offset)
+    sd_kwargs = {
+        "data": seqs_data,
+        "alphabet": alphabet,
+        "offset": offset,
+        "reversed_seqs": rvd,
+        **kwargs,
+    }
+    seqs_data = SeqsData(**sd_kwargs)
     # we do not pass on offset/label_to_name as they are handled in this function
     return make_unaligned_seqs(
         seqs_data,
@@ -2577,7 +2636,7 @@ def make_unaligned_seqs(
         source=source,
         annotation_db=annotation_db,
         name_map=name_map,
-        is_reversed=rvd,
+        is_reversed=is_reversed,
     )
 
 
@@ -2592,7 +2651,7 @@ def _(
     annotation_db: SupportsFeatures = None,
     offset: dict[str, int] | None = None,
     name_map: dict[str, str] | None = None,
-    is_reversed: OptBool = None,
+    is_reversed: bool = False,
 ) -> SequenceCollection:
     moltype = new_moltype.get_moltype(moltype)
     if not moltype.is_compatible_alphabet(data.alphabet):
@@ -2616,7 +2675,7 @@ def _(
         annotation_db=annotation_db,
         source=source,
         name_map=name_map,
-        is_reversed=is_reversed or False,
+        is_reversed=is_reversed,
     )
     if label_to_name:
         seqs = seqs.rename_seqs(label_to_name)
@@ -2628,6 +2687,7 @@ def decompose_gapped_seq(
     seq: typing.union[StrORBytesORArray, new_sequence.Sequence],
     *,
     alphabet: new_alphabet.AlphabetABC,
+    missing_as_gap: bool = True,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
     """
     Takes a sequence with (or without) gaps and returns an ungapped sequence
@@ -2644,8 +2704,17 @@ def _(
     seq: numpy.ndarray,
     *,
     alphabet: new_alphabet.AlphabetABC,
+    missing_as_gap: bool = True,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
-    return decompose_gapped_seq_array(seq.astype(alphabet.dtype), alphabet.gap_index)
+    if missing_as_gap and alphabet.missing_index:
+        missing_index = numpy.uint8(alphabet.missing_index)
+    else:
+        missing_index = -1
+    return decompose_gapped_seq_array(
+        seq.astype(alphabet.dtype),
+        alphabet.gap_index,
+        missing_index=missing_index,
+    )
 
 
 @decompose_gapped_seq.register
@@ -2653,12 +2722,17 @@ def _(
     seq: str,
     *,
     alphabet: new_alphabet.AlphabetABC,
+    missing_as_gap: bool = True,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
     if not alphabet.is_valid(seq):
         msg = f"Sequence is invalid for alphabet {alphabet}"
         raise new_alphabet.AlphabetError(msg)
 
-    return decompose_gapped_seq(alphabet.to_indices(seq), alphabet=alphabet)
+    return decompose_gapped_seq(
+        alphabet.to_indices(seq),
+        alphabet=alphabet,
+        missing_as_gap=missing_as_gap,
+    )
 
 
 @decompose_gapped_seq.register
@@ -2666,8 +2740,13 @@ def _(
     seq: bytes,
     *,
     alphabet: new_alphabet.AlphabetABC,
+    missing_as_gap: bool = True,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
-    return decompose_gapped_seq(seq.decode("utf-8"), alphabet=alphabet)
+    return decompose_gapped_seq(
+        seq.decode("utf-8"),
+        alphabet=alphabet,
+        missing_as_gap=missing_as_gap,
+    )
 
 
 @decompose_gapped_seq.register
@@ -2675,8 +2754,13 @@ def _(
     seq: new_sequence.Sequence,
     *,
     alphabet: new_alphabet.AlphabetABC,
+    missing_as_gap: bool = True,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
-    return decompose_gapped_seq(numpy.array(seq), alphabet=alphabet)
+    return decompose_gapped_seq(
+        numpy.array(seq),
+        alphabet=alphabet,
+        missing_as_gap=missing_as_gap,
+    )
 
 
 @numba.jit(cache=True)
@@ -2740,9 +2824,10 @@ def decompose_gapped_seq_array(
 
     ungapped = numpy.empty(seqlen - gap_coords.T[1][-1], dtype=seq.dtype)
     seqpos = 0
-    for b in seq:
-        if b != gap_index:
-            ungapped[seqpos] = b
+    for base in seq:
+        gapped = base == gap_index or base == missing_index  # noqa
+        if not gapped:
+            ungapped[seqpos] = base
             seqpos += 1
 
     return ungapped, gap_coords
@@ -2861,7 +2946,7 @@ class Aligned:
         # to the underlying aligned seq data container because the gaps are
         # not going to be modulo the step.
         if self.data.slice_record.plus_step == 1:
-            # to complement or not handled by seq view
+            # to complement or not handled by the view
             seq = self.data.get_seq_view()
         elif self.data.slice_record.step > 1:
             # we have a step, but no complementing will be required
@@ -2914,7 +2999,6 @@ class Aligned:
         """returns a feature, not written into annotation_db"""
         annot = self.seq.make_feature(feature)
         inverted = self.map.to_feature_map().inverse()
-        # TODO should indicate whether tidy or not
         return annot.remapped_to(alignment, inverted)
 
     def __repr__(self) -> str:
@@ -2976,7 +3060,11 @@ class Aligned:
             data = self.data.array_value[seq_start:seq_end]
             # .array_value will return the data in the correct orientation
             # which means we need to complement it if the data is reversed
-            data = self.moltype.complement(data) if self.data.is_reversed else data
+            data = (
+                self.moltype.complement(data)
+                if self.data.slice_record.is_reversed
+                else data
+            )
         elif not span.useful:
             im = self.map[start:end]
             data = self.data.array_value[:0]
@@ -3047,7 +3135,32 @@ class AlignedSeqsDataABC(SeqsDataABC):
         seqs: dict[str, StrORBytesORArray],
         gaps: dict[str, numpy.ndarray],
         alphabet: new_alphabet.AlphabetABC,
-    ): ...
+    ) -> typing_extensions.Self: ...
+
+    @abstractmethod
+    def __init__(
+        self,
+        *,
+        gapped_seqs: numpy.ndarray,
+        names: tuple[str],
+        alphabet: new_alphabet.AlphabetABC,
+        ungapped_seqs: dict[str, numpy.ndarray] | None = None,
+        gaps: dict[str, numpy.ndarray] | None = None,
+        offset: DictStrInt | None = None,
+        align_len: OptInt = None,
+        check: bool = True,
+        reversed_seqs: set[str] | None = None,
+    ) -> None: ...
+
+    @abstractmethod
+    def get_view(
+        self,
+        seqid: str,
+        slice_record: new_sequence.SliceRecord | None = None,
+    ) -> AlignedDataViewABC:
+        # overriding the SeqsDataABC method as we support directly
+        # providing the slice_record instance
+        ...
 
     @classmethod
     @abstractmethod
@@ -3057,7 +3170,7 @@ class AlignedSeqsDataABC(SeqsDataABC):
         names: list[str],
         data: numpy.ndarray,
         alphabet: new_alphabet.AlphabetABC,
-    ): ...
+    ) -> typing_extensions.Self: ...
 
     @property
     @abstractmethod
@@ -3169,6 +3282,9 @@ class AlignedSeqsDataABC(SeqsDataABC):
         step: OptInt = None,
     ) -> numpy.ndarray: ...
 
+    @abstractmethod
+    def copy(self, **kwargs) -> typing_extensions.Self: ...
+
 
 def _gapped_seq_len(seq: numpy.ndarray, gap_map: numpy.ndarray) -> int:
     """calculate the gapped sequence length from a ungapped sequence and gap map
@@ -3209,6 +3325,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         "_name_to_index",
         "_names",
         "_offset",
+        "_reversed",
         "_ungapped",
     )
 
@@ -3223,6 +3340,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         offset: DictStrInt | None = None,
         align_len: OptInt = None,
         check: bool = True,
+        reversed_seqs: set[str] | None = None,
     ) -> None:
         """
         Parameters
@@ -3247,6 +3365,8 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             length of the alignment, which must equal the gapped_seqs.shape[1]
         check
             validate any keys in offset, ungapped_seqs, gaps are a subset of names
+        reversed_seqs
+            names of seqs that are reverse complemented
         """
         self._alphabet = alphabet
         self._names = tuple(names)
@@ -3255,6 +3375,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         self._ungapped = ungapped_seqs or {}
         self._gaps = gaps or {}
         align_len = align_len or gapped_seqs.shape[1]
+        self._reversed = frozenset(reversed_seqs or set())
         if align_len:
             assert align_len == gapped_seqs.shape[1], "mismatch in alignment length"
 
@@ -3305,7 +3426,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         data: dict[str, StrORArray],
         alphabet: new_alphabet.AlphabetABC,
         **kwargs,
-    ):
+    ) -> typing_extensions.Self:
         """Construct an AlignedSeqsData object from a dict of aligned sequences
 
         Parameters
@@ -3350,7 +3471,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         gaps: dict[str, numpy.ndarray],
         alphabet: new_alphabet.AlphabetABC,
         **kwargs,
-    ):
+    ) -> typing_extensions.Self:
         """Construct an AlignedSeqsData object from a dict of ungapped sequences
         and a corresponding dict of gap data.
 
@@ -3400,7 +3521,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         names: PySeq[str],
         data: numpy.ndarray,
         alphabet: new_alphabet.AlphabetABC,
-    ):
+    ) -> typing_extensions.Self:
         """Construct an AlignedSeqsData object from a list of names and a numpy
         array of aligned sequence data.
 
@@ -3430,6 +3551,10 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         return self._names
 
     @property
+    def reversed_seqs(self) -> frozenset:
+        return self._reversed
+
+    @property
     def alphabet(self) -> new_alphabet.CharAlphabet:
         return self._alphabet
 
@@ -3454,11 +3579,16 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         return len(self._get_ungapped(seqid))
 
     @singledispatchmethod
-    def get_view(self, seqid: str):
+    def get_view(
+        self,
+        seqid: str,
+        slice_record: new_sequence.SliceRecord | None = None,
+    ) -> AlignedDataView:
         return AlignedDataView(
             parent=self,
             seqid=seqid,
             alphabet=self.alphabet,
+            slice_record=slice_record,
         )
 
     @get_view.register
@@ -3478,7 +3608,11 @@ class AlignedSeqsData(AlignedSeqsDataABC):
     def get_gaps(self, seqid: str) -> numpy.ndarray:
         return self._get_gaps(seqid)
 
-    def _make_gaps_and_ungapped(self, seqid) -> None:
+    def _make_gaps_and_ungapped(self, seqid: str) -> None:
+        if seqid in self._gaps and seqid in self._ungapped:
+            # job already done
+            return
+
         index = self._name_to_index[seqid]
         ungapped, gaps = decompose_gapped_seq(
             self._gapped[index],
@@ -3496,15 +3630,21 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         step: OptInt = None,
     ) -> numpy.ndarray:
         """Return ungapped sequence corresponding to seqid as an array of indices.
-        assumes start/stop are in sequence coordinates. Excludes gaps.
+
+        Notes
+        -----
+        Assumes start/stop are in sequence coordinates. If seqid is in
+        reversed_seqs, that sequence will be in plus strand orientation.
+        It is client codes responsibility to ensure the coordinates are
+        consistent with that.
         """
         start = start or 0
         stop = stop if stop is not None else self.get_seq_length(seqid)
         step = step or 1
 
-        assert start >= 0 and stop >= 0 and step > 0, (
-            "start, stop, and step must be >= 0"
-        )
+        if start < 0 or stop < 0 or step < 1:
+            msg = f"{start=}, {stop=}, {step=} not >= 1"
+            raise ValueError(msg)
 
         out_len = (stop - start + step - 1) // step
 
@@ -3527,9 +3667,9 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         start = start or 0
         stop = stop if stop is not None else self.align_len
         step = step or 1
-        assert start >= 0 and stop >= 0 and step > 0, (
-            "start, stop, and step must be >= 0"
-        )
+        if start < 0 or stop < 0 or step < 1:
+            msg = f"{start=}, {stop=}, {step=} not >= 1"
+            raise ValueError(msg)
 
         index = self._name_to_index[seqid]
         out_len = (stop - start + step - 1) // step
@@ -3609,6 +3749,10 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         # if gaps exist, don't go via gapped seq
         # convert alignment coords into sequence coords using the location.align_to_seq_index function
         # this means we will need to convert coordinates to a plus strand slice
+        if (start or 0) < 0 or (stop or 0) < 0 or (step or 1) <= 0:
+            msg = f"{start=}, {stop=}, {step=} not >= 0"
+            raise ValueError(msg)
+
         seq_array = numpy.empty(
             (len(name_map), self.align_len),
             dtype=self.alphabet.dtype,
@@ -3628,7 +3772,11 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             seqs[name] = seq[indices]
 
         offset = {n: v for n, v in self._offset.items() if n in names}
-        return seqs, {"offset": offset, "name_map": name_map}
+        return seqs, {
+            "offset": offset,
+            "name_map": name_map,
+            "reversed_seqs": self._reversed,
+        }
 
     def add_seqs(
         self,
@@ -3680,7 +3828,11 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             align_len=self.align_len,
         )
 
-    def to_alphabet(self, alphabet: new_alphabet.AlphabetABC, check_valid: bool = True):
+    def to_alphabet(
+        self,
+        alphabet: new_alphabet.AlphabetABC,
+        check_valid: bool = True,
+    ) -> typing_extensions.Self:
         """Returns a new AlignedSeqsData object with the same underlying data
         with a new alphabet."""
         if (
@@ -3741,11 +3893,41 @@ class AlignedSeqsData(AlignedSeqsDataABC):
     ) -> numpy.ndarray:
         """returns an array of the selected positions for names."""
         indices = tuple(self._name_to_index[name] for name in names)
+        start = start or 0
+        stop = stop or self.align_len
+        step = step or 1
+        if start < 0 or stop < 0 or step < 1:
+            msg = f"{start=}, {stop=}, {step=} not >= 1"
+            raise ValueError(msg)
 
         if abs((start - stop) // step) == self.align_len:
-            return self._gapped[indices, :] if step > 0 else self._gapped[indices, ::-1]
+            array_seqs = self._gapped[indices, :]
+        else:
+            array_seqs = self._gapped[indices, start:stop:step]
 
-        return self._gapped[indices, start:stop:step]
+        return array_seqs
+
+    def copy(self, **kwargs) -> typing_extensions.Self:
+        """shallow copy of self
+
+        Notes
+        -------
+        kwargs are passed to constructor and will over-ride existing values
+        """
+        init_args = {
+            "gapped_seqs": self._gapped,
+            "names": self._names,
+            "alphabet": self._alphabet,
+            "ungapped_seqs": self._ungapped,
+            "gaps": self._gaps,
+            "offset": self._offset,
+            "align_len": self._align_len,
+            "check": False,
+            "reversed_seqs": self._reversed,
+            **kwargs,
+        }
+
+        return self.__class__(**init_args)
 
 
 class AlignedDataViewABC(new_sequence.SeqViewABC):
@@ -3931,8 +4113,8 @@ class AlignedDataView(new_sequence.SeqViewABC):
 
     def parent_seq_coords(self) -> tuple[str, int, int, int]:
         """returns seqid, start, stop, strand on the parent sequence"""
-        # we want the coordinates on the parent, which means we need to use the
-        # parent's IndelMap for findings the correct indices.
+        # we want the coordinates on the parent sequence, which means we
+        # need to use the parent's IndelMap for findings the correct indices.
         parent_map = self._parent_map()
         start = parent_map.get_seq_index(self.slice_record.parent_start)
         stop = parent_map.get_seq_index(self.slice_record.parent_stop)
@@ -3940,7 +4122,7 @@ class AlignedDataView(new_sequence.SeqViewABC):
 
         return self.seqid, start, stop, strand
 
-    def copy(self, sliced: bool = False):
+    def copy(self, sliced: bool = False) -> typing_extensions.Self:
         return self
 
     def _get_init_kwargs(self) -> dict:
@@ -3971,6 +4153,14 @@ class AlignedDataView(new_sequence.SeqViewABC):
             parent_len=parent_len,
             slice_record=sr,
         )
+
+    @property
+    def is_reversed(self) -> bool:
+        if self.seqid in self.parent.reversed_seqs:
+            # seqid is reversed relative to everything else
+            # hence is_reversed is the opposite of the slice record
+            return not self.slice_record.is_reversed
+        return self.slice_record.is_reversed
 
 
 def make_gap_filter(template, gap_fraction, gap_run):
@@ -4096,23 +4286,23 @@ class Alignment(SequenceCollection):
         }
 
     @singledispatchmethod
-    def __getitem__(self, index):
+    def __getitem__(self, index) -> typing_extensions.Self:
         msg = f"__getitem__ not implemented for {type(index)}"
         raise NotImplementedError(msg)
 
     @__getitem__.register
-    def _(self, index: str):
+    def _(self, index: str) -> typing_extensions.Self:
         return self.seqs[index]
 
     @__getitem__.register
-    def _(self, index: int):
+    def _(self, index: int) -> typing_extensions.Self:
         new_slice = self._slice_record[index]
         kwargs = self._get_init_kwargs()
         kwargs["slice_record"] = new_slice
         return self.__class__(**kwargs)
 
     @__getitem__.register
-    def _(self, index: slice):
+    def _(self, index: slice) -> typing_extensions.Self:
         new_slice = self._slice_record[index]
         kwargs = self._get_init_kwargs()
         kwargs["slice_record"] = new_slice
@@ -4123,7 +4313,7 @@ class Alignment(SequenceCollection):
         return self.__class__(**kwargs)
 
     @__getitem__.register
-    def _(self, index: FeatureMap):
+    def _(self, index: FeatureMap) -> typing_extensions.Self:
         return self._mapped(index)
 
     @__getitem__.register
@@ -4160,8 +4350,10 @@ class Alignment(SequenceCollection):
         return self.array_seqs
 
     def _make_aligned(self, seqid: str) -> Aligned:
-        adv = self._seqs_data.get_view(self._name_map.get(seqid, seqid))
-        adv.slice_record = self._slice_record
+        adv = self._seqs_data.get_view(
+            self._name_map.get(seqid, seqid),
+            slice_record=self._slice_record,
+        )
         aligned = Aligned(data=adv, moltype=self.moltype, name=seqid)
         aligned.annotation_db = self.annotation_db
         return aligned
@@ -4178,23 +4370,24 @@ class Alignment(SequenceCollection):
         """Returns a numpy array of sequences, axis 0 is seqs in order
         corresponding to names"""
         if self._array_seqs is None:
+            names = [self._name_map[n] for n in self.names]
             # create the dest array dim
             arr_seqs = self._seqs_data.get_positions(
-                names=list(self._name_map.values()),
-                start=self._slice_record.start,
-                stop=self._slice_record.stop,
-                step=self._slice_record.step,
+                names=names,
+                start=self._slice_record.plus_start,
+                stop=self._slice_record.plus_stop,
+                step=self._slice_record.plus_step,
             )
-            # if we are reversed and a nucleic acid moltype we will complement the array
             if self.moltype.is_nucleic and self._slice_record.is_reversed:
+                rev_complement = self.moltype.rc
                 arr_seqs = arr_seqs.copy()
                 arr_seqs.flags.writeable = True
-                make_complement = self.moltype.complement
                 for i in range(arr_seqs.shape[0]):
-                    arr_seqs[i] = make_complement(arr_seqs[i])
+                    arr_seqs[i] = rev_complement(arr_seqs[i])
 
             arr_seqs.flags.writeable = False  # make sure data is immutable
             self._array_seqs = arr_seqs
+
         return self._array_seqs
 
     @property
@@ -4333,6 +4526,7 @@ class Alignment(SequenceCollection):
         for pos in pos_order:
             yield [str(self[seq][pos]) for seq in self.names]
 
+    # TODO deprecate native
     def get_position_indices(
         self,
         f: Callable,
@@ -4341,6 +4535,8 @@ class Alignment(SequenceCollection):
     ) -> list[int]:
         """Returns list of column indices for which f(col) is True.
 
+        Parameters
+        ----------
         f
           function that returns true/false given an alignment position
         native
@@ -4400,18 +4596,15 @@ class Alignment(SequenceCollection):
             included
         """
         result = numpy.full((self.num_seqs, len(self)), False, dtype=bool)
+        alpha = self.moltype.most_degen_alphabet()
         for i, aligned in enumerate(self.seqs):
-            if include_ambiguity:
-                seq_array = numpy.array(aligned)
-                result[i][seq_array >= self.moltype.most_degen_alphabet().gap_index] = (
-                    True
-                )
-            else:
-                # refactor: design
-                # this should be on IndelMap
-                gaps = self._seqs_data.get_gaps(aligned.data.seqid)
-                for gap_pos, cum_gap_length in gaps:
-                    result[i][list(range(gap_pos, gap_pos + cum_gap_length))] = True
+            seq_array = numpy.array(aligned)
+            gaps = (
+                (seq_array >= alpha.gap_index)
+                if include_ambiguity
+                else seq_array == alpha.gap_index
+            )
+            result[i] = gaps
         return result
 
     def iupac_consensus(self, allow_gap: bool = True) -> str:
@@ -4826,23 +5019,20 @@ class Alignment(SequenceCollection):
 
         # because SequenceCollection does not track slice operations, we need
         # to apply any slice record to the underlying data
-        start, stop, step = (
-            self._slice_record.start,
-            self._slice_record.stop,
-            self._slice_record.step,
-        )
+        sr = self._slice_record
         data, kwargs = self._seqs_data.get_ungapped(
             name_map=self._name_map,
-            start=start,
-            stop=stop,
-            step=step,
+            start=sr.plus_start,
+            stop=sr.plus_stop,
+            step=sr.plus_step,
         )
         # the SeqsData classes will return the data corresponding to the slice,
         # however, will not complement the data if the step is negative. We do
         # this here.
+        rev_complement = self.moltype.rc
         data = (
-            {name: self.moltype.complement(seq) for name, seq in data.items()}
-            if step < 0
+            {name: rev_complement(seq) for name, seq in data.items()}
+            if sr.step < 0
             else data
         )
         kwargs["annotation_db"] = self.annotation_db
@@ -5548,7 +5738,7 @@ class Alignment(SequenceCollection):
         if self.annotation_db is None:
             return None
 
-        seqid_to_seqname = {seq.parent_coordinates()[0]: seq.name for seq in self.seqs}
+        seqid_to_seqname = {v: k for k, v in self._name_map.items()}
 
         seqids = [seqid] if isinstance(seqid, str) else seqid
         if seqids is None:
@@ -5617,9 +5807,8 @@ class Alignment(SequenceCollection):
         """
         # we only do on-alignment in here
         if not on_alignment:
-            kwargs = {
-                k: v for k, v in locals().items() if k not in ("self", "__class__")
-            }
+            local_vars = locals()
+            kwargs = {k: v for k, v in local_vars.items() if k != "self"}
             kwargs.pop("on_alignment")
             yield from self._get_seq_features(**kwargs)
 
@@ -6399,7 +6588,7 @@ class Alignment(SequenceCollection):
         init_args["annotation_db"] = other.annotation_db
         return self.__class__(**init_args)
 
-    def copy(self):
+    def copy(self) -> typing_extensions.Self:
         """creates new instance, only mutable attributes are copied"""
         kwargs = self._get_init_kwargs()
         return self.__class__(**kwargs)
@@ -6435,8 +6624,6 @@ class Alignment(SequenceCollection):
             alphabet=self.moltype.most_degen_alphabet(),
         )
         kwargs["seqs_data"] = new_seqs_data
-        # we have modified the underlying data with the plus attributes only,
-        # so, if reversed, we need to retain that information in the slice_record
         kwargs["slice_record"] = (
             new_sequence.SliceRecord(parent_len=new_seqs_data.align_len, step=-1)
             if self._slice_record.is_reversed
@@ -6543,6 +6730,7 @@ def make_aligned_seqs(
     offset: DictStrInt | None = None,
     name_map: DictStrStr | None = None,
     is_reversed: OptBool = None,
+    **kwargs,
 ) -> Alignment:
     if len(data) == 0:
         msg = "data must be at least one sequence."
@@ -6556,32 +6744,21 @@ def make_aligned_seqs(
     # the SeqsData object - however, if a name_map is provided, we assume that it
     # corrects for any naming differences in data and skip this step
     assign_names = _SeqNamer(name_func=label_to_name)
-    seqs_data, offs, rvd, nm = prep_for_seqs_data(data, moltype, assign_names)
-    # rvd is the count of sequences that have been reversed. It should be equal 0
-    # or the number of sequences. If inbetween, the sequences are a mix of the two
-    # which for now we do not support. However, if the user has provided a value
-    # for is_reversed, we will use that.
-    if is_reversed is not None:
-        rvd = is_reversed
-    elif rvd in {0, len(seqs_data)}:
-        rvd = bool(rvd)
-    else:
-        rvd = False
-        if annotation_db and len(annotation_db) > 0:
-            warnings.warn(
-                "Sequence strand is inconsistent, not applying the annotation db.",
-                UserWarning,
-                stacklevel=2,
-            )
-            annotation_db = None
-
+    seqs_data, offs, rvd, nm = prep_for_seqs_data(
+        data,
+        moltype,
+        assign_names,
+    )
     offset = offset or offs
     name_map = name_map or nm
-    seqs_data = AlignedSeqsData.from_seqs(
-        data=seqs_data,
-        alphabet=alphabet,
-        offset=offset,
-    )
+    asd_kwargs = {
+        "alphabet": alphabet,
+        "offset": offset,
+        "reversed_seqs": rvd,
+        "data": seqs_data,
+        **kwargs,
+    }
+    seqs_data = AlignedSeqsData.from_seqs(**asd_kwargs)
     # we do not pass on offset/label_to_name as they are handled in this function
     return make_aligned_seqs(
         seqs_data,
@@ -6590,12 +6767,12 @@ def make_aligned_seqs(
         annotation_db=annotation_db,
         source=source,
         name_map=name_map,
-        is_reversed=rvd,
+        is_reversed=is_reversed,
     )
 
 
 # I'm explicitly encoding the alternate variants of the following as numba
-# can then cache the byte-compiiled functions.
+# can then cache the byte-compiled functions.
 @make_aligned_seqs.register
 def _(
     data: AlignedSeqsDataABC,
