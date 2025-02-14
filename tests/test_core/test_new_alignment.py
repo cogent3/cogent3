@@ -2337,8 +2337,11 @@ def test_sequence_collection_consistent_gap_degen_handling(mk_cls):
     dna = new_moltype.DNA.make_seq(seq=raw_seq)
 
     aln = mk_cls({"a": dna, "b": dna}, moltype="dna")
-    expect = mk_cls({"a": raw_ungapped, "b": raw_ungapped}, moltype="dna").to_fasta()
-    assert aln.degap().to_fasta() == expect
+    expect = raw_ungapped
+    degapped = aln.degap()
+    a = degapped.seqs["a"]
+    a2str = str(a)
+    assert a2str == expect
 
 
 def test_sequence_collection_pad_seqs(ragged):
@@ -2368,6 +2371,9 @@ def test_sequence_collection_pad_seqs_reversed():
     ragged = new_alignment.make_unaligned_seqs(data, moltype="dna")
     rc = ragged.rc()
     padded = rc.pad_seqs()
+    b = padded.seqs["b"]
+    got = str(b)
+    assert got == "CGA-"
     got = padded.to_dict()
     expect = {"a": "A---", "b": "CGA-", "c": "CCAA"}
     assert got == expect
@@ -5586,23 +5592,11 @@ def test_make_with_mixed_rc(mk_cls, dna_moltype):
 
 
 def test_make_with_mixed_rc_plus_gaps(dna_moltype):
-    alpha = dna_moltype.most_degen_alphabet()
     raw_plus = "AATATAAATGCC"
-    plus = dna_moltype.make_seq(seq=raw_plus, name="plus")
-    # this is the reversed commplement of the aligned seq
     raw_minus = "AA---AAATGCC"
     minus = dna_moltype.make_seq(seq=raw_minus, name="minus")
-    data = {"plus": numpy.array(plus), "minus": numpy.array(minus)}
-    asd = new_alignment.AlignedSeqsData.from_seqs(
-        data=data,
-        alphabet=alpha,
-        reversed_seqs={"minus"},
-    )
-    got = asd["minus"]
-    assert got.is_reversed
-    expect = alpha.to_indices(raw_minus)
-    assert (got.gapped_array_value == expect).all()
-    aln = new_alignment.make_aligned_seqs(asd, moltype="dna")
+    data = {"plus": raw_plus, "minus": raw_minus}
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna", reversed_seqs={"minus"})
     minus = aln.seqs["minus"]
     assert str(minus) == raw_minus
     assert str(minus.seq) == raw_minus.replace("-", "")
@@ -5635,3 +5629,43 @@ def test_make_asd_revd(dna_alphabet, dna_moltype):
     # with the gapped seq as before
     got = view.gapped_array_value
     assert (got == data["a"]).all()
+
+
+@pytest.mark.parametrize("aligned", [False, True])
+def test_roundtrip_rc_mixed_strand(dna_moltype, aligned):
+    plus = {"s1": "GTTGAAGTAGTA", "s2": "---GAG---GTA", "s3": "GCTGAAGTAGTG"}
+    asd = new_alignment.AlignedSeqsData.from_seqs(
+        data=plus,
+        alphabet=dna_moltype.most_degen_alphabet(),
+        reversed_seqs={"s2"},
+    )
+    aln = new_alignment.make_aligned_seqs(asd, moltype="dna")
+    seqcoll = aln if aligned else aln.degap()
+
+    plus = plus if aligned else {n: s.replace("-", "") for n, s in plus.items()}
+    minus = {n: dna_moltype.rc(s) for n, s in plus.items()}
+    assert seqcoll.to_dict() == plus
+    rced = seqcoll.rc()
+    assert rced.to_dict() == minus
+    restored = rced.rc()
+    assert restored.to_dict() == plus
+
+
+def test_mixed_strand_degap():
+    plus = {"s1": "GTTGAAGTAGTA", "s2": "---GAG---GTA", "s3": "GCTGAAGTAGTG"}
+    aln = new_alignment.make_aligned_seqs(plus, moltype="dna", reversed_seqs={"s2"})
+    seqcoll = aln.degap()
+    s2 = seqcoll.seqs["s2"]
+    assert s2.parent_coordinates() == ("s2", 0, 6, -1)
+    s1 = seqcoll.seqs["s1"]
+    assert s1.parent_coordinates() == ("s1", 0, 12, 1)
+
+
+def test_aln_mixed_strand_rced_seq():
+    plus = {"s1": "GTTGAAGTAGTA", "s2": "---GAG---GTA", "s3": "GCTGAAGTAGTG"}
+    aln = new_alignment.make_aligned_seqs(plus, moltype="dna", reversed_seqs={"s2"})
+    as2 = aln.seqs["s2"]
+    s2 = as2.seq
+    assert s2 == "GAGGTA"
+    s2rc = s2.rc()
+    assert s2rc == "TACCTC"

@@ -164,7 +164,7 @@ def test_alignment_get_slice(rc):
         "biotype": "CDS",
         "name": "fake",
         "spans": [
-            (5, 10),
+            (5, 9),
         ],
         "strand": "+",
     }
@@ -173,7 +173,7 @@ def test_alignment_get_slice(rc):
     feature = aln.make_feature(feature=feature_data)
     got_aln = feature.get_slice()
     got_seq = got_aln.get_seq("test_seq")
-    assert str(got_seq) == str(seq[5:10])
+    assert str(got_seq) == str(seq[5:9])
 
 
 def test_align_get_features():
@@ -745,3 +745,129 @@ def test_nested_annotated_region_masks():
     got = masked.to_dict()
     assert got["x"] == "?-???AAAAATTTAA"
     assert got["y"] == "-T----TTTTG-GTT"
+
+
+@pytest.mark.parametrize("aligned", [True, False])
+def test_mixed_strand_get_feature(aligned):
+    dna = new_moltype.DNA
+    plus = {"s1": "GTTGAAGTAGTA", "s2": "---AAG---GTA", "s3": "GCTGAAGTAGTG"}
+    s2_plus = "TACCTT"
+    aln = new_alignment.make_aligned_seqs(
+        plus,
+        moltype="dna",
+        reversed_seqs={"s2"},
+    )
+    assert aln.seqs["s2"].seq == "AAGGTA"
+    assert aln.seqs["s2"].seq.parent_coordinates()[-1] == -1
+    assert str(aln.seqs["s2"].seq.rc()) == s2_plus
+    seqcoll = aln if aligned else aln.degap()
+    # we add a feature to the reversed seq
+    # the feature is defined for the plus strand of s2
+    db = seqcoll.annotation_db
+    db.add_feature(seqid="s2", biotype="CDS", name="fake", strand="+", spans=[(3, 6)])
+    # get the sequence feature
+    s2 = seqcoll.seqs["s2"].seq if aligned else seqcoll.seqs["s2"]
+    assert s2.annotation_db
+    f = list(s2.get_features(biotype="CDS"))[0]
+    expect = DNA.rc(plus["s2"].replace("-", ""))[3:6]
+    got = f.get_slice()
+    assert got == expect
+
+
+def test_alignment_mixed_strand_get_feature():
+    dna = new_moltype.DNA
+    plus = {
+        "s1": "GTTGAAGTAGTA",
+        "s2": "--TAAG---GTA",
+        "s3": "GCTGAAGTAGTG",
+    }
+    s2_plus = "TACCTTA"
+    # s2 is reverse complemented in the alignment
+    aln = new_alignment.make_aligned_seqs(
+        plus,
+        moltype="dna",
+        reversed_seqs={"s2"},
+    )
+    # so this feature corresponds to TAAG on the - strand
+    aln.annotation_db.add_feature(
+        seqid="s2",
+        biotype="CDS",
+        name="fake",
+        strand="+",
+        spans=[(3, 7)],
+    )
+    f = list(aln.get_features(biotype="CDS"))[0]
+    faln = f.get_slice(allow_gaps=True)
+    assert faln.to_dict() == {
+        "s1": "TTCA",
+        "s2": "CTTA",
+        "s3": "TTCA",
+    }
+
+    got = aln[f]
+    assert got.to_dict() == {
+        "s1": "TTCA",
+        "s2": "CTTA",
+        "s3": "TTCA",
+    }
+    faln = f.get_slice(allow_gaps=False)
+    assert faln.to_dict() == {
+        "s1": "TTCA",
+        "s2": "CTTA",
+        "s3": "TTCA",
+    }
+
+
+def test_alignment_mixed_strand_masked_annotations():
+    dna = new_moltype.DNA
+    plus = {"s1": "GTTGAAGTAGTA", "s2": "---AAG---GTA", "s3": "GCTGAAGTAGTG"}
+    s2_plus = "TACCTT"
+    aln = new_alignment.make_aligned_seqs(
+        plus,
+        moltype="dna",
+        reversed_seqs={"s2"},
+    )
+    aln.annotation_db.add_feature(
+        seqid="s2",
+        biotype="CDS",
+        name="fake",
+        strand="+",
+        spans=[(3, 6)],
+    )
+    aln = aln.with_masked_annotations(biotypes="CDS")
+    s2 = aln.seqs["s2"]
+    assert str(s2) == "---???---GTA"
+
+
+def test_slice_featuremap():
+    from cogent3.core import location
+
+    fmap = location.FeatureMap.from_rich_dict(
+        {
+            "spans": [
+                {
+                    "start": 2,
+                    "end": 6,
+                    "tidy_start": False,
+                    "tidy_end": False,
+                    "value": None,
+                    "reverse": False,
+                    "type": "cogent3.core.location.Span",
+                    "version": "2024.12.19a2",
+                },
+            ],
+            "parent_length": 12,
+            "type": "cogent3.core.location.FeatureMap",
+            "version": "2024.12.19a2",
+        },
+    )
+    dna = new_moltype.DNA
+    plus = {"s1": "GTTGAAGTAGTA", "s2": "--TAAG---GTA", "s3": "GCTGAAGTAGTG"}
+    s2_plus = "TACCTT"
+    aln = new_alignment.make_aligned_seqs(
+        plus,
+        moltype="dna",
+        reversed_seqs={"s2"},
+    )
+    got = aln[fmap]
+    print(got)
