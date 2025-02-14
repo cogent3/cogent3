@@ -189,29 +189,22 @@ class Sequence:
         self._annotation_db = annotation_db
 
     def __str__(self) -> str:
-        # using the str_value attribute means we can have
-        # a aligned or seq data view here and the outcome will be the
-        # same -- just the sequence is returned
-        result = self._seq.str_value
-        if self._seq.is_reversed:
-            with contextlib.suppress(TypeError):
-                result = self.moltype.complement(result)
-        return result
+        result = numpy.array(self)
+        return self.moltype.most_degen_alphabet().from_indices(result)
 
     def __bytes__(self) -> bytes:
-        result = bytes(self._seq)
-        if self._seq.is_reversed:
-            with contextlib.suppress(TypeError):
-                result = self.moltype.complement(result)
-        return result
+        return str(self).encode("utf8")
 
     def __array__(
         self,
         dtype: numpy.dtype | None = None,
         copy: bool | None = None,
     ) -> numpy.ndarray[int]:
-        result = array(self._seq, dtype=dtype)
-        if self._seq.is_reversed:
+        # using the array_value attribute means we can have
+        # a aligned or seq data view here and the outcome will be the
+        # same -- just the sequence is returned
+        result = self._seq.array_value
+        if self._seq.slice_record.is_reversed:
             with contextlib.suppress(TypeError):
                 result = self.moltype.complement(result)
         return result
@@ -1035,21 +1028,22 @@ class Sequence:
             *_,
             strand,
         ) = self.parent_coordinates()
-        query_start = self._seq.slice_record.absolute_position(
+        sr = self._seq.slice_record
+        query_start = sr.absolute_position(
             start,
             include_boundary=False,
         )
         # we set include_boundary=True because stop is exclusive indexing,
         # i,e., the stop can be equal to the length of the view
-        query_stop = self._seq.slice_record.absolute_position(
+        query_stop = sr.absolute_position(
             stop,
             include_boundary=True,
         )
 
-        rev_strand = strand == -1
-        if rev_strand:
-            query_start, query_stop = query_stop, query_start
-
+        query_start, query_stop = (
+            min(query_stop, query_start),
+            max(query_stop, query_start),
+        )
         query_start = max(query_start, 0)
         # in the underlying db, features are always plus strand oriented
         # (need to check that for user defined features)
@@ -1081,10 +1075,10 @@ class Sequence:
             # current view
             spans = array(feature.pop("spans"), dtype=int)
             for i, v in enumerate(spans.ravel()):
-                rel_pos = self._seq.slice_record.relative_position(v)
+                rel_pos = sr.relative_position(v)
                 spans.ravel()[i] = rel_pos
 
-            if rev_strand:
+            if sr.is_reversed:
                 # see above comment
                 spans = len(self) - spans
 

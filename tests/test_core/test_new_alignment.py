@@ -5596,13 +5596,17 @@ def test_make_with_mixed_rc_plus_gaps(dna_moltype):
     raw_minus = "AA---AAATGCC"
     minus = dna_moltype.make_seq(seq=raw_minus, name="minus")
     data = {"plus": raw_plus, "minus": raw_minus}
-    aln = new_alignment.make_aligned_seqs(data, moltype="dna", reversed_seqs={"minus"})
-    minus = aln.seqs["minus"]
-    assert str(minus) == raw_minus
-    assert str(minus.seq) == raw_minus.replace("-", "")
+    asd = new_alignment.AlignedSeqsData.from_seqs(
+        data=data,
+        alphabet=dna_moltype.most_degen_alphabet(),
+        reversed_seqs={"minus"},
+    )
+    minus = asd["minus"]
+    assert str(minus.gapped_str_value) == raw_minus
+    assert str(minus.str_value) == raw_minus.replace("-", "")
 
 
-def test_make_asd_revd(dna_alphabet, dna_moltype):
+def test_make_asd_revd(dna_alphabet):
     data = {
         "a": dna_alphabet.to_indices("T--CA"),
         "b": dna_alphabet.to_indices("TAAC-"),
@@ -5618,8 +5622,8 @@ def test_make_asd_revd(dna_alphabet, dna_moltype):
     )
     # the gapped sequences should be as input
     assert (asd.get_gapped_seq_array(seqid="a") == data["a"]).all()
-    # the ungapped sequence should be as if it was in its forward orientation
-    expect = dna_alphabet.to_indices("TGA")
+    # the ungapped sequence should be too
+    expect = dna_alphabet.to_indices("TCA")
     got = asd.get_seq_array(seqid="a")
     assert (got == expect).all()
     # this should work on a data view too
@@ -5629,6 +5633,9 @@ def test_make_asd_revd(dna_alphabet, dna_moltype):
     # with the gapped seq as before
     got = view.gapped_array_value
     assert (got == data["a"]).all()
+    # getting the seqview should behave consistently
+    sv = view.get_seq_view()
+    assert (sv.array_value == expect).all()
 
 
 @pytest.mark.parametrize("aligned", [False, True])

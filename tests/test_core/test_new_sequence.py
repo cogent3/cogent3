@@ -273,7 +273,9 @@ def test_sequence_complement():
 def test_sequence_rc():
     """Sequence.rc() should correctly reverse-complement sequence"""
     # no longer preserves case!
-    assert new_moltype.DNA.make_seq(seq="TATCG-NR").rc() == "YN-CGATA"
+    s = new_moltype.DNA.make_seq(seq="TATCG-NR")
+    s = s.rc()
+    assert s == "YN-CGATA"
     assert new_moltype.RNA.make_seq(seq="").rc() == ""
     assert new_moltype.RNA.make_seq(seq="UAUCG-NR").rc() == "YN-CGAUA"
     assert new_moltype.RNA.make_seq(seq="A").rc() == "U"
