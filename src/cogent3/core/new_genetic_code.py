@@ -300,9 +300,14 @@ class GeneticCode:
         for strand, start in itertools.product(("+", "-"), range(3)):
             yield strand, start, self.translate(seq, start, rc=strand == "-")
 
-    def is_stop(self, codon):
+    def is_stop(self, codon: str) -> bool:
         """Returns True if codon is a stop codon, False otherwise."""
         return self[codon] == "*"
+
+    def is_start(self, codon: str) -> bool:
+        """Returns True if codon is a start codon, False otherwise."""
+        fixed_codon = codon.upper().replace("U", "T")
+        return fixed_codon in self.start_codons
 
     @functools.cache
     def get_alphabet(

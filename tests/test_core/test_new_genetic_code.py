@@ -39,6 +39,18 @@ def test_start_codons():
     assert code.start_codons == expect
 
 
+@pytest.mark.parametrize("codon", ["ATG", "AUG", "CUG", "TTG"])
+def test_is_start_true(codon):
+    code = new_genetic_code.DEFAULT
+    assert code.is_start(codon)
+
+
+@pytest.mark.parametrize("codon", ["TCC", "AUU", "AAA"])
+def test_is_start_false(codon):
+    code = new_genetic_code.DEFAULT
+    assert not code.is_start(codon)
+
+
 def test_sense_codons():
     code = new_genetic_code.DEFAULT
     assert len(code.sense_codons) == 61
