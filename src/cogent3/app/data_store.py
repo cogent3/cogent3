@@ -484,7 +484,7 @@ class DataStoreDirectory(DataStoreABC):
         unique_id: str,
         suffix: str,
         data: str,
-    ) -> DataMember:
+    ) -> DataMember | None:
         super().write(unique_id=unique_id, data=data)
         assert suffix, "Must provide suffix"
         # check suffix compatible with this datastore
