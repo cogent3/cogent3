@@ -857,7 +857,28 @@ class MolType:
         seq: StrORBytesORArray,
         include_gap: bool = True,
         validate: bool = True,
-    ) -> list[int]:  # refactor: docstring
+    ) -> list[int]: 
+        """_summary_
+
+        Parameters
+        ----------
+        seq : StrORBytesORArray
+            _description_
+        include_gap : bool, optional
+            _description_, by default True
+        validate : bool, optional
+            _description_, by default True
+
+        Returns
+        -------
+        list[int]
+            _description_
+
+        Raises
+        ------
+        new_alphabet.AlphabetError
+            _description_
+        """  
         if validate and not self.is_valid(seq):
             msg = f"{seq[:4]!r} not valid for moltype {self.name!r}"
             raise new_alphabet.AlphabetError(
