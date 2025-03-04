@@ -380,7 +380,6 @@ class ConstraintError(Exception):
     """Raised when constraint on a container is violated."""
 
 
-import warnings
 
 def identity(x):
     """
