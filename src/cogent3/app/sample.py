@@ -970,7 +970,7 @@ class omit_bad_seqs:
             moltype = cogent3.get_moltype(moltype)
         valid_moltypes = {"dna", "rna", "protein", "protein_with_stop"}
         if moltype.label.lower() not in valid_moltypes:
-            raise new_moltype.MolTypeError(f"Invalid moltype: {moltype.label}. Moltype must be one of DNA, RNA, or PROTEIN.")
+            raise new_moltype.MolTypeError(f"Invalid moltype: {moltype.label}. Moltype must be one of DNA, RNA, PROTEIN, or PROTEIN WITH STOP.")
         
         # refactor: design, this should raise a MolTypeError
         self._quantile = quantile
