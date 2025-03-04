@@ -499,8 +499,12 @@ def test_omit_bad_seqs(bad_gap_data, gap_fraction, quantile, expected_keys):
     expected = {k: bad_gap_data[k] for k in expected_keys}
     assert got.to_dict() == expected
 
+
 def test_omit_bad_seqs_error():
-    with pytest.raises(MolTypeError, match="Invalid moltype: text. Moltype must be one of DNA, RNA, or PROTEIN."):
+    with pytest.raises(
+        MolTypeError,
+        match="Invalid moltype: text. Moltype must be one of DNA, RNA, or PROTEIN.",
+    ):
         sample.omit_bad_seqs(moltype="text")
 
 
