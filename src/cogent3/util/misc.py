@@ -380,8 +380,19 @@ class ConstraintError(Exception):
     """Raised when constraint on a container is violated."""
 
 
+import warnings
+
 def identity(x):
-    """Identity function: useful for avoiding special handling for None."""
+    """
+    Identity function: useful for avoiding special handling for None.
+    
+    Deprecated: This function is deprecated and will be removed in cogent3 version 2025.09.
+    """
+    warnings.warn(
+        "cogent3.util.misc.identity() is deprecated and will be removed in version 2025.09 (6 months for 3)",
+        DeprecationWarning,
+        stacklevel=2
+    )
     return x
 
 
