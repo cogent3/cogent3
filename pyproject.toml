@@ -50,7 +50,7 @@ Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 
 [project.optional-dependencies]
 test = [
-    "ruff==0.9.7",
+    "ruff==0.9.9",
     "kaleido",
     "pandas",
     "plotly",
