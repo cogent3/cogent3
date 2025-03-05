@@ -34,6 +34,8 @@ from typing import (
     Any,
     Optional,
 )
+import numpy as np
+from collections import defaultdict
 
 import numpy
 from numpy import (
@@ -1367,41 +1369,51 @@ class _SequenceCollectionBase:
             alphabet = moltype.alphabet
             if allow_gap:
                 alphabet = alphabet.gapped
-
-        counts = {}
-        for seq_name in self.names:
-            sequence = self.named_seqs[seq_name]
-            motif_len = alphabet.motif_len
+                
+        valid_motifs = set(alphabet)
+        motif_len = alphabet.motif_len
+        seq_arrays = []
+        for seq in self.named_seqs.values():
+            seq_len = len(seq)
             if motif_len > 1:
-                posns = list(range(0, len(sequence) + 1 - motif_len, motif_len))
-                sequence = [sequence[i : i + motif_len] for i in posns]
-            for motif in sequence:
-                if not allow_gap and self.moltype.gap in motif:
-                    continue
-
-                if motif in counts:
-                    counts[motif] += 1
+                n_motifs = (seq_len + motif_len - 1) // motif_len
+                padded_seq = seq.ljust(n_motifs * motif_len, fillchar=moltype.gap)
+                arr = np.array(list(padded_seq)).reshape(-1, motif_len)
+            else:
+                arr = np.array(list(seq))
+            seq_arrays.append(arr)
+        all_motifs_arr = np.concatenate(seq_arrays, axis=0)
+        if not allow_gap:
+            gap_mask = np.any(all_motifs_arr == moltype.gap_char, axis=1)
+            all_motifs_arr = all_motifs_arr[~gap_mask]
+        unique_motifs, counts = np.unique(all_motifs_arr, axis=0, return_counts=True)
+        motif_counts = dict(zip(map(tuple, unique_motifs), counts))
+        
+        resolved_counts = defaultdict(float)
+        for motif_tuple, count in motif_counts.items():
+            motif = "".join(motif_tuple)
+            resolved = moltype.resolve_ambiguity(motif, alphabet=alphabet)
+            if not resolved:
+                continue
+            if len(resolved) > 1:
+                if include_ambiguity:
+                    weight = count / len(resolved)
                 else:
-                    counts[motif] = 1
+                    continue
+            else:
+                weight = count
+            for m in resolved:
+                resolved_counts[m] += weight
 
+        total =sum(resolved_counts.values()) + pseudocount * len(valid_motifs)
         probs = {}
         if not exclude_unobserved:
-            for motif in alphabet:
+            for motif in valid_motifs:
                 probs[motif] = pseudocount
-
-        for motif, count in list(counts.items()):
-            motif_set = moltype.resolve_ambiguity(motif, alphabet=alphabet)
-            if len(motif_set) > 1:
-                if include_ambiguity:
-                    count = float(count) / len(motif_set)
-                else:
-                    continue
-            for motif in motif_set:
-                probs[motif] = probs.get(motif, pseudocount) + count
-
-        total = float(sum(probs.values()))
-        for motif in probs:
-            probs[motif] /= total
+                
+        for motif in valid_motifs:
+            cnt = resolved_counts.get(motif, 0)
+            probs[motif] = (cnt + pseudocount) / total
 
         return probs
 
