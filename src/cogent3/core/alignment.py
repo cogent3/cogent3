@@ -1377,18 +1377,20 @@ class _SequenceCollectionBase:
             seq_len = len(seq)
             if motif_len > 1:
                 n_motifs = (seq_len + motif_len - 1) // motif_len
+#seq.ljust() provided in chatgpt fills the sequence and splits it into blocks of size motif_len, and converts it into a two-dimensional array using.reshape() provided by ai.
                 padded_seq = seq.ljust(n_motifs * motif_len, fillchar=moltype.gap)
                 arr = np.array(list(padded_seq)).reshape(-1, motif_len)
             else:
                 arr = np.array(list(seq))
             seq_arrays.append(arr)
         all_motifs_arr = np.concatenate(seq_arrays, axis=0)
+#Code copied from ai: To remove motifs_arr with gap, the all_motifs_arr[~gap_mask] 'bitwise inverse' operation provided in ai is used, which flips Boolean values.
         if not allow_gap:
             gap_mask = np.any(all_motifs_arr == moltype.gap_char, axis=1)
             all_motifs_arr = all_motifs_arr[~gap_mask]
         unique_motifs, counts = np.unique(all_motifs_arr, axis=0, return_counts=True)
         motif_counts = dict(zip(map(tuple, unique_motifs), counts))
-        
+# Copied and edited the code by ai: The AI-related part: The part of the code that resolves ambiguity, which relies on some algorithm for pattern recognition or inference.        
         resolved_counts = defaultdict(float)
         for motif_tuple, count in motif_counts.items():
             motif = "".join(motif_tuple)
@@ -1404,7 +1406,7 @@ class _SequenceCollectionBase:
                 weight = count
             for m in resolved:
                 resolved_counts[m] += weight
-
+#edited the code by Genai :total is the sum of the weighted counts of all parsed motifs plus the sum of the false counts of all valid motifs. This value will be used as the denominator for subsequent probability calculations
         total =sum(resolved_counts.values()) + pseudocount * len(valid_motifs)
         probs = {}
         if not exclude_unobserved:
