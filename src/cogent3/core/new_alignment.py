@@ -1575,13 +1575,13 @@ class SequenceCollection:
 
         Used in likelihood calculations.
         """
-        # refactor: performance
         result = {}
+        alpha = self.moltype.most_degen_alphabet()
         for name in self.names:
             result[name] = ambig = {}
-            for i, motif in enumerate(self.seqs[name]):
-                if self.moltype.is_ambiguity(motif):
-                    ambig[i] = motif
+            array = numpy.array(self.seqs[name])
+            for i in numpy.where(array > alpha.gap_index)[0]:
+                ambig[i] = alpha[array[i]]
         return result
 
     def trim_stop_codons(self, gc: Any = 1, strict: bool = False):
