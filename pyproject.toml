@@ -50,7 +50,7 @@ Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 
 [project.optional-dependencies]
 test = [
-    "ruff==0.9.7",
+    "ruff==0.9.9",
     "kaleido",
     "pandas",
     "plotly",
@@ -63,69 +63,40 @@ test = [
 ]
 doc  = [
     "click",
-    "ipykernel",
-    "ipython",
-    "ipywidgets",
+    "cogent3[extra]",
     "jupyter-sphinx",
     "jupyter_client",
-    "jupyterlab",
     "jupytext",
-    "kaleido",
     "nbconvert>5.4",
     "nbformat",
     "nbsphinx",
     "numpydoc",
-    "pandas",
-    "pillow",
-    "plotly",
-    "psutil",
-    "sphinx",
-    "sphinx-autobuild",
-    "pydata_sphinx_theme",
-    "sphinx_design",
-    "sphinxcontrib-bibtex",
-    "sphinxcontrib-video"
-]
-extra = [
-    "ipywidgets",
-    "jupyterlab",
-    "kaleido",
-    "notebook",
-    "pandas",
-    "plotly",
-    "psutil"
-]
-dev = [
-    "ruff==0.9.7",
-    "flit",
-    "ipykernel",
-    "ipython",
-    "ipywidgets",
-    "jupyter-sphinx",
-    "jupyter_client",
-    "jupyterlab",
-    "jupytext",
-    "kaleido",
-    "nbconvert>5.4",
-    "nbformat",
-    "nbsphinx",
-    "nox",
-    "numpydoc",
-    "pandas",
-    "pillow",
-    "plotly",
-    "psutil",
-    "pytest",
-    "pytest-cov",
-    "pytest-xdist",
-    "scriv",
     "sphinx",
     "sphinx-autobuild",
     "pydata_sphinx_theme",
     "sphinx_design",
     "sphinxcontrib-bibtex",
     "sphinxcontrib-video",
-    "tinydb"
+]
+extra = [
+    "ipykernel",
+    "ipython",
+    "ipywidgets",
+    "jupyterlab",
+    "kaleido",
+    "notebook",
+    "pandas",
+    "pillow",
+    "plotly",
+    "psutil",
+]
+dev = [
+    "flit",
+    "nox",
+    "numpydoc",
+    "scriv",
+    "cogent3[doc]",
+    "cogent3[test]",
 ]
 
 [tool.flit.sdist]
