@@ -379,24 +379,15 @@ class FunctionWrapper:
 class ConstraintError(Exception):
     """Raised when constraint on a container is violated."""
 
-
 from cogent3.util import warning as c3warn
 
-def identity_new(x):
-    """
-    New identity function.
-    This is the replacement for cogent3.util.misc.identity().
-    """
-    return x
-
 @c3warn.deprecated_callable(
-    version="2025.09", 
-    reason="The function is not used in cogent3 and will be removed in 6 months notice.",
-    new="identity_new"
+    version="2025.09",
+    reason="The function is not used in cogent3 and will be removed in a future release."
 )
-def identity(x):  
-    """Deprecated: use identity_new instead."""
-    return identity_new(x)
+def identity(x):
+    """Deprecated: This function will be removed in a future release."""
+    return x
 
 
 class ConstrainedContainer:
