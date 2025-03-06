@@ -37,9 +37,22 @@ def zprob(x):
     return 2 * norm.sf(abs(x))
 
 
-def tprob(x, df):
+import scipy.stats
+
+from cogent3.util import warning as c3warn
+
+
+def tprob_new(x, df):
     """Returns both tails of t distribution (-infinity to -x, infinity to x)"""
-    return 2 * t.sf(abs(x), df)
+    return 2 * scipy.stats.t.sf(abs(x), df)
+
+
+@c3warn.deprecated_callable(
+    version="2025.3", reason="Use scipy.stats.t.sf() instead", new="tprob_new"
+)
+def tprob(x, df):  # pragma: no cover
+    """deprecated, use new"""
+    return tprob_new(x, df)
 
 
 def binomial_exact(successes, trials, prob):

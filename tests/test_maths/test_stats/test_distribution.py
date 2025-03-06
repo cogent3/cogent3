@@ -24,7 +24,7 @@ from cogent3.maths.stats.distribution import (
     stdtr,
     stdtri,
     theoretical_quantiles,
-    tprob,
+    tprob_new,
     zprob,
 )
 
@@ -63,8 +63,8 @@ class DistributionsTests(TestCase):
         for z, p in zip(self.negvalues, probs, strict=False):
             assert_allclose(zprob(z), p, rtol=1e-6)
 
-    def test_tprob(self):
-        """tprob should match twice the t_high probability for abs(t)"""
+    def test_tprob_new(self):
+        """tprob_new should match twice the t_high probability for abs(t)"""
 
         probs = {
             1: [
@@ -121,7 +121,7 @@ class DistributionsTests(TestCase):
         }
         for df in self.df:
             for x, p in zip(self.values, probs[df], strict=False):
-                assert_almost_equal(tprob(x, df), p, decimal=4)
+                assert_almost_equal(tprob_new(x, df), p, decimal=4)
 
     def test_binomial_series(self):
         """binomial_exact should match values from R on a whole series"""
