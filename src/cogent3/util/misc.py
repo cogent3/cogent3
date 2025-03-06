@@ -379,6 +379,7 @@ class FunctionWrapper:
 class ConstraintError(Exception):
     """Raised when constraint on a container is violated."""
 
+
 from cogent3.util import warning as c3warn
 
 @c3warn.deprecated_callable(
@@ -386,8 +387,14 @@ from cogent3.util import warning as c3warn
     reason="The function is not used in cogent3 and will be removed in a future release."
 )
 def identity(x):
-    """Deprecated: This function will be removed in a future release."""
+    """Deprecated: This function will be removed in a future release.
+    
+    Identity function: useful for avoiding special handling for None.
+    """
     return x
+
+
+
 
 
 class ConstrainedContainer:
