@@ -1130,12 +1130,11 @@ class _SequenceCollectionBase:
         Used in likelihood calculations.
         """
         result = {}
-        alpha = self.moltype.most_degen_alphabet()
         for name in self.names:
             result[name] = ambig = {}
-            array = numpy.array(self.seqs[name])
-            for i in numpy.where(array > alpha.gap_index)[0]:
-                ambig[i] = alpha[array[i]]
+            for i, motif in enumerate(self.named_seqs[name]):
+                if self.moltype.is_ambiguity(motif):
+                    ambig[i] = motif
         return result
 
     def degap(self, **kwargs):  # ported
