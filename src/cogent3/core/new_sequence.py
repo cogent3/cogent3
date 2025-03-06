@@ -2093,7 +2093,7 @@ class NucleicAcidSequenceMixin:
 
         if not incomplete_ok and "X" in pep:
             msg = (
-                "A codon is incomplete or contains an ambiguity, set incomplete_ok=True to "
+                f"{self.name!r} has an incomplete codon or contains an ambiguity, set incomplete_ok=True to "
                 "allow translation"
             )
             raise new_alphabet.AlphabetError(
