@@ -383,7 +383,7 @@ class ConstraintError(Exception):
 
 
 @c3warn.deprecated_callable(
-    version="2025.09",
+    version="2025.06",
     reason="The function is not used in cogent3 and will be removed in a future release.",
 )
 def identity(x):
