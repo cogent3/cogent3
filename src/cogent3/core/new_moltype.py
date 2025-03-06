@@ -858,26 +858,16 @@ class MolType:
         include_gap: bool = True,
         validate: bool = True,
     ) -> list[int]: 
-        """_summary_
-
+        """Return List of position indexs of degenerate characters in the sequence.
+    
         Parameters
         ----------
         seq : StrORBytesORArray
-            _description_
+            the sequence to be used for getting degenerate positions
         include_gap : bool, optional
-            _description_, by default True
+            if False, add 1 to the index
         validate : bool, optional
-            _description_, by default True
-
-        Returns
-        -------
-        list[int]
-            _description_
-
-        Raises
-        ------
-        new_alphabet.AlphabetError
-            _description_
+            if True, checks the sequence is validated
         """  
         if validate and not self.is_valid(seq):
             msg = f"{seq[:4]!r} not valid for moltype {self.name!r}"
