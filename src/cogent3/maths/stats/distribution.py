@@ -59,6 +59,30 @@ def binomial_exact(successes, trials, prob):
         raise ValueError(msg)
     return exp(ln_binomial(successes, trials, prob))
 
+def new_binomial_exact(successes, trials, prob):
+    """the same function of binomial_exact, in version 25.6, it will replce 
+    binomial_exat with scripy, with same input but use scipy.stat.binom.pmf 
+    instead, can only support integer
+    """
+    if (prob < 0) or (prob > 1):
+        msg = "Binomial prob must be between 0 and 1."
+        raise ValueError(msg)
+    if (successes < 0) or (trials < successes):
+        msg = "Binomial successes must be between 0 and trials."
+        raise ValueError(msg)
+    return exp(ln_binomial(successes, trials, prob))
+
+from cogent3.util import warning as c3warn
+@c3warn.deprecated_callable(version="2025.6", reason="use scipy.stat.binom.pmf instead binomial_exact", new="new_binomial_exact")
+def binomial_exact(successes, trials, prob): # pragma: no cover
+    """deprecated, in version 2025.6，use scipy.stat.binom,pmf instead"""	
+    return new_binomial_exact(successes, trials, prob)
+
+
+
+    
+
+
 
 def fprob(dfn, dfd, F, side="right"):
     """Returns both tails of F distribution (-inf to F and F to inf)
