@@ -857,7 +857,18 @@ class MolType:
         seq: StrORBytesORArray,
         include_gap: bool = True,
         validate: bool = True,
-    ) -> list[int]:  # refactor: docstring
+    ) -> list[int]:
+        """Return List of position indexs of degenerate characters in the sequence.
+
+        Parameters
+        ----------
+        seq : StrORBytesORArray
+            the sequence to be used for getting degenerate positions
+        include_gap : bool, optional
+            if True, then the gap state together with ’canonical’ sates (A,C,G,T for DNA) will be considered non-ambiguous.
+        validate : bool, optional
+            if True, checks the sequence is validated for the alphabet
+        """
         if validate and not self.is_valid(seq):
             msg = f"{seq[:4]!r} not valid for moltype {self.name!r}"
             raise new_alphabet.AlphabetError(
