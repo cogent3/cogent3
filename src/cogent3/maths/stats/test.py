@@ -32,7 +32,7 @@ from numpy.random import permutation, randint
 from scipy.stats import binom, f, norm, t
 from scipy.stats.distributions import chi2
 
-from cogent3.maths.stats.distribution import fprob, ndtri, tprob_new, zprob
+from cogent3.maths.stats.distribution import fprob, ndtri, zprob
 from cogent3.maths.stats.kendall import kendalls_tau, pkendall
 from cogent3.maths.stats.ks import pkstwo, psmirnov2x
 from cogent3.maths.stats.number import NumberCounter
@@ -1268,7 +1268,7 @@ def t_tailed_prob(x, df, tails):
         return t.sf(x, df)
     if tails == ALT_LOW:
         return t.cdf(x, df)
-    return tprob_new(x, df)
+    return 2 * scipy.stats.t.sf(abs(x), df)
 
 
 def reverse_tails(tails):

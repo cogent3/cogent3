@@ -31,28 +31,20 @@ incbet = betai  # shouldn't have renamed it...
 
 # Probability integrals: low gives left-hand tail, high gives right-hand tail.
 
+import scipy.stats
 
+from cogent3.util import warning as c3warn
 def zprob(x):
     """Returns both tails of z distribution (-inf to -x, inf to x)."""
     return 2 * norm.sf(abs(x))
 
 
-import scipy.stats
-
-from cogent3.util import warning as c3warn
-
-
-def tprob_new(x, df):
-    """Returns both tails of t distribution (-infinity to -x, infinity to x)"""
-    return 2 * scipy.stats.t.sf(abs(x), df)
-
-
 @c3warn.deprecated_callable(
-    version="2025.3", reason="Use scipy.stats.t.sf() instead", new="tprob_new"
+    version="2025.6", reason="Use scipy.stats.t.sf() instead", is_discontinued=True
 )
-def tprob(x, df):  # pragma: no cover
+def tprob(x, df):  
     """deprecated, use new"""
-    return tprob_new(x, df)
+    return 2 * scipy.stats.t.sf(abs(x), df)
 
 
 def binomial_exact(successes, trials, prob):

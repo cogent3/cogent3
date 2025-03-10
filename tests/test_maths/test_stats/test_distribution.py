@@ -24,7 +24,6 @@ from cogent3.maths.stats.distribution import (
     stdtr,
     stdtri,
     theoretical_quantiles,
-    tprob_new,
     zprob,
 )
 
@@ -63,65 +62,7 @@ class DistributionsTests(TestCase):
         for z, p in zip(self.negvalues, probs, strict=False):
             assert_allclose(zprob(z), p, rtol=1e-6)
 
-    def test_tprob_new(self):
-        """tprob_new should match twice the t_high probability for abs(t)"""
-
-        probs = {
-            1: [
-                2 * i
-                for i in [
-                    0.500000000,
-                    0.496817007,
-                    0.468274483,
-                    0.352416382,
-                    0.250000000,
-                    0.147583618,
-                    0.062832958,
-                    0.031725517,
-                    0.015902251,
-                    0.010606402,
-                    0.006365349,
-                    0.001591536,
-                ]
-            ],
-            10: [
-                2 * i
-                for i in [
-                    5.000000e-01,
-                    4.961090e-01,
-                    4.611604e-01,
-                    3.139468e-01,
-                    1.704466e-01,
-                    3.669402e-02,
-                    2.686668e-04,
-                    7.947766e-07,
-                    1.073031e-09,
-                    1.980896e-11,
-                    1.237155e-13,
-                    1.200254e-19,
-                ]
-            ],
-            100: [
-                2 * i
-                for i in [
-                    5.000000e-01,
-                    4.960206e-01,
-                    4.602723e-01,
-                    3.090868e-01,
-                    1.598621e-01,
-                    2.410609e-02,
-                    1.225087e-06,
-                    4.950844e-17,
-                    4.997134e-37,
-                    4.190166e-52,
-                    7.236082e-73,
-                    2.774197e-132,
-                ]
-            ],
-        }
-        for df in self.df:
-            for x, p in zip(self.values, probs[df], strict=False):
-                assert_almost_equal(tprob_new(x, df), p, decimal=4)
+    
 
     def test_binomial_series(self):
         """binomial_exact should match values from R on a whole series"""
