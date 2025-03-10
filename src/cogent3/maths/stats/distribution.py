@@ -41,42 +41,22 @@ def tprob(x, df):
     """Returns both tails of t distribution (-infinity to -x, infinity to x)"""
     return 2 * t.sf(abs(x), df)
 
-
-def binomial_exact(successes, trials, prob):
-    """Returns binomial probability of exactly X successes.
-
-    Works for integer and floating point values.
-
-    Note: this function is only a probability mass function for integer
-    values of 'trials' and 'successes', i.e. if you sum up non-integer
-    values you probably won't get a sum of 1.
-    """
-    if (prob < 0) or (prob > 1):
-        msg = "Binomial prob must be between 0 and 1."
-        raise ValueError(msg)
-    if (successes < 0) or (trials < successes):
-        msg = "Binomial successes must be between 0 and trials."
-        raise ValueError(msg)
-    return exp(ln_binomial(successes, trials, prob))
-
-def new_binomial_exact(successes, trials, prob):
-    """the same function of binomial_exact, in version 25.6, it will replce 
-    binomial_exat with scripy, with same input but use scipy.stat.binom.pmf 
-    instead, can only support integer
-    """
-    if (prob < 0) or (prob > 1):
-        msg = "Binomial prob must be between 0 and 1."
-        raise ValueError(msg)
-    if (successes < 0) or (trials < successes):
-        msg = "Binomial successes must be between 0 and trials."
-        raise ValueError(msg)
-    return exp(ln_binomial(successes, trials, prob))
-
 from cogent3.util import warning as c3warn
-@c3warn.deprecated_callable(version="2025.6", reason="use scipy.stat.binom.pmf instead binomial_exact", new="new_binomial_exact")
-def binomial_exact(successes, trials, prob): # pragma: no cover
-    """deprecated, in version 2025.6，use scipy.stat.binom,pmf instead"""	
-    return new_binomial_exact(successes, trials, prob)
+@c3warn.deprecated_callable(
+        version="2025.6", 
+        reason="use scipy.stat.binom.pmf instead binomial_exact", 
+        is_discontinued=True
+)
+def binomial_exact(successes, trials, prob):# pragma: no cover
+    """deprecated, use scipy.stats.binom.pmf instead"""
+    if (prob < 0) or (prob > 1):
+        msg = "Binomial prob must be between 0 and 1."
+        raise ValueError(msg)
+    if (successes < 0) or (trials < successes):
+        msg = "Binomial successes must be between 0 and trials."
+        raise ValueError(msg)
+    return exp(ln_binomial(successes, trials, prob))
+
 
 
 
