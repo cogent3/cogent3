@@ -151,7 +151,7 @@ class DistributionsTests(TestCase):
         }
         for key, value in list(expected.items()):
             assert_almost_equal(binomial_exact(*key), value, 1e-4)
-    
+
     def test_binomial_exact_floats(self):
         """binomial_exact should be within limits for floating point numbers"""
         expected = {
@@ -168,7 +168,6 @@ class DistributionsTests(TestCase):
             min_val, max_val = value
             assert min_val < binomial_exact(*key) < max_val
             # assert_almost_equal(binomial_exact(*key), value, 1e-4)
-
 
     def test_binomial_exact_errors(self):
         """binomial_exact should raise errors on invalid input"""

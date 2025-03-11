@@ -41,13 +41,16 @@ def tprob(x, df):
     """Returns both tails of t distribution (-infinity to -x, infinity to x)"""
     return 2 * t.sf(abs(x), df)
 
+
 from cogent3.util import warning as c3warn
+
+
 @c3warn.deprecated_callable(
-        version="2025.6", 
-        reason="use scipy.stat.binom.pmf instead binomial_exact", 
-        is_discontinued=True
+    version="2025.6",
+    reason="use scipy.stat.binom.pmf instead binomial_exact",
+    is_discontinued=True,
 )
-def binomial_exact(successes, trials, prob):# pragma: no cover
+def binomial_exact(successes, trials, prob):  # pragma: no cover
     """deprecated, use scipy.stats.binom.pmf instead"""
     if (prob < 0) or (prob > 1):
         msg = "Binomial prob must be between 0 and 1."
@@ -56,12 +59,6 @@ def binomial_exact(successes, trials, prob):# pragma: no cover
         msg = "Binomial successes must be between 0 and trials."
         raise ValueError(msg)
     return exp(ln_binomial(successes, trials, prob))
-
-
-
-
-    
-
 
 
 def fprob(dfn, dfd, F, side="right"):
