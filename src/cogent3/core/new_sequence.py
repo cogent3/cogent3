@@ -2088,12 +2088,12 @@ class NucleicAcidSequenceMixin:
         pep = gc.translate(array(seq), rc=False, incomplete_ok=incomplete_ok)
 
         if not include_stop and "*" in pep:
-            msg = "stop codon in translation"
+            msg = f"{self.name!r} has a stop codon in the translation"
             raise new_alphabet.AlphabetError(msg)
 
         if not incomplete_ok and "X" in pep:
             msg = (
-                "A codon is incomplete or contains an ambiguity, set incomplete_ok=True to "
+                f"{self.name!r} has an incomplete codon or contains an ambiguity, set incomplete_ok=True to "
                 "allow translation"
             )
             raise new_alphabet.AlphabetError(

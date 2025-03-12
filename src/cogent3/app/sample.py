@@ -968,16 +968,18 @@ class omit_bad_seqs:
         """
         if moltype:
             moltype = cogent3.get_moltype(moltype)
-        assert moltype.label.lower() in "dna rna protein protein_with_stop", (
-            "moltype must be one of DNA, RNA or PROTEIN"
-        )
+        valid_moltypes = {"dna", "rna", "protein", "protein_with_stop"}
+        if moltype.label.lower() not in valid_moltypes:
+            msg = f"Invalid moltype: {moltype.label!r}. Moltype must be one of {', '.join(valid_moltypes)}"
+            raise new_moltype.MolTypeError(msg)
+
         # refactor: design, this should raise a MolTypeError
         self._quantile = quantile
         self._gap_fraction = gap_fraction
         self._ambig_fraction = ambig_fraction
         self._moltype = moltype
 
-    T = Union[SerialisableType, AlignedSeqsType]
+    T = SerialisableType | AlignedSeqsType
 
     def main(self, aln: AlignedSeqsType) -> T:
         if self._moltype and self._moltype != aln.moltype:

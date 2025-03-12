@@ -6,6 +6,7 @@ import pytest
 import cogent3
 from cogent3.app import composable, sample
 from cogent3.app.composable import NotCompleted
+from cogent3.core.new_moltype import MolTypeError
 
 DNA = cogent3.get_moltype("dna")
 
@@ -497,6 +498,11 @@ def test_omit_bad_seqs(bad_gap_data, gap_fraction, quantile, expected_keys):
     got = dropbad(aln)
     expected = {k: bad_gap_data[k] for k in expected_keys}
     assert got.to_dict() == expected
+
+
+def test_omit_bad_seqs_error():
+    with pytest.raises(MolTypeError):
+        sample.omit_bad_seqs(moltype="text")
 
 
 @pytest.fixture
