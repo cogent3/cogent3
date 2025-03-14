@@ -8,6 +8,8 @@ import pytest
 
 from cogent3.parse import genbank
 
+# ruff: noqa: SIM905
+
 
 class GenBankTests(TestCase):
     """Tests of the GenBank main functions."""

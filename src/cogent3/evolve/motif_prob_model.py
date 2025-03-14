@@ -65,7 +65,7 @@ class MotifProbModel:
     def make_equal_motif_probs(self):
         alphabet = self.get_input_alphabet()
         p = 1.0 / len(alphabet)
-        return {m: p for m in alphabet}
+        return dict.fromkeys(alphabet, p)
 
     def make_sample_motif_probs(self):
         import random
