@@ -834,3 +834,45 @@ def test_align_degap_preserves_annotations(aligned):
     got = coll.degap()
     assert got.annotation_db is coll.annotation_db
     assert len(got.annotation_db) == 1
+
+
+@pytest.fixture
+def feature_data():
+    from cogent3.core.location import FeatureMap
+
+    seq = DNA.make_seq(seq="ACGGTG", name="demo")
+    fmap = FeatureMap.from_locations(locations=[(0, 2), (4, 6)], parent_length=6)
+    return {
+        "seqid": "1",
+        "strand": 0,
+        "map": fmap,
+        "biotype": "repeat",
+        "name": "trf",
+        "parent": seq,
+    }
+
+
+@pytest.fixture
+def feature_data_xattr(feature_data):
+    feature_data["xattr"] = {
+        "repeat_type": "Tandem repeats",
+        "repeat_class": "trf",
+        "repeat_name": "trf",
+    }
+    return feature_data
+
+
+def test_feature_xattr(feature_data_xattr):
+    feature = Feature(**feature_data_xattr)
+    assert feature.xattr == feature_data_xattr["xattr"]
+
+
+def test_feature_xttar_none(feature_data):
+    feature = Feature(**feature_data)
+    assert feature.xattr is None
+
+
+def test_feature_xattr_set(feature_data):
+    feature = Feature(**feature_data)
+    with pytest.raises(TypeError):
+        feature.xattr = {}

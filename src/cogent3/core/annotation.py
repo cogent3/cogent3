@@ -28,6 +28,7 @@ class Feature:
         "_seqid",
         "_serialisable",
         "_strand",
+        "_xattr",
     )
 
     # TODO gah implement a __new__ to trap args for serialisation purposes?
@@ -40,6 +41,7 @@ class Feature:
         biotype: str,
         name: str,
         strand: str,
+        xattr: dict[str, typing.Any] | None = None,
     ) -> None:
         # _serialisable is used for creating derivative instances
         d = locals()
@@ -54,6 +56,7 @@ class Feature:
         data.extend((self.seqid, self.biotype, self.name))
         self._id = hash(tuple(data))
         self._strand = strand
+        self._xattr = xattr
 
     def __eq__(self, other: typing_extensions.Self) -> bool:
         return self._id == other._id
@@ -303,7 +306,7 @@ class Feature:
             **self._serialisable,
             "spans": self.map.get_coordinates(),
         }
-        for key in ("map", "parent"):
+        for key in ("map", "parent", "xattr"):
             result.pop(key, None)
         return result
 
@@ -311,3 +314,12 @@ class Feature:
     def reversed(self) -> bool:
         """whether Feature is on the reverse strand relative to bound object"""
         return self._strand == "-"
+
+    @property
+    def xattr(self) -> dict[str, typing.Any] | None:
+        return self._xattr
+
+    @xattr.setter
+    def xattr(self, val: typing.Any) -> None:
+        msg = "setting xattr is not supported"
+        raise TypeError(msg)
