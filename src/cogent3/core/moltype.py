@@ -1064,7 +1064,7 @@ class MolType:
         else:
             data = str(sequence)
 
-        trans = {i: None for i in map(ord, self.gaps)}
+        trans = dict.fromkeys(map(ord, self.gaps))
         return sequence.__class__(data.translate(trans))
 
     def gap_indices(self, sequence):

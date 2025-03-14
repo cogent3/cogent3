@@ -10,6 +10,8 @@ from cogent3.parse.clustal import (
 )
 from cogent3.parse.record import RecordError
 
+# ruff: noqa: SIM905
+
 # Note: the data are all strings and hence immutable, so it's OK to define
 # them here instead of in setUp and then subclassing everything from that
 # base class. If the data were mutable, we'd need to take more precautions

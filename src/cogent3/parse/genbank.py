@@ -90,7 +90,7 @@ def parse_sequence(lines, constructor="".join):
     """Parses a GenBank sequence block. Doesn't care about ORIGIN line."""
     result = []
     exclude = b"0123456789 \t\n\r/"
-    strip_table = {c: None for c in exclude}
+    strip_table = dict.fromkeys(exclude)
 
     for i in lines:
         if i.startswith("ORIGIN"):

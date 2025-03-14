@@ -3485,7 +3485,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             alphabet object for the sequences
         """
         names = tuple(kwargs.pop("names", seqs.keys()))
-        if not len(names):
+        if not names:
             msg = "seqs cannot be empty"
             raise ValueError(msg)
 

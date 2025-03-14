@@ -2039,7 +2039,7 @@ class Table:
         df = DataFrame(data=data, index=index)
         if categories is not None:
             categories = [categories] if type(categories) == str else categories
-            df = df.astype({n: "category" for n in categories})
+            df = df.astype(dict.fromkeys(categories, "category"))
 
         return df
 

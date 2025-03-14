@@ -168,7 +168,7 @@ class fast_slow_dist:
             self.fast_calc(aln, show_progress=False)
             dists = self.fast_calc.get_pairwise_distances()
         else:
-            empty = {p: 0 for p in itertools.product(aln.names, aln.names)}
+            empty = dict.fromkeys(itertools.product(aln.names, aln.names), 0)
             dists = DistanceMatrix(empty)
         dists.source = aln.info.source
         if self._sm:

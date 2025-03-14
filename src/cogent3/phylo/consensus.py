@@ -146,7 +146,7 @@ def weighted_rooted_majority_rule(weighted_trees, strict=False, attr="support"):
                 ancestor = new_ancestor
             new_queue.append((len(ancestor), ancestor))
         children = [nodes.pop(c) for c in clade]
-        assert len([children])
+        assert [children]
         nodes[clade] = tree_build(
             children,
             None,

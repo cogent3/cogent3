@@ -1795,7 +1795,7 @@ def test_sequence_collection_get_motif_probs_protein():
     aln = new_alignment.make_unaligned_seqs(data, moltype="protein")
     got = aln.get_motif_probs()
     alphabet = aln.moltype.alphabet
-    expect = {k: 0 for k in alphabet}
+    expect = dict.fromkeys(alphabet, 0)
     expect["M"] = 1 / 3
     expect["V"] = 1 / 3
     expect["S"] = 2 / 9

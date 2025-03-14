@@ -189,7 +189,7 @@ def test_count_distinct_no_match(gb_db):
 
 def test_gff_features_matching(gff_db):
     result = list(gff_db.get_features_matching(biotype="CDS"))
-    assert len(result)
+    assert result
 
 
 def test_gff_get_children(gff_db):

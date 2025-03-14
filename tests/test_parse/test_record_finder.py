@@ -11,6 +11,8 @@ from cogent3.parse.record_finder import (
     TailedRecordFinder,
 )
 
+# ruff: noqa: SIM905
+
 
 class TailedRecordFinderTests(TestCase):
     """Tests of the TailedRecordFinder factory function."""

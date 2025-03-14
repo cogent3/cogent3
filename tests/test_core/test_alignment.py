@@ -2384,9 +2384,9 @@ def test_seq_rename_preserves_annotations(cls):  # ported
     assert seqs.annotation_db is not None
     new = seqs.rename_seqs(lambda x: x.upper())
     assert len(new.annotation_db) == 1
-    assert len(list(new.get_features(biotype="exon")))
+    assert list(new.get_features(biotype="exon"))
     # using original seq name should also work
-    assert len(list(new.get_features(seqid="seq1")))
+    assert list(new.get_features(seqid="seq1"))
 
 
 def test_to_rich_dict_not_alignment():  # ported
