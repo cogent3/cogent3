@@ -881,7 +881,7 @@ def test_build_phylogeny():
         ("TombBat", "LittleBro"): 0.12,
     }
     dists = DistanceMatrix(dists)
-    got = dists.quick_tree(show_progress=False)
+    got = dists.quick_tree()
     expect = make_tree(
         treestring="((TombBat,(DogFaced,FlyingFox)),LittleBro,FreeTaile)",
     )

@@ -125,7 +125,7 @@ class quick_tree:
             tree = make_tree(treestring=newick, underscore_unmunge=True)
         else:
             (result,) = gnj(dists.to_dict(), keep=1, show_progress=False)
-            score, tree = result
+            _, tree = result
 
         return tree
 

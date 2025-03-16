@@ -4794,19 +4794,12 @@ def test_alignment_quick_tree(calc, brca1_data):
     """quick tree method returns tree"""
     aln = new_alignment.make_aligned_seqs(brca1_data, moltype="dna")[:100]
     aln = aln.take_seqs(["Human", "Rhesus", "HowlerMon", "Galago", "Mouse"])
-    kwargs = {"show_progress": False}
+    kwargs = {}
     if calc:
         kwargs["calc"] = calc
 
-    # bootstrap
-    tree = aln.quick_tree(bootstrap=2, **kwargs)
+    tree = aln.quick_tree(**kwargs)
     assert set(tree.get_tip_names()) == set(aln.names)
-    types = {
-        type(float(edge.params["support"]))
-        for edge in tree.preorder()
-        if not edge.is_root()
-    }
-    assert types == {float}
 
 
 @pytest.fixture

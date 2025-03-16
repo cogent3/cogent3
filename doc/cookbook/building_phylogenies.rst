@@ -20,15 +20,9 @@ Both the ``ArrayAlignment`` and ``Alignment`` classes support this.
     from cogent3 import load_aligned_seqs
 
     aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
-    tree = aln.quick_tree(calc="TN93", show_progress=False)
+    tree = aln.quick_tree(calc="TN93")
     tree = tree.balanced()  # purely for display
     print(tree.ascii_art())
-
-The ``quick_tree()`` method also supports non-parametric bootstrapping. The number of resampled alignments is specified using the ``bootstrap`` argument. In the following, trees are estimated from 100 resampled alignments and merged into a single consensus topology using a weighted consensus tree algorithm.
-
-.. jupyter-execute::
-
-    tree = aln.quick_tree(calc="TN93", bootstrap=100, show_progress=False)
 
 Using the ``DistanceMatrix`` object
 -----------------------------------
@@ -39,7 +33,7 @@ Using the ``DistanceMatrix`` object
 
     aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
     dists = aln.distance_matrix(calc="TN93")
-    tree = dists.quick_tree(show_progress=False)
+    tree = dists.quick_tree()
     tree = tree.balanced()  # purely for display
     print(tree.ascii_art())
 
