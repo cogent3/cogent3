@@ -389,11 +389,8 @@ class ConstraintError(Exception):
     version="2025.06",
     reason="The function is not used in cogent3 and will be removed in a future release.",
 )
-def identity(x):
-    """Deprecated: This function will be removed in a future release.
-
-    Identity function: useful for avoiding special handling for None.
-    """
+def identity(x):  # pragma: no cover
+    """Deprecated: This function will be removed in a future release."""
     return x
 
 
