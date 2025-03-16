@@ -7,7 +7,7 @@ import textwrap
 import warnings
 from typing import TYPE_CHECKING
 
-import stevedore
+from cogent3._plugin import get_app_manager
 
 from .composable import is_app, is_app_composable
 from .io import open_data_store  # noqa
@@ -17,8 +17,6 @@ if TYPE_CHECKING:
 
     from cogent3.util.table import Table
 
-# Entry_point for apps to register themselves as plugins
-APP_ENTRY_POINT = "cogent3.app"
 
 def _get_extension_attr(extension: Extension) -> list[str]:
     """
@@ -56,24 +54,6 @@ def _make_types(app: type) -> dict:
         types = [types] if isinstance(types, str) else types
         _types[tys] = [{None: ""}.get(e, e) for e in types]
     return _types
-
-
-# private global to hold an ExtensionManager instance
-__apps = None
-
-
-def get_app_manager() -> stevedore.ExtensionManager:
-    """
-    Lazy load a stevedore ExtensionManager to collect apps.
-    """
-    global __apps
-    if not __apps:
-        __apps = stevedore.ExtensionManager(
-            namespace=APP_ENTRY_POINT,
-            invoke_on_load=False,
-        )
-
-    return __apps
 
 
 def available_apps(name_filter: str | None = None) -> Table:

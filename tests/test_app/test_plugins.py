@@ -42,8 +42,8 @@ def mock_extension_manager(extension_manager_factory, monkeypatch):
     def _mock_extension_manager(extensions):
         # Create a mocked ExtensionManager with the specified mock extensions
         mocked_manager = extension_manager_factory(extensions)
-        # Patch the __apps variable in cogent3.apps module to use the mocked_manager
-        monkeypatch.setattr(cogent3.app, "__apps", mocked_manager)
+        # Patch the __apps variable in cogent3._plugin module to use the mocked_manager
+        monkeypatch.setattr(cogent3._plugin, "__apps", mocked_manager)
         return mocked_manager
 
     return _mock_extension_manager
