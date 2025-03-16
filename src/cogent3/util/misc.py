@@ -371,8 +371,11 @@ class Delegator:
 class FunctionWrapper:
     """Wraps a function to hide it from a class so that it isn't a method."""
 
-    def __init__(self, Function) -> None:
-        self.Function = Function
+    def __init__(self, Function=None) -> None:
+        self.Function = Function if Function is not None else self._default
+
+    def _default(self, x):
+        return x
 
     def __call__(self, *args, **kwargs):
         return self.Function(*args, **kwargs)
@@ -409,7 +412,7 @@ class ConstrainedContainer:
     """
 
     _constraint = None
-    mask = FunctionWrapper(identity)
+    mask = FunctionWrapper()
 
     def _mask_for_new(self):
         """Returns self.mask only if different from class data."""
@@ -664,7 +667,7 @@ class ConstrainedDict(ConstrainedContainer, dict):
     ValueError instead) but which is surprisingly useful in practice.
     """
 
-    value_mask = FunctionWrapper(identity)
+    value_mask = FunctionWrapper()
 
     def _get_mask_and_valmask(self):
         """Helper method to check whether mask and value_mask were set."""

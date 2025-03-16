@@ -34,7 +34,6 @@ from cogent3.util.misc import (
     get_run_start_indices,
     get_setting_from_environ,
     get_true_spans,
-    identity,
     is_char,
     is_char_or_noniterable,
     is_iterable,
@@ -96,12 +95,6 @@ class UtilsTests(TestCase):
 
         with pytest.raises(ValueError):
             got = adjusted_within_bounds(u - 4, l, u, eps=eps, action="raise")
-
-    def test_identity(self):
-        """should return same object"""
-        foo = [1, "a", lambda x: x]
-        exp = id(foo)
-        assert id(identity(foo)) == exp
 
     def test_iterable(self):
         """iterable(x) should return x or [x], always an iterable result"""
