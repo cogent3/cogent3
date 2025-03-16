@@ -96,11 +96,11 @@ class uniformize_tree:
 class quick_tree:
     """Computes a Neighbour Joining tree from pairwise distances."""
 
-    def __init__(self, drop_invalid=False) -> None:
+    def __init__(self, drop_invalid: bool = False) -> None:
         """
         Parameters
         ----------
-        drop_invalid : bool
+        drop_invalid
             drops all rows / columns with an invalid entry. If True, sequences
             for which a distance could not be calculated are excluded and
             the resulting tree will be for the subset of labels with strictly
@@ -125,7 +125,7 @@ class quick_tree:
             tree = make_tree(treestring=newick, underscore_unmunge=True)
         else:
             (result,) = gnj(dists.to_dict(), keep=1, show_progress=False)
-            (score, tree) = result
+            score, tree = result
 
         return tree
 

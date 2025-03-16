@@ -10,16 +10,17 @@ from typing import TYPE_CHECKING
 import stevedore
 
 from .composable import is_app, is_app_composable
-from .io import open_data_store
+from .io import open_data_store  # noqa
 
 if TYPE_CHECKING:
+    from stevedore.extension import Extension
+
     from cogent3.util.table import Table
 
 # Entry_point for apps to register themselves as plugins
 APP_ENTRY_POINT = "cogent3.app"
 
-
-def _get_extension_attr(extension):
+def _get_extension_attr(extension: Extension) -> list[str]:
     """
     This function returns app details for display.
 
@@ -47,12 +48,12 @@ def _get_extension_attr(extension):
     ]
 
 
-def _make_types(app) -> dict:
+def _make_types(app: type) -> dict:
     """returns type hints for the input and output"""
     _types = {"_data_types": [], "_return_types": []}
     for tys in _types:
         types = getattr(app, tys, None) or []
-        types = [types] if type(types) == str else types
+        types = [types] if isinstance(types, str) else types
         _types[tys] = [{None: ""}.get(e, e) for e in types]
     return _types
 
@@ -149,7 +150,7 @@ def _make_signature(app: type) -> str:
     return f"{sig_prefix}(\n{params},\n)"
 
 
-def _doc_summary(doc):
+def _doc_summary(doc: str) -> str:
     """return first para of docstring"""
     result = []
     for line in doc.splitlines():
@@ -160,7 +161,7 @@ def _doc_summary(doc):
     return " ".join(result)
 
 
-def _get_app_matching_name(name: str):
+def _get_app_matching_name(name: str) -> type:
     """name can include module name"""
 
     if "." in name:
