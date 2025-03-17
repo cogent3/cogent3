@@ -854,7 +854,8 @@ def test_take_dists():
     assert_allclose(got1.array.astype(float), got2.array.astype(float))
 
 
-def test_build_phylogeny():
+@pytest.mark.parametrize("use_hook", ["cogent3", None, "not present"])
+def test_build_phylogeny(use_hook):
     """build a NJ tree"""
     from cogent3 import make_tree
 
@@ -881,7 +882,7 @@ def test_build_phylogeny():
         ("TombBat", "LittleBro"): 0.12,
     }
     dists = DistanceMatrix(dists)
-    got = dists.quick_tree(show_progress=False)
+    got = dists.quick_tree(use_hook=use_hook)
     expect = make_tree(
         treestring="((TombBat,(DogFaced,FlyingFox)),LittleBro,FreeTaile)",
     )

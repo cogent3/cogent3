@@ -64,6 +64,8 @@ from cogent3.util.union_dict import UnionDict
 # both collections can indicate sequences that are reverse complemented
 # by providing their names to the reversed_seqs argument.
 
+if typing.TYPE_CHECKING:
+    from cogent3.core.tree import PhyloNode
 
 DEFAULT_ANNOTATION_DB = BasicAnnotationDb
 
@@ -5446,16 +5448,13 @@ class Alignment(SequenceCollection):
 
         return result
 
-    @UI.display_wrap
     def quick_tree(
         self,
         calc: str = "pdist",
-        bootstrap: OptInt = None,
         drop_invalid: bool = False,
         parallel: bool = False,
-        show_progress: bool = False,
-        ui=None,  # refactor: type hint
-    ):
+        use_hook: str | None = None,
+    ) -> PhyloNode:
         """Returns a phylogenetic tree.
 
         Parameters
@@ -5463,68 +5462,31 @@ class Alignment(SequenceCollection):
         calc
             a pairwise distance calculator or name of one. For options see
             cogent3.evolve.fast_distance.available_distances
-        bootstrap
-            Number of non-parametric bootstrap replicates. Resamples alignment
-            columns with replacement and builds a phylogeny for each such
-            resampling.
         drop_invalid
             If True, sequences for which a pairwise distance could not be
             calculated are excluded. If False, an ArithmeticError is raised if
             a distance could not be computed on observed data.
         parallel
             parallel execution of distance calculations
-        show_progress
-            controls progress display for distance calculation
+        use_hook
+            name of a third-party package that implements the quick_tree
+            hook. If not specified, defaults to the first available hook or
+            the cogent3 quick_tree() app. To force default, set
+            use_hook="cogent3".
 
         Returns
         -------
-        a phylogenetic tree. If bootstrap specified, returns the weighted
-        majority consensus. Support for each node is stored as
-        edge.params['params'].
-
-        Notes
-        -----
-        Sequences in the observed alignment for which distances could not be
-        computed are omitted. Bootstrap replicates are required to have
-        distances for all seqs present in the observed data distance matrix.
+        a phylogenetic tree
         """
-        from cogent3.phylo.consensus import weighted_majority_rule
-        from cogent3.phylo.nj import gnj
-
         dm = self.distance_matrix(
             calc=calc,
             drop_invalid=drop_invalid,
             parallel=parallel,
         )
-        results = gnj(dm, keep=1, show_progress=show_progress)
-        kept_names = set(dm.template.names[0])
-        if bootstrap:
-            subaln = (
-                self.take_seqs(kept_names) if set(self.names) != kept_names else self
-            )
-            for _ in ui.series(range(bootstrap), count=bootstrap, noun="bootstrap"):
-                b = subaln.sample(with_replacement=True)
-                try:
-                    bdist = b.distance_matrix(
-                        calc=calc,
-                        drop_invalid=drop_invalid,
-                        parallel=parallel,
-                    )
-                except ArithmeticError:
-                    # all sequences must have a pairwise distance to allow
-                    # constructing a consensus tree
-                    continue
-                bresult = gnj(bdist, keep=1, show_progress=show_progress)
-                results.extend(bresult)
-
-            consense = weighted_majority_rule(results)
-            assert len(consense) == 1
-            results = consense
-
-        tree = results[0]
-        if not bootstrap:
-            tree = tree[1]
-        return tree
+        qtree = cogent3._plugin.get_quick_tree_hook(name=use_hook)  # noqa: SLF001
+        # we directly use the app main method, as this means any errors will be
+        # raised as exceptions
+        return qtree.main(dm)
 
     def trim_stop_codons(self, gc: Any = None, strict: bool = False, **kwargs):
         # refactor: array
@@ -5562,7 +5524,7 @@ class Alignment(SequenceCollection):
         include_stop: bool = False,
         trim_stop: bool = True,
         **kwargs,
-    ):
+    ) -> typing_extensions.Self:
         if not self.moltype.is_nucleic:
             msg = f"moltype must be a DNA/RNA, not {self.moltype.name!r}"
             raise new_moltype.MolTypeError(
