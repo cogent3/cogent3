@@ -15,9 +15,9 @@ from cogent3.util.misc import get_object_provenance
 if typing.TYPE_CHECKING:
     from cogent3.evolve.new_moltype import MolType
 
-StrORBytes = typing.Union[str, bytes]
-StrORArray = typing.Union[str, numpy.ndarray]
-StrORBytesORArray = typing.Union[str, bytes, numpy.ndarray]
+StrORBytes = str | bytes
+StrORArray = str | numpy.ndarray
+StrORBytesORArray = str | bytes | numpy.ndarray
 OptInt = typing.Optional[int]
 OptStr = typing.Optional[str]
 OptBytes = typing.Optional[bytes]
@@ -1339,7 +1339,7 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         words = (*tuple(self), gap_char)
         return self.__class__(words=words, monomers=monomers, gap=gap_char)
 
-    def to_rich_dict(self, for_pickle: bool = False):
+    def to_rich_dict(self, for_pickle: bool = False) -> dict[str, typing.Any]:
         from cogent3._version import __version__
 
         data = {
@@ -1351,18 +1351,18 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
             data["version"] = __version__
         return data
 
-    def to_json(self):
+    def to_json(self) -> str:
         return json.dumps(self.to_rich_dict())
 
     @classmethod
-    def from_rich_dict(cls, data: dict[str, typing.Any]):
+    def from_rich_dict(cls, data: dict[str, typing.Any]) -> "SenseCodonAlphabet":
         data["monomers"] = deserialise_char_alphabet(data["monomers"])
         data.pop("type", None)
         data.pop("version", None)
         return cls(**data)
 
     @property
-    def motif_len(self):
+    def motif_len(self) -> int:
         return self._motif_len
 
 
@@ -1374,7 +1374,13 @@ def deserialise_codon_alphabet(data: dict) -> SenseCodonAlphabet:
 _alphabet_moltype_map = {}
 
 
-def make_alphabet(*, chars, gap, missing, moltype):
+def make_alphabet(
+    *,
+    chars: typing.Sequence[str],
+    gap: str | None,
+    missing: str | None,
+    moltype: "MolType",
+) -> CharAlphabet:
     """constructs a character alphabet and registers the associated moltype
 
     Notes

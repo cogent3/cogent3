@@ -7,6 +7,7 @@ from collections import defaultdict
 from string import ascii_letters
 
 import numpy
+import typing_extensions
 
 import cogent3.util.warning as c3_warn
 from cogent3.core import new_alphabet, new_sequence
@@ -517,45 +518,45 @@ class MolType:
         name = self.__class__.__name__
         return f"{name}({self.alphabet})"
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return id(self)
 
-    def __eq__(self, other):
+    def __eq__(self, other: typing_extensions.Self) -> bool:
         return id(self) == id(other)
 
     def __len__(self) -> int:
         return len(self._monomers)
 
-    def __iter__(self):
+    def __iter__(self) -> typing.Iterator[str]:
         yield from self._monomers
 
     @property
-    def label(self):
+    def label(self) -> str:
         """synonym for name"""
         return self.name
 
     @property
-    def alphabet(self):
+    def alphabet(self) -> new_alphabet.CharAlphabet:
         """monomers"""
         return self._monomers
 
     @property
-    def degen_alphabet(self):
+    def degen_alphabet(self) -> new_alphabet.CharAlphabet:
         """monomers + ambiguous characters"""
         return self._degen
 
     @property
-    def gapped_alphabet(self):
+    def gapped_alphabet(self) -> new_alphabet.CharAlphabet:
         """monomers + gap"""
         return self._gapped
 
     @property
-    def degen_gapped_alphabet(self):
+    def degen_gapped_alphabet(self) -> new_alphabet.CharAlphabet:
         """monomers + gap + ambiguous characters"""
         return self._degen_gapped
 
     @property
-    def gaps(self) -> frozenset:  # refactor: docstring
+    def gaps(self) -> frozenset[str]:  # refactor: docstring
         gaps = [char for char in (self.gap, self.missing) if char is not None]
         return frozenset(gaps)
 
@@ -572,7 +573,7 @@ class MolType:
         alpha = self.most_degen_alphabet()
         return alpha.is_valid(seq)
 
-    def iter_alphabets(self):
+    def iter_alphabets(self) -> typing.Iterator[new_alphabet.CharAlphabet]:
         """yield alphabets in order of most to least degenerate"""
         alphas = (
             self._degen_gapped,
