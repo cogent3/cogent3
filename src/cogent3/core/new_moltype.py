@@ -1358,10 +1358,9 @@ class MolType:
 
         return css, styles
 
-    @functools.cache
     def most_degen_alphabet(self):
         """returns the most degenerate alphabet for this instance"""
-        return next(self.iter_alphabets())
+        return _most_degen_alphabet(self)
 
     def to_regex(self, seq: str) -> str:
         """returns a regex pattern with ambiguities expanded to a character set"""
@@ -1383,6 +1382,12 @@ class MolType:
         """returns result of json formatted string"""
         data = self.to_rich_dict()
         return json.dumps(data)
+
+
+@functools.cache
+def _most_degen_alphabet(mt: MolType) -> new_alphabet.CharAlphabet:
+    """returns the most degenerate alphabet for this instance"""
+    return next(mt.iter_alphabets())
 
 
 @register_deserialiser(get_object_provenance(MolType))
