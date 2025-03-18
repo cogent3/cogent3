@@ -13,7 +13,7 @@ from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.misc import get_object_provenance
 
 if typing.TYPE_CHECKING:
-    from cogent3.evolve.new_moltype import MolType
+    from cogent3.core.new_moltype import MolType
 
 StrORBytes = str | bytes
 StrORArray = str | numpy.ndarray
@@ -1387,7 +1387,12 @@ def make_alphabet(
     -----
     The moltype is associated with the alphabet, available as the
     alphabet.moltype property.
+    If an alphabet has already been constructed by a moltype no new
+    entry is made. An alphabet shared by multiple moltype instances
+    will therefore only return the first moltype associated with it.
     """
     alpha = CharAlphabet(chars, gap=gap, missing=missing)
-    _alphabet_moltype_map[alpha] = moltype
+    if alpha not in _alphabet_moltype_map:
+        _alphabet_moltype_map[alpha] = moltype
+
     return alpha

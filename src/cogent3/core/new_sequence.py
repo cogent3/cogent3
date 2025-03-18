@@ -8,7 +8,6 @@ These should be created via MolType.make_seq()
 from __future__ import annotations
 
 import contextlib
-import copy
 import json
 import re
 import typing
@@ -20,6 +19,7 @@ from operator import eq, ne
 from random import shuffle
 
 import numpy
+import typing_extensions
 from numpy import array, floating, integer, issubdtype
 
 from cogent3._version import __version__
@@ -399,7 +399,7 @@ class Sequence:
         """__contains__ checks whether other is in the sequence string."""
         return other in str(self)
 
-    def shuffle(self):
+    def shuffle(self) -> typing_extensions.Self:
         """returns a randomized copy of the Sequence object"""
         randomized_copy_list = list(self)
         shuffle(randomized_copy_list)
@@ -409,7 +409,7 @@ class Sequence:
             info=self.info,
         )
 
-    def strip_degenerate(self):
+    def strip_degenerate(self) -> typing_extensions.Self:
         """Removes degenerate bases by stripping them out of the sequence."""
         return self.__class__(
             moltype=self.moltype,
@@ -417,7 +417,7 @@ class Sequence:
             info=self.info,
         )
 
-    def strip_bad(self):
+    def strip_bad(self) -> typing_extensions.Self:
         """Removes any symbols not in the alphabet."""
         return self.__class__(
             moltype=self.moltype,
@@ -425,7 +425,7 @@ class Sequence:
             info=self.info,
         )
 
-    def strip_bad_and_gaps(self):
+    def strip_bad_and_gaps(self) -> typing_extensions.Self:
         """Removes any symbols not in the alphabet, and any gaps. As the missing
         character could be a gap, this method will remove it as well."""
         return self.__class__(
@@ -450,7 +450,7 @@ class Sequence:
         """Returns True if sequence contains only monomers."""
         return self.moltype.alphabet.is_valid(array(self))
 
-    def disambiguate(self, method: str = "strip"):
+    def disambiguate(self, method: str = "strip") -> typing_extensions.Self:
         """Returns a non-degenerate sequence from a degenerate one.
 
         Parameters
@@ -468,7 +468,7 @@ class Sequence:
             info=self.info,
         )
 
-    def degap(self):
+    def degap(self) -> typing_extensions.Self:
         """Deletes all gap characters from sequence."""
         result = self.__class__(
             moltype=self.moltype,
@@ -505,7 +505,7 @@ class Sequence:
         # should gap and missing characters be counted as degenerate?
         return self.moltype.count_degenerate(bytes(self))
 
-    def count_variants(self):
+    def count_variants(self) -> int:
         """Counts number of possible sequences matching the sequence, given
         any ambiguous characters in the sequence.
 
@@ -540,7 +540,7 @@ class Sequence:
         """
         return self.moltype.mw(self, method, delta)
 
-    def can_match(self, other) -> bool:
+    def can_match(self, other: typing_extensions.Self) -> bool:
         """Returns True if every pos in self could match same pos in other.
 
         Truncates at length of shorter sequence.
@@ -548,7 +548,7 @@ class Sequence:
         """
         return self.moltype.can_match(str(self), str(other))
 
-    def diff(self, other) -> int:
+    def diff(self, other: typing_extensions.Self) -> int:
         """Returns number of differences between self and other.
 
         Notes
@@ -559,7 +559,7 @@ class Sequence:
 
     def distance(
         self,
-        other,
+        other: typing_extensions.Self,
         function: typing.Callable[[str, str], IntORFloat] | None = None,
     ) -> IntORFloat:
         """Returns distance between self and other using function(i,j).
@@ -606,7 +606,7 @@ class Sequence:
             distance += function(first, second)
         return distance
 
-    def matrix_distance(self, other, matrix) -> IntORFloat:
+    def matrix_distance(self, other: typing_extensions.Self, matrix) -> IntORFloat:
         """Returns distance between self and other using a score matrix.
 
         Warning
@@ -622,7 +622,7 @@ class Sequence:
         """
         return self.distance(other, DistanceFromMatrix(matrix))
 
-    def frac_same(self, other) -> float:
+    def frac_same(self, other: typing_extensions.Self) -> float:
         """Returns fraction of positions where self and other are the same.
 
         Notes
@@ -632,7 +632,7 @@ class Sequence:
         """
         return frac_same(self, other)
 
-    def frac_diff(self, other) -> float:
+    def frac_diff(self, other: typing_extensions.Self) -> float:
         """Returns fraction of positions where self and other differ.
 
         Notes
@@ -642,7 +642,7 @@ class Sequence:
         """
         return frac_diff(self, other)
 
-    def frac_same_gaps(self, other):
+    def frac_same_gaps(self, other: typing_extensions.Self) -> float:
         """Returns fraction of positions where self and other share gap states.
 
         In other words, if self and other are both all gaps, or both all
@@ -663,7 +663,7 @@ class Sequence:
             len(other),
         )
 
-    def frac_diff_gaps(self, other):
+    def frac_diff_gaps(self, other: typing_extensions.Self) -> float:
         """Returns frac. of positions where self and other's gap states differ.
 
         In other words, if self and other are both all gaps, or both all
@@ -679,7 +679,7 @@ class Sequence:
             return 0.0
         return 1.0 - self.frac_same_gaps(other)
 
-    def frac_same_non_gaps(self, other):
+    def frac_same_non_gaps(self, other: typing_extensions.Self) -> float:
         """Returns fraction of non-gap positions where self matches other.
 
         Doesn't count any position where self or other has a gap.
@@ -707,7 +707,7 @@ class Sequence:
         # there were no positions that weren't gaps
         return 0
 
-    def frac_diff_non_gaps(self, other):
+    def frac_diff_non_gaps(self, other: typing_extensions.Self) -> float:
         """Returns fraction of non-gap positions where self differs from other.
 
         Doesn't count any position where self or other has a gap.
@@ -735,7 +735,11 @@ class Sequence:
         # there were no positions that weren't gaps
         return 0
 
-    def frac_similar(self, other, similar_pairs: dict[(str, str), typing.Any]):
+    def frac_similar(
+        self,
+        other: typing_extensions.Self,
+        similar_pairs: dict[(str, str), typing.Any],
+    ) -> float:
         """Returns fraction of positions where self[i] is similar to other[i].
 
         similar_pairs must be a dict such that d[(i,j)] exists if i and j are
@@ -758,7 +762,7 @@ class Sequence:
             other,
         )
 
-    def with_termini_unknown(self):
+    def with_termini_unknown(self) -> typing_extensions.Self:
         """Returns copy of sequence with terminal gaps remapped as missing."""
         gaps = self.gap_vector()
         first_nongap = last_nongap = None
@@ -783,7 +787,7 @@ class Sequence:
             info=self.info,
         )
 
-    def _repr_html_(self):
+    def _repr_html_(self) -> str:
         settings = self._repr_policy.copy()
         env_vals = get_setting_from_environ(
             "COGENT3_ALIGNMENT_REPR_POLICY",
@@ -799,7 +803,7 @@ class Sequence:
         colors: typing.Mapping[str, str] | None = None,
         font_size: int = 12,
         font_family: str = "Lucida Console",
-    ):
+    ) -> str:
         """returns html with embedded styles for sequence colouring
 
         Parameters
@@ -887,7 +891,7 @@ class Sequence:
         ]
         return "\n".join(text)
 
-    def __add__(self, other):
+    def __add__(self, other: typing_extensions.Self) -> typing_extensions.Self:
         """Adds two sequences (other can be a string as well)."""
         if hasattr(other, "moltype") and self.moltype != other.moltype:
             msg = f"MolTypes don't match: ({self.moltype},{other.moltype})"
@@ -917,7 +921,7 @@ class Sequence:
         )
 
     @property
-    def annotation_offset(self):
+    def annotation_offset(self) -> int:
         """
         The offset between annotation coordinates and sequence coordinates.
 
@@ -936,7 +940,7 @@ class Sequence:
         return self._seq.slice_record.parent_start
 
     @property
-    def annotation_db(self):
+    def annotation_db(self) -> SupportsFeatures:
         return self._annotation_db
 
     @annotation_db.setter
@@ -986,7 +990,7 @@ class Sequence:
         start: OptInt = None,
         stop: OptInt = None,
         allow_partial: bool = False,
-    ):
+    ) -> typing.Iterator[Feature]:
         """yields Feature instances
 
         Parameters
@@ -1085,7 +1089,7 @@ class Sequence:
             feature["spans"] = spans.tolist()
             yield self.make_feature(feature)
 
-    def _relative_spans(self, spans):
+    def _relative_spans(self, spans) -> list[tuple[int, int]]:
         r_spans = []
 
         for s, e in spans:
@@ -1292,9 +1296,13 @@ class Sequence:
             parent_len=len(seq),
             alphabet=moltype.most_degen_alphabet(),
         )
-        new = self.__class__(moltype=moltype, seq=sv, name=self.name, info=self.info)
-        new.annotation_db = self.annotation_db
-        return new
+        return moltype.make_seq(
+            seq=sv,
+            name=self.name,
+            check_seq=False,
+            info=self.info,
+            annotation_db=self.annotation_db,
+        )
 
     def copy_annotations(self, seq_db: SupportsFeatures) -> None:
         """copy annotations into attached annotation db
@@ -1326,7 +1334,11 @@ class Sequence:
 
         self.annotation_db.update(seq_db, seqids=self.name)
 
-    def copy(self, exclude_annotations: bool = False, sliced: bool = True):
+    def copy(
+        self,
+        exclude_annotations: bool = False,
+        sliced: bool = True,
+    ) -> typing_extensions.Self:
         """returns a copy of self
 
         Parameters
@@ -1342,16 +1354,14 @@ class Sequence:
         # constructor from its current state.
         offset = self.annotation_offset if sliced else 0
         data = self._seq.copy(sliced=sliced)
-        new = self.__class__(
+        return self.__class__(
             moltype=self.moltype,
             seq=data,
             name=self.name,
             info=self.info,
             annotation_offset=offset,
+            annotation_db=None if exclude_annotations else self.annotation_db,
         )
-        db = None if exclude_annotations else copy.deepcopy(self.annotation_db)
-        new._annotation_db = db
-        return new
 
     def with_masked_annotations(
         self,
@@ -1359,7 +1369,7 @@ class Sequence:
         mask_char: str | None = None,
         shadow: bool = False,
         extend_query: bool = False,
-    ):
+    ) -> typing_extensions.Self:
         """returns a sequence with annot_types regions replaced by mask_char
         if shadow is False, otherwise all other regions are masked.
 
@@ -1448,7 +1458,11 @@ class Sequence:
         for segment in self.gapped_by_map_segment_iter(segment_map):
             yield from segment
 
-    def gapped_by_map(self, segment_map: IndelMap, recode_gaps: bool = False):
+    def gapped_by_map(
+        self,
+        segment_map: IndelMap,
+        recode_gaps: bool = False,
+    ) -> typing_extensions.Self:
         segments = self.gapped_by_map_segment_iter(segment_map, True, recode_gaps)
         return self.__class__(
             moltype=self.moltype,
@@ -1457,7 +1471,7 @@ class Sequence:
             info=self.info,
         )
 
-    def _mapped(self, segment_map: IndelMap):
+    def _mapped(self, segment_map: IndelMap) -> typing_extensions.Self:
         # Called by generic __getitem__
         if segment_map.num_spans == 1:
             seq = self._seq[segment_map.start : segment_map.end]
@@ -1523,14 +1537,14 @@ class Sequence:
     def __iter__(self):
         yield from iter(str(self))
 
-    def get_name(self):
+    def get_name(self) -> str:
         """Return the sequence name -- should just use name instead."""
         return self.name
 
     def __len__(self) -> int:
         return len(self._seq)
 
-    def get_type(self):
+    def get_type(self) -> str:
         """Return the sequence type as moltype label."""
         return self.moltype.label
 
@@ -1566,7 +1580,13 @@ class Sequence:
         """return all overlapping k-mers"""
         return list(self.iter_kmers(k, strict))
 
-    def sliding_windows(self, window, step, start=None, end=None):
+    def sliding_windows(
+        self,
+        window,
+        step,
+        start=None,
+        end=None,
+    ) -> typing.Iterator[typing_extensions.Self]:
         """Generator function that yield new sequence objects
         of a given length at a given interval.
 
@@ -1618,7 +1638,7 @@ class Sequence:
             for i in range(0, length - remainder, motif_length)
         ]
 
-    def parse_out_gaps(self):
+    def parse_out_gaps(self) -> tuple[IndelMap, typing_extensions.Self]:
         """returns Map corresponding to gap locations and ungapped Sequence"""
         gap = re.compile(f"[{re.escape(self.moltype.gap)}]+")
         seq = str(self)
@@ -1672,7 +1692,7 @@ class Sequence:
         biotype: str,
         name: str,
         allow_multiple: bool = False,
-    ):
+    ) -> list[Feature]:
         """Adds an annotation at sequence positions matching pattern.
 
         Parameters
@@ -1877,7 +1897,7 @@ class NucleicAcidSequenceMixin:
                 result = self.moltype.complement(result)
         return result
 
-    def can_pair(self, other) -> bool:
+    def can_pair(self, other: typing_extensions.Self) -> bool:
         """Returns True if self and other could pair.
 
         other
@@ -1896,7 +1916,7 @@ class NucleicAcidSequenceMixin:
         """
         return self.moltype.can_pair(str(self), str(other))
 
-    def can_mispair(self, other) -> bool:
+    def can_mispair(self, other: typing_extensions.Self) -> bool:
         """Returns True if any position in self could mispair with other.
 
         Notes
@@ -1910,7 +1930,7 @@ class NucleicAcidSequenceMixin:
         """
         return self.moltype.can_mispair(self, str(other))
 
-    def must_pair(self, other) -> bool:
+    def must_pair(self, other: typing_extensions.Self) -> bool:
         """Returns True if all positions in self must pair with other.
 
         Notes
@@ -1937,16 +1957,15 @@ class NucleicAcidSequenceMixin:
         Synonymn for rc."""
         return self.rc()
 
-    def rc(self):
+    def rc(self) -> typing_extensions.Self:
         """Converts a nucleic acid sequence to its reverse complement."""
-        rc = self.__class__(
+        return self.__class__(
             moltype=self.moltype,
             seq=self._seq[::-1],
             name=self.name,
             info=self.info,
+            annotation_db=self.annotation_db,
         )
-        rc.annotation_db = self.annotation_db
-        return rc
 
     def has_terminal_stop(
         self,
@@ -1983,7 +2002,7 @@ class NucleicAcidSequenceMixin:
         self,
         gc: OptGeneticCodeType = None,
         strict: bool = False,
-    ):
+    ) -> typing_extensions.Self:
         """Removes a terminal stop codon from the sequence
 
         Parameters
@@ -2044,7 +2063,7 @@ class NucleicAcidSequenceMixin:
         incomplete_ok: bool = False,
         include_stop: bool = False,
         trim_stop: bool = True,
-    ):
+    ) -> ProteinSequence:
         """translate to amino acid sequence
 
         Parameters
@@ -2105,15 +2124,15 @@ class NucleicAcidSequenceMixin:
             )
         return protein.make_seq(seq=pep, name=self.name)
 
-    def to_rna(self):
+    def to_rna(self) -> typing_extensions.Self:
         """Returns copy of self as RNA."""
         return self.to_moltype("rna")
 
-    def to_dna(self):
+    def to_dna(self) -> typing_extensions.Self:
         """Returns copy of self as DNA."""
         return self.to_moltype("dna")
 
-    def strand_symmetry(self, motif_length=1):
+    def strand_symmetry(self, motif_length: int = 1):
         """returns G-test for strand symmetry"""
         counts = self.counts(motif_length=motif_length)
         ssym_pairs = self.moltype.strand_symmetric_motifs(motif_length=motif_length)
@@ -2267,7 +2286,7 @@ class SliceRecordABC(ABC):
         return self.offset + self.plus_start
 
     @property
-    def is_reversed(self):
+    def is_reversed(self) -> bool:
         return self.step < 0
 
     @property
@@ -2285,7 +2304,7 @@ class SliceRecordABC(ABC):
         """
         return self.offset + self.plus_stop
 
-    def absolute_position(self, rel_index: int, include_boundary: bool = False):
+    def absolute_position(self, rel_index: int, include_boundary: bool = False) -> int:
         """Converts an index relative to the current view to be with respect
         to the coordinates of the original "Python sequence".
 
@@ -2316,7 +2335,7 @@ class SliceRecordABC(ABC):
             else offset + seq_index
         )
 
-    def relative_position(self, abs_index: int, stop: bool = False):
+    def relative_position(self, abs_index: int, stop: bool = False) -> int:
         """converts an index on the original "Python sequence" into an index
         on this "view"
 
@@ -2355,7 +2374,7 @@ class SliceRecordABC(ABC):
     def __len__(self) -> int:
         return abs((self.start - self.stop) // self.step)
 
-    def __getitem__(self, segment: int | slice):
+    def __getitem__(self, segment: int | slice) -> typing_extensions.Self:
         kwargs = self._get_init_kwargs()
 
         if _is_int(segment):
@@ -2389,7 +2408,11 @@ class SliceRecordABC(ABC):
             msg,
         )
 
-    def _get_index(self, val: int, include_boundary: bool = False):
+    def _get_index(
+        self,
+        val: int,
+        include_boundary: bool = False,
+    ) -> tuple[int, int, int]:
         if len(self) == 0:
             raise IndexError(val)
 
@@ -2418,7 +2441,7 @@ class SliceRecordABC(ABC):
             return val, val - 1, -1
         return None
 
-    def _get_slice(self, segment: slice, step: int, **kwargs):
+    def _get_slice(self, segment: slice, step: int, **kwargs) -> typing_extensions.Self:
         slice_start = segment.start if segment.start is not None else 0
         slice_stop = segment.stop if segment.stop is not None else len(self)
 
@@ -2445,7 +2468,7 @@ class SliceRecordABC(ABC):
         slice_stop: int,
         step: int,
         **kwargs,
-    ):
+    ) -> typing_extensions.Self:
         start = (
             self.start + slice_start * self.step
             if slice_start >= 0
@@ -2488,7 +2511,7 @@ class SliceRecordABC(ABC):
         slice_stop: int,
         step: int,
         **kwargs,
-    ):
+    ) -> typing_extensions.Self:
         if slice_start >= 0:
             start = self.start + slice_start * self.step
         elif abs(slice_start) > len(self):
@@ -2514,7 +2537,12 @@ class SliceRecordABC(ABC):
             **kwargs,
         )
 
-    def _get_reverse_slice(self, segment: slice, step: int, **kwargs):
+    def _get_reverse_slice(
+        self,
+        segment: slice,
+        step: int,
+        **kwargs,
+    ) -> typing_extensions.Self | None:
         slice_start = segment.start if segment.start is not None else -1
         slice_stop = segment.stop if segment.stop is not None else -len(self) - 1
 
@@ -2540,7 +2568,7 @@ class SliceRecordABC(ABC):
         slice_stop: int,
         step: int,
         **kwargs,
-    ):
+    ) -> typing_extensions.Self:
         # "true stop" adjust for if abs(stop-start) % step != 0
         # max possible start is "true stop" - step, because stop is not inclusive
         # "true stop" - step is converted to -ve index via subtracting len(self)
@@ -2587,7 +2615,7 @@ class SliceRecordABC(ABC):
         slice_stop: int,
         step: int,
         **kwargs,
-    ):
+    ) -> typing_extensions.Self:
         # refactor: simplify
         # are there other places in slice_record where we can use plus_start/stop/step
         if slice_start >= len(self):
@@ -2880,7 +2908,7 @@ class SeqView(SeqViewABC):
     # alphabet.to_indices() and alphabet.from_indices() cope with most primitive
     # types that parent may be
     @property
-    def str_value(self):
+    def str_value(self) -> str:
         return self.alphabet.from_indices(
             self.parent[
                 self.slice_record.start : self.slice_record.stop : self.slice_record.step
@@ -2888,7 +2916,7 @@ class SeqView(SeqViewABC):
         )
 
     @property
-    def array_value(self):
+    def array_value(self) -> numpy.ndarray[int]:
         return self.alphabet.to_indices(
             self.parent[
                 self.slice_record.start : self.slice_record.stop : self.slice_record.step
@@ -2896,7 +2924,7 @@ class SeqView(SeqViewABC):
         )
 
     @property
-    def bytes_value(self):
+    def bytes_value(self) -> bytes:
         return self.str_value.encode("utf-8")
 
     def __str__(self) -> str:
@@ -2915,7 +2943,7 @@ class SeqView(SeqViewABC):
     def __bytes__(self) -> bytes:
         return self.bytes_value
 
-    def __getitem__(self, segment: int | slice) -> SeqViewABC:
+    def __getitem__(self, segment: int | slice) -> typing_extensions.Self:
         return self.__class__(
             parent=self.parent,
             seqid=self.seqid,
@@ -2935,7 +2963,7 @@ class SeqView(SeqViewABC):
             f"slice_record={self.slice_record.__repr__()})"
         )
 
-    def copy(self, sliced: bool = False):
+    def copy(self, sliced: bool = False) -> typing_extensions.Self:
         """returns copy
 
         Parameters
