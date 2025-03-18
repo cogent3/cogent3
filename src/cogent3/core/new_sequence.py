@@ -1551,12 +1551,16 @@ class Sequence:
             msg = f"k must be an int, not {k}"
             raise ValueError(msg)
 
-        canonical = set(self.moltype)
-        seq = str(self)
+        md = self.moltype.most_degen_alphabet()
+        gap_index = md.gap_index
+        arr_to_str = md.from_indices
+        if gap_index is None:
+            gap_index = len(self.moltype)
+        seq = numpy.array(self)
         for i in range(len(seq) - k + 1):
             kmer = seq[i : i + k]
-            if not strict or all(char in canonical for char in kmer):
-                yield kmer
+            if not strict or kmer.max() < gap_index:
+                yield arr_to_str(kmer)
 
     def get_kmers(self, k: int, strict: bool = True) -> list[str]:
         """return all overlapping k-mers"""
