@@ -154,12 +154,30 @@ def test_sequence_to_moltype():
     trev = next(iter(got.get_features(name="trev")))
     assert str(got[trev]) == "AAAA"
 
+
+@pytest.mark.parametrize("invalid_moltype", [None, ""])
+def test_sequence_to_moltype_invalid(invalid_moltype):
+    """correctly convert to specified moltype"""
+    s = new_moltype.ASCII.make_seq(seq="TTTTTTTTTTAAAA", name="test1")
     # calling with a null object should raise an exception
     with pytest.raises(ValueError):
-        s.to_moltype(None)
+        s.to_moltype(invalid_moltype)
 
-    with pytest.raises(ValueError):
-        s.to_moltype("")
+
+@pytest.mark.parametrize(
+    "moltype",
+    ["dna", "rna", "protein", "protein_with_stop", "bytes"],
+)
+def test_sequence_to_moltype_seqclass(moltype):
+    """correctly convert to specified moltype"""
+    raw = "CCCCCCCCAAAA"
+    s = new_moltype.ASCII.make_seq(seq=raw, name="test1")
+    got = s.to_moltype(moltype)
+    assert got.moltype.name == moltype
+    # check the instance matches the assigned class, which is on
+    # the attribute mt._make_seq
+    assert isinstance(got, got.moltype._make_seq)  # noqa: SLF001
+    assert str(got) == raw
 
 
 @pytest.mark.parametrize(
@@ -859,7 +877,7 @@ def test_strand_symmetry():
     ssym = seq.strand_symmetry(motif_length=1)
     assert numpy.allclose(ssym.observed.array, [[7, 5], [7, 9]])
 
-    with pytest.raises(TypeError):
+    with pytest.raises(AttributeError):
         s = seq.to_moltype("text")
         s.strand_symmetry(motif_length=1)
 
