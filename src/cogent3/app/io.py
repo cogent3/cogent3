@@ -286,16 +286,8 @@ def _load_seqs(path, coll_maker, parser, moltype):
     data = _read_it(path)
     data = data.splitlines()
     data = dict(iter(parser(data)))
-    seqs = coll_maker(data=data, moltype=moltype)
-    path = str(path)
-    seqs.info.source = path
-
-    # TODO replace above statement with direct assignment in conditional
-    #   when new_type=True becomes default
-    if _NEW_TYPE:  # pragma: no cover
-        seqs.source = path
-
-    return seqs
+    unique_id = getattr(path, "unique_id", getattr(path, "name", str(path)))
+    return coll_maker(data=data, moltype=moltype, source=unique_id)
 
 
 @define_app(app_type=LOADER)
