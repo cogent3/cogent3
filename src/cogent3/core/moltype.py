@@ -1565,7 +1565,7 @@ def available_moltypes():
 
     result = Table(header=header, data=rows, title=title, index_name="Abbreviation")
     result = result.sorted(columns=["Number of states", "Abbreviation"])
-    result.format_column("Abbreviation", repr)
+    result.format_column("Abbreviation", lambda x: repr(str(x)))
     return result
 
 

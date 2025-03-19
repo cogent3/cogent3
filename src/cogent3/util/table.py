@@ -780,7 +780,9 @@ class Table:
         return "\n".join(html)
 
     def _get_persistent_attrs(self):
-        return UnionDict(self._persistent_attrs.copy())
+        attrs = self._persistent_attrs.copy()
+        attrs["column_templates"] = self._column_templates
+        return UnionDict(**attrs)
 
     @property
     def title(self):

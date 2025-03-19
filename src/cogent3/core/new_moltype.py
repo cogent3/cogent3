@@ -1440,9 +1440,8 @@ def available_moltypes():
     title = "Specify a moltype by the Abbreviation (case insensitive)."
 
     result = Table(header=header, data=rows, title=title, index_name="Abbreviation")
-    result = result.sorted(columns=["Number of states", "Abbreviation"])
-    result.format_column("Abbreviation", repr)
-    return result
+    result.format_column("Abbreviation", lambda x: repr(str(x)))
+    return result.sorted(columns=["Number of states", "Abbreviation"])
 
 
 # constant instances of the core molecular types

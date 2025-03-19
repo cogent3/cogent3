@@ -69,6 +69,9 @@ def test_get_moltype(name):
 def test_available_moltypes():
     t = new_moltype.available_moltypes()
     assert t.shape[0] == 6
+    got = str(t)
+    assert "np." not in got
+    assert "'dna'" in got
 
 
 def test_str_moltype():
