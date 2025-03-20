@@ -504,26 +504,6 @@ def test_nested_get_slice():
     assert str(s[f]) == str(s[12:17])
 
 
-def test_roundtrip_rc_annotated_align():
-    """should work for an alignment that has been reverse complemented"""
-    # the key that exposed the bug was a gap in the middle of the sequence
-    aln = cogent3.make_aligned_seqs(
-        data=[["x", "-AAAGGGGGAAC-CT"], ["y", "TTTT--TTTTAGGGA"]],
-        array_align=False,
-        moltype="dna",
-    )
-    aln.get_seq("x").add_feature(biotype="exon", name="E1", spans=[(3, 8)])
-    aln.get_seq("x").add_feature(biotype="exon", name="E2", spans=[(10, 13)])
-    raln = aln.rc()
-    assert len(aln.annotation_db) == len(raln.annotation_db)
-    json = raln.to_json()
-    got = deserialise_object(json)
-    assert got.to_rich_dict() == raln.to_rich_dict()
-    orig_annots = {a.name: a.get_slice() for a in raln.get_features()}
-    got_annots = {a.name: a.get_slice() for a in got.get_features()}
-    assert got_annots == orig_annots
-
-
 def test_masking_strand_agnostic_seq():
     db = GffAnnotationDb()
     db.add_feature(

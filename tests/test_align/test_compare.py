@@ -1,3 +1,4 @@
+import os
 from collections import deque
 
 import pytest
@@ -13,6 +14,9 @@ from cogent3.align.pycompare import (
     find_matched_paths,
     segment,
 )
+from cogent3.core import new_moltype
+
+_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
 
 
 def _brute_force(
@@ -24,9 +28,9 @@ def _brute_force(
     """an exhaustive comparison of all windows between the two sequences"""
     mp = MatchedSeqPaths()
     for s1 in range(len(seq1) - window + 1):
-        subseq1 = seq1[s1 : s1 + window]
+        subseq1 = str(seq1[s1 : s1 + window])
         for s2 in range(len(seq2) - window + 1):
-            subseq2 = seq2[s2 : s2 + window]
+            subseq2 = str(seq2[s2 : s2 + window])
             total = sum(b1 == b2 for b1, b2 in zip(subseq1, subseq2, strict=False))
             if total >= threshold:
                 mp[s2 - s1].append((segment(s1, s1 + window), segment(s2, s2 + window)))
@@ -51,8 +55,8 @@ def smallseq():
 
 
 def test_find_matched_k_eq_1():
-    s1 = make_seq(seq="TGATGTAAGGTAGTT", name="1")
-    s2 = make_seq(seq="CTGGAAGGGT", name="2")
+    s1 = make_seq(seq="TGATGTAAGGTAGTT", name="1", moltype="dna")
+    s2 = make_seq(seq="CTGGAAGGGT", name="2", moltype="dna")
     expect = _brute_force(s1, s2, window=5, threshold=3)
     sk = SeqKmers(s1, k=1, canonical=set("ACGT"))
     got = find_matched_paths(seq_kmers=sk, seq1=s1, seq2=s2, window=5, threshold=3)
@@ -363,12 +367,12 @@ def test_matched_paths_min_gap():
     assert trace["y"] == [10, 16]
 
 
-@pytest.mark.parametrize("moltype", ["text", "rna", "bytes", "protein"])
+@pytest.mark.parametrize("moltype", ["text", "rna", "protein"])
 def test_find_matched_paths_moltype(aseq1, aseq2, moltype):
     s1 = aseq1.to_moltype(moltype)
     s2 = aseq2.to_moltype(moltype)
     expect = _brute_force(s1, s2, 3, 3)
-    sk = SeqKmers(aseq1, k=3, canonical="ACGT")
+    sk = SeqKmers(s1, k=3, canonical=set("ACGT"))
     got = find_matched_paths(
         seq_kmers=sk,
         seq1=s1,
@@ -377,6 +381,24 @@ def test_find_matched_paths_moltype(aseq1, aseq2, moltype):
         threshold=3,
     )
     assert got.paths == expect.paths
+
+
+@pytest.mark.skipif(
+    not _NEW_TYPE,
+    reason="old type handles byte moltype differently",
+)
+def test_find_matched_paths_bytes_moltype(aseq1, aseq2):
+    s1 = aseq1.to_moltype("bytes")
+    s2 = aseq2.to_moltype("bytes")
+    sk = SeqKmers(s1, k=3, canonical=set("ACGT"))
+    with pytest.raises(new_moltype.MolTypeError):
+        find_matched_paths(
+            seq_kmers=sk,
+            seq1=s1,
+            seq2=s2,
+            window=3,
+            threshold=3,
+        )
 
 
 def test_find_matched_with_rc():
