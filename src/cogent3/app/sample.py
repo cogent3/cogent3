@@ -216,15 +216,6 @@ class omit_degenerates:
         >>> print(result.to_pretty())
         s1    ACGA
         s2    GATG
-
-        A NotCompleted object (see https://cogent3.org/doc/app/not-completed.html)
-        is returned if the moltype is not specified in the alignment or app
-
-        >>> aln = make_aligned_seqs({"s1": "ACGA-GACG", "s2": "GATGATGYT"})
-        >>> app = get_app("omit_degenerates")
-        >>> result = app(aln)
-        >>> result.message
-        'Traceback...
         """
         if moltype:
             moltype = cogent3.get_moltype(moltype)
@@ -244,7 +235,12 @@ class omit_degenerates:
         return aln.no_degenerates(
             motif_length=self._motif_length,
             allow_gap=self._allow_gap,
-        ) or NotCompleted("FAIL", self, "all columns contained degenerates", source=aln)
+        ) or NotCompleted(
+            "FAIL",
+            origin=self,
+            message="all columns contained degenerates",
+            source=aln,
+        )
 
 
 @define_app
@@ -330,9 +326,9 @@ class omit_gap_pos:
             allowed_gap_frac=self._allowed_frac,
             motif_length=self._motif_length,
         ) or NotCompleted(
-            "FAIL",
-            self,
-            "all columns exceeded gap threshold",
+            type="FAIL",
+            origin=self,
+            message="all columns exceeded gap threshold",
             source=aln,
         )
 
@@ -404,7 +400,7 @@ class take_codon_positions:
 
         >>> result = take_fourfold(aln)
         >>> result.message
-        'Traceback ...
+        'result is empty'
         """
         assert moltype is not None
         moltype = cogent3.get_moltype(moltype)
@@ -451,6 +447,13 @@ class take_codon_positions:
             return any(x <= codon_set for codon_set in fourfold_codon_sets)
 
         new = aln.filtered(ffold, motif_length=3)
+        if not new:
+            return NotCompleted(
+                type="FAIL",
+                origin=self,
+                message="result is empty",
+                source=aln,
+            )
         return new[2::3]
 
     def take_codon_position(self, aln):
