@@ -530,20 +530,6 @@ def test_omit_bad_seqs_ambigs(bad_ambig_gap_data):
     assert set(got.to_dict().keys()) == {"s4", "s5", "s6"}
 
 
-@pytest.mark.skipif(
-    _NEW_TYPE,
-    reason="new_type does not yet support mixed strand collections",
-)
-def test_omit_bad_seqs_ambigs_old_aln(bad_ambig_gap_data):
-    # ambig_fraction should be ignored if using old style alignment
-
-    aln = cogent3.make_aligned_seqs(bad_ambig_gap_data, moltype=DNA, new_type=False)
-    dropbad = sample.omit_bad_seqs(gap_fraction=0.5, ambig_fraction=0.5)
-
-    got = dropbad(aln)
-    assert isinstance(got, NotCompleted)
-
-
 def test_filter_degen():
     """just_nucs correctly identifies data with only nucleotides"""
     aln = cogent3.make_aligned_seqs(
