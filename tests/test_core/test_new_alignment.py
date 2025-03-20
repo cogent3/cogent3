@@ -4104,35 +4104,6 @@ def test_alignment_counts_per_pos():
     assert numpy.array_equal(set(c.motifs), set("ACGT-"))
 
 
-def test_alignment_get_gap_array():
-    data = {
-        "DogFaced": "TG-",
-        "FreeTaile": "T-G",
-        "LittleBro": "---",
-        "BigBro": "GTT",
-        "MiddleBro": "-T-",
-    }
-    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
-    got = aln.get_gap_array()
-    expect = numpy.array(
-        [
-            [False, False, True],
-            [False, True, False],
-            [True, True, True],
-            [False, False, False],
-            [True, False, True],
-        ],
-        dtype=bool,
-    )
-    assert numpy.allclose(got, expect)
-
-    # if we slice the alignment, the gap array should reflect the slice
-    sliced = aln[:2]
-    got = sliced.get_gap_array()
-    expect = expect[:, :2]
-    assert numpy.allclose(got, expect)
-
-
 def test_get_position_indices():
     """get_position_indices should return names of cols where f(col)"""
 
@@ -4290,7 +4261,7 @@ def test_get_gap_array():
     got = aln.get_gap_array()
     expect = numpy.array(
         [
-            [False, True, False, True],
+            [False, True, False, False],
             [False, False, True, True],
             [True, True, True, True],
         ],
@@ -4305,6 +4276,35 @@ def test_get_gap_array():
             [True, True, True, True],
         ],
     )
+
+
+def test_alignment_get_gap_array():
+    data = {
+        "DogFaced": "TG-",
+        "FreeTaile": "T-G",
+        "LittleBro": "---",
+        "BigBro": "GTT",
+        "MiddleBro": "-T-",
+    }
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    got = aln.get_gap_array()
+    expect = numpy.array(
+        [
+            [False, False, True],
+            [False, True, False],
+            [True, True, True],
+            [False, False, False],
+            [True, False, True],
+        ],
+        dtype=bool,
+    )
+    assert numpy.allclose(got, expect)
+
+    # if we slice the alignment, the gap array should reflect the slice
+    sliced = aln[:2]
+    got = sliced.get_gap_array()
+    expect = expect[:, :2]
+    assert numpy.allclose(got, expect)
 
 
 def test_count_gaps_per_pos():
