@@ -31,6 +31,12 @@ from cogent3.parse.record import FileFormatError
 
 DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
 
+if "COGENT3_NEW_TYPE" in os.environ:
+    pytest.skip(
+        "Tests skipped because COGENT3_TYPE environment variable is defined",
+        allow_module_level=True,
+    )
+
 
 class TestConstructorFunctions(unittest.TestCase):
     def test_make_aligned_seqs(self):

@@ -3,6 +3,7 @@
 Note: individual alphabets are typically in MolType and are tested there.
 """
 
+import os
 import pickle
 from unittest import TestCase
 
@@ -25,6 +26,12 @@ from cogent3.core.alphabet import (
     uint64,
 )
 from cogent3.core.moltype import RNA
+
+if "COGENT3_NEW_TYPE" in os.environ:
+    pytest.skip(
+        "Tests skipped because COGENT3_TYPE environment variable is defined",
+        allow_module_level=True,
+    )
 
 DnaBases = CharAlphabet("TCAG")
 RnaBases = CharAlphabet("UCAG")

@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-"""Unit tests for Genetic Code classes."""
-
+import os
 from unittest import TestCase
 
 import pytest
@@ -15,6 +13,12 @@ from cogent3.core.genetic_code import (
     available_codes,
     get_code,
 )
+
+if "COGENT3_NEW_TYPE" in os.environ:
+    pytest.skip(
+        "Tests skipped because COGENT3_TYPE environment variable is defined",
+        allow_module_level=True,
+    )
 
 
 class GeneticCodeTests(TestCase):
