@@ -216,15 +216,6 @@ class omit_degenerates:
         >>> print(result.to_pretty())
         s1    ACGA
         s2    GATG
-
-        A NotCompleted object (see https://cogent3.org/doc/app/not-completed.html)
-        is returned if the moltype is not specified in the alignment or app
-
-        >>> aln = make_aligned_seqs({"s1": "ACGA-GACG", "s2": "GATGATGYT"})
-        >>> app = get_app("omit_degenerates")
-        >>> result = app(aln)
-        >>> result.message
-        'Traceback...
         """
         if moltype:
             moltype = cogent3.get_moltype(moltype)
@@ -244,7 +235,12 @@ class omit_degenerates:
         return aln.no_degenerates(
             motif_length=self._motif_length,
             allow_gap=self._allow_gap,
-        ) or NotCompleted("FAIL", self, "all columns contained degenerates", source=aln)
+        ) or NotCompleted(
+            "FAIL",
+            origin=self,
+            message="all columns contained degenerates",
+            source=aln,
+        )
 
 
 @define_app
@@ -276,7 +272,9 @@ class omit_gap_pos:
         Sites with over 99% gaps are excluded by default.
 
         >>> from cogent3 import make_aligned_seqs, get_app
-        >>> aln = make_aligned_seqs({"s1": "ACGA-GA-CG", "s2": "GATGATG-AT"})
+        >>> aln = make_aligned_seqs(
+        ...     {"s1": "ACGA-GA-CG", "s2": "GATGATG-AT"}, moltype="dna"
+        ... )
 
         >>> app = get_app("omit_gap_pos", moltype="dna")
         >>> result = app(aln)
@@ -305,7 +303,9 @@ class omit_gap_pos:
         A NotCompleted object (see https://cogent3.org/doc/app/not-completed.html)
         is returned if all sites are excluded.
 
-        >>> aln = make_aligned_seqs({"s1": "ACGA------", "s2": "----ATG-AT"})
+        >>> aln = make_aligned_seqs(
+        ...     {"s1": "ACGA------", "s2": "----ATG-AT"}, moltype="dna"
+        ... )
         >>> app = get_app("omit_gap_pos", allowed_frac=0, motif_length=3, moltype="dna")
         >>> result = app(aln)
         >>> result.message
@@ -330,9 +330,9 @@ class omit_gap_pos:
             allowed_gap_frac=self._allowed_frac,
             motif_length=self._motif_length,
         ) or NotCompleted(
-            "FAIL",
-            self,
-            "all columns exceeded gap threshold",
+            type="FAIL",
+            origin=self,
+            message="all columns exceeded gap threshold",
             source=aln,
         )
 
@@ -371,7 +371,9 @@ class take_codon_positions:
         position from an alignment.
 
         >>> from cogent3 import make_aligned_seqs, get_app
-        >>> aln = make_aligned_seqs({"s1": "ACGACGACG", "s2": "GATGATGAT"})
+        >>> aln = make_aligned_seqs(
+        ...     {"s1": "ACGACGACG", "s2": "GATGATGAT"}, moltype="dna"
+        ... )
         >>> take_pos3 = get_app("take_codon_positions", 3, moltype="dna")
         >>> result = take_pos3(aln)
         >>> print(result.to_pretty())
@@ -390,7 +392,9 @@ class take_codon_positions:
         Create a sample alignment and an app that returns the 3rd codon
         positions from four-fold degenerate codons.
 
-        >>> aln_ff = make_aligned_seqs({"s1": "GCAAGCGTTTAT", "s2": "GCTTTTGTCAAT"})
+        >>> aln_ff = make_aligned_seqs(
+        ...     {"s1": "GCAAGCGTTTAT", "s2": "GCTTTTGTCAAT"}, moltype="dna"
+        ... )
         >>> take_fourfold = get_app(
         ...     "take_codon_positions", fourfold_degenerate=True, moltype="dna"
         ... )
@@ -404,7 +408,7 @@ class take_codon_positions:
 
         >>> result = take_fourfold(aln)
         >>> result.message
-        'Traceback ...
+        'result is empty'
         """
         assert moltype is not None
         moltype = cogent3.get_moltype(moltype)
@@ -441,7 +445,8 @@ class take_codon_positions:
         self._positions = positions
 
     def take_fourfold_positions(self, aln):
-        if self._moltype and self._moltype != aln.moltype:
+        if self._moltype and self._moltype.label != aln.moltype.label:
+            # checking label will work across types
             aln = aln.to_moltype(self._moltype)
 
         fourfold_codon_sets = self._fourfold_degen_sets
@@ -451,6 +456,13 @@ class take_codon_positions:
             return any(x <= codon_set for codon_set in fourfold_codon_sets)
 
         new = aln.filtered(ffold, motif_length=3)
+        if not new:
+            return NotCompleted(
+                type="FAIL",
+                origin=self,
+                message="result is empty",
+                source=aln,
+            )
         return new[2::3]
 
     def take_codon_position(self, aln):
@@ -494,7 +506,8 @@ class take_named_seqs:
 
         >>> from cogent3 import make_aligned_seqs, get_app
         >>> aln = make_aligned_seqs(
-        ...     {"s1": "GCAAGC", "s2": "GCTTTT", "s3": "GC--GC", "s4": "GCAAGC"}
+        ...     {"s1": "GCAAGC", "s2": "GCTTTT", "s3": "GC--GC", "s4": "GCAAGC"},
+        ...     moltype="dna",
         ... )
         >>> app = get_app("take_named_seqs", "s1", "s2")
         >>> result = app(aln)
@@ -563,7 +576,8 @@ class take_n_seqs:
 
         >>> from cogent3 import make_aligned_seqs, get_app
         >>> aln = make_aligned_seqs(
-        ...     {"s1": "ACGT", "s2": "ACG-", "s3": "ACGN", "s4": "ACGG", "s5": "ACGG"}
+        ...     {"s1": "ACGT", "s2": "ACG-", "s3": "ACGN", "s4": "ACGG", "s5": "ACGG"},
+        ...     moltype="dna",
         ... )
         >>> app_first_n = get_app("take_n_seqs", number=3)
         >>> result = app_first_n(aln)
@@ -593,7 +607,8 @@ class take_n_seqs:
         ...         "s3": "GCG-",
         ...         "s4": "GCGG",
         ...         "s5": "GCGG",
-        ...     }
+        ...     },
+        ...     moltype="dna",
         ... )
         >>> app_fixed = get_app("take_n_seqs", number=3, random=True, fixed_choice=True)
         >>> result1 = app_fixed(aln).names
@@ -687,14 +702,6 @@ class min_length:
         >>> result = app(aln)
         >>> result.message
         '4 < min_length 7'
-
-        If the moltype of the alignment is not specified, returns a NotCompleted
-
-        >>> aln = make_aligned_seqs({"s1": "ACGGT", "s2": "AC-GT"})
-        >>> app = get_app("min_length", 3)
-        >>> result = app(aln)
-        >>> result.message
-        'Traceback...
         """
         if motif_length > 1:
             length //= motif_length
@@ -790,7 +797,9 @@ class fixed_length:
         of the alignment.
 
         >>> from cogent3 import make_aligned_seqs, get_app
-        >>> aln = make_aligned_seqs({"s1": "GCAAGCGTTTAT", "s2": "GCTTTTGTCAAT"})
+        >>> aln = make_aligned_seqs(
+        ...     {"s1": "GCAAGCGTTTAT", "s2": "GCTTTTGTCAAT"}, moltype="dna"
+        ... )
         >>> app_4 = get_app("fixed_length", length=4)
         >>> result = app_4(aln)
         >>> print(result.to_pretty())
@@ -819,7 +828,9 @@ class fixed_length:
         Sequences are split into non-overlapping sections of ``motif_length=3``
         before sampling (i.e. codon positions are preserved).
 
-        >>> aln = make_aligned_seqs({"s1": "GCAAGCGTTTAT", "s2": "GCTTTTGTCAAT"})
+        >>> aln = make_aligned_seqs(
+        ...     {"s1": "GCAAGCGTTTAT", "s2": "GCTTTTGTCAAT"}, moltype="dna"
+        ... )
         >>> app_motif3 = get_app(
         ...     "fixed_length", length=6, motif_length=3, random=True, seed=9
         ... )
@@ -1059,7 +1070,7 @@ class omit_duplicated:
         number of gaps and ambiguous characters. In this case, only one of 'c' and
         'd' will be retained.
 
-        >>> seqs = make_aligned_seqs(data, moltype="DNA")
+        >>> seqs = make_aligned_seqs(data, moltype="dna")
         >>> app = get_app("omit_duplicated", moltype="dna", choose="longest")
         >>> result = app(seqs)
         >>> print(result.to_pretty())
@@ -1087,10 +1098,10 @@ class omit_duplicated:
         ...         "s2": "ATYG",  # matches s1 with ambiguity
         ...         "s3": "GGTA",
         ...     },
-        ...     moltype="DNA",
+        ...     moltype="dna",
         ... )
         >>> app_dna = get_app(
-        ...     "omit_duplicated", mask_degen=True, choose="longest", moltype="DNA"
+        ...     "omit_duplicated", mask_degen=True, choose="longest", moltype="dna"
         ... )
         >>> result = app_dna(data)
         >>> print(result.to_pretty())

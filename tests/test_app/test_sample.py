@@ -50,21 +50,6 @@ class TranslateTests(TestCase):
         """correctly return codon positions from Alignment"""
         self._codon_positions(array_align=False)
 
-    def test_codon_positions_4fold_degen(self):
-        """codon_positions correctly return fourfold degenerate bases"""
-        #                           **4---**4---
-        aln = cogent3.make_aligned_seqs(
-            data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
-            moltype=DNA,
-        )
-        expect = {"a": "AT", "b": "TC"}
-        ffold = sample.take_codon_positions(fourfold_degenerate=True)
-        got = ffold(aln)
-        assert got.to_dict() == expect
-        # error if no moltype
-        with pytest.raises(AssertionError):
-            _ = sample.take_codon_positions(moltype=None)
-
     def test_take_named_3(self):
         """3 named seqs"""
         select = sample.take_named_seqs("a", "b", "c")
@@ -701,3 +686,35 @@ def test_minlength():
     got = [aln.to_dict() for aln in map(ml, alns) if aln]  # pylint: disable=not-callable
     expected = []
     assert got == expected
+
+
+def test_codon_positions_4fold_degen():
+    """codon_positions correctly return fourfold degenerate bases"""
+    #                           **4---**4---
+    aln = cogent3.make_aligned_seqs(
+        data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
+        moltype=DNA,
+    )
+    expect = {"a": "AT", "b": "TC"}
+    ffold = sample.take_codon_positions(fourfold_degenerate=True)
+    got = ffold(aln)
+    assert got.to_dict() == expect
+    # error if no moltype
+    with pytest.raises(AssertionError):
+        _ = sample.take_codon_positions(moltype=None)
+
+
+def test_fourfold_empty_alignment():
+    aln = cogent3.make_aligned_seqs(
+        {"s1": "ACGACGACG", "s2": "GATGATGAT"},
+        moltype="dna",
+        new_type=True,
+    )
+    take_fourfold = cogent3.get_app(
+        "take_codon_positions",
+        fourfold_degenerate=True,
+        moltype="dna",
+    )
+    result = take_fourfold.main(aln)
+    assert isinstance(result, NotCompleted)
+    assert result.message == "result is empty"

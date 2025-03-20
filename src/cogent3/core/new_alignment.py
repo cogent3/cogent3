@@ -4597,17 +4597,11 @@ class Alignment(SequenceCollection):
             if True, ambiguity characters that include the gap state are
             included
         """
-        result = numpy.full((self.num_seqs, len(self)), False, dtype=bool)
         alpha = self.moltype.most_degen_alphabet()
-        for i, aligned in enumerate(self.seqs):
-            seq_array = numpy.array(aligned)
-            gaps = (
-                (seq_array >= alpha.gap_index)
-                if include_ambiguity
-                else seq_array == alpha.gap_index
-            )
-            result[i] = gaps
-        return result
+        gapped = self.array_seqs == alpha.gap_index
+        if include_ambiguity:
+            gapped = gapped | (self.array_seqs == alpha.missing_index)
+        return gapped
 
     def iupac_consensus(self, allow_gap: bool = True) -> str:
         """Returns string containing IUPAC consensus sequence of the alignment."""

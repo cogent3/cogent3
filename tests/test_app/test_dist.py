@@ -460,7 +460,7 @@ def test_gap_dist():
         "b": "TTGAAGAATATGT------GAAAGAG",
         "c": "CTGAAGAACCTGTGAAAGTGAAAGAG",
     }
-    aln = make_aligned_seqs(data, moltype="dna", array_align=True)
+    aln = make_aligned_seqs(data, moltype="dna", new_type=True)
     expect = {
         ("a", "b"): 14.0,  # one gap diff of size 4
         ("a", "c"): 30.0,
@@ -476,7 +476,7 @@ def test_gap_dist():
         "b": "TTGAAGAATATGTA------AAAGAG",
         "c": "CTGAAGAACCTGTGAAAGTGAAAGAG",
     }
-    aln = make_aligned_seqs(data, moltype="dna", array_align=True)
+    aln = make_aligned_seqs(data, moltype="dna", new_type=True)
     expect = {
         ("a", "b"): 45.0,  # 3 gaps diff of size 15
         ("a", "c"): 29.0,
@@ -492,7 +492,7 @@ def test_gap_dist():
         "b": "TGGAGT--GA",
         "c": "TGGAGTGTGA",
     }
-    aln = make_aligned_seqs(data, moltype="dna", array_align=True)
+    aln = make_aligned_seqs(data, moltype="dna", new_type=True)
     expect = {
         ("a", "b"): 38,  # 3 gaps diff of size 8
         ("a", "c"): 26.0,
@@ -502,7 +502,7 @@ def test_gap_dist():
     dmat = app.main(aln)
     assert dmat.to_dict() == expect.to_dict()
     data = {"a": "AAGAA-A", "b": "-ATAATG", "c": "C-TGG-G"}
-    aln = make_aligned_seqs(data, moltype="dna", array_align=True)
+    aln = make_aligned_seqs(data, moltype="dna", new_type=True)
     expect = {
         ("a", "b"): 22.0,  # 2 gaps diff of size 2
         ("a", "c"): 11.0,
