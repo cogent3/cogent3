@@ -39,6 +39,7 @@ jobs:
           pip install --upgrade nox
 
       - name: "Run nox for ${{ matrix.python-version }}"
+        shell: bash
         run: |
           dn=$(pwd)
           echo "$dn"
