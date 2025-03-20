@@ -445,7 +445,6 @@ class take_codon_positions:
         self._positions = positions
 
     def take_fourfold_positions(self, aln):
-        is_new_type = "new_" in aln.__module__
         if self._moltype and self._moltype.label != aln.moltype.label:
             # checking label will work across types
             aln = aln.to_moltype(self._moltype)
