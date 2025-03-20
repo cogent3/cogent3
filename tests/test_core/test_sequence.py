@@ -41,6 +41,12 @@ from cogent3.core.sequence import (
 )
 from cogent3.util.misc import get_object_provenance
 
+if "COGENT3_NEW_TYPE" in os.environ:
+    pytest.skip(
+        "Tests skipped because COGENT3_TYPE environment variable is defined",
+        allow_module_level=True,
+    )
+
 
 class SequenceTests(TestCase):
     """Tests of the Sequence class."""

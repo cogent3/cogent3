@@ -44,6 +44,13 @@ from cogent3.maths.util import safe_p_log_p
 from cogent3.parse.fasta import MinimalFastaParser
 from cogent3.util.misc import get_object_provenance
 
+if "COGENT3_NEW_TYPE" in os.environ:
+    pytest.skip(
+        "Tests skipped because COGENT3_TYPE environment variable is defined",
+        allow_module_level=True,
+    )
+
+
 DNA = get_moltype("dna")
 RNA = get_moltype("rna")
 PROTEIN = get_moltype("protein")
