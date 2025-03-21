@@ -93,40 +93,61 @@ def check_drawable_styles(method, styles, **kwargs):
 
 @pytest.fixture
 def dotplot_seqs():
-    data = {
+    return {
         "Human": "CAGATTTGGCAGTT-",
         "Mouse": "CAGATTCAGCAGGTG",
-        "Rat": "CAGATTCAGCAGG--G",
+        "Rat": "CAGATTCAGCAG--G",
     }
-    return new_alignment.make_unaligned_seqs(data, moltype="dna")
 
 
-def test_dotplot_base_cases(dotplot_seqs):
+@pytest.mark.parametrize("aligned", [True, False])
+def test_dotplot_base_cases(dotplot_seqs, aligned):
     """exercising dotplot method"""
+    seqs = (
+        new_alignment.make_aligned_seqs(dotplot_seqs, moltype="dna")
+        if aligned
+        else new_alignment.make_unaligned_seqs(dotplot_seqs, moltype="dna")
+    )
     # with provided names
-    plot = dotplot_seqs.dotplot(name1="Human", name2="Mouse")
+    plot = seqs.dotplot(name1="Human", name2="Mouse")
     assert str(plot.seq1) != str(plot.seq2)
 
     # without providing names
-    plot = dotplot_seqs.dotplot()
+    plot = seqs.dotplot()
     assert str(plot.seq1) != str(plot.seq2)
 
     # providing only one name
-    plot = dotplot_seqs.dotplot(name1="Human")
+    plot = seqs.dotplot(name1="Human")
     assert str(plot.seq1) != str(plot.seq2)
 
     # a collection of one sequence should make dotplot with itself
-    less_seqs = dotplot_seqs.take_seqs("Human")
+    less_seqs = seqs.take_seqs("Human")
     plot = less_seqs.dotplot()
     assert str(plot.seq1) == str(plot.seq2)
 
     # k larger than window should raise an error
     with pytest.raises(AssertionError):
-        dotplot_seqs.dotplot(window=5, k=11)
+        seqs.dotplot(window=5, k=11)
 
     # names not in the collection should raise an error
     with pytest.raises(ValueError):
-        dotplot_seqs.dotplot(name1="Human", name2="Dog")
+        seqs.dotplot(name1="Human", name2="Dog")
+
+
+def test_dotplot_aligned_path():
+    """exercising dotplot method"""
+    dotplot_seqs = {
+        "Human": "TTAATGAAGTAGGTTCCAGTACTAATGAAGTGGGCTCCAGTATTAATGAAATAGGTTCCAGTGATGAAAACATTCAAGCA",
+        "Mouse": "TTCATGAAGTATGTTCCACT------------------------------------------GGTGACTCCTTCCCAGGA",
+    }
+    seqs = new_alignment.make_aligned_seqs(dotplot_seqs, moltype="dna")
+    plot = seqs.dotplot()
+    # trigger construction of figure dict
+    _ = plot.figure
+    # make sure the aligned path trace exists
+    trace = plot.traces[1] if plot.traces[1]["name"] == "Alignment" else plot.traces[0]
+    # should have coordinates
+    assert len(trace["x"])
 
 
 @pytest.mark.parametrize("with_annotations", [True, False])
