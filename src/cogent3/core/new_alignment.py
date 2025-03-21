@@ -1485,10 +1485,11 @@ class SequenceCollection:
             msg = f"{name1}, {name2} missing"
             raise ValueError(msg)
 
-        seq1 = self.get_seq(seqname=name1, copy_annotations=False)
-        seq2 = self.get_seq(seqname=name2, copy_annotations=False)
-        annotated = seq1.is_annotated(biotype=biotype) or seq2.is_annotated(
-            biotype=biotype,
+        seq1 = self.seqs[name1]
+        seq2 = self.seqs[name2]
+        annotated = any(
+            self.annotation_db.num_matches(seqid=self._name_map[n], biotype=biotype)
+            for n in [name1, name2]
         )
         dotplot = Dotplot(
             seq1,
@@ -1508,9 +1509,9 @@ class SequenceCollection:
         )
 
         if annotated:
-            data = getattr(seq1, "data", seq1)
+            data = getattr(seq1, "seq", seq1)
             bottom = data.get_drawable(biotype=biotype)
-            data = getattr(seq2, "data", seq2)
+            data = getattr(seq2, "seq", seq2)
             left = data.get_drawable(biotype=biotype, vertical=True)
             dotplot = AnnotatedDrawable(
                 dotplot,
