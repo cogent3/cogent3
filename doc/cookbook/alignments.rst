@@ -203,7 +203,7 @@ Creating an ``Alignment`` object from a ``SequenceCollection``
 
 .. jupyter-execute::
 
-    aln = Alignment(seq)
+    aln = Alignment(seq.seqs)
     aln
 
 Convert alignment to DNA, RNA or PROTEIN moltypes
@@ -523,24 +523,14 @@ Getting all constant positions from an alignment
 Getting all variable codons from an alignment
 +++++++++++++++++++++++++++++++++++++++++++++
 
-This is done using the ``filtered`` method using the ``motif_length`` argument. We demonstrate this first for the ``ArrayAlignment``.
+This is done using the ``filtered`` method using the ``motif_length`` argument.
 
 .. jupyter-execute::
 
     from cogent3 import load_aligned_seqs
 
-    aln = load_aligned_seqs("data/long_testseqs.fasta")
-    variable_codons = aln.filtered(
-        lambda x: len(set(map(tuple, x))) > 1, motif_length=3
-    )
-    just_variable_aln[:9]
-
-Then for the standard ``Alignment`` by first converting the ``ArrayAlignment``.
-
-.. jupyter-execute::
-
-    aln = aln.to_type(array_align=False)
-    variable_codons = aln.filtered(lambda x: len(set("".join(x))) > 1, motif_length=3)
+    aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")
+    variable_codons = aln.filtered(lambda x: len({str(e) for e in x}) > 1, motif_length=3)
     just_variable_aln[:9]
 
 Filtering sequences
@@ -678,7 +668,7 @@ We then create a dinucleotide ``Alphabet`` object and use this to get dinucleoti
     dna = get_moltype("dna")
     seqs = [("a", "AACGTAAG"), ("b", "AACGTAAG")]
     aln = make_aligned_seqs(data=seqs, moltype="dna")
-    dinuc_alphabet = DNA.alphabet.get_word_alphabet(2)
+    dinuc_alphabet = dna.alphabet.get_word_alphabet(2)
     motif_probs = aln.get_motif_probs(alphabet=dinuc_alphabet)
     assert motif_probs["AA"] == 0.25
 
