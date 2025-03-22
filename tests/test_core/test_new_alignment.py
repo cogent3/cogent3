@@ -1790,6 +1790,31 @@ def test_sequence_collection_get_motif_probs():
     assert got == expect
 
 
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_get_motif_probs_alpha(mk_cls):
+    data = {
+        "s1": "GT GT AG AA GT TC CA AA TG AA".replace(" ", ""),
+        "s2": "GT GT AG AA GT TC CA AA TG AA".replace(" ", ""),
+        "s3": "GT GT AG AA GT TC CA AA TG AA".replace(" ", ""),
+    }
+    seqs = mk_cls(data, moltype="dna")
+    dinucs = seqs.moltype.alphabet.get_kmer_alphabet(2)
+    mprobs = seqs.get_motif_probs(alphabet=seqs.moltype.alphabet.get_kmer_alphabet(2))
+    expect = {
+        "GT": 9 / 30,
+        "AG": 3 / 30,
+        "AA": 9 / 30,
+        "TC": 3 / 30,
+        "CA": 3 / 30,
+        "TG": 3 / 30,
+    }
+    expect |= {d: 0.0 for d in dinucs if d not in expect}
+    assert mprobs == expect
+
+
 def test_sequence_collection_get_motif_probs_protein():
     data = {"a": "MVSB", "b": "MVS", "c": "MVP"}
     aln = new_alignment.make_unaligned_seqs(data, moltype="protein")
@@ -3566,9 +3591,10 @@ def test_alignment_array_positions(simple_aln):
     assert numpy.array_equal(got, expect)
 
 
-def test_alignment_array_positions_take_positions(simple_aln):
+@pytest.mark.parametrize("pos_type", [list, tuple, numpy.array])
+def test_alignment_array_positions_take_positions(simple_aln, pos_type):
     """an alignment which has been subset should return the correct array_positions"""
-    subset = simple_aln.take_positions([0])
+    subset = simple_aln.take_positions(pos_type([0]))
     got = subset.array_positions
     expect = numpy.array([[0, 4, 2]])
     assert numpy.array_equal(got, expect)
