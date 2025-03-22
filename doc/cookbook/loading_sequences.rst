@@ -102,7 +102,7 @@ The loading functions use the filename suffix to infer the file format. This can
 Specifying the sequence molecular type
 --------------------------------------
 
-Simple case of loading a ``list`` of aligned amino acid sequences in FASTA format, with and without ``moltype`` specification. When ``moltype`` is not specified it defaults to ``BYTES`` for the ``ArrayAlignment`` class, ``ASCII`` for the ``Alignment`` class.
+Simple case of loading a ``list`` of aligned amino acid sequences in FASTA format with a ``moltype`` specification.
 
 .. jupyter-execute::
 
@@ -112,13 +112,6 @@ Simple case of loading a ``list`` of aligned amino acid sequences in FASTA forma
     proteins_loaded = make_aligned_seqs(protein_seqs, moltype="protein")
     proteins_loaded.moltype
     proteins_loaded
-
-.. jupyter-execute::
-
-    proteins_loaded = make_aligned_seqs(protein_seqs, moltype="protein")
-    proteins_loaded
-
-.. note:: This applies to both the ``load_*`` or ``make_*`` functions.
 
 Making an alignment from standard python objects
 ------------------------------------------------
