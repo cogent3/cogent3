@@ -29,7 +29,7 @@ Abbreviations listed from ``available_distances()`` can be used as values for th
     from cogent3 import load_aligned_seqs
 
     aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
-    dists = aln.distance_matrix(calc="tn93", show_progress=False)
+    dists = aln.distance_matrix(calc="tn93")
     dists
 
 Using the distance calculator directly
@@ -39,7 +39,7 @@ Using the distance calculator directly
 
     from cogent3 import get_distance_calculator, load_aligned_seqs
 
-    aln = load_aligned_seqs("data/primate_brca1.fasta")
+    aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
     dist_calc = get_distance_calculator("tn93", alignment=aln)
     dist_calc
 
@@ -85,7 +85,7 @@ Given a ``DistanceMatrix`` object, finding the sequences that have the maximum p
     from cogent3 import load_aligned_seqs
 
     aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
-    dists = aln.distance_matrix(calc="tn93", show_progress=False)
+    dists = aln.distance_matrix(calc="tn93")
     dists.max_pair()
     
 To find the maximum distance, index the ``DistanceMatrix`` with the result of ``max_pair``.
@@ -109,7 +109,7 @@ Given a ``DistanceMatrix`` object, finding the sequences that have the minimum p
     from cogent3 import load_aligned_seqs
 
     aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
-    dists = aln.distance_matrix(calc="tn93", show_progress=False)
+    dists = aln.distance_matrix(calc="tn93")
     dists.min_pair()
 
 To find the minimum distance, index the ``DistanceMatrix`` with the result of ``min_pair``.
