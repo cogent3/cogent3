@@ -89,5 +89,5 @@ We illustrate the phylogeny reconstruction using maximum-likelihood using the F8
     from cogent3.evolve.models import F81
     from cogent3.phylo.maximum_likelihood import ML
 
-    aln = load_aligned_seqs("data/primate_brca1.fasta")
+    aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
     ml = ML(F81(), aln)

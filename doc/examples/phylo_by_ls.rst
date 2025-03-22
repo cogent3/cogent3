@@ -22,7 +22,7 @@ We will load some pre-computed pairwise distance data. To see how that data was 
     from cogent3.evolve.fast_distance import DistanceMatrix
     from cogent3.evolve.models import HKY85
 
-    al = load_aligned_seqs("data/long_testseqs.fasta")
+    al = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")
     d = distance.EstimateDistances(al, submodel=HKY85())
     d.run(show_progress=False)
 

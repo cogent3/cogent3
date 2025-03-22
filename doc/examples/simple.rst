@@ -16,7 +16,7 @@ We use a canned nucleotide substitution model (the ``HKY85`` model) on just thre
     from cogent3.evolve.models import get_model
 
     model = get_model("HKY85")
-    aln = load_aligned_seqs("data/primate_cdx2_promoter.fasta")
+    aln = load_aligned_seqs("data/primate_cdx2_promoter.fasta", moltype="dna")
     tree = make_tree(tip_names=aln.names)
     lf = model.make_likelihood_function(tree)
     lf.set_alignment(aln)

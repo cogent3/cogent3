@@ -17,7 +17,7 @@ We want to know whether an exchangeability parameter is different between alignm
     from scipy.stats.distributions import chi2
     from cogent3.recalculation.scope import ALL, EACH
 
-    aln = load_aligned_seqs("data/long_testseqs.fasta")
+    aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")
     half = len(aln) // 2
     aln1 = aln[:half]
     aln2 = aln[half:]
