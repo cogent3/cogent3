@@ -11,6 +11,7 @@ from typing import Any, NoReturn, Optional, Union
 
 import numba
 import numpy
+import typing_extensions
 from numpy.typing import NDArray
 
 from cogent3._version import __version__
@@ -1383,6 +1384,7 @@ class IndelMap(MapABC):
         self,
         other: "IndelMap",
         parent_length: int | None = None,
+        aligned_indices: bool = False,
     ) -> "IndelMap":
         """merge gaps of other with self
 
@@ -1392,19 +1394,43 @@ class IndelMap(MapABC):
             instance for same sequence
         parent_length
             overrides property
+        aligned_indices
+            other.gap_pos are alignment indices of self
         """
-        unique_pos = numpy.union1d(self.gap_pos, other.gap_pos)
+        if aligned_indices:
+            other_pos, other_lengths = self._aligned_to_seq_map(other)
+        else:
+            other_pos = other.gap_pos
+            other_lengths = other.get_gap_lengths()
+
+        unique_pos = numpy.union1d(self.gap_pos, other_pos)
         gap_lengths = numpy.zeros(unique_pos.shape, dtype=_DEFAULT_GAP_DTYPE)
         self_lengths = self.get_gap_lengths()
-        other_lengths = other.get_gap_lengths()
+
         _update_lengths(unique_pos, gap_lengths, self.gap_pos, self_lengths)
-        _update_lengths(unique_pos, gap_lengths, other.gap_pos, other_lengths)
+        _update_lengths(unique_pos, gap_lengths, other_pos, other_lengths)
         parent_length = parent_length or self.parent_length
         return self.__class__(
             gap_pos=unique_pos,
             gap_lengths=gap_lengths,
             parent_length=parent_length,
         )
+
+    def _aligned_to_seq_map(
+        self,
+        other: typing_extensions.Self,
+    ) -> tuple[numpy.ndarray[int], numpy.ndarray[int]]:
+        # converts the gap pos of other into seq indices,
+        # returning unique positions and their summed lengths
+        other_pos = numpy.array(
+            [self.get_seq_index(p) for p in other.gap_pos],
+            dtype=_DEFAULT_GAP_DTYPE,
+        )
+        other_lengths = other.get_gap_lengths()
+        # reduce to unique positions
+        other_pos, unique_indices = numpy.unique(other_pos, return_index=True)
+        other_lengths = numpy.add.reduceat(other_lengths, unique_indices)
+        return other_pos, other_lengths
 
     def joined_segments(self, coords: SeqCoordTypes) -> "IndelMap":
         """returns new map with disjoint gapped segments joined
