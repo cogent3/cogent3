@@ -735,7 +735,7 @@ class SequenceCollection:
 
     @property
     @c3warn.deprecated_callable(
-        version="2025.5",
+        version="2025.6",
         reason=".seqs can now be indexed by name",
         new=".seqs",
     )
@@ -1382,7 +1382,7 @@ class SequenceCollection:
         return alignment_to_phylip(self.to_dict())
 
     @c3warn.deprecated_args(
-        version="2025.3",
+        version="2025.6",
         reason="duplicates builtin name",
         old_new=[("format", "file_format")],
     )
