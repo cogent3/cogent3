@@ -45,7 +45,7 @@ Get our observed data alignment
 
 .. jupyter-execute::
 
-    aln = load_aligned_seqs("data/long_testseqs.fasta")
+    aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")
 
 Create a ``EstimateProbability`` bootstrap instance
 

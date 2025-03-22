@@ -1,8 +1,17 @@
+import typing
 from collections.abc import Iterable
 
+import typing_extensions
 from numpy import array
 
 from .location import FeatureMap
+
+if typing.TYPE_CHECKING:
+    from cogent3.core.new_alignment import Alignment
+    from cogent3.core.new_sequence import Sequence
+    from cogent3.draw.drawable import Shape
+
+SeqORAlign = typing.Union["Sequence", "Alignment"]
 
 
 # TODO gah write docstrings!
@@ -19,23 +28,24 @@ class Feature:
         "_seqid",
         "_serialisable",
         "_strand",
+        "_xattr",
     )
 
     # TODO gah implement a __new__ to trap args for serialisation purposes?
     def __init__(
         self,
         *,
-        parent,
+        parent: SeqORAlign,
         seqid: str,
         map: FeatureMap,
         biotype: str,
         name: str,
         strand: str,
+        xattr: dict[str, typing.Any] | None = None,
     ) -> None:
         # _serialisable is used for creating derivative instances
         d = locals()
-        exclude = ("self", "__class__", "kw")
-        self._serialisable = {k: v for k, v in d.items() if k not in exclude}
+        self._serialisable = {k: v for k, v in d.items() if k not in ("self", "d")}
         self._parent = parent
         self._seqid = seqid
         assert map.parent_length == len(parent), (map, len(parent))
@@ -46,32 +56,33 @@ class Feature:
         data.extend((self.seqid, self.biotype, self.name))
         self._id = hash(tuple(data))
         self._strand = strand
+        self._xattr = xattr
 
-    def __eq__(self, other):
+    def __eq__(self, other: typing_extensions.Self) -> bool:
         return self._id == other._id
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         """Features can be used in a dictionary!"""
         return self._id
 
     @property
-    def parent(self):
+    def parent(self) -> SeqORAlign:
         return self._parent
 
     @property
-    def seqid(self):
+    def seqid(self) -> str:
         return self._seqid
 
     @property
-    def map(self):
+    def map(self) -> FeatureMap:
         return self._map
 
     @property
-    def biotype(self):
+    def biotype(self) -> str:
         return self._biotype
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._name
 
     def get_slice(
@@ -79,7 +90,7 @@ class Feature:
         complete: bool = False,
         allow_gaps: bool = False,
         apply_name: bool = True,
-    ):
+    ) -> SeqORAlign:
         """
         The corresponding sequence fragment.
 
@@ -113,7 +124,7 @@ class Feature:
         result = self.parent[fmap.start : fmap.end]
         return self._do_seq_slice(result, apply_name)
 
-    def _do_seq_slice(self, result, apply_name):
+    def _do_seq_slice(self, result: SeqORAlign, apply_name: bool) -> SeqORAlign:
         if self.reversed:
             result = result.rc()
         if self.map.num_spans > 1:
@@ -123,7 +134,7 @@ class Feature:
             result.name = self.name
         return result
 
-    def without_lost_spans(self):
+    def without_lost_spans(self) -> typing_extensions.Self:
         """Keeps only the parts which are actually present in the underlying sequence"""
         if self.map.complete:
             return self
@@ -131,7 +142,7 @@ class Feature:
         kwargs = {**self._serialisable, "map": self.map[keep]}
         return self.__class__(**kwargs)
 
-    def as_one_span(self):
+    def as_one_span(self) -> typing_extensions.Self:
         """returns a feature that preserves any gaps"""
         kwargs = {
             **self._serialisable,
@@ -140,7 +151,7 @@ class Feature:
         }
         return self.__class__(**kwargs)
 
-    def shadow(self):
+    def shadow(self) -> typing_extensions.Self:
         """returns new instance corresponding to disjoint of self coordinates"""
         kwargs = {
             **self._serialisable,
@@ -176,12 +187,16 @@ class Feature:
         }
         return self.__class__(**kwargs)
 
-    def get_coordinates(self):
+    def get_coordinates(self) -> list[tuple[int, int]]:
         """returns sequence coordinates of this Feature as
         [(start1, end1), ...]"""
         return self.map.get_coordinates()
 
-    def get_children(self, biotype: str | None = None, **kwargs):
+    def get_children(
+        self,
+        biotype: str | None = None,
+        **kwargs,
+    ) -> typing.Iterable[typing_extensions.Self]:
         """generator returns sub-features of self optionally matching biotype"""
         offset = getattr(self.parent, "annotation_offset", 0)
         start = self.map.start + offset
@@ -205,7 +220,7 @@ class Feature:
                 continue
             yield feature
 
-    def get_parent(self, **kwargs):
+    def get_parent(self, **kwargs) -> typing.Iterable[typing_extensions.Self]:
         """generator returns parent features of self optionally matching biotype"""
         offset = getattr(self.parent, "annotation_offset", 0)
         start = self.map.start + offset
@@ -228,7 +243,7 @@ class Feature:
                 continue
             yield feature
 
-    def union(self, features: Iterable):
+    def union(self, features: Iterable) -> typing_extensions.Self:
         """return as a single Feature
 
         Notes
@@ -279,23 +294,32 @@ class Feature:
 
         return self.__class__(**kwargs)
 
-    def get_drawable(self):
+    def get_drawable(self) -> "Shape":
         """returns plotly trace"""
         from cogent3.draw.drawable import make_shape
 
         return make_shape(type_=self, parent_length=len(self.parent))
 
-    def to_dict(self):
+    def to_dict(self) -> dict[str, typing.Any]:
         """returns"""
         result = {
             **self._serialisable,
             "spans": self.map.get_coordinates(),
         }
-        for key in ("map", "parent"):
+        for key in ("map", "parent", "xattr"):
             result.pop(key, None)
         return result
 
     @property
-    def reversed(self):
+    def reversed(self) -> bool:
         """whether Feature is on the reverse strand relative to bound object"""
         return self._strand == "-"
+
+    @property
+    def xattr(self) -> dict[str, typing.Any] | None:
+        return self._xattr
+
+    @xattr.setter
+    def xattr(self, val: typing.Any) -> None:
+        msg = "setting xattr is not supported"
+        raise TypeError(msg)

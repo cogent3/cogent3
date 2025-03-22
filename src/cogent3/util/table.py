@@ -780,7 +780,9 @@ class Table:
         return "\n".join(html)
 
     def _get_persistent_attrs(self):
-        return UnionDict(self._persistent_attrs.copy())
+        attrs = self._persistent_attrs.copy()
+        attrs["column_templates"] = self._column_templates
+        return UnionDict(**attrs)
 
     @property
     def title(self):
@@ -2039,7 +2041,7 @@ class Table:
         df = DataFrame(data=data, index=index)
         if categories is not None:
             categories = [categories] if type(categories) == str else categories
-            df = df.astype({n: "category" for n in categories})
+            df = df.astype(dict.fromkeys(categories, "category"))
 
         return df
 

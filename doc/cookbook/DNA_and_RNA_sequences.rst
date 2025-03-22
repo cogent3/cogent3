@@ -14,7 +14,7 @@ Sequence properties are affected by the moltype you specify. The default type fo
 
     from cogent3 import make_seq
 
-    my_seq = make_seq("AGTACACTGGT")
+    my_seq = make_seq("AGTACACTGGT", moltype="dna")
     my_seq.moltype.label
 
 .. jupyter-execute::
@@ -235,5 +235,5 @@ Remove gaps from a sequence
 
     from cogent3 import make_seq
 
-    s = make_seq("--AUUAUGCUAU-UAu--", moltype="rna")
+    s = make_seq("--AUUAUGCUAU-UAU--", moltype="rna")
     s.degap()

@@ -274,15 +274,6 @@ def test_aln_feature_to_dict():  # ported
     assert d == expect
 
 
-@pytest.mark.parametrize("fix", ["ann_seq", "ann_aln"])
-@pytest.mark.parametrize("type_", [list, tuple])
-def test_aln_slice_feat_invalid(type_, fix, request):  # ported
-    # incorrect parent
-    obj = request.getfixturevalue(fix)
-    with pytest.raises(TypeError):
-        _ = obj[type_(obj.get_features(biotype="exon"))]
-
-
 def test_seq_slice_seqfeat_invalid(ann_aln):  # ported
     # incorrect parent
     seq1 = ann_aln.get_seq("FAKE01")

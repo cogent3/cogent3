@@ -154,12 +154,30 @@ def test_sequence_to_moltype():
     trev = next(iter(got.get_features(name="trev")))
     assert str(got[trev]) == "AAAA"
 
+
+@pytest.mark.parametrize("invalid_moltype", [None, ""])
+def test_sequence_to_moltype_invalid(invalid_moltype):
+    """correctly convert to specified moltype"""
+    s = new_moltype.ASCII.make_seq(seq="TTTTTTTTTTAAAA", name="test1")
     # calling with a null object should raise an exception
     with pytest.raises(ValueError):
-        s.to_moltype(None)
+        s.to_moltype(invalid_moltype)
 
-    with pytest.raises(ValueError):
-        s.to_moltype("")
+
+@pytest.mark.parametrize(
+    "moltype",
+    ["dna", "rna", "protein", "protein_with_stop", "bytes"],
+)
+def test_sequence_to_moltype_seqclass(moltype):
+    """correctly convert to specified moltype"""
+    raw = "CCCCCCCCAAAA"
+    s = new_moltype.ASCII.make_seq(seq=raw, name="test1")
+    got = s.to_moltype(moltype)
+    assert got.moltype.name == moltype
+    # check the instance matches the assigned class, which is on
+    # the attribute mt._make_seq
+    assert isinstance(got, got.moltype._make_seq)  # noqa: SLF001
+    assert str(got) == raw
 
 
 @pytest.mark.parametrize(
@@ -273,7 +291,9 @@ def test_sequence_complement():
 def test_sequence_rc():
     """Sequence.rc() should correctly reverse-complement sequence"""
     # no longer preserves case!
-    assert new_moltype.DNA.make_seq(seq="TATCG-NR").rc() == "YN-CGATA"
+    s = new_moltype.DNA.make_seq(seq="TATCG-NR")
+    s = s.rc()
+    assert s == "YN-CGATA"
     assert new_moltype.RNA.make_seq(seq="").rc() == ""
     assert new_moltype.RNA.make_seq(seq="UAUCG-NR").rc() == "YN-CGAUA"
     assert new_moltype.RNA.make_seq(seq="A").rc() == "U"
@@ -857,7 +877,7 @@ def test_strand_symmetry():
     ssym = seq.strand_symmetry(motif_length=1)
     assert numpy.allclose(ssym.observed.array, [[7, 5], [7, 9]])
 
-    with pytest.raises(TypeError):
+    with pytest.raises(AttributeError):
         s = seq.to_moltype("text")
         s.strand_symmetry(motif_length=1)
 
@@ -2963,8 +2983,7 @@ def aa_moltype(DATA_DIR, tmp_path):
 
 
 def test_load_invalid_moltype(aa_moltype):
-    with pytest.raises(AssertionError):
-        # this should be an AlphabetError
+    with pytest.raises(new_alphabet.AlphabetError):
         cogent3.load_seq(aa_moltype, moltype="dna", new_type=True)
 
 
@@ -3014,6 +3033,16 @@ def test_make_seq_wrong_order_alpha():
 def test_make_seq_from_types(raw_seq):
     seq = new_moltype.DNA.make_seq(seq=raw_seq)
     assert str(seq) == "GGTAC"
+
+
+@pytest.mark.parametrize(
+    "raw_seq",
+    ["GGTac", b"GGTac", numpy.array([3, 3, 0, 23, 43], dtype=numpy.uint8)],
+)
+def test_make_seq_invalid(raw_seq):
+    # seq only valid if all upper case
+    with pytest.raises(new_alphabet.AlphabetError):
+        new_moltype.DNA.make_seq(seq=raw_seq)
 
 
 @pytest.mark.parametrize(("moltype", "seq"), [("dna", "AUGC"), ("rna", "ATGC")])

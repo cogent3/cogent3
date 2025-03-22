@@ -1,4 +1,3 @@
-import os
 from collections import defaultdict
 from typing import Union
 
@@ -16,10 +15,6 @@ GeneticCodeTypes = (
 )
 MolTypes = str | old_moltype.MolType | new_moltype.MolType
 AlphabetTypes = old_alphabet.Alphabet | new_alphabet.CharAlphabet
-
-_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
-
-_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
 
 
 def best_frame(
@@ -56,7 +51,7 @@ def best_frame(
         or the stop codon is not at the sequence end
     """
     gc = cogent3.get_code(gc)
-    if _NEW_TYPE:
+    if "new_" in gc.__module__:
         translations = [tr for *_, tr in gc.sixframes(str(seq))]
     else:
         translations = gc.sixframes(seq)
@@ -124,7 +119,7 @@ def translate_frames(
         moltype = cogent3.get_moltype(moltype)
         seq = moltype.make_seq(seq)
 
-    if _NEW_TYPE:
+    if "new_" in gc.__module__:
         translations = [tr for *_, tr in gc.sixframes(seq)]
     else:
         translations = gc.sixframes(seq)
@@ -222,7 +217,8 @@ class select_translatable:
         ...     {
         ...         "s1": "AATATAAATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTTCATAAAGTCATA",
         ...         "s1_rc": "TATGACTTTATGAAGTAATAAACTGCTGTTCTCATGCTGTAATGAGCTGGCATTTATATT",
-        ...     }
+        ...     },
+        ...     moltype="dna",
         ... )
         >>> app = get_app("select_translatable")
         >>> result = app(aln)
@@ -244,7 +240,8 @@ class select_translatable:
         ...     {
         ...         "internal_stop": "AATTAAATGTGA",
         ...         "s2": "TATGACTAA",
-        ...     }
+        ...     },
+        ...     moltype="dna",
         ... )
         >>> app = get_app("select_translatable", frame=1)
         >>> result = app(aln)
@@ -353,7 +350,7 @@ class translate_seqs:
         with a stop codon are excluded with ``trim_terminal_stop=True``.
 
         >>> from cogent3 import make_aligned_seqs, get_app
-        >>> aln = make_aligned_seqs({"s1": "ATGAGG", "s2": "ATGTAA"})
+        >>> aln = make_aligned_seqs({"s1": "ATGAGG", "s2": "ATGTAA"}, moltype="dna")
         >>> app_translate = get_app("translate_seqs", trim_terminal_stop=True)
         >>> result = app_translate(aln)
         >>> print(result.to_pretty())

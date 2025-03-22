@@ -6,6 +6,7 @@ import pytest
 import cogent3
 from cogent3.app import composable, sample
 from cogent3.app.composable import NotCompleted
+from cogent3.core.new_moltype import MolTypeError
 
 DNA = cogent3.get_moltype("dna")
 
@@ -48,21 +49,6 @@ class TranslateTests(TestCase):
     def test_take_codon_positions_alignment(self):
         """correctly return codon positions from Alignment"""
         self._codon_positions(array_align=False)
-
-    def test_codon_positions_4fold_degen(self):
-        """codon_positions correctly return fourfold degenerate bases"""
-        #                           **4---**4---
-        aln = cogent3.make_aligned_seqs(
-            data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
-            moltype=DNA,
-        )
-        expect = {"a": "AT", "b": "TC"}
-        ffold = sample.take_codon_positions(fourfold_degenerate=True)
-        got = ffold(aln)
-        assert got.to_dict() == expect
-        # error if no moltype
-        with pytest.raises(AssertionError):
-            _ = sample.take_codon_positions(moltype=None)
 
     def test_take_named_3(self):
         """3 named seqs"""
@@ -499,6 +485,11 @@ def test_omit_bad_seqs(bad_gap_data, gap_fraction, quantile, expected_keys):
     assert got.to_dict() == expected
 
 
+def test_omit_bad_seqs_error():
+    with pytest.raises(MolTypeError):
+        sample.omit_bad_seqs(moltype="text")
+
+
 @pytest.fixture
 def bad_ambig_gap_data():
     return {
@@ -537,20 +528,6 @@ def test_omit_bad_seqs_ambigs(bad_ambig_gap_data):
     dropbad = sample.omit_bad_seqs(gap_fraction=0.5, ambig_fraction=0.5)
     got = dropbad(aln)
     assert set(got.to_dict().keys()) == {"s4", "s5", "s6"}
-
-
-@pytest.mark.skipif(
-    _NEW_TYPE,
-    reason="new_type does not yet support mixed strand collections",
-)
-def test_omit_bad_seqs_ambigs_old_aln(bad_ambig_gap_data):
-    # ambig_fraction should be ignored if using old style alignment
-
-    aln = cogent3.make_aligned_seqs(bad_ambig_gap_data, moltype=DNA, new_type=False)
-    dropbad = sample.omit_bad_seqs(gap_fraction=0.5, ambig_fraction=0.5)
-
-    got = dropbad(aln)
-    assert isinstance(got, NotCompleted)
 
 
 def test_filter_degen():
@@ -695,3 +672,35 @@ def test_minlength():
     got = [aln.to_dict() for aln in map(ml, alns) if aln]  # pylint: disable=not-callable
     expected = []
     assert got == expected
+
+
+def test_codon_positions_4fold_degen():
+    """codon_positions correctly return fourfold degenerate bases"""
+    #                           **4---**4---
+    aln = cogent3.make_aligned_seqs(
+        data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
+        moltype=DNA,
+    )
+    expect = {"a": "AT", "b": "TC"}
+    ffold = sample.take_codon_positions(fourfold_degenerate=True)
+    got = ffold(aln)
+    assert got.to_dict() == expect
+    # error if no moltype
+    with pytest.raises(AssertionError):
+        _ = sample.take_codon_positions(moltype=None)
+
+
+def test_fourfold_empty_alignment():
+    aln = cogent3.make_aligned_seqs(
+        {"s1": "ACGACGACG", "s2": "GATGATGAT"},
+        moltype="dna",
+        new_type=True,
+    )
+    take_fourfold = cogent3.get_app(
+        "take_codon_positions",
+        fourfold_degenerate=True,
+        moltype="dna",
+    )
+    result = take_fourfold.main(aln)
+    assert isinstance(result, NotCompleted)
+    assert result.message == "result is empty"

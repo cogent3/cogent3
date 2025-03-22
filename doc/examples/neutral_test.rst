@@ -20,7 +20,7 @@ Get your alignment and tree.
 
 .. jupyter-execute::
 
-    al = load_aligned_seqs("data/long_testseqs.fasta")
+    al = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")
     t = load_tree("data/test.tree")
 
 We use a Goldman Yang 1994 model.

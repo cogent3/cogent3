@@ -2643,7 +2643,10 @@ class AlignmentI:
             col_lookup = dict.fromkeys(cols)
             for name, seq in list(self.named_seqs.items()):
                 result[name] = make_seq(
-                    seq=[str(seq[i]) for i in range(len(seq)) if i not in col_lookup],
+                    seq="".join(
+                        [str(seq[i]) for i in range(len(seq)) if i not in col_lookup],
+                    ),
+                    name=name,
                 )
         # otherwise, just get the requested indices
         else:

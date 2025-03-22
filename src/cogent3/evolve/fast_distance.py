@@ -14,6 +14,9 @@ from cogent3.util.dict_array import DictArray
 from cogent3.util.misc import get_object_provenance
 from cogent3.util.progress_display import display_wrap
 
+if typing.TYPE_CHECKING:
+    from cogent3.core.tree import PhyloNode
+
 PySeq = typing.Sequence
 PySeqStr = PySeq[str]
 
@@ -834,22 +837,25 @@ class DistanceMatrix(DictArray):
         keep = set(names) ^ exclude
         return self.take_dists(keep)
 
-    def quick_tree(self, show_progress=False):
-        """returns a neighbour joining tree
+    def quick_tree(self, use_hook: str | None = None) -> "PhyloNode":
+        """Returns a phylogenetic tree
 
-        Returns
-        -------
-        an estimated Neighbour Joining Tree, note that invalid distances are dropped
-        prior to building the tree
+        Parameters
+        ----------
+        use_hook
+            name of a third-party package that implements the quick_tree
+            hook. If not specified, defaults to the first available hook or
+            the cogent3 quick_tree() app. To force default, set
+            use_hook="cogent3".
+
+        Notes
+        -----
+        Invalid distances are dropped prior to building the tree.
+        Defaults to the Neighbour Joining Tree algorithm.
         """
-        from cogent3.phylo.nj import nj
-
+        qtree = cogent3._plugin.get_quick_tree_hook(name=use_hook)  # noqa: SLF001
         dists = self.drop_invalid()
-        if not dists or dists.shape[0] == 1:
-            msg = "Too few distances to build a treenj"
-            raise ValueError(msg)
-        dists = dists.to_dict()
-        return nj(dists, show_progress=show_progress)
+        return qtree(dists)
 
     def max_pair(self) -> tuple[str, str]:
         """returns the pair of names with the maximum distance

@@ -778,7 +778,7 @@ class ic_score:
             # we reduce motif_probs to observed states
             motif_probs = {m: v for m, v in motif_probs.items() if v > 0}
             num_motifs = len(motif_probs)
-            motif_probs = {m: 1 / num_motifs for m in motif_probs}
+            motif_probs = dict.fromkeys(motif_probs, 1 / num_motifs)
 
         p = array([motif_probs.get(b, 0.0) for b in counts.motifs])
 

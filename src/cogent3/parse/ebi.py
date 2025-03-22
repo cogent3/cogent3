@@ -1,7 +1,4 @@
-#!/usr/bin/env python
 """Provide a parser for SwissProt EBI format files."""
-
-import sys
 
 from cogent3.core.sequence import Sequence
 from cogent3.parse.record import FieldError, RecordError
@@ -301,8 +298,7 @@ def mapping_parser(line, fields, delimiters=None, flatten=list_flatten):
         else:
             result[f] = v
 
-    if None in result:
-        del result[None]
+    result.pop(None, None)
 
     return result
 
@@ -720,8 +716,8 @@ def ft_parser(lines):
     these classes are in a 'loop' or 'random-coil' structure.
     """
     lines = labeloff(lines)
-    fieldnames = "Start End Description".split()
-    secondary_structure_keynames = "HELIX STRAND TURN".split()
+    fieldnames = ["Start", "End", "Description"]
+    secondary_structure_keynames = ["HELIX", "STRAND", "TURN"]
     result = {}
     for item in hanging_paragraph_finder(lines):
         keyname, start, end, description = ft_basic_itemparser(item)
@@ -823,7 +819,7 @@ def ft_mutation_parser(description, mutation_comment_delimiter="("):
     FT   CONFLICT    484    484       Missing (in Ref. 2).
     FT   CONFLICT    802    802       K -> Q (in Ref. 4, 5 and 10).
     """
-    fieldnames = "MutateFrom MutateTo Comment".split()
+    fieldnames = ["MutateFrom", "MutateTo", "Comment"]
 
     # split desc into mutation and comment
     desc = description.rstrip(" )")
@@ -1186,7 +1182,7 @@ def is_ref_line(x):
 
 ref_finder = LabeledRecordFinder(is_ref_line)
 
-required_ref_labels = "RN RP RL RA/RG RL".split()
+required_ref_labels = ["RN", "RP", "RL", "RA/RG", "RL"]
 
 
 def single_ref_parser(lines, strict=False):
@@ -1391,7 +1387,7 @@ ref_parsers = {
     "RL": rl_parser,
 }
 
-required_labels = [*"ID AC DT DE OS OC OX SQ REF".split(), ""]
+required_labels = [*["ID", "AC", "DT", "DE", "OS", "OC", "OX", "SQ", "REF"], ""]
 #################################
 # Minimal Ebi parser
 
@@ -1440,7 +1436,7 @@ def MinimalEbiParser(lines, strict=True, selected_labels=None):
     for one exception: CC lines that contain the 'DATABASE' topic"""
     selected_labels = selected_labels or []
     exclude = b" \t\n\r/"
-    strip_table = {c: None for c in exclude}
+    strip_table = dict.fromkeys(exclude)
 
     for record in EbiFinder(lines):
         if strict and not record[0].startswith("ID"):
@@ -1564,121 +1560,3 @@ def EbiParser(
                 continue
 
         yield sequence, header
-
-
-if __name__ == "__main__":
-    from getopt import GetoptError, getopt
-
-    usage = """ Usage: python __.py [options] [source]
-
-Options:
-  -h, --help              show this help
-  -d                      show debugging information while parsing
-
-Examples:
-"""
-    try:
-        opts, args = getopt(sys.argv[1:], "hd", ["help"])
-    except GetoptError:
-        sys.exit(2)
-    for opt, _arg in opts:
-        if opt in ("-h", "--help"):
-            sys.exit()
-    if args:
-        lines = open(args[0])
-        for _i, _rec in enumerate(EbiParser(lines, strict=True)):
-            pass
-    else:
-        lines = """\
-ID   Q9U9C5_CAEEL   PRELIMINARY;      PRT;   218 AA.
-AC   Q9U9C5;hdfksfsdfs;sdfsfsfs;
-DT   01-MAY-2000 (TrEMBLrel. 13, Created)
-DT   01-MAY-2000 (TrEMBLrel. 13, Last sequence update)
-DT   13-SEP-2005 (TrEMBLrel. 31, Last annotation update)
-DE   Basic salivary proline-rich protein 4 allele L (Salivary proline-rich
-DE   protein Po) (Parotid o protein) [Contains: Peptide P-D (aa); BB (bb)
-DE   (bbb)] (Fragment).
-GN   name=nob-1; ORFNames=Y75B8A.2, Y75B8A.2B;
-GN   and
-GN   name=Jon99Ciii; Synonyms=SER2, SER5, Ser99Db; ORFNames=CG15519;
-OS   Caenorhabditis elegans (aa) (bb).
-OC   Eukaryota; Metazoa; Nematoda; Chromadorea; Rhabditida; Rhabditoidea;
-OC   Rhabditidae; Peloderinae; Caenorhabditis.
-OG   Plastid; Apicoplast.
-OG   Plasmid R6-5, Plasmid IncFII R100 (NR1), and
-OG   Plasmid IncFII R1-19 (R1 drd-19).
-OX   NCBI_TaxID=6239;
-RN   [1]
-RP   NUCLEOTIDE SEQUENCE.
-RC   STRAIN=N2;
-RX   MEDLINE=20243724; PubMed=10781051; DOI=10.1073/pnas.97.9.4499;
-RA   Van Auken K., Weaver D.C., Edgar L.G., Wood W.B.;
-RT   "Caenorhabditis elegans embryonic axial patterning requires two
-RT   recently discovered posterior-group Hox genes.";
-RL   Proc. Natl. Acad. Sci. U.S.A. 97:4499-4503(2000).
-RN   [2]
-RP   NUCLEOTIDE SEQUENCE.
-RC   STRAIN=N2;
-RG   The mouse genome sequencing consortium;
-RL   Submitted (JUL-1999) to the EMBL/GenBank/DDBJ databases.
-CC   -!- SUBCELLULAR LOCATION: Nuclear (By similarity).
-CC   -!- DATABASE: NAME=slkdfjAtlas Genet. Cytogenet. Oncol. Haematol.;
-CC       WWW="http://www.infobiogen.fr/services/chromcancer/Genes/
-CC   -!- DATABASE: NAME=Atlas Genet. Cytogenet. Oncol. Haematol.;
-CC       WWW="http://www.infobiogen.fr/services/chromcancer/Genes/
-CC       P53ID88.html".
-CC   -!- INTERACTION:
-CC       P51617:IRAK1; NbExp=1; IntAct=EBI-448466, EBI-358664;
-CC       P51617:IRAK1; NbExp=1; IntAct=EBI-448472, EBI-358664;
-CC   -!- ALTERNATIVE PRODUCTS:
-CC       Event=Alternative splicing; Named isoforms=3;
-CC         Comment=Additional isoforms seem to exist. Experimental
-CC         confirmation may be lacking for some isoforms;
-CC       name=1; Synonyms=AIRE-1;
-CC         IsoId=O43918-1; Sequence=Displayed;
-CC       name=2; Synonyms=AIRE-2;
-CC         IsoId=O43918-2; Sequence=VSP_004089;
-CC       name=3; Synonyms=AIRE-3;
-CC         IsoId=O43918-3; Sequence=VSP_004089, VSP_004090;
-CC   -!- BIOPHYSICOCHEMICAL PROPERTIES:
-CC       Kinetic parameters:
-CC         KM=98 uM for ATP;
-CC         KM=688 uM for pyridoxal;
-CC         Vmax=1.604 mmol/min/mg enzyme;
-CC       pH dependence:
-CC         Optimum pH is 6.0. Active from pH 4.5 to 10.5;
-CC   -!- MASS SPECTROMETRY: MW=13822; METHOD=MALDI; RANGE=19-140 (P15522-
-CC       2); NOTE=Ref.1.
-CC   --------------------------------------------------------------------------
-CC   This SWISS-PROT entry is copyright. It is produced through a collaboration
-CC   removed.
-CC   --------------------------------------------------------------------------
-DR   EMBL; AF172090; AAD48874.1; -; mRNA.
-DR   EMBL; AL033514; CAC70124.1; -; Genomic_DNA.
-DR   HSSP; P02833; 9ANT.
-KW   Complete proteome; DNA-binding; Developmental protein; Homeobox;
-KW   Hypothetical protein; Nuclear protein.
-FT   DNA_BIND    >102    292
-FT   REGION        1     44       Transcription activation (acidic).
-FT   CHAIN        23    611       Halfway protein.
-FT                                /FTId=PRO_0000021413.
-FT   VARIANT       1      7       unknown  (in a skin tumor).
-FT                                /FTId=VAR_005851.
-FT   VARIANT       7      7       D -> H (in a skin tumor).
-FT                                /FTId=VAR_005851.
-FT   CONFLICT    282    282       R -> Q (in Ref. 18).
-FT   STRAND      103    103
-FT   NON_TER     80     80        non_ter.
-SQ   SEQUENCE   218 AA;  24367 MW;  F24AE5E8A102FAC6 CRC64;
-     MISVMQQMIN NDSPEDSKES ITSVQQTPFF WPSAAAAIPS IQGESRSERE SETGSSPQLA
-     PSSTGMVMPG TAGMYGFGPS RMPTANEFGM MMNPVYTDFY QNPLASTDIT IPTTAGSSAA
-     TTPNAAMHLP WAISHDGKKK RQPYKKDQIS RLEYEYSVNQ YLTNKRRSEL SAQLMLDEKQ
-     VKVWFQNRRM KDKKLRQRHS GPFPHGAPVT PCIERLIN
-//
-ID   Q9U9C5_TEST   PRELIMINARY;      PRT;   218 AA.
-DT   ddd.
-AC   Q9U9C5;hdfksfsdfs;sdfsfsfs;
-SQ   SEQUENCE   218 AA;  24367 MW;  F24AE5E8A102FAC6 CRC64;
-     MISVMQQMIN NDSPEDSKES ITSVQQTPFF WPSAAAAIPS IQGESRSERE
-//
-""".split("\n")

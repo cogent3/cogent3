@@ -13,11 +13,11 @@ from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.misc import get_object_provenance
 
 if typing.TYPE_CHECKING:
-    from cogent3.evolve.new_moltype import MolType
+    from cogent3.core.new_moltype import MolType
 
-StrORBytes = typing.Union[str, bytes]
-StrORArray = typing.Union[str, numpy.ndarray]
-StrORBytesORArray = typing.Union[str, bytes, numpy.ndarray]
+StrORBytes = str | bytes
+StrORArray = str | numpy.ndarray
+StrORBytesORArray = str | bytes | numpy.ndarray
 OptInt = typing.Optional[int]
 OptStr = typing.Optional[str]
 OptBytes = typing.Optional[bytes]
@@ -456,7 +456,6 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
             gap_char = None
         return self.__class__(chars, gap=gap_char, missing=missing_char)
 
-    @functools.cache
     def get_kmer_alphabet(self, k: int, include_gap: bool = True) -> "KmerAlphabet":
         """returns kmer alphabet with words of size k
 
@@ -477,22 +476,15 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         if k == 1:
             return self
 
-        chars = tuple(self[: self.num_canonical])
-
-        gap = self._gap_char * k if include_gap and self._gap_char is not None else None
-        missing = (
-            self._missing_char * k
-            if self._missing_char is not None and include_gap
-            else None
+        return _get_kmer_alpha(
+            self,
+            self.num_canonical,
+            self.gap_char,
+            self.missing_char,
+            include_gap,
+            k,
+            self.moltype,
         )
-        words = tuple("".join(e) for e in itertools.product(chars, repeat=k))
-        words += (gap,) if include_gap and gap else ()
-        words += (missing,) if include_gap and missing else ()
-
-        kalpha = KmerAlphabet(words=words, monomers=self, gap=gap, k=k, missing=missing)
-        if self.moltype:
-            _alphabet_moltype_map[kalpha] = self.moltype
-        return kalpha
 
     @functools.singledispatchmethod
     def is_valid(self, seq: StrORBytesORArray) -> bool:
@@ -622,6 +614,30 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
             raise AlphabetError(msg)
 
         return output
+
+
+@functools.cache
+def _get_kmer_alpha(
+    monomers: typing.Sequence[str],
+    num_canonical: int,
+    gap_char: str | None,
+    missing_char: str | None,
+    include_gap: bool,
+    k: int,
+    moltype: "MolType",
+) -> "KmerAlphabet":
+    chars = tuple(monomers[:num_canonical])
+
+    gap = gap_char * k if include_gap and gap_char is not None else None
+    missing = missing_char * k if missing_char is not None and include_gap else None
+    words = tuple("".join(e) for e in itertools.product(chars, repeat=k))
+    words += (gap,) if include_gap and gap else ()
+    words += (missing,) if include_gap and missing else ()
+
+    kalpha = KmerAlphabet(words=words, monomers=monomers, gap=gap, k=k, missing=missing)
+    if moltype:
+        _alphabet_moltype_map[kalpha] = moltype
+    return kalpha
 
 
 @functools.cache
@@ -1323,7 +1339,7 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         words = (*tuple(self), gap_char)
         return self.__class__(words=words, monomers=monomers, gap=gap_char)
 
-    def to_rich_dict(self, for_pickle: bool = False):
+    def to_rich_dict(self, for_pickle: bool = False) -> dict[str, typing.Any]:
         from cogent3._version import __version__
 
         data = {
@@ -1335,18 +1351,18 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
             data["version"] = __version__
         return data
 
-    def to_json(self):
+    def to_json(self) -> str:
         return json.dumps(self.to_rich_dict())
 
     @classmethod
-    def from_rich_dict(cls, data: dict[str, typing.Any]):
+    def from_rich_dict(cls, data: dict[str, typing.Any]) -> "SenseCodonAlphabet":
         data["monomers"] = deserialise_char_alphabet(data["monomers"])
         data.pop("type", None)
         data.pop("version", None)
         return cls(**data)
 
     @property
-    def motif_len(self):
+    def motif_len(self) -> int:
         return self._motif_len
 
 
@@ -1358,14 +1374,25 @@ def deserialise_codon_alphabet(data: dict) -> SenseCodonAlphabet:
 _alphabet_moltype_map = {}
 
 
-def make_alphabet(*, chars, gap, missing, moltype):
+def make_alphabet(
+    *,
+    chars: typing.Sequence[str],
+    gap: str | None,
+    missing: str | None,
+    moltype: "MolType",
+) -> CharAlphabet:
     """constructs a character alphabet and registers the associated moltype
 
     Notes
     -----
     The moltype is associated with the alphabet, available as the
     alphabet.moltype property.
+    If an alphabet has already been constructed by a moltype no new
+    entry is made. An alphabet shared by multiple moltype instances
+    will therefore only return the first moltype associated with it.
     """
     alpha = CharAlphabet(chars, gap=gap, missing=missing)
-    _alphabet_moltype_map[alpha] = moltype
+    if alpha not in _alphabet_moltype_map:
+        _alphabet_moltype_map[alpha] = moltype
+
     return alpha

@@ -300,11 +300,15 @@ class GeneticCode:
         for strand, start in itertools.product(("+", "-"), range(3)):
             yield strand, start, self.translate(seq, start, rc=strand == "-")
 
-    def is_stop(self, codon):
+    def is_stop(self, codon: str) -> bool:
         """Returns True if codon is a stop codon, False otherwise."""
         return self[codon] == "*"
 
-    @functools.cache
+    def is_start(self, codon: str) -> bool:
+        """Returns True if codon is a start codon, False otherwise."""
+        fixed_codon = codon.upper().replace("U", "T")
+        return fixed_codon in self.start_codons
+
     def get_alphabet(
         self,
         *,
@@ -332,23 +336,13 @@ class GeneticCode:
             words = tuple(self.moltype.alphabet.get_kmer_alphabet(k=3))
         else:
             words = tuple(self.sense_codons)
-
-        gap = self.moltype.gapped_alphabet.gap_char * 3 if include_gap else None
-        missing = (
-            self.moltype.degen_gapped_alphabet.missing_char * 3
-            if include_missing
-            else None
-        )
-        if include_gap:
-            words += (gap,)
-
-        if include_missing:
-            words += (missing,)
-
-        return new_alphabet.SenseCodonAlphabet(
-            words=words,
-            monomers=self.moltype.degen_gapped_alphabet,
-            gap=gap,
+        return _get_code_alphabet(
+            words,
+            self.moltype.gapped_alphabet.gap_char,
+            self.moltype.degen_gapped_alphabet.missing_char,
+            include_gap,
+            include_missing,
+            self.moltype.degen_gapped_alphabet,
         )
 
     def to_regex(self, seq: typing.Union[str, "Sequence"]) -> str:
@@ -377,6 +371,30 @@ class GeneticCode:
     @property
     def synonyms(self):
         return self._aa_to_codon
+
+
+@functools.cache
+def _get_code_alphabet(
+    words: tuple[str, ...],
+    gap_char: str | None,
+    missing_char: str | None,
+    include_gap: bool,
+    include_missing: bool,
+    monomers: new_alphabet.CharAlphabet,
+) -> new_alphabet.SenseCodonAlphabet:
+    gap = gap_char * 3 if include_gap else None
+    missing = missing_char * 3 if include_missing else None
+    if include_gap:
+        words += (gap,)
+
+    if include_missing:
+        words += (missing,)
+
+    return new_alphabet.SenseCodonAlphabet(
+        words=words,
+        monomers=monomers,
+        gap=gap,
+    )
 
 
 _mapping_cols = "ncbi_code_sequence", "ID", "name", "ncbi_start_codon_map"

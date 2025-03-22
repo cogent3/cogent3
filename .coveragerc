@@ -1,0 +1,8 @@
+# delete when new_type argument removed and we remove the old code
+[run]
+omit =
+  */alignment.py
+  */alphabet.py
+  */genetic_code.py
+  */moltype.py
+  */sequence.py

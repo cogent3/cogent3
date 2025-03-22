@@ -56,7 +56,8 @@ def _convert_input(seq, moltype):
     if hasattr(seq, "map"):
         # already an Aligned instance
         gap_map = seq.map
-        seq = seq.data
+        # handling new_type and old type Aligned
+        seq = getattr(seq, "seq", seq.data)
         return gap_map, seq
 
     seq = (

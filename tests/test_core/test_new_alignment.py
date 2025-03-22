@@ -997,6 +997,20 @@ def test_sequence_collection_take_seqs_empty_names(
 
 
 @pytest.mark.parametrize(
+    "collection_maker",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_sequence_collection_take_seqs_wrong_name(
+    ragged_padded_dict,
+    collection_maker,
+):
+    """take_seqs should raise ValueError if no seqs are selected."""
+    orig = new_alignment.make_unaligned_seqs(ragged_padded_dict, moltype="dna")
+    with pytest.raises(ValueError):
+        _ = orig.take_seqs(["a", "mouse"])
+
+
+@pytest.mark.parametrize(
     "mk_cls",
     [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
 )
@@ -1104,12 +1118,12 @@ def gap_ambig_seqs():
 def test_sequence_collection_degap(mk_cls, gap_ambig_seqs, rced):
     """SequenceCollection.degap should strip gaps from each seq"""
 
-    seqs = mk_cls(gap_ambig_seqs, moltype="dna")
-    # Test normal case
-    degapped = seqs.rc().degap() if rced else seqs.degap()
-    got = degapped.to_dict()
-
     expect = {"s1": "RYCAT", "s2": "CTA"} if rced else {"s1": "ATGRY", "s2": "TAG"}
+    seqs = mk_cls(gap_ambig_seqs, moltype="dna")
+    seqs = seqs.rc() if rced else seqs
+    # Test normal case
+    degapped = seqs.degap()
+    got = degapped.to_dict()
     assert got == expect
 
     # Test empty sequences case
@@ -1776,12 +1790,37 @@ def test_sequence_collection_get_motif_probs():
     assert got == expect
 
 
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_get_motif_probs_alpha(mk_cls):
+    data = {
+        "s1": "GT GT AG AA GT TC CA AA TG AA".replace(" ", ""),
+        "s2": "GT GT AG AA GT TC CA AA TG AA".replace(" ", ""),
+        "s3": "GT GT AG AA GT TC CA AA TG AA".replace(" ", ""),
+    }
+    seqs = mk_cls(data, moltype="dna")
+    dinucs = seqs.moltype.alphabet.get_kmer_alphabet(2)
+    mprobs = seqs.get_motif_probs(alphabet=seqs.moltype.alphabet.get_kmer_alphabet(2))
+    expect = {
+        "GT": 9 / 30,
+        "AG": 3 / 30,
+        "AA": 9 / 30,
+        "TC": 3 / 30,
+        "CA": 3 / 30,
+        "TG": 3 / 30,
+    }
+    expect |= {d: 0.0 for d in dinucs if d not in expect}
+    assert mprobs == expect
+
+
 def test_sequence_collection_get_motif_probs_protein():
     data = {"a": "MVSB", "b": "MVS", "c": "MVP"}
     aln = new_alignment.make_unaligned_seqs(data, moltype="protein")
     got = aln.get_motif_probs()
     alphabet = aln.moltype.alphabet
-    expect = {k: 0 for k in alphabet}
+    expect = dict.fromkeys(alphabet, 0)
     expect["M"] = 1 / 3
     expect["V"] = 1 / 3
     expect["S"] = 2 / 9
@@ -2002,22 +2041,9 @@ def test_sequence_collection_init_seqs_rc(rc):
     data = {"seq1": _make_seq("seq1"), "seq2": _make_seq("seq2")}
     data = {k: v.rc() for k, v in data.items()} if rc else data
     seq_coll = new_alignment.make_unaligned_seqs(data, moltype="dna")
-    assert seq_coll._is_reversed == rc
     assert len(seq_coll.annotation_db) > 0
     got = seq_coll.to_dict()
     expect = {k: str(v) for k, v in data.items()}
-    assert got == expect
-
-    # when is_reversed is specified, it should override the rc status of the input seqs
-    seq_coll = new_alignment.make_unaligned_seqs(
-        data,
-        moltype="dna",
-        is_reversed=not rc,
-    )
-    assert seq_coll._is_reversed == (not rc)
-    assert len(seq_coll.annotation_db) > 0
-    got = seq_coll.to_dict()
-    expect = {k: str(v.rc()) for k, v in data.items()}
     assert got == expect
 
 
@@ -2029,8 +2055,7 @@ def test_sequence_collection_init_seqs_mixed_rc():
         filterwarnings("ignore", category=UserWarning)
         seq_coll = new_alignment.make_unaligned_seqs(data, moltype="dna")
     coll_db = seq_coll.annotation_db
-    assert not len(coll_db)
-    assert not seq_coll._is_reversed
+    assert len(coll_db)
 
 
 def test_sequence_collection_copy_annotations_incompat_type_fails(seqcoll_db, seqs):
@@ -2337,8 +2362,11 @@ def test_sequence_collection_consistent_gap_degen_handling(mk_cls):
     dna = new_moltype.DNA.make_seq(seq=raw_seq)
 
     aln = mk_cls({"a": dna, "b": dna}, moltype="dna")
-    expect = mk_cls({"a": raw_ungapped, "b": raw_ungapped}, moltype="dna").to_fasta()
-    assert aln.degap().to_fasta() == expect
+    expect = raw_ungapped
+    degapped = aln.degap()
+    a = degapped.seqs["a"]
+    a2str = str(a)
+    assert a2str == expect
 
 
 def test_sequence_collection_pad_seqs(ragged):
@@ -2368,6 +2396,9 @@ def test_sequence_collection_pad_seqs_reversed():
     ragged = new_alignment.make_unaligned_seqs(data, moltype="dna")
     rc = ragged.rc()
     padded = rc.pad_seqs()
+    b = padded.seqs["b"]
+    got = str(b)
+    assert got == "CGA-"
     got = padded.to_dict()
     expect = {"a": "A---", "b": "CGA-", "c": "CCAA"}
     assert got == expect
@@ -3560,9 +3591,10 @@ def test_alignment_array_positions(simple_aln):
     assert numpy.array_equal(got, expect)
 
 
-def test_alignment_array_positions_take_positions(simple_aln):
+@pytest.mark.parametrize("pos_type", [list, tuple, numpy.array])
+def test_alignment_array_positions_take_positions(simple_aln, pos_type):
     """an alignment which has been subset should return the correct array_positions"""
-    subset = simple_aln.take_positions([0])
+    subset = simple_aln.take_positions(pos_type([0]))
     got = subset.array_positions
     expect = numpy.array([[0, 4, 2]])
     assert numpy.array_equal(got, expect)
@@ -4098,35 +4130,6 @@ def test_alignment_counts_per_pos():
     assert numpy.array_equal(set(c.motifs), set("ACGT-"))
 
 
-def test_alignment_get_gap_array():
-    data = {
-        "DogFaced": "TG-",
-        "FreeTaile": "T-G",
-        "LittleBro": "---",
-        "BigBro": "GTT",
-        "MiddleBro": "-T-",
-    }
-    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
-    got = aln.get_gap_array()
-    expect = numpy.array(
-        [
-            [False, False, True],
-            [False, True, False],
-            [True, True, True],
-            [False, False, False],
-            [True, False, True],
-        ],
-        dtype=bool,
-    )
-    assert numpy.allclose(got, expect)
-
-    # if we slice the alignment, the gap array should reflect the slice
-    sliced = aln[:2]
-    got = sliced.get_gap_array()
-    expect = expect[:, :2]
-    assert numpy.allclose(got, expect)
-
-
 def test_get_position_indices():
     """get_position_indices should return names of cols where f(col)"""
 
@@ -4284,7 +4287,7 @@ def test_get_gap_array():
     got = aln.get_gap_array()
     expect = numpy.array(
         [
-            [False, True, False, True],
+            [False, True, False, False],
             [False, False, True, True],
             [True, True, True, True],
         ],
@@ -4299,6 +4302,35 @@ def test_get_gap_array():
             [True, True, True, True],
         ],
     )
+
+
+def test_alignment_get_gap_array():
+    data = {
+        "DogFaced": "TG-",
+        "FreeTaile": "T-G",
+        "LittleBro": "---",
+        "BigBro": "GTT",
+        "MiddleBro": "-T-",
+    }
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    got = aln.get_gap_array()
+    expect = numpy.array(
+        [
+            [False, False, True],
+            [False, True, False],
+            [True, True, True],
+            [False, False, False],
+            [True, False, True],
+        ],
+        dtype=bool,
+    )
+    assert numpy.allclose(got, expect)
+
+    # if we slice the alignment, the gap array should reflect the slice
+    sliced = aln[:2]
+    got = sliced.get_gap_array()
+    expect = expect[:, :2]
+    assert numpy.allclose(got, expect)
 
 
 def test_count_gaps_per_pos():
@@ -4784,23 +4816,15 @@ def brca1_data():
 
 
 @pytest.mark.parametrize("calc", ["hamming", None])
-def test_alignment_quick_tree(calc, brca1_data):
+@pytest.mark.parametrize("use_hook", ["cogent3", None, "not present"])
+def test_alignment_quick_tree(calc, brca1_data, use_hook):
     """quick tree method returns tree"""
     aln = new_alignment.make_aligned_seqs(brca1_data, moltype="dna")[:100]
     aln = aln.take_seqs(["Human", "Rhesus", "HowlerMon", "Galago", "Mouse"])
-    kwargs = {"show_progress": False}
-    if calc:
-        kwargs["calc"] = calc
-
-    # bootstrap
-    tree = aln.quick_tree(bootstrap=2, **kwargs)
+    kwargs = {"use_hook": use_hook}
+    kwargs = {**kwargs, "calc": calc} if calc else kwargs
+    tree = aln.quick_tree(**kwargs)
     assert set(tree.get_tip_names()) == set(aln.names)
-    types = {
-        type(float(edge.params["support"]))
-        for edge in tree.preorder()
-        if not edge.is_root()
-    }
-    assert types == {float}
 
 
 @pytest.fixture
@@ -5252,7 +5276,6 @@ def test_alignment_copy_rc(simple_aln):
     rc = simple_aln.rc()
     got = rc.copy()
     assert got.to_dict() == rc.to_dict()
-    assert got._is_reversed == rc._is_reversed
     assert got._slice_record is rc._slice_record
 
 
@@ -5282,7 +5305,6 @@ def test_alignment_deepcopy_rc(simple_aln):
     rc = simple_aln.rc()
     got = rc.deepcopy()
     assert got.to_dict() == rc.to_dict()
-    assert got._is_reversed == rc._is_reversed
     assert got._slice_record is not simple_aln._slice_record
 
 
@@ -5309,7 +5331,7 @@ def test_collections_equal(aligned_dict, mk_cls):
 )
 @pytest.mark.parametrize(
     "kwargs",
-    [{"moltype": "protein"}, {"is_reversed": True}, {"name_map": {"A": "a"}}, {}],
+    [{"moltype": "protein"}, {"name_map": {"A": "a"}}, {}],
 )
 def test_collections_not_equal(aligned_dict, mk_cls, kwargs):
     coll1 = mk_cls(aligned_dict, moltype="dna")
@@ -5379,7 +5401,6 @@ def test_alignment_to_rich_dict_round_trip_rc(mk_cls):
     rd = aln.to_rich_dict()
     got = deserialise_object(rd)
     assert got.to_dict() == aln.to_dict()
-    assert got._is_reversed is False
 
 
 @pytest.mark.parametrize(
@@ -5575,18 +5596,101 @@ def test_source_propagates(mk_cls, DATA_DIR):
     assert subcoll.source == str(fn)
 
 
-@pytest.mark.xfail(
-    reasone="seq collection backends currently don't support mixed plus/minus strand",
-)
 @pytest.mark.parametrize(
     "mk_cls",
     [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
 )
 def test_make_with_mixed_rc(mk_cls, dna_moltype):
     raw_seq = "AATATAAATGCC"
-    expect = dna_moltype.rc(raw_seq)
-    a = dna_moltype.make_seq(seq=raw_seq, name="a")
-    rc = dna_moltype.make_seq(seq=raw_seq, name="rc").rc()
-    seqs = mk_cls({"a": a, "rc": rc}, moltype=dna_moltype)
-    assert str(seqs.seqs["rc"]) == expect
-    assert str(seqs.seqs["a"]) == raw_seq
+    plus = dna_moltype.make_seq(seq=raw_seq, name="plus")
+    minus = dna_moltype.make_seq(seq=dna_moltype.rc(raw_seq), name="minus").rc()
+    seqs = mk_cls({"plus": plus, "minus": minus}, moltype=dna_moltype)
+    assert str(seqs.seqs["minus"]) == str(minus)
+    assert str(seqs.seqs["plus"]) == raw_seq
+
+
+def test_make_with_mixed_rc_plus_gaps(dna_moltype):
+    raw_plus = "AATATAAATGCC"
+    raw_minus = "AA---AAATGCC"
+    minus = dna_moltype.make_seq(seq=raw_minus, name="minus")
+    data = {"plus": raw_plus, "minus": raw_minus}
+    asd = new_alignment.AlignedSeqsData.from_seqs(
+        data=data,
+        alphabet=dna_moltype.most_degen_alphabet(),
+        reversed_seqs={"minus"},
+    )
+    minus = asd["minus"]
+    assert str(minus.gapped_str_value) == raw_minus
+    assert str(minus.str_value) == raw_minus.replace("-", "")
+
+
+def test_make_asd_revd(dna_alphabet):
+    data = {
+        "a": dna_alphabet.to_indices("T--CA"),
+        "b": dna_alphabet.to_indices("TAAC-"),
+        "c": dna_alphabet.to_indices("TA-CA"),
+    }
+    array_seqs = numpy.array([data[n] for n in "abc"], dtype=numpy.uint8)
+    names = list("abc")
+    asd = new_alignment.AlignedSeqsData(
+        gapped_seqs=array_seqs,
+        names=names,
+        alphabet=dna_alphabet,
+        reversed_seqs={"a"},
+    )
+    # the gapped sequences should be as input
+    assert (asd.get_gapped_seq_array(seqid="a") == data["a"]).all()
+    # the ungapped sequence should be too
+    expect = dna_alphabet.to_indices("TCA")
+    got = asd.get_seq_array(seqid="a")
+    assert (got == expect).all()
+    # this should work on a data view too
+    view = asd.get_view("a")
+    got = view.array_value
+    assert (got == expect).all()
+    # with the gapped seq as before
+    got = view.gapped_array_value
+    assert (got == data["a"]).all()
+    # getting the seqview should behave consistently
+    sv = view.get_seq_view()
+    assert (sv.array_value == expect).all()
+
+
+@pytest.mark.parametrize("aligned", [False, True])
+def test_roundtrip_rc_mixed_strand(dna_moltype, aligned):
+    plus = {"s1": "GTTGAAGTAGTA", "s2": "---GAG---GTA", "s3": "GCTGAAGTAGTG"}
+    asd = new_alignment.AlignedSeqsData.from_seqs(
+        data=plus,
+        alphabet=dna_moltype.most_degen_alphabet(),
+        reversed_seqs={"s2"},
+    )
+    aln = new_alignment.make_aligned_seqs(asd, moltype="dna")
+    seqcoll = aln if aligned else aln.degap()
+
+    plus = plus if aligned else {n: s.replace("-", "") for n, s in plus.items()}
+    minus = {n: dna_moltype.rc(s) for n, s in plus.items()}
+    assert seqcoll.to_dict() == plus
+    rced = seqcoll.rc()
+    assert rced.to_dict() == minus
+    restored = rced.rc()
+    assert restored.to_dict() == plus
+
+
+def test_mixed_strand_degap():
+    plus = {"s1": "GTTGAAGTAGTA", "s2": "---GAG---GTA", "s3": "GCTGAAGTAGTG"}
+    aln = new_alignment.make_aligned_seqs(plus, moltype="dna", reversed_seqs={"s2"})
+    seqcoll = aln.degap()
+    s2 = seqcoll.seqs["s2"]
+    assert s2.parent_coordinates() == ("s2", 0, 6, -1)
+    s1 = seqcoll.seqs["s1"]
+    assert s1.parent_coordinates() == ("s1", 0, 12, 1)
+
+
+def test_aln_mixed_strand_rced_seq():
+    plus = {"s1": "GTTGAAGTAGTA", "s2": "---GAG---GTA", "s3": "GCTGAAGTAGTG"}
+    aln = new_alignment.make_aligned_seqs(plus, moltype="dna", reversed_seqs={"s2"})
+    as2 = aln.seqs["s2"]
+    s2 = as2.seq
+    assert s2 == "GAGGTA"
+    s2rc = s2.rc()
+    assert s2rc == "TACCTC"

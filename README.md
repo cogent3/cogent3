@@ -20,11 +20,19 @@
 ## 📣 Feature Announcements 📣
 
 <details>
+  <summary> Cogent3 implements plugin hooks 🔌🪝🎉 </summary>
+
+We have implemented the infrastructure to support hook-style plugins. We have definied a single hook now -- the new type ``Alignment.quick_tree()`` method checks for an external plugin for calculation. There are no implementations available yet, but stay tuned as the developers of [piqtree](https://pypi.org/project/piqtree) will be implementing support for this very soon.
+
+</details>
+
+<details>
   <summary> New core data types improve efficiency and flexibility </summary>
 
 The cogent3 development team 👾 have been hard at work modernising the core internals 💪🛠.
 
 The grand rewrite of alignment classes is ready for use! The new approach gives us the foundation for major performance improvements in the future. As with the moltype, alphabet, genetic code and `SequenceCollection`, you can select the new class via `make_aligned_seqs()` or `load_aligned_seqs()` by specifying `new_type=True`.
+
 These are not yet the default and are not fully integrated into the existing code. They can also differ in their API relative to the classes they replace. 
 
 We encourage experimentation in cases where integration with old objects is NOT required and [look forward to any feedback](https://github.com/cogent3/cogent3/discussions)!
@@ -32,43 +40,14 @@ We encourage experimentation in cases where integration with old objects is NOT 
 </details>
 
 <details>
-    <summary> Faster pairwise genetic distance calculations 🚀 </summary>
+  <summary> The developers of Cogent3 and IQ-TREE2 announce piqtree 🎉 </summary>
 
-We have completely rewritten a subset of the genetic distance calculators. These are now only available using the new type `Alignment.distance_matrix()` method. Single CPU performance is faster and we now also support parallel execution.
-
-</details>
-<details>
-    <summary> Faster sequence coevolution measures 🚀 </summary>
-
-We have completely rewritten all the Mutual Information based coevolution statistic calculators. Single CPU performance is orders of magnitude faster than the old implementation and we now also support parallel execution. The existing `Alignment.coevolution()` method uses these so you don't need to do anything different to use the new algorithms.
-
-</details>
-
-<details>
-    <summary> Faster sequence format parsers 💨 </summary>
-
-We have faster implementations of the parsers for Fasta and GenBank sequence formats. These are used by our standard loading mechanisms. If you just want to get the contents of files in those formats as standard Python types, use `cogent3.parser.fasta.iter_fasta_records()` or `cogent3.parser.genbank.iter_genbank_records()`.
-
-</details>
-
-<details>
-  <summary> Supporting third-party apps as plugins 🔌 </summary>
-
-Cogent3 now provides support for plugins! Third-party developers can deploy their code as cogent3 apps with just a few lines. See the [demo project](https://github.com/cogent3/app_template).
-
-Post any questions you have in [cogent3 discussions](https://github.com/cogent3/cogent3/discussions).
-
-</details>
-
-<details>
-  <summary> The developers of Cogent3 and IQ-TREE2 announce piqtree2 🎉 </summary>
-
-Speaking of plugins, our first major third-party plugin is [piqtree2](https://pypi.org/project/piqtree2). Try it out and [give us feedback](https://github.com/iqtree/piqtree2/discussions).
+Speaking of plugins, our first major third-party plugin is [piqtree](https://pypi.org/project/piqtree). Try it out and [give us feedback](https://github.com/iqtree/piqtree2/discussions).
 
 </details>
 
 
-
+=
 ## Who is it for?
 
 ### Anyone who wants to analyse sequence divergence using robust statistical models

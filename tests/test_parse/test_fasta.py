@@ -23,6 +23,8 @@ from cogent3.parse.fasta import (
 )
 from cogent3.parse.record import RecordError
 
+# ruff: noqa: SIM905
+
 base_path = os.path.dirname(os.path.dirname(__file__))
 data_path = os.path.join(base_path, "data")
 

@@ -740,7 +740,7 @@ class LikelihoodFunctionTests(TestCase):
                 elif rule["edge"] == "HowlerMon":
                     assert rule.get("is_constant", False)
             elif rule["par_name"] == "mprobs":
-                assert rule["value"] == {b: 0.25 for b in "ACGT"}
+                assert rule["value"] == dict.fromkeys("ACGT", 0.25)
 
         assert len(rules) == 10
         lf = self.submodel.make_likelihood_function(self.tree)

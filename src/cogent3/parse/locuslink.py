@@ -205,7 +205,50 @@ def _read_contig(line):
 
 
 _ll_multi = dict.fromkeys(
-    "RELL NG NR NM NC NP PRODUCT TRANSVAR ASSEMBLY CONTIG XG XR EVID XM XP CDD ACCNUM TYPE PROT PREFERRED_PRODUCT ALIAS_SYMBOL ALIAS_PROT PHENOTYPE PHENOTYPE_ID SUMMARY UNIGENE OMIM CHR MAP MAPLINK STS COMP ECNUM BUTTON LINK DB_DESCR DB_LINK PMID GRIF SUMFUNC GO EXTANNOT".split(),
+    [
+        "RELL",
+        "NG",
+        "NR",
+        "NM",
+        "NC",
+        "NP",
+        "PRODUCT",
+        "TRANSVAR",
+        "ASSEMBLY",
+        "CONTIG",
+        "XG",
+        "XR",
+        "EVID",
+        "XM",
+        "XP",
+        "CDD",
+        "ACCNUM",
+        "TYPE",
+        "PROT",
+        "PREFERRED_PRODUCT",
+        "ALIAS_SYMBOL",
+        "ALIAS_PROT",
+        "PHENOTYPE",
+        "PHENOTYPE_ID",
+        "SUMMARY",
+        "UNIGENE",
+        "OMIM",
+        "CHR",
+        "MAP",
+        "MAPLINK",
+        "STS",
+        "COMP",
+        "ECNUM",
+        "BUTTON",
+        "LINK",
+        "DB_DESCR",
+        "DB_LINK",
+        "PMID",
+        "GRIF",
+        "SUMFUNC",
+        "GO",
+        "EXTANNOT",
+    ],
 )
 for i in list(_ll_multi.keys()):
     _ll_multi[i] = []
@@ -346,9 +389,9 @@ _ll_fieldmap["MAP"] = _map_adder
 _ll_fieldmap["CDD"] = _cdd_adder
 _ll_fieldmap["ASSEMBLY"] = _assembly_adder
 _ll_fieldmap["CONTIG"] = _contig_adder
-for field in "NG ACCNUM".split():
+for field in ["NG", "ACCNUM"]:
     _ll_fieldmap[field] = _accnum_adder
-for field in "NR NM NC NP XG XR XM XP PROT".split():
+for field in ["NR", "NM", "NC", "NP", "XG", "XR", "XM", "XP", "PROT"]:
     _ll_fieldmap[field] = _accession_adder
 for field in _ll_multi:
     if field not in _ll_fieldmap:

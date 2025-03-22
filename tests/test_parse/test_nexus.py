@@ -16,6 +16,8 @@ from cogent3.parse.nexus import (
     split_tree_info,
 )
 
+# ruff: noqa: SIM905
+
 Nexus_tree = """#NEXUS
 
 Begin trees;  [Treefile saved Wednesday, May 5, 2004  5:02 PM]

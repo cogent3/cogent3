@@ -157,7 +157,8 @@ class model:
         ...         "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
         ...         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         ...         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
-        ...     }
+        ...     },
+        ...     moltype="dna",
         ... )
         >>> app = get_app(
         ...     "model", "F81", opt_args=dict(limit_action="ignore", max_evaluations=10)
@@ -180,7 +181,8 @@ class model:
         ...         "Gorilla": "ATGCGGCGCGCGGAGGCCGCGCTCGCGGAG",
         ...         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         ...         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
-        ...     }
+        ...     },
+        ...     moltype="dna",
         ... )
         >>> app_tr = get_app("model", "F81", tree=tree)
 

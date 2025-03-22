@@ -22,6 +22,8 @@ from cogent3.parse.blast import (
     query_finder,
 )
 
+# ruff: noqa: SIM905
+
 
 class BlastTests(TestCase):
     """Tests of top-level functions"""

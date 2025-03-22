@@ -16,6 +16,7 @@ from cogent3.parse.rdb import (
 from cogent3.parse.record import RecordError
 
 
+# ruff: noqa: SIM905
 class RdbTests(TestCase):
     """Tests for top-level functions in Rdb.py"""
 

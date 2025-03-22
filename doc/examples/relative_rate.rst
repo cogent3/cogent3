@@ -20,7 +20,7 @@ Get your alignment and tree.
 
 .. jupyter-execute::
 
-    aln = load_aligned_seqs("data/long_testseqs.fasta")
+    aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")
     t = load_tree(filename="data/test.tree")
 
 Create a HKY85 model.

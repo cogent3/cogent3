@@ -5,6 +5,8 @@ from dataclasses import InitVar, dataclass, field
 from itertools import product
 from typing import TYPE_CHECKING
 
+from cogent3.core import new_moltype
+
 if TYPE_CHECKING:
     from collections.abc import Generator
 
@@ -182,6 +184,7 @@ def _extend_from_position(
         threshold. The deque is the values corresponding to that position.
     """
     canonical = set(canonical)
+
     if len(seq1) - idx1 < window or len(seq2) - idx2 < window:
         return segment(0, 0), segment(0, 0)
     matched = [seq1[idx1 + i] == seq2[idx2 + i] for i in range(window)]
@@ -576,9 +579,13 @@ def find_matched_paths(
     -------
     MatchedSeqPaths
     """
+    if isinstance(seq1.moltype.alphabet[0], bytes):
+        msg = f"{seq1.moltype.label!r} not supported"
+        raise new_moltype.MolTypeError(msg)
+
     k = seq_kmers.k
     delta = (window // k) * (k - 1) + (window - threshold)
-    canonical = set(seq1.moltype)
+    canonical = set(seq1.moltype.alphabet)
     paths = MatchedSeqPaths()
 
     if seq2 is None:
@@ -607,7 +614,6 @@ def find_matched_paths(
             canonical=canonical,
             left_limit=left_limit,
         )
-
         if not ref_coord:
             continue
 

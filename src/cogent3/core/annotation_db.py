@@ -89,7 +89,7 @@ class FeatureDataType(typing.TypedDict):
     seqid: str  # name of the sseq
     biotype: str  # rename type attr of cogent3 Annotatables to match this?
     name: str  # rename to name to match cogent3 Annotatable.name?
-    spans: list[tuple[int, int]]
+    spans: list[tuple[int, int]] | numpy.ndarray
     strand: str  # "-" if feature on reverse strand
     on_alignment: bool  # True if feature on an alignment
     xattr: dict[str, typing.Any]  # extra attributes

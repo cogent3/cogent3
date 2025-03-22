@@ -7,6 +7,7 @@ from collections import defaultdict
 from string import ascii_letters
 
 import numpy
+import typing_extensions
 
 import cogent3.util.warning as c3_warn
 from cogent3.core import new_alphabet, new_sequence
@@ -517,45 +518,45 @@ class MolType:
         name = self.__class__.__name__
         return f"{name}({self.alphabet})"
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return id(self)
 
-    def __eq__(self, other):
+    def __eq__(self, other: typing_extensions.Self) -> bool:
         return id(self) == id(other)
 
     def __len__(self) -> int:
         return len(self._monomers)
 
-    def __iter__(self):
+    def __iter__(self) -> typing.Iterator[str]:
         yield from self._monomers
 
     @property
-    def label(self):
+    def label(self) -> str:
         """synonym for name"""
         return self.name
 
     @property
-    def alphabet(self):
+    def alphabet(self) -> new_alphabet.CharAlphabet:
         """monomers"""
         return self._monomers
 
     @property
-    def degen_alphabet(self):
+    def degen_alphabet(self) -> new_alphabet.CharAlphabet:
         """monomers + ambiguous characters"""
         return self._degen
 
     @property
-    def gapped_alphabet(self):
+    def gapped_alphabet(self) -> new_alphabet.CharAlphabet:
         """monomers + gap"""
         return self._gapped
 
     @property
-    def degen_gapped_alphabet(self):
+    def degen_gapped_alphabet(self) -> new_alphabet.CharAlphabet:
         """monomers + gap + ambiguous characters"""
         return self._degen_gapped
 
     @property
-    def gaps(self) -> frozenset:  # refactor: docstring
+    def gaps(self) -> frozenset[str]:  # refactor: docstring
         gaps = [char for char in (self.gap, self.missing) if char is not None]
         return frozenset(gaps)
 
@@ -572,7 +573,7 @@ class MolType:
         alpha = self.most_degen_alphabet()
         return alpha.is_valid(seq)
 
-    def iter_alphabets(self):
+    def iter_alphabets(self) -> typing.Iterator[new_alphabet.CharAlphabet]:
         """yield alphabets in order of most to least degenerate"""
         alphas = (
             self._degen_gapped,
@@ -645,10 +646,13 @@ class MolType:
         if isinstance(seq, str):
             seq = self.coerce_to(seq.encode("utf8")) if self.coerce_to else seq
 
-        if check_seq:
-            assert self.is_valid(
-                seq,
-            ), f"{seq[:4]!r} not valid for moltype {self.name!r}"
+        if check_seq and not self.is_valid(seq):
+            alpha = self.most_degen_alphabet()
+            s = alpha.from_indices(seq)
+            values = tuple(set(s) - set(alpha))
+            msg = f"{values} not valid for moltype {self.name!r} alphabet {alpha}"
+            raise new_alphabet.AlphabetError(msg)
+
         seq = "" if seq is None else seq
         return self._make_seq(moltype=self, seq=seq, name=name, **kwargs)
 
@@ -854,7 +858,18 @@ class MolType:
         seq: StrORBytesORArray,
         include_gap: bool = True,
         validate: bool = True,
-    ) -> list[int]:  # refactor: docstring
+    ) -> list[int]:
+        """Return List of position indexs of degenerate characters in the sequence.
+
+        Parameters
+        ----------
+        seq : StrORBytesORArray
+            the sequence to be used for getting degenerate positions
+        include_gap : bool, optional
+            if True, then the gap state together with ’canonical’ sates (A,C,G,T for DNA) will be considered non-ambiguous.
+        validate : bool, optional
+            if True, checks the sequence is validated for the alphabet
+        """
         if validate and not self.is_valid(seq):
             msg = f"{seq[:4]!r} not valid for moltype {self.name!r}"
             raise new_alphabet.AlphabetError(
@@ -1344,10 +1359,9 @@ class MolType:
 
         return css, styles
 
-    @functools.cache
     def most_degen_alphabet(self):
         """returns the most degenerate alphabet for this instance"""
-        return next(self.iter_alphabets())
+        return _most_degen_alphabet(self)
 
     def to_regex(self, seq: str) -> str:
         """returns a regex pattern with ambiguities expanded to a character set"""
@@ -1369,6 +1383,12 @@ class MolType:
         """returns result of json formatted string"""
         data = self.to_rich_dict()
         return json.dumps(data)
+
+
+@functools.cache
+def _most_degen_alphabet(mt: MolType) -> new_alphabet.CharAlphabet:
+    """returns the most degenerate alphabet for this instance"""
+    return next(mt.iter_alphabets())
 
 
 @register_deserialiser(get_object_provenance(MolType))
@@ -1420,9 +1440,8 @@ def available_moltypes():
     title = "Specify a moltype by the Abbreviation (case insensitive)."
 
     result = Table(header=header, data=rows, title=title, index_name="Abbreviation")
-    result = result.sorted(columns=["Number of states", "Abbreviation"])
-    result.format_column("Abbreviation", repr)
-    return result
+    result.format_column("Abbreviation", lambda x: repr(str(x)))
+    return result.sorted(columns=["Number of states", "Abbreviation"])
 
 
 # constant instances of the core molecular types

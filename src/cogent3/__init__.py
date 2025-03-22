@@ -7,7 +7,7 @@ import pathlib
 import pickle
 import warnings
 from collections.abc import Callable
-from typing import Optional, Union
+from typing import Optional
 
 from cogent3._version import __version__
 from cogent3.app import app_help, available_apps, get_app, open_data_store  # noqa

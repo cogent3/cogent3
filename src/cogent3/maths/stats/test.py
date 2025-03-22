@@ -62,13 +62,13 @@ def _get_alternate(value: str):
     the corresponding global ALT_LOW, ALT_HIGH, ALT_TWO_SIDED
     """
     value = value.lower()
-    alts = {k: ALT_LOW for k in ("less", "lo", "low", "lower", "l", "lt", "<")}
-    alts.update({k: ALT_HIGH for k in ("greater", "hi", "high", "h", "g", "gt", ">")})
+    alts = dict.fromkeys(("less", "lo", "low", "lower", "l", "lt", "<"), ALT_LOW)
+    alts.update(dict.fromkeys(("greater", "hi", "high", "h", "g", "gt", ">"), ALT_HIGH))
     alts.update(
-        {
-            k: ALT_TWO_SIDED
-            for k in ("two sided", "2", "two tailed", "two", "two.sided", "ts")
-        },
+        dict.fromkeys(
+            ("two sided", "2", "two tailed", "two", "two.sided", "ts"),
+            ALT_TWO_SIDED,
+        ),
     )
     alt = alts.get(value)
     if alt is None:

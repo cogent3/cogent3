@@ -1,3 +1,4 @@
+import os
 import pickle
 from unittest import TestCase
 
@@ -34,6 +35,12 @@ from cogent3.data.molecular_weight import DnaMW, RnaMW
 RnaBases = RNA.alphabets.base
 DnaBases = DNA.alphabets.base
 AminoAcids = PROTEIN.alphabets.base
+
+if "COGENT3_NEW_TYPE" in os.environ:
+    pytest.skip(
+        "Tests skipped because COGENT3_TYPE environment variable is defined",
+        allow_module_level=True,
+    )
 
 # the following classes are to preserve compatibility for older test code
 # that assumes mixed-case is OK.

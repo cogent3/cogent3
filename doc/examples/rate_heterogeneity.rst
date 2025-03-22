@@ -14,8 +14,10 @@ A simple example for analyses involving rate heterogeneity among sites. In this 
 
 .. jupyter-execute::
 
-    from cogent3 import load_tree
+    from cogent3 import load_tree, get_app
     from cogent3.evolve.substitution_model import TimeReversibleNucleotide
+
+    concat = get_app("concat", moltype="dna")
 
 Make an alignment with equal split between rates 0.6 and 0.2, and then concatenate them to create a new alignment.
 
@@ -28,7 +30,7 @@ Make an alignment with equal split between rates 0.6 and 0.2, and then concatena
     aln1 = lf.simulate_alignment(sequence_length=10000)
     lf.set_param_rule("length", value=0.2, is_constant=True)
     aln2 = lf.simulate_alignment(sequence_length=10000)
-    aln3 = aln1 + aln2
+    aln3 = concat([aln1, aln2])
 
 Start from scratch, optimising only rates and the rate probability ratio.
 

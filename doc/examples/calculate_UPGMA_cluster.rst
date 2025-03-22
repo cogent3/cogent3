@@ -28,7 +28,7 @@ Load the alignment.
 
 .. jupyter-execute::
 
-    al = load_aligned_seqs("data/test.paml")
+    al = load_aligned_seqs("data/test.paml", moltype="dna")
 
 Create a pairwise distances object calculator for the alignment, providing a substitution model instance.
 

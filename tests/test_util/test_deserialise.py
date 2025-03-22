@@ -67,20 +67,6 @@ def test_roundtrip_seqcoll():
     assert got.__class__.__name__ == "SequenceCollection"
 
 
-@pytest.mark.skipif(_NEW_TYPE, reason="not supported in new_type")
-def test_roundtrip_annotated_seqcoll():
-    """SequenceCollection to_json enables roundtrip of annotated sequences"""
-    data = {"A": "TTGTA", "B": "GGCT"}
-    seqs = make_unaligned_seqs(data=data, moltype="dna")
-
-    f = seqs.get_seq("A").add_feature(biotype="gene", name="n1", spans=[(2, 5)])
-    data = seqs.to_json()
-    expect = str(f.get_slice())
-    got = deserialise_object(data)
-    feat = next(iter(got.get_features(seqid="A")))
-    assert str(feat.get_slice()) == expect
-
-
 def test_roundtrip_arrayalign():
     """ArrayAlignment to_json enables roundtrip"""
     data = {"A": "TTGTA", "B": "GGCT-"}
@@ -584,21 +570,6 @@ def test_convert_annotation_to_annotation_db():
     db = deserialise_object(data)
     assert isinstance(db, BasicAnnotationDb)
     assert db.num_matches() == 1
-
-
-@pytest.mark.skipif(_NEW_TYPE, reason="not supported in new_type")
-def test_deserialise_old_style_annotated(DATA_DIR):
-    from cogent3.core.alignment import SequenceCollection
-
-    data = (DATA_DIR / "old_annotation_style.json").read_text()
-    data = json.loads(data)["data"]
-    got = deserialise_object(data)
-    assert isinstance(got, SequenceCollection)
-    raw_seqs = json.loads(data)["seqs"]
-    num_anns = sum(len(v["annotations"]) for v in raw_seqs.values())
-    assert len(got.annotation_db) == num_anns
-    for feature in got.annotation_db.get_features_matching():
-        assert feature["seqid"] is not None
 
 
 def test_deser_annotated_aln():

@@ -1064,7 +1064,7 @@ class MolType:
         else:
             data = str(sequence)
 
-        trans = {i: None for i in map(ord, self.gaps)}
+        trans = dict.fromkeys(map(ord, self.gaps))
         return sequence.__class__(data.translate(trans))
 
     def gap_indices(self, sequence):
@@ -1565,7 +1565,7 @@ def available_moltypes():
 
     result = Table(header=header, data=rows, title=title, index_name="Abbreviation")
     result = result.sorted(columns=["Number of states", "Abbreviation"])
-    result.format_column("Abbreviation", repr)
+    result.format_column("Abbreviation", lambda x: repr(str(x)))
     return result
 
 

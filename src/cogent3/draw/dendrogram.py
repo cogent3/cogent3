@@ -848,7 +848,7 @@ class Dendrogram(Drawable):
         style = UnionDict(width=self._line_width, color=self._line_color)
         style.update(line)
         self._edge_sets[edges] = UnionDict(legendgroup=legendgroup, line=style)
-        mapping = {e: edges for e in edges}
+        mapping = dict.fromkeys(edges, edges)
         self._edge_mapping.update(mapping)
         if legendgroup:
             self.layout["showlegend"] = True
