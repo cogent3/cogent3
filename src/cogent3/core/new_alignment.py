@@ -8,7 +8,7 @@ import re
 import typing
 import warnings
 from abc import ABC, abstractmethod
-from collections import defaultdict
+from collections import Counter, defaultdict
 from collections.abc import Callable, Iterable, Iterator, Mapping
 from collections.abc import Sequence as PySeq
 from functools import singledispatch, singledispatchmethod
@@ -1749,21 +1749,20 @@ class SequenceCollection:
             if allow_gap:
                 alphabet = moltype.gapped_alphabet
 
-        counts = {}
+        motif_len = alphabet.motif_len
+        counts = Counter()
         for seq_name in self.names:
             sequence = self.seqs[seq_name]
-            motif_len = alphabet.motif_len
             if motif_len > 1:
-                posns = list(range(0, len(sequence) + 1 - motif_len, motif_len))
-                sequence = [sequence[i : i + motif_len] for i in posns]
+                sequence = [
+                    str(sequence[i : i + motif_len])
+                    for i in range(0, len(sequence) + 1 - motif_len, motif_len)
+                ]
             for motif in sequence:
                 if not allow_gap and self.moltype.gap in motif:
                     continue
 
-                if motif in counts:
-                    counts[motif] += 1
-                else:
-                    counts[motif] = 1
+                counts[motif] += 1
 
         probs = {}
         if not exclude_unobserved:
@@ -4556,7 +4555,11 @@ class Alignment(SequenceCollection):
         # use array_positions here
         return [i for i, col in enumerate(self.positions) if new_f(col)]
 
-    def take_positions(self, cols: list, negate: bool = False):
+    def take_positions(
+        self,
+        cols: list,
+        negate: bool = False,
+    ) -> typing_extensions.Self:
         """Returns new Alignment containing only specified positions.
 
         Parameters
@@ -4572,7 +4575,7 @@ class Alignment(SequenceCollection):
             cols = [i for i in range(len(self)) if i not in col_lookup]
 
         new_data = {
-            aligned.data.seqid: numpy.array(aligned.gapped_seq)[cols]
+            aligned.data.seqid: numpy.array(aligned.gapped_seq).take(cols)
             for aligned in self.seqs
         }
         seqs_data = self._seqs_data.from_seqs(
@@ -6494,11 +6497,20 @@ class Alignment(SequenceCollection):
         kwargs.pop("annotation_db", None)
         return self.__class__(**kwargs)
 
+    @c3warn.deprecated_callable(
+        "2025.6",
+        reason="make intent clearer",
+        new="apply_scaled_gaps",
+    )
+    def replace_seqs(self, *args, **kwargs) -> typing_extensions.Self:
+        """returns a new alignment with sequences replaced"""
+        return self.apply_scaled_gaps(*args, **kwargs)
+
     def apply_scaled_gaps(
         self,
         other: SequenceCollection,
         aa_to_codon: bool | None = None,
-    ):
+    ) -> typing_extensions.Self:
         """applies gaps in self to unagpped sequences"""
         assert set(other.names) == set(self.names), "Names must match"
         if aa_to_codon and not all(
