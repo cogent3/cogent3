@@ -46,8 +46,6 @@ Speaking of plugins, our first major third-party plugin is [piqtree](https://pyp
 
 </details>
 
-
-=
 ## Who is it for?
 
 ### Anyone who wants to analyse sequence divergence using robust statistical models
