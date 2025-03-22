@@ -494,6 +494,7 @@ class AlignablePOG(_Alignable):
                 new_map = aligned.map.merge_maps(
                     maps[dim] * word_length,
                     parent_length=maps[dim].parent_length * word_length,
+                    aligned_indices=True,
                 )
                 # Likewise, if the data is not modulo word_length,
                 # it is trimmed to match

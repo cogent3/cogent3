@@ -803,3 +803,29 @@ def test_codon_incomplete(DATA_DIR):
     # now make sure the resulting ungapped sequences are modulo 3
     seqs = aln.degap().to_dict().values()
     assert {len(s) % 3 for s in seqs} == {0}
+
+
+def test_align_with_gap_merging_case():
+    tree = "((RoundEare:0.165,FalseVamp:0.061):0.057,LeafNose:0.098,Sloth:0.044);"
+    aln = make_aligned_seqs(
+        {
+            "LeafNose": "AGGGTCACCAAAGACGGGCCAGGAAATTAGAGTCCTCAGAAGAGGA-------------",
+            "FalseVamp": "AGGGTCACCGAAGA---------------------------------------------",
+            "RoundEare": "GGGGTCACCCCAGAAGGGCCAGGAAACTCGAGTCCTCAGAAGAGGA-------------",
+            "Sloth": "--------AAAAGACGGGCCAGGAAATTAGACTCCTCAGAAGAGGATGTGTCTAGTGAG",
+        },
+        moltype="dna",
+    )
+    seqs = aln.degap()
+    # trigger an alignment with many gaps using a lower
+    # gap insertion penalty than the gap extension penalty
+    aligner = get_app(
+        "progressive_align",
+        "nucleotide",
+        indel_rate=1e-2,
+        indel_length=1e-9,
+        guide_tree=tree,
+    )
+    aln = aligner.main(seqs)
+    # does not fail
+    assert len(aln)

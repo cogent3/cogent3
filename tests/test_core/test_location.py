@@ -1519,3 +1519,44 @@ def test_indelmap_scaled(codon_and_aa_maps):
     amap_to_cmap = amap.scaled(3)
     numpy.testing.assert_allclose(cmap_to_amap.array, amap.array)
     numpy.testing.assert_allclose(amap_to_cmap.array, cmap.array)
+
+
+def test_indelmap_merge_ending_gap():
+    im1 = IndelMap(
+        gap_pos=numpy.array([5], dtype=int),
+        gap_lengths=numpy.array([6], dtype=int),
+        parent_length=5,
+    )
+    im2 = IndelMap(
+        gap_pos=numpy.array([11], dtype=int),
+        gap_lengths=numpy.array([2], dtype=int),
+        parent_length=11,
+    )
+    # providing a value for parent_length overrides standard
+    ov = im1.merge_maps(im2, parent_length=im2.parent_length, aligned_indices=True)
+    assert ov.gap_pos.tolist() == [5]
+    assert ov.cum_gap_lengths.tolist() == [8]
+
+
+def test_indel_map_merge_aligned_indices():
+    im1 = IndelMap(
+        gap_pos=numpy.array([0, 4, 7], dtype=int),
+        gap_lengths=numpy.array([14, 9, 2], dtype=int),
+        parent_length=14,
+    )
+    # in im2, the first and second gaps fall within the first
+    # gap of im1 producing redundant seq indices that have to be
+    # merged and their individual lengths summed
+    im2 = IndelMap(
+        gap_pos=numpy.array([3, 6, 31], dtype=int),
+        gap_lengths=numpy.array([1, 2, 1], dtype=int),
+        parent_length=46,
+    )
+    merged = im1.merge_maps(im2, parent_length=46, aligned_indices=True)
+    exp = IndelMap(
+        gap_pos=numpy.array([0, 4, 7], dtype=int),
+        gap_lengths=numpy.array([17, 9, 3], dtype=int),
+        parent_length=46,
+    )
+
+    numpy.testing.assert_allclose(merged.array, exp.array)
