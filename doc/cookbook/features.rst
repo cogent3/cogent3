@@ -238,7 +238,7 @@ For example, first we load an alignment of the brca1 gene in primates.
 .. jupyter-execute::
     :raises:
 
-    from cogent3 import load_aligned_seqs
+    from cogent3 import load_aligned_seqs, load_annotations
 
     brca1_aln = load_aligned_seqs(
         "data/primate_brca1.fasta", array_align=False, moltype="dna"
@@ -250,7 +250,8 @@ Next, we annotate with a GFF file that contains features specific to the human g
 .. jupyter-execute::
     :raises:
 
-    brca1_aln.annotate_from_gff("data/brca1_hsa_shortened.gff", seq_ids=["Human"])
+    ann_db = load_annotations(path="data/brca1_hsa_shortened.gff", seqids=["Human"])
+    brca1_aln.annotation_db = ann_db
     brca1_aln.annotation_db
 
 Note that the ``AnnotationDb`` is accessible via the ``Alignment`` (above) and ``Sequence`` (below) attribute.
@@ -259,8 +260,6 @@ Note that the ``AnnotationDb`` is accessible via the ``Alignment`` (above) and `
     :raises:
 
     brca1_aln.get_seq("Human").annotation_db
-
-.. note:: ``Alignment.annotate_from_gff()`` does not support setting an offset and the method is being discontinued. The solution is to use the ``new_type`` classes where you can provide offsets directly.
 
 .. _query_for_features:
 
@@ -342,7 +341,7 @@ For example, given an alignment of primates, we can search for features that are
 .. jupyter-execute::
     :raises:
 
-    from cogent3 import load_aligned_seqs
+    from cogent3 import load_aligned_seqs, load_annotations
 
     # first load alignment and annotate the human seq
     aln = load_aligned_seqs(
@@ -350,8 +349,9 @@ For example, given an alignment of primates, we can search for features that are
         array_align=False,
         moltype="dna",
     )
-    aln.annotate_from_gff("data/brca1_hsa_shortened.gff", seq_ids=["Human"])
-
+    # load the annotation data
+    ann_db = load_annotations(path="data/brca1_hsa_shortened.gff", seqids=["Human"])
+    aln.annotation_db = ann_db
     # query alignment providing seqid of interest
     human_exons = list(aln.get_features(biotype="exon", seqid="Human"))
     human_exons
