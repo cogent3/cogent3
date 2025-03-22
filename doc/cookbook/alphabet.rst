@@ -30,9 +30,9 @@ You can create a tuple alphabet of, for example, dinucleotides or trinucleotides
 
 .. jupyter-execute::
 
-    dinuc_alphabet = DNA.alphabet.get_word_alphabet(2)
+    dinuc_alphabet = dna.alphabet.get_word_alphabet(2)
     print(dinuc_alphabet)
-    trinuc_alphabet = DNA.alphabet.get_word_alphabet(3)
+    trinuc_alphabet = dna.alphabet.get_word_alphabet(3)
     print(trinuc_alphabet)
 
 Convert a sequence into integers
@@ -41,7 +41,7 @@ Convert a sequence into integers
 .. jupyter-execute::
 
     seq = "TAGT"
-    indices = DNA.alphabet.to_indices(seq)
+    indices = dna.alphabet.to_indices(seq)
     indices
 
 Convert integers to a sequence
@@ -49,6 +49,6 @@ Convert integers to a sequence
 
 .. jupyter-execute::
 
-    seq = DNA.alphabet.from_indices([0, 2, 3, 0])
+    seq = dna.alphabet.from_indices([0, 2, 3, 0])
     seq
 
