@@ -6509,9 +6509,9 @@ class Alignment(SequenceCollection):
     def apply_scaled_gaps(
         self,
         other: SequenceCollection,
-        aa_to_codon: bool | None = None,
+        aa_to_codon: bool = True,
     ) -> typing_extensions.Self:
-        """applies gaps in self to unagpped sequences"""
+        """applies gaps in self to ungapped sequences"""
         assert set(other.names) == set(self.names), "Names must match"
         if aa_to_codon and not all(
             (not self.moltype.is_nucleic, other.moltype.is_nucleic),
