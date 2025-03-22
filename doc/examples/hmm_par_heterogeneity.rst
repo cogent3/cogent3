@@ -31,7 +31,7 @@ Load the alignment and tree.
 
 .. jupyter-execute::
 
-    aln = load_aligned_seqs("data/long_testseqs.fasta")
+    aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")
     tree = load_tree("data/test.tree")
 
 Model Ho: no rate heterogeneity

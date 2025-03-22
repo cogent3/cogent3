@@ -10,16 +10,18 @@ Alphabets
 
 .. jupyter-execute::
 
-    from cogent3 import DNA, PROTEIN
+    from cogent3 import get_moltype
 
-    print(DNA.alphabet)
-    print(PROTEIN.alphabet)
+    dna = get_moltype("dna")
+    print(dna.alphabet)
+    protein = get_moltype("protein")
+    print(protein.alphabet)
 
-``Alphabet`` instances have a ``MolType``.
+``Alphabet`` instances reference the ``MolType`` that created them.
 
 .. jupyter-execute::
 
-    PROTEIN.alphabet.moltype == PROTEIN
+    dna.alphabet.moltype is dna
 
 Creating tuple alphabets
 ^^^^^^^^^^^^^^^^^^^^^^^^

@@ -69,7 +69,9 @@ Note the difference between the value provided to ``spans``, and the value of ``
 
     # make demo alignment
     aln1 = make_aligned_seqs(
-        data=[["seq1", "-AAACCCCCA"], ["seq2", "TTTT--TTTT"]], array_align=False
+        data=[["seq1", "-AAACCCCCA"], ["seq2", "TTTT--TTTT"]],
+        array_align=False,
+        moltype="dna",
     )
     # add feature to seq1
     aln1.add_feature(
@@ -90,7 +92,9 @@ We use ``add_feature`` to add a ``Feature`` to an ``Alignment``.
 
     # make demo alignment
     aln1 = make_aligned_seqs(
-        data=[["seq1", "-AAACCCCCA"], ["seq2", "TTTT--TTTT"]], array_align=False
+        data=[["seq1", "-AAACCCCCA"], ["seq2", "TTTT--TTTT"]],
+        array_align=False,
+        moltype="dna",
     )
 
     aln1.add_feature(
@@ -342,7 +346,9 @@ For example, given an alignment of primates, we can search for features that are
 
     # first load alignment and annotate the human seq
     aln = load_aligned_seqs(
-        "data/primate_brca1.fasta", array_align=False, moltype="dna"
+        "data/primate_brca1.fasta",
+        array_align=False,
+        moltype="dna",
     )
     aln.annotate_from_gff("data/brca1_hsa_shortened.gff", seq_ids=["Human"])
 

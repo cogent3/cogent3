@@ -27,7 +27,7 @@ Load my alignment
 
 .. jupyter-execute::
 
-    al = load_aligned_seqs("data/long_testseqs.fasta")
+    al = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")
 
 Create a pairwise distances object with your alignment and substitution model and run it.
 

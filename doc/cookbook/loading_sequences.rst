@@ -109,7 +109,7 @@ Simple case of loading a ``list`` of aligned amino acid sequences in FASTA forma
     from cogent3 import make_aligned_seqs
 
     protein_seqs = {"seq1": "DEKQL-RG", "seq2": "DDK--SRG"}
-    proteins_loaded = make_aligned_seqs(protein_seqs)
+    proteins_loaded = make_aligned_seqs(protein_seqs, moltype="protein")
     proteins_loaded.moltype
     proteins_loaded
 
@@ -131,7 +131,7 @@ From a dict of strings
     from cogent3 import make_aligned_seqs
 
     seqs = {"seq1": "AATCG-A", "seq2": "AATCGGA"}
-    seqs_loaded = make_aligned_seqs(seqs)
+    seqs_loaded = make_aligned_seqs(seqs, moltype="dna")
 
 From a series of strings
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -141,7 +141,7 @@ From a series of strings
     from cogent3 import make_aligned_seqs
 
     seqs = {"seq1": "AATCG-A", "seq2": "AATCGGA"}
-    seqs_loaded = make_aligned_seqs(seqs)
+    seqs_loaded = make_aligned_seqs(seqs, moltype="dna")
     seqs_loaded
 
 Stripping label characters on loading

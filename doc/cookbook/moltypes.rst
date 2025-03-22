@@ -74,7 +74,7 @@ Use the either the top level ``cogent3.make_seq`` function, or the method on the
 
 .. jupyter-execute::
 
-    seq = dna.make_seq("AGGCTT", name="seq1")
+    seq = dna.make_seq(seq="AGGCTT", name="seq1")
     seq
 
 Verify sequences

@@ -100,7 +100,8 @@ You need to load an alignment and then provide it a likelihood function. I const
     tree = make_tree("(a,b,(c,d))")
     lf = sub_mod.make_likelihood_function(tree)
     aln = make_aligned_seqs(
-        [("a", "ACGT"), ("b", "AC-T"), ("c", "ACGT"), ("d", "AC-T")]
+        [("a", "ACGT"), ("b", "AC-T"), ("c", "ACGT"), ("d", "AC-T")],
+        moltype="dna"
     )
     lf.set_alignment(aln)
 
@@ -242,7 +243,7 @@ There are 2 types of optimiser: simulated annealing, a *global* optimiser; and P
     from cogent3.evolve.models import get_model
 
     tree = load_tree("data/primate_brca1.tree")
-    aln = load_aligned_seqs("data/primate_brca1.fasta")
+    aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
     sm = get_model("F81")
     lf = sm.make_likelihood_function(tree, digits=3, space=2)
     lf.set_alignment(aln)
@@ -279,7 +280,7 @@ We can monitor this situation using the ``limit_action`` argument to ``optimise`
     from cogent3.evolve.models import get_model
 
     tree = load_tree("data/primate_brca1.tree")
-    aln = load_aligned_seqs("data/primate_brca1.fasta")
+    aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
     sm = get_model("F81")
     lf = sm.make_likelihood_function(tree, digits=3, space=2)
     lf.set_alignment(aln)
@@ -308,7 +309,7 @@ In Jupyter, the likelihood function object presents a representation of the main
     sm = get_model("GTR")
     tree = load_tree("data/primate_brca1.tree")
     lf = sm.make_likelihood_function(tree)
-    aln = load_aligned_seqs("data/primate_brca1.fasta")
+    aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
     lf.set_alignment(aln)
     lf.optimise(local=True, show_progress=False)
     lf
@@ -401,7 +402,7 @@ We test the molecular clock hypothesis for human and chimpanzee lineages. The nu
     from cogent3.evolve.models import get_model
 
     tree = load_tree("data/primate_brca1.tree")
-    aln = load_aligned_seqs("data/primate_brca1.fasta")
+    aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
     sm = get_model("F81")
     lf = sm.make_likelihood_function(tree, digits=3, space=2)
     lf.set_alignment(aln)
@@ -453,7 +454,7 @@ In general, however, this capability derives from the ability of any defined ``e
     from cogent3.evolve.models import get_model
 
     tree = load_tree("data/primate_brca1.tree")
-    aln = load_aligned_seqs("data/primate_brca1.fasta")
+    aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
 
     sm = get_model("F81")
     lf = sm.make_likelihood_function(tree, digits=3, space=2)
@@ -481,7 +482,7 @@ The profile method is used to calculate a confidence interval for a named parame
     from cogent3.evolve.models import get_model
 
     tree = load_tree("data/primate_brca1.tree")
-    aln = load_aligned_seqs("data/primate_brca1.fasta")
+    aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
     sm = get_model("HKY85")
     lf = sm.make_likelihood_function(tree)
     lf.set_alignment(aln)
@@ -503,7 +504,7 @@ To illustrate this, I create a very simple likelihood function. The ``json`` var
     from cogent3 import load_aligned_seqs, load_tree
     from cogent3.evolve.models import get_model
 
-    aln = make_aligned_seqs(data=dict(a="ACGG", b="ATAG", c="ATGG"))
+    aln = make_aligned_seqs(data=dict(a="ACGG", b="ATAG", c="ATGG"), moltype="dna")
     tree = make_tree(tip_names=aln.names)
     sm = get_model("F81")
     lf = sm.make_likelihood_function(tree)
@@ -531,7 +532,7 @@ We first fit a likelihood function.
     from cogent3.evolve.models import get_model
 
     tree = load_tree("data/primate_brca1.tree")
-    aln = load_aligned_seqs("data/primate_brca1.fasta")
+    aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
     sm = get_model("F81")
     lf = sm.make_likelihood_function(tree, digits=3, space=2)
     lf.set_alignment(aln)

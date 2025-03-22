@@ -56,7 +56,7 @@ We can achieve this by creating the ``take_codon_positions`` app with the argume
 
     from cogent3 import get_app, make_aligned_seqs
 
-    aln_ff = make_aligned_seqs({"s1": "GCAAGCGTTTAT", "s2": "GCTTTTGTCAAT"})
+    aln_ff = make_aligned_seqs({"s1": "GCAAGCGTTTAT", "s2": "GCTTTTGTCAAT"}, moltype="dna")
     take_fourfold = get_app("take_codon_positions", fourfold_degenerate=True, moltype="dna")
     result = take_fourfold(aln_ff)
     result
