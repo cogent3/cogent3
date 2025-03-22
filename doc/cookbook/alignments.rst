@@ -96,45 +96,6 @@ Appending the sequences
 
 .. note:: The order is not preserved if you use the ``to_fasta()`` method, which sorts sequences by name.
 
-Inserting the sequences
-"""""""""""""""""""""""
-
-Sequences can be inserted into an alignment at the specified position using either the ``before_name`` or ``after_name`` arguments.
-
-.. jupyter-execute::
-
-    new_aln = aln.add_seqs(new_seqs, before_name="seq2")
-    new_aln
-
-.. jupyter-execute::
-
-    new_aln = aln.add_seqs(new_seqs, after_name="seq2")
-    new_aln
-
-Inserting sequence(s) based on their alignment to a reference sequence
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-Already aligned sequences can be added to an existing ``Alignment`` object and aligned at the same time using the ``add_from_ref_aln`` method. The alignment is performed based on their alignment to a reference sequence (which must be present in both alignments). The method assumes the first sequence in ``ref_aln.names[0]`` is the reference.
-
-.. jupyter-execute::
-
-    from cogent3 import make_aligned_seqs
-
-    aln = make_aligned_seqs(
-        [("seq1", "ATGAA------"), ("seq2", "ATG-AGTGATG"), ("seq3", "AT--AG-GATG")],
-        moltype="dna",
-    )
-    ref_aln = make_aligned_seqs(
-        [("seq3", "ATAGGATG"), ("seq0", "ATG-AGCG"), ("seq4", "ATGCTGGG")],
-        moltype="dna",
-    )
-    new_aln = aln.add_from_ref_aln(ref_aln)
-    new_aln
-
-``add_from_ref_aln`` has the same arguments as ``add_seqs`` so ``before_name`` and ``after_name`` can be used to insert the new sequences at the desired position.
-
-.. note:: This method does not work with the ``ArrayAlignment`` class.
-
 Removing all columns with gaps in a named sequence
 ++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -773,71 +734,10 @@ Calculating the gap fraction
         gap_fraction = len(ungapped) * 1.0 / len(column)
         print(gap_fraction)
 
-Extracting maps of aligned to unaligned positions (i.e., gap maps)
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-It's often important to know how an alignment position relates to a position in one or more of the sequences in the alignment. The ``gap_maps`` method of the individual sequences is useful for this. To get a map of sequence to alignment positions for a specific sequence in your alignment, do the following:
-
-.. jupyter-execute::
-
-    from cogent3 import make_aligned_seqs
-
-    aln = make_aligned_seqs(
-        data=[
-            ("seq1", "ATGAAGG-TG--"),
-            ("seq2", "ATG-AGGTGATG"),
-            ("seq3", "ATGAAG--GATG"),
-        ],
-        moltype="dna",
-    )
-    seq_to_aln_map = aln.get_gapped_seq("seq1").gap_maps()[0]
-
-It's now possible to look up positions in the ``seq1``, and find out what they map to in the alignment:
-
-.. jupyter-execute::
-
-    seq_to_aln_map[3]
-    seq_to_aln_map[8]
-
-This tells us that in position 3 in ``seq1`` corresponds to position 3 in ``aln``, and that position 8 in ``seq1`` corresponds to position 9 in ``aln``.
-
-Notice that we grabbed the first result from the call to ``gap_maps``. This is the sequence position to alignment position map. The second value returned is the alignment position to sequence position map, so if you want to find out what sequence positions the alignment positions correspond to (opposed to what alignment positions the sequence positions correspond to) for a given sequence, you would take the following steps:
-
-.. jupyter-execute::
-
-    aln_to_seq_map = aln.get_gapped_seq("seq1").gap_maps()[1]
-    aln_to_seq_map[3]
-    aln_to_seq_map[8]
-
-If an alignment position is a gap, and therefore has no corresponding sequence position, you'll get a ``KeyError``.
-
-.. jupyter-execute::
-    :raises: KeyError
-
-    seq_pos = aln_to_seq_map[7]
-
-.. note:: The first position in alignments and sequences is always numbered position 0.
-
 Filtering alignments based on gaps
 ++++++++++++++++++++++++++++++++++
 
-.. note:: An alternate, computationally faster, approach to removing gaps is to use the ``filtered`` method as discussed in :ref:`filter-positions`.
-
-The ``omit_gap_runs`` method can be applied to remove long stretches of gaps in an alignment. In the following example, we remove sequences that have more than two adjacent gaps anywhere in the aligned sequence.
-
-.. jupyter-execute::
-
-    aln = make_aligned_seqs(
-        data=[
-            ("seq1", "ATGAA---TG-"),
-            ("seq2", "ATG-AGTGATG"),
-            ("seq3", "AT--AG-GATG"),
-        ],
-        moltype="dna",
-    )
-    aln.omit_gap_runs(2)
-
-If instead, we just wanted to remove positions from the alignment which are gaps in more than a certain percentage of the sequences, we could use the ``omit_gap_pos`` function. For example:
+If we want to remove positions from the alignment which are gaps in more than a certain percentage of the sequences, we could use the ``omit_gap_pos`` function. For example:
 
 .. jupyter-execute::
 
@@ -851,23 +751,4 @@ If instead, we just wanted to remove positions from the alignment which are gaps
     )
     aln.omit_gap_pos(0.40)
 
-If you wanted to remove sequences which contain more than a certain percent gap characters, you could use the ``omit_gap_seqs`` method. This is commonly applied to filter partial sequences from an alignment.
-
-.. jupyter-execute::
-
-    aln = make_aligned_seqs(
-        data=[
-            ("seq1", "ATGAA------"),
-            ("seq2", "ATG-AGTGATG"),
-            ("seq3", "AT--AG-GATG"),
-        ],
-        moltype="dna",
-    )
-    filtered_aln = aln.omit_gap_seqs(0.50)
-    filtered_aln
-
-Note that following this call to ``omit_gap_seqs``, the 4th column of ``filtered_aln`` is 100% gaps. This is generally not desirable, so a call to ``omit_gap_seqs`` is frequently followed with a call to ``omit_gap_pos`` with no parameters -- this defaults to removing positions which are all gaps:
-
-.. jupyter-execute::
-
-    filtered_aln.omit_gap_pos()
+.. note:: The default for ``filtered_aln.omit_gap_pos()`` is to remove columns with gaps in all the sequences. This can occur after sequences have been removed from the alignment.

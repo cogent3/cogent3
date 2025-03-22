@@ -62,23 +62,6 @@ Translate all six frames
     translations = standard_code.sixframes(seq)
     print(translations)
 
-Find out how many stops in a frame
-""""""""""""""""""""""""""""""""""
-
-.. jupyter-execute::
-
-    from cogent3 import get_code, make_seq
-
-    standard_code = get_code(1)
-    seq = make_seq("ATGCTAACATAAA", moltype="dna")
-    stops_frame1 = standard_code.get_stop_indices(seq, start=0)
-    stops_frame1
-
-.. jupyter-execute::
-
-    stop_index = stops_frame1[0]
-    seq[stop_index : stop_index + 3]
-
 Translate a codon
 """""""""""""""""
 
@@ -123,11 +106,6 @@ Get all the codons for a group of amino acids
     targets = ["A", "C"]
     codons = [standard_code[aa] for aa in targets]
     codons
-
-.. jupyter-execute::
-
-    flat_list = sum(codons, [])
-    flat_list
 
 Converting the ``CodonAlphabet`` to codon series
 """"""""""""""""""""""""""""""""""""""""""""""""
