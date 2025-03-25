@@ -15,6 +15,9 @@
 [![CodeQL](https://github.com/cogent3/cogent3/actions/workflows/codeql.yml/badge.svg)](https://github.com/cogent3/cogent3/actions/workflows/codeql.yml)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/e80e3441de59449bb1a4d8ad1fdea4fa)](https://app.codacy.com/gh/cogent3/cogent3/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15067121.svg)](https://doi.org/10.5281/zenodo.15067121)
+
+
 `cogent3` is a mature python library for analysis of genomic sequence data. We endeavour to provide a first-class experience within Jupyter notebooks, but the algorithms also support parallel execution on compute systems with 1000's of processors.
 
 ## 📣 Feature Announcements 📣
