@@ -42,15 +42,16 @@ def tprob(x, df):
     return 2 * t.sf(abs(x), df)
 
 
-def binomial_exact(successes, trials, prob):
-    """Returns binomial probability of exactly X successes.
+from cogent3.util import warning as c3warn
 
-    Works for integer and floating point values.
 
-    Note: this function is only a probability mass function for integer
-    values of 'trials' and 'successes', i.e. if you sum up non-integer
-    values you probably won't get a sum of 1.
-    """
+@c3warn.deprecated_callable(
+    version="2025.6",
+    reason="use scipy.stat.binom.pmf instead binomial_exact",
+    is_discontinued=True,
+)
+def binomial_exact(successes, trials, prob):  # pragma: no cover
+    """deprecated, use scipy.stats.binom.pmf instead"""
     if (prob < 0) or (prob > 1):
         msg = "Binomial prob must be between 0 and 1."
         raise ValueError(msg)
