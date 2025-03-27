@@ -45,7 +45,7 @@ def makeSampleAlignment():
 
 
 @pytest.fixture
-def ann_aln():
+def ann_aln1():
     # synthetic annotated alignment
     return makeSampleAlignment()
 
@@ -214,8 +214,9 @@ def test_seqcoll_query(seqcoll_db):
 
 def test_feature_projection_ungapped(ann_aln):
     # projection onto ungapped sequence
+    ann_aln = makeSampleAlignment()
     expecteds = {"FAKE01": "CCCAAAATTTTTT", "FAKE02": "CCC-----TTTTT"}
-    aln_ltr = next(iter(ann_aln.get_features(biotype="LTR")))
+    aln_ltr = next(iter(ann_aln.get_features(biotype="LTR", on_alignment=True)))
     seq_name = "FAKE01"
     expected = expecteds[seq_name]
     num = ann_aln.annotation_db.num_matches()
@@ -227,13 +228,14 @@ def test_feature_projection_ungapped(ann_aln):
     assert seq_ltr.parent == ann_aln.get_seq(seq_name)
 
 
-def test_feature_projection_gapped(ann_aln):
+def test_feature_projection_gapped(ann_aln1):
+    aln = ann_aln1
     # projection onto gapped sequence
     expecteds = {"FAKE01": "CCCAAAATTTTTT", "FAKE02": "CCC-----TTTTT"}
-    aln_ltr = next(iter(ann_aln.get_features(biotype="LTR")))
+    aln_ltr = next(iter(aln.get_features(biotype="LTR")))
     seq_name = "FAKE02"
     expected = expecteds[seq_name]
-    seq_ltr = ann_aln.get_projected_feature(seqid=seq_name, feature=aln_ltr)
+    seq_ltr = aln.get_projected_feature(seqid=seq_name, feature=aln_ltr)
 
     with pytest.raises(ValueError):
         seq_ltr.get_slice(complete=True)
@@ -243,7 +245,7 @@ def test_feature_projection_gapped(ann_aln):
     expected = expected.replace("-", "")
     assert str(seq_ltr.get_slice()) == expected
     assert seq_ltr.seqid == seq_name
-    assert seq_ltr.parent == ann_aln.get_seq(seq_name)
+    assert seq_ltr.parent == aln.get_seq(seq_name)
 
 
 def test_get_feature():
@@ -568,17 +570,8 @@ def test_project_features_no_features_for_specified_seqid():
     assert len(projected_features) == 0
 
 
-def test_annotated_region_masks():
-    """masking a sequence with specific features"""
-    # ported from test_features.py
-    # refactor: break into multiple tests
-
-    # Annotated regions can be masked (observed sequence characters
-    # replaced by another), either through the sequence on which they
-    # reside or by projection from the alignment. Note that mask_char must
-    # be a valid character for the sequence MolType. Either the features
-    # (multiple can be named), or their shadow, can be masked.
-
+@pytest.fixture
+def ann_aln():
     # We create an alignment with a sequence that has two different annotation types.
     orig_data = {"x": "C-CCCAAAAAGGGAA", "y": "-T----TTTTG-GTT"}
     db = GffAnnotationDb()
@@ -590,10 +583,21 @@ def test_annotated_region_masks():
         seqid="x",
     )
     db.add_feature(seqid="y", biotype="repeat", name="frog", spans=[(5, 7)])
-    aln = new_alignment.make_aligned_seqs(orig_data, moltype="dna")
-    aln.annotation_db = db
+    return new_alignment.make_aligned_seqs(orig_data, moltype="dna", annotation_db=db)
 
-    assert aln.to_dict() == {"x": "C-CCCAAAAAGGGAA", "y": "-T----TTTTG-GTT"}
+
+def test_annotated_region_masks(ann_aln):
+    """masking a sequence with specific features"""
+    # ported from test_features.py
+    # refactor: break into multiple tests
+
+    # Annotated regions can be masked (observed sequence characters
+    # replaced by another), either through the sequence on which they
+    # reside or by projection from the alignment. Note that mask_char must
+    # be a valid character for the sequence MolType. Either the features
+    # (multiple can be named), or their shadow, can be masked.
+    raw_data = ann_aln.to_dict()
+    aln = ann_aln
     x = aln.get_seq("x")
     y = aln.get_seq("y")
     exon = next(iter(x.get_features(biotype="exon")))
@@ -654,33 +658,54 @@ def test_annotated_region_masks():
     )
 
     # The same methods can be applied to annotated Alignment's.
-
-    assert aln.with_masked_annotations("exon", mask_char="?").to_dict() == {
-        "x": "?-???AAAAAGGGAA",
-        "y": "-T----TTTTG-GTT",
-    }
-    assert aln.with_masked_annotations(
-        "exon",
-        mask_char="?",
-        shadow=True,
-    ).to_dict() == {"x": "C-CCC??????????", "y": "-?----?????-???"}
-    assert aln.with_masked_annotations("repeat", mask_char="?").to_dict() == {
-        "x": "C-CCCAAAAA???AA",
-        "y": "-T----TTTT?-?TT",
-    }
-    assert aln.with_masked_annotations(
+    # only x has an exon, both have repeats
+    masked = aln.with_masked_annotations("exon", mask_char="?")
+    assert masked.to_dict() == {"x": "?-???AAAAAGGGAA", "y": raw_data["y"]}
+    masked = aln.with_masked_annotations("exon", mask_char="?", shadow=True)
+    assert masked.to_dict() == {"x": "C-CCC??????????", "y": raw_data["y"]}
+    masked = aln.with_masked_annotations("repeat", mask_char="?")
+    assert masked.to_dict() == {"x": "C-CCCAAAAA???AA", "y": "-T----TTTT?-?TT"}
+    masked = aln.with_masked_annotations(
         "repeat",
         mask_char="?",
         shadow=True,
-    ).to_dict() == {"x": "?-????????GGG??", "y": "-?----????G-G??"}
-    assert aln.with_masked_annotations(["repeat", "exon"], mask_char="?").to_dict() == {
-        "x": "?-???AAAAA???AA",
-        "y": "-T----TTTT?-?TT",
+    )
+    assert masked.to_dict() == {"x": "?-????????GGG??", "y": "-?----????G-G??"}
+    masked = aln.with_masked_annotations(["repeat", "exon"], mask_char="?")
+    assert masked.to_dict() == {"x": "?-???AAAAA???AA", "y": "-T----TTTT?-?TT"}
+    masked = aln.with_masked_annotations(["repeat", "exon"], shadow=True)
+    assert masked.to_dict() == {"x": "C-CCC?????GGG??", "y": "-?----????G-G??"}
+
+
+def test_with_masked_one_seqid():
+    raw_data = {
+        "x": "AACCCAAAATTTTTTGGGGGGGGGGCCCC",
+        "y": "AACCC-----TTTTTGGGGGGGGGGCC--",
     }
-    assert aln.with_masked_annotations(["repeat", "exon"], shadow=True).to_dict() == {
-        "x": "C-CCC?????GGG??",
-        "y": "-?----????G-G??",
-    }
+    aln = new_alignment.make_aligned_seqs(raw_data, moltype="dna")
+    start, stop = 2, 10
+    aln.annotation_db.add_feature(
+        biotype="repeat",
+        name="blah",
+        spans=[(start, stop)],
+        seqid="y",
+    )
+    masked = aln.with_masked_annotations(biotypes="repeat", mask_char="?", seqid="y")
+    expect = {"x": raw_data["x"], "y": "AA???-----?????GGGGGGGGGGCC--"}
+    assert masked.to_dict() == expect
+
+
+@pytest.mark.parametrize("shadow", [True, False])
+def test_with_masked_missing_feature(ann_aln1, shadow):
+    aln = ann_aln1
+    expect = aln.to_dict()
+    # with no matches, should return the original sequences
+    masked = aln.with_masked_annotations(
+        biotypes="not-present",
+        mask_char="?",
+        shadow=shadow,
+    )
+    assert masked.to_dict() == expect
 
 
 def test_masking_strand_agnostic_aln():
