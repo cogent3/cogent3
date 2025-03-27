@@ -6619,6 +6619,8 @@ class Alignment(SequenceCollection):
             the most ambiguous character, eg. '?' for DNA
         shadow
             If True, masks everything but the biotypes
+        seqid
+            name of sequence to mask, defaults to all
         """
         # by doing numpy.array(seq), this method applies the slice_record
         # and modifies the underlying sequence data. We therefore split
