@@ -1,4 +1,15 @@
 
+<a id='changelog-2025.3.22a3'></a>
+# Changes in release "2025.3.22a3"
+
+This is a minor bug-fix release.
+
+## BUG
+
+- New type Alignment methods could fail when on a instance that
+  had sequences renamed. We were passing the incorrect values for
+  constructing the new AlignSeqsData instance.
+
 <a id='changelog-2025.3.22a2'></a>
 # Changes in release "2025.3.22a2"
 
