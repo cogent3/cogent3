@@ -6606,7 +6606,8 @@ class Alignment(SequenceCollection):
         biotypes: PySeqStr,
         mask_char: str = "?",
         shadow: bool = False,
-    ):
+        seqid: str | None = None,
+    ) -> typing_extensions.Self:
         """returns an alignment with regions replaced by mask_char
 
         Parameters
@@ -6628,9 +6629,12 @@ class Alignment(SequenceCollection):
         for seq in self.seqs:
             parent_name = self._name_map[seq.name]
             gaps[parent_name] = seq.map.array
-            ungapped[parent_name] = numpy.array(
-                seq.seq.with_masked_annotations(biotypes, mask_char, shadow),
-            )
+            if seqid is None or seq.name == seqid:
+                ungapped[parent_name] = numpy.array(
+                    seq.seq.with_masked_annotations(biotypes, mask_char, shadow),
+                )
+            else:
+                ungapped[parent_name] = numpy.array(seq.seq)
 
         seq_data = self._seqs_data.from_seqs_and_gaps(
             seqs=ungapped,
