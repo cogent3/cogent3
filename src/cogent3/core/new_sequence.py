@@ -1405,16 +1405,9 @@ class Sequence:
                 self.get_features(biotype=annot_type, allow_partial=True),
             )
         if not annotations:
-            region = Feature(
-                parent=self,
-                seqid=self.name,
-                name=None,
-                biotype=None,
-                map=FeatureMap.from_locations(locations=[], parent_length=len(self)),
-                strand="+",
-            )
-        else:
-            region = annotations[0].union(annotations[1:])
+            return self
+
+        region = annotations[0].union(annotations[1:])
 
         if shadow:
             region = region.shadow()
