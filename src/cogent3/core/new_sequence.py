@@ -1363,12 +1363,17 @@ class Sequence:
             annotation_db=None if exclude_annotations else self.annotation_db,
         )
 
+    @c3warn.deprecated_args(
+        "2025.6",
+        old_new=[("annot_types", "biotypes")],
+        reason="consistency with Alignment method",
+    )
+    @c3warn.deprecated_args("2025.6", reason="not used", discontinued="extend_query")
     def with_masked_annotations(
         self,
-        annot_types: StrORIterableStr,
+        biotypes: StrORIterableStr,
         mask_char: str | None = None,
         shadow: bool = False,
-        extend_query: bool = False,
     ) -> typing_extensions.Self:
         """returns a sequence with annot_types regions replaced by mask_char
         if shadow is False, otherwise all other regions are masked.
@@ -1394,23 +1399,15 @@ class Sequence:
         )
 
         annotations = []
-        annot_types = [annot_types] if isinstance(annot_types, str) else annot_types
-        for annot_type in annot_types:
+        biotypes = [biotypes] if isinstance(biotypes, str) else biotypes
+        for annot_type in biotypes:
             annotations += list(
                 self.get_features(biotype=annot_type, allow_partial=True),
             )
-
         if not annotations:
-            region = Feature(
-                parent=self,
-                seqid=self.name,
-                name=None,
-                biotype=None,
-                map=FeatureMap.from_locations(locations=[], parent_length=len(self)),
-                strand="+",
-            )
-        else:
-            region = annotations[0].union(annotations[1:])
+            return self
+
+        region = annotations[0].union(annotations[1:])
 
         if shadow:
             region = region.shadow()

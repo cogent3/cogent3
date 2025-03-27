@@ -1,4 +1,21 @@
 
+<a id='changelog-2025.3.22a4'></a>
+# Changes in release "2025.3.22a4"
+
+Minor bug-fix and small enhancement for the ensembl-tui project.
+
+## ENH
+
+- new type Alignment.with_masked_annotations() masking is only applied to the
+  sequences that have matching annotations.
+- new type Alignment.with_masked_annotations(seqid) allows applying a mask to
+  only one sequence in an alignment.
+
+## BUG
+
+- Masking annotations on sequences with shadow=True would mask all positions
+  if the feature ws missing from the sequence.
+
 <a id='changelog-2025.3.22a3'></a>
 # Changes in release "2025.3.22a3"
 

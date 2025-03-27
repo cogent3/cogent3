@@ -180,3 +180,25 @@ def test_feature_names_seq():
     s = seq[f]
     assert s.name == "s1-cds"
     assert s.name == f.name
+
+
+def test_seq_with_masked_annotations():
+    seq = makeSampleSequence("seq1", with_gaps=False)
+    raw_seq = str(seq)
+    cds = next(iter(seq.annotation_db.get_records_matching(biotype="CDS")))
+    start, stop = cds["start"], cds["stop"]
+    expect = raw_seq[:start] + "?" * (stop - start) + raw_seq[stop:]
+    masked = seq.with_masked_annotations(biotypes="CDS")
+    assert str(masked) == expect
+    shadow = seq.with_masked_annotations(biotypes="CDS", shadow=True)
+    expect = "?" * start + raw_seq[start:stop] + "?" * (len(raw_seq) - stop)
+    assert str(shadow) == expect
+    print(shadow)
+
+
+@pytest.mark.parametrize("shadow", [True, False])
+def test_seq_with_masked_annotations_missing_feature(shadow):
+    seq = makeSampleSequence("seq1", with_gaps=False)
+    raw_seq = str(seq)
+    masked = seq.with_masked_annotations(biotypes="not-present", shadow=shadow)
+    assert str(masked) == raw_seq
