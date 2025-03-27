@@ -5061,7 +5061,7 @@ class Alignment(SequenceCollection):
         new = self.array_seqs[:, indices]
 
         new_seq_data = self._seqs_data.from_names_and_array(
-            names=self.names,
+            names=self._name_map.values(),
             data=new,
             alphabet=self.moltype.most_degen_alphabet(),
         )
@@ -5215,10 +5215,11 @@ class Alignment(SequenceCollection):
 
             motif_valid = indices.reshape(num_motif, motif_length).all(axis=1).flatten()
             indices = numpy.repeat(motif_valid, motif_length)
+
         selected = array_pos[indices].T
 
         aligned_seqs_data = self._seqs_data.from_names_and_array(
-            names=self.names,
+            names=self._name_map.values(),
             data=selected,
             alphabet=self.moltype.most_degen_alphabet(),
         )
@@ -5313,7 +5314,7 @@ class Alignment(SequenceCollection):
         selected = positions[indices, :].T
 
         aligned_seqs_data = self._seqs_data.from_names_and_array(
-            names=self.names,
+            names=self._name_map.values(),
             data=selected,
             alphabet=alpha,
         )

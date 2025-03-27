@@ -4682,7 +4682,8 @@ def test_filtered_drop_remainder():
     assert len(got) == 4
 
 
-def test_no_degenerates():
+@pytest.mark.parametrize("renamed", [True, False])
+def test_no_degenerates(renamed):
     """no_degenerates correctly excludes columns containing IUPAC ambiguity codes"""
     data = {
         "s1": "AAA CCC GGG TTT".replace(" ", ""),
@@ -4690,7 +4691,7 @@ def test_no_degenerates():
         "s3": "GGR YTT AAA CCC".replace(" ", ""),
     }
     aln = new_alignment.make_aligned_seqs(data, moltype="dna")
-
+    aln = aln.rename_seqs(lambda x: x.upper()) if renamed else aln
     # motif length of 1, defaults - no gaps allowed
     result = aln.no_degenerates().to_dict()
     expect = {
@@ -4698,6 +4699,7 @@ def test_no_degenerates():
         "s2": "CC GG TT AAA".replace(" ", ""),
         "s3": "GG TT AA CCC".replace(" ", ""),
     }
+    expect = {k.upper(): v for k, v in expect.items()} if renamed else expect
     assert result == expect
 
     # allow gaps
@@ -4707,6 +4709,7 @@ def test_no_degenerates():
         "s2": "CC GG T-T AAA".replace(" ", ""),
         "s3": "GG TT AAA CCC".replace(" ", ""),
     }
+    expect = {k.upper(): v for k, v in expect.items()} if renamed else expect
     assert result == expect
 
     # motif length of 3, defaults - no gaps allowed
@@ -4716,6 +4719,7 @@ def test_no_degenerates():
         "s2": "AAA".replace(" ", ""),
         "s3": "CCC".replace(" ", ""),
     }
+    expect = {k.upper(): v for k, v in expect.items()} if renamed else expect
     assert result == expect
 
     # allow gaps
@@ -4725,8 +4729,12 @@ def test_no_degenerates():
         "s2": "T-T AAA".replace(" ", ""),
         "s3": "AAA CCC".replace(" ", ""),
     }
+    expect = {k.upper(): v for k, v in expect.items()} if renamed else expect
     assert result == expect
 
+
+@pytest.mark.parametrize("renamed", [True, False])
+def test_no_degenerates_non_divisible_length(renamed):
     # for length non-divisible by motif_length
     data = {
         "s1": "AAA CCC GGG TTT T".replace(" ", ""),
@@ -4734,12 +4742,15 @@ def test_no_degenerates():
         "s3": "GGR YTT AAA CCC C".replace(" ", ""),
     }
     aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    aln = aln.rename_seqs(lambda x: x.upper()) if renamed else aln
     result = aln.no_degenerates(motif_length=3, allow_gap=False).to_dict()
     expect = {
         "s1": "TTT".replace(" ", ""),
         "s2": "AAA".replace(" ", ""),
         "s3": "CCC".replace(" ", ""),
     }
+    expect = {k.upper(): v for k, v in expect.items()} if renamed else expect
+    assert result == expect
 
 
 def test_no_degenerates_bad_moltype_raises():
@@ -4749,7 +4760,8 @@ def test_no_degenerates_bad_moltype_raises():
         _ = aln.no_degenerates()
 
 
-def test_omit_gap_pos_motif_length():
+@pytest.mark.parametrize("renamed", [True, False])
+def test_omit_gap_pos_motif_length(renamed):
     """consistency with different motif_length values"""
     data = {
         "seq1": "CAGGTCGACCTCGGC---------CACGAC",
@@ -4760,6 +4772,7 @@ def test_omit_gap_pos_motif_length():
         "seq6": "GCC---------------------------",
     }
     aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    aln = aln.rename_seqs(lambda x: x.upper()) if renamed else aln
     got1 = aln.omit_gap_pos(motif_length=1)
     got3 = aln.omit_gap_pos(motif_length=3)
     assert len(got3) == len(got1)
