@@ -5707,3 +5707,72 @@ def test_aln_mixed_strand_rced_seq():
     assert s2 == "GAGGTA"
     s2rc = s2.rc()
     assert s2rc == "TACCTC"
+
+
+@pytest.mark.parametrize("data", [{}, {"a": "1"}])
+def test_immutable_dict_construction(data):
+    imd = new_alignment.ImmutableDict(data)
+    assert imd.data is data
+    assert len(imd) == len(data)
+    assert imd.keys() == data.keys()
+    assert imd.items() == data.items()
+    assert list(imd.values()) == list(data.values())
+
+
+@pytest.mark.parametrize("key", ["a", "b"])
+def test_immutable_dict_getitem(key):
+    data = {"a": "1", "b": "2"}
+    imd = new_alignment.ImmutableDict(data)
+    assert imd[key] == data[key]
+
+
+def test_immutable_dict_getitem_error():
+    data = {"a": "1", "b": "2"}
+    imd = new_alignment.ImmutableDict(data)
+    with pytest.raises(KeyError):
+        imd["c"]
+
+
+def test_immutable_dict_setitem_error():
+    data = {"a": "1", "b": "2"}
+    imd = new_alignment.ImmutableDict(data)
+    with pytest.raises(TypeError):
+        imd["c"] = "3"
+
+
+@pytest.mark.parametrize("key", ["a", "b", "c"])
+def test_immutable_dict_get(key):
+    data = {"a": "1", "b": "2"}
+    imd = new_alignment.ImmutableDict(data)
+    assert imd.get(key, "*") == data.get(key, "*")
+
+
+def test_immutable_dict_dict():
+    data = {"a": "1", "b": "2"}
+    imd = new_alignment.ImmutableDict(data)
+    assert dict(imd) == data
+
+
+@pytest.mark.parametrize("key", ["a", "b", "c"])
+def test_immutable_dict_contains(key):
+    data = {"a": "1", "b": "2"}
+    imd = new_alignment.ImmutableDict(data)
+    assert (key in imd) == (key in data)
+
+
+def test_immutable_dict_iter():
+    data = {"a": "1", "b": "2"}
+    imd = new_alignment.ImmutableDict(data)
+    assert set(imd) == set(data)
+
+
+def test_immutable_dict_repr():
+    data = {"a": "1", "b": "2"}
+    imd = new_alignment.ImmutableDict(data)
+    assert repr(imd) == repr(data)
+
+
+def test_immutable_dict_str():
+    data = {"a": "1", "b": "2"}
+    imd = new_alignment.ImmutableDict(data)
+    assert str(imd) == str(data)

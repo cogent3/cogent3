@@ -620,6 +620,48 @@ class SeqsData(SeqsDataABC):
         return self.__class__(**init_args)
 
 
+@dataclasses.dataclass(frozen=True, slots=True)
+class ImmutableDict:
+    data: dict[str, str]
+
+    def __repr__(self) -> str:
+        return repr(self.data)
+
+    def __getitem__(self, key: str) -> str:
+        return self.data[key]
+
+    def __setitem__(self, key: str, value: typing.Any) -> None:  # noqa: ANN401
+        msg = f"{self.__class__.__name__!r} is immutable."
+        raise TypeError(msg)
+
+    def keys(self) -> typing.KeysView[str]:
+        return self.data.keys()
+
+    def values(self) -> typing.ValuesView[str]:
+        return self.data.values()
+
+    def items(self) -> typing.Iterator[tuple[str, str]]:
+        return self.data.items()
+
+    def get(self, key: str, default: typing.Any = None) -> typing.Any:  # noqa: ANN401
+        return self.data.get(key, default)
+
+    def __len__(self) -> int:
+        return len(self.data)
+
+    def __contains__(self, key: str) -> bool:
+        return key in self.data
+
+    def __dict__(self) -> dict[str, str]:
+        return self.data.copy()
+
+    def __iter__(self) -> typing.Iterator[str]:
+        return iter(self.data)
+
+    def copy(self) -> typing_extensions.Self:
+        return self.__class__(data=self.data.copy())
+
+
 class SequenceCollection:
     """A container of unaligned sequences.
 
