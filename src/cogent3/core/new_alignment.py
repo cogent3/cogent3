@@ -5,6 +5,7 @@ import dataclasses
 import json
 import os
 import re
+import types
 import typing
 import warnings
 from abc import ABC, abstractmethod
@@ -620,48 +621,6 @@ class SeqsData(SeqsDataABC):
         return self.__class__(**init_args)
 
 
-@dataclasses.dataclass(frozen=True, slots=True)
-class ImmutableDict:
-    data: dict[str, str]
-
-    def __repr__(self) -> str:
-        return repr(self.data)
-
-    def __getitem__(self, key: str) -> str:
-        return self.data[key]
-
-    def __setitem__(self, key: str, value: typing.Any) -> None:  # noqa: ANN401
-        msg = f"{self.__class__.__name__!r} is immutable."
-        raise TypeError(msg)
-
-    def keys(self) -> typing.KeysView[str]:
-        return self.data.keys()
-
-    def values(self) -> typing.ValuesView[str]:
-        return self.data.values()
-
-    def items(self) -> typing.Iterator[tuple[str, str]]:
-        return self.data.items()
-
-    def get(self, key: str, default: typing.Any = None) -> typing.Any:  # noqa: ANN401
-        return self.data.get(key, default)
-
-    def __len__(self) -> int:
-        return len(self.data)
-
-    def __contains__(self, key: str) -> bool:
-        return key in self.data
-
-    def __dict__(self) -> dict[str, str]:
-        return self.data.copy()
-
-    def __iter__(self) -> typing.Iterator[str]:
-        return iter(self.data)
-
-    def copy(self) -> typing_extensions.Self:
-        return self.__class__(data=self.data.copy())
-
-
 class SequenceCollection:
     """A container of unaligned sequences.
 
@@ -704,7 +663,7 @@ class SequenceCollection:
         self._seqs_data = seqs_data
         self.moltype = moltype
         name_map = name_map or {name: name for name in seqs_data.names}
-        self._name_map = ImmutableDict(name_map)
+        self._name_map = types.MappingProxyType(name_map)
         self._is_reversed = is_reversed
         if not isinstance(info, InfoClass):
             info = InfoClass(info) if info else InfoClass()
@@ -762,7 +721,7 @@ class SequenceCollection:
         return list(self._name_map.keys())
 
     @property
-    def name_map(self) -> ImmutableDict:
+    def name_map(self) -> types.MappingProxyType:
         """returns mapping of seq names to parent seq names
 
         Notes
@@ -770,8 +729,8 @@ class SequenceCollection:
         The underlying SeqsData may have different names for the same
         sequences. This object maps the names of sequences in self to
         the names of sequences in SeqsData.
-        This is an immutable mapping, so it cannot be changed. Use
-        self.rename_seqs() to do that.
+        MappingProxyType is an immutable mapping, so it cannot be
+        changed. Use self.rename_seqs() to do that.
         """
         return self._name_map
 
