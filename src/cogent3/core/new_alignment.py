@@ -5,6 +5,7 @@ import dataclasses
 import json
 import os
 import re
+import types
 import typing
 import warnings
 from abc import ABC, abstractmethod
@@ -661,7 +662,8 @@ class SequenceCollection:
         """
         self._seqs_data = seqs_data
         self.moltype = moltype
-        self._name_map = name_map or {name: name for name in seqs_data.names}
+        name_map = name_map or {name: name for name in seqs_data.names}
+        self._name_map = types.MappingProxyType(name_map)
         self._is_reversed = is_reversed
         if not isinstance(info, InfoClass):
             info = InfoClass(info) if info else InfoClass()
@@ -703,7 +705,7 @@ class SequenceCollection:
         return {
             "seqs_data": self._seqs_data,
             "moltype": self.moltype,
-            "name_map": self._name_map.copy(),
+            "name_map": dict(self._name_map),
             "info": self.info.copy(),
             "annotation_db": self.annotation_db,
             "source": self.source,
@@ -717,6 +719,26 @@ class SequenceCollection:
     @property
     def names(self) -> list:
         return list(self._name_map.keys())
+
+    @property
+    def name_map(self) -> types.MappingProxyType:
+        """returns mapping of seq names to parent seq names
+
+        Notes
+        -----
+        The underlying SeqsData may have different names for the same
+        sequences. This object maps the names of sequences in self to
+        the names of sequences in SeqsData.
+        MappingProxyType is an immutable mapping, so it cannot be
+        changed. Use self.rename_seqs() to do that.
+        """
+        return self._name_map
+
+    @name_map.setter
+    def name_map(self, value: OptDict) -> None:  # noqa: ARG002
+        """name_map can only be set at initialisation"""
+        msg = "name_map cannot be set after initialisation"
+        raise TypeError(msg)
 
     @property
     def num_seqs(self) -> int:
@@ -929,11 +951,31 @@ class SequenceCollection:
             annotation_db=self.annotation_db,
         )
 
-    def rename_seqs(self, renamer: Callable[[str], str]):
-        """Returns new collection with renamed sequences."""
-        new_name_map = {
-            renamer(name): old_name for name, old_name in self._name_map.items()
-        }
+    def rename_seqs(self, renamer: Callable[[str], str]) -> typing_extensions.Self:
+        """Returns new collection with renamed sequences.
+
+        Parameters
+        ----------
+        renamer
+            callable that takes a name string and returns a string
+
+        Raises
+        ------
+        ValueError if renamer produces duplicate names.
+
+        Notes
+        -----
+        The resulting object stores the mapping of new to old names in
+        self.name_map.
+        """
+        new_name_map = {}
+        for name, parent_name in self._name_map.items():
+            new_name = renamer(name)
+            # we retain the parent_name when it differs from the name,
+            # this can happen after multiple renames on the same collection
+            parent_name = parent_name if name != parent_name else name  # noqa: PLW2901
+            new_name_map[new_name] = parent_name
+
         if len(new_name_map) != len(self._name_map):
             msg = f"non-unique names produced by {renamer=}"
             raise ValueError(msg)
@@ -4280,7 +4322,7 @@ class Alignment(SequenceCollection):
         return {
             "seqs_data": self._seqs_data,
             "moltype": self.moltype,
-            "name_map": self._name_map.copy(),
+            "name_map": dict(self._name_map),
             "info": self.info.copy(),
             "annotation_db": self.annotation_db,
             "slice_record": self._slice_record,

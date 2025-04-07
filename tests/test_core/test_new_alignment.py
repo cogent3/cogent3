@@ -2461,6 +2461,53 @@ def test_sequence_collection_rename_seqs(mk_cls):
     "mk_cls",
     [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
 )
+def test_sequence_collection_rename_seqs_name_map(mk_cls):
+    """successfully rename sequences"""
+    data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
+    seqs = mk_cls(data, moltype="dna")
+    new = seqs.rename_seqs(lambda x: x.upper())
+    expect = {k.upper(): k for k in data}
+    assert dict(new.name_map) == expect
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_sequence_collection_immutable_name_map(mk_cls):
+    """name map attribute is immutable"""
+    data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
+    seqs = mk_cls(data, moltype="dna")
+    with pytest.raises(TypeError):
+        seqs.name_map = {k.upper(): k for k in data}
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_sequence_collection_multiple_rename_seqs_name_map(mk_cls):
+    """parent seq names should remain the same after renames"""
+    data = {"Seq1": "ACGTACGTA", "Seq2": "ACCGAA---", "Seq3": "ACGTACGTT"}
+    seqs = mk_cls(data, moltype="dna")
+    # original name map is the same as the original names
+    expect = {k: k for k in data}
+    assert seqs.name_map == expect
+
+    # subsequently only the keys change in name_map
+    new = seqs.rename_seqs(lambda x: x.upper())
+    expect = {k.upper(): k for k in data}
+    assert new.name_map == expect
+    # and again only the keys change in name_map
+    new = new.rename_seqs(lambda x: x.lower())
+    expect = {k.lower(): k for k in data}
+    assert new.name_map == expect
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
 def test_sequence_collection_subsequent_rename(mk_cls):
     """sequences can be renamed multiple times"""
     data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
@@ -2608,7 +2655,7 @@ def test_sequence_collection_to_rich_dict():
         "version": __version__,
         "init_args": {
             "moltype": seqs.moltype.label,
-            "name_map": seqs._name_map,
+            "name_map": seqs.name_map,
             "info": seqs.info,
             "source": "unknown",
         },
@@ -2626,7 +2673,7 @@ def test_sequence_collection_to_rich_dict_reversed_seqs():
         "seqs": reversed_seqs.to_dict(),
         "init_args": {
             "moltype": seqs.moltype.label,
-            "name_map": seqs._name_map,
+            "name_map": seqs.name_map,
             "info": seqs.info,
             "source": "unknown",
         },
@@ -5266,7 +5313,7 @@ def test_alignment_apply_scaled_gaps_codon2aa_invalid_moltype(codon_and_aa_alns)
 def test_alignment_copy(simple_aln):
     got = simple_aln.copy()
     # mutable data structures should be different IDs
-    assert got._name_map is not simple_aln._name_map
+    assert got.name_map is not simple_aln.name_map
     assert got.info is not simple_aln.info
     assert got.annotation_db is not simple_aln.annotation_db
     # immutable data structures should be the same object
@@ -5295,7 +5342,7 @@ def test_alignment_copy_rc(simple_aln):
 def test_alignment_deepcopy(simple_aln):
     got = simple_aln.deepcopy()
     # all data structures should be different IDs
-    assert got._name_map is not simple_aln._name_map
+    assert got.name_map is not simple_aln.name_map
     assert got.info is not simple_aln.info
     assert got.annotation_db is not simple_aln.annotation_db
     assert got._slice_record is not simple_aln._slice_record
@@ -5430,7 +5477,7 @@ def test_alignment_to_rich_dict_round_trip_renamed(mk_cls):
     renamed_aln = aln.rename_seqs(renamer=lambda x: x.upper())
     rd = renamed_aln.to_rich_dict()
     got = deserialise_object(rd)
-    assert got._name_map == {"SEQ1": "seq1", "SEQ2": "seq2"}
+    assert dict(got.name_map) == {"SEQ1": "seq1", "SEQ2": "seq2"}
     assert got.to_dict() == renamed_aln.to_dict()
     assert got is not renamed_aln
 
