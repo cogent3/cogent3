@@ -211,7 +211,6 @@ class SupportsWriteFeatures(typing.Protocol):  # pragma: no cover
 class SupportsFeatures(
     SupportsQueryFeatures,
     SupportsWriteFeatures,
-    SerialisableType,
     typing.Sized,
     typing.Protocol,
 ):  # pragma: no cover
@@ -280,7 +279,6 @@ class AnnotationDbABC(abc.ABC, SupportsFeatures):
         **kwargs: dict[str, typing.Any],
     ) -> int: ...
 
-    @abc.abstractmethod
     def subset(
         self,
         *,
@@ -292,33 +290,44 @@ class AnnotationDbABC(abc.ABC, SupportsFeatures):
         strand: str | None = None,
         attributes: str | None = None,
         **kwargs: dict[str, typing.Any],
-    ) -> typing_extensions.Self: ...
+    ) -> typing_extensions.Self:
+        # override in subclass
+        msg = f"{self.__class__.__name__!r} does not support subset()"
+        raise NotImplementedError(msg)
 
-    @abc.abstractmethod
-    def add_feature(self, **kwargs: dict[str, typing.Any]) -> None: ...
+    def add_feature(self, **kwargs: dict[str, typing.Any]) -> None:
+        # override in subclass
+        msg = f"{self.__class__.__name__!r} does not support add_feature()"
+        raise NotImplementedError(msg)
 
-    @abc.abstractmethod
     def add_records(
         self,
         *,
         records: typing.Sequence[dict],
         **kwargs: dict[str, typing.Any],
-    ) -> None: ...
+    ) -> None:
+        # override in subclass
+        msg = f"{self.__class__.__name__!r} does not support add_records()"
+        raise NotImplementedError(msg)
 
-    @abc.abstractmethod
     def update(
         self,
         annot_db: AnnotationDbABC,
         seqids: OptionalStrList = None,
         **kwargs: dict[str, typing.Any],
-    ) -> None: ...
+    ) -> None:
+        # override in subclass
+        msg = f"{self.__class__.__name__!r} does not support update()"
+        raise NotImplementedError(msg)
 
-    @abc.abstractmethod
     def union(
         self,
         annot_db: AnnotationDbABC,
         **kwargs: dict[str, typing.Any],
-    ) -> SupportsFeatures: ...
+    ) -> SupportsFeatures:
+        # override in subclass
+        msg = f"{self.__class__.__name__!r} does not support union"
+        raise NotImplementedError(msg)
 
 
 def _make_table_sql(
