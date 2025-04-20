@@ -5,12 +5,14 @@ from dataclasses import InitVar, dataclass, field
 from itertools import product
 from typing import TYPE_CHECKING
 
+import typing_extensions
+
 from cogent3.core import new_moltype
 
 if TYPE_CHECKING:
     from collections.abc import Generator
 
-    from cogent3.core.sequence import Sequence
+    from cogent3.core.new_sequence import Sequence
 
 
 @dataclass
@@ -26,35 +28,39 @@ class segment:
     def __len__(self) -> int:
         return abs(self.end - self.start)
 
-    def __sub__(self, other):
+    def __sub__(self, other: typing_extensions.Self) -> typing_extensions.Self:
         a, b = (self, other) if self.start < other.start else (other, self)
         if a.overlap(b) or a.end == b.start:
             return segment(0, 0)
 
         return segment(a.end, b.start)
 
-    def __nonzero__(self):
+    def __nonzero__(self) -> bool:
         return self.start != self.end
 
-    def __getitem__(self, index: int):
+    def __getitem__(self, index: int) -> int:
         return (self.start, self.end)[index]
 
-    def overlap(self, other):
+    def overlap(self, other: typing_extensions.Self) -> bool:
         """whether coordinates overlap"""
         return (self.start < other.end <= self.end) or (
             self.start <= other.start < self.end
         )
 
-    def adjacent(self, o):
+    def adjacent(self, o: typing_extensions.Self) -> bool:
         """whether coordinates are adjacent"""
         if not all([self, o]):
             return False
         return (o.start == self.end < o.end) or (self.start == o.end < self.end)
 
-    def __or__(self, other):
+    def __or__(self, other: typing_extensions.Self) -> typing_extensions.Self:
         return self.merge(other, strict=True)
 
-    def merge(self, other, strict: bool = True):
+    def merge(
+        self,
+        other: typing_extensions.Self,
+        strict: bool = True,
+    ) -> typing_extensions.Self:
         """merge segments
 
         Parameters
@@ -63,9 +69,6 @@ class segment:
             instance to be merged
         strict
             if True, start
-        Returns
-        -------
-
         """
         if strict and not self.overlap(other):
             msg = f"failed strict merge as {self} and {other} do not overlap"
@@ -74,7 +77,7 @@ class segment:
             )
         return segment(min(self.start, other.start), max(self.end, other.end))
 
-    def for_rc(self, length: int):
+    def for_rc(self, length: int) -> typing_extensions.Self:
         """returns segment for reverse complement
 
         Parameters
@@ -232,15 +235,15 @@ class Kmer:
     index: InitVar[int]
     indices: dict = field(init=False)
 
-    def __post_init__(self, index):
+    def __post_init__(self, index: int) -> None:
         self.kmer = str(self.kmer)
         self.indices = {self.ref_name: [index]}
 
     def __hash__(self) -> int:
         return hash(self.kmer)
 
-    def __eq__(self, __o: object) -> bool:
-        return getattr(__o, "kmer", __o) == self.kmer
+    def __eq__(self, o: object) -> bool:
+        return getattr(o, "kmer", o) == self.kmer
 
     def add_location(self, seq_name: str, index: int) -> None:
         """add a location of self for seq_name
@@ -279,7 +282,7 @@ class SeqKmers:
     ref_name: str = field(init=False)
     other_name: str | None = field(init=False)
 
-    def __post_init__(self, seq):
+    def __post_init__(self, seq: Sequence) -> None:
         self.canonical = set(self.canonical)
         canonical = self.canonical
         self.ref_name = name = seq.name
@@ -293,7 +296,7 @@ class SeqKmers:
             if kmer in kmers:
                 kmers[kmer].add_location(name, i)
             else:
-                kmer = Kmer(kmer, name, i)
+                kmer = Kmer(kmer, name, i)  # noqa: PLW2901
                 kmers[kmer] = kmer
 
         self.kmers = kmers
@@ -326,7 +329,7 @@ class SeqKmers:
 
     def drop_seq(self, seq_name: str | None = None) -> None:
         """removes other seq from all k-mers"""
-        seq_name = seq_name if seq_name else self.other_name
+        seq_name = seq_name or self.other_name
         if seq_name is None:
             return
 
