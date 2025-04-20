@@ -2643,10 +2643,6 @@ def make_unaligned_seqs(
     # refactor: design
     # rename offset to offsets as it could track potentially multiple offsets
 
-    # refactor: design
-    # currently reversal can only be applied to the entire collection.
-    # This should be made more flexible.
-
     moltype = new_moltype.get_moltype(moltype)
     alphabet = moltype.most_degen_alphabet()
     if len(data) == 0:
@@ -3836,6 +3832,8 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             dict of sequences to add {name: seq, ...}
         force_unique_keys
             if True, raises ValueError if any sequence names already exist in the collection
+        offset
+            dict of offsets relative to for the new sequences.
         """
         if force_unique_keys and any(name in self.names for name in seqs):
             msg = "One or more sequence names already exist in collection"
