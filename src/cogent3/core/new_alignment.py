@@ -40,9 +40,9 @@ from cogent3.core.location import (
     IndelMap,
 )
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray, load_pssm
-from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import seqs_to_fasta
 from cogent3.format.phylip import alignment_to_phylip
+from cogent3.format.sequence import save_to_filename
 from cogent3.maths.stats.number import CategoryCounter
 from cogent3.util import progress_display as UI
 from cogent3.util import warning as c3warn
@@ -2142,7 +2142,7 @@ class SequenceCollection:
 
     def __str__(self) -> str:
         """Returns self in FASTA-format, respecting name order."""
-        from cogent3.format.alignment import FORMATTERS
+        from cogent3.format.sequence import FORMATTERS
 
         return FORMATTERS["fasta"](self.to_dict())
 

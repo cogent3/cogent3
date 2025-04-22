@@ -21,7 +21,7 @@ from cogent3.core.profile import (
     make_pssm_from_tabular,
 )
 from cogent3.evolve.fast_distance import DistanceMatrix
-from cogent3.format.alignment import FORMATTERS
+from cogent3.format.sequence import FORMATTERS
 from cogent3.parse.sequence import PARSERS
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.table import Table
