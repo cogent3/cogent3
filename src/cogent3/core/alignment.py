@@ -69,12 +69,12 @@ from cogent3.core.info import Info as InfoClass
 from cogent3.core.location import FeatureMap, IndelMap
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
-
-# which is a circular import otherwise.
-from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import seqs_to_fasta
 from cogent3.format.nexus import nexus_from_alignment
 from cogent3.format.phylip import alignment_to_phylip
+
+# which is a circular import otherwise.
+from cogent3.format.sequence import save_to_filename
 from cogent3.maths.stats.number import CategoryCounter
 from cogent3.util import progress_display as UI
 from cogent3.util import warning as c3warn
@@ -501,7 +501,7 @@ class _SequenceCollectionBase:
 
     def __str__(self) -> str:  # ported
         """Returns self in FASTA-format, respecting name order."""
-        from cogent3.format.alignment import FORMATTERS
+        from cogent3.format.sequence import FORMATTERS
 
         return FORMATTERS["fasta"](self.to_dict())
 

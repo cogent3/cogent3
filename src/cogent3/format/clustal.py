@@ -4,14 +4,15 @@ Writer for Clustal format.
 """
 
 import os
-from copy import copy
-
-import cogent3
 
 _NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
 
 
-def clustal_from_alignment(aln, wrap=None):
+def clustal_from_alignment(
+    data: dict[str, str],
+    wrap: int | None = None,
+    order: list[str] | None = None,
+) -> str:
     """
     Parameters
     ----------
@@ -25,37 +26,25 @@ def clustal_from_alignment(aln, wrap=None):
     -------
     Returns a string in Clustal format
     """
-    if not aln:
+    if not data:
         return ""
 
     # get seq output order
-    try:
-        order = aln.RowOrder
-    except:
-        order = list(aln.keys())
-        order.sort()
+    order = order or list(data)
 
-    seqs = cogent3.make_unaligned_seqs(aln, moltype="text")
     clustal_list = ["CLUSTAL\n"]
-
-    if seqs.is_ragged():
-        raise ValueError(
-            "Sequences in alignment are not all the same length."
-            + "Cannot generate Clustal format.",
-        )
-
-    aln_len = len(seqs.seqs[0])
-    # Get all labels
-    labels = copy(seqs.names)
+    aln_len = len(data[order[0]])
+    for l, s in data.items():
+        if len(s) != aln_len:
+            msg = f"length of {l!r}={len(s)} != {aln_len}"
+            raise ValueError(msg)
 
     # Find all label lengths in order to get padding.
-    label_lengths = [len(l) for l in labels]
-    label_max = max(label_lengths)
+    label_max = len(max(order, key=len))
     max_spaces = label_max + 4
 
     # Get ordered seqs
-    named_seqs = seqs.seqs if _NEW_TYPE else seqs.named_seqs
-    ordered_seqs = [named_seqs[label] for label in order]
+    ordered_seqs = [data[label] for label in order]
 
     if wrap is not None:
         curr_ix = 0
