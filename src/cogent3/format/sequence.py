@@ -1,19 +1,119 @@
+import abc
 import contextlib
 import os
-import re
+import pathlib
+import typing
 
-from cogent3.format.fasta import seqs_to_fasta
-from cogent3.format.gde import alignment_to_gde
-from cogent3.format.paml import alignment_to_paml
-from cogent3.format.phylip import alignment_to_phylip
+from cogent3.format import clustal, fasta, gde, paml, phylip
 from cogent3.parse.record import FileFormatError
 from cogent3.util.io import atomic_write
 
-# TODO convert formatters so str(formatter) returns correctly formatted
-# string, and rename method names, rename base class name (sequences, not
-# alignment)
+if typing.TYPE_CHECKING:
+    from cogent3.core.new_alignment import Alignment, SequenceCollection
 
-_compression = re.compile(r"\.(gz|bz2)$")
+
+SeqsTypes = typing.Union["SequenceCollection", "Alignment"]
+
+FORMATTERS = {
+    "phylip": phylip.alignment_to_phylip,
+    "paml": paml.alignment_to_paml,
+    "fasta": fasta.seqs_to_fasta,
+    "gde": gde.alignment_to_gde,
+    "clustal": clustal.clustal_from_alignment,
+}
+
+
+class SequenceWriterBase(abc.ABC):
+    """Base class for sequence format parsers."""
+
+    @property
+    @abc.abstractmethod
+    def name(self) -> str:
+        """name of the format"""
+        ...
+
+    @property
+    @abc.abstractmethod
+    def supported_suffixes(self) -> set[str]:
+        """Return list of file suffixes this parser supports"""
+        ...
+
+    def formatted(self, seqcoll: SeqsTypes, **kwargs) -> str:
+        """returns a string representation of the sequence collection
+
+        Parameters
+        ----------
+        seqcoll
+            sequence collection to format, must have a to_dict() method
+        """
+        formatter = FORMATTERS[self.name]
+        return formatter(seqcoll.to_dict(), **kwargs)
+
+    def write(
+        self,
+        *,
+        path: pathlib.Path,
+        seqcoll: SeqsTypes,
+        **kwargs,
+    ) -> pathlib.Path:
+        """returns a path after writing the sequence collection to a file
+        Parameters
+        ----------
+        path
+            path to the file to write
+        seqcoll
+            sequence collection to write, must have a to_dict() method
+        kwargs
+            additional arguments to pass to the formatter
+        """
+        output = self.formatted(seqcoll, **kwargs)
+        with atomic_write(path, mode="wt") as f:
+            f.write(output)
+        return path
+
+
+class FastaWriter(SequenceWriterBase):
+    @property
+    def name(self) -> str:
+        return "fasta"
+
+    @property
+    def supported_suffixes(self) -> set[str]:
+        return {"fasta", "fa", "fna", "faa", "mfa"}
+
+
+class GdeWriter(SequenceWriterBase):
+    @property
+    def name(self) -> str:
+        return "gde"
+
+    @property
+    def supported_suffixes(self) -> set[str]:
+        return {"gde"}
+
+
+class PhylipWriter(SequenceWriterBase):
+    """Parser for PHYLIP format sequence files."""
+
+    @property
+    def name(self) -> str:
+        return "phylip"
+
+    @property
+    def supported_suffixes(self) -> set[str]:
+        return {"phylip", "phy"}
+
+
+class PamlWriter(SequenceWriterBase):
+    """Parser for PAML format sequence files."""
+
+    @property
+    def name(self) -> str:
+        return "paml"
+
+    @property
+    def supported_suffixes(self) -> set[str]:
+        return {"paml"}
 
 
 def save_to_filename(alignment, filename, format, **kw) -> None:
@@ -43,13 +143,3 @@ def write_alignment_to_file(f, alignment, format, **kw) -> None:
     contents = FORMATTERS[format](alignment, **kw)
     f.write(contents)
     f.close()
-
-
-FORMATTERS = {
-    "phylip": alignment_to_phylip,
-    "paml": alignment_to_paml,
-    "fasta": seqs_to_fasta,
-    "mfa": seqs_to_fasta,
-    "fa": seqs_to_fasta,
-    "gde": alignment_to_gde,
-}

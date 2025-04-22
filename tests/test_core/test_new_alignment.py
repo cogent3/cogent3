@@ -5754,3 +5754,35 @@ def test_aln_mixed_strand_rced_seq():
     assert s2 == "GAGGTA"
     s2rc = s2.rc()
     assert s2rc == "TACCTC"
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_seqcoll_storage(mk_cls):
+    data = {
+        "seq1": "ATCG",
+        "seq2": "TAGC",
+    }
+    seqcoll = mk_cls(data, moltype="dna")
+    expect_class = (
+        new_alignment.SeqsData
+        if mk_cls is new_alignment.make_unaligned_seqs
+        else new_alignment.AlignedSeqsData
+    )
+    assert isinstance(seqcoll.storage, expect_class)
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_seqcoll_storage_immutable(mk_cls):
+    data = {
+        "seq1": "ATCG",
+        "seq2": "TAGC",
+    }
+    seqcoll = mk_cls(data, moltype="dna")
+    with pytest.raises(TypeError):
+        seqcoll.storage = "new_storage"

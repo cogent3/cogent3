@@ -7,7 +7,6 @@ import pathlib
 import pickle
 import warnings
 from collections.abc import Callable
-from typing import Optional
 
 from cogent3._version import __version__
 from cogent3.app import app_help, available_apps, get_app, open_data_store  # noqa
@@ -307,20 +306,24 @@ def _load_files_to_unaligned_seqs(
     )
 
 
-def _load_seqs(file_format, filename, fmt, parser_kw):
+def _load_seqs(file_suffix: str, filename: str, format_name: str, parser_kw: dict):
     """utility function for loading sequences"""
+    from cogent3._plugin import get_seq_format_parser_plugin
+
     if not is_url(filename):
         filename = pathlib.Path(filename).expanduser()
-    fmt = fmt or file_format
-    if not fmt:
+    if not (format_name or file_suffix):
         msg = "could not determined file format, set using the format argument"
         raise ValueError(msg)
     parser_kw = parser_kw or {}
-    parser = get_parser(fmt)
+    parser = get_seq_format_parser_plugin(
+        format_name=format_name,
+        file_suffix=file_suffix,
+    )
     return list(parser(filename, **parser_kw))
 
 
-T = Optional[_anno_db.SupportsFeatures]
+T = _anno_db.SupportsFeatures | None
 
 
 def _load_genbank_seq(

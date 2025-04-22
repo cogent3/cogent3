@@ -127,7 +127,7 @@ def test_source_proxy_simple(fasta_dir):
     assert isinstance(got[0], source_proxy)
 
 
-@pytest.mark.parametrize("suffix", ["nex", "paml", "fasta"])
+@pytest.mark.parametrize("suffix", ["nexus", "paml", "fasta"])
 def test_load_aligned(DATA_DIR, suffix):
     """should handle nexus too"""
     dstore = DataStoreDirectory(DATA_DIR, suffix=suffix, limit=2)
@@ -136,8 +136,7 @@ def test_load_aligned(DATA_DIR, suffix):
     # TODO: checking class name rather than isinstance during
     #  migration to new_type, revert to isinstance when
     #  that migration is complete
-    for result in results:
-        assert result.__class__.__name__.endswith("Alignment")
+    assert all(r.__class__.__name__.endswith("Alignment") for r in results)
 
 
 def test_load_unaligned(DATA_DIR):
