@@ -712,6 +712,17 @@ class SequenceCollection:
         }
 
     @property
+    def storage(self) -> str:
+        """returns the storage type of the collection"""
+        return self._seqs_data
+
+    @storage.setter
+    def storage(self, value: typing.Any) -> None:
+        """storage cannot be set after initialisation"""
+        msg = "storage cannot be set after initialisation"
+        raise TypeError(msg)
+
+    @property
     def seqs(self) -> _IndexableSeqs:
         return self._seqs
 
