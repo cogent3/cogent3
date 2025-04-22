@@ -22,7 +22,6 @@ from cogent3.core.profile import (
 )
 from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.format.sequence import FORMATTERS
-from cogent3.parse.sequence import PARSERS
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.table import Table
 
@@ -313,7 +312,9 @@ class load_aligned:
         """
         moltype = moltype or ("text" if _NEW_TYPE else "bytes")
         self.moltype = cogent3.get_moltype(moltype)
-        self._parser = PARSERS[format.lower()]
+        self._parser = cogent3._plugin.get_seq_format_parser_plugin(  # noqa: SLF001
+            format_name=format.lower(),
+        )
 
     T = SerialisableType | AlignedSeqsType
 
@@ -346,7 +347,9 @@ class load_unaligned:
         """
         moltype = moltype or ("text" if _NEW_TYPE else "bytes")
         self.moltype = cogent3.get_moltype(moltype)
-        self._parser = PARSERS[format.lower()]
+        self._parser = cogent3._plugin.get_seq_format_parser_plugin(  # noqa: SLF001
+            format_name=format.lower(),
+        )
 
     T = SerialisableType | UnalignedSeqsType
 

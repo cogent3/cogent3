@@ -2468,7 +2468,7 @@ def test_parent_start_stop_singletons(index, rev, ascii_alphabet):
 
 
 def test_get_drawable(DATA_DIR):
-    seq = cogent3.load_seq(DATA_DIR / "annotated_seq.gb")
+    seq = cogent3.load_seq(DATA_DIR / "annotated_seq.gb", new_type=True, moltype="dna")
     seq = seq[2000:4000]
     biotypes = "CDS", "gene", "mRNA"
     for feat in seq.get_features(biotype=biotypes, allow_partial=True):
@@ -2976,7 +2976,11 @@ def test_sequence_serialisation_round_trip(moltype, data):
 def aa_moltype(DATA_DIR, tmp_path):
     # make a directory that contains both DNA and protein
     outpath = tmp_path / "aa.fa"
-    aln = cogent3.load_aligned_seqs(DATA_DIR / "brca1_5.paml", moltype="dna")
+    aln = cogent3.load_aligned_seqs(
+        DATA_DIR / "brca1_5.paml",
+        moltype="dna",
+        new_type=True,
+    )
     aa = aln.get_translation()
     aa.write(outpath)
     return outpath

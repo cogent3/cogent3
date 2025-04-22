@@ -285,3 +285,23 @@ natsel_neutral = "cogent3.app.evo:natsel_neutral"
 natsel_zhang = "cogent3.app.evo:natsel_zhang"
 natsel_sitehet = "cogent3.app.evo:natsel_sitehet"
 natsel_timehet = "cogent3.app.evo:natsel_timehet"
+
+[project.entry-points."cogent3.parse.sequence"]
+fasta = "cogent3.parse.sequence:FastaParser"
+paml = "cogent3.parse.sequence:PamlParser"
+gde = "cogent3.parse.sequence:GdeParser"
+nexus = "cogent3.parse.sequence:NexusParser"
+phylip = "cogent3.parse.sequence:PhylipParser"
+clustal = "cogent3.parse.sequence:ClustalParser"
+genbank = "cogent3.parse.sequence:GenbankParser"
+msf = "cogent3.parse.sequence:MsfParser"
+xmfa = "cogent3.parse.sequence:XmfaParser"
+tinyseq = "cogent3.parse.sequence:TinyseqParser"
+gbseq = "cogent3.parse.sequence:GbSeqParser"
+
+[project.entry-points."cogent3.format.sequence"]
+fasta = "cogent3.format.sequence:FastaWriter"
+paml = "cogent3.format.sequence:PamlWriter"
+gde = "cogent3.format.sequence:GdeWriter"
+phylip = "cogent3.format.sequence:PhylipWriter"
+

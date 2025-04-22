@@ -14,7 +14,7 @@ from collections.abc import Callable, Iterable, Iterator, Mapping
 from collections.abc import Sequence as PySeq
 from functools import singledispatch, singledispatchmethod
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 import numba
 import numpy
@@ -42,7 +42,6 @@ from cogent3.core.location import (
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray, load_pssm
 from cogent3.format.fasta import seqs_to_fasta
 from cogent3.format.phylip import alignment_to_phylip
-from cogent3.format.sequence import save_to_filename
 from cogent3.maths.stats.number import CategoryCounter
 from cogent3.util import progress_display as UI
 from cogent3.util import warning as c3warn
@@ -70,25 +69,25 @@ if typing.TYPE_CHECKING:
 
 DEFAULT_ANNOTATION_DB = BasicAnnotationDb
 
-OptInt = Optional[int]
-OptFloat = Optional[float]
-OptStr = Optional[str]
-OptList = Optional[list]
-OptIterStr = Optional[Iterable[str]]
+OptInt = int | None
+OptFloat = float | None
+OptStr = str | None
+OptList = list | None
+OptIterStr = Iterable[str] | None
 PySeqStr = PySeq[str]
-OptPySeqStr = Optional[PySeqStr]
-OptDict = Optional[dict]
-OptBool = Optional[bool]
-OptSliceRecord = Optional[new_sequence.SliceRecord]
+OptPySeqStr = PySeqStr | None
+OptDict = dict | None
+OptBool = bool | None
+OptSliceRecord = new_sequence.SliceRecord | None
 DictStrStr = dict[str, str]
 DictStrInt = dict[str, int]
-OptCallable = Optional[Callable]
-OptRenamerCallable = Optional[Callable[[str], str]]
-OptPathType = Union[str, Path, None]
-StrORArray = Union[str, numpy.ndarray[int]]
-StrORBytesORArray = Union[str, bytes, numpy.ndarray[int]]
-StrORBytesORArrayOrSeq = Union[str, bytes, numpy.ndarray[int], new_sequence.Sequence]
-MolTypes = Union[str, new_moltype.MolType]
+OptCallable = Callable | None
+OptRenamerCallable = Callable[[str], str] | None
+OptPathType = str | Path | None
+StrORArray = str | numpy.ndarray[int]
+StrORBytesORArray = str | bytes | numpy.ndarray[int]
+StrORBytesORArrayOrSeq = str | bytes | numpy.ndarray[int] | new_sequence.Sequence
+MolTypes = str | new_moltype.MolType
 
 # small number: 1-EPS is almost 1, and is used for things like the
 # default number of gaps to allow in a column.
@@ -1457,7 +1456,11 @@ class SequenceCollection:
         if "order" not in kwargs:
             kwargs["order"] = self.names
 
-        save_to_filename(self.to_dict(), filename, file_format, **kwargs)
+        writer = cogent3._plugin.get_seq_format_writer_plugin(  # noqa: SLF001
+            format_name=file_format,
+            file_suffix=suffix,
+        )
+        _ = writer(seqcoll=self, path=filename, **kwargs)
 
     def dotplot(
         self,

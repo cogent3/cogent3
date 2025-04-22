@@ -1,11 +1,16 @@
 import functools
+import pathlib
 import typing
 
 import stevedore
 
 if typing.TYPE_CHECKING:
+    from cogent3.core.new_alignment import Alignment, SequenceCollection
     from cogent3.core.tree import PhyloNode
     from cogent3.evolve.fast_distance import DistanceMatrix
+    from cogent3.parse.sequence import ParserOutputType, SeqParserInputTypes
+
+SeqsTypes = typing.Union["SequenceCollection", "Alignment"]
 
 # Entry point for plugins to register themselves as hooks
 HOOK_ENTRY_POINT = "cogent3.hook"
@@ -40,6 +45,98 @@ def get_quick_tree_hook(
                 return extension.plugin()
 
     return cogent3.get_app("quick_tree")
+
+
+# registry for parsing sequence file formats
+SEQ_PARSER_ENTRY_POINT = "cogent3.parse.sequence"
+
+
+@functools.cache
+def get_seq_format_parser_plugin(
+    *,
+    format_name: str | None = None,
+    file_suffix: str | None = None,
+) -> typing.Callable[["SeqParserInputTypes"], "ParserOutputType"] | None:
+    """returns sequence format parser
+
+    Parameters
+    ----------
+    format_name
+        name of sequence format
+    file_suffix
+        suffix of file to parse
+
+    Notes
+    -----
+    We default to third-party plugins if they are available, otherwise we
+    use a built-in parser.
+    """
+
+    mgr = stevedore.ExtensionManager(
+        namespace=SEQ_PARSER_ENTRY_POINT,
+        invoke_on_load=True,
+    )
+    built_in = None
+    for ext in mgr.extensions:
+        plugin = ext.plugin()
+        if file_suffix in plugin.supported_suffixes or plugin.name == format_name:
+            if ext.module_name.startswith("cogent3."):
+                built_in = plugin.parser
+                continue
+            return plugin.parser
+
+    if built_in:
+        # if we have a built-in plugin, return it
+        return built_in
+
+    msg = f"Unknown parser for format {format_name!r} or file suffix {file_suffix!r}"
+    raise ValueError(msg)
+
+
+# registry for writing sequence file formats
+SEQ_FORMAT_ENTRY_POINT = "cogent3.format.sequence"
+
+
+@functools.cache
+def get_seq_format_writer_plugin(
+    *,
+    format_name: str | None = None,
+    file_suffix: str | None = None,
+) -> typing.Callable[[SeqsTypes], pathlib.Path] | None:
+    """returns sequence format writer
+
+    Parameters
+    ----------
+    format_name
+        name of sequence format
+    file_suffix
+        suffix of file to parse
+
+    Notes
+    -----
+    We default to third-party plugins if they are available, otherwise we
+    use a built-in parser.
+    """
+
+    mgr = stevedore.ExtensionManager(
+        namespace=SEQ_FORMAT_ENTRY_POINT,
+        invoke_on_load=True,
+    )
+    built_in = None
+    for ext in mgr.extensions:
+        plugin = ext.plugin()
+        if file_suffix in plugin.supported_suffixes or plugin.name == format_name:
+            if ext.module_name.startswith("cogent3."):
+                built_in = plugin.write
+                continue
+            return plugin.write
+
+    if built_in:
+        # if we have a built-in plugin, return it
+        return built_in
+
+    msg = f"Unknown writer for format {format_name!r} or file suffix {file_suffix!r}"
+    raise ValueError(msg)
 
 
 # Entry point for plugins to register themselves as apps
