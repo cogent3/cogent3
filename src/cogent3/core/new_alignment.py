@@ -1471,7 +1471,7 @@ class SequenceCollection:
             format_name=file_format,
             file_suffix=suffix,
         )
-        _ = writer(seqcoll=self, path=filename, **kwargs)
+        _ = writer.write(seqcoll=self, path=filename, **kwargs)
 
     def dotplot(
         self,

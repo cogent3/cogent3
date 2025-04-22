@@ -127,9 +127,9 @@ def get_seq_format_writer_plugin(
         plugin = ext.plugin()
         if file_suffix in plugin.supported_suffixes or plugin.name == format_name:
             if ext.module_name.startswith("cogent3."):
-                built_in = plugin.write
+                built_in = plugin
                 continue
-            return plugin.write
+            return plugin
 
     if built_in:
         # if we have a built-in plugin, return it

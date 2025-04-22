@@ -21,7 +21,6 @@ from cogent3.core.profile import (
     make_pssm_from_tabular,
 )
 from cogent3.evolve.fast_distance import DistanceMatrix
-from cogent3.format.sequence import FORMATTERS
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.table import Table
 
@@ -602,7 +601,9 @@ class write_seqs:
             msg = f"invalid type {type(data_store)!r} for data_store"
             raise TypeError(msg)
         self.data_store = data_store
-        self._formatter = FORMATTERS[format]
+        self._formatter = cogent3._plugin.get_seq_format_writer_plugin(  # noqa: SLF001
+            format_name=format.lower(),
+        )
         self._id_from_source = id_from_source
 
     def main(
@@ -619,7 +620,7 @@ class write_seqs:
                 data=data.to_json(),
             )
 
-        data = self._formatter(data.to_dict())
+        data = self._formatter.formatted(data)
         return self.data_store.write(unique_id=identifier, data=data)
 
 

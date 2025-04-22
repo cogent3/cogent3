@@ -38,6 +38,17 @@ class SequenceWriterBase(abc.ABC):
         """Return list of file suffixes this parser supports"""
         ...
 
+    def formatted(self, seqcoll: SeqsTypes, **kwargs) -> str:
+        """returns a string representation of the sequence collection
+
+        Parameters
+        ----------
+        seqcoll
+            sequence collection to format, must have a to_dict() method
+        """
+        formatter = FORMATTERS[self.name]
+        return formatter(seqcoll.to_dict(), **kwargs)
+
     def write(
         self,
         *,
@@ -55,8 +66,7 @@ class SequenceWriterBase(abc.ABC):
         kwargs
             additional arguments to pass to the formatter
         """
-        formatter = FORMATTERS[self.name]
-        output = formatter(seqcoll.to_dict(), **kwargs)
+        output = self.formatted(seqcoll, **kwargs)
         with atomic_write(path, mode="wt") as f:
             f.write(output)
         return path
