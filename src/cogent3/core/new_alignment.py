@@ -40,8 +40,6 @@ from cogent3.core.location import (
     IndelMap,
 )
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray, load_pssm
-from cogent3.format.fasta import seqs_to_fasta
-from cogent3.format.phylip import alignment_to_phylip
 from cogent3.maths.stats.number import CategoryCounter
 from cogent3.util import progress_display as UI
 from cogent3.util import warning as c3warn
@@ -66,6 +64,7 @@ from cogent3.util.union_dict import UnionDict
 
 if typing.TYPE_CHECKING:
     from cogent3.core.tree import PhyloNode
+    from cogent3.evolve.fast_distance import DistanceMatrix
 
 DEFAULT_ANNOTATION_DB = BasicAnnotationDb
 
@@ -798,7 +797,7 @@ class SequenceCollection:
         negate: bool = False,
         copy_annotations: bool = False,
         **kwargs,
-    ):
+    ) -> typing_extensions.Self:
         """Returns new collection containing only specified seqs.
 
         Parameters
@@ -857,7 +856,7 @@ class SequenceCollection:
         self,
         f: Callable[[new_sequence.Sequence], bool],
         negate: bool = False,
-    ):
+    ) -> list[str]:
         """Returns list of names of seqs where f(seq) is True.
 
         Parameters
@@ -882,7 +881,7 @@ class SequenceCollection:
         self,
         f: Callable[[new_sequence.Sequence], bool],
         negate: bool = False,
-    ):
+    ) -> typing_extensions.Self:
         """Returns new collection containing seqs where f(seq) is True.
 
         Parameters
@@ -932,7 +931,7 @@ class SequenceCollection:
         self,
         seqs: dict[str, StrORBytesORArray] | SeqsData | list,
         **kwargs,
-    ) -> SequenceCollection:
+    ) -> typing_extensions.Self:
         """Returns new collection with additional sequences.
 
         Parameters
@@ -941,7 +940,7 @@ class SequenceCollection:
             sequences to add
         """
         assign_names = _SeqNamer()
-        data, offsets, is_reversed, name_map = prep_for_seqs_data(
+        data, offsets, _, name_map = prep_for_seqs_data(
             seqs,
             self.moltype,
             assign_names,
@@ -1040,7 +1039,7 @@ class SequenceCollection:
         """returns a new instance from a rich dict"""
         return make_unaligned_seqs(data["seqs"], **data["init_args"])
 
-    def to_json(self):
+    def to_json(self) -> str:
         """returns json formatted string"""
         return json.dumps(self.to_rich_dict())
 
@@ -1067,7 +1066,7 @@ class SequenceCollection:
 
         return self.__class__(**init_kwargs)
 
-    def to_moltype(self, moltype: MolTypes) -> SequenceCollection:
+    def to_moltype(self, moltype: MolTypes) -> typing_extensions.Self:
         """returns copy of self with changed moltype
 
         Parameters
@@ -1099,11 +1098,11 @@ class SequenceCollection:
 
         return self.__class__(**init_kwargs)
 
-    def to_dna(self):
+    def to_dna(self) -> typing_extensions.Self:
         """returns copy of self as a collection of DNA moltype seqs"""
         return self.to_moltype("dna")
 
-    def to_rna(self):
+    def to_rna(self) -> typing_extensions.Self:
         """returns copy of self as a collection of RNA moltype seqs"""
         return self.to_moltype("rna")
 
@@ -1114,7 +1113,7 @@ class SequenceCollection:
         include_stop: bool = False,
         trim_stop: bool = True,
         **kwargs,
-    ):
+    ) -> typing_extensions.Self:
         """translate sequences from nucleic acid to protein
 
         Parameters
@@ -1154,7 +1153,8 @@ class SequenceCollection:
                 include_stop=include_stop,
                 trim_stop=trim_stop,
             )
-            translated[seq._seq.seqid] = numpy.array(pep)
+            parent_seqid, *_ = seq.parent_coordinates()
+            translated[parent_seqid] = numpy.array(pep)
 
         pep_moltype = new_moltype.get_moltype(
             "protein_with_stop" if include_stop else "protein",
@@ -1162,7 +1162,6 @@ class SequenceCollection:
         seqs_data = self._seqs_data.from_seqs(
             data=translated,
             alphabet=pep_moltype.most_degen_alphabet(),
-            offset=self._seqs_data.offset,
         )
         return self.__class__(
             seqs_data=seqs_data,
@@ -1187,7 +1186,7 @@ class SequenceCollection:
         """
         return self.rc()
 
-    def distance_matrix(self, calc: str = "pdist"):
+    def distance_matrix(self, calc: str = "pdist") -> DistanceMatrix:
         """Estimated pairwise distance between sequences
 
         Parameters
@@ -1417,21 +1416,8 @@ class SequenceCollection:
         -------
         The collection in Fasta format.
         """
-        return seqs_to_fasta(self.to_dict(), block_size=block_size)
-
-    def to_phylip(self) -> str:
-        """
-        Return collection in PHYLIP format and mapping to sequence ids
-
-        Notes
-        -----
-        raises exception if sequences do not all have the same length
-        """
-        if self.is_ragged():
-            msg = "not all seqs same length, cannot convert to phylip"
-            raise ValueError(msg)
-
-        return alignment_to_phylip(self.to_dict())
+        fasta = cogent3._plugin.get_seq_format_writer_plugin(format_name="fasta")  # noqa: SLF001
+        return fasta.formatted(self, block_size=block_size)
 
     @c3warn.deprecated_args(
         version="2025.6",
@@ -5820,6 +5806,9 @@ class Alignment(SequenceCollection):
         yield a sequence segment that is consistently oriented irrespective
         of strand of the current instance.
         """
+        if self.annotation_db is None or not len(self.annotation_db):
+            return None
+
         # we only do on-alignment in here
         if not on_alignment:
             local_vars = locals()
@@ -5829,13 +5818,6 @@ class Alignment(SequenceCollection):
 
         if on_alignment == False:  # noqa
             return
-
-        if self.annotation_db is None:
-            anno_db = merged_db_collection(self._seqs_data)
-            self.annotation_db = anno_db
-
-        if self.annotation_db is None:
-            return None
 
         seq_map = None
         for feature in self.annotation_db.get_features_matching(
@@ -6288,7 +6270,22 @@ class Alignment(SequenceCollection):
 
         return draw
 
-    def to_pretty(self, name_order=None, wrap=None):
+    def to_phylip(self) -> str:
+        """
+        Return collection in PHYLIP format and mapping to sequence ids
+
+        Notes
+        -----
+        raises exception if sequences do not all have the same length
+        """
+        phylip = cogent3._plugin.get_seq_format_writer_plugin(format_name="phylip")  # noqa: SLF001
+        return phylip.formatted(self)
+
+    def to_pretty(
+        self,
+        name_order: list[str] | None = None,
+        wrap: int | None = None,
+    ) -> str:
         """returns a string representation of the alignment in pretty print format
 
         Parameters
