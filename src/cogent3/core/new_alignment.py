@@ -66,6 +66,7 @@ from cogent3.util.union_dict import UnionDict
 
 if typing.TYPE_CHECKING:
     from cogent3.core.tree import PhyloNode
+    from cogent3.evolve.fast_distance import DistanceMatrix
 
 DEFAULT_ANNOTATION_DB = BasicAnnotationDb
 
@@ -798,7 +799,7 @@ class SequenceCollection:
         negate: bool = False,
         copy_annotations: bool = False,
         **kwargs,
-    ):
+    ) -> typing_extensions.Self:
         """Returns new collection containing only specified seqs.
 
         Parameters
@@ -857,7 +858,7 @@ class SequenceCollection:
         self,
         f: Callable[[new_sequence.Sequence], bool],
         negate: bool = False,
-    ):
+    ) -> list[str]:
         """Returns list of names of seqs where f(seq) is True.
 
         Parameters
@@ -882,7 +883,7 @@ class SequenceCollection:
         self,
         f: Callable[[new_sequence.Sequence], bool],
         negate: bool = False,
-    ):
+    ) -> typing_extensions.Self:
         """Returns new collection containing seqs where f(seq) is True.
 
         Parameters
@@ -932,7 +933,7 @@ class SequenceCollection:
         self,
         seqs: dict[str, StrORBytesORArray] | SeqsData | list,
         **kwargs,
-    ) -> SequenceCollection:
+    ) -> typing_extensions.Self:
         """Returns new collection with additional sequences.
 
         Parameters
@@ -1040,7 +1041,7 @@ class SequenceCollection:
         """returns a new instance from a rich dict"""
         return make_unaligned_seqs(data["seqs"], **data["init_args"])
 
-    def to_json(self):
+    def to_json(self) -> str:
         """returns json formatted string"""
         return json.dumps(self.to_rich_dict())
 
@@ -1067,7 +1068,7 @@ class SequenceCollection:
 
         return self.__class__(**init_kwargs)
 
-    def to_moltype(self, moltype: MolTypes) -> SequenceCollection:
+    def to_moltype(self, moltype: MolTypes) -> typing_extensions.Self:
         """returns copy of self with changed moltype
 
         Parameters
@@ -1099,11 +1100,11 @@ class SequenceCollection:
 
         return self.__class__(**init_kwargs)
 
-    def to_dna(self):
+    def to_dna(self) -> typing_extensions.Self:
         """returns copy of self as a collection of DNA moltype seqs"""
         return self.to_moltype("dna")
 
-    def to_rna(self):
+    def to_rna(self) -> typing_extensions.Self:
         """returns copy of self as a collection of RNA moltype seqs"""
         return self.to_moltype("rna")
 
@@ -1114,7 +1115,7 @@ class SequenceCollection:
         include_stop: bool = False,
         trim_stop: bool = True,
         **kwargs,
-    ):
+    ) -> typing_extensions.Self:
         """translate sequences from nucleic acid to protein
 
         Parameters
@@ -1187,7 +1188,7 @@ class SequenceCollection:
         """
         return self.rc()
 
-    def distance_matrix(self, calc: str = "pdist"):
+    def distance_matrix(self, calc: str = "pdist") -> DistanceMatrix:
         """Estimated pairwise distance between sequences
 
         Parameters
