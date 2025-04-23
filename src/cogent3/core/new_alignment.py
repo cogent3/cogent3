@@ -40,8 +40,6 @@ from cogent3.core.location import (
     IndelMap,
 )
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray, load_pssm
-from cogent3.format.fasta import seqs_to_fasta
-from cogent3.format.phylip import alignment_to_phylip
 from cogent3.maths.stats.number import CategoryCounter
 from cogent3.util import progress_display as UI
 from cogent3.util import warning as c3warn
@@ -1418,21 +1416,8 @@ class SequenceCollection:
         -------
         The collection in Fasta format.
         """
-        return seqs_to_fasta(self.to_dict(), block_size=block_size)
-
-    def to_phylip(self) -> str:
-        """
-        Return collection in PHYLIP format and mapping to sequence ids
-
-        Notes
-        -----
-        raises exception if sequences do not all have the same length
-        """
-        if self.is_ragged():
-            msg = "not all seqs same length, cannot convert to phylip"
-            raise ValueError(msg)
-
-        return alignment_to_phylip(self.to_dict())
+        fasta = cogent3._plugin.get_seq_format_writer_plugin(format_name="fasta")  # noqa: SLF001
+        return fasta.formatted(self, block_size=block_size)
 
     @c3warn.deprecated_args(
         version="2025.6",
@@ -6285,7 +6270,22 @@ class Alignment(SequenceCollection):
 
         return draw
 
-    def to_pretty(self, name_order=None, wrap=None):
+    def to_phylip(self) -> str:
+        """
+        Return collection in PHYLIP format and mapping to sequence ids
+
+        Notes
+        -----
+        raises exception if sequences do not all have the same length
+        """
+        phylip = cogent3._plugin.get_seq_format_writer_plugin(format_name="phylip")  # noqa: SLF001
+        return phylip.formatted(self)
+
+    def to_pretty(
+        self,
+        name_order: list[str] | None = None,
+        wrap: int | None = None,
+    ) -> str:
         """returns a string representation of the alignment in pretty print format
 
         Parameters

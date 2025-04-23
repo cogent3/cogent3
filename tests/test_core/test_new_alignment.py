@@ -1308,7 +1308,7 @@ def test_sequence_collection_ragged(ragged):
     ]
 
 
-def test_sequence_collection_to_phylip():
+def test_to_phylip():
     """SequenceCollection should return PHYLIP string format correctly"""
     data = {
         "seq_0": "ACDEFGHIKLMNPQRSTUVWY-",
@@ -1316,21 +1316,12 @@ def test_sequence_collection_to_phylip():
         "seq_2": "ACDEFGHIKLMNPERSKUVWC-",
         "seq_3": "ACNEFGHIKLMNPQRS-UVWP-",
     }
-    align_norm = new_alignment.make_unaligned_seqs(data, moltype="protein")
+    align_norm = new_alignment.make_aligned_seqs(data, moltype="protein")
 
     assert (
         align_norm.to_phylip()
         == """4  22\nseq_0     ACDEFGHIKLMNPQRSTUVWY-\nseq_1     ACDEFGHIKLMNPQRSUUVWF-\nseq_2     ACDEFGHIKLMNPERSKUVWC-\nseq_3     ACNEFGHIKLMNPQRS-UVWP-\n"""
     )
-
-
-def test_sequence_collection_to_phylip_ragged():
-    """SequenceCollection should refuse to convert ragged seqs to phylip"""
-    data = {"seq1": "KGA-", "seq2": "KGA"}
-    align_rag = new_alignment.make_unaligned_seqs(data, moltype="protein")
-
-    with pytest.raises(ValueError):
-        align_rag.to_phylip()
 
 
 @pytest.mark.parametrize(
