@@ -5820,6 +5820,9 @@ class Alignment(SequenceCollection):
         yield a sequence segment that is consistently oriented irrespective
         of strand of the current instance.
         """
+        if self.annotation_db is None or not len(self.annotation_db):
+            return None
+
         # we only do on-alignment in here
         if not on_alignment:
             local_vars = locals()
@@ -5829,13 +5832,6 @@ class Alignment(SequenceCollection):
 
         if on_alignment == False:  # noqa
             return
-
-        if self.annotation_db is None:
-            anno_db = merged_db_collection(self._seqs_data)
-            self.annotation_db = anno_db
-
-        if self.annotation_db is None:
-            return None
 
         seq_map = None
         for feature in self.annotation_db.get_features_matching(
