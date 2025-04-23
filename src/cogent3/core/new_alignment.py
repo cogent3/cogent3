@@ -942,7 +942,7 @@ class SequenceCollection:
             sequences to add
         """
         assign_names = _SeqNamer()
-        data, offsets, is_reversed, name_map = prep_for_seqs_data(
+        data, offsets, _, name_map = prep_for_seqs_data(
             seqs,
             self.moltype,
             assign_names,
@@ -1155,7 +1155,8 @@ class SequenceCollection:
                 include_stop=include_stop,
                 trim_stop=trim_stop,
             )
-            translated[seq._seq.seqid] = numpy.array(pep)
+            parent_seqid, *_ = seq.parent_coordinates()
+            translated[parent_seqid] = numpy.array(pep)
 
         pep_moltype = new_moltype.get_moltype(
             "protein_with_stop" if include_stop else "protein",
@@ -1163,7 +1164,6 @@ class SequenceCollection:
         seqs_data = self._seqs_data.from_seqs(
             data=translated,
             alphabet=pep_moltype.most_degen_alphabet(),
-            offset=self._seqs_data.offset,
         )
         return self.__class__(
             seqs_data=seqs_data,
