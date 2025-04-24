@@ -298,7 +298,7 @@ Stats = namedtuple("Stats", ["length", "fraction_variable", "dist", "variance"])
 
 
 def _make_stat_table(stats, names, **kwargs):
-    from cogent3.util.table import Table
+    from cogent3.core.table import Table
 
     header = ["Seq1 \\ Seq2", *names]
     rows = zeros((len(names), len(names)), dtype="O")
@@ -709,7 +709,7 @@ def available_distances():
     -----
     For more complicated genetic distance methods, see the evolve.models module.
     """
-    from cogent3.util.table import Table
+    from cogent3.core.table import Table
 
     rows = []
     for n, c in _calculators.items():
@@ -759,7 +759,7 @@ class DistanceMatrix(DictArray):
 
     def to_table(self):
         """converted to a Table"""
-        from cogent3.util.table import Table
+        from cogent3.core.table import Table
 
         data = {"names": self.names}
         for i, name in enumerate(self.names):

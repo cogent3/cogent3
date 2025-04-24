@@ -817,7 +817,7 @@ class TestNatSel(TestCase):
 class TestTabulateStats(TestCase):
     def test_tabulate(self):
         """call returns tabular_result with Tables"""
-        from cogent3.util.table import Table
+        from cogent3.core.table import Table
 
         _data = {
             "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",

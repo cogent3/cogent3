@@ -633,7 +633,7 @@ class DictArray:
             msg = f"cannot make 2D table from {ndim}D array"
             raise ValueError(msg)
 
-        from .table import Table
+        from cogent3.core.table import Table
 
         header = self.template.names[0] if ndim == 1 else self.template.names[1]
         index = "" if ndim == 2 else None

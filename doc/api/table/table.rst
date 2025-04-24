@@ -1,7 +1,7 @@
 :mod:`table`
 ============
 
-.. currentmodule:: cogent3.util.table
+.. currentmodule:: cogent3.core.table
 
 .. autosummary::
     :toctree: classes

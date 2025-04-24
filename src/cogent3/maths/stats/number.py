@@ -186,7 +186,7 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         -------
         cogent3 Table instance
         """
-        from cogent3.util.table import Table
+        from cogent3.core.table import Table
 
         if (
             not column_names

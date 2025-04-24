@@ -10,7 +10,7 @@ import os
 import re
 from itertools import product
 
-from cogent3.util.table import Table
+from cogent3.core.table import Table
 
 maketrans = str.maketrans
 
@@ -567,7 +567,7 @@ def get_code(code_id: int = 1, new_type: bool = False):
 
 def available_codes():
     """returns Table listing the available genetic codes"""
-    from cogent3.util.table import Table
+    from cogent3.core.table import Table
 
     all_keys = sorted({int(k) for k in GeneticCodes if str(k).isdigit()})
     rows = [(k, GeneticCodes[k].name) for k in all_keys]

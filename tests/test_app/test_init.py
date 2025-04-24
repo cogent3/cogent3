@@ -9,7 +9,7 @@ import pytest
 
 from cogent3 import app_help, available_apps, get_app, open_data_store
 from cogent3.app.composable import LOADER, WRITER, is_app
-from cogent3.util.table import Table
+from cogent3.core.table import Table
 
 
 def _get_all_composables(tmp_dir_name):
@@ -57,7 +57,7 @@ def _get_all_composables(tmp_dir_name):
 class TestAvailableApps(TestCase):
     def test_available_apps(self):
         """available_apps returns a table"""
-        from cogent3.util.table import Table
+        from cogent3.core.table import Table
 
         apps = available_apps()
         assert isinstance(apps, Table)

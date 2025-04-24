@@ -133,7 +133,7 @@ def test_constructor_db_connection_works(db_name, cls, request):
 
 
 def test_gff_describe(gff_db):
-    from cogent3.util.table import Table
+    from cogent3.core.table import Table
 
     result = gff_db.describe
     assert isinstance(result, Table)

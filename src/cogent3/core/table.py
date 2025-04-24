@@ -25,8 +25,10 @@ import typing_extensions
 
 from cogent3.format import bedgraph
 from cogent3.format import table as table_format
+from cogent3.parse import cogent3_json as c3_json
+from cogent3.parse.table import load_delimited
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
-from cogent3.util.io import atomic_write, get_format_suffixes
+from cogent3.util.io import atomic_write, get_format_suffixes, open_
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
 from cogent3.util.union_dict import UnionDict
 
@@ -44,24 +46,25 @@ _all_chrs.reverse()
 _reversed_chrs = "".join(_all_chrs)
 
 
-def _reverse_str(x):
+def _reverse_str(x: str) -> str:
     """returns reverse translation of x"""
     return x.translate(_reversed_chrs)
 
 
-def _reverse_num(x):
+def _reverse_num(x: float) -> float | int:
     """returns reversed val of x"""
     return x * -1
 
 
-def _numeric_sum(data):
+def _numeric_sum(data) -> float | int:
     """returns sum of all numeric values"""
     try:
         result = numpy.sum(data)
         result / 3
-        return result
     except TypeError:
         pass
+    else:
+        return result
 
     total = 0
     valid = False
@@ -193,9 +196,9 @@ class Columns(MutableMapping):
         if isinstance(value, int):
             try:
                 value = self._order[value]
-            except IndexError:
+            except IndexError as e:
                 msg = f"no key corresponding to index {value}"
-                raise KeyError(msg)
+                raise KeyError(msg) from e
 
         return value
 
@@ -221,9 +224,9 @@ class Columns(MutableMapping):
             cols = numpy.array(self.order, dtype="U")
             try:
                 key = cols[key]
-            except Exception:
+            except Exception as exc:
                 msg = f"{key} could not be used to slice columns"
-                raise KeyError(msg)
+                raise KeyError(msg) from exc
 
             return key
 
@@ -473,14 +476,12 @@ class Table:
         missing_data
             replace missing data with this
         """
+        local_vars = locals()
         attrs = {
             k: v
-            for k, v in locals().items()
+            for k, v in local_vars.items()
             if k not in ("self", "__class__", "data", "header", "kwargs")
-        }
-
-        attrs.update(kwargs)
-
+        } | kwargs
         self._persistent_attrs = attrs
 
         self.columns = Columns()
@@ -509,11 +510,11 @@ class Table:
 
             try:
                 data = dict(zip(header, zip(*data, strict=True), strict=True))
-            except TypeError:  # handle python versions <3.10
+            except TypeError as e:  # handle python versions <3.10
                 # check that number of elements per row is correct
                 if {len(r) for r in data} != {hlen}:
                     msg = f"not all rows have {hlen} elements"
-                    raise ValueError(msg)
+                    raise ValueError(msg) from e
 
                 data = dict(zip(header, zip(*data, strict=False), strict=False))
 
@@ -532,9 +533,9 @@ class Table:
             if has_index:
                 try:
                     self.columns[index_name] = data[index_name]
-                except KeyError:
+                except KeyError as exc:
                     msg = f"'{index_name}' not in data"
-                    raise ValueError(msg)
+                    raise ValueError(msg) from exc
 
             for c in header:
                 if c == index_name:
@@ -2256,3 +2257,215 @@ class Table:
             outfile.write(table + "\n")
 
         outfile.close()
+
+
+def make_table(
+    header=None,
+    data=None,
+    row_order=None,
+    digits=4,
+    space=4,
+    title="",
+    max_width=1e100,
+    index_name=None,
+    legend="",
+    missing_data="",
+    column_templates=None,
+    data_frame=None,
+    format="simple",
+    **kwargs,
+):
+    """
+
+    Parameters
+    ----------
+    header
+        column headings
+    data
+        a 2D dict, list or tuple. If a dict, it must have column
+        headings as top level keys, and common row labels as keys in each
+        column.
+    row_order
+        the order in which rows will be pulled from the twoDdict
+    digits
+        floating point resolution
+    space
+        number of spaces between columns or a string
+    title
+        as implied
+    max_width
+        maximum column width for printing
+    index_name
+        column name with values to be used as row identifiers and keys
+        for slicing. All column values must be unique.
+    legend
+        table legend
+    missing_data
+        replace missing data with this
+    column_templates
+        dict of column headings
+        or a function that will handle the formatting.
+    limit
+        exits after this many lines. Only applied for non pickled data
+        file types.
+    data_frame
+        a pandas DataFrame, supersedes header/rows
+    format
+        output format when using str(Table)
+
+    """
+    if any(isinstance(a, str) for a in (header, data)):
+        msg = "str type invalid, if it's a path use load_table()"
+        raise TypeError(msg)
+
+    data = kwargs.get("rows", data)
+    if data_frame is not None:
+        from pandas import DataFrame
+
+        if not isinstance(data_frame, DataFrame):
+            msg = f"expecting a DataFrame, got{type(data_frame)}"
+            raise TypeError(msg)
+
+        data = {c: data_frame[c].to_numpy() for c in data_frame}
+
+    return Table(
+        header=header,
+        data=data,
+        digits=digits,
+        row_order=row_order,
+        title=title,
+        column_templates=column_templates,
+        space=space,
+        missing_data=missing_data,
+        max_width=max_width,
+        index_name=index_name,
+        legend=legend,
+        data_frame=data_frame,
+        format=format,
+    )
+
+
+def load_table(
+    filename: str | pathlib.Path,
+    sep=None,
+    reader=None,
+    digits=4,
+    space=4,
+    title="",
+    missing_data="",
+    max_width=1e100,
+    index_name=None,
+    legend="",
+    column_templates=None,
+    static_column_types=False,
+    limit=None,
+    format="simple",
+    skip_inconsistent=False,
+    **kwargs,
+):
+    """
+
+    Parameters
+    ----------
+    filename
+        path to file containing a tabular data
+    sep
+        the delimiting character between columns
+    reader
+        a parser for reading filename. This approach assumes the first
+        row returned by the reader will be the header row.
+    static_column_types
+        if True, and reader is None, identifies columns
+        with a numeric/bool data types from the first non-header row.
+        This assumes all subsequent entries in that column are of the same type.
+        Default is False.
+    digits
+        floating point resolution
+    space
+        number of spaces between columns or a string
+    title
+        as implied
+    missing_data
+        character assigned if a row has no entry for a column
+    max_width
+        maximum column width for printing
+    index_name
+        column name with values to be used as row identifiers and keys
+        for slicing. All column values must be unique.
+    legend
+        table legend
+    column_templates
+        dict of column headings
+        or a function that will handle the formatting.
+    limit
+        exits after this many lines. Only applied for non pickled data
+        file types.
+    format
+        output format when using str(Table)
+    skip_inconsistent
+        skips rows that have different length to header row
+    """
+    if not any(isinstance(filename, t) for t in (str, pathlib.PurePath)):
+        msg = "filename must be string or Path, perhaps you want make_table()"
+        raise TypeError(
+            msg,
+        )
+
+    sep = sep or kwargs.pop("delimiter", None)
+    file_format, compress_format = get_format_suffixes(filename)
+
+    if file_format == "json":
+        return c3_json.load_from_json(filename, (Table,))
+    if file_format in ("pickle", "pkl"):
+        with open_(filename, mode="rb") as f:
+            loaded_table = pickle.load(f)
+
+        r = Table()
+        r.__setstate__(loaded_table)
+        return r
+
+    if reader:
+        with open_(filename, newline=None) as f:
+            data = list(reader(f))
+            header = data[0]
+            data = {column[0]: column[1:] for column in zip(*data, strict=False)}
+    else:
+        if file_format == "csv":
+            sep = sep or ","
+        elif file_format == "tsv":
+            sep = sep or "\t"
+
+        header, rows, loaded_title, legend = load_delimited(
+            filename,
+            sep=sep,
+            limit=limit,
+            **kwargs,
+        )
+        if skip_inconsistent:
+            num_fields = len(header)
+            rows = [r for r in rows if len(r) == num_fields]
+        else:
+            lengths = set(map(len, [header, *rows]))
+            if len(lengths) != 1:
+                msg = f"inconsistent number of fields {lengths}"
+                raise ValueError(msg)
+
+        title = title or loaded_title
+        data = {column[0]: column[1:] for column in zip(header, *rows, strict=False)}
+
+    for key, value in data.items():
+        data[key] = cast_str_to_array(value, static_type=static_column_types)
+
+    return make_table(
+        header=header,
+        data=data,
+        digits=digits,
+        title=title,
+        column_templates=column_templates,
+        space=space,
+        missing_data=missing_data,
+        max_width=max_width,
+        index_name=index_name,
+        legend=legend,
+        format=format,
+    )

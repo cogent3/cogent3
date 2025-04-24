@@ -23,9 +23,9 @@ def test_get_constraint_names():
         ArrayAlignment,
         SequenceCollection,
     )
+    from cogent3.core.table import Table
     from cogent3.evolve.fast_distance import DistanceMatrix
     from cogent3.util.dict_array import DictArray
-    from cogent3.util.table import Table
 
     got = get_constraint_names(AlignedSeqsType)
     assert got == {obj.__name__ for obj in (Alignment, ArrayAlignment)}

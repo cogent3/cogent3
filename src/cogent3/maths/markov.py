@@ -51,7 +51,7 @@ class TransitionMatrix:
             state = bisect.bisect_left(partitions[state], x)
 
     def __repr__(self) -> str:
-        from cogent3.util.table import Table
+        from cogent3.core.table import Table
 
         labels = []
         for i, label in enumerate(self.Tags):

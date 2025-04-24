@@ -21,7 +21,7 @@ from cogent3.app.sqlite_data_store import (
     has_valid_schema,
     open_sqlite_db_rw,
 )
-from cogent3.util.table import Table
+from cogent3.core.table import Table
 
 
 @pytest.fixture

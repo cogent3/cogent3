@@ -825,7 +825,7 @@ class Parametric(_ContinuousSubstitutionModel):
     def ascii_art(self, delim="", delim2="|", max_width=70, return_table=False):
         """An ASCII-art table representing the model.  'delim' delimits
         parameter names, 'delim2' delimits motifs"""
-        from cogent3.util.table import Table
+        from cogent3.core.table import Table
 
         labels = list(self.alphabet)
         pars = self.get_matrix_params()

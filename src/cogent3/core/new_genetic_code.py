@@ -19,7 +19,7 @@ import typing
 import numpy
 
 from cogent3.core import new_alphabet, new_moltype
-from cogent3.util.table import Table
+from cogent3.core.table import Table
 
 if typing.TYPE_CHECKING:
     from cogent3.core.sequence import Sequence
