@@ -8,7 +8,12 @@ import warnings
 from collections.abc import Callable
 
 from cogent3._version import __version__
-from cogent3.app import app_help, available_apps, get_app, open_data_store  # noqa
+from cogent3.app import (  # noqa: F401
+    app_help,
+    available_apps,
+    get_app,
+    open_data_store,
+)
 from cogent3.core import annotation_db as _anno_db
 from cogent3.core.alignment import (
     Alignment,
@@ -16,25 +21,25 @@ from cogent3.core.alignment import (
     Sequence,
     SequenceCollection,
 )
-from cogent3.core.genetic_code import available_codes, get_code  # noqa
+from cogent3.core.genetic_code import available_codes, get_code  # noqa: F401
 
 # note that moltype has to be imported last, because it sets the moltype in
 # the objects created by the other modules.
-from cogent3.core.moltype import (
-    ASCII,  # noqa
-    DNA,  # noqa
-    PROTEIN,  # noqa
-    RNA,  # noqa
-    available_moltypes,  # noqa
+from cogent3.core.moltype import (  # noqa: F401
+    ASCII,
+    DNA,
+    PROTEIN,
+    RNA,
+    available_moltypes,
     get_moltype,
 )
-from cogent3.core.table import load_table, make_table  # noqua
-from cogent3.core.tree import PhyloNode, TreeBuilder, TreeError, TreeNode
-from cogent3.evolve.fast_distance import (
-    available_distances,  # noqa
-    get_distance_calculator,  # noqa
+from cogent3.core.table import load_table, make_table  # noqa: F401
+from cogent3.core.tree import PhyloNode, TreeBuilder, TreeError, TreeNode  # noqa: F401
+from cogent3.evolve.fast_distance import (  # noqa: F401
+    available_distances,
+    get_distance_calculator,
 )
-from cogent3.evolve.models import available_models, get_model  # noqa
+from cogent3.evolve.models import available_models, get_model  # noqa: F401
 from cogent3.parse.cogent3_json import load_from_json
 from cogent3.parse.newick import parse_string as newick_parse_string
 from cogent3.parse.sequence import is_genbank
