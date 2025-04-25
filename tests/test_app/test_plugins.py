@@ -16,7 +16,7 @@ from cogent3.app import (
     get_app,
 )
 from cogent3.app.composable import define_app
-from cogent3.util.table import Table
+from cogent3.core.table import Table
 
 
 @pytest.fixture

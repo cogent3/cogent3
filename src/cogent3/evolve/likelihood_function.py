@@ -8,7 +8,7 @@ import numpy
 import cogent3
 from cogent3._version import __version__
 from cogent3.core import alignment as old_alignment
-from cogent3.core import new_alignment
+from cogent3.core import new_alignment, table
 from cogent3.core.tree import PhyloNode
 from cogent3.evolve import substitution_model
 from cogent3.evolve.simulate import AlignmentEvolver, random_sequence
@@ -20,7 +20,6 @@ from cogent3.maths.measure import (
 )
 from cogent3.recalculation.definition import ParameterController
 from cogent3.recalculation.scope import InvalidScopeError
-from cogent3.util import table
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import adjusted_gt_minprob, get_object_provenance
 

@@ -13,13 +13,13 @@ from itertools import permutations
 import numpy
 
 import cogent3
+from cogent3.core.table import Table
 from cogent3.evolve import ns_substitution_model, substitution_model
 from cogent3.evolve.predicate import MotifChange, omega
 from cogent3.evolve.solved_models import _solved_nucleotide
 from cogent3.evolve.substitution_model import _SubstitutionModel
 from cogent3.evolve.substitution_model import kappa_r as _kappa_r
 from cogent3.evolve.substitution_model import kappa_y as _kappa_y
-from cogent3.util.table import Table
 
 nucleotide_models = []
 codon_models = []

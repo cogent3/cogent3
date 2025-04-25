@@ -96,7 +96,7 @@ class _LikelihoodTreeEdge:
 
     def calc_G_statistic(self, likelihoods, return_table=False):
         # A Goodness-of-fit statistic
-        from cogent3.util.table import Table
+        from cogent3.core.table import Table
 
         unambig = (self.ambig == 1.0).nonzero()[0]
         observed = self.counts[unambig].astype(int)

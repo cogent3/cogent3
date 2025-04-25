@@ -15,7 +15,7 @@ class register_deserialiser:
 
     Functions are added to a dict which is used by the deserialise_object()
     function. The type string(s) must uniquely identify the appropriate
-    value for the dict 'type' entry, e.g. 'cogent3.util.table.Table'.
+    value for the dict 'type' entry, e.g. 'cogent3.core.table.Table'.
 
     Parameters
     ----------
@@ -58,7 +58,7 @@ def str_to_version(v):
 
 
 @register_deserialiser(
-    "cogent3.util.table.Table",
+    "cogent3.core.table.Table",
     "cogent3.util.dict_array.DictArray",
     "cogent3.evolve.fast_distance.DistanceMatrix",
 )

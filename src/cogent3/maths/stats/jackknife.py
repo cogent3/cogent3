@@ -1,6 +1,6 @@
 import numpy as np
 
-from cogent3.util.table import Table
+from cogent3.core.table import Table
 
 
 def index_gen(length):

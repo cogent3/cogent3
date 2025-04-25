@@ -1,7 +1,7 @@
 Table
 ===== 
 
-.. currentmodule:: cogent3.util.table
+.. currentmodule:: cogent3.core.table
 
 .. autoclass:: Table
     :members:

@@ -16,12 +16,12 @@ import numpy
 import typing_extensions
 
 from cogent3._version import __version__
+from cogent3.core.table import Table
 from cogent3.parse.gff import merged_gff_records
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.io import PathType, iter_line_blocks
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
 from cogent3.util.progress_display import display_wrap
-from cogent3.util.table import Table
 
 OptionalInt = int | None
 OptionalStr = str | None

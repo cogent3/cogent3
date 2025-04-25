@@ -1551,7 +1551,7 @@ def get_moltype(name, new_type: bool = False):
 
 def available_moltypes():
     """returns Table listing the available moltypes"""
-    from cogent3.util.table import Table
+    from cogent3.core.table import Table
 
     rows = []
     for n, m in moltypes.items():

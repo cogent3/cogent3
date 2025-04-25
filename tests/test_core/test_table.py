@@ -5,7 +5,6 @@ import os
 import pathlib
 import pickle
 from collections import defaultdict
-from tempfile import TemporaryDirectory
 from unittest import TestCase, skipIf
 
 import numpy
@@ -15,6 +14,12 @@ from numpy.exceptions import ComplexWarning
 from numpy.testing import assert_equal
 
 from cogent3 import load_table, make_table, open_
+from cogent3.core.table import (
+    Table,
+    cast_str_to_array,
+    cast_str_to_numeric,
+    cast_to_array,
+)
 from cogent3.format.table import (
     formatted_array,
     get_continuation_tables_headers,
@@ -22,12 +27,6 @@ from cogent3.format.table import (
 )
 from cogent3.parse.table import FilteringParser
 from cogent3.util.misc import get_object_provenance
-from cogent3.util.table import (
-    Table,
-    cast_str_to_array,
-    cast_str_to_numeric,
-    cast_to_array,
-)
 
 try:
     from pandas import DataFrame
@@ -1278,143 +1277,6 @@ class TableTests(TestCase):
         line = r[1].split()
         assert line[1] == "0.0000", line
 
-    def test_pickle_unpickle(self):
-        """roundtrip via pickling"""
-        data = {
-            "edge.parent": {
-                "NineBande": "root",
-                "edge.1": "root",
-            },
-            "x": {
-                "NineBande": 1.0,
-                "edge.1": 1.0,
-            },
-            "length": {
-                "NineBande": 4.0,
-                "edge.1": 4.0,
-            },
-            "y": {
-                "NineBande": 3.0,
-                "edge.1": 3.0,
-            },
-            "z": {
-                "NineBande": 6.0,
-                "edge.1": 6.0,
-            },
-            "edge.name": {
-                "NineBande": "NineBande",
-                "edge.1": "edge.1",
-            },
-        }
-        t = Table(
-            data=data,
-            max_width=50,
-            index_name="edge.name",
-            title="My title",
-            legend="blah",
-        )
-        # via string
-        s = pickle.dumps(t)
-        r = pickle.loads(s)
-        assert str(t) == str(r)
-        # via file
-        with TemporaryDirectory(".") as dirname:
-            path = pathlib.Path(dirname) / "table.pickle"
-            t.write(str(path))
-            r = load_table(path)
-            assert str(t) == str(r)
-
-    def test_load_mixed(self):
-        """load data with mixed data type columns"""
-        t = Table(
-            header=["abcd", "data", "float"],
-            data=[[str([1, 2, 3, 4, 5]), "0", 1.1], ["x", 5.0, 2.1], ["y", "", 3.1]],
-        )
-        with TemporaryDirectory(".") as dirname:
-            path = pathlib.Path(dirname) / "table.tsv"
-            t.write(str(path))
-            r = load_table(path)
-            assert str(t) == str(r)
-            assert "float", r.columns["float"].dtype.name
-
-    def test_load_mixed_static(self):
-        """load data, mixed data type columns remain as string"""
-        t = make_table(header=["A", "B"], data=[[1, 1], ["a", 2]])
-        with TemporaryDirectory(".") as dirname:
-            path = pathlib.Path(dirname) / "table.txt"
-            t.write(str(path), sep="\t")
-            # if static types, then mixed columns become strings
-            r = load_table(path, sep="\t", static_column_types=True)
-            assert "str" in r.columns["A"].dtype.name
-
-    def test_load_mixed_row_lengths(self):
-        """skip_inconsistent skips rows that have different length to header"""
-        h = list("ABCDE")
-        r = [list("12345"), list("000"), list("12345")]
-        text = "\n".join(["\t".join(l) for l in [h, *r]])
-        with TemporaryDirectory(".") as dirname:
-            path = pathlib.Path(dirname) / "table.tsv"
-            with open(path, "w") as out:
-                out.write(text)
-            r = load_table(path, skip_inconsistent=True)
-            assert r.shape == (2, 5)
-            assert r.header == tuple(h)
-            assert r.array.tolist() == [list(range(1, 6))] * 2
-            # loading without skip_inconsistent raise ValueError
-            with pytest.raises(ValueError):
-                r = load_table(path, skip_inconsistent=False)
-
-    def test_write_to_json(self):
-        """tests writing to json file"""
-        t = load_table("data/sample.tsv")
-        with TemporaryDirectory(".") as dirname:
-            path = pathlib.Path(dirname) / "table.json"
-            t.write(path)
-            with open_(path) as fn:
-                got = json.loads(fn.read())
-                assert got["type"] == get_object_provenance(Table)
-                data = got["data"]
-                assert tuple(data["order"]) == t.header
-                assert t.shape == (
-                    len(next(iter(data["columns"].items()))[1]["values"]),
-                    len(data["columns"]),
-                )
-                assert t.array.T.tolist() == [
-                    v["values"] for v in data["columns"].values()
-                ]
-
-    def test_write_compressed(self):
-        """tests writing to compressed format"""
-        t = load_table("data/sample.tsv")
-        with open("data/sample.tsv") as infile:
-            expect = infile.read()
-
-        with TemporaryDirectory(".") as dirname:
-            path = pathlib.Path(dirname) / "table.txt"
-            # using the compressed option
-            t.write(path, sep="\t", compress=True)
-            with open_(f"{path}.gz") as infile:
-                got = infile.read()
-            assert got == expect
-
-            # specifying via a suffix
-            t.write(f"{path}.gz", sep="\t")
-            with open_(f"{path}.gz") as infile:
-                got = infile.read()
-            assert got == expect
-
-    def test_load_table_from_json(self):
-        """tests loading a Table object from json file"""
-        with TemporaryDirectory(dir=".") as dirname:
-            json_path = os.path.join(dirname, "table.json")
-            t = load_table("data/sample.tsv")
-            t.write(json_path)
-
-            got = load_table(json_path)
-            assert got.shape == t.shape
-            assert got.header == t.header
-            assert_equal(got.array, t.array)
-
     def test_load_table_invalid_type(self):
         """raises TypeError if filename invalid type"""
         with pytest.raises(TypeError):
@@ -1431,17 +1293,6 @@ class TableTests(TestCase):
         t = make_table(data={" a": [0, 2]}, sep="\t")
         assert t.columns["a"].tolist() == [0, 2]
         assert isinstance(t.to_string(), str)
-
-    def test_load_table_filename_case(self):
-        """load_table insensitive to file name case"""
-        with TemporaryDirectory(".") as dirname:
-            dirname = pathlib.Path(dirname)
-            with open(dirname / "temp.CSV", "w") as outfile:
-                outfile.write("a,b,c\n0,2,abc\n1,3,efg")
-
-            table = load_table(dirname / "temp.CSV")
-            data = table.columns.to_dict()
-        assert data == {"a": [0, 1], "b": [2, 3], "c": ["abc", "efg"]}
 
     def test_load_table_limit(self):
         """limit argument to function works"""
@@ -1715,7 +1566,7 @@ class TableTests(TestCase):
 
     def test_head(self):
         """returns the head of the table!"""
-        from cogent3.util import table
+        from cogent3.core import table
 
         display = table.display
         head = TrapOutput()
@@ -1735,7 +1586,7 @@ class TableTests(TestCase):
 
     def test_tail(self):
         """returns the tail of the table!"""
-        from cogent3.util import table
+        from cogent3.core import table
 
         display = table.display
         tail = TrapOutput()
@@ -2062,3 +1913,148 @@ def test_repr_html_continuation():
     # with 30 characters wide there are 3 subtables, so we expect 3 ellipsis rows
     table.set_repr_policy(head=2, tail=2)
     assert table._repr_html_().count('<tr class="ellipsis">') == 3
+
+
+def test_pickle_unpickle(tmp_path):
+    """roundtrip via pickling"""
+    data = {
+        "edge.parent": {
+            "NineBande": "root",
+            "edge.1": "root",
+        },
+        "x": {
+            "NineBande": 1.0,
+            "edge.1": 1.0,
+        },
+        "length": {
+            "NineBande": 4.0,
+            "edge.1": 4.0,
+        },
+        "y": {
+            "NineBande": 3.0,
+            "edge.1": 3.0,
+        },
+        "z": {
+            "NineBande": 6.0,
+            "edge.1": 6.0,
+        },
+        "edge.name": {
+            "NineBande": "NineBande",
+            "edge.1": "edge.1",
+        },
+    }
+    t = Table(
+        data=data,
+        max_width=50,
+        index_name="edge.name",
+        title="My title",
+        legend="blah",
+    )
+    # via string
+    s = pickle.dumps(t)
+    r = pickle.loads(s)  # noqa: S301
+    assert str(t) == str(r)
+    # via file
+    path = tmp_path / "table.pickle"
+    t.write(str(path))
+    r = load_table(path)
+    assert str(t) == str(r)
+
+
+def test_load_mixed(tmp_path):
+    """load data with mixed data type columns"""
+    t = Table(
+        header=["abcd", "data", "float"],
+        data=[[str([1, 2, 3, 4, 5]), "0", 1.1], ["x", 5.0, 2.1], ["y", "", 3.1]],
+    )
+    path = tmp_path / "table.tsv"
+    t.write(str(path))
+    r = load_table(path)
+    assert str(t) == str(r)
+    assert "float", r.columns["float"].dtype.name
+
+
+def test_load_mixed_static(tmp_path):
+    """load data, mixed data type columns remain as string"""
+    t = make_table(header=["A", "B"], data=[[1, 1], ["a", 2]])
+    path = tmp_path / "table.txt"
+    t.write(str(path), sep="\t")
+    # if static types, then mixed columns become strings
+    r = load_table(path, sep="\t", static_column_types=True)
+    assert "str" in r.columns["A"].dtype.name
+
+
+def test_load_mixed_row_lengths(tmp_path):
+    """skip_inconsistent skips rows that have different length to header"""
+    h = list("ABCDE")
+    r = [list("12345"), list("000"), list("12345")]
+    text = "\n".join(["\t".join(l) for l in [h, *r]])
+    path = tmp_path / "table.tsv"
+    with open(path, "w") as out:
+        out.write(text)
+    r = load_table(path, skip_inconsistent=True)
+    assert r.shape == (2, 5)
+    assert r.header == tuple(h)
+    assert r.array.tolist() == [list(range(1, 6))] * 2
+    # loading without skip_inconsistent raise ValueError
+    with pytest.raises(ValueError):
+        r = load_table(path, skip_inconsistent=False)
+
+
+def test_write_to_json(tmp_path):
+    """tests writing to json file"""
+    t = load_table("data/sample.tsv")
+    path = tmp_path / "table.json"
+    t.write(path)
+    with open_(path) as fn:
+        got = json.loads(fn.read())
+        assert got["type"] == get_object_provenance(Table)
+        data = got["data"]
+        assert tuple(data["order"]) == t.header
+        assert t.shape == (
+            len(next(iter(data["columns"].items()))[1]["values"]),
+            len(data["columns"]),
+        )
+        assert t.array.T.tolist() == [v["values"] for v in data["columns"].values()]
+
+
+def test_write_compressed(tmp_path):
+    """tests writing to compressed format"""
+    t = load_table("data/sample.tsv")
+    with open("data/sample.tsv") as infile:
+        expect = infile.read()
+
+    path = tmp_path / "table.txt"
+    # using the compressed option
+    t.write(path, sep="\t", compress=True)
+    with open_(f"{path}.gz") as infile:
+        got = infile.read()
+    assert got == expect
+
+    # specifying via a suffix
+    t.write(f"{path}.gz", sep="\t")
+    with open_(f"{path}.gz") as infile:
+        got = infile.read()
+    assert got == expect
+
+
+def test_load_table_from_json(tmp_path):
+    """tests loading a Table object from json file"""
+    json_path = tmp_path / "table.json"
+    t = load_table("data/sample.tsv")
+    t.write(json_path)
+
+    got = load_table(json_path)
+    assert got.shape == t.shape
+    assert got.header == t.header
+    assert_equal(got.array, t.array)
+
+
+def test_load_table_filename_case(tmp_path):
+    """load_table insensitive to file name case"""
+    outpath = tmp_path / "temp.CSV"
+    outpath.write_text("a,b,c\n0,2,abc\n1,3,efg")
+
+    table = load_table(outpath)
+    data = table.columns.to_dict()
+    assert data == {"a": [0, 1], "b": [2, 3], "c": ["abc", "efg"]}

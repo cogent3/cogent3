@@ -416,7 +416,7 @@ class TestResult:
         setattr(self, stat_name, stat)
 
     def _get_repr_(self):
-        from cogent3.util.table import Table
+        from cogent3.core.table import Table
 
         header = [str(self.stat_name), "df", "pvalue"]
         col_templates = {

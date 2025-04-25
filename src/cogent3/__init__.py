@@ -4,12 +4,16 @@ execution on compute systems with 1000s of CPUs."""
 
 import os
 import pathlib
-import pickle
 import warnings
 from collections.abc import Callable
 
 from cogent3._version import __version__
-from cogent3.app import app_help, available_apps, get_app, open_data_store  # noqa
+from cogent3.app import (  # noqa: F401
+    app_help,
+    available_apps,
+    get_app,
+    open_data_store,
+)
 from cogent3.core import annotation_db as _anno_db
 from cogent3.core.alignment import (
     Alignment,
@@ -17,34 +21,31 @@ from cogent3.core.alignment import (
     Sequence,
     SequenceCollection,
 )
-from cogent3.core.genetic_code import available_codes, get_code  # noqa
+from cogent3.core.genetic_code import available_codes, get_code  # noqa: F401
 
 # note that moltype has to be imported last, because it sets the moltype in
 # the objects created by the other modules.
-from cogent3.core.moltype import (
-    ASCII,  # noqa
-    DNA,  # noqa
-    PROTEIN,  # noqa
-    RNA,  # noqa
-    available_moltypes,  # noqa
+from cogent3.core.moltype import (  # noqa: F401
+    ASCII,
+    DNA,
+    PROTEIN,
+    RNA,
+    available_moltypes,
     get_moltype,
 )
-from cogent3.core.tree import PhyloNode, TreeBuilder, TreeError, TreeNode
-from cogent3.evolve.fast_distance import (
-    available_distances,  # noqa
-    get_distance_calculator,  # noqa
+from cogent3.core.table import load_table, make_table  # noqa: F401
+from cogent3.core.tree import PhyloNode, TreeBuilder, TreeError, TreeNode  # noqa: F401
+from cogent3.evolve.fast_distance import (  # noqa: F401
+    available_distances,
+    get_distance_calculator,
 )
-from cogent3.evolve.models import available_models, get_model  # noqa
+from cogent3.evolve.models import available_models, get_model  # noqa: F401
 from cogent3.parse.cogent3_json import load_from_json
 from cogent3.parse.newick import parse_string as newick_parse_string
-from cogent3.parse.sequence import get_parser, is_genbank
-from cogent3.parse.table import load_delimited
+from cogent3.parse.sequence import is_genbank
 from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
-from cogent3.util import warning as c3warn
 from cogent3.util.io import get_format_suffixes, is_url, open_
 from cogent3.util.progress_display import display_wrap
-from cogent3.util.table import Table as _Table
-from cogent3.util.table import cast_str_to_array
 
 __copyright__ = "Copyright 2007-2023, The Cogent Project"
 __credits__ = "https://github.com/cogent3/cogent3/graphs/contributors"
@@ -567,218 +568,6 @@ def load_aligned_seqs(
         info=info,
         new_type=new_type,
         **kw,
-    )
-
-
-def make_table(
-    header=None,
-    data=None,
-    row_order=None,
-    digits=4,
-    space=4,
-    title="",
-    max_width=1e100,
-    index_name=None,
-    legend="",
-    missing_data="",
-    column_templates=None,
-    data_frame=None,
-    format="simple",
-    **kwargs,
-):
-    """
-
-    Parameters
-    ----------
-    header
-        column headings
-    data
-        a 2D dict, list or tuple. If a dict, it must have column
-        headings as top level keys, and common row labels as keys in each
-        column.
-    row_order
-        the order in which rows will be pulled from the twoDdict
-    digits
-        floating point resolution
-    space
-        number of spaces between columns or a string
-    title
-        as implied
-    max_width
-        maximum column width for printing
-    index_name
-        column name with values to be used as row identifiers and keys
-        for slicing. All column values must be unique.
-    legend
-        table legend
-    missing_data
-        replace missing data with this
-    column_templates
-        dict of column headings
-        or a function that will handle the formatting.
-    limit
-        exits after this many lines. Only applied for non pickled data
-        file types.
-    data_frame
-        a pandas DataFrame, supersedes header/rows
-    format
-        output format when using str(Table)
-
-    """
-    if any(isinstance(a, str) for a in (header, data)):
-        msg = "str type invalid, if it's a path use load_table()"
-        raise TypeError(msg)
-
-    data = kwargs.get("rows", data)
-    if data_frame is not None:
-        from pandas import DataFrame
-
-        if not isinstance(data_frame, DataFrame):
-            msg = f"expecting a DataFrame, got{type(data_frame)}"
-            raise TypeError(msg)
-
-        data = {c: data_frame[c].to_numpy() for c in data_frame}
-
-    return _Table(
-        header=header,
-        data=data,
-        digits=digits,
-        row_order=row_order,
-        title=title,
-        column_templates=column_templates,
-        space=space,
-        missing_data=missing_data,
-        max_width=max_width,
-        index_name=index_name,
-        legend=legend,
-        data_frame=data_frame,
-        format=format,
-    )
-
-
-def load_table(
-    filename: str | pathlib.Path,
-    sep=None,
-    reader=None,
-    digits=4,
-    space=4,
-    title="",
-    missing_data="",
-    max_width=1e100,
-    index_name=None,
-    legend="",
-    column_templates=None,
-    static_column_types=False,
-    limit=None,
-    format="simple",
-    skip_inconsistent=False,
-    **kwargs,
-):
-    """
-
-    Parameters
-    ----------
-    filename
-        path to file containing a tabular data
-    sep
-        the delimiting character between columns
-    reader
-        a parser for reading filename. This approach assumes the first
-        row returned by the reader will be the header row.
-    static_column_types
-        if True, and reader is None, identifies columns
-        with a numeric/bool data types from the first non-header row.
-        This assumes all subsequent entries in that column are of the same type.
-        Default is False.
-    digits
-        floating point resolution
-    space
-        number of spaces between columns or a string
-    title
-        as implied
-    missing_data
-        character assigned if a row has no entry for a column
-    max_width
-        maximum column width for printing
-    index_name
-        column name with values to be used as row identifiers and keys
-        for slicing. All column values must be unique.
-    legend
-        table legend
-    column_templates
-        dict of column headings
-        or a function that will handle the formatting.
-    limit
-        exits after this many lines. Only applied for non pickled data
-        file types.
-    format
-        output format when using str(Table)
-    skip_inconsistent
-        skips rows that have different length to header row
-    """
-    if not any(isinstance(filename, t) for t in (str, pathlib.PurePath)):
-        msg = "filename must be string or Path, perhaps you want make_table()"
-        raise TypeError(
-            msg,
-        )
-
-    sep = sep or kwargs.pop("delimiter", None)
-    file_format, compress_format = get_format_suffixes(filename)
-
-    if file_format == "json":
-        return load_from_json(filename, (_Table,))
-    if file_format in ("pickle", "pkl"):
-        with open_(filename, mode="rb") as f:
-            loaded_table = pickle.load(f)
-
-        r = _Table()
-        r.__setstate__(loaded_table)
-        return r
-
-    if reader:
-        with open_(filename, newline=None) as f:
-            data = list(reader(f))
-            header = data[0]
-            data = {column[0]: column[1:] for column in zip(*data, strict=False)}
-    else:
-        if file_format == "csv":
-            sep = sep or ","
-        elif file_format == "tsv":
-            sep = sep or "\t"
-
-        header, rows, loaded_title, legend = load_delimited(
-            filename,
-            sep=sep,
-            limit=limit,
-            **kwargs,
-        )
-        if skip_inconsistent:
-            num_fields = len(header)
-            rows = [r for r in rows if len(r) == num_fields]
-        else:
-            lengths = set(map(len, [header, *rows]))
-            if len(lengths) != 1:
-                msg = f"inconsistent number of fields {lengths}"
-                raise ValueError(msg)
-
-        title = title or loaded_title
-        data = {column[0]: column[1:] for column in zip(header, *rows, strict=False)}
-
-    for key, value in data.items():
-        data[key] = cast_str_to_array(value, static_type=static_column_types)
-
-    return make_table(
-        header=header,
-        data=data,
-        digits=digits,
-        title=title,
-        column_templates=column_templates,
-        space=space,
-        missing_data=missing_data,
-        max_width=max_width,
-        index_name=index_name,
-        legend=legend,
-        format=format,
     )
 
 

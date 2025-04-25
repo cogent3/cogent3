@@ -20,9 +20,9 @@ from cogent3.core.profile import (
     make_motif_freqs_from_tabular,
     make_pssm_from_tabular,
 )
+from cogent3.core.table import Table
 from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.util.deserialise import deserialise_object
-from cogent3.util.table import Table
 
 from .composable import LOADER, WRITER, NotCompleted, define_app
 from .data_store import (

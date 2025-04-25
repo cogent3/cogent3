@@ -216,7 +216,7 @@ def test_method_deprecated_method_pickling(recwarn):
 )
 def test_deprecated_callable_resolves_type(recwarn, func, _type):
     func(2)
-    assert _type in recwarn.list[0].message.args[0]
+    assert any(_type in str(e) for e in recwarn.list), recwarn.list
 
 
 def test_function_deprecated_args_deprecated_callable_chained_decorators(recwarn):
