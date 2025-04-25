@@ -2412,7 +2412,7 @@ def load_table(
         )
 
     sep = sep or kwargs.pop("delimiter", None)
-    file_format, compress_format = get_format_suffixes(filename)
+    file_format, _ = get_format_suffixes(filename)
 
     if file_format == "json":
         return c3_json.load_from_json(filename, (Table,))
