@@ -7,6 +7,7 @@ import pathlib
 import warnings
 from collections.abc import Callable
 
+from cogent3._dataset import available_datasets, get_dataset  # noqa: F401
 from cogent3._version import __version__
 from cogent3.app import (  # noqa: F401
     app_help,
