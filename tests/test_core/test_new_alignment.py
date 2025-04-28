@@ -790,7 +790,7 @@ def test_sequence_collection_repr():
     seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
     assert (
         repr(seqs)
-        == "2x (ENSMUSG00000039616[GCCCTTCAAA...], ENSMUSG00000056468[GCCAGGGGGA...]) dna seqcollection"
+        == "2x dna seqcollection: (ENSMUSG00000039616[GCCCTTCAAA...], ENSMUSG00000056468[GCCAGGGGGA...])"
     )
 
     data = {
@@ -800,20 +800,20 @@ def test_sequence_collection_repr():
     seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
     assert (
         repr(seqs)
-        == "2x (ENSMUSG00000039616[GCCCTTCAAA...], ENSMUSG00000056468[GCCAGGGGGA...]) dna seqcollection"
+        == "2x dna seqcollection: (ENSMUSG00000039616[GCCCTTCAAA...], ENSMUSG00000056468[GCCAGGGGGA...])"
     )
 
     data = {
         "a": "TCGAT",
     }
     seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
-    assert repr(seqs) == "1x (a[TCGAT]) dna seqcollection"
+    assert repr(seqs) == "1x dna seqcollection: (a[TCGAT])"
 
     data = {
         "a": "TCGAT" * 2,
     }
     seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
-    assert repr(seqs) == "1x (a[TCGATTCGAT]) dna seqcollection"
+    assert repr(seqs) == "1x dna seqcollection: (a[TCGATTCGAT])"
 
 
 def test_sequence_collection_set_wrap_affects_repr_html():
