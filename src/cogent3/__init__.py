@@ -308,23 +308,6 @@ def _load_files_to_unaligned_seqs(
     )
 
 
-def _load_seqs(file_suffix: str, filename: str, format_name: str, parser_kw: dict):
-    """utility function for loading sequences"""
-    from cogent3._plugin import get_seq_format_parser_plugin
-
-    if not is_url(filename):
-        filename = pathlib.Path(filename).expanduser()
-    if not (format_name or file_suffix):
-        msg = "could not determined file format, set using the format argument"
-        raise ValueError(msg)
-    parser_kw = parser_kw or {}
-    parser = get_seq_format_parser_plugin(
-        format_name=format_name,
-        file_suffix=file_suffix,
-    )
-    return list(parser(filename, **parser_kw))
-
-
 T = _anno_db.SupportsFeatures | None
 
 
@@ -402,23 +385,40 @@ def load_seq(
     -------
     ``Sequence``
     """
+    from cogent3._plugin import get_seq_format_parser_plugin
+
+    if not is_url(filename):
+        filename = pathlib.Path(filename).expanduser()
+
     info = info or {}
     info["source"] = str(filename)
-    file_format, _ = get_format_suffixes(filename)
-    if file_format == "json":
+    file_suffix, _ = get_format_suffixes(filename)
+    parser_kw = parser_kw or {}
+    if file_suffix == "json":
         seq = load_from_json(filename, (Sequence,))  # need to support new seq here
         seq.name = label_to_name(seq.name) if label_to_name else seq.name
         return seq
 
-    if is_genbank(format or file_format):
+    if is_genbank(format or file_suffix):
         name, seq, db = _load_genbank_seq(
             filename,
-            parser_kw or {},
+            parser_kw,
             just_seq=annotation_path is not None,
         )
     else:
         db = None
-        data = _load_seqs(file_format, filename, format, parser_kw)
+        parser = get_seq_format_parser_plugin(
+            format_name=format,
+            file_suffix=file_suffix,
+        )
+        if parser.result_is_storage:
+            msg = (
+                "Cannot reliably derive single sequence from multi-sequence storage. "
+                "Use either load_unaligned_seqs() or load_aligned_seqs()."
+            )
+            raise ValueError(msg)
+
+        data = list(parser.loader(filename, **parser_kw))
         name, seq = data[0]
 
     name = label_to_name(name) if label_to_name else name
@@ -483,14 +483,18 @@ def load_unaligned_seqs(
     -------
     ``SequenceCollection``
     """
-    ui = kw.pop("ui")
-    filename = pathlib.Path(filename)
-    file_format, _ = get_format_suffixes(filename)
+    from cogent3._plugin import get_seq_format_parser_plugin
 
+    ui = kw.pop("ui")
+    if not is_url(filename):
+        filename = pathlib.Path(filename).expanduser()
+
+    file_suffix, _ = get_format_suffixes(filename)
+    format_name = format
     if "*" in filename.name:
         return _load_files_to_unaligned_seqs(
             path=filename,
-            format=file_format,
+            format=file_suffix,
             moltype=moltype,
             label_to_name=label_to_name,
             parser_kw=parser_kw,
@@ -499,10 +503,22 @@ def load_unaligned_seqs(
             ui=ui,
         )
 
-    if file_format == "json":
+    if file_suffix == "json":
         return load_from_json(filename, (SequenceCollection,))
 
-    data = _load_seqs(file_format, filename, format, parser_kw)
+    if not (file_suffix or format_name):
+        msg = "could not determined file format, set using the format argument"
+        raise ValueError(msg)
+
+    parser = get_seq_format_parser_plugin(
+        format_name=format,
+        file_suffix=file_suffix,
+    )
+    parser_kw = parser_kw or {}
+    if parser.result_is_storage:
+        data = parser.loader(path=filename, **parser_kw)
+    else:
+        data = list(parser.loader(filename, **parser_kw))
 
     return make_unaligned_seqs(
         data,
@@ -555,11 +571,25 @@ def load_aligned_seqs(
     -------
     ``ArrayAlignment`` or ``Alignment`` instance
     """
-    file_format, _ = get_format_suffixes(filename)
-    if file_format == "json":
+    from cogent3._plugin import get_seq_format_parser_plugin
+
+    if not is_url(filename):
+        filename = pathlib.Path(filename).expanduser()
+
+    file_suffix, _ = get_format_suffixes(filename)
+    if file_suffix == "json":
         return load_from_json(filename, (Alignment, ArrayAlignment))
 
-    data = _load_seqs(file_format, filename, format, parser_kw)
+    parser = get_seq_format_parser_plugin(
+        format_name=format,
+        file_suffix=file_suffix,
+    )
+    parser_kw = parser_kw or {}
+    if parser.result_is_storage:
+        data = parser.loader(path=filename, **parser_kw)
+    else:
+        data = list(parser.loader(filename, **parser_kw))
+
     return make_aligned_seqs(
         data,
         array_align=array_align,
