@@ -2184,7 +2184,7 @@ class SequenceCollection:
 
         seqs = ", ".join(seqs)
 
-        return f"{len(self.names)}x ({seqs}) {self.moltype.label} seqcollection"
+        return f"{len(self.names)}x {self.moltype.label} seqcollection: ({seqs})"
 
     def _repr_html_(self) -> str:
         settings = self._repr_policy.copy()
