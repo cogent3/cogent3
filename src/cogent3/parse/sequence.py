@@ -39,9 +39,14 @@ class SequenceParserBase(abc.ABC):
         ...
 
     @property
+    def result_is_storage(self) -> bool:
+        """True if the loader directly returns SeqsDataABC or AlignedSeqdDataABC"""
+        return False
+
+    @property
     @abc.abstractmethod
-    def parser(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
-        """returns a parser"""
+    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+        """a callable for loading from a file"""
         ...
 
 
@@ -114,7 +119,7 @@ class FastaParser(SequenceParserBase):
         return {"fasta", "fa", "fna", "faa", "mfa"}
 
     @property
-    def parser(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
         return fasta.iter_fasta_records
 
 
@@ -130,7 +135,7 @@ class GdeParser(SequenceParserBase):
         return {"gde"}
 
     @property
-    def parser(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
         return LineBasedParser(fasta.MinimalGdeParser)
 
 
@@ -146,7 +151,7 @@ class PhylipParser(SequenceParserBase):
         return {"phylip", "phy"}
 
     @property
-    def parser(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
         return LineBasedParser(phylip.MinimalPhylipParser)
 
 
@@ -162,7 +167,7 @@ class ClustalParser(SequenceParserBase):
         return {"clustal", "aln"}
 
     @property
-    def parser(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
         return LineBasedParser(clustal.ClustalParser)
 
 
@@ -178,7 +183,7 @@ class PamlParser(SequenceParserBase):
         return {"paml"}
 
     @property
-    def parser(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
         return LineBasedParser(paml.PamlParser)
 
 
@@ -194,7 +199,7 @@ class NexusParser(SequenceParserBase):
         return {"nexus", "nex", "nxs"}
 
     @property
-    def parser(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
         return LineBasedParser(nexus.MinimalNexusAlignParser)
 
 
@@ -210,7 +215,7 @@ class GenbankParser(SequenceParserBase):
         return {"gb", "gbk", "gbff", "genbank"}
 
     @property
-    def parser(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
         return genbank.rich_parser
 
 
@@ -226,7 +231,7 @@ class MsfParser(SequenceParserBase):
         return {"msf"}
 
     @property
-    def parser(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
         return LineBasedParser(gcg.MsfParser)
 
 
@@ -242,7 +247,7 @@ class XmfaParser(SequenceParserBase):
         return {"xmfa"}
 
     @property
-    def parser(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
         return LineBasedParser(fasta.MinimalXmfaParser)
 
 
@@ -258,7 +263,7 @@ class TinyseqParser(SequenceParserBase):
         return {"tinyseq"}
 
     @property
-    def parser(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
         return LineBasedParser(tinyseq.TinyseqParser)
 
 
@@ -274,7 +279,7 @@ class GbSeqParser(SequenceParserBase):
         return {"gbseq"}
 
     @property
-    def parser(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
         return gbseq.GbSeqXmlParser
 
 

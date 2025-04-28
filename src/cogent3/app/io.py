@@ -45,6 +45,9 @@ from .typing import (
     UnalignedSeqsType,
 )
 
+if typing.TYPE_CHECKING:
+    from cogent3.parse.sequence import SequenceParserBase
+
 _datastore_reader_map = {}
 
 MolTypes = old_moltype.MolType | new_moltype.MolType
@@ -280,10 +283,18 @@ def _(path: str) -> os.PathLike:
     return _read_it(Path(path))
 
 
-def _load_seqs(path, coll_maker, parser, moltype):
-    data = _read_it(path)
-    data = data.splitlines()
-    data = dict(iter(parser(data)))
+def _load_seqs(
+    path: str | Path,
+    coll_maker: type,
+    parser: "SequenceParserBase",
+    moltype: str,
+) -> SeqsCollectionType:
+    if not parser.result_is_storage:
+        data = _read_it(path)
+        data = data.splitlines()
+        data = dict(iter(parser.loader(data)))
+    else:
+        data = parser.loader(path)
     unique_id = getattr(path, "unique_id", getattr(path, "name", str(path)))
     return coll_maker(data=data, moltype=moltype, source=unique_id)
 
