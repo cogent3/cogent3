@@ -1,5 +1,4 @@
 import functools
-import pathlib
 import typing
 
 import stevedore
@@ -8,7 +7,8 @@ if typing.TYPE_CHECKING:
     from cogent3.core.new_alignment import Alignment, SequenceCollection
     from cogent3.core.tree import PhyloNode
     from cogent3.evolve.fast_distance import DistanceMatrix
-    from cogent3.parse.sequence import SeqParserInputTypes, SequenceParserBase
+    from cogent3.format.sequence import SequenceWriterBase
+    from cogent3.parse.sequence import SequenceParserBase
 
 SeqsTypes = typing.Union["SequenceCollection", "Alignment"]
 
@@ -56,7 +56,7 @@ def get_seq_format_parser_plugin(
     *,
     format_name: str | None = None,
     file_suffix: str | None = None,
-) -> typing.Callable[["SeqParserInputTypes"], "SequenceParserBase"] | None:
+) -> "SequenceParserBase":
     """returns sequence format parser plugin
 
     Parameters
@@ -102,7 +102,7 @@ def get_seq_format_writer_plugin(
     *,
     format_name: str | None = None,
     file_suffix: str | None = None,
-) -> typing.Callable[[SeqsTypes], pathlib.Path] | None:
+) -> "SequenceWriterBase":
     """returns sequence format writer
 
     Parameters
