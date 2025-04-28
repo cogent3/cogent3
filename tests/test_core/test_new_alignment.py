@@ -815,6 +815,10 @@ def test_sequence_collection_repr():
     seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
     assert repr(seqs) == "1x dna seqcollection: (a[TCGATTCGAT])"
 
+    data = {"a": "", "b": ""}
+    seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
+    assert repr(seqs) == "2x dna seqcollection: (a[], b[])"
+
 
 def test_sequence_collection_set_wrap_affects_repr_html():
     """the wrap argument affects the number of columns"""
