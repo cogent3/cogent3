@@ -1060,7 +1060,12 @@ class SequenceCollection:
         -----
         The returned collection will not retain an annotation_db if present.
         """
-        klass = cogent3._plugin.get_unaligned_storage_driver(storage_backend)  # noqa: SLF001
+        if storage_backend:
+            make_storage = cogent3._plugin.get_unaligned_storage_driver(
+                storage_backend,
+            ).from_seqs
+        else:
+            make_storage = self._seqs_data.from_seqs
         data = {}
         for name in self.names:
             # because we are in a SequenceCollection, which cannot be sliced, so
@@ -1069,7 +1074,7 @@ class SequenceCollection:
             data[name] = self.moltype.degap(seq)
 
         init_kwargs = self._get_init_kwargs()
-        init_kwargs["seqs_data"] = klass.from_seqs(
+        init_kwargs["seqs_data"] = make_storage(
             data=data,
             alphabet=self._seqs_data.alphabet,
             check=False,

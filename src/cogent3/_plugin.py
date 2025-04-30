@@ -149,6 +149,19 @@ def get_seq_format_writer_plugin(
 UNALIGNED_SEQ_STORAGE_ENTRY_POINT = "cogent3.storage.unaligned_seqs"
 
 
+def _get_driver(namespace: str, storage_backend: str) -> stevedore.driver.DriverManager:
+    try:
+        mgr = stevedore.driver.DriverManager(
+            namespace=namespace,
+            name=storage_backend,
+            invoke_on_load=False,
+        )
+    except stevedore.exception.NoMatches as err:
+        msg = f"Invalid storage backend {storage_backend!r}"
+        raise ValueError(msg) from err
+    return mgr
+
+
 def get_unaligned_storage_driver(
     storage_backend: str,
 ) -> typing.Optional["SeqsDataABC"]:
@@ -162,11 +175,7 @@ def get_unaligned_storage_driver(
     if not storage_backend:
         return _STORAGE_DEFAULT.unaligned
 
-    mgr = stevedore.driver.DriverManager(
-        namespace=UNALIGNED_SEQ_STORAGE_ENTRY_POINT,
-        name=storage_backend,
-        invoke_on_load=False,
-    )
+    mgr = _get_driver(UNALIGNED_SEQ_STORAGE_ENTRY_POINT, storage_backend)
     return mgr.extensions[0].plugin if mgr.extensions else _STORAGE_DEFAULT.unaligned
 
 
@@ -186,11 +195,7 @@ def get_aligned_storage_driver(
     if not storage_backend:
         return _STORAGE_DEFAULT.aligned
 
-    mgr = stevedore.driver.DriverManager(
-        namespace=ALIGNED_SEQ_STORAGE_ENTRY_POINT,
-        name=storage_backend,
-        invoke_on_load=False,
-    )
+    mgr = _get_driver(ALIGNED_SEQ_STORAGE_ENTRY_POINT, storage_backend)
     return mgr.extensions[0].plugin if mgr.extensions else _STORAGE_DEFAULT.aligned
 
 
