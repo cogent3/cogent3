@@ -5796,6 +5796,19 @@ def test_seqcoll_storage_immutable(mk_cls):
         seqcoll.storage = "new_storage"
 
 
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_invalid_storage_backend(mk_cls):
+    data = {
+        "seq1": "ATCG",
+        "seq2": "TAGC",
+    }
+    with pytest.raises(ValueError):
+        mk_cls(data, moltype="dna", storage_backend="invalid_backend")
+
+
 @pytest.mark.skipif(not has_hf_seqs, reason="hdf5 seqs plugin not available")
 @pytest.mark.parametrize(
     "mk_cls",
@@ -5871,6 +5884,7 @@ def test_coll_storage_degap_explicit(mk_cls):
     assert not isinstance(dg.storage, builtin)
 
 
+@pytest.mark.skipif(not has_hf_seqs, reason="hdf5 seqs plugin not available")
 def test_coll_storage_degap_propagates_type():
     data = {
         "seq1": "ATC-G",
