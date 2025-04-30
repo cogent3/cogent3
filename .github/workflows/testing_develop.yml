@@ -37,6 +37,7 @@ jobs:
           python --version
           pip install --upgrade pip wheel setuptools flit
           pip install --upgrade nox
+          pip install "cogent3-h5seqs @ git+https://github.com/GavinHuttley/cogent3-h5seqs.git@develop"
 
       - name: "Run nox for ${{ matrix.python-version }}"
         shell: bash
