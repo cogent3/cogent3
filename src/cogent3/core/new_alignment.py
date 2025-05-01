@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import collections
 import contextlib
 import dataclasses
+import hashlib
 import json
 import os
 import re
@@ -91,6 +93,18 @@ MolTypes = str | new_moltype.MolType
 # small number: 1-EPS is almost 1, and is used for things like the
 # default number of gaps to allow in a column.
 EPS = 1e-6
+
+
+def array_hash64(data: numpy.ndarray) -> int:
+    """returns 64-bit hash of numpy array.
+
+    Notes
+    -----
+    This function does not introduce randomisation and so
+    is reproducible between processes.
+    """
+    h = hashlib.md5(data.tobytes(), usedforsecurity=False)
+    return int.from_bytes(h.digest()[:8], byteorder="little")
 
 
 class _SeqNamer:
@@ -2405,9 +2419,16 @@ class SequenceCollection:
                 raise TypeError(msg)
             self._repr_policy["wrap"] = wrap
 
+    def duplicated_seqs(self) -> list[list[str]]:
+        """returns the names of duplicated sequences"""
+        seq_hashes = collections.defaultdict(list)
+        for s in self.seqs:
+            seq_hashes[array_hash64(numpy.array(s))].append(s.name)
+        return [v for v in seq_hashes.values() if len(v) > 1]
+
 
 @register_deserialiser(get_object_provenance(SequenceCollection))
-def deserialise_sequence_collection(data) -> SequenceCollection:
+def deserialise_sequence_collection(data: dict) -> SequenceCollection:
     return SequenceCollection.from_rich_dict(data)
 
 
@@ -6891,6 +6912,19 @@ class Alignment(SequenceCollection):
         return {
             s.name: s.seq.strand_symmetry(motif_length=motif_length) for s in self.seqs
         }
+
+    def duplicated_seqs(self) -> list[list[str]]:
+        """returns the names of duplicated sequences
+
+        Notes
+        -----
+        The gapped sequence is used.
+        """
+        if not len(self):
+            # all have zero lengths
+            return [] if self.num_seqs < 2 else [list(self.names)]
+
+        return super().duplicated_seqs()
 
 
 @register_deserialiser(get_object_provenance(Alignment))

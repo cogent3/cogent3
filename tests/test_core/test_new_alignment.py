@@ -5900,3 +5900,53 @@ def test_coll_storage_degap_propagates_type():
     dg = seqcoll.degap(storage_backend="h5seqs_unaligned")
     assert not isinstance(dg.storage, builtin)
     assert isinstance(dg.storage, seqcoll.storage.__class__)
+
+
+@pytest.mark.parametrize(
+    "mk_cls", [new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs]
+)
+def test_duplicated_seqs_duplicates(mk_cls):
+    data = {
+        "seq1": "ATC-G",
+        "seq2": "TAGCC",
+        "seq1-1": "ATC-G",
+    }
+    seqcoll = mk_cls(data, moltype="dna")
+    got = [set(v) for v in seqcoll.duplicated_seqs()]
+    assert got == [{"seq1", "seq1-1"}]
+
+    # all seqs length=0
+    data = {
+        "seq1": "",
+        "seq2": "",
+    }
+    seqcoll = mk_cls(data, moltype="dna")
+    got = [set(v) for v in seqcoll.duplicated_seqs()]
+    assert got == [{"seq1", "seq2"}]
+
+    data = {
+        "seq1": "ATC-G",
+        "seq2": "TAGCC",
+        "seq1-1": "ATC-G",
+        "seq2-1": "TAGCC",
+        "seq2-2": "TAGCC",
+    }
+    seqcoll = mk_cls(data, moltype="dna")
+    got = {frozenset(v) for v in seqcoll.duplicated_seqs()}
+    assert got == {
+        frozenset({"seq1", "seq1-1"}),
+        frozenset({"seq2", "seq2-1", "seq2-2"}),
+    }
+
+
+@pytest.mark.parametrize(
+    "mk_cls", [new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs]
+)
+def test_duplicated_seqs_no_duplicates(mk_cls):
+    data = {
+        "seq1": "ATC-G",
+        "seq2": "TAGCC",
+    }
+    seqcoll = mk_cls(data, moltype="dna")
+    got = [set(v) for v in seqcoll.duplicated_seqs()]
+    assert got == []
