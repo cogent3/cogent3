@@ -2426,6 +2426,22 @@ class SequenceCollection:
             seq_hashes[array_hash64(numpy.array(s))].append(s.name)
         return [v for v in seq_hashes.values() if len(v) > 1]
 
+    def drop_duplicated_seqs(self) -> typing_extensions.Self:
+        """returns self without duplicated sequences
+
+        Notes
+        -----
+        Retains the first sequence of each duplicte group.
+        """
+        dupes = self.duplicated_seqs()
+        if not dupes:
+            return self
+
+        omit = []
+        for group in dupes:
+            omit.extend(group[1:])
+        return self.take_seqs(omit, negate=True)
+
 
 @register_deserialiser(get_object_provenance(SequenceCollection))
 def deserialise_sequence_collection(data: dict) -> SequenceCollection:

@@ -5950,3 +5950,44 @@ def test_duplicated_seqs_no_duplicates(mk_cls):
     seqcoll = mk_cls(data, moltype="dna")
     got = [set(v) for v in seqcoll.duplicated_seqs()]
     assert got == []
+
+
+@pytest.mark.parametrize(
+    "mk_cls", [new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs]
+)
+def test_drop_duplicated_seqs(mk_cls):
+    data = {
+        "seq1": "ATC-G",
+        "seq2": "TAGCC",
+        "seq1-1": "ATC-G",
+        "seq2-1": "TAGCC",
+        "seq2-2": "TAGCC",
+        "seq2-3": "TAGCC",
+    }
+    seqcoll = mk_cls(data, moltype="dna")
+    got = seqcoll.drop_duplicated_seqs()
+    names = set(got.names)
+    assert len(names & {"seq1", "seq1-1"}) == 1
+    assert len(names & {"seq2", "seq2-1", "seq2-2", "seq2-3"}) == 1
+
+    # on a collection with zero length seqs
+    data = {
+        "seq1": "",
+        "seq2": "",
+    }
+    seqcoll = mk_cls(data, moltype="dna")
+    got = seqcoll.drop_duplicated_seqs()
+
+
+@pytest.mark.parametrize(
+    "mk_cls", [new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs]
+)
+def test_drop_duplicated_seqs_no_dupes(mk_cls):
+    data = {
+        "seq1": "ATC-G",
+        "seq2": "TAGCC",
+        "seq3": "T-GCC",
+    }
+    seqcoll = mk_cls(data, moltype="dna")
+    got = seqcoll.drop_duplicated_seqs()
+    assert got is seqcoll
