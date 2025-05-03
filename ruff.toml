@@ -44,6 +44,8 @@ select = ["ALL"]
 # N801 CamelCase is not always appropriate
 # PLR0913 number of arguments sometimes needs to be > 5
 # FBT001 and FBT002, positional boolean arguments are allowed!
+# PT011, I disagree about checking error messages as well
+# as exception types as it doubles the "cost" of fixing typos
 ignore = [
     "COM812",
     "EXE002", 
@@ -55,6 +57,7 @@ ignore = [
     "PLR0913",
     "FBT001",
     "FBT002",
+    "PT011",
     ]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
