@@ -4781,7 +4781,7 @@ class Alignment(SequenceCollection):
 
     def take_positions(
         self,
-        cols: list,
+        cols: list[int] | numpy.ndarray[int],
         negate: bool = False,
     ) -> typing_extensions.Self:
         """Returns new Alignment containing only specified positions.
@@ -4799,8 +4799,7 @@ class Alignment(SequenceCollection):
             cols = [i for i in range(len(self)) if i not in col_lookup]
 
         new_data = {
-            aligned.data.seqid: numpy.array(aligned.gapped_seq).take(cols)
-            for aligned in self.seqs
+            aligned.data.seqid: numpy.array(aligned).take(cols) for aligned in self.seqs
         }
         seqs_data = self._seqs_data.from_seqs(
             data=new_data,
@@ -5577,9 +5576,13 @@ class Alignment(SequenceCollection):
         n: int | None = None,
         with_replacement: bool = False,
         motif_length: int = 1,
-        randint=numpy.random.randint,
-        permutation=numpy.random.permutation,
-    ):
+        randint: typing.Callable[
+            [int, int | None, int | None], numpy.ndarray
+        ] = numpy.random.randint,
+        permutation: typing.Callable[
+            [numpy.ndarray], numpy.ndarray
+        ] = numpy.random.permutation,
+    ) -> typing_extensions.Self:
         """Returns random sample of positions from self, e.g. to bootstrap.
 
         Parameters
@@ -5613,35 +5616,28 @@ class Alignment(SequenceCollection):
         # numpy array reshaped.
 
         population_size = len(self) // motif_length
-        if not n:
-            n = population_size
+        if not with_replacement and n and n > population_size:
+            msg = f"cannot sample without replacement when {n=} > {population_size=}"
+            raise ValueError(msg)
+
+        n = n or population_size
+
         if with_replacement:
             locations = randint(0, population_size, n)
         else:
-            assert n <= population_size, (n, population_size, motif_length)
             locations = permutation(population_size)[:n]
 
-        positions = numpy.empty(n * motif_length, dtype=int)
-        for i, loc in enumerate(locations):
-            positions[i * motif_length : (i + 1) * motif_length] = range(
-                loc * motif_length,
-                (loc + 1) * motif_length,
-            )
+        if motif_length == 1:
+            positions = locations
+        else:
+            positions = numpy.empty(n * motif_length, dtype=int)
+            for i, loc in enumerate(locations):
+                positions[i * motif_length : (i + 1) * motif_length] = range(
+                    loc * motif_length,
+                    (loc + 1) * motif_length,
+                )
 
-        new_seqs = {}
-        for aligned in self.seqs:
-            sampled = numpy.array(aligned)[positions]
-            new_seqs[aligned.data.seqid] = sampled
-
-        new_seqs_data = self._seqs_data.from_seqs(
-            data=new_seqs,
-            alphabet=self.moltype.most_degen_alphabet(),
-        )
-        kwargs = self._get_init_kwargs()
-        kwargs["seqs_data"] = new_seqs_data
-        kwargs.pop("annotation_db", None)
-        kwargs.pop("slice_record", None)
-        return self.__class__(**kwargs)
+        return self.take_positions(positions)
 
     def distance_matrix(
         self,
