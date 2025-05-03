@@ -4559,6 +4559,16 @@ def test_alignment_sample_with_replacement():
     assert len(result) == 1
 
 
+def test_alignment_sample_without_replacement():
+    # test with replacement -- just verify that it rnus
+    alignment = new_alignment.make_aligned_seqs(
+        {"seq1": "GATC", "seq2": "GATC"},
+        moltype="dna",
+    )
+    with pytest.raises(ValueError):
+        alignment.sample(n=100, with_replacement=False)
+
+
 def test_alignment_sample_tuples():
     ##### test with motif size != 1 #####
     alignment = new_alignment.make_aligned_seqs(

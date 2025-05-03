@@ -3055,3 +3055,31 @@ def test_coerce_moltype(moltype, seq):
     assert seq.moltype.name == moltype
     expect = "ATGC" if moltype == "dna" else "AUGC"
     assert str(seq) == expect
+
+
+def test_sample_motif_length_3():
+    seq = cogent3.get_dataset("brca1")["Human"].seq
+    got = seq.sample(motif_length=3)
+    assert len(got) == len(seq)
+    assert got != seq
+    # following will fail if motif length is 1 due
+    # to random creation of stops
+    aa = got.get_translation()
+    assert len(aa) == len(seq) // 3
+
+
+def test_sample_motif_length_1():
+    seq = cogent3.get_dataset("brca1")["Human"].seq
+    got = seq.sample(motif_length=1)
+    assert len(got) == len(seq)
+    assert got != seq
+    # following will fail if motif length is 1 due
+    # to random creation of stop codons
+    with pytest.raises(new_alphabet.AlphabetError):
+        got.get_translation()
+
+
+def test_sample_without_replacement():
+    seq = cogent3.get_dataset("brca1")["Human"].seq
+    with pytest.raises(ValueError):
+        seq[:20].sample(n=100, with_replacement=False)
