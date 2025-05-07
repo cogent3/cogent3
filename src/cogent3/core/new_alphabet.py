@@ -935,7 +935,9 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         )
         self._num_canonical = self.monomers.num_canonical**k
 
-    def __reduce__(self):
+    def __reduce__(
+        self,
+    ) -> tuple[type, tuple[tuple[str, ...], CharAlphabet, int, OptStr, OptStr]]:
         """support for pickling"""
         return (
             self.__class__,
@@ -1229,7 +1231,9 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         if monomers.moltype:
             _alphabet_moltype_map[self] = monomers.moltype
 
-    def __reduce__(self) -> typing_extensions.Self:
+    def __reduce__(
+        self,
+    ) -> tuple[type, tuple[tuple[str, ...], CharAlphabet, OptStr], None]:
         """support for pickling"""
         return (
             self.__class__,
