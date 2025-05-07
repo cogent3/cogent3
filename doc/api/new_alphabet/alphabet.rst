@@ -9,3 +9,4 @@
 
     CharAlphabet
     KmerAlphabet
+    SenseCodonAlphabet
