@@ -85,7 +85,7 @@ These are all top level imports. For example,
 Major cogent3 Data Types
 ************************
 
-To enforce usage of the new type sequence / alignment classes add the following code to the top of your scripts.
+To enforce usage of the new type classes (e.g. sequence, alignment etc...) add the following to the top of your scripts.
 
 .. code-block:: python
 
