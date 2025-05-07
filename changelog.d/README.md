@@ -17,16 +17,16 @@ change as a markdown bullet point.  For example:
 Contributors
 * khiron
 
-ENH
+Enhancements
 * Added a new feature that allows users to do Y
 
-DEP
+Deprecations
 * Removed deprecated feature Z
 
-BUG
+Bug fixes
 * Fixed a bug that caused the project to crash when a user did X by doing Y instead
 
-DOC
+Documentation
 * Documented feature Z
 
 Check the file in with your changes.  
