@@ -887,7 +887,7 @@ class sp_score:
     individual pairs and their sum is the Sum of Pairs score.
 
     Carrillo, H. & Lipman, D. The Multiple Sequence Alignment Problem in
-    Biology. Siam J Appl Math 48, 1073–1082 (1988).
+    Biology. Siam J Appl Math 48, 1073-1082 (1988).
     """
 
     def __init__(

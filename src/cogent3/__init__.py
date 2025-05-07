@@ -45,6 +45,7 @@ from cogent3.evolve.models import available_models, get_model  # noqa: F401
 from cogent3.parse.cogent3_json import load_from_json
 from cogent3.parse.newick import parse_string as newick_parse_string
 from cogent3.parse.sequence import is_genbank
+from cogent3.parse.table import load_delimited  # noqa: F401
 from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
 from cogent3.util.io import get_format_suffixes, is_url, open_
 from cogent3.util.progress_display import display_wrap
