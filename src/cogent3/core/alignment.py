@@ -3715,11 +3715,6 @@ class AlignmentI:
 
         return draw
 
-    @c3warn.deprecated_args(
-        "2024.12",
-        reason="consistency",
-        old_new=[("method", "stat")],
-    )
     def coevolution(
         self,
         stat="nmi",

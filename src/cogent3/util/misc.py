@@ -386,7 +386,7 @@ class ConstraintError(Exception):
 
 
 @c3warn.deprecated_callable(
-    version="2025.06",
+    version="2025.6",
     reason="The function is not used in cogent3 and will be removed in a future release.",
 )
 def identity(x):  # pragma: no cover
