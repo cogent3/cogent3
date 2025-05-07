@@ -123,7 +123,7 @@ reinstall-package = ["cogent3"]
 
 [tool.scriv]
 format="md"
-categories=["Contributors", "ENH", "BUG", "DOC", "Deprecations", "Discontinued"]
+categories=["Contributors", "Enhancements", "Bug fixes", "Documentation", "Deprecations", "Discontinued"]
 output_file="changelog.md"
 version="literal: src/cogent3/_version.py:__version__"
 skip_fragments="README.*"

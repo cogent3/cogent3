@@ -1,17 +1,97 @@
 
+<a id='changelog-2025.5.8a1'></a>
+# Changes in release "2025.5.8a1"
+
+## Major announcement
+
+We are changing the migration strategy from old type to new type classes.
+At present we have old type and new type implementations for sequences,
+sequence collections, alignments, molecular types, alphabets and genetic
+codes. At present, one can select the new types using `new_type=True`
+or by using the `COGENT3_NEW_TYPE` environment variable. We have established
+that it is not viable to support both simultaneously. Therefore,
+the first release after July 1st 2025 will remove all of the old type
+classes. Arguments specific to the old type classes will be deprecated
+at that point. While this is a major change, we have been using these
+ourselves consistently and feel confident that the disruption to users
+should be small at worst. However, we strongly advise all users to migrate
+now and report any errors. To do this, add the following statement to the top
+of your scripts.
+
+```python
+import os
+
+os.environ["COGENT3_NEW_TYPE"] = "1"
+```
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- Implement plugin architecture for `cogent3` sequence format parsers and
+  writers. For developers, third party parsers and writers can be added to
+  `cogent3` by creating a plugin. Parser plugin's must inherit from
+  `cogent3.parse.sequence.SequenceParserBase`. Writer plugins
+  must inherit from `cogent3.format.sequence.SequenceWriterBase`. Look at
+  the `cogent3` `pyproject.toml` for the plugin entry points.
+  We default to using third party plugins for the sequence file formats,
+  falling back to `cogent3`'s internal plugins if no others are available.
+- New type `SequenceCollection` and `Alignment` classes now have
+  a public `name_map` property. This records the mapping between
+  the sequence names in the collection and the names in the
+  underlying storage. This is required for using annotations.
+  `name_map` is an immutable dictionary.
+- Added public `.storage` attribute to new type `SequenceCollection` and
+  `Alignment` classes. The attribute is immutable.
+- Added functions for describing and loading data sets that are now included
+  with `cogent3`! The main `brca1.fasta` alignment and associated Murphy
+  tree are now included with the package. Use
+  `cogent3.available_datasets()` to display what's available and
+  `cogent3.get_dataset()` to create the instance you want.
+- Added `duplicated_seqs()` method to new type `SequenceCollection` and
+  `Alignments`. As the name implies, it identifies the names of sequences
+  that are equal. On `Alignments`, the gapped sequence is used. Added
+  companion method `drop_duplicated_seqs()` which does as the name implies.
+  The first name in each group of duplicates is retained.
+- Added new type `Sequence.sample()` method for generating random sequences.
+
+## Discontinued
+
+- We have changed the API for the `SupportsFeatures` protocol. It no longer
+  inherits from `SerialisableType`. Thus, subclasses of `AnnotationDbABC` no
+  longer have to implement `to_rich_dict()`, `from_dict()` and
+  `to_json()` methods.
+- We have changed the API for `AnnotationDbABC`. The following methods
+  have been converted from abstract methods to concrete methods:
+  - `add_feature()`
+  - `add_records()`
+  - `subset()`
+  - `update()`
+  - `union()`
+  - These concrete methods raise a `NotImplementedError`. Thus
+    developers need not implement them in their subclasses.
+
+### Backwards incompatible changes
+
+- `cogent3.format.alignment` has been renamed `cogent3.format.sequence`.
+- `cogent3.util.table` has been moved to `cogent3.core.table`. Usage of the
+  top level functions for making and loading tables is unaffected.
+
 <a id='changelog-2025.3.22a4'></a>
 # Changes in release "2025.3.22a4"
 
 Minor bug-fix and small enhancement for the ensembl-tui project.
 
-## ENH
+## Enhancements
 
 - new type Alignment.with_masked_annotations() masking is only applied to the
   sequences that have matching annotations.
 - new type Alignment.with_masked_annotations(seqid) allows applying a mask to
   only one sequence in an alignment.
 
-## BUG
+## Bug fixes
 
 - Masking annotations on sequences with shadow=True would mask all positions
   if the feature ws missing from the sequence.
@@ -21,7 +101,7 @@ Minor bug-fix and small enhancement for the ensembl-tui project.
 
 This is a minor bug-fix release.
 
-## BUG
+## Bug fixes
 
 - New type Alignment methods could fail when on a instance that
   had sequences renamed. We were passing the incorrect values for
@@ -36,7 +116,7 @@ This is a minor bug-fix release.
   and @je634 👏🚀🎉
 - @GavinHuttley bug fixes and maintenance
 
-## ENH
+## Enhancements
 
 - The cogent3.core.annotation.Feature class now gets an xattr property.
   This allows developers to pack additional data into the Feature object
@@ -63,7 +143,7 @@ This is a minor bug-fix release.
   adjusted as more profiles are aligned. This is the key change that fixes the
   bug in the progressive aligner.
 
-## BUG
+## Bug fixes
 
 - Dotplot on new_type Alignments now show the alignment path 🎉
 - Fixed a MAJOR bug affecting the cogent3 progressive aligner. Gaps
@@ -83,14 +163,14 @@ This is a minor bug-fix release.
 
 This is a minor bug-fix release with a minor new feature.
 
-## ENH
+## Enhancements
 
 - Slicing a new type sequence with a feature defaults to applying
   the feature.name attribute to the resulting seq.name. This can be
   controlled by the new apply_name argument to the
   Feature.get_slice() method.
 
-## BUG
+## Bug fixes
 
 - new_alphabet.KmerAlphabet.to_indices() consistently applies alphabet
   dtype to the resulting array.
@@ -102,7 +182,7 @@ This is a minor bug-fix release with a minor new feature.
 
 - @GavinHuttley
 
-## ENH
+## Enhancements
 
 - Improved load balancing in parallel execution of `new_alignment.Alignment.distance_matrix()`
   calculations. This can deliver pretty substantial speedups for large numbers of sequences.
@@ -130,7 +210,7 @@ This is a minor bug-fix release with a minor new feature.
 - Many thousand lines of code --- @KatherineCaley 🚀
 - @YapengLang contributed bug reports and bug fixes 👏
 
-## ENH
+## Enhancements
 
 - `cogent3.open_()` now automatically handles .xz and .lzma compressed files.
 - sequence / alignment loading functions recognise .phy as phylip format.
@@ -155,7 +235,7 @@ This is a minor bug-fix release with a minor new feature.
 <a id='changelog-2024.7.19a9'></a>
 # Changes in release "2024.7.19a9"
 
-## ENH
+## Enhancements
 
 - `cogent3.open_()` now automatically handles `.xz` and `.lzma` compressed files.
 - Formatting of fasta records is now much quicker.
@@ -170,7 +250,7 @@ A single bugfix release.
 
 - Bug identified and fixed by @YapengLang 🚀🤩
 
-## BUG
+## Bug fixes
 
 - Fixed a regression in Trees arising from new name / support split functionality.
 
@@ -184,7 +264,7 @@ A single bugfix release.
 - @YapengLang added the key function for parsing support from newick format
   to tree object 💪
 
-## ENH
+## Enhancements
 
 - Provide convenience class methods on both DictArray and DistanceMatrix to simplify
   creation when you have a numpy array and the names corresponding to the dimension
@@ -201,13 +281,13 @@ A single bugfix release.
 - cogent3 now supports parsing from newick format with node support
   statistics. The support measure is stored in `<node>.params["support"]`.
 
-## BUG
+## Bug fixes
 
 - Dotplots of sequences that had gaps in common is now correctly handled. Previously,
   the displayed aligned path was very funky because aligned segments could be
   interrupted.
 
-## DOC
+## Documentation
 
 - A new tutorial on using a nonstationary amino-acid model from @petergoodman.
   This will appear in the examples documentation in the next release. Nice
@@ -233,7 +313,7 @@ in jupyter notebooks!
 
 - @GavinHuttley
 
-## ENH
+## Enhancements
 
 - Use loky for parallel processing instead of multiprocessing alone. loky is more robust
   and supports parallel execution in jupyter notebooks .. yay!
@@ -241,7 +321,7 @@ in jupyter notebooks!
   when possible (a feature has a single contiguous span), or removes the annotation_db
   when not querying it could be misleading.
 
-## BUG
+## Bug fixes
 
 - Fixed issue where read only zipped data stores would include files
   starting with a "._"
@@ -256,7 +336,7 @@ There are some new features and minor bug fixes in this release.
 
 - @GavinHuttley
 
-## ENH
+## Enhancements
 
 - genbank.iter_genbank_records() is a revised genbank parser that returns
   primitive python types. It defaults to returning the genbank record LOCUS
@@ -272,7 +352,7 @@ There are some new features and minor bug fixes in this release.
 - the <app writer>.apply_to() method now accepts logger=False. This turns off
   logging completely.
 
-## BUG
+## Bug fixes
 
 - Fixed a regression affecting setting tip font sizes on dendrograms. You can now
   assign either an integer to `<dendrogram>.tip_font` or a dict,
@@ -294,7 +374,7 @@ This is a minor bug fix release.
 
 - Contribution from @rmcar17 on fixing an encoding error when loading small newick trees.
 
-## BUG
+## Bug fixes
 
 - Fixed an issue with `load_tree` incorrectly detecting the encoding of very small newick files.
 
@@ -308,12 +388,12 @@ This is a minor bug fix release.
 - Contributions from @GavinHuttley and @rmcar17 to Cogent3 repo
   maintenance, developer tooling
 
-## ENH
+## Enhancements
 
 - The cogent3 select_translatable() app gets a `frame` argument. This allows
   specifying one frame of reference for the translation for all sequences.
 
-## BUG
+## Bug fixes
 
 - Fixed a regression affecting loading sequences when the path had the ~
   character in it.
@@ -329,7 +409,7 @@ This is a minor bug fix release.
   maintenance, developer tooling, issues etc.. related to the SMBE2024
   workshop!
 
-## ENH
+## Enhancements
 
 - Defined an abstract base class for Gff records and support users providing
   their own class via the cogent3.parse.gff.gff_parser(make_record) argument.
@@ -349,7 +429,7 @@ This is a minor bug fix release.
   cases where integration with old objects is NOT required and look forward to
   any feedback!
 
-## BUG
+## Bug fixes
 
 - @YapengLang identified and fixed a bug in `cogent3.app.evo.model` where
   settings for upper / lower bounds where being ignored.
@@ -379,7 +459,7 @@ This is a minor bug fix release.
   maintenance tasks, including developer docs and troubleshooting
   infrastructure issues.
 
-## ENH
+## Enhancements
 
 - Annotation databases are now preserved after renaming sequences.
   This is made possible because SeqView has the seqid attribute which
@@ -412,7 +492,7 @@ This is a minor bug fix release.
 - Note that both IndelMap and FeatureMap replace the spans attribute with a
   generator.
 
-## BUG
+## Bug fixes
 
 - The saving of numpy arrays in annotation db's was not cross-platform
   compatible due to differences in default types between OS's. Fixed by
@@ -421,7 +501,7 @@ This is a minor bug fix release.
 - Alignment.quick_tree() default settings referred to a distance calculator
   that has been removed. Now updated to the pdist calculator.
 
-## DOC
+## Documentation
 
 - added cookbook docs for io apps
 
@@ -446,7 +526,7 @@ This is a minor bug fix release.
 - @KatherineCaley and @khiron, maintenance 🛠️. Thanks @KatherineCaley and @khiron 🏎️!
 - @GavinHuttley, miscellaneous 🍥
 
-## ENH
+## Enhancements
 
 - Now support python3.12 🚀
 - Pin numpy version to < 2 until we can test against released version.
@@ -466,12 +546,12 @@ This is a minor bug fix release.
 - make_seq() returns a seq as is if it's already the correct molecular
   type. This preserves the AnnotationDb attribute.
 
-## BUG
+## Bug fixes
 
 - Fixed ArrayAlignment.get_degapped_relative_to(). It was returning the
   transpose of the alignment.
 
-## DOC
+## Documentation
 
 - Improvements to docstrings for some cogent3.apps. We have added code
   snippets that can be copy/paste into a python session.
@@ -495,7 +575,7 @@ This is a minor bug fix release.
 - First time contribution from @cosmastech 🎉
 - Important new tree metrics from Robert McArthur. Thanks @rmcar17 🚀!
 
-## ENH
+## Enhancements
 
 - Added from cogent3.app.typing import defined_types function. This displays
   the cogent3 defined type hints and the objects they represent.
@@ -517,12 +597,12 @@ This is a minor bug fix release.
 
 - Added methods `min_pair()` and `max_pair()` to `DistanceMatrix`, to return the names of the sequences with minimum and maximum pairwise distance, respectively (thanks to @KatherineCaley).
 
-## BUG
+## Bug fixes
 
 - The sequence returned from Alignment.get_seq() now reflects
   slice operations applied to the Alignment.
 
-## DOC
+## Documentation
 
 - The sequence features drawing example now has a gallery thumbnail.
 
@@ -557,7 +637,7 @@ This is a minor bug fix release.
 - YapengLang for reporting the bug in computing the ENS for
   non-stationary processes.
 
-## ENH
+## Enhancements
 
 - MinimalFastaParser now removes internal spaces
   in sequence blocks
@@ -568,7 +648,7 @@ This is a minor bug fix release.
   or estimation of the tree using the alignment. The argument overrides the
   other tree related arguments (tree, unique_trees).
 
-## BUG
+## Bug fixes
 
 - The calculation of the expected number of substitutions on a tree branch
   was incorrect. It was not using the motif probs from the parent node.
@@ -592,7 +672,7 @@ This is a minor bug fix release.
 - Thanks to Dr Minh Bui, author of IQ-tree, for a sample extended newick output
   from IQ-tree!
 
-## ENH
+## Enhancements
 
 - Added automated changelog management to the project
 - serializable deprecation of function and method arguments using decorator
@@ -673,7 +753,7 @@ This is a minor bug fix release.
   translating DNA to protein can be done with one method call, instead of
   two.
 
-## DOC
+## Documentation
 
 - Thanks to Katherine Caley for awesome new docs describing the
   new feature and annotation DB capabilities!
@@ -822,7 +902,7 @@ These have been completely rewritten and have different behaviour from the origi
   - adds a log recording the conversion
 - All previous data store types are discontinued, use open_data_store() function for getting a data store instead of a direct import path.
 
-## BUG
+## Bug fixes
 
 - progress display in notebooks now works again
 
@@ -843,18 +923,18 @@ Thanks to our contributors!
 
 - StephenRogers1
 
-## ENH
+## Enhancements
 
 Significant refactor of composable apps. This is the backwards incompatible change we warned of in the last release! We now use a decorator `define_app` (on classes or functions) instead of class inheritance. Please see [the c3dev wiki](https://github.com/cogent3/cogent3/wiki/composable-functions) for examples on how to port from old-style to new-style composable apps.
 
 We updated to the latest NCBI versions of genetic codes. Note, the name of genetic code 1 has changed from "Standard Nuclear" to "Standard".
 
-## BUG
+## Bug fixes
 
 - Fix progressive alignment bug when a guide-tree with zero edge lengths was encountered.
 - Non-stationary independent tuple models can now be serialised.
 
-## DEP
+## Deprecations
 
 - We have removed support for python 3.7.
 - We have made scipy a dependency and begun deprecating statistical functions that are available in scipy. All deprecated functions have a warning that indicates the scipy replacement. The deprecated functions are: combinations, chi_high, chdtri, z_high, z_low function, chi_low, binomial_high, binomial_low, f_high, f_low, t_low and t_high.
@@ -876,7 +956,7 @@ We will drop support for python 3.7 by release 2022.10.
 
 - The following method names are marked for deprecation. `Sequence.gettype` for `Sequence.get_type`, `Sequence.resolveambiguities` for `Sequence.resolved_ambiguities`.
 
-## ENH
+## Enhancements
 
 - Refactor dotplot, fixes #1060. This is a major performance improvement in dotplot code, making it much faster for long DNA sequences. I've implemented a seed-and-extend algorithm which identifies matching k-mers between sequences and only works on extending those. The key interfaces are `find_matched_paths()` which takes a `SeqKmers()` instance, the two sequences to be compared and returns a `MatchedSeqPaths()` instance.
 - Added Sequence methods to compute all k-mers, fixes #1012
@@ -890,14 +970,14 @@ We will drop support for python 3.7 by release 2022.10.
 
 - Gavin Huttley
 
-## ENH
+## Enhancements
 
 - new `cogent3.util.parallel.as_completed()` generator function
   - `as_completed()` wraps MPI or `concurrent.futures` executors and delivers results as they are completed. In contrast, `parallel.imap()` / `parallel.map()` deliver results in the same order as the input series. The advantage of `as_completed()` is the interval of result arrival at the parent process is better distributed.
 - new function `cogent3.load_seq()` loads a single sequence from a file
 - convert substitution model `__str__` to `__repr__`; more useful since `__repr__` is called also by str().
 
-## BUG
+## Bug fixes
 
 - fixes to `annotation_from_gff()` method on annotatable sequence / alignment objects
   - method would break if GFF records had no ID. This situation is quite common in some Ensembl gff3 files. We generate a "no-id-#" identifier in those cases.
@@ -905,13 +985,13 @@ We will drop support for python 3.7 by release 2022.10.
 - improve consistency in setting motif_probs on likelihood function
   - only apply a pseudocount if optimising motif probs and at least one state has zero frequency, default pseudocount is 0.5. Thanks to StephenRogers1 for finding this issue!
 
-## DOC
+## Documentation
 
 - document the API of the new `load_seq()` function
 
 # Changes since release 2022.4.15a1
 
-## DEP
+## Deprecations
 
 - added warning that we will drop support for python 3.7 by 2022.10. This means the developer version will switch to python 3.8 from 2022.6.
 - discontinued delimiter argument from parse.table.load_delimited
@@ -929,7 +1009,7 @@ We will drop support for python 3.7 by release 2022.10.
 - app.result objects require source instance of str or pathlib.Path
 - fail if users set motif prob optimisation via sm_args in app.evo.model as value is over ridden by the explicit argument, need to block this as effect is major
 
-## BUG
+## Bug fixes
 
 - RichGenbankParser moltype argument now overrides file spec, if provided, this defines the moltype of the returned sequence, otherwise the moltype is determined from the genbank file meta-data
 - fix initialise from nested params for codon models
@@ -940,13 +1020,13 @@ We will drop support for python 3.7 by release 2022.10.
 - solve case where optimiser gets an invalid starting vector
 - solved case where optimised parameter values are outside bounds
 
-## DEP
+## Deprecations
 
 - removed deprecated function for median, use numpy.median instead
 - removed deprecated index argument from table constructors, use index_name instead
 - cogent3.math periodicity classes method names pep8, old names retained, with deprecation warnings
 
-## ENH
+## Enhancements
 
 - Drawable.plotly_figure property returns plotly graph object Figure instance
 - refactor of cogent3.app.composable.appify so decorated functions can be pickled
@@ -987,7 +1067,7 @@ We will drop support for python 3.7 by release 2022.10.
 - ValueError if any tips missing in TreeNode.lowest_common_ancestor()
 - added index_name argument to Table.to_categorical(), allows specifying the category column and getting the categorical table in one statement.
 
-## BUG
+## Bug fixes
 
 - DataStore.write() requires identifiers end with indicated suffix
 - cogent3.app.tree.quicktree() now works for 2 sequences
@@ -1012,13 +1092,13 @@ We will drop support for python 3.7 by release 2022.10.
     $ flit install -s --python `which python`
     ```
 
-## DEP
+## Deprecations
 
 - removed WritableZippedDataStore, the zip archive format is inefficient for incremental inclusion of files. Use a tinydb instead.
 - replaced interleave_len argument with wrap in sequence format writers
 - removed Table.to_rich_html() method, use Table.to_html() instead
 
-## ENH
+## Enhancements
 
 - More robust alignment to reference algorithm. Builds a multiple sequence alignment from a series of pairwise alignments to a reference sequence. cogent3.app.align.align_to_ref() now retains gaps in the reference. This will be modestly slower than previously, but avoids losing information if the choice of reference sequence is a bad one.
 - cogent3.app.composable.appify decorator class, simplifies converting a user defined function into a cogent3 composable app
