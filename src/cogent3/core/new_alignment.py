@@ -267,8 +267,8 @@ class SeqDataView(new_sequence.SeqView):
 
 
 class SeqsDataABC(ABC):
-    """Abstract base class for respresenting the collection of sequences underlying
-    a SequenceCollection
+    """Abstract base class for respresenting the storage object for sequences underlying
+    a SequenceCollection.
     """
 
     __slots__ = ()
@@ -369,7 +369,7 @@ class SeqsDataABC(ABC):
 
 
 class SeqsData(SeqsDataABC):
-    """The builtin ``cogent3`` implementation of a collection of sequences underlying
+    """The builtin ``cogent3`` implementation of sequence storage underlying
     a ``SequenceCollection``. The sequence data is stored as numpy arrays. Indexing
     this object (using an int or seq name) returns a ``SeqDataView``, which can realise
     the corresponding slice as a string, bytes, or numpy array via the alphabet.
@@ -3346,6 +3346,10 @@ class Aligned:
 
 
 class AlignedSeqsDataABC(SeqsDataABC):
+    """Abstract base class for respresenting the storage object for sequences underlying
+    a Alignment.
+    """
+
     # all methods that are from SeqsDataABC should work in sequence coordinates,
     # all methods unique to AlignedSeqsDataABC should work in aligned coordinates.
     # all indices provided to AlignedSeqsDataABC should be on the plus strand.
@@ -3529,7 +3533,7 @@ def _gapped_seq_len(seq: numpy.ndarray, gap_map: numpy.ndarray) -> int:
 
 
 class AlignedSeqsData(AlignedSeqsDataABC):
-    """The builtin ``cogent3`` implementation of a container of aligned sequences
+    """The builtin ``cogent3`` implementation of aligned sequences storage
     underlying an ``Alignment``. Indexing this object returns an ``AlignedDataView``
     which can realise the corresponding slice as a string, bytes, or numpy array,
     gapped or ungapped.
