@@ -609,8 +609,8 @@ class Sequence:
     def matrix_distance(self, other: typing_extensions.Self, matrix) -> IntORFloat:
         """Returns distance between self and other using a score matrix.
 
-        Warning
-        -------
+        Warnings
+        --------
         The matrix must explicitly contain scores for the case where
         a position is the same in self and other (e.g. for a distance matrix,
         an identity between U and U might have a score of 0). The reason the

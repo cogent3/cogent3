@@ -232,8 +232,8 @@ class SeqDataView(new_sequence.SeqView):
         -----
         This method will slice the underlying sequence to the start and stop values
 
-        Warning
-        -------
+        Warnings
+        --------
         This method is not intended to provide serialisation of this object,
         instead, it is intended for usage by an enclosing class.
         """
@@ -620,7 +620,7 @@ class SeqsData(SeqsDataABC):
         """shallow copy of self
 
         Notes
-        -------
+        -----
         kwargs are passed to constructor and will over-ride existing values
         """
         init_args = {
@@ -2145,8 +2145,8 @@ class SequenceCollection:
         -----
         both min_similarity and max_similarity are inclusive.
 
-        Warning
-        -------
+        Warnings
+        --------
         if the transformation changes the type of the sequence (e.g. extracting
         a string from an RnaSequence object), distance metrics that depend on
         instance data of the original class may fail.
@@ -4137,7 +4137,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         """shallow copy of self
 
         Notes
-        -------
+        -----
         kwargs are passed to constructor and will over-ride existing values
         """
         init_args = {
