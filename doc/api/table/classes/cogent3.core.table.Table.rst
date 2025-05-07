@@ -1,5 +1,5 @@
-﻿Table
-=====
+﻿cogent3.core.table.Table
+========================
 
 .. currentmodule:: cogent3.core.table
 

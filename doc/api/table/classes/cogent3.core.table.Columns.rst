@@ -1,5 +1,5 @@
-﻿Columns
-=======
+﻿cogent3.core.table.Columns
+==========================
 
 .. currentmodule:: cogent3.core.table
 
