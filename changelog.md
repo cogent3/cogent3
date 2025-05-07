@@ -2,6 +2,28 @@
 <a id='changelog-2025.5.8a1'></a>
 # Changes in release "2025.5.8a1"
 
+## Major announcement
+
+We are changing the migration strategy from old type to new type classes.
+At present we have old type and new type implementations for sequences,
+sequence collections, alignments, molecular types, alphabets and genetic
+codes. At present, one can select the new types using `new_type=True`
+or by using the `COGENT3_NEW_TYPE` environment variable. We have established
+that it is not viable to support both simultaneously. Therefore,
+the first release after July 1st 2025 will remove all of the old type
+classes. Arguments specific to the old type classes will be deprecated
+at that point. While this is a major change, we have been using these
+ourselves consistently and feel confident that the disruption to users
+should be small at worst. However, we strongly advise all users to migrate
+now and report any errors. To do this, add the following statement to the top
+of your scripts.
+
+```python
+import os
+
+os.environ["COGENT3_NEW_TYPE"] = "1"
+```
+
 ## Contributors
 
 - @GavinHuttley
