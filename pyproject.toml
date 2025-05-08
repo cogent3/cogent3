@@ -50,6 +50,7 @@ Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 
 [project.optional-dependencies]
 test = [
+    "cogent3-h5seqs",
     "ruff==0.11.8",
     "kaleido",
     "pandas",
