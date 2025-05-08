@@ -33,6 +33,16 @@ class SequenceWriterBase(abc.ABC):
         ...
 
     @property
+    def supports_unaligned(self) -> bool:
+        """True if the writer supports unaligned sequences"""
+        return True
+
+    @property
+    def supports_aligned(self) -> bool:
+        """True if the writer supports aligned sequences"""
+        return True
+
+    @property
     @abc.abstractmethod
     def supported_suffixes(self) -> set[str]:
         """Return list of file suffixes this parser supports"""

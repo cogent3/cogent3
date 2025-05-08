@@ -1,4 +1,18 @@
 
+<a id='changelog-2025.5.8a2'></a>
+# Changes in release "2025.5.8a2"
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- To support third-party plugins for improved format parsers and writer we have
+  added boolean properties to the base classes, indicating whether the parser/writer
+  supports unaligned or aligned sequences. The default is both. Plugin authors should
+  over-ride these as required.
+
 <a id='changelog-2025.5.8a1'></a>
 # Changes in release "2025.5.8a1"
 

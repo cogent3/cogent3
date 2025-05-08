@@ -412,6 +412,7 @@ def load_seq(
         parser = get_seq_format_parser_plugin(
             format_name=format,
             file_suffix=file_suffix,
+            unaligned_seqs=True,
         )
         if parser.result_is_storage:
             msg = (
@@ -515,6 +516,7 @@ def load_unaligned_seqs(
     parser = get_seq_format_parser_plugin(
         format_name=format,
         file_suffix=file_suffix,
+        unaligned_seqs=True,
     )
     parser_kw = parser_kw or {}
     if parser.result_is_storage:
@@ -585,6 +587,7 @@ def load_aligned_seqs(
     parser = get_seq_format_parser_plugin(
         format_name=format,
         file_suffix=file_suffix,
+        unaligned_seqs=False,
     )
     parser_kw = parser_kw or {}
     if parser.result_is_storage:
