@@ -62,6 +62,7 @@ def get_seq_format_parser_plugin(
     *,
     format_name: str | None = None,
     file_suffix: str | None = None,
+    unaligned_seqs: bool = True,
 ) -> "SequenceParserBase":
     """returns sequence format parser plugin
 
@@ -71,6 +72,8 @@ def get_seq_format_parser_plugin(
         name of sequence format
     file_suffix
         suffix of file to parse
+    unaligned_seqs
+        whether parser is for unaligned sequences
 
     Notes
     -----
@@ -89,6 +92,15 @@ def get_seq_format_parser_plugin(
             if ext.module_name.startswith("cogent3."):
                 built_in = plugin
                 continue
+
+            supports_role = (plugin.supports_unaligned and unaligned_seqs) or (
+                plugin.supports_aligned and not unaligned_seqs
+            )
+
+            if not supports_role:
+                out_type = "unaligned seqs" if unaligned_seqs else "aligned seqs"
+                msg = f"{plugin.name} does not support parsing {out_type}"
+                raise ValueError(msg)
             return plugin
 
     if built_in:
@@ -108,6 +120,7 @@ def get_seq_format_writer_plugin(
     *,
     format_name: str | None = None,
     file_suffix: str | None = None,
+    unaligned_seqs: bool = True,
 ) -> "SequenceWriterBase":
     """returns sequence format writer
 
@@ -117,6 +130,8 @@ def get_seq_format_writer_plugin(
         name of sequence format
     file_suffix
         suffix of file to parse
+    unaligned_seqs
+        whether format is for unaligned sequences
 
     Notes
     -----
@@ -135,6 +150,14 @@ def get_seq_format_writer_plugin(
             if ext.module_name.startswith("cogent3."):
                 built_in = plugin
                 continue
+            supports_role = (plugin.supports_unaligned and unaligned_seqs) or (
+                plugin.supports_aligned and not unaligned_seqs
+            )
+
+            if not supports_role:
+                out_type = "unaligned seqs" if unaligned_seqs else "aligned seqs"
+                msg = f"{plugin.name} does not support writing {out_type}"
+                raise ValueError(msg)
             return plugin
 
     if built_in:
