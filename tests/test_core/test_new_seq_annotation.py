@@ -193,7 +193,6 @@ def test_seq_with_masked_annotations():
     shadow = seq.with_masked_annotations(biotypes="CDS", shadow=True)
     expect = "?" * start + raw_seq[start:stop] + "?" * (len(raw_seq) - stop)
     assert str(shadow) == expect
-    print(shadow)
 
 
 @pytest.mark.parametrize("shadow", [True, False])

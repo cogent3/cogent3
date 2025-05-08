@@ -285,12 +285,14 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
     from fundamental types of strings, bytes and numpy arrays.
     """
 
+    __slots__ = ()
+
     def __new__(
         cls,
         chars: typing.Sequence[StrORBytes],
         gap: OptStr = None,
         missing: OptStr = None,
-    ):
+    ) -> "CharAlphabet":
         """
         Parameters
         ----------
@@ -849,8 +851,11 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
     Notes
     -----
     Differs from SenseCodonAlphabet case by representing all possible permutations of
-    k-length of the provided monomer alphabet. More efficient mapping between
+    k-length of the provided monomer alphabet. More efficient mapping between integers
+    and k-length strings
     """
+
+    __slots__ = ()
 
     def __new__(
         cls,
@@ -859,7 +864,7 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         k: int,
         gap: OptStr = None,
         missing: OptStr = None,
-    ):
+    ) -> "KmerAlphabet":
         """
         Parameters
         ----------
@@ -930,7 +935,9 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         )
         self._num_canonical = self.monomers.num_canonical**k
 
-    def __reduce__(self):
+    def __reduce__(
+        self,
+    ) -> tuple[type, tuple[tuple[str, ...], CharAlphabet, int, OptStr, OptStr]]:
         """support for pickling"""
         return (
             self.__class__,
@@ -1179,12 +1186,14 @@ def deserialise_kmer_alphabet(data: dict) -> KmerAlphabet:
 class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
     """represents the sense-codons of a GeneticCode"""
 
+    __slots__ = ()
+
     def __new__(
         cls,
         words: tuple[StrORBytes, ...],
         monomers: CharAlphabet,
         gap: OptStr = None,
-    ):
+    ) -> "SenseCodonAlphabet":
         if not words:
             msg = f"cannot create empty {cls.__name__!r}"
             raise ValueError(msg)
@@ -1197,7 +1206,7 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
 
     def __init__(
         self,
-        words: tuple[StrORBytes, ...],
+        words: tuple[StrORBytes, ...],  # noqa: ARG002
         monomers: CharAlphabet,
         gap: OptStr = None,
     ) -> None:
@@ -1222,7 +1231,9 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         if monomers.moltype:
             _alphabet_moltype_map[self] = monomers.moltype
 
-    def __reduce__(self):
+    def __reduce__(
+        self,
+    ) -> tuple[type, tuple[tuple[str, ...], CharAlphabet, OptStr], None]:
         """support for pickling"""
         return (
             self.__class__,

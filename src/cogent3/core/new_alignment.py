@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import collections
 import contextlib
 import dataclasses
+import hashlib
 import json
 import os
 import re
+import types
 import typing
 import warnings
 from abc import ABC, abstractmethod
@@ -13,7 +16,7 @@ from collections.abc import Callable, Iterable, Iterator, Mapping
 from collections.abc import Sequence as PySeq
 from functools import singledispatch, singledispatchmethod
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 import numba
 import numpy
@@ -39,9 +42,6 @@ from cogent3.core.location import (
     IndelMap,
 )
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray, load_pssm
-from cogent3.format.alignment import save_to_filename
-from cogent3.format.fasta import seqs_to_fasta
-from cogent3.format.phylip import alignment_to_phylip
 from cogent3.maths.stats.number import CategoryCounter
 from cogent3.util import progress_display as UI
 from cogent3.util import warning as c3warn
@@ -66,32 +66,45 @@ from cogent3.util.union_dict import UnionDict
 
 if typing.TYPE_CHECKING:
     from cogent3.core.tree import PhyloNode
+    from cogent3.evolve.fast_distance import DistanceMatrix
 
 DEFAULT_ANNOTATION_DB = BasicAnnotationDb
 
-OptInt = Optional[int]
-OptFloat = Optional[float]
-OptStr = Optional[str]
-OptList = Optional[list]
-OptIterStr = Optional[Iterable[str]]
+OptInt = int | None
+OptFloat = float | None
+OptStr = str | None
+OptList = list | None
+OptIterStr = Iterable[str] | None
 PySeqStr = PySeq[str]
-OptPySeqStr = Optional[PySeqStr]
-OptDict = Optional[dict]
-OptBool = Optional[bool]
-OptSliceRecord = Optional[new_sequence.SliceRecord]
+OptPySeqStr = PySeqStr | None
+OptDict = dict | None
+OptBool = bool | None
+OptSliceRecord = new_sequence.SliceRecord | None
 DictStrStr = dict[str, str]
 DictStrInt = dict[str, int]
-OptCallable = Optional[Callable]
-OptRenamerCallable = Optional[Callable[[str], str]]
-OptPathType = Union[str, Path, None]
-StrORArray = Union[str, numpy.ndarray[int]]
-StrORBytesORArray = Union[str, bytes, numpy.ndarray[int]]
-StrORBytesORArrayOrSeq = Union[str, bytes, numpy.ndarray[int], new_sequence.Sequence]
-MolTypes = Union[str, new_moltype.MolType]
+OptCallable = Callable | None
+OptRenamerCallable = Callable[[str], str] | None
+OptPathType = str | Path | None
+StrORArray = str | numpy.ndarray[int]
+StrORBytesORArray = str | bytes | numpy.ndarray[int]
+StrORBytesORArrayOrSeq = str | bytes | numpy.ndarray[int] | new_sequence.Sequence
+MolTypes = str | new_moltype.MolType
 
 # small number: 1-EPS is almost 1, and is used for things like the
 # default number of gaps to allow in a column.
 EPS = 1e-6
+
+
+def array_hash64(data: numpy.ndarray) -> int:
+    """returns 64-bit hash of numpy array.
+
+    Notes
+    -----
+    This function does not introduce randomisation and so
+    is reproducible between processes.
+    """
+    h = hashlib.md5(data.tobytes(), usedforsecurity=False)
+    return int.from_bytes(h.digest()[:8], byteorder="little")
 
 
 class _SeqNamer:
@@ -219,8 +232,8 @@ class SeqDataView(new_sequence.SeqView):
         -----
         This method will slice the underlying sequence to the start and stop values
 
-        Warning
-        -------
+        Warnings
+        --------
         This method is not intended to provide serialisation of this object,
         instead, it is intended for usage by an enclosing class.
         """
@@ -254,8 +267,8 @@ class SeqDataView(new_sequence.SeqView):
 
 
 class SeqsDataABC(ABC):
-    """Abstract base class for respresenting the collection of sequences underlying
-    a SequenceCollection
+    """Abstract base class for respresenting the storage object for sequences underlying
+    a SequenceCollection.
     """
 
     __slots__ = ()
@@ -356,7 +369,7 @@ class SeqsDataABC(ABC):
 
 
 class SeqsData(SeqsDataABC):
-    """The builtin ``cogent3`` implementation of a collection of sequences underlying
+    """The builtin ``cogent3`` implementation of sequence storage underlying
     a ``SequenceCollection``. The sequence data is stored as numpy arrays. Indexing
     this object (using an int or seq name) returns a ``SeqDataView``, which can realise
     the corresponding slice as a string, bytes, or numpy array via the alphabet.
@@ -607,7 +620,7 @@ class SeqsData(SeqsDataABC):
         """shallow copy of self
 
         Notes
-        -------
+        -----
         kwargs are passed to constructor and will over-ride existing values
         """
         init_args = {
@@ -661,7 +674,8 @@ class SequenceCollection:
         """
         self._seqs_data = seqs_data
         self.moltype = moltype
-        self._name_map = name_map or {name: name for name in seqs_data.names}
+        name_map = name_map or {name: name for name in seqs_data.names}
+        self._name_map = types.MappingProxyType(name_map)
         self._is_reversed = is_reversed
         if not isinstance(info, InfoClass):
             info = InfoClass(info) if info else InfoClass()
@@ -703,12 +717,23 @@ class SequenceCollection:
         return {
             "seqs_data": self._seqs_data,
             "moltype": self.moltype,
-            "name_map": self._name_map.copy(),
+            "name_map": dict(self._name_map),
             "info": self.info.copy(),
             "annotation_db": self.annotation_db,
             "source": self.source,
             "is_reversed": self._is_reversed,
         }
+
+    @property
+    def storage(self) -> str:
+        """returns the storage type of the collection"""
+        return self._seqs_data
+
+    @storage.setter
+    def storage(self, value: typing.Any) -> None:
+        """storage cannot be set after initialisation"""
+        msg = "storage cannot be set after initialisation"
+        raise TypeError(msg)
 
     @property
     def seqs(self) -> _IndexableSeqs:
@@ -717,6 +742,26 @@ class SequenceCollection:
     @property
     def names(self) -> list:
         return list(self._name_map.keys())
+
+    @property
+    def name_map(self) -> types.MappingProxyType:
+        """returns mapping of seq names to parent seq names
+
+        Notes
+        -----
+        The underlying SeqsData may have different names for the same
+        sequences. This object maps the names of sequences in self to
+        the names of sequences in SeqsData.
+        MappingProxyType is an immutable mapping, so it cannot be
+        changed. Use self.rename_seqs() to do that.
+        """
+        return self._name_map
+
+    @name_map.setter
+    def name_map(self, value: OptDict) -> None:  # noqa: ARG002
+        """name_map can only be set at initialisation"""
+        msg = "name_map cannot be set after initialisation"
+        raise TypeError(msg)
 
     @property
     def num_seqs(self) -> int:
@@ -766,7 +811,7 @@ class SequenceCollection:
         negate: bool = False,
         copy_annotations: bool = False,
         **kwargs,
-    ):
+    ) -> typing_extensions.Self:
         """Returns new collection containing only specified seqs.
 
         Parameters
@@ -825,7 +870,7 @@ class SequenceCollection:
         self,
         f: Callable[[new_sequence.Sequence], bool],
         negate: bool = False,
-    ):
+    ) -> list[str]:
         """Returns list of names of seqs where f(seq) is True.
 
         Parameters
@@ -850,7 +895,7 @@ class SequenceCollection:
         self,
         f: Callable[[new_sequence.Sequence], bool],
         negate: bool = False,
-    ):
+    ) -> typing_extensions.Self:
         """Returns new collection containing seqs where f(seq) is True.
 
         Parameters
@@ -900,7 +945,7 @@ class SequenceCollection:
         self,
         seqs: dict[str, StrORBytesORArray] | SeqsData | list,
         **kwargs,
-    ) -> SequenceCollection:
+    ) -> typing_extensions.Self:
         """Returns new collection with additional sequences.
 
         Parameters
@@ -909,7 +954,9 @@ class SequenceCollection:
             sequences to add
         """
         assign_names = _SeqNamer()
-        data, offsets, is_reversed, name_map = prep_for_seqs_data(
+        seqs = _make_name_seq_mapping(seqs, assign_names)
+        name_map = make_name_map(seqs)
+        data, offsets, _ = prep_for_seqs_data(
             seqs,
             self.moltype,
             assign_names,
@@ -929,11 +976,31 @@ class SequenceCollection:
             annotation_db=self.annotation_db,
         )
 
-    def rename_seqs(self, renamer: Callable[[str], str]):
-        """Returns new collection with renamed sequences."""
-        new_name_map = {
-            renamer(name): old_name for name, old_name in self._name_map.items()
-        }
+    def rename_seqs(self, renamer: Callable[[str], str]) -> typing_extensions.Self:
+        """Returns new collection with renamed sequences.
+
+        Parameters
+        ----------
+        renamer
+            callable that takes a name string and returns a string
+
+        Raises
+        ------
+        ValueError if renamer produces duplicate names.
+
+        Notes
+        -----
+        The resulting object stores the mapping of new to old names in
+        self.name_map.
+        """
+        new_name_map = {}
+        for name, parent_name in self._name_map.items():
+            new_name = renamer(name)
+            # we retain the parent_name when it differs from the name,
+            # this can happen after multiple renames on the same collection
+            parent_name = parent_name if name != parent_name else name  # noqa: PLW2901
+            new_name_map[new_name] = parent_name
+
         if len(new_name_map) != len(self._name_map):
             msg = f"non-unique names produced by {renamer=}"
             raise ValueError(msg)
@@ -988,18 +1055,31 @@ class SequenceCollection:
         """returns a new instance from a rich dict"""
         return make_unaligned_seqs(data["seqs"], **data["init_args"])
 
-    def to_json(self):
+    def to_json(self) -> str:
         """returns json formatted string"""
         return json.dumps(self.to_rich_dict())
 
-    def degap(self) -> SequenceCollection:
-        """Returns new collection in which sequences have no gaps or missing
-        characters.
+    def degap(self, storage_backend: str | None = None, **kwargs) -> SequenceCollection:
+        """returns collection sequences without gaps or missing characters.
+
+        Parameters
+        ----------
+        storage_backend
+            name of the storage backend to use for the SeqsData object, defaults to
+            cogent3 builtin.
+        kwargs
+            keyword arguments for the storage driver
 
         Notes
         -----
         The returned collection will not retain an annotation_db if present.
         """
+        if storage_backend:
+            make_storage = cogent3._plugin.get_unaligned_storage_driver(
+                storage_backend,
+            ).from_seqs
+        else:
+            make_storage = self._seqs_data.from_seqs
         data = {}
         for name in self.names:
             # because we are in a SequenceCollection, which cannot be sliced, so
@@ -1008,14 +1088,16 @@ class SequenceCollection:
             data[name] = self.moltype.degap(seq)
 
         init_kwargs = self._get_init_kwargs()
-        init_kwargs["seqs_data"] = self._seqs_data.copy(
+        init_kwargs["seqs_data"] = make_storage(
             data=data,
+            alphabet=self._seqs_data.alphabet,
             check=False,
+            **kwargs,
         )
 
         return self.__class__(**init_kwargs)
 
-    def to_moltype(self, moltype: MolTypes) -> SequenceCollection:
+    def to_moltype(self, moltype: MolTypes) -> typing_extensions.Self:
         """returns copy of self with changed moltype
 
         Parameters
@@ -1047,11 +1129,11 @@ class SequenceCollection:
 
         return self.__class__(**init_kwargs)
 
-    def to_dna(self):
+    def to_dna(self) -> typing_extensions.Self:
         """returns copy of self as a collection of DNA moltype seqs"""
         return self.to_moltype("dna")
 
-    def to_rna(self):
+    def to_rna(self) -> typing_extensions.Self:
         """returns copy of self as a collection of RNA moltype seqs"""
         return self.to_moltype("rna")
 
@@ -1062,7 +1144,7 @@ class SequenceCollection:
         include_stop: bool = False,
         trim_stop: bool = True,
         **kwargs,
-    ):
+    ) -> typing_extensions.Self:
         """translate sequences from nucleic acid to protein
 
         Parameters
@@ -1102,7 +1184,8 @@ class SequenceCollection:
                 include_stop=include_stop,
                 trim_stop=trim_stop,
             )
-            translated[seq._seq.seqid] = numpy.array(pep)
+            parent_seqid, *_ = seq.parent_coordinates()
+            translated[parent_seqid] = numpy.array(pep)
 
         pep_moltype = new_moltype.get_moltype(
             "protein_with_stop" if include_stop else "protein",
@@ -1110,7 +1193,6 @@ class SequenceCollection:
         seqs_data = self._seqs_data.from_seqs(
             data=translated,
             alphabet=pep_moltype.most_degen_alphabet(),
-            offset=self._seqs_data.offset,
         )
         return self.__class__(
             seqs_data=seqs_data,
@@ -1135,7 +1217,7 @@ class SequenceCollection:
         """
         return self.rc()
 
-    def distance_matrix(self, calc: str = "pdist"):
+    def distance_matrix(self, calc: str = "pdist") -> DistanceMatrix:
         """Estimated pairwise distance between sequences
 
         Parameters
@@ -1365,21 +1447,8 @@ class SequenceCollection:
         -------
         The collection in Fasta format.
         """
-        return seqs_to_fasta(self.to_dict(), block_size=block_size)
-
-    def to_phylip(self) -> str:
-        """
-        Return collection in PHYLIP format and mapping to sequence ids
-
-        Notes
-        -----
-        raises exception if sequences do not all have the same length
-        """
-        if self.is_ragged():
-            msg = "not all seqs same length, cannot convert to phylip"
-            raise ValueError(msg)
-
-        return alignment_to_phylip(self.to_dict())
+        fasta = cogent3._plugin.get_seq_format_writer_plugin(format_name="fasta")  # noqa: SLF001
+        return fasta.formatted(self, block_size=block_size)
 
     @c3warn.deprecated_args(
         version="2025.6",
@@ -1415,7 +1484,11 @@ class SequenceCollection:
         if "order" not in kwargs:
             kwargs["order"] = self.names
 
-        save_to_filename(self.to_dict(), filename, file_format, **kwargs)
+        writer = cogent3._plugin.get_seq_format_writer_plugin(  # noqa: SLF001
+            format_name=file_format,
+            file_suffix=suffix,
+        )
+        _ = writer.write(seqcoll=self, path=filename, **kwargs)
 
     def dotplot(
         self,
@@ -2072,8 +2145,8 @@ class SequenceCollection:
         -----
         both min_similarity and max_similarity are inclusive.
 
-        Warning
-        -------
+        Warnings
+        --------
         if the transformation changes the type of the sequence (e.g. extracting
         a string from an RnaSequence object), distance metrics that depend on
         instance data of the original class may fail.
@@ -2100,7 +2173,7 @@ class SequenceCollection:
 
     def __str__(self) -> str:
         """Returns self in FASTA-format, respecting name order."""
-        from cogent3.format.alignment import FORMATTERS
+        from cogent3.format.sequence import FORMATTERS
 
         return FORMATTERS["fasta"](self.to_dict())
 
@@ -2142,7 +2215,7 @@ class SequenceCollection:
 
         seqs = ", ".join(seqs)
 
-        return f"{len(self.names)}x ({seqs}) {self.moltype.label} seqcollection"
+        return f"{len(self.names)}x {self.moltype.label} seqcollection: ({seqs})"
 
     def _repr_html_(self) -> str:
         settings = self._repr_policy.copy()
@@ -2346,9 +2419,32 @@ class SequenceCollection:
                 raise TypeError(msg)
             self._repr_policy["wrap"] = wrap
 
+    def duplicated_seqs(self) -> list[list[str]]:
+        """returns the names of duplicated sequences"""
+        seq_hashes = collections.defaultdict(list)
+        for s in self.seqs:
+            seq_hashes[array_hash64(numpy.array(s))].append(s.name)
+        return [v for v in seq_hashes.values() if len(v) > 1]
+
+    def drop_duplicated_seqs(self) -> typing_extensions.Self:
+        """returns self without duplicated sequences
+
+        Notes
+        -----
+        Retains the first sequence of each duplicte group.
+        """
+        dupes = self.duplicated_seqs()
+        if not dupes:
+            return self
+
+        omit = []
+        for group in dupes:
+            omit.extend(group[1:])
+        return self.take_seqs(omit, negate=True)
+
 
 @register_deserialiser(get_object_provenance(SequenceCollection))
-def deserialise_sequence_collection(data) -> SequenceCollection:
+def deserialise_sequence_collection(data: dict) -> SequenceCollection:
     return SequenceCollection.from_rich_dict(data)
 
 
@@ -2397,7 +2493,7 @@ def _(seqs: dict) -> SupportsFeatures:
 
 @dataclasses.dataclass
 class raw_seq_data:
-    seq: StrORBytesORArray
+    seq: bytes | numpy.ndarray[int]
     name: OptStr = None
     parent_name: OptStr = None
     offset: int = 0
@@ -2406,10 +2502,26 @@ class raw_seq_data:
 
 @singledispatch
 def coerce_to_raw_seq_data(
-    seq,
+    seq: StrORBytesORArrayOrSeq,
     moltype: new_moltype.MolType,
     name: OptStr = None,
 ) -> raw_seq_data:
+    """aggregates sequence data into a single object
+
+    Parameters
+    ----------
+    seq
+        sequence data, can be a string, bytes, numpy array or Sequence
+        instance. The latter is converted to a numpy array.
+    moltype
+        name of a cogent3 molecular type, or a cogent3 MolType instance
+    name
+        name of the sequence
+
+    Returns
+    -------
+        raw_seq_data
+    """
     if isinstance(seq, Aligned):
         # convert the Aligned instance
         # into a Sequence instance that includes the gaps
@@ -2424,6 +2536,7 @@ def _(
     moltype: new_moltype.MolType,
     name: str,
 ) -> raw_seq_data:
+    # converts the sequence to a numpy array
     seq = seq.to_moltype(moltype)
     parent_name, start, _, step = seq.parent_coordinates()
     raw_seq = numpy.array(seq)
@@ -2448,7 +2561,7 @@ def _(
 @coerce_to_raw_seq_data.register
 def _(
     seq: numpy.ndarray,
-    moltype: new_moltype.MolType,
+    moltype: new_moltype.MolType,  # noqa: ARG001
     name: OptStr = None,
 ) -> raw_seq_data:
     return raw_seq_data(seq=seq, name=name)
@@ -2460,94 +2573,201 @@ def _(
     moltype: new_moltype.MolType,
     name: OptStr = None,
 ) -> raw_seq_data:
+    # converts the sequence to a upper case bytes, and applies
+    # moltype coercion if needed (e.g. RNA to DNA replaces U with T)
     seq = seq.upper()
     seq = moltype.coerce_to(seq) if moltype.coerce_to else seq
     return raw_seq_data(seq=seq, name=name)
 
 
-CT = tuple[dict[str, StrORBytesORArray], dict[str, int], set[str], dict[str, str]]
+CT = tuple[dict[str, StrORBytesORArray], dict[str, int], set[str]]
 
 
-@singledispatch
 def prep_for_seqs_data(
-    data,
+    data: dict[str, StrORBytesORArrayOrSeq],
     moltype: new_moltype.MolType,
     seq_namer: _SeqNamer,
 ) -> CT:
-    # refactor: handle conversion of SeqView to SeqDataView.
-    msg = f"coerce_to_seqs_data_dict not implemented for {type(data)}"
-    raise NotImplementedError(
-        msg,
-    )
+    """normalises input data for constructing a SeqsData object
 
+    Parameters
+    ----------
+    data
+        a dict[str, StrORBytesORArray] where the key is the sequence name and
+        the value the sequence, or a series of Sequences instances
+    moltype
+        name of a cogent3 molecular type, or a cogent3 MolType instance
+    seq_namer
+        callback that takes the sequence name and transforms it to a new name
 
-@prep_for_seqs_data.register
-def _(
-    data: dict,
-    moltype: new_moltype.MolType,
-    seq_namer: _SeqNamer,
-) -> CT:
+    Returns
+    -------
+    seq data as dict[str, bytes | numpy.ndarray], offsets as dict[str, int],
+    reversed sequences as set[str], name_map as dict[str, str]
+    """
     seqs = {}  # for the (Aligned)SeqsDataABC
     offsets = {}  # for the (Aligned)SeqsDataABC
     rvd = set()
-    name_map = {}  # for the sequence collection
-    # if we have a dict of Sequences, {name: seq, ...}, then the provided names
-    # may differ to the name attribute on the Sequences. If the Sequences have
-    # annotations, then we will need to map between the names in order to
-    # query the annotation database. We do this by creating a name_map.
-    # Note that we do (seq.name or name) to handle when the Sequence name is
-    # None
     for name, seq in data.items():
-        name = seq_namer(seq=seq, name=name)
+        name = seq_namer(seq=seq, name=name)  # noqa: PLW2901
         seq_data = coerce_to_raw_seq_data(seq, moltype, name=name)
         offsets[seq_data.parent_name or name] = seq_data.offset
         seqs[seq_data.parent_name or seq_data.name] = seq_data.seq
         if seq_data.is_reversed:
             rvd.add(name)
-        name_map[name] = seq_data.parent_name or name
 
-    return seqs, offsets, rvd, name_map
+    return seqs, offsets, rvd
 
 
-@prep_for_seqs_data.register
+@singledispatch
+def _make_name_seq_mapping(
+    data: typing.Sequence[StrORBytesORArrayOrSeq],
+    seq_namer: _SeqNamer,
+) -> dict[str, StrORBytesORArrayOrSeq]:
+    """returns a dict mapping names to sequences
+
+    Parameters
+    ----------
+    data
+        a dict of {name: seq, ...}, or python sequence of StrORBytesORArrayOrSeq
+    seq_namer
+        callback that takes the sequence and optionally a name and
+        returns a new name
+    """
+    if not hasattr(data, "seqs"):
+        msg = f"_make_name_seq_mapping not implemented for {type(data)}"
+        raise NotImplementedError(msg)
+
+    return {seq_namer(seq=record): record for record in data.seqs}
+
+
+@_make_name_seq_mapping.register
+def _(
+    data: dict,
+    seq_namer: _SeqNamer,
+) -> dict[str, StrORBytesORArray]:
+    return {seq_namer(seq=seq, name=name): seq for name, seq in data.items()}
+
+
+@_make_name_seq_mapping.register
 def _(
     data: list,
-    moltype: new_moltype.MolType,
     seq_namer: _SeqNamer,
-) -> CT:
-    if not isinstance(data[0], new_sequence.Sequence):
+) -> dict[str, StrORBytesORArray]:
+    if isinstance(data[0], (list, tuple)):
+        # handle case where we've been given data like
+        # for example [[name, seq], ...]
         with contextlib.suppress(ValueError):
-            return prep_for_seqs_data(dict(data), moltype, seq_namer)
-
-    result = {seq_namer(seq=record): record for record in data}
-    return prep_for_seqs_data(result, moltype, seq_namer)
+            return _make_name_seq_mapping(dict(data), seq_namer)
+    return {seq_namer(seq=record): record for record in data}
 
 
-@prep_for_seqs_data.register
+@_make_name_seq_mapping.register
 def _(
     data: tuple,
-    moltype: new_moltype.MolType,
     seq_namer: _SeqNamer,
-) -> CT:
-    return prep_for_seqs_data(list(data), moltype, seq_namer)
+) -> dict[str, StrORBytesORArray]:
+    return _make_name_seq_mapping(list(data), seq_namer)
 
 
-@prep_for_seqs_data.register
+@_make_name_seq_mapping.register
 def _(
     data: set,
-    moltype: new_moltype.MolType,
     seq_namer: _SeqNamer,
-) -> CT:
-    return prep_for_seqs_data(list(data), moltype, seq_namer)
+) -> dict[str, StrORBytesORArray]:
+    return _make_name_seq_mapping(list(data), seq_namer)
 
 
-@prep_for_seqs_data.register
-def _(
-    data: SequenceCollection,
-    moltype: new_moltype.MolType,
-    seq_namer: _SeqNamer,
-) -> CT:
-    return prep_for_seqs_data({seq_namer(s): s for s in data.seqs}, moltype, seq_namer)
+def _seqname_parent_name(
+    record: StrORBytesORArray,
+    name: str | None = None,
+) -> tuple[str, str]:
+    if hasattr(record, "parent_coordinates"):
+        parent_name, *_ = record.parent_coordinates()
+        return name or record.name, parent_name or name
+    if hasattr(record, "name"):
+        return name or record.name, name or record.name
+
+    return name, name
+
+
+def make_name_map(data: dict[str, StrORBytesORArray]) -> dict[str, str]:
+    """returns a dict mapping names to parent names
+
+    Parameters
+    ----------
+    data
+        a dict of {name: seq, ...}
+
+    Returns
+    -------
+        empty dict if names and parent names are always equal
+    """
+    name_map = {}
+    for name, record in data.items():
+        new_name, parent_name = _seqname_parent_name(record, name=name)
+        if new_name == parent_name:
+            continue
+        name_map[new_name] = parent_name
+
+    return name_map
+
+
+def make_unaligned_storage(
+    data: dict[str, bytes | numpy.ndarray[int]],
+    *,
+    moltype: str | new_moltype.MolType,
+    label_to_name: OptRenamerCallable = None,
+    offset: DictStrInt | None = None,
+    reversed_seqs: set[str] | None = None,
+    storage_backend: str | None = None,
+    **kwargs,
+) -> SeqsData:
+    """makes the unaligned storage instance for a SequenceCollection
+
+    Parameters
+    ----------
+    data
+        {name: seq}
+    moltype
+        label or instance of a cogent3 MolType
+    label_to_name
+        callable to convert the original name to a new name
+    offset
+        {name: offset} where the offset is the start position of the
+        sequence in the parent sequence
+    reversed_seqs
+        set of names that are on the reverse strand of the parent sequence
+    storage_backend
+        name of a third-party storage driver to provide storage functionality
+    kwargs
+        additional keyword arguments for the storage driver
+
+    Notes
+    -----
+    This function is intended for use primarly by make_unaligned_seqs function.
+    """
+    moltype = new_moltype.get_moltype(moltype)
+    alphabet = moltype.most_degen_alphabet()
+    # if we have Sequences, we need to construct the name map before we construct
+    # the SeqsData object - however, if a name_map is provided, we assume that it
+    # corrects for any naming differences in data and skip this step
+    assign_names = _SeqNamer(name_func=label_to_name)
+    seqs_data, offs, rvd = prep_for_seqs_data(data, moltype, assign_names)
+    offset = offset or {}
+    offset = {**offs, **offset}
+    # seqs_data keys should be the same as the value of name_map
+    # name_map keys correspond to names in the sequence collection
+    # name_map values correspond to names in seqs_data
+    sd_kwargs = {
+        "data": seqs_data,
+        "alphabet": alphabet,
+        "offset": offset,
+        "reversed_seqs": reversed_seqs or rvd,
+        **kwargs,
+    }
+    klass = cogent3._plugin.get_unaligned_storage_driver(storage_backend)  # noqa: SLF001
+    return klass.from_seqs(**sd_kwargs)
 
 
 @singledispatch
@@ -2562,6 +2782,8 @@ def make_unaligned_seqs(
     offset: DictStrInt | None = None,
     name_map: DictStrStr | None = None,
     is_reversed: bool = False,
+    reversed_seqs: set[str] | None = None,
+    storage_backend: str | None = None,
     **kwargs,
 ) -> SequenceCollection:
     """Initialise an unaligned collection of sequences.
@@ -2588,8 +2810,13 @@ def make_unaligned_seqs(
         name will be used for querying a annotation_db.
     is_reversed
         entire collection has been reverse complemented
+    reversed_seqs
+        set of names that are on the reverse strand of the parent sequence
+    storage_backend
+        name of the storage backend to use for the SeqsData object, defaults to
+        cogent3 builtin.
     kwargs
-        keyword arguments for the SeqsData constructor
+        keyword arguments for the storage driver
 
     Notes
     -----
@@ -2601,36 +2828,31 @@ def make_unaligned_seqs(
     # refactor: design
     # rename offset to offsets as it could track potentially multiple offsets
 
-    # refactor: design
-    # currently reversal can only be applied to the entire collection.
-    # This should be made more flexible.
-
-    moltype = new_moltype.get_moltype(moltype)
-    alphabet = moltype.most_degen_alphabet()
     if len(data) == 0:
         msg = "data must be at least one sequence."
         raise ValueError(msg)
 
     annotation_db = annotation_db or merged_db_collection(data)
-
-    # if we have Sequences, we need to construct the name map before we construct
-    # the SeqsData object - however, if a name_map is provided, we assume that it
-    # corrects for any naming differences in data and skip this step
     assign_names = _SeqNamer(name_func=label_to_name)
-    seqs_data, offs, rvd, nm = prep_for_seqs_data(data, moltype, assign_names)
-    offset = offset or {}
-    offset = {**offs, **offset}
-    name_map = nm if name_map is None else name_map
-    # seqs_data keys should be the same as the value of name_map, not the keys
-    sd_kwargs = {
-        "data": seqs_data,
-        "alphabet": alphabet,
-        "offset": offset,
-        "reversed_seqs": rvd,
+    data = _make_name_seq_mapping(data, assign_names)
+    if name_map is None:
+        name_map = make_name_map(data) or None
+
+    seqs_data = make_unaligned_storage(
+        data,
+        label_to_name=label_to_name,
+        moltype=moltype,
+        offset=offset,
+        reversed_seqs=reversed_seqs,
+        storage_backend=storage_backend,
         **kwargs,
-    }
-    seqs_data = SeqsData(**sd_kwargs)
-    # we do not pass on offset/label_to_name as they are handled in this function
+    )
+    # as they were handled in this function, we do not pass on:
+    # offset
+    # label_to_name
+    # reversed_seqs
+    # storage_backend
+
     return make_unaligned_seqs(
         seqs_data,
         moltype=moltype,
@@ -3124,6 +3346,10 @@ class Aligned:
 
 
 class AlignedSeqsDataABC(SeqsDataABC):
+    """Abstract base class for respresenting the storage object for sequences underlying
+    a Alignment.
+    """
+
     # all methods that are from SeqsDataABC should work in sequence coordinates,
     # all methods unique to AlignedSeqsDataABC should work in aligned coordinates.
     # all indices provided to AlignedSeqsDataABC should be on the plus strand.
@@ -3307,7 +3533,7 @@ def _gapped_seq_len(seq: numpy.ndarray, gap_map: numpy.ndarray) -> int:
 
 
 class AlignedSeqsData(AlignedSeqsDataABC):
-    """The builtin ``cogent3`` implementation of a container of aligned sequences
+    """The builtin ``cogent3`` implementation of aligned sequences storage
     underlying an ``Alignment``. Indexing this object returns an ``AlignedDataView``
     which can realise the corresponding slice as a string, bytes, or numpy array,
     gapped or ungapped.
@@ -3794,6 +4020,8 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             dict of sequences to add {name: seq, ...}
         force_unique_keys
             if True, raises ValueError if any sequence names already exist in the collection
+        offset
+            dict of offsets relative to for the new sequences.
         """
         if force_unique_keys and any(name in self.names for name in seqs):
             msg = "One or more sequence names already exist in collection"
@@ -3913,7 +4141,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         """shallow copy of self
 
         Notes
-        -------
+        -----
         kwargs are passed to constructor and will over-ride existing values
         """
         init_args = {
@@ -4280,7 +4508,7 @@ class Alignment(SequenceCollection):
         return {
             "seqs_data": self._seqs_data,
             "moltype": self.moltype,
-            "name_map": self._name_map.copy(),
+            "name_map": dict(self._name_map),
             "info": self.info.copy(),
             "annotation_db": self.annotation_db,
             "slice_record": self._slice_record,
@@ -4557,7 +4785,7 @@ class Alignment(SequenceCollection):
 
     def take_positions(
         self,
-        cols: list,
+        cols: list[int] | numpy.ndarray[int],
         negate: bool = False,
     ) -> typing_extensions.Self:
         """Returns new Alignment containing only specified positions.
@@ -4575,8 +4803,7 @@ class Alignment(SequenceCollection):
             cols = [i for i in range(len(self)) if i not in col_lookup]
 
         new_data = {
-            aligned.data.seqid: numpy.array(aligned.gapped_seq).take(cols)
-            for aligned in self.seqs
+            aligned.data.seqid: numpy.array(aligned).take(cols) for aligned in self.seqs
         }
         seqs_data = self._seqs_data.from_seqs(
             data=new_data,
@@ -5006,26 +5233,31 @@ class Alignment(SequenceCollection):
         names = [name for name, count in gap_counts.items() if count <= cutoff]
         return self.take_seqs(names)
 
-    def degap(self) -> SequenceCollection:
-        """Returns new SequenceCollection in which sequences have no gaps or
-        missing characters.
+    def degap(self, storage_backend: str | None = None, **kwargs) -> SequenceCollection:
+        """returns collection sequences without gaps or missing characters.
+
+        Parameters
+        ----------
+        storage_backend
+            name of the storage backend to use for the SeqsData object, defaults to
+            cogent3 builtin.
+        kwargs
+            keyword arguments for the storage driver
 
         Notes
         -----
         The returned collection will not retain an annotation_db if present.
         """
-        # refactor: design
-        # add optional argument to retain annotation_db
-
         # because SequenceCollection does not track slice operations, we need
         # to apply any slice record to the underlying data
         sr = self._slice_record
-        data, kwargs = self._seqs_data.get_ungapped(
+        data, kw = self._seqs_data.get_ungapped(
             name_map=self._name_map,
             start=sr.plus_start,
             stop=sr.plus_stop,
             step=sr.plus_step,
         )
+        kwargs = kw | kwargs
         # the SeqsData classes will return the data corresponding to the slice,
         # however, will not complement the data if the step is negative. We do
         # this here.
@@ -5036,6 +5268,7 @@ class Alignment(SequenceCollection):
             else data
         )
         kwargs["annotation_db"] = self.annotation_db
+        kwargs["storage_backend"] = storage_backend
         return make_unaligned_seqs(data, moltype=self.moltype, info=self.info, **kwargs)
 
     def get_degapped_relative_to(self, name: str):
@@ -5347,9 +5580,13 @@ class Alignment(SequenceCollection):
         n: int | None = None,
         with_replacement: bool = False,
         motif_length: int = 1,
-        randint=numpy.random.randint,
-        permutation=numpy.random.permutation,
-    ):
+        randint: typing.Callable[
+            [int, int | None, int | None], numpy.ndarray
+        ] = numpy.random.randint,
+        permutation: typing.Callable[
+            [numpy.ndarray], numpy.ndarray
+        ] = numpy.random.permutation,
+    ) -> typing_extensions.Self:
         """Returns random sample of positions from self, e.g. to bootstrap.
 
         Parameters
@@ -5383,35 +5620,28 @@ class Alignment(SequenceCollection):
         # numpy array reshaped.
 
         population_size = len(self) // motif_length
-        if not n:
-            n = population_size
+        if not with_replacement and n and n > population_size:
+            msg = f"cannot sample without replacement when {n=} > {population_size=}"
+            raise ValueError(msg)
+
+        n = n or population_size
+
         if with_replacement:
             locations = randint(0, population_size, n)
         else:
-            assert n <= population_size, (n, population_size, motif_length)
             locations = permutation(population_size)[:n]
 
-        positions = numpy.empty(n * motif_length, dtype=int)
-        for i, loc in enumerate(locations):
-            positions[i * motif_length : (i + 1) * motif_length] = range(
-                loc * motif_length,
-                (loc + 1) * motif_length,
-            )
+        if motif_length == 1:
+            positions = locations
+        else:
+            positions = numpy.empty(n * motif_length, dtype=int)
+            for i, loc in enumerate(locations):
+                positions[i * motif_length : (i + 1) * motif_length] = range(
+                    loc * motif_length,
+                    (loc + 1) * motif_length,
+                )
 
-        new_seqs = {}
-        for aligned in self.seqs:
-            sampled = numpy.array(aligned)[positions]
-            new_seqs[aligned.data.seqid] = sampled
-
-        new_seqs_data = self._seqs_data.from_seqs(
-            data=new_seqs,
-            alphabet=self.moltype.most_degen_alphabet(),
-        )
-        kwargs = self._get_init_kwargs()
-        kwargs["seqs_data"] = new_seqs_data
-        kwargs.pop("annotation_db", None)
-        kwargs.pop("slice_record", None)
-        return self.__class__(**kwargs)
+        return self.take_positions(positions)
 
     def distance_matrix(
         self,
@@ -5766,6 +5996,9 @@ class Alignment(SequenceCollection):
         yield a sequence segment that is consistently oriented irrespective
         of strand of the current instance.
         """
+        if self.annotation_db is None or not len(self.annotation_db):
+            return None
+
         # we only do on-alignment in here
         if not on_alignment:
             local_vars = locals()
@@ -5775,13 +6008,6 @@ class Alignment(SequenceCollection):
 
         if on_alignment == False:  # noqa
             return
-
-        if self.annotation_db is None:
-            anno_db = merged_db_collection(self._seqs_data)
-            self.annotation_db = anno_db
-
-        if self.annotation_db is None:
-            return None
 
         seq_map = None
         for feature in self.annotation_db.get_features_matching(
@@ -6234,7 +6460,22 @@ class Alignment(SequenceCollection):
 
         return draw
 
-    def to_pretty(self, name_order=None, wrap=None):
+    def to_phylip(self) -> str:
+        """
+        Return collection in PHYLIP format and mapping to sequence ids
+
+        Notes
+        -----
+        raises exception if sequences do not all have the same length
+        """
+        phylip = cogent3._plugin.get_seq_format_writer_plugin(format_name="phylip")  # noqa: SLF001
+        return phylip.formatted(self)
+
+    def to_pretty(
+        self,
+        name_order: list[str] | None = None,
+        wrap: int | None = None,
+    ) -> str:
         """returns a string representation of the alignment in pretty print format
 
         Parameters
@@ -6688,10 +6929,73 @@ class Alignment(SequenceCollection):
             s.name: s.seq.strand_symmetry(motif_length=motif_length) for s in self.seqs
         }
 
+    def duplicated_seqs(self) -> list[list[str]]:
+        """returns the names of duplicated sequences
+
+        Notes
+        -----
+        The gapped sequence is used.
+        """
+        if not len(self):
+            # all have zero lengths
+            return [] if self.num_seqs < 2 else [list(self.names)]
+
+        return super().duplicated_seqs()
+
 
 @register_deserialiser(get_object_provenance(Alignment))
 def deserialise_alignment(data: dict[str, str | dict[str, str]]) -> Alignment:
     return Alignment.from_rich_dict(data)
+
+
+def make_aligned_storage(
+    data: dict[str, bytes | numpy.ndarray[int]],
+    *,
+    moltype: str | new_moltype.MolType,
+    label_to_name: OptRenamerCallable = None,
+    offset: DictStrInt | None = None,
+    reversed_seqs: set[str] | None = None,
+    storage_backend: str | None = None,
+    **kwargs,
+) -> AlignedSeqsDataABC:
+    """makes the aligned storage instance for Alignment class
+
+    Parameters
+    ----------
+    data
+        {seq name: sequence, ...}
+    moltype
+        label for looking up the molecular type
+    label_to_name
+        renamer function
+    offset
+        mapping of {name: annotation offset}
+    reversed_seqs
+        name of sequences that are reverse complemented relative to their
+        parent
+    storage_backend
+        name of a third-party storage driver to provide storage functionality
+    kwargs
+        additional keyword arguments for the storage driver
+
+    Notes
+    -----
+    This function is intended for use primarly by make_aligned_seqs function.
+    """
+    assign_names = _SeqNamer(name_func=label_to_name)
+    moltype = new_moltype.get_moltype(moltype)
+    alphabet = moltype.most_degen_alphabet()
+    seqs_data, offs, rvd = prep_for_seqs_data(data, moltype, assign_names)
+    asd_kwargs = {
+        "alphabet": alphabet,
+        "offset": offset or offs,
+        "reversed_seqs": reversed_seqs or rvd,
+        "data": seqs_data,
+        **kwargs,
+    }
+    # plugin module is private only to exclude users, not developers
+    klass = cogent3._plugin.get_aligned_storage_driver(storage_backend)  # noqa: SLF001
+    return klass.from_seqs(**asd_kwargs)
 
 
 @singledispatch
@@ -6706,36 +7010,80 @@ def make_aligned_seqs(
     offset: DictStrInt | None = None,
     name_map: DictStrStr | None = None,
     is_reversed: OptBool = None,
+    reversed_seqs: set[str] | None = None,
+    storage_backend: str | None = None,
     **kwargs,
 ) -> Alignment:
+    """Initialise an aligned collection of sequences.
+
+    Parameters
+    ----------
+    data
+        sequence data, a AlignedSeqsData, a dict {name: seq, ...}, an iterable of sequences
+    moltype
+        string representation of the moltype, e.g., 'dna', 'protein'.
+    label_to_name
+        function for converting original names into other names.
+    info
+        a dict from which to make an info object
+    source
+        origins of this data, defaults to 'unknown'. Converted to a string
+        and added to info["source"].
+    annotation_db
+        annotation database to attach to the collection
+    offset
+        a dict mapping names to annotation offsets
+    name_map
+        a dict mapping sequence names to "parent" sequence names. The parent
+        name will be used for querying a annotation_db.
+    is_reversed
+        entire collection has been reverse complemented
+    reversed_seqs
+        set of names that are on the reverse strand of the parent sequence
+    storage_backend
+        name of the storage backend to use for the SeqsData object, defaults to
+        cogent3 builtin.
+    kwargs
+        keyword arguments for the AlignedSeqsData constructor
+
+    Notes
+    -----
+    If no annotation_db is provided, but the sequences are annotated, an
+    annotation_db is created by merging any annotation db's found in the sequences.
+    If the sequences are annotated AND an annotation_db is provided, only the
+    annotation_db is used.
+    """
     if len(data) == 0:
         msg = "data must be at least one sequence."
         raise ValueError(msg)
 
     moltype = new_moltype.get_moltype(moltype)
-    alphabet = moltype.most_degen_alphabet()
-    annotation_db = annotation_db or merged_db_collection(data)
+    annotation_db = kwargs.pop("annotation_db", annotation_db) or merged_db_collection(
+        data,
+    )
 
     # if we have Sequences, we need to construct the name map before we construct
-    # the SeqsData object - however, if a name_map is provided, we assume that it
+    # the AlignedSeqsData object - however, if a name_map is provided, we assume that it
     # corrects for any naming differences in data and skip this step
     assign_names = _SeqNamer(name_func=label_to_name)
-    seqs_data, offs, rvd, nm = prep_for_seqs_data(
+    data = _make_name_seq_mapping(data, assign_names)
+    if name_map is None:
+        name_map = make_name_map(data) or None
+
+    seqs_data = make_aligned_storage(
         data,
-        moltype,
-        assign_names,
-    )
-    offset = offset or offs
-    name_map = name_map or nm
-    asd_kwargs = {
-        "alphabet": alphabet,
-        "offset": offset,
-        "reversed_seqs": rvd,
-        "data": seqs_data,
+        moltype=moltype,
+        label_to_name=label_to_name,
+        offset=offset,
+        reversed_seqs=reversed_seqs,
+        storage_backend=storage_backend,
         **kwargs,
-    }
-    seqs_data = AlignedSeqsData.from_seqs(**asd_kwargs)
-    # we do not pass on offset/label_to_name as they are handled in this function
+    )
+    # as they were handled in this function, we do not pass on:
+    # offset
+    # label_to_name
+    # reversed_seqs
+    # storage_backend
     return make_aligned_seqs(
         seqs_data,
         moltype=moltype,
@@ -6761,6 +7109,7 @@ def _(
     offset: DictStrInt | None = None,
     name_map: DictStrStr | None = None,
     is_reversed: OptBool = None,
+    **kwargs,
 ) -> Alignment:
     moltype = new_moltype.get_moltype(moltype)
     if not moltype.is_compatible_alphabet(data.alphabet):

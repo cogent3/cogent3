@@ -29,7 +29,6 @@ class ClustalTests(TestCase):
             moltype="text",
         )
         self.alignment_order = ["2nd", "4th", "3rd", "1st"]
-        self.alignment_object.RowOrder = self.alignment_order
 
         self.clustal_with_label = """CLUSTAL
 
@@ -88,10 +87,14 @@ class ClustalTests(TestCase):
     def test_clustal_from_alignment_reordered(self):
         """should return correct clustal string."""
         assert (
-            clustal_from_alignment(self.alignment_object)
+            clustal_from_alignment(self.alignment_dict, order=self.alignment_order)
             == self.clustal_with_label_reordered
         )
         assert (
-            clustal_from_alignment(self.alignment_object, wrap=2)
+            clustal_from_alignment(
+                self.alignment_dict,
+                order=self.alignment_order,
+                wrap=2,
+            )
             == self.clustal_with_label_lw2_reordered
         )

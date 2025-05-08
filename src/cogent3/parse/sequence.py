@@ -1,5 +1,6 @@
 """Delegator for sequence data format parsers."""
 
+import abc
 import functools
 import pathlib
 import typing
@@ -17,10 +18,36 @@ from cogent3.parse import (
 )
 from cogent3.util.io import iter_splitlines
 
-_lc_to_wc = "".join([[chr(x), "?"]["A" <= chr(x) <= "Z"] for x in range(256)])
+ParserOutputType = typing.Iterable[tuple[str, str] | dict]
+
+SeqParserInputTypes = str | pathlib.Path | tuple | list
 
 
-ParserOutputType = typing.Iterable[tuple[str, str]]
+class SequenceParserBase(abc.ABC):
+    """Base class for sequence format parsers."""
+
+    @property
+    @abc.abstractmethod
+    def name(self) -> str:
+        """name of the format"""
+        ...
+
+    @property
+    @abc.abstractmethod
+    def supported_suffixes(self) -> set[str]:
+        """Return list of file suffixes this parser supports"""
+        ...
+
+    @property
+    def result_is_storage(self) -> bool:
+        """True if the loader directly returns SeqsDataABC or AlignedSeqdDataABC"""
+        return False
+
+    @property
+    @abc.abstractmethod
+    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+        """a callable for loading from a file"""
+        ...
 
 
 class LineBasedParser:
@@ -79,9 +106,184 @@ PARSERS = {
     "nexus": LineBasedParser(nexus.MinimalNexusAlignParser),
 }
 
-XML_PARSERS = {"gbseq": gbseq.GbSeqXmlParser, "tseq": tinyseq.TinyseqParser}
 
-SeqParserInputTypes = typing.Union[str, pathlib.Path, tuple, list]
+class FastaParser(SequenceParserBase):
+    """Parser for FASTA format sequence files."""
+
+    @property
+    def name(self) -> str:
+        return "fasta"
+
+    @property
+    def supported_suffixes(self) -> set[str]:
+        return {"fasta", "fa", "fna", "faa", "mfa"}
+
+    @property
+    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+        return fasta.iter_fasta_records
+
+
+class GdeParser(SequenceParserBase):
+    """Parser for GDE format sequence files."""
+
+    @property
+    def name(self) -> str:
+        return "gde"
+
+    @property
+    def supported_suffixes(self) -> set[str]:
+        return {"gde"}
+
+    @property
+    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+        return LineBasedParser(fasta.MinimalGdeParser)
+
+
+class PhylipParser(SequenceParserBase):
+    """Parser for PHYLIP format sequence files."""
+
+    @property
+    def name(self) -> str:
+        return "phylip"
+
+    @property
+    def supported_suffixes(self) -> set[str]:
+        return {"phylip", "phy"}
+
+    @property
+    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+        return LineBasedParser(phylip.MinimalPhylipParser)
+
+
+class ClustalParser(SequenceParserBase):
+    """Parser for Clustal format sequence files."""
+
+    @property
+    def name(self) -> str:
+        return "clustal"
+
+    @property
+    def supported_suffixes(self) -> set[str]:
+        return {"clustal", "aln"}
+
+    @property
+    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+        return LineBasedParser(clustal.ClustalParser)
+
+
+class PamlParser(SequenceParserBase):
+    """Parser for PAML format sequence files."""
+
+    @property
+    def name(self) -> str:
+        return "paml"
+
+    @property
+    def supported_suffixes(self) -> set[str]:
+        return {"paml"}
+
+    @property
+    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+        return LineBasedParser(paml.PamlParser)
+
+
+class NexusParser(SequenceParserBase):
+    """Parser for Nexus format sequence files."""
+
+    @property
+    def name(self) -> str:
+        return "nexus"
+
+    @property
+    def supported_suffixes(self) -> set[str]:
+        return {"nexus", "nex", "nxs"}
+
+    @property
+    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+        return LineBasedParser(nexus.MinimalNexusAlignParser)
+
+
+class GenbankParser(SequenceParserBase):
+    """Parser for GenBank format sequence files."""
+
+    @property
+    def name(self) -> str:
+        return "genbank"
+
+    @property
+    def supported_suffixes(self) -> set[str]:
+        return {"gb", "gbk", "gbff", "genbank"}
+
+    @property
+    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+        return genbank.rich_parser
+
+
+class MsfParser(SequenceParserBase):
+    """Parser for MSF format sequence files."""
+
+    @property
+    def name(self) -> str:
+        return "msf"
+
+    @property
+    def supported_suffixes(self) -> set[str]:
+        return {"msf"}
+
+    @property
+    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+        return LineBasedParser(gcg.MsfParser)
+
+
+class XmfaParser(SequenceParserBase):
+    """Parser for XMFA format sequence files."""
+
+    @property
+    def name(self) -> str:
+        return "xmfa"
+
+    @property
+    def supported_suffixes(self) -> set[str]:
+        return {"xmfa"}
+
+    @property
+    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+        return LineBasedParser(fasta.MinimalXmfaParser)
+
+
+class TinyseqParser(SequenceParserBase):
+    """Parser for Tinyseq format sequence files."""
+
+    @property
+    def name(self) -> str:
+        return "tinyseq"
+
+    @property
+    def supported_suffixes(self) -> set[str]:
+        return {"tinyseq"}
+
+    @property
+    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+        return LineBasedParser(tinyseq.TinyseqParser)
+
+
+class GbSeqParser(SequenceParserBase):
+    """Parser for GbSeq format sequence files."""
+
+    @property
+    def name(self) -> str:
+        return "gbseq"
+
+    @property
+    def supported_suffixes(self) -> set[str]:
+        return {"gbseq"}
+
+    @property
+    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+        return gbseq.GbSeqXmlParser
+
+
+XML_PARSERS = {"gbseq": gbseq.GbSeqXmlParser, "tseq": tinyseq.TinyseqParser}
 
 
 def get_parser(fmt: str) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:

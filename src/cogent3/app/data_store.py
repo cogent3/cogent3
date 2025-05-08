@@ -19,10 +19,10 @@ from scitrack import get_text_hexdigest
 
 from cogent3.core import alignment as old_alignment
 from cogent3.core import new_alignment
+from cogent3.core.table import Table
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.io import get_format_suffixes, open_
 from cogent3.util.parallel import is_master_process
-from cogent3.util.table import Table
 
 if TYPE_CHECKING:
     from collections.abc import Iterator

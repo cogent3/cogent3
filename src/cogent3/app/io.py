@@ -20,11 +20,9 @@ from cogent3.core.profile import (
     make_motif_freqs_from_tabular,
     make_pssm_from_tabular,
 )
+from cogent3.core.table import Table
 from cogent3.evolve.fast_distance import DistanceMatrix
-from cogent3.format.alignment import FORMATTERS
-from cogent3.parse.sequence import PARSERS
 from cogent3.util.deserialise import deserialise_object
-from cogent3.util.table import Table
 
 from .composable import LOADER, WRITER, NotCompleted, define_app
 from .data_store import (
@@ -46,6 +44,9 @@ from .typing import (
     TabularType,
     UnalignedSeqsType,
 )
+
+if typing.TYPE_CHECKING:
+    from cogent3.parse.sequence import SequenceParserBase
 
 _datastore_reader_map = {}
 
@@ -282,10 +283,18 @@ def _(path: str) -> os.PathLike:
     return _read_it(Path(path))
 
 
-def _load_seqs(path, coll_maker, parser, moltype):
-    data = _read_it(path)
-    data = data.splitlines()
-    data = dict(iter(parser(data)))
+def _load_seqs(
+    path: str | Path,
+    coll_maker: type,
+    parser: "SequenceParserBase",
+    moltype: str,
+) -> SeqsCollectionType:
+    if not parser.result_is_storage:
+        data = _read_it(path)
+        data = data.splitlines()
+        data = dict(iter(parser.loader(data)))
+    else:
+        data = parser.loader(path)
     unique_id = getattr(path, "unique_id", getattr(path, "name", str(path)))
     return coll_maker(data=data, moltype=moltype, source=unique_id)
 
@@ -313,7 +322,9 @@ class load_aligned:
         """
         moltype = moltype or ("text" if _NEW_TYPE else "bytes")
         self.moltype = cogent3.get_moltype(moltype)
-        self._parser = PARSERS[format.lower()]
+        self._parser = cogent3._plugin.get_seq_format_parser_plugin(  # noqa: SLF001
+            format_name=format.lower(),
+        )
 
     T = SerialisableType | AlignedSeqsType
 
@@ -346,7 +357,9 @@ class load_unaligned:
         """
         moltype = moltype or ("text" if _NEW_TYPE else "bytes")
         self.moltype = cogent3.get_moltype(moltype)
-        self._parser = PARSERS[format.lower()]
+        self._parser = cogent3._plugin.get_seq_format_parser_plugin(  # noqa: SLF001
+            format_name=format.lower(),
+        )
 
     T = SerialisableType | UnalignedSeqsType
 
@@ -599,7 +612,9 @@ class write_seqs:
             msg = f"invalid type {type(data_store)!r} for data_store"
             raise TypeError(msg)
         self.data_store = data_store
-        self._formatter = FORMATTERS[format]
+        self._formatter = cogent3._plugin.get_seq_format_writer_plugin(  # noqa: SLF001
+            format_name=format.lower(),
+        )
         self._id_from_source = id_from_source
 
     def main(
@@ -616,7 +631,7 @@ class write_seqs:
                 data=data.to_json(),
             )
 
-        data = self._formatter(data.to_dict())
+        data = self._formatter.formatted(data)
         return self.data_store.write(unique_id=identifier, data=data)
 
 

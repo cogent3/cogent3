@@ -405,7 +405,7 @@ class DictArrayTest(TestCase):
 
     def test_to_table(self):
         """creates Table when ndim <= 2"""
-        from cogent3.util.table import Table
+        from cogent3.core.table import Table
 
         a1D = DictArrayTemplate(["a", "b"]).wrap([0, 1])
         t = a1D.to_table()

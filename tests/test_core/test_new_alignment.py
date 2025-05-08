@@ -7,7 +7,13 @@ from warnings import catch_warnings, filterwarnings
 import numpy
 import pytest
 
-from cogent3 import get_app, load_aligned_seqs, load_unaligned_seqs, open_
+from cogent3 import (
+    get_app,
+    load_aligned_seqs,
+    load_unaligned_seqs,
+    open_,
+    set_storage_defaults,
+)
 from cogent3._version import __version__
 from cogent3.core import new_alignment, new_alphabet, new_moltype, new_sequence
 from cogent3.core.annotation import Feature
@@ -15,6 +21,13 @@ from cogent3.core.annotation_db import GffAnnotationDb, load_annotations
 from cogent3.core.location import FeatureMap, LostSpan, Span
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.misc import get_object_provenance
+
+try:
+    import cogent3_h5seqs  # noqa: F401
+
+    has_hf_seqs = True
+except ImportError:
+    has_hf_seqs = False
 
 
 @pytest.fixture(scope="session")
@@ -790,7 +803,7 @@ def test_sequence_collection_repr():
     seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
     assert (
         repr(seqs)
-        == "2x (ENSMUSG00000039616[GCCCTTCAAA...], ENSMUSG00000056468[GCCAGGGGGA...]) dna seqcollection"
+        == "2x dna seqcollection: (ENSMUSG00000039616[GCCCTTCAAA...], ENSMUSG00000056468[GCCAGGGGGA...])"
     )
 
     data = {
@@ -800,20 +813,24 @@ def test_sequence_collection_repr():
     seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
     assert (
         repr(seqs)
-        == "2x (ENSMUSG00000039616[GCCCTTCAAA...], ENSMUSG00000056468[GCCAGGGGGA...]) dna seqcollection"
+        == "2x dna seqcollection: (ENSMUSG00000039616[GCCCTTCAAA...], ENSMUSG00000056468[GCCAGGGGGA...])"
     )
 
     data = {
         "a": "TCGAT",
     }
     seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
-    assert repr(seqs) == "1x (a[TCGAT]) dna seqcollection"
+    assert repr(seqs) == "1x dna seqcollection: (a[TCGAT])"
 
     data = {
         "a": "TCGAT" * 2,
     }
     seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
-    assert repr(seqs) == "1x (a[TCGATTCGAT]) dna seqcollection"
+    assert repr(seqs) == "1x dna seqcollection: (a[TCGATTCGAT])"
+
+    data = {"a": "", "b": ""}
+    seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
+    assert repr(seqs) == "2x dna seqcollection: (a[], b[])"
 
 
 def test_sequence_collection_set_wrap_affects_repr_html():
@@ -1308,7 +1325,7 @@ def test_sequence_collection_ragged(ragged):
     ]
 
 
-def test_sequence_collection_to_phylip():
+def test_to_phylip():
     """SequenceCollection should return PHYLIP string format correctly"""
     data = {
         "seq_0": "ACDEFGHIKLMNPQRSTUVWY-",
@@ -1316,21 +1333,12 @@ def test_sequence_collection_to_phylip():
         "seq_2": "ACDEFGHIKLMNPERSKUVWC-",
         "seq_3": "ACNEFGHIKLMNPQRS-UVWP-",
     }
-    align_norm = new_alignment.make_unaligned_seqs(data, moltype="protein")
+    align_norm = new_alignment.make_aligned_seqs(data, moltype="protein")
 
     assert (
         align_norm.to_phylip()
         == """4  22\nseq_0     ACDEFGHIKLMNPQRSTUVWY-\nseq_1     ACDEFGHIKLMNPQRSUUVWF-\nseq_2     ACDEFGHIKLMNPERSKUVWC-\nseq_3     ACNEFGHIKLMNPQRS-UVWP-\n"""
     )
-
-
-def test_sequence_collection_to_phylip_ragged():
-    """SequenceCollection should refuse to convert ragged seqs to phylip"""
-    data = {"seq1": "KGA-", "seq2": "KGA"}
-    align_rag = new_alignment.make_unaligned_seqs(data, moltype="protein")
-
-    with pytest.raises(ValueError):
-        align_rag.to_phylip()
 
 
 @pytest.mark.parametrize(
@@ -2461,6 +2469,53 @@ def test_sequence_collection_rename_seqs(mk_cls):
     "mk_cls",
     [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
 )
+def test_sequence_collection_rename_seqs_name_map(mk_cls):
+    """successfully rename sequences"""
+    data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
+    seqs = mk_cls(data, moltype="dna")
+    new = seqs.rename_seqs(lambda x: x.upper())
+    expect = {k.upper(): k for k in data}
+    assert dict(new.name_map) == expect
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_sequence_collection_immutable_name_map(mk_cls):
+    """name map attribute is immutable"""
+    data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
+    seqs = mk_cls(data, moltype="dna")
+    with pytest.raises(TypeError):
+        seqs.name_map = {k.upper(): k for k in data}
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_sequence_collection_multiple_rename_seqs_name_map(mk_cls):
+    """parent seq names should remain the same after renames"""
+    data = {"Seq1": "ACGTACGTA", "Seq2": "ACCGAA---", "Seq3": "ACGTACGTT"}
+    seqs = mk_cls(data, moltype="dna")
+    # original name map is the same as the original names
+    expect = {k: k for k in data}
+    assert seqs.name_map == expect
+
+    # subsequently only the keys change in name_map
+    new = seqs.rename_seqs(lambda x: x.upper())
+    expect = {k.upper(): k for k in data}
+    assert new.name_map == expect
+    # and again only the keys change in name_map
+    new = new.rename_seqs(lambda x: x.lower())
+    expect = {k.lower(): k for k in data}
+    assert new.name_map == expect
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
 def test_sequence_collection_subsequent_rename(mk_cls):
     """sequences can be renamed multiple times"""
     data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
@@ -2608,7 +2663,7 @@ def test_sequence_collection_to_rich_dict():
         "version": __version__,
         "init_args": {
             "moltype": seqs.moltype.label,
-            "name_map": seqs._name_map,
+            "name_map": seqs.name_map,
             "info": seqs.info,
             "source": "unknown",
         },
@@ -2626,7 +2681,7 @@ def test_sequence_collection_to_rich_dict_reversed_seqs():
         "seqs": reversed_seqs.to_dict(),
         "init_args": {
             "moltype": seqs.moltype.label,
-            "name_map": seqs._name_map,
+            "name_map": seqs.name_map,
             "info": seqs.info,
             "source": "unknown",
         },
@@ -4504,6 +4559,16 @@ def test_alignment_sample_with_replacement():
     assert len(result) == 1
 
 
+def test_alignment_sample_without_replacement():
+    # test with replacement -- just verify that it rnus
+    alignment = new_alignment.make_aligned_seqs(
+        {"seq1": "GATC", "seq2": "GATC"},
+        moltype="dna",
+    )
+    with pytest.raises(ValueError):
+        alignment.sample(n=100, with_replacement=False)
+
+
 def test_alignment_sample_tuples():
     ##### test with motif size != 1 #####
     alignment = new_alignment.make_aligned_seqs(
@@ -5266,7 +5331,7 @@ def test_alignment_apply_scaled_gaps_codon2aa_invalid_moltype(codon_and_aa_alns)
 def test_alignment_copy(simple_aln):
     got = simple_aln.copy()
     # mutable data structures should be different IDs
-    assert got._name_map is not simple_aln._name_map
+    assert got.name_map is not simple_aln.name_map
     assert got.info is not simple_aln.info
     assert got.annotation_db is not simple_aln.annotation_db
     # immutable data structures should be the same object
@@ -5295,7 +5360,7 @@ def test_alignment_copy_rc(simple_aln):
 def test_alignment_deepcopy(simple_aln):
     got = simple_aln.deepcopy()
     # all data structures should be different IDs
-    assert got._name_map is not simple_aln._name_map
+    assert got.name_map is not simple_aln.name_map
     assert got.info is not simple_aln.info
     assert got.annotation_db is not simple_aln.annotation_db
     assert got._slice_record is not simple_aln._slice_record
@@ -5430,7 +5495,7 @@ def test_alignment_to_rich_dict_round_trip_renamed(mk_cls):
     renamed_aln = aln.rename_seqs(renamer=lambda x: x.upper())
     rd = renamed_aln.to_rich_dict()
     got = deserialise_object(rd)
-    assert got._name_map == {"SEQ1": "seq1", "SEQ2": "seq2"}
+    assert dict(got.name_map) == {"SEQ1": "seq1", "SEQ2": "seq2"}
     assert got.to_dict() == renamed_aln.to_dict()
     assert got is not renamed_aln
 
@@ -5707,3 +5772,232 @@ def test_aln_mixed_strand_rced_seq():
     assert s2 == "GAGGTA"
     s2rc = s2.rc()
     assert s2rc == "TACCTC"
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_seqcoll_storage(mk_cls):
+    data = {
+        "seq1": "ATCG",
+        "seq2": "TAGC",
+    }
+    seqcoll = mk_cls(data, moltype="dna")
+    expect_class = (
+        new_alignment.SeqsData
+        if mk_cls is new_alignment.make_unaligned_seqs
+        else new_alignment.AlignedSeqsData
+    )
+    assert isinstance(seqcoll.storage, expect_class)
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_seqcoll_storage_immutable(mk_cls):
+    data = {
+        "seq1": "ATCG",
+        "seq2": "TAGC",
+    }
+    seqcoll = mk_cls(data, moltype="dna")
+    with pytest.raises(TypeError):
+        seqcoll.storage = "new_storage"
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_invalid_storage_backend(mk_cls):
+    data = {
+        "seq1": "ATCG",
+        "seq2": "TAGC",
+    }
+    with pytest.raises(ValueError):
+        mk_cls(data, moltype="dna", storage_backend="invalid_backend")
+
+
+@pytest.mark.skipif(not has_hf_seqs, reason="hdf5 seqs plugin not available")
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_coll_storage_select_driver(mk_cls):
+    data = {
+        "seq1": "ATCG",
+        "seq2": "TAGC",
+    }
+    storage_backend = (
+        "h5seqs_unaligned"
+        if mk_cls == new_alignment.make_unaligned_seqs
+        else "h5seqs_aligned"
+    )
+    seqcoll = mk_cls(data, moltype="dna", storage_backend=storage_backend)
+    builtin = (
+        new_alignment.SeqsData
+        if mk_cls is new_alignment.make_unaligned_seqs
+        else new_alignment.AlignedSeqsData
+    )
+    assert not isinstance(seqcoll.storage, builtin)
+    seqcoll = mk_cls(data, moltype="dna", storage_backend=None)
+    assert isinstance(seqcoll.storage, builtin)
+
+
+@pytest.mark.skipif(not has_hf_seqs, reason="hdf5 seqs plugin not available")
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_coll_storage_set_default_driver(mk_cls):
+    data = {
+        "seq1": "ATCG",
+        "seq2": "TAGC",
+    }
+    aligned = mk_cls == new_alignment.make_aligned_seqs
+    storage_backend = "h5seqs_aligned" if aligned else "h5seqs_unaligned"
+    defaults_arg = "aligned_seqs" if aligned else "unaligned_seqs"
+    set_storage_defaults(**{defaults_arg: storage_backend})
+    seqcoll = mk_cls(data, moltype="dna")
+    builtin = (
+        new_alignment.SeqsData
+        if mk_cls is new_alignment.make_unaligned_seqs
+        else new_alignment.AlignedSeqsData
+    )
+    assert not isinstance(seqcoll.storage, builtin)
+    # resetting to defaults restores builtin's
+    set_storage_defaults(reset=True)
+    seqcoll = mk_cls(data, moltype="dna")
+    assert isinstance(seqcoll.storage, builtin)
+
+
+@pytest.mark.skipif(not has_hf_seqs, reason="hdf5 seqs plugin not available")
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_coll_storage_degap_explicit(mk_cls):
+    data = {
+        "seq1": "ATC-G",
+        "seq2": "TAGCC",
+    }
+    aligned = mk_cls == new_alignment.make_aligned_seqs
+    seqcoll = mk_cls(
+        data,
+        moltype="dna",
+    )
+    builtin = new_alignment.AlignedSeqsData if aligned else new_alignment.SeqsData
+    assert isinstance(seqcoll.storage, builtin)
+    # we use the storage specified by the command
+    dg = seqcoll.degap(storage_backend="h5seqs_unaligned")
+    assert not isinstance(dg.storage, builtin)
+
+
+@pytest.mark.skipif(not has_hf_seqs, reason="hdf5 seqs plugin not available")
+def test_coll_storage_degap_propagates_type():
+    data = {
+        "seq1": "ATC-G",
+        "seq2": "TAGCC",
+    }
+    seqcoll = new_alignment.make_unaligned_seqs(
+        data,
+        moltype="dna",
+        storage_backend="h5seqs_unaligned",
+    )
+    builtin = new_alignment.SeqsData
+    assert not isinstance(seqcoll.storage, builtin)
+    dg = seqcoll.degap(storage_backend="h5seqs_unaligned")
+    assert not isinstance(dg.storage, builtin)
+    assert isinstance(dg.storage, seqcoll.storage.__class__)
+
+
+@pytest.mark.parametrize(
+    "mk_cls", [new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs]
+)
+def test_duplicated_seqs_duplicates(mk_cls):
+    data = {
+        "seq1": "ATC-G",
+        "seq2": "TAGCC",
+        "seq1-1": "ATC-G",
+    }
+    seqcoll = mk_cls(data, moltype="dna")
+    got = [set(v) for v in seqcoll.duplicated_seqs()]
+    assert got == [{"seq1", "seq1-1"}]
+
+    # all seqs length=0
+    data = {
+        "seq1": "",
+        "seq2": "",
+    }
+    seqcoll = mk_cls(data, moltype="dna")
+    got = [set(v) for v in seqcoll.duplicated_seqs()]
+    assert got == [{"seq1", "seq2"}]
+
+    data = {
+        "seq1": "ATC-G",
+        "seq2": "TAGCC",
+        "seq1-1": "ATC-G",
+        "seq2-1": "TAGCC",
+        "seq2-2": "TAGCC",
+    }
+    seqcoll = mk_cls(data, moltype="dna")
+    got = {frozenset(v) for v in seqcoll.duplicated_seqs()}
+    assert got == {
+        frozenset({"seq1", "seq1-1"}),
+        frozenset({"seq2", "seq2-1", "seq2-2"}),
+    }
+
+
+@pytest.mark.parametrize(
+    "mk_cls", [new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs]
+)
+def test_duplicated_seqs_no_duplicates(mk_cls):
+    data = {
+        "seq1": "ATC-G",
+        "seq2": "TAGCC",
+    }
+    seqcoll = mk_cls(data, moltype="dna")
+    got = [set(v) for v in seqcoll.duplicated_seqs()]
+    assert got == []
+
+
+@pytest.mark.parametrize(
+    "mk_cls", [new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs]
+)
+def test_drop_duplicated_seqs(mk_cls):
+    data = {
+        "seq1": "ATC-G",
+        "seq2": "TAGCC",
+        "seq1-1": "ATC-G",
+        "seq2-1": "TAGCC",
+        "seq2-2": "TAGCC",
+        "seq2-3": "TAGCC",
+    }
+    seqcoll = mk_cls(data, moltype="dna")
+    got = seqcoll.drop_duplicated_seqs()
+    names = set(got.names)
+    assert len(names & {"seq1", "seq1-1"}) == 1
+    assert len(names & {"seq2", "seq2-1", "seq2-2", "seq2-3"}) == 1
+
+    # on a collection with zero length seqs
+    data = {
+        "seq1": "",
+        "seq2": "",
+    }
+    seqcoll = mk_cls(data, moltype="dna")
+    got = seqcoll.drop_duplicated_seqs()
+
+
+@pytest.mark.parametrize(
+    "mk_cls", [new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs]
+)
+def test_drop_duplicated_seqs_no_dupes(mk_cls):
+    data = {
+        "seq1": "ATC-G",
+        "seq2": "TAGCC",
+        "seq3": "T-GCC",
+    }
+    seqcoll = mk_cls(data, moltype="dna")
+    got = seqcoll.drop_duplicated_seqs()
+    assert got is seqcoll

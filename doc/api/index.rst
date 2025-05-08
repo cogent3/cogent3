@@ -81,35 +81,30 @@ These are all top level imports. For example,
     __init__/cogent3.__init__.available_models
     __init__/cogent3.__init__.available_apps
 
-****************************
-The Major cogent3 Data Types
-****************************
+************************
+Major cogent3 Data Types
+************************
 
-.. toctree::
-    :maxdepth: 1
+To enforce usage of the new type classes (e.g. sequence, alignment etc...) add the following to the top of your scripts.
 
-    alignment/alignment
-    annotation/annotation
-    annotation_db/annotation_db
-    sequence/sequence
-    genetic_code/genetic_code
-    moltype/moltype
-    alphabet/alphabet
-    table/table
-    tree/tree
+.. code-block:: python
 
-****************************
-NEW Major cogent3 Data Types
-****************************
+    import os
+
+    os.environ["COGENT3_NEW_TYPE"] = "1"
 
 .. toctree::
     :maxdepth: 1
 
     new_alignment/alignment
+    annotation/annotation
+    annotation_db/annotation_db
     new_sequence/sequence
     new_genetic_code/genetic_code
     new_moltype/moltype
     new_alphabet/alphabet
+    table/table
+    tree/tree
 
 ***************
 Composable Apps

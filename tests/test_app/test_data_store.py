@@ -26,7 +26,7 @@ from cogent3.app.data_store import (
     load_record_from_json,
     summary_not_completeds,
 )
-from cogent3.util.table import Table
+from cogent3.core.table import Table
 from cogent3.util.union_dict import UnionDict
 
 

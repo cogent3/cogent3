@@ -2468,7 +2468,7 @@ def test_parent_start_stop_singletons(index, rev, ascii_alphabet):
 
 
 def test_get_drawable(DATA_DIR):
-    seq = cogent3.load_seq(DATA_DIR / "annotated_seq.gb")
+    seq = cogent3.load_seq(DATA_DIR / "annotated_seq.gb", new_type=True, moltype="dna")
     seq = seq[2000:4000]
     biotypes = "CDS", "gene", "mRNA"
     for feat in seq.get_features(biotype=biotypes, allow_partial=True):
@@ -2976,7 +2976,11 @@ def test_sequence_serialisation_round_trip(moltype, data):
 def aa_moltype(DATA_DIR, tmp_path):
     # make a directory that contains both DNA and protein
     outpath = tmp_path / "aa.fa"
-    aln = cogent3.load_aligned_seqs(DATA_DIR / "brca1_5.paml", moltype="dna")
+    aln = cogent3.load_aligned_seqs(
+        DATA_DIR / "brca1_5.paml",
+        moltype="dna",
+        new_type=True,
+    )
     aa = aln.get_translation()
     aa.write(outpath)
     return outpath
@@ -3051,3 +3055,31 @@ def test_coerce_moltype(moltype, seq):
     assert seq.moltype.name == moltype
     expect = "ATGC" if moltype == "dna" else "AUGC"
     assert str(seq) == expect
+
+
+def test_sample_motif_length_3():
+    seq = cogent3.get_dataset("brca1")["Human"].seq
+    got = seq.sample(motif_length=3)
+    assert len(got) == len(seq)
+    assert got != seq
+    # following will fail if motif length is 1 due
+    # to random creation of stops
+    aa = got.get_translation()
+    assert len(aa) == len(seq) // 3
+
+
+def test_sample_motif_length_1():
+    seq = cogent3.get_dataset("brca1")["Human"].seq
+    got = seq.sample(motif_length=1)
+    assert len(got) == len(seq)
+    assert got != seq
+    # following will fail if motif length is 1 due
+    # to random creation of stop codons
+    with pytest.raises(new_alphabet.AlphabetError):
+        got.get_translation()
+
+
+def test_sample_without_replacement():
+    seq = cogent3.get_dataset("brca1")["Human"].seq
+    with pytest.raises(ValueError):
+        seq[:20].sample(n=100, with_replacement=False)

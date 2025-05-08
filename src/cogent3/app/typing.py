@@ -149,7 +149,7 @@ def defined_types():
     These (or standard Python) types are required to annotate argument and
     return values from cogent3 apps. They define the compatability of apps.
     """
-    from cogent3.util.table import Table
+    from cogent3.core.table import Table
 
     rows = [[n, ", ".join(get_constraint_names(t))] for n, t in _all_types.items()]
     title = "To use a type hint, from cogent3.app import typing"

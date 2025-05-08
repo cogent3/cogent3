@@ -11,8 +11,8 @@ from scipy.stats.distributions import chi2
 import cogent3
 from cogent3._version import __version__
 from cogent3.app.data_store import get_data_source
+from cogent3.core.table import Table
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
-from cogent3.util.table import Table
 
 
 class generic_result(MutableMapping):

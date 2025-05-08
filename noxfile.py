@@ -1,6 +1,10 @@
+import os
 import pathlib
 
 import nox
+
+# on python >= 3.12 this will improve speed of test coverage a lot
+os.environ["COVERAGE_CORE"] = "sysmon"
 
 _py_versions = range(10, 14)
 
@@ -18,7 +22,13 @@ def test_slow(session):
 
 @nox.session(python=[f"3.{v}" for v in _py_versions])
 def test(session):
+    # the following line is temporary until we have both
+    # cogent3-h5seqs and cogent3 with driver support on pypi
+    session.install(
+        "cogent3-h5seqs @ git+https://github.com/GavinHuttley/cogent3-h5seqs.git@develop",
+    )
     session.install("-e.[test]")
+    session.run("pip", "list")
     # doctest modules within cogent3/app
     session.chdir("src/cogent3/app")
     session.run(

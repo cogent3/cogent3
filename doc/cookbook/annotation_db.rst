@@ -64,7 +64,7 @@ To load features from a Genbank file, we can once again use the ``load_annotatio
 How to generate a summary of an ``AnnotationDb``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To generate a summary of an ``AnnotationDb``, we can access the ``describe`` attribute of the database. This attribute returns a ``cogent3.util.table.Table`` instance that shows the number of records for each seqid, the count for each biotype, and the number of rows in each table (in this example there is a "gff" table with 1,169 rows and an empty "user" table).
+To generate a summary of an ``AnnotationDb``, we can access the ``describe`` attribute of the database. This attribute returns a ``cogent3.core.table.Table`` instance that shows the number of records for each seqid, the count for each biotype, and the number of rows in each table (in this example there is a "gff" table with 1,169 rows and an empty "user" table).
 
 .. jupyter-execute::
     :raises:

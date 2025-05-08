@@ -23,11 +23,11 @@ from cogent3.app.data_store import (
 )
 from cogent3.app.io import DEFAULT_DESERIALISER, DEFAULT_SERIALISER
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
+from cogent3.core.table import Table
 from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.maths.util import safe_log
 from cogent3.parse.sequence import PARSERS
 from cogent3.util.deserialise import deserialise_object
-from cogent3.util.table import Table
 
 DNA = get_moltype("dna")
 
@@ -127,7 +127,7 @@ def test_source_proxy_simple(fasta_dir):
     assert isinstance(got[0], source_proxy)
 
 
-@pytest.mark.parametrize("suffix", ["nex", "paml", "fasta"])
+@pytest.mark.parametrize("suffix", ["nexus", "paml", "fasta"])
 def test_load_aligned(DATA_DIR, suffix):
     """should handle nexus too"""
     dstore = DataStoreDirectory(DATA_DIR, suffix=suffix, limit=2)
@@ -136,8 +136,7 @@ def test_load_aligned(DATA_DIR, suffix):
     # TODO: checking class name rather than isinstance during
     #  migration to new_type, revert to isinstance when
     #  that migration is complete
-    for result in results:
-        assert result.__class__.__name__.endswith("Alignment")
+    assert all(r.__class__.__name__.endswith("Alignment") for r in results)
 
 
 def test_load_unaligned(DATA_DIR):

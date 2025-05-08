@@ -5,7 +5,7 @@ Compatible with blat v.34
 
 import contextlib
 
-from cogent3.util.table import Table
+from cogent3.core.table import Table
 
 
 def make_header(lines):

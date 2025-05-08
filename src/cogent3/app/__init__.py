@@ -7,6 +7,7 @@ import textwrap
 import warnings
 from typing import TYPE_CHECKING
 
+import cogent3
 from cogent3._plugin import get_app_manager
 
 from .composable import is_app, is_app_composable
@@ -15,7 +16,7 @@ from .io import open_data_store  # noqa
 if TYPE_CHECKING:
     from stevedore.extension import Extension
 
-    from cogent3.util.table import Table
+    from cogent3.core.table import Table
 
 
 def _get_extension_attr(extension: Extension) -> list[str]:
@@ -60,7 +61,6 @@ def available_apps(name_filter: str | None = None) -> Table:
     """
     returns Table listing the available apps
     """
-    from cogent3.util.table import Table
 
     rows = []
 
@@ -75,7 +75,7 @@ def available_apps(name_filter: str | None = None) -> Table:
             rows.append(_get_extension_attr(extension))
 
     header = ["package", "name", "composable", "doc", "input type", "output type"]
-    return Table(header=header, data=rows)
+    return cogent3.make_table(header=header, data=rows)
 
 
 _get_param = re.compile('(?<=").+(?=")')

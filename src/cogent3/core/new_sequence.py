@@ -609,8 +609,8 @@ class Sequence:
     def matrix_distance(self, other: typing_extensions.Self, matrix) -> IntORFloat:
         """Returns distance between self and other using a score matrix.
 
-        Warning
-        -------
+        Warnings
+        --------
         The matrix must explicitly contain scores for the case where
         a position is the same in self and other (e.g. for a distance matrix,
         an identity between U and U might have a score of 0). The reason the
@@ -1845,9 +1845,71 @@ class Sequence:
             strand,
         )
 
+    def sample(
+        self,
+        *,
+        n: int | None = None,
+        with_replacement: bool = False,
+        motif_length: int = 1,
+        randint: typing.Callable[
+            [int, int | None, int | None], numpy.ndarray
+        ] = numpy.random.randint,
+        permutation: typing.Callable[
+            [numpy.ndarray], numpy.ndarray
+        ] = numpy.random.permutation,
+    ) -> typing_extensions.Self:
+        """Returns random sample of positions from self, e.g. to bootstrap.
+
+        Parameters
+        ----------
+        n
+            number of positions to sample. If None, all positions are sampled.
+        with_replacement
+            if True, samples with replacement.
+        motif_length
+            number of positions to sample as a single motif. Starting point
+            of each sampled motif is modulo motif_length in the original sequence.
+        randint
+            random number generator, default is numpy.randint
+        permutation
+            function to generate a random permutation of positions, default is
+            numpy.permutation
+
+        Notes
+        -----
+        By default (resampling all positions without replacement), generates
+        a permutation of the positions of the alignment.
+        """
+        population_size = len(self) // motif_length
+        if not with_replacement and n and n > population_size:
+            msg = f"cannot sample without replacement when {n=} > {population_size=}"
+            raise ValueError(msg)
+
+        n = n or population_size
+
+        if with_replacement:
+            locations = randint(0, population_size, n)
+        else:
+            locations = permutation(population_size)[:n]
+
+        if motif_length == 1:
+            positions = locations
+        else:
+            positions = numpy.empty(n * motif_length, dtype=int)
+            for i, loc in enumerate(locations):
+                positions[i * motif_length : (i + 1) * motif_length] = range(
+                    loc * motif_length,
+                    (loc + 1) * motif_length,
+                )
+
+        sampled = numpy.array(self).take(positions)
+        return self.moltype.make_seq(
+            seq=sampled, name=f"{self.name}-randomised", check_seq=False
+        )
+
 
 @register_deserialiser(get_object_provenance(Sequence))
-def deserialise_sequence(data) -> Sequence:
+def deserialise_sequence(data: dict) -> Sequence:
     return Sequence.from_rich_dict(data)
 
 
