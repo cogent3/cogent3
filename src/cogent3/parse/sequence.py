@@ -44,6 +44,16 @@ class SequenceParserBase(abc.ABC):
         return False
 
     @property
+    def supports_unaligned(self) -> bool:
+        """True if the loader supports unaligned sequences"""
+        return True
+
+    @property
+    def supports_aligned(self) -> bool:
+        """True if the loader supports aligned sequences"""
+        return True
+
+    @property
     @abc.abstractmethod
     def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
         """a callable for loading from a file"""

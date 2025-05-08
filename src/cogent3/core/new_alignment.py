@@ -1487,6 +1487,7 @@ class SequenceCollection:
         writer = cogent3._plugin.get_seq_format_writer_plugin(  # noqa: SLF001
             format_name=file_format,
             file_suffix=suffix,
+            unaligned_seqs=type(self) == SequenceCollection,
         )
         _ = writer.write(seqcoll=self, path=filename, **kwargs)
 
