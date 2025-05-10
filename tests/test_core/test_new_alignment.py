@@ -3361,6 +3361,29 @@ def test_aligned_seqs_data_get_gapped_seq_array(
 
 @pytest.mark.parametrize("seqid", ["seq1", "seq2", "seq3", "seq4"])
 @pytest.mark.parametrize("moltype", ["dna_moltype", "rna_moltype"])
+def test_aligned_seqs_data_view_cast(
+    aligned_array_dict,
+    seqid,
+    moltype,
+    request,
+):
+    moltype = request.getfixturevalue(moltype)
+    alpha = moltype.degen_gapped_alphabet
+    ad = new_alignment.AlignedSeqsData.from_seqs(
+        data=aligned_array_dict,
+        alphabet=alpha,
+    )
+    got = ad[seqid]
+    # the defaulkt conversion by array, str or bytes is of the gapped sequence
+    expect_array = aligned_array_dict[seqid]
+    assert numpy.array_equal(numpy.array(got), expect_array)
+    expect_str = alpha.from_indices(expect_array)
+    assert str(got) == expect_str
+    assert bytes(got) == expect_str.encode("utf-8")
+
+
+@pytest.mark.parametrize("seqid", ["seq1", "seq2", "seq3", "seq4"])
+@pytest.mark.parametrize("moltype", ["dna_moltype", "rna_moltype"])
 def test_aligned_seqs_data_get_seq_str(aligned_array_dict, seqid, moltype, request):
     moltype = request.getfixturevalue(moltype)
     ad = new_alignment.AlignedSeqsData.from_seqs(
