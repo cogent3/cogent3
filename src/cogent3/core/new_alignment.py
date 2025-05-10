@@ -4306,20 +4306,20 @@ class AlignedDataView(new_sequence.SeqViewABC):
         return self.gapped_str_value.encode("utf8")
 
     def __str__(self) -> str:
-        return self.str_value
+        return self.gapped_str_value
 
     def __array__(
         self,
         dtype: numpy.dtype | None = None,
         copy: bool | None = None,
     ) -> numpy.ndarray[int]:
-        arr = self.array_value
+        arr = self.gapped_array_value
         if dtype:
             arr = arr.astype(dtype)
         return arr
 
     def __bytes__(self) -> bytes:
-        return self.bytes_value
+        return self.gapped_bytes_value
 
     def __getitem__(self, segment) -> typing_extensions.Self:
         return self.__class__(
