@@ -4306,7 +4306,7 @@ class AlignedDataView(new_sequence.SeqViewABC):
         return self.gapped_str_value.encode("utf8")
 
     def __str__(self) -> str:
-        return self.gapped_str_values
+        return self.gapped_str_value
 
     def __array__(
         self,
