@@ -536,16 +536,16 @@ def _count_records_sql(
 
     Parameters
     ----------
-    table_name : str
+    table_name
         containing the data to be selected from
-    columns : Tuple[str]
+    columns
         values to select
-    conditions : dict
+    conditions
         the WHERE conditions
-    start, stop : OptionalInt
+    start, stop
         select records whose (start, stop) values lie between start and stop,
         or overlap them if (allow_partial is True)
-    allow_partial : bool, optional
+    allow_partial
         if False, only records within start, stop are included. If True,
         all records that overlap the segment defined by start, stop are included.
 
@@ -786,19 +786,19 @@ class SqliteAnnotationDbMixin:
 
         Parameters
         ----------
-        seqid : str
+        seqid
             name of the sequence feature resides on
-        biotype : str
+        biotype
             biological type of the record
-        name : str
+        name
             the name of a record, an identifier
-        spans : typing.List[typing.Tuple[int, int]], optional
+        spans
             this will be sorted
-        strand : str, optional
+        strand
             either +, -. Defaults to '+'
-        attributes : str, optional
+        attributes
             additional attributes as a string
-        on_alignment : bool, optional
+        on_alignment
             whether the annotation is an alignment annotation
         """
         spans = numpy.array(sorted(sorted(coords) for coords in spans), dtype=int)
