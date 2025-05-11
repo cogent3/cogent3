@@ -3321,7 +3321,7 @@ def test_aligned_seqs_data_getitem(seqid, index, aligned_array_dict, moltype, re
     got_with_seqid = numpy.array(ad[seqid])
     got_with_index = numpy.array(ad[index])
 
-    expect = aligned_array_dict[seqid][aligned_array_dict[seqid] != 4]
+    expect = aligned_array_dict[seqid]
 
     assert numpy.array_equal(got_with_seqid, expect)
     assert numpy.array_equal(got_with_index, expect)
@@ -3357,6 +3357,29 @@ def test_aligned_seqs_data_get_gapped_seq_array(
     got = ad.get_gapped_seq_array(seqid=seqid)  # get original data
     expect = aligned_array_dict[seqid]
     assert numpy.array_equal(got, expect)
+
+
+@pytest.mark.parametrize("seqid", ["seq1", "seq2", "seq3", "seq4"])
+@pytest.mark.parametrize("moltype", ["dna_moltype", "rna_moltype"])
+def test_aligned_seqs_data_view_cast(
+    aligned_array_dict,
+    seqid,
+    moltype,
+    request,
+):
+    moltype = request.getfixturevalue(moltype)
+    alpha = moltype.degen_gapped_alphabet
+    ad = new_alignment.AlignedSeqsData.from_seqs(
+        data=aligned_array_dict,
+        alphabet=alpha,
+    )
+    got = ad[seqid]
+    # the default conversion by array, str or bytes is of the gapped sequence
+    expect_array = aligned_array_dict[seqid]
+    assert numpy.array_equal(numpy.array(got), expect_array)
+    expect_str = alpha.from_indices(expect_array)
+    assert str(got) == expect_str
+    assert bytes(got) == expect_str.encode("utf-8")
 
 
 @pytest.mark.parametrize("seqid", ["seq1", "seq2", "seq3", "seq4"])
@@ -3482,7 +3505,7 @@ def test_aligned_seqs_data_add_seqs_duplicate_keys_raises(dna_alphabet):
 
 @pytest.mark.parametrize("seqid", ["seq1", "seq2", "seq3", "seq4"])
 def test_aligned_seqs_data_get_aligned_view(aligned_dict, seqid, dna_alphabet):
-    # str on an ADV should return the ungapped sequence
+    # str on an ADV should return the gapped sequence
     ad = new_alignment.AlignedSeqsData.from_seqs(
         data=aligned_dict,
         alphabet=dna_alphabet,
@@ -3490,7 +3513,7 @@ def test_aligned_seqs_data_get_aligned_view(aligned_dict, seqid, dna_alphabet):
     got = ad.get_view(seqid)
     assert got.parent == ad
     assert got.parent_len == ad.align_len
-    assert str(got) == aligned_dict[seqid].replace("-", "")
+    assert str(got) == aligned_dict[seqid]
 
 
 @pytest.mark.parametrize("seqid", ["seq1", "seq2", "seq3", "seq4"])
@@ -3501,24 +3524,16 @@ def test_aligned_data_view_array(aligned_array_dict, dna_alphabet, seqid):
     )
     view = ad.get_view(seqid)
     got = numpy.array(view)
-    expect = aligned_array_dict[seqid][aligned_array_dict[seqid] != 4]  # remove gaps
-    assert numpy.array_equal(got, expect)
-
-    # directly accessing .array_value property should return the same result
-    got = view.array_value
-    assert numpy.array_equal(got, expect)
-
-
-@pytest.mark.parametrize("seqid", ["seq1", "seq2", "seq3", "seq4"])
-def test_aligned_data_view_gapped_array(aligned_array_dict, dna_alphabet, seqid):
-    ad = new_alignment.AlignedSeqsData.from_seqs(
-        data=aligned_array_dict,
-        alphabet=dna_alphabet,
-    )
-    view = ad.get_view(seqid)
-    got = view.gapped_array_value
     expect = aligned_array_dict[seqid]
     assert numpy.array_equal(got, expect)
+
+    # directly accessing .gapped_array_value property should return the same result
+    got = view.gapped_array_value
+    assert numpy.array_equal(got, expect)
+    # checking ungapped variant
+    assert numpy.array_equal(
+        view.array_value, expect[aligned_array_dict[seqid] != 4]
+    )  # remove gaps
 
 
 @pytest.mark.parametrize("seqid", ["seq1", "seq2", "seq3", "seq4"])
@@ -3529,22 +3544,11 @@ def test_aligned_data_view_str(aligned_dict, dna_alphabet, seqid):
     )
     view = ad.get_view(seqid)
     got = str(view)
-    expect = aligned_dict[seqid].replace("-", "")
+    expect = aligned_dict[seqid]
     assert got == expect
 
-    # directly accessing .str_value property should return the same result
-    got = view.str_value
-    assert got == expect
-
-
-def test_aligned_data_view_gapped_str_value(aligned_dict, dna_alphabet):
-    ad = new_alignment.AlignedSeqsData.from_seqs(
-        data=aligned_dict,
-        alphabet=dna_alphabet,
-    )
-    view = ad.get_view("seq1")
+    # directly accessing .gapped_str_value property should return the same result
     got = view.gapped_str_value
-    expect = aligned_dict["seq1"]
     assert got == expect
 
 
@@ -3554,27 +3558,17 @@ def test_aligned_data_view_bytes(aligned_array_dict, dna_alphabet, seqid):
         data=aligned_array_dict,
         alphabet=dna_alphabet,
     )
-    view = ad.get_view(seqid)
+    view = ad[seqid]
     got = bytes(view)
-    expect = aligned_array_dict[seqid][aligned_array_dict[seqid] != 4]  # remove gaps
+    expect = aligned_array_dict[seqid]
     expect = dna_alphabet.array_to_bytes(expect)  # convert to bytes
-    assert numpy.array_equal(got, expect)
+    assert got == expect
 
-    # directly accessing .bytes_value property should return the same result
-    got = view.bytes_value
-    assert numpy.array_equal(got, expect)
-
-
-@pytest.mark.parametrize("seqid", ["seq1", "seq2", "seq3", "seq4"])
-def test_aligned_data_view_gapped_bytes_value(aligned_array_dict, dna_alphabet, seqid):
-    ad = new_alignment.AlignedSeqsData.from_seqs(
-        data=aligned_array_dict,
-        alphabet=dna_alphabet,
-    )
-    view = ad.get_view(seqid)
+    # directly accessing .gapped_bytes_value property should return the same result
     got = view.gapped_bytes_value
-    expect = dna_alphabet.array_to_bytes(aligned_array_dict[seqid])
-    assert numpy.array_equal(got, expect)
+    assert got == expect
+    got = view.bytes_value
+    assert got == expect.replace(b"-", b"")
 
 
 @pytest.fixture
