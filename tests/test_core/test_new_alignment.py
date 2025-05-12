@@ -29,6 +29,13 @@ try:
 except ImportError:
     has_hf_seqs = False
 
+try:
+    import piqtree
+
+    has_piqtree = True
+except ImportError:
+    has_piqtree = False
+
 
 @pytest.fixture(scope="session")
 def tmp_path(tmpdir_factory):
@@ -4896,6 +4903,17 @@ def test_alignment_quick_tree(calc, brca1_data, use_hook):
     kwargs = {"use_hook": use_hook}
     kwargs = {**kwargs, "calc": calc} if calc else kwargs
     tree = aln.quick_tree(**kwargs)
+    assert set(tree.get_tip_names()) == set(aln.names)
+
+
+@pytest.mark.skipif(not has_piqtree, reason="piqtree not installed")
+def test_alignment_quick_tree_third_party_hook():
+    """use piqtree as a third party hook"""
+    import cogent3
+
+    aln = cogent3.get_dataset("brca1")[:100]
+    aln = aln.take_seqs(["Human", "Rhesus", "HowlerMon", "Galago", "Mouse"])
+    tree = aln.quick_tree(calc="JC69", use_hook="piqtree")
     assert set(tree.get_tip_names()) == set(aln.names)
 
 
