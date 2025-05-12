@@ -38,16 +38,16 @@ os.environ["COGENT3_NEW_TYPE"] = "1"
 <details>
   <summary> Major advances in our progress towards a fully plugin-based architecture! </summary>
 
-**Cogent3 supports sequence storage plugins 📦🔌🚀**
+### Cogent3 supports sequence storage plugins 📦🔌🚀
 
 We have implemented the infrastructure to support alternative sequence storage plugins. These provide the backend storage for the new type sequence collections. We have implemented a proof-of-principle plugin [cogent3-h5seqs](https://pypi.org/project/cogent3-h5seqs/) for sequence storage based on the HDF5 format. This allows efficient storage of very large sequence collections (aligned or unaligned). See the readme for that project on how to use it.
 
-**Cogent3 supports sequence format parser and writer plugins 👓✍️🔌**
+### Cogent3 supports sequence format parser and writer plugins 👓✍️🔌
 
 We have implemented the infrastructure to support third-party provision of every bioinformaticians favourite game -- parsing / writing the multitude of sequence file formats.  All builtin format parsers / writers are implemented as plugins. We use third-party versions by default.
 
 
-**Cogent3 implements plugin hooks 🔌🪝🎉**
+### Cogent3 implements plugin hooks 🔌🪝🎉
 
 We have implemented the infrastructure to support hook-style plugins. We have definied a single hook now -- the new type ``Alignment.quick_tree()`` method checks for an external plugin for calculation. The developers of [piqtree](https://pypi.org/project/piqtree) have made the rapid-NJ algorithm available for this hook! Once installed, it is used as `aln.quick_tree(use_hook="piqtree")`.
 
