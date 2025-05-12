@@ -40,7 +40,7 @@ os.environ["COGENT3_NEW_TYPE"] = "1"
 
 **Cogent3 supports sequence storage plugins 📦🔌🚀**
 
-We have implemented the infrastructure to support alternate sequence storage plugins. These provide the backend storage for the new type sequence collections. We have implemented a proof-of-principle plugin [cogent3-h5seqs](https://pypi.org/project/cogent3-h5seqs/) for sequence storage based on the HDF5 format. This allows efficient storage of very large sequence collections (aligned or unaligned). See the readme for that project on how to use it.
+We have implemented the infrastructure to support alternative sequence storage plugins. These provide the backend storage for the new type sequence collections. We have implemented a proof-of-principle plugin [cogent3-h5seqs](https://pypi.org/project/cogent3-h5seqs/) for sequence storage based on the HDF5 format. This allows efficient storage of very large sequence collections (aligned or unaligned). See the readme for that project on how to use it.
 
 **Cogent3 supports sequence format parser and writer plugins 👓✍️🔌**
 
