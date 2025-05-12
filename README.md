@@ -23,31 +23,39 @@
 ## 📣 Feature Announcements 📣
 
 <details>
-  <summary> Cogent3 implements plugin hooks 🔌🪝🎉 </summary>
+  <summary> Migration to new type core objects ‼️ </summary>
 
-We have implemented the infrastructure to support hook-style plugins. We have definied a single hook now -- the new type ``Alignment.quick_tree()`` method checks for an external plugin for calculation. There are no implementations available yet, but stay tuned as the developers of [piqtree](https://pypi.org/project/piqtree) will be implementing support for this very soon.
+We are changing the migration strategy from old type to new type `cogent3` core classes. At present we have old type and new type implementations for sequences, sequence collections, alignments, molecular types, alphabets and genetic codes. Users can select the new classes by specifying `new_type=True` to the functions like `make_aligned_seqs()` or `load_aligned_seqs()`. Alternately, you can do this across all objects by using the `COGENT3_NEW_TYPE` environment variable. We have established that it is not viable to support both old and new types simultaneously. Therefore, **the first release after July 1st 2025 will remove all of the old type classes!** Arguments specific to the old type classes will be deprecated at that point. While this is a major change, we have been using these ourselves consistently and feel confident that the disruption to users should be small. However, we strongly advise all users to migrate now and report any errors. To do this, add the following statement to the top of your scripts.
 
-</details>
+```python
+import os
 
-<details>
-  <summary> New core data types improve efficiency and flexibility </summary>
-
-The cogent3 development team 👾 have been hard at work modernising the core internals 💪🛠.
-
-The grand rewrite of alignment classes is ready for use! The new approach gives us the foundation for major performance improvements in the future. As with the moltype, alphabet, genetic code and `SequenceCollection`, you can select the new class via `make_aligned_seqs()` or `load_aligned_seqs()` by specifying `new_type=True`.
-
-These are not yet the default and are not fully integrated into the existing code. They can also differ in their API relative to the classes they replace. 
-
-We encourage experimentation in cases where integration with old objects is NOT required and [look forward to any feedback](https://github.com/cogent3/cogent3/discussions)!
+os.environ["COGENT3_NEW_TYPE"] = "1"
+```
 
 </details>
 
 <details>
-  <summary> The developers of Cogent3 and IQ-TREE2 announce piqtree 🎉 </summary>
+  <summary> Major advances in our progress towards a fully plugin-based architecture! </summary>
 
-Speaking of plugins, our first major third-party plugin is [piqtree](https://pypi.org/project/piqtree). Try it out and [give us feedback](https://github.com/iqtree/piqtree2/discussions).
+**Cogent3 supports sequence storage plugins 📦🔌🚀**
+
+We have implemented the infrastructure to support alternate sequence storage plugins. These provide the backend storage for the new type sequence collections. We have implemented a proof-of-principle plugin [cogent3-h5seqs](https://pypi.org/project/cogent3-h5seqs/) for sequence storage based on the HDF5 format. This allows efficient storage of very large sequence collections (aligned or unaligned). See the readme for that project on how to use it.
+
+**Cogent3 supports sequence format parser and writer plugins 👓✍️🔌**
+
+We have implemented the infrastructure to support third-party provision of every bioinformaticians favourite game -- parsing / writing the multitude of sequence file formats.  All builtin format parsers / writers are implemented as plugins. We use third-party versions by default.
+
+
+**Cogent3 implements plugin hooks 🔌🪝🎉**
+
+We have implemented the infrastructure to support hook-style plugins. We have definied a single hook now -- the new type ``Alignment.quick_tree()`` method checks for an external plugin for calculation. The developers of [piqtree](https://pypi.org/project/piqtree) have made the rapid-NJ algorithm available for this hook! Once installed, it is used as `aln.quick_tree(use_hook="piqtree")`.
+
+> **Note**
+> For assistance in writing your own plugins, contact us via the [cogent3 discussions page](https://github.com/cogent3/cogent3/discussions).
 
 </details>
+
 
 ## Who is it for?
 
