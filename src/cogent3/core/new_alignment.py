@@ -589,9 +589,7 @@ class SeqsData(SeqsDataABC):
                     f"Changing from old alphabet={self.alphabet} to new "
                     f"{alphabet=} is not valid for this data"
                 )
-                raise new_alphabet.AlphabetError(
-                    msg,
-                )
+                raise new_alphabet.AlphabetError(msg)
             new_data[seqid] = as_new_alpha
 
         return self.copy(
@@ -4103,9 +4101,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
                     f"Changing from old alphabet={self.alphabet} to new "
                     f"{alphabet=} is not valid for this data"
                 )
-                raise new_moltype.MolTypeError(
-                    msg,
-                )
+                raise new_alphabet.AlphabetError(msg)
             gapped[i] = as_new_alpha
 
         return self.__class__(

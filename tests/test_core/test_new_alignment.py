@@ -2208,7 +2208,7 @@ def test_to_dna():
     assert dna.moltype.label == "dna"
     # should fail if invalid character set
     paln = dna.get_translation()
-    with pytest.raises(new_moltype.MolTypeError):
+    with pytest.raises(new_alphabet.AlphabetError):
         _ = paln.to_dna()
 
 
