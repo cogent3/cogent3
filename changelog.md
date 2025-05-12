@@ -1,4 +1,17 @@
 
+<a id='changelog-2025.5.8a3'></a>
+# Changes in release "2025.5.8a3"
+
+This is a minor release, with updated documentation in the README.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- The aligned sequence view defaults to a view of the gapped sequence.
+
 <a id='changelog-2025.5.8a2'></a>
 # Changes in release "2025.5.8a2"
 
