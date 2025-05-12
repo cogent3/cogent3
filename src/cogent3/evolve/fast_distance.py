@@ -852,10 +852,21 @@ class DistanceMatrix(DictArray):
         -----
         Invalid distances are dropped prior to building the tree.
         Defaults to the Neighbour Joining Tree algorithm.
+        If only two sequences are present, a simple tree is returned
+        and hooks are not used.
         """
         qtree = cogent3._plugin.get_quick_tree_hook(name=use_hook)  # noqa: SLF001
         dists = self.drop_invalid()
-        return qtree(dists)
+        if dists.shape[0] == 2:
+            # NJ not needed for 2 seqs
+            dist = dists[0, 1]
+            n1, n2 = dists.names
+            dist = dists[n1, n2] / 2
+            return cogent3.make_tree(f"({n1}:{dist},{n2}:{dist})")
+
+        # we directly use the app main method, as this means any errors will be
+        # raised as exceptions
+        return qtree.main(dists)
 
     def max_pair(self) -> tuple[str, str]:
         """returns the pair of names with the maximum distance

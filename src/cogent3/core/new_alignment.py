@@ -5709,10 +5709,7 @@ class Alignment(SequenceCollection):
             drop_invalid=drop_invalid,
             parallel=parallel,
         )
-        qtree = cogent3._plugin.get_quick_tree_hook(name=use_hook)  # noqa: SLF001
-        # we directly use the app main method, as this means any errors will be
-        # raised as exceptions
-        return qtree.main(dm)
+        return dm.quick_tree(use_hook=use_hook)
 
     def trim_stop_codons(self, gc: Any = None, strict: bool = False, **kwargs):
         # refactor: array
