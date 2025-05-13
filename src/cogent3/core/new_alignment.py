@@ -4741,7 +4741,7 @@ class Alignment(SequenceCollection):
         for pos in pos_order:
             yield [str(self[seq][pos]) for seq in self.names]
 
-    # TODO deprecate native
+    @c3warn.deprecated_args("2025.6", reason="not being used", discontinued="native")
     def get_position_indices(
         self,
         f: Callable[[str], bool],
