@@ -1659,7 +1659,9 @@ class SequenceCollection:
                 ambig[i] = alpha[array[i]]
         return result
 
-    def trim_stop_codons(self, gc: Any = 1, strict: bool = False):
+    def trim_stop_codons(
+        self, gc: Any = 1, strict: bool = False
+    ) -> typing_extensions.Self:
         """Removes any terminal stop codons from the sequences
 
         Parameters
@@ -4586,7 +4588,7 @@ class Alignment(SequenceCollection):
         return aligned
 
     @property
-    def positions(self):
+    def positions(self) -> list[list[str]]:
         # refactor: design
         # possibly rename to str_positions since we have array_positions
         from_indices = self.moltype.most_degen_alphabet().from_indices
@@ -4756,8 +4758,7 @@ class Alignment(SequenceCollection):
     # TODO deprecate native
     def get_position_indices(
         self,
-        f: Callable,
-        native: bool = False,
+        f: Callable[[str], bool],
         negate: bool = False,
     ) -> list[int]:
         """Returns list of column indices for which f(col) is True.
@@ -4812,7 +4813,9 @@ class Alignment(SequenceCollection):
         kwargs.pop("slice_record", None)
         return self.__class__(**kwargs)
 
-    def take_positions_if(self, f, negate=False):
+    def take_positions_if(
+        self, f: Callable[[str], bool], negate: bool = False
+    ) -> typing_extensions.Self:
         """Returns new Alignment containing cols where f(col) is True."""
         return self.take_positions(self.get_position_indices(f, negate=negate))
 
@@ -5268,7 +5271,7 @@ class Alignment(SequenceCollection):
         kwargs["storage_backend"] = storage_backend
         return make_unaligned_seqs(data, moltype=self.moltype, info=self.info, **kwargs)
 
-    def get_degapped_relative_to(self, name: str):
+    def get_degapped_relative_to(self, name: str) -> typing_extensions.Self:
         """Remove all columns with gaps in sequence with given name.
 
         Parameters
@@ -5301,7 +5304,9 @@ class Alignment(SequenceCollection):
         kwargs.pop("slice_record", None)
         return self.__class__(**kwargs)
 
-    def matching_ref(self, ref_name: str, gap_fraction: float, gap_run: int):
+    def matching_ref(
+        self, ref_name: str, gap_fraction: float, gap_run: int
+    ) -> typing_extensions.Self:
         """Returns new alignment with seqs well aligned with a reference.
 
         Parameters
@@ -5325,7 +5330,7 @@ class Alignment(SequenceCollection):
         step: int,
         start: OptInt = None,
         end: OptInt = None,
-    ):
+    ) -> typing.Generator[typing_extensions.Self, None, None]:
         """Generator yielding new alignments of given length and interval.
 
         Parameters
@@ -5346,7 +5351,7 @@ class Alignment(SequenceCollection):
             for pos in range(start, end, step):
                 yield self[pos : pos + window]
 
-    def gapped_by_map(self, keep: FeatureMap, **kwargs):
+    def gapped_by_map(self, keep: FeatureMap, **kwargs) -> typing_extensions.Self:
         # refactor: docstring
         # TODO: kath, not explicitly tested
         seqs = {}
@@ -5371,7 +5376,7 @@ class Alignment(SequenceCollection):
         motif_length: int = 1,
         drop_remainder: bool = True,
         **kwargs,
-    ):
+    ) -> typing_extensions.Self:
         """The alignment positions where predicate(column) is true.
 
         Parameters
@@ -5405,7 +5410,9 @@ class Alignment(SequenceCollection):
 
         return self.take_positions(indices.tolist())
 
-    def no_degenerates(self, motif_length: int = 1, allow_gap: bool = False):
+    def no_degenerates(
+        self, motif_length: int = 1, allow_gap: bool = False
+    ) -> typing_extensions.Self:
         """returns new alignment without degenerate characters
 
         Parameters
@@ -5554,7 +5561,9 @@ class Alignment(SequenceCollection):
         kwargs.pop("slice_record", None)
         return self.__class__(**kwargs)
 
-    def has_terminal_stop(self, gc: Any = None, strict: bool = False) -> bool:
+    def has_terminal_stop(
+        self, gc: int | str | None = None, strict: bool = False
+    ) -> bool:
         """Returns True if any sequence has a terminal stop codon.
 
         Parameters
@@ -5711,7 +5720,9 @@ class Alignment(SequenceCollection):
         )
         return dm.quick_tree(use_hook=use_hook)
 
-    def trim_stop_codons(self, gc: Any = None, strict: bool = False, **kwargs):
+    def trim_stop_codons(
+        self, gc: int | str | None = None, strict: bool = False, **kwargs
+    ) -> typing_extensions.Self:
         # refactor: array
         if not self.has_terminal_stop(gc=gc, strict=strict):
             return self
@@ -6713,7 +6724,7 @@ class Alignment(SequenceCollection):
             wrap=settings["wrap"],
         )
 
-    def _mapped(self, slicemap):
+    def _mapped(self, slicemap) -> typing_extensions.Self:
         seqs = {}
         maps = {}
         for aligned in self.seqs:
@@ -6798,7 +6809,7 @@ class Alignment(SequenceCollection):
         kwargs = self._get_init_kwargs()
         return self.__class__(**kwargs)
 
-    def deepcopy(self, **kwargs):
+    def deepcopy(self, **kwargs) -> typing_extensions.Self:
         """returns deep copy of self
 
         Notes

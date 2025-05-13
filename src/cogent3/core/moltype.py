@@ -1521,7 +1521,7 @@ def _make_moltype_dict():
 moltypes = _make_moltype_dict()
 
 
-def get_moltype(name, new_type: bool = False):
+def get_moltype(name, new_type: bool = False) -> MolType:
     """returns the moltype with the matching name attribute
 
     Parameters
