@@ -6013,3 +6013,87 @@ def test_drop_duplicated_seqs_no_dupes(mk_cls):
     seqcoll = mk_cls(data, moltype="dna")
     got = seqcoll.drop_duplicated_seqs()
     assert got is seqcoll
+
+
+@pytest.fixture
+def renamed_aln():
+    data = {
+        "seq1": "ATCTGA",
+        "seq2": "TCGCCC",
+        "seq3": "TCGCCC",
+    }
+    coll = new_alignment.make_aligned_seqs(data, moltype="dna")
+    return coll.rename_seqs(renamer=lambda x: x.upper()), data
+
+
+@pytest.fixture(params=[True, False])
+def renamed_seqs(request, renamed_aln):
+    coll, data = renamed_aln
+    aligned = request.param
+    coll = coll if aligned else coll.degap()
+    return coll, data
+
+
+def test_renamed_trim_stop_codons(renamed_seqs):
+    coll, data = renamed_seqs
+    rn = coll.rename_seqs(renamer=lambda x: x.upper())
+    tr = rn.trim_stop_codons()
+    assert set(tr.storage.names) == set(rn.storage.names)
+    assert set(tr.names) == {k.upper() for k in data}
+
+
+def test_renamed_take_seqs(renamed_seqs):
+    coll, data = renamed_seqs
+    names = ["SEQ1", "SEQ3"]
+    got = coll.take_seqs(names)
+    assert set(got.storage.names) == {k.lower() for k in data}
+    assert set(got.names) == set(names)
+
+
+def test_renamed_degap(renamed_seqs):
+    coll, data = renamed_seqs
+    got = coll.degap()
+    assert set(got.storage.names) == {k.lower() for k in data}
+    assert set(got.names) == {k.upper() for k in data}
+
+
+def test_renamed_to_moltype(renamed_seqs):
+    coll, data = renamed_seqs
+    got = coll.to_moltype("rna")
+    assert set(got.storage.names) == {k.lower() for k in data}
+    assert set(got.names) == {k.upper() for k in data}
+
+
+def test_renamed_rc(renamed_seqs):
+    coll, data = renamed_seqs
+    got = coll.rc()
+    assert set(got.storage.names) == {k.lower() for k in data}
+    assert set(got.names) == {k.upper() for k in data}
+
+
+def test_renamed_get_translation(renamed_seqs):
+    coll, data = renamed_seqs
+    got = coll.get_translation()
+    assert set(got.storage.names) == {k.lower() for k in data}
+    assert set(got.names) == {k.upper() for k in data}
+
+
+def test_renamed_pad_seqs(renamed_seqs):
+    coll, data = renamed_seqs
+    got = coll.pad_seqs(pad_length=10)
+    assert set(got.storage.names) == {k.lower() for k in data}
+    assert set(got.names) == {k.upper() for k in data}
+
+
+def test_renamed_take_positions(renamed_aln):
+    coll, data = renamed_aln
+    got = coll.take_positions([0, 1, 2])
+    assert set(got.storage.names) == {k.lower() for k in data}
+    assert set(got.names) == {k.upper() for k in data}
+
+
+def test_renamed_deepcopy(renamed_aln):
+    coll, data = renamed_aln
+    got = coll.deepcopy()
+    assert set(got.storage.names) == {k.lower() for k in data}
+    assert set(got.names) == {k.upper() for k in data}
