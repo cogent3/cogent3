@@ -134,17 +134,18 @@ class quick_tree:
             (result,) = gnj(dists.to_dict(), keep=1, show_progress=False)
             _, tree = result
 
+        tree.params["source"] = dists.source
         return tree
 
 
 @singledispatch
-def interpret_tree_arg(tree) -> NoneType | TreeNode:
+def interpret_tree_arg(tree) -> None | TreeNode:
     msg = f"invalid tree type {type(tree)}"
     raise TypeError(msg)
 
 
 @interpret_tree_arg.register
-def _(tree: NoneType) -> NoneType:
+def _(tree: None) -> None:
     return tree
 
 
