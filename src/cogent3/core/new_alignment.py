@@ -1565,7 +1565,7 @@ class SequenceCollection:
         dotplot = Dotplot(
             seq1,
             seq2,
-            False,
+            isinstance(self, Alignment),
             window=window,
             threshold=threshold,
             k=k,

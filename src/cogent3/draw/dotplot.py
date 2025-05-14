@@ -80,6 +80,11 @@ def get_align_coords(
 
     if aligned:
         assert len(map1) == len(map2), "aligned sequences not equal length"
+        if map1.num_gaps == map2.num_gaps == 0:
+            end = len(map1) - 1
+            paths = MatchedSeqPaths("Alignment")
+            paths.append(segment(0, end), segment(0, end))
+            return paths
 
     # we reduce the maps to only gaps that are unique to each
 
@@ -184,7 +189,9 @@ class Dotplot(Drawable):
 
         self.seq1 = seq1
         self.seq2 = seq2
-        self._aligned_coords = get_align_coords(map1, map2, aligned=is_aligned)
+        self._aligned_coords = (
+            get_align_coords(map1, map2, aligned=is_aligned) if is_aligned else None
+        )
 
         self.title = title
         self._window = window
