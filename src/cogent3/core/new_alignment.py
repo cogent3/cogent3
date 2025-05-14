@@ -1540,17 +1540,17 @@ class SequenceCollection:
         from cogent3.draw.drawable import AnnotatedDrawable
 
         randgen = numpy.random.default_rng()
-        if k and not (0 < (k or 1) < window):
+        if k is not None and not (0 < k < window):
             msg = f"{k=} must be positive, < {window=} and < {threshold=}"
             raise ValueError(msg)
 
         if len(self.names) == 1:
             name1 = name2 = self.names[0]
         elif name1 is None and name2 is None:
-            name1, name2 = list(randgen.choice(self.names, size=2, replace=False))
+            name1, name2 = randgen.choice(self.names, size=2, replace=False).tolist()
         elif not (name1 and name2):
             names = list({*self.names, None} ^ {name1, name2})
-            name = next(iter(randgen.choice(names, size=1)))
+            name = next(iter(randgen.choice(names, size=1))).item()
             name1 = name1 or name
             name2 = name2 or name
 

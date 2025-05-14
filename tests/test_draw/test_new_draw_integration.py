@@ -177,7 +177,7 @@ def test_dotplot_annotated(annotated_seq, with_annotations, mk_cls):
     fig = coll.dotplot().figure
     base = {"Alignment", "+ strand"} if aligned else {"+ strand"}
     expect = base | {"gene"} if with_annotations else base
-    got = set(tr["name"] for tr in fig.data)
+    got = {tr["name"] for tr in fig.data}
     assert got == expect
 
 
