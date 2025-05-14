@@ -67,7 +67,7 @@ class TestTree(TestCase):
         proc = calc_dist + quick
         assert (
             str(proc)
-            == "fast_slow_dist(distance=None, moltype='dna', fast_calc='hamming',\nslow_calc=None) + quick_tree(drop_invalid=False)"
+            == "fast_slow_dist(distance=None, moltype='dna', fast_calc='hamming',\nslow_calc=None) + quick_tree(drop_invalid=False, use_hook=None)"
         )
         assert isinstance(proc, tree_app.quick_tree)
         assert isinstance(proc.input, dist.fast_slow_dist)
@@ -87,7 +87,7 @@ class TestTree(TestCase):
 
     def test_quick_tree_taking_distance_matrix(self):
         """quick_tree should take a distance matrix"""
-        quick_tree = tree_app.quick_tree()
+        quick_tree = tree_app.quick_tree(use_hook="cogent3")
         data = {
             ("ABAYE2984", "Avin_42730"): 0.638,
             ("Atu3667", "Avin_42730"): 2.368,
