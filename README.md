@@ -56,6 +56,12 @@ We have implemented the infrastructure to support hook-style plugins. We have de
 
 </details>
 
+<details>
+  <summary> Now distributed with sample data! </summary>
+
+  We have added sample data sets for quick testing of different features. Check out `cogent3.available_datasets()` to see the available datasets. You can load one using `cogent3.get_dataset(name)`.
+
+</details>
 
 ## Who is it for?
 
