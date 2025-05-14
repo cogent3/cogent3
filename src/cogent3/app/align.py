@@ -545,7 +545,9 @@ class progressive_align:
             guide_tree = None  # callback takes precedence
         elif approx_dists and len(moltype.alphabet) == 4:
             dist_app = dist.get_approx_dist_calc(dist="jc69", num_states=4)
-            est_tree = quick_tree()
+            # we need to be explicit about using the cogent3 quick_tree
+            # as it's robust
+            est_tree = quick_tree(use_hook="cogent3")
             self._make_tree = dist_app + est_tree
         else:
             al_to_ref = align_to_ref(moltype=self._moltype)
@@ -553,7 +555,9 @@ class progressive_align:
                 distance=self._distance,
                 moltype=self._moltype,
             )
-            est_tree = quick_tree()
+            # we need to be explicit about using the cogent3 quick_tree
+            # as it's robust
+            est_tree = quick_tree(use_hook="cogent3")
             self._make_tree = al_to_ref + dist_calc + est_tree
 
         if guide_tree is not None:
