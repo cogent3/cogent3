@@ -73,7 +73,7 @@ def _convert_input(seq, moltype):
 def get_align_coords(
     map1: location.IndelMap,
     map2: location.IndelMap,
-    aligned=False,
+    aligned: bool = False,
 ) -> MatchedSeqPaths:
     """sequence coordinates of aligned segments"""
     from cogent3.align.pycompare import segment
@@ -120,7 +120,7 @@ class Dotplot(Drawable):
         self,
         seq1,
         seq2,
-        is_aligned,
+        is_aligned: bool,
         moltype="text",
         window=20,
         threshold=None,
