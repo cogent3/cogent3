@@ -167,11 +167,14 @@ class Dotplot(Drawable):
             title for the plot
         """
 
-        # we ensure sequences have gaps parsed and the calculate aspect ratio
+        # we ensure sequences have gaps parsed and then calculate aspect ratio
         moltype = seq1.moltype if hasattr(seq1, "moltype") else get_moltype(moltype)
         map1, map2, seq1, seq2 = _prep_seqs(moltype, seq1, seq2, is_aligned)
 
         len1, len2 = len(seq1), len(seq2)
+        if len1 == 0 or len2 == 0:
+            zlen = seq1.name if not len1 else seq2.name
+            raise ValueError(f"cannot display zero-length sequence {zlen!r}")
         height = width * len2 / len1
 
         if seq1.name == seq2.name is None:

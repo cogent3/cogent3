@@ -181,6 +181,20 @@ def test_dotplot_annotated(annotated_seq, with_annotations, mk_cls):
     assert got == expect
 
 
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_dotplot_just_gaps(mk_cls):
+    eqs = {
+        "Human": "ACTAATGAAGTGGGCTCCAGTATTAATGA",
+        "Mouse": "-----------------------------",
+    }
+    coll = mk_cls(eqs, moltype="dna")
+    with pytest.raises(ValueError):
+        coll.dotplot()
+
+
 def test_dotplot_regression():
     """Tests whether dotplot produces traces and in correct ordering."""
     aln = load_aligned_seqs("data/brca1.fasta", moltype="dna", new_type=True)
