@@ -73,13 +73,18 @@ def _convert_input(seq, moltype):
 def get_align_coords(
     map1: location.IndelMap,
     map2: location.IndelMap,
-    aligned=False,
+    aligned: bool = False,
 ) -> MatchedSeqPaths:
     """sequence coordinates of aligned segments"""
     from cogent3.align.pycompare import segment
 
     if aligned:
         assert len(map1) == len(map2), "aligned sequences not equal length"
+        if map1.num_gaps == map2.num_gaps == 0:
+            end = len(map1) - 1
+            paths = MatchedSeqPaths("Alignment")
+            paths.append(segment(0, end), segment(0, end))
+            return paths
 
     # we reduce the maps to only gaps that are unique to each
 
@@ -120,7 +125,7 @@ class Dotplot(Drawable):
         self,
         seq1,
         seq2,
-        is_aligned,
+        is_aligned: bool,
         moltype="text",
         window=20,
         threshold=None,
@@ -162,11 +167,14 @@ class Dotplot(Drawable):
             title for the plot
         """
 
-        # we ensure sequences have gaps parsed and the calculate aspect ratio
+        # we ensure sequences have gaps parsed and then calculate aspect ratio
         moltype = seq1.moltype if hasattr(seq1, "moltype") else get_moltype(moltype)
         map1, map2, seq1, seq2 = _prep_seqs(moltype, seq1, seq2, is_aligned)
 
         len1, len2 = len(seq1), len(seq2)
+        if len1 == 0 or len2 == 0:
+            zlen = seq1.name if not len1 else seq2.name
+            raise ValueError(f"cannot display zero-length sequence {zlen!r}")
         height = width * len2 / len1
 
         if seq1.name == seq2.name is None:
@@ -184,7 +192,9 @@ class Dotplot(Drawable):
 
         self.seq1 = seq1
         self.seq2 = seq2
-        self._aligned_coords = get_align_coords(map1, map2, aligned=is_aligned)
+        self._aligned_coords = (
+            get_align_coords(map1, map2, aligned=is_aligned) if is_aligned else None
+        )
 
         self.title = title
         self._window = window
