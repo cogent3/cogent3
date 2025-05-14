@@ -126,7 +126,7 @@ def test_dotplot_base_cases(dotplot_seqs, aligned):
     assert str(plot.seq1) == str(plot.seq2)
 
     # k larger than window should raise an error
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         seqs.dotplot(window=5, k=11)
 
     # names not in the collection should raise an error
