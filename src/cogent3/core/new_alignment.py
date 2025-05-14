@@ -851,18 +851,18 @@ class SequenceCollection:
 
         init_kwargs = self._get_init_kwargs()
         init_kwargs["name_map"] = selected_name_map
-
-        result = self.__class__(**init_kwargs)
         if self.annotation_db:
             if copy_annotations:
-                result.annotation_db = type(self.annotation_db)()
-                result.annotation_db.update(
+                ann_db = type(self.annotation_db)()
+                ann_db.update(
                     annot_db=self.annotation_db,
-                    seqids=result.names,
+                    seqids=list(selected_name_map),
                 )
             else:
-                result.annotation_db = self.annotation_db
-        return result
+                ann_db = self.annotation_db
+            init_kwargs["annotation_db"] = ann_db
+
+        return self.__class__(**init_kwargs)
 
     def get_seq_names_if(
         self,
@@ -1073,7 +1073,7 @@ class SequenceCollection:
         The returned collection will not retain an annotation_db if present.
         """
         if storage_backend:
-            make_storage = cogent3._plugin.get_unaligned_storage_driver(
+            make_storage = cogent3._plugin.get_unaligned_storage_driver(  # noqa: SLF001
                 storage_backend,
             ).from_seqs
         else:
@@ -1083,7 +1083,7 @@ class SequenceCollection:
             # because we are in a SequenceCollection, which cannot be sliced, so
             # we can just interrogate the bound _seqs_data directly.
             seq = self._seqs_data.get_seq_array(seqid=self._name_map.get(name, name))
-            data[name] = self.moltype.degap(seq)
+            data[self.name_map[name]] = self.moltype.degap(seq)
 
         init_kwargs = self._get_init_kwargs()
         init_kwargs["seqs_data"] = make_storage(
@@ -1182,8 +1182,7 @@ class SequenceCollection:
                 include_stop=include_stop,
                 trim_stop=trim_stop,
             )
-            parent_seqid, *_ = seq.parent_coordinates()
-            translated[parent_seqid] = numpy.array(pep)
+            translated[self.name_map[seq.name]] = numpy.array(pep)
 
         pep_moltype = new_moltype.get_moltype(
             "protein_with_stop" if include_stop else "protein",
@@ -1659,7 +1658,9 @@ class SequenceCollection:
                 ambig[i] = alpha[array[i]]
         return result
 
-    def trim_stop_codons(self, gc: Any = 1, strict: bool = False):
+    def trim_stop_codons(
+        self, gc: Any = 1, strict: bool = False
+    ) -> typing_extensions.Self:
         """Removes any terminal stop codons from the sequences
 
         Parameters
@@ -1674,24 +1675,21 @@ class SequenceCollection:
             return self
 
         new_seqs = {
-            s.name: s.trim_stop_codon(gc=gc, strict=strict).to_array(
+            self.name_map[s.name]: s.trim_stop_codon(gc=gc, strict=strict).to_array(
                 apply_transforms=False,
             )
             for s in self.seqs
         }
 
         init_kwargs = self._get_init_kwargs()
-        init_kwargs.pop("annotation_db", None)
         init_kwargs["seqs_data"] = self._seqs_data.from_seqs(
             data=new_seqs,
             alphabet=self._seqs_data.alphabet,
             offset=self._seqs_data.offset,
             check=False,
         )
-        result = self.__class__(**init_kwargs)
-        if self.annotation_db:
-            result.annotation_db = self.annotation_db
-        return result
+        init_kwargs["annotation_db"] = self.annotation_db or None
+        return self.__class__(**init_kwargs)
 
     def counts_per_seq(
         self,
@@ -1983,8 +1981,7 @@ class SequenceCollection:
             # the padded_seqs dict will be used to create the seqs_data, so the
             # keys should be the seqids from the original seqs_data, if this differs
             # from the seq name, this will be recorded in the name_map
-            parent_name = seq._seq.seqid
-            padded_seqs[parent_name] = padded_seq
+            padded_seqs[self.name_map[seq.name]] = padded_seq
 
         init_kwargs = self._get_init_kwargs()
         # when we access .seqs, if the collection has been reversed, this will have
@@ -4586,7 +4583,7 @@ class Alignment(SequenceCollection):
         return aligned
 
     @property
-    def positions(self):
+    def positions(self) -> list[list[str]]:
         # refactor: design
         # possibly rename to str_positions since we have array_positions
         from_indices = self.moltype.most_degen_alphabet().from_indices
@@ -4714,16 +4711,7 @@ class Alignment(SequenceCollection):
 
     def rename_seqs(self, renamer: Callable[[str], str]):
         """Returns new alignment with renamed sequences."""
-        new_name_map = {
-            renamer(name): old_name for name, old_name in self._name_map.items()
-        }
-        if len(new_name_map) != len(self._name_map):
-            msg = f"non-unique names produced by {renamer=}"
-            raise ValueError(msg)
-
-        init_kwargs = self._get_init_kwargs()
-        init_kwargs["name_map"] = new_name_map
-        new = self.__class__(**init_kwargs)
+        new = super().rename_seqs(renamer)
 
         if self._array_seqs is not None:
             new._array_seqs = self._array_seqs
@@ -4753,11 +4741,10 @@ class Alignment(SequenceCollection):
         for pos in pos_order:
             yield [str(self[seq][pos]) for seq in self.names]
 
-    # TODO deprecate native
+    @c3warn.deprecated_args("2025.6", reason="not being used", discontinued="native")
     def get_position_indices(
         self,
-        f: Callable,
-        native: bool = False,
+        f: Callable[[str], bool],
         negate: bool = False,
     ) -> list[int]:
         """Returns list of column indices for which f(col) is True.
@@ -4800,7 +4787,8 @@ class Alignment(SequenceCollection):
             cols = [i for i in range(len(self)) if i not in col_lookup]
 
         new_data = {
-            aligned.data.seqid: numpy.array(aligned).take(cols) for aligned in self.seqs
+            self.name_map[aligned.name]: numpy.array(aligned).take(cols)
+            for aligned in self.seqs
         }
         seqs_data = self._seqs_data.from_seqs(
             data=new_data,
@@ -4812,7 +4800,9 @@ class Alignment(SequenceCollection):
         kwargs.pop("slice_record", None)
         return self.__class__(**kwargs)
 
-    def take_positions_if(self, f, negate=False):
+    def take_positions_if(
+        self, f: Callable[[str], bool], negate: bool = False
+    ) -> typing_extensions.Self:
         """Returns new Alignment containing cols where f(col) is True."""
         return self.take_positions(self.get_position_indices(f, negate=negate))
 
@@ -5268,7 +5258,7 @@ class Alignment(SequenceCollection):
         kwargs["storage_backend"] = storage_backend
         return make_unaligned_seqs(data, moltype=self.moltype, info=self.info, **kwargs)
 
-    def get_degapped_relative_to(self, name: str):
+    def get_degapped_relative_to(self, name: str) -> typing_extensions.Self:
         """Remove all columns with gaps in sequence with given name.
 
         Parameters
@@ -5301,7 +5291,9 @@ class Alignment(SequenceCollection):
         kwargs.pop("slice_record", None)
         return self.__class__(**kwargs)
 
-    def matching_ref(self, ref_name: str, gap_fraction: float, gap_run: int):
+    def matching_ref(
+        self, ref_name: str, gap_fraction: float, gap_run: int
+    ) -> typing_extensions.Self:
         """Returns new alignment with seqs well aligned with a reference.
 
         Parameters
@@ -5325,7 +5317,7 @@ class Alignment(SequenceCollection):
         step: int,
         start: OptInt = None,
         end: OptInt = None,
-    ):
+    ) -> typing.Generator[typing_extensions.Self, None, None]:
         """Generator yielding new alignments of given length and interval.
 
         Parameters
@@ -5346,13 +5338,13 @@ class Alignment(SequenceCollection):
             for pos in range(start, end, step):
                 yield self[pos : pos + window]
 
-    def gapped_by_map(self, keep: FeatureMap, **kwargs):
+    def gapped_by_map(self, keep: FeatureMap, **kwargs) -> typing_extensions.Self:
         # refactor: docstring
         # TODO: kath, not explicitly tested
         seqs = {}
         for seq in self.seqs:
             selected = seq[keep]
-            seqs[seq.name] = numpy.array(selected.gapped_seq)
+            seqs[self.name_map[seq.name]] = numpy.array(selected.gapped_seq)
 
         seqs_data = self._seqs_data.from_seqs(
             data=seqs,
@@ -5371,7 +5363,7 @@ class Alignment(SequenceCollection):
         motif_length: int = 1,
         drop_remainder: bool = True,
         **kwargs,
-    ):
+    ) -> typing_extensions.Self:
         """The alignment positions where predicate(column) is true.
 
         Parameters
@@ -5405,7 +5397,9 @@ class Alignment(SequenceCollection):
 
         return self.take_positions(indices.tolist())
 
-    def no_degenerates(self, motif_length: int = 1, allow_gap: bool = False):
+    def no_degenerates(
+        self, motif_length: int = 1, allow_gap: bool = False
+    ) -> typing_extensions.Self:
         """returns new alignment without degenerate characters
 
         Parameters
@@ -5554,7 +5548,9 @@ class Alignment(SequenceCollection):
         kwargs.pop("slice_record", None)
         return self.__class__(**kwargs)
 
-    def has_terminal_stop(self, gc: Any = None, strict: bool = False) -> bool:
+    def has_terminal_stop(
+        self, gc: int | str | None = None, strict: bool = False
+    ) -> bool:
         """Returns True if any sequence has a terminal stop codon.
 
         Parameters
@@ -5711,7 +5707,9 @@ class Alignment(SequenceCollection):
         )
         return dm.quick_tree(use_hook=use_hook)
 
-    def trim_stop_codons(self, gc: Any = None, strict: bool = False, **kwargs):
+    def trim_stop_codons(
+        self, gc: int | str | None = None, strict: bool = False, **kwargs
+    ) -> typing_extensions.Self:
         # refactor: array
         if not self.has_terminal_stop(gc=gc, strict=strict):
             return self
@@ -5723,14 +5721,16 @@ class Alignment(SequenceCollection):
         terminal_stop = re.compile(pattern)
 
         data = self.to_dict()
+        result = {}
         for name, seq in data.items():
             if match := terminal_stop.search(seq):
                 diff = len(seq) - match.start()
                 seq = terminal_stop.sub("-" * diff, seq)
-            data[name] = seq
+
+            result[self.name_map[name]] = seq
 
         seqs_data = self._seqs_data.from_seqs(
-            data=data,
+            data=result,
             alphabet=self.moltype.most_degen_alphabet(),
         )
         init_kwargs = self._get_init_kwargs()
@@ -5750,16 +5750,14 @@ class Alignment(SequenceCollection):
     ) -> typing_extensions.Self:
         if not self.moltype.is_nucleic:
             msg = f"moltype must be a DNA/RNA, not {self.moltype.name!r}"
-            raise new_moltype.MolTypeError(
-                msg,
-            )
+            raise new_moltype.MolTypeError(msg)
 
-        translated = {}
         if not trim_stop or include_stop:
             seqs = self
         else:
             seqs = self.trim_stop_codons(gc=gc, strict=not incomplete_ok)
-        # do the translation
+
+        translated = {}
         for seqname in seqs.names:
             seq = seqs.get_gapped_seq(seqname)
             pep = seq.get_translation(
@@ -5768,7 +5766,7 @@ class Alignment(SequenceCollection):
                 include_stop=include_stop,
                 trim_stop=trim_stop,
             )
-            translated[seqname] = numpy.array(pep)
+            translated[self.name_map[seqname]] = numpy.array(pep)
 
         pep_moltype = new_moltype.get_moltype(
             "protein_with_stop" if include_stop else "protein",
@@ -5778,8 +5776,14 @@ class Alignment(SequenceCollection):
             alphabet=pep_moltype.most_degen_alphabet(),
             offset=None,
         )
-        kwargs["moltype"] = pep_moltype
-        return self.__class__(seqs_data=seqs_data, info=self.info, **kwargs)
+        return self.__class__(
+            seqs_data=seqs_data,
+            moltype=pep_moltype,
+            name_map=self._name_map,
+            info=self.info,
+            source=self.source,
+            **kwargs,
+        )
 
     def make_feature(
         self,
@@ -6713,12 +6717,12 @@ class Alignment(SequenceCollection):
             wrap=settings["wrap"],
         )
 
-    def _mapped(self, slicemap):
+    def _mapped(self, slicemap) -> typing_extensions.Self:
         seqs = {}
         maps = {}
         for aligned in self.seqs:
             seq, im = aligned.slice_with_map(slicemap)
-            name = aligned.data.seqid
+            name = self.name_map[aligned.name]
             seqs[name] = seq
             maps[name] = im
 
@@ -6798,7 +6802,7 @@ class Alignment(SequenceCollection):
         kwargs = self._get_init_kwargs()
         return self.__class__(**kwargs)
 
-    def deepcopy(self, **kwargs):
+    def deepcopy(self, **kwargs) -> typing_extensions.Self:
         """returns deep copy of self
 
         Notes

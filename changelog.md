@@ -1,4 +1,15 @@
 
+<a id='changelog-2025.5.8a4'></a>
+# Changes in release "2025.5.8a4"
+
+This is a minor bug fix release.
+
+## Bug fixes
+
+- some methods on new type sequence collections with renamed sequences
+  could give errors due to failure to propagate the name_map attribute
+  correctly. This has been fixed.
+
 <a id='changelog-2025.5.8a3'></a>
 # Changes in release "2025.5.8a3"
 
