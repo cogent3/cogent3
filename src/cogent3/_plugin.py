@@ -22,7 +22,6 @@ SeqsTypes = typing.Union["SequenceCollection", "Alignment"]
 HOOK_ENTRY_POINT = "cogent3.hook"
 
 
-@functools.cache
 def get_quick_tree_hook(
     *,
     name: str | None = None,

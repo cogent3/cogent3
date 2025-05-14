@@ -729,10 +729,13 @@ def available_distances():
 class DistanceMatrix(DictArray):
     """pairwise distance matrix"""
 
-    def __init__(self, dists, invalid=None) -> None:
+    def __init__(
+        self, dists, invalid: bool | None = None, source: str | None = None
+    ) -> None:
         super().__init__(dists, dtype=float)
 
         self._invalid = invalid
+        self.source = source
 
     @classmethod
     def from_array_names(cls, matrix: numpy.ndarray, names: PySeqStr, invalid=None):
