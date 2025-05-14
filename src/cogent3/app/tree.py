@@ -96,7 +96,7 @@ class uniformize_tree:
 class quick_tree:
     """Computes a Neighbour Joining tree from pairwise distances."""
 
-    def __init__(self, drop_invalid: bool = False, use_hook: str | None = None) -> None:
+    def __init__(self, drop_invalid: bool = False) -> None:
         """
         Parameters
         ----------
@@ -106,14 +106,8 @@ class quick_tree:
             the resulting tree will be for the subset of labels with strictly
             valid distances. If False, an ArithmeticError is raised if a
             distance is invalid.
-        use_hook
-            name of a third-party package that implements the quick_tree
-            hook. If not specified, defaults to the first available hook or
-            the cogent3 quick_tree() app. To force cogent3 default, set
-            use_hook="cogent3".
         """
         self._drop_invalid = drop_invalid
-        self._use_hook = use_hook
 
     def main(self, dists: PairwiseDistanceType) -> SerialisableType | TreeType:
         """estimates a neighbor joining tree"""
@@ -126,8 +120,6 @@ class quick_tree:
         if size == 2:
             # use code from dist matrix for this, no hook applied
             tree = dists.quick_tree()
-        elif self._use_hook != "cogent3":
-            tree = dists.quick_tree(use_hook=self._use_hook)
         else:
             # we hard-code this call to allow for over-riding third-party
             # hooks

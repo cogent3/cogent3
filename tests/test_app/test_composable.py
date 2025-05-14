@@ -555,7 +555,7 @@ def test_str():
     )
 
     qt = quick_tree()
-    assert str(qt) == "quick_tree(drop_invalid=False, use_hook=None)"
+    assert str(qt) == "quick_tree(drop_invalid=False)"
 
 
 def test_composite_pickleable():
