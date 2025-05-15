@@ -4,8 +4,10 @@ from cogent3.align import indel_model, pairwise
 from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
 
 
-def make_dna_scoring_dict(match, transition, transversion):
-    DNA = {}
+def make_dna_scoring_dict(
+    match: float, transition: float, transversion: float
+) -> dict[tuple[str, str], float]:
+    score_mat = {}
     for a in "ATCG":
         ar = a in "AG"
         for b in "ATCG":
@@ -16,8 +18,8 @@ def make_dna_scoring_dict(match, transition, transversion):
                 score = transition
             else:
                 score = transversion
-            DNA[a, b] = score
-    return DNA
+            score_mat[a, b] = score
+    return score_mat
 
 
 def make_generic_scoring_dict(match, mtype):
