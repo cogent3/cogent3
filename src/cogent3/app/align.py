@@ -1,8 +1,8 @@
 import os
+import typing
 import warnings
 from bisect import bisect_left
 from itertools import combinations
-from typing import Union
 
 from numpy import array, isnan
 
@@ -32,6 +32,9 @@ if _NEW_TYPE:
     from cogent3.core.new_alignment import Aligned
 else:
     from cogent3.core.alignment import Aligned
+
+if typing.TYPE_CHECKING:
+    from cogent3.core.tree import PhyloNode
 
 
 class _GapOffset:
@@ -346,10 +349,10 @@ class align_to_ref:
     def __init__(
         self,
         ref_seq="longest",
-        score_matrix=None,
-        insertion_penalty=20,
-        extension_penalty=2,
-        moltype="dna",
+        score_matrix: dict[str, float] | None = None,
+        insertion_penalty: float = 20.0,
+        extension_penalty: float = 2.0,
+        moltype: str = "dna",
     ) -> None:
         """
         Parameters
@@ -416,7 +419,7 @@ class align_to_ref:
 
         return pairwise_to_multiple(pwise, ref_seq, self._moltype, info=seqs.info)
 
-    T = Union[SerialisableType, AlignedSeqsType]
+    T = SerialisableType | AlignedSeqsType
 
     def main(self, seqs: UnalignedSeqsType) -> T:
         """return aligned sequences"""
@@ -541,7 +544,9 @@ class progressive_align:
         self._distance = distance
         self._iters = iters
         if callable(guide_tree):
-            self._make_tree = guide_tree
+            self._make_tree: typing.Callable[[UnalignedSeqsType], PhyloNode] = (
+                guide_tree
+            )
             guide_tree = None  # callback takes precedence
         elif approx_dists and len(moltype.alphabet) == 4:
             dist_app = dist.get_approx_dist_calc(dist="jc69", num_states=4)
@@ -578,14 +583,14 @@ class progressive_align:
             "iters": self._iters,
         }
 
-    def _build_guide(self, seqs):
+    def _build_guide(self, seqs) -> "PhyloNode":
         tree = self._make_tree(seqs)
         if self._scalar != 1:
             scaler = scale_branches(scalar=self._scalar)
             tree = scaler(tree)
         return tree
 
-    T = Union[SerialisableType, AlignedSeqsType]
+    T = SerialisableType | AlignedSeqsType
 
     def main(self, seqs: UnalignedSeqsType) -> T:
         """returned progressively aligned sequences"""
@@ -597,8 +602,7 @@ class progressive_align:
             if not self._guide_tree:
                 return self._guide_tree
             self._kwargs["tree"] = self._guide_tree
-            diff = set(self._guide_tree.get_tip_names()) ^ set(seqs.names)
-            if diff:
+            if set(self._guide_tree.get_tip_names()) ^ set(seqs.names):
                 len(set(self._guide_tree.get_tip_names()))
                 seqs = seqs.take_seqs(self._guide_tree.get_tip_names())
 
@@ -695,11 +699,11 @@ class smith_waterman:
         self._extension_penalty = extension_penalty
 
     def main(self, seqs: UnalignedSeqsType) -> AlignedSeqsType:
-        if seqs.num_seqs > 2:
+        if seqs.num_seqs != 2:
             return NotCompleted(
                 "ERROR",
                 self,
-                message="maximum number of two seqs per collection",
+                message="requires two seqs per collection",
                 source=seqs,
             )
         seqs = seqs.to_moltype(self.moltype)
@@ -740,7 +744,7 @@ class ic_score:
     Bioinformatics vol. 15 563–577 (Oxford University Press, 1999)
     """
 
-    def __init__(self, equifreq_mprobs=True) -> None:
+    def __init__(self, equifreq_mprobs: bool = True) -> None:
         """
         Parameters
         ----------
@@ -791,8 +795,8 @@ class ic_score:
         counts = counts.array[:, cols]
         frequency = counts / aln.num_seqs
         log_f = safe_log(frequency / p)
-        I_seq = log_f * frequency
-        return I_seq.sum()
+        i_seq = log_f * frequency
+        return i_seq.sum()
 
 
 @define_app

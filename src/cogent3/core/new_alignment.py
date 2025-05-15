@@ -5658,9 +5658,7 @@ class Alignment(SequenceCollection):
         """
         from cogent3.evolve.pairwise_distance_numba import get_distance_calculator
 
-        calc = get_distance_calculator(
-            calc,
-        )
+        calc = get_distance_calculator(calc)
         try:
             result = calc(self, invalid_raises=not drop_invalid, parallel=parallel)
         except ArithmeticError as e:
