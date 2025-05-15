@@ -544,7 +544,9 @@ class progressive_align:
         self._distance = distance
         self._iters = iters
         if callable(guide_tree):
-            self._make_tree: typing.Callable = guide_tree
+            self._make_tree: typing.Callable[[UnalignedSeqsType], PhyloNode] = (
+                guide_tree
+            )
             guide_tree = None  # callback takes precedence
         elif approx_dists and len(moltype.alphabet) == 4:
             dist_app = dist.get_approx_dist_calc(dist="jc69", num_states=4)
