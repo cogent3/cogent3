@@ -1584,7 +1584,7 @@ def test_null_strand(null):
     strand = Strand.from_value(null)
     assert strand is Strand.NONE
     assert int(strand) == 0
-    assert str(strand) == "+"
+    assert str(strand) == ""
 
 
 @pytest.mark.parametrize("invalid", ["unknown_strand_val", "foo"])

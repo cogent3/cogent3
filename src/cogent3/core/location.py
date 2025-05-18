@@ -43,6 +43,8 @@ class Strand(enum.Enum):
         return self.value if self.value is not None else 0
 
     def __str__(self) -> str:
+        if self.value is None:
+            return ""
         return "-" if self.value == -1 else "+"
 
 
