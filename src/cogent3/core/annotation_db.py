@@ -632,7 +632,7 @@ class SqliteAnnotationDbMixin:
         "parent_id": "TEXT",
         "start": "INTEGER",
         "stop": "INTEGER",
-        "strand": "TEXT",
+        "strand": "INTEGER",
         "spans": "array",
         "attributes": "TEXT",
         "on_alignment": "INT",
@@ -1406,7 +1406,7 @@ class GffAnnotationDb(SqliteAnnotationDbMixin, AnnotationDbABC):
         "start": "INTEGER",
         "stop": "INTEGER",
         "score": "TEXT",  # check defn
-        "strand": "TEXT",
+        "strand": "INTEGER",
         "phase": "TEXT",
         "attributes": "TEXT",
         "comments": "TEXT",
@@ -1514,7 +1514,7 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin, AnnotationDbABC):
         "biotype": "TEXT",  # type in GFF
         "start": "INTEGER",
         "stop": "INTEGER",
-        "strand": "TEXT",
+        "strand": "INTEGER",
         "comments": "TEXT",
         "spans": "array",  # aggregation of coords across records
         "name": "TEXT",

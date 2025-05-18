@@ -416,7 +416,7 @@ def test_feature_strand():
     minus_spans = [(4, 7), (11, 13)]
     minus_seq = "".join(raw_seq[s:e] for s, e in minus_spans)
     minus_seq = "".join([{"T": "A", "A": "T"}[b] for b in minus_seq[::-1]])
-    seq = make_seq(seq=raw_seq, name="s1", moltype="dna")
+    seq = make_seq(seq=raw_seq, name="s1", moltype="dna", new_type=True)
     db = GffAnnotationDb()
     db.add_feature(
         seqid="s1",
