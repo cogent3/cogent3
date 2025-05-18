@@ -1283,7 +1283,9 @@ class SqliteAnnotationDbMixin:
         local_vars = locals()
 
         kwargs = {
-            k: v for k, v in local_vars.items() if k not in {"self", "source"} and v
+            k: v
+            for k, v in local_vars.items()
+            if k not in {"self", "source"} and v is not None
         }
         if "strand" in kwargs:
             kwargs["strand"] = Strand.from_value(strand).value
