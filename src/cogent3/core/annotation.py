@@ -59,7 +59,7 @@ class Feature:
         self._xattr = xattr
 
     def __eq__(self, other: object) -> bool:
-        return self._id == other._id if isinstance(other, Feature) else False
+        return self._id == getattr(other, "_id", None)
 
     def __hash__(self) -> int:
         """Features can be used in a dictionary!"""
