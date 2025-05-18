@@ -777,7 +777,7 @@ class SqliteAnnotationDbMixin:
         seqid: str,
         biotype: str,
         name: str,
-        spans: list[tuple[int, int]],
+        spans: list[tuple[int, int]] | numpy.ndarray,
         parent_id: OptionalStr = None,
         strand: str | int | None = None,
         attributes: OptionalStr = None,

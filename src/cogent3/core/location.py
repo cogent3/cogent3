@@ -513,9 +513,9 @@ class TerminalPadding(_LostSpan):
         return f"?{self.length}?"
 
 
-IntTypes = Union[int, numpy.int32, numpy.int64]
+IntTypes = int | numpy.int32 | numpy.int64
 IntArrayTypes = NDArray[int]
-SpanTypes = Union[Span, _LostSpan]
+SpanTypes = Span | _LostSpan
 SeqSpanTypes = Sequence[SpanTypes]
 SeqCoordTypes = Sequence[Sequence[IntTypes]]
 

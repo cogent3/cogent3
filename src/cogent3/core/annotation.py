@@ -58,8 +58,8 @@ class Feature:
         self._strand = Strand.from_value(strand)
         self._xattr = xattr
 
-    def __eq__(self, other: typing_extensions.Self) -> bool:
-        return self._id == other._id
+    def __eq__(self, other: object) -> bool:
+        return self._id == other._id if isinstance(other, Feature) else False
 
     def __hash__(self) -> int:
         """Features can be used in a dictionary!"""
@@ -172,7 +172,7 @@ class Feature:
         )
         return f"{name}({txt})"
 
-    def remapped_to(self, grandparent, gmap):
+    def remapped_to(self, grandparent, gmap) -> typing_extensions.Self:
         # grandparent can be either a Sequence or an Alignment
         if not isinstance(gmap, FeatureMap):
             # due to separation of IndelMap and Map, change class
@@ -187,7 +187,7 @@ class Feature:
         }
         return self.__class__(**kwargs)
 
-    def get_coordinates(self) -> list[tuple[int, int]]:
+    def get_coordinates(self) -> SeqCoordTypes:
         """returns sequence coordinates of this Feature as
         [(start1, end1), ...]"""
         return self.map.get_coordinates()
