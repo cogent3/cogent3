@@ -34,7 +34,7 @@ def test_seq_feature_to_dict():
         "spans": [
             (5, 10),
         ],
-        "strand": "+",
+        "strand": 1,
         "seqid": "test_seq",
         "on_alignment": False,
     }

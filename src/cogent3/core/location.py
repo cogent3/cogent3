@@ -1,5 +1,6 @@
 import copy
 import dataclasses
+import enum
 import functools
 import inspect
 import json
@@ -7,7 +8,7 @@ from abc import ABC, abstractmethod
 from bisect import bisect_left, bisect_right
 from collections.abc import Iterator, Sequence
 from functools import total_ordering
-from typing import Any, NoReturn, Optional, Union
+from typing import Any, NoReturn, Union
 
 import numba
 import numpy
@@ -22,7 +23,27 @@ strip = str.strip
 
 _DEFAULT_GAP_DTYPE = numpy.int32
 
-OptInt = Optional[int]
+OptInt = int | None
+
+
+class Strand(enum.Enum):
+    """enum for defining strand information"""
+
+    PLUS = 1
+    MINUS = -1
+    NONE = None
+
+    @classmethod
+    def from_value(cls, value: str | int | None) -> "Strand":
+        if value in (-1, -1.0, "-", "-1", "minus", "Minus", "MINUS", cls.MINUS):
+            return cls.MINUS
+        return cls.NONE if value in (None, cls.NONE, 0, 0.0, False) else cls.PLUS
+
+    def __int__(self) -> int:
+        return self.value if self.value is not None else 0
+
+    def __str__(self) -> str:
+        return "-" if self.value == -1 else "+"
 
 
 def _norm_index(i, length, default):

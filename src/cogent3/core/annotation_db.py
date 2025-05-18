@@ -16,6 +16,7 @@ import numpy
 import typing_extensions
 
 from cogent3._version import __version__
+from cogent3.core.location import Strand
 from cogent3.core.table import Table
 from cogent3.parse.gff import merged_gff_records
 from cogent3.util.deserialise import register_deserialiser
@@ -90,7 +91,7 @@ class FeatureDataType(typing.TypedDict):
     biotype: str  # rename type attr of cogent3 Annotatables to match this?
     name: str  # rename to name to match cogent3 Annotatable.name?
     spans: list[tuple[int, int]] | numpy.ndarray
-    strand: str  # "-" if feature on reverse strand
+    strand: int | str  # will be transformed by Strand Enum
     on_alignment: bool  # True if feature on an alignment
     xattr: dict[str, typing.Any]  # extra attributes
 
@@ -778,7 +779,7 @@ class SqliteAnnotationDbMixin:
         name: str,
         spans: list[tuple[int, int]],
         parent_id: OptionalStr = None,
-        strand: OptionalStr = None,
+        strand: str | int | None = None,
         attributes: OptionalStr = None,
         on_alignment: OptionalBool = False,
     ) -> None:
@@ -808,7 +809,10 @@ class SqliteAnnotationDbMixin:
         stop = int(spans.max())
         # we define record as all defined variables from local name space,
         # excluding "self"
-        record = {k: v for k, v in locals().items() if k != "self" and v is not None}
+        local_vars = locals()
+        record = {k: v for k, v in local_vars.items() if k != "self" and v is not None}
+        if "strand" in record:
+            record["strand"] = Strand.from_value(strand).value
         sql, values = _add_record_sql("user", record)
         self._execute_sql(sql, values=values)
 
@@ -931,7 +935,11 @@ class SqliteAnnotationDbMixin:
         # a record is Everything, a Feature is a subset
         # we define query as all defined variables from local name space,
         # excluding "self" and kwargs at default values
-        kwargs = {k: v for k, v in locals().items() if k != "self" and v is not None}
+        local_vars = locals()
+        kwargs = {k: v for k, v in local_vars.items() if k != "self" and v is not None}
+        if "strand" in kwargs:
+            kwargs["strand"] = Strand.from_value(strand).value
+
         # alignment features are created by the user specific
         table_names = ["user"] if on_alignment else self.table_names
         for table_name in table_names:
@@ -954,7 +962,11 @@ class SqliteAnnotationDbMixin:
         # returns essential values to create a Feature
         # we define query as all defined variables from local name space,
         # excluding "self" and kwargs with a default value of None
-        kwargs = {k: v for k, v in locals().items() if k != "self" and v is not None}
+        local_vars = locals()
+        kwargs = {k: v for k, v in local_vars.items() if k != "self" and v is not None}
+        if "strand" in kwargs:
+            kwargs["strand"] = Strand.from_value(strand).value
+
         # alignment features are created by the user specific
         table_names = ["user"] if on_alignment else self.table_names
         for table_name in table_names:
@@ -987,7 +999,10 @@ class SqliteAnnotationDbMixin:
         on_alignment: OptionalBool = None,
     ) -> int:
         """return the number of records matching condition"""
-        kwargs = {k: v for k, v in locals().items() if k != "self"}
+        local_vars = locals()
+        kwargs = {k: v for k, v in local_vars.items() if k != "self" and v is not None}
+        if "strand" in kwargs:
+            kwargs["strand"] = Strand.from_value(kwargs["strand"]).value
         num = 0
         for table_name in self.table_names:
             sql, values = _count_records_sql(table_name, conditions=kwargs)
@@ -1265,8 +1280,13 @@ class SqliteAnnotationDbMixin:
         # make sure python, not numpy, integers
         start = start if start is None else int(start)
         stop = stop if stop is None else int(stop)
+        local_vars = locals()
 
-        kwargs = {k: v for k, v in locals().items() if k not in {"self", "source"}}
+        kwargs = {
+            k: v for k, v in local_vars.items() if k not in {"self", "source"} and v
+        }
+        if "strand" in kwargs:
+            kwargs["strand"] = Strand.from_value(strand).value
 
         result = self.__class__(source=source)
         if not len(self):
@@ -1434,6 +1454,7 @@ class GffAnnotationDb(SqliteAnnotationDbMixin, AnnotationDbABC):
             record["start"] = int(spans.min())
             record["stop"] = int(spans.max())
             record["spans"] = spans
+            record["strand"] = Strand.from_value(record.get("strand")).value
             rows.append(tuple(record.get(c) for c in col_order))
 
         self.db.executemany(sql, rows)
@@ -1549,7 +1570,7 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin, AnnotationDbABC):
             if location := record.get("location", None):
                 store["spans"] = numpy.array(location.get_coordinates(), dtype=int)
                 if strand := location.strand:
-                    store["strand"] = "-" if strand == -1 else "+"
+                    store["strand"] = Strand.from_value(strand).value
                 store["start"] = int(store["spans"].min())
                 store["stop"] = int(store["spans"].max())
 
@@ -1709,13 +1730,16 @@ def convert_annotation_to_annotation_db(data: dict) -> SupportsFeatures:
 
     db = BasicAnnotationDb()
 
+    minus = Strand.MINUS
+    plus = Strand.PLUS
+
     seqid = data.pop("name", data.pop("seqid", None))
     anns = data.pop("data")
     for ann in anns:
         ann = ann.pop("annotation_construction")  # noqa: PLW2901
         m = deserialise_map_spans(ann.pop("map"))
         spans = m.get_coordinates()
-        strand = "-" if any(s.reverse for s in m.spans) else "+"
+        strand = minus if any(s.reverse for s in m.spans) else plus
         biotype = ann.pop("type")
         name = ann.pop("name")
         db.add_feature(

@@ -4,7 +4,7 @@ from collections.abc import Iterable
 import typing_extensions
 from numpy import array
 
-from .location import FeatureMap
+from .location import FeatureMap, SeqCoordTypes, Strand
 
 if typing.TYPE_CHECKING:
     from cogent3.core.new_alignment import Alignment
@@ -40,7 +40,7 @@ class Feature:
         map: FeatureMap,
         biotype: str,
         name: str,
-        strand: str,
+        strand: int | str,
         xattr: dict[str, typing.Any] | None = None,
     ) -> None:
         # _serialisable is used for creating derivative instances
@@ -55,7 +55,7 @@ class Feature:
         data = [id(self.parent), tuple(self.map.get_coordinates())]
         data.extend((self.seqid, self.biotype, self.name))
         self._id = hash(tuple(data))
-        self._strand = strand
+        self._strand = Strand.from_value(strand)
         self._xattr = xattr
 
     def __eq__(self, other: typing_extensions.Self) -> bool:
@@ -280,7 +280,7 @@ class Feature:
         # the covered method drops reversed status so we need to
         # resurrect that, but noting we've not checked consistency
         # across the features
-        strand = self._strand if same_orientation else "+"
+        strand = self._strand.value if same_orientation else Strand.PLUS.value
         seqid = ", ".join(seqids) if seqids else None
         biotype = ", ".join(biotypes)
         kwargs = {
@@ -313,7 +313,7 @@ class Feature:
     @property
     def reversed(self) -> bool:
         """whether Feature is on the reverse strand relative to bound object"""
-        return self._strand == "-"
+        return self._strand is Strand.MINUS
 
     @property
     def xattr(self) -> dict[str, typing.Any] | None:
