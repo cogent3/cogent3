@@ -1585,3 +1585,11 @@ def test_null_strand(null):
     assert strand is Strand.NONE
     assert int(strand) == 0
     assert str(strand) == "+"
+
+
+@pytest.mark.parametrize("invalid", ["unknown_strand_val", "foo"])
+def test_invalid_strand_defaults_to_plus(invalid):
+    strand = Strand.from_value(invalid)
+    assert strand is Strand.PLUS
+    assert int(strand) == 1
+    assert str(strand) == "+"
