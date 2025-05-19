@@ -1891,6 +1891,16 @@ def test_counts_per_seq_text_moltype():
     assert got.col_sum()["T"] == 2
 
 
+def test_counts_per_seq_bytes_moltype():
+    """produce correct counts per seq with text moltypes"""
+    data = {"a": "AAAA??????", "b": "CCCGGG--NN", "c": "CCGGTTCCAA"}
+    coll = new_alignment.make_aligned_seqs(data, moltype="bytes")
+    got = coll.counts_per_seq(include_ambiguity=True, allow_gap=True)
+    assert got.col_sum()[b"-"] == 2
+    assert got.col_sum()[b"?"] == 6
+    assert got.col_sum()[b"T"] == 2
+
+
 def test_counts_per_pos_text_moltype():
     """produce correct counts per pos with default moltypes"""
     data = {"a": "AAAA??????", "b": "CCCGGG--NN", "c": "CCGGTTCCAA"}
