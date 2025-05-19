@@ -1,6 +1,7 @@
 """Unit tests for the GenBank database parsers."""
 
 import io
+import os
 import pathlib
 from unittest import TestCase
 
@@ -9,6 +10,7 @@ import pytest
 from cogent3.parse import genbank
 
 # ruff: noqa: SIM905
+NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
 
 
 class GenBankTests(TestCase):
@@ -445,6 +447,7 @@ def rich_gb():
         return next(s for l, s in parser)
 
 
+@pytest.mark.skipif(not NEW_TYPE, reason="different handling of strand")
 def test_rich_parser(rich_gb):
     """correctly constructs +/- strand features"""
     cds = {f.name: f for f in rich_gb.get_features(biotype="CDS")}

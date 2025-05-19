@@ -1,5 +1,3 @@
-"""Unit tests for Span classes."""
-
 import re
 from itertools import combinations
 from unittest import TestCase
@@ -14,6 +12,7 @@ from cogent3.core.location import (
     IndelMap,
     LostSpan,
     Span,
+    Strand,
     TerminalPadding,
     coords_intersect,
     coords_minus_coords,
@@ -1560,3 +1559,37 @@ def test_indel_map_merge_aligned_indices():
     )
 
     numpy.testing.assert_allclose(merged.array, exp.array)
+
+
+@pytest.mark.parametrize(
+    "minus", [-1, "-", "-1", -1.0, "Minus", "minus", "MINUS", Strand.MINUS]
+)
+def test_minus_strand(minus):
+    strand = Strand.from_value(minus)
+    assert strand is Strand.MINUS
+    assert int(strand) == -1
+    assert str(strand) == "-"
+
+
+@pytest.mark.parametrize("plus", [1, "+", "+1", "plus", "Plus", "PLUS", Strand.PLUS])
+def test_plus_strand(plus):
+    strand = Strand.from_value(plus)
+    assert strand is Strand.PLUS
+    assert int(strand) == 1
+    assert str(strand) == "+"
+
+
+@pytest.mark.parametrize("null", [None, 0, 0.0, Strand.NONE])
+def test_null_strand(null):
+    strand = Strand.from_value(null)
+    assert strand is Strand.NONE
+    assert int(strand) == 0
+    assert str(strand) == ""
+
+
+@pytest.mark.parametrize("invalid", ["unknown_strand_val", "foo"])
+def test_invalid_strand_defaults_to_plus(invalid):
+    strand = Strand.from_value(invalid)
+    assert strand is Strand.PLUS
+    assert int(strand) == 1
+    assert str(strand) == "+"

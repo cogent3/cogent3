@@ -37,6 +37,7 @@ from cogent3.core.location import (
     FeatureMap,
     IndelMap,
     LostSpan,
+    Strand,
     _input_vals_neg_step,
     _input_vals_pos_step,
 )
@@ -1130,8 +1131,10 @@ class Sequence:
         feature = dict(feature)
         seq_rced = self._seq.is_reversed
         spans = feature.pop("spans", None)
-        revd = feature.pop("strand", None) == "-"
-        feature["strand"] = "+" if revd == seq_rced else "-"
+        revd = Strand.from_value(feature.pop("strand", None)) is Strand.MINUS
+        feature["strand"] = (
+            Strand.PLUS.value if revd == seq_rced else Strand.MINUS.value
+        )
 
         vals = array(spans)
         pre = abs(vals.min()) if vals.min() < 0 else 0
@@ -1234,9 +1237,12 @@ class Sequence:
         -------
         Feature instance
         """
+        local_vars = locals()
+        local_vars["strand"] = Strand.from_value(strand).value
+
         feature_data = FeatureDataType(
             seqid=self.name,
-            **{n: v for n, v in locals().items() if n not in ("self", "seqid")},
+            **{n: v for n, v in local_vars.items() if n not in ("self", "seqid")},
         )
         if self._annotation_db is None:
             self._init_annotation_db()
@@ -1837,7 +1843,7 @@ class Sequence:
         seqid, start, end, strand of this sequence on the parent. strand is either
         -1 or 1.
         """
-        strand = -1 if self._seq.is_reversed else 1
+        strand = Strand.MINUS.value if self._seq.is_reversed else Strand.PLUS.value
         return (
             self._seq.seqid,
             self._seq.slice_record.parent_start,

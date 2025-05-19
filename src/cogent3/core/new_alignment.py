@@ -40,6 +40,7 @@ from cogent3.core.info import Info as InfoClass
 from cogent3.core.location import (
     FeatureMap,
     IndelMap,
+    Strand,
 )
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray, load_pssm
 from cogent3.maths.stats.number import CategoryCounter
@@ -1334,7 +1335,7 @@ class SequenceCollection:
         name: str,
         spans: list[tuple[int, int]],
         parent_id: OptStr = None,
-        strand: str = "+",
+        strand: str | int = "+",
     ) -> Feature:
         """
         add feature on named sequence
@@ -1363,7 +1364,7 @@ class SequenceCollection:
             raise ValueError(msg)
 
         feature = {k: v for k, v in locals().items() if k != "self"}
-
+        feature["strand"] = Strand.from_value(strand).value
         self.annotation_db.add_feature(**feature)
         feature.pop("parent_id", None)
         return self.make_feature(feature=feature)
@@ -5823,8 +5824,8 @@ class Alignment(SequenceCollection):
 
         feature["seqid"] = feature.get("seqid", None)
         # there's no sequence to bind to, the feature is directly on self
-        revd = feature.pop("strand", None) == "-"
-        feature["strand"] = "-" if revd else "+"
+        revd = Strand.from_value(feature.pop("strand", None)) is Strand.MINUS
+        feature["strand"] = Strand.MINUS.value if revd else Strand.PLUS.value
         fmap = FeatureMap.from_locations(
             locations=feature.pop("spans"),
             parent_length=len(self),
@@ -5891,7 +5892,7 @@ class Alignment(SequenceCollection):
             self.annotation_db = DEFAULT_ANNOTATION_DB()
 
         feature = {k: v for k, v in locals().items() if k != "self"}
-
+        feature["strand"] = Strand.from_value(strand).value
         self.annotation_db.add_feature(**feature)
         for discard in ("on_alignment", "parent_id"):
             feature.pop(discard, None)
@@ -6023,12 +6024,14 @@ class Alignment(SequenceCollection):
             if seq_map is None:
                 seq_map = self.seqs[0].map.to_feature_map()
                 *_, strand = self.seqs[0].seq.parent_coordinates()
+            else:
+                strand = feature.pop("strand", None)
 
             spans = numpy.array(feature["spans"])
             spans = seq_map.relative_position(spans)
             feature["spans"] = spans.tolist()
             # and if i've been reversed...?
-            feature["strand"] = "-" if strand == -1 else "+"
+            feature["strand"] = Strand.from_value(strand).value
             yield self.make_feature(feature=feature, on_alignment=on_al)
 
     def get_projected_feature(self, *, seqid: str, feature: Feature) -> Feature:
