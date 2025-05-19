@@ -84,9 +84,9 @@ def deprecated_args(
         format, e.g. 'YYYY.MM'
     reason : str
         Reason for deprecation or guidance on what to do
-    old-new : List[Tuple[str, str]]
+    old-new : list[tuple[str, str]]
         A list of deprecated old and replacement new argument names.
-    discontinued : List[str]
+    discontinued : list[str]
         Names of single or multiple arguments to be discontinued. This should
         only be applied to arguments that have no effect.
 

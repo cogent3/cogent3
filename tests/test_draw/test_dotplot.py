@@ -77,26 +77,6 @@ class TestUtilFunctions(TestCase):
         assert len(traces) == 3
         assert traces[1].name == "- strand"
 
-    def test_align_without_gaps(self):
-        """dotplot has alignment coordinates if no gaps"""
-        aln = make_aligned_seqs(
-            data={"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"},
-            moltype="dna",
-        )
-        aln_plot = aln.dotplot("seq1")
-        assert aln_plot._aligned_coords is not None
-
-    def test_dotplot_seqcoll(self):
-        """dotplot sequence collection, gaps are removed"""
-        seqs = make_unaligned_seqs(
-            {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"},
-            moltype="dna",
-        )
-        dp = seqs.dotplot("seq1", "seq3")
-        assert dp._aligned_coords is not None
-        assert len(dp.seq1) == 4
-        assert len(dp.seq2) == 3
-
     def test_dotplot_single(self):
         """dotplot with single sequence should not fail"""
         seqs = make_unaligned_seqs({"seq1": "CACACCACTGCAGTCGGATAGACC"}, moltype="dna")
@@ -198,3 +178,25 @@ def test_get_align_coords_common_gaps():
     path = get_align_coords(m1, m2)
     expect = [2, 4, None, 5, 5], [0, 2, None, 5, 5]
     assert path.get_coords() == expect
+
+
+def test_align_without_gaps():
+    """dotplot has alignment coordinates if no gaps"""
+    aln = make_aligned_seqs(
+        data={"seq1": "ACGG", "seq2": "ACGG"}, moltype="dna", new_type=True
+    )
+    dp = aln.dotplot(window=2, threshold=1)
+    # trigger building the figure
+    dp.figure
+    assert any(trace["name"] == "Alignment" for trace in dp.traces)
+
+
+def test_dotplot_seqcoll():
+    """dotplot sequence collection, gaps are removed"""
+    seqs = make_unaligned_seqs(
+        {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}, moltype="dna", new_type=True
+    )
+    dp = seqs.dotplot("seq1", "seq3")
+    assert all(trace["name"] != "Alignment" for trace in dp.traces)
+    assert len(dp.seq1) == 4
+    assert len(dp.seq2) == 3

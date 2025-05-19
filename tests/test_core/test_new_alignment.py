@@ -29,6 +29,13 @@ try:
 except ImportError:
     has_hf_seqs = False
 
+try:
+    import piqtree
+
+    has_piqtree = True
+except ImportError:
+    has_piqtree = False
+
 
 @pytest.fixture(scope="session")
 def tmp_path(tmpdir_factory):
@@ -1884,6 +1891,16 @@ def test_counts_per_seq_text_moltype():
     assert got.col_sum()["T"] == 2
 
 
+def test_counts_per_seq_bytes_moltype():
+    """produce correct counts per seq with text moltypes"""
+    data = {"a": "AAAA??????", "b": "CCCGGG--NN", "c": "CCGGTTCCAA"}
+    coll = new_alignment.make_aligned_seqs(data, moltype="bytes")
+    got = coll.counts_per_seq(include_ambiguity=True, allow_gap=True)
+    assert got.col_sum()[b"-"] == 2
+    assert got.col_sum()[b"?"] == 6
+    assert got.col_sum()[b"T"] == 2
+
+
 def test_counts_per_pos_text_moltype():
     """produce correct counts per pos with default moltypes"""
     data = {"a": "AAAA??????", "b": "CCCGGG--NN", "c": "CCGGTTCCAA"}
@@ -2208,7 +2225,7 @@ def test_to_dna():
     assert dna.moltype.label == "dna"
     # should fail if invalid character set
     paln = dna.get_translation()
-    with pytest.raises(new_moltype.MolTypeError):
+    with pytest.raises(new_alphabet.AlphabetError):
         _ = paln.to_dna()
 
 
@@ -3321,7 +3338,7 @@ def test_aligned_seqs_data_getitem(seqid, index, aligned_array_dict, moltype, re
     got_with_seqid = numpy.array(ad[seqid])
     got_with_index = numpy.array(ad[index])
 
-    expect = aligned_array_dict[seqid][aligned_array_dict[seqid] != 4]
+    expect = aligned_array_dict[seqid]
 
     assert numpy.array_equal(got_with_seqid, expect)
     assert numpy.array_equal(got_with_index, expect)
@@ -3357,6 +3374,29 @@ def test_aligned_seqs_data_get_gapped_seq_array(
     got = ad.get_gapped_seq_array(seqid=seqid)  # get original data
     expect = aligned_array_dict[seqid]
     assert numpy.array_equal(got, expect)
+
+
+@pytest.mark.parametrize("seqid", ["seq1", "seq2", "seq3", "seq4"])
+@pytest.mark.parametrize("moltype", ["dna_moltype", "rna_moltype"])
+def test_aligned_seqs_data_view_cast(
+    aligned_array_dict,
+    seqid,
+    moltype,
+    request,
+):
+    moltype = request.getfixturevalue(moltype)
+    alpha = moltype.degen_gapped_alphabet
+    ad = new_alignment.AlignedSeqsData.from_seqs(
+        data=aligned_array_dict,
+        alphabet=alpha,
+    )
+    got = ad[seqid]
+    # the default conversion by array, str or bytes is of the gapped sequence
+    expect_array = aligned_array_dict[seqid]
+    assert numpy.array_equal(numpy.array(got), expect_array)
+    expect_str = alpha.from_indices(expect_array)
+    assert str(got) == expect_str
+    assert bytes(got) == expect_str.encode("utf-8")
 
 
 @pytest.mark.parametrize("seqid", ["seq1", "seq2", "seq3", "seq4"])
@@ -3482,7 +3522,7 @@ def test_aligned_seqs_data_add_seqs_duplicate_keys_raises(dna_alphabet):
 
 @pytest.mark.parametrize("seqid", ["seq1", "seq2", "seq3", "seq4"])
 def test_aligned_seqs_data_get_aligned_view(aligned_dict, seqid, dna_alphabet):
-    # str on an ADV should return the ungapped sequence
+    # str on an ADV should return the gapped sequence
     ad = new_alignment.AlignedSeqsData.from_seqs(
         data=aligned_dict,
         alphabet=dna_alphabet,
@@ -3490,7 +3530,7 @@ def test_aligned_seqs_data_get_aligned_view(aligned_dict, seqid, dna_alphabet):
     got = ad.get_view(seqid)
     assert got.parent == ad
     assert got.parent_len == ad.align_len
-    assert str(got) == aligned_dict[seqid].replace("-", "")
+    assert str(got) == aligned_dict[seqid]
 
 
 @pytest.mark.parametrize("seqid", ["seq1", "seq2", "seq3", "seq4"])
@@ -3501,24 +3541,16 @@ def test_aligned_data_view_array(aligned_array_dict, dna_alphabet, seqid):
     )
     view = ad.get_view(seqid)
     got = numpy.array(view)
-    expect = aligned_array_dict[seqid][aligned_array_dict[seqid] != 4]  # remove gaps
-    assert numpy.array_equal(got, expect)
-
-    # directly accessing .array_value property should return the same result
-    got = view.array_value
-    assert numpy.array_equal(got, expect)
-
-
-@pytest.mark.parametrize("seqid", ["seq1", "seq2", "seq3", "seq4"])
-def test_aligned_data_view_gapped_array(aligned_array_dict, dna_alphabet, seqid):
-    ad = new_alignment.AlignedSeqsData.from_seqs(
-        data=aligned_array_dict,
-        alphabet=dna_alphabet,
-    )
-    view = ad.get_view(seqid)
-    got = view.gapped_array_value
     expect = aligned_array_dict[seqid]
     assert numpy.array_equal(got, expect)
+
+    # directly accessing .gapped_array_value property should return the same result
+    got = view.gapped_array_value
+    assert numpy.array_equal(got, expect)
+    # checking ungapped variant
+    assert numpy.array_equal(
+        view.array_value, expect[aligned_array_dict[seqid] != 4]
+    )  # remove gaps
 
 
 @pytest.mark.parametrize("seqid", ["seq1", "seq2", "seq3", "seq4"])
@@ -3529,22 +3561,11 @@ def test_aligned_data_view_str(aligned_dict, dna_alphabet, seqid):
     )
     view = ad.get_view(seqid)
     got = str(view)
-    expect = aligned_dict[seqid].replace("-", "")
+    expect = aligned_dict[seqid]
     assert got == expect
 
-    # directly accessing .str_value property should return the same result
-    got = view.str_value
-    assert got == expect
-
-
-def test_aligned_data_view_gapped_str_value(aligned_dict, dna_alphabet):
-    ad = new_alignment.AlignedSeqsData.from_seqs(
-        data=aligned_dict,
-        alphabet=dna_alphabet,
-    )
-    view = ad.get_view("seq1")
+    # directly accessing .gapped_str_value property should return the same result
     got = view.gapped_str_value
-    expect = aligned_dict["seq1"]
     assert got == expect
 
 
@@ -3554,27 +3575,17 @@ def test_aligned_data_view_bytes(aligned_array_dict, dna_alphabet, seqid):
         data=aligned_array_dict,
         alphabet=dna_alphabet,
     )
-    view = ad.get_view(seqid)
+    view = ad[seqid]
     got = bytes(view)
-    expect = aligned_array_dict[seqid][aligned_array_dict[seqid] != 4]  # remove gaps
+    expect = aligned_array_dict[seqid]
     expect = dna_alphabet.array_to_bytes(expect)  # convert to bytes
-    assert numpy.array_equal(got, expect)
+    assert got == expect
 
-    # directly accessing .bytes_value property should return the same result
-    got = view.bytes_value
-    assert numpy.array_equal(got, expect)
-
-
-@pytest.mark.parametrize("seqid", ["seq1", "seq2", "seq3", "seq4"])
-def test_aligned_data_view_gapped_bytes_value(aligned_array_dict, dna_alphabet, seqid):
-    ad = new_alignment.AlignedSeqsData.from_seqs(
-        data=aligned_array_dict,
-        alphabet=dna_alphabet,
-    )
-    view = ad.get_view(seqid)
+    # directly accessing .gapped_bytes_value property should return the same result
     got = view.gapped_bytes_value
-    expect = dna_alphabet.array_to_bytes(aligned_array_dict[seqid])
-    assert numpy.array_equal(got, expect)
+    assert got == expect
+    got = view.bytes_value
+    assert got == expect.replace(b"-", b"")
 
 
 @pytest.fixture
@@ -3874,6 +3885,15 @@ def test_alignment_to_html_text_moltype():
 
     assert ref_row in got
     assert other_row in got
+
+
+def test_alignment_to_html_bytes_moltype():
+    """exercising producing html for text moltype"""
+    seqs = {"seq1": "ACG", "seq2": "-CT"}
+
+    aln = new_alignment.make_aligned_seqs(seqs, moltype="bytes")
+    got = aln.to_html(ref_name="longest")
+    assert isinstance(got, str)
 
 
 def test_alignment_repr():
@@ -4902,6 +4922,17 @@ def test_alignment_quick_tree(calc, brca1_data, use_hook):
     kwargs = {"use_hook": use_hook}
     kwargs = {**kwargs, "calc": calc} if calc else kwargs
     tree = aln.quick_tree(**kwargs)
+    assert set(tree.get_tip_names()) == set(aln.names)
+
+
+@pytest.mark.skipif(not has_piqtree, reason="piqtree not installed")
+def test_alignment_quick_tree_third_party_hook():
+    """use piqtree as a third party hook"""
+    import cogent3
+
+    aln = cogent3.get_dataset("brca1")[:100]
+    aln = aln.take_seqs(["Human", "Rhesus", "HowlerMon", "Galago", "Mouse"])
+    tree = aln.quick_tree(calc="JC69", use_hook="piqtree")
     assert set(tree.get_tip_names()) == set(aln.names)
 
 
@@ -6001,3 +6032,87 @@ def test_drop_duplicated_seqs_no_dupes(mk_cls):
     seqcoll = mk_cls(data, moltype="dna")
     got = seqcoll.drop_duplicated_seqs()
     assert got is seqcoll
+
+
+@pytest.fixture
+def renamed_aln():
+    data = {
+        "seq1": "ATCTGA",
+        "seq2": "TCGCCC",
+        "seq3": "TCGCCC",
+    }
+    coll = new_alignment.make_aligned_seqs(data, moltype="dna")
+    return coll.rename_seqs(renamer=lambda x: x.upper()), data
+
+
+@pytest.fixture(params=[True, False])
+def renamed_seqs(request, renamed_aln):
+    coll, data = renamed_aln
+    aligned = request.param
+    coll = coll if aligned else coll.degap()
+    return coll, data
+
+
+def test_renamed_trim_stop_codons(renamed_seqs):
+    coll, data = renamed_seqs
+    rn = coll.rename_seqs(renamer=lambda x: x.upper())
+    tr = rn.trim_stop_codons()
+    assert set(tr.storage.names) == set(rn.storage.names)
+    assert set(tr.names) == {k.upper() for k in data}
+
+
+def test_renamed_take_seqs(renamed_seqs):
+    coll, data = renamed_seqs
+    names = ["SEQ1", "SEQ3"]
+    got = coll.take_seqs(names)
+    assert set(got.storage.names) == {k.lower() for k in data}
+    assert set(got.names) == set(names)
+
+
+def test_renamed_degap(renamed_seqs):
+    coll, data = renamed_seqs
+    got = coll.degap()
+    assert set(got.storage.names) == {k.lower() for k in data}
+    assert set(got.names) == {k.upper() for k in data}
+
+
+def test_renamed_to_moltype(renamed_seqs):
+    coll, data = renamed_seqs
+    got = coll.to_moltype("rna")
+    assert set(got.storage.names) == {k.lower() for k in data}
+    assert set(got.names) == {k.upper() for k in data}
+
+
+def test_renamed_rc(renamed_seqs):
+    coll, data = renamed_seqs
+    got = coll.rc()
+    assert set(got.storage.names) == {k.lower() for k in data}
+    assert set(got.names) == {k.upper() for k in data}
+
+
+def test_renamed_get_translation(renamed_seqs):
+    coll, data = renamed_seqs
+    got = coll.get_translation()
+    assert set(got.storage.names) == {k.lower() for k in data}
+    assert set(got.names) == {k.upper() for k in data}
+
+
+def test_renamed_pad_seqs(renamed_seqs):
+    coll, data = renamed_seqs
+    got = coll.pad_seqs(pad_length=10)
+    assert set(got.storage.names) == {k.lower() for k in data}
+    assert set(got.names) == {k.upper() for k in data}
+
+
+def test_renamed_take_positions(renamed_aln):
+    coll, data = renamed_aln
+    got = coll.take_positions([0, 1, 2])
+    assert set(got.storage.names) == {k.lower() for k in data}
+    assert set(got.names) == {k.upper() for k in data}
+
+
+def test_renamed_deepcopy(renamed_aln):
+    coll, data = renamed_aln
+    got = coll.deepcopy()
+    assert set(got.storage.names) == {k.lower() for k in data}
+    assert set(got.names) == {k.upper() for k in data}

@@ -126,7 +126,7 @@ def test_dotplot_base_cases(dotplot_seqs, aligned):
     assert str(plot.seq1) == str(plot.seq2)
 
     # k larger than window should raise an error
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         seqs.dotplot(window=5, k=11)
 
     # names not in the collection should raise an error
@@ -150,6 +150,19 @@ def test_dotplot_aligned_path():
     assert len(trace["x"])
 
 
+def test_dotplot_unaligned_no_aligned_path():
+    dotplot_seqs = {
+        "Human": "TTAATGAAGTAGGTTCCAGTACTAATGAAGTGGGCTCCAGTATTAATGAAATAGGTTCCAGTGATGAAAACATTCAAGCA",
+        "Mouse": "TTCATGAAGTATGTTCCACT------------------------------------------GGTGACTCCTTCCCAGGA",
+    }
+    seqs = new_alignment.make_unaligned_seqs(dotplot_seqs, moltype="dna")
+    plot = seqs.dotplot()
+    # trigger construction of figure dict
+    _ = plot.figure
+    # make sure the aligned path trace does NOT exists
+    assert all(tr["name"] != "Alignment" for tr in plot.traces)
+
+
 @pytest.mark.parametrize("with_annotations", [True, False])
 @pytest.mark.parametrize(
     "mk_cls",
@@ -160,11 +173,26 @@ def test_dotplot_annotated(annotated_seq, with_annotations, mk_cls):
         annotated_seq.replace_annotation_db(None)  # this drops all annotations
 
     coll = mk_cls({"c_elegans": annotated_seq}, moltype="dna")
-    dp = coll.dotplot()
-    if with_annotations:
-        assert len(dp.figure.data) > 2
-    else:
-        assert len(dp.figure.data) == 2
+    aligned = mk_cls == new_alignment.make_aligned_seqs
+    fig = coll.dotplot().figure
+    base = {"Alignment", "+ strand"} if aligned else {"+ strand"}
+    expect = base | {"gene"} if with_annotations else base
+    got = {tr["name"] for tr in fig.data}
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+)
+def test_dotplot_just_gaps(mk_cls):
+    eqs = {
+        "Human": "ACTAATGAAGTGGGCTCCAGTATTAATGA",
+        "Mouse": "-----------------------------",
+    }
+    coll = mk_cls(eqs, moltype="dna")
+    with pytest.raises(ValueError):
+        coll.dotplot()
 
 
 def test_dotplot_regression():

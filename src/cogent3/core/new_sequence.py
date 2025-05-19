@@ -37,6 +37,7 @@ from cogent3.core.location import (
     FeatureMap,
     IndelMap,
     LostSpan,
+    Strand,
     _input_vals_neg_step,
     _input_vals_pos_step,
 )
@@ -339,13 +340,9 @@ class Sequence:
             warns if motif_length > 1 and alignment trimmed to produce
             motif columns
         """
-        # refactor: array
+        data = numpy.array(self)
 
-        data = str(self)
-
-        if motif_length == 1:
-            counts = CategoryCounter(data)
-        else:
+        if motif_length != 1:
             if warn and len(data) % motif_length != 0:
                 warnings.warn(
                     f"{self.name} length not divisible by {motif_length}, truncating",
@@ -353,25 +350,39 @@ class Sequence:
                 )
             limit = (len(data) // motif_length) * motif_length
             data = data[:limit]
+            data = data.reshape(-1, motif_length)
 
-            counts = CategoryCounter(
-                data[i : i + motif_length] for i in range(0, limit, motif_length)
+        unique_values, counts = numpy.unique(data, axis=0, return_counts=True)
+        if motif_length == 1:
+            unique_values = unique_values[:, None]
+
+        indices = numpy.zeros(unique_values.shape[0], dtype=bool)
+        if not allow_gap:
+            indices |= numpy.apply_along_axis(
+                self.moltype.is_gapped, axis=1, arr=unique_values
             )
 
-        exclude = []
-        if not include_ambiguity or not allow_gap:
-            is_degen = self.moltype.is_degenerate
-            is_gap = self.moltype.is_gapped
-            for motif in counts:
-                if (not include_ambiguity and is_degen(motif)) or (
-                    not allow_gap and is_gap(motif)
-                ):
-                    exclude.append(motif)
+        if not include_ambiguity:
+            indices |= numpy.apply_along_axis(
+                self.moltype.is_degenerate, axis=1, arr=unique_values
+            )
 
-        for motif in exclude:
-            del counts[motif]
+        unique_values = unique_values[~indices]
+        counts = counts[~indices]
 
-        return counts
+        result = {}
+        alpha = self.moltype.most_degen_alphabet()
+        # The following approach is used because of bytes moltype.
+        # We can't use the from_indices method on the bytes moltype
+        # as that creates a string, but individual elements are
+        # bytes, not all of which can be decoded. Thus we get an
+        # empty instance and use join.
+        monomer_type = type(alpha[0])()
+        for motif, count in zip(unique_values, counts, strict=True):
+            key = monomer_type.join([alpha[i] for i in motif])
+            result[key] = int(count)
+
+        return CategoryCounter(result)
 
     def count_ambiguous(self) -> int:
         """Returns the number of ambiguous characters in the sequence."""
@@ -834,13 +845,18 @@ class Sequence:
 
         seq = str(self)
         seq = seq if limit is None else seq[:limit]
-        gaps = "".join(self.moltype.gaps)
         seqlen = len(seq)
-        start_gap = re.search(f"^[{gaps}]+", "".join(seq))
-        end_gap = re.search(f"[{gaps}]+$", "".join(seq))
+        if self.moltype.gaps:
+            gaps = "".join(self.moltype.gaps)
+            start_gap = re.search(f"^[{gaps}]+", "".join(seq))
+            end_gap = re.search(f"[{gaps}]+$", "".join(seq))
 
-        start = 0 if start_gap is None else start_gap.end()
-        end = len(seq) if end_gap is None else end_gap.start()
+            start = 0 if start_gap is None else start_gap.end()
+            end = len(seq) if end_gap is None else end_gap.start()
+        else:
+            start = 0
+            end = len(seq)
+
         seq_style = []
         template = '<span class="%s">%%s</span>'
         styled_seq = []
@@ -880,9 +896,9 @@ class Sequence:
             ".c3seq tr:not(.num_row) td span {margin: 0 2px;}",
             ".c3seq tr:nth-child(even) {background: #f7f7f7;}",
             ".c3seq .num_row {background-color:rgba(161, 195, 209, 0.5) !important; border-top: solid 1px black; }",
-            ".c3seq .label { font-size: %dpt ; text-align: right !important; "
-            "color: black !important; padding: 0 4px; }" % font_size,
-            "\n".join([".c3seq " + style for style in css]),
+            f".c3seq .label {{ font-size: {font_size}pt ; text-align: right !important; "
+            "color: black !important; padding: 0 4px; }}",
+            "\n".join([f".c3seq {style}" for style in css]),
             "</style>",
             '<div class="c3seq">',
             "\n".join(table),
@@ -1130,8 +1146,10 @@ class Sequence:
         feature = dict(feature)
         seq_rced = self._seq.is_reversed
         spans = feature.pop("spans", None)
-        revd = feature.pop("strand", None) == "-"
-        feature["strand"] = "+" if revd == seq_rced else "-"
+        revd = Strand.from_value(feature.pop("strand", None)) is Strand.MINUS
+        feature["strand"] = (
+            Strand.PLUS.value if revd == seq_rced else Strand.MINUS.value
+        )
 
         vals = array(spans)
         pre = abs(vals.min()) if vals.min() < 0 else 0
@@ -1234,9 +1252,12 @@ class Sequence:
         -------
         Feature instance
         """
+        local_vars = locals()
+        local_vars["strand"] = Strand.from_value(strand).value
+
         feature_data = FeatureDataType(
             seqid=self.name,
-            **{n: v for n, v in locals().items() if n not in ("self", "seqid")},
+            **{n: v for n, v in local_vars.items() if n not in ("self", "seqid")},
         )
         if self._annotation_db is None:
             self._init_annotation_db()
@@ -1837,7 +1858,7 @@ class Sequence:
         seqid, start, end, strand of this sequence on the parent. strand is either
         -1 or 1.
         """
-        strand = -1 if self._seq.is_reversed else 1
+        strand = Strand.MINUS.value if self._seq.is_reversed else Strand.PLUS.value
         return (
             self._seq.seqid,
             self._seq.slice_record.parent_start,

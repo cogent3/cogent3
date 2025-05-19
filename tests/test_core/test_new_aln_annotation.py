@@ -273,7 +273,7 @@ def test_aln_feature_to_dict():
         "spans": [
             (5, 9),
         ],
-        "strand": "+",
+        "strand": 1,
         "seqid": None,
         "on_alignment": True,
     }

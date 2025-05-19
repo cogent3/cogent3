@@ -30,7 +30,7 @@ def makeSampleAlignment():  # ported
     seq1 = makeSampleSequence("FAKE01")
     seq2 = makeSampleSequence("FAKE02", with_gaps=True)
     seqs = {seq1.name: seq1, seq2.name: seq2}
-    aln = make_aligned_seqs(data=seqs, array_align=False)
+    aln = make_aligned_seqs(data=seqs, moltype="dna", array_align=False)
     aln.add_feature(
         biotype="misc_feature",
         name="misc",
@@ -256,7 +256,7 @@ def test_aln_feature_to_dict():  # ported
         makeSampleSequence("s1", with_gaps=False),
         makeSampleSequence("s2", with_gaps=True),
     ]
-    aln = make_aligned_seqs(seqs, array_align=False)
+    aln = make_aligned_seqs(seqs, moltype="dna", array_align=False)
     feature_data = {
         "biotype": "CDS",
         "name": "fake",
@@ -285,40 +285,10 @@ def test_seq_slice_seqfeat_invalid(ann_aln):  # ported
 def test_gbdb_get_children_get_parent(DATA_DIR):  # ported
     seq = load_seq(DATA_DIR / "annotated_seq.gb")
     seq = seq[2900:6000]
-    (orig,) = list(seq.get_features(biotype="gene", name="CNA00110"))
-    (child,) = list(orig.get_children("CDS"))
+    orig, *_ = list(seq.get_features(biotype="gene", name="CNA00110"))
+    child, *_ = list(orig.get_children("CDS"))
     parent, *_ = list(child.get_parent())
     assert parent == orig
-
-
-@pytest.mark.parametrize("rev", [False, True])
-def test_features_survives_seq_rename(rev):  # ported
-    segments = ["A" * 10, "C" * 10, "T" * 5, "C" * 5, "A" * 5]
-
-    seq = DNA.make_seq(seq="".join(segments), name="original")
-    gene = seq.add_feature(biotype="gene", name="gene1", spans=[(10, 20), (25, 30)])
-    gene_expect = str(seq[10:20]) + str(seq[25:30])
-    assert str(gene.get_slice()) == gene_expect
-    domain = seq.add_feature(
-        biotype="domain",
-        name="domain1",
-        spans=[(20, 25)],
-        strand="-",
-    )
-    domain_expect = str(seq[20:25].rc())
-    domain_got = domain.get_slice()
-    assert str(domain_got) == domain_expect
-    sliced = seq[5:-3]
-    sliced.name = "sliced"
-    sliced = sliced.rc() if rev else sliced
-
-    got = next(iter(sliced.get_features(name="gene1")))
-    got = got.get_slice()
-    assert str(got) == gene_expect
-
-    got = next(iter(sliced.get_features(name="domain1")))
-    got = got.get_slice()
-    assert str(got) == domain_expect
 
 
 def make_aligned(**kwargs):

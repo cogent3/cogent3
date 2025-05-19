@@ -117,27 +117,27 @@ class quick_tree:
             msg = "invalid pairwise distances"
             raise ValueError(msg)
 
-        # how many species do we have
         if size == 2:
-            dist = dists.array[0, 1] / 2.0
-            newick = ",".join(f"{sp}:{dist:.4f}" for sp in dists.names)
-            newick = f"({newick})"
-            tree = make_tree(treestring=newick, underscore_unmunge=True)
+            # use code from dist matrix for this, no hook applied
+            tree = dists.quick_tree()
         else:
+            # we hard-code this call to allow for over-riding third-party
+            # hooks
             (result,) = gnj(dists.to_dict(), keep=1, show_progress=False)
             _, tree = result
 
+        tree.params["source"] = dists.source
         return tree
 
 
 @singledispatch
-def interpret_tree_arg(tree) -> NoneType | TreeNode:
+def interpret_tree_arg(tree) -> None | TreeNode:
     msg = f"invalid tree type {type(tree)}"
     raise TypeError(msg)
 
 
 @interpret_tree_arg.register
-def _(tree: NoneType) -> NoneType:
+def _(tree: None) -> None:
     return tree
 
 
