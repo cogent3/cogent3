@@ -1,4 +1,26 @@
 
+<a id='changelog-2025.5.8a5'></a>
+# Changes in release "2025.5.8a5"
+
+This is a minor bug fix release with some improvements to consistency under the hood.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- Dotplots now show the alignment path whenever Alignment.dotplot() is invoked.
+  Previously, the path was only displayed if there gaps, which could be confusing
+  since that's behaviour of SequenceCollection.dotplot().
+- Added Enum for Strand information. Developers writing their own annotation db
+  classes should employ this Enum to ensure that the strand information is consistent.
+
+## Bug fixes
+
+- Alignment paths were incorrectly displayed on dotplots when invoked from the
+  dotplot method. This has been fixed.
+
 <a id='changelog-2025.5.8a4'></a>
 # Changes in release "2025.5.8a4"
 
