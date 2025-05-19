@@ -3083,3 +3083,9 @@ def test_sample_without_replacement():
     seq = cogent3.get_dataset("brca1")["Human"].seq
     with pytest.raises(ValueError):
         seq[:20].sample(n=100, with_replacement=False)
+
+
+def test_to_html_bytes():
+    seq = cogent3.make_seq("AGTACACTGGT", moltype="bytes", new_type=True)
+    html = seq.to_html()  # should not fail
+    assert isinstance(html, str)
