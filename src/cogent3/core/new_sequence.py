@@ -370,12 +370,13 @@ class Sequence:
         unique_values = unique_values[~indices]
         counts = counts[~indices]
 
-        alpha = self.moltype.most_degen_alphabet()
         result = {}
         alpha = self.moltype.most_degen_alphabet()
-        # because of bytes moltype, we can't use the from_indices method
-        # as that creates a string, so we get an empty instance and
-        # use join
+        # The following approach is used because of bytes moltype.
+        # We can't use the from_indices method on the bytes moltype
+        # as that creates a string, but individual elements are
+        # bytes, not all of which can be decoded. Thus we get an
+        # empty instance and use join.
         monomer_type = type(alpha[0])()
         for motif, count in zip(unique_values, counts, strict=True):
             key = monomer_type.join([alpha[i] for i in motif])
