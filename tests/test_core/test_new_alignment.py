@@ -3887,6 +3887,15 @@ def test_alignment_to_html_text_moltype():
     assert other_row in got
 
 
+def test_alignment_to_html_bytes_moltype():
+    """exercising producing html for text moltype"""
+    seqs = {"seq1": "ACG", "seq2": "-CT"}
+
+    aln = new_alignment.make_aligned_seqs(seqs, moltype="bytes")
+    got = aln.to_html(ref_name="longest")
+    assert isinstance(got, str)
+
+
 def test_alignment_repr():
     data = {
         "ENSMUSG00000056468": "GCCAGGGGGAAAA",

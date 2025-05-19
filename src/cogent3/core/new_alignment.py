@@ -4981,6 +4981,7 @@ class Alignment(SequenceCollection):
             motifs.update(c.keys())
             counts.append(c)
 
+        # if type motifs not same as type element in moltype
         if not exclude_unobserved:
             motifs.update(self.moltype.alphabet.get_kmer_alphabet(motif_length))
 
@@ -6603,14 +6604,20 @@ class Alignment(SequenceCollection):
         else:
             names, output = selected[:limit]._get_raw_pretty(name_order)
 
-        gaps = "".join(selected.moltype.gaps)
         refname = names[0]
         refseq = output[refname]
         seqlen = len(refseq)
-        start_gap = re.search(f"^[{gaps}]+", "".join(refseq))
-        end_gap = re.search(f"[{gaps}]+$", "".join(refseq))
-        start = 0 if start_gap is None else start_gap.end()
-        end = len(refseq) if end_gap is None else end_gap.start()
+
+        if selected.moltype.gaps:
+            gaps = "".join(selected.moltype.gaps)
+            start_gap = re.search(f"^[{gaps}]+", "".join(refseq))
+            end_gap = re.search(f"[{gaps}]+$", "".join(refseq))
+            start = 0 if start_gap is None else start_gap.end()
+            end = seqlen if end_gap is None else end_gap.start()
+        else:
+            start = 0
+            end = seqlen
+
         seq_style = []
         template = '<span class="%s">%%s</span>'
         styled_seqs = defaultdict(list)

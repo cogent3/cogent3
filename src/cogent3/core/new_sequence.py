@@ -844,13 +844,18 @@ class Sequence:
 
         seq = str(self)
         seq = seq if limit is None else seq[:limit]
-        gaps = "".join(self.moltype.gaps)
         seqlen = len(seq)
-        start_gap = re.search(f"^[{gaps}]+", "".join(seq))
-        end_gap = re.search(f"[{gaps}]+$", "".join(seq))
+        if self.moltype.gaps:
+            gaps = "".join(self.moltype.gaps)
+            start_gap = re.search(f"^[{gaps}]+", "".join(seq))
+            end_gap = re.search(f"[{gaps}]+$", "".join(seq))
 
-        start = 0 if start_gap is None else start_gap.end()
-        end = len(seq) if end_gap is None else end_gap.start()
+            start = 0 if start_gap is None else start_gap.end()
+            end = len(seq) if end_gap is None else end_gap.start()
+        else:
+            start = 0
+            end = len(seq)
+
         seq_style = []
         template = '<span class="%s">%%s</span>'
         styled_seq = []
@@ -890,9 +895,9 @@ class Sequence:
             ".c3seq tr:not(.num_row) td span {margin: 0 2px;}",
             ".c3seq tr:nth-child(even) {background: #f7f7f7;}",
             ".c3seq .num_row {background-color:rgba(161, 195, 209, 0.5) !important; border-top: solid 1px black; }",
-            ".c3seq .label { font-size: %dpt ; text-align: right !important; "
-            "color: black !important; padding: 0 4px; }" % font_size,
-            "\n".join([".c3seq " + style for style in css]),
+            f".c3seq .label {{ font-size: {font_size}pt ; text-align: right !important; "
+            "color: black !important; padding: 0 4px; }}",
+            "\n".join([f".c3seq {style}" for style in css]),
             "</style>",
             '<div class="c3seq">',
             "\n".join(table),
