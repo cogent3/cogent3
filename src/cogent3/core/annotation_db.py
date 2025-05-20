@@ -19,7 +19,7 @@ from cogent3._version import __version__
 from cogent3.core.location import Strand
 from cogent3.core.table import Table
 from cogent3.parse.gff import merged_gff_records
-from cogent3.util.deserialise import register_deserialiser
+from cogent3.util.deserialise import deserialise_object, register_deserialiser
 from cogent3.util.io import PathType, iter_line_blocks
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
 from cogent3.util.progress_display import display_wrap
@@ -1258,6 +1258,7 @@ class SqliteAnnotationDbMixin:
 
     def write(self, path: PathType) -> None:
         """writes db as bytes to path"""
+        path = pathlib.Path(path).expanduser()
         backup = sqlite3.connect(path)
         with self.db:
             self.db.backup(backup)
@@ -1851,7 +1852,8 @@ def load_annotations(
     Parameters
     ----------
     path
-        path to a plain text file containing features
+        path to a plain text file containing annotations, or a json file
+        of a serialised cogent3 annotation db object
     seqids
         only features whose seqid matches a provided identifier are returned,
         the default is all features.
@@ -1874,6 +1876,9 @@ def load_annotations(
     if seqids is not None:
         seqids = {seqids} if isinstance(seqids, str) else set(seqids)
     path = pathlib.Path(path).expanduser()
+    if any(s.lower() == ".json" for s in path.suffixes):
+        return deserialise_object(path)
+
     return (
         _db_from_genbank(
             path,

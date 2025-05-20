@@ -1500,7 +1500,7 @@ class SequenceCollection:
         width: int = 500,
         title: OptStr = None,
         rc: bool = False,
-        biotype: str | tuple[str] = "gene",
+        biotype: str | tuple[str] | None = None,
         show_progress: bool = False,
     ):
         """make a dotplot between specified sequences. Random sequences
