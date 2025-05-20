@@ -318,9 +318,7 @@ def test_open_url(DATA_DIR, mode):
     """different open mode's all work"""
     # None value for open_url mode defaults to "r"
     file_name = "gff2_test.gff"
-    remote_root = (
-        "https://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/{}"
-    )
+    remote_root = "https://github.com/user-attachments/files/20321057/{}.gz"
 
     with open_(DATA_DIR / file_name, mode=mode) as infile:
         local_data = infile.read()
@@ -354,9 +352,7 @@ def test_open_url_local(DATA_DIR):
 def test_open_url_compressed(DATA_DIR):
     """comparing compressed file handling"""
     file_name = "formattest.fasta.gz"
-    remote_root = (
-        "https://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/{}"
-    )
+    remote_root = "https://github.com/user-attachments/files/20321056/{}"
 
     with open_(DATA_DIR / file_name) as infile:
         local_data = infile.read()
@@ -371,7 +367,7 @@ def test_open_url_write_exceptions():
     """Test 'w' mode (should raise Exception)"""
     with pytest.raises(Exception):
         _ = open_url(
-            "https://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/gff2_test.gff",
+            "https://github.com/user-attachments/files/20321057/gff2_test.gff.gz",
             mode="w",
         )
 
@@ -380,7 +376,7 @@ def test_open_url_exceptions():
     """non-http(s) address for url (should raise Exception)"""
     with pytest.raises(Exception):
         _ = open_url(
-            "ftp://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/gff2_test.gff",
+            "ftp://github.com/user-attachments/files/20321057/gff2_test.gff.gz",
         )
 
 
