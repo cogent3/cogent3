@@ -44,10 +44,11 @@ def get_quick_tree_hook(
         name="quick_tree",
         invoke_on_load=False,
     )
-    if name != "cogent3":
+    if name and name != "cogent3":
         for extension in mgr.extensions:
             if name is None or extension.module_name.startswith(name):
                 return extension.plugin()
+
         msg = f"Could not find quick_tree plugin for {name!r}"
         raise ValueError(msg)
 
