@@ -5638,7 +5638,7 @@ def test_load_from_url():
     import cogent3
 
     aln = cogent3.load_aligned_seqs(
-        "https://raw.githubusercontent.com/cogent3/cogent3/develop/doc/data/long_testseqs.fasta",
+        "https://github.com/user-attachments/files/20328517/long_testseqs.fasta.gz",
         moltype="dna",
         new_type=True,
     )
