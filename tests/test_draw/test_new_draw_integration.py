@@ -174,7 +174,7 @@ def test_dotplot_annotated(annotated_seq, with_annotations, mk_cls):
 
     coll = mk_cls({"c_elegans": annotated_seq}, moltype="dna")
     aligned = mk_cls == new_alignment.make_aligned_seqs
-    fig = coll.dotplot().figure
+    fig = coll.dotplot(biotype="gene").figure
     base = {"Alignment", "+ strand"} if aligned else {"+ strand"}
     expect = base | {"gene"} if with_annotations else base
     got = {tr["name"] for tr in fig.data}
