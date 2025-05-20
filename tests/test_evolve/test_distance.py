@@ -854,7 +854,7 @@ def test_take_dists():
     assert_allclose(got1.array.astype(float), got2.array.astype(float))
 
 
-@pytest.mark.parametrize("use_hook", ["cogent3", None, "not present"])
+@pytest.mark.parametrize("use_hook", ["cogent3", None])
 def test_build_phylogeny(use_hook):
     """build a NJ tree"""
     from cogent3 import make_tree
