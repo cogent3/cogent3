@@ -1231,6 +1231,7 @@ def test_load_anns_from_json(DATA_DIR, tmp_dir):
 
     got = load_annotations(path=outpath)
     assert len(got) == len(orig)
+    assert got.to_rich_dict() == orig.to_rich_dict()
 
 
 def test_gff_end_renamed_to_stop(gff_db, tmp_path):

@@ -1876,7 +1876,7 @@ def load_annotations(
     if seqids is not None:
         seqids = {seqids} if isinstance(seqids, str) else set(seqids)
     path = pathlib.Path(path).expanduser()
-    if ".json" in path.suffixes:
+    if any(s.lower() == ".json" for s in path.suffixes):
         return deserialise_object(path)
 
     return (
