@@ -4914,7 +4914,7 @@ def brca1_data():
 
 
 @pytest.mark.parametrize("calc", ["hamming", None])
-@pytest.mark.parametrize("use_hook", ["cogent3", None, "not present"])
+@pytest.mark.parametrize("use_hook", ["cogent3", None])
 def test_alignment_quick_tree(calc, brca1_data, use_hook):
     """quick tree method returns tree"""
     aln = new_alignment.make_aligned_seqs(brca1_data, moltype="dna")[:100]
@@ -4923,6 +4923,13 @@ def test_alignment_quick_tree(calc, brca1_data, use_hook):
     kwargs = {**kwargs, "calc": calc} if calc else kwargs
     tree = aln.quick_tree(**kwargs)
     assert set(tree.get_tip_names()) == set(aln.names)
+
+
+def test_alignment_quick_tree_missing_hook(brca1_data):
+    aln = new_alignment.make_aligned_seqs(brca1_data, moltype="dna")[:100]
+    aln = aln.take_seqs(["Human", "Rhesus", "HowlerMon", "Galago", "Mouse"])
+    with pytest.raises(ValueError):
+        aln.quick_tree(use_hook="missing_hook")
 
 
 @pytest.mark.skipif(not has_piqtree, reason="piqtree not installed")

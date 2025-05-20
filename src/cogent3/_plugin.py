@@ -48,6 +48,8 @@ def get_quick_tree_hook(
         for extension in mgr.extensions:
             if name is None or extension.module_name.startswith(name):
                 return extension.plugin()
+        msg = f"Could not find quick_tree plugin for {name!r}"
+        raise ValueError(msg)
 
     return cogent3.get_app("quick_tree")
 
@@ -185,7 +187,7 @@ def _get_driver(namespace: str, storage_backend: str) -> stevedore.driver.Driver
 
 
 def get_unaligned_storage_driver(
-    storage_backend: str,
+    storage_backend: str | None,
 ) -> typing.Optional["SeqsDataABC"]:
     """returns unaligned sequence storage driver
 
@@ -205,7 +207,7 @@ ALIGNED_SEQ_STORAGE_ENTRY_POINT = "cogent3.storage.aligned_seqs"
 
 
 def get_aligned_storage_driver(
-    storage_backend: str,
+    storage_backend: str | None,
 ) -> typing.Optional["AlignedSeqsDataABC"]:
     """returns aligned sequence storage driver
 
