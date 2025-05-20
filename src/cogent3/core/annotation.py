@@ -142,22 +142,34 @@ class Feature:
         kwargs = {**self._serialisable, "map": self.map[keep]}
         return self.__class__(**kwargs)
 
-    def as_one_span(self) -> typing_extensions.Self:
-        """returns a feature that preserves any gaps"""
+    def as_one_span(self, name: str | None = None) -> typing_extensions.Self:
+        """returns a feature that preserves any gaps in the underlying sequence
+
+        Parameters
+        ----------
+        name
+            The name of the one-span feature, by default 'one-span <self name>'
+        """
         kwargs = {
             **self._serialisable,
             "map": self.map.get_covering_span(),
-            "name": f"one-span {self.name}",
+            "name": name or f"one-span {self.name}",
         }
         return self.__class__(**kwargs)
 
-    def shadow(self) -> typing_extensions.Self:
-        """returns new instance corresponding to disjoint of self coordinates"""
+    def shadow(self, name: str | None = None) -> typing_extensions.Self:
+        """returns new instance corresponding to disjoint of self coordinates
+
+        Parameters
+        ----------
+        name
+            The name of the shadow feature, by default 'not <self name>'
+        """
         kwargs = {
             **self._serialisable,
             "map": self.map.shadow(),
             "biotype": f"not {self.biotype}",
-            "name": f"not {self.name}",
+            "name": name or f"not {self.name}",
         }
         return self.__class__(**kwargs)
 
