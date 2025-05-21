@@ -3,11 +3,14 @@
 Using genetic codes
 ^^^^^^^^^^^^^^^^^^^
 
-.. note:: **Alpha Release of the New GeneticCode API**
+.. note:: These docs now use the ``new_type`` core objects via the following setting.
 
-   We are pleased to announce an alpha release of our new ``GeneticCode`` API. This version can be accessed by specifying the argument ``new_type=True`` in the ``get_code()`` function. 
-   
-   Please be aware that this alpha release has not been fully integrated with the library. Users are encouraged to explore its capabilities but should proceed with caution!
+    .. jupyter-execute::
+
+        import os
+
+        # using new types without requiring an explicit argument
+        os.environ["COGENT3_NEW_TYPE"] = "1"
 
 Selecting codes in methods that support them
 """"""""""""""""""""""""""""""""""""""""""""
@@ -37,9 +40,10 @@ We specify the genetic code, and we allow incomplete codons. In this case, if a 
 
     nt_seqs.get_translation(gc=1, incomplete_ok=True)
 
-
 Translate DNA sequences
 """""""""""""""""""""""
+
+From a string
 
 .. jupyter-execute::
 
@@ -47,6 +51,17 @@ Translate DNA sequences
 
     standard_code = get_code(1)
     standard_code.translate("TTTGCAAAC")
+
+This can also be applied to a numpy array.
+
+.. jupyter-execute::
+
+    import numpy
+    from cogent3 import get_code
+
+    standard_code = get_code(1)
+
+    standard_code.translate(numpy.array([0, 0, 0, 3, 1, 2, 2, 2, 1], dtype=numpy.uint8))
 
 Conversion to a ``ProteinSequence`` from a ``DnaSequence`` is shown in :ref:`translation`.
 
@@ -107,8 +122,10 @@ Get all the codons for a group of amino acids
     codons = [standard_code[aa] for aa in targets]
     codons
 
-Converting the ``CodonAlphabet`` to codon series
-""""""""""""""""""""""""""""""""""""""""""""""""
+Getting the alphabet for the genetic code
+"""""""""""""""""""""""""""""""""""""""""
+
+The default for the ``get_alphabet()`` method is to return an alphabet representing just the sense codons (a ``SenseCodonAlphabet`` instance).
 
 .. jupyter-execute::
 
@@ -116,59 +133,18 @@ Converting the ``CodonAlphabet`` to codon series
 
     gc = get_code(1)
     alphabet = gc.get_alphabet()
-    print(alphabet)
+    len(alphabet)
 
-Obtaining the codons from a ``DnaSequence`` object
-""""""""""""""""""""""""""""""""""""""""""""""""""
-
-Use the method ``get_in_motif_size``
+Setting ``include_stop=True`` returns all codons.
 
 .. jupyter-execute::
 
-    from cogent3 import make_seq
+    from cogent3 import get_code
 
-    my_seq = make_seq("ATGCACTGGTAA", name="my_gene", moltype="dna")
-    codons = my_seq.get_in_motif_size(3)
-    codons
+    gc = get_code(1)
+    alphabet = gc.get_alphabet(include_stop=True)
+    type(alphabet)
 
-Translating a DNA sequence
-""""""""""""""""""""""""""
+You can also include "gap state" (i.e. ``"---"``) or "missing state" (``"???"``) codons with the arguments ``include_gap`` and ``include_missing`` respectively.
 
-The defaults for ``get_translation()`` include using the standard genetic code and trimming a terminating stop if it exists.
-
-.. jupyter-execute::
-
-    pep = my_seq.get_translation()
-    pep
-
-Translating a DNA sequence containing stop codons
-"""""""""""""""""""""""""""""""""""""""""""""""""
-
-.. jupyter-execute::
-    :hide-code:
-
-    from cogent3.core.alphabet import AlphabetError
-
-Making a sequence that contains both internal and terminating stop codons.
-
-.. jupyter-execute::
-    :raises:
-
-    from cogent3 import make_seq
-
-    seq = make_seq("ATGTGATGGTAA", name="s1", moltype="dna")
-
-Translating this will fail with default settings.
-
-.. jupyter-execute::
-    :raises: AlphabetError
-
-    pep = seq.get_translation()
-
-Unless you explicitly allow stop codons
-
-.. jupyter-execute::
-
-    pep = seq.get_translation(include_stop=True)
-    pep
 

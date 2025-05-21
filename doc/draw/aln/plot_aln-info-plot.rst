@@ -6,6 +6,15 @@
 Information analysis of an alignment
 ====================================
 
+.. note:: These docs now use the ``new_type`` core objects via the following setting.
+
+    .. jupyter-execute::
+
+        import os
+
+        # using new types without requiring an explicit argument
+        os.environ["COGENT3_NEW_TYPE"] = "1"
+
 Information here is in the formal sense -- maximum entropy minus the entropy at a position. This is fast to compute and is an indicator of the variability at a position.
 
 Illustrated with a simple example

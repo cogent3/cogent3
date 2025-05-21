@@ -7,13 +7,20 @@
 Building phylogenies
 ********************
 
+.. note:: These docs now use the ``new_type`` core objects via the following setting.
+
+    .. jupyter-execute::
+
+        import os
+
+        # using new types without requiring an explicit argument
+        os.environ["COGENT3_NEW_TYPE"] = "1"
+
 Building A Phylogenetic Tree From Pairwise Distances
 ====================================================
 
 Directly via ``alignment.quick_tree()``
 =======================================
-
-Both the ``ArrayAlignment`` and ``Alignment`` classes support this.
 
 .. jupyter-execute::
 

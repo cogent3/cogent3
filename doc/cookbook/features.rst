@@ -8,6 +8,15 @@
 Features
 --------
 
+.. note:: These docs now use the ``new_type`` core objects via the following setting.
+
+    .. jupyter-execute::
+
+        import os
+
+        # using new types without requiring an explicit argument
+        os.environ["COGENT3_NEW_TYPE"] = "1"
+
 This guide provides instructions on creating, querying, and utilising features to manipulate biological sequence data.
 
 .. note:: The ``new_type`` Alignment class directly supports annotations, and more efficient alignment operations. Try it with ``load_aligned_seqs(..., new_type=True)`` or ``make_aligned_seqs(..., new_type=True)``.
@@ -570,10 +579,10 @@ Taking the "shadow" of all genes will return the intergenic region as a valid ``
 .. jupyter-execute::
     :raises:
 
-    intergenic = genes.shadow()
+    intergenic = genes.shadow("not gene")
     intergenic
 
-We can slice the sequence by this new Feature to return the complete intergenic sequence!
+We can slice the sequence by this new Feature to return the complete intergenic sequence! However, because the automated naming produces a crazy long name, we reset that.
 
 .. jupyter-execute::
     :raises:

@@ -9,6 +9,16 @@ Building alignments
 
 .. authors, Gavin Huttley, Kristian Rother, Patrick Yannul
 
+.. note:: These docs now use the ``new_type`` core objects via the following setting.
+
+    .. jupyter-execute::
+
+        import os
+
+        # using new types without requiring an explicit argument
+        os.environ["COGENT3_NEW_TYPE"] = "1"
+
+
 Using a ``cogent3`` progressive aligner for nucleotides
 =======================================================
 
@@ -102,9 +112,9 @@ We load an alignment of these protein sequences.
     ]
     aligned_aa = make_aligned_seqs(aligned_aa_seqs, moltype="protein")
 
-We then obtain an alignment of the DNA sequences from the alignment of their translation.
+We then obtain an alignment of the DNA sequences by aligning their translations.
 
 .. jupyter-execute::
 
-    aligned_DNA = aligned_aa.replace_seqs(unaligned_DNA, aa_to_codon=True)
+    aligned_DNA = aligned_aa.apply_scaled_gaps(unaligned_DNA, aa_to_codon=True)
     aligned_DNA

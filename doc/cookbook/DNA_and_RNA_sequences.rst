@@ -3,6 +3,15 @@
 Sequences
 ---------
 
+.. note:: These docs now use the ``new_type`` core objects via the following setting.
+
+    .. jupyter-execute::
+
+        import os
+
+        # using new types without requiring an explicit argument
+        os.environ["COGENT3_NEW_TYPE"] = "1"
+
 The ``Sequence`` object provides generic biological sequence manipulation functions, plus functions that are critical for the ``evolve`` module calculations.
 
 Generic molecular types
@@ -32,8 +41,6 @@ In some circumstances you can also have a ``"bytes"`` moltype, which I'll explic
 
     my_seq
 
-
-
 DNA and RNA sequences
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -42,7 +49,7 @@ DNA and RNA sequences
 Creating a DNA sequence from a string
 """""""""""""""""""""""""""""""""""""
 
-Sequence properties are affected by the moltype you specify. Here we specify the ``DNA`` ``MolType``.
+Sequence properties are affected by the moltype you specify. Here we specify the ``DNA`` molecular type.
 
 .. jupyter-execute::
 
@@ -83,8 +90,6 @@ Convert a RNA sequence to FASTA format
 Creating a named sequence
 """""""""""""""""""""""""
 
-You can also use a convenience ``make_seq()`` function, providing the moltype as a string.
-
 .. jupyter-execute::
 
     from cogent3 import make_seq
@@ -123,8 +128,8 @@ Reverse complementing a DNA sequence
 
 .. _translation:
 
-Translate a ``DnaSequence`` to protein
-""""""""""""""""""""""""""""""""""""""
+Translate a sequence to protein
+"""""""""""""""""""""""""""""""
 
 .. jupyter-execute::
 
@@ -136,6 +141,40 @@ Translate a ``DnaSequence`` to protein
 
 .. jupyter-execute::
 
+    pep
+
+The default is to trim a terminating stop if it exists. If you set ``trim_stop=False`` and there is a terminating stop, an ``AlphabetError`` is raised.
+
+.. jupyter-execute::
+    :hide-code:
+
+    from cogent3.core.new_alphabet import AlphabetError
+
+.. jupyter-execute::
+    :raises: AlphabetError
+
+    from cogent3 import make_seq
+
+    my_seq = make_seq("ATGCACTGGTAA", name="my_gene", moltype="dna")
+    my_seq.get_translation(trim_stop=False)
+
+You can also specify the :ref:`genetic code <genetic-codes>`.
+
+.. jupyter-execute::
+
+    my_seq.get_translation(gc="Vertebrate Mitochondrial") # or gc=2
+
+Translating a DNA sequence containing stop codons
+"""""""""""""""""""""""""""""""""""""""""""""""""
+
+By default, ``get_translation()`` will fail if there are any stop codons in frame in the sequence. You can allow translation in these cases by setting the optional argument ``include_stop=True``.
+
+.. jupyter-execute::
+
+    from cogent3 import make_seq
+
+    seq = make_seq("ATGTGATGGTAA", name="s1", moltype="dna")
+    pep = seq.get_translation(include_stop=True)
     pep
 
 Converting a DNA sequence to RNA
@@ -186,6 +225,25 @@ Joining two DNA sequences
     long_seq = my_seq + extra_seq
     long_seq
 
+Getting all *k*-mers from a sequence
+""""""""""""""""""""""""""""""""""""
+
+.. jupyter-execute::
+
+    from cogent3 import make_seq
+
+    my_seq = make_seq("AGTACACTGGT", moltype="dna")
+    list(my_seq.iter_kmers(k=2))
+
+.. note:: By default, any *k*-mer that contains an ambiguity code is excluded from the output.
+
+You can include ALL *k*-mers by setting ``strict=False``.
+
+.. jupyter-execute::
+
+    my_seq = make_seq("AGTANACTGGT", moltype="dna")
+    list(my_seq.iter_kmers(k=2, strict=False))
+
 Slicing DNA sequences
 """""""""""""""""""""
 
@@ -193,10 +251,21 @@ Slicing DNA sequences
 
     my_seq[1:6]
 
+Obtaining the codons from a ``DnaSequence`` object
+""""""""""""""""""""""""""""""""""""""""""""""""""
+
+Use the method ``get_in_motif_size``
+
+.. jupyter-execute::
+
+    from cogent3 import make_seq
+
+    my_seq = make_seq("ATGCACTGGTAA", name="my_gene", moltype="dna")
+    codons = my_seq.get_in_motif_size(3)
+    codons
+
 Getting 3rd positions from codons
 """""""""""""""""""""""""""""""""
-
-The easiest approach is to work off the ``cogent3`` ``ArrayAlignment`` object.
 
 .. jupyter-execute::
 
@@ -221,7 +290,7 @@ In this instance we can use features.
     pos12 = pos12.get_slice()
     assert str(pos12) == "ATATATAT"
 
-Return a randomized version of the sequence
+Return a randomised version of the sequence
 """""""""""""""""""""""""""""""""""""""""""
 
 .. jupyter-execute::
@@ -237,3 +306,4 @@ Remove gaps from a sequence
 
     s = make_seq("--AUUAUGCUAU-UAU--", moltype="rna")
     s.degap()
+

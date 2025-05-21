@@ -6,6 +6,15 @@
 Applying a discrete-time, non-stationary nucleotide model
 ---------------------------------------------------------
 
+.. note:: These docs now use the ``new_type`` core objects via the following setting.
+
+    .. jupyter-execute::
+
+        import os
+
+        # using new types without requiring an explicit argument
+        os.environ["COGENT3_NEW_TYPE"] = "1"
+
 We fit a discrete-time Markov nucleotide model. This corresponds to a Barry and Hartigan 1987 model.
 
 .. jupyter-execute::

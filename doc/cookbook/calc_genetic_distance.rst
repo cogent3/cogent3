@@ -7,6 +7,15 @@
 Genetic distance calculation
 ****************************
 
+.. note:: These docs now use the ``new_type`` core objects via the following setting.
+
+    .. jupyter-execute::
+
+        import os
+
+        # using new types without requiring an explicit argument
+        os.environ["COGENT3_NEW_TYPE"] = "1"
+
 Fast pairwise distance estimation
 =================================
 
@@ -49,7 +58,7 @@ Using the distance calculator directly
     dists = dist_calc.get_pairwise_distances()
     dists
 
-The distance calculation object can provide more information. For instance, the standard errors.
+The distance calculation object can provide more information, for instance, the standard errors.
 
 .. jupyter-execute::
 
