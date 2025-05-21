@@ -732,14 +732,13 @@ class MolType:
 
     @functools.singledispatchmethod
     def has_ambiguity(self, seq: StrORBytesORArray) -> bool:
+        """whether sequence has an ambiguity character"""
         msg = f"{type(seq)} not supported"
         raise TypeError(msg)
 
     @has_ambiguity.register
     def _(self, seq: str) -> bool:
-        if not self.ambiguities:
-            return False
-        return any(self.is_ambiguity(c) for c in seq)
+        return any(self.is_ambiguity(c) for c in seq) if self.ambiguities else False
 
     @has_ambiguity.register
     def _(self, seq: bytes) -> bool:
@@ -752,7 +751,8 @@ class MolType:
 
         min_canonical = len(self.alphabet) - 1
         max_degen = len(self.degen_alphabet)
-        return ((seq > min_canonical) & (seq < max_degen)).any()
+        result = ((seq > min_canonical) & (seq < max_degen)).any()
+        return bool(result)
 
     def rc(self, seq: str, validate: bool = True) -> str:
         """reverse reverse complement of a sequence"""
@@ -1376,10 +1376,11 @@ class MolType:
             seq[index] = f"[{''.join(sorted(expanded))}]"
         return "".join(seq)
 
-    def to_rich_dict(self, **kwargs):
+    def to_rich_dict(self, **kwargs) -> dict:
+        """returns dict suitable for serialisation"""
         return {"type": get_object_provenance(self), "moltype": self.label}
 
-    def to_json(self):
+    def to_json(self) -> str:
         """returns result of json formatted string"""
         data = self.to_rich_dict()
         return json.dumps(data)

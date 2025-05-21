@@ -94,8 +94,7 @@ def make_seq(
         name of a moltype or moltype instance
     new_type
         if True, returns a new type Sequence (cogent3.core.new_sequence.Sequence).
-        The default will be changed to True in 2025.1. Support for the old
-        style will be removed as of 2025.6.
+        Support for the old style will be removed as of 2025.6.
     annotation_offset
         integer indicating start position relative to annotations
     **kw
@@ -179,9 +178,8 @@ def make_unaligned_seqs(
         and added to info["source"].
     new_type
         if True, the returned SequenceCollection will be of the new type,
-        (cogent3.core.new_sequence.SequenceCollection). The default will be
-        changed to True in 2025.1. Support for the old style will be removed
-        as of 2025.6.
+        (cogent3.core.new_sequence.SequenceCollection). Support for the
+        old style will be removed as of 2025.6.
     **kw
         other keyword arguments passed to SequenceCollection
     """
@@ -241,9 +239,8 @@ def make_aligned_seqs(
         and added to info["source"].
     new_type
         if True, the returned Alignment will be of the new type,
-        (cogent3.core.new_sequence.Alignment). The default will be
-        changed to True in 2025.6. Support for the old style will be removed
-        as of 2025.12.
+        (cogent3.core.new_sequence.Alignment). Support for the old style
+        will be removed as of 2025.12.
     **kw
         other keyword arguments passed to alignment class
     """
@@ -371,8 +368,7 @@ def load_seq(
         a dict from which to make an info object
     new_type
         if True, returns a new type Sequence (cogent3.core.new_sequence.Sequence)
-        The default will be changed to True in 2025.1. Support for the old
-        style will be removed as of 2025.6.
+        Support for the old style will be removed as of 2025.6.
     annotation_offset
         integer indicating start position relative to annotations
     **kw
@@ -474,9 +470,8 @@ def load_unaligned_seqs(
         a dict from which to make an info object
     new_type
         if True, the returned SequenceCollection will be of the new type,
-        (cogent3.core.new_sequence.SequenceCollection). The default will be
-        changed to True in 2025.1. Support for the old style will be removed
-        as of 2025.6.
+        (cogent3.core.new_sequence.SequenceCollection). Support for the old
+        style will be removed as of 2025.6.
     **kw
         other keyword arguments passed to SequenceCollection, or show_progress.
         The latter induces a progress bar for number of files processed when
@@ -565,9 +560,8 @@ def load_aligned_seqs(
         optional arguments for the parser
     new_type
         if True, the returned Alignment will be of the new type,
-        (cogent3.core.new_alignment.Alignment). The default will be
-        changed to True in 2025.1. Support for the old style will be removed
-        as of 2025.6.
+        (cogent3.core.new_alignment.Alignment). Support for the old
+        style will be removed as of 2025.6.
     kw
         passed to make_aligned_seqs
 
