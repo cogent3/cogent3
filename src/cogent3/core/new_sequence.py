@@ -2278,7 +2278,7 @@ class SliceRecordABC(ABC):
     def __eq__(self, other: object) -> bool: ...
 
     @abstractmethod
-    def __neq__(self, other: object) -> bool: ...
+    def __ne__(self, other: object) -> bool: ...
     @property
     @abstractmethod
     def parent_len(self) -> int: ...
@@ -2789,8 +2789,8 @@ class SliceRecord(SliceRecordABC):
             and self._offset == other.offset
         )
 
-    def __neq__(self, other: object) -> bool:
-        return self != other
+    def __ne__(self, other: object) -> bool:
+        return not self == other
 
     @property
     def parent_len(self) -> int:
