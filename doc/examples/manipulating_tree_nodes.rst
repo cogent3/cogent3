@@ -5,11 +5,14 @@ Manipulation of Tree Node Objects
 
 Examples of how to initialize and manipulate various tree node objects.
 
-.. jupyter-execute::
+.. note:: These docs now use the ``new_type`` core objects via the following setting.
 
-    from cogent3 import load_tree, make_tree
-    from cogent3.core.tree import PhyloNode
-    from cogent3.parse.tree import DndParser
+    .. jupyter-execute::
+
+        import os
+
+        # using new types without requiring an explicit argument
+        os.environ["COGENT3_NEW_TYPE"] = "1"
 
 The general method to initialize a tree is ``load_tree``, however, for exceptionally large trees or if one needs to specify the node objects (``TreeNode``, ``PhyloNode``, or ``RangeNode``), ``DndParser`` should be used.  ``load_tree`` uses ``PhyloNode`` objects by default.
 
@@ -22,6 +25,10 @@ The basic properties of the tree node objects are:
 The following demonstrates the two methods for initializing a phylogenetic tree object.
 
 .. jupyter-execute::
+    
+    from cogent3 import make_tree
+    from cogent3.core.tree import PhyloNode
+    from cogent3.parse.tree import DndParser
 
     simple_tree_string = "(B:0.2,(C:0.3,D:0.4)E:0.5)F;"
     complex_tree_string = "(((363564 AB294167.1 Alkalibacterium putridalgicola:0.0028006,55874 AB083411.1 Marinilactibacillus psychrotolerans:0.0022089):0.40998,(15050 Y10772.1 Facklamia hominis:0.32304,(132509 AY707780.1 Aerococcus viridans:0.58815,((143063 AY879307.1 Abiotrophia defectiva:0.5807,83619 AB042060.1 Bacillus schlegelii:0.23569):0.03586,169722 AB275483.1 Fibrobacter succinogenes:0.38272):0.06516):0.03492):0.14265):0.63594,(3589 M62687.1 Fibrobacter intestinalis:0.65866,314063 CP001146.1 Dictyoglomus thermophilum:0.38791):0.32147,276579 EU652053.1 Thermus scotoductus:0.57336);"

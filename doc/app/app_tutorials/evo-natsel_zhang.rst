@@ -6,6 +6,15 @@
 ``natsel_zhang`` – a branch-site test
 -------------------------------------
 
+.. note:: These docs now use the ``new_type`` core objects via the following setting.
+
+    .. jupyter-execute::
+
+        import os
+
+        # using new types without requiring an explicit argument
+        os.environ["COGENT3_NEW_TYPE"] = "1"
+
 This is the hypothesis test presented in `Zhang et al <https://www.ncbi.nlm.nih.gov/pubmed/16107592>`__. It evaluates the hypothesis that a set of sites have undergone positive natural selection on a pre-specified set of lineages.
 
 For this model class, there are groups of branches for which all positions are evolving neutrally but some proportion of those neutrally evolving sites change to adaptively evolving on so-called foreground edges. For the current example, we’ll define the Chimpanzee and Human branches as foreground and everything else as background. The following table defines the parameter scopes.

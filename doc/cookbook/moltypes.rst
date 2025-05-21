@@ -7,11 +7,14 @@
 Molecular types
 ***************
 
-.. note:: **Alpha Release of the New MolType API**
+.. note:: These docs now use the ``new_type`` core objects via the following setting.
 
-   We are pleased to announce an alpha release of our new ``MolType`` API. This version can be accessed by specifying the argument ``new_type=True`` in the ``get_moltype()`` function. 
+    .. jupyter-execute::
 
-   Please be aware that this alpha release has not been fully integrated with the library. Users are encouraged to explore its capabilities but should proceed with caution!
+        import os
+
+        # using new types without requiring an explicit argument
+        os.environ["COGENT3_NEW_TYPE"] = "1"
 
 The ``MolType`` object provides services for resolving ambiguities, or providing the correct ambiguity for recoding. It also maintains the mappings between different kinds of alphabets, sequences and alignments.
 

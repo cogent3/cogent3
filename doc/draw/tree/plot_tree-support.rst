@@ -10,9 +10,9 @@ We use a tree saved in ``json`` format from a 100 replicate bootstrap resampling
 
 .. jupyter-execute::
 
-    from cogent3.app import io
+    import cogent3
 
-    reader = io.load_json()
+    reader = cogent3.get_app("load_json")
 
     tree = reader("data/tree-with-support.json")
     fig = tree.get_figure(show_support=True, threshold=0.8)

@@ -8,9 +8,9 @@ Radial Dendrogram Style
 
 .. jupyter-execute::
 
-    from cogent3.app import io
+    import cogent3
 
-    reader = io.load_json()
+    reader = cogent3.get_app("load_json")
 
     ens_tree = reader("data/GN-tree.json")
     fig = ens_tree.get_figure("radial", width=600, height=600)

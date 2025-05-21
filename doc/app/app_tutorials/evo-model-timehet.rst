@@ -6,6 +6,15 @@
 Specifying a non-stationary model with time-heterogeneous parameters
 --------------------------------------------------------------------
 
+.. note:: These docs now use the ``new_type`` core objects via the following setting.
+
+    .. jupyter-execute::
+
+        import os
+
+        # using new types without requiring an explicit argument
+        os.environ["COGENT3_NEW_TYPE"] = "1"
+
 A model is considered time-heterogeneous if rate matrix terms differ between edges on a tree.
 
 In this example, we load and display our sample primate tree, highlighting the edges that will be assigned different rate matrices.
