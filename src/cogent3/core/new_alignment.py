@@ -730,12 +730,12 @@ class SequenceCollection:
         }
 
     @property
-    def storage(self) -> str:
-        """returns the storage type of the collection"""
+    def storage(self) -> SeqsDataABC:
+        """the unaligned sequence storage instance of the collection"""
         return self._seqs_data
 
     @storage.setter
-    def storage(self, value: typing.Any) -> None:
+    def storage(self, value: object) -> None:
         # storage cannot be set after initialisation
         msg = "storage cannot be set after initialisation"
         raise TypeError(msg)
@@ -2201,7 +2201,9 @@ class SequenceCollection:
 
         return FORMATTERS["fasta"](self.to_dict())
 
-    def __eq__(self, other: SequenceCollection) -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
         self_init = self._get_init_kwargs()
         other_init = other._get_init_kwargs()
         for key, self_val in self_init.items():
@@ -2212,8 +2214,8 @@ class SequenceCollection:
                 return False
         return True
 
-    def __ne__(self, other: SequenceCollection) -> bool:
-        return not self.__eq__(other)
+    def __ne__(self, other: object) -> bool:
+        return not self == other
 
     def __repr__(self) -> str:
         seqs = []
@@ -4551,11 +4553,22 @@ class Alignment(SequenceCollection):
     def _post_init(self) -> None:
         self._seqs = _IndexableSeqs(self, make_seq=self._make_aligned)
 
-    def __eq__(self, other: Alignment) -> bool:
+    def __eq__(self, other: object) -> bool:
         return super().__eq__(other) and self._slice_record == other._slice_record
 
-    def __ne__(self, other: Alignment) -> bool:
+    def __ne__(self, other: object) -> bool:
         return not self == other
+
+    @property
+    def storage(self) -> AlignedSeqsDataABC:
+        """the aligned sequence storage instance of the collection"""
+        return self._seqs_data
+
+    @storage.setter
+    def storage(self, value: object) -> None:
+        # storage cannot be set after initialisation
+        msg = "storage cannot be set after initialisation"
+        raise TypeError(msg)
 
     def _get_init_kwargs(self) -> dict:
         """returns the kwargs needed to re-instantiate the object"""
