@@ -23,7 +23,7 @@ import typing_extensions
 from numpy import array, floating, integer, issubdtype
 
 from cogent3._version import __version__
-from cogent3.core import new_alphabet, new_moltype
+from cogent3.core import new_alphabet, new_genetic_code, new_moltype
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
     BasicAnnotationDb,
@@ -42,11 +42,11 @@ from cogent3.core.location import (
     _input_vals_pos_step,
 )
 from cogent3.format.fasta import seqs_to_fasta
-from cogent3.maths.stats.contingency import CategoryCounts
+from cogent3.maths.stats.contingency import CategoryCounts, TestResult
 from cogent3.maths.stats.number import CategoryCounter
 from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
-from cogent3.util.dict_array import DictArrayTemplate
+from cogent3.util.dict_array import DictArray
 from cogent3.util.misc import (
     DistanceFromMatrix,
     get_object_provenance,
@@ -57,9 +57,7 @@ from cogent3.util.transform import for_seq, per_shortest
 if typing.TYPE_CHECKING:
     import os
 
-    from cogent3.core.new_genetic_code import GeneticCode
 
-OptGeneticCodeType = typing.Optional[typing.Union[int, str, "GeneticCode"]]
 OptStr = typing.Optional[str]
 OptInt = typing.Optional[int]
 OptFloat = typing.Optional[float]
@@ -301,6 +299,7 @@ class Sequence:
 
     @classmethod
     def from_rich_dict(cls, data: dict):
+        """create a Sequence object from a rich dict"""
         moltype, seq = _moltype_seq_from_rich_dict(data)
 
         return cls(moltype=moltype, seq=seq, **data)
@@ -2049,7 +2048,7 @@ class NucleicAcidSequenceMixin:
 
     def has_terminal_stop(
         self,
-        gc: OptGeneticCodeType = None,
+        gc: new_genetic_code.GeneticCode = 1,
         strict: bool = False,
     ) -> bool:
         """Return True if the sequence has a terminal stop codon.
@@ -2080,7 +2079,7 @@ class NucleicAcidSequenceMixin:
 
     def trim_stop_codon(
         self,
-        gc: OptGeneticCodeType = None,
+        gc: new_genetic_code.GeneticCode = 1,
         strict: bool = False,
     ) -> typing_extensions.Self:
         """Removes a terminal stop codon from the sequence
@@ -2139,7 +2138,7 @@ class NucleicAcidSequenceMixin:
 
     def get_translation(
         self,
-        gc: OptGeneticCodeType = 1,
+        gc: new_genetic_code.GeneticCode = 1,
         incomplete_ok: bool = False,
         include_stop: bool = False,
         trim_stop: bool = True,
@@ -2212,7 +2211,7 @@ class NucleicAcidSequenceMixin:
         """Returns copy of self as DNA."""
         return self.to_moltype("dna")
 
-    def strand_symmetry(self, motif_length: int = 1):
+    def strand_symmetry(self, motif_length: int = 1) -> TestResult:
         """returns G-test for strand symmetry"""
         counts = self.counts(motif_length=motif_length)
         ssym_pairs = self.moltype.strand_symmetric_motifs(motif_length=motif_length)
@@ -2227,8 +2226,7 @@ class NucleicAcidSequenceMixin:
             obs.append(row)
             motifs.append(plus)
 
-        template = DictArrayTemplate(motifs, ["+", "-"])
-        obs = template.wrap(obs)
+        obs = DictArray.from_array_names(numpy.array(obs), motifs, ["+", "-"])
         cat = CategoryCounts(obs)
         return cat.G_fit()
 
@@ -2277,10 +2275,10 @@ class SliceRecordABC(ABC):
     __slots__ = ("_offset", "start", "step", "stop")
 
     @abstractmethod
-    def __eq__(self, other): ...
+    def __eq__(self, other: object) -> bool: ...
 
     @abstractmethod
-    def __neq__(self, other): ...
+    def __ne__(self, other: object) -> bool: ...
     @property
     @abstractmethod
     def parent_len(self) -> int: ...
@@ -2292,13 +2290,13 @@ class SliceRecordABC(ABC):
         ...
 
     @abstractmethod
-    def copy(self): ...
+    def copy(self) -> typing_extensions.Self: ...
 
     # refactor: design
     # can we remove the need for this method on the ABC and inheriting
     @property
     @abstractmethod
-    def _zero_slice(self): ...
+    def _zero_slice(self) -> typing_extensions.Self: ...
 
     @property
     def offset(self) -> int:
@@ -2780,7 +2778,9 @@ class SliceRecord(SliceRecordABC):
         self._parent_len = parent_len
         self._offset = offset or 0
 
-    def __eq__(self, other: SliceRecordABC) -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, SliceRecordABC):
+            return False
         return (
             self.start == other.start
             and self.stop == other.stop
@@ -2789,8 +2789,8 @@ class SliceRecord(SliceRecordABC):
             and self._offset == other.offset
         )
 
-    def __neq__(self, other: SliceRecordABC) -> bool:
-        return self != other
+    def __ne__(self, other: object) -> bool:
+        return not self == other
 
     @property
     def parent_len(self) -> int:
@@ -2799,8 +2799,8 @@ class SliceRecord(SliceRecordABC):
     def _get_init_kwargs(self) -> dict:
         return {}
 
-    def copy(self, sliced: bool = False):
-        # TODO: kath
+    def copy(self, sliced: bool = False) -> typing_extensions.Self:
+        """returns self"""
         return self
 
     def __repr__(self) -> str:
@@ -2810,10 +2810,11 @@ class SliceRecord(SliceRecordABC):
         )
 
     @property
-    def _zero_slice(self):
+    def _zero_slice(self) -> typing_extensions.Self:
         return self.__class__(start=0, stop=0, step=1, parent_len=self.parent_len)
 
     def to_rich_dict(self) -> dict:
+        """returns dict suitable for serialisation"""
         data = {"type": get_object_provenance(self), "version": __version__}
         data["init_args"] = {
             "parent_len": self.parent_len,
@@ -2851,10 +2852,12 @@ class SeqViewABC(ABC):
 
     @property
     def offset(self) -> int:
+        """the annotation offset of this view"""
         return self.slice_record.offset
 
     @property
     def is_reversed(self) -> bool:
+        """whether the sequence is reversed"""
         return self.slice_record.is_reversed
 
     @property
@@ -2863,7 +2866,7 @@ class SeqViewABC(ABC):
 
     @property
     @abstractmethod
-    def array_value(self) -> array: ...
+    def array_value(self) -> numpy.ndarray: ...
 
     @property
     @abstractmethod
@@ -2891,14 +2894,15 @@ class SeqViewABC(ABC):
     def __len__(self) -> int:
         return len(self.slice_record)
 
-    def with_offset(self, offset: int):
+    def with_offset(self, offset: int) -> typing_extensions.Self:
+        """returns new instance with annotation offset set"""
         if self._slice_record.offset:
             msg = f"cannot set {offset=} on a SeqView with an offset {self._slice_record.offset=}"
             raise ValueError(
                 msg,
             )
 
-        init_kwargs = self._get_init_kwargs()
+        init_kwargs = self._get_init_kwargs()  # type: ignore
         init_kwargs["offset"] = offset
         return self.__class__(**init_kwargs)
 
@@ -2939,7 +2943,7 @@ class SeqView(SeqViewABC):
         self,
         *,
         parent: StrORBytesORArray,
-        alphabet: new_alphabet.AlphabetABC,
+        alphabet: new_alphabet.CharAlphabet,
         parent_len: int,
         seqid: OptStr = None,
         slice_record: SliceRecordABC = None,
@@ -2964,18 +2968,21 @@ class SeqView(SeqViewABC):
             self._slice_record.offset = offset
 
     @property
-    def seqid(self) -> str:
+    def seqid(self) -> str | None:
+        """name of the sequence"""
         return self._seqid
 
     @property
     def slice_record(self) -> SliceRecordABC:
+        """the slice state of this view"""
         return self._slice_record
 
     @property
     def parent_len(self) -> int:
+        """length of the parent sequence"""
         return self._parent_len
 
-    def _get_init_kwargs(self):
+    def _get_init_kwargs(self) -> dict:
         return {
             "parent": self.parent,
             "parent_len": self._parent_len,
@@ -2984,11 +2991,9 @@ class SeqView(SeqViewABC):
             "slice_record": self.slice_record,
         }
 
-    # DESIGN NOTE
-    # alphabet.to_indices() and alphabet.from_indices() cope with most primitive
-    # types that parent may be
     @property
     def str_value(self) -> str:
+        """returns the sequence as a string"""
         return self.alphabet.from_indices(
             self.parent[
                 self.slice_record.start : self.slice_record.stop : self.slice_record.step
@@ -2997,6 +3002,7 @@ class SeqView(SeqViewABC):
 
     @property
     def array_value(self) -> numpy.ndarray[int]:
+        """returns the sequence as a array of indices"""
         return self.alphabet.to_indices(
             self.parent[
                 self.slice_record.start : self.slice_record.stop : self.slice_record.step
@@ -3005,6 +3011,7 @@ class SeqView(SeqViewABC):
 
     @property
     def bytes_value(self) -> bytes:
+        """returns the sequence as a bytes string"""
         return self.str_value.encode("utf-8")
 
     def __str__(self) -> str:

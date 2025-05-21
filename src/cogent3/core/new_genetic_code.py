@@ -29,6 +29,7 @@ SetStr = set[str]
 ConverterType = typing.Callable[[bytes, bytes], bytes]
 StrORInt = typing.Union[str, int]
 StrORBytesORArray = typing.Union[str, numpy.ndarray]
+GeneticCodeChoiceType = typing.Union[int, str, "GeneticCode"]
 
 
 class GeneticCodeError(Exception):
@@ -46,7 +47,7 @@ class InvalidCodonError(KeyError, GeneticCodeError):
 def _make_mappings(
     codons: new_alphabet.KmerAlphabet,
     code_sequence: str,
-) -> tuple[dict[str, str], dict[str, SetStr], SetStr]:
+) -> tuple[dict[str, str], dict[str, SetStr], tuple[str, ...]]:
     """makes amino acid / codon mappings and stop codon group
 
     Parameters
@@ -60,15 +61,15 @@ def _make_mappings(
     -------
     codon to amino acid mapping, the reverse mapping, the set of stop codons
     """
-    stops = set()
+    stops = []
     codon_to_aa = {}
     aa_to_codon = collections.defaultdict(set)
     for codon, aa in zip(codons, code_sequence, strict=False):
         if aa == "*":
-            stops.add(codon)
+            stops.append(codon)
         codon_to_aa[codon] = aa
         aa_to_codon[aa].add(codon)
-    return codon_to_aa, aa_to_codon, stops
+    return codon_to_aa, aa_to_codon, tuple(stops)
 
 
 def _get_start_codon_indices(start_codon_map: str) -> tuple[int, ...]:
@@ -119,21 +120,21 @@ class GeneticCode:
     ncbi_code_sequence: dataclasses.InitVar[str]
     ncbi_start_codon_map: dataclasses.InitVar[str]
     moltype: new_moltype.MolType = new_moltype.DNA
-    _codon_to_aa: dict[str, str] = dataclasses.field(init=False, default=None)
-    _aa_to_codon: dict[str, list[str]] = dataclasses.field(
+    _codon_to_aa: dict[str, str] = dataclasses.field(init=False, default_factory=dict)
+    _aa_to_codon: dict[str, SetStr] = dataclasses.field(
         init=False,
-        default=None,
+        default_factory=dict,
     )
-    _sense_codons: SetStr = dataclasses.field(init=False, default=None)
-    _stop_codons: SetStr = dataclasses.field(init=False, default=None)
-    _start_codons: SetStr = dataclasses.field(init=False, default=None)
-    codons: new_alphabet.KmerAlphabet = dataclasses.field(init=False, default=None)
-    anticodons: tuple[str, ...] = dataclasses.field(init=False, default=None)
+    _sense_codons: tuple[str, ...] = dataclasses.field(init=False)
+    _stop_codons: tuple[str, ...] = dataclasses.field(init=False)
+    _start_codons: tuple[str, ...] = dataclasses.field(init=False)
+    codons: new_alphabet.KmerAlphabet = dataclasses.field(init=False)
+    anticodons: tuple[str, ...] = dataclasses.field(init=False)
     # callables for translating on the plus strand, or the minus strand
-    _translate_plus: ConverterType = dataclasses.field(init=False, default=None)
-    _translate_minus: ConverterType = dataclasses.field(init=False, default=None)
+    _translate_plus: ConverterType = dataclasses.field(init=False)
+    _translate_minus: ConverterType = dataclasses.field(init=False)
 
-    def __post_init__(self, ncbi_code_sequence: str, ncbi_start_codon_map: str):
+    def __post_init__(self, ncbi_code_sequence: str, ncbi_start_codon_map: str) -> None:
         alpha = self.moltype.alphabet.with_gap_motif(include_missing=True)
         trinuc_alpha = alpha.get_kmer_alphabet(
             k=3,
@@ -146,9 +147,9 @@ class GeneticCode:
             code_seq,
         )
         self.codons = trinuc_alpha
-        self._start_codons = {
+        self._start_codons = tuple(
             self.codons[i] for i in _get_start_codon_indices(start_map)
-        }
+        )
         self._sense_codons = tuple(
             c for c in self.codons if self._codon_to_aa[c] not in "*-X"
         )
@@ -156,26 +157,26 @@ class GeneticCode:
         self._translate_plus = _make_converter(trinuc_alpha, self.codons, code_seq)
         self._translate_minus = _make_converter(trinuc_alpha, self.anticodons, code_seq)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.name)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         """Allows two GeneticCode objects to be compared to each other."""
         return self.name == getattr(other, "name", None)
 
     @property
-    def stop_codons(self) -> SetStr:
+    def stop_codons(self) -> tuple[str, ...]:
         return self._stop_codons
 
     @property
-    def start_codons(self) -> SetStr:
+    def start_codons(self) -> tuple[str, ...]:
         return self._start_codons
 
     @property
-    def sense_codons(self) -> SetStr:
+    def sense_codons(self) -> tuple[str, ...]:
         return self._sense_codons
 
-    def to_table(self):
+    def to_table(self) -> Table:
         """returns aa to codon mapping as a cogent3 Table"""
         rows = []
         headers = ["aa", "IUPAC code", "codons"]
@@ -189,13 +190,13 @@ class GeneticCode:
         display = self.to_table()
         return str(display)
 
-    def _repr_html_(self):
+    def _repr_html_(self) -> str:
         """Returns the html representation of GeneticCode."""
         display = self.to_table()
         display.set_repr_policy(show_shape=False)
         return display._repr_html_()
 
-    def __getitem__(self, item):
+    def __getitem__(self, item) -> str | SetStr:
         """Returns amino acid corresponding to codon, or codons for an aa.
 
         Returns [] for empty list of codons, 'X' for unknown amino acid.

@@ -307,7 +307,7 @@ def test_features_survives_aligned_seq_rename(rev, make_cls):
         strand="-",
     )
     seqs = seqs.rename_seqs(lambda x: "newname")
-    assert seqs.names == ["newname"]
+    assert seqs.names == ("newname",)
     seqs = seqs.rc() if rev else seqs
     # quite different behaviour from Alignment and SequenceCollection
     # so we convert to string to make comparison simpler

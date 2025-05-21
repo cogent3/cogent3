@@ -17,7 +17,7 @@ def test_get_aa():
 
 def test_stop_codons():
     code = new_genetic_code.DEFAULT
-    assert code.stop_codons == {"TAA", "TAG", "TGA"}
+    assert code.stop_codons == ("TAA", "TAG", "TGA")
 
 
 @pytest.mark.parametrize("codons", ["TAA", "TAG", "TGA"])
@@ -31,11 +31,11 @@ def test_start_codons():
     dna = code.moltype.alphabet
     trinucs = code.codons
     # the starts are in the ncbi_start_codon_map
-    expect = {
+    expect = tuple(
         dna.from_indices(trinucs.from_index(i))
         for i, e in enumerate(new_genetic_code.code_mapping[0][3])
         if e == "M"
-    }
+    )
     assert code.start_codons == expect
 
 

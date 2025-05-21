@@ -67,22 +67,27 @@ class Feature:
 
     @property
     def parent(self) -> SeqORAlign:
+        """sequence or aligned or alignment"""
         return self._parent
 
     @property
     def seqid(self) -> str:
+        """the sequence id of the parent sequence"""
         return self._seqid
 
     @property
     def map(self) -> FeatureMap:
+        """coordinate map and properties of this feature"""
         return self._map
 
     @property
     def biotype(self) -> str:
+        """type of biological feature"""
         return self._biotype
 
     @property
     def name(self) -> str:
+        """name of the feature"""
         return self._name
 
     def get_slice(
@@ -329,6 +334,7 @@ class Feature:
 
     @property
     def xattr(self) -> dict[str, typing.Any] | None:
+        """extra attributes for this feature"""
         return self._xattr
 
     @xattr.setter

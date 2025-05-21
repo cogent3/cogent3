@@ -378,11 +378,13 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         is_discontinued=True,
     )
     def get_motif_len(self) -> int:
+        """the size of each member of the alphabet"""
         # added to maintain compatibility with the old API
         return self.motif_len
 
     @functools.singledispatchmethod
     def to_indices(self, seq: StrORBytesORArray | tuple) -> numpy.ndarray[int]:
+        """returns a sequence of indices for the characters in seq"""
         msg = f"{type(seq)} is invalid"
         raise TypeError(msg)
 
@@ -409,6 +411,7 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
     @functools.singledispatchmethod
     def from_indices(self, seq: StrORBytesORArray) -> str:
+        """returns a string from a sequence of indices"""
         msg = f"{type(seq)} is invalid"
         raise TypeError(msg)
 
@@ -490,6 +493,7 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
     @functools.singledispatchmethod
     def is_valid(self, seq: StrORBytesORArray) -> bool:
+        """seq is valid for alphabet"""
         # refactor: design
         if hasattr(seq, "alphabet"):
             # assume a SeqView instance
@@ -507,7 +511,7 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
     @is_valid.register
     def _(self, seq: numpy.ndarray) -> bool:
-        return seq.min() >= 0 and seq.max() < len(self) if len(seq) else True
+        return bool(seq.min() >= 0 and seq.max() < len(self) if len(seq) else True)
 
     def as_bytes(self) -> bytes:
         """returns self as a byte string"""
@@ -1026,6 +1030,16 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         kmer_indices: numpy.ndarray,
         independent_kmer: bool = True,
     ) -> numpy.ndarray:
+        """converts array of k-mer indices into an array of monomer indices
+
+        Parameters
+        ----------
+        kmer_indices
+            a sequence of k-mer indices
+        independent_kmer
+            whether the k-mers are overlapping or not
+            _description_
+        """
         if independent_kmer:
             size = len(kmer_indices) * self.k
         else:
@@ -1120,8 +1134,8 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         return index_to_coord(kmer_index, self._coeffs)
 
     @functools.singledispatchmethod
-    def is_valid(self, seq: numpy.ndarray) -> bool:
-        """whether integers are within the valid range
+    def is_valid(self, seq) -> bool:
+        """seq is valid for alphabet
 
         Parameters
         ----------
@@ -1139,7 +1153,7 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
     @is_valid.register
     def _(self, seq: numpy.ndarray) -> bool:
         max_val = max(self.missing_index or 0, self.gap_index or 0, self.num_canonical)
-        return seq.min() >= 0 and seq.max() <= max_val if len(seq) else True
+        return bool(seq.min() >= 0 and seq.max() <= max_val if len(seq) else True)
 
     def to_rich_dict(self, for_pickle: bool = False) -> dict:
         """returns a serialisable dictionary"""
@@ -1286,14 +1300,17 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         )
 
     def to_index(self, codon: str) -> int:
+        """encodes a codon as a single integer"""
         if len(codon) != 3:
             msg = f"{codon=!r} is not of length 3"
             raise ValueError(msg)
         if not self.monomers.is_valid(codon):
             msg = f"{codon=!r} elements not nucleotides"
             raise AlphabetError(msg)
-        if self.moltype.has_ambiguity(codon):
+
+        if self.moltype and self.moltype.has_ambiguity(codon):
             return len(self)
+
         try:
             return self._to_indices[codon]
         except KeyError as e:
@@ -1301,6 +1318,7 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
             raise AlphabetError(msg) from e
 
     def from_index(self, index: int) -> str:
+        """returns a single codon from an index"""
         if index > len(self) or index < 0:
             msg = f"{index=!r} is not within range"
             raise ValueError(msg)
@@ -1312,10 +1330,12 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
             raise ValueError(msg) from e
 
     def from_indices(self, indices: numpy.ndarray) -> list[str]:
+        """returns a list of codons from a numpy array of indices"""
         return [self.from_index(index) for index in indices]
 
     @property
-    def num_canonical(self):
+    def num_canonical(self) -> int:
+        """returns the number of canonical states"""
         return len(self._words)
 
     @functools.singledispatchmethod
@@ -1334,7 +1354,7 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
 
     @is_valid.register
     def _(self, seq: numpy.ndarray) -> bool:
-        return seq.min() >= 0 and seq.max() < len(self)
+        return bool(seq.min() >= 0 and seq.max() < len(self) if len(seq) else True)
 
     def with_gap_motif(self, **kwargs) -> typing_extensions.Self:
         """returns a new SenseCodonAlphabet with the gap motif '---' added
@@ -1350,7 +1370,8 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         words = (*tuple(self), gap_char)
         return self.__class__(words=words, monomers=monomers, gap=gap_char)
 
-    def to_rich_dict(self, for_pickle: bool = False) -> dict[str, typing.Any]:
+    def to_rich_dict(self, for_pickle: bool = False) -> dict:
+        """returns a serialisable dictionary"""
         from cogent3._version import __version__
 
         data = {
@@ -1363,10 +1384,12 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         return data
 
     def to_json(self) -> str:
+        """returns a serialisable string"""
         return json.dumps(self.to_rich_dict())
 
     @classmethod
     def from_rich_dict(cls, data: dict[str, typing.Any]) -> "SenseCodonAlphabet":
+        """returns an instance from a serialised dictionary"""
         data["monomers"] = deserialise_char_alphabet(data["monomers"])
         data.pop("type", None)
         data.pop("version", None)
@@ -1374,6 +1397,7 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
 
     @property
     def motif_len(self) -> int:
+        """always 3 for codon alphabets"""
         return self._motif_len
 
 
