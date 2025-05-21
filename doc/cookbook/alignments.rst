@@ -164,7 +164,7 @@ Alternatively, you can extract only the sequences which are not specified by pas
     new = aln.take_seqs(["Human", "HowlerMon"], negate=True)
     new.names
 
-.. note:: The subset contain references to the original sequences, not copies.
+.. note:: The subset contains references to the original sequences, not copies.
 
 
 Writing sequences to file
