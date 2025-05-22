@@ -421,19 +421,19 @@ class MolType:
     make_seq: dataclasses.InitVar[type]
     gap: OptStr = IUPAC_gap
     missing: OptStr = IUPAC_missing
-    complements: dataclasses.InitVar[dict[str, frozenset[str]] | None] = None
+    complements: dataclasses.InitVar[dict[str, str] | None] = None
     ambiguities: dict[str, frozenset[str]] | None = None
     colors: dataclasses.InitVar[dict[str, str] | None] = None
-    pairing_rules: dict[str, dict[frozenset[str], bool]] | None = None
+    pairing_rules: dict[frozenset[str], bool] | None = None
     mw_calculator: WeightCalculator | None = None
     coerce_to: OptTranslater | None = None
 
     # private attributes to be delivered via properties
     _monomers: new_alphabet.CharAlphabet = dataclasses.field(init=False)
-    _gapped: new_alphabet.CharAlphabet = dataclasses.field(init=False)
-    _gapped_missing: new_alphabet.CharAlphabet = dataclasses.field(init=False)
-    _degen: new_alphabet.CharAlphabet = dataclasses.field(init=False)
-    _degen_gapped: new_alphabet.CharAlphabet = dataclasses.field(init=False)
+    _gapped: new_alphabet.CharAlphabet | None = dataclasses.field(init=False)
+    _gapped_missing: new_alphabet.CharAlphabet | None = dataclasses.field(init=False)
+    _degen: new_alphabet.CharAlphabet | None = dataclasses.field(init=False)
+    _degen_gapped: new_alphabet.CharAlphabet | None = dataclasses.field(init=False)
     _colors: dict[str, str] = dataclasses.field(init=False)
 
     # how to connect this to the sequence constructor and avoid
@@ -445,7 +445,7 @@ class MolType:
         self,
         monomers: StrORBytes,
         make_seq: type,
-        complements: dict[str, frozenset[str]] | None,
+        complements: dict[str, str] | None,
         colors: dict[str, str] | None,
     ):
         self._colors = colors or defaultdict(_DefaultValue("black"))
