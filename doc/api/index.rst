@@ -71,7 +71,7 @@ These are all top level imports. For example,
 
 .. code-block:: python
 
-    from cogent3 import get_code
+    from cogent3 import available_codes
 
 .. toctree::
     :maxdepth: 1
