@@ -3089,3 +3089,18 @@ def test_to_html_bytes():
     seq = cogent3.make_seq("AGTACACTGGT", moltype="bytes", new_type=True)
     html = seq.to_html()  # should not fail
     assert isinstance(html, str)
+
+
+def test_to_html_custom_moltype():
+    dna_gapped = new_moltype.MolType(
+        seq_constructor=new_moltype.DnaSequence,
+        motifset=new_moltype.IUPAC_DNA_chars,
+        ambiguities=new_moltype.IUPAC_DNA_ambiguities,
+        complements=new_moltype.IUPAC_DNA_ambiguities_complements,
+        pairs=new_moltype.DnaStandardPairs,
+        gaps=".",
+    )
+    seq = dna_gapped.make_seq("ACG.")
+    # should not fail
+    got = seq.to_html()
+    assert isinstance(got, str)

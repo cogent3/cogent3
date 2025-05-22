@@ -845,9 +845,12 @@ class Sequence:
         seq = str(self)
         seq = seq if limit is None else seq[:limit]
         seqlen = len(seq)
-        if self.moltype.gaps:
-            gaps = "".join(self.moltype.gaps)
-            start_gap = re.search(f"^[{gaps}]+", "".join(seq))
+        if gaps := self.moltype.gaps:
+            non_hyphen = "".join(gaps - {"-"})
+            # make sure hyphen at end of negated character group
+            # so it's not interpreted as a character range
+            chars = f"{non_hyphen}-" if "-" in gaps else non_hyphen
+            start_gap = re.search(f"[^{chars}]+", "".join(seq))
             end_gap = re.search(f"[{gaps}]+$", "".join(seq))
 
             start = 0 if start_gap is None else start_gap.end()

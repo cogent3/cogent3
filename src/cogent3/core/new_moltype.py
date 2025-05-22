@@ -508,7 +508,9 @@ class MolType:
 
         if complements:
             # assume we have a nucleic acid moltype
-            dest = "".join(complements[c] for c in self.degen_gapped_alphabet)
+            # any character not in defined complement set is defined as its
+            # own complement
+            dest = "".join(complements.get(c, c) for c in self.degen_gapped_alphabet)
             self._complement = new_alphabet.convert_alphabet(
                 self.degen_gapped_alphabet.as_bytes(),
                 dest.encode("utf8"),

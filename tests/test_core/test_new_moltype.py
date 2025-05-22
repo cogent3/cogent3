@@ -719,3 +719,16 @@ def test_has_ambiguity_validation():
 
     with pytest.raises(TypeError):
         new_moltype.DNA.has_ambiguity(1)
+
+
+def test_custom_moltype():
+    mt = new_moltype.MolType(
+        name="dna-gapped",
+        make_seq=new_sequence.DnaSequence,
+        monomers="".join(new_moltype.IUPAC_DNA_chars),
+        ambiguities=new_moltype.IUPAC_DNA_ambiguities,
+        complements=new_moltype.IUPAC_DNA_ambiguities_complements,
+        pairing_rules=new_moltype.DNA_STANDARD_PAIRS,
+        gap=".",
+    )
+    seq = mt.make_seq(seq="ACG.")
