@@ -47,12 +47,12 @@ def _(orig: bytearray, text: str) -> StrORBytes:
 
 @_coerce_to_type.register
 def _(orig: tuple, text: str) -> StrORBytes:
-    return (_coerce_to_type(orig[0], text),)
+    return _coerce_to_type(orig[0], text)
 
 
 @_coerce_to_type.register
 def _(orig: list, text: str) -> StrORBytes:
-    return (_coerce_to_type(orig[0], text),)
+    return _coerce_to_type(orig[0], text)
 
 
 class AlphabetError(TypeError): ...
