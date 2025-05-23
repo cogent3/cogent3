@@ -248,3 +248,77 @@ The FASTA label field is frequently overloaded, with different information field
         print(name)
         print(name.info.gi)
         print(name.info.description)
+
+.. _storage-plugin:
+
+Using a third-party plugin for sequence storage
+-----------------------------------------------
+
+Sequence collections and alignments have a ``.storage`` attribute which holds the underlying sequence data and provides basic functions for obtaining it. Users can install a third-party plugin which is customized for different types of sequence data. The following examples require you install the ``cogent3-h5seqs`` plugin. This provides alternate storage for both unaligned sequences and for alignments.
+
+.. code-block:: shell
+
+    $ pip install cogent3-h5seqs
+
+Selecting an alternate storage backend
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Specify the storage using the ``storage_backend`` argument.
+
+.. jupyter-execute::
+    :raises:
+
+    from cogent3 import load_aligned_seqs
+
+    aln = load_aligned_seqs(
+        "data/long_testseqs.fasta", moltype="dna", storage_backend="h5seqs_aligned"
+    )
+    aln
+
+That's it!
+
+.. jupyter-execute::
+
+    type(aln.storage)
+
+For unaligned sequences, you specify a different backend.    
+
+.. jupyter-execute::
+    :raises:
+
+    from cogent3 import load_unaligned_seqs
+
+    seqs = load_unaligned_seqs(
+        "data/long_testseqs.fasta", moltype="dna", storage_backend="h5seqs_unaligned"
+    )
+    type(seqs)
+
+Set the default storage
+^^^^^^^^^^^^^^^^^^^^^^^
+
+You can set the default storage process-wide, so you don't need to use the ``storage_backend`` argument.
+
+.. jupyter-execute::
+    :raises:
+
+    import cogent3
+
+    cogent3.set_storage_defaults(
+        unaligned_seqs="h5seqs_unaligned", aligned_seqs="h5seqs_aligned"
+    )
+
+    aln = cogent3.get_dataset("brca1")
+    type(aln.storage)
+
+.. jupyter-execute::
+    :raises:
+
+    coll = aln.degap()
+    type(coll.storage)
+
+You revert back to the ``cogent3`` defaults with
+
+.. jupyter-execute::
+    :raises:
+
+    cogent3.set_storage_defaults(reset=True)
