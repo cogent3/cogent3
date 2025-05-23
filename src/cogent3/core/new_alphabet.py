@@ -314,13 +314,11 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         if gap is not None:
             assert _coerce_to_type(chars[0], gap) in chars
 
-        if missing is not None:
-            # if a bytes alphabet and missing provided this will fail
-            # since individual elements of a bytes object are integers
-            # leaving as is because we're considering a full bytes
-            # alphabet only, in which case the missing character is already
-            # present
-            assert _coerce_to_type(chars[0], missing) in chars
+        if missing is not None and _coerce_to_type(chars[0], missing) not in chars:
+            msg = (
+                f"char missing={_coerce_to_type(chars[0], missing)!r} not in {chars!r}"
+            )
+            raise ValueError(msg)
 
         consistent_words(chars, length=1)
         if isinstance(chars, bytes):
