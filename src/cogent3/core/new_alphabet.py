@@ -16,7 +16,7 @@ if typing.TYPE_CHECKING:
     from cogent3.core.new_moltype import MolType
 
 NumpyIntType = numpy.dtype[numpy.integer]
-NumpyIntArrayType = numpy.ndarray[numpy.integer]
+NumpyIntArrayType = numpy.typing.NDArray[numpy.integer]
 StrORBytes = str | bytes
 StrORArray = str | NumpyIntArrayType
 StrORBytesORArray = str | bytes | NumpyIntArrayType
@@ -314,17 +314,15 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         if gap is not None:
             assert _coerce_to_type(chars[0], gap) in chars
 
-        if missing is not None:
-            # if a bytes alphabet and missing provided this will fail
-            # since individual elements of a bytes object are integers
-            # leaving as is because we're considering a full bytes
-            # alphabet only, in which case the missing character is already
-            # present
-            assert _coerce_to_type(chars[0], missing) in chars
+        if missing is not None and _coerce_to_type(chars[0], missing) not in chars:
+            msg = (
+                f"char missing={_coerce_to_type(chars[0], missing)!r} not in {chars!r}"
+            )
+            raise ValueError(msg)
 
         consistent_words(chars, length=1)
         if isinstance(chars, bytes):
-            # we need to convert to tuple in a way the preserves elements
+            # we need to convert to tuple in a way that preserves elements
             # as bytes
             chars = tuple(bytes([c]) for c in chars)
         return tuple.__new__(cls, chars, gap=gap, missing=missing)
@@ -1353,9 +1351,10 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
     def _(self, seq: str) -> bool:
         try:
             _ = self.to_indices(seq)
-            return True
         except (ValueError, AlphabetError):
             return False
+        else:
+            return True
 
     @is_valid.register
     def _(self, seq: numpy.ndarray) -> bool:
