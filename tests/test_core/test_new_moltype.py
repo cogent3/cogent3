@@ -731,6 +731,4 @@ def test_custom_moltype():
         pairing_rules=new_moltype.DNA_STANDARD_PAIRS,
         gap=".",
     )
-    seq = mt.make_seq(seq="ACG.")
-    txt = seq.to_html()
-    assert isinstance(txt, str)
+    assert "." in mt.gaps

@@ -850,7 +850,9 @@ class Sequence:
             # make sure hyphen at end of negated character group
             # so it's not interpreted as a character range
             chars = f"{non_hyphen}-" if "-" in gaps else non_hyphen
-            start_gap = re.search(f"[^{chars}]+", "".join(seq))
+            # looking for gaps at the the start of the seq
+            start_gap = re.search(f"^[{chars}]+", "".join(seq))
+            # looking for gaps at the end of the seq
             end_gap = re.search(f"[{gaps}]+$", "".join(seq))
 
             start = 0 if start_gap is None else start_gap.end()
