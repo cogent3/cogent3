@@ -281,7 +281,7 @@ That's it!
 
     type(aln.storage)
 
-For unaligned sequences, you specify a different backend.    
+For the ``cogent3-h5seqs`` package you specify a different storage backend for unaligned sequences.
 
 .. jupyter-execute::
     :raises:
@@ -291,7 +291,7 @@ For unaligned sequences, you specify a different backend.
     seqs = load_unaligned_seqs(
         "data/long_testseqs.fasta", moltype="dna", storage_backend="h5seqs_unaligned"
     )
-    type(seqs)
+    type(seqs.storage)
 
 Set the default storage
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -310,15 +310,18 @@ You can set the default storage process-wide, so you don't need to use the ``sto
     aln = cogent3.get_dataset("brca1")
     type(aln.storage)
 
+When you apply operations, the new backend storage setting is applied.
+
 .. jupyter-execute::
     :raises:
 
     coll = aln.degap()
     type(coll.storage)
 
-You revert back to the ``cogent3`` defaults with
 
-.. jupyter-execute::
-    :raises:
+.. note:: Reverting back to the ``cogent3`` defaults, use the ``reset`` argument.
 
-    cogent3.set_storage_defaults(reset=True)
+    .. jupyter-execute::
+        :raises:
+
+        cogent3.set_storage_defaults(reset=True)
