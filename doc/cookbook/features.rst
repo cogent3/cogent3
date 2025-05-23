@@ -143,7 +143,7 @@ How to load bulk Features from a File
 
 Typically, we want to load bulk features from a genomic annotation file, such as a GFF or Genbank file. For the following examples, we will use *Caenorhabditis elegans* chromosome I.
 
-.. note:: See the list of :ref:`data_links` to download the data used in the following examples.
+.. note:: See the list of :ref:`data-links` to download the data used in the following examples.
 
 To load features from a genomic annotation file along with the corresponding sequence, we can use the ``load_seq`` function. The features are stored in a ``AnnotationDb`` and assigned to the ``annotation_db`` attribute of the sequence.
 
