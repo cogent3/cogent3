@@ -254,7 +254,7 @@ The FASTA label field is frequently overloaded, with different information field
 Using a third-party plugin for sequence storage
 -----------------------------------------------
 
-Sequence collections and alignments have a ``.storage`` attribute which holds the underlying sequence data and provides basic functions for obtaining it. Users can install a third-party plugin which is customized for different types of sequence data. The following examples require you install the ``cogent3-h5seqs`` plugin. This provides alternate storage for both unaligned sequences and for alignments.
+Sequence collections and alignments have a ``.storage`` attribute which holds the underlying sequence data and provides basic functions for obtaining it. Users can install a third-party plugin which is customized for different types of sequence data. The following examples require you install the ``cogent3-h5seqs`` plugin. This project provides alternative storage for both unaligned sequences and for alignments.
 
 .. code-block:: shell
 
@@ -319,7 +319,7 @@ When you apply operations, the new backend storage setting is applied.
     type(coll.storage)
 
 
-.. note:: Reverting back to the ``cogent3`` defaults, use the ``reset`` argument.
+.. note:: To revert to the ``cogent3`` defaults, use the ``reset`` argument.
 
     .. jupyter-execute::
         :raises:
