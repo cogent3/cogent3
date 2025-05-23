@@ -66,6 +66,7 @@ test = [
 doc  = [
     "click",
     "cogent3[extra]",
+    "cogent3-h5seqs",
     "jupyter-sphinx",
     "jupyter_client",
     "jupytext",
@@ -73,6 +74,7 @@ doc  = [
     "nbformat",
     "nbsphinx",
     "numpydoc",
+    "piqtree",
     "sphinx",
     "sphinx-autobuild",
     "pydata_sphinx_theme",

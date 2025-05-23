@@ -1,8 +1,10 @@
+.. _app-docs:
+
 ####
 apps
 ####
 
-Pre-defined "apps" simplify complex tasks. They provide capabilities that can be used by themselves, or added together to define a pipeline. Find out more about apps below!
+Pre-defined "apps" simplify complex tasks. They provide capabilities that can be used by themselves or added together to define a pipeline. Find out more about apps below!
 
 .. grid::
 

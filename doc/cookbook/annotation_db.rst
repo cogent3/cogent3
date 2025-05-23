@@ -33,7 +33,7 @@ How to load an standalone ``AnnotationDb`` from a data file
 
 Typically, we want to load a collection of features from a genomic annotation file, such as a GFF or Genbank file. For the following examples, we will use data from the bacterium *Mycoplasma genitalium*.
 
-.. note:: See the list of :ref:`data_links` to download the data used in the following examples.
+.. note:: See the list of :ref:`data-links` to download the data used in the following examples.
 
 From a GFF file
 """""""""""""""
