@@ -42,7 +42,7 @@ You can use the IQ-TREE rapid-NJ algorithm for ``quick_tree()`` by installing `p
 
     aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
     tree = aln.quick_tree(calc="TN93", use_hook="piqtree")
-    # dropping branch lengths to simpolify display
+    # dropping branch lengths to simplify display
     dnd = tree.get_figure(contemporaneous=True, width=600, height=600)
     dnd.show()
 
