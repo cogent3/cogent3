@@ -728,7 +728,10 @@ def test_custom_moltype():
         monomers="".join(new_moltype.IUPAC_DNA_chars),
         ambiguities=new_moltype.IUPAC_DNA_ambiguities,
         complements=new_moltype.IUPAC_DNA_ambiguities_complements,
+        colors=new_moltype.NT_COLORS,
         pairing_rules=new_moltype.DNA_STANDARD_PAIRS,
         gap=".",
     )
     seq = mt.make_seq(seq="ACG.")
+    txt = seq.to_html()
+    assert isinstance(txt, str)

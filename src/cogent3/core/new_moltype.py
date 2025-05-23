@@ -1348,7 +1348,7 @@ class MolType:
             '.%s_%s{font-family: "%s",monospace !important; '
             "font-size: %dpt !important; color: %s; }"
         )
-        label = self.label or ""
+        label = self.name if self.name in _STYLE_DEFAULTS else ""
         styles = _STYLE_DEFAULTS[label].copy()
         styles.update(
             {c: f"{c}_{label}" for c in [*list(self.alphabet), "terminal_ambig"]},
