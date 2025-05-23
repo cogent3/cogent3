@@ -84,19 +84,22 @@ Verify sequences
 Making a custom ``MolType``
 ===========================
 
-We demonstrate this by customising DNA so it allows ``.`` as gaps
+We demonstrate this by customising DNA so it allows a ``.`` as a gap character.
 
 .. jupyter-execute::
 
-    from cogent3.core import moltype as mt
+    from cogent3.core import new_moltype, new_sequence
 
-    DNAgapped = mt.MolType(
-        seq_constructor=mt.DnaSequence,
-        motifset=mt.IUPAC_DNA_chars,
-        ambiguities=mt.IUPAC_DNA_ambiguities,
-        complements=mt.IUPAC_DNA_ambiguities_complements,
-        pairs=mt.DnaStandardPairs,
-        gaps=".",
-    )
-    seq = DNAgapped.make_seq("ACG.")
+    mt = new_moltype.MolType(
+            monomers="".join(new_moltype.IUPAC_DNA_chars),
+            ambiguities=new_moltype.IUPAC_DNA_ambiguities,
+            name="dna.gap",
+            complements=new_moltype.IUPAC_DNA_ambiguities_complements,
+            make_seq=new_sequence.DnaSequence,
+            pairing_rules=new_moltype.DNA_STANDARD_PAIRS,
+            mw_calculator=new_moltype.DnaMW,
+            coerce_to=new_moltype.coerce_to_dna,
+            gap=".",
+        )
+    seq = mt.make_seq(seq="ACG.")
     seq
