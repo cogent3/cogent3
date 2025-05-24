@@ -1,20 +1,25 @@
 .. jupyter-execute::
     :hide-code:
 
+    import os
+
     import set_working_directory
 
 .. _load_seq:
 
-Loading a sequence from a file
-------------------------------
+Loading a single sequence from a file
+-------------------------------------
 
-.. note:: **Alpha Release of the New Sequence API**
+.. note:: These docs now use the ``new_type`` core objects via the following setting.
 
-   We are pleased to announce an alpha release of our new ``Sequence`` API! This version can be accessed by specifying the argument ``new_type=True`` in the ``load_seq()`` or ``make_seq()`` functions. The new API is designed for increased efficiency, offering access to the underlying data in multiple formats, including numpy arrays, strings, and bytes (via ``array(seq)``, ``str(seq)`` and ``bytes(seq)`` respectively). 
+    .. jupyter-execute::
 
-   Please be aware that this alpha release has not been fully integrated with the library. Users are encouraged to explore its capabilities but should proceed with caution!
+        import os
 
-It's also possible to load a sequence from a :ref:`url <load_url>`.
+        # using new types without requiring an explicit argument
+        os.environ["COGENT3_NEW_TYPE"] = "1"
+
+In this case, the filename suffix is used to infer the data format.
 
 .. jupyter-execute::
 
@@ -30,7 +35,7 @@ It's also possible to load a sequence from a :ref:`url <load_url>`.
     seq = load_seq("data/brca1-bats.fasta", moltype="dna")
     seq
 
-.. note:: The filename suffix is used to infer the data format.
+.. note:: It's also possible to load a sequence from a :ref:`url <load_url>`.
 
 .. _load-seqs:
 
@@ -42,6 +47,8 @@ Loading an alignment from a file or url
 Loading aligned sequences
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Any file in which the sequences have exactly the same length can be loaded as an alignment.
+
 .. jupyter-execute::
 
     from cogent3 import load_aligned_seqs
@@ -49,20 +56,18 @@ Loading aligned sequences
     aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")
     type(aln)
 
-The load functions record the origin of the data in the ``info`` attribute under a `"source"` key.
+.. note:: The load functions record the origin of the data in the ``info`` attribute under a `"source"` key.
 
 .. jupyter-execute::
 
     aln.info.source
-
-.. note:: The function ``load_aligned_seqs()`` returns an ``ArrayAlignment`` by default. If you set the argument ``array_align=False``, you will get an ``Alignment``. (That class can be annotated.)
 
 .. todo:: add cross ref for description of Info class
 
 Loading unaligned sequences
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The ``load_unaligned_seqs()`` function returns a sequence collection.
+Files containing sequences that may differ in length can be loaded using ``load_unaligned_seqs()``, which returns a sequence collection.
 
 .. jupyter-execute::
 
@@ -102,8 +107,6 @@ The loading functions use the filename suffix to infer the file format. This can
 Specifying the sequence molecular type
 --------------------------------------
 
-Simple case of loading a ``list`` of aligned amino acid sequences in FASTA format with a ``moltype`` specification.
-
 .. jupyter-execute::
 
     from cogent3 import make_aligned_seqs
@@ -126,32 +129,48 @@ From a dict of strings
     seqs = {"seq1": "AATCG-A", "seq2": "AATCGGA"}
     seqs_loaded = make_aligned_seqs(seqs, moltype="dna")
 
+From a dict of numpy arrays
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. jupyter-execute::
+
+    from cogent3 import make_aligned_seqs
+    from numpy import array, uint8
+
+    seqs = {
+        "seq1": array([2, 2, 0, 1, 3, 9, 2], dtype=uint8),
+        "seq2": array([2, 2, 0, 1, 3, 3, 2], dtype=uint8),
+    }
+    seqs_loaded = make_aligned_seqs(seqs, moltype="dna")
+
 From a series of strings
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. jupyter-execute::
-
-    from cogent3 import make_aligned_seqs
-
-    seqs = {"seq1": "AATCG-A", "seq2": "AATCGGA"}
-    seqs_loaded = make_aligned_seqs(seqs, moltype="dna")
-    seqs_loaded
-
-Stripping label characters on loading
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Load a list of aligned nucleotide sequences, while specifying the DNA molecule type and stripping the comments from the label. In this example, stripping is accomplished by passing a function that removes everything after the first whitespace to the ``label_to_name`` parameter.
+The sequence names will be automatically created.
 
 .. jupyter-execute::
 
     from cogent3 import make_aligned_seqs
 
-    DNA_seqs = {
+    data = ["AATCG-A", "AATCGGA"]
+    coll = make_aligned_seqs(data, moltype="dna", new_type=True)
+    coll
+
+Changing sequence labels on loading
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Load a list of aligned nucleotide sequences, while specifying the DNA molecule type and stripping the comments from the label. In this example, we rename sequences by passing a function that removes everything after the first whitespace to the ``label_to_name`` parameter.
+
+.. jupyter-execute::
+
+    from cogent3 import make_aligned_seqs
+
+    data = {
         "sample1 Mus musculus": "AACCTGC--C",
         "sample2 Gallus gallus": "AAC-TGCAAC",
     }
     loaded_seqs = make_aligned_seqs(
-        DNA_seqs, moltype="dna", label_to_name=lambda x: x.split()[0]
+        data, moltype="dna", label_to_name=lambda x: x.split()[0]
     )
     loaded_seqs
 
@@ -229,3 +248,80 @@ The FASTA label field is frequently overloaded, with different information field
         print(name)
         print(name.info.gi)
         print(name.info.description)
+
+.. _storage-plugin:
+
+Using a third-party plugin for sequence storage
+-----------------------------------------------
+
+Sequence collections and alignments have a ``.storage`` attribute which holds the underlying sequence data and provides basic functions for obtaining it. Users can install a third-party plugin which is customized for different types of sequence data. The following examples require you install the ``cogent3-h5seqs`` plugin. This project provides alternative storage for both unaligned sequences and for alignments.
+
+.. code-block:: shell
+
+    $ pip install cogent3-h5seqs
+
+Selecting an alternate storage backend
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Specify the storage using the ``storage_backend`` argument.
+
+.. jupyter-execute::
+    :raises:
+
+    from cogent3 import load_aligned_seqs
+
+    aln = load_aligned_seqs(
+        "data/long_testseqs.fasta", moltype="dna", storage_backend="h5seqs_aligned"
+    )
+    aln
+
+That's it!
+
+.. jupyter-execute::
+
+    type(aln.storage)
+
+For the ``cogent3-h5seqs`` package you specify a different storage backend for unaligned sequences.
+
+.. jupyter-execute::
+    :raises:
+
+    from cogent3 import load_unaligned_seqs
+
+    seqs = load_unaligned_seqs(
+        "data/long_testseqs.fasta", moltype="dna", storage_backend="h5seqs_unaligned"
+    )
+    type(seqs.storage)
+
+Set the default storage
+^^^^^^^^^^^^^^^^^^^^^^^
+
+You can set the default storage process-wide, so you don't need to use the ``storage_backend`` argument.
+
+.. jupyter-execute::
+    :raises:
+
+    import cogent3
+
+    cogent3.set_storage_defaults(
+        unaligned_seqs="h5seqs_unaligned", aligned_seqs="h5seqs_aligned"
+    )
+
+    aln = cogent3.get_dataset("brca1")
+    type(aln.storage)
+
+When you apply operations, the new backend storage setting is applied.
+
+.. jupyter-execute::
+    :raises:
+
+    coll = aln.degap()
+    type(coll.storage)
+
+
+.. note:: To revert to the ``cogent3`` defaults, use the ``reset`` argument.
+
+    .. jupyter-execute::
+        :raises:
+
+        cogent3.set_storage_defaults(reset=True)

@@ -6,19 +6,33 @@
 Dotplot with annotated sequences
 ================================
 
+.. note:: These docs now use the ``new_type`` core objects via the following setting.
+
+    .. jupyter-execute::
+
+        import os
+
+        # using new types without requiring an explicit argument
+        os.environ["COGENT3_NEW_TYPE"] = "1"
+
 If sequences in a dotplot have been annotated, the ``dotplot()`` method returns an ``AnnotatedDrawable``.
 
-Reloading from json
--------------------
+Reloading sequences and annotations
+-----------------------------------
 
-The data file, ``tp53.json``, was created from a query of ensembl for one-to-one orthologs of human TP53 between Human, Macaque, Orangutan and Marmoset. The resulting sequences were annotated with the location of the CDS for the canonical transcript, then the ``SequenceCollection`` was saved as json using ``write_json``.
+The data file, ``tp53-annotations.json``, was created from a query of Ensembl for one-to-one orthologs of human TP53 between Human, Macaque, Orangutan and Marmoset. The resulting sequences were annotated with the location of the CDS for the canonical transcript, then the ``annotation_db`` was saved as json using ``annotation_db.to_json()``.
 
 .. jupyter-execute::
 
-    from cogent3 import get_app
+    import cogent3
 
-    loader = get_app("load_json")
-    seqs = loader("data/tp53.json")
+    ann_db = cogent3.load_annotations(
+        path="data/tp53-annotations.json"
+    )
+    seqs = cogent3.load_unaligned_seqs(
+        "data/tp53.fa", moltype="dna"
+    )
+    seqs.annotation_db = ann_db
     dp = seqs.dotplot(name1="Macaque", name2="Marmoset", width=600)
     dp.show()
 

@@ -67,22 +67,27 @@ class Feature:
 
     @property
     def parent(self) -> SeqORAlign:
+        """sequence or aligned or alignment"""
         return self._parent
 
     @property
     def seqid(self) -> str:
+        """the sequence id of the parent sequence"""
         return self._seqid
 
     @property
     def map(self) -> FeatureMap:
+        """coordinate map and properties of this feature"""
         return self._map
 
     @property
     def biotype(self) -> str:
+        """type of biological feature"""
         return self._biotype
 
     @property
     def name(self) -> str:
+        """name of the feature"""
         return self._name
 
     def get_slice(
@@ -142,22 +147,34 @@ class Feature:
         kwargs = {**self._serialisable, "map": self.map[keep]}
         return self.__class__(**kwargs)
 
-    def as_one_span(self) -> typing_extensions.Self:
-        """returns a feature that preserves any gaps"""
+    def as_one_span(self, name: str | None = None) -> typing_extensions.Self:
+        """returns a feature that preserves any gaps in the underlying sequence
+
+        Parameters
+        ----------
+        name
+            The name of the one-span feature, by default 'one-span <self name>'
+        """
         kwargs = {
             **self._serialisable,
             "map": self.map.get_covering_span(),
-            "name": f"one-span {self.name}",
+            "name": name or f"one-span {self.name}",
         }
         return self.__class__(**kwargs)
 
-    def shadow(self) -> typing_extensions.Self:
-        """returns new instance corresponding to disjoint of self coordinates"""
+    def shadow(self, name: str | None = None) -> typing_extensions.Self:
+        """returns new instance corresponding to disjoint of self coordinates
+
+        Parameters
+        ----------
+        name
+            The name of the shadow feature, by default 'not <self name>'
+        """
         kwargs = {
             **self._serialisable,
             "map": self.map.shadow(),
             "biotype": f"not {self.biotype}",
-            "name": f"not {self.name}",
+            "name": name or f"not {self.name}",
         }
         return self.__class__(**kwargs)
 
@@ -317,6 +334,7 @@ class Feature:
 
     @property
     def xattr(self) -> dict[str, typing.Any] | None:
+        """extra attributes for this feature"""
         return self._xattr
 
     @xattr.setter

@@ -911,7 +911,7 @@ def test_model_opt_args():
 @pytest.mark.internet
 def test_get_app_tree_is_url():
     """A check that the model app can use a url for the tree"""
-    tree_url = "https://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/brca1_5.tree"
+    tree_url = "https://github.com/user-attachments/files/20329020/brca1_5.tree.gz"
     mod = get_app("model", "F81", tree=tree_url)
     assert isinstance(mod, evo_app.model)
 

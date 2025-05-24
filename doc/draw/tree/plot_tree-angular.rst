@@ -10,9 +10,9 @@ This is a left-right style. You'll note that there's overlap of edges at the bot
 
 .. jupyter-execute::
 
-    from cogent3.app import io
+    import cogent3
 
-    reader = io.load_json()
+    reader = cogent3.get_app("load_json")
 
     ens_tree = reader("data/GN-tree.json")
     fig = ens_tree.get_figure(style="angular", width=600, height=600)

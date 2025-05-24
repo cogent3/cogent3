@@ -307,7 +307,7 @@ def test_features_survives_aligned_seq_rename(rev, make_cls):
         strand="-",
     )
     seqs = seqs.rename_seqs(lambda x: "newname")
-    assert seqs.names == ["newname"]
+    assert seqs.names == ("newname",)
     seqs = seqs.rc() if rev else seqs
     # quite different behaviour from Alignment and SequenceCollection
     # so we convert to string to make comparison simpler
@@ -943,3 +943,34 @@ def test_slice_featuremap():
     )
     got = aln[fmap].seqs["s2"]
     assert str(got) == "TAAG"
+
+
+def test_shadow_name():
+    seq = DNA.make_seq(
+        seq="AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA",
+        name="Orig",
+    )
+    name = "fred"
+    seq.add_feature(biotype="exon", name=name, spans=[(10, 15)])
+    seq.add_feature(biotype="exon", name="trev", spans=[(30, 40)])
+    f = next(iter(seq.get_features(biotype="exon", name=name)))
+    assert f.name == name
+    s = f.shadow()
+    assert s.name == f"not {name}"
+    s = f.shadow(name="newname")
+    assert s.name == "newname"
+
+
+def test_one_span_name():
+    seq = DNA.make_seq(
+        seq="AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA",
+        name="Orig",
+    )
+    name = "fred"
+    seq.add_feature(biotype="exon", name=name, spans=[(2, 7), (10, 15)])
+    f = next(iter(seq.get_features(biotype="exon", name=name)))
+    assert f.name == name
+    ospan = f.as_one_span()
+    assert ospan.name == f"one-span {name}"
+    s = f.as_one_span(name="newname")
+    assert s.name == "newname"

@@ -7,13 +7,20 @@
 Building phylogenies
 ********************
 
+.. note:: These docs now use the ``new_type`` core objects via the following setting.
+
+    .. jupyter-execute::
+
+        import os
+
+        # using new types without requiring an explicit argument
+        os.environ["COGENT3_NEW_TYPE"] = "1"
+
 Building A Phylogenetic Tree From Pairwise Distances
 ====================================================
 
 Directly via ``alignment.quick_tree()``
 =======================================
-
-Both the ``ArrayAlignment`` and ``Alignment`` classes support this.
 
 .. jupyter-execute::
 
@@ -23,6 +30,21 @@ Both the ``ArrayAlignment`` and ``Alignment`` classes support this.
     tree = aln.quick_tree(calc="TN93")
     tree = tree.balanced()  # purely for display
     print(tree.ascii_art())
+
+Directly via ``alignment.quick_tree()`` with a third-party hook
+===============================================================
+
+You can use the IQ-TREE rapid-NJ algorithm for ``quick_tree()`` by installing `piqtree <https://piqtree.readthedocs.io/en/latest/>`_ and setting ``use_hook="piqtree"``.
+
+.. jupyter-execute::
+
+    from cogent3 import load_aligned_seqs
+
+    aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
+    tree = aln.quick_tree(calc="TN93", use_hook="piqtree")
+    # dropping branch lengths to simplify display
+    dnd = tree.get_figure(contemporaneous=True, width=600, height=600)
+    dnd.show()
 
 Using the ``DistanceMatrix`` object
 -----------------------------------

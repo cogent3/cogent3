@@ -10,9 +10,9 @@ I modify values for the ``scale_bar`` placement and for ``label_pad``. The latte
 
 .. jupyter-execute::
 
-    from cogent3.app import io
+    import cogent3
 
-    reader = io.load_json()
+    reader = cogent3.get_app("load_json")
 
     ens_tree = reader("data/GN-tree.json")
     fig = ens_tree.get_figure("circular", width=600, height=600)

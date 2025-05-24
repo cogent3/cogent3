@@ -1,4 +1,25 @@
 
+<a id='changelog-2025.5.8a6'></a>
+# Changes in release "2025.5.8a6"
+
+This is a minor enhancements release with most improvements being to the documentation.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- Now support loading an annotation database that has been serialised using json and
+  has a registered deserialiser.
+- `Feature.as_one_span()` and `Feature.shadow()` methods now allow providing a name argument
+  to overide the default naming. The latter can result in very long names.
+
+## Documentation
+
+- All the documentation has now been switched to using the `new_type` only.
+- Added examples of using third-party storage for plugins and for the `quick_tree()` hook.
+
 <a id='changelog-2025.5.8a5'></a>
 # Changes in release "2025.5.8a5"
 

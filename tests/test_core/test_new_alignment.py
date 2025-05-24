@@ -204,7 +204,7 @@ def test_seqs_data_construction_wrong_alphabet(str_seqs_dict, rna_alphabet):
 
 
 def test_seqs_data_default_attributes(dna_sd: new_alignment.SeqsData):
-    assert dna_sd.names == ["seq1", "seq2", "seq3"]
+    assert dna_sd.names == ("seq1", "seq2", "seq3")
     assert isinstance(dna_sd.alphabet, new_alphabet.CharAlphabet)
 
 
@@ -591,7 +591,7 @@ def test_make_seqs_from_list_generates_correct_names(mk_cls):
     assert str(a.seqs["seq_0"]) == "TTTTT"
     assert str(a.seqs["seq_1"]) == "CCCCC"
     assert str(a.seqs["seq_2"]) == "GGGGG"
-    assert a.names == ["seq_0", "seq_1", "seq_2"]
+    assert a.names == ("seq_0", "seq_1", "seq_2")
 
 
 @pytest.mark.parametrize(
@@ -605,7 +605,7 @@ def test_make_seqs_from_pairs(mk_cls):
     assert str(a.seqs["a"]) == "AAA"
     assert str(a.seqs["t"]) == "TTT"
     assert str(a.seqs["c"]) == "CCC"
-    assert a.names == ["a", "t", "c"]
+    assert a.names == ("a", "t", "c")
 
 
 @pytest.mark.parametrize(
@@ -621,20 +621,20 @@ def test_make_seqs_from_sequences(mk_cls):
     seq2 = new_moltype.DNA.make_seq(seq="AC")
     coll = mk_cls([seq1, seq2], moltype="dna")
     assert isinstance(coll, new_alignment.SequenceCollection)
-    assert coll.names == ["seq_0", "seq_1"]
+    assert coll.names == ("seq_0", "seq_1")
 
     # if the sequences have names, they should be used
     seq1 = new_moltype.DNA.make_seq(seq="AC", name="seq1")
     seq2 = new_moltype.DNA.make_seq(seq="AC", name="seq2")
     coll = mk_cls([seq1, seq2], moltype="dna")
     assert isinstance(coll, new_alignment.SequenceCollection)
-    assert coll.names == ["seq1", "seq2"]
+    assert coll.names == ("seq1", "seq2")
 
     # if the data dict has different names to the seq names,
     # the names from data should be used
     coll = mk_cls({"s1": seq1, "s2": seq2}, moltype="dna")
     assert isinstance(coll, new_alignment.SequenceCollection)
-    assert coll.names == ["s1", "s2"]
+    assert coll.names == ("s1", "s2")
     assert coll.get_seq("s1") == seq1
 
 
@@ -730,11 +730,11 @@ def test_make_seqs_invalid_chars(mk_cls):
     "mk_cls",
     [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
 )
-def test_sequence_collection_names_is_list(mk_cls):
+def test_sequence_collection_names_is_tuple(mk_cls):
     """expected to be a list"""
     seqs = mk_cls({"a": b"AAAAA", "b": b"TTTTT"}, moltype="dna")
-    assert isinstance(seqs.names, list)
-    assert seqs.names == ["a", "b"]
+    assert isinstance(seqs.names, tuple)
+    assert seqs.names == ("a", "b")
 
 
 def test_sequence_collection_init_ordered(ordered1, ordered2):
@@ -742,8 +742,8 @@ def test_sequence_collection_init_ordered(ordered1, ordered2):
     first = ordered1
     sec = ordered2
 
-    assert first.names == ["a", "c"]
-    assert sec.names == ["c", "a"]
+    assert first.names == ("a", "c")
+    assert sec.names == ("c", "a")
 
 
 @pytest.mark.parametrize("load_cls", [load_aligned_seqs, load_unaligned_seqs])
@@ -943,11 +943,11 @@ def test_sequence_collection_take_seqs(ragged_padded_dict, mk_cls, sample):
     """take_seqs should return new SequenceCollection/Alignment with selected seqs."""
     orig = mk_cls(ragged_padded_dict, moltype="dna")
     subset = orig.take_seqs(sample)
-    assert subset.names == sample
+    assert subset.names == tuple(sample)
     assert subset.num_seqs == len(sample)
     # should be able to negate
     neg_subset = orig.take_seqs(sample, negate=True)
-    assert neg_subset.names == [name for name in orig.names if name not in sample]
+    assert neg_subset.names == tuple(name for name in orig.names if name not in sample)
 
 
 @pytest.mark.parametrize(
@@ -971,12 +971,12 @@ def test_sequence_collection_take_seqs_str(ragged_padded_dict, mk_cls):
     """string arg to SequenceCollection take_seqs should work."""
     orig = mk_cls(ragged_padded_dict, moltype="dna")
     subset = orig.take_seqs("a")
-    assert subset.names == ["a"]
+    assert subset.names == ("a",)
     assert subset.num_seqs == 1
 
     # should be able to negate
     neg_subset = orig.take_seqs("a", negate=True)
-    assert neg_subset.names == ["b", "c"]
+    assert neg_subset.names == ("b", "c")
     assert neg_subset.num_seqs == 2
 
 
@@ -1107,7 +1107,7 @@ def test_sequence_collection_take_seqs_if(ragged_padded):
     )
 
     got = ragged_padded.take_seqs_if(is_med, negate=True)
-    assert got.names == ["b"]
+    assert got.names == ("b",)
     assert got.num_seqs == 1
 
 
@@ -1462,7 +1462,7 @@ def test_get_translation_renamed(seqs, mk_cls):
     seqs = mk_cls({"s1": "GATTTT", "s2": "GATCTT"}, moltype="dna")
     renamed = seqs.rename_seqs(lambda x: f"{x}_renamed")
     got = renamed.get_translation(incomplete_ok=True)
-    assert got.names == ["s1_renamed", "s2_renamed"]
+    assert got.names == ("s1_renamed", "s2_renamed")
 
 
 @pytest.mark.parametrize(
@@ -1750,23 +1750,23 @@ def test_sequence_collection_get_similar(transform):
     seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
     target = seqs.get_seq("a")
     got = seqs.get_similar(target, min_similarity=0.8, transform=transform)
-    assert got.names == ["a", "b", "c", "d"]
+    assert got.names == ("a", "b", "c", "d")
     got = seqs.get_similar(target, min_similarity=0.81, transform=transform)
-    assert got.names == ["a", "b", "c"]
+    assert got.names == ("a", "b", "c")
     got = seqs.get_similar(
         target,
         min_similarity=0.75,
         max_similarity=0.9,
         transform=transform,
     )
-    assert got.names == ["c", "d"]
+    assert got.names == ("c", "d")
     got = seqs.get_similar(
         target,
         min_similarity=0.75,
         max_similarity=0.89,
         transform=transform,
     )
-    assert got.names == ["d"]
+    assert got.names == ("d",)
 
 
 def test_sequence_collection_get_motif_probs():
@@ -3714,7 +3714,7 @@ def test_make_aligned_seqs_dict(aligned_dict):
     assert isinstance(aln.seqs["seq1"], new_alignment.Aligned)
     # if we use .get_seq, it should be a Sequence instance
     assert isinstance(aln.get_seq("seq1"), new_sequence.Sequence)
-    assert aln.names == ["seq1", "seq2", "seq3", "seq4"]
+    assert aln.names == ("seq1", "seq2", "seq3", "seq4")
     assert aln.to_dict() == aligned_dict
 
 
@@ -3726,7 +3726,7 @@ def test_make_aligned_seqs_aligned_seqs_data(aligned_dict, dna_alphabet):
     aln = new_alignment.make_aligned_seqs(aligned_seqs_data, moltype="dna")
     assert isinstance(aln, new_alignment.Alignment)
     assert aln.moltype.label == "dna"
-    assert aln.names == ["seq1", "seq2", "seq3", "seq4"]
+    assert aln.names == ("seq1", "seq2", "seq3", "seq4")
     assert aligned_dict == aln.to_dict()
 
 
@@ -4914,7 +4914,7 @@ def brca1_data():
 
 
 @pytest.mark.parametrize("calc", ["hamming", None])
-@pytest.mark.parametrize("use_hook", ["cogent3", None, "not present"])
+@pytest.mark.parametrize("use_hook", ["cogent3", None])
 def test_alignment_quick_tree(calc, brca1_data, use_hook):
     """quick tree method returns tree"""
     aln = new_alignment.make_aligned_seqs(brca1_data, moltype="dna")[:100]
@@ -4923,6 +4923,13 @@ def test_alignment_quick_tree(calc, brca1_data, use_hook):
     kwargs = {**kwargs, "calc": calc} if calc else kwargs
     tree = aln.quick_tree(**kwargs)
     assert set(tree.get_tip_names()) == set(aln.names)
+
+
+def test_alignment_quick_tree_missing_hook(brca1_data):
+    aln = new_alignment.make_aligned_seqs(brca1_data, moltype="dna")[:100]
+    aln = aln.take_seqs(["Human", "Rhesus", "HowlerMon", "Galago", "Mouse"])
+    with pytest.raises(ValueError):
+        aln.quick_tree(use_hook="missing_hook")
 
 
 @pytest.mark.skipif(not has_piqtree, reason="piqtree not installed")
@@ -5600,7 +5607,7 @@ def test_deserialise_alignment():
     aln = deserialise_object(data)
 
     assert isinstance(aln, new_alignment.Alignment)
-    assert aln.names == ["new_seq1", "new_seq2"]
+    assert aln.names == ("new_seq1", "new_seq2")
     assert str(aln.get_seq("new_seq1")) == "ATCG"
     assert str(aln.get_seq("new_seq2")) == "TAGC"
 
@@ -5631,7 +5638,7 @@ def test_load_from_url():
     import cogent3
 
     aln = cogent3.load_aligned_seqs(
-        "https://raw.githubusercontent.com/cogent3/cogent3/develop/doc/data/long_testseqs.fasta",
+        "https://github.com/user-attachments/files/20328517/long_testseqs.fasta.gz",
         moltype="dna",
         new_type=True,
     )

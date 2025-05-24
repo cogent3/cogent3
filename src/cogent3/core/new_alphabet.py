@@ -15,12 +15,14 @@ from cogent3.util.misc import get_object_provenance
 if typing.TYPE_CHECKING:
     from cogent3.core.new_moltype import MolType
 
+NumpyIntType = numpy.dtype[numpy.integer]
+NumpyIntArrayType = numpy.typing.NDArray[numpy.integer]
 StrORBytes = str | bytes
-StrORArray = str | numpy.ndarray
-StrORBytesORArray = str | bytes | numpy.ndarray
-OptInt = typing.Optional[int]
-OptStr = typing.Optional[str]
-OptBytes = typing.Optional[bytes]
+StrORArray = str | NumpyIntArrayType
+StrORBytesORArray = str | bytes | NumpyIntArrayType
+OptInt = int | None
+OptStr = str | None
+OptBytes = bytes | None
 PySeqStrOrBytes = typing.Sequence[str | bytes]
 
 
@@ -47,12 +49,12 @@ def _(orig: bytearray, text: str) -> StrORBytes:
 
 @_coerce_to_type.register
 def _(orig: tuple, text: str) -> StrORBytes:
-    return (text.encode("utf8"),)
+    return _coerce_to_type(orig[0], text)
 
 
 @_coerce_to_type.register
 def _(orig: list, text: str) -> StrORBytes:
-    return (text.encode("utf8"),)
+    return _coerce_to_type(orig[0], text)
 
 
 class AlphabetError(TypeError): ...
@@ -120,10 +122,10 @@ class AlphabetABC(ABC):
     def is_valid(self, seq) -> bool: ...
 
     @abstractmethod
-    def to_indices(self, seq: StrORBytesORArray) -> numpy.ndarray: ...
+    def to_indices(self, seq: StrORBytesORArray) -> NumpyIntArrayType: ...
 
     @abstractmethod
-    def from_indices(self, seq: numpy.ndarray) -> str: ...
+    def from_indices(self, seq: StrORBytesORArray) -> str: ...
 
     @property
     @abstractmethod
@@ -151,7 +153,7 @@ class AlphabetABC(ABC):
     @abstractmethod
     def from_rich_dict(cls, data: dict) -> typing_extensions.Self: ...
 
-    def __deepcopy__(self, memo):
+    def __deepcopy__(self, memo) -> typing_extensions.Self:
         return type(self).from_rich_dict(self.to_rich_dict())
 
     @property
@@ -175,9 +177,9 @@ class MonomerAlphabetABC(ABC):
         self,
         *,
         alphabet: typing_extensions.Self,
-        seq: numpy.ndarray,
+        seq: NumpyIntArrayType,
         check_valid: bool = True,
-    ) -> numpy.ndarray: ...
+    ) -> NumpyIntArrayType: ...
 
     @abstractmethod
     def with_gap_motif(
@@ -189,7 +191,7 @@ class MonomerAlphabetABC(ABC):
     ) -> typing_extensions.Self: ...
 
 
-def get_array_type(num_elements: int):
+def get_array_type(num_elements: int) -> NumpyIntType:
     """Returns the smallest numpy integer dtype that can contain elements
     within num_elements.
     """
@@ -209,7 +211,7 @@ def get_array_type(num_elements: int):
 
 
 def consistent_words(
-    words: typing.Sequence[str | int],
+    words: PySeqStrOrBytes,
     length: OptInt = None,
 ) -> None:
     """make sure all alphabet elements are unique and have the same length"""
@@ -236,7 +238,9 @@ class bytes_to_array:
     characters to uint8. The resulting object is callable, taking a bytes object
     and returning a numpy array."""
 
-    def __init__(self, chars: bytes, dtype, delete: OptBytes = None) -> None:
+    def __init__(
+        self, chars: bytes, dtype: NumpyIntType, delete: OptBytes = None
+    ) -> None:
         """
         Parameters
         ----------
@@ -253,7 +257,7 @@ class bytes_to_array:
         )
         self.dtype = dtype
 
-    def __call__(self, seq: bytes) -> numpy.ndarray[int]:
+    def __call__(self, seq: bytes) -> NumpyIntArrayType:
         b = self._converter(seq)
         return numpy.array(memoryview(b), dtype=self.dtype)
 
@@ -271,7 +275,7 @@ class array_to_bytes:
             chars,
         )
 
-    def __call__(self, seq: numpy.ndarray) -> bytes:
+    def __call__(self, seq: NumpyIntArrayType) -> bytes:
         b = self._converter(seq.tobytes())
         return bytes(bytearray(b))
 
@@ -310,17 +314,15 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         if gap is not None:
             assert _coerce_to_type(chars[0], gap) in chars
 
-        if missing is not None:
-            # if a bytes alphabet and missing provided this will fail
-            # since individual elements of a bytes object are integers
-            # leaving as is because we're considering a full bytes
-            # alphabet only, in which case the missing character is already
-            # present
-            assert _coerce_to_type(chars[0], missing) in chars
+        if missing is not None and _coerce_to_type(chars[0], missing) not in chars:
+            msg = (
+                f"char missing={_coerce_to_type(chars[0], missing)!r} not in {chars!r}"
+            )
+            raise ValueError(msg)
 
         consistent_words(chars, length=1)
         if isinstance(chars, bytes):
-            # we need to convert to tuple in a way the preserves elements
+            # we need to convert to tuple in a way that preserves elements
             # as bytes
             chars = tuple(bytes([c]) for c in chars)
         return tuple.__new__(cls, chars, gap=gap, missing=missing)
@@ -378,37 +380,40 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         is_discontinued=True,
     )
     def get_motif_len(self) -> int:
+        """the size of each member of the alphabet"""
         # added to maintain compatibility with the old API
         return self.motif_len
 
     @functools.singledispatchmethod
-    def to_indices(self, seq: StrORBytesORArray | tuple) -> numpy.ndarray[int]:
+    def to_indices(self, seq: StrORBytesORArray | tuple) -> NumpyIntArrayType:
+        """returns a sequence of indices for the characters in seq"""
         msg = f"{type(seq)} is invalid"
         raise TypeError(msg)
 
     @to_indices.register
-    def _(self, seq: tuple) -> numpy.ndarray[int]:
+    def _(self, seq: tuple) -> NumpyIntArrayType:
         indices = []
         for c in seq:
             indices.extend(self.to_indices(c).tolist())
         return numpy.array(indices, dtype=self.dtype)
 
     @to_indices.register
-    def _(self, seq: bytes) -> numpy.ndarray[int]:
+    def _(self, seq: bytes) -> NumpyIntArrayType:
         # any non-canonical characters should lie outside the range
         # we replace these with a single value
         return self._bytes2arr(seq)
 
     @to_indices.register
-    def _(self, seq: str) -> numpy.ndarray[int]:
+    def _(self, seq: str) -> NumpyIntArrayType:
         return self.to_indices(seq.encode("utf8"))
 
     @to_indices.register
-    def _(self, seq: numpy.ndarray) -> numpy.ndarray[int]:
+    def _(self, seq: numpy.ndarray) -> NumpyIntArrayType:
         return seq.astype(self.dtype)
 
     @functools.singledispatchmethod
     def from_indices(self, seq: StrORBytesORArray) -> str:
+        """returns a string from a sequence of indices"""
         msg = f"{type(seq)} is invalid"
         raise TypeError(msg)
 
@@ -490,6 +495,7 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
     @functools.singledispatchmethod
     def is_valid(self, seq: StrORBytesORArray) -> bool:
+        """seq is valid for alphabet"""
         # refactor: design
         if hasattr(seq, "alphabet"):
             # assume a SeqView instance
@@ -505,9 +511,10 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
     def _(self, seq: bytes) -> bool:
         return self.is_valid(self.to_indices(seq))
 
+    # cannot use NumpyIntArrayType as a type hint here
     @is_valid.register
     def _(self, seq: numpy.ndarray) -> bool:
-        return seq.min() >= 0 and seq.max() < len(self) if len(seq) else True
+        return bool(seq.min() >= 0 and seq.max() < len(self) if len(seq) else True)
 
     def as_bytes(self) -> bytes:
         """returns self as a byte string"""
@@ -516,7 +523,7 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
         return "".join(self).encode("utf8")
 
-    def array_to_bytes(self, seq: numpy.ndarray) -> bytes:
+    def array_to_bytes(self, seq: NumpyIntArrayType) -> bytes:
         """returns seq as a byte string"""
         return self._arr2bytes(seq)
 
@@ -585,9 +592,9 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         self,
         *,
         alphabet: typing_extensions.Self,
-        seq: numpy.ndarray,
+        seq: NumpyIntArrayType,
         check_valid: bool = True,
-    ) -> numpy.ndarray:
+    ) -> NumpyIntArrayType:
         """converts a numpy array with indices from self to other
 
         Parameters
@@ -1026,6 +1033,16 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         kmer_indices: numpy.ndarray,
         independent_kmer: bool = True,
     ) -> numpy.ndarray:
+        """converts array of k-mer indices into an array of monomer indices
+
+        Parameters
+        ----------
+        kmer_indices
+            a sequence of k-mer indices
+        independent_kmer
+            whether the k-mers are overlapping or not
+            _description_
+        """
         if independent_kmer:
             size = len(kmer_indices) * self.k
         else:
@@ -1120,8 +1137,8 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         return index_to_coord(kmer_index, self._coeffs)
 
     @functools.singledispatchmethod
-    def is_valid(self, seq: numpy.ndarray) -> bool:
-        """whether integers are within the valid range
+    def is_valid(self, seq) -> bool:
+        """seq is valid for alphabet
 
         Parameters
         ----------
@@ -1139,7 +1156,7 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
     @is_valid.register
     def _(self, seq: numpy.ndarray) -> bool:
         max_val = max(self.missing_index or 0, self.gap_index or 0, self.num_canonical)
-        return seq.min() >= 0 and seq.max() <= max_val if len(seq) else True
+        return bool(seq.min() >= 0 and seq.max() <= max_val if len(seq) else True)
 
     def to_rich_dict(self, for_pickle: bool = False) -> dict:
         """returns a serialisable dictionary"""
@@ -1286,14 +1303,17 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         )
 
     def to_index(self, codon: str) -> int:
+        """encodes a codon as a single integer"""
         if len(codon) != 3:
             msg = f"{codon=!r} is not of length 3"
             raise ValueError(msg)
         if not self.monomers.is_valid(codon):
             msg = f"{codon=!r} elements not nucleotides"
             raise AlphabetError(msg)
-        if self.moltype.has_ambiguity(codon):
+
+        if self.moltype and self.moltype.has_ambiguity(codon):
             return len(self)
+
         try:
             return self._to_indices[codon]
         except KeyError as e:
@@ -1301,6 +1321,7 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
             raise AlphabetError(msg) from e
 
     def from_index(self, index: int) -> str:
+        """returns a single codon from an index"""
         if index > len(self) or index < 0:
             msg = f"{index=!r} is not within range"
             raise ValueError(msg)
@@ -1311,11 +1332,13 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
             msg = f"invalid {index=}"
             raise ValueError(msg) from e
 
-    def from_indices(self, indices: numpy.ndarray) -> list[str]:
+    def from_indices(self, indices: NumpyIntArrayType) -> list[str]:
+        """returns a list of codons from a numpy array of indices"""
         return [self.from_index(index) for index in indices]
 
     @property
-    def num_canonical(self):
+    def num_canonical(self) -> int:
+        """returns the number of canonical states"""
         return len(self._words)
 
     @functools.singledispatchmethod
@@ -1328,13 +1351,14 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
     def _(self, seq: str) -> bool:
         try:
             _ = self.to_indices(seq)
-            return True
         except (ValueError, AlphabetError):
             return False
+        else:
+            return True
 
     @is_valid.register
     def _(self, seq: numpy.ndarray) -> bool:
-        return seq.min() >= 0 and seq.max() < len(self)
+        return bool(seq.min() >= 0 and seq.max() < len(self) if len(seq) else True)
 
     def with_gap_motif(self, **kwargs) -> typing_extensions.Self:
         """returns a new SenseCodonAlphabet with the gap motif '---' added
@@ -1346,11 +1370,16 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         if self.gap_char:
             return self
         monomers = self.monomers.with_gap_motif()
+        if not monomers.gap_char:
+            msg = f"{monomers.gap_char!r} not a valid gap character"
+            raise ValueError(msg)
+
         gap_char = monomers.gap_char * 3
         words = (*tuple(self), gap_char)
         return self.__class__(words=words, monomers=monomers, gap=gap_char)
 
-    def to_rich_dict(self, for_pickle: bool = False) -> dict[str, typing.Any]:
+    def to_rich_dict(self, for_pickle: bool = False) -> dict:
+        """returns a serialisable dictionary"""
         from cogent3._version import __version__
 
         data = {
@@ -1363,10 +1392,12 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         return data
 
     def to_json(self) -> str:
+        """returns a serialisable string"""
         return json.dumps(self.to_rich_dict())
 
     @classmethod
     def from_rich_dict(cls, data: dict[str, typing.Any]) -> "SenseCodonAlphabet":
+        """returns an instance from a serialised dictionary"""
         data["monomers"] = deserialise_char_alphabet(data["monomers"])
         data.pop("type", None)
         data.pop("version", None)
@@ -1374,6 +1405,7 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
 
     @property
     def motif_len(self) -> int:
+        """always 3 for codon alphabets"""
         return self._motif_len
 
 

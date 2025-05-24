@@ -1,6 +1,15 @@
 Remove trailing stop codons from sequences in an alignment
 ----------------------------------------------------------
 
+.. note:: These docs now use the ``new_type`` core objects via the following setting.
+
+    .. jupyter-execute::
+
+        import os
+
+        # using new types without requiring an explicit argument
+        os.environ["COGENT3_NEW_TYPE"] = "1"
+
 For evolutionary analyses that use codon models, we need to exclude terminating stop codons. To account for the difference in stop codons in different genetic codes, we can provide an argument for the genetic code. For a list of all genetic codes, see :ref:`here <genetic-codes>`. 
 
 .. jupyter-execute::

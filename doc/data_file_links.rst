@@ -1,4 +1,4 @@
-.. _data_links:
+.. _data-links:
 
 Data Files Used in the Documentation
 ====================================

@@ -52,7 +52,7 @@ Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 test = [
     "cogent3-h5seqs",
     "piqtree; sys_platform != 'win32'",  # not supported their yet
-    "ruff==0.11.9",
+    "ruff==0.11.10",
     "kaleido",
     "pandas",
     "plotly",
@@ -66,6 +66,7 @@ test = [
 doc  = [
     "click",
     "cogent3[extra]",
+    "cogent3-h5seqs",
     "jupyter-sphinx",
     "jupyter_client",
     "jupytext",
@@ -73,6 +74,7 @@ doc  = [
     "nbformat",
     "nbsphinx",
     "numpydoc",
+    "piqtree",
     "sphinx",
     "sphinx-autobuild",
     "pydata_sphinx_theme",

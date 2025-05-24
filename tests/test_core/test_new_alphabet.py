@@ -74,6 +74,11 @@ def test_arr2bytes():
     assert got == b"AAGTA"
 
 
+def test_charalphabet_missing_error():
+    with pytest.raises(ValueError):
+        new_alphabet.CharAlphabet(list("TCAG"), missing=".")
+
+
 @pytest.mark.parametrize(
     "seq",
     [b"AAGTA", "AAGTA", numpy.array([2, 2, 3, 0, 2], dtype=numpy.uint8)],

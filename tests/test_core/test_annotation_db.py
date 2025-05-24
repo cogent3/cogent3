@@ -1221,6 +1221,19 @@ def test_load_anns_with_write(DATA_DIR, tmp_dir):
     assert got_data["tables"] == expect_data["tables"]
 
 
+def test_load_anns_from_json(DATA_DIR, tmp_dir):
+    inpath = DATA_DIR / "simple.gff"
+    orig = load_annotations(path=inpath)
+
+    outpath = tmp_dir / "simple.json"
+    with cogent3.open_(outpath, "w") as json_file:
+        json_file.write(orig.to_json())
+
+    got = load_annotations(path=outpath)
+    assert len(got) == len(orig)
+    assert got.to_rich_dict() == orig.to_rich_dict()
+
+
 def test_gff_end_renamed_to_stop(gff_db, tmp_path):
     bad_col_path = tmp_path / "bad_col.gffdb"
 
