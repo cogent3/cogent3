@@ -27,10 +27,10 @@ The data file, ``tp53-annotations.json``, was created from a query of Ensembl fo
     import cogent3
 
     ann_db = cogent3.load_annotations(
-        path="~/repos/Cogent3/doc/data/tp53-annotations.json"
+        path="data/tp53-annotations.json"
     )
     seqs = cogent3.load_unaligned_seqs(
-        "~/repos/Cogent3/doc/data/tp53.fa", moltype="dna"
+        "data/tp53.fa", moltype="dna"
     )
     seqs.annotation_db = ann_db
     dp = seqs.dotplot(name1="Macaque", name2="Marmoset", width=600)
