@@ -52,7 +52,7 @@ Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 test = [
     "cogent3-h5seqs",
     "piqtree; sys_platform != 'win32'",  # not supported their yet
-    "ruff==0.11.10",
+    "ruff==0.11.11",
     "kaleido",
     "pandas",
     "plotly",
