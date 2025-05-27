@@ -377,7 +377,7 @@ def test_compare_by_names(tree_1, tree_2, tree_3):
 
 def test_ne(comparisons):
     """TreeNode should compare ne by id or data"""
-    t, u, v = comparisons
+    t, u, _ = comparisons
     assert t == t
     assert t != u
 
@@ -953,13 +953,13 @@ def test_siblings(tree_nodes, empty_node, child_node, one_child):
     assert a.siblings() == []
 
 
-def test_tips(empty_node, child_node, one_child, tree_nodes, tree_root):
+def test_tips(empty_node, child_node, one_child, tree_nodes):
     """TreeNode tips should return all terminal descendants"""
     assert empty_node.tips() == []
     assert child_node.tips() == []
     assert one_child.tips() == [child_node]
 
-    nodes, _tree = tree_nodes, tree_root
+    nodes = tree_nodes
     a = nodes["a"]
     b = nodes["b"]
     c = nodes["c"]
