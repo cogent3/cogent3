@@ -17,13 +17,13 @@ if typing.TYPE_CHECKING:
 
 NumpyIntType = numpy.dtype[numpy.integer]
 NumpyIntArrayType = numpy.typing.NDArray[numpy.integer]
-StrORBytes = str | bytes
-StrORArray = str | NumpyIntArrayType
-StrORBytesORArray = str | bytes | NumpyIntArrayType
+StrORBytes = typing.TypeVar("StrORBytes", str, bytes)
+StrORArray = typing.TypeVar("StrORArray", str, NumpyIntArrayType)
+StrORBytesORArray = typing.TypeVar("StrORBytesORArray", str, bytes, NumpyIntArrayType)
 OptInt = int | None
 OptStr = str | None
 OptBytes = bytes | None
-PySeqStrOrBytes = typing.Sequence[str | bytes]
+PySeqStrOrBytes = typing.Sequence[str] | typing.Sequence[bytes]
 
 
 @functools.singledispatch
@@ -293,7 +293,7 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
     def __new__(
         cls,
-        chars: typing.Sequence[StrORBytes],
+        chars: typing.Sequence[StrORBytes] | str | bytes,
         gap: OptStr = None,
         missing: OptStr = None,
     ) -> "CharAlphabet":
@@ -329,7 +329,7 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
     def __init__(
         self,
-        chars: typing.Sequence[StrORBytes],
+        chars: typing.Sequence[StrORBytes] | str | bytes,  # noqa: ARG002
         gap: OptStr = None,
         missing: OptStr = None,
     ) -> None:
@@ -1419,9 +1419,9 @@ _alphabet_moltype_map = {}
 
 def make_alphabet(
     *,
-    chars: typing.Sequence[str],
-    gap: str | None,
-    missing: str | None,
+    chars: typing.Sequence[str | bytes] | str | bytes,
+    gap: str | bytes | None,
+    missing: str | bytes | None,
     moltype: "MolType",
 ) -> CharAlphabet:
     """constructs a character alphabet and registers the associated moltype

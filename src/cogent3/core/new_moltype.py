@@ -16,17 +16,17 @@ from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.misc import get_object_provenance
 
 if typing.TYPE_CHECKING:
-    from cogent3.core.sequence import SeqViewABC
+    from cogent3.core.new_sequence import SeqViewABC
 
-OptStr = typing.Optional[str]
-OptFloat = typing.Optional[float]
-OptCallable = typing.Optional[typing.Callable]
-SeqStrType = typing.Union[list[str], tuple[str, ...]]
-StrORBytes = typing.Union[str, bytes]
-StrORArray = typing.Union[str, numpy.ndarray]
-StrORBytesORArray = typing.Union[str, bytes, numpy.ndarray]
-SeqStrBytesType = typing.Union[list[StrORBytes], tuple[StrORBytes, ...]]
-OptTranslater = typing.Optional[typing.Callable[[bytes], bytes]]
+NumpyIntType = numpy.dtype[numpy.integer]
+NumpyIntArrayType = numpy.typing.NDArray[numpy.integer]
+OptStr = str | None
+OptFloat = float | None
+OptCallable = typing.Callable | None
+StrORBytes = typing.TypeVar("StrORBytes", str, bytes)
+StrORArray = typing.TypeVar("StrORArray", str, NumpyIntArrayType)
+StrORBytesORArray = typing.TypeVar("StrORBytesORArray", str, bytes, NumpyIntArrayType)
+OptTranslater = typing.Callable[[bytes], bytes] | None
 
 
 IUPAC_gap = "-"
@@ -385,13 +385,7 @@ AA_COLORS = _expand_colors(
 )
 
 
-def _strictly_upper(monomers: tuple[StrORBytes]):
-    """whether all elements correspond to upper case characters"""
-    cast = str if isinstance(monomers[0], str) else chr
-    return all(cast(c).isupper() for c in monomers)
-
-
-def _combined_chars(*parts):
+def _combined_chars(*parts: StrORBytes) -> StrORBytes:
     concat = parts[0]
     for part in parts[1:]:
         if not part or part in concat:
