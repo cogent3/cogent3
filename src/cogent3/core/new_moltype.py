@@ -391,7 +391,7 @@ def _strictly_upper(monomers: tuple[StrORBytes]):
     return all(cast(c).isupper() for c in monomers)
 
 
-def _combined_chars(*parts):
+def _combined_chars(*parts) -> str | bytes:
     concat = parts[0]
     for part in parts[1:]:
         if not part or part in concat:
