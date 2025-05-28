@@ -17,13 +17,13 @@ if typing.TYPE_CHECKING:
 
 NumpyIntType = numpy.dtype[numpy.integer]
 NumpyIntArrayType = numpy.typing.NDArray[numpy.integer]
-StrORBytes = str | bytes
-StrORArray = str | NumpyIntArrayType
-StrORBytesORArray = str | bytes | NumpyIntArrayType
+StrORBytes = typing.TypeVar("StrORBytes", str, bytes)
+StrORArray = typing.TypeVar("StrORArray", str, NumpyIntArrayType)
+StrORBytesORArray = typing.TypeVar("StrORBytesORArray", str, bytes, NumpyIntArrayType)
 OptInt = int | None
 OptStr = str | None
 OptBytes = bytes | None
-PySeqStrOrBytes = typing.Sequence[str | bytes]
+PySeqStrOrBytes = typing.Sequence[str] | typing.Sequence[bytes]
 
 
 @functools.singledispatch
