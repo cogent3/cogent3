@@ -76,18 +76,18 @@ def testmpi(session):
     session.install("-e.[test]")
     session.install("mpi4py")
     py = pathlib.Path(session.bin_paths[0]) / "python"
-    session.chdir("tests")
+    session.chdir("tests/test_app")
     session.run(
         "mpiexec",
         "-n",
-        "2",
+        "4",
         str(py),
         "-m",
         "mpi4py.futures",
         "-m",
         "pytest",
         "-x",
-        "test_app/test_app_mpi.py",
+        "test_app_mpi.py",
         external=True,
     )
 

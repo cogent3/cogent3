@@ -47,7 +47,7 @@ def get_size():
 SIZE = get_size()
 
 
-def is_master_process():
+def is_master_process() -> bool:
     """
     Evaluates if current process is master
 
@@ -66,7 +66,9 @@ def is_master_process():
     process_file = process_cmd.split(os.sep)[-1]
     if process_file == "server.py":
         return False
-    return None
+
+    comm = MPI.COMM_WORLD
+    return comm.Get_rank() == 0
 
 
 class PicklableAndCallable:
