@@ -336,9 +336,8 @@ ORIGIN
         assert result["reference"] == "2  (bases 1 to 2587)"
         assert result["authors"] == "Janzen,D.M. and Geballe,A.P."
         assert (
-            result["title"]
-            == "The effect of eukaryotic release factor depletion "
-            + "on translation termination in human cell lines"
+            result["title"] == "The effect of eukaryotic release factor depletion "
+            "on translation termination in human cell lines"
         )
         assert result["journal"] == "(er) Nucleic Acids Res. 32 (15), 4491-4502 (2004)"
         assert result["pubmed"] == "15326224"
