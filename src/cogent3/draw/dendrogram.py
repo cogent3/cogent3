@@ -555,7 +555,7 @@ class Dendrogram(Drawable):
         self._length_attr = self.tree._length
         self._tip_names = tuple(e.name for e in self.tree.tips())
         self._max_label_length = max(map(len, self._tip_names))
-        if "support" not in self.tree.children[0].params:
+        if all("support" not in child.params for child in self.tree.children):
             show_support = False
         self._show_support = show_support
         self._threshold = threshold
