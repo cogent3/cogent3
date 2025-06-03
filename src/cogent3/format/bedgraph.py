@@ -53,7 +53,7 @@ def raise_invalid_vals(key, val) -> bool | None:
     if str(val) not in valid_values[key]:
         raise AssertionError(
             "Invalid bedgraph key/val pair: "
-            + f"got {key}={val}; valid values are {valid_values[key]}",
+            f"got {key}={val}; valid values are {valid_values[key]}",
         )
     return None
 
@@ -67,7 +67,7 @@ def get_header(name=None, description=None, color=None, **kwargs):
     """returns header line for bedgraph"""
     min_header = (
         'track type=bedGraph name="%(name)s" '
-        + 'description="%(description)s" color=%(color)s'
+        'description="%(description)s" color=%(color)s'
     )
 
     assert None not in (name, description, color)
