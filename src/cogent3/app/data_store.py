@@ -120,7 +120,7 @@ class DataStoreABC(ABC):
 
     @property
     @abstractmethod
-    def limit(self): ...
+    def limit(self) -> int | None: ...
 
     def __repr__(self) -> str:
         name = self.__class__.__name__
