@@ -42,6 +42,7 @@ def is_master(n):
     return parallel.is_master_process()
 
 
+@pytest.mark.skipif(not parallel.USING_MPI, reason="Not using MPI")
 def test_is_master_process():
     """
     is_master_process() should return False
