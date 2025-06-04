@@ -733,19 +733,18 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
         raise TypeError(msg)
 
 
-def get_unique_id(name: str) -> str:
+def get_unique_id(name: object) -> str | None:
     """strips any format suffixes from name"""
-    name = get_data_source(name)
+    if (name := get_data_source(name)) is None:
+        return None
     suffixes = ".".join(sfx for sfx in get_format_suffixes(name) if sfx)
     return re.sub(rf"[.]{suffixes}$", "", name)
 
 
 @singledispatch
-def get_data_source(data) -> str:
+def get_data_source(data: object) -> str | None:
     source = getattr(data, "source", None)
-    if source is None:
-        return None
-    return get_data_source(source)
+    return None if source is None else get_data_source(source)
 
 
 @get_data_source.register
