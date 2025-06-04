@@ -36,3 +36,21 @@ def test_write_db(tmp_dir):
     got = [str(m) for m in result]
 
     assert got == expect
+
+
+def is_master(n):
+    return parallel.is_master_process()
+
+
+def test_is_master_process():
+    """
+    is_master_process() should return False
+    for all child processes
+    """
+    assert parallel.is_master_process()  # this should be master!
+    index = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    # but workers should not
+    master_processes = sum(
+        bool(result) for result in parallel.imap(is_master, index, use_mpi=True)
+    )
+    assert master_processes == 0
