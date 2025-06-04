@@ -11,6 +11,7 @@ import sqlite3
 import sys
 import typing
 import warnings
+import weakref
 
 import numpy
 import typing_extensions
@@ -698,6 +699,10 @@ class SqliteAnnotationDbMixin:
     def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__) and other.db is self.db
 
+    def __del__(self) -> None:
+        """close the db connection when the object is deleted"""
+        self.close()
+
     @property
     def table_names(self) -> tuple[str]:
         return self._table_names
@@ -1317,7 +1322,9 @@ class SqliteAnnotationDbMixin:
 
     def close(self) -> None:
         """closes the db"""
-        self.db.close()
+        if getattr(self, "_db", None) is None:
+            return
+        self._db.close()
 
     def _make_index(self, *, table_name: str, col_names: tuple[str, ...]) -> None:
         """index columns for faster search"""
@@ -1371,6 +1378,7 @@ class BasicAnnotationDb(SqliteAnnotationDbMixin, AnnotationDbABC):
         self._setup_db(db)
 
         self.add_records(data)
+        weakref.finalize(self, self.close)
 
     def add_records(self, data: T, **kwargs: dict[str, typing.Any]) -> None:
         table_name = self.table_names[0]  # only one name for this class
@@ -1437,6 +1445,7 @@ class GffAnnotationDb(SqliteAnnotationDbMixin, AnnotationDbABC):
         self._setup_db(db)
         data, self._num_fakeids = merged_gff_records(data, self._num_fakeids)
         self.add_records(data)
+        weakref.finalize(self, self.close)
 
     def add_records(self, reduced: dict, **kwargs: dict[str, typing.Any]) -> None:
         col_order = [
@@ -1555,6 +1564,7 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin, AnnotationDbABC):
 
         self._namer = namer if callable(namer) else self._default_namer
         self.add_records(data, seqid)
+        weakref.finalize(self, self.close)
 
     def add_records(self, records: typing.Sequence[dict], seqid: str) -> None:
         col_order = [

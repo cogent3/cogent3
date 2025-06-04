@@ -5,6 +5,7 @@ import datetime
 import os
 import re
 import sqlite3
+import weakref
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -140,6 +141,7 @@ class DataStoreSqlite(DataStoreABC):
         self._db = None
         self._open = False
         self._log_id = None
+        weakref.finalize(self, self.close)
 
     def __getstate__(self):
         return {**self._init_vals}
@@ -148,6 +150,10 @@ class DataStoreSqlite(DataStoreABC):
         # this will reset connections to read only db's
         obj = self.__class__(**state)
         self.__dict__.update(obj.__dict__)
+
+    def __del__(self) -> None:
+        """close the db connection when the object is deleted"""
+        self.close()
 
     @property
     def source(self) -> str | Path:
@@ -182,8 +188,10 @@ class DataStoreSqlite(DataStoreABC):
         ).fetchone()["log_id"]
 
     def close(self) -> None:
+        if getattr(self, "_db", None) is None:
+            return
         with contextlib.suppress(sqlite3.ProgrammingError):
-            self.db.close()
+            self._db.close()
         self._open = False
 
     def read(self, identifier: str) -> StrOrBytes:
