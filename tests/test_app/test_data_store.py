@@ -527,6 +527,11 @@ def test_get_unique_id(name):
     assert got == "name"
 
 
+def test_get_unique_id_none():
+    got = get_unique_id(None)
+    assert got is None
+
+
 @pytest.mark.parametrize("data", [{}, set(), {"info": {}}])
 def test_get_data_source_none(data):
     assert get_data_source(data) is None

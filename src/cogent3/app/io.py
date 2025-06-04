@@ -540,7 +540,7 @@ class write_json:
     def __init__(
         self,
         data_store: DataStoreABC,
-        id_from_source: callable = get_unique_id,
+        id_from_source: typing.Callable[[object], str | None] = get_unique_id,
     ) -> None:
         """
         Parameters
@@ -571,6 +571,12 @@ class write_json:
         identifier: str | None = None,
     ) -> IdentifierType:
         identifier = identifier or self._id_from_source(data)
+        if identifier is None:
+            msg = "identifier cannot be None"
+            return NotCompleted(
+                type="ERROR", origin=self, message=msg, source="unknown"
+            )
+
         if isinstance(data, NotCompleted):
             return self.data_store.write_not_completed(
                 unique_id=f"{identifier}.json",
@@ -589,7 +595,7 @@ class write_seqs:
     def __init__(
         self,
         data_store: DataStoreABC,
-        id_from_source: callable = get_unique_id,
+        id_from_source: typing.Callable[[object], str | None] = get_unique_id,
         format: str = "fasta",
     ) -> None:
         """
@@ -625,6 +631,12 @@ class write_seqs:
         identifier: str | None = None,
     ) -> IdentifierType:
         identifier = identifier or self._id_from_source(data)
+        if identifier is None:
+            msg = "identifier cannot be None"
+            return NotCompleted(
+                type="ERROR", origin=self, message=msg, source="unknown"
+            )
+
         if isinstance(data, NotCompleted):
             return self.data_store.write_not_completed(
                 unique_id=f"{identifier}.json",
@@ -642,7 +654,7 @@ class write_tabular:
     def __init__(
         self,
         data_store: DataStoreABC,
-        id_from_source: callable = get_unique_id,
+        id_from_source: typing.Callable[[object], str | None] = get_unique_id,
         format: str = "tsv",
     ) -> None:
         """
@@ -674,6 +686,12 @@ class write_tabular:
         identifier: str | None = None,
     ) -> IdentifierType:
         identifier = identifier or self._id_from_source(data)
+        if identifier is None:
+            msg = "identifier cannot be None"
+            return NotCompleted(
+                type="ERROR", origin=self, message=msg, source="unknown"
+            )
+
         if isinstance(data, NotCompleted):
             return self.data_store.write_not_completed(
                 unique_id=f"{identifier}.json",
@@ -694,7 +712,7 @@ class write_db:
     def __init__(
         self,
         data_store: DataStoreABC,
-        id_from_source: callable = get_unique_id,
+        id_from_source: typing.Callable[[object], str | None] = get_unique_id,
         serialiser: callable = DEFAULT_SERIALISER,
     ) -> None:
         """
@@ -727,8 +745,13 @@ class write_db:
         identifier: str | None = None,
     ) -> IdentifierType:
         identifier = identifier or self._id_from_source(data)
-        blob = self._serialiser(data)
+        if identifier is None:
+            msg = "identifier cannot be None"
+            return NotCompleted(
+                type="ERROR", origin=self, message=msg, source="unknown"
+            )
 
+        blob = self._serialiser(data)
         if isinstance(data, NotCompleted):
             return self.data_store.write_not_completed(unique_id=identifier, data=blob)
 

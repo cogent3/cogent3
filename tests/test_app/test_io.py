@@ -589,6 +589,25 @@ def test_writer_unique_id_arg(tmp_dir, writer, data, dstore):
 
 
 @pytest.mark.parametrize(
+    ("writer", "data", "attr", "dstore"),
+    [
+        ("write_seqs", seqs(), "info", dir_dstore),
+        ("write_db", seqs(), "info", db_dstore),
+        ("write_json", seqs(), "info", dir_dstore),
+        ("write_tabular", table(), "source", dir_dstore),
+    ],
+)
+def test_writer_no_unique_id(tmp_dir, writer, data, attr, dstore):
+    writer = get_app(writer, data_store=dstore(tmp_dir))
+    # no unique id possible, so m will be NotCompleted error
+    value = {} if attr == "info" else None
+    setattr(data, attr, value)
+    m = writer(data)
+    assert isinstance(m, NotCompleted)
+    assert m.type == "ERROR"
+
+
+@pytest.mark.parametrize(
     "writer",
     [
         "write_seqs",
