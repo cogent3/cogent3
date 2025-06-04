@@ -513,20 +513,20 @@ class RadialTreeGeometry(_AngularGeometry, CircularTreeGeometry):
 class Dendrogram(Drawable):
     def __init__(
         self,
-        tree,
-        style="square",
-        label_pad=None,
-        contemporaneous=None,
-        show_support=True,
-        threshold=1.0,
+        tree: "TreeGeometryBase",
+        style: str = "square",
+        label_pad: int | None = None,
+        contemporaneous: bool = False,
+        show_support: bool = True,
+        threshold: float = 1.0,
         *args,
         **kwargs,
     ) -> None:
         length_attr = kwargs.pop("length_attr", None)
         super().__init__(
+            *args,
             visible_axes=False,
             showlegend=False,
-            *args,
             **kwargs,
         )
         klass = {

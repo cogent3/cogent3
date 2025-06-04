@@ -695,7 +695,7 @@ class SqliteAnnotationDbMixin:
     def __len__(self) -> int:
         return self.num_matches()
 
-    def __eq__(self, other: typing_extensions.Self) -> bool:
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__) and other.db is self.db
 
     @property
