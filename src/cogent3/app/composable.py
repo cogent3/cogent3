@@ -826,8 +826,8 @@ def _apply_to(
     for m in dstore:
         input_id = Path(m.unique_id) if isinstance(m, DataMember) else m
         input_id = id_from_source(input_id)
-        if input_id in inputs:
-            msg = "non-unique identifier detected in data"
+        if input_id in inputs or not input_id:
+            msg = f"non-unique identifier {input_id!r} detected in data"
             raise ValueError(msg)
         if input_id in self.data_store:
             # we are assuming that this query returns True only when
