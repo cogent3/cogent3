@@ -136,7 +136,7 @@ def _load_files_to_unaligned_seqs(
     info: dict | None = None,
     new_type: bool = False,
     ui=None,
-):
+) -> "SequenceCollection":
     """loads multiple files and returns as a sequence collection"""
 
     file_names = list(path.parent.glob(path.name))
