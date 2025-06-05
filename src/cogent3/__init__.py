@@ -360,6 +360,7 @@ def load_unaligned_seqs(
 
     if file_suffix == "json":
         from cogent3.core.alignment import SequenceCollection as OldSeqColl
+        from cogent3.core.new_alignment import SequenceCollection
 
         return load_from_json(filename, (SequenceCollection, OldSeqColl))
 
@@ -399,7 +400,7 @@ def load_aligned_seqs(
     info=None,
     new_type: bool = False,
     **kw,
-):
+) -> "Alignment":
     """
     loads aligned sequences from file
 
@@ -435,12 +436,10 @@ def load_aligned_seqs(
 
     file_suffix, _ = get_format_suffixes(filename)
     if file_suffix == "json":
-        from cogent3.core.alignment import (
-            Alignment,
-            ArrayAlignment,
-        )
+        from cogent3.core.alignment import Alignment as OldAlignment
+        from cogent3.core.alignment import ArrayAlignment
 
-        return load_from_json(filename, (Alignment, ArrayAlignment))
+        return load_from_json(filename, (OldAlignment, ArrayAlignment))
 
     parser = get_seq_format_parser_plugin(
         format_name=format,
