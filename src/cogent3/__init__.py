@@ -392,12 +392,12 @@ def load_unaligned_seqs(
 
 def load_aligned_seqs(
     filename: str | pathlib.Path,
-    format=None,
-    array_align=True,
-    moltype=None,
-    label_to_name=None,
-    parser_kw=None,
-    info=None,
+    format: str | None = None,
+    array_align: bool = True,
+    moltype: str | None = None,
+    label_to_name: typing.Callable[[str], str] | None = None,
+    parser_kw: dict | None = None,
+    info: dict | None = None,
     new_type: bool = False,
     **kw,
 ) -> "Alignment":
