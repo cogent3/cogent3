@@ -32,20 +32,24 @@ jobs:
         with:
             python-version: "${{ matrix.python-version }}"
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+
       - name: "Installs for ${{ matrix.python-version }}"
         run: |
-          python --version
-          pip install --upgrade pip wheel setuptools flit
-          pip install --upgrade nox
+          uv venv venv -p python${{ matrix.python-version }}
+          uv tool install -p venv nox
 
       - name: "Run nox for ${{ matrix.python-version }}"
-        shell: bash
         run: |
           dn=$(pwd)
           echo "$dn"
           cov="--cov-report lcov:lcov-${{matrix.os}}-${{matrix.python-version}}.lcov --cov-report term --cov-append --cov cogent3 --cov-config=${dn}/.coveragerc"
           echo "$cov"
-          nox -s test-${{ matrix.python-version }} -- $cov
+          nox -db uv -s test-${{ matrix.python-version }} -- $cov
 
       - name: Coveralls Parallel
         uses: coverallsapp/github-action@v2
