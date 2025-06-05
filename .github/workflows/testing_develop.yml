@@ -44,6 +44,7 @@ jobs:
           uv tool install -p venv nox
 
       - name: "Run nox for ${{ matrix.python-version }}"
+        shell: bash
         run: |
           dn=$(pwd)
           echo "$dn"
