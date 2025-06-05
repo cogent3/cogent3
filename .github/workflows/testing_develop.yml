@@ -7,6 +7,7 @@ on:
   pull_request:
     branches-ignore:
       - master
+
 # NOTE:
 # if changeing python versions, also update versions in
 # - release.yml
@@ -28,6 +29,10 @@ jobs:
           fetch-depth: 0
 
       # Setup env
+      - uses: "actions/setup-python@v5"
+        with:
+            python-version: "${{ matrix.python-version }}"
+
       - name: Install uv
         uses: astral-sh/setup-uv@v3
         with:
