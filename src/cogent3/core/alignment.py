@@ -5954,3 +5954,153 @@ def _(data: tuple, moltype) -> ndarray:
 @_construct_array_aligned_seq.register
 def _(data: Aligned, moltype) -> ndarray:
     return _construct_array_aligned_seq(str(data), moltype=moltype)
+
+
+def _make_seq_container(
+    klass,
+    data,
+    moltype=None,
+    label_to_name=None,
+    info=None,
+    source=None,
+    **kw,
+):
+    """utility function for creating the different sequence collection/alignment instances"""
+    if moltype is not None:
+        moltype = cogent3.get_moltype(moltype)
+
+    info = info or {}
+    for other_kw in ("constructor_kw", "kw"):
+        other_kw = kw.pop(other_kw, None) or {}
+        kw |= other_kw
+    assert isinstance(info, dict), "info must be a dict"
+    source = source or info.get("source", "unknown")
+    info["source"] = str(source)
+
+    return klass(
+        data=data,
+        moltype=moltype,
+        label_to_name=label_to_name,
+        info=info,
+        **kw,
+    )
+
+
+def make_unaligned_seqs(
+    data,
+    moltype=None,
+    label_to_name=None,
+    info=None,
+    source=None,
+    new_type=False,
+    **kw,
+):
+    """Initialize an unaligned collection of sequences.
+
+    Parameters
+    ----------
+    data
+        sequences
+    moltype
+        the moltype, eg DNA, PROTEIN, 'dna', 'protein'
+    label_to_name
+        function for converting original name into another name.
+    info
+        a dict from which to make an info object
+    source
+        origins of this data, defaults to 'unknown'. Converted to a string
+        and added to info["source"].
+    new_type
+        if True, the returned SequenceCollection will be of the new type,
+        (cogent3.core.new_sequence.SequenceCollection). Support for the
+        old style will be removed as of 2025.6.
+    **kw
+        other keyword arguments passed to SequenceCollection
+    """
+
+    if new_type or "COGENT3_NEW_TYPE" in os.environ:
+        if moltype is None:
+            msg = "Argument 'moltype' is required when 'new_type=True'"
+            raise ValueError(msg)
+
+        from cogent3.core import new_alignment
+
+        return new_alignment.make_unaligned_seqs(
+            data,
+            moltype=moltype,
+            label_to_name=label_to_name,
+            info=info,
+            source=source,
+            **kw,
+        )
+    return _make_seq_container(
+        SequenceCollection,
+        data,
+        moltype=moltype,
+        label_to_name=label_to_name,
+        info=info,
+        source=source,
+        **kw,
+    )
+
+
+def make_aligned_seqs(
+    data,
+    moltype=None,
+    array_align=True,
+    label_to_name=None,
+    info=None,
+    source=None,
+    new_type=False,
+    **kw,
+):
+    """Initialize an aligned collection of sequences.
+
+    Parameters
+    ----------
+    data
+        sequences
+    moltype
+        the moltype, eg DNA, PROTEIN, 'dna', 'protein'
+    array_align : bool
+        if True, returns ArrayAlignment, otherwise an annotatable Alignment
+    label_to_name
+        function for converting original name into another name.
+    info
+        a dict from which to make an info object
+    source
+        origins of this data, defaults to 'unknown'. Converted to a string
+        and added to info["source"].
+    new_type
+        if True, the returned Alignment will be of the new type,
+        (cogent3.core.new_sequence.Alignment). Support for the old style
+        will be removed as of 2025.12.
+    **kw
+        other keyword arguments passed to alignment class
+    """
+    if new_type or "COGENT3_NEW_TYPE" in os.environ:
+        if moltype is None:
+            msg = "Argument 'moltype' is required when 'new_type=True'"
+            raise ValueError(msg)
+
+        from cogent3.core import new_alignment
+
+        return new_alignment.make_aligned_seqs(
+            data,
+            moltype=moltype,
+            label_to_name=label_to_name,
+            info=info,
+            source=source,
+            **kw,
+        )
+
+    klass = ArrayAlignment if array_align else Alignment
+    return _make_seq_container(
+        klass,
+        data,
+        moltype=moltype,
+        label_to_name=label_to_name,
+        info=info,
+        source=source,
+        **kw,
+    )
