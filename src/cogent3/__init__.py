@@ -36,18 +36,22 @@ from cogent3.core.moltype import (  # noqa: F401
     get_moltype,
 )
 from cogent3.core.table import load_table, make_table  # noqa: F401
-from cogent3.core.tree import PhyloNode, TreeBuilder, TreeError, TreeNode  # noqa: F401
+from cogent3.core.tree import (  # noqa: F401
+    PhyloNode,
+    TreeError,
+    TreeNode,
+    load_tree,
+    make_tree,
+)
 from cogent3.evolve.fast_distance import (  # noqa: F401
     available_distances,
     get_distance_calculator,
 )
 from cogent3.evolve.models import available_models, get_model  # noqa: F401
 from cogent3.parse.cogent3_json import load_from_json
-from cogent3.parse.newick import parse_string as newick_parse_string
 from cogent3.parse.sequence import is_genbank
 from cogent3.parse.table import load_delimited  # noqa: F401
-from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
-from cogent3.util.io import get_format_suffixes, is_url, open_
+from cogent3.util.io import get_format_suffixes, is_url, open_  # noqa: F401
 from cogent3.util.progress_display import display_wrap
 
 __copyright__ = "Copyright 2007-2023, The Cogent Project"
@@ -599,93 +603,3 @@ def load_aligned_seqs(
         new_type=new_type,
         **kw,
     )
-
-
-def make_tree(
-    treestring=None,
-    tip_names=None,
-    format=None,
-    underscore_unmunge=False,
-):
-    """Initialises a tree.
-
-    Parameters
-    ----------
-    treestring
-        a newick or xml formatted tree string
-    tip_names
-        a list of tip names, returns a "star" topology tree
-    format : str
-        indicates treestring is either newick or xml formatted, default
-        is newick
-    underscore_unmunge : bool
-        replace underscores with spaces in all names read, i.e. "sp_name"
-        becomes "sp name"
-
-    Notes
-    -----
-    Underscore unmunging is turned off by default, although it is part
-    of the Newick format.
-
-    Returns
-    -------
-    PhyloNode
-    """
-    assert treestring or tip_names, "must provide either treestring or tip_names"
-    if tip_names:
-        tree_builder = TreeBuilder().create_edge
-        tips = [tree_builder([], str(tip_name), {}) for tip_name in tip_names]
-        return tree_builder(tips, "root", {})
-
-    if format is None and treestring.startswith("<"):
-        format = "xml"
-    parser = tree_xml_parse_string if format == "xml" else newick_parse_string
-    tree_builder = TreeBuilder().create_edge
-    # FIXME: More general strategy for underscore_unmunge
-    if parser is newick_parse_string:
-        tree = parser(treestring, tree_builder, underscore_unmunge=underscore_unmunge)
-    else:
-        tree = parser(treestring, tree_builder)
-    if not tree.name_loaded:
-        tree.name = "root"
-
-    return tree
-
-
-def load_tree(
-    filename: str | pathlib.Path,
-    format=None,
-    underscore_unmunge=False,
-):
-    """Constructor for tree.
-
-    Parameters
-    ----------
-    filename : str
-        a file path containing a newick or xml formatted tree.
-    format : str
-        either xml or json, all other values default to newick. Overrides
-        file name suffix.
-    underscore_unmunge : bool
-        replace underscores with spaces in all names read, i.e. "sp_name"
-        becomes "sp name".
-
-    Notes
-    -----
-    Underscore unmunging is turned off by default, although it is part
-    of the Newick format. Only the cogent3 json and xml tree formats are
-    supported.
-
-    Returns
-    -------
-    PhyloNode
-    """
-    file_format, _ = get_format_suffixes(filename)
-    format = format or file_format
-    if format == "json":
-        return load_from_json(filename, (TreeNode, PhyloNode))
-
-    with open_(filename) as tfile:
-        treestring = tfile.read()
-
-    return make_tree(treestring, format=format, underscore_unmunge=underscore_unmunge)
