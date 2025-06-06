@@ -683,14 +683,13 @@ class SqliteAnnotationDbMixin:
         return result
 
     def __setstate__(self, state: dict[str, typing.Any]) -> typing_extensions.Self:
-        try:
+        if "type" in state:
+            data = type(self).from_dict(state)
+            self.__dict__.update(data.__dict__)
+        else:
             new = self.__class__(source=state.pop("source", None))
             new._db.deserialize(state["data"])  # noqa: SLF001
             self.__dict__.update(new.__dict__)
-        except AttributeError:
-            # from the rich dict method
-            data = type(self).from_dict(state)
-            self.__dict__.update(data.__dict__)
 
         return self
 
