@@ -673,21 +673,25 @@ class SqliteAnnotationDbMixin:
         return new
 
     def __getstate__(self) -> dict[str, typing.Any]:
-        if _is_ge_3_11:
-            return {"data": self._db.serialize(), "source": self.source}
+        try:
+            result = {"data": self._db.serialize(), "source": self.source}
+        except AttributeError:
+            # if the db is not serialisable, we use the rich dict
+            # representation to create a new instance
+            result = self.to_rich_dict()
 
-        return self.to_rich_dict()
+        return result
 
     def __setstate__(self, state: dict[str, typing.Any]) -> typing_extensions.Self:
-        if _is_ge_3_11:
+        try:
             new = self.__class__(source=state.pop("source", None))
             new._db.deserialize(state["data"])  # noqa: SLF001
             self.__dict__.update(new.__dict__)
-            return self
+        except AttributeError:
+            # from the rich dict method
+            data = type(self).from_dict(state)
+            self.__dict__.update(data.__dict__)
 
-        # from the rich dict method
-        data = type(self).from_dict(state)
-        self.__dict__.update(data.__dict__)
         return self
 
     def __len__(self) -> int:
