@@ -8,7 +8,6 @@ import io
 import json
 import pathlib
 import sqlite3
-import sys
 import typing
 import warnings
 import weakref
@@ -34,9 +33,6 @@ OptionalDbCursor = sqlite3.Cursor | None
 ReturnType = tuple[str, tuple[typing.Any]]  # the sql statement and corresponding values
 # data type for sqlitedb constructors
 T = typing.Iterable[dict] | None
-
-# used for presence of sqlite feature
-_is_ge_3_11 = (sys.version_info.major, sys.version_info.minor) >= (3, 11)
 
 
 # Define custom types for storage in sqlite
@@ -666,14 +662,15 @@ class SqliteAnnotationDbMixin:
 
     def __deepcopy__(self, memodict: dict | None = None) -> typing_extensions.Self:
         memodict = memodict or {}
-        if _is_ge_3_11:
+        try:
             new = self.__class__(source=self.source)
             new.db.deserialize(self._db.serialize())
-            return new
-
-        # use rich dict
-        rd = self.to_rich_dict()
-        return type(self).from_dict(rd)
+        except AttributeError:
+            # if the db is not serialisable, we use the rich dict
+            # representation to create a new instance
+            rd = self.to_rich_dict()
+            new = type(self).from_dict(rd)
+        return new
 
     def __getstate__(self) -> dict[str, typing.Any]:
         if _is_ge_3_11:
