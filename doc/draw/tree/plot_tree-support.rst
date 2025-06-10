@@ -6,16 +6,14 @@
 Showing Bootstrap Support
 =========================
 
-We use a tree saved in ``json`` format from a 100 replicate bootstrap resamplings. The ``show_support=True`` argument controls whether or not to display support. The ``threshold=0.8`` argument indicates only nodes with a support level ≤0.8 will have support text displayed.
+We use a tree saved in ``json`` format from a 100 replicate bootstrap resamplings. The ``show_support=True`` argument controls whether or not to display support. The ``threshold=80`` argument indicates only nodes with a support level ≤80 will have support text displayed.
 
 .. jupyter-execute::
 
     import cogent3
 
-    reader = cogent3.get_app("load_json")
-
-    tree = reader("data/tree-with-support.json")
-    fig = tree.get_figure(show_support=True, threshold=0.8)
+    tree = cogent3.load_tree("data/tree-with-support.json")
+    fig = tree.get_figure(show_support=True, threshold=80, contemporaneous=True)
     fig.scale_bar = None
     fig.show(width=500, height=400)
 
