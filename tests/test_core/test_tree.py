@@ -17,9 +17,6 @@ from cogent3.maths.stats.test import correlation
 from cogent3.parse.tree import DndParser
 from cogent3.util.misc import get_object_provenance
 
-base_path = pathlib.Path(__file__).parent.parent
-data_path = base_path / "data"
-
 
 def test_make_tree():
     """make_tree should load a tree from a file or a string"""
@@ -185,8 +182,8 @@ def test_to_json():
     assert got == expect
 
 
-def test_write_to_json(tmp_path):
-    tree = load_tree(filename=data_path / "brca1_5.tree")
+def test_write_to_json(DATA_DIR, tmp_path):
+    tree = load_tree(filename=DATA_DIR / "brca1_5.tree")
     json_path = tmp_path / "brca1_5.json"
     tree.write(json_path)
     with open_(json_path) as fn:
@@ -196,9 +193,9 @@ def test_write_to_json(tmp_path):
         assert set(tree.get_node_names()) == got["edge_attributes"].keys()
 
 
-def test_write_to_txt(tmp_path):
+def test_write_to_txt(DATA_DIR, tmp_path):
     """write a tree to newick"""
-    tree = load_tree(filename=data_path / "brca1_5.tree")
+    tree = load_tree(filename=DATA_DIR / "brca1_5.tree")
     out_path = tmp_path / "brca1_5.txt"
     tree.write(out_path)
     with open_(out_path) as fn:
@@ -206,9 +203,9 @@ def test_write_to_txt(tmp_path):
         assert got.count("(") == got.count(")") == 3
 
 
-def test_write_to_xml(tmp_path):
+def test_write_to_xml(DATA_DIR, tmp_path):
     """write a tree to xml"""
-    tree = load_tree(filename=data_path / "brca1_5.tree")
+    tree = load_tree(filename=DATA_DIR / "brca1_5.tree")
     out_path = tmp_path / "brca1_5.xml"
     tree.write(out_path)
     with open_(out_path) as fn:
