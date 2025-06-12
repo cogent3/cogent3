@@ -31,6 +31,8 @@ from cogent3.util.deserialise import deserialise_object
 
 DNA = get_moltype("dna")
 
+NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
+
 
 @pytest.fixture
 def tmp_dir(tmp_path_factory):
@@ -588,12 +590,15 @@ def test_writer_unique_id_arg(tmp_dir, writer, data, dstore):
     assert m.unique_id == expect
 
 
+src_attr = "source" if NEW_TYPE else "info"
+
+
 @pytest.mark.parametrize(
     ("writer", "data", "attr", "dstore"),
     [
-        ("write_seqs", seqs(), "info", dir_dstore),
-        ("write_db", seqs(), "info", db_dstore),
-        ("write_json", seqs(), "info", dir_dstore),
+        ("write_seqs", seqs(), src_attr, dir_dstore),
+        ("write_db", seqs(), src_attr, db_dstore),
+        ("write_json", seqs(), src_attr, dir_dstore),
         ("write_tabular", table(), "source", dir_dstore),
     ],
 )

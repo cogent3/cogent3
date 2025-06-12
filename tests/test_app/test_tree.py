@@ -253,3 +253,22 @@ def test_interpret_tree_arg_valid(tree):
 def test_interpret_tree_arg_invalid(tree):
     with pytest.raises(TypeError):
         tree_app.interpret_tree_arg(tree)
+
+
+def test_scale_source():
+    source = "blah/tree.tre"
+    tree = cogent3.make_tree(treestring="(a:3,b:6,c:9)", source=source)
+    scale_to_codon = tree_app.scale_branches(nuc_to_codon=True)
+    got = scale_to_codon(tree)
+    assert got.source == source
+
+
+def test_uniformize_tree_source():
+    source = "blah/tree.tre"
+    tree = cogent3.make_tree(treestring="(a,(b,c),(d,e))", source=source)
+    make_uniform = tree_app.uniformize_tree(
+        root_at="c",
+        ordered_names=list("abcde"),
+    )
+    got = make_uniform(tree)
+    assert got.source == source

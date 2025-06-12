@@ -10,15 +10,12 @@ import pytest
 from numpy import array
 from numpy.testing import assert_allclose, assert_equal
 
-from cogent3 import load_tree, make_tree, open_
+from cogent3 import get_dataset, load_tree, make_tree, open_
 from cogent3._version import __version__
 from cogent3.core.tree import PhyloNode, TreeError, TreeNode, split_name_and_support
 from cogent3.maths.stats.test import correlation
 from cogent3.parse.tree import DndParser
 from cogent3.util.misc import get_object_provenance
-
-base_path = pathlib.Path(__file__).parent.parent
-data_path = base_path / "data"
 
 
 def test_make_tree():
@@ -185,8 +182,8 @@ def test_to_json():
     assert got == expect
 
 
-def test_write_to_json(tmp_path):
-    tree = load_tree(filename=data_path / "brca1_5.tree")
+def test_write_to_json(DATA_DIR, tmp_path):
+    tree = load_tree(filename=DATA_DIR / "brca1_5.tree")
     json_path = tmp_path / "brca1_5.json"
     tree.write(json_path)
     with open_(json_path) as fn:
@@ -196,9 +193,9 @@ def test_write_to_json(tmp_path):
         assert set(tree.get_node_names()) == got["edge_attributes"].keys()
 
 
-def test_write_to_txt(tmp_path):
+def test_write_to_txt(DATA_DIR, tmp_path):
     """write a tree to newick"""
-    tree = load_tree(filename=data_path / "brca1_5.tree")
+    tree = load_tree(filename=DATA_DIR / "brca1_5.tree")
     out_path = tmp_path / "brca1_5.txt"
     tree.write(out_path)
     with open_(out_path) as fn:
@@ -206,9 +203,9 @@ def test_write_to_txt(tmp_path):
         assert got.count("(") == got.count(")") == 3
 
 
-def test_write_to_xml(tmp_path):
+def test_write_to_xml(DATA_DIR, tmp_path):
     """write a tree to xml"""
-    tree = load_tree(filename=data_path / "brca1_5.tree")
+    tree = load_tree(filename=DATA_DIR / "brca1_5.tree")
     out_path = tmp_path / "brca1_5.xml"
     tree.write(out_path)
     with open_(out_path) as fn:
@@ -2613,3 +2610,23 @@ def test_phylonode_support():
     name_and_support = tree.get_node_matching_name("def")
     assert name_and_support.name == "def"  # bit redundant given selection process
     assert name_and_support.params["support"] == 25.0
+
+
+@pytest.mark.parametrize("cls", [PhyloNode, TreeNode])
+def test_source_attr(cls):
+    t_str = "((a,(b,c))d,((e,(f,g))h,(i,(j,k))l))m;"
+    t = DndParser(t_str, constructor=cls)
+    t.source = "test_source"
+    assert t.source == "test_source"
+    assert "source" in t.params
+    assert "source" not in t.get_node_matching_name("a").params
+    t.source = None
+    assert t.source is None
+    assert "source" not in t.params
+    t.source = ""
+    assert t.source is None
+
+
+def test_dataset_tree_source():
+    tr = get_dataset("mammal-tree")
+    assert tr.source.endswith("murphy.tree")

@@ -8,6 +8,7 @@ from cogent3.util.io import path_exists
 from cogent3.util.misc import is_url
 
 from .composable import define_app
+from .data_store import get_data_source
 from .typing import PairwiseDistanceType, SerialisableType, TreeType
 
 NoneType = type(None)
@@ -51,6 +52,7 @@ class scale_branches:
         self._min_length = min_length
 
     def main(self, tree: TreeType) -> SerialisableType | TreeType:
+        source = tree.source
         scalar = self._scalar
         min_length = self._min_length
         tree = tree.deepcopy()
@@ -61,6 +63,7 @@ class scale_branches:
             length = length / scalar if length else min_length
             edge.length = abs(length)  # force to be positive
 
+        tree.source = source
         return tree
 
 
@@ -68,7 +71,9 @@ class scale_branches:
 class uniformize_tree:
     """Standardises the orientation of unrooted trees."""
 
-    def __init__(self, root_at="midpoint", ordered_names=None) -> None:
+    def __init__(
+        self, root_at: str = "midpoint", ordered_names: list[str] | None = None
+    ) -> None:
         """
         Parameters
         ----------
@@ -82,6 +87,7 @@ class uniformize_tree:
         self._ordered_names = ordered_names
 
     def main(self, tree: TreeType) -> SerialisableType | TreeType:
+        source = tree.source
         if self._root_at == "midpoint":
             new = tree.root_at_midpoint()
         else:
@@ -89,7 +95,10 @@ class uniformize_tree:
 
         if self._ordered_names is None:
             self._ordered_names = tree.get_tip_names()
-        return new.sorted(self._ordered_names)
+
+        result = new.sorted(self._ordered_names)
+        result.source = source
+        return result
 
 
 @define_app
@@ -126,7 +135,7 @@ class quick_tree:
             (result,) = gnj(dists.to_dict(), keep=1, show_progress=False)
             _, tree = result
 
-        tree.params["source"] = dists.source
+        tree.source = get_data_source(dists)
         return tree
 
 

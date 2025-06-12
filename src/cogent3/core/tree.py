@@ -79,19 +79,20 @@ class TreeNode:
     Parameters:
         name: label for the node, assumed to be unique.
         children: list of the node's children.
+        parent: parent to this node
         params: dict containing arbitrary parameters for the node.
         name_loaded: ?
     """
 
-    _exclude_from_copy = dict.fromkeys(["_parent", "children"])
+    _exclude_from_copy = frozenset(["_parent", "children"])
 
     def __init__(
         self,
-        name=None,
-        children=None,
-        parent=None,
-        params=None,
-        name_loaded=True,
+        name: str | None = None,
+        children: list[TreeNode] | None = None,
+        parent: TreeNode | None = None,
+        params: dict[str, object] | None = None,
+        name_loaded: bool = True,
         **kwargs,
     ) -> None:
         """Returns new TreeNode object."""
@@ -99,7 +100,7 @@ class TreeNode:
         self.name_loaded = name_loaded
         self.params = params or {}
         self.children = []
-        if children is not None:
+        if children:
             self.extend(children)
         self._parent = parent
         if parent is not None and self not in parent.children:
@@ -141,6 +142,18 @@ class TreeNode:
         other_name = other.name or ""
 
         return self_name > other_name
+
+    @property
+    def source(self) -> str | None:
+        return self.params.get("source")
+
+    @source.setter
+    def source(self, value: str | None) -> None:
+        """Sets the source of the node."""
+        if value:
+            self.params["source"] = value
+        else:
+            self.params.pop("source", None)
 
     def compare_name(self, other):
         """Compares TreeNode by name"""
@@ -2320,6 +2333,7 @@ def make_tree(
     tip_names: list[str] | None = None,
     format: str | None = None,
     underscore_unmunge: bool = False,
+    source: str | None = None,
 ) -> PhyloNode | TreeNode:
     """Initialises a tree.
 
@@ -2335,6 +2349,8 @@ def make_tree(
     underscore_unmunge : bool
         replace underscores with spaces in all names read, i.e. "sp_name"
         becomes "sp name"
+    source
+        path to file tree came from, string value assigned to tree.source
 
     Notes
     -----
@@ -2346,10 +2362,13 @@ def make_tree(
     PhyloNode
     """
     assert treestring or tip_names, "must provide either treestring or tip_names"
+    source = str(source) if source else None
     if tip_names:
         tree_builder = TreeBuilder().create_edge
         tips = [tree_builder([], str(tip_name), {}) for tip_name in tip_names]
-        return tree_builder(tips, "root", {})
+        result = tree_builder(tips, "root", {})
+        result.source = source
+        return result
 
     if format is None and treestring.startswith("<"):
         format = "xml"
@@ -2363,6 +2382,7 @@ def make_tree(
     if not tree.name_loaded:
         tree.name = "root"
 
+    tree.source = source
     return tree
 
 
@@ -2390,6 +2410,8 @@ def load_tree(
     of the Newick format. Only the cogent3 json and xml tree formats are
     supported.
 
+    filename is assigned to root node tree.source attribute.
+
     Returns
     -------
     PhyloNode
@@ -2397,9 +2419,16 @@ def load_tree(
     file_format, _ = get_format_suffixes(filename)
     format = format or file_format
     if format == "json":
-        return load_from_json(filename, (TreeNode, PhyloNode))
+        tree = load_from_json(filename, (TreeNode, PhyloNode))
+        tree.source = str(filename)
+        return tree
 
     with open_(filename) as tfile:
         treestring = tfile.read()
 
-    return make_tree(treestring, format=format, underscore_unmunge=underscore_unmunge)
+    return make_tree(
+        treestring,
+        format=format,
+        underscore_unmunge=underscore_unmunge,
+        source=filename,
+    )
