@@ -143,6 +143,18 @@ class TreeNode:
 
         return self_name > other_name
 
+    @property
+    def source(self) -> str | None:
+        return self.params.get("source")
+
+    @source.setter
+    def source(self, value: str | None) -> None:
+        """Sets the source of the node."""
+        if value is None:
+            self.params.pop("source", None)
+        else:
+            self.params["source"] = value
+
     def compare_name(self, other):
         """Compares TreeNode by name"""
         return True if self is other else self.name == other.name
