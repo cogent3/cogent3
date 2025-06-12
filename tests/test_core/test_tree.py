@@ -2620,6 +2620,11 @@ def test_source_attr(cls):
     assert t.source == "test_source"
     assert "source" in t.params
     assert "source" not in t.get_node_matching_name("a").params
+    t.source = None
+    assert t.source is None
+    assert "source" not in t.params
+    t.source = ""
+    assert t.source is None
 
 
 def test_dataset_tree_source():

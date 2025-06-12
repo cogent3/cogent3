@@ -150,10 +150,10 @@ class TreeNode:
     @source.setter
     def source(self, value: str | None) -> None:
         """Sets the source of the node."""
-        if value is None:
-            self.params.pop("source", None)
-        else:
+        if value:
             self.params["source"] = value
+        else:
+            self.params.pop("source", None)
 
     def compare_name(self, other):
         """Compares TreeNode by name"""

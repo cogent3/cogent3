@@ -1012,4 +1012,4 @@ def test_source_propagated():
     qtree = get_app("quick_tree")
     app = three + dcalc + qtree
     result = app(aln)
-    assert result.source in aln.source
+    assert result.source == pathlib.Path(aln.source).name
