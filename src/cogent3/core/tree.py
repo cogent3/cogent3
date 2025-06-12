@@ -79,19 +79,20 @@ class TreeNode:
     Parameters:
         name: label for the node, assumed to be unique.
         children: list of the node's children.
+        parent: parent to this node
         params: dict containing arbitrary parameters for the node.
         name_loaded: ?
     """
 
-    _exclude_from_copy = dict.fromkeys(["_parent", "children"])
+    _exclude_from_copy = frozenset(["_parent", "children"])
 
     def __init__(
         self,
-        name=None,
-        children=None,
-        parent=None,
-        params=None,
-        name_loaded=True,
+        name: str | None = None,
+        children: list[TreeNode] | None = None,
+        parent: TreeNode | None = None,
+        params: dict[str, object] | None = None,
+        name_loaded: bool = True,
         **kwargs,
     ) -> None:
         """Returns new TreeNode object."""
@@ -99,7 +100,7 @@ class TreeNode:
         self.name_loaded = name_loaded
         self.params = params or {}
         self.children = []
-        if children is not None:
+        if children:
             self.extend(children)
         self._parent = parent
         if parent is not None and self not in parent.children:
