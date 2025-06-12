@@ -13,7 +13,7 @@ from enum import Enum
 from functools import singledispatch
 from io import TextIOWrapper
 from pathlib import Path
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 from scitrack import get_text_hexdigest
 
@@ -37,7 +37,7 @@ _MD5_TABLE = "md5"
 # used for log files, not-completed results
 _special_suffixes = re.compile(r"\.(log|json)$")
 
-StrOrBytes = Union[str, bytes]
+StrOrBytes = str | bytes
 NoneType = type(None)
 
 
@@ -748,28 +748,31 @@ def get_data_source(data: object) -> str | None:
 
 
 @get_data_source.register
-def _(data: old_alignment.SequenceCollection):
+def _(data: old_alignment.SequenceCollection) -> str | None:
     return get_data_source(data.info)
 
 
 @get_data_source.register
-def _(data: old_alignment.ArrayAlignment):
+def _(data: old_alignment.ArrayAlignment) -> str | None:
     return get_data_source(data.info)
 
 
 @get_data_source.register
-def _(data: old_alignment.Alignment):
+def _(data: old_alignment.Alignment) -> str | None:
     return get_data_source(data.info)
 
 
 @get_data_source.register
-def _(data: new_alignment.Alignment):
-    return get_data_source(data.source)
+def _(data: new_alignment.Alignment) -> str | None:
+    return data.source
 
 
 @get_data_source.register
-def _(data: new_alignment.SequenceCollection):
-    return get_data_source(data.source)
+def _(data: new_alignment.SequenceCollection) -> str | None:
+    return data.source
+
+
+@get_data_source.register
 
 
 @get_data_source.register
@@ -778,12 +781,12 @@ def _(data: str):
 
 
 @get_data_source.register
-def _(data: Path):
-    return str(data.name)
+def _(data: Path) -> str | None:
+    return data.name
 
 
 @get_data_source.register
-def _(data: dict):
+def _(data: dict) -> str | None:
     try:
         source = data.get("info", {})["source"]
     except KeyError:
@@ -792,7 +795,7 @@ def _(data: dict):
 
 
 @get_data_source.register
-def _(data: DataMemberABC):
+def _(data: DataMemberABC) -> str | None:
     return str(data.unique_id)
 
 
