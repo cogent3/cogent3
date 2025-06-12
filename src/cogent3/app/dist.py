@@ -16,6 +16,7 @@ from cogent3.maths.distance_transform import jaccard
 from cogent3.util.misc import get_true_spans
 
 from .composable import NotCompleted, define_app
+from .data_store import get_data_source
 from .typing import (
     AlignedSeqsType,
     PairwiseDistanceType,
@@ -48,7 +49,6 @@ class fast_slow_dist:
 
     Uses fast (but less numerically robust) approach where possible, slow (robust)
     approach when not.
-
     """
 
     def __init__(
@@ -170,7 +170,7 @@ class fast_slow_dist:
         else:
             empty = dict.fromkeys(itertools.product(aln.names, aln.names), 0)
             dists = DistanceMatrix(empty)
-        dists.source = aln.info.source
+        dists.source = get_data_source(aln)
         if self._sm:
             for a in dists.template.names[0]:
                 for b in dists.template.names[1]:
@@ -237,7 +237,7 @@ def jaccard_dist(seq_coll: UnalignedSeqsType, k: int = 10) -> PairwiseDistanceTy
             f"could not compute distances between {names}",
             source=seq_coll,
         )
-    return DistanceMatrix(dists)
+    return DistanceMatrix(dists, source=get_data_source(seq_coll))
 
 
 @define_app

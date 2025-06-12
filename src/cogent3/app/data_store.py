@@ -19,6 +19,7 @@ from scitrack import get_text_hexdigest
 
 from cogent3.core import alignment as old_alignment
 from cogent3.core import new_alignment
+from cogent3.core import tree as c3tree
 from cogent3.core.table import Table
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.io import get_format_suffixes, open_
@@ -773,10 +774,17 @@ def _(data: new_alignment.SequenceCollection) -> str | None:
 
 
 @get_data_source.register
+def _(data: c3tree.TreeNode) -> str | None:
+    return data.source
 
 
 @get_data_source.register
-def _(data: str):
+def _(data: c3tree.PhyloNode) -> str | None:
+    return data.source
+
+
+@get_data_source.register
+def _(data: str) -> str | None:
     return get_data_source(Path(data))
 
 

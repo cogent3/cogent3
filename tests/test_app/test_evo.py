@@ -9,6 +9,7 @@ from numpy.testing import assert_allclose, assert_raises
 
 from cogent3 import (
     get_app,
+    get_dataset,
     load_aligned_seqs,
     make_aligned_seqs,
     make_tree,
@@ -1002,3 +1003,13 @@ def test_model_bounds_kappa():
     rules = result.lf.get_param_rules()
     kappa_bounds = {(r["lower"], r["upper"]) for r in rules if r["par_name"] == "kappa"}
     assert kappa_bounds == {(lower_kappa, upper_kappa)}
+
+
+def test_source_propagated():
+    aln = get_dataset("brca1")
+    three = get_app("take_n_seqs", 4)
+    dcalc = get_app("fast_slow_dist", fast_calc="pdist", moltype="dna")
+    qtree = get_app("quick_tree")
+    app = three + dcalc + qtree
+    result = app(aln)
+    assert result.source in aln.source
