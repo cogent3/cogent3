@@ -10,7 +10,7 @@ import pytest
 from numpy import array
 from numpy.testing import assert_allclose, assert_equal
 
-from cogent3 import load_tree, make_tree, open_
+from cogent3 import get_dataset, load_tree, make_tree, open_
 from cogent3._version import __version__
 from cogent3.core.tree import PhyloNode, TreeError, TreeNode, split_name_and_support
 from cogent3.maths.stats.test import correlation
@@ -2610,3 +2610,18 @@ def test_phylonode_support():
     name_and_support = tree.get_node_matching_name("def")
     assert name_and_support.name == "def"  # bit redundant given selection process
     assert name_and_support.params["support"] == 25.0
+
+
+@pytest.mark.parametrize("cls", [PhyloNode, TreeNode])
+def test_source_attr(cls):
+    t_str = "((a,(b,c))d,((e,(f,g))h,(i,(j,k))l))m;"
+    t = DndParser(t_str, constructor=cls)
+    t.source = "test_source"
+    assert t.source == "test_source"
+    assert "source" in t.params
+    assert "source" not in t.get_node_matching_name("a").params
+
+
+def test_dataset_tree_source():
+    tr = get_dataset("mammal-tree")
+    assert tr.source.endswith("murphy.tree")
