@@ -2637,7 +2637,8 @@ def prep_for_seqs_data(
     for name, seq in data.items():
         name = seq_namer(seq=seq, name=name)  # noqa: PLW2901
         seq_data = coerce_to_raw_seq_data(seq, moltype, name=name)
-        offsets[seq_data.parent_name or name] = seq_data.offset
+        if seq_data.offset:
+            offsets[seq_data.parent_name or name] = seq_data.offset
         seqs[seq_data.parent_name or seq_data.name] = seq_data.seq
         if seq_data.is_reversed:
             rvd.add(name)
