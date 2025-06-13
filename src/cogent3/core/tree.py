@@ -500,6 +500,7 @@ class TreeNode:
         tree.source = None
         node = tree.get_node_matching_name(edge_name)
         is_tip = node.is_tip()
+        has_length = hasattr(node, "length")
         # we put tips on the right
         right_name = edge_name if is_tip else f"{edge_name}-R"
         left_name = f"{edge_name}-root" if is_tip else f"{edge_name}-L"
@@ -516,8 +517,10 @@ class TreeNode:
             left.name = left_name
             right.name = right_name
 
-        left.length = length
-        right.length = length
+        if has_length:
+            left.length = length
+            right.length = length
+
         result = self.__class__(name="root", children=[left, right])
         result.source = self.source
         return result

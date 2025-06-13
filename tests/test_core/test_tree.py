@@ -2666,9 +2666,11 @@ def test_rooted_with_tip():
     assert {c.name for c in rooted.children} == {tip_name, f"{tip_name}-root"}
 
 
-def test_rooted_with_internal():
+@pytest.mark.parametrize("constructor", [PhyloNode, TreeNode])
+def test_rooted_with_internal(constructor):
     treestring = "((((Rhesus:0.02,HowlerMon:0.0487):0.0115,Orangutan:0.008)abcd:0.003,Human:0.006):0.00013,Gorilla:0.0025,Chimpanzee:0.003)"
-    tree = make_tree(treestring=treestring)
+    tree = DndParser(treestring, constructor=constructor)
+    tree.name = "root"  # have to force this given construction via DndParser
     node_name = "abcd"
     got = tree.rooted(node_name)
     ts1 = "(Human,(Gorilla,Chimpanzee))"
@@ -2678,7 +2680,7 @@ def test_rooted_with_internal():
     child1.name = "root"
     child2.parent = None
     child2.name = "root"
-    ts1, ts2 = (ts1, ts2) if "HUman" in child1.get_tip_names() else (ts2, ts1)
+    ts1, ts2 = (ts1, ts2) if "Human" in child1.get_tip_names() else (ts2, ts1)
     expect1 = make_tree(treestring=ts1)
     expect2 = make_tree(treestring=ts2)
     assert child1.same_topology(expect1)
