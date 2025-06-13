@@ -476,6 +476,52 @@ class TreeNode:
     def root(self) -> typing_extensions.Self:
         return self.get_root()
 
+    def rooted(self, edge_name: str) -> typing_extensions.Self:
+        """Returns a new tree with split at edge_name
+
+        Parameters
+        ----------
+        edge_name
+            name of the edge to split at. The length of edge_name will be
+            halved. The new tree will have two children.
+        """
+        tree = self.deepcopy()
+        if self.name != "root":
+            msg = f"cannot apply from non-root node {self.name!r}, use self.get_root() first"
+            raise TreeError(msg)
+
+        if edge_name == "root":
+            if len(self.children) == 2:
+                return tree
+
+            msg = "cannot root at existing root"
+            raise TreeError(msg)
+
+        tree.source = None
+        node = tree.get_node_matching_name(edge_name)
+        is_tip = node.is_tip()
+        # we put tips on the right
+        right_name = edge_name if is_tip else f"{edge_name}-R"
+        left_name = f"{edge_name}-root" if is_tip else f"{edge_name}-L"
+        length = getattr(node, "length", 0.0) / 2
+        parent = node.parent
+        parent.children.remove(node)
+        node.parent = None
+        left = node.unrooted_deepcopy()
+        right = parent.unrooted_deepcopy()
+        if is_tip and left.is_tip():
+            left.name = right_name
+            right.name = left_name
+        else:
+            left.name = left_name
+            right.name = right_name
+
+        left.length = length
+        right.length = length
+        result = self.__class__(name="root", children=[left, right])
+        result.source = self.source
+        return result
+
     def isroot(self):
         """Returns True if root of a tree, i.e. no parent."""
         return self.is_root()
@@ -684,10 +730,7 @@ class TreeNode:
         Internal nodes are often unnamed and so this function assigns a
         value for referencing."""
         # make a list of the names that are already in the tree
-        names_in_use = []
-        for node in self.traverse():
-            if node.name:
-                names_in_use.append(node.name)
+        names_in_use = [node.name for node in self.traverse() if node.name]
         # assign unique names to the Data property of nodes where Data = None
         name_index = 1
         for node in self.traverse():
