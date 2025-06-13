@@ -23,6 +23,22 @@ from cogent3.recalculation.scope import InvalidScopeError
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import adjusted_gt_minprob, get_object_provenance
 
+
+def _format_floats(val) -> str:
+    """Format float values to two decimal places."""
+    return f"{val:.2f}" if isinstance(val, float) else val
+
+
+def _update_stat_table_col_formatting(table):
+    """handle formatting mixed type stat result columns."""
+    for col in table.columns:
+        type_name = table.columns[col].dtype.name
+        if type_name == "object" or type_name.startswith("float"):
+            table.format_column(col, _format_floats)
+
+    return table
+
+
 # cogent3.evolve.parameter_controller.LikelihoodParameterController tells the
 # recalculation framework to use this subclass rather than the generic
 # recalculation Calculator.  It adds methods which are useful for examining
@@ -930,6 +946,7 @@ class LikelihoodFunction(ParameterController):
                     **self._format,
                 )
 
+            stat_table = _update_stat_table_col_formatting(stat_table)
             result.append(stat_table)
         return result
 

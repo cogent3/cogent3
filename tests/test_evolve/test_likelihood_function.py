@@ -2374,3 +2374,24 @@ def test_get_ens_tree_discrete(bh_model):
     # should fail with a discrete-time model
     with pytest.raises(TypeError):
         bh_model.get_ens_tree()
+
+
+def test_get_stats_mixed_discrete_cont():
+    import cogent3
+
+    aln = cogent3.get_dataset("brca1")
+    aln = aln.take_seqs(["Human", "Rhesus", "Mouse"]).omit_gap_pos(allowed_gap_frac=0)
+    mod = cogent3.get_app(
+        "model",
+        "GN",
+        lf_args={"discrete_edges": ["Mouse"]},
+        time_het="max",
+        opt_args={"max_iter": 2, "limit_action": "ignore"},
+    )
+    result = mod(aln)
+    tabulate = cogent3.get_app("tabulate_stats")
+    stats = tabulate(result)
+    edge_stats = stats["edge params"]
+    got = str(edge_stats.get_columns("length"))
+    # floats to 2 decimal places
+    assert "  0.02\n  0.02\n    NA" in got
