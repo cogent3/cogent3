@@ -487,7 +487,10 @@ class TreeNode:
         """
         tree = self.deepcopy()
         if self.name != "root":
-            msg = f"cannot apply from non-root node {self.name!r}, use self.get_root() first"
+            msg = (
+                f"cannot apply from non-root node {self.name!r}, "
+                "use self.get_root() first"
+            )
             raise TreeError(msg)
 
         if edge_name == "root":
