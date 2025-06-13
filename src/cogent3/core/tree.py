@@ -38,6 +38,7 @@ from itertools import combinations
 from operator import or_
 from random import choice, shuffle
 
+import typing_extensions
 from numpy import argsort, ceil, log, zeros
 
 from cogent3._version import __version__
@@ -46,6 +47,7 @@ from cogent3.parse.cogent3_json import load_from_json
 from cogent3.parse.newick import parse_string as newick_parse_string
 from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
 from cogent3.phylo.tree_distance import get_tree_distance_measure
+from cogent3.util import warning as c3warn
 from cogent3.util.io import atomic_write, get_format_suffixes, open_
 from cogent3.util.misc import get_object_provenance
 
@@ -461,12 +463,70 @@ class TreeNode:
             curr = curr._parent
         return result
 
-    def root(self):
-        """Returns root of the tree self is in. Dynamically calculated."""
+    def get_root(self) -> typing_extensions.Self:
+        """Returns root of the tree self is in."""
         curr = self
         while curr._parent is not None:
             curr = curr._parent
         return curr
+
+    @c3warn.deprecated_callable(
+        "2025.9", reason="misleading method name", new="get_root()"
+    )
+    def root(self) -> typing_extensions.Self:
+        return self.get_root()
+
+    def rooted(self, edge_name: str) -> typing_extensions.Self:
+        """Returns a new tree with split at edge_name
+
+        Parameters
+        ----------
+        edge_name
+            name of the edge to split at. The length of edge_name will be
+            halved. The new tree will have two children.
+        """
+        tree = self.deepcopy()
+        if self.name != "root":
+            msg = (
+                f"cannot apply from non-root node {self.name!r}, "
+                "use self.get_root() first"
+            )
+            raise TreeError(msg)
+
+        if edge_name == "root":
+            if len(self.children) == 2:
+                return tree
+
+            msg = "cannot root at existing root"
+            raise TreeError(msg)
+
+        tree.source = None
+        node = tree.get_node_matching_name(edge_name)
+        is_tip = node.is_tip()
+        has_length = hasattr(node, "length")
+        # we put tips on the right
+        right_name = edge_name if is_tip else f"{edge_name}-R"
+        left_name = f"{edge_name}-root" if is_tip else f"{edge_name}-L"
+        length = getattr(node, "length", 0.0) / 2
+        parent = node.parent
+        parent.children.remove(node)
+        node.parent = None
+        left = node.unrooted_deepcopy()
+        right = parent.unrooted_deepcopy()
+        if is_tip and left.is_tip():
+            left.name = right_name
+            right.name = left_name
+        else:
+            left.name = left_name
+            right.name = right_name
+
+        if has_length:
+            left.length = length
+            right.length = length
+
+        result = self.__class__(name="root", children=[left, right])
+        result.source = self.source
+        return result
 
     def isroot(self):
         """Returns True if root of a tree, i.e. no parent."""
@@ -676,10 +736,7 @@ class TreeNode:
         Internal nodes are often unnamed and so this function assigns a
         value for referencing."""
         # make a list of the names that are already in the tree
-        names_in_use = []
-        for node in self.traverse():
-            if node.name:
-                names_in_use.append(node.name)
+        names_in_use = [node.name for node in self.traverse() if node.name]
         # assign unique names to the Data property of nodes where Data = None
         name_index = 1
         for node in self.traverse():
@@ -1796,7 +1853,7 @@ class PhyloNode(TreeNode):
 
     def total_length(self):
         """returns the sum of all branch lengths in tree"""
-        root = self.root()
+        root = self.get_root()
         if root is None:
             msg = "no root to this tree!"
             raise ValueError(msg)

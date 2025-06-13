@@ -902,7 +902,7 @@ def test_root(tree_nodes, tree_root):
     """TreeNode root() should find root of tree"""
     nodes, root = tree_nodes, tree_root
     for i in list(nodes.values()):
-        assert i.root() is root
+        assert i.get_root() is root
 
 
 def test_children(tree_nodes):
@@ -2630,3 +2630,58 @@ def test_source_attr(cls):
 def test_dataset_tree_source():
     tr = get_dataset("mammal-tree")
     assert tr.source.endswith("murphy.tree")
+
+
+def test_rooted_is_rooted():
+    treestring = "((Human,Chimpanzee),Gorilla)"
+    tree = make_tree(treestring=treestring)
+    rooted = tree.rooted("root")
+    assert rooted.same_topology(tree)
+
+
+def test_rooted_with_root():
+    treestring = "(Human,Chimpanzee,Gorilla)"
+    tree = make_tree(treestring=treestring)
+    with pytest.raises(TreeError):
+        # cannot root at root with 3 children
+        tree.rooted("root")
+
+
+def test_rooted_from_nonroot():
+    treestring = "(Human,Chimpanzee,Gorilla)"
+    tree = make_tree(treestring=treestring)
+    child = tree.children[0]
+    with pytest.raises(TreeError):
+        # cannot root if node is not the root
+        child.rooted("Gorilla")
+
+
+def test_rooted_with_tip():
+    treestring = "((((Rhesus:0.02,HowlerMon:0.0487):0.0115,Orangutan:0.008)abcd:0.003,Human:0.006):0.00013,Gorilla:0.0025,Chimpanzee:0.003)"
+    tree = make_tree(treestring=treestring)
+    tip_name = "HowlerMon"
+    rooted = tree.rooted(tip_name)
+    assert len(rooted.children) == 2
+    assert all(child.length == 0.0487 / 2 for child in rooted.children)
+    assert {c.name for c in rooted.children} == {tip_name, f"{tip_name}-root"}
+
+
+@pytest.mark.parametrize("constructor", [PhyloNode, TreeNode])
+def test_rooted_with_internal(constructor):
+    treestring = "((((Rhesus:0.02,HowlerMon:0.0487):0.0115,Orangutan:0.008)abcd:0.003,Human:0.006):0.00013,Gorilla:0.0025,Chimpanzee:0.003)"
+    tree = DndParser(treestring, constructor=constructor)
+    tree.name = "root"  # have to force this given construction via DndParser
+    node_name = "abcd"
+    got = tree.rooted(node_name)
+    ts1 = "(Human,(Gorilla,Chimpanzee))"
+    ts2 = "((Rhesus,HowlerMon),Orangutan)"
+    child1, child2 = got.children
+    child1.parent = None
+    child1.name = "root"
+    child2.parent = None
+    child2.name = "root"
+    ts1, ts2 = (ts1, ts2) if "Human" in child1.get_tip_names() else (ts2, ts1)
+    expect1 = make_tree(treestring=ts1)
+    expect2 = make_tree(treestring=ts2)
+    assert child1.same_topology(expect1)
+    assert child2.same_topology(expect2)
