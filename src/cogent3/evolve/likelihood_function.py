@@ -23,6 +23,22 @@ from cogent3.recalculation.scope import InvalidScopeError
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import adjusted_gt_minprob, get_object_provenance
 
+
+def _format_floats(val) -> str:
+    """Format float values to two decimal places."""
+    return f"{val:.2f}" if isinstance(val, float) else val
+
+
+def _update_stat_table_col_formatting(table):
+    """handle formatting mixed type stat result columns."""
+    for col in table.columns:
+        type_name = table.columns[col].dtype.name
+        if type_name == "object" or type_name.startswith("float"):
+            table.format_column(col, _format_floats)
+
+    return table
+
+
 # cogent3.evolve.parameter_controller.LikelihoodParameterController tells the
 # recalculation framework to use this subclass rather than the generic
 # recalculation Calculator.  It adds methods which are useful for examining
@@ -250,25 +266,37 @@ class LikelihoodFunction(ParameterController):
         """log-likelihood"""
         return self.get_log_likelihood()
 
-    def get_log_likelihood(self):
+    def get_log_likelihood(self) -> float:
         return self.get_final_result()
 
-    def get_all_psubs(self):
+    def get_all_psubs(self) -> dict:
         """returns all psubs as a dict keyed by used dimensions"""
         try:
             defn = self.defn_for["dsubs"]
         except KeyError:
             defn = self.defn_for["psubs"]
 
+        edge_names = {e.name for e in self.tree.postorder(include_self=False)}
         used_dims = defn.used_dimensions()
         vdims = defn.valid_dimensions
         indices = [vdims.index(k) for k in used_dims if k in vdims]
         result = {}
+        key_len = 1
         darr_template = DictArrayTemplate(self._motifs, self._motifs)
         for scope, index in defn.index.items():
             psub = defn.values[index]
-            key = tuple(numpy.take(scope, indices))
+            key = tuple(v.item() for v in numpy.take(scope, indices))
+            key_len = len(key)
+            edge_names -= set(key)
+            key = key[0] if key_len == 1 else key
             result[key] = darr_template.wrap(psub)
+
+        if edge_names:
+            # if there are edges not in the psubs, they're probably
+            # edges with discrete-time processes
+            for edge_name in edge_names:
+                key = edge_name if key_len == 1 else (edge_name,)
+                result[key] = self.get_psub_for_edge(edge_name)
         return result
 
     def get_psub_for_edge(self, name, **kw):
@@ -930,6 +958,7 @@ class LikelihoodFunction(ParameterController):
                     **self._format,
                 )
 
+            stat_table = _update_stat_table_col_formatting(stat_table)
             result.append(stat_table)
         return result
 

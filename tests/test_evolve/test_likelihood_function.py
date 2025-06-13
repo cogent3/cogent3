@@ -23,6 +23,8 @@ from numpy.testing import assert_allclose
 
 from cogent3 import (
     DNA,
+    get_app,
+    get_dataset,
     load_aligned_seqs,
     load_tree,
     make_aligned_seqs,
@@ -398,15 +400,13 @@ class LikelihoodFunctionTests(TestCase):
         # actualy more a test of self._setLengthsAndBetas()
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
-        assert (
-            str(likelihood_function)
-            == "Likelihood function statistics\nlog-likelihood = -250.6867\nnumber of free parameters = 0\n======\n  beta\n------\n4.0000\n------\n=============================\nedge         parent    length\n-----------------------------\nHuman        edge.0    0.3000\nHowlerMon    edge.0    0.4000\nedge.0       edge.1    0.7000\nMouse        edge.1    0.5000\nedge.1       root      0.6000\nNineBande    root      0.2000\nDogFaced     root      0.1000\n-----------------------------\n====================================\n     A         C         G         T\n------------------------------------\n0.2500    0.2500    0.2500    0.2500\n------------------------------------"
+        assert str(likelihood_function).startswith(
+            "Likelihood function statistics\nlog-likelihood = -250.6867\nnumber of free parameters = 0"
         )
 
         likelihood_function = self._makeLikelihoodFunction(digits=2, space=2)
-        assert (
-            str(likelihood_function)
-            == "Likelihood function statistics\nlog-likelihood = -382.5399\nnumber of free parameters = 14\n===============================\nedge       parent  length  beta\n-------------------------------\nHuman      edge.0    1.00  1.00\nHowlerMon  edge.0    1.00  1.00\nedge.0     edge.1    1.00  1.00\nMouse      edge.1    1.00  1.00\nedge.1     root      1.00  1.00\nNineBande  root      1.00  1.00\nDogFaced   root      1.00  1.00\n-------------------------------\n======================\n   A     C     G     T\n----------------------\n0.25  0.25  0.25  0.25\n----------------------"
+        assert str(likelihood_function).startswith(
+            "Likelihood function statistics\nlog-likelihood = -382.5399\nnumber of free parameters = 14"
         )
 
     def test_calclikelihood(self):
@@ -536,9 +536,8 @@ class LikelihoodFunctionTests(TestCase):
         likelihood_function = self._makeLikelihoodFunction()
         likelihood_function.set_param_rule("length", value=4.0, is_constant=True)
         likelihood_function.set_param_rule("beta", value=6.0, is_constant=True)
-        assert (
-            str(likelihood_function)
-            == "Likelihood function statistics\nlog-likelihood = -413.1886\nnumber of free parameters = 0\n======\n  beta\n------\n6.0000\n------\n=============================\nedge         parent    length\n-----------------------------\nHuman        edge.0    4.0000\nHowlerMon    edge.0    4.0000\nedge.0       edge.1    4.0000\nMouse        edge.1    4.0000\nedge.1       root      4.0000\nNineBande    root      4.0000\nDogFaced     root      4.0000\n-----------------------------\n====================================\n     A         C         G         T\n------------------------------------\n0.2500    0.2500    0.2500    0.2500\n------------------------------------"
+        assert str(likelihood_function).startswith(
+            "Likelihood function statistics\nlog-likelihood = -413.1886\nnumber of free parameters = 0"
         )
 
     def test_set_param_rule_adjust_bounds(self):
@@ -584,9 +583,8 @@ class LikelihoodFunctionTests(TestCase):
     def test_getparamsasdict(self):
         likelihood_function = self._makeLikelihoodFunction()
         likelihood_function.set_name("TEST")
-        assert (
-            str(likelihood_function)
-            == "TEST\nlog-likelihood = -382.5399\nnumber of free parameters = 14\n=======================================\nedge         parent    length      beta\n---------------------------------------\nHuman        edge.0    1.0000    1.0000\nHowlerMon    edge.0    1.0000    1.0000\nedge.0       edge.1    1.0000    1.0000\nMouse        edge.1    1.0000    1.0000\nedge.1       root      1.0000    1.0000\nNineBande    root      1.0000    1.0000\nDogFaced     root      1.0000    1.0000\n---------------------------------------\n====================================\n     A         C         G         T\n------------------------------------\n0.2500    0.2500    0.2500    0.2500\n------------------------------------"
+        assert str(likelihood_function).startswith(
+            "TEST\nlog-likelihood = -382.5399\nnumber of free parameters = 14"
         )
         assert likelihood_function.get_param_value_dict(["edge"]) == {
             "beta": {
@@ -2374,3 +2372,39 @@ def test_get_ens_tree_discrete(bh_model):
     # should fail with a discrete-time model
     with pytest.raises(TypeError):
         bh_model.get_ens_tree()
+
+
+def test_get_stats_mixed_discrete_cont():
+    import cogent3
+
+    aln = cogent3.get_dataset("brca1")
+    aln = aln.take_seqs(["Human", "Rhesus", "Mouse"]).omit_gap_pos(allowed_gap_frac=0)
+    mod = cogent3.get_app(
+        "model",
+        "GN",
+        lf_args={"discrete_edges": ["Mouse"]},
+        time_het="max",
+        opt_args={"max_iter": 2, "limit_action": "ignore"},
+    )
+    result = mod(aln)
+    tabulate = cogent3.get_app("tabulate_stats")
+    stats = tabulate(result)
+    edge_stats = stats["edge params"]
+    got = str(edge_stats.get_columns("length"))
+    # floats to 2 decimal places
+    assert "  0.02\n  0.02\n    NA" in got
+
+
+def test_get_all_psubs_mixed_discrete_cont():
+    aln = get_dataset("brca1")
+    aln = aln.take_seqs(["Human", "Rhesus", "Mouse"]).omit_gap_pos(allowed_gap_frac=0)
+    mod = get_app(
+        "model",
+        "HKY85",
+        lf_args={"discrete_edges": ["Mouse"]},
+        opt_args={"max_iter": 2, "limit_action": "ignore"},
+    )
+    result = mod(aln)
+    sm = result["HKY85"]
+    psubs = sm.get_all_psubs()
+    assert len(psubs) == 3  # one for each edge

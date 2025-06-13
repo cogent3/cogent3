@@ -181,7 +181,7 @@ def _get_raw_hints(main_func, min_params):
     return first_param_type, return_type
 
 
-def _get_main_hints(klass) -> tuple[set, set]:
+def _get_main_hints(klass: type) -> tuple[frozenset, frozenset]:
     """return type hints for main method
     Returns
     -------
@@ -307,25 +307,30 @@ def _new(klass, *args, **kwargs):
 class source_proxy:
     __slots__ = ("_obj", "_src", "_uuid")
 
-    def __init__(self, obj: Any = None) -> None:
+    def __init__(self, obj: Any) -> None:
         self._obj = obj
         self._src = obj
         self._uuid = uuid4()
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self._uuid)
 
     @property
-    def obj(self):
+    def obj(self) -> Any:
         return self._obj
 
-    def set_obj(self, obj) -> None:
+    def set_obj(self, obj: Any) -> None:
         self._obj = obj
 
     @property
-    def source(self):
-        """origin of this object, defaults to a random uuid"""
+    def source(self) -> Any:
+        """origin of this object"""
         return self._src
+
+    @property
+    def uuid(self) -> str:
+        """unique identifier for this object"""
+        return str(self._uuid)
 
     @source.setter
     def source(self, src: Any) -> None:
@@ -351,18 +356,18 @@ class source_proxy:
     def __str__(self) -> str:
         return self.obj.__str__()
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return self.obj.__eq__(other)
 
     def __len__(self) -> int:
         return self.obj.__len__()
 
-    # pickling induces infinite recursion on python 3.9/3.10
+    # pickling induces infinite recursion on python 3.10
     # only on Windows, so implementing the following methods explicitly
-    def __getstate__(self):
+    def __getstate__(self) -> tuple:
         return self._obj, self._src, self._uuid
 
-    def __setstate__(self, state):
+    def __setstate__(self, state: tuple) -> None:
         self._obj, self._src, self._uuid = state
 
 
@@ -682,7 +687,7 @@ def define_app(
     return wrapped(klass) if klass else wrapped
 
 
-def _proxy_input(dstore):
+def _proxy_input(dstore) -> list:
     inputs = []
     for e in dstore:
         if not e:
