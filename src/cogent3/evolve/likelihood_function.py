@@ -266,16 +266,17 @@ class LikelihoodFunction(ParameterController):
         """log-likelihood"""
         return self.get_log_likelihood()
 
-    def get_log_likelihood(self):
+    def get_log_likelihood(self) -> float:
         return self.get_final_result()
 
-    def get_all_psubs(self):
+    def get_all_psubs(self) -> dict:
         """returns all psubs as a dict keyed by used dimensions"""
         try:
             defn = self.defn_for["dsubs"]
         except KeyError:
             defn = self.defn_for["psubs"]
 
+        edge_names = {e.name for e in self.tree.postorder(include_self=False)}
         used_dims = defn.used_dimensions()
         vdims = defn.valid_dimensions
         indices = [vdims.index(k) for k in used_dims if k in vdims]
@@ -283,8 +284,16 @@ class LikelihoodFunction(ParameterController):
         darr_template = DictArrayTemplate(self._motifs, self._motifs)
         for scope, index in defn.index.items():
             psub = defn.values[index]
-            key = tuple(numpy.take(scope, indices))
+            key = tuple(v.item() for v in numpy.take(scope, indices))
+            edge_names -= set(key)
+            key = key[0] if len(key) == 1 else key
             result[key] = darr_template.wrap(psub)
+
+        if edge_names:
+            # if there are edges not in the psubs, they're probably
+            # edges with discrete-time processes
+            for edge_name in edge_names:
+                result[(edge_name,)] = self.get_psub_for_edge(edge_name)
         return result
 
     def get_psub_for_edge(self, name, **kw):
