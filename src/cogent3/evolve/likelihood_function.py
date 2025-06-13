@@ -281,19 +281,22 @@ class LikelihoodFunction(ParameterController):
         vdims = defn.valid_dimensions
         indices = [vdims.index(k) for k in used_dims if k in vdims]
         result = {}
+        key_len = 1
         darr_template = DictArrayTemplate(self._motifs, self._motifs)
         for scope, index in defn.index.items():
             psub = defn.values[index]
             key = tuple(v.item() for v in numpy.take(scope, indices))
+            key_len = len(key)
             edge_names -= set(key)
-            key = key[0] if len(key) == 1 else key
+            key = key[0] if key_len == 1 else key
             result[key] = darr_template.wrap(psub)
 
         if edge_names:
             # if there are edges not in the psubs, they're probably
             # edges with discrete-time processes
             for edge_name in edge_names:
-                result[(edge_name,)] = self.get_psub_for_edge(edge_name)
+                key = edge_name if key_len == 1 else (edge_name,)
+                result[key] = self.get_psub_for_edge(edge_name)
         return result
 
     def get_psub_for_edge(self, name, **kw):
