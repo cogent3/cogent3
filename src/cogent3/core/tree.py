@@ -38,6 +38,7 @@ from itertools import combinations
 from operator import or_
 from random import choice, shuffle
 
+import typing_extensions
 from numpy import argsort, ceil, log, zeros
 
 from cogent3._version import __version__
@@ -46,6 +47,7 @@ from cogent3.parse.cogent3_json import load_from_json
 from cogent3.parse.newick import parse_string as newick_parse_string
 from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
 from cogent3.phylo.tree_distance import get_tree_distance_measure
+from cogent3.util import warning as c3warn
 from cogent3.util.io import atomic_write, get_format_suffixes, open_
 from cogent3.util.misc import get_object_provenance
 
@@ -461,12 +463,18 @@ class TreeNode:
             curr = curr._parent
         return result
 
-    def root(self):
-        """Returns root of the tree self is in. Dynamically calculated."""
+    def get_root(self) -> typing_extensions.Self:
+        """Returns root of the tree self is in."""
         curr = self
         while curr._parent is not None:
             curr = curr._parent
         return curr
+
+    @c3warn.deprecated_callable(
+        "2025.9", reason="misleading method name", new="get_root()"
+    )
+    def root(self) -> typing_extensions.Self:
+        return self.get_root()
 
     def isroot(self):
         """Returns True if root of a tree, i.e. no parent."""
@@ -1796,7 +1804,7 @@ class PhyloNode(TreeNode):
 
     def total_length(self):
         """returns the sum of all branch lengths in tree"""
-        root = self.root()
+        root = self.get_root()
         if root is None:
             msg = "no root to this tree!"
             raise ValueError(msg)

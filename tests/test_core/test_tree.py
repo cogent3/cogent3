@@ -902,7 +902,7 @@ def test_root(tree_nodes, tree_root):
     """TreeNode root() should find root of tree"""
     nodes, root = tree_nodes, tree_root
     for i in list(nodes.values()):
-        assert i.root() is root
+        assert i.get_root() is root
 
 
 def test_children(tree_nodes):
