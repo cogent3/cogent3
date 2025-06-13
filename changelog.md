@@ -1,4 +1,34 @@
 
+<a id='changelog-2025.5.8a7'></a>
+# Changes in release "2025.5.8a7"
+
+This is a minor release with some bugfixes and new features.
+
+## Contributors
+
+- rmcar17, fixed display of support in dendrograms
+- GavinHuttley, assorted
+
+## Enhancements
+
+- `PhyloNode.rooted()` and `TreeNode.rooted()` now return trees that bifurcate
+  at a named edge. Addresses an issue raised by @xonq -- thanks!
+- `Dendrogram(support_is_percent=True)` argument means that thresholds and support
+  statistics on dendrograms are treated as percentages. These are rounded to the
+  nearest integer for display. This is now the default.
+
+## Bug fixes
+
+- `cogent3.util.parallel.is_master_process()` now works correctly
+  when running using MPI. This was affecting the ability to create
+  data stores when running with MPI.
+- fix for displaying support statistics on dendrograms
+
+## Deprecations
+
+- Deprecate `TreeNode.root()` and `PhyloNode.root()` in favour of
+  `<class>.get_root()`.
+
 <a id='changelog-2025.5.8a6'></a>
 # Changes in release "2025.5.8a6"
 
