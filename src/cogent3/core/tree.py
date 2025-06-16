@@ -1375,18 +1375,12 @@ class TreeNode:
             ]
         )
 
-    def _get_node_matching_name(self, name):
-        """
-        find the edge with the name, or return None
-        """
+    def get_node_matching_name(self, name: str) -> typing_extensions.Self | None:
+        """find the edge with the name, or return None"""
         for node in self.traverse(self_before=True, self_after=False):
             if node.name == name:
-                return node
-        return None
-
-    def get_node_matching_name(self, name):
-        node = self._get_node_matching_name(name)
-        if node is None:
+                break
+        else:
             msg = f"No node named '{name}' in {self.get_tip_names()}"
             raise TreeError(msg)
         return node
