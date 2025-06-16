@@ -1357,8 +1357,13 @@ class TreeNode:
             ]
         )
 
-    def get_node_matching_name(self, name: str) -> typing_extensions.Self | None:
-        """find the edge with the name, or return None"""
+    def get_node_matching_name(self, name: str) -> typing_extensions.Self:
+        """find the edge with the name
+
+        Raises
+        -------
+        TreeError if no edge with the name is found
+        """
         for node in self.traverse(self_before=True, self_after=False):
             if node.name == name:
                 break
