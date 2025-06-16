@@ -75,6 +75,31 @@ def _copy_node(n):
     return result
 
 
+def _format_node_name(
+    node, with_node_names: bool, escape_name: bool, with_distances: bool
+) -> str:
+    """Helper function to format node name according to parameters"""
+    if not node.is_tip() and not with_node_names:
+        node_name = ""
+    else:
+        node_name = node.name or ""
+
+    if (
+        node_name
+        and escape_name
+        and not (node_name.startswith("'") and node_name.endswith("'"))
+    ):
+        if re.search("""[]['"(),:;_]""", node_name):
+            node_name = "'{}'".format(node_name.replace("'", "''"))
+        else:
+            node_name = node_name.replace(" ", "_")
+
+    if with_distances and (length := getattr(node, "length", None)) is not None:
+        node_name = f"{node_name}:{length}"
+
+    return node_name
+
+
 class TreeNode:
     """Store information about a tree node. Mutable.
 
@@ -327,7 +352,12 @@ class TreeNode:
         """Returns True if the current is a root, i.e. has no parent."""
         return self._parent is None
 
-    def traverse(self, self_before=True, self_after=False, include_self=True):
+    def traverse(
+        self,
+        self_before: bool = True,
+        self_after: bool = False,
+        include_self: bool = True,
+    ) -> typing_extensions.Iterator[typing_extensions.Self]:
         """Returns iterator over descendants. Iterative: safe for large trees.
 
         self_before includes each node before its descendants if True.
@@ -859,11 +889,11 @@ class TreeNode:
 
     def get_newick(
         self,
-        with_distances=False,
-        semicolon=True,
-        escape_name=True,
-        with_node_names=False,
-    ):
+        with_distances: bool = False,
+        semicolon: bool = True,
+        escape_name: bool = True,
+        with_node_names: bool = False,
+    ) -> str:
         """Return the newick string of node and its descendents
 
         Parameters
@@ -873,71 +903,57 @@ class TreeNode:
         semicolon
             end tree string with a semicolon
         escape_name
-            if any of these characters []'"(),
+            if any of these characters []'"() are within the
             nodes name, wrap the name in single quotes
         with_node_names
-            includes internal node names (except 'root')
+            includes internal node names
         """
-        result = ["("]
-        nodes_stack = [[self, len(self.children)]]
-        node_count = 1
+        # Stack contains tuples of (tree node, visit flag)
+        stack = [(self, False)]
+        node_results = {}  # results cache
 
-        while nodes_stack:
-            node_count += 1
-            # check the top node, any children left unvisited?
-            top = nodes_stack[-1]
-            top_node, num_unvisited_children = top
-            if num_unvisited_children:  # has any child unvisited
-                top[1] -= 1  # decrease the # of children unvisited
-                # - for order
-                next_child = top_node.children[-num_unvisited_children]
-                # pre-visit
-                if next_child.children:
-                    result.append("(")
-                nodes_stack.append([next_child, len(next_child.children)])
-            else:  # no unvisited children
-                nodes_stack.pop()
-                # post-visit
-                if top_node.children:
-                    result[-1] = ")"
+        while stack:
+            node, visited = stack.pop()
 
-                if top_node.name_loaded or with_node_names:
-                    if top_node.name is None or (
-                        with_node_names and top_node.is_root()
-                    ):
-                        name = ""
-                    else:
-                        name = str(top_node.name)
-                        if escape_name and not (
-                            name.startswith("'") and name.endswith("'")
-                        ):
-                            if re.search("""[]['"(),:;_]""", name):
-                                name = "'{}'".format(name.replace("'", "''"))
-                            else:
-                                name = name.replace(" ", "_")
-                    result.append(name)
+            if not visited:
+                # First visit - push back for processing after children
+                stack.append((node, True))
+                # add each child to the stack
+                stack.extend((child, False) for child in node.children)
+            else:
+                # children have been seen once
+                node_name = _format_node_name(
+                    node,
+                    with_node_names=with_node_names,
+                    escape_name=escape_name,
+                    with_distances=with_distances,
+                )
 
-                if (
-                    with_distances
-                    and (length := getattr(top_node, "length", None)) is not None
-                ):
-                    result[-1] = f"{result[-1]}:{length}"
+                # for tips with parent, the typical case
+                if node.is_tip() and node.parent:
+                    node_results[id(node)] = node_name
+                    continue
 
-                result.append(",")
+                # collecting children
+                # Build result for this node
+                if children_newick := [
+                    node_results[id(child)] for child in node.children
+                ]:
+                    result = f"({','.join(children_newick)}){node_name}"
+                else:
+                    result = node_name
 
-        len_result = len(result)
-        if len_result == 2:  # single node no name
-            return ";" if semicolon else ""
+                node_results[id(node)] = result
 
-        if len_result == 3:  # single node with name
-            return f"{result[1]};" if semicolon else result[1]
-        if semicolon:
-            result[-1] = ";"
-        else:
-            result.pop(-1)
-        return "".join(result)
+        # final result
+        final_result = node_results[id(self)]
 
-    def remove_node(self, target) -> bool:
+        if self.is_root() and semicolon:
+            final_result = f"{final_result};"
+
+        return final_result
+
+    def remove_node(self, target: typing_extensions.Self) -> bool:
         """Removes node by identity instead of value.
 
         Returns True if node was present, False otherwise.
@@ -1009,7 +1025,7 @@ class TreeNode:
         if clade:
             # get the list of names contained by join_edge
             for child in join_edge.children:
-                branch_names = child.get_node_names(includeself=1)
+                branch_names = child.get_node_names(include_self=True)
                 edge_names.extend(branch_names)
 
         return edge_names
@@ -1024,18 +1040,18 @@ class TreeNode:
 
     def _get_sub_tree(
         self,
-        included_names,
-        constructor=None,
-        keep_root=False,
-        tipsonly=False,
-    ):
+        included_names: list[str],
+        constructor: TreeNode | PhyloNode | None = None,
+        keep_root: bool = False,
+        tips_only: bool = False,
+    ) -> typing_extensions.Self | None:
         """An equivalent node with possibly fewer children, or None"""
 
         # Renumber autonamed edges
         if constructor is None:
             constructor = self._default_tree_constructor()
 
-        if (self.name in included_names and not tipsonly) or (
+        if (self.name in included_names and not tips_only) or (
             self.name in included_names and self.istip()
         ):
             return self.deepcopy(constructor=constructor)
@@ -1043,7 +1059,7 @@ class TreeNode:
         # internal nodes will be elminated this way
         children = []
         for child in self.children:
-            st = child._get_sub_tree(included_names, constructor, tipsonly=tipsonly)
+            st = child._get_sub_tree(included_names, constructor, tips_only=tips_only)
             children.append(st)
 
         children = [child for child in children if child is not None]
@@ -1090,13 +1106,18 @@ class TreeNode:
             result = constructor(self, tuple(children))
         return result
 
+    @c3warn.deprecated_args(
+        "2025.9",
+        "consistency between methods",
+        [("tipsonly", "tips_only")],
+    )
     def get_sub_tree(
         self,
-        name_list,
-        ignore_missing=False,
-        keep_root=False,
-        tipsonly=False,
-    ):
+        name_list: list[str],
+        ignore_missing: bool = False,
+        keep_root: bool = False,
+        tips_only: bool = False,
+    ) -> typing_extensions.Self:
         """A new instance of a sub tree that contains all the otus that are
         listed in name_list.
 
@@ -1110,11 +1131,11 @@ class TreeNode:
             ancestor of all nodes kept in the subtree. Root to tip distance is
             then (possibly) different from the original tree. If True, the root to
             tip distance remains constant, but root may only have one child node.
-        tipsonly
+        tips_only
             only tip names matching name_list are allowed
 
         """
-        edge_names = set(self.get_node_names(includeself=1, tipsonly=tipsonly))
+        edge_names = set(self.get_node_names(include_self=True, tips_only=tips_only))
         if not ignore_missing:
             # this may take a long time
             for name in name_list:
@@ -1122,7 +1143,9 @@ class TreeNode:
                     msg = f"edge {name!r} not found in tree"
                     raise ValueError(msg)
 
-        new_tree = self._get_sub_tree(name_list, keep_root=keep_root, tipsonly=tipsonly)
+        new_tree = self._get_sub_tree(
+            name_list, keep_root=keep_root, tips_only=tips_only
+        )
         if new_tree is None:
             msg = "no tree created in make sub tree"
             raise TreeError(msg)
@@ -1305,32 +1328,46 @@ class TreeNode:
         with atomic_write(filename, mode="wt") as outf:
             outf.writelines(data)
 
-    def get_node_names(self, includeself=True, tipsonly=False):
+    @c3warn.deprecated_args(
+        "2025.9",
+        "consistency between methods",
+        [("includeself", "include_self"), ("tipsonly", "tips_only")],
+    )
+    def get_node_names(
+        self, include_self: bool = True, tips_only: bool = False
+    ) -> list[str]:
         """Return a list of edges from this edge - may or may not include self.
         This node (or first connection) will be the first, and then they will
         be listed in the natural traverse order.
 
         Parameters
         ----------
-        includeself : bool
+        include_self : bool
             excludes self.name from the result
 
-        tipsonly : bool
+        tips_only : bool
             only tips returned
         """
-        if tipsonly:
+        if tips_only:
             nodes = self.traverse(self_before=False, self_after=False)
         else:
             nodes = list(self.traverse())
-            if not includeself:
+            if not include_self:
                 nodes.remove(self)
         return [node.name for node in nodes]
 
-    def get_tip_names(self, includeself=False):
+    @c3warn.deprecated_args(
+        "2025.9",
+        "consistency between methods",
+        [("includeself", "include_self"), ("tipsonly", "tips_only")],
+    )
+    def get_tip_names(self, include_self: bool = False) -> list[str]:
         """return the list of the names of all tips contained by this edge"""
-        return self.get_node_names(includeself, tipsonly=True)
+        return self.get_node_names(include_self=include_self, tips_only=True)
 
-    def get_edge_vector(self, include_root=True):
+    def get_edge_vector(
+        self, include_root: bool = True
+    ) -> list[typing_extensions.Self]:
         """Collect the list of edges in postfix order
 
         Parameters
@@ -1339,24 +1376,27 @@ class TreeNode:
             specifies whether root edge included
 
         """
-        if include_root:
-            result = list(self.traverse(False, True))
-        else:
-            result = [n for n in self.traverse(False, True) if not n.isroot()]
-        return result
+        return (
+            list(self.traverse(self_before=False, self_after=True))
+            if include_root
+            else [
+                n
+                for n in self.traverse(self_before=False, self_after=True)
+                if not n.isroot()
+            ]
+        )
 
-    def _get_node_matching_name(self, name):
-        """
-        find the edge with the name, or return None
+    def get_node_matching_name(self, name: str) -> typing_extensions.Self:
+        """find the edge with the name
+
+        Raises
+        -------
+        TreeError if no edge with the name is found
         """
         for node in self.traverse(self_before=True, self_after=False):
             if node.name == name:
-                return node
-        return None
-
-    def get_node_matching_name(self, name):
-        node = self._get_node_matching_name(name)
-        if node is None:
+                break
+        else:
             msg = f"No node named '{name}' in {self.get_tip_names()}"
             raise TreeError(msg)
         return node

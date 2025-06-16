@@ -185,7 +185,7 @@ class DndParserTests(TestCase):
         assert len(t) == 2
         assert len(t[0]) == 0  # first child is terminal
         assert len(t[1]) == 2  # second child has two children
-        assert str(t) == "(abc:3.0,(def:4.0,ghi:5.0)jkl:6.0);"
+        assert str(t) == "(abc:3.0,(def:4.0,ghi:5.0):6.0);"
         info_dict = {}
         for node in t.traverse():
             info_dict[node.name] = node.length
@@ -203,7 +203,7 @@ class DndParserTests(TestCase):
         )
         tdata = DndParser(node_data_sample, unescape_name=True)
         assert (
-            str(tdata)
+            tdata.get_newick(with_distances=True, with_node_names=True)
             == "((xyz:0.28124,(def:0.24498,mno:0.03627)A:0.1771)B:0.0487,abc:0.05925,(ghi:0.06914,jkl:0.13776)C:0.09853);"
         )
 
@@ -254,21 +254,27 @@ class PhyloNodeTests(TestCase):
     def test_gops(self):
         """Basic PhyloNode operations should work as expected"""
         p = PhyloNode()
-        assert str(p) == ";"
+        assert p.get_newick(with_node_names=True) == ";"
         p.name = "abc"
-        assert str(p) == "abc;"
+        assert p.get_newick(with_node_names=True) == "abc;"
         p.length = 3
-        assert str(p) == "abc:3;"  # don't suppress branch from root
+        assert (
+            p.get_newick(with_node_names=True, with_distances=True) == "abc:3;"
+        )  # don't suppress branch from root
         q = PhyloNode()
         p.append(q)
-        assert str(p) == "()abc:3;"
+        assert p.get_newick(with_node_names=True, with_distances=True) == "()abc:3;"
         r = PhyloNode()
         q.append(r)
-        assert str(p) == "(())abc:3;"
+        assert p.get_newick(with_node_names=True, with_distances=True) == "(())abc:3;"
         r.name = "xyz"
-        assert str(p) == "((xyz))abc:3;"
+        assert (
+            p.get_newick(with_node_names=True, with_distances=True) == "((xyz))abc:3;"
+        )
         q.length = 2
-        assert str(p) == "((xyz):2)abc:3;"
+        assert (
+            p.get_newick(with_node_names=True, with_distances=True) == "((xyz):2)abc:3;"
+        )
 
 
 def test_make_tree_simple():

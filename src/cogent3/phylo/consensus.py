@@ -87,7 +87,7 @@ def weighted_rooted_majority_rule(weighted_trees, strict=False, attr="support"):
         total += weight
         edges = tree.get_edge_vector()
         for edge in edges:
-            tips = edge.get_tip_names(includeself=True)
+            tips = edge.get_tip_names(include_self=True)
             tips = frozenset(tips)
             if tips not in cladecounts:
                 cladecounts[tips] = 0
