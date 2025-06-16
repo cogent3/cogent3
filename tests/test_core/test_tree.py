@@ -2674,7 +2674,6 @@ def test_rooted_with_tip():
 def tested_rooted_newick():
     tree = make_tree(treestring="(A:0.006,B:0.0025,C:0.003)")
     nt = tree.rooted("A")
-    x = str(nt.children[0])
     got = str(nt.get_newick(with_distances=False))
     assert got in {"(A,(B,C));", "((B,C),A);", "((C,B),A);"}
 
