@@ -75,6 +75,31 @@ def _copy_node(n):
     return result
 
 
+def _format_node_name(
+    node, with_node_names: bool, escape_name: bool, with_distances: bool
+) -> str:
+    """Helper function to format node name according to parameters"""
+    if not node.is_tip() and not with_node_names:
+        node_name = ""
+    else:
+        node_name = node.name or ""
+
+    if (
+        node_name
+        and escape_name
+        and not (node_name.startswith("'") and node_name.endswith("'"))
+    ):
+        if re.search("""[]['"(),:;_]""", node_name):
+            node_name = "'{}'".format(node_name.replace("'", "''"))
+        else:
+            node_name = node_name.replace(" ", "_")
+
+    if with_distances and (length := getattr(node, "length", None)) is not None:
+        node_name = f"{node_name}:{length}"
+
+    return node_name
+
+
 class TreeNode:
     """Store information about a tree node. Mutable.
 
@@ -883,48 +908,52 @@ class TreeNode:
         with_node_names
             includes internal node names
         """
-        if not self.is_tip() and not with_node_names:
-            # if not a tip and not with node names, don't include name
-            node_name = ""
-        else:
-            node_name = self.name or ""
+        # Stack contains tuples of (tree node, visit flag)
+        stack = [(self, False)]
+        node_results = {}  # results cache
 
-        if (
-            node_name
-            and escape_name
-            and not (node_name.startswith("'") and node_name.endswith("'"))
-        ):
-            if re.search("""[]['"(),:;_]""", node_name):
-                node_name = "'{}'".format(node_name.replace("'", "''"))
+        while stack:
+            node, visited = stack.pop()
+
+            if not visited:
+                # First visit - push back for processing after children
+                stack.append((node, True))
+                # add each child to the stack
+                stack.extend((child, False) for child in node.children)
             else:
-                node_name = node_name.replace(" ", "_")
+                # children have been seen once
+                node_name = _format_node_name(
+                    node,
+                    with_node_names=with_node_names,
+                    escape_name=escape_name,
+                    with_distances=with_distances,
+                )
 
-        if with_distances and (length := getattr(self, "length", None)) is not None:
-            node_name = f"{node_name}:{length}"
+                # for tips with parent, the typical case
+                if node.is_tip() and node.parent:
+                    node_results[id(node)] = node_name
+                    continue
 
-        if self.is_tip() and self.parent:
-            return node_name
+                # collecting children
+                # Build result for this node
+                if children_newick := [
+                    node_results[id(child)] for child in node.children
+                ]:
+                    result = f"({','.join(children_newick)}){node_name}"
+                else:
+                    result = node_name
 
-        result = ",".join(
-            child.get_newick(
-                with_distances=with_distances,
-                semicolon=False,
-                escape_name=escape_name,
-                with_node_names=with_node_names,
-            )
-            for child in self.children
-        )
-        if result or self.children:
-            result = f"({result}){node_name}"
-        else:
-            result = node_name
+                node_results[id(node)] = result
 
-        if self.is_root():
-            result = f"{result};" if semicolon else result
+        # final result
+        final_result = node_results[id(self)]
 
-        return result
+        if self.is_root() and semicolon:
+            final_result = f"{final_result};"
 
-    def remove_node(self, target) -> bool:
+        return final_result
+
+    def remove_node(self, target: typing_extensions.Self) -> bool:
         """Removes node by identity instead of value.
 
         Returns True if node was present, False otherwise.
