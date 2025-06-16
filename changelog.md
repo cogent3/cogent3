@@ -1,4 +1,14 @@
 
+<a id='changelog-2025.5.8a8'></a>
+# Changes in release "2025.5.8a8"
+
+A minor bug fix release.
+
+## Bug fixes
+
+- The newick string for some trees created using the recently introduced
+  `rooted(edge_name)` method were not correct if `edge_name` was a tip.
+
 <a id='changelog-2025.5.8a7'></a>
 # Changes in release "2025.5.8a7"
 
