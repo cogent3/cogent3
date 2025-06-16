@@ -933,7 +933,7 @@ class LikelihoodFunctionTests(TestCase):
         lf.optimise(max_evaluations=10, limit_action="ignore", show_progress=False)
         stats = lf.get_statistics()
         timehet_edge_names = {
-            n for n in self.tree.get_node_names(includeself=False) if n not in edges
+            n for n in self.tree.get_node_names(include_self=False) if n not in edges
         }
         for t in stats:
             if t.title == "edge locus params":
@@ -1019,7 +1019,7 @@ class LikelihoodFunctionTests(TestCase):
         lf = self.submodel.make_likelihood_function(self.tree)
         lf.set_time_heterogeneity(is_independent=True)
         got = lf.get_num_free_params()
-        assert got == nfp + len(lf.tree.get_node_names(includeself=False)) - 1
+        assert got == nfp + len(lf.tree.get_node_names(include_self=False)) - 1
 
         # we should be able to specify a set of edges that get treated as a block
         # if not specified, the edges are considered to be not-independent

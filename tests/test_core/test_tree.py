@@ -1240,9 +1240,9 @@ def test_make_tree_array(tree_root):
 def test_get_node_names():
     """get_node_names works correctly"""
     tree = make_tree(treestring="((a:3,(b:2,(c:1,d:1):1):1):2,(e:3,f:3):2);")
-    names = tree.get_node_names(includeself=False, tipsonly=False)
+    names = tree.get_node_names(include_self=False, tips_only=False)
     assert tree.name not in names
-    names = tree.get_node_names(includeself=True, tipsonly=False)
+    names = tree.get_node_names(include_self=True, tips_only=False)
     assert tree.name in names
     tree.get_node_matching_name("a")
 
@@ -2367,14 +2367,14 @@ def test_getsubtree_5():
         if "Mus" in edge.name:
             edge.name = "Mus musculus"
 
-    sub1 = tree.get_sub_tree(names, tipsonly=False)
+    sub1 = tree.get_sub_tree(names, tips_only=False)
     assert tree.same_topology(sub1)
     expect = make_tree(
         treestring="(Homo_sapiens,Mus_musculus,"
         "(Canis_familiaris,Ornithorhynchus_anatinus))",
         underscore_unmunge=True,
     )
-    sub2 = tree.get_sub_tree(names, tipsonly=True)
+    sub2 = tree.get_sub_tree(names, tips_only=True)
     assert expect.same_topology(sub2)
 
 
@@ -2388,7 +2388,7 @@ def test_getsubtree_6():
     for edge in tree.postorder(include_self=False):
         edge.params["non-scalar"] = {edge.name: vals.get(edge.name, 99)}
 
-    sub1 = tree.get_sub_tree(names, tipsonly=False)
+    sub1 = tree.get_sub_tree(names, tips_only=False)
     assert set(tree.get_tip_names()), set("ABC")
     # the edge value for "non-scalar" should be same as original tree
     assert all(sub1.get_node_matching_name(name).params["non-scalar"] for name in names)

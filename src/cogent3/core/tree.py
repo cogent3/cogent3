@@ -327,7 +327,12 @@ class TreeNode:
         """Returns True if the current is a root, i.e. has no parent."""
         return self._parent is None
 
-    def traverse(self, self_before=True, self_after=False, include_self=True):
+    def traverse(
+        self,
+        self_before: bool = True,
+        self_after: bool = False,
+        include_self: bool = True,
+    ) -> typing_extensions.Iterator[typing_extensions.Self]:
         """Returns iterator over descendants. Iterative: safe for large trees.
 
         self_before includes each node before its descendants if True.
@@ -1009,7 +1014,7 @@ class TreeNode:
         if clade:
             # get the list of names contained by join_edge
             for child in join_edge.children:
-                branch_names = child.get_node_names(includeself=1)
+                branch_names = child.get_node_names(include_self=True)
                 edge_names.extend(branch_names)
 
         return edge_names
@@ -1024,18 +1029,18 @@ class TreeNode:
 
     def _get_sub_tree(
         self,
-        included_names,
-        constructor=None,
-        keep_root=False,
-        tipsonly=False,
-    ):
+        included_names: list[str],
+        constructor: TreeNode | PhyloNode | None = None,
+        keep_root: bool = False,
+        tips_only: bool = False,
+    ) -> typing_extensions.Self | None:
         """An equivalent node with possibly fewer children, or None"""
 
         # Renumber autonamed edges
         if constructor is None:
             constructor = self._default_tree_constructor()
 
-        if (self.name in included_names and not tipsonly) or (
+        if (self.name in included_names and not tips_only) or (
             self.name in included_names and self.istip()
         ):
             return self.deepcopy(constructor=constructor)
@@ -1043,7 +1048,7 @@ class TreeNode:
         # internal nodes will be elminated this way
         children = []
         for child in self.children:
-            st = child._get_sub_tree(included_names, constructor, tipsonly=tipsonly)
+            st = child._get_sub_tree(included_names, constructor, tips_only=tips_only)
             children.append(st)
 
         children = [child for child in children if child is not None]
@@ -1090,13 +1095,18 @@ class TreeNode:
             result = constructor(self, tuple(children))
         return result
 
+    @c3warn.deprecated_args(
+        "2025.9",
+        "consistency between methods",
+        [("tipsonly", "tips_only")],
+    )
     def get_sub_tree(
         self,
-        name_list,
-        ignore_missing=False,
-        keep_root=False,
-        tipsonly=False,
-    ):
+        name_list: list[str],
+        ignore_missing: bool = False,
+        keep_root: bool = False,
+        tips_only: bool = False,
+    ) -> typing_extensions.Self:
         """A new instance of a sub tree that contains all the otus that are
         listed in name_list.
 
@@ -1110,11 +1120,11 @@ class TreeNode:
             ancestor of all nodes kept in the subtree. Root to tip distance is
             then (possibly) different from the original tree. If True, the root to
             tip distance remains constant, but root may only have one child node.
-        tipsonly
+        tips_only
             only tip names matching name_list are allowed
 
         """
-        edge_names = set(self.get_node_names(includeself=1, tipsonly=tipsonly))
+        edge_names = set(self.get_node_names(include_self=True, tips_only=tips_only))
         if not ignore_missing:
             # this may take a long time
             for name in name_list:
@@ -1122,7 +1132,9 @@ class TreeNode:
                     msg = f"edge {name!r} not found in tree"
                     raise ValueError(msg)
 
-        new_tree = self._get_sub_tree(name_list, keep_root=keep_root, tipsonly=tipsonly)
+        new_tree = self._get_sub_tree(
+            name_list, keep_root=keep_root, tips_only=tips_only
+        )
         if new_tree is None:
             msg = "no tree created in make sub tree"
             raise TreeError(msg)
@@ -1305,32 +1317,46 @@ class TreeNode:
         with atomic_write(filename, mode="wt") as outf:
             outf.writelines(data)
 
-    def get_node_names(self, includeself=True, tipsonly=False):
+    @c3warn.deprecated_args(
+        "2025.9",
+        "consistency between methods",
+        [("includeself", "include_self"), ("tipsonly", "tips_only")],
+    )
+    def get_node_names(
+        self, include_self: bool = True, tips_only: bool = False
+    ) -> list[str]:
         """Return a list of edges from this edge - may or may not include self.
         This node (or first connection) will be the first, and then they will
         be listed in the natural traverse order.
 
         Parameters
         ----------
-        includeself : bool
+        include_self : bool
             excludes self.name from the result
 
-        tipsonly : bool
+        tips_only : bool
             only tips returned
         """
-        if tipsonly:
+        if tips_only:
             nodes = self.traverse(self_before=False, self_after=False)
         else:
             nodes = list(self.traverse())
-            if not includeself:
+            if not include_self:
                 nodes.remove(self)
         return [node.name for node in nodes]
 
-    def get_tip_names(self, includeself=False):
+    @c3warn.deprecated_args(
+        "2025.9",
+        "consistency between methods",
+        [("includeself", "include_self"), ("tipsonly", "tips_only")],
+    )
+    def get_tip_names(self, include_self: bool = False) -> list[str]:
         """return the list of the names of all tips contained by this edge"""
-        return self.get_node_names(includeself, tipsonly=True)
+        return self.get_node_names(include_self=include_self, tips_only=True)
 
-    def get_edge_vector(self, include_root=True):
+    def get_edge_vector(
+        self, include_root: bool = True
+    ) -> list[typing_extensions.Self]:
         """Collect the list of edges in postfix order
 
         Parameters
@@ -1339,11 +1365,15 @@ class TreeNode:
             specifies whether root edge included
 
         """
-        if include_root:
-            result = list(self.traverse(False, True))
-        else:
-            result = [n for n in self.traverse(False, True) if not n.isroot()]
-        return result
+        return (
+            list(self.traverse(self_before=False, self_after=True))
+            if include_root
+            else [
+                n
+                for n in self.traverse(self_before=False, self_after=True)
+                if not n.isroot()
+            ]
+        )
 
     def _get_node_matching_name(self, name):
         """
