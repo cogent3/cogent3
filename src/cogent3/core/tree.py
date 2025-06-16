@@ -878,10 +878,10 @@ class TreeNode:
         semicolon
             end tree string with a semicolon
         escape_name
-            if any of these characters []'"(),
+            if any of these characters []'"() are within the
             nodes name, wrap the name in single quotes
         with_node_names
-            includes internal node names (except 'root')
+            includes internal node names
         """
         if not self.is_tip() and not with_node_names:
             # if not a tip and not with node names, don't include name
