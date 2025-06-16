@@ -864,11 +864,11 @@ class TreeNode:
 
     def get_newick(
         self,
-        with_distances=False,
-        semicolon=True,
-        escape_name=True,
-        with_node_names=False,
-    ):
+        with_distances: bool = False,
+        semicolon: bool = True,
+        escape_name: bool = True,
+        with_node_names: bool = False,
+    ) -> str:
         """Return the newick string of node and its descendents
 
         Parameters
@@ -883,64 +883,46 @@ class TreeNode:
         with_node_names
             includes internal node names (except 'root')
         """
-        result = ["("]
-        nodes_stack = [[self, len(self.children)]]
-        node_count = 1
-
-        while nodes_stack:
-            node_count += 1
-            # check the top node, any children left unvisited?
-            top = nodes_stack[-1]
-            top_node, num_unvisited_children = top
-            if num_unvisited_children:  # has any child unvisited
-                top[1] -= 1  # decrease the # of children unvisited
-                # - for order
-                next_child = top_node.children[-num_unvisited_children]
-                # pre-visit
-                if next_child.children:
-                    result.append("(")
-                nodes_stack.append([next_child, len(next_child.children)])
-            else:  # no unvisited children
-                nodes_stack.pop()
-                # post-visit
-                if top_node.children:
-                    result[-1] = ")"
-
-                if top_node.name_loaded or with_node_names:
-                    if top_node.name is None or (
-                        with_node_names and top_node.is_root()
-                    ):
-                        name = ""
-                    else:
-                        name = str(top_node.name)
-                        if escape_name and not (
-                            name.startswith("'") and name.endswith("'")
-                        ):
-                            if re.search("""[]['"(),:;_]""", name):
-                                name = "'{}'".format(name.replace("'", "''"))
-                            else:
-                                name = name.replace(" ", "_")
-                    result.append(name)
-
-                if (
-                    with_distances
-                    and (length := getattr(top_node, "length", None)) is not None
-                ):
-                    result[-1] = f"{result[-1]}:{length}"
-
-                result.append(",")
-
-        len_result = len(result)
-        if len_result == 2:  # single node no name
-            return ";" if semicolon else ""
-
-        if len_result == 3:  # single node with name
-            return f"{result[1]};" if semicolon else result[1]
-        if semicolon:
-            result[-1] = ";"
+        if not self.is_tip() and not with_node_names:
+            # if not a tip and not with node names, don't include name
+            node_name = ""
         else:
-            result.pop(-1)
-        return "".join(result)
+            node_name = self.name or ""
+
+        if (
+            node_name
+            and escape_name
+            and not (node_name.startswith("'") and node_name.endswith("'"))
+        ):
+            if re.search("""[]['"(),:;_]""", node_name):
+                node_name = "'{}'".format(node_name.replace("'", "''"))
+            else:
+                node_name = node_name.replace(" ", "_")
+
+        if with_distances and (length := getattr(self, "length", None)) is not None:
+            node_name = f"{node_name}:{length}"
+
+        if self.is_tip() and self.parent:
+            return node_name
+
+        result = ",".join(
+            child.get_newick(
+                with_distances=with_distances,
+                semicolon=False,
+                escape_name=escape_name,
+                with_node_names=with_node_names,
+            )
+            for child in self.children
+        )
+        if result or self.children:
+            result = f"({result}){node_name}"
+        else:
+            result = node_name
+
+        if self.is_root():
+            result = f"{result};" if semicolon else result
+
+        return result
 
     def remove_node(self, target) -> bool:
         """Removes node by identity instead of value.
