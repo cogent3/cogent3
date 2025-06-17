@@ -26,13 +26,17 @@ DNA = cogent3.get_moltype("dna")
 @pytest.fixture
 def gff_db(DATA_DIR):
     path = DATA_DIR / "c_elegans_WS199_shortened_gff.gff3"
-    return load_annotations(path=path)
+    db = load_annotations(path=path)
+    yield db
+    db.close()
 
 
 @pytest.fixture
 def gff_small_db(DATA_DIR):
     path = DATA_DIR / "simple.gff"
-    return load_annotations(path=path)
+    db = load_annotations(path=path)
+    yield db
+    db.close()
 
 
 @pytest.fixture
@@ -1126,6 +1130,7 @@ def test_update_file_format(db_name, cls, backup, tmp_path, request):
 
     # The tables should remain the same
     assert old_tables == new_tables
+    db.close()
 
 
 @pytest.mark.parametrize(
