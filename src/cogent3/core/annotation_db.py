@@ -698,10 +698,6 @@ class SqliteAnnotationDbMixin:
     def __eq__(self, other: object) -> bool:
         return isinstance(other, self.__class__) and other.db is self.db
 
-    def __del__(self) -> None:
-        """close the db connection when the object is deleted"""
-        self.close()
-
     @property
     def table_names(self) -> tuple[str]:
         return self._table_names
