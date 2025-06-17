@@ -1584,7 +1584,7 @@ class SequenceCollection:
 
         seq1 = self.seqs[name1]
         seq2 = self.seqs[name2]
-        annotated = self._annotation_db and any(
+        annotated = self._annotation_db is not None and any(
             self._annotation_db.num_matches(seqid=self._name_map[n], biotype=biotype)
             for n in [name1, name2]
         )
@@ -6134,7 +6134,7 @@ class Alignment(SequenceCollection):
             msg = "Feature does not belong to this alignment"
             raise ValueError(msg)
         result = feature.remapped_to(target_aligned.seq, target_aligned.map)
-        # property ensures db is createed
+        # property ensures db is created
         self.annotation_db.add_feature(**feature.to_dict())
         return result
 
