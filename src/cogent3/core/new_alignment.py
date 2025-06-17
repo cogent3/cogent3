@@ -710,7 +710,7 @@ class SequenceCollection:
         return self.moltype.make_seq(
             seq=sv,
             name=name,
-            annotation_db=self.annotation_db,
+            annotation_db=self._annotation_db,
         )
 
     def _get_init_kwargs(self) -> dict:
@@ -724,7 +724,7 @@ class SequenceCollection:
             "moltype": self.moltype,
             "name_map": dict(self._name_map),
             "info": self.info.copy(),
-            "annotation_db": self.annotation_db,
+            "annotation_db": self._annotation_db,
             "source": self.source,
             "is_reversed": self._is_reversed,
         }
@@ -874,15 +874,15 @@ class SequenceCollection:
 
         init_kwargs = self._get_init_kwargs()
         init_kwargs["name_map"] = selected_name_map
-        if self.annotation_db:
+        if self._annotation_db:
             if copy_annotations:
-                ann_db = type(self.annotation_db)()
+                ann_db = type(self._annotation_db)()
                 ann_db.update(
-                    annot_db=self.annotation_db,
+                    annot_db=self._annotation_db,
                     seqids=list(selected_name_map),
                 )
             else:
-                ann_db = self.annotation_db
+                ann_db = self._annotation_db
             init_kwargs["annotation_db"] = ann_db
 
         return self.__class__(**init_kwargs)
@@ -954,11 +954,11 @@ class SequenceCollection:
         # which self.seqs[seq_name] does not. This is a difference to the original implementation,
         # so it needs more thought.
         seq = self.seqs[seqname]
-        if copy_annotations:
-            seq.annotation_db = type(self.annotation_db)()
-            seq.annotation_db.update(annot_db=self.annotation_db, seqids=seqname)
+        if copy_annotations and self._annotation_db:
+            seq.annotation_db = type(self._annotation_db)()
+            seq.annotation_db.update(annot_db=self._annotation_db, seqids=seqname)
         else:
-            seq.annotation_db = self.annotation_db
+            seq.annotation_db = self._annotation_db
 
         return seq
 
@@ -994,7 +994,7 @@ class SequenceCollection:
             name_map={**self._name_map, **name_map},
             info=self.info,
             source=self.source,
-            annotation_db=self.annotation_db,
+            annotation_db=self._annotation_db,
         )
 
     def rename_seqs(self, renamer: Callable[[str], str]) -> typing_extensions.Self:
@@ -1314,17 +1314,17 @@ class SequenceCollection:
             # no matching ID's, nothing to do
             return
 
-        if self.annotation_db is None:
-            self.annotation_db = type(seq_db)()
+        if self._annotation_db is None:
+            self._annotation_db = type(seq_db)()
 
-        if self.annotation_db.compatible(seq_db, symmetric=False):
+        if self._annotation_db.compatible(seq_db, symmetric=False):
             # our db contains the tables in other, so we update in place
-            self.annotation_db.update(annot_db=seq_db, seqids=self.names)
+            self._annotation_db.update(annot_db=seq_db, seqids=self.names)
         else:
             # we use the union method to define a new one
             # the setter handles propagation of the new instance to bound
             # sequences
-            self.annotation_db = self.annotation_db.union(seq_db)
+            self._annotation_db = self._annotation_db.union(seq_db)
 
     def make_feature(
         self,
@@ -1387,6 +1387,7 @@ class SequenceCollection:
 
         feature = {k: v for k, v in locals().items() if k != "self"}
         feature["strand"] = Strand.from_value(strand).value
+        # property ensures db is created
         self.annotation_db.add_feature(**feature)
         feature.pop("parent_id", None)
         return self.make_feature(feature=feature)
@@ -1431,14 +1432,14 @@ class SequenceCollection:
 
         """
 
-        if not self.annotation_db:
+        if not self._annotation_db:
             return None
 
         if seqid and (seqid not in self.names):
             msg = f"unknown {seqid=}"
             raise ValueError(msg)
 
-        for feature in self.annotation_db.get_features_matching(
+        for feature in self._annotation_db.get_features_matching(
             seqid=seqid,
             biotype=biotype,
             name=name,
@@ -1583,8 +1584,8 @@ class SequenceCollection:
 
         seq1 = self.seqs[name1]
         seq2 = self.seqs[name2]
-        annotated = any(
-            self.annotation_db.num_matches(seqid=self._name_map[n], biotype=biotype)
+        annotated = self._annotation_db and any(
+            self._annotation_db.num_matches(seqid=self._name_map[n], biotype=biotype)
             for n in [name1, name2]
         )
         dotplot = Dotplot(
@@ -1713,7 +1714,7 @@ class SequenceCollection:
             offset=self._seqs_data.offset,
             check=False,
         )
-        init_kwargs["annotation_db"] = self.annotation_db or None
+        init_kwargs["annotation_db"] = self._annotation_db
         return self.__class__(**init_kwargs)
 
     def counts_per_seq(
@@ -3215,7 +3216,7 @@ class Aligned:
             seq = self.moltype.complement(seq)
 
         mt_seq = self.moltype.make_seq(seq=seq, name=self.data.seqid)
-        ann_db = self.annotation_db if self.data.slice_record.plus_step == 1 else None
+        ann_db = self._annotation_db if self.data.slice_record.plus_step == 1 else None
         mt_seq.replace_annotation_db(ann_db)
         return mt_seq
 
@@ -4578,7 +4579,7 @@ class Alignment(SequenceCollection):
             "moltype": self.moltype,
             "name_map": dict(self._name_map),
             "info": self.info.copy(),
-            "annotation_db": self.annotation_db,
+            "annotation_db": self._annotation_db,
             "slice_record": self._slice_record,
             "source": self.source,
         }
@@ -4653,7 +4654,7 @@ class Alignment(SequenceCollection):
             slice_record=self._slice_record,
         )
         aligned = Aligned(data=adv, moltype=self.moltype, name=seqid)
-        aligned.annotation_db = self.annotation_db
+        aligned.annotation_db = self._annotation_db
         return aligned
 
     @property
@@ -4711,11 +4712,11 @@ class Alignment(SequenceCollection):
             annotations are copied.
         """
         seq = self.seqs[seqname].seq
-        if copy_annotations:
-            seq.annotation_db = type(self.annotation_db)()
-            seq.annotation_db.update(annot_db=self.annotation_db, seqids=seqname)
+        if copy_annotations and self._annotation_db:
+            seq.annotation_db = type(self._annotation_db)()
+            seq.annotation_db.update(annot_db=self._annotation_db, seqids=seqname)
         else:
-            seq.annotation_db = self.annotation_db
+            seq.annotation_db = self._annotation_db
 
         return seq
 
@@ -5329,7 +5330,7 @@ class Alignment(SequenceCollection):
             if sr.step < 0
             else data
         )
-        kwargs["annotation_db"] = self.annotation_db
+        kwargs["annotation_db"] = self._annotation_db
         kwargs["storage_backend"] = storage_backend
         return make_unaligned_seqs(data, moltype=self.moltype, info=self.info, **kwargs)
 
@@ -5963,11 +5964,9 @@ class Alignment(SequenceCollection):
             msg = f"unknown {seqid=}"
             raise ValueError(msg)
 
-        if not self.annotation_db:
-            self.annotation_db = DEFAULT_ANNOTATION_DB()
-
         feature = {k: v for k, v in locals().items() if k != "self"}
         feature["strand"] = Strand.from_value(strand).value
+        # property ensures db is created
         self.annotation_db.add_feature(**feature)
         for discard in ("on_alignment", "parent_id"):
             feature.pop(discard, None)
@@ -6000,7 +5999,7 @@ class Alignment(SequenceCollection):
         yield a sequence segment that is consistently oriented irrespective
         of strand of the current instance.
         """
-        if self.annotation_db is None:
+        if self._annotation_db is None:
             return None
 
         seqid_to_seqname = {v: k for k, v in self._name_map.items()}
@@ -6025,7 +6024,7 @@ class Alignment(SequenceCollection):
             parent_id, start, stop, _ = seq.parent_coordinates()
             offset = seq.data.offset
 
-            for feature in self.annotation_db.get_features_matching(
+            for feature in self._annotation_db.get_features_matching(
                 seqid=parent_id,
                 biotype=biotype,
                 name=name,
@@ -6070,7 +6069,7 @@ class Alignment(SequenceCollection):
         yield a sequence segment that is consistently oriented irrespective
         of strand of the current instance.
         """
-        if self.annotation_db is None or not len(self.annotation_db):
+        if self._annotation_db is None or not len(self._annotation_db):
             return None
 
         # we only do on-alignment in here
@@ -6084,7 +6083,7 @@ class Alignment(SequenceCollection):
             return
 
         seq_map = None
-        for feature in self.annotation_db.get_features_matching(
+        for feature in self._annotation_db.get_features_matching(
             biotype=biotype,
             name=name,
             on_alignment=on_alignment,
@@ -6135,11 +6134,7 @@ class Alignment(SequenceCollection):
             msg = "Feature does not belong to this alignment"
             raise ValueError(msg)
         result = feature.remapped_to(target_aligned.seq, target_aligned.map)
-
-        if not self.annotation_db:
-            # TODO gah improve bound db initialisation
-            self.annotation_db = DEFAULT_ANNOTATION_DB()
-
+        # property ensures db is createed
         self.annotation_db.add_feature(**feature.to_dict())
         return result
 
@@ -6901,7 +6896,7 @@ class Alignment(SequenceCollection):
         kwargs["annotation_db"] = (
             None
             if len(self) != self._seqs_data.align_len
-            else copy.deepcopy(self.annotation_db)
+            else copy.deepcopy(self._annotation_db)
         )
         new_seqs_data = {
             n: self._seqs_data.get_gapped_seq_array(
