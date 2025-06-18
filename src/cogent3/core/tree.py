@@ -516,7 +516,7 @@ class TreeNode:
             halved. The new tree will have two children.
         """
         tree = self.deepcopy()
-        if self.name != "root":
+        if not self.is_root():
             msg = (
                 f"cannot apply from non-root node {self.name!r}, "
                 "use self.get_root() first"
