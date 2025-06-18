@@ -738,7 +738,9 @@ class DistanceMatrix(DictArray):
         self.source = source
 
     @classmethod
-    def from_array_names(cls, matrix: numpy.ndarray, names: PySeqStr, invalid=None):
+    def from_array_names(
+        cls, matrix: numpy.ndarray, names: PySeqStr, invalid=None
+    ) -> "DistanceMatrix":
         """construct a distance matrix from numpy array and names"""
         darr = DictArray.from_array_names(matrix, names, names)
         return cls(darr, invalid=invalid)

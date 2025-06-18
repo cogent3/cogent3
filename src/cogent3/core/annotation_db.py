@@ -1562,6 +1562,7 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin, AnnotationDbABC):
         col_order = [
             r["name"] for r in self.db.execute("PRAGMA table_info(gb)").fetchall()
         ]
+
         val_placeholder = ", ".join("?" * len(col_order))
         sql = f"INSERT INTO gb ({', '.join(col_order)}) VALUES ({val_placeholder})"
 
@@ -1990,3 +1991,4 @@ def update_file_format(
                 f"UPDATE {table_name} SET {column}=update_array_format({column});",
             )
         conn.commit()
+    anno_db.close()
