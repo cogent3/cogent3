@@ -1687,6 +1687,44 @@ def test__find_midpoint_nodes(phylo_nodes, phylo_root):
     assert result == (nodes["f"], nodes["c"])
 
 
+def test_tip_to_root_distances_phlylo():
+    treestring = "(a:1,b:4,((c:3,d:2,e:1):5):2);"
+    tree = make_tree(treestring)
+    expect = {"a": 1, "b": 4, "c": 10, "d": 9, "e": 8}
+    got = tree.tip_to_root_distances()
+    assert got == expect
+    got = tree.tip_to_root_distances(
+        names=[
+            "c",
+            "a",
+        ]
+    )
+    assert got == {"c": 10, "a": 1}
+
+
+def test_tip_to_root_distances_tree():
+    treestring = "(a:1,b:4,((c:3,d:2,e:2):5):2);"
+    tree = DndParser(treestring, constructor=TreeNode)
+    expect = {"a": 1, "b": 1, "c": 3, "d": 3, "e": 3}
+    got = tree.tip_to_root_distances()
+    assert got == expect
+    got = tree.tip_to_root_distances(
+        names=[
+            "c",
+            "a",
+        ]
+    )
+    assert got == {"c": 3, "a": 1}
+
+
+@pytest.mark.parametrize("cls", [TreeNode, PhyloNode])
+def test_tip_to_root_distances_missing_names(cls):
+    treestring = "(a:1,b:4,((c:3,d:2,e:2):5):2);"
+    tree = DndParser(treestring, constructor=cls)
+    with pytest.raises(TreeError):
+        tree.tip_to_root_distances(names=["x"])
+
+
 def test_root_at_midpoint(phylo_nodes, phylo_root):
     """root_at_midpoint performs midpoint rooting"""
     nodes, tree = phylo_nodes, phylo_root

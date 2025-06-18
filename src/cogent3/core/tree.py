@@ -1666,6 +1666,40 @@ class TreeNode:
             known_weight += 1
         return edge.unrooted_deepcopy()
 
+    def tip_to_root_distances(
+        self, names: list[str] | None = None, default_length: float = 1
+    ) -> dict[str, float]:
+        """returns the cumulative sum of lengths from each tip to the root
+
+        Parameters
+        ----------
+        names
+            list of tip names to calculate distances for, defaults to all
+        default_length
+            value to use for edges that do not have a length attribute
+
+        Notes
+        -----
+        For the tree node this counts the number of edges from each tip to the root.
+        """
+        tips = list(self.tips())
+        if names is not None:
+            tips = [t for t in tips if t.name in names]
+
+        if not tips:
+            msg = f"No tips matching in {names!r}"
+            raise TreeError(msg)
+
+        dists = {}
+        for tip in tips:
+            node = tip
+            cum_sum = 0.0
+            while node.parent is not None:
+                cum_sum += default_length
+                node = node.parent
+            dists[tip.name] = cum_sum
+        return dists
+
     def same_topology(self, other):
         """Tests whether two trees have the same topology."""
         tip_names = self.get_tip_names()
@@ -2327,6 +2361,36 @@ class PhyloNode(TreeNode):
     def parse_token(token: str) -> tuple[str | None, dict]:
         name, attrs = split_name_and_support(token)
         return (name, {"support": attrs}) if attrs else (name, {})
+
+    def tip_to_root_distances(
+        self, names: list[str] | None = None, default_length: float = 1
+    ) -> dict[str, float]:
+        """returns the cumulative sum of lengths from each tip to the root
+
+        Parameters
+        ----------
+        names
+            list of tip names to calculate distances for, defaults to all
+        default_length
+            value to use for edges that no length value
+        """
+        tips = list(self.tips())
+        if names is not None:
+            tips = [t for t in tips if t.name in names]
+
+        if not tips:
+            msg = f"No tips matching in {names!r}"
+            raise TreeError(msg)
+
+        dists = {}
+        for tip in tips:
+            node = tip
+            cum_sum = 0.0
+            while node.parent is not None:
+                cum_sum += node.length or default_length
+                node = node.parent
+            dists[tip.name] = cum_sum
+        return dists
 
 
 def split_name_and_support(name_field: str | None) -> tuple[str | None, float | None]:
