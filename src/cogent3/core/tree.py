@@ -556,6 +556,7 @@ class TreeNode:
 
         result = self.__class__(name="root", children=[left, right])
         result.source = self.source
+        result.prune()
         return result
 
     def isroot(self):
