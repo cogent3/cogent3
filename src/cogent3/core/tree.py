@@ -2066,6 +2066,7 @@ class PhyloNode(TreeNode):
 
     def set_tip_distances(self) -> None:
         """Sets distance from each node to the most distant tip."""
+        # refactor: stop creating new attributes, use existing ones
         for node in self.traverse(self_before=False, self_after=True):
             if node.children:
                 node.TipDistance = max(
@@ -2088,6 +2089,7 @@ class PhyloNode(TreeNode):
             for node in self.traverse():
                 curr = node.length
                 if curr is not None:
+                    # refactor: stop creating new attributes, use existing ones
                     node.ScaledBranchLength = max(
                         1,
                         int(round(1.0 * curr / orig_max * max_length)),
@@ -2095,6 +2097,7 @@ class PhyloNode(TreeNode):
         else:  # hard case -- need to make sure they all line up at the end
             for node in self.traverse(self_before=False, self_after=True):
                 if not node.children:  # easy case: ignore tips
+                    # refactor: stop creating new attributes, use existing ones
                     node.DistanceUsed = 0
                     continue
                 # if we get here, we know the node has children
@@ -2352,6 +2355,7 @@ class PhyloNode(TreeNode):
                     tip_b, child_b = tip_info[best_idx[1]]
                     tip_a[0] += child_a.length or 0.0
                     tip_b[0] += child_b.length or 0.0
+                # refactor: stop creating new attributes, use existing ones
                 n.MaxDistTips = [tip_a, tip_b]
 
     @staticmethod
