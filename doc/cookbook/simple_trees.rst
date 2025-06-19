@@ -18,6 +18,8 @@ Loading a tree from a file and visualizing it with ``ascii_art()``
     tr = load_tree("data/test.tree")
     print(tr.ascii_art())
 
+.. note:: See the :ref:`tree-gallery` for interactive graphical display of dendrograms.
+
 Writing a tree to a file
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -28,41 +30,39 @@ Writing a tree to a file
     tr = load_tree("data/test.tree")
     tr.write("data/temp.tree")
 
-Getting the individual nodes of a tree by name
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Getting a ``dict`` nodes keyed by their name
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
 
     from cogent3 import load_tree
 
     tr = load_tree("data/test.tree")
-    names = tr.get_node_names()
-    names[:4]
-
-.. jupyter-execute::
-
-    names[4:]
     names_nodes = tr.get_nodes_dict()
     names_nodes["Human"]
 
-.. jupyter-execute::
+Getting the name of a node
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    tr.get_node_matching_name("Mouse")
-
-Getting the name of a node (or a tree)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The root node name defaults to ``"root"``.
 
 .. jupyter-execute::
 
     from cogent3 import load_tree
 
     tr = load_tree("data/test.tree")
-    hu = tr.get_node_matching_name("Human")
     tr.name
 
 .. jupyter-execute::
 
+    hu = tr.get_node_matching_name("Human")
     hu.name
+
+You can ensure internal nodes get named
+
+.. jupyter-execute::
+
+    tr.name_unnamed_nodes()
 
 The object type of a tree and its nodes is the same
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -72,18 +72,18 @@ The object type of a tree and its nodes is the same
     from cogent3 import load_tree
 
     tr = load_tree("data/test.tree")
-    nodes = tr.get_nodes_dict()
-    hu = nodes["Human"]
-    type(hu)
+    type(tr)
 
 .. jupyter-execute::
 
-    type(tr)
+    nodes = tr.get_nodes_dict()
+    hu = tr.get_node_matching_name("Human")
+    type(hu)
 
 Working with the nodes of a tree
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Get all the nodes, tips and edges
+Get all the nodes, tips and edges as a ``dict``.
 
 .. jupyter-execute::
 
@@ -94,24 +94,39 @@ Get all the nodes, tips and edges
     for n in nodes.items():
         print(n)
 
-only the terminal nodes (tips)
+As a list.
+
+.. jupyter-execute::
+
+    nodes = tr.get_edge_vector()
+
+Only the tip (terminal) nodes as a list.
+
+.. jupyter-execute::
+
+    tips = tr.tips()
+
+Iterate the tip nodes.
 
 .. jupyter-execute::
 
     for n in tr.iter_tips():
-        print(n)
+        print(n.name)
 
-for internal nodes (edges) we can use Newick format to simplify the output
+Get just the internal nodes as a list
 
 .. jupyter-execute::
 
-    from cogent3 import load_tree
+    non_tips = tr.nontips()
 
-    tr = load_tree("data/test.tree")
+or iteratively.
+
+.. jupyter-execute::
+
     for n in tr.iter_nontips():
-        print(n.get_newick())
+        print(n.name)
 
-Getting the path between two tips or edges (connecting edges)
+Getting the path between two tips or edges (connecting nodes)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
@@ -123,19 +138,91 @@ Getting the path between two tips or edges (connecting edges)
     for edge in edges:
         print(edge.name)
 
+Get tip-to-root distances
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The sum of all lengths on nodes connecting tips to the root node.
+
+.. jupyter-execute::
+
+    from cogent3 import make_tree
+
+    tr = make_tree("(B:3,(C:2,D:4):5);")
+    tr.tip_to_root_distances()
+
+Can also be done for a subset oif tips.
+
+.. jupyter-execute::
+
+    tr.tip_to_root_distances(names=["B", "D"])
+
+Get tip-to-tip distances
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Get a distance matrix between all pairs of tips
+and a list of the tip nodes.
+
+.. jupyter-execute::
+
+    from cogent3 import make_tree
+
+    tr = make_tree("(B:3,(C:2,D:4)F:5)G;")
+    dmat = tr.tip_to_tip_distances()
+    dmat
+
+.. note:: ``tip_to_tip_distances()`` is an alias for ``get_distances()``.
+
 Getting the distance between two nodes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Via pairwise distances, which returns a ``DistanceMatrix`` instance.
 
 .. jupyter-execute::
 
     from cogent3 import load_tree
 
     tr = load_tree("data/test.tree")
+    dists = tr.get_distances(names=["Human", "Mouse"])
+    dists
+
+Or directly between the node objects.
+
+.. jupyter-execute::
+
+    tr = load_tree("data/test.tree")
     nodes = tr.get_nodes_dict()
     hu = nodes["Human"]
     mu = nodes["Mouse"]
     hu.distance(mu)
-    hu.is_tip()
+
+Get sum of all branch lengths
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. jupyter-execute::
+
+    from cogent3 import make_tree
+
+    tr = make_tree("(B:3,(C:2,D:4)F:5)G;")
+    tr.total_length()
+
+Compare two trees using tip-to-tip distance matrices
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Score ranges from 0 (minimum distance) to 1 (maximum
+distance). The default is to use Pearson's correlation,
+in which case a score of 0 means that the Pearson's
+correlation was perfectly good (1), and a score of 1
+means that the Pearson's correlation was perfectly bad (-1).
+
+Note: automatically strips out the names that don't match.
+
+.. jupyter-execute::
+
+    from cogent3 import make_tree
+
+    tr1 = make_tree("(B:2,(C:3,D:4)F:5)G;")
+    tr2 = make_tree("(C:2,(B:3,D:4)F:5)G;")
+    tr1.compare_by_tip_distances(tr2)
 
 Getting the last common ancestor (LCA) for two nodes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -149,14 +236,12 @@ Getting the last common ancestor (LCA) for two nodes
     hu = nodes["Human"]
     mu = nodes["Mouse"]
     lca = hu.last_common_ancestor(mu)
-    lca
-
-.. jupyter-execute::
-
-    type(lca)
+    lca.name, lca
 
 Getting all the ancestors for a node
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A list of all nodes to the tree root.
 
 .. jupyter-execute::
 
@@ -183,20 +268,15 @@ Getting all the children for a node
 Getting all the distances for a tree
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+On a ``TreeNode``, each branh has a weight of 1 so the distances represent the number of connected nodes. On a ``PhyloNode`` the measure is the sum of branch lengths.
+
 .. jupyter-execute::
 
     from cogent3 import load_tree
 
     tr = load_tree("data/test.tree")
     dists = tr.get_distances()
-
-We also show how to select a subset of distances involving just one species.
-
-.. jupyter-execute::
-
-    human_dists = [names for names in dists if "Human" in names]
-    for dist in human_dists:
-        print(dist, dists[dist])
+    dists
 
 Getting the two nodes that are farthest apart
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -224,8 +304,10 @@ Get the nodes within a given distance
 Rerooting trees
 ^^^^^^^^^^^^^^^
 
-At a named node
-"""""""""""""""
+Reorienting a tree at a named node
+""""""""""""""""""""""""""""""""""
+
+The method name is a bit misleading. If ``tr`` is an unrooted tree (loosely, this is a tree whose root node has > 2 children) then the result is more a re-orientation of the tree rather than true root.
 
 .. jupyter-execute::
 
@@ -237,6 +319,8 @@ At a named node
 At the midpoint
 """""""""""""""
 
+This does produce a rooted tree.
+
 .. jupyter-execute::
 
     from cogent3 import load_tree
@@ -244,12 +328,10 @@ At the midpoint
     tr = load_tree("data/test.tree")
     print(tr.root_at_midpoint().ascii_art())
 
-.. jupyter-execute::
+Root at a named edge
+""""""""""""""""""""
 
-    print(tr.ascii_art())
-
-Near a given tip
-""""""""""""""""
+The edge can be either a tip or internal node.
 
 .. jupyter-execute::
 
@@ -260,7 +342,7 @@ Near a given tip
 
 .. jupyter-execute::
 
-    print(tr.rooted_with_tip("Mouse").ascii_art())
+    print(tr.rooted("Mouse").ascii_art())
 
 Tree representations
 ^^^^^^^^^^^^^^^^^^^^
@@ -279,17 +361,9 @@ Newick format
 
     tr.get_newick(with_distances=True)
 
-XML format
-""""""""""
-
 .. jupyter-execute::
 
-    from cogent3 import load_tree
-
-    tr = load_tree("data/test.tree")
-    xml = tr.get_xml()
-    for line in xml.splitlines():
-        print(line)
+    tr.get_newick(with_distances=True, with_node_names=True)
 
 Tree traversal
 ^^^^^^^^^^^^^^
@@ -414,10 +488,10 @@ Transform tree into a balanced tree
 """""""""""""""""""""""""""""""""""
 
 Using a balanced tree can substantially improve performance of
-likelihood calculations. Note that the resulting tree has a
-different orientation with the effect that specifying clades or
-stems for model parameterisation should be done using the
-"outgroup_name" argument.
+likelihood calculations for time-reversible models. Note that
+the resulting tree has a different orientation with the effect
+that specifying clades or stems for model parameterisation
+should be done using the "outgroup_name" argument.
 
 .. jupyter-execute::
 
@@ -491,70 +565,3 @@ which for large trees may take longer to compute.
     
     print("Lin-Rajan-Moret Distance:", lrm_distance)
     print("Unrooted Robinson Foulds Distance:", unrooted_rf_distance)
-
-Calculate each node's maximum distance to a tip
-"""""""""""""""""""""""""""""""""""""""""""""""
-
-Sets each node's "TipDistance" attribute to be
-the distance from that node to its most distant tip.
-
-.. jupyter-execute::
-
-    from cogent3 import make_tree
-
-    tr = make_tree("(B:0.2,(C:0.3,D:0.4)F:0.5)G;")
-    print(tr.ascii_art())
-
-.. jupyter-execute::
-
-    tr.set_tip_distances()
-    for t in tr.preorder():
-        print(t.name, t.TipDistance)
-
-Scale branch lengths in place to integers for ascii output
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-.. jupyter-execute::
-
-    from cogent3 import make_tree
-
-    tr = make_tree("(B:0.2,(C:0.3,D:0.4)F:0.5)G;")
-    print(tr)
-
-.. jupyter-execute::
-
-    tr.scale_branch_lengths()
-    print(tr)
-
-Get tip-to-tip distances
-""""""""""""""""""""""""
-Get a distance matrix between all pairs of tips
-and a list of the tip nodes.
-
-.. jupyter-execute::
-
-    from cogent3 import make_tree
-
-    tr = make_tree("(B:3,(C:2,D:4)F:5)G;")
-    d, tips = tr.tip_to_tip_distances()
-    for i, t in enumerate(tips):
-        print(t.name, d[i])
-
-Compare two trees using tip-to-tip distance matrices
-""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-Score ranges from 0 (minimum distance) to 1 (maximum
-distance). The default is to use Pearson's correlation,
-in which case a score of 0 means that the Pearson's
-correlation was perfectly good (1), and a score of 1
-means that the Pearson's correlation was perfectly bad (-1).
-
-Note: automatically strips out the names that don't match.
-
-.. jupyter-execute::
-
-    from cogent3 import make_tree
-
-    tr1 = make_tree("(B:2,(C:3,D:4)F:5)G;")
-    tr2 = make_tree("(C:2,(B:3,D:4)F:5)G;")
-    tr1.compare_by_tip_distances(tr2)
