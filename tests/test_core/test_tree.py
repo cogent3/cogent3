@@ -1797,7 +1797,6 @@ def test_root_at_midpoint7():
     tmid = tree.root_at_midpoint()
     assert all("d" in n.name for n in tmid.children)
     # now check the root children lengths are correctly split
-    dmat = tmid.tip_to_tip_distances()
     mp = 5.0
     t2r = tmid.tip_to_root_distances()
     assert t2r["d"] == mp
