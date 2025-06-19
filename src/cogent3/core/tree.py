@@ -2098,13 +2098,16 @@ class PhyloNode(TreeNode):
         """returns pairwise distance matrix"""
         return self.tip_to_tip_distances(names=names)
 
+    @c3warn.deprecated_callable(
+        "2025.9", "use the distance matrices directly", is_discontinued=True
+    )
     def compare_by_tip_distances(
         self,
         other,
         sample=None,
         dist_f=distance_from_r,
         shuffle_f=shuffle,
-    ):
+    ):  # pragma: no cover
         """Compares self to other using tip-to-tip distance matrices.
 
         Value returned is dist_f(m1, m2) for the two matrices. Default is

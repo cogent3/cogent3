@@ -205,25 +205,6 @@ Get sum of all branch lengths
     tr = make_tree("(B:3,(C:2,D:4)F:5)G;")
     tr.total_length()
 
-Compare two trees using tip-to-tip distance matrices
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Score ranges from 0 (minimum distance) to 1 (maximum
-distance). The default is to use Pearson's correlation,
-in which case a score of 0 means that the Pearson's
-correlation was perfectly good (1), and a score of 1
-means that the Pearson's correlation was perfectly bad (-1).
-
-Note: automatically strips out the names that don't match.
-
-.. jupyter-execute::
-
-    from cogent3 import make_tree
-
-    tr1 = make_tree("(B:2,(C:3,D:4)F:5)G;")
-    tr2 = make_tree("(C:2,(B:3,D:4)F:5)G;")
-    tr1.compare_by_tip_distances(tr2)
-
 Getting the last common ancestor (LCA) for two nodes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
