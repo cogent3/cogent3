@@ -14,7 +14,6 @@ from numpy.testing import assert_allclose, assert_equal
 from cogent3 import get_dataset, load_tree, make_tree, open_
 from cogent3._version import __version__
 from cogent3.core.tree import PhyloNode, TreeError, TreeNode, split_name_and_support
-from cogent3.maths.stats.test import correlation
 from cogent3.parse.tree import DndParser
 from cogent3.util.misc import get_object_provenance
 
@@ -1502,7 +1501,7 @@ def test_tips_within_distance_nodistances():
 
 
 def test_distance(phylo_nodes):
-    """PhyloNode Distance should report correct distance between nodes"""
+    """PhyloNode distance should report correct distance between nodes"""
     nodes = phylo_nodes
     a = nodes["a"]
     b = nodes["b"]
@@ -1584,31 +1583,6 @@ def test_distance(phylo_nodes):
     assert h.distance(f) == 7
     assert h.distance(g) == 10
     assert h.distance(h) == 0
-
-
-def test_compare_by_tip_distances(phylo_1, phylo_2):
-    obs = phylo_1.compare_by_tip_distances(phylo_2)
-    # note: common taxa are H, G, R (only)
-    m1 = array([[0, 2, 6.5], [2, 0, 6.5], [6.5, 6.5, 0]])
-    m2 = array([[0, 2, 6], [2, 0, 6], [6, 6, 0]])
-    r = correlation(m1.flat, m2.flat)[0]
-    assert obs == (1 - r) / 2
-
-
-def test_compare_by_tip_distances_sample(
-    phylo_1, phylo_2, phylostring_1, phylostring_2
-):
-    obs = phylo_1.compare_by_tip_distances(phylo_2, sample=3, shuffle_f=sorted)
-    # note: common taxa are H, G, R (only)
-    m1 = array([[0, 2, 6.5], [2, 0, 6.5], [6.5, 6.5, 0]])
-    m2 = array([[0, 2, 6], [2, 0, 6], [6, 6, 0]])
-    r = correlation(m1.flat, m2.flat)[0]
-    assert obs == (1 - r) / 2
-
-    # 4 common taxa, still picking H, G, R
-    t = DndParser(phylostring_1, PhyloNode)
-    t3 = DndParser(phylostring_2, PhyloNode)
-    obs = t.compare_by_tip_distances(t3, sample=3, shuffle_f=sorted)
 
 
 def test_tip_to_tip_distances_endpoints(phylo_1):
