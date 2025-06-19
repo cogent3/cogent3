@@ -2735,3 +2735,11 @@ def test_rooted_with_internal(constructor):
     expect2 = make_tree(treestring=ts2)
     assert child1.same_topology(expect1)
     assert child2.same_topology(expect2)
+
+
+def test_unrooted_deepcopy():
+    treestring = "(a:1,((c:1,d:2.5)n3:1,b:1)n2:1)rt;"
+    tree = make_tree(treestring=treestring)
+    node = tree.get_node_matching_name("n3")
+    dc = node.unrooted_deepcopy()
+    assert all(len(n.children) > 1 for n in dc.iter_nontips())

@@ -1716,33 +1716,49 @@ class TreeNode:
         return self is other or me.same_shape(them)
 
     def unrooted_deepcopy(self, constructor=None, parent=None):
-        # walks the tree unrooted-style, ie: treating self.parent as just
-        # another child 'parent' is where we got here from, ie: the neighbour
-        # that we don't need to explore.
+        """
+        Returns a deepcopy of the tree using unrooted traversal.
+
+        Each node is treated as connected to its parent and children.
+        The resulting tree may contain unary internal nodes, which can
+        be cleaned up using `prune()` afterward.
+        """
         if constructor is None:
             constructor = self._default_tree_constructor()
 
-        neighbours = self._getNeighboursExcept(parent)
-        children = []
-        for child in neighbours:
-            children.append(child.unrooted_deepcopy(constructor, parent=self))
+        # node_map maps id(original_node) -> new_node
+        node_map = {}
+        # stack stores (original_node, parent_we_came_from, state)
+        # False state is the first visit, discover neighbors
+        # True state is the second visit, construct new node
+        stack = [(self, parent, False)]
 
-        # we might be walking UP the tree, so:
-        if parent is None:
-            # base edge
-            edge = None
-        elif parent.parent is self:
-            # self's parent is becoming self's child, and edge params are stored
-            # by the child
-            edge = parent
-        else:
-            assert parent is self.parent
-            edge = self
+        while stack:
+            node, parent_node, state = stack.pop()
 
-        result = constructor(edge, tuple(children))
+            if not state:
+                # First visit: push neighbors, then push self back for post-processing
+                stack.append((node, parent_node, True))
+                neighbors = node._getNeighboursExcept(parent_node)
+                stack.extend((neighbor, node, False) for neighbor in neighbors)
+            else:
+                # Second visit: all children have been created and are in node_map
+                neighbors = node._getNeighboursExcept(parent_node)
+                new_children = [node_map[id(n)] for n in neighbors]
+
+                edge = None
+                if parent_node:
+                    edge = parent_node if parent_node.parent is node else node
+
+                new_node = constructor(edge, tuple(new_children))
+                node_map[id(node)] = new_node
+
+        new_root = node_map[id(self)]
         if parent is None:
-            result.name = "root"
-        return result
+            new_root.name = "root"
+
+        new_root.prune()
+        return new_root
 
     def unrooted(self):
         """A tree with at least 3 children at the root."""
