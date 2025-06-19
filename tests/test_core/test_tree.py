@@ -1,5 +1,6 @@
 """Tests of classes for dealing with trees and phylogeny."""
 
+import itertools
 import json
 import pathlib
 import random
@@ -1402,7 +1403,9 @@ def phylo_nodes():
 @pytest.fixture
 def phylo_root(phylo_nodes):
     """Returns the root of the phylogenetic tree."""
-    return phylo_nodes["a"]
+    tree = phylo_nodes["a"]
+    tree.prune()
+    return tree
 
 
 @pytest.fixture
@@ -1610,16 +1613,10 @@ def test_compare_by_tip_distances_sample(
 
 def test_tip_to_tip_distances_endpoints(phylo_1):
     """Test getting specifc tip distances  with tip_to_tip_distances"""
-    exp_nodes = [
-        phylo_1.get_node_matching_name("H"),
-        phylo_1.get_node_matching_name("G"),
-        phylo_1.get_node_matching_name("M"),
-    ]
     names = ["H", "G", "M"]
     exp_dists = array([[0, 2.0, 6.7], [2.0, 0, 6.7], [6.7, 6.7, 0.0]])
-    got_dists, got_nodes = phylo_1.tip_to_tip_distances(endpoints=names)
-    assert_equal(got_dists, exp_dists)
-    assert got_nodes == exp_nodes
+    got_dists = phylo_1.tip_to_tip_distances()
+    assert_equal(got_dists.take_dists(names).array, exp_dists)
 
 
 def test_phylo_prune():
@@ -1646,13 +1643,12 @@ def test_phylo_str(phylo_nodes):
     assert str(a) == "(((d:1,e:4,(g:3):2)):0,h);"
 
 
-def test_get_max_tip_tip_distance(phylo_nodes, phylo_root):
+def test_get_max_tip_tip_distance(phylo_root):
     """get_max_tip_tip_distance should get max tip distance across tree"""
-    tree = phylo_root
-    dist, names, node = tree.get_max_tip_tip_distance()
-    assert dist == 15.0  # due to nodes with single descendents!!
-    assert sorted(names) == ["e", "g"]
-    assert node.name == "b"
+    dist, names, node = phylo_root.get_max_tip_tip_distance()
+    assert dist == 10.0
+    assert set(names) == {"g", "h"}
+    assert node.is_root()
 
 
 def test_set_max_tip_tip_distance(phylo_root):
@@ -1673,18 +1669,6 @@ def test_max_tip_tip_distance(phylo_root):
         assert tip_pair == ("h", "g")
     except AssertionError:
         assert tip_pair == ("g", "h")
-
-
-def test__find_midpoint_nodes(phylo_nodes, phylo_root):
-    """_find_midpoint_nodes should return nodes surrounding the midpoint"""
-    nodes, tree = phylo_nodes, phylo_root
-    max_dist = 10
-    tip_pair = ("g", "h")
-    result = tree._find_midpoint_nodes(max_dist, tip_pair)
-    assert result == (nodes["b"], nodes["c"])
-    tip_pair = ("h", "g")
-    result = tree._find_midpoint_nodes(max_dist, tip_pair)
-    assert result == (nodes["f"], nodes["c"])
 
 
 def test_tip_to_root_distances_phlylo():
@@ -1725,68 +1709,98 @@ def test_tip_to_root_distances_missing_names(cls):
         tree.tip_to_root_distances(names=["x"])
 
 
-def test_root_at_midpoint(phylo_nodes, phylo_root):
-    """root_at_midpoint performs midpoint rooting"""
-    nodes, tree = phylo_nodes, phylo_root
-    # works when the midpoint falls on an existing edge
-    tree1 = deepcopy(tree)
-    result = tree1.root_at_midpoint()
-    assert result.distance(result.get_node_matching_name("e")) == 4
-    assert result.get_distances() == tree1.get_distances()
-    # works when the midpoint falls between two existing edges
-    nodes["f"].length = 1
-    nodes["c"].length = 4
+@pytest.mark.parametrize(
+    "treestring,check",
+    [
+        ("(h:20,(d:1,(e:4,g:5):1):3.0);", any),
+        ("(h:23,d:1,(e:4,g:5):1)a;", all),
+        ("(e:4,g:5,(d:1,h:23):1)a;", all),
+    ],
+)
+def test_root_at_midpoint2(treestring, check):
+    tree = make_tree(treestring)
+    dists = array(
+        [
+            [0.0, 24.0, 28.0, 29.0],
+            [24.0, 0.0, 6.0, 7.0],
+            [28.0, 6.0, 0.0, 9.0],
+            [29.0, 7.0, 9.0, 0.0],
+        ]
+    )
+    names = ["h", "d", "e", "g"]
+
     result = tree.root_at_midpoint()
-    assert result.distance(result.get_node_matching_name("e")) == 5.0
-    assert result.distance(result.get_node_matching_name("g")) == 5.0
-    assert result.distance(result.get_node_matching_name("h")) == 5.0
-    assert result.distance(result.get_node_matching_name("d")) == 2.0
-    assert result.get_distances() == tree.get_distances()
+    assert check("h" in n.name for n in result.children)
+    assert len(result.children) == 2
+    got_dists = result.tip_to_tip_distances().take_dists(names)
+    assert_equal(got_dists.array, dists)
 
 
-def test_root_at_midpoint2(phylo_nodes, phylo_root):
-    """root_at_midpoint works when midpoint is on both sides of root"""
-    # also checks whether it works if the midpoint is adjacent to a tip
-    nodes, tree = phylo_nodes, phylo_root
-    nodes["h"].length = 20
+def test_root_at_midpoint_already_rooted():
+    tree = make_tree("(h:19,(d:1,(e:4,g:5):1):3.0);")
     result = tree.root_at_midpoint()
-    assert result.distance(result.get_node_matching_name("h")) == 14
-    assert result.get_distances() == tree.get_distances()
+    assert any("h" in n.name for n in result.children)
+    # already midpoint rooted
+    assert result is tree
+    node = result.get_node_matching_name("h")
+    assert node.length == 14
 
 
 def test_root_at_midpoint3():
     """midpoint between nodes should behave correctly"""
-    tree = DndParser("(a:1,((c:1,d:2.5)n3:1,b:1)n2:1)rt;")
+    tree = DndParser("(a:1,((c:1,d:2.5)mp:1,b:1)n2:1)root;")
+    names = tree.get_tip_names()
+    orig_dists = tree.get_distances().take_dists(names)
     tmid = tree.root_at_midpoint()
-    assert tmid.get_distances() == tree.get_distances()
-    tree.get_tip_names()
-    [t.name for t in tree.nontips()]
     assert tmid.is_root()
-    assert tmid.distance(tmid.get_node_matching_name("d")) == 2.75
+    # check the root children names are correct
+    assert all("mp" in n.name for n in tmid.children)
+    mp_dists = tmid.get_distances().take_dists(names)
+    assert_equal(mp_dists.array, orig_dists.array)
 
 
 def test_root_at_midpoint4():
     """midpoint should be selected correctly when it is an internal node"""
-    tree = DndParser("(a:1,((c:1,d:3)n3:1,b:1)n2:1)rt;")
+    # midpoint node is mp
+    tree = DndParser("(a:1,((c:0.8,d:2.8)mp:1.2,b:1)n2:1);")
     tmid = tree.root_at_midpoint()
-    assert tmid.get_distances() == tree.get_distances()
-    tree.get_tip_names()
     assert tmid.is_root()
-    assert tmid.distance(tmid.get_node_matching_name("d")) == 3
+    # check the root children names are correct
+    assert all("mp" in n.name for n in tmid.children)
+    # check the dists are unchanged
+    names = tree.get_tip_names()
+    orig_dists = tree.tip_to_tip_distances().take_dists(names)
+    mp_dists = tmid.tip_to_tip_distances().take_dists(names)
+    assert_equal(
+        mp_dists.array,
+        orig_dists.array,
+    )
 
 
 def test_root_at_midpoint5():
     """midpoint should be selected correctly when on an even 2tip tree"""
-    tree = DndParser("""(BLO_1:0.649351,BLO_2:0.649351):0.0;""")
+    tree = DndParser("""(A:0.649351,B:0.649351):0.0;""")
     tmid = tree.root_at_midpoint()
-    assert tmid.get_distances() == tree.get_distances()
-    tree.get_tip_names()
-    [t.name for t in tree.nontips()]
+    assert tmid is tree
 
-    assert tmid.is_root()
-    assert_allclose(tmid.distance(tmid.get_node_matching_name("BLO_2")), 0.649351)
-    assert_allclose(tmid.distance(tmid.get_node_matching_name("BLO_1")), 0.649351)
-    assert_allclose(tmid[0].distance(tmid[1]), 2.0 * 0.649351)
+
+def test_root_at_midpoint6():
+    """already at midpoint"""
+    tree = DndParser("(a:10,((c:1,d:3)n3:1,b:1)n2:1)root;")
+    tmid = tree.root_at_midpoint()
+    assert tmid is tree
+
+
+def test_root_at_midpoint7():
+    """midpoint is a tip"""
+    tree = make_tree("(a:1,((c:1,d:7):1,b:1):1)root;")
+    tmid = tree.root_at_midpoint()
+    assert all("d" in n.name for n in tmid.children)
+    # now check the root children lengths are correctly split
+    mp = 5.0
+    t2r = tmid.tip_to_root_distances()
+    assert t2r["d"] == mp
+    assert t2r["a"] == mp
 
 
 def test_set_tip_distances():
@@ -1881,35 +1895,29 @@ def root_one_child():
 
 def test_one_level(root_one_level):
     """tip_to_tip should work for one-level multifurcating tree"""
-    matrix, order = _tip_2_tip_distances(root_one_level)
-    assert [i.name for i in order] == list("abc")
-    assert_equal(matrix, array([[0, 3, 4], [3, 0, 5], [4, 5, 0]]))
+    dmat = root_one_level.tip_to_tip_distances()
+    assert_equal(dmat.array, array([[0, 3, 4], [3, 0, 5], [4, 5, 0]]))
 
 
 def test_two_level(root_two_level):
     """tip_to_tip should work for two-level tree"""
-    matrix, order = _tip_2_tip_distances(root_two_level)
-    assert [i.name for i in order] == list("abcd")
+    dmat = root_two_level.tip_to_tip_distances()
     assert_allclose(
-        matrix,
+        dmat.array,
         array([[0, 3, 4, 1.4], [3, 0, 5, 2.4], [4, 5, 0, 3.4], [1.4, 2.4, 3.4, 0]]),
     )
 
 
 def test_std(root_std):
     """tip_to_tip should work for small but complex tree"""
-    dist, tips = _tip_2_tip_distances(root_std)
-    tips = [tip.name for tip in tips]
-    assert_equal(dist, tree_std_dist)
-    assert_equal(tips, tree_std_tips)
+    dmat = root_std.tip_to_tip_distances()
+    assert_equal(dmat.array, tree_std_dist)
 
 
 def test_one_child(root_one_child):
     """tip_to_tip should work for tree with a single child"""
-    dist, tips = _tip_2_tip_distances(root_one_child)
-    tips = [tip.name for tip in tips]
-    assert_equal(dist, tree_one_child_dist)
-    assert_equal(tips, tree_one_child_tips)
+    dmat = root_one_child.tip_to_tip_distances()
+    assert_equal(dmat.array, tree_one_child_dist)
 
 
 # for use with testing iterative copy method
@@ -2229,46 +2237,14 @@ def test_getsubtree_2():
         "((a:1,b:2):4,((c:3, j:17.2):0,(d:1,e:1):2):3)",
         PhyloNode,
     )  # note c,j is len 0 node
-    orig_dists = t1.get_distances()
-    subtree = t1.get_sub_tree({"a", "b", "d", "e", "c"})
-    sub_dists = subtree.get_distances()
-    assert all(
-        (pair, dist) == (pair, orig_dists[pair])
-        for pair, dist in list(sub_dists.items())
-    )
+    names = "a", "b", "d", "e", "c"
+    orig = t1.get_distances().take_dists(names)
+    subtree = t1.get_sub_tree(names)
+    subset = subtree.get_distances().take_dists(names)
+    assert_equal(orig.array, subset.array)
 
 
 def test_getsubtree_3():
-    """tree.get_sub_tree() has same pairwise tip dists as tree
-
-    (nonzero nodes)
-    """
-    t1 = DndParser(
-        "((a:1,b:2):4,((c:3, j:17):0,(d:1,e:1):2):3)",
-        PhyloNode,
-    )  # note c,j is len 0 node
-    orig_dists = t1.get_distances()
-    subtree = t1.get_sub_tree({"a", "b", "d", "e", "c"})
-    subtree.get_distances()
-    t2 = DndParser(
-        "((a:1,b:2):4,((c:2, j:16):1,(d:1,e:1):2):3)",
-        PhyloNode,
-    )  # note c,j similar to above
-    t2_dists = t2.get_distances()
-    # ensure t2 is same as t1, except j->c or c->j
-    for pair, dist in list(t2_dists.items()):
-        if pair in (("c", "j"), ("j", "c")):
-            continue
-        assert (pair, dist) == (pair, orig_dists[pair])
-    sub2 = t2.get_sub_tree({"a", "b", "d", "e", "c"})
-    sub2_dists = sub2.get_distances()
-    assert all(
-        (pair, dist) == (pair, orig_dists[pair])
-        for pair, dist in list(sub2_dists.items())
-    )
-
-
-def test_getsubtree_4():
     """tree.get_sub_tree() handles keep_root correctly"""
     t1 = DndParser("((a:1,b:2):4,(((c:2)cparent:1, j:17):0,(d:1,e:4):2):3)")
     #           /----4--- /--1-a
@@ -2326,13 +2302,13 @@ def test_getsubtree_4():
     sub_sameroot_dists2 = sub_sameroot2.get_distances()
 
     # tip to tip dists should be the same
-    for tip_pair in list(sub_dists.keys()):
+    for tip_pair in itertools.combinations(sub_dists.names, 2):
         assert sub_dists[tip_pair] == true_dists[tip_pair]
-    for tip_pair in list(t1_dists.keys()):
+    for tip_pair in itertools.combinations(t1_dists.names, 2):
         assert t1_dists[tip_pair] == true_dists[tip_pair]
-    for tip_pair in list(sub_sameroot_dists.keys()):
+    for tip_pair in itertools.combinations(sub_sameroot_dists.names, 2):
         assert sub_sameroot_dists[tip_pair] == true_dists[tip_pair]
-    for tip_pair in list(sub_sameroot_dists2.keys()):
+    for tip_pair in itertools.combinations(sub_sameroot_dists2.names, 2):
         assert sub_sameroot_dists2[tip_pair] == true_dists[tip_pair]
 
     # sameroot should have longer root to tip dists
@@ -2459,7 +2435,7 @@ def test_get_distances_endpoints(num_tips):
     tree = make_tree(nwk)
     dists = tree.get_distances(endpoints=names[:num_tips] or None)
     num = 4 if num_tips == 0 else num_tips
-    assert len(dists) == (num**2 - num)
+    assert dists.shape == (num, num)
 
 
 @pytest.mark.parametrize(
@@ -2735,3 +2711,11 @@ def test_rooted_with_internal(constructor):
     expect2 = make_tree(treestring=ts2)
     assert child1.same_topology(expect1)
     assert child2.same_topology(expect2)
+
+
+def test_unrooted_deepcopy():
+    treestring = "(a:1,((c:1,d:2.5)n3:1,b:1)n2:1)rt;"
+    tree = make_tree(treestring=treestring)
+    node = tree.get_node_matching_name("n3")
+    dc = node.unrooted_deepcopy()
+    assert all(len(n.children) > 1 for n in dc.iter_nontips())

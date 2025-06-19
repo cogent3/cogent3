@@ -30,7 +30,6 @@ from __future__ import annotations
 import contextlib
 import json
 import numbers
-import pathlib
 import re
 from copy import deepcopy
 from functools import reduce
@@ -50,6 +49,11 @@ from cogent3.phylo.tree_distance import get_tree_distance_measure
 from cogent3.util import warning as c3warn
 from cogent3.util.io import atomic_write, get_format_suffixes, open_
 from cogent3.util.misc import get_object_provenance
+
+if typing_extensions.TYPE_CHECKING:
+    import pathlib
+
+    from cogent3.evolve.fast_distance import DistanceMatrix
 
 
 def distance_from_r_squared(m1, m2):
@@ -556,6 +560,7 @@ class TreeNode:
 
         result = self.__class__(name="root", children=[left, right])
         result.source = self.source
+        result.prune()
         return result
 
     def isroot(self):
@@ -832,23 +837,29 @@ class TreeNode:
     def prune(self) -> None:
         """Reconstructs correct topology after nodes have been removed.
 
-        Internal nodes with only one child will be removed and new connections
-        will be made to reflect change.
+        Notes
+        -----
+        Mutates the tree in-place. Internal nodes with only one child will be
+        removed and new connections will be made to reflect change.
         """
-        # traverse tree to decide nodes to be removed.
-        nodes_to_remove = []
-        for node in self.traverse():
-            if (node.parent is not None) and (len(node.children) == 1):
-                nodes_to_remove.append(node)
-        for node in nodes_to_remove:
-            # save current parent
-            curr_parent = node.parent
-            # save child
-            child = node.children[0]
-            # remove current node by setting parent to None
-            node.parent = None
-            # Connect child to current node's parent
-            child.parent = curr_parent
+        has_length = hasattr(self, "length")
+        while True:
+            nodes_to_remove = [
+                n
+                for n in self.iter_nontips()
+                if n.parent is not None and len(n.children) == 1
+            ]
+            if not nodes_to_remove:
+                break
+
+            for node in nodes_to_remove:
+                curr_parent = node.parent
+                child = node.children[0]
+                node.parent = None
+                child.parent = curr_parent
+                if not has_length:
+                    continue
+                child.length = (child.length or 0.0) + (node.length or 0.0)
 
     def same_shape(self, other):
         """Ignores lengths and order, so trees should be sorted first"""
@@ -1567,50 +1578,52 @@ class TreeNode:
             return 1
         return 1 - 2 * intersection_length / float(total_subsets)
 
-    def tip_to_tip_distances(self, default_length=1):
-        """Returns distance matrix between all pairs of tips, and a tip order.
+    def tip_to_tip_distances(
+        self, endpoints: list[str] | None = None, default_length: float | None = None
+    ) -> DistanceMatrix:
+        """Returns distance matrix between all pairs of tips, and a tip order"""
+        from cogent3.evolve.fast_distance import DistanceMatrix
 
-        Warning: .__start and .__stop added to self and its descendants.
+        if endpoints is not None:
+            subtree = self.get_sub_tree(endpoints)
+            return subtree.tip_to_tip_distances(
+                default_length=default_length,
+            )
+        default_length = 0 if hasattr(self, "length") else 1
+        tips = list(self.tips())
 
-        tip_order contains the actual node objects, not their names (may be
-        confusing in some cases).
-        """
-        # linearize the tips in postorder.
-        # .__start, .__stop compose the slice in tip_order.
-        tip_order = list(self.tips())
-        for i, tip in enumerate(tip_order):
-            tip.__start, tip.__stop = i, i + 1
+        # For each tip, build path to root with cumulative distances
+        paths = {}  # tip name -> list of (node, cumulative distance)
+        for tip in tips:
+            path = []
+            current = tip
+            dist = 0.0
+            while current is not None:
+                path.append((current, dist))
+                length = getattr(current, "length", default_length) or default_length
+                dist += length
+                current = current.parent
+            paths[tip.name] = path  # path from tip to root
 
-        num_tips = len(tip_order)
-        result = zeros((num_tips, num_tips), float)  # tip by tip matrix
-        # distances from tip to curr node
-        tipdistances = zeros((num_tips), float)
+        num_tips = len(tips)
+        dists = zeros((num_tips, num_tips), float)
+        for i, j in combinations(range(num_tips), 2):
+            tip1 = tips[i]
+            tip2 = tips[j]
+            path1 = {id(n): (n, l) for n, l in paths[tip1.name]}
+            path2 = {id(n): (n, l) for n, l in paths[tip2.name]}
+            common = path1.keys() & path2.keys()
 
-        def update_result() -> None:
-            # set tip_tip distance between tips of different child
-            for child1, child2 in combinations(node.children, 2):
-                for tip1 in range(child1.__start, child1.__stop):
-                    for tip2 in range(child2.__start, child2.__stop):
-                        result[tip1, tip2] = tipdistances[tip1] + tipdistances[tip2]
+            if not common:
+                msg = f"No common ancestor for {tip1.name} and {tip2.name}"
+                raise ValueError(msg)
 
-        for node in self.traverse(self_before=False, self_after=True):
-            if not node.children:
-                continue
-            # subtree with solved child wedges
-            starts, stops = [], []  # to calc ._start and ._stop for curr node
-            for child in node.children:
-                if hasattr(child, "length") and child.length is not None:
-                    child_len = child.length
-                else:
-                    child_len = default_length
-                tipdistances[child.__start : child.__stop] += child_len
-                starts.append(child.__start)
-                stops.append(child.__stop)
-            node.__start, node.__stop = min(starts), max(stops)
-            # update result if nessessary
-            if len(node.children) > 1:  # not single child
-                update_result()
-        return result + result.T, tip_order
+            # Find least common ancestor (node with max total depth)
+            lca = min(common, key=lambda n: path1[n][1])
+            total_dist = path1[lca][1] + path2[lca][1]
+            dists[i, j] = dists[j, i] = total_dist
+
+        return DistanceMatrix.from_array_names(dists, [n.name for n in tips])
 
     def get_figure(self, style="square", **kwargs):
         """
@@ -1709,33 +1722,49 @@ class TreeNode:
         return self is other or me.same_shape(them)
 
     def unrooted_deepcopy(self, constructor=None, parent=None):
-        # walks the tree unrooted-style, ie: treating self.parent as just
-        # another child 'parent' is where we got here from, ie: the neighbour
-        # that we don't need to explore.
+        """
+        Returns a deepcopy of the tree using unrooted traversal.
+
+        Each node is treated as connected to its parent and children.
+        The resulting tree may contain unary internal nodes, which can
+        be cleaned up using `prune()` afterward.
+        """
         if constructor is None:
             constructor = self._default_tree_constructor()
 
-        neighbours = self._getNeighboursExcept(parent)
-        children = []
-        for child in neighbours:
-            children.append(child.unrooted_deepcopy(constructor, parent=self))
+        # node_map maps id(original_node) -> new_node
+        node_map = {}
+        # stack stores (original_node, parent_we_came_from, state)
+        # False state is the first visit, discover neighbors
+        # True state is the second visit, construct new node
+        stack = [(self, parent, False)]
 
-        # we might be walking UP the tree, so:
-        if parent is None:
-            # base edge
-            edge = None
-        elif parent.parent is self:
-            # self's parent is becoming self's child, and edge params are stored
-            # by the child
-            edge = parent
-        else:
-            assert parent is self.parent
-            edge = self
+        while stack:
+            node, parent_node, state = stack.pop()
 
-        result = constructor(edge, tuple(children))
+            if not state:
+                # First visit: push neighbors, then push self back for post-processing
+                stack.append((node, parent_node, True))
+                neighbors = node._getNeighboursExcept(parent_node)
+                stack.extend((neighbor, node, False) for neighbor in neighbors)
+            else:
+                # Second visit: all children have been created and are in node_map
+                neighbors = node._getNeighboursExcept(parent_node)
+                new_children = [node_map[id(n)] for n in neighbors]
+
+                edge = None
+                if parent_node:
+                    edge = parent_node if parent_node.parent is node else node
+
+                new_node = constructor(edge, tuple(new_children))
+                node_map[id(node)] = new_node
+
+        new_root = node_map[id(self)]
         if parent is None:
-            result.name = "root"
-        return result
+            new_root.name = "root"
+
+        new_root.prune()
+        return new_root
 
     def unrooted(self):
         """A tree with at least 3 children at the root."""
@@ -1979,96 +2008,43 @@ class PhyloNode(TreeNode):
 
         return tips_to_save
 
-    def prune(self) -> None:
-        """Reconstructs correct tree after nodes have been removed.
-
-        Internal nodes with only one child will be removed and new connections
-        and Branch lengths will be made to reflect change.
-        """
-        # traverse tree to decide nodes to be removed.
-        nodes_to_remove = []
-        for node in self.traverse():
-            if (node.parent is not None) and (len(node.children) == 1):
-                nodes_to_remove.append(node)
-        for node in nodes_to_remove:
-            # save current parent
-            curr_parent = node.parent
-            # save child
-            child = node.children[0]
-            # remove current node by setting parent to None
-            node.parent = None
-            # Connect child to current node's parent
-            child.parent = curr_parent
-            # Add the length of the removed node to the length of the Child
-            if child.length is None or node.length is None:
-                child.length = child.length or node.length
-            else:
-                child.length = child.length + node.length
-
-    def root_at_midpoint(self):
+    def root_at_midpoint(self) -> typing_extensions.Self:
         """return a new tree rooted at midpoint of the two tips farthest apart
 
         this fn doesn't preserve the internal node naming or structure,
         but does keep tip to tip distances correct.  uses unrooted_deepcopy()
         """
-        # max_dist, tip_names = tree.max_tip_tip_distance()
-        # this is slow
+        dmat = self.tip_to_tip_distances()
+        a, b = dmat.max_pair()
+        max_dist: float = dmat[a, b]
+        if max_dist <= 0.0:
+            msg = f"{max_dist=} must be > 0"
+            raise TreeError(msg)
 
-        max_dist, tip_names = self.max_tip_tip_distance()
-        half_max_dist = max_dist / 2.0
-        if max_dist == 0.0:  # only pathological cases with no lengths
-            return self.unrooted_deepcopy()
-        # print tip_names
-        tip1 = self.get_node_matching_name(tip_names[0])
-        tip2 = self.get_node_matching_name(tip_names[1])
-        lca = self.get_connecting_node(tip_names[0], tip_names[1])  # last comm ancestor
-        climb_node = tip1 if tip1.distance(lca) > half_max_dist else tip2
+        mid_point = max_dist / 2.0
+        path_nodes = self.get_connecting_edges(a, b)
+        cumsum = 0.0
+        has_length = hasattr(self, "length")
+        default_length = 0.0 if has_length else 1.0
 
-        dist_climbed = 0.0
-        while dist_climbed + climb_node.length < half_max_dist:
-            dist_climbed += climb_node.length
-            climb_node = climb_node.parent
+        for node in path_nodes:
+            length = node.length or default_length if has_length else default_length
+            cumsum += length
+            if cumsum >= mid_point:
+                break
 
-        # now midpt is either at on the branch to climb_node's  parent
-        # or midpt is at climb_node's parent
-        # print dist_climbed, half_max_dist, 'dists cl hamax'
-        if dist_climbed + climb_node.length == half_max_dist:
-            # climb to midpoint spot
-            climb_node = climb_node.parent
-            if climb_node.is_tip():
-                msg = "error trying to root tree at tip"
-                raise RuntimeError(msg)
-            # print climb_node.name, 'clmb node'
-            return climb_node.unrooted_deepcopy()
+        if node.parent.is_root() and len(node.parent.children) == 2:
+            # already midpoint rooted, but adjust lengths from root
+            _adjust_lengths_from_root(tip_name=a, mid_point=mid_point, tree=self)
+            return self
 
-        # make a new node on climb_node's branch to its parent
-        old_br_len = climb_node.length
-        new_root = type(self)()
-        new_root.parent = climb_node.parent
-        climb_node.parent = new_root
-        climb_node.length = half_max_dist - dist_climbed
-        new_root.length = old_br_len - climb_node.length
-        return new_root.unrooted_deepcopy()
-
-    def _find_midpoint_nodes(self, max_dist, tip_pair):
-        """returns the nodes surrounding the max_tip_tip_distance midpoint
-
-        WAS used for midpoint rooting.  ORPHANED NOW
-        max_dist: The maximum distance between any 2 tips
-        tip_pair: Names of the two tips associated with max_dist
-        """
-        half_max_dist = max_dist / 2.0
-        # get a list of the nodes that separate the tip pair
-        node_path = self.get_connecting_edges(tip_pair[0], tip_pair[1])
-        tip1 = self.get_node_matching_name(tip_pair[0])
-        for index, node in enumerate(node_path):
-            dist = tip1.distance(node)
-            if dist > half_max_dist:
-                return node, node_path[index - 1]
-        return None
+        new_tree = self.rooted(node.name)
+        _adjust_lengths_from_root(tip_name=a, mid_point=mid_point, tree=new_tree)
+        return new_tree
 
     def set_tip_distances(self) -> None:
         """Sets distance from each node to the most distant tip."""
+        # refactor: stop creating new attributes, use existing ones
         for node in self.traverse(self_before=False, self_after=True):
             if node.children:
                 node.TipDistance = max(
@@ -2077,10 +2053,14 @@ class PhyloNode(TreeNode):
             else:
                 node.TipDistance = 0
 
-    def scale_branch_lengths(self, max_length=100, ultrametric=False) -> None:
-        """Scales BranchLengths in place to integers for ascii output.
+    def scale_branch_lengths(
+        self, max_length: int = 100, ultrametric: bool = False
+    ) -> None:
+        """Scales branch lengths in place to integers for ascii output.
 
-        Warning: tree might not be exactly the length you specify.
+        Warning
+        -------
+        Tree might not be exactly the length you specify.
 
         Set ultrametric=True if you want all the root-tip distances to end
         up precisely the same.
@@ -2091,6 +2071,7 @@ class PhyloNode(TreeNode):
             for node in self.traverse():
                 curr = node.length
                 if curr is not None:
+                    # refactor: stop creating new attributes, use existing ones
                     node.ScaledBranchLength = max(
                         1,
                         int(round(1.0 * curr / orig_max * max_length)),
@@ -2098,6 +2079,7 @@ class PhyloNode(TreeNode):
         else:  # hard case -- need to make sure they all line up at the end
             for node in self.traverse(self_before=False, self_after=True):
                 if not node.children:  # easy case: ignore tips
+                    # refactor: stop creating new attributes, use existing ones
                     node.DistanceUsed = 0
                     continue
                 # if we get here, we know the node has children
@@ -2119,140 +2101,12 @@ class PhyloNode(TreeNode):
             if hasattr(node, "TipDistance"):
                 del node.TipDistance
 
-    def _get_distances(self, endpoints=None):
-        """Iteratively calcluates all of the root-to-tip and tip-to-tip
-        distances, resulting in a tuple of:
-            - A list of (name, path length) pairs.
-            - A dictionary of (tip1,tip2):distance pairs
-        """
-        # linearize the tips in postorder.
-        # .__start, .__stop compose the slice in tip_order.
-        tip_order = list(self.tips())
-
-        for i, node in enumerate(tip_order):
-            node.__start, node.__stop = i, i + 1
-
-        num_tips = len(tip_order)
-        result = {}
-        # distances from tip to curr node
-        tipdistances = zeros((num_tips), float)
-
-        def update_result() -> None:
-            # set tip_tip distance between tips of different child
-            for child1, child2 in combinations(node.children, 2):
-                for tip1 in range(child1.__start, child1.__stop):
-                    for tip2 in range(child2.__start, child2.__stop):
-                        name1 = tip_order[tip1].name
-                        name2 = tip_order[tip2].name
-                        result[(name1, name2)] = tipdistances[tip1] + tipdistances[tip2]
-                        result[(name2, name1)] = tipdistances[tip1] + tipdistances[tip2]
-
-        for node in self.traverse(self_before=False, self_after=True):
-            if not node.children:
-                continue
-            # subtree with solved child wedges
-            starts, stops = [], []  # to calc ._start and ._stop for curr node
-            for child in node.children:
-                if hasattr(child, "length") and child.length is not None:
-                    child_len = child.length
-                else:
-                    child_len = 1  # default length
-                tipdistances[child.__start : child.__stop] += child_len
-                starts.append(child.__start)
-                stops.append(child.__stop)
-            node.__start, node.__stop = min(starts), max(stops)
-            # update result if nessessary
-            if len(node.children) > 1:  # not single child
-                update_result()
-
-        from_root = []
+    def get_distances(self, endpoints: list[str] | None = None) -> DistanceMatrix:
+        """returns pairwise distance matrix"""
+        dmat = self.tip_to_tip_distances()
         if endpoints is not None:
-            selected = {getattr(n, "name", n) for n in endpoints}
-            keys = list(result)
-            for a, b in keys:
-                if a in selected and b in selected:
-                    continue
-                result.pop((a, b))
-        else:
-            selected = {n.name for n in tip_order}
-
-        for i, n in enumerate(tip_order):
-            if n.name in selected:
-                from_root.append((n.name, tipdistances[i]))
-        return from_root, result
-
-    def get_distances(self, endpoints=None):
-        """The distance matrix as a dictionary.
-
-        Usage:
-            Grabs the branch lengths (evolutionary distances) as
-            a complete matrix (i.e. a,b and b,a).
-        """
-
-        (root_dists, endpoint_dists) = self._get_distances(endpoints)
-        return endpoint_dists
-
-    def tip_to_tip_distances(self, endpoints=None, default_length=1):
-        """Returns distance matrix between all pairs of tips, and a tip order.
-
-        Warning: .__start and .__stop added to self and its descendants.
-
-        tip_order contains the actual node objects, not their names (may be
-        confusing in some cases).
-        """
-        all_tips = self.tips()
-        if endpoints is None:
-            tip_order = list(all_tips)
-        elif isinstance(endpoints[0], PhyloNode):
-            tip_order = endpoints
-        else:
-            tip_order = [self.get_node_matching_name(n) for n in endpoints]
-
-        # linearize all tips in postorder
-        # .__start, .__stop compose the slice in tip_order.
-        for i, node in enumerate(all_tips):
-            node.__start, node.__stop = i, i + 1
-
-        # the result map provides index in the result matrix
-        result_map = {n.__start: i for i, n in enumerate(tip_order)}
-        num_all_tips = len(all_tips)  # total number of tips
-        num_tips = len(tip_order)  # total number of tips in result
-        result = zeros((num_tips, num_tips), float)  # tip by tip matrix
-        # dist from tip to curr node
-        tipdistances = zeros((num_all_tips), float)
-
-        def update_result() -> None:
-            # set tip_tip distance between tips of different child
-            for child1, child2 in combinations(node.children, 2):
-                for tip1 in range(child1.__start, child1.__stop):
-                    if tip1 not in result_map:
-                        continue
-                    res_tip1 = result_map[tip1]
-                    for tip2 in range(child2.__start, child2.__stop):
-                        if tip2 not in result_map:
-                            continue
-                        result[res_tip1, result_map[tip2]] = (
-                            tipdistances[tip1] + tipdistances[tip2]
-                        )
-
-        for node in self.traverse(self_before=False, self_after=True):
-            if not node.children:
-                continue
-            # subtree with solved child wedges
-            starts, stops = [], []  # to calc ._start and ._stop for curr node
-            for child in node.children:
-                if hasattr(child, "length") and child.length is not None:
-                    child_len = child.length
-                else:
-                    child_len = default_length
-                tipdistances[child.__start : child.__stop] += child_len
-                starts.append(child.__start)
-                stops.append(child.__stop)
-            node.__start, node.__stop = min(starts), max(stops)
-            # update result if nessessary
-            if len(node.children) > 1:  # not single child
-                update_result()
-        return result + result.T, tip_order
+            dmat = dmat.take_dists(endpoints)
+        return dmat
 
     def compare_by_tip_distances(
         self,
@@ -2293,43 +2147,35 @@ class PhyloNode(TreeNode):
             shuffle_f(common_names)
             common_names = common_names[:sample]
 
-        self_nodes = [self_names[k] for k in common_names]
-        other_nodes = [other_names[k] for k in common_names]
+        self_matrix = self.tip_to_tip_distances(endpoints=common_names).take_dists(
+            common_names
+        )
+        other_matrix = other.tip_to_tip_distances(endpoints=common_names).take_dists(
+            common_names
+        )
 
-        self_matrix = self.tip_to_tip_distances(endpoints=self_nodes)[0]
-        other_matrix = other.tip_to_tip_distances(endpoints=other_nodes)[0]
+        return dist_f(self_matrix.array, other_matrix.array)
 
-        return dist_f(self_matrix, other_matrix)
-
-    def get_max_tip_tip_distance(self):
+    def get_max_tip_tip_distance(
+        self,
+    ) -> tuple[float, tuple[str, str], typing_extensions.Self]:
         """Returns the max tip-to-tip distance between any pair of tips
 
-        Returns (dist, tip_names, internal_node)
+        Returns
+        -------
+        dist, tip_names, internal_node
         """
-        if not hasattr(self, "MaxDistTips"):
-            self.set_max_tip_tip_distance()
+        dmat = self.tip_to_tip_distances()
+        a, b = dmat.max_pair()
+        dist = dmat[a, b]
+        return dist, (a, b), self.get_connecting_node(a, b)
 
-        longest = 0.0
-        names = [None, None]
-        best_node = None
-        for n in self.nontips(include_self=True):
-            tip_a, tip_b = n.MaxDistTips
-            dist = tip_a[0] + tip_b[0]
-
-            if dist > longest:
-                longest = dist
-                best_node = n
-                names = [tip_a[1], tip_b[1]]
-        return longest, names, best_node
-
-    def max_tip_tip_distance(self):
+    def max_tip_tip_distance(self) -> tuple[float, tuple[str, str]]:
         """returns the max distance between any pair of tips
 
         Also returns the tip names  that it is between as a tuple"""
-        distmtx, tip_order = self.tip_to_tip_distances()
-        idx_max = divmod(distmtx.argmax(), distmtx.shape[1])
-        max_pair = (tip_order[idx_max[0]].name, tip_order[idx_max[1]].name)
-        return distmtx[idx_max], max_pair
+        dist, pair, _ = self.get_max_tip_tip_distance()
+        return dist, pair
 
     def set_max_tip_tip_distance(self) -> None:
         """Propagate tip distance information up the tree
@@ -2355,6 +2201,7 @@ class PhyloNode(TreeNode):
                     tip_b, child_b = tip_info[best_idx[1]]
                     tip_a[0] += child_a.length or 0.0
                     tip_b[0] += child_b.length or 0.0
+                # refactor: stop creating new attributes, use existing ones
                 n.MaxDistTips = [tip_a, tip_b]
 
     @staticmethod
@@ -2391,6 +2238,23 @@ class PhyloNode(TreeNode):
                 node = node.parent
             dists[tip.name] = cum_sum
         return dists
+
+
+def _adjust_lengths_from_root(
+    *, tip_name: str, mid_point: float, tree: PhyloNode | TreeNode
+) -> None:
+    if len(tree.children) != 2:
+        msg = "root node must have 2 children"
+        raise TreeError(msg)
+
+    to_tip, other = tree.children
+    if tip_name not in to_tip.get_tip_names():
+        to_tip, other = other, to_tip
+
+    a_to_root = tree.tip_to_root_distances(names=[tip_name])
+    delta = a_to_root[tip_name] - mid_point
+    to_tip.length -= delta
+    other.length += delta
 
 
 def split_name_and_support(name_field: str | None) -> tuple[str | None, float | None]:
