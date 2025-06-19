@@ -832,23 +832,29 @@ class TreeNode:
     def prune(self) -> None:
         """Reconstructs correct topology after nodes have been removed.
 
-        Internal nodes with only one child will be removed and new connections
-        will be made to reflect change.
+        Notes
+        -----
+        Mutates the tree in-place. Internal nodes with only one child will be
+        removed and new connections will be made to reflect change.
         """
-        # traverse tree to decide nodes to be removed.
-        nodes_to_remove = []
-        for node in self.traverse():
-            if (node.parent is not None) and (len(node.children) == 1):
-                nodes_to_remove.append(node)
-        for node in nodes_to_remove:
-            # save current parent
-            curr_parent = node.parent
-            # save child
-            child = node.children[0]
-            # remove current node by setting parent to None
-            node.parent = None
-            # Connect child to current node's parent
-            child.parent = curr_parent
+        has_length = hasattr(self, "length")
+        while True:
+            nodes_to_remove = [
+                n
+                for n in self.iter_nontips()
+                if n.parent is not None and len(n.children) == 1
+            ]
+            if not nodes_to_remove:
+                break
+
+            for node in nodes_to_remove:
+                curr_parent = node.parent
+                child = node.children[0]
+                node.parent = None
+                child.parent = curr_parent
+                if not has_length:
+                    continue
+                child.length = (child.length or 0.0) + (node.length or 0.0)
 
     def same_shape(self, other):
         """Ignores lengths and order, so trees should be sorted first"""
@@ -1978,32 +1984,6 @@ class PhyloNode(TreeNode):
                     to_process.append((child, child_dist))
 
         return tips_to_save
-
-    def prune(self) -> None:
-        """Reconstructs correct tree after nodes have been removed.
-
-        Internal nodes with only one child will be removed and new connections
-        and Branch lengths will be made to reflect change.
-        """
-        # traverse tree to decide nodes to be removed.
-        nodes_to_remove = []
-        for node in self.traverse():
-            if (node.parent is not None) and (len(node.children) == 1):
-                nodes_to_remove.append(node)
-        for node in nodes_to_remove:
-            # save current parent
-            curr_parent = node.parent
-            # save child
-            child = node.children[0]
-            # remove current node by setting parent to None
-            node.parent = None
-            # Connect child to current node's parent
-            child.parent = curr_parent
-            # Add the length of the removed node to the length of the Child
-            if child.length is None or node.length is None:
-                child.length = child.length or node.length
-            else:
-                child.length = child.length + node.length
 
     def root_at_midpoint(self):
         """return a new tree rooted at midpoint of the two tips farthest apart
