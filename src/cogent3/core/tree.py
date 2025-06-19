@@ -1947,17 +1947,13 @@ class PhyloNode(TreeNode):
             other = other._parent
         return None
 
-    def total_descending_branch_length(self):
+    def total_descending_branch_length(self) -> float:
         """Returns total descending branch length from self"""
         return sum(
-            [
-                n.length
-                for n in self.traverse(include_self=False)
-                if n.length is not None
-            ],
+            n.length for n in self.traverse(include_self=False) if n.length is not None
         )
 
-    def total_length(self):
+    def total_length(self) -> float:
         """returns the sum of all branch lengths in tree"""
         root = self.get_root()
         if root is None:
