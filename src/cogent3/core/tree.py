@@ -1578,14 +1578,17 @@ class TreeNode:
             return 1
         return 1 - 2 * intersection_length / float(total_subsets)
 
+    @c3warn.deprecated_args(
+        "2025.9", "consistency with other methods", [("endpoints", "names")]
+    )
     def tip_to_tip_distances(
-        self, endpoints: list[str] | None = None, default_length: float | None = None
+        self, names: list[str] | None = None, default_length: float | None = None
     ) -> DistanceMatrix:
         """Returns distance matrix between all pairs of tips, and a tip order"""
         from cogent3.evolve.fast_distance import DistanceMatrix
 
-        if endpoints is not None:
-            subtree = self.get_sub_tree(endpoints)
+        if names is not None:
+            subtree = self.get_sub_tree(names)
             return subtree.tip_to_tip_distances(
                 default_length=default_length,
             )
@@ -2101,12 +2104,12 @@ class PhyloNode(TreeNode):
             if hasattr(node, "TipDistance"):
                 del node.TipDistance
 
-    def get_distances(self, endpoints: list[str] | None = None) -> DistanceMatrix:
+    @c3warn.deprecated_args(
+        "2025.9", "consistency with other methods", [("endpoints", "names")]
+    )
+    def get_distances(self, names: list[str] | None = None) -> DistanceMatrix:
         """returns pairwise distance matrix"""
-        dmat = self.tip_to_tip_distances()
-        if endpoints is not None:
-            dmat = dmat.take_dists(endpoints)
-        return dmat
+        return self.tip_to_tip_distances(names=names)
 
     def compare_by_tip_distances(
         self,
@@ -2147,10 +2150,10 @@ class PhyloNode(TreeNode):
             shuffle_f(common_names)
             common_names = common_names[:sample]
 
-        self_matrix = self.tip_to_tip_distances(endpoints=common_names).take_dists(
+        self_matrix = self.tip_to_tip_distances(names=common_names).take_dists(
             common_names
         )
-        other_matrix = other.tip_to_tip_distances(endpoints=common_names).take_dists(
+        other_matrix = other.tip_to_tip_distances(names=common_names).take_dists(
             common_names
         )
 

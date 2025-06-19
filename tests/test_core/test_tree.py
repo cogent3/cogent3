@@ -2433,7 +2433,7 @@ def test_get_distances_endpoints(num_tips):
     names = "G001280565", "G000009905", "G000183545", "G000184705"
     nwk = "({}:0.4,({}:0.25,({}:0.03,{}:0.03):0.23):0.03)".format(*names)
     tree = make_tree(nwk)
-    dists = tree.get_distances(endpoints=names[:num_tips] or None)
+    dists = tree.get_distances(names=names[:num_tips] or None)
     num = 4 if num_tips == 0 else num_tips
     assert dists.shape == (num, num)
 
