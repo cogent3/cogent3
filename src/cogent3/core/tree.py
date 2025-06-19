@@ -1578,14 +1578,17 @@ class TreeNode:
             return 1
         return 1 - 2 * intersection_length / float(total_subsets)
 
+    @c3warn.deprecated_args(
+        "2025.9", "consistency with other methods", [("endpoints", "names")]
+    )
     def tip_to_tip_distances(
-        self, endpoints: list[str] | None = None, default_length: float | None = None
+        self, names: list[str] | None = None, default_length: float | None = None
     ) -> DistanceMatrix:
         """Returns distance matrix between all pairs of tips, and a tip order"""
         from cogent3.evolve.fast_distance import DistanceMatrix
 
-        if endpoints is not None:
-            subtree = self.get_sub_tree(endpoints)
+        if names is not None:
+            subtree = self.get_sub_tree(names)
             return subtree.tip_to_tip_distances(
                 default_length=default_length,
             )
@@ -1944,17 +1947,13 @@ class PhyloNode(TreeNode):
             other = other._parent
         return None
 
-    def total_descending_branch_length(self):
+    def total_descending_branch_length(self) -> float:
         """Returns total descending branch length from self"""
         return sum(
-            [
-                n.length
-                for n in self.traverse(include_self=False)
-                if n.length is not None
-            ],
+            n.length for n in self.traverse(include_self=False) if n.length is not None
         )
 
-    def total_length(self):
+    def total_length(self) -> float:
         """returns the sum of all branch lengths in tree"""
         root = self.get_root()
         if root is None:
@@ -2042,9 +2041,9 @@ class PhyloNode(TreeNode):
         _adjust_lengths_from_root(tip_name=a, mid_point=mid_point, tree=new_tree)
         return new_tree
 
-    def set_tip_distances(self) -> None:
-        """Sets distance from each node to the most distant tip."""
-        # refactor: stop creating new attributes, use existing ones
+    @c3warn.deprecated_callable("2025.9", "not being used", is_discontinued=True)
+    def set_tip_distances(self) -> None:  # pragma: no cover
+        """discontinued"""
         for node in self.traverse(self_before=False, self_after=True):
             if node.children:
                 node.TipDistance = max(
@@ -2053,25 +2052,17 @@ class PhyloNode(TreeNode):
             else:
                 node.TipDistance = 0
 
+    @c3warn.deprecated_callable("2025.9", "not being used", is_discontinued=True)
     def scale_branch_lengths(
         self, max_length: int = 100, ultrametric: bool = False
-    ) -> None:
-        """Scales branch lengths in place to integers for ascii output.
-
-        Warning
-        -------
-        Tree might not be exactly the length you specify.
-
-        Set ultrametric=True if you want all the root-tip distances to end
-        up precisely the same.
-        """
+    ) -> None:  # pragma: no cover
+        """discontinued"""
         self.set_tip_distances()
         orig_max = max([n.TipDistance for n in self.traverse()])
         if not ultrametric:  # easy case -- just scale and round
             for node in self.traverse():
                 curr = node.length
                 if curr is not None:
-                    # refactor: stop creating new attributes, use existing ones
                     node.ScaledBranchLength = max(
                         1,
                         int(round(1.0 * curr / orig_max * max_length)),
@@ -2079,7 +2070,6 @@ class PhyloNode(TreeNode):
         else:  # hard case -- need to make sure they all line up at the end
             for node in self.traverse(self_before=False, self_after=True):
                 if not node.children:  # easy case: ignore tips
-                    # refactor: stop creating new attributes, use existing ones
                     node.DistanceUsed = 0
                     continue
                 # if we get here, we know the node has children
@@ -2101,12 +2091,12 @@ class PhyloNode(TreeNode):
             if hasattr(node, "TipDistance"):
                 del node.TipDistance
 
-    def get_distances(self, endpoints: list[str] | None = None) -> DistanceMatrix:
+    @c3warn.deprecated_args(
+        "2025.9", "consistency with other methods", [("endpoints", "names")]
+    )
+    def get_distances(self, names: list[str] | None = None) -> DistanceMatrix:
         """returns pairwise distance matrix"""
-        dmat = self.tip_to_tip_distances()
-        if endpoints is not None:
-            dmat = dmat.take_dists(endpoints)
-        return dmat
+        return self.tip_to_tip_distances(names=names)
 
     def compare_by_tip_distances(
         self,
@@ -2147,10 +2137,10 @@ class PhyloNode(TreeNode):
             shuffle_f(common_names)
             common_names = common_names[:sample]
 
-        self_matrix = self.tip_to_tip_distances(endpoints=common_names).take_dists(
+        self_matrix = self.tip_to_tip_distances(names=common_names).take_dists(
             common_names
         )
-        other_matrix = other.tip_to_tip_distances(endpoints=common_names).take_dists(
+        other_matrix = other.tip_to_tip_distances(names=common_names).take_dists(
             common_names
         )
 
@@ -2177,14 +2167,9 @@ class PhyloNode(TreeNode):
         dist, pair, _ = self.get_max_tip_tip_distance()
         return dist, pair
 
-    def set_max_tip_tip_distance(self) -> None:
-        """Propagate tip distance information up the tree
-
-        This method was originally implemented by Julia Goodrich with the intent
-        of being able to determine max tip to tip distances between nodes on
-        large trees efficiently. The code has been modified to track the
-        specific tips the distance is between
-        """
+    @c3warn.deprecated_callable("2025.9", "not being used", is_discontinued=True)
+    def set_max_tip_tip_distance(self) -> None:  # pragma: no cover
+        """discontinued"""
         for n in self.postorder():
             if n.is_tip():
                 n.MaxDistTips = [[0.0, n.name], [0.0, n.name]]
@@ -2201,7 +2186,6 @@ class PhyloNode(TreeNode):
                     tip_b, child_b = tip_info[best_idx[1]]
                     tip_a[0] += child_a.length or 0.0
                     tip_b[0] += child_b.length or 0.0
-                # refactor: stop creating new attributes, use existing ones
                 n.MaxDistTips = [tip_a, tip_b]
 
     @staticmethod

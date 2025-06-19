@@ -1651,15 +1651,6 @@ def test_get_max_tip_tip_distance(phylo_root):
     assert node.is_root()
 
 
-def test_set_max_tip_tip_distance(phylo_root):
-    """set_max_tip_tip_distance sets MaxDistTips across tree"""
-    tree = phylo_root
-    tree.set_max_tip_tip_distance()
-    tip_a, tip_b = tree.MaxDistTips
-    assert tip_a[0] + tip_b[0] == 10
-    assert sorted([tip_a[1], tip_b[1]]) == ["g", "h"]
-
-
 def test_max_tip_tip_distance(phylo_root):
     """max_tip_tip_distance returns the max dist between any pair of tips"""
     tree = phylo_root
@@ -1801,52 +1792,6 @@ def test_root_at_midpoint7():
     t2r = tmid.tip_to_root_distances()
     assert t2r["d"] == mp
     assert t2r["a"] == mp
-
-
-def test_set_tip_distances():
-    """set_tip_distances should correctly set tip distances."""
-    tree = DndParser(
-        "(((A1:.1,B1:.1):.1,(A2:.1,B2:.1):.1):.3,((A3:.1,B3:.1):.1,(A4:.1,B4:.1):.1):.3);",
-        constructor=PhyloNode,
-    )
-
-    # expected distances for a post order traversal
-    expected_tip_distances = [
-        0,
-        0,
-        0.1,
-        0,
-        0,
-        0.1,
-        0.2,
-        0,
-        0,
-        0.1,
-        0,
-        0,
-        0.1,
-        0.2,
-        0.5,
-    ]
-    # tips should have distance of 0
-    tree.set_tip_distances()
-    for node in tree.tips():
-        assert node.TipDistance == 0
-    idx = 0
-    for node in tree.traverse(self_before=False, self_after=True):
-        assert node.TipDistance == expected_tip_distances[idx]
-        idx += 1
-
-
-def test_scale_branch_lengths():
-    """scale_branch_lengths should correclty scale branch lengths."""
-    tree = DndParser(
-        "(((A1:.1,B1:.1):.1,(A2:.1,B2:.1):.1):.3,((A3:.1,B3:.1):.1,(A4:.1,B4:.1):.1):.3);",
-        constructor=PhyloNode,
-    )
-    tree.scale_branch_lengths(max_length=100, ultrametric=True)
-    expected_tree = "(((A1:20,B1:20):20,(A2:20,B2:20):20):60,((A3:20,B3:20):20,(A4:20,B4:20):20):60);"
-    assert str(tree) == expected_tree
 
 
 def test_unrooted():
@@ -2433,7 +2378,7 @@ def test_get_distances_endpoints(num_tips):
     names = "G001280565", "G000009905", "G000183545", "G000184705"
     nwk = "({}:0.4,({}:0.25,({}:0.03,{}:0.03):0.23):0.03)".format(*names)
     tree = make_tree(nwk)
-    dists = tree.get_distances(endpoints=names[:num_tips] or None)
+    dists = tree.get_distances(names=names[:num_tips] or None)
     num = 4 if num_tips == 0 else num_tips
     assert dists.shape == (num, num)
 

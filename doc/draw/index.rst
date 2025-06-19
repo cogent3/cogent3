@@ -15,6 +15,8 @@ Alignments & Sequences
 
     aln/*
 
+.. _tree-gallery:
+
 ******************
 Phylogenetic Trees
 ******************
