@@ -150,7 +150,7 @@ The sum of all lengths on nodes connecting tips to the root node.
     tr = make_tree("(B:3,(C:2,D:4):5);")
     tr.tip_to_root_distances()
 
-Can also be done for a subset oif tips.
+Can also be done for a subset of tips.
 
 .. jupyter-execute::
 
@@ -331,7 +331,7 @@ This does produce a rooted tree.
 Root at a named edge
 """"""""""""""""""""
 
-The edge can be either a tip or internal node.
+The edge can be either a tip or an internal node.
 
 .. jupyter-execute::
 
