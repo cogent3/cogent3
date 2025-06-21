@@ -1991,4 +1991,5 @@ def update_file_format(
                 f"UPDATE {table_name} SET {column}=update_array_format({column});",
             )
         conn.commit()
+    cursor.close()
     anno_db.close()
