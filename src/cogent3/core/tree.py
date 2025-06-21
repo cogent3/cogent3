@@ -389,94 +389,43 @@ class TreeNode:
     ) -> typing.Generator[typing_extensions.Self, None, None]:
         """Performs preorder iteration over tree."""
         stack = [self]
+
         while stack:
-            curr = stack.pop()
-            if include_self or (curr is not self):
-                yield curr
-            if curr.children:
-                stack.extend(curr.children[::-1])  # 20% faster than reversed
+            node = stack.pop()
+            if include_self or node is not self:
+                yield node
 
-    def postorder(self, include_self=True):
-        """performs postorder iteration over tree.
+            # the stack is last-in-first-out, so we add children
+            # in reverse order so they're processed left-to-right
+            if node.children:
+                stack.extend(node.children[::-1])
 
-        Notes
-        -----
+    def postorder(
+        self, include_self: bool = True
+    ) -> typing.Generator[typing_extensions.Self, None, None]:
+        """performs postorder iteration over tree"""
+        stack = [(self, False)]
 
-        This is somewhat inelegant compared to saving the node and its index
-        on the stack, but is 30% faster in the average case and 3x faster in
-        the worst case (for a comb tree).
-        """
-        child_index_stack = [0]
-        curr = self
-        curr_children = self.children
-        curr_children_len = len(curr_children)
-        while 1:
-            curr_index = child_index_stack[-1]
-            # if there are children left, process them
-            if curr_index < curr_children_len:
-                curr_child = curr_children[curr_index]
-                # if the current child has children, go there
-                if curr_child.children:
-                    child_index_stack.append(0)
-                    curr = curr_child
-                    curr_children = curr.children
-                    curr_children_len = len(curr_children)
-                    curr_index = 0
-                # otherwise, yield that child
-                else:
-                    yield curr_child
-                    child_index_stack[-1] += 1
-            # if there are no children left, return self, and move to
-            # self's parent
+        while stack:
+            node, children_done = stack.pop()
+            if children_done:
+                if include_self or node is not self:
+                    yield node
             else:
-                if include_self or (curr is not self):
-                    yield curr
-                if curr is self:
-                    break
-                curr = curr.parent
-                curr_children = curr.children
-                curr_children_len = len(curr_children)
-                child_index_stack.pop()
-                child_index_stack[-1] += 1
+                # children still need to be processed
+                stack.append((node, True))
 
-    def pre_and_postorder(self, include_self=True):
+                # the stack is last-in-first-out, so we add children
+                # in reverse order so they're processed left-to-right
+                if node.children:
+                    stack.extend((child, False) for child in node.children[::-1])
+
+    def pre_and_postorder(
+        self, include_self: bool = True
+    ) -> typing.Generator[typing_extensions.Self, None, None]:
         """Performs iteration over tree, visiting node before and after."""
-        # handle simple case first
-        if not self.children:
-            if include_self:
-                yield self
-            return
-        child_index_stack = [0]
-        curr = self
-        curr_children = self.children
-        while 1:
-            curr_index = child_index_stack[-1]
-            if not curr_index and (include_self or (curr is not self)):
-                yield curr
-            # if there are children left, process them
-            if curr_index < len(curr_children):
-                curr_child = curr_children[curr_index]
-                # if the current child has children, go there
-                if curr_child.children:
-                    child_index_stack.append(0)
-                    curr = curr_child
-                    curr_children = curr.children
-                    curr_index = 0
-                # otherwise, yield that child
-                else:
-                    yield curr_child
-                    child_index_stack[-1] += 1
-            # if there are no children left, return self, and move to
-            # self's parent
-            else:
-                if include_self or (curr is not self):
-                    yield curr
-                if curr is self:
-                    break
-                curr = curr.parent
-                curr_children = curr.children
-                child_index_stack.pop()
-                child_index_stack[-1] += 1
+        yield from self.preorder(include_self=include_self)
+        yield from self.postorder(include_self=include_self)
 
     def ancestors(self):
         """Returns all ancestors back to the root. Dynamically calculated."""
