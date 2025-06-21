@@ -325,24 +325,19 @@ class TreeNode:
 
     # support for basic tree operations -- finding objects and moving in the
     # tree
-    def _get_parent(self):
-        """Accessor for parent.
-
-        If using an algorithm that accesses parent a lot, it will be much
-        faster to access self._parent directly, but don't do it if mutating
-        self._parent! (or, if you must, remember to clean up the refs).
-        """
+    @property
+    def parent(self) -> typing_extensions.Self | None:
+        """parent of this node"""
         return self._parent
 
-    def _set_parent(self, parent) -> None:
-        """Mutator for parent: cleans up refs in old parent."""
+    @parent.setter
+    def parent(self, parent: typing_extensions.Self | None) -> None:
+        """parent of this node"""
         if self._parent is not None:
             self._parent.remove_node(self)
         self._parent = parent
         if (parent is not None) and (self not in parent.children):
             parent.children.append(self)
-
-    parent = property(_get_parent, _set_parent)
 
     def index_in_parent(self):
         """Returns index of self in parent."""
