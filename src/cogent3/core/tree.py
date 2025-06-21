@@ -646,7 +646,7 @@ class TreeNode:
 
         curr = self
         while len(curr.params.get("black", [])) == 1:
-            curr = curr.params["black"][0]
+            curr = curr.params.pop("black")[0]
 
         return curr
 
@@ -1486,10 +1486,16 @@ class TreeNode:
             if not node.children:
                 node.params["leaf_set"] = frozenset([node.name])
             else:
-                leaf_set = reduce(or_, [c.params["leaf_set"] for c in node.children])
+                leaf_set = reduce(
+                    or_, [c.params.pop("leaf_set") for c in node.children]
+                )
                 if len(leaf_set) > 1:
                     sets.append(leaf_set)
                 node.params["leaf_set"] = leaf_set
+
+        # clean up params entry in children of self
+        for child in self.children:
+            child.params.pop("leaf_set", None)
         return frozenset(sets)
 
     def compare_by_subsets(self, other, exclude_absent_taxa=False):
