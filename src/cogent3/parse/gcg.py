@@ -42,7 +42,7 @@ def MsfParser(f):
     for name, value_ in sequences.items():
         if len(value_) != seqinfo[name]:
             warnings.warn(
-                f"Length of loaded seqs [{name}] is [{len(sequences[name])}] not "
+                f"Length of loaded seqs [{name}] is [{len(value_)}] not "
                 f"[{seqinfo[name]}] as expected.",
                 stacklevel=2,
             )
