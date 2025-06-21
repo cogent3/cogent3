@@ -31,6 +31,7 @@ import contextlib
 import json
 import numbers
 import re
+import typing
 from copy import deepcopy
 from functools import reduce
 from itertools import combinations
@@ -339,7 +340,7 @@ class TreeNode:
         if (parent is not None) and (self not in parent.children):
             parent.children.append(self)
 
-    def index_in_parent(self):
+    def index_in_parent(self) -> int:
         """Returns index of self in parent."""
         return self._parent.children.index(self)
 
@@ -347,7 +348,7 @@ class TreeNode:
         """Returns True if the current node is a tip, i.e. has no children."""
         return not self.children
 
-    def is_root(self):
+    def is_root(self) -> bool:
         """Returns True if the current is a root, i.e. has no parent."""
         return self._parent is None
 
@@ -381,7 +382,9 @@ class TreeNode:
             return self.postorder(include_self=include_self)
         return self.tips(include_self=include_self)
 
-    def levelorder(self, include_self=True):
+    def levelorder(
+        self, include_self: bool = True
+    ) -> typing.Generator[typing_extensions.Self, None, None]:
         """Performs levelorder iteration over tree"""
         queue = [self]
         while queue:
@@ -391,7 +394,9 @@ class TreeNode:
             if curr.children:
                 queue.extend(curr.children)
 
-    def preorder(self, include_self=True):
+    def preorder(
+        self, include_self: bool = True
+    ) -> typing.Generator[typing_extensions.Self, None, None]:
         """Performs preorder iteration over tree."""
         stack = [self]
         while stack:
@@ -593,8 +598,10 @@ class TreeNode:
         """Returns tips descended from self, [] if self is a tip."""
         return list(self.iter_tips(include_self=include_self))
 
-    def iter_nontips(self, include_self=False):
-        """Iterates over nontips descended from self, [] if none.
+    def iter_nontips(
+        self, include_self: bool = False
+    ) -> typing.Generator[typing_extensions.Self, None, None]:
+        """Iterates over nontips descended from self
 
         Parameters
         ----------
@@ -1443,7 +1450,9 @@ class TreeNode:
         """set's the value for param at named edge"""
         self.get_node_matching_name(edge).params[param] = value
 
-    def reassign_names(self, mapping, nodes=None) -> None:
+    def reassign_names(
+        self, mapping: dict[str, str], nodes: list[typing_extensions.Self] | None = None
+    ) -> None:
         """Reassigns node names based on a mapping dict
 
         mapping : dict, old_name -> new_name
@@ -1531,7 +1540,7 @@ class TreeNode:
         """Returns set of names that descend from specified node"""
         return frozenset([i.name for i in self.tips()])
 
-    def subsets(self):
+    def subsets(self) -> frozenset[frozenset[str]]:
         """Returns all sets of names that come from specified node and its kids"""
         sets = []
         for node in self.postorder(include_self=False):
