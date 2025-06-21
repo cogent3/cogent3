@@ -186,9 +186,7 @@ class DndParserTests(TestCase):
         assert len(t[0]) == 0  # first child is terminal
         assert len(t[1]) == 2  # second child has two children
         assert str(t) == "(abc:3.0,(def:4.0,ghi:5.0):6.0);"
-        info_dict = {}
-        for node in t.traverse():
-            info_dict[node.name] = node.length
+        info_dict = {node.name: node.length for node in t.preorder()}
         assert info_dict["abc"] == 3.0
         assert info_dict["def"] == 4.0
         assert info_dict["ghi"] == 5.0

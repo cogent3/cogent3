@@ -29,7 +29,7 @@ def upgma(pairwise_distances):
     matrix_a, node_order = inputs_from_dict_array(darr)
     tree = UPGMA_cluster(matrix_a, node_order, BIG_NUM)
     index = 0
-    for node in tree.traverse():
+    for node in tree.preorder():
         if not node.parent:
             node.name = "root"
         elif not node.name:

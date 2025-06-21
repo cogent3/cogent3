@@ -601,9 +601,13 @@ class TreeNode:
     def iter_nontips(self, include_self=False):
         """Iterates over nontips descended from self, [] if none.
 
-        include_self, if True (default is False), will return the current
-        node as part of the list of nontips if it is a nontip."""
-        for n in self.traverse(True, False, include_self):
+        Parameters
+        ----------
+        include_self
+            if True (default is False), will return the current
+            node as part of the list of nontips if it is a nontip.
+        """
+        for n in self.preorder(include_self=include_self):
             if n.children:
                 yield n
 
@@ -682,27 +686,26 @@ class TreeNode:
             raise ValueError(msg)
 
         # scrub tree
-        if hasattr(self, "black"):
-            for n in self.traverse(include_self=True):
-                if hasattr(n, "black"):
-                    delattr(n, "black")
+        if "black" in self.params:
+            for n in self.preorder(include_self=True):
+                n.params.pop("black", None)
 
         for t in tips:
             prev = t
             curr = t.parent
 
-            while curr and not hasattr(curr, "black"):
-                curr.black = [prev]
+            while curr and "black" not in curr.params:
+                curr.params["black"] = [prev]
                 prev = curr
                 curr = curr.parent
 
             # increase black count, multiple children lead to here
             if curr:
-                curr.black.append(prev)
+                curr.params["black"].append(prev)
 
         curr = self
-        while len(curr.black) == 1:
-            curr = curr.black[0]
+        while len(curr.params.get("black", [])) == 1:
+            curr = curr.params["black"][0]
 
         return curr
 
@@ -745,7 +748,7 @@ class TreeNode:
         """
 
         # get a list of internal nodes
-        node_list = [node for node in self.traverse() if node.children]
+        node_list = [node for node in self.preorder() if node.children]
         node_list.sort()
 
         # get a list of tip names if one is not supplied
@@ -771,16 +774,16 @@ class TreeNode:
         Internal nodes are often unnamed and so this function assigns a
         value for referencing."""
         # make a list of the names that are already in the tree
-        names_in_use = [node.name for node in self.traverse() if node.name]
+        names_in_use = [node.name for node in self.preorder() if node.name]
         # assign unique names to the Data property of nodes where Data = None
         name_index = 1
-        for node in self.traverse():
+        for node in self.preorder():
             if not node.name:
-                new_name = "node" + str(name_index)
+                new_name = f"node{name_index!s}"
                 # choose a new name if name is already in tree
                 while new_name in names_in_use:
                     name_index += 1
-                    new_name = "node" + str(name_index)
+                    new_name = f"node{name_index}"
                 node.name = new_name
                 names_in_use.append(new_name)
                 name_index += 1
@@ -794,7 +797,7 @@ class TreeNode:
         also returns a list of nodes in the same order as they are listed
         in the array"""
         # get a list of internal nodes
-        node_list = [node for node in self.traverse() if node.children]
+        node_list = [node for node in self.preorder() if node.children]
         node_list.sort()
 
         # get a list of tips() name if one is not supplied
@@ -818,7 +821,7 @@ class TreeNode:
         are also removed.
         """
         # Traverse tree
-        for node in list(self.traverse(self_before=False, self_after=True)):
+        for node in self.postorder():
             # if node is deleted
             if is_deleted(node):
                 # Store current parent
@@ -1360,11 +1363,9 @@ class TreeNode:
             only tips returned
         """
         if tips_only:
-            nodes = self.traverse(self_before=False, self_after=False)
+            nodes = self.tips(include_self=True)
         else:
-            nodes = list(self.traverse())
-            if not include_self:
-                nodes.remove(self)
+            nodes = list(self.preorder(include_self=include_self))
         return [node.name for node in nodes]
 
     @c3warn.deprecated_args(
@@ -1387,15 +1388,7 @@ class TreeNode:
             specifies whether root edge included
 
         """
-        return (
-            list(self.traverse(self_before=False, self_after=True))
-            if include_root
-            else [
-                n
-                for n in self.traverse(self_before=False, self_after=True)
-                if not n.isroot()
-            ]
-        )
+        return list(self.postorder(include_self=include_root))
 
     def get_node_matching_name(self, name: str) -> typing_extensions.Self:
         """find the edge with the name
@@ -1404,7 +1397,7 @@ class TreeNode:
         -------
         TreeError if no edge with the name is found
         """
-        for node in self.traverse(self_before=True, self_after=False):
+        for node in self.preorder(include_self=True):
             if node.name == name:
                 break
         else:
@@ -1462,7 +1455,7 @@ class TreeNode:
         nodes : specific nodes for renaming (such as just tips, etc...)
         """
         if nodes is None:
-            nodes = self.traverse()
+            nodes = list(self.preorder())
 
         for n in nodes:
             if n.name in mapping:
@@ -1531,7 +1524,7 @@ class TreeNode:
         """
         res = {}
 
-        for n in self.traverse():
+        for n in self.preorder():
             if n.name in res:
                 msg = "get_nodes_dict requires unique node names"
                 raise TreeError(msg)
@@ -1546,14 +1539,14 @@ class TreeNode:
     def subsets(self):
         """Returns all sets of names that come from specified node and its kids"""
         sets = []
-        for i in self.traverse(self_before=False, self_after=True, include_self=False):
-            if not i.children:
-                i.__leaf_set = frozenset([i.name])
+        for node in self.postorder(include_self=False):
+            if not node.children:
+                node.params["leaf_set"] = frozenset([node.name])
             else:
-                leaf_set = reduce(or_, [c.__leaf_set for c in i.children])
+                leaf_set = reduce(or_, [c.params["leaf_set"] for c in node.children])
                 if len(leaf_set) > 1:
                     sets.append(leaf_set)
-                i.__leaf_set = leaf_set
+                node.params["leaf_set"] = leaf_set
         return frozenset(sets)
 
     def compare_by_subsets(self, other, exclude_absent_taxa=False):
@@ -1950,7 +1943,7 @@ class PhyloNode(TreeNode):
     def total_descending_branch_length(self) -> float:
         """Returns total descending branch length from self"""
         return sum(
-            n.length for n in self.traverse(include_self=False) if n.length is not None
+            n.length for n in self.preorder(include_self=False) if n.length is not None
         )
 
     def total_length(self) -> float:
