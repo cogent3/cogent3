@@ -773,11 +773,11 @@ def _apply_to(
     self,
     dstore,
     id_from_source: callable = get_unique_id,
-    parallel=False,
-    par_kw=None,
-    logger=None,
-    cleanup=True,
-    show_progress=False,
+    parallel: bool = False,
+    par_kw: dict = None,
+    logger: CachingLogger = None,
+    cleanup: bool = True,
+    show_progress: bool = False,
 ):
     """invokes self composable function on the provided data store
 
