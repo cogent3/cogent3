@@ -505,7 +505,7 @@ class TreeNode:
         return curr
 
     @c3warn.deprecated_callable(
-        "2025.9", reason="misleading method name", new="get_root()"
+        "2025.6", reason="misleading method name", new="get_root()"
     )
     def root(self) -> typing_extensions.Self:
         return self.get_root()
@@ -1118,7 +1118,7 @@ class TreeNode:
         return result
 
     @c3warn.deprecated_args(
-        "2025.9",
+        "2025.6",
         "consistency between methods",
         [("tipsonly", "tips_only")],
     )
@@ -1340,7 +1340,7 @@ class TreeNode:
             outf.writelines(data)
 
     @c3warn.deprecated_args(
-        "2025.9",
+        "2025.6",
         "consistency between methods",
         [("includeself", "include_self"), ("tipsonly", "tips_only")],
     )
@@ -1368,7 +1368,7 @@ class TreeNode:
         return [node.name for node in nodes]
 
     @c3warn.deprecated_args(
-        "2025.9",
+        "2025.6",
         "consistency between methods",
         [("includeself", "include_self"), ("tipsonly", "tips_only")],
     )
@@ -1579,7 +1579,7 @@ class TreeNode:
         return 1 - 2 * intersection_length / float(total_subsets)
 
     @c3warn.deprecated_args(
-        "2025.9", "consistency with other methods", [("endpoints", "names")]
+        "2025.6", "consistency with other methods", [("endpoints", "names")]
     )
     def tip_to_tip_distances(
         self, names: list[str] | None = None, default_length: float | None = None
@@ -2041,7 +2041,7 @@ class PhyloNode(TreeNode):
         _adjust_lengths_from_root(tip_name=a, mid_point=mid_point, tree=new_tree)
         return new_tree
 
-    @c3warn.deprecated_callable("2025.9", "not being used", is_discontinued=True)
+    @c3warn.deprecated_callable("2025.6", "not being used", is_discontinued=True)
     def set_tip_distances(self) -> None:  # pragma: no cover
         """discontinued"""
         for node in self.traverse(self_before=False, self_after=True):
@@ -2052,7 +2052,7 @@ class PhyloNode(TreeNode):
             else:
                 node.TipDistance = 0
 
-    @c3warn.deprecated_callable("2025.9", "not being used", is_discontinued=True)
+    @c3warn.deprecated_callable("2025.6", "not being used", is_discontinued=True)
     def scale_branch_lengths(
         self, max_length: int = 100, ultrametric: bool = False
     ) -> None:  # pragma: no cover
@@ -2092,14 +2092,14 @@ class PhyloNode(TreeNode):
                 del node.TipDistance
 
     @c3warn.deprecated_args(
-        "2025.9", "consistency with other methods", [("endpoints", "names")]
+        "2025.6", "consistency with other methods", [("endpoints", "names")]
     )
     def get_distances(self, names: list[str] | None = None) -> DistanceMatrix:
         """returns pairwise distance matrix"""
         return self.tip_to_tip_distances(names=names)
 
     @c3warn.deprecated_callable(
-        "2025.9", "use the distance matrices directly", is_discontinued=True
+        "2025.6", "use the distance matrices directly", is_discontinued=True
     )
     def compare_by_tip_distances(
         self,
@@ -2108,21 +2108,7 @@ class PhyloNode(TreeNode):
         dist_f=distance_from_r,
         shuffle_f=shuffle,
     ):  # pragma: no cover
-        """Compares self to other using tip-to-tip distance matrices.
-
-        Value returned is dist_f(m1, m2) for the two matrices. Default is
-        to use the Pearson correlation coefficient, with +1 giving a distance
-        of 0 and -1 giving a distance of +1 (the madimum possible value).
-        Depending on the application, you might instead want to use
-        distance_from_r_squared, which counts correlations of both +1 and -1
-        as identical (0 distance).
-
-        Note: automatically strips out the names that don't match (this is
-        necessary for this method because the distance between non-matching
-        names and matching names is undefined in the tree where they don't
-        match, and because we need to reorder the names in the two trees to
-        match up the distance matrices).
-        """
+        """discontinued"""
         self_names = {i.name: i for i in self.tips()}
         other_names = {i.name: i for i in other.tips()}
         common_names = frozenset(list(self_names.keys())) & frozenset(
@@ -2170,7 +2156,7 @@ class PhyloNode(TreeNode):
         dist, pair, _ = self.get_max_tip_tip_distance()
         return dist, pair
 
-    @c3warn.deprecated_callable("2025.9", "not being used", is_discontinued=True)
+    @c3warn.deprecated_callable("2025.6", "not being used", is_discontinued=True)
     def set_max_tip_tip_distance(self) -> None:  # pragma: no cover
         """discontinued"""
         for n in self.postorder():
