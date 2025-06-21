@@ -609,7 +609,7 @@ class TreeNode:
             curr = curr._parent
         return None
 
-    def lowest_common_ancestor(self, tipnames):
+    def lowest_common_ancestor(self, tipnames: list[str]) -> typing_extensions.Self:
         """Lowest common ancestor for a list of tipnames
 
         This should be around O(H sqrt(n)), where H is height and n is the
@@ -618,7 +618,7 @@ class TreeNode:
         if len(tipnames) == 1:
             return self.get_node_matching_name(tipnames[0])
 
-        tipnames = set(tipnames)
+        tipnames: set[str] = set(tipnames)
         tips = [tip for tip in self.tips() if tip.name in tipnames]
 
         if len(tips) != len(tipnames):
@@ -666,12 +666,12 @@ class TreeNode:
             if id(other) in my_ancestors:
                 # need to figure out how many steps there were back from self
                 curr = self
-                while not (curr is None or curr is other):
+                while curr is not None and curr is not other:
                     count += 1
-                    curr = curr._parent
+                    curr = curr.parent
                 return count
             count += 1
-            other = other._parent
+            other = other.parent
         return None
 
     def descendant_array(self, tip_list=None):
@@ -1475,9 +1475,9 @@ class TreeNode:
 
         return res
 
-    def subset(self):
+    def subset(self) -> frozenset[str | None]:
         """Returns set of names that descend from specified node"""
-        return frozenset([i.name for i in self.tips()])
+        return frozenset(i.name for i in self.tips())
 
     def subsets(self) -> frozenset[frozenset[str]]:
         """Returns all sets of names that come from specified node and its kids"""
