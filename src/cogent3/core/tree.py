@@ -337,7 +337,7 @@ class TreeNode:
         if self._parent is not None:
             self._parent.remove_node(self)
         self._parent = parent
-        if (parent is not None) and (self not in parent.children):
+        if parent is not None and self not in parent.children:
             parent.children.append(self)
 
     def index_in_parent(self) -> int:
@@ -352,28 +352,18 @@ class TreeNode:
         """Returns True if the current is a root, i.e. has no parent."""
         return self._parent is None
 
+    @c3warn.deprecated_callable(
+        "2025.6",
+        reason="use other tree methods e.g. preorder(), postorder() etc..",
+        is_discontinued=True,
+    )
     def traverse(
         self,
         self_before: bool = True,
         self_after: bool = False,
         include_self: bool = True,
-    ) -> typing_extensions.Iterator[typing_extensions.Self]:
-        """Returns iterator over descendants. Iterative: safe for large trees.
-
-        self_before includes each node before its descendants if True.
-        self_after includes each node after its descendants if True.
-        include_self includes the initial node if True.
-
-        self_before and self_after are independent. If neither is True, only
-        terminal nodes will be returned.
-
-        Note that if self is terminal, it will only be included once even if
-        self_before and self_after are both True.
-
-        This is a depth-first traversal. Since the trees are not binary,
-        preorder and postorder traversals are possible, but inorder traversals
-        would depend on the data in the tree and are not handled here.
-        """
+    ) -> typing_extensions.Iterator[typing_extensions.Self]:  # pragma: no cover
+        """discontinued"""
         if self_before:
             if self_after:
                 return self.pre_and_postorder(include_self=include_self)
