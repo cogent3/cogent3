@@ -31,6 +31,7 @@ import contextlib
 import json
 import numbers
 import re
+import typing
 from copy import deepcopy
 from functools import reduce
 from itertools import combinations
@@ -325,26 +326,21 @@ class TreeNode:
 
     # support for basic tree operations -- finding objects and moving in the
     # tree
-    def _get_parent(self):
-        """Accessor for parent.
-
-        If using an algorithm that accesses parent a lot, it will be much
-        faster to access self._parent directly, but don't do it if mutating
-        self._parent! (or, if you must, remember to clean up the refs).
-        """
+    @property
+    def parent(self) -> typing_extensions.Self | None:
+        """parent of this node"""
         return self._parent
 
-    def _set_parent(self, parent) -> None:
-        """Mutator for parent: cleans up refs in old parent."""
+    @parent.setter
+    def parent(self, parent: typing_extensions.Self | None) -> None:
+        """parent of this node"""
         if self._parent is not None:
             self._parent.remove_node(self)
         self._parent = parent
-        if (parent is not None) and (self not in parent.children):
+        if parent is not None and self not in parent.children:
             parent.children.append(self)
 
-    parent = property(_get_parent, _set_parent)
-
-    def index_in_parent(self):
+    def index_in_parent(self) -> int:
         """Returns index of self in parent."""
         return self._parent.children.index(self)
 
@@ -352,32 +348,22 @@ class TreeNode:
         """Returns True if the current node is a tip, i.e. has no children."""
         return not self.children
 
-    def is_root(self):
+    def is_root(self) -> bool:
         """Returns True if the current is a root, i.e. has no parent."""
         return self._parent is None
 
+    @c3warn.deprecated_callable(
+        "2025.6",
+        reason="use other tree methods e.g. preorder(), postorder() etc..",
+        is_discontinued=True,
+    )
     def traverse(
         self,
         self_before: bool = True,
         self_after: bool = False,
         include_self: bool = True,
-    ) -> typing_extensions.Iterator[typing_extensions.Self]:
-        """Returns iterator over descendants. Iterative: safe for large trees.
-
-        self_before includes each node before its descendants if True.
-        self_after includes each node after its descendants if True.
-        include_self includes the initial node if True.
-
-        self_before and self_after are independent. If neither is True, only
-        terminal nodes will be returned.
-
-        Note that if self is terminal, it will only be included once even if
-        self_before and self_after are both True.
-
-        This is a depth-first traversal. Since the trees are not binary,
-        preorder and postorder traversals are possible, but inorder traversals
-        would depend on the data in the tree and are not handled here.
-        """
+    ) -> typing_extensions.Iterator[typing_extensions.Self]:  # pragma: no cover
+        """discontinued"""
         if self_before:
             if self_after:
                 return self.pre_and_postorder(include_self=include_self)
@@ -386,7 +372,9 @@ class TreeNode:
             return self.postorder(include_self=include_self)
         return self.tips(include_self=include_self)
 
-    def levelorder(self, include_self=True):
+    def levelorder(
+        self, include_self: bool = True
+    ) -> typing.Generator[typing_extensions.Self, None, None]:
         """Performs levelorder iteration over tree"""
         queue = [self]
         while queue:
@@ -396,97 +384,48 @@ class TreeNode:
             if curr.children:
                 queue.extend(curr.children)
 
-    def preorder(self, include_self=True):
+    def preorder(
+        self, include_self: bool = True
+    ) -> typing.Generator[typing_extensions.Self, None, None]:
         """Performs preorder iteration over tree."""
         stack = [self]
+
         while stack:
-            curr = stack.pop()
-            if include_self or (curr is not self):
-                yield curr
-            if curr.children:
-                stack.extend(curr.children[::-1])  # 20% faster than reversed
+            node = stack.pop()
+            if include_self or node is not self:
+                yield node
 
-    def postorder(self, include_self=True):
-        """performs postorder iteration over tree.
+            # the stack is last-in-first-out, so we add children
+            # in reverse order so they're processed left-to-right
+            if node.children:
+                stack.extend(node.children[::-1])
 
-        Notes
-        -----
+    def postorder(
+        self, include_self: bool = True
+    ) -> typing.Generator[typing_extensions.Self, None, None]:
+        """performs postorder iteration over tree"""
+        stack = [(self, False)]
 
-        This is somewhat inelegant compared to saving the node and its index
-        on the stack, but is 30% faster in the average case and 3x faster in
-        the worst case (for a comb tree).
-        """
-        child_index_stack = [0]
-        curr = self
-        curr_children = self.children
-        curr_children_len = len(curr_children)
-        while 1:
-            curr_index = child_index_stack[-1]
-            # if there are children left, process them
-            if curr_index < curr_children_len:
-                curr_child = curr_children[curr_index]
-                # if the current child has children, go there
-                if curr_child.children:
-                    child_index_stack.append(0)
-                    curr = curr_child
-                    curr_children = curr.children
-                    curr_children_len = len(curr_children)
-                    curr_index = 0
-                # otherwise, yield that child
-                else:
-                    yield curr_child
-                    child_index_stack[-1] += 1
-            # if there are no children left, return self, and move to
-            # self's parent
+        while stack:
+            node, children_done = stack.pop()
+            if children_done:
+                if include_self or node is not self:
+                    yield node
             else:
-                if include_self or (curr is not self):
-                    yield curr
-                if curr is self:
-                    break
-                curr = curr.parent
-                curr_children = curr.children
-                curr_children_len = len(curr_children)
-                child_index_stack.pop()
-                child_index_stack[-1] += 1
+                # children still need to be processed
+                stack.append((node, True))
 
-    def pre_and_postorder(self, include_self=True):
+                # the stack is last-in-first-out, so we add children
+                # in reverse order so they're processed left-to-right
+                if node.children:
+                    stack.extend((child, False) for child in node.children[::-1])
+
+    def pre_and_postorder(
+        self, include_self: bool = True
+    ) -> typing.Generator[typing_extensions.Self, None, None]:
         """Performs iteration over tree, visiting node before and after."""
-        # handle simple case first
-        if not self.children:
-            if include_self:
-                yield self
-            return
-        child_index_stack = [0]
-        curr = self
-        curr_children = self.children
-        while 1:
-            curr_index = child_index_stack[-1]
-            if not curr_index and (include_self or (curr is not self)):
-                yield curr
-            # if there are children left, process them
-            if curr_index < len(curr_children):
-                curr_child = curr_children[curr_index]
-                # if the current child has children, go there
-                if curr_child.children:
-                    child_index_stack.append(0)
-                    curr = curr_child
-                    curr_children = curr.children
-                    curr_index = 0
-                # otherwise, yield that child
-                else:
-                    yield curr_child
-                    child_index_stack[-1] += 1
-            # if there are no children left, return self, and move to
-            # self's parent
-            else:
-                if include_self or (curr is not self):
-                    yield curr
-                if curr is self:
-                    break
-                curr = curr.parent
-                curr_children = curr.children
-                child_index_stack.pop()
-                child_index_stack[-1] += 1
+        yield from self.preorder(include_self=include_self)
+        yield from self.postorder(include_self=include_self)
 
     def ancestors(self):
         """Returns all ancestors back to the root. Dynamically calculated."""
@@ -598,12 +537,18 @@ class TreeNode:
         """Returns tips descended from self, [] if self is a tip."""
         return list(self.iter_tips(include_self=include_self))
 
-    def iter_nontips(self, include_self=False):
-        """Iterates over nontips descended from self, [] if none.
+    def iter_nontips(
+        self, include_self: bool = False
+    ) -> typing.Generator[typing_extensions.Self, None, None]:
+        """Iterates over nontips descended from self
 
-        include_self, if True (default is False), will return the current
-        node as part of the list of nontips if it is a nontip."""
-        for n in self.traverse(True, False, include_self):
+        Parameters
+        ----------
+        include_self
+            if True (default is False), will return the current
+            node as part of the list of nontips if it is a nontip.
+        """
+        for n in self.preorder(include_self=include_self):
             if n.children:
                 yield n
 
@@ -664,7 +609,7 @@ class TreeNode:
             curr = curr._parent
         return None
 
-    def lowest_common_ancestor(self, tipnames):
+    def lowest_common_ancestor(self, tipnames: list[str]) -> typing_extensions.Self:
         """Lowest common ancestor for a list of tipnames
 
         This should be around O(H sqrt(n)), where H is height and n is the
@@ -673,7 +618,7 @@ class TreeNode:
         if len(tipnames) == 1:
             return self.get_node_matching_name(tipnames[0])
 
-        tipnames = set(tipnames)
+        tipnames: set[str] = set(tipnames)
         tips = [tip for tip in self.tips() if tip.name in tipnames]
 
         if len(tips) != len(tipnames):
@@ -682,27 +627,26 @@ class TreeNode:
             raise ValueError(msg)
 
         # scrub tree
-        if hasattr(self, "black"):
-            for n in self.traverse(include_self=True):
-                if hasattr(n, "black"):
-                    delattr(n, "black")
+        if "black" in self.params:
+            for n in self.preorder(include_self=True):
+                n.params.pop("black", None)
 
         for t in tips:
             prev = t
             curr = t.parent
 
-            while curr and not hasattr(curr, "black"):
-                curr.black = [prev]
+            while curr and "black" not in curr.params:
+                curr.params["black"] = [prev]
                 prev = curr
                 curr = curr.parent
 
             # increase black count, multiple children lead to here
             if curr:
-                curr.black.append(prev)
+                curr.params["black"].append(prev)
 
         curr = self
-        while len(curr.black) == 1:
-            curr = curr.black[0]
+        while len(curr.params.get("black", [])) == 1:
+            curr = curr.params.pop("black")[0]
 
         return curr
 
@@ -722,12 +666,12 @@ class TreeNode:
             if id(other) in my_ancestors:
                 # need to figure out how many steps there were back from self
                 curr = self
-                while not (curr is None or curr is other):
+                while curr is not None and curr is not other:
                     count += 1
-                    curr = curr._parent
+                    curr = curr.parent
                 return count
             count += 1
-            other = other._parent
+            other = other.parent
         return None
 
     def descendant_array(self, tip_list=None):
@@ -745,7 +689,7 @@ class TreeNode:
         """
 
         # get a list of internal nodes
-        node_list = [node for node in self.traverse() if node.children]
+        node_list = [node for node in self.preorder() if node.children]
         node_list.sort()
 
         # get a list of tip names if one is not supplied
@@ -771,16 +715,16 @@ class TreeNode:
         Internal nodes are often unnamed and so this function assigns a
         value for referencing."""
         # make a list of the names that are already in the tree
-        names_in_use = [node.name for node in self.traverse() if node.name]
+        names_in_use = [node.name for node in self.preorder() if node.name]
         # assign unique names to the Data property of nodes where Data = None
         name_index = 1
-        for node in self.traverse():
+        for node in self.preorder():
             if not node.name:
-                new_name = "node" + str(name_index)
+                new_name = f"node{name_index!s}"
                 # choose a new name if name is already in tree
                 while new_name in names_in_use:
                     name_index += 1
-                    new_name = "node" + str(name_index)
+                    new_name = f"node{name_index}"
                 node.name = new_name
                 names_in_use.append(new_name)
                 name_index += 1
@@ -794,7 +738,7 @@ class TreeNode:
         also returns a list of nodes in the same order as they are listed
         in the array"""
         # get a list of internal nodes
-        node_list = [node for node in self.traverse() if node.children]
+        node_list = [node for node in self.preorder() if node.children]
         node_list.sort()
 
         # get a list of tips() name if one is not supplied
@@ -818,7 +762,7 @@ class TreeNode:
         are also removed.
         """
         # Traverse tree
-        for node in list(self.traverse(self_before=False, self_after=True)):
+        for node in self.postorder():
             # if node is deleted
             if is_deleted(node):
                 # Store current parent
@@ -1360,11 +1304,9 @@ class TreeNode:
             only tips returned
         """
         if tips_only:
-            nodes = self.traverse(self_before=False, self_after=False)
+            nodes = self.tips(include_self=True)
         else:
-            nodes = list(self.traverse())
-            if not include_self:
-                nodes.remove(self)
+            nodes = list(self.preorder(include_self=include_self))
         return [node.name for node in nodes]
 
     @c3warn.deprecated_args(
@@ -1387,15 +1329,7 @@ class TreeNode:
             specifies whether root edge included
 
         """
-        return (
-            list(self.traverse(self_before=False, self_after=True))
-            if include_root
-            else [
-                n
-                for n in self.traverse(self_before=False, self_after=True)
-                if not n.isroot()
-            ]
-        )
+        return list(self.postorder(include_self=include_root))
 
     def get_node_matching_name(self, name: str) -> typing_extensions.Self:
         """find the edge with the name
@@ -1404,7 +1338,7 @@ class TreeNode:
         -------
         TreeError if no edge with the name is found
         """
-        for node in self.traverse(self_before=True, self_after=False):
+        for node in self.preorder(include_self=True):
             if node.name == name:
                 break
         else:
@@ -1455,14 +1389,16 @@ class TreeNode:
         """set's the value for param at named edge"""
         self.get_node_matching_name(edge).params[param] = value
 
-    def reassign_names(self, mapping, nodes=None) -> None:
+    def reassign_names(
+        self, mapping: dict[str, str], nodes: list[typing_extensions.Self] | None = None
+    ) -> None:
         """Reassigns node names based on a mapping dict
 
         mapping : dict, old_name -> new_name
         nodes : specific nodes for renaming (such as just tips, etc...)
         """
         if nodes is None:
-            nodes = self.traverse()
+            nodes = list(self.preorder())
 
         for n in nodes:
             if n.name in mapping:
@@ -1531,7 +1467,7 @@ class TreeNode:
         """
         res = {}
 
-        for n in self.traverse():
+        for n in self.preorder():
             if n.name in res:
                 msg = "get_nodes_dict requires unique node names"
                 raise TreeError(msg)
@@ -1539,21 +1475,27 @@ class TreeNode:
 
         return res
 
-    def subset(self):
+    def subset(self) -> frozenset[str | None]:
         """Returns set of names that descend from specified node"""
-        return frozenset([i.name for i in self.tips()])
+        return frozenset(i.name for i in self.tips())
 
-    def subsets(self):
+    def subsets(self) -> frozenset[frozenset[str]]:
         """Returns all sets of names that come from specified node and its kids"""
         sets = []
-        for i in self.traverse(self_before=False, self_after=True, include_self=False):
-            if not i.children:
-                i.__leaf_set = frozenset([i.name])
+        for node in self.postorder(include_self=False):
+            if not node.children:
+                node.params["leaf_set"] = frozenset([node.name])
             else:
-                leaf_set = reduce(or_, [c.__leaf_set for c in i.children])
+                leaf_set = reduce(
+                    or_, [c.params.pop("leaf_set") for c in node.children]
+                )
                 if len(leaf_set) > 1:
                     sets.append(leaf_set)
-                i.__leaf_set = leaf_set
+                node.params["leaf_set"] = leaf_set
+
+        # clean up params entry in children of self
+        for child in self.children:
+            child.params.pop("leaf_set", None)
         return frozenset(sets)
 
     def compare_by_subsets(self, other, exclude_absent_taxa=False):
@@ -1950,7 +1892,7 @@ class PhyloNode(TreeNode):
     def total_descending_branch_length(self) -> float:
         """Returns total descending branch length from self"""
         return sum(
-            n.length for n in self.traverse(include_self=False) if n.length is not None
+            n.length for n in self.preorder(include_self=False) if n.length is not None
         )
 
     def total_length(self) -> float:
