@@ -292,10 +292,8 @@ class TreeNode:
         return len(self.children)
 
     # support for copy module
-    def copy(self, memo=None, _nil=None, constructor="ignored"):
+    def copy(self, memo=None, _nil=None, constructor: None = None):
         """Returns a copy of self using an iterative approach"""
-
-        _nil = _nil or []
 
         root = _copy_node(self)
         nodes_stack = [[root, self, len(self.children)]]
@@ -2285,7 +2283,7 @@ def make_tree(
     tip_names: list[str] | None = None,
     format: str | None = None,
     underscore_unmunge: bool = False,
-    source: str | None = None,
+    source: str | pathlib.Path | None = None,
 ) -> PhyloNode | TreeNode:
     """Initialises a tree.
 
@@ -2368,8 +2366,8 @@ def load_tree(
     -------
     PhyloNode
     """
-    file_format, _ = get_format_suffixes(filename)
-    format = format or file_format
+    fmt, _ = get_format_suffixes(filename)
+    format = format or fmt
     if format == "json":
         tree = load_from_json(filename, (TreeNode, PhyloNode))
         tree.source = str(filename)

@@ -23,7 +23,7 @@ def test_make_tree():
     # NOTE: This method now sits in cogent3.__init__
 
     t_str = "(a_a:10,(b_b:2,c_c:4):5);"
-    # NOTE: Tree quotes these labels because they have underscores in them.
+    # Tree quotes these labels because they have underscores in them.
     result_str = "('a_a':10.0,('b_b':2.0,'c_c':4.0):5.0);"
     t = make_tree(treestring=t_str)
     names = [i.name for i in t.tips()]
@@ -43,15 +43,6 @@ def test_make_tree():
     # when creating a tree from a list of integer tip names.
     t = make_tree(tip_names=[1, 2, 3])
     assert t.get_tip_names() == ["1", "2", "3"]
-
-
-def _new_child(old_node, constructor):
-    """Returns new_node which has old_node as its parent."""
-    new_node = constructor()
-    new_node.parent = old_node
-    if old_node is not None and new_node not in old_node.children:
-        old_node.children.append(new_node)
-    return new_node
 
 
 tree_std = """\
