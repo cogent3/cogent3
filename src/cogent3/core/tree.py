@@ -713,7 +713,7 @@ class TreeNode:
                     result[i, j] = 1
         return result, node_list
 
-    def _default_tree_constructor(self):
+    def _default_tree_constructor(self) -> typing.Callable[[T, list[T]], T]:
         return TreeBuilder(constructor=self.__class__).edge_from_edge
 
     def name_unnamed_nodes(self) -> None:
@@ -1647,15 +1647,19 @@ class TreeNode:
             dists[tip.name] = cum_sum
         return dists
 
-    def same_topology(self, other):
+    def same_topology(self, other) -> bool:
         """Tests whether two trees have the same topology."""
         tip_names = self.get_tip_names()
         root_at = tip_names[0]
-        me = self.rooted_with_tip(root_at).sorted(tip_names)
-        them = other.rooted_with_tip(root_at).sorted(tip_names)
+        me = self.rooted(root_at).sorted(tip_names)
+        them = other.rooted(root_at).sorted(tip_names)
         return self is other or me.same_shape(them)
 
-    def unrooted_deepcopy(self, constructor=None, parent=None):
+    def unrooted_deepcopy(
+        self,
+        constructor: type | None = None,
+        parent: typing_extensions.Self | None = None,
+    ) -> typing_extensions.Self:
         """
         Returns a deepcopy of the tree using unrooted traversal.
 
@@ -2196,39 +2200,44 @@ def split_name_and_support(name_field: str | None) -> tuple[str | None, float | 
     return name, support_value
 
 
+T = typing.TypeVar("T", "TreeNode", "PhyloNode")
+
+
 class TreeBuilder:
     # Some tree code which isn't needed once the tree is finished.
     # Mostly exists to give edges unique names
     # children must be created before their parents.
 
-    def __init__(self, mutable=False, constructor=PhyloNode) -> None:
+    def __init__(self, mutable: bool = False, constructor: type = PhyloNode) -> None:
         self._used_names = {"edge": -1}
         self._known_edges = {}
         self.TreeNodeClass = constructor
 
-    def _unique_name(self, name):
+    def _unique_name(self, name: str) -> str:
         # Unnamed edges become edge.0, edge.1 edge.2 ...
         # Other duplicates go mouse mouse.2 mouse.3 ...
         if not name:
             name = "edge"
         if name in self._used_names:
             self._used_names[name] += 1
-            name += "." + str(self._used_names[name])
+            name += f".{self._used_names[name]!s}"
             # in case of names like 'edge.1.1'
             name = self._unique_name(name)
         else:
             self._used_names[name] = 1
         return name
 
-    def _params_for_edge(self, edge):
+    def _params_for_edge(self, edge: T) -> dict:
         # default is just to keep it
         return edge.params
 
-    def edge_from_edge(self, edge, children, params=None):
+    def edge_from_edge(
+        self, edge: T | None, children: list[T], params: dict | None = None
+    ) -> T:
         """Callback for tree-to-tree transforms like get_sub_tree"""
         if edge is None:
             assert not params
-            return self.create_edge(children, "root", {}, False)
+            return self.create_edge(children, "root", {}, name_loaded=False)
         if params is None:
             params = self._params_for_edge(edge)
         return self.create_edge(
@@ -2238,7 +2247,9 @@ class TreeBuilder:
             name_loaded=edge.name_loaded,
         )
 
-    def create_edge(self, children, name, params, name_loaded=True):
+    def create_edge(
+        self, children: list[T], name: str, params: dict, name_loaded: bool = True
+    ) -> T:
         """Callback for newick parser"""
         if children is None:
             children = []
