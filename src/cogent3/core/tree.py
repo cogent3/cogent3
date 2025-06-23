@@ -81,10 +81,16 @@ def _copy_node(n):
 
 
 def _format_node_name(
-    node, with_node_names: bool, escape_name: bool, with_distances: bool
+    node,
+    with_node_names: bool,
+    escape_name: bool,
+    with_distances: bool,
+    with_root_name: bool = False,
 ) -> str:
     """Helper function to format node name according to parameters"""
-    if not node.is_tip() and not with_node_names:
+    if (node.is_root() and not with_root_name) or (
+        not node.is_tip() and not with_node_names
+    ):
         node_name = ""
     else:
         node_name = node.name or ""
@@ -827,6 +833,7 @@ class TreeNode:
             with_node_names=True,
             semicolon=False,
             escape_name=False,
+            with_root_name=True,
         )
         attr = {}
         for edge in self.get_edge_vector(include_root=True):
@@ -848,6 +855,7 @@ class TreeNode:
         semicolon: bool = True,
         escape_name: bool = True,
         with_node_names: bool = False,
+        with_root_name: bool = False,
     ) -> str:
         """Return the newick string of node and its descendents
 
@@ -862,6 +870,9 @@ class TreeNode:
             nodes name, wrap the name in single quotes
         with_node_names
             includes internal node names
+        with_root_name
+            if True and with_node_names, the root node will have
+            its name included
         """
         # Stack contains tuples of (tree node, visit flag)
         stack = [(self, False)]
@@ -882,6 +893,7 @@ class TreeNode:
                     with_node_names=with_node_names,
                     escape_name=escape_name,
                     with_distances=with_distances,
+                    with_root_name=with_root_name,
                 )
 
                 # for tips with parent, the typical case
