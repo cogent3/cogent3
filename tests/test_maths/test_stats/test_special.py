@@ -5,6 +5,7 @@ from unittest import TestCase
 
 from numpy.testing import assert_allclose
 
+from cogent3.maths.stats.distribution import binomial_exact
 from cogent3.maths.stats.special import (
     igami,
     incbi,
@@ -51,7 +52,6 @@ class SpecialTests(TestCase):
         for key, value in list(expected.items()):
             min_val, max_val = value
             assert min_val < ln_binomial(*key) < max_val
-            # self.assert_allclose(binomial_exact(*key), value, 1e-4)
 
     def test_ln_binomial_range(self):
         """ln_binomial should increase in a monotonically increasing region."""
