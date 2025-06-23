@@ -23,7 +23,7 @@ def test_make_tree():
     # NOTE: This method now sits in cogent3.__init__
 
     t_str = "(a_a:10,(b_b:2,c_c:4):5);"
-    # NOTE: Tree quotes these labels because they have underscores in them.
+    # Tree quotes these labels because they have underscores in them.
     result_str = "('a_a':10.0,('b_b':2.0,'c_c':4.0):5.0);"
     t = make_tree(treestring=t_str)
     names = [i.name for i in t.tips()]
@@ -43,15 +43,6 @@ def test_make_tree():
     # when creating a tree from a list of integer tip names.
     t = make_tree(tip_names=[1, 2, 3])
     assert t.get_tip_names() == ["1", "2", "3"]
-
-
-def _new_child(old_node, constructor):
-    """Returns new_node which has old_node as its parent."""
-    new_node = constructor()
-    new_node.parent = old_node
-    if old_node is not None and new_node not in old_node.children:
-        old_node.children.append(new_node)
-    return new_node
 
 
 tree_std = """\
@@ -1929,15 +1920,20 @@ def test_balanced():
 
 
 def test_params_merge():
-    t = make_tree(treestring="((((a,b)ab,c)abc),d)")
-    for label, length, beta in [("a", 1, 20), ("b", 3, 2.0), ("ab", 4, 5.0)]:
-        t.get_node_matching_name(label).params = {"length": length, "beta": beta}
+    t = make_tree(treestring="((((a:1,b:3)ab:4,c)abc),d)")
+    for label, beta in [("a", 20), ("b", 2.0), ("ab", 5.0)]:
+        t.get_node_matching_name(label).params |= {"beta": beta}
     t = t.get_sub_tree(["b", "c", "d"])
+    # previous implementation on merge was
+    # dividing the sum of parameters across nodes by the lengths
+    # we no longer try and support this
     assert t.get_node_matching_name("b").params == {
         "length": 7,
-        "beta": float(2 * 3 + 4 * 5) / (3 + 4),
+        "beta": 2 + 5,
     }
-    assert str(t.get_sub_tree(["b", "c", "xxx"], ignore_missing=True)) == "(b:7,c);"
+    ex = make_tree("(b:7,c);")
+    st = t.get_sub_tree(["b", "c", "xxx"], ignore_missing=True)
+    assert ex.same_topology(st)
     with pytest.raises(ValueError):
         # should raise ValueError if a tip is not found
         t.get_sub_tree(["b", "c", "xxx"])
@@ -2069,12 +2065,18 @@ def test_getsubtree(request, tree_fxt, otu_fxt, nwk_fxt):
     tree = request.getfixturevalue(tree_fxt)
     otu_names = request.getfixturevalue(otu_fxt)
     newick_reduced = request.getfixturevalue(nwk_fxt)
-    subtree = tree.unrooted().get_sub_tree(otu_names)
+    tree = tree.unrooted()
+    subtree = tree.get_sub_tree(otu_names)
 
-    new_tree = make_tree(treestring=newick_reduced).unrooted()
+    exp_tree = make_tree(treestring=newick_reduced).unrooted()
 
-    # check we get the same names
-    assert str(subtree) == str(new_tree)
+    # names match
+    assert set(subtree.get_tip_names()) == set(exp_tree.get_tip_names())
+    # topology matches
+    assert exp_tree.same_topology(subtree)
+    # newick correctly formed means we reconstruct the same topology
+    from_nwk = make_tree(subtree.get_newick())
+    assert exp_tree.same_topology(from_nwk)
 
 
 def test_getsubtree_2():
@@ -2191,7 +2193,7 @@ def test_load_tree(tmp_path, tree_fxt, request):
     got = load_tree(tree_path)
     assert isinstance(got, PhyloNode)
     assert got.get_newick() == tree.get_newick()
-    assert got.get_node_names() == tree.get_node_names()
+    assert set(got.get_node_names()) == set(tree.get_node_names())
 
 
 @pytest.mark.parametrize("tree_fxt", ["tree_small", "tree_big"])
@@ -2203,7 +2205,7 @@ def test_load_tree_from_json(tmp_path, tree_fxt, request):
     got = load_tree(json_path)
     assert isinstance(got, PhyloNode)
     assert got.get_newick() == tree.get_newick()
-    assert got.get_node_names() == tree.get_node_names()
+    assert set(got.get_node_names()) == set(tree.get_node_names())
     # now try using non json suffix
     json_path = tmp_path / "tree.txt"
     tree.write(json_path, format="json")
@@ -2257,6 +2259,20 @@ def test_getsubtree_6():
     assert set(tree.get_tip_names()), set("ABC")
     # the edge value for "non-scalar" should be same as original tree
     assert all(sub1.get_node_matching_name(name).params["non-scalar"] for name in names)
+
+
+def test_get_subtree_7():
+    t = make_tree(treestring="((((a:1,b:3)ab:4,c)abc),d)")
+    st = t.get_sub_tree(["b", "c"])
+    assert st.is_root()
+
+
+@pytest.mark.parametrize("treestring", ["(a,b,(c,(d,e)))", "((a,b),(c,(d,e)))"])
+def test_get_subtree_8(treestring):
+    # an unrooted tree returns an unrooted subtree
+    tree = make_tree(treestring=treestring)
+    st = tree.get_sub_tree(["c", "d", "e"])
+    assert len(st.children) == len(tree.children)
 
 
 def test_get_edge_names_big(tree_big, otu_names_big):
@@ -2497,6 +2513,13 @@ def test_source_attr(cls):
 def test_dataset_tree_source():
     tr = get_dataset("mammal-tree")
     assert tr.source.endswith("murphy.tree")
+
+
+def test_rooted_is_rooted_diff_root_name():
+    treestring = "(c,b)abc"
+    tree = make_tree(treestring=treestring)
+    rooted = tree.rooted("b")
+    assert rooted.same_topology(tree)
 
 
 def test_rooted_is_rooted():
