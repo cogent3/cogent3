@@ -254,24 +254,33 @@ class PhyloNodeTests(TestCase):
         p = PhyloNode()
         assert p.get_newick(with_node_names=True) == ";"
         p.name = "abc"
-        assert p.get_newick(with_node_names=True) == "abc;"
+        assert p.get_newick(with_node_names=True, with_root_name=True) == "abc;"
         p.length = 3
         assert (
-            p.get_newick(with_node_names=True, with_distances=True) == "abc:3;"
+            p.get_newick(with_node_names=True, with_distances=True, with_root_name=True)
+            == "abc:3;"
         )  # don't suppress branch from root
         q = PhyloNode()
         p.append(q)
-        assert p.get_newick(with_node_names=True, with_distances=True) == "()abc:3;"
+        assert (
+            p.get_newick(with_node_names=True, with_distances=True, with_root_name=True)
+            == "()abc:3;"
+        )
         r = PhyloNode()
         q.append(r)
-        assert p.get_newick(with_node_names=True, with_distances=True) == "(())abc:3;"
+        assert (
+            p.get_newick(with_node_names=True, with_distances=True, with_root_name=True)
+            == "(())abc:3;"
+        )
         r.name = "xyz"
         assert (
-            p.get_newick(with_node_names=True, with_distances=True) == "((xyz))abc:3;"
+            p.get_newick(with_node_names=True, with_distances=True, with_root_name=True)
+            == "((xyz))abc:3;"
         )
         q.length = 2
         assert (
-            p.get_newick(with_node_names=True, with_distances=True) == "((xyz):2)abc:3;"
+            p.get_newick(with_node_names=True, with_distances=True, with_root_name=True)
+            == "((xyz):2)abc:3;"
         )
 
 
