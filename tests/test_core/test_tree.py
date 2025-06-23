@@ -1920,13 +1920,16 @@ def test_balanced():
 
 
 def test_params_merge():
-    t = make_tree(treestring="((((a,b)ab,c)abc),d)")
-    for label, length, beta in [("a", 1, 20), ("b", 3, 2.0), ("ab", 4, 5.0)]:
-        t.get_node_matching_name(label).params = {"length": length, "beta": beta}
+    t = make_tree(treestring="((((a:1,b:3)ab:4,c)abc),d)")
+    for label, beta in [("a", 20), ("b", 2.0), ("ab", 5.0)]:
+        t.get_node_matching_name(label).params |= {"beta": beta}
     t = t.get_sub_tree(["b", "c", "d"])
+    # previous implementation on merge was
+    # dividing the sum of parameters across nodes by the lengths
+    # we no longer try and support this
     assert t.get_node_matching_name("b").params == {
         "length": 7,
-        "beta": float(2 * 3 + 4 * 5) / (3 + 4),
+        "beta": 2 + 5,
     }
     assert str(t.get_sub_tree(["b", "c", "xxx"], ignore_missing=True)) == "(b:7,c);"
     with pytest.raises(ValueError):

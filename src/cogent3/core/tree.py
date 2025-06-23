@@ -29,7 +29,6 @@ from __future__ import annotations
 
 import contextlib
 import json
-import numbers
 import re
 import typing
 from copy import deepcopy
@@ -39,7 +38,7 @@ from operator import or_
 from random import choice, shuffle
 
 import typing_extensions
-from numpy import argsort, ceil, log, zeros
+from numpy import argsort, ceil, floating, integer, log, zeros
 
 from cogent3._version import __version__
 from cogent3.maths.stats.test import correlation
@@ -55,6 +54,10 @@ if typing_extensions.TYPE_CHECKING:
     import pathlib
 
     from cogent3.evolve.fast_distance import DistanceMatrix
+
+
+def is_number(v) -> bool:
+    return isinstance(v, (int, float, integer, floating))
 
 
 def distance_from_r_squared(m1, m2):
@@ -484,7 +487,7 @@ class TreeNode:
         # we put tips on the right
         right_name = edge_name if is_tip else f"{edge_name}-R"
         left_name = f"{edge_name}-root" if is_tip else f"{edge_name}-L"
-        length = getattr(node, "length", 0.0) / 2
+        length = (getattr(node, "length", 0.0) or 0) / 2
         parent = node.parent
         parent.children.remove(node)
         node.parent = None
@@ -807,7 +810,11 @@ class TreeNode:
                 child.parent = curr_parent
                 if not has_length:
                     continue
-                child.length = (child.length or 0.0) + (node.length or 0.0)
+                for key, value in child.params.items():
+                    node_val = node.params.get(key)
+                    if is_number(value) or is_number(node_val):
+                        value = (value or 0.0) + (node_val or 0.0)
+                    child.params[key] = value
 
     def same_shape(self, other):
         """Ignores lengths and order, so trees should be sorted first"""
