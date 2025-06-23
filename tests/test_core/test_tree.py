@@ -133,22 +133,30 @@ def test_str(empty_node, one_child, big_parent):
     """TreeNode str should give Newick-style representation"""
     # note: name suppressed if None
     assert str(empty_node) == ";"
-    assert one_child.get_newick(with_node_names=True) == "(b)a;"
-    assert big_parent.get_newick(with_node_names=True) == "(0,1,2,3,4,5,6,7,8,9)x;"
+    assert one_child.get_newick(with_node_names=True, with_root_name=True) == "(b)a;"
+    assert (
+        big_parent.get_newick(with_node_names=True, with_root_name=True)
+        == "(0,1,2,3,4,5,6,7,8,9)x;"
+    )
     big_parent[-1].extend("abc")
     assert (
-        big_parent.get_newick(with_node_names=True) == "(0,1,2,3,4,5,6,7,8,(a,b,c)9)x;"
+        big_parent.get_newick(with_node_names=True, with_root_name=True)
+        == "(0,1,2,3,4,5,6,7,8,(a,b,c)9)x;"
     )
 
 
 def test_get_newick(empty_node, one_child, big_parent):
     """Should return Newick-style representation"""
     assert empty_node.get_newick() == ";"
-    assert one_child.get_newick(with_node_names=True) == "(b)a;"
-    assert big_parent.get_newick(with_node_names=True) == "(0,1,2,3,4,5,6,7,8,9)x;"
+    assert one_child.get_newick(with_node_names=True, with_root_name=True) == "(b)a;"
+    assert (
+        big_parent.get_newick(with_node_names=True, with_root_name=True)
+        == "(0,1,2,3,4,5,6,7,8,9)x;"
+    )
     big_parent[-1].extend("abc")
     assert (
-        big_parent.get_newick(with_node_names=True) == "(0,1,2,3,4,5,6,7,8,(a,b,c)9)x;"
+        big_parent.get_newick(with_node_names=True, with_root_name=True)
+        == "(0,1,2,3,4,5,6,7,8,(a,b,c)9)x;"
     )
 
 
@@ -193,7 +201,10 @@ def test_write_to_json(DATA_DIR, tmp_path):
     with open_(json_path) as fn:
         got = json.loads(fn.read())
         assert got["type"] == get_object_provenance(PhyloNode)
-        assert tree.get_newick(semicolon=False, with_node_names=True) == got["newick"]
+        assert (
+            tree.get_newick(semicolon=False, with_node_names=True, with_root_name=True)
+            == got["newick"]
+        )
         assert set(tree.get_node_names()) == got["edge_attributes"].keys()
 
 
@@ -225,20 +236,32 @@ def test_multifurcating():
     # can't break up easily... sorry 80char
     exp_str = "((a:1.0,(b:2.0,c:3.0):0.0)d:4.0,((e:5.0,(f:6.0,g:7.0):0.0)h:8.0,(i:9.0,(j:10.0,k:11.0):0.0)l:12.0):0.0)m:14.0;"
     obs = t.multifurcating(2)
-    assert obs.get_newick(with_distances=True, with_node_names=True) == exp_str
+    assert (
+        obs.get_newick(with_distances=True, with_node_names=True, with_root_name=True)
+        == exp_str
+    )
     assert t.get_newick(with_distances=True) != obs.get_newick(with_distances=True)
 
     obs = t.multifurcating(2, 0.5)
     exp_str = "((a:1.0,(b:2.0,c:3.0):0.5)d:4.0,((e:5.0,(f:6.0,g:7.0):0.5)h:8.0,(i:9.0,(j:10.0,k:11.0):0.5)l:12.0):0.5)m:14.0;"
-    assert obs.get_newick(with_distances=True, with_node_names=True) == exp_str
+    assert (
+        obs.get_newick(with_distances=True, with_node_names=True, with_root_name=True)
+        == exp_str
+    )
 
     t_str = "((a,b,c)d,(e,f,g)h,(i,j,k)l)m;"
     exp_str = "((a,(b,c))d,((e,(f,g))h,(i,(j,k))l))m;"
     t = DndParser(t_str, constructor=TreeNode)
     obs = t.multifurcating(2)
-    assert obs.get_newick(with_distances=True, with_node_names=True) == exp_str
+    assert (
+        obs.get_newick(with_distances=True, with_node_names=True, with_root_name=True)
+        == exp_str
+    )
     obs = t.multifurcating(2, eps=10)  # no effect on TreeNode type
-    assert obs.get_newick(with_distances=True, with_node_names=True) == exp_str
+    assert (
+        obs.get_newick(with_distances=True, with_node_names=True, with_root_name=True)
+        == exp_str
+    )
 
     with pytest.raises(TreeError):
         # TreeNode does not support multifurcating with n=1
@@ -785,7 +808,10 @@ def test_newick_with_labelled_nodes():
             continue
         tree = make_tree(treestring=treestring)
         nwk = tree.get_newick(
-            with_node_names=True, with_distances=True, semicolon=False
+            with_node_names=True,
+            with_distances=True,
+            semicolon=False,
+            with_root_name=True,
         )
         assert nwk == expect[i]
 
@@ -1834,20 +1860,35 @@ def test_get_newick_2():
     orig = "((A:1.0,B:2.0)ab:3.0,((C:4.0,D:5.0)cd:6.0,E:7.0)cde:8.0)all;"
     unlen = "((A,B)ab,((C,D)cd,E)cde)all;"
     tree = _maketree(orig)
-    assert tree.get_newick(with_distances=True, with_node_names=True) == orig
-    assert tree.get_newick(with_node_names=True) == unlen
+    assert (
+        tree.get_newick(with_distances=True, with_node_names=True, with_root_name=True)
+        == orig
+    )
+    assert tree.get_newick(with_node_names=True, with_root_name=True) == unlen
 
     tree.name = "a'l"
     ugly_name = "((A,B)ab,((C,D)cd,E)cde)a'l;"
     ugly_name_esc = "((A,B)ab,((C,D)cd,E)cde)'a''l';"
-    assert tree.get_newick(escape_name=True, with_node_names=True) == ugly_name_esc
-    assert tree.get_newick(escape_name=False, with_node_names=True) == ugly_name
+    assert (
+        tree.get_newick(escape_name=True, with_node_names=True, with_root_name=True)
+        == ugly_name_esc
+    )
+    assert (
+        tree.get_newick(escape_name=False, with_node_names=True, with_root_name=True)
+        == ugly_name
+    )
 
     tree.name = "'a l'"
     quoted_name = "((A,B)ab,((C,D)cd,E)cde)'a l';"
     quoted_name_esc = "((A,B)ab,((C,D)cd,E)cde)'a l';"
-    assert tree.get_newick(escape_name=True, with_node_names=True) == quoted_name_esc
-    assert tree.get_newick(escape_name=False, with_node_names=True) == quoted_name
+    assert (
+        tree.get_newick(escape_name=True, with_node_names=True, with_root_name=True)
+        == quoted_name_esc
+    )
+    assert (
+        tree.get_newick(escape_name=False, with_node_names=True, with_root_name=True)
+        == quoted_name
+    )
 
 
 def test_XML():
@@ -2365,7 +2406,9 @@ def test_parser():
     nasty = "( (A :1.0,'B (b)': 2) [com\nment]pair:3,'longer name''s':4)dash_ed;"
     nice = "((A:1.0,'B (b)':2.0)pair:3.0,'longer name''s':4.0)dash_ed;"
     tree = make_tree(treestring=nasty, underscore_unmunge=True)
-    tidied = tree.get_newick(with_distances=True, with_node_names=True)
+    tidied = tree.get_newick(
+        with_distances=True, with_node_names=True, with_root_name=True
+    )
     assert tidied == nice
     assert tree.get_node_matching_name("pair").params["other"] == ["com\nment"]
 

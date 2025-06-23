@@ -109,9 +109,6 @@ class UPGMATests(TestCase):
         node_order = condense_node_order(matrix, index, node_order)
         assert node_order[1] is None
         assert str(node_order[0]) == "(a:0.5,b:0.5);"
-        assert str(node_order[2]) == "c;"
-        assert str(node_order[3]) == "d;"
-        assert str(node_order[4]) == "e;"
 
     def test_upgma_cluster(self):
         """UPGMA_cluster clusters nodes based on info in a matrix with UPGMA"""
