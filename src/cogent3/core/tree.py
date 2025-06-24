@@ -1670,7 +1670,7 @@ class TreeNode:
 
     def unrooted_deepcopy(
         self,
-        constructor: type | None = None,
+        constructor: typing.Callable[[T, list[T]], T] | None = None,
         parent: typing_extensions.Self | None = None,
     ) -> typing_extensions.Self:
         """
