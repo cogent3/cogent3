@@ -1035,6 +1035,7 @@ class TreeNode:
         ignore_missing: bool = False,
         keep_root: bool = False,
         tips_only: bool = False,
+        as_rooted: bool = False,
     ) -> typing_extensions.Self:
         """A new instance of a sub tree that contains all the otus that are
         listed in name_list.
@@ -1051,10 +1052,9 @@ class TreeNode:
             tip distance remains constant, but root may only have one child node.
         tips_only
             only tip names matching name_list are allowed
-
-        Notes
-        -----
-        An unrooted tree returns an unrooted subtree.
+        as_rooted
+            if True, the resulting subtree root will be as resolved. Otherwise,
+            the subtree is coerced to have the same number of children as self.
         """
         # find all the selected nodes
         allowed = set(name_list)
@@ -1103,16 +1103,20 @@ class TreeNode:
             new_node.parent = new_nodes[new_parent_id]
 
         result_root = new_nodes[self_2_new[id(self)]]
-        if not keep_root and len(result_root.children) == 1:
-            while len(result_root.children) == 1:
-                result_root = result_root.children[0]
-
-            result_root.parent = None
-
         result_root.prune()
-        if len(self.children) > 2 and len(result_root.children) == 2:
-            # we preserve the "unrooted" status in the result tree
+        if as_rooted or len(self.children) == len(result_root.children):
+            result_root.name = "root"
+            return result_root
+
+        if len(self.children) > 2:
             result_root = result_root.unrooted()
+        else:
+            # we pick an arbitrary child to root at
+            child = result_root.children[0]
+            child.name = (
+                "new-root" if child.name is None else child.name
+            )  # this is a magic value, which is not good
+            result_root = result_root.rooted(child.name)
         result_root.name = "root"
         return result_root
 

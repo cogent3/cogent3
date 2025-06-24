@@ -1216,7 +1216,7 @@ def test_prune():
     """prune should reconstruct correct topology of tree."""
     tree = DndParser("((a:3,((c:1):1):1):2);", constructor=TreeNode)
     tree.prune()
-    result_tree = DndParser("((a:3,c:1));", constructor=TreeNode)
+    result_tree = DndParser("(a:3,c:1);", constructor=TreeNode)
     assert str(tree) == str(result_tree)
 
     samename_bug = DndParser("((A,B)SAMENAME,((C,D)SAMENAME));")
@@ -1506,7 +1506,7 @@ def test_phylo_prune():
     """prune should reconstruct correct topology and Lengths of tree."""
     tree = DndParser("((a:3,((c:1):1):1):2);", constructor=PhyloNode)
     tree.prune()
-    result_tree = DndParser("((a:3.0,c:3.0):2.0);", constructor=PhyloNode)
+    result_tree = DndParser("(a:3.0,c:3.0);", constructor=PhyloNode)
     assert str(tree) == str(result_tree)
 
 
@@ -2277,8 +2277,18 @@ def test_get_subtree_7():
 def test_get_subtree_8(treestring):
     # an unrooted tree returns an unrooted subtree
     tree = make_tree(treestring=treestring)
-    st = tree.get_sub_tree(["c", "d", "e"])
+    st = tree.get_sub_tree(["c", "d", "e"], as_rooted=False)
     assert len(st.children) == len(tree.children)
+
+
+def test_get_subtree_as_rooted():
+    # a rooted tree with subtree being naturally multifurcating
+    tree = make_tree("((a,b),((c,d),(e,f),(g,h)));")
+
+    got = tree.get_sub_tree(["d", "e", "h"], as_rooted=True)
+    assert len(got.children) == 3
+    got = tree.get_sub_tree(["d", "e", "f"], as_rooted=False)
+    assert len(got.children) == len(tree.children)
 
 
 def test_get_edge_names_big(tree_big, otu_names_big):
