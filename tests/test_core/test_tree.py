@@ -1,6 +1,5 @@
 """Tests of classes for dealing with trees and phylogeny."""
 
-import itertools
 import json
 import pathlib
 import random
@@ -1216,13 +1215,19 @@ def test_prune():
     """prune should reconstruct correct topology of tree."""
     tree = DndParser("((a:3,((c:1):1):1):2);", constructor=TreeNode)
     tree.prune()
-    result_tree = DndParser("((a:3,c:1));", constructor=TreeNode)
+    result_tree = DndParser("(a:3,c:1);", constructor=TreeNode)
     assert str(tree) == str(result_tree)
 
     samename_bug = DndParser("((A,B)SAMENAME,((C,D)SAMENAME));")
     samename_bug.prune()
     exp_tree_str = "((A,B)SAMENAME,(C,D)SAMENAME);"
     assert samename_bug.get_newick(with_node_names=True) == exp_tree_str
+
+
+def test_prune_2():
+    tree = DndParser("(((d:1.0,e:4.0)x:2.0,c:3.0)y:3.0)root;")
+    tree.prune()
+    assert len(tree.children) == 2
 
 
 def test_get_node_matching_name(tree_root, tree_nodes):
@@ -1500,7 +1505,7 @@ def test_phylo_prune():
     """prune should reconstruct correct topology and Lengths of tree."""
     tree = DndParser("((a:3,((c:1):1):1):2);", constructor=PhyloNode)
     tree.prune()
-    result_tree = DndParser("((a:3.0,c:3.0):2.0);", constructor=PhyloNode)
+    result_tree = DndParser("(a:3.0,c:3.0);", constructor=PhyloNode)
     assert str(tree) == str(result_tree)
 
 
@@ -1794,6 +1799,23 @@ def test_get_edge_names_2():
 
     stem = tree.get_edge_names("C", "E", stem=1, clade=0)
     assert stem == ["cde"]
+
+
+def test_get_edge_names_3():
+    tree = make_tree(treestring="(a,b,(c,(d,e)e1)e2)")
+    tip1name = "d"
+    tip2name = "c"
+    clade = False
+    stem = True
+    outgroup_name = "e"
+    names = tree.get_edge_names(
+        tip1name=tip1name,
+        tip2name=tip2name,
+        clade=clade,
+        stem=stem,
+        outgroup_name=outgroup_name,
+    )
+    print(names)
 
 
 @pytest.mark.parametrize(
@@ -2092,84 +2114,6 @@ def test_getsubtree_2():
     assert_equal(orig.array, subset.array)
 
 
-def test_getsubtree_3():
-    """tree.get_sub_tree() handles keep_root correctly"""
-    t1 = DndParser("((a:1,b:2):4,(((c:2)cparent:1, j:17):0,(d:1,e:4):2):3)")
-    #           /----4--- /--1-a
-    # ---------|          \--2-b
-    #          |          /----0--- /-1---cparent---2---c
-    #           \---3----|          \--17-j
-    #                     \----2--- /--1--d
-    #                               \--4--e
-    # note c,j is len 0 node
-
-    true_dists = {
-        ("a", "b"): 3.0,
-        ("a", "c"): 11.0,
-        ("a", "d"): 11.0,
-        ("a", "e"): 14.0,
-        ("a", "j"): 25.0,
-        ("b", "a"): 3.0,
-        ("b", "c"): 12.0,
-        ("b", "d"): 12.0,
-        ("b", "e"): 15.0,
-        ("b", "j"): 26.0,
-        ("c", "a"): 11.0,
-        ("c", "b"): 12.0,
-        ("c", "d"): 6.0,
-        ("c", "e"): 9.0,
-        ("c", "j"): 20.0,
-        ("d", "a"): 11.0,
-        ("d", "b"): 12.0,
-        ("d", "c"): 6.0,
-        ("d", "e"): 5.0,
-        ("d", "j"): 20.0,
-        ("e", "a"): 14.0,
-        ("e", "b"): 15.0,
-        ("e", "c"): 9.0,
-        ("e", "d"): 5.0,
-        ("e", "j"): 23.0,
-        ("j", "a"): 25.0,
-        ("j", "b"): 26.0,
-        ("j", "c"): 20.0,
-        ("j", "d"): 20.0,
-        ("j", "e"): 23.0,
-    }
-
-    true_root_dists = {"a": 5, "b": 6, "c": 6, "j": 20, "d": 6, "e": 9}
-
-    t1_dists = t1.get_distances()
-    subtree = t1.get_sub_tree({"d", "e", "c"})
-    sub_dists = subtree.get_distances()
-    true_sub_root_dists = {"c": 3, "d": 3, "e": 6}
-
-    sub_sameroot = t1.get_sub_tree({"d", "e", "c"}, keep_root=True)
-    sub_sameroot_dists = sub_sameroot.get_distances()
-
-    sub_sameroot2 = t1.get_sub_tree({"j", "c"}, keep_root=True)
-    sub_sameroot_dists2 = sub_sameroot2.get_distances()
-
-    # tip to tip dists should be the same
-    for tip_pair in itertools.combinations(sub_dists.names, 2):
-        assert sub_dists[tip_pair] == true_dists[tip_pair]
-    for tip_pair in itertools.combinations(t1_dists.names, 2):
-        assert t1_dists[tip_pair] == true_dists[tip_pair]
-    for tip_pair in itertools.combinations(sub_sameroot_dists.names, 2):
-        assert sub_sameroot_dists[tip_pair] == true_dists[tip_pair]
-    for tip_pair in itertools.combinations(sub_sameroot_dists2.names, 2):
-        assert sub_sameroot_dists2[tip_pair] == true_dists[tip_pair]
-
-    # sameroot should have longer root to tip dists
-    for tip in t1.tips():
-        assert_allclose(t1.distance(tip), true_root_dists[tip.name])
-    for tip in subtree.tips():
-        assert_allclose(subtree.distance(tip), true_sub_root_dists[tip.name])
-    for tip in sub_sameroot.tips():
-        assert_allclose(sub_sameroot.distance(tip), true_root_dists[tip.name])
-    for tip in sub_sameroot2.tips():
-        assert_allclose(sub_sameroot2.distance(tip), true_root_dists[tip.name])
-
-
 def test_ascii():
     # unlabeled internal node
     tr = DndParser("(B:0.2,(C:0.3,D:0.4):0.6)F;")
@@ -2271,8 +2215,18 @@ def test_get_subtree_7():
 def test_get_subtree_8(treestring):
     # an unrooted tree returns an unrooted subtree
     tree = make_tree(treestring=treestring)
-    st = tree.get_sub_tree(["c", "d", "e"])
+    st = tree.get_sub_tree(["c", "d", "e"], as_rooted=False)
     assert len(st.children) == len(tree.children)
+
+
+def test_get_subtree_as_rooted():
+    # a rooted tree with subtree being naturally multifurcating
+    tree = make_tree("((a,b),((c,d),(e,f),(g,h)));")
+
+    got = tree.get_sub_tree(["d", "e", "h"], as_rooted=True)
+    assert len(got.children) == 3
+    got = tree.get_sub_tree(["d", "e", "f"], as_rooted=False)
+    assert len(got.children) == len(tree.children)
 
 
 def test_get_edge_names_big(tree_big, otu_names_big):

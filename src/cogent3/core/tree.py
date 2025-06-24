@@ -60,11 +60,6 @@ def is_number(v) -> bool:
     return isinstance(v, (int, float, integer, floating))
 
 
-def distance_from_r_squared(m1, m2):
-    """Estimates distance as 1-r^2: no correl = max distance"""
-    return 1 - (correlation(m1.flat, m2.flat)[0]) ** 2
-
-
 def distance_from_r(m1, m2):
     """Estimates distance as (1-r)/2: neg correl = max distance"""
     return (1 - correlation(m1.flat, m2.flat)[0]) / 2
@@ -435,7 +430,7 @@ class TreeNode:
         yield from self.postorder(include_self=include_self)
 
     def ancestors(self):
-        """Returns all ancestors back to the root. Dynamically calculated."""
+        """Returns all ancestors back to the root."""
         result = []
         curr = self._parent
         while curr is not None:
@@ -785,13 +780,18 @@ class TreeNode:
                     # remove old node from tree
                     old_parent.parent = None
 
-    def prune(self) -> None:
-        """Reconstructs correct topology after nodes have been removed.
+    def prune(self, keep_root: bool = False) -> None:
+        """removes nodes with one child
+
+        Parameters
+        ----------
+        keep_root
+            if True, a root with a single child is retained.
 
         Notes
         -----
         Mutates the tree in-place. Internal nodes with only one child will be
-        removed and new connections will be made to reflect change.
+        merged (except as specified by keep_root).
         """
         has_length = hasattr(self, "length")
         while True:
@@ -815,6 +815,25 @@ class TreeNode:
                     if is_number(value) or is_number(node_val):
                         value = (value or 0.0) + (node_val or 0.0)
                     child.params[key] = value
+
+        # root having one child is edge case
+        if not keep_root and len(self.children) == 1:
+            child = self.children[0]
+
+            grand_children = list(child.children)
+            for key, value in child.params.items():
+                if key == "length":
+                    # we discard length as invalid to
+                    # for root and invalid to add to
+                    # grand chldren lengths
+                    continue
+                node_val = self.params.get(key)
+                if is_number(value) or is_number(node_val):
+                    value = (value or 0.0) + (node_val or 0.0)
+                self.params[key] = value
+            self.remove_node(child)
+            for grand_child in grand_children:
+                grand_child.parent = self
 
     def same_shape(self, other):
         """Ignores lengths and order, so trees should be sorted first"""
@@ -1014,13 +1033,14 @@ class TreeNode:
         "2025.6",
         "consistency between methods",
         [("tipsonly", "tips_only")],
+        discontinued=["keep_root"],
     )
     def get_sub_tree(
         self,
         name_list: list[str],
         ignore_missing: bool = False,
-        keep_root: bool = False,
         tips_only: bool = False,
+        as_rooted: bool = False,
     ) -> typing_extensions.Self:
         """A new instance of a sub tree that contains all the otus that are
         listed in name_list.
@@ -1030,17 +1050,11 @@ class TreeNode:
         ignore_missing
             if False, get_sub_tree will raise a ValueError if
             name_list contains names that aren't nodes in the tree
-        keep_root
-            if False, the root of the subtree will be the last common
-            ancestor of all nodes kept in the subtree. Root to tip distance is
-            then (possibly) different from the original tree. If True, the root to
-            tip distance remains constant, but root may only have one child node.
         tips_only
             only tip names matching name_list are allowed
-
-        Notes
-        -----
-        An unrooted tree returns an unrooted subtree.
+        as_rooted
+            if True, the resulting subtree root will be as resolved. Otherwise,
+            the subtree is coerced to have the same number of children as self.
         """
         # find all the selected nodes
         allowed = set(name_list)
@@ -1089,16 +1103,20 @@ class TreeNode:
             new_node.parent = new_nodes[new_parent_id]
 
         result_root = new_nodes[self_2_new[id(self)]]
-        if not keep_root and len(result_root.children) == 1:
-            while len(result_root.children) == 1:
-                result_root = result_root.children[0]
-
-            result_root.parent = None
-
         result_root.prune()
-        if len(self.children) > 2 and len(result_root.children) == 2:
-            # we preserve the "unrooted" status in the result tree
+        if as_rooted or len(self.children) == len(result_root.children):
+            result_root.name = "root"
+            return result_root
+
+        if len(self.children) > 2:
             result_root = result_root.unrooted()
+        else:
+            # we pick an arbitrary child to root at
+            child = result_root.children[0]
+            child.name = (
+                "new-root" if child.name is None else child.name
+            )  # this is a magic value, which is not good
+            result_root = result_root.rooted(child.name)
         result_root.name = "root"
         return result_root
 
@@ -1657,7 +1675,7 @@ class TreeNode:
 
     def unrooted_deepcopy(
         self,
-        constructor: type | None = None,
+        constructor: typing.Callable[[T, list[T]], T] | None = None,
         parent: typing_extensions.Self | None = None,
     ) -> typing_extensions.Self:
         """
@@ -1692,7 +1710,10 @@ class TreeNode:
 
                 edge = None
                 if parent_node:
-                    edge = parent_node if parent_node.parent is node else node
+                    if parent_node.parent is node:
+                        edge = parent_node
+                    else:
+                        edge = node
 
                 new_node = constructor(edge, tuple(new_children))
                 node_map[id(node)] = new_node
@@ -1701,7 +1722,7 @@ class TreeNode:
         if parent is None:
             new_root.name = "root"
 
-        new_root.prune()
+        new_root.prune(keep_root=True)
         return new_root
 
     def unrooted(self):
