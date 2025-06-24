@@ -430,7 +430,7 @@ class TreeNode:
         yield from self.postorder(include_self=include_self)
 
     def ancestors(self):
-        """Returns all ancestors back to the root. Dynamically calculated."""
+        """Returns all ancestors back to the root."""
         result = []
         curr = self._parent
         while curr is not None:
@@ -780,13 +780,18 @@ class TreeNode:
                     # remove old node from tree
                     old_parent.parent = None
 
-    def prune(self) -> None:
-        """Reconstructs correct topology after nodes have been removed.
+    def prune(self, keep_root: bool = False) -> None:
+        """removes nodes with one child
+
+        Parameters
+        ----------
+        keep_root
+            if True, a root with a single child is retained.
 
         Notes
         -----
         Mutates the tree in-place. Internal nodes with only one child will be
-        removed and new connections will be made to reflect change.
+        merged (except as specified by keep_root).
         """
         has_length = hasattr(self, "length")
         while True:
@@ -812,7 +817,7 @@ class TreeNode:
                     child.params[key] = value
 
         # root having one child is edge case
-        if len(self.children) == 1:
+        if not keep_root and len(self.children) == 1:
             child = self.children[0]
 
             grand_children = list(child.children)
@@ -1705,7 +1710,10 @@ class TreeNode:
 
                 edge = None
                 if parent_node:
-                    edge = parent_node if parent_node.parent is node else node
+                    if parent_node.parent is node:
+                        edge = parent_node
+                    else:
+                        edge = node
 
                 new_node = constructor(edge, tuple(new_children))
                 node_map[id(node)] = new_node
@@ -1714,7 +1722,7 @@ class TreeNode:
         if parent is None:
             new_root.name = "root"
 
-        new_root.prune()
+        new_root.prune(keep_root=True)
         return new_root
 
     def unrooted(self):

@@ -1801,6 +1801,23 @@ def test_get_edge_names_2():
     assert stem == ["cde"]
 
 
+def test_get_edge_names_3():
+    tree = make_tree(treestring="(a,b,(c,(d,e)e1)e2)")
+    tip1name = "d"
+    tip2name = "c"
+    clade = False
+    stem = True
+    outgroup_name = "e"
+    names = tree.get_edge_names(
+        tip1name=tip1name,
+        tip2name=tip2name,
+        clade=clade,
+        stem=stem,
+        outgroup_name=outgroup_name,
+    )
+    print(names)
+
+
 @pytest.mark.parametrize(
     "treestring", ["((A,B)ab,(F,(C,D)cd)cdf,E)root;", "((E,(A,B)ab)abe,F,(C,D)cd)root;"]
 )
