@@ -703,10 +703,22 @@ def _source_wrapped(
     self,
     value: source_proxy | c3_typing.HasSource,
 ) -> c3_typing.HasSource:
+    """retains result association with source
+
+    Notes
+    -----
+    Returns the unwrapped result if it has a .source instance,
+    otherwise returns the original source_proxy with the .obj
+    updated with result.
+    """
     if not isinstance(value, source_proxy):
         return self(value)
 
-    value.set_obj(self(value.obj))
+    result = self(value.obj)
+    if get_data_source(result):
+        return result
+
+    value.set_obj(result)
     return value
 
 
@@ -860,7 +872,7 @@ def _apply_to(
     ):
         member = self.main(
             data=getattr(result, "obj", result),
-            identifier=id_from_source(result.source),
+            identifier=id_from_source(result),
         )
         if self.logger:
             md5 = getattr(member, "md5", None)

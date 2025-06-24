@@ -23,6 +23,7 @@ from cogent3.app.composable import (
     define_app,
     is_app,
     is_app_composable,
+    source_proxy,
 )
 from cogent3.app.data_store import (
     APPEND,
@@ -292,7 +293,32 @@ def test_as_completed(DATA_DIR):
     path = str(Path(dstore[0].data_store.source) / dstore[0].unique_id)
     got = list(proc.as_completed(path, show_progress=False))
     assert len(got) == 1
-    assert got[0].obj.__class__.__name__.endswith("SequenceCollection")
+    assert got[0].__class__.__name__.endswith("SequenceCollection")
+
+
+@pytest.fixture(params=[Path, None, str])
+def source_type(DATA_DIR, request):
+    fname = "brca1.fasta"
+    dstore = open_data_store(DATA_DIR, suffix="fasta")
+    if request.param is not None:
+        return request.param(DATA_DIR / fname)
+    return next((m for m in dstore if m.unique_id == fname), None)
+
+
+def test_composable_unwraps_source_proxy_as_completed(source_type):
+    app = get_app("load_unaligned", format="fasta", moltype="dna")
+    result = next(iter(app.as_completed([source_type], show_progress=False)))
+    got = result.source if hasattr(result, "source") else result.info.source
+    assert got.endswith("brca1.fasta")
+    assert not isinstance(got, source_proxy)
+
+
+def test_composable_unwraps_source_proxy_call(source_type):
+    app = get_app("load_unaligned", format="fasta", moltype="dna")
+    result = app(source_type)
+    got = result.source if hasattr(result, "source") else result.info.source
+    assert got.endswith("brca1.fasta")
+    assert not isinstance(got, source_proxy)
 
 
 @pytest.mark.parametrize("data", [(), ("", "")])
