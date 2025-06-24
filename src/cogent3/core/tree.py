@@ -811,6 +811,25 @@ class TreeNode:
                         value = (value or 0.0) + (node_val or 0.0)
                     child.params[key] = value
 
+        # root having one child is edge case
+        if len(self.children) == 1:
+            child = self.children[0]
+
+            grand_children = list(child.children)
+            for key, value in child.params.items():
+                if key == "length":
+                    # we discard length as invalid to
+                    # for root and invalid to add to
+                    # grand chldren lengths
+                    continue
+                node_val = self.params.get(key)
+                if is_number(value) or is_number(node_val):
+                    value = (value or 0.0) + (node_val or 0.0)
+                self.params[key] = value
+            self.remove_node(child)
+            for grand_child in grand_children:
+                grand_child.parent = self
+
     def same_shape(self, other):
         """Ignores lengths and order, so trees should be sorted first"""
         if len(self.children) != len(other.children):

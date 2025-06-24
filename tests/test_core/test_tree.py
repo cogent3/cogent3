@@ -1225,6 +1225,12 @@ def test_prune():
     assert samename_bug.get_newick(with_node_names=True) == exp_tree_str
 
 
+def test_prune_2():
+    tree = DndParser("(((d:1.0,e:4.0)x:2.0,c:3.0)y:3.0)root;")
+    tree.prune()
+    assert len(tree.children) == 2
+
+
 def test_get_node_matching_name(tree_root, tree_nodes):
     """TreeNode get_node_matching_name should return node that matches name"""
     nodes = tree_nodes
