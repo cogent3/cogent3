@@ -1789,15 +1789,15 @@ def test_get_edge_names(a, b, outgroup, expect):
 
 def test_get_edge_names_2():
     tree = _maketree()
-    clade = tree.get_edge_names("C", "E", stem=0, clade=1)
+    clade = tree.get_edge_names("C", "E", stem=False, clade=True)
     clade.sort()
     assert clade == ["C", "D", "E", "cd"]
 
-    all = tree.get_edge_names("C", "E", stem=1, clade=1)
-    all.sort()
-    assert all == ["C", "D", "E", "cd", "cde"]
+    names = tree.get_edge_names("C", "E", stem=True, clade=True)
+    names.sort()
+    assert names == ["C", "D", "E", "cd", "cde"]
 
-    stem = tree.get_edge_names("C", "E", stem=1, clade=0)
+    stem = tree.get_edge_names("C", "E", stem=True, clade=False)
     assert stem == ["cde"]
 
 
@@ -1815,7 +1815,7 @@ def test_get_edge_names_3():
         stem=stem,
         outgroup_name=outgroup_name,
     )
-    print(names)
+    assert names == ["root"]
 
 
 @pytest.mark.parametrize(
