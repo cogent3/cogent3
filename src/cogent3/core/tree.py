@@ -1028,12 +1028,12 @@ class TreeNode:
         "2025.6",
         "consistency between methods",
         [("tipsonly", "tips_only")],
+        discontinued=["keep_root"],
     )
     def get_sub_tree(
         self,
         name_list: list[str],
         ignore_missing: bool = False,
-        keep_root: bool = False,
         tips_only: bool = False,
         as_rooted: bool = False,
     ) -> typing_extensions.Self:
@@ -1045,11 +1045,6 @@ class TreeNode:
         ignore_missing
             if False, get_sub_tree will raise a ValueError if
             name_list contains names that aren't nodes in the tree
-        keep_root
-            if False, the root of the subtree will be the last common
-            ancestor of all nodes kept in the subtree. Root to tip distance is
-            then (possibly) different from the original tree. If True, the root to
-            tip distance remains constant, but root may only have one child node.
         tips_only
             only tip names matching name_list are allowed
         as_rooted
