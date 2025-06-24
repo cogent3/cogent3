@@ -390,18 +390,18 @@ Selecting subtrees
     tr = make_tree("((a,b),((c,d),(e,f),(g,h)));")
     print(tr.ascii_art(show_internal=False))
 
-Provide the names of nodes you want to the subtree between. The  default behaviour is to force the subtree to have the same number of children at the root as the original tree, in this case 2.
+Provide the names of nodes you want the subtree for. The  default behaviour is to force the subtree to have the same number of children at the root as the original tree, in this case 2.
 
 .. jupyter-execute::
 
-    subtree = tr.get_sub_tree(tree.get_sub_tree(["c", "e", "c"])
+    subtree = tr.get_sub_tree(["c", "e", "g"])
     print(subtree.ascii_art(show_internal=False))
 
 Use the ``as_rooted`` argument to ensure the selected subtree topology is as it existed on the original tree.
 
 .. jupyter-execute::
 
-    subtree = tr.get_sub_tree(tree.get_sub_tree(["c", "e", "c"], as_rooted=True)
+    subtree = tr.get_sub_tree(["c", "e", "g"], as_rooted=True)
     print(subtree.ascii_art(show_internal=False))
 
 ..
