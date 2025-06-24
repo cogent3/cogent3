@@ -60,11 +60,6 @@ def is_number(v) -> bool:
     return isinstance(v, (int, float, integer, floating))
 
 
-def distance_from_r_squared(m1, m2):
-    """Estimates distance as 1-r^2: no correl = max distance"""
-    return 1 - (correlation(m1.flat, m2.flat)[0]) ** 2
-
-
 def distance_from_r(m1, m2):
     """Estimates distance as (1-r)/2: neg correl = max distance"""
     return (1 - correlation(m1.flat, m2.flat)[0]) / 2
