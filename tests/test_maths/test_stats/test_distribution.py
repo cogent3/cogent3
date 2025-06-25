@@ -11,7 +11,6 @@ from cogent3.maths.stats.distribution import (
     bdtr,
     bdtrc,
     bdtri,
-    binomial_exact,
     fdtri,
     fprob,
     gdtr,
@@ -122,72 +121,6 @@ class DistributionsTests(TestCase):
         for df in self.df:
             for x, p in zip(self.values, probs[df], strict=False):
                 assert_almost_equal(tprob(x, df), p, decimal=4)
-
-    def test_binomial_series(self):
-        """binomial_exact should match values from R on a whole series"""
-        expected = list(
-            map(
-                float,
-                [
-                    "0.0282475249",
-                    "0.1210608210",
-                    "0.2334744405",
-                    "0.2668279320",
-                    "0.2001209490",
-                    "0.1029193452",
-                    "0.0367569090",
-                    "0.0090016920",
-                    "0.0014467005",
-                    "0.0001377810",
-                    "0.0000059049",
-                ],
-            ),
-        )
-
-        for i in range(len(expected)):
-            assert_allclose(binomial_exact(i, 10, 0.3), expected[i])
-
-    def test_binomial_exact(self):
-        """binomial_exact should match values from R for integer successes"""
-        expected = {
-            (0, 1, 0.5): 0.5,
-            (1, 1, 0.5): 0.5,
-            (1, 1, 0.0000001): 1e-07,
-            (1, 1, 0.9999999): 0.9999999,
-            (3, 5, 0.75): 0.2636719,
-            (0, 60, 0.5): 8.673617e-19,
-            (129, 130, 0.5): 9.550892e-38,
-            (299, 300, 0.099): 1.338965e-298,
-            (9, 27, 0.0003): 9.175389e-26,
-            (1032, 2050, 0.5): 0.01679804,
-        }
-        for key, value in list(expected.items()):
-            assert_almost_equal(binomial_exact(*key), value, 1e-4)
-
-    def test_binomial_exact_floats(self):
-        """binomial_exact should be within limits for floating point numbers"""
-        expected = {
-            (0.0, 1.0, 0.5): 0.5,
-            (1.0, 1.0, 0.5): 0.5,
-            (1.0, 1.0, 0.0000001): 1e-07,
-            (1.0, 1.0, 0.9999999): 0.9999999,
-            (3.0, 5.0, 0.75): 0.2636719,
-            (0.0, 60.0, 0.5): 8.673617e-19,
-            (129.0, 130.0, 0.5): 9.550892e-38,
-            (299.0, 300.0, 0.099): 1.338965e-298,
-            (9.0, 27.0, 0.0003): 9.175389e-26,
-            (1032.0, 2050.0, 0.5): 0.01679804,
-        }
-
-        for key, value in list(expected.items()):
-            assert_almost_equal(binomial_exact(*key), value, 1e-4)
-
-    def test_binomial_exact_errors(self):
-        """binomial_exact should raise errors on invalid input"""
-        self.assertRaises(ValueError, binomial_exact, 10.2, 5, 0.33)
-        self.assertRaises(ValueError, binomial_exact, -2, 5, 0.33)
-        self.assertRaises(ValueError, binomial_exact, 10, 50, -2)
-        self.assertRaises(ValueError, binomial_exact, 10, 50, 3)
 
     def test_fprob(self):
         """fprob should return twice the tail on a particular side"""

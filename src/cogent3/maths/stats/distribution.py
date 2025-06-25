@@ -50,7 +50,8 @@ def tprob(x, df):
     new="scipy.stats.binom.pmf",
     is_discontinued=True
 )
-def binomial_exact(successes, trials, prob):
+
+def binomial_exact(successes, trials, prob): # pragma: no cover
     """Returns binomial probability of exactly X successes.
 
     Redirects to scipy.stats.binom.pmf 
