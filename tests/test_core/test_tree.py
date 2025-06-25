@@ -2545,6 +2545,7 @@ def test_unrooted_deepcopy():
     dc = node.unrooted_deepcopy()
     assert all(len(n.children) > 1 for n in dc.iter_nontips())
 
+
 def test_unrooted_deepcopy_2():
     tree = make_tree(treestring="(a,b,(d,e)de);")
     tip = tree.get_node_matching_name("e")

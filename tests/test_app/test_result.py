@@ -75,8 +75,10 @@ def test_infers_source():
     source = pathlib.Path("path/blah.fasta")
     aln = cogent3.make_aligned_seqs(
         {"A": "ACGT"},
-        info={"source": str(source), "random_key": 1234},
+        info={"random_key": 1234},
         moltype="dna",
+        source=str(source),
+        new_type=True,
     )
     gr = generic_result(aln)
     assert gr.source == source.name
@@ -91,10 +93,7 @@ def test_infers_source():
     gr = generic_result(aln)
     assert str(gr.source) == source.name
 
-    if _NEW_TYPE:
-        aln.source = None
-    else:
-        aln.info = {}
+    aln.source = None
     with pytest.raises(ValueError):
         generic_result(aln)
 
