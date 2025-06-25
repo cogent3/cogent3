@@ -5,7 +5,6 @@ from unittest import TestCase
 
 from numpy.testing import assert_allclose
 
-from cogent3.maths.stats.distribution import binomial_exact
 from cogent3.maths.stats.special import (
     igami,
     incbi,
