@@ -1815,7 +1815,7 @@ def test_get_edge_names_3():
         stem=stem,
         outgroup_name=outgroup_name,
     )
-    assert names == ["root"]
+    assert names == ["e"]
 
 
 @pytest.mark.parametrize(
@@ -2544,3 +2544,11 @@ def test_unrooted_deepcopy():
     node = tree.get_node_matching_name("n3")
     dc = node.unrooted_deepcopy()
     assert all(len(n.children) > 1 for n in dc.iter_nontips())
+
+def test_unrooted_deepcopy_2():
+    tree = make_tree(treestring="(a,b,(d,e)de);")
+    tip = tree.get_node_matching_name("e")
+    unco = tip.unrooted_deepcopy()
+    # the root should have one child whose name is 'e'
+    assert len(unco.children) == 1
+    assert unco.children[0].name == "e"

@@ -1021,7 +1021,9 @@ class TreeNode:
 
         return edge_names
 
-    def _getNeighboursExcept(self, parent=None):
+    def _get_neighbours_except(
+        self, parent: typing_extensions.Self | None = None
+    ) -> list[typing_extensions.Self]:
         # For walking the tree as if it was unrooted.
         return [
             c
@@ -1123,7 +1125,7 @@ class TreeNode:
     def _edgecount(self, parent, cache):
         """ "The number of edges beyond 'parent' in the direction of 'self',
         unrooted"""
-        neighbours = self._getNeighboursExcept(parent)
+        neighbours = self._get_neighbours_except(parent)
         key = (id(parent), id(self))
         if key not in cache:
             cache[key] = 1 + sum(
@@ -1139,7 +1141,7 @@ class TreeNode:
         put it on the tree itself."""
         max_weight = 0
         total_weight = 0
-        for child in self._getNeighboursExcept(parent):
+        for child in self._get_neighbours_except(parent):
             weight = child._edgecount(self, cache)
             total_weight += weight
             if weight > max_weight:
@@ -1690,42 +1692,46 @@ class TreeNode:
 
         # node_map maps id(original_node) -> new_node
         node_map = {}
+        # stack is last in first out
         # stack stores (original_node, parent_we_came_from, state)
         # False state is the first visit, discover neighbors
         # True state is the second visit, construct new node
         stack = [(self, parent, False)]
-
         while stack:
             node, parent_node, state = stack.pop()
 
             if not state:
-                # First visit: push neighbors, then push self back for post-processing
+                # put the node, and then it's children on the stack
                 stack.append((node, parent_node, True))
-                neighbors = node._getNeighboursExcept(parent_node)
-                stack.extend((neighbor, node, False) for neighbor in neighbors)
+                stack.extend(
+                    (neigh, node, False)
+                    for neigh in node._get_neighbours_except(parent_node)
+                )
             else:
-                # Second visit: all children have been created and are in node_map
-                neighbors = node._getNeighboursExcept(parent_node)
-                new_children = [node_map[id(n)] for n in neighbors]
+                # children are created and in node_map prior to their parents
+                # being visited
+                children = [
+                    node_map[id(neigh)]
+                    for neigh in node._get_neighbours_except(parent_node)
+                ]
 
-                edge = None
-                if parent_node:
-                    if parent_node.parent is node:
-                        edge = parent_node
-                    else:
-                        edge = node
+                if parent_node is None:
+                    edge = None
+                elif parent_node.parent is node:
+                    edge = parent_node
+                else:
+                    edge = node
 
-                new_node = constructor(edge, tuple(new_children))
+                new_node = constructor(edge, tuple(children))
                 node_map[id(node)] = new_node
+                if parent_node is None:
+                    new_node.name = "root"
 
         new_root = node_map[id(self)]
-        if parent is None:
-            new_root.name = "root"
-
         new_root.prune(keep_root=True)
         return new_root
 
-    def unrooted(self):
+    def unrooted(self) -> typing_extensions.Self:
         """A tree with at least 3 children at the root."""
         constructor = self._default_tree_constructor()
         need_to_expand = len(self.children) < 3
