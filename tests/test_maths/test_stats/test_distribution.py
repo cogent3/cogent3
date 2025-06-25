@@ -167,19 +167,20 @@ class DistributionsTests(TestCase):
     def test_binomial_exact_floats(self):
         """binomial_exact should be within limits for floating point numbers"""
         expected = {
-            (18.3, 100, 0.2): (0.09089812, 0.09807429),
-            (2.7, 1050, 0.006): (0.03615498, 0.07623827),
-            (2.7, 1050, 0.06): (1.365299e-25, 3.044327e-24),
-            (2, 100.5, 0.6): (7.303533e-37, 1.789727e-36),
-            (10, 100.5, 0.5): (7.578011e-18, 1.365543e-17),
-            (0.2, 60, 0.5): (8.673617e-19, 5.20417e-17),
-            (0.5, 5, 0.3): (0.16807, 0.36015),
+            (0.0, 1.0, 0.5): 0.5,
+            (1.0, 1.0, 0.5): 0.5,
+            (1.0, 1.0, 0.0000001): 1e-07,
+            (1.0, 1.0, 0.9999999): 0.9999999,
+            (3.0, 5.0, 0.75): 0.2636719,
+            (0.0, 60.0, 0.5): 8.673617e-19,
+            (129.0, 130.0, 0.5): 9.550892e-38,
+            (299.0, 300.0, 0.099): 1.338965e-298,
+            (9.0, 27.0, 0.0003): 9.175389e-26,
+            (1032.0, 2050.0, 0.5): 0.01679804,
         }
 
         for key, value in list(expected.items()):
-            min_val, max_val = value
-            assert min_val < binomial_exact(*key) < max_val
-            # assert_almost_equal(binomial_exact(*key), value, 1e-4)
+            assert_almost_equal(binomial_exact(*key), value, 1e-4)
 
     def test_binomial_exact_errors(self):
         """binomial_exact should raise errors on invalid input"""

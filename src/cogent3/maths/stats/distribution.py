@@ -3,9 +3,11 @@
 which is (c) Stephen L. Moshier 1984, 1995.
 """
 
+from math import floor
+
 from numpy import arctan as atan
-from numpy import array, exp, sqrt
-from scipy.stats import f, norm, t, binom
+from numpy import array, sqrt
+from scipy.stats import binom, f, norm, t
 from scipy.stats.distributions import chi2
 
 from cogent3.maths.stats.special import (
@@ -19,7 +21,6 @@ from cogent3.maths.stats.special import (
     igamc,
     igami,
     incbi,
-    ln_binomial,
     log1p,
     ndtri,
 )
@@ -43,52 +44,17 @@ def tprob(x, df):
     return 2 * t.sf(abs(x), df)
 
 
-def approximate_binomial_pmf(successes, trials, prob):
-    """Smooth approximation of the binomial probability mass function.
-
-    Extends the binomial PMF to support non-integer values of `successes` and `trials`
-    using the Gamma function via a log-domain formulation.
-
-    This is not a true probability mass function when `successes` or `trials` are non-integer;
-    summing over fractional values will not yield 1.
-
-
-    Parameters
-    ----------
-    successes : float
-        Number of observed successes (can be non-integer)
-    trials : float
-        Total number of trials (can be non-integer)
-    prob : float in [0, 1]
-        Probability of success on each trial
-
-    Returns
-    -------
-    float
-        Approximate binomial probability for the given parameters
-    """
-    if not (0 <= prob <= 1):
-        raise ValueError("Binomial prob must be between 0 and 1.")
-    if not (0 <= successes <= trials):
-        raise ValueError("Successes must be between 0 and trials.")
-
-    return exp(ln_binomial(successes, trials, prob))
-
 @deprecated_callable(
     "2025.9", # this function will be removed from release 2025.9
     "Use scipy.stats.binom.pmf if both `sucesses` and `trials` are integers, or approximate_binomial_pmf if either is a float.",
     new="scipy.stats.binom.pmf",
-    is_discontinued=True 
+    is_discontinued=True
 )
 def binomial_exact(successes, trials, prob):
     """Returns binomial probability of exactly X successes.
 
-    Redirects to scipy.stats.binom.pmf if successes and trials are integers,
-    otherwise uses a generalized loggamma approximation.
-
-    Note: this function is only a probability mass function for integer
-    values of 'trials' and 'successes', i.e. if you sum up non-integer
-    values you probably won't get a sum of 1.
+    Redirects to scipy.stats.binom.pmf 
+    if successes and trials are integers, they are converted to int using math.floor
 
     Parameters
     ----------
@@ -101,15 +67,20 @@ def binomial_exact(successes, trials, prob):
     float
         Binomial probability or its approximation
     """
+    if not isinstance(successes, (int, float)):
+        raise TypeError("Successes must be an int or float.")
+    if not isinstance(trials, (int, float)):
+        raise TypeError("Trials must be an int or float.")
+
     if not (0 <= prob <= 1):
         raise ValueError("Binomial prob must be between 0 and 1.")
     if not (0 <= successes <= trials):
         raise ValueError("Successes must be between 0 and trials.")
-
-    if float(successes).is_integer() and float(trials).is_integer():
-        return binom.pmf(k=int(successes), n=int(trials), p=prob)
-    else:
-        approximate_binomial_pmf(successes, trials, prob)
+    if isinstance(successes, float):
+        successes = floor(successes)
+    if isinstance(trials, float):
+        trials = floor(trials)
+    return binom.pmf(k=int(successes), n=int(trials), p=prob)
 
 def fprob(dfn, dfd, F, side="right"):
     """Returns both tails of F distribution (-inf to F and F to inf)
