@@ -45,16 +45,15 @@ def tprob(x, df):
 
 
 @deprecated_callable(
-    "2025.9", # this function will be removed from release 2025.9
+    "2025.9",  # this function will be removed from release 2025.9
     "Use scipy.stats.binom.pmf if both `sucesses` and `trials` are integers, or approximate_binomial_pmf if either is a float.",
     new="scipy.stats.binom.pmf",
-    is_discontinued=True
+    is_discontinued=True,
 )
-
-def binomial_exact(successes, trials, prob): # pragma: no cover
+def binomial_exact(successes, trials, prob):  # pragma: no cover
     """Returns binomial probability of exactly X successes.
 
-    Redirects to scipy.stats.binom.pmf 
+    Redirects to scipy.stats.binom.pmf
     if successes and trials are integers, they are converted to int using math.floor
 
     Parameters
@@ -82,6 +81,7 @@ def binomial_exact(successes, trials, prob): # pragma: no cover
     if isinstance(trials, float):
         trials = floor(trials)
     return binom.pmf(k=int(successes), n=int(trials), p=prob)
+
 
 def fprob(dfn, dfd, F, side="right"):
     """Returns both tails of F distribution (-inf to F and F to inf)
