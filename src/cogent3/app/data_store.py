@@ -765,22 +765,22 @@ def _(data: old_alignment.Alignment) -> str | None:
 
 @get_data_source.register
 def _(data: new_alignment.Alignment) -> str | None:
-    return data.source
+    return get_data_source(data.source)
 
 
 @get_data_source.register
 def _(data: new_alignment.SequenceCollection) -> str | None:
-    return data.source
+    return get_data_source(data.source)
 
 
 @get_data_source.register
 def _(data: c3tree.TreeNode) -> str | None:
-    return data.source
+    return get_data_source(data.source)
 
 
 @get_data_source.register
 def _(data: c3tree.PhyloNode) -> str | None:
-    return data.source
+    return get_data_source(data.source)
 
 
 @get_data_source.register
