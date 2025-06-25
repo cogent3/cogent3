@@ -1,4 +1,46 @@
 
+<a id='changelog-2025.5.8a9'></a>
+# Changes in release "2025.5.8a9"
+
+This is a bug fix, minor enhancements and improvements under the hood.
+
+## Contributors
+
+- GavinHuttley, assorted
+
+## Enhancements
+
+- Refactoring some methods on the tree classes to use iterative, rather
+  than recursive, algorithms. Also made some algorithms more general.
+- `tree.get_sub_tree(as_rooted: bool)` argument when True preserves the
+  number of children of the resolved sub-tree. The default is to coerce
+  the number of children to match the original tree.
+- `tree.prune(keep_root: bool)` preserves nodes from the root to the
+  first node with >= 2 children.
+
+## Bug fixes
+
+- Improved robutsness of the tree rooting methods. Previous code
+  could return trees with nodes that had a single child. This has
+  been fixed.
+
+## Deprecations
+
+- The Tree `root()` method is being replaced by `get_root()` as the
+  original name is misleading. This will be finalised in release 2025.6.
+- Many methods on tree classes that are not being used anywhere else,
+  or are not well suited to being on a tree class, are marked for deletion.
+  These include `compare_by_tip_distances()`, `scale_branch_lengths()`,
+  `set_tip_distances()`. These wll be finalised in release 2025.6.
+- The `tree.traverse()` method is being discontinued as its functionality is
+  readily replaced with existing methods. To traverse all nodes on a tree
+  use `tree.preorder()` or `tree.postorder()`. If you want to walk up and
+  down the tree use `tree.pre_and_postorder()`.
+- `tree.get_sub_tree(keep_root)` argument is being discontinued and no longer
+  has an effect.This is a special case. If you want to preserve the original
+  tip-to-root distances, call the new `tree.tip_to_root_distances()` method
+  with the names of interest.
+
 <a id='changelog-2025.5.8a8'></a>
 # Changes in release "2025.5.8a8"
 
