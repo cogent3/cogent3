@@ -5,11 +5,11 @@ import textwrap
 import time
 import traceback
 import types
+import typing
 from collections.abc import Generator
 from copy import deepcopy
 from enum import Enum
 from pathlib import Path
-from typing import Any
 from uuid import uuid4
 
 from scitrack import CachingLogger
@@ -307,7 +307,7 @@ def _new(klass, *args, **kwargs):
 class source_proxy:
     __slots__ = ("_obj", "_src", "_uuid")
 
-    def __init__(self, obj: Any) -> None:
+    def __init__(self, obj: typing.Any) -> None:
         self._obj = obj
         self._src = obj
         self._uuid = uuid4()
@@ -316,14 +316,14 @@ class source_proxy:
         return hash(self._uuid)
 
     @property
-    def obj(self) -> Any:
+    def obj(self) -> typing.Any:
         return self._obj
 
-    def set_obj(self, obj: Any) -> None:
+    def set_obj(self, obj: typing.Any) -> None:
         self._obj = obj
 
     @property
-    def source(self) -> Any:
+    def source(self) -> typing.Any:
         """origin of this object"""
         return self._src
 
@@ -333,15 +333,15 @@ class source_proxy:
         return str(self._uuid)
 
     @source.setter
-    def source(self, src: Any) -> None:
+    def source(self, src: typing.Any) -> None:
         # need to check whether src is hashable, how to cope if it isn't?
         # might need to make this instance hashable perhaps using a uuid?
         self._src = src
 
-    def __getattr__(self, name: str) -> Any:
+    def __getattr__(self, name: str) -> typing.Any:
         return getattr(self._obj, name)
 
-    def __setattr__(self, name: str, value: Any) -> None:
+    def __setattr__(self, name: str, value: typing.Any) -> None:
         if name.startswith("_"):
             super().__setattr__(name, value)
         else:
@@ -457,6 +457,7 @@ def _class_from_func(func):
     def _init(self, *args, **kwargs) -> None:
         self._args = args
         self._kwargs = kwargs
+        self._source_wrapped = None
 
     def _main(self, arg, *args, **kwargs):
         kw_args = deepcopy(self._kwargs)
@@ -677,6 +678,10 @@ def define_app(
         if app_type is not LOADER:
             klass.input = None
 
+        # the ._source_wrapped attribute used for wrapping/unwrapping
+        # result objects
+        klass._source_wrapped = None
+
         if hasattr(klass, "__slots__"):
             # not supporting this yet
             msg = "slots are not currently supported"
@@ -699,10 +704,10 @@ def _proxy_input(dstore) -> list:
     return inputs
 
 
-def _source_wrapped(
-    self,
-    value: source_proxy | c3_typing.HasSource,
-) -> c3_typing.HasSource:
+GetIdFuncType = typing.Callable[[source_proxy | c3_typing.HasSource], str | None]
+
+
+class propagate_source:
     """retains result association with source
 
     Notes
@@ -711,19 +716,34 @@ def _source_wrapped(
     otherwise returns the original source_proxy with the .obj
     updated with result.
     """
-    if not isinstance(value, source_proxy):
-        return self(value)
 
-    result = self(value.obj)
-    if get_data_source(result):
-        return result
+    def __init__(self, app, id_from_source: GetIdFuncType) -> None:
+        self.app = app
+        self.id_from_source = id_from_source
 
-    value.set_obj(result)
-    return value
+    def __call__(
+        self, value: source_proxy | c3_typing.HasSource
+    ) -> c3_typing.HasSource:
+        if not isinstance(value, source_proxy):
+            return self.app(value)
+
+        result = self.app(value.obj)
+        if self.id_from_source(result):
+            return result
+
+        value.set_obj(result)
+        return value
 
 
 @UI.display_wrap
-def _as_completed(self, dstore, parallel=False, par_kw=None, **kwargs) -> Generator:
+def _as_completed(
+    self: type,
+    dstore,
+    parallel: bool = False,
+    par_kw: dict | None = None,
+    id_from_source: GetIdFuncType = get_unique_id,
+    **kwargs,
+) -> Generator:
     """invokes self composable function on the provided data store
 
     Parameters
@@ -749,10 +769,18 @@ def _as_completed(self, dstore, parallel=False, par_kw=None, **kwargs) -> Genera
     aggregates results. If run in serial, results are returned in the
     same order as provided.
     """
+    if self._source_wrapped is None:
+        app = propagate_source(
+            self.input if self.app_type is WRITER else self, id_from_source
+        )
+    else:
+        app = (
+            self.input._source_wrapped
+            if self.app_type is WRITER
+            else self._source_wrapped
+        )
+
     ui = kwargs.pop("ui")
-    app = (
-        self.input._source_wrapped if self.app_type is WRITER else self._source_wrapped
-    )
 
     if isinstance(dstore, str):
         dstore = [dstore]
@@ -771,12 +799,12 @@ def _as_completed(self, dstore, parallel=False, par_kw=None, **kwargs) -> Genera
     return ui.series(to_do, count=len(mapped), **kwargs)
 
 
-def is_app_composable(obj):
+def is_app_composable(obj) -> bool:
     """checks whether obj has been decorated by define_app and it's app_type attribute is not NON_COMPOSABLE"""
     return is_app(obj) and obj.app_type is not NON_COMPOSABLE
 
 
-def is_app(obj):
+def is_app(obj) -> bool:
     """checks whether obj has been decorated by define_app"""
     return hasattr(obj, "app_type")
 
@@ -784,10 +812,10 @@ def is_app(obj):
 def _apply_to(
     self,
     dstore,
-    id_from_source: callable = get_unique_id,
+    id_from_source: GetIdFuncType = get_unique_id,
     parallel: bool = False,
-    par_kw: dict = None,
-    logger: CachingLogger = None,
+    par_kw: dict | None = None,
+    logger: CachingLogger | None = None,
     cleanup: bool = True,
     show_progress: bool = False,
 ):
@@ -829,6 +857,10 @@ def _apply_to(
 
     If run in parallel, this instance spawns workers and aggregates results.
     """
+    if self.app_type is WRITER:
+        self.input._source_wrapped = propagate_source(self.input, id_from_source)
+        self._source_wrapped = propagate_source(self, id_from_source)
+
     if not self.input:
         msg = f"{self!r} is not part of a composed function"
         raise RuntimeError(msg)
@@ -918,7 +950,6 @@ __mapping = {
     "_validate_data_type": _validate_data_type,
     "disconnect": _disconnect,
     "apply_to": _apply_to,
-    "_source_wrapped": _source_wrapped,
     "as_completed": _as_completed,
     "set_logger": _set_logger,
 }
