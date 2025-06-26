@@ -14,12 +14,13 @@ from numpy.testing import assert_allclose
 import cogent3
 from cogent3 import get_app, get_moltype, open_data_store
 from cogent3.app import io as io_app
-from cogent3.app.composable import NotCompleted, source_proxy
+from cogent3.app.composable import NotCompleted, propagate_source, source_proxy
 from cogent3.app.data_store import (
     DataMember,
     DataStoreDirectory,
     Mode,
     ReadOnlyDataStoreZipped,
+    get_data_source,
 )
 from cogent3.app.io import DEFAULT_DESERIALISER, DEFAULT_SERIALISER
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
@@ -120,11 +121,14 @@ def test_source_proxy_simple(fasta_dir):
     data = reader(path)
     # direct call gives you back the annotated type
     assert isinstance(data, bytes | bytearray)
+    # create a source wrapper
+    wrapper = propagate_source(reader, get_data_source)
     # directly calling the intermediate wrap method should work
-    got = reader._source_wrapped(source_proxy(path))
+    got = wrapper(source_proxy(path))
     assert isinstance(got, source_proxy)
     # calling with list of data that doesn't have a source should
-    # also return source_proxy
+    # also return source_proxy. In this case, the wrapper is automatically
+    # created and assigned to the reader._source_wrapped attribute
     got = list(reader.as_completed([path], show_progress=False))
     assert isinstance(got[0], source_proxy)
 
