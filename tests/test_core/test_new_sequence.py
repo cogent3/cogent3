@@ -907,10 +907,10 @@ def test_is_annotated_biotype(biotype):
     assert s.is_annotated(biotype=biotype)
 
 
-def test_annotation_defaults():
+def test_annotation_db_lazy_evaluation():
     s = new_moltype.DNA.make_seq(seq="AC", name="s1")
-    assert s.annotation_db is None
-    s._init_annotation_db()
+    assert isinstance(s._annotation_db, list)
+    # now if we invoke the property we get an actual db instance created
     assert isinstance(s.annotation_db, anndb_module.SupportsFeatures)
 
 
@@ -931,7 +931,6 @@ def test_not_is_annotated():
     s = new_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG", name="s1")
     assert not s.is_annotated()
     # annotation on different seq
-    s._init_annotation_db()
     s.annotation_db.add_feature(
         seqid="s2",
         biotype="gene",

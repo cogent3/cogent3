@@ -379,7 +379,7 @@ def test_annotation_db_assign_none(mk_cls):
     seq_coll.add_feature(seqid="seq2", biotype="xyzzz", name="abc", spans=[(1, 2)])
     assert seq_coll.annotation_db is not None
     seq_coll.annotation_db = None
-    assert seq_coll.annotation_db is None
+    assert not len(seq_coll.annotation_db)
 
 
 @pytest.mark.parametrize(
@@ -483,7 +483,7 @@ def test_features_invalid_seqid(mk_cls):
 )
 def test_copy_annotations(gff_db, mk_cls):
     """copy_annotations copies records from annotation db"""
-    data = {"seq1": "ACGU", "seq2": "CGUA", "test_seq": "CCGU"}
+    data = {"seq1": "ACGU", "seq2": "CGUA", "test_seq": "CCGU", "test_seq2": "CCGU"}
     seq_coll = mk_cls(data, moltype="rna")
     seq_coll.add_feature(seqid="seq1", biotype="xyz", name="abc", spans=[(1, 2)])
     seq_coll.add_feature(seqid="seq2", biotype="xyzzz", name="abc", spans=[(1, 2)])
@@ -534,7 +534,7 @@ def test_copy_annotations_none_matching(gff_db, mk_cls):
     [new_alignment.make_aligned_seqs, new_alignment.make_unaligned_seqs],
 )
 def test_copy_annotations_no_db(gff_db, mk_cls):
-    data = {"seq1": "ACGU", "seq2": "CGUA", "test_seq": "CCGU"}
+    data = {"seq1": "ACGU", "seq2": "CGUA", "test_seq": "CCGU", "test_seq2": "CCGU"}
     seq_coll = mk_cls(data, moltype="rna")
 
     seq_coll.copy_annotations(gff_db)

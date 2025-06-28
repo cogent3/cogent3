@@ -2042,11 +2042,9 @@ def test_sequence_collection_get_seq_annotated():
     seqs.add_feature(seqid="seq1", biotype="xyz", name="abc", spans=[(1, 2)])
     seqs.add_feature(seqid="seq2", biotype="xy", name="ab", spans=[(1, 2)])
 
-    with_annos = seqs.get_seq("seq1", copy_annotations=True)
-    assert len(with_annos.annotation_db) == 1
-
-    without_annos = seqs.get_seq("seq1", copy_annotations=False)
-    assert len(without_annos.annotation_db) == 2
+    with_annos = seqs.get_seq("seq1")
+    # the annotation db is identical to the one on the collection
+    assert with_annos.annotation_db is seqs.annotation_db
 
 
 def _make_seq(name):
@@ -5367,7 +5365,7 @@ def test_alignment_apply_scaled_gaps_codon2aa_invalid_moltype(codon_and_aa_alns)
 
 
 def test_alignment_copy(simple_aln):
-    got = simple_aln.copy()
+    got = simple_aln.copy(copy_annotations=True)
     # mutable data structures should be different IDs
     assert got.name_map is not simple_aln.name_map
     assert got.info is not simple_aln.info
