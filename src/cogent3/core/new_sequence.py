@@ -20,7 +20,7 @@ from random import shuffle
 
 import numpy
 import typing_extensions
-from numpy import array, floating, integer, issubdtype
+from numpy import array
 
 from cogent3._version import __version__
 from cogent3.core import new_alphabet, new_genetic_code, new_moltype
@@ -51,6 +51,8 @@ from cogent3.util.misc import (
     DistanceFromMatrix,
     get_object_provenance,
     get_setting_from_environ,
+    is_float,
+    is_int,
 )
 from cogent3.util.transform import for_seq, per_shortest
 
@@ -58,28 +60,18 @@ if typing.TYPE_CHECKING:
     import os
 
 
-OptStr = typing.Optional[str]
-OptInt = typing.Optional[int]
-OptFloat = typing.Optional[float]
-IntORFloat = typing.Union[int, float]
-StrORIterableStr = typing.Union[str, typing.Iterable[str]]
-StrORBytesORArray = typing.Union[str, bytes, numpy.ndarray]
+OptStr = str | None
+OptInt = int | None
+OptFloat = float | None
+IntORFloat = int | float
+StrORIterableStr = str | typing.Iterable[str]
+StrORBytesORArray = str | bytes | numpy.ndarray
 ARRAY_TYPE = type(array(1))
 DEFAULT_ANNOTATION_DB = BasicAnnotationDb
 
 # standard distance functions: left  because generally useful
 frac_same = for_seq(f=eq, aggregator=sum, normalizer=per_shortest)
 frac_diff = for_seq(f=ne, aggregator=sum, normalizer=per_shortest)
-
-
-def _is_int(val) -> bool:
-    """whether val is builtin, or numpy, integer"""
-    return issubdtype(val.__class__, integer) or isinstance(val, int)
-
-
-def _is_float(val) -> bool:
-    """whether val is builtin, or numpy, integer"""
-    return issubdtype(val.__class__, floating) or isinstance(val, float)
 
 
 def _moltype_seq_from_rich_dict(data):
@@ -1530,7 +1522,7 @@ class Sequence:
             # annotations have no meaning if disjoint slicing segments
             preserve_offset = index.num_spans == 1
 
-        elif isinstance(index, slice) or _is_int(index):
+        elif isinstance(index, slice) or is_int(index):
             new = self.__class__(
                 moltype=self.moltype,
                 seq=self._seq[index],
@@ -1547,7 +1539,7 @@ class Sequence:
         if self.annotation_db is not None and preserve_offset:
             new.replace_annotation_db(self.annotation_db, check=False)
 
-        if _is_float(index):
+        if is_float(index):
             msg = "cannot slice using float"
             raise TypeError(msg)
 
@@ -2460,7 +2452,7 @@ class SliceRecordABC(ABC):
     def __getitem__(self, segment: int | slice) -> typing_extensions.Self:
         kwargs = self._get_init_kwargs()
 
-        if _is_int(segment):
+        if is_int(segment):
             start, stop, step = self._get_index(segment)
             return self.__class__(
                 start=start,

@@ -938,7 +938,7 @@ class SequenceCollection:
         seqname: str,
         copy_annotations: bool = False,
     ) -> new_sequence.Sequence:
-        """Return a sequence object for the specified seqname.
+        """Return a Sequence object for the specified seqname.
 
         Parameters
         ----------
