@@ -38,7 +38,7 @@ from operator import or_
 from random import choice, shuffle
 
 import typing_extensions
-from numpy import argsort, ceil, floating, integer, log, zeros
+from numpy import argsort, ceil, log, zeros
 
 from cogent3._version import __version__
 from cogent3.maths.stats.test import correlation
@@ -48,16 +48,12 @@ from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
 from cogent3.phylo.tree_distance import get_tree_distance_measure
 from cogent3.util import warning as c3warn
 from cogent3.util.io import atomic_write, get_format_suffixes, open_
-from cogent3.util.misc import get_object_provenance
+from cogent3.util.misc import get_object_provenance, is_number
 
 if typing_extensions.TYPE_CHECKING:
     import pathlib
 
     from cogent3.evolve.fast_distance import DistanceMatrix
-
-
-def is_number(v) -> bool:
-    return isinstance(v, (int, float, integer, floating))
 
 
 def distance_from_r(m1, m2):

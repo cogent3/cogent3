@@ -14,7 +14,7 @@ from urllib.parse import urlparse
 from warnings import warn
 
 import numpy
-from numpy import array, finfo, float64, ndarray, zeros
+from numpy import array, finfo, float64, floating, integer, ndarray, zeros
 
 from cogent3.util import warning as c3warn
 
@@ -1128,3 +1128,18 @@ class negate_condition:
 
     def __call__(self, *args: Any, **kwargs: Any) -> bool:
         return not bool(self.func(*args, **kwargs))
+
+
+def is_number(v) -> bool:
+    """built in or numpy number type"""
+    return isinstance(v, (int, float, integer, floating))
+
+
+def is_int(v) -> bool:
+    """built in or numpy int type"""
+    return isinstance(v, (int, integer))
+
+
+def is_float(v) -> bool:
+    """built in or numpy float type"""
+    return isinstance(v, (float, floating))
