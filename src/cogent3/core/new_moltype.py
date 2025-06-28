@@ -1388,9 +1388,9 @@ def _most_degen_alphabet(mt: MolType) -> new_alphabet.CharAlphabet:
     return next(mt.iter_alphabets())
 
 
-@register_deserialiser(get_object_provenance(MolType))
-def deserialise_new_moltype(data, **kwargs):
-    return get_moltype(data.pop("moltype"))
+@register_deserialiser(get_object_provenance(MolType), "cogent3.core.moltype.MolType")
+def deserialise_new_moltype(data: dict[str, str]) -> MolType:
+    return get_moltype(data["moltype"])
 
 
 def _make_moltype_dict() -> dict[str, MolType]:

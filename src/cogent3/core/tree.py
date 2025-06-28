@@ -47,6 +47,7 @@ from cogent3.parse.newick import parse_string as newick_parse_string
 from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
 from cogent3.phylo.tree_distance import get_tree_distance_measure
 from cogent3.util import warning as c3warn
+from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.io import atomic_write, get_format_suffixes, open_
 from cogent3.util.misc import get_object_provenance, is_number
 
@@ -2395,3 +2396,17 @@ def load_tree(
         underscore_unmunge=underscore_unmunge,
         source=filename,
     )
+
+
+@register_deserialiser("cogent3.core.tree")
+def deserialise_tree(
+    data: dict[str, str | dict[str, str | float | None]],
+) -> PhyloNode | TreeNode:
+    """returns a cogent3 PhyloNode instance"""
+    # we load tree using make_tree, then populate edge attributes
+    edge_attr = data["edge_attributes"]
+    tree = make_tree(treestring=data["newick"])
+    for edge in tree.preorder():
+        params = edge_attr.get(edge.name, {})
+        edge.params.update(params)
+    return tree

@@ -28,6 +28,7 @@ from itertools import combinations, product
 import numpy
 
 from cogent3._version import __version__
+from cogent3.util.deserialise import get_class, register_deserialiser
 from cogent3.util.io import atomic_write
 from cogent3.util.misc import get_object_provenance
 
@@ -662,3 +663,17 @@ class DictArray:
         data = self.to_string(format=format, sep=sep)
         with atomic_write(path, mode="wt") as outfile:
             outfile.write(data)
+
+
+@register_deserialiser(
+    get_object_provenance(DictArrayTemplate),
+)
+def deserialise_dict_array(data: dict) -> DictArray:
+    """deserialising DictArray, Table instances"""
+    data.pop("version", None)
+    type_ = data.pop("type")
+    klass = get_class(type_)
+    named_dims = data.pop("names")
+    array = data.pop("array")
+    template = klass(*named_dims)
+    return template.wrap(array)

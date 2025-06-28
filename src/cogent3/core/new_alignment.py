@@ -1755,7 +1755,6 @@ class SequenceCollection(AnnotatableMixin):
                 motif_length=motif_length,
                 include_ambiguity=include_ambiguity,
                 allow_gap=allow_gap,
-                exclude_unobserved=exclude_unobserved,
                 warn=warn,
             )
             motifs.update(c.keys())
@@ -2472,9 +2471,35 @@ class SequenceCollection(AnnotatableMixin):
         return self.take_seqs(omit, negate=True)
 
 
-@register_deserialiser(get_object_provenance(SequenceCollection))
-def deserialise_sequence_collection(data: dict) -> SequenceCollection:
+@register_deserialiser(
+    get_object_provenance(SequenceCollection),
+    "cogent3.core.alignment.SequenceCollection",
+)
+def deserialise_sequence_collection(
+    data: dict[str, str | dict[str, str]],
+) -> SequenceCollection:
+    """deserialise SequenceCollection"""
+    if "init_args" not in data:
+        return deserialise_old_to_new_type_seqcoll(data)
+
     return SequenceCollection.from_rich_dict(data)
+
+
+def deserialise_old_to_new_type_seqcoll(
+    data: dict[str, str | dict[str, str]],
+) -> SequenceCollection:
+    """deserialise old type SequenceCollection as a new type collection"""
+    moltype_name = data["moltype"]
+    moltype_name = "text" if moltype_name == "bytes" else moltype_name
+    info_data = data["info"]
+    source = info_data.pop("source", None)
+    seq_data = {
+        seqid: record["seq"]["init_args"]["seq"]
+        for seqid, record in data["seqs"].items()
+    }
+    return make_unaligned_seqs(
+        seq_data, moltype=moltype_name, info=info_data, source=source
+    )
 
 
 @singledispatch
@@ -2920,8 +2945,7 @@ def _(
         raise ValueError(msg)
 
     info = info if isinstance(info, dict) else {}
-    source = str(source) if source else str(info.get("source", "unknown"))
-    info["source"] = source
+    source = str(source) if source else str(info.pop("source", "unknown"))
     seqs = SequenceCollection(
         seqs_data=data,
         moltype=moltype,
@@ -5044,7 +5068,6 @@ class Alignment(SequenceCollection):
                 motif_length=motif_length,
                 include_ambiguity=include_ambiguity,
                 allow_gap=allow_gap,
-                exclude_unobserved=exclude_unobserved,
             )
             motifs.update(c.keys())
             counts.append(c)
@@ -6986,7 +7009,7 @@ class Alignment(SequenceCollection):
         }
 
     @classmethod
-    def from_rich_dict(cls, data: dict[str, str | dict[str, str]]):
+    def from_rich_dict(cls, data: dict[str, str | dict[str, str]]) -> Alignment:
         data["init_args"].pop("annotation_db", None)
         return make_aligned_seqs(data["seqs"], **data["init_args"])
 
@@ -7023,9 +7046,65 @@ class Alignment(SequenceCollection):
         return super().duplicated_seqs()
 
 
-@register_deserialiser(get_object_provenance(Alignment))
+@register_deserialiser(
+    get_object_provenance(Alignment), "cogent3.core.alignment.Alignment"
+)
 def deserialise_alignment(data: dict[str, str | dict[str, str]]) -> Alignment:
+    if "init_args" not in data:
+        # old type Alignment class
+        return deserialise_alignment_to_new_type_alignment(data)
     return Alignment.from_rich_dict(data)
+
+
+@register_deserialiser("cogent3.core.alignment.ArrayAlignment")
+def deserialise_array_align_to_new_type_alignment(
+    data: dict[str, str | dict[str, str]],
+) -> Alignment:
+    """deserialise old type ArrayAlignment as a new type alignment."""
+    moltype_name = data["moltype"]
+    moltype_name = "text" if moltype_name == "bytes" else moltype_name
+    info_data = data["info"]
+    source = info_data.pop("source", None) if info_data else None
+
+    seq_data = {}
+    for seqid, record in data["seqs"].items():
+        if isinstance(record["seq"], str):
+            seq = record["seq"]
+        else:
+            seq = record["seq"]["init_args"]["seq"]
+
+        seq_data[seqid] = seq
+
+    return make_aligned_seqs(
+        seq_data, moltype=moltype_name, info=info_data, source=source
+    )
+
+
+def deserialise_alignment_to_new_type_alignment(
+    data: dict[str, str | dict[str, str]],
+) -> Alignment:
+    """deserialise old type Alignment as a new type alignment"""
+    from cogent3 import get_moltype
+    from cogent3.core.location import deserialise_indelmap
+
+    moltype_name = data["moltype"]
+    mt = get_moltype(moltype_name, new_type=True)
+    alpha = mt.most_degen_alphabet()
+    info_data = data["info"]
+    source = info_data.pop("source", None)
+
+    seqs = {}
+    gaps = {}
+    for name, record in data["seqs"].items():
+        seq_data = record["seq_init"]
+        minit = record["map_init"]
+        imap = deserialise_indelmap(minit)
+        raw_seq = seq_data["seq"]["init_args"]["seq"]
+        seqs[name] = raw_seq
+        gaps[name] = imap.array
+
+    asd = AlignedSeqsData.from_seqs_and_gaps(seqs=seqs, gaps=gaps, alphabet=alpha)
+    return make_aligned_seqs(asd, moltype=moltype_name, info=info_data, source=source)
 
 
 def make_aligned_storage(
@@ -7207,9 +7286,7 @@ def _(
         raise ValueError(msg)
 
     info = info if isinstance(info, dict) else {}
-    source = str(source) if source else str(info.get("source", "unknown"))
-    info["source"] = source
-
+    source = str(source) if source else str(info.pop("source", "unknown"))
     sr = (
         new_sequence.SliceRecord(parent_len=data.align_len, step=-1)
         if is_reversed
