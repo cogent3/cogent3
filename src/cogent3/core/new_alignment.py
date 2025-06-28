@@ -6876,9 +6876,11 @@ class Alignment(SequenceCollection):
         init_args["annotation_db"] = other.annotation_db
         return self.__class__(**init_args)
 
-    def copy(self) -> typing_extensions.Self:
+    def copy(self, copy_annotations: bool = False) -> typing_extensions.Self:
         """creates new instance, only mutable attributes are copied"""
         kwargs = self._get_init_kwargs()
+        if copy_annotations:
+            kwargs["annotation_db"] = copy.deepcopy(self._annotation_db)
         return self.__class__(**kwargs)
 
     def deepcopy(self, **kwargs) -> typing_extensions.Self:

@@ -6123,3 +6123,18 @@ def test_renamed_deepcopy(renamed_aln):
     got = coll.deepcopy()
     assert set(got.storage.names) == {k.lower() for k in data}
     assert set(got.names) == {k.upper() for k in data}
+
+
+def test_alignment_copy_handling_annot_db():
+    """Test that copying an alignment works correctly."""
+    data = {
+        "seq1": "ATCG",
+        "seq2": "TAGC",
+    }
+    aln = new_alignment.make_aligned_seqs(data, moltype="dna")
+    orig_db = aln.annotation_db
+    copied_aln = aln.copy(copy_annotations=True)
+    assert orig_db is not copied_aln.annotation_db
+
+    copied_aln = aln.copy(copy_annotations=False)
+    assert copied_aln.annotation_db is orig_db
