@@ -6123,6 +6123,20 @@ def test_renamed_deepcopy(renamed_aln):
     assert set(got.names) == {k.upper() for k in data}
 
 
+@pytest.mark.parametrize(
+    "mk_cls", [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs]
+)
+def test_pickling_seqcoll(mk_cls):
+    import pickle
+
+    raw = {"s1": "ACG-T", "s2": "ACGGT"}
+    coll = mk_cls(raw, moltype="dna")
+    pickled = pickle.dumps(coll)
+    unpickled = pickle.loads(pickled)
+    assert set(unpickled.names) == {k.lower() for k in raw}
+    assert unpickled.to_dict() == raw
+
+
 def test_alignment_copy_handling_annot_db():
     """Test that copying an alignment works correctly."""
     data = {

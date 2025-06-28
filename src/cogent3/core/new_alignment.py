@@ -702,6 +702,15 @@ class SequenceCollection(AnnotatableMixin):
         # override in subclasses
         self._seqs = _IndexableSeqs(self, make_seq=self._make_seq)
 
+    def __getstate__(self) -> dict:
+        return self._get_init_kwargs()
+
+    def __setstate__(self, state: dict) -> None:
+        state["name_map"] = types.MappingProxyType(state.pop("name_map"))
+        obj = self.__class__(**state)
+
+        self.__dict__.update(obj.__dict__)
+
     def _make_seq(self, name: str) -> new_sequence.Sequence:
         # seqview is given the name of the parent (if different from the current name)
         # the sequence is given the current name
