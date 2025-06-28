@@ -2044,20 +2044,6 @@ class AnnotatableMixin:
         return self._annotation_db[0]
 
     @annotation_db.setter
-    def annotation_db(
-        self, value: SupportsFeatures | list[SupportsFeatures] | None
-    ) -> None:
-        if value in self._annotation_db:
-            return
-
-        if not self._annotation_db:
-            # if no annotation db is set, use the default
-            self._annotation_db.append(value)
-        else:
-            # we replace the current annotation db
-            self._annotation_db[0] = value
-
-    @annotation_db.setter
     def annotation_db(self, value: SupportsFeatures) -> None:
         # Without knowing the contents of the db we cannot
         # establish whether self.moltype is compatible, so
