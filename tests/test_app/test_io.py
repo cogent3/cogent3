@@ -30,9 +30,9 @@ from cogent3.maths.util import safe_log
 from cogent3.parse.sequence import PARSERS
 from cogent3.util.deserialise import deserialise_object
 
-DNA = get_moltype("dna")
+NEW_TYPE = True
 
-NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
+DNA = get_moltype("dna", new_type=NEW_TYPE)
 
 
 @pytest.fixture
@@ -548,6 +548,7 @@ def seqs():
         data={"a": "ACGG", "b": "GGC"},
         moltype="dna",
         info={"source": "dummy/blah.1.2.fa"},
+        new_type=True,
     )
 
 

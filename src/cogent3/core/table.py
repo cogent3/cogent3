@@ -27,6 +27,7 @@ from cogent3.format import bedgraph
 from cogent3.format import table as table_format
 from cogent3.parse import cogent3_json as c3_json
 from cogent3.parse.table import load_delimited
+from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.io import atomic_write, get_format_suffixes, open_
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
@@ -2469,3 +2470,20 @@ def load_table(
         legend=legend,
         format=format,
     )
+
+
+@register_deserialiser(
+    get_object_provenance(Table),
+    "cogent3.util.table.Table",
+)
+def deserialise_tabular(data: dict) -> Table:
+    """deserialising DictArray, Table instances"""
+    data.pop("version", None)
+    _ = data.pop("type", None)
+    if "init_table" in data:
+        result = Table()
+        result.__setstate__(data)
+    else:
+        result = Table(**data)
+
+    return result

@@ -73,7 +73,10 @@ frac_same = for_seq(f=eq, aggregator=sum, normalizer=per_shortest)
 frac_diff = for_seq(f=ne, aggregator=sum, normalizer=per_shortest)
 
 
-def _moltype_seq_from_rich_dict(data):
+def _moltype_seq_from_rich_dict(
+    data: dict[str, str | dict[str, str]],
+) -> tuple[new_moltype.MolType, StrORBytesORArray]:
+    """returns moltype and seq and mutates data so it can serve as kwargs to Sequence constructor"""
     from cogent3.core import new_moltype
 
     data.pop("type")
@@ -291,8 +294,12 @@ class Sequence(AnnotatableMixin):
         return data
 
     @classmethod
-    def from_rich_dict(cls, data: dict):
+    def from_rich_dict(cls, data: dict) -> Sequence:
         """create a Sequence object from a rich dict"""
+        if isinstance(data["seq"], dict):
+            # this is a rich dict from the old type sequences
+            data["seq"] = data.pop("seq")["init_args"]["seq"]
+
         moltype, seq = _moltype_seq_from_rich_dict(data)
 
         return cls(moltype=moltype, seq=seq, **data)
@@ -301,16 +308,18 @@ class Sequence(AnnotatableMixin):
         """returns a json formatted string"""
         return json.dumps(self.to_rich_dict())
 
-    def count(self, item: str):
+    def count(self, item: str) -> int:
         """count() delegates to self._seq."""
         return str(self).count(item)
 
+    @c3warn.deprecated_args(
+        "2025.9", reason="has no effect", discontinued="exclude_unobserved"
+    )
     def counts(
         self,
         motif_length: int = 1,
         include_ambiguity: bool = False,
         allow_gap: bool = False,
-        exclude_unobserved: bool = False,
         warn: bool = False,
     ) -> CategoryCounter:
         """returns dict of counts of motifs
@@ -326,8 +335,6 @@ class Sequence(AnnotatableMixin):
             from the seq moltype are included. No expansion of those is attempted.
         allow_gaps
             if True, motifs containing a gap character are included.
-        exclude_unobserved
-            if True, unobserved motif combinations are excluded.
         warn
             warns if motif_length > 1 and alignment trimmed to produce
             motif columns
@@ -380,21 +387,21 @@ class Sequence(AnnotatableMixin):
         """Returns the number of ambiguous characters in the sequence."""
         data = numpy.array(self)
         gap_index = self.moltype.most_degen_alphabet().gap_index
-        return numpy.sum(data > gap_index)
+        return int(numpy.sum(data > gap_index))
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         """compares based on the sequence string."""
         return str(self) < str(other)
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         """compares based on the sequence string."""
         return str(self) == str(other)
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         """compares based on the sequence string."""
         return str(self) != str(other)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         """__hash__ behaves like the sequence string for dict lookup."""
         return hash(str(self))
 
@@ -1875,20 +1882,10 @@ class Sequence(AnnotatableMixin):
         )
 
 
-@register_deserialiser(get_object_provenance(Sequence))
-def deserialise_sequence(data: dict) -> Sequence:
-    return Sequence.from_rich_dict(data)
-
-
 class ProteinSequence(Sequence):
     """Holds the standard Protein sequence."""
 
     # constructed by PROTEIN moltype
-
-
-@register_deserialiser(get_object_provenance(ProteinSequence))
-def deserialise_protein_sequence(data) -> ProteinSequence:
-    return ProteinSequence.from_rich_dict(data)
 
 
 class ByteSequence(Sequence):
@@ -1897,20 +1894,10 @@ class ByteSequence(Sequence):
     # constructed by BYTES moltype
 
 
-@register_deserialiser(get_object_provenance(ByteSequence))
-def deserialise_bytes_sequence(data) -> ByteSequence:
-    return ByteSequence.from_rich_dict(data)
-
-
 class ProteinWithStopSequence(Sequence):
     """Holds the standard Protein sequence, allows for stop codon."""
 
     # constructed by PROTEIN_WITH_STOP moltype
-
-
-@register_deserialiser(get_object_provenance(ProteinWithStopSequence))
-def deserialise_protein_with_stop_sequence(data) -> ProteinWithStopSequence:
-    return ProteinWithStopSequence.from_rich_dict(data)
 
 
 class NucleicAcidSequenceMixin:
@@ -2184,20 +2171,10 @@ class DnaSequence(Sequence, NucleicAcidSequenceMixin):
     # constructed by DNA moltype
 
 
-@register_deserialiser(get_object_provenance(DnaSequence))
-def deserialise_dna_sequence(data) -> DnaSequence:
-    return DnaSequence.from_rich_dict(data)
-
-
 class RnaSequence(Sequence, NucleicAcidSequenceMixin):
     """Holds the standard RNA sequence."""
 
     # constructed by RNA moltype
-
-
-@register_deserialiser(get_object_provenance(RnaSequence))
-def deserialise_rna_sequence(data) -> RnaSequence:
-    return RnaSequence.from_rich_dict(data)
 
 
 class SliceRecordABC(ABC):
@@ -3032,7 +3009,7 @@ class SeqView(SeqViewABC):
 def _coerce_to_seqview(
     data,
     seqid: str,
-    alphabet: new_alphabet.AlphabetABC,
+    alphabet: new_alphabet.CharAlphabet,
     offset: int,
 ) -> SeqViewABC:
     from cogent3.core.alignment import Aligned
@@ -3049,7 +3026,7 @@ def _coerce_to_seqview(
 def _(
     data: SeqViewABC,
     seqid: str,
-    alphabet: new_alphabet.AlphabetABC,
+    alphabet: new_alphabet.CharAlphabet,
     offset: int,
 ) -> SeqViewABC:
     # we require the indexes of shared states in alphabets to be the same
@@ -3078,7 +3055,7 @@ def _(
 def _(
     data: Sequence,
     seqid: str,
-    alphabet: new_alphabet.AlphabetABC,
+    alphabet: new_alphabet.CharAlphabet,
     offset: int,
 ) -> SeqViewABC:
     return _coerce_to_seqview(data._seq, seqid, alphabet, offset)
@@ -3088,7 +3065,7 @@ def _(
 def _(
     data: str,
     seqid: str,
-    alphabet: new_alphabet.AlphabetABC,
+    alphabet: new_alphabet.CharAlphabet,
     offset: int,
 ) -> SeqViewABC:
     return SeqView(
@@ -3104,7 +3081,7 @@ def _(
 def _(
     data: bytes,
     seqid: str,
-    alphabet: new_alphabet.AlphabetABC,
+    alphabet: new_alphabet.CharAlphabet,
     offset: int,
 ) -> SeqViewABC:
     data = data.decode("utf8")
@@ -3151,3 +3128,29 @@ def _(
     offset: int,
 ) -> SeqViewABC:
     return _coerce_to_seqview("".join(data), seqid, alphabet, offset)
+
+
+cls_map = {
+    get_object_provenance(cls): cls
+    for cls in (
+        Sequence,
+        DnaSequence,
+        RnaSequence,
+        ProteinSequence,
+        ProteinWithStopSequence,
+        ByteSequence,
+    )
+} | {
+    "cogent3.core.sequence.Sequence": Sequence,
+    "cogent3.core.sequence.DnaSequence": DnaSequence,
+    "cogent3.core.sequence.RnaSequence": RnaSequence,
+    "cogent3.core.sequence.ProteinSequence": ProteinSequence,
+    "cogent3.core.sequence.ProteinWithStopSequence": ProteinWithStopSequence,
+    "cogent3.core.sequence.ByteSequence": ByteSequence,
+}
+
+
+@register_deserialiser(*cls_map.keys())
+def deserialise_sequence(data: dict) -> Sequence:
+    cls = cls_map[data["type"]]
+    return cls.from_rich_dict(data)

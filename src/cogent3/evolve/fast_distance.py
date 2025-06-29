@@ -11,6 +11,7 @@ import cogent3
 from cogent3._version import __version__
 from cogent3.core import new_moltype
 from cogent3.core.table import Table
+from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArray
 from cogent3.util.misc import get_object_provenance
 from cogent3.util.progress_display import display_wrap
@@ -912,3 +913,18 @@ class DistanceMatrix(DictArray):
         min_index_flat = numpy.argmin(dmat_copy)
         min_index_1, min_index_2 = numpy.unravel_index(min_index_flat, self.shape)
         return self.names[min_index_1], self.names[min_index_2]
+
+
+@register_deserialiser(get_object_provenance(DistanceMatrix))
+def deserialise_tabular(data: dict) -> DistanceMatrix:
+    """deserialising DistanceMatrix from a rich dict"""
+    data.pop("version", None)
+    _ = data.pop("type", None)
+    # dists is a list of simple dists from which we reconstruct a 1D dict
+    dists = {}
+    for element in data["dists"]:
+        key = tuple(element[:2])
+        value = element[2]
+        dists[key] = value
+    data["dists"] = dists
+    return DistanceMatrix(**data)

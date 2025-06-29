@@ -15,7 +15,7 @@ import numpy
 import typing_extensions
 
 from cogent3._version import __version__
-from cogent3.core.location import Strand
+from cogent3.core.location import Strand, deserialise_map_spans
 from cogent3.core.table import Table
 from cogent3.parse.gff import merged_gff_records
 from cogent3.util.deserialise import deserialise_object, register_deserialiser
@@ -1732,8 +1732,6 @@ def deserialise_gb_db(data: dict) -> GenbankAnnotationDb:
 
 @register_deserialiser("annotation_to_annotation_db")
 def convert_annotation_to_annotation_db(data: dict) -> SupportsFeatures:
-    from cogent3.util.deserialise import deserialise_map_spans
-
     db = BasicAnnotationDb()
 
     minus = Strand.MINUS

@@ -21,7 +21,7 @@ _NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
 
 def test_deserialised_values():
     """correctly deserialises values"""
-    DNA = cogent3.get_moltype("dna")
+    DNA = cogent3.get_moltype("dna", new_type=True)
     data = {"type": "cogent3.core.moltype.MolType", "moltype": "dna"}
     result = generic_result(source="blah.json")
     result["key"] = data
@@ -29,7 +29,7 @@ def test_deserialised_values():
     got = result["key"]
     assert got is DNA
     # if we have a type value without "cogent3", leaves as is
-    data = {"type": "core.moltype.MolType", "moltype": "dna"}
+    data = {"type": "core.new_moltype.MolType", "moltype": "dna"}
     result = generic_result(source="blah.json")
     result["key"] = data
     result.deserialised_values()

@@ -16,7 +16,7 @@ import typing_extensions
 from numpy.typing import NDArray
 
 from cogent3._version import __version__
-from cogent3.util.deserialise import register_deserialiser
+from cogent3.util.deserialise import get_class, register_deserialiser
 from cogent3.util.misc import get_object_provenance
 
 strip = str.strip
@@ -1524,11 +1524,9 @@ class IndelMap(MapABC):
 
     @classmethod
     def from_rich_dict(cls, map_element) -> "IndelMap":
-        from cogent3.util.deserialise import _get_class
-
         map_element.pop("version", None)
-        type_ = map_element.pop("type")
-        assert _get_class(type_) == cls
+        type_ = map_element.pop("type", None)
+        assert get_class(type_) == cls
         map_element["gap_pos"] = numpy.array(map_element["gap_pos"])
         map_element["cum_gap_lengths"] = numpy.array(map_element["cum_gap_lengths"])
 
@@ -1693,7 +1691,7 @@ class IndelMap(MapABC):
         )
 
     @property
-    def array(self):
+    def array(self) -> numpy.ndarray:
         """returns 2D numpy array with columns gap position and cum gap lengths"""
         return numpy.array([self.gap_pos, self.cum_gap_lengths]).T
 
@@ -2090,15 +2088,15 @@ class FeatureMap(MapABC):
 
     @classmethod
     def from_rich_dict(cls, map_element) -> "FeatureMap":
-        from cogent3.util.deserialise import _get_class
+        from cogent3.util.deserialise import get_class
 
         map_element.pop("version", None)
         type_ = map_element.pop("type")
-        assert _get_class(type_) == cls
+        assert get_class(type_) == cls
         spans = []
         for element in map_element.pop("spans"):
             element.pop("version", None)
-            klass = _get_class(element.pop("type"))
+            klass = get_class(element.pop("type"))
             instance = klass(**element)
             spans.append(instance)
 
@@ -2117,7 +2115,6 @@ class FeatureMap(MapABC):
         """
         # TODO there's probably a more efficient way to do this
         # create the new instance
-        from cogent3.util.deserialise import deserialise_map_spans
 
         data = self.to_rich_dict()
         zeroed = deserialise_map_spans(data)
@@ -2252,3 +2249,24 @@ def _(index: FeatureMap, length) -> tuple[int, int, int | None]:
     start = _norm_index(index.start, length, 0)
     end = _norm_index(index.end, length, length)
     return start, end, None
+
+
+def deserialise_map_spans(map_element):
+    map_element.pop("version", None)
+    type_ = map_element.pop("type")
+    if type_.endswith(".Map"):
+        # old style Map
+        type_ = type_.replace(".Map", ".FeatureMap")
+        for k in ("tidy", "termini_unknown"):
+            map_element.pop(k, None)
+
+    map_klass = get_class(type_)
+    spans = []
+    for element in map_element["spans"]:
+        element.pop("version", None)
+        klass = get_class(element.pop("type"))
+        instance = klass(**element)
+        spans.append(instance)
+
+    map_element["spans"] = spans
+    return map_klass(**map_element)

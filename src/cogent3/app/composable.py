@@ -18,6 +18,7 @@ from cogent3._version import __version__
 from cogent3.app import typing as c3_typing
 from cogent3.util import parallel as PAR
 from cogent3.util import progress_display as UI
+from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.misc import docstring_to_summary_rest, get_object_provenance
 
 from .data_store import (
@@ -953,3 +954,13 @@ __mapping = {
     "as_completed": _as_completed,
     "set_logger": _set_logger,
 }
+
+
+@register_deserialiser(get_object_provenance(NotCompleted))
+def deserialise_not_completed(data: dict) -> NotCompleted:
+    """deserialising NotCompletedResult"""
+    data.pop("version", None)
+    init = data.pop("not_completed_construction")
+    args = init.pop("args")
+    kwargs = init.pop("kwargs")
+    return NotCompleted(*args, **kwargs)

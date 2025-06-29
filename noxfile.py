@@ -96,6 +96,7 @@ def testdocs(session):
             "-1",
             "-s",
             "rst",
+            *session.posargs,
             external=True,
         )
 
