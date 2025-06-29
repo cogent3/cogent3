@@ -1524,8 +1524,6 @@ class IndelMap(MapABC):
 
     @classmethod
     def from_rich_dict(cls, map_element) -> "IndelMap":
-        from cogent3.util.deserialise import get_class
-
         map_element.pop("version", None)
         type_ = map_element.pop("type", None)
         assert get_class(type_) == cls
