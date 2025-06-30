@@ -487,12 +487,12 @@ def test_load_db_prefer_source_attr(tmp_dir):
         source="blah.1.2.fa",
     )
     writer = io_app.write_db(data_store=data_store)
-    writer(seqs)
+    writer(seqs)  # pylint: disable=not-callable
     data_store.close()
     data_store = open_data_store(path)
     # this old style rich dict will
     loader = io_app.load_db()
-    got = loader(data_store[0])
+    got = loader(data_store[0])  # pylint: disable=not-callable
     assert "source" not in got.info
 
 
