@@ -165,6 +165,48 @@ def test_dendro_with_support(style):
     )
 
 
+def test_dendro_support_is_pcnt():
+    data = {
+        "newick": "(A,(B,C)edge.1,(D,E)edge.0)",
+        "edge_attributes": {
+            "A": {"support": 100, "length": 0.148},
+            "B": {"support": 100, "length": 0.098},
+            "C": {"support": 100, "length": 0.134},
+            "edge.1": {"support": 79.4, "length": 0.016},
+            "D": {"support": 100, "length": 0.087},
+            "E": {"support": 100, "length": 0.048},
+            "edge.0": {"support": 60.6, "length": 0.131},
+            "root": {"length": None},
+        },
+        "type": "cogent3.core.tree.PhyloNode",
+        "version": "2019.10.17a",
+    }
+    tree = deserialise_object(data)
+    style = "square"
+    no_support = Dendrogram(tree, style=style, show_support=False)
+    threshold_lt_1 = Dendrogram(
+        tree, style=style, show_support=True, threshold=0.8, support_is_percent=True
+    )
+    assert (
+        len(threshold_lt_1.figure.layout.annotations)
+        - len(no_support.figure.layout.annotations)
+        == 2
+    )
+    threshold_lt_100 = Dendrogram(
+        tree, style=style, show_support=True, threshold=80, support_is_percent=True
+    )
+    assert len(threshold_lt_1.figure.layout.annotations) == len(
+        threshold_lt_100.figure.layout.annotations
+    )
+    # when percent, the support value is rounded to nearest integer
+    got = {
+        a["text"]
+        for a in threshold_lt_100.figure.layout.annotations
+        if a["text"].isdigit()
+    }
+    assert got == {"79", "61"}
+
+
 def test_style_edges():
     """test style_edges only accepts edges present in tree"""
     tree = make_tree(treestring="(a,b,(c,(d,e)e1)e2)")

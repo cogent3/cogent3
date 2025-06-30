@@ -318,7 +318,7 @@ class _LikelihoodParameterController(_LF):
 
             edge_sets = [
                 {"edges": [n]}
-                for n in self.tree.get_node_names(includeself=False)
+                for n in self.tree.get_node_names(include_self=False)
                 if n not in exclude_edges
             ]
         elif type(edge_sets) == dict:

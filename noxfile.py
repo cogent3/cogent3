@@ -41,16 +41,6 @@ def test(session):
         "-x",
         "--ignore-glob",
         "*app/test_app_mpi.py",
-        "--ignore-glob",
-        "*core/test_alignment.py",
-        "--ignore-glob",
-        "*core/test_alphabet.py",
-        "--ignore-glob",
-        "*core/test_genetic_code.py",
-        "--ignore-glob",
-        "*core/test_moltype.py",
-        "--ignore-glob",
-        "*core/test_sequence.py",
         "-m",
         "not slow",
         *session.posargs,
@@ -76,18 +66,18 @@ def testmpi(session):
     session.install("-e.[test]")
     session.install("mpi4py")
     py = pathlib.Path(session.bin_paths[0]) / "python"
-    session.chdir("tests")
+    session.chdir("tests/test_app")
     session.run(
         "mpiexec",
         "-n",
-        "2",
+        "4",
         str(py),
         "-m",
         "mpi4py.futures",
         "-m",
         "pytest",
         "-x",
-        "test_app/test_app_mpi.py",
+        "test_app_mpi.py",
         external=True,
     )
 
@@ -106,6 +96,7 @@ def testdocs(session):
             "-1",
             "-s",
             "rst",
+            *session.posargs,
             external=True,
         )
 
@@ -119,24 +110,6 @@ def test_new_type(session):
         "-s",
         "--ignore",
         "test_app_mpi.py",
-        "--ignore",
-        "test_core/test_alignment.py",
-        "--ignore",
-        "test_core/test_alphabet.py",
-        "--ignore",
-        "test_core/test_annotation.py",
-        "--ignore",
-        "test_core/test_genetic_code.py",
-        "--ignore",
-        "test_core/test_moltype.py",
-        "--ignore",
-        "test_core/test_sequence.py",
-        "--ignore",
-        "test_core/test_seq_aln_integration.py",
-        "--ignore",
-        "test_core/test_core_standalone.py",
-        "--ignore",
-        "test_util/test_recode_alignment.py",
         "-m",
         "not slow",
         *session.posargs,

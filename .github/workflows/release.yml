@@ -9,22 +9,33 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13.5"]
     steps:
       - uses: "actions/checkout@v4"
         with:
           fetch-depth: 0
 
+      # Setup env
       - uses: "actions/setup-python@v5"
         with:
             python-version: "${{ matrix.python-version }}"
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+
       - name: "Installs for ${{ matrix.python-version }}"
         run: |
-          pip install --upgrade pip nox
+          uv venv venv -p python${{ matrix.python-version }}
+          uv tool install -p venv nox
 
-      - name: "Run nox for Python ${{ matrix.python-version }}"
-        run: "nox -s test-${{ matrix.python-version }}"
+      - name: "Run nox for ${{ matrix.python-version }}"
+        shell: bash
+        run: |
+          nox  -db uv --force-python python -s test
+
 
   docbuild:
     name: "Test the docs"

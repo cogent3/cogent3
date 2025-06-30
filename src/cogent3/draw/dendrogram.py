@@ -192,15 +192,17 @@ class TreeGeometryBase(PhyloNode):
         """returns coordinates connecting a child to self and descendants"""
         return self.end
 
-    def value_and_coordinate(self, attr, padding=0.1, max_attr_length=None) -> NoReturn:
+    def value_and_coordinate(
+        self, attr: str, padding: float = 0.1, max_attr_length: int | None = None
+    ) -> NoReturn:
         """
         Parameters
         ----------
-        attr : str
+        attr
             attribute of self, e.g. 'name', or key in self.params
-        padding : float
+        padding
             distance from self coordinate
-        max_attr_length: int or None
+        max_attr_length
             maximum text length of the attribute
         Returns
         -------
@@ -210,15 +212,21 @@ class TreeGeometryBase(PhyloNode):
         msg = "implement in sub-class"
         raise NotImplementedError(msg)
 
-    def support_text_coord(self, xshift, yshift, threshold=1, max_attr_length=4):
+    def support_text_coord(
+        self,
+        xshift: int,
+        yshift: int,
+        threshold: float = 100,
+        max_attr_length: int | None = 4,
+    ):
         """
         Parameters
         ----------
-        xshift, yshift : int
+        xshift, yshift
             relative position (in pixels) of text
-        threshold : float
-            values below this will be displayed
-        max_attr_length: int or None
+        threshold
+            support values below this will be displayed
+        max_attr_length
             maximum text length of the attribute
 
         Returns
@@ -238,6 +246,12 @@ class TreeGeometryBase(PhyloNode):
         if val is None or val > threshold or self.is_tip():
             return None
 
+        if threshold > 1:
+            # assuming we have support as a percentage
+            text = f"{int(round(val, 0))}"
+        else:
+            text = f"{val:.2f}"
+
         x = self.x
         return UnionDict(
             x=x,
@@ -246,7 +260,7 @@ class TreeGeometryBase(PhyloNode):
             yshift=yshift,
             textangle=self.theta,
             showarrow=False,
-            text=f"{val:.2f}",
+            text=text,
             xanchor="center",
         )
 
@@ -289,7 +303,12 @@ class SquareTreeGeometry(TreeGeometryBase):
         return result
 
     @extend_docstring_from(TreeGeometryBase.value_and_coordinate)
-    def value_and_coordinate(self, attr="name", padding=0.05, max_attr_length=None):
+    def value_and_coordinate(
+        self,
+        attr: str = "name",
+        padding: float = 0.05,
+        max_attr_length: int | None = None,
+    ):
         # TODO, possibly also return a rotation?
         x = self.x + padding
         y = self.y
@@ -402,7 +421,12 @@ class CircularTreeGeometry(TreeGeometryBase):
         return val
 
     @extend_docstring_from(TreeGeometryBase.value_and_coordinate)
-    def value_and_coordinate(self, attr="name", padding=0.05, max_attr_length=None):
+    def value_and_coordinate(
+        self,
+        attr: str = "name",
+        padding: float = 0.05,
+        max_attr_length: int | None = None,
+    ) -> UnionDict:
         value = self.params.get(attr, None)
         if value is None:
             value = getattr(self, attr, None)
@@ -429,7 +453,13 @@ class CircularTreeGeometry(TreeGeometryBase):
         )
 
     @extend_docstring_from(TreeGeometryBase.support_text_coord)
-    def support_text_coord(self, xshift, yshift, threshold=1, max_attr_length=4):
+    def support_text_coord(
+        self,
+        xshift: float,
+        yshift: float,
+        threshold: float = 100,
+        max_attr_length: int | None = 4,
+    ):
         if xshift is None:
             xshift = -18
 
@@ -442,6 +472,14 @@ class CircularTreeGeometry(TreeGeometryBase):
         val = self.params.get("support", None)
         if val is None or val > threshold or self.is_tip():
             return None
+
+        if threshold > 1:
+            # assuming we have support as a percentage
+            text = f"{int(round(val, 0))}"
+        else:
+            text = f"{val:.2f}"
+
+        print(f"{threshold=}, {val=}")
 
         if 90 < self.theta <= 270:
             textangle = 180 - self.theta
@@ -465,7 +503,7 @@ class CircularTreeGeometry(TreeGeometryBase):
             yshift=new_yshift,
             textangle=textangle,
             showarrow=False,
-            text=f"{val:.2f}",
+            text=text,
             xanchor="center",
         )
 
@@ -513,20 +551,21 @@ class RadialTreeGeometry(_AngularGeometry, CircularTreeGeometry):
 class Dendrogram(Drawable):
     def __init__(
         self,
-        tree,
-        style="square",
-        label_pad=None,
-        contemporaneous=None,
-        show_support=True,
-        threshold=1.0,
+        tree: "TreeGeometryBase",
+        style: str = "square",
+        label_pad: int | None = None,
+        contemporaneous: bool = False,
+        show_support: bool = True,
+        threshold: float = 1.0,
+        support_is_percent: bool = True,
         *args,
         **kwargs,
     ) -> None:
         length_attr = kwargs.pop("length_attr", None)
         super().__init__(
+            *args,
             visible_axes=False,
             showlegend=False,
-            *args,
             **kwargs,
         )
         klass = {
@@ -555,9 +594,13 @@ class Dendrogram(Drawable):
         self._length_attr = self.tree._length
         self._tip_names = tuple(e.name for e in self.tree.tips())
         self._max_label_length = max(map(len, self._tip_names))
-        if "support" not in self.tree.children[0].params:
+        if all("support" not in child.params for child in self.tree.children):
             show_support = False
         self._show_support = show_support
+
+        if support_is_percent and threshold <= 1.0:
+            threshold *= 100
+
         self._threshold = threshold
         self._support_xshift = None
         self._support_yshift = None
@@ -581,35 +624,35 @@ class Dendrogram(Drawable):
         self._traces = []
 
     @property
-    def support_xshift(self):
+    def support_xshift(self) -> int:
         """relative x position (in pixels) of support text. Can be negative or positive."""
         return self._support_xshift
 
     @support_xshift.setter
-    def support_xshift(self, value) -> None:
+    def support_xshift(self, value: int) -> None:
         if value == self._support_xshift:
             return
         self._support_xshift = value
         self._traces = []
 
     @property
-    def support_yshift(self):
+    def support_yshift(self) -> int:
         """relative y position (in pixels) of support text. Can be negative or positive."""
         return self._support_yshift
 
     @support_yshift.setter
-    def support_yshift(self, value) -> None:
+    def support_yshift(self, value: int) -> None:
         if value == self._support_yshift:
             return
         self._support_yshift = value
         self._traces = []
 
     @property
-    def contemporaneous(self):
+    def contemporaneous(self) -> bool:
         return self._contemporaneous
 
     @contemporaneous.setter
-    def contemporaneous(self, value) -> None:
+    def contemporaneous(self, value: bool) -> None:
         if type(value) != bool:
             raise TypeError
         if self._contemporaneous != value:
@@ -986,16 +1029,12 @@ class Dendrogram(Drawable):
         self.layout.annotations = ()
 
     @property
-    def support_threshold(self):
+    def support_threshold(self) -> float:
         """cutoff for dislaying support"""
         return self._threshold
 
     @support_threshold.setter
-    def support_threshold(self, value) -> None:
-        assert 0 <= value <= 1, "Must be in [0, 1] interval"
-        if value == self._threshold:
-            return
-
+    def support_threshold(self, value: float) -> None:
         self._threshold = value
         self._traces = []
         self.layout.annotations = ()

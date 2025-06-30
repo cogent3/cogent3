@@ -33,6 +33,8 @@ from cogent3.app.composable import NotCompleted
 from cogent3.core.location import gap_coords_to_map
 
 DNA = get_moltype("dna")
+
+
 _NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
 
 if _NEW_TYPE:

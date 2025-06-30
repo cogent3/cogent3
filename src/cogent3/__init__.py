@@ -4,6 +4,7 @@ execution on compute systems with 1000s of CPUs."""
 
 import os
 import pathlib
+import typing
 import warnings
 from collections.abc import Callable
 
@@ -17,12 +18,7 @@ from cogent3.app import (  # noqa: F401
     open_data_store,
 )
 from cogent3.core import annotation_db as _anno_db
-from cogent3.core.alignment import (
-    Alignment,
-    ArrayAlignment,
-    Sequence,
-    SequenceCollection,
-)
+from cogent3.core.alignment import make_aligned_seqs, make_unaligned_seqs
 from cogent3.core.genetic_code import available_codes, get_code  # noqa: F401
 
 # note that moltype has to be imported last, because it sets the moltype in
@@ -36,19 +32,27 @@ from cogent3.core.moltype import (  # noqa: F401
     get_moltype,
 )
 from cogent3.core.table import load_table, make_table  # noqa: F401
-from cogent3.core.tree import PhyloNode, TreeBuilder, TreeError, TreeNode  # noqa: F401
+from cogent3.core.tree import (  # noqa: F401
+    PhyloNode,
+    TreeError,
+    TreeNode,
+    load_tree,
+    make_tree,
+)
 from cogent3.evolve.fast_distance import (  # noqa: F401
     available_distances,
     get_distance_calculator,
 )
 from cogent3.evolve.models import available_models, get_model  # noqa: F401
 from cogent3.parse.cogent3_json import load_from_json
-from cogent3.parse.newick import parse_string as newick_parse_string
 from cogent3.parse.sequence import is_genbank
 from cogent3.parse.table import load_delimited  # noqa: F401
-from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
-from cogent3.util.io import get_format_suffixes, is_url, open_
+from cogent3.util.io import get_format_suffixes, is_url, open_  # noqa: F401
 from cogent3.util.progress_display import display_wrap
+
+if typing.TYPE_CHECKING:
+    from cogent3.core.new_alignment import Alignment, SequenceCollection
+    from cogent3.core.new_sequence import Sequence
 
 __copyright__ = "Copyright 2007-2023, The Cogent Project"
 __credits__ = "https://github.com/cogent3/cogent3/graphs/contributors"
@@ -122,156 +126,6 @@ def make_seq(
     return seq
 
 
-def _make_seq_container(
-    klass,
-    data,
-    moltype=None,
-    label_to_name=None,
-    info=None,
-    source=None,
-    **kw,
-):
-    """utility function for creating the different sequence collection/alignment instances"""
-    if moltype is not None:
-        moltype = get_moltype(moltype)
-
-    info = info or {}
-    for other_kw in ("constructor_kw", "kw"):
-        other_kw = kw.pop(other_kw, None) or {}
-        kw |= other_kw
-    assert isinstance(info, dict), "info must be a dict"
-    source = source or info.get("source", "unknown")
-    info["source"] = str(source)
-
-    return klass(
-        data=data,
-        moltype=moltype,
-        label_to_name=label_to_name,
-        info=info,
-        **kw,
-    )
-
-
-def make_unaligned_seqs(
-    data,
-    moltype=None,
-    label_to_name=None,
-    info=None,
-    source=None,
-    new_type=False,
-    **kw,
-):
-    """Initialize an unaligned collection of sequences.
-
-    Parameters
-    ----------
-    data
-        sequences
-    moltype
-        the moltype, eg DNA, PROTEIN, 'dna', 'protein'
-    label_to_name
-        function for converting original name into another name.
-    info
-        a dict from which to make an info object
-    source
-        origins of this data, defaults to 'unknown'. Converted to a string
-        and added to info["source"].
-    new_type
-        if True, the returned SequenceCollection will be of the new type,
-        (cogent3.core.new_sequence.SequenceCollection). Support for the
-        old style will be removed as of 2025.6.
-    **kw
-        other keyword arguments passed to SequenceCollection
-    """
-
-    if new_type or "COGENT3_NEW_TYPE" in os.environ:
-        if moltype is None:
-            msg = "Argument 'moltype' is required when 'new_type=True'"
-            raise ValueError(msg)
-
-        from cogent3.core import new_alignment
-
-        return new_alignment.make_unaligned_seqs(
-            data,
-            moltype=moltype,
-            label_to_name=label_to_name,
-            info=info,
-            source=source,
-            **kw,
-        )
-    return _make_seq_container(
-        SequenceCollection,
-        data,
-        moltype=moltype,
-        label_to_name=label_to_name,
-        info=info,
-        source=source,
-        **kw,
-    )
-
-
-def make_aligned_seqs(
-    data,
-    moltype=None,
-    array_align=True,
-    label_to_name=None,
-    info=None,
-    source=None,
-    new_type=False,
-    **kw,
-):
-    """Initialize an aligned collection of sequences.
-
-    Parameters
-    ----------
-    data
-        sequences
-    moltype
-        the moltype, eg DNA, PROTEIN, 'dna', 'protein'
-    array_align : bool
-        if True, returns ArrayAlignment, otherwise an annotatable Alignment
-    label_to_name
-        function for converting original name into another name.
-    info
-        a dict from which to make an info object
-    source
-        origins of this data, defaults to 'unknown'. Converted to a string
-        and added to info["source"].
-    new_type
-        if True, the returned Alignment will be of the new type,
-        (cogent3.core.new_sequence.Alignment). Support for the old style
-        will be removed as of 2025.12.
-    **kw
-        other keyword arguments passed to alignment class
-    """
-    if new_type or "COGENT3_NEW_TYPE" in os.environ:
-        if moltype is None:
-            msg = "Argument 'moltype' is required when 'new_type=True'"
-            raise ValueError(msg)
-
-        from cogent3.core import new_alignment
-
-        return new_alignment.make_aligned_seqs(
-            data,
-            moltype=moltype,
-            label_to_name=label_to_name,
-            info=info,
-            source=source,
-            **kw,
-        )
-
-    klass = ArrayAlignment if array_align else Alignment
-    return _make_seq_container(
-        klass,
-        data,
-        moltype=moltype,
-        label_to_name=label_to_name,
-        info=info,
-        source=source,
-        **kw,
-    )
-
-
 def _load_files_to_unaligned_seqs(
     *,
     path: os.PathLike,
@@ -282,7 +136,7 @@ def _load_files_to_unaligned_seqs(
     info: dict | None = None,
     new_type: bool = False,
     ui=None,
-) -> SequenceCollection:
+) -> "SequenceCollection":
     """loads multiple files and returns as a sequence collection"""
 
     file_names = list(path.parent.glob(path.name))
@@ -346,7 +200,7 @@ def load_seq(
     new_type: bool = False,
     annotation_offset: int = 0,
     **kw: dict,
-) -> Sequence:
+) -> "Sequence":
     """
     loads unaligned sequences from file
 
@@ -393,7 +247,10 @@ def load_seq(
     file_suffix, _ = get_format_suffixes(filename)
     parser_kw = parser_kw or {}
     if file_suffix == "json":
-        seq = load_from_json(filename, (Sequence,))  # need to support new seq here
+        from cogent3.core.new_sequence import Sequence
+        from cogent3.core.sequence import Sequence as OldSeq
+
+        seq = load_from_json(filename, (Sequence, OldSeq))
         seq.name = label_to_name(seq.name) if label_to_name else seq.name
         return seq
 
@@ -449,7 +306,7 @@ def load_unaligned_seqs(
     info: dict | None = None,
     new_type: bool = False,
     **kw,
-) -> SequenceCollection:
+) -> "SequenceCollection":
     """
     loads unaligned sequences from file
 
@@ -502,7 +359,10 @@ def load_unaligned_seqs(
         )
 
     if file_suffix == "json":
-        return load_from_json(filename, (SequenceCollection,))
+        from cogent3.core.alignment import SequenceCollection as OldSeqColl
+        from cogent3.core.new_alignment import SequenceCollection
+
+        return load_from_json(filename, (SequenceCollection, OldSeqColl))
 
     if not (file_suffix or format_name):
         msg = "could not determined file format, set using the format argument"
@@ -532,15 +392,15 @@ def load_unaligned_seqs(
 
 def load_aligned_seqs(
     filename: str | pathlib.Path,
-    format=None,
-    array_align=True,
-    moltype=None,
-    label_to_name=None,
-    parser_kw=None,
-    info=None,
+    format: str | None = None,
+    array_align: bool = True,
+    moltype: str | None = None,
+    label_to_name: typing.Callable[[str], str] | None = None,
+    parser_kw: dict | None = None,
+    info: dict | None = None,
     new_type: bool = False,
     **kw,
-):
+) -> "Alignment":
     """
     loads aligned sequences from file
 
@@ -576,7 +436,10 @@ def load_aligned_seqs(
 
     file_suffix, _ = get_format_suffixes(filename)
     if file_suffix == "json":
-        return load_from_json(filename, (Alignment, ArrayAlignment))
+        from cogent3.core.alignment import Alignment as OldAlignment
+        from cogent3.core.alignment import ArrayAlignment
+
+        return load_from_json(filename, (OldAlignment, ArrayAlignment))
 
     parser = get_seq_format_parser_plugin(
         format_name=format,
@@ -599,93 +462,3 @@ def load_aligned_seqs(
         new_type=new_type,
         **kw,
     )
-
-
-def make_tree(
-    treestring=None,
-    tip_names=None,
-    format=None,
-    underscore_unmunge=False,
-):
-    """Initialises a tree.
-
-    Parameters
-    ----------
-    treestring
-        a newick or xml formatted tree string
-    tip_names
-        a list of tip names, returns a "star" topology tree
-    format : str
-        indicates treestring is either newick or xml formatted, default
-        is newick
-    underscore_unmunge : bool
-        replace underscores with spaces in all names read, i.e. "sp_name"
-        becomes "sp name"
-
-    Notes
-    -----
-    Underscore unmunging is turned off by default, although it is part
-    of the Newick format.
-
-    Returns
-    -------
-    PhyloNode
-    """
-    assert treestring or tip_names, "must provide either treestring or tip_names"
-    if tip_names:
-        tree_builder = TreeBuilder().create_edge
-        tips = [tree_builder([], str(tip_name), {}) for tip_name in tip_names]
-        return tree_builder(tips, "root", {})
-
-    if format is None and treestring.startswith("<"):
-        format = "xml"
-    parser = tree_xml_parse_string if format == "xml" else newick_parse_string
-    tree_builder = TreeBuilder().create_edge
-    # FIXME: More general strategy for underscore_unmunge
-    if parser is newick_parse_string:
-        tree = parser(treestring, tree_builder, underscore_unmunge=underscore_unmunge)
-    else:
-        tree = parser(treestring, tree_builder)
-    if not tree.name_loaded:
-        tree.name = "root"
-
-    return tree
-
-
-def load_tree(
-    filename: str | pathlib.Path,
-    format=None,
-    underscore_unmunge=False,
-):
-    """Constructor for tree.
-
-    Parameters
-    ----------
-    filename : str
-        a file path containing a newick or xml formatted tree.
-    format : str
-        either xml or json, all other values default to newick. Overrides
-        file name suffix.
-    underscore_unmunge : bool
-        replace underscores with spaces in all names read, i.e. "sp_name"
-        becomes "sp name".
-
-    Notes
-    -----
-    Underscore unmunging is turned off by default, although it is part
-    of the Newick format. Only the cogent3 json and xml tree formats are
-    supported.
-
-    Returns
-    -------
-    PhyloNode
-    """
-    file_format, _ = get_format_suffixes(filename)
-    format = format or file_format
-    if format == "json":
-        return load_from_json(filename, (TreeNode, PhyloNode))
-
-    with open_(filename) as tfile:
-        treestring = tfile.read()
-
-    return make_tree(treestring, format=format, underscore_unmunge=underscore_unmunge)

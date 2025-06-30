@@ -20,13 +20,13 @@ from random import shuffle
 
 import numpy
 import typing_extensions
-from numpy import array, floating, integer, issubdtype
+from numpy import array
 
 from cogent3._version import __version__
 from cogent3.core import new_alphabet, new_genetic_code, new_moltype
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
-    BasicAnnotationDb,
+    AnnotatableMixin,
     FeatureDataType,
     GenbankAnnotationDb,
     SupportsFeatures,
@@ -51,6 +51,8 @@ from cogent3.util.misc import (
     DistanceFromMatrix,
     get_object_provenance,
     get_setting_from_environ,
+    is_float,
+    is_int,
 )
 from cogent3.util.transform import for_seq, per_shortest
 
@@ -58,31 +60,23 @@ if typing.TYPE_CHECKING:
     import os
 
 
-OptStr = typing.Optional[str]
-OptInt = typing.Optional[int]
-OptFloat = typing.Optional[float]
-IntORFloat = typing.Union[int, float]
-StrORIterableStr = typing.Union[str, typing.Iterable[str]]
-StrORBytesORArray = typing.Union[str, bytes, numpy.ndarray]
+OptStr = str | None
+OptInt = int | None
+OptFloat = float | None
+IntORFloat = int | float
+StrORIterableStr = str | typing.Iterable[str]
+StrORBytesORArray = str | bytes | numpy.ndarray
 ARRAY_TYPE = type(array(1))
-DEFAULT_ANNOTATION_DB = BasicAnnotationDb
 
 # standard distance functions: left  because generally useful
 frac_same = for_seq(f=eq, aggregator=sum, normalizer=per_shortest)
 frac_diff = for_seq(f=ne, aggregator=sum, normalizer=per_shortest)
 
 
-def _is_int(val) -> bool:
-    """whether val is builtin, or numpy, integer"""
-    return issubdtype(val.__class__, integer) or isinstance(val, int)
-
-
-def _is_float(val) -> bool:
-    """whether val is builtin, or numpy, integer"""
-    return issubdtype(val.__class__, floating) or isinstance(val, float)
-
-
-def _moltype_seq_from_rich_dict(data):
+def _moltype_seq_from_rich_dict(
+    data: dict[str, str | dict[str, str]],
+) -> tuple[new_moltype.MolType, StrORBytesORArray]:
+    """returns moltype and seq and mutates data so it can serve as kwargs to Sequence constructor"""
     from cogent3.core import new_moltype
 
     data.pop("type")
@@ -124,7 +118,7 @@ def _moltype_seq_from_rich_dict(data):
 
 
 @total_ordering
-class Sequence:
+class Sequence(AnnotatableMixin):
     """Holds the standard Sequence object. Immutable.
 
     Notes
@@ -185,7 +179,9 @@ class Sequence:
         info = info or {}
         self.info = InfoClass(**info)
         self._repr_policy = {"num_pos": 60}
-        self._annotation_db = annotation_db
+        self._annotation_db: list[SupportsFeatures] = self._init_annot_db_value(
+            annotation_db
+        )
 
     def __str__(self) -> str:
         result = numpy.array(self)
@@ -298,8 +294,12 @@ class Sequence:
         return data
 
     @classmethod
-    def from_rich_dict(cls, data: dict):
+    def from_rich_dict(cls, data: dict) -> Sequence:
         """create a Sequence object from a rich dict"""
+        if isinstance(data["seq"], dict):
+            # this is a rich dict from the old type sequences
+            data["seq"] = data.pop("seq")["init_args"]["seq"]
+
         moltype, seq = _moltype_seq_from_rich_dict(data)
 
         return cls(moltype=moltype, seq=seq, **data)
@@ -308,16 +308,18 @@ class Sequence:
         """returns a json formatted string"""
         return json.dumps(self.to_rich_dict())
 
-    def count(self, item: str):
+    def count(self, item: str) -> int:
         """count() delegates to self._seq."""
         return str(self).count(item)
 
+    @c3warn.deprecated_args(
+        "2025.9", reason="has no effect", discontinued="exclude_unobserved"
+    )
     def counts(
         self,
         motif_length: int = 1,
         include_ambiguity: bool = False,
         allow_gap: bool = False,
-        exclude_unobserved: bool = False,
         warn: bool = False,
     ) -> CategoryCounter:
         """returns dict of counts of motifs
@@ -333,8 +335,6 @@ class Sequence:
             from the seq moltype are included. No expansion of those is attempted.
         allow_gaps
             if True, motifs containing a gap character are included.
-        exclude_unobserved
-            if True, unobserved motif combinations are excluded.
         warn
             warns if motif_length > 1 and alignment trimmed to produce
             motif columns
@@ -387,21 +387,21 @@ class Sequence:
         """Returns the number of ambiguous characters in the sequence."""
         data = numpy.array(self)
         gap_index = self.moltype.most_degen_alphabet().gap_index
-        return numpy.sum(data > gap_index)
+        return int(numpy.sum(data > gap_index))
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         """compares based on the sequence string."""
         return str(self) < str(other)
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         """compares based on the sequence string."""
         return str(self) == str(other)
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         """compares based on the sequence string."""
         return str(self) != str(other)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         """__hash__ behaves like the sequence string for dict lookup."""
         return hash(str(self))
 
@@ -959,49 +959,6 @@ class Sequence:
 
         return self._seq.slice_record.parent_start
 
-    @property
-    def annotation_db(self) -> SupportsFeatures:
-        return self._annotation_db
-
-    @annotation_db.setter
-    def annotation_db(self, value: SupportsFeatures) -> None:
-        # Without knowing the contents of the db we cannot
-        # establish whether self.moltype is compatible, so
-        # we rely on the user to get that correct
-        # one approach to support validation might be to add
-        # to the SupportsFeatures protocol a is_nucleic flag,
-        # for both DNA and RNA. But if a user trys get_slice()
-        # on a '-' strand feature, they will get a TypeError.
-        # I think that's enough.
-        self.replace_annotation_db(value, check=False)
-
-    def replace_annotation_db(
-        self,
-        value: SupportsFeatures,
-        check: bool = True,
-    ) -> None:
-        """public interface to assigning the annotation_db
-
-        Parameters
-        ----------
-        value
-            the annotation db instance
-        check
-            whether to check value supports the feature interface
-
-        Notes
-        -----
-        The check can be very expensive, so if you're confident set it to False
-        """
-        if value == self._annotation_db:
-            return
-
-        if check and value and not isinstance(value, SupportsFeatures):
-            msg = f"{type(value)} does not satisfy SupportsFeatures"
-            raise TypeError(msg)
-
-        self._annotation_db = value
-
     def get_features(
         self,
         *,
@@ -1126,11 +1083,6 @@ class Sequence:
             r_spans += [(start, end)]
 
         return r_spans
-
-    def _init_annotation_db(self) -> None:
-        """initialise a default type annotation db if not already set"""
-        if self._annotation_db is None:
-            self._annotation_db = DEFAULT_ANNOTATION_DB()
 
     def make_feature(self, feature: FeatureDataType, *args) -> Feature:
         """
@@ -1263,8 +1215,6 @@ class Sequence:
             seqid=self.name,
             **{n: v for n, v in local_vars.items() if n not in ("self", "seqid")},
         )
-        if self._annotation_db is None:
-            self._init_annotation_db()
 
         self.annotation_db.add_feature(**feature_data)
         for discard in ("on_alignment", "parent_id"):
@@ -1350,12 +1300,9 @@ class Sequence:
         if not seq_db.num_matches(seqid=self.name):
             return
 
-        if self.annotation_db and not self.annotation_db.compatible(seq_db):
+        if self._annotation_db and not self.annotation_db.compatible(seq_db):
             msg = f"type {type(seq_db)} != {type(self.annotation_db)}"
             raise TypeError(msg)
-
-        if self.annotation_db is None:
-            self.annotation_db = type(seq_db)()
 
         self.annotation_db.update(seq_db, seqids=self.name)
 
@@ -1530,7 +1477,7 @@ class Sequence:
             # annotations have no meaning if disjoint slicing segments
             preserve_offset = index.num_spans == 1
 
-        elif isinstance(index, slice) or _is_int(index):
+        elif isinstance(index, slice) or is_int(index):
             new = self.__class__(
                 moltype=self.moltype,
                 seq=self._seq[index],
@@ -1544,10 +1491,10 @@ class Sequence:
             msg = "cannot slice using list or tuple"
             raise TypeError(msg)
 
-        if self.annotation_db is not None and preserve_offset:
+        if self._annotation_db and preserve_offset:
             new.replace_annotation_db(self.annotation_db, check=False)
 
-        if _is_float(index):
+        if is_float(index):
             msg = "cannot slice using float"
             raise TypeError(msg)
 
@@ -1701,6 +1648,8 @@ class Sequence:
             amend condition to return True only if the sequence is
             annotated with one of provided biotypes.
         """
+        if not self._annotation_db:
+            return False
         with contextlib.suppress(AttributeError):
             return (
                 self.annotation_db.num_matches(seqid=self._seq.seqid, biotype=biotype)
@@ -1933,20 +1882,10 @@ class Sequence:
         )
 
 
-@register_deserialiser(get_object_provenance(Sequence))
-def deserialise_sequence(data: dict) -> Sequence:
-    return Sequence.from_rich_dict(data)
-
-
 class ProteinSequence(Sequence):
     """Holds the standard Protein sequence."""
 
     # constructed by PROTEIN moltype
-
-
-@register_deserialiser(get_object_provenance(ProteinSequence))
-def deserialise_protein_sequence(data) -> ProteinSequence:
-    return ProteinSequence.from_rich_dict(data)
 
 
 class ByteSequence(Sequence):
@@ -1955,20 +1894,10 @@ class ByteSequence(Sequence):
     # constructed by BYTES moltype
 
 
-@register_deserialiser(get_object_provenance(ByteSequence))
-def deserialise_bytes_sequence(data) -> ByteSequence:
-    return ByteSequence.from_rich_dict(data)
-
-
 class ProteinWithStopSequence(Sequence):
     """Holds the standard Protein sequence, allows for stop codon."""
 
     # constructed by PROTEIN_WITH_STOP moltype
-
-
-@register_deserialiser(get_object_provenance(ProteinWithStopSequence))
-def deserialise_protein_with_stop_sequence(data) -> ProteinWithStopSequence:
-    return ProteinWithStopSequence.from_rich_dict(data)
 
 
 class NucleicAcidSequenceMixin:
@@ -2242,20 +2171,10 @@ class DnaSequence(Sequence, NucleicAcidSequenceMixin):
     # constructed by DNA moltype
 
 
-@register_deserialiser(get_object_provenance(DnaSequence))
-def deserialise_dna_sequence(data) -> DnaSequence:
-    return DnaSequence.from_rich_dict(data)
-
-
 class RnaSequence(Sequence, NucleicAcidSequenceMixin):
     """Holds the standard RNA sequence."""
 
     # constructed by RNA moltype
-
-
-@register_deserialiser(get_object_provenance(RnaSequence))
-def deserialise_rna_sequence(data) -> RnaSequence:
-    return RnaSequence.from_rich_dict(data)
 
 
 class SliceRecordABC(ABC):
@@ -2460,7 +2379,7 @@ class SliceRecordABC(ABC):
     def __getitem__(self, segment: int | slice) -> typing_extensions.Self:
         kwargs = self._get_init_kwargs()
 
-        if _is_int(segment):
+        if is_int(segment):
             start, stop, step = self._get_index(segment)
             return self.__class__(
                 start=start,
@@ -3090,7 +3009,7 @@ class SeqView(SeqViewABC):
 def _coerce_to_seqview(
     data,
     seqid: str,
-    alphabet: new_alphabet.AlphabetABC,
+    alphabet: new_alphabet.CharAlphabet,
     offset: int,
 ) -> SeqViewABC:
     from cogent3.core.alignment import Aligned
@@ -3107,7 +3026,7 @@ def _coerce_to_seqview(
 def _(
     data: SeqViewABC,
     seqid: str,
-    alphabet: new_alphabet.AlphabetABC,
+    alphabet: new_alphabet.CharAlphabet,
     offset: int,
 ) -> SeqViewABC:
     # we require the indexes of shared states in alphabets to be the same
@@ -3136,7 +3055,7 @@ def _(
 def _(
     data: Sequence,
     seqid: str,
-    alphabet: new_alphabet.AlphabetABC,
+    alphabet: new_alphabet.CharAlphabet,
     offset: int,
 ) -> SeqViewABC:
     return _coerce_to_seqview(data._seq, seqid, alphabet, offset)
@@ -3146,7 +3065,7 @@ def _(
 def _(
     data: str,
     seqid: str,
-    alphabet: new_alphabet.AlphabetABC,
+    alphabet: new_alphabet.CharAlphabet,
     offset: int,
 ) -> SeqViewABC:
     return SeqView(
@@ -3162,7 +3081,7 @@ def _(
 def _(
     data: bytes,
     seqid: str,
-    alphabet: new_alphabet.AlphabetABC,
+    alphabet: new_alphabet.CharAlphabet,
     offset: int,
 ) -> SeqViewABC:
     data = data.decode("utf8")
@@ -3209,3 +3128,29 @@ def _(
     offset: int,
 ) -> SeqViewABC:
     return _coerce_to_seqview("".join(data), seqid, alphabet, offset)
+
+
+cls_map = {
+    get_object_provenance(cls): cls
+    for cls in (
+        Sequence,
+        DnaSequence,
+        RnaSequence,
+        ProteinSequence,
+        ProteinWithStopSequence,
+        ByteSequence,
+    )
+} | {
+    "cogent3.core.sequence.Sequence": Sequence,
+    "cogent3.core.sequence.DnaSequence": DnaSequence,
+    "cogent3.core.sequence.RnaSequence": RnaSequence,
+    "cogent3.core.sequence.ProteinSequence": ProteinSequence,
+    "cogent3.core.sequence.ProteinWithStopSequence": ProteinWithStopSequence,
+    "cogent3.core.sequence.ByteSequence": ByteSequence,
+}
+
+
+@register_deserialiser(*cls_map.keys())
+def deserialise_sequence(data: dict) -> Sequence:
+    cls = cls_map[data["type"]]
+    return cls.from_rich_dict(data)

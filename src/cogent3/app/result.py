@@ -12,6 +12,11 @@ import cogent3
 from cogent3._version import __version__
 from cogent3.app.data_store import get_data_source
 from cogent3.core.table import Table
+from cogent3.util.deserialise import (
+    deserialise_object,
+    get_class,
+    register_deserialiser,
+)
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
 
 
@@ -648,3 +653,23 @@ class tabular_result(generic_result):
 
     def __init__(self, source=None) -> None:
         super().__init__(source)
+
+
+@register_deserialiser("cogent3.app.result")
+def deserialise_result(data):
+    """returns a result object"""
+    data.pop("version", None)
+    klass = get_class(data.pop("type"))
+    kwargs = data.pop("result_construction")
+    result = klass(**kwargs)
+    items = data.pop("items") if "items" in data else data.items()
+    for key, value in items:
+        # only deserialise the result object, other attributes loaded as
+        # required
+        if type(value) == dict and "app.result" in str(value.get("type")):
+            value = deserialise_object(value)
+        try:
+            result[key] = value
+        except TypeError:
+            result[tuple(key)] = value
+    return result

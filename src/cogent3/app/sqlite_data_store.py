@@ -5,6 +5,7 @@ import datetime
 import os
 import re
 import sqlite3
+import weakref
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -25,7 +26,7 @@ from cogent3.app.data_store import (
 from cogent3.util.misc import extend_docstring_from
 
 if TYPE_CHECKING:
-    from cogent3.app import typing as c3_types
+    from cogent3.core.table import Table
 
 _RESULT_TABLE = "results"
 _MEMORY = ":memory:"
@@ -115,10 +116,10 @@ class DataStoreSqlite(DataStoreABC):
 
     def __init__(
         self,
-        source,
+        source: str | Path,
         mode: Mode | str = READONLY,
-        limit=None,
-        verbose=False,
+        limit: int | None = None,
+        verbose: bool = False,
     ) -> None:
         if _mem_pattern.search(str(source)):
             self._source = _MEMORY
@@ -140,14 +141,19 @@ class DataStoreSqlite(DataStoreABC):
         self._db = None
         self._open = False
         self._log_id = None
+        weakref.finalize(self, self.close)
 
-    def __getstate__(self):
+    def __getstate__(self) -> dict:
         return {**self._init_vals}
 
-    def __setstate__(self, state):
+    def __setstate__(self, state: dict) -> None:
         # this will reset connections to read only db's
         obj = self.__class__(**state)
         self.__dict__.update(obj.__dict__)
+
+    def __del__(self) -> None:
+        """close the db connection when the object is deleted"""
+        self.close()
 
     @property
     def source(self) -> str | Path:
@@ -160,7 +166,7 @@ class DataStoreSqlite(DataStoreABC):
         return self._mode
 
     @property
-    def limit(self):
+    def limit(self) -> int | None:
         return self._limit
 
     @property
@@ -182,35 +188,37 @@ class DataStoreSqlite(DataStoreABC):
         ).fetchone()["log_id"]
 
     def close(self) -> None:
+        if getattr(self, "_db", None) is None:
+            return
         with contextlib.suppress(sqlite3.ProgrammingError):
-            self.db.close()
+            self._db.close()
         self._open = False
 
-    def read(self, identifier: str) -> StrOrBytes:
+    def read(self, unique_id: str) -> StrOrBytes:
         """
         identifier string formed from Path(table_name) / identifier
         """
-        identifier = Path(identifier)
-        table_name = str(identifier.parent)
+        unique_id = Path(unique_id)
+        table_name = str(unique_id.parent)
         if table_name not in (
             ".",
             _LOG_TABLE,
         ):
-            msg = f"unknown table for {str(identifier)!r}"
+            msg = f"unknown table for {str(unique_id)!r}"
             raise ValueError(msg)
 
         if table_name != _LOG_TABLE:
             cmnd = f"SELECT * FROM {_RESULT_TABLE} WHERE record_id = ?"
-            result = self.db.execute(cmnd, (identifier.name,)).fetchone()
+            result = self.db.execute(cmnd, (unique_id.name,)).fetchone()
             return result["data"]
 
         cmnd = f"SELECT * FROM {_LOG_TABLE} WHERE log_name = ?"
-        result = self.db.execute(cmnd, (identifier.name,)).fetchone()
+        result = self.db.execute(cmnd, (unique_id.name,)).fetchone()
 
         return result["data"]
 
     @property
-    def completed(self):
+    def completed(self) -> list[DataMemberABC]:
         if not self._completed:
             self._completed = self._select_members(
                 table_name=_RESULT_TABLE,
@@ -219,7 +227,7 @@ class DataStoreSqlite(DataStoreABC):
         return self._completed
 
     @property
-    def not_completed(self):
+    def not_completed(self) -> list[DataMemberABC]:
         """returns database records of type NotCompleted"""
         if not self._not_completed:
             self._not_completed = self._select_members(
@@ -245,7 +253,7 @@ class DataStoreSqlite(DataStoreABC):
         ]
 
     @property
-    def logs(self):
+    def logs(self) -> list[DataMemberABC]:
         """returns all log records"""
         cmnd = self.db.execute(f"SELECT log_name FROM {_LOG_TABLE}")
         return [
@@ -430,7 +438,7 @@ class DataStoreSqlite(DataStoreABC):
         return result["md5"] if result else None
 
     @property
-    def describe(self):
+    def describe(self) -> Table:
         if self.locked and self._lock_id != os.getpid():
             title = f"Locked db store. Locked to pid={self._lock_id}, current pid={os.getpid()}."
         elif self.locked:
@@ -460,7 +468,7 @@ class DataStoreSqlite(DataStoreABC):
         self.db.execute("UPDATE state SET record_type=? WHERE state_id=1", (n,))
 
     @property
-    def summary_not_completed(self) -> c3_types.TabularType:
+    def summary_not_completed(self) -> Table:
         """returns a table summarising not completed results"""
         from .data_store import summary_not_completeds
         from .io import DEFAULT_DESERIALISER

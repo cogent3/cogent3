@@ -527,6 +527,11 @@ def test_get_unique_id(name):
     assert got == "name"
 
 
+def test_get_unique_id_none():
+    got = get_unique_id(None)
+    assert got is None
+
+
 @pytest.mark.parametrize("data", [{}, set(), {"info": {}}])
 def test_get_data_source_none(data):
     assert get_data_source(data) is None
@@ -541,7 +546,9 @@ def test_get_data_source_seqcoll(klass):
     obj = make_unaligned_seqs(
         data={"seq1": "ACGG"},
         moltype="dna",
-        info={"source": value, "random_key": 1234},
+        info={"random_key": 1234},
+        new_type=True,
+        source=value,
     )
     got = get_data_source(obj)
     assert got == "path.txt"

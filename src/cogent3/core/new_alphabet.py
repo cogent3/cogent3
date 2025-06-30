@@ -17,13 +17,13 @@ if typing.TYPE_CHECKING:
 
 NumpyIntType = numpy.dtype[numpy.integer]
 NumpyIntArrayType = numpy.typing.NDArray[numpy.integer]
-StrORBytes = str | bytes
-StrORArray = str | NumpyIntArrayType
-StrORBytesORArray = str | bytes | NumpyIntArrayType
+StrORBytes = typing.TypeVar("StrORBytes", str, bytes)
+StrORArray = typing.TypeVar("StrORArray", str, NumpyIntArrayType)
+StrORBytesORArray = typing.TypeVar("StrORBytesORArray", str, bytes, NumpyIntArrayType)
 OptInt = int | None
 OptStr = str | None
 OptBytes = bytes | None
-PySeqStrOrBytes = typing.Sequence[str | bytes]
+PySeqStrOrBytes = typing.Sequence[str] | typing.Sequence[bytes]
 
 
 @functools.singledispatch
@@ -293,7 +293,7 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
     def __new__(
         cls,
-        chars: typing.Sequence[StrORBytes],
+        chars: typing.Sequence[StrORBytes] | str | bytes,
         gap: OptStr = None,
         missing: OptStr = None,
     ) -> "CharAlphabet":
@@ -329,7 +329,7 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
     def __init__(
         self,
-        chars: typing.Sequence[StrORBytes],
+        chars: typing.Sequence[StrORBytes] | str | bytes,  # noqa: ARG002
         gap: OptStr = None,
         missing: OptStr = None,
     ) -> None:
@@ -704,9 +704,33 @@ def make_converter(
     )
 
 
-@register_deserialiser(get_object_provenance(CharAlphabet))
+def _get_closest_char_alphabet(
+    moltype_name: str, motifset: list[str] | set[str]
+) -> CharAlphabet:
+    from cogent3.core.new_moltype import get_moltype
+
+    mtype = get_moltype(moltype_name)
+    motifset = set(motifset)
+    num_motifs = len(motifset)
+    alphas = sorted([(abs(len(a) - num_motifs), a) for a in mtype.iter_alphabets()])
+    return alphas[0][1]
+
+
+@register_deserialiser(
+    get_object_provenance(CharAlphabet), "cogent3.core.alphabet.CharAlphabet"
+)
 def deserialise_char_alphabet(data: dict) -> CharAlphabet:
-    return CharAlphabet.from_rich_dict(data)
+    if "motifset" not in data:
+        return CharAlphabet.from_rich_dict(data)
+
+    from cogent3.core.new_moltype import get_moltype
+
+    # this is a legacy format, we assume this was derived from a
+    # moltype so we get the moltype and look for an alphabet with
+    # matching characters and gap
+    mtype = get_moltype(data["moltype"])
+    motifset = set(data.pop("motifset"))
+    return _get_closest_char_alphabet(mtype, motifset)
 
 
 @numba.jit(nopython=True)
@@ -1195,9 +1219,19 @@ class KmerAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         return self.k
 
 
-@register_deserialiser(get_object_provenance(KmerAlphabet))
+@register_deserialiser(
+    get_object_provenance(KmerAlphabet), "cogent3.core.alphabet.JointEnumeration"
+)
 def deserialise_kmer_alphabet(data: dict) -> KmerAlphabet:
-    return KmerAlphabet.from_rich_dict(data)
+    if data["type"] != "cogent3.core.alphabet.JointEnumeration":
+        return KmerAlphabet.from_rich_dict(data)
+
+    monomers = data["data"][0]
+    motif_length = len(data["data"])
+    # which is the closest char alphabet
+    mtype = data["moltype"]
+    alpha = _get_closest_char_alphabet(mtype, monomers)
+    return alpha.get_kmer_alphabet(motif_length, include_gap=bool(data["gap"]))
 
 
 class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
@@ -1409,9 +1443,50 @@ class SenseCodonAlphabet(tuple, AlphabetABC, KmerAlphabetABC):
         return self._motif_len
 
 
+@register_deserialiser("cogent3.core.alphabet.Alphabet")
+def deserialise_old_alphabet(data: dict) -> KmerAlphabet | SenseCodonAlphabet:
+    motif_length = len(data["motifset"][0])
+    if motif_length == 1:
+        # this is a char alphabet
+        return deserialise_char_alphabet(data)
+
+    motifs = set(data["motifset"])
+    num_motifs = len(motifs)
+    num_monomers = round(num_motifs ** (1 / motif_length))
+    if num_monomers**motif_length != num_motifs:
+        # if the number of motifs is not the motif_length exponent of the number
+        # of monomers, we have a codon alphabet
+        return deserialise_codon_alphabet(data)
+
+    # we get the closest alphabet
+    mtype = data["moltype"]
+    monomers = list(set("".join(motifs)))
+    alpha = _get_closest_char_alphabet(mtype, monomers)
+    return alpha.get_kmer_alphabet(motif_length, include_gap=bool(data["gap"]))
+
+
 @register_deserialiser(get_object_provenance(SenseCodonAlphabet))
 def deserialise_codon_alphabet(data: dict) -> SenseCodonAlphabet:
-    return SenseCodonAlphabet.from_rich_dict(data)
+    if data["type"] != "cogent3.core.alphabet.Alphabet":
+        return SenseCodonAlphabet.from_rich_dict(data)
+
+    # we search through the genetic codes for the one with a matching
+    # motifset
+    from cogent3.core.new_genetic_code import available_codes, get_code
+
+    include_gap = bool(data["gap"])
+    motifs = set(data["motifset"])
+    alphabets = []
+    code_ids = available_codes().columns["Code ID"]
+    for code_id in sorted(code_ids):
+        code = get_code(code_id)
+        code_alpha = code.get_alphabet(include_gap=include_gap)
+        diff = len(set(code_alpha) ^ motifs)
+        alphabets.append((diff, code))
+
+    alphabets = sorted(alphabets, key=lambda x: x[0])
+    code = alphabets[0][1]
+    return code.get_alphabet(include_gap=include_gap)
 
 
 _alphabet_moltype_map = {}
@@ -1419,9 +1494,9 @@ _alphabet_moltype_map = {}
 
 def make_alphabet(
     *,
-    chars: typing.Sequence[str],
-    gap: str | None,
-    missing: str | None,
+    chars: typing.Sequence[str | bytes] | str | bytes,
+    gap: str | bytes | None,
+    missing: str | bytes | None,
     moltype: "MolType",
 ) -> CharAlphabet:
     """constructs a character alphabet and registers the associated moltype

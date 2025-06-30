@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import collections
 import contextlib
+import copy
 import dataclasses
 import hashlib
 import json
@@ -32,7 +33,7 @@ from cogent3.core import (
 )
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
-    BasicAnnotationDb,
+    AnnotatableMixin,
     FeatureDataType,
     SupportsFeatures,
 )
@@ -70,7 +71,6 @@ if typing.TYPE_CHECKING:
     from cogent3.evolve.fast_distance import DistanceMatrix
     from cogent3.maths.stats.contingency import TestResult
 
-DEFAULT_ANNOTATION_DB = BasicAnnotationDb
 
 OptInt = int | None
 OptFloat = float | None
@@ -638,7 +638,7 @@ class SeqsData(SeqsDataABC):
         return self.__class__(**init_args)
 
 
-class SequenceCollection:
+class SequenceCollection(AnnotatableMixin):
     """A container of unaligned sequences.
 
     Notes
@@ -692,13 +692,24 @@ class SequenceCollection:
             "ref_name": "longest",
             "wrap": 60,
         }
-        self._annotation_db = annotation_db or DEFAULT_ANNOTATION_DB()
+        self._annotation_db: list[SupportsFeatures] = self._init_annot_db_value(
+            annotation_db
+        )
         self._seqs = None
         self._post_init()
 
     def _post_init(self) -> None:
         # override in subclasses
         self._seqs = _IndexableSeqs(self, make_seq=self._make_seq)
+
+    def __getstate__(self) -> dict:
+        return self._get_init_kwargs()
+
+    def __setstate__(self, state: dict) -> None:
+        state["name_map"] = types.MappingProxyType(state.pop("name_map"))
+        obj = self.__class__(**state)
+
+        self.__dict__.update(obj.__dict__)
 
     def _make_seq(self, name: str) -> new_sequence.Sequence:
         # seqview is given the name of the parent (if different from the current name)
@@ -710,7 +721,7 @@ class SequenceCollection:
         return self.moltype.make_seq(
             seq=sv,
             name=name,
-            annotation_db=self.annotation_db,
+            annotation_db=self._annotation_db,
         )
 
     def _get_init_kwargs(self) -> dict:
@@ -724,7 +735,7 @@ class SequenceCollection:
             "moltype": self.moltype,
             "name_map": dict(self._name_map),
             "info": self.info.copy(),
-            "annotation_db": self.annotation_db,
+            "annotation_db": self._annotation_db,
             "source": self.source,
             "is_reversed": self._is_reversed,
         }
@@ -785,18 +796,6 @@ class SequenceCollection:
     def num_seqs(self) -> int:
         """the number of sequences in the collection"""
         return len(self.names)
-
-    @property
-    def annotation_db(self) -> SupportsFeatures:
-        """the annotation database for the collection"""
-        return self._annotation_db
-
-    @annotation_db.setter
-    def annotation_db(self, value: SupportsFeatures) -> None:
-        if value == self._annotation_db:
-            return
-
-        self._annotation_db = value
 
     @property
     @c3warn.deprecated_callable(
@@ -874,7 +873,7 @@ class SequenceCollection:
 
         init_kwargs = self._get_init_kwargs()
         init_kwargs["name_map"] = selected_name_map
-        if self.annotation_db:
+        if self._annotation_db:
             if copy_annotations:
                 ann_db = type(self.annotation_db)()
                 ann_db.update(
@@ -938,27 +937,27 @@ class SequenceCollection:
         seqname: str,
         copy_annotations: bool = False,
     ) -> new_sequence.Sequence:
-        """Return a sequence object for the specified seqname.
+        """Return a Sequence object for the specified seqname.
 
         Parameters
         ----------
         seqname
             name of the sequence to return
         copy_annotations
-            if True, only annotations from the selected seq are copied to the
-            annotation_db of the new collection, the same annotation db is used.
-
+            if True, only the annotations for the specified sequence are copied
+            to the annotation database of the Sequence object which is decoupled
+            from this collection. If False, the connection to this collections db
+            is retained.
         """
-        # refactor: design
-        # This method provides a mechanism for binding the annotation db to the sequence instance,
-        # which self.seqs[seq_name] does not. This is a difference to the original implementation,
-        # so it needs more thought.
         seq = self.seqs[seqname]
-        if copy_annotations:
+        if copy_annotations and self._annotation_db:
+            # we need to copy the sequence too to break the link to self.annotation_db
+            seq = seq.copy(exclude_annotations=True)
             seq.annotation_db = type(self.annotation_db)()
             seq.annotation_db.update(annot_db=self.annotation_db, seqids=seqname)
-        else:
-            seq.annotation_db = self.annotation_db
+            return seq
+
+        seq.annotation_db = self._annotation_db
 
         return seq
 
@@ -994,7 +993,7 @@ class SequenceCollection:
             name_map={**self._name_map, **name_map},
             info=self.info,
             source=self.source,
-            annotation_db=self.annotation_db,
+            annotation_db=self._annotation_db,
         )
 
     def rename_seqs(self, renamer: Callable[[str], str]) -> typing_extensions.Self:
@@ -1314,8 +1313,8 @@ class SequenceCollection:
             # no matching ID's, nothing to do
             return
 
-        if self.annotation_db is None:
-            self.annotation_db = type(seq_db)()
+        if not self._annotation_db:
+            self.replace_annotation_db(type(seq_db)())
 
         if self.annotation_db.compatible(seq_db, symmetric=False):
             # our db contains the tables in other, so we update in place
@@ -1387,6 +1386,7 @@ class SequenceCollection:
 
         feature = {k: v for k, v in locals().items() if k != "self"}
         feature["strand"] = Strand.from_value(strand).value
+        # property ensures db is created
         self.annotation_db.add_feature(**feature)
         feature.pop("parent_id", None)
         return self.make_feature(feature=feature)
@@ -1431,7 +1431,7 @@ class SequenceCollection:
 
         """
 
-        if not self.annotation_db:
+        if not self._annotation_db:
             return None
 
         if seqid and (seqid not in self.names):
@@ -1583,10 +1583,13 @@ class SequenceCollection:
 
         seq1 = self.seqs[name1]
         seq2 = self.seqs[name2]
-        annotated = any(
-            self.annotation_db.num_matches(seqid=self._name_map[n], biotype=biotype)
-            for n in [name1, name2]
-        )
+        if not self._annotation_db:
+            annotated = False
+        else:
+            annotated = any(
+                self.annotation_db.num_matches(seqid=self._name_map[n], biotype=biotype)
+                for n in [name1, name2]
+            )
         dotplot = Dotplot(
             seq1,
             seq2,
@@ -1713,7 +1716,7 @@ class SequenceCollection:
             offset=self._seqs_data.offset,
             check=False,
         )
-        init_kwargs["annotation_db"] = self.annotation_db or None
+        init_kwargs["annotation_db"] = self._annotation_db
         return self.__class__(**init_kwargs)
 
     def counts_per_seq(
@@ -1752,7 +1755,6 @@ class SequenceCollection:
                 motif_length=motif_length,
                 include_ambiguity=include_ambiguity,
                 allow_gap=allow_gap,
-                exclude_unobserved=exclude_unobserved,
                 warn=warn,
             )
             motifs.update(c.keys())
@@ -2469,9 +2471,35 @@ class SequenceCollection:
         return self.take_seqs(omit, negate=True)
 
 
-@register_deserialiser(get_object_provenance(SequenceCollection))
-def deserialise_sequence_collection(data: dict) -> SequenceCollection:
+@register_deserialiser(
+    get_object_provenance(SequenceCollection),
+    "cogent3.core.alignment.SequenceCollection",
+)
+def deserialise_sequence_collection(
+    data: dict[str, str | dict[str, str]],
+) -> SequenceCollection:
+    """deserialise SequenceCollection"""
+    if "init_args" not in data:
+        return deserialise_old_to_new_type_seqcoll(data)
+
     return SequenceCollection.from_rich_dict(data)
+
+
+def deserialise_old_to_new_type_seqcoll(
+    data: dict[str, str | dict[str, str]],
+) -> SequenceCollection:
+    """deserialise old type SequenceCollection as a new type collection"""
+    moltype_name = data["moltype"]
+    moltype_name = "text" if moltype_name == "bytes" else moltype_name
+    info_data = data["info"]
+    source = info_data.pop("source", None)
+    seq_data = {
+        seqid: record["seq"]["init_args"]["seq"]
+        for seqid, record in data["seqs"].items()
+    }
+    return make_unaligned_seqs(
+        seq_data, moltype=moltype_name, info=info_data, source=source
+    )
 
 
 @singledispatch
@@ -2637,7 +2665,8 @@ def prep_for_seqs_data(
     for name, seq in data.items():
         name = seq_namer(seq=seq, name=name)  # noqa: PLW2901
         seq_data = coerce_to_raw_seq_data(seq, moltype, name=name)
-        offsets[seq_data.parent_name or name] = seq_data.offset
+        if seq_data.offset:
+            offsets[seq_data.parent_name or name] = seq_data.offset
         seqs[seq_data.parent_name or seq_data.name] = seq_data.seq
         if seq_data.is_reversed:
             rvd.add(name)
@@ -2916,8 +2945,7 @@ def _(
         raise ValueError(msg)
 
     info = info if isinstance(info, dict) else {}
-    source = str(source) if source else str(info.get("source", "unknown"))
-    info["source"] = source
+    source = str(source) if source else str(info.pop("source", "unknown"))
     seqs = SequenceCollection(
         seqs_data=data,
         moltype=moltype,
@@ -3118,7 +3146,7 @@ def compose_gapped_seq(
     return gapped_seq
 
 
-class Aligned:
+class Aligned(AnnotatableMixin):
     """A single sequence in an alignment.
 
     Notes
@@ -3136,12 +3164,14 @@ class Aligned:
         data: AlignedDataView,
         moltype: new_moltype.MolType,
         name: OptStr = None,
-        annotation_db: SupportsFeatures | None = None,
+        annotation_db: SupportsFeatures | list[SupportsFeatures] | None = None,
     ) -> None:
         self._data = data
         self._moltype = moltype
         self._name = name or data.seqid
-        self._annotation_db = annotation_db
+        self._annotation_db: list[SupportsFeatures] = self._init_annot_db_value(
+            annotation_db
+        )
 
     @classmethod
     def from_map_and_seq(
@@ -3214,7 +3244,7 @@ class Aligned:
             seq = self.moltype.complement(seq)
 
         mt_seq = self.moltype.make_seq(seq=seq, name=self.data.seqid)
-        ann_db = self.annotation_db if self.data.slice_record.plus_step == 1 else None
+        ann_db = self._annotation_db if self.data.slice_record.plus_step == 1 else None
         mt_seq.replace_annotation_db(ann_db)
         return mt_seq
 
@@ -3233,17 +3263,6 @@ class Aligned:
     @property
     def name(self) -> str:
         return self._name
-
-    @property
-    def annotation_db(self) -> SupportsFeatures | None:
-        return self._annotation_db
-
-    @annotation_db.setter
-    def annotation_db(self, value: SupportsFeatures) -> None:
-        if value == self._annotation_db:
-            return
-
-        self._annotation_db = value
 
     def gap_vector(self) -> list[bool]:
         """Returns gap_vector of positions."""
@@ -4577,7 +4596,7 @@ class Alignment(SequenceCollection):
             "moltype": self.moltype,
             "name_map": dict(self._name_map),
             "info": self.info.copy(),
-            "annotation_db": self.annotation_db,
+            "annotation_db": self._annotation_db,
             "slice_record": self._slice_record,
             "source": self.source,
         }
@@ -4652,7 +4671,7 @@ class Alignment(SequenceCollection):
             slice_record=self._slice_record,
         )
         aligned = Aligned(data=adv, moltype=self.moltype, name=seqid)
-        aligned.annotation_db = self.annotation_db
+        aligned.annotation_db = self._annotation_db
         return aligned
 
     @property
@@ -4706,16 +4725,19 @@ class Alignment(SequenceCollection):
             name of the sequence to return
         copy_annotations
             if True, only the annotations for the specified sequence are copied
-            to the annotation database of the Sequence object. If False, all
-            annotations are copied.
+            to the annotation database of the Sequence object which is decoupled
+            from this collection. If False, the connection to this collections db
+            is retained.
         """
         seq = self.seqs[seqname].seq
-        if copy_annotations:
+        if copy_annotations and self._annotation_db:
+            # we need to copy the sequence too to break the link to self.annotation_db
+            seq = seq.copy(exclude_annotations=True)
             seq.annotation_db = type(self.annotation_db)()
             seq.annotation_db.update(annot_db=self.annotation_db, seqids=seqname)
-        else:
-            seq.annotation_db = self.annotation_db
+            return seq
 
+        seq.annotation_db = self._annotation_db
         return seq
 
     @c3warn.deprecated_args(
@@ -5046,7 +5068,6 @@ class Alignment(SequenceCollection):
                 motif_length=motif_length,
                 include_ambiguity=include_ambiguity,
                 allow_gap=allow_gap,
-                exclude_unobserved=exclude_unobserved,
             )
             motifs.update(c.keys())
             counts.append(c)
@@ -5328,7 +5349,7 @@ class Alignment(SequenceCollection):
             if sr.step < 0
             else data
         )
-        kwargs["annotation_db"] = self.annotation_db
+        kwargs["annotation_db"] = self._annotation_db
         kwargs["storage_backend"] = storage_backend
         return make_unaligned_seqs(data, moltype=self.moltype, info=self.info, **kwargs)
 
@@ -5962,11 +5983,9 @@ class Alignment(SequenceCollection):
             msg = f"unknown {seqid=}"
             raise ValueError(msg)
 
-        if not self.annotation_db:
-            self.annotation_db = DEFAULT_ANNOTATION_DB()
-
         feature = {k: v for k, v in locals().items() if k != "self"}
         feature["strand"] = Strand.from_value(strand).value
+        # property ensures db is created
         self.annotation_db.add_feature(**feature)
         for discard in ("on_alignment", "parent_id"):
             feature.pop(discard, None)
@@ -5999,7 +6018,7 @@ class Alignment(SequenceCollection):
         yield a sequence segment that is consistently oriented irrespective
         of strand of the current instance.
         """
-        if self.annotation_db is None:
+        if not self._annotation_db:
             return None
 
         seqid_to_seqname = {v: k for k, v in self._name_map.items()}
@@ -6069,7 +6088,7 @@ class Alignment(SequenceCollection):
         yield a sequence segment that is consistently oriented irrespective
         of strand of the current instance.
         """
-        if self.annotation_db is None or not len(self.annotation_db):
+        if not self._annotation_db or not len(self._annotation_db):
             return None
 
         # we only do on-alignment in here
@@ -6134,11 +6153,7 @@ class Alignment(SequenceCollection):
             msg = "Feature does not belong to this alignment"
             raise ValueError(msg)
         result = feature.remapped_to(target_aligned.seq, target_aligned.map)
-
-        if not self.annotation_db:
-            # TODO gah improve bound db initialisation
-            self.annotation_db = DEFAULT_ANNOTATION_DB()
-
+        # property ensures db is created
         self.annotation_db.add_feature(**feature.to_dict())
         return result
 
@@ -6880,9 +6895,11 @@ class Alignment(SequenceCollection):
         init_args["annotation_db"] = other.annotation_db
         return self.__class__(**init_args)
 
-    def copy(self) -> typing_extensions.Self:
+    def copy(self, copy_annotations: bool = False) -> typing_extensions.Self:
         """creates new instance, only mutable attributes are copied"""
         kwargs = self._get_init_kwargs()
+        if copy_annotations:
+            kwargs["annotation_db"] = copy.deepcopy(self._annotation_db)
         return self.__class__(**kwargs)
 
     def deepcopy(self, **kwargs) -> typing_extensions.Self:
@@ -6900,7 +6917,7 @@ class Alignment(SequenceCollection):
         kwargs["annotation_db"] = (
             None
             if len(self) != self._seqs_data.align_len
-            else copy.deepcopy(self.annotation_db)
+            else copy.deepcopy(self._annotation_db)
         )
         new_seqs_data = {
             n: self._seqs_data.get_gapped_seq_array(
@@ -6992,7 +7009,7 @@ class Alignment(SequenceCollection):
         }
 
     @classmethod
-    def from_rich_dict(cls, data: dict[str, str | dict[str, str]]):
+    def from_rich_dict(cls, data: dict[str, str | dict[str, str]]) -> Alignment:
         data["init_args"].pop("annotation_db", None)
         return make_aligned_seqs(data["seqs"], **data["init_args"])
 
@@ -7029,9 +7046,65 @@ class Alignment(SequenceCollection):
         return super().duplicated_seqs()
 
 
-@register_deserialiser(get_object_provenance(Alignment))
+@register_deserialiser(
+    get_object_provenance(Alignment), "cogent3.core.alignment.Alignment"
+)
 def deserialise_alignment(data: dict[str, str | dict[str, str]]) -> Alignment:
+    if "init_args" not in data:
+        # old type Alignment class
+        return deserialise_alignment_to_new_type_alignment(data)
     return Alignment.from_rich_dict(data)
+
+
+@register_deserialiser("cogent3.core.alignment.ArrayAlignment")
+def deserialise_array_align_to_new_type_alignment(
+    data: dict[str, str | dict[str, str]],
+) -> Alignment:
+    """deserialise old type ArrayAlignment as a new type alignment."""
+    moltype_name = data["moltype"]
+    moltype_name = "text" if moltype_name == "bytes" else moltype_name
+    info_data = data["info"]
+    source = info_data.pop("source", None) if info_data else None
+
+    seq_data = {}
+    for seqid, record in data["seqs"].items():
+        if isinstance(record["seq"], str):
+            seq = record["seq"]
+        else:
+            seq = record["seq"]["init_args"]["seq"]
+
+        seq_data[seqid] = seq
+
+    return make_aligned_seqs(
+        seq_data, moltype=moltype_name, info=info_data, source=source
+    )
+
+
+def deserialise_alignment_to_new_type_alignment(
+    data: dict[str, str | dict[str, str]],
+) -> Alignment:
+    """deserialise old type Alignment as a new type alignment"""
+    from cogent3 import get_moltype
+    from cogent3.core.location import deserialise_indelmap
+
+    moltype_name = data["moltype"]
+    mt = get_moltype(moltype_name, new_type=True)
+    alpha = mt.most_degen_alphabet()
+    info_data = data["info"]
+    source = info_data.pop("source", None)
+
+    seqs = {}
+    gaps = {}
+    for name, record in data["seqs"].items():
+        seq_data = record["seq_init"]
+        minit = record["map_init"]
+        imap = deserialise_indelmap(minit)
+        raw_seq = seq_data["seq"]["init_args"]["seq"]
+        seqs[name] = raw_seq
+        gaps[name] = imap.array
+
+    asd = AlignedSeqsData.from_seqs_and_gaps(seqs=seqs, gaps=gaps, alphabet=alpha)
+    return make_aligned_seqs(asd, moltype=moltype_name, info=info_data, source=source)
 
 
 def make_aligned_storage(
@@ -7213,9 +7286,7 @@ def _(
         raise ValueError(msg)
 
     info = info if isinstance(info, dict) else {}
-    source = str(source) if source else str(info.get("source", "unknown"))
-    info["source"] = source
-
+    source = str(source) if source else str(info.pop("source", "unknown"))
     sr = (
         new_sequence.SliceRecord(parent_len=data.align_len, step=-1)
         if is_reversed

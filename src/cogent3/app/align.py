@@ -15,6 +15,7 @@ from cogent3.align import (
 )
 from cogent3.align.progressive import tree_align
 from cogent3.app import dist
+from cogent3.app.data_store import get_data_source
 from cogent3.app.tree import interpret_tree_arg
 from cogent3.core.location import gap_coords_to_map
 from cogent3.core.moltype import get_moltype
@@ -330,7 +331,6 @@ def pairwise_to_multiple(pwise, ref_seq, moltype, info=None):
             other_seq = Aligned.from_map_and_aligned_data_view(m, other_seq.data)
 
         aligned.append(other_seq)
-    # default to ArrayAlign
     return cogent3.make_aligned_seqs(aligned, moltype=moltype, info=info).to_type(
         array_align=True,
         moltype=moltype,
@@ -594,6 +594,7 @@ class progressive_align:
 
     def main(self, seqs: UnalignedSeqsType) -> T:
         """returned progressively aligned sequences"""
+        source = get_data_source(seqs)
         if self._moltype and self._moltype != seqs.moltype:
             seqs = seqs.to_moltype(self._moltype)
 
@@ -618,7 +619,10 @@ class progressive_align:
                 result.info.update(seqs.info)
             except ValueError as err:
                 # probably an internal stop
-                return NotCompleted("ERROR", self, err.args[0], source=seqs)
+                return NotCompleted("ERROR", self, err.args[0], source=source)
+        if hasattr(result, "source"):
+            # new type amendment during transition
+            result.source = source
         return result
 
 
@@ -777,7 +781,7 @@ class ic_score:
                 "FAIL",
                 self,
                 f"cannot compute alignment quality because {msg}",
-                source=aln.info,
+                source=aln,
             )
 
         motif_probs = aln.get_motif_probs(include_ambiguity=False, allow_gap=False)
@@ -860,7 +864,7 @@ def cogent3_score(aln: AlignedSeqsType) -> float:
             "FAIL",
             "cogent3_score",
             f"cannot compute alignment quality because {msg}",
-            source=aln.info,
+            source=aln,
         )
 
     align_params = aln.info.get("align_params", {})
@@ -870,7 +874,7 @@ def cogent3_score(aln: AlignedSeqsType) -> float:
             "FAIL",
             "cogent3_score",
             "no alignment quality score",
-            source=aln.info,
+            source=aln,
         ),
     )
 
@@ -959,7 +963,7 @@ class sp_score:
                 "FAIL",
                 self,
                 f"cannot compute alignment quality because {msg}",
-                source=aln.info,
+                source=aln,
             )
 
         self._calc(aln, show_progress=False)

@@ -229,7 +229,7 @@ class NcbiTaxonomy:
                         )
                     deadbeats[t.ParentId] = t
         self.Deadbeats = deadbeats
-        self.Root = t.root()
+        self.Root = t.get_root()
 
     def __getitem__(self, item):
         """If item is int, returns taxon by id: otherwise, searches by name.

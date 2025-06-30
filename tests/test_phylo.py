@@ -496,8 +496,8 @@ class TreeReconstructionTests(unittest.TestCase):
         self.dists = self.tree.get_distances()
 
     def assertTreeDistancesEqual(self, t1, t2):
-        d1 = t1.get_distances()
-        d2 = t2.get_distances()
+        d1 = t1.get_distances().to_dict()
+        d2 = t2.get_distances().to_dict()
         assert len(d1) == len(d2)
         for key in d2:
             self.assertAlmostEqual(d1[key], d2[key])

@@ -13,12 +13,13 @@ from enum import Enum
 from functools import singledispatch
 from io import TextIOWrapper
 from pathlib import Path
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 from scitrack import get_text_hexdigest
 
 from cogent3.core import alignment as old_alignment
 from cogent3.core import new_alignment
+from cogent3.core import tree as c3tree
 from cogent3.core.table import Table
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.io import get_format_suffixes, open_
@@ -37,7 +38,7 @@ _MD5_TABLE = "md5"
 # used for log files, not-completed results
 _special_suffixes = re.compile(r"\.(log|json)$")
 
-StrOrBytes = Union[str, bytes]
+StrOrBytes = str | bytes
 NoneType = type(None)
 
 
@@ -120,7 +121,7 @@ class DataStoreABC(ABC):
 
     @property
     @abstractmethod
-    def limit(self): ...
+    def limit(self) -> int | None: ...
 
     def __repr__(self) -> str:
         name = self.__class__.__name__
@@ -733,58 +734,67 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
         raise TypeError(msg)
 
 
-def get_unique_id(name: str) -> str:
+def get_unique_id(name: object) -> str | None:
     """strips any format suffixes from name"""
-    name = get_data_source(name)
+    if (name := get_data_source(name)) is None:
+        return None
     suffixes = ".".join(sfx for sfx in get_format_suffixes(name) if sfx)
     return re.sub(rf"[.]{suffixes}$", "", name)
 
 
 @singledispatch
-def get_data_source(data) -> str:
+def get_data_source(data: object) -> str | None:
     source = getattr(data, "source", None)
-    if source is None:
-        return None
-    return get_data_source(source)
+    return None if source is None else get_data_source(source)
 
 
 @get_data_source.register
-def _(data: old_alignment.SequenceCollection):
+def _(data: old_alignment.SequenceCollection) -> str | None:
     return get_data_source(data.info)
 
 
 @get_data_source.register
-def _(data: old_alignment.ArrayAlignment):
+def _(data: old_alignment.ArrayAlignment) -> str | None:
     return get_data_source(data.info)
 
 
 @get_data_source.register
-def _(data: old_alignment.Alignment):
+def _(data: old_alignment.Alignment) -> str | None:
     return get_data_source(data.info)
 
 
 @get_data_source.register
-def _(data: new_alignment.Alignment):
+def _(data: new_alignment.Alignment) -> str | None:
     return get_data_source(data.source)
 
 
 @get_data_source.register
-def _(data: new_alignment.SequenceCollection):
+def _(data: new_alignment.SequenceCollection) -> str | None:
     return get_data_source(data.source)
 
 
 @get_data_source.register
-def _(data: str):
+def _(data: c3tree.TreeNode) -> str | None:
+    return get_data_source(data.source)
+
+
+@get_data_source.register
+def _(data: c3tree.PhyloNode) -> str | None:
+    return get_data_source(data.source)
+
+
+@get_data_source.register
+def _(data: str) -> str | None:
     return get_data_source(Path(data))
 
 
 @get_data_source.register
-def _(data: Path):
-    return str(data.name)
+def _(data: Path) -> str | None:
+    return data.name
 
 
 @get_data_source.register
-def _(data: dict):
+def _(data: dict) -> str | None:
     try:
         source = data.get("info", {})["source"]
     except KeyError:
@@ -793,7 +803,7 @@ def _(data: dict):
 
 
 @get_data_source.register
-def _(data: DataMemberABC):
+def _(data: DataMemberABC) -> str | None:
     return str(data.unique_id)
 
 

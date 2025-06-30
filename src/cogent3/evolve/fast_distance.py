@@ -10,6 +10,8 @@ from numpy.linalg import det, inv
 import cogent3
 from cogent3._version import __version__
 from cogent3.core import new_moltype
+from cogent3.core.table import Table
+from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArray
 from cogent3.util.misc import get_object_provenance
 from cogent3.util.progress_display import display_wrap
@@ -297,7 +299,7 @@ def _number_formatter(template):
 Stats = namedtuple("Stats", ["length", "fraction_variable", "dist", "variance"])
 
 
-def _make_stat_table(stats, names, **kwargs):
+def _make_stat_table(stats, names, **kwargs) -> Table:
     from cogent3.core.table import Table
 
     header = ["Seq1 \\ Seq2", *names]
@@ -702,7 +704,7 @@ def get_distance_calculator(name, *args, **kwargs):
     return calc(*args, **kwargs)
 
 
-def available_distances():
+def available_distances() -> Table:
     """returns Table listing available fast pairwise genetic distance calculator
 
     Notes
@@ -738,7 +740,9 @@ class DistanceMatrix(DictArray):
         self.source = source
 
     @classmethod
-    def from_array_names(cls, matrix: numpy.ndarray, names: PySeqStr, invalid=None):
+    def from_array_names(
+        cls, matrix: numpy.ndarray, names: PySeqStr, invalid=None
+    ) -> "DistanceMatrix":
         """construct a distance matrix from numpy array and names"""
         darr = DictArray.from_array_names(matrix, names, names)
         return cls(darr, invalid=invalid)
@@ -757,10 +761,10 @@ class DistanceMatrix(DictArray):
         return result
 
     @property
-    def names(self):
+    def names(self) -> list[str]:
         return self.template.names[0]
 
-    def to_table(self):
+    def to_table(self) -> Table:
         """converted to a Table"""
         from cogent3.core.table import Table
 
@@ -771,14 +775,14 @@ class DistanceMatrix(DictArray):
         header = ["names", *list(self.names)]
         return Table(header=header, data=data, index_name="names")
 
-    def to_dict(self, **kwargs):
+    def to_dict(self, **kwargs) -> dict[tuple[str, str], float]:
         """Returns a flattened dict with diagonal elements removed"""
         result = super().to_dict(flatten=True)
         for n1 in self.names:
             del result[(n1, n1)]
         return result
 
-    def to_rich_dict(self):
+    def to_rich_dict(self) -> dict:
         # because dicts with tuples as keys cannot be json'ed, we convert to
         # a list of tuples
         dists = self.to_dict()
@@ -790,7 +794,9 @@ class DistanceMatrix(DictArray):
             "version": __version__,
         }
 
-    def take_dists(self, names, negate=False):
+    def take_dists(
+        self, names: list[str] | str, negate: bool = False
+    ) -> "DistanceMatrix":
         """
         Parameters
         ----------
@@ -802,7 +808,7 @@ class DistanceMatrix(DictArray):
         -------
         DistanceMatrix for names x names
         """
-        if type(names) == str:
+        if isinstance(names, str):
             names = [names]
 
         if list(self.names) == list(names):
@@ -822,7 +828,7 @@ class DistanceMatrix(DictArray):
         names = current_names.take(keep)
         return self.from_array_names(data, names)
 
-    def drop_invalid(self):
+    def drop_invalid(self) -> "DistanceMatrix":
         """drops all rows / columns with an invalid entry"""
         if (
             self.shape[0] != self.shape[1]
@@ -907,3 +913,18 @@ class DistanceMatrix(DictArray):
         min_index_flat = numpy.argmin(dmat_copy)
         min_index_1, min_index_2 = numpy.unravel_index(min_index_flat, self.shape)
         return self.names[min_index_1], self.names[min_index_2]
+
+
+@register_deserialiser(get_object_provenance(DistanceMatrix))
+def deserialise_tabular(data: dict) -> DistanceMatrix:
+    """deserialising DistanceMatrix from a rich dict"""
+    data.pop("version", None)
+    _ = data.pop("type", None)
+    # dists is a list of simple dists from which we reconstruct a 1D dict
+    dists = {}
+    for element in data["dists"]:
+        key = tuple(element[:2])
+        value = element[2]
+        dists[key] = value
+    data["dists"] = dists
+    return DistanceMatrix(**data)

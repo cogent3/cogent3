@@ -5,11 +5,11 @@ import textwrap
 import time
 import traceback
 import types
+import typing
 from collections.abc import Generator
 from copy import deepcopy
 from enum import Enum
 from pathlib import Path
-from typing import Any
 from uuid import uuid4
 
 from scitrack import CachingLogger
@@ -18,6 +18,7 @@ from cogent3._version import __version__
 from cogent3.app import typing as c3_typing
 from cogent3.util import parallel as PAR
 from cogent3.util import progress_display as UI
+from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.misc import docstring_to_summary_rest, get_object_provenance
 
 from .data_store import (
@@ -59,8 +60,8 @@ class NotCompleted(int):
             where the instance was created, can be an instance
         message : str
             descriptive message, succinct traceback
-        source : str or instance with .info.source or .source attributes
-            the data operated on that led to this result. Can
+        source : str or instance with .source or .info.source attributes
+            the data operated on that led to this result.
         """
         # TODO this approach to caching persistent arguments for reconstruction
         # is fragile. Need an inspect module based approach
@@ -181,7 +182,7 @@ def _get_raw_hints(main_func, min_params):
     return first_param_type, return_type
 
 
-def _get_main_hints(klass) -> tuple[set, set]:
+def _get_main_hints(klass: type) -> tuple[frozenset, frozenset]:
     """return type hints for main method
     Returns
     -------
@@ -307,36 +308,41 @@ def _new(klass, *args, **kwargs):
 class source_proxy:
     __slots__ = ("_obj", "_src", "_uuid")
 
-    def __init__(self, obj: Any = None) -> None:
+    def __init__(self, obj: typing.Any) -> None:
         self._obj = obj
         self._src = obj
         self._uuid = uuid4()
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self._uuid)
 
     @property
-    def obj(self):
+    def obj(self) -> typing.Any:
         return self._obj
 
-    def set_obj(self, obj) -> None:
+    def set_obj(self, obj: typing.Any) -> None:
         self._obj = obj
 
     @property
-    def source(self):
-        """origin of this object, defaults to a random uuid"""
+    def source(self) -> typing.Any:
+        """origin of this object"""
         return self._src
 
+    @property
+    def uuid(self) -> str:
+        """unique identifier for this object"""
+        return str(self._uuid)
+
     @source.setter
-    def source(self, src: Any) -> None:
+    def source(self, src: typing.Any) -> None:
         # need to check whether src is hashable, how to cope if it isn't?
         # might need to make this instance hashable perhaps using a uuid?
         self._src = src
 
-    def __getattr__(self, name: str) -> Any:
+    def __getattr__(self, name: str) -> typing.Any:
         return getattr(self._obj, name)
 
-    def __setattr__(self, name: str, value: Any) -> None:
+    def __setattr__(self, name: str, value: typing.Any) -> None:
         if name.startswith("_"):
             super().__setattr__(name, value)
         else:
@@ -351,18 +357,18 @@ class source_proxy:
     def __str__(self) -> str:
         return self.obj.__str__()
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return self.obj.__eq__(other)
 
     def __len__(self) -> int:
         return self.obj.__len__()
 
-    # pickling induces infinite recursion on python 3.9/3.10
+    # pickling induces infinite recursion on python 3.10
     # only on Windows, so implementing the following methods explicitly
-    def __getstate__(self):
+    def __getstate__(self) -> tuple:
         return self._obj, self._src, self._uuid
 
-    def __setstate__(self, state):
+    def __setstate__(self, state: tuple) -> None:
         self._obj, self._src, self._uuid = state
 
 
@@ -452,6 +458,7 @@ def _class_from_func(func):
     def _init(self, *args, **kwargs) -> None:
         self._args = args
         self._kwargs = kwargs
+        self._source_wrapped = None
 
     def _main(self, arg, *args, **kwargs):
         kw_args = deepcopy(self._kwargs)
@@ -672,6 +679,10 @@ def define_app(
         if app_type is not LOADER:
             klass.input = None
 
+        # the ._source_wrapped attribute used for wrapping/unwrapping
+        # result objects
+        klass._source_wrapped = None
+
         if hasattr(klass, "__slots__"):
             # not supporting this yet
             msg = "slots are not currently supported"
@@ -682,7 +693,7 @@ def define_app(
     return wrapped(klass) if klass else wrapped
 
 
-def _proxy_input(dstore):
+def _proxy_input(dstore) -> list:
     inputs = []
     for e in dstore:
         if not e:
@@ -694,19 +705,46 @@ def _proxy_input(dstore):
     return inputs
 
 
-def _source_wrapped(
-    self,
-    value: source_proxy | c3_typing.HasSource,
-) -> c3_typing.HasSource:
-    if not isinstance(value, source_proxy):
-        return self(value)
+GetIdFuncType = typing.Callable[[source_proxy | c3_typing.HasSource], str | None]
 
-    value.set_obj(self(value.obj))
-    return value
+
+class propagate_source:
+    """retains result association with source
+
+    Notes
+    -----
+    Returns the unwrapped result if it has a .source instance,
+    otherwise returns the original source_proxy with the .obj
+    updated with result.
+    """
+
+    def __init__(self, app, id_from_source: GetIdFuncType) -> None:
+        self.app = app
+        self.id_from_source = id_from_source
+
+    def __call__(
+        self, value: source_proxy | c3_typing.HasSource
+    ) -> c3_typing.HasSource:
+        if not isinstance(value, source_proxy):
+            return self.app(value)
+
+        result = self.app(value.obj)
+        if self.id_from_source(result):
+            return result
+
+        value.set_obj(result)
+        return value
 
 
 @UI.display_wrap
-def _as_completed(self, dstore, parallel=False, par_kw=None, **kwargs) -> Generator:
+def _as_completed(
+    self: type,
+    dstore,
+    parallel: bool = False,
+    par_kw: dict | None = None,
+    id_from_source: GetIdFuncType = get_unique_id,
+    **kwargs,
+) -> Generator:
     """invokes self composable function on the provided data store
 
     Parameters
@@ -732,10 +770,18 @@ def _as_completed(self, dstore, parallel=False, par_kw=None, **kwargs) -> Genera
     aggregates results. If run in serial, results are returned in the
     same order as provided.
     """
+    if self._source_wrapped is None:
+        app = propagate_source(
+            self.input if self.app_type is WRITER else self, id_from_source
+        )
+    else:
+        app = (
+            self.input._source_wrapped
+            if self.app_type is WRITER
+            else self._source_wrapped
+        )
+
     ui = kwargs.pop("ui")
-    app = (
-        self.input._source_wrapped if self.app_type is WRITER else self._source_wrapped
-    )
 
     if isinstance(dstore, str):
         dstore = [dstore]
@@ -754,12 +800,12 @@ def _as_completed(self, dstore, parallel=False, par_kw=None, **kwargs) -> Genera
     return ui.series(to_do, count=len(mapped), **kwargs)
 
 
-def is_app_composable(obj):
+def is_app_composable(obj) -> bool:
     """checks whether obj has been decorated by define_app and it's app_type attribute is not NON_COMPOSABLE"""
     return is_app(obj) and obj.app_type is not NON_COMPOSABLE
 
 
-def is_app(obj):
+def is_app(obj) -> bool:
     """checks whether obj has been decorated by define_app"""
     return hasattr(obj, "app_type")
 
@@ -767,12 +813,12 @@ def is_app(obj):
 def _apply_to(
     self,
     dstore,
-    id_from_source: callable = get_unique_id,
-    parallel=False,
-    par_kw=None,
-    logger=None,
-    cleanup=True,
-    show_progress=False,
+    id_from_source: GetIdFuncType = get_unique_id,
+    parallel: bool = False,
+    par_kw: dict | None = None,
+    logger: CachingLogger | None = None,
+    cleanup: bool = True,
+    show_progress: bool = False,
 ):
     """invokes self composable function on the provided data store
 
@@ -812,6 +858,10 @@ def _apply_to(
 
     If run in parallel, this instance spawns workers and aggregates results.
     """
+    if self.app_type is WRITER:
+        self.input._source_wrapped = propagate_source(self.input, id_from_source)
+        self._source_wrapped = propagate_source(self, id_from_source)
+
     if not self.input:
         msg = f"{self!r} is not part of a composed function"
         raise RuntimeError(msg)
@@ -826,8 +876,8 @@ def _apply_to(
     for m in dstore:
         input_id = Path(m.unique_id) if isinstance(m, DataMember) else m
         input_id = id_from_source(input_id)
-        if input_id in inputs:
-            msg = "non-unique identifier detected in data"
+        if input_id in inputs or not input_id:
+            msg = f"non-unique identifier {input_id!r} detected in data"
             raise ValueError(msg)
         if input_id in self.data_store:
             # we are assuming that this query returns True only when
@@ -855,7 +905,7 @@ def _apply_to(
     ):
         member = self.main(
             data=getattr(result, "obj", result),
-            identifier=id_from_source(result.source),
+            identifier=id_from_source(result),
         )
         if self.logger:
             md5 = getattr(member, "md5", None)
@@ -901,7 +951,16 @@ __mapping = {
     "_validate_data_type": _validate_data_type,
     "disconnect": _disconnect,
     "apply_to": _apply_to,
-    "_source_wrapped": _source_wrapped,
     "as_completed": _as_completed,
     "set_logger": _set_logger,
 }
+
+
+@register_deserialiser(get_object_provenance(NotCompleted))
+def deserialise_not_completed(data: dict) -> NotCompleted:
+    """deserialising NotCompletedResult"""
+    data.pop("version", None)
+    init = data.pop("not_completed_construction")
+    args = init.pop("args")
+    kwargs = init.pop("kwargs")
+    return NotCompleted(*args, **kwargs)

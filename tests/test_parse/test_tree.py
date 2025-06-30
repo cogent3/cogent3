@@ -2,6 +2,8 @@
 
 from unittest import TestCase
 
+import pytest
+
 from cogent3.core.tree import PhyloNode
 from cogent3.parse.tree import DndParser, DndTokenizer, RecordError
 
@@ -185,10 +187,8 @@ class DndParserTests(TestCase):
         assert len(t) == 2
         assert len(t[0]) == 0  # first child is terminal
         assert len(t[1]) == 2  # second child has two children
-        assert str(t) == "(abc:3.0,(def:4.0,ghi:5.0)jkl:6.0);"
-        info_dict = {}
-        for node in t.traverse():
-            info_dict[node.name] = node.length
+        assert str(t) == "(abc:3.0,(def:4.0,ghi:5.0):6.0);"
+        info_dict = {node.name: node.length for node in t.preorder()}
         assert info_dict["abc"] == 3.0
         assert info_dict["def"] == 4.0
         assert info_dict["ghi"] == 5.0
@@ -203,7 +203,7 @@ class DndParserTests(TestCase):
         )
         tdata = DndParser(node_data_sample, unescape_name=True)
         assert (
-            str(tdata)
+            tdata.get_newick(with_distances=True, with_node_names=True)
             == "((xyz:0.28124,(def:0.24498,mno:0.03627)A:0.1771)B:0.0487,abc:0.05925,(ghi:0.06914,jkl:0.13776)C:0.09853);"
         )
 
@@ -254,21 +254,36 @@ class PhyloNodeTests(TestCase):
     def test_gops(self):
         """Basic PhyloNode operations should work as expected"""
         p = PhyloNode()
-        assert str(p) == ";"
+        assert p.get_newick(with_node_names=True) == ";"
         p.name = "abc"
-        assert str(p) == "abc;"
+        assert p.get_newick(with_node_names=True, with_root_name=True) == "abc;"
         p.length = 3
-        assert str(p) == "abc:3;"  # don't suppress branch from root
+        assert (
+            p.get_newick(with_node_names=True, with_distances=True, with_root_name=True)
+            == "abc:3;"
+        )  # don't suppress branch from root
         q = PhyloNode()
         p.append(q)
-        assert str(p) == "()abc:3;"
+        assert (
+            p.get_newick(with_node_names=True, with_distances=True, with_root_name=True)
+            == "()abc:3;"
+        )
         r = PhyloNode()
         q.append(r)
-        assert str(p) == "(())abc:3;"
+        assert (
+            p.get_newick(with_node_names=True, with_distances=True, with_root_name=True)
+            == "(())abc:3;"
+        )
         r.name = "xyz"
-        assert str(p) == "((xyz))abc:3;"
+        assert (
+            p.get_newick(with_node_names=True, with_distances=True, with_root_name=True)
+            == "((xyz))abc:3;"
+        )
         q.length = 2
-        assert str(p) == "((xyz):2)abc:3;"
+        assert (
+            p.get_newick(with_node_names=True, with_distances=True, with_root_name=True)
+            == "((xyz):2)abc:3;"
+        )
 
 
 def test_make_tree_simple():
@@ -334,3 +349,12 @@ def test_make_tree_with_nhx(DATA_DIR):
     assert set(vert.params["other"]) == {'&sCF="50.68"', 'sDF1="24.42"'}
     vert = got.get_connecting_node("t5", "t6")
     assert set(vert.params["other"]) == {'&sCF="77.1"', 'sDF1="11.53"'}
+
+
+@pytest.mark.parametrize(
+    "treestring", ["(a,b)ab;", "(a,b)ab", "(a,b,(c,(d,e)))ab", "(a:3,b)ab"]
+)
+def test_parse_named_root_nodes(treestring):
+    tree = DndParser(treestring, PhyloNode)
+    assert tree.name == "ab"
+    assert tree.parent is None

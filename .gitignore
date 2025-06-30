@@ -50,7 +50,8 @@ __pycache__
 *.wpr
 *.wpu
 .vscode/*
-venv/
+venv*
+.venv*
 working/
 *.ipynb
 *.ipynb_checkpoints/

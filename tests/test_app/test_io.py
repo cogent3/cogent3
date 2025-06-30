@@ -14,12 +14,13 @@ from numpy.testing import assert_allclose
 import cogent3
 from cogent3 import get_app, get_moltype, open_data_store
 from cogent3.app import io as io_app
-from cogent3.app.composable import NotCompleted, source_proxy
+from cogent3.app.composable import NotCompleted, propagate_source, source_proxy
 from cogent3.app.data_store import (
     DataMember,
     DataStoreDirectory,
     Mode,
     ReadOnlyDataStoreZipped,
+    get_data_source,
 )
 from cogent3.app.io import DEFAULT_DESERIALISER, DEFAULT_SERIALISER
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
@@ -29,7 +30,9 @@ from cogent3.maths.util import safe_log
 from cogent3.parse.sequence import PARSERS
 from cogent3.util.deserialise import deserialise_object
 
-DNA = get_moltype("dna")
+NEW_TYPE = True
+
+DNA = get_moltype("dna", new_type=NEW_TYPE)
 
 
 @pytest.fixture
@@ -118,11 +121,14 @@ def test_source_proxy_simple(fasta_dir):
     data = reader(path)
     # direct call gives you back the annotated type
     assert isinstance(data, bytes | bytearray)
+    # create a source wrapper
+    wrapper = propagate_source(reader, get_data_source)
     # directly calling the intermediate wrap method should work
-    got = reader._source_wrapped(source_proxy(path))
+    got = wrapper(source_proxy(path))
     assert isinstance(got, source_proxy)
     # calling with list of data that doesn't have a source should
-    # also return source_proxy
+    # also return source_proxy. In this case, the wrapper is automatically
+    # created and assigned to the reader._source_wrapped attribute
     got = list(reader.as_completed([path], show_progress=False))
     assert isinstance(got[0], source_proxy)
 
@@ -467,6 +473,29 @@ def test_write_db_load_db(fasta_dir, tmp_dir):
     assert data_store.record_type == get_object_provenance(orig)
 
 
+def test_load_db_prefer_source_attr(tmp_dir):
+    from cogent3.app.sqlite_data_store import DataStoreSqlite
+
+    path = tmp_dir / "test.sqlitedb"
+    data_store = DataStoreSqlite(path, mode="w")
+
+    seqs = cogent3.make_unaligned_seqs(
+        data={"a": "ACGG", "b": "GGC"},
+        moltype="dna",
+        info={"demo": "dummy"},
+        new_type=True,
+        source="blah.1.2.fa",
+    )
+    writer = io_app.write_db(data_store=data_store)
+    writer(seqs)  # pylint: disable=not-callable
+    data_store.close()
+    data_store = open_data_store(path)
+    # this old style rich dict will
+    loader = io_app.load_db()
+    got = loader(data_store[0])  # pylint: disable=not-callable
+    assert "source" not in got.info
+
+
 def test_write_read_db_not_completed(tmp_dir):
     from cogent3.app.sqlite_data_store import DataStoreSqlite
 
@@ -542,6 +571,7 @@ def seqs():
         data={"a": "ACGG", "b": "GGC"},
         moltype="dna",
         info={"source": "dummy/blah.1.2.fa"},
+        new_type=True,
     )
 
 
@@ -586,6 +616,28 @@ def test_writer_unique_id_arg(tmp_dir, writer, data, dstore):
     suffix = f".{suffix}" if suffix else suffix
     expect = f"blah{suffix}"
     assert m.unique_id == expect
+
+
+src_attr = "source" if NEW_TYPE else "info"
+
+
+@pytest.mark.parametrize(
+    ("writer", "data", "attr", "dstore"),
+    [
+        ("write_seqs", seqs(), src_attr, dir_dstore),
+        ("write_db", seqs(), src_attr, db_dstore),
+        ("write_json", seqs(), src_attr, dir_dstore),
+        ("write_tabular", table(), "source", dir_dstore),
+    ],
+)
+def test_writer_no_unique_id(tmp_dir, writer, data, attr, dstore):
+    writer = get_app(writer, data_store=dstore(tmp_dir))
+    # no unique id possible, so m will be NotCompleted error
+    value = {} if attr == "info" else None
+    setattr(data, attr, value)
+    m = writer(data)
+    assert isinstance(m, NotCompleted)
+    assert m.type == "ERROR"
 
 
 @pytest.mark.parametrize(
