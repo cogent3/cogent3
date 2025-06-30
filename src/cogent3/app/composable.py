@@ -60,8 +60,8 @@ class NotCompleted(int):
             where the instance was created, can be an instance
         message : str
             descriptive message, succinct traceback
-        source : str or instance with .info.source or .source attributes
-            the data operated on that led to this result. Can
+        source : str or instance with .source or .info.source attributes
+            the data operated on that led to this result.
         """
         # TODO this approach to caching persistent arguments for reconstruction
         # is fragile. Need an inspect module based approach

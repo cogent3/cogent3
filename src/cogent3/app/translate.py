@@ -8,6 +8,7 @@ from cogent3.core import moltype as old_moltype
 from cogent3.core import new_alphabet, new_genetic_code, new_moltype
 
 from .composable import NotCompleted, define_app
+from .data_store import get_data_source
 from .typing import SeqsCollectionType, SeqType, SerialisableType
 
 GeneticCodeTypes = (
@@ -275,6 +276,7 @@ class select_translatable:
         """returns the translatable sequences from seqs.
 
         translation errors are stroed in the info object"""
+        source = get_data_source(seqs)
         seqs = seqs.degap()
         if self._moltype and self._moltype != seqs.moltype:
             seqs = seqs.to_moltype(self._moltype)
@@ -302,13 +304,13 @@ class select_translatable:
 
         if translatable:
             translatable = cogent3.make_unaligned_seqs(
-                data=translatable,
-                moltype=self._moltype,
-                info=seqs.info,
+                data=translatable, moltype=self._moltype, info=seqs.info, source=source
             )
             translatable.info["translation_errors"] = error_log
         else:
-            translatable = NotCompleted("FALSE", self, " ".join(error_log), source=seqs)
+            translatable = NotCompleted(
+                "FALSE", self, " ".join(error_log), source=source
+            )
 
         return translatable
 
