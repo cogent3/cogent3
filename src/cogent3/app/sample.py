@@ -1015,7 +1015,7 @@ class omit_bad_seqs:
                     "supports this feature"
                 )
 
-                return NotCompleted("FAIL", self, msg, aln.info.source)
+                return NotCompleted("FAIL", self, msg, aln)
 
         result = aln.take_seqs(keep)
         if self._quantile is not None:
