@@ -516,16 +516,15 @@ class load_db:
         """returns deserialised object"""
         try:
             data = identifier.read()
-        except AttributeError:
+        except AttributeError as e:
             msg = f"{identifier} failed because its of type {type(identifier)}"
-            raise AttributeError(
-                msg,
-            )
+            raise AttributeError(msg) from e
 
         # do we need to inject identifier attribute?
         result = self.deserialiser(data)
-        if hasattr(result, "info"):
-            result.info["source"] = result.info.get("source", identifier)
+        if not hasattr(result, "source") and hasattr(result, "info"):
+            src = Path(identifier.data_store.source) / identifier.unique_id
+            result.info["source"] = result.info.get("source", str(src))
         else:
             with contextlib.suppress(AttributeError):
                 identifier = getattr(result, "source", identifier)

@@ -473,6 +473,29 @@ def test_write_db_load_db(fasta_dir, tmp_dir):
     assert data_store.record_type == get_object_provenance(orig)
 
 
+def test_load_db_prefer_source_attr(tmp_dir):
+    from cogent3.app.sqlite_data_store import DataStoreSqlite
+
+    path = tmp_dir / "test.sqlitedb"
+    data_store = DataStoreSqlite(path, mode="w")
+
+    seqs = cogent3.make_unaligned_seqs(
+        data={"a": "ACGG", "b": "GGC"},
+        moltype="dna",
+        info={"demo": "dummy"},
+        new_type=True,
+        source="blah.1.2.fa",
+    )
+    writer = io_app.write_db(data_store=data_store)
+    writer(seqs)
+    data_store.close()
+    data_store = open_data_store(path)
+    # this old style rich dict will
+    loader = io_app.load_db()
+    got = loader(data_store[0])
+    assert "source" not in got.info
+
+
 def test_write_read_db_not_completed(tmp_dir):
     from cogent3.app.sqlite_data_store import DataStoreSqlite
 
