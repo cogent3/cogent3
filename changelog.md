@@ -1,4 +1,19 @@
 
+<a id='changelog-2025.5.8a10'></a>
+# Changes in release "2025.5.8a10"
+
+## Contributors
+
+- @GavinHuttley, misc
+- @khiron
+
+## Enhancements
+
+- Added support deserialising old type sequence collections and the old type
+  Alignment and ArrayAlignment into the new type classes. We do not bring
+  over all attributes (e.g. annotation data is ignored). These transformations
+  are transparent to the user.
+
 <a id='changelog-2025.5.8a9'></a>
 # Changes in release "2025.5.8a9"
 
@@ -40,6 +55,12 @@ This is a bug fix, minor enhancements and improvements under the hood.
   has an effect.This is a special case. If you want to preserve the original
   tip-to-root distances, call the new `tree.tip_to_root_distances()` method
   with the names of interest.
+- `cogent3.maths.stats.distribution.binomial_exact` has been deprecated in
+  favour of scipy function `scipy.stats.binom.pmf`.  `binomial_exact` will be
+  discontinued in cogent3 release 2025.9.  Until then `binomial_exact` will use
+  `scipy.stats.binom.pmf` internally and floating point values for `successes`
+  and `trials` will be truncated to integers using `math.floor` introducing a
+  potential breaking change in behaviour.
 
 <a id='changelog-2025.5.8a8'></a>
 # Changes in release "2025.5.8a8"
