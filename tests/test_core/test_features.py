@@ -463,7 +463,7 @@ def test_roundtripped_alignment_with_slices():
     # new type alignments DO NOT support serialising annotation_db's
     new = deserialise_object(sub_aln.to_json())
     feats = list(new.get_features(biotype="exon", allow_partial=True))
-    assert not len(feats)
+    assert not feats
 
 
 def test_feature_reverse():
