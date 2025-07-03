@@ -1,6 +1,6 @@
 """Provide a parser for SwissProt EBI format files."""
 
-from cogent3.core.sequence import Sequence
+from cogent3 import make_seq
 from cogent3.parse.record import FieldError, RecordError
 from cogent3.parse.record_finder import (
     DelimitedRecordFinder,
@@ -1523,7 +1523,7 @@ _parsers = {
 
 def EbiParser(
     lines,
-    seq_constructor=Sequence,
+    seq_constructor=make_seq,
     header_constructor=parse_header,
     strict=True,
     selected_labels=None,

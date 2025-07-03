@@ -2,7 +2,7 @@ import re
 
 from numpy import array
 
-from cogent3.core.moltype import get_moltype
+from cogent3 import get_moltype
 from cogent3.core.profile import MotifCountsArray
 
 _brackets = re.compile(r"\[|\]")

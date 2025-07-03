@@ -9,8 +9,6 @@ import numpy
 import pytest
 
 from cogent3.core.info import Info
-from cogent3.core.sequence import DnaSequence, Sequence
-from cogent3.core.sequence import ProteinSequence as Protein
 from cogent3.parse.fasta import (
     LabelParser,
     MinimalFastaParser,
@@ -23,12 +21,6 @@ from cogent3.parse.record import RecordError
 
 base_path = os.path.dirname(os.path.dirname(__file__))
 data_path = os.path.join(base_path, "data")
-
-
-def Dna(seq, *args, **kwargs):
-    seq = seq.replace("u", "t")
-    seq = seq.replace("U", "T")
-    return DnaSequence(seq, *args, **kwargs)
 
 
 class GenericFastaTest(TestCase):
