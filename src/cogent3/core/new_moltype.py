@@ -12,6 +12,7 @@ import typing_extensions
 import cogent3.util.warning as c3_warn
 from cogent3.core import new_alphabet, new_sequence
 from cogent3.data.molecular_weight import DnaMW, ProteinMW, RnaMW, WeightCalculator
+from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.misc import get_object_provenance
 
