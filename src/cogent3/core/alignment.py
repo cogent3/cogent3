@@ -88,7 +88,7 @@ from cogent3.util.misc import (
 )
 from cogent3.util.union_dict import UnionDict
 
-if typing.TYPE_CHECKING:
+if typing.TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Iterable, Iterator, Mapping
 
 DEFAULT_ANNOTATION_DB = BasicAnnotationDb

@@ -4,7 +4,7 @@ import typing
 
 import stevedore
 
-if typing.TYPE_CHECKING:
+if typing.TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.new_alignment import (
         AlignedSeqsDataABC,
         Alignment,

@@ -44,7 +44,7 @@ from .typing import (
     UnalignedSeqsType,
 )
 
-if typing.TYPE_CHECKING:
+if typing.TYPE_CHECKING:  # pragma: no cover
     from cogent3.parse.sequence import SequenceParserBase
 
 _datastore_reader_map = {}

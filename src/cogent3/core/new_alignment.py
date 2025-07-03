@@ -66,7 +66,7 @@ from cogent3.util.union_dict import UnionDict
 # both collections can indicate sequences that are reverse complemented
 # by providing their names to the reversed_seqs argument.
 
-if typing.TYPE_CHECKING:
+if typing.TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.tree import PhyloNode
     from cogent3.evolve.fast_distance import DistanceMatrix
     from cogent3.maths.stats.contingency import TestResult

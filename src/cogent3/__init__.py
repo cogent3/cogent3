@@ -51,7 +51,7 @@ from cogent3.util import warning as _c3warn
 from cogent3.util.io import get_format_suffixes, is_url, open_  # noqa: F401
 from cogent3.util.progress_display import display_wrap
 
-if typing.TYPE_CHECKING:
+if typing.TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.new_alignment import Alignment, SequenceCollection
     from cogent3.core.new_sequence import Sequence
 

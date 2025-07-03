@@ -27,7 +27,7 @@ from .composable import NotCompleted, define_app
 from .tree import quick_tree, scale_branches
 from .typing import AlignedSeqsType, SerialisableType, UnalignedSeqsType
 
-if typing.TYPE_CHECKING:
+if typing.TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.tree import PhyloNode
 
 

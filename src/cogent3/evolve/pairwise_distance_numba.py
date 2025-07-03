@@ -8,7 +8,7 @@ import numpy
 from cogent3.core import new_moltype
 from cogent3.evolve.fast_distance import DistanceMatrix
 
-if typing.TYPE_CHECKING:
+if typing.TYPE_CHECKING:  # pragma: no cover
     # Forward reference to avoid circular import
     from cogent3.core.new_alignment import Alignment
 
@@ -360,7 +360,7 @@ def tn93(
 
 
 @numba.jit
-def _paralinear(matrix, num_states):
+def _paralinear(matrix, num_states):  # pragma: no cover
     # we replace the missing diagonal states with a
     # pseudocount of 0.5 then normalise
     frequency = matrix.astype(numpy.float32)

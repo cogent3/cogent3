@@ -16,7 +16,7 @@ from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.misc import get_object_provenance
 
-if typing.TYPE_CHECKING:
+if typing.TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.new_sequence import SeqViewABC
 
 NumpyIntType = numpy.dtype[numpy.integer]

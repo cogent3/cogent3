@@ -56,7 +56,7 @@ from cogent3.util.misc import (
 )
 from cogent3.util.transform import for_seq, per_shortest
 
-if typing.TYPE_CHECKING:
+if typing.TYPE_CHECKING:  # pragma: no cover
     import os
 
 
