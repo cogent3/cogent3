@@ -167,7 +167,8 @@ def MinimalGdeParser(infile, strict=True, label_to_name=str):
     return MinimalFastaParser(infile, strict, label_to_name, label_characters="%#")
 
 
-def xmfa_label_to_name(line) -> str:
+@c3warn.deprecated_callable("2025.9", "not being used", is_discontinued=True)
+def xmfa_label_to_name(line) -> str:  # pragma: no cover
     (loc, strand, contig) = line.split()
     (sp, loc) = loc.split(":")
     (lo, hi) = [int(x) for x in loc.split("-")]
@@ -178,7 +179,8 @@ def xmfa_label_to_name(line) -> str:
     return f"{sp}:{contig}:{lo}-{hi}"
 
 
-def is_xmfa_blank_or_comment(x):
+@c3warn.deprecated_callable("2025.9", "not being used", is_discontinued=True)
+def is_xmfa_blank_or_comment(x):  # pragma: no cover
     """Checks if x is blank or an XMFA comment line."""
     return (not x) or x.startswith("=") or x.isspace()
 
@@ -186,17 +188,20 @@ def is_xmfa_blank_or_comment(x):
 XmfaFinder = LabeledRecordFinder(is_fasta_label, ignore=is_xmfa_blank_or_comment)
 
 
-def MinimalXmfaParser(infile, strict=True):
+@c3warn.deprecated_callable("2025.9", "not being used", is_discontinued=True)
+def MinimalXmfaParser(infile, strict=True):  # pragma: no cover
     # Fasta-like but with header info like ">1:10-1000 + chr1"
     return MinimalFastaParser(infile, strict, label_to_name=xmfa_label_to_name)
 
 
-def MinimalInfo(label):
+@c3warn.deprecated_callable("2025.9", "not being used", is_discontinued=True)
+def MinimalInfo(label):  # pragma: no cover
     """Minimal info data maker: returns name, and empty dict for info{}."""
     return label, {}
 
 
-def NameLabelInfo(label):
+@c3warn.deprecated_callable("2025.9", "not being used", is_discontinued=True)
+def NameLabelInfo(label):  # pragma: no cover
     """Returns name as label split on whitespace, and label in Info."""
     return label.split()[0], {"label": label}
 

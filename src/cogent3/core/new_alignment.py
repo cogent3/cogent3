@@ -6,7 +6,6 @@ import copy
 import dataclasses
 import hashlib
 import json
-import os
 import pathlib
 import re
 import types
@@ -5222,7 +5221,7 @@ class Alignment(SequenceCollection):
         result = darr.wrap(result)
         if drawable:
             drawable = drawable.lower()
-            trace_name = os.path.basename(self.source) if self.source else None
+            trace_name = pathlib.Path(self.source).name if self.source else None
             draw = Drawable("Gaps Per Sequence", showlegend=False)
             draw.layout |= {"yaxis": {"title": "Gap counts"}}
             if drawable == "bar":
