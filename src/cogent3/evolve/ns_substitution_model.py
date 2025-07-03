@@ -1,6 +1,6 @@
 import numpy
 
-from cogent3.core import genetic_code, moltype
+from cogent3 import get_code, get_moltype
 from cogent3.evolve.discrete_markov import PsubMatrixDefn
 from cogent3.evolve.predicate import MotifChange
 from cogent3.maths.optimisers import ParameterOutOfBoundsError
@@ -150,7 +150,7 @@ class NonReversibleNucleotide(Parametric):
 
     @extend_docstring_from(Parametric.__init__)
     def __init__(self, predicates=None, *args, **kw) -> None:
-        kw["alphabet"] = kw.get("alphabet", moltype.DNA.alphabet)
+        kw["alphabet"] = kw.get("alphabet", get_moltype("dna").alphabet)
         kw["predicates"] = predicates
         Parametric.__init__(self, *args, **kw)
 
@@ -181,7 +181,7 @@ class NonReversibleCodon(_Codon, NonReversibleNucleotide):
     # TODO deprecate alphabet argument
     @extend_docstring_from(Parametric.__init__)
     def __init__(self, alphabet=None, gc=None, **kw) -> None:
-        self.gc = genetic_code.get_code(gc)
+        self.gc = get_code(gc)
         kw["alphabet"] = self.gc.get_alphabet()
         NonReversibleNucleotide.__init__(self, **kw)
 
@@ -202,7 +202,7 @@ class NonReversibleProtein(Parametric):
     """Base non-reversible protein substitution model."""
 
     def __init__(self, with_selenocysteine=False, *args, **kw) -> None:
-        alph = moltype.PROTEIN.alphabet
+        alph = get_moltype("protein").alphabet
         if not with_selenocysteine:
             alph = alph.get_subset("U", excluded=True)
         Parametric.__init__(self, alph, *args, **kw)

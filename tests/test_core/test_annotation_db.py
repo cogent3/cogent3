@@ -16,7 +16,6 @@ from cogent3.core.annotation_db import (
     load_annotations,
     update_file_format,
 )
-from cogent3.core.sequence import Sequence
 from cogent3.parse import genbank
 from cogent3.util import deserialise
 
@@ -53,8 +52,8 @@ def seq_db(DATA_DIR):
 
 
 @pytest.fixture
-def seq() -> Sequence:
-    return Sequence("ATTGTACGCCTTTTTTATTATT", name="test_seq")
+def seq():
+    return cogent3.make_seq("ATTGTACGCCTTTTTTATTATT", name="test_seq")
 
 
 @pytest.fixture

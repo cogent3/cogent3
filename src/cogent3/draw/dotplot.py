@@ -1,5 +1,6 @@
 import numpy
 
+from cogent3 import get_moltype
 from cogent3.align.pycompare import (
     MatchedSeqPaths,
     SeqKmers,
@@ -7,7 +8,6 @@ from cogent3.align.pycompare import (
     find_matched_paths,
 )
 from cogent3.core import location
-from cogent3.core.moltype import get_moltype
 from cogent3.draw.drawable import Drawable
 from cogent3.util.union_dict import UnionDict
 
