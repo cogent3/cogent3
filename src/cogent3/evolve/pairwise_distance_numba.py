@@ -18,15 +18,6 @@ if typing.TYPE_CHECKING:
 # fills in a diversity matrix from sequences of integers
 
 
-def _is_nucleic(moltype) -> bool:
-    # TODO delete when new_type alignments and moltypes are the norm
-    try:
-        _ = moltype.complement("A")
-    except (ValueError, new_moltype.MolTypeError):
-        return False
-    return True
-
-
 @numba.jit
 def num_diffs_and_valid(
     seq1: numba_types.uint8[:],
@@ -317,7 +308,7 @@ def tn93(
     parallel
         If True, uses parallel processing via numba.
     """
-    if not _is_nucleic(aln.moltype):
+    if not aln.moltype.is_nucleic:
         msg = f"tn93 distance only works with nucleotide alignments, not {aln.moltype}"
         raise new_moltype.MolTypeError(
             msg,
@@ -457,7 +448,7 @@ def paralinear(
     -----
     This is limited to 4-state alphabets for now.
     """
-    if not _is_nucleic(aln.moltype):
+    if not aln.moltype.is_nucleic:
         msg = f"paralinear distance only works with nucleotide alignments, not {aln.moltype}"
         raise new_moltype.MolTypeError(
             msg,
