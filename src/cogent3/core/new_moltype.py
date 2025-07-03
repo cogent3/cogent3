@@ -652,12 +652,14 @@ class MolType:
         seq = "" if seq is None else seq
         return self._make_seq(moltype=self, seq=seq, name=name, **kwargs)
 
+    @c3warn.deprecated_callable(
+        "2025.9", "no longer has an effect", is_discontinued=True
+    )
     def make_array_seq(
         self,
         *args,
         **kwargs,
     ) -> new_sequence.Sequence:
-        # TODO: add deprecation warning when new_type=True is default
         if args:
             kwargs["seq"] = args[0]
 
