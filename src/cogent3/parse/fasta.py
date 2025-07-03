@@ -13,7 +13,6 @@ import numpy
 
 import cogent3
 from cogent3.core.info import Info
-from cogent3.core.moltype import BYTES
 from cogent3.parse.record import RecordError
 from cogent3.parse.record_finder import LabeledRecordFinder
 from cogent3.util import warning as c3warn
@@ -22,7 +21,6 @@ from cogent3.util.io import is_url, open_
 _white_space = re.compile(r"\s+")
 strip = str.strip
 
-Sequence = BYTES.make_seq
 
 OutTypes = typing.Union[str, bytes, numpy.ndarray]
 OptConverterType = typing.Optional[typing.Callable[[bytes], OutTypes]]
@@ -100,8 +98,8 @@ def _strict_parser(
     label_to_name: RenamerType,
     label_char: str,
 ) -> typing.Iterable[tuple[str, str]]:
-    seq = []
-    label = None
+    seq: list[str] = []
+    label: str | None = None
     for line in data:
         if not line or line.startswith("#"):
             # ignore empty or comment lines
@@ -152,7 +150,7 @@ def MinimalFastaParser(
         character(s) at the start of a label line
     """
     if not path:
-        return []
+        return
 
     data = _prep_data(path)
     label_char = set(label_characters)
