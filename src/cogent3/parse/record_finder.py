@@ -164,15 +164,6 @@ def LabeledRecordFinder(is_label_line, constructor=strip, ignore=is_empty):
     return parser
 
 
-def is_fasta_label(x):
-    """Checks if x looks like a FASTA label line."""
-    return x.startswith(">")
-
-
-# The following is an example of the sorts of iterators RecordFinder returns.
-FastaFinder = LabeledRecordFinder(is_fasta_label)
-
-
 def LineGrouper(num, constructor=strip, ignore=is_empty):
     """Returns num lines at a time, stripping and ignoring blanks.
 

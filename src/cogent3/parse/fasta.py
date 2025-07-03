@@ -27,28 +27,6 @@ OptConverterType = typing.Optional[typing.Callable[[bytes], OutTypes]]
 RenamerType = typing.Callable[[str], str]
 
 
-def is_fasta_label(x):
-    """Checks if x looks like a FASTA label line."""
-    return x.startswith(">")
-
-
-def is_gde_label(x):
-    """Checks if x looks like a GDE label line."""
-    return x and x[0] in "%#"
-
-
-def is_blank_or_comment(x):
-    """Checks if x is blank or a FASTA comment line."""
-    return (not x) or x.startswith("#") or x.isspace()
-
-
-def is_blank(x):
-    """Checks if x is blank."""
-    return (not x) or x.isspace()
-
-
-FastaFinder = LabeledRecordFinder(is_fasta_label, ignore=is_blank_or_comment)
-
 PathOrIterableType = typing.Union[os.PathLike, list[str], tuple[str]]
 
 
@@ -160,7 +138,7 @@ def MinimalFastaParser(
         yield from _faster_parser(data, label_to_name, label_char)
 
 
-GdeFinder = LabeledRecordFinder(is_gde_label, ignore=is_blank)
+GdeFinder = LabeledRecordFinder(lambda x: x.startswith(("#", "%")))
 
 
 def MinimalGdeParser(infile, strict=True, label_to_name=str):
@@ -185,7 +163,9 @@ def is_xmfa_blank_or_comment(x):  # pragma: no cover
     return (not x) or x.startswith("=") or x.isspace()
 
 
-XmfaFinder = LabeledRecordFinder(is_fasta_label, ignore=is_xmfa_blank_or_comment)
+XmfaFinder = LabeledRecordFinder(
+    lambda x: x.startswith(">"), ignore=is_xmfa_blank_or_comment
+)
 
 
 @c3warn.deprecated_callable("2025.9", "not being used", is_discontinued=True)
