@@ -394,8 +394,15 @@ def _combined_chars(*parts: StrORBytes) -> StrORBytes:
     return concat
 
 
-coerce_to_rna = new_alphabet.convert_alphabet(b"tT", b"uU")
-coerce_to_dna = new_alphabet.convert_alphabet(b"uU", b"tT")
+coerce_to_rna = new_alphabet.convert_alphabet(
+    b"tTucag-nrywskmbdhv?", b"UUUCAG-NRYWSKMBDHV?"
+)
+coerce_to_dna = new_alphabet.convert_alphabet(
+    b"uUtcag-nrywskmbdhv?", b"TTTCAG-NRYWSKMBDHV?"
+)
+coerce_to_protein = new_alphabet.convert_alphabet(
+    b"acdefghiklmnpqrstuvwy*-bxz?", b"ACDEFGHIKLMNPQRSTUVWY*-BXZ?"
+)
 
 
 @dataclasses.dataclass
@@ -1484,6 +1491,7 @@ PROTEIN = MolType(
     colors=AA_COLORS,
     make_seq=new_sequence.ProteinSequence,
     mw_calculator=ProteinMW,
+    coerce_to=coerce_to_protein,
 )
 
 PROTEIN_WITH_STOP = MolType(
@@ -1493,6 +1501,7 @@ PROTEIN_WITH_STOP = MolType(
     colors=AA_COLORS,
     make_seq=new_sequence.ProteinWithStopSequence,
     mw_calculator=ProteinMW,
+    coerce_to=coerce_to_protein,
 )
 BYTES = MolType(
     # A default type for arbitrary chars read from a file etc. when we don't

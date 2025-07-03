@@ -240,7 +240,7 @@ def test_resolved_ambiguities(s, expect):
     [
         ("UCXXXAGWSNYRHBNZZZD-D", "UCAGWSNYRHBND-D"),
         ("@#^*($@!#&()!@QZX", ""),
-        ("aaaxggg---!ccc", "---"),
+        ("aaaxggg---!ccc", "AAAGGG---CCC"),
     ],
 )
 def test_sequence_strip_bad(seq, expect):
@@ -3039,7 +3039,7 @@ def test_make_seq_from_types(raw_seq):
 
 @pytest.mark.parametrize(
     "raw_seq",
-    ["GGTac", b"GGTac", numpy.array([3, 3, 0, 23, 43], dtype=numpy.uint8)],
+    ["GGT!", b"GGT!", numpy.array([3, 3, 0, 23, 43], dtype=numpy.uint8)],
 )
 def test_make_seq_invalid(raw_seq):
     # seq only valid if all upper case
