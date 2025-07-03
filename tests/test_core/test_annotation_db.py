@@ -684,7 +684,7 @@ def test_get_slice_annotation_offset_not_set():
     assert feature.map.num_spans == 2
     got = feature.get_slice()
     assert got.annotation_offset == 0
-    assert got.annotation_db is None
+    assert not len(got.annotation_db)
     f = list(got.get_features(biotype="gene"))
     assert not f
 
@@ -767,7 +767,7 @@ def test__getitem__(simple_seq_gff_db):
     seq_sliced = simple_seq_gff_db[4:6]
     assert seq_sliced == str(simple_seq_gff_db)[4:6]
     # check the underlying seq is still the original sequence data
-    assert seq_sliced._seq.seq == str(simple_seq_gff_db)
+    assert seq_sliced._seq.parent == str(simple_seq_gff_db)
     # check the annotation_db is still attached and the same instance
     assert seq_sliced.annotation_db
     assert seq_sliced.annotation_db is simple_seq_gff_db.annotation_db
