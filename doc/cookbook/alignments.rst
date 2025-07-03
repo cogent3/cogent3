@@ -33,7 +33,7 @@ Constructing a ``SequenceCollection`` or ``Alignment`` object from strings
 
     data = {"seq1": "ATGACC", "seq2": "ATCGCC"}
     # for an alignment, sequences must be the same length
-    seqs = make_aligned_seqs(data=data, moltype="dna")
+    seqs = make_aligned_seqs(data, moltype="dna")
     type(seqs)
 
 .. jupyter-execute::
@@ -177,7 +177,7 @@ Both collection and alignment objects have a ``write()`` method. The output form
     from cogent3 import make_aligned_seqs
 
     dna = {"seq1": "ATGACC", "seq2": "ATCGCC"}
-    aln = make_aligned_seqs(data=dna, moltype="dna")
+    aln = make_aligned_seqs(dna, moltype="dna")
     aln.write("sample.fasta")
 
 or by the ``format`` argument.
@@ -223,7 +223,7 @@ This is useful if you've loaded a sequence alignment without specifying the molt
     from cogent3 import make_aligned_seqs
 
     data = [("a", "ACG---"), ("b", "CCTGGG")]
-    aln = make_aligned_seqs(data=data, moltype="text")
+    aln = make_aligned_seqs(data, moltype="text")
     dna = aln.to_dna()
     dna
 
@@ -240,7 +240,7 @@ To RNA
     from cogent3 import make_aligned_seqs
 
     data = [("a", "ACG---"), ("b", "CCUGGG")]
-    aln = make_aligned_seqs(data=data, moltype="text")
+    aln = make_aligned_seqs(data, moltype="text")
     rna = aln.to_rna()
     rna
 
@@ -251,7 +251,7 @@ To PROTEIN
     from cogent3 import make_aligned_seqs
 
     data = [("x", "TYV"), ("y", "TE-")]
-    aln = make_aligned_seqs(data=data, moltype="text")
+    aln = make_aligned_seqs(data, moltype="text")
     prot = aln.to_moltype("protein")
     prot
 
@@ -401,7 +401,7 @@ We can use conventional slice notation. Note, because Python counts from 0, the 
     from cogent3 import make_aligned_seqs
 
     aln = make_aligned_seqs(
-        data={"seq1": "ATGATGATG---", "seq2": "ATGATGATGATG"},
+        {"seq1": "ATGATGATG---", "seq2": "ATGATGATGATG"},
         moltype="dna",
     )
     aln[2::3]
@@ -421,7 +421,7 @@ For evolutionary analyses that use codon models we need to exclude terminating s
     from cogent3 import make_aligned_seqs
 
     aln = make_aligned_seqs(
-        data={"seq1": "ACGTAA---", "seq2": "ACGACA---", "seq3": "ACGCAATGA"},
+        {"seq1": "ACGTAA---", "seq2": "ACGACA---", "seq3": "ACGCAATGA"},
         moltype="dna",
     )
     new = aln.trim_stop_codons()
@@ -432,8 +432,7 @@ To detect if the alignment contains sequences not divisible by 3, use the ``stri
 .. jupyter-execute::
     :raises:
 
-    aln = make_aligned_seqs(
-        data={
+    aln = make_aligned_seqs({
             "seq1": "ACGTAA---",
             "seq2": "ACGAC----",  # terminal codon incomplete
             "seq3": "ACGCAATGA",
@@ -451,8 +450,7 @@ We sometimes want to eliminate ambiguous or gap data from our alignments. We dem
 
     from cogent3 import make_aligned_seqs
 
-    aln = make_aligned_seqs(
-        data=[
+    aln = make_aligned_seqs([
             ("seq1", "ATGAAGGTG---"),
             ("seq2", "ATGAAGGTGATG"),
             ("seq3", "ATGAAGGNGATG"),
@@ -524,8 +522,7 @@ You can use ``take_seqs_if`` to extract sequences into a new alignment object ba
 
     from cogent3 import make_aligned_seqs
 
-    aln = make_aligned_seqs(
-        data=[
+    aln = make_aligned_seqs([
             ("seq1", "ATGAAGGTG---"),
             ("seq2", "ATGAAGGTGATG"),
             ("seq3", "ATGAAGGNGATG"),
@@ -556,8 +553,7 @@ We state the motif length we want and whether to allow gap or ambiguous characte
 
     from cogent3 import make_aligned_seqs
 
-    aln = make_aligned_seqs(
-        data=[
+    aln = make_aligned_seqs([
             ("seq1", "ATGAAGGTG---"),
             ("seq2", "ATGAAGGTGATG"),
             ("seq3", "ATGAAGGNGATG"),
@@ -588,8 +584,7 @@ Getting motif counts per sequence
 
     from cogent3 import make_aligned_seqs
 
-    aln = make_aligned_seqs(
-        data=[
+    aln = make_aligned_seqs([
             ("seq1", "ATGAAGGTG---"),
             ("seq2", "ATGAAGGTGATG"),
             ("seq3", "ATGAAGGNGATG"),
@@ -608,8 +603,7 @@ Getting motif counts per position
 
     from cogent3 import make_aligned_seqs
 
-    aln = make_aligned_seqs(
-        data=[
+    aln = make_aligned_seqs([
             ("seq1", "ATGAAGGTG---"),
             ("seq2", "ATGAAGGTGATG"),
             ("seq3", "ATGAAGGNGATG"),
@@ -650,7 +644,7 @@ Some calculations in ``cogent3`` require all non-zero values in the motif probab
 
 .. jupyter-execute::
 
-    aln = make_aligned_seqs(data=[("a", "AACAAC"), ("b", "AAGAAG")], moltype="dna")
+    aln = make_aligned_seqs([("a", "AACAAC"), ("b", "AAGAAG")], moltype="dna")
     motif_probs = aln.get_motif_probs()
     assert motif_probs["T"] == 0.0
     motif_probs = aln.get_motif_probs(pseudocount=1e-6)
@@ -700,8 +694,7 @@ If we want to remove positions from the alignment which are gaps in more than a 
 
 .. jupyter-execute::
 
-    aln = make_aligned_seqs(
-        data=[
+    aln = make_aligned_seqs([
             ("seq1", "ATGAA---TG-"),
             ("seq2", "ATG-AGTGATG"),
             ("seq3", "AT--AG-GATG"),

@@ -304,7 +304,7 @@ class select_translatable:
 
         if translatable:
             translatable = cogent3.make_unaligned_seqs(
-                data=translatable, moltype=self._moltype, info=seqs.info, source=source
+                translatable, moltype=self._moltype, info=seqs.info, source=source
             )
             translatable.info["translation_errors"] = error_log
         else:

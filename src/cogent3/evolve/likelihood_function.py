@@ -507,7 +507,7 @@ class LikelihoodFunction(ParameterController):
                 seq.append(max(by_p)[1])
             seqs += [(edge, self.model.moltype.make_seq(seq="".join(seq)))]
         return cogent3.make_aligned_seqs(
-            data=seqs,
+            seqs,
             moltype=self.model.moltype,
             array_align=True,
         )
@@ -1185,7 +1185,7 @@ class LikelihoodFunction(ParameterController):
         simulated_sequences = evolver(self._tree, root_sequence)
 
         return cogent3.make_aligned_seqs(
-            data=simulated_sequences,
+            simulated_sequences,
             moltype=self._model.moltype,
             array_align=True,
         )

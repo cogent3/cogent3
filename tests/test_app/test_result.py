@@ -105,7 +105,7 @@ def test_model_repr():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
+    aln = cogent3.make_aligned_seqs(_data, moltype="dna")
     mod = evo_app.model(
         "F81",
         show_progress=False,
@@ -124,7 +124,7 @@ def test_model_result_alignment():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
+    aln = cogent3.make_aligned_seqs(_data, moltype="dna")
     mod = evo_app.model(
         "F81",
         show_progress=False,
@@ -142,7 +142,7 @@ def test_model_name_lf_name():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
+    aln = cogent3.make_aligned_seqs(_data, moltype="dna")
     mod = evo_app.model(
         "F81",
         name="blah",
@@ -160,7 +160,7 @@ def test_model_result_alignment_split_pos_model():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
+    aln = cogent3.make_aligned_seqs(_data, moltype="dna")
     mod = evo_app.model(
         "F81",
         split_codons=True,
@@ -181,7 +181,7 @@ def test_model_result_repr_split_pos_model():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
+    aln = cogent3.make_aligned_seqs(_data, moltype="dna")
     mod = evo_app.model(
         "F81",
         split_codons=True,
@@ -199,7 +199,7 @@ def test_model_result_tree_split_pos_model():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
+    aln = cogent3.make_aligned_seqs(_data, moltype="dna")
     mod = evo_app.model(
         "F81",
         split_codons=True,
@@ -220,7 +220,7 @@ def test_model_result_simulate_alignment():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
+    aln = cogent3.make_aligned_seqs(_data, moltype="dna")
     mod = evo_app.model(
         "F81",
         split_codons=True,
@@ -240,7 +240,7 @@ def test_model_result_tree_discrete_time():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
+    aln = cogent3.make_aligned_seqs(_data, moltype="dna")
     model1 = evo_app.model(
         "BH",
         opt_args={"max_evaluations": 25, "limit_action": "ignore"},
@@ -265,7 +265,7 @@ def test_model_result_setitem():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
+    aln = cogent3.make_aligned_seqs(_data, moltype="dna")
     with pytest.raises(TypeError):
         r["name"] = aln
 
@@ -294,7 +294,7 @@ def model_results():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
+    aln = cogent3.make_aligned_seqs(_data, moltype="dna")
     model1 = evo_app.model(
         "F81",
         opt_args={"max_evaluations": 25, "limit_action": "ignore"},
@@ -400,7 +400,7 @@ def test_hypothesis_pvalue():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
+    aln = cogent3.make_aligned_seqs(_data, moltype="dna")
     model1 = evo_app.model(
         "F81",
         opt_args={"max_evaluations": 25, "limit_action": "ignore"},

@@ -69,7 +69,7 @@ _data = {
     "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
     "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
 }
-_aln = make_aligned_seqs(data=_data, moltype=DNA)
+_aln = make_aligned_seqs(_data, moltype=DNA)
 
 
 _NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
@@ -167,7 +167,7 @@ class LikelihoodCalcs(TestCase):
         aln = aln.to_dict()
         one = aln.pop("Mouse")
         aln["root"] = one
-        aln = make_aligned_seqs(data=aln, moltype="dna")
+        aln = make_aligned_seqs(aln, moltype="dna")
         submod = get_model("TN93")
         tree = make_tree(f"{tuple(aln.names)!s}")
         lf = submod.make_likelihood_function(tree)
@@ -494,7 +494,7 @@ class LikelihoodFunctionTests(TestCase):
 
     def test_simulate_alignment2(self):
         "Simulate alignment with dinucleotide model"
-        al = make_aligned_seqs(data={"a": "ggaatt", "c": "cctaat"}, moltype="dna")
+        al = make_aligned_seqs({"a": "ggaatt", "c": "cctaat"}, moltype="dna")
         t = make_tree("(a,c);")
         sm = substitution_model.TimeReversibleDinucleotide(mprob_model="tuple")
         lf = sm.make_likelihood_function(t)
@@ -506,7 +506,7 @@ class LikelihoodFunctionTests(TestCase):
         """provide a root sequence for simulating an alignment"""
 
         def use_root_seq(root_sequence):
-            al = make_aligned_seqs(data={"a": "ggaatt", "c": "cctaat"}, moltype="dna")
+            al = make_aligned_seqs({"a": "ggaatt", "c": "cctaat"}, moltype="dna")
             t = make_tree(treestring="(a,c);")
             sm = substitution_model.TimeReversibleDinucleotide(mprob_model="tuple")
             lf = sm.make_likelihood_function(t)
@@ -665,7 +665,7 @@ class LikelihoodFunctionTests(TestCase):
     def test_get_all_rate_matrices(self):
         """return matrices when just a pair"""
         aln = make_aligned_seqs(
-            data={
+            {
                 "Human": "GGCCTCCTGCGCTCCCTGGCCCGCCACCAG",
                 "Opossum": "GGCTCCCTGCGCTCCCTTTCCCGCCGCCGG",
             },
@@ -709,7 +709,7 @@ class LikelihoodFunctionTests(TestCase):
 
     def test_exercise_set_align(self):
         "lf.set_align should work for different models"
-        al = make_aligned_seqs(data={"a": "ggaatt", "c": "cctaat"}, moltype="dna")
+        al = make_aligned_seqs({"a": "ggaatt", "c": "cctaat"}, moltype="dna")
         t = make_tree(treestring="(a,c);")
         for klass in [CNFGTR, Y98, MG94HKY]:
             sm = klass()
@@ -2195,7 +2195,7 @@ def test_simulate_alignment3():
     preserved"""
     t = make_tree(treestring="(a:0.4,b:0.3,(c:0.15,d:0.2)edge.0:0.1)root;")
     al = make_aligned_seqs(
-        data={
+        {
             "a": "G--CACTAT?",
             "b": "---C-CTCCT",
             "c": "-A-C-CTAT-",

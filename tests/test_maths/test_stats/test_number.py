@@ -193,7 +193,7 @@ class TestNumber(TestCase):
             "RoundEare": "TCATTA",
             "TombBat": "TCAGTA",
         }
-        aln = make_aligned_seqs(data=data, moltype="dna")
+        aln = make_aligned_seqs(data, moltype="dna")
         got = aln.counts_per_pos(motif_length=3)
         assert got[0, "TCA"] == 8
         assert got[0, "TCT"] == 2

@@ -316,7 +316,7 @@ class NewQ(TestCase):
         """return correct motif probability vector for tree nodes"""
         tree = cogent3.make_tree(treestring="(a:.2,b:.2,(c:.1,d:.1):.1)")
         aln = cogent3.make_aligned_seqs(
-            data={"a": "TGTG", "b": "TGTG", "c": "TGTG", "d": "TGTG"},
+            {"a": "TGTG", "b": "TGTG", "c": "TGTG", "d": "TGTG"},
             moltype="dna",
         )
 

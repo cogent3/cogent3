@@ -318,7 +318,7 @@ def make_pwise_from_dict(data, ref_name):
     result = []
     for n, seqs in data.items():
         result.append(
-            [n, make_aligned_seqs(data=seqs, moltype="dna", array_align=False)],
+            [n, make_aligned_seqs(seqs, moltype="dna")],
         )
     ref_seq = result[0][1].get_seq(ref_name)
     return result, ref_seq
@@ -407,7 +407,7 @@ def test_progressive_fails():
     """should return NotCompletedResult along with message"""
     # Bandicoot has an inf-frame stop codon
     seqs = make_unaligned_seqs(
-        data={"Human": "GCCTCA", "Rhesus": "GCCAGCTCA", "Bandicoot": "TGATCATTA"},
+        {"Human": "GCCTCA", "Rhesus": "GCCAGCTCA", "Bandicoot": "TGATCATTA"},
         moltype="dna",
     )
     aligner = align_app.progressive_align(model="codon")
@@ -502,7 +502,7 @@ def test_information_content_score(array_align):
     app_not_equifreq = get_app("ic_score", equifreq_mprobs=False)
 
     aln = make_aligned_seqs(
-        data=["AATTGA", "AGGTCC", "AGGATG", "AGGCGT"],
+        ["AATTGA", "AGGTCC", "AGGATG", "AGGCGT"],
         moltype="dna",
         array_align=array_align,
     )
@@ -519,7 +519,7 @@ def test_information_content_score(array_align):
     assert_allclose(got, expect)
 
     aln = make_aligned_seqs(
-        data=["AAAC", "ACGC", "AGCC", "A-TC"],
+        ["AAAC", "ACGC", "AGCC", "A-TC"],
         moltype="dna",
         array_align=array_align,
     )
@@ -534,7 +534,7 @@ def test_information_content_score(array_align):
 
     # 1. Alignment just gaps - alignment_quality returns 0.0
     aln = make_aligned_seqs(
-        data=["----", "----"],
+        ["----", "----"],
         moltype="dna",
         array_align=array_align,
     )
@@ -542,13 +542,13 @@ def test_information_content_score(array_align):
     assert_allclose(got, 0.0)
 
     # 2 Just one sequence - alignment_quality returns 0.0
-    aln = make_aligned_seqs(data=["AAAC"], moltype="dna", array_align=array_align)
+    aln = make_aligned_seqs(["AAAC"], moltype="dna")
     got = app_equifreq(aln)  # pylint: disable=not-callable
     assert_allclose(got, 0.0)
 
     # 3.1 Two seqs, one all gaps. (equifreq_mprobs=True)
     aln = make_aligned_seqs(
-        data=["----", "ACAT"],
+        ["----", "ACAT"],
         moltype="dna",
         array_align=array_align,
     )
@@ -557,7 +557,7 @@ def test_information_content_score(array_align):
 
     # 3.2 Two seqs, one all gaps. (equifreq_mprobs=False)
     aln = make_aligned_seqs(
-        data=["----", "AAAA"],
+        ["----", "AAAA"],
         moltype="dna",
         array_align=array_align,
     )
@@ -600,14 +600,14 @@ def test_sp_score_exclude_gap():
     data = {"s1": "AAGAA-A", "s2": "-ATAATG", "s3": "C-TGG-G"}
     # prop unchanged s1-s2, s1-s3
     expect = sum([6 * 3 / 6, 0, 5 * 2 / 5])
-    aln = make_aligned_seqs(data, moltype="dna", array_align=False)
+    aln = make_aligned_seqs(data, moltype="dna")
     got = app.main(aln)
     assert_allclose(got, expect)
 
 
 def test_sp_fail():
     aln = make_aligned_seqs(
-        data={"a": "ATG---------AATCGAAGA", "b": "GTG---------GAAAAGCAG"},
+        {"a": "ATG---------AATCGAAGA", "b": "GTG---------GAAAAGCAG"},
         moltype="dna",
     )
     app = get_app("sp_score")
@@ -686,7 +686,7 @@ def test_progressive_align_iters(seqs):
 def test_smith_waterman_matches_local_pairwise(seqs):
     aligner = smith_waterman()
     coll = make_unaligned_seqs(
-        data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot")],
+        [seqs.get_seq("Human"), seqs.get_seq("Bandicoot")],
         moltype="dna",
     )
     got = aligner(coll)  # pylint: disable=not-callable
@@ -707,7 +707,7 @@ def test_smith_waterman_matches_local_pairwise(seqs):
 def test_smith_waterman_score(seqs):
     aligner = smith_waterman()
     coll = make_unaligned_seqs(
-        data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot")],
+        [seqs.get_seq("Human"), seqs.get_seq("Bandicoot")],
         moltype="dna",
     )
     aln = aligner(coll)  # pylint: disable=not-callable
@@ -742,7 +742,7 @@ def test_smith_waterman_no_moltype(seqs):
     """
     aligner = smith_waterman()
     coll = make_unaligned_seqs(
-        data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot")],
+        [seqs.get_seq("Human"), seqs.get_seq("Bandicoot")],
         moltype="dna",
     )
     aln = aligner(coll)  # pylint: disable=not-callable
@@ -757,7 +757,7 @@ def test_smith_waterman_wrong_moltype(moltype_1, moltype_2):
     """
     aligner = smith_waterman(moltype=moltype_1)
     coll = make_unaligned_seqs(
-        data={"Human": "AUUCGAUGG", "Bandicoot": "AUUGCCCGAUGG"},
+        {"Human": "AUUCGAUGG", "Bandicoot": "AUUGCCCGAUGG"},
         moltype=moltype_2,
     )
     aln = aligner(coll)  # pylint: disable=not-callable
@@ -768,13 +768,13 @@ def test_smith_waterman_raises(seqs):
     """SW should fail when given a SequenceCollection that deos not contain 2 seqs"""
     aligner = smith_waterman()
     coll = make_unaligned_seqs(
-        data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot"), seqs.get_seq("Rhesus")],
+        [seqs.get_seq("Human"), seqs.get_seq("Bandicoot"), seqs.get_seq("Rhesus")],
         moltype="dna",
     )
     aln = aligner(coll)  # pylint: disable=not-callable
     assert isinstance(aln, NotCompleted)
 
-    coll = make_unaligned_seqs(data=[seqs.get_seq("Human")], moltype="dna")
+    coll = make_unaligned_seqs([seqs.get_seq("Human")], moltype="dna")
     aln = aligner(coll)  # pylint: disable=not-callable
     assert isinstance(aln, NotCompleted)
 

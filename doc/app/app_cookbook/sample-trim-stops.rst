@@ -18,7 +18,7 @@ For evolutionary analyses that use codon models, we need to exclude terminating 
     from cogent3 import get_app, make_aligned_seqs
 
     aln = make_aligned_seqs(
-        data={"seq1": "ACGTAA---", "seq2": "ACGACA---", "seq3": "ACGCAATGA"},
+        {"seq1": "ACGTAA---", "seq2": "ACGACA---", "seq3": "ACGCAATGA"},
         moltype="dna",
     )
     no_stops = get_app("trim_stop_codons", gc=1)

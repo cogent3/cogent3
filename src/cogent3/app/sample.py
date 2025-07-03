@@ -144,7 +144,7 @@ class concat:
 
         combined = {n: self._join_seq.join(collated[n]) for n in names}
         if aln := cogent3.make_aligned_seqs(
-            data=combined,
+            combined,
             moltype=self._moltype,
             array_align=True,
         ):
@@ -1194,7 +1194,7 @@ class trim_stop_codons:
 
         >>> from cogent3 import make_unaligned_seqs, make_aligned_seqs, get_app
         >>> ualn = make_unaligned_seqs(
-        ...     data={"s1": "AAATTTCCC", "s2": "AAATTTTAA"}, moltype="dna"
+        ...     {"s1": "AAATTTCCC", "s2": "AAATTTTAA"}, moltype="dna"
         ... )
         >>> app = get_app("trim_stop_codons")
         >>> result = app(ualn)
@@ -1208,7 +1208,7 @@ class trim_stop_codons:
         https://cogent3.org/doc/cookbook/what_codes.html.
 
         >>> aln = make_aligned_seqs(
-        ...     data={"s1": "AAATTTCCC", "s2": "AAATTTTAA"}, moltype="dna"
+        ...     {"s1": "AAATTTCCC", "s2": "AAATTTTAA"}, moltype="dna"
         ... )
         >>> app = get_app("trim_stop_codons", gc=2)
         >>> result = app(aln)

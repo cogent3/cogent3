@@ -51,7 +51,7 @@ def test_select_translatable():
         "a": "AATATAAATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTTCATAAAGTCATA",
         "rc": "TATGACTTTATGAAGTAATAAACTGCTGTTCTCATGCTGTAATGAGCTGGCATTTATATT",
     }
-    seqs = cogent3.make_unaligned_seqs(data=data, moltype=DNA)
+    seqs = cogent3.make_unaligned_seqs(data, moltype=DNA)
     trans = select_translatable(allow_rc=False)
     tr = trans(seqs)  # pylint: disable=not-callable
     ex = data.copy()
@@ -66,7 +66,7 @@ def test_select_translatable():
 
     # if seqs not translatable returns NotCompletedResult
     data = {"a": "TAATTGATTAA", "b": "GCATAATTA"}
-    seqs = cogent3.make_unaligned_seqs(data=data, moltype=DNA)
+    seqs = cogent3.make_unaligned_seqs(data, moltype=DNA)
     got = select_translatable(allow_rc=False, frame=1)(seqs)  # pylint: disable=not-callable
     assert isinstance(got, NotCompleted)
 
@@ -157,7 +157,7 @@ def framed_seqs(DATA_DIR, request):
     frame = None if request.param is None else request.param + 1
     for k, s in data.items():
         data[k] = prefix + s
-    return cogent3.make_unaligned_seqs(data=data, moltype="dna", info={"frame": frame})
+    return cogent3.make_unaligned_seqs(data, moltype="dna", info={"frame": frame})
 
 
 def test_select_translatable_with_frame_terminal_stop(framed_seqs):

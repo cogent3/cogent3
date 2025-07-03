@@ -17,8 +17,7 @@ class TranslateTests(TestCase):
     def _codon_positions(self, array_align):
         """correctly return codon positions"""
         aln = cogent3.make_aligned_seqs(
-            data=[("a", "ACGACGACG"), ("b", "GATGATGAT")],
-            array_align=array_align,
+            [("a", "ACGACGACG"), ("b", "GATGATGAT")],
             moltype=DNA,
         )
         one = sample.take_codon_positions(1)
@@ -60,7 +59,7 @@ class TranslateTests(TestCase):
         select = sample.take_named_seqs("a", "b")
         alns = [
             cogent3.make_aligned_seqs(
-                data=[
+                [
                     ("a", "GCAAGCGTTTAT"),
                     ("b", "GCTTTTGTCAAT"),
                     ("c", "GC--GCGTTTAT"),
@@ -69,7 +68,7 @@ class TranslateTests(TestCase):
                 moltype=DNA,
             ),
             cogent3.make_aligned_seqs(
-                data=[
+                [
                     ("a", "GGAAGCGTTTAT"),
                     ("b", "GCTTTTGTCAAT"),
                     ("c", "GC--GCGTTTAT"),
@@ -86,7 +85,7 @@ class TranslateTests(TestCase):
         assert got == expected
         # return False if a named seq absent
         aln = cogent3.make_aligned_seqs(
-            data=[("c", "GC--GCGTTTAT"), ("d", "GCAAGCNNTTAT")],
+            [("c", "GC--GCGTTTAT"), ("d", "GCAAGCNNTTAT")],
             moltype=DNA,
         )
         got = select(aln)
@@ -97,11 +96,11 @@ class TranslateTests(TestCase):
         select = sample.take_named_seqs("c", negate=True)
         alns = [
             cogent3.make_aligned_seqs(
-                data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
+                [("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
                 moltype=DNA,
             ),
             cogent3.make_aligned_seqs(
-                data=[
+                [
                     ("a", "GGAAGCGTTTAT"),
                     ("b", "GCTTTTGTCAAT"),
                     ("c", "GC--GCGTTTAT"),
@@ -122,7 +121,7 @@ class TranslateTests(TestCase):
     def test_fixedlength(self):
         """correctly returns data with specified length"""
         aln = cogent3.make_aligned_seqs(
-            data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
+            [("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
             moltype=DNA,
         )
 
@@ -136,11 +135,11 @@ class TranslateTests(TestCase):
 
         alns = [
             cogent3.make_aligned_seqs(
-                data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
+                [("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
                 moltype=DNA,
             ),
             cogent3.make_aligned_seqs(
-                data=[("a", "GGAAGCGT"), ("b", "GCTTT-GT")],
+                [("a", "GGAAGCGT"), ("b", "GCTTT-GT")],
                 moltype=DNA,
             ),
         ]
@@ -166,7 +165,7 @@ class TranslateTests(TestCase):
         # these will be just a subset as sampling one triplet
         fl = sample.fixed_length(3, random=True, motif_length=3)
         d = cogent3.make_aligned_seqs(
-            data=[("a", "GCAAGCGTGTAT"), ("b", "GCTACTGTCAAT")],
+            [("a", "GCAAGCGTGTAT"), ("b", "GCTACTGTCAAT")],
             moltype=DNA,
         )
         expect = d.to_dict()
@@ -207,7 +206,7 @@ class TranslateTests(TestCase):
             "g": "YAAA",  # non-strict identical
             "h": "GGGG",
         }  # unique!
-        seqs = cogent3.make_unaligned_seqs(data=data, moltype=DNA)
+        seqs = cogent3.make_unaligned_seqs(data, moltype=DNA)
 
         # mask_degen = True : [{'a', 'c', 'b'}, {'k', 'd', 'e'},
         # {'g', 'f'}] are dupe sets. Only 'h' unique
@@ -242,7 +241,7 @@ class TranslateTests(TestCase):
             "h": "GGGG",
         }  # unique!
         # choose longest
-        seqs = cogent3.make_aligned_seqs(data=data, moltype=DNA)
+        seqs = cogent3.make_aligned_seqs(data, moltype=DNA)
         drop = sample.omit_duplicated(mask_degen=True, choose="longest", moltype="dna")
         got = drop(seqs)
         expect = {"a": "ACGT", "k": "ACGG", "g": "YAAA", "h": "GGGG"}
@@ -260,7 +259,7 @@ class TranslateTests(TestCase):
     def test_concat(self):
         """returns concatenated alignment"""
         alns = [
-            cogent3.make_aligned_seqs(data=d, moltype=DNA)
+            cogent3.make_aligned_seqs(d, moltype=DNA)
             for d in [
                 {"seq1": "AAA", "seq2": "AAA", "seq3": "AAA"},
                 {"seq1": "TTT", "seq2": "TTT", "seq3": "TTT", "seq4": "TTT"},
@@ -287,7 +286,7 @@ class TranslateTests(TestCase):
     def test_concat_handles_moltype(self):
         """coerces to type"""
         alns = [
-            cogent3.make_aligned_seqs(data=d, moltype=DNA)
+            cogent3.make_aligned_seqs(d, moltype=DNA)
             for d in [
                 {"seq1": "AAA", "seq2": "AAA", "seq3": "AAA"},
                 {"seq1": "TTT", "seq2": "TTT", "seq3": "TTT", "seq4": "TTT"},
@@ -303,7 +302,7 @@ class TranslateTests(TestCase):
         data = [
             {"seq1": "AAA", "seq2": "AAA", "seq3": "AAA"},
             cogent3.make_aligned_seqs(
-                data={"seq1": "TTT", "seq2": "TTT", "seq3": "TTT", "seq4": "TTT"},
+                {"seq1": "TTT", "seq2": "TTT", "seq3": "TTT", "seq4": "TTT"},
                 moltype=DNA,
             ),
         ]
@@ -320,7 +319,7 @@ class TranslateTests(TestCase):
         """trims stop codons using the specified genetic code"""
         trimmer = sample.trim_stop_codons()  # defaults to standard code
         seqs = cogent3.make_unaligned_seqs(
-            data={"seq1": "AAATTTCCC", "seq2": "AAATTTTAA"},
+            {"seq1": "AAATTTCCC", "seq2": "AAATTTTAA"},
             moltype="dna",
         )
         got = trimmer(seqs)
@@ -329,7 +328,7 @@ class TranslateTests(TestCase):
 
         trimmer = sample.trim_stop_codons(gc=1)  # standard code
         seqs = cogent3.make_unaligned_seqs(
-            data={"seq1": "AAATTTCCC", "seq2": "AAATTTTAA"},
+            {"seq1": "AAATTTCCC", "seq2": "AAATTTTAA"},
             moltype="dna",
         )
         got = trimmer(seqs)
@@ -337,7 +336,7 @@ class TranslateTests(TestCase):
         assert got.to_dict() == expect
         trimmer = sample.trim_stop_codons(gc=1)  # standard code
         aln = cogent3.make_aligned_seqs(
-            data={"seq1": "AAATTTCCC", "seq2": "AAATTTTAA"},
+            {"seq1": "AAATTTCCC", "seq2": "AAATTTTAA"},
             moltype="dna",
         )
         got = trimmer(aln)
@@ -347,7 +346,7 @@ class TranslateTests(TestCase):
         # different genetic code
         trimmer = sample.trim_stop_codons(gc=2)  # mt code
         seqs = cogent3.make_unaligned_seqs(
-            data={"seq1": "AAATTTCCC", "seq2": "AAATTTAGA"},
+            {"seq1": "AAATTTCCC", "seq2": "AAATTTAGA"},
             moltype="dna",
         )
         got = trimmer(seqs)
@@ -357,7 +356,7 @@ class TranslateTests(TestCase):
     def test_take_n_seqs(self):
         """select specified number of sequences from a collection"""
         seqs1 = cogent3.make_unaligned_seqs(
-            data={
+            {
                 "a": "ACGT",
                 "b": "ACG-",
                 "c": "ACGN",
@@ -533,7 +532,7 @@ def test_omit_bad_seqs_ambigs(bad_ambig_gap_data):
 def test_filter_degen():
     """just_nucs correctly identifies data with only nucleotides"""
     aln = cogent3.make_aligned_seqs(
-        data=[("a", "ACGA-GACG"), ("b", "GATGATGYT")],
+        [("a", "ACGA-GACG"), ("b", "GATGATGYT")],
         moltype=DNA,
     )
     degen = sample.omit_degenerates(moltype="dna")
@@ -544,7 +543,7 @@ def test_filter_degen():
 
     # no ungapped columns
     aln = cogent3.make_aligned_seqs(
-        data=[("a", "-C-A-G-C-"), ("b", "G-T-A-G-T")],
+        [("a", "-C-A-G-C-"), ("b", "G-T-A-G-T")],
         moltype=DNA,
     )
     got = degen(aln)
@@ -552,8 +551,7 @@ def test_filter_degen():
 
     # we get back the alignment type we passed in
     aln = cogent3.make_aligned_seqs(
-        data=[("a", "ACGA-GACG"), ("b", "GATGATGYT")],
-        array_align=False,
+        [("a", "ACGA-GACG"), ("b", "GATGATGYT")],
         moltype=DNA,
     )
     got = degen(aln)
@@ -575,7 +573,7 @@ def test_omit_gapped():
     """omit_gap_pos correctly drops aligned columns"""
     # array alignment
     data = [("a", "ACGA-GA-CG"), ("b", "GATGATG-AT")]
-    aln = cogent3.make_aligned_seqs(data=data, moltype=DNA)
+    aln = cogent3.make_aligned_seqs(data, moltype=DNA)
     nogaps = sample.omit_gap_pos(moltype="dna", allowed_frac=0)  # default
     got = nogaps(aln)  # pylint: disable=not-callable
     # not doing isinstance during transition to new_type
@@ -583,17 +581,17 @@ def test_omit_gapped():
     expect = {"a": "ACGAGACG", "b": "GATGTGAT"}
     assert got.to_dict() == expect
     # standard alignment
-    aln = cogent3.make_aligned_seqs(data=data, array_align=False, moltype=DNA)
+    aln = cogent3.make_aligned_seqs(data, moltype=DNA)
     got = nogaps(aln)  # pylint: disable=not-callable
     assert got.__class__.__name__.endswith("Alignment")
     assert got.to_dict() == expect
     # non-exclusive gaps
     not_all_gaps = sample.omit_gap_pos(moltype="dna")  # default
     expect = {"a": "ACGA-GACG", "b": "GATGATGAT"}
-    aln = cogent3.make_aligned_seqs(data=data, moltype=DNA)
+    aln = cogent3.make_aligned_seqs(data, moltype=DNA)
     got = not_all_gaps(aln)  # pylint: disable=not-callable
     assert got.to_dict() == expect
-    aln = cogent3.make_aligned_seqs(data=data, array_align=False, moltype=DNA)
+    aln = cogent3.make_aligned_seqs(data, moltype=DNA)
     got = not_all_gaps(aln)  # pylint: disable=not-callable
     assert got.to_dict() == expect
     # with motif length
@@ -602,14 +600,14 @@ def test_omit_gapped():
         allowed_frac=0,
         motif_length=2,
     )
-    aln = cogent3.make_aligned_seqs(data=data, moltype=DNA)
+    aln = cogent3.make_aligned_seqs(data, moltype=DNA)
     expect = {"a": "ACGACG", "b": "GATGAT"}
     got = not_all_gaps(aln)  # pylint: disable=not-callable
     assert got.to_dict() == expect
 
     # no ungapped columns returns NotCompleted
     aln = cogent3.make_aligned_seqs(
-        data=[("a", "-C-A-G-C-"), ("b", "G-T-A-G-T")],
+        [("a", "-C-A-G-C-"), ("b", "G-T-A-G-T")],
         moltype=DNA,
     )
     got = nogaps(aln)  # pylint: disable=not-callable
@@ -619,7 +617,7 @@ def test_omit_gapped():
 def test_minlength():
     """correctly identifies data with minimal length"""
     aln = cogent3.make_aligned_seqs(
-        data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
+        [("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
         moltype="text",
     )
 
@@ -640,11 +638,11 @@ def test_minlength():
 
     alns = [
         cogent3.make_aligned_seqs(
-            data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
+            [("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
             moltype=DNA,
         ),
         cogent3.make_aligned_seqs(
-            data=[("a", "GGAAGCGT"), ("b", "GCTTT-GT")],
+            [("a", "GGAAGCGT"), ("b", "GCTTT-GT")],
             moltype=DNA,
         ),
     ]
@@ -659,7 +657,7 @@ def test_minlength():
 
     alns = [
         cogent3.make_unaligned_seqs(
-            data=[("a", "GGAAGCGT"), ("b", "GCTTNGT")],
+            [("a", "GGAAGCGT"), ("b", "GCTTNGT")],
             moltype=DNA,
         ),
     ]
@@ -678,7 +676,7 @@ def test_codon_positions_4fold_degen():
     """codon_positions correctly return fourfold degenerate bases"""
     #                           **4---**4---
     aln = cogent3.make_aligned_seqs(
-        data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
+        [("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
         moltype=DNA,
     )
     expect = {"a": "AT", "b": "TC"}
@@ -692,9 +690,7 @@ def test_codon_positions_4fold_degen():
 
 def test_fourfold_empty_alignment():
     aln = cogent3.make_aligned_seqs(
-        {"s1": "ACGACGACG", "s2": "GATGATGAT"},
-        moltype="dna",
-        new_type=True,
+        {"s1": "ACGACGACG", "s2": "GATGATGAT"}, moltype="dna"
     )
     take_fourfold = cogent3.get_app(
         "take_codon_positions",

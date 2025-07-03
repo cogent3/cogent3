@@ -184,7 +184,7 @@ This is done using ``make_unaligned_seqs()``, which returns a ``SequenceCollecti
     from cogent3 import make_unaligned_seqs
 
     seqs = {"seq1": "AATCA", "seq2": "AATCGGA"}
-    seqs = make_unaligned_seqs(data=seqs, moltype="dna")
+    seqs = make_unaligned_seqs(seqs, moltype="dna")
     seqs
 
 Loading sequences using format parsers

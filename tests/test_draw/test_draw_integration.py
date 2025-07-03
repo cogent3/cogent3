@@ -413,8 +413,7 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
     def test_get_drawable(self):  # ported
         """sliced alignment with features returns a drawable"""
         aln = make_aligned_seqs(
-            data={"a": "AAACGGTTT", "b": "CAA--GTAA"},
-            array_align=False,
+            {"a": "AAACGGTTT", "b": "CAA--GTAA"},
             moltype="dna",
         )
         db = GffAnnotationDb()

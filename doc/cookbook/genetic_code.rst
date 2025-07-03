@@ -31,7 +31,7 @@ For example, I've created a partial codon in ``"s1"``
         "s5": "ACTCATGCCAGCTCAGTACAGCATGAGAACAGCAGT",
     }
 
-    nt_seqs = make_aligned_seqs(data=data, moltype="dna")
+    nt_seqs = make_aligned_seqs(data, moltype="dna")
     nt_seqs
 
 We specify the genetic code, and we allow incomplete codons. In this case, if a codon contains a gap, they are converted to ``?`` in the translation.

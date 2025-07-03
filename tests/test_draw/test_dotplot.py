@@ -182,9 +182,7 @@ def test_get_align_coords_common_gaps():
 
 def test_align_without_gaps():
     """dotplot has alignment coordinates if no gaps"""
-    aln = make_aligned_seqs(
-        data={"seq1": "ACGG", "seq2": "ACGG"}, moltype="dna", new_type=True
-    )
+    aln = make_aligned_seqs({"seq1": "ACGG", "seq2": "ACGG"}, moltype="dna")
     dp = aln.dotplot(window=2, threshold=1)
     # trigger building the figure
     dp.figure
@@ -194,7 +192,7 @@ def test_align_without_gaps():
 def test_dotplot_seqcoll():
     """dotplot sequence collection, gaps are removed"""
     seqs = make_unaligned_seqs(
-        {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}, moltype="dna", new_type=True
+        {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}, moltype="dna"
     )
     dp = seqs.dotplot("seq1", "seq3")
     assert all(trace["name"] != "Alignment" for trace in dp.traces)

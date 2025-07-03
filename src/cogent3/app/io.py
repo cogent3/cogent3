@@ -296,7 +296,7 @@ def _load_seqs(
     else:
         data = parser.loader(path)
     unique_id = getattr(path, "unique_id", getattr(path, "name", str(path)))
-    return coll_maker(data=data, moltype=moltype, source=unique_id)
+    return coll_maker(data, moltype=moltype, source=unique_id)
 
 
 @define_app(app_type=LOADER)

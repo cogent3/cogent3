@@ -393,7 +393,7 @@ class UtilsTests(TestCase):
 
         # handle a type
         instance = cogent3.make_unaligned_seqs(
-            data={"a": "ACG", "b": "GGG"},
+            {"a": "ACG", "b": "GGG"},
             moltype="dna",
         )
         instance_prov = get_object_provenance(instance)

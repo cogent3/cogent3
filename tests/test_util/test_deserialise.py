@@ -59,7 +59,7 @@ def test_roundtrip_moltype():
 def test_roundtrip_seqcoll():
     """SequenceCollection to_json enables roundtrip"""
     data = {"A": "TTGT", "B": "GGCT"}
-    seqcoll = make_unaligned_seqs(data=data, moltype="dna")
+    seqcoll = make_unaligned_seqs(data, moltype="dna")
     got = deserialise_object(seqcoll.to_json())
     assert got.rc().to_dict() == seqcoll.rc().to_dict()
     assert got.__class__.__name__ == "SequenceCollection"
@@ -68,7 +68,7 @@ def test_roundtrip_seqcoll():
 def test_roundtrip_align():
     """Alignment to_json enables roundtrip"""
     data = {"A": "TTGTA", "B": "GGCT-"}
-    align = make_aligned_seqs(data=data, moltype="dna", array_align=False)
+    align = make_aligned_seqs(data, moltype="dna")
     got = deserialise_object(align.to_json())
     assert got.rc().to_dict() == align.rc().to_dict()
     assert got.__class__.__name__.endswith("Alignment")
@@ -125,7 +125,7 @@ def test_roundtrip_likelihood_function():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = make_aligned_seqs(data=_data, moltype="dna")
+    aln = make_aligned_seqs(_data, moltype="dna")
     tree = make_tree(tip_names=aln.names)
     sm = get_model("HKY85")
     lf = sm.make_likelihood_function(tree)
@@ -146,7 +146,7 @@ def test_roundtrip_discrete_time_likelihood_function():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = make_aligned_seqs(data=_data, moltype="dna")
+    aln = make_aligned_seqs(_data, moltype="dna")
     tree = make_tree(tip_names=aln.names)
     sm = get_model("BH")
     lf = sm.make_likelihood_function(tree)
@@ -182,7 +182,7 @@ def test_roundtrip_from_file(tmp_path):
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = make_aligned_seqs(data=_data, moltype="dna")
+    aln = make_aligned_seqs(_data, moltype="dna")
     tree = make_tree(tip_names=aln.names)
     sm = get_model("HKY85")
     lf = sm.make_likelihood_function(tree)
@@ -208,7 +208,7 @@ def test_roundtrip_model_result():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = make_aligned_seqs(data=_data, moltype="dna")
+    aln = make_aligned_seqs(_data, moltype="dna")
     tree = make_tree(tip_names=aln.names)
     sm = get_model("HKY85")
     lf = sm.make_likelihood_function(tree)
@@ -247,7 +247,7 @@ def test_roundtrip_model_result2():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = make_aligned_seqs(data=_data, moltype="dna")
+    aln = make_aligned_seqs(_data, moltype="dna")
     opt_args = {"max_evaluations": 10, "limit_action": "ignore"}
     m1 = evo_app.model("F81", split_codons=True, opt_args=opt_args)
     result = m1(aln)
@@ -282,7 +282,7 @@ def test_model_collection_result():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = make_aligned_seqs(data=_data, moltype="dna")
+    aln = make_aligned_seqs(_data, moltype="dna")
     opt_args = {"max_evaluations": 10, "limit_action": "ignore"}
     m1 = evo_app.model("F81", split_codons=True, opt_args=opt_args)
     m2 = evo_app.model("GTR", split_codons=True, opt_args=opt_args)
@@ -320,7 +320,7 @@ def test_roundtrip_hypothesis_result():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = make_aligned_seqs(data=_data, moltype="dna")
+    aln = make_aligned_seqs(_data, moltype="dna")
     opt_args = {"max_evaluations": 10, "limit_action": "ignore"}
     m1 = evo_app.model("F81", split_codons=True, opt_args=opt_args)
     m2 = evo_app.model("GTR", split_codons=True, opt_args=opt_args)
@@ -564,7 +564,7 @@ def test_roundtrip_TN93_model(rate_matrix_required):
         "b": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "c": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = make_aligned_seqs(data=_data, moltype="dna")
+    aln = make_aligned_seqs(_data, moltype="dna")
     tree = make_tree(tip_names=["a", "b", "c"])
     tn93 = get_model(
         "TN93",
@@ -582,7 +582,7 @@ def test_roundtrip_TN93_model_result():
         "b": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "c": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = make_aligned_seqs(data=_data, moltype="dna")
+    aln = make_aligned_seqs(_data, moltype="dna")
     tn93 = get_app("model", "TN93")
     result = tn93(aln)
 

@@ -92,8 +92,8 @@ def test_write_seqs(fasta_dir, tmp_dir):
     datamember = datastore[0]
     data = datamember.read().splitlines()
     data = dict(iter(PARSERS["fasta".lower()](data)))
-    seqs = cogent3.make_aligned_seqs(data=data, moltype="text")
-    seqs.info.source = datastore.source
+    seqs = cogent3.make_aligned_seqs(data, moltype="text")
+    seqs.source = datastore.source
     out_data_store = DataStoreDirectory(
         tmp_dir / "test_write_seqs",
         mode=Mode.w,
@@ -480,7 +480,7 @@ def test_load_db_prefer_source_attr(tmp_dir):
     data_store = DataStoreSqlite(path, mode="w")
 
     seqs = cogent3.make_unaligned_seqs(
-        data={"a": "ACGG", "b": "GGC"},
+        {"a": "ACGG", "b": "GGC"},
         moltype="dna",
         info={"demo": "dummy"},
         new_type=True,
@@ -568,7 +568,7 @@ def seqs():
     from cogent3 import make_unaligned_seqs
 
     return make_unaligned_seqs(
-        data={"a": "ACGG", "b": "GGC"},
+        {"a": "ACGG", "b": "GGC"},
         moltype="dna",
         info={"source": "dummy/blah.1.2.fa"},
         new_type=True,
@@ -579,7 +579,7 @@ def table():
     from cogent3 import make_table
 
     table = make_table(
-        data={"a": [0, 1, 2], "b": [0, 1, 2]},
+        {"a": [0, 1, 2], "b": [0, 1, 2]},
     )
     table.source = "dummy/blah.1.2.fa"
     return table
