@@ -16,6 +16,7 @@ from cogent3.core.info import Info
 from cogent3.core.moltype import BYTES
 from cogent3.parse.record import RecordError
 from cogent3.parse.record_finder import LabeledRecordFinder
+from cogent3.util import warning as c3warn
 from cogent3.util.io import is_url, open_
 
 _white_space = re.compile(r"\s+")
@@ -202,20 +203,13 @@ def NameLabelInfo(label):
     return label.split()[0], {"label": label}
 
 
-def FastaParser(infile, seq_maker=None, info_maker=MinimalInfo, strict=True):
-    """Yields successive sequences from infile as (name, sequence) tuples.
-
-    Constructs the sequence using seq_maker(seq, info=Info(info_maker(label))).
-
-    If strict is True (default), raises RecordError when label or seq missing.
-    Also raises RecordError if seq_maker fails.
-
-    It is info_maker's responsibility to raise the appropriate RecordError or
-    FieldError on failure.
-
-    Result of info_maker need not actually be an info object, but can just be
-    a dict or other data that Info can use in its constructor.
-    """
+@c3warn.deprecated_callable(
+    "2025.9", "use MinimalParser or iter_fasta_records instead", is_discontinued=True
+)
+def FastaParser(
+    infile, seq_maker=None, info_maker=MinimalInfo, strict=True
+):  # pragma: no cover
+    """discontinued"""
     if seq_maker is None:
         seq_maker = Sequence
     for label, seq in MinimalFastaParser(infile, strict=strict):
@@ -242,12 +236,9 @@ def FastaParser(infile, seq_maker=None, info_maker=MinimalInfo, strict=True):
 NcbiLabels = {"dbj": "DDBJ", "emb": "EMBL", "gb": "GenBank", "ref": "RefSeq"}
 
 
+@c3warn.deprecated_callable("2025.9", "no replacement", is_discontinued=True)
 def NcbiFastaLabelParser(line):
-    """Creates an Info object and populates it with the line contents.
-
-    As of 11/12/03, all records in genpept.fsa and the human RefSeq fasta
-    files were consistent with this format.
-    """
+    """discontinued"""
     info = Info()
     try:
         ignore, gi, db, db_ref, description = list(map(strip, line.split("|", 4)))
@@ -260,8 +251,11 @@ def NcbiFastaLabelParser(line):
     return gi, info
 
 
-def NcbiFastaParser(infile, seq_maker=None, strict=True):
-    return FastaParser(
+@c3warn.deprecated_callable(
+    "2025.9", "use MinimalParser or iter_fasta_records instead", is_discontinued=True
+)
+def NcbiFastaParser(infile, seq_maker=None, strict=True):  # pragma: no cover
+    return MinimalFastaParser(
         infile,
         seq_maker=seq_maker,
         info_maker=NcbiFastaLabelParser,
@@ -339,6 +333,9 @@ def LabelParser(display_template, field_formatters, split_with=":", DEBUG=False)
     return call
 
 
+@c3warn.deprecated_callable(
+    "2025.9", "use MinimalParser or iter_fasta_records instead", is_discontinued=True
+)
 def GroupFastaParser(
     data,
     label_to_name,
@@ -347,25 +344,8 @@ def GroupFastaParser(
     moltype="text",
     done_groups=None,
     DEBUG=False,
-):
-    """yields related sequences as a separate seq collection
-
-    Parameters
-    ----------
-    data
-        line iterable data source
-    label_to_name
-        LabelParser callback
-    group_key
-        name of group key in RichLabel.info object
-    aligned
-        whether sequences are to be considered aligned
-    moltype
-        default is ASCII
-    done_groups
-        series of group keys to be excluded
-
-    """
+):  # pragma: no cover
+    """discontinued"""
     moltype = cogent3.get_moltype(moltype)
     done_groups = [[], done_groups][done_groups is not None]
     parser = MinimalFastaParser(data, label_to_name=label_to_name)
