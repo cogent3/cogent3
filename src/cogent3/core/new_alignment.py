@@ -7,6 +7,7 @@ import dataclasses
 import hashlib
 import json
 import os
+import pathlib
 import re
 import types
 import typing
