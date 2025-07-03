@@ -5992,7 +5992,6 @@ def make_unaligned_seqs(
     label_to_name=None,
     info=None,
     source=None,
-    new_type=False,
     **kw,
 ):
     """Initialize an unaligned collection of sequences.

@@ -3,7 +3,7 @@ Each leaf holds a sequence.  Used by a likelihood function."""
 
 import numpy
 
-from cogent3.core.alphabet import AlphabetError
+from cogent3.core.new_alphabet import AlphabetError
 from cogent3.core.new_alphabet import AlphabetError as new_AlphabetError
 
 from . import likelihood_tree_numba as likelihood_tree
@@ -237,13 +237,13 @@ def make_likelihood_tree_leaf(sequence, alphabet, seq_name):
     # refactor: simplify
     # added for compatibility between old and new style sequences/moltype/alphabets
     # should be simplified when old style is removed
-    from cogent3.core.alphabet import Alphabet, CharAlphabet
+    from cogent3.core.new_alphabet import CharAlphabet
     from cogent3.core.new_sequence import Sequence
 
     if isinstance(sequence, Sequence):
         # we can rely on getting the moltype from the sequence
         moltype = sequence.moltype
-    elif isinstance(alphabet, CharAlphabet | Alphabet):
+    elif isinstance(alphabet, CharAlphabet):
         # we can rely on getting the moltype from the alphabet
         moltype = alphabet.moltype
     else:

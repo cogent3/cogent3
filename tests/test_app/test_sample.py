@@ -1,4 +1,3 @@
-import os
 from unittest import TestCase
 
 import pytest
@@ -10,11 +9,9 @@ from cogent3.core.new_moltype import MolTypeError
 
 DNA = cogent3.get_moltype("dna")
 
-_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
-
 
 class TranslateTests(TestCase):
-    def _codon_positions(self, array_align):
+    def _codon_positions(self):
         """correctly return codon positions"""
         aln = cogent3.make_aligned_seqs(
             [("a", "ACGACGACG"), ("b", "GATGATGAT")],
@@ -41,13 +38,9 @@ class TranslateTests(TestCase):
         got = two_three(aln)
         assert got.to_dict() == {"a": "CGCGCG", "b": "ATATAT"}
 
-    def test_take_codon_positions_array_align(self):
-        """correctly return codon positions from ArrayAlignment"""
-        self._codon_positions(array_align=True)
-
     def test_take_codon_positions_alignment(self):
         """correctly return codon positions from Alignment"""
-        self._codon_positions(array_align=False)
+        self._codon_positions()
 
     def test_take_named_3(self):
         """3 named seqs"""

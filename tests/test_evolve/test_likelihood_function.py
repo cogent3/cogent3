@@ -72,7 +72,6 @@ _data = {
 _aln = make_aligned_seqs(_data, moltype=DNA)
 
 
-_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
 ########################################################
 # some funcs for assembling Q-matrices for 'manual' calc
 

@@ -13,7 +13,6 @@ from pathlib import Path
 import numpy
 
 import cogent3
-from cogent3.core import moltype as old_moltype
 from cogent3.core import new_moltype
 from cogent3.core.profile import (
     make_motif_counts_from_tabular,
@@ -50,9 +49,7 @@ if typing.TYPE_CHECKING:
 
 _datastore_reader_map = {}
 
-MolTypes = old_moltype.MolType | new_moltype.MolType
-
-_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
+MolTypes = new_moltype.MolType
 
 
 class register_datastore_reader:
@@ -320,7 +317,7 @@ class load_aligned:
         --------
         See https://cogent3.org/doc/app/app_cookbook/load-aligned.html
         """
-        moltype = moltype or ("text" if _NEW_TYPE else "bytes")
+        moltype = moltype or "text"
         self.moltype = cogent3.get_moltype(moltype)
         self._parser = cogent3._plugin.get_seq_format_parser_plugin(  # noqa: SLF001
             format_name=format.lower(),
@@ -355,7 +352,7 @@ class load_unaligned:
         --------
         See https://cogent3.org/doc/app/app_cookbook/load-unaligned.html
         """
-        moltype = moltype or ("text" if _NEW_TYPE else "bytes")
+        moltype = moltype or "text"
         self.moltype = cogent3.get_moltype(moltype)
         self._parser = cogent3._plugin.get_seq_format_parser_plugin(  # noqa: SLF001
             format_name=format.lower(),

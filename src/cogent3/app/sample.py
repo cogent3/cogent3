@@ -1,11 +1,10 @@
 from collections import defaultdict
-from typing import Optional, Union
+from typing import Union
 
 from numpy import array
 from numpy import random as np_random
 
 import cogent3
-from cogent3.core import moltype as old_moltype
 from cogent3.core import new_moltype
 
 from .composable import NON_COMPOSABLE, NotCompleted, define_app
@@ -15,8 +14,8 @@ from .typing import AlignedSeqsType, SeqsCollectionType, SerialisableType
 # TODO need a function to filter sequences based on divergence, ala divergent
 # set.
 
-MolTypes = Union[str, old_moltype.MolType, new_moltype.MolType]
-OptInt = Optional[int]
+MolTypes = str | new_moltype.MolType
+OptInt = int | None
 
 
 def intersection(groups):
@@ -146,7 +145,6 @@ class concat:
         if aln := cogent3.make_aligned_seqs(
             combined,
             moltype=self._moltype,
-            array_align=True,
         ):
             return aln
         return NotCompleted("FAIL", self, message="result is empty")
@@ -466,7 +464,7 @@ class take_codon_positions:
         return new[2::3]
 
     def take_codon_position(self, aln):
-        from cogent3.core.alignment import Alignment
+        from cogent3.core.new_alignment import Alignment
 
         if not isinstance(aln, Alignment):
             return aln[self._positions :: 3]
@@ -1000,22 +998,11 @@ class omit_bad_seqs:
         length = len(aln)
         keep = [n for n, c in gaps_per_seq.items() if c / length < self._gap_fraction]
 
-        from cogent3.core import new_alignment
-
         if self._ambig_fraction is not None:
-            if isinstance(aln, new_alignment.Alignment):
-                ambigs_per_seq = aln.count_ambiguous_per_seq()
-                keep = [
-                    n for n in keep if ambigs_per_seq[n] / length < self._ambig_fraction
-                ]
-            else:
-                msg = (
-                    "ambig_fraction cannot be applied to old style alignments, set "
-                    "new_type=True in make_aligned_seqs to create an Alignment which "
-                    "supports this feature"
-                )
-
-                return NotCompleted("FAIL", self, msg, aln)
+            ambigs_per_seq = aln.count_ambiguous_per_seq()
+            keep = [
+                n for n in keep if ambigs_per_seq[n] / length < self._ambig_fraction
+            ]
 
         result = aln.take_seqs(keep)
         if self._quantile is not None:

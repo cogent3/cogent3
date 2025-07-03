@@ -2,30 +2,11 @@ import numpy
 import pytest
 
 from cogent3.core import (
-    moltype,
     new_alphabet,
     new_genetic_code,
     new_moltype,
     new_sequence,
 )
-
-
-def test_make_pairs():
-    orig = moltype.make_pairs(
-        pairs=moltype.RnaStandardPairs,
-        monomers=moltype.IUPAC_RNA_chars,
-        gaps=moltype.IUPAC_gap,
-        degenerates=moltype.IUPAC_RNA_ambiguities,
-    )
-    new = new_moltype.make_pairs(
-        pairs=new_moltype.RNA_STANDARD_PAIRS,
-        monomers=new_moltype.IUPAC_RNA_chars,
-        gaps=new_moltype.IUPAC_gap,
-        degenerates=new_moltype.IUPAC_RNA_ambiguities,
-    )
-    # convert the old object to a frozen set keyed one for comparison
-    orig = {frozenset(k): v for k, v in orig.items()}
-    assert new == orig
 
 
 def test_is_compatible_alphabet():
@@ -39,17 +20,6 @@ def test_is_compatible_alphabet():
     alpha = CharAlphabet("".join(dna.ambiguities))
     prot = new_moltype.get_moltype("protein")
     assert not prot.is_compatible_alphabet(alpha)
-
-
-def test_is_compatible_alphabet_strict():
-    from cogent3.core.alphabet import CharAlphabet
-
-    dna = new_moltype.get_moltype("dna")
-    alpha1 = CharAlphabet("TCAG")
-    assert dna.is_compatible_alphabet(alpha1, strict=True)
-    # returns False if the order is not exactly the same
-    alpha1 = CharAlphabet("CTAG")
-    assert not dna.is_compatible_alphabet(alpha1, strict=True)
 
 
 @pytest.mark.parametrize(

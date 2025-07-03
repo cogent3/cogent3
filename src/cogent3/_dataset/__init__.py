@@ -59,7 +59,7 @@ class Dataset:
         return data
 
 
-_aln_kwargs = {"moltype": "dna", "new_type": True}
+_aln_kwargs = {"moltype": "dna"}
 
 _datasets = [
     Dataset(

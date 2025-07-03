@@ -1405,6 +1405,7 @@ def _make_moltype_dict() -> dict[str, MolType]:
     return moltypes
 
 
+@c3_warn.deprecated_args("2025.9", "no longer has an effect", discontinued="new_type")
 def get_moltype(name: str | MolType) -> MolType:
     """returns the moltype with the matching name attribute"""
     if isinstance(name, MolType):

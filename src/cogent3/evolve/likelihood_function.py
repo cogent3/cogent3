@@ -7,7 +7,6 @@ import numpy
 
 import cogent3
 from cogent3._version import __version__
-from cogent3.core import alignment as old_alignment
 from cogent3.core import new_alignment, table
 from cogent3.core.tree import PhyloNode
 from cogent3.evolve import substitution_model
@@ -45,7 +44,7 @@ def _update_stat_table_col_formatting(table):
 # the parameter, psub, mprob and likelihood values after the optimisation is
 # complete.
 
-AlignType = old_alignment.ArrayAlignment | new_alignment.Alignment
+AlignType = new_alignment.Alignment
 
 
 def _get_keyed_rule_indices(rules):
@@ -509,7 +508,6 @@ class LikelihoodFunction(ParameterController):
         return cogent3.make_aligned_seqs(
             seqs,
             moltype=self.model.moltype,
-            array_align=True,
         )
 
     def get_bin_probs(self, locus=None):
@@ -1187,7 +1185,6 @@ class LikelihoodFunction(ParameterController):
         return cogent3.make_aligned_seqs(
             simulated_sequences,
             moltype=self._model.moltype,
-            array_align=True,
         )
 
     def all_psubs_DLC(self) -> bool:

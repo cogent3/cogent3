@@ -9,7 +9,7 @@ from numpy import (
 )
 
 from cogent3.core import new_alphabet
-from cogent3.core.moltype import IUPAC_gap, IUPAC_missing
+from cogent3.core.new_moltype import IUPAC_gap, IUPAC_missing
 from cogent3.util import dict_array
 from cogent3.util import parallel as PAR
 from cogent3.util import progress_display as UI
@@ -581,12 +581,7 @@ def coevolution_matrix(
     stat = {"mi": 1, "nmi": 2, "rmi": 3}[MI_METHODS(stat).name]
     num_states = len(alignment.moltype.alphabet)
 
-    if hasattr(alignment, "__array__"):
-        # new_type Alignment classes will support direct conversion
-        # to numpy.uint8 arrays
-        data = numpy.array(alignment)
-    else:
-        data = alignment.to_type(array_align=True).array_seqs
+    data = numpy.array(alignment)
 
     if positions:
         positions = list(itertools.chain(*positions))

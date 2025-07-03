@@ -308,7 +308,7 @@ def source_type(DATA_DIR, request):
 def test_composable_unwraps_source_proxy_as_completed(source_type):
     app = get_app("load_unaligned", format="fasta", moltype="dna")
     result = next(iter(app.as_completed([source_type], show_progress=False)))
-    got = result.source if hasattr(result, "source") else result.info.source
+    got = result.source
     assert got.endswith("brca1.fasta")
     assert not isinstance(got, source_proxy)
 
@@ -316,7 +316,7 @@ def test_composable_unwraps_source_proxy_as_completed(source_type):
 def test_composable_unwraps_source_proxy_call(source_type):
     app = get_app("load_unaligned", format="fasta", moltype="dna")
     result = app(source_type)
-    got = result.source if hasattr(result, "source") else result.info.source
+    got = result.source
     assert got.endswith("brca1.fasta")
     assert not isinstance(got, source_proxy)
 

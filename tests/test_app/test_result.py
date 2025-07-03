@@ -1,4 +1,3 @@
-import os
 import pathlib
 
 import pytest
@@ -16,13 +15,11 @@ from cogent3.app.result import (
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.dict_array import DictArray
 
-_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
-
 
 def test_deserialised_values():
     """correctly deserialises values"""
-    DNA = cogent3.get_moltype("dna", new_type=True)
-    data = {"type": "cogent3.core.moltype.MolType", "moltype": "dna"}
+    DNA = cogent3.get_moltype("dna")
+    data = {"type": "cogent3.core.new_moltype.MolType", "moltype": "dna"}
     result = generic_result(source="blah.json")
     result["key"] = data
     result.deserialised_values()
@@ -46,7 +43,7 @@ def test_deserialised_values():
 
 def test_repr_str():
     """it works"""
-    data = {"type": "cogent3.core.moltype.MolType", "moltype": "dna"}
+    data = {"type": "cogent3.core.new_moltype.MolType", "moltype": "dna"}
     result = generic_result(source="blah.json")
     result["key"] = data
     repr(result)
@@ -55,7 +52,7 @@ def test_repr_str():
 
 def test_keys():
     """it works"""
-    data = {"type": "cogent3.core.moltype.MolType", "moltype": "dna"}
+    data = {"type": "cogent3.core.new_moltype.MolType", "moltype": "dna"}
     result = generic_result(source="blah.json")
     result["key"] = data
     keys = result.keys()
@@ -78,18 +75,17 @@ def test_infers_source():
         info={"random_key": 1234},
         moltype="dna",
         source=str(source),
-        new_type=True,
     )
     gr = generic_result(aln)
     assert gr.source == source.name
 
     # or Path
-    aln.info.source = source
+    aln.source = source
     gr = generic_result(aln)
     assert str(gr.source) == source.name
 
     # or DataMember
-    aln.info.source = DataMember(data_store=None, unique_id=source.name)
+    aln.source = DataMember(data_store=None, unique_id=source.name)
     gr = generic_result(aln)
     assert str(gr.source) == source.name
 

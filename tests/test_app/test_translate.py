@@ -1,5 +1,3 @@
-import os
-
 import pytest
 
 import cogent3
@@ -13,8 +11,6 @@ from cogent3.app.translate import (
 )
 
 DNA = cogent3.get_moltype("dna")
-
-_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
 
 
 def test_best_frame():
@@ -41,10 +37,6 @@ def test_best_frame():
     assert best_frame(rc, allow_rc=True) == -1
 
 
-@pytest.mark.skipif(
-    _NEW_TYPE,
-    reason="new_type does not yet support mixed strand collections",
-)
 def test_select_translatable():
     """correctly get translatable seqs"""
     data = {
@@ -107,7 +99,6 @@ def test_translate_aln():
     assert aa.moltype.label == "protein"
     assert isinstance(aa, type(aln))
     # Alignment
-    aln = aln.to_type(array_align=True)
     aa = translater(aln)  # pylint: disable=not-callable
     assert aa.to_dict() == {"a": "MRP", "b": "MF-"}
     assert aa.moltype.label == "protein"

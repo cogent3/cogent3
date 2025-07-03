@@ -26,7 +26,7 @@ def calc_mi_pair(alignment, pos1, pos2, normalised=False):
 
 @pytest.fixture(params=["AAAAA", "ACGT", "AACC", "ACGNNGG"])
 def column(request):
-    return get_moltype("dna", new_type=True).alphabet.to_indices(request.param)
+    return get_moltype("dna").alphabet.to_indices(request.param)
 
 
 # revised code tests
@@ -261,7 +261,7 @@ def test_resampled_mi_interface(small_dna):
 
 @pytest.fixture
 def cols():
-    dna = get_moltype("dna", new_type=True)
+    dna = get_moltype("dna")
     alpha = dna.alphabet
     counts1 = numpy.zeros(len(alpha), dtype=numpy.int64)
     counts2 = numpy.zeros(len(alpha), dtype=numpy.int64)
@@ -283,7 +283,7 @@ def _make_expected_array(alpha, data):
 
 def test_calc_weights_new(cols):
     """resampled mi weights should be correctly computed"""
-    dna = get_moltype("dna", new_type=True)
+    dna = get_moltype("dna")
     alpha = dna.alphabet
 
     e1 = [

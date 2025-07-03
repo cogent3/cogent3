@@ -26,12 +26,10 @@ from cogent3.util.deserialise import (
     deserialise_object,
 )
 
-_NEW_TYPE = True
-
 
 def test_roundtrip_codon_alphabet():
     """codon alphabet to_json enables roundtrip"""
-    standard = get_code(1, new_type=True).get_alphabet()
+    standard = get_code(1).get_alphabet()
     data = standard.to_json()
     got = deserialise_object(data)
     assert isinstance(got, type(standard))
@@ -40,7 +38,7 @@ def test_roundtrip_codon_alphabet():
 
 def test_roundtrip_alphabet():
     """alphabet to_json enables roundtrip"""
-    dna = get_moltype("dna", new_type=True)
+    dna = get_moltype("dna")
     data = dna.alphabet.to_json()
     got = deserialise_object(data)
     assert isinstance(got, type(dna.alphabet))
@@ -49,7 +47,7 @@ def test_roundtrip_alphabet():
 
 def test_roundtrip_moltype():
     """moltype to_json enables roundtrip"""
-    dna = get_moltype("dna", new_type=True)
+    dna = get_moltype("dna")
     data = dna.to_json()
     got = deserialise_object(data)
     assert isinstance(got, type(dna))
@@ -593,7 +591,7 @@ def test_roundtrip_TN93_model_result():
 @pytest.mark.parametrize("mtype", ["dna", "protein"])
 def test_roundtrip_seq(mtype):
     """seq to_json enables roundtrip"""
-    mtype = get_moltype(mtype, new_type=True)
+    mtype = get_moltype(mtype)
     seq = mtype.make_seq(seq="ACGGTCGG", name="label", info={"something": 3})
     got = deserialise_object(seq.to_json())
     assert got.info.something == 3

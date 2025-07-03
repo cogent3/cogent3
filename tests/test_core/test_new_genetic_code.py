@@ -206,7 +206,7 @@ def test_to_regex():
     aa = "TZQG"
     pattern = new_genetic_code.DEFAULT.to_regex(aa)
     assert "".join(re.findall(pattern, dna)) == dna
-    aa = make_seq(aa, moltype="protein", new_type=True)
+    aa = make_seq(aa, moltype="protein")
     pattern = new_genetic_code.DEFAULT.to_regex(aa)
     assert "".join(re.findall(pattern, dna)) == dna
 

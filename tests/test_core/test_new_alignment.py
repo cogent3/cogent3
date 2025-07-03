@@ -750,7 +750,7 @@ def test_sequence_collection_init_ordered(ordered1, ordered2):
 def test_sequence_collection_source(load_cls):
     """.source exists if load seqs given a filename"""
     path = pathlib.Path("data/brca1.fasta")
-    seqs = load_cls(path, moltype="dna", new_type=True)
+    seqs = load_cls(path, moltype="dna")
     assert seqs.source == str(path)
 
 
@@ -4908,7 +4908,7 @@ def test_omit_gap_pos_no_gap_moltype():
 
 @pytest.fixture(scope="session")
 def brca1_data():
-    return load_aligned_seqs("data/brca1.fasta", moltype="dna", new_type=True).to_dict()
+    return load_aligned_seqs("data/brca1.fasta", moltype="dna").to_dict()
 
 
 @pytest.mark.parametrize("calc", ["hamming", None])
@@ -5320,7 +5320,6 @@ def codon_and_aa_alns():
     dna = cogent3.make_aligned_seqs(
         {n: s.replace(" ", "") for n, s in data.items()},
         moltype="dna",
-        new_type=True,
     )
     aa = dna.get_translation()
     return dna, aa
@@ -5638,7 +5637,6 @@ def test_load_from_url():
     aln = cogent3.load_aligned_seqs(
         "https://github.com/user-attachments/files/20328517/long_testseqs.fasta.gz",
         moltype="dna",
-        new_type=True,
     )
     assert isinstance(aln, new_alignment.Alignment)
 
@@ -5647,7 +5645,6 @@ def test_slice_preserves_selected_names(DATA_DIR):
     aln = load_aligned_seqs(
         DATA_DIR / "brca1.fasta",
         moltype="dna",
-        new_type=True,
     )
     seqnames = ["Chimpanzee", "Rhesus", "Orangutan", "Human"]
     aln = aln.take_seqs(seqnames)
@@ -5704,7 +5701,7 @@ def test_coerce_moltype_obj(mk_cls):
 )
 def test_source_propagates(mk_cls, DATA_DIR):
     fn = DATA_DIR / "brca1.fasta"
-    coll = mk_cls(fn, moltype="dna", new_type=True)
+    coll = mk_cls(fn, moltype="dna")
     assert coll.source == str(fn)
     subcoll = coll.take_seqs(["Human", "Chimpanzee"])
     assert subcoll.source == str(fn)

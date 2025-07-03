@@ -3012,11 +3012,9 @@ def _coerce_to_seqview(
     alphabet: new_alphabet.CharAlphabet,
     offset: int,
 ) -> SeqViewABC:
-    from cogent3.core.alignment import Aligned
-    from cogent3.core.sequence import Sequence as old_Sequence
-    from cogent3.core.sequence import SeqView as old_SeqView
+    from cogent3.core.new_alignment import Aligned
 
-    if isinstance(data, Aligned | old_Sequence | old_SeqView):
+    if isinstance(data, Aligned):
         return _coerce_to_seqview(str(data), seqid, alphabet, offset)
     msg = f"{type(data)}"
     raise NotImplementedError(msg)

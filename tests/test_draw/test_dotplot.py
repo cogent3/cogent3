@@ -4,8 +4,8 @@ import numpy
 import pytest
 
 from cogent3 import get_moltype, make_aligned_seqs, make_unaligned_seqs
-from cogent3.core.alignment import Aligned
 from cogent3.core.location import IndelMap
+from cogent3.core.new_alignment import Aligned
 from cogent3.draw.dotplot import Dotplot, _convert_input, _prep_seqs, get_align_coords
 
 DNA = get_moltype("dna")
@@ -20,11 +20,11 @@ class TestUtilFunctions(TestCase):
     def test_convert_input(self):
         """converts data for dotplotting"""
         m, seq = DNA.make_seq(seq="ACGGT--A").parse_out_gaps()
-        aligned_seq = Aligned(m, seq)
+        aligned_seq = Aligned.from_map_and_seq(m, seq)
         mapped_gap, new_seq = _convert_input(aligned_seq, None)
         assert new_seq.moltype is DNA
-        assert mapped_gap is m
-        assert new_seq is seq
+        assert (mapped_gap.array == m.array).all()
+        assert new_seq == seq
         mapped_gap, new_seq = _convert_input("ACGGT--A", DNA)
         assert str(mapped_gap) == str(m)
         assert str(new_seq) == str(seq)

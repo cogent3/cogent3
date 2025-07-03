@@ -604,11 +604,11 @@ def test_map_indexed():
 
 
 def test_compare_map_indexed():
-    from cogent3.core.alignment import Aligned
+    from cogent3.core.new_alignment import Aligned
 
     raw_seq = "--AC-GTAA--"
     im, seq = DNA.make_seq(seq=raw_seq).parse_out_gaps()
-    ia = Aligned(im, seq)
+    ia = Aligned.from_map_and_seq(im, seq)
     length = len(raw_seq)
     got = [str(ia[i]) for i in range(length)]
     expect = list("--AC-GTAA--")
@@ -639,7 +639,7 @@ def test_indelmap_to_feature_map():
 
 @pytest.mark.parametrize("raw", ["--AC--GGGG--", "A-A-A", "-A-AA----A"])
 def test_indelmap_nucleic_reversed(raw):
-    from cogent3.core.alignment import Aligned
+    from cogent3.core.new_alignment import Aligned
 
     plus = DNA.make_seq(seq=raw)
     minus = plus.rc()
@@ -650,7 +650,7 @@ def test_indelmap_nucleic_reversed(raw):
     assert (got.gap_pos == minus_imap.gap_pos).all()
     assert (got.cum_gap_lengths == minus_imap.cum_gap_lengths).all()
     assert got.parent_length == minus_imap.parent_length
-    assert str(Aligned(got, minus_seq)) == str(minus)
+    assert str(Aligned.from_map_and_seq(got, minus_seq)) == str(minus)
 
 
 def test_get_coords():
@@ -1331,7 +1331,7 @@ def test_indelmap_subtraction(seq_pairs, as_array):
 
 
 def test_indelmap_subtraction_build_aligned(seq_pairs):
-    from cogent3.core.alignment import Aligned
+    from cogent3.core.new_alignment import Aligned
 
     s1, s2 = seq_pairs
 
@@ -1341,7 +1341,7 @@ def test_indelmap_subtraction_build_aligned(seq_pairs):
     ig1, s1 = s1.parse_out_gaps()
     ig2, s2 = s2.parse_out_gaps()
     got1 = ig1.minus_gaps(ig2.get_gap_align_coordinates())
-    got = Aligned(got1, s1)
+    got = Aligned.from_map_and_seq(got1, s1)
     assert str(got) == unique_gaps
 
 
@@ -1504,7 +1504,6 @@ def codon_and_aa_maps():
     dna = cogent3.make_aligned_seqs(
         {n: s.replace(" ", "") for n, s in data.items()},
         moltype="dna",
-        new_type=True,
     )
     aa = dna.get_translation()
     dna_1 = dna.seqs["s1"].map

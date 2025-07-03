@@ -28,7 +28,6 @@ def annotated_seq(DATA_DIR):
         DATA_DIR / "c_elegans_WS199_dna_shortened.fasta",
         annotation_path=DATA_DIR / "c_elegans_WS199_shortened_gff.gff3",
         moltype="dna",
-        new_type=True,
     )
 
 
@@ -40,7 +39,7 @@ def load_alignment():
         db = GffAnnotationDb()
 
         path = str(pathlib.Path(__file__).parent.parent / "data/brca1_5.paml")
-        aln = load_aligned_seqs(path, moltype="dna", new_type=True)
+        aln = load_aligned_seqs(path, moltype="dna")
         aln = aln.omit_gap_pos()
         if annotate1:
             db.add_feature(
@@ -197,7 +196,7 @@ def test_dotplot_just_gaps(mk_cls):
 
 def test_dotplot_regression():
     """Tests whether dotplot produces traces and in correct ordering."""
-    aln = load_aligned_seqs("data/brca1.fasta", moltype="dna", new_type=True)
+    aln = load_aligned_seqs("data/brca1.fasta", moltype="dna")
     aln = aln.take_seqs(["Human", "Chimpanzee"])
     aln = aln[:200]
     dp = aln.dotplot()

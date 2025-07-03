@@ -1146,7 +1146,6 @@ def test_prop_dists_big(DATA_DIR, oldcalc, newcalc):
     aln = cogent3.load_aligned_seqs(
         DATA_DIR / "brca1.fasta",
         moltype="dna",
-        new_type=True,
     )
     aln = aln.take_seqs(aln.names[:15])
     calc = oldcalc(aln.moltype, alignment=aln)
@@ -1161,7 +1160,6 @@ def test_numba_get_dist(calc, basic_alignment) -> None:
     aln = cogent3.make_aligned_seqs(
         basic_alignment.to_dict(),
         moltype="dna",
-        new_type=True,
     )
     calc = pdist_numba.get_distance_calculator(calc)
     got = calc(aln)
@@ -1175,7 +1173,6 @@ def test_invalid_moltype_fast_distances(calc, basic_alignment):
     aln = cogent3.make_aligned_seqs(
         basic_alignment.to_dict(),
         moltype="protein",
-        new_type=True,
     )
     calc = pdist_numba.get_distance_calculator(calc)
     with pytest.raises(new_moltype.MolTypeError):
@@ -1212,7 +1209,6 @@ def test_compare_parallel_serial(DATA_DIR, calc):
     aln = cogent3.load_aligned_seqs(
         DATA_DIR / "brca1.fasta",
         moltype="dna",
-        new_type=True,
     )
     serial = aln.distance_matrix(calc=calc, parallel=False)
     parallel = aln.distance_matrix(calc=calc, parallel=True)

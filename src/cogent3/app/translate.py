@@ -2,20 +2,15 @@ from collections import defaultdict
 from typing import Union
 
 import cogent3
-from cogent3.core import alphabet as old_alphabet
-from cogent3.core import genetic_code as old_genetic_code
-from cogent3.core import moltype as old_moltype
 from cogent3.core import new_alphabet, new_genetic_code, new_moltype
 
 from .composable import NotCompleted, define_app
 from .data_store import get_data_source
 from .typing import SeqsCollectionType, SeqType, SerialisableType
 
-GeneticCodeTypes = (
-    str | int | old_genetic_code.GeneticCode | new_genetic_code.GeneticCode
-)
-MolTypes = str | old_moltype.MolType | new_moltype.MolType
-AlphabetTypes = old_alphabet.Alphabet | new_alphabet.CharAlphabet
+GeneticCodeTypes = str | int | new_genetic_code.GeneticCode
+MolTypes = str | new_moltype.MolType
+AlphabetTypes = new_alphabet.CharAlphabet
 
 
 def best_frame(

@@ -2467,7 +2467,7 @@ def test_parent_start_stop_singletons(index, rev, ascii_alphabet):
 
 
 def test_get_drawable(DATA_DIR):
-    seq = cogent3.load_seq(DATA_DIR / "annotated_seq.gb", new_type=True, moltype="dna")
+    seq = cogent3.load_seq(DATA_DIR / "annotated_seq.gb", moltype="dna")
     seq = seq[2000:4000]
     biotypes = "CDS", "gene", "mRNA"
     for feat in seq.get_features(biotype=biotypes, allow_partial=True):
@@ -2978,7 +2978,6 @@ def aa_moltype(DATA_DIR, tmp_path):
     aln = cogent3.load_aligned_seqs(
         DATA_DIR / "brca1_5.paml",
         moltype="dna",
-        new_type=True,
     )
     aa = aln.get_translation()
     aa.write(outpath)
@@ -2987,7 +2986,7 @@ def aa_moltype(DATA_DIR, tmp_path):
 
 def test_load_invalid_moltype(aa_moltype):
     with pytest.raises(new_alphabet.AlphabetError):
-        cogent3.load_seq(aa_moltype, moltype="dna", new_type=True)
+        cogent3.load_seq(aa_moltype, moltype="dna")
 
 
 @pytest.fixture(params=(new_moltype.DNA.alphabet, new_moltype.DNA.gapped_alphabet))
@@ -3050,7 +3049,7 @@ def test_make_seq_invalid(raw_seq):
 
 @pytest.mark.parametrize(("moltype", "seq"), [("dna", "AUGC"), ("rna", "ATGC")])
 def test_coerce_moltype(moltype, seq):
-    seq = cogent3.make_seq(seq=seq, moltype=moltype, new_type=True)
+    seq = cogent3.make_seq(seq=seq, moltype=moltype)
     assert seq.moltype.name == moltype
     expect = "ATGC" if moltype == "dna" else "AUGC"
     assert str(seq) == expect
@@ -3085,7 +3084,7 @@ def test_sample_without_replacement():
 
 
 def test_to_html_bytes():
-    seq = cogent3.make_seq("AGTACACTGGT", moltype="bytes", new_type=True)
+    seq = cogent3.make_seq("AGTACACTGGT", moltype="bytes")
     html = seq.to_html()  # should not fail
     assert isinstance(html, str)
 

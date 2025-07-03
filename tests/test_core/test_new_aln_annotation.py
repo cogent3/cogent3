@@ -195,7 +195,7 @@ def test_align_get_features():
 def seqcoll_db():
     fasta_path = os.path.join("data/c_elegans_WS199_dna_shortened.fasta")
     gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
-    seq = load_seq(fasta_path, moltype="dna", new_type=True, annotation_path=gff3_path)
+    seq = load_seq(fasta_path, moltype="dna", annotation_path=gff3_path)
     return new_alignment.make_unaligned_seqs({seq.name: seq}, moltype="dna")
 
 

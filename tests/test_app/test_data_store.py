@@ -547,7 +547,6 @@ def test_get_data_source_seqcoll(klass):
         {"seq1": "ACGG"},
         moltype="dna",
         info={"random_key": 1234},
-        new_type=True,
         source=value,
     )
     got = get_data_source(obj)

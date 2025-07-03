@@ -1,5 +1,3 @@
-import os
-
 import numpy
 import pytest
 from numpy import log2
@@ -31,16 +29,10 @@ from cogent3.app.align import (
 )
 from cogent3.app.composable import NotCompleted
 from cogent3.core.location import gap_coords_to_map
+from cogent3.core.new_alignment import Aligned, Alignment
 
 DNA = get_moltype("dna")
 
-
-_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
-
-if _NEW_TYPE:
-    from cogent3.core.new_alignment import Aligned
-else:
-    from cogent3.core.alignment import Aligned
 
 _seqs = {
     "Human": "GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
@@ -73,11 +65,10 @@ _codon_models = [
 ]
 
 
-def make_pairwise(data, refseq_name, moltype="dna", array_align=False):
+def make_pairwise(data, refseq_name, moltype="dna"):
     """returns series of refseq, [(n, pwise aln),..]. All alignments are to ref_seq"""
     aln = make_aligned_seqs(
         data,
-        array_align=array_align,
         moltype=moltype,
     )
     refseq = aln.get_seq(refseq_name)
@@ -105,6 +96,8 @@ def test_align_to_ref(refalignment_seqs):
     """correctly aligns to a reference"""
     aligner = align_app.align_to_ref(ref_seq="Human")
     aln = aligner(refalignment_seqs)  # pylint: disable=not-callable
+    if not aln:
+        print(aln)
     expect = {
         "Bandicoot": "---NACTCATTAATGCTTGAAACCAGCAGTTTATTGTCCAAC",
         "FlyingFox": "GCCAGCTCTTTACAGCATGAGAACAG---TTTATTATACACT",
@@ -389,8 +382,7 @@ def test_progressive_align_nuc(progressive_seqs):
     """progressive alignment with nuc models"""
     aligner = align_app.progressive_align(model="TN93", distance="TN93")
     aln = aligner(progressive_seqs)  # pylint: disable=not-callable
-    # TODO: revert to isinstance when new_type is merged
-    assert aln.__class__.__name__.endswith("Alignment")
+    assert isinstance(aln, Alignment)
     assert len(aln) == 42
     assert aln.moltype == aligner._moltype
     # TODO the following is not robust across operating systems
@@ -493,8 +485,7 @@ def test_gap_offset_invert():
         assert aln_pos - aln2seq[aln_pos] == seq_pos
 
 
-@pytest.mark.parametrize("array_align", [True, False])
-def test_information_content_score(array_align):
+def test_information_content_score():
     """Tests that the alignment_quality generates the right alignment quality
     value based on the Hertz-Stormo metric. expected values are hand calculated
     using the formula in the paper."""
@@ -504,7 +495,6 @@ def test_information_content_score(array_align):
     aln = make_aligned_seqs(
         ["AATTGA", "AGGTCC", "AGGATG", "AGGCGT"],
         moltype="dna",
-        array_align=array_align,
     )
     got = app_equifreq(aln)  # pylint: disable=not-callable
     expect = log2(4) + (3 / 2) * log2(3) + (1 / 2) * log2(2) + (1 / 2) * log2(2)
@@ -513,7 +503,6 @@ def test_information_content_score(array_align):
     aln = make_aligned_seqs(
         ["AATTGA", "AGGTCC", "AGGATG", "AGGCGT"],
         moltype="text",
-        array_align=array_align,
     )
     got = app_equifreq(aln)  # pylint: disable=not-callable
     assert_allclose(got, expect)
@@ -521,7 +510,6 @@ def test_information_content_score(array_align):
     aln = make_aligned_seqs(
         ["AAAC", "ACGC", "AGCC", "A-TC"],
         moltype="dna",
-        array_align=array_align,
     )
     got = app_not_equifreq(aln)  # pylint: disable=not-callable
     expect = (
@@ -536,7 +524,6 @@ def test_information_content_score(array_align):
     aln = make_aligned_seqs(
         ["----", "----"],
         moltype="dna",
-        array_align=array_align,
     )
     got = app_equifreq(aln)  # pylint: disable=not-callable
     assert_allclose(got, 0.0)
@@ -550,7 +537,6 @@ def test_information_content_score(array_align):
     aln = make_aligned_seqs(
         ["----", "ACAT"],
         moltype="dna",
-        array_align=array_align,
     )
     got = app_equifreq(aln)  # pylint: disable=not-callable
     assert_allclose(got, 1.1699250014423124)
@@ -559,7 +545,6 @@ def test_information_content_score(array_align):
     aln = make_aligned_seqs(
         ["----", "AAAA"],
         moltype="dna",
-        array_align=array_align,
     )
     got = app_not_equifreq(aln)  # pylint: disable=not-callable
     assert_allclose(got, -2)
@@ -656,8 +641,7 @@ def test_progressive_align_tree_from_reference(seqs):
     will use a quick alignment to build the tree"""
     aligner = align_app.progressive_align(model="TN93", approx_dists=False)
     aln = aligner(seqs)  # pylint: disable=not-callable
-    # TODO: revert to isinstance when new_type is merged
-    assert aln.__class__.__name__.endswith("Alignment")
+    assert isinstance(aln, Alignment)
     assert len(aln) == 42
     assert aln.moltype == aligner._moltype
 
@@ -667,8 +651,7 @@ def test_progressive_align_tree_from_approx_dist(seqs):
     will use an approximated distance measure to build the tree"""
     aligner = align_app.progressive_align(model="TN93", approx_dists=True)
     aln = aligner(seqs)  # pylint: disable=not-callable
-    # TODO: revert to isinstance when new_type is merged
-    assert aln.__class__.__name__.endswith("Alignment")
+    assert isinstance(aln, Alignment)
     assert len(aln) == 42
     assert aln.moltype == aligner._moltype
 
@@ -677,8 +660,7 @@ def test_progressive_align_iters(seqs):
     """progressive alignment works with iters>1"""
     aligner = align_app.progressive_align(model="TN93")
     aln = aligner(seqs)  # pylint: disable=not-callable
-    # TODO: revert to isinstance when new_type is merged
-    assert aln.__class__.__name__.endswith("Alignment")
+    assert isinstance(aln, Alignment)
     assert len(aln) == 42
     assert aln.moltype == aligner._moltype
 

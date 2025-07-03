@@ -2825,6 +2825,7 @@ def make_unaligned_storage(
     return klass.from_seqs(**sd_kwargs)
 
 
+@c3warn.deprecated_args("2025.9", "no longer has an effect", discontinued="new_type")
 @singledispatch
 def make_unaligned_seqs(
     data: dict[str, StrORBytesORArray] | list | SeqsDataABC,
@@ -3573,6 +3574,8 @@ def _gapped_seq_len(seq: numpy.ndarray, gap_map: numpy.ndarray) -> int:
     gap_map
         numpy array of [gap index, cumulative gap length] pairs
     """
+    if isinstance(gap_map, IndelMap):
+        gap_map = gap_map.array
     try:
         gap_len = gap_map[-1][1]
     except IndexError:  # no gaps
@@ -5218,9 +5221,7 @@ class Alignment(SequenceCollection):
         result = darr.wrap(result)
         if drawable:
             drawable = drawable.lower()
-            trace_name = (
-                os.path.basename(self.info.source) if self.info.source else None
-            )
+            trace_name = os.path.basename(self.source) if self.source else None
             draw = Drawable("Gaps Per Sequence", showlegend=False)
             draw.layout |= {"yaxis": {"title": "Gap counts"}}
             if drawable == "bar":
@@ -6356,7 +6357,7 @@ class Alignment(SequenceCollection):
         if drawable is None:
             return result
 
-        trace_name = os.path.basename(self.info.source) if self.info.source else None
+        trace_name = pathlib.Path(self.source).name if self.source else None
         if drawable in ("box", "violin"):
             trace = UnionDict(
                 type=drawable,
@@ -7013,15 +7014,6 @@ class Alignment(SequenceCollection):
         data["init_args"].pop("annotation_db", None)
         return make_aligned_seqs(data["seqs"], **data["init_args"])
 
-    @c3warn.deprecated_callable(
-        "2025.6",
-        reason="not valid for new type",
-        is_discontinued=True,
-    )
-    def to_type(self, **kwargs):  # pragma: no cover
-        """to be deleted when new_type is default"""
-        return self
-
     def is_ragged(self) -> bool:
         """by definition False for an Alignment"""
         return False
@@ -7088,7 +7080,7 @@ def deserialise_alignment_to_new_type_alignment(
     from cogent3.core.location import deserialise_indelmap
 
     moltype_name = data["moltype"]
-    mt = get_moltype(moltype_name, new_type=True)
+    mt = get_moltype(moltype_name)
     alpha = mt.most_degen_alphabet()
     info_data = data["info"]
     source = info_data.pop("source", None)
@@ -7157,6 +7149,9 @@ def make_aligned_storage(
     return klass.from_seqs(**asd_kwargs)
 
 
+@c3warn.deprecated_args(
+    "2025.9", "no longer has an effect", discontinued=["new_type", "array_align"]
+)
 @singledispatch
 def make_aligned_seqs(
     data: dict[str, StrORBytesORArray] | list | AlignedSeqsDataABC,

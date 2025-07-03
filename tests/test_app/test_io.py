@@ -30,9 +30,7 @@ from cogent3.maths.util import safe_log
 from cogent3.parse.sequence import PARSERS
 from cogent3.util.deserialise import deserialise_object
 
-NEW_TYPE = True
-
-DNA = get_moltype("dna", new_type=NEW_TYPE)
+DNA = get_moltype("dna")
 
 
 @pytest.fixture
@@ -156,7 +154,7 @@ def test_load_unaligned(DATA_DIR):
     for i, seqs in enumerate(map(fasta_loader, fasta_paths)):
         assert seqs.__class__.__name__ == "SequenceCollection"
         assert "-" not in "".join(seqs.to_dict().values())
-        assert seqs.info.source == fasta_paths[i].unique_id
+        assert seqs.source == fasta_paths[i].unique_id
 
 
 @pytest.mark.parametrize(
@@ -483,7 +481,6 @@ def test_load_db_prefer_source_attr(tmp_dir):
         {"a": "ACGG", "b": "GGC"},
         moltype="dna",
         info={"demo": "dummy"},
-        new_type=True,
         source="blah.1.2.fa",
     )
     writer = io_app.write_db(data_store=data_store)
@@ -571,7 +568,6 @@ def seqs():
         {"a": "ACGG", "b": "GGC"},
         moltype="dna",
         info={"source": "dummy/blah.1.2.fa"},
-        new_type=True,
     )
 
 
@@ -618,7 +614,7 @@ def test_writer_unique_id_arg(tmp_dir, writer, data, dstore):
     assert m.unique_id == expect
 
 
-src_attr = "source" if NEW_TYPE else "info"
+src_attr = "source"
 
 
 @pytest.mark.parametrize(

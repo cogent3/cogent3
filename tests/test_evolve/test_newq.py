@@ -57,7 +57,7 @@ def make_p(length, coord, val):
 
 class NewQ(TestCase):
     aln = cogent3.make_aligned_seqs(
-        data={
+        {
             "seq1": "TGTGGCACAAATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
             "seq2": "TGTGGCACAAATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
         },
@@ -205,8 +205,8 @@ class NewQ(TestCase):
             posn2.append([name, "".join(p2)])
 
         # the position specific alignments
-        posn1 = cogent3.make_aligned_seqs(data=posn1, moltype=DNA)
-        posn2 = cogent3.make_aligned_seqs(data=posn2, moltype=DNA)
+        posn1 = cogent3.make_aligned_seqs(posn1, moltype=DNA)
+        posn2 = cogent3.make_aligned_seqs(posn2, moltype=DNA)
 
         # a newQ dinucleotide model
         sm = TimeReversibleNucleotide(motif_length=2, mprob_model="monomer")

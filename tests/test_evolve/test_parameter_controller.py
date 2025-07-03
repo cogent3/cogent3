@@ -1,14 +1,11 @@
-import os
 import warnings
 
 import pytest
 from numpy.testing import assert_allclose, assert_almost_equal
 
 import cogent3
-import cogent3.evolve.parameter_controller
 import cogent3.evolve.substitution_model
 
-_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
 good_rule_sets = [
     [{"par_name": "length", "is_independent": True}],
     [{"par_name": "length", "is_independent": True}],
@@ -177,8 +174,7 @@ def test_set_constant_lengths(setup_data):
     assert lf.get_param_value("length", "d") == 5
 
 
-@pytest.mark.skipif(
-    _NEW_TYPE,
+@pytest.mark.xfail(
     reason="test env artifact for new_type, it passes if run alone",
 )
 def test_pairwise_clock(DATA_DIR):
