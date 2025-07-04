@@ -4592,7 +4592,7 @@ def test_alignment_sample_without_replacement():
 
 def test_alignment_sample_tuples():
     ##### test with motif size != 1 #####
-    alignment = c3_alignment.make_aligned_seqs(
+    aln = c3_alignment.make_aligned_seqs(
         {
             "seq1": "AACCDDEEFFGGHHIIKKLLMMNNPP",
             "seq2": "AACCDDEEFFGGHHIIKKLLMMNNPP",
@@ -4600,7 +4600,7 @@ def test_alignment_sample_tuples():
         moltype="protein",
     )
     # ensure length correct
-    sample = alignment.sample(n=10, motif_length=2)
+    sample = aln.sample(n=10, motif_length=2)
     assert len(sample), 20
     # test columns alignment preserved
     seqs = list(sample.to_dict().values())
