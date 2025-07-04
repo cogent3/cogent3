@@ -35,6 +35,10 @@ except ImportError:
 try:
     import piqtree
 
+    if piqtree.__version__ <= "0.5.0":
+        msg = "piqtree version is too old"
+        raise ImportError(msg)
+
     has_piqtree = True
 except ImportError:
     has_piqtree = False
