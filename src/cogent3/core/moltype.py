@@ -608,11 +608,6 @@ class MolType:
 
         return any(alpha == alphabet for alpha in self.iter_alphabets())
 
-    @c3warn.deprecated_args(
-        "2025.6",
-        "no longer supported",
-        discontinued="preserve_case",
-    )
     def make_seq(
         self,
         *,
