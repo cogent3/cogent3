@@ -11,7 +11,8 @@ import cogent3
 from cogent3._version import __version__
 from cogent3.core import alphabet as c3_alphabet
 from cogent3.core import annotation_db as anndb_module
-from cogent3.core import new_genetic_code, new_moltype
+from cogent3.core import genetic_code as c3_genetic_code
+from cogent3.core import new_moltype
 from cogent3.core import sequence as c3_sequence
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.misc import get_object_provenance
@@ -2489,7 +2490,7 @@ def test_get_drawable(DATA_DIR):
     [(1, "TCCTGA"), (1, "ACGTAA---"), (2, "TCCAGG")],
 )
 def test_has_terminal_stop_true(gc, seq):
-    gc = new_genetic_code.get_code(gc)
+    gc = c3_genetic_code.get_code(gc)
     seq = new_moltype.DNA.make_seq(seq=seq)
     assert seq.has_terminal_stop(gc=gc)
 
@@ -2499,13 +2500,13 @@ def test_has_terminal_stop_true(gc, seq):
     [(1, "TCCAGG"), (2, "TCCAAA"), (1, "CCTGA"), (2, "CCAGG")],
 )
 def test_has_terminal_stop_false(gc, seq):
-    gc = new_genetic_code.get_code(gc)
+    gc = c3_genetic_code.get_code(gc)
     seq = new_moltype.DNA.make_seq(seq=seq)
     assert not seq.has_terminal_stop(gc=gc)
 
 
 def test_has_terminal_stop_strict():
-    gc = new_genetic_code.get_code(1)
+    gc = c3_genetic_code.get_code(1)
     seq = new_moltype.DNA.make_seq(seq="TCCAG")
     with pytest.raises(c3_alphabet.AlphabetError):
         seq.has_terminal_stop(gc=gc, strict=True)
@@ -2521,7 +2522,7 @@ def test_has_terminal_stop_strict():
     ],
 )
 def test_trim_terminal_stop_true(gc, seq):
-    gc = new_genetic_code.get_code(gc)
+    gc = c3_genetic_code.get_code(gc)
     expect = re.sub("(TGA|AGG)(?=[-]*$)", "---" if "-" in seq else "", seq)
 
     seq = new_moltype.DNA.make_seq(seq=seq)
@@ -2531,7 +2532,7 @@ def test_trim_terminal_stop_true(gc, seq):
 
 @pytest.mark.parametrize(("gc", "seq"), [(1, "T?CTGC"), (2, "TCCAAG")])
 def test_trim_terminal_stop_nostop(gc, seq):
-    gc = new_genetic_code.get_code(gc)
+    gc = c3_genetic_code.get_code(gc)
     seq = new_moltype.DNA.make_seq(seq=seq)
     got = seq.trim_stop_codon(gc=gc)
     assert str(got) == str(seq)
@@ -2544,13 +2545,13 @@ def test_trim_terminal_stop_nostop(gc, seq):
     [(1, "TCCAGG"), (2, "TCCAAA"), (1, "CCTGA"), (2, "CCAGG")],
 )
 def test_trim_terminal_stop_false(gc, seq):
-    gc = new_genetic_code.get_code(gc)
+    gc = c3_genetic_code.get_code(gc)
     seq = new_moltype.DNA.make_seq(seq=seq)
     assert str(seq.trim_stop_codon(gc=gc)) == str(seq)
 
 
 def test_trim_terminal_stop_strict():
-    gc = new_genetic_code.get_code(1)
+    gc = c3_genetic_code.get_code(1)
     seq = new_moltype.DNA.make_seq(seq="TCCAG")
     with pytest.raises(c3_alphabet.AlphabetError):
         seq.trim_stop_codon(gc=gc, strict=True)

@@ -3,13 +3,14 @@ from typing import Union
 
 import cogent3
 from cogent3.core import alphabet as c3_alphabet
-from cogent3.core import new_genetic_code, new_moltype
+from cogent3.core import genetic_code as c3_genetic_code
+from cogent3.core import new_moltype
 
 from .composable import NotCompleted, define_app
 from .data_store import get_data_source
 from .typing import SeqsCollectionType, SeqType, SerialisableType
 
-GeneticCodeTypes = str | int | new_genetic_code.GeneticCode
+GeneticCodeTypes = str | int | c3_genetic_code.GeneticCode
 MolTypes = str | new_moltype.MolType
 AlphabetTypes = c3_alphabet.CharAlphabet
 
@@ -48,10 +49,7 @@ def best_frame(
         or the stop codon is not at the sequence end
     """
     gc = cogent3.get_code(gc)
-    if "new_" in gc.__module__:
-        translations = [tr for *_, tr in gc.sixframes(str(seq))]
-    else:
-        translations = gc.sixframes(seq)
+    translations = [tr for *_, tr in gc.sixframes(str(seq))]
 
     if not allow_rc:
         translations = translations[:3]
@@ -116,10 +114,7 @@ def translate_frames(
         moltype = cogent3.get_moltype(moltype)
         seq = moltype.make_seq(seq)
 
-    if "new_" in gc.__module__:
-        translations = [tr for *_, tr in gc.sixframes(seq)]
-    else:
-        translations = gc.sixframes(seq)
+    translations = [tr for *_, tr in gc.sixframes(seq)]
     if not allow_rc:
         translations = translations[:3]
 

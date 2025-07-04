@@ -5,7 +5,9 @@ from cogent3.core import (
     alphabet as c3_alphabet,
 )
 from cogent3.core import (
-    new_genetic_code,
+    genetic_code as c3_genetic_code,
+)
+from cogent3.core import (
     new_moltype,
 )
 from cogent3.core import (
@@ -211,7 +213,7 @@ def test_resolve_ambiguity_nucs():
 
 
 def test_resolve_ambiguity_codons():
-    gc = new_genetic_code.get_code(1)
+    gc = c3_genetic_code.get_code(1)
     codon_alpha = gc.get_alphabet(include_stop=False)
     codon_alpha_w_gap = codon_alpha.with_gap_motif()
     assert (

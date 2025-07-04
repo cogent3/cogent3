@@ -24,7 +24,8 @@ from numpy import array
 
 from cogent3._version import __version__
 from cogent3.core import alphabet as c3_alphabet
-from cogent3.core import new_genetic_code, new_moltype
+from cogent3.core import genetic_code as c3_genetic_code
+from cogent3.core import new_moltype
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
     AnnotatableMixin,
@@ -1983,7 +1984,7 @@ class NucleicAcidSequenceMixin:
 
     def has_terminal_stop(
         self,
-        gc: new_genetic_code.GeneticCode = 1,
+        gc: c3_genetic_code.GeneticCode = 1,
         strict: bool = False,
     ) -> bool:
         """Return True if the sequence has a terminal stop codon.
@@ -1991,14 +1992,14 @@ class NucleicAcidSequenceMixin:
         Parameters
         ----------
         gc
-            valid input to new_genetic_code.get_code(), a genetic code object, number
+            valid input to c3_genetic_code.get_code(), a genetic code object, number
             or name
         strict
             If True, raises an exception if length not divisible by 3
         """
-        from cogent3.core import new_genetic_code
+        from cogent3.core import genetic_code as c3_genetic_code
 
-        gc = new_genetic_code.get_code(gc)
+        gc = c3_genetic_code.get_code(gc)
         _, s = self.parse_out_gaps()
 
         divisible_by_3 = len(s) % 3 == 0
@@ -2014,7 +2015,7 @@ class NucleicAcidSequenceMixin:
 
     def trim_stop_codon(
         self,
-        gc: new_genetic_code.GeneticCode = 1,
+        gc: c3_genetic_code.GeneticCode = 1,
         strict: bool = False,
     ) -> typing_extensions.Self:
         """Removes a terminal stop codon from the sequence
@@ -2022,7 +2023,7 @@ class NucleicAcidSequenceMixin:
         Parameters
         ----------
         gc
-            valid input to new_genetic_code.get_code(), a genetic code object, number
+            valid input to c3_genetic_code.get_code(), a genetic code object, number
             or name
         strict
             If True, raises an exception if length not divisible by 3
@@ -2032,12 +2033,12 @@ class NucleicAcidSequenceMixin:
         If sequence contains gap characters, the result preserves the sequence
         length by adding gap characters at the end.
         """
-        from cogent3.core import new_genetic_code
+        from cogent3.core import genetic_code as c3_genetic_code
 
         if not self.has_terminal_stop(gc=gc, strict=strict):
             return self
 
-        gc = new_genetic_code.get_code(gc)
+        gc = c3_genetic_code.get_code(gc)
         m, s = self.parse_out_gaps()
 
         divisible_by_3 = len(s) % 3 == 0
@@ -2073,7 +2074,7 @@ class NucleicAcidSequenceMixin:
 
     def get_translation(
         self,
-        gc: new_genetic_code.GeneticCode = 1,
+        gc: c3_genetic_code.GeneticCode = 1,
         incomplete_ok: bool = False,
         include_stop: bool = False,
         trim_stop: bool = True,
@@ -2102,7 +2103,8 @@ class NucleicAcidSequenceMixin:
         ------
         AlphabetError if include_stop is False and a stop codon occurs
         """
-        from cogent3.core import new_genetic_code, new_moltype
+        from cogent3.core import genetic_code as c3_genetic_code
+        from cogent3.core import new_moltype
 
         if not self.moltype.is_nucleic:
             msg = f"moltype must be a DNA/RNA, not {self.moltype.name!r}"
@@ -2113,7 +2115,7 @@ class NucleicAcidSequenceMixin:
         protein = new_moltype.get_moltype(
             "protein_with_stop" if include_stop else "protein",
         )
-        gc = new_genetic_code.get_code(gc)
+        gc = c3_genetic_code.get_code(gc)
 
         if trim_stop:
             seq = self.trim_stop_codon(gc=gc, strict=not incomplete_ok)

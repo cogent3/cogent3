@@ -5,7 +5,8 @@ import pytest
 from numpy.testing import assert_allclose
 
 from cogent3.core import alphabet as c3_alphabet
-from cogent3.core import new_genetic_code, new_moltype
+from cogent3.core import genetic_code as c3_genetic_code
+from cogent3.core import new_moltype
 
 
 @pytest.mark.parametrize(
@@ -582,7 +583,7 @@ def test_deserialise_alphas(alpha):
 
 @pytest.fixture
 def calpha():
-    gc = new_genetic_code.get_code(1)
+    gc = c3_genetic_code.get_code(1)
     return c3_alphabet.SenseCodonAlphabet(
         words=gc.sense_codons,
         monomers=gc.moltype.alphabet,
@@ -768,7 +769,7 @@ def test_convert_seq_array_to_check_valid():
     [
         new_moltype.DNA.alphabet,
         new_moltype.DNA.alphabet.get_kmer_alphabet(k=2),
-        new_genetic_code.DEFAULT.get_alphabet(include_stop=False),
+        c3_genetic_code.DEFAULT.get_alphabet(include_stop=False),
     ],
 )
 def test_pickling_alphabet(alpha):
@@ -783,7 +784,7 @@ def test_pickling_alphabet(alpha):
     "alpha",
     [
         new_moltype.DNA.alphabet.get_kmer_alphabet(k=3),
-        new_genetic_code.DEFAULT.get_alphabet(include_stop=False),
+        c3_genetic_code.DEFAULT.get_alphabet(include_stop=False),
     ],
 )
 def test_trinucs_to_indices_dtype(alpha):
@@ -801,7 +802,7 @@ def test_trinucs_to_indices_dtype(alpha):
         new_moltype.DNA.alphabet.get_kmer_alphabet(k=2),
         new_moltype.DNA.alphabet.get_kmer_alphabet(k=3),
         new_moltype.DNA.alphabet.get_kmer_alphabet(k=4),
-        new_genetic_code.DEFAULT.get_alphabet(include_stop=False),
+        c3_genetic_code.DEFAULT.get_alphabet(include_stop=False),
     ],
 )
 @pytest.mark.parametrize("cast", [numpy.array, str])

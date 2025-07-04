@@ -4,7 +4,8 @@ import pytest
 
 from cogent3 import load_seq
 from cogent3.core import alignment as c3_alignment
-from cogent3.core import new_genetic_code, new_moltype
+from cogent3.core import genetic_code as c3_genetic_code
+from cogent3.core import new_moltype
 from cogent3.core.annotation_db import GffAnnotationDb, load_annotations
 
 DNA = new_moltype.get_moltype("dna")
@@ -451,7 +452,7 @@ def test_annotate_matches_to():
     # handles regex from aa
     aln = c3_alignment.make_aligned_seqs({"x": "TTCCACTTCCGCTT"}, moltype="dna")
     aln.annotation_db = GffAnnotationDb()
-    gc = new_genetic_code.get_code(1)
+    gc = c3_genetic_code.get_code(1)
     aa_regex = gc.to_regex("FHF")
     aln.seqs["x"].annotate_matches_to(aa_regex, "domain", "test", allow_multiple=False)
     a = next(iter(aln.get_features(seqid="x")))

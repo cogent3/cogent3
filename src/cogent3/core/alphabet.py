@@ -1472,7 +1472,7 @@ def deserialise_codon_alphabet(data: dict) -> SenseCodonAlphabet:
 
     # we search through the genetic codes for the one with a matching
     # motifset
-    from cogent3.core.new_genetic_code import available_codes, get_code
+    from cogent3.core.genetic_code import available_codes, get_code
 
     include_gap = bool(data["gap"])
     motifs = set(data["motifset"])

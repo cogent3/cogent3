@@ -19,7 +19,7 @@ from cogent3.app import (  # noqa: F401
 )
 from cogent3.core import annotation_db as _anno_db
 from cogent3.core.alignment import make_aligned_seqs, make_unaligned_seqs
-from cogent3.core.new_genetic_code import available_codes, get_code  # noqa: F401
+from cogent3.core.genetic_code import available_codes, get_code  # noqa: F401
 
 # note that moltype has to be imported last, because it sets the moltype in
 # the objects created by the other modules.

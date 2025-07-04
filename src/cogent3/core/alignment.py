@@ -29,7 +29,9 @@ from cogent3.core import (
     alphabet as c3_alphabet,
 )
 from cogent3.core import (
-    new_genetic_code,
+    genetic_code as c3_genetic_code,
+)
+from cogent3.core import (
     new_moltype,
 )
 from cogent3.core import (
@@ -1163,7 +1165,7 @@ class SequenceCollection(AnnotatableMixin):
 
     def get_translation(
         self,
-        gc: new_genetic_code.GeneticCodeChoiceType = 1,
+        gc: c3_genetic_code.GeneticCodeChoiceType = 1,
         incomplete_ok: bool = False,
         include_stop: bool = False,
         trim_stop: bool = True,
@@ -1691,7 +1693,7 @@ class SequenceCollection(AnnotatableMixin):
         return result
 
     def trim_stop_codons(
-        self, gc: new_genetic_code.GeneticCodeChoiceType = 1, strict: bool = False
+        self, gc: c3_genetic_code.GeneticCodeChoiceType = 1, strict: bool = False
     ) -> typing_extensions.Self:
         """Removes any terminal stop codons from the sequences
 
@@ -2038,7 +2040,7 @@ class SequenceCollection(AnnotatableMixin):
         )
 
     def has_terminal_stop(
-        self, gc: new_genetic_code.GeneticCodeChoiceType = 1, strict: bool = False
+        self, gc: c3_genetic_code.GeneticCodeChoiceType = 1, strict: bool = False
     ) -> bool:
         """Returns True if any sequence has a terminal stop codon.
 
@@ -5649,7 +5651,7 @@ class Alignment(SequenceCollection):
         return self.__class__(**kwargs)
 
     def has_terminal_stop(
-        self, gc: new_genetic_code.GeneticCodeChoiceType = 1, strict: bool = False
+        self, gc: c3_genetic_code.GeneticCodeChoiceType = 1, strict: bool = False
     ) -> bool:
         """Returns True if any sequence has a terminal stop codon.
 
@@ -5807,7 +5809,7 @@ class Alignment(SequenceCollection):
 
     def trim_stop_codons(
         self,
-        gc: new_genetic_code.GeneticCodeChoiceType = 1,
+        gc: c3_genetic_code.GeneticCodeChoiceType = 1,
         strict: bool = False,
         **kwargs,
     ) -> typing_extensions.Self:
@@ -5816,7 +5818,7 @@ class Alignment(SequenceCollection):
             return self
 
         # define a regex for finding stop codons followed by terminal gaps
-        gc = new_genetic_code.get_code(gc)
+        gc = c3_genetic_code.get_code(gc)
         gaps = "".join(self.moltype.gaps)
         pattern = f"({'|'.join(gc['*'])})[{gaps}]*$"
         terminal_stop = re.compile(pattern)
@@ -5843,7 +5845,7 @@ class Alignment(SequenceCollection):
     @extend_docstring_from(SequenceCollection.get_translation)
     def get_translation(
         self,
-        gc: new_genetic_code.GeneticCodeChoiceType = 1,
+        gc: c3_genetic_code.GeneticCodeChoiceType = 1,
         incomplete_ok: bool = False,
         include_stop: bool = False,
         trim_stop: bool = True,
