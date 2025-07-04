@@ -1,14 +1,11 @@
-import os
 import warnings
 
 import pytest
 from numpy.testing import assert_allclose, assert_almost_equal
 
 import cogent3
-import cogent3.evolve.parameter_controller
 import cogent3.evolve.substitution_model
 
-_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
 good_rule_sets = [
     [{"par_name": "length", "is_independent": True}],
     [{"par_name": "length", "is_independent": True}],
@@ -30,7 +27,7 @@ bad_rule_sets = [[{"par_name": "length", "clade": True, "edges": ["b", "f"]}]]
 def setup_data():
     """Fixture to set up data for tests"""
     al = cogent3.make_aligned_seqs(
-        data={"a": "tata", "b": "tgtc", "c": "gcga", "d": "gaac", "e": "gagc"},
+        {"a": "tata", "b": "tgtc", "c": "gcga", "d": "gaac", "e": "gagc"},
         moltype="dna",
     )
     tree = cogent3.make_tree(treestring="((a,b),(c,d),e);")
@@ -60,7 +57,7 @@ def test_set_get_motif_probs_nstat():
     from cogent3 import get_model
 
     aln = cogent3.make_aligned_seqs(
-        data={
+        {
             "a": "AACGAAGCAGAGTCACGGCA",
             "b": "ACGGAAGTTGAGTCACCCCA",
             "c": "TGCATCGAAAAGTCACGCTG",
@@ -112,7 +109,7 @@ def test_set_motif_probs(setup_data):
 
     # test with consideration of ambiguous states
     al = cogent3.make_aligned_seqs(
-        data={"seq1": "ACGTAAGNA", "seq2": "ACGTANGTC", "seq3": "ACGTACGTG"},
+        {"seq1": "ACGTAAGNA", "seq2": "ACGTANGTC", "seq3": "ACGTACGTG"},
         moltype="dna",
     )
     lf.set_motif_probs_from_data(al, include_ambiguity=True, is_constant=True)
@@ -177,8 +174,7 @@ def test_set_constant_lengths(setup_data):
     assert lf.get_param_value("length", "d") == 5
 
 
-@pytest.mark.skipif(
-    _NEW_TYPE,
+@pytest.mark.xfail(
     reason="test env artifact for new_type, it passes if run alone",
 )
 def test_pairwise_clock(DATA_DIR):

@@ -6,15 +6,6 @@
 Dotplot basics
 ==============
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 A technique (`Gibbs and McIntyre <https://www.ncbi.nlm.nih.gov/pubmed/5456129>`_) for comparing sequences. All ``cogent3`` sequence collections classes (``SequenceCollection``, ``Alignment``) have a dotplot method.
 
 .. todo:: Change dotplot ref to a citation

@@ -37,7 +37,7 @@ class HasInfo(Protocol):
     def info(self) -> HasSource: ...
 
 
-AlignedSeqsType = TypeVar("AlignedSeqsType", "Alignment", "ArrayAlignment")
+AlignedSeqsType = TypeVar("AlignedSeqsType", bound="Alignment")
 UnalignedSeqsType = TypeVar("UnalignedSeqsType", bound="SequenceCollection")
 SeqsCollectionType = Union[AlignedSeqsType, UnalignedSeqsType]
 SeqType = TypeVar(

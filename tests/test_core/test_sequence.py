@@ -9,31 +9,34 @@ import pytest
 
 import cogent3
 from cogent3._version import __version__
+from cogent3.core import alphabet as c3_alphabet
 from cogent3.core import annotation_db as anndb_module
-from cogent3.core import new_alphabet, new_genetic_code, new_moltype, new_sequence
+from cogent3.core import genetic_code as c3_genetic_code
+from cogent3.core import moltype as c3_moltype
+from cogent3.core import sequence as c3_sequence
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.misc import get_object_provenance
 
 
 @pytest.fixture
 def dna_alphabet():
-    return new_moltype.DNA.degen_gapped_alphabet
+    return c3_moltype.DNA.degen_gapped_alphabet
 
 
 @pytest.fixture
 def ascii_alphabet():
-    return new_moltype.ASCII.alphabet
+    return c3_moltype.ASCII.alphabet
 
 
 @pytest.fixture
 def bytes_alphabet():
-    return new_moltype.BYTES.most_degen_alphabet()
+    return c3_moltype.BYTES.most_degen_alphabet()
 
 
 @pytest.fixture
 def integer_seq(bytes_alphabet):
     """Used for slicing tests"""
-    return new_sequence.SeqView(
+    return c3_sequence.SeqView(
         parent="0123456789",
         parent_len=10,
         alphabet=bytes_alphabet,
@@ -43,7 +46,7 @@ def integer_seq(bytes_alphabet):
 @pytest.mark.parametrize("name", ["dna", "rna", "protein", "protein_with_stop", "text"])
 def test_moltype_make_seq(name):
     raw = "ACGGA"
-    moltype = new_moltype.get_moltype(name)
+    moltype = c3_moltype.get_moltype(name)
     seq = moltype.make_seq(name="s1", seq=raw)
     assert seq.moltype.name == name
     assert str(seq) == raw
@@ -52,7 +55,7 @@ def test_moltype_make_seq(name):
 def test_moltype_make_bytes_seq():
     raw = "ACGGA"
     name = "bytes"
-    moltype = new_moltype.get_moltype(name)
+    moltype = c3_moltype.get_moltype(name)
     seq = moltype.make_seq(name="s1", seq=raw)
     assert seq.moltype.name == name
     assert str(seq) == raw
@@ -67,7 +70,7 @@ def test_moltype_make_bytes_seq():
 )
 def test_sequence_copy(moltype):
     """correctly returns a copy version of self"""
-    mt = new_moltype.get_moltype(moltype)
+    mt = c3_moltype.get_moltype(moltype)
     s = mt.make_seq(seq="CCCCCCCCCCCCCAAAA", name="test_copy")
     annot1 = s.add_feature(biotype="exon", name="annot1", spans=[(0, 10)])
     annot2 = s.add_feature(biotype="exon", name="annot2", spans=[(10, 14)])
@@ -96,14 +99,14 @@ def test_sequence_copy(moltype):
 @pytest.mark.parametrize("seq", ["ACG", "AC-G", "-A-C"])
 def test_sequence_compare_to_string(moltype, seq):
     """Sequence should compare equal to same string."""
-    mt = new_moltype.get_moltype(moltype)
+    mt = c3_moltype.get_moltype(moltype)
     s = mt.make_seq(seq=seq)
     assert s == seq
 
 
 def test_sequence_slice():
     """Sequence slicing should work as expected"""
-    r = new_moltype.RNA.make_seq(seq="UCAGG")
+    r = c3_moltype.RNA.make_seq(seq="UCAGG")
     assert r[0] == "U"
     assert r[-1] == "G"
     assert r[1:3] == "CA"
@@ -111,14 +114,14 @@ def test_sequence_slice():
 
 def test_sequence_to_dna():
     """Returns copy of self as DNA."""
-    r = new_moltype.RNA.make_seq(seq="UCA")
+    r = c3_moltype.RNA.make_seq(seq="UCA")
     assert str(r) == "UCA"
     assert str(r.to_dna()) == "TCA"
 
 
 def test_sequence_to_rna():
     """Returns copy of self as RNA."""
-    r = new_moltype.DNA.make_seq(seq="TCA")
+    r = c3_moltype.DNA.make_seq(seq="TCA")
     assert str(r) == "TCA"
     assert str(r.to_rna()) == "UCA"
 
@@ -127,8 +130,8 @@ def test_sequence_to_fasta():
     """Sequence.to_fasta() should return Fasta-formatted string"""
     even = "TCAGAT"
     odd = f"{even}AAA"
-    even_dna = new_moltype.DNA.make_seq(seq=even, name="even")
-    odd_dna = new_moltype.DNA.make_seq(seq=odd, name="odd")
+    even_dna = c3_moltype.DNA.make_seq(seq=even, name="even")
+    odd_dna = c3_moltype.DNA.make_seq(seq=odd, name="odd")
     assert even_dna.to_fasta() == ">even\nTCAGAT\n"
     # set line wrap to small number so we can test that it works
     assert even_dna.to_fasta(block_size=2) == ">even\nTC\nAG\nAT\n"
@@ -139,13 +142,13 @@ def test_sequence_to_fasta():
 
 def test_sequence_serialize():
     """Sequence should be serializable"""
-    r = new_moltype.RNA.make_seq(seq="UGAGG")
+    r = c3_moltype.RNA.make_seq(seq="UGAGG")
     assert dumps(r)
 
 
 def test_sequence_to_moltype():
     """correctly convert to specified moltype"""
-    s = new_moltype.ASCII.make_seq(seq="TTTTTTTTTTAAAA", name="test1")
+    s = c3_moltype.ASCII.make_seq(seq="TTTTTTTTTTAAAA", name="test1")
     s.add_feature(biotype="exon", name="fred", spans=[(0, 10)])
     s.add_feature(biotype="exon", name="trev", spans=[(10, 14)])
     got = s.to_moltype("dna")
@@ -158,7 +161,7 @@ def test_sequence_to_moltype():
 @pytest.mark.parametrize("invalid_moltype", [None, ""])
 def test_sequence_to_moltype_invalid(invalid_moltype):
     """correctly convert to specified moltype"""
-    s = new_moltype.ASCII.make_seq(seq="TTTTTTTTTTAAAA", name="test1")
+    s = c3_moltype.ASCII.make_seq(seq="TTTTTTTTTTAAAA", name="test1")
     # calling with a null object should raise an exception
     with pytest.raises(ValueError):
         s.to_moltype(invalid_moltype)
@@ -171,7 +174,7 @@ def test_sequence_to_moltype_invalid(invalid_moltype):
 def test_sequence_to_moltype_seqclass(moltype):
     """correctly convert to specified moltype"""
     raw = "CCCCCCCCAAAA"
-    s = new_moltype.ASCII.make_seq(seq=raw, name="test1")
+    s = c3_moltype.ASCII.make_seq(seq=raw, name="test1")
     got = s.to_moltype(moltype)
     assert got.moltype.name == moltype
     # check the instance matches the assigned class, which is on
@@ -186,13 +189,13 @@ def test_sequence_to_moltype_seqclass(moltype):
 )
 def test_sequence_strip_degenerate(seq, expect):
     """Sequence strip_degenerate should remove any degenerate bases"""
-    seq = new_moltype.RNA.make_seq(seq=seq)
+    seq = c3_moltype.RNA.make_seq(seq=seq)
     got = seq.strip_degenerate()
     assert got == expect
 
 
 def test_add():
-    mt = new_moltype.DNA
+    mt = c3_moltype.DNA
     seq1 = mt.make_seq(seq="AAA")
     seq2 = mt.make_seq(seq="CCC")
     got = seq1 + seq2
@@ -201,18 +204,18 @@ def test_add():
 
 
 def test_add_bad():
-    mt = new_moltype.DNA
+    mt = c3_moltype.DNA
     seq1 = mt.make_seq(seq="AAA")
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         _ = seq1 + "s8d3j%31 s-']"
 
 
 @pytest.mark.parametrize(
     ("moltype", "label"),
     [
-        (new_moltype.ASCII, "text"),
-        (new_moltype.BYTES, "bytes"),
-        (new_moltype.DNA, "dna"),
+        (c3_moltype.ASCII, "text"),
+        (c3_moltype.BYTES, "bytes"),
+        (c3_moltype.DNA, "dna"),
     ],
 )
 def test_get_type(moltype, label):
@@ -229,7 +232,7 @@ def test_get_type(moltype, label):
     ],
 )
 def test_resolved_ambiguities(s, expect):
-    mt = new_moltype.DNA
+    mt = c3_moltype.DNA
     seq = mt.make_seq(seq=s)
     got = seq.resolved_ambiguities()
     assert got == expect
@@ -240,13 +243,13 @@ def test_resolved_ambiguities(s, expect):
     [
         ("UCXXXAGWSNYRHBNZZZD-D", "UCAGWSNYRHBND-D"),
         ("@#^*($@!#&()!@QZX", ""),
-        ("aaaxggg---!ccc", "---"),
+        ("aaaxggg---!ccc", "AAAGGG---CCC"),
     ],
 )
 def test_sequence_strip_bad(seq, expect):
     """Sequence strip_bad should remove any non-base, non-gap chars"""
     # have to turn off check to get bad data in
-    seq = new_moltype.RNA.make_seq(seq=seq, check_seq=False)
+    seq = c3_moltype.RNA.make_seq(seq=seq, check_seq=False)
     got = seq.strip_bad()
     assert str(got) == expect
 
@@ -262,14 +265,14 @@ def test_sequence_strip_bad(seq, expect):
 def test_sequence_strip_bad_and_gaps(seq, expect):
     """Sequence strip_bad_and_gaps should remove gaps and bad chars"""
     # have to turn off check to get bad data in; no longer preserves case
-    seq = new_moltype.RNA.make_seq(seq=seq, check_seq=False)
+    seq = c3_moltype.RNA.make_seq(seq=seq, check_seq=False)
     got = seq.strip_bad_and_gaps()
     assert str(got) == expect
 
 
 def test_sequence_shuffle():
     """Sequence shuffle should return new random sequence w/ same monomers"""
-    r = new_moltype.RNA.make_seq(seq="UUUUCCCCAAAAGGGG")
+    r = c3_moltype.RNA.make_seq(seq="UUUUCCCCAAAAGGGG")
     s = r.shuffle()
     assert r != s
     # assert the number of counts of each monomer is the same
@@ -278,32 +281,32 @@ def test_sequence_shuffle():
 
 def test_sequence_complement():
     """Sequence complement should correctly complement sequence"""
-    got = new_moltype.RNA.make_seq(seq="UAUCG-NR").complement()
+    got = c3_moltype.RNA.make_seq(seq="UAUCG-NR").complement()
     assert got == "AUAGC-NY"
-    got = new_moltype.DNA.make_seq(seq="TATCG-NR").complement()
+    got = c3_moltype.DNA.make_seq(seq="TATCG-NR").complement()
     assert got == "ATAGC-NY"
-    got = new_moltype.DNA.make_seq(seq="").complement()
+    got = c3_moltype.DNA.make_seq(seq="").complement()
     assert got == ""
     with pytest.raises(AttributeError):
-        new_moltype.PROTEIN.make_seq(seq="ACD").complement()
+        c3_moltype.PROTEIN.make_seq(seq="ACD").complement()
 
 
 def test_sequence_rc():
     """Sequence.rc() should correctly reverse-complement sequence"""
     # no longer preserves case!
-    s = new_moltype.DNA.make_seq(seq="TATCG-NR")
+    s = c3_moltype.DNA.make_seq(seq="TATCG-NR")
     s = s.rc()
     assert s == "YN-CGATA"
-    assert new_moltype.RNA.make_seq(seq="").rc() == ""
-    assert new_moltype.RNA.make_seq(seq="UAUCG-NR").rc() == "YN-CGAUA"
-    assert new_moltype.RNA.make_seq(seq="A").rc() == "U"
+    assert c3_moltype.RNA.make_seq(seq="").rc() == ""
+    assert c3_moltype.RNA.make_seq(seq="UAUCG-NR").rc() == "YN-CGAUA"
+    assert c3_moltype.RNA.make_seq(seq="A").rc() == "U"
     with pytest.raises(AttributeError):
-        new_moltype.PROTEIN.make_seq(seq="ACD").rc()
+        c3_moltype.PROTEIN.make_seq(seq="ACD").rc()
 
 
 def test_sequence_contains():
     """Sequence contains should return correct result"""
-    r = new_moltype.RNA.make_seq(seq="UCA")
+    r = c3_moltype.RNA.make_seq(seq="UCA")
     assert "U" in r
     assert "CA" in r
     assert "X" not in r
@@ -312,40 +315,40 @@ def test_sequence_contains():
 
 def test_sequence_iter():
     """Sequence iter should iterate over sequence"""
-    p = new_moltype.PROTEIN.make_seq(seq="QWE")
+    p = c3_moltype.PROTEIN.make_seq(seq="QWE")
     assert list(p) == ["Q", "W", "E"]
 
 
 def test_sequence_is_gapped():
     """Sequence is_gapped should return True if gaps in seq"""
-    assert not new_moltype.RNA.make_seq(seq="").is_gapped()
-    assert not new_moltype.RNA.make_seq(seq="ACGUCAGUACGUCAGNRCGAUYRNRYRN").is_gapped()
-    assert new_moltype.RNA.make_seq(seq="-").is_gapped()
-    assert new_moltype.PROTEIN.make_seq(seq="--").is_gapped()
-    assert new_moltype.RNA.make_seq(seq="CAGUCGUACGUCAGUACGU-ACUG").is_gapped()
-    assert new_moltype.RNA.make_seq(seq="CA--CGUAUGCA-----G").is_gapped()
-    assert new_moltype.RNA.make_seq(seq="CAGU-").is_gapped()
+    assert not c3_moltype.RNA.make_seq(seq="").is_gapped()
+    assert not c3_moltype.RNA.make_seq(seq="ACGUCAGUACGUCAGNRCGAUYRNRYRN").is_gapped()
+    assert c3_moltype.RNA.make_seq(seq="-").is_gapped()
+    assert c3_moltype.PROTEIN.make_seq(seq="--").is_gapped()
+    assert c3_moltype.RNA.make_seq(seq="CAGUCGUACGUCAGUACGU-ACUG").is_gapped()
+    assert c3_moltype.RNA.make_seq(seq="CA--CGUAUGCA-----G").is_gapped()
+    assert c3_moltype.RNA.make_seq(seq="CAGU-").is_gapped()
 
 
 def test_sequence_is_degenerate():
     """Sequence is_degenerate should return True if degen symbol in seq"""
-    assert not new_moltype.RNA.make_seq(seq="").is_degenerate()
-    assert not new_moltype.RNA.make_seq(
+    assert not c3_moltype.RNA.make_seq(seq="").is_degenerate()
+    assert not c3_moltype.RNA.make_seq(
         seq="UACGCUACAUGGCUAGCUA---ACGUCAG",
     ).is_degenerate()
-    assert new_moltype.RNA.make_seq(seq="N").is_degenerate()
-    assert new_moltype.RNA.make_seq(seq="R").is_degenerate()
-    assert new_moltype.RNA.make_seq(seq="Y").is_degenerate()
-    assert new_moltype.RNA.make_seq(seq="GCSUA").is_degenerate()
-    assert new_moltype.RNA.make_seq(seq="ACGYAUGCUGYWWNMN").is_degenerate()
+    assert c3_moltype.RNA.make_seq(seq="N").is_degenerate()
+    assert c3_moltype.RNA.make_seq(seq="R").is_degenerate()
+    assert c3_moltype.RNA.make_seq(seq="Y").is_degenerate()
+    assert c3_moltype.RNA.make_seq(seq="GCSUA").is_degenerate()
+    assert c3_moltype.RNA.make_seq(seq="ACGYAUGCUGYWWNMN").is_degenerate()
 
 
 def test_sequence_is_strict():
     """Sequence is_strict should return True if all symbols in Monomers"""
-    assert new_moltype.RNA.make_seq(seq="").is_strict()
-    assert new_moltype.PROTEIN.make_seq(seq="A").is_strict()
-    assert new_moltype.RNA.make_seq(seq="UAGCACU").is_strict()
-    assert not new_moltype.RNA.make_seq(seq="CAGUCGAUCA-").is_strict()
+    assert c3_moltype.RNA.make_seq(seq="").is_strict()
+    assert c3_moltype.PROTEIN.make_seq(seq="A").is_strict()
+    assert c3_moltype.RNA.make_seq(seq="UAGCACU").is_strict()
+    assert not c3_moltype.RNA.make_seq(seq="CAGUCGAUCA-").is_strict()
 
 
 def test_sequence_disambiguate():
@@ -355,13 +358,13 @@ def test_sequence_disambiguate():
     -----
     This test relies on random generation not being the same twice!
     """
-    assert new_moltype.RNA.make_seq(seq="").disambiguate() == ""
+    assert c3_moltype.RNA.make_seq(seq="").disambiguate() == ""
     assert (
-        new_moltype.RNA.make_seq(seq="AGCUGAUGUA--CAGU").disambiguate()
+        c3_moltype.RNA.make_seq(seq="AGCUGAUGUA--CAGU").disambiguate()
         == "AGCUGAUGUA--CAGU"
     )
-    assert new_moltype.RNA.make_seq(seq="AU-YRS-CG").disambiguate("strip") == "AU--CG"
-    s = new_moltype.RNA.make_seq(seq="AUN-YRS-WKMCGWMRNMWRKY")
+    assert c3_moltype.RNA.make_seq(seq="AU-YRS-CG").disambiguate("strip") == "AU--CG"
+    s = c3_moltype.RNA.make_seq(seq="AUN-YRS-WKMCGWMRNMWRKY")
     t = s.disambiguate("random")
     u = s.disambiguate("random")
     for i, j in zip(str(s), str(t), strict=False):
@@ -376,38 +379,38 @@ def test_sequence_disambiguate():
 def test_sequence_degap():
     """Sequence degap should remove all gaps from sequence"""
     # doesn't preserve case
-    assert new_moltype.RNA.make_seq(seq="").degap() == ""
-    assert new_moltype.RNA.make_seq(seq="GUCAGUC").degap() == "GUCAGUC"
-    assert new_moltype.RNA.make_seq(seq="----------------").degap() == ""
-    assert new_moltype.RNA.make_seq(seq="GCUAUACG-").degap() == "GCUAUACG"
-    assert new_moltype.RNA.make_seq(seq="-CUAGUCA").degap() == "CUAGUCA"
-    assert new_moltype.RNA.make_seq(seq="---A---C---U----G---").degap() == "ACUG"
-    assert new_moltype.RNA.make_seq(seq="?A-").degap() == "A"
+    assert c3_moltype.RNA.make_seq(seq="").degap() == ""
+    assert c3_moltype.RNA.make_seq(seq="GUCAGUC").degap() == "GUCAGUC"
+    assert c3_moltype.RNA.make_seq(seq="----------------").degap() == ""
+    assert c3_moltype.RNA.make_seq(seq="GCUAUACG-").degap() == "GCUAUACG"
+    assert c3_moltype.RNA.make_seq(seq="-CUAGUCA").degap() == "CUAGUCA"
+    assert c3_moltype.RNA.make_seq(seq="---A---C---U----G---").degap() == "ACUG"
+    assert c3_moltype.RNA.make_seq(seq="?A-").degap() == "A"
 
 
 def test_sequence_gap_indices():
     """Sequence gap_indices should return correct gap positions"""
-    got = new_moltype.RNA.make_seq(seq="").gap_indices()
+    got = c3_moltype.RNA.make_seq(seq="").gap_indices()
     expect = numpy.array([])
     assert numpy.array_equal(got, expect)
 
-    got = new_moltype.RNA.make_seq(seq="ACUGUCAGUACGHSDKCUCDNNS").gap_indices()
+    got = c3_moltype.RNA.make_seq(seq="ACUGUCAGUACGHSDKCUCDNNS").gap_indices()
     expect = numpy.array([])
     assert numpy.array_equal(got, expect)
 
-    got = new_moltype.RNA.make_seq(seq="GUACGUACAKDC-SDHDSK").gap_indices()
+    got = c3_moltype.RNA.make_seq(seq="GUACGUACAKDC-SDHDSK").gap_indices()
     expect = numpy.array([12])
     assert numpy.array_equal(got, expect)
 
-    got = new_moltype.RNA.make_seq(seq="-DSHUHDS").gap_indices()
+    got = c3_moltype.RNA.make_seq(seq="-DSHUHDS").gap_indices()
     expect = numpy.array([0])
     assert numpy.array_equal(got, expect)
 
-    got = new_moltype.RNA.make_seq(seq="UACHASADS-").gap_indices()
+    got = c3_moltype.RNA.make_seq(seq="UACHASADS-").gap_indices()
     expect = numpy.array([9])
     assert numpy.array_equal(got, expect)
 
-    got = new_moltype.RNA.make_seq(
+    got = c3_moltype.RNA.make_seq(
         seq="---CGAUGCAU---ACGHC---ACGUCAGU---",
     ).gap_indices()
     expect = numpy.array([0, 1, 2, 11, 12, 13, 19, 20, 21, 30, 31, 32])
@@ -418,7 +421,7 @@ def test_sequence_gap_vector():
     """Sequence gap_vector should return correct gap positions"""
 
     def g(x):
-        return new_moltype.RNA.make_seq(seq=x).gap_vector()
+        return c3_moltype.RNA.make_seq(seq=x).gap_vector()
 
     assert g("") == []
     assert g("ACUGUCAGUACGHCSDKCCUCCDNCNS") == [False] * 27
@@ -434,29 +437,29 @@ def test_sequence_gap_vector():
 
 def test_count_gaps():
     """Sequence.count_gaps should return correct gap count"""
-    assert new_moltype.RNA.make_seq(seq="").count_gaps() == 0
-    assert new_moltype.RNA.make_seq(seq="ACUGUCAGUACGHSDKCUCDNNS").count_gaps() == 0
-    assert new_moltype.RNA.make_seq(seq="GUACGUACAKDC-SDHDSK").count_gaps() == 1
-    assert new_moltype.RNA.make_seq(seq="-DSHUHDS").count_gaps() == 1
-    assert new_moltype.RNA.make_seq(seq="UACHASADS-").count_gaps() == 1
+    assert c3_moltype.RNA.make_seq(seq="").count_gaps() == 0
+    assert c3_moltype.RNA.make_seq(seq="ACUGUCAGUACGHSDKCUCDNNS").count_gaps() == 0
+    assert c3_moltype.RNA.make_seq(seq="GUACGUACAKDC-SDHDSK").count_gaps() == 1
+    assert c3_moltype.RNA.make_seq(seq="-DSHUHDS").count_gaps() == 1
+    assert c3_moltype.RNA.make_seq(seq="UACHASADS-").count_gaps() == 1
     assert (
-        new_moltype.RNA.make_seq(seq="---CGAUGCAU---ACGHC---ACGUCAGU---").count_gaps()
+        c3_moltype.RNA.make_seq(seq="---CGAUGCAU---ACGHC---ACGUCAGU---").count_gaps()
         == 12
     )
 
 
 def test_count_degenerate():
     """Sequence.count_degenerate should return correct degen base count"""
-    assert new_moltype.RNA.make_seq(seq="").count_degenerate() == 0
+    assert c3_moltype.RNA.make_seq(seq="").count_degenerate() == 0
     assert (
-        new_moltype.RNA.make_seq(seq="GACUGCAUGCAUCGUACGUCAGUACCGA").count_degenerate()
+        c3_moltype.RNA.make_seq(seq="GACUGCAUGCAUCGUACGUCAGUACCGA").count_degenerate()
         == 0
     )
-    assert new_moltype.RNA.make_seq(seq="N").count_degenerate() == 1
-    assert new_moltype.PROTEIN.make_seq(seq="N").count_degenerate() == 0
-    assert new_moltype.RNA.make_seq(seq="NRY").count_degenerate() == 3
+    assert c3_moltype.RNA.make_seq(seq="N").count_degenerate() == 1
+    assert c3_moltype.PROTEIN.make_seq(seq="N").count_degenerate() == 0
+    assert c3_moltype.RNA.make_seq(seq="NRY").count_degenerate() == 3
     assert (
-        new_moltype.RNA.make_seq(
+        c3_moltype.RNA.make_seq(
             seq="ACGUAVCUAGCAUNUCAGUCAGYUACGUCAGS",
         ).count_degenerate()
         == 4
@@ -465,14 +468,14 @@ def test_count_degenerate():
 
 def test_sequence_count_variants():
     """Sequence count_variants should return correct # possible sequences"""
-    assert new_moltype.RNA.make_seq(seq="").count_variants() == 1
-    assert new_moltype.RNA.make_seq(seq="ACGUGCAU").count_variants() == 1
-    assert new_moltype.RNA.make_seq(seq="N").count_variants() == 4
-    assert new_moltype.RNA.make_seq(seq="R").count_variants() == 2
-    assert new_moltype.RNA.make_seq(seq="H").count_variants() == 3
-    assert new_moltype.RNA.make_seq(seq="NRH").count_variants() == 24
+    assert c3_moltype.RNA.make_seq(seq="").count_variants() == 1
+    assert c3_moltype.RNA.make_seq(seq="ACGUGCAU").count_variants() == 1
+    assert c3_moltype.RNA.make_seq(seq="N").count_variants() == 4
+    assert c3_moltype.RNA.make_seq(seq="R").count_variants() == 2
+    assert c3_moltype.RNA.make_seq(seq="H").count_variants() == 3
+    assert c3_moltype.RNA.make_seq(seq="NRH").count_variants() == 24
     assert (
-        new_moltype.RNA.make_seq(
+        c3_moltype.RNA.make_seq(
             seq="AUGCNGUCAG-AURGAUC--GAUHCGAUACGWS",
         ).count_variants()
         == 96
@@ -481,93 +484,93 @@ def test_sequence_count_variants():
 
 def test_mw():
     """Sequence MW should return correct molecular weight"""
-    assert new_moltype.PROTEIN.make_seq(seq="").mw() == 0
-    assert new_moltype.RNA.make_seq(seq="").mw() == 0
-    assert numpy.allclose(new_moltype.PROTEIN.make_seq(seq="A").mw(), 89.09)
-    assert numpy.allclose(new_moltype.RNA.make_seq(seq="A").mw(), 375.17)
-    assert numpy.allclose(new_moltype.PROTEIN.make_seq(seq="AAA").mw(), 231.27)
-    assert numpy.allclose(new_moltype.RNA.make_seq(seq="AAA").mw(), 1001.59)
-    assert numpy.allclose(new_moltype.RNA.make_seq(seq="AAACCCA").mw(), 2182.37)
+    assert c3_moltype.PROTEIN.make_seq(seq="").mw() == 0
+    assert c3_moltype.RNA.make_seq(seq="").mw() == 0
+    assert numpy.allclose(c3_moltype.PROTEIN.make_seq(seq="A").mw(), 89.09)
+    assert numpy.allclose(c3_moltype.RNA.make_seq(seq="A").mw(), 375.17)
+    assert numpy.allclose(c3_moltype.PROTEIN.make_seq(seq="AAA").mw(), 231.27)
+    assert numpy.allclose(c3_moltype.RNA.make_seq(seq="AAA").mw(), 1001.59)
+    assert numpy.allclose(c3_moltype.RNA.make_seq(seq="AAACCCA").mw(), 2182.37)
 
 
 def test_can_match():
     """Sequence can_match should return True if all positions can match"""
-    assert new_moltype.RNA.make_seq(seq="").can_match("")
-    assert new_moltype.RNA.make_seq(seq="UCAG").can_match("UCAG")
-    assert new_moltype.RNA.make_seq(seq="UCAG").can_match("NNNN")
-    assert new_moltype.RNA.make_seq(seq="NNNN").can_match("UCAG")
-    assert new_moltype.RNA.make_seq(seq="NNNN").can_match("NNNN")
-    assert not new_moltype.RNA.make_seq(seq="N").can_match("X")
-    assert not new_moltype.RNA.make_seq(seq="N").can_match("-")
-    assert new_moltype.RNA.make_seq(seq="UCAG").can_match("YYRR")
-    assert new_moltype.RNA.make_seq(seq="UCAG").can_match("KMWS")
+    assert c3_moltype.RNA.make_seq(seq="").can_match("")
+    assert c3_moltype.RNA.make_seq(seq="UCAG").can_match("UCAG")
+    assert c3_moltype.RNA.make_seq(seq="UCAG").can_match("NNNN")
+    assert c3_moltype.RNA.make_seq(seq="NNNN").can_match("UCAG")
+    assert c3_moltype.RNA.make_seq(seq="NNNN").can_match("NNNN")
+    assert not c3_moltype.RNA.make_seq(seq="N").can_match("X")
+    assert not c3_moltype.RNA.make_seq(seq="N").can_match("-")
+    assert c3_moltype.RNA.make_seq(seq="UCAG").can_match("YYRR")
+    assert c3_moltype.RNA.make_seq(seq="UCAG").can_match("KMWS")
 
 
 def test_can_pair():
     """Sequence can_pair should return True if all positions can pair"""
-    assert new_moltype.RNA.make_seq(seq="").can_pair("")
-    assert not new_moltype.RNA.make_seq(seq="UCAG").can_pair("UCAG")
-    assert new_moltype.RNA.make_seq(seq="UCAG").can_pair("CUGA")
-    assert not new_moltype.RNA.make_seq(seq="UCAG").can_pair("cuga")
-    assert new_moltype.RNA.make_seq(seq="UCAG").can_pair("NNNN")
-    assert new_moltype.RNA.make_seq(seq="NNNN").can_pair("UCAG")
-    assert new_moltype.RNA.make_seq(seq="NNNN").can_pair("NNNN")
-    assert not new_moltype.RNA.make_seq(seq="N").can_pair("x")
-    assert not new_moltype.RNA.make_seq(seq="N").can_pair("-")
-    assert new_moltype.RNA.make_seq(seq="-").can_pair("-")
-    assert new_moltype.RNA.make_seq(seq="UCAGU").can_pair("KYYRR")
-    assert new_moltype.RNA.make_seq(seq="UCAG").can_pair("KKRS")
-    assert new_moltype.RNA.make_seq(seq="U").can_pair("G")
+    assert c3_moltype.RNA.make_seq(seq="").can_pair("")
+    assert not c3_moltype.RNA.make_seq(seq="UCAG").can_pair("UCAG")
+    assert c3_moltype.RNA.make_seq(seq="UCAG").can_pair("CUGA")
+    assert not c3_moltype.RNA.make_seq(seq="UCAG").can_pair("cuga")
+    assert c3_moltype.RNA.make_seq(seq="UCAG").can_pair("NNNN")
+    assert c3_moltype.RNA.make_seq(seq="NNNN").can_pair("UCAG")
+    assert c3_moltype.RNA.make_seq(seq="NNNN").can_pair("NNNN")
+    assert not c3_moltype.RNA.make_seq(seq="N").can_pair("x")
+    assert not c3_moltype.RNA.make_seq(seq="N").can_pair("-")
+    assert c3_moltype.RNA.make_seq(seq="-").can_pair("-")
+    assert c3_moltype.RNA.make_seq(seq="UCAGU").can_pair("KYYRR")
+    assert c3_moltype.RNA.make_seq(seq="UCAG").can_pair("KKRS")
+    assert c3_moltype.RNA.make_seq(seq="U").can_pair("G")
 
-    assert not new_moltype.DNA.make_seq(seq="T").can_pair("G")
+    assert not c3_moltype.DNA.make_seq(seq="T").can_pair("G")
 
 
 def test_can_mispair():
     """Sequence can_mispair should return True on any possible mispair"""
-    assert not new_moltype.RNA.make_seq(seq="").can_mispair("")
-    assert new_moltype.RNA.make_seq(seq="N").can_mispair("N")
-    assert new_moltype.RNA.make_seq(seq="R").can_mispair("Y")
-    assert new_moltype.RNA.make_seq(seq="N").can_mispair("r")
-    assert new_moltype.RNA.make_seq(seq="CGUACGCAN").can_mispair("NUHCHUACH")
-    assert new_moltype.RNA.make_seq(seq="U").can_mispair("C")
-    assert new_moltype.RNA.make_seq(seq="U").can_mispair("R")
-    assert new_moltype.RNA.make_seq(seq="UUU").can_mispair("AAR")
-    assert new_moltype.RNA.make_seq(seq="UUU").can_mispair("GAG")
-    assert not new_moltype.RNA.make_seq(seq="UUU").can_mispair("AAA")
-    assert not new_moltype.RNA.make_seq(seq="UCAG").can_mispair("CUGA")
-    assert new_moltype.RNA.make_seq(seq="U--").can_mispair("--U")
-    assert new_moltype.DNA.make_seq(seq="TCCAAAGRYY").can_mispair("RRYCTTTGGA")
+    assert not c3_moltype.RNA.make_seq(seq="").can_mispair("")
+    assert c3_moltype.RNA.make_seq(seq="N").can_mispair("N")
+    assert c3_moltype.RNA.make_seq(seq="R").can_mispair("Y")
+    assert c3_moltype.RNA.make_seq(seq="N").can_mispair("r")
+    assert c3_moltype.RNA.make_seq(seq="CGUACGCAN").can_mispair("NUHCHUACH")
+    assert c3_moltype.RNA.make_seq(seq="U").can_mispair("C")
+    assert c3_moltype.RNA.make_seq(seq="U").can_mispair("R")
+    assert c3_moltype.RNA.make_seq(seq="UUU").can_mispair("AAR")
+    assert c3_moltype.RNA.make_seq(seq="UUU").can_mispair("GAG")
+    assert not c3_moltype.RNA.make_seq(seq="UUU").can_mispair("AAA")
+    assert not c3_moltype.RNA.make_seq(seq="UCAG").can_mispair("CUGA")
+    assert c3_moltype.RNA.make_seq(seq="U--").can_mispair("--U")
+    assert c3_moltype.DNA.make_seq(seq="TCCAAAGRYY").can_mispair("RRYCTTTGGA")
 
 
 def test_must_pair():
     """Sequence must_pair should return True when no possible mispairs"""
-    assert new_moltype.RNA.make_seq(seq="").must_pair("")
-    assert not new_moltype.RNA.make_seq(seq="N").must_pair("N")
-    assert not new_moltype.RNA.make_seq(seq="R").must_pair("Y")
-    assert not new_moltype.RNA.make_seq(seq="A").must_pair("A")
-    assert not new_moltype.RNA.make_seq(seq="CGUACGCAN").must_pair("NUGCGUACG")
-    assert not new_moltype.RNA.make_seq(seq="U").must_pair("C")
-    assert not new_moltype.RNA.make_seq(seq="UUU").must_pair("AAR")
-    assert not new_moltype.RNA.make_seq(seq="UUU").must_pair("RAA")
-    assert not new_moltype.RNA.make_seq(seq="UU-").must_pair("-AA")
-    assert new_moltype.RNA.make_seq(seq="UCAG").must_pair("CUGA")
+    assert c3_moltype.RNA.make_seq(seq="").must_pair("")
+    assert not c3_moltype.RNA.make_seq(seq="N").must_pair("N")
+    assert not c3_moltype.RNA.make_seq(seq="R").must_pair("Y")
+    assert not c3_moltype.RNA.make_seq(seq="A").must_pair("A")
+    assert not c3_moltype.RNA.make_seq(seq="CGUACGCAN").must_pair("NUGCGUACG")
+    assert not c3_moltype.RNA.make_seq(seq="U").must_pair("C")
+    assert not c3_moltype.RNA.make_seq(seq="UUU").must_pair("AAR")
+    assert not c3_moltype.RNA.make_seq(seq="UUU").must_pair("RAA")
+    assert not c3_moltype.RNA.make_seq(seq="UU-").must_pair("-AA")
+    assert c3_moltype.RNA.make_seq(seq="UCAG").must_pair("CUGA")
 
-    assert new_moltype.DNA.make_seq(seq="TCCAGGG").must_pair("CCCTGGA")
-    assert new_moltype.DNA.make_seq(seq="TCCAGGG").must_pair(
-        new_moltype.DNA.make_seq(seq="CCCTGGA"),
+    assert c3_moltype.DNA.make_seq(seq="TCCAGGG").must_pair("CCCTGGA")
+    assert c3_moltype.DNA.make_seq(seq="TCCAGGG").must_pair(
+        c3_moltype.DNA.make_seq(seq="CCCTGGA"),
     )
-    assert not new_moltype.DNA.make_seq(seq="TCCAGGG").must_pair("NCCTGGA")
+    assert not c3_moltype.DNA.make_seq(seq="TCCAGGG").must_pair("NCCTGGA")
 
 
 def test_diff():
     """Sequence diff should count 1 for each difference between sequences"""
-    assert new_moltype.RNA.make_seq(seq="UGCUGCUC").diff("") == 0
-    assert new_moltype.RNA.make_seq(seq="UGCUGCUC").diff("U") == 0
-    assert new_moltype.RNA.make_seq(seq="UGCUGCUC").diff("UCCCCCUC") == 3
-    assert new_moltype.RNA.make_seq(seq="AAAAA").diff("CCCCC") == 5
+    assert c3_moltype.RNA.make_seq(seq="UGCUGCUC").diff("") == 0
+    assert c3_moltype.RNA.make_seq(seq="UGCUGCUC").diff("U") == 0
+    assert c3_moltype.RNA.make_seq(seq="UGCUGCUC").diff("UCCCCCUC") == 3
+    assert c3_moltype.RNA.make_seq(seq="AAAAA").diff("CCCCC") == 5
     # raises TypeError if other not iterable
     with pytest.raises(TypeError):
-        new_moltype.RNA.make_seq(seq="AAAAA").diff(5)
+        c3_moltype.RNA.make_seq(seq="AAAAA").diff(5)
 
 
 def test_distance():
@@ -581,17 +584,17 @@ def test_distance():
         return 10
 
     # uses identity function by default
-    assert new_moltype.RNA.make_seq(seq="UGCUGCUC").distance("") == 0
-    assert new_moltype.RNA.make_seq(seq="UGCUGCUC").distance("U") == 0
-    assert new_moltype.RNA.make_seq(seq="UGCUGCUC").distance("UCCCCCUC") == 3
-    assert new_moltype.RNA.make_seq(seq="AAAAA").distance("CCCCC") == 5
+    assert c3_moltype.RNA.make_seq(seq="UGCUGCUC").distance("") == 0
+    assert c3_moltype.RNA.make_seq(seq="UGCUGCUC").distance("U") == 0
+    assert c3_moltype.RNA.make_seq(seq="UGCUGCUC").distance("UCCCCCUC") == 3
+    assert c3_moltype.RNA.make_seq(seq="AAAAA").distance("CCCCC") == 5
     # should use function if supplied
-    assert new_moltype.RNA.make_seq(seq="UGCUGCUC").distance("", f) == 0
-    assert new_moltype.RNA.make_seq(seq="UGCUGCUC").distance("U", f) == 0
-    assert new_moltype.RNA.make_seq(seq="UGCUGCUC").distance("C", f) == 1
-    assert new_moltype.RNA.make_seq(seq="UGCUGCUC").distance("G", f) == 10
-    assert new_moltype.RNA.make_seq(seq="UGCUGCUC").distance("UCCCCCUC", f) == 21
-    assert new_moltype.RNA.make_seq(seq="AAAAA").distance("CCCCC", f) == 50
+    assert c3_moltype.RNA.make_seq(seq="UGCUGCUC").distance("", f) == 0
+    assert c3_moltype.RNA.make_seq(seq="UGCUGCUC").distance("U", f) == 0
+    assert c3_moltype.RNA.make_seq(seq="UGCUGCUC").distance("C", f) == 1
+    assert c3_moltype.RNA.make_seq(seq="UGCUGCUC").distance("G", f) == 10
+    assert c3_moltype.RNA.make_seq(seq="UGCUGCUC").distance("UCCCCCUC", f) == 21
+    assert c3_moltype.RNA.make_seq(seq="AAAAA").distance("CCCCC", f) == 50
 
 
 def test_matrix_distance():
@@ -599,20 +602,20 @@ def test_matrix_distance():
     # note that the score matrix must contain 'diagonal' elements m[i][i]
     # to avoid failure when the sequences match.
     m = {"U": {"U": 0, "C": 1, "A": 5}, "C": {"C": 0, "A": 2, "G": 4}}
-    assert new_moltype.RNA.make_seq(seq="UUUCCC").matrix_distance("UCACGG", m) == 14
-    assert new_moltype.RNA.make_seq(seq="UUUCCC").matrix_distance("", m) == 0
-    assert new_moltype.RNA.make_seq(seq="UUU").matrix_distance("CAC", m) == 7
+    assert c3_moltype.RNA.make_seq(seq="UUUCCC").matrix_distance("UCACGG", m) == 14
+    assert c3_moltype.RNA.make_seq(seq="UUUCCC").matrix_distance("", m) == 0
+    assert c3_moltype.RNA.make_seq(seq="UUU").matrix_distance("CAC", m) == 7
     with pytest.raises(KeyError):
-        new_moltype.RNA.make_seq(seq="UUU").matrix_distance("CAG", m)
+        c3_moltype.RNA.make_seq(seq="UUU").matrix_distance("CAG", m)
 
 
 def test_frac_same():
     """Sequence frac_same should return similarity between sequences"""
-    s1 = new_moltype.RNA.make_seq(seq="ACGU")
-    s2 = new_moltype.RNA.make_seq(seq="AACG")
-    s3 = new_moltype.RNA.make_seq(seq="GG")
-    s4 = new_moltype.RNA.make_seq(seq="A")
-    e = new_moltype.RNA.make_seq(seq="")
+    s1 = c3_moltype.RNA.make_seq(seq="ACGU")
+    s2 = c3_moltype.RNA.make_seq(seq="AACG")
+    s3 = c3_moltype.RNA.make_seq(seq="GG")
+    s4 = c3_moltype.RNA.make_seq(seq="A")
+    e = c3_moltype.RNA.make_seq(seq="")
     assert s1.frac_same(e) == 0
     assert s1.frac_same(s2) == 0.25
     assert s1.frac_same(s3) == 0
@@ -621,11 +624,11 @@ def test_frac_same():
 
 def test_frac_diff():
     """Sequence frac_diff should return difference between sequences"""
-    s1 = new_moltype.RNA.make_seq(seq="ACGU")
-    s2 = new_moltype.RNA.make_seq(seq="AACG")
-    s3 = new_moltype.RNA.make_seq(seq="GG")
-    s4 = new_moltype.RNA.make_seq(seq="A")
-    e = new_moltype.RNA.make_seq(seq="")
+    s1 = c3_moltype.RNA.make_seq(seq="ACGU")
+    s2 = c3_moltype.RNA.make_seq(seq="AACG")
+    s3 = c3_moltype.RNA.make_seq(seq="GG")
+    s4 = c3_moltype.RNA.make_seq(seq="A")
+    e = c3_moltype.RNA.make_seq(seq="")
     assert s1.frac_diff(e) == 0
     assert s1.frac_diff(s2) == 0.75
     assert s1.frac_diff(s3) == 1
@@ -634,15 +637,15 @@ def test_frac_diff():
 
 def test_frac_same_gaps():
     """Sequence frac_same_gaps should return similarity in gap positions"""
-    s1 = new_moltype.RNA.make_seq(seq="AAAA")
-    s2 = new_moltype.RNA.make_seq(seq="GGGG")
-    s3 = new_moltype.RNA.make_seq(seq="----")
-    s4 = new_moltype.RNA.make_seq(seq="A-A-")
-    s5 = new_moltype.RNA.make_seq(seq="-G-G")
-    s6 = new_moltype.RNA.make_seq(seq="UU--")
-    s7 = new_moltype.RNA.make_seq(seq="-")
-    s8 = new_moltype.RNA.make_seq(seq="GGG")
-    e = new_moltype.RNA.make_seq(seq="")
+    s1 = c3_moltype.RNA.make_seq(seq="AAAA")
+    s2 = c3_moltype.RNA.make_seq(seq="GGGG")
+    s3 = c3_moltype.RNA.make_seq(seq="----")
+    s4 = c3_moltype.RNA.make_seq(seq="A-A-")
+    s5 = c3_moltype.RNA.make_seq(seq="-G-G")
+    s6 = c3_moltype.RNA.make_seq(seq="UU--")
+    s7 = c3_moltype.RNA.make_seq(seq="-")
+    s8 = c3_moltype.RNA.make_seq(seq="GGG")
+    e = c3_moltype.RNA.make_seq(seq="")
     assert s1.frac_same_gaps(s1) == 1
     assert s1.frac_same_gaps(s2) == 1
     assert s1.frac_same_gaps(s3) == 0
@@ -662,15 +665,15 @@ def test_frac_same_gaps():
 
 def test_frac_diff_gaps():
     """Sequence frac_diff_gaps should return difference in gap positions"""
-    s1 = new_moltype.RNA.make_seq(seq="AAAA")
-    s2 = new_moltype.RNA.make_seq(seq="GGGG")
-    s3 = new_moltype.RNA.make_seq(seq="----")
-    s4 = new_moltype.RNA.make_seq(seq="A-A-")
-    s5 = new_moltype.RNA.make_seq(seq="-G-G")
-    s6 = new_moltype.RNA.make_seq(seq="UU--")
-    s7 = new_moltype.RNA.make_seq(seq="-")
-    s8 = new_moltype.RNA.make_seq(seq="GGG")
-    e = new_moltype.RNA.make_seq(seq="")
+    s1 = c3_moltype.RNA.make_seq(seq="AAAA")
+    s2 = c3_moltype.RNA.make_seq(seq="GGGG")
+    s3 = c3_moltype.RNA.make_seq(seq="----")
+    s4 = c3_moltype.RNA.make_seq(seq="A-A-")
+    s5 = c3_moltype.RNA.make_seq(seq="-G-G")
+    s6 = c3_moltype.RNA.make_seq(seq="UU--")
+    s7 = c3_moltype.RNA.make_seq(seq="-")
+    s8 = c3_moltype.RNA.make_seq(seq="GGG")
+    e = c3_moltype.RNA.make_seq(seq="")
     assert s1.frac_diff_gaps(s1) == 0
     assert s1.frac_diff_gaps(s2) == 0
     assert s1.frac_diff_gaps(s3) == 1
@@ -690,16 +693,16 @@ def test_frac_diff_gaps():
 
 def test_frac_same_non_gaps():
     """Sequence frac_same_non_gaps should return similarities at non-gaps"""
-    s1 = new_moltype.RNA.make_seq(seq="AAAA")
-    s2 = new_moltype.RNA.make_seq(seq="AGGG")
-    s3 = new_moltype.RNA.make_seq(seq="GGGG")
-    s4 = new_moltype.RNA.make_seq(seq="AG--GA-G")
-    s5 = new_moltype.RNA.make_seq(seq="CU--CU-C")
-    s6 = new_moltype.RNA.make_seq(seq="AC--GC-G")
-    s7 = new_moltype.RNA.make_seq(seq="--------")
-    s8 = new_moltype.RNA.make_seq(seq="AAAA----")
-    s9 = new_moltype.RNA.make_seq(seq="A-GG-A-C")
-    e = new_moltype.RNA.make_seq(seq="")
+    s1 = c3_moltype.RNA.make_seq(seq="AAAA")
+    s2 = c3_moltype.RNA.make_seq(seq="AGGG")
+    s3 = c3_moltype.RNA.make_seq(seq="GGGG")
+    s4 = c3_moltype.RNA.make_seq(seq="AG--GA-G")
+    s5 = c3_moltype.RNA.make_seq(seq="CU--CU-C")
+    s6 = c3_moltype.RNA.make_seq(seq="AC--GC-G")
+    s7 = c3_moltype.RNA.make_seq(seq="--------")
+    s8 = c3_moltype.RNA.make_seq(seq="AAAA----")
+    s9 = c3_moltype.RNA.make_seq(seq="A-GG-A-C")
+    e = c3_moltype.RNA.make_seq(seq="")
 
     def test(x, y, z):
         assert numpy.allclose(x.frac_same_non_gaps(y), z)
@@ -718,16 +721,16 @@ def test_frac_same_non_gaps():
 
 def test_frac_diffNonGaps():
     """Sequence frac_diff_non_gaps should return differences at non-gaps"""
-    s1 = new_moltype.RNA.make_seq(seq="AAAA")
-    s2 = new_moltype.RNA.make_seq(seq="AGGG")
-    s3 = new_moltype.RNA.make_seq(seq="GGGG")
-    s4 = new_moltype.RNA.make_seq(seq="AG--GA-G")
-    s5 = new_moltype.RNA.make_seq(seq="CU--CU-C")
-    s6 = new_moltype.RNA.make_seq(seq="AC--GC-G")
-    s7 = new_moltype.RNA.make_seq(seq="--------")
-    s8 = new_moltype.RNA.make_seq(seq="AAAA----")
-    s9 = new_moltype.RNA.make_seq(seq="A-GG-A-C")
-    e = new_moltype.RNA.make_seq(seq="")
+    s1 = c3_moltype.RNA.make_seq(seq="AAAA")
+    s2 = c3_moltype.RNA.make_seq(seq="AGGG")
+    s3 = c3_moltype.RNA.make_seq(seq="GGGG")
+    s4 = c3_moltype.RNA.make_seq(seq="AG--GA-G")
+    s5 = c3_moltype.RNA.make_seq(seq="CU--CU-C")
+    s6 = c3_moltype.RNA.make_seq(seq="AC--GC-G")
+    s7 = c3_moltype.RNA.make_seq(seq="--------")
+    s8 = c3_moltype.RNA.make_seq(seq="AAAA----")
+    s9 = c3_moltype.RNA.make_seq(seq="A-GG-A-C")
+    e = c3_moltype.RNA.make_seq(seq="")
 
     def test(x, y, z):
         assert numpy.allclose(x.frac_diff_non_gaps(y), z)
@@ -759,10 +762,10 @@ def test_frac_similar():
         ],
     )
 
-    s1 = new_moltype.RNA.make_seq(seq="UCAGGCAA")
-    s2 = new_moltype.RNA.make_seq(seq="CCAAAUGC")
-    s3 = new_moltype.RNA.make_seq(seq="GGGGGGGG")
-    e = new_moltype.RNA.make_seq(seq="")
+    s1 = c3_moltype.RNA.make_seq(seq="UCAGGCAA")
+    s2 = c3_moltype.RNA.make_seq(seq="CCAAAUGC")
+    s3 = c3_moltype.RNA.make_seq(seq="GGGGGGGG")
+    e = c3_moltype.RNA.make_seq(seq="")
 
     def test(x, y, z):
         assert numpy.allclose(x.frac_similar(y, transitions), z)
@@ -777,9 +780,9 @@ def test_frac_similar():
 
 def test_with_termini_unknown():
     """with_termini_unknown should reset termini to unknown char"""
-    s1 = new_moltype.RNA.make_seq(seq="-?--AC--?-")
-    s2 = new_moltype.RNA.make_seq(seq="AC")
-    s3 = new_moltype.RNA.make_seq(seq="-----")
+    s1 = c3_moltype.RNA.make_seq(seq="-?--AC--?-")
+    s2 = c3_moltype.RNA.make_seq(seq="AC")
+    s3 = c3_moltype.RNA.make_seq(seq="-----")
     assert s1.with_termini_unknown() == "????AC????"
     assert s2.with_termini_unknown() == "AC"
     assert s3.with_termini_unknown() == "?????"
@@ -792,7 +795,7 @@ def test_consistent_gap_degen_handling():
     raw_seq = "---??-??TC-GGCG-GCA-G-GC-?-C-TAN-GCGC-CCTC-AGGA?-???-??--"
     raw_ungapped = re.sub("[-?]", "", raw_seq)
     raw_no_ambigs = re.sub("[N?]+", "", raw_seq)
-    dna = new_moltype.DNA.make_seq(seq=raw_seq)
+    dna = c3_moltype.DNA.make_seq(seq=raw_seq)
     assert dna.degap() == raw_ungapped
     assert dna.strip_degenerate() == raw_no_ambigs
     assert dna.strip_bad_and_gaps() == raw_ungapped
@@ -802,7 +805,7 @@ def test_counts():
     """count motifs of different sizes, +/- ambiguities"""
     # test DNA seq
     orig = "AACCGGTTAN-T"
-    seq = new_moltype.DNA.make_seq(seq=orig)
+    seq = c3_moltype.DNA.make_seq(seq=orig)
     # no gaps, no ambiguities
     got = seq.counts()
     expect = {"A": 3, "C": 2, "G": 2, "T": 3}
@@ -842,7 +845,7 @@ def test_counts():
 
     # handle '?'
     orig = "AACCGGTTAN-T?"
-    seq = new_moltype.DNA.make_seq(seq=orig)
+    seq = c3_moltype.DNA.make_seq(seq=orig)
     got = seq.counts()
     expect = {"A": 3, "C": 2, "G": 2, "T": 3}
     assert dict(got) == expect
@@ -861,13 +864,13 @@ def test_counts():
     ],
 )
 def test_count_ambiguous(data, expect):
-    seq = new_moltype.DNA.make_seq(seq=data)
+    seq = c3_moltype.DNA.make_seq(seq=data)
     assert seq.count_ambiguous() == expect
 
 
 def test_strand_symmetry():
     """correctly compute test of strand symmetry"""
-    seq = new_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG")
+    seq = c3_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG")
     ssym = seq.strand_symmetry(motif_length=1)
     assert numpy.allclose(ssym.observed.array, [[7, 5], [7, 9]])
     assert numpy.allclose(ssym.expected.array, [[6, 6], [8, 8]])
@@ -882,7 +885,7 @@ def test_strand_symmetry():
         s.strand_symmetry(motif_length=1)
 
     # with motif_length=2
-    seq = new_moltype.DNA.make_seq(
+    seq = c3_moltype.DNA.make_seq(
         seq="AC GG CT GA AG CG CT CC GG GT TT AA AA CG".replace(" ", ""),
     )
     ssym = seq.strand_symmetry(motif_length=2)
@@ -893,7 +896,7 @@ def test_strand_symmetry():
 
 def test_is_annotated():
     """is_annotated operates correctly"""
-    s = new_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG", name="s1")
+    s = c3_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG", name="s1")
     _ = s.add_feature(biotype="gene", name="blah", spans=[(0, 10)])
     assert s.is_annotated()
 
@@ -901,14 +904,14 @@ def test_is_annotated():
 @pytest.mark.parametrize("biotype", ["gene", "exon", ("gene", "exon")])
 def test_is_annotated_biotype(biotype):
     """is_annotated operates correctly"""
-    s = new_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG", name="s1")
+    s = c3_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG", name="s1")
     _ = s.add_feature(biotype="gene", name="blah", spans=[(0, 10)])
     _ = s.add_feature(biotype="exon", name="blah", spans=[(0, 10)])
     assert s.is_annotated(biotype=biotype)
 
 
 def test_annotation_db_lazy_evaluation():
-    s = new_moltype.DNA.make_seq(seq="AC", name="s1")
+    s = c3_moltype.DNA.make_seq(seq="AC", name="s1")
     assert isinstance(s._annotation_db, list)
     # now if we invoke the property we get an actual db instance created
     assert isinstance(s.annotation_db, anndb_module.SupportsFeatures)
@@ -916,19 +919,19 @@ def test_annotation_db_lazy_evaluation():
 
 def test_init_with_annotationdb():
     anndb = anndb_module.GffAnnotationDb()
-    s = new_moltype.DNA.make_seq(seq="AC", name="s1", annotation_db=anndb)
+    s = c3_moltype.DNA.make_seq(seq="AC", name="s1", annotation_db=anndb)
     assert isinstance(s.annotation_db, anndb_module.GffAnnotationDb)
     assert s.annotation_db is anndb
 
 
 def test_init_with_annotation_offset():
-    s = new_moltype.DNA.make_seq(seq="AC", name="s1", annotation_offset=2)
+    s = c3_moltype.DNA.make_seq(seq="AC", name="s1", annotation_offset=2)
     assert s.annotation_offset == 2
 
 
 def test_not_is_annotated():
     """is_annotated operates correctly"""
-    s = new_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG", name="s1")
+    s = c3_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG", name="s1")
     assert not s.is_annotated()
     # annotation on different seq
     s.annotation_db.add_feature(
@@ -952,7 +955,7 @@ def test_not_is_annotated():
 
 def test_to_html():
     """produce correct html formatted text"""
-    seq = new_moltype.DNA.make_seq(seq="ACGGTGGGGGGGGG")
+    seq = c3_moltype.DNA.make_seq(seq="ACGGTGGGGGGGGG")
     got = seq.to_html(wrap=50)
     # ensure balanced tags are in the txt
     for tag in ["<style>", "</style>", "<div", "</div>", "<table>", "</table>"]:
@@ -982,8 +985,8 @@ def test_to_html():
 def test_repr_html():
     """correctly uses set_repr and the environment variable settings"""
     token = 'class="label"'
-    moltype = new_moltype.get_moltype("text")
-    seq = new_sequence.Sequence(seq="AAAAA", moltype=moltype)
+    moltype = c3_moltype.get_moltype("text")
+    seq = c3_sequence.Sequence(seq="AAAAA", moltype=moltype)
 
     orig = next(l for l in seq._repr_html_().splitlines() if token in l)
     orig_num = len(re.findall(r"\bA\b", orig))
@@ -1009,16 +1012,16 @@ def _check_mix_add(s1, s2):
 
 def test_sequence_add_propogates_name():
     """name property correctly handled in sequence add"""
-    moltype = new_moltype.get_moltype("text")
-    a1 = new_sequence.Sequence(moltype=moltype, seq="AAA", name="1")
-    a2 = new_sequence.Sequence(moltype=moltype, seq="CC", name="1")
+    moltype = c3_moltype.get_moltype("text")
+    a1 = c3_sequence.Sequence(moltype=moltype, seq="AAA", name="1")
+    a2 = c3_sequence.Sequence(moltype=moltype, seq="CC", name="1")
     a = a1 + a2
     assert a.name == "1"
     assert a == "AAACC"
 
-    b = new_sequence.Sequence(moltype=moltype, seq="GGGG", name="2")
+    b = c3_sequence.Sequence(moltype=moltype, seq="GGGG", name="2")
     _check_mix_add(a1, b)
-    c = new_sequence.Sequence(moltype=moltype, seq="TT")
+    c = c3_sequence.Sequence(moltype=moltype, seq="TT")
     _check_mix_add(a1, c)
 
     e = "AA"
@@ -1036,7 +1039,7 @@ def test_sequence_add_propogates_name():
     ],
 )
 def test_to_fasta_even(size, expect):
-    mt = new_moltype.DNA
+    mt = c3_moltype.DNA
     seq = mt.make_seq(seq="TCAGAT", name="even")
     got = seq.to_fasta(block_size=size)
     assert got == expect
@@ -1051,14 +1054,14 @@ def test_to_fasta_even(size, expect):
     ],
 )
 def test_to_fasta_odd(size, expect):
-    mt = new_moltype.DNA
+    mt = c3_moltype.DNA
     seq = mt.make_seq(seq="TCAGATAAA", name="odd")
     got = seq.to_fasta(block_size=size)
     assert got == expect
 
 
 def test_to_phylip():
-    mt = new_moltype.DNA
+    mt = c3_moltype.DNA
     seq = mt.make_seq(seq="TCAGAT", name="xyz")
     got = seq.to_phylip()
     expect = f"xyz{' ' * 27}TCAGAT"
@@ -1071,13 +1074,13 @@ def test_to_phylip():
 def test_seqview_initialisation(start, stop, step, bytes_alphabet):
     """Initialising a SeqView should work with range of provided values"""
     seq_data = "0123456789"
-    slice_record = new_sequence.SliceRecord(
+    slice_record = c3_sequence.SliceRecord(
         start=start,
         stop=stop,
         step=step,
         parent_len=len(seq_data),
     )
-    got = new_sequence.SeqView(
+    got = c3_sequence.SeqView(
         parent=seq_data,
         parent_len=len(seq_data),
         slice_record=slice_record,
@@ -1091,7 +1094,7 @@ def test_seqview_initialisation(start, stop, step, bytes_alphabet):
 def test_seqview_index(index, bytes_alphabet):
     """SeqView with default values can be sliced with a single index, when within the length of the sequence"""
     seq_data = "0123456789"
-    sv = new_sequence.SeqView(
+    sv = c3_sequence.SeqView(
         parent=seq_data,
         parent_len=len(seq_data),
         alphabet=bytes_alphabet,
@@ -1104,14 +1107,14 @@ def test_seqview_index(index, bytes_alphabet):
 
 def test_seqview_index_null(ascii_alphabet):
     "Indexing a SeqView of length 0 should return an IndexError"
-    sv = new_sequence.SeqView(parent="", parent_len=0, alphabet=ascii_alphabet)
+    sv = c3_sequence.SeqView(parent="", parent_len=0, alphabet=ascii_alphabet)
     with pytest.raises(IndexError):
         _ = sv[0]
 
 
 def test_seqview_step_0(bytes_alphabet):
     "Initialising or slicing a SeqView with a step of 0 should return an IndexError"
-    sv = new_sequence.SeqView(
+    sv = c3_sequence.SeqView(
         parent="0123456789",
         parent_len=10,
         alphabet=bytes_alphabet,
@@ -1119,8 +1122,8 @@ def test_seqview_step_0(bytes_alphabet):
     with pytest.raises(ValueError):
         _ = sv[::0]
     with pytest.raises(ValueError):
-        sr = new_sequence.SliceRecord(step=0, parent_len=10)
-        _ = new_sequence.SeqView(
+        sr = c3_sequence.SliceRecord(step=0, parent_len=10)
+        _ = c3_sequence.SeqView(
             parent="0123456789",
             parent_len=10,
             alphabet=bytes_alphabet,
@@ -1136,8 +1139,8 @@ def test_seqview_invalid_index(start, bytes_alphabet):
     pos_boundary_index = length
     neg_boundary_index = -length - 1
 
-    sr = new_sequence.SliceRecord(start=start, parent_len=len(seq))
-    sv = new_sequence.SeqView(
+    sr = c3_sequence.SliceRecord(start=start, parent_len=len(seq))
+    sv = c3_sequence.SeqView(
         parent=seq,
         parent_len=len(seq),
         slice_record=sr,
@@ -1158,8 +1161,8 @@ def test_seqview_invalid_index_positive_step_gt_1(start, bytes_alphabet):
     neg_boundary_index = -length - 1
     pos_boundary_index = length
 
-    sr = new_sequence.SliceRecord(start=start, step=step, parent_len=len(seq))
-    sv = new_sequence.SeqView(
+    sr = c3_sequence.SliceRecord(start=start, step=step, parent_len=len(seq))
+    sv = c3_sequence.SeqView(
         parent=seq,
         parent_len=len(seq),
         slice_record=sr,
@@ -1181,13 +1184,13 @@ def test_seqview_invalid_index_reverse_step(stop, bytes_alphabet):
     neg_boundary_index = -length - 1
     pos_boundary_index = length
 
-    sr = new_sequence.SliceRecord(
+    sr = c3_sequence.SliceRecord(
         start=start,
         stop=stop,
         step=step,
         parent_len=len(seq),
     )
-    sv = new_sequence.SeqView(
+    sv = c3_sequence.SeqView(
         parent=seq,
         parent_len=len(seq),
         slice_record=sr,
@@ -1209,13 +1212,13 @@ def test_seqview_invalid_index_reverse_step_gt_1(stop, bytes_alphabet):
     neg_boundary_index = -length - 1
     pos_boundary_index = length
 
-    sr = new_sequence.SliceRecord(
+    sr = c3_sequence.SliceRecord(
         start=start,
         stop=stop,
         step=step,
         parent_len=len(seq),
     )
-    sv = new_sequence.SeqView(
+    sv = c3_sequence.SeqView(
         parent=seq,
         parent_len=len(seq),
         slice_record=sr,
@@ -1228,7 +1231,7 @@ def test_seqview_invalid_index_reverse_step_gt_1(stop, bytes_alphabet):
 
 
 def test_seqview_slice_null(ascii_alphabet):
-    sv = new_sequence.SeqView(parent="", parent_len=0, alphabet=ascii_alphabet)
+    sv = c3_sequence.SeqView(parent="", parent_len=0, alphabet=ascii_alphabet)
     assert len(sv) == 0
     got = sv[2:]
     assert len(got) == 0
@@ -1239,13 +1242,13 @@ def test_seqview_start_out_of_bounds(bytes_alphabet):
     seq = "0123456789"
     init_start, init_stop, init_step = 2, 10, 1
     boundary = abs((init_start - init_stop) // init_step)
-    sr = new_sequence.SliceRecord(
+    sr = c3_sequence.SliceRecord(
         start=init_start,
         stop=init_stop,
         step=init_step,
         parent_len=len(seq),
     )
-    sv = new_sequence.SeqView(
+    sv = c3_sequence.SeqView(
         parent=seq,
         parent_len=len(seq),
         slice_record=sr,
@@ -1260,13 +1263,13 @@ def test_seqview_start_out_of_bounds_step_gt_1(bytes_alphabet):
     seq = "0123456789"
     init_start, init_stop, init_step = 2, 10, 2
     boundary = abs((init_start - init_stop) // init_step)
-    sr = new_sequence.SliceRecord(
+    sr = c3_sequence.SliceRecord(
         start=init_start,
         stop=init_stop,
         step=init_step,
         parent_len=len(seq),
     )
-    sv = new_sequence.SeqView(
+    sv = c3_sequence.SeqView(
         parent=seq,
         parent_len=len(seq),
         slice_record=sr,
@@ -1283,13 +1286,13 @@ def test_seqview_start_out_of_bounds_reverse_step(bytes_alphabet):
     boundary_pos = abs((init_start - init_stop) // init_step)
     boundary_neg = -abs((init_start - init_stop) // init_step) - 1
 
-    sr = new_sequence.SliceRecord(
+    sr = c3_sequence.SliceRecord(
         start=init_start,
         stop=init_stop,
         step=init_step,
         parent_len=len(seq),
     )
-    sv = new_sequence.SeqView(
+    sv = c3_sequence.SeqView(
         parent=seq,
         parent_len=len(seq),
         slice_record=sr,
@@ -1313,7 +1316,7 @@ def test_seqview_start_out_of_bounds_reverse_step(bytes_alphabet):
 def test_seqview_defaults(simple_slices, bytes_alphabet):
     """SeqView should accept slices with all combinations of default parameters"""
     seq = "0123456789"
-    got = new_sequence.SeqView(
+    got = c3_sequence.SeqView(
         parent=seq,
         parent_len=len(seq),
         alphabet=bytes_alphabet,
@@ -1337,7 +1340,7 @@ def test_seqview_defaults(simple_slices, bytes_alphabet):
 def test_seqview_sliced_index(index, simple_slices, bytes_alphabet):
     """SeqView that has been sliced with default parameters, can then be indexed"""
     seq = "0123456789"
-    sv = new_sequence.SeqView(parent=seq, parent_len=len(seq), alphabet=bytes_alphabet)
+    sv = c3_sequence.SeqView(parent=seq, parent_len=len(seq), alphabet=bytes_alphabet)
     got = sv[simple_slices][index]
     expected = seq[simple_slices][index]
     assert got.str_value == expected
@@ -1348,8 +1351,8 @@ def test_seqview_sliced_index(index, simple_slices, bytes_alphabet):
 def test_seqview_reverse_slice(first_step, second_step, bytes_alphabet):
     """subsequent slices may reverse the previous slice"""
     seq = "0123456789"
-    sr = new_sequence.SliceRecord(step=first_step, parent_len=len(seq))
-    sv = new_sequence.SeqView(
+    sr = c3_sequence.SliceRecord(step=first_step, parent_len=len(seq))
+    sv = c3_sequence.SeqView(
         parent=seq,
         parent_len=len(seq),
         slice_record=sr,
@@ -1372,26 +1375,26 @@ def test_seqview_rev_sliced_index(index, start, stop, step, seq, bytes_alphabet)
         expected = seq_data[start:stop:step][index]
     except IndexError:
         with pytest.raises(IndexError):
-            sr = new_sequence.SliceRecord(
+            sr = c3_sequence.SliceRecord(
                 start=start,
                 stop=stop,
                 step=step,
                 parent_len=len(seq_data),
             )
-            _ = new_sequence.SeqView(
+            _ = c3_sequence.SeqView(
                 parent=seq_data,
                 parent_len=len(seq_data),
                 slice_record=sr,
                 alphabet=bytes_alphabet,
             )[index].str_value
     else:  # if no index error, SeqView should match python slicing
-        sr = new_sequence.SliceRecord(
+        sr = c3_sequence.SliceRecord(
             start=start,
             stop=stop,
             step=step,
             parent_len=len(seq_data),
         )
-        got = new_sequence.SeqView(
+        got = c3_sequence.SeqView(
             parent=seq_data,
             parent_len=len(seq_data),
             slice_record=sr,
@@ -1406,13 +1409,13 @@ def test_seqview_rev_sliced_index(index, start, stop, step, seq, bytes_alphabet)
 @pytest.mark.parametrize("step", [1, 2, -1, -2])
 def test_seqview_init_with_negatives(seq, start, stop, step, bytes_alphabet):
     "SeqView initialisation should handle any combination of positive and negative slices"
-    sr = new_sequence.SliceRecord(
+    sr = c3_sequence.SliceRecord(
         start=start,
         stop=stop,
         step=step,
         parent_len=len(seq),
     )
-    got = new_sequence.SeqView(
+    got = c3_sequence.SeqView(
         parent=seq,
         parent_len=len(seq),
         slice_record=sr,
@@ -1428,7 +1431,7 @@ def test_seqview_init_with_negatives(seq, start, stop, step, bytes_alphabet):
 @pytest.mark.parametrize("step", [1, 2, -1, -2])
 def test_seqview_slice_with_negatives(seq, start, stop, step, bytes_alphabet):
     """SeqView should handle any combination of positive and negative slices"""
-    sv = new_sequence.SeqView(parent=seq, parent_len=len(seq), alphabet=bytes_alphabet)
+    sv = c3_sequence.SeqView(parent=seq, parent_len=len(seq), alphabet=bytes_alphabet)
     got = sv[start:stop:step]
     expected = seq[start:stop:step]
     assert got.str_value == expected
@@ -1451,7 +1454,7 @@ def test_subsequent_slice_forward(
 ):
     """SeqView should handle subsequent forward slice"""
     seq = "0123456789"
-    sv = new_sequence.SeqView(parent=seq, parent_len=len(seq), alphabet=bytes_alphabet)
+    sv = c3_sequence.SeqView(parent=seq, parent_len=len(seq), alphabet=bytes_alphabet)
     got = sv[start:stop:step][start_2:stop_2:step_2]
     expected = seq[start:stop:step][start_2:stop_2:step_2]
     assert got.str_value == expected
@@ -1574,7 +1577,7 @@ def test_subsequent_slice_neg_stop(slice_1, slice_2, ascii_alphabet):
     subsequent slices may overlap or be within previous slices
     """
     seq_data = "abcdefghijk"
-    sv = new_sequence.SeqView(
+    sv = c3_sequence.SeqView(
         parent=seq_data,
         parent_len=len(seq_data),
         alphabet=ascii_alphabet,
@@ -1661,7 +1664,7 @@ def test_subsequent_slice_neg_start(slice_1, slice_2, ascii_alphabet):
     subsequent slices may or may not overlap or be within previous slices
     """
     seq_data = "abcdefghijk"
-    sv = new_sequence.SeqView(
+    sv = c3_sequence.SeqView(
         parent=seq_data,
         parent_len=len(seq_data),
         alphabet=ascii_alphabet,
@@ -1704,7 +1707,7 @@ def test_subsequent_slice_neg_step(slice_1, slice_2, ascii_alphabet):
     subsequent slices may overlap or be within previous slices
     """
     seq_data = "0123456789"
-    sv = new_sequence.SeqView(
+    sv = c3_sequence.SeqView(
         parent=seq_data,
         parent_len=len(seq_data),
         alphabet=ascii_alphabet,
@@ -1724,7 +1727,7 @@ def test_subsequent_slice_neg_step(slice_1, slice_2, ascii_alphabet):
 def test_subslice_3(sub_slices_triple, ascii_alphabet):
     """SeqView should handle three subsequent slices"""
     seq_data = "abcdefghijk"
-    sv = new_sequence.SeqView(
+    sv = c3_sequence.SeqView(
         parent=seq_data,
         parent_len=len(seq_data),
         alphabet=ascii_alphabet,
@@ -1766,23 +1769,23 @@ def test_triple_slice(
 
 
 def test_seqview_repr():
-    alpha = new_moltype.DNA.most_degen_alphabet()
+    alpha = c3_moltype.DNA.most_degen_alphabet()
     # Short sequence, defaults
     seq = "ACGT"
-    view = new_sequence.SeqView(parent=seq, parent_len=len(seq), alphabet=alpha)
+    view = c3_sequence.SeqView(parent=seq, parent_len=len(seq), alphabet=alpha)
     expected = f"SeqView(seqid=None, parent='ACGT', slice_record={view.slice_record!r})"
     assert repr(view) == expected
 
     # Long sequence
     seq = "ACGT" * 10
-    view = new_sequence.SeqView(parent=seq, parent_len=len(seq), alphabet=alpha)
+    view = c3_sequence.SeqView(parent=seq, parent_len=len(seq), alphabet=alpha)
     expected = f"SeqView(seqid=None, parent='ACGTACGTAC...TACGT', slice_record={view.slice_record!r})"
     assert repr(view) == expected
 
     # Non-zero slice record
     seq = "ACGT" * 10
-    sr = new_sequence.SliceRecord(start=5, stop=35, step=2, parent_len=len(seq))
-    view = new_sequence.SeqView(
+    sr = c3_sequence.SliceRecord(start=5, stop=35, step=2, parent_len=len(seq))
+    view = c3_sequence.SeqView(
         parent=seq,
         parent_len=len(seq),
         alphabet=alpha,
@@ -1793,8 +1796,8 @@ def test_seqview_repr():
 
     # slice record with an offset
     seq = "ACGT"
-    sr = new_sequence.SliceRecord(offset=5, parent_len=len(seq))
-    view = new_sequence.SeqView(
+    sr = c3_sequence.SliceRecord(offset=5, parent_len=len(seq))
+    view = c3_sequence.SeqView(
         parent=seq,
         parent_len=len(seq),
         alphabet=alpha,
@@ -1805,7 +1808,7 @@ def test_seqview_repr():
 
     # seqid
     seq = "ACGT"
-    view = new_sequence.SeqView(
+    view = c3_sequence.SeqView(
         parent=seq,
         parent_len=len(seq),
         seqid="seq1",
@@ -1819,11 +1822,11 @@ def test_seqview_repr():
 
 def test_slice_record_repr():
     # defaults
-    sr = new_sequence.SliceRecord(parent_len=20)
+    sr = c3_sequence.SliceRecord(parent_len=20)
     expected = "SliceRecord(start=0, stop=20, step=1, parent_len=20, offset=0)"
     assert repr(sr) == expected
 
-    sr = new_sequence.SliceRecord(start=1, stop=10, step=2, parent_len=20, offset=5)
+    sr = c3_sequence.SliceRecord(start=1, stop=10, step=2, parent_len=20, offset=5)
     expected = "SliceRecord(start=1, stop=10, step=2, parent_len=20, offset=5)"
     assert repr(sr) == expected
 
@@ -1831,7 +1834,7 @@ def test_slice_record_repr():
 @pytest.mark.parametrize("k", range(1, 7))
 def test_iter_kmers_returns_generator(k):
     orig = "TCAGGA"
-    mt = new_moltype.DNA
+    mt = c3_moltype.DNA
     r = mt.make_seq(seq=orig)
     got = r.iter_kmers(k=k)
     assert isinstance(got, typing.Generator)
@@ -1839,7 +1842,7 @@ def test_iter_kmers_returns_generator(k):
 
 def test_iter_kmers_empty():
     orig = ""
-    mt = new_moltype.DNA
+    mt = c3_moltype.DNA
     r = mt.make_seq(seq=orig)
     got = r.iter_kmers(k=1)
     assert not list(got)
@@ -1848,7 +1851,7 @@ def test_iter_kmers_empty():
 @pytest.mark.parametrize("k", [0, -1, 1.1])
 def test_iter_kmers_handles_invalid(k):
     orig = ""
-    mt = new_moltype.DNA
+    mt = c3_moltype.DNA
     r = mt.make_seq(seq=orig)
     got = r.iter_kmers(k=k)
     with pytest.raises(ValueError):
@@ -1877,7 +1880,7 @@ def test_iter_kmers_handles_invalid(k):
 )
 def test_get_kmers_strict_dna(k, strict, expect):
     orig = "TCAGGAN"
-    mt = new_moltype.DNA
+    mt = c3_moltype.DNA
     r = mt.make_seq(seq=orig)
     got = r.get_kmers(k, strict=strict)
     assert got == expect
@@ -1905,7 +1908,7 @@ def test_get_kmers_strict_dna(k, strict, expect):
 )
 def test_get_kmers_strict_rna(k, strict, expect):
     orig = "UCAGGAN"
-    mt = new_moltype.RNA
+    mt = c3_moltype.RNA
     r = mt.make_seq(seq=orig)
     got = r.get_kmers(k, strict=strict)
     assert got == expect
@@ -1931,7 +1934,7 @@ def test_get_kmers_strict_rna(k, strict, expect):
 )
 def test_get_kmers_strict_protein(k, strict, expect):
     orig = "CEFGMNX"
-    mt = new_moltype.PROTEIN
+    mt = c3_moltype.PROTEIN
     r = mt.make_seq(seq=orig)
     got = r.get_kmers(k, strict=strict)
     assert got == expect
@@ -1956,7 +1959,7 @@ def test_get_kmers_strict_protein(k, strict, expect):
 )
 def test_get_kmers_strict_dna_gaps(k, strict, expect):
     orig = "TCA-GAT"
-    mt = new_moltype.DNA
+    mt = c3_moltype.DNA
     r = mt.make_seq(seq=orig)
     got = r.get_kmers(k, strict=strict)
     assert got == expect
@@ -1981,7 +1984,7 @@ def test_get_kmers_strict_dna_gaps(k, strict, expect):
 )
 def test_get_kmers_strict_rna_gaps(k, strict, expect):
     orig = "UCA-GAU"
-    mt = new_moltype.RNA
+    mt = c3_moltype.RNA
     r = mt.make_seq(seq=orig)
     got = r.get_kmers(k, strict=strict)
     assert got == expect
@@ -2006,7 +2009,7 @@ def test_get_kmers_strict_rna_gaps(k, strict, expect):
 )
 def test_get_kmers_strict_protein_gaps(k, strict, expect):
     orig = "CEF-GMN"
-    mt = new_moltype.PROTEIN
+    mt = c3_moltype.PROTEIN
     r = mt.make_seq(seq=orig)
     got = r.get_kmers(k, strict=strict)
     assert got == expect
@@ -2014,7 +2017,7 @@ def test_get_kmers_strict_protein_gaps(k, strict, expect):
 
 @pytest.mark.parametrize(
     "moltype",
-    [new_moltype.DNA, new_moltype.RNA, new_moltype.PROTEIN],
+    [c3_moltype.DNA, c3_moltype.RNA, c3_moltype.PROTEIN],
 )
 def test_get_kmers_allgap(moltype):
     orig = "-------"
@@ -2045,7 +2048,7 @@ def test_get_kmers_allgap(moltype):
     ],
 )
 def test_get_kmers_mixed_ambiguities_dna(k, strict, expect):
-    mt = new_moltype.DNA
+    mt = c3_moltype.DNA
     r = mt.make_seq(seq="NGASTAH")
     got = r.get_kmers(k, strict=strict)
     assert got == expect
@@ -2068,7 +2071,7 @@ def test_get_kmers_mixed_ambiguities_dna(k, strict, expect):
     ],
 )
 def test_get_kmers_mixed_ambiguities_rna(k, strict, expect):
-    mt = new_moltype.RNA
+    mt = c3_moltype.RNA
     r = mt.make_seq(seq="RGAWUAD")
     got = r.get_kmers(k, strict=strict)
     assert got == expect
@@ -2091,7 +2094,7 @@ def test_get_kmers_mixed_ambiguities_rna(k, strict, expect):
     ],
 )
 def test_get_kmers_mixed_ambiguities_protein(k, strict, expect):
-    mt = new_moltype.PROTEIN
+    mt = c3_moltype.PROTEIN
     r = mt.make_seq(seq="BQMXNRZ")
     got = r.get_kmers(k, strict=strict)
     assert got == expect
@@ -2099,7 +2102,7 @@ def test_get_kmers_mixed_ambiguities_protein(k, strict, expect):
 
 @pytest.fixture
 def one_seq():
-    return new_moltype.DNA.make_seq(seq="AACCTGGAACC")
+    return c3_moltype.DNA.make_seq(seq="AACCTGGAACC")
 
 
 def test_seq_repr(one_seq):
@@ -2122,7 +2125,7 @@ def test_seq_repr_rc(one_seq):
 
 
 def test_annotation_from_slice_with_stride():
-    seq = new_moltype.DNA.make_seq(seq="AAACGCGCGAAAAAAA", name="s1")
+    seq = c3_moltype.DNA.make_seq(seq="AAACGCGCGAAAAAAA", name="s1")
     seq.add_feature(biotype="exon", name="ex1", spans=[(3, 9)])
     f = next(iter(seq.get_features(name="ex1")))
     assert str(f.get_slice()) == "CGCGCG"
@@ -2287,7 +2290,7 @@ def test_annotate_gff_nested_features(DATA_DIR):
     #            *********            exon
     #                       *****     exon
     # ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC...
-    seq = new_moltype.DNA.make_seq(
+    seq = c3_moltype.DNA.make_seq(
         seq="ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC",
         name="22",
     )
@@ -2322,21 +2325,21 @@ def test_annotate_gff_nested_features(DATA_DIR):
 
 def test_to_moltype_dna():
     """to_moltype("dna") ensures conversion from T to U"""
-    seq = new_moltype.DNA.make_seq(seq="AAAAGGGGTTT", name="seq1")
+    seq = c3_moltype.DNA.make_seq(seq="AAAAGGGGTTT", name="seq1")
     rna = seq.to_moltype("rna")
     assert "T" not in rna
 
 
 def test_to_moltype_rna():
     """to_moltype("rna") ensures conversion from U to T"""
-    seq = new_moltype.RNA.make_seq(seq="AAAAGGGGUUU", name="seq1")
+    seq = c3_moltype.RNA.make_seq(seq="AAAAGGGGUUU", name="seq1")
     rna = seq.to_moltype("dna")
     assert "U" not in rna
 
 
 def test_to_rich_dict():
     """Sequence.to_rich_dict works"""
-    dna = new_moltype.DNA
+    dna = c3_moltype.DNA
     s = "AAGGCC"
     r = dna.make_seq(seq=s, name="seq1")
     got = r.to_rich_dict()
@@ -2355,7 +2358,7 @@ def test_to_rich_dict():
 
 def test_sequence_to_json():
     """to_json roundtrip recreates to_dict"""
-    dna = new_moltype.DNA
+    dna = c3_moltype.DNA
     r = dna.make_seq(seq="AAGGCC", name="seq1")
     got = json.loads(r.to_json())
     data = "AAGGCC"
@@ -2386,7 +2389,7 @@ def test_parent_start_stop(sl, offset, ascii_alphabet):
     data = "0123456789"
     # check our slice matches the expectation for rest of test
     expect = "234" if sl.step > 0 else "432"
-    sv = new_sequence.SeqView(
+    sv = c3_sequence.SeqView(
         parent=data,
         parent_len=len(data),
         alphabet=ascii_alphabet,
@@ -2414,7 +2417,7 @@ def test_parent_start_stop_limits(sl, ascii_alphabet):
     data = "0123456789"
     # check our slice matches the expectation for rest of test
     expect = data[sl]
-    sv = new_sequence.SeqView(
+    sv = c3_sequence.SeqView(
         parent=data,
         parent_len=len(data),
         alphabet=ascii_alphabet,
@@ -2431,7 +2434,7 @@ def test_parent_start_stop_empty(rev, ascii_alphabet):
     data = "0123456789"
     # check our slice matches the expectation for rest of test
     expect = ""
-    sv = new_sequence.SeqView(
+    sv = c3_sequence.SeqView(
         parent=data,
         parent_len=len(data),
         alphabet=ascii_alphabet,
@@ -2451,7 +2454,7 @@ def test_parent_start_stop_singletons(index, rev, ascii_alphabet):
     sl = slice(start, stop, -1 if rev else 1)
     # check our slice matches the expectation for rest of test
     expect = data[sl]
-    sv = new_sequence.SeqView(
+    sv = c3_sequence.SeqView(
         parent=data,
         parent_len=len(data),
         alphabet=ascii_alphabet,
@@ -2467,7 +2470,7 @@ def test_parent_start_stop_singletons(index, rev, ascii_alphabet):
 
 
 def test_get_drawable(DATA_DIR):
-    seq = cogent3.load_seq(DATA_DIR / "annotated_seq.gb", new_type=True, moltype="dna")
+    seq = cogent3.load_seq(DATA_DIR / "annotated_seq.gb", moltype="dna")
     seq = seq[2000:4000]
     biotypes = "CDS", "gene", "mRNA"
     for feat in seq.get_features(biotype=biotypes, allow_partial=True):
@@ -2487,8 +2490,8 @@ def test_get_drawable(DATA_DIR):
     [(1, "TCCTGA"), (1, "ACGTAA---"), (2, "TCCAGG")],
 )
 def test_has_terminal_stop_true(gc, seq):
-    gc = new_genetic_code.get_code(gc)
-    seq = new_moltype.DNA.make_seq(seq=seq)
+    gc = c3_genetic_code.get_code(gc)
+    seq = c3_moltype.DNA.make_seq(seq=seq)
     assert seq.has_terminal_stop(gc=gc)
 
 
@@ -2497,15 +2500,15 @@ def test_has_terminal_stop_true(gc, seq):
     [(1, "TCCAGG"), (2, "TCCAAA"), (1, "CCTGA"), (2, "CCAGG")],
 )
 def test_has_terminal_stop_false(gc, seq):
-    gc = new_genetic_code.get_code(gc)
-    seq = new_moltype.DNA.make_seq(seq=seq)
+    gc = c3_genetic_code.get_code(gc)
+    seq = c3_moltype.DNA.make_seq(seq=seq)
     assert not seq.has_terminal_stop(gc=gc)
 
 
 def test_has_terminal_stop_strict():
-    gc = new_genetic_code.get_code(1)
-    seq = new_moltype.DNA.make_seq(seq="TCCAG")
-    with pytest.raises(new_alphabet.AlphabetError):
+    gc = c3_genetic_code.get_code(1)
+    seq = c3_moltype.DNA.make_seq(seq="TCCAG")
+    with pytest.raises(c3_alphabet.AlphabetError):
         seq.has_terminal_stop(gc=gc, strict=True)
 
 
@@ -2519,18 +2522,18 @@ def test_has_terminal_stop_strict():
     ],
 )
 def test_trim_terminal_stop_true(gc, seq):
-    gc = new_genetic_code.get_code(gc)
+    gc = c3_genetic_code.get_code(gc)
     expect = re.sub("(TGA|AGG)(?=[-]*$)", "---" if "-" in seq else "", seq)
 
-    seq = new_moltype.DNA.make_seq(seq=seq)
+    seq = c3_moltype.DNA.make_seq(seq=seq)
     got = str(seq.trim_stop_codon(gc=gc))
     assert got == expect
 
 
 @pytest.mark.parametrize(("gc", "seq"), [(1, "T?CTGC"), (2, "TCCAAG")])
 def test_trim_terminal_stop_nostop(gc, seq):
-    gc = new_genetic_code.get_code(gc)
-    seq = new_moltype.DNA.make_seq(seq=seq)
+    gc = c3_genetic_code.get_code(gc)
+    seq = c3_moltype.DNA.make_seq(seq=seq)
     got = seq.trim_stop_codon(gc=gc)
     assert str(got) == str(seq)
     # since there's no stop, we just return the same object
@@ -2542,28 +2545,28 @@ def test_trim_terminal_stop_nostop(gc, seq):
     [(1, "TCCAGG"), (2, "TCCAAA"), (1, "CCTGA"), (2, "CCAGG")],
 )
 def test_trim_terminal_stop_false(gc, seq):
-    gc = new_genetic_code.get_code(gc)
-    seq = new_moltype.DNA.make_seq(seq=seq)
+    gc = c3_genetic_code.get_code(gc)
+    seq = c3_moltype.DNA.make_seq(seq=seq)
     assert str(seq.trim_stop_codon(gc=gc)) == str(seq)
 
 
 def test_trim_terminal_stop_strict():
-    gc = new_genetic_code.get_code(1)
-    seq = new_moltype.DNA.make_seq(seq="TCCAG")
-    with pytest.raises(new_alphabet.AlphabetError):
+    gc = c3_genetic_code.get_code(1)
+    seq = c3_moltype.DNA.make_seq(seq="TCCAG")
+    with pytest.raises(c3_alphabet.AlphabetError):
         seq.trim_stop_codon(gc=gc, strict=True)
 
 
 @pytest.mark.parametrize("cast", [int, numpy.int32, numpy.int64, numpy.uint8])
 def test_index_a_seq(cast):
-    seq = new_moltype.DNA.make_seq(seq="TCCAG")
+    seq = c3_moltype.DNA.make_seq(seq="TCCAG")
     got = seq[cast(1)]
-    assert isinstance(got, new_sequence.Sequence)
+    assert isinstance(got, c3_sequence.Sequence)
 
 
 @pytest.mark.parametrize("cast", [float, numpy.float32])
 def test_index_a_seq_float_fail(cast):
-    seq = new_moltype.DNA.make_seq(seq="TCCAG")
+    seq = c3_moltype.DNA.make_seq(seq="TCCAG")
     index = cast(1)
     with pytest.raises(TypeError):
         seq[index]  # pylint: disable=W0104
@@ -2571,14 +2574,14 @@ def test_index_a_seq_float_fail(cast):
 
 @pytest.mark.parametrize("moltype", ["dna", "protein"])
 def test_same_moltype(moltype):
-    moltype = new_moltype.get_moltype(moltype)
+    moltype = c3_moltype.get_moltype(moltype)
     seq = moltype.make_seq(seq="TCCAG")
     got = seq.to_moltype(moltype)
     assert got is seq
 
 
 def test_gapped_by_map_segment_iter():
-    moltype = new_moltype.DNA
+    moltype = c3_moltype.DNA
     m, seq = moltype.make_seq(seq="-TCC--AG").parse_out_gaps()
     g = list(seq.gapped_by_map_segment_iter(m, allow_gaps=True, recode_gaps=False))
     assert g == ["-", "TCC", "--", "AG"]
@@ -2589,7 +2592,7 @@ def test_gapped_by_map_segment_iter():
 @pytest.mark.parametrize("start_stop", [(None, None), (3, 7)])
 def test_copied_parent_coordinates(sliced, rev, start_stop):
     orig_name = "orig"
-    seq = new_moltype.DNA.make_seq(seq="ACGGTGGGAC", name=orig_name)
+    seq = c3_moltype.DNA.make_seq(seq="ACGGTGGGAC", name=orig_name)
     start, stop = start_stop
     start = start or 0
     stop = stop or len(seq)
@@ -2621,47 +2624,47 @@ def test_coerce_to_seqview_str_bytes(cls, dna_alphabet):
     seq = "AC--GGTGGGAC"
     seqid = "seq1"
     s = bytes(seq, "utf8") if cls == bytes else seq
-    got = new_sequence._coerce_to_seqview(s, seqid, alphabet=dna_alphabet, offset=0)
+    got = c3_sequence._coerce_to_seqview(s, seqid, alphabet=dna_alphabet, offset=0)
     assert got.str_value == seq
-    assert isinstance(got, new_sequence.SeqView)
+    assert isinstance(got, c3_sequence.SeqView)
 
 
 def test_coerce_to_seqview_sequence(dna_alphabet):
     seq = "AC--GGTGGGAC"
     seqid = "seq1"
-    got = new_sequence._coerce_to_seqview(
-        new_moltype.DNA.make_seq(seq=seq),
+    got = c3_sequence._coerce_to_seqview(
+        c3_moltype.DNA.make_seq(seq=seq),
         seqid,
         alphabet=dna_alphabet,
         offset=0,
     )
     assert got.str_value == seq
-    assert isinstance(got, new_sequence.SeqView)
+    assert isinstance(got, c3_sequence.SeqView)
 
 
 def test_coerce_to_seqview_already_seqview(dna_alphabet):
     seq = "AC--GGTGGGAC"
     seqid = "seq1"
-    got = new_sequence._coerce_to_seqview(
-        new_sequence.SeqView(parent=seq, parent_len=len(seq), alphabet=dna_alphabet),
+    got = c3_sequence._coerce_to_seqview(
+        c3_sequence.SeqView(parent=seq, parent_len=len(seq), alphabet=dna_alphabet),
         seqid,
         alphabet=dna_alphabet,
         offset=0,
     )
     assert got.str_value == seq
-    assert isinstance(got, new_sequence.SeqView)
+    assert isinstance(got, c3_sequence.SeqView)
 
 
 def test_seqview_seqid(dna_alphabet):
     parent = "ACGGTGGGAC"
-    sv = new_sequence.SeqView(
+    sv = c3_sequence.SeqView(
         parent=parent,
         parent_len=len(parent),
         alphabet=dna_alphabet,
     )
     assert sv.seqid is None
 
-    sv = new_sequence.SeqView(
+    sv = c3_sequence.SeqView(
         parent=parent,
         parent_len=len(parent),
         seqid="seq1",
@@ -2672,7 +2675,7 @@ def test_seqview_seqid(dna_alphabet):
 
 def test_seqview_slice_propagates_seqid(dna_alphabet):
     parent = "ACGGTGGGAC"
-    sv = new_sequence.SeqView(
+    sv = c3_sequence.SeqView(
         parent=parent,
         parent_len=len(parent),
         seqid="seq1",
@@ -2690,7 +2693,7 @@ def test_seqview_slice_propagates_seqid(dna_alphabet):
 
 def test_sequences_propogates_seqid():
     # creating a name Sequence propagates the seqid to the SeqView.
-    seq = new_moltype.DNA.make_seq(seq="ACGGTGGGAC", name="seq1")
+    seq = c3_moltype.DNA.make_seq(seq="ACGGTGGGAC", name="seq1")
     assert seq._seq.seqid == "seq1"
 
     # renaming the Sequence doesnt change the seqid of the SeqView.
@@ -2702,8 +2705,8 @@ def test_sequences_propogates_seqid():
 def test_sequences_propogates_seqid_seqview(dna_alphabet):
     # creating a Sequence with a seqview does not change the seqid of the SeqView.
     parent = "ACGGTGGGAC"
-    seq = new_moltype.DNA.make_seq(
-        seq=new_sequence.SeqView(
+    seq = c3_moltype.DNA.make_seq(
+        seq=c3_sequence.SeqView(
             parent=parent,
             parent_len=len(parent),
             seqid="parent_name",
@@ -2715,8 +2718,8 @@ def test_sequences_propogates_seqid_seqview(dna_alphabet):
     assert seq._seq.seqid == "parent_name"
 
     # creating a Sequence with an unnamed seqview does not name the SeqView.
-    seq = new_moltype.DNA.make_seq(
-        seq=new_sequence.SeqView(
+    seq = c3_moltype.DNA.make_seq(
+        seq=c3_sequence.SeqView(
             parent=parent,
             parent_len=len(parent),
             alphabet=dna_alphabet,
@@ -2728,12 +2731,12 @@ def test_sequences_propogates_seqid_seqview(dna_alphabet):
 
 
 def test_make_seq_assigns_to_seqview():
-    seq = new_moltype.DNA.make_seq(seq="ACGT", name="s1")
+    seq = c3_moltype.DNA.make_seq(seq="ACGT", name="s1")
     assert seq.name == seq._seq.seqid == "s1"
 
 
 def test_empty_seqview_translate_position(dna_alphabet):
-    sv = new_sequence.SeqView(parent="", parent_len=0, alphabet=dna_alphabet)
+    sv = c3_sequence.SeqView(parent="", parent_len=0, alphabet=dna_alphabet)
     assert sv.slice_record.absolute_position(0) == 0
     assert sv.slice_record.relative_position(0) == 0
 
@@ -2745,8 +2748,8 @@ def test_empty_seqview_translate_position(dna_alphabet):
 def test_seqview_seq_len_init(start, stop, step, length, dna_alphabet):
     # seq_len is length of seq when None
     seq_data = "A" * length
-    sr = new_sequence.SliceRecord(start=start, stop=stop, step=step, parent_len=length)
-    sv = new_sequence.SeqView(
+    sr = c3_sequence.SliceRecord(start=start, stop=stop, step=step, parent_len=length)
+    sv = c3_sequence.SeqView(
         parent=seq_data,
         parent_len=len(seq_data),
         slice_record=sr,
@@ -2764,7 +2767,7 @@ def test_seqview_plus_attrs(rev, step):
     # always equal values from plus strand
     start = 2
     stop = 12
-    sr = new_sequence.SliceRecord(start=start, stop=stop, step=step, parent_len=30)
+    sr = c3_sequence.SliceRecord(start=start, stop=stop, step=step, parent_len=30)
     sr = sr[::-1] if rev else sr
     assert (sr.plus_start, sr.plus_stop, sr.plus_step) == (start, stop, step)
 
@@ -2780,7 +2783,7 @@ def test_seqview_attrs_non_modulo(rev):
     #   * * * *
     # we expect the plus_stop to be 9, as this is the index immediately following
     # the last selected index
-    sr = new_sequence.SliceRecord(start=2, stop=10, step=2, parent_len=10)
+    sr = c3_sequence.SliceRecord(start=2, stop=10, step=2, parent_len=10)
     sr = sr[::-1] if rev else sr
     assert sr.plus_start == 2
     assert sr.plus_stop == 9
@@ -2791,7 +2794,7 @@ def test_seqview_attrs_non_modulo(rev):
     #   * * *
     # although a stop of -10 would be a start of 1 for step == 1, we expect
     # in this case the plus_start to be 2
-    sr = new_sequence.SliceRecord(start=-4, stop=-10, step=-2, parent_len=10)
+    sr = c3_sequence.SliceRecord(start=-4, stop=-10, step=-2, parent_len=10)
     sr = sr[::-1] if rev else sr
     assert sr.plus_start == 2
     assert sr.plus_stop == 7
@@ -2800,7 +2803,7 @@ def test_seqview_attrs_non_modulo(rev):
     #  [ --> )
     # 0123456789
     #  *  *
-    sr = new_sequence.SliceRecord(start=1, stop=7, step=3, parent_len=10)
+    sr = c3_sequence.SliceRecord(start=1, stop=7, step=3, parent_len=10)
     sr = sr[::-1] if rev else sr
     assert sr.plus_start == 1
     assert sr.plus_stop == 5
@@ -2809,12 +2812,12 @@ def test_seqview_attrs_non_modulo(rev):
     #  (     ]
     # 0123456789
     #     *  *
-    sr = new_sequence.SliceRecord(start=-3, stop=-9, step=-3, parent_len=10)
+    sr = c3_sequence.SliceRecord(start=-3, stop=-9, step=-3, parent_len=10)
     sr = sr[::-1] if rev else sr
     assert sr.plus_start == 4
     assert sr.plus_stop == 8
 
-    sr = new_sequence.SliceRecord(start=0, stop=0, step=1, parent_len=10)
+    sr = c3_sequence.SliceRecord(start=0, stop=0, step=1, parent_len=10)
     sr = sr[::-1] if rev else sr
     assert sr.plus_start == 0
     assert sr.plus_stop == 0
@@ -2826,7 +2829,7 @@ def test_seqview_attrs_non_modulo(rev):
 def test_plus_attrs_slicing(start, stop, step):
     """slicing with plus attributes then reversing should match native python slicing"""
     data = "0123456789"
-    sr = new_sequence.SliceRecord(start=start, stop=stop, step=step, parent_len=10)
+    sr = c3_sequence.SliceRecord(start=start, stop=stop, step=step, parent_len=10)
 
     plus_start, plus_stop, plus_step = sr.plus_start, sr.plus_stop, sr.plus_step
     got = (
@@ -2840,7 +2843,7 @@ def test_plus_attrs_slicing(start, stop, step):
 
 @pytest.mark.parametrize("rev", [False, True])
 def test_seqview_attrs_zero_slice(rev):
-    sr = new_sequence.SliceRecord(start=0, stop=0, step=1, parent_len=0)
+    sr = c3_sequence.SliceRecord(start=0, stop=0, step=1, parent_len=0)
     sr = sr[::-1] if rev else sr
     assert sr.plus_start == 0
     assert sr.plus_stop == 0
@@ -2848,14 +2851,14 @@ def test_seqview_attrs_zero_slice(rev):
 
 def test_seqview_copy_propagates_seq_len(dna_alphabet):
     seq = "ACGGTGGGAC"
-    sv = new_sequence.SeqView(parent=seq, parent_len=len(seq), alphabet=dna_alphabet)
+    sv = c3_sequence.SeqView(parent=seq, parent_len=len(seq), alphabet=dna_alphabet)
     copied = sv.copy()
     assert copied.parent_len == len(seq)
 
 
 def test_seqview_seq_len_modified_seq(dna_alphabet):
     seq = "ACGGTGGGAC"
-    sv = new_sequence.SeqView(parent=seq, parent_len=len(seq), alphabet=dna_alphabet)
+    sv = c3_sequence.SeqView(parent=seq, parent_len=len(seq), alphabet=dna_alphabet)
 
     sv.parent = "ATGC"  # this should not modify seq_len
     assert sv.parent_len == len(seq)
@@ -2864,7 +2867,7 @@ def test_seqview_seq_len_modified_seq(dna_alphabet):
 @pytest.mark.parametrize("offset", [0, 4])
 def test_seqview_with_offset(offset, dna_alphabet):
     seq = "ACGGTGGGAC"
-    sv = new_sequence.SeqView(parent=seq, parent_len=len(seq), alphabet=dna_alphabet)
+    sv = c3_sequence.SeqView(parent=seq, parent_len=len(seq), alphabet=dna_alphabet)
     got = sv.with_offset(offset)
     assert got is not sv
     assert got.offset == offset
@@ -2873,7 +2876,7 @@ def test_seqview_with_offset(offset, dna_alphabet):
 @pytest.mark.parametrize("offset", [0, 4])
 def test_seqview_with_offset_fails(offset, dna_alphabet):
     seq = "ACGGTGGGAC"
-    sv = new_sequence.SeqView(
+    sv = c3_sequence.SeqView(
         parent=seq,
         parent_len=len(seq),
         alphabet=dna_alphabet,
@@ -2885,22 +2888,22 @@ def test_seqview_with_offset_fails(offset, dna_alphabet):
 
 def test_sequence_str_bytes_array():
     data = "ACGGTGGGAC"
-    seq = new_moltype.DNA.make_seq(seq=data)
+    seq = c3_moltype.DNA.make_seq(seq=data)
     assert str(seq) == data
     assert bytes(seq) == data.encode("utf8")
     assert numpy.array_equal(
         numpy.array(seq),
-        new_moltype.DNA.alphabet.to_indices(data),
+        c3_moltype.DNA.alphabet.to_indices(data),
     )
 
 
 def test_sequence_to_array_method():
     data = "ACGGTGGGAC"
     the_slice = slice(2, 6)
-    dna = new_moltype.DNA
+    dna = c3_moltype.DNA
     expect_plus = dna.alphabet.to_indices(data[the_slice])
     expect_minus = dna.alphabet.to_indices(dna.rc(data[the_slice]))
-    seq = new_moltype.DNA.make_seq(seq=data)[the_slice]
+    seq = c3_moltype.DNA.make_seq(seq=data)[the_slice]
     # no transforms applied, so both options give same plus strand array
     assert numpy.array_equal(seq.to_array(apply_transforms=True), expect_plus)
     assert numpy.array_equal(seq.to_array(apply_transforms=False), expect_plus)
@@ -2913,7 +2916,7 @@ def test_sequence_to_array_method():
 
 @pytest.mark.parametrize(("seq", "rc"), [("ATGTTT", False), ("AAACAT", True)])
 def test_translation(seq, rc):
-    seq = new_moltype.DNA.make_seq(seq=seq)
+    seq = c3_moltype.DNA.make_seq(seq=seq)
     if rc:
         seq = seq.rc()
     get_str = str(seq)
@@ -2924,29 +2927,29 @@ def test_translation(seq, rc):
 
 @pytest.mark.parametrize("seq", ["ATGNTT", "ATGCAY"])
 def test_translation_ambig(seq):
-    seq = new_moltype.DNA.make_seq(seq=seq)
+    seq = c3_moltype.DNA.make_seq(seq=seq)
     aa = seq.get_translation(incomplete_ok=True)
     assert str(aa) == "MX"
 
 
 def test_translation_gapped():
-    seq = new_moltype.DNA.make_seq(seq="ATG---")
+    seq = c3_moltype.DNA.make_seq(seq="ATG---")
     aa = seq.get_translation()
     assert str(aa) == "M-"
 
 
 def test_get_translation_include_stop():
-    s = new_moltype.DNA.make_seq(seq="ATTTAACTT", name="s1")
+    s = c3_moltype.DNA.make_seq(seq="ATTTAACTT", name="s1")
     aa = s.get_translation(include_stop=True)
     assert str(aa) == "I*L"
 
 
 def test_get_translation_trim_stop():
-    s = new_moltype.DNA.make_seq(seq="ATTTCCTGA", name="s1")
+    s = c3_moltype.DNA.make_seq(seq="ATTTCCTGA", name="s1")
     aa = s.get_translation(trim_stop=True)
     assert str(aa) == "IS"
     # no effect on internal stops
-    s = new_moltype.DNA.make_seq(seq="ATTTAACTT", name="s1")
+    s = c3_moltype.DNA.make_seq(seq="ATTTAACTT", name="s1")
     aa = s.get_translation(include_stop=True, trim_stop=True)
     assert str(aa) == "I*L"
 
@@ -2962,7 +2965,7 @@ def test_get_translation_trim_stop():
     ],
 )
 def test_sequence_serialisation_round_trip(moltype, data):
-    moltype = new_moltype.get_moltype(moltype)
+    moltype = c3_moltype.get_moltype(moltype)
     seq = moltype.make_seq(seq=data, name="seq1")
 
     rd = seq.to_rich_dict()
@@ -2978,7 +2981,6 @@ def aa_moltype(DATA_DIR, tmp_path):
     aln = cogent3.load_aligned_seqs(
         DATA_DIR / "brca1_5.paml",
         moltype="dna",
-        new_type=True,
     )
     aa = aln.get_translation()
     aa.write(outpath)
@@ -2986,13 +2988,13 @@ def aa_moltype(DATA_DIR, tmp_path):
 
 
 def test_load_invalid_moltype(aa_moltype):
-    with pytest.raises(new_alphabet.AlphabetError):
-        cogent3.load_seq(aa_moltype, moltype="dna", new_type=True)
+    with pytest.raises(c3_alphabet.AlphabetError):
+        cogent3.load_seq(aa_moltype, moltype="dna")
 
 
-@pytest.fixture(params=(new_moltype.DNA.alphabet, new_moltype.DNA.gapped_alphabet))
+@pytest.fixture(params=(c3_moltype.DNA.alphabet, c3_moltype.DNA.gapped_alphabet))
 def seqview(request):
-    return new_sequence.SeqView(
+    return c3_sequence.SeqView(
         parent="ACGT",
         parent_len=4,
         alphabet=request.param,
@@ -3002,31 +3004,31 @@ def seqview(request):
 
 @pytest.mark.parametrize(
     "alpha",
-    [new_moltype.DNA.alphabet, new_moltype.DNA.degen_gapped_alphabet],
+    [c3_moltype.DNA.alphabet, c3_moltype.DNA.degen_gapped_alphabet],
 )
 def test_make_seq_compatible_alpha(seqview, alpha):
-    got = new_sequence._coerce_to_seqview(seqview, seqview.seqid, alpha, 0)
+    got = c3_sequence._coerce_to_seqview(seqview, seqview.seqid, alpha, 0)
     assert got is seqview
 
 
 def test_make_seq_general_alpha_incompatible(seqview):
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         alpha, seqview.alphabet = (
             seqview.alphabet,
-            new_moltype.PROTEIN.degen_gapped_alphabet,
+            c3_moltype.PROTEIN.degen_gapped_alphabet,
         )
-        new_sequence._coerce_to_seqview(seqview, seqview.seqid, alpha, 0)
+        c3_sequence._coerce_to_seqview(seqview, seqview.seqid, alpha, 0)
 
 
 def test_make_seq_wrong_order_alpha():
-    sv = new_sequence.SeqView(
+    sv = c3_sequence.SeqView(
         parent="ACGT",
         parent_len=4,
-        alphabet=new_moltype.DNA.gapped_alphabet,
+        alphabet=c3_moltype.DNA.gapped_alphabet,
         seqid="seq1",
     )
-    with pytest.raises(new_alphabet.AlphabetError):
-        new_sequence._coerce_to_seqview(sv, sv.seqid, new_moltype.DNA.degen_alphabet, 0)
+    with pytest.raises(c3_alphabet.AlphabetError):
+        c3_sequence._coerce_to_seqview(sv, sv.seqid, c3_moltype.DNA.degen_alphabet, 0)
 
 
 @pytest.mark.parametrize(
@@ -3034,23 +3036,23 @@ def test_make_seq_wrong_order_alpha():
     ["GGTAC", b"GGTAC", numpy.array([3, 3, 0, 2, 1], dtype=numpy.uint8)],
 )
 def test_make_seq_from_types(raw_seq):
-    seq = new_moltype.DNA.make_seq(seq=raw_seq)
+    seq = c3_moltype.DNA.make_seq(seq=raw_seq)
     assert str(seq) == "GGTAC"
 
 
 @pytest.mark.parametrize(
     "raw_seq",
-    ["GGTac", b"GGTac", numpy.array([3, 3, 0, 23, 43], dtype=numpy.uint8)],
+    ["GGT!", b"GGT!", numpy.array([3, 3, 0, 23, 43], dtype=numpy.uint8)],
 )
 def test_make_seq_invalid(raw_seq):
     # seq only valid if all upper case
-    with pytest.raises(new_alphabet.AlphabetError):
-        new_moltype.DNA.make_seq(seq=raw_seq)
+    with pytest.raises(c3_alphabet.AlphabetError):
+        c3_moltype.DNA.make_seq(seq=raw_seq)
 
 
 @pytest.mark.parametrize(("moltype", "seq"), [("dna", "AUGC"), ("rna", "ATGC")])
 def test_coerce_moltype(moltype, seq):
-    seq = cogent3.make_seq(seq=seq, moltype=moltype, new_type=True)
+    seq = cogent3.make_seq(seq=seq, moltype=moltype)
     assert seq.moltype.name == moltype
     expect = "ATGC" if moltype == "dna" else "AUGC"
     assert str(seq) == expect
@@ -3074,7 +3076,7 @@ def test_sample_motif_length_1():
     assert got != seq
     # following will fail if motif length is 1 due
     # to random creation of stop codons
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         got.get_translation()
 
 
@@ -3085,19 +3087,19 @@ def test_sample_without_replacement():
 
 
 def test_to_html_bytes():
-    seq = cogent3.make_seq("AGTACACTGGT", moltype="bytes", new_type=True)
+    seq = cogent3.make_seq("AGTACACTGGT", moltype="bytes")
     html = seq.to_html()  # should not fail
     assert isinstance(html, str)
 
 
 def test_to_html_custom_moltype():
-    mt = new_moltype.MolType(
+    mt = c3_moltype.MolType(
         name="dna-gapped",
-        make_seq=new_sequence.DnaSequence,
-        monomers="".join(new_moltype.IUPAC_DNA_chars),
-        ambiguities=new_moltype.IUPAC_DNA_ambiguities,
-        complements=new_moltype.IUPAC_DNA_ambiguities_complements,
-        pairing_rules=new_moltype.DNA_STANDARD_PAIRS,
+        make_seq=c3_sequence.DnaSequence,
+        monomers="".join(c3_moltype.IUPAC_DNA_chars),
+        ambiguities=c3_moltype.IUPAC_DNA_ambiguities,
+        complements=c3_moltype.IUPAC_DNA_ambiguities_complements,
+        pairing_rules=c3_moltype.DNA_STANDARD_PAIRS,
         gap=".",
     )
     seq = mt.make_seq(seq="ACG.")

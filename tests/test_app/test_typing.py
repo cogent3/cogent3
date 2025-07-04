@@ -20,7 +20,6 @@ def test_get_constraint_names():
     """returns the correct names"""
     from cogent3.core.alignment import (
         Alignment,
-        ArrayAlignment,
         SequenceCollection,
     )
     from cogent3.core.table import Table
@@ -28,13 +27,11 @@ def test_get_constraint_names():
     from cogent3.util.dict_array import DictArray
 
     got = get_constraint_names(AlignedSeqsType)
-    assert got == {obj.__name__ for obj in (Alignment, ArrayAlignment)}
+    assert got == {obj.__name__ for obj in (Alignment,)}
     got = get_constraint_names(UnalignedSeqsType)
     assert got == {SequenceCollection.__name__}
     got = get_constraint_names(SeqsCollectionType)
-    assert got == {
-        obj.__name__ for obj in (Alignment, ArrayAlignment, SequenceCollection)
-    }
+    assert got == {obj.__name__ for obj in (Alignment, SequenceCollection)}
     got = get_constraint_names(TabularType)
     assert got == {obj.__name__ for obj in (Table, DictArray, DistanceMatrix)}
 
@@ -67,7 +64,7 @@ def test_get_constraint_names_identifiertype():
 
 def test_get_constraint_names_mixed_serilisable_identifiertype():
     """SerialisableType does not define any compatible types"""
-    expected = {"SerialisableType", "IdentifierType", "Alignment", "ArrayAlignment"}
+    expected = {"SerialisableType", "IdentifierType", "Alignment"}
 
     got = get_constraint_names(Union[SerialisableType, IdentifierType, AlignedSeqsType])
     assert got == expected
@@ -93,7 +90,7 @@ def test_hints_resolved_from_str():
 @pytest.mark.parametrize("container", [list, tuple, set])
 def test_hints_from_container_type(container):
     got = get_constraint_names(container[AlignedSeqsType])
-    assert got == {"Alignment", "ArrayAlignment"}
+    assert got == {"Alignment"}
 
 
 @pytest.mark.skipif(
@@ -103,7 +100,7 @@ def test_hints_from_container_type(container):
 @pytest.mark.parametrize("container", [list, set, tuple])
 def test_hints_from_container_type_obj(container):
     got = get_constraint_names(container[AlignedSeqsType])
-    assert got == {"Alignment", "ArrayAlignment"}
+    assert got == {"Alignment"}
 
 
 def test_hint_inherited_class():

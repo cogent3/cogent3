@@ -1,6 +1,6 @@
-﻿cogent3.core.new\_moltype.MolType
+﻿cogent3.core.moltype.MolType
 =================================
 
-.. currentmodule:: cogent3.core.new_moltype
+.. currentmodule:: cogent3.core.moltype
 
 .. autoclass:: MolType

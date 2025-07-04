@@ -7,7 +7,7 @@ import typing
 import numpy
 
 import cogent3
-from cogent3.core import new_alphabet
+from cogent3.core import alphabet as c3_alphabet
 from cogent3.core.annotation_db import GenbankAnnotationDb
 from cogent3.core.info import Info
 from cogent3.parse.record import FieldWrapper
@@ -555,7 +555,7 @@ OutTypes = typing.Union[str, bytes, numpy.ndarray]
 SeqConverterType = typing.Optional[typing.Callable[[bytes], OutTypes]]
 OptFeatureConverterType = typing.Optional[typing.Callable[[str], typing.Any]]
 
-_seq_converter = new_alphabet.convert_alphabet(
+_seq_converter = c3_alphabet.convert_alphabet(
     string.ascii_lowercase.encode("utf8"),
     string.ascii_uppercase.encode("utf8"),
     delete=b"\n\r\t 0123456789",

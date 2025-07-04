@@ -544,10 +544,9 @@ def test_get_data_source_seqcoll(klass):
 
     value = klass("some/path.txt")
     obj = make_unaligned_seqs(
-        data={"seq1": "ACGG"},
+        {"seq1": "ACGG"},
         moltype="dna",
         info={"random_key": 1234},
-        new_type=True,
         source=value,
     )
     got = get_data_source(obj)

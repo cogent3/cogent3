@@ -4,8 +4,8 @@ import typing
 
 import stevedore
 
-if typing.TYPE_CHECKING:
-    from cogent3.core.new_alignment import (
+if typing.TYPE_CHECKING:  # pragma: no cover
+    from cogent3.core.alignment import (
         AlignedSeqsDataABC,
         Alignment,
         SeqsDataABC,
@@ -232,7 +232,7 @@ class DefaultStorageDrivers:
     @property
     def unaligned(self) -> "SeqsDataABC":
         if self._unaligned is None:
-            from cogent3.core.new_alignment import SeqsData
+            from cogent3.core.alignment import SeqsData
 
             self._unaligned = SeqsData
 
@@ -245,7 +245,7 @@ class DefaultStorageDrivers:
     @property
     def aligned(self) -> "AlignedSeqsDataABC":
         if self._aligned is None:
-            from cogent3.core.new_alignment import AlignedSeqsData
+            from cogent3.core.alignment import AlignedSeqsData
 
             self._aligned = AlignedSeqsData
 

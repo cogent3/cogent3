@@ -18,7 +18,7 @@ from numpy import array, finfo, float64, floating, integer, ndarray, zeros
 
 from cogent3.util import warning as c3warn
 
-if typing.TYPE_CHECKING:
+if typing.TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Callable
 
 

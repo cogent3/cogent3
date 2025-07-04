@@ -1,15 +1,6 @@
 Remove problem sequences from an alignment
 ------------------------------------------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 Using ``omit_bad_seqs`` we can eliminate sequences from an ``Alignment`` based on their gap fraction and/or the number of gaps they uniquely introduce. 
 
 Let's create a sample alignment with some gaps. 

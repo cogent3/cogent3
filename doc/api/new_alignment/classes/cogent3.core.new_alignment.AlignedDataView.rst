@@ -1,6 +1,6 @@
-﻿cogent3.core.new\_alignment.AlignedDataView
+﻿cogent3.core.alignment.AlignedDataView
 ===========================================
 
-.. currentmodule:: cogent3.core.new_alignment
+.. currentmodule:: cogent3.core.alignment
 
 .. autoclass:: AlignedDataView

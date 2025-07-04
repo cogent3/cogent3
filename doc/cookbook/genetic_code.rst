@@ -3,15 +3,6 @@
 Using genetic codes
 ^^^^^^^^^^^^^^^^^^^
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 Selecting codes in methods that support them
 """"""""""""""""""""""""""""""""""""""""""""
 
@@ -31,7 +22,7 @@ For example, I've created a partial codon in ``"s1"``
         "s5": "ACTCATGCCAGCTCAGTACAGCATGAGAACAGCAGT",
     }
 
-    nt_seqs = make_aligned_seqs(data=data, moltype="dna")
+    nt_seqs = make_aligned_seqs(data, moltype="dna")
     nt_seqs
 
 We specify the genetic code, and we allow incomplete codons. In this case, if a codon contains a gap, they are converted to ``?`` in the translation.

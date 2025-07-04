@@ -13,8 +13,7 @@ from pathlib import Path
 import numpy
 
 import cogent3
-from cogent3.core import moltype as old_moltype
-from cogent3.core import new_moltype
+from cogent3.core import moltype as c3_moltype
 from cogent3.core.profile import (
     make_motif_counts_from_tabular,
     make_motif_freqs_from_tabular,
@@ -45,14 +44,12 @@ from .typing import (
     UnalignedSeqsType,
 )
 
-if typing.TYPE_CHECKING:
+if typing.TYPE_CHECKING:  # pragma: no cover
     from cogent3.parse.sequence import SequenceParserBase
 
 _datastore_reader_map = {}
 
-MolTypes = old_moltype.MolType | new_moltype.MolType
-
-_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
+MolTypes = c3_moltype.MolType
 
 
 class register_datastore_reader:
@@ -296,7 +293,7 @@ def _load_seqs(
     else:
         data = parser.loader(path)
     unique_id = getattr(path, "unique_id", getattr(path, "name", str(path)))
-    return coll_maker(data=data, moltype=moltype, source=unique_id)
+    return coll_maker(data, moltype=moltype, source=unique_id)
 
 
 @define_app(app_type=LOADER)
@@ -320,7 +317,7 @@ class load_aligned:
         --------
         See https://cogent3.org/doc/app/app_cookbook/load-aligned.html
         """
-        moltype = moltype or ("text" if _NEW_TYPE else "bytes")
+        moltype = moltype or "text"
         self.moltype = cogent3.get_moltype(moltype)
         self._parser = cogent3._plugin.get_seq_format_parser_plugin(  # noqa: SLF001
             format_name=format.lower(),
@@ -355,7 +352,7 @@ class load_unaligned:
         --------
         See https://cogent3.org/doc/app/app_cookbook/load-unaligned.html
         """
-        moltype = moltype or ("text" if _NEW_TYPE else "bytes")
+        moltype = moltype or "text"
         self.moltype = cogent3.get_moltype(moltype)
         self._parser = cogent3._plugin.get_seq_format_parser_plugin(  # noqa: SLF001
             format_name=format.lower(),

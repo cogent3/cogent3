@@ -204,7 +204,7 @@ def test_progessive_model_name(_test_aln):
 def test_progressive_est_tree():
     """exercise progressive alignment without a guide tree"""
     seqs = make_unaligned_seqs(
-        data={
+        {
             "A": "TGTGGCACAAATGCTCATGCCAGCTCTTTACAGCATGAGAACA",
             "B": "TGTGGCACAGATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTT",
             "C": "TGTGGCACAAGTACTCATGCCAGCTCAGTACAGCATGAGAACAGCAGTTT",
@@ -293,7 +293,7 @@ def test_difficult_end_gaps(_test_aln):
 
 def test_tree_align_handles_zero_lengths():
     seqs = make_unaligned_seqs(
-        data={
+        {
             "A": "TTAATTTTAGTAGTGCTATCCCC",
             "B": "TTAATTTTAGTAGTGCTATCCCA",
             "C": "TTAATTTTAGTAGTGCTATCC",

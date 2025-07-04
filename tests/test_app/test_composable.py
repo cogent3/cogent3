@@ -308,7 +308,7 @@ def source_type(DATA_DIR, request):
 def test_composable_unwraps_source_proxy_as_completed(source_type):
     app = get_app("load_unaligned", format="fasta", moltype="dna")
     result = next(iter(app.as_completed([source_type], show_progress=False)))
-    got = result.source if hasattr(result, "source") else result.info.source
+    got = result.source
     assert got.endswith("brca1.fasta")
     assert not isinstance(got, source_proxy)
 
@@ -316,7 +316,7 @@ def test_composable_unwraps_source_proxy_as_completed(source_type):
 def test_composable_unwraps_source_proxy_call(source_type):
     app = get_app("load_unaligned", format="fasta", moltype="dna")
     result = app(source_type)
-    got = result.source if hasattr(result, "source") else result.info.source
+    got = result.source
     assert got.endswith("brca1.fasta")
     assert not isinstance(got, source_proxy)
 
@@ -339,7 +339,7 @@ def test_as_completed_empty_data(data):
         {"a": 2},
         UnionDict(a=2, source="blah.txt"),
         make_aligned_seqs(
-            data={"a": "ACGT"},
+            {"a": "ACGT"},
             info={"source": "blah.txt"},
             moltype="dna",
         ),
@@ -652,7 +652,7 @@ def test_user_function():
     u_function = foo()
 
     aln = make_aligned_seqs(
-        data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
+        [("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
         moltype="dna",
     )
     got = u_function(aln)
@@ -666,7 +666,7 @@ def test_user_function_without_arg_kwargs():
     u_function = foo_without_arg_kwargs()
 
     aln = make_aligned_seqs(
-        data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
+        [("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
         moltype="dna",
     )
     got = u_function(aln)
@@ -680,11 +680,11 @@ def test_user_function_multiple():
     u_function_2 = bar()
 
     aln_1 = make_aligned_seqs(
-        data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
+        [("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
         moltype="dna",
     )
     data = {"s1": "ACGTACGTA", "s2": "GTGTACGTA"}
-    aln_2 = make_aligned_seqs(data=data, moltype="dna")
+    aln_2 = make_aligned_seqs(data, moltype="dna")
 
     got_1 = u_function_1(aln_1)
     got_2 = u_function_2(aln_2)

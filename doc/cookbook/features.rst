@@ -8,15 +8,6 @@
 Features
 --------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 This guide provides instructions on creating, querying, and utilising features to manipulate biological sequence data.
 
 .. note:: The ``new_type`` Alignment class directly supports annotations, and more efficient alignment operations. Try it with ``load_aligned_seqs(..., new_type=True)`` or ``make_aligned_seqs(..., new_type=True)``.
@@ -77,8 +68,7 @@ Note the difference between the value provided to ``spans``, and the value of ``
     from cogent3 import make_aligned_seqs
 
     # make demo alignment
-    aln1 = make_aligned_seqs(
-        data=[["seq1", "-AAACCCCCA"], ["seq2", "TTTT--TTTT"]],
+    aln1 = make_aligned_seqs([["seq1", "-AAACCCCCA"], ["seq2", "TTTT--TTTT"]],
         array_align=False,
         moltype="dna",
     )
@@ -100,8 +90,7 @@ We use ``add_feature`` to add a ``Feature`` to an ``Alignment``.
     from cogent3 import make_aligned_seqs
 
     # make demo alignment
-    aln1 = make_aligned_seqs(
-        data=[["seq1", "-AAACCCCCA"], ["seq2", "TTTT--TTTT"]],
+    aln1 = make_aligned_seqs([["seq1", "-AAACCCCCA"], ["seq2", "TTTT--TTTT"]],
         array_align=False,
         moltype="dna",
     )
@@ -423,8 +412,7 @@ If you query for a ``Feature`` from a ``Sequence`` (i.e. the feature is in seque
 
     from cogent3 import make_aligned_seqs
 
-    aln3 = make_aligned_seqs(
-        data=[["x", "C-CCCAAAAA"], ["y", "-T----TTTT"]],
+    aln3 = make_aligned_seqs([["x", "C-CCCAAAAA"], ["y", "-T----TTTT"]],
         array_align=False,
         moltype="dna",
     )
@@ -618,8 +606,7 @@ We can mask exons on an alignment.
 
     from cogent3 import make_aligned_seqs
 
-    aln = make_aligned_seqs(
-        data=[["x", "C-CCCAAAAAGGGAA"], ["y", "-T----TTTTG-GTT"]],
+    aln = make_aligned_seqs([["x", "C-CCCAAAAAGGGAA"], ["y", "-T----TTTTG-GTT"]],
         moltype="dna",
         array_align=False,
     )
@@ -693,8 +680,7 @@ We can copy features onto sequences with the same name. Note that the ``Annotati
 .. jupyter-execute::
     :raises:
 
-    aln2 = make_aligned_seqs(
-        data=[["x", "-AAAAAAAAA"], ["y", "TTTT--TTTT"]],
+    aln2 = make_aligned_seqs([["x", "-AAAAAAAAA"], ["y", "TTTT--TTTT"]],
         array_align=False,
         moltype="dna",
     )

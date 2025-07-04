@@ -1,6 +1,6 @@
-﻿cogent3.core.new\_alignment.SeqDataView
+﻿cogent3.core.alignment.SeqDataView
 =======================================
 
-.. currentmodule:: cogent3.core.new_alignment
+.. currentmodule:: cogent3.core.alignment
 
 .. autoclass:: SeqDataView

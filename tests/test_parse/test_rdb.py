@@ -1,11 +1,10 @@
-#!/usr/bin/env python
 # test_rdb.py
 """Unit test for RDB Parser"""
 
 from unittest import TestCase
 
+import cogent3
 from cogent3.core.info import Info
-from cogent3.core.sequence import DnaSequence, RnaSequence, Sequence
 from cogent3.parse.rdb import (
     InfoMaker,
     MinimalRdbParser,
@@ -186,7 +185,7 @@ class RdbParserTests(GenericRdbTest):
         res = list(RdbParser(self.oneseq))
         assert len(res) == 1
         first = res[0]
-        assert first == Sequence("AGUCAUCUAGAUHCAUHC")
+        assert first == cogent3.make_seq(seq="AGUCAUCUAGAUHCAUHC", moltype="rna")
         assert first.info == Info(
             {"Species": "H.Sapiens", "OriginalSeq": "AGUCAUCUAGAUHCAUHC"},
         )
@@ -194,65 +193,20 @@ class RdbParserTests(GenericRdbTest):
         res = list(RdbParser(self.multiline))
         assert len(res) == 1
         first = res[0]
-        assert first == Sequence("AGUCAUUAGAUHCAUHC")
+        assert first == cogent3.make_seq(seq="AGUCAUUAGAUHCAUHC", moltype="rna")
         assert first.info == Info(
             {"Species": "H.Sapiens", "OriginalSeq": "AGUCAUUAGAUHCAUHC"},
-        )
-
-    def test_single_constructor(self):
-        """RdbParser should use constructors if supplied"""
-
-        def to_dna(x, info):
-            return DnaSequence(str(x).replace("U", "T"), info=info)
-
-        f = list(RdbParser(self.oneseq, to_dna))
-        assert len(f) == 1
-        a = f[0]
-        assert a == "AGTCATCTAGATHCATHC"
-        assert a.info == Info(
-            {"Species": "H.Sapiens", "OriginalSeq": "AGUCAUCUAGAUHCAUHC"},
-        )
-
-        def alternativeConstr(header_lines):
-            info = Info()
-            for line in header_lines:
-                all = line.strip().split(":", 1)
-                # strip out empty lines, lines without name, lines without
-                # colon
-                if not all[0] or len(all) != 2:
-                    continue
-                name = all[0].upper()
-                value = all[1].strip().upper()
-                info[name] = value
-            return info
-
-        f = list(RdbParser(self.oneseq, to_dna, alternativeConstr))
-        assert len(f) == 1
-        a = f[0]
-        assert a == "AGTCATCTAGATHCATHC"
-        Info(
-            {"OriginalSeq": "AGUCAUCUAGAUHCAUHC", "Refs": {}, "SEQ": "H.SAPIENS"},
-        )
-        assert a.info == Info(
-            {"OriginalSeq": "AGUCAUCUAGAUHCAUHC", "Refs": {}, "SEQ": "H.SAPIENS"},
         )
 
     def test_multiple_constructor_bad(self):
         """RdbParser should complain or skip bad records w/ constructor"""
 
-        def dnastrict(x, **kwargs):
-            try:
-                return DnaSequence(x, **kwargs)
-            except Exception:
-                msg = "Could not convert sequence"
-                raise RecordError(msg)
-
-        self.assertRaises(RecordError, list, RdbParser(self.oneX, dnastrict))
-        f = list(RdbParser(self.oneX, dnastrict, strict=False))
+        self.assertRaises(RecordError, list, RdbParser(self.oneX))
+        f = list(RdbParser(self.oneX, strict=False))
         assert len(f) == 2
         a, b = f
 
-        assert a == "ACT"
+        assert a == "ACU"
         assert a.info == Info({"Species": "mit", "OriginalSeq": "ACT"})
         assert b == "AAA"
         assert b.info == Info({"Species": "pla", "OriginalSeq": "AAA"})
@@ -260,7 +214,7 @@ class RdbParserTests(GenericRdbTest):
     def test_full(self):
         """RdbParser: full data, valid and invalid"""
         # when only good record, should work independent of strict
-        r1 = RnaSequence(
+        r1 = cogent3.make_seq(
             "-??GG-UGAA--CGCU---ACGU-N???---",
             info=Info(
                 {
@@ -269,8 +223,9 @@ class RdbParserTests(GenericRdbTest):
                     "OriginalSeq": "-o[oGG-U{G}AA--C^GC]U---ACGU-Nooo---",
                 },
             ),
+            moltype="rna",
         )
-        r2 = RnaSequence(
+        r2 = cogent3.make_seq(
             "---CGAUCG--UAUACG-N???-",
             info=Info(
                 {
@@ -279,6 +234,7 @@ class RdbParserTests(GenericRdbTest):
                     "OriginalSeq": "---CGAU[C(G){--UA}U]ACG-Nooo-",
                 },
             ),
+            moltype="rna",
         )
         obs = list(RdbParser(RDB_LINES_ONLY_GOOD.split("\n"), strict=True))
         assert len(obs) == 2

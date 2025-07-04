@@ -1,6 +1,6 @@
-cogent3.core.new\_alphabet.SenseCodonAlphabet
+cogent3.core.alphabet.SenseCodonAlphabet
 =============================================
 
-.. currentmodule:: cogent3.core.new_alphabet
+.. currentmodule:: cogent3.core.alphabet
 
 .. autoclass:: SenseCodonAlphabet

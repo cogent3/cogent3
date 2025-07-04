@@ -6,7 +6,7 @@ import numpy
 import pytest
 
 import cogent3
-from cogent3.core import new_moltype
+from cogent3.core import moltype as c3_moltype
 from cogent3.core.location import (
     FeatureMap,
     IndelMap,
@@ -608,7 +608,7 @@ def test_compare_map_indexed():
 
     raw_seq = "--AC-GTAA--"
     im, seq = DNA.make_seq(seq=raw_seq).parse_out_gaps()
-    ia = Aligned(im, seq)
+    ia = Aligned.from_map_and_seq(im, seq)
     length = len(raw_seq)
     got = [str(ia[i]) for i in range(length)]
     expect = list("--AC-GTAA--")
@@ -650,7 +650,7 @@ def test_indelmap_nucleic_reversed(raw):
     assert (got.gap_pos == minus_imap.gap_pos).all()
     assert (got.cum_gap_lengths == minus_imap.cum_gap_lengths).all()
     assert got.parent_length == minus_imap.parent_length
-    assert str(Aligned(got, minus_seq)) == str(minus)
+    assert str(Aligned.from_map_and_seq(got, minus_seq)) == str(minus)
 
 
 def test_get_coords():
@@ -1341,7 +1341,7 @@ def test_indelmap_subtraction_build_aligned(seq_pairs):
     ig1, s1 = s1.parse_out_gaps()
     ig2, s2 = s2.parse_out_gaps()
     got1 = ig1.minus_gaps(ig2.get_gap_align_coordinates())
-    got = Aligned(got1, s1)
+    got = Aligned.from_map_and_seq(got1, s1)
     assert str(got) == unique_gaps
 
 
@@ -1441,9 +1441,9 @@ def test_indelmap_make_seq_feature_map():
     ],
 )
 def test_indelmap_positive_step_variant_slices(start, stop, step, data):
-    imap, _ = new_moltype.DNA.make_seq(seq=data).parse_out_gaps()
+    imap, _ = c3_moltype.DNA.make_seq(seq=data).parse_out_gaps()
     got = imap[start:stop:step]
-    expect, _ = new_moltype.DNA.make_seq(seq=data[start:stop:step]).parse_out_gaps()
+    expect, _ = c3_moltype.DNA.make_seq(seq=data[start:stop:step]).parse_out_gaps()
     assert (got.gap_pos == expect.gap_pos).all()
     assert (got.cum_gap_lengths == expect.cum_gap_lengths).all()
 
@@ -1467,9 +1467,9 @@ def test_indelmap_positive_step_variant_slices(start, stop, step, data):
     ],
 )
 def test_indelmap_negative_step_variant_slices(start, stop, step, data):
-    imap, _ = new_moltype.DNA.make_seq(seq=data).parse_out_gaps()
+    imap, _ = c3_moltype.DNA.make_seq(seq=data).parse_out_gaps()
     got = imap[start:stop:step]
-    expect, _ = new_moltype.DNA.make_seq(seq=data[start:stop:step]).parse_out_gaps()
+    expect, _ = c3_moltype.DNA.make_seq(seq=data[start:stop:step]).parse_out_gaps()
     assert (got.gap_pos == expect.gap_pos).all()
     assert (got.cum_gap_lengths == expect.cum_gap_lengths).all()
 
@@ -1504,7 +1504,6 @@ def codon_and_aa_maps():
     dna = cogent3.make_aligned_seqs(
         {n: s.replace(" ", "") for n, s in data.items()},
         moltype="dna",
-        new_type=True,
     )
     aa = dna.get_translation()
     dna_1 = dna.seqs["s1"].map

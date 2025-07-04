@@ -6,15 +6,6 @@
 Sample nucleotides from a given codon position
 ----------------------------------------------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 The ``take_codon_positions`` app allows you to extract all nucleotides at a given codon position from an alignment. 
 
 Let's create a sample alignment for our example. 

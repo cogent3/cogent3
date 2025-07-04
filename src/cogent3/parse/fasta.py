@@ -13,42 +13,19 @@ import numpy
 
 import cogent3
 from cogent3.core.info import Info
-from cogent3.core.moltype import BYTES
 from cogent3.parse.record import RecordError
 from cogent3.parse.record_finder import LabeledRecordFinder
+from cogent3.util import warning as c3warn
 from cogent3.util.io import is_url, open_
 
 _white_space = re.compile(r"\s+")
 strip = str.strip
 
-Sequence = BYTES.make_seq
 
 OutTypes = typing.Union[str, bytes, numpy.ndarray]
 OptConverterType = typing.Optional[typing.Callable[[bytes], OutTypes]]
 RenamerType = typing.Callable[[str], str]
 
-
-def is_fasta_label(x):
-    """Checks if x looks like a FASTA label line."""
-    return x.startswith(">")
-
-
-def is_gde_label(x):
-    """Checks if x looks like a GDE label line."""
-    return x and x[0] in "%#"
-
-
-def is_blank_or_comment(x):
-    """Checks if x is blank or a FASTA comment line."""
-    return (not x) or x.startswith("#") or x.isspace()
-
-
-def is_blank(x):
-    """Checks if x is blank."""
-    return (not x) or x.isspace()
-
-
-FastaFinder = LabeledRecordFinder(is_fasta_label, ignore=is_blank_or_comment)
 
 PathOrIterableType = typing.Union[os.PathLike, list[str], tuple[str]]
 
@@ -99,8 +76,8 @@ def _strict_parser(
     label_to_name: RenamerType,
     label_char: str,
 ) -> typing.Iterable[tuple[str, str]]:
-    seq = []
-    label = None
+    seq: list[str] = []
+    label: str | None = None
     for line in data:
         if not line or line.startswith("#"):
             # ignore empty or comment lines
@@ -151,7 +128,7 @@ def MinimalFastaParser(
         character(s) at the start of a label line
     """
     if not path:
-        return []
+        return
 
     data = _prep_data(path)
     label_char = set(label_characters)
@@ -161,14 +138,15 @@ def MinimalFastaParser(
         yield from _faster_parser(data, label_to_name, label_char)
 
 
-GdeFinder = LabeledRecordFinder(is_gde_label, ignore=is_blank)
+GdeFinder = LabeledRecordFinder(lambda x: x.startswith(("#", "%")))
 
 
 def MinimalGdeParser(infile, strict=True, label_to_name=str):
     return MinimalFastaParser(infile, strict, label_to_name, label_characters="%#")
 
 
-def xmfa_label_to_name(line) -> str:
+@c3warn.deprecated_callable("2025.9", "not being used", is_discontinued=True)
+def xmfa_label_to_name(line) -> str:  # pragma: no cover
     (loc, strand, contig) = line.split()
     (sp, loc) = loc.split(":")
     (lo, hi) = [int(x) for x in loc.split("-")]
@@ -179,43 +157,42 @@ def xmfa_label_to_name(line) -> str:
     return f"{sp}:{contig}:{lo}-{hi}"
 
 
-def is_xmfa_blank_or_comment(x):
+@c3warn.deprecated_callable("2025.9", "not being used", is_discontinued=True)
+def is_xmfa_blank_or_comment(x):  # pragma: no cover
     """Checks if x is blank or an XMFA comment line."""
     return (not x) or x.startswith("=") or x.isspace()
 
 
-XmfaFinder = LabeledRecordFinder(is_fasta_label, ignore=is_xmfa_blank_or_comment)
+XmfaFinder = LabeledRecordFinder(
+    lambda x: x.startswith(">"), ignore=is_xmfa_blank_or_comment
+)
 
 
-def MinimalXmfaParser(infile, strict=True):
+@c3warn.deprecated_callable("2025.9", "not being used", is_discontinued=True)
+def MinimalXmfaParser(infile, strict=True):  # pragma: no cover
     # Fasta-like but with header info like ">1:10-1000 + chr1"
     return MinimalFastaParser(infile, strict, label_to_name=xmfa_label_to_name)
 
 
-def MinimalInfo(label):
+@c3warn.deprecated_callable("2025.9", "not being used", is_discontinued=True)
+def MinimalInfo(label):  # pragma: no cover
     """Minimal info data maker: returns name, and empty dict for info{}."""
     return label, {}
 
 
-def NameLabelInfo(label):
+@c3warn.deprecated_callable("2025.9", "not being used", is_discontinued=True)
+def NameLabelInfo(label):  # pragma: no cover
     """Returns name as label split on whitespace, and label in Info."""
     return label.split()[0], {"label": label}
 
 
-def FastaParser(infile, seq_maker=None, info_maker=MinimalInfo, strict=True):
-    """Yields successive sequences from infile as (name, sequence) tuples.
-
-    Constructs the sequence using seq_maker(seq, info=Info(info_maker(label))).
-
-    If strict is True (default), raises RecordError when label or seq missing.
-    Also raises RecordError if seq_maker fails.
-
-    It is info_maker's responsibility to raise the appropriate RecordError or
-    FieldError on failure.
-
-    Result of info_maker need not actually be an info object, but can just be
-    a dict or other data that Info can use in its constructor.
-    """
+@c3warn.deprecated_callable(
+    "2025.9", "use MinimalParser or iter_fasta_records instead", is_discontinued=True
+)
+def FastaParser(
+    infile, seq_maker=None, info_maker=MinimalInfo, strict=True
+):  # pragma: no cover
+    """discontinued"""
     if seq_maker is None:
         seq_maker = Sequence
     for label, seq in MinimalFastaParser(infile, strict=strict):
@@ -242,12 +219,9 @@ def FastaParser(infile, seq_maker=None, info_maker=MinimalInfo, strict=True):
 NcbiLabels = {"dbj": "DDBJ", "emb": "EMBL", "gb": "GenBank", "ref": "RefSeq"}
 
 
+@c3warn.deprecated_callable("2025.9", "no replacement", is_discontinued=True)
 def NcbiFastaLabelParser(line):
-    """Creates an Info object and populates it with the line contents.
-
-    As of 11/12/03, all records in genpept.fsa and the human RefSeq fasta
-    files were consistent with this format.
-    """
+    """discontinued"""
     info = Info()
     try:
         ignore, gi, db, db_ref, description = list(map(strip, line.split("|", 4)))
@@ -260,11 +234,12 @@ def NcbiFastaLabelParser(line):
     return gi, info
 
 
-def NcbiFastaParser(infile, seq_maker=None, strict=True):
-    return FastaParser(
+@c3warn.deprecated_callable(
+    "2025.9", "use MinimalParser or iter_fasta_records instead", is_discontinued=True
+)
+def NcbiFastaParser(infile, seq_maker=None, strict=True):  # pragma: no cover
+    return MinimalFastaParser(
         infile,
-        seq_maker=seq_maker,
-        info_maker=NcbiFastaLabelParser,
         strict=strict,
     )
 
@@ -339,6 +314,9 @@ def LabelParser(display_template, field_formatters, split_with=":", DEBUG=False)
     return call
 
 
+@c3warn.deprecated_callable(
+    "2025.9", "use MinimalParser or iter_fasta_records instead", is_discontinued=True
+)
 def GroupFastaParser(
     data,
     label_to_name,
@@ -347,25 +325,8 @@ def GroupFastaParser(
     moltype="text",
     done_groups=None,
     DEBUG=False,
-):
-    """yields related sequences as a separate seq collection
-
-    Parameters
-    ----------
-    data
-        line iterable data source
-    label_to_name
-        LabelParser callback
-    group_key
-        name of group key in RichLabel.info object
-    aligned
-        whether sequences are to be considered aligned
-    moltype
-        default is ASCII
-    done_groups
-        series of group keys to be excluded
-
-    """
+):  # pragma: no cover
+    """discontinued"""
     moltype = cogent3.get_moltype(moltype)
     done_groups = [[], done_groups][done_groups is not None]
     parser = MinimalFastaParser(data, label_to_name=label_to_name)

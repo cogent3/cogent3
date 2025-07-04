@@ -6,15 +6,6 @@
 Writing tabular data
 --------------------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 With the ``write_tabular`` app, ``cogent3`` "TabularTypes" (``Table``, ``DictArray``, ``DistanceMatrix``) are supported for writing to disk. 
 
 Let's generate a ``cogent3`` ``Table`` to use in the examples below. One way to do that is by applying the ``tabulate_stats`` app to a model result. 

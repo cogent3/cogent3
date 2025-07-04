@@ -6,12 +6,12 @@ produced by the same code."""
 # How many cells before using linear space alignment algorithm.
 # Should probably set to about half of physical memory / PointerEncoder.bytes
 HIRSCHBERG_LIMIT = 10**8
-import os
 import warnings
 
 import numpy
 
 from cogent3.align.traceback import alignment_traceback, map_traceback
+from cogent3.core.alignment import Aligned
 from cogent3.core.location import IndelMap
 from cogent3.evolve.likelihood_tree import LikelihoodTreeEdge
 from cogent3.util.misc import ascontiguousarray
@@ -19,11 +19,6 @@ from cogent3.util.misc import ascontiguousarray
 from . import pairwise_pogs_numba as align_module
 from . import pairwise_seqs_numba as seq_align_module
 from .indel_positions import leaf2pog
-
-if "COGENT3_NEW_TYPE" in os.environ:
-    from cogent3.core.new_alignment import Aligned
-else:
-    from cogent3.core.alignment import Aligned
 
 
 def _as_combined_arrays(preds):

@@ -3,10 +3,12 @@ gapped sequences or Cogent Alignment objects"""
 
 import typing
 
-from cogent3.core.alignment import Aligned, Alignment
+import numpy
+
+from cogent3.core import alignment as c3_alignment
 from cogent3.core.location import IndelMap
 
-IntOrNone = typing.Union[int, None]
+IntOrNone = int | None
 IntListType = list[int]
 CoordsListType = list[list[typing.Sequence[int]]]
 
@@ -71,11 +73,19 @@ def map_traceback(
     return starts, ends, maps
 
 
-def alignment_traceback(seqs, aligned_positions, word_length):
+def alignment_traceback(seqs, aligned_positions, word_length) -> c3_alignment.Alignment:
     """Alignment object from state matrix and ending point."""
     (starts, ends, maps) = map_traceback(aligned_positions)
-    aligneds = []
+    ungapped_seqs = {}
+    gaps = {}
+    moltype = None
     for start, end, amap, (name, seq) in zip(starts, ends, maps, seqs, strict=False):
-        gs = Aligned(amap * word_length, seq[start * word_length : end * word_length])
-        aligneds.append((name, gs))
-    return Alignment(moltype=None, data=aligneds)
+        if moltype is None:
+            moltype = seq.moltype
+        ungapped_seqs[name] = numpy.array(seq[start * word_length : end * word_length])
+        gaps[name] = (amap * word_length).array
+
+    asd = c3_alignment.AlignedSeqsData.from_seqs_and_gaps(
+        seqs=ungapped_seqs, gaps=gaps, alphabet=moltype.most_degen_alphabet()
+    )
+    return c3_alignment.make_aligned_seqs(asd, moltype=moltype)

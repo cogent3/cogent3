@@ -50,8 +50,7 @@ class MapTest(unittest.TestCase):
 
 def test_get_by_seq_annotation_allow_gaps():
     aln = cogent3.make_aligned_seqs(
-        data={"a": "ATCGAAATCGAT", "b": "ATCGA--TCGAT"},
-        array_align=False,
+        {"a": "ATCGAAATCGAT", "b": "ATCGA--TCGAT"},
         moltype="dna",
     )
     # original version was putting annotation directly on seq

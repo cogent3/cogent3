@@ -8,7 +8,7 @@ from numpy import (
     nan,
 )
 
-from cogent3.core import new_alphabet
+from cogent3.core import alphabet as c3_alphabet
 from cogent3.core.moltype import IUPAC_gap, IUPAC_missing
 from cogent3.util import dict_array
 from cogent3.util import parallel as PAR
@@ -248,7 +248,7 @@ def _calc_pair_scale(
 
     n = 0
     for pair in states_12.flatten()[j_nz]:
-        i, j = new_alphabet.index_to_coord(pair, coeffs=coeffs)
+        i, j = c3_alphabet.index_to_coord(pair, coeffs=coeffs)
         if counts_12[pair] == 0:
             continue
 
@@ -266,7 +266,7 @@ def _calc_pair_scale(
 
             # compute the new joint-entropy
             new_coord[:] = k, j
-            new_index = new_alphabet.coord_to_index(new_coord, coeffs=coeffs)
+            new_index = c3_alphabet.coord_to_index(new_coord, coeffs=coeffs)
             n_je = _calc_updated_entropy(tmp_je, counts_12, jet, total, new_index)
 
             # the weight
@@ -289,7 +289,7 @@ def _calc_pair_scale(
 
             # compute the new joint-entropy
             new_coord[:] = i, k
-            new_index = new_alphabet.coord_to_index(new_coord, coeffs=coeffs)
+            new_index = c3_alphabet.coord_to_index(new_coord, coeffs=coeffs)
             n_je = _calc_updated_entropy(tmp_je, counts_12, jet, total, new_index)
 
             # the weight
@@ -331,7 +331,7 @@ def _rmi_calc(
     alignment: numpy.ndarray,
     num_states: numpy.uint8,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:  # pragma: no cover
-    coeffs = new_alphabet.coord_conversion_coeffs(num_states, 2, dtype=numpy.int64)
+    coeffs = c3_alphabet.coord_conversion_coeffs(num_states, 2, dtype=numpy.int64)
     weights_1 = numpy.empty((num_states, num_states), dtype=float)
     weights_2 = numpy.empty((num_states, num_states), dtype=float)
 
@@ -581,12 +581,7 @@ def coevolution_matrix(
     stat = {"mi": 1, "nmi": 2, "rmi": 3}[MI_METHODS(stat).name]
     num_states = len(alignment.moltype.alphabet)
 
-    if hasattr(alignment, "__array__"):
-        # new_type Alignment classes will support direct conversion
-        # to numpy.uint8 arrays
-        data = numpy.array(alignment)
-    else:
-        data = alignment.to_type(array_align=True).array_seqs
+    data = numpy.array(alignment)
 
     if positions:
         positions = list(itertools.chain(*positions))

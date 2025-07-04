@@ -26,7 +26,7 @@ def calc_mi_pair(alignment, pos1, pos2, normalised=False):
 
 @pytest.fixture(params=["AAAAA", "ACGT", "AACC", "ACGNNGG"])
 def column(request):
-    return get_moltype("dna", new_type=True).alphabet.to_indices(request.param)
+    return get_moltype("dna").alphabet.to_indices(request.param)
 
 
 # revised code tests
@@ -48,7 +48,7 @@ def alignment():
     # 0,2,1.3,nan,1.5
     # entropies
     data = {f"s{i}": s.strip() for i, s in enumerate(data.splitlines()) if s.strip()}
-    return make_aligned_seqs(data=data, moltype="dna")
+    return make_aligned_seqs(data, moltype="dna")
 
 
 def test_column_entropies(alignment):
@@ -81,7 +81,7 @@ def test_mi_pair_comp(alignment, normalised):
 
 def test_aa_seq():
     aln = make_aligned_seqs(
-        data={
+        {
             "FlyingFox": "SQ",
             "DogFaced": "SQ",
             "FreeTaile": "SQ",
@@ -205,7 +205,7 @@ def pos_pair(request):
         "TC",
     ]
     return make_aligned_seqs(
-        data={f"s{i}": p for i, p in enumerate(data)},
+        {f"s{i}": p for i, p in enumerate(data)},
         moltype=request.param,
     )
 
@@ -242,7 +242,7 @@ def test_diff_mi_metrics(pos_pair, met1, met2):
 @pytest.fixture
 def small_dna():
     return make_aligned_seqs(
-        data={f"s{i}": s for i, s in enumerate(["AA", "AA", "GG", "GG", "GC"])},
+        {f"s{i}": s for i, s in enumerate(["AA", "AA", "GG", "GG", "GC"])},
         moltype="dna",
     )
 
@@ -261,7 +261,7 @@ def test_resampled_mi_interface(small_dna):
 
 @pytest.fixture
 def cols():
-    dna = get_moltype("dna", new_type=True)
+    dna = get_moltype("dna")
     alpha = dna.alphabet
     counts1 = numpy.zeros(len(alpha), dtype=numpy.int64)
     counts2 = numpy.zeros(len(alpha), dtype=numpy.int64)
@@ -283,7 +283,7 @@ def _make_expected_array(alpha, data):
 
 def test_calc_weights_new(cols):
     """resampled mi weights should be correctly computed"""
-    dna = get_moltype("dna", new_type=True)
+    dna = get_moltype("dna")
     alpha = dna.alphabet
 
     e1 = [

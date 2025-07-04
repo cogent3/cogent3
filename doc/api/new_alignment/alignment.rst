@@ -1,7 +1,7 @@
-:mod:`new_alignment`
+:mod:`alignment`
 ====================
 
-.. currentmodule:: cogent3.core.new_alignment
+.. currentmodule:: cogent3.core.alignment
 
 .. autosummary::
     :toctree: classes

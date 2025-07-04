@@ -6,7 +6,8 @@ DOCTYPE Bioseq-set PUBLIC "-//NCBI//NCBI Seqset/EN" "http://www.ncbi.nlm.nih.gov
 import io
 import xml.dom.minidom
 
-from cogent3.core import location, moltype
+from cogent3.core import location
+from cogent3.core import moltype as c3_moltype
 
 """
 CAUTION:
@@ -58,11 +59,11 @@ def GbSeqXmlParser(doc):
             record.getElementsByTagName("GBSeq_moltype")[0].childNodes[0].nodeValue
             == "9"
         ):
-            alphabet = moltype.PROTEIN
+            alphabet = c3_moltype.PROTEIN
         else:
-            alphabet = moltype.DNA
+            alphabet = c3_moltype.DNA
 
-        seq = alphabet.make_seq(raw_string, name=name)
+        seq = alphabet.make_seq(seq=raw_string, name=name)
 
         feat = location.FeatureMap.from_locations(
             locations=[(0, len(seq))],

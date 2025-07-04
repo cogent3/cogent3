@@ -9,14 +9,14 @@ from numpy.linalg import det, inv
 
 import cogent3
 from cogent3._version import __version__
-from cogent3.core import new_moltype
+from cogent3.core import moltype as c3_moltype
 from cogent3.core.table import Table
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArray
 from cogent3.util.misc import get_object_provenance
 from cogent3.util.progress_display import display_wrap
 
-if typing.TYPE_CHECKING:
+if typing.TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.tree import PhyloNode
 
 PySeq = typing.Sequence
@@ -74,9 +74,9 @@ def get_moltype_index_array(moltype, invalid=-9):
     # refactor: simplify
     # added for compatibility with both new and old moltypes - should be removed
     # when old moltype is removed
-    from cogent3.core.new_moltype import MolType as new_MolType
+    from cogent3.core.moltype import MolType as c3_moltype
 
-    if isinstance(moltype, new_MolType):
+    if isinstance(moltype, c3_moltype):
         max_ord = max(list(map(ord, list(moltype.most_degen_alphabet()))))
     else:
         max_ord = max(list(map(ord, list(moltype.All.keys()))))
@@ -365,7 +365,7 @@ class _PairwiseDistance:
     def _convert_seqs_to_indices(self, alignment) -> None:
         assert isinstance(
             alignment.moltype,
-            type(self.moltype) | new_moltype.MolType,
+            type(self.moltype) | c3_moltype.MolType,
         ), "Alignment does not have correct MolType"
 
         self._dists = {}

@@ -1,6 +1,6 @@
-﻿cogent3.core.new\_alphabet.KmerAlphabet
+﻿cogent3.core.alphabet.KmerAlphabet
 =======================================
 
-.. currentmodule:: cogent3.core.new_alphabet
+.. currentmodule:: cogent3.core.alphabet
 
 .. autoclass:: KmerAlphabet

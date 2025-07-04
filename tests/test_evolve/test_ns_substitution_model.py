@@ -221,7 +221,7 @@ class NonStatMarkov(TestCase):
         """StrandSymmetric should fit a strand symmetric model"""
         warnings.filterwarnings("ignore", "Model not reversible", UserWarning)
         taxa = "Human", "Mouse", "Opossum"
-        aln = cogent3.make_aligned_seqs(data=_aln, moltype=DNA)
+        aln = cogent3.make_aligned_seqs(_aln, moltype=DNA)
         aln = aln[2::3].no_degenerates()
         tree = cogent3.make_tree(tip_names=taxa)
         model = StrandSymmetric(optimise_motif_probs=True)

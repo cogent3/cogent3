@@ -1,6 +1,6 @@
-﻿cogent3.core.new\_alignment.Alignment
+﻿cogent3.core.alignment.Alignment
 =====================================
 
-.. currentmodule:: cogent3.core.new_alignment
+.. currentmodule:: cogent3.core.alignment
 
 .. autoclass:: Alignment

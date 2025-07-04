@@ -1,6 +1,5 @@
 """Estimating pairwise distances between sequences."""
 
-import os
 from itertools import combinations
 from warnings import warn
 
@@ -9,8 +8,6 @@ from cogent3.core import table
 from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.maths.stats.number import NumberCounter
 from cogent3.util import progress_display as UI
-
-_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
 
 
 def get_name_combinations(names, group_size):
@@ -128,7 +125,7 @@ class EstimateDistances:
             make_tree(tip_names=seqs.names),
             aligned=False,
         )
-        lf.set_sequences(seqs.seqs if _NEW_TYPE else seqs.named_seqs)
+        lf.set_sequences(seqs.seqs)
 
         # allow user to modify the lf config
         if self._modify_lf:

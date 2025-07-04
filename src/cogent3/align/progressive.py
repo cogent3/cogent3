@@ -1,13 +1,12 @@
 from cogent3 import get_app, get_model, make_unaligned_seqs
-from cogent3.core import alignment as old_alignment
-from cogent3.core import new_alignment
+from cogent3.core import alignment as c3_alignment
 from cogent3.core.tree import TreeNode
 from cogent3.evolve.distance import EstimateDistances
 from cogent3.phylo import nj as NJ
 from cogent3.util import progress_display as UI
 
-SeqCollType = old_alignment.SequenceCollection | new_alignment.SequenceCollection
-AlignType = old_alignment.ArrayAlignment | new_alignment.Alignment
+SeqCollType = c3_alignment.SequenceCollection
+AlignType = c3_alignment.Alignment
 
 
 @UI.display_wrap

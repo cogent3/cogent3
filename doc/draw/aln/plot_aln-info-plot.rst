@@ -6,15 +6,6 @@
 Information analysis of an alignment
 ====================================
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 Information here is in the formal sense -- maximum entropy minus the entropy at a position. This is fast to compute and is an indicator of the variability at a position.
 
 Illustrated with a simple example
@@ -27,7 +18,7 @@ Illustrated with a simple example
     s1 = make_seq("TGATGTAAGGTAGTT", name="s1", moltype="dna")
     s2 = make_seq("--CTGGAAGGGT---", name="s2", moltype="dna")
 
-    seqs = make_aligned_seqs(data=[s1, s2], array_align=False, moltype="dna")
+    seqs = make_aligned_seqs([s1, s2], array_align=False, moltype="dna")
     draw = seqs.information_plot(window=2, include_gap=True)
     draw.show(width=500, height=400)
 

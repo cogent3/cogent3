@@ -1,6 +1,6 @@
-﻿cogent3.core.new\_alphabet.CharAlphabet
+﻿cogent3.core.alphabet.CharAlphabet
 =======================================
 
-.. currentmodule:: cogent3.core.new_alphabet
+.. currentmodule:: cogent3.core.alphabet
 
 .. autoclass:: CharAlphabet

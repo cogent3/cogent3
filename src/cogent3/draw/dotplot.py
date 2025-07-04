@@ -1,5 +1,6 @@
 import numpy
 
+from cogent3 import get_moltype
 from cogent3.align.pycompare import (
     MatchedSeqPaths,
     SeqKmers,
@@ -7,7 +8,6 @@ from cogent3.align.pycompare import (
     find_matched_paths,
 )
 from cogent3.core import location
-from cogent3.core.moltype import get_moltype
 from cogent3.draw.drawable import Drawable
 from cogent3.util.union_dict import UnionDict
 
@@ -57,7 +57,7 @@ def _convert_input(seq, moltype):
         # already an Aligned instance
         gap_map = seq.map
         # handling new_type and old type Aligned
-        seq = getattr(seq, "seq", seq.data)
+        seq = seq.seq
         return gap_map, seq
 
     seq = (

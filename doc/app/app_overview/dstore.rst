@@ -8,15 +8,6 @@
 Data stores -- collections of data records
 ==========================================
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 
 If you download :download:`raw.zip <data/raw.zip>` and unzip it, you will see it contains 1,035 files ending with a ``.fa`` filename suffix. (It also contains a tab delimited file and a log file, which we ignore for now.) The directory ``raw`` is a "data store" and the ``.fa`` files are "members" of it. In summary, a :index:`data store` is a collection of members of the same "type". This means we can apply the same application to every member.
 
