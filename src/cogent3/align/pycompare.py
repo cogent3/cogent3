@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 import typing_extensions
 
-from cogent3.core import new_moltype
+from cogent3.core import moltype as c3_moltype
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -584,7 +584,7 @@ def find_matched_paths(
     """
     if isinstance(seq1.moltype.alphabet[0], bytes):
         msg = f"{seq1.moltype.label!r} not supported"
-        raise new_moltype.MolTypeError(msg)
+        raise c3_moltype.MolTypeError(msg)
 
     k = seq_kmers.k
     delta = (window // k) * (k - 1) + (window - threshold)

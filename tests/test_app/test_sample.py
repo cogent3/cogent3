@@ -5,7 +5,7 @@ import pytest
 import cogent3
 from cogent3.app import composable, sample
 from cogent3.app.composable import NotCompleted
-from cogent3.core.new_moltype import MolTypeError
+from cogent3.core.moltype import MolTypeError
 
 DNA = cogent3.get_moltype("dna")
 

@@ -5,7 +5,7 @@ import numba
 import numba.types as numba_types
 import numpy
 
-from cogent3.core import new_moltype
+from cogent3.core import moltype as c3_moltype
 from cogent3.evolve.fast_distance import DistanceMatrix
 
 if typing.TYPE_CHECKING:  # pragma: no cover
@@ -310,7 +310,7 @@ def tn93(
     """
     if not aln.moltype.is_nucleic:
         msg = f"tn93 distance only works with nucleotide alignments, not {aln.moltype}"
-        raise new_moltype.MolTypeError(
+        raise c3_moltype.MolTypeError(
             msg,
         )
 
@@ -450,7 +450,7 @@ def paralinear(
     """
     if not aln.moltype.is_nucleic:
         msg = f"paralinear distance only works with nucleotide alignments, not {aln.moltype}"
-        raise new_moltype.MolTypeError(
+        raise c3_moltype.MolTypeError(
             msg,
         )
 

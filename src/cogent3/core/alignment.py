@@ -32,7 +32,7 @@ from cogent3.core import (
     genetic_code as c3_genetic_code,
 )
 from cogent3.core import (
-    new_moltype,
+    moltype as c3_moltype,
 )
 from cogent3.core import (
     sequence as c3_sequence,
@@ -96,7 +96,7 @@ OptPathType = str | Path | None
 StrORArray = str | numpy.ndarray[int]
 StrORBytesORArray = str | bytes | numpy.ndarray[int]
 StrORBytesORArrayOrSeq = str | bytes | numpy.ndarray[int] | c3_sequence.Sequence
-MolTypes = str | new_moltype.MolType
+MolTypes = str | c3_moltype.MolType
 
 # small number: 1-EPS is almost 1, and is used for things like the
 # default number of gaps to allow in a column.
@@ -656,7 +656,7 @@ class SequenceCollection(AnnotatableMixin):
         self,
         *,
         seqs_data: SeqsDataABC,
-        moltype: new_moltype.MolType,
+        moltype: c3_moltype.MolType,
         info: dict | InfoClass | None = None,
         source: OptPathType = None,
         annotation_db: SupportsFeatures | None = None,
@@ -1136,16 +1136,16 @@ class SequenceCollection(AnnotatableMixin):
         Cannot convert from nucleic acids to proteins. Use get_translation() for that.
 
         """
-        mtype = new_moltype.get_moltype(moltype)
+        mtype = c3_moltype.get_moltype(moltype)
         if mtype is self.moltype:
             return self  # nothing to be done
 
         alpha = mtype.most_degen_alphabet()
         try:
             new_seqs_data = self._seqs_data.to_alphabet(alpha)
-        except new_moltype.MolTypeError as e:
+        except c3_moltype.MolTypeError as e:
             msg = f"Failed to convert moltype from {self.moltype.label} to {moltype}"
-            raise new_moltype.MolTypeError(
+            raise c3_moltype.MolTypeError(
                 msg,
             ) from e
 
@@ -1198,7 +1198,7 @@ class SequenceCollection(AnnotatableMixin):
         """
         if not self.moltype.is_nucleic:
             msg = f"moltype must be a DNA/RNA, not {self.moltype.name!r}"
-            raise new_moltype.MolTypeError(
+            raise c3_moltype.MolTypeError(
                 msg,
             )
 
@@ -1212,7 +1212,7 @@ class SequenceCollection(AnnotatableMixin):
             )
             translated[self.name_map[seq.name]] = numpy.array(pep)
 
-        pep_moltype = new_moltype.get_moltype(
+        pep_moltype = c3_moltype.get_moltype(
             "protein_with_stop" if include_stop else "protein",
         )
         seqs_data = self._seqs_data.from_seqs(
@@ -2563,7 +2563,7 @@ class raw_seq_data:
 @singledispatch
 def coerce_to_raw_seq_data(
     seq: StrORBytesORArrayOrSeq,
-    moltype: new_moltype.MolType,
+    moltype: c3_moltype.MolType,
     name: OptStr = None,
 ) -> raw_seq_data:
     """aggregates sequence data into a single object
@@ -2593,7 +2593,7 @@ def coerce_to_raw_seq_data(
 @coerce_to_raw_seq_data.register
 def _(
     seq: c3_sequence.Sequence,
-    moltype: new_moltype.MolType,
+    moltype: c3_moltype.MolType,
     name: str,
 ) -> raw_seq_data:
     # converts the sequence to a numpy array
@@ -2612,7 +2612,7 @@ def _(
 @coerce_to_raw_seq_data.register
 def _(
     seq: str,
-    moltype: new_moltype.MolType,
+    moltype: c3_moltype.MolType,
     name: OptStr = None,
 ) -> raw_seq_data:
     return coerce_to_raw_seq_data(seq.encode("utf8"), moltype, name)
@@ -2621,7 +2621,7 @@ def _(
 @coerce_to_raw_seq_data.register
 def _(
     seq: numpy.ndarray,
-    moltype: new_moltype.MolType,  # noqa: ARG001
+    moltype: c3_moltype.MolType,  # noqa: ARG001
     name: OptStr = None,
 ) -> raw_seq_data:
     return raw_seq_data(seq=seq, name=name)
@@ -2630,7 +2630,7 @@ def _(
 @coerce_to_raw_seq_data.register
 def _(
     seq: bytes,
-    moltype: new_moltype.MolType,
+    moltype: c3_moltype.MolType,
     name: OptStr = None,
 ) -> raw_seq_data:
     # converts the sequence to a upper case bytes, and applies
@@ -2645,7 +2645,7 @@ CT = tuple[dict[str, StrORBytesORArray], dict[str, int], set[str]]
 
 def prep_for_seqs_data(
     data: dict[str, StrORBytesORArrayOrSeq],
-    moltype: new_moltype.MolType,
+    moltype: c3_moltype.MolType,
     seq_namer: _SeqNamer,
 ) -> CT:
     """normalises input data for constructing a SeqsData object
@@ -2777,7 +2777,7 @@ def make_name_map(data: dict[str, StrORBytesORArray]) -> dict[str, str]:
 def make_unaligned_storage(
     data: dict[str, bytes | numpy.ndarray[int]],
     *,
-    moltype: str | new_moltype.MolType,
+    moltype: str | c3_moltype.MolType,
     label_to_name: OptRenamerCallable = None,
     offset: DictStrInt | None = None,
     reversed_seqs: set[str] | None = None,
@@ -2808,7 +2808,7 @@ def make_unaligned_storage(
     -----
     This function is intended for use primarly by make_unaligned_seqs function.
     """
-    moltype = new_moltype.get_moltype(moltype)
+    moltype = c3_moltype.get_moltype(moltype)
     alphabet = moltype.most_degen_alphabet()
     # if we have Sequences, we need to construct the name map before we construct
     # the SeqsData object - however, if a name_map is provided, we assume that it
@@ -2836,7 +2836,7 @@ def make_unaligned_storage(
 def make_unaligned_seqs(
     data: dict[str, StrORBytesORArray] | list | SeqsDataABC,
     *,
-    moltype: str | new_moltype.MolType,
+    moltype: str | c3_moltype.MolType,
     label_to_name: OptRenamerCallable = None,
     info: OptDict = None,
     source: OptPathType = None,
@@ -2930,7 +2930,7 @@ def make_unaligned_seqs(
 def _(
     data: SeqsDataABC,
     *,
-    moltype: str | new_moltype.MolType,
+    moltype: str | c3_moltype.MolType,
     label_to_name: OptRenamerCallable = None,
     info: dict | None = None,
     source: OptPathType = None,
@@ -2939,7 +2939,7 @@ def _(
     name_map: dict[str, str] | None = None,
     is_reversed: bool = False,
 ) -> SequenceCollection:
-    moltype = new_moltype.get_moltype(moltype)
+    moltype = c3_moltype.get_moltype(moltype)
     if not moltype.is_compatible_alphabet(data.alphabet):
         msg = f"Provided moltype: {moltype} is not compatible with SeqsData alphabet {data.alphabet}"
         raise ValueError(
@@ -3169,7 +3169,7 @@ class Aligned(AnnotatableMixin):
     def __init__(
         self,
         data: AlignedDataView,
-        moltype: new_moltype.MolType,
+        moltype: c3_moltype.MolType,
         name: OptStr = None,
         annotation_db: SupportsFeatures | list[SupportsFeatures] | None = None,
     ) -> None:
@@ -3264,7 +3264,7 @@ class Aligned(AnnotatableMixin):
         return self.moltype.make_seq(seq=seq, name=self.data.seqid)
 
     @property
-    def moltype(self) -> new_moltype.MolType:
+    def moltype(self) -> c3_moltype.MolType:
         return self._moltype
 
     @property
@@ -5519,7 +5519,7 @@ class Alignment(SequenceCollection):
                 f"Invalid MolType={self.moltype.label} (no degenerate characters), "
                 "create the alignment using DNA, RNA or PROTEIN"
             )
-            raise new_moltype.MolTypeError(
+            raise c3_moltype.MolTypeError(
                 msg,
             )
 
@@ -5853,7 +5853,7 @@ class Alignment(SequenceCollection):
     ) -> typing_extensions.Self:
         if not self.moltype.is_nucleic:
             msg = f"moltype must be a DNA/RNA, not {self.moltype.name!r}"
-            raise new_moltype.MolTypeError(msg)
+            raise c3_moltype.MolTypeError(msg)
 
         if not trim_stop or include_stop:
             seqs = self
@@ -5871,7 +5871,7 @@ class Alignment(SequenceCollection):
             )
             translated[self.name_map[seqname]] = numpy.array(pep)
 
-        pep_moltype = new_moltype.get_moltype(
+        pep_moltype = c3_moltype.get_moltype(
             "protein_with_stop" if include_stop else "protein",
         )
         seqs_data = self._seqs_data.from_seqs(
@@ -7110,7 +7110,7 @@ def deserialise_alignment_to_new_type_alignment(
 def make_aligned_storage(
     data: dict[str, bytes | numpy.ndarray[int]],
     *,
-    moltype: str | new_moltype.MolType,
+    moltype: str | c3_moltype.MolType,
     label_to_name: OptRenamerCallable = None,
     offset: DictStrInt | None = None,
     reversed_seqs: set[str] | None = None,
@@ -7142,7 +7142,7 @@ def make_aligned_storage(
     This function is intended for use primarly by make_aligned_seqs function.
     """
     assign_names = _SeqNamer(name_func=label_to_name)
-    moltype = new_moltype.get_moltype(moltype)
+    moltype = c3_moltype.get_moltype(moltype)
     alphabet = moltype.most_degen_alphabet()
     seqs_data, offs, rvd = prep_for_seqs_data(data, moltype, assign_names)
     asd_kwargs = {
@@ -7164,7 +7164,7 @@ def make_aligned_storage(
 def make_aligned_seqs(
     data: dict[str, StrORBytesORArray] | list | AlignedSeqsDataABC,
     *,
-    moltype: str | new_moltype.MolType,
+    moltype: str | c3_moltype.MolType,
     label_to_name: OptRenamerCallable = None,
     info: OptDict = None,
     source: OptPathType = None,
@@ -7219,7 +7219,7 @@ def make_aligned_seqs(
         msg = "data must be at least one sequence."
         raise ValueError(msg)
 
-    moltype = new_moltype.get_moltype(moltype)
+    moltype = c3_moltype.get_moltype(moltype)
     annotation_db = kwargs.pop("annotation_db", annotation_db) or merged_db_collection(
         data,
     )
@@ -7263,7 +7263,7 @@ def make_aligned_seqs(
 def _(
     data: AlignedSeqsDataABC,
     *,
-    moltype: str | new_moltype.MolType,
+    moltype: str | c3_moltype.MolType,
     label_to_name: OptRenamerCallable = None,
     info: OptDict = None,
     source: OptPathType = None,
@@ -7273,7 +7273,7 @@ def _(
     is_reversed: OptBool = None,
     **kwargs,
 ) -> Alignment:
-    moltype = new_moltype.get_moltype(moltype)
+    moltype = c3_moltype.get_moltype(moltype)
     if not moltype.is_compatible_alphabet(data.alphabet):
         msg = (
             f"Provided moltype: {moltype.label} is not compatible with AlignedSeqsData"

@@ -5,7 +5,7 @@ DOCTYPE TSeqSet PUBLIC "-//NCBI//NCBI TSeq/EN" "http://www.ncbi.nlm.nih.gov/dtd/
 import io
 import xml.dom.minidom
 
-from cogent3.core import new_moltype
+from cogent3.core import moltype as c3_moltype
 
 """
 CAUTION:
@@ -53,9 +53,9 @@ def TinyseqParser(doc):
             record.getElementsByTagName("TSeq_seqtype")[0].getAttribute("value")
             == "protein"
         ):
-            alphabet = new_moltype.PROTEIN
+            alphabet = c3_moltype.PROTEIN
         else:
-            alphabet = new_moltype.DNA
+            alphabet = c3_moltype.DNA
 
         seq = alphabet.make_seq(seq=raw_string, name=name)
 

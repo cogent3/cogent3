@@ -17,7 +17,7 @@ from cogent3 import (
 from cogent3._version import __version__
 from cogent3.core import alignment as c3_alignment
 from cogent3.core import alphabet as c3_alphabet
-from cogent3.core import new_moltype
+from cogent3.core import moltype as c3_moltype
 from cogent3.core import sequence as c3_sequence
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import GffAnnotationDb, load_annotations
@@ -68,29 +68,29 @@ def arr_seqs_dict():
 
 @pytest.fixture
 def dna_alphabet():
-    moltype = new_moltype.get_moltype("dna")
+    moltype = c3_moltype.get_moltype("dna")
     return moltype.degen_gapped_alphabet
 
 
 @pytest.fixture
 def dna_moltype():
-    return new_moltype.get_moltype("dna")
+    return c3_moltype.get_moltype("dna")
 
 
 @pytest.fixture
 def dna_make_seq():
-    return new_moltype.get_moltype("dna").make_seq
+    return c3_moltype.get_moltype("dna").make_seq
 
 
 @pytest.fixture
 def rna_alphabet():
-    moltype = new_moltype.get_moltype("rna")
+    moltype = c3_moltype.get_moltype("rna")
     return moltype.degen_gapped_alphabet
 
 
 @pytest.fixture
 def rna_moltype():
-    return new_moltype.get_moltype("rna")
+    return c3_moltype.get_moltype("rna")
 
 
 @pytest.fixture
@@ -337,9 +337,9 @@ def test_seqs_data_getitem_raises(dna_sd):
 
 
 def test_seqs_data_to_alphabet():
-    ASCII = new_moltype.ASCII.alphabet
-    DNA = new_moltype.DNA.degen_gapped_alphabet
-    RNA = new_moltype.RNA.degen_gapped_alphabet
+    ASCII = c3_moltype.ASCII.alphabet
+    DNA = c3_moltype.DNA.degen_gapped_alphabet
+    RNA = c3_moltype.RNA.degen_gapped_alphabet
     seqs = c3_alignment.SeqsData(
         data={"a": "AAA", "b": "TTT", "c": "CCC"},
         alphabet=ASCII,
@@ -355,8 +355,8 @@ def test_seqs_data_to_alphabet():
 
 
 def test_seqs_data_to_alphabet_invalid():
-    ASCII = new_moltype.ASCII.alphabet
-    DNA = new_moltype.DNA.degen_gapped_alphabet
+    ASCII = c3_moltype.ASCII.alphabet
+    DNA = c3_moltype.DNA.degen_gapped_alphabet
     seqs = c3_alignment.SeqsData(
         data={"a": "AAA", "b": "TTT", "c": "LLL"},
         alphabet=ASCII,
@@ -406,7 +406,7 @@ def test_seq_data_view_value(str_seqs_dict: dict, dna_alphabet, start, stop, ste
 @pytest.mark.parametrize("rev", [False, True])
 def test_seq_data_view_to_rich_dict(rev):
     data = {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}
-    alpha = new_moltype.DNA.degen_gapped_alphabet
+    alpha = c3_moltype.DNA.degen_gapped_alphabet
     sd = c3_alignment.SeqsData(data=data, alphabet=alpha)
     sdv = sd.get_view("seq1")
     sdv = sdv[::-1] if rev else sdv
@@ -620,15 +620,15 @@ def test_make_seqs_from_sequences(mk_cls):
     a list of Sequence objects"""
     # if no names, they should be generated via the standard naming convention,
     # seq_0, seq_1, etc.
-    seq1 = new_moltype.DNA.make_seq(seq="AC")
-    seq2 = new_moltype.DNA.make_seq(seq="AC")
+    seq1 = c3_moltype.DNA.make_seq(seq="AC")
+    seq2 = c3_moltype.DNA.make_seq(seq="AC")
     coll = mk_cls([seq1, seq2], moltype="dna")
     assert isinstance(coll, c3_alignment.SequenceCollection)
     assert coll.names == ("seq_0", "seq_1")
 
     # if the sequences have names, they should be used
-    seq1 = new_moltype.DNA.make_seq(seq="AC", name="seq1")
-    seq2 = new_moltype.DNA.make_seq(seq="AC", name="seq2")
+    seq1 = c3_moltype.DNA.make_seq(seq="AC", name="seq1")
+    seq2 = c3_moltype.DNA.make_seq(seq="AC", name="seq2")
     coll = mk_cls([seq1, seq2], moltype="dna")
     assert isinstance(coll, c3_alignment.SequenceCollection)
     assert coll.names == ("seq1", "seq2")
@@ -664,8 +664,8 @@ def test_make_seqs_renamed_seqs(mk_cls, seq_name, parent_name, dna_alphabet):
         alphabet=dna_alphabet,
     )
 
-    seq_1 = new_moltype.DNA.make_seq(seq=seq_view_1, name="seq_1")
-    seq_2 = new_moltype.DNA.make_seq(seq=seq_view_2, name="seq_2")
+    seq_1 = c3_moltype.DNA.make_seq(seq=seq_view_1, name="seq_1")
+    seq_2 = c3_moltype.DNA.make_seq(seq=seq_view_2, name="seq_2")
 
     seqs = mk_cls([seq_1, seq_2], moltype="dna")
     assert set(seqs.names) == {"seq_1", "seq_2"}
@@ -690,7 +690,7 @@ def test_make_seqs_offset(mk_cls, data_cls, seq, dna_alphabet):
     assert got._seq.offset == offset[seq]
 
     # if data is a SeqsData object, this should fail
-    data = data_cls.from_seqs(data=data, alphabet=new_moltype.DNA.degen_gapped_alphabet)
+    data = data_cls.from_seqs(data=data, alphabet=c3_moltype.DNA.degen_gapped_alphabet)
     with pytest.raises(ValueError):
         _ = mk_cls(data, moltype="dna", offset=offset)
 
@@ -707,8 +707,8 @@ def test_make_seqs_offset(mk_cls, data_cls, seq, dna_alphabet):
         alphabet=dna_alphabet,
         offset=2,
     )
-    seq_1 = new_moltype.DNA.make_seq(seq=seq_view_1, name="seq_1")
-    seq_2 = new_moltype.DNA.make_seq(seq=seq_view_2, name="seq_2")
+    seq_1 = c3_moltype.DNA.make_seq(seq=seq_view_1, name="seq_1")
+    seq_2 = c3_moltype.DNA.make_seq(seq=seq_view_2, name="seq_2")
 
     seqs = mk_cls([seq_1, seq_2], moltype="dna")
 
@@ -1432,7 +1432,7 @@ def test_get_translation_raises(mk_cls):
     """should raise error if self.moltype is not a nucleic acid"""
     data = {"seq1": "PAR", "seq2": "PQR"}
     seqs = mk_cls(data, moltype="protein")
-    with pytest.raises(new_moltype.MolTypeError):
+    with pytest.raises(c3_moltype.MolTypeError):
         _ = seqs.get_translation(trim_stop=True)
 
 
@@ -1454,7 +1454,7 @@ def test_get_translation(seqs, mk_cls):
     seqs = mk_cls(seqs, moltype="dna")
     got = seqs.get_translation(incomplete_ok=True)
     assert got.num_seqs == 2
-    assert got.moltype == new_moltype.PROTEIN
+    assert got.moltype == c3_moltype.PROTEIN
 
 
 @pytest.mark.parametrize(
@@ -1477,7 +1477,7 @@ def test_get_translation_with_stop(mk_cls):
     seqs = mk_cls(data, moltype="dna")
     got = seqs.get_translation(incomplete_ok=True, include_stop=True, trim_stop=False)
     assert got.to_dict() == {"seq1": "X*", "seq2": "D*"}
-    assert got.moltype == new_moltype.PROTEIN_WITH_STOP
+    assert got.moltype == c3_moltype.PROTEIN_WITH_STOP
 
 
 @pytest.mark.parametrize(
@@ -2054,7 +2054,7 @@ def _make_seq(name):
     raw_seq = "AACCCAAAATTTTTTGGGGGGGGGGCCCC"
     cds = (15, 25)
     utr = (12, 15)
-    seq = new_moltype.DNA.make_seq(seq=raw_seq, name=name)
+    seq = c3_moltype.DNA.make_seq(seq=raw_seq, name=name)
     seq.add_feature(biotype="CDS", name="CDS", spans=[cds])
     seq.add_feature(biotype="5'UTR", name="5' UTR", spans=[utr])
     return seq
@@ -2106,7 +2106,7 @@ def test_sequence_collection_to_moltype(moltype, mk_cls, seq_cls):
     assert isinstance(got, seq_cls)
 
     # should also work with moltype objects
-    mt = new_moltype.get_moltype(moltype)
+    mt = c3_moltype.get_moltype(moltype)
     mt_seqs = seqs.to_moltype(moltype=mt)
     got = mt_seqs.seqs["s1"]
     assert got.moltype.label == moltype
@@ -2385,7 +2385,7 @@ def test_sequence_collection_consistent_gap_degen_handling(mk_cls):
     raw_seq = "---??-??TC-GGCG-GCA-G-GC-?-C-TAN-GCGC-CCTC-AGGA?-???-??--"
     raw_ungapped = re.sub("[-?]", "", raw_seq)
     re.sub("[N?]+", "", raw_seq)
-    dna = new_moltype.DNA.make_seq(seq=raw_seq)
+    dna = c3_moltype.DNA.make_seq(seq=raw_seq)
 
     aln = mk_cls({"a": dna, "b": dna}, moltype="dna")
     expect = raw_ungapped
@@ -2413,7 +2413,7 @@ def test_sequence_collection_pad_seqs(ragged):
 
 
 def test_sequence_collection_pad_seqs_reversed():
-    mk_seq = new_moltype.DNA.make_seq
+    mk_seq = c3_moltype.DNA.make_seq
     data = {
         "a": mk_seq(seq="T", name="A"),
         "b": mk_seq(seq="TCG", name="B"),
@@ -2851,7 +2851,7 @@ def gap_seqs():
 @pytest.mark.parametrize("i", range(3))
 def test_decompose_gapped_seq_sequences(gap_seqs, i, dna_alphabet):
     seq, gap_coords = gap_seqs[i]
-    dna = new_moltype.get_moltype("dna")
+    dna = c3_moltype.get_moltype("dna")
     got_ungapped, got_map = c3_alignment.decompose_gapped_seq(
         dna.make_seq(seq=seq),
         alphabet=dna_alphabet,
@@ -3026,7 +3026,7 @@ def test_aligned_getitem_int(gapped_seqs_dict, seqid, i):
     [("ACGGTAAAG", ((2, 4), (5, 8))), ("CCC---CCC", ((0, 3), (6, 9)))],
 )
 def test_aligned_getitem_featuremap(raw_seq, coords):
-    dna = new_moltype.get_moltype("dna")
+    dna = c3_moltype.get_moltype("dna")
     im, seq = dna.make_seq(seq=raw_seq).parse_out_gaps()
     gaps = numpy.array([im.gap_pos, im.cum_gap_lengths]).T
     asd = c3_alignment.AlignedSeqsData.from_seqs_and_gaps(
@@ -4842,7 +4842,7 @@ def test_no_degenerates_non_divisible_length(renamed):
 def test_no_degenerates_bad_moltype_raises():
     """no_degenerates should raise an error if moltype has no degenerate symbols"""
     aln = c3_alignment.make_aligned_seqs({"s1": "ACGT", "s2": "ACGT"}, moltype="text")
-    with pytest.raises(new_moltype.MolTypeError):
+    with pytest.raises(c3_moltype.MolTypeError):
         _ = aln.no_degenerates()
 
 
@@ -5077,7 +5077,7 @@ def test_get_seq_with_sliced_rced_aln(name):
     a1 = a1.rc()
     got = str(a1.get_seq(name))
 
-    dna = new_moltype.get_moltype("dna")
+    dna = c3_moltype.get_moltype("dna")
     expect = dna.complement(seqs[name][start:stop].replace("-", ""))[::-1]
     assert got == expect, (got, expect)
 
@@ -5112,7 +5112,7 @@ def test_get_seq_with_sliced_rced_aln_multiple_spans(name):
     a1 = aln[start:stop]
     a1 = a1.rc()
     got = str(a1.get_seq(name))
-    dna = new_moltype.get_moltype("dna")
+    dna = c3_moltype.get_moltype("dna")
     expect = dna.complement(seqs[name][start:stop].replace("-", ""))[::-1]
     assert got == expect, (got, expect)
 
@@ -5139,7 +5139,7 @@ def test_get_gapped_seq_with_sliced_aln(name):
 @pytest.mark.parametrize("name", ["s1", "s2", "s3"])
 @pytest.mark.parametrize("moltype", ["dna", "protein"])
 def test_get_gapped_seq_recode_gaps(name, moltype):
-    mt = new_moltype.get_moltype(moltype)
+    mt = c3_moltype.get_moltype(moltype)
     degen = mt.degenerate_from_seq(list(mt))
     seqs = {
         "s1": "G-TG--?TAGTAGAAGTTCCAAATAATGAA",
@@ -5257,7 +5257,7 @@ def test_indexing_seqs_iter(names_seqs, func):
     ],
 )
 def test_gapped_seq_round_trip(gapped_seq):
-    gapped_seq = new_moltype.DNA.gapped_alphabet.to_indices(gapped_seq)
+    gapped_seq = c3_moltype.DNA.gapped_alphabet.to_indices(gapped_seq)
     # split into components
     ungapped_seq, gaps = c3_alignment.decompose_gapped_seq_array(gapped_seq, 4)
 
@@ -5277,7 +5277,7 @@ def test_asd_get_gapped_seq(aligned_dict, dna_alphabet):
 
     asd = c3_alignment.AlignedSeqsData.from_seqs(
         data=aligned_dict,
-        alphabet=new_moltype.DNA.most_degen_alphabet(),
+        alphabet=c3_moltype.DNA.most_degen_alphabet(),
     )
     view = asd.get_view(seqid)
     fwd = view[a_slice]
@@ -5290,7 +5290,7 @@ def test_asd_get_gapped_seq(aligned_dict, dna_alphabet):
 
 def test_make_gap_filter():
     """make_gap_filter returns f(seq) -> True if aligned ok w/ query"""
-    RNA = new_moltype.get_moltype("rna")
+    RNA = c3_moltype.get_moltype("rna")
     s1 = RNA.make_seq(seq="UC-----CU---C")
     s3 = RNA.make_seq(seq="UUCCUUCUU-UUC")
     s4 = RNA.make_seq(seq="UU-UUUU-UUUUC")
@@ -5656,7 +5656,7 @@ def test_slice_preserves_selected_names(DATA_DIR):
 
 
 def test_aligned_from_indel_map_and_seqs():
-    dna = new_moltype.get_moltype("dna")
+    dna = c3_moltype.get_moltype("dna")
     seq = dna.make_seq(seq="AC--GTC", name="s1")
     im, s = seq.parse_out_gaps()
     al = c3_alignment.Aligned.from_map_and_seq(im, s)

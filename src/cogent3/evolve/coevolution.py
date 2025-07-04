@@ -9,7 +9,7 @@ from numpy import (
 )
 
 from cogent3.core import alphabet as c3_alphabet
-from cogent3.core.new_moltype import IUPAC_gap, IUPAC_missing
+from cogent3.core.moltype import IUPAC_gap, IUPAC_missing
 from cogent3.util import dict_array
 from cogent3.util import parallel as PAR
 from cogent3.util import progress_display as UI

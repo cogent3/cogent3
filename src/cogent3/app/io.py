@@ -13,7 +13,7 @@ from pathlib import Path
 import numpy
 
 import cogent3
-from cogent3.core import new_moltype
+from cogent3.core import moltype as c3_moltype
 from cogent3.core.profile import (
     make_motif_counts_from_tabular,
     make_motif_freqs_from_tabular,
@@ -49,7 +49,7 @@ if typing.TYPE_CHECKING:  # pragma: no cover
 
 _datastore_reader_map = {}
 
-MolTypes = new_moltype.MolType
+MolTypes = c3_moltype.MolType
 
 
 class register_datastore_reader:

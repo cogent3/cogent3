@@ -5,10 +5,10 @@ import pytest
 from cogent3 import load_seq
 from cogent3.core import alignment as c3_alignment
 from cogent3.core import genetic_code as c3_genetic_code
-from cogent3.core import new_moltype
+from cogent3.core import moltype as c3_moltype
 from cogent3.core.annotation_db import GffAnnotationDb, load_annotations
 
-DNA = new_moltype.get_moltype("dna")
+DNA = c3_moltype.get_moltype("dna")
 
 
 @pytest.fixture
@@ -61,7 +61,7 @@ def _make_seq(name):
     raw_seq = "AACCCAAAATTTTTTGGGGGGGGGGCCCC"
     cds = (15, 25)
     utr = (12, 15)
-    seq = new_moltype.DNA.make_seq(seq=raw_seq, name=name)
+    seq = c3_moltype.DNA.make_seq(seq=raw_seq, name=name)
     seq.add_feature(biotype="CDS", name="CDS", spans=[cds])
     seq.add_feature(biotype="5'UTR", name="5' UTR", spans=[utr])
     return seq
@@ -104,7 +104,7 @@ def test_constructing_collections(mk_cls):
 )
 def test_init_annotated_seqs(mk_cls):
     """correctly construct from list with annotated seq"""
-    seq = new_moltype.DNA.make_seq(seq="GCCAGGGGGGAAAG-GGAGAA", name="seq1")
+    seq = c3_moltype.DNA.make_seq(seq="GCCAGGGGGGAAAG-GGAGAA", name="seq1")
     seq.add_feature(biotype="exon", name="name", spans=[(4, 10)])
     coll = mk_cls({"seq1": seq}, moltype="dna")
     features = list(coll.get_features(biotype="exon"))
@@ -839,7 +839,7 @@ def test_alignment_mixed_strand_get_feature1():
 
 
 def test_alignment_mixed_strand_get_feature2():
-    dna = new_moltype.DNA
+    dna = c3_moltype.DNA
     plus = {
         "s1": "GTTGAAGTAGTA",
         "s2": "--TAAG---GTA",
@@ -884,7 +884,7 @@ def test_alignment_mixed_strand_get_feature2():
 
 @pytest.mark.parametrize("rc", [True, False])
 def test_alignment_mixed_strand_masked_annotations(rc):
-    dna = new_moltype.DNA
+    dna = c3_moltype.DNA
     plus = {"s1": "GTTGAAGTAGTA", "s2": "---AAG---GTA", "s3": "GCTGAAGTAGTG"}
     s2_expect = dna.rc("---???---GTA") if rc else "---???---GTA"
     s3_expect = dna.rc("G??GAAGTAGTG") if rc else "G??GAAGTAGTG"

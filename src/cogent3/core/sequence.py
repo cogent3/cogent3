@@ -25,7 +25,7 @@ from numpy import array
 from cogent3._version import __version__
 from cogent3.core import alphabet as c3_alphabet
 from cogent3.core import genetic_code as c3_genetic_code
-from cogent3.core import new_moltype
+from cogent3.core import moltype as c3_moltype
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
     AnnotatableMixin,
@@ -77,9 +77,9 @@ frac_diff = for_seq(f=ne, aggregator=sum, normalizer=per_shortest)
 
 def _moltype_seq_from_rich_dict(
     data: dict[str, str | dict[str, str]],
-) -> tuple[new_moltype.MolType, StrORBytesORArray]:
+) -> tuple[c3_moltype.MolType, StrORBytesORArray]:
     """returns moltype and seq and mutates data so it can serve as kwargs to Sequence constructor"""
-    from cogent3.core import new_moltype
+    from cogent3.core import moltype as c3_moltype
 
     data.pop("type")
     data.pop("version")
@@ -87,7 +87,7 @@ def _moltype_seq_from_rich_dict(
     data.pop("annotation_offset", 0)
 
     moltype = data.pop("moltype")
-    moltype = new_moltype.get_moltype(moltype)
+    moltype = c3_moltype.get_moltype(moltype)
 
     seq = data.pop("seq")
     return moltype, seq
@@ -139,7 +139,7 @@ class Sequence(AnnotatableMixin):
 
     def __init__(
         self,
-        moltype: new_moltype.MolType,
+        moltype: c3_moltype.MolType,
         seq: StrORBytesORArray | SeqViewABC,
         *,
         name: OptStr = None,
@@ -1223,7 +1223,7 @@ class Sequence(AnnotatableMixin):
             feature_data.pop(discard)
         return self.make_feature(feature_data)
 
-    def to_moltype(self, moltype: str | new_moltype.MolType) -> Sequence:
+    def to_moltype(self, moltype: str | c3_moltype.MolType) -> Sequence:
         """returns copy of self with moltype seq
 
         Parameters
@@ -1244,7 +1244,7 @@ class Sequence(AnnotatableMixin):
             msg = f"unknown moltype '{moltype}'"
             raise ValueError(msg)
 
-        moltype = new_moltype.get_moltype(moltype)
+        moltype = c3_moltype.get_moltype(moltype)
 
         if moltype is self.moltype:
             return self
@@ -1265,7 +1265,7 @@ class Sequence(AnnotatableMixin):
                 f"Changing from old moltype={self.moltype.label!r} to new "
                 f"moltype={moltype.label!r} is not valid for this data"
             )
-            raise new_moltype.MolTypeError(
+            raise c3_moltype.MolTypeError(
                 msg,
             )
         sv = SeqView(
@@ -2104,15 +2104,15 @@ class NucleicAcidSequenceMixin:
         AlphabetError if include_stop is False and a stop codon occurs
         """
         from cogent3.core import genetic_code as c3_genetic_code
-        from cogent3.core import new_moltype
+        from cogent3.core import moltype as c3_moltype
 
         if not self.moltype.is_nucleic:
             msg = f"moltype must be a DNA/RNA, not {self.moltype.name!r}"
-            raise new_moltype.MolTypeError(
+            raise c3_moltype.MolTypeError(
                 msg,
             )
 
-        protein = new_moltype.get_moltype(
+        protein = c3_moltype.get_moltype(
             "protein_with_stop" if include_stop else "protein",
         )
         gc = c3_genetic_code.get_code(gc)

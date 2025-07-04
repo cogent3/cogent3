@@ -19,14 +19,14 @@ from cogent3.util.dict_array import DictArray
 def test_deserialised_values():
     """correctly deserialises values"""
     DNA = cogent3.get_moltype("dna")
-    data = {"type": "cogent3.core.new_moltype.MolType", "moltype": "dna"}
+    data = {"type": "cogent3.core.c3_moltype.MolType", "moltype": "dna"}
     result = generic_result(source="blah.json")
     result["key"] = data
     result.deserialised_values()
     got = result["key"]
     assert got is DNA
     # if we have a type value without "cogent3", leaves as is
-    data = {"type": "core.new_moltype.MolType", "moltype": "dna"}
+    data = {"type": "core.c3_moltype.MolType", "moltype": "dna"}
     result = generic_result(source="blah.json")
     result["key"] = data
     result.deserialised_values()
@@ -43,7 +43,7 @@ def test_deserialised_values():
 
 def test_repr_str():
     """it works"""
-    data = {"type": "cogent3.core.new_moltype.MolType", "moltype": "dna"}
+    data = {"type": "cogent3.core.c3_moltype.MolType", "moltype": "dna"}
     result = generic_result(source="blah.json")
     result["key"] = data
     repr(result)
@@ -52,7 +52,7 @@ def test_repr_str():
 
 def test_keys():
     """it works"""
-    data = {"type": "cogent3.core.new_moltype.MolType", "moltype": "dna"}
+    data = {"type": "cogent3.core.c3_moltype.MolType", "moltype": "dna"}
     result = generic_result(source="blah.json")
     result["key"] = data
     keys = result.keys()

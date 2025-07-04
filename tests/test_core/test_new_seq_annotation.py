@@ -1,10 +1,10 @@
 import pytest
 
 from cogent3 import load_seq
-from cogent3.core import new_moltype
+from cogent3.core import moltype as c3_moltype
 
-DNA = new_moltype.get_moltype("dna")
-ASCII = new_moltype.get_moltype("text")
+DNA = c3_moltype.get_moltype("dna")
+ASCII = c3_moltype.get_moltype("text")
 
 
 def makeSampleSequence(name, with_gaps=False):

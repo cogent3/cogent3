@@ -13,7 +13,7 @@ from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.misc import get_object_provenance
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    from cogent3.core.new_moltype import MolType
+    from cogent3.core.moltype import MolType
 
 NumpyIntType = numpy.dtype[numpy.integer]
 NumpyIntArrayType = numpy.typing.NDArray[numpy.integer]
@@ -707,7 +707,7 @@ def make_converter(
 def _get_closest_char_alphabet(
     moltype_name: str, motifset: list[str] | set[str]
 ) -> CharAlphabet:
-    from cogent3.core.new_moltype import get_moltype
+    from cogent3.core.moltype import get_moltype
 
     mtype = get_moltype(moltype_name)
     motifset = set(motifset)
@@ -723,7 +723,7 @@ def deserialise_char_alphabet(data: dict) -> CharAlphabet:
     if "motifset" not in data:
         return CharAlphabet.from_rich_dict(data)
 
-    from cogent3.core.new_moltype import get_moltype
+    from cogent3.core.moltype import get_moltype
 
     # this is a legacy format, we assume this was derived from a
     # moltype so we get the moltype and look for an alphabet with

@@ -6,7 +6,7 @@ import numpy
 import pytest
 
 import cogent3
-from cogent3.core import new_moltype
+from cogent3.core import moltype as c3_moltype
 from cogent3.core.location import (
     FeatureMap,
     IndelMap,
@@ -1441,9 +1441,9 @@ def test_indelmap_make_seq_feature_map():
     ],
 )
 def test_indelmap_positive_step_variant_slices(start, stop, step, data):
-    imap, _ = new_moltype.DNA.make_seq(seq=data).parse_out_gaps()
+    imap, _ = c3_moltype.DNA.make_seq(seq=data).parse_out_gaps()
     got = imap[start:stop:step]
-    expect, _ = new_moltype.DNA.make_seq(seq=data[start:stop:step]).parse_out_gaps()
+    expect, _ = c3_moltype.DNA.make_seq(seq=data[start:stop:step]).parse_out_gaps()
     assert (got.gap_pos == expect.gap_pos).all()
     assert (got.cum_gap_lengths == expect.cum_gap_lengths).all()
 
@@ -1467,9 +1467,9 @@ def test_indelmap_positive_step_variant_slices(start, stop, step, data):
     ],
 )
 def test_indelmap_negative_step_variant_slices(start, stop, step, data):
-    imap, _ = new_moltype.DNA.make_seq(seq=data).parse_out_gaps()
+    imap, _ = c3_moltype.DNA.make_seq(seq=data).parse_out_gaps()
     got = imap[start:stop:step]
-    expect, _ = new_moltype.DNA.make_seq(seq=data[start:stop:step]).parse_out_gaps()
+    expect, _ = c3_moltype.DNA.make_seq(seq=data[start:stop:step]).parse_out_gaps()
     assert (got.gap_pos == expect.gap_pos).all()
     assert (got.cum_gap_lengths == expect.cum_gap_lengths).all()
 

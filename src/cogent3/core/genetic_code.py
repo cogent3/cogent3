@@ -19,7 +19,7 @@ import typing
 import numpy
 
 from cogent3.core import alphabet as c3_alphabet
-from cogent3.core import new_moltype
+from cogent3.core import moltype as c3_moltype
 from cogent3.core.table import Table
 from cogent3.util import warning as c3warn
 
@@ -121,7 +121,7 @@ class GeneticCode:
     name: str
     ncbi_code_sequence: dataclasses.InitVar[str]
     ncbi_start_codon_map: dataclasses.InitVar[str]
-    moltype: new_moltype.MolType = new_moltype.DNA
+    moltype: c3_moltype.MolType = c3_moltype.DNA
     _codon_to_aa: dict[str, str] = dataclasses.field(init=False, default_factory=dict)
     _aa_to_codon: dict[str, SetStr] = dataclasses.field(
         init=False,
@@ -182,7 +182,7 @@ class GeneticCode:
         """returns aa to codon mapping as a cogent3 Table"""
         rows = []
         headers = ["aa", "IUPAC code", "codons"]
-        for code, aa in new_moltype.IUPAC_PROTEIN_code_aa.items():
+        for code, aa in c3_moltype.IUPAC_PROTEIN_code_aa.items():
             codons = ",".join(self[code])
             row = [aa, code, codons]
             rows.append(row)
@@ -356,7 +356,7 @@ class GeneticCode:
         seq
             a Sequence or string of amino acids
         """
-        from .new_moltype import PROTEIN_WITH_STOP_ambiguities as ambigs
+        from .moltype import PROTEIN_WITH_STOP_ambiguities as ambigs
 
         seq = list(str(seq))
         mappings = []

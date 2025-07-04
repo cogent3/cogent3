@@ -23,7 +23,7 @@ from cogent3.core.genetic_code import available_codes, get_code  # noqa: F401
 
 # note that moltype has to be imported last, because it sets the moltype in
 # the objects created by the other modules.
-from cogent3.core.new_moltype import (  # noqa: F401
+from cogent3.core.moltype import (  # noqa: F401
     ASCII,
     DNA,
     PROTEIN,

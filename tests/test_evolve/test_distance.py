@@ -1168,14 +1168,14 @@ def test_numba_get_dist(calc, basic_alignment) -> None:
 
 @pytest.mark.parametrize("calc", ["tn93", "paralinear"])
 def test_invalid_moltype_fast_distances(calc, basic_alignment):
-    from cogent3.core import new_moltype
+    from cogent3.core import moltype as c3_moltype
 
     aln = cogent3.make_aligned_seqs(
         basic_alignment.to_dict(),
         moltype="protein",
     )
     calc = pdist_numba.get_distance_calculator(calc)
-    with pytest.raises(new_moltype.MolTypeError):
+    with pytest.raises(c3_moltype.MolTypeError):
         calc(aln, invalid_raises=True)
 
 

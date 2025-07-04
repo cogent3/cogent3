@@ -13,7 +13,7 @@ from cogent3.align.pycompare import (
     find_matched_paths,
     segment,
 )
-from cogent3.core import new_moltype
+from cogent3.core import moltype as c3_moltype
 
 
 def _brute_force(
@@ -384,7 +384,7 @@ def test_find_matched_paths_bytes_moltype(aseq1, aseq2):
     s1 = aseq1.to_moltype("bytes")
     s2 = aseq2.to_moltype("bytes")
     sk = SeqKmers(s1, k=3, canonical=set("ACGT"))
-    with pytest.raises(new_moltype.MolTypeError):
+    with pytest.raises(c3_moltype.MolTypeError):
         find_matched_paths(
             seq_kmers=sk,
             seq1=s1,

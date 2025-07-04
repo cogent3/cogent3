@@ -5,7 +5,7 @@ from numpy import array
 from numpy import random as np_random
 
 import cogent3
-from cogent3.core import new_moltype
+from cogent3.core import moltype as c3_moltype
 
 from .composable import NON_COMPOSABLE, NotCompleted, define_app
 from .translate import get_fourfold_degenerate_sets
@@ -14,7 +14,7 @@ from .typing import AlignedSeqsType, SeqsCollectionType, SerialisableType
 # TODO need a function to filter sequences based on divergence, ala divergent
 # set.
 
-MolTypes = str | new_moltype.MolType
+MolTypes = str | c3_moltype.MolType
 OptInt = int | None
 
 
@@ -980,7 +980,7 @@ class omit_bad_seqs:
         valid_moltypes = {"dna", "rna", "protein", "protein_with_stop"}
         if moltype.label.lower() not in valid_moltypes:
             msg = f"Invalid moltype: {moltype.label!r}. Moltype must be one of {', '.join(valid_moltypes)}"
-            raise new_moltype.MolTypeError(msg)
+            raise c3_moltype.MolTypeError(msg)
 
         # refactor: design, this should raise a MolTypeError
         self._quantile = quantile
