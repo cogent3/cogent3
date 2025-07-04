@@ -8,15 +8,6 @@ Phylogenetic reconstruction by least squares
 
 .. sectionauthor:: Gavin Huttley
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 We will load some pre-computed pairwise distance data. To see how that data was computed see the :ref:`calculating-pairwise-distances` example. That data is saved in a format called ``pickle`` which is native to python. As per usual, we import the basic components we need.
 
 .. recompute the data matrix and then delete file at end

@@ -6,15 +6,6 @@
 Loading unaligned sequence data
 -------------------------------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 We can load unaligned sequence data using the ``load_unaligned`` app, this will return a ``SequenceCollection``. 
 
 Loading unaligned DNA sequences from a single fasta file

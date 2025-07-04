@@ -1,6 +1,6 @@
-﻿cogent3.core.new\_sequence.SeqView
+﻿cogent3.core.sequence.SeqView
 ==================================
 
-.. currentmodule:: cogent3.core.new_sequence
+.. currentmodule:: cogent3.core.sequence
 
 .. autoclass:: SeqView

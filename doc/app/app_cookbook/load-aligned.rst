@@ -6,15 +6,6 @@
 Loading aligned sequence data
 -----------------------------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 We can load aligned sequence data using the ``load_aligned`` app. When making the app, you can optionally provide arguments for the molecular type of the sequence and the format of the data. 
 
 Loading aligned DNA sequences from a single fasta file

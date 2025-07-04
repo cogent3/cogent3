@@ -8,15 +8,6 @@ Likelihood analysis of multiple loci
 
 .. sectionauthor:: Gavin Huttley
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 We want to know whether an exchangeability parameter is different between alignments. We will specify a null model, under which each alignment get's it's own motif probabilities and all alignments share branch lengths and the exchangeability parameter kappa (the transition / transversion ratio). We'll split the example alignment into two-pieces.
 
 .. jupyter-execute::

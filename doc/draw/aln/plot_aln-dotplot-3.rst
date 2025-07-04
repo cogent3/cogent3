@@ -6,15 +6,6 @@
 Assess alignment quality via dotplots
 =====================================
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 The dotplot algorithm within ``cogent3`` offers a powerful tool to visualise the quality of a sequence alignment, as it shows both the matching segments between two sequences and the path chosen by the alignment algorithm. 
 
 Visualising an alignment with poor parameter choices

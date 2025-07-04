@@ -1,15 +1,6 @@
 Removing highly gapped positions
 --------------------------------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 Using the ``omit_gap_pos`` app, we can remove position from an alignment which exceed a specified proportions of gaps. 
 
 Let's create a sample alignment with gaps. 

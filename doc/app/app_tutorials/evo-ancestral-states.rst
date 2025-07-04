@@ -6,15 +6,6 @@
 Reconstructing ancestral states
 -------------------------------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 This app takes a ``model_result`` and returns a ``tabular_result`` consisting of the posterior probabilities of ancestral states for each node of a tree. These probabilities are computed using the marginal reconstruction algorithm.
 
 We first fit a model to the sample data.

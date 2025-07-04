@@ -1,7 +1,7 @@
-:mod:`new_moltype`
+:mod:`moltype`
 ==================
 
-.. currentmodule:: cogent3.core.new_moltype
+.. currentmodule:: cogent3.core.moltype
 
 .. autosummary::
     :toctree: classes

@@ -3,15 +3,6 @@ Simulate an alignment
 
 .. sectionauthor:: Gavin Huttley
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 For this example we just create a simple model using a four taxon tree with different branch lengths and a Felsenstein model.
 
 .. jupyter-execute::

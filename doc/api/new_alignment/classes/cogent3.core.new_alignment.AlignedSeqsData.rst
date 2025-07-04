@@ -1,6 +1,6 @@
-﻿cogent3.core.new\_alignment.AlignedSeqsData
+﻿cogent3.core.alignment.AlignedSeqsData
 ===========================================
 
-.. currentmodule:: cogent3.core.new_alignment
+.. currentmodule:: cogent3.core.alignment
 
 .. autoclass:: AlignedSeqsData

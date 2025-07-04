@@ -1,6 +1,6 @@
-﻿cogent3.core.new\_sequence.DnaSequence
+﻿cogent3.core.sequence.DnaSequence
 ======================================
 
-.. currentmodule:: cogent3.core.new_sequence
+.. currentmodule:: cogent3.core.sequence
 
 .. autoclass:: DnaSequence

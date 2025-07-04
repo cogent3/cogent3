@@ -1,7 +1,7 @@
-:mod:`new_alphabet`
+:mod:`alphabet`
 ===================
 
-.. currentmodule:: cogent3.core.new_alphabet
+.. currentmodule:: cogent3.core.alphabet
 
 .. autosummary::
     :toctree: classes

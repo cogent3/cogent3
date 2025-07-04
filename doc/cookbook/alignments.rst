@@ -3,21 +3,10 @@
 
     import set_working_directory
 
-
 Sequence Collections and Alignments
 -----------------------------------
 
 .. authors, Gavin Huttley, Kristian Rother, Patrick Yannul, Tom Elliott, Jan Kosinski
-
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 
 For loading collections of unaligned or aligned sequences see :ref:`load-seqs`.
 
@@ -202,15 +191,14 @@ Creating an ``Alignment`` object from a ``SequenceCollection``
 
 .. jupyter-execute::
 
-    from cogent3 import load_unaligned_seqs
-    from cogent3.core.alignment import Alignment
+    from cogent3 import load_unaligned_seqs, make_aligned_seqs
 
     seq = load_unaligned_seqs("data/test.paml", moltype="dna")
     seq
 
 .. jupyter-execute::
 
-    aln = Alignment(seq.seqs)
+    aln = make_aligned_seqs(list(seq.seqs), moltype=seqs.moltype)
     aln
 
 Convert alignment to DNA, RNA or PROTEIN moltypes

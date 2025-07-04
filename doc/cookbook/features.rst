@@ -8,15 +8,6 @@
 Features
 --------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 This guide provides instructions on creating, querying, and utilising features to manipulate biological sequence data.
 
 .. note:: The ``new_type`` Alignment class directly supports annotations, and more efficient alignment operations. Try it with ``load_aligned_seqs(..., new_type=True)`` or ``make_aligned_seqs(..., new_type=True)``.
