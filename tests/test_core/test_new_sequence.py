@@ -9,8 +9,9 @@ import pytest
 
 import cogent3
 from cogent3._version import __version__
+from cogent3.core import alphabet as c3_alphabet
 from cogent3.core import annotation_db as anndb_module
-from cogent3.core import new_alphabet, new_genetic_code, new_moltype
+from cogent3.core import new_genetic_code, new_moltype
 from cogent3.core import sequence as c3_sequence
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.misc import get_object_provenance
@@ -204,7 +205,7 @@ def test_add():
 def test_add_bad():
     mt = new_moltype.DNA
     seq1 = mt.make_seq(seq="AAA")
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         _ = seq1 + "s8d3j%31 s-']"
 
 
@@ -2506,7 +2507,7 @@ def test_has_terminal_stop_false(gc, seq):
 def test_has_terminal_stop_strict():
     gc = new_genetic_code.get_code(1)
     seq = new_moltype.DNA.make_seq(seq="TCCAG")
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         seq.has_terminal_stop(gc=gc, strict=True)
 
 
@@ -2551,7 +2552,7 @@ def test_trim_terminal_stop_false(gc, seq):
 def test_trim_terminal_stop_strict():
     gc = new_genetic_code.get_code(1)
     seq = new_moltype.DNA.make_seq(seq="TCCAG")
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         seq.trim_stop_codon(gc=gc, strict=True)
 
 
@@ -2986,7 +2987,7 @@ def aa_moltype(DATA_DIR, tmp_path):
 
 
 def test_load_invalid_moltype(aa_moltype):
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         cogent3.load_seq(aa_moltype, moltype="dna")
 
 
@@ -3010,7 +3011,7 @@ def test_make_seq_compatible_alpha(seqview, alpha):
 
 
 def test_make_seq_general_alpha_incompatible(seqview):
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         alpha, seqview.alphabet = (
             seqview.alphabet,
             new_moltype.PROTEIN.degen_gapped_alphabet,
@@ -3025,7 +3026,7 @@ def test_make_seq_wrong_order_alpha():
         alphabet=new_moltype.DNA.gapped_alphabet,
         seqid="seq1",
     )
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         c3_sequence._coerce_to_seqview(sv, sv.seqid, new_moltype.DNA.degen_alphabet, 0)
 
 
@@ -3044,7 +3045,7 @@ def test_make_seq_from_types(raw_seq):
 )
 def test_make_seq_invalid(raw_seq):
     # seq only valid if all upper case
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         new_moltype.DNA.make_seq(seq=raw_seq)
 
 
@@ -3074,7 +3075,7 @@ def test_sample_motif_length_1():
     assert got != seq
     # following will fail if motif length is 1 due
     # to random creation of stop codons
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         got.get_translation()
 
 

@@ -26,7 +26,9 @@ import typing_extensions
 import cogent3
 from cogent3._version import __version__
 from cogent3.core import (
-    new_alphabet,
+    alphabet as c3_alphabet,
+)
+from cogent3.core import (
     new_genetic_code,
     new_moltype,
 )
@@ -282,7 +284,7 @@ class SeqsDataABC(ABC):
         self,
         *,
         data: dict[str, StrORBytesORArray],
-        alphabet: new_alphabet.AlphabetABC,
+        alphabet: c3_alphabet.AlphabetABC,
         offset: dict[str, int] | None = None,
         check: bool = True,
         reversed_seqs: set[str] | None = None,
@@ -294,7 +296,7 @@ class SeqsDataABC(ABC):
         cls,
         *,
         data: dict[str, StrORBytesORArray],
-        alphabet: new_alphabet.AlphabetABC,
+        alphabet: c3_alphabet.AlphabetABC,
         **kwargs,
     ): ...
 
@@ -317,7 +319,7 @@ class SeqsDataABC(ABC):
 
     @property
     @abstractmethod
-    def alphabet(self) -> new_alphabet.CharAlphabet: ...
+    def alphabet(self) -> c3_alphabet.CharAlphabet: ...
 
     @property
     @abstractmethod
@@ -354,7 +356,7 @@ class SeqsDataABC(ABC):
     def get_view(self, seqid: str) -> c3_sequence.SeqViewABC: ...
 
     @abstractmethod
-    def to_alphabet(self, alphabet: new_alphabet.AlphabetABC) -> SeqsDataABC: ...
+    def to_alphabet(self, alphabet: c3_alphabet.AlphabetABC) -> SeqsDataABC: ...
 
     @abstractmethod
     def add_seqs(self, seqs, **kwargs) -> SeqsDataABC: ...
@@ -391,7 +393,7 @@ class SeqsData(SeqsDataABC):
         self,
         *,
         data: dict[str, StrORBytesORArray],
-        alphabet: new_alphabet.CharAlphabet,
+        alphabet: c3_alphabet.CharAlphabet,
         offset: dict[str, int] | None = None,
         check: bool = True,
         reversed_seqs: set[str] | None = None,
@@ -414,7 +416,7 @@ class SeqsData(SeqsDataABC):
 
         Raises
         ------
-        new_alphabet.AlphabetError if the check fails
+        c3_alphabet.AlphabetError if the check fails
         """
         self._alphabet = alphabet
         self._offset = offset or {}
@@ -425,7 +427,7 @@ class SeqsData(SeqsDataABC):
             )
             if any(not alphabet.is_valid(seq) for seq in data.values()):
                 msg = f"One or more sequences are invalid for alphabet {alphabet}"
-                raise new_alphabet.AlphabetError(
+                raise c3_alphabet.AlphabetError(
                     msg,
                 )
         self._data: dict[str, numpy.ndarray] = {}
@@ -459,7 +461,7 @@ class SeqsData(SeqsDataABC):
         cls,
         *,
         data: dict[str, StrORBytesORArray],
-        alphabet: new_alphabet.AlphabetABC,
+        alphabet: c3_alphabet.AlphabetABC,
         **kwargs,
     ):
         return cls(data=data, alphabet=alphabet, **kwargs)
@@ -475,7 +477,7 @@ class SeqsData(SeqsDataABC):
         return self._reversed
 
     @property
-    def alphabet(self) -> new_alphabet.CharAlphabet:
+    def alphabet(self) -> c3_alphabet.CharAlphabet:
         """the character alphabet for validating, encoding, decoding sequences"""
         return self._alphabet
 
@@ -568,7 +570,7 @@ class SeqsData(SeqsDataABC):
 
     def to_alphabet(
         self,
-        alphabet: new_alphabet.AlphabetABC,
+        alphabet: c3_alphabet.AlphabetABC,
         check_valid: bool = True,
     ) -> SeqsData:
         if (
@@ -598,7 +600,7 @@ class SeqsData(SeqsDataABC):
                     f"Changing from old alphabet={self.alphabet} to new "
                     f"{alphabet=} is not valid for this data"
                 )
-                raise new_alphabet.AlphabetError(msg)
+                raise c3_alphabet.AlphabetError(msg)
             new_data[seqid] = as_new_alpha
 
         return self.copy(
@@ -1813,7 +1815,7 @@ class SequenceCollection(AnnotatableMixin):
 
     def get_motif_probs(
         self,
-        alphabet: new_alphabet.AlphabetABC = None,
+        alphabet: c3_alphabet.AlphabetABC = None,
         include_ambiguity: bool = False,
         exclude_unobserved: bool = False,
         allow_gap: bool = False,
@@ -2967,7 +2969,7 @@ def _(
 def decompose_gapped_seq(
     seq: typing.union[StrORBytesORArray, c3_sequence.Sequence],
     *,
-    alphabet: new_alphabet.AlphabetABC,
+    alphabet: c3_alphabet.AlphabetABC,
     missing_as_gap: bool = True,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
     """
@@ -2984,7 +2986,7 @@ def decompose_gapped_seq(
 def _(
     seq: numpy.ndarray,
     *,
-    alphabet: new_alphabet.AlphabetABC,
+    alphabet: c3_alphabet.AlphabetABC,
     missing_as_gap: bool = True,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
     if missing_as_gap and alphabet.missing_index:
@@ -3002,12 +3004,12 @@ def _(
 def _(
     seq: str,
     *,
-    alphabet: new_alphabet.AlphabetABC,
+    alphabet: c3_alphabet.AlphabetABC,
     missing_as_gap: bool = True,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
     if not alphabet.is_valid(seq):
         msg = f"Sequence is invalid for alphabet {alphabet}"
-        raise new_alphabet.AlphabetError(msg)
+        raise c3_alphabet.AlphabetError(msg)
 
     return decompose_gapped_seq(
         alphabet.to_indices(seq),
@@ -3020,7 +3022,7 @@ def _(
 def _(
     seq: bytes,
     *,
-    alphabet: new_alphabet.AlphabetABC,
+    alphabet: c3_alphabet.AlphabetABC,
     missing_as_gap: bool = True,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
     return decompose_gapped_seq(
@@ -3034,7 +3036,7 @@ def _(
 def _(
     seq: c3_sequence.Sequence,
     *,
-    alphabet: new_alphabet.AlphabetABC,
+    alphabet: c3_alphabet.AlphabetABC,
     missing_as_gap: bool = True,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
     return decompose_gapped_seq(
@@ -3414,7 +3416,7 @@ class AlignedSeqsDataABC(SeqsDataABC):
         *,
         seqs: dict[str, StrORBytesORArray],
         gaps: dict[str, numpy.ndarray],
-        alphabet: new_alphabet.AlphabetABC,
+        alphabet: c3_alphabet.AlphabetABC,
     ) -> typing_extensions.Self: ...
 
     @abstractmethod
@@ -3423,7 +3425,7 @@ class AlignedSeqsDataABC(SeqsDataABC):
         *,
         gapped_seqs: numpy.ndarray,
         names: tuple[str],
-        alphabet: new_alphabet.AlphabetABC,
+        alphabet: c3_alphabet.AlphabetABC,
         ungapped_seqs: dict[str, numpy.ndarray] | None = None,
         gaps: dict[str, numpy.ndarray] | None = None,
         offset: DictStrInt | None = None,
@@ -3449,7 +3451,7 @@ class AlignedSeqsDataABC(SeqsDataABC):
         *,
         names: list[str],
         data: numpy.ndarray,
-        alphabet: new_alphabet.AlphabetABC,
+        alphabet: c3_alphabet.AlphabetABC,
     ) -> typing_extensions.Self: ...
 
     @property
@@ -3616,7 +3618,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         *,
         gapped_seqs: numpy.ndarray,
         names: tuple[str],
-        alphabet: new_alphabet.CharAlphabet,
+        alphabet: c3_alphabet.CharAlphabet,
         ungapped_seqs: dict[str, numpy.ndarray] | None = None,
         gaps: dict[str, numpy.ndarray] | None = None,
         offset: DictStrInt | None = None,
@@ -3706,7 +3708,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         cls,
         *,
         data: dict[str, StrORArray],
-        alphabet: new_alphabet.AlphabetABC,
+        alphabet: c3_alphabet.AlphabetABC,
         **kwargs,
     ) -> typing_extensions.Self:
         """Construct an AlignedSeqsData object from a dict of aligned sequences
@@ -3731,7 +3733,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             array_seqs[i] = alphabet.to_indices(data[name])
             if not alphabet.is_valid(data[name]):
                 msg = f"Sequence {name} contains invalid characters."
-                raise new_alphabet.AlphabetError(
+                raise c3_alphabet.AlphabetError(
                     msg,
                 )
 
@@ -3751,7 +3753,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         *,
         seqs: dict[str, StrORBytesORArray],
         gaps: dict[str, numpy.ndarray],
-        alphabet: new_alphabet.AlphabetABC,
+        alphabet: c3_alphabet.AlphabetABC,
         **kwargs,
     ) -> typing_extensions.Self:
         """Construct an AlignedSeqsData object from a dict of ungapped sequences
@@ -3802,7 +3804,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         *,
         names: PySeq[str],
         data: numpy.ndarray,
-        alphabet: new_alphabet.AlphabetABC,
+        alphabet: c3_alphabet.AlphabetABC,
     ) -> typing_extensions.Self:
         """Construct an AlignedSeqsData object from a list of names and a numpy
         array of aligned sequence data.
@@ -3839,7 +3841,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         return self._reversed
 
     @property
-    def alphabet(self) -> new_alphabet.CharAlphabet:
+    def alphabet(self) -> c3_alphabet.CharAlphabet:
         """the character alphabet for validating, encoding, decoding sequences"""
         return self._alphabet
 
@@ -4108,7 +4110,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             seq = self.alphabet.to_indices(seq)
             if not self.alphabet.is_valid(seq):
                 msg = f"Sequence {name!r} contains invalid characters."
-                raise new_alphabet.AlphabetError(
+                raise c3_alphabet.AlphabetError(
                     msg,
                 )
             seq.flags.writeable = False
@@ -4129,7 +4131,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
 
     def to_alphabet(
         self,
-        alphabet: new_alphabet.AlphabetABC,
+        alphabet: c3_alphabet.AlphabetABC,
         check_valid: bool = True,
     ) -> typing_extensions.Self:
         """Returns a new AlignedSeqsData object with the same underlying data
@@ -4171,7 +4173,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
                     f"Changing from old alphabet={self.alphabet} to new "
                     f"{alphabet=} is not valid for this data"
                 )
-                raise new_alphabet.AlphabetError(msg)
+                raise c3_alphabet.AlphabetError(msg)
             gapped[i] = as_new_alpha
 
         return self.__class__(
@@ -4280,7 +4282,7 @@ class AlignedDataView(c3_sequence.SeqViewABC):
         *,
         parent: AlignedSeqsDataABC,
         seqid: str,
-        alphabet: new_alphabet.AlphabetABC,
+        alphabet: c3_alphabet.AlphabetABC,
         slice_record: OptSliceRecord = None,
     ) -> None:
         self.parent = parent

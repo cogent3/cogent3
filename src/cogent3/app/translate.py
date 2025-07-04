@@ -2,7 +2,8 @@ from collections import defaultdict
 from typing import Union
 
 import cogent3
-from cogent3.core import new_alphabet, new_genetic_code, new_moltype
+from cogent3.core import alphabet as c3_alphabet
+from cogent3.core import new_genetic_code, new_moltype
 
 from .composable import NotCompleted, define_app
 from .data_store import get_data_source
@@ -10,7 +11,7 @@ from .typing import SeqsCollectionType, SeqType, SerialisableType
 
 GeneticCodeTypes = str | int | new_genetic_code.GeneticCode
 MolTypes = str | new_moltype.MolType
-AlphabetTypes = new_alphabet.CharAlphabet
+AlphabetTypes = c3_alphabet.CharAlphabet
 
 
 def best_frame(

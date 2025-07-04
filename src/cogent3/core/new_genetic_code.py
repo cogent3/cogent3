@@ -18,7 +18,8 @@ import typing
 
 import numpy
 
-from cogent3.core import new_alphabet, new_moltype
+from cogent3.core import alphabet as c3_alphabet
+from cogent3.core import new_moltype
 from cogent3.core.table import Table
 from cogent3.util import warning as c3warn
 
@@ -46,7 +47,7 @@ class InvalidCodonError(KeyError, GeneticCodeError):
 
 
 def _make_mappings(
-    codons: new_alphabet.KmerAlphabet,
+    codons: c3_alphabet.KmerAlphabet,
     code_sequence: str,
 ) -> tuple[dict[str, str], dict[str, SetStr], tuple[str, ...]]:
     """makes amino acid / codon mappings and stop codon group
@@ -78,7 +79,7 @@ def _get_start_codon_indices(start_codon_map: str) -> tuple[int, ...]:
 
 
 def _make_converter(
-    kmer_alpha: new_alphabet.KmerAlphabet,
+    kmer_alpha: c3_alphabet.KmerAlphabet,
     codons: tuple[str, ...],
     code_sequence: str,
 ) -> typing.Callable[[bytes, bytes], bytes]:
@@ -103,7 +104,7 @@ def _make_converter(
         [kmer_alpha.to_index(codon) for codon in codons],
         dtype=numpy.uint8,
     )
-    return new_alphabet.convert_alphabet(kmers.tobytes(), code_sequence.encode("utf8"))
+    return c3_alphabet.convert_alphabet(kmers.tobytes(), code_sequence.encode("utf8"))
 
 
 @dataclasses.dataclass
@@ -129,7 +130,7 @@ class GeneticCode:
     _sense_codons: tuple[str, ...] = dataclasses.field(init=False)
     _stop_codons: tuple[str, ...] = dataclasses.field(init=False)
     _start_codons: tuple[str, ...] = dataclasses.field(init=False)
-    codons: new_alphabet.KmerAlphabet = dataclasses.field(init=False)
+    codons: c3_alphabet.KmerAlphabet = dataclasses.field(init=False)
     anticodons: tuple[str, ...] = dataclasses.field(init=False)
     # callables for translating on the plus strand, or the minus strand
     _translate_plus: ConverterType = dataclasses.field(init=False)
@@ -317,7 +318,7 @@ class GeneticCode:
         include_gap: bool = False,
         include_missing: bool = False,
         include_stop: bool = False,
-    ) -> new_alphabet.SenseCodonAlphabet:
+    ) -> c3_alphabet.SenseCodonAlphabet:
         """returns a codon alphabet
 
         Parameters
@@ -382,8 +383,8 @@ def _get_code_alphabet(
     missing_char: str | None,
     include_gap: bool,
     include_missing: bool,
-    monomers: new_alphabet.CharAlphabet,
-) -> new_alphabet.SenseCodonAlphabet:
+    monomers: c3_alphabet.CharAlphabet,
+) -> c3_alphabet.SenseCodonAlphabet:
     gap = gap_char * 3 if include_gap else None
     missing = missing_char * 3 if include_missing else None
     if include_gap:
@@ -392,7 +393,7 @@ def _get_code_alphabet(
     if include_missing:
         words += (missing,)
 
-    return new_alphabet.SenseCodonAlphabet(
+    return c3_alphabet.SenseCodonAlphabet(
         words=words,
         monomers=monomers,
         gap=gap,

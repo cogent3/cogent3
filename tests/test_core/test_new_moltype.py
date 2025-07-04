@@ -2,7 +2,9 @@ import numpy
 import pytest
 
 from cogent3.core import (
-    new_alphabet,
+    alphabet as c3_alphabet,
+)
+from cogent3.core import (
     new_genetic_code,
     new_moltype,
 )
@@ -12,7 +14,7 @@ from cogent3.core import (
 
 
 def test_is_compatible_alphabet():
-    from cogent3.core.new_alphabet import CharAlphabet
+    from cogent3.core.alphabet import CharAlphabet
 
     dna = new_moltype.get_moltype("dna")
     alpha = CharAlphabet("TCAG")
@@ -225,9 +227,9 @@ def test_resolve_ambiguity_codons():
     assert len(new_moltype.DNA.resolve_ambiguity("AT?", alphabet=codon_alpha)) == 4
     assert len(new_moltype.DNA.resolve_ambiguity("???", alphabet=codon_alpha)) == 61
 
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         new_moltype.DNA.resolve_ambiguity("at-")
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         new_moltype.DNA.resolve_ambiguity("---", alphabet=codon_alpha)
 
 
@@ -362,7 +364,7 @@ def test_validate_seq():
 
 
 def test_degap_raises():
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         new_moltype.RNA.degap("-g?a-u?g-", validate=True)
 
 

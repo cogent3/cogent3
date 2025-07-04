@@ -4,8 +4,8 @@ Data in from the European rRNA database in distribution format.
 """
 
 import cogent3
+from cogent3.core.alphabet import AlphabetError
 from cogent3.core.info import Info
-from cogent3.core.new_alphabet import AlphabetError
 from cogent3.parse.record import RecordError
 from cogent3.parse.record_finder import DelimitedRecordFinder
 from cogent3.util import warning as c3warn

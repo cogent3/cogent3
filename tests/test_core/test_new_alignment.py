@@ -16,7 +16,8 @@ from cogent3 import (
 )
 from cogent3._version import __version__
 from cogent3.core import alignment as c3_alignment
-from cogent3.core import new_alphabet, new_moltype
+from cogent3.core import alphabet as c3_alphabet
+from cogent3.core import new_moltype
 from cogent3.core import sequence as c3_sequence
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import GffAnnotationDb, load_annotations
@@ -201,13 +202,13 @@ def test_seqs_data_construction(str_seqs_dict, dna_alphabet):
 
 def test_seqs_data_construction_wrong_alphabet(str_seqs_dict, rna_alphabet):
     """SeqsData should raise ValueError if alphabet is incompatible with data"""
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         _ = c3_alignment.SeqsData(data=str_seqs_dict, alphabet=rna_alphabet)
 
 
 def test_seqs_data_default_attributes(dna_sd: c3_alignment.SeqsData):
     assert dna_sd.names == ("seq1", "seq2", "seq3")
-    assert isinstance(dna_sd.alphabet, new_alphabet.CharAlphabet)
+    assert isinstance(dna_sd.alphabet, c3_alphabet.CharAlphabet)
 
 
 @pytest.mark.parametrize("seqid", ["seq1", "seq2"])
@@ -360,7 +361,7 @@ def test_seqs_data_to_alphabet_invalid():
         data={"a": "AAA", "b": "TTT", "c": "LLL"},
         alphabet=ASCII,
     )
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         _ = seqs.to_alphabet(DNA)
 
 
@@ -724,7 +725,7 @@ def test_make_seqs_offset(mk_cls, data_cls, seq, dna_alphabet):
 )
 def test_make_seqs_invalid_chars(mk_cls):
     data = {"seq1": "AGT1CCT", "seq2": "AGT$CCC"}
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         mk_cls(data, moltype="dna")
 
 
@@ -1389,7 +1390,7 @@ def test_sequence_collection_has_terminal_stop_false(gc, seqs, mk_cls):
 def test_sequence_collection_has_terminal_stop_strict(mk_cls):
     data = {f"s{i}": s for i, s in enumerate(("CCTCA", "ATTTT"))}
     seq_coll = mk_cls(data, moltype="dna")
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         seq_coll.has_terminal_stop(gc=1, strict=True)
 
 
@@ -1418,7 +1419,7 @@ def test_get_translation_ambigs(mk_cls, seq):
     seqs = mk_cls(data, moltype="dna")
     got = seqs.get_translation(incomplete_ok=True)
     assert str(got.seqs["s1"]) == expect
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         # ambiguity codes raise an exception unless explicitly allowed
         _ = seqs.get_translation(incomplete_ok=False)
 
@@ -1535,7 +1536,7 @@ def test_get_translation_incomplete(mk_cls):
     seqs = mk_cls(data, moltype="dna")
     got = seqs.get_translation(incomplete_ok=True)
     assert got.to_dict() == {"seq1": "DX", "seq2": "XS"}
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         _ = seqs.get_translation(incomplete_ok=False)
 
 
@@ -1593,7 +1594,7 @@ def test_trim_stop_codons_no_stop(gc, seqs, mk_cls):
 )
 def test_trim_stop_codons_strict(data, mk_cls):
     seqs = mk_cls(data, moltype="dna")
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         seqs.trim_stop_codons(gc=1, strict=True)
 
 
@@ -2225,7 +2226,7 @@ def test_to_dna():
     assert dna.moltype.label == "dna"
     # should fail if invalid character set
     paln = dna.get_translation()
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         _ = paln.to_dna()
 
 
@@ -3502,7 +3503,7 @@ def test_aligned_seqs_data_add_seqs_diff_moltype_raises(dna_alphabet):
     data = {"seq1": "ACGT-", "seq2": "ACG-T"}  # DNA
     ad = c3_alignment.AlignedSeqsData.from_seqs(data=data, alphabet=dna_alphabet)
     new_data = {"seq3": "ACGU-", "seq4": "ACG-U"}  # RNA
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         _ = ad.add_seqs(new_data)
 
 

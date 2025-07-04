@@ -930,7 +930,7 @@ def test_deserialise_old_to_new_type_moltype():
     "motifset", ["TCAG", "TCAGNRYWSKMBDHV", "TCAG-", "TCAG-NRYWSKMBDHV?"]
 )
 def test_deserialise_old_to_new_charalphabet(motifset):
-    from cogent3.core import new_alphabet
+    from cogent3.core import alphabet as c3_alphabet
 
     old_rich_dict = {
         "motifset": list(motifset),
@@ -940,12 +940,12 @@ def test_deserialise_old_to_new_charalphabet(motifset):
         "version": "2025.5.8a9",
     }
     got = deserialise_object(old_rich_dict)
-    assert isinstance(got, new_alphabet.CharAlphabet)
+    assert isinstance(got, c3_alphabet.CharAlphabet)
 
 
-def test_deserialise_old_to_new_alphabet():
+def test_deserialise_old_to_c3_alphabet():
     # this is special to BH
-    from cogent3.core import new_alphabet
+    from cogent3.core import alphabet as c3_alphabet
 
     old_rich_dict = {
         "motifset": ("T", "C", "A", "G"),
@@ -955,11 +955,11 @@ def test_deserialise_old_to_new_alphabet():
         "version": "2025.5.8a9",
     }
     got = deserialise_object(old_rich_dict)
-    assert isinstance(got, new_alphabet.CharAlphabet)
+    assert isinstance(got, c3_alphabet.CharAlphabet)
 
 
 def test_deserialise_old_to_new_type_kmer_alphabet():
-    from cogent3.core import new_alphabet
+    from cogent3.core import alphabet as c3_alphabet
 
     old_rich_dict = {
         "data": ["TCAG", "TCAG"],
@@ -969,12 +969,12 @@ def test_deserialise_old_to_new_type_kmer_alphabet():
         "version": "2025.5.8a9",
     }
     got = deserialise_object(old_rich_dict)
-    assert isinstance(got, new_alphabet.KmerAlphabet)
+    assert isinstance(got, c3_alphabet.KmerAlphabet)
     assert len(got) == 16
 
 
 def test_deserialise_old_to_new_type_codon_alphabet():
-    from cogent3.core import new_alphabet
+    from cogent3.core import alphabet as c3_alphabet
 
     old_rich_dict = {
         "motifset": (
@@ -1046,7 +1046,7 @@ def test_deserialise_old_to_new_type_codon_alphabet():
         "version": "2025.5.8a9",
     }
     alpha = deserialise_object(old_rich_dict)
-    assert isinstance(alpha, new_alphabet.SenseCodonAlphabet)
+    assert isinstance(alpha, c3_alphabet.SenseCodonAlphabet)
 
 
 def test_deserialise_old_to_new_type_submodel():

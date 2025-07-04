@@ -23,7 +23,8 @@ import typing_extensions
 from numpy import array
 
 from cogent3._version import __version__
-from cogent3.core import new_alphabet, new_genetic_code, new_moltype
+from cogent3.core import alphabet as c3_alphabet
+from cogent3.core import new_genetic_code, new_moltype
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
     AnnotatableMixin,
@@ -924,7 +925,7 @@ class Sequence(AnnotatableMixin):
             msg = (
                 f"Invalid sequence characters in other for moltype={self.moltype.label}"
             )
-            raise new_alphabet.AlphabetError(
+            raise c3_alphabet.AlphabetError(
                 msg,
             )
 
@@ -2007,7 +2008,7 @@ class NucleicAcidSequenceMixin:
 
         if strict:
             msg = f"{self.name!r} length not divisible by 3"
-            raise new_alphabet.AlphabetError(msg)
+            raise c3_alphabet.AlphabetError(msg)
 
         return False
 
@@ -2125,14 +2126,14 @@ class NucleicAcidSequenceMixin:
 
         if not include_stop and "*" in pep:
             msg = f"{self.name!r} has a stop codon in the translation"
-            raise new_alphabet.AlphabetError(msg)
+            raise c3_alphabet.AlphabetError(msg)
 
         if not incomplete_ok and "X" in pep:
             msg = (
                 f"{self.name!r} has an incomplete codon or contains an ambiguity, set incomplete_ok=True to "
                 "allow translation"
             )
-            raise new_alphabet.AlphabetError(
+            raise c3_alphabet.AlphabetError(
                 msg,
             )
         return protein.make_seq(seq=pep, name=self.name)
@@ -2867,7 +2868,7 @@ class SeqView(SeqViewABC):
         self,
         *,
         parent: StrORBytesORArray,
-        alphabet: new_alphabet.CharAlphabet,
+        alphabet: c3_alphabet.CharAlphabet,
         parent_len: int,
         seqid: OptStr = None,
         slice_record: SliceRecordABC = None,
@@ -3009,7 +3010,7 @@ class SeqView(SeqViewABC):
 def _coerce_to_seqview(
     data,
     seqid: str,
-    alphabet: new_alphabet.CharAlphabet,
+    alphabet: c3_alphabet.CharAlphabet,
     offset: int,
 ) -> SeqViewABC:
     from cogent3.core.alignment import Aligned
@@ -3024,7 +3025,7 @@ def _coerce_to_seqview(
 def _(
     data: SeqViewABC,
     seqid: str,
-    alphabet: new_alphabet.CharAlphabet,
+    alphabet: c3_alphabet.CharAlphabet,
     offset: int,
 ) -> SeqViewABC:
     # we require the indexes of shared states in alphabets to be the same
@@ -3035,7 +3036,7 @@ def _(
         n = min(len(data.alphabet), len(alphabet))
         if data.alphabet[:n] != alphabet[:n]:
             msg = f"element order {data.alphabet=} != to that in {alphabet=} for {data=!r}"
-            raise new_alphabet.AlphabetError(
+            raise c3_alphabet.AlphabetError(
                 msg,
             )
 
@@ -3053,7 +3054,7 @@ def _(
 def _(
     data: Sequence,
     seqid: str,
-    alphabet: new_alphabet.CharAlphabet,
+    alphabet: c3_alphabet.CharAlphabet,
     offset: int,
 ) -> SeqViewABC:
     return _coerce_to_seqview(data._seq, seqid, alphabet, offset)
@@ -3063,7 +3064,7 @@ def _(
 def _(
     data: str,
     seqid: str,
-    alphabet: new_alphabet.CharAlphabet,
+    alphabet: c3_alphabet.CharAlphabet,
     offset: int,
 ) -> SeqViewABC:
     return SeqView(
@@ -3079,7 +3080,7 @@ def _(
 def _(
     data: bytes,
     seqid: str,
-    alphabet: new_alphabet.CharAlphabet,
+    alphabet: c3_alphabet.CharAlphabet,
     offset: int,
 ) -> SeqViewABC:
     data = data.decode("utf8")
@@ -3096,7 +3097,7 @@ def _(
 def _(
     data: numpy.ndarray,
     seqid: str,
-    alphabet: new_alphabet.AlphabetABC,
+    alphabet: c3_alphabet.AlphabetABC,
     offset: int,
 ) -> SeqViewABC:
     return SeqView(
@@ -3112,7 +3113,7 @@ def _(
 def _(
     data: tuple,
     seqid: str,
-    alphabet: new_alphabet.AlphabetABC,
+    alphabet: c3_alphabet.AlphabetABC,
     offset: int,
 ) -> SeqViewABC:
     return _coerce_to_seqview("".join(data), seqid, alphabet, offset)
@@ -3122,7 +3123,7 @@ def _(
 def _(
     data: list,
     seqid: str,
-    alphabet: new_alphabet.AlphabetABC,
+    alphabet: c3_alphabet.AlphabetABC,
     offset: int,
 ) -> SeqViewABC:
     return _coerce_to_seqview("".join(data), seqid, alphabet, offset)

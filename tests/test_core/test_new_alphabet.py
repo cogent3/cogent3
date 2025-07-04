@@ -4,7 +4,8 @@ import numpy
 import pytest
 from numpy.testing import assert_allclose
 
-from cogent3.core import new_alphabet, new_genetic_code, new_moltype
+from cogent3.core import alphabet as c3_alphabet
+from cogent3.core import new_genetic_code, new_moltype
 
 
 @pytest.mark.parametrize(
@@ -17,22 +18,22 @@ from cogent3.core import new_alphabet, new_genetic_code, new_moltype
     ],
 )
 def test_get_array_type(num, expect):
-    assert new_alphabet.get_array_type(num) is expect
+    assert c3_alphabet.get_array_type(num) is expect
 
 
 def test_get_array_type_invalid():
     with pytest.raises(NotImplementedError):
-        new_alphabet.get_array_type(2**64 + 1)
+        c3_alphabet.get_array_type(2**64 + 1)
 
 
 def test_make_char_alphabet():
-    alpha = new_alphabet.CharAlphabet(list("TCAG"))
+    alpha = c3_alphabet.CharAlphabet(list("TCAG"))
     assert len(alpha) == 4
 
 
 def test_convert_alphabet_mixed_length():
     with pytest.raises(ValueError):
-        new_alphabet.convert_alphabet(src="ACG", dest="TGCA")
+        c3_alphabet.convert_alphabet(src="ACG", dest="TGCA")
 
 
 @pytest.mark.parametrize(
@@ -59,24 +60,24 @@ def test_to_bytes_bytes():
 @pytest.mark.parametrize("words", ["AACG", ["A", "CG"], ["CC", "AA"], "", (), []])
 def test_invalid_words(words):
     with pytest.raises(ValueError):
-        new_alphabet.consistent_words(words, length=1)
+        c3_alphabet.consistent_words(words, length=1)
 
 
 def test_bytes2arr():
-    b2a = new_alphabet.bytes_to_array(b"TCAG", dtype=numpy.uint8)
+    b2a = c3_alphabet.bytes_to_array(b"TCAG", dtype=numpy.uint8)
     got = b2a(b"AAGTA")
     assert (got == numpy.array([2, 2, 3, 0, 2], dtype=numpy.uint8)).all()
 
 
 def test_arr2bytes():
-    a2b = new_alphabet.array_to_bytes(b"TCAG")
+    a2b = c3_alphabet.array_to_bytes(b"TCAG")
     got = a2b(numpy.array([2, 2, 3, 0, 2], dtype=numpy.uint8))
     assert got == b"AAGTA"
 
 
 def test_charalphabet_missing_error():
     with pytest.raises(ValueError):
-        new_alphabet.CharAlphabet(list("TCAG"), missing=".")
+        c3_alphabet.CharAlphabet(list("TCAG"), missing=".")
 
 
 @pytest.mark.parametrize(
@@ -84,7 +85,7 @@ def test_charalphabet_missing_error():
     [b"AAGTA", "AAGTA", numpy.array([2, 2, 3, 0, 2], dtype=numpy.uint8)],
 )
 def test_charalphabet_to_indices(seq):
-    alpha = new_alphabet.CharAlphabet(list("TCAG"))
+    alpha = c3_alphabet.CharAlphabet(list("TCAG"))
     got = alpha.to_indices(seq)
     assert (got == numpy.array([2, 2, 3, 0, 2], dtype=numpy.uint8)).all()
 
@@ -94,60 +95,60 @@ def test_charalphabet_to_indices_non_canonical(gap):
     # non-canonical characters should be beyond limit of
     # canonical
     canonical = list(f"TCAG{gap}")
-    alpha = new_alphabet.CharAlphabet(canonical, gap=gap or None)
+    alpha = c3_alphabet.CharAlphabet(canonical, gap=gap or None)
     got = alpha.to_indices("ACNGT")
     assert got.max() >= len(canonical)
 
 
 def test_charalphabet_to_indices_invalid():
-    alpha = new_alphabet.CharAlphabet(list("TCAG"))
+    alpha = c3_alphabet.CharAlphabet(list("TCAG"))
     with pytest.raises(TypeError):
         _ = alpha.to_indices(list("TCAG"))
 
 
 def test_charalphabet_from_indices():
-    alpha = new_alphabet.CharAlphabet(list("TCAG"))
+    alpha = c3_alphabet.CharAlphabet(list("TCAG"))
     got = alpha.from_indices(numpy.array([2, 2, 3, 0, 2], dtype=numpy.uint8))
     assert got == "AAGTA"
 
 
 def test_charalphabet_from_indices_invalid():
-    alpha = new_alphabet.CharAlphabet(list("TCAG"))
+    alpha = c3_alphabet.CharAlphabet(list("TCAG"))
     with pytest.raises(TypeError):
         _ = alpha.from_indices([0, 1])
 
 
 def test_convert_alphabet():
-    complement = new_alphabet.convert_alphabet(b"ACGT", b"TGCA")
+    complement = c3_alphabet.convert_alphabet(b"ACGT", b"TGCA")
     seq = b"AAGG"
     assert complement(seq) == b"TTCC"
 
 
 def test_convert_alphabet_with_delete():
-    complement = new_alphabet.convert_alphabet(b"ACGT", b"TGCA", delete=b"-")
+    complement = c3_alphabet.convert_alphabet(b"ACGT", b"TGCA", delete=b"-")
     seq = b"AAG--G"
     assert complement(seq) == b"TTCC"
 
 
 def test_charalphabet_with_gap():
-    alpha = new_alphabet.CharAlphabet(list("TCAG-"), gap="-")
+    alpha = c3_alphabet.CharAlphabet(list("TCAG-"), gap="-")
     got = alpha.from_indices(numpy.array([2, 2, 3, 0, 2], dtype=numpy.uint8))
     assert got == "AAGTA"
 
 
 def test_charalphabet_with_gap_missing():
     with pytest.raises(AssertionError):
-        _ = new_alphabet.CharAlphabet(list("TCAG"), gap="-")
+        _ = c3_alphabet.CharAlphabet(list("TCAG"), gap="-")
 
 
 def test_charalphabet_motif_len():
-    alpha = new_alphabet.CharAlphabet(list("TCAG"))
+    alpha = c3_alphabet.CharAlphabet(list("TCAG"))
     assert alpha.motif_len == 1
 
 
 @pytest.mark.parametrize("seq", ["ACGT", numpy.array([2, 1, 3, 0], dtype=numpy.uint8)])
 def test_is_valid(seq):
-    alpha = new_alphabet.CharAlphabet(list("TCAG"))
+    alpha = c3_alphabet.CharAlphabet(list("TCAG"))
     assert alpha.is_valid(seq)
 
 
@@ -156,12 +157,12 @@ def test_is_valid(seq):
     ["-ACGT", numpy.array([4, 2, 1, 3, 0], dtype=numpy.uint8)],
 )
 def test_not_is_valid(seq):
-    alpha = new_alphabet.CharAlphabet(list("TCAG"))
+    alpha = c3_alphabet.CharAlphabet(list("TCAG"))
     assert not alpha.is_valid(seq)
 
 
 def test_is_valid_typerror():
-    alpha = new_alphabet.CharAlphabet(list("TCAG"))
+    alpha = c3_alphabet.CharAlphabet(list("TCAG"))
     with pytest.raises(TypeError):
         _ = alpha.is_valid(list("ACGT"))
 
@@ -169,29 +170,29 @@ def test_is_valid_typerror():
 @pytest.mark.parametrize(("num_states", "ndim"), [(2, 1), (4, 2), (4, 4)])
 def test_interconversion_of_coords_indices(num_states, ndim):
     # make sure match numpy functions
-    coeffs = numpy.array(new_alphabet.coord_conversion_coeffs(num_states, ndim))
+    coeffs = numpy.array(c3_alphabet.coord_conversion_coeffs(num_states, ndim))
     for coord in itertools.product(*(list(range(num_states)),) * ndim):
         coord = numpy.array(coord, dtype=numpy.uint64)
         nidx = numpy.ravel_multi_index(coord, dims=(num_states,) * ndim)
-        idx = new_alphabet.coord_to_index(coord, coeffs)
+        idx = c3_alphabet.coord_to_index(coord, coeffs)
         assert idx == nidx
         ncoord = numpy.unravel_index(nidx, shape=(num_states,) * ndim)
-        got = new_alphabet.index_to_coord(idx, coeffs)
+        got = c3_alphabet.index_to_coord(idx, coeffs)
         assert (got == ncoord).all()
         assert (got == coord).all()
 
 
 def test_coord2index_fail():
     coord = numpy.array((0, 1), dtype=numpy.uint64)
-    coeffs = numpy.array(new_alphabet.coord_conversion_coeffs(2, 4))
+    coeffs = numpy.array(c3_alphabet.coord_conversion_coeffs(2, 4))
     # dimension of coords inconsistent with coeffs
     with pytest.raises(ValueError):
-        new_alphabet.coord_to_index(coord, coeffs)
+        c3_alphabet.coord_to_index(coord, coeffs)
 
 
 @pytest.mark.parametrize("gap", ["", "-"])
 def test_char_alphabet_with_gap(gap):
-    alpha = new_alphabet.CharAlphabet(list(f"TCAG{gap}"), gap=gap or None)
+    alpha = c3_alphabet.CharAlphabet(list(f"TCAG{gap}"), gap=gap or None)
     gapped = alpha.with_gap_motif()
     assert "-" in gapped
 
@@ -209,12 +210,12 @@ def test_kmer_alphabet_construction(k):
 @pytest.mark.parametrize("indices", [2, 3, (2, 3)])
 def test_seq_to_kmer_indices_handle_gap(indices, gap_index):
     k = 2
-    coeffs = new_alphabet.coord_conversion_coeffs(4, k)
+    coeffs = c3_alphabet.coord_conversion_coeffs(4, k)
     seq = numpy.array([0, 1, 1, 3], dtype=numpy.uint8)
     result = numpy.zeros(len(seq) // k, dtype=numpy.uint8)
     # the gap index is 4
     seq.put(indices, 4)
-    got = new_alphabet.seq_to_kmer_indices(
+    got = c3_alphabet.seq_to_kmer_indices(
         seq,
         result,
         coeffs,
@@ -231,12 +232,12 @@ def test_seq_to_kmer_indices_handle_gap(indices, gap_index):
 @pytest.mark.parametrize("gap_index", [-1, 4])
 def test_seq_to_kmer_indices_handle_missing(gap_index):
     k = 2
-    coeffs = new_alphabet.coord_conversion_coeffs(4, k)
+    coeffs = c3_alphabet.coord_conversion_coeffs(4, k)
     # first dinuc has missing, last dinuc has a gap
     seq = numpy.array([5, 1, 0, 1, 0, 4], dtype=numpy.uint8)
     result = numpy.zeros(len(seq) // k, dtype=numpy.uint8)
     expect = numpy.array([17 if gap_index > 0 else 16, 1, 16], dtype=numpy.uint8)
-    got = new_alphabet.seq_to_kmer_indices(
+    got = c3_alphabet.seq_to_kmer_indices(
         seq,
         result,
         coeffs,
@@ -251,7 +252,7 @@ def test_seq_to_kmer_indices_handle_missing(gap_index):
 
 @pytest.mark.parametrize("gap", ["", "-"])
 def test_kmer_alpha_to_indices_to_index_with_gap(gap):
-    alpha = new_alphabet.CharAlphabet(list(f"TCAG{gap}"), gap=gap or None)
+    alpha = c3_alphabet.CharAlphabet(list(f"TCAG{gap}"), gap=gap or None)
     dinucs = alpha.get_kmer_alphabet(k=2, include_gap=bool(gap))
     got1 = int(dinucs.to_indices("--")[0])
     got2 = dinucs.to_index("--")
@@ -269,7 +270,7 @@ def test_kmer_alphabet_to_index_mixed(seq):
 
 @pytest.mark.parametrize("gap", ["", "-"])
 def test_kmer_index_to_seq(gap):
-    alpha = new_alphabet.CharAlphabet(list(f"TCAG{gap}"), gap=gap or None)
+    alpha = c3_alphabet.CharAlphabet(list(f"TCAG{gap}"), gap=gap or None)
     dinuc_alpha = alpha.get_kmer_alphabet(k=2, include_gap=bool(gap))
     seq = alpha.to_indices("ACTG")
     expect = numpy.array(
@@ -280,7 +281,7 @@ def test_kmer_index_to_seq(gap):
 
 
 def test_kmer_index_to_gapped_seq():
-    alpha = new_alphabet.CharAlphabet(list("TCAG-"), gap="-")
+    alpha = c3_alphabet.CharAlphabet(list("TCAG-"), gap="-")
     dinuc_alpha = alpha.get_kmer_alphabet(k=2, include_gap=True)
     seq = alpha.to_indices("AC--TG")
     expect = numpy.array(
@@ -293,7 +294,7 @@ def test_kmer_index_to_gapped_seq():
 @pytest.mark.parametrize("gap", ["", "-"])
 @pytest.mark.parametrize("k", [2, 3])
 def test_kmer_alphabet_with_gap_motif(gap, k):
-    alpha = new_alphabet.CharAlphabet(list(f"TCAG{gap}"), gap=gap or None)
+    alpha = c3_alphabet.CharAlphabet(list(f"TCAG{gap}"), gap=gap or None)
     kmers = alpha.get_kmer_alphabet(k=k)
     gap_state = "-" * k
     gapped = kmers.with_gap_motif()
@@ -304,7 +305,7 @@ def test_kmer_alphabet_with_gap_motif(gap, k):
 
 @pytest.mark.parametrize("gap", ["", "-"])
 def test_kmer_alpha_to_indices_with_gap(gap):
-    alpha = new_alphabet.CharAlphabet(list(f"TCAG{gap}"), gap=gap or None)
+    alpha = c3_alphabet.CharAlphabet(list(f"TCAG{gap}"), gap=gap or None)
     dinucs = alpha.get_kmer_alphabet(k=2, include_gap=bool(gap))
     seq = numpy.array([5, 1, 0, 1, 0, 4], dtype=numpy.uint8)
     got = dinucs.to_indices(seq)
@@ -369,10 +370,10 @@ def test_seq_to_kmer_indices():
     dna = new_moltype.get_moltype("dna")
     seq = "ATGGGCAGA"
     arr = dna.alphabet.to_indices(seq)
-    coeffs = new_alphabet.coord_conversion_coeffs(4, 3)
+    coeffs = c3_alphabet.coord_conversion_coeffs(4, 3)
     num = len(seq) // 3
     result = numpy.zeros(num, dtype=numpy.uint8)
-    got = new_alphabet.seq_to_kmer_indices(arr, result, coeffs, 4, 3)
+    got = c3_alphabet.seq_to_kmer_indices(arr, result, coeffs, 4, 3)
     expect = numpy.array(
         [numpy_func(arr[i : i + 3], dims=dims) for i in range(0, 9, 3)],
     )
@@ -483,7 +484,7 @@ def test_kmer_alphabet_from_indices_not_independent():
 @pytest.mark.parametrize("gap", ["", "-"])
 @pytest.mark.parametrize("missing", ["", "?"])
 def test_char_alphabet_num_canonical(gap, missing):
-    alpha = new_alphabet.CharAlphabet(
+    alpha = c3_alphabet.CharAlphabet(
         list(f"TCAG{gap}{missing}"),
         gap=gap or None,
         missing=missing or None,
@@ -497,7 +498,7 @@ def test_char_alphabet_num_canonical(gap, missing):
 def test_char_kmer_alphabet_construct_gap_state(gap, include_gap, missing):
     gap_state = "--"
     missing_state = "??"
-    alpha = new_alphabet.CharAlphabet(
+    alpha = c3_alphabet.CharAlphabet(
         list(f"TCAG{gap}{missing}"),
         gap=gap or None,
         missing=missing or None,
@@ -512,7 +513,7 @@ def test_char_kmer_alphabet_construct_gap_state(gap, include_gap, missing):
 
 
 def test_kmeralpha_from_index_gap_or_missing():
-    alpha = new_alphabet.CharAlphabet(list("TCAG-?"), gap="-", missing="?")
+    alpha = c3_alphabet.CharAlphabet(list("TCAG-?"), gap="-", missing="?")
     dinuc = alpha.get_kmer_alphabet(k=2, include_gap=True)
     # should be a gap motif
     expect = alpha.to_indices("--")
@@ -524,7 +525,7 @@ def test_kmeralpha_from_index_gap_or_missing():
 
 
 def test_kmeralpha_from_index_invalid():
-    alpha = new_alphabet.CharAlphabet(list("TCAG-?"), gap="-", missing="?")
+    alpha = c3_alphabet.CharAlphabet(list("TCAG-?"), gap="-", missing="?")
     dinuc = alpha.get_kmer_alphabet(k=2, include_gap=False)
     with pytest.raises(ValueError):
         dinuc.from_index(16)
@@ -533,13 +534,13 @@ def test_kmeralpha_from_index_invalid():
 @pytest.mark.parametrize("gap", ["", "-"])
 @pytest.mark.parametrize("missing", ["", "?"])
 def test_serialise_charalphabet(gap, missing):
-    alpha = new_alphabet.CharAlphabet(
+    alpha = c3_alphabet.CharAlphabet(
         list(f"TCAG{gap}{missing}"),
         gap=gap or None,
         missing=missing or None,
     )
     ser = alpha.to_rich_dict()
-    deser = new_alphabet.CharAlphabet.from_rich_dict(ser)
+    deser = c3_alphabet.CharAlphabet.from_rich_dict(ser)
     assert deser == alpha
 
 
@@ -547,14 +548,14 @@ def test_serialise_charalphabet(gap, missing):
 @pytest.mark.parametrize("missing", ["", "?"])
 @pytest.mark.parametrize("include_gap", [True, False])
 def test_serialise_kmeralphabet(gap, missing, include_gap):
-    alpha = new_alphabet.CharAlphabet(
+    alpha = c3_alphabet.CharAlphabet(
         list(f"TCAG{gap}{missing}"),
         gap=gap or None,
         missing=missing or None,
     )
     kmers = alpha.get_kmer_alphabet(k=2, include_gap=include_gap)
     ser = kmers.to_rich_dict()
-    deser = new_alphabet.KmerAlphabet.from_rich_dict(ser)
+    deser = c3_alphabet.KmerAlphabet.from_rich_dict(ser)
     assert deser == kmers
 
 
@@ -582,7 +583,7 @@ def test_deserialise_alphas(alpha):
 @pytest.fixture
 def calpha():
     gc = new_genetic_code.get_code(1)
-    return new_alphabet.SenseCodonAlphabet(
+    return c3_alphabet.SenseCodonAlphabet(
         words=gc.sense_codons,
         monomers=gc.moltype.alphabet,
     )
@@ -604,7 +605,7 @@ def test_to_indices(calpha, seq):
 
 
 def test_codon_alphabet_invalid_codon(calpha):
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         calpha.to_index("TGA")
 
 
@@ -664,7 +665,7 @@ def test_codon_alphabet_serlialise_round_trip(calpha):
     from cogent3.util.deserialise import deserialise_object
 
     got = deserialise_object(calpha.to_json())
-    assert isinstance(got, new_alphabet.SenseCodonAlphabet)
+    assert isinstance(got, c3_alphabet.SenseCodonAlphabet)
     assert list(got) == list(calpha)
     assert calpha.to_index("TTC") == 1
 
@@ -679,7 +680,7 @@ def test_alphabet_moltype(dna_alpha):
 
 
 def test_alpha_no_moltype():
-    alpha = new_alphabet.CharAlphabet(list("ACG"))
+    alpha = c3_alphabet.CharAlphabet(list("ACG"))
     assert alpha.moltype is None
 
 
@@ -744,7 +745,7 @@ def test_get_subset():
 
 def test_get_subset_invalid():
     dna_alpha = new_moltype.get_moltype("dna").alphabet
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         dna_alpha.get_subset(("A", "G", "-"))
 
 
@@ -753,12 +754,12 @@ def test_convert_seq_array_to_check_valid():
     dna_alpha = new_moltype.DNA.most_degen_alphabet()
     # seq is invalid for DNA
     seq = numpy.array([65, 67, 71, 84], dtype=numpy.uint8)
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         dna_alpha.convert_seq_array_to(alphabet=bytes_alpha, seq=seq, check_valid=True)
 
     # bytes alphabet seq with these low ordinals invalid for DNA output
     seq = numpy.array([0, 1, 2, 3], dtype=numpy.uint8)
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         bytes_alpha.convert_seq_array_to(alphabet=dna_alpha, seq=seq, check_valid=True)
 
 

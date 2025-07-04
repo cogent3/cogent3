@@ -2,7 +2,7 @@ import warnings
 
 import numpy
 
-from cogent3.core.new_alphabet import CharAlphabet
+from cogent3.core.alphabet import CharAlphabet
 from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
 from cogent3.recalculation.definition import CalcDefn, PartitionDefn
 

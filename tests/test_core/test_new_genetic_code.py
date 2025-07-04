@@ -1,6 +1,7 @@
 import pytest
 
-from cogent3.core import new_alphabet, new_genetic_code
+from cogent3.core import alphabet as c3_alphabet
+from cogent3.core import new_genetic_code
 
 
 @pytest.mark.parametrize("gc", [1, "Standard", new_genetic_code.DEFAULT])
@@ -89,7 +90,7 @@ def test_translate_incomplete_ok():
 
 def test_translate_incomplete_not_ok():
     code = new_genetic_code.DEFAULT
-    with pytest.raises(new_alphabet.AlphabetError):
+    with pytest.raises(c3_alphabet.AlphabetError):
         assert code.translate("ATGG--", incomplete_ok=False)
 
 
