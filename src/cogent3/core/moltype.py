@@ -9,7 +9,6 @@ from string import ascii_letters
 import numpy
 import typing_extensions
 
-import cogent3.util.warning as c3_warn
 from cogent3.core import alphabet as c3_alphabet
 from cogent3.core import sequence as c3_sequence
 from cogent3.data.molecular_weight import DnaMW, ProteinMW, RnaMW, WeightCalculator
@@ -609,7 +608,7 @@ class MolType:
 
         return any(alpha == alphabet for alpha in self.iter_alphabets())
 
-    @c3_warn.deprecated_args(
+    @c3warn.deprecated_args(
         "2025.6",
         "no longer supported",
         discontinued="preserve_case",
@@ -1420,7 +1419,7 @@ def _make_moltype_dict() -> dict[str, MolType]:
     return moltypes
 
 
-@c3_warn.deprecated_args("2025.9", "no longer has an effect", discontinued="new_type")
+@c3warn.deprecated_args("2025.9", "no longer has an effect", discontinued="new_type")
 def get_moltype(name: str | MolType) -> MolType:
     """returns the moltype with the matching name attribute"""
     if isinstance(name, MolType):

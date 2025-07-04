@@ -2029,8 +2029,6 @@ class NucleicAcidSequenceMixin:
         If sequence contains gap characters, the result preserves the sequence
         length by adding gap characters at the end.
         """
-        from cogent3.core import genetic_code as c3_genetic_code
-
         if not self.has_terminal_stop(gc=gc, strict=strict):
             return self
 
@@ -2099,9 +2097,6 @@ class NucleicAcidSequenceMixin:
         ------
         AlphabetError if include_stop is False and a stop codon occurs
         """
-        from cogent3.core import genetic_code as c3_genetic_code
-        from cogent3.core import moltype as c3_moltype
-
         if not self.moltype.is_nucleic:
             msg = f"moltype must be a DNA/RNA, not {self.moltype.name!r}"
             raise c3_moltype.MolTypeError(
