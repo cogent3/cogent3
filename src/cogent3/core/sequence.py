@@ -79,8 +79,6 @@ def _moltype_seq_from_rich_dict(
     data: dict[str, str | dict[str, str]],
 ) -> tuple[c3_moltype.MolType, StrORBytesORArray]:
     """returns moltype and seq and mutates data so it can serve as kwargs to Sequence constructor"""
-    from cogent3.core import moltype as c3_moltype
-
     data.pop("type")
     data.pop("version")
     data.pop("annotation_db", None)
@@ -1997,8 +1995,6 @@ class NucleicAcidSequenceMixin:
         strict
             If True, raises an exception if length not divisible by 3
         """
-        from cogent3.core import genetic_code as c3_genetic_code
-
         gc = c3_genetic_code.get_code(gc)
         _, s = self.parse_out_gaps()
 

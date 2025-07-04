@@ -240,8 +240,6 @@ def NcbiFastaLabelParser(line):
 def NcbiFastaParser(infile, seq_maker=None, strict=True):  # pragma: no cover
     return MinimalFastaParser(
         infile,
-        seq_maker=seq_maker,
-        info_maker=NcbiFastaLabelParser,
         strict=strict,
     )
 

@@ -60,7 +60,7 @@ def test_sense_codons():
 @pytest.mark.parametrize("invalid", ["AT", "TAAA", 23])
 def test_invalid_index(invalid):
     with pytest.raises(c3_genetic_code.InvalidCodonError):
-        c3_genetic_code.DEFAULT[invalid]
+        _ = c3_genetic_code.DEFAULT[invalid]
 
 
 def test_translate():

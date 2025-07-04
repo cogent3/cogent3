@@ -4,7 +4,6 @@ Each leaf holds a sequence.  Used by a likelihood function."""
 import numpy
 
 from cogent3.core.alphabet import AlphabetError
-from cogent3.core.alphabet import AlphabetError as c3_alphabetError
 
 from . import likelihood_tree_numba as likelihood_tree
 
@@ -260,7 +259,7 @@ def make_likelihood_tree_leaf(sequence, alphabet, seq_name):
     # Convert list of unique motifs to array of unique profiles
     try:
         likelihoods = get_matched_array(alphabet, moltype, uniq_motifs, dtype=float)
-    except (AlphabetError, c3_alphabetError) as detail:
+    except AlphabetError as detail:
         motif = str(detail)
         posn = list(sequence2).index(motif) * motif_len
         msg = f"{motif!r} at {seq_name!r}:{posn} not in alphabet"
