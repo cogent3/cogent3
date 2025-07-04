@@ -894,7 +894,7 @@ moltype_old_class_map = {
 
 @pytest.mark.parametrize("moltype_name", list(moltype_old_class_map.keys()))
 def test_deserialise_old_to_new_type_seqs(moltype_name):
-    from cogent3.core import new_moltype, new_sequence
+    from cogent3.core import new_moltype, sequence
 
     old_rich_dict = {
         "annotation_offset": 0,
@@ -911,7 +911,7 @@ def test_deserialise_old_to_new_type_seqs(moltype_name):
     }
     got = deserialise_object(old_rich_dict)
     assert isinstance(got.moltype, new_moltype.MolType)
-    assert isinstance(got, new_sequence.Sequence)
+    assert isinstance(got, sequence.Sequence)
 
 
 def test_deserialise_old_to_new_type_moltype():

@@ -10,14 +10,15 @@ import numpy
 import typing_extensions
 
 import cogent3.util.warning as c3_warn
-from cogent3.core import new_alphabet, new_sequence
+from cogent3.core import new_alphabet
+from cogent3.core import sequence as c3_sequence
 from cogent3.data.molecular_weight import DnaMW, ProteinMW, RnaMW, WeightCalculator
 from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.misc import get_object_provenance
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    from cogent3.core.new_sequence import SeqViewABC
+    from cogent3.core.sequence import SeqViewABC
 
 NumpyIntType = numpy.dtype[numpy.integer]
 NumpyIntArrayType = numpy.typing.NDArray[numpy.integer]
@@ -620,7 +621,7 @@ class MolType:
         name: OptStr = None,
         check_seq: bool = True,
         **kwargs,
-    ) -> new_sequence.Sequence:
+    ) -> c3_sequence.Sequence:
         """creates a Sequence object corresponding to the molecular type of
         this instance.
 
@@ -667,7 +668,7 @@ class MolType:
         self,
         *args,
         **kwargs,
-    ) -> new_sequence.Sequence:
+    ) -> c3_sequence.Sequence:
         if args:
             kwargs["seq"] = args[0]
 
@@ -1459,7 +1460,7 @@ ASCII = MolType(
     # characters that could be present in any of those files.
     monomers="".join(ascii_letters),
     name="text",
-    make_seq=new_sequence.Sequence,
+    make_seq=c3_sequence.Sequence,
 )
 
 DNA = MolType(
@@ -1468,7 +1469,7 @@ DNA = MolType(
     name="dna",
     complements=IUPAC_DNA_ambiguities_complements,
     colors=NT_COLORS,
-    make_seq=new_sequence.DnaSequence,
+    make_seq=c3_sequence.DnaSequence,
     pairing_rules=DNA_STANDARD_PAIRS,
     mw_calculator=DnaMW,
     coerce_to=coerce_to_dna,
@@ -1480,7 +1481,7 @@ RNA = MolType(
     name="rna",
     complements=IUPAC_RNA_ambiguities_complements,
     colors=NT_COLORS,
-    make_seq=new_sequence.RnaSequence,
+    make_seq=c3_sequence.RnaSequence,
     pairing_rules=RNA_STANDARD_PAIRS,
     mw_calculator=RnaMW,
     coerce_to=coerce_to_rna,
@@ -1490,7 +1491,7 @@ PROTEIN = MolType(
     ambiguities=IUPAC_PROTEIN_ambiguities,
     name="protein",
     colors=AA_COLORS,
-    make_seq=new_sequence.ProteinSequence,
+    make_seq=c3_sequence.ProteinSequence,
     mw_calculator=ProteinMW,
     coerce_to=coerce_to_protein,
 )
@@ -1500,7 +1501,7 @@ PROTEIN_WITH_STOP = MolType(
     ambiguities=PROTEIN_WITH_STOP_ambiguities,
     name="protein_with_stop",
     colors=AA_COLORS,
-    make_seq=new_sequence.ProteinWithStopSequence,
+    make_seq=c3_sequence.ProteinWithStopSequence,
     mw_calculator=ProteinMW,
     coerce_to=coerce_to_protein,
 )
@@ -1509,7 +1510,7 @@ BYTES = MolType(
     # want to prematurely assume _anything_ about the data.
     monomers=bytes(bytearray(range(2**8))),
     name="bytes",
-    make_seq=new_sequence.ByteSequence,
+    make_seq=c3_sequence.ByteSequence,
     gap=None,
     missing=None,
 )

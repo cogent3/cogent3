@@ -53,7 +53,7 @@ from cogent3.util.progress_display import display_wrap
 
 if typing.TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.alignment import Alignment, SequenceCollection
-    from cogent3.core.new_sequence import Sequence
+    from cogent3.core.sequence import Sequence
 
 __copyright__ = "Copyright 2007-2023, The Cogent Project"
 __credits__ = "https://github.com/cogent3/cogent3/graphs/contributors"
@@ -236,7 +236,7 @@ def load_seq(
     file_suffix, _ = get_format_suffixes(filename)
     parser_kw = parser_kw or {}
     if file_suffix == "json":
-        from cogent3.core.new_sequence import Sequence
+        from cogent3.core.sequence import Sequence
         from cogent3.core.sequence import Sequence as OldSeq
 
         seq = load_from_json(filename, (Sequence, OldSeq))

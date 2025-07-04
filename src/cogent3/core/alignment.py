@@ -29,7 +29,9 @@ from cogent3.core import (
     new_alphabet,
     new_genetic_code,
     new_moltype,
-    new_sequence,
+)
+from cogent3.core import (
+    sequence as c3_sequence,
 )
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
@@ -81,7 +83,7 @@ PySeqStr = PySeq[str]
 OptPySeqStr = PySeqStr | None
 OptDict = dict | None
 OptBool = bool | None
-OptSliceRecord = new_sequence.SliceRecord | None
+OptSliceRecord = c3_sequence.SliceRecord | None
 DictStrStr = dict[str, str]
 DictStrInt = dict[str, int]
 OptCallable = Callable | None
@@ -89,7 +91,7 @@ OptRenamerCallable = Callable[[str], str] | None
 OptPathType = str | Path | None
 StrORArray = str | numpy.ndarray[int]
 StrORBytesORArray = str | bytes | numpy.ndarray[int]
-StrORBytesORArrayOrSeq = str | bytes | numpy.ndarray[int] | new_sequence.Sequence
+StrORBytesORArrayOrSeq = str | bytes | numpy.ndarray[int] | c3_sequence.Sequence
 MolTypes = str | new_moltype.MolType
 
 # small number: 1-EPS is almost 1, and is used for things like the
@@ -177,7 +179,7 @@ def _gap_ok_vector_multi(
     return num <= num_allowed
 
 
-class SeqDataView(new_sequence.SeqView):
+class SeqDataView(c3_sequence.SeqView):
     """
     A view class for ``SeqsData``, providing methods for different
     representations of a single sequence.
@@ -250,7 +252,7 @@ class SeqDataView(new_sequence.SeqView):
             start, stop = self.slice_record.start, self.slice_record.stop
 
         data["init_args"]["parent"] = self.str_value[start:stop]
-        new_sr = new_sequence.SliceRecord(
+        new_sr = c3_sequence.SliceRecord(
             parent_len=(stop - start),
             step=self.slice_record.step,
             offset=self.slice_record.parent_start,
@@ -349,7 +351,7 @@ class SeqsDataABC(ABC):
     ) -> bytes: ...
 
     @abstractmethod
-    def get_view(self, seqid: str) -> new_sequence.SeqViewABC: ...
+    def get_view(self, seqid: str) -> c3_sequence.SeqViewABC: ...
 
     @abstractmethod
     def to_alphabet(self, alphabet: new_alphabet.AlphabetABC) -> SeqsDataABC: ...
@@ -364,7 +366,7 @@ class SeqsDataABC(ABC):
     def __getitem__(
         self,
         index: str | int,
-    ) -> new_sequence.Sequence | new_sequence.SeqViewABC: ...
+    ) -> c3_sequence.Sequence | c3_sequence.SeqViewABC: ...
 
     @abstractmethod
     def copy(self, **kwargs) -> SeqsDataABC: ...
@@ -609,16 +611,16 @@ class SeqsData(SeqsDataABC):
         return len(self.names)
 
     @singledispatchmethod
-    def __getitem__(self, index: str | int) -> new_sequence.SeqViewABC:
+    def __getitem__(self, index: str | int) -> c3_sequence.SeqViewABC:
         msg = f"__getitem__ not implemented for {type(index)}"
         raise NotImplementedError(msg)
 
     @__getitem__.register
-    def _(self, index: str) -> new_sequence.SeqViewABC:
+    def _(self, index: str) -> c3_sequence.SeqViewABC:
         return self.get_view(seqid=index)
 
     @__getitem__.register
-    def _(self, index: int) -> new_sequence.SeqViewABC:
+    def _(self, index: int) -> c3_sequence.SeqViewABC:
         return self[self.names[index]]
 
     def copy(self, **kwargs) -> typing_extensions.Self:
@@ -711,7 +713,7 @@ class SequenceCollection(AnnotatableMixin):
 
         self.__dict__.update(obj.__dict__)
 
-    def _make_seq(self, name: str) -> new_sequence.Sequence:
+    def _make_seq(self, name: str) -> c3_sequence.Sequence:
         # seqview is given the name of the parent (if different from the current name)
         # the sequence is given the current name
         seqid = self._name_map.get(name, name)
@@ -810,7 +812,7 @@ class SequenceCollection(AnnotatableMixin):
     def iter_seqs(
         self,
         seq_order: OptList = None,
-    ) -> Iterator[new_sequence.Sequence | new_sequence.SeqViewABC]:
+    ) -> Iterator[c3_sequence.Sequence | c3_sequence.SeqViewABC]:
         """Iterates over sequences in the collection, in order.
 
         Parameters
@@ -888,7 +890,7 @@ class SequenceCollection(AnnotatableMixin):
 
     def get_seq_names_if(
         self,
-        f: Callable[[new_sequence.Sequence], bool],
+        f: Callable[[c3_sequence.Sequence], bool],
         negate: bool = False,
     ) -> list[str]:
         """Returns list of names of seqs where f(seq) is True.
@@ -913,7 +915,7 @@ class SequenceCollection(AnnotatableMixin):
 
     def take_seqs_if(
         self,
-        f: Callable[[new_sequence.Sequence], bool],
+        f: Callable[[c3_sequence.Sequence], bool],
         negate: bool = False,
     ) -> typing_extensions.Self:
         """Returns new collection containing seqs where f(seq) is True.
@@ -936,7 +938,7 @@ class SequenceCollection(AnnotatableMixin):
         self,
         seqname: str,
         copy_annotations: bool = False,
-    ) -> new_sequence.Sequence:
+    ) -> c3_sequence.Sequence:
         """Return a Sequence object for the specified seqname.
 
         Parameters
@@ -2135,13 +2137,13 @@ class SequenceCollection(AnnotatableMixin):
 
     def get_similar(
         self,
-        target: new_sequence.Sequence,
+        target: c3_sequence.Sequence,
         min_similarity: float = 0.0,
         max_similarity: float = 1.0,
         metric: Callable[
-            [new_sequence.Sequence, new_sequence.Sequence],
+            [c3_sequence.Sequence, c3_sequence.Sequence],
             float,
-        ] = new_sequence.frac_same,
+        ] = c3_sequence.frac_same,
         transform: bool | None = None,
     ) -> SequenceCollection:
         """Returns new SequenceCollection containing sequences similar to target.
@@ -2522,7 +2524,7 @@ def merged_db_collection(seqs) -> SupportsFeatures:
     first = None
     merged = None
     for seq in seqs:
-        if not isinstance(seq, new_sequence.Sequence):
+        if not isinstance(seq, c3_sequence.Sequence):
             continue
 
         db = seq.annotation_db
@@ -2586,7 +2588,7 @@ def coerce_to_raw_seq_data(
 
 @coerce_to_raw_seq_data.register
 def _(
-    seq: new_sequence.Sequence,
+    seq: c3_sequence.Sequence,
     moltype: new_moltype.MolType,
     name: str,
 ) -> raw_seq_data:
@@ -2963,7 +2965,7 @@ def _(
 
 @singledispatch
 def decompose_gapped_seq(
-    seq: typing.union[StrORBytesORArray, new_sequence.Sequence],
+    seq: typing.union[StrORBytesORArray, c3_sequence.Sequence],
     *,
     alphabet: new_alphabet.AlphabetABC,
     missing_as_gap: bool = True,
@@ -3030,7 +3032,7 @@ def _(
 
 @decompose_gapped_seq.register
 def _(
-    seq: new_sequence.Sequence,
+    seq: c3_sequence.Sequence,
     *,
     alphabet: new_alphabet.AlphabetABC,
     missing_as_gap: bool = True,
@@ -3176,7 +3178,7 @@ class Aligned(AnnotatableMixin):
 
     @classmethod
     def from_map_and_seq(
-        cls, indel_map: IndelMap, seq: new_sequence.Sequence
+        cls, indel_map: IndelMap, seq: c3_sequence.Sequence
     ) -> Aligned:
         """Creates an Aligned instance from an indel map and a Sequence."""
         moltype = seq.moltype
@@ -3225,7 +3227,7 @@ class Aligned(AnnotatableMixin):
         return self.data.map
 
     @property
-    def seq(self) -> new_sequence.Sequence:
+    def seq(self) -> c3_sequence.Sequence:
         """the ungapped sequence."""
         # if the slice record has abs(step) > 1, we cannot retain a connection
         # to the underlying aligned seq data container because the gaps are
@@ -3250,7 +3252,7 @@ class Aligned(AnnotatableMixin):
         return mt_seq
 
     @property
-    def gapped_seq(self) -> new_sequence.Sequence:
+    def gapped_seq(self) -> c3_sequence.Sequence:
         """Returns Sequence object, including gaps."""
         seq = self.data.gapped_array_value
         if self.data.slice_record.step < 0:
@@ -3379,7 +3381,7 @@ class Aligned(AnnotatableMixin):
             strand,
         )
 
-    @extend_docstring_from(new_sequence.Sequence.annotate_matches_to)
+    @extend_docstring_from(c3_sequence.Sequence.annotate_matches_to)
     def annotate_matches_to(
         self,
         pattern: str,
@@ -3434,7 +3436,7 @@ class AlignedSeqsDataABC(SeqsDataABC):
     def get_view(
         self,
         seqid: str,
-        slice_record: new_sequence.SliceRecord | None = None,
+        slice_record: c3_sequence.SliceRecord | None = None,
     ) -> AlignedDataViewABC:
         # overriding the SeqsDataABC method as we support directly
         # providing the slice_record instance
@@ -3866,7 +3868,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
     def get_view(
         self,
         seqid: str,
-        slice_record: new_sequence.SliceRecord | None = None,
+        slice_record: c3_sequence.SliceRecord | None = None,
     ) -> AlignedDataView:
         """reurns view of aligned sequence data for seqid
 
@@ -4225,11 +4227,11 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         return self.__class__(**init_args)
 
 
-class AlignedDataViewABC(new_sequence.SeqViewABC):
+class AlignedDataViewABC(c3_sequence.SeqViewABC):
     __slots__ = ()
 
     @abstractmethod
-    def get_seq_view(self) -> new_sequence.SeqViewABC: ...
+    def get_seq_view(self) -> c3_sequence.SeqViewABC: ...
 
     @property
     @abstractmethod
@@ -4237,7 +4239,7 @@ class AlignedDataViewABC(new_sequence.SeqViewABC):
 
     @property
     @abstractmethod
-    def slice_record(self) -> new_sequence.SliceRecordABC: ...
+    def slice_record(self) -> c3_sequence.SliceRecordABC: ...
 
     @property
     @abstractmethod
@@ -4252,7 +4254,7 @@ class AlignedDataViewABC(new_sequence.SeqViewABC):
     def gapped_bytes_value(self) -> bytes: ...
 
 
-class AlignedDataView(new_sequence.SeqViewABC):
+class AlignedDataView(c3_sequence.SeqViewABC):
     """
     A view class for ``AlignedSeqsData``, providing methods for different representations
     of a single sequence.
@@ -4288,16 +4290,16 @@ class AlignedDataView(new_sequence.SeqViewABC):
         self._slice_record = (
             slice_record
             if slice_record is not None
-            else new_sequence.SliceRecord(parent_len=self._parent_len)
+            else c3_sequence.SliceRecord(parent_len=self._parent_len)
         )
 
     @property
-    def slice_record(self) -> new_sequence.SliceRecordABC:
+    def slice_record(self) -> c3_sequence.SliceRecordABC:
         """the slice record for this view"""
         return self._slice_record
 
     @slice_record.setter
-    def slice_record(self, value: new_sequence.SliceRecordABC) -> None:
+    def slice_record(self, value: c3_sequence.SliceRecordABC) -> None:
         self._slice_record = value
 
     @property
@@ -4439,14 +4441,14 @@ class AlignedDataView(new_sequence.SeqViewABC):
             "slice_record": self.slice_record,
         }
 
-    def get_seq_view(self) -> new_sequence.SeqViewABC:
+    def get_seq_view(self) -> c3_sequence.SeqViewABC:
         """returns view of ungapped sequence data for seqid"""
         # we want the parent coordinates in sequence coordinates
         # parent_seq_coords does not account for the stride
         seqid, start, stop, _ = self.parent_seq_coords()
         parent_len = self.parent.get_seq_length(seqid)
         offset = self.parent.offset.get(seqid)
-        sr = new_sequence.SliceRecord(
+        sr = c3_sequence.SliceRecord(
             start=start,
             stop=stop,
             parent_len=parent_len,
@@ -4509,7 +4511,7 @@ class _IndexableSeqs:
     def __init__(
         self,
         parent: SequenceCollection | Alignment,
-        make_seq: typing.Callable[[str], new_sequence.Sequence | Aligned],
+        make_seq: typing.Callable[[str], c3_sequence.Sequence | Aligned],
     ) -> None:
         """
         Parameters
@@ -4526,16 +4528,16 @@ class _IndexableSeqs:
     def __getitem__(
         self,
         key: str | int | slice,
-    ) -> new_sequence.Sequence | Aligned:
+    ) -> c3_sequence.Sequence | Aligned:
         msg = f"indexing not supported for {type(key)}, try .take_seqs()"
         raise TypeError(msg)
 
     @__getitem__.register
-    def _(self, key: int) -> new_sequence.Sequence | Aligned:
+    def _(self, key: int) -> c3_sequence.Sequence | Aligned:
         return self[self.parent.names[key]]
 
     @__getitem__.register
-    def _(self, key: str) -> new_sequence.Sequence | Aligned:
+    def _(self, key: str) -> c3_sequence.Sequence | Aligned:
         return self._make_seq(key)
 
     def __repr__(self) -> str:
@@ -4568,7 +4570,7 @@ class Alignment(SequenceCollection):
         self._slice_record = (
             slice_record
             if slice_record is not None
-            else new_sequence.SliceRecord(parent_len=self._seqs_data.align_len)
+            else c3_sequence.SliceRecord(parent_len=self._seqs_data.align_len)
         )
         self._array_seqs = None
 
@@ -4719,7 +4721,7 @@ class Alignment(SequenceCollection):
         self,
         seqname: str,
         copy_annotations: bool = False,
-    ) -> new_sequence.Sequence:
+    ) -> c3_sequence.Sequence:
         """Return a Sequence object for the specified seqname.
 
         Parameters
@@ -4752,7 +4754,7 @@ class Alignment(SequenceCollection):
         self,
         seqname: str,
         recode_gaps: bool = False,
-    ) -> new_sequence.Sequence:
+    ) -> c3_sequence.Sequence:
         """Return a gapped Sequence object for the specified seqname.
 
 
@@ -4929,7 +4931,7 @@ class Alignment(SequenceCollection):
             consensus.append(degen("".join(col)))
         return "".join(consensus)
 
-    def majority_consensus(self) -> new_sequence.Sequence:
+    def majority_consensus(self) -> c3_sequence.Sequence:
         """Returns consensus sequence containing most frequent item at each
         position."""
         states = []
@@ -6935,7 +6937,7 @@ class Alignment(SequenceCollection):
         )
         kwargs["seqs_data"] = new_seqs_data
         kwargs["slice_record"] = (
-            new_sequence.SliceRecord(parent_len=new_seqs_data.align_len, step=-1)
+            c3_sequence.SliceRecord(parent_len=new_seqs_data.align_len, step=-1)
             if self._slice_record.is_reversed
             else None
         )
@@ -7285,7 +7287,7 @@ def _(
     info = info if isinstance(info, dict) else {}
     source = str(source) if source else str(info.pop("source", "unknown"))
     sr = (
-        new_sequence.SliceRecord(parent_len=data.align_len, step=-1)
+        c3_sequence.SliceRecord(parent_len=data.align_len, step=-1)
         if is_reversed
         else None
     )

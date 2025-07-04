@@ -12,7 +12,7 @@ from cogent3.core import new_moltype
 if TYPE_CHECKING:
     from collections.abc import Generator
 
-    from cogent3.core.new_sequence import Sequence
+    from cogent3.core.sequence import Sequence
 
 
 @dataclass

@@ -238,7 +238,7 @@ def make_likelihood_tree_leaf(sequence, alphabet, seq_name):
     # added for compatibility between old and new style sequences/moltype/alphabets
     # should be simplified when old style is removed
     from cogent3.core.new_alphabet import CharAlphabet
-    from cogent3.core.new_sequence import Sequence
+    from cogent3.core.sequence import Sequence
 
     if isinstance(sequence, Sequence):
         # we can rely on getting the moltype from the sequence

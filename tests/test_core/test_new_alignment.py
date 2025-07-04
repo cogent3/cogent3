@@ -16,7 +16,8 @@ from cogent3 import (
 )
 from cogent3._version import __version__
 from cogent3.core import alignment as c3_alignment
-from cogent3.core import new_alphabet, new_moltype, new_sequence
+from cogent3.core import new_alphabet, new_moltype
+from cogent3.core import sequence as c3_sequence
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import GffAnnotationDb, load_annotations
 from cogent3.core.location import FeatureMap, LostSpan, Span
@@ -380,7 +381,7 @@ def test_seq_data_view_slice_returns_self(seq1: str, index: slice, dna_alphabet)
         seqid="seq1",
         alphabet=dna_alphabet,
         parent_len=len(seq1),
-        slice_record=new_sequence.SliceRecord(parent_len=len(seq1)),
+        slice_record=c3_sequence.SliceRecord(parent_len=len(seq1)),
     )
     got = sdv[index]
     assert isinstance(got, c3_alignment.SeqDataView)
@@ -649,13 +650,13 @@ def test_make_seqs_from_sequences(mk_cls):
 )
 def test_make_seqs_renamed_seqs(mk_cls, seq_name, parent_name, dna_alphabet):
     # the parent_name should persist from sequence object to SequenceCollection
-    seq_view_1 = new_sequence.SeqView(
+    seq_view_1 = c3_sequence.SeqView(
         parent="AAAA",
         parent_len=4,
         seqid="parent_1",
         alphabet=dna_alphabet,
     )
-    seq_view_2 = new_sequence.SeqView(
+    seq_view_2 = c3_sequence.SeqView(
         parent="TTTT",
         parent_len=4,
         seqid="parent_2",
@@ -693,13 +694,13 @@ def test_make_seqs_offset(mk_cls, data_cls, seq, dna_alphabet):
         _ = mk_cls(data, moltype="dna", offset=offset)
 
     # if provided with sequence objects with offsets, they should be propogated
-    seq_view_1 = new_sequence.SeqView(
+    seq_view_1 = c3_sequence.SeqView(
         parent="AAAA",
         parent_len=4,
         alphabet=dna_alphabet,
         offset=1,
     )
-    seq_view_2 = new_sequence.SeqView(
+    seq_view_2 = c3_sequence.SeqView(
         parent="TTTT",
         parent_len=4,
         alphabet=dna_alphabet,
@@ -1064,8 +1065,8 @@ def test_sequence_collection_getitem(seqs, index):
     got1 = seqs.seqs[index[0]]
     got2 = seqs.seqs[index[1]]
 
-    assert isinstance(got1, new_sequence.Sequence)
-    assert isinstance(got2, new_sequence.Sequence)
+    assert isinstance(got1, c3_sequence.Sequence)
+    assert isinstance(got2, c3_sequence.Sequence)
     assert got1 == got2
 
 
@@ -2090,7 +2091,7 @@ def test_sequence_collection_copy_annotations_incompat_type_fails(seqcoll_db, se
 @pytest.mark.parametrize(
     ("mk_cls", "seq_cls"),
     [
-        (c3_alignment.make_unaligned_seqs, new_sequence.Sequence),
+        (c3_alignment.make_unaligned_seqs, c3_sequence.Sequence),
         (c3_alignment.make_aligned_seqs, c3_alignment.Aligned),
     ],
 )
@@ -3712,7 +3713,7 @@ def test_make_aligned_seqs_dict(aligned_dict):
     # if we index a seq, it should be an Aligned instance
     assert isinstance(aln.seqs["seq1"], c3_alignment.Aligned)
     # if we use .get_seq, it should be a Sequence instance
-    assert isinstance(aln.get_seq("seq1"), new_sequence.Sequence)
+    assert isinstance(aln.get_seq("seq1"), c3_sequence.Sequence)
     assert aln.names == ("seq1", "seq2", "seq3", "seq4")
     assert aln.to_dict() == aligned_dict
 
@@ -5055,7 +5056,7 @@ def test_get_seq_with_sliced_aln(name):
     a1 = aln[start:stop]
 
     seq = a1.get_seq(name)
-    assert isinstance(seq, new_sequence.Sequence), seq
+    assert isinstance(seq, c3_sequence.Sequence), seq
 
     got = str(seq)
     expect = seqs[name][start:stop].replace("-", "")
@@ -5091,7 +5092,7 @@ def test_get_seq_with_sliced_aln_multiple_spans(name):
     start, stop = 1, 10
     a1 = aln[start:stop]
     seq = a1.get_seq(name)
-    assert isinstance(seq, new_sequence.Sequence), seq
+    assert isinstance(seq, c3_sequence.Sequence), seq
 
     expect = seqs[name][start:stop].replace("-", "")
     got = str(seq)
@@ -5127,7 +5128,7 @@ def test_get_gapped_seq_with_sliced_aln(name):
     a1 = aln[start:stop]
 
     seq = a1.get_gapped_seq(name)
-    assert isinstance(seq, new_sequence.Sequence), seq
+    assert isinstance(seq, c3_sequence.Sequence), seq
 
     got = str(seq)
     expect = seqs[name][start:stop]

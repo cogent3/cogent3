@@ -5,7 +5,9 @@ from cogent3.core import (
     new_alphabet,
     new_genetic_code,
     new_moltype,
-    new_sequence,
+)
+from cogent3.core import (
+    sequence as c3_sequence,
 )
 
 
@@ -311,7 +313,7 @@ def test_gaps_none():
     mt = new_moltype.MolType(
         "no_gap",
         monomers="".join(new_moltype.IUPAC_DNA_chars),
-        make_seq=new_sequence.DnaSequence,
+        make_seq=c3_sequence.DnaSequence,
         gap=None,
     )
 
@@ -322,7 +324,7 @@ def test_gaps_none():
     mt = new_moltype.MolType(
         "no_missing",
         monomers="".join(new_moltype.IUPAC_DNA_chars),
-        make_seq=new_sequence.DnaSequence,
+        make_seq=c3_sequence.DnaSequence,
         missing=None,
     )
     got = mt.gaps
@@ -694,7 +696,7 @@ def test_has_ambiguity_validation():
 def test_custom_moltype():
     mt = new_moltype.MolType(
         name="dna-gapped",
-        make_seq=new_sequence.DnaSequence,
+        make_seq=c3_sequence.DnaSequence,
         monomers="".join(new_moltype.IUPAC_DNA_chars),
         ambiguities=new_moltype.IUPAC_DNA_ambiguities,
         complements=new_moltype.IUPAC_DNA_ambiguities_complements,
