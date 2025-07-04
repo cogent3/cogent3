@@ -4,8 +4,8 @@ import numpy
 import pytest
 
 from cogent3 import get_moltype, make_aligned_seqs, make_unaligned_seqs
+from cogent3.core.alignment import Aligned
 from cogent3.core.location import IndelMap
-from cogent3.core.new_alignment import Aligned
 from cogent3.draw.dotplot import Dotplot, _convert_input, _prep_seqs, get_align_coords
 
 DNA = get_moltype("dna")

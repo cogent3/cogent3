@@ -18,7 +18,7 @@ from cogent3.app.typing import (
 
 def test_get_constraint_names():
     """returns the correct names"""
-    from cogent3.core.new_alignment import (
+    from cogent3.core.alignment import (
         Alignment,
         SequenceCollection,
     )

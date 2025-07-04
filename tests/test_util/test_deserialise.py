@@ -672,7 +672,7 @@ def test_deserialise_old_to_new_type_alignment_1():
     }
     got = deserialise_object(rd)
     got_prov = get_object_provenance(got)
-    assert got_prov == "cogent3.core.new_alignment.Alignment"
+    assert got_prov == "cogent3.core.alignment.Alignment"
     rd = {
         "info": {"seed": "758_443154_73021", "source": "15", "fg_edge": "73021"},
         "moltype": "dna",
@@ -707,7 +707,7 @@ def test_deserialise_old_to_new_type_alignment_1():
     }
     got = deserialise_object(rd)
     got_prov = get_object_provenance(got)
-    assert got_prov == "cogent3.core.new_alignment.Alignment"
+    assert got_prov == "cogent3.core.alignment.Alignment"
     assert got.source == "15"
     assert "source" not in got.info
 
@@ -808,7 +808,7 @@ def test_deserialise_old_to_new_type_alignment_2():
     }
     got = deserialise_object(rd)
     got_prov = get_object_provenance(got)
-    assert got_prov == "cogent3.core.new_alignment.Alignment"
+    assert got_prov == "cogent3.core.alignment.Alignment"
     assert got.source == "unknown"
     assert "source" not in got.info
 
@@ -877,7 +877,7 @@ def test_deserialise_old_to_new_type_seqcoll():
     }
     got = deserialise_object(rd)
     got_prov = get_object_provenance(got)
-    assert got_prov == "cogent3.core.new_alignment.SequenceCollection"
+    assert got_prov == "cogent3.core.alignment.SequenceCollection"
     assert got.source == "unknown"
     assert "source" not in got.info
 

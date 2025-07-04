@@ -3,7 +3,7 @@ import pathlib
 import typing
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    from cogent3.core.new_alignment import Alignment
+    from cogent3.core.alignment import Alignment
     from cogent3.core.table import Table
     from cogent3.core.tree import PhyloNode
 

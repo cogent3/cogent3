@@ -604,7 +604,7 @@ def test_map_indexed():
 
 
 def test_compare_map_indexed():
-    from cogent3.core.new_alignment import Aligned
+    from cogent3.core.alignment import Aligned
 
     raw_seq = "--AC-GTAA--"
     im, seq = DNA.make_seq(seq=raw_seq).parse_out_gaps()
@@ -639,7 +639,7 @@ def test_indelmap_to_feature_map():
 
 @pytest.mark.parametrize("raw", ["--AC--GGGG--", "A-A-A", "-A-AA----A"])
 def test_indelmap_nucleic_reversed(raw):
-    from cogent3.core.new_alignment import Aligned
+    from cogent3.core.alignment import Aligned
 
     plus = DNA.make_seq(seq=raw)
     minus = plus.rc()
@@ -1331,7 +1331,7 @@ def test_indelmap_subtraction(seq_pairs, as_array):
 
 
 def test_indelmap_subtraction_build_aligned(seq_pairs):
-    from cogent3.core.new_alignment import Aligned
+    from cogent3.core.alignment import Aligned
 
     s1, s2 = seq_pairs
 

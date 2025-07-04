@@ -497,9 +497,9 @@ def bad_ambig_gap_data():
 
 def test_omit_bad_seqs_ambigs(bad_ambig_gap_data):
     """correctly omit sequences from a new style alignment via fraction of ambiguous data"""
-    from cogent3.core import new_alignment
+    from cogent3.core import alignment as c3_alignment
 
-    aln = new_alignment.make_aligned_seqs(bad_ambig_gap_data, moltype="dna")
+    aln = c3_alignment.make_aligned_seqs(bad_ambig_gap_data, moltype="dna")
 
     # drop sequences with all ambiguous data
     dropbad = sample.omit_bad_seqs(ambig_fraction=1)

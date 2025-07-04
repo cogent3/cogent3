@@ -7,7 +7,8 @@ import numpy
 
 import cogent3
 from cogent3._version import __version__
-from cogent3.core import new_alignment, table
+from cogent3.core import alignment as c3_alignment
+from cogent3.core import table
 from cogent3.core.tree import PhyloNode
 from cogent3.evolve import substitution_model
 from cogent3.evolve.simulate import AlignmentEvolver, random_sequence
@@ -44,7 +45,7 @@ def _update_stat_table_col_formatting(table):
 # the parameter, psub, mprob and likelihood values after the optimisation is
 # complete.
 
-AlignType = new_alignment.Alignment
+AlignType = c3_alignment.Alignment
 
 
 def _get_keyed_rule_indices(rules):

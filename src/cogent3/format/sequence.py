@@ -9,7 +9,7 @@ from cogent3.parse.record import FileFormatError
 from cogent3.util.io import atomic_write
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    from cogent3.core.new_alignment import Alignment, SequenceCollection
+    from cogent3.core.alignment import Alignment, SequenceCollection
 
 
 SeqsTypes = typing.Union["SequenceCollection", "Alignment"]

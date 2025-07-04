@@ -18,7 +18,7 @@ from cogent3.app import (  # noqa: F401
     open_data_store,
 )
 from cogent3.core import annotation_db as _anno_db
-from cogent3.core.new_alignment import make_aligned_seqs, make_unaligned_seqs
+from cogent3.core.alignment import make_aligned_seqs, make_unaligned_seqs
 from cogent3.core.new_genetic_code import available_codes, get_code  # noqa: F401
 
 # note that moltype has to be imported last, because it sets the moltype in
@@ -52,7 +52,7 @@ from cogent3.util.io import get_format_suffixes, is_url, open_  # noqa: F401
 from cogent3.util.progress_display import display_wrap
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    from cogent3.core.new_alignment import Alignment, SequenceCollection
+    from cogent3.core.alignment import Alignment, SequenceCollection
     from cogent3.core.new_sequence import Sequence
 
 __copyright__ = "Copyright 2007-2023, The Cogent Project"
@@ -342,7 +342,7 @@ def load_unaligned_seqs(
         )
 
     if file_suffix == "json":
-        from cogent3.core.new_alignment import SequenceCollection
+        from cogent3.core.alignment import SequenceCollection
 
         return load_from_json(filename, (SequenceCollection,))
 
@@ -412,7 +412,7 @@ def load_aligned_seqs(
 
     file_suffix, _ = get_format_suffixes(filename)
     if file_suffix == "json":
-        from cogent3.core.new_alignment import Alignment
+        from cogent3.core.alignment import Alignment
 
         return load_from_json(filename, (Alignment,))
 

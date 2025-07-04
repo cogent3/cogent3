@@ -28,8 +28,8 @@ from cogent3.app.align import (
     smith_waterman,
 )
 from cogent3.app.composable import NotCompleted
+from cogent3.core.alignment import Aligned, Alignment
 from cogent3.core.location import gap_coords_to_map
-from cogent3.core.new_alignment import Aligned, Alignment
 
 DNA = get_moltype("dna")
 

@@ -11,8 +11,8 @@ import warnings
 import numpy
 
 from cogent3.align.traceback import alignment_traceback, map_traceback
+from cogent3.core.alignment import Aligned
 from cogent3.core.location import IndelMap
-from cogent3.core.new_alignment import Aligned
 from cogent3.evolve.likelihood_tree import LikelihoodTreeEdge
 from cogent3.util.misc import ascontiguousarray
 

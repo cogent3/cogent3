@@ -16,8 +16,8 @@ from cogent3.align.progressive import tree_align
 from cogent3.app import dist
 from cogent3.app.data_store import get_data_source
 from cogent3.app.tree import interpret_tree_arg
+from cogent3.core.alignment import Aligned
 from cogent3.core.location import gap_coords_to_map
-from cogent3.core.new_alignment import Aligned
 from cogent3.core.new_moltype import get_moltype
 from cogent3.evolve.fast_distance import get_distance_calculator
 from cogent3.evolve.models import get_model

@@ -5,7 +5,7 @@ import typing
 
 import numpy
 
-from cogent3.core import new_alignment
+from cogent3.core import alignment as c3_alignment
 from cogent3.core.location import IndelMap
 
 IntOrNone = int | None
@@ -73,9 +73,7 @@ def map_traceback(
     return starts, ends, maps
 
 
-def alignment_traceback(
-    seqs, aligned_positions, word_length
-) -> new_alignment.Alignment:
+def alignment_traceback(seqs, aligned_positions, word_length) -> c3_alignment.Alignment:
     """Alignment object from state matrix and ending point."""
     (starts, ends, maps) = map_traceback(aligned_positions)
     ungapped_seqs = {}
@@ -87,7 +85,7 @@ def alignment_traceback(
         ungapped_seqs[name] = numpy.array(seq[start * word_length : end * word_length])
         gaps[name] = (amap * word_length).array
 
-    asd = new_alignment.AlignedSeqsData.from_seqs_and_gaps(
+    asd = c3_alignment.AlignedSeqsData.from_seqs_and_gaps(
         seqs=ungapped_seqs, gaps=gaps, alphabet=moltype.most_degen_alphabet()
     )
-    return new_alignment.make_aligned_seqs(asd, moltype=moltype)
+    return c3_alignment.make_aligned_seqs(asd, moltype=moltype)

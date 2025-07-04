@@ -464,7 +464,7 @@ class take_codon_positions:
         return new[2::3]
 
     def take_codon_position(self, aln):
-        from cogent3.core.new_alignment import Alignment
+        from cogent3.core.alignment import Alignment
 
         if not isinstance(aln, Alignment):
             return aln[self._positions :: 3]

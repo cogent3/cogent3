@@ -7,7 +7,7 @@ from numpy import array
 from .location import FeatureMap, SeqCoordTypes, Strand
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    from cogent3.core.new_alignment import Alignment
+    from cogent3.core.alignment import Alignment
     from cogent3.core.new_sequence import Sequence
     from cogent3.draw.drawable import Shape
 
