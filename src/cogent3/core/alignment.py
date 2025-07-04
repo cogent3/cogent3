@@ -803,16 +803,6 @@ class SequenceCollection(AnnotatableMixin):
         """the number of sequences in the collection"""
         return len(self.names)
 
-    @property
-    @c3warn.deprecated_callable(
-        version="2025.6",
-        reason=".seqs can now be indexed by name",
-        new=".seqs",
-    )
-    def named_seqs(self) -> SeqsDataABC:  # pragma: no cover
-        """deprecated, use ``.seqs[seqname]`` instead"""
-        return self.seqs
-
     def iter_seqs(
         self,
         seq_order: OptList = None,
@@ -1476,11 +1466,6 @@ class SequenceCollection(AnnotatableMixin):
         fasta = cogent3._plugin.get_seq_format_writer_plugin(format_name="fasta")  # noqa: SLF001
         return fasta.formatted(self, block_size=block_size)
 
-    @c3warn.deprecated_args(
-        version="2025.6",
-        reason="duplicates builtin name",
-        old_new=[("format", "file_format")],
-    )
     def write(self, filename: str, file_format: OptStr = None, **kwargs) -> None:
         """Write the sequences to a file, preserving order of sequences.
 
@@ -4749,11 +4734,6 @@ class Alignment(SequenceCollection):
         seq.annotation_db = self._annotation_db
         return seq
 
-    @c3warn.deprecated_args(
-        version="2025.6",
-        reason="naming consistency",
-        old_new=[("seq_name", "seqname")],
-    )
     def get_gapped_seq(
         self,
         seqname: str,
@@ -4845,7 +4825,6 @@ class Alignment(SequenceCollection):
         for pos in pos_order:
             yield [str(self[seq][pos]) for seq in self.names]
 
-    @c3warn.deprecated_args("2025.6", reason="not being used", discontinued="native")
     def get_position_indices(
         self,
         f: Callable[[str], bool],
@@ -4857,8 +4836,6 @@ class Alignment(SequenceCollection):
         ----------
         f
           function that returns true/false given an alignment position
-        native
-          if True, f is provided with slice of array, otherwise the string is used
         negate
           if True, not f() is used
         """
@@ -6841,15 +6818,6 @@ class Alignment(SequenceCollection):
         kwargs.pop("slice_record", None)
         kwargs.pop("annotation_db", None)
         return self.__class__(**kwargs)
-
-    @c3warn.deprecated_callable(
-        "2025.6",
-        reason="make intent clearer",
-        new="apply_scaled_gaps",
-    )
-    def replace_seqs(self, *args, **kwargs) -> typing_extensions.Self:
-        """returns a new alignment with sequences replaced"""
-        return self.apply_scaled_gaps(*args, **kwargs)
 
     def apply_scaled_gaps(
         self,

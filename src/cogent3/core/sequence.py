@@ -30,9 +30,7 @@ from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
     AnnotatableMixin,
     FeatureDataType,
-    GenbankAnnotationDb,
     SupportsFeatures,
-    load_annotations,
 )
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.location import (
@@ -57,10 +55,6 @@ from cogent3.util.misc import (
     is_int,
 )
 from cogent3.util.transform import for_seq, per_shortest
-
-if typing.TYPE_CHECKING:  # pragma: no cover
-    import os
-
 
 OptStr = str | None
 OptInt = int | None
@@ -1143,36 +1137,6 @@ class Sequence(AnnotatableMixin):
         feature.pop("seqid", None)
         return Feature(parent=self, seqid=self.name, map=fmap, **feature)
 
-    @c3warn.deprecated_callable(
-        "2025.6",
-        is_discontinued=True,
-        reason="directly assign the annotation_db instead",
-    )
-    def annotate_from_gff(
-        self,
-        f: os.PathLike,
-        offset: int | None = None,
-    ) -> None:  # pragma: no cover
-        """copies annotations from a gff file to self,
-
-        Parameters
-        ----------
-        f : path to gff annotation file.
-        offset : Optional, the offset between annotation coordinates and sequence coordinates.
-        """
-        if isinstance(self.annotation_db, GenbankAnnotationDb):
-            msg = "GenbankAnnotationDb already attached"
-            raise ValueError(msg)
-
-        self.annotation_db = load_annotations(
-            path=f,
-            seqids=self.name,
-            db=self.annotation_db,
-        )
-
-        if offset:
-            self.annotation_offset = offset
-
     def add_feature(
         self,
         *,
@@ -1335,12 +1299,6 @@ class Sequence(AnnotatableMixin):
             annotation_db=None if exclude_annotations else self.annotation_db,
         )
 
-    @c3warn.deprecated_args(
-        "2025.6",
-        old_new=[("annot_types", "biotypes")],
-        reason="consistency with Alignment method",
-    )
-    @c3warn.deprecated_args("2025.6", reason="not used", discontinued="extend_query")
     def with_masked_annotations(
         self,
         biotypes: StrORIterableStr,
