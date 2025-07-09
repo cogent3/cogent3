@@ -14,7 +14,7 @@ We first fit a model to the sample data.
 
     from cogent3 import get_app
 
-    loader = get_app("load_aligned", format="fasta")
+    loader = get_app("load_aligned", format_name="fasta")
     aln = loader("data/primate_brca1.fasta")
     gn = get_app("model", "GN", tree="data/primate_brca1.tree")
     result = gn(aln)

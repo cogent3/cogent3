@@ -11,14 +11,14 @@ We can load unaligned sequence data using the ``load_unaligned`` app, this will 
 Loading unaligned DNA sequences from a single fasta file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In this example, we load unaligned DNA sequences from a single fasta file using the ``load_unaligned`` app. We specify the molecular type ``(moltype="protein")`` and the file format ``(format="fasta")``.
+In this example, we load unaligned DNA sequences from a single fasta file using the ``load_unaligned`` app. We specify the molecular type ``(moltype="protein")`` and the file format ``(format_name="fasta")``.
 
 .. jupyter-execute::
     :raises:
 
     from cogent3 import get_app
 
-    load_unaligned_app = get_app("load_unaligned", format="fasta", moltype="protein")
+    load_unaligned_app = get_app("load_unaligned", format_name="fasta", moltype="protein")
     seqs = load_unaligned_app("data/inseqs_protein.fasta")
     seqs
 
@@ -60,9 +60,9 @@ In this example, our process loads the unaligned sequences using ``load_unaligne
 
     out_dstore = open_data_store(path_to_dir, suffix="tsv", mode="w")
 
-    load_unaligned_app = get_app("load_unaligned", format="fasta", moltype="dna")
+    load_unaligned_app = get_app("load_unaligned", format_name="fasta", moltype="dna")
     jdist = get_app("jaccard_dist")
-    writer = get_app("write_tabular", out_dstore, format="tsv")
+    writer = get_app("write_tabular", out_dstore, format_name="tsv")
 
     process = load_unaligned_app + jdist + writer
 

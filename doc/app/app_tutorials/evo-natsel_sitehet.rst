@@ -14,7 +14,7 @@ natural selection (`Nielsen and Yang
 
     from cogent3 import get_app
 
-    loader = get_app("load_aligned", format="fasta", moltype="dna")
+    loader = get_app("load_aligned", format_name="fasta", moltype="dna")
     aln = loader("data/primate_brca1.fasta")
 
     sites_differ = get_app("natsel_sitehet",

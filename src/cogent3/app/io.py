@@ -21,6 +21,7 @@ from cogent3.core.profile import (
 )
 from cogent3.core.table import Table
 from cogent3.evolve.fast_distance import DistanceMatrix
+from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import deserialise_object
 
 from .composable import LOADER, WRITER, NotCompleted, define_app
@@ -303,24 +304,34 @@ class load_aligned:
     def __init__(
         self,
         moltype: str | MolTypes | None = None,
-        format: str = "fasta",
+        format_name: str = "fasta",
+        **kwargs,
     ) -> None:
         """
         Parameters
         ----------
         moltype
             molecular type, string or instance, defaults to 'text'
-        format : str
+        format_name
             sequence file format
 
         Examples
         --------
         See https://cogent3.org/doc/app/app_cookbook/load-aligned.html
         """
+        if "format" in kwargs:
+            c3warn.deprecated(
+                _type="argument",
+                old="format",
+                new="format_name",
+                version="2025.9",
+                reason="don't use built in name",
+            )
+            format_name = kwargs.pop("format")
         moltype = moltype or "text"
         self.moltype = cogent3.get_moltype(moltype)
         self._parser = cogent3._plugin.get_seq_format_parser_plugin(  # noqa: SLF001
-            format_name=format.lower(),
+            format_name=format_name.lower(),
         )
 
     T = SerialisableType | AlignedSeqsType
@@ -338,7 +349,8 @@ class load_unaligned:
         self,
         *,
         moltype: str | MolTypes | None = None,
-        format: str = "fasta",
+        format_name: str = "fasta",
+        **kwargs,
     ) -> None:
         """
         Parameters
@@ -352,10 +364,19 @@ class load_unaligned:
         --------
         See https://cogent3.org/doc/app/app_cookbook/load-unaligned.html
         """
+        if "format" in kwargs:
+            c3warn.deprecated(
+                _type="argument",
+                old="format",
+                new="format_name",
+                version="2025.9",
+                reason="don't use built in name",
+            )
+            format_name = kwargs.pop("format")
         moltype = moltype or "text"
         self.moltype = cogent3.get_moltype(moltype)
         self._parser = cogent3._plugin.get_seq_format_parser_plugin(  # noqa: SLF001
-            format_name=format.lower(),
+            format_name=format_name.lower(),
         )
 
     T = SerialisableType | UnalignedSeqsType
@@ -372,11 +393,11 @@ class load_tabular:
 
     def __init__(
         self,
-        with_title=False,
-        with_header=True,
-        limit=None,
-        sep="\t",
-        strict=True,
+        with_title: bool = False,
+        with_header: bool = True,
+        limit: int | None = None,
+        sep: str = "\t",
+        strict: bool = True,
         as_type: tabular = "table",
     ) -> None:
         """
@@ -592,7 +613,8 @@ class write_seqs:
         self,
         data_store: DataStoreABC,
         id_from_source: typing.Callable[[object], str | None] = get_unique_id,
-        format: str = "fasta",
+        format_name: str = "fasta",
+        **kwargs,
     ) -> None:
         """
         Parameters
@@ -603,19 +625,29 @@ class write_seqs:
             A function for creating a unique identifier based on the data
             source. The default function removes path information and
             filename + compression suffixes.
-        format
+        format_name
             sequence format
 
         Examples
         --------
         See https://cogent3.org/doc/app/app_cookbook/write-seqs.html
         """
+        if "format" in kwargs:
+            c3warn.deprecated(
+                _type="argument",
+                old="format",
+                new="format_name",
+                version="2025.9",
+                reason="don't use built in name",
+            )
+            format_name = kwargs.pop("format")
+
         if not isinstance(data_store, DataStoreABC):
             msg = f"invalid type {type(data_store)!r} for data_store"
             raise TypeError(msg)
         self.data_store = data_store
         self._formatter = cogent3._plugin.get_seq_format_writer_plugin(  # noqa: SLF001
-            format_name=format.lower(),
+            format_name=format_name.lower(),
         )
         self._id_from_source = id_from_source
 
@@ -651,7 +683,8 @@ class write_tabular:
         self,
         data_store: DataStoreABC,
         id_from_source: typing.Callable[[object], str | None] = get_unique_id,
-        format: str = "tsv",
+        format_name: str = "tsv",
+        **kwargs,
     ) -> None:
         """
         data_store
@@ -660,19 +693,28 @@ class write_tabular:
             A function for creating a unique identifier based on the data
             source. The default function removes path information and
             filename + compression suffixes.
-        format
+        format_name
             tabular format, e.g. 'csv' or 'tsv'
 
         Examples
         --------
         See https://cogent3.org/doc/app/app_cookbook/write-tabular.html
         """
+        if "format" in kwargs:
+            c3warn.deprecated(
+                _type="argument",
+                old="format",
+                new="format_name",
+                version="2025.9",
+                reason="don't use built in name",
+            )
+            format_name = kwargs.pop("format")
         if not isinstance(data_store, DataStoreABC):
             msg = f"invalid type {type(data_store)!r} for data_store"
             raise TypeError(msg)
         self.data_store = data_store
         self._id_from_source = id_from_source
-        self._format = format
+        self._format = format_name
 
     def main(
         self,
@@ -694,7 +736,7 @@ class write_tabular:
                 data=data.to_json(),
             )
 
-        output = data.to_string(format=self._format)
+        output = data.to_string(format_name=self._format)
         return self.data_store.write(unique_id=identifier, data=output)
 
 

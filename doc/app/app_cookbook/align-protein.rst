@@ -13,7 +13,7 @@ We use apps to load unaligned DNA sequences and to translate them into amino aci
 
     from cogent3 import get_app
 
-    loader = get_app("load_unaligned", format="fasta")
+    loader = get_app("load_unaligned", format_name="fasta")
     to_aa = get_app("translate_seqs")
     process = loader + to_aa
     seqs = process("data/SCA1-cds.fasta")

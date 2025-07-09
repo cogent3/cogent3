@@ -43,7 +43,7 @@ We'll write a phylip formatted distance matrix.
 
 .. jupyter-execute::
 
-    d.write("dists_for_phylo.phylip", format="phylip")
+    d.write("dists_for_phylo.phylip", format_name="phylip")
 
 .. todo:: write out in json format
 

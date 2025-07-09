@@ -173,7 +173,7 @@ or by the ``format`` argument.
 
 .. jupyter-execute::
 
-    aln.write("sample", format="fasta")
+    aln.write("sample", format_name="fasta")
 
 .. now clean the files up
 

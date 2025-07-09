@@ -246,7 +246,7 @@ class FastSlowDistTests(TestCase):
         """works as a composable app"""
         from pathlib import Path
 
-        loader = get_app("load_aligned", moltype="dna", format="paml")
+        loader = get_app("load_aligned", moltype="dna", format_name="paml")
         dist = get_app("fast_slow_dist", "hamming", moltype="dna")
         with TemporaryDirectory(dir=".") as dirname:
             dirname = Path(dirname)

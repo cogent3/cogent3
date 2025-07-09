@@ -24,7 +24,7 @@ In the :ref:`writing JSON section <write_json>`, we wrote a likelihood function 
     path_to_dir = tmpdir.name
 
     # create lf object to write
-    load_aligned_app = get_app("load_aligned", moltype="dna", format="fasta")
+    load_aligned_app = get_app("load_aligned", moltype="dna", format_name="fasta")
     aln = load_aligned_app("data/primate_brca1.fasta")
     gn_model_app = get_app("model", "GN", tree="data/primate_brca1.tree")
     lf = gn_model_app(aln).lf

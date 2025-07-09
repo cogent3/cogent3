@@ -92,7 +92,7 @@ The loading functions use the filename suffix to infer the file format. This can
 
     from cogent3 import load_aligned_seqs
 
-    aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna", format="fasta")
+    aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna", format_name="fasta")
     aln
 
 Specifying the sequence molecular type

@@ -8,7 +8,7 @@ Let's load in an alignment of rodents to use in the examples.
     
     from cogent3 import get_app
 
-    loader = get_app("load_aligned", moltype="protein", format="phylip")
+    loader = get_app("load_aligned", moltype="protein", format_name="phylip")
     aln = loader("data/abglobin_aa.phylip")
     aln
 

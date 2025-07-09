@@ -29,7 +29,7 @@ Let's create a ``LikelihoodFunction`` object to use in this example. It is gener
     from cogent3 import get_app
 
     # Load the alignment
-    load_aligned_app = get_app("load_aligned", moltype="dna", format="fasta")
+    load_aligned_app = get_app("load_aligned", moltype="dna", format_name="fasta")
     aln = load_aligned_app("data/primate_brca1.fasta")
 
     # Fit the GN model

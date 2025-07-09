@@ -55,7 +55,7 @@ if typing.TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.alignment import Alignment, SequenceCollection
     from cogent3.core.sequence import Sequence
 
-__copyright__ = "Copyright 2007-2023, The Cogent Project"
+__copyright__ = "Copyright 2007-date, The Cogent Project"
 __credits__ = "https://github.com/cogent3/cogent3/graphs/contributors"
 __license__ = "BSD-3"
 
@@ -123,7 +123,7 @@ def make_seq(
 def _load_files_to_unaligned_seqs(
     *,
     path: os.PathLike,
-    format: str | None = None,
+    format_name: str | None = None,
     moltype: str | None = None,
     label_to_name: Callable | None = None,
     parser_kw: dict | None = None,
@@ -136,7 +136,7 @@ def _load_files_to_unaligned_seqs(
     seqs = [
         load_seq(
             fn,
-            format=format,
+            format_name=format_name,
             moltype=moltype,
             label_to_name=label_to_name,
             parser_kw=parser_kw,
@@ -181,11 +181,16 @@ def _load_genbank_seq(
     return name, seq, db
 
 
-@_c3warn.deprecated_args("2025.9", "no longer has an effect", discontinued="new_type")
+@_c3warn.deprecated_args(
+    "2025.9",
+    "no longer has an effect",
+    discontinued="new_type",
+    old_new=[("format", "format_name")],
+)
 def load_seq(
     filename: os.PathLike,
     annotation_path: os.PathLike | None = None,
-    format: str | None = None,
+    format_name: str | None = None,
     moltype: str | None = None,
     label_to_name: Callable | None = None,
     parser_kw: dict | None = None,
@@ -202,7 +207,7 @@ def load_seq(
         path to sequence file
     annotation_path
         path to annotation file, ignored if format is genbank
-    format
+    format_name
         sequence file format, if not specified tries to guess from the path suffix
     moltype
         the moltype, eg DNA, PROTEIN, 'dna', 'protein'
@@ -243,7 +248,7 @@ def load_seq(
         seq.name = label_to_name(seq.name) if label_to_name else seq.name
         return seq
 
-    if is_genbank(format or file_suffix):
+    if is_genbank(format_name or file_suffix):
         name, seq, db = _load_genbank_seq(
             filename,
             parser_kw,
@@ -252,7 +257,7 @@ def load_seq(
     else:
         db = None
         parser = get_seq_format_parser_plugin(
-            format_name=format,
+            format_name=format_name,
             file_suffix=file_suffix,
             unaligned_seqs=True,
         )
@@ -284,11 +289,16 @@ def load_seq(
     return result
 
 
-@_c3warn.deprecated_args("2025.9", "no longer has an effect", discontinued="new_type")
+@_c3warn.deprecated_args(
+    "2025.9",
+    "no longer has an effect",
+    discontinued="new_type",
+    old_new=[("format", "format_name")],
+)
 @display_wrap
 def load_unaligned_seqs(
     filename: str | pathlib.Path,
-    format: str | None = None,
+    format_name: str | None = None,
     moltype: str | None = None,
     label_to_name: typing.Callable[[str], str] | None = None,
     parser_kw: dict | None = None,
@@ -303,7 +313,7 @@ def load_unaligned_seqs(
     filename
         path to sequence file or glob pattern. If a glob we assume a single
         sequence per file. All seqs returned in one SequenceCollection.
-    format
+    format_name
         sequence file format, if not specified tries to guess from the path suffix
     moltype
         the moltype, eg DNA, PROTEIN, 'dna', 'protein'
@@ -329,11 +339,10 @@ def load_unaligned_seqs(
         filename = pathlib.Path(filename).expanduser()
 
     file_suffix, _ = get_format_suffixes(filename)
-    format_name = format
     if "*" in filename.name:
         return _load_files_to_unaligned_seqs(
             path=filename,
-            format=file_suffix,
+            format_name=format_name or file_suffix,
             moltype=moltype,
             label_to_name=label_to_name,
             parser_kw=parser_kw,
@@ -351,7 +360,7 @@ def load_unaligned_seqs(
         raise ValueError(msg)
 
     parser = get_seq_format_parser_plugin(
-        format_name=format,
+        format_name=format_name,
         file_suffix=file_suffix,
         unaligned_seqs=True,
     )
@@ -372,11 +381,14 @@ def load_unaligned_seqs(
 
 
 @_c3warn.deprecated_args(
-    "2025.9", "no longer has an effect", discontinued=("new_type", "array_align")
+    "2025.9",
+    "no longer has an effect",
+    discontinued=("new_type", "array_align"),
+    old_new=[("format", "format_name")],
 )
 def load_aligned_seqs(
     filename: str | pathlib.Path,
-    format: str | None = None,
+    format_name: str | None = None,
     moltype: str | None = None,
     label_to_name: typing.Callable[[str], str] | None = None,
     parser_kw: dict | None = None,
@@ -388,15 +400,15 @@ def load_aligned_seqs(
 
     Parameters
     ----------
-    filename : str
+    filename
         path to sequence file
-    format : str
+    format_name
         sequence file format, if not specified tries to guess from the path suffix
     moltype
         the moltype, eg DNA, PROTEIN, 'dna', 'protein'
     label_to_name
         function for converting original name into another name.
-    parser_kw : dict
+    parser_kw
         optional arguments for the parser
     kw
         passed to make_aligned_seqs
@@ -417,7 +429,7 @@ def load_aligned_seqs(
         return load_from_json(filename, (Alignment,))
 
     parser = get_seq_format_parser_plugin(
-        format_name=format,
+        format_name=format_name,
         file_suffix=file_suffix,
         unaligned_seqs=False,
     )
