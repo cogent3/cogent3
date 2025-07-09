@@ -13,7 +13,7 @@ Let's load a collection of globin sequences. Note that we must have a the molecu
     
     from cogent3 import get_app
 
-    loader = get_app("load_unaligned", moltype="dna", format="fasta")
+    loader = get_app("load_unaligned", moltype="dna", format_name="fasta")
     aln = loader("data/SCA1-cds.fasta")
     aln
 
@@ -55,7 +55,7 @@ In the following example, we compose a process that loads alignments and removes
 
     dstore = open_data_store("data", suffix="fasta", limit=2)
 
-    reader = get_app("load_aligned", format="fasta", moltype="dna")
+    reader = get_app("load_aligned", format_name="fasta", moltype="dna")
     min_length = get_app("min_length", 300)
     out_dstore = open_data_store(path_to_dir, mode="w", suffix="fasta")
     writer = get_app("write_seqs", out_dstore)

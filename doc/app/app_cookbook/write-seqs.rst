@@ -16,7 +16,7 @@ Writing out an alignment can be achieved easily with the ``write_seqs`` app. Fir
 
     from cogent3 import get_app
 
-    load_aligned_app = get_app("load_aligned", moltype="dna", format="fasta")
+    load_aligned_app = get_app("load_aligned", moltype="dna", format_name="fasta")
     aln = load_aligned_app("data/primate_brca1.fasta")
     aln
 
@@ -37,7 +37,7 @@ When creating the ``write_seqs`` app, we need to provide a data store to which w
 
     seq_dstore = open_data_store(path_to_dir, suffix="phylip", mode="w")
 
-    write_seqs_app = get_app("write_seqs", data_store=seq_dstore, format="phylip")
+    write_seqs_app = get_app("write_seqs", data_store=seq_dstore, format_name="phylip")
     result = write_seqs_app(aln)
 
     result.read()[:50]
@@ -73,10 +73,10 @@ Let's define a process. In this example, our process loads the sequences, filter
 
     out_dstore = open_data_store(path_to_dir, suffix="fa", mode="w")
 
-    loader = get_app("load_unaligned", format="fasta", moltype="dna")
+    loader = get_app("load_unaligned", format_name="fasta", moltype="dna")
     keep_translatable = get_app("select_translatable")
     translate = get_app("translate_seqs")
-    writer = get_app("write_seqs", out_dstore, format="fasta")
+    writer = get_app("write_seqs", out_dstore, format_name="fasta")
 
     process = loader + keep_translatable + translate + writer
 

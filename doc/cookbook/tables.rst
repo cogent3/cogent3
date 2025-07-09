@@ -644,7 +644,7 @@ Using the method provides finer control over formatting.
 
     from cogent3 import load_table
 
-    table = load_table("data/stats.tsv", format="md")
+    table = load_table("data/stats.tsv", format_name="md")
     print(table)
 
 Specify latex as the ``str()`` format
@@ -656,7 +656,7 @@ Using the method provides finer control over formatting.
 
     from cogent3 import load_table
 
-    table = load_table("data/stats.tsv", format="tex")
+    table = load_table("data/stats.tsv", format_name="tex")
     print(table)
 
 Get a table as a markdown formatted string
@@ -707,7 +707,7 @@ It is also possible to specify column alignment, table caption and other argumen
 .. jupyter-execute::
 
     table = load_table("data/stats.tsv")
-    print(table.to_string(format="latex"))
+    print(table.to_string(format_name="latex"))
 
 Getting a bedGraph format with ``to_string()``
 ==============================================
@@ -763,7 +763,7 @@ Then converted.
 
     print(
         bgraph.to_string(
-            format="bedgraph",
+            format_name="bedgraph",
             name="test track",
             description="test of bedgraph",
             color=(255, 0, 0),

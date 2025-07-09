@@ -2152,8 +2152,8 @@ def test_load_tree_from_json(tmp_path, tree_fxt, request):
     assert set(got.get_node_names()) == set(tree.get_node_names())
     # now try using non json suffix
     json_path = tmp_path / "tree.txt"
-    tree.write(json_path, format="json")
-    got = load_tree(json_path, format="json")
+    tree.write(json_path, format_name="json")
+    got = load_tree(json_path, format_name="json")
     assert isinstance(got, PhyloNode)
 
 

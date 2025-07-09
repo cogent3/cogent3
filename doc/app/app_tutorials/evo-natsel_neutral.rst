@@ -16,7 +16,7 @@ Noting that ω (omega) is the ratio of nonsynonymous substitutions to synonymous
 
     from cogent3 import get_app
 
-    loader = get_app("load_aligned", format="fasta", moltype="dna")
+    loader = get_app("load_aligned", format_name="fasta", moltype="dna")
     aln = loader("data/primate_brca1.fasta")
 
     omega_eq_1 = get_app("natsel_neutral",

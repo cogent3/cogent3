@@ -111,9 +111,9 @@ I illustrate the general approach for a simple example -- extracting third codon
 
     out_dstore = open_data_store(path_to_dir, suffix="fa", mode="w")
 
-    loader = get_app("load_aligned", format="fasta", moltype="dna")
+    loader = get_app("load_aligned", format_name="fasta", moltype="dna")
     cpos3 = get_app("take_codon_positions", 3)
-    writer = get_app("write_seqs", out_dstore, format="fasta")
+    writer = get_app("write_seqs", out_dstore, format_name="fasta")
 
 There are two ways in which I can apply the three above apps to data:
 

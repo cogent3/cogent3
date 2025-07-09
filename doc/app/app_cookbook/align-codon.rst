@@ -13,7 +13,7 @@ We load the unaligned sequences we will use in our examples.
 
     from cogent3 import get_app
 
-    loader = get_app("load_unaligned", format="fasta")
+    loader = get_app("load_unaligned", format_name="fasta")
     seqs = loader("data/SCA1-cds.fasta")
 
 .. note:: We use an app loader, but since this is just a single file we could have used the ``cogent3.load_unaligned_seqs()`` function.

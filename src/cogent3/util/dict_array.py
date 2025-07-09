@@ -21,6 +21,7 @@ A    B    C
 """
 
 import json
+import os
 import typing
 from collections import defaultdict
 from itertools import combinations, product
@@ -28,6 +29,7 @@ from itertools import combinations, product
 import numpy
 
 from cogent3._version import __version__
+from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import get_class, register_deserialiser
 from cogent3.util.io import atomic_write
 from cogent3.util.misc import get_object_provenance
@@ -599,22 +601,25 @@ class DictArray:
         t.set_repr_policy(show_shape=False)
         return t._repr_html_()
 
-    def to_string(self, format="tsv", sep=None):
+    @c3warn.deprecated_args(
+        "2025.9", "don't use built in name", old_new=[("format", "format_name")]
+    )
+    def to_string(self, format_name: str = "tsv", sep: str | None = None) -> str:
         """Return the data as a formatted string.
 
         Parameters
         ----------
-        format
+        format_name
             possible formats are 'csv', or 'tsv' (default).
         sep
             A string separator for delineating columns, e.g. ',' or
             '\t'. Overrides format.
         """
-        if format.lower() not in ("tsv", "csv"):
-            msg = f"'{format}' not supported"
+        if format_name.lower() not in ("tsv", "csv"):
+            msg = f"'{format_name}' not supported"
             raise ValueError(msg)
 
-        sep = sep or {"tsv": "\t", "csv": ","}[format.lower()]
+        sep = sep or {"tsv": "\t", "csv": ","}[format_name.lower()]
 
         data = self.to_dict(flatten=True)
         rows = [[f"dim-{i + 1}" for i in range(self.array.ndim)] + ["value"]] + [
@@ -646,21 +651,26 @@ class DictArray:
 
         return Table(header=header, data=data, index_name=index)
 
-    def write(self, path, format="tsv", sep="\t") -> None:
+    @c3warn.deprecated_args(
+        "2025.9", "don't use built in name", old_new=[("format", "format_name")]
+    )
+    def write(
+        self, path: str | os.PathLike, format_name: str = "tsv", sep: str = "\t"
+    ) -> None:
         """writes a flattened version to path
 
         Parameters
         ----------
-        path : str
-        format
+        path
+        format_name
             possible formats are 'rest'/'rst', 'markdown'/'md',
             'latex', 'html', 'phylip', 'bedgraph', 'csv', 'tsv', or 'simple'
             (default).
-        sep : str
+        sep
             used to split fields, will be inferred from path suffix if not
             provided
         """
-        data = self.to_string(format=format, sep=sep)
+        data = self.to_string(format_name=format_name, sep=sep)
         with atomic_write(path, mode="wt") as outfile:
             outfile.write(data)
 

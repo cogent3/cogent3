@@ -41,7 +41,7 @@ The outcome of this setting to ``model`` is that the black edges will share one 
 
 .. jupyter-execute::
 
-    loader = get_app("load_aligned", format="fasta")
+    loader = get_app("load_aligned", format_name="fasta")
     aln = loader("data/primate_brca1.fasta")
     result = time_het(aln)
 

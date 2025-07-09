@@ -1466,28 +1466,31 @@ class SequenceCollection(AnnotatableMixin):
         fasta = cogent3._plugin.get_seq_format_writer_plugin(format_name="fasta")  # noqa: SLF001
         return fasta.formatted(self, block_size=block_size)
 
-    def write(self, filename: str, file_format: OptStr = None, **kwargs) -> None:
+    @c3warn.deprecated_args(
+        "2025.9", "don't use built in name", old_new=[("format", "format_name")]
+    )
+    def write(self, filename: str, format_name: OptStr = None, **kwargs) -> None:
         """Write the sequences to a file, preserving order of sequences.
 
         Parameters
         ----------
         filename
             name of the sequence file
-        file_format
+        format_name
             format of the sequence file
 
         Notes
         -----
 
-        If file_format is None, will attempt to infer format from the filename
+        If format_name is None, will attempt to infer format from the filename
         suffix.
         """
 
         suffix, _ = get_format_suffixes(filename)
-        if file_format is None and suffix:
-            file_format = suffix
+        if format_name is None and suffix:
+            format_name = suffix
 
-        if file_format == "json":
+        if format_name == "json":
             with atomic_write(filename, mode="wt") as f:
                 f.write(self.to_json())
             return
@@ -1496,7 +1499,7 @@ class SequenceCollection(AnnotatableMixin):
             kwargs["order"] = self.names
 
         writer = cogent3._plugin.get_seq_format_writer_plugin(  # noqa: SLF001
-            format_name=file_format,
+            format_name=format_name,
             file_suffix=suffix,
             unaligned_seqs=type(self) == SequenceCollection,
         )
