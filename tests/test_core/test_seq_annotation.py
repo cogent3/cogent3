@@ -156,7 +156,7 @@ def test_slice_seq_with_partial_start(ann_seq, annot_type, num):
 
 
 def test_gbdb_get_children_get_parent(DATA_DIR):
-    seq = load_seq(DATA_DIR / "annotated_seq.gb")
+    seq = load_seq(DATA_DIR / "annotated_seq.gb", moltype="dna")
     seq = seq[2900:6000]
     (orig,) = list(seq.get_features(biotype="gene", name="CNA00110"))
     (child,) = list(orig.get_children("CDS"))

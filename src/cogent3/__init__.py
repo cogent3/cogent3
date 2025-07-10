@@ -83,7 +83,7 @@ load_annotations = _anno_db.load_annotations
 def make_seq(
     seq,
     name: str | None = None,
-    moltype=None,
+    moltype: str | None = None,
     annotation_offset: int = 0,
     annotation_db: _anno_db.SupportsFeatures | None = None,
     **kw: dict,
@@ -96,7 +96,7 @@ def make_seq(
     name
         sequence name
     moltype
-        name of a moltype or moltype instance
+        name of a moltype or moltype instance. If None, defaults to 'text'.
     annotation_offset
         integer indicating start position relative to annotations
     **kw
@@ -106,10 +106,9 @@ def make_seq(
     -------
     returns a sequence object
     """
-    moltype = moltype or "text"
-    moltype = get_moltype(moltype)
+    mtype = get_moltype(moltype)
 
-    seq = moltype.make_seq(
+    seq = mtype.make_seq(
         seq=seq,
         name=name,
         annotation_offset=annotation_offset,
