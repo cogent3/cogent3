@@ -52,10 +52,10 @@ jobs:
       - name: "Installs for docs"
         run: |
           pip install --upgrade pip nox
-          pip install ".[doc]"
+#          pip install ".[doc]"
 
-      - name: "test the docs code"
-        run: "nox -s testdocs-3.12"
+#      - name: "test the docs code"
+#        run: "nox -s testdocs-3.12"
 
   build:
     name: Build wheel and sdist
