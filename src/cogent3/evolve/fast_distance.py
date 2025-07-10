@@ -17,6 +17,7 @@ from cogent3.util.misc import get_object_provenance
 from cogent3.util.progress_display import display_wrap
 
 if typing.TYPE_CHECKING:  # pragma: no cover
+    from cogent3.core.alignment import Alignment
     from cogent3.core.tree import PhyloNode
 
 PySeq = typing.Sequence
@@ -332,9 +333,9 @@ class _PairwiseDistance:
     def __init__(
         self,
         moltype: c3_moltype.MolTypeLiteral,
-        invalid=-9,
-        alignment=None,
-        invalid_raises=False,
+        invalid: int = -9,
+        alignment: typing.Optional["Alignment"] = None,
+        invalid_raises: bool = False,
     ) -> None:
         super().__init__()
         mtype = cogent3.get_moltype(moltype)
@@ -707,7 +708,7 @@ _calculators = {
 }
 
 
-def get_distance_calculator(name, *args, **kwargs):
+def get_distance_calculator(name: str, *args, **kwargs) -> _PairwiseDistance:
     """returns a pairwise distance calculator
 
     name is converted to lower case"""
@@ -759,7 +760,7 @@ class DistanceMatrix(DictArray):
 
     @classmethod
     def from_array_names(
-        cls, matrix: numpy.ndarray, names: PySeqStr, invalid=None
+        cls, matrix: numpy.ndarray, names: PySeqStr, invalid: bool | None = None
     ) -> "DistanceMatrix":
         """construct a distance matrix from numpy array and names"""
         darr = DictArray.from_array_names(matrix, names, names)

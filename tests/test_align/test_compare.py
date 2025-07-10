@@ -149,7 +149,7 @@ def test_get_segments():
 
 
 def test_kmer_one(smallseq):
-    seq = make_seq(seq=smallseq, name="seq1")
+    seq = make_seq(seq=smallseq, name="seq1", moltype="dna")
     kmers = {Kmer(e, seq.name, i) for i, e in enumerate(seq.iter_kmers(k=2))}
     assert kmers == {smallseq[i : i + 2] for i in range(len(smallseq) - 1)}
 

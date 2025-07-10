@@ -14,13 +14,13 @@ from .typing import AlignedSeqsType, SeqsCollectionType, SerialisableType
 OptInt = int | None
 
 
-def intersection(groups):
+def intersection(groups: list[tuple[str, ...]]) -> set[str]:
     """returns the intersection of all groups"""
     common = set(groups.pop())
     return common.intersection(*map(set, groups))
 
 
-def union(groups):
+def union(groups: list[tuple[str, ...]]) -> set[str]:
     """returns the intersection of all groups"""
     union = set(groups.pop())
     return union.union(*map(set, groups))

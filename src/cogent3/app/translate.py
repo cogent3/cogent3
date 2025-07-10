@@ -92,7 +92,7 @@ def translate_frames(
     moltype: MolTypes | None = None,
     gc: GeneticCodeTypes = 1,
     allow_rc: bool = False,
-):
+) -> SeqsCollectionType:
     """translates a nucleic acid sequence
 
     Parameters
@@ -357,7 +357,7 @@ class translate_seqs:
         self._gc = cogent3.get_code(gc)
         self._trim_terminal_stop = trim_terminal_stop
 
-    T = Union[SerialisableType, SeqsCollectionType]
+    T = SerialisableType | SeqsCollectionType
 
     def main(self, seqs: SeqsCollectionType) -> T:
         """returns translated sequences"""

@@ -2830,7 +2830,7 @@ def make_unaligned_seqs(
     label_to_name: OptRenamerCallable = None,
     info: OptDict = None,
     source: OptPathType = None,
-    annotation_db: SupportsFeatures = None,
+    annotation_db: SupportsFeatures | None = None,
     offset: DictStrInt | None = None,
     name_map: DictStrStr | None = None,
     is_reversed: bool = False,
