@@ -29,16 +29,17 @@ from __future__ import annotations
 
 import contextlib
 import json
+import os
 import re
 import typing
 from copy import deepcopy
 from functools import reduce
 from itertools import combinations
 from operator import or_
-from random import choice, shuffle
+from random import choice
 
 import typing_extensions
-from numpy import argsort, ceil, log, zeros
+from numpy import ceil, log, zeros
 
 from cogent3._version import __version__
 from cogent3.maths.stats.test import correlation
@@ -351,26 +352,6 @@ class TreeNode:
         """Returns True if the current is a root, i.e. has no parent."""
         return self._parent is None
 
-    @c3warn.deprecated_callable(
-        "2025.6",
-        reason="use other tree methods e.g. preorder(), postorder() etc..",
-        is_discontinued=True,
-    )
-    def traverse(
-        self,
-        self_before: bool = True,
-        self_after: bool = False,
-        include_self: bool = True,
-    ) -> typing_extensions.Iterator[typing_extensions.Self]:  # pragma: no cover
-        """discontinued"""
-        if self_before:
-            if self_after:
-                return self.pre_and_postorder(include_self=include_self)
-            return self.preorder(include_self=include_self)
-        if self_after:
-            return self.postorder(include_self=include_self)
-        return self.tips(include_self=include_self)
-
     def levelorder(
         self, include_self: bool = True
     ) -> typing.Generator[typing_extensions.Self, None, None]:
@@ -441,12 +422,6 @@ class TreeNode:
         while curr._parent is not None:
             curr = curr._parent
         return curr
-
-    @c3warn.deprecated_callable(
-        "2025.6", reason="misleading method name", new="get_root()"
-    )
-    def root(self) -> typing_extensions.Self:
-        return self.get_root()
 
     def rooted(self, edge_name: str) -> typing_extensions.Self:
         """Returns a new tree with split at edge_name
@@ -1028,12 +1003,6 @@ class TreeNode:
             if c is not None and c is not parent
         ]
 
-    @c3warn.deprecated_args(
-        "2025.6",
-        "consistency between methods",
-        [("tipsonly", "tips_only")],
-        discontinued=["keep_root"],
-    )
     def get_sub_tree(
         self,
         name_list: list[str],
@@ -1257,16 +1226,24 @@ class TreeNode:
         header = ['<?xml version="1.0"?>']  # <!DOCTYPE ...
         return "\n".join(header + self._getXmlLines())
 
-    def write(self, filename, with_distances=True, format=None) -> None:
+    @c3warn.deprecated_args(
+        "2025.9", "don't use built in name", old_new=[("format", "format_name")]
+    )
+    def write(
+        self,
+        filename: str | os.PathLike,
+        with_distances: bool = True,
+        format_name: str | None = None,
+    ) -> None:
         """Save the tree to filename
 
         Parameters
         ----------
         filename
-            self
+            path to write the tree to.
         with_distances
             whether branch lengths are included in string.
-        format
+        format_name
             default is newick, xml and json are alternate. Argument overrides
             the filename suffix. All attributes are saved in the xml format.
             Value overrides the file name suffix.
@@ -1277,23 +1254,22 @@ class TreeNode:
 
         """
         file_format, _ = get_format_suffixes(filename)
-        format = format or file_format
-        if format == "json":
+        format_name = format_name or file_format
+        if format_name == "json":
             with atomic_write(filename, mode="wt") as f:
                 f.write(self.to_json())
             return
 
-        xml = format.lower() == "xml" if format else filename.lower().endswith("xml")
+        xml = (
+            format_name.lower() == "xml"
+            if format_name
+            else format_name.lower().endswith("xml")
+        )
         data = self.get_xml() if xml else self.get_newick(with_distances=with_distances)
 
         with atomic_write(filename, mode="wt") as outf:
             outf.writelines(data)
 
-    @c3warn.deprecated_args(
-        "2025.6",
-        "consistency between methods",
-        [("includeself", "include_self"), ("tipsonly", "tips_only")],
-    )
     def get_node_names(
         self, include_self: bool = True, tips_only: bool = False
     ) -> list[str]:
@@ -1315,11 +1291,6 @@ class TreeNode:
             nodes = list(self.preorder(include_self=include_self))
         return [node.name for node in nodes]
 
-    @c3warn.deprecated_args(
-        "2025.6",
-        "consistency between methods",
-        [("includeself", "include_self"), ("tipsonly", "tips_only")],
-    )
     def get_tip_names(self, include_self: bool = False) -> list[str]:
         """return the list of the names of all tips contained by this edge"""
         return self.get_node_names(include_self=include_self, tips_only=True)
@@ -1526,9 +1497,6 @@ class TreeNode:
             return 1
         return 1 - 2 * intersection_length / float(total_subsets)
 
-    @c3warn.deprecated_args(
-        "2025.6", "consistency with other methods", [("endpoints", "names")]
-    )
     def tip_to_tip_distances(
         self, names: list[str] | None = None, default_length: float | None = None
     ) -> DistanceMatrix:
@@ -2000,99 +1968,9 @@ class PhyloNode(TreeNode):
         _adjust_lengths_from_root(tip_name=a, mid_point=mid_point, tree=new_tree)
         return new_tree
 
-    @c3warn.deprecated_callable("2025.6", "not being used", is_discontinued=True)
-    def set_tip_distances(self) -> None:  # pragma: no cover
-        """discontinued"""
-        for node in self.traverse(self_before=False, self_after=True):
-            if node.children:
-                node.TipDistance = max(
-                    [c.length + c.TipDistance for c in node.children],
-                )
-            else:
-                node.TipDistance = 0
-
-    @c3warn.deprecated_callable("2025.6", "not being used", is_discontinued=True)
-    def scale_branch_lengths(
-        self, max_length: int = 100, ultrametric: bool = False
-    ) -> None:  # pragma: no cover
-        """discontinued"""
-        self.set_tip_distances()
-        orig_max = max([n.TipDistance for n in self.traverse()])
-        if not ultrametric:  # easy case -- just scale and round
-            for node in self.traverse():
-                curr = node.length
-                if curr is not None:
-                    node.ScaledBranchLength = max(
-                        1,
-                        int(round(1.0 * curr / orig_max * max_length)),
-                    )
-        else:  # hard case -- need to make sure they all line up at the end
-            for node in self.traverse(self_before=False, self_after=True):
-                if not node.children:  # easy case: ignore tips
-                    node.DistanceUsed = 0
-                    continue
-                # if we get here, we know the node has children
-                # figure out what distance we want to set for this node
-                ideal_distance = int(round(node.TipDistance / orig_max * max_length))
-                min_distance = max([c.DistanceUsed for c in node.children]) + 1
-                distance = max(min_distance, ideal_distance)
-                for c in node.children:
-                    c.ScaledBranchLength = distance - c.DistanceUsed
-                node.DistanceUsed = distance
-        # reset the BranchLengths
-        for node in self.traverse(self_before=True, self_after=False):
-            if node.length is not None:
-                node.length = node.ScaledBranchLength
-            if hasattr(node, "ScaledBranchLength"):
-                del node.ScaledBranchLength
-            if hasattr(node, "DistanceUsed"):
-                del node.DistanceUsed
-            if hasattr(node, "TipDistance"):
-                del node.TipDistance
-
-    @c3warn.deprecated_args(
-        "2025.6", "consistency with other methods", [("endpoints", "names")]
-    )
     def get_distances(self, names: list[str] | None = None) -> DistanceMatrix:
         """returns pairwise distance matrix"""
         return self.tip_to_tip_distances(names=names)
-
-    @c3warn.deprecated_callable(
-        "2025.6", "use the distance matrices directly", is_discontinued=True
-    )
-    def compare_by_tip_distances(
-        self,
-        other,
-        sample=None,
-        dist_f=distance_from_r,
-        shuffle_f=shuffle,
-    ):  # pragma: no cover
-        """discontinued"""
-        self_names = {i.name: i for i in self.tips()}
-        other_names = {i.name: i for i in other.tips()}
-        common_names = frozenset(list(self_names.keys())) & frozenset(
-            list(other_names.keys()),
-        )
-        common_names = list(common_names)
-
-        if not common_names:
-            msg = "No names in common between the two trees."
-            raise ValueError(msg)
-        if len(common_names) <= 2:
-            return 1  # the two trees must match by definition in this case
-
-        if sample is not None:
-            shuffle_f(common_names)
-            common_names = common_names[:sample]
-
-        self_matrix = self.tip_to_tip_distances(names=common_names).take_dists(
-            common_names
-        )
-        other_matrix = other.tip_to_tip_distances(names=common_names).take_dists(
-            common_names
-        )
-
-        return dist_f(self_matrix.array, other_matrix.array)
 
     def get_max_tip_tip_distance(
         self,
@@ -2114,27 +1992,6 @@ class PhyloNode(TreeNode):
         Also returns the tip names  that it is between as a tuple"""
         dist, pair, _ = self.get_max_tip_tip_distance()
         return dist, pair
-
-    @c3warn.deprecated_callable("2025.6", "not being used", is_discontinued=True)
-    def set_max_tip_tip_distance(self) -> None:  # pragma: no cover
-        """discontinued"""
-        for n in self.postorder():
-            if n.is_tip():
-                n.MaxDistTips = [[0.0, n.name], [0.0, n.name]]
-            else:
-                if len(n.children) == 1:
-                    tip_a, tip_b = n.children[0].MaxDistTips
-                    tip_a[0] += n.children[0].length or 0.0
-                    tip_b[0] += n.children[0].length or 0.0
-                else:
-                    tip_info = [(max(c.MaxDistTips), c) for c in n.children]
-                    dists = [i[0][0] for i in tip_info]
-                    best_idx = argsort(dists)[-2:]
-                    tip_a, child_a = tip_info[best_idx[0]]
-                    tip_b, child_b = tip_info[best_idx[1]]
-                    tip_a[0] += child_a.length or 0.0
-                    tip_b[0] += child_b.length or 0.0
-                n.MaxDistTips = [tip_a, tip_b]
 
     @staticmethod
     def parse_token(token: str) -> tuple[str | None, dict]:
@@ -2292,10 +2149,13 @@ class TreeBuilder:
         return node
 
 
+@c3warn.deprecated_args(
+    "2025.9", "don't use built in name", old_new=[("format", "format_name")]
+)
 def make_tree(
     treestring: str | None = None,
     tip_names: list[str] | None = None,
-    format: str | None = None,
+    format_name: str | None = None,
     underscore_unmunge: bool = False,
     source: str | pathlib.Path | None = None,
 ) -> PhyloNode | TreeNode:
@@ -2307,10 +2167,10 @@ def make_tree(
         a newick or xml formatted tree string
     tip_names
         a list of tip names, returns a "star" topology tree
-    format : str
+    format_name
         indicates treestring is either newick or xml formatted, default
         is newick
-    underscore_unmunge : bool
+    underscore_unmunge
         replace underscores with spaces in all names read, i.e. "sp_name"
         becomes "sp name"
     source
@@ -2334,9 +2194,9 @@ def make_tree(
         result.source = source
         return result
 
-    if format is None and treestring.startswith("<"):
-        format = "xml"
-    parser = tree_xml_parse_string if format == "xml" else newick_parse_string
+    if format_name is None and treestring.startswith("<"):
+        format_name = "xml"
+    parser = tree_xml_parse_string if format_name == "xml" else newick_parse_string
     tree_builder = TreeBuilder().create_edge
     # FIXME: More general strategy for underscore_unmunge
     if parser is newick_parse_string:
@@ -2350,21 +2210,24 @@ def make_tree(
     return tree
 
 
+@c3warn.deprecated_args(
+    "2025.9", "don't use built in name", old_new=[("format", "format_name")]
+)
 def load_tree(
     filename: str | pathlib.Path,
-    format: str | None = None,
+    format_name: str | None = None,
     underscore_unmunge: bool = False,
 ) -> PhyloNode | TreeNode:
     """Constructor for tree.
 
     Parameters
     ----------
-    filename : str
+    filename
         a file path containing a newick or xml formatted tree.
-    format : str
+    format_name
         either xml or json, all other values default to newick. Overrides
         file name suffix.
-    underscore_unmunge : bool
+    underscore_unmunge
         replace underscores with spaces in all names read, i.e. "sp_name"
         becomes "sp name".
 
@@ -2381,8 +2244,8 @@ def load_tree(
     PhyloNode
     """
     fmt, _ = get_format_suffixes(filename)
-    format = format or fmt
-    if format == "json":
+    format_name = format_name or fmt
+    if format_name == "json":
         tree = load_from_json(filename, (TreeNode, PhyloNode))
         tree.source = str(filename)
         return tree
@@ -2392,7 +2255,7 @@ def load_tree(
 
     return make_tree(
         treestring,
-        format=format,
+        format_name=format_name,
         underscore_unmunge=underscore_unmunge,
         source=filename,
     )

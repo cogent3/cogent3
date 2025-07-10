@@ -6,15 +6,6 @@
 ``natsel_neutral`` – a test for selective neutrality
 ----------------------------------------------------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 We employ codon models to test hypotheses regarding the mode of natural selection that has operated on a gene.
 
 Noting that ω (omega) is the ratio of nonsynonymous substitutions to synonymous substitutions, ω=1 is indicative a gene is evolving neutrally.
@@ -25,7 +16,7 @@ Noting that ω (omega) is the ratio of nonsynonymous substitutions to synonymous
 
     from cogent3 import get_app
 
-    loader = get_app("load_aligned", format="fasta", moltype="dna")
+    loader = get_app("load_aligned", format_name="fasta", moltype="dna")
     aln = loader("data/primate_brca1.fasta")
 
     omega_eq_1 = get_app("natsel_neutral",

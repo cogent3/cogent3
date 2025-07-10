@@ -1,15 +1,6 @@
 Removing degenerate characters
 ------------------------------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 Degenerate IUPAC base symbols represent a site position that can have multiple possible characters. For a DNA example, "Y" represents pyrimidines where the site can be either "C" or "T".
 
 .. note:: In many molecular evolutionary and phylogenetic analyses, the gap character "-" is treated "N", meaning any base.

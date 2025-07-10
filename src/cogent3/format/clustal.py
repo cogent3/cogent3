@@ -1,11 +1,6 @@
-#!/usr/bin/env python
 """
 Writer for Clustal format.
 """
-
-import os
-
-_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
 
 
 def clustal_from_alignment(

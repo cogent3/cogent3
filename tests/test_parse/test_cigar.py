@@ -23,7 +23,6 @@ class TestCigar(unittest.TestCase):
         self.slices = [(1, 4), (0, 8), (7, 12), (0, 1), (3, 5)]
         self.aln = cogent3.make_aligned_seqs(
             {"FAKE01": self.aln_seq, "FAKE02": self.aln_seq1},
-            array_align=False,
             moltype="dna",
         )
         self.cigars = {"FAKE01": self.cigar_text, "FAKE02": map_to_cigar(self.map1)}
@@ -64,7 +63,6 @@ class TestCigar(unittest.TestCase):
     def test_CigarParser(self):
         """test without slice"""
         aln = CigarParser(self.seqs, self.cigars)
-        aln = aln.to_type(array_align=False)
         assert aln == self.aln
         # test slice
         db = GffAnnotationDb()

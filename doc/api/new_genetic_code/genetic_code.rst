@@ -1,7 +1,7 @@
-:mod:`new_genetic_code`
+:mod:`genetic_code`
 =======================
 
-.. currentmodule:: cogent3.core.new_genetic_code
+.. currentmodule:: cogent3.core.genetic_code
 
 .. autosummary::
     :toctree: classes

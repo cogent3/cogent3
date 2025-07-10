@@ -1,18 +1,19 @@
-#!/usr/bin/env python
 """Provides a parser for Rdb format files.
 
 Data in from the European rRNA database in distribution format.
 """
 
+import cogent3
 from cogent3.core.alphabet import AlphabetError
 from cogent3.core.info import Info
-from cogent3.core.sequence import RnaSequence
 from cogent3.parse.record import RecordError
 from cogent3.parse.record_finder import DelimitedRecordFinder
+from cogent3.util import warning as c3warn
 
 strip = str.strip
 maketrans = str.maketrans
 
+RNA = cogent3.get_moltype("rna")
 
 RdbFinder = DelimitedRecordFinder("//")
 
@@ -112,16 +113,15 @@ def create_acceptable_sequence(sequence):
     return str(sequence).translate(trans_table)  # should be accepted by RnaSequence
 
 
+@c3warn.deprecated_args("2025.9", "no longer used", discontinued="SeqConstructor")
 def RdbParser(
     lines,
-    SeqConstructor=RnaSequence,
     LabelConstructor=InfoMaker,
     strict=True,
 ):
     """Yield sequences from the Rdb record.
 
     lines: a stream of Rdb records.
-    SeqConstructor: constructor function to create the final sequence object
     LabelConstructor: function that creates Info dictionary from label lines
     strict: boolean, when True, an error is raised when one occurs, when False,
         the record is ignored when an error occurs.
@@ -139,7 +139,7 @@ def RdbParser(
         if strict:
             # need to do error checking while constructing info and sequence
             try:
-                yield SeqConstructor(clean_seq, info=info)
+                yield RNA.make_seq(seq=clean_seq, info=info)
             except AlphabetError:
                 msg = f"Sequence construction failed on record with reference {info.Refs}."
                 raise RecordError(
@@ -148,8 +148,8 @@ def RdbParser(
         else:
             # not strict: just skip any record that raises an exception
             try:
-                yield SeqConstructor(clean_seq, info=info)
-            except:
+                yield RNA.make_seq(seq=clean_seq, info=info)
+            except Exception:
                 continue
 
 

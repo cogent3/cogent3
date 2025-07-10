@@ -6,15 +6,6 @@
 Counting gaps per sequence
 ==========================
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 We have several different ways of counting sequence gaps, and of visualising the results. By default, the ``count_gaps_per_seq()`` method returns a matrix of counts without the ability to visualise the results. When setting the argument ``unique=True``, the counts are for gaps uniquely induced by each sequence. This can be a useful indicator of highly divergent sequences.
 
 .. jupyter-execute::

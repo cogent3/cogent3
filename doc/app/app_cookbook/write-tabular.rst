@@ -6,15 +6,6 @@
 Writing tabular data
 --------------------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 With the ``write_tabular`` app, ``cogent3`` "TabularTypes" (``Table``, ``DictArray``, ``DistanceMatrix``) are supported for writing to disk. 
 
 Let's generate a ``cogent3`` ``Table`` to use in the examples below. One way to do that is by applying the ``tabulate_stats`` app to a model result. 
@@ -42,7 +33,7 @@ Let's generate a ``cogent3`` ``Table`` to use in the examples below. One way to 
 Writing a CSV file
 ^^^^^^^^^^^^^^^^^^
 
-To write in CSV format, we create the ``write_tabular`` app with ``format="csv"``. 
+To write in CSV format, we create the ``write_tabular`` app with ``format_name="csv"``. 
 
 .. jupyter-execute::
     :hide-code:
@@ -60,14 +51,14 @@ To write in CSV format, we create the ``write_tabular`` app with ``format="csv"`
 
     out_dstore = open_data_store(path_to_dir, mode="w", suffix="csv")
 
-    write_tabular_app = get_app("write_tabular", data_store=out_dstore, format="csv")
+    write_tabular_app = get_app("write_tabular", data_store=out_dstore, format_name="csv")
     write_tabular_app(motif_params, identifier="gn_model_results.csv")
 
 
 Writing a TSV file
 ^^^^^^^^^^^^^^^^^^
 
-To write in TSV format, we create the ``write_tabular`` app with ``format="tsv"``. 
+To write in TSV format, we create the ``write_tabular`` app with ``format_name="tsv"``. 
 
 .. jupyter-execute::
     :hide-code:
@@ -85,7 +76,7 @@ To write in TSV format, we create the ``write_tabular`` app with ``format="tsv"`
 
     out_dstore = open_data_store(path_to_dir, mode="w", suffix="tsv")
 
-    write_tabular_app = get_app("write_tabular", data_store=out_dstore, format="tsv")
+    write_tabular_app = get_app("write_tabular", data_store=out_dstore, format_name="tsv")
     write_tabular_app(motif_params, identifier="gn_model_results.tsv")
 
 Using ``write_tabular`` in a composed process
@@ -110,7 +101,7 @@ Instead of applying the apps sequentially as above, we can add apps into a compo
     loader = get_app("load_unaligned", moltype="dna")
     jdist = get_app("jaccard_dist")
     out_dstore = open_data_store(path_to_dir, mode="w", suffix="tsv")
-    writer = get_app("write_tabular", data_store=out_dstore, format="tsv")
+    writer = get_app("write_tabular", data_store=out_dstore, format_name="tsv")
 
     process = loader + jdist + writer
 

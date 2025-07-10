@@ -544,10 +544,9 @@ def test_get_data_source_seqcoll(klass):
 
     value = klass("some/path.txt")
     obj = make_unaligned_seqs(
-        data={"seq1": "ACGG"},
+        {"seq1": "ACGG"},
         moltype="dna",
         info={"random_key": 1234},
-        new_type=True,
         source=value,
     )
     got = get_data_source(obj)
@@ -789,7 +788,7 @@ def test_apply_to_not_completed(nc_dstore, tmp_path):
     loader = io_app.load_unaligned()
     num_seqs = sample_app.take_n_seqs(number=3, fixed_choice=False)
     out_dstore = io_app.open_data_store(tmp_path / "output", suffix="fa", mode="w")
-    writer = io_app.write_seqs(data_store=out_dstore, format="fasta")
+    writer = io_app.write_seqs(data_store=out_dstore, format_name="fasta")
     app = loader + num_seqs + writer
     fini = app.apply_to(nc_dstore)
     assert 0 < len(fini.completed) <= len(nc_dstore.completed)

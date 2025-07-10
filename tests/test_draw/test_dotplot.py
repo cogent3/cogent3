@@ -20,11 +20,11 @@ class TestUtilFunctions(TestCase):
     def test_convert_input(self):
         """converts data for dotplotting"""
         m, seq = DNA.make_seq(seq="ACGGT--A").parse_out_gaps()
-        aligned_seq = Aligned(m, seq)
+        aligned_seq = Aligned.from_map_and_seq(m, seq)
         mapped_gap, new_seq = _convert_input(aligned_seq, None)
         assert new_seq.moltype is DNA
-        assert mapped_gap is m
-        assert new_seq is seq
+        assert (mapped_gap.array == m.array).all()
+        assert new_seq == seq
         mapped_gap, new_seq = _convert_input("ACGGT--A", DNA)
         assert str(mapped_gap) == str(m)
         assert str(new_seq) == str(seq)
@@ -182,9 +182,7 @@ def test_get_align_coords_common_gaps():
 
 def test_align_without_gaps():
     """dotplot has alignment coordinates if no gaps"""
-    aln = make_aligned_seqs(
-        data={"seq1": "ACGG", "seq2": "ACGG"}, moltype="dna", new_type=True
-    )
+    aln = make_aligned_seqs({"seq1": "ACGG", "seq2": "ACGG"}, moltype="dna")
     dp = aln.dotplot(window=2, threshold=1)
     # trigger building the figure
     dp.figure
@@ -194,7 +192,7 @@ def test_align_without_gaps():
 def test_dotplot_seqcoll():
     """dotplot sequence collection, gaps are removed"""
     seqs = make_unaligned_seqs(
-        {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}, moltype="dna", new_type=True
+        {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}, moltype="dna"
     )
     dp = seqs.dotplot("seq1", "seq3")
     assert all(trace["name"] != "Alignment" for trace in dp.traces)

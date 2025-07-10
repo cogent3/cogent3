@@ -5,26 +5,17 @@ import numba
 import numba.types as numba_types
 import numpy
 
-from cogent3.core import new_moltype
+from cogent3.core import moltype as c3_moltype
 from cogent3.evolve.fast_distance import DistanceMatrix
 
-if typing.TYPE_CHECKING:
+if typing.TYPE_CHECKING:  # pragma: no cover
     # Forward reference to avoid circular import
-    from cogent3.core.new_alignment import Alignment
+    from cogent3.core.alignment import Alignment
 
 # turn off code coverage as jit-ted code not accessible to coverage
 
 
 # fills in a diversity matrix from sequences of integers
-
-
-def _is_nucleic(moltype) -> bool:
-    # TODO delete when new_type alignments and moltypes are the norm
-    try:
-        _ = moltype.complement("A")
-    except (ValueError, new_moltype.MolTypeError):
-        return False
-    return True
 
 
 @numba.jit
@@ -317,9 +308,9 @@ def tn93(
     parallel
         If True, uses parallel processing via numba.
     """
-    if not _is_nucleic(aln.moltype):
+    if not aln.moltype.is_nucleic:
         msg = f"tn93 distance only works with nucleotide alignments, not {aln.moltype}"
-        raise new_moltype.MolTypeError(
+        raise c3_moltype.MolTypeError(
             msg,
         )
 
@@ -369,7 +360,7 @@ def tn93(
 
 
 @numba.jit
-def _paralinear(matrix, num_states):
+def _paralinear(matrix, num_states):  # pragma: no cover
     # we replace the missing diagonal states with a
     # pseudocount of 0.5 then normalise
     frequency = matrix.astype(numpy.float32)
@@ -457,9 +448,9 @@ def paralinear(
     -----
     This is limited to 4-state alphabets for now.
     """
-    if not _is_nucleic(aln.moltype):
+    if not aln.moltype.is_nucleic:
         msg = f"paralinear distance only works with nucleotide alignments, not {aln.moltype}"
-        raise new_moltype.MolTypeError(
+        raise c3_moltype.MolTypeError(
             msg,
         )
 

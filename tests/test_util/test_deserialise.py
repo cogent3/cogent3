@@ -26,12 +26,10 @@ from cogent3.util.deserialise import (
     deserialise_object,
 )
 
-_NEW_TYPE = True
-
 
 def test_roundtrip_codon_alphabet():
     """codon alphabet to_json enables roundtrip"""
-    standard = get_code(1, new_type=True).get_alphabet()
+    standard = get_code(1).get_alphabet()
     data = standard.to_json()
     got = deserialise_object(data)
     assert isinstance(got, type(standard))
@@ -40,7 +38,7 @@ def test_roundtrip_codon_alphabet():
 
 def test_roundtrip_alphabet():
     """alphabet to_json enables roundtrip"""
-    dna = get_moltype("dna", new_type=True)
+    dna = get_moltype("dna")
     data = dna.alphabet.to_json()
     got = deserialise_object(data)
     assert isinstance(got, type(dna.alphabet))
@@ -49,7 +47,7 @@ def test_roundtrip_alphabet():
 
 def test_roundtrip_moltype():
     """moltype to_json enables roundtrip"""
-    dna = get_moltype("dna", new_type=True)
+    dna = get_moltype("dna")
     data = dna.to_json()
     got = deserialise_object(data)
     assert isinstance(got, type(dna))
@@ -59,7 +57,7 @@ def test_roundtrip_moltype():
 def test_roundtrip_seqcoll():
     """SequenceCollection to_json enables roundtrip"""
     data = {"A": "TTGT", "B": "GGCT"}
-    seqcoll = make_unaligned_seqs(data=data, moltype="dna")
+    seqcoll = make_unaligned_seqs(data, moltype="dna")
     got = deserialise_object(seqcoll.to_json())
     assert got.rc().to_dict() == seqcoll.rc().to_dict()
     assert got.__class__.__name__ == "SequenceCollection"
@@ -68,7 +66,7 @@ def test_roundtrip_seqcoll():
 def test_roundtrip_align():
     """Alignment to_json enables roundtrip"""
     data = {"A": "TTGTA", "B": "GGCT-"}
-    align = make_aligned_seqs(data=data, moltype="dna", array_align=False)
+    align = make_aligned_seqs(data, moltype="dna")
     got = deserialise_object(align.to_json())
     assert got.rc().to_dict() == align.rc().to_dict()
     assert got.__class__.__name__.endswith("Alignment")
@@ -125,7 +123,7 @@ def test_roundtrip_likelihood_function():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = make_aligned_seqs(data=_data, moltype="dna")
+    aln = make_aligned_seqs(_data, moltype="dna")
     tree = make_tree(tip_names=aln.names)
     sm = get_model("HKY85")
     lf = sm.make_likelihood_function(tree)
@@ -146,7 +144,7 @@ def test_roundtrip_discrete_time_likelihood_function():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = make_aligned_seqs(data=_data, moltype="dna")
+    aln = make_aligned_seqs(_data, moltype="dna")
     tree = make_tree(tip_names=aln.names)
     sm = get_model("BH")
     lf = sm.make_likelihood_function(tree)
@@ -182,7 +180,7 @@ def test_roundtrip_from_file(tmp_path):
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = make_aligned_seqs(data=_data, moltype="dna")
+    aln = make_aligned_seqs(_data, moltype="dna")
     tree = make_tree(tip_names=aln.names)
     sm = get_model("HKY85")
     lf = sm.make_likelihood_function(tree)
@@ -208,7 +206,7 @@ def test_roundtrip_model_result():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = make_aligned_seqs(data=_data, moltype="dna")
+    aln = make_aligned_seqs(_data, moltype="dna")
     tree = make_tree(tip_names=aln.names)
     sm = get_model("HKY85")
     lf = sm.make_likelihood_function(tree)
@@ -247,7 +245,7 @@ def test_roundtrip_model_result2():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = make_aligned_seqs(data=_data, moltype="dna")
+    aln = make_aligned_seqs(_data, moltype="dna")
     opt_args = {"max_evaluations": 10, "limit_action": "ignore"}
     m1 = evo_app.model("F81", split_codons=True, opt_args=opt_args)
     result = m1(aln)
@@ -282,7 +280,7 @@ def test_model_collection_result():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = make_aligned_seqs(data=_data, moltype="dna")
+    aln = make_aligned_seqs(_data, moltype="dna")
     opt_args = {"max_evaluations": 10, "limit_action": "ignore"}
     m1 = evo_app.model("F81", split_codons=True, opt_args=opt_args)
     m2 = evo_app.model("GTR", split_codons=True, opt_args=opt_args)
@@ -320,7 +318,7 @@ def test_roundtrip_hypothesis_result():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = make_aligned_seqs(data=_data, moltype="dna")
+    aln = make_aligned_seqs(_data, moltype="dna")
     opt_args = {"max_evaluations": 10, "limit_action": "ignore"}
     m1 = evo_app.model("F81", split_codons=True, opt_args=opt_args)
     m2 = evo_app.model("GTR", split_codons=True, opt_args=opt_args)
@@ -564,7 +562,7 @@ def test_roundtrip_TN93_model(rate_matrix_required):
         "b": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "c": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = make_aligned_seqs(data=_data, moltype="dna")
+    aln = make_aligned_seqs(_data, moltype="dna")
     tree = make_tree(tip_names=["a", "b", "c"])
     tn93 = get_model(
         "TN93",
@@ -582,7 +580,7 @@ def test_roundtrip_TN93_model_result():
         "b": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "c": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = make_aligned_seqs(data=_data, moltype="dna")
+    aln = make_aligned_seqs(_data, moltype="dna")
     tn93 = get_app("model", "TN93")
     result = tn93(aln)
 
@@ -593,7 +591,7 @@ def test_roundtrip_TN93_model_result():
 @pytest.mark.parametrize("mtype", ["dna", "protein"])
 def test_roundtrip_seq(mtype):
     """seq to_json enables roundtrip"""
-    mtype = get_moltype(mtype, new_type=True)
+    mtype = get_moltype(mtype)
     seq = mtype.make_seq(seq="ACGGTCGG", name="label", info={"something": 3})
     got = deserialise_object(seq.to_json())
     assert got.info.something == 3
@@ -674,7 +672,7 @@ def test_deserialise_old_to_new_type_alignment_1():
     }
     got = deserialise_object(rd)
     got_prov = get_object_provenance(got)
-    assert got_prov == "cogent3.core.new_alignment.Alignment"
+    assert got_prov == "cogent3.core.alignment.Alignment"
     rd = {
         "info": {"seed": "758_443154_73021", "source": "15", "fg_edge": "73021"},
         "moltype": "dna",
@@ -709,7 +707,7 @@ def test_deserialise_old_to_new_type_alignment_1():
     }
     got = deserialise_object(rd)
     got_prov = get_object_provenance(got)
-    assert got_prov == "cogent3.core.new_alignment.Alignment"
+    assert got_prov == "cogent3.core.alignment.Alignment"
     assert got.source == "15"
     assert "source" not in got.info
 
@@ -810,7 +808,7 @@ def test_deserialise_old_to_new_type_alignment_2():
     }
     got = deserialise_object(rd)
     got_prov = get_object_provenance(got)
-    assert got_prov == "cogent3.core.new_alignment.Alignment"
+    assert got_prov == "cogent3.core.alignment.Alignment"
     assert got.source == "unknown"
     assert "source" not in got.info
 
@@ -879,7 +877,7 @@ def test_deserialise_old_to_new_type_seqcoll():
     }
     got = deserialise_object(rd)
     got_prov = get_object_provenance(got)
-    assert got_prov == "cogent3.core.new_alignment.SequenceCollection"
+    assert got_prov == "cogent3.core.alignment.SequenceCollection"
     assert got.source == "unknown"
     assert "source" not in got.info
 
@@ -896,7 +894,8 @@ moltype_old_class_map = {
 
 @pytest.mark.parametrize("moltype_name", list(moltype_old_class_map.keys()))
 def test_deserialise_old_to_new_type_seqs(moltype_name):
-    from cogent3.core import new_moltype, new_sequence
+    from cogent3.core import moltype as c3_moltype
+    from cogent3.core import sequence
 
     old_rich_dict = {
         "annotation_offset": 0,
@@ -912,12 +911,12 @@ def test_deserialise_old_to_new_type_seqs(moltype_name):
         "version": "2025.5.8a9",
     }
     got = deserialise_object(old_rich_dict)
-    assert isinstance(got.moltype, new_moltype.MolType)
-    assert isinstance(got, new_sequence.Sequence)
+    assert isinstance(got.moltype, c3_moltype.MolType)
+    assert isinstance(got, sequence.Sequence)
 
 
 def test_deserialise_old_to_new_type_moltype():
-    from cogent3.core import new_moltype
+    from cogent3.core import moltype as c3_moltype
 
     old_rich_dict = {
         "type": "cogent3.core.moltype.MolType",
@@ -925,14 +924,14 @@ def test_deserialise_old_to_new_type_moltype():
         "version": "2025.5.8a9",
     }
     got = deserialise_object(old_rich_dict)
-    assert isinstance(got, new_moltype.MolType)
+    assert isinstance(got, c3_moltype.MolType)
 
 
 @pytest.mark.parametrize(
     "motifset", ["TCAG", "TCAGNRYWSKMBDHV", "TCAG-", "TCAG-NRYWSKMBDHV?"]
 )
 def test_deserialise_old_to_new_charalphabet(motifset):
-    from cogent3.core import new_alphabet
+    from cogent3.core import alphabet as c3_alphabet
 
     old_rich_dict = {
         "motifset": list(motifset),
@@ -942,12 +941,12 @@ def test_deserialise_old_to_new_charalphabet(motifset):
         "version": "2025.5.8a9",
     }
     got = deserialise_object(old_rich_dict)
-    assert isinstance(got, new_alphabet.CharAlphabet)
+    assert isinstance(got, c3_alphabet.CharAlphabet)
 
 
-def test_deserialise_old_to_new_alphabet():
+def test_deserialise_old_to_c3_alphabet():
     # this is special to BH
-    from cogent3.core import new_alphabet
+    from cogent3.core import alphabet as c3_alphabet
 
     old_rich_dict = {
         "motifset": ("T", "C", "A", "G"),
@@ -957,11 +956,11 @@ def test_deserialise_old_to_new_alphabet():
         "version": "2025.5.8a9",
     }
     got = deserialise_object(old_rich_dict)
-    assert isinstance(got, new_alphabet.CharAlphabet)
+    assert isinstance(got, c3_alphabet.CharAlphabet)
 
 
 def test_deserialise_old_to_new_type_kmer_alphabet():
-    from cogent3.core import new_alphabet
+    from cogent3.core import alphabet as c3_alphabet
 
     old_rich_dict = {
         "data": ["TCAG", "TCAG"],
@@ -971,12 +970,12 @@ def test_deserialise_old_to_new_type_kmer_alphabet():
         "version": "2025.5.8a9",
     }
     got = deserialise_object(old_rich_dict)
-    assert isinstance(got, new_alphabet.KmerAlphabet)
+    assert isinstance(got, c3_alphabet.KmerAlphabet)
     assert len(got) == 16
 
 
 def test_deserialise_old_to_new_type_codon_alphabet():
-    from cogent3.core import new_alphabet
+    from cogent3.core import alphabet as c3_alphabet
 
     old_rich_dict = {
         "motifset": (
@@ -1048,7 +1047,7 @@ def test_deserialise_old_to_new_type_codon_alphabet():
         "version": "2025.5.8a9",
     }
     alpha = deserialise_object(old_rich_dict)
-    assert isinstance(alpha, new_alphabet.SenseCodonAlphabet)
+    assert isinstance(alpha, c3_alphabet.SenseCodonAlphabet)
 
 
 def test_deserialise_old_to_new_type_submodel():

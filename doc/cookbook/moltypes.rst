@@ -7,15 +7,6 @@
 Molecular types
 ***************
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 The ``MolType`` object provides services for resolving ambiguities, or providing the correct ambiguity for recoding. It also maintains the mappings between different kinds of alphabets, sequences and alignments.
 
 If your analysis involves handling ambiguous states, or translation via a genetic code, it's critical to specify the appropriate moltype.
@@ -88,17 +79,17 @@ We demonstrate this by customising DNA so it allows a ``.`` as a gap character.
 
 .. jupyter-execute::
 
-    from cogent3.core import new_moltype, new_sequence
+    from cogent3.core import moltype, sequence
 
-    mt = new_moltype.MolType(
-            monomers="".join(new_moltype.IUPAC_DNA_chars),
-            ambiguities=new_moltype.IUPAC_DNA_ambiguities,
+    mt = moltype.MolType(
+            monomers="".join(moltype.IUPAC_DNA_chars),
+            ambiguities=moltype.IUPAC_DNA_ambiguities,
             name="dna.gap",
-            complements=new_moltype.IUPAC_DNA_ambiguities_complements,
-            make_seq=new_sequence.DnaSequence,
-            pairing_rules=new_moltype.DNA_STANDARD_PAIRS,
-            mw_calculator=new_moltype.DnaMW,
-            coerce_to=new_moltype.coerce_to_dna,
+            complements=moltype.IUPAC_DNA_ambiguities_complements,
+            make_seq=sequence.DnaSequence,
+            pairing_rules=moltype.DNA_STANDARD_PAIRS,
+            mw_calculator=moltype.DnaMW,
+            coerce_to=moltype.coerce_to_dna,
             gap=".",
         )
     seq = mt.make_seq(seq="ACG.")

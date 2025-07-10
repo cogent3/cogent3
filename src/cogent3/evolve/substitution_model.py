@@ -192,7 +192,7 @@ class _SubstitutionModel:
             alphabet = alphabet.with_gap_motif(gap_as_state=True)
 
         if motif_length > 1:
-            alphabet = alphabet.get_word_alphabet(motif_length)
+            alphabet = alphabet.get_kmer_alphabet(motif_length)
 
         if motifs is not None:
             alphabet = alphabet.get_subset(motifs)

@@ -6,15 +6,6 @@
 Tracking records that could not be processed
 ============================================
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 .. _not_completed:
 
 The ``NotCompleted`` object
@@ -33,7 +24,7 @@ The results when a condition was not met. For example, below I create an app tha
 
     from cogent3 import get_app
 
-    reader = get_app("load_aligned", format="fasta")
+    reader = get_app("load_aligned", format_name="fasta")
     select_seqs = get_app("take_named_seqs", "Mouse", "Human")
     aln = reader("data/primate_brca1.fasta")
     result = select_seqs(aln)

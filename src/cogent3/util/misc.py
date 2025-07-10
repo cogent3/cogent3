@@ -16,9 +16,7 @@ from warnings import warn
 import numpy
 from numpy import array, finfo, float64, floating, integer, ndarray, zeros
 
-from cogent3.util import warning as c3warn
-
-if typing.TYPE_CHECKING:
+if typing.TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Callable
 
 
@@ -383,15 +381,6 @@ class FunctionWrapper:
 
 class ConstraintError(Exception):
     """Raised when constraint on a container is violated."""
-
-
-@c3warn.deprecated_callable(
-    version="2025.6",
-    reason="The function is not used in cogent3 and will be removed in a future release.",
-)
-def identity(x):  # pragma: no cover
-    """Deprecated: This function will be removed in a future release."""
-    return x
 
 
 class ConstrainedContainer:

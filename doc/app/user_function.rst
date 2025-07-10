@@ -126,7 +126,7 @@ The critical elements of a function being defined as an app are:
         from cogent3 import make_aligned_seqs
 
         aln = make_aligned_seqs(
-            data=dict(a="GCAAGCGTTTAT", b="GCTTTTGTCAAT"), moltype="dna"
+            dict(a="GCAAGCGTTTAT", b="GCTTTTGTCAAT"), moltype="dna"
         )
         result = first4(aln)
         result

@@ -1,7 +1,7 @@
-:mod:`new_sequence`
+:mod:`sequence`
 ===================
 
-.. currentmodule:: cogent3.core.new_sequence
+.. currentmodule:: cogent3.core.sequence
 
 .. autosummary::
     :toctree: classes

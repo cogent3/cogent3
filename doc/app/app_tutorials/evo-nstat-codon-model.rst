@@ -6,15 +6,6 @@
 Applying GNC, a non-stationary codon model
 ------------------------------------------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 See `Kaehler et al <https://www.ncbi.nlm.nih.gov/pubmed/28175284>`__ for the formal description of this model. Note that perform hypothesis testing using this model elsewhere.
 
 We apply this to a sample alignment.
@@ -23,7 +14,7 @@ We apply this to a sample alignment.
 
     from cogent3 import get_app
 
-    loader = get_app("load_aligned", format="fasta", moltype="dna")
+    loader = get_app("load_aligned", format_name="fasta", moltype="dna")
     aln = loader("data/primate_brca1.fasta")
 
 The model is specified using it’s abbreviation.

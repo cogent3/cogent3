@@ -533,11 +533,11 @@ def _make_appendable_dstore(path, suffix):
 
 def _make_and_run_proc(out_path, suffix, members):
     out_dstore = _make_appendable_dstore(out_path, suffix)
-    loader = get_app("load_unaligned", moltype="dna", format="fasta")
+    loader = get_app("load_unaligned", moltype="dna", format_name="fasta")
     mlength = get_app("sample.min_length", 400)
 
     if suffix:
-        writer = get_app("write_seqs", out_dstore, format="fasta")
+        writer = get_app("write_seqs", out_dstore, format_name="fasta")
     else:
         writer = get_app("write_db", out_dstore)
 

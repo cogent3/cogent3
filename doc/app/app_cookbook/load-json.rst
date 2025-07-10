@@ -8,15 +8,6 @@
 Loading JSON serialised objects
 -------------------------------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 The ``load_json`` app loads JSON serialised ``cogent3`` objects from a file, returning whatever was stored.  
 
 In the :ref:`writing JSON section <write_json>`, we wrote a likelihood function object to disk in JSON serialised format, now let's load it back! All we need is the path to which it was written. Since ``write_json`` writes to a data store, this will be ``<path_to_dstore>/<identifier>``. 
@@ -33,7 +24,7 @@ In the :ref:`writing JSON section <write_json>`, we wrote a likelihood function 
     path_to_dir = tmpdir.name
 
     # create lf object to write
-    load_aligned_app = get_app("load_aligned", moltype="dna", format="fasta")
+    load_aligned_app = get_app("load_aligned", moltype="dna", format_name="fasta")
     aln = load_aligned_app("data/primate_brca1.fasta")
     gn_model_app = get_app("model", "GN", tree="data/primate_brca1.tree")
     lf = gn_model_app(aln).lf

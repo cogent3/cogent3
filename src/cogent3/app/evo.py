@@ -690,7 +690,7 @@ class tabulate_stats:
         ...     "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         ...     "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         ... }
-        >>> aln = make_aligned_seqs(data=data, moltype="dna")
+        >>> aln = make_aligned_seqs(data, moltype="dna")
         >>> mod = get_app(
         ...     "model",
         ...     "HKY85",

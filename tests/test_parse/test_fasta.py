@@ -9,15 +9,9 @@ import numpy
 import pytest
 
 from cogent3.core.info import Info
-from cogent3.core.sequence import DnaSequence, Sequence
-from cogent3.core.sequence import ProteinSequence as Protein
 from cogent3.parse.fasta import (
-    FastaParser,
-    GroupFastaParser,
     LabelParser,
     MinimalFastaParser,
-    NcbiFastaLabelParser,
-    NcbiFastaParser,
     RichLabel,
     iter_fasta_records,
 )
@@ -27,12 +21,6 @@ from cogent3.parse.record import RecordError
 
 base_path = os.path.dirname(os.path.dirname(__file__))
 data_path = os.path.join(base_path, "data")
-
-
-def Dna(seq, *args, **kwargs):
-    seq = seq.replace("u", "t")
-    seq = seq.replace("U", "T")
-    return DnaSequence(seq, *args, **kwargs)
 
 
 class GenericFastaTest(TestCase):
@@ -79,203 +67,6 @@ class MinimalFastaParserTests(GenericFastaTest):
         path = os.path.join(data_path, "brca1.fasta")
         seqs = dict(p for p in MinimalFastaParser(path))
         assert "Human" in seqs
-
-
-class FastaParserTests(GenericFastaTest):
-    """Tests of FastaParser: returns sequence objects."""
-
-    def test_single(self):
-        """FastaParser should read single record as seq object"""
-        f = list(FastaParser(self.oneseq))
-        assert len(f) == 1
-        a = f[0]
-        assert a == ("abc", "UCAG")
-        assert a[1].name == "abc"
-
-        f = list(FastaParser(self.multiline))
-        assert len(f) == 1
-        a = f[0]
-        assert a == ("xyz", "UUUUCCAAAAAG")
-        assert a[1].name == "xyz"
-
-    def test_single_constructor(self):
-        """FastaParser should use constructors if supplied"""
-        f = list(FastaParser(self.oneseq, Dna))
-        assert len(f) == 1
-        a = f[0]
-        assert a == ("abc", "TCAG")
-        assert a[1].name == "abc"
-
-        def upper_abc(x):
-            return None, {"ABC": x.upper()}
-
-        f = list(FastaParser(self.multiline, Dna, upper_abc))
-        assert len(f) == 1
-        a = f[0]
-        assert a == (None, "TTTTCCAAAAAG")
-        assert a[1].name is None
-        assert a[1].info.ABC == "XYZ"
-
-    def test_multiple(self):
-        """FastaParser should read multiline records correctly"""
-        f = list(FastaParser(self.threeseq))
-        assert len(f) == 3
-        for i in f:
-            assert isinstance(i[1], Sequence)
-        a, b, c = f
-        assert (a[1].name, a[1]) == ("123", "a")
-        assert (b[1].name, b[1]) == ("abc", "caggac")
-        assert (c[1].name, c[1]) == ("456", "cg")
-
-    def test_multiple_constructor_bad(self):
-        """Parser should complain or skip bad records w/ constructor"""
-
-        def dnastrict(x, **kwargs):
-            try:
-                return Dna(x, check=True, **kwargs)
-            except Exception:
-                msg = "Could not convert sequence"
-                raise RecordError(msg)
-
-        self.assertRaises(RecordError, list, FastaParser(self.oneX, dnastrict))
-        f = list(FastaParser(self.oneX, dnastrict, strict=False))
-        assert len(f) == 2
-        a, b = f
-        a, b = a[1], b[1]
-        assert (a.name, a) == ("abc", "caggac".upper())
-        assert (b.name, b) == ("456", "cg".upper())
-
-
-class NcbiFastaLabelParserTests(TestCase):
-    """Tests of the label line parser for NCBI's FASTA identifiers."""
-
-    def test_init(self):
-        """Labels from genpept.fsa should work as expected"""
-        i = NcbiFastaLabelParser(
-            ">gi|37549575|ref|XP_352503.1| similar to EST gb|ATTS1136",
-        )[1]
-        assert i.GI == ["37549575"]
-        assert i.RefSeq == ["XP_352503.1"]
-        assert i.Description == "similar to EST gb|ATTS1136"
-
-        i = NcbiFastaLabelParser(
-            ">gi|32398734|emb|CAD98694.1| (BX538350) dbj|baa86974.1, possible",
-        )[1]
-        assert i.GI == ["32398734"]
-        assert i.RefSeq == []
-        assert i.EMBL == ["CAD98694.1"]
-        assert i.Description == "(BX538350) dbj|baa86974.1, possible"
-
-        i = NcbiFastaLabelParser(">gi|10177064|dbj|BAB10506.1| (AB005238)   ")[1]
-        assert i.GI == ["10177064"]
-        assert i.DDBJ == ["BAB10506.1"]
-        assert i.Description == "(AB005238)"
-
-
-class NcbiFastaParserTests(TestCase):
-    """Tests of the NcbiFastaParser."""
-
-    def setUp(self):
-        """Define a few standard files"""
-        self.peptide = [
-            ">gi|10047090|ref|NP_055147.1| small muscle protein, X-linked [Homo sapiens]",
-            "MNMSKQPVSNVRAIQANINIPMGAFRPGAGQPPRRKECTPEVEEGVPPTSDEEKKPIPGAKKLPGPAVNL",
-            "SEIQNIKSELKYVPKAEQ",
-            ">gi|10047092|ref|NP_037391.1| neuronal protein [Homo sapiens]",
-            "MANRGPSYGLSREVQEKIEQKYDADLENKLVDWIILQCAEDIEHPPPGRAHFQKWLMDGTVLCKLINSLY",
-            "PPGQEPIPKISESKMAFKQMEQISQFLKAAETYGVRTTDIFQTVDLWEGKDMAAVQRTLMALGSVAVTKD",
-        ]
-        self.nasty = [
-            "  ",  # 0  ignore leading blank line
-            ">gi|abc|ref|def|",  # 1  no description -- ok
-            "UCAG",  # 2  single line of sequence
-            "#comment",  # 3  comment -- skip
-            "  \t   ",  # 4  ignore blank line between records
-            ">gi|xyz|gb|qwe|  \tdescr   \t\t",  # 5  desciption has whitespace
-            "UUUU",  # 6  two lines of sequence
-            "CCCC",  # 7
-            ">gi|bad|ref|nonsense",  # 8  missing last pipe -- error
-            "ACU",  # 9
-            ">gi|bad|description",  # 10 not enough fields -- error
-            "AAA",  # 11
-            ">gi|bad|ref|stuff|label",  # 12
-            "XYZ",  # 13 bad sequence -- error
-            ">gi|bad|gb|ignore| description",  # 14 label without sequence -- error
-            ">  gi  |  123  | dbj  | 456 | desc|with|pipes| ",  # 15 label w/ whitespace -- OK
-            "ucag",  # 16
-            "  \t  ",  # 17 ignore blank line inside record
-            "UCAG",  # 18
-            "tgac",  # 19 lowercase should be OK
-            "# comment",  # 20 comment -- skip
-            "NNNN",  # 21 degenerates should be OK
-            "   ",  # 22 ignore trailing blank line
-        ]
-        self.empty = []
-        self.no_label = ["ucag"]
-
-    def test_empty(self):
-        """NcbiFastaParser should accept empty input"""
-        assert list(NcbiFastaParser(self.empty)) == []
-        assert list(NcbiFastaParser(self.empty, Protein)) == []
-
-    def test_normal(self):
-        """NcbiFastaParser should accept normal record if loose or strict"""
-        f = list(NcbiFastaParser(self.peptide, Protein))
-        assert len(f) == 2
-        a, b = f
-        a, b = a[1], b[1]  # field 0 is the name
-        assert (
-            a
-            == "MNMSKQPVSNVRAIQANINIPMGAFRPGAGQPPRRKECTPEVEEGVPPTSDEEKKPIPGAKKLPGPAVNLSEIQNIKSELKYVPKAEQ"
-        )
-        assert a.info.GI == ["10047090"]
-        assert a.info.RefSeq == ["NP_055147.1"]
-        assert a.info.DDBJ == []
-        assert a.info.Description == "small muscle protein, X-linked [Homo sapiens]"
-
-        assert (
-            b
-            == "MANRGPSYGLSREVQEKIEQKYDADLENKLVDWIILQCAEDIEHPPPGRAHFQKWLMDGTVLCKLINSLYPPGQEPIPKISESKMAFKQMEQISQFLKAAETYGVRTTDIFQTVDLWEGKDMAAVQRTLMALGSVAVTKD"
-        )
-        assert b.info.GI == ["10047092"]
-        assert b.info.RefSeq == ["NP_037391.1"]
-        assert b.info.Description == "neuronal protein [Homo sapiens]"
-
-    def test_bad(self):
-        """NcbiFastaParser should raise error on bad records if strict"""
-        # if strict, starting anywhere in the first 15 lines should cause
-        # errors
-        for i in range(15):
-            self.assertRaises(RecordError, list, NcbiFastaParser(self.nasty[i:]))
-        # ...but the 16th is OK.
-        r = next(iter(NcbiFastaParser(self.nasty[15:])))
-        assert r == ("123", "ucagUCAGtgacNNNN")
-        # test that we get what we expect if not strict
-        r = list(NcbiFastaParser(self.nasty, Sequence, strict=False))
-        assert len(r) == 2
-        b, c = r
-        assert (b[1], b[1].info.GI, b[1].info.GenBank, b[1].info.Description) == (
-            "UUUUCCCC",
-            ["xyz"],
-            ["qwe"],
-            "descr",
-        )
-        assert (c[1], c[1].info.GI, c[1].info.RefSeq, c[1].info.Description) == (
-            "XYZ",
-            ["bad"],
-            ["stuff"],
-            "label",
-        )
-        # ...and when we explicitly supply a constructor
-        r = list(NcbiFastaParser(self.nasty, Dna, strict=False))
-        assert len(r) == 1
-        b = r[0][1]
-        assert (b, b.info.GI, b.info.GenBank, b.info.Description) == (
-            "TTTTCCCC",
-            ["xyz"],
-            ["qwe"],
-            "descr",
-        )
 
 
 class LabelParsingTest(TestCase):
@@ -335,93 +126,38 @@ class LabelParsingTest(TestCase):
         )
 
 
-class GroupFastaParsingTest(TestCase):
-    """test parsing of grouped sequences in a collection"""
-
-    def test_groups(self):
-        """correctly yield grouped sequences from fasta formatted data"""
-        data = [
-            ">group1:seq1_id:species1",
-            "ACTG",
-            ">group1:seq2_id:species2",
-            "ACTG",
-            ">group2:seq3_id:species1",
-            "ACGT",
-            ">group2:seq4_id:species2",
-            "ACGT",
-        ]
-        expected = [
-            {"species1": "ACTG", "species2": "ACTG"},
-            {"species1": "ACGT", "species2": "ACGT"},
-        ]
-        label_to_name = LabelParser(
-            "%(species)s",
-            [(0, "Group", str), (1, "seq_id", str), (2, "species", str)],
-            split_with=":",
-        )
-        parser = GroupFastaParser(data, label_to_name, aligned=True)
-        count = 0
-        for group in parser:
-            got = group.to_dict()
-            want = expected[count]
-            assert got == want
-            assert group.info.Group == f"group{count + 1}"
-            count += 1
-
-        # check we don't return a done group
-        done_groups = ["group1"]
-        parser = GroupFastaParser(
-            data,
-            label_to_name,
-            done_groups=done_groups,
-            aligned=True,
-        )
-        for group in parser:
-            got = group.to_dict()
-            want = expected[1]
-            assert got == want
-            assert group.info.Group == "group2"
+def test_empty():
+    assert not list(MinimalFastaParser([]))
 
 
-@pytest.mark.parametrize("parser", [MinimalFastaParser, FastaParser])
-def test_empty(parser):
-    """FastaParser should return empty list from 'file' w/o labels"""
-    assert not list(parser([]))
-
-
-@pytest.mark.parametrize("parser", [MinimalFastaParser, FastaParser])
-def test_missing_labels(parser):
+def test_missing_labels():
     nolabels = "GJ>DSJGSJDF\nSFHKLDFS>jkfs\n".split("\n")
     with pytest.raises(RecordError):
-        list(parser(nolabels, strict=True))
+        list(MinimalFastaParser(nolabels, strict=True))
 
 
-@pytest.mark.parametrize("parser", [MinimalFastaParser, FastaParser])
-def test_no_labels_strict(parser):
+def test_no_labels_strict():
     labels = ">abc\n>def\n>ghi\n".split("\n")
     with pytest.raises(RecordError):
-        list(parser(labels, strict=True))
+        list(MinimalFastaParser(labels, strict=True))
 
 
-@pytest.mark.parametrize("parser", [MinimalFastaParser, FastaParser])
-def test_no_labels(parser):
+def test_no_labels():
     """MinimalFastaParser should return empty list from file w/o seqs"""
     labels = ">abc\n>def\n>ghi\n".split("\n")
     # if not strict, should skip the records
-    got = {l: str(v) for l, v in parser(labels, strict=False)}
+    got = {l: str(v) for l, v in MinimalFastaParser(labels, strict=False)}
     assert not got
 
 
-@pytest.mark.parametrize("parser", [MinimalFastaParser, FastaParser])
-def test_multiple_bad_strict(parser):
+def test_multiple_bad_strict():
     """MinimalFastaParser should complain or skip bad records"""
     twogood = ">123\n\n> \t abc  \t \ncag\ngac\n>456\nc\ng".split("\n")
     with pytest.raises(RecordError):
-        list(parser(twogood, strict=True))
+        list(MinimalFastaParser(twogood, strict=True))
 
 
-@pytest.mark.parametrize("parser", [MinimalFastaParser, FastaParser])
-def test_multiple_bad_not_strict(parser):
+def test_multiple_bad_not_strict():
     twogood = ">123\n\n> \t abc  \t \ncag\ngac\n>456\nc\ng".split("\n")
     f = list(MinimalFastaParser(twogood, strict=False))
     assert len(f) == 2

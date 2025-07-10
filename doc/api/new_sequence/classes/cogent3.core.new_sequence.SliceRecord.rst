@@ -1,6 +1,6 @@
-﻿cogent3.core.new\_sequence.SliceRecord
+﻿cogent3.core.sequence.SliceRecord
 ======================================
 
-.. currentmodule:: cogent3.core.new_sequence
+.. currentmodule:: cogent3.core.sequence
 
 .. autoclass:: SliceRecord

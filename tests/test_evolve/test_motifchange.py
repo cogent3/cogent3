@@ -2,7 +2,7 @@
 
 import unittest
 
-from cogent3.core.moltype import CodonAlphabet
+from cogent3 import get_code
 from cogent3.evolve.predicate import MotifChange, parse
 
 
@@ -17,7 +17,8 @@ class FakeModel:
 
 class TestPredicates(unittest.TestCase):
     def setUp(self):
-        self.alphabet = CodonAlphabet()
+        gc = get_code(1)
+        self.alphabet = gc.get_alphabet()
         self.model = FakeModel(self.alphabet)
 
     def _makeMotifChange(self, *args, **kw):

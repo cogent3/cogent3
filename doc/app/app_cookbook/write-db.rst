@@ -8,15 +8,6 @@
 Writing a database to file
 --------------------------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 ``write_db`` can be used to write serialised objects to a database instance. In the below example, we use it to write the output of a composed process to disk. 
 
 .. jupyter-execute::
@@ -34,7 +25,7 @@ Writing a database to file
 
     dstore = open_data_store("data", suffix="fasta", limit=2)
 
-    reader = get_app("load_aligned", format="fasta", moltype="dna")
+    reader = get_app("load_aligned", format_name="fasta", moltype="dna")
     min_length = get_app("min_length", 300)
     out_dstore = open_data_store(f"{path_to_dir}.sqlitedb", mode="w")
     writer = get_app("write_db", out_dstore)

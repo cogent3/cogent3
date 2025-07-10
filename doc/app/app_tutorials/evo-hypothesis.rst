@@ -6,22 +6,13 @@
 Testing a hypothesis – non-stationary or time-reversible
 --------------------------------------------------------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 We test the hypothesis that the GTR model is sufficient for a data set, compared with the GN (non-stationary general nucleotide model).
 
 .. jupyter-execute::
 
     from cogent3 import get_app
 
-    loader = get_app("load_aligned", format="fasta", moltype="dna")
+    loader = get_app("load_aligned", format_name="fasta", moltype="dna")
     aln = loader("data/primate_brca1.fasta")
 
     tree = "data/primate_brca1.tree"

@@ -275,7 +275,7 @@ def test_disconnect():
 def test_as_completed(DATA_DIR):
     """correctly applies iteratively"""
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
-    reader = get_app("load_unaligned", format="fasta", moltype="dna")
+    reader = get_app("load_unaligned", format_name="fasta", moltype="dna")
     got = list(reader.as_completed(dstore, show_progress=False))
     assert len(got) == len(dstore)
     # should also be able to apply the results to another composable func
@@ -306,17 +306,17 @@ def source_type(DATA_DIR, request):
 
 
 def test_composable_unwraps_source_proxy_as_completed(source_type):
-    app = get_app("load_unaligned", format="fasta", moltype="dna")
+    app = get_app("load_unaligned", format_name="fasta", moltype="dna")
     result = next(iter(app.as_completed([source_type], show_progress=False)))
-    got = result.source if hasattr(result, "source") else result.info.source
+    got = result.source
     assert got.endswith("brca1.fasta")
     assert not isinstance(got, source_proxy)
 
 
 def test_composable_unwraps_source_proxy_call(source_type):
-    app = get_app("load_unaligned", format="fasta", moltype="dna")
+    app = get_app("load_unaligned", format_name="fasta", moltype="dna")
     result = app(source_type)
-    got = result.source if hasattr(result, "source") else result.info.source
+    got = result.source
     assert got.endswith("brca1.fasta")
     assert not isinstance(got, source_proxy)
 
@@ -324,7 +324,7 @@ def test_composable_unwraps_source_proxy_call(source_type):
 @pytest.mark.parametrize("data", [(), ("", "")])
 def test_as_completed_empty_data(data):
     """correctly applies iteratively"""
-    reader = get_app("load_unaligned", format="fasta", moltype="dna")
+    reader = get_app("load_unaligned", format_name="fasta", moltype="dna")
     min_length = get_app("sample.min_length", 10)
     proc = reader + min_length
 
@@ -339,7 +339,7 @@ def test_as_completed_empty_data(data):
         {"a": 2},
         UnionDict(a=2, source="blah.txt"),
         make_aligned_seqs(
-            data={"a": "ACGT"},
+            {"a": "ACGT"},
             info={"source": "blah.txt"},
             moltype="dna",
         ),
@@ -364,7 +364,7 @@ def test_apply_to_strings(DATA_DIR, tmp_dir, klass, cast):
 
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     dstore = [cast(str(m)) for m in dstore]
-    reader = io_app.load_aligned(format="fasta", moltype="dna")
+    reader = io_app.load_aligned(format_name="fasta", moltype="dna")
     min_length = sample_app.min_length(10)
     if klass == DataStoreDirectory:
         writer = io_app.write_seqs(klass(outpath, mode=OVERWRITE, suffix="fasta"))
@@ -385,7 +385,7 @@ def test_as_completed_strings(DATA_DIR, tmp_dir, klass, cast):
 
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     dstore = [cast(str(m)) for m in dstore]
-    reader = io_app.load_aligned(format="fasta", moltype="dna")
+    reader = io_app.load_aligned(format_name="fasta", moltype="dna")
     min_length = sample_app.min_length(10)
     if klass == DataStoreDirectory:
         writer = io_app.write_seqs(klass(outpath, mode=OVERWRITE, suffix="fasta"))
@@ -404,7 +404,7 @@ def test_apply_to_non_unique_identifiers(tmp_dir):
         "brca1.fasta",
         "brca1.fasta",
     ]
-    reader = io_app.load_aligned(format="fasta", moltype="dna")
+    reader = io_app.load_aligned(format_name="fasta", moltype="dna")
     min_length = sample_app.min_length(10)
     outpath = tmp_dir / "test_apply_to_non_unique_identifiers"
     writer = io_app.write_seqs(
@@ -418,7 +418,7 @@ def test_apply_to_non_unique_identifiers(tmp_dir):
 def test_apply_to_logging(DATA_DIR, tmp_dir):
     """correctly creates log file"""
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
-    reader = io_app.load_aligned(format="fasta", moltype="dna")
+    reader = io_app.load_aligned(format_name="fasta", moltype="dna")
     min_length = sample_app.min_length(10)
     out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="w")
     writer = io_app.write_db(out_dstore)
@@ -432,7 +432,7 @@ def test_apply_to_logger(DATA_DIR, tmp_dir):
     """correctly uses user provided logger"""
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     LOGGER = CachingLogger()
-    reader = io_app.load_aligned(format="fasta", moltype="dna")
+    reader = io_app.load_aligned(format_name="fasta", moltype="dna")
     min_length = sample_app.min_length(10)
     out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="w")
     writer = io_app.write_db(out_dstore)
@@ -444,7 +444,7 @@ def test_apply_to_logger(DATA_DIR, tmp_dir):
 def test_apply_to_no_logger(DATA_DIR, tmp_dir):
     """correctly uses user provided logger"""
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
-    reader = io_app.load_aligned(format="fasta", moltype="dna")
+    reader = io_app.load_aligned(format_name="fasta", moltype="dna")
     min_length = sample_app.min_length(10)
     out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="w")
     writer = io_app.write_db(out_dstore)
@@ -458,7 +458,7 @@ def test_apply_to_no_logger(DATA_DIR, tmp_dir):
 def test_apply_to_invalid_logger(DATA_DIR, tmp_dir, logger_val):
     """incorrect logger value raises TypeError"""
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
-    reader = io_app.load_aligned(format="fasta", moltype="dna")
+    reader = io_app.load_aligned(format_name="fasta", moltype="dna")
     min_length = sample_app.min_length(10)
     out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="w")
     writer = io_app.write_db(out_dstore)
@@ -475,7 +475,7 @@ def test_apply_to_input_only_not_completed(DATA_DIR, nc_dstore, tmp_dir):
     out_dstore = open_data_store(outpath, mode="w")
     writer = io_app.write_db(out_dstore)
     process = (
-        io_app.load_aligned(format="fasta", moltype="dna")
+        io_app.load_aligned(format_name="fasta", moltype="dna")
         + sample_app.min_length(3000)
         + writer
     )
@@ -486,7 +486,7 @@ def test_apply_to_input_only_not_completed(DATA_DIR, nc_dstore, tmp_dir):
 def test_apply_to_makes_not_completed(DATA_DIR, tmp_dir):
     """correctly creates notcompleted"""
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
-    reader = io_app.load_aligned(format="fasta", moltype="dna")
+    reader = io_app.load_aligned(format_name="fasta", moltype="dna")
     # trigger creation of notcompleted
     min_length = sample_app.min_length(3000)
     out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="w")
@@ -500,7 +500,7 @@ def test_apply_to_not_partially_done(DATA_DIR, tmp_dir):
     """correctly applies process when result already partially done"""
     dstore = open_data_store(DATA_DIR, suffix="fasta")
     num_records = len(dstore)
-    reader = io_app.load_aligned(format="fasta", moltype="dna")
+    reader = io_app.load_aligned(format_name="fasta", moltype="dna")
     out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="w")
     writer = io_app.write_db(out_dstore)
     # doing the first one
@@ -518,7 +518,7 @@ def test_apply_to_not_partially_done(DATA_DIR, tmp_dir):
 @pytest.mark.xfail(reason="passes except when run in full test suite")
 @pytest.mark.parametrize("show", [True, False])
 def test_as_completed_progress(full_dstore, capsys, show):
-    loader = get_app("load_unaligned", format="fasta", moltype="dna")
+    loader = get_app("load_unaligned", format_name="fasta", moltype="dna")
     omit = get_app("omit_degenerates")
     app = loader + omit
     list(app.as_completed(full_dstore.completed, show_progress=show))
@@ -652,7 +652,7 @@ def test_user_function():
     u_function = foo()
 
     aln = make_aligned_seqs(
-        data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
+        [("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
         moltype="dna",
     )
     got = u_function(aln)
@@ -666,7 +666,7 @@ def test_user_function_without_arg_kwargs():
     u_function = foo_without_arg_kwargs()
 
     aln = make_aligned_seqs(
-        data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
+        [("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
         moltype="dna",
     )
     got = u_function(aln)
@@ -680,11 +680,11 @@ def test_user_function_multiple():
     u_function_2 = bar()
 
     aln_1 = make_aligned_seqs(
-        data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
+        [("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")],
         moltype="dna",
     )
     data = {"s1": "ACGTACGTA", "s2": "GTGTACGTA"}
-    aln_2 = make_aligned_seqs(data=data, moltype="dna")
+    aln_2 = make_aligned_seqs(data, moltype="dna")
 
     got_1 = u_function_1(aln_1)
     got_2 = u_function_2(aln_2)
@@ -1145,7 +1145,7 @@ def test_apply_to_only_appends(half_dstore1, half_dstore2):
         suffix=half_dstore1.suffix,
         mode=APPEND,
     )
-    reader1 = io_app.load_aligned(format="fasta", moltype="dna")
+    reader1 = io_app.load_aligned(format_name="fasta", moltype="dna")
     min_length1 = sample_app.min_length(10)
     writer1 = io_app.write_seqs(half_dstore1)
     process1 = reader1 + min_length1 + writer1
@@ -1165,7 +1165,7 @@ def test_apply_to_only_appends(half_dstore1, half_dstore2):
         mode=APPEND,
     )
 
-    reader2 = io_app.load_aligned(format="fasta", moltype="dna")
+    reader2 = io_app.load_aligned(format_name="fasta", moltype="dna")
     min_length2 = sample_app.min_length(10)
     writer2 = io_app.write_seqs(half_dstore2)
     process2 = reader2 + min_length2 + writer2

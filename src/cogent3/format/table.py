@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Tool for creating tables and representing them as text, or writing to file for
 import into other packages. These classes still under development.
@@ -13,6 +12,7 @@ import textwrap
 from xml.sax.saxutils import escape
 
 import numpy
+import typing_extensions
 
 known_formats = (
     "bedgraph",
@@ -380,7 +380,12 @@ def _escape_pipes(formatted_table, header):
     return formatted_table, header
 
 
-def markdown(header, formatted_table, space=1, justify=None):
+def markdown(
+    header: list[str],
+    formatted_table: list[list[str]],
+    space: int = 1,
+    justify: str | None = None,
+) -> str:
     """Returns a table in Markdown format
 
     Parameters
@@ -393,7 +398,8 @@ def markdown(header, formatted_table, space=1, justify=None):
     space
         number of spaces surrounding the cell contents, must be >= 1
     justify
-        characters indicating alignment of columns
+        characters indicating alignment of columns, c, r or l for
+        center, right or left respectively.
     """
     assert space >= 1, "space must be >= 1"
     if justify is not None:
@@ -1011,13 +1017,19 @@ def formatted_array(
 class HtmlElement:
     """wrapper for text to become a HTML element"""
 
-    def __init__(self, text, tag, css_classes=None, newline=False) -> None:
+    def __init__(
+        self,
+        text: str | typing_extensions.Self,
+        tag: str,
+        css_classes: list[str] | None = None,
+        newline: bool = False,
+    ) -> None:
         """
         Parameters
         ----------
-        text : str
+        text
             cell content
-        tag : str
+        tag
             html table cell tag, e.g. 'td', 'th'
         classes : list
             list of custom CSS classes
@@ -1041,7 +1053,7 @@ class HtmlElement:
         return repr(self.text)
 
 
-def is_html_markup(text) -> bool:
+def is_html_markup(text: str) -> bool:
     """checks if text contains balanced html markup
 
     <token ...> body </token>

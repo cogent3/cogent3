@@ -1130,7 +1130,7 @@ class TableTests(TestCase):
             header=["a", "b"],
             data=[["val1", "val2"], ["has | symbol", "val4"]],
         )
-        md = md_table.to_string(format="md")
+        md = md_table.to_string(format_name="md")
         assert "has \\| symbol" in md
 
     def test_str_tex_format(self):
@@ -1139,8 +1139,10 @@ class TableTests(TestCase):
             header=["a", "b"],
             data=[["val1", "val2"], ["val3", "val4"]],
         )
-        tex = tex_table.to_string(format="tex", justify="cr")
-        assert tex_table.to_string(format="tex", justify="cr") == tex_table.to_latex(
+        tex = tex_table.to_string(format_name="tex", justify="cr")
+        assert tex_table.to_string(
+            format_name="tex", justify="cr"
+        ) == tex_table.to_latex(
             justify="cr",
         )
         assert tex.splitlines()[2] == "\\begin{tabular}{ c r }"
@@ -1151,11 +1153,11 @@ class TableTests(TestCase):
             data=[["val1", "val2"], ["val3", "val4"]],
             title="a title",
         )
-        tex = tex_table.to_string(format="tex")
+        tex = tex_table.to_string(format_name="tex")
         tex = tex.splitlines()
         assert tex[-2] == "\\caption{a title}"
 
-        tex = tex_table.to_string(format="tex", label="tab:first")
+        tex = tex_table.to_string(format_name="tex", label="tab:first")
         tex = tex.splitlines()
         assert tex[-3] == "\\caption{a title}"
         assert tex[-2] == "\\label{tab:first}"
@@ -1166,12 +1168,12 @@ class TableTests(TestCase):
             data=[["val1", "val2"], ["val3", "val4"]],
             legend="a legend",
         )
-        tex = tex_table.to_string(format="tex")
+        tex = tex_table.to_string(format_name="tex")
         tex = tex.splitlines()
         # because it's treated as a title by default
         assert tex[-2] == "\\caption{a legend}"
         # unless you say not to
-        tex = tex_table.to_string(format="tex", concat_title_legend=False)
+        tex = tex_table.to_string(format_name="tex", concat_title_legend=False)
         tex = tex.splitlines()
         assert tex[-2] == "\\caption*{a legend}"
         tex_table = make_table(
@@ -1180,15 +1182,15 @@ class TableTests(TestCase):
             title="a title.",
             legend="a legend",
         )
-        tex = tex_table.to_string(format="tex")
+        tex = tex_table.to_string(format_name="tex")
         tex = tex.splitlines()
         assert tex[-2] == "\\caption{a title. a legend}"
-        tex = tex_table.to_string(format="tex", concat_title_legend=False)
+        tex = tex_table.to_string(format_name="tex", concat_title_legend=False)
         tex = tex.splitlines()
         assert tex[2] == "\\caption{a title.}"
         assert tex[-2] == "\\caption*{a legend}"
         tex = tex_table.to_string(
-            format="tex",
+            format_name="tex",
             concat_title_legend=False,
             label="table",
         )
@@ -1266,7 +1268,7 @@ class TableTests(TestCase):
         ]
         header = ["seq1/2", "a", "c", "b", "e"]
         dist = Table(header=header, data=rows, index_name="seq1/2")
-        r = dist.to_string(format="phylip")
+        r = dist.to_string(format_name="phylip")
         r = r.splitlines()
         assert r[0].strip() == "4"
         for line in r[1:]:
@@ -1307,33 +1309,6 @@ class TableTests(TestCase):
         is_true = {t.columns[c].dtype.name for c in t.columns}
         assert is_true == is_false
 
-    def test_formats(self):
-        """exercising the different supported formats"""
-        last = ""
-        for format, startwith in (
-            ("md", "|"),
-            ("rst", "+"),
-            ("latex", r"\begin"),
-            ("markdown", "|"),
-            ("csv", "id,"),
-            ("tsv", "id\t"),
-            ("simple", "="),
-        ):
-            t3 = Table(
-                header=self.t3_header,
-                data=self.t3_rows,
-                format=format,
-                title="A title",
-                legend="A legend",
-            )
-            got = str(t3).splitlines()
-            query_line = 1 if format == "simple" else 0
-            got = got[query_line]
-            assert isinstance(got, str)
-            assert got != last
-            assert got.startswith(startwith), f"{format}: {got[:10]}"
-            last = got
-
     def test_grid_table_format(self):
         """test the table grid_table_format method"""
         from cogent3.format.table import grid_table_format
@@ -1356,7 +1331,7 @@ class TableTests(TestCase):
 
     def test_to_markdown(self):
         """Exercising the table markdown method"""
-        table = make_table(self.t6_header, self.t6_rows, format="md")
+        table = make_table(self.t6_header, self.t6_rows, format_name="md")
         markdown_table = table.to_markdown(justify="crl")
         markdown_list = markdown_table.split("\n")
         assert markdown_list[2].count("|") == 5
@@ -2058,3 +2033,34 @@ def test_load_table_filename_case(tmp_path):
     table = load_table(outpath)
     data = table.columns.to_dict()
     assert data == {"a": [0, 1], "b": [2, 3], "c": ["abc", "efg"]}
+
+
+@pytest.mark.parametrize(
+    ("format_name", "startwith"),
+    [
+        ("md", "|"),
+        ("rst", "+"),
+        ("latex", r"\begin"),
+        ("markdown", "|"),
+        ("csv", "id,"),
+        ("tsv", "id\t"),
+        ("simple", "="),
+    ],
+)
+def test_formats(format_name, startwith):
+    """exercising the different supported formats"""
+    last = ""
+    t3 = Table(
+        header=["id", "foo", "bar"],
+        data=[[6, "abc", 66], [7, "bca", 77]],
+        format_name=format_name,
+        title="A title",
+        legend="A legend",
+    )
+    got = str(t3).splitlines()
+    query_line = 1 if format_name == "simple" else 0
+    got = got[query_line]
+    assert isinstance(got, str)
+    assert got != last
+    assert got.startswith(startwith), f"{format_name}: {got[:10]}"
+    last = got

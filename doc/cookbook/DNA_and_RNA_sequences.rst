@@ -3,15 +3,6 @@
 Sequences
 ---------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 The ``Sequence`` object provides generic biological sequence manipulation functions, plus functions that are critical for the ``evolve`` module calculations.
 
 Generic molecular types
@@ -148,7 +139,7 @@ The default is to trim a terminating stop if it exists. If you set ``trim_stop=F
 .. jupyter-execute::
     :hide-code:
 
-    from cogent3.core.new_alphabet import AlphabetError
+    from cogent3.core.alphabet import AlphabetError
 
 .. jupyter-execute::
     :raises: AlphabetError

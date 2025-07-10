@@ -6,42 +6,33 @@
 Loading aligned sequence data
 -----------------------------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 We can load aligned sequence data using the ``load_aligned`` app. When making the app, you can optionally provide arguments for the molecular type of the sequence and the format of the data. 
 
 Loading aligned DNA sequences from a single fasta file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Here we load the brca1 gene in bats, providing the molecular type (``moltype="dna"``) and file format (``format="fasta"``). 
+Here we load the brca1 gene in bats, providing the molecular type (``moltype="dna"``) and file format (``format_name="fasta"``). 
 
 .. jupyter-execute::
     :raises:
     
     from cogent3 import get_app
 
-    load_aligned_app = get_app("load_aligned", moltype="dna", format="fasta")
+    load_aligned_app = get_app("load_aligned", moltype="dna", format_name="fasta")
     aln = load_aligned_app("data/brca1-bats.fasta")
     aln
 
 Loading aligned protein sequences from a single phylip file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Here we load a globin alignment, providing the molecular type (``moltype="protein"``) and file format (``format="phylip"``). 
+Here we load a globin alignment, providing the molecular type (``moltype="protein"``) and file format (``format_name="phylip"``). 
 
 .. jupyter-execute::
     :raises:
     
     from cogent3 import get_app
 
-    load_aligned_app = get_app("load_aligned", moltype="protein", format="phylip")
+    load_aligned_app = get_app("load_aligned", moltype="protein", format_name="phylip")
     aln = load_aligned_app("data/abglobin_aa.phylip")
     aln
 
@@ -86,9 +77,9 @@ In this example, our process loads the sequences, filters the sequences to keep 
 
     out_dstore = open_data_store(path_to_dir, suffix="fa", mode="w")
 
-    loader = get_app("load_aligned", format="fasta", moltype="dna")
+    loader = get_app("load_aligned", format_name="fasta", moltype="dna")
     cpos3 = get_app("take_codon_positions", 3)
-    writer = get_app("write_seqs", out_dstore, format="fasta")
+    writer = get_app("write_seqs", out_dstore, format_name="fasta")
 
     process = loader + cpos3 + writer
 

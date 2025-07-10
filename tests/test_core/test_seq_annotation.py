@@ -1,10 +1,10 @@
 import pytest
 
 from cogent3 import load_seq
-from cogent3.core import new_moltype
+from cogent3.core import moltype as c3_moltype
 
-DNA = new_moltype.get_moltype("dna")
-ASCII = new_moltype.get_moltype("text")
+DNA = c3_moltype.get_moltype("dna")
+ASCII = c3_moltype.get_moltype("text")
 
 
 def makeSampleSequence(name, with_gaps=False):
@@ -156,7 +156,7 @@ def test_slice_seq_with_partial_start(ann_seq, annot_type, num):
 
 
 def test_gbdb_get_children_get_parent(DATA_DIR):
-    seq = load_seq(DATA_DIR / "annotated_seq.gb", new_type=True)
+    seq = load_seq(DATA_DIR / "annotated_seq.gb")
     seq = seq[2900:6000]
     (orig,) = list(seq.get_features(biotype="gene", name="CNA00110"))
     (child,) = list(orig.get_children("CDS"))

@@ -1,6 +1,6 @@
-﻿cogent3.core.new\_alignment.SequenceCollection
+﻿cogent3.core.alignment.SequenceCollection
 ==============================================
 
-.. currentmodule:: cogent3.core.new_alignment
+.. currentmodule:: cogent3.core.alignment
 
 .. autoclass:: SequenceCollection

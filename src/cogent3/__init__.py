@@ -47,14 +47,15 @@ from cogent3.evolve.models import available_models, get_model  # noqa: F401
 from cogent3.parse.cogent3_json import load_from_json
 from cogent3.parse.sequence import is_genbank
 from cogent3.parse.table import load_delimited  # noqa: F401
+from cogent3.util import warning as _c3warn
 from cogent3.util.io import get_format_suffixes, is_url, open_  # noqa: F401
 from cogent3.util.progress_display import display_wrap
 
-if typing.TYPE_CHECKING:
-    from cogent3.core.new_alignment import Alignment, SequenceCollection
-    from cogent3.core.new_sequence import Sequence
+if typing.TYPE_CHECKING:  # pragma: no cover
+    from cogent3.core.alignment import Alignment, SequenceCollection
+    from cogent3.core.sequence import Sequence
 
-__copyright__ = "Copyright 2007-2023, The Cogent Project"
+__copyright__ = "Copyright 2007-date, The Cogent Project"
 __credits__ = "https://github.com/cogent3/cogent3/graphs/contributors"
 __license__ = "BSD-3"
 
@@ -78,11 +79,11 @@ __numba_logger.setLevel(logging.WARNING)
 load_annotations = _anno_db.load_annotations
 
 
+@_c3warn.deprecated_args("2025.9", "no longer has an effect", discontinued="new_type")
 def make_seq(
     seq,
     name: str | None = None,
     moltype=None,
-    new_type: bool = False,
     annotation_offset: int = 0,
     annotation_db: _anno_db.SupportsFeatures | None = None,
     **kw: dict,
@@ -96,9 +97,6 @@ def make_seq(
         sequence name
     moltype
         name of a moltype or moltype instance
-    new_type
-        if True, returns a new type Sequence (cogent3.core.new_sequence.Sequence).
-        Support for the old style will be removed as of 2025.6.
     annotation_offset
         integer indicating start position relative to annotations
     **kw
@@ -109,12 +107,8 @@ def make_seq(
     returns a sequence object
     """
     moltype = moltype or "text"
-    if new_type or "COGENT3_NEW_TYPE" in os.environ:
-        from cogent3.core import new_moltype
+    moltype = get_moltype(moltype)
 
-        moltype = new_moltype.get_moltype(moltype)
-    else:
-        moltype = get_moltype(moltype)
     seq = moltype.make_seq(
         seq=seq,
         name=name,
@@ -129,12 +123,11 @@ def make_seq(
 def _load_files_to_unaligned_seqs(
     *,
     path: os.PathLike,
-    format: str | None = None,
+    format_name: str | None = None,
     moltype: str | None = None,
     label_to_name: Callable | None = None,
     parser_kw: dict | None = None,
     info: dict | None = None,
-    new_type: bool = False,
     ui=None,
 ) -> "SequenceCollection":
     """loads multiple files and returns as a sequence collection"""
@@ -143,7 +136,7 @@ def _load_files_to_unaligned_seqs(
     seqs = [
         load_seq(
             fn,
-            format=format,
+            format_name=format_name,
             moltype=moltype,
             label_to_name=label_to_name,
             parser_kw=parser_kw,
@@ -157,7 +150,6 @@ def _load_files_to_unaligned_seqs(
         moltype=moltype,
         source=path,
         info=info,
-        new_type=new_type,
     )
 
 
@@ -189,15 +181,20 @@ def _load_genbank_seq(
     return name, seq, db
 
 
+@_c3warn.deprecated_args(
+    "2025.9",
+    "no longer has an effect",
+    discontinued="new_type",
+    old_new=[("format", "format_name")],
+)
 def load_seq(
     filename: os.PathLike,
     annotation_path: os.PathLike | None = None,
-    format: str | None = None,
+    format_name: str | None = None,
     moltype: str | None = None,
     label_to_name: Callable | None = None,
     parser_kw: dict | None = None,
     info: dict | None = None,
-    new_type: bool = False,
     annotation_offset: int = 0,
     **kw: dict,
 ) -> "Sequence":
@@ -210,7 +207,7 @@ def load_seq(
         path to sequence file
     annotation_path
         path to annotation file, ignored if format is genbank
-    format
+    format_name
         sequence file format, if not specified tries to guess from the path suffix
     moltype
         the moltype, eg DNA, PROTEIN, 'dna', 'protein'
@@ -220,9 +217,6 @@ def load_seq(
         optional arguments for the parser
     info
         a dict from which to make an info object
-    new_type
-        if True, returns a new type Sequence (cogent3.core.new_sequence.Sequence)
-        Support for the old style will be removed as of 2025.6.
     annotation_offset
         integer indicating start position relative to annotations
     **kw
@@ -247,14 +241,14 @@ def load_seq(
     file_suffix, _ = get_format_suffixes(filename)
     parser_kw = parser_kw or {}
     if file_suffix == "json":
-        from cogent3.core.new_sequence import Sequence
+        from cogent3.core.sequence import Sequence
         from cogent3.core.sequence import Sequence as OldSeq
 
         seq = load_from_json(filename, (Sequence, OldSeq))
         seq.name = label_to_name(seq.name) if label_to_name else seq.name
         return seq
 
-    if is_genbank(format or file_suffix):
+    if is_genbank(format_name or file_suffix):
         name, seq, db = _load_genbank_seq(
             filename,
             parser_kw,
@@ -263,7 +257,7 @@ def load_seq(
     else:
         db = None
         parser = get_seq_format_parser_plugin(
-            format_name=format,
+            format_name=format_name,
             file_suffix=file_suffix,
             unaligned_seqs=True,
         )
@@ -286,7 +280,6 @@ def load_seq(
         seq,
         name,
         moltype=moltype,
-        new_type=new_type,
         annotation_offset=annotation_offset,
         annotation_db=db,
         **kw,
@@ -296,15 +289,20 @@ def load_seq(
     return result
 
 
+@_c3warn.deprecated_args(
+    "2025.9",
+    "no longer has an effect",
+    discontinued="new_type",
+    old_new=[("format", "format_name")],
+)
 @display_wrap
 def load_unaligned_seqs(
     filename: str | pathlib.Path,
-    format=None,
-    moltype=None,
-    label_to_name=None,
+    format_name: str | None = None,
+    moltype: str | None = None,
+    label_to_name: typing.Callable[[str], str] | None = None,
     parser_kw: dict | None = None,
     info: dict | None = None,
-    new_type: bool = False,
     **kw,
 ) -> "SequenceCollection":
     """
@@ -315,7 +313,7 @@ def load_unaligned_seqs(
     filename
         path to sequence file or glob pattern. If a glob we assume a single
         sequence per file. All seqs returned in one SequenceCollection.
-    format
+    format_name
         sequence file format, if not specified tries to guess from the path suffix
     moltype
         the moltype, eg DNA, PROTEIN, 'dna', 'protein'
@@ -325,10 +323,6 @@ def load_unaligned_seqs(
         optional arguments for the parser
     info
         a dict from which to make an info object
-    new_type
-        if True, the returned SequenceCollection will be of the new type,
-        (cogent3.core.new_sequence.SequenceCollection). Support for the old
-        style will be removed as of 2025.6.
     **kw
         other keyword arguments passed to SequenceCollection, or show_progress.
         The latter induces a progress bar for number of files processed when
@@ -345,31 +339,28 @@ def load_unaligned_seqs(
         filename = pathlib.Path(filename).expanduser()
 
     file_suffix, _ = get_format_suffixes(filename)
-    format_name = format
     if "*" in filename.name:
         return _load_files_to_unaligned_seqs(
             path=filename,
-            format=file_suffix,
+            format_name=format_name or file_suffix,
             moltype=moltype,
             label_to_name=label_to_name,
             parser_kw=parser_kw,
             info=info,
-            new_type=new_type,
             ui=ui,
         )
 
     if file_suffix == "json":
-        from cogent3.core.alignment import SequenceCollection as OldSeqColl
-        from cogent3.core.new_alignment import SequenceCollection
+        from cogent3.core.alignment import SequenceCollection
 
-        return load_from_json(filename, (SequenceCollection, OldSeqColl))
+        return load_from_json(filename, (SequenceCollection,))
 
     if not (file_suffix or format_name):
         msg = "could not determined file format, set using the format argument"
         raise ValueError(msg)
 
     parser = get_seq_format_parser_plugin(
-        format_name=format,
+        format_name=format_name,
         file_suffix=file_suffix,
         unaligned_seqs=True,
     )
@@ -385,20 +376,23 @@ def load_unaligned_seqs(
         moltype=moltype,
         source=filename,
         info=info,
-        new_type=new_type,
         **kw,
     )
 
 
+@_c3warn.deprecated_args(
+    "2025.9",
+    "no longer has an effect",
+    discontinued=("new_type", "array_align"),
+    old_new=[("format", "format_name")],
+)
 def load_aligned_seqs(
     filename: str | pathlib.Path,
-    format: str | None = None,
-    array_align: bool = True,
+    format_name: str | None = None,
     moltype: str | None = None,
     label_to_name: typing.Callable[[str], str] | None = None,
     parser_kw: dict | None = None,
     info: dict | None = None,
-    new_type: bool = False,
     **kw,
 ) -> "Alignment":
     """
@@ -406,28 +400,22 @@ def load_aligned_seqs(
 
     Parameters
     ----------
-    filename : str
+    filename
         path to sequence file
-    format : str
+    format_name
         sequence file format, if not specified tries to guess from the path suffix
     moltype
         the moltype, eg DNA, PROTEIN, 'dna', 'protein'
-    array_align : bool
-        if True, returns ArrayAlignment, otherwise an annotatable Alignment
     label_to_name
         function for converting original name into another name.
-    parser_kw : dict
+    parser_kw
         optional arguments for the parser
-    new_type
-        if True, the returned Alignment will be of the new type,
-        (cogent3.core.new_alignment.Alignment). Support for the old
-        style will be removed as of 2025.6.
     kw
         passed to make_aligned_seqs
 
     Returns
     -------
-    ``ArrayAlignment`` or ``Alignment`` instance
+    ``Alignment`` instance
     """
     from cogent3._plugin import get_seq_format_parser_plugin
 
@@ -436,13 +424,12 @@ def load_aligned_seqs(
 
     file_suffix, _ = get_format_suffixes(filename)
     if file_suffix == "json":
-        from cogent3.core.alignment import Alignment as OldAlignment
-        from cogent3.core.alignment import ArrayAlignment
+        from cogent3.core.alignment import Alignment
 
-        return load_from_json(filename, (OldAlignment, ArrayAlignment))
+        return load_from_json(filename, (Alignment,))
 
     parser = get_seq_format_parser_plugin(
-        format_name=format,
+        format_name=format_name,
         file_suffix=file_suffix,
         unaligned_seqs=False,
     )
@@ -454,11 +441,9 @@ def load_aligned_seqs(
 
     return make_aligned_seqs(
         data,
-        array_align=array_align,
         label_to_name=label_to_name,
         moltype=moltype,
         source=filename,
         info=info,
-        new_type=new_type,
         **kw,
     )

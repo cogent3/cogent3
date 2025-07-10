@@ -1,113 +1,228 @@
-"""Contains classes that represent biological sequence data. These
-provide generic biological sequence manipulation functions, plus functions
-that are critical for the EVOLVE calculations.
+"""Contains classes that represent biological sequence data.
 
-WARNING: Do not import sequence classes directly! It is expected that you will
-access them through the moltype module. Sequence classes depend on information
-from the MolType that is _only_ available after MolType has been imported.
-
-Sequences are intended to be immutable. This is not enforced by the code for
-performance reasons, but don't alter the MolType or the sequence data after
-creation.
+Notes
+-----
+These should be created via MolType.make_seq()
 """
 
 from __future__ import annotations
 
 import contextlib
-import copy
 import json
 import re
+import typing
 import warnings
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from functools import singledispatch, total_ordering
 from operator import eq, ne
 from random import shuffle
-from typing import TYPE_CHECKING, Any, NoReturn, Optional
 
-from numpy import (
-    arange,
-    array,
-    compress,
-    floating,
-    integer,
-    issubdtype,
-    logical_not,
-    logical_or,
-    nonzero,
-    put,
-    ravel,
-    take,
-    zeros,
-)
-from numpy.random import permutation
+import numpy
+import typing_extensions
+from numpy import array
 
 from cogent3._version import __version__
-from cogent3.core.alphabet import AlphabetError
+from cogent3.core import alphabet as c3_alphabet
+from cogent3.core import genetic_code as c3_genetic_code
+from cogent3.core import moltype as c3_moltype
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
-    BasicAnnotationDb,
+    AnnotatableMixin,
     FeatureDataType,
-    GenbankAnnotationDb,
     SupportsFeatures,
-    load_annotations,
 )
-from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
-from cogent3.core.location import FeatureMap, IndelMap, LostSpan
+from cogent3.core.location import (
+    FeatureMap,
+    IndelMap,
+    LostSpan,
+    Strand,
+    _input_vals_neg_step,
+    _input_vals_pos_step,
+)
 from cogent3.format.fasta import seqs_to_fasta
-from cogent3.maths.stats.contingency import CategoryCounts
+from cogent3.maths.stats.contingency import CategoryCounts, TestResult
 from cogent3.maths.stats.number import CategoryCounter
 from cogent3.util import warning as c3warn
-from cogent3.util.dict_array import DictArrayTemplate
+from cogent3.util.deserialise import register_deserialiser
+from cogent3.util.dict_array import DictArray
 from cogent3.util.misc import (
     DistanceFromMatrix,
-    bytes_to_string,
     get_object_provenance,
     get_setting_from_environ,
+    is_float,
+    is_int,
 )
 from cogent3.util.transform import for_seq, per_shortest
 
-if TYPE_CHECKING:
-    import os
-    from collections.abc import Generator, Iterable
-
+OptStr = str | None
+OptInt = int | None
+OptFloat = float | None
+IntORFloat = int | float
+StrORIterableStr = str | typing.Iterable[str]
+StrORBytesORArray = str | bytes | numpy.ndarray
 ARRAY_TYPE = type(array(1))
-DEFAULT_ANNOTATION_DB = BasicAnnotationDb
 
 # standard distance functions: left  because generally useful
 frac_same = for_seq(f=eq, aggregator=sum, normalizer=per_shortest)
 frac_diff = for_seq(f=ne, aggregator=sum, normalizer=per_shortest)
 
 
-def _is_int(val) -> bool:
-    """whether val is builtin, or numpy, integer"""
-    return issubdtype(val.__class__, integer) or isinstance(val, int)
+def _moltype_seq_from_rich_dict(
+    data: dict[str, str | dict[str, str]],
+) -> tuple[c3_moltype.MolType, StrORBytesORArray]:
+    """returns moltype and seq and mutates data so it can serve as kwargs to Sequence constructor"""
+    data.pop("type")
+    data.pop("version")
+    data.pop("annotation_db", None)
+    data.pop("annotation_offset", 0)
+
+    moltype = data.pop("moltype")
+    moltype = c3_moltype.get_moltype(moltype)
+
+    seq = data.pop("seq")
+    return moltype, seq
 
 
-def _is_float(val) -> bool:
-    """whether val is builtin, or numpy, integer"""
-    return issubdtype(val.__class__, floating) or isinstance(val, float)
+# This is a design note about the annotation_offset attribute on sequences
+#  and the related offset attribute on the sequence view.
+
+# The SeqView object is responsible for performing slices and keeping track of
+#  those slice operations relative to a parent. This is done via the start, stop
+#  and step attributes.
+
+# The annotation_offset attribute is intended to facilitate relating sequences
+#  to annotations stored in coordinates of an annotated parent sequence. Consider
+#  for example a gene that lies on a chromosome. If a user has an instance of that
+#  gene's sequence in a sequence object, then the annotation_offset would be the
+#  start position of that gene on the plus strand of the original chromosome.
+
+# It's the case that an annotation_offset can only be specified by the user as
+#  an argument to the sequence constructor. The design decision was made to
+#  have the responsibility for providing the coordinates on the parent lie
+#  with the SeqView class. These values are provided by the parent_start,
+#  parent_stop and absolute_position methods.
+
+# The state flow is in the constructor for the sequence class. There is
+#  an assignment of the annotation_offset to the provided sequence_view.
+
+# The only time the offset value is not at the SeqView level is the
+#  sequence object is being serialised.
 
 
 @total_ordering
-class SequenceI:
-    """Abstract class containing Sequence interface.
+class Sequence(AnnotatableMixin):
+    """Holds the standard Sequence object. Immutable.
 
-    Specifies methods that Sequence delegates to its MolType, and methods for
-    detecting gaps.
+    Notes
+    -----
+    Sequences should be constructed by a MolType instance.
     """
 
-    # String methods delegated to self._seq -- remember to override if self._seq
-    # isn't a string in your base class, but it's probably better to make
-    # self._seq a property that contains the string.
-    line_wrap = None  # used for formatting FASTA strings
+    __slots__ = (
+        "_annotation_db",
+        "_repr_policy",
+        "_seq",
+        "info",
+        "moltype",
+        "name",
+    )
+
+    def __init__(
+        self,
+        moltype: c3_moltype.MolType,
+        seq: StrORBytesORArray | SeqViewABC,
+        *,
+        name: OptStr = None,
+        info: dict | InfoClass | None = None,
+        annotation_offset: int = 0,
+        annotation_db: SupportsFeatures | None = None,
+    ) -> None:
+        """Initialize a sequence.
+
+        Parameters
+        ----------
+        moltype
+            MolType instance
+        seq
+            the raw sequence string, default is ''
+        name
+            the sequence name
+        info
+            Info object or dict
+        annotation_offset
+            integer indicating start position relative to annotations
+        annotation_db
+            optional annotation database
+
+        Notes
+        -----
+        If a user attempts to add a feature and the annotation_db is None,
+        a default BasicAnnotationDb instance will be created and used.
+        """
+        self.moltype = moltype
+        self.name = name
+        self._seq = _coerce_to_seqview(
+            seq,
+            name,
+            self.moltype.most_degen_alphabet(),
+            annotation_offset,
+        )
+
+        info = info or {}
+        self.info = InfoClass(**info)
+        self._repr_policy = {"num_pos": 60}
+        self._annotation_db: list[SupportsFeatures] = self._init_annot_db_value(
+            annotation_db
+        )
 
     def __str__(self) -> str:
-        """__str__ returns self._seq unmodified."""
-        return str(self._seq)
+        result = numpy.array(self)
+        return self.moltype.most_degen_alphabet().from_indices(result)
 
-    def to_fasta(self, make_seqlabel=None, block_size=60):
+    def __bytes__(self) -> bytes:
+        return str(self).encode("utf8")
+
+    def __array__(
+        self,
+        dtype: numpy.dtype | None = None,
+        copy: bool | None = None,
+    ) -> numpy.ndarray[int]:
+        # using the array_value attribute means we can have
+        # a aligned or seq data view here and the outcome will be the
+        # same -- just the sequence is returned
+        result = self._seq.array_value
+        if self._seq.slice_record.is_reversed:
+            with contextlib.suppress(TypeError):
+                result = self.moltype.complement(result)
+        return result
+
+    def to_array(self, apply_transforms: bool = True) -> numpy.ndarray[int]:
+        """returns the numpy array
+
+        Parameters
+        ----------
+        apply_transforms
+            if True, applies any reverse complement operation
+
+        Notes
+        -----
+        Use this method with apply_transforms=False if you are
+        creating data for storage in a SeqData instance.
+        """
+        if apply_transforms:
+            return numpy.array(self)
+
+        arr = self._seq.array_value
+        if self._seq.is_reversed:
+            # the reversal will have been applied in the SeqView
+            # array_value method, so we undo that here.
+            arr = arr[::-1]
+
+        return arr
+
+    def to_fasta(self, make_seqlabel=None, block_size=60) -> str:
         """Return string of self in FASTA format, no trailing newline
 
         Parameters
@@ -128,25 +243,40 @@ class SequenceI:
             label = self.name
         return seqs_to_fasta({label: str(self)}, block_size=block_size)
 
-    def to_rich_dict(self, exclude_annotations=False):
-        """returns {'name': name, 'seq': sequence, 'moltype': moltype.label}"""
+    def to_phylip(self, name_len: int = 28, label_len: int = 30) -> str:
+        """Return string of self in one line for PHYLIP, no newline.
+
+        Default: max name length is 28, label length is 30.
+        """
+        return str(self.name)[:name_len].ljust(label_len) + str(self)
+
+    def to_rich_dict(
+        self,
+        exclude_annotations: bool = True,
+    ) -> dict[str, str | dict[str, str]]:
+        """returns {'name': name, 'seq': sequence, 'moltype': moltype.label}
+
+        Notes
+        -----
+        Deserialisation of the sequence object will not include the annotation_db
+        even if exclude_annotations=False.
+        """
         info = {} if self.info is None else self.info
         if info.get("Refs", None) is not None and "Refs" in info:
             info.pop("Refs")
 
         info = info or None
-        seq = self._seq.to_rich_dict() if hasattr(self, "_seq") else str(self)
         data = {
             "name": self.name,
-            "seq": seq,
+            "seq": str(self),
             "moltype": self.moltype.label,
             "info": info,
             "type": get_object_provenance(self),
             "version": __version__,
         }
         if hasattr(self, "annotation_offset"):
-            offset = int(self._seq.parent_start)
-            data.update({"annotation_offset": offset})
+            offset = int(self._seq.slice_record.parent_start)
+            data |= {"annotation_offset": offset}
 
         if (
             hasattr(self, "annotation_db")
@@ -157,22 +287,35 @@ class SequenceI:
 
         return data
 
-    def to_json(self):
+    @classmethod
+    def from_rich_dict(cls, data: dict) -> Sequence:
+        """create a Sequence object from a rich dict"""
+        if isinstance(data["seq"], dict):
+            # this is a rich dict from the old type sequences
+            data["seq"] = data.pop("seq")["init_args"]["seq"]
+
+        moltype, seq = _moltype_seq_from_rich_dict(data)
+
+        return cls(moltype=moltype, seq=seq, **data)
+
+    def to_json(self) -> str:
         """returns a json formatted string"""
         return json.dumps(self.to_rich_dict())
 
-    def count(self, item):
+    def count(self, item: str) -> int:
         """count() delegates to self._seq."""
         return str(self).count(item)
 
+    @c3warn.deprecated_args(
+        "2025.9", reason="has no effect", discontinued="exclude_unobserved"
+    )
     def counts(
         self,
-        motif_length=1,
-        include_ambiguity=False,
-        allow_gap=False,
-        exclude_unobserved=False,
-        warn=False,
-    ):
+        motif_length: int = 1,
+        include_ambiguity: bool = False,
+        allow_gap: bool = False,
+        warn: bool = False,
+    ) -> CategoryCounter:
         """returns dict of counts of motifs
 
         only non-overlapping motifs are counted.
@@ -186,22 +329,13 @@ class SequenceI:
             from the seq moltype are included. No expansion of those is attempted.
         allow_gaps
             if True, motifs containing a gap character are included.
-        exclude_unobserved
-            if True, unobserved motif combinations are excluded.
         warn
             warns if motif_length > 1 and alignment trimmed to produce
             motif columns
         """
-        try:
-            data = str(self)
-        except AttributeError:
-            data = self._data
+        data = numpy.array(self)
 
-        not_array = isinstance(data, SeqView | str)
-
-        if motif_length == 1:
-            counts = CategoryCounter(data)
-        else:
+        if motif_length != 1:
             if warn and len(data) % motif_length != 0:
                 warnings.warn(
                     f"{self.name} length not divisible by {motif_length}, truncating",
@@ -209,49 +343,59 @@ class SequenceI:
                 )
             limit = (len(data) // motif_length) * motif_length
             data = data[:limit]
-            if not_array:
-                counts = CategoryCounter(
-                    data[i : i + motif_length] for i in range(0, limit, motif_length)
-                )
-            else:
-                counts = CategoryCounter(
-                    tuple(v) for v in data.reshape(limit // motif_length, motif_length)
-                )
-        if not not_array:
-            for key in list(counts):
-                indices = [key] if motif_length == 1 else key
-                motif = self.alphabet.to_chars(indices).astype(str)
-                motif = "".join(motif)
-                counts[motif] = counts.pop(key)
+            data = data.reshape(-1, motif_length)
 
-        exclude = []
-        if not include_ambiguity or not allow_gap:
-            is_degen = self.moltype.is_degenerate
-            is_gap = self.moltype.is_gapped
-            for motif in counts:
-                if (not include_ambiguity and is_degen(motif)) or (
-                    not allow_gap and is_gap(motif)
-                ):
-                    exclude.append(motif)
+        unique_values, counts = numpy.unique(data, axis=0, return_counts=True)
+        if motif_length == 1:
+            unique_values = unique_values[:, None]
 
-        for motif in exclude:
-            del counts[motif]
+        indices = numpy.zeros(unique_values.shape[0], dtype=bool)
+        if not allow_gap:
+            indices |= numpy.apply_along_axis(
+                self.moltype.is_gapped, axis=1, arr=unique_values
+            )
 
-        return counts
+        if not include_ambiguity:
+            indices |= numpy.apply_along_axis(
+                self.moltype.is_degenerate, axis=1, arr=unique_values
+            )
 
-    def __lt__(self, other):
+        unique_values = unique_values[~indices]
+        counts = counts[~indices]
+
+        result = {}
+        alpha = self.moltype.most_degen_alphabet()
+        # The following approach is used because of bytes moltype.
+        # We can't use the from_indices method on the bytes moltype
+        # as that creates a string, but individual elements are
+        # bytes, not all of which can be decoded. Thus we get an
+        # empty instance and use join.
+        monomer_type = type(alpha[0])()
+        for motif, count in zip(unique_values, counts, strict=True):
+            key = monomer_type.join([alpha[i] for i in motif])
+            result[key] = int(count)
+
+        return CategoryCounter(result)
+
+    def count_ambiguous(self) -> int:
+        """Returns the number of ambiguous characters in the sequence."""
+        data = numpy.array(self)
+        gap_index = self.moltype.most_degen_alphabet().gap_index
+        return int(numpy.sum(data > gap_index))
+
+    def __lt__(self, other) -> bool:
         """compares based on the sequence string."""
         return str(self) < str(other)
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         """compares based on the sequence string."""
         return str(self) == str(other)
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         """compares based on the sequence string."""
         return str(self) != str(other)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         """__hash__ behaves like the sequence string for dict lookup."""
         return hash(str(self))
 
@@ -259,220 +403,186 @@ class SequenceI:
         """__contains__ checks whether other is in the sequence string."""
         return other in str(self)
 
-    def shuffle(self):
+    def shuffle(self) -> typing_extensions.Self:
         """returns a randomized copy of the Sequence object"""
         randomized_copy_list = list(self)
         shuffle(randomized_copy_list)
-        return self.__class__("".join(randomized_copy_list), info=self.info)
+        return self.__class__(
+            moltype=self.moltype,
+            seq="".join(randomized_copy_list),
+            info=self.info,
+        )
 
-    def complement(self):
-        """Returns complement of self, using data from MolType.
-
-        Always tries to return same type as item: if item looks like a dict,
-        will return list of keys.
-        """
-        return self.__class__(self.moltype.complement(self), info=self.info)
-
-    def strip_degenerate(self):
+    def strip_degenerate(self) -> typing_extensions.Self:
         """Removes degenerate bases by stripping them out of the sequence."""
-        return self.__class__(self.moltype.strip_degenerate(self), info=self.info)
+        return self.__class__(
+            moltype=self.moltype,
+            seq=self.moltype.strip_degenerate(bytes(self)),
+            info=self.info,
+        )
 
-    def strip_bad(self):
+    def strip_bad(self) -> typing_extensions.Self:
         """Removes any symbols not in the alphabet."""
-        return self.__class__(self.moltype.strip_bad(self), info=self.info)
+        return self.__class__(
+            moltype=self.moltype,
+            seq=self.moltype.strip_bad(str(self)),
+            info=self.info,
+        )
 
-    def strip_bad_and_gaps(self):
-        """Removes any symbols not in the alphabet, and any gaps."""
-        return self.__class__(self.moltype.strip_bad_and_gaps(self), info=self.info)
+    def strip_bad_and_gaps(self) -> typing_extensions.Self:
+        """Removes any symbols not in the alphabet, and any gaps. As the missing
+        character could be a gap, this method will remove it as well."""
+        return self.__class__(
+            moltype=self.moltype,
+            seq=self.moltype.strip_bad_and_gaps(str(self)),
+            info=self.info,
+        )
 
-    def rc(self):
-        """Returns reverse complement of self w/ data from MolType.
-
-        Always returns same type self.
-        """
-        return self.__class__(self.moltype.rc(self), info=self.info)
-
-    def is_gapped(self):
+    def is_gapped(self) -> bool:
         """Returns True if sequence contains gaps."""
-        return self.moltype.is_gapped(self)
+        return self.moltype.is_gapped(str(self))
 
-    def is_gap(self, char=None):
-        """Returns True if char is a gap.
-
-        If char is not supplied, tests whether self is gaps only.
-        """
-        if char is None:  # no char - so test if self is all gaps
-            return len(self) == self.count_gaps()
-        return self.moltype.is_gap(char)
-
-    def is_degenerate(self):
+    def is_degenerate(self) -> bool:
         """Returns True if sequence contains degenerate characters."""
-        return self.moltype.is_degenerate(self)
+        return self.moltype.is_degenerate(str(self))
 
-    def is_valid(self):
+    def is_valid(self) -> bool:
         """Returns True if sequence contains no items absent from alphabet."""
         return self.moltype.is_valid(self)
 
-    def is_strict(self):
+    def is_strict(self) -> bool:
         """Returns True if sequence contains only monomers."""
-        return self.moltype.is_strict(self)
+        return self.moltype.alphabet.is_valid(array(self))
 
-    def first_gap(self):  # will not port
-        """Returns the index of the first gap in the sequence, or None."""
-        return self.moltype.first_gap(self)
-
-    def first_degenerate(self):  # will not port
-        """Returns the index of first degenerate symbol in sequence, or None."""
-        return self.moltype.first_degenerate(self)
-
-    def first_invalid(self):  # will not port
-        """Returns the index of first invalid symbol in sequence, or None."""
-        return self.moltype.first_invalid(self)
-
-    def first_non_strict(self):  # will not port
-        """Returns the index of first non-strict symbol in sequence, or None."""
-        return self.moltype.first_non_strict(self)
-
-    def disambiguate(self, method="strip"):
+    def disambiguate(self, method: str = "strip") -> typing_extensions.Self:
         """Returns a non-degenerate sequence from a degenerate one.
 
-        method can be 'strip' (deletes any characters not in monomers or gaps)
-        or 'random'(assigns the possibilities at random, using equal
-        frequencies).
+        Parameters
+        ----------
+        seq
+            the sequence to be disambiguated
+        method
+            how to disambiguate the sequence, one of "strip", "random"
+            strip: deletes any characters not in monomers or gaps
+            random: assigns the possibilities at random, using equal frequencies
         """
-        return self.__class__(self.moltype.disambiguate(self, method), info=self.info)
+        return self.__class__(
+            moltype=self.moltype,
+            seq=self.moltype.disambiguate(str(self), method),
+            info=self.info,
+        )
 
-    def degap(self):
+    def degap(self) -> typing_extensions.Self:
         """Deletes all gap characters from sequence."""
         result = self.__class__(
-            self.moltype.degap(self),
+            moltype=self.moltype,
+            seq=self.moltype.degap(bytes(self)),
             name=self.name,
             info=self.info,
         )
         result.annotation_db = self.annotation_db
         return result
 
-    def gap_indices(self):
-        """Returns list of indices of all gaps in the sequence, or []."""
-        return self.moltype.gap_indices(self)
+    def gap_indices(self) -> numpy.ndarray:
+        """Returns array of the indices of all gaps in the sequence"""
+        return numpy.where(self.gap_vector())[0]
 
-    def gap_vector(self):
-        """Returns vector of True or False according to which pos are gaps."""
-        return self.moltype.gap_vector(self)
+    def gap_vector(self) -> list[bool]:
+        """Returns vector of True or False according to which pos are gaps or missing."""
+        return (
+            (array(self) == self.moltype.degen_gapped_alphabet.gap_index)
+            | (array(self) == self.moltype.degen_gapped_alphabet.missing_index)
+        ).tolist()
 
-    def gap_maps(self):
-        """Returns dicts mapping between gapped and ungapped positions."""
-        return self.moltype.gap_maps(self)
-
-    def count_gaps(self):
+    def count_gaps(self) -> int:
         """Counts the gaps in the specified sequence."""
-        return self.moltype.count_gaps(self)
+        return self.moltype.count_gaps(bytes(self))
 
-    def count_degenerate(self):
-        """Counts the degenerate bases in the specified sequence."""
-        return self.moltype.count_degenerate(self)
+    def count_degenerate(self) -> int:
+        """Counts the degenerate bases in the specified sequence.
 
-    def possibilities(self):
-        """Counts number of possible sequences matching the sequence.
-
-        Uses self.degenerates to decide how many possibilities there are at
-        each position in the sequence.
+        Notes
+        -----
+        gap and missing characters are counted as degenerate.
         """
-        return self.moltype.possibilities(self)
+        # design: refactor
+        # should gap and missing characters be counted as degenerate?
+        return self.moltype.count_degenerate(bytes(self))
 
-    def mw(self, method="random", delta=None):
+    def count_variants(self) -> int:
+        """Counts number of possible sequences matching the sequence, given
+        any ambiguous characters in the sequence.
+
+        Notes
+        -----
+        Uses self.ambiguitues to decide how many possibilities there are at
+        each position in the sequence and calculates the permutations.
+        """
+        return self.moltype.count_variants(str(self))
+
+    def mw(self, method: str = "random", delta: OptFloat = None) -> float:
         """Returns the molecular weight of (one strand of) the sequence.
 
-        If the sequence is ambiguous, uses method (random or strip) to
-        disambiguate the sequence.
+        Parameters
+        ----------
+        method
+            If the sequence is ambiguous, uses method (random or strip) to
+            disambiguate the sequence.
+        delta
+            If delta is passed in, adds delta per strand. Default is None, which
+            uses the alphabet default. Typically, this adds 18 Da for terminal
+            water. However, note that the default nucleic acid weight assumes
+            5' monophosphate and 3' OH: pass in delta=18.0 if you want 5' OH as
+            well.
 
-        If delta is passed in, adds delta per strand (default is None, which
-        uses the alphabet default. Typically, this adds 18 Da for terminal
-        water. However, note that the default nucleic acid weight assumes
-        5' monophosphate and 3' OH: pass in delta=18.0 if you want 5' OH as
-        well.
-
-        Note that this method only calculates the MW of the coding strand. If
-        you want the MW of the reverse strand, add self.rc().mw(). DO NOT
-        just multiply the MW by 2: the results may not be accurate due to
-        strand bias, e.g. in mitochondrial genomes.
+        Notes
+        -----
+        this method only calculates the MW of the coding strand. If you want
+        the MW of the reverse strand, add self.rc().mw(). DO NOT just multiply
+        the MW by 2: the results may not be accurate due to strand bias, e.g.
+        in mitochondrial genomes.
         """
         return self.moltype.mw(self, method, delta)
 
-    def can_match(self, other):
+    def can_match(self, other: typing_extensions.Self) -> bool:
         """Returns True if every pos in self could match same pos in other.
 
         Truncates at length of shorter sequence.
         gaps are only allowed to match other gaps.
         """
-        return self.moltype.can_match(self, other)
+        return self.moltype.can_match(str(self), str(other))
 
-    def can_mismatch(self, other):  # will not port
-        """Returns True if any position in self could mismatch with other.
-
-        Truncates at length of shorter sequence.
-        gaps are always counted as matches.
-        """
-        return self.moltype.can_mismatch(self, other)
-
-    def must_match(self, other):
-        """Returns True if all positions in self must match positions in other."""
-        return self.moltype.must_match(self, other)
-
-    def can_pair(self, other):
-        """Returns True if self and other could pair.
-
-        Pairing occurs in reverse order, i.e. last position of other with
-        first position of self, etc.
-
-        Truncates at length of shorter sequence.
-        gaps are only allowed to pair with other gaps, and are counted as 'weak'
-        (same category as GU and degenerate pairs).
-
-        NOTE: second must be able to be reverse
-        """
-        return self.moltype.can_pair(self, other)
-
-    def can_mispair(self, other):
-        """Returns True if any position in self could mispair with other.
-
-        Pairing occurs in reverse order, i.e. last position of other with
-        first position of self, etc.
-
-        Truncates at length of shorter sequence.
-        gaps are always counted as possible mispairs, as are weak pairs like GU.
-        """
-        return self.moltype.can_mispair(self, other)
-
-    def must_pair(self, other) -> bool:
-        """Returns True if all positions in self must pair with other.
-
-        Pairing occurs in reverse order, i.e. last position of other with
-        first position of self, etc.
-        """
-        return not self.moltype.can_mispair(self, other)
-
-    def diff(self, other):
+    def diff(self, other: typing_extensions.Self) -> int:
         """Returns number of differences between self and other.
 
-        NOTE: truncates at the length of the shorter sequence. Case-sensitive.
+        Notes
+        -----
+        Truncates at the length of the shorter sequence.
         """
         return self.distance(other)
 
-    def distance(self, other, function=None):
+    def distance(
+        self,
+        other: typing_extensions.Self,
+        function: typing.Callable[[str, str], IntORFloat] | None = None,
+    ) -> IntORFloat:
         """Returns distance between self and other using function(i,j).
 
-        other must be a sequence.
+        Parameters
+        ----------
+        other
+            a sequence to compare to self
+        function
+            takes two seq residues and returns a number. To turn a 2D matrix into
+            a function, use cogent3.util.miscs.DistanceFromMatrix(matrix).
 
-        function should be a function that takes two items and returns a
-        number. To turn a 2D matrix into a function, use
-        cogent3.util.miscs.DistanceFromMatrix(matrix).
+        Notes
+        -----
+        Truncates at the length of the shorter sequence.
 
-        NOTE: Truncates at the length of the shorter sequence.
-
-        Note that the function acts on two _elements_ of the sequences, not
-        the two sequences themselves (i.e. the behavior will be the same for
-        every position in the sequences, such as identity scoring or a function
+        The function acts on two _elements_ of the sequences, not the two
+        sequences themselves (i.e. the behavior will be the same for every
+        position in the sequences, such as identity scoring or a function
         derived from a distance matrix as suggested above). One limitation of
         this approach is that the distance function cannot use properties of
         the sequences themselves: for example, it cannot use the lengths of the
@@ -500,10 +610,12 @@ class SequenceI:
             distance += function(first, second)
         return distance
 
-    def matrix_distance(self, other, matrix):
+    def matrix_distance(self, other: typing_extensions.Self, matrix) -> IntORFloat:
         """Returns distance between self and other using a score matrix.
 
-        WARNING: the matrix must explicitly contain scores for the case where
+        Warnings
+        --------
+        The matrix must explicitly contain scores for the case where
         a position is the same in self and other (e.g. for a distance matrix,
         an identity between U and U might have a score of 0). The reason the
         scores for the 'diagonals' need to be passed explicitly is that for
@@ -514,23 +626,27 @@ class SequenceI:
         """
         return self.distance(other, DistanceFromMatrix(matrix))
 
-    def frac_same(self, other):
+    def frac_same(self, other: typing_extensions.Self) -> float:
         """Returns fraction of positions where self and other are the same.
 
-        Truncates at length of shorter sequence.
-        Note that frac_same and frac_diff are both 0 if one sequence is empty.
+        Notes
+        -----
+        Truncates at length of shorter sequence. Will return  0 if one sequence
+        is empty.
         """
         return frac_same(self, other)
 
-    def frac_diff(self, other):
+    def frac_diff(self, other: typing_extensions.Self) -> float:
         """Returns fraction of positions where self and other differ.
 
-        Truncates at length of shorter sequence.
-        Note that frac_same and frac_diff are both 0 if one sequence is empty.
+        Notes
+        -----
+        Truncates at length of shorter sequence. Will return  0 if one sequence
+        is empty.
         """
         return frac_diff(self, other)
 
-    def frac_same_gaps(self, other):
+    def frac_same_gaps(self, other: typing_extensions.Self) -> float:
         """Returns fraction of positions where self and other share gap states.
 
         In other words, if self and other are both all gaps, or both all
@@ -551,7 +667,7 @@ class SequenceI:
             len(other),
         )
 
-    def frac_diff_gaps(self, other):
+    def frac_diff_gaps(self, other: typing_extensions.Self) -> float:
         """Returns frac. of positions where self and other's gap states differ.
 
         In other words, if self and other are both all gaps, or both all
@@ -567,7 +683,7 @@ class SequenceI:
             return 0.0
         return 1.0 - self.frac_same_gaps(other)
 
-    def frac_same_non_gaps(self, other):
+    def frac_same_non_gaps(self, other: typing_extensions.Self) -> float:
         """Returns fraction of non-gap positions where self matches other.
 
         Doesn't count any position where self or other has a gap.
@@ -575,6 +691,8 @@ class SequenceI:
 
         Returns 0 if one sequence is empty.
         """
+        # refactor: simplify
+        # refactor: array - make use of self._seq.array_value
         if not self or not other:
             return 0.0
 
@@ -593,7 +711,7 @@ class SequenceI:
         # there were no positions that weren't gaps
         return 0
 
-    def frac_diff_non_gaps(self, other):
+    def frac_diff_non_gaps(self, other: typing_extensions.Self) -> float:
         """Returns fraction of non-gap positions where self differs from other.
 
         Doesn't count any position where self or other has a gap.
@@ -621,7 +739,11 @@ class SequenceI:
         # there were no positions that weren't gaps
         return 0
 
-    def frac_similar(self, other, similar_pairs):
+    def frac_similar(
+        self,
+        other: typing_extensions.Self,
+        similar_pairs: dict[(str, str), typing.Any],
+    ) -> float:
         """Returns fraction of positions where self[i] is similar to other[i].
 
         similar_pairs must be a dict such that d[(i,j)] exists if i and j are
@@ -644,7 +766,7 @@ class SequenceI:
             other,
         )
 
-    def with_termini_unknown(self):
+    def with_termini_unknown(self) -> typing_extensions.Self:
         """Returns copy of sequence with terminal gaps remapped as missing."""
         gaps = self.gap_vector()
         first_nongap = last_nongap = None
@@ -654,24 +776,22 @@ class SequenceI:
                     first_nongap = i
                 last_nongap = i
         missing = self.moltype.missing
-        if first_nongap is None:  # sequence was all gaps
-            result = self.__class__([missing for _ in len(self)], info=self.info)
-        else:
-            prefix = missing * first_nongap
-            mid = str(self)[first_nongap : last_nongap + 1]
-            suffix = missing * (len(self) - last_nongap - 1)
-            result = self.__class__(prefix + mid + suffix, info=self.info)
-        return result
+        if first_nongap is None:
+            return self.__class__(
+                moltype=self.moltype,
+                seq=missing * len(self),
+                info=self.info,
+            )
+        prefix = missing * first_nongap
+        mid = str(self)[first_nongap : last_nongap + 1]
+        suffix = missing * (len(self) - last_nongap - 1)
+        return self.__class__(
+            moltype=self.moltype,
+            seq=prefix + mid + suffix,
+            info=self.info,
+        )
 
-    def replace(self, oldchar, newchar) -> None:
-        """return new instance with oldchar replaced by newchar"""
-        NotImplemented
-
-    def strand_symmetry(self, *args, **kwargs) -> NoReturn:
-        msg = "must be DNA or RNA moltype"
-        raise TypeError(msg)
-
-    def _repr_html_(self):
+    def _repr_html_(self) -> str:
         settings = self._repr_policy.copy()
         env_vals = get_setting_from_environ(
             "COGENT3_ALIGNMENT_REPR_POLICY",
@@ -682,12 +802,12 @@ class SequenceI:
 
     def to_html(
         self,
-        wrap=60,
-        limit=None,
-        colors=None,
-        font_size=12,
-        font_family="Lucida Console",
-    ):
+        wrap: int = 60,
+        limit: OptInt = None,
+        colors: typing.Mapping[str, str] | None = None,
+        font_size: int = 12,
+        font_family: str = "Lucida Console",
+    ) -> str:
         """returns html with embedded styles for sequence colouring
 
         Parameters
@@ -698,8 +818,7 @@ class SequenceI:
         limit
             truncate alignment to this length
         colors
-            {character
-            moltype.
+            dict of {char: color} to use for coloring
         font_size
             in points. Affects labels and sequence and line spacing
             (proportional to value)
@@ -719,13 +838,23 @@ class SequenceI:
 
         seq = str(self)
         seq = seq if limit is None else seq[:limit]
-        gaps = "".join(self.moltype.gaps)
         seqlen = len(seq)
-        start_gap = re.search(f"^[{gaps}]+", "".join(seq))
-        end_gap = re.search(f"[{gaps}]+$", "".join(seq))
+        if gaps := self.moltype.gaps:
+            non_hyphen = "".join(gaps - {"-"})
+            # make sure hyphen at end of negated character group
+            # so it's not interpreted as a character range
+            chars = f"{non_hyphen}-" if "-" in gaps else non_hyphen
+            # looking for gaps at the the start of the seq
+            start_gap = re.search(f"^[{chars}]+", "".join(seq))
+            # looking for gaps at the end of the seq
+            end_gap = re.search(f"[{gaps}]+$", "".join(seq))
 
-        start = 0 if start_gap is None else start_gap.end()
-        end = len(seq) if end_gap is None else end_gap.start()
+            start = 0 if start_gap is None else start_gap.end()
+            end = len(seq) if end_gap is None else end_gap.start()
+        else:
+            start = 0
+            end = len(seq)
+
         seq_style = []
         template = '<span class="%s">%%s</span>'
         styled_seq = []
@@ -765,9 +894,9 @@ class SequenceI:
             ".c3seq tr:not(.num_row) td span {margin: 0 2px;}",
             ".c3seq tr:nth-child(even) {background: #f7f7f7;}",
             ".c3seq .num_row {background-color:rgba(161, 195, 209, 0.5) !important; border-top: solid 1px black; }",
-            ".c3seq .label { font-size: %dpt ; text-align: right !important; "
-            "color: black !important; padding: 0 4px; }" % font_size,
-            "\n".join([".c3seq " + style for style in css]),
+            f".c3seq .label {{ font-size: {font_size}pt ; text-align: right !important; "
+            "color: black !important; padding: 0 4px; }}",
+            "\n".join([f".c3seq {style}" for style in css]),
             "</style>",
             '<div class="c3seq">',
             "\n".join(table),
@@ -776,7 +905,7 @@ class SequenceI:
         ]
         return "\n".join(text)
 
-    def __add__(self, other):
+    def __add__(self, other: typing_extensions.Self) -> typing_extensions.Self:
         """Adds two sequences (other can be a string as well)."""
         if hasattr(other, "moltype") and self.moltype != other.moltype:
             msg = f"MolTypes don't match: ({self.moltype},{other.moltype})"
@@ -785,80 +914,28 @@ class SequenceI:
             )
         other_seq = str(other)
 
+        if not self.moltype.most_degen_alphabet().is_valid(str(other)):
+            msg = (
+                f"Invalid sequence characters in other for moltype={self.moltype.label}"
+            )
+            raise c3_alphabet.AlphabetError(
+                msg,
+            )
+
         # If two sequences with the same name are being added together the name should not be None
         if type(other) == type(self):
             name = self.name if self.name == other.name else None
         else:
             name = None
 
-        return self.__class__(str(self) + other_seq, name=name)
-
-
-@total_ordering
-class Sequence(SequenceI):
-    """Holds the standard Sequence object. Immutable."""
-
-    moltype = None  # connected to ACSII when moltype is imported
-
-    def __init__(
-        self,
-        seq="",
-        name=None,
-        info=None,
-        check=True,
-        preserve_case=False,
-        gaps_allowed=True,
-        wildcards_allowed=True,
-        annotation_offset=0,
-    ) -> None:
-        """Initialize a sequence.
-
-        Parameters
-        ----------
-        seq
-            the raw sequence string, default is ''
-        name
-            the sequence name
-        check
-            if True (the default), validates against the MolType
-        annotation_offset
-            integer indicating start position relative to annotations
-        """
-
-        if name is None and hasattr(seq, "name"):
-            name = seq.name
-        self.name = name
-        orig_seq = seq
-
-        checker = (
-            (lambda x: self.moltype.verify_sequence(x, gaps_allowed, wildcards_allowed))
-            if check
-            else (lambda x: x)
+        return self.__class__(
+            moltype=self.moltype,
+            seq=str(self) + other_seq,
+            name=name,
         )
-
-        self._seq = _coerce_to_seqview(
-            seq,
-            self.name,
-            preserve_case,
-            checker,
-            annotation_offset,
-        )
-
-        if not isinstance(info, InfoClass):
-            try:
-                info = InfoClass(info)
-            except TypeError:
-                info = InfoClass()
-        if hasattr(orig_seq, "info"):
-            with contextlib.suppress(Exception):
-                info.update(orig_seq.info)
-        self.info = info
-
-        self._repr_policy = {"num_pos": 60}
-        self._annotation_db = DEFAULT_ANNOTATION_DB()
 
     @property
-    def annotation_offset(self):
+    def annotation_offset(self) -> int:
         """
         The offset between annotation coordinates and sequence coordinates.
 
@@ -874,60 +951,17 @@ class Sequence(SequenceI):
             int: The offset between annotation coordinates and sequence coordinates.
         """
 
-        return self._seq.parent_start
-
-    @property
-    def annotation_db(self):
-        return self._annotation_db
-
-    @annotation_db.setter
-    def annotation_db(self, value) -> None:
-        # Without knowing the contents of the db we cannot
-        # establish whether self.moltype is compatible, so
-        # we rely on the user to get that correct
-        # one approach to support validation might be to add
-        # to the SupportsFeatures protocol a is_nucleic flag,
-        # for both DNA and RNA. But if a user trys get_slice()
-        # on a '-' strand feature, they will get a TypError.
-        # I think that's enough.
-        self.replace_annotation_db(value, check=False)
-
-    def replace_annotation_db(
-        self,
-        value: SupportsFeatures,
-        check: bool = True,
-    ) -> None:
-        """public interface to assigning the annotation_db
-
-        Parameters
-        ----------
-        value
-            the annotation db instance
-        check
-            whether to check value supports the feature interface
-
-        Notes
-        -----
-        The check can be very expensive, so if you're confident set it to False
-        """
-        if value == self._annotation_db:
-            return
-
-        if check and value and not isinstance(value, SupportsFeatures):
-            msg = f"{type(value)} does not satisfy SupportsFeatures"
-            raise TypeError(msg)
-
-        self._annotation_db = value
+        return self._seq.slice_record.parent_start
 
     def get_features(
         self,
         *,
-        biotype: str | None = None,
-        name: str | None = None,
-        start: int | None = None,
-        stop: int | None = None,
+        biotype: OptStr = None,
+        name: OptStr = None,
+        start: OptInt = None,
+        stop: OptInt = None,
         allow_partial: bool = False,
-    ):
+    ) -> typing.Iterator[Feature]:
         """yields Feature instances
 
         Parameters
@@ -969,15 +1003,22 @@ class Sequence(SequenceI):
             *_,
             strand,
         ) = self.parent_coordinates()
-        query_start = self._seq.absolute_position(start, include_boundary=False)
+        sr = self._seq.slice_record
+        query_start = sr.absolute_position(
+            start,
+            include_boundary=False,
+        )
         # we set include_boundary=True because stop is exclusive indexing,
         # i,e., the stop can be equal to the length of the view
-        query_stop = self._seq.absolute_position(stop, include_boundary=True)
+        query_stop = sr.absolute_position(
+            stop,
+            include_boundary=True,
+        )
 
-        rev_strand = strand == -1
-        if rev_strand:
-            query_start, query_stop = query_stop, query_start
-
+        query_start, query_stop = (
+            min(query_stop, query_start),
+            max(query_stop, query_start),
+        )
         query_start = max(query_start, 0)
         # in the underlying db, features are always plus strand oriented
         # (need to check that for user defined features)
@@ -1009,17 +1050,17 @@ class Sequence(SequenceI):
             # current view
             spans = array(feature.pop("spans"), dtype=int)
             for i, v in enumerate(spans.ravel()):
-                rel_pos = self._seq.relative_position(v)
+                rel_pos = sr.relative_position(v)
                 spans.ravel()[i] = rel_pos
 
-            if rev_strand:
+            if sr.is_reversed:
                 # see above comment
                 spans = len(self) - spans
 
             feature["spans"] = spans.tolist()
             yield self.make_feature(feature)
 
-    def _relative_spans(self, spans):
+    def _relative_spans(self, spans) -> list[tuple[int, int]]:
         r_spans = []
 
         for s, e in spans:
@@ -1055,8 +1096,10 @@ class Sequence(SequenceI):
         feature = dict(feature)
         seq_rced = self._seq.is_reversed
         spans = feature.pop("spans", None)
-        revd = feature.pop("strand", None) == "-"
-        feature["strand"] = "+" if revd == seq_rced else "-"
+        revd = Strand.from_value(feature.pop("strand", None)) is Strand.MINUS
+        feature["strand"] = (
+            Strand.PLUS.value if revd == seq_rced else Strand.MINUS.value
+        )
 
         vals = array(spans)
         pre = abs(vals.min()) if vals.min() < 0 else 0
@@ -1094,47 +1137,16 @@ class Sequence(SequenceI):
         feature.pop("seqid", None)
         return Feature(parent=self, seqid=self.name, map=fmap, **feature)
 
-    @c3warn.deprecated_callable(
-        "2025.6",
-        is_discontinued=True,
-        reason="directly assign the annotation_db instead",
-    )
-    def annotate_from_gff(
-        self,
-        f: os.PathLike,
-        offset: int | None = None,
-    ) -> None:  # pragma: no cover
-        """copies annotations from a gff file to self,
-
-        Parameters
-        ----------
-        f : path to gff annotation file.
-        offset : Optional, the offset between annotation coordinates and sequence coordinates.
-        """
-        if isinstance(self.annotation_db, GenbankAnnotationDb):
-            msg = "GenbankAnnotationDb already attached"
-            raise ValueError(msg)
-
-        self.annotation_db = load_annotations(
-            path=f,
-            seqids=self.name,
-            db=self.annotation_db,
-        )
-
-        if offset:
-            # ugly hack until new_type is available
-            self._seq.offset = offset
-
     def add_feature(
         self,
         *,
         biotype: str,
         name: str,
         spans: list[tuple[int, int]],
-        parent_id: str | None = None,
-        strand: str | None = None,
+        parent_id: OptStr = None,
+        strand: OptStr = None,
         on_alignment: bool = False,
-        seqid: str | None = None,
+        seqid: OptStr = None,
     ) -> Feature:
         """
         add a feature to annotation_db
@@ -1160,9 +1172,12 @@ class Sequence(SequenceI):
         -------
         Feature instance
         """
+        local_vars = locals()
+        local_vars["strand"] = Strand.from_value(strand).value
+
         feature_data = FeatureDataType(
             seqid=self.name,
-            **{n: v for n, v in locals().items() if n not in ("self", "seqid")},
+            **{n: v for n, v in local_vars.items() if n not in ("self", "seqid")},
         )
 
         self.annotation_db.add_feature(**feature_data)
@@ -1170,34 +1185,63 @@ class Sequence(SequenceI):
             feature_data.pop(discard)
         return self.make_feature(feature_data)
 
-    def to_moltype(self, moltype):
+    def to_moltype(self, moltype: str | c3_moltype.MolType) -> Sequence:
         """returns copy of self with moltype seq
 
         Parameters
         ----------
-        moltype : str
+        moltype
             molecular type
+
+        Notes
+        -----
+        This method cannot convert between nucleic acids and proteins. Use
+        get_translation() for that.
+
+        When applied to a sequence in a SequenceCollection, the resulting
+        sequence will no longer be part of the collection.
         """
-        from cogent3 import get_moltype
 
         if not moltype:
             msg = f"unknown moltype '{moltype}'"
             raise ValueError(msg)
 
-        moltype = get_moltype(moltype)
+        moltype = c3_moltype.get_moltype(moltype)
+
         if moltype is self.moltype:
             return self
 
-        s = moltype.coerce_str(self._seq.value)
-        moltype.verify_sequence(s, gaps_allowed=True, wildcards_allowed=True)
-        sv = SeqView(seq=s)
-        new = moltype.make_seq(sv, name=self.name, info=self.info)
-        new.annotation_db = self.annotation_db
-        return new
+        seq = array(self)
+        self_alpha = self.moltype.most_degen_alphabet()
+        other_alpha = moltype.most_degen_alphabet()
+        if len(self.moltype.alphabet) != len(moltype.alphabet):
+            # use alphabet converter
+            seq = self_alpha.convert_seq_array_to(
+                seq=seq,
+                alphabet=other_alpha,
+                check_valid=False,
+            )
 
-    def _seq_filter(self, seq):
-        """Returns filtered seq; used to do DNA/RNA conversions."""
-        return seq
+        if not other_alpha.is_valid(seq):
+            msg = (
+                f"Changing from old moltype={self.moltype.label!r} to new "
+                f"moltype={moltype.label!r} is not valid for this data"
+            )
+            raise c3_moltype.MolTypeError(
+                msg,
+            )
+        sv = SeqView(
+            parent=seq,
+            parent_len=len(seq),
+            alphabet=moltype.most_degen_alphabet(),
+        )
+        return moltype.make_seq(
+            seq=sv,
+            name=self.name,
+            check_seq=False,
+            info=self.info,
+            annotation_db=self.annotation_db,
+        )
 
     def copy_annotations(self, seq_db: SupportsFeatures) -> None:
         """copy annotations into attached annotation db
@@ -1220,16 +1264,17 @@ class Sequence(SequenceI):
         if not seq_db.num_matches(seqid=self.name):
             return
 
-        if self.annotation_db and not self.annotation_db.compatible(seq_db):
+        if self._annotation_db and not self.annotation_db.compatible(seq_db):
             msg = f"type {type(seq_db)} != {type(self.annotation_db)}"
             raise TypeError(msg)
 
-        if self.annotation_db is None:
-            self.annotation_db = type(seq_db)()
-
         self.annotation_db.update(seq_db, seqids=self.name)
 
-    def copy(self, exclude_annotations: bool = False, sliced: bool = True):
+    def copy(
+        self,
+        exclude_annotations: bool = False,
+        sliced: bool = True,
+    ) -> typing_extensions.Self:
         """returns a copy of self
 
         Parameters
@@ -1240,28 +1285,26 @@ class Sequence(SequenceI):
         exclude_annotations
             drops annotation_db when True
         """
-        data = self._seq.copy(sliced=sliced)
-        # when slicing a seqview, if we sliced=True, it discards the
-        # offset attribute, in which case this needs to be provided to the
-        # seq constructor
+        # when slicing a seqview with sliced=True, seqview discards the
+        # offset attribute. Sequence then needs to be provided to its
+        # constructor from its current state.
         offset = self.annotation_offset if sliced else 0
-        new = self.__class__(
-            data,
+        data = self._seq.copy(sliced=sliced)
+        return self.__class__(
+            moltype=self.moltype,
+            seq=data,
             name=self.name,
             info=self.info,
             annotation_offset=offset,
+            annotation_db=None if exclude_annotations else self.annotation_db,
         )
-        db = None if exclude_annotations else copy.deepcopy(self.annotation_db)
-        new._annotation_db = db
-        return new
 
     def with_masked_annotations(
         self,
-        annot_types,
-        mask_char=None,
-        shadow=False,
-        extend_query=False,
-    ):
+        biotypes: StrORIterableStr,
+        mask_char: str | None = None,
+        shadow: bool = False,
+    ) -> typing_extensions.Self:
         """returns a sequence with annot_types regions replaced by mask_char
         if shadow is False, otherwise all other regions are masked.
 
@@ -1277,29 +1320,24 @@ class Sequence(SequenceI):
             the annotated regions
         """
         if mask_char is None:
-            ambigs = [(len(v), c) for c, v in list(self.moltype.ambiguities.items())]
-            ambigs.sort()
-            mask_char = ambigs[-1][1]
-        assert mask_char in self.moltype, f"Invalid mask_char {mask_char}"
+            mask_char = (
+                self.moltype.missing
+                or max(self.moltype.ambiguities.items(), key=lambda x: len(x[1]))[0]
+            )
+        assert mask_char in self.moltype.most_degen_alphabet(), (
+            f"Invalid mask_char {mask_char}"
+        )
 
         annotations = []
-        annot_types = [annot_types] if isinstance(annot_types, str) else annot_types
-        for annot_type in annot_types:
+        biotypes = [biotypes] if isinstance(biotypes, str) else biotypes
+        for annot_type in biotypes:
             annotations += list(
                 self.get_features(biotype=annot_type, allow_partial=True),
             )
-
         if not annotations:
-            region = Feature(
-                parent=self,
-                seqid=self.name,
-                name=None,
-                biotype=None,
-                map=FeatureMap.from_locations(locations=[], parent_length=len(self)),
-                strand="+",
-            )
-        else:
-            region = annotations[0].union(annotations[1:])
+            return self
+
+        region = annotations[0].union(annotations[1:])
 
         if shadow:
             region = region.shadow()
@@ -1313,9 +1351,9 @@ class Sequence(SequenceI):
         segments.append(str(self[i:]))
 
         new = self.__class__(
-            "".join(segments),
+            moltype=self.moltype,
+            seq="".join(segments),
             name=self.name,
-            check=False,
             info=self.info,
         )
         new.annotation_db = self.annotation_db
@@ -1323,10 +1361,10 @@ class Sequence(SequenceI):
 
     def gapped_by_map_segment_iter(
         self,
-        segment_map,
-        allow_gaps=True,
-        recode_gaps=False,
-    ) -> str:
+        segment_map: IndelMap,
+        allow_gaps: bool = True,
+        recode_gaps: bool = False,
+    ) -> typing.Iterator[str, str, str]:
         if not allow_gaps and not segment_map.complete:
             msg = f"gap(s) in map {segment_map}"
             raise ValueError(msg)
@@ -1340,28 +1378,39 @@ class Sequence(SequenceI):
 
             yield seg
 
-    def gapped_by_map_motif_iter(self, map):
-        for segment in self.gapped_by_map_segment_iter(map):
+    def gapped_by_map_motif_iter(
+        self,
+        segment_map: IndelMap,
+    ) -> typing.Iterator[str, str, str]:
+        for segment in self.gapped_by_map_segment_iter(segment_map):
             yield from segment
 
-    def gapped_by_map(self, map, recode_gaps=False):
-        segments = self.gapped_by_map_segment_iter(map, True, recode_gaps)
+    def gapped_by_map(
+        self,
+        segment_map: IndelMap,
+        recode_gaps: bool = False,
+    ) -> typing_extensions.Self:
+        segments = self.gapped_by_map_segment_iter(segment_map, True, recode_gaps)
         return self.__class__(
-            "".join(segments),
+            moltype=self.moltype,
+            seq="".join(segments),
             name=self.name,
-            check=False,
             info=self.info,
         )
 
-    def _mapped(self, map):
+    def _mapped(self, segment_map: IndelMap) -> typing_extensions.Self:
         # Called by generic __getitem__
-        offset = map.start if map.num_spans == 1 else 0
-        segments = self.gapped_by_map_segment_iter(map, allow_gaps=False)
+        if segment_map.num_spans == 1:
+            seq = self._seq[segment_map.start : segment_map.end]
+        else:
+            segments = self.gapped_by_map_segment_iter(segment_map, allow_gaps=False)
+            seq = "".join(segments)
+
         return self.__class__(
-            "".join(segments),
-            self.name,
+            moltype=self.moltype,
+            seq=seq,
+            name=self.name,
             info=self.info,
-            annotation_offset=offset,
         )
 
     def __repr__(self) -> str:
@@ -1383,11 +1432,16 @@ class Sequence(SequenceI):
 
         if isinstance(index, FeatureMap | IndelMap):
             new = self._mapped(index)
+            # annotations have no meaning if disjoint slicing segments
             preserve_offset = index.num_spans == 1
 
-        elif isinstance(index, slice) or _is_int(index):
-            _seq = self._seq[index]
-            new = self.__class__(_seq, name=self.name, check=False, info=self.info)
+        elif isinstance(index, slice) or is_int(index):
+            new = self.__class__(
+                moltype=self.moltype,
+                seq=self._seq[index],
+                name=self.name,
+                info=self.info,
+            )
             stride = getattr(index, "step", 1) or 1
             preserve_offset = stride > 0
 
@@ -1395,10 +1449,10 @@ class Sequence(SequenceI):
             msg = "cannot slice using list or tuple"
             raise TypeError(msg)
 
-        if self.annotation_db is not None and preserve_offset:
+        if self._annotation_db and preserve_offset:
             new.replace_annotation_db(self.annotation_db, check=False)
 
-        if _is_float(index):
+        if is_float(index):
             msg = "cannot slice using float"
             raise TypeError(msg)
 
@@ -1410,30 +1464,23 @@ class Sequence(SequenceI):
     def __iter__(self):
         yield from iter(str(self))
 
-    def get_name(self):
+    def get_name(self) -> str:
         """Return the sequence name -- should just use name instead."""
         return self.name
 
     def __len__(self) -> int:
         return len(self._seq)
 
-    def __str__(self) -> str:
-        result = str(self._seq)
-        if self._seq.is_reversed:
-            with contextlib.suppress(TypeError):
-                result = self.moltype.complement(result)
-        return result
-
-    def get_type(self):
+    def get_type(self) -> str:
         """Return the sequence type as moltype label."""
         return self.moltype.label
 
-    def resolved_ambiguities(self) -> list[tuple[str]]:
-        """Returns a list of tuples of strings."""
+    def resolved_ambiguities(self) -> list[set[str]]:
+        """Returns a list of sets of strings."""
         ambigs = self.moltype.ambiguities
-        return [ambigs[motif] for motif in self._seq]
+        return [set(ambigs.get(motif, motif)) for motif in str(self)]
 
-    def iter_kmers(self, k: int, strict: bool = True) -> Generator[str, None, None]:
+    def iter_kmers(self, k: int, strict: bool = True) -> typing.Iterator[str]:
         """generates all overlapping k-mers.
         When strict is True, the characters in the k-mer must be
         a subset of the canonical characters for the moltype"""
@@ -1445,18 +1492,28 @@ class Sequence(SequenceI):
             msg = f"k must be an int, not {k}"
             raise ValueError(msg)
 
-        canonical = set(self.moltype)
-        seq = str(self)
+        md = self.moltype.most_degen_alphabet()
+        gap_index = md.gap_index
+        arr_to_str = md.from_indices
+        if gap_index is None:
+            gap_index = len(self.moltype)
+        seq = numpy.array(self)
         for i in range(len(seq) - k + 1):
             kmer = seq[i : i + k]
-            if not strict or all(char in canonical for char in kmer):
-                yield kmer
+            if not strict or kmer.max() < gap_index:
+                yield arr_to_str(kmer)
 
     def get_kmers(self, k: int, strict: bool = True) -> list[str]:
         """return all overlapping k-mers"""
         return list(self.iter_kmers(k, strict))
 
-    def sliding_windows(self, window, step, start=None, end=None):
+    def sliding_windows(
+        self,
+        window,
+        step,
+        start=None,
+        end=None,
+    ) -> typing.Iterator[typing_extensions.Self]:
         """Generator function that yield new sequence objects
         of a given length at a given interval.
 
@@ -1491,7 +1548,7 @@ class Sequence(SequenceI):
             whether to notify of an incomplete terminal motif
         """
         seq = self._seq
-        if isinstance(seq, SeqView):
+        if isinstance(seq, SeqViewABC):
             seq = str(self)
         if motif_length == 1:
             return seq
@@ -1508,7 +1565,7 @@ class Sequence(SequenceI):
             for i in range(0, length - remainder, motif_length)
         ]
 
-    def parse_out_gaps(self):
+    def parse_out_gaps(self) -> tuple[IndelMap, typing_extensions.Self]:
         """returns Map corresponding to gap locations and ungapped Sequence"""
         gap = re.compile(f"[{re.escape(self.moltype.gap)}]+")
         seq = str(self)
@@ -1524,10 +1581,10 @@ class Sequence(SequenceI):
         gap_pos[1:] = gap_pos[1:] - cum_lengths[:-1]
 
         seq = self.__class__(
-            gap.sub("", seq),
+            moltype=self.moltype,
+            seq=gap.sub("", seq),
             name=self.get_name(),
             info=self.info,
-            preserve_case=True,
         )
         indel_map = IndelMap(
             gap_pos=gap_pos,
@@ -1537,17 +1594,26 @@ class Sequence(SequenceI):
         seq.annotation_db = self.annotation_db
         return indel_map, seq
 
-    def replace(self, oldchar, newchar):
-        """return new instance with oldchar replaced by newchar"""
-        new = self._seq.replace(oldchar, newchar)
-        result = self.__class__(new, name=self.name, info=self.info)
-        result.annotation_db = self.annotation_db
-        return result
+    def is_annotated(
+        self,
+        biotype: str | tuple[str] | None = None,
+    ) -> bool:
+        """returns True if sequence parent name has any annotations
 
-    def is_annotated(self):
-        """returns True if sequence has any annotations"""
-        num = self.annotation_db.num_matches() if self.annotation_db else 0
-        return num != 0
+        Parameters
+        ----------
+        biotype
+            amend condition to return True only if the sequence is
+            annotated with one of provided biotypes.
+        """
+        if not self._annotation_db:
+            return False
+        with contextlib.suppress(AttributeError):
+            return (
+                self.annotation_db.num_matches(seqid=self._seq.seqid, biotype=biotype)
+                != 0
+            )
+        return False
 
     def annotate_matches_to(
         self,
@@ -1555,7 +1621,7 @@ class Sequence(SequenceI):
         biotype: str,
         name: str,
         allow_multiple: bool = False,
-    ):
+    ) -> list[Feature]:
         """Adds an annotation at sequence positions matching pattern.
 
         Parameters
@@ -1575,11 +1641,9 @@ class Sequence(SequenceI):
         -------
         Returns a list of Feature instances.
         """
-        try:
+        with contextlib.suppress(ValueError):
+            # assume ValueError is due to already being a regex
             pattern = self.moltype.to_regex(seq=pattern)
-        except ValueError:
-            # assume already a regex
-            pass
 
         pos = [m.span() for m in re.finditer(pattern, str(self))]
         if not pos:
@@ -1595,14 +1659,11 @@ class Sequence(SequenceI):
             for i in range(num_match)
         ]
 
-    def __add__(self, other):
-        """Adds two sequences (other can be a string as well)"""
-        new_seq = super().__add__(other)
-        new_seq.annotation_db = None
-        # annotations are dropped in this case
-        return new_seq
-
-    def get_drawables(self, *, biotype: Optional[str, Iterable[str]] = None) -> dict:
+    def get_drawables(
+        self,
+        *,
+        biotype: StrORIterableStr | None = None,
+    ) -> dict:
         """returns a dict of drawables, keyed by type
 
         Parameters
@@ -1621,7 +1682,7 @@ class Sequence(SequenceI):
     def get_drawable(
         self,
         *,
-        biotype: Optional[str, Iterable[str]] = None,
+        biotype: StrORIterableStr | None = None,
         width: int = 600,
         vertical: bool = False,
     ):
@@ -1708,42 +1769,178 @@ class Sequence(SequenceI):
         seqid, start, end, strand of this sequence on the parent. strand is either
         -1 or 1.
         """
-        strand = -1 if self._seq.is_reversed else 1
-        return self._seq.seqid, self._seq.parent_start, self._seq.parent_stop, strand
+        strand = Strand.MINUS.value if self._seq.is_reversed else Strand.PLUS.value
+        return (
+            self._seq.seqid,
+            self._seq.slice_record.parent_start,
+            self._seq.slice_record.parent_stop,
+            strand,
+        )
+
+    def sample(
+        self,
+        *,
+        n: int | None = None,
+        with_replacement: bool = False,
+        motif_length: int = 1,
+        randint: typing.Callable[
+            [int, int | None, int | None], numpy.ndarray
+        ] = numpy.random.randint,
+        permutation: typing.Callable[
+            [numpy.ndarray], numpy.ndarray
+        ] = numpy.random.permutation,
+    ) -> typing_extensions.Self:
+        """Returns random sample of positions from self, e.g. to bootstrap.
+
+        Parameters
+        ----------
+        n
+            number of positions to sample. If None, all positions are sampled.
+        with_replacement
+            if True, samples with replacement.
+        motif_length
+            number of positions to sample as a single motif. Starting point
+            of each sampled motif is modulo motif_length in the original sequence.
+        randint
+            random number generator, default is numpy.randint
+        permutation
+            function to generate a random permutation of positions, default is
+            numpy.permutation
+
+        Notes
+        -----
+        By default (resampling all positions without replacement), generates
+        a permutation of the positions of the alignment.
+        """
+        population_size = len(self) // motif_length
+        if not with_replacement and n and n > population_size:
+            msg = f"cannot sample without replacement when {n=} > {population_size=}"
+            raise ValueError(msg)
+
+        n = n or population_size
+
+        if with_replacement:
+            locations = randint(0, population_size, n)
+        else:
+            locations = permutation(population_size)[:n]
+
+        if motif_length == 1:
+            positions = locations
+        else:
+            positions = numpy.empty(n * motif_length, dtype=int)
+            for i, loc in enumerate(locations):
+                positions[i * motif_length : (i + 1) * motif_length] = range(
+                    loc * motif_length,
+                    (loc + 1) * motif_length,
+                )
+
+        sampled = numpy.array(self).take(positions)
+        return self.moltype.make_seq(
+            seq=sampled, name=f"{self.name}-randomised", check_seq=False
+        )
 
 
 class ProteinSequence(Sequence):
     """Holds the standard Protein sequence."""
 
+    # constructed by PROTEIN moltype
+
+
+class ByteSequence(Sequence):
+    """Holds the bytes sequence."""
+
+    # constructed by BYTES moltype
+
 
 class ProteinWithStopSequence(Sequence):
     """Holds the standard Protein sequence, allows for stop codon."""
 
+    # constructed by PROTEIN_WITH_STOP moltype
 
-class NucleicAcidSequence(Sequence):
-    """Abstract base class for DNA and RNA sequences."""
 
-    codon_alphabet = None  # will set in moltype
+class NucleicAcidSequenceMixin:
+    """Mixin class for DNA and RNA sequences."""
+
+    def __str__(self) -> str:
+        result = str(self._seq)
+        if self._seq.is_reversed:
+            with contextlib.suppress(TypeError):
+                result = self.moltype.complement(result)
+        return result
+
+    def can_pair(self, other: typing_extensions.Self) -> bool:
+        """Returns True if self and other could pair.
+
+        other
+            sequence, must be able to be cast to string.
+
+        Notes
+        -----
+        Pairing occurs in reverse order, i.e. last position of other with
+        first position of self, etc.
+
+        Truncates at length of shorter sequence.
+
+        Gaps are only allowed to pair with other gaps.
+
+        Weak pairs (like GU) are considered as possible pairs.
+        """
+        return self.moltype.can_pair(str(self), str(other))
+
+    def can_mispair(self, other: typing_extensions.Self) -> bool:
+        """Returns True if any position in self could mispair with other.
+
+        Notes
+        -----
+        Pairing occurs in reverse order, i.e. last position of other with
+        first position of self, etc.
+
+        Truncates at length of shorter sequence.
+
+        Gaps are always counted as possible mispairs, as are weak pairs like GU.
+        """
+        return self.moltype.can_mispair(self, str(other))
+
+    def must_pair(self, other: typing_extensions.Self) -> bool:
+        """Returns True if all positions in self must pair with other.
+
+        Notes
+        -----
+        Pairing occurs in reverse order, i.e. last position of other with
+        first position of self, etc.
+        """
+        return not self.moltype.can_mispair(self, str(other))
+
+    def complement(self):
+        """Returns complement of self, using data from MolType.
+
+        Always tries to return same type as item: if item looks like a dict,
+        will return list of keys.
+        """
+        return self.__class__(
+            moltype=self.moltype,
+            seq=self.moltype.complement(bytes(self)),
+            info=self.info,
+        )
 
     def reverse_complement(self):
         """Converts a nucleic acid sequence to its reverse complement.
         Synonymn for rc."""
         return self.rc()
 
-    def rc(self):
+    def rc(self) -> typing_extensions.Self:
         """Converts a nucleic acid sequence to its reverse complement."""
-        rc = self.__class__(
-            self._seq[::-1],
+        return self.__class__(
+            moltype=self.moltype,
+            seq=self._seq[::-1],
             name=self.name,
-            check=False,
             info=self.info,
+            annotation_db=self.annotation_db,
         )
-        rc.annotation_db = self.annotation_db
-        return rc
 
     def has_terminal_stop(
         self,
-        gc: Any = None,
+        gc: c3_genetic_code.GeneticCode = 1,
         strict: bool = False,
     ) -> bool:
         """Return True if the sequence has a terminal stop codon.
@@ -1751,12 +1948,12 @@ class NucleicAcidSequence(Sequence):
         Parameters
         ----------
         gc
-            valid input to cogent3.get_code(), a genetic code object, number
+            valid input to c3_genetic_code.get_code(), a genetic code object, number
             or name
         strict
             If True, raises an exception if length not divisible by 3
         """
-        gc = get_code(gc)
+        gc = c3_genetic_code.get_code(gc)
         _, s = self.parse_out_gaps()
 
         divisible_by_3 = len(s) % 3 == 0
@@ -1766,21 +1963,21 @@ class NucleicAcidSequence(Sequence):
 
         if strict:
             msg = f"{self.name!r} length not divisible by 3"
-            raise AlphabetError(msg)
+            raise c3_alphabet.AlphabetError(msg)
 
         return False
 
     def trim_stop_codon(
         self,
-        gc: Any = None,
+        gc: c3_genetic_code.GeneticCode = 1,
         strict: bool = False,
-    ):
+    ) -> typing_extensions.Self:
         """Removes a terminal stop codon from the sequence
 
         Parameters
         ----------
         gc
-            valid input to cogent3.get_code(), a genetic code object, number
+            valid input to c3_genetic_code.get_code(), a genetic code object, number
             or name
         strict
             If True, raises an exception if length not divisible by 3
@@ -1793,7 +1990,7 @@ class NucleicAcidSequence(Sequence):
         if not self.has_terminal_stop(gc=gc, strict=strict):
             return self
 
-        gc = get_code(gc)
+        gc = c3_genetic_code.get_code(gc)
         m, s = self.parse_out_gaps()
 
         divisible_by_3 = len(s) % 3 == 0
@@ -1818,17 +2015,22 @@ class NucleicAcidSequence(Sequence):
             diff = len(s) - match.start()
             s = terminal_stop.sub("-" * diff, s)
 
-        result = self.__class__(s, name=self.name, info=self.info)
+        result = self.__class__(
+            moltype=self.moltype,
+            seq=s,
+            name=self.name,
+            info=self.info,
+        )
         result.annotation_db = self.annotation_db
         return result
 
     def get_translation(
         self,
-        gc: Any = None,
+        gc: c3_genetic_code.GeneticCode = 1,
         incomplete_ok: bool = False,
         include_stop: bool = False,
         trim_stop: bool = True,
-    ):
+    ) -> ProteinSequence:
         """translate to amino acid sequence
 
         Parameters
@@ -1837,8 +2039,9 @@ class NucleicAcidSequence(Sequence):
             valid input to cogent3.get_code(), a genetic code object, number
             or name
         incomplete_ok
-            codons that are mixes of nucleotide and gaps converted to '?'.
-            raises a ValueError if False
+            codons that are mixes of nucleotide and gaps converted to '-'.
+            codons containing ambiguous nucleotides are translated as 'X'.
+            raises a AlphabetError if False
         include_stop
             allows stop codons in translation
         trim_stop
@@ -1852,64 +2055,49 @@ class NucleicAcidSequence(Sequence):
         ------
         AlphabetError if include_stop is False and a stop codon occurs
         """
-        from cogent3.core.moltype import get_moltype
+        if not self.moltype.is_nucleic:
+            msg = f"moltype must be a DNA/RNA, not {self.moltype.name!r}"
+            raise c3_moltype.MolTypeError(
+                msg,
+            )
 
-        protein = get_moltype("protein_with_stop" if include_stop else "protein")
-        gc = get_code(gc)
-        codon_alphabet = gc.get_alphabet(include_stop=include_stop).with_gap_motif()
-        moltype = self.moltype
-        # translate the codons
-        translation = []
-        if include_stop or not trim_stop:
-            # we just deal with sequence as is
-            seq = str(self)
+        protein = c3_moltype.get_moltype(
+            "protein_with_stop" if include_stop else "protein",
+        )
+        gc = c3_genetic_code.get_code(gc)
+
+        if trim_stop:
+            seq = self.trim_stop_codon(gc=gc, strict=not incomplete_ok)
         else:
-            seq = str(self.trim_stop_codon(gc=gc, strict=not incomplete_ok))
+            seq = self
 
-        for posn in range(0, len(seq) - 2, 3):
-            orig_codon = str(seq[posn : posn + 3])
-            try:
-                resolved = moltype.resolve_ambiguity(
-                    orig_codon,
-                    alphabet=codon_alphabet,
-                )
-            except AlphabetError:
-                if not incomplete_ok or "-" not in orig_codon:
-                    msg = f"unresolvable codon {orig_codon!r} in {self.name}"
-                    raise AlphabetError(
-                        msg,
-                    )
-                resolved = (orig_codon,)
-            trans = []
-            for codon in resolved:
-                if codon == "---":
-                    aa = "-"
-                elif "-" in codon:
-                    aa = "?"
-                    if not incomplete_ok:
-                        msg = f"incomplete codon {codon} in {self.name}"
-                        raise AlphabetError(msg)
-                else:
-                    aa = gc[codon]
-                    if aa == "*" and not include_stop:
-                        continue
-                trans.append(aa)
-            if not trans:
-                raise AlphabetError(orig_codon)
-            aa = protein.what_ambiguity(trans)
-            translation.append(aa)
+        # since we are realising the view, reverse complementing will be
+        # dealt with, so rc=False
+        pep = gc.translate(array(seq), rc=False, incomplete_ok=incomplete_ok)
 
-        return protein.make_seq(seq="".join(translation), name=self.name)
+        if not include_stop and "*" in pep:
+            msg = f"{self.name!r} has a stop codon in the translation"
+            raise c3_alphabet.AlphabetError(msg)
 
-    def to_rna(self):
+        if not incomplete_ok and "X" in pep:
+            msg = (
+                f"{self.name!r} has an incomplete codon or contains an ambiguity, set incomplete_ok=True to "
+                "allow translation"
+            )
+            raise c3_alphabet.AlphabetError(
+                msg,
+            )
+        return protein.make_seq(seq=pep, name=self.name)
+
+    def to_rna(self) -> typing_extensions.Self:
         """Returns copy of self as RNA."""
         return self.to_moltype("rna")
 
-    def to_dna(self):
+    def to_dna(self) -> typing_extensions.Self:
         """Returns copy of self as DNA."""
         return self.to_moltype("dna")
 
-    def strand_symmetry(self, motif_length=1):
+    def strand_symmetry(self, motif_length: int = 1) -> TestResult:
         """returns G-test for strand symmetry"""
         counts = self.counts(motif_length=motif_length)
         ssym_pairs = self.moltype.strand_symmetric_motifs(motif_length=motif_length)
@@ -1924,73 +2112,52 @@ class NucleicAcidSequence(Sequence):
             obs.append(row)
             motifs.append(plus)
 
-        template = DictArrayTemplate(motifs, ["+", "-"])
-        obs = template.wrap(obs)
+        obs = DictArray.from_array_names(numpy.array(obs), motifs, ["+", "-"])
         cat = CategoryCounts(obs)
         return cat.G_fit()
 
 
-def _input_vals_pos_step(seqlen, start, stop, step):
-    start = 0 if start is None else start
-    if start > 0 and start >= seqlen:
-        # start beyond seq is an empty slice
-        return 0, 0, 1
+class DnaSequence(Sequence, NucleicAcidSequenceMixin):
+    """Holds the standard DNA sequence."""
 
-    stop = seqlen if stop is None else stop
-    if stop < 0 and abs(stop) >= seqlen:
-        # finished slice before we started seq!
-        return 0, 0, 1
-
-    start = max(seqlen + start, 0) if start < 0 else start
-
-    if stop > 0:
-        stop = min(seqlen, stop)
-    elif stop < 0:
-        stop += seqlen
-
-    if start >= stop:
-        start = stop = 0
-        step = 1
-
-    return start, stop, step
+    # constructed by DNA moltype
 
 
-def _input_vals_neg_step(seqlen, start, stop, step):
-    # Note how Python reverse slicing works
-    # we need to make sure the start and stop are both
-    # negative, for example "abcd"[-1:-5:-1] returns "dcba"
-    if start is None or start >= seqlen:  # set default
-        start = -1  # Done
-    elif start >= 0:  # convert to -ve index
-        start = start - seqlen
-    elif start < -seqlen:  # start is bounded by len(seq)
-        return 0, 0, 1
+class RnaSequence(Sequence, NucleicAcidSequenceMixin):
+    """Holds the standard RNA sequence."""
 
-    if stop is None:  # set default
-        stop = -seqlen - 1
-    elif stop >= 0:
-        stop -= seqlen
-
-    stop = max(stop, -seqlen - 1)  # stop should always be <= len(seq)
-
-    # checking for zero-length slice
-    return (0, 0, 1) if start < stop else (start, stop, step)
+    # constructed by RNA moltype
 
 
 class SliceRecordABC(ABC):
     """Abstract base class for recording the history of operations to be applied
-    to some underlying data
+    to some underlying data. Provides slicing functionality for the underlying data.
 
-    Notes
-    -----
-    seq_len refers to a Python typing.Sequence object, e.g. array, str, list.
+    Parameters
+    ----------
+    start
+        start of the slice (inclusive indexing)
+    stop
+        stop of the slice (exclusive indexing)
+    step
+        step of the slice
+    offset
+        can be set with any additional offset that exists before the start of
+        the underlying data
+    parent_len
+        length of the underlying data (not including offset)
     """
 
-    start: int
-    stop: int
-    step: int
-    seq_len: int
-    _offset: int
+    __slots__ = ("_offset", "start", "step", "stop")
+
+    @abstractmethod
+    def __eq__(self, other: object) -> bool: ...
+
+    @abstractmethod
+    def __ne__(self, other: object) -> bool: ...
+    @property
+    @abstractmethod
+    def parent_len(self) -> int: ...
 
     @abstractmethod
     def _get_init_kwargs(self) -> dict:
@@ -1999,17 +2166,13 @@ class SliceRecordABC(ABC):
         ...
 
     @abstractmethod
-    def copy(self): ...
+    def copy(self) -> typing_extensions.Self: ...
 
+    # refactor: design
+    # can we remove the need for this method on the ABC and inheriting
     @property
     @abstractmethod
-    def _zero_slice(self): ...
-
-    @abstractmethod
-    def to_rich_dict(self): ...
-
-    @abstractmethod
-    def from_rich_dict(self): ...
+    def _zero_slice(self) -> typing_extensions.Self: ...
 
     @property
     def offset(self) -> int:
@@ -2021,6 +2184,47 @@ class SliceRecordABC(ABC):
         self._offset = int(value)
 
     @property
+    def plus_start(self) -> int:
+        """start on plus strand"""
+        if self.is_reversed:
+            # all indices are negative, so the stop becomes the start. To convert
+            # to positive indices, we add the length of the parent sequence to
+            # the stop. Note that when abs(self.step) > 1, we instead calculate
+            # the "true stop", i.e., the index that immediately follows (in the
+            # direction of the step) the last selected index in the slice. We then
+            # add the abs(self.step) to account for the fact that the stop uses
+            # exclusive indexing, and the start is inclusive.
+
+            assert self.stop < 0, "expected stop on reverse strand SeqView < 0"
+            stop = self.stop if self.step == -1 else self.start + len(self) * self.step
+            start = self.parent_len + stop + abs(self.step)
+        else:
+            start = self.start
+        return start
+
+    @property
+    def plus_stop(self) -> int:
+        """stop on plus strand"""
+        if self.is_reversed:
+            # self.start becomes the stop, self.start will be negative
+            assert self.start < 0, "expected start on reverse strand SeqView < 0"
+            stop = self.start + self.parent_len + 1
+        else:
+            # we ensure that the plus_stop is the index that immediately follows
+            # the last selected index in the slice.
+            stop = (
+                self.stop
+                if self.step == 1
+                else (self.start + len(self) * self.step - self.step) + 1
+            )
+        return stop
+
+    @property
+    def plus_step(self) -> int:
+        """step on plus strand"""
+        return abs(self.step)
+
+    @property
     def parent_start(self) -> int:
         """returns the start on the parent plus strand
 
@@ -2028,18 +2232,15 @@ class SliceRecordABC(ABC):
         -------
         offset + start, taking into account whether reversed. Result
         is positive.
-        """
-        if self.is_reversed:
-            # self.stop becomes the start, self.stop will be negative
-            assert self.stop < 0, "expected stop on reverse strand SeqView < 0"
-            start = self.stop + self.seq_len + 1
-        else:
-            start = self.start
 
-        return self.offset + start
+        Notes
+        -----
+        This should NOT be used for slicing on the parent object.
+        """
+        return self.offset + self.plus_start
 
     @property
-    def is_reversed(self):
+    def is_reversed(self) -> bool:
         return self.step < 0
 
     @property
@@ -2050,16 +2251,14 @@ class SliceRecordABC(ABC):
         -------
         offset + stop, taking into account whether reversed. Result
         is positive.
-        """
-        if self.is_reversed:
-            # self.start becomes the stop, self.start will be negative
-            assert self.start < 0, "expected start on reverse strand SeqView < 0"
-            stop = self.start + self.seq_len + 1
-        else:
-            stop = self.stop
-        return self.offset + stop
 
-    def absolute_position(self, rel_index: int, include_boundary: bool = False):
+        Notes
+        -----
+        This should NOT be used for slicing on the parent object.
+        """
+        return self.offset + self.plus_stop
+
+    def absolute_position(self, rel_index: int, include_boundary: bool = False) -> int:
         """Converts an index relative to the current view to be with respect
         to the coordinates of the original "Python sequence".
 
@@ -2084,14 +2283,13 @@ class SliceRecordABC(ABC):
         seq_index, _, _ = self._get_index(rel_index, include_boundary=include_boundary)
 
         offset = self.offset
-        if self.is_reversed:
-            abs_index = offset + self.seq_len + seq_index + 1
-        else:
-            abs_index = offset + seq_index
+        return (
+            offset + self.parent_len + seq_index + 1
+            if self.is_reversed
+            else offset + seq_index
+        )
 
-        return abs_index
-
-    def relative_position(self, abs_index: int, stop: bool = False):
+    def relative_position(self, abs_index: int, stop: bool = False) -> int:
         """converts an index on the original "Python sequence" into an index
         on this "view"
 
@@ -2111,7 +2309,7 @@ class SliceRecordABC(ABC):
             offset = self.offset
 
             if (
-                tmp := (self.seq_len - abs_index + offset + self.start + 1)
+                tmp := (self.parent_len - abs_index + offset + self.start + 1)
             ) % self.step == 0 or stop:
                 rel_pos = tmp // abs(self.step)
             else:
@@ -2130,17 +2328,17 @@ class SliceRecordABC(ABC):
     def __len__(self) -> int:
         return abs((self.start - self.stop) // self.step)
 
-    def __getitem__(self, segment: int | slice):
+    def __getitem__(self, segment: int | slice) -> typing_extensions.Self:
         kwargs = self._get_init_kwargs()
 
-        if _is_int(segment):
+        if is_int(segment):
             start, stop, step = self._get_index(segment)
             return self.__class__(
                 start=start,
                 stop=stop,
                 step=step,
                 offset=self.offset,
-                seq_len=self.seq_len,
+                parent_len=self.parent_len,
                 **kwargs,
             )
 
@@ -2164,7 +2362,11 @@ class SliceRecordABC(ABC):
             msg,
         )
 
-    def _get_index(self, val: int, include_boundary: bool = False):
+    def _get_index(
+        self,
+        val: int,
+        include_boundary: bool = False,
+    ) -> tuple[int, int, int]:
         if len(self) == 0:
             raise IndexError(val)
 
@@ -2193,7 +2395,7 @@ class SliceRecordABC(ABC):
             return val, val - 1, -1
         return None
 
-    def _get_slice(self, segment: slice, step: int, **kwargs):
+    def _get_slice(self, segment: slice, step: int, **kwargs) -> typing_extensions.Self:
         slice_start = segment.start if segment.start is not None else 0
         slice_stop = segment.stop if segment.stop is not None else len(self)
 
@@ -2220,7 +2422,7 @@ class SliceRecordABC(ABC):
         slice_stop: int,
         step: int,
         **kwargs,
-    ):
+    ) -> typing_extensions.Self:
         start = (
             self.start + slice_start * self.step
             if slice_start >= 0
@@ -2245,7 +2447,7 @@ class SliceRecordABC(ABC):
         # checking for zero-length slice
         if stop < start:
             return self._zero_slice
-        if start > self.seq_len:
+        if start > self.parent_len:
             return self._zero_slice
 
         return self.__class__(
@@ -2253,7 +2455,7 @@ class SliceRecordABC(ABC):
             stop=min(self.stop, stop),
             step=self.step * step,
             offset=self.offset,
-            seq_len=self.seq_len,
+            parent_len=self.parent_len,
             **kwargs,
         )
 
@@ -2263,7 +2465,7 @@ class SliceRecordABC(ABC):
         slice_stop: int,
         step: int,
         **kwargs,
-    ):
+    ) -> typing_extensions.Self:
         if slice_start >= 0:
             start = self.start + slice_start * self.step
         elif abs(slice_start) > len(self):
@@ -2285,11 +2487,16 @@ class SliceRecordABC(ABC):
             stop=max(self.stop, stop),
             step=self.step * step,
             offset=self.offset,
-            seq_len=self.seq_len,
+            parent_len=self.parent_len,
             **kwargs,
         )
 
-    def _get_reverse_slice(self, segment: slice, step: int, **kwargs):
+    def _get_reverse_slice(
+        self,
+        segment: slice,
+        step: int,
+        **kwargs,
+    ) -> typing_extensions.Self | None:
         slice_start = segment.start if segment.start is not None else -1
         slice_stop = segment.stop if segment.stop is not None else -len(self) - 1
 
@@ -2315,33 +2522,33 @@ class SliceRecordABC(ABC):
         slice_stop: int,
         step: int,
         **kwargs,
-    ):
+    ) -> typing_extensions.Self:
         # "true stop" adjust for if abs(stop-start) % step != 0
         # max possible start is "true stop" - step, because stop is not inclusive
         # "true stop" - step is converted to -ve index via subtracting len(self)
         if slice_start >= len(self):
-            start = (self.start + len(self) * self.step - self.step) - self.seq_len
+            start = (self.start + len(self) * self.step - self.step) - self.parent_len
         elif slice_start >= 0:
-            start = (self.start + slice_start * self.step) - self.seq_len
+            start = (self.start + slice_start * self.step) - self.parent_len
         else:
             start = (
                 self.start
                 + len(self) * self.step
                 + slice_start * self.step
-                - self.seq_len
+                - self.parent_len
             )
 
-        if slice_stop >= self.seq_len:
+        if slice_stop >= self.parent_len:
             return self._zero_slice
 
         if slice_stop >= 0:
-            stop = self.start + (slice_stop * self.step) - self.seq_len
+            stop = self.start + (slice_stop * self.step) - self.parent_len
         else:
             stop = (
                 self.start
                 + (len(self) * self.step)
                 + (slice_stop * self.step)
-                - self.seq_len
+                - self.parent_len
             )
 
         if start >= 0 or stop >= 0:
@@ -2349,10 +2556,10 @@ class SliceRecordABC(ABC):
 
         return self.__class__(
             start=start,
-            stop=max(stop, self.start - self.seq_len - 1),
+            stop=max(stop, self.start - self.parent_len - 1),
             step=self.step * step,
             offset=self.offset,
-            seq_len=self.seq_len,
+            parent_len=self.parent_len,
             **kwargs,
         )
 
@@ -2362,32 +2569,32 @@ class SliceRecordABC(ABC):
         slice_stop: int,
         step: int,
         **kwargs,
-    ):
-        # max start is "true stop" + abs(step), because stop is not inclusive
-        # "true stop" adjust for if abs(stop-start) % step != 0
+    ) -> typing_extensions.Self:
+        # refactor: simplify
+        # are there other places in slice_record where we can use plus_start/stop/step
         if slice_start >= len(self):
-            start = self.seq_len + self.start + len(self) * self.step + abs(self.step)
+            start = self.plus_start
         elif slice_start >= 0:
-            start = self.seq_len + (self.start + slice_start * self.step)
+            start = self.parent_len + (self.start + slice_start * self.step)
         else:
-            start = self.seq_len + (
+            start = self.parent_len + (
                 self.start + len(self) * self.step + slice_start * self.step
             )
 
         if slice_stop >= 0:
-            stop = self.seq_len + (self.start + slice_stop * self.step)
-            if stop <= self.seq_len + self.stop:
+            stop = self.parent_len + (self.start + slice_stop * self.step)
+            if stop <= self.parent_len + self.stop:
                 return self._zero_slice
         else:
-            stop = self.seq_len + (
+            stop = self.parent_len + (
                 self.start + len(self) * self.step + slice_stop * self.step
             )
-            if stop > self.seq_len + self.start:
-                stop = self.seq_len + self.start + 1
+            if stop > self.parent_len + self.start:
+                stop = self.parent_len + self.start + 1
 
         # if -ve, it's an invalid slice becomes zero
         # checking for zero-length slice
-        if stop < start or start > self.seq_len or min(start, stop) < 0:
+        if stop < start or start > self.parent_len or min(start, stop) < 0:
             return self._zero_slice
 
         return self.__class__(
@@ -2395,116 +2602,331 @@ class SliceRecordABC(ABC):
             stop=stop,
             step=self.step * step,
             offset=self.offset,
-            seq_len=self.seq_len,
+            parent_len=self.parent_len,
             **kwargs,
         )
 
 
-class SeqView(SliceRecordABC):
-    __slots__ = ("_offset", "_seq_len", "_seqid", "seq", "start", "step", "stop")
+class SliceRecord(SliceRecordABC):
+    """records cumulative slice operations on an object without modifying it
+
+    Notes
+    -----
+    Basis for lazy evaluation of slicing operations on sequences and alignments.
+    A reference to an instance of this class is used by different view objects.
+    """
+
+    __slots__ = "_parent_len"
 
     def __init__(
         self,
         *,
-        seq: str,
-        start: int | None = None,
-        stop: int | None = None,
-        step: int | None = None,
+        parent_len: int,
+        start: OptInt = None,
+        stop: OptInt = None,
+        step: OptInt = None,
         offset: int = 0,
-        seqid: str | None = None,
-        seq_len: int | None = None,
     ) -> None:
+        """
+        Parameters
+        ----------
+        start
+            start of the slice (inclusive indexing)
+        stop
+            stop of the slice (exclusive indexing)
+        step
+            step of the slice
+        offset
+            can be set with any additional offset that exists before the start of
+            the underlying data
+        parent_len
+            length of the underlying data (not including offset)
+        """
         if step == 0:
             msg = "step cannot be 0"
             raise ValueError(msg)
-        step = 1 if step is None else step
-
+        step = step if step is not None else 1
         func = _input_vals_pos_step if step > 0 else _input_vals_neg_step
-        start, stop, step = func(len(seq), start, stop, step)
-        self.seq = seq
+        start, stop, step = func(parent_len, start, stop, step)
         self.start = start
         self.stop = stop
         self.step = step
-        self._offset = offset
+        self._parent_len = parent_len
+        self._offset = offset or 0
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, SliceRecordABC):
+            return False
+        return (
+            self.start == other.start
+            and self.stop == other.stop
+            and self.step == other.step
+            and self._parent_len == other.parent_len
+            and self._offset == other.offset
+        )
+
+    def __ne__(self, other: object) -> bool:
+        return not self == other
+
+    @property
+    def parent_len(self) -> int:
+        return self._parent_len
+
+    def _get_init_kwargs(self) -> dict:
+        return {}
+
+    def copy(self, sliced: bool = False) -> typing_extensions.Self:
+        """returns self"""
+        return self
+
+    def __repr__(self) -> str:
+        return (
+            f"{self.__class__.__name__}(start={self.start}, stop={self.stop}, step={self.step}, "
+            f"parent_len={self.parent_len}, offset={self.offset})"
+        )
+
+    @property
+    def _zero_slice(self) -> typing_extensions.Self:
+        return self.__class__(start=0, stop=0, step=1, parent_len=self.parent_len)
+
+    def to_rich_dict(self) -> dict:
+        """returns dict suitable for serialisation"""
+        data = {"type": get_object_provenance(self), "version": __version__}
+        data["init_args"] = {
+            "parent_len": self.parent_len,
+            "start": self.start,
+            "stop": self.stop,
+            "step": self.step,
+            "offset": self.offset,
+        }
+        return data
+
+
+class SeqViewABC(ABC):
+    """
+    An abstract base class for providing a view of a sequence.
+
+    This class defines an interface for sequence views, by which operations
+    performed on the sequence do not modify the original sequence data. Instead,
+    modifications and operations are stored on the returned view of the sequence
+    and can be realised by accessing the values of the view.
+    """
+
+    __slots__ = ()
+
+    @property
+    @abstractmethod
+    def seqid(self) -> OptStr: ...
+
+    @property
+    @abstractmethod
+    def parent_len(self) -> int: ...
+
+    @property
+    @abstractmethod
+    def slice_record(self) -> SliceRecordABC: ...
+
+    @property
+    def offset(self) -> int:
+        """the annotation offset of this view"""
+        return self.slice_record.offset
+
+    @property
+    def is_reversed(self) -> bool:
+        """whether the sequence is reversed"""
+        return self.slice_record.is_reversed
+
+    @property
+    @abstractmethod
+    def str_value(self) -> str: ...
+
+    @property
+    @abstractmethod
+    def array_value(self) -> numpy.ndarray: ...
+
+    @property
+    @abstractmethod
+    def bytes_value(self) -> bytes: ...
+
+    @abstractmethod
+    def copy(self, sliced: bool = False): ...
+
+    @abstractmethod
+    def __str__(self) -> str: ...
+
+    @abstractmethod
+    def __array__(
+        self,
+        dtype: numpy.dtype | None = None,
+        copy: bool | None = None,
+    ) -> numpy.ndarray[int]: ...
+
+    @abstractmethod
+    def __bytes__(self) -> bytes: ...
+
+    @abstractmethod
+    def __getitem__(self, segment: int | slice) -> SeqViewABC: ...
+
+    def __len__(self) -> int:
+        return len(self.slice_record)
+
+    def with_offset(self, offset: int) -> typing_extensions.Self:
+        """returns new instance with annotation offset set"""
+        if self._slice_record.offset:
+            msg = f"cannot set {offset=} on a SeqView with an offset {self._slice_record.offset=}"
+            raise ValueError(
+                msg,
+            )
+
+        init_kwargs = self._get_init_kwargs()  # type: ignore
+        init_kwargs["offset"] = offset
+        return self.__class__(**init_kwargs)
+
+
+class SeqView(SeqViewABC):
+    """
+    Provides a view of a sequence with support for slicing operations.
+
+    This class represents a view of a sequence. It uses ``SliceRecord`` to
+    enable efficient slicing without altering the original sequence data.
+
+    Parameters
+    ----------
+    parent
+        the original sequence data
+    alphabet
+        the alphabet object defining valid characters for the sequence
+    seqid
+        the name or identifier of the sequence
+    parent_len
+        the length of the sequence. Defaults to the length of the input sequence
+
+    Notes
+    -----
+    It utilises the alphabet object to allow providing different types
+    such as strings or numpy arrays, corresponding to its underlying data.
+    """
+
+    __slots__ = (
+        "_parent_len",
+        "_seqid",
+        "_slice_record",
+        "alphabet",
+        "parent",
+    )
+
+    def __init__(
+        self,
+        *,
+        parent: StrORBytesORArray,
+        alphabet: c3_alphabet.CharAlphabet,
+        parent_len: int,
+        seqid: OptStr = None,
+        slice_record: SliceRecordABC = None,
+        offset: int = 0,
+    ) -> None:
+        self.alphabet = alphabet
+        self.parent = parent
         self._seqid = seqid
-
-        if seq_len is not None and seq_len != len(seq):
-            msg = f"{seq_len} != {len(self.seq)})"
-            raise AssertionError(msg)
-        self._seq_len = seq_len or len(self.seq)
+        assert parent_len is not None
+        self._parent_len = parent_len
+        self._slice_record = (
+            slice_record
+            if slice_record is not None
+            else SliceRecord(parent_len=self._parent_len)
+        )
+        if offset and self._slice_record.offset:
+            msg = f"cannot set {offset=} on a SeqView with an offset {self._slice_record.offset=}"
+            raise ValueError(
+                msg,
+            )
+        if offset:
+            self._slice_record.offset = offset
 
     @property
-    def _zero_slice(self):
-        return self.__class__(seq="")
-
-    @property
-    def seqid(self) -> str:
+    def seqid(self) -> str | None:
+        """name of the sequence"""
         return self._seqid
 
     @property
-    def seq_len(self) -> int:
-        return self._seq_len
-
-    def _get_init_kwargs(self):
-        return {"seq": self.seq, "seqid": self.seqid}
+    def slice_record(self) -> SliceRecordABC:
+        """the slice state of this view"""
+        return self._slice_record
 
     @property
-    def value(self):
-        return self.seq[self.start : self.stop : self.step]
+    def parent_len(self) -> int:
+        """length of the parent sequence"""
+        return self._parent_len
 
-    def replace(self, old: str, new: str):
-        new_seq = self.seq.replace(old, new)
-        if len(old) == len(new):
-            return self.__class__(
-                seq=new_seq,
-                start=self.start,
-                stop=self.stop,
-                step=self.step,
-                offset=self.offset,
-                seqid=self.seqid,
-                seq_len=self.seq_len,
-            )
+    def _get_init_kwargs(self) -> dict:
+        return {
+            "parent": self.parent,
+            "parent_len": self._parent_len,
+            "seqid": self.seqid,
+            "alphabet": self.alphabet,
+            "slice_record": self.slice_record,
+        }
 
-        return self.__class__(seq=new_seq)
-
-    def __iter__(self):
-        return iter(self.value)
-
-    def __str__(self) -> str:
-        return self.value
-
-    def __repr__(self) -> str:
-        seq = f"{self.seq[:10]}...{self.seq[-5:]}" if self.seq_len > 15 else self.seq
-        return (
-            f"{self.__class__.__name__}(seq={seq!r}, start={self.start}, "
-            f"stop={self.stop}, step={self.step}, offset={self.offset}, "
-            f"seqid={self.seqid!r}, seq_len={self.seq_len})"
+    @property
+    def str_value(self) -> str:
+        """returns the sequence as a string"""
+        return self.alphabet.from_indices(
+            self.parent[
+                self.slice_record.start : self.slice_record.stop : self.slice_record.step
+            ],
         )
 
-    def to_rich_dict(self):
-        # get the current state
-        data = {"type": get_object_provenance(self), "version": __version__}
-        data["init_args"] = self._get_init_kwargs()
-        # since we will truncate the seq, we don't need start, stop,
-        # step is sufficient
-        data["init_args"]["step"] = self.step
-        if self.is_reversed:
-            adj = self.seq_len + 1
-            start, stop = self.stop + adj, self.start + adj
-        else:
-            start, stop = self.start, self.stop
+    @property
+    def array_value(self) -> numpy.ndarray[int]:
+        """returns the sequence as a array of indices"""
+        return self.alphabet.to_indices(
+            self.parent[
+                self.slice_record.start : self.slice_record.stop : self.slice_record.step
+            ],
+        )
 
-        data["init_args"]["seq"] = self.seq[start:stop]
-        return data
+    @property
+    def bytes_value(self) -> bytes:
+        """returns the sequence as a bytes string"""
+        return self.str_value.encode("utf-8")
 
-    @classmethod
-    def from_rich_dict(cls, data: dict):
-        init_args = data.pop("init_args")
-        if "offset" in data:
-            init_args["offset"] = data.pop("offset")
-        return cls(**init_args)
+    def __str__(self) -> str:
+        return self.str_value
 
-    def copy(self, sliced: bool = False):
+    def __array__(
+        self,
+        dtype: numpy.dtype | None = None,
+        copy: bool | None = None,
+    ) -> numpy.ndarray[int]:
+        arr = self.array_value
+        if dtype is not None:
+            arr = arr.astype(dtype)
+        return arr
+
+    def __bytes__(self) -> bytes:
+        return self.bytes_value
+
+    def __getitem__(self, segment: int | slice) -> typing_extensions.Self:
+        return self.__class__(
+            parent=self.parent,
+            seqid=self.seqid,
+            alphabet=self.alphabet,
+            parent_len=self.parent_len,
+            slice_record=self.slice_record[segment],
+        )
+
+    def __repr__(self) -> str:
+        seq_preview = (
+            f"{self.parent[:10]}...{self.parent[-5:]}"
+            if self.parent_len > 15
+            else self.parent
+        )
+        return (
+            f"{self.__class__.__name__}(seqid={self.seqid!r}, parent={seq_preview!r}, "
+            f"slice_record={self.slice_record.__repr__()})"
+        )
+
+    def copy(self, sliced: bool = False) -> typing_extensions.Self:
         """returns copy
 
         Parameters
@@ -2515,697 +2937,170 @@ class SeqView(SliceRecordABC):
         """
         if not sliced:
             return self.__class__(
-                seq=self.seq,
-                start=self.start,
-                stop=self.stop,
-                step=self.step,
-                offset=self.offset,
+                parent=self.parent,
                 seqid=self.seqid,
-                seq_len=self.seq_len,
+                alphabet=self.alphabet,
+                slice_record=self.slice_record.copy(),
+                parent_len=self.parent_len,
             )
-        return self.from_rich_dict(self.to_rich_dict())
-
-
-class DnaSequence(NucleicAcidSequence):
-    """Holds the standard DNA sequence."""
-
-    def _seq_filter(self, seq):
-        """Converts U to T."""
-        return seq.replace("u", "t").replace("U", "T")
-
-
-class RnaSequence(NucleicAcidSequence):
-    """Holds the standard RNA sequence."""
-
-    def _seq_filter(self, seq):
-        """Converts T to U."""
-        return seq.replace("t", "u").replace("T", "U")
-
-
-class ABSequence(Sequence):
-    """Holds a two-state sequence, with characters of 'a', 'b'"""
-
-
-class ByteSequence(Sequence):
-    """Used for storing arbitrary bytes."""
-
-    def __init__(
-        self,
-        seq="",
-        name=None,
-        info=None,
-        check=False,
-        preserve_case=True,
-        **kwargs,
-    ) -> None:
-        super().__init__(
-            seq=seq,
-            name=name,
-            info=info,
-            check=check,
-            preserve_case=preserve_case,
-            **kwargs,
-        )
-
-
-@total_ordering
-class ArraySequenceBase:
-    """Holds the information for a non-degenerate sequence. Mutable.
-
-    A ArraySequence is an array of indices of symbols, where those symbols are
-    defined by an Alphabet. This representation of Sequence is convenient for
-    counting symbol frequencies or tuple frequencies, remapping data (e.g. for
-    reverse-complement), looking up model parameters, etc. Its main drawback is
-    that the sequences can no longer be treated as strings, and conversion
-    to/from strings can be fairly time-consuming. Also, any symbol not in the
-    Alphabet cannot be represented at all.
-
-    A sequence can have a name, which will be used for output in formats
-    such as FASTA.
-
-    A sequence Class has an alphabet (which can be overridden in instances
-    where necessary), a delimiter used for string conversions, a line_wrap
-    for wrapping characters into lines for e.g. FASTA output.
-
-    Note that a ArraySequence _must_ have an Alphabet, not a MolType,
-    because it is often important to store just a subset of the possible
-    characters (e.g. the non-degenerate bases) for modeling purposes.
-    """
-
-    alphabet = None  # REPLACE IN SUBCLASSES
-    moltype = None  # REPLACE IN SUBCLASSES
-    delimiter = ""  # Used for string conversions
-    line_wrap = 80  # Wrap sequences at 80 characters by default.
-
-    def __init__(
-        self,
-        data="",
-        alphabet=None,
-        name=None,
-        info=None,
-        check="ignored",
-    ) -> None:
-        """Initializes sequence from data and alphabet.
-
-        WARNING: Does not validate the data or alphabet for compatibility.
-        This is for speed. Use is_valid() to check whether the data
-        is consistent with the alphabet.
-
-        WARNING: If data has name and/or info, gets ref to same object rather
-        than copying in each case.
-        """
-        if name is None and hasattr(data, "name"):
-            name = data.name
-        if info is None and hasattr(data, "info"):
-            info = data.info
-        # set the label
-        self.name = name
-        # override the class alphabet if supplied
-        if alphabet is not None:
-            self.alphabet = alphabet
-        # if we haven't already set self._data (e.g. in a subclass __init__),
-        # guess the data type and set it here
-        if not hasattr(self, "_data"):
-            # if data is a sequence, copy its data and alphabet
-            if isinstance(data, ArraySequence):
-                self._data = data._data
-                self.alphabet = data.alphabet
-            # if it's an array
-            elif type(data) == ARRAY_TYPE:
-                self._data = data
-            else:  # may be set in subclass init
-                data = bytes_to_string(data)
-                self._from_sequence(data)
-
-        self.moltype = self.alphabet.moltype
-        self.info = info
-        self._repr_policy = {"num_pos": 60}
-
-    def __getitem__(self, *args):
-        """__getitem__ returns char or slice, as same class."""
-        if len(args) == 1 and not isinstance(args[0], slice):
-            result = array([self._data[args[0]]])
-        else:
-            result = self._data.__getitem__(*args)
-        return self.__class__(result)
-
-    def __lt__(self, other):
-        """compares based on string"""
-        return str(self) < other
-
-    def __eq__(self, other):
-        """compares based on string"""
-        return str(self) == other
-
-    def _from_sequence(self, data) -> None:
-        """Fills self using the values in data, via the alphabet."""
-        if self.alphabet:
-            indices = self.alphabet.to_indices(data)
-            self._data = array(indices, self.alphabet.array_type)
-        else:
-            self._data = array(data)
-
-    def __str__(self) -> str:
-        """Uses alphabet to convert self to string, using delimiter."""
-        if hasattr(self.alphabet, "to_string"):
-            return self.alphabet.to_string(self._data)
-        return self.delimiter.join(map(str, self.alphabet.from_indices(self._data)))
-
-    def __len__(self) -> int:
-        """Returns length of data."""
-        return len(self._data)
-
-    def to_fasta(self, make_seqlabel=None, block_size=60):
-        """Return string of self in FASTA format, no trailing newline
-
-        Parameters
-        ----------
-        make_seqlabel
-            callback function that takes the seq object and
-            returns a label str
-
-        """
-
-        label = "0"
-
-        if make_seqlabel is not None:
-            label = make_seqlabel(self)
-        elif hasattr(self, "label") and self.label:
-            label = self.label
-        elif hasattr(self, "name") and self.name:
-            label = self.name
-
-        return seqs_to_fasta({label: str(self)}, block_size=block_size)
-
-    def to_phylip(self, name_len=28, label_len=30):
-        """Return string of self in one line for PHYLIP, no newline.
-
-        Default: max name length is 28, label length is 30.
-        """
-        return str(self.name)[:name_len].ljust(label_len) + str(self)
-
-    def is_valid(self):
-        """Checks that no items in self are out of the alphabet range."""
-        return self._data == self._data.clip(0, len(self.alphabet) - 1)
-
-    def __iter__(self):
-        """iter returns characters of self, rather than slices."""
-        if hasattr(self.alphabet, "to_string"):
-            return iter(self.alphabet.to_string(self._data))
-
-        return iter(self.alpabet.from_indices(self._data))
-
-    def tostring(self):
-        """to_string delegates to self._data."""
-        return self._data.tostring()
-
-    def gaps(self):
-        """Returns array containing 1 where self has gaps, 0 elsewhere.
-
-        WARNING: Only checks for standard gap character (for speed), and
-        does not check for ambiguous gaps, etc.
-        """
-        return self._data == self.alphabet.gap_index
-
-    def nongaps(self):
-        """Returns array contining 0 where self has gaps, 1 elsewhere.
-
-        WARNING: Only checks for standard gap character (for speed), and
-        does not check for ambiguous gaps, etc.
-        """
-        return self._data != self.alphabet.gap_index
-
-    def regap(self, other, strip_existing_gaps=False):
-        """Inserts elements of self into gaps specified by other.
-
-        WARNING: Only checks for standard gap character (for speed), and
-        does not check for ambiguous gaps, etc.
-        """
-        s = self.degap() if strip_existing_gaps else self
-        c = self.__class__
-        a = self.alphabet.gapped
-        result = zeros(len(other), a.array_type) + a.gap_index
-        put(result, nonzero(other.nongaps()), s._data)
-        return c(result)
-
-    def degap(self):
-        """Returns ungapped copy of self, not changing alphabet."""
-        if not hasattr(self.alphabet, "gap") or self.alphabet.gap is None:
-            return self.copy()
-        d = take(self._data, nonzero(logical_not(self.gap_array()))[0])
-        return self.__class__(d, alphabet=self.alphabet, name=self.name, info=self.info)
-
-    def copy(self):
-        """Returns copy of self, always separate object."""
+        # we slice parent with the plus attributes only, so, if reversed, we need to
+        # retain that information in the slice_record
+        sr = SliceRecord(parent_len=len(self), step=-1) if self.is_reversed else None
         return self.__class__(
-            self._data.copy(),
+            parent=self.parent[
+                self.slice_record.plus_start : self.slice_record.plus_stop : self.slice_record.plus_step
+            ],
+            parent_len=len(self),
+            seqid=self.seqid,
             alphabet=self.alphabet,
-            name=self.name,
-            info=self.info,
+            slice_record=sr,
         )
-
-    def __contains__(self, item) -> bool:
-        """Returns true if item in self (converts to strings)."""
-        return item in str(self)
-
-    def disambiguate(self, *args, **kwargs):
-        """Disambiguates self using strings/moltype. Should recode if demand."""
-        return self.__class__(self.moltype.disambiguate(str(self), *args, **kwargs))
-
-    def distance(self, other, function=None, use_indices=False):
-        """Returns distance between self and other using function(i,j).
-
-        other must be a sequence.
-
-        function should be a function that takes two items and returns a
-        number. To turn a 2D matrix into a function, use
-        cogent3.util.miscs.DistanceFromMatrix(matrix).
-
-        use_indices: if False, maps the indices onto items (e.g. assumes
-        function relates the characters). If True, uses the indices directly.
-
-        NOTE: Truncates at the length of the shorter sequence.
-
-        Note that the function acts on two _elements_ of the sequences, not
-        the two sequences themselves (i.e. the behavior will be the same for
-        every position in the sequences, such as identity scoring or a function
-        derived from a distance matrix as suggested above). One limitation of
-        this approach is that the distance function cannot use properties of
-        the sequences themselves: for example, it cannot use the lengths of the
-        sequences to normalize the scores as percent similarities or percent
-        differences.
-
-        If you want functions that act on the two sequences themselves, there
-        is no particular advantage in making these functions methods of the
-        first sequences by passing them in as parameters like the function
-        in this method. It makes more sense to use them as standalone functions.
-        The factory function cogent3.util.transform.for_seq is useful for
-        converting per-element functions into per-sequence functions, since it
-        takes as parameters a per-element scoring function, a score aggregation
-        function, and a normalization function (which itself takes the two
-        sequences as parameters), returning a single function that combines
-        these functions and that acts on two complete sequences.
-        """
-        if function is None:
-            # use identity scoring
-            shortest = min(len(self), len(other))
-            if not hasattr(other, "_data"):
-                other = self.__class__(other)
-            distance = (self._data[:shortest] != other._data[:shortest]).sum()
-        else:
-            distance = 0
-            if use_indices:
-                self_seq = self._data
-                if hasattr(other, "_data"):
-                    other_seq = other._data
-            else:
-                self_seq = self.alphabet.from_indices(self._data)
-                if hasattr(other, "_data"):
-                    other_seq = other.alphabet.from_indices(other._data)
-                else:
-                    other_seq = other
-            for first, second in zip(self_seq, other_seq, strict=False):
-                distance += function(first, second)
-        return distance
-
-    def matrix_distance(self, other, matrix, use_indices=False):
-        """Returns distance between self and other using a score matrix.
-
-        if use_indices is True (default is False), assumes that matrix is
-        an array using the same indices that self uses.
-
-        WARNING: the matrix must explicitly contain scores for the case where
-        a position is the same in self and other (e.g. for a distance matrix,
-        an identity between U and U might have a score of 0). The reason the
-        scores for the 'diagonals' need to be passed explicitly is that for
-        some kinds of distance matrices, e.g. log-odds matrices, the 'diagonal'
-        scores differ from each other. If these elements are missing, this
-        function will raise a KeyError at the first position that the two
-        sequences are identical.
-        """
-        return self.distance(other, DistanceFromMatrix(matrix))
-
-    def shuffle(self):
-        """Returns shuffled copy of self"""
-        return self.__class__(permutation(self._data), info=self.info)
-
-    def gap_array(self):
-        """Returns array of 0/1 indicating whether each position is a gap."""
-        gap_indices = []
-        a = self.alphabet
-        for c in self.moltype.gaps:
-            if c in a:
-                gap_indices.append(a.index(c))
-        gap_vector = None
-        for i in gap_indices:
-            if gap_vector is None:
-                gap_vector = self._data == i
-            else:
-                gap_vector = logical_or(gap_vector, self._data == i)
-        return gap_vector
-
-    def gap_indices(self):
-        """Returns list of gap indices."""
-        return list(self.gap_array().nonzero()[0])
-
-    def frac_same_gaps(self, other):
-        """Returns fraction of positions where gaps match other's gaps."""
-        if not other:
-            return 0
-        self_gaps = self.gap_array()
-        if hasattr(other, "gap_array"):
-            other_gaps = other.gap_array()
-        elif hasattr(other, "gap_vector"):
-            other_gaps = array(other.gap_vector())
-        else:
-            other_gaps = array(self.moltype.gap_vector(other))
-        min_len = min(len(self), len(other))
-        self_gaps, other_gaps = self_gaps[:min_len], other_gaps[:min_len]
-        return (self_gaps == other_gaps).sum() / float(min_len)
-
-
-class ArraySequence(ArraySequenceBase, SequenceI):
-    """ArraySequence provides an array-based implementation of Sequence.
-
-    Use ArraySequenceBase if you need a stripped-down, fast implementation.
-    ArraySequence implements everything that SequenceI implements.
-
-    See docstrings for ArraySequenceBase and SequenceI for information about
-    these respective classes.
-    """
-
-    def strip_bad(self):
-        """Returns copy of self with bad chars excised"""
-        valid_indices = self._data < len(self.alphabet)
-        result = compress(valid_indices, self._data)
-        return self.__class__(result, info=self.info)
-
-    def strip_bad_and_gaps(self):
-        """Returns copy of self with bad chars and gaps excised."""
-        gap_indices = list(map(self.alphabet.index, self.moltype.gaps))
-        valid_indices = self._data < len(self.alphabet)
-        for i in gap_indices:
-            valid_indices[self._data == i] = False
-        result = compress(valid_indices, self._data)
-        return self.__class__(result, info=self.info)
-
-    def strip_degenerate(self):
-        """Returns copy of self without degenerate symbols.
-
-        NOTE: goes via string intermediate because some of the algorithms
-        for resolving degenerates are complex. This could be optimized if
-        speed becomes critical.
-        """
-        return self.__class__(self.moltype.strip_degenerate(str(self)), info=self.info)
-
-    def count_gaps(self):
-        """Returns count of gaps in self."""
-        return self.gap_array().sum()
-
-    def gap_vector(self):
-        """Returns list of bool containing whether each pos is a gap."""
-        return list(map(bool, self.gap_array()))
-
-    def gap_maps(self):
-        """Returns dicts mapping gapped/ungapped positions."""
-        nongaps = logical_not(self.gap_array())
-        indices = arange(len(self)).compress(nongaps)
-        new_indices = arange(len(indices))
-        return (
-            dict(list(zip(new_indices, indices, strict=False))),
-            dict(list(zip(indices, new_indices, strict=False))),
-        )
-
-    def first_gap(self):
-        """Returns position of first gap, or None."""
-        a = self.gap_indices()
-        try:
-            return a[0]
-        except IndexError:
-            return None
-
-    def is_gapped(self):
-        """Returns True of sequence contains gaps."""
-        return len(self.gap_indices())
-
-    def mw(self, *args, **kwargs):
-        """Returns molecular weight.
-
-        Works via string intermediate: could optimize using array of MW if
-        speed becomes important.
-        """
-        return self.moltype.mw(str(self), *args, **kwargs)
-
-    def frac_similar(self, other, similar_pairs):
-        """Returns fraction of positions where self[i] is similar to other[i].
-
-        similar_pairs must be a dict such that d[(i,j)] exists if i and j are
-        to be counted as similar. Use PairsFromGroups in cogent3.util.misc to
-        construct such a dict from a list of lists of similar residues.
-
-        Truncates at the length of the shorter sequence.
-
-        Note: current implementation re-creates the distance function each
-        time, so may be expensive compared to creating the distance function
-        using for_seq separately.
-
-        Returns 0 if one sequence is empty.
-
-        NOTE: goes via string intermediate, could optimize using array if
-        speed becomes important. Note that form of similar_pairs input would
-        also have to change.
-        """
-        if not self or not other:
-            return 0.0
-
-        return for_seq(f=lambda x, y: (x, y) in similar_pairs, normalizer=per_shortest)(
-            str(self),
-            str(other),
-        )
-
-    def replace(self, oldchar, newchar):
-        """return new instance with oldchar replaced by newchar"""
-        oldindex = self.alphabet.index(oldchar)
-        newindex = self.alphabet.index(newchar)
-        new = self._data.copy()
-        new[new == oldindex] = newindex
-        return self.__class__(new, name=self.name, info=self.info)
-
-
-class ArrayNucleicAcidSequence(ArraySequence):
-    """Abstract class defining ops for codons, translation, etc."""
-
-    def to_codons(self):
-        """Returns copy of self in codon alphabet. Assumes ungapped."""
-        alpha_len = len(self.alphabet)
-        return ArrayCodonSequence(
-            alpha_len * (alpha_len * self._data[::3] + self._data[1::3])
-            + self._data[2::3],
-            name=self.name,
-            alphabet=self.alphabet**3,
-        )
-
-    def complement(self):
-        """Returns complement of sequence"""
-        return self.__class__(
-            self.alphabet._complement_array.take(self._data),
-            info=self.info,
-        )
-
-    def rc(self):
-        """Returns reverse-complement of sequence"""
-        comp = self.alphabet._complement_array.take(self._data)
-        return self.__class__(comp[::-1], info=self.info)
-
-    def to_rna(self):
-        """Returns self as RNA"""
-        return ArrayRnaSequence(self._data)
-
-    def to_dna(self):
-        """Returns self as DNA"""
-        return ArrayDnaSequence(self._data)
-
-
-class ArrayRnaSequence(ArrayNucleicAcidSequence):
-    moltype = None  # set to RNA in moltype.py
-    alphabet = None  # set to RNA.alphabets.degen_gapped in moltype.py
-
-    def __init__(self, data="", *args, **kwargs) -> None:
-        """Returns new ArrayRnaSequence, converting T -> U"""
-        if hasattr(data, "upper"):
-            data = data.upper().replace("T", "U")
-        return super().__init__(data, *args, **kwargs)
-
-
-class ArrayDnaSequence(ArrayNucleicAcidSequence):
-    moltype = None  # set to DNA in moltype.py
-    alphabet = None  # set to DNA.alphabets.degen_gapped in moltype.py
-
-    def __init__(self, data="", *args, **kwargs) -> None:
-        """Returns new ArrayDnaSequence, converting U -> T"""
-        if hasattr(data, "upper"):
-            data = data.upper().replace("U", "T")
-        return super().__init__(data, *args, **kwargs)
-
-
-class ArrayCodonSequence(ArraySequence):
-    """Abstract base class for codon sequences, incl. string conversion."""
-
-    SequenceClass = ArrayNucleicAcidSequence
-
-    def __str__(self) -> str:
-        """Joins triplets together as string."""
-        return self.delimiter.join(map("".join, self.alphabet.from_indices(self._data)))
-
-    def _from_string(self, s) -> None:
-        """Reads from a raw string, rather than a DnaSequence."""
-        s = s.upper().replace("U", "T")  # convert to uppercase DNA
-        d = self.SequenceClass(s, alphabet=self.alphabet.sub_enumerations[0])
-        self._data = d.to_codons()._data
-
-    def __init__(self, data="", alphabet=None, name=None, info=None) -> None:
-        """Override __init__ to handle init from string."""
-        if isinstance(data, str):
-            self._from_string(data)
-        ArraySequence.__init__(self, data, alphabet, name, info=info)
-
-    def to_codons(self):
-        """Converts self to codons -- in practice, just returns self.
-
-        Supports interface of other NucleicAcidSequences."""
-        return self
-
-    def to_dna(self):
-        """Returns a ArrayDnaSequence from the data in self"""
-        unpacked = self.alphabet.unpack_arrays(self._data)
-        result = zeros((len(self._data), 3))
-        for i, v in enumerate(unpacked):
-            result[:, i] = v
-        return ArrayDnaSequence(ravel(result), name=self.name)
-
-    def to_rna(self):
-        """Returns a ArrayDnaSequence from the data in self."""
-        unpacked = self.alphabet.unpack_arrays(self._data)
-        result = zeros((len(self._data), 3))
-        for i, v in enumerate(unpacked):
-            result[:, i] = v
-        return ArrayRnaSequence(ravel(result), name=self.name)
-
-
-class ArrayDnaCodonSequence(ArrayCodonSequence):
-    """Holds non-degenerate DNA codon sequence."""
-
-    alphabet = None  # set to DNA.alphabets.base.Triples in moltype.py
-    SequenceClass = ArrayDnaSequence
-
-
-class ArrayRnaCodonSequence(ArrayCodonSequence):
-    """Holds non-degenerate DNA codon sequence."""
-
-    alphabet = None  # set to RNA.alphabets.base.Triples in motype.py
-    SequenceClass = ArrayRnaSequence
-
-    def _from_string(self, s) -> None:
-        """Reads from a raw string, rather than a DnaSequence."""
-        s = s.upper().replace("T", "U")  # convert to uppercase DNA
-        d = self.SequenceClass(s, alphabet=self.alphabet.sub_enumerations[0])
-        self._data = d.to_codons()._data
-
-
-class ArrayProteinSequence(ArraySequence):
-    moltype = None  # set to PROTEIN in moltype.py
-    alphabet = None  # set to PROTEIN.alphabets.degen_gapped in moltype.py
-
-
-class ArrayProteinWithStopSequence(ArraySequence):
-    moltype = None  # set to PROTEIN_WITH_STOP in moltype.py
-    alphabet = None  # set to PROTEIN_WITH_STOP.alphabets.degen_gapped in moltype.py
 
 
 @singledispatch
-def _coerce_to_seqview(data, seqid, preserve_case, checker, annotation_offset):
+def _coerce_to_seqview(
+    data,
+    seqid: str,
+    alphabet: c3_alphabet.CharAlphabet,
+    offset: int,
+) -> SeqViewABC:
     from cogent3.core.alignment import Aligned
 
     if isinstance(data, Aligned):
-        return _coerce_to_seqview(
-            str(data),
-            seqid,
-            preserve_case,
-            checker,
-            annotation_offset,
-        )
+        return _coerce_to_seqview(str(data), seqid, alphabet, offset)
     msg = f"{type(data)}"
     raise NotImplementedError(msg)
 
 
 @_coerce_to_seqview.register
-def _(data: SeqView, seqid, preserve_case, checker, annotation_offset):
-    if annotation_offset and data.offset:
-        msg = f"cannot set {annotation_offset=} on a SeqView with an offset {data.offset=}"
+def _(
+    data: SeqViewABC,
+    seqid: str,
+    alphabet: c3_alphabet.CharAlphabet,
+    offset: int,
+) -> SeqViewABC:
+    # we require the indexes of shared states in alphabets to be the same
+    # SeqView has an alphabet but SeqViewABC does NOT because that is
+    # more general and covers the case where the SeqsData collection has the
+    # alphabet
+    if hasattr(data, "alphabet"):
+        n = min(len(data.alphabet), len(alphabet))
+        if data.alphabet[:n] != alphabet[:n]:
+            msg = f"element order {data.alphabet=} != to that in {alphabet=} for {data=!r}"
+            raise c3_alphabet.AlphabetError(
+                msg,
+            )
+
+    if offset and data.offset:
+        msg = f"cannot set {offset=} on a SeqView with an offset {data.offset=}"
         raise ValueError(
             msg,
         )
-    if annotation_offset:
-        data.offset = annotation_offset
+    if offset:
+        return data.with_offset(offset)
     return data
 
 
 @_coerce_to_seqview.register
-def _(data: Sequence, seqid, preserve_case, checker, annotation_offset):
-    return _coerce_to_seqview(
-        data._seq,
-        seqid,
-        preserve_case,
-        checker,
-        annotation_offset,
+def _(
+    data: Sequence,
+    seqid: str,
+    alphabet: c3_alphabet.CharAlphabet,
+    offset: int,
+) -> SeqViewABC:
+    return _coerce_to_seqview(data._seq, seqid, alphabet, offset)
+
+
+@_coerce_to_seqview.register
+def _(
+    data: str,
+    seqid: str,
+    alphabet: c3_alphabet.CharAlphabet,
+    offset: int,
+) -> SeqViewABC:
+    return SeqView(
+        parent=data,
+        parent_len=len(data),
+        seqid=seqid,
+        alphabet=alphabet,
+        offset=offset,
     )
 
 
 @_coerce_to_seqview.register
-def _(data: ArraySequence, seqid, preserve_case, checker, annotation_offset):
-    return _coerce_to_seqview(
-        str(data),
-        seqid,
-        preserve_case,
-        checker,
-        annotation_offset,
-    )
-
-
-@_coerce_to_seqview.register
-def _(data: str, seqid, preserve_case, checker, annotation_offset):
-    if not preserve_case:
-        data = data.upper()
-    checker(data)
-    return SeqView(seq=data, seqid=seqid, offset=annotation_offset)
-
-
-@_coerce_to_seqview.register
-def _(data: bytes, seqid, preserve_case, checker, annotation_offset):
-    if not preserve_case:
-        data = data.upper()
+def _(
+    data: bytes,
+    seqid: str,
+    alphabet: c3_alphabet.CharAlphabet,
+    offset: int,
+) -> SeqViewABC:
     data = data.decode("utf8")
-    checker(data)
-    return SeqView(seq=data, seqid=seqid, offset=annotation_offset)
-
-
-@_coerce_to_seqview.register
-def _(data: tuple, seqid, preserve_case, checker, annotation_offset):
-    return _coerce_to_seqview(
-        "".join(data),
-        seqid,
-        preserve_case,
-        checker,
-        annotation_offset,
+    return SeqView(
+        parent=data,
+        parent_len=len(data),
+        seqid=seqid,
+        alphabet=alphabet,
+        offset=offset,
     )
 
 
 @_coerce_to_seqview.register
-def _(data: list, seqid, preserve_case, checker, annotation_offset):
-    return _coerce_to_seqview(
-        "".join(data),
-        seqid,
-        preserve_case,
-        checker,
-        annotation_offset,
+def _(
+    data: numpy.ndarray,
+    seqid: str,
+    alphabet: c3_alphabet.AlphabetABC,
+    offset: int,
+) -> SeqViewABC:
+    return SeqView(
+        parent=data.astype(alphabet.dtype),
+        parent_len=len(data),
+        seqid=seqid,
+        alphabet=alphabet,
+        offset=offset,
     )
+
+
+@_coerce_to_seqview.register
+def _(
+    data: tuple,
+    seqid: str,
+    alphabet: c3_alphabet.AlphabetABC,
+    offset: int,
+) -> SeqViewABC:
+    return _coerce_to_seqview("".join(data), seqid, alphabet, offset)
+
+
+@_coerce_to_seqview.register
+def _(
+    data: list,
+    seqid: str,
+    alphabet: c3_alphabet.AlphabetABC,
+    offset: int,
+) -> SeqViewABC:
+    return _coerce_to_seqview("".join(data), seqid, alphabet, offset)
+
+
+cls_map = {
+    get_object_provenance(cls): cls
+    for cls in (
+        Sequence,
+        DnaSequence,
+        RnaSequence,
+        ProteinSequence,
+        ProteinWithStopSequence,
+        ByteSequence,
+    )
+} | {
+    "cogent3.core.sequence.Sequence": Sequence,
+    "cogent3.core.sequence.DnaSequence": DnaSequence,
+    "cogent3.core.sequence.RnaSequence": RnaSequence,
+    "cogent3.core.sequence.ProteinSequence": ProteinSequence,
+    "cogent3.core.sequence.ProteinWithStopSequence": ProteinWithStopSequence,
+    "cogent3.core.sequence.ByteSequence": ByteSequence,
+}
+
+
+@register_deserialiser(*cls_map.keys())
+def deserialise_sequence(data: dict) -> Sequence:
+    cls = cls_map[data["type"]]
+    return cls.from_rich_dict(data)

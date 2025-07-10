@@ -1,12 +1,11 @@
 from collections import defaultdict
-from typing import Optional, Union
+from typing import Union
 
 from numpy import array
 from numpy import random as np_random
 
 import cogent3
-from cogent3.core import moltype as old_moltype
-from cogent3.core import new_moltype
+from cogent3.core import moltype as c3_moltype
 
 from .composable import NON_COMPOSABLE, NotCompleted, define_app
 from .translate import get_fourfold_degenerate_sets
@@ -15,8 +14,8 @@ from .typing import AlignedSeqsType, SeqsCollectionType, SerialisableType
 # TODO need a function to filter sequences based on divergence, ala divergent
 # set.
 
-MolTypes = Union[str, old_moltype.MolType, new_moltype.MolType]
-OptInt = Optional[int]
+MolTypes = str | c3_moltype.MolType
+OptInt = int | None
 
 
 def intersection(groups):
@@ -144,9 +143,8 @@ class concat:
 
         combined = {n: self._join_seq.join(collated[n]) for n in names}
         if aln := cogent3.make_aligned_seqs(
-            data=combined,
+            combined,
             moltype=self._moltype,
-            array_align=True,
         ):
             return aln
         return NotCompleted("FAIL", self, message="result is empty")
@@ -982,7 +980,7 @@ class omit_bad_seqs:
         valid_moltypes = {"dna", "rna", "protein", "protein_with_stop"}
         if moltype.label.lower() not in valid_moltypes:
             msg = f"Invalid moltype: {moltype.label!r}. Moltype must be one of {', '.join(valid_moltypes)}"
-            raise new_moltype.MolTypeError(msg)
+            raise c3_moltype.MolTypeError(msg)
 
         # refactor: design, this should raise a MolTypeError
         self._quantile = quantile
@@ -1000,22 +998,11 @@ class omit_bad_seqs:
         length = len(aln)
         keep = [n for n, c in gaps_per_seq.items() if c / length < self._gap_fraction]
 
-        from cogent3.core import new_alignment
-
         if self._ambig_fraction is not None:
-            if isinstance(aln, new_alignment.Alignment):
-                ambigs_per_seq = aln.count_ambiguous_per_seq()
-                keep = [
-                    n for n in keep if ambigs_per_seq[n] / length < self._ambig_fraction
-                ]
-            else:
-                msg = (
-                    "ambig_fraction cannot be applied to old style alignments, set "
-                    "new_type=True in make_aligned_seqs to create an Alignment which "
-                    "supports this feature"
-                )
-
-                return NotCompleted("FAIL", self, msg, aln)
+            ambigs_per_seq = aln.count_ambiguous_per_seq()
+            keep = [
+                n for n in keep if ambigs_per_seq[n] / length < self._ambig_fraction
+            ]
 
         result = aln.take_seqs(keep)
         if self._quantile is not None:
@@ -1194,7 +1181,7 @@ class trim_stop_codons:
 
         >>> from cogent3 import make_unaligned_seqs, make_aligned_seqs, get_app
         >>> ualn = make_unaligned_seqs(
-        ...     data={"s1": "AAATTTCCC", "s2": "AAATTTTAA"}, moltype="dna"
+        ...     {"s1": "AAATTTCCC", "s2": "AAATTTTAA"}, moltype="dna"
         ... )
         >>> app = get_app("trim_stop_codons")
         >>> result = app(ualn)
@@ -1208,7 +1195,7 @@ class trim_stop_codons:
         https://cogent3.org/doc/cookbook/what_codes.html.
 
         >>> aln = make_aligned_seqs(
-        ...     data={"s1": "AAATTTCCC", "s2": "AAATTTTAA"}, moltype="dna"
+        ...     {"s1": "AAATTTCCC", "s2": "AAATTTTAA"}, moltype="dna"
         ... )
         >>> app = get_app("trim_stop_codons", gc=2)
         >>> result = app(aln)

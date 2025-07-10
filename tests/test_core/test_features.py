@@ -10,8 +10,8 @@ from cogent3.core.annotation_db import BasicAnnotationDb, GffAnnotationDb
 # Complete version of manipulating sequence annotations
 from cogent3.util.deserialise import deserialise_object
 
-ASCII = cogent3.get_moltype("text", new_type=True)
-DNA = cogent3.get_moltype("dna", new_type=True)
+ASCII = cogent3.get_moltype("text")
+DNA = cogent3.get_moltype("dna")
 
 
 class FeaturesTest(TestCase):
@@ -114,9 +114,8 @@ class FeaturesTest(TestCase):
 def test_copy_annotations():
     """copying features from a db"""
     aln = cogent3.make_aligned_seqs(
-        data=[["x", "-AAAAAAAAA"], ["y", "TTTT--CCCT"]],
+        [["x", "-AAAAAAAAA"], ["y", "TTTT--CCCT"]],
         moltype="dna",
-        new_type=True,
     )
     db = GffAnnotationDb()
     db.add_feature(seqid="y", biotype="exon", name="A", spans=[(5, 8)])
@@ -128,9 +127,8 @@ def test_copy_annotations():
 def test_copy_annotations_onto_seq():
     """copying features onto a sequence"""
     aln = cogent3.make_aligned_seqs(
-        data=[["x", "-AAAAAAAAA"], ["y", "TTTT--CCCT"]],
+        [["x", "-AAAAAAAAA"], ["y", "TTTT--CCCT"]],
         moltype="dna",
-        new_type=True,
     )
     db = BasicAnnotationDb()
     db.add_feature(seqid="y", biotype="exon", name="A", spans=[(5, 8)])
@@ -146,9 +144,8 @@ def test_feature_residue():
     # covered - note the omission of the T in y opposite the gap in x.
 
     aln = cogent3.make_aligned_seqs(
-        data=[["x", "C-CCCAAAAA"], ["y", "-T----TTTT"]],
+        [["x", "C-CCCAAAAA"], ["y", "-T----TTTT"]],
         moltype=DNA,
-        new_type=True,
     )
     db = aln.annotation_db
     assert str(aln), ">x\nC-CCCAAAAA\n>y\n-T----TTTT\n"
@@ -246,9 +243,8 @@ def test_feature_query_parent_seq():
 
 def test_feature_query_child_aln():
     aln = cogent3.make_aligned_seqs(
-        data=[["x", "-AAAGGGGGAAC-CT"], ["y", "TTTT--TTTTAGGGA"]],
+        [["x", "-AAAGGGGGAAC-CT"], ["y", "TTTT--TTTTAGGGA"]],
         moltype="dna",
-        new_type=True,
     )
     aln = _add_features(aln, on_alignment=True)
     gene = next(iter(aln.get_features(biotype="CDS")))
@@ -261,8 +257,7 @@ def test_feature_query_child_aln():
 
 def test_feature_query_parent_aln():
     aln = cogent3.make_aligned_seqs(
-        data=[["x", "-AAAGGGGGAAC-CT"], ["y", "TTTT--TTTTAGGGA"]],
-        array_align=False,
+        [["x", "-AAAGGGGGAAC-CT"], ["y", "TTTT--TTTTAGGGA"]],
         moltype="dna",
     )
     aln = _add_features(aln, on_alignment=True)
@@ -280,8 +275,7 @@ def test_aln_feature_lost_spans():
     db.add_feature(seqid="y", biotype="repeat", name="A", spans=[(12, 14)])
     # If the sequence is shorter, again you get a lost span.
     aln = cogent3.make_aligned_seqs(
-        data={"x": "-AAAAAAAAA", "y": "TTTT--TTTT"},
-        array_align=False,
+        {"x": "-AAAAAAAAA", "y": "TTTT--TTTT"},
         moltype="dna",
     )
     aln.annotation_db = db
@@ -297,8 +291,7 @@ def test_terminal_gaps():
     feat = {"seqid": "x", "biotype": "exon", "name": "fred", "spans": [(3, 8)]}
     db.add_feature(**feat)
     aln = cogent3.make_aligned_seqs(
-        data=[["x", "-AAAAAAAAA"], ["y", "------TTTT"]],
-        array_align=False,
+        [["x", "-AAAAAAAAA"], ["y", "------TTTT"]],
         moltype="dna",
     )
     aln.annotation_db = db
@@ -306,8 +299,7 @@ def test_terminal_gaps():
     assert "biotype='exon', name='fred', map=[4:9]/10" in str(aln_exons)
     assert aln_exons[0].get_slice().to_dict() == {"x": "AAAAA", "y": "--TTT"}
     aln = cogent3.make_aligned_seqs(
-        data=[["x", "-AAAAAAAAA"], ["y", "TTTT--T---"]],
-        array_align=False,
+        [["x", "-AAAAAAAAA"], ["y", "TTTT--T---"]],
         moltype="dna",
     )
     aln.annotation_db = db
@@ -325,8 +317,7 @@ def test_feature_from_alignment():
     # Sequence features can be accessed via a containing Alignment:
     db = GffAnnotationDb()
     aln = cogent3.make_aligned_seqs(
-        data={"x": "-AAAAAAAAA", "y": "TTTT--TTTT"},
-        array_align=False,
+        {"x": "-AAAAAAAAA", "y": "TTTT--TTTT"},
         moltype="dna",
     )
     db.add_feature(seqid="x", biotype="exon", name="fred", spans=[(3, 8)])
@@ -398,7 +389,6 @@ def test_masking_strand_agnostic_aln():
             "y": "AAGGGGAAAACCCCCGGGGGGGGGGTTTTTTTTTTAAA",
         },
         moltype="dna",
-        array_align=False,
     )
     aln.annotation_db = db
     masked = aln.with_masked_annotations("CDS")
@@ -417,8 +407,7 @@ def test_masking_strand_agnostic_aln():
 def test_feature_out_range():
     """features no longer included in an alignment will not be returned"""
     aln = cogent3.make_aligned_seqs(
-        data=[["x", "-AAAA"], ["y", "TTTTT"]],
-        array_align=False,
+        [["x", "-AAAA"], ["y", "TTTTT"]],
         moltype="dna",
     )
     db = GffAnnotationDb()
@@ -446,9 +435,8 @@ def test_roundtripped_alignment_with_slices():
     """Sliced Alignment with annotations roundtrips correctly"""
     # annotations just on member sequences
     aln = cogent3.make_aligned_seqs(
-        data=[["x", "-AAAGGGGGAACCCT"], ["y", "TTTT--TTTTAGGGA"]],
+        [["x", "-AAAGGGGGAACCCT"], ["y", "TTTT--TTTTAGGGA"]],
         moltype="dna",
-        new_type=True,
     )
     db = GffAnnotationDb()
     db.add_feature(seqid="x", biotype="exon", name="E1", spans=[(3, 8)])
@@ -463,7 +451,7 @@ def test_roundtripped_alignment_with_slices():
     # new type alignments DO NOT support serialising annotation_db's
     new = deserialise_object(sub_aln.to_json())
     feats = list(new.get_features(biotype="exon", allow_partial=True))
-    assert not len(feats)
+    assert not feats
 
 
 def test_feature_reverse():
@@ -494,7 +482,7 @@ def test_feature_reverse():
 
 @pytest.mark.parametrize("moltype", ["protein", "bytes", "text"])
 def test_rc_feature_on_wrong_moltype(moltype):
-    moltype = cogent3.get_moltype(moltype, new_type=True)
+    moltype = cogent3.get_moltype(moltype)
     seq = moltype.make_seq(seq="AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA", name="s1")
     cds = seq.add_feature(
         biotype="CDS",
@@ -560,15 +548,14 @@ def test_seq_degap_preserves_annotations():
 
 @pytest.mark.parametrize("aligned", [True, False])
 def test_align_degap_preserves_annotations(aligned):
+    data = {"seq1": "GATN--", "seq2": "?GATCT"}
     kwargs = {
-        "data": {"seq1": "GATN--", "seq2": "?GATCT"},
         "moltype": DNA,
-        "new_type": True,
     }
     coll = (
-        cogent3.make_aligned_seqs(array_align=aligned, **kwargs)
+        cogent3.make_aligned_seqs(data, **kwargs)
         if aligned
-        else cogent3.make_unaligned_seqs(**kwargs)
+        else cogent3.make_unaligned_seqs(data, **kwargs)
     )
     db = BasicAnnotationDb()
     db.add_feature(biotype="exon", name="exon1", spans=[(1, 2)], seqid="seq1")

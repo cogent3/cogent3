@@ -10,15 +10,6 @@
 Loading a single sequence from a file
 -------------------------------------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 In this case, the filename suffix is used to infer the data format.
 
 .. jupyter-execute::
@@ -101,7 +92,7 @@ The loading functions use the filename suffix to infer the file format. This can
 
     from cogent3 import load_aligned_seqs
 
-    aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna", format="fasta")
+    aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna", format_name="fasta")
     aln
 
 Specifying the sequence molecular type
@@ -184,7 +175,7 @@ This is done using ``make_unaligned_seqs()``, which returns a ``SequenceCollecti
     from cogent3 import make_unaligned_seqs
 
     seqs = {"seq1": "AATCA", "seq2": "AATCGGA"}
-    seqs = make_unaligned_seqs(data=seqs, moltype="dna")
+    seqs = make_unaligned_seqs(seqs, moltype="dna")
     seqs
 
 Loading sequences using format parsers
