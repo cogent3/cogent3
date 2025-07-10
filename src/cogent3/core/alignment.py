@@ -1467,7 +1467,9 @@ class SequenceCollection(AnnotatableMixin):
         return fasta.formatted(self, block_size=block_size)
 
     @c3warn.deprecated_args(
-        "2025.9", "don't use built in name", old_new=[("format", "format_name")]
+        "2025.9",
+        "don't use built in name",
+        old_new=[("format", "format_name"), ("file_format", "format_name")],
     )
     def write(self, filename: str, format_name: OptStr = None, **kwargs) -> None:
         """Write the sequences to a file, preserving order of sequences.
