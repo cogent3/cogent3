@@ -523,19 +523,16 @@ class take_named_seqs:
         s3    GC--GC
         s4    ..AA..
         """
-        self._names = names
+        self._names: set[str] = set(names)
         self._negate = negate
 
-    T = Union[SerialisableType, SeqsCollectionType]
+    T = SerialisableType | SeqsCollectionType
 
     def main(self, data: SeqsCollectionType) -> T:
-        try:
-            data = data.take_seqs(self._names, negate=self._negate)
-        except KeyError:
-            missing = set(self._names) - set(data.names)
+        if not self._negate and (missing := set(self._names) - set(data.names)):
             msg = f"named seq(s) {missing} not in {data.names}"
-            data = NotCompleted("FALSE", self, msg, source=data)
-        return data
+            return NotCompleted("FALSE", self, msg, source=data)
+        return data.take_seqs(self._names, negate=self._negate)
 
 
 @define_app
@@ -626,18 +623,20 @@ class take_n_seqs:
         if seed:
             np_random.seed(seed)
 
-        self._names = None
+        self._names: set[str] | None = None
         self._number = number
         self._random = random
         self._fixed_choice = fixed_choice
 
-    def _set_names(self, data) -> None:
+    def _set_names(self, data: SeqsCollectionType) -> None:
         """set the names attribute"""
         if not self._random:
-            self._names = data.names[: self._number]
+            self._names = set(data.names[: self._number])
             return
 
-        self._names = np_random.choice(data.names, self._number, replace=False).tolist()
+        self._names = set(
+            np_random.choice(data.names, self._number, replace=False).tolist()
+        )
 
     T = Union[SerialisableType, SeqsCollectionType]
 
@@ -649,13 +648,10 @@ class take_n_seqs:
         if self._names is None or not self._fixed_choice:
             self._set_names(data)
 
-        try:
-            data = data.take_seqs(self._names)
-        except KeyError:
-            missing = set(self._names) - set(data.names)
+        if missing := set(self._names) - set(data.names):
             msg = f"named seq(s) {missing} not in {data.names}"
-            data = NotCompleted("FALSE", self, msg, source=data)
-        return data
+            return NotCompleted("FALSE", self, msg, source=data)
+        return data.take_seqs(self._names)
 
 
 @define_app

@@ -83,7 +83,7 @@ class TranslateTests(TestCase):
         )
         got = select(aln)
         assert not got
-        assert type(got) == composable.NotCompleted
+        assert type(got) is composable.NotCompleted
 
         # using negate
         select = sample.take_named_seqs("c", negate=True)
