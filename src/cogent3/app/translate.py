@@ -313,7 +313,7 @@ class translate_seqs:
 
     def __init__(
         self,
-        moltype: MolTypes = "dna",
+        moltype: c3_moltype.MolTypeLiteral = "dna",
         gc: GeneticCodeTypes = 1,
         allow_rc: bool = False,
         trim_terminal_stop: bool = True,
@@ -350,10 +350,10 @@ class translate_seqs:
         s1    MR
         s2    .-
         """
-        moltype = cogent3.get_moltype(moltype)
-        assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
+        mtype = cogent3.get_moltype(moltype)
+        assert mtype.is_nucleic, "Invalid moltype"
 
-        self._moltype = moltype
+        self._moltype = mtype
         self._gc = cogent3.get_code(gc)
         self._trim_terminal_stop = trim_terminal_stop
 

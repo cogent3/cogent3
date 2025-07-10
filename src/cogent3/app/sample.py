@@ -11,10 +11,6 @@ from .composable import NON_COMPOSABLE, NotCompleted, define_app
 from .translate import get_fourfold_degenerate_sets
 from .typing import AlignedSeqsType, SeqsCollectionType, SerialisableType
 
-# TODO need a function to filter sequences based on divergence, ala divergent
-# set.
-
-MolTypes = str | c3_moltype.MolType
 OptInt = int | None
 
 
@@ -38,7 +34,7 @@ class concat:
         self,
         join_seq: str = "",
         intersect: bool = True,
-        moltype: str | None = None,
+        moltype: c3_moltype.MolTypeLiteral | None = None,
     ) -> None:
         """
         Parameters
@@ -157,7 +153,7 @@ class omit_degenerates:
 
     def __init__(
         self,
-        moltype: str | None = None,
+        moltype: c3_moltype.MolTypeLiteral | None = None,
         gap_is_degen: bool = True,
         motif_length: int = 1,
     ) -> None:
@@ -215,11 +211,12 @@ class omit_degenerates:
         s1    ACGA
         s2    GATG
         """
-        if moltype:
-            moltype = cogent3.get_moltype(moltype)
-            assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
+        mtyp = cogent3.get_moltype(moltype) if moltype else None
+        if mtyp and not mtyp.is_nucleic:
+            msg = f"Invalid moltype {mtyp.name!r}, must be DNA or RNA"
+            raise c3_moltype.MolTypeError(msg)
 
-        self._moltype = moltype
+        self._moltype = mtyp
         self._allow_gap = not gap_is_degen
         self._motif_length = motif_length
 
@@ -250,7 +247,7 @@ class omit_gap_pos:
         self,
         allowed_frac: float = 0.99,
         motif_length: int = 1,
-        moltype: str | None = None,
+        moltype: c3_moltype.MolTypeLiteral | None = None,
     ) -> None:
         """
         Parameters
@@ -309,11 +306,12 @@ class omit_gap_pos:
         >>> result.message
         'all columns exceeded gap threshold'
         """
-        if moltype:
-            moltype = cogent3.get_moltype(moltype)
-            assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
+        mtyp = cogent3.get_moltype(moltype) if moltype else None
+        if mtyp and not mtyp.is_nucleic:
+            msg = f"Invalid moltype {mtyp.name!r}, must be DNA or RNA"
+            raise c3_moltype.MolTypeError(msg)
 
-        self._moltype = moltype
+        self._moltype = mtyp
         self._allowed_frac = allowed_frac
         self._motif_length = motif_length
 
@@ -344,7 +342,7 @@ class take_codon_positions:
         *positions: int,
         fourfold_degenerate: bool = False,
         gc: str | int = "Standard",
-        moltype: str = "dna",
+        moltype: c3_moltype.MolTypeLiteral = "dna",
     ) -> None:
         """
         Parameters
@@ -408,12 +406,16 @@ class take_codon_positions:
         >>> result.message
         'result is empty'
         """
-        assert moltype is not None
-        moltype = cogent3.get_moltype(moltype)
+        mtyp = cogent3.get_moltype(moltype) if moltype else None
+        if mtyp is None:
+            msg = "moltype must be specified"
+            raise ValueError(msg)
 
-        assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
+        if mtyp and not mtyp.is_nucleic:
+            msg = f"Invalid moltype {mtyp.name!r}, must be DNA or RNA"
+            raise c3_moltype.MolTypeError(msg)
 
-        self._moltype = moltype
+        self._moltype = mtyp
         self._four_fold_degen = fourfold_degenerate
         self._fourfold_degen_sets = None
 
@@ -421,7 +423,7 @@ class take_codon_positions:
             gc = cogent3.get_code(gc)
             sets = get_fourfold_degenerate_sets(
                 gc,
-                alphabet=moltype.alphabet,
+                alphabet=mtyp.alphabet,
                 as_indices=True,
             )
             self._fourfold_degen_sets = sets
@@ -665,7 +667,7 @@ class min_length:
         length: int,
         motif_length: int = 1,
         subtract_degen: bool = True,
-        moltype: MolTypes | None = None,
+        moltype: c3_moltype.MolTypeLiteral | None = None,
     ) -> None:
         """
         Parameters
@@ -767,7 +769,7 @@ class fixed_length:
         random: bool = False,
         seed: int | None = None,
         motif_length: int = 1,
-        moltype: MolTypes | None = None,
+        moltype: c3_moltype.MolTypeLiteral | None = None,
     ) -> None:
         """
         Parameters
@@ -914,7 +916,7 @@ class omit_bad_seqs:
         quantile: float | None = None,
         gap_fraction: int = 1,
         ambig_fraction: OptInt = None,  # refactor: set default to 1 when support for old style aln is dropped
-        moltype: MolTypes = "dna",
+        moltype: c3_moltype.MolTypeLiteral = "dna",
     ) -> None:
         """
         Parameters
@@ -975,18 +977,17 @@ class omit_bad_seqs:
         s4    ..A...G.G...
         s5    ..A...GGG..T
         """
-        if moltype:
-            moltype = cogent3.get_moltype(moltype)
+        mtyp = cogent3.get_moltype(moltype) if moltype else None
         valid_moltypes = {"dna", "rna", "protein", "protein_with_stop"}
-        if moltype.label.lower() not in valid_moltypes:
-            msg = f"Invalid moltype: {moltype.label!r}. Moltype must be one of {', '.join(valid_moltypes)}"
+        if mtyp and mtyp.name not in valid_moltypes:
+            msg = f"Invalid moltype: {mtyp.name!r}. Moltype must be one of {', '.join(valid_moltypes)}"
             raise c3_moltype.MolTypeError(msg)
 
         # refactor: design, this should raise a MolTypeError
         self._quantile = quantile
         self._gap_fraction = gap_fraction
         self._ambig_fraction = ambig_fraction
-        self._moltype = moltype
+        self._moltype = mtyp
 
     T = SerialisableType | AlignedSeqsType
 
@@ -1020,7 +1021,7 @@ class omit_duplicated:
         mask_degen: bool = False,
         choose: str = "longest",
         seed: int | None = None,
-        moltype: MolTypes | None = None,
+        moltype: c3_moltype.MolTypeLiteral | None = None,
     ) -> None:
         """
         Parameters

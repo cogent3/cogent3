@@ -1416,8 +1416,13 @@ def _make_moltype_dict() -> dict[str, MolType]:
     return moltypes
 
 
+MolTypeLiteral = typing.Literal[
+    "dna", "rna", "protein", "protein_with_stop", "text", "bytes"
+]
+
+
 @c3warn.deprecated_args("2025.9", "no longer has an effect", discontinued="new_type")
-def get_moltype(name: str | MolType) -> MolType:
+def get_moltype(name: MolTypeLiteral | MolType) -> MolType:
     """returns the moltype with the matching name attribute"""
     if name is None:
         msg = "no moltype specified, defaulting to ASCII"

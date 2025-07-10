@@ -28,6 +28,7 @@ from cogent3.core.moltype import (  # noqa: F401
     DNA,
     PROTEIN,
     RNA,
+    MolTypeLiteral,
     available_moltypes,
     get_moltype,
 )
@@ -83,7 +84,7 @@ load_annotations = _anno_db.load_annotations
 def make_seq(
     seq,
     name: str | None = None,
-    moltype: str | None = None,
+    moltype: MolTypeLiteral | None = None,
     annotation_offset: int = 0,
     annotation_db: _anno_db.SupportsFeatures | None = None,
     **kw: dict,
@@ -123,7 +124,7 @@ def _load_files_to_unaligned_seqs(
     *,
     path: os.PathLike,
     format_name: str | None = None,
-    moltype: str | None = None,
+    moltype: MolTypeLiteral | None = None,
     label_to_name: Callable | None = None,
     parser_kw: dict | None = None,
     info: dict | None = None,
@@ -190,7 +191,7 @@ def load_seq(
     filename: os.PathLike,
     annotation_path: os.PathLike | None = None,
     format_name: str | None = None,
-    moltype: str | None = None,
+    moltype: MolTypeLiteral | None = None,
     label_to_name: Callable | None = None,
     parser_kw: dict | None = None,
     info: dict | None = None,
@@ -298,7 +299,7 @@ def load_seq(
 def load_unaligned_seqs(
     filename: str | pathlib.Path,
     format_name: str | None = None,
-    moltype: str | None = None,
+    moltype: MolTypeLiteral | None = None,
     label_to_name: typing.Callable[[str], str] | None = None,
     parser_kw: dict | None = None,
     info: dict | None = None,
@@ -388,7 +389,7 @@ def load_unaligned_seqs(
 def load_aligned_seqs(
     filename: str | pathlib.Path,
     format_name: str | None = None,
-    moltype: str | None = None,
+    moltype: MolTypeLiteral | None = None,
     label_to_name: typing.Callable[[str], str] | None = None,
     parser_kw: dict | None = None,
     info: dict | None = None,

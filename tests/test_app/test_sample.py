@@ -677,7 +677,7 @@ def test_codon_positions_4fold_degen():
     got = ffold(aln)
     assert got.to_dict() == expect
     # error if no moltype
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         _ = sample.take_codon_positions(moltype=None)
 
 
