@@ -1998,7 +1998,9 @@ class Table:
         -----
         If one column, a 1D list is returned.
         """
-        cols = [columns] if isinstance(columns, str) else columns or self.columns.order
+        cols = (
+            [columns] if isinstance(columns, str) else (columns or self.columns.order)
+        )
 
         if len(cols) == 1:
             return self.columns[cols[0]].tolist()
