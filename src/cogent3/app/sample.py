@@ -21,7 +21,7 @@ def intersection(groups: list[tuple[str, ...]]) -> set[str]:
 
 
 def union(groups: list[tuple[str, ...]]) -> set[str]:
-    """returns the intersection of all groups"""
+    """returns the union of all groups"""
     union = set(groups.pop())
     return union.union(*map(set, groups))
 
