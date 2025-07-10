@@ -14,12 +14,12 @@ Please report any problems as a [issue ](https://github.com/cogent3/cogent3/issu
 - `new_type` migration has now been completed 🚀🎉
   For all modules whose name began with `new_`, we have
   dropped this prefix, replacing the original classes.
-  Finally, a fully integrated, plugin-backed, modernised
+  Finally, fully integrated, plugin-backed, modernised
   sequence collections and accessory objects!
 
 ## Discontinued
 
-- The `cogent3.core.new_...` modules are now all been marked to
+- The `cogent3.core.new_...` modules are now all marked to
   be discontinued as of 2025.9.
 - All uses of `format` as a parameter are now deprecated in favour
   of `format_name` to avoid overriding the builtin function of the same
