@@ -693,3 +693,11 @@ def test_fourfold_empty_alignment():
     result = take_fourfold.main(aln)
     assert isinstance(result, NotCompleted)
     assert result.message == "result is empty"
+
+
+@pytest.mark.parametrize(
+    "app_name", ["omit_degenerates", "omit_gap_pos", "take_codon_positions"]
+)
+def test_invalid_moltype_apps(app_name):
+    with pytest.raises(MolTypeError):
+        _ = cogent3.get_app(app_name, moltype="protein")
