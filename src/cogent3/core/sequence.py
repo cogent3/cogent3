@@ -1185,7 +1185,9 @@ class Sequence(AnnotatableMixin):
             feature_data.pop(discard)
         return self.make_feature(feature_data)
 
-    def to_moltype(self, moltype: str | c3_moltype.MolType) -> Sequence:
+    def to_moltype(
+        self, moltype: c3_moltype.MolTypeLiteral | c3_moltype.MolType
+    ) -> Sequence:
         """returns copy of self with moltype seq
 
         Parameters

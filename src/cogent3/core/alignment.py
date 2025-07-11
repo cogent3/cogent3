@@ -96,7 +96,7 @@ OptPathType = str | Path | None
 StrORArray = str | numpy.ndarray[int]
 StrORBytesORArray = str | bytes | numpy.ndarray[int]
 StrORBytesORArrayOrSeq = str | bytes | numpy.ndarray[int] | c3_sequence.Sequence
-MolTypes = str | c3_moltype.MolType
+MolTypes = c3_moltype.MolTypeLiteral | c3_moltype.MolType
 
 # small number: 1-EPS is almost 1, and is used for things like the
 # default number of gaps to allow in a column.
@@ -1467,7 +1467,9 @@ class SequenceCollection(AnnotatableMixin):
         return fasta.formatted(self, block_size=block_size)
 
     @c3warn.deprecated_args(
-        "2025.9", "don't use built in name", old_new=[("format", "format_name")]
+        "2025.9",
+        "don't use built in name",
+        old_new=[("format", "format_name"), ("file_format", "format_name")],
     )
     def write(self, filename: str, format_name: OptStr = None, **kwargs) -> None:
         """Write the sequences to a file, preserving order of sequences.
@@ -2551,7 +2553,7 @@ class raw_seq_data:
 @singledispatch
 def coerce_to_raw_seq_data(
     seq: StrORBytesORArrayOrSeq,
-    moltype: c3_moltype.MolType,
+    moltype: MolTypes,
     name: OptStr = None,
 ) -> raw_seq_data:
     """aggregates sequence data into a single object
@@ -2581,7 +2583,7 @@ def coerce_to_raw_seq_data(
 @coerce_to_raw_seq_data.register
 def _(
     seq: c3_sequence.Sequence,
-    moltype: c3_moltype.MolType,
+    moltype: MolTypes,
     name: str,
 ) -> raw_seq_data:
     # converts the sequence to a numpy array
@@ -2600,7 +2602,7 @@ def _(
 @coerce_to_raw_seq_data.register
 def _(
     seq: str,
-    moltype: c3_moltype.MolType,
+    moltype: MolTypes,
     name: OptStr = None,
 ) -> raw_seq_data:
     return coerce_to_raw_seq_data(seq.encode("utf8"), moltype, name)
@@ -2609,7 +2611,7 @@ def _(
 @coerce_to_raw_seq_data.register
 def _(
     seq: numpy.ndarray,
-    moltype: c3_moltype.MolType,  # noqa: ARG001
+    moltype: MolTypes,
     name: OptStr = None,
 ) -> raw_seq_data:
     return raw_seq_data(seq=seq, name=name)
@@ -2618,7 +2620,7 @@ def _(
 @coerce_to_raw_seq_data.register
 def _(
     seq: bytes,
-    moltype: c3_moltype.MolType,
+    moltype: MolTypes,
     name: OptStr = None,
 ) -> raw_seq_data:
     # converts the sequence to a upper case bytes, and applies
@@ -2633,7 +2635,7 @@ CT = tuple[dict[str, StrORBytesORArray], dict[str, int], set[str]]
 
 def prep_for_seqs_data(
     data: dict[str, StrORBytesORArrayOrSeq],
-    moltype: c3_moltype.MolType,
+    moltype: MolTypes,
     seq_namer: _SeqNamer,
 ) -> CT:
     """normalises input data for constructing a SeqsData object
@@ -2765,7 +2767,7 @@ def make_name_map(data: dict[str, StrORBytesORArray]) -> dict[str, str]:
 def make_unaligned_storage(
     data: dict[str, bytes | numpy.ndarray[int]],
     *,
-    moltype: str | c3_moltype.MolType,
+    moltype: MolTypes,
     label_to_name: OptRenamerCallable = None,
     offset: DictStrInt | None = None,
     reversed_seqs: set[str] | None = None,
@@ -2824,11 +2826,11 @@ def make_unaligned_storage(
 def make_unaligned_seqs(
     data: dict[str, StrORBytesORArray] | list | SeqsDataABC,
     *,
-    moltype: str | c3_moltype.MolType,
+    moltype: MolTypes,
     label_to_name: OptRenamerCallable = None,
     info: OptDict = None,
     source: OptPathType = None,
-    annotation_db: SupportsFeatures = None,
+    annotation_db: SupportsFeatures | None = None,
     offset: DictStrInt | None = None,
     name_map: DictStrStr | None = None,
     is_reversed: bool = False,
@@ -2918,7 +2920,7 @@ def make_unaligned_seqs(
 def _(
     data: SeqsDataABC,
     *,
-    moltype: str | c3_moltype.MolType,
+    moltype: MolTypes,
     label_to_name: OptRenamerCallable = None,
     info: dict | None = None,
     source: OptPathType = None,
@@ -7081,7 +7083,7 @@ def deserialise_alignment_to_new_type_alignment(
 def make_aligned_storage(
     data: dict[str, bytes | numpy.ndarray[int]],
     *,
-    moltype: str | c3_moltype.MolType,
+    moltype: MolTypes,
     label_to_name: OptRenamerCallable = None,
     offset: DictStrInt | None = None,
     reversed_seqs: set[str] | None = None,
@@ -7135,7 +7137,7 @@ def make_aligned_storage(
 def make_aligned_seqs(
     data: dict[str, StrORBytesORArray] | list | AlignedSeqsDataABC,
     *,
-    moltype: str | c3_moltype.MolType,
+    moltype: MolTypes,
     label_to_name: OptRenamerCallable = None,
     info: OptDict = None,
     source: OptPathType = None,
@@ -7234,7 +7236,7 @@ def make_aligned_seqs(
 def _(
     data: AlignedSeqsDataABC,
     *,
-    moltype: str | c3_moltype.MolType,
+    moltype: MolTypes,
     label_to_name: OptRenamerCallable = None,
     info: OptDict = None,
     source: OptPathType = None,

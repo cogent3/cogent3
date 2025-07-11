@@ -50,7 +50,7 @@ if typing.TYPE_CHECKING:  # pragma: no cover
 
 _datastore_reader_map = {}
 
-MolTypes = c3_moltype.MolType
+MolTypes = c3_moltype.MolTypeLiteral | c3_moltype.MolType
 
 
 class register_datastore_reader:
@@ -285,7 +285,7 @@ def _load_seqs(
     path: str | Path,
     coll_maker: type,
     parser: "SequenceParserBase",
-    moltype: str,
+    moltype: c3_moltype.MolType | None = None,
 ) -> SeqsCollectionType:
     if not parser.result_is_storage:
         data = _read_it(path)
@@ -303,7 +303,7 @@ class load_aligned:
 
     def __init__(
         self,
-        moltype: str | MolTypes | None = None,
+        moltype: MolTypes | None = None,
         format_name: str = "fasta",
         **kwargs,
     ) -> None:
@@ -348,7 +348,7 @@ class load_unaligned:
     def __init__(
         self,
         *,
-        moltype: str | MolTypes | None = None,
+        moltype: MolTypes | None = None,
         format_name: str = "fasta",
         **kwargs,
     ) -> None:

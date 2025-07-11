@@ -704,3 +704,8 @@ def test_custom_moltype():
         gap=".",
     )
     assert "." in mt.gaps
+
+
+def test_no_moltype():
+    with pytest.warns(UserWarning):
+        c3_moltype.get_moltype(None)

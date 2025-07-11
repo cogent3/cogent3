@@ -83,7 +83,7 @@ class TranslateTests(TestCase):
         )
         got = select(aln)
         assert not got
-        assert type(got) == composable.NotCompleted
+        assert type(got) is composable.NotCompleted
 
         # using negate
         select = sample.take_named_seqs("c", negate=True)
@@ -677,7 +677,7 @@ def test_codon_positions_4fold_degen():
     got = ffold(aln)
     assert got.to_dict() == expect
     # error if no moltype
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         _ = sample.take_codon_positions(moltype=None)
 
 
@@ -693,3 +693,11 @@ def test_fourfold_empty_alignment():
     result = take_fourfold.main(aln)
     assert isinstance(result, NotCompleted)
     assert result.message == "result is empty"
+
+
+@pytest.mark.parametrize(
+    "app_name", ["omit_degenerates", "omit_gap_pos", "take_codon_positions"]
+)
+def test_invalid_moltype_apps(app_name):
+    with pytest.raises(MolTypeError):
+        _ = cogent3.get_app(app_name, moltype="protein")
