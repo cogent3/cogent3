@@ -117,6 +117,7 @@ class TreeNode:
         params: dict containing arbitrary parameters for the node.
         name_loaded: ?
     """
+
     _exclude_from_copy = frozenset(["_parent", "children"])
 
     def __init__(
