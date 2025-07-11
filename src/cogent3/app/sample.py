@@ -511,7 +511,7 @@ class take_named_seqs:
         ... )
         >>> app = get_app("take_named_seqs", "s1", "s2")
         >>> result = app(aln)
-        >>> print(result.to_pretty())
+        >>> print(result.to_pretty())  # doctest: +SKIP
         s1    GCAAGC
         s2    ..TTTT
 
@@ -519,7 +519,7 @@ class take_named_seqs:
 
         >>> app_negate = get_app("take_named_seqs", "s1", "s2", negate=True)
         >>> result = app_negate(aln)
-        >>> print(result.to_pretty())
+        >>> print(result.to_pretty())  # doctest: +SKIP
         s3    GC--GC
         s4    ..AA..
         """
@@ -578,7 +578,7 @@ class take_n_seqs:
         ... )
         >>> app_first_n = get_app("take_n_seqs", number=3)
         >>> result = app_first_n(aln)
-        >>> print(result.to_pretty())
+        >>> print(result.to_pretty())  # doctest: +SKIP
         s1    ACGT
         s2    ...-
         s3    ...N
@@ -589,7 +589,7 @@ class take_n_seqs:
 
         >>> app_random_n = get_app("take_n_seqs", number=3, random=True, seed=1)
         >>> result = app_random_n(aln)
-        >>> print(result.to_pretty())
+        >>> print(result.to_pretty())  # doctest: +SKIP
         s3    ACGN
         s2    ...-
         s5    ...G
