@@ -26,7 +26,6 @@ On a ``Sequence``
 We use ``add_feature`` to add a ``Feature`` to a ``Sequence``, providing the biotype, name/id, and a list of start and stop indices.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import make_seq
 
@@ -43,7 +42,6 @@ We use ``add_feature`` to add a ``Feature`` to a ``Sequence``, providing the bio
 A feature can also be added as a series of non-overlapping genomic segments:
 
 .. jupyter-execute::
-    :raises:
 
     # Add a feature as a series
     seq.add_feature(
@@ -61,7 +59,6 @@ We use ``add_feature`` and provide a value for ``seqid`` to add a feature to a s
 Note the difference between the value provided to ``spans``, and the value of ``map`` in the returned ``Feature``... the resulting feature is in **alignment coordinates**!
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import make_aligned_seqs
 
@@ -83,7 +80,6 @@ On an ``Alignment``
 We use ``add_feature`` to add a ``Feature`` to an ``Alignment``.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import make_aligned_seqs
 
@@ -143,14 +139,12 @@ How to load features and sequence data
 To load the sequence and all 40,578 features from *C. elegans* Chromosome 1, we use the ``load_seq`` function ⚡️
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import load_seq
     
     %timeit load_seq("data/C-elegans-chromosome-I.gb", moltype="dna")
 
 .. jupyter-execute::
-    :raises:
     :hide-code:
 
     seq = load_seq("data/C-elegans-chromosome-I.gb", moltype="dna")
@@ -158,7 +152,6 @@ To load the sequence and all 40,578 features from *C. elegans* Chromosome 1, we 
 The features are stored in the ``annotation_db`` attribute.
 
 .. jupyter-execute::
-    :raises:
 
     seq.annotation_db
 
@@ -173,7 +166,6 @@ How to load features and sequence data
 Given a FASTA file with sequence data and a GFF file with annotations, we can use ``load_seq`` to load both the sequence and its corresponding features.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import load_seq
 
@@ -189,7 +181,6 @@ Given a FASTA file with sequence data and a GFF file with annotations, we can us
 Because the names above are different, for FASTA its ``"I dna:chromosome chromosome:WBcel235:I:1:15072434:1 REF"`` and for GFF its ``"I"``, we need a ``label_to_name`` argument. We provide a lambda function.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import load_seq
 
@@ -209,7 +200,6 @@ We load with the ``load_annotations()`` function and directly assign to the ``.a
 If we know that the features and the sequence share the same coordinate space, then we only need to provide the path to the annotation file.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import load_seq, load_annotations
 
@@ -228,7 +218,6 @@ How to load features and associate them with sequences in an existing alignment
 For example, first we load an alignment of the brca1 gene in primates.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import load_aligned_seqs, load_annotations
 
@@ -240,7 +229,6 @@ For example, first we load an alignment of the brca1 gene in primates.
 Next, we annotate with a GFF file that contains features specific to the human gene.
     
 .. jupyter-execute::
-    :raises:
 
     ann_db = load_annotations(path="data/brca1_hsa_shortened.gff", seqids=["Human"])
     brca1_aln.annotation_db = ann_db
@@ -249,7 +237,6 @@ Next, we annotate with a GFF file that contains features specific to the human g
 Note that the ``AnnotationDb`` is accessible via the ``Alignment`` (above) and ``Sequence`` (below) attribute.
 
 .. jupyter-execute::
-    :raises:
 
     brca1_aln.get_seq("Human").annotation_db
 
@@ -269,7 +256,6 @@ Querying via Feature Name
 We can search for a gene given its name (AKA its unique ID). For example we can search for a gene with ``name="WBGene00021661"``.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import load_seq
 
@@ -285,7 +271,6 @@ Querying via Feature Biotype
 We can search for features with a certain biotype, for example, all coding sequences (CDS):
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import load_seq
 
@@ -296,7 +281,6 @@ We can search for features with a certain biotype, for example, all coding seque
 We can also provide combinations of argument to search, for example, all CDS with a given name:
 
 .. jupyter-execute::
-    :raises:
 
     cds = list(seq.get_features(biotype="CDS", name="WBGene00021661"))
     cds
@@ -307,7 +291,6 @@ Querying via region of interest
 We can provide ``start`` and ``end`` arguments to ``get_features()`` and all features within the coordinates will be returned.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import load_seq
 
@@ -318,7 +301,6 @@ We can provide ``start`` and ``end`` arguments to ``get_features()`` and all fea
 We can again provide a combination of conditions, for example, querying for all features with ``biotype="mRNA"`` within a certain range, and returning the first match.
 
 .. jupyter-execute::
-    :raises:
 
     mRNA = list(seq.get_features(start=10148, stop=29322, biotype="mRNA"))[0]
     mRNA
@@ -331,7 +313,6 @@ To query for a particular ``Sequence`` within an ``Alignment`` or ``SequenceColl
 For example, given an alignment of primates, we can search for features that are just on the human sequence as follows:
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import load_aligned_seqs, load_annotations
 
@@ -359,7 +340,6 @@ Querying for features on any ``Sequence`` in an ``Alignment``
 todo: ``on_alignment=False`` and dont provide seqid
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import make_aligned_seqs
 
@@ -381,7 +361,6 @@ Using ``add_feature`` we add a feature to the brca1 alignment we have been using
 To query for features on the alignment, we use ``get_features``, again specifying ``on_alignment=True``. 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import make_aligned_seqs
 
@@ -402,7 +381,6 @@ Querying features that span gaps in alignments
 If you query for a ``Feature`` from a ``Sequence`` (i.e. the feature is in sequence coordinates), its alignment coordinates may be discontinuous. This will lead to an omission of data from other sequences!
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import make_aligned_seqs
 
@@ -416,7 +394,6 @@ If you query for a ``Feature`` from a ``Sequence`` (i.e. the feature is in seque
     exon.get_slice()
 
 .. jupyter-execute::
-    :raises:
 
     aln_exons = list(aln3.get_features(seqid="x", biotype="exon"))[0]
     aln_exons
@@ -426,7 +403,6 @@ If you query for a ``Feature`` from a ``Sequence`` (i.e. the feature is in seque
 To include the gaps, use the ``allow_gaps`` argument
 
 .. jupyter-execute::
-    :raises:
 
     exon.get_slice(allow_gaps=True)
 
@@ -441,7 +417,6 @@ How to slice a ``Sequence`` or ``Alignment`` by its features
 Given a ``Feature``, we can directly slice its parent sequence to return its sequence information
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import load_seq
 
@@ -459,7 +434,6 @@ Given a ``Feature``, we can directly slice its parent sequence to return its seq
 We can also achieve this via ``get_slice()``
 
 .. jupyter-execute::
-    :raises:
 
     pseudogene.get_slice()
 
@@ -483,14 +457,12 @@ How to find the coordinates of a feature
 """"""""""""""""""""""""""""""""""""""""
 
 .. jupyter-execute::
-    :raises:
 
     pseudogene.get_coordinates()
 
 These are useful for doing custom things, e.g. if the introns are not annotated for a gene, we can generate the introns from the coordinates of the exons as follows:
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import load_seq
 
@@ -503,7 +475,6 @@ These are useful for doing custom things, e.g. if the introns are not annotated 
 We generate the intron coordinates from the second element of the first tuple, and the first element of the second tuple and so on:
 
 .. jupyter-execute::
-    :raises:
 
     intron_coords = []
 
@@ -515,7 +486,6 @@ We generate the intron coordinates from the second element of the first tuple, a
 We can then add the introns as a ``Feature`` to the sequence!
 
 .. jupyter-execute::
-    :raises:
 
     intron = seq.add_feature(
         biotype="intron", name="intron:Y74C9A.3.1", seqid="I", spans=intron_coords
@@ -528,7 +498,6 @@ How to take the union of features
 We can create a feature that is the union of all coding sequence.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import load_seq
 
@@ -547,7 +516,6 @@ How to use the shadow of a Feature to return the intergenic sequence
 We first need to query our sequence for all genes. Using the ``union()`` method we combine all genes into a single feature.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import load_seq
 
@@ -559,7 +527,6 @@ We first need to query our sequence for all genes. Using the ``union()`` method 
 Taking the "shadow" of all genes will return the intergenic region as a valid ``Feature``
 
 .. jupyter-execute::
-    :raises:
 
     intergenic = genes.shadow("not gene")
     intergenic
@@ -567,7 +534,6 @@ Taking the "shadow" of all genes will return the intergenic region as a valid ``
 We can slice the sequence by this new Feature to return the complete intergenic sequence! However, because the automated naming produces a crazy long name, we reset that.
 
 .. jupyter-execute::
-    :raises:
 
     intergenic.get_slice()
 
@@ -580,7 +546,6 @@ Masking annotated regions on a sequence
 We can mask a certain annotation using ``with_masked_annotations()``
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import load_seq
 
@@ -596,7 +561,6 @@ Masking annotated regions on an Alignment
 We can mask exons on an alignment.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import make_aligned_seqs
 
@@ -616,7 +580,6 @@ We can mask exons on an alignment.
 After a reverse complement operation
 
 .. jupyter-execute::
-    :raises:
 
     rc = aln.rc()
     rc
@@ -624,7 +587,6 @@ After a reverse complement operation
 these persist.
 
 .. jupyter-execute::
-    :raises:
 
     rc.with_masked_annotations("exon", mask_char="?")
 
@@ -638,7 +600,6 @@ This method returns a generator that yields all the child features of the specif
 For example, let's find the children of the gene "WBGene00021661":
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import load_seq
 
@@ -660,7 +621,6 @@ To find the "parent" of a feature, we can use the ``get_parent()`` method, which
 For example, we can use the first "child" we returned above, ``"transcript:Y74C9A.2a.3"``, to find the original parent gene!
 
 .. jupyter-execute::
-    :raises:
 
     child = list(seq.get_features(name="transcript:Y74C9A.2a.3", biotype="mRNA"))[0]
     parent = list(child.get_parent())
@@ -672,7 +632,6 @@ How to copy features
 We can copy features onto sequences with the same name. Note that the ``AnnotationDb`` instance bound to the alignment and its member sequences is the **same**.
 
 .. jupyter-execute::
-    :raises:
 
     aln2 = make_aligned_seqs([["x", "-AAAAAAAAA"], ["y", "TTTT--TTTT"]],
         array_align=False,
@@ -684,7 +643,6 @@ We can copy features onto sequences with the same name. Note that the ``Annotati
 .. warning:: Despite this, it is possible for the attributes to get out-of-sync. So, any copy annotations should be done using ``alignment.copy_annotations()``, **not** ``alignment.get_seq("x").copy_annotations()``.
 
 .. jupyter-execute::
-    :raises:
 
     seq = make_seq("CCCCCCCCCCCCCCCCCCCC", name="x", moltype="dna")
     match_exon = seq.add_feature(biotype="exon", name="A", spans=[(3, 8)])
@@ -694,7 +652,6 @@ We can copy features onto sequences with the same name. Note that the ``Annotati
 However, if the feature lies outside the sequence being copied to, you get a lost span
 
 .. jupyter-execute::
-    :raises:
 
     copied = list(aln2.get_features(seqid="x", biotype="exon"))
     copied
@@ -705,7 +662,6 @@ How to get the positions of a feature as one span
 ``as_one_span`` unifies features with discontinuous alignment coordinates and returns positions spanned by a feature, including gaps.
 
 .. jupyter-execute::
-    :raises:
 
     unified = aln_exons.as_one_span()
     aln3[unified]
@@ -716,20 +672,17 @@ Behaviour of annotations on nucleic acid sequences
 Reverse complementing a sequence **does not** reverse features. Features are considered to have strand specific meaning (e.g. CDS, exons) and so they retain the reference to the frame for which they were defined.
 
 .. jupyter-execute::
-    :raises:
 
     plus = make_seq("CCCCCAAAAAAAAAATTTTTTTTTTAAAGG", moltype="dna")
     plus_rpt = plus.add_feature(biotype="blah", name="a", spans=[(5, 15), (25, 28)])
     plus[plus_rpt]
 
 .. jupyter-execute::
-    :raises:
 
     minus = plus.rc()
     minus
 
 .. jupyter-execute::
-    :raises:
 
     minus_rpt = list(minus.get_features(biotype="blah"))[0]
     minus[minus_rpt]

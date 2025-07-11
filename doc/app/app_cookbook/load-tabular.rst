@@ -12,7 +12,6 @@ How to load data from a tsv file
 We can load a file containing tab seperated values with the ``load_tabular`` app, providing it with the appropriate separator, ``sep="\t"``. 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 
@@ -38,7 +37,6 @@ In the above example, ``data`` is a ``cogent3.util.Table`` object, if we write i
 .. tip:: If you are executing this code on your machine, replace ``path_to_csv_file`` with the path containing your csv file!
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 

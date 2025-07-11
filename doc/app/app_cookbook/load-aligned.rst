@@ -72,7 +72,6 @@ In this example, our process loads the sequences, filters the sequences to keep 
 
 .. jupyter-execute::
 
-    
     from cogent3 import get_app, open_data_store
 
     out_dstore = open_data_store(path_to_dir, suffix="fa", mode="w")

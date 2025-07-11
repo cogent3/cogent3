@@ -9,7 +9,6 @@ Filter sequence collections and alignments by length
 Let's load a collection of globin sequences. Note that we must have a the molecular type specified. 
 
 .. jupyter-execute::
-    :raises:
     
     from cogent3 import get_app
 
@@ -25,7 +24,6 @@ Creating the ``min_length`` app and providing a positional argument specifying t
 For instance, we can remove sequences from the globin alignment which are shorter than 240 amino acids long. 
 
 .. jupyter-execute::
-    :raises:
     
     from cogent3 import get_app
 
@@ -49,7 +47,6 @@ Using the ``min_length`` app to filter multiple alignments
 In the following example, we compose a process that loads alignments and removes aligments less than 300 nucleotides in length, before writing them to a data store. We apply this process to a data store of the fasta files in the data directory. We restrict this data store to two members as a minimum example. 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app, open_data_store
 

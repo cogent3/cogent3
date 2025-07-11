@@ -9,7 +9,6 @@ Sample an alignment to a fixed length
 Let's load in an alignment of rodents to use in the examples. 
 
 .. jupyter-execute::
-    :raises:
     
     from cogent3 import get_app
 
@@ -24,7 +23,6 @@ We can use the ``fixed_length`` app to sample an alignment to a fixed length. By
 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 
@@ -38,7 +36,6 @@ How to sample ``n`` positions from within an alignment
 Creating the ``fixed_length`` app with the argument ``start=x`` specifies that the sampled sequence should begin ``x`` positions into the alignment. 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 
@@ -52,7 +49,6 @@ How to sample ``n`` positions randomly from within an alignment
 The start position can be selected at random with ``random=True``. An optional ``seed`` can be provided to ensure the same start position is used when the app is called.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 

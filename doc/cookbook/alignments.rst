@@ -418,7 +418,6 @@ For evolutionary analyses that use codon models we need to exclude terminating s
 To detect if the alignment contains sequences not divisible by 3, use the ``strict`` argument. This argument covers both allowing partial terminating codons / not divisible by 3.
 
 .. jupyter-execute::
-    :raises:
 
     aln = make_aligned_seqs({
             "seq1": "ACGTAA---",

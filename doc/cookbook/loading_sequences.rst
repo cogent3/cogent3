@@ -257,7 +257,6 @@ Selecting an alternate storage backend
 Specify the storage using the ``storage_backend`` argument.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import load_aligned_seqs
 
@@ -275,7 +274,6 @@ That's it!
 For the ``cogent3-h5seqs`` package you specify a different storage backend for unaligned sequences.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import load_unaligned_seqs
 
@@ -290,7 +288,6 @@ Set the default storage
 You can set the default storage process-wide, so you don't need to use the ``storage_backend`` argument.
 
 .. jupyter-execute::
-    :raises:
 
     import cogent3
 
@@ -304,7 +301,6 @@ You can set the default storage process-wide, so you don't need to use the ``sto
 When you apply operations, the new backend storage setting is applied.
 
 .. jupyter-execute::
-    :raises:
 
     coll = aln.degap()
     type(coll.storage)
@@ -313,6 +309,5 @@ When you apply operations, the new backend storage setting is applied.
 .. note:: To revert to the ``cogent3`` defaults, use the ``reset`` argument.
 
     .. jupyter-execute::
-        :raises:
-
+    
         cogent3.set_storage_defaults(reset=True)
