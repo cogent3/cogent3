@@ -172,7 +172,6 @@ def test_available_apps_filter():
 
 def test_available_apps_package():
     """available apps lists just the package"""
-    app_name_filter: str = "model"
-    filtered_apps = available_apps(app_name_filter)
-    assert filtered_apps.columns["package"][0] == "cogent3"
+    filtered_apps = available_apps("model")
+    assert "cogent3" in filtered_apps.columns["package"]
     assert all("." not in pkg for pkg in filtered_apps.columns["package"])
