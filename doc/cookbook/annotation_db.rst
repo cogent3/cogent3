@@ -21,7 +21,6 @@ How to create a standalone ``BasicAnnotationDb``
 Achieved by creating an ``BasicAnnotationDb`` instance. This is an empty database to which we can add features.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3.core.annotation_db import BasicAnnotationDb
 
@@ -41,7 +40,6 @@ From a GFF file
 To load features from a GFF file, we can use the ``load_annotations`` function and provide the path to the GFF file. The function automatically determines the file type based on the file extension, and it returns a ``GffAnnotationDb`` object.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import load_annotations
 
@@ -54,7 +52,6 @@ From a Genbank file
 To load features from a Genbank file, we can once again use the ``load_annotations`` function and provide the path to the Genbank file. The function detects the file type based on the file extension, and it returns a ``GenbankAnnotationDb`` object.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import load_annotations
 
@@ -67,7 +64,6 @@ How to generate a summary of an ``AnnotationDb``
 To generate a summary of an ``AnnotationDb``, we can access the ``describe`` attribute of the database. This attribute returns a ``cogent3.core.table.Table`` instance that shows the number of records for each seqid, the count for each biotype, and the number of rows in each table (in this example there is a "gff" table with 1,169 rows and an empty "user" table).
 
 .. jupyter-execute::
-    :raises:
 
     summary = gff_db.describe
     summary
@@ -80,7 +76,6 @@ This is achieved via the ``add_features`` method and for all three types of ``An
 We can add a feature to the empty ``BasicAnnotationDb`` we created above. Now the database has one record!
 
 .. jupyter-execute::
-    :raises:
 
     anno_db.add_feature(
         seqid="NC_000908",
@@ -94,7 +89,6 @@ We can add a feature to the empty ``BasicAnnotationDb`` we created above. Now th
 We can also add a feature to our ``GffAnnotationDb`` or ``GenbankAnnotationDb``. Below, the previously empty "user" table now has a row count of one, indicating that our feature has been successfully added to the database.
 
 .. jupyter-execute::
-    :raises:
 
     gff_db.add_feature(
         seqid="seq1",
@@ -141,7 +135,6 @@ To query a database for a feature by its name, provide the name of the feature a
 For example, querying the ``GenbankAnnotationDb`` for the 16s rRNA gene:
 
 .. jupyter-execute::
-    :raises:
 
     mg_16s = list(
         gb_db.get_features_matching(
@@ -158,7 +151,6 @@ Similarly, ``get_features_matching()`` and ``get_records_matching()`` can be use
 For example, querying the ``GffAnnotationDb`` for all pseudogenes:
 
 .. jupyter-execute::
-    :raises:
 
     pseudogenes = list(gff_db.get_features_matching(biotype="pseudogene"))
     pseudogenes[:2]  # showing just the first two
@@ -171,7 +163,6 @@ We can provide ``start`` and ``end`` arguments to ``get_features_matching()`` an
 For example, the adhesin protein of *M. genitalium* is organised in an operon between positions 220600 to 229079, so we can query for genes in that region to return all operon genes:
 
 .. jupyter-execute::
-    :raises:
 
     operon_cds = list(
         gff_db.get_features_matching(start=220600, stop=229067, biotype="CDS")
@@ -186,7 +177,6 @@ A particularly useful functionality of a ``GffAnnotationDb`` is the ability to s
 For example, we can query for all CDS related to replication:
 
 .. jupyter-execute::
-    :raises:
 
     replication_records = list(
         gff_db.get_records_matching(attributes="replication", biotype="CDS")
@@ -206,14 +196,12 @@ How many unique genes are in a given genome?
 *Mycoplasma genitalium* has the smallest bacterial genome, so the number of genes in the loaded database represents the approximate minimal set of genes required for bacterial life! We can see the total number of genes by using the ``num_matches()`` method and specifying the condition we want to be matched is that the biotype is "gene".
 
 .. jupyter-execute::
-    :raises:
 
     gb_db.num_matches(biotype="gene")
 
 The count is 563, however, this may include genes with more than one copy. To determine the number of distinct genes we can use the ``count_distinct()`` method and specify ``biotype="gene"`` and ``name=True`` to indicate we are interested in genes with distinct names.
 
 .. jupyter-execute::
-    :raises:
 
     total_genes = gb_db.count_distinct(biotype="gene", name=True)
     single_copy = total_genes[total_genes.columns["count"] == 1, :]
@@ -224,7 +212,6 @@ The count of unique genes is 561. This means that almost every gene is present o
 Just for fun, let's try this with the GFF database... (downloaded from the exact same source)
 
 .. jupyter-execute::
-    :raises:
 
     total_genes = gff_db.num_matches(biotype="gene")
     print("total genes: ", total_genes)
@@ -244,7 +231,6 @@ This method returns a generator that yields all the child features of the specif
 For example, let's find the children of "gene-MG_RS00035":
 
 .. jupyter-execute::
-    :raises:
 
     children = list(gff_db.get_feature_children(name="gene-MG_RS00035"))
     children
@@ -257,7 +243,6 @@ To find the "parent" of a feature, we can use the ``get_feature_parent()`` metho
 For example, we can use the "child" we returned above ``"cds-WP_009885556.1"``, to find the original parent gene!
 
 .. jupyter-execute::
-    :raises:
 
     parents = list(gff_db.get_feature_parent(name="cds-WP_009885556.1"))
     parents
@@ -271,7 +256,6 @@ Checking the compatibility of two ``AnnotationDb`` instances
 Combining data requires compatibility of the databases, this can be checked via the ``compatible()`` method. Below we check whether a ``GffAnnotationDb`` is compatible with a ``BasicAnnotationDb``.
 
 .. jupyter-execute::
-    :raises:
 
     gff_db.compatible(anno_db)
 
@@ -280,7 +264,6 @@ The method evaluates to ``True``, indicating that the data of the two databases 
 What about merging a ``GffAnnotationDb`` and ``GenbankAnnotationDb``?
 
 .. jupyter-execute::
-    :raises:
 
     gff_db.compatible(gb_db)
 
@@ -292,7 +275,6 @@ Taking the union of two ``AnnotationDb`` instances
 The ``union()`` method will return a **new instance** with merged records.
 
 .. jupyter-execute::
-    :raises:
 
     union_db = gb_db.union(anno_db)
     union_db.describe[-2:, :]
@@ -305,7 +287,6 @@ Updating an ``AnnotationDb`` with the record from another database
 The ``update()`` method will update records of a given database with another and return the **same instance** of the database.
 
 .. jupyter-execute::
-    :raises:
 
     gff_db.update(anno_db)
     gff_db.describe[-2:, :]
@@ -316,7 +297,6 @@ Initialise a ``AnnotationDb`` with another database
 You can assign a compatible database to the ``db`` argument in the ``AnnotationDb`` constructor. If it's the same class, its db will be bound to self and directly modified.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3.core.annotation_db import GenbankAnnotationDb
 
@@ -329,7 +309,6 @@ How to get a subset of an ``AnnotationDb``
 If you want a subset of a db, use the same arguments as you would for ``db.get_records_matching()``.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import load_annotations
 
@@ -352,7 +331,6 @@ Directly assign an ``AnnotationDb`` to a Sequence
 Assign the AnnotationDb to the ``annotation_db`` attribute of a Sequence
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import make_seq
 
@@ -374,7 +352,6 @@ For a single sequence Genbank file
 Loading a sequence from a Genbank file will automatically create a database instance containing all features present in the file. This database instance will be bound to the ``Sequence`` instance via the ``.annotation_db`` attribute, accessing this attribute displays a representation of the bound annotations.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import load_seq
 
@@ -387,7 +364,6 @@ For a single sequence FASTA file and an associated GFF annotation file
 Data can be loaded by providing the path to the gff file to the ``annotation_path`` argument of ``load_seq()``.
 
 .. jupyter-execute::
-    :raises:
 
     gff_seq = load_seq(
         "data/mycoplasma-genitalium.fa",
@@ -400,7 +376,6 @@ Data can be loaded by providing the path to the gff file to the ``annotation_pat
 In the above example, the sequence name in the fasta file does not match any records in the gff3 file (it is ``"NC_000908.2 Mycoplasmoides genitalium G37, complete sequence"`` in the former, and ``"NC_000908.2"`` in the latter). However, if you are confident that they are related, then you can use the ``label_to_name`` argument of ``load_seq()`` to change the sequence name as follows:
 
 .. jupyter-execute::
-    :raises:
 
     seq = load_seq(
         "data/mycoplasma-genitalium.fa",

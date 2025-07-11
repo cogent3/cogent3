@@ -19,7 +19,6 @@ Writing a database to file
     path_to_dir = tmpdir.name
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app, open_data_store
 
@@ -37,6 +36,5 @@ Writing a database to file
 Note that ``out_dstore`` and ``result`` are the same instance.
 
 .. jupyter-execute::
-    :raises:
     
     out_dstore is result

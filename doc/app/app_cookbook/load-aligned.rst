@@ -14,7 +14,7 @@ Loading aligned DNA sequences from a single fasta file
 Here we load the brca1 gene in bats, providing the molecular type (``moltype="dna"``) and file format (``format_name="fasta"``). 
 
 .. jupyter-execute::
-    :raises:
+
     
     from cogent3 import get_app
 
@@ -28,7 +28,7 @@ Loading aligned protein sequences from a single phylip file
 Here we load a globin alignment, providing the molecular type (``moltype="protein"``) and file format (``format_name="phylip"``). 
 
 .. jupyter-execute::
-    :raises:
+
     
     from cogent3 import get_app
 
@@ -57,7 +57,7 @@ To apply apps to multiple files we need to set two things up:
 Here, we create a data store containing all the files with the ".fasta" suffix in the data directory, limiting the data store to two members as a minimum example.
 
 .. jupyter-execute::
-    :raises:
+
 
     from cogent3 import open_data_store
 
@@ -71,8 +71,7 @@ In this example, our process loads the sequences, filters the sequences to keep 
 .. note:: Apps that are "writers" require a data store to write to, learn more about writers :ref:`here! <writers>` 
 
 .. jupyter-execute::
-    :raises:
-    
+
     from cogent3 import get_app, open_data_store
 
     out_dstore = open_data_store(path_to_dir, suffix="fa", mode="w")
@@ -91,7 +90,7 @@ Now we're good to go, we can apply ``process`` to our data store!
 ``result`` is a data store, which you can index to see individual data members - which are our alignments. We can take a closer look using the ``.read()`` method on data members (truncating to 50 characters). 
 
 .. jupyter-execute::
-    :raises:
+
 
     result = process.apply_to(fasta_seq_dstore)
     print(result[0].read()[:50])

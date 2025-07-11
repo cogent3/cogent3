@@ -9,7 +9,6 @@ Select named sequences from a collection
 Let's load alignment of primates to use in examples. 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 
@@ -23,7 +22,6 @@ Selecting sequences from a collection
 Using the ``take_named_seqs`` app we can select sequences from a collection that match provided names. For instance, we could be interested in an alignment of sequences from Humans with those from our two closest relatives. 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 
@@ -50,7 +48,6 @@ Removing sequences from a collection
 Creating the ``take_named_seqs`` app with the argument ``negate=True`` will exclude sequences that match the provided names. For instance, perhaps the Galago has got to go. 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 

@@ -8,8 +8,24 @@ Trees
 
 .. authors, Gavin Huttley, Tom Elliott
 
-Loading a tree from a file and visualizing it with ``ascii_art()``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Loading a tree from a file
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. jupyter-execute::
+
+    from cogent3 import load_tree
+
+    tr = load_tree("data/test.tree")
+    print(tr)
+
+The path to the original file is stored in the ``.source`` attribute.
+
+.. jupyter-execute::
+
+    tr.source
+
+Visualising a tree with ``ascii_art()``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
 

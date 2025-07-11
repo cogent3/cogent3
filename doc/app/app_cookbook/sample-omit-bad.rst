@@ -1,3 +1,8 @@
+.. jupyter-execute::
+    :hide-code:
+
+    import set_working_directory
+
 Remove problem sequences from an alignment
 ------------------------------------------
 
@@ -6,7 +11,6 @@ Using ``omit_bad_seqs`` we can eliminate sequences from an ``Alignment`` based o
 Let's create a sample alignment with some gaps. 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import make_aligned_seqs
 
@@ -29,7 +33,6 @@ Removing sequences with more than X% gaps
 Creating the ``omit_bad_seqs`` app with the argument ``gap_fraction=0.5`` will omit sequences that contain 50% or more gaps.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 
@@ -42,7 +45,6 @@ Removing sequences that contribute many gaps
 The ``quantile=0.8`` argument omits sequences that are ranked above the specified quantile with respect to the number of gaps uniquely introduced into the alignment. In the following example, sequence ``s6`` is omitted, as it uniquely introduces gaps in the first two positions of the alignment.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 

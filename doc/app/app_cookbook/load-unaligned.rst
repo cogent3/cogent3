@@ -14,7 +14,6 @@ Loading unaligned DNA sequences from a single fasta file
 In this example, we load unaligned DNA sequences from a single fasta file using the ``load_unaligned`` app. We specify the molecular type ``(moltype="protein")`` and the file format ``(format_name="fasta")``.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 
@@ -42,7 +41,6 @@ Here we open a read-only (``mode="r"``) data store that identifies all fasta fil
     path_to_dir = tmpdir.name
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app, open_data_store
 
@@ -56,7 +54,6 @@ In this example, our process loads the unaligned sequences using ``load_unaligne
 .. note:: Apps that are "writers" require a data store to write to, learn more about writers :ref:`here! <writers>`. 
 
 .. jupyter-execute::
-    :raises:
 
     out_dstore = open_data_store(path_to_dir, suffix="tsv", mode="w")
 
@@ -71,7 +68,6 @@ In this example, our process loads the unaligned sequences using ``load_unaligne
 Now we're good to go! We can apply ``process`` to our data store of fasta sequences. ``result`` is a data store, which you can index to see individual data members. We can inspect a given data member using the ``.read()`` on data members. 
 
 .. jupyter-execute::
-    :raises:
 
     result = process.apply_to(fasta_seq_dstore)
     print(result[1].read())

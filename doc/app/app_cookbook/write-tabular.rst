@@ -11,7 +11,6 @@ With the ``write_tabular`` app, ``cogent3`` "TabularTypes" (``Table``, ``DictArr
 Let's generate a ``cogent3`` ``Table`` to use in the examples below. One way to do that is by applying the ``tabulate_stats`` app to a model result. 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 
@@ -45,7 +44,6 @@ To write in CSV format, we create the ``write_tabular`` app with ``format_name="
 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app, open_data_store
 
@@ -53,7 +51,6 @@ To write in CSV format, we create the ``write_tabular`` app with ``format_name="
 
     write_tabular_app = get_app("write_tabular", data_store=out_dstore, format_name="csv")
     write_tabular_app(motif_params, identifier="gn_model_results.csv")
-
 
 Writing a TSV file
 ^^^^^^^^^^^^^^^^^^
@@ -63,16 +60,12 @@ To write in TSV format, we create the ``write_tabular`` app with ``format_name="
 .. jupyter-execute::
     :hide-code:
 
-    
     from tempfile import TemporaryDirectory
 
     tmpdir = TemporaryDirectory(dir=".")
     path_to_dir = tmpdir.name
 
 .. jupyter-execute::
-    :raises:
-
-    from cogent3 import get_app, open_data_store
 
     out_dstore = open_data_store(path_to_dir, mode="w", suffix="tsv")
 
@@ -87,16 +80,12 @@ Instead of applying the apps sequentially as above, we can add apps into a compo
 .. jupyter-execute::
     :hide-code:
 
-    
     from tempfile import TemporaryDirectory
 
     tmpdir = TemporaryDirectory(dir=".")
     path_to_dir = tmpdir.name
 
 .. jupyter-execute::
-    :raises:
-
-    from cogent3 import get_app, open_data_store
 
     loader = get_app("load_unaligned", moltype="dna")
     jdist = get_app("jaccard_dist")

@@ -4,7 +4,6 @@ Concatenating alignments
 The ``concat`` app provides a mechanism to concatenate alignments. 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 
@@ -13,7 +12,6 @@ The ``concat`` app provides a mechanism to concatenate alignments.
 Let's create sample alignments with matching sequence names to use in the below examples. 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import make_aligned_seqs
 
@@ -22,7 +20,6 @@ Let's create sample alignments with matching sequence names to use in the below 
     aln1
 
 .. jupyter-execute::
-    :raises:
 
     aln2
 
@@ -32,7 +29,6 @@ How to concatenate alignments
 By default, sequences without matching names in the corresponding alignment are omitted (``intersect=True``).
 
 .. jupyter-execute::
-    :raises:
 
     result = concat_alns_app([aln1, aln2])
     result
@@ -43,7 +39,6 @@ How to concatenate alignments with missing sequences
 By providing the argument ``intersect=False``, the ``concat`` app will include missing sequences across alignments. Missing sequences are replaced by a sequence of ``"?"``.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import make_aligned_seqs, get_app
 
@@ -58,8 +53,7 @@ How to concatenated alignments with a delimiter ``"N"``
 You can insert an ``"N"`` character in between the concatenated sequences. 
 
 .. jupyter-execute::
-    :raises:
-    
+
     from cogent3 import get_app
 
     concat_delim = get_app("concat", join_seq="N", moltype="dna")

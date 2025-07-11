@@ -56,7 +56,6 @@ and the reason for the failure
 An ``ERROR`` type is returned if an unexpected condition occurs. This can be an exception raised during the calculation. In our example, we illustrate this by trying to open a file with an incorrect path.
 
 .. jupyter-execute::
-    :raises:
 
     result = reader("primate_brca1.fasta")
     result
@@ -75,7 +74,6 @@ If you have a composed function, with multiple steps and an error occurs then th
 and
 
 .. jupyter-execute::
-    :raises:
 
     result = app("primate_brca1.fasta")
     result

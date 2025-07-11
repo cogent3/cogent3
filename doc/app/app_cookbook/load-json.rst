@@ -37,7 +37,7 @@ In the :ref:`writing JSON section <write_json>`, we wrote a likelihood function 
     path_to_dstore = data_member.data_store.source
 
 .. jupyter-execute::
-    :raises:
+
 
     from cogent3 import get_app
 

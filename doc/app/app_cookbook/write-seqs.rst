@@ -12,7 +12,6 @@ Writing a sequence alignment to disk
 Writing out an alignment can be achieved easily with the ``write_seqs`` app. First, let's load the alignment we want to write. 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 
@@ -31,7 +30,6 @@ When creating the ``write_seqs`` app, we need to provide a data store to which w
     path_to_dir = tmpdir.name
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app, open_data_store
 
@@ -58,7 +56,6 @@ Typically, the final step of a data processing pipeline is writing out the filte
 We can create our input data store containing all the files with the ".fasta" suffix in the data directory using ``open_data_store``. 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import open_data_store
 
@@ -67,7 +64,6 @@ We can create our input data store containing all the files with the ".fasta" su
 Let's define a process. In this example, our process loads the sequences, filters the sequences to keep only those which are translatable, translates the sequences, and then writes the filtered sequences to a data store. 
 
 .. jupyter-execute::
-    :raises:
     
     from cogent3 import get_app, open_data_store
 
@@ -85,7 +81,6 @@ Let's define a process. In this example, our process loads the sequences, filter
 We apply ``process`` to our input data store, and assign the resulting data store to ``result``. 
 
 .. jupyter-execute::
-    :raises:
 
     result = process.apply_to(fasta_seq_dstore)
 
@@ -95,14 +90,12 @@ Accessing an overview of our process
 We can interrogate ``result`` to see an overview of the process. 
 
 .. jupyter-execute::
-    :raises:
 
     result.describe
 
 There were 10 data files to which the process was successfully applied. However, there were three files for which the process did not complete. We can see a summary of the failures by accessing the ``summary_not_completed`` property. 
 
 .. jupyter-execute::
-    :raises:
 
     result.summary_not_completed
 
