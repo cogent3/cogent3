@@ -9,7 +9,7 @@ Using a protein model
 We use apps to load unaligned DNA sequences and to translate them into amino acids.
 
 .. jupyter-execute::
-    :raises:
+
 
     from cogent3 import get_app
 
@@ -24,7 +24,7 @@ Protein alignment with default settings
 The default setting for "protein" is a WG01 model.
 
 .. jupyter-execute::
-    :raises:
+
 
     from cogent3 import get_app
 
@@ -40,7 +40,7 @@ The distance measures available are percent or paralinear.
 .. note:: An estimated guide tree has its branch lengths scaled so they are consistent with usage in a codon model.
 
 .. jupyter-execute::
-    :raises:
+
 
     aa_aligner = get_app("progressive_align", "protein", distance="paralinear")
     aligned = aa_aligner(seqs)
@@ -52,13 +52,13 @@ Alignment settings provenance
 The parameters used to construct the alignment, including the guide tree and substitution model, are record in the alignment ``info`` attribute.
 
 .. jupyter-execute::
-    :raises:
+
 
     aligned.info
 
 The file from which the alignment was derived (the provenance) is on the ``.source`` attribute.
 
 .. jupyter-execute::
-    :raises:
+
 
     aligned.source

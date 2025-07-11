@@ -9,7 +9,7 @@ Using a nucleotide model
 We load the unaligned sequences we will use in our examples.
 
 .. jupyter-execute::
-    :raises:
+
 
     from cogent3 import get_app
 
@@ -24,7 +24,7 @@ Nucleotide alignment with default settings
 The default setting for "nucleotide" is a HKY85 model.
 
 .. jupyter-execute::
-    :raises:
+
 
     from cogent3 import get_app
 
@@ -40,7 +40,7 @@ Specify a different distance measure for estimating the guide tree
 For the nucleotide case, you can use TN93 or paralinear.
 
 .. jupyter-execute::
-    :raises:
+
 
     nt_aligner = get_app("progressive_align", "nucleotide", distance="TN93")
     aligned = nt_aligner(seqs)
@@ -50,7 +50,7 @@ Providing a guide tree
 ----------------------
 
 .. jupyter-execute::
-    :raises:
+
 
     tree = "((Chimp:0.001,Human:0.001):0.0076,Macaque:0.01,((Rat:0.01,Mouse:0.01):0.02,Mouse_Lemur:0.02):0.01)"
     nt_aligner = get_app("progressive_align", "nucleotide", guide_tree=tree)
@@ -65,7 +65,7 @@ Specifying the substitution model
 You can use any ``cogent3`` nucleotide substitution model. For a list of all available, see ``cogent3.available_models()``.
 
 .. jupyter-execute::
-    :raises:
+
 
     tree = "((Chimp:0.001,Human:0.001):0.0076,Macaque:0.01,((Rat:0.01,Mouse:0.01):0.02,Mouse_Lemur:0.02):0.01)"
     nt_aligner = get_app("progressive_align", "F81", guide_tree=tree)
@@ -78,13 +78,13 @@ Alignment settings provenance
 The parameters used to construct the alignment, including the guide tree and substitution model, are record in the alignment ``info`` attribute.
 
 .. jupyter-execute::
-    :raises:
+
 
     aligned.info
 
 The file from which the alignment was derived (the provenance) is on the ``.source`` attribute.
 
 .. jupyter-execute::
-    :raises:
+
 
     aligned.source
