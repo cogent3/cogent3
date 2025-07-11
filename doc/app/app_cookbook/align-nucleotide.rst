@@ -72,10 +72,19 @@ You can use any ``cogent3`` nucleotide substitution model. For a list of all ava
     aligned = nt_aligner(seqs)
     aligned
 
-Alignment settings and file provenance are recorded in the ``info`` attribute
------------------------------------------------------------------------------
+Alignment settings provenance
+-----------------------------
+
+The parameters used to construct the alignment, including the guide tree and substitution model, are record in the alignment ``info`` attribute.
 
 .. jupyter-execute::
     :raises:
 
     aligned.info
+
+The file from which the alignment was derived (the provenance) is on the ``.source`` attribute.
+
+.. jupyter-execute::
+    :raises:
+
+    aligned.source

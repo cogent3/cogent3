@@ -89,8 +89,8 @@ Any ``cogent3`` codon substitution model can be used. (See ``cogent3.available_m
 
 .. note:: If you provide parameter values, those must be consistent with the model definition.
 
-Alignment settings and file provenance are recorded in the ``info`` attribute
------------------------------------------------------------------------------
+Alignment settings provenance
+-----------------------------
 
 The parameters used to construct the alignment, including the guide tree and substitution model, are record in the alignment ``info`` attribute.
 
@@ -98,3 +98,10 @@ The parameters used to construct the alignment, including the guide tree and sub
     :raises:
 
     aligned.info
+
+The file from which the alignment was derived (the provenance) is on the ``.source`` attribute.
+
+.. jupyter-execute::
+    :raises:
+
+    aligned.source

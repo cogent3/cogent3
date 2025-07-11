@@ -46,10 +46,19 @@ The distance measures available are percent or paralinear.
     aligned = aa_aligner(seqs)
     aligned
 
-Alignment settings and file provenance are recorded in the ``info`` attribute
------------------------------------------------------------------------------
+Alignment settings provenance
+-----------------------------
+
+The parameters used to construct the alignment, including the guide tree and substitution model, are record in the alignment ``info`` attribute.
 
 .. jupyter-execute::
     :raises:
 
     aligned.info
+
+The file from which the alignment was derived (the provenance) is on the ``.source`` attribute.
+
+.. jupyter-execute::
+    :raises:
+
+    aligned.source

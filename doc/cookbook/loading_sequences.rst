@@ -47,11 +47,11 @@ Any file in which the sequences have exactly the same length can be loaded as an
     aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")
     type(aln)
 
-.. note:: The load functions record the origin of the data in the ``info`` attribute under a `"source"` key.
+.. note:: The load functions record the origin of the data in a ``.source`` attribute.
 
 .. jupyter-execute::
 
-    aln.info.source
+    aln.source
 
 .. todo:: add cross ref for description of Info class
 
