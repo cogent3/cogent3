@@ -665,6 +665,7 @@ class MolType:
         *args,
         **kwargs,
     ) -> c3_sequence.Sequence:
+        """discontinued, use make_seq instead"""
         if args:
             kwargs["seq"] = args[0]
 
