@@ -1,4 +1,15 @@
 
+<a id='changelog-2025.7.10a2'></a>
+# Changes in release "2025.7.10a2"
+
+This is a minor enhancement release to improve the experience of users
+who have relied on the old type sequence classes to have a default moltype.
+
+## Enhancements
+
+- No longer fail if a user does not specify the moltype. Instead, we
+  provide a UserWarning and default to ASCII.
+
 <a id='changelog-2025.7.10a1'></a>
 # Changes in release "2025.7.10a1"
 
