@@ -1,5 +1,5 @@
 :mod:`sequence`
-===================
+===============
 
 .. currentmodule:: cogent3.core.sequence
 

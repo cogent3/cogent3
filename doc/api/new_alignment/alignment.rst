@@ -1,5 +1,5 @@
 :mod:`alignment`
-====================
+================
 
 .. currentmodule:: cogent3.core.alignment
 

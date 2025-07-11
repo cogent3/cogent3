@@ -1,5 +1,5 @@
 :mod:`genetic_code`
-=======================
+===================
 
 .. currentmodule:: cogent3.core.genetic_code
 

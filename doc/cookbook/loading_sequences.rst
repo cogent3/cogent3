@@ -144,7 +144,7 @@ The sequence names will be automatically created.
     from cogent3 import make_aligned_seqs
 
     data = ["AATCG-A", "AATCGGA"]
-    coll = make_aligned_seqs(data, moltype="dna", new_type=True)
+    coll = make_aligned_seqs(data, moltype="dna")
     coll
 
 Changing sequence labels on loading

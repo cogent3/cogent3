@@ -1,5 +1,5 @@
 :mod:`moltype`
-==================
+==============
 
 .. currentmodule:: cogent3.core.moltype
 

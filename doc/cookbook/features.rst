@@ -10,8 +10,6 @@ Features
 
 This guide provides instructions on creating, querying, and utilising features to manipulate biological sequence data.
 
-.. note:: The ``new_type`` Alignment class directly supports annotations, and more efficient alignment operations. Try it with ``load_aligned_seqs(..., new_type=True)`` or ``make_aligned_seqs(..., new_type=True)``.
-
 How to create a custom ``Feature``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -226,10 +224,6 @@ If we know that the features and the sequence share the same coordinate space, t
 
 How to load features and associate them with sequences in an existing alignment
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-.. note:: ``annotate_from_gff()`` methods are being deprecated. The ``new_type`` objects will provide a different approach.
-
-To annotate one or more ``Sequence`` in an ``Alignment``, call ``annotate_from_gff()`` on the ``Alignment`` instance, passing in the path to the GFF annotation file and a list of sequence names to annotate to the ``seq_ids`` argument.
 
 For example, first we load an alignment of the brca1 gene in primates.
 

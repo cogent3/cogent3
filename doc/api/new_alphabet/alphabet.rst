@@ -1,5 +1,5 @@
 :mod:`alphabet`
-===================
+===============
 
 .. currentmodule:: cogent3.core.alphabet
 
