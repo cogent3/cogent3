@@ -18,7 +18,7 @@ Loading a tree from a file
     tr = load_tree("data/test.tree")
     print(tr)
 
-The original file is tored in a ``.source`` attribute.
+The path to the original file is stored in the ``.source`` attribute.
 
 .. jupyter-execute::
 
