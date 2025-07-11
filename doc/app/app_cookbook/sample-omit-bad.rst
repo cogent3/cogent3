@@ -1,3 +1,8 @@
+.. jupyter-execute::
+    :hide-code:
+
+    import set_working_directory
+
 Remove problem sequences from an alignment
 ------------------------------------------
 

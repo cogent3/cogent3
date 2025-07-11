@@ -1,3 +1,8 @@
+.. jupyter-execute::
+    :hide-code:
+
+    import set_working_directory
+
 Sample an alignment to a fixed length
 -------------------------------------
 
