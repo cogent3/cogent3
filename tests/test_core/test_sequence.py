@@ -2616,7 +2616,11 @@ def test_parent_coordinates(one_seq, rev):
     seq = seq.rc() if rev else seq
     seq.name = "sliced"  # this assignment does not affect the
     # note that when a sequence has zero length, the parent seqid is None
-    assert seq.parent_coordinates() == (None, 0, 0, 1)
+    expected = (None, 0, 0, 1)
+    assert seq.parent_coordinates() == expected
+    # on a seq that's not parent of a sequence collection, the apply_offset
+    # argument should have no effect
+    assert seq.parent_coordinates(apply_offset=True) == expected
 
 
 @pytest.mark.parametrize("cls", [str, bytes])

@@ -273,6 +273,26 @@ class SeqDataView(c3_sequence.SeqView):
             return not self.slice_record.is_reversed
         return self.slice_record.is_reversed
 
+    def parent_coords(
+        self, *, apply_offset: bool = False, **kwargs
+    ) -> tuple[str, int, int, int]:
+        """returns coordinates on parent
+
+        Parameters
+        ----------
+        apply_offset
+            if True adds annotation offset from parent
+
+        Returns
+        -------
+        parent seqid, start, stop, strand
+        """
+        offset = self.parent_offset if apply_offset else 0
+        start = self.slice_record.parent_start
+        stop = self.slice_record.parent_stop
+        step = self.slice_record.step
+        return self.seqid, start + offset, stop + offset, step
+
 
 class SeqsDataABC(ABC):
     """Abstract base class for respresenting the storage object for sequences underlying
@@ -3349,30 +3369,19 @@ class Aligned(AnnotatableMixin):
         gaps = numpy.array([im.gap_pos, im.cum_gap_lengths]).T
         return data, gaps
 
-    def parent_coordinates(self, seq_coords=False):
+    def parent_coordinates(
+        self, seq_coords: bool = False, apply_offset: bool = False
+    ) -> tuple[str, int, int, int]:
         """returns seqid, start, stop, strand on the parent sequence
 
         Parameters
         ----------
         seq_coords
             if True, the coordinates for the unaligned sequence
+        apply_offset
+            if True and seq_coords, adds annotation offset from parent
         """
-        strand = -1 if self.data.is_reversed else 1
-        seqid = self.data.seqid
-        if not seq_coords:
-            start = self.data.slice_record.parent_start
-            stop = self.data.slice_record.parent_stop
-        else:
-            # AlignedDataView.parent_seq_coords uses it's indelmap, etc..
-            # to return the necessary coordinates
-            seqid, start, stop, strand = self.data.parent_seq_coords()
-
-        return (
-            seqid,
-            start,
-            stop,
-            strand,
-        )
+        return self.data.parent_coords(seq_coords=seq_coords, apply_offset=apply_offset)
 
     @extend_docstring_from(c3_sequence.Sequence.annotate_matches_to)
     def annotate_matches_to(
@@ -4411,16 +4420,38 @@ class AlignedDataView(c3_sequence.SeqViewABC):
             f"slice_record={self.slice_record.__repr__()})"
         )
 
-    def parent_seq_coords(self) -> tuple[str, int, int, int]:
-        """returns seqid, start, stop, strand on the parent sequence"""
+    def parent_coords(
+        self, *, seq_coords: bool = False, apply_offset: bool = False
+    ) -> tuple[str, int, int, int]:
+        """returns seqid, start, stop, strand on the parent
+
+        Parameters
+        ----------
+        seq_coords
+            if True, parent is the ungapped sequence
+        apply_offset
+            if True and seq_coords, adds annotation offset from parent
+        """
+        strand = -1 if self.is_reversed else 1
+        if not seq_coords:
+            return (
+                self.seqid,
+                self.slice_record.parent_start,
+                self.slice_record.parent_stop,
+                strand,
+            )
+
+        # AlignedDataView.parent_coords uses it's indelmap, etc..
+        # to return the necessary coordinates
+
         # we want the coordinates on the parent sequence, which means we
         # need to use the parent's IndelMap for findings the correct indices.
         parent_map = self._parent_map()
         start = parent_map.get_seq_index(self.slice_record.parent_start)
         stop = parent_map.get_seq_index(self.slice_record.parent_stop)
-        strand = -1 if self.slice_record.step < 0 else 1
+        offset = self.parent_offset if apply_offset else 0
 
-        return self.seqid, start, stop, strand
+        return self.seqid, start + offset, stop + offset, strand
 
     def copy(self, sliced: bool = False) -> typing_extensions.Self:
         """just returns self"""
@@ -4437,8 +4468,8 @@ class AlignedDataView(c3_sequence.SeqViewABC):
     def get_seq_view(self) -> c3_sequence.SeqViewABC:
         """returns view of ungapped sequence data for seqid"""
         # we want the parent coordinates in sequence coordinates
-        # parent_seq_coords does not account for the stride
-        seqid, start, stop, _ = self.parent_seq_coords()
+        # parent_coords does not account for the stride
+        seqid, start, stop, _ = self.parent_coords(seq_coords=True, apply_offset=False)
         parent_len = self.parent.get_seq_length(seqid)
         sr = c3_sequence.SliceRecord(
             start=start,
