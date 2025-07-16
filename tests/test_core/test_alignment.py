@@ -5070,12 +5070,16 @@ def test_alignment_offset_propagation(aligned_dict, func, rc):
     "mk_cls",
     [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
 )
-def test_parent_coords_apply_offset(aligned_dict, mk_cls):
+def test_parent_coords_apply_offset(mk_cls):
     # providing an offset should set the offset on precisely the specified seq
-    seqid = "seq1"
-    coll = mk_cls(aligned_dict, moltype="dna", offset={seqid: 10})
+    seqid = "s1"
+    data = {"s1": "GTTGAAGTAGTA", "s2": "GTG------GTA", "s3": "GCTGAAGTAGTG"}
+    ungapped_length = len(data[seqid])
+    coll = mk_cls(data, moltype="dna", offset={seqid: 10})
     seq = coll.seqs[seqid]
     got = seq.parent_coordinates(apply_offset=False, seq_coords=True)
+    expect = (seqid, 0, ungapped_length, 1)
+    assert got == expect
 
 
 def test_alignment_offset_sliced(aligned_dict):
