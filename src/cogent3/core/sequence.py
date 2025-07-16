@@ -950,8 +950,9 @@ class Sequence(AnnotatableMixin):
         Returns:
             int: The offset between annotation coordinates and sequence coordinates.
         """
-
-        return self._seq.slice_record.parent_start
+        parent_offset = self._seq.parent_offset
+        slice_start = self._seq.slice_record.parent_start
+        return parent_offset + slice_start
 
     def get_features(
         self,
@@ -1757,8 +1758,15 @@ class Sequence(AnnotatableMixin):
         drawer.layout.update(xaxis=xaxis, yaxis=yaxis)
         return drawer
 
-    def parent_coordinates(self) -> tuple[str, int, int, int]:
+    def parent_coordinates(
+        self, apply_offset: bool = False, **kwargs
+    ) -> tuple[str, int, int, int]:
         """returns seqid, start, stop, strand of this sequence on its parent
+
+        Parameters
+        ----------
+        apply_offset
+            if True, adds annotation offset from parent
 
         Notes
         -----
@@ -1772,12 +1780,8 @@ class Sequence(AnnotatableMixin):
         -1 or 1.
         """
         strand = Strand.MINUS.value if self._seq.is_reversed else Strand.PLUS.value
-        return (
-            self._seq.seqid,
-            self._seq.slice_record.parent_start,
-            self._seq.slice_record.parent_stop,
-            strand,
-        )
+        seqid, start, stop, _ = self._seq.parent_coords(apply_offset=apply_offset)
+        return seqid, start, stop, strand
 
     def sample(
         self,
@@ -2729,9 +2733,23 @@ class SeqViewABC(ABC):
     def slice_record(self) -> SliceRecordABC: ...
 
     @property
-    def offset(self) -> int:
-        """the annotation offset of this view"""
-        return self.slice_record.offset
+    def parent_offset(self) -> int:
+        """returns the offset from the true parent
+
+        Notes
+        -----
+        If from storage with an offset attribute, returns
+        that value or 0
+        """
+        return (
+            self.parent.offset.get(self.seqid, 0)
+            if hasattr(self.parent, "offset")
+            else 0
+        )
+
+    @property
+    @abstractmethod
+    def offset(self) -> int: ...
 
     @property
     def is_reversed(self) -> bool:
@@ -2783,6 +2801,11 @@ class SeqViewABC(ABC):
         init_kwargs = self._get_init_kwargs()  # type: ignore
         init_kwargs["offset"] = offset
         return self.__class__(**init_kwargs)
+
+    @abstractmethod
+    def parent_coords(
+        self, *, apply_offset: bool = False, **kwargs
+    ) -> tuple[str, int, int, int]: ...
 
 
 class SeqView(SeqViewABC):
@@ -2859,6 +2882,11 @@ class SeqView(SeqViewABC):
     def parent_len(self) -> int:
         """length of the parent sequence"""
         return self._parent_len
+
+    @property
+    def offset(self) -> int:
+        """the annotation offset of this view"""
+        return self.slice_record.offset
 
     def _get_init_kwargs(self) -> dict:
         return {
@@ -2956,6 +2984,28 @@ class SeqView(SeqViewABC):
             seqid=self.seqid,
             alphabet=self.alphabet,
             slice_record=sr,
+        )
+
+    def parent_coords(
+        self, *, apply_offset: bool = False, **kwargs
+    ) -> tuple[str, int, int, int]:
+        """returns coordinates on parent
+
+        Parameters
+        ----------
+        apply_offset
+            if True adds annotation offset from parent
+
+        Returns
+        -------
+        parent seqid, start, stop, strand
+        """
+        offset = self.parent_offset if apply_offset else 0
+        return (
+            self.seqid,
+            self.slice_record.parent_start + offset,
+            self.slice_record.parent_stop + offset,
+            self.slice_record.step,
         )
 
 
