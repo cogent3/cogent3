@@ -950,8 +950,9 @@ class Sequence(AnnotatableMixin):
         Returns:
             int: The offset between annotation coordinates and sequence coordinates.
         """
-
-        return self._seq.slice_record.parent_start
+        parent_offset = self._seq.parent_offset
+        slice_start = self._seq.slice_record.parent_start
+        return parent_offset + slice_start
 
     def get_features(
         self,
@@ -2727,6 +2728,21 @@ class SeqViewABC(ABC):
     @property
     @abstractmethod
     def slice_record(self) -> SliceRecordABC: ...
+
+    @property
+    def parent_offset(self) -> int:
+        """returns the offset from the true parent
+
+        Notes
+        -----
+        If from storage with an offset attribute, returns
+        that value or 0
+        """
+        return (
+            self.parent.offset.get(self.seqid, 0)
+            if hasattr(self.parent, "offset")
+            else 0
+        )
 
     @property
     def offset(self) -> int:

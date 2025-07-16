@@ -2874,6 +2874,15 @@ def test_seqview_with_offset(offset, dna_alphabet):
 
 
 @pytest.mark.parametrize("offset", [0, 4])
+def test_seqview_parent_offset(offset, dna_alphabet):
+    seq = "ACGGTGGGAC"
+    sv = c3_sequence.SeqView(parent=seq, parent_len=len(seq), alphabet=dna_alphabet)
+    got = sv[offset:]
+    # parent offset is not a slice offset
+    assert got.parent_offset == 0
+
+
+@pytest.mark.parametrize("offset", [0, 4])
 def test_seqview_with_offset_fails(offset, dna_alphabet):
     seq = "ACGGTGGGAC"
     sv = c3_sequence.SeqView(

@@ -691,7 +691,7 @@ def test_make_seqs_offset(mk_cls, data_cls, seq, dna_alphabet):
     offset = {"a": 1, "b": 2}
     seqs = mk_cls(data, moltype="dna", offset=offset)
     got = seqs.get_seq(seq)
-    assert got._seq.offset == offset[seq]
+    assert got._seq.parent_offset == offset[seq]
 
     # if data is a SeqsData object, this should fail
     data = data_cls.from_seqs(data=data, alphabet=c3_moltype.DNA.degen_gapped_alphabet)
@@ -717,10 +717,10 @@ def test_make_seqs_offset(mk_cls, data_cls, seq, dna_alphabet):
     seqs = mk_cls([seq_1, seq_2], moltype="dna")
 
     got = seqs.get_seq("seq_1")
-    assert got._seq.offset == 1
+    assert got._seq.parent_offset == 1
 
     got = seqs.get_seq("seq_2")
-    assert got._seq.offset == 2
+    assert got._seq.parent_offset == 2
 
 
 @pytest.mark.parametrize(
@@ -5028,13 +5028,13 @@ def test_alignment_indexing_string(alignment, seqid):
 def test_alignment_offset_propagation(aligned_dict, func, rc):
     # providing an offset should set the offset on precisely the specified seq
     aln = func(aligned_dict, moltype="dna", offset={"seq1": 10})
-    seq = aln.get_seq("seq1").rc() if rc else aln.get_seq("seq1")
-    assert seq._seq.offset == 10
-    assert seq.annotation_offset == 10
+    s1 = aln.get_seq("seq1").rc() if rc else aln.get_seq("seq1")
+    assert s1._seq.offset == 0
+    assert s1.annotation_offset == 10
 
-    seq = aln.get_seq("seq2").rc() if rc else aln.get_seq("seq2")
-    assert seq._seq.offset == 0
-    assert seq.annotation_offset == 0
+    s2 = aln.get_seq("seq2").rc() if rc else aln.get_seq("seq2")
+    assert s2._seq.offset == 0
+    assert s2.annotation_offset == 0
 
 
 def test_alignment_offset_sliced(aligned_dict):
@@ -5045,7 +5045,7 @@ def test_alignment_offset_sliced(aligned_dict):
     )
     sliced = aln[2:]
     seq = sliced.get_seq("seq1")
-    assert seq._seq.offset == 10
+    assert seq._seq.offset == 0
     assert seq.annotation_offset == 12
 
 

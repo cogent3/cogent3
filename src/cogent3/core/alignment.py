@@ -546,7 +546,6 @@ class SeqsData(SeqsDataABC):
             seqid=seqid,
             parent_len=seq_len,
             alphabet=self.alphabet,
-            offset=self._offset.get(seqid, 0),
         )
 
     def add_seqs(
@@ -4441,12 +4440,10 @@ class AlignedDataView(c3_sequence.SeqViewABC):
         # parent_seq_coords does not account for the stride
         seqid, start, stop, _ = self.parent_seq_coords()
         parent_len = self.parent.get_seq_length(seqid)
-        offset = self.parent.offset.get(seqid)
         sr = c3_sequence.SliceRecord(
             start=start,
             stop=stop,
             parent_len=parent_len,
-            offset=offset,
         )[:: self.slice_record.step]
 
         return SeqDataView(
