@@ -1,4 +1,17 @@
 
+<a id='changelog-2025.7.10a3'></a>
+# Changes in release "2025.7.10a3"
+
+A minor bug fix release.
+
+## Contributors
+
+- GavinHuttley
+
+## Bug fixes
+
+- Feature querying on alignments now respects user-provided annotation offsets.
+
 <a id='changelog-2025.7.10a2'></a>
 # Changes in release "2025.7.10a2"
 
