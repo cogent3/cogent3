@@ -96,7 +96,7 @@ OptPathType = str | Path | None
 StrORArray = str | numpy.ndarray[int]
 StrORBytesORArray = str | bytes | numpy.ndarray[int]
 StrORBytesORArrayOrSeq = str | bytes | numpy.ndarray[int] | c3_sequence.Sequence
-MolTypes = str | c3_moltype.MolType
+MolTypes = c3_moltype.MolTypeLiteral | c3_moltype.MolType
 
 # small number: 1-EPS is almost 1, and is used for things like the
 # default number of gaps to allow in a column.
@@ -197,6 +197,11 @@ class SeqDataView(c3_sequence.SeqView):
     __slots__ = ("_parent_len", "_seqid", "_slice_record", "alphabet", "parent")
 
     @property
+    def offset(self) -> int:
+        """the annotation offset of this view"""
+        return self.slice_record.offset
+
+    @property
     def str_value(self) -> str:
         """returns the sequence as a string"""
         return self.alphabet.from_indices(self.array_value)
@@ -272,6 +277,26 @@ class SeqDataView(c3_sequence.SeqView):
             # hence is_reversed is the opposite of the slice record
             return not self.slice_record.is_reversed
         return self.slice_record.is_reversed
+
+    def parent_coords(
+        self, *, apply_offset: bool = False, **kwargs
+    ) -> tuple[str, int, int, int]:
+        """returns coordinates on parent
+
+        Parameters
+        ----------
+        apply_offset
+            if True adds annotation offset from parent
+
+        Returns
+        -------
+        parent seqid, start, stop, strand
+        """
+        offset = self.parent_offset if apply_offset else 0
+        start = self.slice_record.parent_start
+        stop = self.slice_record.parent_stop
+        step = self.slice_record.step
+        return self.seqid, start + offset, stop + offset, step
 
 
 class SeqsDataABC(ABC):
@@ -546,7 +571,6 @@ class SeqsData(SeqsDataABC):
             seqid=seqid,
             parent_len=seq_len,
             alphabet=self.alphabet,
-            offset=self._offset.get(seqid, 0),
         )
 
     def add_seqs(
@@ -1467,7 +1491,9 @@ class SequenceCollection(AnnotatableMixin):
         return fasta.formatted(self, block_size=block_size)
 
     @c3warn.deprecated_args(
-        "2025.9", "don't use built in name", old_new=[("format", "format_name")]
+        "2025.9",
+        "don't use built in name",
+        old_new=[("format", "format_name"), ("file_format", "format_name")],
     )
     def write(self, filename: str, format_name: OptStr = None, **kwargs) -> None:
         """Write the sequences to a file, preserving order of sequences.
@@ -2551,7 +2577,7 @@ class raw_seq_data:
 @singledispatch
 def coerce_to_raw_seq_data(
     seq: StrORBytesORArrayOrSeq,
-    moltype: c3_moltype.MolType,
+    moltype: MolTypes,
     name: OptStr = None,
 ) -> raw_seq_data:
     """aggregates sequence data into a single object
@@ -2581,7 +2607,7 @@ def coerce_to_raw_seq_data(
 @coerce_to_raw_seq_data.register
 def _(
     seq: c3_sequence.Sequence,
-    moltype: c3_moltype.MolType,
+    moltype: MolTypes,
     name: str,
 ) -> raw_seq_data:
     # converts the sequence to a numpy array
@@ -2600,7 +2626,7 @@ def _(
 @coerce_to_raw_seq_data.register
 def _(
     seq: str,
-    moltype: c3_moltype.MolType,
+    moltype: MolTypes,
     name: OptStr = None,
 ) -> raw_seq_data:
     return coerce_to_raw_seq_data(seq.encode("utf8"), moltype, name)
@@ -2609,7 +2635,7 @@ def _(
 @coerce_to_raw_seq_data.register
 def _(
     seq: numpy.ndarray,
-    moltype: c3_moltype.MolType,  # noqa: ARG001
+    moltype: MolTypes,
     name: OptStr = None,
 ) -> raw_seq_data:
     return raw_seq_data(seq=seq, name=name)
@@ -2618,7 +2644,7 @@ def _(
 @coerce_to_raw_seq_data.register
 def _(
     seq: bytes,
-    moltype: c3_moltype.MolType,
+    moltype: MolTypes,
     name: OptStr = None,
 ) -> raw_seq_data:
     # converts the sequence to a upper case bytes, and applies
@@ -2633,7 +2659,7 @@ CT = tuple[dict[str, StrORBytesORArray], dict[str, int], set[str]]
 
 def prep_for_seqs_data(
     data: dict[str, StrORBytesORArrayOrSeq],
-    moltype: c3_moltype.MolType,
+    moltype: MolTypes,
     seq_namer: _SeqNamer,
 ) -> CT:
     """normalises input data for constructing a SeqsData object
@@ -2765,7 +2791,7 @@ def make_name_map(data: dict[str, StrORBytesORArray]) -> dict[str, str]:
 def make_unaligned_storage(
     data: dict[str, bytes | numpy.ndarray[int]],
     *,
-    moltype: str | c3_moltype.MolType,
+    moltype: MolTypes,
     label_to_name: OptRenamerCallable = None,
     offset: DictStrInt | None = None,
     reversed_seqs: set[str] | None = None,
@@ -2824,11 +2850,11 @@ def make_unaligned_storage(
 def make_unaligned_seqs(
     data: dict[str, StrORBytesORArray] | list | SeqsDataABC,
     *,
-    moltype: str | c3_moltype.MolType,
+    moltype: MolTypes,
     label_to_name: OptRenamerCallable = None,
     info: OptDict = None,
     source: OptPathType = None,
-    annotation_db: SupportsFeatures = None,
+    annotation_db: SupportsFeatures | None = None,
     offset: DictStrInt | None = None,
     name_map: DictStrStr | None = None,
     is_reversed: bool = False,
@@ -2918,7 +2944,7 @@ def make_unaligned_seqs(
 def _(
     data: SeqsDataABC,
     *,
-    moltype: str | c3_moltype.MolType,
+    moltype: MolTypes,
     label_to_name: OptRenamerCallable = None,
     info: dict | None = None,
     source: OptPathType = None,
@@ -3348,30 +3374,19 @@ class Aligned(AnnotatableMixin):
         gaps = numpy.array([im.gap_pos, im.cum_gap_lengths]).T
         return data, gaps
 
-    def parent_coordinates(self, seq_coords=False):
+    def parent_coordinates(
+        self, seq_coords: bool = False, apply_offset: bool = False
+    ) -> tuple[str, int, int, int]:
         """returns seqid, start, stop, strand on the parent sequence
 
         Parameters
         ----------
         seq_coords
             if True, the coordinates for the unaligned sequence
+        apply_offset
+            if True and seq_coords, adds annotation offset from parent
         """
-        strand = -1 if self.data.is_reversed else 1
-        seqid = self.data.seqid
-        if not seq_coords:
-            start = self.data.slice_record.parent_start
-            stop = self.data.slice_record.parent_stop
-        else:
-            # AlignedDataView.parent_seq_coords uses it's indelmap, etc..
-            # to return the necessary coordinates
-            seqid, start, stop, strand = self.data.parent_seq_coords()
-
-        return (
-            seqid,
-            start,
-            stop,
-            strand,
-        )
+        return self.data.parent_coords(seq_coords=seq_coords, apply_offset=apply_offset)
 
     @extend_docstring_from(c3_sequence.Sequence.annotate_matches_to)
     def annotate_matches_to(
@@ -4295,6 +4310,11 @@ class AlignedDataView(c3_sequence.SeqViewABC):
         self._slice_record = value
 
     @property
+    def offset(self) -> int:
+        """the slice offset of this view"""
+        return self.slice_record.offset
+
+    @property
     def seqid(self) -> str:
         """the name of the sequence"""
         return self._seqid
@@ -4410,16 +4430,38 @@ class AlignedDataView(c3_sequence.SeqViewABC):
             f"slice_record={self.slice_record.__repr__()})"
         )
 
-    def parent_seq_coords(self) -> tuple[str, int, int, int]:
-        """returns seqid, start, stop, strand on the parent sequence"""
+    def parent_coords(
+        self, *, seq_coords: bool = False, apply_offset: bool = False
+    ) -> tuple[str, int, int, int]:
+        """returns seqid, start, stop, strand on the parent
+
+        Parameters
+        ----------
+        seq_coords
+            if True, parent is the ungapped sequence
+        apply_offset
+            if True and seq_coords, adds annotation offset from parent
+        """
+        strand = -1 if self.is_reversed else 1
+        if not seq_coords:
+            return (
+                self.seqid,
+                self.slice_record.parent_start,
+                self.slice_record.parent_stop,
+                strand,
+            )
+
+        # AlignedDataView.parent_coords uses it's indelmap, etc..
+        # to return the necessary coordinates
+
         # we want the coordinates on the parent sequence, which means we
         # need to use the parent's IndelMap for findings the correct indices.
         parent_map = self._parent_map()
         start = parent_map.get_seq_index(self.slice_record.parent_start)
         stop = parent_map.get_seq_index(self.slice_record.parent_stop)
-        strand = -1 if self.slice_record.step < 0 else 1
+        offset = self.parent_offset if apply_offset else 0
 
-        return self.seqid, start, stop, strand
+        return self.seqid, start + offset, stop + offset, strand
 
     def copy(self, sliced: bool = False) -> typing_extensions.Self:
         """just returns self"""
@@ -4436,15 +4478,13 @@ class AlignedDataView(c3_sequence.SeqViewABC):
     def get_seq_view(self) -> c3_sequence.SeqViewABC:
         """returns view of ungapped sequence data for seqid"""
         # we want the parent coordinates in sequence coordinates
-        # parent_seq_coords does not account for the stride
-        seqid, start, stop, _ = self.parent_seq_coords()
+        # parent_coords does not account for the stride
+        seqid, start, stop, _ = self.parent_coords(seq_coords=True, apply_offset=False)
         parent_len = self.parent.get_seq_length(seqid)
-        offset = self.parent.offset.get(seqid)
         sr = c3_sequence.SliceRecord(
             start=start,
             stop=stop,
             parent_len=parent_len,
-            offset=offset,
         )[:: self.slice_record.step]
 
         return SeqDataView(
@@ -6016,10 +6056,7 @@ class Alignment(SequenceCollection):
         elif set(seqids) & set(self.names):
             # we've been given seq names, convert to parent names
             seqids = [self.seqs[seqid].parent_coordinates()[0] for seqid in seqids]
-        elif seqids and set(seqids) <= seqid_to_seqname.keys():
-            # already correct
-            pass
-        else:
+        elif not (seqids and set(seqids) <= seqid_to_seqname.keys()):
             msg = f"unknown {seqid=}"
             raise ValueError(msg)
 
@@ -6027,8 +6064,11 @@ class Alignment(SequenceCollection):
             seqname = seqid_to_seqname[seqid]
             seq = self.seqs[seqname]
             # we use parent seqid
-            parent_id, start, stop, _ = seq.parent_coordinates()
-            offset = seq.data.offset
+            parent_id, start, stop, _ = seq.parent_coordinates(apply_offset=False)
+            # we get the annotation offset from storage
+            # because we need it to adjust the returned feature spans
+            # to the alignment coordinates
+            offset = self.storage.offset.get(seqid, 0)
 
             for feature in self.annotation_db.get_features_matching(
                 seqid=parent_id,
@@ -6036,8 +6076,8 @@ class Alignment(SequenceCollection):
                 name=name,
                 on_alignment=False,
                 allow_partial=allow_partial,
-                start=start,
-                stop=stop,
+                start=start + offset,
+                stop=stop + offset,
             ):
                 if offset:
                     feature["spans"] = (numpy.array(feature["spans"]) - offset).tolist()
@@ -7081,7 +7121,7 @@ def deserialise_alignment_to_new_type_alignment(
 def make_aligned_storage(
     data: dict[str, bytes | numpy.ndarray[int]],
     *,
-    moltype: str | c3_moltype.MolType,
+    moltype: MolTypes,
     label_to_name: OptRenamerCallable = None,
     offset: DictStrInt | None = None,
     reversed_seqs: set[str] | None = None,
@@ -7135,7 +7175,7 @@ def make_aligned_storage(
 def make_aligned_seqs(
     data: dict[str, StrORBytesORArray] | list | AlignedSeqsDataABC,
     *,
-    moltype: str | c3_moltype.MolType,
+    moltype: MolTypes,
     label_to_name: OptRenamerCallable = None,
     info: OptDict = None,
     source: OptPathType = None,
@@ -7234,7 +7274,7 @@ def make_aligned_seqs(
 def _(
     data: AlignedSeqsDataABC,
     *,
-    moltype: str | c3_moltype.MolType,
+    moltype: MolTypes,
     label_to_name: OptRenamerCallable = None,
     info: OptDict = None,
     source: OptPathType = None,

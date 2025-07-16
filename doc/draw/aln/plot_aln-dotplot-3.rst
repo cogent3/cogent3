@@ -14,7 +14,6 @@ Visualising an alignment with poor parameter choices
 Let's begin by importing the functions and loading sequences for this example. Note that although we load aligned sequences, we use the ``degap`` method to remove all gap characters from the sequences. This produces a set of unaligned sequences, for which we can align with different parameters to demonstrate the use of dotplots to visualise alignment quality. 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import load_aligned_seqs, get_app
 
@@ -28,7 +27,6 @@ The choice of parameters, such as gap insertion and gap extension parameters, ca
 Let's align using such parameters, and take a look at a dotplot between two of the sequences. 
 
 .. jupyter-execute::
-    :raises:
 
     aligner = get_app("progressive_align", "nucleotide", indel_rate=1e-2, indel_length=1e-9)
     aln = aligner(seqs)
@@ -47,7 +45,6 @@ The dotplot clearly shows the misalignment between the two sequences. Towards th
 Taking a closer look at the poorly aligned section, we can see multiple small gaps in many of the sequences. The likelihood of this reflecting the true history of the sequences is low. It requires many indel events in many species and instead is likely to be an artefact of the alignment algorithm.
 
 .. jupyter-execute::
-    :raises:
 
     aln[2300:2500] 
 
@@ -59,7 +56,6 @@ Let's align the same sequences, but with more biologically realistic parameters.
 .. note:: The default parameters (of any program) are not always the best choice, but they are a good starting point for many alignments.
 
 .. jupyter-execute::
-    :raises:
 
     aligner = get_app("progressive_align", "nucleotide")
     aln = aligner(seqs)
@@ -70,6 +66,5 @@ The dotplot shows a much better alignment between the two sequences. The alignme
 Taking a closer look at the same section, we can see a single large gap in two of the sequences. The likelihood of this reflecting the true history of the sequences is much higher than in the previous example, as it requires far fewer independent indel events to explain the alignment.
 
 .. jupyter-execute::
-    :raises:
 
     aln[2300:2500]

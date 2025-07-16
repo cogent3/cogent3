@@ -1147,7 +1147,7 @@ def test_get_gap_align_coordinates1(seq, expected):
     expected = numpy.array(expected, dtype=int)
     if not len(expected):
         expected = expected.reshape((0, 2))
-    im, _ = cogent3.make_seq(seq).parse_out_gaps()
+    im, _ = cogent3.make_seq(seq, moltype="dna").parse_out_gaps()
     result = im.get_gap_align_coordinates()
     assert (result == expected).all(), f"{expected=}, {result=}"
 
@@ -1165,7 +1165,7 @@ def test_get_gap_align_coordinates_edge_cases(seq, expected):
     if not len(expected):
         expected = expected.reshape((0, 2))
 
-    im, _ = cogent3.make_seq(seq).parse_out_gaps()
+    im, _ = cogent3.make_seq(seq, moltype="text").parse_out_gaps()
     result = im.get_gap_align_coordinates()
     assert (result == expected).all(), f"{expected=}, {result=}"
 

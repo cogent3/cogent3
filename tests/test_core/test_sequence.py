@@ -929,6 +929,15 @@ def test_init_with_annotation_offset():
     assert s.annotation_offset == 2
 
 
+def test_init_with_annotation_offset_sliced():
+    s = c3_moltype.DNA.make_seq(seq="ACTTTGG", name="s1", annotation_offset=2)
+    sl = s[2:5]
+    assert sl.annotation_offset == 4
+    _, start, stop, _ = sl.parent_coordinates()
+    assert start == 4
+    assert stop == 7
+
+
 def test_not_is_annotated():
     """is_annotated operates correctly"""
     s = c3_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG", name="s1")
@@ -2616,7 +2625,11 @@ def test_parent_coordinates(one_seq, rev):
     seq = seq.rc() if rev else seq
     seq.name = "sliced"  # this assignment does not affect the
     # note that when a sequence has zero length, the parent seqid is None
-    assert seq.parent_coordinates() == (None, 0, 0, 1)
+    expected = (None, 0, 0, 1)
+    assert seq.parent_coordinates() == expected
+    # on a seq that's not parent of a sequence collection, the apply_offset
+    # argument should have no effect
+    assert seq.parent_coordinates(apply_offset=True) == expected
 
 
 @pytest.mark.parametrize("cls", [str, bytes])
@@ -2871,6 +2884,15 @@ def test_seqview_with_offset(offset, dna_alphabet):
     got = sv.with_offset(offset)
     assert got is not sv
     assert got.offset == offset
+
+
+@pytest.mark.parametrize("offset", [0, 4])
+def test_seqview_parent_offset(offset, dna_alphabet):
+    seq = "ACGGTGGGAC"
+    sv = c3_sequence.SeqView(parent=seq, parent_len=len(seq), alphabet=dna_alphabet)
+    got = sv[offset:]
+    # parent offset is not a slice offset
+    assert got.parent_offset == 0
 
 
 @pytest.mark.parametrize("offset", [0, 4])

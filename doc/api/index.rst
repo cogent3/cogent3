@@ -85,14 +85,6 @@ These are all top level imports. For example,
 Major cogent3 Data Types
 ************************
 
-To enforce usage of the new type classes (e.g. sequence, alignment etc...) add the following to the top of your scripts.
-
-.. code-block:: python
-
-    import os
-
-    os.environ["COGENT3_NEW_TYPE"] = "1"
-
 .. toctree::
     :maxdepth: 1
 

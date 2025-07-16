@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.10", "3.11", "3.12", "3.13.5"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: "actions/checkout@v4"
         with:
@@ -52,10 +52,10 @@ jobs:
       - name: "Installs for docs"
         run: |
           pip install --upgrade pip nox
-#          pip install ".[doc]"
+          pip install ".[doc]"
 
-#      - name: "test the docs code"
-#        run: "nox -s testdocs-3.12"
+      - name: "test the docs code"
+        run: "nox -s testdocs-3.12"
 
   build:
     name: Build wheel and sdist

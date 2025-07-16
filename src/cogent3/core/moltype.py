@@ -3,6 +3,7 @@ import functools
 import itertools
 import json
 import typing
+import warnings
 from collections import defaultdict
 from string import ascii_letters
 
@@ -18,6 +19,7 @@ from cogent3.util.misc import get_object_provenance
 
 if typing.TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.sequence import SeqViewABC
+    from cogent3.core.table import Table
 
 NumpyIntType = numpy.dtype[numpy.integer]
 NumpyIntArrayType = numpy.typing.NDArray[numpy.integer]
@@ -663,6 +665,7 @@ class MolType:
         *args,
         **kwargs,
     ) -> c3_sequence.Sequence:
+        """discontinued, use make_seq instead"""
         if args:
             kwargs["seq"] = args[0]
 
@@ -1414,24 +1417,30 @@ def _make_moltype_dict() -> dict[str, MolType]:
     return moltypes
 
 
+MolTypeLiteral = typing.Literal[
+    "dna", "rna", "protein", "protein_with_stop", "text", "bytes"
+]
+
+
 @c3warn.deprecated_args("2025.9", "no longer has an effect", discontinued="new_type")
-def get_moltype(name: str | MolType) -> MolType:
+def get_moltype(name: MolTypeLiteral | MolType) -> MolType:
     """returns the moltype with the matching name attribute"""
+    if name is None:
+        msg = "no moltype specified, defaulting to ASCII"
+        warnings.warn(msg, UserWarning, stacklevel=3)
+        return ASCII
+
     if isinstance(name, MolType):
         return name
-    # refactor: simplify
-    # intoduced to check whether we have a old-style moltype object,
-    # remove when support for the old-style moltype objects is removed
-    if hasattr(name, "label"):
-        name = name.label
-    name = name.lower()
-    if name not in _moltypes:
+
+    if name.lower() not in _moltypes:
         msg = f"unknown moltype {name!r}"
         raise ValueError(msg)
-    return _moltypes[name]
+
+    return _moltypes[name.lower()]
 
 
-def available_moltypes():
+def available_moltypes() -> "Table":
     """returns Table listing the available moltypes"""
     from cogent3.core.table import Table
 
@@ -1515,8 +1524,8 @@ BYTES = MolType(
 
 # the None value catches cases where a moltype has no label attribute
 _STYLE_DEFAULTS = {
-    getattr(mt, "label", ""): defaultdict(
-        _DefaultValue(f"ambig_{getattr(mt, 'label', '')}"),
+    getattr(mt, "name", ""): defaultdict(
+        _DefaultValue(f"ambig_{getattr(mt, 'name', '')}"),
     )
     for mt in (ASCII, BYTES, DNA, RNA, PROTEIN, PROTEIN_WITH_STOP, None)
 }

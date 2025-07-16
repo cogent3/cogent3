@@ -8,7 +8,6 @@ Degenerate IUPAC base symbols represent a site position that can have multiple p
 Let's create sample data with degenerate characters
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import make_aligned_seqs
 
@@ -19,7 +18,6 @@ Omit aligned columns containing a degenerate character
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 
@@ -34,7 +32,6 @@ Omit all degenerate characters except gaps from an alignment
 If we create the app with the argument ``gap_is_degen=False``, we can omit degenerate characters but retain gaps. 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 
@@ -48,7 +45,6 @@ Omit k-mers which contain degenerate characters
 If we create ``omit_degenerates`` with the argument ``motif_length``, it will split sequences into non-overlapping tuples of the specified length and exclude any tuple that contains a degenerate character. 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 

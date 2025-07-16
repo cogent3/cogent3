@@ -6,7 +6,11 @@ from cogent3 import load_seq
 from cogent3.core import alignment as c3_alignment
 from cogent3.core import genetic_code as c3_genetic_code
 from cogent3.core import moltype as c3_moltype
-from cogent3.core.annotation_db import GffAnnotationDb, load_annotations
+from cogent3.core.annotation_db import (
+    BasicAnnotationDb,
+    GffAnnotationDb,
+    load_annotations,
+)
 
 DNA = c3_moltype.get_moltype("dna")
 
@@ -976,3 +980,25 @@ def test_one_span_name():
     assert ospan.name == f"one-span {name}"
     s = f.as_one_span(name="newname")
     assert s.name == "newname"
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_aligned_seqs, c3_alignment.make_unaligned_seqs],
+)
+def test_get_feature_seqs_offset(mk_cls):
+    data = {
+        "s1": "GTTGAAGTAGTA",
+        "s2": "--TAAG---GTA",
+        "s3": "GCTGAAGTAGTG",
+    }
+    offset = {"s1": 20}
+    db = BasicAnnotationDb()
+    db.add_feature(seqid="s1", biotype="exon", name="exon", spans=[(24, 29)])
+    coll = mk_cls(data, annotation_db=db, moltype="dna", offset=offset)
+    assert coll.storage.offset["s1"] == offset["s1"]
+    feature = list(coll.get_features(biotype="exon", name="exon"))
+    assert feature
+    got = feature[0].get_slice()
+    got = got if mk_cls == c3_alignment.make_unaligned_seqs else got.get_seq("s1")
+    assert str(got) == "AAGTA"

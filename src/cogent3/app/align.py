@@ -18,7 +18,7 @@ from cogent3.app.data_store import get_data_source
 from cogent3.app.tree import interpret_tree_arg
 from cogent3.core.alignment import Aligned
 from cogent3.core.location import gap_coords_to_map
-from cogent3.core.moltype import get_moltype
+from cogent3.core.moltype import MolTypeLiteral, get_moltype
 from cogent3.evolve.fast_distance import get_distance_calculator
 from cogent3.evolve.models import get_model
 from cogent3.maths.util import safe_log
@@ -343,7 +343,7 @@ class align_to_ref:
         score_matrix: dict[str, float] | None = None,
         insertion_penalty: float = 20.0,
         extension_penalty: float = 2.0,
-        moltype: str = "dna",
+        moltype: MolTypeLiteral = "dna",
     ) -> None:
         """
         Parameters
@@ -632,7 +632,7 @@ class smith_waterman:
         score_matrix: dict | None = None,
         insertion_penalty: int = 20,
         extension_penalty: int = 2,
-        moltype: str = "dna",
+        moltype: MolTypeLiteral = "dna",
     ) -> None:
         """
         Parameters

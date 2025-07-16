@@ -51,8 +51,8 @@ Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 [project.optional-dependencies]
 test = [
     "cogent3-h5seqs",
-    # "piqtree>=0.6; python_version >= '3.11'",  # not supported their yet
-    "ruff==0.12.1",
+    "piqtree>=0.6; python_version >= '3.11'",
+    "ruff==0.12.3",
     "kaleido",
     "pandas",
     "plotly",
@@ -74,7 +74,7 @@ doc  = [
     "nbformat",
     "nbsphinx",
     "numpydoc",
-    # "piqtree>=0.6; python_version >= '3.11'",
+    "piqtree>=0.6; python_version >= '3.11'",
     "sphinx",
     "sphinx-autobuild",
     "pydata_sphinx_theme",

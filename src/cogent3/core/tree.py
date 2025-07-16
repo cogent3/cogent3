@@ -1312,7 +1312,7 @@ class TreeNode:
         """find the edge with the name
 
         Raises
-        -------
+        ------
         TreeError if no edge with the name is found
         """
         for node in self.preorder(include_self=True):
