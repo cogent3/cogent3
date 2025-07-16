@@ -2748,9 +2748,8 @@ class SeqViewABC(ABC):
         )
 
     @property
-    def offset(self) -> int:
-        """the annotation offset of this view"""
-        return self.slice_record.offset
+    @abstractmethod
+    def offset(self) -> int: ...
 
     @property
     def is_reversed(self) -> bool:
@@ -2883,6 +2882,11 @@ class SeqView(SeqViewABC):
     def parent_len(self) -> int:
         """length of the parent sequence"""
         return self._parent_len
+
+    @property
+    def offset(self) -> int:
+        """the annotation offset of this view"""
+        return self.slice_record.offset
 
     def _get_init_kwargs(self) -> dict:
         return {

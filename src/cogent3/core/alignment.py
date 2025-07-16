@@ -197,6 +197,11 @@ class SeqDataView(c3_sequence.SeqView):
     __slots__ = ("_parent_len", "_seqid", "_slice_record", "alphabet", "parent")
 
     @property
+    def offset(self) -> int:
+        """the annotation offset of this view"""
+        return self.slice_record.offset
+
+    @property
     def str_value(self) -> str:
         """returns the sequence as a string"""
         return self.alphabet.from_indices(self.array_value)
@@ -4305,6 +4310,11 @@ class AlignedDataView(c3_sequence.SeqViewABC):
         self._slice_record = value
 
     @property
+    def offset(self) -> int:
+        """the slice offset of this view"""
+        return self.slice_record.offset
+
+    @property
     def seqid(self) -> str:
         """the name of the sequence"""
         return self._seqid
@@ -6046,10 +6056,7 @@ class Alignment(SequenceCollection):
         elif set(seqids) & set(self.names):
             # we've been given seq names, convert to parent names
             seqids = [self.seqs[seqid].parent_coordinates()[0] for seqid in seqids]
-        elif seqids and set(seqids) <= seqid_to_seqname.keys():
-            # already correct
-            pass
-        else:
+        elif not (seqids and set(seqids) <= seqid_to_seqname.keys()):
             msg = f"unknown {seqid=}"
             raise ValueError(msg)
 
@@ -6057,8 +6064,11 @@ class Alignment(SequenceCollection):
             seqname = seqid_to_seqname[seqid]
             seq = self.seqs[seqname]
             # we use parent seqid
-            parent_id, start, stop, _ = seq.parent_coordinates()
-            offset = seq.data.offset
+            parent_id, start, stop, _ = seq.parent_coordinates(apply_offset=False)
+            # we get the annotation offset from storage
+            # because we need it to adjust the returned feature spans
+            # to the alignment coordinates
+            offset = self.storage.offset.get(seqid, 0)
 
             for feature in self.annotation_db.get_features_matching(
                 seqid=parent_id,
@@ -6066,8 +6076,8 @@ class Alignment(SequenceCollection):
                 name=name,
                 on_alignment=False,
                 allow_partial=allow_partial,
-                start=start,
-                stop=stop,
+                start=start + offset,
+                stop=stop + offset,
             ):
                 if offset:
                     feature["spans"] = (numpy.array(feature["spans"]) - offset).tolist()

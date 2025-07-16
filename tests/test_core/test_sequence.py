@@ -929,6 +929,15 @@ def test_init_with_annotation_offset():
     assert s.annotation_offset == 2
 
 
+def test_init_with_annotation_offset_sliced():
+    s = c3_moltype.DNA.make_seq(seq="ACTTTGG", name="s1", annotation_offset=2)
+    sl = s[2:5]
+    assert sl.annotation_offset == 4
+    _, start, stop, _ = sl.parent_coordinates()
+    assert start == 4
+    assert stop == 7
+
+
 def test_not_is_annotated():
     """is_annotated operates correctly"""
     s = c3_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG", name="s1")

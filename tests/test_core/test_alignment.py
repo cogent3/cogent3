@@ -683,15 +683,16 @@ def test_make_seqs_renamed_seqs(mk_cls, seq_name, parent_name, dna_alphabet):
         (c3_alignment.make_aligned_seqs, c3_alignment.AlignedSeqsData),
     ],
 )
-@pytest.mark.parametrize("seq", ["a", "b"])
-def test_make_seqs_offset(mk_cls, data_cls, seq, dna_alphabet):
+@pytest.mark.parametrize("name", ["a", "b"])
+def test_parent_coordinates_with_offset(mk_cls, data_cls, name, dna_alphabet):
     """SequenceCollection and Alignment constructor functions should handle
     offset argument"""
     data = {"a": "AGGCCC", "b": "AGAAAA"}
     offset = {"a": 1, "b": 2}
     seqs = mk_cls(data, moltype="dna", offset=offset)
-    got = seqs.get_seq(seq)
-    assert got._seq.parent_offset == offset[seq]
+    got = seqs.seqs[name]
+    expect = (name, offset[name], len(data[name]) + offset[name], 1)
+    assert got.parent_coordinates(apply_offset=True, seq_coords=True) == expect
 
     # if data is a SeqsData object, this should fail
     data = data_cls.from_seqs(data=data, alphabet=c3_moltype.DNA.degen_gapped_alphabet)
@@ -716,11 +717,39 @@ def test_make_seqs_offset(mk_cls, data_cls, seq, dna_alphabet):
 
     seqs = mk_cls([seq_1, seq_2], moltype="dna")
 
-    got = seqs.get_seq("seq_1")
-    assert got._seq.parent_offset == 1
+    offsets = {"seq_1": 1, "seq_2": 2}
+    name = "seq_1"
+    assert seqs.storage.offset == offsets
+    got = seqs.seqs[name]
+    expect = (name, offsets[name], len(seq_1) + offsets[name], 1)
+    assert got.parent_coordinates(apply_offset=True, seq_coords=True) == expect
 
-    got = seqs.get_seq("seq_2")
-    assert got._seq.parent_offset == 2
+    name = "seq_2"
+    got = seqs.seqs[name]
+    expect = (name, offsets[name], len(seq_2) + offsets[name], 1)
+    assert got.parent_coordinates(apply_offset=True, seq_coords=True) == expect
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [
+        c3_alignment.make_unaligned_seqs,
+        c3_alignment.make_aligned_seqs,
+    ],
+)
+@pytest.mark.parametrize("name", ["a", "b"])
+def test_made_seq_offset(mk_cls, name):
+    data = {"a": "AGGCCC", "b": "AGAAAA"}
+    offset = {"a": 1, "b": 2}
+    coll = mk_cls(data, moltype="dna", offset=offset)
+    sv = coll.storage.get_view(name)
+    # this is the slice offset
+    assert sv.offset == 0
+    s = coll.seqs[name]
+    _, start, stop, _ = s.parent_coordinates(seq_coords=True, apply_offset=True)
+    # this is the annotation and slice offset
+    assert start == offset[name]
+    assert stop == len(s) + offset[name]
 
 
 @pytest.mark.parametrize(
