@@ -12,10 +12,13 @@ from numpy import (
     concatenate,
     corrcoef,
     exp,
+    expm1,
     fabs,
+    finfo,
     isinf,
     isnan,
     log,
+    log1p,
     mean,
     nonzero,
     ones,
@@ -31,17 +34,11 @@ from numpy import sum as npsum
 from numpy.random import permutation, randint
 from scipy.stats import binom, f, norm, t
 from scipy.stats.distributions import chi2
+from scipy.special import ndtri, gamma
 
-from cogent3.maths.stats.distribution import fprob, ndtri, tprob, zprob
 from cogent3.maths.stats.kendall import kendalls_tau, pkendall
 from cogent3.maths.stats.ks import pkstwo, psmirnov2x
 from cogent3.maths.stats.number import NumberCounter
-from cogent3.maths.stats.special import (
-    MACHEP,
-    Gamma,
-    log_one_minus,
-    one_minus_exp,
-)
 
 # defining globals for the alternate hypotheses
 ALT_TWO_SIDED = "2"
@@ -1080,7 +1077,7 @@ def correlation_test(
 
     # Compute the confidence interval for corr_coeff using Fisher's Z
     # transform.
-    z_crit = abs(ndtri((1 - confidence_level) / 2))
+    z_crit = abs(ndtri((1 - confidence_level) / 2))  # FIX:  use scipy.special.ndtri 
     ci_low, ci_high = None, None
 
     if n > 3:
@@ -1256,7 +1253,7 @@ def z_tailed_prob(z, tails):
         return norm.sf(z)
     if tails == "low":
         return norm.cdf(z)
-    return zprob(z)
+    return 2 * norm.sf(abs(z)) # FIX:  use 2 * scipy.stats.norm.sf(abs(x)) instead of zprob 
 
 
 def t_tailed_prob(x, df, tails):
@@ -1268,7 +1265,7 @@ def t_tailed_prob(x, df, tails):
         return t.sf(x, df)
     if tails == ALT_LOW:
         return t.cdf(x, df)
-    return tprob(x, df)
+    return 2 * t.sf(abs(x), df) # FIX:  use scipy.stats.t.sf instead of tprob
 
 
 def reverse_tails(tails):
@@ -1299,7 +1296,7 @@ def multiple_comparisons(p, n):
     """
     if p > 1e-6:  # if p is large and n small, calculate directly
         return 1 - (1 - p) ** n
-    return one_minus_exp(-n * p)
+    return expm1(n * p) # FIX:  use scipy.special.expm1(-x) instead of one_minus_exp(x)
 
 
 def multiple_inverse(p_final, n):
@@ -1309,7 +1306,7 @@ def multiple_inverse(p_final, n):
     to 1 (say, within 1e-4) since we then take the ratio of two very similar
     numbers.
     """
-    return one_minus_exp(log_one_minus(p_final) / n)
+    return -expm1(log1p(-p_final) / n) # FIX:  use scipy.special.expm1(-x) instead of one_minus_exp(x) and log1p(-x) instead of log_one_minus(x)
 
 
 def multiple_n(p_initial, p_final):
@@ -1317,7 +1314,7 @@ def multiple_n(p_initial, p_final):
 
     WARNING: not very accurate when p_final is very close to 1.
     """
-    return log_one_minus(p_final) / log_one_minus(p_initial)
+    return log1p(-p_final) / log1p(-p_initial)
 
 
 def fisher(probs):
@@ -1370,8 +1367,10 @@ def f_two_sample(a, b, tails=None):
     if tails == ALT_HIGH:
         return dfn, dfd, F, f.sf(F, dfn, dfd)
     side = "right" if var(a) >= var(b) else "left"
-    return dfn, dfd, F, fprob(dfn, dfd, F, side=side)
-
+    if side == "right":  # FIX:  use scipy.stats.f.sf for the right side and scipy.stats.f.cdf for the left side instead of fprob
+        return dfn, dfd, F, 2 * f.sf(F, dfn, dfd)
+    else:
+        return dfn, dfd, F, 2 * f.cdf(F, dfn, dfd)
 
 def ANOVA_one_way(a):
     """Performs a one way analysis of variance
@@ -1575,7 +1574,7 @@ def ks_boot(x, y, alt="two sided", num_reps=1000):
     One important difference is I preserve the original sample sizes
     instead of making them equal.
     """
-    tol = MACHEP * 100
+    tol = finfo(float).eps * 100 # FIX:  use numpy.finfo(float).eps instead of MACHEP
     observed_stat, _p = ks_test(x, y, exact=False, warn_for_ties=False)
     num_greater = 0
     for sampled_x, sampled_y in _get_bootstrap_sample(x, y, num_reps):
@@ -1649,7 +1648,7 @@ def mw_test(x, y):
     numerator = U - prod / 2
     denominator = sqrt((prod / (total * (total - 1))) * ((total**3 - total - T) / 12))
     z = numerator / denominator
-    p = zprob(z)
+    p = 2 * norm.sf(abs(z))  # FIX:  use scipy.stats.norm.sf instead of zprob
     return U, p
 
 
@@ -1667,7 +1666,7 @@ def mw_boot(x, y, num_reps=1000):
     -----
     Uses the same Monte-Carlo resampling code as kw_boot
     """
-    tol = MACHEP * 100
+    tol = finfo(float).eps * 100 # FIX:  use numpy.finfo(float).eps instead of MACHEP
     observed_stat, obs_p = mw_test(x, y)
     num_greater = 0
     for sampled_x, sampled_y in _get_bootstrap_sample(x, y, num_reps):
@@ -1847,14 +1846,14 @@ def kendall_correlation(x, y, alt="two sided", exact=None, warn=True):
         q = round((tau + 1) * num * (num - 1) / 4)
         if alt == ALT_TWO_SIDED:
             if q > num * (num - 1) / 4:
-                p = 1 - pkendall(q - 1, num, Gamma(num + 1), working)
+                p = 1 - pkendall(q - 1, num, gamma(num + 1), working) # FIX:  use scipy.special.gamma instead of Gamma
             else:
-                p = pkendall(q, num, Gamma(num + 1), working)
+                p = pkendall(q, num, gamma(num + 1), working) # FIX:  use scipy.special.gamma instead of Gamma
             p = min(2 * p, 1)
         elif alt == ALT_HIGH:
-            p = 1 - pkendall(q - 1, num, Gamma(num + 1), working)
+            p = 1 - pkendall(q - 1, num, gamma(num + 1), working) # FIX:  use scipy.special.gamma instead of Gamma
         elif alt == ALT_LOW:
-            p = pkendall(q, num, Gamma(num + 1), working)
+            p = pkendall(q, num, gamma(num + 1), working) # FIX:  use scipy.special.gamma instead of Gamma
     else:
         tau, p = kendalls_tau(x, y, True)
         if alt == ALT_HIGH:

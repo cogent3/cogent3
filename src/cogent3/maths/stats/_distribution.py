@@ -4,30 +4,19 @@ which is (c) Stephen L. Moshier 1984, 1995.
 """
 
 from numpy import arctan as atan
-from numpy import array, exp, sqrt
+from numpy import array, exp, sqrt, expm1, log1p, pi, finfo, clip
+
 from scipy.stats import f, norm, t
 from scipy.stats.distributions import chi2
+from scipy.special import betainc, gammainc, gammaincc, gammainccinv, betaincinv, ndtri
+from scipy.stats import binom
 
-from cogent3.maths.stats.special import (
-    MACHEP,
-    MAXNUM,
-    PI,
-    betai,
-    expm1,
-    fix_rounding_error,
-    igam,
-    igamc,
-    igami,
-    incbi,
-    ln_binomial,
-    log1p,
-    ndtri,
-)
+
+
+#.stats.binom import logpmf
 
 # ndtri import b/c it should be available via this module
 
-
-incbet = betai  # shouldn't have renamed it...
 
 # Probability integrals: low gives left-hand tail, high gives right-hand tail.
 
@@ -57,7 +46,7 @@ def binomial_exact(successes, trials, prob):
     if (successes < 0) or (trials < successes):
         msg = "Binomial successes must be between 0 and trials."
         raise ValueError(msg)
-    return exp(ln_binomial(successes, trials, prob))
+    return exp(binom.logpmf(successes, trials, prob))
 
 
 def fprob(dfn, dfd, F, side="right"):
@@ -95,7 +84,7 @@ def stdtr(k, t):
     if t < -2:
         rk = k
         z = rk / (rk + t * t)
-        return 0.5 * betai(0.5 * rk, 0.5, z)
+        return 0.5 * betainc(0.5 * rk, 0.5, z)
     # compute integral from -t to + t
     x = -t if t < 0 else t
 
@@ -115,13 +104,13 @@ def stdtr(k, t):
                 f += tz
                 j += 2
             p += f * xsqk / z
-        p *= 2 / PI
+        p *= 2 / pi
     else:
         # even k
         f = 1
         tz = 1
         j = 2
-        while (j <= (k - 2)) and ((tz / f) > MACHEP):
+        while (j <= (k - 2)) and ((tz / f) > finfo(float).eps):
             tz *= (j - 1) / (z * j)
             f += tz
             j += 2
@@ -135,11 +124,11 @@ def stdtr(k, t):
 def bdtr(k, n, p):
     """Binomial distribution, 0 through k.
 
-    Uses formula bdtr(k, n, p) = betai(n-k, k+1, 1-p)
+    Uses formula bdtr(k, n, p) = betainc(n-k, k+1, 1-p)
 
-    See Cephes docs for details.
+    See scipy docs for details.
     """
-    p = fix_rounding_error(p)
+    p = clip(p,0,1) # ensure p is between 0 and 1
     if (p < 0) or (p > 1):
         msg = "Binomial p must be between 0 and 1."
         raise ValueError(msg)
@@ -151,17 +140,17 @@ def bdtr(k, n, p):
     dn = n - k
     if k == 0:
         return pow(1 - p, dn)
-    return betai(dn, k + 1, 1 - p)
+    return betainc(dn, k + 1, 1 - p)
 
 
 def bdtrc(k, n, p):
     """Complement of binomial distribution, k+1 through n.
 
-    Uses formula bdtrc(k, n, p) = betai(k+1, n-k, p)
+    Uses formula bdtrc(k, n, p) = betainc(k+1, n-k, p)
 
-    See Cephes docs for details.
+    See scipy docs for details.
     """
-    p = fix_rounding_error(p)
+    p = clip(p,0,1) # ensure p is between 0 and 1
     if (p < 0) or (p > 1):
         msg = "Binomial p must be between 0 and 1."
         raise ValueError(msg)
@@ -175,7 +164,7 @@ def bdtrc(k, n, p):
         dk = -expm1(dn * log1p(-p)) if p < 0.01 else 1 - pow(1.0 - p, dn)
     else:
         dk = k + 1
-        dk = betai(dk, dn, p)
+        dk = betainc(dk, dn, p)
     return dk
 
 
@@ -190,13 +179,13 @@ def pdtr(k, m):
     if m < 0:
         msg = "Poisson m must be >= 0."
         raise ValueError(msg)
-    return igamc(k + 1, m)
+    return gammaincc(k + 1, m)
 
 
 def pdtrc(k, m):
     """Returns sum of right tail of Poisson distribution, k+1 through infinity.
 
-    See Cephes docs for details.
+    See scipy docs for details.
     """
     if k < 0:
         msg = "Poisson k must be >= 0."
@@ -204,7 +193,7 @@ def pdtrc(k, m):
     if m < 0:
         msg = "Poisson m must be >= 0."
         raise ValueError(msg)
-    return igam(k + 1, m)
+    return gammainc(k + 1, m)
 
 
 def gdtr(a, b, x):
@@ -212,7 +201,7 @@ def gdtr(a, b, x):
     if x < 0.0:
         msg = "x must be at least 0."
         raise ZeroDivisionError(msg)
-    return igam(b, a * x)
+    return gammainc(b, a * x)
 
 
 def gdtrc(a, b, x):
@@ -220,7 +209,7 @@ def gdtrc(a, b, x):
     if x < 0.0:
         msg = "x must be at least 0."
         raise ZeroDivisionError(msg)
-    return igamc(b, a * x)
+    return gammainc(b, a * x)
 
 
 # note: ndtri for the normal distribution is already imported
@@ -228,7 +217,7 @@ def gdtrc(a, b, x):
 
 def stdtri(k, p):
     """Returns inverse of Student's t distribution. k = df."""
-    p = fix_rounding_error(p)
+    p = clip(p,0,1) # ensure p is between 0 and 1
     # handle easy cases
     if k <= 0 or p < 0.0 or p > 1.0:
         msg = "k must be >= 1, p between 1 and 0."
@@ -239,7 +228,7 @@ def stdtri(k, p):
         if p == 0.5:
             return 0.0
         z = 1.0 - 2.0 * p
-        z = incbi(0.5, 0.5 * rk, abs(z))
+        z = betaincinv(0.5, 0.5 * rk, abs(z))
         t = sqrt(rk * z / (1.0 - z))
         if p < 0.5:
             t = -t
@@ -249,7 +238,7 @@ def stdtri(k, p):
     if p >= 0.5:
         p = 1.0 - p
         rflg = 1
-    z = incbi(0.5 * rk, 0.5, 2.0 * p)
+    z = betaincinv(0.5 * rk, 0.5, 2.0 * p)
 
     if MAXNUM * z < rk:
         return rflg * MAXNUM
@@ -262,12 +251,12 @@ def pdtri(k, p):
 
     Finds Poission mean such that integral from 0 to k is p.
     """
-    p = fix_rounding_error(p)
+    p = clip(p,0,1) # ensure p is between 0 and 1
     if k < 0 or p < 0.0 or p >= 1.0:
         msg = "k must be >=0, p between 1 and 0."
         raise ZeroDivisionError(msg)
     v = k + 1
-    return igami(v, p)
+    return gammainccinv(v, p)
 
 
 def bdtri(k, n, y):
@@ -275,7 +264,7 @@ def bdtri(k, n, y):
 
     Finds binomial p such that sum of terms 0-k reaches cum probability y.
     """
-    y = fix_rounding_error(y)
+    y = clip(y,0,1) # ensure y is between 0 and 1
     if y < 0.0 or y > 1.0:
         msg = "y must be between 1 and 0."
         raise ZeroDivisionError(msg)
@@ -287,8 +276,8 @@ def bdtri(k, n, y):
         p = -expm1(log1p(y - 1.0) / dn) if y > 0.8 else 1.0 - y ** (1.0 / dn)
     else:
         dk = k + 1
-        p = incbet(dn, dk, 0.5)
-        p = incbi(dk, dn, 1.0 - y) if p > 0.5 else 1.0 - incbi(dn, dk, y)
+        p = betainc(dn, dk, 0.5)
+        p = betaincinv(dk, dn, 1.0 - y) if p > 0.5 else 1.0 - incbi(dn, dk, y)
     return p
 
 
@@ -300,29 +289,29 @@ def gdtri(a, b, y):
     gets around to translating that, only use this function for values of
     p greater than 1e-15 or so!
     """
-    y = fix_rounding_error(y)
+    y = clip(y,0,1) # ensure y is between 0 and 1
     if y < 0.0 or y > 1.0 or a <= 0.0 or b < 0.0:
         msg = "a and b must be non-negative, y from 0 to 1."
         raise ZeroDivisionError(msg)
-    return igami(b, 1.0 - y) / a
+    return gammainccinv(b, 1.0 - y) / a
 
 
 def fdtri(a, b, y):
     """Returns inverse of F distribution."""
-    y = fix_rounding_error(y)
+    y = clip(y,0,1) # ensure y is between 0 and 1
     if a < 1.0 or b < 1.0 or y <= 0.0 or y > 1.0:
         msg = "y must be between 0 and 1; a and b >= 1"
         raise ZeroDivisionError(msg)
     y = 1.0 - y
     # Compute probability for x = 0.5
-    w = incbet(0.5 * b, 0.5 * a, 0.5)
+    w = betainc(0.5 * b, 0.5 * a, 0.5)
     # If that is greater than y, then the solution w < .5.
     # Otherwise, solve at 1-y to remove cancellation in (b - b*w).
     if w > y or y < 0.001:
-        w = incbi(0.5 * b, 0.5 * a, y)
+        w = betaincinv(0.5 * b, 0.5 * a, y)
         x = (b - b * w) / (a * w)
     else:
-        w = incbi(0.5 * a, 0.5 * b, 1.0 - y)
+        w = betaincinv(0.5 * a, 0.5 * b, 1.0 - y)
         x = b * w / (a * (1.0 - w))
     return x
 

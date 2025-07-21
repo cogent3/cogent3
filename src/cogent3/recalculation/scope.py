@@ -4,7 +4,7 @@ import warnings
 from contextlib import contextmanager
 
 import numpy
-from scipy.stats.distributions import chi2
+from scipy.stats import chi2
 
 from cogent3.maths.optimisers import MaximumEvaluationsReached
 
@@ -766,7 +766,7 @@ class ParameterController:
         """Make a setting -> value function"""
         if p is not None:
             assert dropoff is None, (p, dropoff)
-            dropoff = chi2.isf(p, 1) / 2.0
+            dropoff = chi2.isf(p, 1) / 2.0 # FIX:  use scipy.stats.chi2.isf 
 
         if dropoff is None:
 
