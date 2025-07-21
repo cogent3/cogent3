@@ -1077,7 +1077,7 @@ def correlation_test(
 
     # Compute the confidence interval for corr_coeff using Fisher's Z
     # transform.
-    z_crit = abs(ndtri((1 - confidence_level) / 2))  # FIX:  use scipy.special.ndtri 
+    z_crit = abs(ndtri((1 - confidence_level) / 2))  # FIX:  use scipy.special.ndtri
     ci_low, ci_high = None, None
 
     if n > 3:
@@ -1253,7 +1253,7 @@ def z_tailed_prob(z, tails):
         return norm.sf(z)
     if tails == "low":
         return norm.cdf(z)
-    return 2 * norm.sf(abs(z)) # FIX:  use 2 * scipy.stats.norm.sf(abs(x)) instead of zprob 
+    return 2 * norm.sf(abs(z)) # FIX:  use 2 * scipy.stats.norm.sf(abs(x)) instead of zprob
 
 
 def t_tailed_prob(x, df, tails):

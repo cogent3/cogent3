@@ -121,5 +121,5 @@ def kendalls_tau(x, y, return_p=True):
             + v2 / (9 * n * (n - 1) * (n - 2))
         )
     if return_p:
-        return tau, 2 * norm.sf(abs(stat / variance**0.5)) # FIX:  use scipy 
+        return tau, 2 * norm.sf(abs(stat / variance**0.5)) # FIX:  use scipy.stats.norm.sf instead of zprob
     return tau

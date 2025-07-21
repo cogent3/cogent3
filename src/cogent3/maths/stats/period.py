@@ -3,7 +3,7 @@ from random import choice
 
 import numpy
 
-from scipy.special import gammainc 
+from scipy.special import gammainc
 from math import factorial
 
 def chi_square(x, p, df=1):
