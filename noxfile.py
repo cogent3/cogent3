@@ -96,20 +96,6 @@ def testdocs(session):
             "-1",
             "-s",
             "rst",
+            *session.posargs,
             external=True,
         )
-
-
-@nox.session(python=None)
-def test_new_type(session):
-    session.env["COGENT3_NEW_TYPE"] = "1"
-    session.chdir("tests")
-    session.run(
-        "pytest",
-        "-s",
-        "--ignore",
-        "test_app_mpi.py",
-        "-m",
-        "not slow",
-        *session.posargs,
-    )

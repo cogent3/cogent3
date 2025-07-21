@@ -81,7 +81,7 @@ class TestTree(TestCase):
         data = {
             "seq1": "AGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT",
         }
-        aln2 = cogent3.make_aligned_seqs(data=data, moltype=DNA)
+        aln2 = cogent3.make_aligned_seqs(data, moltype=DNA)
         tree2 = proc(aln2)
         assert isinstance(tree2, NotCompleted)
 

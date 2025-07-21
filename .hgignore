@@ -42,3 +42,4 @@ hg_old*zip
 hg_old/*
 venv*
 .venv*
+.mypy*

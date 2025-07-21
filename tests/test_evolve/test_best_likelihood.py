@@ -26,7 +26,7 @@ def makeSampleAlignment(gaps=False, ambiguities=False):
     else:
         seqs_list = ["AAACCCGGGTTTA", "CCCGGGTTTAAAC", "GGGTTTAAACCCG"]
     seqs = list(zip("abc", seqs_list, strict=False))
-    return cogent3.make_aligned_seqs(data=seqs, moltype="dna")
+    return cogent3.make_aligned_seqs(seqs, moltype="dna")
 
 
 class TestGoldman93(TestCase):

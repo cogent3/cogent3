@@ -85,24 +85,16 @@ These are all top level imports. For example,
 Major cogent3 Data Types
 ************************
 
-To enforce usage of the new type classes (e.g. sequence, alignment etc...) add the following to the top of your scripts.
-
-.. code-block:: python
-
-    import os
-
-    os.environ["COGENT3_NEW_TYPE"] = "1"
-
 .. toctree::
     :maxdepth: 1
 
-    new_alignment/alignment
+    alignment/alignment
     annotation/annotation
     annotation_db/annotation_db
-    new_sequence/sequence
-    new_genetic_code/genetic_code
-    new_moltype/moltype
-    new_alphabet/alphabet
+    sequence/sequence
+    genetic_code/genetic_code
+    moltype/moltype
+    alphabet/alphabet
     table/table
     tree/tree
 

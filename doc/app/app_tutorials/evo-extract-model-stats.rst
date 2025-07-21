@@ -6,15 +6,6 @@
 Extracting maximum likelihood estimates from a ``model_result``
 ---------------------------------------------------------------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 If you want to get the stats from a fitted model, use the ``tabulate_stats`` app.
 
 We demonstrate this by first fitting a model.
@@ -23,7 +14,7 @@ We demonstrate this by first fitting a model.
 
     from cogent3 import get_app
 
-    loader = get_app("load_aligned", format="fasta", moltype="dna")
+    loader = get_app("load_aligned", format_name="fasta", moltype="dna")
     aln = loader("data/primate_brca1.fasta")
     model = get_app("model", "GN", tree="data/primate_brca1.tree")
     result = model(aln)

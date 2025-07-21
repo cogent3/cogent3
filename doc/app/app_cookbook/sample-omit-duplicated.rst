@@ -1,21 +1,11 @@
 Remove duplicated sequences from an alignment
 ---------------------------------------------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 The ``omit_duplicated`` app removes redundant sequences from a sequence collection (aligned or unaligned).
 
 Let's create sample data with duplicated sequences.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import make_aligned_seqs
 
@@ -32,7 +22,6 @@ Let's create sample data with duplicated sequences.
 Creating the ``omit_duplicated`` app with the argument ``choose="longest"`` selects the duplicated sequence with the least number of gaps and ambiguous characters. In the above example, only one of ``c`` and ``d`` will be retained.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 
@@ -42,7 +31,6 @@ Creating the ``omit_duplicated`` app with the argument ``choose="longest"`` sele
 Creating the ``omit_duplicated`` app with the argument  ``choose=None`` means only unique sequences are retained.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 
@@ -54,7 +42,6 @@ The ``mask_degen`` argument specifies how to treat matches between sequences wit
 Let's create sample data that has a DNA ambiguity code.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import make_aligned_seqs
 
@@ -70,7 +57,6 @@ Let's create sample data that has a DNA ambiguity code.
 Since "Y" represents pyrimidines where the site can be either "C" or "T", s1 indeed matches s2 and one of them will be removed. 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 

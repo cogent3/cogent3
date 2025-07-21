@@ -6,15 +6,6 @@
 Applying a time-reversible nucleotide model
 -------------------------------------------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 We display the available set of nucleotide substitution models.
 
 .. jupyter-execute::
@@ -32,7 +23,7 @@ We specify the general time-reversible model (`Lanave et al <https://www.ncbi.nl
 
     from cogent3 import get_app
 
-    loader = get_app("load_aligned", format="fasta", moltype="dna")
+    loader = get_app("load_aligned", format_name="fasta", moltype="dna")
     aln = loader("data/primate_brca1.fasta")
     model = get_app("model",
         "GTR", tree="data/primate_brca1.tree", optimise_motif_probs=True

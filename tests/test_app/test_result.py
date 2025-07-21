@@ -1,4 +1,3 @@
-import os
 import pathlib
 
 import pytest
@@ -16,20 +15,18 @@ from cogent3.app.result import (
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.dict_array import DictArray
 
-_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
-
 
 def test_deserialised_values():
     """correctly deserialises values"""
     DNA = cogent3.get_moltype("dna")
-    data = {"type": "cogent3.core.moltype.MolType", "moltype": "dna"}
+    data = {"type": "cogent3.core.c3_moltype.MolType", "moltype": "dna"}
     result = generic_result(source="blah.json")
     result["key"] = data
     result.deserialised_values()
     got = result["key"]
     assert got is DNA
     # if we have a type value without "cogent3", leaves as is
-    data = {"type": "core.moltype.MolType", "moltype": "dna"}
+    data = {"type": "core.c3_moltype.MolType", "moltype": "dna"}
     result = generic_result(source="blah.json")
     result["key"] = data
     result.deserialised_values()
@@ -46,7 +43,7 @@ def test_deserialised_values():
 
 def test_repr_str():
     """it works"""
-    data = {"type": "cogent3.core.moltype.MolType", "moltype": "dna"}
+    data = {"type": "cogent3.core.c3_moltype.MolType", "moltype": "dna"}
     result = generic_result(source="blah.json")
     result["key"] = data
     repr(result)
@@ -55,7 +52,7 @@ def test_repr_str():
 
 def test_keys():
     """it works"""
-    data = {"type": "cogent3.core.moltype.MolType", "moltype": "dna"}
+    data = {"type": "cogent3.core.c3_moltype.MolType", "moltype": "dna"}
     result = generic_result(source="blah.json")
     result["key"] = data
     keys = result.keys()
@@ -75,26 +72,24 @@ def test_infers_source():
     source = pathlib.Path("path/blah.fasta")
     aln = cogent3.make_aligned_seqs(
         {"A": "ACGT"},
-        info={"source": str(source), "random_key": 1234},
+        info={"random_key": 1234},
         moltype="dna",
+        source=str(source),
     )
     gr = generic_result(aln)
     assert gr.source == source.name
 
     # or Path
-    aln.info.source = source
+    aln.source = source
     gr = generic_result(aln)
     assert str(gr.source) == source.name
 
     # or DataMember
-    aln.info.source = DataMember(data_store=None, unique_id=source.name)
+    aln.source = DataMember(data_store=None, unique_id=source.name)
     gr = generic_result(aln)
     assert str(gr.source) == source.name
 
-    if _NEW_TYPE:
-        aln.source = None
-    else:
-        aln.info = {}
+    aln.source = None
     with pytest.raises(ValueError):
         generic_result(aln)
 
@@ -106,7 +101,7 @@ def test_model_repr():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
+    aln = cogent3.make_aligned_seqs(_data, moltype="dna")
     mod = evo_app.model(
         "F81",
         show_progress=False,
@@ -125,7 +120,7 @@ def test_model_result_alignment():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
+    aln = cogent3.make_aligned_seqs(_data, moltype="dna")
     mod = evo_app.model(
         "F81",
         show_progress=False,
@@ -143,7 +138,7 @@ def test_model_name_lf_name():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
+    aln = cogent3.make_aligned_seqs(_data, moltype="dna")
     mod = evo_app.model(
         "F81",
         name="blah",
@@ -161,7 +156,7 @@ def test_model_result_alignment_split_pos_model():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
+    aln = cogent3.make_aligned_seqs(_data, moltype="dna")
     mod = evo_app.model(
         "F81",
         split_codons=True,
@@ -182,7 +177,7 @@ def test_model_result_repr_split_pos_model():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
+    aln = cogent3.make_aligned_seqs(_data, moltype="dna")
     mod = evo_app.model(
         "F81",
         split_codons=True,
@@ -200,7 +195,7 @@ def test_model_result_tree_split_pos_model():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
+    aln = cogent3.make_aligned_seqs(_data, moltype="dna")
     mod = evo_app.model(
         "F81",
         split_codons=True,
@@ -221,7 +216,7 @@ def test_model_result_simulate_alignment():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
+    aln = cogent3.make_aligned_seqs(_data, moltype="dna")
     mod = evo_app.model(
         "F81",
         split_codons=True,
@@ -241,7 +236,7 @@ def test_model_result_tree_discrete_time():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
+    aln = cogent3.make_aligned_seqs(_data, moltype="dna")
     model1 = evo_app.model(
         "BH",
         opt_args={"max_evaluations": 25, "limit_action": "ignore"},
@@ -266,7 +261,7 @@ def test_model_result_setitem():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
+    aln = cogent3.make_aligned_seqs(_data, moltype="dna")
     with pytest.raises(TypeError):
         r["name"] = aln
 
@@ -295,7 +290,7 @@ def model_results():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
+    aln = cogent3.make_aligned_seqs(_data, moltype="dna")
     model1 = evo_app.model(
         "F81",
         opt_args={"max_evaluations": 25, "limit_action": "ignore"},
@@ -401,7 +396,7 @@ def test_hypothesis_pvalue():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = cogent3.make_aligned_seqs(data=_data, moltype="dna")
+    aln = cogent3.make_aligned_seqs(_data, moltype="dna")
     model1 = evo_app.model(
         "F81",
         opt_args={"max_evaluations": 25, "limit_action": "ignore"},

@@ -6,15 +6,6 @@
 ``natsel_sitehet`` – a test of site heterogeneity
 -------------------------------------------------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 This app evaluates evidence for whether sites differ in their mode of
 natural selection (`Nielsen and Yang
 1998 <https://www.ncbi.nlm.nih.gov/pubmed/9539414>`__).
@@ -23,7 +14,7 @@ natural selection (`Nielsen and Yang
 
     from cogent3 import get_app
 
-    loader = get_app("load_aligned", format="fasta", moltype="dna")
+    loader = get_app("load_aligned", format_name="fasta", moltype="dna")
     aln = loader("data/primate_brca1.fasta")
 
     sites_differ = get_app("natsel_sitehet",

@@ -6,7 +6,7 @@ from itertools import combinations
 import numpy
 from numpy import polyval, triu_indices
 
-from cogent3 import get_moltype, make_tree
+from cogent3 import MolTypeLiteral, get_moltype, make_tree
 from cogent3.evolve.fast_distance import (
     DistanceMatrix,
     get_distance_calculator,
@@ -54,7 +54,7 @@ class fast_slow_dist:
     def __init__(
         self,
         distance: str | None = None,
-        moltype: str | None = None,
+        moltype: MolTypeLiteral | None = None,
         fast_calc: str | None = None,
         slow_calc: str | None = None,
     ) -> None:
@@ -62,7 +62,7 @@ class fast_slow_dist:
         Parameters
         ----------
         moltype
-            cogent3 moltype
+            cogent3 moltype name
         distance
             Name of a distance method available as both fast and slow calculator.
         fast_calc

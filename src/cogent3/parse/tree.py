@@ -86,6 +86,10 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
     explicitly).
     """
     data = lines if isinstance(lines, str) else "".join(lines)
+    data = data.strip()
+    if not data.endswith(";"):
+        data = f"{data};"
+
     # skip arb comment stuff if present: start at first paren
     paren_index = data.find("(")
     data = data[paren_index:]

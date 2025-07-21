@@ -3,17 +3,29 @@
 which is (c) Stephen L. Moshier 1984, 1995.
 """
 
+from math import floor
+
 from numpy import arctan as atan
 from numpy import array, exp, sqrt, expm1, log1p, pi, finfo, clip
 
 from scipy.stats import f, norm, t
 from scipy.stats.distributions import chi2
-from scipy.special import betainc, gammainc, gammaincc, gammainccinv, betaincinv, ndtri
-from scipy.stats import binom
 
-
-
-#.stats.binom import logpmf
+from cogent3.maths.stats.special import (
+    MACHEP,
+    MAXNUM,
+    PI,
+    betai,
+    expm1,
+    fix_rounding_error,
+    igam,
+    igamc,
+    igami,
+    incbi,
+    ln_binomial,
+    log1p,
+    ndtri,
+)
 
 # ndtri import b/c it should be available via this module
 
@@ -31,7 +43,13 @@ def tprob(x, df):
     return 2 * t.sf(abs(x), df)
 
 
-def binomial_exact(successes, trials, prob):
+@deprecated_callable(
+    "2025.9",  # this function will be removed from release 2025.9
+    "Use scipy.stats.binom.pmf if both `sucesses` and `trials` are integers, or approximate_binomial_pmf if either is a float.",
+    new="scipy.stats.binom.pmf",
+    is_discontinued=True,
+)
+def binomial_exact(successes, trials, prob):  # pragma: no cover
     """Returns binomial probability of exactly X successes.
 
     Works for integer and floating point values.
@@ -46,7 +64,7 @@ def binomial_exact(successes, trials, prob):
     if (successes < 0) or (trials < successes):
         msg = "Binomial successes must be between 0 and trials."
         raise ValueError(msg)
-    return exp(binom.logpmf(successes, trials, prob))
+    return exp(ln_binomial(successes, trials, prob))
 
 
 def fprob(dfn, dfd, F, side="right"):

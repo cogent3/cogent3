@@ -12,15 +12,6 @@ Inferring Amino Acid frequencies with a nonstationary model
 
 .. sectionauthor:: Peter Goodman, Andrew Wheeler
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 This example demonstrates how to apply a non-stationary, branch-heterogeneous maximum likelihood model to infer state frequency vectors across different branches or branch groups on a phylogenetic tree, highlighting a practical use case. The model used is a maximum likelihood, time-heterogeneous, and time-reversible model.
 
 Non-stationarity means that amino acid frequencies are not fixed over time. This characteristic allows a non-stationary model to infer new frequencies along different branches or clades of a tree.

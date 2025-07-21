@@ -6,15 +6,6 @@
 Sequence Features
 =================
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 A sequence "feature" is an annotated segment, with the annotations being generated either computationally, e.g. repeat classification, or experimentally, e.g. single nucleotide polymorphism. In this example, we just load both sequence and features from a GenBank record.
 
 Drawing all features on a sequence segment

@@ -14,11 +14,9 @@ from urllib.parse import urlparse
 from warnings import warn
 
 import numpy
-from numpy import array, finfo, float64, ndarray, zeros
+from numpy import array, finfo, float64, floating, integer, ndarray, zeros
 
-from cogent3.util import warning as c3warn
-
-if typing.TYPE_CHECKING:
+if typing.TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Callable
 
 
@@ -383,15 +381,6 @@ class FunctionWrapper:
 
 class ConstraintError(Exception):
     """Raised when constraint on a container is violated."""
-
-
-@c3warn.deprecated_callable(
-    version="2025.6",
-    reason="The function is not used in cogent3 and will be removed in a future release.",
-)
-def identity(x):  # pragma: no cover
-    """Deprecated: This function will be removed in a future release."""
-    return x
 
 
 class ConstrainedContainer:
@@ -1128,3 +1117,18 @@ class negate_condition:
 
     def __call__(self, *args: Any, **kwargs: Any) -> bool:
         return not bool(self.func(*args, **kwargs))
+
+
+def is_number(v) -> bool:
+    """built in or numpy number type"""
+    return isinstance(v, (int, float, integer, floating))
+
+
+def is_int(v) -> bool:
+    """built in or numpy int type"""
+    return isinstance(v, (int, integer))
+
+
+def is_float(v) -> bool:
+    """built in or numpy float type"""
+    return isinstance(v, (float, floating))

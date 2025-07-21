@@ -6,28 +6,18 @@
 Loading unaligned sequence data
 -------------------------------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 We can load unaligned sequence data using the ``load_unaligned`` app, this will return a ``SequenceCollection``. 
 
 Loading unaligned DNA sequences from a single fasta file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In this example, we load unaligned DNA sequences from a single fasta file using the ``load_unaligned`` app. We specify the molecular type ``(moltype="protein")`` and the file format ``(format="fasta")``.
+In this example, we load unaligned DNA sequences from a single fasta file using the ``load_unaligned`` app. We specify the molecular type ``(moltype="protein")`` and the file format ``(format_name="fasta")``.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 
-    load_unaligned_app = get_app("load_unaligned", format="fasta", moltype="protein")
+    load_unaligned_app = get_app("load_unaligned", format_name="fasta", moltype="protein")
     seqs = load_unaligned_app("data/inseqs_protein.fasta")
     seqs
 
@@ -51,7 +41,6 @@ Here we open a read-only (``mode="r"``) data store that identifies all fasta fil
     path_to_dir = tmpdir.name
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app, open_data_store
 
@@ -65,13 +54,12 @@ In this example, our process loads the unaligned sequences using ``load_unaligne
 .. note:: Apps that are "writers" require a data store to write to, learn more about writers :ref:`here! <writers>`. 
 
 .. jupyter-execute::
-    :raises:
 
     out_dstore = open_data_store(path_to_dir, suffix="tsv", mode="w")
 
-    load_unaligned_app = get_app("load_unaligned", format="fasta", moltype="dna")
+    load_unaligned_app = get_app("load_unaligned", format_name="fasta", moltype="dna")
     jdist = get_app("jaccard_dist")
-    writer = get_app("write_tabular", out_dstore, format="tsv")
+    writer = get_app("write_tabular", out_dstore, format_name="tsv")
 
     process = load_unaligned_app + jdist + writer
 
@@ -80,7 +68,6 @@ In this example, our process loads the unaligned sequences using ``load_unaligne
 Now we're good to go! We can apply ``process`` to our data store of fasta sequences. ``result`` is a data store, which you can index to see individual data members. We can inspect a given data member using the ``.read()`` on data members. 
 
 .. jupyter-execute::
-    :raises:
 
     result = process.apply_to(fasta_seq_dstore)
     print(result[1].read())

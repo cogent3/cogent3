@@ -23,7 +23,7 @@ def load_alignment(annotate1=False, annotate2=False):
     db = GffAnnotationDb()
 
     path = str(pathlib.Path(__file__).parent.parent / "data/brca1_5.paml")
-    aln = load_aligned_seqs(path, array_align=False, moltype="dna")
+    aln = load_aligned_seqs(path, moltype="dna")
     aln = aln.omit_gap_pos()
     if annotate1:
         db.add_feature(
@@ -373,8 +373,6 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         counts = aln.count_gaps_per_seq()
         assert not hasattr(counts, "drawable")
         self._check_drawable_styles(aln.count_gaps_per_seq, styles)
-        # now ArrayAlignment
-        aln = aln.to_type(array_align=True)
         self._check_drawable_styles(aln.count_gaps_per_seq, styles)
 
     def test_coevo_drawables(self):  # ported
@@ -385,8 +383,6 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         coevo = aln.coevolution(show_progress=False)
         assert not hasattr(coevo, "drawable")
         self._check_drawable_styles(aln.coevolution, styles, show_progress=False)
-        # now ArrayAlignment
-        aln = aln.to_type(array_align=True)
         self._check_drawable_styles(aln.coevolution, styles, show_progress=False)
 
     def test_coevo_annotated(self):  # ported
@@ -405,16 +401,13 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         drawable = aln.information_plot()
         assert isinstance(drawable, Drawable)
         self._check_drawable_attrs(drawable.figure, "scatter")
-        # ArrayAlignment
-        aln = aln.to_type(array_align=True)
         drawable = aln.information_plot()
         self._check_drawable_attrs(drawable.figure, "scatter")
 
     def test_get_drawable(self):  # ported
         """sliced alignment with features returns a drawable"""
         aln = make_aligned_seqs(
-            data={"a": "AAACGGTTT", "b": "CAA--GTAA"},
-            array_align=False,
+            {"a": "AAACGGTTT", "b": "CAA--GTAA"},
             moltype="dna",
         )
         db = GffAnnotationDb()

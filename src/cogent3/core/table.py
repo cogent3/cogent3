@@ -11,6 +11,7 @@ Table can read pickled and delimited formats.
 
 import csv
 import json
+import os
 import pathlib
 import pickle
 import re
@@ -27,10 +28,15 @@ from cogent3.format import bedgraph
 from cogent3.format import table as table_format
 from cogent3.parse import cogent3_json as c3_json
 from cogent3.parse.table import load_delimited
+from cogent3.util import warning as c3warn
+from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.io import atomic_write, get_format_suffixes, open_
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
 from cogent3.util.union_dict import UnionDict
+
+if typing.TYPE_CHECKING:
+    from pandas import DataFrame
 
 try:
     from IPython.display import display
@@ -190,7 +196,7 @@ class Columns(MutableMapping):
         self._template = None
         self._index_name = None
 
-    def _get_key_(self, value):
+    def _get_key_(self, value) -> str:
         """returns string corresponding to column"""
 
         if isinstance(value, int):
@@ -202,7 +208,7 @@ class Columns(MutableMapping):
 
         return value
 
-    def _get_keys_(self, key):
+    def _get_keys_(self, key) -> list[str] | str:
         """returns series of str corresponding to columns"""
         if isinstance(key, str | int):
             return self._get_key_(key)
@@ -212,7 +218,7 @@ class Columns(MutableMapping):
             key = self._order[key[0]]
 
         if type(key) in (list, tuple):
-            if all(type(e) == bool for e in key) and len(key) == len(self.order):
+            if all(type(e) is bool for e in key) and len(key) == len(self.order):
                 key = [k for k, b in zip(self.order, key, strict=False) if b]
             else:
                 key = [self._get_key_(k) for k in key]
@@ -430,19 +436,22 @@ class Columns(MutableMapping):
 class Table:
     """Tabular data. iter operates over rows. Columns are available as an attribute."""
 
+    @c3warn.deprecated_args(
+        "2025.9", "don't use built in name", old_new=[("format", "format_name")]
+    )
     def __init__(
         self,
-        header=None,
-        data=None,
-        index_name=None,
-        title="",
-        legend="",
-        digits=4,
-        space=4,
-        max_width=1e100,
-        column_templates=None,
-        format="simple",
-        missing_data="",
+        header: list[str] | None = None,
+        data: list[list[typing.Any]] | None = None,
+        index_name: str | None = None,
+        title: str = "",
+        legend: str = "",
+        digits: int = 4,
+        space: int = 4,
+        max_width: int = int(1e100),
+        column_templates: dict[str, str] | None = None,
+        format_name: str = "simple",
+        missing_data: str = "",
         **kwargs,
     ) -> None:
         """
@@ -471,7 +480,7 @@ class Table:
         column_templates
             dict of column headings
             or a function that will handle the formatting.
-        format
+        format_name
             output format when using str(Table)
         missing_data
             replace missing data with this
@@ -575,7 +584,7 @@ class Table:
             "random": random,
             "show_shape": True,
         }
-        self.format = format
+        self.format = format_name
         self._missing_data = missing_data
 
     def __iter__(self):
@@ -1557,7 +1566,9 @@ class Table:
 
         return result
 
-    def _formatted_by_col(self, missing_data="", pad=True):
+    def _formatted_by_col(
+        self, missing_data: str = "", pad: bool = True
+    ) -> tuple[dict[str, list[str]], list[tuple[str, int]]]:
         """returns self as formatted strings
 
         Parameters
@@ -1574,15 +1585,15 @@ class Table:
         missing_data = missing_data or self._missing_data
         formatted = {}
         col_widths = []
-        for c in self.columns.order:
-            data = self.columns[c]
+        for col in self.columns.order:
+            data = self.columns[col]
             if len(data) == 0:
                 continue
 
-            format_spec = self._column_templates.get(c, None)
+            format_spec = self._column_templates.get(col, None)
             frmt, c, width = table_format.formatted_array(
                 data,
-                c,
+                col,
                 format_spec=format_spec,
                 missing_data=missing_data,
                 precision=self._digits,
@@ -1593,16 +1604,17 @@ class Table:
 
         return formatted, col_widths
 
-    def _formatted(self, missing_data="", stripped=False):
+    def _formatted(
+        self, missing_data: str = "", stripped: bool = False
+    ) -> list[list[str]]:
         """returns self as formatted strings
 
         Parameters
         ----------
-        missing_data : str
+        missing_data
             default str value for missing
-        stripped : bool
+        stripped
             if True, removes padding
-
         """
         formatted_cols, _ = self._formatted_by_col(
             missing_data=missing_data,
@@ -1616,7 +1628,7 @@ class Table:
             formatted = [self.header]
         return formatted
 
-    def to_csv(self, with_title=False, with_legend=False):
+    def to_csv(self, with_title: bool = False, with_legend: bool = False) -> str:
         """return table formatted as comma separated values
 
         Parameters
@@ -1625,10 +1637,6 @@ class Table:
             include the table title
         with_legend : bool
             include table legend
-
-        Returns
-        -------
-        str
         """
         formatted_table = self._formatted(stripped=True)
         header = formatted_table.pop(0)
@@ -1644,19 +1652,21 @@ class Table:
 
     def to_latex(
         self,
-        concat_title_legend=True,
-        justify=None,
-        label=None,
-        position=None,
-    ):
+        concat_title_legend: bool = True,
+        justify: str | None = None,
+        label: str | None = None,
+        position: str | None = None,
+    ) -> str:
         """Returns the text a LaTeX table.
 
         Parameters
         ----------
         concat_title_legend : bool
-            the table caption is formed by concatenating the table title and legend
+            the table caption is formed by concatenating the table title and
+            legend
         justify
-            column justification, default is right aligned.
+            latex character for column justification (e.g. 'c'), default is
+            right aligned.
         label
             for cross referencing
         position
@@ -1685,7 +1695,7 @@ class Table:
             position=position,
         )
 
-    def to_markdown(self, space=1, justify=None):
+    def to_markdown(self, space: int = 1, justify: str | None = None) -> str:
         """
         returns markdown formatted table
 
@@ -1694,7 +1704,8 @@ class Table:
         space
             number of spaces surrounding the cell contents, must be >= 1
         justify
-            characters indicating alignment of columns
+        characters indicating alignment of columns, c, r or l for
+        center, right or left respectively.
 
         Returns
         -------
@@ -1709,17 +1720,13 @@ class Table:
             justify=justify,
         )
 
-    def to_rst(self, csv_table=False):
+    def to_rst(self, csv_table: bool = False) -> str:
         """returns rst formatted table
 
         Parameters
         ----------
         csv_table : bool
             use csv-directive, grid table otherwise
-
-        Returns
-        -------
-        str
         """
         stripped = csv_table
         formatted_table = self._formatted(stripped=stripped)
@@ -1740,20 +1747,23 @@ class Table:
             )
         return result
 
+    @c3warn.deprecated_args(
+        "2025.9", "don't use built in name", old_new=[("format", "format_name")]
+    )
     def to_string(
         self,
-        format="",
-        borders=True,
-        sep=None,
-        center=False,
-        concat_title_legend=True,
+        format_name: str | None = None,
+        borders: bool = True,
+        sep: str | None = None,
+        center: bool = False,
+        concat_title_legend: bool = True,
         **kwargs,
-    ):
+    ) -> str:
         """Return the table as a formatted string.
 
         Parameters
         ----------
-        format
+        format_name
             possible formats are 'rest'/'rst', 'markdown'/'md',
             'latex', 'html', 'phylip', 'bedgraph', 'csv', 'tsv', or 'simple'
             (default).
@@ -1771,15 +1781,16 @@ class Table:
         If format is bedgraph, assumes that column headers are chrom, start,
         end, value. In that order!
         """
-        if format == "bedgraph":
+        fmt: str = format_name or ""
+        if fmt == "bedgraph":
             # TODO remove requirement for column order
             assert self.shape[1] == 4, "bedgraph format is for 4 column tables"
             # assuming that header order is chrom, start, end, val
             return bedgraph.bedgraph(self.sorted().array.tolist(), **kwargs)
 
-        if format.lower() in ("tsv", "csv"):
-            sep = sep or {"tsv": "\t", "csv": ","}[format.lower()]
-            format = ""
+        if fmt.lower() in {"tsv", "csv"}:
+            sep = sep or {"tsv": "\t", "csv": ","}[fmt.lower()]
+            fmt = ""
 
         if sep != "\t":
             sep = sep.strip() if sep else None
@@ -1790,19 +1801,19 @@ class Table:
         if sep == "\t":
             return self.to_tsv(**kwargs)
 
-        if format in ("rest", "rst"):
+        if fmt in {"rest", "rst"}:
             return self.to_rst(**kwargs)
 
-        if format in ("markdown", "md"):
+        if fmt in {"markdown", "md"}:
             return self.to_markdown(**kwargs)
 
-        if format.endswith("tex"):
+        if fmt.endswith("tex"):
             return self.to_latex(concat_title_legend=concat_title_legend, **kwargs)
 
-        if format == "html":
+        if fmt == "html":
             return self.to_html(**kwargs)
 
-        if format == "phylip":
+        if fmt == "phylip":
             # need to eliminate row identifiers
             columns = [c for c in self.columns if c != self.index_name]
             table = self[:, columns]
@@ -1835,19 +1846,15 @@ class Table:
             *(*args, self._max_width, self.index_name, borders, self.space),
         )
 
-    def to_tsv(self, with_title=False, with_legend=False):
+    def to_tsv(self, with_title: bool = False, with_legend: bool = False) -> str:
         """return table formatted as tab separated values
 
         Parameters
         ----------
-        with_title : bool
+        with_title
             include the table title
-        with_legend : bool
+        with_legend
             include table legend
-
-        Returns
-        -------
-        str
         """
         formatted_table = self._formatted(stripped=True)
         header = formatted_table.pop(0)
@@ -1861,7 +1868,7 @@ class Table:
             sep="\t",
         )
 
-    def to_html(self, column_alignment=None):
+    def to_html(self, column_alignment: dict[str, str] | None = None) -> str:
         """construct html table
 
         Parameters
@@ -1870,10 +1877,6 @@ class Table:
             {col_name: alignment character, ...} where alignment character
             can be one of 'l', 'c', 'r'. Defaults to 'r' for numeric columns,
             'l' for text columns.
-
-        Returns
-        -------
-        string
 
         Notes
         -----
@@ -1901,8 +1904,8 @@ class Table:
             "head_colour": base_colour.format(alpha=0.75),
         }
 
-        HtmlElement = table_format.HtmlElement
-        tables = [str(HtmlElement(style, "style", newline=True))]
+        mk_element = table_format.HtmlElement
+        tables = [str(mk_element(style, "style", newline=True))]
 
         cols, widths = self._formatted_by_col(pad=False)
         headers = table_format.get_continuation_tables_headers(
@@ -1911,16 +1914,16 @@ class Table:
             max_width=self._max_width,
         )
 
-        for c in self.columns:
-            c = c.strip()
+        for col in self.columns:
+            c = col.strip()
             css_class = (
                 "c3col_right" if array_is_num_type(self.columns[c]) else "c3col_left"
             )
 
             css_class = [column_alignment.get(c, css_class)]
             cols[c] = [
-                HtmlElement(
-                    HtmlElement(v, "span", css_classes=css_class),
+                mk_element(
+                    mk_element(v, "span", css_classes=css_class),
                     "td",
                     css_classes=["index"] if c == self.index_name else None,
                 )
@@ -1937,37 +1940,37 @@ class Table:
 
         for i, header in enumerate(headers):
             if title and i == 0:
-                st = HtmlElement(title, "span", css_classes=["cell_title"])
+                st = mk_element(title, "span", css_classes=["cell_title"])
             elif title:
-                st = HtmlElement("continuation", "span", css_classes=["cell_title"])
+                st = mk_element("continuation", "span", css_classes=["cell_title"])
             else:
                 st = None
 
             if legend and i == 0:
-                legend = HtmlElement(legend, "span", css_classes=["cell_legend"])
-                legend = HtmlElement(legend, "br") if title else legend
+                legend = mk_element(legend, "span", css_classes=["cell_legend"])
+                legend = mk_element(legend, "br") if title else legend
                 st = f"{st} {legend}" if st else f"{legend}"
 
-            caption = str(HtmlElement(st, "caption", newline=True)) if st else ""
+            caption = str(mk_element(st, "caption", newline=True)) if st else ""
             rows = []
             for i, row in enumerate(zip(*[cols[c] for c in header], strict=False)):
-                txt = HtmlElement("".join(str(e) for e in row), "tr")
+                txt = mk_element("".join(str(e) for e in row), "tr")
                 rows.append(str(txt))
 
-            rows = str(HtmlElement("\n".join(rows), "tbody", newline=True))
+            rows = str(mk_element("\n".join(rows), "tbody", newline=True))
 
             if column_alignment:
                 header = [
-                    HtmlElement(c, "span", css_classes=column_alignment.get(c, None))
+                    mk_element(c, "span", css_classes=column_alignment.get(c, None))
                     for c in header
                 ]
 
-            header = "".join(str(HtmlElement(c, "th")) for c in header)
+            header = "".join(str(mk_element(c, "th")) for c in header)
             header = str(
-                HtmlElement(header, "thead", css_classes=["head_cell"], newline=True),
+                mk_element(header, "thead", css_classes=["head_cell"], newline=True),
             )
 
-            subtable = HtmlElement(
+            subtable = mk_element(
                 f"{caption}{header}{rows}",
                 "table",
                 newline=True,
@@ -1975,7 +1978,7 @@ class Table:
             tables.append(str(subtable))
 
         return str(
-            HtmlElement(
+            mk_element(
                 "\n".join(tables),
                 "div",
                 css_classes=["c3table"],
@@ -1983,7 +1986,7 @@ class Table:
             ),
         )
 
-    def to_list(self, columns=None):
+    def to_list(self, columns: str | list[str] | None = None) -> list:
         """Returns raw data as a list
 
         Parameters
@@ -1995,14 +1998,14 @@ class Table:
         -----
         If one column, a 1D list is returned.
         """
-        if columns is None:
-            columns = self.columns.order
+        cols = (
+            [columns] if isinstance(columns, str) else (columns or self.columns.order)
+        )
 
-        columns = [columns] if isinstance(columns, str) else columns
-        if len(columns) == 1:
-            return self.columns[columns[0]].tolist()
+        if len(cols) == 1:
+            return self.columns[cols[0]].tolist()
 
-        subtable = self.get_columns(columns)
+        subtable = self.get_columns(cols)
         return subtable.columns.array.tolist()
 
     @extend_docstring_from(DictArray.to_dict)
@@ -2177,14 +2180,17 @@ class Table:
             result.columns[c] = row
         return result
 
+    @c3warn.deprecated_args(
+        "2025.9", "don't use built in name", old_new=[("format", "format_name")]
+    )
     def write(
         self,
-        filename,
-        mode=None,
-        writer=None,
-        format=None,
-        sep=None,
-        compress=None,
+        filename: os.PathLike | str,
+        mode: str | None = None,
+        writer: typing.Callable | None = None,
+        format_name: str | None = None,
+        sep: str | None = None,
+        compress: bool | None = None,
         **kwargs,
     ) -> None:
         """Write table to filename in the specified format.
@@ -2193,7 +2199,7 @@ class Table:
         ----------
         mode
             file opening mode
-        format
+        format_name
             Valid formats are those of the to_string method plus pickle. Will
             try and guess from filename if not specified.
         writer
@@ -2212,12 +2218,12 @@ class Table:
         """
         filename = pathlib.Path(filename)
         file_suffix, compress_suffix = get_format_suffixes(filename)
-        format = format or file_suffix
+        format_name = format_name or file_suffix
         compress = compress or compress_suffix is not None
 
-        mode = mode or {"pickle": "wb"}.get(format, "w")
+        mode = mode or {"pickle": "wb"}.get(format_name, "w")
 
-        if format == "json":
+        if format_name == "json":
             with atomic_write(filename, mode="wt") as f:
                 f.write(self.to_json())
             return
@@ -2229,22 +2235,20 @@ class Table:
 
         outfile = atomic_write(filename, mode=mode)
 
-        format = format if format else file_suffix
-
-        if format == "csv":
+        if format_name == "csv":
             sep = sep or ","
-        elif format == "tsv":
+        elif format_name == "tsv":
             sep = sep or "\t"
 
         if writer:
-            rows = self.tolist()
+            rows = self.to_list()
             rows.insert(0, self.header[:])
             rows = writer(rows, has_header=True)
             outfile.write("\n".join(rows))
-        elif format == "pickle":
+        elif format_name == "pickle":
             data = self.__getstate__()
             pickle.dump(data, outfile, protocol=1)
-        elif sep is not None and format != "bedgraph":
+        elif sep is not None and format_name != "bedgraph":
             writer = csv.writer(outfile, delimiter=sep, lineterminator="\n")
             if self.title:
                 writer.writerow([self.title])
@@ -2253,28 +2257,31 @@ class Table:
             if self.legend:
                 writer.writerow([self.legend])
         else:
-            table = self.to_string(format=format, sep=sep, **kwargs)
+            table = self.to_string(format_name=format_name, sep=sep, **kwargs)
             outfile.write(table + "\n")
 
         outfile.close()
 
 
+@c3warn.deprecated_args(
+    "2025.9", "don't use built in name", old_new=[("format", "format_name")]
+)
 def make_table(
-    header=None,
-    data=None,
-    row_order=None,
-    digits=4,
-    space=4,
-    title="",
-    max_width=1e100,
-    index_name=None,
-    legend="",
-    missing_data="",
-    column_templates=None,
-    data_frame=None,
-    format="simple",
+    header: list[str] | None = None,
+    data: dict | None = None,
+    row_order: list | None = None,
+    digits: int = 4,
+    space: int = 4,
+    title: str = "",
+    max_width: int = int(1e100),
+    index_name: str | None = None,
+    legend: str = "",
+    missing_data: str = "",
+    column_templates: dict | None = None,
+    data_frame: typing.Optional["DataFrame"] = None,
+    format_name: str = "simple",
     **kwargs,
-):
+) -> Table:
     """
 
     Parameters
@@ -2310,7 +2317,7 @@ def make_table(
         file types.
     data_frame
         a pandas DataFrame, supersedes header/rows
-    format
+    format_name
         output format when using str(Table)
 
     """
@@ -2341,28 +2348,31 @@ def make_table(
         index_name=index_name,
         legend=legend,
         data_frame=data_frame,
-        format=format,
+        format_name=format_name,
     )
 
 
+@c3warn.deprecated_args(
+    "2025.9", "don't use built in name", old_new=[("format", "format_name")]
+)
 def load_table(
     filename: str | pathlib.Path,
-    sep=None,
-    reader=None,
-    digits=4,
-    space=4,
-    title="",
-    missing_data="",
-    max_width=1e100,
-    index_name=None,
-    legend="",
-    column_templates=None,
-    static_column_types=False,
-    limit=None,
-    format="simple",
-    skip_inconsistent=False,
+    sep: str | None = None,
+    reader: typing.Callable | None = None,
+    digits: int = 4,
+    space: int = 4,
+    title: str = "",
+    missing_data: str = "",
+    max_width: int = int(1e100),
+    index_name: str | None = None,
+    legend: str = "",
+    column_templates: dict | None = None,
+    static_column_types: bool = False,
+    limit: int | None = None,
+    format_name: str = "simple",
+    skip_inconsistent: bool = False,
     **kwargs,
-):
+) -> Table:
     """
 
     Parameters
@@ -2400,7 +2410,7 @@ def load_table(
     limit
         exits after this many lines. Only applied for non pickled data
         file types.
-    format
+    format_name
         output format when using str(Table)
     skip_inconsistent
         skips rows that have different length to header row
@@ -2467,5 +2477,22 @@ def load_table(
         max_width=max_width,
         index_name=index_name,
         legend=legend,
-        format=format,
+        format_name=format_name,
     )
+
+
+@register_deserialiser(
+    get_object_provenance(Table),
+    "cogent3.util.table.Table",
+)
+def deserialise_tabular(data: dict) -> Table:
+    """deserialising DictArray, Table instances"""
+    data.pop("version", None)
+    _ = data.pop("type", None)
+    if "init_table" in data:
+        result = Table()
+        result.__setstate__(data)
+    else:
+        result = Table(**data)
+
+    return result

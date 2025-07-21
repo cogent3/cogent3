@@ -20,7 +20,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.10", "3.13.5"]
+        python-version: ["3.10", "3.13"]
 
     steps:
       - uses: "actions/checkout@v4"
@@ -46,10 +46,7 @@ jobs:
       - name: "Run nox for ${{ matrix.python-version }}"
         shell: bash
         run: |
-          dn=$(pwd)
-          echo "$dn"
-          cov="--cov-report lcov:lcov-${{matrix.os}}-${{matrix.python-version}}.lcov --cov-report term --cov-append --cov cogent3 --cov-config=${dn}/.coveragerc"
-          echo "$cov"
+          cov="--cov-report lcov:lcov-${{matrix.os}}-${{matrix.python-version}}.lcov --cov-report term --cov-append --cov cogent3"
           nox  -db uv --force-python python -s test -- $cov
 
       - name: Coveralls Parallel

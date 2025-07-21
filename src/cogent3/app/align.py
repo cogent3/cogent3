@@ -1,4 +1,3 @@
-import os
 import typing
 import warnings
 from bisect import bisect_left
@@ -15,9 +14,11 @@ from cogent3.align import (
 )
 from cogent3.align.progressive import tree_align
 from cogent3.app import dist
+from cogent3.app.data_store import get_data_source
 from cogent3.app.tree import interpret_tree_arg
+from cogent3.core.alignment import Aligned
 from cogent3.core.location import gap_coords_to_map
-from cogent3.core.moltype import get_moltype
+from cogent3.core.moltype import MolTypeLiteral, get_moltype
 from cogent3.evolve.fast_distance import get_distance_calculator
 from cogent3.evolve.models import get_model
 from cogent3.maths.util import safe_log
@@ -26,14 +27,7 @@ from .composable import NotCompleted, define_app
 from .tree import quick_tree, scale_branches
 from .typing import AlignedSeqsType, SerialisableType, UnalignedSeqsType
 
-_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
-
-if _NEW_TYPE:
-    from cogent3.core.new_alignment import Aligned
-else:
-    from cogent3.core.alignment import Aligned
-
-if typing.TYPE_CHECKING:
+if typing.TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.tree import PhyloNode
 
 
@@ -318,21 +312,18 @@ def pairwise_to_multiple(pwise, ref_seq, moltype, info=None):
     m = gap_coords_to_map(ref_gaps, len(ref_seq))
     aligned = [Aligned.from_map_and_seq(m, ref_seq)]
     for other_name, aln in pwise:
-        curr_ref = aln.seqs[ref_seq.name] if _NEW_TYPE else aln.named_seqs[ref_seq.name]
+        curr_ref = aln.seqs[ref_seq.name]
         curr_ref_gaps = dict(curr_ref.map.get_gap_coordinates())
-        other_seq = aln.seqs[other_name] if _NEW_TYPE else aln.named_seqs[other_name]
+        other_seq = aln.seqs[other_name]
         other_gaps = dict(other_seq.map.get_gap_coordinates())
         diff_gaps = _combined_refseq_gaps(curr_ref_gaps, ref_gaps)
-        # difference between new_type and old type Aligned data attributes
-        parent_len = len(other_seq.seq) if _NEW_TYPE else len(other_seq.data)
+        parent_len = len(other_seq.seq)
         if inject := _gaps_for_injection(other_gaps, diff_gaps, parent_len):
             m = gap_coords_to_map(inject, len(other_seq.data))
             other_seq = Aligned.from_map_and_aligned_data_view(m, other_seq.data)
 
         aligned.append(other_seq)
-    # default to ArrayAlign
-    return cogent3.make_aligned_seqs(aligned, moltype=moltype, info=info).to_type(
-        array_align=True,
+    return cogent3.make_aligned_seqs(aligned, moltype=moltype, info=info).to_moltype(
         moltype=moltype,
     )
 
@@ -352,7 +343,7 @@ class align_to_ref:
         score_matrix: dict[str, float] | None = None,
         insertion_penalty: float = 20.0,
         extension_penalty: float = 2.0,
-        moltype: str = "dna",
+        moltype: MolTypeLiteral = "dna",
     ) -> None:
         """
         Parameters
@@ -414,7 +405,7 @@ class align_to_ref:
             if seq.name == self._ref_name:
                 continue
 
-            aln = global_pairwise(ref_seq, seq, **kwargs).to_type(array_align=False)
+            aln = global_pairwise(ref_seq, seq, **kwargs)
             pwise.append((seq.name, aln))
 
         return pairwise_to_multiple(pwise, ref_seq, self._moltype, info=seqs.info)
@@ -594,6 +585,7 @@ class progressive_align:
 
     def main(self, seqs: UnalignedSeqsType) -> T:
         """returned progressively aligned sequences"""
+        source = get_data_source(seqs)
         if self._moltype and self._moltype != seqs.moltype:
             seqs = seqs.to_moltype(self._moltype)
 
@@ -618,7 +610,10 @@ class progressive_align:
                 result.info.update(seqs.info)
             except ValueError as err:
                 # probably an internal stop
-                return NotCompleted("ERROR", self, err.args[0], source=seqs)
+                return NotCompleted("ERROR", self, err.args[0], source=source)
+        if hasattr(result, "source"):
+            # new type amendment during transition
+            result.source = source
         return result
 
 
@@ -637,7 +632,7 @@ class smith_waterman:
         score_matrix: dict | None = None,
         insertion_penalty: int = 20,
         extension_penalty: int = 2,
-        moltype: str = "dna",
+        moltype: MolTypeLiteral = "dna",
     ) -> None:
         """
         Parameters
@@ -777,7 +772,7 @@ class ic_score:
                 "FAIL",
                 self,
                 f"cannot compute alignment quality because {msg}",
-                source=aln.info,
+                source=aln,
             )
 
         motif_probs = aln.get_motif_probs(include_ambiguity=False, allow_gap=False)
@@ -860,7 +855,7 @@ def cogent3_score(aln: AlignedSeqsType) -> float:
             "FAIL",
             "cogent3_score",
             f"cannot compute alignment quality because {msg}",
-            source=aln.info,
+            source=aln,
         )
 
     align_params = aln.info.get("align_params", {})
@@ -870,7 +865,7 @@ def cogent3_score(aln: AlignedSeqsType) -> float:
             "FAIL",
             "cogent3_score",
             "no alignment quality score",
-            source=aln.info,
+            source=aln,
         ),
     )
 
@@ -959,7 +954,7 @@ class sp_score:
                 "FAIL",
                 self,
                 f"cannot compute alignment quality because {msg}",
-                source=aln.info,
+                source=aln,
             )
 
         self._calc(aln, show_progress=False)

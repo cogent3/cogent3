@@ -14,12 +14,13 @@ from numpy.testing import assert_allclose
 import cogent3
 from cogent3 import get_app, get_moltype, open_data_store
 from cogent3.app import io as io_app
-from cogent3.app.composable import NotCompleted, source_proxy
+from cogent3.app.composable import NotCompleted, propagate_source, source_proxy
 from cogent3.app.data_store import (
     DataMember,
     DataStoreDirectory,
     Mode,
     ReadOnlyDataStoreZipped,
+    get_data_source,
 )
 from cogent3.app.io import DEFAULT_DESERIALISER, DEFAULT_SERIALISER
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
@@ -30,8 +31,6 @@ from cogent3.parse.sequence import PARSERS
 from cogent3.util.deserialise import deserialise_object
 
 DNA = get_moltype("dna")
-
-NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
 
 
 @pytest.fixture
@@ -91,14 +90,14 @@ def test_write_seqs(fasta_dir, tmp_dir):
     datamember = datastore[0]
     data = datamember.read().splitlines()
     data = dict(iter(PARSERS["fasta".lower()](data)))
-    seqs = cogent3.make_aligned_seqs(data=data, moltype="text")
-    seqs.info.source = datastore.source
+    seqs = cogent3.make_aligned_seqs(data, moltype="text")
+    seqs.source = datastore.source
     out_data_store = DataStoreDirectory(
         tmp_dir / "test_write_seqs",
         mode=Mode.w,
         suffix="fasta",
     )
-    writer = io_app.write_seqs(out_data_store, format="fasta")
+    writer = io_app.write_seqs(out_data_store, format_name="fasta")
     wrote = writer(seqs[0], identifier=datamember.unique_id)
     assert isinstance(wrote, DataMember)
 
@@ -120,11 +119,14 @@ def test_source_proxy_simple(fasta_dir):
     data = reader(path)
     # direct call gives you back the annotated type
     assert isinstance(data, bytes | bytearray)
+    # create a source wrapper
+    wrapper = propagate_source(reader, get_data_source)
     # directly calling the intermediate wrap method should work
-    got = reader._source_wrapped(source_proxy(path))
+    got = wrapper(source_proxy(path))
     assert isinstance(got, source_proxy)
     # calling with list of data that doesn't have a source should
-    # also return source_proxy
+    # also return source_proxy. In this case, the wrapper is automatically
+    # created and assigned to the reader._source_wrapped attribute
     got = list(reader.as_completed([path], show_progress=False))
     assert isinstance(got[0], source_proxy)
 
@@ -133,7 +135,7 @@ def test_source_proxy_simple(fasta_dir):
 def test_load_aligned(DATA_DIR, suffix):
     """should handle nexus too"""
     dstore = DataStoreDirectory(DATA_DIR, suffix=suffix, limit=2)
-    loader = io_app.load_aligned(format=suffix)
+    loader = io_app.load_aligned(format_name=suffix)
     results = [loader(m) for m in dstore]
     # TODO: checking class name rather than isinstance during
     #  migration to new_type, revert to isinstance when
@@ -144,7 +146,7 @@ def test_load_aligned(DATA_DIR, suffix):
 def test_load_unaligned(DATA_DIR):
     """load_unaligned returns degapped sequence collections"""
     fasta_paths = DataStoreDirectory(DATA_DIR, suffix=".fasta", limit=2)
-    fasta_loader = io_app.load_unaligned(format="fasta")
+    fasta_loader = io_app.load_unaligned(format_name="fasta")
     # TODO: checking class name rather than isinstance during
     #  migration to new_type, revert to isinstance when
     #  that migration is complete
@@ -152,7 +154,7 @@ def test_load_unaligned(DATA_DIR):
     for i, seqs in enumerate(map(fasta_loader, fasta_paths)):
         assert seqs.__class__.__name__ == "SequenceCollection"
         assert "-" not in "".join(seqs.to_dict().values())
-        assert seqs.info.source == fasta_paths[i].unique_id
+        assert seqs.source == fasta_paths[i].unique_id
 
 
 @pytest.mark.parametrize(
@@ -210,7 +212,7 @@ def test_load_tabular_motif_counts_array(w_dir_dstore):
     data = [[2, 4], [3, 5], [4, 8]]
     mca = MotifCountsArray(data, "AB")
     loader = io_app.load_tabular(sep="\t", as_type="motif_counts")
-    writer = io_app.write_tabular(data_store=w_dir_dstore, format="tsv")
+    writer = io_app.write_tabular(data_store=w_dir_dstore, format_name="tsv")
     m = writer.main(data=mca, identifier="delme")
     new = loader(m)
     assert mca.to_dict() == new.to_dict()
@@ -222,7 +224,7 @@ def test_load_tabular_motif_freqs_array(w_dir_dstore):
     data = [[0.3333, 0.6667], [0.3750, 0.625], [0.3333, 0.6667]]
     mfa = MotifFreqsArray(data, "AB")
     loader = io_app.load_tabular(sep="\t", as_type="motif_freqs")
-    writer = io_app.write_tabular(data_store=w_dir_dstore, format="tsv")
+    writer = io_app.write_tabular(data_store=w_dir_dstore, format_name="tsv")
     m = writer.main(mfa, identifier="delme")
     new = loader(m)
     assert mfa.to_dict() == new.to_dict()
@@ -241,7 +243,7 @@ def test_load_tabular_pssm(w_dir_dstore):
     ]
     pssm = PSSM(data, "ACTG")
     loader = io_app.load_tabular(sep="\t", as_type="pssm")
-    writer = io_app.write_tabular(data_store=w_dir_dstore, format="tsv")
+    writer = io_app.write_tabular(data_store=w_dir_dstore, format_name="tsv")
     m = writer.main(pssm, identifier="delme")
     new = loader(m)
     assert_allclose(pssm.array, new.array, atol=0.0001)
@@ -253,7 +255,7 @@ def test_load_tabular_distance_matrix(w_dir_dstore):
     data = {(0, 0): 0, (0, 1): 4, (1, 0): 4, (1, 1): 0}
     matrix = DistanceMatrix(data)
     loader = io_app.load_tabular(sep="\t", as_type="distances")
-    writer = io_app.write_tabular(data_store=w_dir_dstore, format="tsv")
+    writer = io_app.write_tabular(data_store=w_dir_dstore, format_name="tsv")
     m = writer.main(matrix, identifier="delme")
     new = loader(m)
     assert matrix.to_dict() == new.to_dict()
@@ -265,7 +267,7 @@ def test_load_tabular_table(w_dir_dstore):
     rows = [[1, 2], [3, 4], [5, 6.5]]
     table = Table(["A", "B"], data=rows)
     loader = io_app.load_tabular(sep="\t", as_type="table")
-    writer = io_app.write_tabular(data_store=w_dir_dstore, format="tsv")
+    writer = io_app.write_tabular(data_store=w_dir_dstore, format_name="tsv")
     m = writer.main(table, identifier="delme")
     new = loader(m)
     assert table.to_dict() == new.to_dict()
@@ -277,7 +279,7 @@ def test_write_tabular_motif_counts_array(w_dir_dstore):
     data = [[2, 4], [3, 5], [4, 8]]
     mca = MotifCountsArray(data, "AB")
     loader = io_app.load_tabular(sep="\t")
-    writer = io_app.write_tabular(data_store=w_dir_dstore, format="tsv")
+    writer = io_app.write_tabular(data_store=w_dir_dstore, format_name="tsv")
     m = writer.main(mca, identifier="delme")
     assert isinstance(m, DataMember)
     new = loader(m)
@@ -302,7 +304,7 @@ def test_write_tabular_motif_freqs_array(w_dir_dstore):
     mfa = MotifFreqsArray(data, "AB")
     loader = io_app.load_tabular(sep="\t")
 
-    writer = io_app.write_tabular(data_store=w_dir_dstore, format="tsv")
+    writer = io_app.write_tabular(data_store=w_dir_dstore, format_name="tsv")
     m = writer.main(mfa, identifier="delme")
     new = loader(m)
     # when written to file in tabular form
@@ -334,7 +336,7 @@ def test_write_tabular_pssm(w_dir_dstore):
     )
     pssm = PSSM(data, "ACTG")
     loader = io_app.load_tabular(sep="\t")
-    writer = io_app.write_tabular(data_store=w_dir_dstore, format="tsv")
+    writer = io_app.write_tabular(data_store=w_dir_dstore, format_name="tsv")
     m = writer.main(pssm, identifier="delme")
     new = loader(m)
     expected = safe_log(data) - safe_log(numpy.array([0.25, 0.25, 0.25, 0.25]))
@@ -349,7 +351,7 @@ def test_write_tabular_distance_matrix(w_dir_dstore):
     data = {(0, 0): 0, (0, 1): 4, (1, 0): 4, (1, 1): 0}
     matrix = DistanceMatrix(data)
     loader = io_app.load_tabular(sep="\t")
-    writer = io_app.write_tabular(data_store=w_dir_dstore, format="tsv")
+    writer = io_app.write_tabular(data_store=w_dir_dstore, format_name="tsv")
     m = writer.main(matrix, identifier="delme")
     new = loader(m)
     # when written to file in tabular form
@@ -368,7 +370,7 @@ def test_write_tabular_table(w_dir_dstore):
     rows = [[1, 2], [3, 4], [5, 6.5]]
     table = Table(["A", "B"], data=rows)
     loader = io_app.load_tabular(sep="\t")
-    writer = io_app.write_tabular(data_store=w_dir_dstore, format="tsv")
+    writer = io_app.write_tabular(data_store=w_dir_dstore, format_name="tsv")
     m = writer.main(table, identifier="delme")
     new = loader(m)
     assert table.to_dict() == new.to_dict()
@@ -469,6 +471,28 @@ def test_write_db_load_db(fasta_dir, tmp_dir):
     assert data_store.record_type == get_object_provenance(orig)
 
 
+def test_load_db_prefer_source_attr(tmp_dir):
+    from cogent3.app.sqlite_data_store import DataStoreSqlite
+
+    path = tmp_dir / "test.sqlitedb"
+    data_store = DataStoreSqlite(path, mode="w")
+
+    seqs = cogent3.make_unaligned_seqs(
+        {"a": "ACGG", "b": "GGC"},
+        moltype="dna",
+        info={"demo": "dummy"},
+        source="blah.1.2.fa",
+    )
+    writer = io_app.write_db(data_store=data_store)
+    writer(seqs)  # pylint: disable=not-callable
+    data_store.close()
+    data_store = open_data_store(path)
+    # this old style rich dict will
+    loader = io_app.load_db()
+    got = loader(data_store[0])  # pylint: disable=not-callable
+    assert "source" not in got.info
+
+
 def test_write_read_db_not_completed(tmp_dir):
     from cogent3.app.sqlite_data_store import DataStoreSqlite
 
@@ -541,7 +565,7 @@ def seqs():
     from cogent3 import make_unaligned_seqs
 
     return make_unaligned_seqs(
-        data={"a": "ACGG", "b": "GGC"},
+        {"a": "ACGG", "b": "GGC"},
         moltype="dna",
         info={"source": "dummy/blah.1.2.fa"},
     )
@@ -551,7 +575,7 @@ def table():
     from cogent3 import make_table
 
     table = make_table(
-        data={"a": [0, 1, 2], "b": [0, 1, 2]},
+        {"a": [0, 1, 2], "b": [0, 1, 2]},
     )
     table.source = "dummy/blah.1.2.fa"
     return table
@@ -590,7 +614,7 @@ def test_writer_unique_id_arg(tmp_dir, writer, data, dstore):
     assert m.unique_id == expect
 
 
-src_attr = "source" if NEW_TYPE else "info"
+src_attr = "source"
 
 
 @pytest.mark.parametrize(
@@ -689,7 +713,7 @@ def relpath(DATA_DIR):
 
 @pytest.mark.parametrize("type_", [str, pathlib.Path])
 def test_expand_user(relpath, type_):
-    loader = get_app("load_aligned", format="paml")
+    loader = get_app("load_aligned", format_name="paml")
     # define path using the "~" prefix
     seqs = loader(type_(relpath))
     # TODO: checking class name rather than isinstance during

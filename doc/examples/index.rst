@@ -10,7 +10,6 @@ Data manipulation
     :maxdepth: 1
 
     align_codons_to_protein
-    manipulating_tree_nodes
 
 *********************
 General data analysis

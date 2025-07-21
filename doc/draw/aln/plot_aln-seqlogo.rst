@@ -6,15 +6,6 @@
 Sequence logos
 ==============
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 Sequence logo's display sequence information. They're extensively applied to transcription factor binding site (TFBS) display. They can also be applied to sequence alignments more generally.
 
 Drawing logo for a TFBS

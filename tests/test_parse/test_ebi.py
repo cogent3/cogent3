@@ -1,7 +1,8 @@
-#!/usr/bin/env python
 """Provides tests for EbiParser and related classes and functions."""
 
 from unittest import TestCase
+
+import pytest
 
 from cogent3.parse.ebi import (
     EbiFinder,
@@ -327,20 +328,6 @@ class EbiTests(TestCase):
         assert len(the_first_valid[1]) == 9
 
         self.assertRaises(RecordError, list, f(fake_records_valid, strict=True))
-
-    def test_EbiParser(self):
-        """EbiParser:"""
-        f = curry(EbiParser, strict=False)
-        fake_records_valid[:-5]
-
-        # test valid
-        assert len(list(f(fake_records_valid))) == 2
-        # test skipping bad record which strict=False
-        # self.assertEqual(len(list(f(fake_records_valid[:-1] +
-        #    ['OX   xx=no equal.', '//']))), 1)
-        # test Raise RecordError from parse_head when strict=True
-        # self.assertRaises(RecordError, list, f(first_valid[:-1] +
-        #    ['OX   xx=no equal.', '//'], strict=True))
 
 
 class RootParsersKnownValues(TestCase):
@@ -1010,4 +997,12 @@ DE   dede.
 //""".splitlines()
 
 
-# Run tests if called from the command line
+def test_EbiParser():
+    """EbiParser:"""
+    f = curry(EbiParser, strict=False)
+    fake_records_valid[:-5]
+
+    # test valid
+    # trapping the warning from not specifying a moltype
+    with pytest.warns(UserWarning):
+        assert len(list(f(fake_records_valid))) == 2

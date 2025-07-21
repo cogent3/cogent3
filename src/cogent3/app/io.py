@@ -13,8 +13,7 @@ from pathlib import Path
 import numpy
 
 import cogent3
-from cogent3.core import moltype as old_moltype
-from cogent3.core import new_moltype
+from cogent3.core import moltype as c3_moltype
 from cogent3.core.profile import (
     make_motif_counts_from_tabular,
     make_motif_freqs_from_tabular,
@@ -22,6 +21,7 @@ from cogent3.core.profile import (
 )
 from cogent3.core.table import Table
 from cogent3.evolve.fast_distance import DistanceMatrix
+from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import deserialise_object
 
 from .composable import LOADER, WRITER, NotCompleted, define_app
@@ -45,14 +45,12 @@ from .typing import (
     UnalignedSeqsType,
 )
 
-if typing.TYPE_CHECKING:
+if typing.TYPE_CHECKING:  # pragma: no cover
     from cogent3.parse.sequence import SequenceParserBase
 
 _datastore_reader_map = {}
 
-MolTypes = old_moltype.MolType | new_moltype.MolType
-
-_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
+MolTypes = c3_moltype.MolTypeLiteral | c3_moltype.MolType
 
 
 class register_datastore_reader:
@@ -287,7 +285,7 @@ def _load_seqs(
     path: str | Path,
     coll_maker: type,
     parser: "SequenceParserBase",
-    moltype: str,
+    moltype: c3_moltype.MolType | None = None,
 ) -> SeqsCollectionType:
     if not parser.result_is_storage:
         data = _read_it(path)
@@ -296,7 +294,7 @@ def _load_seqs(
     else:
         data = parser.loader(path)
     unique_id = getattr(path, "unique_id", getattr(path, "name", str(path)))
-    return coll_maker(data=data, moltype=moltype, source=unique_id)
+    return coll_maker(data, moltype=moltype, source=unique_id)
 
 
 @define_app(app_type=LOADER)
@@ -305,25 +303,35 @@ class load_aligned:
 
     def __init__(
         self,
-        moltype: str | MolTypes | None = None,
-        format: str = "fasta",
+        moltype: MolTypes | None = None,
+        format_name: str = "fasta",
+        **kwargs,
     ) -> None:
         """
         Parameters
         ----------
         moltype
             molecular type, string or instance, defaults to 'text'
-        format : str
+        format_name
             sequence file format
 
         Examples
         --------
         See https://cogent3.org/doc/app/app_cookbook/load-aligned.html
         """
-        moltype = moltype or ("text" if _NEW_TYPE else "bytes")
+        if "format" in kwargs:
+            c3warn.deprecated(
+                _type="argument",
+                old="format",
+                new="format_name",
+                version="2025.9",
+                reason="don't use built in name",
+            )
+            format_name = kwargs.pop("format")
+        moltype = moltype or "text"
         self.moltype = cogent3.get_moltype(moltype)
         self._parser = cogent3._plugin.get_seq_format_parser_plugin(  # noqa: SLF001
-            format_name=format.lower(),
+            format_name=format_name.lower(),
         )
 
     T = SerialisableType | AlignedSeqsType
@@ -340,8 +348,9 @@ class load_unaligned:
     def __init__(
         self,
         *,
-        moltype: str | MolTypes | None = None,
-        format: str = "fasta",
+        moltype: MolTypes | None = None,
+        format_name: str = "fasta",
+        **kwargs,
     ) -> None:
         """
         Parameters
@@ -355,10 +364,19 @@ class load_unaligned:
         --------
         See https://cogent3.org/doc/app/app_cookbook/load-unaligned.html
         """
-        moltype = moltype or ("text" if _NEW_TYPE else "bytes")
+        if "format" in kwargs:
+            c3warn.deprecated(
+                _type="argument",
+                old="format",
+                new="format_name",
+                version="2025.9",
+                reason="don't use built in name",
+            )
+            format_name = kwargs.pop("format")
+        moltype = moltype or "text"
         self.moltype = cogent3.get_moltype(moltype)
         self._parser = cogent3._plugin.get_seq_format_parser_plugin(  # noqa: SLF001
-            format_name=format.lower(),
+            format_name=format_name.lower(),
         )
 
     T = SerialisableType | UnalignedSeqsType
@@ -375,11 +393,11 @@ class load_tabular:
 
     def __init__(
         self,
-        with_title=False,
-        with_header=True,
-        limit=None,
-        sep="\t",
-        strict=True,
+        with_title: bool = False,
+        with_header: bool = True,
+        limit: int | None = None,
+        sep: str = "\t",
+        strict: bool = True,
         as_type: tabular = "table",
     ) -> None:
         """
@@ -516,16 +534,15 @@ class load_db:
         """returns deserialised object"""
         try:
             data = identifier.read()
-        except AttributeError:
+        except AttributeError as e:
             msg = f"{identifier} failed because its of type {type(identifier)}"
-            raise AttributeError(
-                msg,
-            )
+            raise AttributeError(msg) from e
 
         # do we need to inject identifier attribute?
         result = self.deserialiser(data)
-        if hasattr(result, "info"):
-            result.info["source"] = result.info.get("source", identifier)
+        if not hasattr(result, "source") and hasattr(result, "info"):
+            src = Path(identifier.data_store.source) / identifier.unique_id
+            result.info["source"] = result.info.get("source", str(src))
         else:
             with contextlib.suppress(AttributeError):
                 identifier = getattr(result, "source", identifier)
@@ -596,7 +613,8 @@ class write_seqs:
         self,
         data_store: DataStoreABC,
         id_from_source: typing.Callable[[object], str | None] = get_unique_id,
-        format: str = "fasta",
+        format_name: str = "fasta",
+        **kwargs,
     ) -> None:
         """
         Parameters
@@ -607,19 +625,29 @@ class write_seqs:
             A function for creating a unique identifier based on the data
             source. The default function removes path information and
             filename + compression suffixes.
-        format
+        format_name
             sequence format
 
         Examples
         --------
         See https://cogent3.org/doc/app/app_cookbook/write-seqs.html
         """
+        if "format" in kwargs:
+            c3warn.deprecated(
+                _type="argument",
+                old="format",
+                new="format_name",
+                version="2025.9",
+                reason="don't use built in name",
+            )
+            format_name = kwargs.pop("format")
+
         if not isinstance(data_store, DataStoreABC):
             msg = f"invalid type {type(data_store)!r} for data_store"
             raise TypeError(msg)
         self.data_store = data_store
         self._formatter = cogent3._plugin.get_seq_format_writer_plugin(  # noqa: SLF001
-            format_name=format.lower(),
+            format_name=format_name.lower(),
         )
         self._id_from_source = id_from_source
 
@@ -655,7 +683,8 @@ class write_tabular:
         self,
         data_store: DataStoreABC,
         id_from_source: typing.Callable[[object], str | None] = get_unique_id,
-        format: str = "tsv",
+        format_name: str = "tsv",
+        **kwargs,
     ) -> None:
         """
         data_store
@@ -664,19 +693,28 @@ class write_tabular:
             A function for creating a unique identifier based on the data
             source. The default function removes path information and
             filename + compression suffixes.
-        format
+        format_name
             tabular format, e.g. 'csv' or 'tsv'
 
         Examples
         --------
         See https://cogent3.org/doc/app/app_cookbook/write-tabular.html
         """
+        if "format" in kwargs:
+            c3warn.deprecated(
+                _type="argument",
+                old="format",
+                new="format_name",
+                version="2025.9",
+                reason="don't use built in name",
+            )
+            format_name = kwargs.pop("format")
         if not isinstance(data_store, DataStoreABC):
             msg = f"invalid type {type(data_store)!r} for data_store"
             raise TypeError(msg)
         self.data_store = data_store
         self._id_from_source = id_from_source
-        self._format = format
+        self._format = format_name
 
     def main(
         self,
@@ -698,7 +736,7 @@ class write_tabular:
                 data=data.to_json(),
             )
 
-        output = data.to_string(format=self._format)
+        output = data.to_string(format_name=self._format)
         return self.data_store.write(unique_id=identifier, data=output)
 
 

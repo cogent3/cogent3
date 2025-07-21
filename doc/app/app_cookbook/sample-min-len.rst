@@ -6,23 +6,13 @@
 Filter sequence collections and alignments by length
 ----------------------------------------------------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 Let's load a collection of globin sequences. Note that we must have a the molecular type specified. 
 
 .. jupyter-execute::
-    :raises:
     
     from cogent3 import get_app
 
-    loader = get_app("load_unaligned", moltype="dna", format="fasta")
+    loader = get_app("load_unaligned", moltype="dna", format_name="fasta")
     aln = loader("data/SCA1-cds.fasta")
     aln
 
@@ -34,7 +24,6 @@ Creating the ``min_length`` app and providing a positional argument specifying t
 For instance, we can remove sequences from the globin alignment which are shorter than 240 amino acids long. 
 
 .. jupyter-execute::
-    :raises:
     
     from cogent3 import get_app
 
@@ -58,13 +47,12 @@ Using the ``min_length`` app to filter multiple alignments
 In the following example, we compose a process that loads alignments and removes aligments less than 300 nucleotides in length, before writing them to a data store. We apply this process to a data store of the fasta files in the data directory. We restrict this data store to two members as a minimum example. 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app, open_data_store
 
     dstore = open_data_store("data", suffix="fasta", limit=2)
 
-    reader = get_app("load_aligned", format="fasta", moltype="dna")
+    reader = get_app("load_aligned", format_name="fasta", moltype="dna")
     min_length = get_app("min_length", 300)
     out_dstore = open_data_store(path_to_dir, mode="w", suffix="fasta")
     writer = get_app("write_seqs", out_dstore)

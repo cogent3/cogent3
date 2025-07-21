@@ -9,13 +9,15 @@ from numpy.linalg import det, inv
 
 import cogent3
 from cogent3._version import __version__
-from cogent3.core import new_moltype
+from cogent3.core import moltype as c3_moltype
 from cogent3.core.table import Table
+from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArray
 from cogent3.util.misc import get_object_provenance
 from cogent3.util.progress_display import display_wrap
 
-if typing.TYPE_CHECKING:
+if typing.TYPE_CHECKING:  # pragma: no cover
+    from cogent3.core.alignment import Alignment
     from cogent3.core.tree import PhyloNode
 
 PySeq = typing.Sequence
@@ -73,9 +75,9 @@ def get_moltype_index_array(moltype, invalid=-9):
     # refactor: simplify
     # added for compatibility with both new and old moltypes - should be removed
     # when old moltype is removed
-    from cogent3.core.new_moltype import MolType as new_MolType
+    from cogent3.core.moltype import MolType as c3_moltype
 
-    if isinstance(moltype, new_MolType):
+    if isinstance(moltype, c3_moltype):
         max_ord = max(list(map(ord, list(moltype.most_degen_alphabet()))))
     else:
         max_ord = max(list(map(ord, list(moltype.All.keys()))))
@@ -330,24 +332,24 @@ class _PairwiseDistance:
 
     def __init__(
         self,
-        moltype,
-        invalid=-9,
-        alignment=None,
-        invalid_raises=False,
+        moltype: c3_moltype.MolTypeLiteral,
+        invalid: int = -9,
+        alignment: typing.Optional["Alignment"] = None,
+        invalid_raises: bool = False,
     ) -> None:
         super().__init__()
-        moltype = cogent3.get_moltype(moltype)
-        if moltype.label not in self.valid_moltypes:
+        mtype = cogent3.get_moltype(moltype)
+        if mtype.label not in self.valid_moltypes:
             name = self.__class__.__name__
             msg = (
-                f"Invalid moltype for {name}: '{moltype.label}' not "
+                f"Invalid moltype for {name}: '{mtype.name}' not "
                 f"in {self.valid_moltypes}"
             )
             raise ValueError(msg)
 
-        self.moltype = moltype
-        self.char_to_indices = get_moltype_index_array(moltype, invalid=invalid)
-        self._dim = len(list(moltype))
+        self.moltype = mtype
+        self.char_to_indices = get_moltype_index_array(mtype, invalid=invalid)
+        self._dim = len(list(mtype))
         self._dists = None
         self._dupes = None
         self._duped = None
@@ -364,7 +366,7 @@ class _PairwiseDistance:
     def _convert_seqs_to_indices(self, alignment) -> None:
         assert isinstance(
             alignment.moltype,
-            type(self.moltype) | new_moltype.MolType,
+            type(self.moltype) | c3_moltype.MolType,
         ), "Alignment does not have correct MolType"
 
         self._dists = {}
@@ -551,7 +553,9 @@ class HammingPair(_PairwiseDistance):
 
     valid_moltypes = ("dna", "rna", "protein", "text", "bytes")
 
-    def __init__(self, moltype="text", *args, **kwargs) -> None:
+    def __init__(
+        self, moltype: c3_moltype.MolTypeLiteral = "text", *args, **kwargs
+    ) -> None:
         """states: the valid sequence states"""
         super().__init__(moltype, *args, **kwargs)
         self.func = _hamming
@@ -562,7 +566,9 @@ class ProportionIdenticalPair(_PairwiseDistance):
 
     valid_moltypes = ("dna", "rna", "protein", "text", "bytes")
 
-    def __init__(self, moltype="text", *args, **kwargs) -> None:
+    def __init__(
+        self, moltype: c3_moltype.MolTypeLiteral = "text", *args, **kwargs
+    ) -> None:
         """states: the valid sequence states"""
         super().__init__(moltype, *args, **kwargs)
         self.func = _hamming
@@ -591,7 +597,9 @@ class _NucleicSeqPair(_PairwiseDistance):
 
     valid_moltypes = ("dna", "rna")
 
-    def __init__(self, moltype="dna", *args, **kwargs) -> None:
+    def __init__(
+        self, moltype: c3_moltype.MolTypeLiteral = "dna", *args, **kwargs
+    ) -> None:
         super().__init__(moltype, *args, **kwargs)
         if not _same_moltype(
             cogent3.get_moltype("dna"),
@@ -607,7 +615,9 @@ class _NucleicSeqPair(_PairwiseDistance):
 class JC69Pair(_NucleicSeqPair):
     """JC69 distance calculator for pairwise alignments"""
 
-    def __init__(self, moltype="dna", *args, **kwargs) -> None:
+    def __init__(
+        self, moltype: c3_moltype.MolTypeLiteral = "dna", *args, **kwargs
+    ) -> None:
         """states: the valid sequence states"""
         super().__init__(moltype, *args, **kwargs)
         self.func = _jc69_from_matrix
@@ -616,7 +626,9 @@ class JC69Pair(_NucleicSeqPair):
 class TN93Pair(_NucleicSeqPair):
     """TN93 calculator for pairwise alignments"""
 
-    def __init__(self, moltype="dna", *args, **kwargs) -> None:
+    def __init__(
+        self, moltype: c3_moltype.MolTypeLiteral = "dna", *args, **kwargs
+    ) -> None:
         """states: the valid sequence states"""
         super().__init__(moltype, *args, **kwargs)
         self._freqs = zeros(self._dim, float64)
@@ -652,7 +664,13 @@ class LogDetPair(_PairwiseDistance):
 
     valid_moltypes = ("dna", "rna", "protein")
 
-    def __init__(self, moltype="dna", use_tk_adjustment=True, *args, **kwargs) -> None:
+    def __init__(
+        self,
+        moltype: c3_moltype.MolTypeLiteral = "dna",
+        use_tk_adjustment=True,
+        *args,
+        **kwargs,
+    ) -> None:
         """Arguments:
         - moltype: string or moltype instance (must be dna or rna)
         - use_tk_adjustment: use the correction of Tamura and Kumar 2002
@@ -673,7 +691,9 @@ class ParalinearPair(_PairwiseDistance):
 
     valid_moltypes = ("dna", "rna", "protein")
 
-    def __init__(self, moltype="dna", *args, **kwargs) -> None:
+    def __init__(
+        self, moltype: c3_moltype.MolTypeLiteral = "dna", *args, **kwargs
+    ) -> None:
         super().__init__(moltype, *args, **kwargs)
         self.func = _paralinear
 
@@ -688,7 +708,7 @@ _calculators = {
 }
 
 
-def get_distance_calculator(name, *args, **kwargs):
+def get_distance_calculator(name: str, *args, **kwargs) -> _PairwiseDistance:
     """returns a pairwise distance calculator
 
     name is converted to lower case"""
@@ -740,7 +760,7 @@ class DistanceMatrix(DictArray):
 
     @classmethod
     def from_array_names(
-        cls, matrix: numpy.ndarray, names: PySeqStr, invalid=None
+        cls, matrix: numpy.ndarray, names: PySeqStr, invalid: bool | None = None
     ) -> "DistanceMatrix":
         """construct a distance matrix from numpy array and names"""
         darr = DictArray.from_array_names(matrix, names, names)
@@ -912,3 +932,18 @@ class DistanceMatrix(DictArray):
         min_index_flat = numpy.argmin(dmat_copy)
         min_index_1, min_index_2 = numpy.unravel_index(min_index_flat, self.shape)
         return self.names[min_index_1], self.names[min_index_2]
+
+
+@register_deserialiser(get_object_provenance(DistanceMatrix))
+def deserialise_tabular(data: dict) -> DistanceMatrix:
+    """deserialising DistanceMatrix from a rich dict"""
+    data.pop("version", None)
+    _ = data.pop("type", None)
+    # dists is a list of simple dists from which we reconstruct a 1D dict
+    dists = {}
+    for element in data["dists"]:
+        key = tuple(element[:2])
+        value = element[2]
+        dists[key] = value
+    data["dists"] = dists
+    return DistanceMatrix(**data)

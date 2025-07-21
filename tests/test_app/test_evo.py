@@ -82,7 +82,7 @@ class TestModel(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(_data, moltype="dna")
         result = hyp(aln)
         assert result.df == 1
 
@@ -104,7 +104,7 @@ class TestModel(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(_data, moltype="dna")
         result = hyp(aln)
         assert result["F81"].lf.lnL < result["HKY85"].lf.lnL < result["GTR"].lf.lnL
 
@@ -126,7 +126,7 @@ class TestModel(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna", info={"source": "blah"})
+        aln = make_aligned_seqs(_data, moltype="dna", info={"source": "blah"})
         result = mod_coll(aln)
         assert result["F81"].lf.lnL < result["HKY85"].lf.lnL < result["GTR"].lf.lnL
 
@@ -153,7 +153,7 @@ class TestModel(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(_data, moltype="dna")
         mod = evo_app.model(
             "GN",
             optimise_motif_probs=True,
@@ -180,7 +180,7 @@ class TestModel(TestCase):
         )
 
         aln = make_aligned_seqs(
-            data={"s1": "ACGT", "s2": "ACGC", "s3": "AAGT"},
+            {"s1": "ACGT", "s2": "ACGC", "s3": "AAGT"},
             moltype="dna",
         )
         result = app(aln)
@@ -214,7 +214,7 @@ class TestModel(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(_data, moltype="dna")
         mod = evo_app.model(
             "BH",
             opt_args={"max_evaluations": 100, "limit_action": "ignore"},
@@ -231,7 +231,7 @@ class TestModel(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(_data, moltype="dna")
         model1 = evo_app.model(
             "F81",
             opt_args={"max_evaluations": 25, "limit_action": "ignore"},
@@ -273,7 +273,7 @@ class TestModel(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(_data, moltype="dna")
         tree = make_tree(tip_names=aln.names)
         mod = evo_app.model(
             "F81",
@@ -292,7 +292,7 @@ class TestModel(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(_data, moltype="dna")
         tree = make_tree(tip_names=aln.names)
         mod = evo_app.model(
             "F81",
@@ -313,7 +313,7 @@ class TestModel(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(_data, moltype="dna")
         model1 = evo_app.model(
             "F81",
             opt_args={"max_evaluations": 25, "limit_action": "ignore"},
@@ -334,7 +334,7 @@ class TestModel(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(_data, moltype="dna")
         model1 = evo_app.model(
             "GN",
             opt_args={"max_evaluations": 25, "limit_action": "ignore"},
@@ -358,7 +358,7 @@ class TestModel(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(_data, moltype="dna")
         model1 = evo_app.model(
             "GN",
             split_codons=True,
@@ -388,8 +388,8 @@ class TestModel(TestCase):
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
 
-        aln1 = make_aligned_seqs(data=_data1, moltype="dna")
-        aln2 = make_aligned_seqs(data=_data2, moltype="dna")
+        aln1 = make_aligned_seqs(_data1, moltype="dna")
+        aln2 = make_aligned_seqs(_data2, moltype="dna")
         model = evo_app.model(
             "GN",
             unique_trees=True,
@@ -477,7 +477,7 @@ class TestHypothesisResult(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(_data, moltype="dna")
         tree = "((Mouse,Rat),Human,Opossum)"
         m1 = evo_app.model("F81", tree=tree)
         m2 = evo_app.model("GTR", tree=tree)
@@ -492,7 +492,7 @@ class TestHypothesisResult(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(_data, moltype="dna")
         opt_args = {"max_evaluations": 10, "limit_action": "ignore"}
         m1 = evo_app.model(
             "F81",
@@ -528,7 +528,7 @@ class TestHypothesisResult(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGA",
             "Opossum": "TGACCAGTGAAAGTGGCGGCGGTGGCTGA",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(_data, moltype="dna")
         tree = "(Mouse,Human,Opossum)"
         m1 = evo_app.model("F81", tree=tree)
         m2 = evo_app.model("MG94HKY", tree=tree)
@@ -543,7 +543,7 @@ class TestHypothesisResult(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGA",
             "Opossum": "TGACCAGTGAAAGTGGCGGCGGTGGCTGA",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(_data, moltype="dna")
         tree = "(Mouse,Human,Opossum)"
         m1 = evo_app.model("JTT92", tree=tree)
         r = m1(aln)
@@ -558,7 +558,7 @@ class TestAncestralStates(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(_data, moltype="dna")
         mod = evo_app.model(
             "GN",
             opt_args={"max_evaluations": 25, "limit_action": "ignore"},
@@ -825,7 +825,7 @@ class TestTabulateStats(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(_data, moltype="dna")
         mod = evo_app.model(
             "GN",
             opt_args={"max_evaluations": 25, "limit_action": "ignore"},
@@ -974,7 +974,7 @@ def test_model_bounds_allpar():
     )
 
     aln = make_aligned_seqs(
-        data={"s1": "ACGT", "s2": "ACGC", "s3": "AAGT"},
+        {"s1": "ACGT", "s2": "ACGC", "s3": "AAGT"},
         moltype="dna",
     )
     result = app(aln)
@@ -996,7 +996,7 @@ def test_model_bounds_kappa():
     )
 
     aln = make_aligned_seqs(
-        data={"s1": "ACGT", "s2": "ACGC", "s3": "AAGT"},
+        {"s1": "ACGT", "s2": "ACGC", "s3": "AAGT"},
         moltype="dna",
     )
     result = app(aln)

@@ -7,15 +7,6 @@
 Genetic distance calculation
 ****************************
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 Fast pairwise distance estimation
 =================================
 
@@ -89,7 +80,6 @@ Get the names of sequences with max pairwise distance
 Given a ``DistanceMatrix`` object, finding the sequences that have the maximum pairwise distance is achieved through the ``max_pair`` method. 
 
 .. jupyter-execute::
-    :raises:
     
     from cogent3 import load_aligned_seqs
 
@@ -100,7 +90,6 @@ Given a ``DistanceMatrix`` object, finding the sequences that have the maximum p
 To find the maximum distance, index the ``DistanceMatrix`` with the result of ``max_pair``.
 
 .. jupyter-execute::
-    :raises:
     
     dists[dists.max_pair()]
 
@@ -113,7 +102,6 @@ Given a ``DistanceMatrix`` object, finding the sequences that have the minimum p
 .. note:: As the distance between a sequence and itself is zero, and this is not informative, ``min_pair`` will return the smallest distance not on the diagonal.
 
 .. jupyter-execute::
-    :raises:
     
     from cogent3 import load_aligned_seqs
 
@@ -124,6 +112,5 @@ Given a ``DistanceMatrix`` object, finding the sequences that have the minimum p
 To find the minimum distance, index the ``DistanceMatrix`` with the result of ``min_pair``.
 
 .. jupyter-execute::
-    :raises:
 
     dists[dists.min_pair()]

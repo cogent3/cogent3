@@ -2,8 +2,8 @@ import dataclasses
 import pathlib
 import typing
 
-if typing.TYPE_CHECKING:
-    from cogent3.core.new_alignment import Alignment
+if typing.TYPE_CHECKING:  # pragma: no cover
+    from cogent3.core.alignment import Alignment
     from cogent3.core.table import Table
     from cogent3.core.tree import PhyloNode
 
@@ -59,7 +59,7 @@ class Dataset:
         return data
 
 
-_aln_kwargs = {"moltype": "dna", "new_type": True}
+_aln_kwargs = {"moltype": "dna"}
 
 _datasets = [
     Dataset(

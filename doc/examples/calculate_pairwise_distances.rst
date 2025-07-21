@@ -10,15 +10,6 @@ Calculate pairwise distances between sequences
 
 .. sectionauthor:: Gavin Huttley
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 An example of how to calculate the pairwise distances for a set of sequences.
 
 .. jupyter-execute::
@@ -52,7 +43,7 @@ We'll write a phylip formatted distance matrix.
 
 .. jupyter-execute::
 
-    d.write("dists_for_phylo.phylip", format="phylip")
+    d.write("dists_for_phylo.phylip", format_name="phylip")
 
 .. todo:: write out in json format
 

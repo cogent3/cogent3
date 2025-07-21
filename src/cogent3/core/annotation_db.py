@@ -15,7 +15,7 @@ import numpy
 import typing_extensions
 
 from cogent3._version import __version__
-from cogent3.core.location import Strand
+from cogent3.core.location import Strand, deserialise_map_spans
 from cogent3.core.table import Table
 from cogent3.parse.gff import merged_gff_records
 from cogent3.util.deserialise import deserialise_object, register_deserialiser
@@ -188,7 +188,7 @@ class SupportsWriteFeatures(typing.Protocol):  # pragma: no cover
 
     def update(
         self,
-        annot_db: AnnotationDbABC,
+        annot_db: SupportsFeatures,
         seqids: OptionalStrList = None,
         **kwargs: dict[str, typing.Any],
     ) -> None:
@@ -1732,8 +1732,6 @@ def deserialise_gb_db(data: dict) -> GenbankAnnotationDb:
 
 @register_deserialiser("annotation_to_annotation_db")
 def convert_annotation_to_annotation_db(data: dict) -> SupportsFeatures:
-    from cogent3.util.deserialise import deserialise_map_spans
-
     db = BasicAnnotationDb()
 
     minus = Strand.MINUS
@@ -1993,3 +1991,107 @@ def update_file_format(
         conn.commit()
     cursor.close()
     anno_db.close()
+
+
+DEFAULT_ANNOTATION_DB = BasicAnnotationDb
+
+# This is a design note about the annotation_db property of SequenceCollection, Alignment,
+#   Aligned and Sequence classes.
+#   We use an empty list as the default value for two reasons. First, many applications
+#   of these objects do not employ annotations and thus to reduce memory overhead we
+#   create a db instance lazily. Second, members of a collection can be accessed directly
+#   and have their annotation db accessed. Construction of those members is controlled
+#   by the container class. To avoid tightly coupling the container and its enclosed
+#   sequences, we provide a mutable data object (an empty list) as the starting value.
+#   This list is provided to the constructed elements as their starting value. So an
+#   Aligned instance, for example, that is created and then used to add a feature, has
+#   created the db instance shared by all members of the collection and the collection
+#   itself. The list can only have 0 or 1 element.
+
+
+class AnnotatableMixin:
+    """class handling an annotation database for a collection, aligned or sequence"""
+
+    def _init_annot_db_value(
+        self, value: SupportsFeatures | list[SupportsFeatures] | None
+    ) -> list[SupportsFeatures]:
+        """returns the value for assignment to self._annotation_db given value
+
+        Parameters
+        ----------
+        value
+            the provided value to interpret for assignment to self._annotation_db.
+            Ccan be None, an annotation db instance or a list containing an annotation
+            db instance.
+        """
+
+        if value is None:
+            value = []
+        elif not isinstance(value, list):
+            # if annotation_db is not a list, assume it is a single
+            # annotation database instance
+            value = [value]
+        return value
+
+    @property
+    def annotation_db(self) -> SupportsFeatures:
+        """the annotation database for the collection"""
+        if not self._annotation_db:
+            # if no annotation db is set, use the default
+            self._annotation_db.append(DEFAULT_ANNOTATION_DB())
+        return self._annotation_db[0]
+
+    @annotation_db.setter
+    def annotation_db(self, value: SupportsFeatures) -> None:
+        # Without knowing the contents of the db we cannot
+        # establish whether self.moltype is compatible, so
+        # we rely on the user to get that correct
+        # one approach to support validation might be to add
+        # to the SupportsFeatures protocol a is_nucleic flag,
+        # for both DNA and RNA. But if a user trys get_slice()
+        # on a '-' strand feature, they will get a TypeError.
+        # I think that's enough.
+        self.replace_annotation_db(value, check=False)
+
+    def replace_annotation_db(
+        self,
+        value: SupportsFeatures | list[SupportsFeatures] | None,
+        check: bool = True,
+    ) -> None:
+        """public interface to assigning the annotation_db
+
+        Parameters
+        ----------
+        value
+            the annotation db instance
+        check
+            whether to check value supports the feature interface
+
+        Notes
+        -----
+        The check can be very expensive, so if you're confident set it to False
+        """
+        value = value[0] if value and isinstance(value, list) else value
+        if value in self._annotation_db:
+            return
+
+        if value is None:
+            self._annotation_db = self._init_annot_db_value(None)
+            return
+
+        if not value and isinstance(value, list):
+            self._annotation_db = value
+            return
+
+        if check and value and not isinstance(value, SupportsFeatures):
+            msg = f"{type(value)} does not satisfy SupportsFeatures"
+            raise TypeError(msg)
+
+        if not self._annotation_db:
+            # if no annotation db is set, use the default
+            self._annotation_db.append(value)
+        else:
+            # we replace the current annotation db
+            self._annotation_db[0] = value
+
+        return

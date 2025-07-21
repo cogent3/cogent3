@@ -53,12 +53,12 @@ _seqs5 = {"Human": "ASSLQHENSSLLLT", "Bandicoot": "XSLMLETSSLLSN"}
 
 @pytest.fixture
 def _seqs1_collection():
-    return make_unaligned_seqs(data=_seqs1, moltype="dna")
+    return make_unaligned_seqs(_seqs1, moltype="dna")
 
 
 @pytest.fixture
 def _seqs2_collection():
-    return make_unaligned_seqs(data=_seqs2, moltype="dna")
+    return make_unaligned_seqs(_seqs2, moltype="dna")
 
 
 def _get_all_composable_apps():
@@ -246,7 +246,7 @@ class FastSlowDistTests(TestCase):
         """works as a composable app"""
         from pathlib import Path
 
-        loader = get_app("load_aligned", moltype="dna", format="paml")
+        loader = get_app("load_aligned", moltype="dna", format_name="paml")
         dist = get_app("fast_slow_dist", "hamming", moltype="dna")
         with TemporaryDirectory(dir=".") as dirname:
             dirname = Path(dirname)
@@ -276,7 +276,7 @@ def test_jaccard_dist(moltype):
     J(s1, s2) = 0.4
     """
     data = {"s1": "ACGTA", "s2": "ACGTC"}
-    collection = make_unaligned_seqs(data=data, moltype=moltype)
+    collection = make_unaligned_seqs(data, moltype=moltype)
 
     jdist_k2 = jaccard_dist(k=2)
     dists = jdist_k2(collection)
@@ -312,7 +312,7 @@ def test_approx_pdist():
 def test_approx_jc69(moltype):
     """approx_jc69 should work the same as exact jc69 when given exact pdist"""
     seq_data = {"s1": "ACGAA", "s2": "ACGAC"}
-    aln = make_aligned_seqs(data=seq_data, moltype=moltype)
+    aln = make_aligned_seqs(seq_data, moltype=moltype)
     expected = aln.distance_matrix(calc="jc69")
 
     data = {
@@ -349,7 +349,7 @@ def test_approx_pdist_same_diff(moltype):
 
     data = {"s1": "ACGTA", "s2": "ACGTC", "s3": "ACGTT", "s4": "ACGAT"}
     pdist_app = jaccard_dist(k=3) + approx_pdist()
-    collection = make_unaligned_seqs(data=data, moltype="text")
+    collection = make_unaligned_seqs(data, moltype="text")
     collection = collection.to_moltype(moltype)
     dists = pdist_app(collection)
 
@@ -460,7 +460,7 @@ def test_gap_dist():
         "b": "TTGAAGAATATGT------GAAAGAG",
         "c": "CTGAAGAACCTGTGAAAGTGAAAGAG",
     }
-    aln = make_aligned_seqs(data, moltype="dna", new_type=True)
+    aln = make_aligned_seqs(data, moltype="dna")
     expect = {
         ("a", "b"): 14.0,  # one gap diff of size 4
         ("a", "c"): 30.0,
@@ -476,7 +476,7 @@ def test_gap_dist():
         "b": "TTGAAGAATATGTA------AAAGAG",
         "c": "CTGAAGAACCTGTGAAAGTGAAAGAG",
     }
-    aln = make_aligned_seqs(data, moltype="dna", new_type=True)
+    aln = make_aligned_seqs(data, moltype="dna")
     expect = {
         ("a", "b"): 45.0,  # 3 gaps diff of size 15
         ("a", "c"): 29.0,
@@ -492,7 +492,7 @@ def test_gap_dist():
         "b": "TGGAGT--GA",
         "c": "TGGAGTGTGA",
     }
-    aln = make_aligned_seqs(data, moltype="dna", new_type=True)
+    aln = make_aligned_seqs(data, moltype="dna")
     expect = {
         ("a", "b"): 38,  # 3 gaps diff of size 8
         ("a", "c"): 26.0,
@@ -502,7 +502,7 @@ def test_gap_dist():
     dmat = app.main(aln)
     assert dmat.to_dict() == expect.to_dict()
     data = {"a": "AAGAA-A", "b": "-ATAATG", "c": "C-TGG-G"}
-    aln = make_aligned_seqs(data, moltype="dna", new_type=True)
+    aln = make_aligned_seqs(data, moltype="dna")
     expect = {
         ("a", "b"): 22.0,  # 2 gaps diff of size 2
         ("a", "c"): 11.0,

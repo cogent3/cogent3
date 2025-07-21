@@ -8,15 +8,6 @@
 Writing JSON Serialised Objects
 -------------------------------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 Using JSON, we can serialise ``cogent3`` objects to a file for easy storage and retrieval.
 
 Create an example object to serialise
@@ -33,12 +24,11 @@ Let's create a ``LikelihoodFunction`` object to use in this example. It is gener
     path_to_dir = tmpdir.name
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 
     # Load the alignment
-    load_aligned_app = get_app("load_aligned", moltype="dna", format="fasta")
+    load_aligned_app = get_app("load_aligned", moltype="dna", format_name="fasta")
     aln = load_aligned_app("data/primate_brca1.fasta")
 
     # Fit the GN model
@@ -54,7 +44,6 @@ Using the ``write_json`` app, we can write out the likelihood function as a JSON
 We need to provide the ``write_json`` app with a data store to which it will write. Optionally when we apply the app we can specify an identifier for the data, which will name the file. 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app, open_data_store
 

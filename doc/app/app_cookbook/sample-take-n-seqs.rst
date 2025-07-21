@@ -6,19 +6,9 @@
 Select `n` sequences from a collection
 --------------------------------------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 Let's load an alignment of primates to use in examples. 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 
@@ -34,7 +24,6 @@ Initialising ``take_n_seqs`` with the argument ``number=3`` creates an app that 
 .. note::  "first n" refers to the ordering in the fasta file. 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 
@@ -47,7 +36,6 @@ Randomly selecting `n` sequences from an alignment
 Using ``random=True`` and ``number=3`` returns 3 random sequences. An optional argument for a ``seed`` can be provided to ensure the same sequences are returned each time the app is called.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 
@@ -60,7 +48,6 @@ Selecting the same sequences from multiple alignments
 Providing the argument ``fixed_choice=True`` ensures the same sequences are returned when (randomly) sampling sequences across several alignments.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 
@@ -71,12 +58,10 @@ Providing the argument ``fixed_choice=True`` ensures the same sequences are retu
     aln1.names
 
 .. jupyter-execute::
-    :raises:
 
     aln2.names
 
 .. jupyter-execute::
-    :raises:
 
     fixed_choice = get_app("take_n_seqs", number=2, random=True, fixed_choice=True)
     result1 = fixed_choice(aln1).names

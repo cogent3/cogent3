@@ -11,6 +11,7 @@ from cogent3.evolve.substitution_model import _SubstitutionModel
 from cogent3.util import parallel
 
 from .composable import NotCompleted, define_app
+from .data_store import get_data_source
 from .result import (
     bootstrap_result,
     hypothesis_result,
@@ -28,12 +29,6 @@ from .typing import (
     SerialisableType,
     TabularResultType,
 )
-
-
-def _get_source(aln):
-    if src := getattr(aln, "source", None):
-        return src
-    return aln.info.source
 
 
 def _config_rules(param_rules, lower, upper, overwrite=False):
@@ -437,7 +432,7 @@ class model:
         result = model_result(
             name=self.name,
             stat=sum,
-            source=_get_source(aln),
+            source=get_data_source(aln),
             evaluation_limit=evaluation_limit,
         )
         if not self._split_codons:
@@ -554,7 +549,7 @@ class _ModelCollectionBase:
         try:
             null = self.null(aln)
         except ValueError:
-            msg = f"Hypothesis null had bounds error {_get_source(aln)}"
+            msg = f"Hypothesis null had bounds error {get_data_source(aln)}"
             return NotCompleted("ERROR", self, msg, source=aln)
 
         if not null:
@@ -563,7 +558,7 @@ class _ModelCollectionBase:
         try:
             alts = list(self._initialised_alt(null, aln))
         except ValueError:
-            msg = f"Hypothesis alt had bounds error {_get_source(aln)}"
+            msg = f"Hypothesis alt had bounds error {get_data_source(aln)}"
             return NotCompleted("ERROR", self, msg, source=aln)
 
         # check if any did not complete
@@ -584,7 +579,7 @@ class model_collection(_ModelCollectionBase):
     """Fits a collection of models."""
 
     def _make_result(self, aln: AlignedSeqsType) -> ModelCollectionResultType:
-        return model_collection_result(source=_get_source(aln))
+        return model_collection_result(source=get_data_source(aln))
 
 
 @define_app
@@ -592,7 +587,9 @@ class hypothesis(_ModelCollectionBase):
     """Specify a hypothesis through defining two models."""
 
     def _make_result(self, aln: AlignedSeqsType) -> HypothesisResultType:
-        return hypothesis_result(name_of_null=self.null.name, source=_get_source(aln))
+        return hypothesis_result(
+            name_of_null=self.null.name, source=get_data_source(aln)
+        )
 
 
 @define_app
@@ -613,7 +610,7 @@ class bootstrap:
 
     def _fit_sim(self, rep_num):
         sim_aln = self._null.simulate_alignment()
-        sim_aln.info.source = "%s - simalign %d" % (self._inpath, rep_num)
+        sim_aln.source = f"{self._inpath} - simalign {rep_num}"
 
         try:
             sym_result = self._hyp(sim_aln)
@@ -624,7 +621,7 @@ class bootstrap:
     T = Union[SerialisableType, BootstrapResultType]
 
     def main(self, aln: AlignedSeqsType) -> T:
-        result = bootstrap_result(_get_source(aln))
+        result = bootstrap_result(get_data_source(aln))
         try:
             obs = self._hyp(aln)
             if not obs:
@@ -633,7 +630,7 @@ class bootstrap:
             return NotCompleted("ERROR", str(self._hyp), err.args[0])
         result.observed = obs
         self._null = obs.null
-        self._inpath = _get_source(aln)
+        self._inpath = get_data_source(aln)
 
         map_fun = parallel.imap if self._parallel else map
         sym_results = [r for r in map_fun(self._fit_sim, range(self._num_reps)) if r]
@@ -693,7 +690,7 @@ class tabulate_stats:
         ...     "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         ...     "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         ... }
-        >>> aln = make_aligned_seqs(data=data, moltype="dna")
+        >>> aln = make_aligned_seqs(data, moltype="dna")
         >>> mod = get_app(
         ...     "model",
         ...     "HKY85",
@@ -1028,7 +1025,7 @@ class natsel_zhang:
 
         result = hypothesis_result(
             name_of_null=null_result.name,
-            source=_get_source(aln),
+            source=get_data_source(aln),
         )
         result.update({alt_result.name: alt_result, null_result.name: null_result})
         return result
@@ -1186,7 +1183,7 @@ class natsel_sitehet:
 
         result = hypothesis_result(
             name_of_null=null_result.name,
-            source=_get_source(aln),
+            source=get_data_source(aln),
         )
         result.update({alt_result.name: alt_result, null_result.name: null_result})
         return result

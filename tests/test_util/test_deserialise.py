@@ -1,5 +1,4 @@
 import json
-import os
 
 import numpy
 import pytest
@@ -8,6 +7,7 @@ from numpy.testing import assert_allclose
 from cogent3 import (
     get_app,
     get_code,
+    get_moltype,
     load_aligned_seqs,
     load_tree,
     make_aligned_seqs,
@@ -15,7 +15,6 @@ from cogent3 import (
     make_unaligned_seqs,
 )
 from cogent3.app.result import model_collection_result, model_result
-from cogent3.core import moltype
 from cogent3.evolve.models import get_model
 from cogent3.evolve.ns_substitution_model import (
     NonReversibleDinucleotide,
@@ -27,21 +26,19 @@ from cogent3.util.deserialise import (
     deserialise_object,
 )
 
-_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
-
 
 def test_roundtrip_codon_alphabet():
     """codon alphabet to_json enables roundtrip"""
-    STANDARD_CODON = get_code(1).get_alphabet()
-    data = STANDARD_CODON.to_json()
+    standard = get_code(1).get_alphabet()
+    data = standard.to_json()
     got = deserialise_object(data)
-    assert isinstance(got, type(STANDARD_CODON))
-    assert list(got) == list(STANDARD_CODON)
+    assert isinstance(got, type(standard))
+    assert list(got) == list(standard)
 
 
 def test_roundtrip_alphabet():
     """alphabet to_json enables roundtrip"""
-    dna = moltype.get_moltype("dna")
+    dna = get_moltype("dna")
     data = dna.alphabet.to_json()
     got = deserialise_object(data)
     assert isinstance(got, type(dna.alphabet))
@@ -50,36 +47,26 @@ def test_roundtrip_alphabet():
 
 def test_roundtrip_moltype():
     """moltype to_json enables roundtrip"""
-    dna = moltype.get_moltype("dna")
+    dna = get_moltype("dna")
     data = dna.to_json()
     got = deserialise_object(data)
     assert isinstance(got, type(dna))
-    assert list(got) == list(dna)
-    assert dna == got
+    assert got.name == dna.name
 
 
 def test_roundtrip_seqcoll():
     """SequenceCollection to_json enables roundtrip"""
     data = {"A": "TTGT", "B": "GGCT"}
-    seqcoll = make_unaligned_seqs(data=data, moltype="dna")
+    seqcoll = make_unaligned_seqs(data, moltype="dna")
     got = deserialise_object(seqcoll.to_json())
     assert got.rc().to_dict() == seqcoll.rc().to_dict()
     assert got.__class__.__name__ == "SequenceCollection"
 
 
-def test_roundtrip_arrayalign():
-    """ArrayAlignment to_json enables roundtrip"""
-    data = {"A": "TTGTA", "B": "GGCT-"}
-    arrayalign = make_aligned_seqs(data=data, moltype="dna")
-    got = deserialise_object(arrayalign.to_json())
-    assert got.rc().to_dict() == arrayalign.rc().to_dict()
-    assert got.__class__.__name__.endswith("Alignment")
-
-
 def test_roundtrip_align():
     """Alignment to_json enables roundtrip"""
     data = {"A": "TTGTA", "B": "GGCT-"}
-    align = make_aligned_seqs(data=data, moltype="dna", array_align=False)
+    align = make_aligned_seqs(data, moltype="dna")
     got = deserialise_object(align.to_json())
     assert got.rc().to_dict() == align.rc().to_dict()
     assert got.__class__.__name__.endswith("Alignment")
@@ -93,45 +80,40 @@ def test_roundtrip_tree():
     assert_allclose(got.get_node_matching_name("xx").length, 0.2)
 
 
-def test_roundtrip_submod():
+@pytest.mark.parametrize("model_name", ["HKY85", "GN", "CNFGTR", "GNC"])
+def test_roundtrip_submod(model_name):
     """substitution model to_json enables roundtrip"""
-    sm = get_model("HKY85")
+    sm = get_model(model_name)
     data = sm.to_json()
     got = deserialise_object(data)
-    assert got.to_rich_dict() == sm.to_rich_dict()
-    sm = get_model("GN")
-    data = sm.to_json()
-    got = deserialise_object(data)
-    assert got.to_rich_dict() == sm.to_rich_dict()
-    sm = get_model("CNFGTR")
-    data = sm.to_json()
-    got = deserialise_object(data)
-    assert got.to_rich_dict() == sm.to_rich_dict()
-    sm = get_model("GNC")
-    data = sm.to_json()
-    got = deserialise_object(data)
-    assert got.to_rich_dict() == sm.to_rich_dict()
+    assert got.get_param_list() == sm.get_param_list()
+    assert isinstance(got, type(sm))
+
+
+def test_roundtrip_non_reversible_submod():
     sm = NonReversibleDinucleotide(_sym_preds)
     data = sm.to_json()
     got = deserialise_object(data)
-    assert got.to_rich_dict() == sm.to_rich_dict()
+    assert got.get_param_list() == sm.get_param_list()
+    assert isinstance(got, type(sm))
+
     sm = NonReversibleTrinucleotide(_sym_preds)
     data = sm.to_json()
     got = deserialise_object(data)
-    assert got.to_rich_dict() == sm.to_rich_dict()
+    assert got.get_param_list() == sm.get_param_list()
+    assert isinstance(got, type(sm))
 
 
-def test_roundtrip_discrete_time_submod():
+@pytest.mark.parametrize("motif_length", [1, 2])
+def test_roundtrip_discrete_time_submod(motif_length):
     """discrete time substitution models to_json enables roundtrip"""
-    sm = get_model("DT")
-    data = sm.to_json()
+    sm = get_model("DT", motif_length=motif_length)
+    assert sm.word_length == motif_length
+    data = sm.to_rich_dict()
     got = deserialise_object(data)
-    assert got.to_rich_dict() == sm.to_rich_dict()
-
-    sm = get_model("DT", motif_length=2)
-    data = sm.to_json()
-    got = deserialise_object(data)
-    assert got.to_rich_dict() == sm.to_rich_dict()
+    assert isinstance(got, type(sm))
+    assert got.get_param_list() == sm.get_param_list()
+    assert got.word_length == motif_length
 
 
 def test_roundtrip_likelihood_function():
@@ -141,7 +123,7 @@ def test_roundtrip_likelihood_function():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = make_aligned_seqs(data=_data, moltype="dna")
+    aln = make_aligned_seqs(_data, moltype="dna")
     tree = make_tree(tip_names=aln.names)
     sm = get_model("HKY85")
     lf = sm.make_likelihood_function(tree)
@@ -162,7 +144,7 @@ def test_roundtrip_discrete_time_likelihood_function():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = make_aligned_seqs(data=_data, moltype="dna")
+    aln = make_aligned_seqs(_data, moltype="dna")
     tree = make_tree(tip_names=aln.names)
     sm = get_model("BH")
     lf = sm.make_likelihood_function(tree)
@@ -198,7 +180,7 @@ def test_roundtrip_from_file(tmp_path):
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = make_aligned_seqs(data=_data, moltype="dna")
+    aln = make_aligned_seqs(_data, moltype="dna")
     tree = make_tree(tip_names=aln.names)
     sm = get_model("HKY85")
     lf = sm.make_likelihood_function(tree)
@@ -224,7 +206,7 @@ def test_roundtrip_model_result():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = make_aligned_seqs(data=_data, moltype="dna")
+    aln = make_aligned_seqs(_data, moltype="dna")
     tree = make_tree(tip_names=aln.names)
     sm = get_model("HKY85")
     lf = sm.make_likelihood_function(tree)
@@ -263,7 +245,7 @@ def test_roundtrip_model_result2():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = make_aligned_seqs(data=_data, moltype="dna")
+    aln = make_aligned_seqs(_data, moltype="dna")
     opt_args = {"max_evaluations": 10, "limit_action": "ignore"}
     m1 = evo_app.model("F81", split_codons=True, opt_args=opt_args)
     result = m1(aln)
@@ -298,7 +280,7 @@ def test_model_collection_result():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = make_aligned_seqs(data=_data, moltype="dna")
+    aln = make_aligned_seqs(_data, moltype="dna")
     opt_args = {"max_evaluations": 10, "limit_action": "ignore"}
     m1 = evo_app.model("F81", split_codons=True, opt_args=opt_args)
     m2 = evo_app.model("GTR", split_codons=True, opt_args=opt_args)
@@ -336,7 +318,7 @@ def test_roundtrip_hypothesis_result():
         "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = make_aligned_seqs(data=_data, moltype="dna")
+    aln = make_aligned_seqs(_data, moltype="dna")
     opt_args = {"max_evaluations": 10, "limit_action": "ignore"}
     m1 = evo_app.model("F81", split_codons=True, opt_args=opt_args)
     m2 = evo_app.model("GTR", split_codons=True, opt_args=opt_args)
@@ -572,70 +554,6 @@ def test_convert_annotation_to_annotation_db():
     assert db.num_matches() == 1
 
 
-def test_deser_annotated_aln():
-    data = {
-        "seqs": {
-            "A": {
-                "name": "A",
-                "seq": "--TTGTAGTTGA",
-                "moltype": "dna",
-                "info": None,
-                "type": "cogent3.core.sequence.DnaSequence",
-                "version": "2023.2.12a1",
-            },
-            "B": {
-                "name": "B",
-                "seq": "AATTGTAGTTGA",
-                "moltype": "dna",
-                "info": None,
-                "type": "cogent3.core.sequence.DnaSequence",
-                "version": "2023.2.12a1",
-            },
-        },
-        "moltype": "dna",
-        "info": {"source": "unknown"},
-        "type": "cogent3.core.alignment.Alignment",
-        "version": "2023.2.12a1",
-        "annotations": [
-            {
-                "annotation_construction": {
-                    "type": "CDS",
-                    "name": "norwegian",
-                    "map": {
-                        "spans": [
-                            {
-                                "start": 0,
-                                "end": 3,
-                                "value": None,
-                                "reverse": False,
-                                "type": "cogent3.core.location.Span",
-                                "version": "2023.2.12a1",
-                            },
-                            {
-                                "start": 5,
-                                "end": 9,
-                                "value": None,
-                                "reverse": False,
-                                "type": "cogent3.core.location.Span",
-                                "version": "2023.2.12a1",
-                            },
-                        ],
-                        "parent_length": 12,
-                        "type": "cogent3.core.location.FeatureMap",
-                        "version": "2023.2.12a1",
-                    },
-                },
-                "type": "cogent3.core.annotation.AnnotatableFeature",
-                "version": "2023.2.12a1",
-            },
-        ],
-    }
-    aln = deserialise_object(data)
-    assert aln.annotation_db.num_matches() == 1
-    feat = list(aln.get_features(biotype="CDS"))
-    assert len(feat) == 1
-
-
 @pytest.mark.parametrize("rate_matrix_required", [True, False])
 def test_roundtrip_TN93_model(rate_matrix_required):
     """model_result of split codon correct type after roundtrip"""
@@ -644,7 +562,7 @@ def test_roundtrip_TN93_model(rate_matrix_required):
         "b": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "c": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = make_aligned_seqs(data=_data, moltype="dna")
+    aln = make_aligned_seqs(_data, moltype="dna")
     tree = make_tree(tip_names=["a", "b", "c"])
     tn93 = get_model(
         "TN93",
@@ -662,7 +580,7 @@ def test_roundtrip_TN93_model_result():
         "b": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
         "c": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
     }
-    aln = make_aligned_seqs(data=_data, moltype="dna")
+    aln = make_aligned_seqs(_data, moltype="dna")
     tn93 = get_app("model", "TN93")
     result = tn93(aln)
 
@@ -673,7 +591,7 @@ def test_roundtrip_TN93_model_result():
 @pytest.mark.parametrize("mtype", ["dna", "protein"])
 def test_roundtrip_seq(mtype):
     """seq to_json enables roundtrip"""
-    mtype = moltype.get_moltype(mtype)
+    mtype = get_moltype(mtype)
     seq = mtype.make_seq(seq="ACGGTCGG", name="label", info={"something": 3})
     got = deserialise_object(seq.to_json())
     assert got.info.something == 3
@@ -688,3 +606,681 @@ def test_dser_submodel(mn):
     rd = sm.to_rich_dict(for_pickle=False)
     got = deserialise_object(rd)
     assert got.moltype.alphabet.moltype is got.moltype
+
+
+def test_deserialise_old_to_new_type_alignment_1():
+    from cogent3.util.misc import get_object_provenance
+
+    rd = {
+        "seqs": {
+            "Human": {
+                "name": "Human",
+                "seq": {
+                    "type": "cogent3.core.sequence.SeqView",
+                    "version": "2025.5.8a9",
+                    "init_args": {
+                        "seq": "TGTGGCACAAATACTCATGC",
+                        "seqid": "Human",
+                        "step": 1,
+                    },
+                },
+                "moltype": "dna",
+                "info": None,
+                "type": "cogent3.core.sequence.DnaSequence",
+                "version": "2025.5.8a9",
+                "annotation_offset": 0,
+            },
+            "Wombat": {
+                "name": "Wombat",
+                "seq": {
+                    "type": "cogent3.core.sequence.SeqView",
+                    "version": "2025.5.8a9",
+                    "init_args": {
+                        "seq": "---------------NNTGC",
+                        "seqid": "Wombat",
+                        "step": 1,
+                    },
+                },
+                "moltype": "dna",
+                "info": None,
+                "type": "cogent3.core.sequence.DnaSequence",
+                "version": "2025.5.8a9",
+                "annotation_offset": 0,
+            },
+            "Mouse": {
+                "name": "Mouse",
+                "seq": {
+                    "type": "cogent3.core.sequence.SeqView",
+                    "version": "2025.5.8a9",
+                    "init_args": {
+                        "seq": "TGTGGCACAGATGCTCATGC",
+                        "seqid": "Mouse",
+                        "step": 1,
+                    },
+                },
+                "moltype": "dna",
+                "info": None,
+                "type": "cogent3.core.sequence.DnaSequence",
+                "version": "2025.5.8a9",
+                "annotation_offset": 0,
+            },
+        },
+        "moltype": "dna",
+        "info": {"source": "unknown"},
+        "type": "cogent3.core.alignment.ArrayAlignment",
+        "version": "2025.5.8a9",
+    }
+    got = deserialise_object(rd)
+    got_prov = get_object_provenance(got)
+    assert got_prov == "cogent3.core.alignment.Alignment"
+    rd = {
+        "info": {"seed": "758_443154_73021", "source": "15", "fg_edge": "73021"},
+        "moltype": "dna",
+        "seqs": {
+            "443154": {
+                "info": None,
+                "moltype": "dna",
+                "name": "443154",
+                "seq": "CAAGCATAATAA",
+                "type": "cogent3.core.sequence.DnaSequence",
+                "version": "2022.10.31a1",
+            },
+            "73021": {
+                "info": None,
+                "moltype": "dna",
+                "name": "73021",
+                "seq": "CAAGTATCCTAA",
+                "type": "cogent3.core.sequence.DnaSequence",
+                "version": "2022.10.31a1",
+            },
+            "758": {
+                "info": None,
+                "moltype": "dna",
+                "name": "758",
+                "seq": "TGAATATCATAA",
+                "type": "cogent3.core.sequence.DnaSequence",
+                "version": "2022.10.31a1",
+            },
+        },
+        "type": "cogent3.core.alignment.ArrayAlignment",
+        "version": "2022.10.31a1",
+    }
+    got = deserialise_object(rd)
+    got_prov = get_object_provenance(got)
+    assert got_prov == "cogent3.core.alignment.Alignment"
+    assert got.source == "15"
+    assert "source" not in got.info
+
+
+def test_deserialise_old_to_new_type_alignment_2():
+    from cogent3.util.misc import get_object_provenance
+
+    rd = {
+        "seqs": {
+            "Human": {
+                "version": "2025.5.8a9",
+                "type": "cogent3.core.alignment.Aligned",
+                "map_init": {
+                    "gap_pos": [],
+                    "cum_gap_lengths": [],
+                    "termini_unknown": False,
+                    "parent_length": 20,
+                    "type": "cogent3.core.location.IndelMap",
+                    "version": "2025.5.8a9",
+                },
+                "seq_init": {
+                    "name": "Human",
+                    "seq": {
+                        "type": "cogent3.core.sequence.SeqView",
+                        "version": "2025.5.8a9",
+                        "init_args": {
+                            "seq": "TGTGGCACAAATACTCATGC",
+                            "seqid": "Human",
+                            "step": 1,
+                        },
+                    },
+                    "moltype": "dna",
+                    "info": None,
+                    "type": "cogent3.core.sequence.DnaSequence",
+                    "version": "2025.5.8a9",
+                    "annotation_offset": 0,
+                },
+            },
+            "Wombat": {
+                "version": "2025.5.8a9",
+                "type": "cogent3.core.alignment.Aligned",
+                "map_init": {
+                    "gap_pos": [0],
+                    "cum_gap_lengths": [15],
+                    "termini_unknown": False,
+                    "parent_length": 5,
+                    "type": "cogent3.core.location.IndelMap",
+                    "version": "2025.5.8a9",
+                },
+                "seq_init": {
+                    "name": "Wombat",
+                    "seq": {
+                        "type": "cogent3.core.sequence.SeqView",
+                        "version": "2025.5.8a9",
+                        "init_args": {"seq": "NNTGC", "seqid": "Wombat", "step": 1},
+                    },
+                    "moltype": "dna",
+                    "info": None,
+                    "type": "cogent3.core.sequence.DnaSequence",
+                    "version": "2025.5.8a9",
+                    "annotation_offset": 0,
+                },
+            },
+            "Mouse": {
+                "version": "2025.5.8a9",
+                "type": "cogent3.core.alignment.Aligned",
+                "map_init": {
+                    "gap_pos": [],
+                    "cum_gap_lengths": [],
+                    "termini_unknown": False,
+                    "parent_length": 20,
+                    "type": "cogent3.core.location.IndelMap",
+                    "version": "2025.5.8a9",
+                },
+                "seq_init": {
+                    "name": "Mouse",
+                    "seq": {
+                        "type": "cogent3.core.sequence.SeqView",
+                        "version": "2025.5.8a9",
+                        "init_args": {
+                            "seq": "TGTGGCACAGATGCTCATGC",
+                            "seqid": "Mouse",
+                            "step": 1,
+                        },
+                    },
+                    "moltype": "dna",
+                    "info": None,
+                    "type": "cogent3.core.sequence.DnaSequence",
+                    "version": "2025.5.8a9",
+                    "annotation_offset": 0,
+                },
+            },
+        },
+        "moltype": "dna",
+        "info": {"source": "unknown"},
+        "type": "cogent3.core.alignment.Alignment",
+        "version": "2025.5.8a9",
+    }
+    got = deserialise_object(rd)
+    got_prov = get_object_provenance(got)
+    assert got_prov == "cogent3.core.alignment.Alignment"
+    assert got.source == "unknown"
+    assert "source" not in got.info
+
+
+def test_deserialise_old_to_new_type_seqcoll():
+    from cogent3.util.misc import get_object_provenance
+
+    rd = {
+        "seqs": {
+            "Human": {
+                "name": "Human",
+                "seq": {
+                    "type": "cogent3.core.sequence.SeqView",
+                    "version": "2025.5.8a9",
+                    "init_args": {
+                        "seq": "TGTGGCACAAATACTCATGC",
+                        "seqid": "Human",
+                        "step": 1,
+                    },
+                },
+                "moltype": "dna",
+                "info": None,
+                "type": "cogent3.core.sequence.DnaSequence",
+                "version": "2025.5.8a9",
+                "annotation_offset": 0,
+            },
+            "Wombat": {
+                "name": "Wombat",
+                "seq": {
+                    "type": "cogent3.core.sequence.SeqView",
+                    "version": "2025.5.8a9",
+                    "init_args": {
+                        "seq": "---------------NNTGC",
+                        "seqid": "Wombat",
+                        "step": 1,
+                    },
+                },
+                "moltype": "dna",
+                "info": None,
+                "type": "cogent3.core.sequence.DnaSequence",
+                "version": "2025.5.8a9",
+                "annotation_offset": 0,
+            },
+            "Mouse": {
+                "name": "Mouse",
+                "seq": {
+                    "type": "cogent3.core.sequence.SeqView",
+                    "version": "2025.5.8a9",
+                    "init_args": {
+                        "seq": "TGTGGCACAGATGCTCATGC",
+                        "seqid": "Mouse",
+                        "step": 1,
+                    },
+                },
+                "moltype": "dna",
+                "info": None,
+                "type": "cogent3.core.sequence.DnaSequence",
+                "version": "2025.5.8a9",
+                "annotation_offset": 0,
+            },
+        },
+        "moltype": "dna",
+        "info": {"source": "unknown"},
+        "type": "cogent3.core.alignment.SequenceCollection",
+        "version": "2025.5.8a9",
+    }
+    got = deserialise_object(rd)
+    got_prov = get_object_provenance(got)
+    assert got_prov == "cogent3.core.alignment.SequenceCollection"
+    assert got.source == "unknown"
+    assert "source" not in got.info
+
+
+moltype_old_class_map = {
+    "dna": "cogent3.core.sequence.DnaSequence",
+    "rna": "cogent3.core.sequence.RnaSequence",
+    "text": "cogent3.core.sequence.Sequence",
+    "bytes": "cogent3.core.sequence.ByteSequence",
+    "protein": "cogent3.core.sequence.ProteinSequence",
+    "protein_with_stop": "cogent3.core.sequence.ProteinWithStopSequence",
+}
+
+
+@pytest.mark.parametrize("moltype_name", list(moltype_old_class_map.keys()))
+def test_deserialise_old_to_new_type_seqs(moltype_name):
+    from cogent3.core import moltype as c3_moltype
+    from cogent3.core import sequence
+
+    old_rich_dict = {
+        "annotation_offset": 0,
+        "info": {"something": 3},
+        "moltype": moltype_name,
+        "name": "label",
+        "seq": {
+            "init_args": {"seq": "ACGGTCGG", "seqid": "label", "step": 1},
+            "type": "cogent3.core.sequence.SeqView",
+            "version": "2025.5.8a9",
+        },
+        "type": moltype_old_class_map[moltype_name],
+        "version": "2025.5.8a9",
+    }
+    got = deserialise_object(old_rich_dict)
+    assert isinstance(got.moltype, c3_moltype.MolType)
+    assert isinstance(got, sequence.Sequence)
+
+
+def test_deserialise_old_to_new_type_moltype():
+    from cogent3.core import moltype as c3_moltype
+
+    old_rich_dict = {
+        "type": "cogent3.core.moltype.MolType",
+        "moltype": "dna",
+        "version": "2025.5.8a9",
+    }
+    got = deserialise_object(old_rich_dict)
+    assert isinstance(got, c3_moltype.MolType)
+
+
+@pytest.mark.parametrize(
+    "motifset", ["TCAG", "TCAGNRYWSKMBDHV", "TCAG-", "TCAG-NRYWSKMBDHV?"]
+)
+def test_deserialise_old_to_new_charalphabet(motifset):
+    from cogent3.core import alphabet as c3_alphabet
+
+    old_rich_dict = {
+        "motifset": list(motifset),
+        "gap": "-",
+        "moltype": "dna",
+        "type": "cogent3.core.alphabet.CharAlphabet",
+        "version": "2025.5.8a9",
+    }
+    got = deserialise_object(old_rich_dict)
+    assert isinstance(got, c3_alphabet.CharAlphabet)
+
+
+def test_deserialise_old_to_c3_alphabet():
+    # this is special to BH
+    from cogent3.core import alphabet as c3_alphabet
+
+    old_rich_dict = {
+        "motifset": ("T", "C", "A", "G"),
+        "gap": "-",
+        "moltype": "dna",
+        "type": "cogent3.core.alphabet.Alphabet",
+        "version": "2025.5.8a9",
+    }
+    got = deserialise_object(old_rich_dict)
+    assert isinstance(got, c3_alphabet.CharAlphabet)
+
+
+def test_deserialise_old_to_new_type_kmer_alphabet():
+    from cogent3.core import alphabet as c3_alphabet
+
+    old_rich_dict = {
+        "data": ["TCAG", "TCAG"],
+        "gap": None,
+        "moltype": "dna",
+        "type": "cogent3.core.alphabet.JointEnumeration",
+        "version": "2025.5.8a9",
+    }
+    got = deserialise_object(old_rich_dict)
+    assert isinstance(got, c3_alphabet.KmerAlphabet)
+    assert len(got) == 16
+
+
+def test_deserialise_old_to_new_type_codon_alphabet():
+    from cogent3.core import alphabet as c3_alphabet
+
+    old_rich_dict = {
+        "motifset": (
+            "TTT",
+            "TTC",
+            "TTA",
+            "TTG",
+            "TCT",
+            "TCC",
+            "TCA",
+            "TCG",
+            "TAT",
+            "TAC",
+            "TGT",
+            "TGC",
+            "TGG",
+            "CTT",
+            "CTC",
+            "CTA",
+            "CTG",
+            "CCT",
+            "CCC",
+            "CCA",
+            "CCG",
+            "CAT",
+            "CAC",
+            "CAA",
+            "CAG",
+            "CGT",
+            "CGC",
+            "CGA",
+            "CGG",
+            "ATT",
+            "ATC",
+            "ATA",
+            "ATG",
+            "ACT",
+            "ACC",
+            "ACA",
+            "ACG",
+            "AAT",
+            "AAC",
+            "AAA",
+            "AAG",
+            "AGT",
+            "AGC",
+            "AGA",
+            "AGG",
+            "GTT",
+            "GTC",
+            "GTA",
+            "GTG",
+            "GCT",
+            "GCC",
+            "GCA",
+            "GCG",
+            "GAT",
+            "GAC",
+            "GAA",
+            "GAG",
+            "GGT",
+            "GGC",
+            "GGA",
+            "GGG",
+        ),
+        "gap": "-",
+        "moltype": "dna",
+        "type": "cogent3.core.alphabet.Alphabet",
+        "version": "2025.5.8a9",
+    }
+    alpha = deserialise_object(old_rich_dict)
+    assert isinstance(alpha, c3_alphabet.SenseCodonAlphabet)
+
+
+def test_deserialise_old_to_new_type_submodel():
+    from cogent3.evolve.ns_substitution_model import DiscreteSubstitutionModel
+    from cogent3.evolve.substitution_model import TimeReversibleNucleotide
+
+    old_rich_dict = {
+        "alphabet": {
+            "motifset": ("T", "C", "A", "G"),
+            "gap": "-",
+            "moltype": "dna",
+            "type": "cogent3.core.alphabet.Alphabet",
+            "version": "2025.5.8a9",
+        },
+        "motif_probs": None,
+        "optimise_motif_probs": True,
+        "equal_motif_probs": False,
+        "motif_probs_from_data": None,
+        "motif_probs_alignment": None,
+        "mprob_model": "tuple",
+        "model_gaps": False,
+        "recode_gaps": False,
+        "motif_length": 1,
+        "name": "BH",
+        "motifs": None,
+        "type": "cogent3.evolve.ns_substitution_model.DiscreteSubstitutionModel",
+        "version": "2025.5.8a9",
+    }
+    got = deserialise_object(old_rich_dict)
+    assert isinstance(got, DiscreteSubstitutionModel)
+
+    old_rich_dict = {
+        "alphabet": {
+            "motifset": ("T", "C", "A", "G"),
+            "gap": "-",
+            "moltype": "dna",
+            "type": "cogent3.core.alphabet.CharAlphabet",
+            "version": "2025.5.8a9",
+        },
+        "motif_probs": None,
+        "optimise_motif_probs": False,
+        "equal_motif_probs": False,
+        "motif_probs_from_data": None,
+        "motif_probs_alignment": None,
+        "mprob_model": None,
+        "model_gaps": False,
+        "recode_gaps": True,
+        "motif_length": 1,
+        "name": "F81",
+        "motifs": None,
+        "with_rate": False,
+        "ordered_param": None,
+        "distribution": None,
+        "partitioned_params": None,
+        "kw": {},
+        "predicates": [],
+        "scales": None,
+        "type": "cogent3.evolve.substitution_model.TimeReversibleNucleotide",
+        "version": "2025.5.8a9",
+    }
+
+    got = deserialise_object(old_rich_dict)
+    assert isinstance(got, TimeReversibleNucleotide)
+
+
+def test_deserialise_old_to_new_type_likelihood():
+    old_json = {
+        "model": {
+            "alphabet": {
+                "motifset": ["T", "C", "A", "G"],
+                "gap": "-",
+                "moltype": "dna",
+                "type": "cogent3.core.alphabet.Alphabet",
+                "version": "2025.5.8a9",
+            },
+            "motif_probs": None,
+            "optimise_motif_probs": True,
+            "equal_motif_probs": False,
+            "motif_probs_from_data": None,
+            "motif_probs_alignment": None,
+            "mprob_model": "tuple",
+            "model_gaps": False,
+            "recode_gaps": False,
+            "motif_length": 1,
+            "name": "BH",
+            "motifs": None,
+            "type": "cogent3.evolve.ns_substitution_model.DiscreteSubstitutionModel",
+            "version": "2025.5.8a9",
+        },
+        "tree": {
+            "newick": "(Human,Mouse,Opossum)root",
+            "edge_attributes": {
+                "Human": {"length": None},
+                "Mouse": {"length": None},
+                "Opossum": {"length": None},
+                "root": {"length": None},
+            },
+            "type": "cogent3.core.tree.PhyloNode",
+            "version": "2025.5.8a9",
+        },
+        "alignment": {
+            "seqs": {
+                "Human": {
+                    "name": "Human",
+                    "seq": {
+                        "type": "cogent3.core.sequence.SeqView",
+                        "version": "2025.5.8a9",
+                        "init_args": {
+                            "seq": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+                            "seqid": "Human",
+                            "step": 1,
+                        },
+                    },
+                    "moltype": "dna",
+                    "info": None,
+                    "type": "cogent3.core.sequence.DnaSequence",
+                    "version": "2025.5.8a9",
+                    "annotation_offset": 0,
+                },
+                "Mouse": {
+                    "name": "Mouse",
+                    "seq": {
+                        "type": "cogent3.core.sequence.SeqView",
+                        "version": "2025.5.8a9",
+                        "init_args": {
+                            "seq": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+                            "seqid": "Mouse",
+                            "step": 1,
+                        },
+                    },
+                    "moltype": "dna",
+                    "info": None,
+                    "type": "cogent3.core.sequence.DnaSequence",
+                    "version": "2025.5.8a9",
+                    "annotation_offset": 0,
+                },
+                "Opossum": {
+                    "name": "Opossum",
+                    "seq": {
+                        "type": "cogent3.core.sequence.SeqView",
+                        "version": "2025.5.8a9",
+                        "init_args": {
+                            "seq": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+                            "seqid": "Opossum",
+                            "step": 1,
+                        },
+                    },
+                    "moltype": "dna",
+                    "info": None,
+                    "type": "cogent3.core.sequence.DnaSequence",
+                    "version": "2025.5.8a9",
+                    "annotation_offset": 0,
+                },
+            },
+            "moltype": "dna",
+            "info": {"source": "unknown"},
+            "type": "cogent3.core.alignment.ArrayAlignment",
+            "version": "2025.5.8a9",
+        },
+        "likelihood_construction": {
+            "bins": 1,
+            "loci": 1,
+            "optimise_motif_probs": True,
+            "motif_probs_from_align": True,
+            "default_length": 1.0,
+        },
+        "param_rules": [
+            {
+                "par_name": "psubs",
+                "edge": "Human",
+                "init": {
+                    "T": {
+                        "T": 0.9971099722856885,
+                        "C": 0.002886010264321592,
+                        "A": 2.008724995022132e-06,
+                        "G": 2.008724995022132e-06,
+                    },
+                    "C": {"T": 0.125, "C": 0.625, "A": 0.125, "G": 0.125},
+                    "A": {"T": 0.125, "C": 0.125, "A": 0.625, "G": 0.12499999999999997},
+                    "G": {"T": 0.125, "C": 0.125, "A": 0.125, "G": 0.625},
+                },
+                "lower": None,
+                "upper": None,
+            },
+            {
+                "par_name": "psubs",
+                "edge": "Mouse",
+                "init": {
+                    "T": {"T": 0.625, "C": 0.12499999999999997, "A": 0.125, "G": 0.125},
+                    "C": {"T": 0.125, "C": 0.625, "A": 0.125, "G": 0.125},
+                    "A": {"T": 0.125, "C": 0.125, "A": 0.625, "G": 0.12499999999999997},
+                    "G": {"T": 0.125, "C": 0.125, "A": 0.125, "G": 0.625},
+                },
+                "lower": None,
+                "upper": None,
+            },
+            {
+                "par_name": "psubs",
+                "edge": "Opossum",
+                "init": {
+                    "T": {"T": 0.625, "C": 0.12499999999999997, "A": 0.125, "G": 0.125},
+                    "C": {"T": 0.125, "C": 0.625, "A": 0.125, "G": 0.125},
+                    "A": {"T": 0.125, "C": 0.125, "A": 0.625, "G": 0.12499999999999997},
+                    "G": {"T": 0.125, "C": 0.125, "A": 0.125, "G": 0.625},
+                },
+                "lower": None,
+                "upper": None,
+            },
+            {
+                "par_name": "mprobs",
+                "init": {
+                    "T": 0.11111111111111109,
+                    "C": 0.27777777777777773,
+                    "A": 0.15555555555555559,
+                    "G": 0.45555555555555555,
+                },
+                "lower": None,
+                "upper": None,
+            },
+        ],
+        "lnL": -98.78628627311876,
+        "nfp": 39,
+        "motif_probs": {
+            "T": 0.11111111111111109,
+            "C": 0.27777777777777773,
+            "A": 0.15555555555555559,
+            "G": 0.45555555555555555,
+        },
+        "DLC": True,
+        "unique_Q": None,
+        "type": "cogent3.evolve.parameter_controller.AlignmentLikelihoodFunction",
+        "name": "BH",
+        "version": "2025.5.8a9",
+    }
+    lf = deserialise_likelihood_function(old_json)
+    assert pytest.approx(lf.lnL) == -98.78628627311876

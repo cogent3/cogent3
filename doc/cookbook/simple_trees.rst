@@ -8,8 +8,24 @@ Trees
 
 .. authors, Gavin Huttley, Tom Elliott
 
-Loading a tree from a file and visualizing it with ``ascii_art()``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Loading a tree from a file
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. jupyter-execute::
+
+    from cogent3 import load_tree
+
+    tr = load_tree("data/test.tree")
+    print(tr)
+
+The path to the original file is stored in the ``.source`` attribute.
+
+.. jupyter-execute::
+
+    tr.source
+
+Visualising a tree with ``ascii_art()``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
 
@@ -383,19 +399,26 @@ Postorder
 Selecting subtrees
 ^^^^^^^^^^^^^^^^^^
 
-One way to do it
-""""""""""""""""
+.. jupyter-execute::
+
+    from cogent3 import make_tree
+
+    tr = make_tree("((a,b),((c,d),(e,f),(g,h)));")
+    print(tr.ascii_art(show_internal=False))
+
+Provide the names of nodes you want the subtree for. The  default behaviour is to force the subtree to have the same number of children at the root as the original tree, in this case 2.
 
 .. jupyter-execute::
 
-    from cogent3 import load_tree
+    subtree = tr.get_sub_tree(["c", "e", "g"])
+    print(subtree.ascii_art(show_internal=False))
 
-    tr = load_tree("data/test.tree")
-    for tip in tr.iter_nontips():
-        tip_names = tip.get_tip_names()
-        print(tip_names)
-        sub_tree = tr.get_sub_tree(tip_names)
-        print(sub_tree.ascii_art())
+Use the ``as_rooted`` argument to ensure the selected subtree topology is as it existed on the original tree.
+
+.. jupyter-execute::
+
+    subtree = tr.get_sub_tree(["c", "e", "g"], as_rooted=True)
+    print(subtree.ascii_art(show_internal=False))
 
 ..
     We do some file clean up
@@ -420,18 +443,15 @@ and branch lengths (if tree is a PhyloNode) to reflect the change.
 
     from cogent3 import make_tree
 
-    simple_tree_string = "(B:0.2,(D:0.4)E:0.5)F;"
-    simple_tree = make_tree(simple_tree_string)
+    simple_tree = make_tree("(B:0.2,(D:0.4)E:0.5);")
     print(simple_tree.ascii_art())
+
+The ``prune()`` modifies the tree in place.
 
 .. jupyter-execute::
 
     simple_tree.prune()
     print(simple_tree.ascii_art())
-
-.. jupyter-execute::
-
-    print(simple_tree)
 
 Create a full unrooted copy of the tree
 """""""""""""""""""""""""""""""""""""""

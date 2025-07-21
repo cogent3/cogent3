@@ -1,4 +1,104 @@
 
+<a id='changelog-2025.7.10a2'></a>
+# Changes in release "2025.7.10a2"
+
+This is a minor enhancement release to improve the experience of users
+who have relied on the old type sequence classes to have a default moltype.
+
+## Enhancements
+
+- No longer fail if a user does not specify the moltype. Instead, we
+  provide a UserWarning and default to ASCII.
+
+<a id='changelog-2025.7.10a1'></a>
+# Changes in release "2025.7.10a1"
+
+Major changes in this release! The old style core objects have now been removed.
+Please report any problems as a [issue ](https://github.com/cogent3/cogent3/issues).
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- `new_type` migration has now been completed 🚀🎉
+  For all modules whose name began with `new_`, we have
+  dropped this prefix, replacing the original classes.
+  Finally, fully integrated, plugin-backed, modernised
+  sequence collections and accessory objects!
+
+## Discontinued
+
+- The `cogent3.core.new_...` modules are now all marked to
+  be discontinued as of 2025.9.
+- All uses of `format` as a parameter are now deprecated in favour
+  of `format_name` to avoid overriding the builtin function of the same
+  name. They will be removed by 2025.9.
+
+<a id='changelog-2025.5.8a10'></a>
+# Changes in release "2025.5.8a10"
+
+## Contributors
+
+- @GavinHuttley, misc
+- @khiron
+
+## Enhancements
+
+- Added support deserialising old type sequence collections and the old type
+  Alignment and ArrayAlignment into the new type classes. We do not bring
+  over all attributes (e.g. annotation data is ignored). These transformations
+  are transparent to the user.
+
+<a id='changelog-2025.5.8a9'></a>
+# Changes in release "2025.5.8a9"
+
+This is a bug fix, minor enhancements and improvements under the hood.
+
+## Contributors
+
+- GavinHuttley, assorted
+
+## Enhancements
+
+- Refactoring some methods on the tree classes to use iterative, rather
+  than recursive, algorithms. Also made some algorithms more general.
+- `tree.get_sub_tree(as_rooted: bool)` argument when True preserves the
+  number of children of the resolved sub-tree. The default is to coerce
+  the number of children to match the original tree.
+- `tree.prune(keep_root: bool)` preserves nodes from the root to the
+  first node with >= 2 children.
+
+## Bug fixes
+
+- Improved robutsness of the tree rooting methods. Previous code
+  could return trees with nodes that had a single child. This has
+  been fixed.
+
+## Deprecations
+
+- The Tree `root()` method is being replaced by `get_root()` as the
+  original name is misleading. This will be finalised in release 2025.6.
+- Many methods on tree classes that are not being used anywhere else,
+  or are not well suited to being on a tree class, are marked for deletion.
+  These include `compare_by_tip_distances()`, `scale_branch_lengths()`,
+  `set_tip_distances()`. These wll be finalised in release 2025.6.
+- The `tree.traverse()` method is being discontinued as its functionality is
+  readily replaced with existing methods. To traverse all nodes on a tree
+  use `tree.preorder()` or `tree.postorder()`. If you want to walk up and
+  down the tree use `tree.pre_and_postorder()`.
+- `tree.get_sub_tree(keep_root)` argument is being discontinued and no longer
+  has an effect.This is a special case. If you want to preserve the original
+  tip-to-root distances, call the new `tree.tip_to_root_distances()` method
+  with the names of interest.
+- `cogent3.maths.stats.distribution.binomial_exact` has been deprecated in
+  favour of scipy function `scipy.stats.binom.pmf`.  `binomial_exact` will be
+  discontinued in cogent3 release 2025.9.  Until then `binomial_exact` will use
+  `scipy.stats.binom.pmf` internally and floating point values for `successes`
+  and `trials` will be truncated to integers using `math.floor` introducing a
+  potential breaking change in behaviour.
+
 <a id='changelog-2025.5.8a8'></a>
 # Changes in release "2025.5.8a8"
 

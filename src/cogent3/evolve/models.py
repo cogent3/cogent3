@@ -7,6 +7,7 @@ gap recoding that will convert gaps to Ns, and model gaps set to False."""
 
 # this file using functions etc. to allow each model to serve as an example for users
 # wishing to construct their own models
+import contextlib
 from itertools import permutations
 
 # The models are constructed in a strait forward manner with no attempt to condense
@@ -20,6 +21,11 @@ from cogent3.evolve.solved_models import _solved_nucleotide
 from cogent3.evolve.substitution_model import _SubstitutionModel
 from cogent3.evolve.substitution_model import kappa_r as _kappa_r
 from cogent3.evolve.substitution_model import kappa_y as _kappa_y
+from cogent3.util.deserialise import (
+    deserialise_object,
+    get_class,
+    register_deserialiser,
+)
 
 nucleotide_models = []
 codon_models = []
@@ -106,7 +112,7 @@ def DT(optimise_motif_probs=True, motif_length=1, **kw):
     motif_length=2 makes this a dinucleotide model, motif_length=3 a
     trinucleotide model.
     """
-    alpha = cogent3.get_moltype("dna").alphabet.get_word_alphabet(motif_length)
+    alpha = cogent3.get_moltype("dna").alphabet.get_kmer_alphabet(motif_length)
     kw["optimise_motif_probs"] = optimise_motif_probs
     kw["mprob_model"] = "tuple"
     kw["name"] = kw.get("name", f"DT-{motif_length}")
@@ -2864,3 +2870,29 @@ def available_models(model_types=None):
         data=rows,
         title="Specify a model using 'Abbreviation' (case sensitive).",
     )
+
+
+@register_deserialiser(
+    "cogent3.evolve.substitution_model",
+    "cogent3.evolve.ns_substitution_model",
+    "cogent3.evolve.solved_models.PredefinedNucleotide",
+)
+def deserialise_substitution_model(data):
+    """returns a cogent3 substitution model instance"""
+
+    data.pop("version", None)
+    kw = {} if "kw" not in data else data.pop("kw")
+    sm = None
+    if kw and "name" in kw:
+        name = kw.pop("name")
+        with contextlib.suppress(ValueError):
+            # user defined sm?
+            sm = get_model(name, **kw)
+
+    if sm is None:
+        alphabet = deserialise_object(data.pop("alphabet"))
+        klass = get_class(data.pop("type"))
+        data["alphabet"] = alphabet
+        sm = klass(**data)
+
+    return sm

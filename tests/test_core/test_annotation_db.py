@@ -16,7 +16,6 @@ from cogent3.core.annotation_db import (
     load_annotations,
     update_file_format,
 )
-from cogent3.core.sequence import Sequence
 from cogent3.parse import genbank
 from cogent3.util import deserialise
 
@@ -53,8 +52,8 @@ def seq_db(DATA_DIR):
 
 
 @pytest.fixture
-def seq() -> Sequence:
-    return Sequence("ATTGTACGCCTTTTTTATTATT", name="test_seq")
+def seq():
+    return cogent3.make_seq("ATTGTACGCCTTTTTTATTATT", name="test_seq", moltype="dna")
 
 
 @pytest.fixture
@@ -64,8 +63,8 @@ def anno_db() -> BasicAnnotationDb:
 
 
 @pytest.fixture
-def simple_seq_gff_db(DATA_DIR) -> Sequence:
-    seq = Sequence("ATTGTACGCCTTTTTTATTATT", name="test_seq")
+def simple_seq_gff_db(DATA_DIR):
+    seq = cogent3.make_seq("ATTGTACGCCTTTTTTATTATT", name="test_seq", moltype="dna")
     seq.annotation_db = load_annotations(path=DATA_DIR / "simple.gff")
     return seq
 
@@ -420,7 +419,7 @@ def test_feature_strand():
     minus_spans = [(4, 7), (11, 13)]
     minus_seq = "".join(raw_seq[s:e] for s, e in minus_spans)
     minus_seq = "".join([{"T": "A", "A": "T"}[b] for b in minus_seq[::-1]])
-    seq = make_seq(seq=raw_seq, name="s1", moltype="dna", new_type=True)
+    seq = make_seq(seq=raw_seq, name="s1", moltype="dna")
     db = GffAnnotationDb()
     db.add_feature(
         seqid="s1",
@@ -637,7 +636,7 @@ def test_get_features_matching_start_stop_seqview(DATA_DIR, seq):
 
 def test_get_slice():
     """get_slice should return the same as slicing the sequence directly"""
-    seq = Sequence("ATTGTACGCCCCTGA", name="test_seq")
+    seq = cogent3.make_seq("ATTGTACGCCCCTGA", name="test_seq", moltype="dna")
     feature_data = {
         "biotype": "CDS",
         "name": "fake",
@@ -653,7 +652,7 @@ def test_get_slice():
 
 def test_get_slice_annotation_offset():
     """get_slice should return the same as slicing the sequence directly"""
-    seq = Sequence("ATTGTACGCCCCTGA", name="test_seq")
+    seq = cogent3.make_seq("ATTGTACGCCCCTGA", name="test_seq", moltype="dna")
     feature_data = {
         "biotype": "CDS",
         "name": "fake",
@@ -671,7 +670,7 @@ def test_get_slice_annotation_offset():
 def test_get_slice_annotation_offset_not_set():
     # annotation offset is set to zero if a feature spans disjoint segments
     # plus the annotation db is set to None
-    seq = Sequence("ATTGTACGCCCCTGA", name="test_seq")
+    seq = cogent3.make_seq("ATTGTACGCCCCTGA", name="test_seq", moltype="dna")
     feature_data = {
         "biotype": "CDS",
         "name": "fake",
@@ -685,7 +684,7 @@ def test_get_slice_annotation_offset_not_set():
     assert feature.map.num_spans == 2
     got = feature.get_slice()
     assert got.annotation_offset == 0
-    assert got.annotation_db is None
+    assert not len(got.annotation_db)
     f = list(got.get_features(biotype="gene"))
     assert not f
 
@@ -768,7 +767,7 @@ def test__getitem__(simple_seq_gff_db):
     seq_sliced = simple_seq_gff_db[4:6]
     assert seq_sliced == str(simple_seq_gff_db)[4:6]
     # check the underlying seq is still the original sequence data
-    assert seq_sliced._seq.seq == str(simple_seq_gff_db)
+    assert seq_sliced._seq.parent == str(simple_seq_gff_db)
     # check the annotation_db is still attached and the same instance
     assert seq_sliced.annotation_db
     assert seq_sliced.annotation_db is simple_seq_gff_db.annotation_db

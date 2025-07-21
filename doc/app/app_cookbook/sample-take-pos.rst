@@ -6,21 +6,11 @@
 Sample nucleotides from a given codon position
 ----------------------------------------------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 The ``take_codon_positions`` app allows you to extract all nucleotides at a given codon position from an alignment. 
 
 Let's create a sample alignment for our example. 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import make_aligned_seqs
 
@@ -33,7 +23,6 @@ Extract the third codon position from an alignment
 We can achieve this by creating the ``take_codon_positions`` app with ``3`` as a positional argument.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 
@@ -47,7 +36,6 @@ Extract the first and second codon positions from an alignment
 We can achieve this by creating the ``take_codon_positions`` app with ``1`` and ``2`` as a positional argument. 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 
@@ -61,7 +49,6 @@ Extract only the third codon positions from four-fold degenerate codons
 We can achieve this by creating the ``take_codon_positions`` app with the argument ``fourfold_degenerate=True``. 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app, make_aligned_seqs
 
@@ -84,7 +71,6 @@ Create a composed process which samples only the third codon position
 Let's set up a data store containing all the files with the ".fasta" suffix in the data directory, limiting the data store to two members as a minimum example.
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import open_data_store
 
@@ -95,15 +81,14 @@ Now let's set up a process composing the following apps: ``load_aligned`` (loads
 .. note:: Learn the basics of turning apps into composed processes :ref:`here! <apps>` 
 
 .. jupyter-execute::
-    :raises:
     
     from cogent3 import get_app, open_data_store
 
     out_dstore = open_data_store(path_to_dir, suffix="fa", mode="w")
 
-    loader = get_app("load_aligned", format="fasta", moltype="dna")
+    loader = get_app("load_aligned", format_name="fasta", moltype="dna")
     cpos3 = get_app("take_codon_positions", 3)
-    writer = get_app("write_seqs", out_dstore, format="fasta")
+    writer = get_app("write_seqs", out_dstore, format_name="fasta")
 
     process = loader + cpos3 + writer
 
@@ -112,7 +97,6 @@ Now let's set up a process composing the following apps: ``load_aligned`` (loads
 Now let's apply ``process`` to our data store! This populates ``out_dstore`` (which is returned by the ``.apply_to()`` call) with the filtered alignments. We can index ``out_dstore`` to see individual data members. We could take a closer look using the ``.read()`` method on data members. 
 
 .. jupyter-execute::
-    :raises:
 
     out_dstore = process.apply_to(fasta_seq_dstore)
     out_dstore.describe

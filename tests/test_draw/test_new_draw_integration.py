@@ -3,7 +3,7 @@ import pathlib
 import pytest
 
 from cogent3 import load_aligned_seqs, load_seq
-from cogent3.core import new_alignment
+from cogent3.core import alignment as c3_alignment
 from cogent3.core.annotation_db import GffAnnotationDb
 from cogent3.draw.dotplot import Dotplot
 from cogent3.draw.drawable import AnnotatedDrawable, Drawable
@@ -28,7 +28,6 @@ def annotated_seq(DATA_DIR):
         DATA_DIR / "c_elegans_WS199_dna_shortened.fasta",
         annotation_path=DATA_DIR / "c_elegans_WS199_shortened_gff.gff3",
         moltype="dna",
-        new_type=True,
     )
 
 
@@ -40,7 +39,7 @@ def load_alignment():
         db = GffAnnotationDb()
 
         path = str(pathlib.Path(__file__).parent.parent / "data/brca1_5.paml")
-        aln = load_aligned_seqs(path, moltype="dna", new_type=True)
+        aln = load_aligned_seqs(path, moltype="dna")
         aln = aln.omit_gap_pos()
         if annotate1:
             db.add_feature(
@@ -104,9 +103,9 @@ def dotplot_seqs():
 def test_dotplot_base_cases(dotplot_seqs, aligned):
     """exercising dotplot method"""
     seqs = (
-        new_alignment.make_aligned_seqs(dotplot_seqs, moltype="dna")
+        c3_alignment.make_aligned_seqs(dotplot_seqs, moltype="dna")
         if aligned
-        else new_alignment.make_unaligned_seqs(dotplot_seqs, moltype="dna")
+        else c3_alignment.make_unaligned_seqs(dotplot_seqs, moltype="dna")
     )
     # with provided names
     plot = seqs.dotplot(name1="Human", name2="Mouse")
@@ -140,7 +139,7 @@ def test_dotplot_aligned_path():
         "Human": "TTAATGAAGTAGGTTCCAGTACTAATGAAGTGGGCTCCAGTATTAATGAAATAGGTTCCAGTGATGAAAACATTCAAGCA",
         "Mouse": "TTCATGAAGTATGTTCCACT------------------------------------------GGTGACTCCTTCCCAGGA",
     }
-    seqs = new_alignment.make_aligned_seqs(dotplot_seqs, moltype="dna")
+    seqs = c3_alignment.make_aligned_seqs(dotplot_seqs, moltype="dna")
     plot = seqs.dotplot()
     # trigger construction of figure dict
     _ = plot.figure
@@ -155,7 +154,7 @@ def test_dotplot_unaligned_no_aligned_path():
         "Human": "TTAATGAAGTAGGTTCCAGTACTAATGAAGTGGGCTCCAGTATTAATGAAATAGGTTCCAGTGATGAAAACATTCAAGCA",
         "Mouse": "TTCATGAAGTATGTTCCACT------------------------------------------GGTGACTCCTTCCCAGGA",
     }
-    seqs = new_alignment.make_unaligned_seqs(dotplot_seqs, moltype="dna")
+    seqs = c3_alignment.make_unaligned_seqs(dotplot_seqs, moltype="dna")
     plot = seqs.dotplot()
     # trigger construction of figure dict
     _ = plot.figure
@@ -166,14 +165,14 @@ def test_dotplot_unaligned_no_aligned_path():
 @pytest.mark.parametrize("with_annotations", [True, False])
 @pytest.mark.parametrize(
     "mk_cls",
-    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
 )
 def test_dotplot_annotated(annotated_seq, with_annotations, mk_cls):
     if not with_annotations:
         annotated_seq.replace_annotation_db(None)  # this drops all annotations
 
     coll = mk_cls({"c_elegans": annotated_seq}, moltype="dna")
-    aligned = mk_cls == new_alignment.make_aligned_seqs
+    aligned = mk_cls == c3_alignment.make_aligned_seqs
     fig = coll.dotplot(biotype="gene").figure
     base = {"Alignment", "+ strand"} if aligned else {"+ strand"}
     expect = base | {"gene"} if with_annotations else base
@@ -183,7 +182,7 @@ def test_dotplot_annotated(annotated_seq, with_annotations, mk_cls):
 
 @pytest.mark.parametrize(
     "mk_cls",
-    [new_alignment.make_unaligned_seqs, new_alignment.make_aligned_seqs],
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
 )
 def test_dotplot_just_gaps(mk_cls):
     eqs = {
@@ -197,7 +196,7 @@ def test_dotplot_just_gaps(mk_cls):
 
 def test_dotplot_regression():
     """Tests whether dotplot produces traces and in correct ordering."""
-    aln = load_aligned_seqs("data/brca1.fasta", moltype="dna", new_type=True)
+    aln = load_aligned_seqs("data/brca1.fasta", moltype="dna")
     aln = aln.take_seqs(["Human", "Chimpanzee"])
     aln = aln[:200]
     dp = aln.dotplot()
@@ -293,7 +292,7 @@ def test_sequence_collection_dotplot_annotated_no_matcing_seqids():
     # dog not present
     db.add_feature(seqid="Dog", biotype="exon", name="fred", spans=[(10, 15)])
     data = {"Human": "CAGATTTGGCAGTT-", "Mouse": "CAGATTCAGCAGGTG"}
-    seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
+    seqs = c3_alignment.make_unaligned_seqs(data, moltype="dna")
     seqs.annotation_db = db
     seqs = seqs.take_seqs(["Human", "Mouse"], copy_annotations=True)
     got = seqs.dotplot(show_progress=False, biotype="exon")
@@ -307,7 +306,7 @@ def test_sequence_collection_dotplot_annotated_select_biotype():
     # dog not present
     db.add_feature(seqid="Human", biotype="exon", name="fred", spans=[(10, 15)])
     data = {"Human": "CAGATTTGGCAGTT-", "Mouse": "CAGATTCAGCAGGTG"}
-    seqs = new_alignment.make_unaligned_seqs(data, moltype="dna")
+    seqs = c3_alignment.make_unaligned_seqs(data, moltype="dna")
     seqs.annotation_db = db
     seqs = seqs.take_seqs(["Human", "Mouse"])
     got = seqs.dotplot(show_progress=False, biotype="gene")
@@ -361,7 +360,7 @@ def test_information_plot(load_alignment):
 
 def test_get_drawable():
     """sliced alignment with features returns a drawable"""
-    aln = new_alignment.make_aligned_seqs(
+    aln = c3_alignment.make_aligned_seqs(
         {"a": "AAACGGTTT", "b": "CAA--GTAA"},
         moltype="dna",
     )
@@ -377,7 +376,7 @@ def test_get_drawable():
 
 def test_seqlogo(seqs_dict):
     """exercise producing a seq logo"""
-    aln = new_alignment.make_aligned_seqs(seqs_dict, moltype="dna")
+    aln = c3_alignment.make_aligned_seqs(seqs_dict, moltype="dna")
     _ = aln.seqlogo()
     # using wrap argument
     _ = aln.seqlogo(wrap=20)
@@ -385,6 +384,6 @@ def test_seqlogo(seqs_dict):
 
 def test_seqlogo_for_sliced_alignment(seqs_dict):
     # exercise producing a seq logo for a sliced alignment
-    aln = new_alignment.make_aligned_seqs(seqs_dict, moltype="dna")
+    aln = c3_alignment.make_aligned_seqs(seqs_dict, moltype="dna")
     aln = aln[:20]
     _ = aln.seqlogo()

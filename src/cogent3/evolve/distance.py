@@ -9,8 +9,7 @@ from cogent3.core import table
 from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.maths.stats.number import NumberCounter
 from cogent3.util import progress_display as UI
-
-_NEW_TYPE = "COGENT3_NEW_TYPE" in os.environ
+from cogent3.util import warning as c3warn
 
 
 def get_name_combinations(names, group_size):
@@ -128,7 +127,7 @@ class EstimateDistances:
             make_tree(tip_names=seqs.names),
             aligned=False,
         )
-        lf.set_sequences(seqs.seqs if _NEW_TYPE else seqs.named_seqs)
+        lf.set_sequences(seqs.seqs)
 
         # allow user to modify the lf config
         if self._modify_lf:
@@ -355,11 +354,14 @@ class EstimateDistances:
 
         return trees
 
+    @c3warn.deprecated_args(
+        "2025.9", "don't use built in name", old_new=[("format", "format_name")]
+    )
     def write(
         self,
-        filename,
-        summary_function="mean",
-        format="phylip",
+        filename: str | os.PathLike,
+        summary_function: str = "mean",
+        format_name: str = "phylip",
         **kwargs,
     ) -> None:
         """Save the pairwise distances to a file using phylip format. Other
@@ -373,10 +375,9 @@ class EstimateDistances:
             a string naming the function used for
             estimating param from threeway distances. Valid values are 'mean'
             (default) and 'median'.
-        format
+        format_name
             output format of distance matrix
-
         """
 
         table = self.get_table(summary_function=summary_function, **kwargs)
-        table.write(filename, format=format)
+        table.write(filename, format_name=format_name)

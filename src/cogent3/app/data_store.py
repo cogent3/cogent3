@@ -17,8 +17,7 @@ from typing import TYPE_CHECKING
 
 from scitrack import get_text_hexdigest
 
-from cogent3.core import alignment as old_alignment
-from cogent3.core import new_alignment
+from cogent3.core import alignment as c3_alignment
 from cogent3.core import tree as c3tree
 from cogent3.core.table import Table
 from cogent3.util.deserialise import deserialise_object
@@ -749,38 +748,23 @@ def get_data_source(data: object) -> str | None:
 
 
 @get_data_source.register
-def _(data: old_alignment.SequenceCollection) -> str | None:
-    return get_data_source(data.info)
+def _(data: c3_alignment.Alignment) -> str | None:
+    return get_data_source(data.source)
 
 
 @get_data_source.register
-def _(data: old_alignment.ArrayAlignment) -> str | None:
-    return get_data_source(data.info)
-
-
-@get_data_source.register
-def _(data: old_alignment.Alignment) -> str | None:
-    return get_data_source(data.info)
-
-
-@get_data_source.register
-def _(data: new_alignment.Alignment) -> str | None:
-    return data.source
-
-
-@get_data_source.register
-def _(data: new_alignment.SequenceCollection) -> str | None:
-    return data.source
+def _(data: c3_alignment.SequenceCollection) -> str | None:
+    return get_data_source(data.source)
 
 
 @get_data_source.register
 def _(data: c3tree.TreeNode) -> str | None:
-    return data.source
+    return get_data_source(data.source)
 
 
 @get_data_source.register
 def _(data: c3tree.PhyloNode) -> str | None:
-    return data.source
+    return get_data_source(data.source)
 
 
 @get_data_source.register

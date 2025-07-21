@@ -6,19 +6,9 @@
 Select named sequences from a collection
 ----------------------------------------
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 Let's load alignment of primates to use in examples. 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 
@@ -32,7 +22,6 @@ Selecting sequences from a collection
 Using the ``take_named_seqs`` app we can select sequences from a collection that match provided names. For instance, we could be interested in an alignment of sequences from Humans with those from our two closest relatives. 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 
@@ -47,7 +36,7 @@ Using ``take_named_seqs`` in a composed app process
 
     from cogent3 import get_app
 
-    loader = get_app("load_aligned", format="fasta", moltype="dna")
+    loader = get_app("load_aligned", format_name="fasta", moltype="dna")
     select_seqs = get_app("take_named_seqs", "Human", "Rhesus", "Galago")
     process = loader + select_seqs
     hrg_aln = process("data/primate_brca1.fasta")
@@ -59,7 +48,6 @@ Removing sequences from a collection
 Creating the ``take_named_seqs`` app with the argument ``negate=True`` will exclude sequences that match the provided names. For instance, perhaps the Galago has got to go. 
 
 .. jupyter-execute::
-    :raises:
 
     from cogent3 import get_app
 

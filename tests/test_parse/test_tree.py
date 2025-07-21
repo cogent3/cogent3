@@ -2,6 +2,8 @@
 
 from unittest import TestCase
 
+import pytest
+
 from cogent3.core.tree import PhyloNode
 from cogent3.parse.tree import DndParser, DndTokenizer, RecordError
 
@@ -347,3 +349,12 @@ def test_make_tree_with_nhx(DATA_DIR):
     assert set(vert.params["other"]) == {'&sCF="50.68"', 'sDF1="24.42"'}
     vert = got.get_connecting_node("t5", "t6")
     assert set(vert.params["other"]) == {'&sCF="77.1"', 'sDF1="11.53"'}
+
+
+@pytest.mark.parametrize(
+    "treestring", ["(a,b)ab;", "(a,b)ab", "(a,b,(c,(d,e)))ab", "(a:3,b)ab"]
+)
+def test_parse_named_root_nodes(treestring):
+    tree = DndParser(treestring, PhyloNode)
+    assert tree.name == "ab"
+    assert tree.parent is None

@@ -2,19 +2,17 @@ from collections import defaultdict
 from typing import Union
 
 import cogent3
-from cogent3.core import alphabet as old_alphabet
-from cogent3.core import genetic_code as old_genetic_code
-from cogent3.core import moltype as old_moltype
-from cogent3.core import new_alphabet, new_genetic_code, new_moltype
+from cogent3.core import alphabet as c3_alphabet
+from cogent3.core import genetic_code as c3_genetic_code
+from cogent3.core import moltype as c3_moltype
 
 from .composable import NotCompleted, define_app
+from .data_store import get_data_source
 from .typing import SeqsCollectionType, SeqType, SerialisableType
 
-GeneticCodeTypes = (
-    str | int | old_genetic_code.GeneticCode | new_genetic_code.GeneticCode
-)
-MolTypes = str | old_moltype.MolType | new_moltype.MolType
-AlphabetTypes = old_alphabet.Alphabet | new_alphabet.CharAlphabet
+GeneticCodeTypes = str | int | c3_genetic_code.GeneticCode
+MolTypes = str | c3_moltype.MolType
+AlphabetTypes = c3_alphabet.CharAlphabet
 
 
 def best_frame(
@@ -51,10 +49,7 @@ def best_frame(
         or the stop codon is not at the sequence end
     """
     gc = cogent3.get_code(gc)
-    if "new_" in gc.__module__:
-        translations = [tr for *_, tr in gc.sixframes(str(seq))]
-    else:
-        translations = gc.sixframes(seq)
+    translations = [tr for *_, tr in gc.sixframes(str(seq))]
 
     if not allow_rc:
         translations = translations[:3]
@@ -97,7 +92,7 @@ def translate_frames(
     moltype: MolTypes | None = None,
     gc: GeneticCodeTypes = 1,
     allow_rc: bool = False,
-):
+) -> SeqsCollectionType:
     """translates a nucleic acid sequence
 
     Parameters
@@ -119,10 +114,7 @@ def translate_frames(
         moltype = cogent3.get_moltype(moltype)
         seq = moltype.make_seq(seq)
 
-    if "new_" in gc.__module__:
-        translations = [tr for *_, tr in gc.sixframes(seq)]
-    else:
-        translations = gc.sixframes(seq)
+    translations = [tr for *_, tr in gc.sixframes(seq)]
     if not allow_rc:
         translations = translations[:3]
 
@@ -275,6 +267,7 @@ class select_translatable:
         """returns the translatable sequences from seqs.
 
         translation errors are stroed in the info object"""
+        source = get_data_source(seqs)
         seqs = seqs.degap()
         if self._moltype and self._moltype != seqs.moltype:
             seqs = seqs.to_moltype(self._moltype)
@@ -302,13 +295,13 @@ class select_translatable:
 
         if translatable:
             translatable = cogent3.make_unaligned_seqs(
-                data=translatable,
-                moltype=self._moltype,
-                info=seqs.info,
+                translatable, moltype=self._moltype, info=seqs.info, source=source
             )
             translatable.info["translation_errors"] = error_log
         else:
-            translatable = NotCompleted("FALSE", self, " ".join(error_log), source=seqs)
+            translatable = NotCompleted(
+                "FALSE", self, " ".join(error_log), source=source
+            )
 
         return translatable
 
@@ -320,7 +313,7 @@ class translate_seqs:
 
     def __init__(
         self,
-        moltype: MolTypes = "dna",
+        moltype: c3_moltype.MolTypeLiteral = "dna",
         gc: GeneticCodeTypes = 1,
         allow_rc: bool = False,
         trim_terminal_stop: bool = True,
@@ -357,14 +350,14 @@ class translate_seqs:
         s1    MR
         s2    .-
         """
-        moltype = cogent3.get_moltype(moltype)
-        assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
+        mtype = cogent3.get_moltype(moltype)
+        assert mtype.is_nucleic, "Invalid moltype"
 
-        self._moltype = moltype
+        self._moltype = mtype
         self._gc = cogent3.get_code(gc)
         self._trim_terminal_stop = trim_terminal_stop
 
-    T = Union[SerialisableType, SeqsCollectionType]
+    T = SerialisableType | SeqsCollectionType
 
     def main(self, seqs: SeqsCollectionType) -> T:
         """returns translated sequences"""

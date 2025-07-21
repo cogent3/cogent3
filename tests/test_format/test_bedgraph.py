@@ -13,7 +13,7 @@ class FormatBedgraph(TestCase):
         )
 
         bgraph = table.to_string(
-            format="bedgraph",
+            format_name="bedgraph",
             name="test track",
             description="test of bedgraph",
             color=(255, 0, 0),
@@ -35,7 +35,7 @@ class FormatBedgraph(TestCase):
         table = Table(header=["chrom", "start", "end", "value"], data=rows)
 
         bgraph = table.to_string(
-            format="bedgraph",
+            format_name="bedgraph",
             name="test track",
             description="test of bedgraph",
             color=(255, 0, 0),
@@ -57,7 +57,7 @@ class FormatBedgraph(TestCase):
         rows += [["2", i, i + 1, 0] for i in range(100, 121)]
         table = Table(header=["chrom", "start", "end", "value"], data=rows)
         bgraph = table.to_string(
-            format="bedgraph",
+            format_name="bedgraph",
             name="test track",
             description="test of bedgraph",
             color=(255, 0, 0),
@@ -83,7 +83,7 @@ class FormatBedgraph(TestCase):
         self.assertRaises(
             RuntimeError,
             table.to_string,
-            format="bedgraph",
+            format_name="bedgraph",
             name="test track",
             description="test of bedgraph",
             color=(255, 0, 0),
@@ -100,7 +100,7 @@ class FormatBedgraph(TestCase):
         self.assertRaises(
             AssertionError,
             table.to_string,
-            format="bedgraph",
+            format_name="bedgraph",
             name="test track",
             description="test of bedgraph",
             color=(255, 0, 0),
@@ -115,7 +115,7 @@ class FormatBedgraph(TestCase):
         table = Table(header=["chrom", "start", "end", "value"], data=rows)
 
         bgraph = table.to_string(
-            format="bedgraph",
+            format_name="bedgraph",
             name="test track",
             description="test of bedgraph",
             color=(255, 0, 0),
@@ -139,7 +139,7 @@ class FormatBedgraph(TestCase):
         table = Table(header=["chrom", "start", "end", "value"], data=rows)
 
         bgraph = table.to_string(
-            format="bedgraph",
+            format_name="bedgraph",
             name="test track",
             description="test of bedgraph",
             color=(255, 0, 0),
@@ -165,7 +165,7 @@ class FormatBedgraph(TestCase):
         self.assertRaises(
             AssertionError,
             table.to_string,
-            format="bedgraph",
+            format_name="bedgraph",
             name="test track",
             description="test of bedgraph",
             color=(255, 0, 0),

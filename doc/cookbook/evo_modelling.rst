@@ -8,15 +8,6 @@
 Evolutionary Analysis Using Likelihood
 **************************************
 
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
-
 Specifying substitution models
 ==============================
 
@@ -514,7 +505,7 @@ To illustrate this, I create a very simple likelihood function. The ``json`` var
     from cogent3 import load_aligned_seqs, load_tree
     from cogent3.evolve.models import get_model
 
-    aln = make_aligned_seqs(data=dict(a="ACGG", b="ATAG", c="ATGG"), moltype="dna")
+    aln = make_aligned_seqs(dict(a="ACGG", b="ATAG", c="ATGG"), moltype="dna")
     tree = make_tree(tip_names=aln.names)
     sm = get_model("F81")
     lf = sm.make_likelihood_function(tree)

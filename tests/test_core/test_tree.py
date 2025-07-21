@@ -1,6 +1,5 @@
 """Tests of classes for dealing with trees and phylogeny."""
 
-import itertools
 import json
 import pathlib
 import random
@@ -23,7 +22,7 @@ def test_make_tree():
     # NOTE: This method now sits in cogent3.__init__
 
     t_str = "(a_a:10,(b_b:2,c_c:4):5);"
-    # NOTE: Tree quotes these labels because they have underscores in them.
+    # Tree quotes these labels because they have underscores in them.
     result_str = "('a_a':10.0,('b_b':2.0,'c_c':4.0):5.0);"
     t = make_tree(treestring=t_str)
     names = [i.name for i in t.tips()]
@@ -43,15 +42,6 @@ def test_make_tree():
     # when creating a tree from a list of integer tip names.
     t = make_tree(tip_names=[1, 2, 3])
     assert t.get_tip_names() == ["1", "2", "3"]
-
-
-def _new_child(old_node, constructor):
-    """Returns new_node which has old_node as its parent."""
-    new_node = constructor()
-    new_node.parent = old_node
-    if old_node is not None and new_node not in old_node.children:
-        old_node.children.append(new_node)
-    return new_node
 
 
 tree_std = """\
@@ -1225,13 +1215,19 @@ def test_prune():
     """prune should reconstruct correct topology of tree."""
     tree = DndParser("((a:3,((c:1):1):1):2);", constructor=TreeNode)
     tree.prune()
-    result_tree = DndParser("((a:3,c:1));", constructor=TreeNode)
+    result_tree = DndParser("(a:3,c:1);", constructor=TreeNode)
     assert str(tree) == str(result_tree)
 
     samename_bug = DndParser("((A,B)SAMENAME,((C,D)SAMENAME));")
     samename_bug.prune()
     exp_tree_str = "((A,B)SAMENAME,(C,D)SAMENAME);"
     assert samename_bug.get_newick(with_node_names=True) == exp_tree_str
+
+
+def test_prune_2():
+    tree = DndParser("(((d:1.0,e:4.0)x:2.0,c:3.0)y:3.0)root;")
+    tree.prune()
+    assert len(tree.children) == 2
 
 
 def test_get_node_matching_name(tree_root, tree_nodes):
@@ -1509,7 +1505,7 @@ def test_phylo_prune():
     """prune should reconstruct correct topology and Lengths of tree."""
     tree = DndParser("((a:3,((c:1):1):1):2);", constructor=PhyloNode)
     tree.prune()
-    result_tree = DndParser("((a:3.0,c:3.0):2.0);", constructor=PhyloNode)
+    result_tree = DndParser("(a:3.0,c:3.0);", constructor=PhyloNode)
     assert str(tree) == str(result_tree)
 
 
@@ -1793,16 +1789,33 @@ def test_get_edge_names(a, b, outgroup, expect):
 
 def test_get_edge_names_2():
     tree = _maketree()
-    clade = tree.get_edge_names("C", "E", stem=0, clade=1)
+    clade = tree.get_edge_names("C", "E", stem=False, clade=True)
     clade.sort()
     assert clade == ["C", "D", "E", "cd"]
 
-    all = tree.get_edge_names("C", "E", stem=1, clade=1)
-    all.sort()
-    assert all == ["C", "D", "E", "cd", "cde"]
+    names = tree.get_edge_names("C", "E", stem=True, clade=True)
+    names.sort()
+    assert names == ["C", "D", "E", "cd", "cde"]
 
-    stem = tree.get_edge_names("C", "E", stem=1, clade=0)
+    stem = tree.get_edge_names("C", "E", stem=True, clade=False)
     assert stem == ["cde"]
+
+
+def test_get_edge_names_3():
+    tree = make_tree(treestring="(a,b,(c,(d,e)e1)e2)")
+    tip1name = "d"
+    tip2name = "c"
+    clade = False
+    stem = True
+    outgroup_name = "e"
+    names = tree.get_edge_names(
+        tip1name=tip1name,
+        tip2name=tip2name,
+        clade=clade,
+        stem=stem,
+        outgroup_name=outgroup_name,
+    )
+    assert names == ["e"]
 
 
 @pytest.mark.parametrize(
@@ -1929,15 +1942,20 @@ def test_balanced():
 
 
 def test_params_merge():
-    t = make_tree(treestring="((((a,b)ab,c)abc),d)")
-    for label, length, beta in [("a", 1, 20), ("b", 3, 2.0), ("ab", 4, 5.0)]:
-        t.get_node_matching_name(label).params = {"length": length, "beta": beta}
+    t = make_tree(treestring="((((a:1,b:3)ab:4,c)abc),d)")
+    for label, beta in [("a", 20), ("b", 2.0), ("ab", 5.0)]:
+        t.get_node_matching_name(label).params |= {"beta": beta}
     t = t.get_sub_tree(["b", "c", "d"])
+    # previous implementation on merge was
+    # dividing the sum of parameters across nodes by the lengths
+    # we no longer try and support this
     assert t.get_node_matching_name("b").params == {
         "length": 7,
-        "beta": float(2 * 3 + 4 * 5) / (3 + 4),
+        "beta": 2 + 5,
     }
-    assert str(t.get_sub_tree(["b", "c", "xxx"], ignore_missing=True)) == "(b:7,c);"
+    ex = make_tree("(b:7,c);")
+    st = t.get_sub_tree(["b", "c", "xxx"], ignore_missing=True)
+    assert ex.same_topology(st)
     with pytest.raises(ValueError):
         # should raise ValueError if a tip is not found
         t.get_sub_tree(["b", "c", "xxx"])
@@ -2069,12 +2087,18 @@ def test_getsubtree(request, tree_fxt, otu_fxt, nwk_fxt):
     tree = request.getfixturevalue(tree_fxt)
     otu_names = request.getfixturevalue(otu_fxt)
     newick_reduced = request.getfixturevalue(nwk_fxt)
-    subtree = tree.unrooted().get_sub_tree(otu_names)
+    tree = tree.unrooted()
+    subtree = tree.get_sub_tree(otu_names)
 
-    new_tree = make_tree(treestring=newick_reduced).unrooted()
+    exp_tree = make_tree(treestring=newick_reduced).unrooted()
 
-    # check we get the same names
-    assert str(subtree) == str(new_tree)
+    # names match
+    assert set(subtree.get_tip_names()) == set(exp_tree.get_tip_names())
+    # topology matches
+    assert exp_tree.same_topology(subtree)
+    # newick correctly formed means we reconstruct the same topology
+    from_nwk = make_tree(subtree.get_newick())
+    assert exp_tree.same_topology(from_nwk)
 
 
 def test_getsubtree_2():
@@ -2088,84 +2112,6 @@ def test_getsubtree_2():
     subtree = t1.get_sub_tree(names)
     subset = subtree.get_distances().take_dists(names)
     assert_equal(orig.array, subset.array)
-
-
-def test_getsubtree_3():
-    """tree.get_sub_tree() handles keep_root correctly"""
-    t1 = DndParser("((a:1,b:2):4,(((c:2)cparent:1, j:17):0,(d:1,e:4):2):3)")
-    #           /----4--- /--1-a
-    # ---------|          \--2-b
-    #          |          /----0--- /-1---cparent---2---c
-    #           \---3----|          \--17-j
-    #                     \----2--- /--1--d
-    #                               \--4--e
-    # note c,j is len 0 node
-
-    true_dists = {
-        ("a", "b"): 3.0,
-        ("a", "c"): 11.0,
-        ("a", "d"): 11.0,
-        ("a", "e"): 14.0,
-        ("a", "j"): 25.0,
-        ("b", "a"): 3.0,
-        ("b", "c"): 12.0,
-        ("b", "d"): 12.0,
-        ("b", "e"): 15.0,
-        ("b", "j"): 26.0,
-        ("c", "a"): 11.0,
-        ("c", "b"): 12.0,
-        ("c", "d"): 6.0,
-        ("c", "e"): 9.0,
-        ("c", "j"): 20.0,
-        ("d", "a"): 11.0,
-        ("d", "b"): 12.0,
-        ("d", "c"): 6.0,
-        ("d", "e"): 5.0,
-        ("d", "j"): 20.0,
-        ("e", "a"): 14.0,
-        ("e", "b"): 15.0,
-        ("e", "c"): 9.0,
-        ("e", "d"): 5.0,
-        ("e", "j"): 23.0,
-        ("j", "a"): 25.0,
-        ("j", "b"): 26.0,
-        ("j", "c"): 20.0,
-        ("j", "d"): 20.0,
-        ("j", "e"): 23.0,
-    }
-
-    true_root_dists = {"a": 5, "b": 6, "c": 6, "j": 20, "d": 6, "e": 9}
-
-    t1_dists = t1.get_distances()
-    subtree = t1.get_sub_tree({"d", "e", "c"})
-    sub_dists = subtree.get_distances()
-    true_sub_root_dists = {"c": 3, "d": 3, "e": 6}
-
-    sub_sameroot = t1.get_sub_tree({"d", "e", "c"}, keep_root=True)
-    sub_sameroot_dists = sub_sameroot.get_distances()
-
-    sub_sameroot2 = t1.get_sub_tree({"j", "c"}, keep_root=True)
-    sub_sameroot_dists2 = sub_sameroot2.get_distances()
-
-    # tip to tip dists should be the same
-    for tip_pair in itertools.combinations(sub_dists.names, 2):
-        assert sub_dists[tip_pair] == true_dists[tip_pair]
-    for tip_pair in itertools.combinations(t1_dists.names, 2):
-        assert t1_dists[tip_pair] == true_dists[tip_pair]
-    for tip_pair in itertools.combinations(sub_sameroot_dists.names, 2):
-        assert sub_sameroot_dists[tip_pair] == true_dists[tip_pair]
-    for tip_pair in itertools.combinations(sub_sameroot_dists2.names, 2):
-        assert sub_sameroot_dists2[tip_pair] == true_dists[tip_pair]
-
-    # sameroot should have longer root to tip dists
-    for tip in t1.tips():
-        assert_allclose(t1.distance(tip), true_root_dists[tip.name])
-    for tip in subtree.tips():
-        assert_allclose(subtree.distance(tip), true_sub_root_dists[tip.name])
-    for tip in sub_sameroot.tips():
-        assert_allclose(sub_sameroot.distance(tip), true_root_dists[tip.name])
-    for tip in sub_sameroot2.tips():
-        assert_allclose(sub_sameroot2.distance(tip), true_root_dists[tip.name])
 
 
 def test_ascii():
@@ -2191,7 +2137,7 @@ def test_load_tree(tmp_path, tree_fxt, request):
     got = load_tree(tree_path)
     assert isinstance(got, PhyloNode)
     assert got.get_newick() == tree.get_newick()
-    assert got.get_node_names() == tree.get_node_names()
+    assert set(got.get_node_names()) == set(tree.get_node_names())
 
 
 @pytest.mark.parametrize("tree_fxt", ["tree_small", "tree_big"])
@@ -2203,11 +2149,11 @@ def test_load_tree_from_json(tmp_path, tree_fxt, request):
     got = load_tree(json_path)
     assert isinstance(got, PhyloNode)
     assert got.get_newick() == tree.get_newick()
-    assert got.get_node_names() == tree.get_node_names()
+    assert set(got.get_node_names()) == set(tree.get_node_names())
     # now try using non json suffix
     json_path = tmp_path / "tree.txt"
-    tree.write(json_path, format="json")
-    got = load_tree(json_path, format="json")
+    tree.write(json_path, format_name="json")
+    got = load_tree(json_path, format_name="json")
     assert isinstance(got, PhyloNode)
 
 
@@ -2257,6 +2203,30 @@ def test_getsubtree_6():
     assert set(tree.get_tip_names()), set("ABC")
     # the edge value for "non-scalar" should be same as original tree
     assert all(sub1.get_node_matching_name(name).params["non-scalar"] for name in names)
+
+
+def test_get_subtree_7():
+    t = make_tree(treestring="((((a:1,b:3)ab:4,c)abc),d)")
+    st = t.get_sub_tree(["b", "c"])
+    assert st.is_root()
+
+
+@pytest.mark.parametrize("treestring", ["(a,b,(c,(d,e)))", "((a,b),(c,(d,e)))"])
+def test_get_subtree_8(treestring):
+    # an unrooted tree returns an unrooted subtree
+    tree = make_tree(treestring=treestring)
+    st = tree.get_sub_tree(["c", "d", "e"], as_rooted=False)
+    assert len(st.children) == len(tree.children)
+
+
+def test_get_subtree_as_rooted():
+    # a rooted tree with subtree being naturally multifurcating
+    tree = make_tree("((a,b),((c,d),(e,f),(g,h)));")
+
+    got = tree.get_sub_tree(["d", "e", "h"], as_rooted=True)
+    assert len(got.children) == 3
+    got = tree.get_sub_tree(["d", "e", "f"], as_rooted=False)
+    assert len(got.children) == len(tree.children)
 
 
 def test_get_edge_names_big(tree_big, otu_names_big):
@@ -2499,6 +2469,13 @@ def test_dataset_tree_source():
     assert tr.source.endswith("murphy.tree")
 
 
+def test_rooted_is_rooted_diff_root_name():
+    treestring = "(c,b)abc"
+    tree = make_tree(treestring=treestring)
+    rooted = tree.rooted("b")
+    assert rooted.same_topology(tree)
+
+
 def test_rooted_is_rooted():
     treestring = "((Human,Chimpanzee),Gorilla)"
     tree = make_tree(treestring=treestring)
@@ -2567,3 +2544,12 @@ def test_unrooted_deepcopy():
     node = tree.get_node_matching_name("n3")
     dc = node.unrooted_deepcopy()
     assert all(len(n.children) > 1 for n in dc.iter_nontips())
+
+
+def test_unrooted_deepcopy_2():
+    tree = make_tree(treestring="(a,b,(d,e)de);")
+    tip = tree.get_node_matching_name("e")
+    unco = tip.unrooted_deepcopy()
+    # the root should have one child whose name is 'e'
+    assert len(unco.children) == 1
+    assert unco.children[0].name == "e"

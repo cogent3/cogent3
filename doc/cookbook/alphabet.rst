@@ -1,24 +1,7 @@
-.. jupyter-execute::
-    :hide-code:
-
-    import os
-
-    # new type only from now
-    os.environ["COGENT3_NEW_TYPE"] = "1"
-
 Alphabets
 ---------
 
 .. authors Gavin Huttley
-
-.. note:: These docs now use the ``new_type`` core objects via the following setting.
-
-    .. jupyter-execute::
-
-        import os
-
-        # using new types without requiring an explicit argument
-        os.environ["COGENT3_NEW_TYPE"] = "1"
 
 ``CharAlphabet`` and ``MolType``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

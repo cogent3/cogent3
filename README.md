@@ -23,15 +23,9 @@
 ## 📣 Feature Announcements 📣
 
 <details>
-  <summary> Migration to new type core objects ‼️ </summary>
+  <summary> Migration to new type core objects is complete‼️ </summary>
 
-We are changing the migration strategy from old type to new type `cogent3` core classes. At present we have old type and new type implementations for sequences, sequence collections, alignments, molecular types, alphabets and genetic codes. Users can select the new classes by specifying `new_type=True` to the functions like `make_aligned_seqs()` or `load_aligned_seqs()`. Alternately, you can do this across all objects by using the `COGENT3_NEW_TYPE` environment variable. We have established that it is not viable to support both old and new types simultaneously. Therefore, **the first release after July 1st 2025 will remove all of the old type classes!** Arguments specific to the old type classes will be deprecated at that point. While this is a major change, we have been using these ourselves consistently and feel confident that the disruption to users should be small. However, we strongly advise all users to migrate now and report any errors. To do this, add the following statement to the top of your scripts.
-
-```python
-import os
-
-os.environ["COGENT3_NEW_TYPE"] = "1"
-```
+This has now been finalised with these classes being the defaults.
 
 </details>
 
