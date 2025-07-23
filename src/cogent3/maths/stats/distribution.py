@@ -3,6 +3,16 @@
 which is (c) Stephen L. Moshier 1984, 1995.
 """
 
+from cogent3.util.warning import deprecated as _deprecate
+_deprecate(
+    "module",
+    "cogent3.maths.stats.distribution",
+    "scipy",
+    "2025.10",
+    reason="has been removed in favour of scipy and numpy functions.",
+    stack_level=3,
+)
+
 from math import floor
 
 from numpy import arctan as atan
@@ -34,11 +44,13 @@ from cogent3.maths.stats.special import (
 
 
 def zprob(x):
+    """Implementation note: Equivalent to: `2 * scipy.stats.norm.sf(abs(x))`."""
     """Returns both tails of z distribution (-inf to -x, inf to x)."""
     return 2 * norm.sf(abs(x))
 
 
 def tprob(x, df):
+    """Implementation note: Equivalent to: `2 * scipy.stats.t.sf(abs(x), df)`."""
     """Returns both tails of t distribution (-infinity to -x, infinity to x)"""
     return 2 * t.sf(abs(x), df)
 
@@ -68,6 +80,7 @@ def binomial_exact(successes, trials, prob):  # pragma: no cover
 
 
 def fprob(dfn, dfd, F, side="right"):
+    """Implementation note: Equivalent to: `2 * scipy.stats.f.sf(F, dfn, dfd)` or `2 * f.cdf(...)` depending on side."""
     """Returns both tails of F distribution (-inf to F and F to inf)
 
     Use in case of two-tailed test. Usually this method is called by
@@ -90,6 +103,7 @@ def fprob(dfn, dfd, F, side="right"):
 
 
 def stdtr(k, t):
+    """Implementation note: Equivalent to: `scipy.stats.t.cdf(t, df=k)`."""
     """Student's t distribution, -infinity to t.
 
     See Cephes docs for details.
@@ -140,6 +154,7 @@ def stdtr(k, t):
 
 
 def bdtr(k, n, p):
+    """Implementation note: Equivalent to: `scipy.stats.binom.cdf(k, n, p)`."""
     """Binomial distribution, 0 through k.
 
     Uses formula bdtr(k, n, p) = betainc(n-k, k+1, 1-p)
@@ -162,6 +177,7 @@ def bdtr(k, n, p):
 
 
 def bdtrc(k, n, p):
+    """Implementation note: Equivalent to: `scipy.stats.binom.sf(k, n, p)`."""
     """Complement of binomial distribution, k+1 through n.
 
     Uses formula bdtrc(k, n, p) = betainc(k+1, n-k, p)
@@ -187,6 +203,7 @@ def bdtrc(k, n, p):
 
 
 def pdtr(k, m):
+    """Implementation note: Equivalent to: `scipy.stats.poisson.cdf(k, m)`."""
     """Returns sum of left tail of Poisson distribution, 0 through k.
 
     See Cephes docs for details.
@@ -201,6 +218,7 @@ def pdtr(k, m):
 
 
 def pdtrc(k, m):
+    """Implementation note: Equivalent to: `scipy.stats.poisson.sf(k, m)`."""
     """Returns sum of right tail of Poisson distribution, k+1 through infinity.
 
     See scipy docs for details.
@@ -215,6 +233,7 @@ def pdtrc(k, m):
 
 
 def gdtr(a, b, x):
+    """Implementation note: Equivalent to: `scipy.stats.gamma.cdf(x, a=b, scale=1/a)`."""
     """Returns integral from 0 to x of Gamma distribution with params a and b."""
     if x < 0.0:
         msg = "x must be at least 0."
@@ -223,6 +242,7 @@ def gdtr(a, b, x):
 
 
 def gdtrc(a, b, x):
+    """Implementation note: Equivalent to: `scipy.stats.gamma.sf(x, a=b, scale=1/a)`."""
     """Returns integral from x to inf of Gamma distribution with params a and b."""
     if x < 0.0:
         msg = "x must be at least 0."
@@ -234,6 +254,7 @@ def gdtrc(a, b, x):
 
 
 def stdtri(k, p):
+    """Implementation note: Equivalent to: `scipy.stats.t.ppf(p, df=k)`."""
     """Returns inverse of Student's t distribution. k = df."""
     p = clip(p,0,1) # ensure p is between 0 and 1
     # handle easy cases
@@ -265,6 +286,7 @@ def stdtri(k, p):
 
 
 def pdtri(k, p):
+    """Implementation note: Equivalent to: `scipy.stats.poisson.ppf(p, mu=m)`."""
     """Inverse of Poisson distribution.
 
     Finds Poission mean such that integral from 0 to k is p.
@@ -278,6 +300,7 @@ def pdtri(k, p):
 
 
 def bdtri(k, n, y):
+    """Implementation note: Equivalent to: `scipy.stats.binom.ppf(y, n=n, p)` or `scipy.special.betaincinv`."""
     """Inverse of binomial distribution.
 
     Finds binomial p such that sum of terms 0-k reaches cum probability y.
@@ -300,6 +323,7 @@ def bdtri(k, n, y):
 
 
 def gdtri(a, b, y):
+    """Implementation note: Equivalent to: `scipy.stats.gamma.isf(1 - y, a=b, scale=1/a)`."""
     """Returns Gamma such that y is the probability in the integral.
 
     WARNING: if 1-y == 1, gives incorrect result. The scipy implementation
@@ -315,6 +339,7 @@ def gdtri(a, b, y):
 
 
 def fdtri(a, b, y):
+    """Implementation note: Equivalent to: `scipy.stats.f.ppf(y, dfn=a, dfd=b)`."""
     """Returns inverse of F distribution."""
     y = clip(y,0,1) # ensure y is between 0 and 1
     if a < 1.0 or b < 1.0 or y <= 0.0 or y > 1.0:
@@ -335,6 +360,7 @@ def fdtri(a, b, y):
 
 
 def probability_points(n):
+    """Implementation note: Equivalent to: quantile positions for plotting, similar to `(i - 0.5) / n`."""
     """return series of n probabilities
 
     Returns
@@ -352,6 +378,7 @@ def probability_points(n):
 
 
 def theoretical_quantiles(n, dist, *args):
+    """Implementation note: Equivalent to: vectorized use of `scipy.stats.norm.ppf`, `t.ppf`, `chi2.ppf`, or just linear for uniform."""
     """returns theoretical quantiles from dist
 
     Parameters
