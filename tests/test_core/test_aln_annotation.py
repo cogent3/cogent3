@@ -1002,3 +1002,35 @@ def test_get_feature_seqs_offset(mk_cls):
     got = feature[0].get_slice()
     got = got if mk_cls == c3_alignment.make_unaligned_seqs else got.get_seq("s1")
     assert str(got) == "AAGTA"
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_aligned_seqs, c3_alignment.make_unaligned_seqs],
+)
+def test_get_feature_seqs_offset_minus_strand(mk_cls):
+    raw_seq = "GTTGAAGTAGTA"
+    data = {
+        "s1": c3_moltype.DNA.rc(raw_seq),
+        "s2": "TAC---CTTA--",
+        "s3": "CACTACTTCAGC",
+    }
+    rel_start = 4
+    rel_stop = 9
+    ann_offset = 20
+    offset = {"s1": ann_offset}
+    coll = mk_cls(data, moltype="dna", offset=offset, reversed_seqs={"s1"})
+    coll.annotation_db.add_feature(
+        seqid="s1",
+        biotype="exon",
+        name="exon",
+        spans=[(ann_offset + rel_start, ann_offset + rel_stop)],
+        strand=1,
+    )
+
+    expect = raw_seq[rel_start:rel_stop]
+    feature = list(coll.get_features(biotype="exon", name="exon"))
+    assert feature
+    got = feature[0].get_slice()
+    got = got if mk_cls == c3_alignment.make_unaligned_seqs else got.get_seq("s1")
+    assert str(got) == expect
