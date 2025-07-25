@@ -1,6 +1,7 @@
 import pytest
 
 from cogent3 import load_seq
+from cogent3.core import annotation_db as anndb_module
 from cogent3.core import moltype as c3_moltype
 
 DNA = c3_moltype.get_moltype("dna")
@@ -201,3 +202,112 @@ def test_seq_with_masked_annotations_missing_feature(shadow):
     raw_seq = str(seq)
     masked = seq.with_masked_annotations(biotypes="not-present", shadow=shadow)
     assert str(masked) == raw_seq
+
+
+def test_is_annotated():
+    """is_annotated operates correctly"""
+    s = c3_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG", name="s1")
+    _ = s.add_feature(biotype="gene", name="blah", spans=[(0, 10)])
+    assert s.is_annotated()
+
+
+@pytest.mark.parametrize("biotype", ["gene", "exon", ("gene", "exon")])
+def test_is_annotated_biotype(biotype):
+    """is_annotated operates correctly"""
+    s = c3_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG", name="s1")
+    _ = s.add_feature(biotype="gene", name="blah", spans=[(0, 10)])
+    _ = s.add_feature(biotype="exon", name="blah", spans=[(0, 10)])
+    assert s.is_annotated(biotype=biotype)
+
+
+def test_not_is_annotated():
+    """is_annotated operates correctly"""
+    s = c3_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG", name="s1")
+    assert not s.is_annotated()
+    # annotation on different seq
+    s.annotation_db.add_feature(
+        seqid="s2",
+        biotype="gene",
+        name="blah",
+        spans=[(0, 10)],
+    )
+    assert not s.is_annotated()
+    # annotation wrong biotype
+    s.annotation_db.add_feature(
+        seqid="s1",
+        biotype="exon",
+        name="blah",
+        spans=[(0, 10)],
+    )
+    assert not s.is_annotated(biotype="gene")
+    s.annotation_db = None
+    assert not s.is_annotated()
+
+
+def test_annotation_db_lazy_evaluation():
+    s = c3_moltype.DNA.make_seq(seq="AC", name="s1")
+    assert isinstance(s._annotation_db, list)
+    # now if we invoke the property we get an actual db instance created
+    assert isinstance(s.annotation_db, anndb_module.SupportsFeatures)
+
+
+def test_init_with_annotationdb():
+    anndb = anndb_module.GffAnnotationDb()
+    s = c3_moltype.DNA.make_seq(seq="AC", name="s1", annotation_db=anndb)
+    assert isinstance(s.annotation_db, anndb_module.GffAnnotationDb)
+    assert s.annotation_db is anndb
+
+
+def test_init_with_annotation_offset():
+    s = c3_moltype.DNA.make_seq(seq="AC", name="s1", annotation_offset=2)
+    assert s.annotation_offset == 2
+
+
+def test_init_with_annotation_offset_sliced():
+    s = c3_moltype.DNA.make_seq(seq="ACTTTGG", name="s1", annotation_offset=2)
+    sl = s[2:5]
+    assert sl.annotation_offset == 4
+    _, start, stop, _ = sl.parent_coordinates()
+    assert start == 4
+    assert stop == 7
+
+
+def test_init_with_annotation_offset_plus_strand():
+    annotation_offset = 2000
+    plus_raw = "ACTTTGGCC"
+    s = c3_moltype.DNA.make_seq(
+        seq=plus_raw, name="s1", annotation_offset=annotation_offset
+    )
+    rel_start = 2
+    rel_stop = 5
+    expect = plus_raw[rel_start:rel_stop]
+    db = s.annotation_db
+    db.add_feature(
+        biotype="gene",
+        name="blah",
+        spans=[(annotation_offset + rel_start, annotation_offset + rel_stop)],
+        seqid="s1",
+    )
+    ft = list(s.get_features(biotype="gene"))[0]
+    assert str(ft.get_slice()) == expect
+
+
+def test_init_with_annotation_offset_minus_strand():
+    annotation_offset = 2000
+    plus_raw = "ACTTTGGCC"
+    rc = c3_moltype.DNA.make_seq(
+        seq=plus_raw, name="s1", annotation_offset=annotation_offset
+    ).rc()
+    rel_start = 3
+    rel_stop = 6
+    expect = plus_raw[rel_start:rel_stop]
+    db = rc.annotation_db
+    db.add_feature(
+        biotype="gene",
+        name="blah",
+        spans=[(annotation_offset + rel_start, annotation_offset + rel_stop)],
+        strand=-1,
+        seqid="s1",
+    )
+    ft = list(rc.get_features(biotype="gene"))[0]
+    assert str(ft.get_slice()) == c3_moltype.DNA.rc(expect)
