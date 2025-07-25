@@ -7,7 +7,6 @@ from cogent3.core import alignment as c3_alignment
 from cogent3.core import genetic_code as c3_genetic_code
 from cogent3.core import moltype as c3_moltype
 from cogent3.core.annotation_db import (
-    BasicAnnotationDb,
     GffAnnotationDb,
     load_annotations,
 )
@@ -993,9 +992,10 @@ def test_get_feature_seqs_offset(mk_cls):
         "s3": "GCTGAAGTAGTG",
     }
     offset = {"s1": 20}
-    db = BasicAnnotationDb()
-    db.add_feature(seqid="s1", biotype="exon", name="exon", spans=[(24, 29)])
-    coll = mk_cls(data, annotation_db=db, moltype="dna", offset=offset)
+    coll = mk_cls(data, moltype="dna", offset=offset)
+    coll.annotation_db.add_feature(
+        seqid="s1", biotype="exon", name="exon", spans=[(24, 29)]
+    )
     assert coll.storage.offset["s1"] == offset["s1"]
     feature = list(coll.get_features(biotype="exon", name="exon"))
     assert feature
