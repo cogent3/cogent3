@@ -993,8 +993,10 @@ class Sequence(AnnotatableMixin):
         stop = stop + len(self) if stop < 0 else stop
 
         start, stop = (start, stop) if start < stop else (stop, start)
+        stop = min(
+            len(self), stop
+        )  # otherwise index error from absolute_position method
 
-        # note: offset is handled by absolute_position
         # we set include_boundary=False because start is inclusive indexing,
         # i,e., the start cannot be equal to the length of the view
         (
@@ -1004,16 +1006,23 @@ class Sequence(AnnotatableMixin):
             *_,
             strand,
         ) = self.parent_coordinates()
+        parent_offset = self._seq.parent_offset
         sr = self._seq.slice_record
-        query_start = sr.absolute_position(
-            start,
-            include_boundary=False,
+        query_start = (
+            sr.absolute_position(
+                start,
+                include_boundary=False,
+            )
+            + parent_offset
         )
         # we set include_boundary=True because stop is exclusive indexing,
         # i,e., the stop can be equal to the length of the view
-        query_stop = sr.absolute_position(
-            stop,
-            include_boundary=True,
+        query_stop = (
+            sr.absolute_position(
+                stop,
+                include_boundary=True,
+            )
+            + parent_offset
         )
 
         query_start, query_stop = (
@@ -1051,7 +1060,7 @@ class Sequence(AnnotatableMixin):
             # current view
             spans = array(feature.pop("spans"), dtype=int)
             for i, v in enumerate(spans.ravel()):
-                rel_pos = sr.relative_position(v)
+                rel_pos = sr.relative_position(v) - parent_offset
                 spans.ravel()[i] = rel_pos
 
             if sr.is_reversed:
@@ -2272,6 +2281,8 @@ class SliceRecordABC(ABC):
         ----------
         rel_index
             relative position with respect to the current view
+        include_boundary
+            whether considering index as part of a range
 
         Returns
         -------

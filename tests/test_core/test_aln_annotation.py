@@ -7,7 +7,6 @@ from cogent3.core import alignment as c3_alignment
 from cogent3.core import genetic_code as c3_genetic_code
 from cogent3.core import moltype as c3_moltype
 from cogent3.core.annotation_db import (
-    BasicAnnotationDb,
     GffAnnotationDb,
     load_annotations,
 )
@@ -993,12 +992,45 @@ def test_get_feature_seqs_offset(mk_cls):
         "s3": "GCTGAAGTAGTG",
     }
     offset = {"s1": 20}
-    db = BasicAnnotationDb()
-    db.add_feature(seqid="s1", biotype="exon", name="exon", spans=[(24, 29)])
-    coll = mk_cls(data, annotation_db=db, moltype="dna", offset=offset)
+    coll = mk_cls(data, moltype="dna", offset=offset)
+    coll.annotation_db.add_feature(
+        seqid="s1", biotype="exon", name="exon", spans=[(24, 29)]
+    )
     assert coll.storage.offset["s1"] == offset["s1"]
     feature = list(coll.get_features(biotype="exon", name="exon"))
     assert feature
     got = feature[0].get_slice()
     got = got if mk_cls == c3_alignment.make_unaligned_seqs else got.get_seq("s1")
     assert str(got) == "AAGTA"
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_aligned_seqs, c3_alignment.make_unaligned_seqs],
+)
+def test_get_feature_seqs_offset_minus_strand(mk_cls):
+    raw_seq = "GTTGAAGTAGTA"
+    data = {
+        "s1": c3_moltype.DNA.rc(raw_seq),
+        "s2": "TAC---CTTA--",
+        "s3": "CACTACTTCAGC",
+    }
+    rel_start = 4
+    rel_stop = 9
+    ann_offset = 20
+    offset = {"s1": ann_offset}
+    coll = mk_cls(data, moltype="dna", offset=offset, reversed_seqs={"s1"})
+    coll.annotation_db.add_feature(
+        seqid="s1",
+        biotype="exon",
+        name="exon",
+        spans=[(ann_offset + rel_start, ann_offset + rel_stop)],
+        strand=1,
+    )
+
+    expect = raw_seq[rel_start:rel_stop]
+    feature = list(coll.get_features(biotype="exon", name="exon"))
+    assert feature
+    got = feature[0].get_slice()
+    got = got if mk_cls == c3_alignment.make_unaligned_seqs else got.get_seq("s1")
+    assert str(got) == expect
