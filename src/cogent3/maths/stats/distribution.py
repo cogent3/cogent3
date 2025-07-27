@@ -3,7 +3,7 @@
 which is (c) Stephen L. Moshier 1984, 1995.
 """
 
-from cogent3.util.warning import deprecated as _deprecate
+from cogent3.util.warning import deprecated as _deprecate, deprecated_callable
 _deprecate(
     "module",
     "cogent3.maths.stats.distribution",
@@ -116,7 +116,7 @@ def stdtr(k, t):
     if t < -2:
         rk = k
         z = rk / (rk + t * t)
-        return 0.5 * betainc(0.5 * rk, 0.5, z)
+        return 0.5 * betai(0.5 * rk, 0.5, z)
     # compute integral from -t to + t
     x = -t if t < 0 else t
 
@@ -173,7 +173,7 @@ def bdtr(k, n, p):
     dn = n - k
     if k == 0:
         return pow(1 - p, dn)
-    return betainc(dn, k + 1, 1 - p)
+    return betai(dn, k + 1, 1 - p)
 
 
 def bdtrc(k, n, p):
@@ -198,7 +198,7 @@ def bdtrc(k, n, p):
         dk = -expm1(dn * log1p(-p)) if p < 0.01 else 1 - pow(1.0 - p, dn)
     else:
         dk = k + 1
-        dk = betainc(dk, dn, p)
+        dk = betai(dk, dn, p)
     return dk
 
 
@@ -214,7 +214,7 @@ def pdtr(k, m):
     if m < 0:
         msg = "Poisson m must be >= 0."
         raise ValueError(msg)
-    return gammaincc(k + 1, m)
+    return igamc(k + 1, m)
 
 
 def pdtrc(k, m):
@@ -229,7 +229,7 @@ def pdtrc(k, m):
     if m < 0:
         msg = "Poisson m must be >= 0."
         raise ValueError(msg)
-    return gammainc(k + 1, m)
+    return igamc(k + 1, m)
 
 
 def gdtr(a, b, x):
@@ -238,7 +238,7 @@ def gdtr(a, b, x):
     if x < 0.0:
         msg = "x must be at least 0."
         raise ZeroDivisionError(msg)
-    return gammainc(b, a * x)
+    return igamc(b, a * x)
 
 
 def gdtrc(a, b, x):
@@ -247,7 +247,7 @@ def gdtrc(a, b, x):
     if x < 0.0:
         msg = "x must be at least 0."
         raise ZeroDivisionError(msg)
-    return gammainc(b, a * x)
+    return igamc(b, a * x)
 
 
 # note: ndtri for the normal distribution is already imported
@@ -267,7 +267,7 @@ def stdtri(k, p):
         if p == 0.5:
             return 0.0
         z = 1.0 - 2.0 * p
-        z = betaincinv(0.5, 0.5 * rk, abs(z))
+        z = incbi(0.5, 0.5 * rk, abs(z))
         t = sqrt(rk * z / (1.0 - z))
         if p < 0.5:
             t = -t
@@ -277,7 +277,7 @@ def stdtri(k, p):
     if p >= 0.5:
         p = 1.0 - p
         rflg = 1
-    z = betaincinv(0.5 * rk, 0.5, 2.0 * p)
+    z = incbi(0.5 * rk, 0.5, 2.0 * p)
 
     if MAXNUM * z < rk:
         return rflg * MAXNUM
@@ -296,7 +296,7 @@ def pdtri(k, p):
         msg = "k must be >=0, p between 1 and 0."
         raise ZeroDivisionError(msg)
     v = k + 1
-    return gammainccinv(v, p)
+    return igami(v, p)
 
 
 def bdtri(k, n, y):
@@ -317,8 +317,8 @@ def bdtri(k, n, y):
         p = -expm1(log1p(y - 1.0) / dn) if y > 0.8 else 1.0 - y ** (1.0 / dn)
     else:
         dk = k + 1
-        p = betainc(dn, dk, 0.5)
-        p = betaincinv(dk, dn, 1.0 - y) if p > 0.5 else 1.0 - incbi(dn, dk, y)
+        p = betai(dn, dk, 0.5)
+        p = incbi(dk, dn, 1.0 - y) if p > 0.5 else 1.0 - incbi(dn, dk, y)
     return p
 
 
@@ -335,7 +335,7 @@ def gdtri(a, b, y):
     if y < 0.0 or y > 1.0 or a <= 0.0 or b < 0.0:
         msg = "a and b must be non-negative, y from 0 to 1."
         raise ZeroDivisionError(msg)
-    return gammainccinv(b, 1.0 - y) / a
+    return igami(b, 1.0 - y) / a
 
 
 def fdtri(a, b, y):
@@ -347,14 +347,14 @@ def fdtri(a, b, y):
         raise ZeroDivisionError(msg)
     y = 1.0 - y
     # Compute probability for x = 0.5
-    w = betainc(0.5 * b, 0.5 * a, 0.5)
+    w = betai(0.5 * b, 0.5 * a, 0.5)
     # If that is greater than y, then the solution w < .5.
     # Otherwise, solve at 1-y to remove cancellation in (b - b*w).
     if w > y or y < 0.001:
-        w = betaincinv(0.5 * b, 0.5 * a, y)
+        w = incbi(0.5 * b, 0.5 * a, y)
         x = (b - b * w) / (a * w)
     else:
-        w = betaincinv(0.5 * a, 0.5 * b, 1.0 - y)
+        w = incbi(0.5 * a, 0.5 * b, 1.0 - y)
         x = b * w / (a * (1.0 - w))
     return x
 

@@ -17,7 +17,7 @@ from numpy import exp, floor, log, sin, sqrt
 
 log_epsilon = 1e-6  # for threshold in log/exp close to 1
 # For IEEE arithmetic (IBMPC):
-MACHEP = 1.11022302462515654042e-16  # 2**-53 
+MACHEP = 1.11022302462515654042e-16  # 2**-53
 # Implementation note: Equivalent to: numpy.finfo(float).eps
 MAXLOG = 7.09782712893383996843e2  # log(2**1024)
 # Implementation note: Equivalent to: numpy.log(numpy.finfo(float).max)
