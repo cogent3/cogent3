@@ -962,6 +962,7 @@ class Sequence(AnnotatableMixin):
         start: OptInt = None,
         stop: OptInt = None,
         allow_partial: bool = False,
+        **kwargs,
     ) -> typing.Iterator[Feature]:
         """yields Feature instances
 
@@ -974,6 +975,8 @@ class Sequence(AnnotatableMixin):
         start, stop
             start, stop positions to search between, relative to offset
             of this sequence. If not provided, entire span of sequence is used.
+        kwargs
+            keyword arguments passed to annotation_db.get_features_matching()
 
         Notes
         -----
@@ -1045,14 +1048,14 @@ class Sequence(AnnotatableMixin):
         # To piggy-back on that method we need to convert our feature spans
         # into the current orientation. HOWEVER, we also have the reversed
         # flag which comes back from the db
-
+        kwargs |= {"allow_partial": allow_partial}
         for feature in self.annotation_db.get_features_matching(
             seqid=parent_id,
             name=name,
             biotype=biotype,
             start=query_start,
             stop=query_stop,
-            allow_partial=allow_partial,
+            **kwargs,
         ):
             # spans need to be converted from absolute to relative positions
             # DO NOT do adjustment in make_feature since that's user facing,
