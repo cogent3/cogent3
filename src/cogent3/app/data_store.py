@@ -758,7 +758,7 @@ def _(data: c3_alignment.SequenceCollection) -> str | None:
 
 
 @get_data_source.register
-def _(data: c3tree.TreeNode) -> str | None:
+def _(data: c3tree.PhyloNode) -> str | None:
     return get_data_source(data.source)
 
 

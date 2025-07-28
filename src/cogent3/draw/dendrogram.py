@@ -19,7 +19,7 @@ class TreeGeometryBase(PhyloNode):
         """
         Parameters
         ----------
-        tree : either a PhyloNode or TreeNode instance
+        tree : PhyloNode
         length_attr : str
             name of the attribute to use for length, defaults to 'length'
         """

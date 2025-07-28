@@ -25,7 +25,7 @@ exclude = [
     "node_modules",
     "site-packages",
     "venv",
-    "working",
+    "working"
 ]
 
 # Same as Black.
@@ -48,17 +48,19 @@ select = ["ALL"]
 # as exception types as it doubles the "cost" of fixing typos
 ignore = [
     "COM812",
-    "EXE002", 
-    "FA100", 
-    "E501", 
-    "D", 
-    "N801", 
-    "ICN001", 
+    "EXE002",
+    "FA100",
+    "E501",
+    "D",
+    "N801",
+    "ICN001",
     "PLR0913",
     "FBT001",
     "FBT002",
     "PT011",
-    ]
+    "S311", # Allow use of random
+    "PLR2004" # Magic number usage where appropriate
+]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
@@ -74,7 +76,7 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "ANN",
     "N802",
     "N803",
-    "S608",  # sql injection unlikely
+    "S608" # sql injection unlikely
 ]
 "noxfile.py" = [
     "S101", # asserts allowed in tests...
@@ -104,7 +106,3 @@ docstring-code-format = true
 # This only has an effect when the `docstring-code-format` setting is
 # enabled.
 docstring-code-line-length = "dynamic"
-
-[lint.isort]
-# group cogent3 imports last
-known-first-party = ["cogent3"]

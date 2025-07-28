@@ -36,7 +36,6 @@ from cogent3.core.table import load_table, make_table  # noqa: F401
 from cogent3.core.tree import (  # noqa: F401
     PhyloNode,
     TreeError,
-    TreeNode,
     load_tree,
     make_tree,
 )

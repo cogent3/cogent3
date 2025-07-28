@@ -276,7 +276,7 @@ class NcbiTaxonomyTests(TestCase):
 class NcbiTaxonNodeTests(TestCase):
     """Tests of the NcbiTaxonNode class.
 
-    Note: only testing methods that differ from the TreeNode base class.
+    Note: only testing methods that differ from the PhyloNode base class.
 
     Note: nested_species is explicitly designed to test the case where the nodes
     file does _not_ contain the root, and where the id of the de facto

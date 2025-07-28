@@ -1,6 +1,6 @@
 from cogent3 import get_app, get_model, make_unaligned_seqs
 from cogent3.core import alignment as c3_alignment
-from cogent3.core.tree import TreeNode
+from cogent3.core.tree import PhyloNode
 from cogent3.evolve.distance import EstimateDistances
 from cogent3.phylo import nj as NJ
 from cogent3.util import progress_display as UI
@@ -13,7 +13,7 @@ AlignType = c3_alignment.Alignment
 def tree_align(
     model: str,
     seqs: SeqCollType,
-    tree: TreeNode | None = None,
+    tree: PhyloNode | None = None,
     indel_rate: float = 1e-10,
     indel_length: float = 1e-1,
     ui=None,
@@ -21,7 +21,7 @@ def tree_align(
     param_vals: dict | None = None,
     iters: int | None = None,
     approx_dists: bool = True,
-) -> tuple[AlignType, TreeNode]:
+) -> tuple[AlignType, PhyloNode]:
     """Returns a multiple sequence alignment and tree.
 
     Parameters

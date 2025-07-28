@@ -3,7 +3,7 @@
 
 from functools import total_ordering
 
-from cogent3.core.tree import TreeNode
+from cogent3.core.tree import PhyloNode
 
 strip = str.strip
 
@@ -243,7 +243,7 @@ class NcbiTaxonomy:
             return self.ByName[item]
 
 
-class NcbiTaxonNode(TreeNode):
+class NcbiTaxonNode(PhyloNodee):
     """Provides some additional methods specific to Ncbi taxa."""
 
     def __init__(self, Data) -> None:

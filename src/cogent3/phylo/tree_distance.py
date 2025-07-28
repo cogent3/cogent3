@@ -5,7 +5,7 @@ import numpy as np
 from scipy.optimize import linear_sum_assignment
 
 if TYPE_CHECKING:
-    from cogent3.core.tree import TreeNode
+    from cogent3.core.tree import PhyloNode
 
 
 def get_tree_distance_measure(method: str, is_rooted: bool):
@@ -24,12 +24,12 @@ def get_tree_distance_measure(method: str, is_rooted: bool):
     )
 
 
-def unrooted_robinson_foulds(tree1: "TreeNode", tree2: "TreeNode") -> int:
+def unrooted_robinson_foulds(tree1: "PhyloNode", tree2: "PhyloNode") -> int:
     """Calculate the Robinson-Foulds distance between two unrooted trees.
 
     Parameters
     ----------
-    tree1, tree2: TreeNode
+    tree1, tree2: PhyloNode
         Trees to calculate the distance between.
 
     Returns
@@ -70,13 +70,13 @@ def unrooted_robinson_foulds(tree1: "TreeNode", tree2: "TreeNode") -> int:
     return len(tree1_splits.symmetric_difference(tree2_splits))
 
 
-def lin_rajan_moret(tree1: "TreeNode", tree2: "TreeNode") -> int:
+def lin_rajan_moret(tree1: "PhyloNode", tree2: "PhyloNode") -> int:
     """Calculate the Lin-Rajan-Moret distance (matching distance)
     between two unrooted trees.
 
     Parameters
     ----------
-    tree1, tree2: TreeNode
+    tree1, tree2: PhyloNode
         Trees to calculate the distance between.
 
     Returns
@@ -119,12 +119,12 @@ def lin_rajan_moret(tree1: "TreeNode", tree2: "TreeNode") -> int:
     return _matched_distance(vector1, vector2)
 
 
-def rooted_robinson_foulds(tree1: "TreeNode", tree2: "TreeNode") -> int:
+def rooted_robinson_foulds(tree1: "PhyloNode", tree2: "PhyloNode") -> int:
     """Calculate the Robinson-Foulds distance between two rooted trees.
 
     Parameters
     ----------
-    tree1, tree2: TreeNode
+    tree1, tree2: PhyloNode
         Trees to calculate the distance between.
 
     Returns
@@ -159,12 +159,12 @@ def rooted_robinson_foulds(tree1: "TreeNode", tree2: "TreeNode") -> int:
     return len(tree1_clusters.symmetric_difference(tree2_clusters))
 
 
-def matching_cluster_distance(tree1: "TreeNode", tree2: "TreeNode") -> int:
+def matching_cluster_distance(tree1: "PhyloNode", tree2: "PhyloNode") -> int:
     """Calculate the Matching Cluster distance between two rooted trees.
 
     Parameters
     ----------
-    tree1, tree2: TreeNode
+    tree1, tree2: PhyloNode
         Trees to calculate the distance between.
 
     Returns
@@ -220,7 +220,7 @@ def matching_cluster_distance(tree1: "TreeNode", tree2: "TreeNode") -> int:
     return int(adjacency[row_ind, col_ind].sum())
 
 
-def _convert_tree_to_vectors(tree: "TreeNode", tip_names: list) -> np.ndarray:
+def _convert_tree_to_vectors(tree: "PhyloNode", tip_names: list) -> np.ndarray:
     ref_tip = tip_names[0]
     name_set = set(tip_names)
     name_index = {n: i for i, n in enumerate(tip_names)}

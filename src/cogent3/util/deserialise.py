@@ -1,10 +1,15 @@
 import json
 import re
+from collections.abc import Callable
 from importlib import import_module
+from typing import Any, ParamSpec, TypeVar
 
 from cogent3.util.io import open_, path_exists
 
-_deserialise_func_map = {}
+P = ParamSpec("P")
+R = TypeVar("R")
+
+_deserialise_func_map: dict[str, Callable[..., Any]] = {}
 
 
 class register_deserialiser:
@@ -22,7 +27,7 @@ class register_deserialiser:
         must be unique
     """
 
-    def __init__(self, *args) -> None:
+    def __init__(self, *args: str) -> None:
         for type_str in args:
             if not isinstance(type_str, str):
                 msg = f"{type_str!r} is not a string"
@@ -32,7 +37,7 @@ class register_deserialiser:
             )
         self._type_str = args
 
-    def __call__(self, func):
+    def __call__(self, func: Callable[P, R]) -> Callable[P, R]:
         for type_str in self._type_str:
             _deserialise_func_map[type_str] = func
         return func

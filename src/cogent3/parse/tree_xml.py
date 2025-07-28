@@ -29,10 +29,20 @@ Parameters are inherited by contained clades unless overridden.
 """
 
 import xml.sax
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from cogent3.core.tree import PhyloNode
 
 
 class TreeHandler(xml.sax.ContentHandler):
-    def __init__(self, tree_builder) -> None:
+    def __init__(
+        self,
+        tree_builder: Callable[
+            [Sequence["PhyloNode"], str | None, dict[str, Any]], "PhyloNode"
+        ],
+    ) -> None:
         self.build_edge = tree_builder
 
     def startDocument(self) -> None:
@@ -84,7 +94,12 @@ class TreeHandler(xml.sax.ContentHandler):
             self.parent["value"] = float(text)
 
 
-def parse_string(text, tree_builder):
+def parse_string(
+    text: str,
+    tree_builder: Callable[
+        [Sequence["PhyloNode"], str | None, dict[str, Any]], "PhyloNode"
+    ],
+) -> "PhyloNode":
     handler = TreeHandler(tree_builder)
     xml.sax.parseString(text.encode("utf8"), handler)
     trees = handler.data["clades"]

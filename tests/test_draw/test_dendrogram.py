@@ -16,19 +16,19 @@ def test_geometry():
     tree = make_tree(treestring="(a,b,(c,(d,e)e1)e2)")
     geom = SquareTreeGeometry(tree)
     series = [
-        {"tip1name": "d", "tip2name": "c", "clade": True, "stem": False},
-        {"tip1name": "d", "tip2name": "c", "clade": True, "stem": True},
-        {"tip1name": "d", "tip2name": "c", "clade": False, "stem": True},
+        {"tip_name_1": "d", "tip_name_2": "c", "clade": True, "stem": False},
+        {"tip_name_1": "d", "tip_name_2": "c", "clade": True, "stem": True},
+        {"tip_name_1": "d", "tip_name_2": "c", "clade": False, "stem": True},
         {
-            "tip1name": "d",
-            "tip2name": "c",
+            "tip_name_1": "d",
+            "tip_name_2": "c",
             "clade": True,
             "stem": False,
             "outgroup_name": "e",
         },
         {
-            "tip1name": "d",
-            "tip2name": "c",
+            "tip_name_1": "d",
+            "tip_name_2": "c",
             "clade": False,
             "stem": True,
             "outgroup_name": "e",
