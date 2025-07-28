@@ -1,4 +1,31 @@
 
+<a id='changelog-2025.7.10a5'></a>
+# Changes in release "2025.7.10a5"
+
+Minor enhancement to support new version of [ensembl-tui](https://github.com/cogent3/ensembl_tui)
+which implements a custom annotation db.
+
+## Enhancements
+
+- Sequence.get_features() now supports additional keyword arguments to be
+  passed to the bound annotation db. This allows using third-party annotation
+  databases with additional features.
+
+<a id='changelog-2025.7.10a4'></a>
+# Changes in release "2025.7.10a4"
+
+This is a bugfix release.
+
+## Contributors
+
+- @GavinHuttley
+
+## Bug fixes
+
+- Fixed another edge case affecting feature querying on sequences. If a sequence,
+  or a sequence collection, is created with an annotation offset we now consistently
+  apply that offset.
+
 <a id='changelog-2025.7.10a3'></a>
 # Changes in release "2025.7.10a3"
 

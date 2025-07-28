@@ -1448,7 +1448,6 @@ class SequenceCollection(AnnotatableMixin):
         of strand of the current instance.
         - start is non-inclusive, so if allow_partial is False, only features
         strictly starting after start will be returned.
-
         """
 
         if not self._annotation_db:
@@ -1458,21 +1457,17 @@ class SequenceCollection(AnnotatableMixin):
             msg = f"unknown {seqid=}"
             raise ValueError(msg)
 
-        for feature in self.annotation_db.get_features_matching(
-            seqid=seqid,
-            biotype=biotype,
-            name=name,
-            on_alignment=False,
-            start=start,
-            stop=stop,
-            allow_partial=allow_partial,
-            **kwargs,
-        ):
-            seqname = feature["seqid"]
-            seq = self.seqs[seqname]
-            if offset := seq.annotation_offset:
-                feature["spans"] = (numpy.array(feature["spans"]) - offset).tolist()
-            yield seq.make_feature(feature, self)
+        seqids = [seqid] if isinstance(seqid, str) else self.names
+        for seqid in seqids:
+            seq = self.seqs[seqid]
+            yield from seq.get_features(
+                biotype=biotype,
+                name=name,
+                start=start,
+                stop=stop,
+                allow_partial=allow_partial,
+                **kwargs,
+            )
 
     def to_fasta(self, block_size: int = 60) -> str:
         """Return collection in Fasta format.

@@ -962,6 +962,7 @@ class Sequence(AnnotatableMixin):
         start: OptInt = None,
         stop: OptInt = None,
         allow_partial: bool = False,
+        **kwargs,
     ) -> typing.Iterator[Feature]:
         """yields Feature instances
 
@@ -974,6 +975,8 @@ class Sequence(AnnotatableMixin):
         start, stop
             start, stop positions to search between, relative to offset
             of this sequence. If not provided, entire span of sequence is used.
+        kwargs
+            keyword arguments passed to annotation_db.get_features_matching()
 
         Notes
         -----
@@ -993,8 +996,10 @@ class Sequence(AnnotatableMixin):
         stop = stop + len(self) if stop < 0 else stop
 
         start, stop = (start, stop) if start < stop else (stop, start)
+        stop = min(
+            len(self), stop
+        )  # otherwise index error from absolute_position method
 
-        # note: offset is handled by absolute_position
         # we set include_boundary=False because start is inclusive indexing,
         # i,e., the start cannot be equal to the length of the view
         (
@@ -1004,16 +1009,23 @@ class Sequence(AnnotatableMixin):
             *_,
             strand,
         ) = self.parent_coordinates()
+        parent_offset = self._seq.parent_offset
         sr = self._seq.slice_record
-        query_start = sr.absolute_position(
-            start,
-            include_boundary=False,
+        query_start = (
+            sr.absolute_position(
+                start,
+                include_boundary=False,
+            )
+            + parent_offset
         )
         # we set include_boundary=True because stop is exclusive indexing,
         # i,e., the stop can be equal to the length of the view
-        query_stop = sr.absolute_position(
-            stop,
-            include_boundary=True,
+        query_stop = (
+            sr.absolute_position(
+                stop,
+                include_boundary=True,
+            )
+            + parent_offset
         )
 
         query_start, query_stop = (
@@ -1036,14 +1048,14 @@ class Sequence(AnnotatableMixin):
         # To piggy-back on that method we need to convert our feature spans
         # into the current orientation. HOWEVER, we also have the reversed
         # flag which comes back from the db
-
+        kwargs |= {"allow_partial": allow_partial}
         for feature in self.annotation_db.get_features_matching(
             seqid=parent_id,
             name=name,
             biotype=biotype,
             start=query_start,
             stop=query_stop,
-            allow_partial=allow_partial,
+            **kwargs,
         ):
             # spans need to be converted from absolute to relative positions
             # DO NOT do adjustment in make_feature since that's user facing,
@@ -1051,7 +1063,7 @@ class Sequence(AnnotatableMixin):
             # current view
             spans = array(feature.pop("spans"), dtype=int)
             for i, v in enumerate(spans.ravel()):
-                rel_pos = sr.relative_position(v)
+                rel_pos = sr.relative_position(v) - parent_offset
                 spans.ravel()[i] = rel_pos
 
             if sr.is_reversed:
@@ -2272,6 +2284,8 @@ class SliceRecordABC(ABC):
         ----------
         rel_index
             relative position with respect to the current view
+        include_boundary
+            whether considering index as part of a range
 
         Returns
         -------
