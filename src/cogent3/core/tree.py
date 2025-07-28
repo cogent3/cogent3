@@ -39,7 +39,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Generic,
-    Self,
     SupportsIndex,
     TypeVar,
     cast,
@@ -50,7 +49,6 @@ import numpy as np
 import numpy.typing as npt
 
 from cogent3._version import __version__
-from cogent3.maths.stats.test import correlation
 from cogent3.parse.cogent3_json import load_from_json
 from cogent3.parse.newick import parse_string as newick_parse_string
 from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
@@ -64,6 +62,8 @@ if TYPE_CHECKING:
     import os
     import pathlib
     from collections.abc import Callable, Generator, Iterable, Iterator, Sequence
+
+    from typing_extensions import Self
 
     from cogent3.evolve.fast_distance import DistanceMatrix
 
