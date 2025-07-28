@@ -243,7 +243,7 @@ class NcbiTaxonomy:
             return self.ByName[item]
 
 
-class NcbiTaxonNode(PhyloNodee):
+class NcbiTaxonNode(PhyloNode):
     """Provides some additional methods specific to Ncbi taxa."""
 
     def __init__(self, Data) -> None:
