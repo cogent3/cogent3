@@ -315,7 +315,7 @@ class PhyloNode:
         return len(self.children)
 
     @classmethod
-    def _copy_node(cls, node: PhyloNode, memo: dict[int, Any] | None = None) -> Self:
+    def _copy_node(cls, node: Self, memo: dict[int, Any] | None = None) -> Self:
         result = cls(node.name)
         efc = node._exclude_from_copy
         for k, _ in list(node.__dict__.items()):
@@ -688,10 +688,11 @@ class PhyloNode:
 
     def _default_tree_constructor(
         self,
-    ) -> Callable[
-        [PhyloNode | None, Sequence[PhyloNode], dict[str, Any] | None], PhyloNode
-    ]:
-        return TreeBuilder(constructor=self.__class__).edge_from_edge
+    ) -> Callable[[Self | None, Sequence[Self], dict[str, Any] | None], Self]:
+        return cast(
+            "Callable[[Self | None, Sequence[Self], dict[str, Any] | None], Self]",
+            TreeBuilder(constructor=self.__class__).edge_from_edge,
+        )
 
     def name_unnamed_nodes(self) -> None:
         """sets the Data property of unnamed nodes to an arbitrary value
@@ -1019,7 +1020,7 @@ class PhyloNode:
         ignore_missing: bool = False,
         tips_only: bool = False,
         as_rooted: bool = False,
-    ) -> PhyloNode:
+    ) -> Self:
         """A new instance of a sub tree that contains all the otus that are
         listed in name_list.
 
@@ -1036,7 +1037,7 @@ class PhyloNode:
         """
         # find all the selected nodes
         allowed = set(names)
-        old_nodes: dict[int, PhyloNode] = {}
+        old_nodes: dict[int, Self] = {}
         found: set[str] = set()
         for old_node in self.preorder(include_self=True):
             if old_node.name not in allowed:
@@ -1063,7 +1064,7 @@ class PhyloNode:
         # make new nodes and also map old id's to new id's
         make_node = self.__class__
         self_2_new: dict[int, int] = {}
-        new_nodes: dict[int, PhyloNode] = {}
+        new_nodes: dict[int, Self] = {}
         for self_id, old_node in old_nodes.items():
             new_node = make_node(old_node.name, params={**old_node.params})
             new_nodes[id(new_node)] = new_node
@@ -1128,7 +1129,7 @@ class PhyloNode:
                 biggest_branch = child
         return max_weight, total_weight - max_weight, biggest_branch
 
-    def _sorted(self, sort_order: Sequence[str]) -> tuple[int | None, PhyloNode]:
+    def _sorted(self, sort_order: Sequence[str]) -> tuple[int | None, Self]:
         """Score all the edges, sort them, and return minimum score and a
         sorted tree.
         """
@@ -1153,7 +1154,7 @@ class PhyloNode:
         score = non_null_scores[0] if non_null_scores else None
         return score, tree
 
-    def sorted(self, sort_order: list[str] | None = None) -> PhyloNode:
+    def sorted(self, sort_order: list[str] | None = None) -> Self:
         """An equivalent tree sorted into a standard order. If this is not
         specified then alphabetical order is used.  At each node starting from
         root, the algorithm will try to put the descendant which contains the
@@ -1517,11 +1518,12 @@ class PhyloNode:
 
         # For each tip, build path to root with cumulative distances
         paths: dict[
-            str, list[tuple[PhyloNode, float]]
+            str, list[tuple[Self, float]]
         ] = {}  # tip name -> list of (node, cumulative distance)
         for tip in tips:
-            path: list[tuple[PhyloNode, float]] = []
-            current: PhyloNode | None = tip
+            path: list[tuple[Self, float]] = []
+            current: Self | None = tip  # type: ignore[assignment]
+
             dist = 0.0
             while current is not None:
                 path.append((current, dist))
@@ -1575,7 +1577,7 @@ class PhyloNode:
 
         return Dendrogram(self, style=style, **kwargs)
 
-    def balanced(self) -> PhyloNode:
+    def balanced(self) -> Self:
         """Tree 'rooted' here with no neighbour having > 50% of the edges.
 
         Usage:
@@ -1619,11 +1621,11 @@ class PhyloNode:
     def unrooted_deepcopy(
         self,
         constructor: Callable[
-            [PhyloNode | None, Sequence[PhyloNode], dict[str, Any] | None], PhyloNode
+            [Self | None, Sequence[Self], dict[str, Any] | None], Self
         ]
         | None = None,
         parent: Self | None = None,
-    ) -> PhyloNode:
+    ) -> Self:
         """
         Returns a deepcopy of the tree using unrooted traversal.
 
@@ -1635,7 +1637,7 @@ class PhyloNode:
             constructor = self._default_tree_constructor()
 
         # node_map maps id(original_node) -> new_node
-        node_map: dict[int, PhyloNode] = {}
+        node_map: dict[int, Self] = {}
         # stack is last in first out
         # stack stores (original_node, parent_we_came_from, state)
         # False state is the first visit, discover neighbors
@@ -1675,7 +1677,7 @@ class PhyloNode:
         new_root.prune(keep_root=True)
         return new_root
 
-    def unrooted(self) -> PhyloNode:
+    def unrooted(self) -> Self:
         """A tree with at least 3 children at the root."""
         constructor = self._default_tree_constructor()
         need_to_expand = len(self.children) < 3
@@ -1692,7 +1694,7 @@ class PhyloNode:
                 new_children.append(oldnode.deepcopy())
         return constructor(self, new_children, None)
 
-    def rooted_at(self, edge_name: str) -> PhyloNode:
+    def rooted_at(self, edge_name: str) -> Self:
         """Return a new tree rooted at the provided node.
 
         Usage:
@@ -1705,7 +1707,7 @@ class PhyloNode:
             raise TreeError(msg)
         return newroot.unrooted_deepcopy()
 
-    def rooted_with_tip(self, outgroup_name: str) -> PhyloNode:
+    def rooted_with_tip(self, outgroup_name: str) -> Self:
         """A new tree with the named tip as one of the root's children"""
         tip = self.get_node_matching_name(outgroup_name)
         parent = cast("Self", tip.parent)

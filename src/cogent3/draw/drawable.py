@@ -1,5 +1,6 @@
 import os
 import pathlib
+from typing import Any
 
 import numpy
 
@@ -108,15 +109,15 @@ class Drawable:
 
     def __init__(
         self,
-        title=None,
-        traces=None,
-        width=None,
-        height=None,
-        showlegend=True,
-        visible_axes=True,
-        layout=None,
-        xtitle=None,
-        ytitle=None,
+        title: str | None = None,
+        traces: list[dict[Any, Any]] | None = None,
+        width: int | None = None,
+        height: int | None = None,
+        showlegend: bool = True,
+        visible_axes: bool = True,
+        layout: dict[Any, Any] | None = None,
+        xtitle: str | None = None,
+        ytitle: str | None = None,
     ) -> None:
         if traces is None:
             self._traces = []
