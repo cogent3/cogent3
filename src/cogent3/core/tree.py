@@ -38,7 +38,6 @@ from operator import or_
 from typing import (
     TYPE_CHECKING,
     Any,
-    Generic,
     SupportsIndex,
     TypeVar,
     cast,
@@ -70,15 +69,6 @@ if TYPE_CHECKING:
 
 class TreeError(Exception):
     pass
-
-
-def _copy_node(n: PhyloNode, memo: dict[int, Any] | None = None) -> PhyloNode:
-    result = n.__class__(n.name)
-    efc = n._exclude_from_copy
-    for k, _v in list(n.__dict__.items()):
-        if k not in efc:
-            result.__dict__[k] = deepcopy(n.__dict__[k], memo=memo)
-    return result
 
 
 def _format_node_name(
@@ -324,6 +314,15 @@ class PhyloNode:
         """Node len returns number of children."""
         return len(self.children)
 
+    @classmethod
+    def _copy_node(cls, node: PhyloNode, memo: dict[int, Any] | None = None) -> Self:
+        result = cls(node.name)
+        efc = node._exclude_from_copy
+        for k, _ in list(node.__dict__.items()):
+            if k not in efc:
+                result.__dict__[k] = deepcopy(node.__dict__[k], memo=memo)
+        return result
+
     # support for copy module
     def copy(self, memo: dict[int, Any] | None = None) -> Self:
         """Returns a copy of self using an iterative approach"""
@@ -334,7 +333,7 @@ class PhyloNode:
         if obj_id in memo:
             return memo[obj_id]
 
-        root = cast("Self", _copy_node(self))
+        root = self.__class__._copy_node(self)
         nodes_stack = [(root, self, len(self.children))]
 
         while nodes_stack:
@@ -345,7 +344,7 @@ class PhyloNode:
             if unvisited_children:
                 nodes_stack[-1] = (new_top_node, old_top_node, unvisited_children - 1)
                 old_child = old_top_node.children[-unvisited_children]
-                new_child = cast("Self", _copy_node(old_child))
+                new_child = self.__class__._copy_node(old_child)
                 new_top_node.append(new_child)
                 nodes_stack.append((new_child, old_child, len(old_child.children)))
             else:  # no unvisited children
@@ -938,12 +937,9 @@ class PhyloNode:
         """
         for i, curr_node in enumerate(self.children):
             if curr_node is target:
-                break
-        else:
-            return False
-
-        del self[i]
-        return True
+                del self[i]
+                return True
+        return False
 
     def get_edge_names(
         self,
@@ -1203,7 +1199,7 @@ class PhyloNode:
             )
             mid = (lo + hi) // 2
             prefixes[mid] = char1 + "-" * (length - 2) + prefixes[mid][-1]
-            result = [p + l for p, l in zip(prefixes, result, strict=False)]
+            result = [pre + res for pre, res in zip(prefixes, result, strict=False)]
             if show_internal:
                 stem = result[mid]
                 result[mid] = stem[0] + namestr + stem[len(namestr) + 1 :]
@@ -1539,8 +1535,8 @@ class PhyloNode:
         for i, j in combinations(range(num_tips), 2):
             tip1 = tips[i]
             tip2 = tips[j]
-            path1 = {id(n): (n, l) for n, l in paths[tip1.name]}
-            path2 = {id(n): (n, l) for n, l in paths[tip2.name]}
+            path1 = {id(node): (node, dist) for node, dist in paths[tip1.name]}
+            path2 = {id(node): (node, dist) for node, dist in paths[tip2.name]}
             common = path1.keys() & path2.keys()
 
             if not common:
@@ -1687,16 +1683,16 @@ class PhyloNode:
         for oldnode in self.children:
             if oldnode.children and need_to_expand:
                 for sib in oldnode.children:
-                    sib = sib.deepcopy()
-                    if sib.length is not None and oldnode.length is not None:
-                        sib.length += oldnode.length
-                    new_children.append(sib)
+                    new_sib = sib.deepcopy()
+                    if new_sib.length is not None and oldnode.length is not None:
+                        new_sib.length += oldnode.length
+                    new_children.append(new_sib)
                 need_to_expand = False
             else:
                 new_children.append(oldnode.deepcopy())
         return constructor(self, new_children, None)
 
-    def rooted_at(self, edge_name: str):
+    def rooted_at(self, edge_name: str) -> PhyloNode:
         """Return a new tree rooted at the provided node.
 
         Usage:
@@ -2053,17 +2049,15 @@ def split_name_and_support(name_field: str | None) -> tuple[str | None, float | 
     return name, support_value
 
 
-class TreeBuilder(Generic[T]):
+class TreeBuilder:
     # Some tree code which isn't needed once the tree is finished.
     # Mostly exists to give edges unique names
     # children must be created before their parents.
 
-    def __init__(
-        self, mutable: bool = False, constructor: type[PhyloNode] = PhyloNode
-    ) -> None:
+    def __init__(self, constructor: type[PhyloNode] = PhyloNode) -> None:
         self._used_names = {"edge": -1}
         self._known_edges: dict[int, PhyloNode] = {}
-        self.PhyloNodeClass = PhyloNode
+        self.PhyloNodeClass = constructor
 
     def _unique_name(self, name: str | None) -> str:
         # Unnamed edges become edge.0, edge.1 edge.2 ...
@@ -2093,7 +2087,9 @@ class TreeBuilder(Generic[T]):
         if not isinstance(children, list):
             children = list(children)
         if edge is None:
-            assert not params
+            if params:
+                msg = "No params allowed when edge is None."
+                raise ValueError(msg)
             return self.create_edge(children, "root", {}, name_loaded=False)
         if params is None:
             params = self._params_for_edge(edge)

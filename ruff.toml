@@ -59,7 +59,8 @@ ignore = [
     "FBT002",
     "PT011",
     "S311", # Allow use of random
-    "PLR2004" # Magic number usage where appropriate
+    "PLR2004", # Magic number usage where appropriate
+    "PLC0415" # Allow delayed imports
 ]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
@@ -84,6 +85,9 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "ANN",
     "N802",
     "N803"
+]
+"src/cogent3/core/tree.py" = [
+    "SLF001" # Allow private member access from within PhyloNode 
 ]
 
 [format]
