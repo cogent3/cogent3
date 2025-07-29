@@ -1,21 +1,26 @@
 """Supports JSON load/read/write operations on major Cogent3 objects."""
 
 import json
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Any
 
 from cogent3.app import data_store
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.io import open_
 from cogent3.util.misc import get_object_provenance
 
+if TYPE_CHECKING:
+    from cogent3.util.io import PathType
 
-def load_from_json(filename, classes):
+
+def load_from_json(filename: "PathType", classes: Iterable[type]) -> Any:
     """Loads objects from json files.
 
     Parameters
     ----------
     filename : Union[str,Path]
         name of the json file
-    classes : Sequence[type]
+    classes : Iterable[type]
         A series of the Cogent3 types, for example: (Alignment, ArrayAlignment)
     """
     assert all(isinstance(klass, type) for klass in classes), (
