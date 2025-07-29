@@ -19,7 +19,7 @@ from chardet import detect
 
 from cogent3.util.misc import _wout_period
 
-PathType = str | PathLike | PurePath | Path
+PathType = str | PathLike[Any] | PurePath | Path
 
 
 @functools.singledispatch
@@ -107,7 +107,7 @@ _compression_handlers = {
 }
 
 
-def open_(filename: PathType, mode="rt", **kwargs) -> IO[Any]:
+def open_(filename: PathType, mode: str = "rt", **kwargs: Any) -> IO[Any]:
     """open that handles different compression
 
     Parameters
@@ -335,10 +335,7 @@ class atomic_write:
         self.__exit__(None, None, None)
 
 
-T = str | None
-
-
-def get_format_suffixes(filename: PathType) -> tuple[T, T]:
+def get_format_suffixes(filename: PathType) -> tuple[str | None, str | None]:
     """returns file, compression suffixes"""
     filename = Path(filename)
     if not filename.suffix:

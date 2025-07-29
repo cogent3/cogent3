@@ -89,6 +89,9 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 "src/cogent3/core/tree.py" = [
     "SLF001" # Allow private member access from within PhyloNode 
 ]
+"src/cogent3/util/io.py" = [
+    "ANN401" # Allow use of Any
+]
 "src/cogent3/util/misc.py" = [
     "ANN401" # Allow use of Any
 ]
