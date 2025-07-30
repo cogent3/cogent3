@@ -112,7 +112,6 @@ class PhyloNode:
         children: list of the node's children.
         parent: parent to this node
         params: dict containing arbitrary parameters for the node.
-        name_loaded: ?
     """
 
     _exclude_from_copy = frozenset(["_parent", "children"])
@@ -123,12 +122,10 @@ class PhyloNode:
         children: Iterable[Self | str] | None = None,
         parent: Self | None = None,
         params: dict[str, Any] | None = None,
-        name_loaded: bool = True,
         length: float | None = None,
     ) -> None:
         """Returns new PhyloNode object."""
         self.name = name
-        self.name_loaded = name_loaded
         self.params = params or {}
         self.children: list[Self] = []
         if children:
@@ -2096,14 +2093,13 @@ class TreeBuilder:
             if params:
                 msg = "No params allowed when edge is None."
                 raise ValueError(msg)
-            return self.create_edge(children, "root", {}, name_loaded=False)
+            return self.create_edge(children, "root", {})
         if params is None:
             params = self._params_for_edge(edge)
         return self.create_edge(
             children,
             edge.name,
             params,
-            name_loaded=edge.name_loaded,
         )
 
     def create_edge(
@@ -2111,7 +2107,6 @@ class TreeBuilder:
         children: Sequence[PhyloNode] | None,
         name: str | None,
         params: dict[str, Any],
-        name_loaded: bool = True,
     ) -> PhyloNode:
         """Callback for newick parser"""
         if children is None:
@@ -2124,7 +2119,6 @@ class TreeBuilder:
         node = self.PhyloNodeClass(
             name=self._unique_name(name),
             children=list(children),
-            name_loaded=name_loaded and (name is not None),
             params=params,
         )
         self._known_edges[id(node)] = node
@@ -2191,8 +2185,8 @@ def make_tree(
         )
     else:
         tree = tree_xml_parse_string(treestring, tree_builder)
-    if not tree.name_loaded:
-        tree.name = "root"
+
+    tree.name = "root"
 
     tree.source = source
     return tree
