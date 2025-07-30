@@ -1,11 +1,17 @@
 import os
 import pathlib
-from typing import Any
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 import numpy
 
 from cogent3.util.misc import extend_docstring_from
 from cogent3.util.union_dict import UnionDict
+
+if TYPE_CHECKING:
+    import contextlib
+
+    with contextlib.suppress(ImportError):
+        from plotly.graph_objects import Figure
 
 # user specified environment variable for plotly renderer
 PLOTLY_RENDERER = os.environ.get("PLOTLY_RENDERER", None)
@@ -45,7 +51,7 @@ def get_domain(total, element, is_y, space=0.01):
     return domains[element]
 
 
-def _show_(cls, renderer=None, **kwargs) -> None:
+def _show_(cls: "Drawable", renderer: str | None = None, **kwargs: Any) -> None:
     """display figure
 
     Parameters
@@ -60,7 +66,7 @@ def _show_(cls, renderer=None, **kwargs) -> None:
     kwargs
         other arguments for plotly.io.show
     """
-    from plotly.io import show
+    from plotly.io import show  # type: ignore[reportUnknownVariableType]
 
     if renderer is None and PLOTLY_RENDERER is None:
         renderer = "notebook_connected+plotly_mimetype"
@@ -81,7 +87,7 @@ def _show_(cls, renderer=None, **kwargs) -> None:
     show(fig, **kwargs)
 
 
-def _iplot_(cls, width=None, height=None) -> None:
+def _iplot_(cls: type, width: int | None = None, height: int | None = None) -> None:
     from plotly.offline import iplot as _iplot
 
     layout = {}
@@ -90,17 +96,20 @@ def _iplot_(cls, width=None, height=None) -> None:
     if height:
         layout["height"] = height
     if layout:
-        cls.drawable.layout |= dict(layout)
-    _iplot(cls.drawable.figure)
+        cls.drawable.layout |= dict(layout)  # type: ignore[reportUnknownMemberType]
+    _iplot(cls.drawable.figure)  # type: ignore[reportUnknownMemberType]
 
 
-def bind_drawable(obj, drawable):
+T = TypeVar("T")
+
+
+def bind_drawable(obj: T, drawable: "Drawable") -> T:
     """binds drawable"""
     from types import MethodType
 
-    obj.drawable = drawable
-    obj.iplot = MethodType(_iplot_, obj)
-    obj.show = MethodType(_show_, obj)
+    obj.drawable = drawable  # type: ignore[reportAttributeAccessIssue]
+    obj.iplot = MethodType(_iplot_, obj)  # type: ignore[reportAttributeAccessIssue]
+    obj.show = MethodType(_show_, obj)  # type: ignore[reportAttributeAccessIssue]
     return obj
 
 
@@ -126,8 +135,8 @@ class Drawable:
                 self._traces = [UnionDict(trace) for trace in traces]
             except ValueError:
                 msg = f"expected a series of dicts, got {traces}"
-                raise TypeError(msg)
-        title = title if title is None else {"text": title}
+                raise TypeError(msg) from None
+        formatted_title = title if title is None else {"text": title}
         self._default_layout = UnionDict(
             font={"family": "Balto", "size": 14},
             autosize=False,
@@ -137,7 +146,7 @@ class Drawable:
             margin={"l": 50, "r": 50, "t": 50, "b": 50, "pad": 4},
             xaxis={"visible": visible_axes},
             yaxis={"visible": visible_axes},
-            title=title,
+            title=formatted_title,
             width=width,
             height=height,
             showlegend=showlegend,
@@ -147,7 +156,7 @@ class Drawable:
         self.layout |= layout
         # constructor layout value over-rides
         overrides = UnionDict(
-            title=title,
+            title=formatted_title,
             width=width,
             height=height,
             showlegend=showlegend,
@@ -157,83 +166,83 @@ class Drawable:
         self.layout |= overrides
         self.xtitle = xtitle
         self.ytitle = ytitle
-        self.title = title
+        self.title = formatted_title
 
     def _repr_html_(self) -> None:
         self.show()
 
     @property
-    def traces(self):
+    def traces(self) -> list[UnionDict]:
         return self._traces
 
-    def add_trace(self, trace) -> None:
+    def add_trace(self, trace: UnionDict | dict[str, Any]) -> None:
         self.traces.append(UnionDict(trace))
 
-    def bound_to(self, obj):
+    def bound_to(self, obj: T) -> T:
         """returns obj with self bound to it"""
         return bind_drawable(obj, self)
 
     @property
-    def figure(self):
+    def figure(self) -> UnionDict:
         if not self.traces and hasattr(self, "_build_fig"):
-            self._build_fig()
+            self._build_fig()  # type: ignore[reportUnknownMemberType]
 
-        traces = self.traces or [{}]
+        traces: list[UnionDict] | list[dict[str, Any]] = self.traces or [{}]
 
-        xtitle = self.xtitle or self.layout.xaxis.get("title", None)
-        ytitle = self.ytitle or self.layout.yaxis.get("title", None)
-        self.layout.xaxis.title = xtitle
-        self.layout.yaxis.title = ytitle
+        xtitle = self.xtitle or self.layout.xaxis.get("title", None)  # type: ignore[reportUnknownMemberType]
+        ytitle = self.ytitle or self.layout.yaxis.get("title", None)  # type: ignore[reportUnknownMemberType]
+        self.layout.xaxis.title = xtitle  # type: ignore[reportUnknownMemberType]
+        self.layout.yaxis.title = ytitle  # type: ignore[reportUnknownMemberType]
         return UnionDict(data=traces, layout=self.layout)
 
     @property
-    def plotly_figure(self):
+    def plotly_figure(self) -> "Figure":
         """returns a plotly graph object"""
         from plotly.graph_objects import Figure
 
-        return Figure(**self.figure)
+        return Figure(**self.figure)  # type: ignore[reportUnknownArgumentType]
 
     @extend_docstring_from(_show_)
-    def show(self, renderer=None, **kwargs) -> None:
+    def show(self, renderer: str | None = None, **kwargs: Any) -> None:
         _show_(self, renderer, **kwargs)
 
-    def write(self, path, **kwargs) -> None:
+    def write(self, path: str | os.PathLike[str], **kwargs: Any) -> None:
         """writes static image file, suffix dictates format"""
-        from plotly.io import write_image
+        from plotly.io import write_image  # type: ignore[reportUnknownVariableType]
 
         fig = self.figure
-        kwargs["width"] = kwargs.get("width", fig.layout.width)
-        kwargs["height"] = kwargs.get("height", fig.layout.height)
+        kwargs["width"] = kwargs.get("width", fig.layout.width)  # type: ignore[reportUnknownMemberType]
+        kwargs["height"] = kwargs.get("height", fig.layout.height)  # type: ignore[reportUnknownMemberType]
 
         path = pathlib.Path(path).expanduser().absolute()
         write_image(fig, str(path), **kwargs)
 
-    def to_image(self, format="png", **kwargs):
+    def to_image(self, format: str = "png", **kwargs: Any) -> bytes:
         """creates static image, suffix dictates format"""
-        from plotly.io import to_image
+        from plotly.io import to_image  # type: ignore[reportUnknownVariableType]
 
         fig = self.figure
-        kwargs["width"] = kwargs.get("width", fig.layout.width)
-        kwargs["height"] = kwargs.get("height", fig.layout.height)
+        kwargs["width"] = kwargs.get("width", fig.layout.width)  # type: ignore[reportUnknownMemberType]
+        kwargs["height"] = kwargs.get("height", fig.layout.height)  # type: ignore[reportUnknownMemberType]
 
-        return to_image(fig, format=format, **kwargs)
+        return cast("bytes", to_image(fig, format=format, **kwargs))
 
     @property
-    def fig_width(self):
+    def fig_width(self) -> int | None:
         """figure width, also settable via .layout.width"""
-        return self.layout.width
+        return cast("int | None", self.layout["width"])
 
     @fig_width.setter
-    def fig_width(self, width) -> None:
+    def fig_width(self, width: int | None) -> None:
         self.layout.width = width
 
     @property
-    def fig_height(self):
+    def fig_height(self) -> int | None:
         """figure height, also settable via .layout.height"""
-        return self.layout.height
+        return cast("int | None", self.layout["height"])
 
     @fig_height.setter
-    def fig_height(self, height) -> None:
+    def fig_height(self, height: int | None) -> None:
         self.layout.height = height
 
 
