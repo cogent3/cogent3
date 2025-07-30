@@ -1,9 +1,8 @@
-from collections.abc import Callable, Iterable, Sequence
 import contextlib
-import functools
 from collections import defaultdict
+from collections.abc import Iterable, Sequence
 from math import floor
-from typing import Any, Literal, NoReturn, cast
+from typing import Any, Literal, cast
 
 import numpy as np
 from typing_extensions import Self
@@ -21,8 +20,8 @@ class TreeGeometryBase(PhyloNode):
         self,
         tree: PhyloNode | None = None,
         length_attr: str = "length",
-        *args,
-        **kwargs,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
         """
         Parameters
@@ -98,11 +97,11 @@ class TreeGeometryBase(PhyloNode):
                 edge.params[self._length] = 0
                 continue
 
-            assert edge.parent is not None
+            parent = cast("Self", edge.parent)
 
             length = edge.params.get(self._length, None) or 1
             edge.params[self._length] = length
-            edge.params["depth"] = edge.parent.params.get("depth", 0) + 1
+            edge.params["depth"] = parent.params.get("depth", 0) + 1
 
         self._max_child_depth()
         for edge in self.preorder():
@@ -110,9 +109,9 @@ class TreeGeometryBase(PhyloNode):
                 edge.params["cum_length"] = 0
                 continue
 
-            assert edge.parent is not None
+            parent = cast("Self", edge.parent)
 
-            parent_frac = edge.parent.params.get("cum_length", 0)
+            parent_frac = parent.params.get("cum_length", 0)
             if edge.is_tip():
                 frac = 1 - parent_frac
             else:
@@ -214,9 +213,9 @@ class TreeGeometryBase(PhyloNode):
         if self.is_root():
             return ((None, None),)
 
-        assert self.parent is not None
+        parent = cast("Self", self.parent)
 
-        segment_start = self.parent.get_segment_to_child(self)
+        segment_start = parent.get_segment_to_child(self)
         result: Sequence[tuple[float, float] | tuple[None, None]]
         if isinstance(segment_start, list):
             result = [
@@ -375,8 +374,8 @@ class _AngularGeometry(TreeGeometryBase):
         """x, y coordinate for line connecting parent to this node"""
         if self.is_root():
             return (0, self.y)
-        assert self.parent is not None
-        return self.parent.end
+        parent = cast("Self", self.parent)
+        return parent.end
 
 
 class AngularTreeGeometry(_AngularGeometry, SquareTreeGeometry):
@@ -440,7 +439,7 @@ class CircularTreeGeometry(TreeGeometryBase):
     def x(self) -> float:
         if self._x is None:
             _ = self.y  # triggers populating values
-            assert self._x is not None
+            self._x = cast("float", self._x)
         return self._x
 
     @property
@@ -464,8 +463,8 @@ class CircularTreeGeometry(TreeGeometryBase):
             return (0, 0)
 
         # radius comes from parent
-        assert self.parent is not None
-        radius = self.parent.params["cum_length"]
+        parent = cast("Self", self.parent)
+        radius = parent.params["cum_length"]
         return polar_2_cartesian(self.theta, radius)
 
     @extend_docstring_from(TreeGeometryBase.value_and_coordinate)
@@ -477,8 +476,7 @@ class CircularTreeGeometry(TreeGeometryBase):
     ) -> UnionDict:
         value: str | None = self.params.get(attr, None)
         if value is None:
-            value = getattr(self, attr, None)
-            assert value is not None
+            value = cast("str", getattr(self, attr, None))
 
         max_attr_length = len(value) if max_attr_length is None else max_attr_length
         if 90 < self.theta <= 270:
@@ -508,7 +506,7 @@ class CircularTreeGeometry(TreeGeometryBase):
         yshift: float | None,
         threshold: float = 100,
         max_attr_length: int | None = 4,
-    ):
+    ) -> UnionDict | None:
         if xshift is None:
             xshift = -18
 
@@ -758,8 +756,7 @@ class Dendrogram(Drawable):
     def _get_scale_bar(self) -> tuple[dict[str, Any], UnionDict] | tuple[None, None]:
         if not self.scale_bar or self.contemporaneous:
             return None, None
-
-        assert isinstance(self.scale_bar, str)
+        self.scale_bar = cast("str", self.scale_bar)
 
         # place scale bar above / below dendrogram area
         y_shift = (self.tree.max_y - self.tree.min_y) / 11
@@ -936,7 +933,9 @@ class Dendrogram(Drawable):
             keyword arguments passed onto get_edge_names
         """
         if tip2:
-            assert type(edges) is str, "cannot use a series of edges and tip2"
+            if not isinstance(edges, str):
+                msg = "cannot use a series of edges and tip2"
+                raise TypeError(msg)
             edges = self.get_edge_names(edges, tip2, **kwargs)
 
         if type(edges) is str:

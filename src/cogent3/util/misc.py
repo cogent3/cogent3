@@ -8,7 +8,7 @@ import os
 import re
 import warnings
 from random import choice
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, ParamSpec, TypeVar
 from urllib.parse import urlparse
 from warnings import warn
 
@@ -938,8 +938,14 @@ def get_object_provenance(obj: object) -> str:
     return name if mod is None or mod == "builtins" else f"{mod}.{name}"
 
 
-def extend_docstring_from(source, pre=False):
-    def docstring_inheriting_decorator(dest):
+P = ParamSpec("P")
+R = TypeVar("R")
+
+
+def extend_docstring_from(
+    source: object, pre: bool = False
+) -> Callable[[Callable[P, R]], Callable[P, R]]:
+    def docstring_inheriting_decorator(dest: Callable[P, R]) -> Callable[P, R]:
         parts = [source.__doc__ or "", dest.__doc__ or ""]
         # trim leading/trailing blank lines from parts
         for i, part in enumerate(parts):

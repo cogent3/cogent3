@@ -38,6 +38,7 @@ from operator import or_
 from typing import (
     TYPE_CHECKING,
     Any,
+    Literal,
     SupportsIndex,
     TypeVar,
     cast,
@@ -1554,8 +1555,8 @@ class PhyloNode:
 
     def get_figure(
         self,
-        style: str = "square",
-        **kwargs,
+        style: Literal["square", "circular", "angular", "radial"] = "square",
+        **kwargs: Any,
     ):
         """
         gets Dendrogram for plotting the phylogeny
@@ -1569,7 +1570,9 @@ class PhyloNode:
         """
         from cogent3.draw.dendrogram import Dendrogram
 
-        style = style.lower()
+        style = cast(
+            "Literal['square', 'circular', 'angular', 'radial']", style.lower()
+        )
         types = ("square", "circular", "angular", "radial")
         if style not in types:
             msg = f"{style} not in supported types {types}"
