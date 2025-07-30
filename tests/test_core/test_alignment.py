@@ -683,15 +683,16 @@ def test_make_seqs_renamed_seqs(mk_cls, seq_name, parent_name, dna_alphabet):
         (c3_alignment.make_aligned_seqs, c3_alignment.AlignedSeqsData),
     ],
 )
-@pytest.mark.parametrize("seq", ["a", "b"])
-def test_make_seqs_offset(mk_cls, data_cls, seq, dna_alphabet):
+@pytest.mark.parametrize("name", ["a", "b"])
+def test_parent_coordinates_with_offset(mk_cls, data_cls, name, dna_alphabet):
     """SequenceCollection and Alignment constructor functions should handle
     offset argument"""
     data = {"a": "AGGCCC", "b": "AGAAAA"}
     offset = {"a": 1, "b": 2}
     seqs = mk_cls(data, moltype="dna", offset=offset)
-    got = seqs.get_seq(seq)
-    assert got._seq.offset == offset[seq]
+    got = seqs.seqs[name]
+    expect = (name, offset[name], len(data[name]) + offset[name], 1)
+    assert got.parent_coordinates(apply_offset=True, seq_coords=True) == expect
 
     # if data is a SeqsData object, this should fail
     data = data_cls.from_seqs(data=data, alphabet=c3_moltype.DNA.degen_gapped_alphabet)
@@ -716,11 +717,39 @@ def test_make_seqs_offset(mk_cls, data_cls, seq, dna_alphabet):
 
     seqs = mk_cls([seq_1, seq_2], moltype="dna")
 
-    got = seqs.get_seq("seq_1")
-    assert got._seq.offset == 1
+    offsets = {"seq_1": 1, "seq_2": 2}
+    name = "seq_1"
+    assert seqs.storage.offset == offsets
+    got = seqs.seqs[name]
+    expect = (name, offsets[name], len(seq_1) + offsets[name], 1)
+    assert got.parent_coordinates(apply_offset=True, seq_coords=True) == expect
 
-    got = seqs.get_seq("seq_2")
-    assert got._seq.offset == 2
+    name = "seq_2"
+    got = seqs.seqs[name]
+    expect = (name, offsets[name], len(seq_2) + offsets[name], 1)
+    assert got.parent_coordinates(apply_offset=True, seq_coords=True) == expect
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [
+        c3_alignment.make_unaligned_seqs,
+        c3_alignment.make_aligned_seqs,
+    ],
+)
+@pytest.mark.parametrize("name", ["a", "b"])
+def test_made_seq_offset(mk_cls, name):
+    data = {"a": "AGGCCC", "b": "AGAAAA"}
+    offset = {"a": 1, "b": 2}
+    coll = mk_cls(data, moltype="dna", offset=offset)
+    sv = coll.storage.get_view(name)
+    # this is the slice offset
+    assert sv.offset == 0
+    s = coll.seqs[name]
+    _, start, stop, _ = s.parent_coordinates(seq_coords=True, apply_offset=True)
+    # this is the annotation and slice offset
+    assert start == offset[name]
+    assert stop == len(s) + offset[name]
 
 
 @pytest.mark.parametrize(
@@ -3949,6 +3978,26 @@ def test_alignment_repr():
     )
 
 
+@pytest.mark.parametrize(
+    "mk_cls", [c3_alignment.make_aligned_seqs, c3_alignment.make_unaligned_seqs]
+)
+def test_seqcoll_counts_per_seq(mk_cls):
+    data = {"a": "", "b": ""}
+    coll = mk_cls(data, moltype="dna")
+    got = coll.counts_per_seq()
+    assert numpy.allclose(got, 0)
+
+
+@pytest.mark.parametrize(
+    "mk_cls", [c3_alignment.make_aligned_seqs, c3_alignment.make_unaligned_seqs]
+)
+def test_seqcoll_repr_html(mk_cls):
+    data = {"a": "", "b": ""}
+    coll = mk_cls(data, moltype="dna")
+    got = coll.to_html()
+    assert isinstance(got, str)
+
+
 @pytest.mark.parametrize("seqid", ["seq1", "seq2", "seq3", "seq4"])
 def test_alignment_getitem_slice(aligned_dict, seqid):
     """slicing an alignment should propogate the slice to aligned instances"""
@@ -5028,13 +5077,29 @@ def test_alignment_indexing_string(alignment, seqid):
 def test_alignment_offset_propagation(aligned_dict, func, rc):
     # providing an offset should set the offset on precisely the specified seq
     aln = func(aligned_dict, moltype="dna", offset={"seq1": 10})
-    seq = aln.get_seq("seq1").rc() if rc else aln.get_seq("seq1")
-    assert seq._seq.offset == 10
-    assert seq.annotation_offset == 10
+    s1 = aln.get_seq("seq1").rc() if rc else aln.get_seq("seq1")
+    assert s1._seq.offset == 0
+    assert s1.annotation_offset == 10
 
-    seq = aln.get_seq("seq2").rc() if rc else aln.get_seq("seq2")
-    assert seq._seq.offset == 0
-    assert seq.annotation_offset == 0
+    s2 = aln.get_seq("seq2").rc() if rc else aln.get_seq("seq2")
+    assert s2._seq.offset == 0
+    assert s2.annotation_offset == 0
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+def test_parent_coords_apply_offset(mk_cls):
+    # providing an offset should set the offset on precisely the specified seq
+    seqid = "s1"
+    data = {"s1": "GTTGAAGTAGTA", "s2": "GTG------GTA", "s3": "GCTGAAGTAGTG"}
+    ungapped_length = len(data[seqid])
+    coll = mk_cls(data, moltype="dna", offset={seqid: 10})
+    seq = coll.seqs[seqid]
+    got = seq.parent_coordinates(apply_offset=False, seq_coords=True)
+    expect = (seqid, 0, ungapped_length, 1)
+    assert got == expect
 
 
 def test_alignment_offset_sliced(aligned_dict):
@@ -5045,7 +5110,7 @@ def test_alignment_offset_sliced(aligned_dict):
     )
     sliced = aln[2:]
     seq = sliced.get_seq("seq1")
-    assert seq._seq.offset == 10
+    assert seq._seq.offset == 0
     assert seq.annotation_offset == 12
 
 
@@ -5321,10 +5386,8 @@ def test_make_gap_filter():
 
 @pytest.fixture(scope="session")
 def codon_and_aa_alns():
-    import cogent3
-
     data = {"s1": "ATG --- --- GAT --- AAA", "s2": "ATG CAA TCG AAT GAA ATA"}
-    dna = cogent3.make_aligned_seqs(
+    dna = c3_alignment.make_aligned_seqs(
         {n: s.replace(" ", "") for n, s in data.items()},
         moltype="dna",
     )
@@ -6154,3 +6217,10 @@ def test_alignment_copy_handling_annot_db():
 
     copied_aln = aln.copy(copy_annotations=False)
     assert copied_aln.annotation_db is orig_db
+
+
+def test_empty_aln_to_pretty():
+    data = {"a": "", "b": ""}
+    coll = c3_alignment.make_aligned_seqs(data, moltype="dna")
+    got = coll.to_pretty()
+    assert isinstance(got, str)

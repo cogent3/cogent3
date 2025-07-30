@@ -197,6 +197,11 @@ class SeqDataView(c3_sequence.SeqView):
     __slots__ = ("_parent_len", "_seqid", "_slice_record", "alphabet", "parent")
 
     @property
+    def offset(self) -> int:
+        """the annotation offset of this view"""
+        return self.slice_record.offset
+
+    @property
     def str_value(self) -> str:
         """returns the sequence as a string"""
         return self.alphabet.from_indices(self.array_value)
@@ -272,6 +277,26 @@ class SeqDataView(c3_sequence.SeqView):
             # hence is_reversed is the opposite of the slice record
             return not self.slice_record.is_reversed
         return self.slice_record.is_reversed
+
+    def parent_coords(
+        self, *, apply_offset: bool = False, **kwargs
+    ) -> tuple[str, int, int, int]:
+        """returns coordinates on parent
+
+        Parameters
+        ----------
+        apply_offset
+            if True adds annotation offset from parent
+
+        Returns
+        -------
+        parent seqid, start, stop, strand
+        """
+        offset = self.parent_offset if apply_offset else 0
+        start = self.slice_record.parent_start
+        stop = self.slice_record.parent_stop
+        step = self.slice_record.step
+        return self.seqid, start + offset, stop + offset, step
 
 
 class SeqsDataABC(ABC):
@@ -546,7 +571,6 @@ class SeqsData(SeqsDataABC):
             seqid=seqid,
             parent_len=seq_len,
             alphabet=self.alphabet,
-            offset=self._offset.get(seqid, 0),
         )
 
     def add_seqs(
@@ -1424,7 +1448,6 @@ class SequenceCollection(AnnotatableMixin):
         of strand of the current instance.
         - start is non-inclusive, so if allow_partial is False, only features
         strictly starting after start will be returned.
-
         """
 
         if not self._annotation_db:
@@ -1434,21 +1457,17 @@ class SequenceCollection(AnnotatableMixin):
             msg = f"unknown {seqid=}"
             raise ValueError(msg)
 
-        for feature in self.annotation_db.get_features_matching(
-            seqid=seqid,
-            biotype=biotype,
-            name=name,
-            on_alignment=False,
-            start=start,
-            stop=stop,
-            allow_partial=allow_partial,
-            **kwargs,
-        ):
-            seqname = feature["seqid"]
-            seq = self.seqs[seqname]
-            if offset := seq.annotation_offset:
-                feature["spans"] = (numpy.array(feature["spans"]) - offset).tolist()
-            yield seq.make_feature(feature, self)
+        seqids = [seqid] if isinstance(seqid, str) else self.names
+        for seqid in seqids:
+            seq = self.seqs[seqid]
+            yield from seq.get_features(
+                biotype=biotype,
+                name=name,
+                start=start,
+                stop=stop,
+                allow_partial=allow_partial,
+                **kwargs,
+            )
 
     def to_fasta(self, block_size: int = 60) -> str:
         """Return collection in Fasta format.
@@ -1755,7 +1774,8 @@ class SequenceCollection(AnnotatableMixin):
             )
             motifs.update(c.keys())
             counts.append(c)
-        motifs = sorted(motifs)
+        # use motifs from moltype if empty sequences
+        motifs = sorted(motifs) or sorted(self.moltype)
         for i, c in enumerate(counts):
             counts[i] = c.tolist(motifs)
         return MotifCountsArray(counts, motifs, row_indices=self.names)
@@ -3350,30 +3370,19 @@ class Aligned(AnnotatableMixin):
         gaps = numpy.array([im.gap_pos, im.cum_gap_lengths]).T
         return data, gaps
 
-    def parent_coordinates(self, seq_coords=False):
+    def parent_coordinates(
+        self, seq_coords: bool = False, apply_offset: bool = False
+    ) -> tuple[str, int, int, int]:
         """returns seqid, start, stop, strand on the parent sequence
 
         Parameters
         ----------
         seq_coords
             if True, the coordinates for the unaligned sequence
+        apply_offset
+            if True and seq_coords, adds annotation offset from parent
         """
-        strand = -1 if self.data.is_reversed else 1
-        seqid = self.data.seqid
-        if not seq_coords:
-            start = self.data.slice_record.parent_start
-            stop = self.data.slice_record.parent_stop
-        else:
-            # AlignedDataView.parent_seq_coords uses it's indelmap, etc..
-            # to return the necessary coordinates
-            seqid, start, stop, strand = self.data.parent_seq_coords()
-
-        return (
-            seqid,
-            start,
-            stop,
-            strand,
-        )
+        return self.data.parent_coords(seq_coords=seq_coords, apply_offset=apply_offset)
 
     @extend_docstring_from(c3_sequence.Sequence.annotate_matches_to)
     def annotate_matches_to(
@@ -4297,6 +4306,11 @@ class AlignedDataView(c3_sequence.SeqViewABC):
         self._slice_record = value
 
     @property
+    def offset(self) -> int:
+        """the slice offset of this view"""
+        return self.slice_record.offset
+
+    @property
     def seqid(self) -> str:
         """the name of the sequence"""
         return self._seqid
@@ -4412,16 +4426,38 @@ class AlignedDataView(c3_sequence.SeqViewABC):
             f"slice_record={self.slice_record.__repr__()})"
         )
 
-    def parent_seq_coords(self) -> tuple[str, int, int, int]:
-        """returns seqid, start, stop, strand on the parent sequence"""
+    def parent_coords(
+        self, *, seq_coords: bool = False, apply_offset: bool = False
+    ) -> tuple[str, int, int, int]:
+        """returns seqid, start, stop, strand on the parent
+
+        Parameters
+        ----------
+        seq_coords
+            if True, parent is the ungapped sequence
+        apply_offset
+            if True and seq_coords, adds annotation offset from parent
+        """
+        strand = -1 if self.is_reversed else 1
+        if not seq_coords:
+            return (
+                self.seqid,
+                self.slice_record.parent_start,
+                self.slice_record.parent_stop,
+                strand,
+            )
+
+        # AlignedDataView.parent_coords uses it's indelmap, etc..
+        # to return the necessary coordinates
+
         # we want the coordinates on the parent sequence, which means we
         # need to use the parent's IndelMap for findings the correct indices.
         parent_map = self._parent_map()
         start = parent_map.get_seq_index(self.slice_record.parent_start)
         stop = parent_map.get_seq_index(self.slice_record.parent_stop)
-        strand = -1 if self.slice_record.step < 0 else 1
+        offset = self.parent_offset if apply_offset else 0
 
-        return self.seqid, start, stop, strand
+        return self.seqid, start + offset, stop + offset, strand
 
     def copy(self, sliced: bool = False) -> typing_extensions.Self:
         """just returns self"""
@@ -4438,15 +4474,13 @@ class AlignedDataView(c3_sequence.SeqViewABC):
     def get_seq_view(self) -> c3_sequence.SeqViewABC:
         """returns view of ungapped sequence data for seqid"""
         # we want the parent coordinates in sequence coordinates
-        # parent_seq_coords does not account for the stride
-        seqid, start, stop, _ = self.parent_seq_coords()
+        # parent_coords does not account for the stride
+        seqid, start, stop, _ = self.parent_coords(seq_coords=True, apply_offset=False)
         parent_len = self.parent.get_seq_length(seqid)
-        offset = self.parent.offset.get(seqid)
         sr = c3_sequence.SliceRecord(
             start=start,
             stop=stop,
             parent_len=parent_len,
-            offset=offset,
         )[:: self.slice_record.step]
 
         return SeqDataView(
@@ -5048,6 +5082,11 @@ class Alignment(SequenceCollection):
             motif columns
         """
         length = (len(self) // motif_length) * motif_length
+        if not length:
+            motifs = list(self.moltype)
+            counts = numpy.zeros((len(self.names), len(motifs)), dtype=int)
+            return MotifCountsArray(counts, motifs, row_indices=self.names)
+
         if warn and len(self) != length:
             warnings.warn(f"trimmed {len(self) - length}", UserWarning, stacklevel=2)
 
@@ -6018,10 +6057,7 @@ class Alignment(SequenceCollection):
         elif set(seqids) & set(self.names):
             # we've been given seq names, convert to parent names
             seqids = [self.seqs[seqid].parent_coordinates()[0] for seqid in seqids]
-        elif seqids and set(seqids) <= seqid_to_seqname.keys():
-            # already correct
-            pass
-        else:
+        elif not (seqids and set(seqids) <= seqid_to_seqname.keys()):
             msg = f"unknown {seqid=}"
             raise ValueError(msg)
 
@@ -6029,8 +6065,11 @@ class Alignment(SequenceCollection):
             seqname = seqid_to_seqname[seqid]
             seq = self.seqs[seqname]
             # we use parent seqid
-            parent_id, start, stop, _ = seq.parent_coordinates()
-            offset = seq.data.offset
+            parent_id, start, stop, _ = seq.parent_coordinates(apply_offset=False)
+            # we get the annotation offset from storage
+            # because we need it to adjust the returned feature spans
+            # to the alignment coordinates
+            offset = self.storage.offset.get(seqid, 0)
 
             for feature in self.annotation_db.get_features_matching(
                 seqid=parent_id,
@@ -6038,8 +6077,8 @@ class Alignment(SequenceCollection):
                 name=name,
                 on_alignment=False,
                 allow_partial=allow_partial,
-                start=start,
-                stop=stop,
+                start=start + offset,
+                stop=stop + offset,
             ):
                 if offset:
                     feature["spans"] = (numpy.array(feature["spans"]) - offset).tolist()

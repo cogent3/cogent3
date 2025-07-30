@@ -334,6 +334,8 @@ class Sequence(AnnotatableMixin):
             motif columns
         """
         data = numpy.array(self)
+        if not len(data):
+            return CategoryCounter()
 
         if motif_length != 1:
             if warn and len(data) % motif_length != 0:
@@ -950,8 +952,9 @@ class Sequence(AnnotatableMixin):
         Returns:
             int: The offset between annotation coordinates and sequence coordinates.
         """
-
-        return self._seq.slice_record.parent_start
+        parent_offset = self._seq.parent_offset
+        slice_start = self._seq.slice_record.parent_start
+        return parent_offset + slice_start
 
     def get_features(
         self,
@@ -961,6 +964,7 @@ class Sequence(AnnotatableMixin):
         start: OptInt = None,
         stop: OptInt = None,
         allow_partial: bool = False,
+        **kwargs,
     ) -> typing.Iterator[Feature]:
         """yields Feature instances
 
@@ -973,6 +977,8 @@ class Sequence(AnnotatableMixin):
         start, stop
             start, stop positions to search between, relative to offset
             of this sequence. If not provided, entire span of sequence is used.
+        kwargs
+            keyword arguments passed to annotation_db.get_features_matching()
 
         Notes
         -----
@@ -992,8 +998,10 @@ class Sequence(AnnotatableMixin):
         stop = stop + len(self) if stop < 0 else stop
 
         start, stop = (start, stop) if start < stop else (stop, start)
+        stop = min(
+            len(self), stop
+        )  # otherwise index error from absolute_position method
 
-        # note: offset is handled by absolute_position
         # we set include_boundary=False because start is inclusive indexing,
         # i,e., the start cannot be equal to the length of the view
         (
@@ -1003,16 +1011,23 @@ class Sequence(AnnotatableMixin):
             *_,
             strand,
         ) = self.parent_coordinates()
+        parent_offset = self._seq.parent_offset
         sr = self._seq.slice_record
-        query_start = sr.absolute_position(
-            start,
-            include_boundary=False,
+        query_start = (
+            sr.absolute_position(
+                start,
+                include_boundary=False,
+            )
+            + parent_offset
         )
         # we set include_boundary=True because stop is exclusive indexing,
         # i,e., the stop can be equal to the length of the view
-        query_stop = sr.absolute_position(
-            stop,
-            include_boundary=True,
+        query_stop = (
+            sr.absolute_position(
+                stop,
+                include_boundary=True,
+            )
+            + parent_offset
         )
 
         query_start, query_stop = (
@@ -1035,14 +1050,14 @@ class Sequence(AnnotatableMixin):
         # To piggy-back on that method we need to convert our feature spans
         # into the current orientation. HOWEVER, we also have the reversed
         # flag which comes back from the db
-
+        kwargs |= {"allow_partial": allow_partial}
         for feature in self.annotation_db.get_features_matching(
             seqid=parent_id,
             name=name,
             biotype=biotype,
             start=query_start,
             stop=query_stop,
-            allow_partial=allow_partial,
+            **kwargs,
         ):
             # spans need to be converted from absolute to relative positions
             # DO NOT do adjustment in make_feature since that's user facing,
@@ -1050,7 +1065,7 @@ class Sequence(AnnotatableMixin):
             # current view
             spans = array(feature.pop("spans"), dtype=int)
             for i, v in enumerate(spans.ravel()):
-                rel_pos = sr.relative_position(v)
+                rel_pos = sr.relative_position(v) - parent_offset
                 spans.ravel()[i] = rel_pos
 
             if sr.is_reversed:
@@ -1757,8 +1772,15 @@ class Sequence(AnnotatableMixin):
         drawer.layout.update(xaxis=xaxis, yaxis=yaxis)
         return drawer
 
-    def parent_coordinates(self) -> tuple[str, int, int, int]:
+    def parent_coordinates(
+        self, apply_offset: bool = False, **kwargs
+    ) -> tuple[str, int, int, int]:
         """returns seqid, start, stop, strand of this sequence on its parent
+
+        Parameters
+        ----------
+        apply_offset
+            if True, adds annotation offset from parent
 
         Notes
         -----
@@ -1772,12 +1794,8 @@ class Sequence(AnnotatableMixin):
         -1 or 1.
         """
         strand = Strand.MINUS.value if self._seq.is_reversed else Strand.PLUS.value
-        return (
-            self._seq.seqid,
-            self._seq.slice_record.parent_start,
-            self._seq.slice_record.parent_stop,
-            strand,
-        )
+        seqid, start, stop, _ = self._seq.parent_coords(apply_offset=apply_offset)
+        return seqid, start, stop, strand
 
     def sample(
         self,
@@ -2268,6 +2286,8 @@ class SliceRecordABC(ABC):
         ----------
         rel_index
             relative position with respect to the current view
+        include_boundary
+            whether considering index as part of a range
 
         Returns
         -------
@@ -2729,9 +2749,23 @@ class SeqViewABC(ABC):
     def slice_record(self) -> SliceRecordABC: ...
 
     @property
-    def offset(self) -> int:
-        """the annotation offset of this view"""
-        return self.slice_record.offset
+    def parent_offset(self) -> int:
+        """returns the offset from the true parent
+
+        Notes
+        -----
+        If from storage with an offset attribute, returns
+        that value or 0
+        """
+        return (
+            self.parent.offset.get(self.seqid, 0)
+            if hasattr(self.parent, "offset")
+            else 0
+        )
+
+    @property
+    @abstractmethod
+    def offset(self) -> int: ...
 
     @property
     def is_reversed(self) -> bool:
@@ -2783,6 +2817,11 @@ class SeqViewABC(ABC):
         init_kwargs = self._get_init_kwargs()  # type: ignore
         init_kwargs["offset"] = offset
         return self.__class__(**init_kwargs)
+
+    @abstractmethod
+    def parent_coords(
+        self, *, apply_offset: bool = False, **kwargs
+    ) -> tuple[str, int, int, int]: ...
 
 
 class SeqView(SeqViewABC):
@@ -2859,6 +2898,11 @@ class SeqView(SeqViewABC):
     def parent_len(self) -> int:
         """length of the parent sequence"""
         return self._parent_len
+
+    @property
+    def offset(self) -> int:
+        """the annotation offset of this view"""
+        return self.slice_record.offset
 
     def _get_init_kwargs(self) -> dict:
         return {
@@ -2956,6 +3000,28 @@ class SeqView(SeqViewABC):
             seqid=self.seqid,
             alphabet=self.alphabet,
             slice_record=sr,
+        )
+
+    def parent_coords(
+        self, *, apply_offset: bool = False, **kwargs
+    ) -> tuple[str, int, int, int]:
+        """returns coordinates on parent
+
+        Parameters
+        ----------
+        apply_offset
+            if True adds annotation offset from parent
+
+        Returns
+        -------
+        parent seqid, start, stop, strand
+        """
+        offset = self.parent_offset if apply_offset else 0
+        return (
+            self.seqid,
+            self.slice_record.parent_start + offset,
+            self.slice_record.parent_stop + offset,
+            self.slice_record.step,
         )
 
 

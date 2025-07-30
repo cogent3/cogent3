@@ -10,7 +10,6 @@ import pytest
 import cogent3
 from cogent3._version import __version__
 from cogent3.core import alphabet as c3_alphabet
-from cogent3.core import annotation_db as anndb_module
 from cogent3.core import genetic_code as c3_genetic_code
 from cogent3.core import moltype as c3_moltype
 from cogent3.core import sequence as c3_sequence
@@ -892,65 +891,6 @@ def test_strand_symmetry():
     assert len(ssym.observed.keys()) <= 8
     assert numpy.allclose(ssym.observed["AA"].to_array(), [2, 1])
     assert numpy.allclose(ssym.observed["CC"].to_array(), [1, 2])
-
-
-def test_is_annotated():
-    """is_annotated operates correctly"""
-    s = c3_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG", name="s1")
-    _ = s.add_feature(biotype="gene", name="blah", spans=[(0, 10)])
-    assert s.is_annotated()
-
-
-@pytest.mark.parametrize("biotype", ["gene", "exon", ("gene", "exon")])
-def test_is_annotated_biotype(biotype):
-    """is_annotated operates correctly"""
-    s = c3_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG", name="s1")
-    _ = s.add_feature(biotype="gene", name="blah", spans=[(0, 10)])
-    _ = s.add_feature(biotype="exon", name="blah", spans=[(0, 10)])
-    assert s.is_annotated(biotype=biotype)
-
-
-def test_annotation_db_lazy_evaluation():
-    s = c3_moltype.DNA.make_seq(seq="AC", name="s1")
-    assert isinstance(s._annotation_db, list)
-    # now if we invoke the property we get an actual db instance created
-    assert isinstance(s.annotation_db, anndb_module.SupportsFeatures)
-
-
-def test_init_with_annotationdb():
-    anndb = anndb_module.GffAnnotationDb()
-    s = c3_moltype.DNA.make_seq(seq="AC", name="s1", annotation_db=anndb)
-    assert isinstance(s.annotation_db, anndb_module.GffAnnotationDb)
-    assert s.annotation_db is anndb
-
-
-def test_init_with_annotation_offset():
-    s = c3_moltype.DNA.make_seq(seq="AC", name="s1", annotation_offset=2)
-    assert s.annotation_offset == 2
-
-
-def test_not_is_annotated():
-    """is_annotated operates correctly"""
-    s = c3_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG", name="s1")
-    assert not s.is_annotated()
-    # annotation on different seq
-    s.annotation_db.add_feature(
-        seqid="s2",
-        biotype="gene",
-        name="blah",
-        spans=[(0, 10)],
-    )
-    assert not s.is_annotated()
-    # annotation wrong biotype
-    s.annotation_db.add_feature(
-        seqid="s1",
-        biotype="exon",
-        name="blah",
-        spans=[(0, 10)],
-    )
-    assert not s.is_annotated(biotype="gene")
-    s.annotation_db = None
-    assert not s.is_annotated()
 
 
 def test_to_html():
@@ -2616,7 +2556,11 @@ def test_parent_coordinates(one_seq, rev):
     seq = seq.rc() if rev else seq
     seq.name = "sliced"  # this assignment does not affect the
     # note that when a sequence has zero length, the parent seqid is None
-    assert seq.parent_coordinates() == (None, 0, 0, 1)
+    expected = (None, 0, 0, 1)
+    assert seq.parent_coordinates() == expected
+    # on a seq that's not parent of a sequence collection, the apply_offset
+    # argument should have no effect
+    assert seq.parent_coordinates(apply_offset=True) == expected
 
 
 @pytest.mark.parametrize("cls", [str, bytes])
@@ -2874,6 +2818,15 @@ def test_seqview_with_offset(offset, dna_alphabet):
 
 
 @pytest.mark.parametrize("offset", [0, 4])
+def test_seqview_parent_offset(offset, dna_alphabet):
+    seq = "ACGGTGGGAC"
+    sv = c3_sequence.SeqView(parent=seq, parent_len=len(seq), alphabet=dna_alphabet)
+    got = sv[offset:]
+    # parent offset is not a slice offset
+    assert got.parent_offset == 0
+
+
+@pytest.mark.parametrize("offset", [0, 4])
 def test_seqview_with_offset_fails(offset, dna_alphabet):
     seq = "ACGGTGGGAC"
     sv = c3_sequence.SeqView(
@@ -3104,3 +3057,9 @@ def test_to_html_custom_moltype():
     )
     seq = mt.make_seq(seq="ACG.")
     assert isinstance(seq.to_html(), str)
+
+
+def test_counts_empty_seq():
+    s = cogent3.make_seq("", "a", moltype="dna")
+    c = s.counts()
+    assert not c.sum
