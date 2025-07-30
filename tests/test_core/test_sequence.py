@@ -3057,3 +3057,9 @@ def test_to_html_custom_moltype():
     )
     seq = mt.make_seq(seq="ACG.")
     assert isinstance(seq.to_html(), str)
+
+
+def test_counts_empty_seq():
+    s = cogent3.make_seq("", "a", moltype="dna")
+    c = s.counts()
+    assert not c.sum

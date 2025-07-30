@@ -1774,7 +1774,8 @@ class SequenceCollection(AnnotatableMixin):
             )
             motifs.update(c.keys())
             counts.append(c)
-        motifs = sorted(motifs)
+        # use motifs from moltype if empty sequences
+        motifs = sorted(motifs) or sorted(self.moltype)
         for i, c in enumerate(counts):
             counts[i] = c.tolist(motifs)
         return MotifCountsArray(counts, motifs, row_indices=self.names)
@@ -5081,6 +5082,11 @@ class Alignment(SequenceCollection):
             motif columns
         """
         length = (len(self) // motif_length) * motif_length
+        if not length:
+            motifs = list(self.moltype)
+            counts = numpy.zeros((len(self.names), len(motifs)), dtype=int)
+            return MotifCountsArray(counts, motifs, row_indices=self.names)
+
         if warn and len(self) != length:
             warnings.warn(f"trimmed {len(self) - length}", UserWarning, stacklevel=2)
 
