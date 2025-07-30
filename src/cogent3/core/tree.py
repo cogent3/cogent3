@@ -65,6 +65,7 @@ if TYPE_CHECKING:
 
     from typing_extensions import Self
 
+    from cogent3.draw.dendrogram import Dendrogram
     from cogent3.evolve.fast_distance import DistanceMatrix
 
 
@@ -1557,7 +1558,7 @@ class PhyloNode:
         self,
         style: Literal["square", "circular", "angular", "radial"] = "square",
         **kwargs: Any,
-    ):
+    ) -> Dendrogram:
         """
         gets Dendrogram for plotting the phylogeny
 
