@@ -334,6 +334,8 @@ class Sequence(AnnotatableMixin):
             motif columns
         """
         data = numpy.array(self)
+        if not len(data):
+            return CategoryCounter()
 
         if motif_length != 1:
             if warn and len(data) % motif_length != 0:
