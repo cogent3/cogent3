@@ -721,7 +721,7 @@ class Dendrogram(Drawable):
         if isinstance(val, dict):
             self._tip_font |= val
             return
-        if isinstance(self, int):
+        if isinstance(val, int):
             self._tip_font.size = val
             return
 
