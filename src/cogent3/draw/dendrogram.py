@@ -701,7 +701,7 @@ class Dendrogram(Drawable):
 
     @contemporaneous.setter
     def contemporaneous(self, value: bool) -> None:
-        if type(value) is not bool:
+        if not isinstance(value, bool):
             raise TypeError
         if self._contemporaneous != value:
             klass = self.tree.__class__
@@ -938,7 +938,7 @@ class Dendrogram(Drawable):
                 raise TypeError(msg)
             edges = self.get_edge_names(edges, tip2, **kwargs)
 
-        if type(edges) is str:
+        if isinstance(edges, str):
             edges = [edges]
         edges = frozenset(edges)
         if not edges.issubset({edge.name for edge in self.tree.preorder()}):
