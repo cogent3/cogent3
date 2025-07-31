@@ -2014,9 +2014,9 @@ def theoretical_quantiles(n, dist, **kwargs):
 
     Parameters
     ----------
-    n 
+    n
         number of elements
-    dist 
+    dist
         one of 'normal', 'chisq', 't', 'uniform'
     kwargs
         additional keyword arguments (eg, df=2) to pass to the scipy distribution function
