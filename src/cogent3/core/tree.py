@@ -99,7 +99,7 @@ def _format_node_name(
         else:
             node_name = node_name.replace(" ", "_")
 
-    if with_distances and (length := getattr(node, "length", None)) is not None:
+    if with_distances and (length := node.length) is not None:
         node_name = f"{node_name}:{length}"
 
     return node_name
@@ -490,7 +490,7 @@ class PhyloNode:
         # we put tips on the right
         right_name = edge_name if is_tip else f"{edge_name}-R"
         left_name = f"{edge_name}-root" if is_tip else f"{edge_name}-L"
-        length = (getattr(node, "length", 0.0) or 0) / 2
+        length = (node.length or 0) / 2
         parent = cast("Self", node.parent)
         parent.children.remove(node)
         node.parent = None
@@ -1528,7 +1528,9 @@ class PhyloNode:
             dist = 0.0
             while current is not None:
                 path.append((current, dist))
-                length = getattr(current, "length", default_length) or default_length
+                length = (
+                    current.length if current.length is not None else default_length
+                )
                 dist += length
                 current = current.parent
             paths[tip.name] = path  # path from tip to root
@@ -1914,7 +1916,7 @@ class PhyloNode:
 
         node = path_nodes[0]
         for node in path_nodes:
-            length = node.length or default_length if has_length else default_length
+            length = (node.length or default_length) if has_length else default_length
             cumsum += length
             if cumsum >= mid_point:
                 break
@@ -1988,9 +1990,11 @@ class PhyloNode:
             node = tip
             cum_sum = 0.0
             while node.parent is not None:
-                cum_sum += (
-                    default_length if node_length else (node.length or default_length)
-                )
+                if node_length or node.length is None:
+                    cum_sum += default_length
+                else:
+                    cum_sum += node.length
+
                 node = node.parent
             dists[tip.name] = cum_sum
         return dists
