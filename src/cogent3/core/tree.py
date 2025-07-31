@@ -158,8 +158,6 @@ class PhyloNode:
 
     @length.setter
     def length(self, value: float | None) -> None:
-        if not hasattr(self, "params"):
-            self.params = {}
         self.params["length"] = value
 
     # built-in methods and list interface support
