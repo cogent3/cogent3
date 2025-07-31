@@ -57,6 +57,7 @@ from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.io import atomic_write, get_format_suffixes, open_
 from cogent3.util.misc import get_object_provenance, is_number
+from cogent3.util.warning import deprecated_callable
 
 if TYPE_CHECKING:
     import os
@@ -1993,6 +1994,28 @@ class PhyloNode:
                 node = node.parent
             dists[tip.name] = cum_sum
         return dists
+
+
+class TreeNode(PhyloNode):
+    @deprecated_callable(
+        "2025.12",
+        "Tree classes have been merged into a single class, use PhyloNode instead.",
+        "PhyloNode",
+    )
+    def __init__(
+        self,
+        name: str | None = None,
+        children: list[Self] | None = None,
+        parent: Self | None = None,
+        params: dict[str, object] | None = None,
+        name_loaded: bool = True,
+        **kwargs: Any,
+    ) -> None:
+        if name is None:
+            name = ""
+        if children is None:
+            children = []
+        super().__init__(name, children, parent, params, name_loaded, None)
 
 
 T = TypeVar("T", bound=PhyloNode)
