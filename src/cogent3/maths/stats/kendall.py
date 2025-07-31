@@ -6,8 +6,8 @@ Translated from R 2.5 by Gavin Huttley
 """
 
 from numpy import array, floor, sqrt
+from scipy.stats import norm
 
-from cogent3.maths.stats.distribution import zprob
 from cogent3.maths.stats.number import CategoryCounter
 
 
@@ -121,5 +121,5 @@ def kendalls_tau(x, y, return_p=True):
             + v2 / (9 * n * (n - 1) * (n - 2))
         )
     if return_p:
-        return tau, zprob(stat / variance**0.5)
+        return tau, 2 * norm.sf(abs(stat / variance**0.5))
     return tau

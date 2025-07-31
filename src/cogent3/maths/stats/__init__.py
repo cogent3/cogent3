@@ -7,10 +7,8 @@ working with statistical data.
 
 __all__ = [
     "contingency",
-    "distribution",
     "information_criteria",
     "kendall",
     "ks",
-    "special",
     "test",
 ]

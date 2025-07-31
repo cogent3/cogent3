@@ -17,7 +17,7 @@ from numpy import (
     testing,
     tril,
 )
-from numpy.testing import assert_allclose, assert_equal
+from numpy.testing import assert_allclose, assert_almost_equal, assert_equal
 
 from cogent3.maths.stats.number import NumberCounter
 from cogent3.maths.stats.test import (
@@ -59,6 +59,7 @@ from cogent3.maths.stats.test import (
     pearson_correlation,
     permute_2d,
     posteriors,
+    probability_points,
     regress,
     regress_major,
     regress_origin,
@@ -75,6 +76,7 @@ from cogent3.maths.stats.test import (
     t_paired,
     t_two_sample,
     tail,
+    theoretical_quantiles,
     z_test,
 )
 
@@ -2283,6 +2285,67 @@ class TestDistMatrixPermutationTest(TestCase):
             [8.4000000000000004, 2.1666666666666665, 6.2000000000000002],
         )
         assert_allclose(prob, 0.00015486238993089464)
+
+    def test_probability_points(self):
+        """generates evenly spaced probabilities"""
+        expect = (
+            0.1190476190476190,
+            0.3095238095238095,
+            0.5000000000000000,
+            0.6904761904761905,
+            0.8809523809523809,
+        )
+        got = probability_points(5)
+        assert_almost_equal(got, expect)
+        expect = (
+            0.04545454545454546,
+            0.13636363636363635,
+            0.22727272727272727,
+            0.31818181818181818,
+            0.40909090909090912,
+            0.50000000000000000,
+            0.59090909090909094,
+            0.68181818181818177,
+            0.77272727272727271,
+            0.86363636363636365,
+            0.95454545454545459,
+        )
+        got = probability_points(11)
+        assert_almost_equal(got, expect)
+
+    def test_theoretical_quantiles(self):
+        """correctly produce theoretical quantiles"""
+        expect = probability_points(4)
+        got = theoretical_quantiles(4, dist="uniform")
+        assert_almost_equal(got, expect)
+        expect = (
+            -1.049131397963971,
+            -0.299306910465667,
+            0.299306910465667,
+            1.049131397963971,
+        )
+        probability_points(4)
+        got = theoretical_quantiles(len(expect), dist="normal")
+        assert_almost_equal(got, expect)
+
+        # for gamma with shape 2, scale 1/3
+        expect = [
+            3.833845224364122,
+            1.922822334309249,
+            0.9636761737854768,
+            0.3181293892593747,
+        ]
+        got = theoretical_quantiles(4, "chisq", df=2)
+        assert_almost_equal(got, expect)
+
+        expect = (
+            -1.2064470985524887,
+            -0.3203979544794824,
+            0.3203979544794824,
+            1.2064470985524887,
+        )
+        got = theoretical_quantiles(4, "t", df=4)
+        assert_almost_equal(got, expect)
 
 
 # execute tests if called from command line
