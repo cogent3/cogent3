@@ -100,7 +100,7 @@ def weighted_rooted_majority_rule(
                 cladecounts_dict[tips] = 0
             cladecounts_dict[tips] += weight
             length = edge.length and edge.length * weight
-            if edgelength := edgelengths.get(tips):
+            if (edgelength := edgelengths.get(tips)) is not None:
                 edgelengths[tips] = edgelength + cast("float", length)
             else:
                 edgelengths[tips] = length
