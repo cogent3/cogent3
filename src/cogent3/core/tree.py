@@ -1147,9 +1147,7 @@ class PhyloNode:
 
         scored_subtrees = [child._sorted(sort_order) for child in self.children]
         scored_subtrees.sort()
-        children = tuple(
-            [child.deepcopy() for _, child in scored_subtrees],
-        )
+        children = tuple(child.deepcopy() for _, child in scored_subtrees)
         tree = constructor(self, children, None)
 
         non_null_scores = [score for score, _ in scored_subtrees if score is not None]
