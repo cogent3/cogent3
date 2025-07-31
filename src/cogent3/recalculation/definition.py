@@ -234,11 +234,11 @@ class GammaDefn(MonotonicDefn):
         CalculationDefn.__init__(self, weights, shape, name=name + "_distrib")
 
     def calc(self, weights, a):
-        from cogent3.maths.stats.distribution import gdtri
+        from scipy.stats import gamma
 
         weights = weights / numpy.sum(weights)
         percentiles = numpy.add.accumulate(weights) - weights * 0.5
-        medians = numpy.array([gdtri(a, a, p) for p in percentiles])
+        medians = numpy.array([gamma.ppf(p, a, scale=1 / a) for p in percentiles])
         scale = numpy.sum(medians * weights)
         # assert 0.5 < scale < 2.0, scale # medians as approx. to means.
         return medians / scale

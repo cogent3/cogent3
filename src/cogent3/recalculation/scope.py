@@ -4,7 +4,7 @@ import warnings
 from contextlib import contextmanager
 
 import numpy
-from scipy.stats.distributions import chi2
+from scipy.stats import chi2
 
 from cogent3.maths.optimisers import MaximumEvaluationsReached
 

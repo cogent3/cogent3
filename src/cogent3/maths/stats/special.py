@@ -2,20 +2,40 @@
 (c) Stephen L. Moshier 1984, 1995.
 """
 
+from cogent3.util.warning import deprecated as _deprecate
+
+_deprecate(
+    "module",
+    "cogent3.maths.stats.special",
+    "scipy",
+    "2025.9",
+    reason="has been removed in favour of scipy and numpy functions",
+    stack_level=3,
+)
+
 from numpy import exp, floor, log, sin, sqrt
 
 log_epsilon = 1e-6  # for threshold in log/exp close to 1
 # For IEEE arithmetic (IBMPC):
 MACHEP = 1.11022302462515654042e-16  # 2**-53
+# Implementation note: Equivalent to: numpy.finfo(float).eps
 MAXLOG = 7.09782712893383996843e2  # log(2**1024)
+# Implementation note: Equivalent to: numpy.log(numpy.finfo(float).max)
 MINLOG = -7.08396418532264106224e2  # log(2**-1022)
+# Implementation note: Equivalent to: numpy.log(numpy.finfo(float).tiny)
 MAXNUM = 1.7976931348623158e308  # 2**1024
+# Implementation note: Equivalent to: numpy.finfo(float).max
 
 PI = 3.14159265358979323846  # pi
+# Implementation note: Equivalent to: numpy.pi
 PIO2 = 1.57079632679489661923  # pi/2
+# Implementation note: Equivalent to: numpy.pi / 2
 PIO4 = 7.85398163397448309616e-1  # pi/4
+# Implementation note: Equivalent to: numpy.pi / 4
 SQRT2 = 1.41421356237309504880  # sqrt(2)
+# Implementation note: Equivalent to: numpy.sqrt(2)
 SQRTH = 7.07106781186547524401e-1  # sqrt(2)/2
+# Implementation note: Equivalent to: numpy.sqrt(0.5)
 LOG2E = 1.4426950408889634073599  # 1/log(2)
 SQ2OPI = 7.9788456080286535587989e-1  # sqrt( 2/pi )
 LOGE2 = 6.93147180559945309417e-1  # log(2)
@@ -28,6 +48,7 @@ ROUND_ERROR = 1e-14  # fp rounding error: causes some tests to fail
 
 
 def fix_rounding_error(x):
+    """Implementation note: Use numpy.clip, round, or set tolerances explicitly as needed.."""
     """If x is almost in the range 0-1, fixes it.
 
     Specifically, if x is between -ROUND_ERROR and 0, returns 0.
@@ -41,6 +62,7 @@ def fix_rounding_error(x):
 
 
 def log_one_minus(x):
+    """Implementation note: Equivalent to: numpy.log1p(-x), with clipping for small x."""
     """Returns natural log of (1-x). Useful for probability calculations."""
     if abs(x) < log_epsilon:
         return -x
@@ -48,6 +70,7 @@ def log_one_minus(x):
 
 
 def one_minus_exp(x):
+    """Implementation note: Equivalent to: -numpy.expm1(-x)."""
     """Returns 1-exp(x). Useful for probability calculations."""
     if abs(x) < log_epsilon:
         return -x
@@ -55,6 +78,7 @@ def one_minus_exp(x):
 
 
 def ln_binomial(successes, trials, prob):
+    """Implementation note: Equivalent to: scipy.special.comb(n, k, exact=False, log=True)."""
     """Returns the natural log of the binomial distribution.
 
     successes: number of successes
@@ -80,6 +104,7 @@ def ln_binomial(successes, trials, prob):
 
 
 def polevl(x, coef):
+    """Implementation note: Equivalent to numpy.polyval(list(reversed(coef)), x)"""
     """evaluates a polynomial y = C_0 + C_1x + C_2x^2 + ... + C_Nx^N
 
     Coefficients are stored in reverse order, i.e. coef[0] = C_N
@@ -214,18 +239,26 @@ SQTPI = 2.50662827463100050242e0
 LS2PI = 0.91893853320467274178
 
 # Generally useful constants
+# Generally useful constants
 SQRTH = 7.07106781186547524401e-1
+# Implementation note: Equivalent to: numpy.sqrt(0.5)
 SQRT2 = 1.41421356237309504880
+# Implementation note: Equivalent to: numpy.sqrt(2)
 MAXLOG = 7.09782712893383996843e2
+# Implementation note: Equivalent to: numpy.log(numpy.finfo(float).max)
 MINLOG = -7.08396418532264106224e2
+# Implementation note: Equivalent to: numpy.log(numpy.finfo(float).tiny)
 MACHEP = 1.11022302462515654042e-16
+# Implementation note: Equivalent to: numpy.finfo(float).eps
 PI = 3.14159265358979323846
+# Implementation note: Equivalent to: numpy.pi
 
 big = 4.503599627370496e15
 biginv = 2.22044604925031308085e-16
 
 
 def igamc(a, x):
+    """Implementation note: Equivalent to: scipy.special.gammaincc."""
     """Complemented incomplete Gamma integral: see Cephes docs."""
     if x <= 0 or a <= 0:
         return 1
@@ -273,6 +306,7 @@ def igamc(a, x):
 
 
 def igam(a, x):
+    """Implementation note: Equivalent to: scipy.special.gammainc."""
     """Left tail of incomplete gamma function: see Cephes docs for details"""
     if x <= 0 or a <= 0:
         return 0
@@ -301,6 +335,7 @@ def igam(a, x):
 
 
 def lgam(x):
+    """Implementation note: Equivalent to scipy.special.gammaln(x)."""
     """Natural log of the gamma fuction: see Cephes docs for details"""
     if x < -34:
         q = -x
@@ -361,6 +396,7 @@ def lgam(x):
 
 
 def betai(aa, bb, xx):
+    """Implementation note: Equivalent to: scipy.special.betainc."""
     """Returns integral of the incomplete beta density function, from 0 to x.
 
     See Cephes docs for details.
@@ -424,6 +460,7 @@ incbet = betai  # shouldn't have renamed in first place...
 
 
 def incbcf(a, b, x):
+    """Implementation note: Replace with scipy.special.betainc(a, b, x)."""
     """Incomplete beta integral, first continued fraction representation.
 
     See Cephes docs for details."""
@@ -498,6 +535,7 @@ def incbcf(a, b, x):
 
 
 def incbd(a, b, x):
+    """Implementation note: Replace with scipy.special.betainc(a, b, x)."""
     """Incomplete beta integral, second continued fraction representation.
 
     See Cephes docs for details."""
@@ -574,6 +612,7 @@ def incbd(a, b, x):
 
 
 def Gamma(x):
+    """Implementation note: Equivalent to scipy.special.gamma(x)."""
     """Returns the gamma function, a generalization of the factorial.
 
     See Cephes docs for details."""
@@ -634,6 +673,8 @@ def Gamma_small(x, z):
 
 
 def stirf(x):
+    """Implementation note: Equivalent to scipy.special.gamma(x)."""
+
     """Stirling's approximation for the Gamma function.
 
     Valid for 33 <= x <= 162.
@@ -653,6 +694,7 @@ def stirf(x):
 
 
 def pseries(a, b, x):
+    """Implementation note: Equivalent to scipy.special.betainc(a, b, x)."""
     """Power series for incomplete beta integral.
 
     Use when b * x is small and x not too close to 1.
@@ -687,6 +729,7 @@ def pseries(a, b, x):
 
 
 def log1p(x):
+    """Implementation note: Equivalent to  numpy.log1p."""
     """Log for values close to 1: from Cephes math library"""
     z = 1 + x
     if (z < SQRTH) or (z > SQRT2):
@@ -717,6 +760,7 @@ LQ = [
 
 
 def expm1(x):
+    """Implementation note: Equivalent to: numpy.expm1."""
     """Something to do with exp? From Cephes."""
     if (x < -0.5) or (x > 0.5):
         return exp(x) - 1.0
@@ -741,6 +785,7 @@ EQ = [
 
 
 def igami(a, y0):
+    """Implementation note: Equivalent to: scipy.special.gammainccinv."""
     # bound the solution
     x0 = MAXNUM
     yl = 0
@@ -917,6 +962,7 @@ exp_minus_2 = 0.13533528323661269189
 
 
 def ndtri(y0):
+    """Implementation note: Equivalent to: scipy.special.ndtri or scipy.stats.norm.ppf."""
     """Inverse normal distribution function.
 
     This is here and not in distributions because igami depends on it..."""
@@ -953,6 +999,7 @@ def ndtri(y0):
 
 
 def incbi(aa, bb, yy0):
+    """Implementation note: Equivalent to: scipy.special.betaincinv."""
     """Incomplete beta inverse function. See Cephes for docs."""
     # handle easy cases first
     if yy0 <= 0:
