@@ -1993,7 +1993,6 @@ def get_ltm_cells(cells):
 
 
 def probability_points(n):
-    """Implementation note: Equivalent to: quantile positions for plotting, similar to `(i - 0.5) / n`."""
     """return series of n probabilities
 
     Returns
@@ -2011,7 +2010,6 @@ def probability_points(n):
 
 
 def theoretical_quantiles(n, dist, **kwargs):
-    """Implementation note: Equivalent to: vectorized use of `scipy.stats.norm.ppf`, `t.ppf`, `chi2.ppf`, or just linear for uniform."""
     """returns theoretical quantiles from dist
 
     Parameters
