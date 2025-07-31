@@ -31,7 +31,7 @@ def deprecated(
         as per warnings.warn
 
     """
-    msg = f"{_type} {old} which will be removed in version {version}, use {new} instead"
+    msg = f"{_type} {old} will be removed in version {version}, use {new} instead"
     if reason is not None:
         msg = f"{msg}\nreason={reason!r}"
 
@@ -226,7 +226,7 @@ def deprecated_callable(
             "method" if sig & {"self", "cls", "klass"} else "function"
         )
         old = func.__name__
-        if is_discontinued and old == "__init__":
+        if old == "__init__":
             # we're really deprecating a class, so get that name
             old = func.__qualname__.split(".")[-2]
             _type = "class"
