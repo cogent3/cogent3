@@ -1,18 +1,25 @@
 import functools
 import inspect
 from collections.abc import Callable, Sequence
-from typing import Any
+from typing import Any, Literal, ParamSpec, TypeVar, cast
 from warnings import catch_warnings, simplefilter
 from warnings import warn as _warn
 
 
-def deprecated(_type, old, new, version, reason=None, stack_level=3) -> None:
+def deprecated(
+    _type: Literal["class", "method", "function", "argument", "module"],
+    old: str,
+    new: str,
+    version: str,
+    reason: str | None = None,
+    stack_level: int = 3,
+) -> None:
     """a convenience function for deprecating classes, functions, arguments.
 
     Parameters
     ----------
     _type
-        should be one of class, method, function, argument
+        should be one of class, method, function, argument, module
     old, new
         the old and new names
     version
@@ -33,13 +40,19 @@ def deprecated(_type, old, new, version, reason=None, stack_level=3) -> None:
         _warn(msg, DeprecationWarning, stacklevel=stack_level)
 
 
-def discontinued(_type, old, version, reason=None, stack_level=3) -> None:
+def discontinued(
+    _type: Literal["class", "method", "function", "argument", "module"],
+    old: str,
+    version: str,
+    reason: str | None = None,
+    stack_level: int = 3,
+) -> None:
     """convenience func to warn about discontinued attributes
 
     Parameters
     ----------
     _type
-        should be one of class, method, function, argument
+        should be one of class, method, function, argument, module
     old
         the attributes name
     version
@@ -61,13 +74,16 @@ def discontinued(_type, old, version, reason=None, stack_level=3) -> None:
 
 _discontinued = discontinued  # renamed to avoid name clash with discontinued argument in deprecated args decorator
 
+P = ParamSpec("P")
+R = TypeVar("R")
+
 
 def deprecated_args(
     version: str,
     reason: str,
     old_new: Sequence[tuple[str, str]] | None = None,
     discontinued: Sequence[str] | None = None,
-    stack_level=2,
+    stack_level: int = 2,
 ) -> Callable[..., Any]:
     """
     A decorator that marks specific arguments of a function as deprecated.
@@ -121,12 +137,15 @@ def deprecated_args(
     discontinued.
     """
 
-    discontinued = [discontinued] if isinstance(discontinued, str) else discontinued
-    old_args = dict(old_new).keys() if old_new else set()
+    if old_new is None:
+        old_new = []
 
-    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+    discontinued = [discontinued] if isinstance(discontinued, str) else discontinued
+    old_args = dict(old_new).keys()
+
+    def decorator(func: Callable[P, R]) -> Callable[P, R]:
         @functools.wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> Callable[..., Any]:
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
             if old_args & kwargs.keys():
                 for old, new in old_new:
                     if old in kwargs:
@@ -163,8 +182,8 @@ def deprecated_callable(
     reason: str,
     new: str | None = None,
     is_discontinued: bool = False,
-    stack_level=2,
-) -> Callable:
+    stack_level: int = 2,
+) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """
     A decorator that marks callables (function or method) as deprecated or discontinued..
     Parameters
@@ -201,31 +220,30 @@ def deprecated_callable(
 
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[P, R]) -> Callable[P, R]:
         sig = set(inspect.signature(func).parameters)
-        _type = "method" if sig & {"self", "cls", "klass"} else "function"
+        _type: Literal["method", "function", "class"] = (
+            "method" if sig & {"self", "cls", "klass"} else "function"
+        )
         old = func.__name__
         if is_discontinued and old == "__init__":
             # we're really deprecating a class, so get that name
             old = func.__qualname__.split(".")[-2]
             _type = "class"
 
-        params = {
-            "_type": _type,
-            "old": old,
-            "version": version,
-            "reason": reason,
-            "stack_level": stack_level,
-        }
-        if is_discontinued:
-            depr_func = discontinued
-        else:
-            params["new"] = new
-            depr_func = deprecated
+        if not is_discontinued and new is None:
+            msg = "Must specify new callable if deprecating."
+            raise ValueError(msg)
+
+        def depr_func() -> None:
+            if is_discontinued:
+                discontinued(_type, old, version, reason, stack_level)
+            else:
+                deprecated(_type, old, cast("str", new), version, reason, stack_level)
 
         @functools.wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> Callable:
-            depr_func(**params)
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+            depr_func()
             return func(*args, **kwargs)
 
         return wrapper
