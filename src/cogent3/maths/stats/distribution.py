@@ -3,32 +3,29 @@
 which is (c) Stephen L. Moshier 1984, 1995.
 """
 
-from cogent3.util.warning import deprecated as _deprecate, deprecated_callable
+from cogent3.util.warning import deprecated as _deprecate
+from cogent3.util.warning import deprecated_callable
+
 _deprecate(
     "module",
     "cogent3.maths.stats.distribution",
     "scipy",
-    "2025.10",
+    "2025.9",
     reason="has been removed in favour of scipy and numpy functions.",
     stack_level=3,
 )
 
-from math import floor
 
 from numpy import arctan as atan
-from numpy import array, exp, sqrt, expm1, log1p, pi, finfo, clip
-
+from numpy import array, clip, exp, expm1, finfo, log1p, pi, sqrt
 from scipy.stats import f, norm, t
 from scipy.stats.distributions import chi2
 
 from cogent3.maths.stats.special import (
     MACHEP,
     MAXNUM,
-    PI,
     betai,
     expm1,
-    fix_rounding_error,
-    igam,
     igamc,
     igami,
     incbi,
@@ -161,7 +158,7 @@ def bdtr(k, n, p):
 
     See scipy docs for details.
     """
-    p = clip(p,0,1) # ensure p is between 0 and 1
+    p = clip(p, 0, 1)  # ensure p is between 0 and 1
     if (p < 0) or (p > 1):
         msg = "Binomial p must be between 0 and 1."
         raise ValueError(msg)
@@ -184,7 +181,7 @@ def bdtrc(k, n, p):
 
     See scipy docs for details.
     """
-    p = clip(p,0,1) # ensure p is between 0 and 1
+    p = clip(p, 0, 1)  # ensure p is between 0 and 1
     if (p < 0) or (p > 1):
         msg = "Binomial p must be between 0 and 1."
         raise ValueError(msg)
@@ -256,7 +253,7 @@ def gdtrc(a, b, x):
 def stdtri(k, p):
     """Implementation note: Equivalent to: `scipy.stats.t.ppf(p, df=k)`."""
     """Returns inverse of Student's t distribution. k = df."""
-    p = clip(p,0,1) # ensure p is between 0 and 1
+    p = clip(p, 0, 1)  # ensure p is between 0 and 1
     # handle easy cases
     if k <= 0 or p < 0.0 or p > 1.0:
         msg = "k must be >= 1, p between 1 and 0."
@@ -291,7 +288,7 @@ def pdtri(k, p):
 
     Finds Poission mean such that integral from 0 to k is p.
     """
-    p = clip(p,0,1) # ensure p is between 0 and 1
+    p = clip(p, 0, 1)  # ensure p is between 0 and 1
     if k < 0 or p < 0.0 or p >= 1.0:
         msg = "k must be >=0, p between 1 and 0."
         raise ZeroDivisionError(msg)
@@ -305,7 +302,7 @@ def bdtri(k, n, y):
 
     Finds binomial p such that sum of terms 0-k reaches cum probability y.
     """
-    y = clip(y,0,1) # ensure y is between 0 and 1
+    y = clip(y, 0, 1)  # ensure y is between 0 and 1
     if y < 0.0 or y > 1.0:
         msg = "y must be between 1 and 0."
         raise ZeroDivisionError(msg)
@@ -331,7 +328,7 @@ def gdtri(a, b, y):
     gets around to translating that, only use this function for values of
     p greater than 1e-15 or so!
     """
-    y = clip(y,0,1) # ensure y is between 0 and 1
+    y = clip(y, 0, 1)  # ensure y is between 0 and 1
     if y < 0.0 or y > 1.0 or a <= 0.0 or b < 0.0:
         msg = "a and b must be non-negative, y from 0 to 1."
         raise ZeroDivisionError(msg)
@@ -341,7 +338,7 @@ def gdtri(a, b, y):
 def fdtri(a, b, y):
     """Implementation note: Equivalent to: `scipy.stats.f.ppf(y, dfn=a, dfd=b)`."""
     """Returns inverse of F distribution."""
-    y = clip(y,0,1) # ensure y is between 0 and 1
+    y = clip(y, 0, 1)  # ensure y is between 0 and 1
     if a < 1.0 or b < 1.0 or y <= 0.0 or y > 1.0:
         msg = "y must be between 0 and 1; a and b >= 1"
         raise ZeroDivisionError(msg)

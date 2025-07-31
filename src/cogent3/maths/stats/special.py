@@ -8,7 +8,7 @@ _deprecate(
     "module",
     "cogent3.maths.stats.special",
     "scipy",
-    "2025.10",
+    "2025.9",
     reason="has been removed in favour of scipy and numpy functions",
     stack_level=3,
 )
@@ -666,7 +666,6 @@ def Gamma(x):
 
 
 def Gamma_small(x, z):
-
     if x == 0:
         msg = "Bad value of x in Gamma function."
         raise OverflowError(msg)

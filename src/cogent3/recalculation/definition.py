@@ -238,7 +238,7 @@ class GammaDefn(MonotonicDefn):
 
         weights = weights / numpy.sum(weights)
         percentiles = numpy.add.accumulate(weights) - weights * 0.5
-        medians = numpy.array([gamma.ppf(p,a,scale = 1 / a) for p in percentiles])  # FIX:  use scipy gamma.ppf instead of gdtri
+        medians = numpy.array([gamma.ppf(p, a, scale=1 / a) for p in percentiles])
         scale = numpy.sum(medians * weights)
         # assert 0.5 < scale < 2.0, scale # medians as approx. to means.
         return medians / scale

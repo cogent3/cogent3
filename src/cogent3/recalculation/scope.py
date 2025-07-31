@@ -766,7 +766,7 @@ class ParameterController:
         """Make a setting -> value function"""
         if p is not None:
             assert dropoff is None, (p, dropoff)
-            dropoff = chi2.isf(p, 1) / 2.0 # FIX:  use scipy.stats.chi2.isf
+            dropoff = chi2.isf(p, 1) / 2.0
 
         if dropoff is None:
 

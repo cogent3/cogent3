@@ -1,10 +1,10 @@
 import contextlib
+from math import factorial
 from random import choice
 
 import numpy
-
 from scipy.special import gammainc
-from math import factorial
+
 
 def chi_square(x, p, df=1):
     """returns the chisquare statistic and it's probability"""
@@ -13,7 +13,7 @@ def chi_square(x, p, df=1):
     sim = numpy.logical_not(numpy.logical_xor(x[0 : end - p], x[p:end])) * 1
     s = ((numpy.ones((N - p,), float) - sim) ** 2).sum()
     D = s / (N - p)
-    p_val = 1 - gammainc(df / 2.0, D / 2) # FIX:  use scipy
+    p_val = 1 - gammainc(df / 2.0, D / 2)
     return D, p_val
 
 

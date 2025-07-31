@@ -32,9 +32,9 @@ from numpy import (
 from numpy import std as _std
 from numpy import sum as npsum
 from numpy.random import permutation, randint
+from scipy.special import gamma, ndtri
 from scipy.stats import binom, f, norm, t
 from scipy.stats.distributions import chi2
-from scipy.special import ndtri, gamma
 
 from cogent3.maths.stats.kendall import kendalls_tau, pkendall
 from cogent3.maths.stats.ks import pkstwo, psmirnov2x
@@ -1077,7 +1077,7 @@ def correlation_test(
 
     # Compute the confidence interval for corr_coeff using Fisher's Z
     # transform.
-    z_crit = abs(ndtri((1 - confidence_level) / 2))  # FIX:  use scipy.special.ndtri
+    z_crit = abs(ndtri((1 - confidence_level) / 2))
     ci_low, ci_high = None, None
 
     if n > 3:
@@ -1253,7 +1253,7 @@ def z_tailed_prob(z, tails):
         return norm.sf(z)
     if tails == "low":
         return norm.cdf(z)
-    return 2 * norm.sf(abs(z)) # FIX:  use 2 * scipy.stats.norm.sf(abs(x)) instead of zprob
+    return 2 * norm.sf(abs(z))
 
 
 def t_tailed_prob(x, df, tails):
@@ -1265,7 +1265,7 @@ def t_tailed_prob(x, df, tails):
         return t.sf(x, df)
     if tails == ALT_LOW:
         return t.cdf(x, df)
-    return 2 * t.sf(abs(x), df) # FIX:  use scipy.stats.t.sf instead of tprob
+    return 2 * t.sf(abs(x), df)
 
 
 def reverse_tails(tails):
@@ -1296,7 +1296,7 @@ def multiple_comparisons(p, n):
     """
     if p > 1e-6:  # if p is large and n small, calculate directly
         return 1 - (1 - p) ** n
-    return expm1(n * p) # FIX:  use scipy.special.expm1(-x) instead of one_minus_exp(x)
+    return expm1(n * p)
 
 
 def multiple_inverse(p_final, n):
@@ -1306,7 +1306,7 @@ def multiple_inverse(p_final, n):
     to 1 (say, within 1e-4) since we then take the ratio of two very similar
     numbers.
     """
-    return -expm1(log1p(-p_final) / n) # FIX:  use scipy.special.expm1(-x) instead of one_minus_exp(x) and log1p(-x) instead of log_one_minus(x)
+    return -expm1(log1p(-p_final) / n)
 
 
 def multiple_n(p_initial, p_final):
@@ -1367,10 +1367,10 @@ def f_two_sample(a, b, tails=None):
     if tails == ALT_HIGH:
         return dfn, dfd, F, f.sf(F, dfn, dfd)
     side = "right" if var(a) >= var(b) else "left"
-    if side == "right":  # FIX:  use scipy.stats.f.sf for the right side and scipy.stats.f.cdf for the left side instead of fprob
+    if side == "right":
         return dfn, dfd, F, 2 * f.sf(F, dfn, dfd)
-    else:
-        return dfn, dfd, F, 2 * f.cdf(F, dfn, dfd)
+    return dfn, dfd, F, 2 * f.cdf(F, dfn, dfd)
+
 
 def ANOVA_one_way(a):
     """Performs a one way analysis of variance
@@ -1574,7 +1574,7 @@ def ks_boot(x, y, alt="two sided", num_reps=1000):
     One important difference is I preserve the original sample sizes
     instead of making them equal.
     """
-    tol = finfo(float).eps * 100 # FIX:  use numpy.finfo(float).eps instead of MACHEP
+    tol = finfo(float).eps * 100
     observed_stat, _p = ks_test(x, y, exact=False, warn_for_ties=False)
     num_greater = 0
     for sampled_x, sampled_y in _get_bootstrap_sample(x, y, num_reps):
@@ -1648,7 +1648,7 @@ def mw_test(x, y):
     numerator = U - prod / 2
     denominator = sqrt((prod / (total * (total - 1))) * ((total**3 - total - T) / 12))
     z = numerator / denominator
-    p = 2 * norm.sf(abs(z))  # FIX:  use scipy.stats.norm.sf instead of zprob
+    p = 2 * norm.sf(abs(z))
     return U, p
 
 
@@ -1666,7 +1666,7 @@ def mw_boot(x, y, num_reps=1000):
     -----
     Uses the same Monte-Carlo resampling code as kw_boot
     """
-    tol = finfo(float).eps * 100 # FIX:  use numpy.finfo(float).eps instead of MACHEP
+    tol = finfo(float).eps * 100
     observed_stat, obs_p = mw_test(x, y)
     num_greater = 0
     for sampled_x, sampled_y in _get_bootstrap_sample(x, y, num_reps):
@@ -1846,14 +1846,14 @@ def kendall_correlation(x, y, alt="two sided", exact=None, warn=True):
         q = round((tau + 1) * num * (num - 1) / 4)
         if alt == ALT_TWO_SIDED:
             if q > num * (num - 1) / 4:
-                p = 1 - pkendall(q - 1, num, gamma(num + 1), working) # FIX:  use scipy.special.gamma instead of Gamma
+                p = 1 - pkendall(q - 1, num, gamma(num + 1), working)
             else:
-                p = pkendall(q, num, gamma(num + 1), working) # FIX:  use scipy.special.gamma instead of Gamma
+                p = pkendall(q, num, gamma(num + 1), working)
             p = min(2 * p, 1)
         elif alt == ALT_HIGH:
-            p = 1 - pkendall(q - 1, num, gamma(num + 1), working) # FIX:  use scipy.special.gamma instead of Gamma
+            p = 1 - pkendall(q - 1, num, gamma(num + 1), working)
         elif alt == ALT_LOW:
-            p = pkendall(q, num, gamma(num + 1), working) # FIX:  use scipy.special.gamma instead of Gamma
+            p = pkendall(q, num, gamma(num + 1), working)
     else:
         tau, p = kendalls_tau(x, y, True)
         if alt == ALT_HIGH:
@@ -1990,3 +1990,64 @@ def get_ltm_cells(cells):
         new_cells.append((i, j))
     # remove duplicates
     return sorted(set(new_cells))
+
+
+def probability_points(n):
+    """Implementation note: Equivalent to: quantile positions for plotting, similar to `(i - 0.5) / n`."""
+    """return series of n probabilities
+
+    Returns
+    -------
+    Numpy array of probabilities
+
+    Notes
+    -----
+    Useful for plotting probability distributions
+    """
+    assert n > 0, f"{n} must be > 0"
+    adj = 0.5 if n > 10 else 3 / 8
+    denom = n if n > 10 else n + 1 - 2 * adj
+    return array([(i - adj) / denom for i in range(1, n + 1)])
+
+
+def theoretical_quantiles(n, dist, **kwargs):
+    """Implementation note: Equivalent to: vectorized use of `scipy.stats.norm.ppf`, `t.ppf`, `chi2.ppf`, or just linear for uniform."""
+    """returns theoretical quantiles from dist
+
+    Parameters
+    ----------
+    n 
+        number of elements
+    dist 
+        one of 'normal', 'chisq', 't', 'uniform'
+    kwargs
+        additional keyword arguments (eg, df=2) to pass to the scipy distribution function
+
+    Notes
+    -----
+    For details on kwargs see the documentation for the scipy functions
+    `scipy.stats.norm.ppf`, `scipy.stats.t.ppf`, and `scipy.stats.chi2.ppf`.
+
+    Returns
+    -------
+    Numpy array of quantiles
+    """
+
+    dist = dist.lower()
+    funcs = {
+        "normal": ndtri,
+        "chisq": chi2.isf,
+        "t": t.ppf,
+    }
+
+    if dist != "uniform" and dist not in funcs:
+        msg = f"'{dist} not in {list(funcs)}"
+        raise ValueError(msg)
+
+    probs = probability_points(n)
+    if dist == "uniform":
+        return probs
+
+    func = funcs[dist]
+
+    return array([func(p, **kwargs) for p in probs])
