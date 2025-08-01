@@ -145,7 +145,8 @@ class _Tokeniser:
 def parse_string(
     text: str,
     constructor: Callable[
-        [Sequence["PhyloNode"], str | None, dict[str, Any]], "PhyloNode"
+        [Sequence["PhyloNode"], str | None, dict[str, Any], float | None, float | None],
+        "PhyloNode",
     ],
     *,
     strict_labels: bool = False,
@@ -200,7 +201,9 @@ def parse_string(
                 raise tokeniser.error(msg)
             expected_attribute = ("other", lambda x: x.split(","))
         elif token in [")", ";", ",", EOT]:
-            nodes.append(constructor(children, name, attributes))
+            length = attributes.pop("length", None)
+            support = attributes.pop("support", None)
+            nodes.append(constructor(children, name, attributes, length, support))
             children = name = expected_attribute = None
             attributes = {}
             if token in sentinals:

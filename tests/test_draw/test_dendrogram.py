@@ -142,6 +142,16 @@ def test_dendro_with_support(style):
     data = {
         "newick": "(A,(B,C)edge.1,(D,E)edge.0)",
         "edge_attributes": {
+            "A": {},
+            "B": {},
+            "C": {},
+            "edge.1": {},
+            "D": {},
+            "E": {},
+            "edge.0": {},
+            "root": {},
+        },
+        "length_and_support": {
             "A": {"support": 1.0, "length": 0.148},
             "B": {"support": 1.0, "length": 0.098},
             "C": {"support": 1.0, "length": 0.134},
@@ -149,7 +159,7 @@ def test_dendro_with_support(style):
             "D": {"support": 1.0, "length": 0.087},
             "E": {"support": 1.0, "length": 0.048},
             "edge.0": {"support": 0.6, "length": 0.131},
-            "root": {"length": None},
+            "root": {"length": None, "support": None},
         },
         "type": "cogent3.core.tree.PhyloNode",
         "version": "2019.10.17a",
@@ -169,6 +179,16 @@ def test_dendro_support_is_pcnt():
     data = {
         "newick": "(A,(B,C)edge.1,(D,E)edge.0)",
         "edge_attributes": {
+            "A": {},
+            "B": {},
+            "C": {},
+            "edge.1": {},
+            "D": {},
+            "E": {},
+            "edge.0": {},
+            "root": {},
+        },
+        "length_and_support": {
             "A": {"support": 100, "length": 0.148},
             "B": {"support": 100, "length": 0.098},
             "C": {"support": 100, "length": 0.134},
@@ -176,7 +196,7 @@ def test_dendro_support_is_pcnt():
             "D": {"support": 100, "length": 0.087},
             "E": {"support": 100, "length": 0.048},
             "edge.0": {"support": 60.6, "length": 0.131},
-            "root": {"length": None},
+            "root": {"length": None, "support": None},
         },
         "type": "cogent3.core.tree.PhyloNode",
         "version": "2019.10.17a",

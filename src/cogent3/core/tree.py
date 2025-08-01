@@ -57,7 +57,7 @@ from cogent3.phylo.tree_distance import get_tree_distance_measure
 from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.io import atomic_write, get_format_suffixes, open_
-from cogent3.util.misc import get_object_provenance, is_number
+from cogent3.util.misc import get_object_provenance
 from cogent3.util.warning import deprecated_args, deprecated_callable
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -128,7 +128,15 @@ class PhyloNode:
         name_loaded: ?
     """
 
-    __slots__ = ("_parent", "children", "name", "name_loaded", "params")
+    __slots__ = (
+        "_parent",
+        "children",
+        "length",
+        "name",
+        "name_loaded",
+        "params",
+        "support",
+    )
 
     _exclude_from_copy = frozenset(["_parent", "children"])
 
@@ -140,6 +148,7 @@ class PhyloNode:
         params: dict[str, Any] | None = None,
         name_loaded: bool = True,
         length: float | None = None,
+        support: float | None = None,
     ) -> None:
         """Returns new PhyloNode object."""
         self.name = name
@@ -153,25 +162,15 @@ class PhyloNode:
         if parent is not None and self not in parent.children:
             parent.append(self)
 
-        if (
-            "length" in self.params
-            and length is not None
-            and self.params["length"] != length
-        ):
-            msg = "Got two different lengths in params and as an argument."
-            raise ValueError(msg)
+        if "length" in self.params:
+            if length is not None and self.params["length"] != length:
+                msg = "Got two different lengths in params and as an argument."
+                raise ValueError(msg)
 
-        if length is not None:
-            # If length is set in params it's already in the self.params dictionary
-            self.length = length
+            length = self.params.pop("length")
 
-    @property
-    def length(self) -> float | None:
-        return self.params.get("length", None)
-
-    @length.setter
-    def length(self, value: float | None) -> None:
-        self.params["length"] = value
+        self.length = length
+        self.support = support
 
     # built-in methods and list interface support
     def __repr__(self) -> str:
@@ -809,20 +808,31 @@ class PhyloNode:
                     # remove old node from tree
                     old_parent.parent = None
 
-    def prune(self: Self, keep_root: bool = False) -> None:
+    def prune(
+        self: Self,
+        keep_root: bool = False,
+        params_merge_callback: Callable[
+            [dict[str, Any], dict[str, Any]], dict[str, Any]
+        ]
+        | None = None,
+    ) -> None:
         """removes nodes with one child
 
         Parameters
         ----------
         keep_root
-            if True, a root with a single child is retained.
+            If True, a root with a single child is retained.
+        params_merge_callback
+            How to merge two params dicts when pruning.
+            The first argument is the parent node's params,
+            the second argument is the child node's params.
+            It should return the new params dictionary.
 
         Notes
         -----
         Mutates the tree in-place. Internal nodes with only one child will be
         merged (except as specified by keep_root).
         """
-        has_length = any(node.length is not None for node in self.preorder())
         while True:
             nodes_to_remove = [
                 n
@@ -837,31 +847,27 @@ class PhyloNode:
                 child = node.children[0]
                 node.parent = None
                 child.parent = curr_parent
-                if not has_length:
-                    continue
 
-                # Not sound to be adding all numbers like this. Why?!?!?!
-                for key, value in child.params.items():
-                    node_val = node.params.get(key)
-                    if is_number(value) or is_number(node_val):
-                        value = (value or 0.0) + (node_val or 0.0)  # noqa: PLW2901
-                    child.params[key] = value
+                if node.length is not None:
+                    child.length = (child.length or 0) + node.length
+
+                # For support, we keep the child's support. Do nothing.
+
+                if params_merge_callback is not None:
+                    child.params = params_merge_callback(node.params, child.params)
 
         # root having one child is edge case
         if not keep_root and len(self.children) == 1:
             child = self.children[0]
 
             grand_children = list(child.children)
-            for key, value in child.params.items():
-                if key == "length":
-                    # we discard length as invalid to
-                    # for root and invalid to add to
-                    # grand chldren lengths
-                    continue
-                node_val = self.params.get(key)
-                if is_number(value) or is_number(node_val):
-                    value = (value or 0.0) + (node_val or 0.0)  # noqa: PLW2901
-                self.params[key] = value
+
+            # Ignore the child's length as a root can't have a length
+            # Unclear what should be done about support as well, keep current support.
+
+            if params_merge_callback is not None:
+                self.params = params_merge_callback(self.params, child.params)
+
             self.remove_node(child)
             for grand_child in grand_children:
                 grand_child.parent = self
@@ -891,11 +897,17 @@ class PhyloNode:
             with_root_name=True,
         )
         attr = {}
+        length_and_support = {}
         for edge in self.get_edge_vector(include_root=True):
             attr[edge.name] = edge.params.copy()
+            length_and_support[edge.name] = {
+                "length": edge.length,
+                "support": edge.support,
+            }
         return {
             "newick": newick,
             "edge_attributes": attr,
+            "length_and_support": length_and_support,
             "type": get_object_provenance(self),
             "version": __version__,
         }
@@ -1110,7 +1122,12 @@ class PhyloNode:
         self_2_new: dict[int, int] = {}
         new_nodes: dict[int, Self] = {}
         for self_id, old_node in old_nodes.items():
-            new_node = make_node(old_node.name, params={**old_node.params})
+            new_node = make_node(
+                old_node.name,
+                params=old_node.params.copy(),
+                length=old_node.length,
+                support=old_node.support,
+            )
             new_nodes[id(new_node)] = new_node
             self_2_new[self_id] = id(new_node)
 
@@ -2016,9 +2033,9 @@ class PhyloNode:
         return dist, pair
 
     @staticmethod
-    def parse_token(token: str | None) -> tuple[str | None, dict[str, float]]:
-        name, attrs = split_name_and_support(token)
-        return (name, {"support": attrs}) if attrs else (name, {})
+    def parse_token(token: str | None) -> tuple[str | None, float | None]:
+        name, support = split_name_and_support(token)
+        return name, support
 
     def tip_to_root_distances(
         self,
@@ -2146,7 +2163,6 @@ class TreeBuilder:
 
     def __init__(self, constructor: type[PhyloNode] = PhyloNode) -> None:
         self._used_names = {"edge": -1}
-        self._known_edges: dict[int, PhyloNode] = {}
         self.PhyloNodeClass = constructor
 
     def _unique_name(self, name: str | None) -> str:
@@ -2180,13 +2196,22 @@ class TreeBuilder:
             if params:
                 msg = "No params allowed when edge is None."
                 raise ValueError(msg)
-            return self.create_edge(children, "root", {}, name_loaded=False)
+            return self.create_edge(
+                children,
+                "root",
+                {},
+                None,
+                None,
+                name_loaded=False,
+            )
         if params is None:
             params = self._params_for_edge(edge)
         return self.create_edge(
             children,
             edge.name,
             params,
+            edge.length,
+            edge.support,
             name_loaded=edge.name_loaded,
         )
 
@@ -2195,6 +2220,8 @@ class TreeBuilder:
         children: PySeq[PhyloNode] | None,
         name: str | None,
         params: dict[str, Any],
+        length: float | None,
+        support: float | None,
         name_loaded: bool = True,
     ) -> PhyloNode:
         """Callback for newick parser"""
@@ -2202,17 +2229,21 @@ class TreeBuilder:
             children = []
         # split name and support for internal nodes
         elif children != []:
-            name, pars = self.PhyloNodeClass.parse_token(name)
-            params |= pars
+            name, new_support = self.PhyloNodeClass.parse_token(name)
 
-        node = self.PhyloNodeClass(
+            if support is not None and new_support != support:
+                msg = f"Got conflicting values for support. In name token '{name}': {new_support}. In constructor {support}."
+                raise ValueError(msg)
+            support = new_support
+
+        return self.PhyloNodeClass(
             name=self._unique_name(name),
             children=list(children),
             name_loaded=name_loaded and (name is not None),
             params=params,
+            length=length,
+            support=support,
         )
-        self._known_edges[id(node)] = node
-        return node
 
 
 @c3warn.deprecated_args(
@@ -2255,8 +2286,10 @@ def make_tree(
     source = str(source) if source else None
     if tip_names:
         tree_builder = TreeBuilder().create_edge
-        tips = [tree_builder([], str(tip_name), {}) for tip_name in tip_names]
-        result = tree_builder(tips, "root", {})
+        tips = [
+            tree_builder([], str(tip_name), {}, None, None) for tip_name in tip_names
+        ]
+        result = tree_builder(tips, "root", {}, None, None)
         result.source = source
         return result
 
@@ -2340,8 +2373,13 @@ def deserialise_tree(
     """returns a cogent3 PhyloNode instance"""
     # we load tree using make_tree, then populate edge attributes
     edge_attr = cast("dict[str, Any]", data["edge_attributes"])
+    length_and_support: dict[str, dict[str, float | None]] = cast(
+        "dict[str, dict[str, float | None]]", data["length_and_support"]
+    )
     tree = make_tree(treestring=data["newick"])
     for edge in tree.preorder():
         params = edge_attr.get(edge.name, {})
         edge.params.update(params)
+        edge.length = length_and_support[edge.name]["length"]
+        edge.support = length_and_support[edge.name]["support"]
     return tree

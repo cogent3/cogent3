@@ -40,7 +40,14 @@ class TreeHandler(xml.sax.ContentHandler):
     def __init__(
         self,
         tree_builder: Callable[
-            [Sequence["PhyloNode"], str | None, dict[str, Any]], "PhyloNode"
+            [
+                Sequence["PhyloNode"],
+                str | None,
+                dict[str, Any],
+                float | None,
+                float | None,
+            ],
+            "PhyloNode",
         ],
     ) -> None:
         self.build_edge = tree_builder
@@ -78,7 +85,9 @@ class TreeHandler(xml.sax.ContentHandler):
         pass
 
     def process_clade(self, text, name, params, clades) -> None:
-        edge = self.build_edge(clades, name, params)
+        length = params.pop("length", None)
+        support = params.pop("support", None)
+        edge = self.build_edge(clades, name, params, length, support)
         self.parent["clades"].append(edge)
 
     def process_param(self, text, name, value) -> None:
@@ -97,7 +106,8 @@ class TreeHandler(xml.sax.ContentHandler):
 def parse_string(
     text: str,
     tree_builder: Callable[
-        [Sequence["PhyloNode"], str | None, dict[str, Any]], "PhyloNode"
+        [Sequence["PhyloNode"], str | None, dict[str, Any], float | None, float | None],
+        "PhyloNode",
     ],
 ) -> "PhyloNode":
     handler = TreeHandler(tree_builder)

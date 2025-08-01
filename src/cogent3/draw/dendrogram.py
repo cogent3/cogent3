@@ -37,9 +37,15 @@ class TreeGeometryBase(PhyloNode):
                 params=tree.params.copy(),
                 children=children,
                 name=tree.name,
+                name_loaded=tree.name_loaded,
+                length=tree.length,
+                support=tree.support,
             )
         else:
             PhyloNode.__init__(self, **kwargs)
+
+        if length_attr == "length":
+            self.params["length"] = self.length
 
         # TODO do we need to validate the length_attr key exists?
         self._length = length_attr
@@ -283,7 +289,7 @@ class TreeGeometryBase(PhyloNode):
         if self.is_tip():
             return None
 
-        val = self.params.get("support", None)
+        val = self.support
         if val is None or val > threshold or self.is_tip():
             return None
 
@@ -516,7 +522,7 @@ class CircularTreeGeometry(TreeGeometryBase):
         if self.is_tip():
             return None
 
-        val = self.params.get("support", None)
+        val = self.support
         if val is None or val > threshold or self.is_tip():
             return None
 
@@ -642,7 +648,7 @@ class Dendrogram(Drawable):
         self._length_attr = self.tree._length  # type: ignore[reportPrivateUsage]
         self._tip_names = tuple(e.name for e in self.tree.tips())
         self._max_label_length = max(map(len, self._tip_names))
-        if all("support" not in child.params for child in self.tree.children):
+        if all(child.support is None for child in self.tree.children):
             show_support = False
         self._show_support = show_support
 

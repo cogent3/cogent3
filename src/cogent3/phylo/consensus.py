@@ -36,7 +36,7 @@ def majority_rule(trees: Iterable[PhyloNode], strict: bool = False) -> list[Phyl
 def weighted_majority_rule(
     weighted_trees: Iterable[tuple[float, PhyloNode]],
     strict: bool = False,
-    attr: str = "support",
+    attr: str = "count",
     method: Literal["unrooted", "rooted"] = "unrooted",
 ) -> list[PhyloNode]:
     """Calculate a greedy consensus tree in the sense of Bryant (2003), if
@@ -86,7 +86,7 @@ NestedFrozenset: TypeAlias = frozenset["str | NestedFrozenset"]
 def weighted_rooted_majority_rule(
     weighted_trees: Iterable[tuple[float, PhyloNode]],
     strict: bool = False,
-    attr: str = "support",
+    attr: str = "count",
 ) -> list[PhyloNode]:
     cladecounts_dict: dict[frozenset[str], float] = {}
     edgelengths: dict[NestedFrozenset, float | None] = {}
@@ -139,10 +139,15 @@ def weighted_rooted_majority_rule(
         if len(clade) == 1:
             tip_name = next(iter(clade))
             params: dict[str, float | None] = {
-                "length": edgelengths[clade],
                 attr: counts[clade],
             }
-            nodes[tip_name] = tree_build([], cast("str", tip_name), params)
+            nodes[tip_name] = tree_build(
+                [],
+                cast("str", tip_name),
+                params,
+                edgelengths[clade],
+                None,
+            )
         else:
             queue.append((len(clade), clade))
 
@@ -162,7 +167,9 @@ def weighted_rooted_majority_rule(
         nodes[clade] = tree_build(
             children,
             None,
-            {attr: counts[clade], "length": edgelengths[clade]},
+            {attr: counts[clade]},
+            edgelengths[clade],
+            None,
         )
         queue = new_queue
 
@@ -176,7 +183,7 @@ def weighted_rooted_majority_rule(
 def weighted_unrooted_majority_rule(
     weighted_trees: Iterable[tuple[float, PhyloNode]],
     strict: bool = False,
-    attr: str = "support",
+    attr: str = "count",
 ) -> list[PhyloNode]:
     # Calculate raw split lengths and weights
     split_weights: dict[frozenset[frozenset[str]], float] = defaultdict(float)
@@ -283,12 +290,13 @@ def get_tree(
     for split, params in list(splits.items()):
         small, _ = sorted(split, key=len)
         if len(small) == 1:
-            tip = edge_builder(None, next(iter(small)), params)
+            length = params.pop("length", None)
+            tip = edge_builder(None, next(iter(small)), params, length, None)
             tip.params["Split"] = small
             tips.append(tip)
         else:
             the_rest.append((split, params))
-    tree = edge_builder(tips, "root", {})
+    tree = edge_builder(tips, "root", {}, None, None)
 
     # Add the rest of the splits, one by one
     def add_half_split(
@@ -306,7 +314,8 @@ def get_tree(
                 test_half = test_half.union(child.params["Split"])
 
         if test_half == half:  # Found it
-            split = edge_builder(included, None, params)
+            length = params.pop("length", None)
+            split = edge_builder(included, None, params, length, None)
             split.params["Split"] = half
             for moved in included:
                 edge.remove_node(moved)

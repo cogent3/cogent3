@@ -1140,10 +1140,16 @@ def test_deserialise_old_to_new_type_likelihood():
         "tree": {
             "newick": "(Human,Mouse,Opossum)root",
             "edge_attributes": {
-                "Human": {"length": None},
-                "Mouse": {"length": None},
-                "Opossum": {"length": None},
-                "root": {"length": None},
+                "Human": {},
+                "Mouse": {},
+                "Opossum": {},
+                "root": {},
+            },
+            "length_and_support": {
+                "Human": {"length": None, "support": None},
+                "Mouse": {"length": None, "support": None},
+                "Opossum": {"length": None, "support": None},
+                "root": {"length": None, "support": None},
             },
             "type": "cogent3.core.tree.PhyloNode",
             "version": "2025.5.8a9",

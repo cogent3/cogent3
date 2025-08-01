@@ -81,10 +81,11 @@ def ancestry2tree(A, lengths, tip_names):
         children = [j for j in range(len(A)) if A[j, i] and j != i]
         child_nodes = [free.pop(j) for j in children if j in free]
         name = None if child_nodes else tips[i]
-        params = {} if lengths is None else {"length": lengths[i]}
-        node = constructor(child_nodes, name, params)
+        node = constructor(
+            child_nodes, name, {}, None if lengths is None else lengths[i], None
+        )
         free[i] = node
-    return constructor(list(free.values()), "root", {})
+    return constructor(list(free.values()), "root", {}, None, None)
 
 
 def grown(B, split_edge):

@@ -154,11 +154,12 @@ def test_get_newick(empty_node: PhyloNode, one_child: PhyloNode, big_parent: Phy
 
 def test_to_dict():
     """tree produces dict"""
-    tr = make_tree(treestring="(a,b,(c,d)e1)")
+    tr = make_tree(treestring="(a,b,(c:0.3,d)e1/10)")
     for node in tr.preorder():
         _ = node.length
     got = tr.to_rich_dict()
     attrs = {}
+    no_length_support = {"length": None, "support": None}
     expect: dict[str, Any] = {
         "newick": "(a,b,(c,d)e1)root",
         "edge_attributes": {
@@ -168,6 +169,14 @@ def test_to_dict():
             "d": attrs,
             "e1": attrs,
             "root": attrs,
+        },
+        "length_and_support": {
+            "a": no_length_support,
+            "b": no_length_support,
+            "c": {"length": 0.3, "support": None},
+            "d": no_length_support,
+            "e1": {"length": None, "support": 10},
+            "root": no_length_support,
         },
         "type": get_object_provenance(tr),
         "version": __version__,
@@ -615,31 +624,6 @@ def test_copy():
     t_simple.append(u_simple)
 
     assert str(t_simple.copy()) == str(t_simple.copy())
-
-
-def test_copy_topology(tree_root: PhyloNode):
-    """PhyloNode.copy_topology() should produce deep copy ignoring attrs"""
-    t = PhyloNode("t")
-    u = PhyloNode("u")
-    t.append(u)
-
-    c = u.copy_topology()
-    assert c is not u
-    assert c.name == u.name
-    # note: name _is_ same object if it's immutable, e.g. a string.
-    # deepcopy doesn't copy data for immutable objects.
-
-    # need to check that we do not also copy arbitrary attributes
-    t.params["XYZ"] = [3]
-    c = t.copy_topology()
-    assert c is not t
-    assert c[0] is not u
-    assert c[0].name == u.name
-    assert not hasattr(c, "XYZ")
-
-    t = tree_root
-    c = t.copy()
-    assert str(c) == str(t)
 
 
 def test_iter(tree_root: PhyloNode, tree_nodes: dict[str, PhyloNode]):
@@ -1948,9 +1932,10 @@ def test_params_merge():
     # dividing the sum of parameters across nodes by the lengths
     # we no longer try and support this
     assert t.get_node_matching_name("b").params == {
-        "length": 7,
-        "beta": 2 + 5,
+        "beta": 2.0,
     }
+    assert t.get_node_matching_name("b").length == 7
+
     ex = make_tree("(b:7,c);")
     st = t.get_sub_tree(["b", "c", "xxx"], ignore_missing=True)
     assert ex.same_topology(st)
@@ -1969,8 +1954,8 @@ def test_making_from_list():
 def test_getset_param_value():
     """test getting, setting of param values"""
     t = make_tree(treestring="((((a:.2,b:.3)ab:.1,c:.3)abc:.4),d:.6)")
-    assert t.get_param_value("length", "ab") == 0.1
     t.set_param_value("zz", "ab", 4.321)
+    assert t.get_param_value("zz", "ab") == 4.321
     node = t.get_node_matching_name("ab")
     assert node.params["zz"] == 4.321
 
@@ -2440,22 +2425,22 @@ def test_phylonode_support():
 
     # parent of 4 is node with only support value
     just_support = tree.get_node_matching_name("4").parent
-    assert just_support.params["support"] == 53.0
+    assert just_support.support == 53.0
 
     # parent of 2 has the same support as parent of 4
     same_support = tree.get_node_matching_name("2").parent
-    assert same_support.params["support"] == just_support.params["support"]
+    assert same_support.support == just_support.support
 
     # parent of 10 has a node name only
     just_name = tree.get_node_matching_name("10").parent
     assert just_name.name == "abc"
-    assert "support" not in just_name.params
+    assert just_name.support is None
 
     # the node with name "def/25" correctly resoloved into node
     # name "def" and support 25.0
     name_and_support = tree.get_node_matching_name("def")
     assert name_and_support.name == "def"  # bit redundant given selection process
-    assert name_and_support.params["support"] == 25.0
+    assert name_and_support.support == 25.0
 
 
 def test_source_attr():
