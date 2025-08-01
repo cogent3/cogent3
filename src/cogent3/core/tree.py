@@ -1984,7 +1984,12 @@ class PhyloNode:
         _adjust_lengths_from_root(tip_name=a, mid_point=mid_point, tree=new_tree)
         return new_tree
 
-    def get_distances(self, names: Sequence[str] | None = None) -> DistanceMatrix:
+    @deprecated_callable(
+        "2025.9", "duplicates tip_to_tip_distances", new="tip_to_tip_distances"
+    )
+    def get_distances(
+        self, names: Sequence[str] | None = None
+    ) -> DistanceMatrix:  # pragma: no cover
         """returns pairwise distance matrix"""
         return self.tip_to_tip_distances(names=names)
 

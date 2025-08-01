@@ -1622,12 +1622,12 @@ def test_root_at_midpoint3():
     """midpoint between nodes should behave correctly"""
     tree = DndParser("(a:1,((c:1,d:2.5)mp:1,b:1)n2:1)root;")
     names = tree.get_tip_names()
-    orig_dists = tree.get_distances().take_dists(names)
+    orig_dists = tree.tip_to_tip_distances().take_dists(names)
     tmid = tree.root_at_midpoint()
     assert tmid.is_root()
     # check the root children names are correct
     assert all("mp" in n.name for n in tmid.children)
-    mp_dists = tmid.get_distances().take_dists(names)
+    mp_dists = tmid.tip_to_tip_distances().take_dists(names)
     assert_equal(mp_dists.array, orig_dists.array)
 
 
@@ -2111,9 +2111,9 @@ def test_getsubtree_2():
         PhyloNode,
     )  # note c,j is len 0 node
     names = "a", "b", "d", "e", "c"
-    orig = t1.get_distances().take_dists(names)
+    orig = t1.tip_to_tip_distances().take_dists(names)
     subtree = t1.get_sub_tree(names)
-    subset = subtree.get_distances().take_dists(names)
+    subset = subtree.tip_to_tip_distances().take_dists(names)
     assert_equal(orig.array, subset.array)
 
 
@@ -2256,7 +2256,7 @@ def test_get_distances_endpoints(num_tips: int):
     names = "G001280565", "G000009905", "G000183545", "G000184705"
     nwk = "({}:0.4,({}:0.25,({}:0.03,{}:0.03):0.23):0.03)".format(*names)
     tree = make_tree(nwk)
-    dists = tree.get_distances(names=names[:num_tips] or None)
+    dists = tree.tip_to_tip_distances(names=names[:num_tips] or None)
     num = 4 if num_tips == 0 else num_tips
     assert dists.shape == (num, num)
 
