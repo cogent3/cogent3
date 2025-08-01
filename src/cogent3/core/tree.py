@@ -698,11 +698,11 @@ class PhyloNode:
 
     def descendant_array(
         self, tip_list: list[str] | None = None
-    ) -> tuple[npt.NDArray[numpy.uint8], list[Self]]:
+    ) -> tuple[npt.NDArray[numpy.bool], list[Self]]:
         """Returns numpy array with nodes in rows and descendants in columns.
 
-        A value of 1 indicates that the decendant is a descendant of that node/
-        A value of 0 indicates that it is not
+        True indicates that the decendant is a descendant of that node
+        False indicates that it is not
 
         Also returns a list of nodes in the same order as they are listed
         in the array.
@@ -721,7 +721,7 @@ class PhyloNode:
             tip_list = self.get_tip_names()
             tip_list.sort()
         # make a blank array of the right dimensions to alter
-        result = numpy.zeros([len(node_list), len(tip_list)], dtype=numpy.uint8)
+        result = numpy.zeros([len(node_list), len(tip_list)], dtype=numpy.bool)
         # put 1 in the column for each child of each node
         for i, node in enumerate(node_list):
             children = [n.name for n in node.tips()]
