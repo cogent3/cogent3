@@ -75,7 +75,7 @@ class TreeError(Exception):
     pass
 
 
-@deprecated_callable("2025.9", "Unused.", is_discontinued=True)
+@deprecated_callable("2025.9", "unused", is_discontinued=True)
 def distance_from_r(
     m1: npt.NDArray[np.number], m2: npt.NDArray[np.number]
 ) -> float:  # pragma: no cover
@@ -335,7 +335,7 @@ class PhyloNode:
                 setattr(result, k, deepcopy(getattr(node, k), memo=memo))
         return result
 
-    # support for copy module
+    @deprecated_args("2025.9", "unused", discontinued=["_nil", "constructor"])
     def copy(self, memo: dict[int, Any] | None = None) -> Self:
         """Returns a copy of self using an iterative approach"""
         if memo is None:
@@ -365,7 +365,7 @@ class PhyloNode:
 
     __deepcopy__ = deepcopy = copy
 
-    @deprecated_callable("2025.9", "Duplicated by copy.", new="copy")
+    @deprecated_callable("2025.9", "duplicated by copy", new="copy")
     def copy_topology(self, constructor: type[T] | None = None) -> T | Self:
         """Copies only the topology and labels of a tree, not any extra data.
 
@@ -1384,7 +1384,7 @@ class PhyloNode:
 
     @deprecated_args(
         "2025.9",
-        "To be removed and instead the current class will be used.",
+        "to be removed and instead the current class will be used",
         discontinued=["constructor"],
     )
     def multifurcating(
@@ -1445,7 +1445,7 @@ class PhyloNode:
 
     @deprecated_args(
         "2025.9",
-        "To be removed and instead the current class will be used.",
+        "to be removed and instead the current class will be used",
         discontinued=["constructor"],
     )
     def bifurcating(
@@ -1645,7 +1645,7 @@ class PhyloNode:
 
     @deprecated_args(
         "2025.9",
-        "To be removed and instead the current class will be used.",
+        "to be removed and instead the current class will be used",
         discontinued=["constructor"],
     )
     def unrooted_deepcopy(
@@ -2028,7 +2028,7 @@ class PhyloNode:
 class TreeNode(PhyloNode):
     @deprecated_callable(
         "2025.9",
-        "Tree classes have been merged into a single class, use PhyloNode instead.",
+        "tree classes have been merged into a single class, use PhyloNode instead",
         "PhyloNode",
     )
     def __init__(
