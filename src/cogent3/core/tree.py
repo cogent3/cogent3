@@ -586,6 +586,34 @@ class PhyloNode:
         """Returns direct children in self that have descendants."""
         return [i for i in self.children if i.children]
 
+    @deprecated_callable("2025.9", "low utility", is_discontinued=True)
+    def child_groups(self) -> list[list[Self]]:  # pragma: no cover
+        """Returns list containing lists of children sharing a state.
+        In other words, returns runs of tip and nontip children.
+        """
+        # bail out in trivial cases of 0 or 1 item
+        if not self.children:
+            return []
+        if len(self.children) == 1:
+            return [[self.children[0]]]
+        # otherwise, have to do it properly...
+        result: list[list[Self]] = []
+        curr: list[Self] = []
+        state = None
+        for i in self.children:
+            curr_state = bool(i.children)
+            if curr_state == state:
+                curr.append(i)
+            else:
+                if curr:
+                    result.append(curr)
+                    curr = []
+                curr.append(i)
+                state = curr_state
+        # handle last group
+        result.append(curr)
+        return result
+
     def last_common_ancestor(self, other: Self) -> Self:
         """Finds last common ancestor of self and other, or None.
 
