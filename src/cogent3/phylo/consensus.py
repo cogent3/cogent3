@@ -148,7 +148,7 @@ def weighted_rooted_majority_rule(
 
     while queue:
         queue.sort()
-        (_, clade) = queue.pop(0)
+        _, clade = queue.pop(0)
         new_queue: list[tuple[int, NestedFrozenset]] = []
         for _, ancestor in queue:
             if clade.issubset(ancestor):
