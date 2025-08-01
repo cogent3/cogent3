@@ -1,24 +1,5 @@
-# /usr/bin/env python
-"""Parsers for tree formats.
-
-Implementation Notes
-
-The algorithm used here is fairly general: should possibly make the code
-generalizable to tree strings that use alternative delimiters and symbols.
-However, I can't think of any cases where alternatives are used, so this is
-left to future work.
-
-Should possibly build a dict of {label:PhyloNode} while parsing to make it
-convenient to fill in additional data later, e.g. to fill in sequences from
-their numeric labels in Newick format. Alternatively, maybe PhyloNode should
-get a buildIndex() method that performs the equivalent task.
-
-As of 12/27/03, should be capable of parsing the ClustalW .dnd files without
-difficulty.
-
-"""
-
 from collections.abc import Iterable
+
 from cogent3.core.tree import PhyloNode
 from cogent3.parse.record import RecordError
 
