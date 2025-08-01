@@ -70,6 +70,9 @@ if TYPE_CHECKING:  # pragma: no cover
     from cogent3.draw.dendrogram import Dendrogram
     from cogent3.evolve.fast_distance import DistanceMatrix
 
+    PySeq = Sequence
+    PySeqStr = PySeq[str]
+
 
 class TreeError(Exception):
     pass
@@ -729,9 +732,9 @@ class PhyloNode:
 
     def _default_tree_constructor(
         self,
-    ) -> Callable[[Self | None, Sequence[Self], dict[str, Any] | None], Self]:
+    ) -> Callable[[Self | None, PySeq[Self], dict[str, Any] | None], Self]:
         return cast(
-            "Callable[[Self | None, Sequence[Self], dict[str, Any] | None], Self]",
+            "Callable[[Self | None, PySeq[Self], dict[str, Any] | None], Self]",
             TreeBuilder(constructor=self.__class__).edge_from_edge,
         )
 
@@ -1170,7 +1173,7 @@ class PhyloNode:
                 biggest_branch = child
         return max_weight, total_weight - max_weight, biggest_branch
 
-    def _sorted(self, sort_order: Sequence[str]) -> tuple[int | None, Self]:
+    def _sorted(self, sort_order: PySeqStr) -> tuple[int | None, Self]:
         """Score all the edges, sort them, and return minimum score and a
         sorted tree.
         """
@@ -1550,7 +1553,7 @@ class PhyloNode:
         return 1 - 2 * intersection_length / float(total_subsets)
 
     def tip_to_tip_distances(
-        self, names: Sequence[str] | None = None, default_length: float | None = None
+        self, names: PySeqStr | None = None, default_length: float | None = None
     ) -> DistanceMatrix:
         """Returns distance matrix between all pairs of tips, and a tip order"""
         from cogent3.evolve.fast_distance import DistanceMatrix
@@ -1678,9 +1681,7 @@ class PhyloNode:
     )
     def unrooted_deepcopy(
         self,
-        constructor: Callable[
-            [Self | None, Sequence[Self], dict[str, Any] | None], Self
-        ]
+        constructor: Callable[[Self | None, PySeq[Self], dict[str, Any] | None], Self]
         | None = None,
         parent: Self | None = None,
     ) -> Self:
@@ -1988,7 +1989,7 @@ class PhyloNode:
         "2025.9", "duplicates tip_to_tip_distances", new="tip_to_tip_distances"
     )
     def get_distances(
-        self, names: Sequence[str] | None = None
+        self, names: PySeqStr | None = None
     ) -> DistanceMatrix:  # pragma: no cover
         """returns pairwise distance matrix"""
         return self.tip_to_tip_distances(names=names)
@@ -2169,7 +2170,7 @@ class TreeBuilder:
     def edge_from_edge(
         self,
         edge: PhyloNode | None,
-        children: Sequence[PhyloNode],
+        children: PySeq[PhyloNode],
         params: dict[str, Any] | None = None,
     ) -> PhyloNode:
         """Callback for tree-to-tree transforms like get_sub_tree"""
@@ -2191,7 +2192,7 @@ class TreeBuilder:
 
     def create_edge(
         self,
-        children: Sequence[PhyloNode] | None,
+        children: PySeq[PhyloNode] | None,
         name: str | None,
         params: dict[str, Any],
         name_loaded: bool = True,
