@@ -66,7 +66,7 @@ from cogent3.recalculation.definition import (
 )
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.tree import PhyloNode
 
 kappa_y = predicate.MotifChange("T", "C").aliased("kappa_y")

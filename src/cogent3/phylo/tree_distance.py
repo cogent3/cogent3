@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.tree import PhyloNode
 
 

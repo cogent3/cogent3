@@ -24,7 +24,7 @@ from cogent3.util.deserialise import deserialise_object
 from cogent3.util.io import get_format_suffixes, open_
 from cogent3.util.parallel import is_master_process
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Iterator
     from os import PathLike
 

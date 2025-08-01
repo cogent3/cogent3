@@ -32,7 +32,7 @@ import xml.sax
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.tree import PhyloNode
 
 

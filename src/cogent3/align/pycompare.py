@@ -9,7 +9,7 @@ import typing_extensions
 
 from cogent3.core import moltype as c3_moltype
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Generator
 
     from cogent3.core.sequence import Sequence

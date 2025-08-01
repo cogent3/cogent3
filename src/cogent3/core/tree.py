@@ -60,7 +60,7 @@ from cogent3.util.io import atomic_write, get_format_suffixes, open_
 from cogent3.util.misc import get_object_provenance, is_number
 from cogent3.util.warning import deprecated_args, deprecated_callable
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     import os
     import pathlib
     from collections.abc import Callable, Generator, Iterable, Iterator, Sequence

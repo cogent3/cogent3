@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, Any
 
 from cogent3.parse.record import FileFormatError
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.tree import PhyloNode
 
 EOT = None

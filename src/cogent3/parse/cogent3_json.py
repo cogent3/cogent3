@@ -9,7 +9,7 @@ from cogent3.util.deserialise import deserialise_object
 from cogent3.util.io import open_
 from cogent3.util.misc import get_object_provenance
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from cogent3.util.io import PathType
 
 

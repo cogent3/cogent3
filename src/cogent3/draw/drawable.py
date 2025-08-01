@@ -7,7 +7,7 @@ import numpy
 from cogent3.util.misc import extend_docstring_from
 from cogent3.util.union_dict import UnionDict
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     import contextlib
 
     with contextlib.suppress(ImportError):
