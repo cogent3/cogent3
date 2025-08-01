@@ -58,7 +58,7 @@ from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.io import atomic_write, get_format_suffixes, open_
 from cogent3.util.misc import get_object_provenance, is_number
-from cogent3.util.warning import deprecated_callable
+from cogent3.util.warning import deprecated_args, deprecated_callable
 
 if TYPE_CHECKING:
     import os
@@ -365,6 +365,7 @@ class PhyloNode:
 
     __deepcopy__ = deepcopy = copy
 
+    @deprecated_callable("2025.9", "Duplicated by copy.", new="copy")
     def copy_topology(self, constructor: type[T] | None = None) -> T | Self:
         """Copies only the topology and labels of a tree, not any extra data.
 
@@ -1381,6 +1382,11 @@ class PhyloNode:
             if n.name in mapping:
                 n.name = mapping[n.name]
 
+    @deprecated_args(
+        "2025.9",
+        "To be removed and instead the current class will be used.",
+        discontinued=["constructor"],
+    )
     def multifurcating(
         self,
         num: int,
@@ -1437,6 +1443,11 @@ class PhyloNode:
 
         return new_tree
 
+    @deprecated_args(
+        "2025.9",
+        "To be removed and instead the current class will be used.",
+        discontinued=["constructor"],
+    )
     def bifurcating(
         self,
         eps: float | None = None,
@@ -1632,6 +1643,11 @@ class PhyloNode:
         them = other.rooted(root_at).sorted(tip_names)
         return self is other or me.same_shape(them)
 
+    @deprecated_args(
+        "2025.9",
+        "To be removed and instead the current class will be used.",
+        discontinued=["constructor"],
+    )
     def unrooted_deepcopy(
         self,
         constructor: Callable[
@@ -2011,7 +2027,7 @@ class PhyloNode:
 
 class TreeNode(PhyloNode):
     @deprecated_callable(
-        "2025.12",
+        "2025.9",
         "Tree classes have been merged into a single class, use PhyloNode instead.",
         "PhyloNode",
     )
