@@ -4,8 +4,7 @@ from collections.abc import Iterable, Sequence
 from math import floor
 from typing import Any, Literal, cast
 
-import numpy as np
-from typing_extensions import Self
+import numpy
 
 from cogent3.core.tree import PhyloNode
 from cogent3.draw.drawable import Drawable
@@ -340,7 +339,7 @@ class SquareTreeGeometry(TreeGeometryBase):
             )
         ordered = self._ordered
         dist = child.y - self.y
-        if np.allclose(dist, 0):
+        if numpy.allclose(dist, 0):
             return self.end
         if dist < 0:
             result = ordered[ordered.index((child.y, child.start)) + 1][1]
@@ -389,15 +388,15 @@ class AngularTreeGeometry(_AngularGeometry, SquareTreeGeometry):
         super().__init__(*args, **kwargs)
 
 
-r_2_d = np.pi / 180
+r_2_d = numpy.pi / 180
 
 
 def polar_2_cartesian(
-    theta: float | np.floating, radius: float | np.floating
+    theta: float | numpy.floating, radius: float | numpy.floating
 ) -> tuple[float, float]:
     radians = theta * r_2_d
-    x = float(np.cos(radians) * radius)
-    y = float(np.sin(radians) * radius)
+    x = float(numpy.cos(radians) * radius)
+    y = float(numpy.sin(radians) * radius)
     return x, y
 
 
@@ -492,7 +491,7 @@ class CircularTreeGeometry(TreeGeometryBase):
             textangle = 360 - self.theta
             value = value.ljust(max_attr_length)
 
-        radius = np.sqrt(self.x**2 + self.y**2) + padding
+        radius = numpy.sqrt(self.x**2 + self.y**2) + padding
         x, y = polar_2_cartesian(self.theta, radius)
 
         return UnionDict(
@@ -538,10 +537,10 @@ class CircularTreeGeometry(TreeGeometryBase):
             textangle = 360 - self.theta
             xshift = -xshift
 
-        c = np.cos(textangle * (np.pi / 180))
-        s = np.sin(textangle * (np.pi / 180))
-        m = np.array([[c, s], [-s, c]])
-        d = np.dot(m, [xshift, yshift])
+        c = numpy.cos(textangle * (numpy.pi / 180))
+        s = numpy.sin(textangle * (numpy.pi / 180))
+        m = numpy.array([[c, s], [-s, c]])
+        d = numpy.dot(m, [xshift, yshift])
 
         new_xshift = float(d.T[0])
         new_yshift = float(d.T[1])
@@ -569,7 +568,7 @@ class CircularTreeGeometry(TreeGeometryBase):
             )
         ordered = self._ordered
         dist = child.theta - self.theta
-        if np.allclose(dist, 0):
+        if numpy.allclose(dist, 0):
             return self.end
         if dist < 0:
             neighbours = [
@@ -585,7 +584,7 @@ class CircularTreeGeometry(TreeGeometryBase):
         neighbours = sorted(neighbours)
         result = [
             polar_2_cartesian(theta, self.params["cum_length"])
-            for theta in np.arange(neighbours[0][0], neighbours[1][0], 5)
+            for theta in numpy.arange(neighbours[0][0], neighbours[1][0], 5)
         ]
         result.append(neighbours[1][1])
 
