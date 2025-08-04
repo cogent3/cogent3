@@ -6222,5 +6222,5 @@ def test_alignment_copy_handling_annot_db():
 def test_empty_aln_to_pretty():
     data = {"a": "", "b": ""}
     coll = c3_alignment.make_aligned_seqs(data, moltype="dna")
-    got = coll.to_pretty()
+    got = coll.to_pretty(wrap=60)
     assert isinstance(got, str)
