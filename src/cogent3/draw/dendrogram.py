@@ -5,7 +5,6 @@ from math import floor
 from typing import Any, Literal, cast
 
 import numpy as np
-from typing_extensions import Self
 
 from cogent3.core.tree import PhyloNode
 from cogent3.draw.drawable import Drawable
