@@ -6628,7 +6628,7 @@ class Alignment(SequenceCollection):
 
             result.append("")
 
-        if not result[-1]:
+        if result and not result[-1]:
             del result[-1]
 
         return "\n".join(result)
