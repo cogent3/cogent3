@@ -1,6 +1,6 @@
-from collections.abc import Sequence
 import typing
 from collections import defaultdict, namedtuple
+from collections.abc import Sequence
 from numbers import Number
 
 import numba

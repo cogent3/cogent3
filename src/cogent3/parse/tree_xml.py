@@ -30,8 +30,9 @@ Parameters are inherited by contained clades unless overridden.
 
 import xml.sax
 from collections.abc import Callable, Sequence
-from cogent3.util.warning import deprecated_callable
 from typing import TYPE_CHECKING, Any
+
+from cogent3.util.warning import deprecated_callable
 
 if TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.tree import PhyloNode
