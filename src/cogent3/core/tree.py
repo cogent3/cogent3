@@ -31,6 +31,7 @@ import contextlib
 import json
 import random
 import re
+import warnings
 from copy import deepcopy
 from functools import reduce
 from itertools import combinations
@@ -2372,14 +2373,25 @@ def deserialise_tree(
 ) -> PhyloNode:
     """returns a cogent3 PhyloNode instance"""
     # we load tree using make_tree, then populate edge attributes
-    edge_attr = cast("dict[str, Any]", data["edge_attributes"])
-    length_and_support: dict[str, dict[str, float | None]] = cast(
-        "dict[str, dict[str, float | None]]", data["length_and_support"]
+    edge_attr = cast("dict[str, dict[str, Any]]", data["edge_attributes"])
+    length_and_support: dict[str, dict[str, float | None]] | None = cast(
+        "dict[str, dict[str, float | None]] | None", data.get("length_and_support")
     )
+
+    if length_and_support is None:
+        warnings.warn(
+            "Outdated tree json. Please update by regenerating the json on the loaded tree.",
+            stacklevel=3,
+        )
+
     tree = make_tree(treestring=data["newick"])
     for edge in tree.preorder():
         params = edge_attr.get(edge.name, {})
+        if length_and_support is None:
+            edge.length = params.pop("length", None)
+            edge.support = params.pop("support", None)
+        else:
+            edge.length = length_and_support[edge.name]["length"]
+            edge.support = length_and_support[edge.name]["support"]
         edge.params.update(params)
-        edge.length = length_and_support[edge.name]["length"]
-        edge.support = length_and_support[edge.name]["support"]
     return tree
