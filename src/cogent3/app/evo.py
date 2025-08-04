@@ -5,7 +5,7 @@ from typing import Union
 
 import cogent3.util.io
 from cogent3 import load_tree, make_tree
-from cogent3.core.tree import TreeNode
+from cogent3.core.tree import PhyloNode
 from cogent3.evolve.models import get_model
 from cogent3.evolve.substitution_model import _SubstitutionModel
 from cogent3.util import parallel
@@ -61,7 +61,7 @@ class model:
     def __init__(
         self,
         sm: str | _SubstitutionModel,
-        tree: TreeNode | str | None = None,
+        tree: PhyloNode | str | None = None,
         unique_trees: bool = False,
         tree_func: Callable | None = None,
         name: str | None = None,
@@ -773,7 +773,7 @@ class natsel_neutral:
         elif type(tree) == str:
             tree = make_tree(treestring=tree, underscore_unmunge=True)
 
-        if tree and not isinstance(tree, TreeNode):
+        if tree and not isinstance(tree, PhyloNode):
             msg = f"invalid tree type {type(tree)}"
             raise TypeError(msg)
 
@@ -906,7 +906,7 @@ class natsel_zhang:
         elif type(tree) == str:
             tree = make_tree(treestring=tree, underscore_unmunge=True)
 
-        if tree and not isinstance(tree, TreeNode):
+        if tree and not isinstance(tree, PhyloNode):
             msg = f"invalid tree type {type(tree)}"
             raise TypeError(msg)
 
@@ -1089,7 +1089,7 @@ class natsel_sitehet:
         elif type(tree) == str:
             tree = make_tree(treestring=tree, underscore_unmunge=True)
 
-        if tree and not isinstance(tree, TreeNode):
+        if tree and not isinstance(tree, PhyloNode):
             msg = f"invalid tree type {type(tree)}"
             raise TypeError(msg)
 
@@ -1275,7 +1275,7 @@ class natsel_timehet:
         elif type(tree) == str:
             tree = make_tree(treestring=tree, underscore_unmunge=True)
 
-        if tree and not isinstance(tree, TreeNode):
+        if tree and not isinstance(tree, PhyloNode):
             msg = f"invalid tree type {type(tree)}"
             raise TypeError(msg)
 

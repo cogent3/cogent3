@@ -3,8 +3,10 @@
 import json
 import pathlib
 import random
+from collections.abc import Callable, Iterable
 from copy import deepcopy
 from tempfile import TemporaryDirectory
+from typing import Any
 
 import pytest
 from numpy import array
@@ -12,7 +14,7 @@ from numpy.testing import assert_allclose, assert_equal
 
 from cogent3 import get_dataset, load_tree, make_tree, open_
 from cogent3._version import __version__
-from cogent3.core.tree import PhyloNode, TreeError, TreeNode, split_name_and_support
+from cogent3.core.tree import PhyloNode, TreeError, split_name_and_support
 from cogent3.parse.tree import DndParser
 from cogent3.util.misc import get_object_provenance
 
@@ -72,22 +74,22 @@ tree_one_child_tips = ["a", "b", "c", "d"]
 
 
 @pytest.fixture
-def empty_node():
-    return TreeNode()
+def empty_node() -> PhyloNode:
+    return PhyloNode("")
 
 
-def test_init_empty(empty_node):
-    """Empty TreeNode should init OK"""
+def test_init_empty(empty_node: PhyloNode):
+    """Empty PhyloNode should init OK"""
     t = empty_node
-    assert t.name is None
+    assert t.name == ""
     assert t.parent is None
     assert len(t) == 0
 
 
-def test_init_full(empty_node):
-    """TreeNode should init OK with parent, data, and children"""
+def test_init_full(empty_node: PhyloNode):
+    """PhyloNode should init OK with parent, data, and children"""
     t = empty_node
-    u = TreeNode(parent=t, name="abc", children="xyz")
+    u = PhyloNode("abc", parent=t, children="xyz")
     assert u.name == "abc"
     assert u.parent is t
     assert u in t
@@ -99,28 +101,28 @@ def test_init_full(empty_node):
 
 @pytest.fixture
 def child_node():
-    return TreeNode(name="b")
+    return PhyloNode(name="b")
 
 
 @pytest.fixture
-def one_child(child_node):
-    return TreeNode(name="a", children=[child_node])
+def one_child(child_node: PhyloNode) -> PhyloNode:
+    return PhyloNode(name="a", children=[child_node])
 
 
 @pytest.fixture
-def big_name():
-    """TreeNode with many children"""
-    return list(map(TreeNode, "0123456789"))
+def big_name() -> list[PhyloNode]:
+    """PhyloNode with many children"""
+    return list(map(PhyloNode, "0123456789"))
 
 
 @pytest.fixture
-def big_parent(big_name):
-    """TreeNode with many children"""
-    return TreeNode(name="x", children=big_name)
+def big_parent(big_name: list[PhyloNode]) -> PhyloNode:
+    """PhyloNode with many children"""
+    return PhyloNode(name="x", children=big_name)
 
 
-def test_str(empty_node, one_child, big_parent):
-    """TreeNode str should give Newick-style representation"""
+def test_str(empty_node: PhyloNode, one_child: PhyloNode, big_parent: PhyloNode):
+    """PhyloNode str should give Newick-style representation"""
     # note: name suppressed if None
     assert str(empty_node) == ";"
     assert one_child.get_newick(with_node_names=True, with_root_name=True) == "(b)a;"
@@ -135,7 +137,7 @@ def test_str(empty_node, one_child, big_parent):
     )
 
 
-def test_get_newick(empty_node, one_child, big_parent):
+def test_get_newick(empty_node: PhyloNode, one_child: PhyloNode, big_parent: PhyloNode):
     """Should return Newick-style representation"""
     assert empty_node.get_newick() == ";"
     assert one_child.get_newick(with_node_names=True, with_root_name=True) == "(b)a;"
@@ -152,10 +154,13 @@ def test_get_newick(empty_node, one_child, big_parent):
 
 def test_to_dict():
     """tree produces dict"""
-    tr = make_tree(treestring="(a,b,(c,d)e1)")
+    tr = make_tree(treestring="(a,b,(c:0.3,d)e1/10)")
+    for node in tr.preorder():
+        _ = node.length
     got = tr.to_rich_dict()
-    attrs = {"length": None}
-    expect = {
+    attrs = {}
+    no_length_support = {"length": None, "support": None}
+    expect: dict[str, Any] = {
         "newick": "(a,b,(c,d)e1)root",
         "edge_attributes": {
             "a": attrs,
@@ -164,6 +169,14 @@ def test_to_dict():
             "d": attrs,
             "e1": attrs,
             "root": attrs,
+        },
+        "length_and_support": {
+            "a": no_length_support,
+            "b": no_length_support,
+            "c": {"length": 0.3, "support": None},
+            "d": no_length_support,
+            "e1": {"length": None, "support": 10},
+            "root": no_length_support,
         },
         "type": get_object_provenance(tr),
         "version": __version__,
@@ -184,7 +197,7 @@ def test_to_json():
     assert got == expect
 
 
-def test_write_to_json(DATA_DIR, tmp_path):
+def test_write_to_json(DATA_DIR: pathlib.Path, tmp_path: pathlib.Path):
     tree = load_tree(filename=DATA_DIR / "brca1_5.tree")
     json_path = tmp_path / "brca1_5.json"
     tree.write(json_path)
@@ -198,7 +211,7 @@ def test_write_to_json(DATA_DIR, tmp_path):
         assert set(tree.get_node_names()) == got["edge_attributes"].keys()
 
 
-def test_write_to_txt(DATA_DIR, tmp_path):
+def test_write_to_txt(DATA_DIR: pathlib.Path, tmp_path: pathlib.Path):
     """write a tree to newick"""
     tree = load_tree(filename=DATA_DIR / "brca1_5.tree")
     out_path = tmp_path / "brca1_5.txt"
@@ -206,16 +219,6 @@ def test_write_to_txt(DATA_DIR, tmp_path):
     with open_(out_path) as fn:
         got = fn.read()
         assert got.count("(") == got.count(")") == 3
-
-
-def test_write_to_xml(DATA_DIR, tmp_path):
-    """write a tree to xml"""
-    tree = load_tree(filename=DATA_DIR / "brca1_5.tree")
-    out_path = tmp_path / "brca1_5.xml"
-    tree.write(out_path)
-    with open_(out_path) as fn:
-        got = fn.read()
-        assert got.count("<clade>") == got.count("</clade>") > 0
 
 
 def test_multifurcating():
@@ -241,20 +244,20 @@ def test_multifurcating():
 
     t_str = "((a,b,c)d,(e,f,g)h,(i,j,k)l)m;"
     exp_str = "((a,(b,c))d,((e,(f,g))h,(i,(j,k))l))m;"
-    t = DndParser(t_str, constructor=TreeNode)
+    t = DndParser(t_str, constructor=PhyloNode)
     obs = t.multifurcating(2)
     assert (
         obs.get_newick(with_distances=True, with_node_names=True, with_root_name=True)
         == exp_str
     )
-    obs = t.multifurcating(2, eps=10)  # no effect on TreeNode type
+    obs = t.multifurcating(2, eps=10)  # no effect on PhyloNode type
     assert (
         obs.get_newick(with_distances=True, with_node_names=True, with_root_name=True)
         == exp_str
     )
 
     with pytest.raises(TreeError):
-        # TreeNode does not support multifurcating with n=1
+        # PhyloNode does not support multifurcating with n=1
         t.multifurcating(1)
 
 
@@ -290,8 +293,8 @@ def test_bifurcating():
 
 
 @pytest.fixture
-def tree_nodes():
-    nodes = {x: TreeNode(x) for x in "abcdefgh"}
+def tree_nodes() -> dict[str, PhyloNode]:
+    nodes = {x: PhyloNode(x) for x in "abcdefgh"}
     nodes["a"].append(nodes["b"])
     nodes["b"].append(nodes["c"])
     nodes["c"].append(nodes["d"])
@@ -303,12 +306,12 @@ def tree_nodes():
 
 
 @pytest.fixture
-def tree_root(tree_nodes):
+def tree_root(tree_nodes: dict[str, PhyloNode]) -> PhyloNode:
     return tree_nodes["a"]
 
 
-def test_eq1(tree_nodes):
-    """TreeNode comparison should compare using id"""
+def test_eq1(tree_nodes: dict[str, PhyloNode]):
+    """PhyloNode comparison should compare using id"""
     nodes = tree_nodes
     assert nodes["a"] == nodes["a"]
     assert nodes["b"] != nodes["a"]
@@ -316,36 +319,37 @@ def test_eq1(tree_nodes):
 
 
 @pytest.fixture
-def comparisons():
-    return list(map(TreeNode, "aab"))
+def comparisons() -> tuple[PhyloNode, PhyloNode, PhyloNode]:
+    return PhyloNode("a"), PhyloNode("a"), PhyloNode("b")
 
 
-def test_eq2(comparisons):
-    """TreeNode should compare equal if same id"""
+def test_eq2(comparisons: tuple[PhyloNode, PhyloNode, PhyloNode]):
+    """PhyloNode should compare equal if same id"""
     t, u, v = comparisons
-    assert t == t
+    z = t
+    assert t == z
     assert t is not u
     assert t != u
     assert t != v
 
-    f = TreeNode(1.0)
-    g = TreeNode(1)
+    f = PhyloNode("a")
+    g = PhyloNode("aa")
     assert f != g
-    f.name += 0.1
-    assert f != g
-
-    # however, two TreeNodes that have no name should not compare equal
-    f = TreeNode()
-    g = TreeNode()
+    f.name += "a"
     assert f != g
 
-    f = TreeNode(name="foo")
+    # however, two PhyloNodes that have no name should not compare equal
+    f = PhyloNode("")
+    g = PhyloNode("")
+    assert f != g
+
+    f = PhyloNode(name="foo")
     g = f.copy()
     assert f != g
 
 
-def test_compare_name(tree_nodes):
-    """Compare names between TreeNodes"""
+def test_compare_name(tree_nodes: dict[str, PhyloNode]):
+    """Compare names between PhyloNodes"""
     nodes = tree_nodes
     assert nodes["a"].compare_name(nodes["a"])
     assert not nodes["a"].compare_name(nodes["b"])
@@ -353,79 +357,80 @@ def test_compare_name(tree_nodes):
 
 
 @pytest.fixture
-def treestring_1():
+def treestring_1() -> str:
     return "((H,G),(R,M));"
 
 
 @pytest.fixture
-def tree_1(treestring_1):
-    return DndParser(treestring_1, TreeNode)
+def tree_1(treestring_1: str) -> PhyloNode:
+    return DndParser(treestring_1, PhyloNode)
 
 
 @pytest.fixture
-def treestring_2():
+def treestring_2() -> str:
     return "(((H,G),R),M);"
 
 
 @pytest.fixture
-def tree_2(treestring_2):
-    return DndParser(treestring_2, TreeNode)
+def tree_2(treestring_2: str) -> PhyloNode:
+    return DndParser(treestring_2, PhyloNode)
 
 
 @pytest.fixture
-def treestring_3():
+def treestring_3() -> str:
     return "(((H,G),(O,R)),X);"
 
 
 @pytest.fixture
-def tree_3(treestring_3):
-    return DndParser(treestring_3, TreeNode)
+def tree_3(treestring_3: str) -> PhyloNode:
+    return DndParser(treestring_3, PhyloNode)
 
 
-def test_compare_by_names(tree_1, tree_2, tree_3):
+def test_compare_by_names(tree_1: PhyloNode, tree_2: PhyloNode, tree_3: PhyloNode):
     """Compare names between trees"""
     assert tree_1.compare_by_names(tree_2)
     assert tree_1.compare_by_names(tree_1)
     assert not tree_1.compare_by_names(tree_3)
 
 
-def test_ne(comparisons):
-    """TreeNode should compare ne by id or data"""
+def test_ne(comparisons: tuple[PhyloNode, PhyloNode, PhyloNode]):
+    """PhyloNode should compare ne by id or data"""
     t, u, _ = comparisons
-    assert t == t
+    z = t
+    assert t == z
     assert t != u
 
-    f = TreeNode(name="foo")
+    f = PhyloNode(name="foo")
     g = f.copy()
     assert f != g
 
 
-def test_append(one_child):
-    """TreeNode append should add item to end of self"""
-    one_child.append(TreeNode("c"))
+def test_append(one_child: PhyloNode):
+    """PhyloNode append should add item to end of self"""
+    one_child.append(PhyloNode("c"))
     assert len(one_child) == 2
     assert one_child[-1].name == "c"
-    one_child.append(6)
+    one_child.append("6")
     assert len(one_child) == 3
-    assert one_child[-1].name == 6
+    assert one_child[-1].name == "6"
     # check that refs are updated when moved from one tree to another
-    empty = TreeNode()
+    empty = PhyloNode("")
     empty.append(one_child[-1])
     assert len(empty) == 1
-    assert empty[0].name == 6
+    assert empty[0].name == "6"
     assert empty[0].parent == empty
     assert one_child[-1].name == "c"
 
 
-def test_extend(empty_node):
-    """TreeNode extend should add many items to end of self"""
+def test_extend(empty_node: PhyloNode):
+    """PhyloNode extend should add many items to end of self"""
     empty_node.extend("abcdefgh")
     data = "".join([i.name for i in empty_node])
     assert data == "abcdefgh"
 
 
-def test_pop(big_parent, big_name):
-    """TreeNode pop should remove and return child at specified index"""
+def test_pop(big_parent: PhyloNode, big_name: list[PhyloNode]):
+    """PhyloNode pop should remove and return child at specified index"""
     parent, nodes = big_parent, big_name
     assert len(parent) == 10
     last = parent.pop()
@@ -443,35 +448,35 @@ def test_pop(big_parent, big_name):
 
 
 def test_remove():
-    """TreeNode remove should remove first match by value, not id"""
-    nodes = list(map(TreeNode, "abc" * 3))
-    parent = TreeNode(children=nodes)
+    """PhyloNode remove should remove first match by value, not id"""
+    nodes = list(map(PhyloNode, "abc" * 3))
+    parent = PhyloNode("", children=nodes)
     assert len(parent) == 9
     parent.remove("a")
     assert len(parent) == 8
     assert "".join([i.name for i in parent]) == "bcabcabc"
-    new_node = TreeNode("a")
+    new_node = PhyloNode("a")
     parent.remove(new_node)
     assert len(parent) == 7
     assert "".join([i.name for i in parent]) == "bcbcabc"
 
 
-def test_insert(big_parent):
-    """TreeNode insert should insert item at specified index"""
+def test_insert(big_parent: PhyloNode):
+    """PhyloNode insert should insert item at specified index"""
     parent = big_parent
     assert len(parent) == 10
-    parent.insert(3, 5)
+    parent.insert(3, "5")
     assert len(parent) == 11
-    assert parent[3].name == 5
+    assert parent[3].name == "5"
     assert parent[4].name == "3"
-    parent.insert(-1, 123)
+    parent.insert(-1, "123")
     assert len(parent) == 12
     assert parent[-1].name == "9"
-    assert parent[-2].name == 123
+    assert parent[-2].name == "123"
 
 
-def test_getitem(tree_root, tree_nodes):
-    """TreeNode getitem should return item or slice"""
+def test_getitem(tree_root: PhyloNode, tree_nodes: dict[str, PhyloNode]):
+    """PhyloNode getitem should return item or slice"""
     r = tree_root
     n = tree_nodes
     assert r[0] is n["b"]
@@ -488,8 +493,8 @@ def test_getitem(tree_root, tree_nodes):
     assert items[-1] is n["f"]
 
 
-def test_slice(tree_nodes):
-    """TreeNode slicing should return list, not TreeNode"""
+def test_slice(tree_nodes: dict[str, PhyloNode]):
+    """PhyloNode slicing should return list, not PhyloNode"""
     nodes = tree_nodes
     c, d, e, f = nodes["c"], nodes["d"], nodes["e"], nodes["f"]
     assert c[:] is not c
@@ -498,16 +503,16 @@ def test_slice(tree_nodes):
     assert c[0:3:2] == [d, f]
 
 
-def test_setitem(big_parent, big_name):
-    """TreeNode setitem should set item or extended slice of nodes"""
+def test_setitem(big_parent: PhyloNode, big_name: list[PhyloNode]):
+    """PhyloNode setitem should set item or extended slice of nodes"""
     parent, nodes = big_parent, big_name
-    t = TreeNode(1)
+    t = PhyloNode("1")
     parent[0] = t
     assert parent[0] is t
     assert t.parent is parent
     assert nodes[0].parent is None
 
-    u = TreeNode(2)
+    u = PhyloNode("2")
     parent[-2] = u
     assert parent[8] is u
     assert u.parent is parent
@@ -523,8 +528,8 @@ def test_setitem(big_parent, big_name):
         assert i.parent is parent
 
 
-def test_setslice(big_parent, big_name):
-    """TreeNode setslice should set old-style slice of nodes"""
+def test_setslice(big_parent: PhyloNode, big_name: list[PhyloNode]):
+    """PhyloNode setslice should set old-style slice of nodes"""
     parent, nodes = big_parent, big_name
     assert len(parent) == 10
     parent[5:] = []
@@ -542,8 +547,13 @@ def test_setslice(big_parent, big_name):
     assert data_list == list("0bcd34")
 
 
-def test_delitem(child_node, one_child, big_name, big_parent):
-    """TreeNode __delitem__ should delete item and set parent to None"""
+def test_delitem(
+    child_node: PhyloNode,
+    one_child: PhyloNode,
+    big_name: list[PhyloNode],
+    big_parent: PhyloNode,
+):
+    """PhyloNode __delitem__ should delete item and set parent to None"""
     assert child_node.parent == one_child
     assert len(one_child) == 1
     del one_child[0]
@@ -567,8 +577,8 @@ def test_delitem(child_node, one_child, big_name, big_parent):
             assert n.parent is None
 
 
-def test_delslice(big_name, big_parent):
-    """TreeNode __delslice__ should delete items from start to end"""
+def test_delslice(big_name: list[PhyloNode], big_parent: PhyloNode):
+    """PhyloNode __delslice__ should delete items from start to end"""
     parent = big_parent
     nodes = big_name
     assert len(parent) == 10
@@ -581,17 +591,17 @@ def test_delslice(big_name, big_parent):
             assert n.parent is parent
 
 
-def test_len(tree_root):
-    """TreeNode len should return number of children"""
+def test_len(tree_root: PhyloNode):
+    """PhyloNode len should return number of children"""
     r = tree_root
     assert len(r) == 2
 
 
 def test_copy():
-    """TreeNode.copy() should work on deep trees"""
+    """PhyloNode.copy() should work on deep trees"""
     t = comb_tree(1024)  # should break recursion limit on regular copy
     t.name = "foo"
-    t.XYZ = [3]
+    t.params["XYZ"] = [3]
     t2 = t.copy()
     t3 = t.copy()
     t3.name = "bar"
@@ -604,46 +614,20 @@ def test_copy():
     assert t.name == t2.name
     assert t.name != t3.name
 
-    assert t.XYZ == t2.XYZ
-    assert t.XYZ is not t2.XYZ
+    assert t.params["XYZ"] == t2.params["XYZ"]
+    assert t.params["XYZ"] is not t2.params["XYZ"]
 
     assert t.get_newick() == t2.get_newick()
 
-    t_simple = TreeNode("t")
-    u_simple = TreeNode("u")
+    t_simple = PhyloNode("t")
+    u_simple = PhyloNode("u")
     t_simple.append(u_simple)
 
     assert str(t_simple.copy()) == str(t_simple.copy())
 
 
-def test_copy_topology(tree_root):
-    """TreeNode.copy_topology() should produce deep copy ignoring attrs"""
-    t = TreeNode(["t"])
-    u = TreeNode(["u"])
-    t.append(u)
-
-    c = u.copy_topology()
-    assert c is not u
-    assert c.name == u.name
-    # note: name _is_ same object if it's immutable, e.g. a string.
-    # deepcopy doesn't copy data for immutable objects.
-
-    # need to check that we do not also copy arbitrary attributes
-    t.XYZ = [3]
-    c = t.copy_topology()
-    assert c is not t
-    assert c[0] is not u
-    assert c[0].name is not u.name
-    assert c[0].name == u.name
-    assert not hasattr(c, "XYZ")
-
-    t = tree_root
-    c = t.copy()
-    assert str(c) == str(t)
-
-
-def test_iter(tree_root, tree_nodes):
-    """TreeNode iter should iterate over children"""
+def test_iter(tree_root: PhyloNode, tree_nodes: dict[str, PhyloNode]):
+    """PhyloNode iter should iterate over children"""
     r = tree_root
     n = tree_nodes
     items = list(r)
@@ -652,28 +636,26 @@ def test_iter(tree_root, tree_nodes):
     assert len(items) == 2
 
 
-def test_deepcopy(tree_root):
-    """copy.deepcopy should work on TreeNode"""
-    t = TreeNode(["t"])
-    u = TreeNode(["u"])
+def test_deepcopy(tree_root: PhyloNode):
+    """copy.deepcopy should work on PhyloNode"""
+    t = PhyloNode('["t"]')
+    u = PhyloNode('["u"]')
     t.append(u)
 
     c = deepcopy(u)
     assert c is not u
     assert c.name == u.name
-    assert c.name is not u.name
     # note: name _is_ same object if it's immutable, e.g. a string.
     # deepcopy doesn't copy data for immutable objects.
 
     # need to check that we also copy arbitrary attributes
-    t.XYZ = [3]
+    t.params["XYZ"] = [3]
     c = deepcopy(t)
     assert c is not t
     assert c[0] is not u
-    assert c[0].name is not u.name
     assert c[0].name == u.name
-    assert c.XYZ == t.XYZ
-    assert c.XYZ is not t.XYZ
+    assert c.params["XYZ"] == t.params["XYZ"]
+    assert c.params["XYZ"] is not t.params["XYZ"]
 
     t = tree_root
     c = deepcopy(t)
@@ -681,17 +663,22 @@ def test_deepcopy(tree_root):
 
 
 @pytest.fixture
-def single_node():
-    return TreeNode(name="a")
+def single_node() -> PhyloNode:
+    return PhyloNode(name="a")
 
 
 @pytest.fixture
-def repeated_child():
-    return TreeNode(name="x", children="aaa")
+def repeated_child() -> PhyloNode:
+    return PhyloNode(name="x", children="aaa")
 
 
-def test_Parent(single_node, empty_node, one_child, repeated_child):
-    """TreeNode parent should hold correct data and be mutable"""
+def test_Parent(
+    single_node: PhyloNode,
+    empty_node: PhyloNode,
+    one_child: PhyloNode,
+    repeated_child: PhyloNode,
+):
+    """PhyloNode parent should hold correct data and be mutable"""
     # check initial conditions
     assert single_node.parent is None
     # set parent and check parent/child relations
@@ -719,11 +706,11 @@ def test_Parent(single_node, empty_node, one_child, repeated_child):
 
 
 def test_index_in_parent():
-    """TreeNode index_in_parent should hold correct data"""
-    first = TreeNode("a")
-    second = TreeNode("b")
-    third = TreeNode("c")
-    fourth = TreeNode("0", children=[first, second, third])
+    """PhyloNode index_in_parent should hold correct data"""
+    first = PhyloNode("a")
+    second = PhyloNode("b")
+    third = PhyloNode("c")
+    fourth = PhyloNode("0", children=[first, second, third])
     assert len(fourth) == 3
     assert first.index_in_parent() == 0
     assert second.index_in_parent() == 1
@@ -735,8 +722,8 @@ def test_index_in_parent():
     assert first.parent is None
 
 
-def test_is_tip(tree_nodes):
-    """TreeNode is_tip should return True if node is a tip"""
+def test_is_tip(tree_nodes: dict[str, PhyloNode]):
+    """PhyloNode is_tip should return True if node is a tip"""
     tips = "degh"
     for n in list(tree_nodes.values()):
         if n.name in tips:
@@ -745,8 +732,8 @@ def test_is_tip(tree_nodes):
             assert n.is_tip() is False
 
 
-def test_isRoot(tree_nodes):
-    """TreeNode isRoot should return True if parent is None"""
+def test_isRoot(tree_nodes: dict[str, PhyloNode]):
+    """PhyloNode isRoot should return True if parent is None"""
     r = "a"
     for n in list(tree_nodes.values()):
         if n.name in r:
@@ -757,7 +744,7 @@ def test_isRoot(tree_nodes):
 
 @pytest.fixture
 def multi_child():
-    return TreeNode(name="a", children="bcd")
+    return PhyloNode(name="a", children="bcd")
 
 
 def test_levelorder():
@@ -767,8 +754,8 @@ def test_levelorder():
     assert names == exp
 
 
-def test_ancestors(tree_nodes):
-    """TreeNode ancestors should provide list of ancestors, deepest first"""
+def test_ancestors(tree_nodes: dict[str, PhyloNode]):
+    """PhyloNode ancestors should provide list of ancestors, deepest first"""
     nodes = tree_nodes
     assert nodes["a"].ancestors() == []
     assert nodes["b"].ancestors() == [nodes["a"]]
@@ -806,23 +793,23 @@ def test_newick_with_labelled_nodes():
         assert nwk == expect[i]
 
 
-def test_root(tree_nodes, tree_root):
-    """TreeNode root() should find root of tree"""
+def test_root(tree_nodes: dict[str, PhyloNode], tree_root: PhyloNode):
+    """PhyloNode root() should find root of tree"""
     nodes, root = tree_nodes, tree_root
     for i in list(nodes.values()):
         assert i.get_root() is root
 
 
-def test_children(tree_nodes):
-    """TreeNode children should allow getting/setting children"""
+def test_children(tree_nodes: dict[str, PhyloNode]):
+    """PhyloNode children should allow getting/setting children"""
     nodes = tree_nodes
     for n in nodes:
         node = nodes[n]
         assert list(node) == node.children
 
-    t = TreeNode(children="abc")
+    t = PhyloNode("", children="abc")
     assert len(t) == 3
-    u, v = TreeNode("u"), TreeNode("v")
+    u, v = PhyloNode("u"), PhyloNode("v")
 
     # WARNING: If you set children directly, parent refs will _not_ update!
     t.children = [u, v]
@@ -832,8 +819,13 @@ def test_children(tree_nodes):
     assert len(t) == 2
 
 
-def test_siblings(tree_nodes, empty_node, child_node, one_child):
-    """TreeNode siblings() should return all siblings, not self"""
+def test_siblings(
+    tree_nodes: dict[str, PhyloNode],
+    empty_node: PhyloNode,
+    child_node: PhyloNode,
+    one_child: PhyloNode,
+):
+    """PhyloNode siblings() should return all siblings, not self"""
     assert empty_node.siblings() == []
     assert child_node.siblings() == []
     assert one_child.siblings() == []
@@ -858,8 +850,13 @@ def test_siblings(tree_nodes, empty_node, child_node, one_child):
     assert a.siblings() == []
 
 
-def test_tips(empty_node, child_node, one_child, tree_nodes):
-    """TreeNode tips should return all terminal descendants"""
+def test_tips(
+    empty_node: PhyloNode,
+    child_node: PhyloNode,
+    one_child: PhyloNode,
+    tree_nodes: dict[str, PhyloNode],
+):
+    """PhyloNode tips should return all terminal descendants"""
     assert empty_node.tips() == []
     assert child_node.tips() == []
     assert one_child.tips() == [child_node]
@@ -884,26 +881,31 @@ def test_tips(empty_node, child_node, one_child, tree_nodes):
     assert a.tips() == [d, e, g, h]
 
 
-def test_itertips(tree_root):
-    """TreeNode itertips should iterate over terminal descendants"""
+def test_itertips(tree_root: PhyloNode):
+    """PhyloNode itertips should iterate over terminal descendants"""
     tree = tree_root
     assert [i.name for i in tree.iter_tips()] == list("degh")
 
 
-def test_nontips(tree_root):
-    """TreeNode nontips should return all non-terminal descendants"""
+def test_nontips(tree_root: PhyloNode):
+    """PhyloNode nontips should return all non-terminal descendants"""
     tree = tree_root
     assert [i.name for i in tree.nontips()] == list("bcf")
 
 
-def test_iterNonTips(tree_root):
-    """TreeNode iter_nontips should iterate over non-terminal descendants"""
+def test_iterNonTips(tree_root: PhyloNode):
+    """PhyloNode iter_nontips should iterate over non-terminal descendants"""
     tree = tree_root
     assert [i.name for i in tree.iter_nontips()] == list("bcf")
 
 
-def test_tip_children(empty_node, child_node, one_child, tree_nodes):
-    """TreeNode tip_children should return all terminal children"""
+def test_tip_children(
+    empty_node: PhyloNode,
+    child_node: PhyloNode,
+    one_child: PhyloNode,
+    tree_nodes: dict[str, PhyloNode],
+):
+    """PhyloNode tip_children should return all terminal children"""
     assert empty_node.tip_children() == []
     assert child_node.tip_children() == []
     assert one_child.tip_children() == [child_node]
@@ -928,8 +930,13 @@ def test_tip_children(empty_node, child_node, one_child, tree_nodes):
     assert a.tip_children() == [h]
 
 
-def test_non_tip_children(empty_node, child_node, one_child, tree_nodes):
-    """TreeNode non_tip_children should return all non-terminal children"""
+def test_non_tip_children(
+    empty_node: PhyloNode,
+    child_node: PhyloNode,
+    one_child: PhyloNode,
+    tree_nodes: dict[str, PhyloNode],
+):
+    """PhyloNode non_tip_children should return all non-terminal children"""
     assert empty_node.non_tip_children() == []
     assert child_node.non_tip_children() == []
     assert one_child.non_tip_children() == []
@@ -954,42 +961,8 @@ def test_non_tip_children(empty_node, child_node, one_child, tree_nodes):
     assert a.non_tip_children() == [b]
 
 
-def test_child_groups():
-    """TreeNode child_groups should divide children by grandchild presence"""
-    parent = TreeNode(children="aababbbaaabbbababbb")
-    for node in parent:
-        if node.name == "a":
-            node.append("def")
-    groups = parent.child_groups()
-    assert len(groups) == 10
-    exp_group_sizes = [2, 1, 1, 3, 3, 3, 1, 1, 1, 3]
-    obs_group_sizes = [len(i) for i in groups]
-    assert obs_group_sizes == exp_group_sizes
-
-    parent = TreeNode(children="aab")
-    for node in parent:
-        if node.name == "a":
-            node.append("def")
-    groups = parent.child_groups()
-    assert len(groups) == 2
-    assert [len(i) for i in groups] == [2, 1]
-
-    parent = TreeNode(children="aaaaa")
-    groups = parent.child_groups()
-    assert len(groups) == 1
-    assert len(groups[0]) == 5
-
-    parent = TreeNode(children="aaba")
-    for node in parent:
-        if node.name == "a":
-            node.append("def")
-    groups = parent.child_groups()
-    assert len(groups) == 3
-    assert [len(i) for i in groups] == [2, 1, 1]
-
-
-def test_remove_node(repeated_child):
-    """TreeNode remove_node should delete node by id, not value"""
+def test_remove_node(repeated_child: PhyloNode):
+    """PhyloNode remove_node should delete node by id, not value"""
     parent = repeated_child
     children = list(repeated_child)
     assert len(parent) == 3
@@ -1006,7 +979,7 @@ def test_remove_node(repeated_child):
 
 
 def test_lowest_common_ancestor():
-    """TreeNode lowest_common_ancestor should return LCA for set of tips"""
+    """PhyloNode lowest_common_ancestor should return LCA for set of tips"""
     t1 = DndParser("((a,(b,c)d)e,f,(g,h)i)j;")
     t2 = t1.copy()
     t3 = t1.copy()
@@ -1050,8 +1023,8 @@ def test_lowest_common_ancestor_invalid_tips():
         t.lowest_common_ancestor(["a", "n"])
 
 
-def test_last_common_ancestor(tree_nodes):
-    """TreeNode last_common_ancestor should provide last common ancestor"""
+def test_last_common_ancestor(tree_nodes: dict[str, PhyloNode]):
+    """PhyloNode last_common_ancestor should provide last common ancestor"""
     nodes = tree_nodes
     a = nodes["a"]
     b = nodes["b"]
@@ -1085,16 +1058,18 @@ def test_last_common_ancestor(tree_nodes):
     assert g.last_common_ancestor(a) == a
     assert g.last_common_ancestor(h) == a
 
-    t = TreeNode("h")
+    t = PhyloNode("h")
     for i in [a, b, c, d, e, f, g, h]:
-        assert i.last_common_ancestor(t) is None
-        assert t.last_common_ancestor(i) is None
+        with pytest.raises(TreeError, match="No common ancestor found"):
+            i.last_common_ancestor(t)
+        with pytest.raises(TreeError, match="No common ancestor found"):
+            t.last_common_ancestor(i)
 
-    TreeNode("a", children=[t])
+    PhyloNode("a", children=[t])
 
 
-def test_separation(tree_nodes):
-    """TreeNode separation should return correct number of edges"""
+def test_separation(tree_nodes: dict[str, PhyloNode]):
+    """PhyloNode separation should return correct number of edges"""
     nodes = tree_nodes
     a = nodes["a"]
     b = nodes["b"]
@@ -1114,19 +1089,19 @@ def test_separation(tree_nodes):
     assert c.separation(f) == 1
 
 
-def test_name_unnamed_nodes(tree_root, tree_nodes):
+def test_name_unnamed_nodes(tree_root: PhyloNode, tree_nodes: dict[str, PhyloNode]):
     """name_unnamed_nodes assigns an arbitrary value when name == None"""
     tree = tree_root
     tree_nodes["b"].name = "node2"
-    tree_nodes["c"].name = None
-    tree_nodes["f"].name = None
+    tree_nodes["c"].name = ""
+    tree_nodes["f"].name = ""
     tree_nodes["e"].name = "node3"
     tree.name_unnamed_nodes()
     assert tree_nodes["c"].name == "node1"
     assert tree_nodes["f"].name == "node4"
 
 
-def test_make_tree_array(tree_root):
+def test_make_tree_array(tree_root: PhyloNode):
     """make_tree_array maps nodes to the descendants in them"""
     tree = tree_root
     result, node_list = tree.make_tree_array()
@@ -1155,7 +1130,7 @@ def test_get_node_names():
     tree.get_node_matching_name("a")
 
 
-def test_reassign_names(tree_root):
+def test_reassign_names(tree_root: PhyloNode):
     """reassign_names should rename node names based on dict mapping"""
     t = tree_root
     mapping = {x: str(i) for i, x in enumerate("abfg")}
@@ -1165,7 +1140,9 @@ def test_reassign_names(tree_root):
     assert obs_names == exp_names
 
 
-def test_reassign_names_specific_nodes(tree_root, tree_nodes):
+def test_reassign_names_specific_nodes(
+    tree_root: PhyloNode, tree_nodes: dict[str, PhyloNode]
+):
     """reassign_names should rename nodes based on dict mapping"""
     t = tree_root
     nodes = [tree_nodes["a"], tree_nodes["b"]]
@@ -1176,14 +1153,14 @@ def test_reassign_names_specific_nodes(tree_root, tree_nodes):
     assert obs_names == exp_names
 
 
-def test_get_nodes_dict(tree_root, tree_nodes):
+def test_get_nodes_dict(tree_root: PhyloNode, tree_nodes: dict[str, PhyloNode]):
     """get_nodes_dict returns a dict keyed by name, value is node"""
     t = tree_root
     nodes = tree_nodes
     assert t.get_nodes_dict() == nodes
 
 
-def test_get_nodes_dict_nonunique_names(tree_root):
+def test_get_nodes_dict_nonunique_names(tree_root: PhyloNode):
     """get_nodes_dict raises if non unique names are in tree"""
     t = tree_root
     t.children[0].name = "same"
@@ -1196,15 +1173,15 @@ def test_remove_deleted():
     """remove_deleted should remove all nodes where is_deleted tests true."""
     tree = DndParser(
         "((a:3,(b:2,(c:1,d:1):1):1):2,(e:3,f:3):2);",
-        constructor=TreeNode,
+        constructor=PhyloNode,
     )
     result_not_deleted = deepcopy(tree)
     tree.remove_deleted(lambda x: x.name in [])
     assert str(tree) == str(result_not_deleted)
     deleted = {"b", "d", "e", "f"}
-    result_tree = DndParser("((a:3,((c:1):1):1):2);", constructor=TreeNode)
+    result_tree = DndParser("((a:3,((c:1):1):1):2);", constructor=PhyloNode)
 
-    def is_deleted(x):
+    def is_deleted(x: PhyloNode):
         return x.name in deleted
 
     tree.remove_deleted(is_deleted)
@@ -1213,9 +1190,9 @@ def test_remove_deleted():
 
 def test_prune():
     """prune should reconstruct correct topology of tree."""
-    tree = DndParser("((a:3,((c:1):1):1):2);", constructor=TreeNode)
+    tree = DndParser("((a:3,((c:1):1):1):2);", constructor=PhyloNode)
     tree.prune()
-    result_tree = DndParser("(a:3,c:1);", constructor=TreeNode)
+    result_tree = DndParser("(a:3,c:3);", constructor=PhyloNode)
     assert str(tree) == str(result_tree)
 
     samename_bug = DndParser("((A,B)SAMENAME,((C,D)SAMENAME));")
@@ -1230,30 +1207,32 @@ def test_prune_2():
     assert len(tree.children) == 2
 
 
-def test_get_node_matching_name(tree_root, tree_nodes):
-    """TreeNode get_node_matching_name should return node that matches name"""
+def test_get_node_matching_name(tree_root: PhyloNode, tree_nodes: dict[str, PhyloNode]):
+    """PhyloNode get_node_matching_name should return node that matches name"""
     nodes = tree_nodes
     root = tree_root
     assert root.get_node_matching_name("g") is nodes["g"]
 
 
-def test_subset(tree_1):
+def test_subset(tree_1: PhyloNode):
     """subset should return set of leaves that descends from node"""
     t = tree_1
     assert t.subset() == frozenset("HGRM")
     c = t.children[0]
     assert c.subset() == frozenset("HG")
     leaf = c.children[1]
-    assert leaf.subset() == frozenset("")
+    assert leaf.subset() == frozenset()
 
 
-def test_subsets(tree_1):
+def test_subsets(tree_1: PhyloNode):
     """subsets should return all subsets descending from a set"""
     t = tree_1
     assert t.subsets() == frozenset([frozenset("HG"), frozenset("RM")])
 
 
-def test_compare_by_subsets(tree_1, tree_2, tree_3, tree_root):
+def test_compare_by_subsets(
+    tree_1: PhyloNode, tree_2: PhyloNode, tree_3: PhyloNode, tree_root: PhyloNode
+):
     """compare_by_subsets should return the fraction of shared subsets"""
     result = tree_1.compare_by_subsets(tree_1)
     assert result == 0
@@ -1277,17 +1256,19 @@ def test_compare_by_subsets(tree_1, tree_2, tree_3, tree_root):
     assert result == 1
 
 
-def test_treenode_comparison_with_none_name(empty_node, single_node):
+def test_treenode_comparison_with_none_name(
+    empty_node: PhyloNode, single_node: PhyloNode
+):
     assert empty_node < single_node
     assert single_node > empty_node
-    assert single_node > TreeNode(name=None)
-    assert TreeNode(name=None) < single_node
-    assert TreeNode(name="test") > empty_node
-    assert empty_node < TreeNode(name="test")
+    assert single_node > PhyloNode(name="")
+    assert PhyloNode(name="") < single_node
+    assert PhyloNode(name="test") > empty_node
+    assert empty_node < PhyloNode(name="test")
 
 
 @pytest.fixture
-def phylo_nodes():
+def phylo_nodes() -> dict[str, PhyloNode]:
     nodes = {x: PhyloNode(x) for x in "abcdefgh"}
     nodes["a"].append(nodes["b"])
     nodes["b"].append(nodes["c"])
@@ -1308,7 +1289,7 @@ def phylo_nodes():
 
 
 @pytest.fixture
-def phylo_root(phylo_nodes):
+def phylo_root(phylo_nodes: dict[str, PhyloNode]) -> PhyloNode:
     """Returns the root of the phylogenetic tree."""
     tree = phylo_nodes["a"]
     tree.prune()
@@ -1316,24 +1297,24 @@ def phylo_root(phylo_nodes):
 
 
 @pytest.fixture
-def phylostring_1():
+def phylostring_1() -> str:
     """Returns a sample phylogenetic string."""
     return "((H:1,G:1):2,(R:0.5,M:0.7):3);"
 
 
 @pytest.fixture
-def phylo_1(phylostring_1):
+def phylo_1(phylostring_1: str) -> PhyloNode:
     """Returns a parsed phylogenetic tree from the string."""
     return DndParser(phylostring_1, PhyloNode)
 
 
 @pytest.fixture
-def phylostring_2():
+def phylostring_2() -> str:
     return "(((H:1,G:1,O:1):2,R:3):1,X:4);"
 
 
 @pytest.fixture
-def phylo_2(phylostring_2):
+def phylo_2(phylostring_2: str) -> PhyloNode:
     """Returns a parsed phylogenetic tree from the second string."""
     return DndParser(phylostring_2, PhyloNode)
 
@@ -1348,12 +1329,14 @@ def test_init():
     assert n.name == "bar"
     assert n.length is None
 
-    n = PhyloNode()
-    assert n.name is None
+    n = PhyloNode("")
+    assert n.name == ""
     assert n.length is None
 
 
-def test_total_descending_branch_length(phylo_root, phylo_nodes):
+def test_total_descending_branch_length(
+    phylo_root: PhyloNode, phylo_nodes: dict[str, PhyloNode]
+):
     """total_descending_branch_length returns total branchlength below self"""
     t = phylo_root
     exp = 15
@@ -1408,7 +1391,7 @@ def test_tips_within_distance_nodistances():
     assert obs == exp
 
 
-def test_distance(phylo_nodes):
+def test_distance(phylo_nodes: dict[str, PhyloNode]):
     """PhyloNode distance should report correct distance between nodes"""
     nodes = phylo_nodes
     a = nodes["a"]
@@ -1493,10 +1476,10 @@ def test_distance(phylo_nodes):
     assert h.distance(h) == 0
 
 
-def test_tip_to_tip_distances_endpoints(phylo_1):
+def test_tip_to_tip_distances_endpoints(phylo_1: PhyloNode):
     """Test getting specifc tip distances  with tip_to_tip_distances"""
     names = ["H", "G", "M"]
-    exp_dists = array([[0, 2.0, 6.7], [2.0, 0, 6.7], [6.7, 6.7, 0.0]])
+    exp_dists = array([[0.0, 2.0, 6.7], [2.0, 0.0, 6.7], [6.7, 6.7, 0.0]])
     got_dists = phylo_1.tip_to_tip_distances()
     assert_equal(got_dists.take_dists(names).array, exp_dists)
 
@@ -1509,7 +1492,7 @@ def test_phylo_prune():
     assert str(tree) == str(result_tree)
 
 
-def test_phylo_str(phylo_nodes):
+def test_phylo_str(phylo_nodes: dict[str, PhyloNode]):
     """PhyloNode str should give expected results"""
     nodes = phylo_nodes
     a = nodes["a"]
@@ -1525,7 +1508,7 @@ def test_phylo_str(phylo_nodes):
     assert str(a) == "(((d:1,e:4,(g:3):2)):0,h);"
 
 
-def test_get_max_tip_tip_distance(phylo_root):
+def test_get_max_tip_tip_distance(phylo_root: PhyloNode):
     """get_max_tip_tip_distance should get max tip distance across tree"""
     dist, names, node = phylo_root.get_max_tip_tip_distance()
     assert dist == 10.0
@@ -1533,7 +1516,7 @@ def test_get_max_tip_tip_distance(phylo_root):
     assert node.is_root()
 
 
-def test_max_tip_tip_distance(phylo_root):
+def test_max_tip_tip_distance(phylo_root: PhyloNode):
     """max_tip_tip_distance returns the max dist between any pair of tips"""
     tree = phylo_root
     max_dist, tip_pair = tree.max_tip_tip_distance()
@@ -1561,36 +1544,36 @@ def test_tip_to_root_distances_phlylo():
 
 def test_tip_to_root_distances_tree():
     treestring = "(a:1,b:4,((c:3,d:2,e:2):5):2);"
-    tree = DndParser(treestring, constructor=TreeNode)
+    tree = DndParser(treestring, constructor=PhyloNode)
     expect = {"a": 1, "b": 1, "c": 3, "d": 3, "e": 3}
-    got = tree.tip_to_root_distances()
+    got = tree.tip_to_root_distances(node_length=True)
     assert got == expect
     got = tree.tip_to_root_distances(
         names=[
             "c",
             "a",
-        ]
+        ],
+        node_length=True,
     )
     assert got == {"c": 3, "a": 1}
 
 
-@pytest.mark.parametrize("cls", [TreeNode, PhyloNode])
-def test_tip_to_root_distances_missing_names(cls):
+def test_tip_to_root_distances_missing_names():
     treestring = "(a:1,b:4,((c:3,d:2,e:2):5):2);"
-    tree = DndParser(treestring, constructor=cls)
+    tree = DndParser(treestring, constructor=PhyloNode)
     with pytest.raises(TreeError):
         tree.tip_to_root_distances(names=["x"])
 
 
 @pytest.mark.parametrize(
-    "treestring,check",
+    ("treestring", "check"),
     [
         ("(h:20,(d:1,(e:4,g:5):1):3.0);", any),
         ("(h:23,d:1,(e:4,g:5):1)a;", all),
         ("(e:4,g:5,(d:1,h:23):1)a;", all),
     ],
 )
-def test_root_at_midpoint2(treestring, check):
+def test_root_at_midpoint2(treestring: str, check: Callable[[Iterable[object]], bool]):
     tree = make_tree(treestring)
     dists = array(
         [
@@ -1623,12 +1606,12 @@ def test_root_at_midpoint3():
     """midpoint between nodes should behave correctly"""
     tree = DndParser("(a:1,((c:1,d:2.5)mp:1,b:1)n2:1)root;")
     names = tree.get_tip_names()
-    orig_dists = tree.get_distances().take_dists(names)
+    orig_dists = tree.tip_to_tip_distances().take_dists(names)
     tmid = tree.root_at_midpoint()
     assert tmid.is_root()
     # check the root children names are correct
     assert all("mp" in n.name for n in tmid.children)
-    mp_dists = tmid.get_distances().take_dists(names)
+    mp_dists = tmid.tip_to_tip_distances().take_dists(names)
     assert_equal(mp_dists.array, orig_dists.array)
 
 
@@ -1691,57 +1674,59 @@ def test_get_figure():
     _ = t.get_figure(style="square")
 
 
-def _tip_2_tip_distances(tree):
-    """Helper function to get tip-to-tip distances."""
-    return tree.tip_to_tip_distances()
-
-
 @pytest.fixture
-def root_std():
+def root_std() -> PhyloNode:
     """Fixture to create a standard tree for testing."""
     return DndParser(tree_std, PhyloNode)
 
 
 @pytest.fixture
-def root_one_level():
+def root_one_level() -> PhyloNode:
     """Fixture to create a one-level tree for testing."""
     return DndParser(tree_one_level, PhyloNode)
 
 
 @pytest.fixture
-def root_two_level():
+def root_two_level() -> PhyloNode:
     """Fixture to create a two-level tree for testing."""
     return DndParser(tree_two_level, PhyloNode)
 
 
 @pytest.fixture
-def root_one_child():
+def root_one_child() -> PhyloNode:
     """Fixture to create a tree with a single child for testing."""
     return DndParser(tree_one_child, PhyloNode)
 
 
-def test_one_level(root_one_level):
+def test_one_level(root_one_level: PhyloNode):
     """tip_to_tip should work for one-level multifurcating tree"""
     dmat = root_one_level.tip_to_tip_distances()
     assert_equal(dmat.array, array([[0, 3, 4], [3, 0, 5], [4, 5, 0]]))
 
 
-def test_two_level(root_two_level):
+def test_two_level(root_two_level: PhyloNode):
     """tip_to_tip should work for two-level tree"""
     dmat = root_two_level.tip_to_tip_distances()
     assert_allclose(
         dmat.array,
-        array([[0, 3, 4, 1.4], [3, 0, 5, 2.4], [4, 5, 0, 3.4], [1.4, 2.4, 3.4, 0]]),
+        array(
+            [
+                [0.0, 3.0, 4.0, 1.4],
+                [3.0, 0.0, 5.0, 2.4],
+                [4.0, 5.0, 0.0, 3.4],
+                [1.4, 2.4, 3.4, 0.0],
+            ]
+        ),
     )
 
 
-def test_std(root_std):
+def test_std(root_std: PhyloNode):
     """tip_to_tip should work for small but complex tree"""
     dmat = root_std.tip_to_tip_distances()
     assert_equal(dmat.array, tree_std_dist)
 
 
-def test_one_child(root_one_child):
+def test_one_child(root_one_child: PhyloNode):
     """tip_to_tip should work for tree with a single child"""
     dmat = root_one_child.tip_to_tip_distances()
     assert_equal(dmat.array, tree_one_child_dist)
@@ -1750,15 +1735,15 @@ def test_one_child(root_one_child):
 # for use with testing iterative copy method
 
 
-def comb_tree(num_leaves):
+def comb_tree(num_leaves: int) -> PhyloNode:
     """Returns a comb node_class tree."""
     branch_child = 1
 
-    root = TreeNode()
+    root = PhyloNode("")
     curr = root
 
     for _i in range(num_leaves - 1):
-        curr.children[:] = [TreeNode(parent=curr), TreeNode(parent=curr)]
+        curr.children[:] = [PhyloNode("", parent=curr), PhyloNode("", parent=curr)]
         curr = curr.children[branch_child]
     return root
 
@@ -1770,21 +1755,24 @@ def comb_tree(num_leaves):
 _default_newick = "((A:1,B:2)ab:3,((C:4,D:5)cd,E:6)cde:7)"
 
 
-def _maketree(treestring=_default_newick):
+def _maketree(treestring: str = _default_newick) -> PhyloNode:
     return make_tree(treestring=treestring, underscore_unmunge=True)
 
 
 @pytest.mark.parametrize(
-    "a,b,outgroup,expect",
+    ("a", "b", "outgroup", "expect"),
     [
         ("A", "B", None, {"A", "B"}),
         ("E", "C", None, {"C", "D", "cd", "E"}),
         ("C", "D", "E", {"C", "D"}),
     ],
 )
-def test_get_edge_names(a, b, outgroup, expect):
+def test_get_edge_names(a: str, b: str, outgroup: str | None, expect: set[str]):
     tree = _maketree()
-    assert set(tree.get_edge_names(a, b, True, False, outgroup)) == expect
+    assert (
+        set(tree.get_edge_names(a, b, clade=True, stem=False, outgroup_name=outgroup))
+        == expect
+    )
 
 
 def test_get_edge_names_2():
@@ -1809,8 +1797,8 @@ def test_get_edge_names_3():
     stem = True
     outgroup_name = "e"
     names = tree.get_edge_names(
-        tip1name=tip1name,
-        tip2name=tip2name,
+        tip1name,
+        tip2name,
         clade=clade,
         stem=stem,
         outgroup_name=outgroup_name,
@@ -1821,7 +1809,7 @@ def test_get_edge_names_3():
 @pytest.mark.parametrize(
     "treestring", ["((A,B)ab,(F,(C,D)cd)cdf,E)root;", "((E,(A,B)ab)abe,F,(C,D)cd)root;"]
 )
-def test_get_edge_names_use_outgroup(treestring):
+def test_get_edge_names_use_outgroup(treestring: str):
     t = make_tree(treestring=treestring)
     # a, e, ogroup f
     expected = {"A", "B", "E", "ab"}
@@ -1852,7 +1840,7 @@ def test_get_connecting_edges():
 
 
 @pytest.mark.parametrize(("name", "expect_tip"), [("A", True), ("ab", False)])
-def test_get_node_matching_name_2(name, expect_tip):
+def test_get_node_matching_name_2(name: str, expect_tip: bool):
     tree = _maketree()
     edge = tree.get_node_matching_name(name)
     assert edge.name == name
@@ -1904,14 +1892,6 @@ def test_get_newick_2():
     )
 
 
-def test_XML():
-    # should add some non-length parameters
-    orig = _maketree()
-    xml = orig.get_xml()
-    parsed = make_tree(treestring=xml)
-    assert str(orig) == str(parsed)
-
-
 def test_str_1():
     """testing (well, exercising at least), __str__"""
     got = str(_maketree())
@@ -1927,10 +1907,11 @@ def test_repr():
 
 def test_eq():
     """testing (well, exercising at least), __eq__"""
-    # xxx not good enough!
     t1 = _maketree()
+    t1_again = t1
+
     t2 = _maketree()
-    assert t1 == t1
+    assert t1 == t1_again
     assert t1 != t2
 
 
@@ -1943,16 +1924,18 @@ def test_balanced():
 
 def test_params_merge():
     t = make_tree(treestring="((((a:1,b:3)ab:4,c)abc),d)")
-    for label, beta in [("a", 20), ("b", 2.0), ("ab", 5.0)]:
+    params: list[tuple[str, float]] = [("a", 20), ("b", 2.0), ("ab", 5.0)]
+    for label, beta in params:
         t.get_node_matching_name(label).params |= {"beta": beta}
     t = t.get_sub_tree(["b", "c", "d"])
     # previous implementation on merge was
     # dividing the sum of parameters across nodes by the lengths
     # we no longer try and support this
     assert t.get_node_matching_name("b").params == {
-        "length": 7,
-        "beta": 2 + 5,
+        "beta": 2.0,
     }
+    assert t.get_node_matching_name("b").length == 7
+
     ex = make_tree("(b:7,c);")
     st = t.get_sub_tree(["b", "c", "xxx"], ignore_missing=True)
     assert ex.same_topology(st)
@@ -1971,10 +1954,10 @@ def test_making_from_list():
 def test_getset_param_value():
     """test getting, setting of param values"""
     t = make_tree(treestring="((((a:.2,b:.3)ab:.1,c:.3)abc:.4),d:.6)")
-    assert t.get_param_value("length", "ab") == 0.1, 2
     t.set_param_value("zz", "ab", 4.321)
+    assert t.get_param_value("zz", "ab") == 4.321
     node = t.get_node_matching_name("ab")
-    assert node.params["zz"] == 4.321, 4
+    assert node.params["zz"] == 4.321
 
 
 def test_rootswaps():
@@ -2009,32 +1992,32 @@ def test_same_shape():
 
 
 @pytest.fixture
-def otu_names_small():
+def otu_names_small() -> list[str]:
     return sorted(["NineBande", "Mouse", "HowlerMon", "DogFaced"])
 
 
 @pytest.fixture
-def newick_small():
+def newick_small() -> str:
     return "(((Human,HowlerMon),Mouse),NineBande,DogFaced);"
 
 
 @pytest.fixture
-def newick_small_reduced():
+def newick_small_reduced() -> str:
     return "((HowlerMon,Mouse),NineBande,DogFaced);"
 
 
 @pytest.fixture
-def newick_small_sorted():
+def newick_small_sorted() -> str:
     return "(DogFaced,((HowlerMon,Human),Mouse),NineBande);"
 
 
 @pytest.fixture
-def tree_small(newick_small):
+def tree_small(newick_small: str):
     return make_tree(treestring=newick_small)
 
 
 @pytest.fixture
-def otu_names_big():
+def otu_names_big() -> list[str]:
     return sorted(
         [
             "Horse",
@@ -2058,21 +2041,21 @@ def otu_names_big():
 
 
 @pytest.fixture
-def newick_big_reduced():
+def newick_big_reduced() -> str:
     return "(((((TombBat,(((Horse,Rhino),(Pangolin,Cat)),(Pig,SpermWhal))),Hedgehog),(Orangutan,Gorilla)),((HairyArma,Sloth),((Manatee,AsianElep),GoldenMol))),bandicoot);"
 
 
 @pytest.fixture
-def tree_big():
+def tree_big() -> PhyloNode:
     return make_tree(
         "((((((((FlyingFox,DogFaced),((FreeTaile,LittleBro),(TombBat,RoundEare))),(FalseVamp,LeafNose)),(((Horse,Rhino),(Pangolin,(Cat,Dog))),(Llama,(Pig,(Cow,(Hippo,(SpermWhal,HumpbackW))))))),(Mole,Hedgehog)),(TreeShrew,(FlyingLem,((Jackrabbit,(FlyingSqu,(OldWorld,(Mouse,Rat)))),(Galago,(HowlerMon,(Rhesus,(Orangutan,(Gorilla,(Human,Chimpanzee)))))))))),(((NineBande,HairyArma),(Anteater,Sloth)),(((Dugong,Manatee),((AfricanEl,AsianElep),(RockHyrax,TreeHyrax))),(Aardvark,((GoldenMol,(Madagascar,Tenrec)),(LesserEle,GiantElep)))))),(caenolest,(phascogale,(wombat,bandicoot))));"
     )
 
 
-def test_sorttree(tree_small, newick_small_sorted):
+def test_sorttree(tree_small: PhyloNode, newick_small_sorted: str):
     """testing (well, exercising at least) treesort"""
     new_tree = tree_small.sorted()
-    assert newick_small_sorted == new_tree.get_newick(with_distances=0)
+    assert newick_small_sorted == new_tree.get_newick(with_distances=False)
 
 
 @pytest.mark.parametrize(
@@ -2082,7 +2065,12 @@ def test_sorttree(tree_small, newick_small_sorted):
         ("tree_big", "otu_names_big", "newick_big_reduced"),
     ],
 )
-def test_getsubtree(request, tree_fxt, otu_fxt, nwk_fxt):
+def test_getsubtree(
+    request: pytest.FixtureRequest,
+    tree_fxt: str,
+    otu_fxt: str,
+    nwk_fxt: str,
+):
     """testing getting a subtree"""
     tree = request.getfixturevalue(tree_fxt)
     otu_names = request.getfixturevalue(otu_fxt)
@@ -2108,9 +2096,9 @@ def test_getsubtree_2():
         PhyloNode,
     )  # note c,j is len 0 node
     names = "a", "b", "d", "e", "c"
-    orig = t1.get_distances().take_dists(names)
+    orig = t1.tip_to_tip_distances().take_dists(names)
     subtree = t1.get_sub_tree(names)
-    subset = subtree.get_distances().take_dists(names)
+    subset = subtree.tip_to_tip_distances().take_dists(names)
     assert_equal(orig.array, subset.array)
 
 
@@ -2129,7 +2117,9 @@ def test_ascii():
 
 
 @pytest.mark.parametrize("tree_fxt", ["tree_small", "tree_big"])
-def test_load_tree(tmp_path, tree_fxt, request):
+def test_load_tree(
+    tmp_path: pathlib.Path, tree_fxt: str, request: pytest.FixtureRequest
+):
     """tests loading a newick formatted Tree"""
     tree_path = tmp_path / "tree.tree"
     tree = request.getfixturevalue(tree_fxt)
@@ -2141,7 +2131,9 @@ def test_load_tree(tmp_path, tree_fxt, request):
 
 
 @pytest.mark.parametrize("tree_fxt", ["tree_small", "tree_big"])
-def test_load_tree_from_json(tmp_path, tree_fxt, request):
+def test_load_tree_from_json(
+    tmp_path: pathlib.Path, tree_fxt: str, request: pytest.FixtureRequest
+):
     """tests loading a Tree from json file"""
     json_path = tmp_path / "tree.json"
     tree = request.getfixturevalue(tree_fxt)
@@ -2212,7 +2204,7 @@ def test_get_subtree_7():
 
 
 @pytest.mark.parametrize("treestring", ["(a,b,(c,(d,e)))", "((a,b),(c,(d,e)))"])
-def test_get_subtree_8(treestring):
+def test_get_subtree_8(treestring: str):
     # an unrooted tree returns an unrooted subtree
     tree = make_tree(treestring=treestring)
     st = tree.get_sub_tree(["c", "d", "e"], as_rooted=False)
@@ -2229,27 +2221,27 @@ def test_get_subtree_as_rooted():
     assert len(got.children) == len(tree.children)
 
 
-def test_get_edge_names_big(tree_big, otu_names_big):
+def test_get_edge_names_big(tree_big: PhyloNode, otu_names_big: list[str]):
     """testing (well, exercising at least), getedgenames"""
     # Fell over on small tree because "stem descended from root
     # joiner was a tip"
     a, b = otu_names_big[:2]
-    got = tree_big.get_edge_names(a, b, True, False)
+    got = tree_big.get_edge_names(a, b, clade=True, stem=False)
     assert {type(n) for n in got} == {str}
 
 
-def test_get_tip_names(tree_big):
+def test_get_tip_names(tree_big: PhyloNode):
     """testing (well, exercising at least), get_tip_names"""
     tips = tree_big.get_tip_names()
     assert len(tips) == 55
 
 
 @pytest.mark.parametrize("num_tips", [0, 3])
-def test_get_distances_endpoints(num_tips):
+def test_get_distances_endpoints(num_tips: int):
     names = "G001280565", "G000009905", "G000183545", "G000184705"
     nwk = "({}:0.4,({}:0.25,({}:0.03,{}:0.03):0.23):0.03)".format(*names)
     tree = make_tree(nwk)
-    dists = tree.get_distances(names=names[:num_tips] or None)
+    dists = tree.tip_to_tip_distances(names=names[:num_tips] or None)
     num = 4 if num_tips == 0 else num_tips
     assert dists.shape == (num, num)
 
@@ -2266,7 +2258,7 @@ def test_get_distances_endpoints(num_tips):
         ("rf", 4),
     ],
 )
-def test_tree_distance_unrooted(method, expected):
+def test_tree_distance_unrooted(method: str | None, expected: int):
     tree1 = make_tree(treestring="(a,b,(c,(d,e)));")
     tree2 = make_tree(treestring="((a,c),(b,d),e);")
 
@@ -2285,7 +2277,7 @@ def test_tree_distance_unrooted(method, expected):
         ("rf", 6),
     ],
 )
-def test_tree_distance_rooted(method, expected):
+def test_tree_distance_rooted(method: str | None, expected: int):
     tree1 = make_tree(treestring="(a,(b,(c,(d,e))));")
     tree2 = make_tree(treestring="(e,(d,(c,(b,a))));")
 
@@ -2307,7 +2299,7 @@ def test_tree_distance_rooted(method, expected):
         "None",
     ],
 )
-def test_tree_distance_method_does_not_exist(bad_method):
+def test_tree_distance_method_does_not_exist(bad_method: str):
     unrooted1 = make_tree(treestring="(a,b,(c,(d,e)));")
     unrooted2 = make_tree(treestring="((a,c),(b,d),e);")
 
@@ -2337,7 +2329,7 @@ def test_tree_distance_method_does_not_exist(bad_method):
         None,
     ],
 )
-def test_tree_distance_incompatible_trees(method):
+def test_tree_distance_incompatible_trees(method: str):
     unrooted = make_tree(treestring="(a,b,(c,(d,e)));")
     rooted = make_tree(treestring="(a,(b,(c,(d,e))));")
 
@@ -2361,7 +2353,7 @@ def test_lrm_method():
     "nwk",
     ["(((g,b)gb,(c,d)cd),(e,f),a)", "(a,b,c)", ("(a,(b,(c,d)cd))")],
 )
-def test_child_parent_map(nwk):
+def test_child_parent_map(nwk: str):
     tree = make_tree(nwk)
     child_2_parent = tree.child_parent_map()
     all_edges = tree.get_edge_vector(include_root=False)
@@ -2392,7 +2384,7 @@ def test_load_tree_bad_encoding():
 
     with TemporaryDirectory(dir=".") as dirname:
         tree_path = pathlib.Path(dirname) / "tree.tree"
-        with open(tree_path, "wb") as f:
+        with tree_path.open("wb") as f:
             f.write(newick.encode("ascii"))
 
         assert load_tree(tree_path).get_newick() == newick
@@ -2408,12 +2400,14 @@ def test_load_tree_bad_encoding():
         ("24", (None, 24.0)),
     ],
 )
-def test_split_name_and_support(name, expected):
+def test_split_name_and_support(
+    name: str | None, expected: tuple[str | None, float | None]
+):
     assert split_name_and_support(name) == expected
 
 
 @pytest.mark.parametrize("invalid", ["edge.98/invalid", "edge.98/23/invalid"])
-def test_split_name_and_support_invalid_support(invalid):
+def test_split_name_and_support_invalid_support(invalid: str):
     with pytest.raises(ValueError):
         split_name_and_support(invalid)
 
@@ -2431,28 +2425,27 @@ def test_phylonode_support():
 
     # parent of 4 is node with only support value
     just_support = tree.get_node_matching_name("4").parent
-    assert just_support.params["support"] == 53.0
+    assert just_support.support == 53.0
 
     # parent of 2 has the same support as parent of 4
     same_support = tree.get_node_matching_name("2").parent
-    assert same_support.params["support"] == just_support.params["support"]
+    assert same_support.support == just_support.support
 
     # parent of 10 has a node name only
     just_name = tree.get_node_matching_name("10").parent
     assert just_name.name == "abc"
-    assert "support" not in just_name.params
+    assert just_name.support is None
 
     # the node with name "def/25" correctly resoloved into node
     # name "def" and support 25.0
     name_and_support = tree.get_node_matching_name("def")
     assert name_and_support.name == "def"  # bit redundant given selection process
-    assert name_and_support.params["support"] == 25.0
+    assert name_and_support.support == 25.0
 
 
-@pytest.mark.parametrize("cls", [PhyloNode, TreeNode])
-def test_source_attr(cls):
+def test_source_attr():
     t_str = "((a,(b,c))d,((e,(f,g))h,(i,(j,k))l))m;"
-    t = DndParser(t_str, constructor=cls)
+    t = DndParser(t_str, constructor=PhyloNode)
     t.source = "test_source"
     assert t.source == "test_source"
     assert "source" in t.params
@@ -2486,9 +2479,8 @@ def test_rooted_is_rooted():
 def test_rooted_with_root():
     treestring = "(Human,Chimpanzee,Gorilla)"
     tree = make_tree(treestring=treestring)
-    with pytest.raises(TreeError):
-        # cannot root at root with 3 children
-        tree.rooted("root")
+
+    assert tree.same_shape(tree.rooted("root"))
 
 
 def test_rooted_from_nonroot():
@@ -2517,10 +2509,9 @@ def tested_rooted_newick():
     assert got in {"(A,(B,C));", "((B,C),A);", "((C,B),A);"}
 
 
-@pytest.mark.parametrize("constructor", [PhyloNode, TreeNode])
-def test_rooted_with_internal(constructor):
+def test_rooted_with_internal():
     treestring = "((((Rhesus:0.02,HowlerMon:0.0487):0.0115,Orangutan:0.008)abcd:0.003,Human:0.006):0.00013,Gorilla:0.0025,Chimpanzee:0.003)"
-    tree = DndParser(treestring, constructor=constructor)
+    tree = DndParser(treestring, constructor=PhyloNode)
     tree.name = "root"  # have to force this given construction via DndParser
     node_name = "abcd"
     got = tree.rooted(node_name)
@@ -2553,3 +2544,21 @@ def test_unrooted_deepcopy_2():
     # the root should have one child whose name is 'e'
     assert len(unco.children) == 1
     assert unco.children[0].name == "e"
+
+
+def test_load_old_tree_json(DATA_DIR: pathlib.Path):
+    with pytest.warns(UserWarning, match="Outdated tree json"):
+        tree_old = load_tree(DATA_DIR / "tree_json_old.json")
+    tree_new = load_tree(DATA_DIR / "tree_json_new.json")
+
+    for old, new in zip(tree_old.preorder(), tree_new.preorder(), strict=True):
+        assert old.name == new.name
+        if old.length is None:
+            assert new.length is None
+        else:
+            assert pytest.approx(old.length) == new.length
+
+        if old.support is None:
+            assert new.length is None
+        else:
+            assert pytest.approx(old.support) == new.support

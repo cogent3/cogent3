@@ -379,7 +379,7 @@ def test_tree_align_two(seqs):
         approx_dists=True,
     )
     # the tree should have equal branch lengths
-    dist = set(tree.get_distances().to_dict().values())
+    dist = set(tree.tip_to_tip_distances().to_dict().values())
     assert len(dist) == 1
     assert isinstance(next(iter(dist)), float)
     assert len(aln) >= seqs.get_lengths().array.min()

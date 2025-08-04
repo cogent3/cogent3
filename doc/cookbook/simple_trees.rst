@@ -265,7 +265,7 @@ Getting all the children for a node
 Getting all the distances for a tree
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-On a ``TreeNode``, each branh has a weight of 1 so the distances represent the number of connected nodes. On a ``PhyloNode`` the measure is the sum of branch lengths.
+On a ``PhyloNode`` without branch lengths each branch has a weight of 1 so the distances represent the number of connected nodes. On a ``PhyloNode`` with branch lengths the measure is the sum of branch lengths.
 
 .. jupyter-execute::
 

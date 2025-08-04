@@ -51,7 +51,7 @@ SeqType = TypeVar(
 )
 PairwiseDistanceType = TypeVar("PairwiseDistanceType", bound="DistanceMatrix")
 TabularType = TypeVar("TabularType", "Table", "DictArray", "DistanceMatrix")
-TreeType = TypeVar("TreeType", "TreeNode", "PhyloNode")
+TreeType = TypeVar("TreeType", bound="PhyloNode")
 SerialisableType = TypeVar("SerialisableType")
 BootstrapResultType = TypeVar("BootstrapResultType", bound="bootstrap_result")
 HypothesisResultType = TypeVar("HypothesisResultType", bound="hypothesis_result")

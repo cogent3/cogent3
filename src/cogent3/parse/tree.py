@@ -1,22 +1,4 @@
-# /usr/bin/env python
-"""Parsers for tree formats.
-
-Implementation Notes
-
-The algorithm used here is fairly general: should possibly make the code
-generalizable to tree strings that use alternative delimiters and symbols.
-However, I can't think of any cases where alternatives are used, so this is
-left to future work.
-
-Should possibly build a dict of {label:TreeNode} while parsing to make it
-convenient to fill in additional data later, e.g. to fill in sequences from
-their numeric labels in Newick format. Alternatively, maybe TreeNode should
-get a buildIndex() method that performs the equivalent task.
-
-As of 12/27/03, should be capable of parsing the ClustalW .dnd files without
-difficulty.
-
-"""
+from collections.abc import Iterable
 
 from cogent3.core.tree import PhyloNode
 from cogent3.parse.record import RecordError
@@ -78,7 +60,11 @@ def DndTokenizer(data):
             sa(d)
 
 
-def DndParser(lines, constructor=PhyloNode, unescape_name=False):
+def DndParser(
+    lines: Iterable[str],
+    constructor: type[PhyloNode] = PhyloNode,
+    unescape_name: bool = False,
+) -> PhyloNode:
     """Returns tree from the Clustal .dnd file format, and anything equivalent.
 
     Tree is made up of cogent3.base.tree.PhyloNode objects, with branch lengths
@@ -181,13 +167,13 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
         raise RecordError(msg)
 
     if curr_node is None:  # no data -- return empty node
-        return constructor()
+        return constructor("")
     return curr_node  # this should be the root of the tree
 
 
 def _new_child(old_node, constructor):
     """Returns new_node which has old_node as its parent."""
-    new_node = constructor()
+    new_node = constructor("")
     new_node.parent = old_node
     if old_node is not None:
         if id(new_node) not in list(map(id, old_node.children)):

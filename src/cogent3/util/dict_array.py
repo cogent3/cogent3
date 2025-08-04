@@ -27,6 +27,7 @@ from collections import defaultdict
 from itertools import combinations, product
 
 import numpy
+import numpy.typing as npt
 
 from cogent3._version import __version__
 from cogent3.util import warning as c3warn
@@ -379,7 +380,7 @@ class DictArray:
         if len(args) == 1:
             vals, row_keys, col_keys = convert_for_dictarray(args[0])
             dtype = kwargs.get("dtype")
-            self.array = numpy.asarray(vals, dtype=dtype)
+            self.array: npt.NDArray[numpy.number] = numpy.asarray(vals, dtype=dtype)
             self.template = DictArrayTemplate(row_keys, col_keys)
         elif len(args) == 2:
             if not isinstance(args[1], DictArrayTemplate):
@@ -398,7 +399,11 @@ class DictArray:
         self.shape = self.array.shape
 
     @classmethod
-    def from_array_names(cls, array: numpy.ndarray, *names: tuple[PySeqStr, ...]):
+    def from_array_names(
+        cls,
+        array: npt.NDArray[numpy.number],
+        *names: tuple[PySeqStr, ...],
+    ):
         """creates instance directly from a numpy array and series of names
 
         Parameters

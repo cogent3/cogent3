@@ -640,7 +640,7 @@ class LikelihoodFunction(ParameterController):
                 continue
 
             edge.params["ENS"] = ens.get(edge.name)
-            edge.params["length"] = lengths[edge.name]
+            edge.length = lengths[edge.name]
             edge.params["paralinear"] = plin[edge.name]
             edge.params["mprobs"] = mprobs[edge.name].to_dict()
             for par in d:
@@ -676,7 +676,7 @@ class LikelihoodFunction(ParameterController):
 
         tree = self._tree.deepcopy()
         for edge in tree.get_edge_vector(include_root=False):
-            edge.params["length"] = ens[edge.name]
+            edge.length = ens[edge.name]
 
         return tree
 
@@ -968,15 +968,17 @@ class LikelihoodFunction(ParameterController):
             del data[key]
 
         tree = self.tree.to_rich_dict()
-        edge_attr = tree["edge_attributes"]
-        for edge in edge_attr:
+        length_and_support = tree["length_and_support"]
+        for edge in length_and_support:
             if edge == "root":
                 continue
             try:
-                edge_attr[edge]["length"] = self.get_param_value("length", edge=edge)
+                length_and_support[edge]["length"] = self.get_param_value(
+                    "length", edge=edge
+                )
             except KeyError:
                 # probably discrete-time model
-                edge_attr[edge]["length"] = None
+                length_and_support[edge]["length"] = None
 
         model = self._model.to_rich_dict(for_pickle=False)
 

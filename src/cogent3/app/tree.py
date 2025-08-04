@@ -2,7 +2,7 @@ import os
 from functools import singledispatch
 
 from cogent3 import load_tree, make_tree
-from cogent3.core.tree import TreeNode
+from cogent3.core.tree import PhyloNode
 from cogent3.phylo.nj import gnj
 from cogent3.util.io import path_exists
 from cogent3.util.misc import is_url
@@ -140,7 +140,7 @@ class quick_tree:
 
 
 @singledispatch
-def interpret_tree_arg(tree) -> None | TreeNode:
+def interpret_tree_arg(tree) -> None | PhyloNode:
     msg = f"invalid tree type {type(tree)}"
     raise TypeError(msg)
 
@@ -151,17 +151,17 @@ def _(tree: None) -> None:
 
 
 @interpret_tree_arg.register
-def _(tree: os.PathLike) -> TreeNode:
+def _(tree: os.PathLike) -> PhyloNode:
     return load_tree(filename=tree, underscore_unmunge=True)
 
 
 @interpret_tree_arg.register
-def _(tree: str) -> TreeNode:
+def _(tree: str) -> PhyloNode:
     if path_exists(tree) or is_url(tree):
         return load_tree(filename=tree, underscore_unmunge=True)
     return make_tree(tree, underscore_unmunge=True)
 
 
 @interpret_tree_arg.register
-def _(tree: TreeNode) -> TreeNode:
+def _(tree: PhyloNode) -> PhyloNode:
     return tree
