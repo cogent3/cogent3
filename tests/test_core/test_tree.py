@@ -2544,3 +2544,21 @@ def test_unrooted_deepcopy_2():
     # the root should have one child whose name is 'e'
     assert len(unco.children) == 1
     assert unco.children[0].name == "e"
+
+
+def test_load_old_tree_json(DATA_DIR: pathlib.Path):
+    with pytest.warns(UserWarning, match="Outdated tree json"):
+        tree_old = load_tree(DATA_DIR / "tree_json_old.json")
+    tree_new = load_tree(DATA_DIR / "tree_json_new.json")
+
+    for old, new in zip(tree_old.preorder(), tree_new.preorder(), strict=True):
+        assert old.name == new.name
+        if old.length is None:
+            assert new.length is None
+        else:
+            assert pytest.approx(old.length) == new.length
+
+        if old.support is None:
+            assert new.length is None
+        else:
+            assert pytest.approx(old.support) == new.support
