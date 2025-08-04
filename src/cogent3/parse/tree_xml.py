@@ -30,6 +30,7 @@ Parameters are inherited by contained clades unless overridden.
 
 import xml.sax
 from collections.abc import Callable, Sequence
+from cogent3.util.warning import deprecated_callable
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -103,6 +104,9 @@ class TreeHandler(xml.sax.ContentHandler):
             self.parent["value"] = float(text)
 
 
+@deprecated_callable(
+    "2025.9", "use json or newick as an alternative to xml", is_discontinued=True
+)
 def parse_string(
     text: str,
     tree_builder: Callable[
