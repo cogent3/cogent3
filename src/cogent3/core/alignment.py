@@ -6605,7 +6605,7 @@ class Alignment(SequenceCollection):
         """
         names, output = self._get_raw_pretty(name_order=name_order)
         label_width = max(list(map(len, names)))
-        name_template = "{:>%d}" % label_width
+        name_template = f"{{:>{label_width}}}"
         display_names = {n: name_template.format(n) for n in names}
 
         def make_line(label, seq) -> str:

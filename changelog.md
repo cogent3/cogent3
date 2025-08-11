@@ -1,4 +1,63 @@
 
+<a id='changelog-2025.7.10a7'></a>
+# Changes in release "2025.7.10a7"
+
+This release has major changes to tree classes.
+
+## Contributors
+
+- @rmcar17 refactored the cogent3 tree classes.
+
+## Enhancements
+
+- `TreeNode` and `PhyloNode` have been merged into a single class.
+- `PhyloNode` has been fully type hinted.
+- Partial type hinting for some modules related to `PhyloNode`.
+- `PhyloNode` now uses `__slots__`.
+- `PhyloNode` now has explicit length and support attributes instead of the
+  values being stored in the params dictionary.
+- `PhyloNode.descendant_array` now returns a numpy array of bools.
+- `PhyloNode.prune` now has a callback parameter for merging params of
+  different nodes. This replaces the behaviour where values in the params
+  dict were all added.
+- `PhyloNode.last_common_ancestor` now throws an error if the nodes given
+  do not belong to the same tree.
+- Rich dict and json representations of `PhyloNode` have been enhanced to
+  allow proper capturing of length and support attributed with params dict.
+- `PhyloNode.get_neighbours_except` has been promoted to a public method.
+  This is useful for manual tree traversal.
+- `PhyloNode.get_tip_names` now defaults to including itself if it is a tip.
+
+## Bug fixes
+
+- `PhyloNode.lowest_common_ancestor` now behaves correctly after
+  successive calls.
+- `PhyloNode.get_node_names` now propogates `include_self` when `tips_only`
+  is True.
+- `Alignment.pretty_print()` no longer fails if zero-length alignment and
+  wrap argument is not None.
+
+## Deprecations
+
+- `PhyloNode.get_distances` will be removed in 2025.9. Use
+  `PhyloNode.tip_to_tip_distances` instead for same behaviour.
+- `to_image` on `Drawable` objects will have `format` parameter replaced by
+  `format_name` in 2025.9.
+
+## Discontinued
+
+- `cogent3.core.tree.distance_from_r` will be removed in 2025.9
+- `cogent3.core.tree.TreeNode` will be removed in 2025.9
+- `PhyloNode` copy functions will have parameters `_nil` and `constructor`
+  removed in 2025.9 (were unused).
+- `PhyloNode.copy_topology` will be removed in 2025.9. Use the existing
+  `.copy` method.
+- `PhyloNode.child_groups` will be removed in 2025.9.
+- `constructor` parameter will be removed from `PhyloNode.unrooted_deepcopy`,
+  `PhyloNode.multifurcating` and `PhyloNode.bifurcating` in 2025.9.
+- Support for XML representation of trees will be removed in 2025.9. Use
+  newick or json instead.
+
 <a id='changelog-2025.7.10a6'></a>
 # Changes in release "2025.7.10a6"
 
