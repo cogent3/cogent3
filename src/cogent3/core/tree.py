@@ -2225,10 +2225,11 @@ class TreeBuilder:
         elif children != []:
             name, new_support = self.PhyloNodeClass.parse_token(name)
 
-            if support is not None and new_support != support:
-                msg = f"Got conflicting values for support. In name token '{name}': {new_support}. In constructor {support}."
-                raise ValueError(msg)
-            support = new_support
+            if new_support is not None:
+                if support is not None and new_support != support:
+                    msg = f"Got conflicting values for support. In name token '{name}': {new_support}. In constructor {support}."
+                    raise ValueError(msg)
+                support = new_support
 
         return self.PhyloNodeClass(
             name=self._unique_name(name),
