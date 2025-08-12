@@ -825,7 +825,13 @@ class Table:
 
         self._persistent_attrs["space"] = value
 
-    def set_repr_policy(self, head=None, tail=None, random=0, show_shape=True) -> None:
+    def set_repr_policy(
+        self,
+        head: int | None = None,
+        tail: int | None = None,
+        random: int = 0,
+        show_shape: bool = True,
+    ) -> None:
         """specify policy for repr(self)
 
         Parameters
