@@ -2562,3 +2562,10 @@ def test_load_old_tree_json(DATA_DIR: pathlib.Path):
             assert new.length is None
         else:
             assert pytest.approx(old.support) == new.support
+
+
+def test_support_carries_through_sorted():
+    tree = make_tree("(a,((c,d)70,b)30)")
+    tree = tree.sorted()
+    assert tree[1].support == 30
+    assert tree[1][1].support == 70
