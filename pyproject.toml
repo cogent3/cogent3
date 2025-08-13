@@ -136,6 +136,11 @@ skip_fragments = "README.*"
 new_fragment_template = "file: changelog.d/templates/new.md.j2"
 entry_title_template = "file: changelog.d/templates/title.md.j2"
 
+[[tool.mypy.overrides]]
+module = ["numba"]
+ignore_missing_imports = true
+
+
 [project.entry-points."cogent3.app"]
 concat = "cogent3.app.sample:concat"
 fixed_length = "cogent3.app.sample:fixed_length"

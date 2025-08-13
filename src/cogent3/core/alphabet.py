@@ -131,7 +131,7 @@ class AlphabetABC(ABC, Generic[StrOrBytes]):
 
     @property
     @abstractmethod
-    def gap_index(self) -> numpy.integer | int | None: ...
+    def gap_index(self) -> int | None: ...
 
     @property
     @abstractmethod
@@ -139,7 +139,7 @@ class AlphabetABC(ABC, Generic[StrOrBytes]):
 
     @property
     @abstractmethod
-    def missing_index(self) -> numpy.integer | int | None: ...
+    def missing_index(self) -> int | None: ...
 
     @abstractmethod
     def to_rich_dict(self, for_pickle: bool = False) -> dict[str, Any]: ...
@@ -367,16 +367,16 @@ class CharAlphabet(
         return self._gap_char
 
     @property
-    def gap_index(self) -> numpy.integer | None:
-        return self._gap_index
+    def gap_index(self) -> int | None:
+        return int(self._gap_index) if self._gap_index is not None else None
 
     @property
     def missing_char(self) -> StrOrBytes | None:
         return self._missing_char
 
     @property
-    def missing_index(self) -> numpy.integer | None:
-        return self._missing_index
+    def missing_index(self) -> int | None:
+        return int(self._missing_index) if self._missing_index is not None else None
 
     @property
     def motif_len(self) -> int:

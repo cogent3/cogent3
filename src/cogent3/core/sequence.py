@@ -17,6 +17,7 @@ from collections import defaultdict
 from functools import singledispatch, total_ordering
 from operator import eq, ne
 from random import shuffle
+from typing import Any
 
 import numpy
 import typing_extensions
@@ -131,7 +132,7 @@ class Sequence(AnnotatableMixin):
 
     def __init__(
         self,
-        moltype: c3_moltype.MolType,
+        moltype: c3_moltype.MolType[Any],
         seq: StrORBytesORArray | SeqViewABC,
         *,
         name: OptStr = None,
@@ -744,7 +745,7 @@ class Sequence(AnnotatableMixin):
     def frac_similar(
         self,
         other: typing_extensions.Self,
-        similar_pairs: dict[(str, str), typing.Any],
+        similar_pairs: dict[(str, str), Any],
     ) -> float:
         """Returns fraction of positions where self[i] is similar to other[i].
 
@@ -1201,7 +1202,7 @@ class Sequence(AnnotatableMixin):
         return self.make_feature(feature_data)
 
     def to_moltype(
-        self, moltype: c3_moltype.MolTypeLiteral | c3_moltype.MolType
+        self, moltype: c3_moltype.MolTypeLiteral | c3_moltype.MolType[Any]
     ) -> Sequence:
         """returns copy of self with moltype seq
 

@@ -330,6 +330,8 @@ class GeneticCode:
             words = tuple(self.moltype.alphabet.get_kmer_alphabet(k=3))
         else:
             words = tuple(self.sense_codons)
+        assert self.moltype.gapped_alphabet is not None
+        assert self.moltype.degen_gapped_alphabet is not None
         return _get_code_alphabet(
             words,
             self.moltype.gapped_alphabet.gap_char,
