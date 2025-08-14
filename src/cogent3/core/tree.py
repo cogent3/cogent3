@@ -1440,7 +1440,6 @@ class PhyloNode:
         self,
         num: int,
         eps: float | None = None,
-        constructor: type[Self] | None = None,
         name_unnamed: bool = False,
     ) -> Self:
         """return a new tree with every node having num or few children
@@ -1452,7 +1451,6 @@ class PhyloNode:
         eps : float
             default branch length to set if self or constructor is of
             PhyloNode type
-        constructor
             a PhyloNode or subclass constructor. If None, uses self
         name_unnamed : bool
             names unnamed nodes
@@ -1464,8 +1462,7 @@ class PhyloNode:
         if eps is None:
             eps = 0.0
 
-        if constructor is None:
-            constructor = self.__class__
+        constructor = self.__class__
 
         new_tree = self.copy()
 
@@ -1500,11 +1497,10 @@ class PhyloNode:
     def bifurcating(
         self,
         eps: float | None = None,
-        constructor: type[Self] | None = None,
         name_unnamed: bool = False,
     ) -> Self:
         """Wrap multifurcating with a num of 2"""
-        return self.multifurcating(2, eps, constructor, name_unnamed)
+        return self.multifurcating(2, eps, name_unnamed)
 
     def get_nodes_dict(self) -> dict[str, Self]:
         """Returns a dict keyed by node name, value is node
@@ -1699,8 +1695,6 @@ class PhyloNode:
     )
     def unrooted_deepcopy(
         self,
-        constructor: Callable[[Self | None, PySeq[Self], dict[str, Any] | None], Self]
-        | None = None,
         parent: Self | None = None,
     ) -> Self:
         """
@@ -1710,8 +1704,7 @@ class PhyloNode:
         The resulting tree may contain unary internal nodes, which can
         be cleaned up using `prune()` afterward.
         """
-        if constructor is None:
-            constructor = self._default_tree_constructor()
+        constructor = self._default_tree_constructor()
 
         # node_map maps id(original_node) -> new_node
         node_map: dict[int, Self] = {}
@@ -2009,7 +2002,7 @@ class PhyloNode:
     def get_distances(
         self, names: PySeqStr | None = None
     ) -> DistanceMatrix:  # pragma: no cover
-        """returns pairwise distance matrix"""
+        """discontinued"""
         return self.tip_to_tip_distances(names=names)
 
     def get_max_tip_tip_distance(
@@ -2232,10 +2225,11 @@ class TreeBuilder:
         elif children != []:
             name, new_support = self.PhyloNodeClass.parse_token(name)
 
-            if support is not None and new_support != support:
-                msg = f"Got conflicting values for support. In name token '{name}': {new_support}. In constructor {support}."
-                raise ValueError(msg)
-            support = new_support
+            if new_support is not None:
+                if support is not None and new_support != support:
+                    msg = f"Got conflicting values for support. In name token '{name}': {new_support}. In constructor {support}."
+                    raise ValueError(msg)
+                support = new_support
 
         return self.PhyloNodeClass(
             name=self._unique_name(name),

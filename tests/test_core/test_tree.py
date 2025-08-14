@@ -14,7 +14,7 @@ from numpy.testing import assert_allclose, assert_equal
 
 from cogent3 import get_dataset, load_tree, make_tree, open_
 from cogent3._version import __version__
-from cogent3.core.tree import PhyloNode, TreeError, split_name_and_support
+from cogent3.core.tree import PhyloNode, TreeBuilder, TreeError, split_name_and_support
 from cogent3.parse.tree import DndParser
 from cogent3.util.misc import get_object_provenance
 
@@ -2562,3 +2562,19 @@ def test_load_old_tree_json(DATA_DIR: pathlib.Path):
             assert new.length is None
         else:
             assert pytest.approx(old.support) == new.support
+
+
+def test_support_carries_through_sorted():
+    tree = make_tree("(a,((c,d)70,b)30)")
+    tree = tree.sorted()
+    assert tree[1].support == 30
+    assert tree[1][1].support == 70
+
+
+def test_conflicting_support():
+    name_with_support = "innerName/50"
+
+    with pytest.raises(ValueError):
+        TreeBuilder(PhyloNode).create_edge(
+            [PhyloNode("a"), PhyloNode("b")], name_with_support, {}, None, 30
+        )
