@@ -40,9 +40,9 @@ from random import choice
 
 import typing_extensions
 from numpy import ceil, log, zeros
+from scipy.stats import pearsonr
 
 from cogent3._version import __version__
-from cogent3.maths.stats.test import correlation
 from cogent3.parse.cogent3_json import load_from_json
 from cogent3.parse.newick import parse_string as newick_parse_string
 from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
@@ -60,7 +60,8 @@ if typing_extensions.TYPE_CHECKING:
 
 def distance_from_r(m1, m2):
     """Estimates distance as (1-r)/2: neg correl = max distance"""
-    return (1 - correlation(m1.flat, m2.flat)[0]) / 2
+    r,_ = pearsonr(m1.flat, m2.flat)  # Use scipy function 
+    return (1 - r) / 2
 
 
 class TreeError(Exception):
