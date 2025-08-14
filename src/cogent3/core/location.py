@@ -24,8 +24,6 @@ strip = str.strip
 
 _DEFAULT_GAP_DTYPE = numpy.int32
 
-OptInt = int | None
-
 
 class Strand(enum.Enum):
     """enum for defining strand information"""
@@ -730,8 +728,8 @@ def _step_adjusted_length(start: int, end: int, adj: int, step: int) -> int:
 
 def _input_vals_pos_step(
     seqlen: int,
-    start: OptInt,
-    stop: OptInt,
+    start: int | None,
+    stop: int | None,
     step: int,
 ) -> tuple[int, int, int]:
     """returns standardised start, stop, step values for positive step slicing."""
@@ -765,8 +763,8 @@ def _input_vals_pos_step(
 
 def _input_vals_neg_step(
     seqlen: int,
-    start: OptInt,
-    stop: OptInt,
+    start: int | None,
+    stop: int | None,
     step: int,
 ) -> tuple[int, int, int]:
     """returns standardised start, stop, step values for negative step slicing."""
