@@ -50,8 +50,7 @@ class LogFileOutput:
 class ProgressContext:
     def __init__(
         self,
-        progress_bar_type: type[tqdm[Any] | notebook.tqdm[Any] | LogFileOutput]
-        | None = None,
+        progress_bar_type: type[tqdm | notebook.tqdm | LogFileOutput] | None = None,
         depth: int = -1,
         message: str | None = None,
         mininterval: float = 1.0,
@@ -196,7 +195,7 @@ def display_wrap(slow_function: Callable[P, R]):
     @functools.wraps(slow_function)
     def f(*args: P.args, **kw: P.kwargs) -> R:
         if getattr(CURRENT, "context", None) is None:
-            klass: type[tqdm[Any] | notebook.tqdm[Any] | LogFileOutput] | None
+            klass: type[tqdm | notebook.tqdm | LogFileOutput] | None
             if sys.stdout.isatty():
                 klass = tqdm
             elif in_jupyter():
