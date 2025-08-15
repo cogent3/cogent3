@@ -3,24 +3,31 @@ import io
 import sys
 import threading
 import time
+from collections.abc import Callable, Collection, Generator, Iterable, Sized
+from collections.abc import Sequence as PySeq
+from typing import Any, ParamSpec, Self, TypeVar
 
 from tqdm import notebook, tqdm
 
 from cogent3.util import parallel as PAR
 from cogent3.util.misc import in_jupyter
 
+P = ParamSpec("P")
+R = TypeVar("R")
+T = TypeVar("T")
+
 
 class LogFileOutput:
     """A fake progress bar for when progress bars are impossible"""
 
-    def __init__(self, **kw) -> None:
-        self.n = 0
+    def __init__(self, **kw: Any) -> None:
+        self.n: float = 0
         self.message = ""
         self.t0 = time.time()
         self.lpad = ""
         self.output = sys.stdout  # sys.stderr
 
-    def set_description(self, desc="", refresh=False) -> None:
+    def set_description(self, desc: str = "", refresh: bool = False) -> None:
         self.message = desc
 
     def close(self) -> None:
@@ -35,18 +42,23 @@ class LogFileOutput:
                 file=self.output,
             )
 
+    @classmethod
+    def write(cls, *args: Any, **kwargs: Any) -> None:
+        pass
+
 
 class ProgressContext:
     def __init__(
         self,
-        progress_bar_type=None,
-        depth=-1,
-        message=None,
-        mininterval=1.0,
+        progress_bar_type: type[tqdm[Any] | notebook.tqdm[Any] | LogFileOutput]
+        | None = None,
+        depth: int = -1,
+        message: str | None = None,
+        mininterval: float = 1.0,
     ) -> None:
         self.progress_bar_type = progress_bar_type
-        self.progress_bar = None
-        self.progress = 0
+        self.progress_bar: tqdm[Any] | notebook.tqdm[Any] | LogFileOutput | None = None
+        self.progress: float = 0
         self.depth = depth
         self.message = message
         self.mininterval = mininterval
@@ -62,7 +74,7 @@ class ProgressContext:
                 dynamic_ncols=True,
             )
 
-    def subcontext(self, *args, **kw):
+    def subcontext(self, *args: Any, **kw: Any):
         return ProgressContext(
             progress_bar_type=self.progress_bar_type,
             depth=self.depth + 1,
@@ -70,10 +82,11 @@ class ProgressContext:
             mininterval=self.mininterval,
         )
 
-    def display(self, msg=None, progress=None) -> None:
+    def display(self, msg: str | None = None, progress: float | None = None) -> None:
         if not self.progress_bar:
             self.set_new_progress_bar()
         updated = False
+        assert self.progress_bar is not None
         if progress is not None:
             self.progress = min(progress, 1.0)
             self.progress_bar.n = self.progress
@@ -92,11 +105,19 @@ class ProgressContext:
             self.progress_bar.close()
             self.progress_bar = None
 
-    def series(self, items, noun="", labels=None, start=None, end=1.0, count=None):
+    def series(
+        self,
+        items: Iterable[T],
+        noun: str = "",
+        labels: PySeq[str] | None = None,
+        start: float | None = None,
+        end: float = 1.0,
+        count: int | None = None,
+    ) -> Generator[T]:
         """Wrap a looped-over list with a progress bar"""
         # TODO optimise label creation
         if count is None:
-            if not hasattr(items, "__len__"):
+            if not isinstance(items, Sized):
                 items = list(items)
             count = len(items)
         if count == 0:
@@ -120,23 +141,31 @@ class ProgressContext:
             yield item
         self.display(progress=end)
 
-    def write(self, *args, **kw) -> None:
+    def write(self, *args: Any, **kw: Any) -> None:
         if self.progress_bar_type and len(kw) < 3 and not in_jupyter():
             self.progress_bar_type.write(*args, **kw)
         else:
             pass
 
-    def imap(self, f, s, mininterval=1.0, parallel=False, par_kw=None, **kw):
+    def imap(
+        self,
+        f: Callable[[T], R],
+        s: Collection[T],
+        mininterval: float = 1.0,
+        parallel: bool = False,
+        par_kw: dict[str, Any] | None = None,
+        **kw: Any,
+    ) -> Generator[R]:
         self.mininterval = mininterval
         if parallel:
             # TODO document parallel.map arguments
             par_kw = par_kw or {}
-            results = PAR.imap(f, s, **par_kw)
+            results: Iterable[R] = PAR.imap(f, s, **par_kw)
         else:
             results = map(f, s)
         yield from self.series(results, count=len(s), **kw)
 
-    def map(self, f, s, **kw):
+    def map(self, f: Callable[[T], R], s: Collection[T], **kw: Any):
         return list(self.imap(f, s, **kw))
 
 
@@ -144,10 +173,10 @@ class NullContext(ProgressContext):
     """A UI context which discards all output.  Useful on secondary MPI cpus,
     and other situations where all output is suppressed"""
 
-    def subcontext(self, *args, **kw):
+    def subcontext(self, *args: Any, **kw: Any) -> Self:
         return self
 
-    def display(self, *args, **kw) -> None:
+    def display(self, *args: Any, **kw: Any) -> None:
         pass
 
     def done(self) -> None:
@@ -159,14 +188,15 @@ CURRENT = threading.local()
 CURRENT.context = None
 
 
-def display_wrap(slow_function):
+def display_wrap(slow_function: Callable[P, R]):
     """Decorator which give the function its own UI context.
     The function will receive an extra argument, 'ui',
     which is used to report progress etc."""
 
     @functools.wraps(slow_function)
-    def f(*args, **kw):
+    def f(*args: P.args, **kw: P.kwargs) -> R:
         if getattr(CURRENT, "context", None) is None:
+            klass: type[tqdm[Any] | notebook.tqdm[Any] | LogFileOutput] | None
             if sys.stdout.isatty():
                 klass = tqdm
             elif in_jupyter():
@@ -195,31 +225,31 @@ def display_wrap(slow_function):
 
 
 @display_wrap
-def subdemo(ui) -> None:
+def subdemo(ui: ProgressContext) -> None:
     for _j in ui.series(list(range(10))):
         time.sleep(0.1)
 
 
 @display_wrap
-def demo(ui) -> None:
+def demo(ui: ProgressContext) -> None:
     ui.write("non-linebuffered output, tricky but look:")
     for i in ui.series(list(range(10))):
         time.sleep(0.6)
-        for i in imap(fun, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]):
+        for i in imap(fun, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], ui):
             ui.write(str(i))
         ui.write(str(i) + ".")
     ui.write("done")
 
 
 @display_wrap
-def imap(f, s, ui):
+def imap(f: Callable[[T], R], s: Collection[T], ui: ProgressContext) -> Generator[R]:
     yield from ui.imap(f, s)
 
 
-def fun(inp):
+def fun(inp: T) -> T:
     time.sleep(0.1)
     return inp
 
 
 if __name__ == "__main__":
-    demo()
+    demo(ProgressContext(tqdm))
