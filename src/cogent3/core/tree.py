@@ -75,11 +75,6 @@ if TYPE_CHECKING:  # pragma: no cover
 
     PySeq = Sequence
     PySeqStr = PySeq[str]
-    
-def distance_from_r(m1, m2):
-    """Estimates distance as (1-r)/2: neg correl = max distance"""
-    result = pearsonr(m1.flat, m2.flat)  # Use scipy function 
-    return (1 - result.statistics) / 2
 
 class TreeError(Exception):
     pass
@@ -89,7 +84,7 @@ def distance_from_r(
     m1: npt.NDArray[numpy.number], m2: npt.NDArray[numpy.number]
 ) -> float:  # pragma: no cover
     """Estimates distance as (1-r)/2: neg correl = max distance"""
-    return (1 - cast("float", correlation(m1.flat, m2.flat)[0])) / 2
+    return (1 - cast("float", pearsonr(m1.flat, m2.flat)[0])) / 2
 
 
 def _format_node_name(
