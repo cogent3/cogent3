@@ -620,7 +620,8 @@ def _get_kmer_alpha(
 
     gap = gap_char * k if include_gap and gap_char is not None else None
     missing = missing_char * k if missing_char is not None and include_gap else None
-    words = tuple("".join(e) for e in itertools.product(chars, repeat=k))
+    joiner = b"".join if isinstance(monomers[0], bytes) else "".join
+    words = tuple(joiner(e) for e in itertools.product(chars, repeat=k))
     words += (gap,) if include_gap and gap else ()
     words += (missing,) if include_gap and missing else ()
 

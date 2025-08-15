@@ -15,8 +15,13 @@ also:
 """
 
 import re
+from collections.abc import Callable, Generator, Sequence
+from typing import TYPE_CHECKING, Any
 
 from cogent3.parse.record import FileFormatError
+
+if TYPE_CHECKING:  # pragma: no cover
+    from cogent3.core.tree import PhyloNode
 
 EOT = None
 
@@ -37,13 +42,15 @@ class _Tokeniser:
     is often inconvenient for other purposes.
     """
 
-    def __init__(self, text, strict_labels=False, underscore_unmunge=True) -> None:
+    def __init__(
+        self, text: str, strict_labels: bool = False, underscore_unmunge: bool = True
+    ) -> None:
         self.text = text
         self.posn = None
         self.strict_unquoted_labels = strict_labels
         self.underscore_unmunge = underscore_unmunge
 
-    def error(self, detail=""):
+    def error(self, detail: str = "") -> TreeParseError:
         msg = f'Unexpected "{self.token}" at ' if self.token else "At "
         (line, column) = self.posn
         sample = self.text.split("\n")[line][:column]
@@ -55,7 +62,7 @@ class _Tokeniser:
             msg += f'char {column} "{sample}"'
         return TreeParseError(msg + ". " + detail)
 
-    def tokens(self):
+    def tokens(self) -> Generator[str | None]:
         column = 0
         line = 0
         text = None
@@ -135,7 +142,16 @@ class _Tokeniser:
                 yield token
 
 
-def parse_string(text, constructor, **kw):
+def parse_string(
+    text: str,
+    constructor: Callable[
+        [Sequence["PhyloNode"], str | None, dict[str, Any], float | None, float | None],
+        "PhyloNode",
+    ],
+    *,
+    strict_labels: bool = False,
+    underscore_unmunge: bool = True,
+) -> "PhyloNode":
     """Parses a Newick-format string, using specified constructor for tree.
 
     Calls constructor(children, name, attributes)
@@ -153,7 +169,9 @@ def parse_string(text, constructor, **kw):
     nodes = []
     children = name = expected_attribute = None
     attributes = {}
-    tokeniser = _Tokeniser(text, **kw)
+    tokeniser = _Tokeniser(
+        text, strict_labels=strict_labels, underscore_unmunge=underscore_unmunge
+    )
     for token in tokeniser.tokens():
         if expected_attribute is not None:
             (attr_name, attr_cast) = expected_attribute
@@ -183,7 +201,9 @@ def parse_string(text, constructor, **kw):
                 raise tokeniser.error(msg)
             expected_attribute = ("other", lambda x: x.split(","))
         elif token in [")", ";", ",", EOT]:
-            nodes.append(constructor(children, name, attributes))
+            length = attributes.pop("length", None)
+            support = attributes.pop("support", None)
+            nodes.append(constructor(children, name, attributes, length, support))
             children = name = expected_attribute = None
             attributes = {}
             if token in sentinals:

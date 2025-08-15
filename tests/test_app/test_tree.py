@@ -7,7 +7,7 @@ import cogent3
 from cogent3.app import dist
 from cogent3.app import tree as tree_app
 from cogent3.app.composable import NotCompleted
-from cogent3.core.tree import PhyloNode, TreeNode
+from cogent3.core.tree import PhyloNode
 from cogent3.evolve.fast_distance import DistanceMatrix
 
 DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
@@ -240,7 +240,7 @@ def test_interpret_tree_arg_none():
 )
 def test_interpret_tree_arg_valid(tree):
     got = tree_app.interpret_tree_arg(tree)
-    assert isinstance(got, TreeNode)
+    assert isinstance(got, PhyloNode)
 
 
 @pytest.mark.parametrize(

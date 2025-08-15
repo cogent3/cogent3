@@ -29,10 +29,29 @@ Parameters are inherited by contained clades unless overridden.
 """
 
 import xml.sax
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING, Any
+
+from cogent3.util.warning import deprecated_callable
+
+if TYPE_CHECKING:  # pragma: no cover
+    from cogent3.core.tree import PhyloNode
 
 
 class TreeHandler(xml.sax.ContentHandler):
-    def __init__(self, tree_builder) -> None:
+    def __init__(
+        self,
+        tree_builder: Callable[
+            [
+                Sequence["PhyloNode"],
+                str | None,
+                dict[str, Any],
+                float | None,
+                float | None,
+            ],
+            "PhyloNode",
+        ],
+    ) -> None:
         self.build_edge = tree_builder
 
     def startDocument(self) -> None:
@@ -68,7 +87,9 @@ class TreeHandler(xml.sax.ContentHandler):
         pass
 
     def process_clade(self, text, name, params, clades) -> None:
-        edge = self.build_edge(clades, name, params)
+        length = params.pop("length", None)
+        support = params.pop("support", None)
+        edge = self.build_edge(clades, name, params, length, support)
         self.parent["clades"].append(edge)
 
     def process_param(self, text, name, value) -> None:
@@ -84,7 +105,16 @@ class TreeHandler(xml.sax.ContentHandler):
             self.parent["value"] = float(text)
 
 
-def parse_string(text, tree_builder):
+@deprecated_callable(
+    "2025.9", "use json or newick as an alternative to xml", is_discontinued=True
+)
+def parse_string(
+    text: str,
+    tree_builder: Callable[
+        [Sequence["PhyloNode"], str | None, dict[str, Any], float | None, float | None],
+        "PhyloNode",
+    ],
+) -> "PhyloNode":
     handler = TreeHandler(tree_builder)
     xml.sax.parseString(text.encode("utf8"), handler)
     trees = handler.data["clades"]

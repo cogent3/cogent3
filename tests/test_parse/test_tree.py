@@ -130,32 +130,32 @@ class DndParserTests(TestCase):
     def test_nonames(self):
         """DndParser should produce the correct tree when there are no names"""
         obs = DndParser(no_names)
-        exp = PhyloNode()
-        exp.append(PhyloNode())
-        exp.append(PhyloNode())
-        exp.children[0].append(PhyloNode())
-        exp.children[0].append(PhyloNode())
-        exp.children[1].append(PhyloNode())
-        exp.children[1].append(PhyloNode())
+        exp = PhyloNode("")
+        exp.append(PhyloNode(""))
+        exp.append(PhyloNode(""))
+        exp.children[0].append(PhyloNode(""))
+        exp.children[0].append(PhyloNode(""))
+        exp.children[1].append(PhyloNode(""))
+        exp.children[1].append(PhyloNode(""))
         assert str(obs) == str(exp)
 
     def test_minimal(self):
         """DndParser should produce the correct minimal tree"""
         obs = DndParser(minimal)
-        exp = PhyloNode()
-        exp.append(PhyloNode())
+        exp = PhyloNode("")
+        exp.append(PhyloNode(""))
         assert str(obs) == str(exp)
 
     def test_missing_tip_name(self):
         """DndParser should produce the correct tree when missing a name"""
         obs = DndParser(missing_tip_name)
-        exp = PhyloNode()
-        exp.append(PhyloNode())
-        exp.append(PhyloNode())
+        exp = PhyloNode("")
+        exp.append(PhyloNode(""))
+        exp.append(PhyloNode(""))
         exp.children[0].append(PhyloNode(name="a"))
         exp.children[0].append(PhyloNode(name="b"))
         exp.children[1].append(PhyloNode(name="c"))
-        exp.children[1].append(PhyloNode())
+        exp.children[1].append(PhyloNode(""))
         assert str(obs) == str(exp)
 
     def test_gsingle(self):
@@ -253,7 +253,7 @@ class PhyloNodeTests(TestCase):
 
     def test_gops(self):
         """Basic PhyloNode operations should work as expected"""
-        p = PhyloNode()
+        p = PhyloNode("")
         assert p.get_newick(with_node_names=True) == ";"
         p.name = "abc"
         assert p.get_newick(with_node_names=True, with_root_name=True) == "abc;"
@@ -262,13 +262,13 @@ class PhyloNodeTests(TestCase):
             p.get_newick(with_node_names=True, with_distances=True, with_root_name=True)
             == "abc:3;"
         )  # don't suppress branch from root
-        q = PhyloNode()
+        q = PhyloNode("")
         p.append(q)
         assert (
             p.get_newick(with_node_names=True, with_distances=True, with_root_name=True)
             == "()abc:3;"
         )
-        r = PhyloNode()
+        r = PhyloNode("")
         q.append(r)
         assert (
             p.get_newick(with_node_names=True, with_distances=True, with_root_name=True)

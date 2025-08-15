@@ -13,7 +13,7 @@ from cogent3._plugin import get_app_manager
 from .composable import is_app, is_app_composable
 from .io import open_data_store  # noqa
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from stevedore.extension import Extension
 
     from cogent3.core.table import Table

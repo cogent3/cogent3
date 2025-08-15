@@ -1,5 +1,6 @@
 import typing
 from collections import defaultdict, namedtuple
+from collections.abc import Sequence
 from numbers import Number
 
 import numba
@@ -760,7 +761,10 @@ class DistanceMatrix(DictArray):
 
     @classmethod
     def from_array_names(
-        cls, matrix: numpy.ndarray, names: PySeqStr, invalid: bool | None = None
+        cls,
+        matrix: numpy.typing.NDArray[numpy.number],
+        names: PySeqStr,
+        invalid: bool | None = None,
     ) -> "DistanceMatrix":
         """construct a distance matrix from numpy array and names"""
         darr = DictArray.from_array_names(matrix, names, names)
@@ -770,7 +774,7 @@ class DistanceMatrix(DictArray):
         index, _ = self.template.interpret_index(names)
         self.array[index] = value
 
-    def __getitem__(self, names):
+    def __getitem__(self, names) -> numpy.number:
         index, remaining = self.template.interpret_index(names)
         result = self.array[index]
         if remaining is not None:
@@ -814,7 +818,7 @@ class DistanceMatrix(DictArray):
         }
 
     def take_dists(
-        self, names: list[str] | str, negate: bool = False
+        self, names: Sequence[str] | str, negate: bool = False
     ) -> "DistanceMatrix":
         """
         Parameters

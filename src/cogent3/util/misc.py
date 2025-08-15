@@ -6,18 +6,20 @@ import contextlib
 import inspect
 import os
 import re
-import typing
 import warnings
 from random import choice
-from typing import Any
+from typing import TYPE_CHECKING, Any, ParamSpec, TypeVar
 from urllib.parse import urlparse
 from warnings import warn
 
 import numpy
 from numpy import array, finfo, float64, floating, integer, ndarray, zeros
 
-if typing.TYPE_CHECKING:  # pragma: no cover
-    from collections.abc import Callable
+if TYPE_CHECKING:  # pragma: no cover
+    from collections.abc import Callable, Iterable
+
+
+T = TypeVar("T")
 
 
 def _adjusted_gt_minprob_vector(probs, minprob):
@@ -921,7 +923,7 @@ def get_merged_by_value_coords(spans_value, digits=None):
     return data
 
 
-def get_object_provenance(obj):
+def get_object_provenance(obj: object) -> str:
     """returns string of complete object provenance"""
     # algorithm inspired by Greg Baacon's answer to
     # https://stackoverflow.com/questions/2020014/get-fully-qualified-class
@@ -936,8 +938,14 @@ def get_object_provenance(obj):
     return name if mod is None or mod == "builtins" else f"{mod}.{name}"
 
 
-def extend_docstring_from(source, pre=False):
-    def docstring_inheriting_decorator(dest):
+P = ParamSpec("P")
+R = TypeVar("R")
+
+
+def extend_docstring_from(
+    source: object, pre: bool = False
+) -> Callable[[Callable[P, R]], Callable[P, R]]:
+    def docstring_inheriting_decorator(dest: Callable[P, R]) -> Callable[P, R]:
         parts = [source.__doc__ or "", dest.__doc__ or ""]
         # trim leading/trailing blank lines from parts
         for i, part in enumerate(parts):
@@ -1039,7 +1047,7 @@ def in_jupyter() -> bool:
     try:
         # primitive approach, just check whether the following function
         # is in the namespace
-        get_ipython
+        get_ipython  # noqa: B018
     except NameError:
         val = False
 
@@ -1088,7 +1096,7 @@ def get_true_spans(arr: ndarray, absolute_pos: bool = True) -> ndarray:
     return result[:num_runs]
 
 
-def get_first_value(data: typing.Iterable[typing.Any]):
+def get_first_value(data: Iterable[T]) -> T:
     """return first value from a container
 
     Parameters
@@ -1112,23 +1120,23 @@ def get_first_value(data: typing.Iterable[typing.Any]):
 class negate_condition:
     """negates the result of calling func."""
 
-    def __init__(self, func: Callable[[typing.Any], bool]) -> None:
+    def __init__(self, func: Callable[..., bool]) -> None:
         self.func = func
 
     def __call__(self, *args: Any, **kwargs: Any) -> bool:
         return not bool(self.func(*args, **kwargs))
 
 
-def is_number(v) -> bool:
+def is_number(v: Any) -> bool:
     """built in or numpy number type"""
     return isinstance(v, (int, float, integer, floating))
 
 
-def is_int(v) -> bool:
+def is_int(v: Any) -> bool:
     """built in or numpy int type"""
     return isinstance(v, (int, integer))
 
 
-def is_float(v) -> bool:
+def is_float(v: Any) -> bool:
     """built in or numpy float type"""
     return isinstance(v, (float, floating))

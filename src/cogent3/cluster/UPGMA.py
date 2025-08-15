@@ -103,7 +103,7 @@ def condense_node_order(matrix, smallest_index, node_order):
             n.length = d
         n.params["TipLength"] = d
     # combine the two nodes into a new PhyloNode object
-    new_node = PhyloNode()
+    new_node = PhyloNode("")
     new_node.children.append(node1)
     new_node.children.append(node2)
     node1.parent = new_node

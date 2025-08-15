@@ -569,7 +569,6 @@ class LikelihoodFunctionTests(TestCase):
 
         result = lf.get_annotated_tree()
         human = result.get_node_matching_name("Human")
-        assert human.params["length"] == 4.0
         assert human.length == 4.0
         # specify length as paralinear or ENS does not fail
         lf.get_annotated_tree(length_as="ENS")
