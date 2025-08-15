@@ -46,8 +46,6 @@ from typing import (
     overload,
 )
 
-import typing_extensions
-from numpy import ceil, log, zeros
 from scipy.stats import pearsonr
 import numpy
 import numpy.typing as npt

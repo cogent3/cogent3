@@ -15,6 +15,7 @@ from numpy import (
     expm1,
     fabs,
     finfo,
+    float64,
     isinf,
     isnan,
     log,
@@ -31,7 +32,6 @@ from numpy import (
 )
 from numpy import std as _std
 from numpy import sum as npsum
-from numpy import float64, finfo
 from numpy.random import permutation, randint
 from scipy.special import gamma, ndtri
 from scipy.stats import binom, f, norm, t, ks_2samp, mannwhitneyu
@@ -1776,24 +1776,6 @@ def _get_bootstrap_sample(x, y, num_reps):
         sampled = combined.take(indices)
         yield sampled[:num_x], sampled[num_x:]
 
-def ks_boot(x, y, alt="two-sided", num_reps=1000):
-    """Monte Carlo (bootstrap) variant of the Kolmogorov-Smirnov test. Useful
-    for when there are ties.
-
-    Parameters
-    ----------
-    x, y
-        vectors of numbers
-    alt
-        alternate hypothesis, one of {'two-sided', 'less', 'greater'}
-    num_reps
-        number of replicates for the bootstrap
-
-    Notes
-    -----
-    Based on the ks_boot method in the R Matching package:
-    http://sekhon.berkeley.edu/matching/
-    """
 def ks_boot(x, y, alt="two-sided", num_reps=1000):
     """Monte Carlo bootstrap variant of KS test (SciPy 1.16 compatible)."""
     if alt != "two-sided":
