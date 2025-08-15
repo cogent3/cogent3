@@ -112,19 +112,19 @@ class SpanI:
         self.end: int
         self.reverse: bool
 
-    def __contains__(self, other: "SpanI | int") -> bool:
+    def __contains__(self, other: "SpanI | int") -> bool:  # pragma: no cover
         """Returns True if other entirely contained in self."""
         raise NotImplementedError
 
-    def overlaps(self, other: "SpanI | int") -> bool:
+    def overlaps(self, other: "SpanI | int") -> bool:  # pragma: no cover
         """Returns True if any positions in self are also in other."""
         raise NotImplementedError
 
-    def reverses(self) -> None:
+    def reverses(self) -> None:  # pragma: no cover
         """Reverses self."""
         raise NotImplementedError
 
-    def __iter__(self) -> Iterator[int]:
+    def __iter__(self) -> Iterator[int]:  # pragma: no cover
         """Iterates over indices contained in self."""
         raise NotImplementedError
 
@@ -132,11 +132,11 @@ class SpanI:
         """Returns string representation of self."""
         return f"({self.start},{self.end})"
 
-    def __len__(self) -> int:
+    def __len__(self) -> int:  # pragma: no cover
         """Returns length of self."""
         raise NotImplementedError
 
-    def __lt__(self, other: "SpanI") -> bool:
+    def __lt__(self, other: "SpanI") -> bool:  # pragma: no cover
         """Compares indices of self with indices of other."""
         raise NotImplementedError
 

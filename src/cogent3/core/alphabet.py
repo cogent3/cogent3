@@ -542,7 +542,7 @@ class CharAlphabet(
         return json.dumps(self.to_rich_dict())
 
     @classmethod
-    def from_rich_dict(cls, data: dict[str, Any]) -> "CharAlphabet[Any]":
+    def from_rich_dict(cls, data: dict[str, Any]) -> "CharAlphabet[StrOrBytes]":
         """returns an instance from a serialised dictionary"""
         return cls(data["chars"], gap=data["gap"], missing=data["missing"])
 
@@ -1222,9 +1222,9 @@ class KmerAlphabet(
         return json.dumps(self.to_rich_dict())
 
     @classmethod
-    def from_rich_dict(cls, data: dict[str, Any]) -> "KmerAlphabet[Any]":
+    def from_rich_dict(cls, data: dict[str, Any]) -> "KmerAlphabet[StrOrBytes]":
         """returns an instance from a serialised dictionary"""
-        monomers = CharAlphabet.from_rich_dict(data["monomers"])
+        monomers = CharAlphabet[StrOrBytes].from_rich_dict(data["monomers"])
         return cls(
             words=data["words"],
             monomers=monomers,
@@ -1387,7 +1387,7 @@ class SenseCodonAlphabet(
             msg = f"invalid {index=}"
             raise ValueError(msg) from e
 
-    def from_indices(self, indices: NumpyIntArrayType) -> list[str]:  # type: ignore
+    def from_indices(self, indices: NumpyIntArrayType) -> list[str]:  # type: ignore[override]
         """returns a list of codons from a numpy array of indices"""
         return [self.from_index(index) for index in indices]
 
