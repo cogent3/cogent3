@@ -5,9 +5,10 @@ import threading
 import time
 from collections.abc import Callable, Collection, Generator, Iterable, Sized
 from collections.abc import Sequence as PySeq
-from typing import Any, ParamSpec, Self, TypeVar
+from typing import Any, ParamSpec, TypeVar
 
 from tqdm import notebook, tqdm
+from typing_extensions import Self
 
 from cogent3.util import parallel as PAR
 from cogent3.util.misc import in_jupyter
@@ -187,7 +188,7 @@ CURRENT = threading.local()
 CURRENT.context = None
 
 
-def display_wrap(slow_function: Callable[P, R]):
+def display_wrap(slow_function: Callable[P, R]) -> Callable[P, R]:
     """Decorator which give the function its own UI context.
     The function will receive an extra argument, 'ui',
     which is used to report progress etc."""
