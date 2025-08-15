@@ -29,12 +29,7 @@ from cogent3.util.misc import get_object_provenance
 if TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.table import Table
 
-NumpyIntType = numpy.dtype[numpy.integer]
 NumpyIntArrayType = npt.NDArray[numpy.integer]
-OptStr = str | None
-OptFloat = float | None
-StrORArray = str | NumpyIntArrayType
-OptTranslater = Callable[[bytes], bytes] | None
 StrOrBytes = TypeVar("StrOrBytes", str, bytes)
 
 IUPAC_gap = "-"
@@ -438,7 +433,7 @@ class MolType(Generic[StrOrBytes]):
     colors: dataclasses.InitVar[dict[str, str] | None] = None
     pairing_rules: dict[frozenset[str], bool] | None = None
     mw_calculator: WeightCalculator | None = None
-    coerce_to: OptTranslater | None = None
+    coerce_to: Callable[[bytes], bytes] | None = None
 
     # private attributes to be delivered via properties
     _monomers: c3_alphabet.CharAlphabet[StrOrBytes] = dataclasses.field(init=False)
@@ -642,7 +637,7 @@ class MolType(Generic[StrOrBytes]):
         self,
         *,
         seq: "str | bytes | c3_sequence.Sequence",
-        name: OptStr = None,
+        name: str | None = None,
         check_seq: bool = True,
         **kwargs: Any,
     ) -> c3_sequence.Sequence:
@@ -1303,7 +1298,7 @@ class MolType(Generic[StrOrBytes]):
             for m in motif_set
         }
 
-    def mw(self, seq: str, method: str = "random", delta: OptFloat = None) -> float:
+    def mw(self, seq: str, method: str = "random", delta: float | None = None) -> float:
         """Returns the molecular weight of the sequence. If the sequence is
         ambiguous, uses method to disambiguate the sequence.
 

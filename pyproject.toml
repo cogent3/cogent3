@@ -101,6 +101,7 @@ dev = [
     "nox",
     "numpydoc",
     "scriv",
+    "types-tqdm",
     "cogent3[doc]",
     "cogent3[test]"
 ]
@@ -137,7 +138,7 @@ new_fragment_template = "file: changelog.d/templates/new.md.j2"
 entry_title_template = "file: changelog.d/templates/title.md.j2"
 
 [[tool.mypy.overrides]]
-module = ["numba"]
+module = ["numba", "loky", "mpi4py"]
 ignore_missing_imports = true
 
 
