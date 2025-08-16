@@ -4,7 +4,7 @@ import itertools
 import json
 import warnings
 from collections import defaultdict
-from collections.abc import Callable, Iterator, Mapping
+from collections.abc import Callable, Generator, Mapping
 from string import ascii_letters
 from typing import (
     TYPE_CHECKING,
@@ -552,7 +552,7 @@ class MolType(Generic[StrOrBytes]):
     def __len__(self) -> int:
         return len(self._monomers)
 
-    def __iter__(self) -> Iterator[StrOrBytes]:
+    def __iter__(self) -> Generator[StrOrBytes]:
         yield from self._monomers
 
     @property
@@ -601,7 +601,7 @@ class MolType(Generic[StrOrBytes]):
         alpha = self.most_degen_alphabet()
         return alpha.is_valid(seq)
 
-    def iter_alphabets(self) -> Iterator[c3_alphabet.CharAlphabet[StrOrBytes]]:
+    def iter_alphabets(self) -> Generator[c3_alphabet.CharAlphabet[StrOrBytes]]:
         """yield alphabets in order of most to least degenerate"""
         alphas = (
             self._degen_gapped,
@@ -1371,7 +1371,7 @@ class MolType(Generic[StrOrBytes]):
 
     def get_css_style(
         self,
-        colors: Mapping[str, str] | None = None,
+        colors: dict[str, str] | None = None,
         font_size: int = 12,
         font_family: str = "Lucida Console",
     ) -> tuple[list[str], defaultdict[str | bytes, str]]:
