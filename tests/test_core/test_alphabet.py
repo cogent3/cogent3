@@ -138,7 +138,7 @@ def test_charalphabet_with_gap():
 
 
 def test_charalphabet_with_gap_missing():
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         _ = c3_alphabet.CharAlphabet(list("TCAG"), gap="-")
 
 

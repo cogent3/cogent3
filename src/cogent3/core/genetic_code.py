@@ -9,29 +9,25 @@ Although the genetic code objects convert DNA to RNA and vice
 versa, lists of codons that they produce will be provided in DNA format.
 """
 
-import collections
 import contextlib
 import dataclasses
 import functools
 import itertools
-import typing
+from collections import defaultdict
+from collections.abc import Callable, Iterable
+from collections.abc import Sequence as PySeq
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy
+import numpy.typing as npt
 
 from cogent3.core import alphabet as c3_alphabet
 from cogent3.core import moltype as c3_moltype
 from cogent3.core.table import Table
 from cogent3.util import warning as c3warn
 
-if typing.TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.sequence import Sequence
-
-OptStr = typing.Optional[str]
-SetStr = set[str]
-ConverterType = typing.Callable[[bytes, bytes], bytes]
-StrORInt = typing.Union[str, int]
-StrORBytesORArray = typing.Union[str, numpy.ndarray]
-GeneticCodeChoiceType = typing.Union[int, str, "GeneticCode"]
 
 
 class GeneticCodeError(Exception):
@@ -47,9 +43,9 @@ class InvalidCodonError(KeyError, GeneticCodeError):
 
 
 def _make_mappings(
-    codons: c3_alphabet.KmerAlphabet,
+    codons: c3_alphabet.KmerAlphabet[str],
     code_sequence: str,
-) -> tuple[dict[str, str], dict[str, SetStr], tuple[str, ...]]:
+) -> tuple[dict[str, str], defaultdict[str, set[str]], tuple[str, ...]]:
     """makes amino acid / codon mappings and stop codon group
 
     Parameters
@@ -63,9 +59,9 @@ def _make_mappings(
     -------
     codon to amino acid mapping, the reverse mapping, the set of stop codons
     """
-    stops = []
-    codon_to_aa = {}
-    aa_to_codon = collections.defaultdict(set)
+    stops: list[str] = []
+    codon_to_aa: dict[str, str] = {}
+    aa_to_codon: defaultdict[str, set[str]] = defaultdict(set)
     for codon, aa in zip(codons, code_sequence, strict=False):
         if aa == "*":
             stops.append(codon)
@@ -79,10 +75,10 @@ def _get_start_codon_indices(start_codon_map: str) -> tuple[int, ...]:
 
 
 def _make_converter(
-    kmer_alpha: c3_alphabet.KmerAlphabet,
+    kmer_alpha: c3_alphabet.KmerAlphabet[str],
     codons: tuple[str, ...],
     code_sequence: str,
-) -> typing.Callable[[bytes, bytes], bytes]:
+) -> Callable[[bytes], bytes]:
     """returns a converter of codon indices into amino acid indices
 
     Parameters
@@ -121,26 +117,31 @@ class GeneticCode:
     name: str
     ncbi_code_sequence: dataclasses.InitVar[str]
     ncbi_start_codon_map: dataclasses.InitVar[str]
-    moltype: c3_moltype.MolType = c3_moltype.DNA
-    _codon_to_aa: dict[str, str] = dataclasses.field(init=False, default_factory=dict)
-    _aa_to_codon: dict[str, SetStr] = dataclasses.field(
+    moltype: c3_moltype.MolType[str] = c3_moltype.DNA
+    _codon_to_aa: dict[str, str] = dataclasses.field(
+        init=False, default_factory=dict[str, str]
+    )
+    _aa_to_codon: dict[str, set[str]] = dataclasses.field(
         init=False,
-        default_factory=dict,
+        default_factory=dict[str, set[str]],
     )
     _sense_codons: tuple[str, ...] = dataclasses.field(init=False)
     _stop_codons: tuple[str, ...] = dataclasses.field(init=False)
     _start_codons: tuple[str, ...] = dataclasses.field(init=False)
-    codons: c3_alphabet.KmerAlphabet = dataclasses.field(init=False)
+    codons: c3_alphabet.KmerAlphabet[str] = dataclasses.field(init=False)
     anticodons: tuple[str, ...] = dataclasses.field(init=False)
     # callables for translating on the plus strand, or the minus strand
-    _translate_plus: ConverterType = dataclasses.field(init=False)
-    _translate_minus: ConverterType = dataclasses.field(init=False)
+    _translate_plus: Callable[[bytes], bytes] = dataclasses.field(init=False)
+    _translate_minus: Callable[[bytes], bytes] = dataclasses.field(init=False)
 
     def __post_init__(self, ncbi_code_sequence: str, ncbi_start_codon_map: str) -> None:
         alpha = self.moltype.alphabet.with_gap_motif(include_missing=True)
-        trinuc_alpha = alpha.get_kmer_alphabet(
-            k=3,
-            include_gap=True,
+        trinuc_alpha = cast(
+            "c3_alphabet.KmerAlphabet[str]",
+            alpha.get_kmer_alphabet(
+                k=3,
+                include_gap=True,
+            ),
         )
         code_seq = f"{ncbi_code_sequence}-X"
         start_map = f"{ncbi_start_codon_map}--"
@@ -180,7 +181,7 @@ class GeneticCode:
 
     def to_table(self) -> Table:
         """returns aa to codon mapping as a cogent3 Table"""
-        rows = []
+        rows: list[list[str]] = []
         headers = ["aa", "IUPAC code", "codons"]
         for code, aa in c3_moltype.IUPAC_PROTEIN_code_aa.items():
             codons = ",".join(self[code])
@@ -198,7 +199,7 @@ class GeneticCode:
         display.set_repr_policy(show_shape=False)
         return display._repr_html_()
 
-    def __getitem__(self, item) -> str | SetStr:
+    def __getitem__(self, item: Any) -> str | set[str]:
         """Returns amino acid corresponding to codon, or codons for an aa.
 
         Returns [] for empty list of codons, 'X' for unknown amino acid.
@@ -217,7 +218,7 @@ class GeneticCode:
 
     def translate(
         self,
-        dna: StrORBytesORArray,
+        dna: str | npt.NDArray[numpy.integer],
         start: int = 0,
         rc: bool = False,
         incomplete_ok: bool = True,
@@ -281,25 +282,15 @@ class GeneticCode:
 
         return self._translate_plus(seq.tobytes()).decode("utf8")
 
-    @functools.singledispatchmethod
-    def sixframes(self, seq) -> typing.Iterable[tuple[str, int, str]]:
+    def sixframes(self, seq: Any) -> Iterable[tuple[str, int, str]]:
         """Returns the six reading frames of the genetic code.
 
         Returns
         -------
         A dictionary with keys (strand, start) where strand is "+"/"-"
         """
-        return self.sixframes(str(seq))
-
-    @sixframes.register
-    def _(self, seq: str) -> typing.Iterable[tuple[str, int, str]]:
-        """Returns the six reading frames of the genetic code.
-
-        Returns
-        -------
-        A dictionary with keys (strand, start) where strand is "+"/"-"
-        """
-
+        if not isinstance(seq, str):
+            seq = str(seq)
         for strand, start in itertools.product(("+", "-"), range(3)):
             yield strand, start, self.translate(seq, start, rc=strand == "-")
 
@@ -339,6 +330,8 @@ class GeneticCode:
             words = tuple(self.moltype.alphabet.get_kmer_alphabet(k=3))
         else:
             words = tuple(self.sense_codons)
+        assert self.moltype.gapped_alphabet is not None
+        assert self.moltype.degen_gapped_alphabet is not None
         return _get_code_alphabet(
             words,
             self.moltype.gapped_alphabet.gap_char,
@@ -348,7 +341,7 @@ class GeneticCode:
             self.moltype.degen_gapped_alphabet,
         )
 
-    def to_regex(self, seq: typing.Union[str, "Sequence"]) -> str:
+    def to_regex(self, seq: "str | PySeq[str] | Sequence") -> str:
         """returns a regex pattern with an amino acid expanded to its codon set
 
         Parameters
@@ -359,11 +352,11 @@ class GeneticCode:
         from .moltype import PROTEIN_WITH_STOP_ambiguities as ambigs
 
         seq = list(str(seq))
-        mappings = []
+        mappings: list[str] = []
         for aa in seq:
-            aa = ambigs.get(aa, [aa])
-            codons = []
-            for a in aa:
+            aas = ambigs.get(aa, [aa])
+            codons: list[str] = []
+            for a in aas:
                 codons.extend(self[a])
 
             # we create a regex non-capturing group for each amino acid
@@ -372,7 +365,7 @@ class GeneticCode:
         return "".join(mappings)
 
     @property
-    def synonyms(self):
+    def synonyms(self) -> dict[str, set[str]]:
         return self._aa_to_codon
 
 
@@ -383,14 +376,16 @@ def _get_code_alphabet(
     missing_char: str | None,
     include_gap: bool,
     include_missing: bool,
-    monomers: c3_alphabet.CharAlphabet,
+    monomers: c3_alphabet.CharAlphabet[str],
 ) -> c3_alphabet.SenseCodonAlphabet:
-    gap = gap_char * 3 if include_gap else None
-    missing = missing_char * 3 if include_missing else None
     if include_gap:
+        gap = cast("str", gap_char) * 3
         words += (gap,)
+    else:
+        gap = None
 
     if include_missing:
+        missing = cast("str", missing_char) * 3
         words += (missing,)
 
     return c3_alphabet.SenseCodonAlphabet(
@@ -567,9 +562,9 @@ code_mapping = (
         "---M---------------M---------------M---------------M------------",
     ),
 )
-_CODES = {}
+_CODES: dict[int | str | GeneticCode, GeneticCode] = {}
 for mapping in code_mapping:
-    code = GeneticCode(**dict(zip(_mapping_cols, mapping, strict=False)))
+    code = GeneticCode(**dict(zip(_mapping_cols, mapping, strict=False)))  # type: ignore[arg-type]
     _CODES[code.ID] = code
     _CODES[code.name] = code
     _CODES[code] = code
@@ -579,7 +574,7 @@ DEFAULT = _CODES[1]
 
 
 @c3warn.deprecated_args("2025.9", "no longer has an effect", discontinued="new_type")
-def get_code(code_id: StrORInt = 1) -> GeneticCode:
+def get_code(code_id: str | int = 1) -> GeneticCode:
     """returns the genetic code
 
     Parameters
@@ -593,7 +588,7 @@ def get_code(code_id: StrORInt = 1) -> GeneticCode:
     # support for old style is dropped
     code_id = code_id or 1
 
-    with contextlib.suppress((ValueError, TypeError)):
+    with contextlib.suppress(ValueError, TypeError):
         code_id = int(code_id)
 
     if code_id not in _CODES:
@@ -602,7 +597,7 @@ def get_code(code_id: StrORInt = 1) -> GeneticCode:
     return _CODES[code_id]
 
 
-def available_codes():
+def available_codes() -> Table:
     """returns Table listing the available genetic codes"""
     rows = [(k, code.name) for k, code in _CODES.items() if isinstance(k, int)]
     header = ["Code ID", "Name"]
