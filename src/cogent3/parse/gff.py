@@ -12,11 +12,9 @@ from typing import IO, Any, cast
 
 from cogent3.util.io import PathType, open_
 
-OptionalCallable = Callable | None
-
 
 @functools.singledispatch
-def is_gff3(f: pathlib.Path | str | IO[str] | list[str] | tuple[str, ...]) -> bool:
+def is_gff3(f: PathType) -> bool:
     """True if gff-version is 3"""
     msg = f"unsupported type {type(f)}"
     raise TypeError(msg)
