@@ -6,7 +6,7 @@ import warnings
 from collections.abc import Callable, Generator, Iterable, Sized
 from typing import Any, Generic, Literal, ParamSpec, TypeVar, cast
 
-import loky  # noqa
+import loky
 
 from cogent3.util.misc import extend_docstring_from
 

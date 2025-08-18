@@ -5,8 +5,8 @@ import string
 from collections.abc import Callable, Iterator
 from typing import Any
 
-import numpy.typing as npt
 import numpy
+import numpy.typing as npt
 
 import cogent3
 from cogent3.core import alphabet as c3_alphabet
