@@ -1,10 +1,11 @@
 ### Contributors
 
-- khiron 
+- khiron
 
 ### Deprecations
 
-- The following cogent3 functions in /maths/stats/test.py have been deprecated in favor of their SciPy, numpy, or statsmodel counterparts:
+- The following cogent3 functions in /maths/stats/test.py have been deprecated
+in favor of their SciPy, numpy, or statsmodel counterparts:
 
   - `var`
   - `std`
