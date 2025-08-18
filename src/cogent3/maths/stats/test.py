@@ -15,6 +15,7 @@ from numpy import (
     expm1,
     fabs,
     finfo,
+    float64,
     isinf,
     isnan,
     log,
@@ -33,12 +34,13 @@ from numpy import std as _std
 from numpy import sum as npsum
 from numpy.random import permutation, randint
 from scipy.special import gamma, ndtri
-from scipy.stats import binom, f, norm, t
+from scipy.stats import binom, f, norm, t, ks_2samp, mannwhitneyu
 from scipy.stats.distributions import chi2
 
 from cogent3.maths.stats.kendall import kendalls_tau, pkendall
 from cogent3.maths.stats.ks import pkstwo, psmirnov2x
 from cogent3.maths.stats.number import NumberCounter
+from cogent3.util.warning import deprecated_callable
 
 # defining globals for the alternate hypotheses
 ALT_TWO_SIDED = "2"
@@ -77,8 +79,13 @@ def _get_alternate(value: str):
 class IndexOrValueError(IndexError, ValueError):
     pass
 
-
-def var(x, axis=None):
+@deprecated_callable(
+    "2025.9",  # this function will be removed from release 2025.9
+    "Use numpy.var(x, ddof=1, axis=axis) ddof=1 to match unbiased estimator",
+    new="scipy.stats.binom.pmf",
+    is_discontinued=True,
+)
+def var(x, axis=None):  # pragma: no cover
     """Returns unbiased standard deviations over given axis.
 
     Similar with numpy.std, except that it is unbiased. (var = SS/n-1)
@@ -99,7 +106,12 @@ def var(x, axis=None):
     sample_SS = npsum(x**2, axis) - npsum(x, axis) ** 2 / n
     return sample_SS / (n - 1)
 
-
+@deprecated_callable(
+    "2025.9",  # this function will be removed from release 2025.9
+    "Use numpy.std(x, ddof=1, axis=axis) ddof=1 to match unbiased estimator",
+    new="numpy.std",
+    is_discontinued=True,
+)
 def std(x, axis=None):  # pragma: no cover
     """computed unbiased standard deviations along given axis or flat array.
 
@@ -301,8 +313,13 @@ def G_fit(obs, exp, williams=1):
 
     return G, chi2.sf(G, k - 1)
 
-
-def likelihoods(d_given_h, priors):
+@deprecated_callable(
+    "2025.9",  # version when it will be removed
+    "Use numpy.array(d_given_h) / numpy.dot(d_given_h, priors) to compute normalized likelihoods.",
+    new="numpy.array(d_given_h) / numpy.dot(d_given_h, priors)",
+    is_discontinued=True,
+)
+def likelihoods(d_given_h, priors):  # pragma: no cover
     """Calculate likelihoods through marginalization, given Pr(D|H) and priors.
 
     Usage: scores = likelihoods(d_given_h, priors)
@@ -323,8 +340,13 @@ def likelihoods(d_given_h, priors):
     # to get its likelihood
     return [d / wt_sum for d in d_given_h]
 
-
-def posteriors(likelihoods, priors):
+@deprecated_callable(
+    "2025.9",  # version when removed
+    "Use numpy.multiply(likelihoods, priors) or element-wise multiplication.",
+    new="numpy.multiply(likelihoods, priors)",
+    is_discontinued=True,
+)
+def posteriors(likelihoods, priors):  # pragma: no cover
     """Calculate posterior probabilities given priors and likelihoods.
 
     Usage: probabilities = posteriors(likelihoods, priors)
@@ -339,8 +361,15 @@ def posteriors(likelihoods, priors):
     # Posterior probability is defined as prior * likelihood
     return [l * p for l, p in zip(likelihoods, priors, strict=False)]
 
-
-def bayes_updates(ds_given_h, priors=None):
+@deprecated_callable(
+    "2025.9",
+    "Use a manual loop with numpy arrays: compute likelihoods and update priors "
+    "using numpy.multiply() and normalization at each step. "
+    "See deprecations of likelihoods() and posteriors().",
+    new="numpy.multiply(), numpy.sum(), manual Bayes rule loop",
+    is_discontinued=True,
+)
+def bayes_updates(ds_given_h, priors=None):  # pragma: no cover
     """Successively apply lists of Pr(D|H) to get Pr(H|D) by marginalization.
 
     Usage: final_probs = bayes_updates(ds_given_h, [priors])
@@ -377,8 +406,13 @@ def bayes_updates(ds_given_h, priors=None):
     except (ZeroDivisionError, FloatingPointError):
         return [0] * length
 
-
-def t_paired(a, b, tails=None, exp_diff=0):
+@deprecated_callable(
+    "2025.9",  # Deprecated in release 2025.9, removed in 2025.10
+    "Use numpy subtraction and scipy.stats.ttest_1samp on the difference vector.",
+    new="scipy.stats.ttest_1samp(numpy.array(a)-numpy.array(b))",
+    is_discontinued=True,
+)
+def t_paired(a, b, tails=None, exp_diff=0):  # pragma: no cover
     """Returns t and prob for TWO RELATED samples of scores a and b.
 
     Parameters
@@ -415,8 +449,13 @@ def t_paired(a, b, tails=None, exp_diff=0):
     ):
         return (None, None)
 
-
-def t_one_sample(a, popmean=0, tails=None):
+@deprecated_callable(
+    "2025.9",  # Deprecated in 2025.9, will be removed in 2025.10
+    "Use scipy.stats.ttest_1samp(a, popmean). Adjust p-value manually for one-tailed tests.",
+    new="scipy.stats.ttest_1samp",
+    is_discontinued=True,
+)
+def t_one_sample(a, popmean=0, tails=None):  # pragma: no cover
     """Returns t for ONE group of scores a, given a population mean.
 
     Usage:   t, prob = t_one_sample(a, popmean, tails)
@@ -442,8 +481,19 @@ def t_one_sample(a, popmean=0, tails=None):
     prob = t_tailed_prob(t, n - 1, tails)
     return t, prob
 
-
-def t_two_sample(a, b, tails=None, exp_diff=0, none_on_zero_variance=True):
+@deprecated_callable(
+    "2025.9",  # This function will be removed in release 2025.10
+    (
+        "Use scipy.stats.ttest_ind(a, b, equal_var=True). "
+        "Set 'alternative' to 'two-sided', 'greater', or 'less' for tails. "
+        "Subtract exp_diff from a before passing if needed."
+    ),
+    new="scipy.stats.ttest_ind",
+    is_discontinued=True,
+)
+def t_two_sample(
+    a, b, tails=None, exp_diff=0, none_on_zero_variance=True
+):  # pragma: no cover
     """Returns t, prob for two INDEPENDENT samples of scores a, and b.
 
     Parameters
@@ -553,8 +603,16 @@ def t_two_sample(a, b, tails=None, exp_diff=0, none_on_zero_variance=True):
 
     return result
 
-
-def _t_test_no_variance(mean1, mean2, tails):
+@deprecated_callable(
+    "2025.9",  # Will be removed in 2025.10
+    (
+        "This function handles zero-variance edge cases. "
+        "You can replicate the behavior with manual comparison: "
+        "`(-inf, p)` if mean1 < mean2 else `(inf, p)` with p chosen per tail."
+    ),
+    is_discontinued=True,
+)
+def _t_test_no_variance(mean1, mean2, tails):  # pragma: no cover
     """Handles case where two distributions have no variance."""
     tails = tails or "2"
     tails = _get_alternate(str(tails))
@@ -570,8 +628,17 @@ def _t_test_no_variance(mean1, mean2, tails):
 
     return result
 
-
-def mc_t_two_sample(x_items, y_items, tails=None, permutations=999, exp_diff=0):
+@deprecated_callable(
+    "2025.9",
+    (
+        "Use `scipy.stats.ttest_ind` for parametric t-tests. "
+    ),
+    new="scipy.stats.ttest_ind(x_items, y_items, equal_var=True, alternative='two-sided')",
+    is_discontinued=False,
+)
+def mc_t_two_sample(
+    x_items, y_items, tails=None, permutations=999, exp_diff=0
+):  # pragma: no cover
     """Performs a two-sample t-test with Monte Carlo permutations.
 
     x_items and y_items must be INDEPENDENT observations (sequences of
@@ -661,8 +728,15 @@ def mc_t_two_sample(x_items, y_items, tails=None, permutations=999, exp_diff=0):
 
     return obs_t, param_p_val, perm_t_stats, nonparam_p_val
 
-
-def _permute_observations(x_items, y_items, permutations, permute_f=permutation):
+@deprecated_callable(
+    "2025.9",
+    "Use numpy.random.permutation and slicing directly to permute and split data.",
+    new="rand_xs, rand_ys = [numpy.random.permutation(combined)[:len(x)] for _ in range(n)], [numpy.random.permutation(combined)[len(x):] for _ in range(n)]",
+    is_discontinued=True,
+)
+def _permute_observations(
+    x_items, y_items, permutations, permute_f=permutation
+):  # pragma: no cover
     """Returns permuted versions of the sequences of observations.
 
     Values are permuted between x_items and y_items (i.e. shuffled between the
@@ -684,8 +758,17 @@ def _permute_observations(x_items, y_items, permutations, permute_f=permutation)
     rand_ys = [combined_obs[perm[num_x:num_total_obs]] for perm in perms]
     return rand_xs, rand_ys
 
-
-def t_one_observation(x, sample, tails=None, exp_diff=0, none_on_zero_variance=True):
+@deprecated_callable(
+    "2025.9",
+    "Compare a single observation to a sample using the 1-sample t-test formula.",
+    new=(
+        "scipy.stats.ttest_1samp(sample, popmean=x - exp_diff, alternative=tails)"
+    ),
+    is_discontinued=True,
+)
+def t_one_observation(
+    x, sample, tails=None, exp_diff=0, none_on_zero_variance=True
+):  # pragma: no cover
     """Returns t-test for significance of single observation versus a sample.
 
     Equation for 1-observation t (Sokal and Rohlf 1995 p 228):
@@ -782,8 +865,14 @@ def pearson(x_items, y_items):
         r = -1.0
     return r
 
+@deprecated_callable(
+    "2025.9",
+    "Use scipy.stats.spearmanr for Spearman correlation calculation",
+    new="scipy.stats.spearmanr(x_items, y_items).correlation",
+    is_discontinued=True,
+)
 
-def spearman(x_items, y_items):
+def spearman(x_items, y_items):  # pragma: no cover
     """Returns Spearman's rho.
 
     Parameters
@@ -873,8 +962,13 @@ def _get_rank(data):
         ties += dup_ranks - 1
     return ranks, ties
 
-
-def pearson_correlation(x, y, tails=None):
+@deprecated_callable(
+    "2025.9",
+    "Use scipy.stats.pearsonr(x, y) and adjust p-value for tail direction if needed",
+    new="scipy.stats.pearsonr(x, y)",
+    is_discontinued=True,
+)
+def pearson_correlation(x, y, tails=None):  # pragma: no cover
     """Computes the Pearson correlation between two vectors and its significance.
 
     Parameters
@@ -916,8 +1010,13 @@ def pearson_correlation(x, y, tails=None):
 
     return rho, pvalue
 
-
-def correlation(x_items, y_items):
+@deprecated_callable(
+    "2025.9",
+    "Use scipy.stats.pearsonr(x_items, y_items)",
+    new="scipy.stats.pearsonr(x_items, y_items)",
+    is_discontinued=True,
+)
+def correlation(x_items, y_items):  # pragma: no cover
     """Returns Pearson correlation between x and y, and its significance.
 
     WARNING: x_items and y_items must be same length!
@@ -934,6 +1033,16 @@ def correlation(x_items, y_items):
     )[:2]
 
 
+@deprecated_callable(
+    "2025.9",
+    (
+        "Use scipy.stats.pearsonr or scipy.stats.spearmanr for correlation + p-value. "
+        "Use scipy.stats.bootstrap for confidence intervals. "
+        "Manually implement permutation test if needed."
+    ),
+    new="scipy.stats.pearsonr or scipy.stats.spearmanr",
+    is_discontinued=True,
+)
 def correlation_test(
     x_items,
     y_items,
@@ -941,7 +1050,7 @@ def correlation_test(
     tails=None,
     permutations=999,
     confidence_level=0.95,
-):
+):  # pragma: no cover
     """Computes the correlation between two vectors and its significance.
 
     Parameters
@@ -1096,13 +1205,23 @@ def correlation_test(
         (ci_low, ci_high),
     )
 
-
-def correlation_matrix(series, as_rows=True):
+@deprecated_callable(
+    "2025.9",
+    "Use numpy.corrcoef(series, rowvar=as_rows)",
+    new="numpy.corrcoef(series, rowvar=as_rows)",
+    is_discontinued=True,
+)
+def correlation_matrix(series, as_rows=True):  # pragma: no cover
     """Returns pairwise correlations between each pair of series."""
     return corrcoef(series, rowvar=as_rows)
 
-
-def regress(x, y):
+@deprecated_callable(
+    "2025.9",
+    "Use scipy.stats.linregress(x, y) and access .slope and .intercept",
+    new="(linregress(x, y).slope, linregress(x, y).intercept)",
+    is_discontinued=True,
+)
+def regress(x, y):  # pragma: no cover
     r"""Returns coefficients to the regression line "y=ax+b" from x[] and y[].
 
     Specifically, returns (slope, intercept) as a tuple from the regression of
@@ -1136,8 +1255,13 @@ def regress(x, y):
     det = Sxx * N - Sx * Sx
     return (Sxy * N - Sy * Sx) / det, (Sxx * Sy - Sx * Sxy) / det
 
-
-def regress_origin(x, y):
+@deprecated_callable(
+    "2025.9",
+    "Use numpy.sum(x * y) / numpy.sum(x ** 2) for slope with intercept fixed at 0",
+    new="(numpy.sum(x * y) / numpy.sum(x ** 2), 0)",
+    is_discontinued=True,
+)
+def regress_origin(x, y):  # pragma: no cover
     """Returns coefficients to regression "y=ax+b" passing through origin.
 
     Requires vectors x and y of same length.
@@ -1148,8 +1272,13 @@ def regress_origin(x, y):
     x, y = array(x, "float64"), array(y, "float64")
     return npsum(x * y) / npsum(x * x), 0
 
-
-def regress_R2(x, y):
+@deprecated_callable(
+    "2025.9",
+    "Use scipy.stats.linregress(x, y).rvalue ** 2 or numpy.corrcoef(x, y)[0, 1] ** 2",
+    new="scipy.stats.linregress(x, y).rvalue ** 2",
+    is_discontinued=True,
+)
+def regress_R2(x, y):  # pragma: no cover
     """Returns the R^2 value for the regression of x and y
 
     Used the method explained on pg 334 ofJ.H. Zar, Biostatistical analysis,
@@ -1169,8 +1298,14 @@ def regress_R2(x, y):
     totSS = Syy - ((Sy * Sy) / n)
     return regSS / totSS
 
-
-def regress_residuals(x, y):
+@deprecated_callable(
+    "2025.9",
+    "Use scipy.stats.linregress(x, y) to compute slope and intercept, "
+    "then calculate residuals as y - (slope * x + intercept).",
+    new="y - (scipy.stats.linregress(x, y).slope * x + scipy.stats.linregress(x, y).intercept)",
+    is_discontinued=True,
+)
+def regress_residuals(x, y):  # pragma: no cover
     """reports the residual (error) for each point from the linear regression"""
     slope, intercept = regress(x, y)
     coords = list(zip(x, y, strict=False))
@@ -1180,14 +1315,24 @@ def regress_residuals(x, y):
         residuals.append(e)
     return residuals
 
-
-def stdev_from_mean(x):
+@deprecated_callable(
+    "2025.9",
+    "Use standard NumPy syntax to compute standard scores (z-scores).",
+    new="(x - numpy.mean(x)) / numpy.std(x, ddof=1)",
+    is_discontinued=True,
+)
+def stdev_from_mean(x):  # pragma: no cover
     """returns num standard deviations from the mean of each val in x[]"""
     x = array(x)
     return (x - x.mean()) / x.std(ddof=1)
 
-
-def regress_major(x, y):
+@deprecated_callable(
+    "2025.9",
+    "Use scipy.odr.ODR for orthogonal (major-axis) regression with error in both variables.",
+    new="See example using scipy.odr.ODR in SciPy docs: https://docs.scipy.org/doc/scipy/reference/odr.html",
+    is_discontinued=True,
+)
+def regress_major(x, y):  # pragma: no cover
     """Returns major-axis regression line of y on x.
 
     Use in cases where there is error in both x and y.
@@ -1210,8 +1355,13 @@ def regress_major(x, y):
     intercept = mean_y - (mean_x * slope)
     return (slope, intercept)
 
-
-def z_test(a, popmean=0, popstdev=1, tails=None):
+@deprecated_callable(
+    "2025.9",
+    "Use scipy.stats.norm.cdf or sf for p-value from a z-score, or scipy.stats.ttest_1samp if population stdev is unknown.",
+    new="z = (numpy.mean(a) - popmean) / popstdev * numpy.sqrt(len(a)); prob = 2 * scipy.stats.norm.sf(abs(z))",
+    is_discontinued=True,
+)
+def z_test(a, popmean=0, popstdev=1, tails=None):  # pragma: no cover
     """Returns z and probability score for a single sample of items.
 
     Parameters
@@ -1247,7 +1397,13 @@ def z_test(a, popmean=0, popstdev=1, tails=None):
         return None
 
 
-def z_tailed_prob(z, tails):
+@deprecated_callable(
+    "2025.9",
+    "Use scipy.stats.norm.sf/cdf directly for z-tail probabilities.",
+    new="Use norm.sf(z) for 'high', norm.cdf(z) for 'low', or 2 * norm.sf(abs(z)) for two-tailed",
+    is_discontinued=True,
+)
+def z_tailed_prob(z, tails):  # pragma: no cover
     """Returns appropriate p-value for given z, depending on tails."""
     if tails == "high":
         return norm.sf(z)
@@ -1255,8 +1411,16 @@ def z_tailed_prob(z, tails):
         return norm.cdf(z)
     return 2 * norm.sf(abs(z))
 
-
-def t_tailed_prob(x, df, tails):
+@deprecated_callable(
+    "2025.9",
+    "Use scipy.stats.t.sf or t.cdf for computing t-distribution p-values.",
+    new=(
+        "Use t.sf(x, df) for 'high', t.cdf(x, df) for 'low', "
+        "or 2 * t.sf(abs(x), df) for two-tailed"
+    ),
+    is_discontinued=True,
+)
+def t_tailed_prob(x, df, tails):  # pragma: no cover
     """Return appropriate p-value for given t and df, depending on tails."""
     tails = tails or "2"
     tails = _get_alternate(str(tails))
@@ -1267,8 +1431,13 @@ def t_tailed_prob(x, df, tails):
         return t.cdf(x, df)
     return 2 * t.sf(abs(x), df)
 
-
-def reverse_tails(tails):
+@deprecated_callable(
+    "2025.9",
+    "Inline your own logic to reverse one-tailed test direction if needed.",
+    new="'low' if tails == 'high' else 'high' if tails == 'low' else tails",
+    is_discontinued=True,
+)
+def reverse_tails(tails):  # pragma: no cover
     """Swaps high for low or vice versa, leaving other values alone."""
     tails = tails or "2"
     tails = _get_alternate(str(tails))
@@ -1279,16 +1448,26 @@ def reverse_tails(tails):
         return ALT_HIGH
     return tails
 
-
-def tail(prob, test):
+@deprecated_callable(
+    "2025.9",
+    "Use an inline conditional expression instead of `tail()`.",
+    new="prob / 2 if test else 1 - prob / 2",
+    is_discontinued=True,
+)
+def tail(prob, test):  # pragma: no cover
     """If test is true, returns prob/2. Otherwise returns 1-(prob/2)."""
     prob /= 2
     if test:
         return prob
     return 1 - prob
 
-
-def multiple_comparisons(p, n):
+@deprecated_callable(
+    "2025.9",
+    "Use statsmodels.stats.multitest.multipletests for multiple comparisons correction.",
+    new="statsmodels.stats.multitest.multipletests(pvals, method='sidak')[1]",
+    is_discontinued=True,
+)
+def multiple_comparisons(p, n):  # pragma: no cover
     """Corrects P-value for n multiple comparisons.
 
     Calculates directly if p is large and n is small; resorts to logs
@@ -1298,8 +1477,13 @@ def multiple_comparisons(p, n):
         return 1 - (1 - p) ** n
     return expm1(n * p)
 
-
-def multiple_inverse(p_final, n):
+@deprecated_callable(
+    "2025.9",
+    "Use this expression: 1 - (1 - p_final) ** (1 / n)",
+    new="1 - (1 - p_final) ** (1 / n)",
+    is_discontinued=True,
+)
+def multiple_inverse(p_final, n):  # pragma: no cover
     """Returns p_initial for desired p_final with n multiple comparisons.
 
     WARNING: multiple_inverse is not very reliable when p_final is very close
@@ -1308,16 +1492,26 @@ def multiple_inverse(p_final, n):
     """
     return -expm1(log1p(-p_final) / n)
 
-
-def multiple_n(p_initial, p_final):
+@deprecated_callable(
+    "2025.9",
+    "Use numpy.log(1 - p_final) / numpy.log1p(-p_initial)",
+    new="numpy.log1p(-p_final) / numpy.log1p(-p_initial)",
+    is_discontinued=True,
+)
+def multiple_n(p_initial, p_final):  # pragma: no cover
     """Returns number of comparisons such that p_initial maps to p_final.
 
     WARNING: not very accurate when p_final is very close to 1.
     """
     return log1p(-p_final) / log1p(-p_initial)
 
-
-def fisher(probs):
+@deprecated_callable(
+    "2025.9",
+    "Use scipy.stats.combine_pvalues with method='fisher'.",
+    new="scipy.stats.combine_pvalues(probs, method='fisher')[1]",
+    is_discontinued=True,
+)
+def fisher(probs):  # pragma: no cover
     """Uses Fisher's method to combine multiple tests of a hypothesis.
 
     -2 * SUM(ln(P)) gives chi-squared distribution with 2n degrees of freedom.
@@ -1328,7 +1522,13 @@ def fisher(probs):
         return 0.0
 
 
-def f_value(a, b):
+@deprecated_callable(
+    "2025.9",
+    "Use numpy.var(a, ddof=1) / numpy.var(b, ddof=1) for the F-value, and len(x) - 1 for degrees of freedom.",
+    new="len(a) - 1, len(b) - 1, numpy.var(a, ddof=1) / numpy.var(b, ddof=1)",
+    is_discontinued=True,
+)
+def f_value(a, b):  # pragma: no cover
     """Returns the num df, the denom df, and the F value.
 
     a, b: lists of values, must have Variance attribute (recommended to
@@ -1347,8 +1547,13 @@ def f_value(a, b):
     dfd = len(b) - 1
     return dfn, dfd, F
 
-
-def f_two_sample(a, b, tails=None):
+@deprecated_callable(
+    "2025.9",
+    "Use scipy.stats.f.sf(...) or scipy.stats.f.cdf(...) with numpy.var(a, ddof=1) / numpy.var(b, ddof=1)",
+    new="len(a)-1, len(b)-1, numpy.var(a, ddof=1)/numpy.var(b, ddof=1), f.sf(F, dfn, dfd)",
+    is_discontinued=True,
+)
+def f_two_sample(a, b, tails=None):  # pragma: no cover
     """Returns the dfn, dfd, F-value and probability for two samples a, and b.
 
     a and b: should be independent samples of scores. Should be lists of
@@ -1372,7 +1577,13 @@ def f_two_sample(a, b, tails=None):
     return dfn, dfd, F, 2 * f.cdf(F, dfn, dfd)
 
 
-def ANOVA_one_way(a):
+@deprecated_callable(
+    "2025.9",
+    "Use scipy.stats.f_oneway(*groups)",
+    new="scipy.stats.f_oneway(*groups)",
+    is_discontinued=True,
+)
+def ANOVA_one_way(a):  # pragma: no cover
     """Performs a one way analysis of variance
 
     a is a list of lists of observed values. Each list is the values
@@ -1410,8 +1621,13 @@ def ANOVA_one_way(a):
     F = between_MS / within_MS
     return dfn, dfd, F, between_MS, within_MS, group_means, f.sf(F, dfn, dfd)
 
-
-def MonteCarloP(value, rand_values, tail="high"):
+@deprecated_callable(
+    "2025.9",
+    "Use numpy-style one-liner instead of MonteCarloP.",
+    new="(numpy.array(rand_values) >= value).mean() or .mean() on <= depending on tail",
+    is_discontinued=True,
+)
+def MonteCarloP(value, rand_values, tail="high"):  # pragma: no cover
     """takes a true value and a list of random values as
         input and returns a p-value
 
@@ -1440,8 +1656,13 @@ def MonteCarloP(value, rand_values, tail="high"):
         p_val = num_better / pop_size
     return p_val
 
-
-def sign_test(success, trials, alt="two sided"):
+@deprecated_callable(
+    "2025.9",
+    "Use scipy.stats.binom.{cdf,sf} to compute sign test p-values.",
+    new="binom.cdf(success, trials, 0.5) or binom.sf(success - 1, trials, 0.5)",
+    is_discontinued=True,
+)
+def sign_test(success, trials, alt="two sided"):  # pragma: no cover
     """Returns the probability for the sign test.
 
     Parameters
@@ -1469,7 +1690,15 @@ def sign_test(success, trials, alt="two sided"):
     return p
 
 
-def ks_test(x, y=None, alt="two sided", exact=None, warn_for_ties=True):
+@deprecated_callable(
+    "2025.9",
+    "Use scipy.stats.ks_2samp(x, y, alternative='two-sided', mode='auto') instead.",
+    new="ks_2samp(x, y, alternative='two-sided', mode='auto')",
+    is_discontinued=True,
+)
+def ks_test(
+    x, y=None, alt="two sided", exact=None, warn_for_ties=True
+):  # pragma: no cover
     """Returns the statistic and probability from the Kolmogorov-Smirnov test.
 
     Parameters
@@ -1538,63 +1767,46 @@ def ks_test(x, y=None, alt="two sided", exact=None, warn_for_ties=True):
         pass
     return stat, Pval
 
-
 def _get_bootstrap_sample(x, y, num_reps):
-    """yields num_reps random samples drawn with replacement from x and y"""
     combined = array(list(x) + list(y))
     total_obs = len(combined)
     num_x = len(x)
     for _ in range(num_reps):
-        # sampling with replacement
         indices = randint(0, total_obs, total_obs)
         sampled = combined.take(indices)
-        # split into the two populations
-        sampled_x = sampled[:num_x]
-        sampled_y = sampled[num_x:]
-        yield sampled_x, sampled_y
+        yield sampled[:num_x], sampled[num_x:]
 
+def ks_boot(x, y, alt="two-sided", num_reps=1000):
+    """Monte Carlo bootstrap variant of KS test (SciPy 1.16 compatible)."""
+    if alt != "two-sided":
+        raise NotImplementedError("Only 'two-sided' tests are supported in SciPy 1.16")
 
-def ks_boot(x, y, alt="two sided", num_reps=1000):
-    """Monte Carlo (bootstrap) variant of the Kolmogorov-Smirnov test. Useful
-    for when there are ties.
-
-    Parameters
-    ----------
-    x, y
-        vectors of numbers
-    alt
-        alternate hypothesis, as per ks_test
-    num_reps
-        number of replicates for the bootstrap
-
-    Notes
-    -----
-    Based on the ks_boot method in the R Matching package, see
-    http://sekhon.berkeley.edu/matching/
-    One important difference is I preserve the original sample sizes
-    instead of making them equal.
-    """
-    tol = finfo(float).eps * 100
-    observed_stat, _p = ks_test(x, y, exact=False, warn_for_ties=False)
+    tol = finfo(float64).eps * 100
+    result = ks_2samp(x, y)
+    observed_stat = result.statistic # type: ignore[attr-defined]
     num_greater = 0
     for sampled_x, sampled_y in _get_bootstrap_sample(x, y, num_reps):
-        sample_stat, _p = ks_test(
-            sampled_x,
-            sampled_y,
-            alt=alt,
-            exact=False,
-            warn_for_ties=False,
-        )
+        result = ks_2samp(sampled_x, sampled_y)
+        sample_stat = result.statistic # type: ignore[attr-defined]
         if sample_stat >= (observed_stat - tol):
             num_greater += 1
     return observed_stat, num_greater / num_reps
 
-
-def _average_rank(start_rank, end_rank):
+@deprecated_callable(
+    "2025.9",
+    "Use numpy.mean(numpy.arange(start_rank, end_rank + 1)) instead.",
+    is_discontinued=True,
+)
+def _average_rank(start_rank, end_rank):  # pragma: no cover
     return npsum(range(start_rank, end_rank + 1)) / (1 + end_rank - start_rank)
 
-
-def mw_test(x, y):
+@deprecated_callable(
+    "2025.9",
+    "Use scipy.stats.mannwhitneyu(x, y, alternative='two-sided') instead.",
+    new="mannwhitneyu(x, y, alternative='two-sided')",
+    is_discontinued=True,
+)
+def mw_test(x, y):  # pragma: no cover
     """computes the Mann-Whitney U statistic and the probability using the
     normal approximation"""
     if len(x) > len(y):
@@ -1666,22 +1878,39 @@ def mw_boot(x, y, num_reps=1000):
     -----
     Uses the same Monte-Carlo resampling code as kw_boot
     """
-    tol = finfo(float).eps * 100
-    observed_stat, obs_p = mw_test(x, y)
+    tol = finfo(float64).eps * 100
+
+    # Get observed U statistic (taking the max to match previous behavior)
+    result = mannwhitneyu(x, y, alternative="two-sided")
+    observed_stat = result.statistic
+
     num_greater = 0
     for sampled_x, sampled_y in _get_bootstrap_sample(x, y, num_reps):
-        sample_stat, sample_p = mw_test(sampled_x, sampled_y)
+        sample_result = mannwhitneyu(sampled_x, sampled_y, alternative="two-sided")
+        sample_stat = sample_result.statistic
         if sample_stat >= (observed_stat - tol):
             num_greater += 1
+
     return observed_stat, num_greater / num_reps
 
-
-def permute_2d(m, p):
+@deprecated_callable(
+    "2025.9",
+    "use direct NumPy indexing instead (e.g., m[p][:, p])",
+    new="m[p][:, p])",
+    is_discontinued=True,
+)
+def permute_2d(m, p):  # pragma: no cover
     """Performs 2D permutation of matrix m according to p."""
     return m[p][:, p]
 
-
-def mantel(m1, m2, n):
+@deprecated_callable(
+    "2025.9",
+    "This function will be removed. Use permutation-based methods with "
+    "scipy.spatial.distance.pdist and scipy.stats.pearsonr instead.",
+    new=None,
+    is_discontinued=True,
+)
+def mantel(m1, m2, n):  # pragma: no cover
     """Compares two distance matrices. Reports P-value for correlation.
 
     The p-value is based on a two-sided test.
@@ -1696,13 +1925,20 @@ def mantel(m1, m2, n):
     return mantel_test(m1, m2, n)[0]
 
 
+
+@deprecated_callable(
+    "2025.9",
+    "Mantel test functionality will be removed. Use custom permutation methods "
+    "with scipy's pdist/pearson if needed.",
+    is_discontinued=True,
+)
 def mantel_test(
     m1,
     m2,
     n,
     alt="two sided",
     suppress_symmetry_and_hollowness_check=False,
-):
+):  # pragma: no cover
     """Runs a Mantel test on two distance matrices.
 
     Returns the p-value, Mantel correlation statistic, and a list of Mantel
@@ -1802,8 +2038,14 @@ def _flatten_lower_triangle(matrix):
                 flattened.append(matrix[row_num][col_num])
     return flattened
 
-
-def kendall_correlation(x, y, alt="two sided", exact=None, warn=True):
+@deprecated_callable(
+    "2025.9",
+    "Use scipy.stats.kendalltau(x, y, method='auto') instead.",
+    new="scipy.stats.kendalltau",
+)
+def kendall_correlation(
+    x, y, alt="two sided", exact=None, warn=True
+):  # pragma: no cover
     """returns the statistic (tau) and probability from Kendall's non-parametric
     test of association that tau==0.
 
@@ -1865,7 +2107,11 @@ def kendall_correlation(x, y, alt="two sided", exact=None, warn=True):
 
 # Start functions for distance_matrix_permutation_test
 
-
+@deprecated_callable(
+    "2025.9",
+    "Use scipy.stats.permutation_test or a manual approach with permuted indices and scipy distance functions.",
+    new="scipy.stats.permutation_test",
+)
 def distance_matrix_permutation_test(
     matrix,
     cells,
@@ -1875,7 +2121,7 @@ def distance_matrix_permutation_test(
     n=1000,
     return_scores=False,
     is_symmetric=True,
-):
+):  # pragma: no cover
     """performs a monte carlo permutation test to determine if the
     values denoted in cells are significantly different than the rest
     of the values in the matrix
@@ -1941,8 +2187,17 @@ def distance_matrix_permutation_test(
         result.append(stats)
     return tuple(result)
 
-
-def get_values_from_matrix(matrix, cells, cells2=None, is_symmetric=True):
+@deprecated_callable(
+    "2025.9",  # function will be removed in this release
+    (
+        "Use a dedicated matrix slicing method instead."
+    ),
+    new="(numpy.array([matrix[i] for i in cells]), numpy.array([matrix[i] for i in cells2]))",
+    is_discontinued=True,
+)
+def get_values_from_matrix(
+    matrix, cells, cells2=None, is_symmetric=True
+):  # pragma: no cover
     """get values from matrix positions in cells and cells2
 
     matrix: the numpy array from which values should be taken
@@ -1971,8 +2226,15 @@ def get_values_from_matrix(matrix, cells, cells2=None, is_symmetric=True):
                     cells2_values.append(val)
     return cells_values, cells2_values
 
-
-def get_ltm_cells(cells):
+@deprecated_callable(
+    "2025.9",  # function will be removed in this release
+    (
+        "Use numpy eg: unique_ltm = sorted({tuple(sorted((i, j), reverse=True)) for i, j in cells if i != j})"
+    ),
+    new="Use numpy",
+    is_discontinued=True,
+)
+def get_ltm_cells(cells):  # pragma: no cover
     """converts matrix indices so all are below the diagonal
 
     cells: list of indices into a 2D integer-indexable object
