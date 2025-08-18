@@ -80,7 +80,7 @@ class GffRecordABC(ABC):
 
     def __init__(
         self,
-    ) -> None:
+    ) -> None:  # pragma: no cover
         self.seqid: str | None
         self.source: str | None
         self.biotype: str | None
