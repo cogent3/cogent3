@@ -8,7 +8,7 @@ from cogent3.maths.stats.ks import (
     pkstwo,
     psmirnov2x,
 )
-from cogent3.maths.stats.test import ks_boot, ks_test
+from cogent3.maths.stats.test import ks_boot
 
 
 class KSTests(TestCase):
@@ -145,27 +145,6 @@ class KSTests(TestCase):
     def test_pkstwo(self):
         """kolmogorov asymptotic should match answers from R"""
         assert_allclose(pkstwo(2.3), [1 - 5.084e-05], rtol=1e-5)
-
-    def test_ks2x(self):
-        """KS two-sample, 2-sided should match answers from R"""
-        D, Pval = ks_test(self.x1, self.x2)
-        assert_allclose((D, Pval), (0.46, 3.801e-05), rtol=1e-4)
-        D, Pval = ks_test(self.x1, self.x2, exact=False)
-        assert_allclose((D, Pval), (0.46, 5.084e-05), rtol=1e-4)
-        D, Pval = ks_test(self.x1, self.x2[:20])
-        assert_allclose((D, Pval), (0.53, 0.0003576), rtol=1e-4)
-        D, Pval = ks_test(self.x2[:20], self.x1)
-        assert_allclose((D, Pval), (0.53, 0.0003576), rtol=1e-4)
-        D, Pval = ks_test(self.x1[:20], self.x2)
-        assert_allclose((D, Pval), (0.48, 0.001772), rtol=1e-3)
-        D, Pval = ks_test(self.x1, self.x2, alt="greater")
-        assert_allclose((D, Pval), (0.46, 2.542e-05), rtol=1e-4)
-        D, Pval = ks_test(self.x1, self.x2, alt="g")
-        assert_allclose((D, Pval), (0.46, 2.542e-05), rtol=1e-4)
-        D, Pval = ks_test(self.x1, self.x2, alt="less")
-        assert_allclose((D, Pval), (6.9388939039072284e-18, 1.0), rtol=1e-4)
-        D, Pval = ks_test(self.x2, self.x1, alt="l")
-        assert_allclose((D, Pval), (0.46, 2.542e-05), rtol=1e-4)
 
     def test_ks_boot(self):
         """excercising the bootstrapped version of KS"""

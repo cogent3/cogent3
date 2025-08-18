@@ -1,18 +1,21 @@
-import loky  # noqa
 import concurrent.futures as concurrentfutures
 import multiprocessing
 import os
 import sys
 import warnings
+from collections.abc import Callable, Generator, Iterable, Sized
+from typing import Any, Generic, Literal, ParamSpec, TypeVar, cast
 
+import loky
 
 from cogent3.util.misc import extend_docstring_from
 
+MPI: Any
 if os.environ.get("DONT_USE_MPI", 0):
     MPI = None
 else:
     try:
-        from mpi4py import MPI
+        from mpi4py import MPI  # type: ignore[no-redef]
         from mpi4py import futures as MPIfutures
     except ImportError:
         MPI = None
@@ -25,7 +28,12 @@ else:
 USING_MPI = MPI is not None
 
 
-def get_rank():
+P = ParamSpec("P")
+R = TypeVar("R")
+T = TypeVar("T")
+
+
+def get_rank() -> int:
     """Returns the rank of the current process"""
     rank = 0
     if MPI is not None:
@@ -37,7 +45,7 @@ def get_rank():
     return rank
 
 
-def get_size():
+def get_size() -> int:
     """Returns the num cpus"""
     return (
         COMM.Get_attr(MPI.UNIVERSE_SIZE) if USING_MPI else multiprocessing.cpu_count()
@@ -71,22 +79,29 @@ def is_master_process() -> bool:
     return comm.Get_rank() == 0
 
 
-class PicklableAndCallable:
-    def __init__(self, func) -> None:
+class PicklableAndCallable(Generic[P, R]):
+    def __init__(self, func: Callable[P, R]) -> None:
         self.func = func
 
-    def __call__(self, *args, **kw):
+    def __call__(self, *args: P.args, **kw: P.kwargs) -> R:
         return self.func(*args, **kw)
 
 
-def get_default_chunksize(s, max_workers):
+def get_default_chunksize(s: Sized, max_workers: int) -> int:
     chunksize, remainder = divmod(len(s), max_workers * 4)
     if remainder:
         chunksize += 1
     return chunksize
 
 
-def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=None):
+def imap(
+    f: Callable[[T], R],
+    s: Iterable[T],
+    max_workers: int | None = None,
+    use_mpi: bool = False,
+    if_serial: Literal["raise", "ignore", "warn"] = "raise",
+    chunksize: int | None = None,
+) -> Generator[R]:
     """
     Parameters
     ----------
@@ -120,7 +135,7 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=Non
     $ mpiexec -n <number CPUs> python3 -m mpi4py.futures <initial script>
     """
 
-    if_serial = if_serial.lower()
+    if_serial = cast("Literal['raise', 'ignore', 'warn']", if_serial.lower())
     assert if_serial in ("ignore", "raise", "warn"), f"invalid choice '{if_serial}'"
 
     # If max_workers is not defined, get number of all processes available
@@ -152,7 +167,9 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=Non
 
         max_workers = min(max_workers, SIZE - 1)
         if not chunksize:
-            chunksize = get_default_chunksize(s, max_workers)
+            chunksize = (
+                get_default_chunksize(s, max_workers) if isinstance(s, Sized) else 1
+            )
 
         with MPIfutures.MPIPoolExecutor(max_workers=max_workers) as executor:
             yield from executor.map(f, s, chunksize=chunksize)
@@ -162,18 +179,33 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=Non
         assert max_workers < multiprocessing.cpu_count()
 
         if not chunksize:
-            chunksize = get_default_chunksize(s, max_workers)
+            chunksize = (
+                get_default_chunksize(s, max_workers) if isinstance(s, Sized) else 1
+            )
 
         with loky.get_reusable_executor(max_workers=max_workers) as executor:
             yield from executor.map(f, s, chunksize=chunksize)
 
 
 @extend_docstring_from(imap)
-def map(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=None):
+def map(
+    f: Callable[[T], R],
+    s: Iterable[T],
+    max_workers: int | None = None,
+    use_mpi: bool = False,
+    if_serial: Literal["raise", "ignore", "warn"] = "raise",
+    chunksize: int | None = None,
+) -> list[R]:
     return list(imap(f, s, max_workers, use_mpi, if_serial, chunksize))
 
 
-def _as_completed_mpi(f, s, max_workers, if_serial, chunksize=None):
+def _as_completed_mpi(
+    f: Callable[[T], R],
+    s: Iterable[T],
+    max_workers: int | None,
+    if_serial: Literal["raise", "ignore", "warn"],
+    chunksize: int | None = None,
+) -> Generator[R]:
     """MPI version of as_completed"""
     if not USING_MPI:
         msg = "Cannot use MPI"
@@ -203,7 +235,7 @@ def _as_completed_mpi(f, s, max_workers, if_serial, chunksize=None):
 
     max_workers = min(max_workers, SIZE - 1)
     if not chunksize:
-        chunksize = get_default_chunksize(s, max_workers)
+        chunksize = get_default_chunksize(s, max_workers) if isinstance(s, Sized) else 1
 
     with MPIfutures.MPIPoolExecutor(
         max_workers=max_workers,
@@ -214,7 +246,9 @@ def _as_completed_mpi(f, s, max_workers, if_serial, chunksize=None):
             yield result.result()
 
 
-def _as_completed_mproc(f, s, max_workers):
+def _as_completed_mproc(
+    f: Callable[[T], R], s: Iterable[T], max_workers: int | None
+) -> Generator[R]:
     """multiprocess version of as_completed"""
     if not max_workers or max_workers > multiprocessing.cpu_count():
         max_workers = multiprocessing.cpu_count() - 1
@@ -227,14 +261,14 @@ def _as_completed_mproc(f, s, max_workers):
 
 @extend_docstring_from(imap, pre=True)
 def as_completed(
-    f,
-    s,
-    max_workers=None,
-    use_mpi=False,
-    if_serial="raise",
-    chunksize=None,
-):
-    if_serial = if_serial.lower()
+    f: Callable[[T], R],
+    s: Iterable[T],
+    max_workers: int | None = None,
+    use_mpi: bool = False,
+    if_serial: Literal["raise", "ignore", "warn"] = "raise",
+    chunksize: int | None = None,
+) -> Generator[R]:
+    if_serial = cast("Literal['raise', 'ignore', 'warn']", if_serial.lower())
     assert if_serial in ("ignore", "raise", "warn"), f"invalid choice '{if_serial}'"
     if use_mpi:
         yield from _as_completed_mpi(f, s, max_workers, if_serial, chunksize)

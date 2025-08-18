@@ -17,7 +17,7 @@ import pickle
 import re
 import typing
 from collections import defaultdict
-from collections.abc import Callable, MutableMapping
+from collections.abc import Callable, Iterable, MutableMapping
 from itertools import product
 from xml.sax.saxutils import escape
 
@@ -825,7 +825,13 @@ class Table:
 
         self._persistent_attrs["space"] = value
 
-    def set_repr_policy(self, head=None, tail=None, random=0, show_shape=True) -> None:
+    def set_repr_policy(
+        self,
+        head: int | None = None,
+        tail: int | None = None,
+        random: int = 0,
+        show_shape: bool = True,
+    ) -> None:
         """specify policy for repr(self)
 
         Parameters
@@ -872,7 +878,9 @@ class Table:
 
         self._format = new
 
-    def format_column(self, column_head, format_template) -> None:
+    def format_column(
+        self, column_head: str, format_template: Callable[[typing.Any], str]
+    ) -> None:
         """Provide a formatting template for a named column.
 
         Parameters
@@ -1504,7 +1512,12 @@ class Table:
 
         return result
 
-    def sorted(self, columns=None, reverse=None, **kwargs):
+    def sorted(
+        self,
+        columns: Iterable[str] | str | None = None,
+        reverse: Iterable[str] | str | None = None,
+        **kwargs: typing.Any,
+    ):
         """Returns a new table sorted according to columns order.
 
         Parameters

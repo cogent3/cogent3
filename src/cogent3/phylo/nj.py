@@ -22,7 +22,7 @@ from cogent3.util import progress_display as UI
 
 class LightweightTreeTip(str):
     def convert(self, constructor, length):
-        node = constructor([], str(self), {})
+        node = constructor([], str(self), {}, None, None)
         node.length = max(0.0, length)
         return node
 
@@ -34,7 +34,7 @@ class LightweightTreeNode(frozenset):
         if constructor is None:
             constructor = TreeBuilder().create_edge
         children = [child.convert(constructor, clength) for (clength, child) in self]
-        node = constructor(children, None, {})
+        node = constructor(children, None, {}, None, None)
         if length is not None:
             node.length = max(0.0, length)
         return node

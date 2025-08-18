@@ -1,4 +1,173 @@
 
+<a id='changelog-2025.7.10a8'></a>
+# Changes in release "2025.7.10a8"
+
+This is a maintenance release with deprecation warnings for statistical
+tests that are available in other packages and improvements to the type
+hinting in core modules.
+
+## Contributors
+
+- @khiron deprecating statistical tests
+- @rmcar17 type hinting more cogent3.core modules: alphabet.py,
+  genetic_code.py, location.py, moltype.py
+
+## Deprecations
+
+- The following cogent3 functions in /maths/stats/test.py have been deprecated
+in favor of their SciPy, numpy, or statsmodel counterparts:
+
+  - `var`
+  - `std`
+  - `likelihoods`
+  - `posteriors`
+  - `bayes_updates`
+  - `t_paired`
+  - `t_one_sample`
+  - `t_two_sample`
+  - `_t_test_no_variance`
+  - `mc_t_two_sample`
+  - `_permute_observations`
+  - `t_one_observation`
+  - `spearman`
+  - `pearson_correlation`
+  - `correlation`
+  - `correlation_test`
+  - `correlation_matrix`
+  - `regress`
+  - `regress_origin`
+  - `regress_R2`
+  - `regress_residuals`
+  - `stdev_from_mean`
+  - `regress_major`
+  - `z_test`
+  - `z_tailed_prob`
+  - `t_tailed_prob`
+  - `reverse_tails`
+  - `tail`
+  - `multiple_comparisons`
+  - `multiple_inverse`
+  - `multiple_n`
+  - `fisher`
+  - `f_value`
+  - `f_two_sample`
+  - `ANOVA_one_way`
+  - `MonteCarloP`
+  - `sign_test`
+  - `ks_test`
+
+<a id='changelog-2025.7.10a7'></a>
+# Changes in release "2025.7.10a7"
+
+This release has major changes to tree classes.
+
+## Contributors
+
+- @rmcar17 refactored the cogent3 tree classes.
+
+## Enhancements
+
+- `TreeNode` and `PhyloNode` have been merged into a single class.
+- `PhyloNode` has been fully type hinted.
+- Partial type hinting for some modules related to `PhyloNode`.
+- `PhyloNode` now uses `__slots__`.
+- `PhyloNode` now has explicit length and support attributes instead of the
+  values being stored in the params dictionary.
+- `PhyloNode.descendant_array` now returns a numpy array of bools.
+- `PhyloNode.prune` now has a callback parameter for merging params of
+  different nodes. This replaces the behaviour where values in the params
+  dict were all added.
+- `PhyloNode.last_common_ancestor` now throws an error if the nodes given
+  do not belong to the same tree.
+- Rich dict and json representations of `PhyloNode` have been enhanced to
+  allow proper capturing of length and support attributed with params dict.
+- `PhyloNode.get_neighbours_except` has been promoted to a public method.
+  This is useful for manual tree traversal.
+- `PhyloNode.get_tip_names` now defaults to including itself if it is a tip.
+
+## Bug fixes
+
+- `PhyloNode.lowest_common_ancestor` now behaves correctly after
+  successive calls.
+- `PhyloNode.get_node_names` now propogates `include_self` when `tips_only`
+  is True.
+- `Alignment.pretty_print()` no longer fails if zero-length alignment and
+  wrap argument is not None.
+
+## Deprecations
+
+- `PhyloNode.get_distances` will be removed in 2025.9. Use
+  `PhyloNode.tip_to_tip_distances` instead for same behaviour.
+- `to_image` on `Drawable` objects will have `format` parameter replaced by
+  `format_name` in 2025.9.
+
+## Discontinued
+
+- `cogent3.core.tree.distance_from_r` will be removed in 2025.9
+- `cogent3.core.tree.TreeNode` will be removed in 2025.9
+- `PhyloNode` copy functions will have parameters `_nil` and `constructor`
+  removed in 2025.9 (were unused).
+- `PhyloNode.copy_topology` will be removed in 2025.9. Use the existing
+  `.copy` method.
+- `PhyloNode.child_groups` will be removed in 2025.9.
+- `constructor` parameter will be removed from `PhyloNode.unrooted_deepcopy`,
+  `PhyloNode.multifurcating` and `PhyloNode.bifurcating` in 2025.9.
+- Support for XML representation of trees will be removed in 2025.9. Use
+  newick or json instead.
+
+<a id='changelog-2025.7.10a6'></a>
+# Changes in release "2025.7.10a6"
+
+## Contributors
+
+- @khiron
+- @GavinHuttley
+
+## Bug fixes
+
+- Counting states on sequences and sequence collections now robust to zero-length
+  sequences. This fixes the string formatting method failures (e.g. `to_pretty()`).
+
+## Enhancements
+
+- Moved `theoretical_quantiles` and `probability_points` functions
+into `cogent3.maths.stats.test.py`. Now using scipy functions for calculations.
+Use can specify additional arguments to the scipy functions
+as keyword arguments to these functions, eg. `theoretical_quantiles(data, "t", df=2)`.
+
+## Deprecations
+
+- Modules `cogent3.maths.stats.special.py` and `cogent3.maths.stats.distributions.py`
+have been deprecated in favour of `scipy` and `numpy` implementations.
+The deprecated modules will be removed in release 2025.10.
+
+<a id='changelog-2025.7.10a5'></a>
+# Changes in release "2025.7.10a5"
+
+Minor enhancement to support new version of [ensembl-tui](https://github.com/cogent3/ensembl_tui)
+which implements a custom annotation db.
+
+## Enhancements
+
+- Sequence.get_features() now supports additional keyword arguments to be
+  passed to the bound annotation db. This allows using third-party annotation
+  databases with additional features.
+
+<a id='changelog-2025.7.10a4'></a>
+# Changes in release "2025.7.10a4"
+
+This is a bugfix release.
+
+## Contributors
+
+- @GavinHuttley
+
+## Bug fixes
+
+- Fixed another edge case affecting feature querying on sequences. If a sequence,
+  or a sequence collection, is created with an annotation offset we now consistently
+  apply that offset.
+
 <a id='changelog-2025.7.10a3'></a>
 # Changes in release "2025.7.10a3"
 

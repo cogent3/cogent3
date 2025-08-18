@@ -3,14 +3,15 @@
 
 import warnings
 from collections import defaultdict
+from collections.abc import Iterable
 from itertools import product
+from typing import Literal, TypeAlias, cast
 
-from cogent3 import make_tree
-from cogent3.core.tree import TreeBuilder
+from cogent3.core.tree import PhyloNode, TreeBuilder
 from cogent3.util.misc import extend_docstring_from
 
 
-def majority_rule(trees, strict=False):
+def majority_rule(trees: Iterable[PhyloNode], strict: bool = False) -> list[PhyloNode]:
     """Determines the consensus tree from a list of rooted trees using the
      majority rules method of Margush and McMorris 1981
 
@@ -26,18 +27,18 @@ def majority_rule(trees, strict=False):
         arbitrarily chosen on sort order
 
     Returns:
-        a list of cogent3.evolve.tree objects
+        a list of PhyloNode objects
     """
-    trees = [(1, tree) for tree in trees]
-    return weighted_majority_rule(trees, strict, "count", method="rooted")
+    weighted_trees = [(1, tree) for tree in trees]
+    return weighted_majority_rule(weighted_trees, strict, "count", method="rooted")
 
 
 def weighted_majority_rule(
-    weighted_trees,
-    strict=False,
-    attr="support",
-    method="unrooted",
-):
+    weighted_trees: Iterable[tuple[float, PhyloNode]],
+    strict: bool = False,
+    attr: str = "count",
+    method: Literal["unrooted", "rooted"] = "unrooted",
+) -> list[PhyloNode]:
     """Calculate a greedy consensus tree in the sense of Bryant (2003), if
     weights are taken as counts. Branch lengths calculated as per Holland
     (2006).
@@ -78,39 +79,47 @@ def weighted_majority_rule(
     raise ValueError(msg)
 
 
+NestedFrozenset: TypeAlias = frozenset["str | NestedFrozenset"]
+
+
 @extend_docstring_from(weighted_majority_rule)
-def weighted_rooted_majority_rule(weighted_trees, strict=False, attr="support"):
-    cladecounts = {}
-    edgelengths = {}
-    total = 0
+def weighted_rooted_majority_rule(
+    weighted_trees: Iterable[tuple[float, PhyloNode]],
+    strict: bool = False,
+    attr: str = "count",
+) -> list[PhyloNode]:
+    cladecounts_dict: dict[frozenset[str], float] = {}
+    edgelengths: dict[NestedFrozenset, float | None] = {}
+    total: float = 0
     for weight, tree in weighted_trees:
         total += weight
         edges = tree.get_edge_vector()
         for edge in edges:
-            tips = edge.get_tip_names(include_self=True)
-            tips = frozenset(tips)
-            if tips not in cladecounts:
-                cladecounts[tips] = 0
-            cladecounts[tips] += weight
+            tips = frozenset(edge.get_tip_names(include_self=True))
+            if tips not in cladecounts_dict:
+                cladecounts_dict[tips] = 0
+            cladecounts_dict[tips] += weight
             length = edge.length and edge.length * weight
-            if edgelengths.get(tips):
-                edgelengths[tips] += length
+            if (edgelength := edgelengths.get(tips)) is not None:
+                edgelengths[tips] = edgelength + cast("float", length)
             else:
                 edgelengths[tips] = length
-    cladecounts = [(count, clade) for (clade, count) in list(cladecounts.items())]
+    cladecounts: list[tuple[float, NestedFrozenset]] = [
+        (count, clade) for (clade, count) in list(cladecounts_dict.items())
+    ]
     cladecounts.sort()
     cladecounts.reverse()
 
     if strict:
         # Remove any with support < 50%
-        for index, (count, clade) in enumerate(cladecounts):
+        for index, (count, _) in enumerate(cladecounts):
             if count <= 0.5 * total:
                 cladecounts = cladecounts[:index]
                 break
 
     # Remove conflicts
-    accepted_clades = set()
-    counts = {}
+    accepted_clades: set[NestedFrozenset] = set()
+    counts: dict[NestedFrozenset, float] = {}
     for count, clade in cladecounts:
         for accepted_clade in accepted_clades:
             if clade.intersection(accepted_clade) and not (
@@ -123,22 +132,30 @@ def weighted_rooted_majority_rule(weighted_trees, strict=False, attr="support"):
             weighted_length = edgelengths[clade]
             edgelengths[clade] = weighted_length and weighted_length / count
 
-    nodes = {}
-    queue = []
+    nodes: dict[str | NestedFrozenset, PhyloNode] = {}
+    queue: list[tuple[int, NestedFrozenset]] = []
     tree_build = TreeBuilder().create_edge
     for clade in accepted_clades:
         if len(clade) == 1:
             tip_name = next(iter(clade))
-            params = {"length": edgelengths[clade], attr: counts[clade]}
-            nodes[tip_name] = tree_build([], tip_name, params)
+            params: dict[str, float | None] = {
+                attr: counts[clade],
+            }
+            nodes[tip_name] = tree_build(
+                [],
+                cast("str", tip_name),
+                params,
+                edgelengths[clade],
+                None,
+            )
         else:
             queue.append((len(clade), clade))
 
     while queue:
         queue.sort()
-        (size, clade) = queue.pop(0)
-        new_queue = []
-        for _size2, ancestor in queue:
+        _, clade = queue.pop(0)
+        new_queue: list[tuple[int, NestedFrozenset]] = []
+        for _, ancestor in queue:
             if clade.issubset(ancestor):
                 new_ancestor = (ancestor - clade) | frozenset([clade])
                 counts[new_ancestor] = counts.pop(ancestor)
@@ -146,11 +163,13 @@ def weighted_rooted_majority_rule(weighted_trees, strict=False, attr="support"):
                 ancestor = new_ancestor
             new_queue.append((len(ancestor), ancestor))
         children = [nodes.pop(c) for c in clade]
-        assert [children]
+
         nodes[clade] = tree_build(
             children,
             None,
-            {attr: counts[clade], "length": edgelengths[clade]},
+            {attr: counts[clade]},
+            edgelengths[clade],
+            None,
         )
         queue = new_queue
 
@@ -161,35 +180,43 @@ def weighted_rooted_majority_rule(weighted_trees, strict=False, attr="support"):
 
 
 @extend_docstring_from(weighted_majority_rule)
-def weighted_unrooted_majority_rule(weighted_trees, strict=False, attr="support"):
+def weighted_unrooted_majority_rule(
+    weighted_trees: Iterable[tuple[float, PhyloNode]],
+    strict: bool = False,
+    attr: str = "count",
+) -> list[PhyloNode]:
     # Calculate raw split lengths and weights
-    split_weights = defaultdict(float)
-    split_lengths = defaultdict(float)
-    tips = None
+    split_weights: dict[frozenset[frozenset[str]], float] = defaultdict(float)
+    split_lengths: dict[frozenset[frozenset[str]], float | None] = defaultdict(float)
+    tips: frozenset[str] | None = None
     for weight, tree in weighted_trees:
+        split: frozenset[frozenset[str]] = frozenset()
         for split, params in list(get_splits(tree).items()):
             split_weights[split] += weight
             if params["length"] is None:
                 split_lengths[split] = None
             else:
-                split_lengths[split] += weight * params["length"]
+                split_lengths[split] = (
+                    cast("float", split_lengths[split]) + weight * params["length"]
+                )
         # Check that all trees have the same taxa
         if tips is None:
-            tips = frozenset.union(*split)
-        elif tips != frozenset.union(*split):
+            tips = frozenset[str].union(*split)
+        elif tips != frozenset[str].union(*split):
             msg = "all trees must have the same taxa"
             raise NotImplementedError(msg)
 
     # Normalise split lengths by split weight and split weights by total weight
-    for split in split_lengths:
-        if split_lengths[split] is not None:
-            split_lengths[split] /= split_weights[split]
-    total_weight = sum(w for w, t in weighted_trees[::-1])
+    for split, length in split_lengths.items():
+        if length is not None:
+            split_lengths[split] = length / split_weights[split]
+
+    total_weight = sum(w for w, _ in weighted_trees)
     weighted_splits = [(w / total_weight, s) for s, w in list(split_weights.items())]
     weighted_splits.sort(reverse=True)
 
     # Remove conflicts and any with support < 50% if strict
-    accepted_splits = {}
+    accepted_splits: dict[frozenset[frozenset[str]], dict[str, float | None]] = {}
     for weight, split in weighted_splits:
         if strict and weight <= 0.5:
             break
@@ -206,7 +233,9 @@ def weighted_unrooted_majority_rule(weighted_trees, strict=False, attr="support"
     return [get_tree(accepted_splits)]
 
 
-def get_splits(tree):
+def get_splits(
+    tree: PhyloNode,
+) -> dict[frozenset[frozenset[str]], dict[str, float | None]]:
     """Return a dict keyed by the splits equivalent to the tree.
     Values are {'length' : edge.length} for the corresponding edge.
     """
@@ -216,14 +245,18 @@ def get_splits(tree):
             stacklevel=2,
         )
 
-    def getTipsAndSplits(tree):
+    def get_tips_and_splits(
+        tree: PhyloNode,
+    ) -> tuple[dict[frozenset[str], dict[str, float | None]], list[str]]:
         if tree.is_tip():
             return ({frozenset([tree.name]): {"length": tree.length}}, [tree.name])
 
-        splits = defaultdict(lambda: {"length": 0.0})
-        tips = []
+        splits: dict[frozenset[str], dict[str, float | None]] = defaultdict(
+            lambda: {"length": 0.0}
+        )
+        tips: list[str] = []
         for child in tree.children:
-            s, t = getTipsAndSplits(child)
+            s, t = get_tips_and_splits(child)
             splits.update(s)
             tips.extend(t)
         if not tree.is_root():
@@ -231,49 +264,59 @@ def get_splits(tree):
             if tree.length is None:
                 splits[split] = {"length": None}
             else:
-                splits[split] = {"length": tree.length + splits[split]["length"]}
+                split_length = cast("float", splits[split]["length"])
+                splits[split] = {"length": tree.length + split_length}
         return splits, tips
 
-    splits, tips = getTipsAndSplits(tree)
-    tips = frozenset(tips)
-    return {frozenset([tips - s, s]): params for s, params in list(splits.items())}
+    splits, tips = get_tips_and_splits(tree)
+    return {
+        frozenset([frozenset(tips) - s, s]): params
+        for s, params in list(splits.items())
+    }
 
 
-def get_tree(splits):
+def get_tree(
+    splits: dict[frozenset[frozenset[str]], dict[str, float | None]],
+) -> PhyloNode:
     """Convert a dict keyed by splits into the equivalent tree.
     The dict values should be dicts appropriate for the params input to
     TreeBuilder.create_edge.
     """
-    Edge = TreeBuilder().create_edge
+    edge_builder = TreeBuilder().create_edge
 
     # Create a star from the tips
-    tips = []
-    the_rest = []
+    tips: list[PhyloNode] = []
+    the_rest: list[tuple[frozenset[frozenset[str]], dict[str, float | None]]] = []
     for split, params in list(splits.items()):
-        small, big = sorted(split, key=len)
+        small, _ = sorted(split, key=len)
         if len(small) == 1:
-            for name in small:
-                tip = Edge(None, name, params)
-            tip.Split = small
+            length = params.pop("length", None)
+            tip = edge_builder(None, next(iter(small)), params, length, None)
+            tip.params["Split"] = small
             tips.append(tip)
         else:
             the_rest.append((split, params))
-    tree = Edge(tips, "root", {})
+    tree = edge_builder(tips, "root", {}, None, None)
 
     # Add the rest of the splits, one by one
-    def addHalfSplit(edge, half, params):
-        included = []
-        test_half = frozenset([])
+    def add_half_split(
+        edge: PhyloNode, half: frozenset[str], params: dict[str, float | None]
+    ) -> bool:
+        included: list[PhyloNode] = []
+        test_half: frozenset[str] = frozenset([])
         for child in edge.children:
-            if child.Split > half:  # This is not the droid you are looking for
-                return addHalfSplit(child, half, params)
-            if child.Split <= half:
+            if (
+                child.params["Split"] > half
+            ):  # This is not the droid you are looking for
+                return add_half_split(child, half, params)
+            if child.params["Split"] <= half:
                 included.append(child)
-                test_half = test_half.union(child.Split)
+                test_half = test_half.union(child.params["Split"])
 
         if test_half == half:  # Found it
-            split = Edge(included, None, params)
-            split.Split = half
+            length = params.pop("length", None)
+            split = edge_builder(included, None, params, length, None)
+            split.params["Split"] = half
             for moved in included:
                 edge.remove_node(moved)
             edge.append(split)
@@ -283,20 +326,8 @@ def get_tree(splits):
 
     for split, params in the_rest:
         for half in split:
-            if addHalfSplit(tree, half, params):
+            if add_half_split(tree, half, params):
                 break
 
     # Balance the tree for the sake of reproducibility
     return tree.balanced()
-
-
-if __name__ == "__main__":
-    import sys
-
-    trees = []
-    for filename in sys.argv[1:]:
-        for tree in open(filename):
-            trees.append(make_tree(treestring=tree))
-    outtrees = majority_rule(trees, strict=True)
-    for tree in outtrees:
-        pass

@@ -1448,7 +1448,6 @@ class SequenceCollection(AnnotatableMixin):
         of strand of the current instance.
         - start is non-inclusive, so if allow_partial is False, only features
         strictly starting after start will be returned.
-
         """
 
         if not self._annotation_db:
@@ -1458,21 +1457,17 @@ class SequenceCollection(AnnotatableMixin):
             msg = f"unknown {seqid=}"
             raise ValueError(msg)
 
-        for feature in self.annotation_db.get_features_matching(
-            seqid=seqid,
-            biotype=biotype,
-            name=name,
-            on_alignment=False,
-            start=start,
-            stop=stop,
-            allow_partial=allow_partial,
-            **kwargs,
-        ):
-            seqname = feature["seqid"]
-            seq = self.seqs[seqname]
-            if offset := seq.annotation_offset:
-                feature["spans"] = (numpy.array(feature["spans"]) - offset).tolist()
-            yield seq.make_feature(feature, self)
+        seqids = [seqid] if isinstance(seqid, str) else self.names
+        for seqid in seqids:
+            seq = self.seqs[seqid]
+            yield from seq.get_features(
+                biotype=biotype,
+                name=name,
+                start=start,
+                stop=stop,
+                allow_partial=allow_partial,
+                **kwargs,
+            )
 
     def to_fasta(self, block_size: int = 60) -> str:
         """Return collection in Fasta format.
@@ -1779,7 +1774,8 @@ class SequenceCollection(AnnotatableMixin):
             )
             motifs.update(c.keys())
             counts.append(c)
-        motifs = sorted(motifs)
+        # use motifs from moltype if empty sequences
+        motifs = sorted(motifs) or sorted(self.moltype)
         for i, c in enumerate(counts):
             counts[i] = c.tolist(motifs)
         return MotifCountsArray(counts, motifs, row_indices=self.names)
@@ -5086,6 +5082,11 @@ class Alignment(SequenceCollection):
             motif columns
         """
         length = (len(self) // motif_length) * motif_length
+        if not length:
+            motifs = list(self.moltype)
+            counts = numpy.zeros((len(self.names), len(motifs)), dtype=int)
+            return MotifCountsArray(counts, motifs, row_indices=self.names)
+
         if warn and len(self) != length:
             warnings.warn(f"trimmed {len(self) - length}", UserWarning, stacklevel=2)
 
@@ -6604,7 +6605,7 @@ class Alignment(SequenceCollection):
         """
         names, output = self._get_raw_pretty(name_order=name_order)
         label_width = max(list(map(len, names)))
-        name_template = "{:>%d}" % label_width
+        name_template = f"{{:>{label_width}}}"
         display_names = {n: name_template.format(n) for n in names}
 
         def make_line(label, seq) -> str:
@@ -6627,7 +6628,7 @@ class Alignment(SequenceCollection):
 
             result.append("")
 
-        if not result[-1]:
+        if result and not result[-1]:
             del result[-1]
 
         return "\n".join(result)

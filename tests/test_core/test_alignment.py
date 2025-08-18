@@ -3978,6 +3978,26 @@ def test_alignment_repr():
     )
 
 
+@pytest.mark.parametrize(
+    "mk_cls", [c3_alignment.make_aligned_seqs, c3_alignment.make_unaligned_seqs]
+)
+def test_seqcoll_counts_per_seq(mk_cls):
+    data = {"a": "", "b": ""}
+    coll = mk_cls(data, moltype="dna")
+    got = coll.counts_per_seq()
+    assert numpy.allclose(got, 0)
+
+
+@pytest.mark.parametrize(
+    "mk_cls", [c3_alignment.make_aligned_seqs, c3_alignment.make_unaligned_seqs]
+)
+def test_seqcoll_repr_html(mk_cls):
+    data = {"a": "", "b": ""}
+    coll = mk_cls(data, moltype="dna")
+    got = coll.to_html()
+    assert isinstance(got, str)
+
+
 @pytest.mark.parametrize("seqid", ["seq1", "seq2", "seq3", "seq4"])
 def test_alignment_getitem_slice(aligned_dict, seqid):
     """slicing an alignment should propogate the slice to aligned instances"""
@@ -5366,10 +5386,8 @@ def test_make_gap_filter():
 
 @pytest.fixture(scope="session")
 def codon_and_aa_alns():
-    import cogent3
-
     data = {"s1": "ATG --- --- GAT --- AAA", "s2": "ATG CAA TCG AAT GAA ATA"}
-    dna = cogent3.make_aligned_seqs(
+    dna = c3_alignment.make_aligned_seqs(
         {n: s.replace(" ", "") for n, s in data.items()},
         moltype="dna",
     )
@@ -6199,3 +6217,10 @@ def test_alignment_copy_handling_annot_db():
 
     copied_aln = aln.copy(copy_annotations=False)
     assert copied_aln.annotation_db is orig_db
+
+
+def test_empty_aln_to_pretty():
+    data = {"a": "", "b": ""}
+    coll = c3_alignment.make_aligned_seqs(data, moltype="dna")
+    got = coll.to_pretty(wrap=60)
+    assert isinstance(got, str)

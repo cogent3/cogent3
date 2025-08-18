@@ -10,7 +10,7 @@ from lzma import open as lzma_open
 from os import PathLike, remove
 from pathlib import Path, PurePath
 from tempfile import mkdtemp
-from typing import IO
+from typing import IO, Any
 from urllib.parse import ParseResult, urlparse
 from urllib.request import urlopen
 from zipfile import ZipFile
@@ -19,7 +19,7 @@ from chardet import detect
 
 from cogent3.util.misc import _wout_period
 
-PathType = str | PathLike | PurePath | Path
+PathType = str | PathLike[Any] | PurePath | Path
 
 
 @functools.singledispatch
@@ -107,7 +107,7 @@ _compression_handlers = {
 }
 
 
-def open_(filename: PathType, mode="rt", **kwargs) -> IO:
+def open_(filename: PathType, mode: str = "rt", **kwargs: Any) -> IO[Any]:
     """open that handles different compression
 
     Parameters
@@ -216,7 +216,7 @@ class atomic_write:
         tmpdir=None,
         in_zip=None,
         mode="w",
-        encoding=None,
+        encoding: str | None = None,
     ) -> None:
         """
 
@@ -248,7 +248,7 @@ class atomic_write:
         self._path = path
         self._cmp = cmp
         self._mode = mode
-        self._file = None
+        self._file: IO[Any] | None = None
         self._encoding = encoding
         self._in_zip = in_zip
         self._tmppath = self._make_tmppath(tmpdir)
@@ -289,14 +289,14 @@ class atomic_write:
 
         return tmpdir / name
 
-    def _get_fileobj(self):
+    def _get_fileobj(self) -> IO[Any]:
         """returns file to be written to"""
         if self._file is None:
             self._file = open_(self._tmppath, self._mode, encoding=self._encoding)
 
         return self._file
 
-    def __enter__(self) -> IO:
+    def __enter__(self) -> IO[Any]:
         return self._get_fileobj()
 
     def _close_rename_standard(self, src) -> None:
@@ -335,10 +335,7 @@ class atomic_write:
         self.__exit__(None, None, None)
 
 
-T = str | None
-
-
-def get_format_suffixes(filename: PathType) -> tuple[T, T]:
+def get_format_suffixes(filename: PathType) -> tuple[str | None, str | None]:
     """returns file, compression suffixes"""
     filename = Path(filename)
     if not filename.suffix:

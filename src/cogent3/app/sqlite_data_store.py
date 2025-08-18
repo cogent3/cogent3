@@ -25,7 +25,7 @@ from cogent3.app.data_store import (
 )
 from cogent3.util.misc import extend_docstring_from
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.table import Table
 
 _RESULT_TABLE = "results"

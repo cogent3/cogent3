@@ -138,7 +138,7 @@ def test_charalphabet_with_gap():
 
 
 def test_charalphabet_with_gap_missing():
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         _ = c3_alphabet.CharAlphabet(list("TCAG"), gap="-")
 
 
@@ -200,10 +200,19 @@ def test_char_alphabet_with_gap(gap):
 
 @pytest.mark.parametrize("k", [2, 3])
 def test_kmer_alphabet_construction(k):
-    dna = c3_moltype.get_moltype("dna")
-    monomers = dna.alphabet
+    mt = c3_moltype.get_moltype("dna")
+    monomers = mt.alphabet
     kmers = monomers.get_kmer_alphabet(k)
-    assert len(kmers) == 4**k
+    assert len(kmers) == len(monomers) ** k
+    assert kmers.motif_len == k
+
+
+def test_kmer_alphabet_construction_bytes():
+    k = 2
+    mt = c3_moltype.get_moltype("bytes")
+    monomers = mt.alphabet
+    kmers = monomers.get_kmer_alphabet(k)
+    assert len(kmers) == len(monomers) ** k
     assert kmers.motif_len == k
 
 

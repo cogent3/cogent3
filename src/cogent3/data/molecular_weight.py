@@ -39,12 +39,12 @@ class WeightCalculator:
 
     # refactor: array
 
-    def __init__(self, Weights, Correction) -> None:
+    def __init__(self, Weights: dict[str, float], Correction: float) -> None:
         """Returns a new WeightCalculator object (class, so serializable)."""
         self.Weights = Weights
         self.Correction = Correction
 
-    def __call__(self, seq, correction=None):
+    def __call__(self, seq: str, correction: float | None = None) -> float:
         """Returns the molecular weight of a specified sequence."""
         if not seq:
             return 0

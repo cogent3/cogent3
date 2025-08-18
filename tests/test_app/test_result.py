@@ -243,7 +243,7 @@ def test_model_result_tree_discrete_time():
     )
     result = model1(aln)
     got = result.tree
-    assert got.children[0].params["length"] == got.children[0].params["paralinear"]
+    assert got.children[0].length == got.children[0].params["paralinear"]
 
 
 def test_model_result_setitem():

@@ -186,8 +186,6 @@ and a list of the tip nodes.
     dmat = tr.tip_to_tip_distances()
     dmat
 
-.. note:: ``tip_to_tip_distances()`` is an alias for ``get_distances()``.
-
 Getting the distance between two nodes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -198,7 +196,7 @@ Via pairwise distances, which returns a ``DistanceMatrix`` instance.
     from cogent3 import load_tree
 
     tr = load_tree("data/test.tree")
-    dists = tr.get_distances(names=["Human", "Mouse"])
+    dists = tr.tip_to_tip_distances(names=["Human", "Mouse"])
     dists
 
 Or directly between the node objects.
@@ -265,14 +263,14 @@ Getting all the children for a node
 Getting all the distances for a tree
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-On a ``TreeNode``, each branh has a weight of 1 so the distances represent the number of connected nodes. On a ``PhyloNode`` the measure is the sum of branch lengths.
+On a ``PhyloNode`` without branch lengths each branch has a weight of 1 so the distances represent the number of connected nodes. On a ``PhyloNode`` with branch lengths the measure is the sum of branch lengths.
 
 .. jupyter-execute::
 
     from cogent3 import load_tree
 
     tr = load_tree("data/test.tree")
-    dists = tr.get_distances()
+    dists = tr.tip_to_tip_distances()
     dists
 
 Getting the two nodes that are farthest apart

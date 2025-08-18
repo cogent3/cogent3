@@ -493,11 +493,11 @@ class ConsensusTests(unittest.TestCase):
 class TreeReconstructionTests(unittest.TestCase):
     def setUp(self):
         self.tree = make_tree(treestring="((a:3,b:4):2,(c:6,d:7):30,(e:5,f:5):5)")
-        self.dists = self.tree.get_distances()
+        self.dists = self.tree.tip_to_tip_distances()
 
     def assertTreeDistancesEqual(self, t1, t2):
-        d1 = t1.get_distances().to_dict()
-        d2 = t2.get_distances().to_dict()
+        d1 = t1.tip_to_tip_distances().to_dict()
+        d2 = t2.tip_to_tip_distances().to_dict()
         assert len(d1) == len(d2)
         for key in d2:
             self.assertAlmostEqual(d1[key], d2[key])
