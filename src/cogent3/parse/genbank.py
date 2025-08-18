@@ -66,7 +66,7 @@ def parse_single_line(line):
     return data.rstrip()
 
 
-def indent_splitter(lines):
+def indent_splitter(lines: list[str]) -> Iterator[list[str]]:
     """Yields the lines whenever it hits a line with same indent level as first."""
     first_line = True
     curr = []
@@ -80,7 +80,9 @@ def indent_splitter(lines):
             indent = len(line) - len(line.lstrip())
             curr.append(line)
             first_line = False
-        elif len(line) > indent and line[indent].isspace():
+            continue
+
+        if len(line) > indent and line[indent].isspace():
             curr.append(line)
         else:  # got a line that doesn't match the indent
             yield curr
@@ -465,13 +467,12 @@ def parse_reference(lines):
     return result
 
 
-def parse_source(lines):
+def parse_source(lines: list[str]) -> dict[str, str]:
     """Simple parser for source fields."""
-    result = {}
     all_lines = list(lines)
     source_field = next(reference_field_finder(all_lines))
     label, data = block_consolidator(source_field)
-    result[label.lower()] = " ".join(map(strip, data))
+    result = {label.lower(): " ".join(map(strip, data))}
     source_length = len(source_field)
     species, taxonomy = parse_organism(lines[source_length:])
     result["species"] = species
