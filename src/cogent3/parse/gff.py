@@ -5,22 +5,16 @@ import functools
 import io
 import pathlib
 import re
-import typing
 from abc import ABC
+from collections.abc import Callable, Iterable
+from collections.abc import Sequence as PySeq
+from typing import IO, Any, cast
 
 from cogent3.util.io import PathType, open_
 
-OptionalCallable = typing.Optional[typing.Callable]
-OptionalStrContainer = typing.Optional[str | typing.Sequence[str]]
-OptionalIntList = typing.Optional[list[list[int]]]
-OptionalStr = typing.Optional[str]
-OptionalInt = typing.Optional[int]
-OptionalStrDict = typing.Optional[str | dict[str, str]]
-OptionalBool = typing.Optional[bool]
-
 
 @functools.singledispatch
-def is_gff3(f) -> bool:
+def is_gff3(f: PathType) -> bool:
     """True if gff-version is 3"""
     msg = f"unsupported type {type(f)}"
     raise TypeError(msg)
@@ -84,6 +78,23 @@ class GffRecordABC(ABC):
         "strand",
     )
 
+    def __init__(
+        self,
+    ) -> None:  # pragma: no cover
+        self.seqid: str | None
+        self.source: str | None
+        self.biotype: str | None
+        self.name: str | None
+        self.parent_id: str | None
+        self.start: int | None
+        self.stop: int | None
+        self.spans: list[tuple[int, int]] | None
+        self.score: str | None
+        self.strand: str | None
+        self.phase: str | None
+        self.comments: str | None
+        self.attrs: str | dict[str, str] | Any | None
+
     def __repr__(self) -> str:
         name = self.__class__.__name__
         return (
@@ -92,23 +103,23 @@ class GffRecordABC(ABC):
             f"strand={self.strand!r}, spans={self.spans})"
         )
 
-    def __getitem__(self, item: str):
+    def __getitem__(self, item: str) -> Any:
         item = item.lower()
         return getattr(self, _gff_item_map.get(item, item))
 
-    def __setitem__(self, key: str, value: typing.Any) -> None:
+    def __setitem__(self, key: str, value: Any) -> None:
         key = key.lower()
         setattr(self, _gff_item_map.get(key, key), value)
 
-    def update(self, values: dict[str, typing.Any]) -> None:
+    def update(self, values: dict[str, Any]) -> None:
         for key, value in values.items():
             self[key] = value
 
-    def get(self, item: str) -> typing.Any:
+    def get(self, item: str) -> Any:
         item = item.lower()
         return getattr(self, _gff_item_map.get(item, item), None)
 
-    def to_dict(self) -> dict[str, typing.Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {k: getattr(self, k) for k in self.__slots__}
 
 
@@ -141,19 +152,19 @@ class GffRecord(GffRecordABC):
 
     def __init__(
         self,
-        seqid: OptionalStr = None,
-        source: OptionalStr = None,
-        biotype: OptionalStr = None,
-        name: OptionalStr = None,
-        parent_id: OptionalStr = None,
-        start: OptionalInt = None,
-        stop: OptionalInt = None,
-        spans: OptionalIntList = None,
-        score: OptionalStr = None,
-        strand: OptionalStr = None,
-        phase: OptionalInt = None,
-        comments: OptionalStr = None,
-        attrs: OptionalStrDict = None,
+        seqid: str | None = None,
+        source: str | None = None,
+        biotype: str | None = None,
+        name: str | None = None,
+        parent_id: str | None = None,
+        start: int | None = None,
+        stop: int | None = None,
+        spans: list[tuple[int, int]] | None = None,
+        score: str | None = None,
+        strand: str | None = None,
+        phase: str | None = None,
+        comments: str | None = None,
+        attrs: str | dict[str, str] | Any | None = None,
     ) -> None:
         self.seqid = seqid
         self.source = source
@@ -172,12 +183,12 @@ class GffRecord(GffRecordABC):
 
 @functools.singledispatch
 def gff_parser(
-    f: PathType | typing.IO | OptionalStrContainer,
-    attribute_parser: OptionalCallable = None,
-    seqids: OptionalStrContainer = None,
-    gff3: OptionalBool = None,
-    make_record: OptionalCallable = None,
-) -> typing.Iterable[GffRecordABC]:
+    f: PathType | IO[str] | str | PySeq[str] | None,
+    attribute_parser: Callable[[str], Any] | None = None,
+    seqids: str | Iterable[str] | None = None,
+    gff3: bool | None = None,
+    make_record: type[GffRecord] | None = None,
+) -> Iterable[GffRecordABC]:
     """parses a gff file
 
     Parameters
@@ -213,11 +224,11 @@ def gff_parser(
 @gff_parser.register
 def _(
     f: pathlib.Path,
-    attribute_parser: OptionalCallable = None,
-    seqids: OptionalStrContainer = None,
-    gff3: OptionalBool = None,
-    make_record: OptionalCallable = None,
-) -> typing.Iterable[GffRecordABC]:
+    attribute_parser: Callable[[str], Any] | None = None,
+    seqids: str | Iterable[str] | None = None,
+    gff3: bool | None = None,
+    make_record: type[GffRecord] | None = None,
+) -> Iterable[GffRecordABC]:
     with open_(f) as infile:
         yield from gff_parser(
             infile,
@@ -231,11 +242,11 @@ def _(
 @gff_parser.register
 def _(
     f: str,
-    attribute_parser: OptionalCallable = None,
-    seqids: OptionalStrContainer = None,
-    gff3: OptionalBool = None,
-    make_record: OptionalCallable = None,
-) -> typing.Iterable[GffRecordABC]:
+    attribute_parser: Callable[[str], Any] | None = None,
+    seqids: str | Iterable[str] | None = None,
+    gff3: bool | None = None,
+    make_record: type[GffRecord] | None = None,
+) -> Iterable[GffRecordABC]:
     with open_(f) as infile:
         yield from gff_parser(
             infile,
@@ -249,11 +260,11 @@ def _(
 @gff_parser.register
 def _(
     f: io.IOBase,
-    attribute_parser: OptionalCallable = None,
-    seqids: OptionalStrContainer = None,
-    gff3: OptionalBool = None,
-    make_record: OptionalCallable = None,
-) -> typing.Iterable[GffRecordABC]:
+    attribute_parser: Callable[[str], Any] | None = None,
+    seqids: str | Iterable[str] | None = None,
+    gff3: bool | None = None,
+    make_record: type[GffRecord] | None = None,
+) -> Iterable[GffRecordABC]:
     yield from _gff_parser(
         f,
         attribute_parser=attribute_parser,
@@ -264,12 +275,12 @@ def _(
 
 
 def _gff_parser(
-    f: PathType | typing.IO | OptionalStrContainer,
-    attribute_parser: OptionalCallable = None,
-    seqids: OptionalStrContainer = None,
-    gff3: bool = True,
-    make_record: OptionalCallable = None,
-) -> typing.Iterable[GffRecordABC]:
+    f: Iterable[str],
+    attribute_parser: Callable[[str], Any] | None = None,
+    seqids: str | Iterable[str] | None = None,
+    gff3: bool | None = True,
+    make_record: type[GffRecord] | None = None,
+) -> Iterable[GffRecordABC]:
     """parses a gff file"""
     seqids = seqids or set()
     seqids = {seqids} if isinstance(seqids, str) else set(seqids)
@@ -297,13 +308,13 @@ def _gff_parser(
         if len(cols) == 8:
             cols.append("")
         assert len(cols) == 9, repr(cols)
-        seqid, source, type_, start, end, score, strand, phase, attributes = cols
+        seqid, source, type_, start_, end_, score, strand, phase, attributes = cols
 
         if seqids and seqid not in seqids:
             continue
 
         # adjust for 0-based indexing
-        start, end = int(start) - 1, int(end)
+        start, end = int(start_) - 1, int(end_)
         # start is always meant to be less than end in GFF
         # features that extend beyond sequence have negative indices
         if start < 0 or end < 0:
@@ -327,7 +338,7 @@ def _gff_parser(
         )
 
 
-def parse_attributes_gff2(attributes: str) -> dict:
+def parse_attributes_gff2(attributes: str) -> dict[str, str]:
     """Returns a dict with name and info keys"""
     name = attributes[attributes.find('"') + 1 :]
     if '"' in name:
@@ -335,19 +346,25 @@ def parse_attributes_gff2(attributes: str) -> dict:
     return {"ID": name, "Info": attributes}
 
 
-def parse_attributes_gff3(attributes: str) -> dict:
+def parse_attributes_gff3(attributes: str) -> dict[str, str | list[str]]:
     """Returns a dictionary containing all the attributes"""
     attributes = attributes.strip(";")
-    attributes = attributes.split(";")
-    attributes = dict(t.split("=") for t in attributes) if attributes[0] else {}
-    if "Parent" in attributes:
+    attributes_split = attributes.split(";")
+    attributes_dict: dict[str, str | list[str]] = cast(
+        "dict[str, str | list[str]]",
+        dict(t.split("=") for t in attributes_split) if attributes_split[0] else {},
+    )
+
+    if "Parent" in attributes_dict:
         # There may be multiple parents
-        if "," in attributes["Parent"]:
-            attributes["Parent"] = attributes["Parent"].split(",")
+        if "," in attributes_dict["Parent"]:
+            attributes_dict["Parent"] = cast("str", attributes_dict["Parent"]).split(
+                ","
+            )
         else:
-            attributes["Parent"] = [attributes["Parent"]]
-    attributes["ID"] = attributes.get("ID", "")
-    return attributes
+            attributes_dict["Parent"] = [cast("str", attributes_dict["Parent"])]
+    attributes_dict["ID"] = attributes_dict.get("ID", "")
+    return attributes_dict
 
 
 def merged_gff_records(
@@ -376,7 +393,7 @@ def merged_gff_records(
     name = re.compile(field_template.format("ID"))
     parent_id = re.compile(field_template.format("Parent"))
 
-    reduced = collections.OrderedDict()
+    reduced: dict[str, GffRecordABC] = collections.OrderedDict()
     # collapse records with ID's occurring in multiple rows into one
     # row, converting their coordinates
     # extract the name from ID and add this into the table
@@ -384,7 +401,7 @@ def merged_gff_records(
     # if we could, we could do this as one pass over the data
     # all keys need to be lower case
     for record in records:
-        attrs = record.attrs or ""
+        attrs = cast("str", record.attrs or "")
         if match := name.search(attrs):
             record_id = match.group()
         else:
@@ -399,7 +416,8 @@ def merged_gff_records(
             reduced[record_id] = record
             reduced[record_id].spans = []
 
-        reduced[record_id].spans.append((record["start"], record["stop"]))
+        record_spans_list = cast("list[tuple[int, int]]", reduced[record_id].spans)
+        record_spans_list.append((record["start"], record["stop"]))
 
     del records
 

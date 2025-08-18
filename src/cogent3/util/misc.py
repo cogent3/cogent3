@@ -14,6 +14,7 @@ from warnings import warn
 
 import numpy
 from numpy import array, finfo, float64, floating, integer, ndarray, zeros
+from typing_extensions import TypeIs
 
 if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Callable, Iterable
@@ -1127,16 +1128,16 @@ class negate_condition:
         return not bool(self.func(*args, **kwargs))
 
 
-def is_number(v: Any) -> bool:
+def is_number(v: Any) -> TypeIs[int | float | integer | floating]:
     """built in or numpy number type"""
     return isinstance(v, (int, float, integer, floating))
 
 
-def is_int(v: Any) -> bool:
+def is_int(v: Any) -> TypeIs[int | integer]:
     """built in or numpy int type"""
     return isinstance(v, (int, integer))
 
 
-def is_float(v: Any) -> bool:
+def is_float(v: Any) -> TypeIs[float | floating]:
     """built in or numpy float type"""
     return isinstance(v, (float, floating))

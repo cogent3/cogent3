@@ -2,9 +2,11 @@ import functools
 import io
 import pathlib
 import string
-import typing
+from collections.abc import Callable, Iterator
+from typing import Any
 
 import numpy
+import numpy.typing as npt
 
 import cogent3
 from cogent3.core import alphabet as c3_alphabet
@@ -15,6 +17,7 @@ from cogent3.parse.record_finder import (
     DelimitedRecordFinder,
     LabeledRecordFinder,
 )
+from cogent3.util.io import PathType
 
 maketrans = str.maketrans
 strip = str.strip
@@ -526,7 +529,7 @@ def parse_metadata_first_line(features: str) -> dict[str, str]:
 
 
 @functools.singledispatch
-def default_parse_metadata(data) -> dict[str, dict]:
+def default_parse_metadata(data: bytes | str) -> dict[str, dict]:
     """convert genbank record metadata in a dict"""
     msg = f"not implemented for {type(data)}"
     raise TypeError(msg)
@@ -551,9 +554,9 @@ def _(data: str) -> dict[str, dict]:
     return curr
 
 
-OutTypes = typing.Union[str, bytes, numpy.ndarray]
-SeqConverterType = typing.Optional[typing.Callable[[bytes], OutTypes]]
-OptFeatureConverterType = typing.Optional[typing.Callable[[str], typing.Any]]
+OutTypes = str | bytes | npt.NDArray[numpy.integer]
+SeqConverterType = Callable[[bytes], OutTypes] | None
+OptFeatureConverterType = Callable[[str], Any] | None
 
 _seq_converter = c3_alphabet.convert_alphabet(
     string.ascii_lowercase.encode("utf8"),
@@ -571,7 +574,7 @@ def iter_genbank_records(
     data,
     converter: SeqConverterType = default_seq_converter,
     convert_features: OptFeatureConverterType = default_parse_metadata,
-) -> tuple[str, OutTypes, typing.Any]:
+) -> Iterator[tuple[str, OutTypes, Any]]:
     """generator returning sequence labels and sequences converted bytes from a fasta file
 
     Parameters
@@ -599,7 +602,7 @@ def _(
     data: bytes,
     converter: SeqConverterType = default_seq_converter,
     convert_features: OptFeatureConverterType = default_parse_metadata,
-) -> typing.Iterator[tuple[str, OutTypes, typing.Any]]:
+) -> Iterator[tuple[str, OutTypes, Any]]:
     for record in data.split(b"\n//"):
         if record.isspace():
             # trailing newline
@@ -624,7 +627,7 @@ def _(
     data: str,
     converter: SeqConverterType = default_seq_converter,
     convert_features: OptFeatureConverterType = default_parse_metadata,
-) -> typing.Iterator[tuple[str, OutTypes, typing.Any]]:
+) -> Iterator[tuple[str, OutTypes, Any]]:
     with cogent3.open_(data, mode="rb") as infile:
         data: bytes = infile.read()
 
@@ -640,7 +643,7 @@ def _(
     data: pathlib.Path,
     converter: SeqConverterType = default_seq_converter,
     convert_features: OptFeatureConverterType = default_parse_metadata,
-) -> typing.Iterator[tuple[str, OutTypes, typing.Any]]:
+) -> Iterator[tuple[str, OutTypes, Any]]:
     with cogent3.open_(data, mode="rb") as infile:
         data: bytes = infile.read()
 
@@ -656,7 +659,7 @@ def _(
     data: io.TextIOBase,
     converter: SeqConverterType = default_seq_converter,
     convert_features: OptFeatureConverterType = default_parse_metadata,
-) -> typing.Iterator[tuple[str, OutTypes, typing.Any]]:
+) -> Iterator[tuple[str, OutTypes, Any]]:
     data: bytes = data.read().encode("utf8")
 
     return iter_genbank_records(
@@ -667,10 +670,10 @@ def _(
 
 
 def minimal_parser(
-    data,
+    data: bytes | io.TextIOBase | PathType,
     converter: SeqConverterType = default_seq_converter,
     convert_features: OptFeatureConverterType = default_parse_metadata,
-) -> typing.Iterator[dict]:
+) -> Iterator[dict[str, OutTypes | Any]]:
     """minimal genbank parser wraps iter_genbank_records
 
     Parameters

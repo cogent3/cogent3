@@ -101,6 +101,7 @@ dev = [
     "nox",
     "numpydoc",
     "scriv",
+    "types-tqdm",
     "cogent3[doc]",
     "cogent3[test]"
 ]
@@ -135,6 +136,11 @@ version = "literal: src/cogent3/_version.py:__version__"
 skip_fragments = "README.*"
 new_fragment_template = "file: changelog.d/templates/new.md.j2"
 entry_title_template = "file: changelog.d/templates/title.md.j2"
+
+[[tool.mypy.overrides]]
+module = ["numba", "loky", "mpi4py"]
+ignore_missing_imports = true
+
 
 [project.entry-points."cogent3.app"]
 concat = "cogent3.app.sample:concat"

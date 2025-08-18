@@ -4,7 +4,7 @@ from collections.abc import Iterable
 import typing_extensions
 from numpy import array
 
-from .location import FeatureMap, SeqCoordTypes, Strand
+from .location import FeatureMap, Strand
 
 if typing.TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.alignment import Alignment
@@ -204,7 +204,7 @@ class Feature:
         }
         return self.__class__(**kwargs)
 
-    def get_coordinates(self) -> SeqCoordTypes:
+    def get_coordinates(self) -> list[tuple[int, int]]:
         """returns sequence coordinates of this Feature as
         [(start1, end1), ...]"""
         return self.map.get_coordinates()
