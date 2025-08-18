@@ -4,22 +4,14 @@ from unittest import TestCase
 
 import pytest
 from numpy import (
-    arange,
     array,
     asarray,
     concatenate,
-    fill_diagonal,
     isfinite,
-    isnan,
     logical_and,
-    ones,
-    reshape,
-    testing,
-    tril,
 )
-from numpy.testing import assert_allclose, assert_almost_equal, assert_equal
+from numpy.testing import assert_allclose, assert_almost_equal
 
-from cogent3.maths.stats.number import NumberCounter
 from cogent3.maths.stats.test import (
     ALT_HIGH,
     ALT_LOW,
@@ -34,7 +26,6 @@ from cogent3.maths.stats.test import (
     _permute_observations,
     is_symmetric_and_hollow,
     multiple_n,
-    mw_boot,
     probability_points,
     safe_sum_p_log_p,
     theoretical_quantiles,
@@ -331,6 +322,7 @@ class StatTests(TestsHelper):
         assert len(obs[1][0]) == len(II)
         assert_allclose(sorted(concatenate((obs[0][0], obs[1][0]))), sorted(I + II))
 
+
 class CorrelationTests(TestsHelper):
     """Tests of correlation coefficients and Mantel test."""
 
@@ -418,6 +410,7 @@ class CorrelationTests(TestsHelper):
         vec = [1, 2, (1,), 2.5, 3, 1]
         self.assertRaises(TypeError, _get_rank, vec)
 
+
 class TestDistMatrixPermutationTest(TestCase):
     """Tests of distance_matrix_permutation_test"""
 
@@ -428,7 +421,6 @@ class TestDistMatrixPermutationTest(TestCase):
         )
         self.cells = [(0, 1), (1, 3)]
         self.cells2 = [(0, 2), (2, 3)]
-
 
     def test_probability_points(self):
         """generates evenly spaced probabilities"""

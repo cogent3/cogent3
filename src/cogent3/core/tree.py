@@ -73,14 +73,17 @@ if TYPE_CHECKING:  # pragma: no cover
     PySeq = Sequence
     PySeqStr = PySeq[str]
 
+
 class TreeError(Exception):
     pass
+
 
 @deprecated_callable("2025.9", "unused", is_discontinued=True)
 def distance_from_r(
     m1: npt.NDArray[numpy.number], m2: npt.NDArray[numpy.number]
 ) -> float:  # pragma: no cover
     from scipy.stats import pearsonr
+
     """Estimates distance as (1-r)/2: neg correl = max distance"""
     return (1 - cast("float", pearsonr(m1.flat, m2.flat)[0])) / 2
 
