@@ -1864,7 +1864,7 @@ def mw_test(x, y):  # pragma: no cover
     return U, p
 
 
-def mw_boot(x, y, num_reps=1000):  # convert to using scipy mannwhitneyu
+def mw_boot(x, y, num_reps=1000):
     """Monte Carlo (bootstrap) variant of the Mann-Whitney test.
 
     Parameters

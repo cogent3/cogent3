@@ -46,7 +46,6 @@ from typing import (
     overload,
 )
 
-from scipy.stats import pearsonr
 import numpy
 import numpy.typing as npt
 
@@ -81,6 +80,7 @@ class TreeError(Exception):
 def distance_from_r(
     m1: npt.NDArray[numpy.number], m2: npt.NDArray[numpy.number]
 ) -> float:  # pragma: no cover
+    from scipy.stats import pearsonr
     """Estimates distance as (1-r)/2: neg correl = max distance"""
     return (1 - cast("float", pearsonr(m1.flat, m2.flat)[0])) / 2
 
