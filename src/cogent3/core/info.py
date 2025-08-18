@@ -4,6 +4,7 @@
 Info is a dictionary and is the annotation object of a Sequence object.
 """
 
+from typing import Any, ClassVar
 from warnings import warn
 
 from cogent3.parse.record import MappedRecord
@@ -135,9 +136,9 @@ class Info(MappedRecord, Delegator):
     Delegates to DbRefs for database IDs.
     """
 
-    Required = {"Refs": None}
+    Required: ClassVar[dict[str, Any]] = {"Refs": None}
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Returns new Info object. Creates DbRefs if necessary."""
         temp = dict(*args, **kwargs)
         if "Refs" in temp:
@@ -168,19 +169,19 @@ class Info(MappedRecord, Delegator):
             return setattr(self.Refs, attr, val)
         return super().__setattr__(attr, val)
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: str) -> Any:
         """Checks for item in Refs first."""
         if item in KnownDatabases:
             return getattr(self.Refs, item)
         return super().__getitem__(item)
 
-    def __setitem__(self, item, val) -> None:
+    def __setitem__(self, item: str, val: Any) -> None:
         """Try to set in Refs first."""
         if item in KnownDatabases:
             return setattr(self.Refs, item, val)
         return super().__setitem__(item, val)
 
-    def __contains__(self, item) -> bool:
+    def __contains__(self, item: str) -> bool:
         """Checks for item in Refs first."""
         if item in KnownDatabases:
             return item in self.Refs

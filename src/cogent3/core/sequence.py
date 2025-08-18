@@ -13,13 +13,13 @@ import re
 import warnings
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from collections.abc import Callable, Iterable, Iterator, Mapping
 from functools import singledispatch, total_ordering
 from operator import eq, ne
 from random import shuffle
-from typing import Any
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy
+import numpy.typing as npt
 from numpy import array
 from typing_extensions import Self
 
@@ -57,13 +57,12 @@ from cogent3.util.misc import (
 )
 from cogent3.util.transform import for_seq, per_shortest
 
-OptStr = str | None
-OptInt = int | None
-OptFloat = float | None
-IntORFloat = int | float
-StrORIterableStr = str | Iterable[str]
-StrORBytesORArray = str | bytes | numpy.ndarray
-ARRAY_TYPE = type(array(1))
+if TYPE_CHECKING:
+    from collections.abc import Callable, Iterable, Iterator, Mapping
+
+    from cogent3.core.alignment import Aligned
+
+NumpyIntArrayType = npt.NDArray[numpy.integer]
 
 # standard distance functions: left  because generally useful
 frac_same = for_seq(f=eq, aggregator=sum, normalizer=per_shortest)
@@ -71,8 +70,8 @@ frac_diff = for_seq(f=ne, aggregator=sum, normalizer=per_shortest)
 
 
 def _moltype_seq_from_rich_dict(
-    data: dict[str, str | dict[str, str]],
-) -> tuple[c3_moltype.MolType, StrORBytesORArray]:
+    data: dict[str, str | bytes | NumpyIntArrayType | dict[str, str]],
+) -> tuple[c3_moltype.MolType[Any], str | bytes | NumpyIntArrayType]:
     """returns moltype and seq and mutates data so it can serve as kwargs to Sequence constructor"""
     data.pop("type")
     data.pop("version")
@@ -82,7 +81,7 @@ def _moltype_seq_from_rich_dict(
     moltype = data.pop("moltype")
     moltype = c3_moltype.get_moltype(moltype)
 
-    seq = data.pop("seq")
+    seq = cast("str | bytes | NumpyIntArrayType", data.pop("seq"))
     return moltype, seq
 
 
@@ -133,10 +132,10 @@ class Sequence(AnnotatableMixin):
     def __init__(
         self,
         moltype: c3_moltype.MolType[Any],
-        seq: StrORBytesORArray | SeqViewABC,
+        seq: str | bytes | NumpyIntArrayType | SeqViewABC,
         *,
-        name: OptStr = None,
-        info: dict | InfoClass | None = None,
+        name: str | None = None,
+        info: dict[str, Any] | InfoClass | None = None,
         annotation_offset: int = 0,
         annotation_db: SupportsFeatures | None = None,
     ) -> None:
@@ -171,8 +170,7 @@ class Sequence(AnnotatableMixin):
             annotation_offset,
         )
 
-        info = info or {}
-        self.info = InfoClass(**info)
+        self.info = InfoClass(**(info or {}))
         self._repr_policy = {"num_pos": 60}
         self._annotation_db: list[SupportsFeatures] = self._init_annot_db_value(
             annotation_db
@@ -187,9 +185,9 @@ class Sequence(AnnotatableMixin):
 
     def __array__(
         self,
-        dtype: numpy.dtype | None = None,
+        dtype: type[numpy.integer] | None = None,
         copy: bool | None = None,
-    ) -> numpy.ndarray[int]:
+    ) -> NumpyIntArrayType:
         # using the array_value attribute means we can have
         # a aligned or seq data view here and the outcome will be the
         # same -- just the sequence is returned
@@ -199,7 +197,7 @@ class Sequence(AnnotatableMixin):
                 result = self.moltype.complement(result)
         return result
 
-    def to_array(self, apply_transforms: bool = True) -> numpy.ndarray[int]:
+    def to_array(self, apply_transforms: bool = True) -> NumpyIntArrayType:
         """returns the numpy array
 
         Parameters
@@ -223,7 +221,11 @@ class Sequence(AnnotatableMixin):
 
         return arr
 
-    def to_fasta(self, make_seqlabel=None, block_size=60) -> str:
+    def to_fasta(
+        self,
+        make_seqlabel: Callable[[Sequence], str] | None = None,
+        block_size: int = 60,
+    ) -> str:
         """Return string of self in FASTA format, no trailing newline
 
         Parameters
@@ -262,16 +264,15 @@ class Sequence(AnnotatableMixin):
         Deserialisation of the sequence object will not include the annotation_db
         even if exclude_annotations=False.
         """
-        info = {} if self.info is None else self.info
+        info: InfoClass | dict[str, Any] = {} if self.info is None else self.info
         if info.get("Refs", None) is not None and "Refs" in info:
             info.pop("Refs")
 
-        info = info or None
-        data = {
+        data: dict[str, Any] = {
             "name": self.name,
             "seq": str(self),
             "moltype": self.moltype.label,
-            "info": info,
+            "info": info or None,
             "type": get_object_provenance(self),
             "version": __version__,
         }
@@ -383,18 +384,18 @@ class Sequence(AnnotatableMixin):
     def count_ambiguous(self) -> int:
         """Returns the number of ambiguous characters in the sequence."""
         data = numpy.array(self)
-        gap_index = self.moltype.most_degen_alphabet().gap_index
+        gap_index = cast("int", self.moltype.most_degen_alphabet().gap_index)
         return int(numpy.sum(data > gap_index))
 
-    def __lt__(self, other) -> bool:
+    def __lt__(self, other: Sequence) -> bool:
         """compares based on the sequence string."""
         return str(self) < str(other)
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
         """compares based on the sequence string."""
         return str(self) == str(other)
 
-    def __ne__(self, other) -> bool:
+    def __ne__(self, other: object) -> bool:
         """compares based on the sequence string."""
         return str(self) != str(other)
 
@@ -402,7 +403,7 @@ class Sequence(AnnotatableMixin):
         """__hash__ behaves like the sequence string for dict lookup."""
         return hash(str(self))
 
-    def __contains__(self, other) -> bool:
+    def __contains__(self, other: str) -> bool:
         """__contains__ checks whether other is in the sequence string."""
         return other in str(self)
 
@@ -486,7 +487,7 @@ class Sequence(AnnotatableMixin):
         result.annotation_db = self.annotation_db
         return result
 
-    def gap_indices(self) -> numpy.ndarray:
+    def gap_indices(self) -> NumpyIntArrayType:
         """Returns array of the indices of all gaps in the sequence"""
         return numpy.where(self.gap_vector())[0]
 
@@ -523,7 +524,7 @@ class Sequence(AnnotatableMixin):
         """
         return self.moltype.count_variants(str(self))
 
-    def mw(self, method: str = "random", delta: OptFloat = None) -> float:
+    def mw(self, method: str = "random", delta: float | None = None) -> float:
         """Returns the molecular weight of (one strand of) the sequence.
 
         Parameters
@@ -567,8 +568,8 @@ class Sequence(AnnotatableMixin):
     def distance(
         self,
         other: Self,
-        function: Callable[[str, str], IntORFloat] | None = None,
-    ) -> IntORFloat:
+        function: Callable[[str, str], float] | None = None,
+    ) -> float:
         """Returns distance between self and other using function(i,j).
 
         Parameters
@@ -613,7 +614,7 @@ class Sequence(AnnotatableMixin):
             distance += function(first, second)
         return distance
 
-    def matrix_distance(self, other: Self, matrix) -> IntORFloat:
+    def matrix_distance(self, other: Self, matrix) -> float:
         """Returns distance between self and other using a score matrix.
 
         Warnings
@@ -806,7 +807,7 @@ class Sequence(AnnotatableMixin):
     def to_html(
         self,
         wrap: int = 60,
-        limit: OptInt = None,
+        limit: int | None = None,
         colors: Mapping[str, str] | None = None,
         font_size: int = 12,
         font_family: str = "Lucida Console",
@@ -960,10 +961,10 @@ class Sequence(AnnotatableMixin):
     def get_features(
         self,
         *,
-        biotype: OptStr = None,
-        name: OptStr = None,
-        start: OptInt = None,
-        stop: OptInt = None,
+        biotype: str | None = None,
+        name: str | None = None,
+        start: int | None = None,
+        stop: int | None = None,
         allow_partial: bool = False,
         **kwargs,
     ) -> Iterator[Feature]:
@@ -1159,10 +1160,10 @@ class Sequence(AnnotatableMixin):
         biotype: str,
         name: str,
         spans: list[tuple[int, int]],
-        parent_id: OptStr = None,
-        strand: OptStr = None,
+        parent_id: str | None = None,
+        strand: str | None = None,
         on_alignment: bool = False,
-        seqid: OptStr = None,
+        seqid: str | None = None,
     ) -> Feature:
         """
         add a feature to annotation_db
@@ -1319,7 +1320,7 @@ class Sequence(AnnotatableMixin):
 
     def with_masked_annotations(
         self,
-        biotypes: StrORIterableStr,
+        biotypes: str | Iterable[str],
         mask_char: str | None = None,
         shadow: bool = False,
     ) -> Self:
@@ -1680,7 +1681,7 @@ class Sequence(AnnotatableMixin):
     def get_drawables(
         self,
         *,
-        biotype: StrORIterableStr | None = None,
+        biotype: str | Iterable[str] | None = None,
     ) -> dict:
         """returns a dict of drawables, keyed by type
 
@@ -1700,7 +1701,7 @@ class Sequence(AnnotatableMixin):
     def get_drawable(
         self,
         *,
-        biotype: StrORIterableStr | None = None,
+        biotype: str | Iterable[str] | None = None,
         width: int = 600,
         vertical: bool = False,
     ):
@@ -1805,10 +1806,10 @@ class Sequence(AnnotatableMixin):
         with_replacement: bool = False,
         motif_length: int = 1,
         randint: Callable[
-            [int, int | None, int | None], numpy.ndarray
+            [int, int | None, int | None], NumpyIntArrayType
         ] = numpy.random.randint,
         permutation: Callable[
-            [numpy.ndarray], numpy.ndarray
+            [NumpyIntArrayType], NumpyIntArrayType
         ] = numpy.random.permutation,
     ) -> Self:
         """Returns random sample of positions from self, e.g. to bootstrap.
@@ -2172,6 +2173,17 @@ class SliceRecordABC(ABC):
     __slots__ = ("_offset", "start", "step", "stop")
 
     @abstractmethod
+    def __init__(
+        self,
+        *,
+        parent_len: int,
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
+        offset: int = 0,
+    ) -> None: ...
+
+    @abstractmethod
     def __eq__(self, other: object) -> bool: ...
 
     @abstractmethod
@@ -2181,7 +2193,7 @@ class SliceRecordABC(ABC):
     def parent_len(self) -> int: ...
 
     @abstractmethod
-    def _get_init_kwargs(self) -> dict:
+    def _get_init_kwargs(self) -> dict[str, Any]:
         """return required arguments for construction that are unique to the
         subclass"""
         ...
@@ -2645,9 +2657,9 @@ class SliceRecord(SliceRecordABC):
         self,
         *,
         parent_len: int,
-        start: OptInt = None,
-        stop: OptInt = None,
-        step: OptInt = None,
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
         offset: int = 0,
     ) -> None:
         """
@@ -2695,7 +2707,7 @@ class SliceRecord(SliceRecordABC):
     def parent_len(self) -> int:
         return self._parent_len
 
-    def _get_init_kwargs(self) -> dict:
+    def _get_init_kwargs(self) -> dict[str, Any]:
         return {}
 
     def copy(self, sliced: bool = False) -> Self:
@@ -2739,7 +2751,7 @@ class SeqViewABC(ABC):
 
     @property
     @abstractmethod
-    def seqid(self) -> OptStr: ...
+    def seqid(self) -> str | None: ...
 
     @property
     @abstractmethod
@@ -2779,7 +2791,7 @@ class SeqViewABC(ABC):
 
     @property
     @abstractmethod
-    def array_value(self) -> numpy.ndarray: ...
+    def array_value(self) -> NumpyIntArrayType: ...
 
     @property
     @abstractmethod
@@ -2794,9 +2806,9 @@ class SeqViewABC(ABC):
     @abstractmethod
     def __array__(
         self,
-        dtype: numpy.dtype | None = None,
+        dtype: type[numpy.integer] | None = None,
         copy: bool | None = None,
-    ) -> numpy.ndarray[int]: ...
+    ) -> NumpyIntArrayType: ...
 
     @abstractmethod
     def __bytes__(self) -> bytes: ...
@@ -2860,11 +2872,11 @@ class SeqView(SeqViewABC):
     def __init__(
         self,
         *,
-        parent: StrORBytesORArray,
-        alphabet: c3_alphabet.CharAlphabet,
+        parent: str | bytes | NumpyIntArrayType,
+        alphabet: c3_alphabet.CharAlphabet[Any],
         parent_len: int,
-        seqid: OptStr = None,
-        slice_record: SliceRecordABC = None,
+        seqid: str | None = None,
+        slice_record: SliceRecordABC | None = None,
         offset: int = 0,
     ) -> None:
         self.alphabet = alphabet
@@ -2905,7 +2917,7 @@ class SeqView(SeqViewABC):
         """the annotation offset of this view"""
         return self.slice_record.offset
 
-    def _get_init_kwargs(self) -> dict:
+    def _get_init_kwargs(self) -> dict[str, Any]:
         return {
             "parent": self.parent,
             "parent_len": self._parent_len,
@@ -2924,7 +2936,7 @@ class SeqView(SeqViewABC):
         )
 
     @property
-    def array_value(self) -> numpy.ndarray[int]:
+    def array_value(self) -> NumpyIntArrayType:
         """returns the sequence as a array of indices"""
         return self.alphabet.to_indices(
             self.parent[
@@ -2942,9 +2954,9 @@ class SeqView(SeqViewABC):
 
     def __array__(
         self,
-        dtype: numpy.dtype | None = None,
+        dtype: type[numpy.integer] | None = None,
         copy: bool | None = None,
-    ) -> numpy.ndarray[int]:
+    ) -> NumpyIntArrayType:
         arr = self.array_value
         if dtype is not None:
             arr = arr.astype(dtype)
@@ -3028,9 +3040,16 @@ class SeqView(SeqViewABC):
 
 @singledispatch
 def _coerce_to_seqview(
-    data,
-    seqid: str,
-    alphabet: c3_alphabet.CharAlphabet,
+    data: Aligned
+    | SeqViewABC
+    | Sequence
+    | str
+    | bytes
+    | NumpyIntArrayType
+    | tuple[str, ...]
+    | list[str],
+    seqid: str | None,
+    alphabet: c3_alphabet.CharAlphabet[Any],
     offset: int,
 ) -> SeqViewABC:
     from cogent3.core.alignment import Aligned
@@ -3044,8 +3063,8 @@ def _coerce_to_seqview(
 @_coerce_to_seqview.register
 def _(
     data: SeqViewABC,
-    seqid: str,
-    alphabet: c3_alphabet.CharAlphabet,
+    seqid: str | None,
+    alphabet: c3_alphabet.CharAlphabet[Any],
     offset: int,
 ) -> SeqViewABC:
     # we require the indexes of shared states in alphabets to be the same
@@ -3073,8 +3092,8 @@ def _(
 @_coerce_to_seqview.register
 def _(
     data: Sequence,
-    seqid: str,
-    alphabet: c3_alphabet.CharAlphabet,
+    seqid: str | None,
+    alphabet: c3_alphabet.CharAlphabet[Any],
     offset: int,
 ) -> SeqViewABC:
     return _coerce_to_seqview(data._seq, seqid, alphabet, offset)
@@ -3083,8 +3102,8 @@ def _(
 @_coerce_to_seqview.register
 def _(
     data: str,
-    seqid: str,
-    alphabet: c3_alphabet.CharAlphabet,
+    seqid: str | None,
+    alphabet: c3_alphabet.CharAlphabet[Any],
     offset: int,
 ) -> SeqViewABC:
     return SeqView(
@@ -3099,8 +3118,8 @@ def _(
 @_coerce_to_seqview.register
 def _(
     data: bytes,
-    seqid: str,
-    alphabet: c3_alphabet.CharAlphabet,
+    seqid: str | None,
+    alphabet: c3_alphabet.CharAlphabet[Any],
     offset: int,
 ) -> SeqViewABC:
     data = data.decode("utf8")
@@ -3116,7 +3135,7 @@ def _(
 @_coerce_to_seqview.register
 def _(
     data: numpy.ndarray,
-    seqid: str,
+    seqid: str | None,
     alphabet: c3_alphabet.AlphabetABC,
     offset: int,
 ) -> SeqViewABC:
@@ -3132,7 +3151,7 @@ def _(
 @_coerce_to_seqview.register
 def _(
     data: tuple,
-    seqid: str,
+    seqid: str | None,
     alphabet: c3_alphabet.AlphabetABC,
     offset: int,
 ) -> SeqViewABC:
@@ -3142,7 +3161,7 @@ def _(
 @_coerce_to_seqview.register
 def _(
     data: list,
-    seqid: str,
+    seqid: str | None,
     alphabet: c3_alphabet.AlphabetABC,
     offset: int,
 ) -> SeqViewABC:

@@ -33,7 +33,7 @@ class Strand(enum.Enum):
     NONE = None
 
     @classmethod
-    def from_value(cls, value: str | int | None) -> "Strand":
+    def from_value(cls, value: "str | int | Strand | None") -> "Strand":
         if value in (-1, -1.0, "-", "-1", "minus", "Minus", "MINUS", cls.MINUS):
             return cls.MINUS
         return cls.NONE if value in (None, cls.NONE, 0, 0.0, False) else cls.PLUS
@@ -537,10 +537,9 @@ class TerminalPadding(_LostSpan):
 
 
 IntTypes = int | numpy.integer
-IntArrayTypes = NDArray[numpy.integer]
+NumpyIntArrayType = NDArray[numpy.integer]
 SpanTypes = Span | _LostSpan
 SeqSpanTypes = PySeq[SpanTypes]
-SeqCoordTypes = PySeq[PySeq[IntTypes]]
 
 
 class MapABC(ABC):
@@ -564,7 +563,7 @@ class MapABC(ABC):
     def nongap(self) -> Iterable[SpanTypes]: ...
 
     @abstractmethod
-    def get_coordinates(self) -> SeqCoordTypes: ...
+    def get_coordinates(self) -> list[tuple[int, int]]: ...
 
     @abstractmethod
     def nucleic_reversed(self) -> "MapABC": ...
@@ -575,7 +574,7 @@ class MapABC(ABC):
     @classmethod
     def from_locations(
         cls,
-        locations: SeqCoordTypes,
+        locations: PySeq[tuple[IntTypes, IntTypes]],
         parent_length: int,
         **kwargs: Any,
     ) -> Self:
@@ -605,7 +604,9 @@ class MapABC(ABC):
         yield from (cast("Span", span) for span in self.iter_spans() if not span.lost)
 
 
-def _spans_from_locations(locations: SeqCoordTypes, parent_length: int) -> SeqSpanTypes:
+def _spans_from_locations(
+    locations: PySeq[tuple[IntTypes, IntTypes]], parent_length: int
+) -> SeqSpanTypes:
     if not len(locations):
         # using len() because locations can be a numpy array
         return ()
@@ -641,7 +642,7 @@ def _spans_from_locations(locations: SeqCoordTypes, parent_length: int) -> SeqSp
 def spans_to_gap_coords(
     indel_spans: SeqSpanTypes,
     dtype: type[numpy.integer] = _DEFAULT_GAP_DTYPE,
-) -> tuple[IntArrayTypes, IntArrayTypes]:
+) -> tuple[NumpyIntArrayType, NumpyIntArrayType]:
     """returns coordinates of sequence gaps
 
     Parameters
@@ -672,9 +673,9 @@ def spans_to_gap_coords(
 
 @numba.jit
 def _gap_spans(
-    gap_pos: IntArrayTypes,
-    cum_gap_lengths: IntArrayTypes,
-) -> tuple[IntArrayTypes, IntArrayTypes]:  # pragma: no cover
+    gap_pos: NumpyIntArrayType,
+    cum_gap_lengths: NumpyIntArrayType,
+) -> tuple[NumpyIntArrayType, NumpyIntArrayType]:  # pragma: no cover
     """returns 1D arrays in alignment coordinates of
     gap start, gap stop"""
     if not len(gap_pos):
@@ -689,10 +690,10 @@ def _gap_spans(
 
 
 def _update_lengths(
-    result_pos: IntArrayTypes,
-    result_lengths: IntArrayTypes,
-    gap_pos: IntArrayTypes,
-    gap_lengths: IntArrayTypes,
+    result_pos: NumpyIntArrayType,
+    result_lengths: NumpyIntArrayType,
+    gap_pos: NumpyIntArrayType,
+    gap_lengths: NumpyIntArrayType,
 ) -> None:
     """modifies result_lengths in place with gap_lengths
     where elements in gap_pos occur in result_pos
@@ -798,8 +799,8 @@ def _input_vals_neg_step(
 
 @numba.jit
 def seq_to_align_index(
-    gap_pos: IntArrayTypes,
-    cum_lengths: IntArrayTypes,
+    gap_pos: NumpyIntArrayType,
+    cum_lengths: NumpyIntArrayType,
     parent_length: int,
     num_gaps: int,
     seq_index: int,
@@ -861,8 +862,8 @@ def seq_to_align_index(
 
 @numba.jit
 def align_to_seq_index(
-    gap_pos: IntArrayTypes,
-    cum_lengths: IntArrayTypes,
+    gap_pos: NumpyIntArrayType,
+    cum_lengths: NumpyIntArrayType,
     len_aligned: int,
     num_gaps: int,
     align_index: int,
@@ -916,7 +917,7 @@ def align_to_seq_index(
     return None  # type: ignore[return-value]
 
 
-def all_gaps_modulo_factor(cum_lengths: IntArrayTypes, factor: int) -> bool:
+def all_gaps_modulo_factor(cum_lengths: NumpyIntArrayType, factor: int) -> bool:
     """returns True if all gap lengths are multiples of factor"""
     return bool(numpy.all(cum_lengths % factor == 0))
 
@@ -941,15 +942,15 @@ class IndelMap(MapABC):
     """
 
     # gap data is gap positions, gap lengths on input, stored
-    gap_pos: IntArrayTypes
-    cum_gap_lengths: IntArrayTypes = None  # type: ignore[assignment]
-    gap_lengths: dataclasses.InitVar[IntArrayTypes | None] = None
+    gap_pos: NumpyIntArrayType
+    cum_gap_lengths: NumpyIntArrayType = None  # type: ignore[assignment]
+    gap_lengths: dataclasses.InitVar[NumpyIntArrayType | None] = None
     termini_unknown: bool = False
     parent_length: int = 0
     _serialisable: dict[str, Any] = dataclasses.field(init=False, repr=False)
     num_gaps: int = dataclasses.field(init=False, repr=False, default=0)
 
-    def __post_init__(self, gap_lengths: IntArrayTypes | None) -> None:
+    def __post_init__(self, gap_lengths: NumpyIntArrayType | None) -> None:
         assert gap_lengths is None or self.cum_gap_lengths is None
         if gap_lengths is not None:
             self.cum_gap_lengths = gap_lengths.cumsum()
@@ -997,7 +998,7 @@ class IndelMap(MapABC):
     @classmethod
     def from_aligned_segments(
         cls,
-        locations: SeqCoordTypes,
+        locations: PySeq[tuple[IntTypes, IntTypes]],
         aligned_length: int,
     ) -> "IndelMap":
         """
@@ -1314,7 +1315,7 @@ class IndelMap(MapABC):
         gap_data = numpy.array([self.gap_pos, self.cum_gap_lengths]).T
         return f"{gap_data.tolist()!r}/{self.parent_length}"
 
-    def get_gap_lengths(self) -> IntArrayTypes:
+    def get_gap_lengths(self) -> NumpyIntArrayType:
         lengths = self.cum_gap_lengths.copy()
         lengths[1:] = numpy.diff(lengths)
         return lengths
@@ -1384,7 +1385,7 @@ class IndelMap(MapABC):
     def useful(self) -> bool:
         return self.parent_length != 0
 
-    def get_coordinates(self) -> SeqCoordTypes:
+    def get_coordinates(self) -> list[tuple[int, int]]:
         """returns sequence coordinates of ungapped segments
 
         Returns
@@ -1413,12 +1414,12 @@ class IndelMap(MapABC):
 
         return list(zip(starts, ends, strict=False))
 
-    def get_gap_coordinates(self) -> SeqCoordTypes:
+    def get_gap_coordinates(self) -> list[tuple[int, int]]:
         """returns [(gap pos, gap length), ...]"""
         lengths = self.get_gap_lengths()
         return numpy.array([self.gap_pos, lengths]).T.tolist()
 
-    def get_gap_align_coordinates(self) -> IntArrayTypes:
+    def get_gap_align_coordinates(self) -> NumpyIntArrayType:
         """returns [(gap start, gap end), ...] in alignment indices
 
         Returns
@@ -1471,7 +1472,7 @@ class IndelMap(MapABC):
     def _aligned_to_seq_map(
         self,
         other: "IndelMap",
-    ) -> tuple[IntArrayTypes, IntArrayTypes]:
+    ) -> tuple[NumpyIntArrayType, NumpyIntArrayType]:
         # converts the gap pos of other into seq indices,
         # returning unique positions and their summed lengths
         other_pos = numpy.array(
@@ -1484,7 +1485,7 @@ class IndelMap(MapABC):
         other_lengths = numpy.add.reduceat(other_lengths, unique_indices)
         return other_pos, other_lengths
 
-    def joined_segments(self, coords: SeqCoordTypes) -> "IndelMap":
+    def joined_segments(self, coords: PySeq[tuple[IntTypes, IntTypes]]) -> "IndelMap":
         """returns new map with disjoint gapped segments joined
 
         Parameters
@@ -1492,9 +1493,7 @@ class IndelMap(MapABC):
         coords
             sequence insert gap coordinates [(gap start, gap end), ...]
         """
-        sorted_coords: list[tuple[int, int]] = sorted(
-            cast("PySeq[tuple[int, int]]", coords)
-        )
+        sorted_coords: list[tuple[IntTypes, IntTypes]] = sorted(coords)
 
         # using a dict here because joining can produce a gap merge
         gaps: dict[int, int] = {}
@@ -1598,7 +1597,7 @@ class IndelMap(MapABC):
         return FeatureMap(spans=spans, parent_length=self.parent_length)
 
     @functools.singledispatchmethod
-    def shared_gaps(self, other: "IndelMap | IntArrayTypes") -> IntArrayTypes:
+    def shared_gaps(self, other: "IndelMap | NumpyIntArrayType") -> NumpyIntArrayType:
         """returns a numpy array of the shared [(gap start, gap end), ...]
 
         Notes
@@ -1631,7 +1630,7 @@ class IndelMap(MapABC):
         result = coords_intersect(self_gaps, other_gaps)
         return numpy.array(result, dtype=_DEFAULT_GAP_DTYPE)
 
-    def minus_gaps(self, other_gaps: "IndelMap | IntArrayTypes") -> "IndelMap":
+    def minus_gaps(self, other_gaps: "IndelMap | NumpyIntArrayType") -> "IndelMap":
         """returns new map with gaps in other_gaps removed from self
 
         Parameters
@@ -1713,7 +1712,7 @@ class IndelMap(MapABC):
         )
 
     @property
-    def array(self) -> IntArrayTypes:
+    def array(self) -> NumpyIntArrayType:
         """returns 2D numpy array with columns gap position and cum gap lengths"""
         return numpy.array([self.gap_pos, self.cum_gap_lengths]).T
 
@@ -1722,9 +1721,9 @@ _empty = None, None
 
 
 def coords_minus_coords(
-    coords1: IntArrayTypes,
-    coords2: IntArrayTypes,
-) -> IntArrayTypes:
+    coords1: NumpyIntArrayType,
+    coords2: NumpyIntArrayType,
+) -> NumpyIntArrayType:
     """returns the coords1 minus any overlaps with coords2
 
     Parameters
@@ -1813,8 +1812,8 @@ def span_and_span(
 
 
 def coords_intersect(
-    coords1: IntArrayTypes,
-    coords2: IntArrayTypes,
+    coords1: NumpyIntArrayType,
+    coords2: NumpyIntArrayType,
 ) -> list[tuple[int, int]]:
     """returns the intersecting spans between two sets of coordinates
 
@@ -2001,7 +2000,7 @@ class FeatureMap(MapABC):
         spans.reverse()
         return self.__class__(spans=spans, parent_length=self.parent_length)
 
-    def get_gap_coordinates(self) -> SeqCoordTypes:
+    def get_gap_coordinates(self) -> list[tuple[int, int]]:
         """returns [(gap pos, gap length), ...]"""
         gap_pos: list[tuple[int, int]] = []
         spans = list(self.iter_spans())
@@ -2098,7 +2097,7 @@ class FeatureMap(MapABC):
 
         return self.__class__(spans=new_spans, parent_length=len(self))
 
-    def get_coordinates(self) -> SeqCoordTypes:
+    def get_coordinates(self) -> list[tuple[int, int]]:
         """returns span coordinates as [(v1, v2), ...]"""
         return [(s.start, s.end) for s in self.iter_non_lost_spans()]
 
@@ -2223,11 +2222,11 @@ def gap_coords_to_map(
     """
 
     if not gaps_lengths:
-        gap_pos: IntArrayTypes = numpy.array([], dtype=_DEFAULT_GAP_DTYPE)
-        lengths: IntArrayTypes = gap_pos.copy()
+        gap_pos: NumpyIntArrayType = numpy.array([], dtype=_DEFAULT_GAP_DTYPE)
+        lengths: NumpyIntArrayType = gap_pos.copy()
     else:
         gap_pos, lengths = cast(
-            "tuple[IntArrayTypes, IntArrayTypes]",
+            "tuple[NumpyIntArrayType, NumpyIntArrayType]",
             tuple(zip(*sorted(gaps_lengths.items()), strict=False)),
         )
         gap_pos = numpy.array(gap_pos, dtype=_DEFAULT_GAP_DTYPE)

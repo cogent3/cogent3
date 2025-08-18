@@ -2,9 +2,9 @@ import json
 import re
 from collections.abc import Callable
 from importlib import import_module
-from typing import Any, ParamSpec, TypeVar
+from typing import Any, ParamSpec, TypeVar, cast
 
-from cogent3.util.io import open_, path_exists
+from cogent3.util.io import PathType, open_, path_exists
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -96,7 +96,7 @@ def deserialise_likelihood_function(data):
     return lf
 
 
-def deserialise_object(data):
+def deserialise_object(data: PathType | str | dict[str, Any]) -> Any:
     """
     deserialises from json
 
@@ -115,13 +115,14 @@ def deserialise_object(data):
     The value of the "type" key is used to identify the specific function for recreating
     the original instance.
     """
-    if path_exists(data):
-        with open_(data) as infile:
+    if path_exists(path := cast("PathType", data)):
+        with open_(path) as infile:
             data = json.load(infile)
 
     if isinstance(data, str):
         data = json.loads(str(data))
 
+    data = cast("dict[str, Any]", data)
     type_ = data.get("type", None) if hasattr(data, "get") else None
     if type_ is None:
         return data
