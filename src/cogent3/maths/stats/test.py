@@ -1,9 +1,7 @@
 """Provides standard statistical tests. Tests produce statistic and P-value."""
 
-import typing
 import warnings
 
-import numpy.typing as npt
 from numpy import (
     absolute,
     allclose,
@@ -2291,10 +2289,7 @@ def get_ltm_cells(cells):  # pragma: no cover
     return sorted(set(new_cells))
 
 
-NumpyFloatArrayType = npt.NDArray[float64]
-
-
-def probability_points(n: int) -> NumpyFloatArrayType:
+def probability_points(n):
     """return series of n probabilities
 
     Returns
@@ -2305,21 +2300,13 @@ def probability_points(n: int) -> NumpyFloatArrayType:
     -----
     Useful for plotting probability distributions
     """
-    if n <= 0:
-        msg = f"{n} must be > 0"
-        raise ValueError(msg)
-
+    assert n > 0, f"{n} must be > 0"
     adj = 0.5 if n > 10 else 3 / 8
     denom = n if n > 10 else n + 1 - 2 * adj
     return array([(i - adj) / denom for i in range(1, n + 1)])
 
 
-DistLiteral = typing.Literal["normal", "chisq", "t", "uniform"]
-
-
-def theoretical_quantiles(
-    n: int, dist: DistLiteral, **kwargs: dict[str, typing.Any]
-) -> NumpyFloatArrayType:
+def theoretical_quantiles(n, dist, **kwargs):
     """returns theoretical quantiles from dist
 
     Parameters
@@ -2340,20 +2327,22 @@ def theoretical_quantiles(
     -------
     Numpy array of quantiles
     """
-    dist_name = dist.lower()
+
+    dist = dist.lower()
     funcs = {
         "normal": ndtri,
         "chisq": chi2.isf,
         "t": t.ppf,
     }
 
-    if dist_name != "uniform" and dist_name not in funcs:
-        msg = f"'{dist_name} not in {list(funcs)}"
+    if dist != "uniform" and dist not in funcs:
+        msg = f"'{dist} not in {list(funcs)}"
         raise ValueError(msg)
 
     probs = probability_points(n)
-    if dist_name == "uniform":
+    if dist == "uniform":
         return probs
 
-    func = funcs[dist_name]
+    func = funcs[dist]
+
     return array([func(p, **kwargs) for p in probs])
