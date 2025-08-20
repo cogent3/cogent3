@@ -6,7 +6,6 @@ import pytest
 from numpy import (
     array,
     asarray,
-    concatenate,
     isfinite,
     logical_and,
 )
@@ -23,9 +22,7 @@ from cogent3.maths.stats.test import (
     _flatten_lower_triangle,
     _get_alternate,
     _get_rank,
-    _permute_observations,
     is_symmetric_and_hollow,
-    multiple_n,
     probability_points,
     safe_sum_p_log_p,
     theoretical_quantiles,
