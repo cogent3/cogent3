@@ -2335,8 +2335,8 @@ def theoretical_quantiles(n, dist, **kwargs):
         "t": t.ppf,
     }
 
-    if dist != "uniform" and dist not in funcs:
-        msg = f"'{dist} not in {list(funcs)}"
+    if dist_name != "uniform" and dist_name not in funcs:
+        msg = f"{dist_name!r} not in {list(funcs)}"
         raise ValueError(msg)
 
     probs = probability_points(n)
