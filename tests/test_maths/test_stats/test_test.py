@@ -484,4 +484,6 @@ class TestDistMatrixPermutationTest(TestCase):
         assert_almost_equal(got, expect)
 
 
-# execute tests if called from command line
+def test_probability_point_invalid():
+    with pytest.raises(ValueError):
+        probability_points(-11)
