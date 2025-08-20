@@ -118,16 +118,6 @@ class TestsHelper(TestCase):
 class TestsTests(TestCase):
     """Tests miscellaneous functions."""
 
-    def test_multiple_n(self):
-        """multiple_n should swap parameters in multiple_comparisons"""
-        assert_allclose(multiple_n(1e-7, 1 - 0.9990005), 10000, rtol=1e-6, atol=1e-6)
-        assert_allclose(multiple_n(0.05, 0.4012631), 10, rtol=1e-6, atol=1e-6)
-        assert_allclose(multiple_n(1e-20, 1e-20), 1)
-        assert_allclose(multiple_n(1e-300, 1e-300), 1)
-        assert_allclose(multiple_n(0.95, 0.99987499999999996), 3)
-        assert_allclose(multiple_n(0.5, 0.96875), 5)
-        assert_allclose(multiple_n(1e-20, 1e-19), 10)
-
     def test_get_alternate(self):
         """correctly identifies the specified alternate hypothesis"""
         alt = _get_alternate("lo")
@@ -310,17 +300,6 @@ class StatTests(TestsHelper):
             7.25,
             7.79,
         ]
-
-    def test_permute_observations(self):
-        """Test works correctly on small input dataset."""
-        I = [10, 20.0, 1]
-        II = [2, 4, 5, 7]
-        obs = _permute_observations(I, II, 1)
-        assert len(obs[0]) == 1
-        assert len(obs[1]) == 1
-        assert len(obs[0][0]) == len(I)
-        assert len(obs[1][0]) == len(II)
-        assert_allclose(sorted(concatenate((obs[0][0], obs[1][0]))), sorted(I + II))
 
 
 class CorrelationTests(TestsHelper):

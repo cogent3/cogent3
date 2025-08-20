@@ -209,7 +209,7 @@ def G_2_by_2(a, b, c, d, williams=1, directional=1):
     # find which tail we were in if the test was directional
     if directional:
         is_high = (b == 0) or (d != 0 and (a / b > c / d))
-        p = tail(p, is_high)
+        p = p / 2 if is_high else 1 - p / 2
         if not is_high:
             G = -G
     return G, p
@@ -2328,7 +2328,7 @@ def theoretical_quantiles(n, dist, **kwargs):
     Numpy array of quantiles
     """
 
-    dist = dist.lower()
+    dist_name = dist.lower()
     funcs = {
         "normal": ndtri,
         "chisq": chi2.isf,
@@ -2340,9 +2340,9 @@ def theoretical_quantiles(n, dist, **kwargs):
         raise ValueError(msg)
 
     probs = probability_points(n)
-    if dist == "uniform":
+    if dist_name == "uniform":
         return probs
 
-    func = funcs[dist]
+    func = funcs[dist_name]
 
     return array([func(p, **kwargs) for p in probs])
