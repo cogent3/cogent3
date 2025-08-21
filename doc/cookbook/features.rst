@@ -130,8 +130,37 @@ Typically, we want to load bulk features from a genomic annotation file, such as
 
 To load features from a genomic annotation file along with the corresponding sequence, we can use the ``load_seq`` function. The features are stored in a ``AnnotationDb`` and assigned to the ``annotation_db`` attribute of the sequence.
 
+.. _genbank-features:
+
 From a Genbank file
 """""""""""""""""""
+
+Directly using the genbank parser to get features as Python primitives
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+This approach returns features as Python primitives, except for the coordinates for features, which is a ``Location`` object.
+
+.. jupyter-execute::
+
+    from cogent3.parse.genbank import iter_genbank_records
+
+    label, seq, anns = list(iter_genbank_records("data/mycoplasma-genitalium.gb"))[0]
+    anns.keys()
+
+As the output indicates, variable ``anns`` is a dictionary. The features in the GenBank feature table are available as a list under the ``"features"`` key. Listing just the first two.
+
+.. jupyter-execute::
+
+    features = anns["features"]
+    features[:2]
+
+Illustrating how to get specific coordinate data (which are converted from the 1-based indices of GenBank to 0-based Python indices).
+
+.. jupyter-execute::
+
+    gene = features[1]
+    gene_loc = gene["location"]
+    gene_loc.get_coordinates(), gene_loc.strand
 
 How to load features and sequence data
 ++++++++++++++++++++++++++++++++++++++

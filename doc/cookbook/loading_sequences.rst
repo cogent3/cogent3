@@ -28,12 +28,71 @@ In this case, the filename suffix is used to infer the data format.
 
 .. note:: It's also possible to load a sequence from a :ref:`url <load_url>`.
 
+Directly use the fasta format parser to load a sequence
+-------------------------------------------------------
+
+The ``cogent3`` parsers return standard Python data types. The ``iter_genbank_records()`` is a generator, so it yields one record at a time. Because I know there's a single sequence in this file, I wrap the call with list and select the first record.
+
+.. jupyter-execute::
+
+    from cogent3.parse.fasta import iter_fasta_records
+
+    label, seq = list(iter_fasta_records("data/mycoplasma-genitalium.fa"))[0]
+    label, seq[:10]
+
+You can provide a converter that will transform the sequence data to the type you want. In this example, we use a ``cogent3`` builtin to return a ``numpy`` array of unsigned 8-bit integers. We first get all the IUPAC characters for DNA and construct the converter. The converter maps an integer the provided characters in their order of occurrence in ``dna_alpha``.
+
+.. jupyter-execute::
+
+    import numpy
+
+    from cogent3.core.alphabet import bytes_to_array
+    from cogent3.core.moltype import DNA
+    
+    dna_alpha = "".join(DNA.most_degen_alphabet())
+    converter = bytes_to_array(dna_alpha.encode("utf8"), delete=b"\r\n\t ", dtype=numpy.uint8)
+
+.. note:: The characters provided to the ``delete`` argument are white space and essential to ensure line feeds are removed.
+
+We then use the parser as before but provide our custom converter.
+
+.. jupyter-execute::
+
+    label, seq = list(iter_fasta_records("data/mycoplasma-genitalium.fa", converter=converter))[0]
+    label, seq[:10]
+
+Directly use the genbank format parser to load a sequence and annotations
+-------------------------------------------------------------------------
+
+The ``cogent3`` parsers return standard Python data types. The ``iter_fasta_records()`` is a generator, so it yields one record at a time. Because I know there's a single sequence in this file, I wrap the call with list and select the first record.
+
+.. jupyter-execute::
+
+    from cogent3.parse.genbank import iter_genbank_records
+
+    label, seq, anns = list(iter_genbank_records("data/mycoplasma-genitalium.gb"))[0]
+    label, seq[:10], anns.keys()
+
+As the output indicates, variable ``anns`` is a dictionary. The features in the GenBank feature table are available as a list under the ``"features"`` key. (See :ref:`getting GenBank features as primitives <genbank-features>`.)
+
 .. _load-seqs:
 
-Loading an alignment from a file or url
----------------------------------------
+Loading an sequence collections from a file or url
+--------------------------------------------------
 
 .. author, Gavin Huttley, Tony Walters, Tom Elliott
+
+Directly use the fasta format parser to load sequences
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``cogent3`` parsers return standard Python data types. The ``iter_genbank_records()`` is a generator, so it yields one record at a time. 
+
+.. jupyter-execute::
+
+    from cogent3.parse.fasta import iter_fasta_records
+
+    for label, seq in iter_fasta_records("data/long_testseqs.fasta"):
+        print(label, seq[:10])
 
 Loading aligned sequences
 ^^^^^^^^^^^^^^^^^^^^^^^^^
