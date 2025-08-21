@@ -492,6 +492,18 @@ def test_mw():
     assert numpy.allclose(c3_moltype.RNA.make_seq(seq="AAACCCA").mw(), 2182.37)
 
 
+def test_mw_method():
+    """MW handles ambiguity using nominated method"""
+    seq = c3_moltype.RNA.make_seq(seq="AARCCCA")
+    strip_seq = c3_moltype.RNA.make_seq(seq="AACCCA")
+    # strip method removes ambiguity characters
+    with_strip = seq.mw(method="strip")
+    expect = strip_seq.mw()
+    assert numpy.allclose(with_strip, expect)
+    with_random = seq.mw(method="random")
+    assert not numpy.allclose(with_random, expect)
+
+
 def test_can_match():
     """Sequence can_match should return True if all positions can match"""
     assert c3_moltype.RNA.make_seq(seq="").can_match("")

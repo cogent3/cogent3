@@ -1308,10 +1308,10 @@ class MolType(Generic[StrOrBytes]):
             the sequence whose molecular weight is to be calculated.
         method
             the method provided to .disambiguate() to disambiguate the sequence.
-            either "random" or "first".
+            either "random" (a random choice of states encoded by the ambiguity)
+            or "strip" (delete positions with ambiguous characters).
         delta
             if delta is present, uses it instead of the standard weight adjustment.
-
         """
         if not seq:
             return 0

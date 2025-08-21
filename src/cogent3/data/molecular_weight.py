@@ -1,5 +1,6 @@
-#!/usr/bin/env Python
 """Data for molecular weight calculations on proteins and nucleotides."""
+
+from cogent3.util import warning as c3warn
 
 ProteinWeights = {
     "A": 71.09,
@@ -38,20 +39,25 @@ class WeightCalculator:
     """Calculates molecular weight of a non-degenerate sequence."""
 
     # refactor: array
+    c3warn.deprecated_args(
+        "2025.9",
+        reason="pep8",
+        old_new=[("Weights", "weights"), ("Correction", "correction")],
+    )
 
-    def __init__(self, Weights: dict[str, float], Correction: float) -> None:
+    def __init__(self, weights: dict[str, float], correction: float) -> None:
         """Returns a new WeightCalculator object (class, so serializable)."""
-        self.Weights = Weights
-        self.Correction = Correction
+        self.weights = weights
+        self.correction = correction
 
     def __call__(self, seq: str, correction: float | None = None) -> float:
         """Returns the molecular weight of a specified sequence."""
         if not seq:
             return 0
         if correction is None:
-            correction = self.Correction
-        get_mw = self.Weights.get
-        return sum([get_mw(i, 0) for i in seq]) + correction
+            correction = self.correction
+        mws = self.weights
+        return sum(mws[i] for i in seq) + correction
 
 
 DnaMW = WeightCalculator(DnaWeights, DnaWeightCorrection)
