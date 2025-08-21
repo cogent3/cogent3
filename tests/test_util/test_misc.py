@@ -290,42 +290,6 @@ class UtilsTests(TestCase):
             [(20, 24, "a"), (30, 35, "c"), (65, 75, "d")],
         )
 
-    def test_get_merged_spans(self):
-        """tests merger of overlapping spans"""
-        sample = [[0, 10], [12, 15], [13, 16], [18, 25], [19, 20]]
-        result = get_merged_overlapping_coords(sample)
-        expect = [[0, 10], [12, 16], [18, 25]]
-        assert result == expect
-        sample = [[0, 10], [5, 9], [12, 16], [18, 20], [19, 25]]
-        result = get_merged_overlapping_coords(sample)
-        expect = [[0, 10], [12, 16], [18, 25]]
-        assert result == expect
-        # test with tuples
-        sample = tuple(map(tuple, sample))
-        result = get_merged_overlapping_coords(sample)
-        expect = [[0, 10], [12, 16], [18, 25]]
-        assert result == expect
-
-    def test_get_run_start_indices(self):
-        """return indices corresponding to start of a run of identical values"""
-        #       0  1  2  3  4  5  6  7
-        data = [1, 2, 3, 3, 3, 4, 4, 5]
-        expect = [[0, 1], [1, 2], [2, 3], [5, 4], [7, 5]]
-        got = get_run_start_indices(data)
-        assert list(got) == expect
-
-        # raise an exception if try and provide a converter and num digits
-        def wrap_gen():  # need to wrap generator so we can actually test this
-            gen = get_run_start_indices(data, digits=1, converter_func=lambda x: x)
-
-            def call():
-                for _v in gen:
-                    pass
-
-            return call
-
-        self.assertRaises(AssertionError, wrap_gen())
-
     def test_merged_by_value_spans(self):
         """correctly merge adjacent spans with the same value"""
         # initial values same
@@ -1275,3 +1239,37 @@ def test_negate_condition():
     assert result_true is True
     assert result_false is False
     assert greater_than_5(3) != negator(3)
+
+
+def test_get_merged_spans():
+    """tests merger of overlapping spans"""
+    sample = [[0, 10], [12, 15], [13, 16], [18, 25], [19, 20]]
+    result = get_merged_overlapping_coords(sample)
+    expect = [[0, 10], [12, 16], [18, 25]]
+    assert result == expect
+    sample = [[0, 10], [5, 9], [12, 16], [18, 20], [19, 25]]
+    result = get_merged_overlapping_coords(sample)
+    expect = [[0, 10], [12, 16], [18, 25]]
+    assert result == expect
+    # test with tuples
+    sample = tuple(map(tuple, sample))
+    result = get_merged_overlapping_coords(sample)
+    expect = [[0, 10], [12, 16], [18, 25]]
+    assert result == expect
+
+
+def test_get_run_start_indices():
+    """return indices corresponding to start of a run of identical values"""
+    #       0  1  2  3  4  5  6  7
+    data = [1, 2, 3, 3, 3, 4, 4, 5]
+    expect = [[0, 1], [1, 2], [2, 3], [5, 4], [7, 5]]
+    got = get_run_start_indices(data)
+    assert list(got) == expect
+
+
+def test_get_run_start_indices_error():
+    # raise an exception if try and provide a converter and num digits
+    with pytest.raises(ValueError):
+        _ = list(
+            get_run_start_indices([1, 2, 3, 3, 3], digits=1, converter_func=lambda x: x)
+        )
