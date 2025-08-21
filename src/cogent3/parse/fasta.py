@@ -374,17 +374,20 @@ def iter_fasta_records(
     converter: OptConverterType = None,
     label_to_name: RenamerType = str,
 ) -> typing.Iterable[tuple[str, OutTypes]]:
-    """generator returning sequence labels and sequences converted bytes from a fasta file
+    """generator returns labels and sequences converted from a fasta file
 
     Parameters
     ----------
     path
         location of the fasta file
     converter
-        a callable that converts sequence characters, deleting unwanted characters
-        (newlines, spaces). Whatever type this callable returns will be the type
-        of the sequence returned. If None, uses minimal_converter() which returns bytes.
-
+        a callable that converts sequence characters as bytes, deleting
+        unwanted characters (newlines, spaces). Whatever type this callable
+        returns will be the type of the sequence returned. If None, uses
+        minimal_converter() which returns bytes.
+    label_to_name
+        a callable that takes the sequence label as input and returns a new label.
+        Defaults to the label itself.
 
     Returns
     -------
@@ -451,8 +454,10 @@ def _(
     converter: OptConverterType = None,
     label_to_name: RenamerType = str,
 ):
-    data: bytes = data.read().encode("utf8")
-    return iter_fasta_records(data, converter=converter, label_to_name=label_to_name)
+    read_data: bytes = data.read().encode("utf8")
+    return iter_fasta_records(
+        read_data, converter=converter, label_to_name=label_to_name
+    )
 
 
 @iter_fasta_records.register
