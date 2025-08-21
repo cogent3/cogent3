@@ -452,7 +452,7 @@ class Sequence(AnnotatableMixin):
 
     def is_valid(self) -> bool:
         """Returns True if sequence contains no items absent from alphabet."""
-        return self.moltype.is_valid(self)
+        return self.moltype.is_valid(numpy.array(self))
 
     def is_strict(self) -> bool:
         """Returns True if sequence contains only monomers."""
