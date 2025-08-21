@@ -852,7 +852,7 @@ def get_independent_coords(spans, random_tie_breaker=False):
 
 
 def get_merged_overlapping_coords(
-    start_end: list[list[int, int]],
+    start_end: typing.Sequence[typing.Sequence[int, int]],
 ) -> list[list[int, int]]:
     """merges overlapping spans, assumes sorted by start"""
     prev_start, prev_end = start_end[0]
