@@ -39,12 +39,11 @@ class WeightCalculator:
     """Calculates molecular weight of a non-degenerate sequence."""
 
     # refactor: array
-    c3warn.deprecated_args(
+    @c3warn.deprecated_args(
         "2025.9",
         reason="pep8",
         old_new=[("Weights", "weights"), ("Correction", "correction")],
     )
-
     def __init__(self, weights: dict[str, float], correction: float) -> None:
         """Returns a new WeightCalculator object (class, so serializable)."""
         self.weights = weights
