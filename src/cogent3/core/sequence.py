@@ -546,7 +546,7 @@ class Sequence(AnnotatableMixin):
         the MW by 2: the results may not be accurate due to strand bias, e.g.
         in mitochondrial genomes.
         """
-        return self.moltype.mw(self, method, delta)
+        return self.moltype.mw(str(self), method, delta)
 
     def can_match(self, other: Self) -> bool:
         """Returns True if every pos in self could match same pos in other.
