@@ -6,6 +6,7 @@ import contextlib
 import inspect
 import os
 import re
+import typing
 import warnings
 from random import choice
 from typing import TYPE_CHECKING, Any, ParamSpec, TypeVar
@@ -850,10 +851,12 @@ def get_independent_coords(spans, random_tie_breaker=False):
     return result
 
 
-def get_merged_overlapping_coords(start_end):
+def get_merged_overlapping_coords(
+    start_end: list[list[int, int]],
+) -> list[list[int, int]]:
     """merges overlapping spans, assumes sorted by start"""
-    result = [list(start_end[0])]
-    prev_end = result[0][-1]
+    prev_start, prev_end = start_end[0]
+    result = [[prev_start, prev_end]]
     for i in range(1, len(start_end)):
         curr_start, curr_end = start_end[i]
         # if we're beyond previous, add and continue
@@ -869,9 +872,26 @@ def get_merged_overlapping_coords(start_end):
     return result
 
 
-def get_run_start_indices(values, digits=None, converter_func=None):
-    """returns starting index, value for all distinct values"""
-    assert not (digits and converter_func), "Cannot set both digits and converter_func"
+def get_run_start_indices(
+    values: typing.Sequence[typing.Any],
+    digits: int | None = None,
+    converter_func: typing.Callable[[float], float] | None = None,
+) -> typing.Iterable[list[int, typing.Any]]:
+    """returns starting index, value for all distinct values
+
+    Parameters
+    ----------
+    values
+        A series of objects
+    digits
+        if None, any data can be handled and exact values are
+        compared. Otherwise values are rounded to that many digits.
+    converter_func
+        callable that handles rounding
+    """
+    if digits and converter_func:
+        msg = "Cannot set both digits and converter_func"
+        raise ValueError(msg)
 
     if digits is not None:
 
@@ -902,7 +922,6 @@ def get_merged_by_value_coords(spans_value, digits=None):
     digits
         if None, any data can be handled and exact values are
         compared. Otherwise values are rounded to that many digits.
-
     """
     assert len(spans_value[0]) == 3, "spans_value must have 3 records per row"
 
