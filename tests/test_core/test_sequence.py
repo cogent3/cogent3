@@ -3063,3 +3063,19 @@ def test_counts_empty_seq():
     s = cogent3.make_seq("", "a", moltype="dna")
     c = s.counts()
     assert not c.sum
+
+
+@pytest.mark.parametrize("name", ["dna", "rna", "protein", "protein_with_stop", "text"])
+def test_is_valid(name):
+    raw = "ACGGA"
+    moltype = c3_moltype.get_moltype(name)
+    seq = moltype.make_seq(name="s1", seq=raw)
+    assert seq.is_valid()
+
+
+@pytest.mark.parametrize("name", ["dna", "rna"])
+def test_is_valid_false(name):
+    raw = "ACGXA"
+    moltype = c3_moltype.get_moltype(name)
+    seq = moltype.make_seq(name="s1", seq=raw, check_seq=False)
+    assert not seq.is_valid()
