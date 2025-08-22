@@ -502,6 +502,7 @@ def test_mw_method():
     assert numpy.allclose(with_strip, expect)
     with_random = seq.mw(method="random")
     assert not numpy.allclose(with_random, expect)
+    assert with_random > with_strip
 
 
 def test_can_match():
