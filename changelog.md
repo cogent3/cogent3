@@ -1,4 +1,24 @@
 
+<a id='changelog-2025.7.10a9'></a>
+# Changes in release "2025.7.10a9"
+
+Minor bug fix release with some advances to docs.
+
+## Contributors
+
+- @rmcar17, bug reports and more type hinting
+- @GavinHuttley, documentation, more type hinting and other
+
+## Bug fixes
+
+- Sequence.is_valid() method was not being tested and, unsurprisingly,
+  was broken. Now fixed.
+
+## Documentation
+
+- Added documentation for using the cogent3 parsers for basic sequence formats
+  (fasta and GenBank). These return Python primitives.
+
 <a id='changelog-2025.7.10a8'></a>
 # Changes in release "2025.7.10a8"
 
