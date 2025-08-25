@@ -1019,7 +1019,9 @@ def ascontiguousarray(
     return source_array
 
 
-def get_setting_from_environ(environ_var, params_types):
+def get_setting_from_environ(
+    environ_var: str, params_types: dict[str, type]
+) -> dict[str, Any]:
     """extract settings from environment variable
 
     Parameters
@@ -1042,7 +1044,7 @@ def get_setting_from_environ(environ_var, params_types):
         return {}
 
     var = var.split(",")
-    result = {}
+    result: dict[str, Any] = {}
     for item in var:
         item = item.split("=")
         if len(item) != 2 or item[0] not in params_types:

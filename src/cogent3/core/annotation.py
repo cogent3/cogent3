@@ -260,7 +260,7 @@ class Feature:
                 continue
             yield feature
 
-    def union(self, features: Iterable) -> typing_extensions.Self:
+    def union(self, features: "Iterable[Feature]") -> typing_extensions.Self:
         """return as a single Feature
 
         Notes

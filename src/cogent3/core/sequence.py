@@ -32,6 +32,7 @@ from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
     AnnotatableMixin,
     FeatureDataType,
+    SqliteAnnotationDbMixin,
     SupportsFeatures,
 )
 from cogent3.core.info import Info as InfoClass
@@ -64,6 +65,7 @@ if TYPE_CHECKING:
 
 NumpyIntArrayType = npt.NDArray[numpy.integer]
 
+
 # standard distance functions: left  because generally useful
 frac_same = for_seq(f=eq, aggregator=sum, normalizer=per_shortest)
 frac_diff = for_seq(f=ne, aggregator=sum, normalizer=per_shortest)
@@ -78,7 +80,9 @@ def _moltype_seq_from_rich_dict(
     data.pop("annotation_db", None)
     data.pop("annotation_offset", 0)
 
-    moltype = data.pop("moltype")
+    moltype: c3_moltype.MolTypeLiteral | c3_moltype.MolType[Any] = cast(
+        "c3_moltype.MolTypeLiteral", data.pop("moltype")
+    )
     moltype = c3_moltype.get_moltype(moltype)
 
     seq = cast("str | bytes | NumpyIntArrayType", data.pop("seq"))
@@ -475,8 +479,11 @@ class Sequence(AnnotatableMixin):
         """__hash__ behaves like the sequence string for dict lookup."""
         return hash(str(self))
 
-    def __contains__(self, other: str) -> bool:
+    def __contains__(self, other: object) -> bool:
         """__contains__ checks whether other is in the sequence string."""
+        if not isinstance(other, str):
+            msg = f"Must use type str for __contains__, got {type(other)}."
+            raise TypeError(msg)
         return other in str(self)
 
     def shuffle(self) -> Self:
@@ -565,9 +572,12 @@ class Sequence(AnnotatableMixin):
 
     def gap_vector(self) -> list[bool]:
         """Returns vector of True or False according to which pos are gaps or missing."""
+        degen_gapped_alphabet = cast(
+            "c3_alphabet.CharAlphabet[Any]", self.moltype.degen_gapped_alphabet
+        )
         return (
-            (array(self) == self.moltype.degen_gapped_alphabet.gap_index)
-            | (array(self) == self.moltype.degen_gapped_alphabet.missing_index)
+            (array(self) == degen_gapped_alphabet.gap_index)
+            | (array(self) == degen_gapped_alphabet.missing_index)
         ).tolist()
 
     def count_gaps(self) -> int:
@@ -628,7 +638,7 @@ class Sequence(AnnotatableMixin):
         """
         return self.moltype.can_match(str(self), str(other))
 
-    def diff(self, other: Self) -> int:
+    def diff(self, other: Self) -> float:
         """Returns number of differences between self and other.
 
         Notes
@@ -678,10 +688,10 @@ class Sequence(AnnotatableMixin):
         """
         if function is None:
             # use identity scoring function
-            def function(a, b):
+            def function(a: str, b: str) -> bool:
                 return a != b
 
-        distance = 0
+        distance: float = 0
         for first, second in zip(self, other, strict=False):
             distance += function(first, second)
         return distance
@@ -818,7 +828,7 @@ class Sequence(AnnotatableMixin):
     def frac_similar(
         self,
         other: Self,
-        similar_pairs: dict[(str, str), Any],
+        similar_pairs: dict[tuple[str, str], Any],
     ) -> float:
         """Returns fraction of positions where self[i] is similar to other[i].
 
@@ -837,7 +847,10 @@ class Sequence(AnnotatableMixin):
         if not self or not other:
             return 0.0
 
-        return for_seq(f=lambda x, y: (x, y) in similar_pairs, normalizer=per_shortest)(
+        def is_in_similar_pairs(x: str, y: str) -> bool:
+            return (x, y) in similar_pairs
+
+        return for_seq(f=is_in_similar_pairs, normalizer=per_shortest)(
             self,
             other,
         )
@@ -851,13 +864,15 @@ class Sequence(AnnotatableMixin):
                 if first_nongap is None:
                     first_nongap = i
                 last_nongap = i
-        missing = self.moltype.missing
+        missing = cast("str", self.moltype.missing)
         if first_nongap is None:
             return self.__class__(
                 moltype=self.moltype,
                 seq=missing * len(self),
                 info=self.info,
             )
+        last_nongap = cast("int", last_nongap)
+
         prefix = missing * first_nongap
         mid = str(self)[first_nongap : last_nongap + 1]
         suffix = missing * (len(self) - last_nongap - 1)
@@ -931,9 +946,9 @@ class Sequence(AnnotatableMixin):
             start = 0
             end = len(seq)
 
-        seq_style = []
+        seq_style: list[str] = []
         template = '<span class="%s">%%s</span>'
-        styled_seq = []
+        styled_seq: list[str] = []
         for i in range(seqlen):
             char = seq[i]
             if i < start or i >= end:
@@ -945,14 +960,14 @@ class Sequence(AnnotatableMixin):
             styled_seq.append(seq_style[-1] % char)
 
         # make a html table
-        seq = array(styled_seq, dtype="O")
+        seq_array = array(styled_seq, dtype="O")
         table = ["<table>"]
         seq_ = "<td>%s</td>"
         label_ = '<td class="label">%s</td>'
         num_row_ = '<tr class="num_row"><td></td><td><b>{:,d}</b></td></tr>'
         for i in range(0, seqlen, wrap):
             table.append(num_row_.format(i))
-            seqblock = seq[i : i + wrap].tolist()
+            seqblock = seq_array[i : i + wrap].tolist()
             seqblock = "".join(seqblock)
             row = "".join([label_ % self.name, seq_ % seqblock])
             table.append(f"<tr>{row}</tr>")
@@ -1038,7 +1053,7 @@ class Sequence(AnnotatableMixin):
         start: int | None = None,
         stop: int | None = None,
         allow_partial: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ) -> Iterator[Feature]:
         """yields Feature instances
 
@@ -1137,7 +1152,7 @@ class Sequence(AnnotatableMixin):
             # DO NOT do adjustment in make_feature since that's user facing,
             # and we expect them to make a feature manually wrt to their
             # current view
-            spans = array(feature.pop("spans"), dtype=int)
+            spans = array(feature["spans"], dtype=int)
             for i, v in enumerate(spans.ravel()):
                 rel_pos = sr.relative_position(v) - parent_offset
                 spans.ravel()[i] = rel_pos
@@ -1149,25 +1164,7 @@ class Sequence(AnnotatableMixin):
             feature["spans"] = spans.tolist()
             yield self.make_feature(feature)
 
-    def _relative_spans(self, spans) -> list[tuple[int, int]]:
-        r_spans = []
-
-        for s, e in spans:
-            # reverse feature determined by absolute position
-            reverse = s > e
-
-            if reverse:
-                start = self._seq.relative_position(s, stop=True)
-                end = self._seq.relative_position(e)
-            else:
-                start = self._seq.relative_position(s)
-                end = self._seq.relative_position(e, stop=True)
-
-            r_spans += [(start, end)]
-
-        return r_spans
-
-    def make_feature(self, feature: FeatureDataType, *args) -> Feature:
+    def make_feature(self, feature: FeatureDataType, *args: Any) -> Feature:
         """
         return an Feature instance from feature data
 
@@ -1182,11 +1179,11 @@ class Sequence(AnnotatableMixin):
         database.
         We assume that spans represent the coordinates for this instance!
         """
-        feature = dict(feature)
+        feature_dict: dict[str, Any] = dict(feature)
         seq_rced = self._seq.is_reversed
-        spans = feature.pop("spans", None)
-        revd = Strand.from_value(feature.pop("strand", None)) is Strand.MINUS
-        feature["strand"] = (
+        spans = feature_dict.pop("spans", None)
+        revd = Strand.from_value(feature_dict.pop("strand", None)) is Strand.MINUS
+        feature_dict["strand"] = (
             Strand.PLUS.value if revd == seq_rced else Strand.MINUS.value
         )
 
@@ -1195,7 +1192,7 @@ class Sequence(AnnotatableMixin):
         post = abs(vals.max() - len(self)) if vals.max() > len(self) else 0
 
         # we find the spans > len(self)
-        new_spans = []
+        new_spans: list[tuple[int, int]] = []
         for coord in vals:
             new = coord[:]
             if coord.min() < 0 < coord.max():
@@ -1212,7 +1209,7 @@ class Sequence(AnnotatableMixin):
         if pre or post:
             # create a lost span to represent the segment missing from
             # the instance
-            spans = list(fmap.spans)
+            spans = list(fmap.iter_spans())
             if pre:
                 spans.insert(0, LostSpan(pre))
             if post:
@@ -1222,9 +1219,11 @@ class Sequence(AnnotatableMixin):
         if seq_rced:
             fmap = fmap.nucleic_reversed()
 
-        feature.pop("on_alignment", None)
-        feature.pop("seqid", None)
-        return Feature(parent=self, seqid=self.name, map=fmap, **feature)
+        feature_dict.pop("on_alignment", None)
+        feature_dict.pop("seqid", None)
+        return Feature(
+            parent=self, seqid=cast("str", self.name), map=fmap, **feature_dict
+        )
 
     def add_feature(
         self,
@@ -1265,11 +1264,11 @@ class Sequence(AnnotatableMixin):
         local_vars["strand"] = Strand.from_value(strand).value
 
         feature_data = FeatureDataType(
-            seqid=self.name,
-            **{n: v for n, v in local_vars.items() if n not in ("self", "seqid")},
+            seqid=cast("str", self.name),
+            **{n: v for n, v in local_vars.items() if n not in ("self", "seqid")},  # type: ignore[typeddict-item]
         )
 
-        self.annotation_db.add_feature(**feature_data)
+        self.annotation_db.add_feature(**cast("dict[str, Any]", feature_data))
         for discard in ("on_alignment", "parent_id"):
             feature_data.pop(discard)
         return self.make_feature(feature_data)
@@ -1326,7 +1325,7 @@ class Sequence(AnnotatableMixin):
             parent_len=len(seq),
             alphabet=moltype.most_degen_alphabet(),
         )
-        return moltype.make_seq(
+        return moltype.make_sequence(
             seq=sv,
             name=self.name,
             check_seq=False,
@@ -1334,7 +1333,7 @@ class Sequence(AnnotatableMixin):
             annotation_db=self.annotation_db,
         )
 
-    def copy_annotations(self, seq_db: SupportsFeatures) -> None:
+    def copy_annotations(self, seq_db: SqliteAnnotationDbMixin) -> None:
         """copy annotations into attached annotation db
 
         Parameters
@@ -1411,6 +1410,7 @@ class Sequence(AnnotatableMixin):
             the annotated regions
         """
         if mask_char is None:
+            assert self.moltype.ambiguities is not None
             mask_char = (
                 self.moltype.missing
                 or max(self.moltype.ambiguities.items(), key=lambda x: len(x[1]))[0]
@@ -1419,7 +1419,7 @@ class Sequence(AnnotatableMixin):
             f"Invalid mask_char {mask_char}"
         )
 
-        annotations = []
+        annotations: list[Feature] = []
         biotypes = [biotypes] if isinstance(biotypes, str) else biotypes
         for annot_type in biotypes:
             annotations += list(
@@ -1552,10 +1552,10 @@ class Sequence(AnnotatableMixin):
 
         return new
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         yield from iter(str(self))
 
-    def get_name(self) -> str:
+    def get_name(self) -> str | None:
         """Return the sequence name -- should just use name instead."""
         return self.name
 
@@ -1847,7 +1847,7 @@ class Sequence(AnnotatableMixin):
         return drawer
 
     def parent_coordinates(
-        self, apply_offset: bool = False, **kwargs
+        self, apply_offset: bool = False, **kwargs: Any
     ) -> tuple[str, int, int, int]:
         """returns seqid, start, stop, strand of this sequence on its parent
 

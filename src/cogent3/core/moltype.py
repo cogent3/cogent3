@@ -4,7 +4,7 @@ import itertools
 import json
 import warnings
 from collections import defaultdict
-from collections.abc import Callable, Generator, Mapping
+from collections.abc import Callable, Generator, Iterable, Mapping
 from string import ascii_letters
 from typing import (
     TYPE_CHECKING,
@@ -30,6 +30,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
 NumpyIntArrayType = npt.NDArray[numpy.integer]
 StrOrBytes = TypeVar("StrOrBytes", str, bytes)
+MolTypeLiteral = Literal["dna", "rna", "protein", "protein_with_stop", "text", "bytes"]
 
 IUPAC_gap = "-"
 
@@ -424,7 +425,9 @@ class MolType(Generic[StrOrBytes]):
 
     name: str
     monomers: dataclasses.InitVar[StrOrBytes]
-    make_seq: dataclasses.InitVar[type[c3_sequence.Sequence]]
+    make_seq: dataclasses.InitVar[
+        type[c3_sequence.Sequence]
+    ]  # Redefinition causes issues with static type checking
     gap: str | None = IUPAC_gap
     missing: str | None = IUPAC_missing
     complements: dataclasses.InitVar[dict[str, str] | None] = None
@@ -640,7 +643,7 @@ class MolType(Generic[StrOrBytes]):
     def make_seq(  # type: ignore[no-redef]
         self,
         *,
-        seq: "str | bytes | c3_sequence.Sequence",
+        seq: "str | bytes | c3_sequence.Sequence | c3_sequence.SeqView",
         name: str | None = None,
         check_seq: bool = True,
         **kwargs: Any,
@@ -672,18 +675,28 @@ class MolType(Generic[StrOrBytes]):
             seq = cast("c3_sequence.Sequence", seq)
             return seq if seq.moltype is self else seq.to_moltype(self)
 
-        seq = cast("str | bytes", seq)
+        seq = cast("str | bytes | c3_sequence.SeqView", seq)
         if isinstance(seq, str):
             seq = self.coerce_to(seq.encode("utf8")) if self.coerce_to else seq
 
-        if check_seq and not self.is_valid(seq):
+        if check_seq and not self.is_valid(cast("bytes", seq)):
             alpha = self.most_degen_alphabet()
-            s = alpha.from_indices(seq)
+            s = alpha.from_indices(cast("bytes", seq))
             values = tuple(set(s) - set(map(str, alpha)))
             msg = f"{values} not valid for moltype {self.name!r} alphabet {alpha}"
             raise c3_alphabet.AlphabetError(msg)
 
         return self._make_seq(moltype=self, seq=seq, name=name, **kwargs)
+
+    def make_sequence(
+        self,
+        *,
+        seq: str | bytes | c3_sequence.Sequence | c3_sequence.SeqView,
+        name: str | None = None,
+        check_seq: bool = True,
+        **kwargs: Any,
+    ) -> c3_sequence.Sequence:
+        return self.make_seq(seq=seq, name=name, check_seq=check_seq, **kwargs)  # type: ignore[attr-defined]
 
     @overload
     def complement(self, seq: str, validate: bool = True) -> str: ...
@@ -1427,6 +1440,7 @@ class MolType(Generic[StrOrBytes]):
         try:
             return self.mw_calculator(seq, delta)
         except KeyError:  # assume sequence was ambiguous
+            # This branch is never executed
             return self.mw_calculator(self.disambiguate(seq, method), delta)
 
     def can_match(self, first: str, second: str) -> bool:
@@ -1476,7 +1490,7 @@ class MolType(Generic[StrOrBytes]):
 
     def get_css_style(
         self,
-        colors: dict[str, str] | None = None,
+        colors: Mapping[str, str] | None = None,
         font_size: int = 12,
         font_family: str = "Lucida Console",
     ) -> tuple[list[str], defaultdict[str | bytes, str]]:
@@ -1558,15 +1572,6 @@ def _most_degen_alphabet(
     return next(mt.iter_alphabets())
 
 
-@register_deserialiser(
-    get_object_provenance(MolType),
-    "cogent3.core.moltype.MolType",
-    "cogent3.core.c3_moltype.MolType",
-)
-def deserialise_c3_moltype(data: dict[str, str]) -> MolType[Any]:
-    return get_moltype(data["moltype"])
-
-
 def _make_moltype_dict() -> dict[str, MolType[Any]]:
     """make a dictionary of local name space molecular types"""
     env = globals()
@@ -1579,7 +1584,23 @@ def _make_moltype_dict() -> dict[str, MolType[Any]]:
     return moltypes
 
 
-MolTypeLiteral = Literal["dna", "rna", "protein", "protein_with_stop", "text", "bytes"]
+@register_deserialiser(
+    get_object_provenance(MolType),
+    "cogent3.core.moltype.MolType",
+    "cogent3.core.c3_moltype.MolType",
+)
+def deserialise_c3_moltype(data: dict[str, MolTypeLiteral]) -> MolType[Any]:
+    return get_moltype(data["moltype"])
+
+
+@overload
+def get_moltype(
+    name: Literal["dna", "rna", "protein", "protein_with_stop", "text"]
+    | MolType[str]
+    | None,
+) -> MolType[str]: ...
+@overload
+def get_moltype(name: Literal["bytes"] | MolType[bytes]) -> MolType[bytes]: ...
 
 
 def get_moltype(name: MolTypeLiteral | MolType[Any] | None) -> MolType[Any]:

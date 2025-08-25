@@ -13,12 +13,18 @@ Functions for generating combinations, permutations, or cartesian products
 of lists.
 """
 
+from collections.abc import Callable, Collection, Sized
+from collections.abc import Sequence as PySeq
+from typing import Generic, TypeVar
+
+T = TypeVar("T")
+
 maketrans = str.maketrans
 
 # standard combinatorial HOF's from Mertz
 
 
-def per_shortest(total, x, y):
+def per_shortest(total: int, x: Sized, y: Sized) -> float:
     """Divides total by min(len(x), len(y)).
 
     Useful for normalizing per-item results from sequences that are zipped
@@ -31,7 +37,7 @@ def per_shortest(total, x, y):
     return total / shortest
 
 
-def per_longest(total, x, y):
+def per_longest(total: int, x: Sized, y: Sized) -> float:
     """Divides total by max(len(x), len(y)).
 
     Useful for normalizing per-item results from sequences that are zipped
@@ -44,7 +50,7 @@ def per_longest(total, x, y):
     return total / longest
 
 
-class for_seq:
+class for_seq(Generic[T]):
     """Returns function that applies f(i,j) to i,j in zip(first, second).
 
     f: f(i,j) applying to elements of the sequence.
@@ -59,12 +65,17 @@ class for_seq:
     of zip).
     """
 
-    def __init__(self, f, aggregator=sum, normalizer=per_shortest) -> None:
+    def __init__(
+        self,
+        f: Callable[[T, T], int],
+        aggregator: Callable[[PySeq[int]], int] = sum,
+        normalizer: Callable[[int, Sized, Sized], float] = per_shortest,
+    ) -> None:
         self.f = f
         self.aggregator = aggregator
         self.normalizer = normalizer
 
-    def __call__(self, first, second):
+    def __call__(self, first: Collection[T], second: Collection[T]) -> float:
         f = self.f
         if self.normalizer is None:
             return self.aggregator(
@@ -89,17 +100,18 @@ class KeepChars:
 
     allchars = bytes(range(256))
 
-    def __init__(self, keep, case_sens=True) -> None:
+    def __init__(self, keep: str, case_sens: bool = True) -> None:
         """Returns a new KeepChars object, based on string keep"""
         if not case_sens:
             low = keep.lower()
             up = keep.upper()
             keep = low + up
 
-        keep = keep.encode("utf-8")
-        self._strip_table = {c: None for c in self.allchars if c not in keep}
+        self._strip_table = {
+            c: None for c in self.allchars if c not in keep.encode("utf-8")
+        }
 
-    def __call__(self, s):
+    def __call__(self, s: str | bytes) -> str:
         """f(s) -> s, translates using self.allchars and self.delchars"""
         if s is None:
             raise TypeError
@@ -109,7 +121,7 @@ class KeepChars:
         return s.translate(self._strip_table)
 
 
-def first_index_in_set(seq, items):
+def first_index_in_set(seq: str, items: str) -> int | None:
     """Returns index of first occurrence of any of items in seq, or None."""
     for i, s in enumerate(seq):
         if s in items:
