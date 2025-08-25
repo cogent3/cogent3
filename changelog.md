@@ -17,7 +17,7 @@ Minor bug fix release with some advances to docs.
 ## Documentation
 
 - Added documentation for using the cogent3 parsers for basic sequence formats
-  (fasta and gebank). These return Python primitives.
+  (fasta and GenBank). These return Python primitives.
 
 <a id='changelog-2025.7.10a8'></a>
 # Changes in release "2025.7.10a8"
