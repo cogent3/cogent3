@@ -782,6 +782,17 @@ class SequenceCollection(AnnotatableMixin):
         raise TypeError(msg)
 
     @property
+    def modified(self) -> bool:
+        """collection is a modification of underlying storage"""
+        return any(
+            [
+                self._is_reversed,
+                set(self.name_map.values()) != set(self.storage.names),
+                self.name_map.keys() != set(self.name_map.values()),
+            ]
+        )
+
+    @property
     def seqs(self) -> _IndexableSeqs:
         """iterable of sequences in the collection
 
@@ -4622,6 +4633,20 @@ class Alignment(SequenceCollection):
         msg = "storage cannot be set after initialisation"
         raise TypeError(msg)
 
+    @property
+    def modified(self) -> bool:
+        """collection is a modification of underlying storage"""
+        # include changed seq names?
+        sr = self._slice_record
+        changed_slice = sr.start != 0 or len(sr) != self.storage.align_len
+        return any(
+            [
+                changed_slice,
+                set(self.name_map.values()) != set(self.storage.names),
+                self.name_map.keys() != set(self.name_map.values()),
+            ]
+        )
+
     def _get_init_kwargs(self) -> dict:
         """returns the kwargs needed to re-instantiate the object"""
         return {
@@ -5048,6 +5073,9 @@ class Alignment(SequenceCollection):
         warn: bool = False,
     ) -> numpy.ndarray:
         """returns shannon entropy per position"""
+        # if the current alignment is very long, we chunk this
+        # in case a backend is being used that stores contents on
+        # disk by sequence
         probs = self.probs_per_pos(
             motif_length=motif_length,
             include_ambiguity=include_ambiguity,
