@@ -1,4 +1,20 @@
 
+<a id='changelog-2025.7.10a10'></a>
+# Changes in release "2025.7.10a10"
+
+A minor feature enhancement to support the cogent3-h5seqs project.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- SeqCollection.modified attribute. Returns whether the collection is a modification
+  of the underlying storage. This is useful for third-party writers. Conditions
+  checked are subset of names, renamed sequences, reverse complemented, or sliced
+  (Alignment only).
+
 <a id='changelog-2025.7.10a9'></a>
 # Changes in release "2025.7.10a9"
 
