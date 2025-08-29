@@ -99,6 +99,9 @@ class convert_alphabet:
 
 
 class AlphabetABC(ABC, Generic[StrOrBytes]):
+    def __init__(self) -> None:
+        self.dtype: type[numpy.unsignedinteger]
+
     @property
     @abstractmethod
     def num_canonical(self) -> int: ...
