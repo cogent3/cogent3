@@ -1228,6 +1228,38 @@ class PhyloNode:
         _, tree = self._sorted(full_sort_order)
         return tree
 
+    def ladderise(self) -> Self:
+        """Return an equivalent tree nodes using a ladderise sort.
+
+        Notes
+        -----
+        Children are ordered by their number of descendant tips
+        with ties broken by alphabetical sort of node names.
+        """
+        num_tips = {}
+        ordered_names_map = {}
+
+        for node in self.postorder():
+            if node.is_tip():
+                num_tips[node] = 1
+                ordered_names_map[node] = [node.name]
+            else:
+                ordered_kids = sorted(
+                    node.children, key=lambda c: (num_tips[c], ordered_names_map[c][0])
+                )
+
+                num_tips[node] = sum(num_tips[k] for k in ordered_kids)
+
+                names = []
+                for child in ordered_kids:
+                    names.extend(ordered_names_map[child])
+                ordered_names_map[node] = names
+
+        ordered_names = ordered_names_map[self]
+        return self.sorted(sort_order=ordered_names)
+
+    ladderize = ladderise  # a synonym with US spelling
+
     def _ascii_art(
         self,
         char1: str = "-",

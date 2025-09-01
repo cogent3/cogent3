@@ -2578,3 +2578,64 @@ def test_conflicting_support():
         TreeBuilder(PhyloNode).create_edge(
             [PhyloNode("a"), PhyloNode("b")], name_with_support, {}, None, 30
         )
+
+
+@pytest.mark.parametrize("treestring", ["(A,(B,(C,D)));", "(((D,C),B),A);"])
+def test_ladderise_bifurcating(treestring):
+    tree = make_tree(treestring=treestring)
+    ladderised = tree.ladderise()
+    result_newick = ladderised.get_newick()
+    assert result_newick == "(A,(B,(C,D)));"
+    # using the synonym
+    ladderised = tree.ladderize()
+    result_newick = ladderised.get_newick()
+    assert result_newick == "(A,(B,(C,D)));"
+
+
+@pytest.mark.parametrize(
+    "treestring",
+    [
+        "(A,(B,C),(D,E));",
+        "((B,C),A,(D,E));",
+        "((D,E),(B,C),A);",
+        "(A,(D,E),(B,C));",
+        "((B,C),(D,E),A);",
+    ],
+)
+def test_ladderise_root_three_children(treestring):
+    tree = make_tree(treestring=treestring)
+    ladderised = tree.ladderise()
+    result_newick = ladderised.get_newick()
+    expected_newick = "(A,(B,C),(D,E));"
+    assert result_newick == expected_newick
+
+
+@pytest.mark.parametrize(
+    "treestring",
+    [
+        "(A,(B,(C,(D,E))));",
+        "((B,(C,(D,E))),A);",
+    ],
+)
+def test_ladderise_bifurcating_depth5(treestring):
+    tree = make_tree(treestring=treestring)
+    ladderised = tree.ladderise()
+    result_newick = ladderised.get_newick()
+    expected_newick = "(A,(B,(C,(D,E))));"
+    assert result_newick == expected_newick, f"{treestring} → {result_newick}"
+
+
+@pytest.mark.parametrize(
+    "treestring",
+    [
+        "(A,B,(C,D,(E,F)));",
+        "(B,(C,D,(E,F)),A);",
+        "((C,D,(E,F)),A,B);",
+    ],
+)
+def test_ladderise_multifurcating_depth5(treestring):
+    tree = make_tree(treestring=treestring)
+    ladderised = tree.ladderise()
+    result_newick = ladderised.get_newick()
+    expected_newick = "(A,B,(C,D,(E,F)));"
+    assert result_newick == expected_newick, f"{treestring} → {result_newick}"
