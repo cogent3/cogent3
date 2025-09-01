@@ -2639,3 +2639,4 @@ def test_ladderise_multifurcating_depth5(treestring):
     result_newick = ladderised.get_newick()
     expected_newick = "(A,B,(C,D,(E,F)));"
     assert result_newick == expected_newick, f"{treestring} → {result_newick}"
+    assert ladderised.same_topology(tree)
