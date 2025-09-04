@@ -1408,10 +1408,6 @@ class SenseCodonAlphabet(
             seq = numpy.array(
                 [self.to_index(c, validate=validate) for c in seq], dtype=self.dtype
             )
-
-            if validate and not self.is_valid(seq):
-                msg = "sequence has invalid characters"
-                raise AlphabetError(msg)
             return seq
 
         msg = f"{type(seq)} is invalid"

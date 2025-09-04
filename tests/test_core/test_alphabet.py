@@ -852,16 +852,8 @@ def test_to_indices_no_validate(alpha):
     assert isinstance(got, numpy.ndarray)
 
 
-@pytest.mark.parametrize(
-    "alpha",
-    [
-        c3_moltype.DNA.alphabet,
-        c3_moltype.DNA.alphabet.get_kmer_alphabet(k=2),
-        c3_moltype.DNA.alphabet.get_kmer_alphabet(k=3),
-    ],
-)
-def test_to_indices_no_validate_codon(alpha):
+def test_to_indices_no_validate_codon(calpha):
     # still raises AlphabetError because no such codon
     raw_seq = "ATGT%G"
     with pytest.raises(c3_alphabet.AlphabetError):
-        alpha.to_indices(raw_seq, validate=True)
+        calpha.to_indices(raw_seq, validate=True)
