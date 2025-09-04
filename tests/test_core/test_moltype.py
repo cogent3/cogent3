@@ -123,6 +123,11 @@ def test_is_degenerate_invalid():
         c3_moltype.RNA.is_degenerate(list("GAG"), validate=False)
 
 
+def test_is_degenerate_invalid_char():
+    with pytest.raises(c3_alphabet.AlphabetError):
+        c3_moltype.RNA.is_degenerate("GXG", validate=True)
+
+
 @pytest.mark.parametrize("data_type", [str, bytes, numpy.ndarray])
 @pytest.mark.parametrize(
     "seq",
