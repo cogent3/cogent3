@@ -79,7 +79,7 @@ def test_complement(name, seq, data_type):
 
 def make_typed(seq, data_type, moltype):
     if data_type is numpy.ndarray:
-        seq = moltype.most_degen_alphabet().to_indices(seq)
+        seq = moltype.most_degen_alphabet().to_indices(seq, validate=False)
     elif data_type is bytes:
         seq = seq.encode("utf-8")
     return seq
@@ -120,7 +120,7 @@ def test_is_not_degenerate(seq, data_type):
 
 def test_is_degenerate_invalid():
     with pytest.raises(TypeError):
-        c3_moltype.RNA.is_degenerate(list("GAG"))
+        c3_moltype.RNA.is_degenerate(list("GAG"), validate=False)
 
 
 @pytest.mark.parametrize("data_type", [str, bytes, numpy.ndarray])
@@ -498,7 +498,7 @@ def test_count_degenerate():
     assert d("GACUGCAUGCAUCGUACGUCAGUACCGA") == 0
     assert d("N") == 1
     assert d("NRY") == 3
-    assert d("ACGUAVCUAGCAUNUCAGUCAGyUACGUCAGS") == 4
+    assert d("ACGUAVCUAGCAUNUCAGUCAGYUACGUCAGS", validate=False) == 4
 
 
 def test_count_variants():

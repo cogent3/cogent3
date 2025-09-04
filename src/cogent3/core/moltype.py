@@ -759,10 +759,25 @@ class MolType(Generic[StrOrBytes]):
         """
         return callable(self._complement)
 
-    def has_ambiguity(self, seq: str | bytes | NumpyIntArrayType) -> bool:
-        """whether sequence has an ambiguity character"""
+    def has_ambiguity(
+        self, seq: str | bytes | NumpyIntArrayType, validate: bool = True
+    ) -> bool:
+        """whether sequence has an ambiguity character
+
+        Parameters
+        ----------
+        seq
+            input sequence to be converted to a numpy array of uint
+        validate
+            raises an AlphabetError if the resulting sequence does not
+            satisfy alphabet.is_valid()
+        """
         if isinstance(seq, str):
-            return any(self.is_ambiguity(c) for c in seq) if self.ambiguities else False
+            return (
+                any(self.is_ambiguity(c, validate=validate) for c in seq)
+                if self.ambiguities
+                else False
+            )
 
         if isinstance(seq, bytes):
             return self.has_ambiguity(seq.decode("utf8"))
@@ -781,7 +796,21 @@ class MolType(Generic[StrOrBytes]):
         raise TypeError(msg)
 
     def rc(self, seq: str, validate: bool = True) -> str:
-        """reverse reverse complement of a sequence"""
+        """reverse reverse complement of a sequence
+
+        Parameters
+        ----------
+        seq
+            sequence to be reversed
+        validate
+            if True, checks the sequence is validated against the most
+            degenerate alphabet
+
+        Raises
+        ------
+        AlphabetError
+            if invalid characters present
+        """
         if validate and not self.is_valid(seq):
             msg = f"{seq[:4]!r} not valid for moltype {self.name!r}"
             raise c3_alphabet.AlphabetError(
@@ -793,7 +822,23 @@ class MolType(Generic[StrOrBytes]):
     def is_degenerate(
         self, seq: str | bytes | NumpyIntArrayType, validate: bool = True
     ) -> bool:
-        """checks if a sequence contains degenerate characters"""
+        """checks if a sequence contains degenerate characters
+
+        Parameters
+        ----------
+        seq
+            sequence to be evaluated
+        validate
+            raises an AlphabetError if the resulting sequence does not
+            satisfy self.is_valid()
+
+        Raises
+        ------
+        TypeError
+            if seq is not a supported type
+        AlphabetError
+            if invalid characters present
+        """
         if not isinstance(seq, (str, bytes, numpy.ndarray)):
             msg = f"{type(seq)} not supported"
             raise TypeError(msg)
@@ -805,7 +850,7 @@ class MolType(Generic[StrOrBytes]):
             )
 
         if isinstance(seq, (str, bytes)):
-            seq = self.most_degen_alphabet().to_indices(seq)
+            seq = self.most_degen_alphabet().to_indices(seq, validate=validate)
 
         if self.degen_alphabet is None:
             return False
@@ -817,7 +862,23 @@ class MolType(Generic[StrOrBytes]):
     def is_gapped(
         self, seq: str | bytes | NumpyIntArrayType, validate: bool = True
     ) -> bool:
-        """checks if a sequence contains gaps"""
+        """checks if a sequence contains gaps
+
+        Parameters
+        ----------
+        seq
+            sequence to be evaluated
+        validate
+            raises an AlphabetError if the resulting sequence does not
+            satisfy self.is_valid()
+
+        Raises
+        ------
+        TypeError
+            if seq is not a supported type
+        AlphabetError
+            if invalid characters present
+        """
         if not isinstance(seq, (str, bytes, numpy.ndarray)):
             msg = f"{type(seq)} not supported"
             raise TypeError(msg)
@@ -845,15 +906,16 @@ class MolType(Generic[StrOrBytes]):
         include_gap: bool = True,
         validate: bool = True,
     ) -> list[int]:
-        """Return List of position indexs of degenerate characters in the sequence.
+        """Return list of position indexs of degenerate characters in the sequence.
 
         Parameters
         ----------
-        seq : str | bytes | NumpyIntArrayType
+        seq
             the sequence to be used for getting degenerate positions
-        include_gap : bool, optional
-            if True, then the gap state together with ’canonical’ sates (A,C,G,T for DNA) will be considered non-ambiguous.
-        validate : bool, optional
+        include_gap
+            if True, then the gap state together with 'canonical' sates
+            (A,C,G,T for DNA) will be considered non-ambiguous.
+        validate
             if True, checks the sequence is validated for the alphabet
         """
         if validate and not self.is_valid(seq):
@@ -885,7 +947,23 @@ class MolType(Generic[StrOrBytes]):
     def degap(
         self, seq: str | bytes | NumpyIntArrayType, validate: bool = True
     ) -> str | bytes | NumpyIntArrayType:
-        """removes all gap and missing characters from a sequence"""
+        """removes all gap and missing characters from a sequence
+
+        Parameters
+        ----------
+        seq
+            sequence to degapped
+        validate
+            raises an AlphabetError if the resulting sequence does not
+            satisfy self.is_valid()
+
+        Raises
+        ------
+        TypeError
+            if seq is not a supported type
+        AlphabetError
+            if invalid characters present
+        """
         # refactor: design
         # cache translation callables (using alpabet.convert_alphabet)
         # previous implementation had support for tuples -- is this necessary?
@@ -927,8 +1005,13 @@ class MolType(Generic[StrOrBytes]):
         query_motif
             the motif being queried.
         validate
-            if True, checks the sequence is validated against the most
-            degenerate alphabet
+            raises an AlphabetError if the resulting sequence does not
+            satisfy self.is_valid()
+
+        Raises
+        ------
+        AlphabetError
+            if invalid characters present
         """
         if not self.ambiguities:
             return False
@@ -964,6 +1047,14 @@ class MolType(Generic[StrOrBytes]):
         allow_gap
             whether the gap character is allowed in output. Only
             applied when alphabet is None.
+        validate
+            raises an AlphabetError if the resulting sequence does not
+            satisfy self.is_valid()
+
+        Raises
+        ------
+        AlphabetError
+            if invalid characters present
 
         Notes
         -----
@@ -1055,6 +1146,7 @@ class MolType(Generic[StrOrBytes]):
             assert self.degen_gapped_alphabet is not None
             return self.degen_gapped_alphabet.to_indices(
                 self.strip_degenerate(self.degen_gapped_alphabet.array_to_bytes(seq)),
+                validate=False,
             )
         msg = f"{type(seq)} not supported"
         raise TypeError(msg)
@@ -1069,7 +1161,9 @@ class MolType(Generic[StrOrBytes]):
         if isinstance(seq, bytes):
             assert self.degen_gapped_alphabet is not None
             return self.degen_gapped_alphabet.array_to_bytes(
-                self._strip_bad(self.degen_gapped_alphabet.to_indices(seq)),
+                self._strip_bad(
+                    self.degen_gapped_alphabet.to_indices(seq, validate=False)
+                ),
             )
 
         if isinstance(seq, str):
@@ -1095,7 +1189,9 @@ class MolType(Generic[StrOrBytes]):
         if isinstance(seq, bytes):
             assert self.degen_gapped_alphabet is not None
             return self.degen_gapped_alphabet.array_to_bytes(
-                self._strip_bad_and_gaps(self.degen_gapped_alphabet.to_indices(seq)),
+                self._strip_bad_and_gaps(
+                    self.degen_gapped_alphabet.to_indices(seq, validate=False)
+                ),
             )
 
         if isinstance(seq, str):
@@ -1181,6 +1277,7 @@ class MolType(Generic[StrOrBytes]):
                 self.random_disambiguate(
                     self.degen_gapped_alphabet.array_to_bytes(seq)
                 ),
+                validate=False,
             )
 
         msg = f"{type(seq)} not supported"
@@ -1202,14 +1299,32 @@ class MolType(Generic[StrOrBytes]):
         assert self.degen_gapped_alphabet is not None
         return numpy.sum(seq == self.degen_gapped_alphabet.gap_index)
 
-    def count_degenerate(self, seq: str | bytes) -> int:
-        """returns the number of degenerate characters in a sequence"""
+    def count_degenerate(self, seq: str | bytes, validate: bool = True) -> int:
+        """returns the number of degenerate characters in a sequence
+
+        Parameters
+        ----------
+        seq
+            sequence to degapped
+        validate
+            raises an AlphabetError if the resulting sequence does not
+            satisfy self.is_valid()
+
+        Raises
+        ------
+        TypeError
+            if seq is not a supported type
+        c3_alphabet.AlphabetError
+            if invalid characters present
+        """
         if isinstance(seq, str):
             seq = seq.encode("utf8")
 
         if isinstance(seq, bytes):
             assert self.degen_gapped_alphabet is not None
-            return self._count_degenerate(self.degen_gapped_alphabet.to_indices(seq))
+            return self._count_degenerate(
+                self.degen_gapped_alphabet.to_indices(seq, validate=validate)
+            )
 
         msg = f"{type(seq)} not supported"
         raise TypeError(msg)
