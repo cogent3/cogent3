@@ -443,7 +443,7 @@ class SeqsData(SeqsDataABC):
 
         Raises
         ------
-        c3_alphabet.AlphabetError if the check fails
+        AlphabetError if the check fails
         """
         self._alphabet = alphabet
         self._offset = offset or {}
@@ -619,14 +619,8 @@ class SeqsData(SeqsDataABC):
             as_new_alpha = self.alphabet.convert_seq_array_to(
                 seq=seq_data,
                 alphabet=alphabet,
-                check_valid=False,
+                check_valid=check_valid,
             )
-            if check_valid and not alphabet.is_valid(as_new_alpha):
-                msg = (
-                    f"Changing from old alphabet={self.alphabet} to new "
-                    f"{alphabet=} is not valid for this data"
-                )
-                raise c3_alphabet.AlphabetError(msg)
             new_data[seqid] = as_new_alpha
 
         return self.copy(
@@ -3742,12 +3736,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         names = tuple(data.keys())
         array_seqs = numpy.empty((len(names), align_len), dtype=alphabet.dtype)
         for i, name in enumerate(names):
-            array_seqs[i] = alphabet.to_indices(data[name])
-            if not alphabet.is_valid(data[name]):
-                msg = f"Sequence {name} contains invalid characters."
-                raise c3_alphabet.AlphabetError(
-                    msg,
-                )
+            array_seqs[i] = alphabet.to_indices(data[name], validate=True)
 
         array_seqs.flags.writeable = False
         return cls(
@@ -4119,12 +4108,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
 
         new_seqs = dict(zip(self.names, self._gapped, strict=False))
         for name, seq in seqs.items():
-            seq = self.alphabet.to_indices(seq)
-            if not self.alphabet.is_valid(seq):
-                msg = f"Sequence {name!r} contains invalid characters."
-                raise c3_alphabet.AlphabetError(
-                    msg,
-                )
+            seq = self.alphabet.to_indices(seq, validate=True)
             seq.flags.writeable = False
             new_seqs[name] = seq
 
@@ -4178,14 +4162,8 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             as_new_alpha = self.alphabet.convert_seq_array_to(
                 seq=seq_data,
                 alphabet=alphabet,
-                check_valid=False,
+                check_valid=check_valid,
             )
-            if check_valid and not alphabet.is_valid(as_new_alpha):
-                msg = (
-                    f"Changing from old alphabet={self.alphabet} to new "
-                    f"{alphabet=} is not valid for this data"
-                )
-                raise c3_alphabet.AlphabetError(msg)
             gapped[i] = as_new_alpha
 
         return self.__class__(

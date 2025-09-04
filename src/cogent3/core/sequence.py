@@ -2942,6 +2942,7 @@ class SeqView(SeqViewABC):
             self.parent[
                 self.slice_record.start : self.slice_record.stop : self.slice_record.step
             ],
+            validate=False,
         )
 
     @property

@@ -261,7 +261,7 @@ class GeneticCode:
 
         # convert to indices and then bytes
         if incomplete_ok:
-            seq = self.codons.to_indices(dna)
+            seq = self.codons.to_indices(dna, validate=False)
             missing = seq >= len(self.codons)
         else:
             codons = self.get_alphabet(
@@ -269,7 +269,7 @@ class GeneticCode:
                 include_gap=True,
                 include_missing=True,
             )
-            seq = codons.to_indices(dna)
+            seq = codons.to_indices(dna, validate=False)
             missing = seq >= len(codons)
         # any codon indices include missing data, they will have an index ==
         # length of the alphabet employed, so we need to modify that index

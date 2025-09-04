@@ -121,6 +121,7 @@ class AlphabetABC(ABC, Generic[StrOrBytes]):
         | list[str | bytes]
         | tuple[str | bytes, ...]
         | NumpyIntArrayType,
+        validate: bool = True,
     ) -> NumpyIntArrayType: ...
 
     @abstractmethod
@@ -393,8 +394,18 @@ class CharAlphabet(
         | tuple[str | bytes, ...]
         | list[str | bytes]
         | NumpyIntArrayType,
+        validate: bool = True,
     ) -> NumpyIntArrayType:
-        """returns a sequence of indices for the characters in seq"""
+        """returns a sequence of indices for the characters in seq
+
+        Parameters
+        ----------
+        seq
+            sequence to convert to a numpy array
+        validate
+            raises an AlphabetError if the resulting sequence does not
+            satisfy self.is_valid()
+        """
         if isinstance(seq, tuple):
             indices: list[int] = []
             for c in seq:
@@ -407,10 +418,14 @@ class CharAlphabet(
         if isinstance(seq, bytes):
             # any non-canonical characters should lie outside the range
             # we replace these with a single value
-            return self._bytes2arr(seq)
+            seq = self._bytes2arr(seq)
 
         if isinstance(seq, numpy.ndarray):
-            return seq.astype(self.dtype)
+            seq = seq.astype(self.dtype)
+            if validate and not self.is_valid(seq):
+                msg = "sequence has invalid characters"
+                raise AlphabetError(msg)
+            return seq
 
         msg = f"{type(seq)} is invalid"
         raise TypeError(msg)
@@ -502,7 +517,7 @@ class CharAlphabet(
     def is_valid(self, seq: str | bytes | NumpyIntArrayType) -> bool:
         """seq is valid for alphabet"""
         if isinstance(seq, (str, bytes)):
-            seq = self.to_indices(seq)
+            seq = self.to_indices(seq, validate=False)
 
         if isinstance(seq, numpy.ndarray):
             return bool(seq.min() >= 0 and seq.max() < len(self) if len(seq) else True)
@@ -866,7 +881,11 @@ def kmer_indices_to_seq(
 
 class KmerAlphabetABC(ABC, Generic[StrOrBytes]):
     @abstractmethod
-    def to_index(self, seq: str | bytes | NumpyIntArrayType) -> int: ...
+    def to_index(
+        self,
+        seq: str | bytes | NumpyIntArrayType,
+        validate: bool = True,
+    ) -> int: ...
 
     @abstractmethod
     def from_index(self, kmer_index: int) -> str | NumpyIntArrayType: ...
@@ -1033,6 +1052,7 @@ class KmerAlphabet(
         | tuple[str | bytes, ...]
         | list[str | bytes]
         | NumpyIntArrayType,
+        validate: bool = True,
         independent_kmer: bool = True,
     ) -> NumpyIntArrayType:
         """returns a sequence of k-mer indices
@@ -1041,6 +1061,9 @@ class KmerAlphabet(
         ----------
         seq
             a sequence of monomers
+        validate
+            raises an AlphabetError if the resulting sequence does not
+            satisfy self.is_valid()
         independent_kmer
             if True, returns non-overlapping k-mers
 
@@ -1052,13 +1075,14 @@ class KmerAlphabet(
         a k-mer contains a non-canonical and non-gap character,
         it is assigned an index of (num. monomer states**k) + 1.
         If self.gap_char is None, then both of the above cases
-        are defined as (num. monomer states**k)."""
+        are defined as (num. monomer states**k).
+        """
         # TODO: handle case of non-modulo sequences
         if isinstance(seq, (tuple, list)):
             return numpy.array([self.to_index(c) for c in seq], dtype=self.dtype)
 
         if isinstance(seq, (str, bytes)):
-            seq = self.monomers.to_indices(seq)
+            seq = self.monomers.to_indices(seq, validate=validate)
 
         if isinstance(seq, numpy.ndarray):
             size = len(seq) - self.k + 1
@@ -1067,7 +1091,7 @@ class KmerAlphabet(
             result = numpy.zeros(size, dtype=self.dtype)
             gap_char_index = self.monomers.gap_index or -1
             gap_index = self.gap_index or -1
-            return seq_to_kmer_indices(
+            seq = seq_to_kmer_indices(
                 seq,
                 result,
                 self._coeffs,
@@ -1077,6 +1101,7 @@ class KmerAlphabet(
                 gap_index=gap_index,
                 independent_kmer=independent_kmer,
             )
+            return seq
 
         msg = f"{type(seq)} is invalid"
         raise TypeError(msg)
@@ -1134,7 +1159,11 @@ class KmerAlphabet(
         monomers = self.monomers.with_gap_motif(missing_char=missing)
         return monomers.get_kmer_alphabet(self.k, include_gap=True)
 
-    def to_index(self, seq: str | bytes | NumpyIntArrayType) -> int:
+    def to_index(
+        self,
+        seq: str | bytes | NumpyIntArrayType,
+        validate: bool = True,
+    ) -> int:
         """encodes a k-mer as a single integer
 
         Parameters
@@ -1143,7 +1172,9 @@ class KmerAlphabet(
             sequence to be encoded, can be either a string or numpy array
         overlapping
             if False, performs operation on sequential k-mers, e.g. codons
-
+        validate
+            raises an AlphabetError if the resulting sequence does not
+            satisfy self.is_valid()
 
         Notes
         -----
@@ -1151,9 +1182,10 @@ class KmerAlphabet(
         returns num_states**k if a k-mer contains a gap character,
         otherwise returns num_states**k + 1 if a k-mer contains a
         non-canonical character. If self.gap_char is not defined,
-        returns num_states**k for both cases."""
+        returns num_states**k for both cases.
+        """
         if isinstance(seq, (str, bytes)):
-            seq = self.monomers.to_indices(seq)
+            seq = self.monomers.to_indices(seq, validate=validate)
 
         if isinstance(seq, numpy.ndarray):
             if len(seq) != self.k:
@@ -1343,9 +1375,27 @@ class SenseCodonAlphabet(
         return None
 
     def to_indices(  # type: ignore[override]
-        self, seq: str | list[str] | tuple[str, ...] | NumpyIntArrayType
+        self,
+        seq: str | list[str] | tuple[str, ...] | NumpyIntArrayType,
+        validate: bool = True,
     ) -> NumpyIntArrayType:
-        """returns a sequence of codon indices"""
+        """returns a sequence of codon indices
+
+        Parameters
+        ----------
+        seq
+            input sequence to be converted to a numpy array of uint
+        validate
+            raises an AlphabetError if the resulting sequence does not
+            satisfy self.is_valid()
+
+        Raises
+        ------
+        TypeError
+            if seq is unsupported type
+        AlphabetError
+            if resulting sequence is not valid
+        """
 
         if isinstance(seq, str):
             seq = [seq[i : i + 3] for i in range(0, len(seq), 3)]
@@ -1355,17 +1405,41 @@ class SenseCodonAlphabet(
             seq = [self.monomers.from_indices(c) for c in seq.reshape(size, 3)]
 
         if isinstance(seq, (list, tuple)):
-            return numpy.array([self.to_index(c) for c in seq], dtype=self.dtype)
+            seq = numpy.array(
+                [self.to_index(c, validate=validate) for c in seq], dtype=self.dtype
+            )
+            return seq
 
         msg = f"{type(seq)} is invalid"
         raise TypeError(msg)
 
-    def to_index(self, codon: str) -> int:  # type: ignore
-        """encodes a codon as a single integer"""
+    def to_index(
+        self,
+        codon: str,
+        validate: bool = True,
+    ) -> int:  # type: ignore
+        """encodes a codon as a single integer
+
+        Parameters
+        ----------
+        codon
+            string to be converted into index
+        validate
+            raises an AlphabetError if the resulting sequence does not
+            satisfy self.is_valid()
+
+        Raises
+        ------
+        ValueError
+            if codon is not of length 3
+        AlphabetError
+            if codon contains an invalid nucleotide or is not present in
+            the code
+        """
         if len(codon) != 3:
             msg = f"{codon=!r} is not of length 3"
             raise ValueError(msg)
-        if not self.monomers.is_valid(codon):
+        if validate and not self.monomers.is_valid(codon):
             msg = f"{codon=!r} elements not nucleotides"
             raise AlphabetError(msg)
 

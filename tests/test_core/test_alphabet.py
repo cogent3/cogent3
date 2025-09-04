@@ -97,7 +97,7 @@ def test_charalphabet_to_indices_non_canonical(gap):
     # canonical
     canonical = list(f"TCAG{gap}")
     alpha = c3_alphabet.CharAlphabet(canonical, gap=gap or None)
-    got = alpha.to_indices("ACNGT")
+    got = alpha.to_indices("ACNGT", validate=False)
     assert got.max() >= len(canonical)
 
 
@@ -264,8 +264,8 @@ def test_seq_to_kmer_indices_handle_missing(gap_index):
 def test_kmer_alpha_to_indices_to_index_with_gap(gap):
     alpha = c3_alphabet.CharAlphabet(list(f"TCAG{gap}"), gap=gap or None)
     dinucs = alpha.get_kmer_alphabet(k=2, include_gap=bool(gap))
-    got1 = int(dinucs.to_indices("--")[0])
-    got2 = dinucs.to_index("--")
+    got1 = int(dinucs.to_indices("--", validate=False)[0])
+    got2 = dinucs.to_index("--", validate=False)
     assert got1 == got2 == 16
 
 
@@ -443,7 +443,7 @@ def test_kmer_alphabet_to_indices_invalid():
 def test_kmer_alphabet_is_valid(seq):
     dna = c3_moltype.get_moltype("dna")
     dinuc_alpha = dna.alphabet.get_kmer_alphabet(k=2, include_gap=False)
-    dinucs = dinuc_alpha.to_indices(seq)
+    dinucs = dinuc_alpha.to_indices(seq, validate=False)
     assert dinuc_alpha.is_valid(dinucs)
 
 
@@ -820,3 +820,40 @@ def test_consistent_dtype(alpha, cast):
     seq = cast(seq)
     indices = alpha.to_indices(seq)
     assert indices.dtype == alpha.dtype
+
+
+@pytest.mark.parametrize(
+    "alpha",
+    [
+        c3_moltype.DNA.alphabet,
+        c3_moltype.DNA.alphabet.get_kmer_alphabet(k=2),
+        c3_moltype.DNA.alphabet.get_kmer_alphabet(k=3),
+        c3_genetic_code.DEFAULT.get_alphabet(include_stop=False),
+    ],
+)
+def test_to_indices_validate(alpha):
+    raw_seq = "ATGT%G"
+    # by default we raise an exception
+    with pytest.raises(c3_alphabet.AlphabetError):
+        alpha.to_indices(raw_seq, validate=True)
+
+
+@pytest.mark.parametrize(
+    "alpha",
+    [
+        c3_moltype.DNA.alphabet,
+        c3_moltype.DNA.alphabet.get_kmer_alphabet(k=2),
+        c3_moltype.DNA.alphabet.get_kmer_alphabet(k=3),
+    ],
+)
+def test_to_indices_no_validate(alpha):
+    raw_seq = "ATGT%G"
+    got = alpha.to_indices(raw_seq, validate=False)
+    assert isinstance(got, numpy.ndarray)
+
+
+def test_to_indices_no_validate_codon(calpha):
+    # still raises AlphabetError because no such codon
+    raw_seq = "ATGT%G"
+    with pytest.raises(c3_alphabet.AlphabetError):
+        calpha.to_indices(raw_seq, validate=True)
