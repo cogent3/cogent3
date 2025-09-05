@@ -53,11 +53,9 @@ from cogent3._version import __version__
 from cogent3.parse.cogent3_json import load_from_json
 from cogent3.parse.newick import parse_string as newick_parse_string
 from cogent3.phylo.tree_distance import get_tree_distance_measure
-from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.io import atomic_write, get_format_suffixes, open_
 from cogent3.util.misc import get_object_provenance
-from cogent3.util.warning import deprecated_args, deprecated_callable
 
 if TYPE_CHECKING:  # pragma: no cover
     import os
@@ -2020,28 +2018,6 @@ class PhyloNode:
                 node = node.parent
             dists[tip.name] = cum_sum
         return dists
-
-
-class TreeNode(PhyloNode):
-    @deprecated_callable(
-        "2025.9",
-        "tree classes have been merged into a single class, use PhyloNode instead",
-        "PhyloNode",
-    )
-    def __init__(
-        self,
-        name: str | None = None,
-        children: list[Self] | None = None,
-        parent: Self | None = None,
-        params: dict[str, object] | None = None,
-        name_loaded: bool = True,
-        **kwargs: Any,
-    ) -> None:
-        if name is None:
-            name = ""
-        if children is None:
-            children = []
-        super().__init__(name, children, parent, params, name_loaded, None)
 
 
 T = TypeVar("T", bound=PhyloNode)
