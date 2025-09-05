@@ -22,7 +22,6 @@ import numpy.typing as npt
 from cogent3.core import alphabet as c3_alphabet
 from cogent3.core import sequence as c3_sequence
 from cogent3.data.molecular_weight import DnaMW, ProteinMW, RnaMW, WeightCalculator
-from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.misc import get_object_provenance
 
@@ -680,20 +679,6 @@ class MolType(Generic[StrOrBytes]):
             raise c3_alphabet.AlphabetError(msg)
 
         return self._make_seq(moltype=self, seq=seq, name=name, **kwargs)
-
-    @c3warn.deprecated_callable(
-        "2025.9", "no longer has an effect", is_discontinued=True
-    )
-    def make_array_seq(
-        self,
-        *args: Any,
-        **kwargs: Any,
-    ) -> c3_sequence.Sequence:
-        """discontinued, use make_seq instead"""
-        if args:
-            kwargs["seq"] = args[0]
-
-        return self.make_seq(**kwargs)  # type: ignore[attr-defined]
 
     @overload
     def complement(self, seq: str, validate: bool = True) -> str: ...
@@ -1592,7 +1577,6 @@ def _make_moltype_dict() -> dict[str, MolType[Any]]:
 MolTypeLiteral = Literal["dna", "rna", "protein", "protein_with_stop", "text", "bytes"]
 
 
-@c3warn.deprecated_args("2025.9", "no longer has an effect", discontinued="new_type")
 def get_moltype(name: MolTypeLiteral | MolType[Any] | None) -> MolType[Any]:
     """returns the moltype with the matching name attribute"""
     if name is None:

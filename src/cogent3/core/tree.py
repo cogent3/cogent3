@@ -52,13 +52,10 @@ import numpy.typing as npt
 from cogent3._version import __version__
 from cogent3.parse.cogent3_json import load_from_json
 from cogent3.parse.newick import parse_string as newick_parse_string
-from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
 from cogent3.phylo.tree_distance import get_tree_distance_measure
-from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.io import atomic_write, get_format_suffixes, open_
 from cogent3.util.misc import get_object_provenance
-from cogent3.util.warning import deprecated_args, deprecated_callable
 
 if TYPE_CHECKING:  # pragma: no cover
     import os
@@ -76,16 +73,6 @@ if TYPE_CHECKING:  # pragma: no cover
 
 class TreeError(Exception):
     pass
-
-
-@deprecated_callable("2025.9", "unused", is_discontinued=True)
-def distance_from_r(
-    m1: npt.NDArray[numpy.number], m2: npt.NDArray[numpy.number]
-) -> float:  # pragma: no cover
-    from scipy.stats import pearsonr
-
-    """Estimates distance as (1-r)/2: neg correl = max distance"""
-    return (1 - cast("float", pearsonr(m1.flat, m2.flat)[0])) / 2
 
 
 def _format_node_name(
@@ -339,7 +326,6 @@ class PhyloNode:
                 setattr(result, k, deepcopy(getattr(node, k), memo=memo))
         return result
 
-    @deprecated_args("2025.9", "unused", discontinued=["_nil", "constructor"])
     def copy(self, memo: dict[int, Any] | None = None) -> Self:
         """Returns a copy of self using an iterative approach"""
         if memo is None:
@@ -368,20 +354,6 @@ class PhyloNode:
         return root
 
     __deepcopy__ = deepcopy = copy
-
-    @deprecated_callable("2025.9", "duplicated by copy", new="copy")
-    def copy_topology(self, constructor: type[T] | None = None) -> T | Self:
-        """Copies only the topology and labels of a tree, not any extra data.
-
-        Useful when you want another copy of the tree with the same structure
-        and labels, but want to e.g. assign different branch lengths and
-        environments. Does not use deepcopy from the copy module, so _much_
-        faster than the copy() method.
-        """
-        if constructor is None:
-            constructor = cast("type[T]", self.__class__)
-        children = [c.copy_topology(constructor) for c in self.children]
-        return constructor(name=self.name, children=children)
 
     # support for basic tree operations -- finding objects and moving in the
     # tree
@@ -589,34 +561,6 @@ class PhyloNode:
     def non_tip_children(self) -> list[Self]:
         """Returns direct children in self that have descendants."""
         return [i for i in self.children if i.children]
-
-    @deprecated_callable("2025.9", "low utility", is_discontinued=True)
-    def child_groups(self) -> list[list[Self]]:  # pragma: no cover
-        """Returns list containing lists of children sharing a state.
-        In other words, returns runs of tip and nontip children.
-        """
-        # bail out in trivial cases of 0 or 1 item
-        if not self.children:
-            return []
-        if len(self.children) == 1:
-            return [[self.children[0]]]
-        # otherwise, have to do it properly...
-        result: list[list[Self]] = []
-        curr: list[Self] = []
-        state = None
-        for i in self.children:
-            curr_state = bool(i.children)
-            if curr_state == state:
-                curr.append(i)
-            else:
-                if curr:
-                    result.append(curr)
-                    curr = []
-                curr.append(i)
-                state = curr_state
-        # handle last group
-        result.append(curr)
-        return result
 
     def last_common_ancestor(self, other: Self) -> Self:
         """Finds last common ancestor of self and other, or None.
@@ -1314,9 +1258,6 @@ class PhyloNode:
         lines, _ = self._ascii_art(show_internal=show_internal, compact=compact)
         return "\n".join(lines)
 
-    @c3warn.deprecated_args(
-        "2025.9", "don't use built in name", old_new=[("format", "format_name")]
-    )
     def write(
         self,
         filename: str | os.PathLike[str],
@@ -1464,11 +1405,6 @@ class PhyloNode:
             if n.name in mapping:
                 n.name = mapping[n.name]
 
-    @deprecated_args(
-        "2025.9",
-        "to be removed and instead the current class will be used",
-        discontinued=["constructor"],
-    )
     def multifurcating(
         self,
         num: int,
@@ -1522,11 +1458,6 @@ class PhyloNode:
 
         return new_tree
 
-    @deprecated_args(
-        "2025.9",
-        "to be removed and instead the current class will be used",
-        discontinued=["constructor"],
-    )
     def bifurcating(
         self,
         eps: float | None = None,
@@ -1721,11 +1652,6 @@ class PhyloNode:
         them = other.rooted(root_at).sorted(tip_names)
         return self is other or me.same_shape(them)
 
-    @deprecated_args(
-        "2025.9",
-        "to be removed and instead the current class will be used",
-        discontinued=["constructor"],
-    )
     def unrooted_deepcopy(
         self,
         parent: Self | None = None,
@@ -2029,15 +1955,6 @@ class PhyloNode:
         _adjust_lengths_from_root(tip_name=a, mid_point=mid_point, tree=new_tree)
         return new_tree
 
-    @deprecated_callable(
-        "2025.9", "duplicates tip_to_tip_distances", new="tip_to_tip_distances"
-    )
-    def get_distances(
-        self, names: PySeqStr | None = None
-    ) -> DistanceMatrix:  # pragma: no cover
-        """discontinued"""
-        return self.tip_to_tip_distances(names=names)
-
     def get_max_tip_tip_distance(
         self,
     ) -> tuple[float, tuple[str, str], Self]:
@@ -2101,28 +2018,6 @@ class PhyloNode:
                 node = node.parent
             dists[tip.name] = cum_sum
         return dists
-
-
-class TreeNode(PhyloNode):
-    @deprecated_callable(
-        "2025.9",
-        "tree classes have been merged into a single class, use PhyloNode instead",
-        "PhyloNode",
-    )
-    def __init__(
-        self,
-        name: str | None = None,
-        children: list[Self] | None = None,
-        parent: Self | None = None,
-        params: dict[str, object] | None = None,
-        name_loaded: bool = True,
-        **kwargs: Any,
-    ) -> None:
-        if name is None:
-            name = ""
-        if children is None:
-            children = []
-        super().__init__(name, children, parent, params, name_loaded, None)
 
 
 T = TypeVar("T", bound=PhyloNode)
@@ -2274,9 +2169,6 @@ class TreeBuilder:
         )
 
 
-@c3warn.deprecated_args(
-    "2025.9", "don't use built in name", old_new=[("format", "format_name")]
-)
 def make_tree(
     treestring: str | None = None,
     tip_names: list[str] | None = None,
@@ -2330,12 +2222,9 @@ def make_tree(
 
     tree_builder = TreeBuilder().create_edge
     # FIXME: More general strategy for underscore_unmunge
-    if format_name != "xml":
-        tree = newick_parse_string(
-            treestring, tree_builder, underscore_unmunge=underscore_unmunge
-        )
-    else:
-        tree = tree_xml_parse_string(treestring, tree_builder)
+    tree = newick_parse_string(
+        treestring, tree_builder, underscore_unmunge=underscore_unmunge
+    )
     if not tree.name_loaded:
         tree.name = "root"
 
@@ -2343,9 +2232,6 @@ def make_tree(
     return tree
 
 
-@c3warn.deprecated_args(
-    "2025.9", "don't use built in name", old_new=[("format", "format_name")]
-)
 def load_tree(
     filename: str | pathlib.Path,
     format_name: str | None = None,

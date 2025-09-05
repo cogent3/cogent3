@@ -6,7 +6,6 @@ import numpy
 
 from cogent3.util.misc import extend_docstring_from
 from cogent3.util.union_dict import UnionDict
-from cogent3.util.warning import deprecated_args
 
 if TYPE_CHECKING:  # pragma: no cover
     import contextlib
@@ -218,7 +217,6 @@ class Drawable:
         path = pathlib.Path(path).expanduser().absolute()
         write_image(fig, str(path), **kwargs)
 
-    @deprecated_args("2025.9", "don't use built in name", [("format", "format_name")])
     def to_image(self, format_name: str = "png", **kwargs: Any) -> bytes:
         """creates static image, suffix dictates format"""
         from plotly.io import to_image  # type: ignore[reportUnknownVariableType]

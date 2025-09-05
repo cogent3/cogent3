@@ -104,7 +104,6 @@ PARSERS = {
     "fa": fasta.iter_fasta_records,
     "faa": fasta.iter_fasta_records,
     "fna": fasta.iter_fasta_records,
-    "xmfa": LineBasedParser(fasta.MinimalXmfaParser),
     "gde": LineBasedParser(fasta.MinimalGdeParser),
     "aln": LineBasedParser(clustal.ClustalParser),
     "clustal": LineBasedParser(clustal.ClustalParser),
@@ -245,22 +244,6 @@ class MsfParser(SequenceParserBase):
     @property
     def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
         return LineBasedParser(gcg.MsfParser)
-
-
-class XmfaParser(SequenceParserBase):
-    """Parser for XMFA format sequence files."""
-
-    @property
-    def name(self) -> str:
-        return "xmfa"
-
-    @property
-    def supported_suffixes(self) -> set[str]:
-        return {"xmfa"}
-
-    @property
-    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
-        return LineBasedParser(fasta.MinimalXmfaParser)
 
 
 class TinyseqParser(SequenceParserBase):

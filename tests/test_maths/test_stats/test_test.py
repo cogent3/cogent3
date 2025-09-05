@@ -2,7 +2,6 @@
 
 from unittest import TestCase
 
-import pytest
 from numpy import (
     array,
     asarray,
@@ -12,17 +11,10 @@ from numpy import (
 from numpy.testing import assert_allclose, assert_almost_equal
 
 from cogent3.maths.stats.test import (
-    ALT_HIGH,
-    ALT_LOW,
-    ALT_TWO_SIDED,
     G_2_by_2,
     G_fit,
     G_ind,
     ZeroExpectedError,
-    _flatten_lower_triangle,
-    _get_alternate,
-    _get_rank,
-    is_symmetric_and_hollow,
     probability_points,
     safe_sum_p_log_p,
     theoretical_quantiles,
@@ -110,21 +102,6 @@ class TestsHelper(TestCase):
                 found_match = True
                 break
         assert found_match
-
-
-class TestsTests(TestCase):
-    """Tests miscellaneous functions."""
-
-    def test_get_alternate(self):
-        """correctly identifies the specified alternate hypothesis"""
-        alt = _get_alternate("lo")
-        assert alt == ALT_LOW
-        alt = _get_alternate("hi")
-        assert alt == ALT_HIGH
-        alt = _get_alternate("2")
-        assert alt == ALT_TWO_SIDED
-        with pytest.raises(ValueError):
-            _get_alternate("22")
 
 
 class GTests(TestCase):
@@ -322,69 +299,6 @@ class CorrelationTests(TestsHelper):
         # Ranked copies for testing spearman.
         self.b_ranked = [2, 7, 10, 1, 3, 6, 4, 8, 5, 9]
         self.c_ranked = [5, 1, 8, 7, 3, 9, 4, 10, 2, 6]
-
-    def test_is_symmetric_and_hollow(self):
-        """Should correctly test for symmetry and hollowness of dist mats."""
-        assert is_symmetric_and_hollow(array([[0, 1], [1, 0]]))
-        assert is_symmetric_and_hollow(array([[0, 1], [1, 0]]))
-        assert is_symmetric_and_hollow(array([[0.0, 0], [0.0, 0]]))
-        assert not is_symmetric_and_hollow(array([[0.001, 1], [1, 0]]))
-        assert not is_symmetric_and_hollow(array([[0, 1.1], [1, 0]]))
-        assert not is_symmetric_and_hollow(array([[0.5, 1.1], [1, 0]]))
-
-    def test_flatten_lower_triangle(self):
-        """Test flattening various dms' lower triangulars."""
-        assert _flatten_lower_triangle(array([[8]])) == []
-        assert _flatten_lower_triangle(array([[1, 2], [3, 4]])) == [3]
-        assert _flatten_lower_triangle(array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])) == [
-            4,
-            7,
-            8,
-        ]
-
-    def test_get_rank(self):
-        """Test the _get_rank function with valid input."""
-        exp = (
-            [1.5, 3.5, 7.5, 5.5, 1.5, 9.0, 10.0, 11.0, 12.0, 7.5, 14.0, 3.5, 5.5, 13.0],
-            4,
-        )
-        obs = _get_rank(self.x)
-        assert_allclose(obs[0], exp[0])
-        assert obs[1] == exp[1]
-
-        exp = ([1.5, 3.0, 5.5, 4.0, 1.5, 7.0, 8.0, 9.0, 10.0, 5.5], 2)
-        obs = _get_rank(self.a)
-        assert_allclose(obs[0], exp[0])
-        assert obs[1] == exp[1]
-
-        exp = ([2, 7, 10, 1, 3, 6, 4, 8, 5, 9], 0)
-        obs = _get_rank(self.b)
-        assert_allclose(obs[0], exp[0])
-        assert obs[1] == exp[1]
-
-        exp = ([1.5, 7.0, 10.0, 1.5, 3.0, 6.0, 4.0, 8.0, 5.0, 9.0], 1)
-        obs = _get_rank(self.r)
-        assert_allclose(obs[0], exp[0])
-        assert obs[1] == exp[1]
-
-        exp = ([], 0)
-        obs = _get_rank([])
-        assert_allclose(obs[0], exp[0])
-        assert obs[1] == exp[1]
-
-    def test_get_rank_invalid_input(self):
-        """Test the _get_rank function with invalid input."""
-        vec = [1, "a", 3, 2.5, 3, 1]
-        self.assertRaises(TypeError, _get_rank, vec)
-
-        vec = [1, 2, {1: 2}, 2.5, 3, 1]
-        self.assertRaises(TypeError, _get_rank, vec)
-
-        vec = [1, 2, [23, 1], 2.5, 3, 1]
-        self.assertRaises(TypeError, _get_rank, vec)
-
-        vec = [1, 2, (1,), 2.5, 3, 1]
-        self.assertRaises(TypeError, _get_rank, vec)
 
 
 class TestDistMatrixPermutationTest(TestCase):

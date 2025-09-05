@@ -28,7 +28,6 @@ from cogent3.format import bedgraph
 from cogent3.format import table as table_format
 from cogent3.parse import cogent3_json as c3_json
 from cogent3.parse.table import load_delimited
-from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.io import atomic_write, get_format_suffixes, open_
@@ -436,9 +435,6 @@ class Columns(MutableMapping):
 class Table:
     """Tabular data. iter operates over rows. Columns are available as an attribute."""
 
-    @c3warn.deprecated_args(
-        "2025.9", "don't use built in name", old_new=[("format", "format_name")]
-    )
     def __init__(
         self,
         header: list[str] | None = None,
@@ -1760,9 +1756,6 @@ class Table:
             )
         return result
 
-    @c3warn.deprecated_args(
-        "2025.9", "don't use built in name", old_new=[("format", "format_name")]
-    )
     def to_string(
         self,
         format_name: str | None = None,
@@ -2193,9 +2186,6 @@ class Table:
             result.columns[c] = row
         return result
 
-    @c3warn.deprecated_args(
-        "2025.9", "don't use built in name", old_new=[("format", "format_name")]
-    )
     def write(
         self,
         filename: os.PathLike | str,
@@ -2276,9 +2266,6 @@ class Table:
         outfile.close()
 
 
-@c3warn.deprecated_args(
-    "2025.9", "don't use built in name", old_new=[("format", "format_name")]
-)
 def make_table(
     header: list[str] | None = None,
     data: dict | None = None,
@@ -2365,9 +2352,6 @@ def make_table(
     )
 
 
-@c3warn.deprecated_args(
-    "2025.9", "don't use built in name", old_new=[("format", "format_name")]
-)
 def load_table(
     filename: str | pathlib.Path,
     sep: str | None = None,

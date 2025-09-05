@@ -52,7 +52,6 @@ from cogent3.core.location import (
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray, load_pssm
 from cogent3.maths.stats.number import CategoryCounter
 from cogent3.util import progress_display as UI
-from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.io import atomic_write, get_format_suffixes
@@ -1490,11 +1489,6 @@ class SequenceCollection(AnnotatableMixin):
         fasta = cogent3._plugin.get_seq_format_writer_plugin(format_name="fasta")  # noqa: SLF001
         return fasta.formatted(self, block_size=block_size)
 
-    @c3warn.deprecated_args(
-        "2025.9",
-        "don't use built in name",
-        old_new=[("format", "format_name"), ("file_format", "format_name")],
-    )
     def write(self, filename: str, format_name: OptStr = None, **kwargs) -> None:
         """Write the sequences to a file, preserving order of sequences.
 
@@ -2846,7 +2840,6 @@ def make_unaligned_storage(
     return klass.from_seqs(**sd_kwargs)
 
 
-@c3warn.deprecated_args("2025.9", "no longer has an effect", discontinued="new_type")
 @singledispatch
 def make_unaligned_seqs(
     data: dict[str, StrORBytesORArray] | list | SeqsDataABC,
@@ -7175,9 +7168,6 @@ def make_aligned_storage(
     return klass.from_seqs(**asd_kwargs)
 
 
-@c3warn.deprecated_args(
-    "2025.9", "no longer has an effect", discontinued=["new_type", "array_align"]
-)
 @singledispatch
 def make_aligned_seqs(
     data: dict[str, StrORBytesORArray] | list | AlignedSeqsDataABC,
