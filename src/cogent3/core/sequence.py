@@ -45,7 +45,6 @@ from cogent3.core.location import (
 from cogent3.format.fasta import seqs_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts, TestResult
 from cogent3.maths.stats.number import CategoryCounter
-from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArray
 from cogent3.util.misc import (
@@ -308,9 +307,6 @@ class Sequence(AnnotatableMixin):
         """count() delegates to self._seq."""
         return str(self).count(item)
 
-    @c3warn.deprecated_args(
-        "2025.9", reason="has no effect", discontinued="exclude_unobserved"
-    )
     def counts(
         self,
         motif_length: int = 1,

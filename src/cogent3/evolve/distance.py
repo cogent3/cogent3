@@ -9,7 +9,6 @@ from cogent3.core import table
 from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.maths.stats.number import NumberCounter
 from cogent3.util import progress_display as UI
-from cogent3.util import warning as c3warn
 
 
 def get_name_combinations(names, group_size):
@@ -354,9 +353,6 @@ class EstimateDistances:
 
         return trees
 
-    @c3warn.deprecated_args(
-        "2025.9", "don't use built in name", old_new=[("format", "format_name")]
-    )
     def write(
         self,
         filename: str | os.PathLike,

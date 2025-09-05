@@ -24,7 +24,6 @@ import numpy.typing as npt
 from cogent3.core import alphabet as c3_alphabet
 from cogent3.core import moltype as c3_moltype
 from cogent3.core.table import Table
-from cogent3.util import warning as c3warn
 
 if TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.sequence import Sequence
@@ -573,7 +572,6 @@ for mapping in code_mapping:
 DEFAULT = _CODES[1]
 
 
-@c3warn.deprecated_args("2025.9", "no longer has an effect", discontinued="new_type")
 def get_code(code_id: str | int = 1) -> GeneticCode:
     """returns the genetic code
 

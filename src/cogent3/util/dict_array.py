@@ -30,7 +30,6 @@ import numpy
 import numpy.typing as npt
 
 from cogent3._version import __version__
-from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import get_class, register_deserialiser
 from cogent3.util.io import atomic_write
 from cogent3.util.misc import get_object_provenance
@@ -606,9 +605,6 @@ class DictArray:
         t.set_repr_policy(show_shape=False)
         return t._repr_html_()
 
-    @c3warn.deprecated_args(
-        "2025.9", "don't use built in name", old_new=[("format", "format_name")]
-    )
     def to_string(self, format_name: str = "tsv", sep: str | None = None) -> str:
         """Return the data as a formatted string.
 
@@ -656,9 +652,6 @@ class DictArray:
 
         return Table(header=header, data=data, index_name=index)
 
-    @c3warn.deprecated_args(
-        "2025.9", "don't use built in name", old_new=[("format", "format_name")]
-    )
     def write(
         self, path: str | os.PathLike, format_name: str = "tsv", sep: str = "\t"
     ) -> None:
