@@ -64,7 +64,6 @@ Note the difference between the value provided to ``spans``, and the value of ``
 
     # make demo alignment
     aln1 = make_aligned_seqs([["seq1", "-AAACCCCCA"], ["seq2", "TTTT--TTTT"]],
-        array_align=False,
         moltype="dna",
     )
     # add feature to seq1
@@ -85,7 +84,6 @@ We use ``add_feature`` to add a ``Feature`` to an ``Alignment``.
 
     # make demo alignment
     aln1 = make_aligned_seqs([["seq1", "-AAACCCCCA"], ["seq2", "TTTT--TTTT"]],
-        array_align=False,
         moltype="dna",
     )
 
@@ -251,7 +249,7 @@ For example, first we load an alignment of the brca1 gene in primates.
     from cogent3 import load_aligned_seqs, load_annotations
 
     brca1_aln = load_aligned_seqs(
-        "data/primate_brca1.fasta", array_align=False, moltype="dna"
+        "data/primate_brca1.fasta", moltype="dna"
     )
     brca1_aln
 
@@ -348,7 +346,6 @@ For example, given an alignment of primates, we can search for features that are
     # first load alignment and annotate the human seq
     aln = load_aligned_seqs(
         "data/primate_brca1.fasta",
-        array_align=False,
         moltype="dna",
     )
     # load the annotation data
@@ -414,7 +411,6 @@ If you query for a ``Feature`` from a ``Sequence`` (i.e. the feature is in seque
     from cogent3 import make_aligned_seqs
 
     aln3 = make_aligned_seqs([["x", "C-CCCAAAAA"], ["y", "-T----TTTT"]],
-        array_align=False,
         moltype="dna",
     )
     exon = aln3.add_feature(
@@ -595,7 +591,6 @@ We can mask exons on an alignment.
 
     aln = make_aligned_seqs([["x", "C-CCCAAAAAGGGAA"], ["y", "-T----TTTTG-GTT"]],
         moltype="dna",
-        array_align=False,
     )
     exon = aln.add_feature(
         seqid="x",
@@ -663,7 +658,6 @@ We can copy features onto sequences with the same name. Note that the ``Annotati
 .. jupyter-execute::
 
     aln2 = make_aligned_seqs([["x", "-AAAAAAAAA"], ["y", "TTTT--TTTT"]],
-        array_align=False,
         moltype="dna",
     )
     x, y = aln2.get_seq("x"), aln2.get_seq("y")

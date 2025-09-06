@@ -18,7 +18,7 @@ Illustrated with a simple example
     s1 = make_seq("TGATGTAAGGTAGTT", name="s1", moltype="dna")
     s2 = make_seq("--CTGGAAGGGT---", name="s2", moltype="dna")
 
-    seqs = make_aligned_seqs([s1, s2], array_align=False, moltype="dna")
+    seqs = make_aligned_seqs([s1, s2], moltype="dna")
     draw = seqs.information_plot(window=2, include_gap=True)
     draw.show(width=500, height=400)
 
