@@ -67,28 +67,30 @@ class LineBasedParser:
         self._parse = parser
 
     @functools.singledispatchmethod
-    def __call__(self, data, **kwargs) -> ParserOutputType:
+    def __call__(self, data, **kwargs: dict[str, typing.Any]) -> ParserOutputType:
         msg = f"Unsupported data type {type(data)}"
         raise TypeError(msg)
 
     @__call__.register
-    def _(self, data: str, **kwargs) -> ParserOutputType:
+    def _(self, data: str, **kwargs: dict[str, typing.Any]) -> ParserOutputType:
         yield from self._parse(iter_splitlines(data), **kwargs)
 
     @__call__.register
-    def _(self, data: pathlib.Path, **kwargs) -> ParserOutputType:
+    def _(
+        self, data: pathlib.Path, **kwargs: dict[str, typing.Any]
+    ) -> ParserOutputType:
         if not data.exists():
             msg = f"File '{data}' does not exist"
             raise FileNotFoundError(msg)
         yield from self._parse(iter_splitlines(data), **kwargs)
 
     @__call__.register
-    def _(self, data: tuple, **kwargs) -> ParserOutputType:
+    def _(self, data: tuple, **kwargs: dict[str, typing.Any]) -> ParserOutputType:
         # we're assuming this is already split by lines
         yield from self._parse(data, **kwargs)
 
     @__call__.register
-    def _(self, data: list, **kwargs) -> ParserOutputType:
+    def _(self, data: list, **kwargs: dict[str, typing.Any]) -> ParserOutputType:
         # we're assuming this is already split by lines
         yield from self._parse(data, **kwargs)
 
@@ -102,7 +104,6 @@ PARSERS = {
     "fa": fasta.iter_fasta_records,
     "faa": fasta.iter_fasta_records,
     "fna": fasta.iter_fasta_records,
-    "xmfa": LineBasedParser(fasta.MinimalXmfaParser),
     "gde": LineBasedParser(fasta.MinimalGdeParser),
     "aln": LineBasedParser(clustal.ClustalParser),
     "clustal": LineBasedParser(clustal.ClustalParser),
@@ -243,22 +244,6 @@ class MsfParser(SequenceParserBase):
     @property
     def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
         return LineBasedParser(gcg.MsfParser)
-
-
-class XmfaParser(SequenceParserBase):
-    """Parser for XMFA format sequence files."""
-
-    @property
-    def name(self) -> str:
-        return "xmfa"
-
-    @property
-    def supported_suffixes(self) -> set[str]:
-        return {"xmfa"}
-
-    @property
-    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
-        return LineBasedParser(fasta.MinimalXmfaParser)
 
 
 class TinyseqParser(SequenceParserBase):

@@ -52,7 +52,6 @@ from cogent3.core.location import (
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray, load_pssm
 from cogent3.maths.stats.number import CategoryCounter
 from cogent3.util import progress_display as UI
-from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.io import atomic_write, get_format_suffixes
@@ -443,7 +442,7 @@ class SeqsData(SeqsDataABC):
 
         Raises
         ------
-        c3_alphabet.AlphabetError if the check fails
+        AlphabetError if the check fails
         """
         self._alphabet = alphabet
         self._offset = offset or {}
@@ -619,14 +618,8 @@ class SeqsData(SeqsDataABC):
             as_new_alpha = self.alphabet.convert_seq_array_to(
                 seq=seq_data,
                 alphabet=alphabet,
-                check_valid=False,
+                check_valid=check_valid,
             )
-            if check_valid and not alphabet.is_valid(as_new_alpha):
-                msg = (
-                    f"Changing from old alphabet={self.alphabet} to new "
-                    f"{alphabet=} is not valid for this data"
-                )
-                raise c3_alphabet.AlphabetError(msg)
             new_data[seqid] = as_new_alpha
 
         return self.copy(
@@ -780,6 +773,17 @@ class SequenceCollection(AnnotatableMixin):
         # storage cannot be set after initialisation
         msg = "storage cannot be set after initialisation"
         raise TypeError(msg)
+
+    @property
+    def modified(self) -> bool:
+        """collection is a modification of underlying storage"""
+        return any(
+            [
+                self._is_reversed,
+                set(self.name_map.values()) != set(self.storage.names),
+                self.name_map.keys() != set(self.name_map.values()),
+            ]
+        )
 
     @property
     def seqs(self) -> _IndexableSeqs:
@@ -1485,11 +1489,6 @@ class SequenceCollection(AnnotatableMixin):
         fasta = cogent3._plugin.get_seq_format_writer_plugin(format_name="fasta")  # noqa: SLF001
         return fasta.formatted(self, block_size=block_size)
 
-    @c3warn.deprecated_args(
-        "2025.9",
-        "don't use built in name",
-        old_new=[("format", "format_name"), ("file_format", "format_name")],
-    )
     def write(self, filename: str, format_name: OptStr = None, **kwargs) -> None:
         """Write the sequences to a file, preserving order of sequences.
 
@@ -2841,7 +2840,6 @@ def make_unaligned_storage(
     return klass.from_seqs(**sd_kwargs)
 
 
-@c3warn.deprecated_args("2025.9", "no longer has an effect", discontinued="new_type")
 @singledispatch
 def make_unaligned_seqs(
     data: dict[str, StrORBytesORArray] | list | SeqsDataABC,
@@ -3731,12 +3729,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         names = tuple(data.keys())
         array_seqs = numpy.empty((len(names), align_len), dtype=alphabet.dtype)
         for i, name in enumerate(names):
-            array_seqs[i] = alphabet.to_indices(data[name])
-            if not alphabet.is_valid(data[name]):
-                msg = f"Sequence {name} contains invalid characters."
-                raise c3_alphabet.AlphabetError(
-                    msg,
-                )
+            array_seqs[i] = alphabet.to_indices(data[name], validate=True)
 
         array_seqs.flags.writeable = False
         return cls(
@@ -4108,12 +4101,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
 
         new_seqs = dict(zip(self.names, self._gapped, strict=False))
         for name, seq in seqs.items():
-            seq = self.alphabet.to_indices(seq)
-            if not self.alphabet.is_valid(seq):
-                msg = f"Sequence {name!r} contains invalid characters."
-                raise c3_alphabet.AlphabetError(
-                    msg,
-                )
+            seq = self.alphabet.to_indices(seq, validate=True)
             seq.flags.writeable = False
             new_seqs[name] = seq
 
@@ -4167,14 +4155,8 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             as_new_alpha = self.alphabet.convert_seq_array_to(
                 seq=seq_data,
                 alphabet=alphabet,
-                check_valid=False,
+                check_valid=check_valid,
             )
-            if check_valid and not alphabet.is_valid(as_new_alpha):
-                msg = (
-                    f"Changing from old alphabet={self.alphabet} to new "
-                    f"{alphabet=} is not valid for this data"
-                )
-                raise c3_alphabet.AlphabetError(msg)
             gapped[i] = as_new_alpha
 
         return self.__class__(
@@ -4622,6 +4604,20 @@ class Alignment(SequenceCollection):
         msg = "storage cannot be set after initialisation"
         raise TypeError(msg)
 
+    @property
+    def modified(self) -> bool:
+        """collection is a modification of underlying storage"""
+        # include changed seq names?
+        sr = self._slice_record
+        changed_slice = sr.start != 0 or len(sr) != self.storage.align_len
+        return any(
+            [
+                changed_slice,
+                set(self.name_map.values()) != set(self.storage.names),
+                self.name_map.keys() != set(self.name_map.values()),
+            ]
+        )
+
     def _get_init_kwargs(self) -> dict:
         """returns the kwargs needed to re-instantiate the object"""
         return {
@@ -5048,6 +5044,9 @@ class Alignment(SequenceCollection):
         warn: bool = False,
     ) -> numpy.ndarray:
         """returns shannon entropy per position"""
+        # if the current alignment is very long, we chunk this
+        # in case a backend is being used that stores contents on
+        # disk by sequence
         probs = self.probs_per_pos(
             motif_length=motif_length,
             include_ambiguity=include_ambiguity,
@@ -7169,9 +7168,6 @@ def make_aligned_storage(
     return klass.from_seqs(**asd_kwargs)
 
 
-@c3warn.deprecated_args(
-    "2025.9", "no longer has an effect", discontinued=["new_type", "array_align"]
-)
 @singledispatch
 def make_aligned_seqs(
     data: dict[str, StrORBytesORArray] | list | AlignedSeqsDataABC,

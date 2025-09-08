@@ -26,7 +26,7 @@ def calc_mi_pair(alignment, pos1, pos2, normalised=False):
 
 @pytest.fixture(params=["AAAAA", "ACGT", "AACC", "ACGNNGG"])
 def column(request):
-    return get_moltype("dna").alphabet.to_indices(request.param)
+    return get_moltype("dna").most_degen_alphabet().to_indices(request.param)
 
 
 # revised code tests

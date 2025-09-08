@@ -1,4 +1,68 @@
 
+<a id='changelog-2025.9.8a1'></a>
+# Changes in release "2025.9.8a1"
+
+A minor feature enhancement release.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- Added `PhyloNode.ladderise()` and the US spelling version
+  `PhyloNode.ladderize()`. This feature was requested by @yudalang3. The method
+  sorts nodes in ascending order based on their number of descendants. We break
+  ties using alphabetical sorting of tip names.
+- Added `validate` arguments to the following methods:
+  `<alphabet classes>.to_indices()`, `<kmer alphabet>.to_index()`,
+  `<moltype>.has_ambiguity()`, `<moltype>.rc()`, `<moltype>.is_degenerate()`,
+  `<moltype>.is_gapped()`, `<moltype>.get_degenerate_positions()`,
+  `<moltype>.count_degenerate()`. When true, input is checked against the
+  `<alphabet>.is_valid()` method and raises an `AlphabetError` if that returns
+  `False`.
+
+## Deprecations
+
+- Deleted modules, functions / methods and arguments marked for removal by this
+  release 🎉.
+
+<a id='changelog-2025.7.10a10'></a>
+# Changes in release "2025.7.10a10"
+
+A minor feature enhancement to support the cogent3-h5seqs project.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- SeqCollection.modified attribute. Returns whether the collection is a modification
+  of the underlying storage. This is useful for third-party writers. Conditions
+  checked are subset of names, renamed sequences, reverse complemented, or sliced
+  (Alignment only).
+
+<a id='changelog-2025.7.10a9'></a>
+# Changes in release "2025.7.10a9"
+
+Minor bug fix release with some advances to docs.
+
+## Contributors
+
+- @rmcar17, bug reports and more type hinting
+- @GavinHuttley, documentation, more type hinting and other
+
+## Bug fixes
+
+- Sequence.is_valid() method was not being tested and, unsurprisingly,
+  was broken. Now fixed.
+
+## Documentation
+
+- Added documentation for using the cogent3 parsers for basic sequence formats
+  (fasta and GenBank). These return Python primitives.
+
 <a id='changelog-2025.7.10a8'></a>
 # Changes in release "2025.7.10a8"
 

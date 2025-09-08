@@ -6224,3 +6224,65 @@ def test_empty_aln_to_pretty():
     coll = c3_alignment.make_aligned_seqs(data, moltype="dna")
     got = coll.to_pretty(wrap=60)
     assert isinstance(got, str)
+
+
+@pytest.mark.parametrize(
+    "mk_cls", [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs]
+)
+def test_seqcoll_modified_take_seqs(mk_cls):
+    data = {
+        "s1": "ATCTGA",
+        "s2": "TCGCCC",
+        "s3": "TCGCCC",
+    }
+    coll = mk_cls(data, moltype="dna")
+    assert not coll.modified
+    sub = coll.take_seqs(["s1", "s2"])
+    assert sub.modified
+
+
+@pytest.mark.parametrize(
+    "mk_cls", [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs]
+)
+def test_seqcoll_modified_rc(mk_cls):
+    data = {
+        "s1": "ATCTGA",
+        "s2": "TCGCCC",
+        "s3": "TCGCCC",
+    }
+    coll = mk_cls(data, moltype="dna")
+    coll2 = coll.rc()
+    assert coll2.modified
+
+
+def test_seqcoll_modified_sliced():
+    data = {
+        "s1": "ATCTGA",
+        "s2": "TCGCCC",
+        "s3": "TCGCCC",
+    }
+    coll = c3_alignment.make_aligned_seqs(data, moltype="dna")
+    coll2 = coll[::]
+    assert not coll2.modified
+    coll2 = coll[::3]
+    assert coll2.modified
+    coll2 = coll[::-1]
+    assert coll2.modified
+    coll2 = coll[:-1]
+    assert coll2.modified
+    coll2 = coll[1:]
+    assert coll2.modified
+
+
+@pytest.mark.parametrize(
+    "mk_cls", [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs]
+)
+def test_seqcoll_modified_rename_seqs(mk_cls):
+    data = {
+        "s1": "ATCTGA",
+        "s2": "TCGCCC",
+        "s3": "TCGCCC",
+    }
+    coll = mk_cls(data, moltype="dna")
+    sub = coll.rename_seqs(lambda x: x.upper())
+    assert sub.modified

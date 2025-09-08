@@ -79,7 +79,6 @@ __numba_logger.setLevel(logging.WARNING)
 load_annotations = _anno_db.load_annotations
 
 
-@_c3warn.deprecated_args("2025.9", "no longer has an effect", discontinued="new_type")
 def make_seq(
     seq,
     name: str | None = None,
@@ -180,12 +179,6 @@ def _load_genbank_seq(
     return name, seq, db
 
 
-@_c3warn.deprecated_args(
-    "2025.9",
-    "no longer has an effect",
-    discontinued="new_type",
-    old_new=[("format", "format_name")],
-)
 def load_seq(
     filename: os.PathLike,
     annotation_path: os.PathLike | None = None,
@@ -288,12 +281,6 @@ def load_seq(
     return result
 
 
-@_c3warn.deprecated_args(
-    "2025.9",
-    "no longer has an effect",
-    discontinued="new_type",
-    old_new=[("format", "format_name")],
-)
 @display_wrap
 def load_unaligned_seqs(
     filename: str | pathlib.Path,
@@ -379,12 +366,6 @@ def load_unaligned_seqs(
     )
 
 
-@_c3warn.deprecated_args(
-    "2025.9",
-    "no longer has an effect",
-    discontinued=("new_type", "array_align"),
-    old_new=[("format", "format_name")],
-)
 def load_aligned_seqs(
     filename: str | pathlib.Path,
     format_name: str | None = None,

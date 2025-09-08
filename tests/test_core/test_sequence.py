@@ -492,6 +492,19 @@ def test_mw():
     assert numpy.allclose(c3_moltype.RNA.make_seq(seq="AAACCCA").mw(), 2182.37)
 
 
+def test_mw_method():
+    """MW handles ambiguity using nominated method"""
+    seq = c3_moltype.RNA.make_seq(seq="AARCCCA")
+    strip_seq = c3_moltype.RNA.make_seq(seq="AACCCA")
+    # strip method removes ambiguity characters
+    with_strip = seq.mw(method="strip")
+    expect = strip_seq.mw()
+    assert numpy.allclose(with_strip, expect)
+    with_random = seq.mw(method="random")
+    assert not numpy.allclose(with_random, expect)
+    assert with_random > with_strip
+
+
 def test_can_match():
     """Sequence can_match should return True if all positions can match"""
     assert c3_moltype.RNA.make_seq(seq="").can_match("")
@@ -3063,3 +3076,19 @@ def test_counts_empty_seq():
     s = cogent3.make_seq("", "a", moltype="dna")
     c = s.counts()
     assert not c.sum
+
+
+@pytest.mark.parametrize("name", ["dna", "rna", "protein", "protein_with_stop", "text"])
+def test_is_valid(name):
+    raw = "ACGGA"
+    moltype = c3_moltype.get_moltype(name)
+    seq = moltype.make_seq(name="s1", seq=raw)
+    assert seq.is_valid()
+
+
+@pytest.mark.parametrize("name", ["dna", "rna"])
+def test_is_valid_false(name):
+    raw = "ACGXA"
+    moltype = c3_moltype.get_moltype(name)
+    seq = moltype.make_seq(name="s1", seq=raw, check_seq=False)
+    assert not seq.is_valid()

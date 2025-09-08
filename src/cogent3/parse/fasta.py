@@ -11,11 +11,9 @@ from functools import singledispatch
 
 import numpy
 
-import cogent3
 from cogent3.core.info import Info
 from cogent3.parse.record import RecordError
 from cogent3.parse.record_finder import LabeledRecordFinder
-from cogent3.util import warning as c3warn
 from cogent3.util.io import is_url, open_
 
 _white_space = re.compile(r"\s+")
@@ -145,103 +143,8 @@ def MinimalGdeParser(infile, strict=True, label_to_name=str):
     return MinimalFastaParser(infile, strict, label_to_name, label_characters="%#")
 
 
-@c3warn.deprecated_callable("2025.9", "not being used", is_discontinued=True)
-def xmfa_label_to_name(line) -> str:  # pragma: no cover
-    (loc, strand, contig) = line.split()
-    (sp, loc) = loc.split(":")
-    (lo, hi) = [int(x) for x in loc.split("-")]
-    if strand == "-":
-        (lo, hi) = (hi, lo)
-    else:
-        assert strand == "+"
-    return f"{sp}:{contig}:{lo}-{hi}"
-
-
-@c3warn.deprecated_callable("2025.9", "not being used", is_discontinued=True)
-def is_xmfa_blank_or_comment(x):  # pragma: no cover
-    """Checks if x is blank or an XMFA comment line."""
-    return (not x) or x.startswith("=") or x.isspace()
-
-
-XmfaFinder = LabeledRecordFinder(
-    lambda x: x.startswith(">"), ignore=is_xmfa_blank_or_comment
-)
-
-
-@c3warn.deprecated_callable("2025.9", "not being used", is_discontinued=True)
-def MinimalXmfaParser(infile, strict=True):  # pragma: no cover
-    # Fasta-like but with header info like ">1:10-1000 + chr1"
-    return MinimalFastaParser(infile, strict, label_to_name=xmfa_label_to_name)
-
-
-@c3warn.deprecated_callable("2025.9", "not being used", is_discontinued=True)
-def MinimalInfo(label):  # pragma: no cover
-    """Minimal info data maker: returns name, and empty dict for info{}."""
-    return label, {}
-
-
-@c3warn.deprecated_callable("2025.9", "not being used", is_discontinued=True)
-def NameLabelInfo(label):  # pragma: no cover
-    """Returns name as label split on whitespace, and label in Info."""
-    return label.split()[0], {"label": label}
-
-
-@c3warn.deprecated_callable(
-    "2025.9", "use MinimalParser or iter_fasta_records instead", is_discontinued=True
-)
-def FastaParser(
-    infile, seq_maker=None, info_maker=MinimalInfo, strict=True
-):  # pragma: no cover
-    """discontinued"""
-    if seq_maker is None:
-        seq_maker = Sequence
-    for label, seq in MinimalFastaParser(infile, strict=strict):
-        if strict:
-            # need to do error checking when constructing info and sequence
-            try:
-                name, info = info_maker(label)  # will raise exception if bad
-                yield name, seq_maker(seq, name=name, info=info)
-            except Exception:
-                msg = f"Sequence construction failed on record with label {label}"
-                raise RecordError(
-                    msg,
-                )
-        else:
-            # not strict: just skip any record that raises an exception
-            try:
-                name, info = info_maker(label)
-                yield name, seq_maker(seq, name=name, info=info)
-            except Exception:
-                continue
-
-
 # labeled fields in the NCBI FASTA records
 NcbiLabels = {"dbj": "DDBJ", "emb": "EMBL", "gb": "GenBank", "ref": "RefSeq"}
-
-
-@c3warn.deprecated_callable("2025.9", "no replacement", is_discontinued=True)
-def NcbiFastaLabelParser(line):
-    """discontinued"""
-    info = Info()
-    try:
-        ignore, gi, db, db_ref, description = list(map(strip, line.split("|", 4)))
-    except ValueError:  # probably got wrong value
-        msg = f"Unable to parse label line {line}"
-        raise RecordError(msg)
-    info.GI = gi
-    info[NcbiLabels[db]] = db_ref
-    info.Description = description
-    return gi, info
-
-
-@c3warn.deprecated_callable(
-    "2025.9", "use MinimalParser or iter_fasta_records instead", is_discontinued=True
-)
-def NcbiFastaParser(infile, seq_maker=None, strict=True):  # pragma: no cover
-    return MinimalFastaParser(
-        infile,
-        strict=strict,
-    )
 
 
 class RichLabel(str):
@@ -314,49 +217,6 @@ def LabelParser(display_template, field_formatters, split_with=":", DEBUG=False)
     return call
 
 
-@c3warn.deprecated_callable(
-    "2025.9", "use MinimalParser or iter_fasta_records instead", is_discontinued=True
-)
-def GroupFastaParser(
-    data,
-    label_to_name,
-    group_key="Group",
-    aligned=False,
-    moltype="text",
-    done_groups=None,
-    DEBUG=False,
-):  # pragma: no cover
-    """discontinued"""
-    moltype = cogent3.get_moltype(moltype)
-    done_groups = [[], done_groups][done_groups is not None]
-    parser = MinimalFastaParser(data, label_to_name=label_to_name)
-    group_ids = []
-    current_collection = {}
-    for label, seq in parser:
-        seq = moltype.make_seq(seq=seq, name=label, info=label.info)
-        if DEBUG:
-            pass
-        if not group_ids:
-            current_collection[label] = seq
-            group_ids.append(label.info[group_key])
-        elif label.info[group_key] in group_ids:
-            current_collection[label] = seq
-        else:
-            # we finish off check of current before creating a collection
-            if group_ids[-1] not in done_groups:
-                info = Info(Group=group_ids[-1])
-                if DEBUG:
-                    pass
-                seqs = cogent3.make_aligned_seqs(current_collection, moltype=moltype)
-                seqs.info = info
-                yield seqs
-            current_collection = {label: seq}
-            group_ids.append(label.info[group_key])
-    info = Info(Group=group_ids[-1])
-    func = cogent3.make_aligned_seqs if aligned else cogent3.make_unaligned_seqs
-    yield func(current_collection, moltype=moltype, info=info)
-
-
 class minimal_converter:
     """coerces lower case bytes to upper case bytes and removes whitespace"""
 
@@ -374,17 +234,20 @@ def iter_fasta_records(
     converter: OptConverterType = None,
     label_to_name: RenamerType = str,
 ) -> typing.Iterable[tuple[str, OutTypes]]:
-    """generator returning sequence labels and sequences converted bytes from a fasta file
+    """generator returns labels and sequences converted from a fasta file
 
     Parameters
     ----------
     path
         location of the fasta file
     converter
-        a callable that converts sequence characters, deleting unwanted characters
-        (newlines, spaces). Whatever type this callable returns will be the type
-        of the sequence returned. If None, uses minimal_converter() which returns bytes.
-
+        a callable that converts sequence characters as bytes, deleting
+        unwanted characters (newlines, spaces). Whatever type this callable
+        returns will be the type of the sequence returned. If None, uses
+        minimal_converter() which returns bytes.
+    label_to_name
+        a callable that takes the sequence label as input and returns a new label.
+        Defaults to the label itself.
 
     Returns
     -------
@@ -451,8 +314,10 @@ def _(
     converter: OptConverterType = None,
     label_to_name: RenamerType = str,
 ):
-    data: bytes = data.read().encode("utf8")
-    return iter_fasta_records(data, converter=converter, label_to_name=label_to_name)
+    read_data: bytes = data.read().encode("utf8")
+    return iter_fasta_records(
+        read_data, converter=converter, label_to_name=label_to_name
+    )
 
 
 @iter_fasta_records.register

@@ -8,7 +8,6 @@ from cogent3.core.alphabet import AlphabetError
 from cogent3.core.info import Info
 from cogent3.parse.record import RecordError
 from cogent3.parse.record_finder import DelimitedRecordFinder
-from cogent3.util import warning as c3warn
 
 strip = str.strip
 maketrans = str.maketrans
@@ -113,7 +112,6 @@ def create_acceptable_sequence(sequence):
     return str(sequence).translate(trans_table)  # should be accepted by RnaSequence
 
 
-@c3warn.deprecated_args("2025.9", "no longer used", discontinued="SeqConstructor")
 def RdbParser(
     lines,
     LabelConstructor=InfoMaker,

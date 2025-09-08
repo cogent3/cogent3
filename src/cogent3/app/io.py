@@ -21,7 +21,6 @@ from cogent3.core.profile import (
 )
 from cogent3.core.table import Table
 from cogent3.evolve.fast_distance import DistanceMatrix
-from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import deserialise_object
 
 from .composable import LOADER, WRITER, NotCompleted, define_app
@@ -319,15 +318,6 @@ class load_aligned:
         --------
         See https://cogent3.org/doc/app/app_cookbook/load-aligned.html
         """
-        if "format" in kwargs:
-            c3warn.deprecated(
-                _type="argument",
-                old="format",
-                new="format_name",
-                version="2025.9",
-                reason="don't use built in name",
-            )
-            format_name = kwargs.pop("format")
         moltype = moltype or "text"
         self.moltype = cogent3.get_moltype(moltype)
         self._parser = cogent3._plugin.get_seq_format_parser_plugin(  # noqa: SLF001
@@ -364,15 +354,6 @@ class load_unaligned:
         --------
         See https://cogent3.org/doc/app/app_cookbook/load-unaligned.html
         """
-        if "format" in kwargs:
-            c3warn.deprecated(
-                _type="argument",
-                old="format",
-                new="format_name",
-                version="2025.9",
-                reason="don't use built in name",
-            )
-            format_name = kwargs.pop("format")
         moltype = moltype or "text"
         self.moltype = cogent3.get_moltype(moltype)
         self._parser = cogent3._plugin.get_seq_format_parser_plugin(  # noqa: SLF001
@@ -632,16 +613,6 @@ class write_seqs:
         --------
         See https://cogent3.org/doc/app/app_cookbook/write-seqs.html
         """
-        if "format" in kwargs:
-            c3warn.deprecated(
-                _type="argument",
-                old="format",
-                new="format_name",
-                version="2025.9",
-                reason="don't use built in name",
-            )
-            format_name = kwargs.pop("format")
-
         if not isinstance(data_store, DataStoreABC):
             msg = f"invalid type {type(data_store)!r} for data_store"
             raise TypeError(msg)
@@ -700,15 +671,6 @@ class write_tabular:
         --------
         See https://cogent3.org/doc/app/app_cookbook/write-tabular.html
         """
-        if "format" in kwargs:
-            c3warn.deprecated(
-                _type="argument",
-                old="format",
-                new="format_name",
-                version="2025.9",
-                reason="don't use built in name",
-            )
-            format_name = kwargs.pop("format")
         if not isinstance(data_store, DataStoreABC):
             msg = f"invalid type {type(data_store)!r} for data_store"
             raise TypeError(msg)

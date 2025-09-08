@@ -45,7 +45,6 @@ from cogent3.core.location import (
 from cogent3.format.fasta import seqs_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts, TestResult
 from cogent3.maths.stats.number import CategoryCounter
-from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArray
 from cogent3.util.misc import (
@@ -308,9 +307,6 @@ class Sequence(AnnotatableMixin):
         """count() delegates to self._seq."""
         return str(self).count(item)
 
-    @c3warn.deprecated_args(
-        "2025.9", reason="has no effect", discontinued="exclude_unobserved"
-    )
     def counts(
         self,
         motif_length: int = 1,
@@ -452,7 +448,7 @@ class Sequence(AnnotatableMixin):
 
     def is_valid(self) -> bool:
         """Returns True if sequence contains no items absent from alphabet."""
-        return self.moltype.is_valid(self)
+        return self.moltype.is_valid(numpy.array(self))
 
     def is_strict(self) -> bool:
         """Returns True if sequence contains only monomers."""
@@ -546,7 +542,7 @@ class Sequence(AnnotatableMixin):
         the MW by 2: the results may not be accurate due to strand bias, e.g.
         in mitochondrial genomes.
         """
-        return self.moltype.mw(self, method, delta)
+        return self.moltype.mw(str(self), method, delta)
 
     def can_match(self, other: Self) -> bool:
         """Returns True if every pos in self could match same pos in other.
@@ -2942,6 +2938,7 @@ class SeqView(SeqViewABC):
             self.parent[
                 self.slice_record.start : self.slice_record.stop : self.slice_record.step
             ],
+            validate=False,
         )
 
     @property
