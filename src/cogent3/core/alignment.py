@@ -5400,8 +5400,8 @@ class Alignment(SequenceCollection):
             return ()
 
         alpha = self.storage.alphabet
-        gap_index = alpha.gap_index if alpha.gap_index else len(alpha)
-        missing_index = alpha.missing_index if alpha.missing_index else len(alpha)
+        gap_index = alpha.gap_index or len(alpha)
+        missing_index = alpha.missing_index or len(alpha)
         if include_gap_motif and include_ambiguity:
             # allow all states
             func = None
