@@ -3555,7 +3555,7 @@ class AlignedSeqsDataABC(SeqsDataABC):
         ...
 
     @abstractmethod
-    def get_positions(
+    def get_pos_range(
         self,
         names: PySeqStr,
         start: OptInt = None,
@@ -3564,7 +3564,23 @@ class AlignedSeqsDataABC(SeqsDataABC):
     ) -> numpy.ndarray: ...
 
     @abstractmethod
+    def get_positions(
+        self,
+        names: PySeqStr,
+        positions: typing.Sequence[int] | numpy.ndarray[numpy.integer],
+    ) -> numpy.ndarray: ...
+
+    @abstractmethod
     def copy(self, **kwargs) -> typing_extensions.Self: ...
+
+    @abstractmethod
+    def variable_positions(
+        self,
+        names: PySeqStr,
+        start: OptInt = None,
+        stop: OptInt = None,
+        step: OptInt = None,
+    ) -> numpy.ndarray: ...
 
 
 def _gapped_seq_len(seq: numpy.ndarray, gap_map: numpy.ndarray) -> int:
@@ -4166,7 +4182,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             names=self.names,
         )
 
-    def get_positions(
+    def get_pos_range(
         self,
         names: PySeqStr,
         start: OptInt = None,
@@ -4174,7 +4190,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         step: OptInt = None,
     ) -> numpy.ndarray:
         """returns an array of the selected positions for names."""
-        indices = tuple(self._name_to_index[name] for name in names)
         start = start or 0
         stop = stop or self.align_len
         step = step or 1
@@ -4182,12 +4197,48 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             msg = f"{start=}, {stop=}, {step=} not >= 1"
             raise ValueError(msg)
 
+        indices = tuple(self._name_to_index[name] for name in names)
         if abs((start - stop) // step) == self.align_len:
             array_seqs = self._gapped[indices, :]
         else:
             array_seqs = self._gapped[indices, start:stop:step]
 
         return array_seqs
+
+    def get_positions(
+        self,
+        names: PySeqStr,
+        positions: typing.Sequence[int] | numpy.ndarray[numpy.integer],
+    ) -> numpy.ndarray[numpy.uint8]:
+        """returns alignment positions for names
+
+        Parameters
+        ----------
+        names
+            series of sequence names
+        positions
+            indices lying within self
+
+        Returns
+        -------
+            2D numpy.array, oriented by sequence
+
+        Raises
+        ------
+        IndexError if a provided position is negative or
+        greater then alignment length.
+        """
+        if diff := set(names) - set(self.names):
+            msg = f"these names not present {diff}"
+            raise ValueError(msg)
+
+        min_index, max_index = numpy.min(positions), numpy.max(positions)
+        if min_index < 0 or max_index > self.align_len:
+            msg = f"Out of range: {min_index=} and / or {max_index=}"
+            raise IndexError(msg)
+
+        seq_indices = tuple(self._name_to_index[n] for n in names)
+        return self._gapped[numpy.ix_(seq_indices, positions)]
 
     def copy(self, **kwargs) -> typing_extensions.Self:
         """shallow copy of self
@@ -4210,6 +4261,42 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         }
 
         return self.__class__(**init_args)
+
+    def variable_positions(
+        self,
+        names: PySeqStr,
+        start: OptInt = None,
+        stop: OptInt = None,
+        step: OptInt = None,
+    ) -> numpy.ndarray:
+        """returns absolute indices of positions that have more than one state
+
+        Parameters
+        ----------
+        names
+            selected seqids
+        start
+            absolute start
+        stop
+            absolute stop
+        step
+            step
+
+        Returns
+        -------
+        Absolute indices (as distinct from an index relative to start) of
+        variable positions.
+        """
+        start = start or 0
+        if len(names) < 2:
+            return numpy.array([])
+
+        array_seqs = self.get_pos_range(names, start=start, stop=stop, step=step)
+        if array_seqs.size == 0:
+            return numpy.array([])
+
+        indices = (array_seqs != array_seqs[0]).any(axis=0)
+        return numpy.where(indices)[0] + start
 
 
 class AlignedDataViewABC(c3_sequence.SeqViewABC):
@@ -4717,7 +4804,7 @@ class Alignment(SequenceCollection):
         if self._array_seqs is None:
             names = [self._name_map[n] for n in self.names]
             # create the dest array dim
-            arr_seqs = self._seqs_data.get_positions(
+            arr_seqs = self._seqs_data.get_pos_range(
                 names=names,
                 start=self._slice_record.plus_start,
                 stop=self._slice_record.plus_stop,
@@ -5302,25 +5389,55 @@ class Alignment(SequenceCollection):
         Truncates alignment to be modulo motif_length.
         """
         align_len = len(self) // motif_length * motif_length
-        array_seqs = self.array_seqs[:, :align_len]
-        # both gap and missing data are treated as gaps
-        alpha = self.moltype.most_degen_alphabet()
-        gap_index = alpha.gap_index
-        missing_index = alpha.missing_index
-        # at the individual position level
+        # columns is 2D array with alignment columns as rows
+        pos = self.storage.variable_positions(
+            list(self.name_map.values()),
+            start=self._slice_record.plus_start,
+            stop=min(self._slice_record.plus_stop, align_len),
+            step=self._slice_record.plus_step,
+        )
+        if not pos.size:
+            return ()
+
         if include_gap_motif and include_ambiguity:
-            indices = _var_pos_allow_all(array_seqs)
-        elif include_gap_motif:
-            indices = _var_pos_canonical_or_gap(array_seqs, gap_index, missing_index)
-        elif include_ambiguity:
-            indices = _var_pos_not_gap(array_seqs, gap_index)
+            # allow all states
+            alpha = self.storage.alphabet
+        elif include_gap_motif and self.moltype.gapped_missing_alphabet:
+            # allow canonical, gap, missing
+            alpha = self.moltype.gapped_missing_alphabet
+        elif include_ambiguity and self.moltype.degen_alphabet:
+            # anything but a gap
+            alpha = self.moltype.degen_alphabet
         else:
-            indices = _var_pos_canonical(array_seqs, gap_index)
+            # canonical only
+            alpha = self.moltype.alphabet
+
+        indices = numpy.zeros(align_len, dtype=bool)
+        if alpha is self.storage.alphabet:
+            indices[pos] = True
+        else:
+            columns = self.storage.get_positions(list(self.name_map.values()), pos).T
+            # convert states to indices using storage alphabet
+            include = set(self.storage.alphabet.to_indices(alpha.as_bytes()))
+            # at the individual position level
+            for i in range(len(pos)):
+                if len(set(columns[i].tolist()) & include) > 1:
+                    indices[pos[i]] = True
+
+        if self._slice_record.is_reversed:
+            # for reverse complement alignments
+            # because we have a bool vector entire alignment length
+            # just reversing the order is all we need to do since the
+            # numpy.where statement will return positions in this new order
+            indices = indices[::-1]
 
         if motif_length > 1:
-            indices = indices.reshape(-1, motif_length).any(axis=1).repeat(motif_length)
+            var_pos = indices.reshape(-1, motif_length).any(axis=1).repeat(motif_length)
+        else:
+            var_pos = indices
 
-        return tuple(numpy.where(indices)[0].tolist())
+        var_pos = numpy.where(var_pos)[0]
+        return tuple(var_pos.tolist())
 
     def omit_bad_seqs(self, quantile: OptFloat = None):
         """Returns new alignment without sequences with a number of uniquely
