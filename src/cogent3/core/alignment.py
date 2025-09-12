@@ -5399,30 +5399,38 @@ class Alignment(SequenceCollection):
         if not pos.size:
             return ()
 
+        alpha = self.storage.alphabet
+        gap_index = alpha.gap_index if alpha.gap_index else len(alpha)
+        missing_index = alpha.missing_index if alpha.missing_index else len(alpha)
         if include_gap_motif and include_ambiguity:
             # allow all states
-            alpha = self.storage.alphabet
+            func = None
         elif include_gap_motif and self.moltype.gapped_missing_alphabet:
             # allow canonical, gap, missing
-            alpha = self.moltype.gapped_missing_alphabet
+            func = _var_pos_canonical_or_gap
+            kwargs = {
+                "gap_index": gap_index,
+                "missing_index": missing_index,
+            }
         elif include_ambiguity and self.moltype.degen_alphabet:
             # anything but a gap
-            alpha = self.moltype.degen_alphabet
+            func = _var_pos_not_gap
+            kwargs = {
+                "gap_index": gap_index,
+            }
         else:
             # canonical only
-            alpha = self.moltype.alphabet
+            func = _var_pos_canonical
+            kwargs = {
+                "gap_index": gap_index,
+            }
 
         indices = numpy.zeros(align_len, dtype=bool)
-        if alpha is self.storage.alphabet:
+        if func is None:
             indices[pos] = True
         else:
-            columns = self.storage.get_positions(list(self.name_map.values()), pos).T
-            # convert states to indices using storage alphabet
-            include = set(self.storage.alphabet.to_indices(alpha.as_bytes()))
-            # at the individual position level
-            for i in range(len(pos)):
-                if len(set(columns[i].tolist()) & include) > 1:
-                    indices[pos[i]] = True
+            array_seqs = self.storage.get_positions(list(self.name_map.values()), pos)
+            indices[pos] = func(array_seqs, **kwargs)
 
         if self._slice_record.is_reversed:
             # for reverse complement alignments
@@ -7521,35 +7529,6 @@ def _var_pos_canonical(
                     result[pos] = True
                     break
 
-    return result
-
-
-@numba.jit(cache=True)
-def _var_pos_allow_all(
-    arr: numpy.ndarray,
-) -> numpy.ndarray:  # pragma: no cover
-    """return boolean array indicating columns with more than one value below threshold
-
-    Parameters
-    ----------
-    arr
-        a 2D array with rows being sequences and columns positions
-
-    Returns
-    ------
-    a boolean array
-    """
-    m, n = arr.shape
-    result = numpy.zeros(n, dtype=numpy.bool_)
-    for pos in numpy.arange(n):
-        last = -1
-        for seq in numpy.arange(m):
-            state = arr[seq, pos]
-            if last == -1:
-                last = state
-            elif state != last:
-                result[pos] = True
-                break
     return result
 
 
