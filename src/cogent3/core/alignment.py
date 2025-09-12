@@ -7054,6 +7054,23 @@ class Alignment(SequenceCollection):
 
         return super().duplicated_seqs()
 
+    def to_dict(self, as_array: bool = False) -> dict[str, str | numpy.ndarray]:
+        """Return a dictionary of sequences.
+
+        Parameters
+        ----------
+        as_array
+            if True, sequences are returned as numpy arrays, otherwise as strings
+        """
+        arrayseqs = self.array_seqs
+        if as_array:
+            return {n: arrayseqs[i] for i, n in enumerate(self.names)}
+
+        return {
+            n: self.storage.alphabet.from_indices(arrayseqs[i])
+            for i, n in enumerate(self.names)
+        }
+
 
 @register_deserialiser(
     get_object_provenance(Alignment),
