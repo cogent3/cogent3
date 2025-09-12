@@ -4190,7 +4190,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         step: OptInt = None,
     ) -> numpy.ndarray:
         """returns an array of the selected positions for names."""
-        indices = tuple(self._name_to_index[name] for name in names)
         start = start or 0
         stop = stop or self.align_len
         step = step or 1
@@ -4198,6 +4197,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             msg = f"{start=}, {stop=}, {step=} not >= 1"
             raise ValueError(msg)
 
+        indices = tuple(self._name_to_index[name] for name in names)
         if abs((start - stop) // step) == self.align_len:
             array_seqs = self._gapped[indices, :]
         else:
@@ -4237,7 +4237,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             msg = f"Out of range: {min_index=} and / or {max_index=}"
             raise IndexError(msg)
 
-        seq_indices = tuple(self.names.index(n) for n in self.names)
+        seq_indices = tuple(self._name_to_index[n] for n in names)
         return self._gapped[numpy.ix_(seq_indices, positions)]
 
     def copy(self, **kwargs) -> typing_extensions.Self:
