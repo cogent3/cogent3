@@ -155,21 +155,21 @@ def test_method_deprecated_args_pickled():
 
 class foo2:
     # noting that new_meth does not exist
-    @deprecated_callable("2023.9", reason="test meth", new="new_meth")
+    @deprecated_callable(version="2023.9", reason="test meth", new="new_meth")
     def old_meth(self, v):
         return v**2
 
-    @deprecated_callable("2023.9", reason="redundant", is_discontinued=True)
+    @deprecated_callable(version="2023.9", reason="redundant", is_discontinued=True)
     def squared(self, v):
         return v * v
 
 
-@deprecated_callable("2023.9", reason="test func", new="new_func")
+@deprecated_callable(version="2023.9", reason="test func", new="new_func")
 def old_func(v):
     return v**3
 
 
-@deprecated_callable("2023.9", reason="redundant", is_discontinued=True)
+@deprecated_callable(version="2023.9", reason="redundant", is_discontinued=True)
 def cubed(v):
     return v * v
 
@@ -220,11 +220,15 @@ def test_deprecated_callable_resolves_type(recwarn, func, _type):
 
 
 def test_function_deprecated_args_deprecated_callable_chained_decorators(recwarn):
-    @deprecated_args("2023.6", "x is not descriptive", old_new=[("x", "a")])
-    @deprecated_args("2023.6", "b is no longer required", discontinued=["b"])
+    @deprecated_args(
+        version="2023.6", reason="x is not descriptive", old_new=[("x", "a")]
+    )
+    @deprecated_args(
+        version="2023.6", reason="b is no longer required", discontinued=["b"]
+    )
     @deprecated_callable(
-        "2023.6",
-        "Improved change function",
+        version="2023.6",
+        reason="Improved change function",
         new="changed2",
         is_discontinued=True,
     )
@@ -241,7 +245,9 @@ def test_function_deprecated_args_deprecated_callable_chained_decorators(recwarn
 
 def test_class_deprecated(recwarn):
     class fooclass:
-        @deprecated_callable("2023.6", "Improved change function", is_discontinued=True)
+        @deprecated_callable(
+            version="2023.6", reason="Improved change function", is_discontinued=True
+        )
         def __init__(self): ...
 
     fooclass()
