@@ -26,7 +26,11 @@ from cogent3.util.deserialise import deserialise_object
 from cogent3.util.misc import get_object_provenance
 
 try:
-    import cogent3_h5seqs  # noqa: F401
+    import cogent3_h5seqs
+
+    vers = tuple(int(v) for v in cogent3_h5seqs.__version__.split(".")[:3])
+    if not (vers > (0, 6, 1)):
+        raise ImportError  # noqa: TRY301
 
     has_hf_seqs = True
 except ImportError:
