@@ -3092,3 +3092,20 @@ def test_is_valid_false(name):
     moltype = c3_moltype.get_moltype(name)
     seq = moltype.make_seq(name="s1", seq=raw, check_seq=False)
     assert not seq.is_valid()
+
+
+@pytest.mark.parametrize("k", [1, 2, 3])
+def test_count_kmers(k):
+    from collections import Counter
+
+    seq = cogent3.get_dataset("brca1")["Human"].seq
+    raw_seq = str(seq)
+    alpha = (
+        seq.moltype.alphabet
+        if k == 1
+        else seq.moltype.alphabet.get_kmer_alphabet(k, include_gap=False)
+    )
+    counts = Counter([raw_seq[i : i + k] for i in range(len(raw_seq) - k + 1)])
+    expect = numpy.array([counts[kmer] for kmer in alpha], dtype=int)
+    got = seq.count_kmers(k=k)
+    assert (got == expect).all()
