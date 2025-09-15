@@ -108,6 +108,9 @@ def count_kmers(
     """
     coeffs = c3_alphabet.coord_conversion_coeffs(num_states, k)
     kfreqs = numpy.zeros(num_states**k, dtype=dtype)
+    if len(seq) < k:
+        return kfreqs
+
     skip_until = 0
     for i in range(k):
         if seq[i] >= num_states:

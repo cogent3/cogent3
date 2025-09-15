@@ -3109,3 +3109,11 @@ def test_count_kmers(k):
     expect = numpy.array([counts[kmer] for kmer in alpha], dtype=int)
     got = seq.count_kmers(k=k)
     assert (got == expect).all()
+
+
+def test_count_kmers_seq_gt_k():
+    seq = cogent3.get_dataset("brca1")["Human"].seq[:3]
+    k = 4
+    got = seq.count_kmers(k=k)
+    expect = numpy.zeros(4**k, dtype=int)
+    assert (got == expect).all()
