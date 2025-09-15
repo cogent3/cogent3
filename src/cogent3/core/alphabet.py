@@ -747,7 +747,7 @@ def deserialise_char_alphabet(data: dict[str, Any]) -> CharAlphabet[Any]:
     return _get_closest_char_alphabet(mtype, motifset)
 
 
-@numba.jit(nopython=True)
+@numba.jit(nogil=True, cache=True)
 def coord_conversion_coeffs(
     num_states: int,
     k: int,
@@ -757,7 +757,7 @@ def coord_conversion_coeffs(
     return numpy.array([num_states ** (i - 1) for i in range(k, 0, -1)], dtype=dtype)
 
 
-@numba.jit(nopython=True)
+@numba.jit(nogil=True, cache=True)
 def coord_to_index(
     coord: NumpyIntArrayType,
     coeffs: NumpyIntArrayType,
@@ -766,7 +766,7 @@ def coord_to_index(
     return (coord * coeffs).sum()
 
 
-@numba.jit(nopython=True)
+@numba.jit(nogil=True, cache=True)
 def index_to_coord(
     index: int, coeffs: NumpyIntArrayType
 ) -> NumpyIntArrayType:  # pragma: no cover
