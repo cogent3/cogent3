@@ -85,7 +85,7 @@ def _moltype_seq_from_rich_dict(
     return moltype, seq
 
 
-@numba.jit(cache=True)
+@numba.jit(cache=True, nogil=True)
 def count_kmers(
     seq: npt.NDArray[numpy.uint8],
     num_states: int,
