@@ -780,8 +780,8 @@ def index_to_coord(
     return coord
 
 
-@numba.jit(nopython=True)
-def seq_to_kmer_indices(
+@numba.jit(nogil=True, cache=True)
+def seq_to_kmer_indices_independent(
     seq: NumpyIntArrayType,
     result: NumpyIntArrayType,
     coeffs: NumpyIntArrayType,
@@ -789,7 +789,6 @@ def seq_to_kmer_indices(
     k: int,
     gap_char_index: int | numpy.integer = -1,
     gap_index: int = -1,
-    independent_kmer: bool = True,
 ) -> NumpyIntArrayType:  # pragma: no cover
     """return 1D indices for valid k-mers
 
@@ -820,17 +819,19 @@ def seq_to_kmer_indices(
         if True, sets returns indices for non-overlapping k-mers, otherwise
         returns indices for all k-mers
     """
-    # check the result length is consistent with the settings
-    step: int = k if independent_kmer else 1
-    size: int = int(numpy.ceil((len(seq) - k + 1) / step))
-    if len(result) < size:
-        msg = f"size of result {len(result)} <= {size}"
-        raise ValueError(msg)
+    if len(seq) < k:
+        return result
 
-    missing_index: int = gap_index + 1 if gap_char_index > 0 else num_states**k
-    if gap_char_index > 0 and gap_index <= 0:
-        msg = f"gap_index={gap_index} but gap_char_index={gap_char_index}"
-        raise ValueError(msg)
+    step = k
+    missing_index = _validate_inputs(
+        gap_char_index=gap_char_index,
+        gap_index=gap_index,
+        k=k,
+        step=step,
+        num_states=num_states,
+        result=result,
+        seq=seq,
+    )
 
     for result_idx, i in enumerate(range(0, len(seq) - k + 1, step)):
         segment = seq[i : i + k]
@@ -841,6 +842,104 @@ def seq_to_kmer_indices(
         else:
             result[result_idx] = missing_index
     return result
+
+
+@numba.jit(cache=True, nogil=True)
+def seq_to_kmer_indices_overlapping(
+    seq: NumpyIntArrayType,
+    result: NumpyIntArrayType,
+    coeffs: NumpyIntArrayType,
+    num_states: int,
+    k: int,
+    gap_char_index: int | numpy.integer = -1,
+    gap_index: int = -1,
+) -> NumpyIntArrayType:  # pragma: no cover
+    """return freqs of valid k-mers using 1D indices
+
+    Parameters
+    ----------
+    seq
+        numpy array of uint8, assumed that canonical characters have
+        indexes which are all < num_states
+    num_states
+        defines range of possible ints at a position
+    k
+        k-mer size
+    dtype
+        numpy dtype for the returned array
+    """
+    if len(seq) < k:
+        return result
+
+    missing_index = _validate_inputs(
+        gap_char_index=gap_char_index,
+        gap_index=gap_index,
+        k=k,
+        step=1,
+        num_states=num_states,
+        result=result,
+        seq=seq,
+    )
+    idx = -1  # -1 means an invalid index
+    biggest_coeff = coeffs[0]
+    val = -1  # -1 means an invalid value
+    skip_until = -1
+    for i in range(k):
+        if seq[i] >= num_states:
+            skip_until = i + 1
+            current = gap_index if seq[i] == gap_char_index else missing_index
+            val = max(val, current)
+
+    for i in range(len(seq) - k + 1):
+        gained_char = seq[i + k - 1]
+        if gained_char >= num_states and skip_until < 0:
+            # we reset the kmer index to invalid
+            # until we get a kmer with only canonical chars
+            idx = -1
+            val = gap_index if gained_char == gap_char_index else missing_index
+            skip_until = i + k
+        elif i < skip_until:
+            # we are still in a kmer with a non-canonical char
+            idx = -1
+            if gained_char >= num_states:
+                val = gap_index if gained_char == gap_char_index else missing_index
+        elif idx < 0:
+            idx = (seq[i : i + k] * coeffs).sum()
+            val = idx
+            skip_until = -1
+        else:
+            dropped_char = seq[i - 1]
+            idx = (idx - dropped_char * biggest_coeff) * num_states + gained_char
+            val = idx
+            skip_until = -1
+
+        result[i] = val
+
+    return result
+
+
+@numba.jit(nogil=True, cache=True)
+def _validate_inputs(
+    # *,
+    gap_char_index: int | numpy.integer,
+    gap_index: int,
+    k: int,
+    step: int,
+    num_states: int,
+    result: NumpyIntArrayType,
+    seq: NumpyIntArrayType,
+) -> int:
+    # check the result length is consistent with the settings
+    size: int = int(numpy.ceil((len(seq) - k + 1) / step))
+    if len(result) < size:
+        msg = f"size of result {len(result)} <= {size}"
+        raise ValueError(msg)
+
+    missing_index: int = gap_index + 1 if gap_char_index > 0 else num_states**k
+    if gap_char_index > 0 and gap_index <= 0:
+        msg = f"gap_index={gap_index} but gap_char_index={gap_char_index}"
+        raise ValueError(msg)
+    return missing_index
 
 
 # TODO: profile this against pure python
@@ -1085,13 +1184,24 @@ class KmerAlphabet(
             seq = self.monomers.to_indices(seq, validate=validate)
 
         if isinstance(seq, numpy.ndarray):
+            gap_char_index = self.monomers.gap_index or -1
+            gap_index = self.gap_index or -1
             size = len(seq) - self.k + 1
             if independent_kmer:
                 size = int(numpy.ceil(size / self.k))
+                result = numpy.zeros(size, dtype=self.dtype)
+                return seq_to_kmer_indices_independent(
+                    seq,
+                    result,
+                    self._coeffs,
+                    self.monomers.num_canonical,
+                    self.k,
+                    gap_char_index=gap_char_index,
+                    gap_index=gap_index,
+                )
+
             result = numpy.zeros(size, dtype=self.dtype)
-            gap_char_index = self.monomers.gap_index or -1
-            gap_index = self.gap_index or -1
-            seq = seq_to_kmer_indices(
+            return seq_to_kmer_indices_overlapping(
                 seq,
                 result,
                 self._coeffs,
@@ -1099,9 +1209,7 @@ class KmerAlphabet(
                 self.k,
                 gap_char_index=gap_char_index,
                 gap_index=gap_index,
-                independent_kmer=independent_kmer,
             )
-            return seq
 
         msg = f"{type(seq)} is invalid"
         raise TypeError(msg)
