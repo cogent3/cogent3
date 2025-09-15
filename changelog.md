@@ -20,11 +20,11 @@ Minor feature enhancement release.
 ## Enhancements
 
 - Added property for `MolType.gapped_missing_alphabet`.
-- `AlignedSeqsDataABC.get_positions()` now take a series of integers
+- `AlignedSeqsDataABC.get_positions()` now takes a series of integers
   representing (potentially) disjoint positions
 - `AlignedSeqsDataABC.variable_positions()` returns the indices for
   positions that are variable (no filtering by type of variation)
-- Added `cogent3.core.sequence.count_kmers()` function. Returns array
+- Added `cogent3.core.sequence.count_kmers()` function. Returns an array
   of counts of k-mers consisting of only canonical moltype characters.
   The function is `numba.jit` decorated and very fast. k-mers containing
   a non-canonical state (e.g. an ambiguity code) are excluded.
