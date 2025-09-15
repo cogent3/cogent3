@@ -2142,8 +2142,8 @@ class TreeBuilder:
         children: PySeq[PhyloNode] | None,
         name: str | None,
         params: dict[str, Any],
-        length: float | None,
-        support: float | None,
+        length: float | None = None,
+        support: float | None = None,
         name_loaded: bool = True,
     ) -> PhyloNode:
         """Callback for newick parser"""
