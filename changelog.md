@@ -1,4 +1,36 @@
 
+<a id='changelog-2025.9.8a2'></a>
+# Changes in release "2025.9.8a2"
+
+Minor feature enhancement release.
+
+## API
+
+- `SeqsDataABC` subclasses now need to implement a `.get_hash()` method that
+  takes the seqid and returns a string representing the hash. We make no
+  assumptions about the hash algorithm used. This hash is used to identify
+  duplicated sequences. In the case of the `cogent` `AlignedSeqsData` class,
+  the hash is done off the gapped numpy array.
+- `AlignedSeqsDataABC.get_positions()` renamed to `AlignedSeqsDataABC.get_pos_range()`
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- Added property for `MolType.gapped_missing_alphabet`.
+- `AlignedSeqsDataABC.get_positions()` now takes a series of integers
+  representing (potentially) disjoint positions
+- `AlignedSeqsDataABC.variable_positions()` returns the indices for
+  positions that are variable (no filtering by type of variation)
+- Added `cogent3.core.sequence.count_kmers()` function. Returns an array
+  of counts of k-mers consisting of only canonical moltype characters.
+  The function is `numba.jit` decorated and very fast. k-mers containing
+  a non-canonical state (e.g. an ambiguity code) are excluded.
+- Added `Sequence.count_kmers()`, which provides a convenient interface
+  to the `count_kmers()` function.
+
 <a id='changelog-2025.9.8a1'></a>
 # Changes in release "2025.9.8a1"
 
