@@ -928,7 +928,7 @@ def _validate_inputs(
     num_states: int,
     result: NumpyIntArrayType,
     seq: NumpyIntArrayType,
-) -> int:
+) -> int:  # pragma: no cover
     # check the result length is consistent with the settings
     size: int = int(numpy.ceil((len(seq) - k + 1) / step))
     if len(result) < size:
