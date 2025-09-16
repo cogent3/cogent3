@@ -81,7 +81,8 @@ doc = [
     "pydata_sphinx_theme",
     "sphinx_design",
     "sphinxcontrib-bibtex",
-    "sphinxcontrib-video"
+    "sphinxcontrib-video",
+    "iplotx>=0.6.5"
 ]
 extra = [
     "ipykernel",
