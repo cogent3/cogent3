@@ -1362,7 +1362,7 @@ class SequenceCollection(AnnotatableMixin):
         self,
         *,
         feature: FeatureDataType,
-    ) -> Feature:
+    ) -> Feature[Alignment]:
         """
         create a feature on named sequence, or on the collection itself
 
@@ -1390,7 +1390,7 @@ class SequenceCollection(AnnotatableMixin):
         spans: list[tuple[int, int]],
         parent_id: OptStr = None,
         strand: str | int = "+",
-    ) -> Feature:
+    ) -> Feature[Alignment]:
         """
         add feature on named sequence
 
@@ -1434,7 +1434,7 @@ class SequenceCollection(AnnotatableMixin):
         stop: OptInt = None,
         allow_partial: bool = False,
         **kwargs,
-    ) -> Iterator[Feature]:
+    ) -> Iterator[Feature[Alignment]]:
         """yields Feature instances
 
         Parameters
@@ -3293,7 +3293,9 @@ class Aligned(AnnotatableMixin):
         """Returns gap_vector of positions."""
         return self.gapped_seq.gap_vector()
 
-    def make_feature(self, feature: FeatureDataType, alignment: Alignment) -> Feature:
+    def make_feature(
+        self, feature: FeatureDataType, alignment: Alignment
+    ) -> Feature[Alignment]:
         """returns a feature, not written into annotation_db"""
         annot = self.seq.make_feature(feature)
         inverted = self.map.to_feature_map().inverse()
@@ -6057,7 +6059,7 @@ class Alignment(SequenceCollection):
         *,
         feature: FeatureDataType,
         on_alignment: OptBool = None,
-    ) -> Feature:
+    ) -> Feature[Alignment]:
         """
         create a feature on named sequence, or on the alignment itself
 
@@ -6110,7 +6112,7 @@ class Alignment(SequenceCollection):
         parent_id: OptStr = None,
         strand: str = "+",
         on_alignment: OptBool = None,
-    ) -> Feature:
+    ) -> Feature[Alignment]:
         """
         add feature on named sequence, or on the alignment itself
 
@@ -6169,7 +6171,7 @@ class Alignment(SequenceCollection):
         biotype: str | None = None,
         name: str | None = None,
         allow_partial: bool = False,
-    ) -> Iterator[Feature]:
+    ) -> Iterator[Feature[Alignment]]:
         """yields Feature instances
 
         Parameters
@@ -6236,7 +6238,7 @@ class Alignment(SequenceCollection):
         name: str | None = None,
         on_alignment: bool | None = None,
         allow_partial: bool = False,
-    ) -> Iterator[Feature]:
+    ) -> Iterator[Feature[Alignment]]:
         """yields Feature instances
 
         Parameters

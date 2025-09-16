@@ -16,7 +16,7 @@ from collections import defaultdict
 from functools import singledispatch, total_ordering
 from operator import eq, ne
 from random import shuffle
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, SupportsIndex, cast
 
 import numba
 import numpy
@@ -1054,7 +1054,7 @@ class Sequence(AnnotatableMixin):
         stop: int | None = None,
         allow_partial: bool = False,
         **kwargs: Any,
-    ) -> Iterator[Feature]:
+    ) -> Iterator[Feature[Sequence]]:
         """yields Feature instances
 
         Parameters
@@ -1098,7 +1098,7 @@ class Sequence(AnnotatableMixin):
             # rename operation
             parent_id,
             *_,
-            strand,
+            _,
         ) = self.parent_coordinates()
         parent_offset = self._seq.parent_offset
         sr = self._seq.slice_record
@@ -1164,7 +1164,7 @@ class Sequence(AnnotatableMixin):
             feature["spans"] = spans.tolist()
             yield self.make_feature(feature)
 
-    def make_feature(self, feature: FeatureDataType, *args: Any) -> Feature:
+    def make_feature(self, feature: FeatureDataType, *args: Any) -> Feature[Sequence]:
         """
         return an Feature instance from feature data
 
@@ -1235,7 +1235,7 @@ class Sequence(AnnotatableMixin):
         strand: str | None = None,
         on_alignment: bool = False,
         seqid: str | None = None,
-    ) -> Feature:
+    ) -> Feature[Sequence]:
         """
         add a feature to annotation_db
 
@@ -1419,7 +1419,7 @@ class Sequence(AnnotatableMixin):
             f"Invalid mask_char {mask_char}"
         )
 
-        annotations: list[Feature] = []
+        annotations: list[Feature[Sequence]] = []
         biotypes = [biotypes] if isinstance(biotypes, str) else biotypes
         for annot_type in biotypes:
             annotations += list(
@@ -1434,7 +1434,7 @@ class Sequence(AnnotatableMixin):
             region = region.shadow()
 
         i = 0
-        segments = []
+        segments: list[str] = []
         coords = region.map.get_coordinates()
         for b, e in coords:
             segments.extend((str(self[i:b]), mask_char * (e - b)))
@@ -1489,7 +1489,7 @@ class Sequence(AnnotatableMixin):
             info=self.info,
         )
 
-    def _mapped(self, segment_map: IndelMap) -> Self:
+    def _mapped(self, segment_map: FeatureMap) -> Self:
         # Called by generic __getitem__
         if segment_map.num_spans == 1:
             seq = self._seq[segment_map.start : segment_map.end]
@@ -1510,22 +1510,20 @@ class Sequence(AnnotatableMixin):
         seq = f"{str(self)[:7]}... {len(self):,}" if len(self) > 10 else str(self)
         return f"{myclass}({seq})"
 
-    def __getitem__(self, index):
+    def __getitem__(
+        self, index: Feature[Sequence] | FeatureMap | slice | SupportsIndex
+    ) -> Sequence:
         preserve_offset = False
-        if hasattr(index, "get_slice"):
+        if isinstance(index, Feature):
             if index.parent is not self:
                 msg = "cannot slice Feature not bound to self"
                 raise ValueError(msg)
             return index.get_slice()
 
-        if hasattr(index, "map"):
-            index = index.map
-
-        if isinstance(index, FeatureMap | IndelMap):
+        if isinstance(index, FeatureMap):
             new = self._mapped(index)
             # annotations have no meaning if disjoint slicing segments
             preserve_offset = index.num_spans == 1
-
         elif isinstance(index, slice) or is_int(index):
             new = self.__class__(
                 moltype=self.moltype,
@@ -1535,6 +1533,9 @@ class Sequence(AnnotatableMixin):
             )
             stride = getattr(index, "step", 1) or 1
             preserve_offset = stride > 0
+        else:
+            msg = f"Cannot slice using a {type(index)}"
+            raise TypeError(msg)
 
         if isinstance(index, list | tuple):
             msg = "cannot slice using list or tuple"
@@ -1712,7 +1713,7 @@ class Sequence(AnnotatableMixin):
         biotype: str,
         name: str,
         allow_multiple: bool = False,
-    ) -> list[Feature]:
+    ) -> list[Feature[Sequence]]:
         """Adds an annotation at sequence positions matching pattern.
 
         Parameters
@@ -2246,7 +2247,10 @@ class SliceRecordABC(ABC):
         stop: int | None = None,
         step: int | None = None,
         offset: int = 0,
-    ) -> None: ...
+    ) -> None:
+        self.start: int
+        self.stop: int
+        self.step: int
 
     @abstractmethod
     def __eq__(self, other: object) -> bool: ...
@@ -2428,10 +2432,10 @@ class SliceRecordABC(ABC):
     def __len__(self) -> int:
         return abs((self.start - self.stop) // self.step)
 
-    def __getitem__(self, segment: int | slice) -> Self:
+    def __getitem__(self, segment: SupportsIndex | slice) -> Self:
         kwargs = self._get_init_kwargs()
 
-        if is_int(segment):
+        if isinstance(segment, SupportsIndex):
             start, stop, step = self._get_index(segment)
             return self.__class__(
                 start=start,
@@ -2464,12 +2468,13 @@ class SliceRecordABC(ABC):
 
     def _get_index(
         self,
-        val: int,
+        val: SupportsIndex,
         include_boundary: bool = False,
     ) -> tuple[int, int, int]:
         if len(self) == 0:
             raise IndexError(val)
 
+        val = int(val)
         if (
             (val > 0 and include_boundary and val > len(self))
             or (val > 0 and not include_boundary and val >= len(self))
@@ -2493,9 +2498,10 @@ class SliceRecordABC(ABC):
                 val = self.start + len(self) * self.step + val * self.step
 
             return val, val - 1, -1
-        return None
+        msg = f"Invalid step: {self.step}"
+        raise ValueError(msg)
 
-    def _get_slice(self, segment: slice, step: int, **kwargs) -> Self:
+    def _get_slice(self, segment: slice, step: int, **kwargs: Any) -> Self:
         slice_start = segment.start if segment.start is not None else 0
         slice_stop = segment.stop if segment.stop is not None else len(self)
 
@@ -2514,14 +2520,15 @@ class SliceRecordABC(ABC):
                 step,
                 **kwargs,
             )
-        return None
+        msg = f"Invalid step: {self.step}"
+        raise ValueError(msg)
 
     def _get_forward_slice_from_forward_seqview_(
         self,
         slice_start: int,
         slice_stop: int,
         step: int,
-        **kwargs,
+        **kwargs: Any,
     ) -> Self:
         start = (
             self.start + slice_start * self.step
@@ -2564,7 +2571,7 @@ class SliceRecordABC(ABC):
         slice_start: int,
         slice_stop: int,
         step: int,
-        **kwargs,
+        **kwargs: Any,
     ) -> Self:
         if slice_start >= 0:
             start = self.start + slice_start * self.step
@@ -2595,8 +2602,8 @@ class SliceRecordABC(ABC):
         self,
         segment: slice,
         step: int,
-        **kwargs,
-    ) -> Self | None:
+        **kwargs: Any,
+    ) -> Self:
         slice_start = segment.start if segment.start is not None else -1
         slice_stop = segment.stop if segment.stop is not None else -len(self) - 1
 
@@ -2614,14 +2621,16 @@ class SliceRecordABC(ABC):
                 step,
                 **kwargs,
             )
-        return None
+
+        msg = f"Invalid step: {self.step}"
+        raise ValueError(msg)
 
     def _get_reverse_slice_from_forward_seqview_(
         self,
         slice_start: int,
         slice_stop: int,
         step: int,
-        **kwargs,
+        **kwargs: Any,
     ) -> Self:
         # "true stop" adjust for if abs(stop-start) % step != 0
         # max possible start is "true stop" - step, because stop is not inclusive
@@ -2668,7 +2677,7 @@ class SliceRecordABC(ABC):
         slice_start: int,
         slice_stop: int,
         step: int,
-        **kwargs,
+        **kwargs: Any,
     ) -> Self:
         # refactor: simplify
         # are there other places in slice_record where we can use plus_start/stop/step
@@ -2879,7 +2888,7 @@ class SeqViewABC(ABC):
     def __bytes__(self) -> bytes: ...
 
     @abstractmethod
-    def __getitem__(self, segment: int | slice) -> SeqViewABC: ...
+    def __getitem__(self, segment: SupportsIndex | slice) -> SeqViewABC: ...
 
     def __len__(self) -> int:
         return len(self.slice_record)
@@ -3031,7 +3040,7 @@ class SeqView(SeqViewABC):
     def __bytes__(self) -> bytes:
         return self.bytes_value
 
-    def __getitem__(self, segment: int | slice) -> Self:
+    def __getitem__(self, segment: SupportsIndex | slice) -> Self:
         return self.__class__(
             parent=self.parent,
             seqid=self.seqid,
