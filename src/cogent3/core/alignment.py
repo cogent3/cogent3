@@ -102,7 +102,7 @@ MolTypes = c3_moltype.MolTypeLiteral | c3_moltype.MolType
 EPS = 1e-6
 
 
-def array_hash64(data: numpy.ndarray) -> int:
+def array_hash64(data: numpy.ndarray) -> str:
     """returns 64-bit hash of numpy array.
 
     Notes
@@ -111,7 +111,7 @@ def array_hash64(data: numpy.ndarray) -> int:
     is reproducible between processes.
     """
     h = hashlib.md5(data.tobytes(), usedforsecurity=False)
-    return int.from_bytes(h.digest()[:8], byteorder="little")
+    return h.hexdigest()
 
 
 class _SeqNamer:
@@ -399,6 +399,9 @@ class SeqsDataABC(ABC):
     @abstractmethod
     def copy(self, **kwargs) -> SeqsDataABC: ...
 
+    @abstractmethod
+    def get_hash(self, seqid: str) -> str | None: ...
+
 
 class SeqsData(SeqsDataABC):
     """The builtin ``cogent3`` implementation of sequence storage underlying
@@ -413,7 +416,7 @@ class SeqsData(SeqsDataABC):
     for a sequence as used by IndelMap.
     """
 
-    __slots__ = ("_alphabet", "_data", "_offset", "_reversed")
+    __slots__ = ("_alphabet", "_data", "_hashes", "_offset", "_reversed")
 
     def __init__(
         self,
@@ -457,8 +460,10 @@ class SeqsData(SeqsDataABC):
                     msg,
                 )
         self._data: dict[str, numpy.ndarray] = {}
+        self._hashes: dict[str, str] = {}
         for name, seq in data.items():
             arr = self._alphabet.to_indices(seq)
+            self._hashes[name] = array_hash64(arr)
             arr.flags.writeable = False
             self._data[str(name)] = arr
 
@@ -659,6 +664,10 @@ class SeqsData(SeqsDataABC):
             **kwargs,
         }
         return self.__class__(**init_args)
+
+    def get_hash(self, seqid: str) -> str | None:
+        """returns hash of seqid"""
+        return self._hashes.get(seqid)
 
 
 class SequenceCollection(AnnotatableMixin):
@@ -2465,8 +2474,9 @@ class SequenceCollection(AnnotatableMixin):
     def duplicated_seqs(self) -> list[list[str]]:
         """returns the names of duplicated sequences"""
         seq_hashes = collections.defaultdict(list)
-        for s in self.seqs:
-            seq_hashes[array_hash64(numpy.array(s))].append(s.name)
+        for n, n2 in self.name_map.items():
+            h = self.storage.get_hash(n2)
+            seq_hashes[h].append(n)
         return [v for v in seq_hashes.values() if len(v) > 1]
 
     def drop_duplicated_seqs(self) -> typing_extensions.Self:
@@ -3621,6 +3631,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         "_alphabet",
         "_gapped",
         "_gaps",
+        "_hashes",
         "_name_to_index",
         "_names",
         "_offset",
@@ -3673,6 +3684,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         self._gapped = gapped_seqs
         self._ungapped = ungapped_seqs or {}
         self._gaps = gaps or {}
+        self._hashes: dict[str, str] = {}
         align_len = align_len or gapped_seqs.shape[1]
         self._reversed = frozenset(reversed_seqs or set())
         if align_len:
@@ -4297,6 +4309,13 @@ class AlignedSeqsData(AlignedSeqsDataABC):
 
         indices = (array_seqs != array_seqs[0]).any(axis=0)
         return numpy.where(indices)[0] + start
+
+    def get_hash(self, seqid: str) -> str | None:
+        """returns hash of seqid"""
+        if seqid not in self._hashes:
+            arr = self.get_gapped_seq_array(seqid=seqid)
+            self._hashes[seqid] = array_hash64(arr)
+        return self._hashes[seqid]
 
 
 class AlignedDataViewABC(c3_sequence.SeqViewABC):

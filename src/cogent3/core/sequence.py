@@ -18,6 +18,7 @@ from operator import eq, ne
 from random import shuffle
 from typing import TYPE_CHECKING, Any, cast
 
+import numba
 import numpy
 import numpy.typing as npt
 from numpy import array
@@ -82,6 +83,63 @@ def _moltype_seq_from_rich_dict(
 
     seq = cast("str | bytes | NumpyIntArrayType", data.pop("seq"))
     return moltype, seq
+
+
+@numba.jit(cache=True, nogil=True)
+def count_kmers(
+    seq: npt.NDArray[numpy.uint8],
+    num_states: int,
+    k: int,
+    dtype: npt.DTypeLike = numpy.uint64,
+) -> NumpyIntArrayType:  # pragma: no cover
+    """return freqs of valid k-mers using 1D indices
+
+    Parameters
+    ----------
+    seq
+        numpy array of uint8, assumed that canonical characters have
+        indexes which are all < num_states
+    num_states
+        defines range of possible ints at a position
+    k
+        k-mer size
+    dtype
+        numpy dtype for the returned array
+    """
+    coeffs = c3_alphabet.coord_conversion_coeffs(num_states, k)
+    kfreqs = numpy.zeros(num_states**k, dtype=dtype)
+    if len(seq) < k:
+        return kfreqs
+
+    skip_until = 0
+    for i in range(k):
+        if seq[i] >= num_states:
+            skip_until = i + 1
+
+    idx = -1  # -1 means an invalid index
+    biggest_coeff = coeffs[0]
+
+    for i in range(len(seq) - k + 1):
+        gained_char = seq[i + k - 1]
+        if gained_char >= num_states:
+            # we reset the kmer index to invalid
+            # until we get a kmer with only canonical chars
+            idx = -1
+            skip_until = i + k
+
+        if i < skip_until:
+            continue
+
+        if idx < 0:
+            idx = (seq[i : i + k] * coeffs).sum()
+            kfreqs[idx] += 1
+            continue
+
+        dropped_char = seq[i - 1]
+        idx = (idx - dropped_char * biggest_coeff) * num_states + gained_char
+        kfreqs[idx] += 1
+
+    return kfreqs
 
 
 # This is a design note about the annotation_offset attribute on sequences
@@ -382,6 +440,24 @@ class Sequence(AnnotatableMixin):
         data = numpy.array(self)
         gap_index = cast("int", self.moltype.most_degen_alphabet().gap_index)
         return int(numpy.sum(data > gap_index))
+
+    def count_kmers(self, k: int = 1) -> NumpyIntArrayType:
+        """return array of counts of all possible kmers of length k
+
+        Notes
+        -----
+        Only states in moltype.alphabet are allowed in a kmer (the canonical
+        states). To get the order of kmers as strings, use
+        self.moltype.alphabet.get_kmer_alphabet(k)
+        """
+        seqarray = cast(
+            "npt.NDArray[numpy.uint8]",
+            numpy.array(self),
+        )
+        return cast(
+            "NumpyIntArrayType",
+            count_kmers(seqarray, len(self.moltype.alphabet), k),
+        )
 
     def __lt__(self, other: Sequence) -> bool:
         """compares based on the sequence string."""
