@@ -25,7 +25,7 @@ dependencies = [
     "scitrack",
     "stevedore",
     "tqdm",
-    "typing_extensions"
+    "typing_extensions",
 ]
 # remember to update version in requires-python and classifiers
 requires-python = ">=3.11,<3.14"
@@ -67,7 +67,7 @@ test = [
 doc = [
     "click",
     "cogent3[extra]",
-    "cogent3-h5seqs",
+    "cogent3-h5seqs>=0.6.1",
     "jupyter-sphinx",
     "jupyter_client",
     "jupytext",
