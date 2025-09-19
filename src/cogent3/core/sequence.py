@@ -3013,7 +3013,6 @@ class SeqView(SeqViewABC):
     @property
     def str_value(self) -> str:
         """returns the sequence as a string"""
-        print("THE STEP IS", self.slice_record.step)
         return self.alphabet.from_indices(
             self.parent[
                 self.slice_record.start : self.slice_record.stop : self.slice_record.step
