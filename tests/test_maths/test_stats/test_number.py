@@ -119,15 +119,17 @@ class TestNumber(TestCase):
         """return a list of these elements"""
         data = [0, 0, 2, 4, 4, 4]
         nums = number.CategoryCounter(data)
-        assert nums.keys() == [0, 2, 4]
-        assert nums.values() == [2, 1, 3]
-        assert nums.items() == [(0, 2), (2, 1), (4, 3)]
+        assert list(nums.keys()) == [0, 2, 4]
+        assert list(nums.values()) == [2, 1, 3]
+        assert list(nums.items()) == [(0, 2), (2, 1), (4, 3)]
 
         freqs = nums.to_freqs()
-        assert freqs.keys() == [0, 2, 4]
-        assert_allclose(freqs.values(), [0.3333333333333333, 0.16666666666666666, 0.5])
+        assert list(freqs.keys()) == [0, 2, 4]
+        assert_allclose(
+            list(freqs.values()), [0.3333333333333333, 0.16666666666666666, 0.5]
+        )
         assert len(freqs.items()) == 3
-        assert freqs.items()[-1] == (4, 0.5)
+        assert list(freqs.items())[-1] == (4, 0.5)
 
     def test_repr(self):
         """should precede with class name"""
