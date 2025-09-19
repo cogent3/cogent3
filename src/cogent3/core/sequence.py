@@ -1955,13 +1955,6 @@ class ProteinWithStopSequence(Sequence):
 class NucleicAcidSequenceMixin:
     """Mixin class for DNA and RNA sequences."""
 
-    def __str__(self) -> str:
-        result = str(self._seq)
-        if self._seq.is_reversed:
-            with contextlib.suppress(TypeError):
-                result = self.moltype.complement(result)
-        return result
-
     def can_pair(self, other: Self) -> bool:
         """Returns True if self and other could pair.
 
@@ -2211,13 +2204,13 @@ class NucleicAcidSequenceMixin:
         return cat.G_fit()
 
 
-class DnaSequence(Sequence, NucleicAcidSequenceMixin):
+class DnaSequence(NucleicAcidSequenceMixin, Sequence):
     """Holds the standard DNA sequence."""
 
     # constructed by DNA moltype
 
 
-class RnaSequence(Sequence, NucleicAcidSequenceMixin):
+class RnaSequence(NucleicAcidSequenceMixin, Sequence):
     """Holds the standard RNA sequence."""
 
     # constructed by RNA moltype
