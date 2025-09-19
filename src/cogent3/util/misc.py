@@ -8,8 +8,10 @@ import os
 import re
 import typing
 import warnings
+from collections.abc import Mapping
+from collections.abc import Sequence as PySeq
 from random import choice
-from typing import TYPE_CHECKING, Any, ParamSpec, TypeVar
+from typing import TYPE_CHECKING, Any, ParamSpec, SupportsIndex, TypeVar, overload
 from urllib.parse import urlparse
 from warnings import warn
 
@@ -22,6 +24,9 @@ if TYPE_CHECKING:  # pragma: no cover
 
 
 T = TypeVar("T")
+
+P = ParamSpec("P")
+R = TypeVar("R")
 
 
 def _adjusted_gt_minprob_vector(probs, minprob):
@@ -264,7 +269,15 @@ def add_lowercase(d):
     return d
 
 
-def DistanceFromMatrix(matrix):
+@overload
+def DistanceFromMatrix(matrix: Mapping[T, Mapping[T, R]]) -> Callable[[T, T], R]: ...
+@overload
+def DistanceFromMatrix(matrix: PySeq[PySeq[R]]) -> Callable[[int, int], R]: ...
+
+
+def DistanceFromMatrix(
+    matrix: Mapping[T, Mapping[T, R]] | PySeq[PySeq[R]],
+) -> Callable[[T, T], R] | Callable[[int, int], R]:
     """Returns function(i,j) that looks up matrix[i][j].
 
     Useful for maintaining flexibility about whether a function is computed
@@ -273,10 +286,17 @@ def DistanceFromMatrix(matrix):
     Matrix can be a 2D dict (arbitrary keys) or list (integer keys).
     """
 
-    def result(i, j):
+    if isinstance(matrix, Mapping):
+
+        def result_mapping(i: T, j: T) -> R:
+            return matrix[i][j]
+
+        return result_mapping
+
+    def result_sequence(i: int, j: int) -> R:
         return matrix[i][j]
 
-    return result
+    return result_sequence
 
 
 class ClassChecker:
@@ -956,10 +976,6 @@ def get_object_provenance(obj: object) -> str:
         name = obj.__class__.__name__
 
     return name if mod is None or mod == "builtins" else f"{mod}.{name}"
-
-
-P = ParamSpec("P")
-R = TypeVar("R")
 
 
 def extend_docstring_from(

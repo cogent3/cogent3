@@ -643,7 +643,7 @@ class MolType(Generic[StrOrBytes]):
     def make_seq(  # type: ignore[no-redef]
         self,
         *,
-        seq: "str | bytes | c3_sequence.Sequence | c3_sequence.SeqView",
+        seq: "str | bytes | NumpyIntArrayType | c3_sequence.Sequence | c3_sequence.SeqView",
         name: str | None = None,
         check_seq: bool = True,
         **kwargs: Any,
@@ -691,7 +691,11 @@ class MolType(Generic[StrOrBytes]):
     def make_sequence(
         self,
         *,
-        seq: str | bytes | c3_sequence.Sequence | c3_sequence.SeqView,
+        seq: str
+        | bytes
+        | NumpyIntArrayType
+        | c3_sequence.Sequence
+        | c3_sequence.SeqView,
         name: str | None = None,
         check_seq: bool = True,
         **kwargs: Any,

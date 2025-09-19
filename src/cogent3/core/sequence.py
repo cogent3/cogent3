@@ -13,7 +13,7 @@ import re
 import warnings
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from functools import singledispatch, total_ordering
+from functools import total_ordering
 from operator import eq, ne
 from random import shuffle
 from typing import TYPE_CHECKING, Any, SupportsIndex, cast
@@ -45,7 +45,6 @@ from cogent3.core.location import (
     _input_vals_pos_step,
     _LostSpan,
 )
-from cogent3.draw.drawable import Shape
 from cogent3.format.fasta import seqs_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts, TestResult
 from cogent3.maths.stats.number import CategoryCounter
@@ -64,6 +63,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Iterator, Mapping
 
     from cogent3.core.alignment import Aligned
+    from cogent3.draw.drawable import Drawable, Shape
 
 NumpyIntArrayType = npt.NDArray[numpy.integer]
 
@@ -353,7 +353,7 @@ class Sequence(AnnotatableMixin):
         return data
 
     @classmethod
-    def from_rich_dict(cls, data: dict) -> Sequence:
+    def from_rich_dict(cls, data: dict[str, Any]) -> Sequence:
         """create a Sequence object from a rich dict"""
         if isinstance(data["seq"], dict):
             # this is a rich dict from the old type sequences
@@ -377,7 +377,7 @@ class Sequence(AnnotatableMixin):
         include_ambiguity: bool = False,
         allow_gap: bool = False,
         warn: bool = False,
-    ) -> CategoryCounter:
+    ) -> CategoryCounter[str | bytes]:
         """returns dict of counts of motifs
 
         only non-overlapping motifs are counted.
@@ -427,14 +427,14 @@ class Sequence(AnnotatableMixin):
         unique_values = unique_values[~indices]
         counts = counts[~indices]
 
-        result = {}
+        result: dict[str | bytes, int] = {}
         alpha = self.moltype.most_degen_alphabet()
         # The following approach is used because of bytes moltype.
         # We can't use the from_indices method on the bytes moltype
         # as that creates a string, but individual elements are
         # bytes, not all of which can be decoded. Thus we get an
         # empty instance and use join.
-        monomer_type = type(alpha[0])()
+        monomer_type: str | bytes = type(alpha[0])()
         for motif, count in zip(unique_values, counts, strict=True):
             key = monomer_type.join([alpha[i] for i in motif])
             result[key] = int(count)
@@ -460,10 +460,7 @@ class Sequence(AnnotatableMixin):
             "npt.NDArray[numpy.uint8]",
             numpy.array(self),
         )
-        return cast(
-            "NumpyIntArrayType",
-            count_kmers(seqarray, len(self.moltype.alphabet), k),
-        )
+        return count_kmers(seqarray, len(self.moltype.alphabet), k)
 
     def __lt__(self, other: Sequence) -> bool:
         """compares based on the sequence string."""
@@ -698,7 +695,11 @@ class Sequence(AnnotatableMixin):
             distance += function(first, second)
         return distance
 
-    def matrix_distance(self, other: Self, matrix) -> float:
+    def matrix_distance(
+        self,
+        other: Self,
+        matrix: Mapping[str, Mapping[str, float]],
+    ) -> float:
         """Returns distance between self and other using a score matrix.
 
         Warnings
@@ -1016,7 +1017,7 @@ class Sequence(AnnotatableMixin):
             )
 
         # If two sequences with the same name are being added together the name should not be None
-        if type(other) == type(self):
+        if type(other) is type(self):
             name = self.name if self.name == other.name else None
         else:
             name = None
@@ -1636,7 +1637,9 @@ class Sequence(AnnotatableMixin):
             for pos in range(start, end, step):
                 yield self[pos : pos + window]
 
-    def get_in_motif_size(self, motif_length=1, warn=False):
+    def get_in_motif_size(
+        self, motif_length: int = 1, warn: bool = False
+    ) -> list[str] | str:
         """returns sequence as list of non-overlapping motifs
 
         Parameters
@@ -1646,7 +1649,7 @@ class Sequence(AnnotatableMixin):
         warn
             whether to notify of an incomplete terminal motif
         """
-        seq = self._seq
+        seq: SeqViewABC | str = self._seq
         if isinstance(seq, SeqViewABC):
             seq = str(self)
         if motif_length == 1:
@@ -1782,9 +1785,9 @@ class Sequence(AnnotatableMixin):
         self,
         *,
         biotype: str | Iterable[str] | None = None,
-        width: int = 600,
+        width: float = 600,
         vertical: bool = False,
-    ):
+    ) -> Drawable | None:
         """make a figure from sequence features
 
         Parameters
@@ -1940,8 +1943,11 @@ class Sequence(AnnotatableMixin):
                 )
 
         sampled = numpy.array(self).take(positions)
-        return self.moltype.make_sequence(
-            seq=sampled, name=f"{self.name}-randomised", check_seq=False
+        return cast(
+            "Self",
+            self.moltype.make_sequence(
+                seq=sampled, name=f"{self.name}-randomised", check_seq=False
+            ),
         )
 
 
@@ -2105,17 +2111,17 @@ class NucleicAcidSequenceMixin(Sequence):
             return self[:-3]
 
         # determine terminal gap needed to fill in the sequence
-        s = str(self)
+        str_s = str(self)
         gaps = "".join(self.moltype.gaps)
         pattern = f"({'|'.join(gc['*'])})[{gaps}]*$"
         terminal_stop = re.compile(pattern)
-        if match := terminal_stop.search(s):
-            diff = len(s) - match.start()
-            s = terminal_stop.sub("-" * diff, s)
+        if match := terminal_stop.search(str_s):
+            diff = len(str_s) - match.start()
+            str_s = terminal_stop.sub("-" * diff, str_s)
 
         result = self.__class__(
             moltype=self.moltype,
-            seq=s,
+            seq=str_s,
             name=self.name,
             info=self.info,
         )
@@ -2200,7 +2206,7 @@ class NucleicAcidSequenceMixin(Sequence):
         counts = self.counts(motif_length=motif_length)
         ssym_pairs = self.moltype.strand_symmetric_motifs(motif_length=motif_length)
 
-        obs: list[numpy.ndarray] = []
+        obs: list[NumpyIntArrayType] = []
         motifs: list[str] = []
         for plus, minus in sorted(ssym_pairs):
             row = numpy.array([counts[plus], counts[minus]], dtype=int)
@@ -2210,8 +2216,8 @@ class NucleicAcidSequenceMixin(Sequence):
             obs.append(row)
             motifs.append(plus)
 
-        obs = DictArray.from_array_names(numpy.array(obs), motifs, ["+", "-"])
-        cat = CategoryCounts(obs)
+        d_array = DictArray.from_array_names(numpy.array(obs), motifs, ["+", "-"])
+        cat = CategoryCounts(d_array)
         return cat.G_fit()
 
 
@@ -2735,7 +2741,7 @@ class SliceRecord(SliceRecordABC):
     A reference to an instance of this class is used by different view objects.
     """
 
-    __slots__ = "_parent_len"
+    __slots__ = ("_parent_len",)
 
     def __init__(
         self,
@@ -2808,9 +2814,12 @@ class SliceRecord(SliceRecordABC):
     def _zero_slice(self) -> Self:
         return self.__class__(start=0, stop=0, step=1, parent_len=self.parent_len)
 
-    def to_rich_dict(self) -> dict:
+    def to_rich_dict(self) -> dict[str, str | dict[str, int]]:
         """returns dict suitable for serialisation"""
-        data = {"type": get_object_provenance(self), "version": __version__}
+        data: dict[str, str | dict[str, int]] = {
+            "type": get_object_provenance(self),
+            "version": __version__,
+        }
         data["init_args"] = {
             "parent_len": self.parent_len,
             "start": self.start,
@@ -2831,7 +2840,13 @@ class SeqViewABC(ABC):
     and can be realised by accessing the values of the view.
     """
 
-    __slots__ = ()
+    __slots__ = ("_parent_len", "_slice_record", "alphabet", "parent")
+
+    def __init__(self) -> None:
+        self.alphabet: c3_alphabet.CharAlphabet[Any]
+        self.parent: str | bytes | NumpyIntArrayType
+        self._parent_len: int
+        self._slice_record: SliceRecordABC
 
     @property
     @abstractmethod
@@ -2882,7 +2897,7 @@ class SeqViewABC(ABC):
     def bytes_value(self) -> bytes: ...
 
     @abstractmethod
-    def copy(self, sliced: bool = False): ...
+    def copy(self, sliced: bool = False) -> Self: ...
 
     @abstractmethod
     def __str__(self) -> str: ...
@@ -2903,6 +2918,15 @@ class SeqViewABC(ABC):
     def __len__(self) -> int:
         return len(self.slice_record)
 
+    def _get_init_kwargs(self) -> dict[str, Any]:
+        return {
+            "parent": self.parent,
+            "parent_len": self._parent_len,
+            "seqid": self.seqid,
+            "alphabet": self.alphabet,
+            "slice_record": self.slice_record,
+        }
+
     def with_offset(self, offset: int) -> Self:
         """returns new instance with annotation offset set"""
         if self._slice_record.offset:
@@ -2911,13 +2935,13 @@ class SeqViewABC(ABC):
                 msg,
             )
 
-        init_kwargs = self._get_init_kwargs()  # type: ignore
+        init_kwargs = self._get_init_kwargs()
         init_kwargs["offset"] = offset
         return self.__class__(**init_kwargs)
 
     @abstractmethod
     def parent_coords(
-        self, *, apply_offset: bool = False, **kwargs
+        self, *, apply_offset: bool = False, **kwargs: Any
     ) -> tuple[str, int, int, int]: ...
 
 
@@ -3061,7 +3085,7 @@ class SeqView(SeqViewABC):
 
     def __repr__(self) -> str:
         seq_preview = (
-            f"{self.parent[:10]}...{self.parent[-5:]}"
+            f"{self.parent[:10]}...{self.parent[-5:]}"  # type: ignore[str-bytes-safe]
             if self.parent_len > 15
             else self.parent
         )
@@ -3101,7 +3125,7 @@ class SeqView(SeqViewABC):
         )
 
     def parent_coords(
-        self, *, apply_offset: bool = False, **kwargs
+        self, *, apply_offset: bool = False, **kwargs: Any
     ) -> tuple[str, int, int, int]:
         """returns coordinates on parent
 
@@ -3116,14 +3140,13 @@ class SeqView(SeqViewABC):
         """
         offset = self.parent_offset if apply_offset else 0
         return (
-            self.seqid,
+            cast("str", self.seqid),
             self.slice_record.parent_start + offset,
             self.slice_record.parent_stop + offset,
             self.slice_record.step,
         )
 
 
-@singledispatch
 def _coerce_to_seqview(
     data: Aligned
     | SeqViewABC
@@ -3139,118 +3162,60 @@ def _coerce_to_seqview(
 ) -> SeqViewABC:
     from cogent3.core.alignment import Aligned
 
-    if isinstance(data, Aligned):
-        return _coerce_to_seqview(str(data), seqid, alphabet, offset)
-    msg = f"{type(data)}"
-    raise NotImplementedError(msg)
+    if isinstance(data, Sequence):
+        data = data._seq
 
+    if isinstance(data, SeqViewABC):
+        # we require the indexes of shared states in alphabets to be the same
+        # SeqView has an alphabet but SeqViewABC does NOT because that is
+        # more general and covers the case where the SeqsData collection has the
+        # alphabet
+        if hasattr(data, "alphabet"):
+            n = min(len(data.alphabet), len(alphabet))
+            if data.alphabet[:n] != alphabet[:n]:
+                msg = f"element order {data.alphabet=} != to that in {alphabet=} for {data=!r}"
+                raise c3_alphabet.AlphabetError(
+                    msg,
+                )
 
-@_coerce_to_seqview.register
-def _(
-    data: SeqViewABC,
-    seqid: str | None,
-    alphabet: c3_alphabet.CharAlphabet[Any],
-    offset: int,
-) -> SeqViewABC:
-    # we require the indexes of shared states in alphabets to be the same
-    # SeqView has an alphabet but SeqViewABC does NOT because that is
-    # more general and covers the case where the SeqsData collection has the
-    # alphabet
-    if hasattr(data, "alphabet"):
-        n = min(len(data.alphabet), len(alphabet))
-        if data.alphabet[:n] != alphabet[:n]:
-            msg = f"element order {data.alphabet=} != to that in {alphabet=} for {data=!r}"
-            raise c3_alphabet.AlphabetError(
+        if offset and data.offset:
+            msg = f"cannot set {offset=} on a SeqView with an offset {data.offset=}"
+            raise ValueError(
                 msg,
             )
+        if offset:
+            return data.with_offset(offset)
+        return data
 
-    if offset and data.offset:
-        msg = f"cannot set {offset=} on a SeqView with an offset {data.offset=}"
-        raise ValueError(
-            msg,
+    if isinstance(data, (tuple, list)):
+        data = "".join(data)
+
+    if isinstance(data, Aligned):
+        data = str(data)
+
+    if isinstance(data, bytes):
+        data = data.decode("utf8")
+
+    if isinstance(data, str):
+        return SeqView(
+            parent=data,
+            parent_len=len(data),
+            seqid=seqid,
+            alphabet=alphabet,
+            offset=offset,
         )
-    if offset:
-        return data.with_offset(offset)
-    return data
 
+    if isinstance(data, numpy.ndarray):
+        return SeqView(
+            parent=data.astype(alphabet.dtype),
+            parent_len=len(data),
+            seqid=seqid,
+            alphabet=alphabet,
+            offset=offset,
+        )
 
-@_coerce_to_seqview.register
-def _(
-    data: Sequence,
-    seqid: str | None,
-    alphabet: c3_alphabet.CharAlphabet[Any],
-    offset: int,
-) -> SeqViewABC:
-    return _coerce_to_seqview(data._seq, seqid, alphabet, offset)
-
-
-@_coerce_to_seqview.register
-def _(
-    data: str,
-    seqid: str | None,
-    alphabet: c3_alphabet.CharAlphabet[Any],
-    offset: int,
-) -> SeqViewABC:
-    return SeqView(
-        parent=data,
-        parent_len=len(data),
-        seqid=seqid,
-        alphabet=alphabet,
-        offset=offset,
-    )
-
-
-@_coerce_to_seqview.register
-def _(
-    data: bytes,
-    seqid: str | None,
-    alphabet: c3_alphabet.CharAlphabet[Any],
-    offset: int,
-) -> SeqViewABC:
-    data = data.decode("utf8")
-    return SeqView(
-        parent=data,
-        parent_len=len(data),
-        seqid=seqid,
-        alphabet=alphabet,
-        offset=offset,
-    )
-
-
-@_coerce_to_seqview.register
-def _(
-    data: numpy.ndarray,
-    seqid: str | None,
-    alphabet: c3_alphabet.AlphabetABC,
-    offset: int,
-) -> SeqViewABC:
-    return SeqView(
-        parent=data.astype(alphabet.dtype),
-        parent_len=len(data),
-        seqid=seqid,
-        alphabet=alphabet,
-        offset=offset,
-    )
-
-
-@_coerce_to_seqview.register
-def _(
-    data: tuple,
-    seqid: str | None,
-    alphabet: c3_alphabet.AlphabetABC,
-    offset: int,
-) -> SeqViewABC:
-    return _coerce_to_seqview("".join(data), seqid, alphabet, offset)
-
-
-@_coerce_to_seqview.register
-def _(
-    data: list,
-    seqid: str | None,
-    alphabet: c3_alphabet.AlphabetABC,
-    offset: int,
-) -> SeqViewABC:
-    return _coerce_to_seqview("".join(data), seqid, alphabet, offset)
+    msg = f"{type(data)}"
+    raise NotImplementedError(msg)
 
 
 cls_map = {
@@ -3274,6 +3239,6 @@ cls_map = {
 
 
 @register_deserialiser(*cls_map.keys())
-def deserialise_sequence(data: dict) -> Sequence:
+def deserialise_sequence(data: dict[str, Any]) -> Sequence:
     cls = cls_map[data["type"]]
     return cls.from_rich_dict(data)

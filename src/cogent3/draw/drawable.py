@@ -124,9 +124,9 @@ class Drawable:
     def __init__(
         self,
         title: str | None = None,
-        traces: list[dict[Any, Any]] | None = None,
-        width: int | None = None,
-        height: int | None = None,
+        traces: list[dict[Any, Any]] | list[UnionDict] | None = None,
+        width: float | None = None,
+        height: float | None = None,
         showlegend: bool = True,
         visible_axes: bool = True,
         layout: dict[Any, Any] | None = None,
