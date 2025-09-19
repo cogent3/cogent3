@@ -21,7 +21,6 @@ from typing import TYPE_CHECKING, Any, SupportsIndex, cast
 import numba
 import numpy
 import numpy.typing as npt
-from numpy import array
 from typing_extensions import Self
 
 from cogent3._version import __version__
@@ -40,10 +39,13 @@ from cogent3.core.location import (
     FeatureMap,
     IndelMap,
     LostSpan,
+    Span,
     Strand,
     _input_vals_neg_step,
     _input_vals_pos_step,
+    _LostSpan,
 )
+from cogent3.draw.drawable import Shape
 from cogent3.format.fasta import seqs_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts, TestResult
 from cogent3.maths.stats.number import CategoryCounter
@@ -535,7 +537,7 @@ class Sequence(AnnotatableMixin):
 
     def is_strict(self) -> bool:
         """Returns True if sequence contains only monomers."""
-        return self.moltype.alphabet.is_valid(array(self))
+        return self.moltype.alphabet.is_valid(numpy.array(self))
 
     def disambiguate(self, method: str = "strip") -> Self:
         """Returns a non-degenerate sequence from a degenerate one.
@@ -576,8 +578,8 @@ class Sequence(AnnotatableMixin):
             "c3_alphabet.CharAlphabet[Any]", self.moltype.degen_gapped_alphabet
         )
         return (
-            (array(self) == degen_gapped_alphabet.gap_index)
-            | (array(self) == degen_gapped_alphabet.missing_index)
+            (numpy.array(self) == degen_gapped_alphabet.gap_index)
+            | (numpy.array(self) == degen_gapped_alphabet.missing_index)
         ).tolist()
 
     def count_gaps(self) -> int:
@@ -960,7 +962,7 @@ class Sequence(AnnotatableMixin):
             styled_seq.append(seq_style[-1] % char)
 
         # make a html table
-        seq_array = array(styled_seq, dtype="O")
+        seq_array = numpy.array(styled_seq, dtype="O")
         table = ["<table>"]
         seq_ = "<td>%s</td>"
         label_ = '<td class="label">%s</td>'
@@ -1152,7 +1154,7 @@ class Sequence(AnnotatableMixin):
             # DO NOT do adjustment in make_feature since that's user facing,
             # and we expect them to make a feature manually wrt to their
             # current view
-            spans = array(feature["spans"], dtype=int)
+            spans = numpy.array(feature["spans"], dtype=int)
             for i, v in enumerate(spans.ravel()):
                 rel_pos = sr.relative_position(v) - parent_offset
                 spans.ravel()[i] = rel_pos
@@ -1187,7 +1189,7 @@ class Sequence(AnnotatableMixin):
             Strand.PLUS.value if revd == seq_rced else Strand.MINUS.value
         )
 
-        vals = array(spans)
+        vals = numpy.array(spans)
         pre = abs(vals.min()) if vals.min() < 0 else 0
         post = abs(vals.max() - len(self)) if vals.max() > len(self) else 0
 
@@ -1301,7 +1303,7 @@ class Sequence(AnnotatableMixin):
         if moltype is self.moltype:
             return self
 
-        seq = array(self)
+        seq = numpy.array(self)
         self_alpha = self.moltype.most_degen_alphabet()
         other_alpha = moltype.most_degen_alphabet()
         if len(self.moltype.alphabet) != len(moltype.alphabet):
@@ -1452,7 +1454,7 @@ class Sequence(AnnotatableMixin):
 
     def gapped_by_map_segment_iter(
         self,
-        segment_map: IndelMap,
+        segment_map: IndelMap | FeatureMap,
         allow_gaps: bool = True,
         recode_gaps: bool = False,
     ) -> Iterator[str]:
@@ -1460,11 +1462,13 @@ class Sequence(AnnotatableMixin):
             msg = f"gap(s) in map {segment_map}"
             raise ValueError(msg)
 
-        for span in segment_map.spans:
+        for span in segment_map.iter_spans():
             if span.lost:
+                span = cast("_LostSpan", span)
                 unknown = "?" if span.terminal or recode_gaps else "-"
                 seg = unknown * span.length
             else:
+                span = cast("Span", span)
                 seg = str(self[span.start : span.end])
 
             yield seg
@@ -1491,6 +1495,7 @@ class Sequence(AnnotatableMixin):
 
     def _mapped(self, segment_map: FeatureMap) -> Self:
         # Called by generic __getitem__
+        seq: SeqViewABC | str
         if segment_map.num_spans == 1:
             seq = self._seq[segment_map.start : segment_map.end]
         else:
@@ -1512,13 +1517,13 @@ class Sequence(AnnotatableMixin):
 
     def __getitem__(
         self, index: Feature[Sequence] | FeatureMap | slice | SupportsIndex
-    ) -> Sequence:
+    ) -> Self:
         preserve_offset = False
         if isinstance(index, Feature):
             if index.parent is not self:
                 msg = "cannot slice Feature not bound to self"
                 raise ValueError(msg)
-            return index.get_slice()
+            return cast("Self", index.get_slice())
 
         if isinstance(index, FeatureMap):
             new = self._mapped(index)
@@ -1569,7 +1574,7 @@ class Sequence(AnnotatableMixin):
 
     def resolved_ambiguities(self) -> list[set[str]]:
         """Returns a list of sets of strings."""
-        ambigs = self.moltype.ambiguities
+        ambigs = cast("dict[str, frozenset[str]]", self.moltype.ambiguities)
         return [set(ambigs.get(motif, motif)) for motif in str(self)]
 
     def iter_kmers(self, k: int, strict: bool = True) -> Iterator[str]:
@@ -1601,10 +1606,10 @@ class Sequence(AnnotatableMixin):
 
     def sliding_windows(
         self,
-        window,
-        step,
-        start=None,
-        end=None,
+        window: int,
+        step: int,
+        start: int | None = None,
+        end: int | None = None,
     ) -> Iterator[Self]:
         """Generator function that yield new sequence objects
         of a given length at a given interval.
@@ -1622,8 +1627,10 @@ class Sequence(AnnotatableMixin):
             last window start position
 
         """
-        start = [start, 0][start is None]
-        end = [end, len(self) - window + 1][end is None]
+        if start is None:
+            start = 0
+        if end is None:
+            end = len(self) - window + 1
         end = min(len(self) - window + 1, end)
         if start < end and len(self) - end >= window - 1:
             for pos in range(start, end, step):
@@ -1659,22 +1666,22 @@ class Sequence(AnnotatableMixin):
 
     def parse_out_gaps(self) -> tuple[IndelMap, Self]:
         """returns Map corresponding to gap locations and ungapped Sequence"""
-        gap = re.compile(f"[{re.escape(self.moltype.gap)}]+")
-        seq = str(self)
-        gap_pos = []
-        cum_lengths = []
-        for match in gap.finditer(seq):
+        gap = re.compile(f"[{re.escape(cast('str', self.moltype.gap))}]+")
+        seq_str = str(self)
+        gap_pos_list: list[int] = []
+        cum_lengths_list: list[int] = []
+        for match in gap.finditer(seq_str):
             pos = match.start()
-            gap_pos.append(pos)
-            cum_lengths.append(match.end() - pos)
+            gap_pos_list.append(pos)
+            cum_lengths_list.append(match.end() - pos)
 
-        gap_pos = array(gap_pos)
-        cum_lengths = array(cum_lengths).cumsum()
+        gap_pos = numpy.array(gap_pos_list)
+        cum_lengths = numpy.array(cum_lengths_list).cumsum()
         gap_pos[1:] = gap_pos[1:] - cum_lengths[:-1]
 
         seq = self.__class__(
             moltype=self.moltype,
-            seq=gap.sub("", seq),
+            seq=gap.sub("", seq_str),
             name=self.get_name(),
             info=self.info,
         )
@@ -1755,7 +1762,7 @@ class Sequence(AnnotatableMixin):
         self,
         *,
         biotype: str | Iterable[str] | None = None,
-    ) -> dict:
+    ) -> dict[str, list[Shape]]:
         """returns a dict of drawables, keyed by type
 
         Parameters
@@ -1766,7 +1773,7 @@ class Sequence(AnnotatableMixin):
         """
         # make sure the drawables are unique by adding to a set
         features = set(self.get_features(biotype=biotype, allow_partial=True))
-        result = defaultdict(list)
+        result: dict[str, list[Shape]] = defaultdict(list)
         for f in features:
             result[f.biotype].append(f.get_drawable())
         return result
@@ -1808,9 +1815,10 @@ class Sequence(AnnotatableMixin):
         biotypes = (biotype,) if isinstance(biotype, str) else biotype
 
         # we order by tracks
-        top = 0
+        top: float = 0
         space = 0.25
-        annotes = []
+        annotes: list[Shape] = []
+        annott = None
         for feature_type in biotypes:
             new_bottom = top + space
             for i, annott in enumerate(drawables[feature_type]):
@@ -1819,12 +1827,16 @@ class Sequence(AnnotatableMixin):
                     annott._showlegend = False
                 annotes.append(annott)
 
-            top = annott.top
+            top = cast("Shape", annott).top
 
         top += space
         height = max((top / len(self)) * width, 300)
-        xaxis = {"range": [0, len(self)], "zeroline": False, "showline": True}
-        yaxis = {
+        xaxis: dict[str, Any] = {
+            "range": [0, len(self)],
+            "zeroline": False,
+            "showline": True,
+        }
+        yaxis: dict[str, Any] = {
             "range": [0, top],
             "visible": False,
             "zeroline": True,
@@ -1881,9 +1893,7 @@ class Sequence(AnnotatableMixin):
         randint: Callable[
             [int, int | None, int | None], NumpyIntArrayType
         ] = numpy.random.randint,
-        permutation: Callable[
-            [NumpyIntArrayType], NumpyIntArrayType
-        ] = numpy.random.permutation,
+        permutation: Callable[[int], NumpyIntArrayType] = numpy.random.permutation,
     ) -> Self:
         """Returns random sample of positions from self, e.g. to bootstrap.
 
@@ -1930,7 +1940,7 @@ class Sequence(AnnotatableMixin):
                 )
 
         sampled = numpy.array(self).take(positions)
-        return self.moltype.make_seq(
+        return self.moltype.make_sequence(
             seq=sampled, name=f"{self.name}-randomised", check_seq=False
         )
 
@@ -1953,7 +1963,7 @@ class ProteinWithStopSequence(Sequence):
     # constructed by PROTEIN_WITH_STOP moltype
 
 
-class NucleicAcidSequenceMixin:
+class NucleicAcidSequenceMixin(Sequence):
     """Mixin class for DNA and RNA sequences."""
 
     def can_pair(self, other: Self) -> bool:
@@ -1987,7 +1997,7 @@ class NucleicAcidSequenceMixin:
 
         Gaps are always counted as possible mispairs, as are weak pairs like GU.
         """
-        return self.moltype.can_mispair(self, str(other))
+        return self.moltype.can_mispair(str(self), str(other))
 
     def must_pair(self, other: Self) -> bool:
         """Returns True if all positions in self must pair with other.
@@ -1997,9 +2007,9 @@ class NucleicAcidSequenceMixin:
         Pairing occurs in reverse order, i.e. last position of other with
         first position of self, etc.
         """
-        return not self.moltype.can_mispair(self, str(other))
+        return not self.moltype.can_mispair(str(self), str(other))
 
-    def complement(self):
+    def complement(self) -> Self:
         """Returns complement of self, using data from MolType.
 
         Always tries to return same type as item: if item looks like a dict,
@@ -2011,7 +2021,7 @@ class NucleicAcidSequenceMixin:
             info=self.info,
         )
 
-    def reverse_complement(self):
+    def reverse_complement(self) -> Self:
         """Converts a nucleic acid sequence to its reverse complement.
         Synonymn for rc."""
         return self.rc()
@@ -2028,7 +2038,7 @@ class NucleicAcidSequenceMixin:
 
     def has_terminal_stop(
         self,
-        gc: c3_genetic_code.GeneticCode = 1,
+        gc: c3_genetic_code.GeneticCode | int = 1,
         strict: bool = False,
     ) -> bool:
         """Return True if the sequence has a terminal stop codon.
@@ -2057,7 +2067,7 @@ class NucleicAcidSequenceMixin:
 
     def trim_stop_codon(
         self,
-        gc: c3_genetic_code.GeneticCode = 1,
+        gc: c3_genetic_code.GeneticCode | int = 1,
         strict: bool = False,
     ) -> Self:
         """Removes a terminal stop codon from the sequence
@@ -2114,7 +2124,7 @@ class NucleicAcidSequenceMixin:
 
     def get_translation(
         self,
-        gc: c3_genetic_code.GeneticCode = 1,
+        gc: c3_genetic_code.GeneticCode | int = 1,
         incomplete_ok: bool = False,
         include_stop: bool = False,
         trim_stop: bool = True,
@@ -2161,7 +2171,7 @@ class NucleicAcidSequenceMixin:
 
         # since we are realising the view, reverse complementing will be
         # dealt with, so rc=False
-        pep = gc.translate(array(seq), rc=False, incomplete_ok=incomplete_ok)
+        pep = gc.translate(numpy.array(seq), rc=False, incomplete_ok=incomplete_ok)
 
         if not include_stop and "*" in pep:
             msg = f"{self.name!r} has a stop codon in the translation"
@@ -2175,13 +2185,13 @@ class NucleicAcidSequenceMixin:
             raise c3_alphabet.AlphabetError(
                 msg,
             )
-        return protein.make_seq(seq=pep, name=self.name)
+        return cast("ProteinSequence", protein.make_sequence(seq=pep, name=self.name))
 
-    def to_rna(self) -> Self:
+    def to_rna(self) -> Sequence:
         """Returns copy of self as RNA."""
         return self.to_moltype("rna")
 
-    def to_dna(self) -> Self:
+    def to_dna(self) -> Sequence:
         """Returns copy of self as DNA."""
         return self.to_moltype("dna")
 
@@ -2190,10 +2200,10 @@ class NucleicAcidSequenceMixin:
         counts = self.counts(motif_length=motif_length)
         ssym_pairs = self.moltype.strand_symmetric_motifs(motif_length=motif_length)
 
-        motifs = []
-        obs = []
+        obs: list[numpy.ndarray] = []
+        motifs: list[str] = []
         for plus, minus in sorted(ssym_pairs):
-            row = array([counts[plus], counts[minus]], dtype=int)
+            row = numpy.array([counts[plus], counts[minus]], dtype=int)
             if row.max() == 0:  # we ignore motifs missing on both strands
                 continue
 
@@ -2205,13 +2215,13 @@ class NucleicAcidSequenceMixin:
         return cat.G_fit()
 
 
-class DnaSequence(NucleicAcidSequenceMixin, Sequence):
+class DnaSequence(NucleicAcidSequenceMixin):
     """Holds the standard DNA sequence."""
 
     # constructed by DNA moltype
 
 
-class RnaSequence(NucleicAcidSequenceMixin, Sequence):
+class RnaSequence(NucleicAcidSequenceMixin):
     """Holds the standard RNA sequence."""
 
     # constructed by RNA moltype
@@ -3003,6 +3013,7 @@ class SeqView(SeqViewABC):
     @property
     def str_value(self) -> str:
         """returns the sequence as a string"""
+        print("THE STEP IS", self.slice_record.step)
         return self.alphabet.from_indices(
             self.parent[
                 self.slice_record.start : self.slice_record.stop : self.slice_record.step

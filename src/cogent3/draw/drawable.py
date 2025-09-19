@@ -1,8 +1,11 @@
 import os
 import pathlib
+from collections.abc import Sequence as PySeq
 from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 import numpy
+import numpy.typing as npt
+from typing_extensions import Self
 
 from cogent3.util.misc import extend_docstring_from
 from cogent3.util.union_dict import UnionDict
@@ -12,6 +15,8 @@ if TYPE_CHECKING:  # pragma: no cover
 
     with contextlib.suppress(ImportError):
         from plotly.graph_objects import Figure
+
+NumpyArray = npt.NDArray[numpy.number]
 
 # user specified environment variable for plotly renderer
 PLOTLY_RENDERER = os.environ.get("PLOTLY_RENDERER", None)
@@ -601,8 +606,10 @@ class Shape:
         self.name = name
         self.text = text
         self._hoverinfo = hoverinfo or name
+        self.x: NumpyArray
+        self.y: NumpyArray
 
-    def shift(self, x=0, y=0):
+    def shift(self, x: float = 0, y: float = 0) -> Self:
         if not isinstance(self.x, numpy.ndarray):
             self.x += x
             self.y += y
@@ -613,31 +620,31 @@ class Shape:
         return self
 
     @property
-    def height(self):
+    def height(self) -> float:
         return self.top - self.bottom
 
     @property
-    def top(self):
+    def top(self) -> float:
         if not isinstance(self.y, numpy.ndarray):
             return numpy.max(self.y)
         return numpy.max(self.y[self.y != None])  # noqa
 
     @property
-    def bottom(self):
+    def bottom(self) -> float:
         if not isinstance(self.y, numpy.ndarray):
             return numpy.min(self.y)
         return numpy.min(self.y[self.y != None])  # noqa
 
     @property
-    def middle(self):
+    def middle(self) -> float:
         return self.height / 2 + self.bottom
 
     @property
-    def T(self):
+    def T(self) -> Self:
         self.x, self.y = self.y, self.x
         return self
 
-    def as_trace(self, name=None):
+    def as_trace(self, name: str | None = None):
         """returns component for plotly display"""
         name = name or self.name
         return UnionDict(
@@ -657,7 +664,13 @@ class Shape:
 
 
 class Rectangle(Shape):
-    def __init__(self, coords, y=0, height=0.25, **kwargs) -> None:
+    def __init__(
+        self,
+        coords: PySeq[tuple[float, float]],
+        y: float = 0,
+        height: float = 0.25,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(**kwargs)
         width = abs(coords[0][0] - coords[0][1])
         x_coord = min(coords[0][0], coords[0][1])
@@ -677,7 +690,13 @@ class Rectangle(Shape):
 
 
 class Diamond(Shape):
-    def __init__(self, coords, y=0, height=0.25, **kwargs) -> None:
+    def __init__(
+        self,
+        coords: PySeq[tuple[float, float]],
+        y: float = 0,
+        height: float = 0.25,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(**kwargs)
         width = abs(coords[0][0] - coords[0][1])
         x_coord = min(coords[0][0], coords[0][1])
@@ -721,9 +740,11 @@ def _calc_arrow_width(
     return aw
 
 
-def _make_rectangles(coords: list[list[int]], y=0, height=0.25) -> tuple[list[float]]:
-    xs = []
-    ys = []
+def _make_rectangles(
+    coords: PySeq[PySeq[float]], y: float = 0, height: float = 0.25
+) -> tuple[list[list[float]], list[list[float]]]:
+    xs: list[list[float]] = []
+    ys: list[list[float]] = []
     y_coord = [y, y + height, y + height, y, y]
     for coord in coords:
         # Add coordinates for individual rectangle
@@ -735,13 +756,13 @@ def _make_rectangles(coords: list[list[int]], y=0, height=0.25) -> tuple[list[fl
 
 
 def _make_arrow_head(
-    coord: list[float],
+    coord: PySeq[float],
     y: float,
     height: float,
     head_width_frac: float,
     reverse: bool,
     parent_length: int,
-) -> tuple[list[float]]:
+) -> tuple[list[float], list[float]]:
     width = abs(coord[0] - coord[1])
     x_coord = min(coord[0], coord[1])
     hh = height * head_width_frac * 2
@@ -783,9 +804,10 @@ def _connecting_lines(
     x_grp: list[list[float]],
     y_grp: list[list[float]],
     connect_y: float,
-) -> tuple[list[float | None]]:
-    new_xs, new_ys = x_grp[0][:], y_grp[0][:]
-    y_connect_coord = [None, connect_y, connect_y, None]
+) -> tuple[list[float | None], list[float | None]]:
+    new_xs = cast("list[float | None]", x_grp[0][:])
+    new_ys = cast("list[float | None]", y_grp[0][:])
+    y_connect_coord: list[float | None] = [None, connect_y, connect_y, None]
     for i, (xs, ys) in enumerate(zip(x_grp[1:], y_grp[1:], strict=False), 1):
         new_xs.extend([None, max(x_grp[i - 1]), min(x_grp[i]), None, *xs])
         new_ys.extend(y_connect_coord + ys)
@@ -795,13 +817,13 @@ def _connecting_lines(
 class Arrow(Shape):
     def __init__(
         self,
-        coords,
-        y=0,
-        height=0.25,
-        arrow_head_w=0.05,
-        reverse=False,
+        coords: PySeq[tuple[float, float]],
+        y: float = 0,
+        height: float = 0.25,
+        arrow_head_w: float = 0.05,
+        reverse: bool = False,
         parent_length: int | None = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
 
@@ -842,7 +864,9 @@ class Arrow(Shape):
 class Point(Shape):
     _mode = "markers"
 
-    def __init__(self, x, y, size=14, symbol="square", **kwargs) -> None:
+    def __init__(
+        self, x: float, y: float, size: int = 14, symbol: str = "square", **kwargs: Any
+    ) -> None:
         super().__init__(**kwargs)
         self.x = numpy.array([x], dtype="O")
         self.y = numpy.array([y], dtype="O")

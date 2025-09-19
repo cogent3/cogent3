@@ -21,7 +21,7 @@ from typing import Optional
 
 import numba
 import numpy
-import typing_extensions
+from typing_extensions import Self
 
 import cogent3
 from cogent3._version import __version__
@@ -233,7 +233,7 @@ class SeqDataView(c3_sequence.SeqView):
         )
 
     # refactor: design, do we support copy? do we support copy with sliced?
-    def copy(self, sliced: bool = False) -> typing_extensions.Self:
+    def copy(self, sliced: bool = False) -> Self:
         """returns copy"""
         return self
 
@@ -649,7 +649,7 @@ class SeqsData(SeqsDataABC):
     def _(self, index: int) -> c3_sequence.SeqViewABC:
         return self[self.names[index]]
 
-    def copy(self, **kwargs) -> typing_extensions.Self:
+    def copy(self, **kwargs) -> Self:
         """shallow copy of self
 
         Notes
@@ -864,7 +864,7 @@ class SequenceCollection(AnnotatableMixin):
         negate: bool = False,
         copy_annotations: bool = False,
         **kwargs,
-    ) -> typing_extensions.Self:
+    ) -> Self:
         """Returns new collection containing only specified seqs.
 
         Parameters
@@ -948,7 +948,7 @@ class SequenceCollection(AnnotatableMixin):
         self,
         f: Callable[[c3_sequence.Sequence], bool],
         negate: bool = False,
-    ) -> typing_extensions.Self:
+    ) -> Self:
         """Returns new collection containing seqs where f(seq) is True.
 
         Parameters
@@ -998,7 +998,7 @@ class SequenceCollection(AnnotatableMixin):
         self,
         seqs: dict[str, StrORBytesORArray] | SeqsData | list,
         **kwargs,
-    ) -> typing_extensions.Self:
+    ) -> Self:
         """Returns new collection with additional sequences.
 
         Parameters
@@ -1029,7 +1029,7 @@ class SequenceCollection(AnnotatableMixin):
             annotation_db=self._annotation_db,
         )
 
-    def rename_seqs(self, renamer: Callable[[str], str]) -> typing_extensions.Self:
+    def rename_seqs(self, renamer: Callable[[str], str]) -> Self:
         """Returns new collection with renamed sequences.
 
         Parameters
@@ -1150,7 +1150,7 @@ class SequenceCollection(AnnotatableMixin):
 
         return self.__class__(**init_kwargs)
 
-    def to_moltype(self, moltype: MolTypes) -> typing_extensions.Self:
+    def to_moltype(self, moltype: MolTypes) -> Self:
         """returns copy of self with changed moltype
 
         Parameters
@@ -1182,11 +1182,11 @@ class SequenceCollection(AnnotatableMixin):
 
         return self.__class__(**init_kwargs)
 
-    def to_dna(self) -> typing_extensions.Self:
+    def to_dna(self) -> Self:
         """returns copy of self as a collection of DNA moltype seqs"""
         return self.to_moltype("dna")
 
-    def to_rna(self) -> typing_extensions.Self:
+    def to_rna(self) -> Self:
         """returns copy of self as a collection of RNA moltype seqs"""
         return self.to_moltype("rna")
 
@@ -1197,7 +1197,7 @@ class SequenceCollection(AnnotatableMixin):
         include_stop: bool = False,
         trim_stop: bool = True,
         **kwargs,
-    ) -> typing_extensions.Self:
+    ) -> Self:
         """translate sequences from nucleic acid to protein
 
         Parameters
@@ -1255,7 +1255,7 @@ class SequenceCollection(AnnotatableMixin):
             **kwargs,
         )
 
-    def rc(self) -> typing_extensions.Self:
+    def rc(self) -> Self:
         """Returns the reverse complement of all sequences in the collection.
         A synonym for reverse_complement.
         """
@@ -1263,7 +1263,7 @@ class SequenceCollection(AnnotatableMixin):
         init_kwargs["is_reversed"] = not self._is_reversed
         return self.__class__(**init_kwargs)
 
-    def reverse_complement(self) -> typing_extensions.Self:
+    def reverse_complement(self) -> Self:
         """Returns the reverse complement of all sequences in the collection.
         A synonym for rc.
         """
@@ -1711,7 +1711,7 @@ class SequenceCollection(AnnotatableMixin):
 
     def trim_stop_codons(
         self, gc: c3_genetic_code.GeneticCodeChoiceType = 1, strict: bool = False
-    ) -> typing_extensions.Self:
+    ) -> Self:
         """Removes any terminal stop codons from the sequences
 
         Parameters
@@ -2479,7 +2479,7 @@ class SequenceCollection(AnnotatableMixin):
             seq_hashes[h].append(n)
         return [v for v in seq_hashes.values() if len(v) > 1]
 
-    def drop_duplicated_seqs(self) -> typing_extensions.Self:
+    def drop_duplicated_seqs(self) -> Self:
         """returns self without duplicated sequences
 
         Notes
@@ -3428,7 +3428,7 @@ class AlignedSeqsDataABC(SeqsDataABC):
         seqs: dict[str, StrORBytesORArray],
         gaps: dict[str, numpy.ndarray],
         alphabet: c3_alphabet.AlphabetABC,
-    ) -> typing_extensions.Self: ...
+    ) -> Self: ...
 
     @abstractmethod
     def __init__(
@@ -3463,7 +3463,7 @@ class AlignedSeqsDataABC(SeqsDataABC):
         names: list[str],
         data: numpy.ndarray,
         alphabet: c3_alphabet.AlphabetABC,
-    ) -> typing_extensions.Self: ...
+    ) -> Self: ...
 
     @property
     @abstractmethod
@@ -3583,7 +3583,7 @@ class AlignedSeqsDataABC(SeqsDataABC):
     ) -> numpy.ndarray: ...
 
     @abstractmethod
-    def copy(self, **kwargs) -> typing_extensions.Self: ...
+    def copy(self, **kwargs) -> Self: ...
 
     @abstractmethod
     def variable_positions(
@@ -3739,7 +3739,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         data: dict[str, StrORArray],
         alphabet: c3_alphabet.AlphabetABC,
         **kwargs,
-    ) -> typing_extensions.Self:
+    ) -> Self:
         """Construct an AlignedSeqsData object from a dict of aligned sequences
 
         Parameters
@@ -3779,7 +3779,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         gaps: dict[str, numpy.ndarray],
         alphabet: c3_alphabet.AlphabetABC,
         **kwargs,
-    ) -> typing_extensions.Self:
+    ) -> Self:
         """Construct an AlignedSeqsData object from a dict of ungapped sequences
         and a corresponding dict of gap data.
 
@@ -3829,7 +3829,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         names: PySeq[str],
         data: numpy.ndarray,
         alphabet: c3_alphabet.AlphabetABC,
-    ) -> typing_extensions.Self:
+    ) -> Self:
         """Construct an AlignedSeqsData object from a list of names and a numpy
         array of aligned sequence data.
 
@@ -4152,7 +4152,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         self,
         alphabet: c3_alphabet.AlphabetABC,
         check_valid: bool = True,
-    ) -> typing_extensions.Self:
+    ) -> Self:
         """Returns a new AlignedSeqsData object with the same underlying data
         with a new alphabet."""
         if (
@@ -4254,7 +4254,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         seq_indices = tuple(self._name_to_index[n] for n in names)
         return self._gapped[numpy.ix_(seq_indices, positions)]
 
-    def copy(self, **kwargs) -> typing_extensions.Self:
+    def copy(self, **kwargs) -> Self:
         """shallow copy of self
 
         Notes
@@ -4495,7 +4495,7 @@ class AlignedDataView(c3_sequence.SeqViewABC):
     def __bytes__(self) -> bytes:
         return self.gapped_bytes_value
 
-    def __getitem__(self, segment) -> typing_extensions.Self:
+    def __getitem__(self, segment) -> Self:
         return self.__class__(
             parent=self.parent,
             seqid=self.seqid,
@@ -4549,7 +4549,7 @@ class AlignedDataView(c3_sequence.SeqViewABC):
 
         return self.seqid, start + offset, stop + offset, strand
 
-    def copy(self, sliced: bool = False) -> typing_extensions.Self:
+    def copy(self, sliced: bool = False) -> Self:
         """just returns self"""
         return self
 
@@ -4739,23 +4739,23 @@ class Alignment(SequenceCollection):
         }
 
     @singledispatchmethod
-    def __getitem__(self, index) -> typing_extensions.Self:
+    def __getitem__(self, index) -> Self:
         msg = f"__getitem__ not implemented for {type(index)}"
         raise NotImplementedError(msg)
 
     @__getitem__.register
-    def _(self, index: str) -> typing_extensions.Self:
+    def _(self, index: str) -> Self:
         return self.seqs[index]
 
     @__getitem__.register
-    def _(self, index: int) -> typing_extensions.Self:
+    def _(self, index: int) -> Self:
         new_slice = self._slice_record[index]
         kwargs = self._get_init_kwargs()
         kwargs["slice_record"] = new_slice
         return self.__class__(**kwargs)
 
     @__getitem__.register
-    def _(self, index: slice) -> typing_extensions.Self:
+    def _(self, index: slice) -> Self:
         new_slice = self._slice_record[index]
         kwargs = self._get_init_kwargs()
         kwargs["slice_record"] = new_slice
@@ -4766,7 +4766,7 @@ class Alignment(SequenceCollection):
         return self.__class__(**kwargs)
 
     @__getitem__.register
-    def _(self, index: FeatureMap) -> typing_extensions.Self:
+    def _(self, index: FeatureMap) -> Self:
         return self._mapped(index)
 
     @__getitem__.register
@@ -4995,7 +4995,7 @@ class Alignment(SequenceCollection):
         self,
         cols: list[int] | numpy.ndarray[int],
         negate: bool = False,
-    ) -> typing_extensions.Self:
+    ) -> Self:
         """Returns new Alignment containing only specified positions.
 
         Parameters
@@ -5024,9 +5024,7 @@ class Alignment(SequenceCollection):
         kwargs.pop("slice_record", None)
         return self.__class__(**kwargs)
 
-    def take_positions_if(
-        self, f: Callable[[str], bool], negate: bool = False
-    ) -> typing_extensions.Self:
+    def take_positions_if(self, f: Callable[[str], bool], negate: bool = False) -> Self:
         """Returns new Alignment containing cols where f(col) is True."""
         return self.take_positions(self.get_position_indices(f, negate=negate))
 
@@ -5526,7 +5524,7 @@ class Alignment(SequenceCollection):
         kwargs["storage_backend"] = storage_backend
         return make_unaligned_seqs(data, moltype=self.moltype, info=self.info, **kwargs)
 
-    def get_degapped_relative_to(self, name: str) -> typing_extensions.Self:
+    def get_degapped_relative_to(self, name: str) -> Self:
         """Remove all columns with gaps in sequence with given name.
 
         Parameters
@@ -5559,9 +5557,7 @@ class Alignment(SequenceCollection):
         kwargs.pop("slice_record", None)
         return self.__class__(**kwargs)
 
-    def matching_ref(
-        self, ref_name: str, gap_fraction: float, gap_run: int
-    ) -> typing_extensions.Self:
+    def matching_ref(self, ref_name: str, gap_fraction: float, gap_run: int) -> Self:
         """Returns new alignment with seqs well aligned with a reference.
 
         Parameters
@@ -5585,7 +5581,7 @@ class Alignment(SequenceCollection):
         step: int,
         start: OptInt = None,
         end: OptInt = None,
-    ) -> typing.Generator[typing_extensions.Self, None, None]:
+    ) -> typing.Generator[Self, None, None]:
         """Generator yielding new alignments of given length and interval.
 
         Parameters
@@ -5606,7 +5602,7 @@ class Alignment(SequenceCollection):
             for pos in range(start, end, step):
                 yield self[pos : pos + window]
 
-    def gapped_by_map(self, keep: FeatureMap, **kwargs) -> typing_extensions.Self:
+    def gapped_by_map(self, keep: FeatureMap, **kwargs) -> Self:
         # refactor: docstring
         # TODO: kath, not explicitly tested
         seqs = {}
@@ -5627,11 +5623,11 @@ class Alignment(SequenceCollection):
 
     def filtered(
         self,
-        predicate: typing.Callable[[typing_extensions.Self], bool],
+        predicate: typing.Callable[[Self], bool],
         motif_length: int = 1,
         drop_remainder: bool = True,
         **kwargs,
-    ) -> typing_extensions.Self:
+    ) -> Self:
         """The alignment positions where predicate(column) is true.
 
         Parameters
@@ -5665,9 +5661,7 @@ class Alignment(SequenceCollection):
 
         return self.take_positions(indices.tolist())
 
-    def no_degenerates(
-        self, motif_length: int = 1, allow_gap: bool = False
-    ) -> typing_extensions.Self:
+    def no_degenerates(self, motif_length: int = 1, allow_gap: bool = False) -> Self:
         """returns new alignment without degenerate characters
 
         Parameters
@@ -5847,7 +5841,7 @@ class Alignment(SequenceCollection):
         permutation: typing.Callable[
             [numpy.ndarray], numpy.ndarray
         ] = numpy.random.permutation,
-    ) -> typing_extensions.Self:
+    ) -> Self:
         """Returns random sample of positions from self, e.g. to bootstrap.
 
         Parameters
@@ -5978,7 +5972,7 @@ class Alignment(SequenceCollection):
         gc: c3_genetic_code.GeneticCodeChoiceType = 1,
         strict: bool = False,
         **kwargs,
-    ) -> typing_extensions.Self:
+    ) -> Self:
         # refactor: array
         if not self.has_terminal_stop(gc=gc, strict=strict):
             return self
@@ -6016,7 +6010,7 @@ class Alignment(SequenceCollection):
         include_stop: bool = False,
         trim_stop: bool = True,
         **kwargs,
-    ) -> typing_extensions.Self:
+    ) -> Self:
         if not self.moltype.is_nucleic:
             msg = f"moltype must be a DNA/RNA, not {self.moltype.name!r}"
             raise c3_moltype.MolTypeError(msg)
@@ -6988,7 +6982,7 @@ class Alignment(SequenceCollection):
             wrap=settings["wrap"],
         )
 
-    def _mapped(self, slicemap) -> typing_extensions.Self:
+    def _mapped(self, slicemap) -> Self:
         seqs = {}
         maps = {}
         for aligned in self.seqs:
@@ -7012,7 +7006,7 @@ class Alignment(SequenceCollection):
         self,
         other: SequenceCollection,
         aa_to_codon: bool = True,
-    ) -> typing_extensions.Self:
+    ) -> Self:
         """applies gaps in self to ungapped sequences"""
         assert set(other.names) == set(self.names), "Names must match"
         if aa_to_codon and not all(
@@ -7059,14 +7053,14 @@ class Alignment(SequenceCollection):
         init_args["annotation_db"] = other.annotation_db
         return self.__class__(**init_args)
 
-    def copy(self, copy_annotations: bool = False) -> typing_extensions.Self:
+    def copy(self, copy_annotations: bool = False) -> Self:
         """creates new instance, only mutable attributes are copied"""
         kwargs = self._get_init_kwargs()
         if copy_annotations:
             kwargs["annotation_db"] = copy.deepcopy(self._annotation_db)
         return self.__class__(**kwargs)
 
-    def deepcopy(self, **kwargs) -> typing_extensions.Self:
+    def deepcopy(self, **kwargs) -> Self:
         """returns deep copy of self
 
         Notes
@@ -7110,7 +7104,7 @@ class Alignment(SequenceCollection):
         mask_char: str = "?",
         shadow: bool = False,
         seqid: str | None = None,
-    ) -> typing_extensions.Self:
+    ) -> Self:
         """returns an alignment with regions replaced by mask_char
 
         Parameters
