@@ -5,7 +5,7 @@
 
 Using iplotx with cogent3
 =========================
-`iplotx <https://https://iplotx.readthedocs.io>`__ is a library to visualise trees and networks
+`iplotx <https://iplotx.readthedocs.io>`__ is a library to visualise trees and networks
 using ``matplotlib`` (``cogent3`` uses ``plotly`` internally). It supports dozens of options
 to style the appearance of trees and can produce static images, interactive plots, animations,
 and so on. It can also be used to combine trees and other types of charts (e.g. bar charts,
@@ -44,7 +44,7 @@ Below is a simple example on how to combine ``cogent3`` with ``iplotx``:
 A taste of style options
 ++++++++++++++++++++++++
 ``iplotx`` supports a large number of options to style the appearance of trees. As an example here,
-we choose a rectangular layout with angular branches, colouring some leaf edges for species related
+we choose a rectangular layout with non-angular branches, colouring some leaf edges for species related
 to humans. We also build the figure canvas manually, which is useful to combine trees with other
 types of chart of graphical elements. In this example, we combine the tree plot with an annotation
 and a scatter plot around the tree root.
