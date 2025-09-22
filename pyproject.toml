@@ -82,7 +82,7 @@ doc = [
     "sphinx_design",
     "sphinxcontrib-bibtex",
     "sphinxcontrib-video",
-    "iplotx>=0.6.5"
+    "iplotx>=0.6.8"
 ]
 extra = [
     "ipykernel",
