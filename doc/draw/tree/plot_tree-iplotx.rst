@@ -17,11 +17,9 @@ Below is a simple example on how to combine ``cogent3`` with ``iplotx``:
     import cogent3
     import iplotx as ipx
 
-    reader = cogent3.get_app("load_json")
+    ens_tree = cogent3.load_tree("data/GN-tree.json")
 
-    ens_tree = reader("data/GN-tree.json")
-
-    fig = ipx.tree(
+    tree_artist = ipx.tree(
       ens_tree,
       layout="radial",
       layout_angular=True,
@@ -36,30 +34,7 @@ Below is a simple example on how to combine ``cogent3`` with ``iplotx``:
     :hide-code:
 
     outpath = set_working_directory.get_thumbnail_dir() / "plot_tree-iplotx.png"
-
-    import matplotlib.pyplot as plt
-
-    # this is annoying, but matplotlib figure state does not persist between
-    # notebook cells
-
-    _ = plt.ioff()  # have to do this to turn off automatic display
-    plt.clf()
-
-    ipx.tree(
-      ens_tree,
-      layout="radial",
-      layout_angular=True,
-      leaf_deep=True,
-      leaf_labels=True,
-      aspect=1.0,
-      margins=0.1,
-      figsize=(10, 10),
-    )
-    plt.savefig(outpath)
-    # now turn automated display back on
-    _ = plt.ion()
-    plt.clf()
-
+    tree_artist.figure.savefig(outpath)
 
 A taste of style options
 ++++++++++++++++++++++++
