@@ -22,7 +22,6 @@ A    B    C
 
 import contextlib
 import json
-import os
 from collections import defaultdict
 from collections.abc import Hashable, Iterable, Iterator
 from collections.abc import Sequence as PySeq
