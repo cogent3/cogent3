@@ -9,18 +9,25 @@ import json
 import pathlib
 import re
 import types
-import typing
 import warnings
 from abc import ABC, abstractmethod
 from collections import Counter, defaultdict
 from collections.abc import Callable, Iterable, Iterator, Mapping
 from collections.abc import Sequence as PySeq
 from functools import singledispatch, singledispatchmethod
-from pathlib import Path
-from typing import Optional
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Generic,
+    Literal,
+    TypeVar,
+    cast,
+    overload,
+)
 
 import numba
 import numpy
+import numpy.typing as npt
 from typing_extensions import Self
 
 import cogent3
@@ -54,7 +61,7 @@ from cogent3.maths.stats.number import CategoryCounter
 from cogent3.util import progress_display as UI
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
-from cogent3.util.io import atomic_write, get_format_suffixes
+from cogent3.util.io import PathType, atomic_write, get_format_suffixes
 from cogent3.util.misc import (
     extend_docstring_from,
     get_object_provenance,
@@ -71,38 +78,24 @@ from cogent3.util.union_dict import UnionDict
 # both collections can indicate sequences that are reverse complemented
 # by providing their names to the reversed_seqs argument.
 
-if typing.TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.tree import PhyloNode
     from cogent3.evolve.fast_distance import DistanceMatrix
     from cogent3.maths.stats.contingency import TestResult
 
 
-OptInt = int | None
-OptFloat = float | None
-OptStr = str | None
-OptList = list | None
-OptIterStr = Iterable[str] | None
-PySeqStr = PySeq[str]
-OptPySeqStr = PySeqStr | None
-OptDict = dict | None
-OptBool = bool | None
-OptSliceRecord = c3_sequence.SliceRecord | None
-DictStrStr = dict[str, str]
-DictStrInt = dict[str, int]
-OptCallable = Callable | None
-OptRenamerCallable = Callable[[str], str] | None
-OptPathType = str | Path | None
-StrORArray = str | numpy.ndarray[int]
-StrORBytesORArray = str | bytes | numpy.ndarray[int]
-StrORBytesORArrayOrSeq = str | bytes | numpy.ndarray[int] | c3_sequence.Sequence
-MolTypes = c3_moltype.MolTypeLiteral | c3_moltype.MolType
+NumpyIntArrayType = npt.NDArray[numpy.integer]
+StrORArray = str | NumpyIntArrayType
+StrORBytesORArray = str | bytes | NumpyIntArrayType
+StrORBytesORArrayOrSeq = str | bytes | NumpyIntArrayType | c3_sequence.Sequence
+MolTypes = c3_moltype.MolTypeLiteral | c3_moltype.MolType[Any]
 
 # small number: 1-EPS is almost 1, and is used for things like the
 # default number of gaps to allow in a column.
 EPS = 1e-6
 
 
-def array_hash64(data: numpy.ndarray) -> str:
+def array_hash64(data: npt.NDArray[numpy.number]) -> str:
     """returns 64-bit hash of numpy array.
 
     Notes
@@ -117,7 +110,7 @@ def array_hash64(data: numpy.ndarray) -> str:
 class _SeqNamer:
     def __init__(
         self,
-        name_func: OptRenamerCallable = None,
+        name_func: Callable[[str], str] | None = None,
         base_name: str = "seq",
         start_at: int = 0,
     ) -> None:
@@ -125,7 +118,11 @@ class _SeqNamer:
         self._num = start_at
         self._name_func = name_func
 
-    def __call__(self, seq: StrORBytesORArray, name: OptStr = None) -> str:
+    def __call__(
+        self,
+        seq: str | bytes | NumpyIntArrayType | c3_sequence.Sequence,
+        name: str | None = None,
+    ) -> str:
         name = name or getattr(seq, "name", name)
 
         if not name:
@@ -139,9 +136,9 @@ class _SeqNamer:
 
 @numba.njit(cache=True)
 def _gap_ok_vector_single(
-    data: numpy.ndarray[numpy.uint8],
+    data: npt.NDArray[numpy.uint8],
     gap_index: int,
-    missing_index: int,
+    missing_index: int | None,
     num_allowed: int,
 ) -> bool:  # pragma: no cover
     """returns indicies for which the number of gaps & missing data is less than or equal to num_allowed"""
@@ -160,12 +157,12 @@ def _gap_ok_vector_single(
 
 @numba.njit(cache=True)
 def _gap_ok_vector_multi(
-    motifs: numpy.ndarray,
+    motifs: NumpyIntArrayType,
     gap_index: int,
-    missing_index: int,
+    missing_index: int | None,
     motif_length: int,
     num_allowed: int,
-) -> numpy.ndarray[bool]:  # pragma: no cover
+) -> bool:  # pragma: no cover
     """returns indicies for which the number of gaps & missing data in a vector of motifs is less than or equal to num_allowed"""
     num = 0
     for motif in motifs:
@@ -195,6 +192,26 @@ class SeqDataView(c3_sequence.SeqView):
 
     __slots__ = ("_parent_len", "_seqid", "_slice_record", "alphabet", "parent")
 
+    def __init__(
+        self,
+        *,
+        parent: SeqsData,
+        alphabet: c3_alphabet.CharAlphabet[Any],
+        parent_len: int,
+        seqid: str | None = None,
+        slice_record: c3_sequence.SliceRecordABC | None = None,
+        offset: int = 0,
+    ) -> None:
+        self.parent: SeqsData
+        super().__init__(
+            parent=parent,
+            alphabet=alphabet,
+            parent_len=parent_len,
+            seqid=seqid,
+            slice_record=slice_record,
+            offset=offset,
+        )
+
     @property
     def offset(self) -> int:
         """the annotation offset of this view"""
@@ -206,11 +223,11 @@ class SeqDataView(c3_sequence.SeqView):
         return self.alphabet.from_indices(self.array_value)
 
     @property
-    def array_value(self) -> numpy.ndarray:
+    def array_value(self) -> NumpyIntArrayType:
         """returns the sequence as a numpy array"""
         # we select the data using plus strand coords
         raw = self.parent.get_seq_array(
-            seqid=self.seqid,
+            seqid=cast("str", self.seqid),
             start=self.slice_record.plus_start,
             stop=self.slice_record.plus_stop,
             step=self.slice_record.plus_step,
@@ -237,7 +254,7 @@ class SeqDataView(c3_sequence.SeqView):
         """returns copy"""
         return self
 
-    def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
+    def to_rich_dict(self) -> dict[str, Any]:
         """returns a json serialisable dict.
 
         Notes
@@ -250,7 +267,10 @@ class SeqDataView(c3_sequence.SeqView):
         instead, it is intended for usage by an enclosing class.
         """
 
-        data = {"type": get_object_provenance(self), "version": __version__}
+        data: dict[str, Any] = {
+            "type": get_object_provenance(self),
+            "version": __version__,
+        }
         data["init_args"] = self._get_init_kwargs()
 
         if self.slice_record.is_reversed:
@@ -295,7 +315,7 @@ class SeqDataView(c3_sequence.SeqView):
         start = self.slice_record.parent_start
         stop = self.slice_record.parent_stop
         step = self.slice_record.step
-        return self.seqid, start + offset, stop + offset, step
+        return cast("str", self.seqid), start + offset, stop + offset, step
 
 
 class SeqsDataABC(ABC):
@@ -310,7 +330,7 @@ class SeqsDataABC(ABC):
         self,
         *,
         data: dict[str, StrORBytesORArray],
-        alphabet: c3_alphabet.AlphabetABC,
+        alphabet: c3_alphabet.AlphabetABC[Any],
         offset: dict[str, int] | None = None,
         check: bool = True,
         reversed_seqs: set[str] | None = None,
@@ -322,9 +342,9 @@ class SeqsDataABC(ABC):
         cls,
         *,
         data: dict[str, StrORBytesORArray],
-        alphabet: c3_alphabet.AlphabetABC,
-        **kwargs,
-    ): ...
+        alphabet: c3_alphabet.CharAlphabet[Any],
+        **kwargs: Any,
+    ) -> Self: ...
 
     @abstractmethod
     def __eq__(self, value: object) -> bool: ...
@@ -345,7 +365,7 @@ class SeqsDataABC(ABC):
 
     @property
     @abstractmethod
-    def alphabet(self) -> c3_alphabet.CharAlphabet: ...
+    def alphabet(self) -> c3_alphabet.CharAlphabet[Any]: ...
 
     @property
     @abstractmethod
@@ -356,17 +376,17 @@ class SeqsDataABC(ABC):
         self,
         *,
         seqid: str,
-        start: OptInt = None,
-        stop: OptInt = None,
-    ) -> numpy.ndarray: ...
+        start: int | None = None,
+        stop: int | None = None,
+    ) -> NumpyIntArrayType: ...
 
     @abstractmethod
     def get_seq_str(
         self,
         *,
         seqid: str,
-        start: OptInt = None,
-        stop: OptInt = None,
+        start: int | None = None,
+        stop: int | None = None,
     ) -> str: ...
 
     @abstractmethod
@@ -374,18 +394,23 @@ class SeqsDataABC(ABC):
         self,
         *,
         seqid: str,
-        start: OptInt = None,
-        stop: OptInt = None,
+        start: int | None = None,
+        stop: int | None = None,
     ) -> bytes: ...
 
     @abstractmethod
     def get_view(self, seqid: str) -> c3_sequence.SeqViewABC: ...
 
     @abstractmethod
-    def to_alphabet(self, alphabet: c3_alphabet.AlphabetABC) -> SeqsDataABC: ...
+    def to_alphabet(self, alphabet: c3_alphabet.AlphabetABC[Any]) -> Self: ...
 
     @abstractmethod
-    def add_seqs(self, seqs, **kwargs) -> SeqsDataABC: ...
+    def add_seqs(
+        self,
+        seqs: dict[str, StrORBytesORArray],
+        force_unique_keys: bool = True,
+        offset: dict[str, int] | None = None,
+    ) -> SeqsDataABC: ...
 
     @abstractmethod
     def __len__(self) -> int: ...
@@ -397,7 +422,7 @@ class SeqsDataABC(ABC):
     ) -> c3_sequence.Sequence | c3_sequence.SeqViewABC: ...
 
     @abstractmethod
-    def copy(self, **kwargs) -> SeqsDataABC: ...
+    def copy(self, **kwargs: Any) -> SeqsDataABC: ...
 
     @abstractmethod
     def get_hash(self, seqid: str) -> str | None: ...
@@ -422,7 +447,7 @@ class SeqsData(SeqsDataABC):
         self,
         *,
         data: dict[str, StrORBytesORArray],
-        alphabet: c3_alphabet.CharAlphabet,
+        alphabet: c3_alphabet.CharAlphabet[Any],
         offset: dict[str, int] | None = None,
         check: bool = True,
         reversed_seqs: set[str] | None = None,
@@ -459,7 +484,7 @@ class SeqsData(SeqsDataABC):
                 raise c3_alphabet.AlphabetError(
                     msg,
                 )
-        self._data: dict[str, numpy.ndarray] = {}
+        self._data: dict[str, NumpyIntArrayType] = {}
         self._hashes: dict[str, str] = {}
         for name, seq in data.items():
             arr = self._alphabet.to_indices(seq)
@@ -467,7 +492,7 @@ class SeqsData(SeqsDataABC):
             arr.flags.writeable = False
             self._data[str(name)] = arr
 
-    def __eq__(self, other: SeqsDataABC) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, self.__class__):
             return False
         for attr_name in ("_alphabet", "_offset"):
@@ -492,9 +517,9 @@ class SeqsData(SeqsDataABC):
         cls,
         *,
         data: dict[str, StrORBytesORArray],
-        alphabet: c3_alphabet.AlphabetABC,
-        **kwargs,
-    ):
+        alphabet: c3_alphabet.CharAlphabet[Any],
+        **kwargs: Any,
+    ) -> Self:
         return cls(data=data, alphabet=alphabet, **kwargs)
 
     @property
@@ -508,7 +533,7 @@ class SeqsData(SeqsDataABC):
         return self._reversed
 
     @property
-    def alphabet(self) -> c3_alphabet.CharAlphabet:
+    def alphabet(self) -> c3_alphabet.CharAlphabet[Any]:
         """the character alphabet for validating, encoding, decoding sequences"""
         return self._alphabet
 
@@ -525,10 +550,10 @@ class SeqsData(SeqsDataABC):
         self,
         *,
         seqid: str,
-        start: OptInt = None,
-        stop: OptInt = None,
-        step: OptInt = None,
-    ) -> numpy.ndarray:
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
+    ) -> NumpyIntArrayType:
         start = start or 0
         stop = stop if stop is not None else self.get_seq_length(seqid)
         step = step or 1
@@ -547,9 +572,9 @@ class SeqsData(SeqsDataABC):
         self,
         *,
         seqid: str,
-        start: OptInt = None,
-        stop: OptInt = None,
-        step: OptInt = None,
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
     ) -> str:
         return self._alphabet.from_indices(
             self.get_seq_array(seqid=seqid, start=start, stop=stop, step=step),
@@ -559,9 +584,9 @@ class SeqsData(SeqsDataABC):
         self,
         *,
         seqid: str,
-        start: OptInt = None,
-        stop: OptInt = None,
-        step: OptInt = None,
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
     ) -> bytes:
         return self.get_seq_str(seqid=seqid, start=start, stop=stop, step=step).encode(
             "utf8",
@@ -600,9 +625,9 @@ class SeqsData(SeqsDataABC):
 
     def to_alphabet(
         self,
-        alphabet: c3_alphabet.AlphabetABC,
+        alphabet: c3_alphabet.CharAlphabet[Any],
         check_valid: bool = True,
-    ) -> SeqsData:
+    ) -> Self:
         if (
             len(self.alphabet) == len(alphabet)
             and len(
@@ -636,27 +661,23 @@ class SeqsData(SeqsDataABC):
     def __len__(self) -> int:
         return len(self.names)
 
-    @singledispatchmethod
     def __getitem__(self, index: str | int) -> c3_sequence.SeqViewABC:
+        if isinstance(index, int):
+            return self[self.names[index]]
+        if isinstance(index, str):
+            return self.get_view(seqid=index)
+
         msg = f"__getitem__ not implemented for {type(index)}"
         raise NotImplementedError(msg)
 
-    @__getitem__.register
-    def _(self, index: str) -> c3_sequence.SeqViewABC:
-        return self.get_view(seqid=index)
-
-    @__getitem__.register
-    def _(self, index: int) -> c3_sequence.SeqViewABC:
-        return self[self.names[index]]
-
-    def copy(self, **kwargs) -> Self:
+    def copy(self, **kwargs: Any) -> Self:
         """shallow copy of self
 
         Notes
         -----
         kwargs are passed to constructor and will over-ride existing values
         """
-        init_args = {
+        init_args: dict[str, Any] = {
             "data": self._data,
             "alphabet": self._alphabet,
             "offset": self._offset,
@@ -682,11 +703,11 @@ class SequenceCollection(AnnotatableMixin):
         self,
         *,
         seqs_data: SeqsDataABC,
-        moltype: c3_moltype.MolType,
+        moltype: c3_moltype.MolType[Any],
         info: dict | InfoClass | None = None,
-        source: OptPathType = None,
+        source: PathType | None = None,
         annotation_db: SupportsFeatures | None = None,
-        name_map: OptDict = None,
+        name_map: dict[str, str] | None = None,
         is_reversed: bool = False,
     ) -> None:
         """
@@ -718,7 +739,7 @@ class SequenceCollection(AnnotatableMixin):
             info = InfoClass(info) if info else InfoClass()
         self.info = info
         self.source = source
-        self._repr_policy = {
+        self._repr_policy: dict[str, Any] = {
             "num_seqs": 10,
             "num_pos": 60,
             "ref_name": "longest",
@@ -727,17 +748,17 @@ class SequenceCollection(AnnotatableMixin):
         self._annotation_db: list[SupportsFeatures] = self._init_annot_db_value(
             annotation_db
         )
-        self._seqs = None
+        self._seqs: _IndexableSeqs[Any]
         self._post_init()
 
     def _post_init(self) -> None:
         # override in subclasses
         self._seqs = _IndexableSeqs(self, make_seq=self._make_seq)
 
-    def __getstate__(self) -> dict:
+    def __getstate__(self) -> dict[str, Any]:
         return self._get_init_kwargs()
 
-    def __setstate__(self, state: dict) -> None:
+    def __setstate__(self, state: dict[str, Any]) -> None:
         state["name_map"] = types.MappingProxyType(state.pop("name_map"))
         obj = self.__class__(**state)
 
@@ -750,13 +771,13 @@ class SequenceCollection(AnnotatableMixin):
         sv = self._seqs_data.get_view(seqid)
         if self._is_reversed:
             sv = sv[::-1]
-        return self.moltype.make_seq(
+        return self.moltype.make_sequence(
             seq=sv,
             name=name,
             annotation_db=self._annotation_db,
         )
 
-    def _get_init_kwargs(self) -> dict:
+    def _get_init_kwargs(self) -> dict[str, Any]:
         """dict of all the arguments needed to initialise a new instance"""
         # both SequenceCollection and Alignment implement _get_init_kwargs,
         # ensuring methods in SequenceCollection that are inherited by Alignment
@@ -795,7 +816,7 @@ class SequenceCollection(AnnotatableMixin):
         )
 
     @property
-    def seqs(self) -> _IndexableSeqs:
+    def seqs(self) -> _IndexableSeqs[Any]:
         """iterable of sequences in the collection
 
         Notes
@@ -816,7 +837,7 @@ class SequenceCollection(AnnotatableMixin):
         return tuple(self._name_map.keys())
 
     @property
-    def name_map(self) -> types.MappingProxyType:
+    def name_map(self) -> types.MappingProxyType[str, str]:
         """returns mapping of seq names to parent seq names
 
         Notes
@@ -830,7 +851,7 @@ class SequenceCollection(AnnotatableMixin):
         return self._name_map
 
     @name_map.setter
-    def name_map(self, value: OptDict) -> None:  # noqa: ARG002
+    def name_map(self, value: dict | None) -> None:  # noqa: ARG002
         """name_map can only be set at initialisation"""
         msg = "name_map cannot be set after initialisation"
         raise TypeError(msg)
@@ -842,7 +863,7 @@ class SequenceCollection(AnnotatableMixin):
 
     def iter_seqs(
         self,
-        seq_order: OptList = None,
+        seq_order: list[str | int] | None = None,
     ) -> Iterator[c3_sequence.Sequence | c3_sequence.SeqViewABC]:
         """Iterates over sequences in the collection, in order.
 
@@ -860,10 +881,10 @@ class SequenceCollection(AnnotatableMixin):
 
     def take_seqs(
         self,
-        names: str | typing.Sequence[str],
+        names: str | PySeq[str],
         negate: bool = False,
         copy_annotations: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ) -> Self:
         """Returns new collection containing only specified seqs.
 
@@ -1046,7 +1067,7 @@ class SequenceCollection(AnnotatableMixin):
         The resulting object stores the mapping of new to old names in
         self.name_map.
         """
-        new_name_map = {}
+        new_name_map: dict[str, str] = {}
         for name, parent_name in self._name_map.items():
             new_name = renamer(name)
             # we retain the parent_name when it differs from the name,
@@ -1063,7 +1084,14 @@ class SequenceCollection(AnnotatableMixin):
 
         return self.__class__(**init_args)
 
-    def to_dict(self, as_array: bool = False) -> dict[str, str | numpy.ndarray]:
+    @overload
+    def to_dict(self, as_array: Literal[False]) -> dict[str, str]: ...
+    @overload
+    def to_dict(self, as_array: Literal[True]) -> dict[str, NumpyIntArrayType]: ...
+
+    def to_dict(
+        self, as_array: bool = False
+    ) -> dict[str, str] | dict[str, NumpyIntArrayType]:
         """Return a dictionary of sequences.
 
         Parameters
@@ -1071,7 +1099,10 @@ class SequenceCollection(AnnotatableMixin):
         as_array
             if True, sequences are returned as numpy arrays, otherwise as strings
         """
-        return {s.name: (numpy.array(s) if as_array else str(s)) for s in self.seqs}
+
+        if as_array:
+            return {cast("str", s.name): numpy.array(s) for s in self.seqs}
+        return {cast("str", s.name): str(s) for s in self.seqs}
 
     def to_rich_dict(self) -> dict[str, str | dict[str, str]]:
         """returns a json serialisable dict
@@ -1091,7 +1122,7 @@ class SequenceCollection(AnnotatableMixin):
         )  # no need for offset if we dont have an annotation_db
         kwargs.pop("seqs_data", None)  # we serialise the seqs_data directly
 
-        data = {
+        data: dict[str, Any] = {
             "init_args": kwargs,
             "type": get_object_provenance(self),
             "version": __version__,
@@ -1388,7 +1419,7 @@ class SequenceCollection(AnnotatableMixin):
         biotype: str,
         name: str,
         spans: list[tuple[int, int]],
-        parent_id: OptStr = None,
+        parent_id: str | None = None,
         strand: str | int = "+",
     ) -> Feature[Alignment]:
         """
@@ -1428,10 +1459,10 @@ class SequenceCollection(AnnotatableMixin):
         self,
         *,
         seqid: str | Iterator[str] | None = None,
-        biotype: OptStr = None,
-        name: OptStr = None,
-        start: OptInt = None,
-        stop: OptInt = None,
+        biotype: str | None = None,
+        name: str | None = None,
+        start: int | None = None,
+        stop: int | None = None,
         allow_partial: bool = False,
         **kwargs,
     ) -> Iterator[Feature[Alignment]]:
@@ -1498,7 +1529,7 @@ class SequenceCollection(AnnotatableMixin):
         fasta = cogent3._plugin.get_seq_format_writer_plugin(format_name="fasta")  # noqa: SLF001
         return fasta.formatted(self, block_size=block_size)
 
-    def write(self, filename: str, format_name: OptStr = None, **kwargs) -> None:
+    def write(self, filename: str, format_name: str | None = None, **kwargs) -> None:
         """Write the sequences to a file, preserving order of sequences.
 
         Parameters
@@ -1536,14 +1567,14 @@ class SequenceCollection(AnnotatableMixin):
 
     def dotplot(
         self,
-        name1: OptStr = None,
-        name2: OptStr = None,
+        name1: str | None = None,
+        name2: str | None = None,
         window: int = 20,
-        threshold: OptInt = None,
-        k: OptInt = None,
+        threshold: int | None = None,
+        k: int | None = None,
         min_gap: int = 0,
         width: int = 500,
-        title: OptStr = None,
+        title: str | None = None,
         rc: bool = False,
         biotype: str | tuple[str] | None = None,
         show_progress: bool = False,
@@ -1652,10 +1683,10 @@ class SequenceCollection(AnnotatableMixin):
     def apply_pssm(
         self,
         pssm: PSSM = None,
-        path: OptStr = None,
+        path: str | None = None,
         background: numpy.ndarray = None,
         pseudocount: int = 0,
-        names: OptList = None,
+        names: list | None = None,
         ui=None,
     ) -> numpy.array:  # refactor: design: move to rich for progress bars?
         """scores sequences using the specified pssm
@@ -2004,7 +2035,7 @@ class SequenceCollection(AnnotatableMixin):
         )
         return counts.row_sum()
 
-    def pad_seqs(self, pad_length: OptInt = None):
+    def pad_seqs(self, pad_length: int | None = None):
         """Returns copy in which sequences are padded with the gap character to same length.
 
         Parameters
@@ -2284,9 +2315,9 @@ class SequenceCollection(AnnotatableMixin):
 
     def to_html(
         self,
-        name_order: typing.Sequence[str] | None = None,
+        name_order: PySeq[str] | None = None,
         wrap: int = 60,
-        limit: OptInt = None,
+        limit: int | None = None,
         colors: Mapping[str, str] | None = None,
         font_size: int = 12,
         font_family: str = "Lucida Console",
@@ -2423,10 +2454,10 @@ class SequenceCollection(AnnotatableMixin):
 
     def set_repr_policy(
         self,
-        num_seqs: OptInt = None,
-        num_pos: OptInt = None,
-        ref_name: OptInt = None,
-        wrap: OptInt = None,
+        num_seqs: int | None = None,
+        num_pos: int | None = None,
+        ref_name: int | None = None,
+        wrap: int | None = None,
     ) -> None:
         """specify policy for repr(self)
 
@@ -2572,18 +2603,17 @@ def _(seqs: dict) -> SupportsFeatures:
 
 @dataclasses.dataclass
 class raw_seq_data:
-    seq: bytes | numpy.ndarray[int]
-    name: OptStr = None
-    parent_name: OptStr = None
+    seq: bytes | NumpyIntArrayType
+    name: str | None = None
+    parent_name: str | None = None
     offset: int = 0
     is_reversed: bool = False
 
 
-@singledispatch
 def coerce_to_raw_seq_data(
-    seq: StrORBytesORArrayOrSeq,
+    seq: str | bytes | NumpyIntArrayType | c3_sequence.Sequence | Aligned,
     moltype: MolTypes,
-    name: OptStr = None,
+    name: str | None = None,
 ) -> raw_seq_data:
     """aggregates sequence data into a single object
 
@@ -2604,69 +2634,42 @@ def coerce_to_raw_seq_data(
     if isinstance(seq, Aligned):
         # convert the Aligned instance
         # into a Sequence instance that includes the gaps
-        return coerce_to_raw_seq_data(seq.gapped_seq, moltype, name)
+        seq = seq.gapped_seq
+    if isinstance(seq, str):
+        seq = seq.encode("utf8")
+
+    if isinstance(seq, numpy.ndarray):
+        return raw_seq_data(seq=seq, name=name)
+
+    if isinstance(seq, bytes):
+        # converts the sequence to a upper case bytes, and applies
+        # moltype coercion if needed (e.g. RNA to DNA replaces U with T)
+        seq = seq.upper()
+        seq = moltype.coerce_to(seq) if moltype.coerce_to else seq
+        return raw_seq_data(seq=seq, name=name)
+
+    if isinstance(seq, c3_sequence.Sequence):
+        # converts the sequence to a numpy array
+        seq = seq.to_moltype(moltype)
+        parent_name, start, _, step = seq.parent_coordinates()
+        raw_seq = numpy.array(seq)
+        return raw_seq_data(
+            seq=raw_seq,
+            name=name or seq.name,
+            parent_name=parent_name,
+            offset=start,
+            is_reversed=step < 0,
+        )
+
     msg = f"coerce_to_seq_data not implemented for {type(seq)}"
     raise TypeError(msg)
 
 
-@coerce_to_raw_seq_data.register
-def _(
-    seq: c3_sequence.Sequence,
-    moltype: MolTypes,
-    name: str,
-) -> raw_seq_data:
-    # converts the sequence to a numpy array
-    seq = seq.to_moltype(moltype)
-    parent_name, start, _, step = seq.parent_coordinates()
-    raw_seq = numpy.array(seq)
-    return raw_seq_data(
-        seq=raw_seq,
-        name=name or seq.name,
-        parent_name=parent_name,
-        offset=start,
-        is_reversed=step < 0,
-    )
-
-
-@coerce_to_raw_seq_data.register
-def _(
-    seq: str,
-    moltype: MolTypes,
-    name: OptStr = None,
-) -> raw_seq_data:
-    return coerce_to_raw_seq_data(seq.encode("utf8"), moltype, name)
-
-
-@coerce_to_raw_seq_data.register
-def _(
-    seq: numpy.ndarray,
-    moltype: MolTypes,
-    name: OptStr = None,
-) -> raw_seq_data:
-    return raw_seq_data(seq=seq, name=name)
-
-
-@coerce_to_raw_seq_data.register
-def _(
-    seq: bytes,
-    moltype: MolTypes,
-    name: OptStr = None,
-) -> raw_seq_data:
-    # converts the sequence to a upper case bytes, and applies
-    # moltype coercion if needed (e.g. RNA to DNA replaces U with T)
-    seq = seq.upper()
-    seq = moltype.coerce_to(seq) if moltype.coerce_to else seq
-    return raw_seq_data(seq=seq, name=name)
-
-
-CT = tuple[dict[str, StrORBytesORArray], dict[str, int], set[str]]
-
-
 def prep_for_seqs_data(
-    data: dict[str, StrORBytesORArrayOrSeq],
+    data: Mapping[str, str | bytes | NumpyIntArrayType | c3_sequence.Sequence],
     moltype: MolTypes,
     seq_namer: _SeqNamer,
-) -> CT:
+) -> tuple[dict[str, bytes | NumpyIntArrayType], dict[str, int], set[str]]:
     """normalises input data for constructing a SeqsData object
 
     Parameters
@@ -2684,24 +2687,26 @@ def prep_for_seqs_data(
     seq data as dict[str, bytes | numpy.ndarray], offsets as dict[str, int],
     reversed sequences as set[str], name_map as dict[str, str]
     """
-    seqs = {}  # for the (Aligned)SeqsDataABC
-    offsets = {}  # for the (Aligned)SeqsDataABC
-    rvd = set()
+    seqs: dict[str, bytes | NumpyIntArrayType] = {}  # for the (Aligned)SeqsDataABC
+    offsets: dict[str, int] = {}  # for the (Aligned)SeqsDataABC
+    rvd: set[str] = set()
     for name, seq in data.items():
         name = seq_namer(seq=seq, name=name)  # noqa: PLW2901
         seq_data = coerce_to_raw_seq_data(seq, moltype, name=name)
         if seq_data.offset:
             offsets[seq_data.parent_name or name] = seq_data.offset
-        seqs[seq_data.parent_name or seq_data.name] = seq_data.seq
+        seqs[cast("str", seq_data.parent_name or seq_data.name)] = seq_data.seq
         if seq_data.is_reversed:
             rvd.add(name)
 
     return seqs, offsets, rvd
 
 
-@singledispatch
 def _make_name_seq_mapping(
-    data: typing.Sequence[StrORBytesORArrayOrSeq],
+    data: PySeq[str | bytes | NumpyIntArrayType | c3_sequence.Sequence]
+    | dict[str, str | bytes | NumpyIntArrayType | c3_sequence.Sequence]
+    | set[str | bytes | NumpyIntArrayType | c3_sequence.Sequence]
+    | SequenceCollection,
     seq_namer: _SeqNamer,
 ) -> dict[str, StrORBytesORArrayOrSeq]:
     """returns a dict mapping names to sequences
@@ -2714,48 +2719,28 @@ def _make_name_seq_mapping(
         callback that takes the sequence and optionally a name and
         returns a new name
     """
+    if isinstance(data, dict):
+        return {seq_namer(seq=seq, name=name): seq for name, seq in data.items()}
+
+    if isinstance(data, (tuple, set)):
+        data = list(data)
+
+    if isinstance(data, list):
+        if isinstance(data[0], (list, tuple)):
+            # handle case where we've been given data like
+            # for example [[name, seq], ...]
+            with contextlib.suppress(ValueError):
+                return _make_name_seq_mapping(dict(data), seq_namer)
+        return {seq_namer(seq=record): record for record in data}
+
     if not hasattr(data, "seqs"):
         msg = f"_make_name_seq_mapping not implemented for {type(data)}"
         raise NotImplementedError(msg)
 
-    return {seq_namer(seq=record): record for record in data.seqs}
-
-
-@_make_name_seq_mapping.register
-def _(
-    data: dict,
-    seq_namer: _SeqNamer,
-) -> dict[str, StrORBytesORArray]:
-    return {seq_namer(seq=seq, name=name): seq for name, seq in data.items()}
-
-
-@_make_name_seq_mapping.register
-def _(
-    data: list,
-    seq_namer: _SeqNamer,
-) -> dict[str, StrORBytesORArray]:
-    if isinstance(data[0], (list, tuple)):
-        # handle case where we've been given data like
-        # for example [[name, seq], ...]
-        with contextlib.suppress(ValueError):
-            return _make_name_seq_mapping(dict(data), seq_namer)
-    return {seq_namer(seq=record): record for record in data}
-
-
-@_make_name_seq_mapping.register
-def _(
-    data: tuple,
-    seq_namer: _SeqNamer,
-) -> dict[str, StrORBytesORArray]:
-    return _make_name_seq_mapping(list(data), seq_namer)
-
-
-@_make_name_seq_mapping.register
-def _(
-    data: set,
-    seq_namer: _SeqNamer,
-) -> dict[str, StrORBytesORArray]:
-    return _make_name_seq_mapping(list(data), seq_namer)
+    return {
+        seq_namer(seq=record): record
+        for record in cast("SequenceCollection", data).seqs
+    }
 
 
 def _seqname_parent_name(
@@ -2794,15 +2779,15 @@ def make_name_map(data: dict[str, StrORBytesORArray]) -> dict[str, str]:
 
 
 def make_unaligned_storage(
-    data: dict[str, bytes | numpy.ndarray[int]],
+    data: dict[str, bytes | NumpyIntArrayType],
     *,
     moltype: MolTypes,
-    label_to_name: OptRenamerCallable = None,
-    offset: DictStrInt | None = None,
+    label_to_name: Callable[[str], str] | None = None,
+    offset: dict[str, int] | None = None,
     reversed_seqs: set[str] | None = None,
     storage_backend: str | None = None,
-    **kwargs,
-) -> SeqsData:
+    **kwargs: Any,
+) -> SeqsDataABC:
     """makes the unaligned storage instance for a SequenceCollection
 
     Parameters
@@ -2839,14 +2824,17 @@ def make_unaligned_storage(
     # seqs_data keys should be the same as the value of name_map
     # name_map keys correspond to names in the sequence collection
     # name_map values correspond to names in seqs_data
-    sd_kwargs = {
+    sd_kwargs: dict[str, Any] = {
         "data": seqs_data,
         "alphabet": alphabet,
         "offset": offset,
         "reversed_seqs": reversed_seqs or rvd,
         **kwargs,
     }
-    klass = cogent3._plugin.get_unaligned_storage_driver(storage_backend)  # noqa: SLF001
+    klass = cast(
+        "SeqsDataABC",
+        cogent3._plugin.get_unaligned_storage_driver(storage_backend),  # noqa: SLF001
+    )
     return klass.from_seqs(**sd_kwargs)
 
 
@@ -2855,12 +2843,12 @@ def make_unaligned_seqs(
     data: dict[str, StrORBytesORArray] | list | SeqsDataABC,
     *,
     moltype: MolTypes,
-    label_to_name: OptRenamerCallable = None,
-    info: OptDict = None,
-    source: OptPathType = None,
+    label_to_name: Callable[[str], str] | None = None,
+    info: dict | None = None,
+    source: PathType | None = None,
     annotation_db: SupportsFeatures | None = None,
-    offset: DictStrInt | None = None,
-    name_map: DictStrStr | None = None,
+    offset: dict[str, int] | None = None,
+    name_map: dict[str, str] | None = None,
     is_reversed: bool = False,
     reversed_seqs: set[str] | None = None,
     storage_backend: str | None = None,
@@ -2908,6 +2896,34 @@ def make_unaligned_seqs(
     # refactor: design
     # rename offset to offsets as it could track potentially multiple offsets
 
+    if isinstance(data, SeqsDataABC):
+        moltype = c3_moltype.get_moltype(moltype)
+        if not moltype.is_compatible_alphabet(data.alphabet):
+            msg = f"Provided moltype: {moltype} is not compatible with SeqsData alphabet {data.alphabet}"
+            raise ValueError(
+                msg,
+            )
+
+        # we cannot set offset when creating from an SeqsData
+        if offset:
+            msg = f"Setting offset is not supported for {data=}"
+            raise ValueError(msg)
+
+        info = info if isinstance(info, dict) else {}
+        source = str(source) if source else str(info.pop("source", "unknown"))
+        seqs = SequenceCollection(
+            seqs_data=data,
+            moltype=moltype,
+            info=info,
+            annotation_db=annotation_db,
+            source=source,
+            name_map=name_map,
+            is_reversed=is_reversed,
+        )
+        if label_to_name:
+            seqs = seqs.rename_seqs(label_to_name)
+        return seqs
+
     if len(data) == 0:
         msg = "data must be at least one sequence."
         raise ValueError(msg)
@@ -2944,50 +2960,9 @@ def make_unaligned_seqs(
     )
 
 
-@make_unaligned_seqs.register
-def _(
-    data: SeqsDataABC,
-    *,
-    moltype: MolTypes,
-    label_to_name: OptRenamerCallable = None,
-    info: dict | None = None,
-    source: OptPathType = None,
-    annotation_db: SupportsFeatures = None,
-    offset: dict[str, int] | None = None,
-    name_map: dict[str, str] | None = None,
-    is_reversed: bool = False,
-) -> SequenceCollection:
-    moltype = c3_moltype.get_moltype(moltype)
-    if not moltype.is_compatible_alphabet(data.alphabet):
-        msg = f"Provided moltype: {moltype} is not compatible with SeqsData alphabet {data.alphabet}"
-        raise ValueError(
-            msg,
-        )
-
-    # we cannot set offset when creating from an SeqsData
-    if offset:
-        msg = f"Setting offset is not supported for {data=}"
-        raise ValueError(msg)
-
-    info = info if isinstance(info, dict) else {}
-    source = str(source) if source else str(info.pop("source", "unknown"))
-    seqs = SequenceCollection(
-        seqs_data=data,
-        moltype=moltype,
-        info=info,
-        annotation_db=annotation_db,
-        source=source,
-        name_map=name_map,
-        is_reversed=is_reversed,
-    )
-    if label_to_name:
-        seqs = seqs.rename_seqs(label_to_name)
-    return seqs
-
-
 @singledispatch
 def decompose_gapped_seq(
-    seq: typing.union[StrORBytesORArray, c3_sequence.Sequence],
+    seq: StrORBytesORArray | c3_sequence.Sequence,
     *,
     alphabet: c3_alphabet.AlphabetABC,
     missing_as_gap: bool = True,
@@ -3188,7 +3163,7 @@ class Aligned(AnnotatableMixin):
         self,
         data: AlignedDataView,
         moltype: c3_moltype.MolType,
-        name: OptStr = None,
+        name: str | None = None,
         annotation_db: SupportsFeatures | list[SupportsFeatures] | None = None,
     ) -> None:
         self._data = data
@@ -3314,7 +3289,7 @@ class Aligned(AnnotatableMixin):
         self,
         dtype: numpy.dtype | None = None,
         copy: bool | None = None,
-    ) -> numpy.ndarray[int]:
+    ) -> NumpyIntArrayType:
         return numpy.array(self.gapped_seq, dtype=dtype)
 
     def __bytes__(self) -> bytes:
@@ -3434,13 +3409,13 @@ class AlignedSeqsDataABC(SeqsDataABC):
     def __init__(
         self,
         *,
-        gapped_seqs: numpy.ndarray,
+        gapped_seqs: NumpyIntArrayType,
         names: tuple[str],
         alphabet: c3_alphabet.AlphabetABC,
-        ungapped_seqs: dict[str, numpy.ndarray] | None = None,
+        ungapped_seqs: dict[str, NumpyIntArrayType] | None = None,
         gaps: dict[str, numpy.ndarray] | None = None,
-        offset: DictStrInt | None = None,
-        align_len: OptInt = None,
+        offset: dict[str, int] | None = None,
+        align_len: int | None = None,
         check: bool = True,
         reversed_seqs: set[str] | None = None,
     ) -> None: ...
@@ -3474,19 +3449,19 @@ class AlignedSeqsDataABC(SeqsDataABC):
         self,
         *,
         seqid: str,
-        start: OptInt = None,
-        stop: OptInt = None,
-        step: OptInt = None,
-    ) -> numpy.ndarray: ...
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
+    ) -> NumpyIntArrayType: ...
 
     @abstractmethod
     def get_seq_str(
         self,
         *,
         seqid: str,
-        start: OptInt = None,
-        stop: OptInt = None,
-        step: OptInt = None,
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
     ) -> str: ...
 
     @abstractmethod
@@ -3494,9 +3469,9 @@ class AlignedSeqsDataABC(SeqsDataABC):
         self,
         *,
         seqid: str,
-        start: OptInt = None,
-        stop: OptInt = None,
-        step: OptInt = None,
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
     ) -> bytes: ...
 
     @abstractmethod
@@ -3504,9 +3479,9 @@ class AlignedSeqsDataABC(SeqsDataABC):
         self,
         *,
         seqid: str,
-        start: OptInt = None,
-        stop: OptInt = None,
-        step: OptInt = None,
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
     ) -> numpy.ndarray: ...
 
     @abstractmethod
@@ -3514,9 +3489,9 @@ class AlignedSeqsDataABC(SeqsDataABC):
         self,
         *,
         seqid: str,
-        start: OptInt = None,
-        stop: OptInt = None,
-        step: OptInt = None,
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
     ) -> str: ...
 
     @abstractmethod
@@ -3524,18 +3499,18 @@ class AlignedSeqsDataABC(SeqsDataABC):
         self,
         *,
         seqid: str,
-        start: OptInt = None,
-        stop: OptInt = None,
-        step: OptInt = None,
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
     ) -> bytes: ...
 
     @abstractmethod
     def get_ungapped(
         self,
         name_map: dict[str, str],
-        start: OptInt = None,
-        stop: OptInt = None,
-        step: OptInt = None,
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
     ) -> tuple[dict, dict]:
         """
         Returns a dictionary of sequence data with no gaps or missing characters and
@@ -3569,17 +3544,17 @@ class AlignedSeqsDataABC(SeqsDataABC):
     @abstractmethod
     def get_pos_range(
         self,
-        names: PySeqStr,
-        start: OptInt = None,
-        stop: OptInt = None,
-        step: OptInt = None,
+        names: PySeq[str],
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
     ) -> numpy.ndarray: ...
 
     @abstractmethod
     def get_positions(
         self,
-        names: PySeqStr,
-        positions: typing.Sequence[int] | numpy.ndarray[numpy.integer],
+        names: PySeq[str],
+        positions: PySeq[int] | numpy.ndarray[numpy.integer],
     ) -> numpy.ndarray: ...
 
     @abstractmethod
@@ -3588,10 +3563,10 @@ class AlignedSeqsDataABC(SeqsDataABC):
     @abstractmethod
     def variable_positions(
         self,
-        names: PySeqStr,
-        start: OptInt = None,
-        stop: OptInt = None,
-        step: OptInt = None,
+        names: PySeq[str],
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
     ) -> numpy.ndarray: ...
 
 
@@ -3644,13 +3619,13 @@ class AlignedSeqsData(AlignedSeqsDataABC):
     def __init__(
         self,
         *,
-        gapped_seqs: numpy.ndarray,
+        gapped_seqs: NumpyIntArrayType,
         names: tuple[str],
         alphabet: c3_alphabet.CharAlphabet,
-        ungapped_seqs: dict[str, numpy.ndarray] | None = None,
+        ungapped_seqs: dict[str, NumpyIntArrayType] | None = None,
         gaps: dict[str, numpy.ndarray] | None = None,
-        offset: DictStrInt | None = None,
-        align_len: OptInt = None,
+        offset: dict[str, int] | None = None,
+        align_len: int | None = None,
         check: bool = True,
         reversed_seqs: set[str] | None = None,
     ) -> None:
@@ -3738,7 +3713,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         *,
         data: dict[str, StrORArray],
         alphabet: c3_alphabet.AlphabetABC,
-        **kwargs,
+        **kwargs: Any,
     ) -> Self:
         """Construct an AlignedSeqsData object from a dict of aligned sequences
 
@@ -3778,7 +3753,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         seqs: dict[str, StrORBytesORArray],
         gaps: dict[str, numpy.ndarray],
         alphabet: c3_alphabet.AlphabetABC,
-        **kwargs,
+        **kwargs: Any,
     ) -> Self:
         """Construct an AlignedSeqsData object from a dict of ungapped sequences
         and a corresponding dict of gap data.
@@ -3922,7 +3897,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             self._make_gaps_and_ungapped(seqid)
         return self._gaps[seqid]
 
-    def _get_ungapped(self, seqid: str) -> numpy.ndarray:
+    def _get_ungapped(self, seqid: str) -> NumpyIntArrayType:
         if seqid not in self._ungapped:
             self._make_gaps_and_ungapped(seqid)
         return self._ungapped[seqid]
@@ -3948,10 +3923,10 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         self,
         *,
         seqid: str,
-        start: OptInt = None,
-        stop: OptInt = None,
-        step: OptInt = None,
-    ) -> numpy.ndarray:
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
+    ) -> NumpyIntArrayType:
         """Return ungapped sequence corresponding to seqid as an array of indices.
 
         Notes
@@ -3980,9 +3955,9 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         self,
         *,
         seqid: str,
-        start: OptInt = None,
-        stop: OptInt = None,
-        step: OptInt = None,
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
     ) -> numpy.ndarray:
         """Return sequence data corresponding to seqid as an array of indices.
         start/stop are in alignment coordinates. Includes gaps.
@@ -4005,9 +3980,9 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         self,
         *,
         seqid: str,
-        start: OptInt = None,
-        stop: OptInt = None,
-        step: OptInt = None,
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
     ) -> str:
         """Return ungapped sequence corresponding to seqid as a string.
         start/stop are in sequence coordinates. Excludes gaps."""
@@ -4019,9 +3994,9 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         self,
         *,
         seqid: str,
-        start: OptInt = None,
-        stop: OptInt = None,
-        step: OptInt = None,
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
     ) -> str:
         """Return sequence corresponding to seqid as a string.
         start/stop are in alignment coordinates. Includes gaps."""
@@ -4033,9 +4008,9 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         self,
         *,
         seqid: str,
-        start: OptInt = None,
-        stop: OptInt = None,
-        step: OptInt = None,
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
     ) -> bytes:
         """Return ungapped sequence corresponding to seqid as a bytes string.
         start/stop are in sequence coordinates. Excludes gaps."""
@@ -4047,9 +4022,9 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         self,
         *,
         seqid: str,
-        start: OptInt = None,
-        stop: OptInt = None,
-        step: OptInt = None,
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
     ) -> bytes:
         """Return sequence corresponding to seqid as a bytes string.
         start/stop are in alignment coordinates. Includes gaps."""
@@ -4064,9 +4039,9 @@ class AlignedSeqsData(AlignedSeqsDataABC):
     def get_ungapped(
         self,
         name_map: dict[str, str],
-        start: OptInt = None,
-        stop: OptInt = None,
-        step: OptInt = None,
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
     ) -> tuple[dict, dict]:
         # redesign
         # if gaps exist, don't go via gapped seq
@@ -4198,11 +4173,11 @@ class AlignedSeqsData(AlignedSeqsDataABC):
 
     def get_pos_range(
         self,
-        names: PySeqStr,
-        start: OptInt = None,
-        stop: OptInt = None,
-        step: OptInt = None,
-    ) -> numpy.ndarray:
+        names: PySeq[str],
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
+    ) -> NumpyIntArrayType:
         """returns an array of the selected positions for names."""
         start = start or 0
         stop = stop or self.align_len
@@ -4221,8 +4196,8 @@ class AlignedSeqsData(AlignedSeqsDataABC):
 
     def get_positions(
         self,
-        names: PySeqStr,
-        positions: typing.Sequence[int] | numpy.ndarray[numpy.integer],
+        names: PySeq[str],
+        positions: PySeq[int] | numpy.ndarray[numpy.integer],
     ) -> numpy.ndarray[numpy.uint8]:
         """returns alignment positions for names
 
@@ -4278,10 +4253,10 @@ class AlignedSeqsData(AlignedSeqsDataABC):
 
     def variable_positions(
         self,
-        names: PySeqStr,
-        start: OptInt = None,
-        stop: OptInt = None,
-        step: OptInt = None,
+        names: PySeq[str],
+        start: int | None = None,
+        stop: int | None = None,
+        step: int | None = None,
     ) -> numpy.ndarray:
         """returns absolute indices of positions that have more than one state
 
@@ -4374,7 +4349,7 @@ class AlignedDataView(c3_sequence.SeqViewABC):
         parent: AlignedSeqsDataABC,
         seqid: str,
         alphabet: c3_alphabet.AlphabetABC,
-        slice_record: OptSliceRecord = None,
+        slice_record: c3_sequence.SliceRecord | None = None,
     ) -> None:
         self.parent = parent
         self._seqid = seqid
@@ -4623,13 +4598,16 @@ def make_gap_filter(template, gap_fraction, gap_run):
     return result
 
 
-class _IndexableSeqs:
+SequenceOrAligned = TypeVar("SequenceOrAligned", c3_sequence.Sequence, Aligned)
+
+
+class _IndexableSeqs(Generic[SequenceOrAligned]):
     """container that is created by SequenceCollection and Alignment instances"""
 
     def __init__(
         self,
         parent: SequenceCollection | Alignment,
-        make_seq: typing.Callable[[str], c3_sequence.Sequence | Aligned],
+        make_seq: Callable[[str], SequenceOrAligned],
     ) -> None:
         """
         Parameters
@@ -4642,21 +4620,18 @@ class _IndexableSeqs:
         self.parent = parent
         self._make_seq = make_seq
 
-    @singledispatchmethod
     def __getitem__(
         self,
         key: str | int | slice,
-    ) -> c3_sequence.Sequence | Aligned:
+    ) -> SequenceOrAligned:
+        if isinstance(key, int):
+            key = self.parent.names[key]
+
+        if isinstance(key, str):
+            return self._make_seq(key)
+
         msg = f"indexing not supported for {type(key)}, try .take_seqs()"
         raise TypeError(msg)
-
-    @__getitem__.register
-    def _(self, key: int) -> c3_sequence.Sequence | Aligned:
-        return self[self.parent.names[key]]
-
-    @__getitem__.register
-    def _(self, key: str) -> c3_sequence.Sequence | Aligned:
-        return self._make_seq(key)
 
     def __repr__(self) -> str:
         one_seq = self[self.parent.names[0]]
@@ -4665,7 +4640,7 @@ class _IndexableSeqs:
     def __len__(self) -> int:
         return self.parent.num_seqs
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[SequenceOrAligned]:
         for name in self.parent.names:
             yield self._make_seq(name)
 
@@ -4681,7 +4656,7 @@ class Alignment(SequenceCollection):
     def __init__(
         self,
         seqs_data: AlignedSeqsDataABC,  # seqs_data
-        slice_record: OptSliceRecord = None,
+        slice_record: c3_sequence.SliceRecord | None = None,
         **kwargs,
     ) -> None:
         super().__init__(seqs_data=seqs_data, **kwargs)
@@ -4690,10 +4665,12 @@ class Alignment(SequenceCollection):
             if slice_record is not None
             else c3_sequence.SliceRecord(parent_len=self._seqs_data.align_len)
         )
-        self._array_seqs = None
+        self._array_seqs: NumpyIntArrayType | None = None
 
     def _post_init(self) -> None:
-        self._seqs = _IndexableSeqs(self, make_seq=self._make_aligned)
+        self._seqs: _IndexableSeqs[c3_sequence.Aligned] = _IndexableSeqs(
+            self, make_seq=self._make_aligned
+        )
 
     def __eq__(self, other: object) -> bool:
         return super().__eq__(other) and self._slice_record == other._slice_record
@@ -4799,7 +4776,7 @@ class Alignment(SequenceCollection):
         self,
         dtype: numpy.dtype | None = None,
         copy: bool | None = None,
-    ) -> numpy.ndarray[int]:
+    ) -> NumpyIntArrayType:
         return self.array_seqs
 
     def _make_aligned(self, seqid: str) -> Aligned:
@@ -4819,7 +4796,7 @@ class Alignment(SequenceCollection):
         return [list(from_indices(pos)) for pos in self.array_positions]
 
     @property
-    def array_seqs(self) -> numpy.ndarray:
+    def array_seqs(self) -> NumpyIntArrayType:
         """Returns a numpy array of sequences, axis 0 is seqs in order
         corresponding to names"""
         if self._array_seqs is None:
@@ -4948,7 +4925,7 @@ class Alignment(SequenceCollection):
     def iter_positions(
         self,
         pos_order: list | None = None,
-    ) -> typing.Iterator[list, list, list]:
+    ) -> Iterator[list, list, list]:
         """Iterates over positions in the alignment, in order.
 
         Parameters
@@ -5466,7 +5443,7 @@ class Alignment(SequenceCollection):
         var_pos = numpy.where(var_pos)[0]
         return tuple(var_pos.tolist())
 
-    def omit_bad_seqs(self, quantile: OptFloat = None):
+    def omit_bad_seqs(self, quantile: float | None = None):
         """Returns new alignment without sequences with a number of uniquely
         introduced gaps exceeding quantile
 
@@ -5579,9 +5556,9 @@ class Alignment(SequenceCollection):
         self,
         window: int,
         step: int,
-        start: OptInt = None,
-        end: OptInt = None,
-    ) -> typing.Generator[Self, None, None]:
+        start: int | None = None,
+        end: int | None = None,
+    ) -> Iterator[Self]:
         """Generator yielding new alignments of given length and interval.
 
         Parameters
@@ -5623,7 +5600,7 @@ class Alignment(SequenceCollection):
 
     def filtered(
         self,
-        predicate: typing.Callable[[Self], bool],
+        predicate: Callable[[Self], bool],
         motif_length: int = 1,
         drop_remainder: bool = True,
         **kwargs,
@@ -5718,7 +5695,7 @@ class Alignment(SequenceCollection):
     def _omit_gap_pos_single(
         self,
         gap_index: int,
-        missing_index: OptInt,
+        missing_index: int | None,
         allowed_num: int,
     ) -> numpy.ndarray[bool]:
         # for motif_length == 1
@@ -5735,7 +5712,7 @@ class Alignment(SequenceCollection):
     def _omit_gap_pos_multi(
         self,
         gap_index: int,
-        missing_index: OptInt,
+        missing_index: int | None,
         allowed_num: int,
         motif_length: int,
     ) -> numpy.ndarray[bool]:
@@ -5835,10 +5812,10 @@ class Alignment(SequenceCollection):
         n: int | None = None,
         with_replacement: bool = False,
         motif_length: int = 1,
-        randint: typing.Callable[
+        randint: Callable[
             [int, int | None, int | None], numpy.ndarray
         ] = numpy.random.randint,
-        permutation: typing.Callable[
+        permutation: Callable[
             [numpy.ndarray], numpy.ndarray
         ] = numpy.random.permutation,
     ) -> Self:
@@ -6052,7 +6029,7 @@ class Alignment(SequenceCollection):
         self,
         *,
         feature: FeatureDataType,
-        on_alignment: OptBool = None,
+        on_alignment: bool | None = None,
     ) -> Feature[Alignment]:
         """
         create a feature on named sequence, or on the alignment itself
@@ -6102,10 +6079,10 @@ class Alignment(SequenceCollection):
         biotype: str,
         name: str,
         spans: list[tuple[int, int]],
-        seqid: OptStr = None,
-        parent_id: OptStr = None,
+        seqid: str | None = None,
+        parent_id: str | None = None,
         strand: str = "+",
-        on_alignment: OptBool = None,
+        on_alignment: bool | None = None,
     ) -> Feature[Alignment]:
         """
         add feature on named sequence, or on the alignment itself
@@ -6336,7 +6313,7 @@ class Alignment(SequenceCollection):
     def get_drawables(
         self,
         *,
-        biotype: Optional[str, typing.Iterable[str]] = None,
+        biotype: str | Iterable[str] | None = None,
     ) -> dict:
         """returns a dict of drawables, keyed by type
 
@@ -6354,10 +6331,10 @@ class Alignment(SequenceCollection):
     def get_drawable(
         self,
         *,
-        biotype: Optional[str, typing.Iterable[str]] = None,
+        biotype: str | Iterable[str] | None = None,
         width: int = 600,
         vertical: int = False,
-        title: OptStr = None,
+        title: str | None = None,
     ):
         """make a figure from sequence features
 
@@ -6427,7 +6404,7 @@ class Alignment(SequenceCollection):
         self,
         width: float = 700,
         height: float = 100,
-        wrap: OptInt = None,
+        wrap: int | None = None,
         vspace: float = 0.005,
         colours: dict | None = None,
     ):
@@ -6468,10 +6445,10 @@ class Alignment(SequenceCollection):
         self,
         stat: str = "nmi",
         segments: list[tuple[int, int]] | None = None,
-        drawable: OptStr = None,
+        drawable: str | None = None,
         show_progress: bool = False,
         parallel: bool = False,
-        par_kw: OptDict = None,
+        par_kw: dict | None = None,
     ):
         """performs pairwise coevolution measurement
 
@@ -6594,9 +6571,9 @@ class Alignment(SequenceCollection):
 
     def information_plot(
         self,
-        width: OptInt = None,
-        height: OptInt = None,
-        window: OptInt = None,
+        width: int | None = None,
+        height: int | None = None,
+        window: int | None = None,
         stat: str = "median",
         include_gap: bool = True,
     ):
@@ -6774,7 +6751,7 @@ class Alignment(SequenceCollection):
 
     def to_html(
         self,
-        name_order: typing.Sequence[str] | None = None,
+        name_order: PySeq[str] | None = None,
         wrap: int = 60,
         limit: int | None = None,
         ref_name: str = "longest",
@@ -7100,7 +7077,7 @@ class Alignment(SequenceCollection):
 
     def with_masked_annotations(
         self,
-        biotypes: PySeqStr,
+        biotypes: PySeq[str],
         mask_char: str = "?",
         shadow: bool = False,
         seqid: str | None = None,
@@ -7279,8 +7256,8 @@ def make_aligned_storage(
     data: dict[str, bytes | numpy.ndarray[int]],
     *,
     moltype: MolTypes,
-    label_to_name: OptRenamerCallable = None,
-    offset: DictStrInt | None = None,
+    label_to_name: Callable[[str], str] | None = None,
+    offset: dict[str, int] | None = None,
     reversed_seqs: set[str] | None = None,
     storage_backend: str | None = None,
     **kwargs,
@@ -7330,13 +7307,13 @@ def make_aligned_seqs(
     data: dict[str, StrORBytesORArray] | list | AlignedSeqsDataABC,
     *,
     moltype: MolTypes,
-    label_to_name: OptRenamerCallable = None,
-    info: OptDict = None,
-    source: OptPathType = None,
+    label_to_name: Callable[[str], str] | None = None,
+    info: dict | None = None,
+    source: PathType | None = None,
     annotation_db: SupportsFeatures | None = None,
-    offset: DictStrInt | None = None,
-    name_map: DictStrStr | None = None,
-    is_reversed: OptBool = None,
+    offset: dict[str, int] | None = None,
+    name_map: dict[str, str] | None = None,
+    is_reversed: bool | None = None,
     reversed_seqs: set[str] | None = None,
     storage_backend: str | None = None,
     **kwargs,
@@ -7429,13 +7406,13 @@ def _(
     data: AlignedSeqsDataABC,
     *,
     moltype: MolTypes,
-    label_to_name: OptRenamerCallable = None,
-    info: OptDict = None,
-    source: OptPathType = None,
+    label_to_name: Callable[[str], str] | None = None,
+    info: dict | None = None,
+    source: PathType | None = None,
     annotation_db: SupportsFeatures | None = None,
-    offset: DictStrInt | None = None,
-    name_map: DictStrStr | None = None,
-    is_reversed: OptBool = None,
+    offset: dict[str, int] | None = None,
+    name_map: dict[str, str] | None = None,
+    is_reversed: bool | None = None,
     **kwargs,
 ) -> Alignment:
     moltype = c3_moltype.get_moltype(moltype)
