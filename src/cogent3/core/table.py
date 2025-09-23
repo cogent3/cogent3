@@ -18,6 +18,7 @@ import re
 import typing
 from collections import defaultdict
 from collections.abc import Callable, Iterable, MutableMapping
+from collections.abc import Sequence as PySeq
 from itertools import product
 from xml.sax.saxutils import escape
 
@@ -438,14 +439,16 @@ class Table:
     def __init__(
         self,
         header: list[str] | None = None,
-        data: list[list[typing.Any]] | None = None,
+        data: PySeq[PySeq[typing.Any]] | dict[str, PySeq[typing.Any]] | None = None,
         index_name: str | None = None,
         title: str = "",
         legend: str = "",
         digits: int = 4,
         space: int = 4,
         max_width: int = int(1e100),
-        column_templates: dict[str, str] | None = None,
+        column_templates: dict[str, str]
+        | dict[str, Callable[[typing.Any], str]]
+        | None = None,
         format_name: str = "simple",
         missing_data: str = "",
         **kwargs,
