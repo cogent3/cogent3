@@ -62,7 +62,7 @@ from cogent3.util.transform import for_seq, per_shortest
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Iterator, Mapping
 
-    from cogent3.core.alignment import Aligned
+    from cogent3.core.alignment import Aligned, SeqsData
     from cogent3.draw.drawable import Drawable, Shape
 
 NumpyIntArrayType = npt.NDArray[numpy.integer]
@@ -2844,7 +2844,7 @@ class SeqViewABC(ABC):
 
     def __init__(self) -> None:
         self.alphabet: c3_alphabet.CharAlphabet[Any]
-        self.parent: str | bytes | NumpyIntArrayType
+        self.parent: str | bytes | NumpyIntArrayType | SeqsData
         self._parent_len: int
         self._slice_record: SliceRecordABC
 
@@ -2980,7 +2980,7 @@ class SeqView(SeqViewABC):
     def __init__(
         self,
         *,
-        parent: str | bytes | NumpyIntArrayType,
+        parent: str | bytes | NumpyIntArrayType | SeqsData,
         alphabet: c3_alphabet.CharAlphabet[Any],
         parent_len: int,
         seqid: str | None = None,
