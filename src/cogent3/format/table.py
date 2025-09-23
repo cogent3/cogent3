@@ -9,6 +9,8 @@ columns separated by a provided string, and a simple text format.
 import contextlib
 import re
 import textwrap
+from collections.abc import Callable
+from typing import Any, Literal
 from xml.sax.saxutils import escape
 
 import numpy
@@ -899,13 +901,13 @@ class _MixedFormatter:
 
 def formatted_array(
     series,
-    title="",
-    precision=4,
-    format_spec=None,
-    missing_data="",
-    pad=True,
-    align="r",
-):
+    title: str = "",
+    precision: int = 4,
+    format_spec: str | Callable[[Any], str] | None = None,
+    missing_data: str = "",
+    pad: bool = True,
+    align: Literal["l", "c", "r"] = "r",
+) -> tuple[list[str], str, int]:
     """converts elements in a numpy array series to an equal length string.
 
     Parameters
