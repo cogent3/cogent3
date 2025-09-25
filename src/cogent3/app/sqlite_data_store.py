@@ -23,6 +23,7 @@ from cogent3.app.data_store import (
     Mode,
     StrOrBytes,
 )
+from cogent3.core.annotation_db import DBWrapper
 from cogent3.util.misc import extend_docstring_from
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -53,7 +54,7 @@ sqlite3.register_converter("timestamp", _datetime_from_iso)
 
 
 # create db
-def open_sqlite_db_rw(path: str | Path):
+def open_sqlite_db_rw(path: str | Path) -> sqlite3.Connection:
     """creates a new sqlitedb for read/write at path, can be an in-memory db
 
     Notes
@@ -86,7 +87,7 @@ def open_sqlite_db_rw(path: str | Path):
     return db
 
 
-def open_sqlite_db_ro(path):
+def open_sqlite_db_ro(path: str | Path) -> sqlite3.Connection:
     """returns db opened as read only
     Returns
     -------
@@ -138,7 +139,7 @@ class DataStoreSqlite(DataStoreABC):
             )
         self._limit = limit
         self._verbose = verbose
-        self._db = None
+        self._db_wrapper = None
         self._open = False
         self._log_id = None
         weakref.finalize(self, self.close)
@@ -170,19 +171,19 @@ class DataStoreSqlite(DataStoreABC):
         return self._limit
 
     @property
-    def db(self):
-        if self._db is None:
+    def db(self) -> sqlite3.Connection:
+        if self._db_wrapper is None:
             db_func = open_sqlite_db_ro if self.mode is READONLY else open_sqlite_db_rw
-            self._db = db_func(self.source)
+            self._db_wrapper = DBWrapper(db_func(self.source))
             self._open = True
             self.lock()
 
-        return self._db
+        return self._db_wrapper._db
 
     def _init_log(self) -> None:
         timestamp = datetime.datetime.now(tz=datetime.timezone.utc)
         self.db.execute(f"INSERT INTO {_LOG_TABLE}(date) VALUES (?)", (timestamp,))
-        self._log_id = self._db.execute(
+        self._log_id = self.db.execute(
             f"SELECT log_id FROM {_LOG_TABLE} where date = ?",
             (timestamp,),
         ).fetchone()["log_id"]
@@ -191,7 +192,7 @@ class DataStoreSqlite(DataStoreABC):
         if getattr(self, "_db", None) is None:
             return
         with contextlib.suppress(sqlite3.ProgrammingError):
-            self._db.close()
+            self.db.close()
         self._open = False
 
     def read(self, unique_id: str) -> StrOrBytes:
@@ -337,7 +338,7 @@ class DataStoreSqlite(DataStoreABC):
         if self.mode is READONLY:
             return
 
-        result = self._db.execute("SELECT state_id,lock_pid FROM state").fetchall()
+        result = self.db.execute("SELECT state_id,lock_pid FROM state").fetchall()
         locked = result[0]["lock_pid"] if result else None
         if locked and self.mode is OVERWRITE:
             msg = (
@@ -356,7 +357,7 @@ class DataStoreSqlite(DataStoreABC):
         else:
             cmnd = "INSERT INTO state(lock_pid) VALUES (?)"
             vals = [os.getpid()]
-        self._db.execute(cmnd, tuple(vals))
+        self.db.execute(cmnd, tuple(vals))
 
     def unlock(self, force=False) -> None:
         """remove a lock if pid matches. If force, ignores pid. ignored if mode is READONLY"""
