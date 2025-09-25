@@ -693,7 +693,7 @@ class SqliteAnnotationDbMixin:
             self._db_wrapper = db
             self._init_tables()
             return
-        print(type(db))
+
         if db and not self.compatible(db):
             msg = f"cannot initialise annotation db from {type(db)}"
             raise TypeError(msg)
