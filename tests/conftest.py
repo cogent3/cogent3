@@ -20,4 +20,5 @@ def HOME_TMP_DIR(DATA_DIR) -> pathlib.Path:
 
 
 def pytest_sessionfinish(session, exitstatus):
-    gc.collect()
+    for _ in range(10):
+        gc.collect()
