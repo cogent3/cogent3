@@ -80,11 +80,14 @@ from cogent3.util.union_dict import UnionDict
 
 if TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.tree import PhyloNode
+    from cogent3.draw.dotplot import Dotplot
+    from cogent3.draw.drawable import AnnotatedDrawable
     from cogent3.evolve.fast_distance import DistanceMatrix
     from cogent3.maths.stats.contingency import TestResult
 
 
 NumpyIntArrayType = npt.NDArray[numpy.integer]
+NumpyFloatArrayType = npt.NDArray[numpy.floating]
 StrORArray = str | NumpyIntArrayType
 StrORBytesORArray = str | bytes | NumpyIntArrayType
 StrORBytesORArrayOrSeq = str | bytes | NumpyIntArrayType | c3_sequence.Sequence
@@ -298,7 +301,7 @@ class SeqDataView(c3_sequence.SeqView):
         return self.slice_record.is_reversed
 
     def parent_coords(
-        self, *, apply_offset: bool = False, **kwargs
+        self, *, apply_offset: bool = False, **kwargs: Any
     ) -> tuple[str, int, int, int]:
         """returns coordinates on parent
 
@@ -402,7 +405,11 @@ class SeqsDataABC(ABC):
     def get_view(self, seqid: str) -> c3_sequence.SeqViewABC: ...
 
     @abstractmethod
-    def to_alphabet(self, alphabet: c3_alphabet.AlphabetABC[Any]) -> Self: ...
+    def to_alphabet(
+        self,
+        alphabet: c3_alphabet.CharAlphabet[Any],
+        check_valid: bool = True,
+    ) -> Self: ...
 
     @abstractmethod
     def add_seqs(
@@ -811,7 +818,7 @@ class SequenceCollection(AnnotatableMixin):
             [
                 self._is_reversed,
                 set(self.name_map.values()) != set(self.storage.names),
-                self.name_map.keys() != set(self.name_map.values()),
+                set(self.name_map.keys()) != set(self.name_map.values()),
             ]
         )
 
@@ -851,7 +858,7 @@ class SequenceCollection(AnnotatableMixin):
         return self._name_map
 
     @name_map.setter
-    def name_map(self, value: dict | None) -> None:  # noqa: ARG002
+    def name_map(self, value: dict[str, str] | None) -> None:  # noqa: ARG002
         """name_map can only be set at initialisation"""
         msg = "name_map cannot be set after initialisation"
         raise TypeError(msg)
@@ -1017,7 +1024,7 @@ class SequenceCollection(AnnotatableMixin):
 
     def add_seqs(
         self,
-        seqs: dict[str, StrORBytesORArray] | SeqsData | list,
+        seqs: dict[str, str | bytes | NumpyIntArrayType] | SeqsData | list,
         **kwargs,
     ) -> Self:
         """Returns new collection with additional sequences.
@@ -1134,7 +1141,7 @@ class SequenceCollection(AnnotatableMixin):
     @classmethod
     def from_rich_dict(
         cls,
-        data: dict[str, str | dict[str, str]],
+        data: dict[str, Any],
     ) -> SequenceCollection:
         """returns a new instance from a rich dict"""
         return make_unaligned_seqs(data["seqs"], **data["init_args"])
@@ -1143,7 +1150,9 @@ class SequenceCollection(AnnotatableMixin):
         """returns json formatted string"""
         return json.dumps(self.to_rich_dict())
 
-    def degap(self, storage_backend: str | None = None, **kwargs) -> SequenceCollection:
+    def degap(
+        self, storage_backend: str | None = None, **kwargs: Any
+    ) -> SequenceCollection:
         """returns collection sequences without gaps or missing characters.
 
         Parameters
@@ -1223,11 +1232,11 @@ class SequenceCollection(AnnotatableMixin):
 
     def get_translation(
         self,
-        gc: c3_genetic_code.GeneticCodeChoiceType = 1,
+        gc: c3_genetic_code.GeneticCodeChoiceType | int = 1,
         incomplete_ok: bool = False,
         include_stop: bool = False,
         trim_stop: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ) -> Self:
         """translate sequences from nucleic acid to protein
 
@@ -1453,7 +1462,7 @@ class SequenceCollection(AnnotatableMixin):
         # property ensures db is created
         self.annotation_db.add_feature(**feature)
         feature.pop("parent_id", None)
-        return self.make_feature(feature=feature)
+        return self.make_feature(feature=cast("FeatureDataType", feature))
 
     def get_features(
         self,
@@ -1464,7 +1473,7 @@ class SequenceCollection(AnnotatableMixin):
         start: int | None = None,
         stop: int | None = None,
         allow_partial: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ) -> Iterator[Feature[Alignment]]:
         """yields Feature instances
 
@@ -1561,7 +1570,7 @@ class SequenceCollection(AnnotatableMixin):
         writer = cogent3._plugin.get_seq_format_writer_plugin(  # noqa: SLF001
             format_name=format_name,
             file_suffix=suffix,
-            unaligned_seqs=type(self) == SequenceCollection,
+            unaligned_seqs=type(self) is SequenceCollection,
         )
         _ = writer.write(seqcoll=self, path=filename, **kwargs)
 
@@ -1578,7 +1587,7 @@ class SequenceCollection(AnnotatableMixin):
         rc: bool = False,
         biotype: str | tuple[str] | None = None,
         show_progress: bool = False,
-    ):
+    ) -> Dotplot | AnnotatedDrawable:
         """make a dotplot between specified sequences. Random sequences
         chosen if names not provided.
 
@@ -1624,10 +1633,15 @@ class SequenceCollection(AnnotatableMixin):
         if len(self.names) == 1:
             name1 = name2 = self.names[0]
         elif name1 is None and name2 is None:
-            name1, name2 = randgen.choice(self.names, size=2, replace=False).tolist()
+            name1, name2 = cast(
+                "tuple[str, str]",
+                randgen.choice(self.names, size=2, replace=False).tolist(),
+            )
         elif not (name1 and name2):
-            names = list({*self.names, None} ^ {name1, name2})
-            name = next(iter(randgen.choice(names, size=1))).item()
+            names: list[str] = cast(
+                "list[str]", list({*self.names, None} ^ {name1, name2})
+            )
+            name = cast("str", next(iter(randgen.choice(names, size=1))).item())
             name1 = name1 or name
             name2 = name2 or name
 
@@ -1682,13 +1696,13 @@ class SequenceCollection(AnnotatableMixin):
     @UI.display_wrap
     def apply_pssm(
         self,
-        pssm: PSSM = None,
+        pssm: PSSM | None = None,
         path: str | None = None,
-        background: numpy.ndarray = None,
+        background: NumpyFloatArrayType | None = None,
         pseudocount: int = 0,
-        names: list | None = None,
-        ui=None,
-    ) -> numpy.array:  # refactor: design: move to rich for progress bars?
+        names: list[str] | str | None = None,
+        ui: UI.ProgressContext | None = None,
+    ) -> NumpyFloatArrayType:  # refactor: design: move to rich for progress bars?
         """scores sequences using the specified pssm
 
         Parameters
@@ -1719,29 +1733,33 @@ class SequenceCollection(AnnotatableMixin):
         if path:
             pssm = load_pssm(path, background=background, pseudocount=pseudocount)
 
+        pssm = cast("PSSM", pssm)
         assert set(pssm.motifs) == set(self.moltype)
 
         seqs = [self.seqs[n] for n in names] if names else self.seqs
-        result = [pssm.score_seq(seq) for seq in ui.series(seqs)]
+        result = [
+            pssm.score_seq(seq) for seq in cast("UI.ProgressContext", ui).series(seqs)
+        ]
 
         return numpy.array(result)
 
-    def get_ambiguous_positions(self):
+    def get_ambiguous_positions(self) -> dict[str, dict[int, str | bytes]]:
         """Returns dict of seq:{position:char} for ambiguous chars.
 
         Used in likelihood calculations.
         """
-        result = {}
+        result: dict[str, dict[int, str | bytes]] = {}
         alpha = self.moltype.most_degen_alphabet()
         for name in self.names:
-            result[name] = ambig = {}
+            ambig: dict[int, str | bytes] = {}
+            result[name] = ambig
             array = numpy.array(self.seqs[name])
             for i in numpy.where(array > alpha.gap_index)[0]:
                 ambig[i] = alpha[array[i]]
         return result
 
     def trim_stop_codons(
-        self, gc: c3_genetic_code.GeneticCodeChoiceType = 1, strict: bool = False
+        self, gc: c3_genetic_code.GeneticCodeChoiceType | int = 1, strict: bool = False
     ) -> Self:
         """Removes any terminal stop codons from the sequences
 
@@ -1801,8 +1819,8 @@ class SequenceCollection(AnnotatableMixin):
 
         only non-overlapping motifs are counted
         """
-        counts = []
-        motifs = set()
+        cat_counts: list[CategoryCounter[str | bytes]] = []
+        motifs_set: set[str | bytes] = set()
         for name in self.names:
             seq = self.get_seq(name)
             c = seq.counts(
@@ -1811,12 +1829,11 @@ class SequenceCollection(AnnotatableMixin):
                 allow_gap=allow_gap,
                 warn=warn,
             )
-            motifs.update(c.keys())
-            counts.append(c)
+            motifs_set.update(c.keys())
+            cat_counts.append(c)
         # use motifs from moltype if empty sequences
-        motifs = sorted(motifs) or sorted(self.moltype)
-        for i, c in enumerate(counts):
-            counts[i] = c.tolist(motifs)
+        motifs = sorted(motifs_set) or sorted(self.moltype)
+        counts = [c.tolist(motifs) for c in cat_counts]
         return MotifCountsArray(counts, motifs, row_indices=self.names)
 
     def counts(
@@ -1866,12 +1883,12 @@ class SequenceCollection(AnnotatableMixin):
 
     def get_motif_probs(
         self,
-        alphabet: c3_alphabet.AlphabetABC = None,
+        alphabet: c3_alphabet.AlphabetABC[Any] | None = None,
         include_ambiguity: bool = False,
         exclude_unobserved: bool = False,
         allow_gap: bool = False,
         pseudocount: int = 0,
-    ) -> dict:  # refactor: using array
+    ) -> dict[str, float]:  # refactor: using array
         """Return a dictionary of motif probs, calculated as the averaged
         frequency across sequences.
 
@@ -1899,7 +1916,9 @@ class SequenceCollection(AnnotatableMixin):
         if alphabet is None:
             alphabet = moltype.alphabet
             if allow_gap:
-                alphabet = moltype.gapped_alphabet
+                alphabet = cast(
+                    "c3_alphabet.CharAlphabet[Any]", moltype.gapped_alphabet
+                )
 
         motif_len = alphabet.motif_len
         counts = Counter()
@@ -2838,9 +2857,8 @@ def make_unaligned_storage(
     return klass.from_seqs(**sd_kwargs)
 
 
-@singledispatch
 def make_unaligned_seqs(
-    data: dict[str, StrORBytesORArray] | list | SeqsDataABC,
+    data: dict[str, str | bytes | NumpyIntArrayType] | list | SeqsDataABC,
     *,
     moltype: MolTypes,
     label_to_name: Callable[[str], str] | None = None,
@@ -4125,7 +4143,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
 
     def to_alphabet(
         self,
-        alphabet: c3_alphabet.AlphabetABC,
+        alphabet: c3_alphabet.CharAlphabet[Any],
         check_valid: bool = True,
     ) -> Self:
         """Returns a new AlignedSeqsData object with the same underlying data

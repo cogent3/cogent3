@@ -1,22 +1,20 @@
 import dataclasses
 import functools
-import typing
+from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 import stevedore
 
-if typing.TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.alignment import (
         AlignedSeqsDataABC,
-        Alignment,
         SeqsDataABC,
-        SequenceCollection,
     )
     from cogent3.core.tree import PhyloNode
     from cogent3.evolve.fast_distance import DistanceMatrix
     from cogent3.format.sequence import SequenceWriterBase
     from cogent3.parse.sequence import SequenceParserBase
 
-SeqsTypes = typing.Union["SequenceCollection", "Alignment"]
 
 # Entry point for plugins to register themselves as hooks
 HOOK_ENTRY_POINT = "cogent3.hook"
@@ -25,7 +23,7 @@ HOOK_ENTRY_POINT = "cogent3.hook"
 def get_quick_tree_hook(
     *,
     name: str | None = None,
-) -> typing.Callable[["DistanceMatrix"], "PhyloNode"] | None:
+) -> Callable[["DistanceMatrix"], "PhyloNode"] | None:
     """returns app instance registered for quick_tree
 
     Parameters
@@ -189,7 +187,7 @@ def _get_driver(namespace: str, storage_backend: str) -> stevedore.driver.Driver
 
 def get_unaligned_storage_driver(
     storage_backend: str | None,
-) -> typing.Optional["SeqsDataABC"]:
+) -> type["SeqsDataABC"]:
     """returns unaligned sequence storage driver
 
     Parameters
@@ -209,7 +207,7 @@ ALIGNED_SEQ_STORAGE_ENTRY_POINT = "cogent3.storage.aligned_seqs"
 
 def get_aligned_storage_driver(
     storage_backend: str | None,
-) -> typing.Optional["AlignedSeqsDataABC"]:
+) -> type["AlignedSeqsDataABC"]:
     """returns aligned sequence storage driver
 
     Parameters
@@ -226,11 +224,11 @@ def get_aligned_storage_driver(
 
 @dataclasses.dataclass
 class DefaultStorageDrivers:
-    _unaligned: type = dataclasses.field(init=False, default=None)
-    _aligned: type = dataclasses.field(init=False, default=None)
+    _unaligned: type | None = dataclasses.field(init=False, default=None)
+    _aligned: type | None = dataclasses.field(init=False, default=None)
 
     @property
-    def unaligned(self) -> "SeqsDataABC":
+    def unaligned(self) -> type["SeqsDataABC"]:
         if self._unaligned is None:
             from cogent3.core.alignment import SeqsData
 
@@ -239,11 +237,11 @@ class DefaultStorageDrivers:
         return self._unaligned
 
     @unaligned.setter
-    def unaligned(self, driver: "SeqsDataABC") -> None:
+    def unaligned(self, driver: type["SeqsDataABC"] | None) -> None:
         self._unaligned = driver
 
     @property
-    def aligned(self) -> "AlignedSeqsDataABC":
+    def aligned(self) -> type["AlignedSeqsDataABC"]:
         if self._aligned is None:
             from cogent3.core.alignment import AlignedSeqsData
 
@@ -252,7 +250,7 @@ class DefaultStorageDrivers:
         return self._aligned
 
     @aligned.setter
-    def aligned(self, driver: "AlignedSeqsDataABC") -> None:
+    def aligned(self, driver: type["AlignedSeqsDataABC"] | None) -> None:
         self._aligned = driver
 
 

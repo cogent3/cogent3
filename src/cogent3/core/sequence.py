@@ -1051,7 +1051,7 @@ class Sequence(AnnotatableMixin):
     def get_features(
         self,
         *,
-        biotype: str | None = None,
+        biotype: str | tuple[str, ...] | list[str] | set[str] | None = None,
         name: str | None = None,
         start: int | None = None,
         stop: int | None = None,
@@ -1764,7 +1764,7 @@ class Sequence(AnnotatableMixin):
     def get_drawables(
         self,
         *,
-        biotype: str | Iterable[str] | None = None,
+        biotype: str | tuple[str, ...] | list[str] | set[str] | None = None,
     ) -> dict[str, list[Shape]]:
         """returns a dict of drawables, keyed by type
 
@@ -1784,7 +1784,7 @@ class Sequence(AnnotatableMixin):
     def get_drawable(
         self,
         *,
-        biotype: str | Iterable[str] | None = None,
+        biotype: str | tuple[str, ...] | list[str] | set[str] | None = None,
         width: float = 600,
         vertical: bool = False,
     ) -> Drawable | None:
@@ -2844,7 +2844,7 @@ class SeqViewABC(ABC):
 
     def __init__(self) -> None:
         self.alphabet: c3_alphabet.CharAlphabet[Any]
-        self.parent: str | bytes | NumpyIntArrayType | SeqsData
+        self.parent: str | bytes | NumpyIntArrayType
         self._parent_len: int
         self._slice_record: SliceRecordABC
 
@@ -2980,7 +2980,7 @@ class SeqView(SeqViewABC):
     def __init__(
         self,
         *,
-        parent: str | bytes | NumpyIntArrayType | SeqsData,
+        parent: str | bytes | NumpyIntArrayType,
         alphabet: c3_alphabet.CharAlphabet[Any],
         parent_len: int,
         seqid: str | None = None,
@@ -3037,6 +3037,7 @@ class SeqView(SeqViewABC):
     @property
     def str_value(self) -> str:
         """returns the sequence as a string"""
+        self.parent
         return self.alphabet.from_indices(
             self.parent[
                 self.slice_record.start : self.slice_record.stop : self.slice_record.step

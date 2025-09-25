@@ -1,12 +1,20 @@
 """Provides small utility functions for numpy arrays."""
 
+from collections.abc import Sequence as PySeq
+
 import numpy
+import numpy.typing as npt
 from numpy import array, clip, cumsum, searchsorted, sort, sum
+
+NumpyArrayType = npt.NDArray[numpy.number]
+NumpyIntArrayType = npt.NDArray[numpy.integer]
+NumpyFloatArrayType = npt.NDArray[numpy.floating]
+
 
 err = numpy.seterr(divide="raise")
 
 
-def safe_p_log_p(data):
+def safe_p_log_p(data: NumpyArrayType) -> NumpyFloatArrayType:
     """Returns -(p*log2(p)) for every non-negative, nonzero p in a.
 
     WARNING: log2 is only defined on positive numbers, so make sure
@@ -23,7 +31,7 @@ def safe_p_log_p(data):
     return result
 
 
-def safe_log(data):
+def safe_log(data: NumpyArrayType) -> NumpyFloatArrayType:
     """Returns the log (base 2) of each nonzero item in a.
 
     WARNING: log2 is only defined on positive numbers, so make sure
@@ -42,7 +50,7 @@ def safe_log(data):
     return result
 
 
-def row_uncertainty(a):
+def row_uncertainty(a: NumpyArrayType) -> NumpyFloatArrayType:
     """Returns uncertainty (Shannon's entropy) for each row in a IN BITS
 
     a: numpy array (has to be 2-dimensional!)
@@ -63,7 +71,7 @@ def row_uncertainty(a):
         raise ValueError(msg)
 
 
-def column_uncertainty(a):
+def column_uncertainty(a: NumpyArrayType) -> NumpyFloatArrayType:
     """Returns uncertainty (Shannon's entropy) for each column in a in BITS
 
     a: numpy array (has to be 2-dimensional)
@@ -84,7 +92,7 @@ def column_uncertainty(a):
     return sum(safe_p_log_p(a), axis=0)
 
 
-def row_degeneracy(a, cutoff=0.5):
+def row_degeneracy(a: NumpyFloatArrayType, cutoff: float = 0.5) -> NumpyIntArrayType:
     """Returns the number of characters that's needed to cover >= cutoff
 
     a: numpy array
@@ -108,7 +116,7 @@ def row_degeneracy(a, cutoff=0.5):
     number of columns in the array.
     """
     if not a.any():
-        return []
+        return array([])
     try:
         b = cumsum(sort(a)[:, ::-1], 1)
     except IndexError:
@@ -120,7 +128,7 @@ def row_degeneracy(a, cutoff=0.5):
     return clip(array(degen) + 1, 0, a.shape[1])
 
 
-def column_degeneracy(a, cutoff=0.5):
+def column_degeneracy(a: NumpyFloatArrayType, cutoff: float = 0.5) -> NumpyIntArrayType:
     """Returns the number of characters that's needed to cover >= cutoff
 
     a: numpy array
@@ -144,7 +152,7 @@ def column_degeneracy(a, cutoff=0.5):
     number of rows in the array.
     """
     if not a.any():
-        return []
+        return array([])
     b = cumsum(sort(a, 0)[::-1], axis=0)
     try:
         degen = [searchsorted(b[:, idx], cutoff) for idx in range(len(b[0]))]
@@ -156,7 +164,7 @@ def column_degeneracy(a, cutoff=0.5):
     return clip(array(degen) + 1, 0, a.shape[0])
 
 
-def validate_freqs_array(data, axis=None) -> None:
+def validate_freqs_array(data: NumpyFloatArrayType, axis: int | None = None) -> None:
     """input data is a valid frequency array
     Parameters
     ----------
@@ -180,7 +188,7 @@ def validate_freqs_array(data, axis=None) -> None:
         raise ValueError(msg)
 
 
-def ratios_to_proportions(total, params) -> list:
+def ratios_to_proportions(total: float, params: PySeq[float]) -> list[float]:
     """Produces a list of N proportions from N-1 ratios and a total
 
     A recursive function that is the inverse of  proportions_to_ratios.
@@ -217,7 +225,7 @@ def ratios_to_proportions(total, params) -> list:
     )
 
 
-def proportions_to_ratios(values) -> list:
+def proportions_to_ratios(values: PySeq[float]) -> list[float]:
     """Produces a list of N-1 ratios from N proportions
 
     An invertible map that takes `values` an array of N numbers > 0

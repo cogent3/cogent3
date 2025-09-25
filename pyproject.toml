@@ -138,7 +138,7 @@ new_fragment_template = "file: changelog.d/templates/new.md.j2"
 entry_title_template = "file: changelog.d/templates/title.md.j2"
 
 [[tool.mypy.overrides]]
-module = ["numba", "loky", "mpi4py"]
+module = ["numba", "loky", "mpi4py", "stevedore"]
 ignore_missing_imports = true
 
 
