@@ -19,9 +19,9 @@ class _MotifNumberArray(DictArray):
     def __init__(
         self,
         data: NumpyFloatArrayType | PySeq[PySeq[float]],
-        motifs: PySeq[str],
-        row_indices: Iterable[int] | None = None,
-        dtype: numpy.dtype[numpy.number] | None = None,
+        motifs: PySeq[str | bytes],
+        row_indices: Iterable[int] | Iterable[str] | None = None,
+        dtype: numpy.dtype[numpy.number] | type[numpy.number] | None = None,
     ) -> None:
         """
         data
@@ -223,13 +223,13 @@ class MotifCountsArray(_MotifNumberArray):
     def __init__(
         self,
         counts: PySeq[PySeq[int]],
-        motifs: PySeq[str],
-        row_indices: Iterable[int] | None = None,
+        motifs: PySeq[str | bytes],
+        row_indices: Iterable[int] | Iterable[str] | None = None,
     ) -> None:
         super().__init__(counts, motifs, row_indices, dtype=numpy.int64)
 
     def _to_freqs(self, pseudocount: int = 0) -> NumpyFloatArrayType:
-        data = self.array
+        data: NumpyFloatArrayType = self.array
         if pseudocount:
             data = data + pseudocount
         axis = None if self.array.ndim == 1 else 1

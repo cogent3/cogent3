@@ -478,7 +478,7 @@ class DictArray:
         if len(args) == 1:
             vals, row_keys, col_keys = convert_for_dictarray(args[0])
             dtype = kwargs.get("dtype")
-            self.array: npt.NDArray[numpy.number] = numpy.asarray(vals, dtype=dtype)
+            self.array: npt.NDArray[numpy.floating] = numpy.asarray(vals, dtype=dtype)
             self.template = DictArrayTemplate(row_keys, col_keys)
         elif len(args) == 2:
             if not isinstance(args[1], DictArrayTemplate):

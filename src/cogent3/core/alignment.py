@@ -344,7 +344,7 @@ class SeqsDataABC(ABC):
     def from_seqs(
         cls,
         *,
-        data: dict[str, StrORBytesORArray],
+        data: Mapping[str, str | bytes | NumpyIntArrayType],
         alphabet: c3_alphabet.CharAlphabet[Any],
         **kwargs: Any,
     ) -> Self: ...
@@ -453,7 +453,7 @@ class SeqsData(SeqsDataABC):
     def __init__(
         self,
         *,
-        data: dict[str, StrORBytesORArray],
+        data: Mapping[str, str | bytes | NumpyIntArrayType],
         alphabet: c3_alphabet.CharAlphabet[Any],
         offset: dict[str, int] | None = None,
         check: bool = True,
@@ -523,7 +523,7 @@ class SeqsData(SeqsDataABC):
     def from_seqs(
         cls,
         *,
-        data: dict[str, StrORBytesORArray],
+        data: Mapping[str, str | bytes | NumpyIntArrayType],
         alphabet: c3_alphabet.CharAlphabet[Any],
         **kwargs: Any,
     ) -> Self:
@@ -714,7 +714,7 @@ class SequenceCollection(AnnotatableMixin):
         info: dict | InfoClass | None = None,
         source: PathType | None = None,
         annotation_db: SupportsFeatures | None = None,
-        name_map: dict[str, str] | None = None,
+        name_map: Mapping[str, str] | None = None,
         is_reversed: bool = False,
     ) -> None:
         """
@@ -1092,6 +1092,8 @@ class SequenceCollection(AnnotatableMixin):
         return self.__class__(**init_args)
 
     @overload
+    def to_dict(self) -> dict[str, str]: ...
+    @overload
     def to_dict(self, as_array: Literal[False]) -> dict[str, str]: ...
     @overload
     def to_dict(self, as_array: Literal[True]) -> dict[str, NumpyIntArrayType]: ...
@@ -1232,7 +1234,7 @@ class SequenceCollection(AnnotatableMixin):
 
     def get_translation(
         self,
-        gc: c3_genetic_code.GeneticCodeChoiceType | int = 1,
+        gc: c3_genetic_code.GeneticCode | int = 1,
         incomplete_ok: bool = False,
         include_stop: bool = False,
         trim_stop: bool = True,
@@ -1269,7 +1271,7 @@ class SequenceCollection(AnnotatableMixin):
                 msg,
             )
 
-        translated = {}
+        translated: dict[str, NumpyIntArrayType] = {}
         for seq in self.seqs:
             pep = seq.get_translation(
                 gc,
@@ -1759,7 +1761,7 @@ class SequenceCollection(AnnotatableMixin):
         return result
 
     def trim_stop_codons(
-        self, gc: c3_genetic_code.GeneticCodeChoiceType | int = 1, strict: bool = False
+        self, gc: c3_genetic_code.GeneticCode | int = 1, strict: bool = False
     ) -> Self:
         """Removes any terminal stop codons from the sequences
 
@@ -1921,7 +1923,7 @@ class SequenceCollection(AnnotatableMixin):
                 )
 
         motif_len = alphabet.motif_len
-        counts = Counter()
+        counts: Counter[str] = Counter()
         for seq_name in self.names:
             sequence = self.seqs[seq_name]
             if motif_len > 1:
@@ -1998,7 +2000,7 @@ class SequenceCollection(AnnotatableMixin):
         allow_gap: bool = False,
         exclude_unobserved: bool = True,
         warn: bool = False,
-    ) -> numpy.ndarray:
+    ) -> NumpyFloatArrayType | None:
         """Returns the Shannon entropy per sequence.
 
         Parameters
@@ -2035,7 +2037,7 @@ class SequenceCollection(AnnotatableMixin):
         self,
         include_ambiguity: bool = False,
         allow_gap: bool = False,
-    ) -> dict[str, int]:
+    ) -> DictArray:
         """returns sequence lengths as a dict of {seqid: length}
 
         Parameters
@@ -2054,7 +2056,7 @@ class SequenceCollection(AnnotatableMixin):
         )
         return counts.row_sum()
 
-    def pad_seqs(self, pad_length: int | None = None):
+    def pad_seqs(self, pad_length: int | None = None) -> Self:
         """Returns copy in which sequences are padded with the gap character to same length.
 
         Parameters
@@ -2071,7 +2073,7 @@ class SequenceCollection(AnnotatableMixin):
         if pad_length is None or pad_length < max_len:
             pad_length = max_len
 
-        padded_seqs = {}
+        padded_seqs: dict[str, NumpyIntArrayType] = {}
         for seq in self.seqs:
             padded_seq = numpy.full(
                 shape=pad_length,
@@ -2108,7 +2110,7 @@ class SequenceCollection(AnnotatableMixin):
         )
 
     def has_terminal_stop(
-        self, gc: c3_genetic_code.GeneticCodeChoiceType = 1, strict: bool = False
+        self, gc: c3_genetic_code.GeneticCode | int = 1, strict: bool = False
     ) -> bool:
         """Returns True if any sequence has a terminal stop codon.
 
@@ -2130,7 +2132,7 @@ class SequenceCollection(AnnotatableMixin):
     def get_identical_sets(
         self,
         mask_degen: bool = False,
-    ) -> list[set]:  # refactor: array/simplify
+    ) -> list[set[str]]:  # refactor: array/simplify
         """returns sets of names for sequences that are identical
 
         Parameters
@@ -2153,11 +2155,11 @@ class SequenceCollection(AnnotatableMixin):
             )
             mask_degen = False
 
-        def reduced(seq, indices):
+        def reduced(seq: str, indices: list[int]) -> str:
             return "".join(seq[i] for i in range(len(seq)) if i not in indices)
 
-        identical_sets = []
-        seen = []
+        identical_sets: list[set[str]] = []
+        seen: list[str] = []
 
         # if strict, we do a sort and one pass through the list
         seqs = self.to_dict()
@@ -2165,7 +2167,7 @@ class SequenceCollection(AnnotatableMixin):
             seqs_names = [(s, n) for n, s in seqs.items()]
             seqs_names.sort()
             matched = None
-            dupes = defaultdict(set)
+            dupes: defaultdict[str, set[str]] = defaultdict(set)
             for i in range(len(seqs_names) - 1):
                 if seqs_names[i][0] == seqs_names[i + 1][0]:
                     matched = seqs_names[i][1] if matched is None else matched
@@ -2185,7 +2187,7 @@ class SequenceCollection(AnnotatableMixin):
                 continue
 
             seq1 = seqs[n1]
-            group = set()
+            group: set[str] = set()
             for j in range(i + 1, len(self.names)):
                 n2 = self.names[j]
                 if n2 in seen:
@@ -2216,7 +2218,7 @@ class SequenceCollection(AnnotatableMixin):
             [c3_sequence.Sequence, c3_sequence.Sequence],
             float,
         ] = c3_sequence.frac_same,
-        transform: bool | None = None,
+        transform: Callable[[c3_sequence.Sequence], c3_sequence.Sequence] | None = None,
     ) -> SequenceCollection:
         """Returns new SequenceCollection containing sequences similar to target.
 
@@ -2254,18 +2256,18 @@ class SequenceCollection(AnnotatableMixin):
         if transform:
             target = transform(target)
 
-        def m(x):
+        def m(x: c3_sequence.Sequence) -> float:
             return metric(target, x)
 
         if transform:
 
-            def f(x):
+            def f(x: c3_sequence.Sequence) -> bool:
                 result = m(transform(x))
                 return min_similarity <= result <= max_similarity
 
         else:
 
-            def f(x):
+            def f(x: c3_sequence.Sequence) -> bool:
                 result = m(x)
                 return min_similarity <= result <= max_similarity
 
@@ -2294,7 +2296,7 @@ class SequenceCollection(AnnotatableMixin):
         return not self == other
 
     def __repr__(self) -> str:
-        seqs = []
+        seqs: list[str] | str = []
         limit = 10
         delimiter = ""
 
@@ -2397,9 +2399,16 @@ class SequenceCollection(AnnotatableMixin):
             selected = self
 
         # Stylise each character in each sequence
-        gaps = "".join(frozenset([selected.moltype.gap, selected.moltype.missing]))
+        gaps = "".join(
+            frozenset(
+                [
+                    cast("str", selected.moltype.gap),
+                    cast("str", selected.moltype.missing),
+                ]
+            )
+        )
         template = '<span class="%s">%%s</span>'
-        styled_seqs = defaultdict(list)
+        styled_seqs: defaultdict[str, list[str]] = defaultdict(list)
         max_truncated_len = 0
         for name in name_order:
             sequence = str(self.seqs[name])[:limit]
@@ -2410,7 +2419,7 @@ class SequenceCollection(AnnotatableMixin):
             start = 0 if start_gap is None else start_gap.end()
             end = seq_len if end_gap is None else end_gap.start()
 
-            seq = []
+            seq: list[str] = []
             for i, char in enumerate(sequence):
                 if i < start or i >= end:
                     style = f"terminal_ambig_{self.moltype.label}"
@@ -2523,9 +2532,9 @@ class SequenceCollection(AnnotatableMixin):
 
     def duplicated_seqs(self) -> list[list[str]]:
         """returns the names of duplicated sequences"""
-        seq_hashes = collections.defaultdict(list)
+        seq_hashes: defaultdict[str, list[str]] = collections.defaultdict(list)
         for n, n2 in self.name_map.items():
-            h = self.storage.get_hash(n2)
+            h = cast("str", self.storage.get_hash(n2))
             seq_hashes[h].append(n)
         return [v for v in seq_hashes.values() if len(v) > 1]
 
@@ -2540,7 +2549,7 @@ class SequenceCollection(AnnotatableMixin):
         if not dupes:
             return self
 
-        omit = []
+        omit: list[str] = []
         for group in dupes:
             omit.extend(group[1:])
         return self.take_seqs(omit, negate=True)
@@ -2561,7 +2570,7 @@ def deserialise_sequence_collection(
 
 
 def deserialise_old_to_new_type_seqcoll(
-    data: dict[str, str | dict[str, str]],
+    data: dict[str, Any],
 ) -> SequenceCollection:
     """deserialise old type SequenceCollection as a new type collection"""
     moltype_name = data["moltype"]
@@ -2982,7 +2991,7 @@ def make_unaligned_seqs(
 def decompose_gapped_seq(
     seq: StrORBytesORArray | c3_sequence.Sequence,
     *,
-    alphabet: c3_alphabet.AlphabetABC,
+    alphabet: c3_alphabet.AlphabetABC[Any],
     missing_as_gap: bool = True,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
     """
@@ -2999,7 +3008,7 @@ def decompose_gapped_seq(
 def _(
     seq: numpy.ndarray,
     *,
-    alphabet: c3_alphabet.AlphabetABC,
+    alphabet: c3_alphabet.AlphabetABC[Any],
     missing_as_gap: bool = True,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
     if missing_as_gap and alphabet.missing_index:
@@ -3017,7 +3026,7 @@ def _(
 def _(
     seq: str,
     *,
-    alphabet: c3_alphabet.AlphabetABC,
+    alphabet: c3_alphabet.AlphabetABC[Any],
     missing_as_gap: bool = True,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
     if not alphabet.is_valid(seq):
@@ -3035,7 +3044,7 @@ def _(
 def _(
     seq: bytes,
     *,
-    alphabet: c3_alphabet.AlphabetABC,
+    alphabet: c3_alphabet.AlphabetABC[Any],
     missing_as_gap: bool = True,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
     return decompose_gapped_seq(
@@ -3049,7 +3058,7 @@ def _(
 def _(
     seq: c3_sequence.Sequence,
     *,
-    alphabet: c3_alphabet.AlphabetABC,
+    alphabet: c3_alphabet.AlphabetABC[Any],
     missing_as_gap: bool = True,
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
     return decompose_gapped_seq(
@@ -3180,7 +3189,7 @@ class Aligned(AnnotatableMixin):
     def __init__(
         self,
         data: AlignedDataView,
-        moltype: c3_moltype.MolType,
+        moltype: c3_moltype.MolType[Any],
         name: str | None = None,
         annotation_db: SupportsFeatures | list[SupportsFeatures] | None = None,
     ) -> None:
@@ -3203,8 +3212,8 @@ class Aligned(AnnotatableMixin):
         # a better solution is to create a AlignedDataView instance the
         # map and seq directly without requiring a parent AlignedSeqsData
         asd = AlignedSeqsData.from_seqs_and_gaps(
-            seqs={seq.name: numpy.array(seq)},
-            gaps={seq.name: indel_map.array},
+            seqs={cast("str", seq.name): numpy.array(seq)},
+            gaps={cast("str", seq.name): indel_map.array},
             alphabet=moltype.most_degen_alphabet(),
         )
 
@@ -3217,13 +3226,13 @@ class Aligned(AnnotatableMixin):
         seq: AlignedDataViewABC,
     ) -> Aligned:
         """Creates an Aligned instance from an indel map and AlignedDataView."""
-        moltype = seq.alphabet.moltype
-        seqid = seq.seqid
-        seq = seq.array_value
+        moltype = cast("c3_moltype.MolType[Any]", seq.alphabet.moltype)
+        seqid = cast("str", seq.seqid)
+        seq_arr = seq.array_value
         # refactor: design
         # see above comment in from_map_and_seq
         asd = AlignedSeqsData.from_seqs_and_gaps(
-            seqs={seqid: seq},
+            seqs={seqid: seq_arr},
             gaps={seqid: indel_map.array},
             alphabet=moltype.most_degen_alphabet(),
         )
@@ -3261,7 +3270,7 @@ class Aligned(AnnotatableMixin):
             seq = self.moltype.degap(self.data.gapped_array_value)
             seq = self.moltype.complement(seq)
 
-        mt_seq = self.moltype.make_seq(seq=seq, name=self.data.seqid)
+        mt_seq = self.moltype.make_sequence(seq=seq, name=self.data.seqid)
         ann_db = self._annotation_db if self.data.slice_record.plus_step == 1 else None
         mt_seq.replace_annotation_db(ann_db)
         return mt_seq
@@ -3272,10 +3281,10 @@ class Aligned(AnnotatableMixin):
         seq = self.data.gapped_array_value
         if self.data.slice_record.step < 0:
             seq = self.moltype.complement(seq)
-        return self.moltype.make_seq(seq=seq, name=self.data.seqid)
+        return self.moltype.make_sequence(seq=seq, name=self.data.seqid)
 
     @property
-    def moltype(self) -> c3_moltype.MolType:
+    def moltype(self) -> c3_moltype.MolType[Any]:
         return self._moltype
 
     @property
@@ -3305,7 +3314,7 @@ class Aligned(AnnotatableMixin):
 
     def __array__(
         self,
-        dtype: numpy.dtype | None = None,
+        dtype: numpy.dtype[numpy.integer] | None = None,
         copy: bool | None = None,
     ) -> NumpyIntArrayType:
         return numpy.array(self.gapped_seq, dtype=dtype)
@@ -3313,40 +3322,36 @@ class Aligned(AnnotatableMixin):
     def __bytes__(self) -> bytes:
         return bytes(self.gapped_seq)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         """Iterates over sequence one motif (e.g. char) at a time, incl. gaps"""
         yield from self.gapped_seq
 
-    @singledispatchmethod
-    def __getitem__(self, span: int | slice):
+    def __getitem__(self, span: int | slice | FeatureMap) -> Aligned:
+        if isinstance(span, int):
+            span = slice(span, span + 1)
+        if isinstance(span, slice):
+            return self.__class__(data=self.data[span], moltype=self.moltype)
+        if isinstance(span, FeatureMap):
+            # we assume the feature map is in align coordinates
+            data, gaps = self.slice_with_map(span)
+            seqid = self.data.seqid
+            seqs_data = self.data.parent.from_seqs_and_gaps(
+                seqs={seqid: data},
+                gaps={seqid: gaps},
+                alphabet=self.moltype.most_degen_alphabet(),
+            )
+            view = seqs_data.get_view(seqid)
+
+            return Aligned(view, self.moltype)
+
         msg = f"__getitem__ not implemented for {type(span)}"
         raise NotImplementedError(msg)
 
-    @__getitem__.register
-    def _(self, span: int):
-        return self.__getitem__(slice(span, span + 1))
-
-    @__getitem__.register
-    def _(self, span: slice):
-        return self.__class__(data=self.data[span], moltype=self.moltype)
-
-    @__getitem__.register
-    def _(self, span: FeatureMap):
-        # we assume the feature map is in align coordinates
-        data, gaps = self.slice_with_map(span)
-        seqid = self.data.seqid
-        seqs_data = self.data.parent.from_seqs_and_gaps(
-            seqs={seqid: data},
-            gaps={seqid: gaps},
-            alphabet=self.moltype.most_degen_alphabet(),
-        )
-        view = seqs_data.get_view(seqid)
-
-        return Aligned(view, self.moltype)
-
-    def slice_with_map(self, span: FeatureMap) -> tuple[numpy.ndarray, numpy.ndarray]:
+    def slice_with_map(
+        self, span: FeatureMap
+    ) -> tuple[NumpyIntArrayType, NumpyIntArrayType]:
         start, end = span.start, span.end
-        if span.useful and len(list(span.spans)) == 1:
+        if span.useful and len(list(span.iter_spans())) == 1:
             im = self.map[start:end]
             seq_start = self.map.get_seq_index(start)
             seq_end = self.map.get_seq_index(end)
@@ -3394,7 +3399,7 @@ class Aligned(AnnotatableMixin):
         biotype: str,
         name: str,
         allow_multiple: bool = False,
-    ):
+    ) -> list[Feature[c3_sequence.Sequence]]:
         return self.seq.annotate_matches_to(
             pattern=pattern,
             biotype=biotype,
@@ -3418,9 +3423,9 @@ class AlignedSeqsDataABC(SeqsDataABC):
     def from_seqs_and_gaps(
         cls,
         *,
-        seqs: dict[str, StrORBytesORArray],
-        gaps: dict[str, numpy.ndarray],
-        alphabet: c3_alphabet.AlphabetABC,
+        seqs: dict[str, str | bytes | NumpyIntArrayType],
+        gaps: dict[str, NumpyIntArrayType],
+        alphabet: c3_alphabet.AlphabetABC[Any],
     ) -> Self: ...
 
     @abstractmethod
@@ -3429,7 +3434,7 @@ class AlignedSeqsDataABC(SeqsDataABC):
         *,
         gapped_seqs: NumpyIntArrayType,
         names: tuple[str],
-        alphabet: c3_alphabet.AlphabetABC,
+        alphabet: c3_alphabet.AlphabetABC[Any],
         ungapped_seqs: dict[str, NumpyIntArrayType] | None = None,
         gaps: dict[str, numpy.ndarray] | None = None,
         offset: dict[str, int] | None = None,
@@ -3455,7 +3460,7 @@ class AlignedSeqsDataABC(SeqsDataABC):
         *,
         names: list[str],
         data: numpy.ndarray,
-        alphabet: c3_alphabet.AlphabetABC,
+        alphabet: c3_alphabet.AlphabetABC[Any],
     ) -> Self: ...
 
     @property
@@ -3500,7 +3505,7 @@ class AlignedSeqsDataABC(SeqsDataABC):
         start: int | None = None,
         stop: int | None = None,
         step: int | None = None,
-    ) -> numpy.ndarray: ...
+    ) -> NumpyIntArrayType: ...
 
     @abstractmethod
     def get_gapped_seq_str(
@@ -3588,7 +3593,9 @@ class AlignedSeqsDataABC(SeqsDataABC):
     ) -> numpy.ndarray: ...
 
 
-def _gapped_seq_len(seq: numpy.ndarray, gap_map: numpy.ndarray) -> int:
+def _gapped_seq_len(
+    seq: str | bytes | NumpyIntArrayType, gap_map: IndelMap | numpy.ndarray
+) -> int:
     """calculate the gapped sequence length from a ungapped sequence and gap map
 
     Parameters
@@ -3729,8 +3736,8 @@ class AlignedSeqsData(AlignedSeqsDataABC):
     def from_seqs(
         cls,
         *,
-        data: dict[str, StrORArray],
-        alphabet: c3_alphabet.AlphabetABC,
+        data: Mapping[str, str | NumpyIntArrayType],
+        alphabet: c3_alphabet.AlphabetABC[Any],
         **kwargs: Any,
     ) -> Self:
         """Construct an AlignedSeqsData object from a dict of aligned sequences
@@ -3768,9 +3775,9 @@ class AlignedSeqsData(AlignedSeqsDataABC):
     def from_seqs_and_gaps(
         cls,
         *,
-        seqs: dict[str, StrORBytesORArray],
-        gaps: dict[str, numpy.ndarray],
-        alphabet: c3_alphabet.AlphabetABC,
+        seqs: dict[str, str | bytes | NumpyIntArrayType],
+        gaps: dict[str, NumpyIntArrayType],
+        alphabet: c3_alphabet.AlphabetABC[Any],
         **kwargs: Any,
     ) -> Self:
         """Construct an AlignedSeqsData object from a dict of ungapped sequences
@@ -3821,7 +3828,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         *,
         names: PySeq[str],
         data: numpy.ndarray,
-        alphabet: c3_alphabet.AlphabetABC,
+        alphabet: c3_alphabet.AlphabetABC[Any],
     ) -> Self:
         """Construct an AlignedSeqsData object from a list of names and a numpy
         array of aligned sequence data.
@@ -3976,7 +3983,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         start: int | None = None,
         stop: int | None = None,
         step: int | None = None,
-    ) -> numpy.ndarray:
+    ) -> NumpyIntArrayType:
         """Return sequence data corresponding to seqid as an array of indices.
         start/stop are in alignment coordinates. Includes gaps.
         """
@@ -4305,7 +4312,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         indices = (array_seqs != array_seqs[0]).any(axis=0)
         return numpy.where(indices)[0] + start
 
-    def get_hash(self, seqid: str) -> str | None:
+    def get_hash(self, seqid: str) -> str:
         """returns hash of seqid"""
         if seqid not in self._hashes:
             arr = self.get_gapped_seq_array(seqid=seqid)
@@ -4366,7 +4373,7 @@ class AlignedDataView(c3_sequence.SeqViewABC):
         *,
         parent: AlignedSeqsDataABC,
         seqid: str,
-        alphabet: c3_alphabet.AlphabetABC,
+        alphabet: c3_alphabet.AlphabetABC[Any],
         slice_record: c3_sequence.SliceRecord | None = None,
     ) -> None:
         self.parent = parent
@@ -4441,7 +4448,7 @@ class AlignedDataView(c3_sequence.SeqViewABC):
         return self.alphabet.from_indices(self.gapped_array_value)
 
     @property
-    def array_value(self) -> numpy.ndarray:
+    def array_value(self) -> NumpyIntArrayType:
         """returns the numpy array of indices for the ungapped sequence"""
         value = self.parent.get_seq_array(
             seqid=self.seqid,
@@ -4452,7 +4459,7 @@ class AlignedDataView(c3_sequence.SeqViewABC):
         return value[::-1] if self.slice_record.is_reversed else value
 
     @property
-    def gapped_array_value(self) -> numpy.ndarray:
+    def gapped_array_value(self) -> NumpyIntArrayType:
         """returns the numpy array of indices for the gapped sequence"""
         value = self.parent.get_gapped_seq_array(
             seqid=self.seqid,
@@ -5163,7 +5170,7 @@ class Alignment(SequenceCollection):
         allow_gap: bool = False,
         exclude_unobserved: bool = False,
         warn: bool = False,
-    ) -> MotifCountsArray:
+    ) -> MotifCountsArray | None:
         """counts of non-overlapping motifs per sequence
 
         Parameters
@@ -5190,8 +5197,8 @@ class Alignment(SequenceCollection):
         if warn and len(self) != length:
             warnings.warn(f"trimmed {len(self) - length}", UserWarning, stacklevel=2)
 
-        counts = []
-        motifs = set()
+        counts: list[CategoryCounter[str | bytes]] = []
+        motifs: set[str | bytes] = set()
         for name in self.names:
             seq = self.get_gapped_seq(name)
             c = seq.counts(
@@ -5206,13 +5213,13 @@ class Alignment(SequenceCollection):
         if not exclude_unobserved:
             motifs.update(self.moltype.alphabet.get_kmer_alphabet(motif_length))
 
-        motifs = sorted(motifs)
-        if not motifs:
+        motifs_list = sorted(motifs)
+        if not motifs_list:
             return None
 
         for i, c in enumerate(counts):
-            counts[i] = c.tolist(motifs)
-        return MotifCountsArray(counts, motifs, row_indices=self.names)
+            counts[i] = c.tolist(motifs_list)
+        return MotifCountsArray(counts, motifs_list, row_indices=self.names)
 
     def probs_per_seq(
         self,
@@ -5806,7 +5813,7 @@ class Alignment(SequenceCollection):
         return self.__class__(**kwargs)
 
     def has_terminal_stop(
-        self, gc: c3_genetic_code.GeneticCodeChoiceType = 1, strict: bool = False
+        self, gc: c3_genetic_code.GeneticCode | int = 1, strict: bool = False
     ) -> bool:
         """Returns True if any sequence has a terminal stop codon.
 
@@ -5964,7 +5971,7 @@ class Alignment(SequenceCollection):
 
     def trim_stop_codons(
         self,
-        gc: c3_genetic_code.GeneticCodeChoiceType = 1,
+        gc: c3_genetic_code.GeneticCode | int = 1,
         strict: bool = False,
         **kwargs,
     ) -> Self:
@@ -6000,7 +6007,7 @@ class Alignment(SequenceCollection):
     @extend_docstring_from(SequenceCollection.get_translation)
     def get_translation(
         self,
-        gc: c3_genetic_code.GeneticCodeChoiceType = 1,
+        gc: c3_genetic_code.GeneticCode | int = 1,
         incomplete_ok: bool = False,
         include_stop: bool = False,
         trim_stop: bool = True,

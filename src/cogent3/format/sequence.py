@@ -3,6 +3,7 @@ import contextlib
 import os
 import pathlib
 import typing
+from collections.abc import Callable
 
 from cogent3.format import clustal, fasta, gde, paml, phylip
 from cogent3.parse.record import FileFormatError
@@ -14,7 +15,7 @@ if typing.TYPE_CHECKING:  # pragma: no cover
 
 SeqsTypes = typing.Union["SequenceCollection", "Alignment"]
 
-FORMATTERS = {
+FORMATTERS: dict[str, Callable[..., str]] = {
     "phylip": phylip.alignment_to_phylip,
     "paml": paml.alignment_to_paml,
     "fasta": fasta.seqs_to_fasta,

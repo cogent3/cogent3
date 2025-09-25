@@ -1483,7 +1483,7 @@ class Sequence(AnnotatableMixin):
 
     def gapped_by_map(
         self,
-        segment_map: IndelMap,
+        segment_map: IndelMap | FeatureMap,
         recode_gaps: bool = False,
     ) -> Self:
         segments = self.gapped_by_map_segment_iter(segment_map, True, recode_gaps)

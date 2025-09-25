@@ -2,6 +2,7 @@ import itertools
 from collections.abc import Callable
 from copy import deepcopy
 from itertools import combinations
+from typing import TYPE_CHECKING
 
 import numpy
 from numpy import polyval, triu_indices
@@ -23,6 +24,9 @@ from .typing import (
     SerialisableType,
     UnalignedSeqsType,
 )
+
+if TYPE_CHECKING:
+    from cogent3.core.alignment import SequenceCollection
 
 # The following coefficients are derived from a polynomial fit between Jaccard distance
 # and the proportion of different sites for mammalian DNA sequences. NOTE: the Jaccard
@@ -350,7 +354,9 @@ def approx_jc69(
     return result
 
 
-def get_approx_dist_calc(dist: str, num_states: int = 4) -> Callable:
+def get_approx_dist_calc(
+    dist: str, num_states: int = 4
+) -> Callable[["SequenceCollection"], DistanceMatrix]:
     """Return the corresponding callable approximate distance calculator
 
     Parameters
