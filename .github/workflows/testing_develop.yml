@@ -45,7 +45,7 @@ jobs:
 
       - name: "Run nox for ${{ matrix.python-version }}"
         env:
-          PYTHONTRACEMALLOC: "20"
+          PYTHONTRACEMALLOC: "3"
         shell: bash
         run: |
           dn=$(pwd)
