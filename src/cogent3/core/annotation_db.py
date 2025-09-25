@@ -29,6 +29,14 @@ from cogent3.util.progress_display import ProgressContext, display_wrap
 NumpyIntArrayType = npt.NDArray[numpy.integer]
 
 
+class DBWrapper:
+    def __init__(self, db: sqlite3.Connection) -> None:
+        self._db = db
+
+    def __del__(self) -> None:
+        self._db.close()
+
+
 # Define custom types for storage in sqlite
 # https://stackoverflow.com/questions/18621513/python-insert-numpy-array-into-sqlite3-database
 def array_to_sqlite(data: npt.NDArray[Any]) -> bytes:
@@ -624,7 +632,7 @@ class SqliteAnnotationDbMixin:
         memodict = memodict or {}
         try:
             new = self.__class__(source=self.source)
-            new.db.deserialize(self._db.serialize())  # type: ignore[union-attr]
+            new.db.deserialize(self.db.serialize())  # type: ignore[union-attr]
         except AttributeError:
             # if the db is not serialisable, we use the rich dict
             # representation to create a new instance
@@ -635,7 +643,7 @@ class SqliteAnnotationDbMixin:
     def __getstate__(self) -> dict[str, Any]:
         try:
             result: dict[str, Any] = {
-                "data": self._db.serialize(),  # type: ignore[union-attr]
+                "data": self.db.serialize(),  # type: ignore[union-attr]
                 "source": self.source,
             }
         except AttributeError:
@@ -651,7 +659,7 @@ class SqliteAnnotationDbMixin:
             self.__dict__.update(data.__dict__)
         else:
             new = self.__class__(source=state.pop("source", None))
-            new._db.deserialize(state["data"])  # type: ignore[union-attr]  # noqa: SLF001
+            new._db_wrapper._db.deserialize(state["data"])  # type: ignore[union-attr]  # noqa: SLF001
             self.__dict__.update(new.__dict__)
 
         return self
@@ -666,28 +674,26 @@ class SqliteAnnotationDbMixin:
     def table_names(self) -> tuple[str, ...]:
         return self._table_names
 
-    def _setup_db(
-        self, db: SqliteAnnotationDbMixin | sqlite3.Connection | None
-    ) -> None:
+    def _setup_db(self, db: SqliteAnnotationDbMixin | DBWrapper | None) -> None:
         """initialises the db, using the db passed to the constructor"""
         if isinstance(db, self.__class__):
-            self._db: sqlite3.Connection | None = db.db
+            self._db_wrapper: DBWrapper | None = db._db_wrapper
             return
 
-        if isinstance(db, sqlite3.Connection):
+        if isinstance(db, DBWrapper):
             schema: dict[str, set[tuple[str, str]]] = {}
             for table_name in self.table_names:
                 attr = getattr(self, f"_{table_name}_schema")
                 schema[table_name] = set(attr.items())
 
-            if not _compatible_schema(db, schema):
+            if not _compatible_schema(db._db, schema):
                 msg = "incompatible schema"
                 raise TypeError(msg)
 
-            self._db = db
+            self._db_wrapper = db
             self._init_tables()
             return
-
+        print(type(db))
         if db and not self.compatible(db):
             msg = f"cannot initialise annotation db from {type(db)}"
             raise TypeError(msg)
@@ -708,23 +714,25 @@ class SqliteAnnotationDbMixin:
 
     @property
     def db(self) -> sqlite3.Connection:
-        if self._db is None:
+        if self._db_wrapper is None:
             # TODO: gah understand serialisation issue
             # the check_same_thread=False is required for multiprocess, even
             # when the db is empty (tests fail). This  appears unrelated to
             # our code, and does not affect pickling/unpickling on the same
             # thread
-            self._db = sqlite3.connect(
+            connection = sqlite3.connect(
                 self.source,
                 detect_types=sqlite3.PARSE_DECLTYPES,
                 check_same_thread=False,
             )
-            self._db.row_factory = sqlite3.Row
+            connection.row_factory = sqlite3.Row
 
             for table_name in self.table_names:
-                _rename_column_if_exists(self._db, table_name, "end", "stop")
+                _rename_column_if_exists(connection, table_name, "end", "stop")
 
-        return self._db
+            self._db_wrapper = DBWrapper(connection)
+
+        return self._db_wrapper._db
 
     def _execute_sql(
         self,
@@ -1312,8 +1320,8 @@ class SqliteAnnotationDbMixin:
 
     def close(self) -> None:
         """closes the db"""
-        if self._db is not None:
-            self._db.close()
+        if self._db_wrapper is not None:
+            self._db_wrapper._db.close()
 
     def _make_index(self, *, table_name: str, col_names: tuple[str, ...]) -> None:
         """index columns for faster search"""
@@ -1363,7 +1371,7 @@ class BasicAnnotationDb(SqliteAnnotationDbMixin, AnnotationDbABC):
         # note that data is destroyed
         self._num_fakeids = 0
         self.source = source
-        self._db = None
+        self._db_wrapper = None
         self._setup_db(db)
 
         self.add_records(data)
@@ -1431,7 +1439,7 @@ class GffAnnotationDb(SqliteAnnotationDbMixin, AnnotationDbABC):
         self.source = getattr(db, "source", source)
         # ensure serialisable state reflects this
         self._serialisable["source"] = self.source
-        self._db = None
+        self._db_wrapper = None
         self._setup_db(db)
         merged_data, self._num_fakeids = merged_gff_records(data, self._num_fakeids)
         self.add_records(merged_data)
@@ -1546,7 +1554,7 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin, AnnotationDbABC):
         # note that data is destroyed
         self._num_fakeids = 0
         self.source = source
-        self._db = None
+        self._db_wrapper = None
         self._setup_db(db)
         if db:
             # guessing there's multiple seqid's

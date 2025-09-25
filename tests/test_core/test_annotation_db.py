@@ -132,7 +132,7 @@ def test_constructor_db_instance_works(db_name, cls, request):
 def test_constructor_db_connection_works(db_name, cls, request):
     # only compatible db's used to init
     db = request.getfixturevalue(db_name)
-    cls(db=db.db)
+    cls(db=db._db_wrapper)
 
 
 def test_gff_describe(gff_db):
@@ -981,7 +981,7 @@ def test_equal():
     db3 = BasicAnnotationDb()
     assert db1 != db2
     # we define equality by same class AND same db instance
-    db3._db = db2._db
+    db3._db_wrapper = db2._db_wrapper
     assert db2 == db3
 
 
