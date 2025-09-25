@@ -44,6 +44,8 @@ jobs:
           uv tool install -p venv nox
 
       - name: "Run nox for ${{ matrix.python-version }}"
+        env:
+          PYTHONTRACEMALLOC: "20"
         shell: bash
         run: |
           dn=$(pwd)
