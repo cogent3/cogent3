@@ -1,3 +1,4 @@
+import gc
 import pathlib
 
 import pytest
@@ -16,3 +17,7 @@ def HOME_TMP_DIR(DATA_DIR) -> pathlib.Path:
     HOME = pathlib.Path("~")
     with tempfile.TemporaryDirectory(dir=HOME.expanduser()) as dn:
         yield HOME / dn
+
+
+def pytest_sessionfinish(session, exitstatus):
+    gc.collect()
