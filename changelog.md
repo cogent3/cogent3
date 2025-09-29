@@ -1,4 +1,22 @@
 
+<a id='changelog-2025.9.8a3'></a>
+# Changes in release "2025.9.8a3"
+
+## Contributors
+
+- First-time contribution from @iosonofabio 🎉🚀
+- @GavinHuttley
+
+## Enhancements
+
+- `PhyloNode.sorted()` now uses an iterative algorithm so it will be
+  more efficient on large trees.
+
+## Documentation
+
+- @iosonofabio added a gallery example demonstrating integration of cogent3 trees with
+  the third-party tree visualisation package iplotx.
+
 <a id='changelog-2025.9.8a2'></a>
 # Changes in release "2025.9.8a2"
 
