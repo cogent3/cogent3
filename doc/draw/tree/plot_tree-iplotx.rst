@@ -3,6 +3,8 @@
 
     import set_working_directory
 
+.. _iplotx-demo:
+
 Using iplotx with cogent3
 =========================
 
