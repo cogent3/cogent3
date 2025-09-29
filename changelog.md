@@ -9,7 +9,7 @@
 
 ## Enhancements
 
-- `PhyloNode.sorted()` now uses an iterative algorothm so it will be
+- `PhyloNode.sorted()` now uses an iterative algorithm so it will be
   more efficient on large trees.
 
 ## Documentation
