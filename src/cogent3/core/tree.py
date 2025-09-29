@@ -687,6 +687,7 @@ class PhyloNode:
         """sets the Data property of unnamed nodes to an arbitrary value
 
         Internal nodes are often unnamed and so this function assigns a
+        Internal nodes are often unnamed and so this function assigns a
         value for referencing."""
         # make a list of the names that are already in the tree
         names_in_use = [node.name for node in self.preorder() if node.name]
@@ -1136,41 +1137,43 @@ class PhyloNode:
                 biggest_branch = child
         return max_weight, total_weight - max_weight, biggest_branch
 
-    def _sorted(self, sort_order: PySeqStr) -> tuple[int | None, Self]:
-        """Score all the edges, sort them, and return minimum score and a
-        sorted tree.
-        """
-        # Only need to duplicate whole tree because of .parent pointers
-
-        constructor = self._default_tree_constructor()
-
-        score: int | None
-        if not self.children:
-            tree = self.deepcopy()
-            score = sort_order.index(self.name)
-            return score, tree
-
-        scored_subtrees = [child._sorted(sort_order) for child in self.children]
-        scored_subtrees.sort()
-        children = tuple(child.deepcopy() for _, child in scored_subtrees)
-        tree = constructor(self, children, None)
-
-        non_null_scores = [score for score, _ in scored_subtrees if score is not None]
-        score = non_null_scores[0] if non_null_scores else None
-        return score, tree
-
     def sorted(self, sort_order: list[str] | None = None) -> Self:
-        """An equivalent tree sorted into a standard order. If this is not
-        specified then alphabetical order is used.  At each node starting from
-        root, the algorithm will try to put the descendant which contains the
-        lowest scoring tip on the left.
+        """An equivalent tree with tips in sort_order.
+
+        Notes
+        -----
+        If sort_order is not specified then alphabetical order is used.
+        At each node starting from root, the algorithm will try to put
+        the descendant which contains the smallest index tip on the left.
         """
         sort_order = sort_order or []
         tip_names = self.get_tip_names()
         tip_names.sort()
         full_sort_order = sort_order + tip_names
-        _, tree = self._sorted(full_sort_order)
-        return tree
+        score_map = {name: i for i, name in enumerate(full_sort_order)}
+
+        constructor = self._default_tree_constructor()
+
+        scores: dict[PhyloNode, int | None] = {}
+        rebuilt: dict[PhyloNode, PhyloNode] = {}
+
+        infinity = float("inf")
+        for node in self.postorder():
+            if node.is_tip():
+                score = score_map[node.name]
+                tree = node.deepcopy()
+            else:
+                child_info = [(scores[ch], rebuilt[ch]) for ch in node.children]
+                # Sort children by score, None is treated as +infinity
+                child_info.sort(key=lambda x: (infinity if x[0] is None else x[0]))
+                children = tuple(child.deepcopy() for _, child in child_info)
+                tree = constructor(node, children, None)
+                non_null = [s for s, _ in child_info if s is not None]
+                score = non_null[0] if non_null else None
+            scores[node] = score
+            rebuilt[node] = tree
+
+        return rebuilt[self]
 
     def ladderise(self) -> Self:
         """Return an equivalent tree nodes using a ladderise sort.
