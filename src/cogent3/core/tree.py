@@ -1166,7 +1166,7 @@ class PhyloNode:
                 child_info = [(scores[ch], rebuilt[ch]) for ch in node.children]
                 # Sort children by score, None is treated as +infinity
                 child_info.sort(key=lambda x: (infinity if x[0] is None else x[0]))
-                children = tuple(child.deepcopy() for _, child in child_info)
+                children = tuple(child for _, child in child_info)
                 tree = constructor(node, children, None)
                 non_null = [s for s, _ in child_info if s is not None]
                 score = non_null[0] if non_null else None
