@@ -25,7 +25,7 @@
 <details>
   <summary> Third-party integration demo for ``iplotx`` </summary>
 
-The [iplotx](https://iplotx.readthedocs.io/) team have contributed a demonstration of their tools ability to produce images from ``cogent3`` tree objects. See the [cogent3 image gallery](https://cogent3.org/doc/draw/index.html) to read it.
+The [iplotx](https://iplotx.readthedocs.io/) team have contributed a demonstration of their tool's ability to produce images from ``cogent3`` tree objects. See the [cogent3 image gallery](https://cogent3.org/doc/draw/index.html) to read it.
 
 </details>
 
