@@ -622,6 +622,17 @@ def test_not_is_nucleic(moltype):
     assert not mt.is_nucleic
 
 
+@pytest.mark.parametrize("moltype", ["protein", "text", "protein_with_stop"])
+def test_gapped_missing_alphabet(moltype):
+    mt = c3_moltype.get_moltype(moltype)
+    assert mt.gapped_missing_alphabet
+
+
+def test_gapped_missing_alphabet_bytes():
+    mt = c3_moltype.get_moltype("bytes")
+    assert mt.gapped_missing_alphabet is None
+
+
 def test_moltype_coerce_seqs():
     dna = c3_moltype.get_moltype("dna")
     rna_seq = "AUUG"

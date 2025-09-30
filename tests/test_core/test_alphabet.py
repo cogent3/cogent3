@@ -218,14 +218,14 @@ def test_kmer_alphabet_construction_bytes():
 
 @pytest.mark.parametrize("gap_index", [-1, 4])
 @pytest.mark.parametrize("indices", [2, 3, (2, 3)])
-def test_seq_to_kmer_indices_handle_gap(indices, gap_index):
+def test_seq_to_kmer_independent_indices_handle_gap(indices, gap_index):
     k = 2
     coeffs = c3_alphabet.coord_conversion_coeffs(4, k)
     seq = numpy.array([0, 1, 1, 3], dtype=numpy.uint8)
     result = numpy.zeros(len(seq) // k, dtype=numpy.uint8)
     # the gap index is 4
     seq.put(indices, 4)
-    got = c3_alphabet.seq_to_kmer_indices(
+    got = c3_alphabet.seq_to_kmer_indices_independent(
         seq,
         result,
         coeffs,
@@ -233,10 +233,56 @@ def test_seq_to_kmer_indices_handle_gap(indices, gap_index):
         k,
         gap_char_index=gap_index,
         gap_index=-1 if gap_index == -1 else 16,
-        independent_kmer=True,
     )
     expect = numpy.array([1, 16], dtype=numpy.uint8)
     assert (got == expect).all()
+
+
+@pytest.mark.parametrize("gap_index", [-1, 4])
+@pytest.mark.parametrize("indices", [2, 3, (2, 3)])
+def test_seq_to_kmer_dependent_indices_handle_gap(indices, gap_index):
+    k = 2
+    alpha = c3_moltype.DNA.alphabet
+    dinucs = alpha.get_kmer_alphabet(k, include_gap=True)
+    coeffs = c3_alphabet.coord_conversion_coeffs(4, k)
+    seq = numpy.array([0, 1, 1, 3], dtype=numpy.uint8)
+    result = numpy.zeros(len(seq) - k + 1, dtype=numpy.uint8)
+    # the gap index is 4
+    seq.put(indices, 4)
+    seqchars = alpha.from_indices(seq)
+    mapped = {di: i for i, di in enumerate(dinucs)}
+    expect = numpy.array(
+        [mapped.get(seqchars[i : i + k], 16) for i in range(len(seqchars) - k + 1)],
+        dtype=numpy.uint8,
+    )
+    got = c3_alphabet.seq_to_kmer_indices_overlapping(
+        seq,
+        result,
+        coeffs,
+        4,
+        k,
+        gap_char_index=gap_index,
+        gap_index=-1 if gap_index == -1 else 16,
+    )
+    assert (got == expect).all()
+
+
+@pytest.mark.parametrize(
+    "func",
+    [
+        c3_alphabet.seq_to_kmer_indices_overlapping,
+        c3_alphabet.seq_to_kmer_indices_independent,
+    ],
+)
+def test_seq_to_kmer_k_gt_seq(func):
+    k = 5
+    coeffs = c3_alphabet.coord_conversion_coeffs(4, k)
+    seq = numpy.array([0, 1, 1, 3], dtype=numpy.uint8)
+    result = numpy.zeros(len(seq) - k + 1, dtype=numpy.uint8)
+    got = c3_alphabet.seq_to_kmer_indices_overlapping(
+        seq, result, coeffs, 4, k, gap_char_index=-1, gap_index=-1
+    )
+    assert got.size == 0
 
 
 @pytest.mark.parametrize("gap_index", [-1, 4])
@@ -247,7 +293,7 @@ def test_seq_to_kmer_indices_handle_missing(gap_index):
     seq = numpy.array([5, 1, 0, 1, 0, 4], dtype=numpy.uint8)
     result = numpy.zeros(len(seq) // k, dtype=numpy.uint8)
     expect = numpy.array([17 if gap_index > 0 else 16, 1, 16], dtype=numpy.uint8)
-    got = c3_alphabet.seq_to_kmer_indices(
+    got = c3_alphabet.seq_to_kmer_indices_independent(
         seq,
         result,
         coeffs,
@@ -255,7 +301,6 @@ def test_seq_to_kmer_indices_handle_missing(gap_index):
         k,
         gap_char_index=gap_index,
         gap_index=-1 if gap_index == -1 else 16,
-        independent_kmer=True,
     )
     assert (got == expect).all()
 
@@ -383,7 +428,7 @@ def test_seq_to_kmer_indices():
     coeffs = c3_alphabet.coord_conversion_coeffs(4, 3)
     num = len(seq) // 3
     result = numpy.zeros(num, dtype=numpy.uint8)
-    got = c3_alphabet.seq_to_kmer_indices(arr, result, coeffs, 4, 3)
+    got = c3_alphabet.seq_to_kmer_indices_independent(arr, result, coeffs, 4, 3)
     expect = numpy.array(
         [numpy_func(arr[i : i + 3], dims=dims) for i in range(0, 9, 3)],
     )

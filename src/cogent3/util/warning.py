@@ -79,6 +79,7 @@ R = TypeVar("R")
 
 
 def deprecated_args(
+    *,
     version: str,
     reason: str,
     old_new: Sequence[tuple[str, str]] | None = None,
@@ -178,6 +179,7 @@ def deprecated_args(
 
 
 def deprecated_callable(
+    *,
     version: str,
     reason: str,
     new: str | None = None,

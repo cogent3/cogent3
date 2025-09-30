@@ -102,7 +102,7 @@ MolTypes = c3_moltype.MolTypeLiteral | c3_moltype.MolType
 EPS = 1e-6
 
 
-def array_hash64(data: numpy.ndarray) -> int:
+def array_hash64(data: numpy.ndarray) -> str:
     """returns 64-bit hash of numpy array.
 
     Notes
@@ -111,7 +111,7 @@ def array_hash64(data: numpy.ndarray) -> int:
     is reproducible between processes.
     """
     h = hashlib.md5(data.tobytes(), usedforsecurity=False)
-    return int.from_bytes(h.digest()[:8], byteorder="little")
+    return h.hexdigest()
 
 
 class _SeqNamer:
@@ -399,6 +399,9 @@ class SeqsDataABC(ABC):
     @abstractmethod
     def copy(self, **kwargs) -> SeqsDataABC: ...
 
+    @abstractmethod
+    def get_hash(self, seqid: str) -> str | None: ...
+
 
 class SeqsData(SeqsDataABC):
     """The builtin ``cogent3`` implementation of sequence storage underlying
@@ -413,7 +416,7 @@ class SeqsData(SeqsDataABC):
     for a sequence as used by IndelMap.
     """
 
-    __slots__ = ("_alphabet", "_data", "_offset", "_reversed")
+    __slots__ = ("_alphabet", "_data", "_hashes", "_offset", "_reversed")
 
     def __init__(
         self,
@@ -457,8 +460,10 @@ class SeqsData(SeqsDataABC):
                     msg,
                 )
         self._data: dict[str, numpy.ndarray] = {}
+        self._hashes: dict[str, str] = {}
         for name, seq in data.items():
             arr = self._alphabet.to_indices(seq)
+            self._hashes[name] = array_hash64(arr)
             arr.flags.writeable = False
             self._data[str(name)] = arr
 
@@ -659,6 +664,10 @@ class SeqsData(SeqsDataABC):
             **kwargs,
         }
         return self.__class__(**init_args)
+
+    def get_hash(self, seqid: str) -> str | None:
+        """returns hash of seqid"""
+        return self._hashes.get(seqid)
 
 
 class SequenceCollection(AnnotatableMixin):
@@ -2465,8 +2474,9 @@ class SequenceCollection(AnnotatableMixin):
     def duplicated_seqs(self) -> list[list[str]]:
         """returns the names of duplicated sequences"""
         seq_hashes = collections.defaultdict(list)
-        for s in self.seqs:
-            seq_hashes[array_hash64(numpy.array(s))].append(s.name)
+        for n, n2 in self.name_map.items():
+            h = self.storage.get_hash(n2)
+            seq_hashes[h].append(n)
         return [v for v in seq_hashes.values() if len(v) > 1]
 
     def drop_duplicated_seqs(self) -> typing_extensions.Self:
@@ -3555,7 +3565,7 @@ class AlignedSeqsDataABC(SeqsDataABC):
         ...
 
     @abstractmethod
-    def get_positions(
+    def get_pos_range(
         self,
         names: PySeqStr,
         start: OptInt = None,
@@ -3564,7 +3574,23 @@ class AlignedSeqsDataABC(SeqsDataABC):
     ) -> numpy.ndarray: ...
 
     @abstractmethod
+    def get_positions(
+        self,
+        names: PySeqStr,
+        positions: typing.Sequence[int] | numpy.ndarray[numpy.integer],
+    ) -> numpy.ndarray: ...
+
+    @abstractmethod
     def copy(self, **kwargs) -> typing_extensions.Self: ...
+
+    @abstractmethod
+    def variable_positions(
+        self,
+        names: PySeqStr,
+        start: OptInt = None,
+        stop: OptInt = None,
+        step: OptInt = None,
+    ) -> numpy.ndarray: ...
 
 
 def _gapped_seq_len(seq: numpy.ndarray, gap_map: numpy.ndarray) -> int:
@@ -3605,6 +3631,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         "_alphabet",
         "_gapped",
         "_gaps",
+        "_hashes",
         "_name_to_index",
         "_names",
         "_offset",
@@ -3657,6 +3684,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         self._gapped = gapped_seqs
         self._ungapped = ungapped_seqs or {}
         self._gaps = gaps or {}
+        self._hashes: dict[str, str] = {}
         align_len = align_len or gapped_seqs.shape[1]
         self._reversed = frozenset(reversed_seqs or set())
         if align_len:
@@ -4166,7 +4194,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             names=self.names,
         )
 
-    def get_positions(
+    def get_pos_range(
         self,
         names: PySeqStr,
         start: OptInt = None,
@@ -4174,7 +4202,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         step: OptInt = None,
     ) -> numpy.ndarray:
         """returns an array of the selected positions for names."""
-        indices = tuple(self._name_to_index[name] for name in names)
         start = start or 0
         stop = stop or self.align_len
         step = step or 1
@@ -4182,12 +4209,48 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             msg = f"{start=}, {stop=}, {step=} not >= 1"
             raise ValueError(msg)
 
+        indices = tuple(self._name_to_index[name] for name in names)
         if abs((start - stop) // step) == self.align_len:
             array_seqs = self._gapped[indices, :]
         else:
             array_seqs = self._gapped[indices, start:stop:step]
 
         return array_seqs
+
+    def get_positions(
+        self,
+        names: PySeqStr,
+        positions: typing.Sequence[int] | numpy.ndarray[numpy.integer],
+    ) -> numpy.ndarray[numpy.uint8]:
+        """returns alignment positions for names
+
+        Parameters
+        ----------
+        names
+            series of sequence names
+        positions
+            indices lying within self
+
+        Returns
+        -------
+            2D numpy.array, oriented by sequence
+
+        Raises
+        ------
+        IndexError if a provided position is negative or
+        greater then alignment length.
+        """
+        if diff := set(names) - set(self.names):
+            msg = f"these names not present {diff}"
+            raise ValueError(msg)
+
+        min_index, max_index = numpy.min(positions), numpy.max(positions)
+        if min_index < 0 or max_index > self.align_len:
+            msg = f"Out of range: {min_index=} and / or {max_index=}"
+            raise IndexError(msg)
+
+        seq_indices = tuple(self._name_to_index[n] for n in names)
+        return self._gapped[numpy.ix_(seq_indices, positions)]
 
     def copy(self, **kwargs) -> typing_extensions.Self:
         """shallow copy of self
@@ -4210,6 +4273,49 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         }
 
         return self.__class__(**init_args)
+
+    def variable_positions(
+        self,
+        names: PySeqStr,
+        start: OptInt = None,
+        stop: OptInt = None,
+        step: OptInt = None,
+    ) -> numpy.ndarray:
+        """returns absolute indices of positions that have more than one state
+
+        Parameters
+        ----------
+        names
+            selected seqids
+        start
+            absolute start
+        stop
+            absolute stop
+        step
+            step
+
+        Returns
+        -------
+        Absolute indices (as distinct from an index relative to start) of
+        variable positions.
+        """
+        start = start or 0
+        if len(names) < 2:
+            return numpy.array([])
+
+        array_seqs = self.get_pos_range(names, start=start, stop=stop, step=step)
+        if array_seqs.size == 0:
+            return numpy.array([])
+
+        indices = (array_seqs != array_seqs[0]).any(axis=0)
+        return numpy.where(indices)[0] + start
+
+    def get_hash(self, seqid: str) -> str | None:
+        """returns hash of seqid"""
+        if seqid not in self._hashes:
+            arr = self.get_gapped_seq_array(seqid=seqid)
+            self._hashes[seqid] = array_hash64(arr)
+        return self._hashes[seqid]
 
 
 class AlignedDataViewABC(c3_sequence.SeqViewABC):
@@ -4717,7 +4823,7 @@ class Alignment(SequenceCollection):
         if self._array_seqs is None:
             names = [self._name_map[n] for n in self.names]
             # create the dest array dim
-            arr_seqs = self._seqs_data.get_positions(
+            arr_seqs = self._seqs_data.get_pos_range(
                 names=names,
                 start=self._slice_record.plus_start,
                 stop=self._slice_record.plus_stop,
@@ -5302,25 +5408,63 @@ class Alignment(SequenceCollection):
         Truncates alignment to be modulo motif_length.
         """
         align_len = len(self) // motif_length * motif_length
-        array_seqs = self.array_seqs[:, :align_len]
-        # both gap and missing data are treated as gaps
-        alpha = self.moltype.most_degen_alphabet()
-        gap_index = alpha.gap_index
-        missing_index = alpha.missing_index
-        # at the individual position level
+        # columns is 2D array with alignment columns as rows
+        pos = self.storage.variable_positions(
+            list(self.name_map.values()),
+            start=self._slice_record.plus_start,
+            stop=min(self._slice_record.plus_stop, align_len),
+            step=self._slice_record.plus_step,
+        )
+        if not pos.size:
+            return ()
+
+        alpha = self.storage.alphabet
+        gap_index = alpha.gap_index or len(alpha)
+        missing_index = alpha.missing_index or len(alpha)
         if include_gap_motif and include_ambiguity:
-            indices = _var_pos_allow_all(array_seqs)
-        elif include_gap_motif:
-            indices = _var_pos_canonical_or_gap(array_seqs, gap_index, missing_index)
-        elif include_ambiguity:
-            indices = _var_pos_not_gap(array_seqs, gap_index)
+            # allow all states
+            func = None
+        elif include_gap_motif and self.moltype.gapped_missing_alphabet:
+            # allow canonical, gap, missing
+            func = _var_pos_canonical_or_gap
+            kwargs = {
+                "gap_index": gap_index,
+                "missing_index": missing_index,
+            }
+        elif include_ambiguity and self.moltype.degen_alphabet:
+            # anything but a gap
+            func = _var_pos_not_gap
+            kwargs = {
+                "gap_index": gap_index,
+            }
         else:
-            indices = _var_pos_canonical(array_seqs, gap_index)
+            # canonical only
+            func = _var_pos_canonical
+            kwargs = {
+                "gap_index": gap_index,
+            }
+
+        indices = numpy.zeros(align_len, dtype=bool)
+        if func is None:
+            indices[pos] = True
+        else:
+            array_seqs = self.storage.get_positions(list(self.name_map.values()), pos)
+            indices[pos] = func(array_seqs, **kwargs)
+
+        if self._slice_record.is_reversed:
+            # for reverse complement alignments
+            # because we have a bool vector entire alignment length
+            # just reversing the order is all we need to do since the
+            # numpy.where statement will return positions in this new order
+            indices = indices[::-1]
 
         if motif_length > 1:
-            indices = indices.reshape(-1, motif_length).any(axis=1).repeat(motif_length)
+            var_pos = indices.reshape(-1, motif_length).any(axis=1).repeat(motif_length)
+        else:
+            var_pos = indices
 
-        return tuple(numpy.where(indices)[0].tolist())
+        var_pos = numpy.where(var_pos)[0]
+        return tuple(var_pos.tolist())
 
     def omit_bad_seqs(self, quantile: OptFloat = None):
         """Returns new alignment without sequences with a number of uniquely
@@ -7054,6 +7198,23 @@ class Alignment(SequenceCollection):
 
         return super().duplicated_seqs()
 
+    def to_dict(self, as_array: bool = False) -> dict[str, str | numpy.ndarray]:
+        """Return a dictionary of sequences.
+
+        Parameters
+        ----------
+        as_array
+            if True, sequences are returned as numpy arrays, otherwise as strings
+        """
+        arrayseqs = self.array_seqs
+        if as_array:
+            return {n: arrayseqs[i] for i, n in enumerate(self.names)}
+
+        return {
+            n: self.storage.alphabet.from_indices(arrayseqs[i])
+            for i, n in enumerate(self.names)
+        }
+
 
 @register_deserialiser(
     get_object_provenance(Alignment),
@@ -7387,35 +7548,6 @@ def _var_pos_canonical(
                     result[pos] = True
                     break
 
-    return result
-
-
-@numba.jit(cache=True)
-def _var_pos_allow_all(
-    arr: numpy.ndarray,
-) -> numpy.ndarray:  # pragma: no cover
-    """return boolean array indicating columns with more than one value below threshold
-
-    Parameters
-    ----------
-    arr
-        a 2D array with rows being sequences and columns positions
-
-    Returns
-    ------
-    a boolean array
-    """
-    m, n = arr.shape
-    result = numpy.zeros(n, dtype=numpy.bool_)
-    for pos in numpy.arange(n):
-        last = -1
-        for seq in numpy.arange(m):
-            state = arr[seq, pos]
-            if last == -1:
-                last = state
-            elif state != last:
-                result[pos] = True
-                break
     return result
 
 

@@ -23,9 +23,9 @@
 ## 📣 Feature Announcements 📣
 
 <details>
-  <summary> Migration to new type core objects is complete‼️ </summary>
+  <summary> Third-party integration demo for ``iplotx`` </summary>
 
-This has now been finalised with these classes being the defaults.
+The [iplotx](https://iplotx.readthedocs.io/) team have contributed a demonstration of their tool's ability to produce images from ``cogent3`` tree objects. See the [cogent3 image gallery](https://cogent3.org/doc/draw/index.html) to read it.
 
 </details>
 

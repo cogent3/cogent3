@@ -26,7 +26,11 @@ from cogent3.util.deserialise import deserialise_object
 from cogent3.util.misc import get_object_provenance
 
 try:
-    import cogent3_h5seqs  # noqa: F401
+    import cogent3_h5seqs
+
+    vers = tuple(int(v) for v in cogent3_h5seqs.__version__.split(".")[:3])
+    if not (vers > (0, 6, 1)):
+        raise ImportError  # noqa: TRY301
 
     has_hf_seqs = True
 except ImportError:
@@ -4259,6 +4263,81 @@ def test_alignment_counts_per_pos():
     assert numpy.array_equal(set(c.motifs), set("ACGT-"))
 
 
+def test_variable_positions_rc():
+    """correctly identify variable positions"""
+    #                      *
+    new_seqs = {"A": "ACGACAC", "B": "ACGACGC", "C": "ACGACAC"}
+    aln = c3_alignment.make_aligned_seqs(new_seqs, moltype="dna")
+    # only the first dinucleotide is variable if gaps and ambigs disallowed
+    assert aln.variable_positions() == (5,)
+    # rc
+    rc = aln.rc()
+    assert rc.variable_positions() == (1,)
+
+    assert aln.variable_positions(motif_length=2) == (4, 5)
+    assert rc.variable_positions(motif_length=2) == (0, 1)
+
+
+def test_variable_positions_motif_length_sliced():
+    """correctly identify variable positions"""
+    #                 *  - ?
+    new_seqs = {"A": "-CG-CAC", "B": "ACGACAC", "C": "GCGACYC"}
+    aln = c3_alignment.make_aligned_seqs(new_seqs, moltype="dna")
+    aln = aln[1:]
+    # only the first dinucleotide is variable if gaps and ambigs disallowed
+    assert (
+        aln.variable_positions(
+            motif_length=2,
+            include_gap_motif=False,
+            include_ambiguity=False,
+        )
+        == ()
+    )
+    # if gaps are allowed, the second dinucleotide is also variable
+    got = aln.variable_positions(
+        motif_length=2,
+        include_gap_motif=True,
+        include_ambiguity=False,
+    )
+    assert got == (2, 3)
+    got = aln.variable_positions(
+        motif_length=2,
+        include_gap_motif=False,
+        include_ambiguity=True,
+    )
+    assert got == (4, 5)
+
+
+def test_variable_positions_motif_length_sliced_rc():
+    """correctly identify variable positions"""
+    #                 *  - ?
+    new_seqs = {"A": "-CG-CAC", "B": "ACGACAC", "C": "GCGACYC"}
+    aln = c3_alignment.make_aligned_seqs(new_seqs, moltype="dna")
+    aln = aln[1:].rc()
+    # only the first dinucleotide is variable if gaps and ambigs disallowed
+    assert (
+        aln.variable_positions(
+            motif_length=2,
+            include_gap_motif=False,
+            include_ambiguity=False,
+        )
+        == ()
+    )
+    # if gaps are allowed, the second dinucleotide is also variable
+    got = aln.variable_positions(
+        motif_length=2,
+        include_gap_motif=True,
+        include_ambiguity=False,
+    )
+    assert got == (2, 3)
+    got = aln.variable_positions(
+        motif_length=2,
+        include_gap_motif=False,
+        include_ambiguity=True,
+    )
+    assert got == (0, 1)
+
+
 def test_get_position_indices():
     """get_position_indices should return names of cols where f(col)"""
 
@@ -6286,3 +6365,54 @@ def test_seqcoll_modified_rename_seqs(mk_cls):
     coll = mk_cls(data, moltype="dna")
     sub = coll.rename_seqs(lambda x: x.upper())
     assert sub.modified
+
+
+@pytest.mark.parametrize(("start", "stop", "step"), [(0, 4, 1), (1, 8, 2)])
+def test_asd_get_pos_range(dna_alphabet, start, stop, step):
+    alpha = dna_alphabet
+    data = {
+        "s1": "ATCTGA",
+        "s2": "TCGCCC",
+        "s3": "TCGCCC",
+    }
+    asd = c3_alignment.AlignedSeqsData.from_seqs(data=data, alphabet=dna_alphabet)
+    expect = numpy.array(
+        [alpha.to_indices(data[n][start:stop:step]) for n in asd.names],
+        dtype=numpy.uint8,
+    )
+    got = asd.get_pos_range(asd.names, start=start, stop=stop, step=step)
+    assert numpy.allclose(got, expect)
+
+
+@pytest.mark.parametrize("positions", [[0, 1, 3], [0, 3, 2]])
+def test_asd_get_positions(dna_alphabet, positions):
+    alpha = dna_alphabet
+    data = {
+        "s1": "ATCTGA",
+        "s2": "TCGCCC",
+        "s3": "TCGCCC",
+    }
+    asd = c3_alignment.AlignedSeqsData.from_seqs(data=data, alphabet=dna_alphabet)
+
+    expect = {
+        n: dna_alphabet.from_indices(dna_alphabet.to_indices(s)[positions])
+        for n, s in data.items()
+    }
+    expect = numpy.array(
+        [alpha.to_indices(expect[n]) for n in asd.names],
+        dtype=numpy.uint8,
+    )
+    got = asd.get_positions(asd.names, positions)
+    assert numpy.allclose(got, expect)
+
+
+@pytest.mark.parametrize("bas_pos", [[-1, 0, 1], [0, 3, 20], [-1, 0, 20]])
+def test_asd_get_positions_err(dna_alphabet, bas_pos):
+    data = {
+        "s1": "ATCTGA",
+        "s2": "TCGCCC",
+        "s3": "TCGCCC",
+    }
+    asd = c3_alignment.AlignedSeqsData.from_seqs(data=data, alphabet=dna_alphabet)
+    with pytest.raises(IndexError):
+        _ = asd.get_positions(asd.names, bas_pos)

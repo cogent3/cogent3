@@ -575,6 +575,11 @@ class MolType(Generic[StrOrBytes]):
         return self._gapped
 
     @property
+    def gapped_missing_alphabet(self) -> c3_alphabet.CharAlphabet[StrOrBytes] | None:
+        """monomers + gap"""
+        return self._gapped_missing
+
+    @property
     def degen_gapped_alphabet(self) -> c3_alphabet.CharAlphabet[StrOrBytes] | None:
         """monomers + gap + ambiguous characters"""
         return self._degen_gapped

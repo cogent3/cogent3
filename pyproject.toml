@@ -25,7 +25,7 @@ dependencies = [
     "scitrack",
     "stevedore",
     "tqdm",
-    "typing_extensions"
+    "typing_extensions",
 ]
 # remember to update version in requires-python and classifiers
 requires-python = ">=3.10,<3.14"
@@ -50,9 +50,9 @@ Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 
 [project.optional-dependencies]
 test = [
-    "cogent3-h5seqs",
+    "cogent3-h5seqs>=0.6.1",
     "piqtree>=0.6; python_version >= '3.11'",
-    "ruff==0.12.11",
+    "ruff==0.13.2",
     "kaleido",
     "pandas",
     "plotly",
@@ -67,7 +67,7 @@ test = [
 doc = [
     "click",
     "cogent3[extra]",
-    "cogent3-h5seqs",
+    "cogent3-h5seqs>=0.6.1",
     "jupyter-sphinx",
     "jupyter_client",
     "jupytext",
@@ -81,7 +81,8 @@ doc = [
     "pydata_sphinx_theme",
     "sphinx_design",
     "sphinxcontrib-bibtex",
-    "sphinxcontrib-video"
+    "sphinxcontrib-video",
+    "iplotx>=0.6.8"
 ]
 extra = [
     "ipykernel",
@@ -130,7 +131,7 @@ reinstall-package = ["cogent3"]
 
 [tool.scriv]
 format = "md"
-categories = ["Contributors", "Enhancements", "Bug fixes", "Documentation", "Deprecations", "Discontinued"]
+categories = ["API", "Contributors", "Enhancements", "Bug fixes", "Documentation", "Deprecations", "Discontinued"]
 output_file = "changelog.md"
 version = "literal: src/cogent3/_version.py:__version__"
 skip_fragments = "README.*"
