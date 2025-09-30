@@ -2,9 +2,9 @@ import functools
 import itertools
 import json
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Iterable, Sized
+from collections.abc import Callable, Iterable, Iterator, Sized
 from collections.abc import Sequence as PySeq
-from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Generic, Literal, TypeVar, cast
 
 import numba
 import numpy
@@ -161,6 +161,12 @@ class AlphabetABC(ABC, Generic[StrOrBytes]):
     @property
     def moltype(self) -> "MolType[StrOrBytes] | None":
         return _alphabet_moltype_map.get(self)
+
+    @abstractmethod
+    def __len__(self) -> int: ...
+
+    @abstractmethod
+    def __iter__(self) -> Iterator[StrOrBytes]: ...
 
 
 class MonomerAlphabetABC(ABC, Generic[StrOrBytes]):
@@ -718,9 +724,13 @@ def make_converter(
     )
 
 
+MolTypeStrLiteral = Literal["dna", "rna", "protein", "protein_with_stop", "text"]
+
+
 def _get_closest_char_alphabet(
-    moltype_name: str, motifset: list[str] | set[str]
-) -> CharAlphabet[Any]:
+    moltype_name: "MolTypeStrLiteral | MolType[str]",
+    motifset: list[str] | set[str],
+) -> CharAlphabet[str]:
     from cogent3.core.moltype import get_moltype
 
     mtype = get_moltype(moltype_name)
@@ -735,14 +745,14 @@ def _get_closest_char_alphabet(
 )
 def deserialise_char_alphabet(data: dict[str, Any]) -> CharAlphabet[Any]:
     if "motifset" not in data:
-        return CharAlphabet.from_rich_dict(data)
+        return CharAlphabet[str].from_rich_dict(data)
 
     from cogent3.core.moltype import get_moltype
 
     # this is a legacy format, we assume this was derived from a
     # moltype so we get the moltype and look for an alphabet with
     # matching characters and gap
-    mtype = get_moltype(data["moltype"])
+    mtype = cast("MolType[str]", get_moltype(data["moltype"]))
     motifset = set(data.pop("motifset"))
     return _get_closest_char_alphabet(mtype, motifset)
 
@@ -1521,11 +1531,11 @@ class SenseCodonAlphabet(
         msg = f"{type(seq)} is invalid"
         raise TypeError(msg)
 
-    def to_index(
+    def to_index(  # type: ignore[override]
         self,
         codon: str,
         validate: bool = True,
-    ) -> int:  # type: ignore
+    ) -> int:
         """encodes a codon as a single integer
 
         Parameters

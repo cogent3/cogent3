@@ -210,6 +210,8 @@ class SupportsFeatures(
         self, other_db: SqliteAnnotationDbMixin, symmetric: bool = True
     ) -> bool: ...
 
+    def to_rich_dict(self) -> dict[str, Any]: ...
+
 
 class AnnotationDbABC(abc.ABC, SupportsFeatures):
     @abc.abstractmethod

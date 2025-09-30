@@ -1,5 +1,7 @@
 """Data for molecular weight calculations on proteins and nucleotides."""
 
+from collections.abc import Iterable
+
 ProteinWeights = {
     "A": 71.09,
     "C": 103.16,
@@ -42,7 +44,9 @@ class WeightCalculator:
         self.weights = weights
         self.correction = correction
 
-    def __call__(self, seq: str, correction: float | None = None) -> float:
+    def __call__(
+        self, seq: str | Iterable[str], correction: float | None = None
+    ) -> float:
         """Returns the molecular weight of a specified sequence."""
         if not seq:
             return 0
