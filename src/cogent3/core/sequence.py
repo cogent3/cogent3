@@ -45,6 +45,7 @@ from cogent3.core.location import (
     _input_vals_pos_step,
     _LostSpan,
 )
+from cogent3.draw.drawable import Shape
 from cogent3.format.fasta import seqs_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts, TestResult
 from cogent3.maths.stats.number import CategoryCounter
@@ -3037,7 +3038,6 @@ class SeqView(SeqViewABC):
     @property
     def str_value(self) -> str:
         """returns the sequence as a string"""
-        self.parent
         return self.alphabet.from_indices(
             self.parent[
                 self.slice_record.start : self.slice_record.stop : self.slice_record.step

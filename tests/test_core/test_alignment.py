@@ -5951,7 +5951,7 @@ def test_aln_mixed_strand_rced_seq():
     aln = c3_alignment.make_aligned_seqs(plus, moltype="dna", reversed_seqs={"s2"})
     as2 = aln.seqs["s2"]
     s2 = as2.seq
-    assert s2 == "GAGGTA"
+    assert str(s2) == "GAGGTA"
     s2rc = s2.rc()
     assert s2rc == "TACCTC"
 
