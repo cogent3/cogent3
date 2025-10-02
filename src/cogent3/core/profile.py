@@ -222,7 +222,7 @@ def make_pssm_from_tabular(tab_data):
 class MotifCountsArray(_MotifNumberArray):
     def __init__(
         self,
-        counts: PySeq[PySeq[int]],
+        counts: PySeq[PySeq[int]] | NumpyIntArrayType,
         motifs: PySeq[str | bytes],
         row_indices: Iterable[int] | Iterable[str] | None = None,
     ) -> None:

@@ -249,7 +249,7 @@ class Sequence(AnnotatableMixin):
 
     def __array__(
         self,
-        dtype: type[numpy.integer] | None = None,
+        dtype: numpy.dtype[numpy.integer] | None = None,
         copy: bool | None = None,
     ) -> NumpyIntArrayType:
         # using the array_value attribute means we can have
@@ -2906,7 +2906,7 @@ class SeqViewABC(ABC):
     @abstractmethod
     def __array__(
         self,
-        dtype: type[numpy.integer] | None = None,
+        dtype: numpy.dtype[numpy.integer] | None = None,
         copy: bool | None = None,
     ) -> NumpyIntArrayType: ...
 
@@ -3064,7 +3064,7 @@ class SeqView(SeqViewABC):
 
     def __array__(
         self,
-        dtype: type[numpy.integer] | None = None,
+        dtype: numpy.dtype[numpy.integer] | None = None,
         copy: bool | None = None,
     ) -> NumpyIntArrayType:
         arr = self.array_value
