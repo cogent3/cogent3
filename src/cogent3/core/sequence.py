@@ -93,7 +93,7 @@ def _moltype_seq_from_rich_dict(
 
 @numba.jit(cache=True, nogil=True)
 def count_kmers(
-    seq: npt.NDArray[numpy.uint8],
+    seq: npt.NDArray[numpy.integer],
     num_states: int,
     k: int,
     dtype: npt.DTypeLike = numpy.uint64,
@@ -479,14 +479,11 @@ class Sequence(AnnotatableMixin):
 
         app = get_count_kmers_hook(name=use_hook, **kwargs)
         if app is not None:
-            result = cast("NumpyIntArrayType", app([self]))
+            result = app([self])
             # make sure result from a sequence is 1D
             return result.flatten()
 
-        seqarray = cast(
-            "npt.NDArray[numpy.uint8]",
-            numpy.array(self),
-        )
+        seqarray = numpy.array(self)
         return count_kmers(seqarray, len(self.moltype.alphabet), k)
 
     def __lt__(self, other: Sequence) -> bool:

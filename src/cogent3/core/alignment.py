@@ -2339,6 +2339,57 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
             > 1
         )
 
+    def count_kmers(
+        self,
+        k: int = 1,
+        use_hook: str | None = None,
+        **kwargs,  # noqa: ANN003
+    ) -> NumpyIntArrayType:
+        """return kmer counts for each sequence
+
+        Parameters
+        ----------
+        k
+            length of kmers to count
+        use_hook
+            name of a third-party package that implements the quick_tree
+            hook. If not specified, defaults to the first available hook or
+            the cogent3 quick_tree() app. To force default, set
+            use_hook="cogent3".
+        **kwargs
+            additional arguments to pass to the hook app constructor
+
+        Notes
+        -----
+        Only states in moltype.alphabet are allowed in a kmer (the canonical
+        states). If using cogent3, to get the order of kmers as strings, use
+        self.moltype.alphabet.get_kmer_alphabet(k). See the documentation
+        for details of any third-party hooks.
+
+        Returns
+        -------
+        numpy array of shape (num_seqs, num_kmers)
+        0th axis is in the order of self.names, 1st axis is in the order
+        of the kmer alphabet.
+        """
+        from cogent3._plugin import get_count_kmers_hook
+
+        kwargs = {"k": k, **kwargs}
+
+        app = get_count_kmers_hook(name=use_hook, **kwargs)
+        if app is not None:
+            # we call main method directly so errors are raised here
+            return app.main(list(self.seqs))  # type: ignore[attr-defined]
+
+        shape = (self.num_seqs, len(self.moltype.alphabet) ** k)
+        result = numpy.empty(shape, dtype=int)
+        for i, name in enumerate(self.names):
+            # following may be made more efficient by directly reading from storage
+            # but this is simpler and handles strand transformations etc
+            seq = numpy.array(self.seqs[name])
+            result[i, :] = c3_sequence.count_kmers(seq, len(self.moltype.alphabet), k)
+        return result
+
     def counts_per_seq(
         self,
         motif_length: int = 1,

@@ -1155,12 +1155,12 @@ class PhyloNode:
         constructor = self._default_tree_constructor()
 
         scores: dict[PhyloNode, int | None] = {}
-        rebuilt: dict[PhyloNode, PhyloNode] = {}
+        rebuilt: dict[Self, Self] = {}
 
         infinity = float("inf")
         for node in self.postorder():
             if node.is_tip():
-                score = score_map[node.name]
+                score: int | None = score_map[node.name]
                 tree = node.deepcopy()
             else:
                 child_info = [(scores[ch], rebuilt[ch]) for ch in node.children]

@@ -1,8 +1,10 @@
 import dataclasses
 import functools
 from collections.abc import Callable
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
+import numpy
+import numpy.typing as npt
 import stevedore
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -12,6 +14,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from cogent3.format.sequence import SequenceWriterBase
     from cogent3.parse.sequence import SequenceParserBase
 
+NumpyIntArrayType = npt.NDArray[numpy.integer]
 
 # Entry point for plugins to register themselves as hooks
 HOOK_ENTRY_POINT = "cogent3.hook"
@@ -50,20 +53,11 @@ def get_quick_tree_hook(
     return cogent3.get_app("quick_tree")
 
 
-P = typing.ParamSpec("P")
-
-
-TAppAPI = typing.Callable[
-    typing.Concatenate[int, P],
-    typing.Callable[[list[str]], "npt.NDArray[numpy.integer]"],
-]
-
-
 def get_count_kmers_hook(
     *,
     name: str | None = None,
-    **kwargs,  # noqa: ANN003
-) -> TAppAPI | None:
+    **kwargs: Any,
+) -> Callable[..., NumpyIntArrayType] | None:
     """returns app instance registered for count_kmers matching name
 
     Parameters
