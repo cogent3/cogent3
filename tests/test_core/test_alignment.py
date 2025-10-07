@@ -6416,3 +6416,15 @@ def test_asd_get_positions_err(dna_alphabet, bas_pos):
     asd = c3_alignment.AlignedSeqsData.from_seqs(data=data, alphabet=dna_alphabet)
     with pytest.raises(IndexError):
         _ = asd.get_positions(asd.names, bas_pos)
+
+
+@pytest.mark.parametrize("k", [1, 2])
+@pytest.mark.parametrize(
+    "data",
+    [["ATCGATCGA", "TAGCTAGC"], ["ATCGATCGA", "NNN"], ["ATCGATCGA", ""], ["", ""]],
+)
+def test_coll_count_kmers(k, data):
+    coll = c3_alignment.make_unaligned_seqs(data, moltype="dna")
+    expect = numpy.array([seq.count_kmers(k=k) for seq in coll.seqs])
+    got = coll.count_kmers(k=k)
+    assert numpy.allclose(got, expect)
