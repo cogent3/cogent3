@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import copy
 import dataclasses
 import enum
@@ -33,7 +35,7 @@ class Strand(enum.Enum):
     NONE = None
 
     @classmethod
-    def from_value(cls, value: "str | int | Strand | None") -> "Strand":
+    def from_value(cls, value: str | int | Strand | None) -> Strand:
         if value in (-1, -1.0, "-", "-1", "minus", "Minus", "MINUS", cls.MINUS):
             return cls.MINUS
         return cls.NONE if value in (None, cls.NONE, 0, 0.0, False) else cls.PLUS
@@ -60,26 +62,37 @@ TAsMapClass = TypeVar("TAsMapClass", bound="MapABC")
 
 
 @overload
-def as_map(
-    slice: "FeatureMap", length: int, cls: type[TAsMapClass]
-) -> "FeatureMap": ...
+def as_map(slice: FeatureMap, length: int, cls: type[TAsMapClass]) -> FeatureMap: ...
 @overload
-def as_map(slice: "IndelMap", length: int, cls: type[TAsMapClass]) -> "IndelMap": ...
+def as_map(slice: IndelMap, length: int, cls: type[TAsMapClass]) -> IndelMap: ...
 @overload
-def as_map(slice: "MapABC", length: int, cls: type[TAsMapClass]) -> "MapABC": ...
+def as_map(slice: MapABC, length: int, cls: type[TAsMapClass]) -> MapABC: ...
 @overload
 def as_map(
-    slice: "list[int] | tuple[int, ...] | int",
+    slice: list[int]
+    | tuple[int, ...]
+    | list[SpanTypes]
+    | tuple[SpanTypes, ...]
+    | SpanTypes
+    | int,
     length: int,
     cls: type[TAsMapClass],
 ) -> TAsMapClass: ...
 
 
 def as_map(
-    slice: "list[int] | tuple[int, ...] | FeatureMap | IndelMap | MapABC | int",
+    slice: list[int]
+    | tuple[int, ...]
+    | FeatureMap
+    | IndelMap
+    | MapABC
+    | list[SpanTypes]
+    | tuple[SpanTypes, ...]
+    | SpanTypes
+    | int,
     length: int,
     cls: type[TAsMapClass],
-) -> "TAsMapClass | FeatureMap | IndelMap | MapABC":
+) -> TAsMapClass | FeatureMap | IndelMap | MapABC:
     """Take anything that might be used as a subscript: Integer, Slice,
     or MapABC, and return cls."""
 
@@ -112,11 +125,11 @@ class SpanI:
         self.end: int
         self.reverse: bool
 
-    def __contains__(self, other: "SpanI | int") -> bool:  # pragma: no cover
+    def __contains__(self, other: SpanI | int) -> bool:  # pragma: no cover
         """Returns True if other entirely contained in self."""
         raise NotImplementedError
 
-    def overlaps(self, other: "SpanI | int") -> bool:  # pragma: no cover
+    def overlaps(self, other: SpanI | int) -> bool:  # pragma: no cover
         """Returns True if any positions in self are also in other."""
         raise NotImplementedError
 
@@ -136,53 +149,53 @@ class SpanI:
         """Returns length of self."""
         raise NotImplementedError
 
-    def __lt__(self, other: "SpanI") -> bool:  # pragma: no cover
+    def __lt__(self, other: SpanI) -> bool:  # pragma: no cover
         """Compares indices of self with indices of other."""
         raise NotImplementedError
 
-    def starts_before(self, other: "SpanI | int") -> bool:
+    def starts_before(self, other: SpanI | int) -> bool:
         """Returns True if self starts before other or other.start."""
         if isinstance(other, SpanI):
             return self.start < other.start
         return self.start < other
 
-    def starts_after(self, other: "SpanI | int") -> bool:
+    def starts_after(self, other: SpanI | int) -> bool:
         """Returns True if self starts after other or after other.start."""
         if isinstance(other, SpanI):
             return self.start > other.start
         return self.start > other
 
-    def starts_at(self, other: "SpanI | int") -> bool:
+    def starts_at(self, other: SpanI | int) -> bool:
         """Returns True if self starts at the same place as other."""
         if isinstance(other, SpanI):
             return self.start == other.start
         return self.start == other
 
-    def starts_inside(self, other: "SpanI | object") -> bool:
+    def starts_inside(self, other: SpanI | object) -> bool:
         """Returns True if self's start in other or equal to other."""
         if isinstance(other, SpanI):
             return self.start in other
         return False
 
-    def ends_before(self, other: "SpanI | int") -> bool:
+    def ends_before(self, other: SpanI | int) -> bool:
         """Returns True if self ends before other or other.end."""
         if isinstance(other, SpanI):
             return self.end < other.end
         return self.end < other
 
-    def ends_after(self, other: "SpanI | int") -> bool:
+    def ends_after(self, other: SpanI | int) -> bool:
         """Returns True if self ends after other or after other.end."""
         if isinstance(other, SpanI):
             return self.end > other.end
         return self.end > other
 
-    def ends_at(self, other: "SpanI | int") -> bool:
+    def ends_at(self, other: SpanI | int) -> bool:
         """Returns True if self ends at the same place as other."""
         if isinstance(other, SpanI):
             return self.end == other.end
         return self.end == other
 
-    def ends_inside(self, other: "SpanI | object") -> bool:
+    def ends_inside(self, other: SpanI | object) -> bool:
         """Returns True if self's end in other or equal to other."""
         if isinstance(other, SpanI):
             return self.end in other
@@ -297,7 +310,7 @@ class Span(SpanI):
             reverse=not self.reverse,
         )
 
-    def __getitem__(self, slice: "slice | Span | FeatureMap | int") -> Self:
+    def __getitem__(self, slice: slice | Span | FeatureMap | int) -> Self:
         start, end, step = _norm_slice(slice, self.length)
         assert (step or 1) == 1, slice
         assert start <= end, slice
@@ -309,7 +322,7 @@ class Span(SpanI):
             (start, end, reverse) = (self.start + start, self.start + end, False)
         return type(self)(start, end, tidy_start, tidy_end, self.value, reverse)
 
-    def __mul__(self, scale: int) -> "Span":
+    def __mul__(self, scale: int) -> Span:
         return Span(
             self.start * scale,
             self.end * scale,
@@ -319,7 +332,7 @@ class Span(SpanI):
             self.reverse,
         )
 
-    def __truediv__(self, scale: int) -> "Span":
+    def __truediv__(self, scale: int) -> Span:
         assert not self.start % scale or self.end % scale
         return Span(
             self.start // scale,
@@ -330,7 +343,7 @@ class Span(SpanI):
             self.reverse,
         )
 
-    def remap_with(self, map: "FeatureMap") -> "list[Span | _LostSpan]":
+    def remap_with(self, map: FeatureMap) -> list[Span | _LostSpan]:
         """The list of spans corresponding to this span on its grandparent, ie:
         C is a span of a feature on B which itself is a feature on A, so to
         place C on A return that part of B (map) covered by C (self)"""
@@ -384,7 +397,7 @@ class Span(SpanI):
 
         return result
 
-    def __contains__(self, other: "SpanI | int") -> bool:
+    def __contains__(self, other: SpanI | int) -> bool:
         """Returns True if other completely contained in self.
 
         other must either be a number or have start and end properties.
@@ -396,7 +409,7 @@ class Span(SpanI):
         # for the same reason that 3 is not in range(3).
         return other >= self.start and other < self.end
 
-    def overlaps(self, other: "SpanI | int") -> bool:
+    def overlaps(self, other: SpanI | int) -> bool:
         """Returns True if any positions in self are also in other."""
         # remember to subtract 1 from the Ends, since self.end isn't really
         # in self...
@@ -498,19 +511,19 @@ class _LostSpan:
     def reversed(self) -> Self:
         return self
 
-    def __getitem__(self, slice: "slice | Span | FeatureMap | int") -> Self:
+    def __getitem__(self, slice: slice | Span | FeatureMap | int) -> Self:
         (start, end, step) = _norm_slice(slice, self.length)
         assert (step or 1) == 1, slice
         return self.__class__(abs(end - start), self.value)
 
-    def __mul__(self, scale: int) -> "_LostSpan":
+    def __mul__(self, scale: int) -> _LostSpan:
         return LostSpan(self.length * scale, self.value)
 
-    def __truediv__(self, scale: int) -> "_LostSpan":
+    def __truediv__(self, scale: int) -> _LostSpan:
         assert not self.length % 3
         return LostSpan(self.length // scale, self.value)
 
-    def remap_with(self, map: "MapABC") -> list[Self]:
+    def remap_with(self, map: MapABC) -> list[Self]:
         return [self]
 
     def reversed_relative_to(self, length: int) -> Self:
@@ -566,7 +579,7 @@ class MapABC(ABC):
     def get_coordinates(self) -> list[tuple[int, int]]: ...
 
     @abstractmethod
-    def nucleic_reversed(self) -> "MapABC": ...
+    def nucleic_reversed(self) -> MapABC: ...
 
     @abstractmethod
     def to_rich_dict(self) -> dict[str, Any]: ...
@@ -605,8 +618,8 @@ class MapABC(ABC):
 
 
 def _spans_from_locations(
-    locations: PySeq[tuple[IntTypes, IntTypes]], parent_length: int
-) -> SeqSpanTypes:
+    locations: PySeq[tuple[IntTypes, IntTypes]] | NumpyIntArrayType, parent_length: int
+) -> tuple[SpanTypes, ...]:
     if not len(locations):
         # using len() because locations can be a numpy array
         return ()
@@ -986,7 +999,7 @@ class IndelMap(MapABC):
         parent_length: int,
         termini_unknown: bool = False,
         **kwargs: Any,
-    ) -> "IndelMap":
+    ) -> IndelMap:
         gap_pos, cum_lengths = spans_to_gap_coords(spans)
         return cls(
             gap_pos=gap_pos,
@@ -1000,7 +1013,7 @@ class IndelMap(MapABC):
         cls,
         locations: PySeq[tuple[IntTypes, IntTypes]],
         aligned_length: int,
-    ) -> "IndelMap":
+    ) -> IndelMap:
         """
         converts coordinates from aligned segments into IndelMap for ungapped sequence
 
@@ -1049,7 +1062,7 @@ class IndelMap(MapABC):
             parent_length=seq_length,
         )
 
-    def __getitem__(self, item: int | slice) -> "IndelMap":
+    def __getitem__(self, item: int | slice) -> IndelMap:
         if not isinstance(item, (int, slice)):
             msg = f"cannot slice using {type(item)}"
             raise NotImplementedError(msg)
@@ -1199,7 +1212,7 @@ class IndelMap(MapABC):
             parent_length=parent_length,
         )
 
-    def _zero_imap(self, start: int, stop: int, step: int) -> "IndelMap":
+    def _zero_imap(self, start: int, stop: int, step: int) -> IndelMap:
         """returns a new IndelMap with zero gaps"""
         zero_array = numpy.array([], dtype=_DEFAULT_GAP_DTYPE)
         return self.__class__(
@@ -1208,7 +1221,7 @@ class IndelMap(MapABC):
             parent_length=_step_adjusted_length(start, stop, 0, step),
         )
 
-    def _single_imap(self, start: int, stop: int, step: int) -> "IndelMap":
+    def _single_imap(self, start: int, stop: int, step: int) -> IndelMap:
         """returns a new IndelMap with a single gap"""
         gap_pos = numpy.array([0], dtype=_DEFAULT_GAP_DTYPE)
         cum_gap_length = numpy.array([_step_adjusted_length(start, stop, 0, step)])
@@ -1283,7 +1296,7 @@ class IndelMap(MapABC):
         length_gaps = self.cum_gap_lengths[-1] if self.num_gaps else 0
         return int(self.parent_length + length_gaps)
 
-    def __add__(self, other: "IndelMap") -> "IndelMap":
+    def __add__(self, other: IndelMap) -> IndelMap:
         """designed to support concatenation of two aligned sequences"""
         gap_pos = self.gap_pos.tolist() + (self.parent_length + other.gap_pos).tolist()
         gap_pos = numpy.array(gap_pos, dtype=_DEFAULT_GAP_DTYPE)
@@ -1301,7 +1314,7 @@ class IndelMap(MapABC):
             parent_length=self.parent_length + other.parent_length,
         )
 
-    def __mul__(self, scale: int) -> "IndelMap":
+    def __mul__(self, scale: int) -> IndelMap:
         """used for going from amino-acid alignment to codon alignment"""
         gap_pos = self.gap_pos * scale
         cum_gap_lengths = self.cum_gap_lengths * scale
@@ -1435,10 +1448,10 @@ class IndelMap(MapABC):
 
     def merge_maps(
         self,
-        other: "IndelMap",
+        other: IndelMap,
         parent_length: int | None = None,
         aligned_indices: bool = False,
-    ) -> "IndelMap":
+    ) -> IndelMap:
         """merge gaps of other with self
 
         Parameters
@@ -1471,7 +1484,7 @@ class IndelMap(MapABC):
 
     def _aligned_to_seq_map(
         self,
-        other: "IndelMap",
+        other: IndelMap,
     ) -> tuple[NumpyIntArrayType, NumpyIntArrayType]:
         # converts the gap pos of other into seq indices,
         # returning unique positions and their summed lengths
@@ -1485,7 +1498,7 @@ class IndelMap(MapABC):
         other_lengths = numpy.add.reduceat(other_lengths, unique_indices)
         return other_pos, other_lengths
 
-    def joined_segments(self, coords: PySeq[tuple[IntTypes, IntTypes]]) -> "IndelMap":
+    def joined_segments(self, coords: PySeq[tuple[IntTypes, IntTypes]]) -> IndelMap:
         """returns new map with disjoint gapped segments joined
 
         Parameters
@@ -1518,7 +1531,7 @@ class IndelMap(MapABC):
             parent_length=cum_parent_length,
         )
 
-    def nucleic_reversed(self) -> "IndelMap":
+    def nucleic_reversed(self) -> IndelMap:
         """map for a sequence that has itself been reversed and complemented
 
         Notes
@@ -1554,7 +1567,7 @@ class IndelMap(MapABC):
         return json.dumps(self.to_rich_dict())
 
     @classmethod
-    def from_rich_dict(cls, map_element: dict[str, Any]) -> "IndelMap":
+    def from_rich_dict(cls, map_element: dict[str, Any]) -> IndelMap:
         map_element.pop("version", None)
         type_ = map_element.pop("type", None)
         assert get_class(type_) == cls
@@ -1563,7 +1576,7 @@ class IndelMap(MapABC):
 
         return cls(**map_element)
 
-    def with_termini_unknown(self) -> "IndelMap":
+    def with_termini_unknown(self) -> IndelMap:
         """returns new instance with terminal gaps indicated as unknown"""
         return self.__class__(
             gap_pos=self.gap_pos.copy(),
@@ -1572,11 +1585,11 @@ class IndelMap(MapABC):
             termini_unknown=True,
         )
 
-    def to_feature_map(self) -> "FeatureMap":
+    def to_feature_map(self) -> FeatureMap:
         """returns a FeatureMap type, suited to Features"""
         return FeatureMap(spans=list(self.spans), parent_length=self.parent_length)
 
-    def make_seq_feature_map(self, align_feature_map: "FeatureMap") -> "FeatureMap":
+    def make_seq_feature_map(self, align_feature_map: FeatureMap) -> FeatureMap:
         """converts align_feature_map to a FeatureMap with sequence coordinates
 
         Parameters
@@ -1597,7 +1610,7 @@ class IndelMap(MapABC):
         return FeatureMap(spans=spans, parent_length=self.parent_length)
 
     @functools.singledispatchmethod
-    def shared_gaps(self, other: "IndelMap | NumpyIntArrayType") -> NumpyIntArrayType:
+    def shared_gaps(self, other: IndelMap | NumpyIntArrayType) -> NumpyIntArrayType:
         """returns a numpy array of the shared [(gap start, gap end), ...]
 
         Notes
@@ -1630,7 +1643,7 @@ class IndelMap(MapABC):
         result = coords_intersect(self_gaps, other_gaps)
         return numpy.array(result, dtype=_DEFAULT_GAP_DTYPE)
 
-    def minus_gaps(self, other_gaps: "IndelMap | NumpyIntArrayType") -> "IndelMap":
+    def minus_gaps(self, other_gaps: IndelMap | NumpyIntArrayType) -> IndelMap:
         """returns new map with gaps in other_gaps removed from self
 
         Parameters
@@ -1672,7 +1685,7 @@ class IndelMap(MapABC):
             parent_length=self.parent_length,
         )
 
-    def scaled(self, scale_factor: float) -> "IndelMap":
+    def scaled(self, scale_factor: float) -> IndelMap:
         """returns indel map scaled by scale_factor
 
         Notes
@@ -1893,7 +1906,7 @@ class FeatureMap(MapABC):
         spans: SeqSpanTypes,
         parent_length: int,
         **kwargs: Any,
-    ) -> "FeatureMap":
+    ) -> FeatureMap:
         return cls(spans=spans, parent_length=parent_length)
 
     def __len__(self) -> int:
@@ -1902,7 +1915,18 @@ class FeatureMap(MapABC):
     def __repr__(self) -> str:
         return f"{list(self.iter_spans())!r}/{self.parent_length}"
 
-    def __getitem__(self, new_map: MapABC) -> "FeatureMap":
+    def __getitem__(
+        self,
+        new_map: list[int]
+        | tuple[int, ...]
+        | FeatureMap
+        | IndelMap
+        | MapABC
+        | list[SpanTypes]
+        | tuple[SpanTypes, ...]
+        | SpanTypes
+        | int,
+    ) -> FeatureMap:
         # A possible shorter map at the same level
         new_map = as_map(new_map, len(self), self.__class__)
         new_parts: list[SpanTypes] = []
@@ -1910,18 +1934,18 @@ class FeatureMap(MapABC):
             new_parts.extend(span.remap_with(self))
         return self.__class__(spans=new_parts, parent_length=self.parent_length)
 
-    def __mul__(self, scale: int) -> "FeatureMap":
+    def __mul__(self, scale: int) -> FeatureMap:
         new_parts = [span * scale for span in self.iter_spans()]
         return self.__class__(spans=new_parts, parent_length=self.parent_length * scale)
 
-    def __truediv__(self, scale: int) -> "FeatureMap":
+    def __truediv__(self, scale: int) -> FeatureMap:
         new_parts = [span / scale for span in self.iter_spans()]
         return self.__class__(
             spans=new_parts,
             parent_length=self.parent_length // scale,
         )
 
-    def __add__(self, other: "FeatureMap | IndelMap") -> "FeatureMap":
+    def __add__(self, other: FeatureMap | IndelMap) -> FeatureMap:
         if other.parent_length != self.parent_length:
             msg = "Those maps belong to different sequences"
             raise ValueError(msg)
@@ -1942,14 +1966,14 @@ class FeatureMap(MapABC):
     def num_spans(self) -> int:
         return len(self._spans)
 
-    def get_covering_span(self) -> "FeatureMap":
+    def get_covering_span(self) -> FeatureMap:
         span = (self.start, self.end)
         return self.__class__.from_locations(
             locations=[span],
             parent_length=self.parent_length,
         )
 
-    def covered(self) -> "FeatureMap":
+    def covered(self) -> FeatureMap:
         """>>> FeatureMap([(10,20), (15, 25), (80, 90)]).covered().spans
         [Span(10,25), Span(80, 90)]"""
 
@@ -1979,7 +2003,7 @@ class FeatureMap(MapABC):
             parent_length=self.parent_length,
         )
 
-    def nucleic_reversed(self) -> "FeatureMap":
+    def nucleic_reversed(self) -> FeatureMap:
         """map for a sequence that has itself been reversed and complemented
 
         Notes
@@ -2013,7 +2037,7 @@ class FeatureMap(MapABC):
 
         return gap_pos
 
-    def gaps(self) -> "FeatureMap":
+    def gaps(self) -> FeatureMap:
         """The gaps (lost spans) in this map"""
         locations: list[tuple[int, int]] = []
         offset = 0
@@ -2026,11 +2050,11 @@ class FeatureMap(MapABC):
             parent_length=len(self),
         )
 
-    def shadow(self) -> "FeatureMap":
+    def shadow(self) -> FeatureMap:
         """The 'negative' map of the spans not included in this map"""
         return self.inverse().gaps()
 
-    def nongap(self) -> Iterable[SpanTypes]:
+    def nongap(self) -> tuple[SpanTypes, ...]:
         locations: list[tuple[int, int]] = []
         offset = 0
         for s in self.iter_spans():
@@ -2039,13 +2063,13 @@ class FeatureMap(MapABC):
             offset += s.length
         return _spans_from_locations(locations=locations, parent_length=len(self))
 
-    def without_gaps(self) -> "FeatureMap":
+    def without_gaps(self) -> FeatureMap:
         return self.__class__(
             spans=[s for s in self.spans if not s.lost],  # type: ignore[attr-defined]
             parent_length=self.parent_length,
         )
 
-    def inverse(self) -> "FeatureMap":
+    def inverse(self) -> FeatureMap:
         """returns instance with coordinates updated for aligned, unaligned"""
         # is this only required for parse_out_gaps?
         # NO also used in cogent3.align code
@@ -2116,7 +2140,7 @@ class FeatureMap(MapABC):
         return json.dumps(self.to_rich_dict())
 
     @classmethod
-    def from_rich_dict(cls, map_element: dict[str, Any]) -> "FeatureMap":
+    def from_rich_dict(cls, map_element: dict[str, Any]) -> FeatureMap:
         from cogent3.util.deserialise import get_class
 
         map_element.pop("version", None)
@@ -2132,7 +2156,7 @@ class FeatureMap(MapABC):
         map_element["spans"] = spans
         return cls(**map_element)
 
-    def zeroed(self) -> "FeatureMap":
+    def zeroed(self) -> FeatureMap:
         """returns a new instance with the first span starting at 0
 
         Note
@@ -2254,7 +2278,7 @@ def deserialise_featuremap(data: dict[str, Any]) -> FeatureMap:
 
 @functools.singledispatch
 def _norm_slice(
-    index: slice | Span | FeatureMap | int, length: int
+    index: slice | SpanTypes | FeatureMap | int, length: int
 ) -> tuple[int, int, int | None]:
     """_norm_slice(slice(1, -2, 3), 10) -> (1,8,3)"""
     start = cast("int", index)

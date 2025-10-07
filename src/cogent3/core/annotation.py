@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 from numpy import array
 from typing_extensions import Self
 
+from cogent3.core.sequence import NucleicAcidSequenceMixin
+
 from .location import FeatureMap, IndelMap, Strand
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -137,12 +139,14 @@ class Feature(Generic[TSeqOrAlign]):
 
     def _do_seq_slice(self, result: TSeqOrAlign, apply_name: bool) -> TSeqOrAlign:
         if self.reversed:
-            result = result.rc()
+            result = cast(
+                "TSeqOrAlign", cast("NucleicAcidSequenceMixin | Alignment", result).rc()
+            )
         if self.map.num_spans > 1:
             # db querying will be incorrect so make sure it can't be done
-            result.annotation_db = None
+            result.annotation_db = None  # type: ignore[assignment]
         if apply_name:
-            result.name = self.name
+            cast("Sequence", result).name = self.name
         return result
 
     def without_lost_spans(self) -> Self:

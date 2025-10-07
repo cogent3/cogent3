@@ -2282,7 +2282,7 @@ def load_tree(
 
 @register_deserialiser("cogent3.core.tree")
 def deserialise_tree(
-    data: dict[str, str | dict[str, Any]],
+    data: dict[str, Any],
 ) -> PhyloNode:
     """returns a cogent3 PhyloNode instance"""
     # we load tree using make_tree, then populate edge attributes
@@ -2297,7 +2297,7 @@ def deserialise_tree(
             stacklevel=3,
         )
 
-    tree = make_tree(treestring=data["newick"])
+    tree = make_tree(treestring=cast("str", data["newick"]))
     for edge in tree.preorder():
         params = edge_attr.get(edge.name, {})
         if length_and_support is None:
