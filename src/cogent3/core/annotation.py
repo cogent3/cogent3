@@ -5,15 +5,13 @@ from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 from numpy import array
 from typing_extensions import Self
 
-from cogent3.core.sequence import NucleicAcidSequenceMixin
-
 from .location import FeatureMap, IndelMap, Strand
 
 if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Generator, Iterable
 
     from cogent3.core.alignment import Alignment
-    from cogent3.core.sequence import Sequence
+    from cogent3.core.sequence import NucleicAcidSequenceMixin, Sequence
     from cogent3.draw.drawable import Shape
 
 TSeqOrAlign = TypeVar("TSeqOrAlign", "Sequence", "Alignment")
