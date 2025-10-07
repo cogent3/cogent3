@@ -40,6 +40,10 @@ from cogent3.core.seq_storage import (
     AlignedSeqsDataABC,
     SeqsData,
     SeqsDataABC,
+    array_hash64,
+    compose_gapped_seq,
+    decompose_gapped_seq,
+    decompose_gapped_seq_array,
 )
 from cogent3.core.seqview import (
     AlignedDataView,
@@ -3348,6 +3352,8 @@ class Alignment(CollectionBase[Aligned]):
         yield a sequence segment that is consistently oriented irrespective
         of strand of the current instance.
         """
+        del kwargs
+
         if not self._annotation_db or not len(self._annotation_db):
             return None
 
