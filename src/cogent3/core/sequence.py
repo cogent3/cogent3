@@ -441,15 +441,43 @@ class Sequence(AnnotatableMixin):
         gap_index = cast("int", self.moltype.most_degen_alphabet().gap_index)
         return int(numpy.sum(data > gap_index))
 
-    def count_kmers(self, k: int = 1) -> NumpyIntArrayType:
+    def count_kmers(
+        self,
+        k: int = 1,
+        use_hook: str | None = None,
+        **kwargs,  # noqa: ANN003
+    ) -> NumpyIntArrayType:
         """return array of counts of all possible kmers of length k
+
+        Parameters
+        ----------
+        k
+            length of kmers to count
+        use_hook
+            name of a third-party package that implements the quick_tree
+            hook. If not specified, defaults to the first available hook or
+            the cogent3 quick_tree() app. To force default, set
+            use_hook="cogent3".
+        **kwargs
+            additional arguments to pass to the hook app constructor
 
         Notes
         -----
         Only states in moltype.alphabet are allowed in a kmer (the canonical
-        states). To get the order of kmers as strings, use
-        self.moltype.alphabet.get_kmer_alphabet(k)
+        states). If using cogent3, to get the order of kmers as strings, use
+        self.moltype.alphabet.get_kmer_alphabet(k). See the documentation
+        for details of any third-party hooks.
         """
+        from cogent3._plugin import get_count_kmers_hook
+
+        kwargs = {"k": k, **kwargs}
+
+        app = get_count_kmers_hook(name=use_hook, **kwargs)
+        if app is not None:
+            result = cast("NumpyIntArrayType", app([self]))
+            # make sure result from a sequence is 1D
+            return result.flatten()
+
         seqarray = cast(
             "npt.NDArray[numpy.uint8]",
             numpy.array(self),
