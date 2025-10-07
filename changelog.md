@@ -1,4 +1,22 @@
 
+<a id='changelog-2025.9.8a4'></a>
+# Changes in release "2025.9.8a4"
+
+This is a minor feature enhancement release.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- Add a plugin hook for counting kmers. There are no packages doing this
+  ... yet. Unless a pakcage name is specified, the first app for the hook
+  is returned.
+- Added a `SequenceCollection.count_kmers()` method and support plugins for
+  both this and `Sequence.count_kmers()` via `use_hook` argument. Additional
+  arguments to the plugin are passed via optional kwargs.
+
 <a id='changelog-2025.9.8a3'></a>
 # Changes in release "2025.9.8a3"
 
