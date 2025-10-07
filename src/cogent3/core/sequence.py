@@ -438,7 +438,6 @@ class Sequence(AnnotatableMixin):
         for motif, count in zip(unique_values, counts, strict=True):
             key = monomer_type.join([alpha[i] for i in motif])
             result[key] = int(count)
-        print("RESULT IS:", result)
         return CategoryCounter(result)
 
     def count_ambiguous(self) -> int:

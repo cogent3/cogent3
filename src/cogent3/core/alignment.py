@@ -3437,7 +3437,6 @@ class Alignment(CollectionBase[Aligned]):
                 include_ambiguity=include_ambiguity,
                 allow_gap=allow_gap,
             )
-            print(c)
             motifs.update(c.keys())
             counts.append(c)
 
@@ -3449,8 +3448,7 @@ class Alignment(CollectionBase[Aligned]):
         if not motifs_list:
             return None
 
-        final_counts = [c.tolist() for c in counts]
-        print(len(counts), final_counts, motifs_list)
+        final_counts = [c.tolist(motifs_list) for c in counts]
         return MotifCountsArray(final_counts, motifs_list, row_indices=self.names)
 
     def count_ambiguous_per_seq(self) -> DictArray:
