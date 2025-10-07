@@ -3111,6 +3111,18 @@ def test_count_kmers(k):
     assert (got == expect).all()
 
 
+def test_count_kmers_use_hook_wrong_name():
+    seq = cogent3.get_dataset("brca1")["Human"].seq
+    with pytest.raises(ValueError):
+        seq.count_kmers(k=3, use_hook="invalid name")
+
+
+def test_count_kmers_use_hook_none():
+    seq = cogent3.get_dataset("brca1")["Human"].seq
+    got = seq.count_kmers(k=3, use_hook=None)
+    assert got.sum() > 0
+
+
 def test_count_kmers_seq_gt_k():
     seq = cogent3.get_dataset("brca1")["Human"].seq[:3]
     k = 4
