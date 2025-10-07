@@ -5839,16 +5839,3 @@ def deserialise_alignment_to_new_type_alignment(
 
     asd = AlignedSeqsData.from_seqs_and_gaps(seqs=seqs, gaps=gaps, alphabet=alpha)
     return make_aligned_seqs(asd, moltype=moltype_name, info=info_data, source=source)
-
-
-if __name__ == "__main__":
-    thing1 = SequenceCollection(
-        seqs_data=SeqsData(data={}, alphabet=c3_moltype.DNA.alphabet),
-        moltype=c3_moltype.DNA,
-    )
-    thing2 = Alignment(
-        seqs_data=AlignedSeqsData(
-            gapped_seqs=numpy.array([1]), names=("a",), alphabet=c3_moltype.DNA.alphabet
-        ),
-        moltype=c3_moltype.DNA,
-    )

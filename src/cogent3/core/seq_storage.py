@@ -1393,11 +1393,3 @@ def array_hash64(data: npt.NDArray[numpy.number]) -> str:
     """
     h = hashlib.md5(data.tobytes(), usedforsecurity=False)
     return h.hexdigest()
-
-
-if __name__ == "__main__":
-    seqs_data = SeqsData(data={}, alphabet=c3_moltype.DNA.alphabet)
-
-    aln_seqs_data = AlignedSeqsData(
-        gapped_seqs=numpy.array([1]), names=("a",), alphabet=c3_moltype.DNA.alphabet
-    )
