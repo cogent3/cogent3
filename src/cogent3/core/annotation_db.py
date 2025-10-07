@@ -179,7 +179,7 @@ class SupportsWriteFeatures(Protocol):  # pragma: no cover
     def update(
         self,
         annot_db: SqliteAnnotationDbMixin,
-        seqids: str | list[str] | None = None,
+        seqids: str | PySeq[str] | None = None,
         **kwargs: Any,
     ) -> None:
         # update records with those from an instance of the same type
@@ -307,7 +307,7 @@ class AnnotationDbABC(abc.ABC, SupportsFeatures):
     def update(
         self,
         annot_db: SqliteAnnotationDbMixin,
-        seqids: str | list[str] | None = None,
+        seqids: str | PySeq[str] | None = None,
         **kwargs: Any,
     ) -> None:
         # override in subclass
@@ -1143,7 +1143,7 @@ class SqliteAnnotationDbMixin:
     def update(
         self,
         annot_db: SqliteAnnotationDbMixin,
-        seqids: str | list[str] | None = None,
+        seqids: str | PySeq[str] | None = None,
         **kwargs: Any,
     ) -> None:
         """update records with those from an instance of the same type"""

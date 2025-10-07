@@ -18,10 +18,13 @@ from cogent3._version import __version__
 from cogent3.core import alignment as c3_alignment
 from cogent3.core import alphabet as c3_alphabet
 from cogent3.core import moltype as c3_moltype
+from cogent3.core import seq_storage as c3_seq_storage
 from cogent3.core import sequence as c3_sequence
+from cogent3.core import seqview as c3_seqview
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import GffAnnotationDb, load_annotations
 from cogent3.core.location import FeatureMap, LostSpan, Span
+from cogent3.core.slice_record import SliceRecord
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.misc import get_object_provenance
 
@@ -103,7 +106,7 @@ def rna_moltype():
 
 @pytest.fixture
 def dna_sd(str_seqs_dict: dict[str, str], dna_alphabet):
-    return c3_alignment.SeqsData.from_seqs(data=str_seqs_dict, alphabet=dna_alphabet)
+    return c3_seq_storage.SeqsData.from_seqs(data=str_seqs_dict, alphabet=dna_alphabet)
 
 
 @pytest.fixture
@@ -112,7 +115,7 @@ def int_arr():
 
 
 @pytest.fixture
-def sdv_s2(dna_sd: c3_alignment.SeqsData) -> c3_alignment.SeqDataView:
+def sdv_s2(dna_sd: c3_seq_storage.SeqsData) -> c3_seqview.SeqDataView:
     return dna_sd.get_view("seq2")
 
 
@@ -201,26 +204,26 @@ def make_typed(seq, data_type, moltype):
 
 def test_seqs_data_construction(str_seqs_dict, dna_alphabet):
     """SeqsData can be constructed from a dict and alphabet, either directly or via from_seqs"""
-    sd = c3_alignment.SeqsData(data=str_seqs_dict, alphabet=dna_alphabet)
-    assert isinstance(sd, c3_alignment.SeqsData)
+    sd = c3_seq_storage.SeqsData(data=str_seqs_dict, alphabet=dna_alphabet)
+    assert isinstance(sd, c3_seq_storage.SeqsData)
 
-    sd = c3_alignment.SeqsData.from_seqs(data=str_seqs_dict, alphabet=dna_alphabet)
-    assert isinstance(sd, c3_alignment.SeqsData)
+    sd = c3_seq_storage.SeqsData.from_seqs(data=str_seqs_dict, alphabet=dna_alphabet)
+    assert isinstance(sd, c3_seq_storage.SeqsData)
 
 
 def test_seqs_data_construction_wrong_alphabet(str_seqs_dict, rna_alphabet):
     """SeqsData should raise ValueError if alphabet is incompatible with data"""
     with pytest.raises(c3_alphabet.AlphabetError):
-        _ = c3_alignment.SeqsData(data=str_seqs_dict, alphabet=rna_alphabet)
+        _ = c3_seq_storage.SeqsData(data=str_seqs_dict, alphabet=rna_alphabet)
 
 
-def test_seqs_data_default_attributes(dna_sd: c3_alignment.SeqsData):
+def test_seqs_data_default_attributes(dna_sd: c3_seq_storage.SeqsData):
     assert dna_sd.names == ("seq1", "seq2", "seq3")
     assert isinstance(dna_sd.alphabet, c3_alphabet.CharAlphabet)
 
 
 @pytest.mark.parametrize("seqid", ["seq1", "seq2"])
-def test_seqs_data_view_repr_default(dna_sd: c3_alignment.SeqsData, seqid: str):
+def test_seqs_data_view_repr_default(dna_sd: c3_seq_storage.SeqsData, seqid: str):
     seq = dna_sd.get_seq_str(seqid=seqid)
     got = dna_sd.get_view(seqid)
     expect = (
@@ -234,7 +237,7 @@ def test_seqs_data_view_repr_default_long(dna_alphabet):
     trunc = f"{longseq[:10]}...{longseq[-5:]}"
 
     d = {"long": longseq}
-    sd = c3_alignment.SeqsData.from_seqs(data=d, alphabet=dna_alphabet)
+    sd = c3_seq_storage.SeqsData.from_seqs(data=d, alphabet=dna_alphabet)
     got = sd.get_view("long")
     expect = (
         f"SeqDataView(seqid='long', parent={trunc}, slice_record={got.slice_record!r})"
@@ -251,7 +254,7 @@ def test_seqs_data_view_copy(dna_alphabet, seqid, sliced, step):
     start, stop = 2, 6
     data = {"seq1": seq1, "seq2": seq2}
 
-    sd = c3_alignment.SeqsData(data=data, alphabet=dna_alphabet)
+    sd = c3_seq_storage.SeqsData(data=data, alphabet=dna_alphabet)
     sdv = sd.get_view(seqid)
     sliced_sdv = sdv[start:stop:step]
     copied_sdv = sliced_sdv.copy(sliced=sliced)
@@ -261,11 +264,11 @@ def test_seqs_data_view_copy(dna_alphabet, seqid, sliced, step):
 
 @pytest.mark.parametrize("seqid", ["seq1", "seq2"])
 def test_seqs_data_get_seq_view(str_seqs_dict, dna_alphabet, seqid):
-    sd = c3_alignment.SeqsData(data=str_seqs_dict, alphabet=dna_alphabet)
+    sd = c3_seq_storage.SeqsData(data=str_seqs_dict, alphabet=dna_alphabet)
     seq = str_seqs_dict[seqid]
     parent_len = len(seq)
     got = sd.get_view(seqid)
-    assert isinstance(got, c3_alignment.SeqDataView)
+    assert isinstance(got, c3_seqview.SeqDataView)
     assert got.parent == sd
     assert got.seqid == seqid
     assert got.parent_len == parent_len
@@ -277,19 +280,19 @@ def test_seqs_data_get_seq_view(str_seqs_dict, dna_alphabet, seqid):
 def test_seqs_data_get_seq_str(str_seqs_dict, dna_alphabet, seq, start, stop):
     # slicing should be tested in test_get_seq_array
     expect = str_seqs_dict[seq][start:stop]
-    sd = c3_alignment.SeqsData(data=str_seqs_dict, alphabet=dna_alphabet)
+    sd = c3_seq_storage.SeqsData(data=str_seqs_dict, alphabet=dna_alphabet)
     got = sd.get_seq_str(seqid=seq, start=start, stop=stop)
     assert expect == got
 
 
-def test_seqs_data_get_seq_str_empty(dna_sd: c3_alignment.SeqsData):
+def test_seqs_data_get_seq_str_empty(dna_sd: c3_seq_storage.SeqsData):
     with pytest.raises(TypeError):
         dna_sd.get_seq_str()
 
 
 def test_seqs_data_names(str_seqs_dict, dna_alphabet):
     expect = str_seqs_dict.keys()
-    sd = c3_alignment.SeqsData(data=str_seqs_dict, alphabet=dna_alphabet)
+    sd = c3_seq_storage.SeqsData(data=str_seqs_dict, alphabet=dna_alphabet)
     got = sd.names
     # returns iterator
     assert list(got) == list(expect)
@@ -302,7 +305,7 @@ def seqs_dicts(request):
 
 @pytest.mark.parametrize("seqid", ["seq1", "seq2", "seq3"])
 def test_seqs_data_seq_lengths(seqs_dicts, dna_alphabet, seqid):
-    sd = c3_alignment.SeqsData(data=seqs_dicts, alphabet=dna_alphabet)
+    sd = c3_seq_storage.SeqsData(data=seqs_dicts, alphabet=dna_alphabet)
     expect = len(seqs_dicts[seqid])
     got = sd.get_seq_length(seqid)
     assert got == expect
@@ -311,12 +314,12 @@ def test_seqs_data_seq_lengths(seqs_dicts, dna_alphabet, seqid):
 @pytest.mark.parametrize("seqid", ["seq1", "seq2", "seq3"])
 def test_seqs_data_get_seq_array(arr_seqs_dict, dna_alphabet, seqid):
     expect = arr_seqs_dict[seqid]
-    sd = c3_alignment.SeqsData(data=arr_seqs_dict, alphabet=dna_alphabet)
+    sd = c3_seq_storage.SeqsData(data=arr_seqs_dict, alphabet=dna_alphabet)
     got = sd.get_seq_array(seqid=seqid)
     assert numpy.array_equal(got, expect)
 
 
-def test_seqs_data_get_seq_bytes(dna_sd: c3_alignment.SeqsData):
+def test_seqs_data_get_seq_bytes(dna_sd: c3_seq_storage.SeqsData):
     # getting seqid and slicing tested in test_get_seq_str
     got = dna_sd.get_seq_bytes(seqid="seq1")
     assert isinstance(got, bytes)
@@ -325,7 +328,7 @@ def test_seqs_data_get_seq_bytes(dna_sd: c3_alignment.SeqsData):
 @pytest.mark.parametrize("seq", ["seq1", "seq2"])
 def test_seqs_data_getitem_str(dna_sd, seq):
     got = dna_sd[seq]
-    assert isinstance(got, c3_alignment.SeqDataView)
+    assert isinstance(got, c3_seqview.SeqDataView)
     assert got.parent == dna_sd
     assert got.seqid == seq
 
@@ -333,7 +336,7 @@ def test_seqs_data_getitem_str(dna_sd, seq):
 @pytest.mark.parametrize("idx", [0, 1])
 def test_seqs_data_getitem_int(str_seqs_dict, dna_sd, idx):
     got = dna_sd[idx]
-    assert isinstance(got, c3_alignment.SeqDataView)
+    assert isinstance(got, c3_seqview.SeqDataView)
     assert got.parent == dna_sd
     assert got.seqid == list(str_seqs_dict)[idx]
 
@@ -348,7 +351,7 @@ def test_seqs_data_to_alphabet():
     ASCII = c3_moltype.ASCII.alphabet
     DNA = c3_moltype.DNA.degen_gapped_alphabet
     RNA = c3_moltype.RNA.degen_gapped_alphabet
-    seqs = c3_alignment.SeqsData(
+    seqs = c3_seq_storage.SeqsData(
         data={"a": "AAA", "b": "TTT", "c": "CCC"},
         alphabet=ASCII,
     )
@@ -365,7 +368,7 @@ def test_seqs_data_to_alphabet():
 def test_seqs_data_to_alphabet_invalid():
     ASCII = c3_moltype.ASCII.alphabet
     DNA = c3_moltype.DNA.degen_gapped_alphabet
-    seqs = c3_alignment.SeqsData(
+    seqs = c3_seq_storage.SeqsData(
         data={"a": "AAA", "b": "TTT", "c": "LLL"},
         alphabet=ASCII,
     )
@@ -385,15 +388,15 @@ def test_seqs_data_to_alphabet_invalid():
     ],
 )
 def test_seq_data_view_slice_returns_self(seq1: str, index: slice, dna_alphabet):
-    sdv = c3_alignment.SeqDataView(
+    sdv = c3_seqview.SeqDataView(
         parent=seq1,
         seqid="seq1",
         alphabet=dna_alphabet,
         parent_len=len(seq1),
-        slice_record=c3_sequence.SliceRecord(parent_len=len(seq1)),
+        slice_record=SliceRecord(parent_len=len(seq1)),
     )
     got = sdv[index]
-    assert isinstance(got, c3_alignment.SeqDataView)
+    assert isinstance(got, c3_seqview.SeqDataView)
 
 
 # SeqDataView tests for value properties
@@ -403,7 +406,7 @@ def test_seq_data_view_slice_returns_self(seq1: str, index: slice, dna_alphabet)
 def test_seq_data_view_value(str_seqs_dict: dict, dna_alphabet, start, stop, step):
     seq = "seq2"
     expect = str_seqs_dict[seq][start:stop:step]
-    sd = c3_alignment.SeqsData(data=str_seqs_dict, alphabet=dna_alphabet)
+    sd = c3_seq_storage.SeqsData(data=str_seqs_dict, alphabet=dna_alphabet)
     # Get SeqDataView on seq
     sdv = sd.get_view(seq)
     sdv2 = sdv[start:stop:step]
@@ -415,7 +418,7 @@ def test_seq_data_view_value(str_seqs_dict: dict, dna_alphabet, start, stop, ste
 def test_seq_data_view_to_rich_dict(rev):
     data = {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}
     alpha = c3_moltype.DNA.degen_gapped_alphabet
-    sd = c3_alignment.SeqsData(data=data, alphabet=alpha)
+    sd = c3_seq_storage.SeqsData(data=data, alphabet=alpha)
     sdv = sd.get_view("seq1")
     sdv = sdv[::-1] if rev else sdv
     got = sdv.to_rich_dict()
@@ -440,7 +443,7 @@ def test_seq_data_view_to_rich_dict(rev):
 def test_seqs_data_array_value(arr_seqs_dict: dict, dna_alphabet, start, stop, step):
     seq = "seq2"
     expect = arr_seqs_dict[seq][start:stop:step]
-    sd = c3_alignment.SeqsData(data=arr_seqs_dict, alphabet=dna_alphabet)
+    sd = c3_seq_storage.SeqsData(data=arr_seqs_dict, alphabet=dna_alphabet)
     # Get SeqDataView on seq
     sdv = sd.get_view(seq)
     got = sdv.array_value[start:stop:step]
@@ -454,7 +457,7 @@ def test_seqs_data_bytes_value(str_seqs_dict: dict, dna_alphabet, start, stop, s
     seq = "seq2"
     expect = str_seqs_dict[seq][start:stop:step]
     expect = expect.encode("utf8")
-    sd = c3_alignment.SeqsData(data=str_seqs_dict, alphabet=dna_alphabet)
+    sd = c3_seq_storage.SeqsData(data=str_seqs_dict, alphabet=dna_alphabet)
     # Get SeqDataView on seq
     sdv = sd.get_view(seq)
     got = sdv.bytes_value[start:stop:step]
@@ -462,13 +465,13 @@ def test_seqs_data_bytes_value(str_seqs_dict: dict, dna_alphabet, start, stop, s
 
 
 # SeqDataView tests for special methods that access "value" properties
-def test_array(sdv_s2: c3_alignment.SeqDataView):
+def test_array(sdv_s2: c3_seqview.SeqDataView):
     expect = sdv_s2.array_value
     got = numpy.array(sdv_s2)
     assert numpy.array_equal(expect, got)
 
 
-def test_bytes(sdv_s2: c3_alignment.SeqDataView):
+def test_bytes(sdv_s2: c3_seqview.SeqDataView):
     expect = sdv_s2.bytes_value
     got = bytes(sdv_s2)
     assert expect == got
@@ -529,8 +532,8 @@ def test_make_seqs(moltype, mk_cls, cls):
 @pytest.mark.parametrize(
     ("mk_cls", "cls"),
     [
-        (c3_alignment.make_unaligned_seqs, c3_alignment.SeqsData),
-        (c3_alignment.make_aligned_seqs, c3_alignment.AlignedSeqsData),
+        (c3_alignment.make_unaligned_seqs, c3_seq_storage.SeqsData),
+        (c3_alignment.make_aligned_seqs, c3_seq_storage.AlignedSeqsData),
     ],
 )
 def test_make_seqs_label_to_name(mk_cls, cls, dna_alphabet):
@@ -576,8 +579,8 @@ def test_make_seqs_no_seqs(mk_cls):
 @pytest.mark.parametrize(
     ("mk_cls", "seqs_data_cls"),
     [
-        (c3_alignment.make_unaligned_seqs, c3_alignment.SeqsData),
-        (c3_alignment.make_aligned_seqs, c3_alignment.AlignedSeqsData),
+        (c3_alignment.make_unaligned_seqs, c3_seq_storage.SeqsData),
+        (c3_alignment.make_aligned_seqs, c3_seq_storage.AlignedSeqsData),
     ],
 )
 def test_make_seqs_incompatible_moltype(mk_cls, seqs_data_cls, dna_alphabet):
@@ -631,20 +634,20 @@ def test_make_seqs_from_sequences(mk_cls):
     seq1 = c3_moltype.DNA.make_seq(seq="AC")
     seq2 = c3_moltype.DNA.make_seq(seq="AC")
     coll = mk_cls([seq1, seq2], moltype="dna")
-    assert isinstance(coll, c3_alignment.SequenceCollection)
+    assert isinstance(coll, c3_alignment.CollectionBase)
     assert coll.names == ("seq_0", "seq_1")
 
     # if the sequences have names, they should be used
     seq1 = c3_moltype.DNA.make_seq(seq="AC", name="seq1")
     seq2 = c3_moltype.DNA.make_seq(seq="AC", name="seq2")
     coll = mk_cls([seq1, seq2], moltype="dna")
-    assert isinstance(coll, c3_alignment.SequenceCollection)
+    assert isinstance(coll, c3_alignment.CollectionBase)
     assert coll.names == ("seq1", "seq2")
 
     # if the data dict has different names to the seq names,
     # the names from data should be used
     coll = mk_cls({"s1": seq1, "s2": seq2}, moltype="dna")
-    assert isinstance(coll, c3_alignment.SequenceCollection)
+    assert isinstance(coll, c3_alignment.CollectionBase)
     assert coll.names == ("s1", "s2")
     assert coll.get_seq("s1") == seq1
 
@@ -683,8 +686,8 @@ def test_make_seqs_renamed_seqs(mk_cls, seq_name, parent_name, dna_alphabet):
 @pytest.mark.parametrize(
     ("mk_cls", "data_cls"),
     [
-        (c3_alignment.make_unaligned_seqs, c3_alignment.SeqsData),
-        (c3_alignment.make_aligned_seqs, c3_alignment.AlignedSeqsData),
+        (c3_alignment.make_unaligned_seqs, c3_seq_storage.SeqsData),
+        (c3_alignment.make_aligned_seqs, c3_seq_storage.AlignedSeqsData),
     ],
 )
 @pytest.mark.parametrize("name", ["a", "b"])
@@ -2870,7 +2873,7 @@ def aligned_array_dict():
 
 @pytest.fixture
 def aligned_seqs_data(aligned_dict, dna_alphabet):
-    return c3_alignment.AlignedSeqsData.from_seqs(
+    return c3_seq_storage.AlignedSeqsData.from_seqs(
         data=aligned_dict,
         alphabet=dna_alphabet,
     )
@@ -3066,7 +3069,7 @@ def test_aligned_getitem_featuremap(raw_seq, coords):
     dna = c3_moltype.get_moltype("dna")
     im, seq = dna.make_seq(seq=raw_seq).parse_out_gaps()
     gaps = numpy.array([im.gap_pos, im.cum_gap_lengths]).T
-    asd = c3_alignment.AlignedSeqsData.from_seqs_and_gaps(
+    asd = c3_seq_storage.AlignedSeqsData.from_seqs_and_gaps(
         seqs={"seq1": numpy.array(seq)},
         gaps={"seq1": gaps},
         alphabet=dna.most_degen_alphabet(),
@@ -3139,7 +3142,7 @@ def test_aligned_seqs_data_init(seqid, gap_seqs, dna_alphabet):
         f"seq{i}": numpy.array(gaps, dtype=numpy.int32)
         for i, (_, gaps) in enumerate(gap_seqs)
     }
-    ad = c3_alignment.AlignedSeqsData.from_seqs_and_gaps(
+    ad = c3_seq_storage.AlignedSeqsData.from_seqs_and_gaps(
         seqs={**seqs},
         gaps=gaps,
         alphabet=dna_alphabet,
@@ -3166,7 +3169,7 @@ def test_aligned_seqs_data_init_check_raises(dna_alphabet, kwargs):
     gapped = numpy.array([dna_alphabet.to_indices(seq) for seq in raw])
     names = "s1", "s2", "s3"
     with pytest.raises(ValueError):
-        c3_alignment.AlignedSeqsData(
+        c3_seq_storage.AlignedSeqsData(
             gapped_seqs=gapped,
             names=names,
             alphabet=dna_alphabet,
@@ -3199,7 +3202,7 @@ def test_aligned_seqs_data_init_gapped(
         name: c3_alignment.decompose_gapped_seq(seq, alphabet=dna_alphabet)[1]
         for name, seq in typed_data.items()
     }
-    asd = c3_alignment.AlignedSeqsData.from_seqs_and_gaps(
+    asd = c3_seq_storage.AlignedSeqsData.from_seqs_and_gaps(
         seqs=seq_data,
         gaps=gap_data,
         alphabet=dna_alphabet,
@@ -3216,7 +3219,7 @@ def test_aligned_seqs_data_unequal_seqlens_raises(data_type, dna_alphabet, dna_m
         "seq2": make_typed("AAAAAAA--", data_type=data_type, moltype=dna_moltype),
     }
     with pytest.raises(ValueError):
-        _ = c3_alignment.AlignedSeqsData.from_seqs(data=data, alphabet=dna_alphabet)
+        _ = c3_seq_storage.AlignedSeqsData.from_seqs(data=data, alphabet=dna_alphabet)
     # directly creating an AlignedSeqsData object should also raise an error
     seq_data = {
         name: c3_alignment.decompose_gapped_seq(seq, alphabet=dna_alphabet)[0]
@@ -3227,7 +3230,7 @@ def test_aligned_seqs_data_unequal_seqlens_raises(data_type, dna_alphabet, dna_m
         for name, seq in data.items()
     }
     with pytest.raises(ValueError):
-        _ = c3_alignment.AlignedSeqsData.from_seqs_and_gaps(
+        _ = c3_seq_storage.AlignedSeqsData.from_seqs_and_gaps(
             seqs=seq_data,
             gaps=gap_data,
             alphabet=dna_alphabet,
@@ -3238,7 +3241,7 @@ def test_from_seqs_and_gaps(dna_alphabet):
     # AlignedSeqsData should be able to be constructed from sequences and gap maps
     seqs = {"seq1": "ACCTA", "seq2": ""}
     gaps = {"seq1": numpy.array([[0, 1]]), "seq2": numpy.array([[0, 6]])}
-    asd = c3_alignment.AlignedSeqsData.from_seqs_and_gaps(
+    asd = c3_seq_storage.AlignedSeqsData.from_seqs_and_gaps(
         seqs=seqs,
         gaps=gaps,
         alphabet=dna_alphabet,
@@ -3253,7 +3256,7 @@ def test_from_seqs_and_gaps_diff_seq_lens_raises(dna_alphabet):
     seqs = {"seq1": "ACCTA", "seq2": "A"}
     gaps = {"seq1": numpy.array([[0, 1]]), "seq2": numpy.array([[0, 1]])}
     with pytest.raises(ValueError):
-        _ = c3_alignment.AlignedSeqsData.from_seqs_and_gaps(
+        _ = c3_seq_storage.AlignedSeqsData.from_seqs_and_gaps(
             seqs=seqs,
             gaps=gaps,
             alphabet=dna_alphabet,
@@ -3264,7 +3267,7 @@ def test_from_seqs_and_gaps_diff_keys_raises(dna_alphabet):
     seqs = {"seq1": "ACCTA", "seq2": "A"}
     gaps = {"seq1": numpy.array([[0, 1]]), "seq3": numpy.array([[0, 1]])}
     with pytest.raises(ValueError):
-        _ = c3_alignment.AlignedSeqsData.from_seqs_and_gaps(
+        _ = c3_seq_storage.AlignedSeqsData.from_seqs_and_gaps(
             seqs=seqs,
             gaps=gaps,
             alphabet=dna_alphabet,
@@ -3275,7 +3278,7 @@ def test_from_seqs_and_gaps_diff_keys_raises(dna_alphabet):
 def test_from_names_and_array(dna_alphabet, seqid, i):
     names = ["seq1", "seq2", "seq3"]
     data = numpy.array([[0, 1, 2, 3], [3, 2, 1, 0], [4, 4, 4, 4]])
-    asd = c3_alignment.AlignedSeqsData.from_names_and_array(
+    asd = c3_seq_storage.AlignedSeqsData.from_names_and_array(
         names=names,
         data=data,
         alphabet=dna_alphabet,
@@ -3291,7 +3294,7 @@ def test_from_names_and_array_empty_raises(dna_alphabet):
     data = numpy.array([]).reshape(0, 0)
 
     with pytest.raises(ValueError):
-        _ = c3_alignment.AlignedSeqsData.from_names_and_array(
+        _ = c3_seq_storage.AlignedSeqsData.from_names_and_array(
             names=names,
             data=data,
             alphabet=dna_alphabet,
@@ -3303,7 +3306,7 @@ def test_from_names_and_array_mismatched_length(dna_alphabet):
     data = numpy.array([[1, 0, 1], [0, 1, 0], [1, 1, 1]])
 
     with pytest.raises(ValueError):
-        _ = c3_alignment.AlignedSeqsData.from_names_and_array(
+        _ = c3_seq_storage.AlignedSeqsData.from_names_and_array(
             names=names,
             data=data,
             alphabet=dna_alphabet,
@@ -3319,14 +3322,14 @@ def test_aligned_seqs_data_diff_keys_raises(dna_alphabet):
     }
 
     with pytest.raises(ValueError):
-        _ = c3_alignment.AlignedSeqsData.from_seqs_and_gaps(
+        _ = c3_seq_storage.AlignedSeqsData.from_seqs_and_gaps(
             seqs=seqs,
             gaps=gaps,
             alphabet=dna_alphabet,
         )
     # assert that it would work if we indeed had the same keys
     gaps["seq2"] = gaps.pop("seq3")
-    asd = c3_alignment.AlignedSeqsData.from_seqs_and_gaps(
+    asd = c3_seq_storage.AlignedSeqsData.from_seqs_and_gaps(
         seqs=seqs,
         gaps=gaps,
         alphabet=dna_alphabet,
@@ -3337,7 +3340,7 @@ def test_aligned_seqs_data_diff_keys_raises(dna_alphabet):
 
 def test_aligned_seqs_data_omit_seqs_gaps_raises(dna_alphabet):
     with pytest.raises(ValueError):
-        _ = c3_alignment.AlignedSeqsData.from_seqs_and_gaps(
+        _ = c3_seq_storage.AlignedSeqsData.from_seqs_and_gaps(
             seqs={},
             gaps={},
             alphabet=dna_alphabet,
@@ -3345,16 +3348,16 @@ def test_aligned_seqs_data_omit_seqs_gaps_raises(dna_alphabet):
 
 
 def test_aligned_seqs_data_names(aligned_dict, dna_alphabet):
-    got = c3_alignment.AlignedSeqsData.from_seqs(
+    got = c3_seq_storage.AlignedSeqsData.from_seqs(
         data=aligned_dict,
         alphabet=dna_alphabet,
     )
-    assert isinstance(got, c3_alignment.AlignedSeqsData)
+    assert isinstance(got, c3_seq_storage.AlignedSeqsData)
     assert got.names == ("seq1", "seq2", "seq3", "seq4")
 
 
 def test_aligned_seqs_data_len(aligned_dict, dna_alphabet):
-    got = c3_alignment.AlignedSeqsData.from_seqs(
+    got = c3_seq_storage.AlignedSeqsData.from_seqs(
         data=aligned_dict,
         alphabet=dna_alphabet,
     )
@@ -3369,7 +3372,7 @@ def test_aligned_seqs_data_len(aligned_dict, dna_alphabet):
 @pytest.mark.parametrize("moltype", ["dna_moltype", "rna_moltype"])
 def test_aligned_seqs_data_getitem(seqid, index, aligned_array_dict, moltype, request):
     moltype = request.getfixturevalue(moltype)
-    ad = c3_alignment.AlignedSeqsData.from_seqs(
+    ad = c3_seq_storage.AlignedSeqsData.from_seqs(
         data=aligned_array_dict,
         alphabet=moltype.degen_gapped_alphabet,
     )
@@ -3386,7 +3389,7 @@ def test_aligned_seqs_data_getitem(seqid, index, aligned_array_dict, moltype, re
 @pytest.mark.parametrize("moltype", ["dna_moltype", "rna_moltype"])
 def test_aligned_seqs_data_get_seq_array(aligned_array_dict, seqid, moltype, request):
     moltype = request.getfixturevalue(moltype)
-    ad = c3_alignment.AlignedSeqsData.from_seqs(
+    ad = c3_seq_storage.AlignedSeqsData.from_seqs(
         data=aligned_array_dict,
         alphabet=moltype.degen_gapped_alphabet,
     )
@@ -3405,7 +3408,7 @@ def test_aligned_seqs_data_get_gapped_seq_array(
     request,
 ):
     moltype = request.getfixturevalue(moltype)
-    ad = c3_alignment.AlignedSeqsData.from_seqs(
+    ad = c3_seq_storage.AlignedSeqsData.from_seqs(
         data=aligned_array_dict,
         alphabet=moltype.degen_gapped_alphabet,
     )
@@ -3424,7 +3427,7 @@ def test_aligned_seqs_data_view_cast(
 ):
     moltype = request.getfixturevalue(moltype)
     alpha = moltype.degen_gapped_alphabet
-    ad = c3_alignment.AlignedSeqsData.from_seqs(
+    ad = c3_seq_storage.AlignedSeqsData.from_seqs(
         data=aligned_array_dict,
         alphabet=alpha,
     )
@@ -3441,7 +3444,7 @@ def test_aligned_seqs_data_view_cast(
 @pytest.mark.parametrize("moltype", ["dna_moltype", "rna_moltype"])
 def test_aligned_seqs_data_get_seq_str(aligned_array_dict, seqid, moltype, request):
     moltype = request.getfixturevalue(moltype)
-    ad = c3_alignment.AlignedSeqsData.from_seqs(
+    ad = c3_seq_storage.AlignedSeqsData.from_seqs(
         data=aligned_array_dict,
         alphabet=moltype.degen_gapped_alphabet,
     )
@@ -3460,7 +3463,7 @@ def test_aligned_seqs_data_get_gapped_seq_str(
     request,
 ):
     moltype = request.getfixturevalue(moltype)
-    ad = c3_alignment.AlignedSeqsData.from_seqs(
+    ad = c3_seq_storage.AlignedSeqsData.from_seqs(
         data=aligned_array_dict,
         alphabet=moltype.degen_gapped_alphabet,
     )
@@ -3473,7 +3476,7 @@ def test_aligned_seqs_data_get_gapped_seq_str(
 @pytest.mark.parametrize("moltype", ["dna_moltype", "rna_moltype"])
 def test_aligned_seqs_data_get_seq_bytes(aligned_array_dict, seqid, moltype, request):
     moltype = request.getfixturevalue(moltype)
-    ad = c3_alignment.AlignedSeqsData.from_seqs(
+    ad = c3_seq_storage.AlignedSeqsData.from_seqs(
         data=aligned_array_dict,
         alphabet=moltype.degen_gapped_alphabet,
     )
@@ -3493,7 +3496,7 @@ def test_aligned_seqs_data_get_gapped_seq_bytes(
     request,
 ):
     moltype = request.getfixturevalue(moltype)
-    ad = c3_alignment.AlignedSeqsData.from_seqs(
+    ad = c3_seq_storage.AlignedSeqsData.from_seqs(
         data=aligned_array_dict,
         alphabet=moltype.degen_gapped_alphabet,
     )
@@ -3505,7 +3508,7 @@ def test_aligned_seqs_data_get_gapped_seq_bytes(
 
 @pytest.mark.parametrize("seqid", ["seq1", "seq2", "seq3", "seq4"])
 def test_aligned_seqs_data_get_seq_length(seqid, aligned_dict, dna_alphabet):
-    ad = c3_alignment.AlignedSeqsData.from_seqs(
+    ad = c3_seq_storage.AlignedSeqsData.from_seqs(
         data=aligned_dict,
         alphabet=dna_alphabet,
     )
@@ -3515,7 +3518,7 @@ def test_aligned_seqs_data_get_seq_length(seqid, aligned_dict, dna_alphabet):
 
 def test_aligned_seqs_data_add_seqs(dna_alphabet):
     data = {"seq1": "ACGT-", "seq2": "ACG-T", "seq3": "A---T"}
-    ad = c3_alignment.AlignedSeqsData.from_seqs(data=data, alphabet=dna_alphabet)
+    ad = c3_seq_storage.AlignedSeqsData.from_seqs(data=data, alphabet=dna_alphabet)
     new_data = {"seq4": "ACGTT", "seq5": "ACG--", "seq6": "-----"}
     new_ad = ad.add_seqs(new_data)
     assert new_ad.names == ("seq1", "seq2", "seq3", "seq4", "seq5", "seq6")
@@ -3525,7 +3528,7 @@ def test_aligned_seqs_data_add_seqs_diff_lengths_raises(dna_alphabet):
     """adding sequences of different lengths should raise an error"""
 
     data = {"seq1": "ACGT-", "seq2": "ACG-T"}
-    ad = c3_alignment.AlignedSeqsData.from_seqs(data=data, alphabet=dna_alphabet)
+    ad = c3_seq_storage.AlignedSeqsData.from_seqs(data=data, alphabet=dna_alphabet)
     new_data = {"seq3": "AC", "seq4": "A-"}
     with pytest.raises(ValueError):
         _ = ad.add_seqs(new_data)
@@ -3538,7 +3541,7 @@ def test_aligned_seqs_data_add_seqs_diff_lengths_raises(dna_alphabet):
 def test_aligned_seqs_data_add_seqs_diff_moltype_raises(dna_alphabet):
     """adding sequences of different moltype should raise an error"""
     data = {"seq1": "ACGT-", "seq2": "ACG-T"}  # DNA
-    ad = c3_alignment.AlignedSeqsData.from_seqs(data=data, alphabet=dna_alphabet)
+    ad = c3_seq_storage.AlignedSeqsData.from_seqs(data=data, alphabet=dna_alphabet)
     new_data = {"seq3": "ACGU-", "seq4": "ACG-U"}  # RNA
     with pytest.raises(c3_alphabet.AlphabetError):
         _ = ad.add_seqs(new_data)
@@ -3548,7 +3551,7 @@ def test_aligned_seqs_data_add_seqs_duplicate_keys_raises(dna_alphabet):
     """AlignedSeqsData.add_seqs should raise an error if their are duplicated
     sequence names"""
     data = {"seq1": "ACGT-", "seq2": "ACG-T"}
-    ad = c3_alignment.AlignedSeqsData.from_seqs(data=data, alphabet=dna_alphabet)
+    ad = c3_seq_storage.AlignedSeqsData.from_seqs(data=data, alphabet=dna_alphabet)
     new_data = {"seq2": "ACGT-", "seq3": "ACT-T"}  # seq2 is duplicated
     with pytest.raises(ValueError):
         _ = ad.add_seqs(new_data)
@@ -3561,7 +3564,7 @@ def test_aligned_seqs_data_add_seqs_duplicate_keys_raises(dna_alphabet):
 @pytest.mark.parametrize("seqid", ["seq1", "seq2", "seq3", "seq4"])
 def test_aligned_seqs_data_get_aligned_view(aligned_dict, seqid, dna_alphabet):
     # str on an ADV should return the gapped sequence
-    ad = c3_alignment.AlignedSeqsData.from_seqs(
+    ad = c3_seq_storage.AlignedSeqsData.from_seqs(
         data=aligned_dict,
         alphabet=dna_alphabet,
     )
@@ -3573,7 +3576,7 @@ def test_aligned_seqs_data_get_aligned_view(aligned_dict, seqid, dna_alphabet):
 
 @pytest.mark.parametrize("seqid", ["seq1", "seq2", "seq3", "seq4"])
 def test_aligned_data_view_array(aligned_array_dict, dna_alphabet, seqid):
-    ad = c3_alignment.AlignedSeqsData.from_seqs(
+    ad = c3_seq_storage.AlignedSeqsData.from_seqs(
         data=aligned_array_dict,
         alphabet=dna_alphabet,
     )
@@ -3593,7 +3596,7 @@ def test_aligned_data_view_array(aligned_array_dict, dna_alphabet, seqid):
 
 @pytest.mark.parametrize("seqid", ["seq1", "seq2", "seq3", "seq4"])
 def test_aligned_data_view_str(aligned_dict, dna_alphabet, seqid):
-    ad = c3_alignment.AlignedSeqsData.from_seqs(
+    ad = c3_seq_storage.AlignedSeqsData.from_seqs(
         data=aligned_dict,
         alphabet=dna_alphabet,
     )
@@ -3609,7 +3612,7 @@ def test_aligned_data_view_str(aligned_dict, dna_alphabet, seqid):
 
 @pytest.mark.parametrize("seqid", ["seq1", "seq2", "seq3", "seq4"])
 def test_aligned_data_view_bytes(aligned_array_dict, dna_alphabet, seqid):
-    ad = c3_alignment.AlignedSeqsData.from_seqs(
+    ad = c3_seq_storage.AlignedSeqsData.from_seqs(
         data=aligned_array_dict,
         alphabet=dna_alphabet,
     )
@@ -3737,7 +3740,7 @@ def test_array_positions_reverse_complement(simple_aln):
 
 
 def test_alignment_init(aligned_dict, dna_moltype, dna_alphabet):
-    ad = c3_alignment.AlignedSeqsData.from_seqs(
+    ad = c3_seq_storage.AlignedSeqsData.from_seqs(
         data=aligned_dict,
         alphabet=dna_alphabet,
     )
@@ -3757,7 +3760,7 @@ def test_make_aligned_seqs_dict(aligned_dict):
 
 
 def test_make_aligned_seqs_aligned_seqs_data(aligned_dict, dna_alphabet):
-    aligned_seqs_data = c3_alignment.AlignedSeqsData.from_seqs(
+    aligned_seqs_data = c3_seq_storage.AlignedSeqsData.from_seqs(
         data=aligned_dict,
         alphabet=dna_alphabet,
     )
@@ -3769,7 +3772,7 @@ def test_make_aligned_seqs_aligned_seqs_data(aligned_dict, dna_alphabet):
 
 
 def test_make_aligned_seqs_incompatible_moltype(aligned_dict, dna_alphabet):
-    ad = c3_alignment.AlignedSeqsData.from_seqs(
+    ad = c3_seq_storage.AlignedSeqsData.from_seqs(
         data=aligned_dict,
         alphabet=dna_alphabet,
     )
@@ -5423,7 +5426,7 @@ def test_asd_get_gapped_seq(aligned_dict, dna_alphabet):
     orig_array = dna_alphabet.to_indices(orig_seq)
     orig_revd = orig_array[::-1]
 
-    asd = c3_alignment.AlignedSeqsData.from_seqs(
+    asd = c3_seq_storage.AlignedSeqsData.from_seqs(
         data=aligned_dict,
         alphabet=c3_moltype.DNA.most_degen_alphabet(),
     )
@@ -5874,7 +5877,7 @@ def test_make_with_mixed_rc_plus_gaps(dna_moltype):
     raw_minus = "AA---AAATGCC"
     minus = dna_moltype.make_seq(seq=raw_minus, name="minus")
     data = {"plus": raw_plus, "minus": raw_minus}
-    asd = c3_alignment.AlignedSeqsData.from_seqs(
+    asd = c3_seq_storage.AlignedSeqsData.from_seqs(
         data=data,
         alphabet=dna_moltype.most_degen_alphabet(),
         reversed_seqs={"minus"},
@@ -5892,7 +5895,7 @@ def test_make_asd_revd(dna_alphabet):
     }
     array_seqs = numpy.array([data[n] for n in "abc"], dtype=numpy.uint8)
     names = list("abc")
-    asd = c3_alignment.AlignedSeqsData(
+    asd = c3_seq_storage.AlignedSeqsData(
         gapped_seqs=array_seqs,
         names=names,
         alphabet=dna_alphabet,
@@ -5919,7 +5922,7 @@ def test_make_asd_revd(dna_alphabet):
 @pytest.mark.parametrize("aligned", [False, True])
 def test_roundtrip_rc_mixed_strand(dna_moltype, aligned):
     plus = {"s1": "GTTGAAGTAGTA", "s2": "---GAG---GTA", "s3": "GCTGAAGTAGTG"}
-    asd = c3_alignment.AlignedSeqsData.from_seqs(
+    asd = c3_seq_storage.AlignedSeqsData.from_seqs(
         data=plus,
         alphabet=dna_moltype.most_degen_alphabet(),
         reversed_seqs={"s2"},
@@ -5951,7 +5954,7 @@ def test_aln_mixed_strand_rced_seq():
     aln = c3_alignment.make_aligned_seqs(plus, moltype="dna", reversed_seqs={"s2"})
     as2 = aln.seqs["s2"]
     s2 = as2.seq
-    assert str(s2) == "GAGGTA"
+    assert s2 == "GAGGTA"
     s2rc = s2.rc()
     assert s2rc == "TACCTC"
 
@@ -5967,9 +5970,9 @@ def test_seqcoll_storage(mk_cls):
     }
     seqcoll = mk_cls(data, moltype="dna")
     expect_class = (
-        c3_alignment.SeqsData
+        c3_seq_storage.SeqsData
         if mk_cls is c3_alignment.make_unaligned_seqs
-        else c3_alignment.AlignedSeqsData
+        else c3_seq_storage.AlignedSeqsData
     )
     assert isinstance(seqcoll.storage, expect_class)
 
@@ -6018,9 +6021,9 @@ def test_coll_storage_select_driver(mk_cls):
     )
     seqcoll = mk_cls(data, moltype="dna", storage_backend=storage_backend)
     builtin = (
-        c3_alignment.SeqsData
+        c3_seq_storage.SeqsData
         if mk_cls is c3_alignment.make_unaligned_seqs
-        else c3_alignment.AlignedSeqsData
+        else c3_seq_storage.AlignedSeqsData
     )
     assert not isinstance(seqcoll.storage, builtin)
     seqcoll = mk_cls(data, moltype="dna", storage_backend=None)
@@ -6043,9 +6046,9 @@ def test_coll_storage_set_default_driver(mk_cls):
     set_storage_defaults(**{defaults_arg: storage_backend})
     seqcoll = mk_cls(data, moltype="dna")
     builtin = (
-        c3_alignment.SeqsData
+        c3_seq_storage.SeqsData
         if mk_cls is c3_alignment.make_unaligned_seqs
-        else c3_alignment.AlignedSeqsData
+        else c3_seq_storage.AlignedSeqsData
     )
     assert not isinstance(seqcoll.storage, builtin)
     # resetting to defaults restores builtin's
@@ -6069,7 +6072,7 @@ def test_coll_storage_degap_explicit(mk_cls):
         data,
         moltype="dna",
     )
-    builtin = c3_alignment.AlignedSeqsData if aligned else c3_alignment.SeqsData
+    builtin = c3_seq_storage.AlignedSeqsData if aligned else c3_seq_storage.SeqsData
     assert isinstance(seqcoll.storage, builtin)
     # we use the storage specified by the command
     dg = seqcoll.degap(storage_backend="h5seqs_unaligned")
@@ -6087,7 +6090,7 @@ def test_coll_storage_degap_propagates_type():
         moltype="dna",
         storage_backend="h5seqs_unaligned",
     )
-    builtin = c3_alignment.SeqsData
+    builtin = c3_seq_storage.SeqsData
     assert not isinstance(seqcoll.storage, builtin)
     dg = seqcoll.degap(storage_backend="h5seqs_unaligned")
     assert not isinstance(dg.storage, builtin)
@@ -6375,7 +6378,7 @@ def test_asd_get_pos_range(dna_alphabet, start, stop, step):
         "s2": "TCGCCC",
         "s3": "TCGCCC",
     }
-    asd = c3_alignment.AlignedSeqsData.from_seqs(data=data, alphabet=dna_alphabet)
+    asd = c3_seq_storage.AlignedSeqsData.from_seqs(data=data, alphabet=dna_alphabet)
     expect = numpy.array(
         [alpha.to_indices(data[n][start:stop:step]) for n in asd.names],
         dtype=numpy.uint8,
@@ -6392,7 +6395,7 @@ def test_asd_get_positions(dna_alphabet, positions):
         "s2": "TCGCCC",
         "s3": "TCGCCC",
     }
-    asd = c3_alignment.AlignedSeqsData.from_seqs(data=data, alphabet=dna_alphabet)
+    asd = c3_seq_storage.AlignedSeqsData.from_seqs(data=data, alphabet=dna_alphabet)
 
     expect = {
         n: dna_alphabet.from_indices(dna_alphabet.to_indices(s)[positions])
@@ -6413,6 +6416,6 @@ def test_asd_get_positions_err(dna_alphabet, bas_pos):
         "s2": "TCGCCC",
         "s3": "TCGCCC",
     }
-    asd = c3_alignment.AlignedSeqsData.from_seqs(data=data, alphabet=dna_alphabet)
+    asd = c3_seq_storage.AlignedSeqsData.from_seqs(data=data, alphabet=dna_alphabet)
     with pytest.raises(IndexError):
         _ = asd.get_positions(asd.names, bas_pos)

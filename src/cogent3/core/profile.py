@@ -47,6 +47,7 @@ class _MotifNumberArray(DictArray):
             ndim = 2
         num_elements = len(data) if ndim == 1 else len(data[0])
         if num_elements != len(motifs):
+            print(data, len(motifs), num_elements, ndim)
             msg = f"number of data elements {len(data[0])} != {len(motifs)}"
             raise ValueError(msg)
         motifs = tuple(motifs)
@@ -386,12 +387,12 @@ class MotifFreqsArray(_MotifNumberArray):
 
     def logo(
         self,
-        height=400,
-        width=800,
-        wrap=None,
-        ylim=None,
-        vspace=0.05,
-        colours=None,
+        height: float = 400,
+        width: float = 800,
+        wrap: int | None = None,
+        ylim: float | None = None,
+        vspace: float = 0.05,
+        colours: dict[str, str] | None = None,
     ):
         """returns a sequence logo Drawable"""
         from cogent3.draw.drawable import get_domain

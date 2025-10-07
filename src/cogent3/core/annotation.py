@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
 from numpy import array
-from typing_extensions import Self, reveal_type
+from typing_extensions import Self
 
 from .location import FeatureMap, IndelMap, Strand
 

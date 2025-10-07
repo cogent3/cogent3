@@ -1,10 +1,13 @@
+from __future__ import annotations
+
 import dataclasses
 import functools
 import itertools
 import json
 import warnings
 from collections import defaultdict
-from collections.abc import Callable, Generator, Iterable, Mapping
+from collections.abc import Callable, Generator, Mapping
+from collections.abc import Sequence as PySeq
 from string import ascii_letters
 from typing import (
     TYPE_CHECKING,
@@ -26,6 +29,7 @@ from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.misc import get_object_provenance
 
 if TYPE_CHECKING:  # pragma: no cover
+    from cogent3.core.seqview import SeqViewABC
     from cogent3.core.table import Table
 
 NumpyIntArrayType = npt.NDArray[numpy.integer]
@@ -643,7 +647,7 @@ class MolType(Generic[StrOrBytes]):
     def make_seq(  # type: ignore[no-redef]
         self,
         *,
-        seq: "str | bytes | NumpyIntArrayType | c3_sequence.Sequence | c3_sequence.SeqViewABC",
+        seq: str | bytes | NumpyIntArrayType | c3_sequence.Sequence | SeqViewABC,
         name: str | None = None,
         check_seq: bool = True,
         **kwargs: Any,
@@ -675,7 +679,7 @@ class MolType(Generic[StrOrBytes]):
             seq = cast("c3_sequence.Sequence", seq)
             return seq if seq.moltype is self else seq.to_moltype(self)
 
-        seq = cast("str | bytes | c3_sequence.SeqViewABC", seq)
+        seq = cast("str | bytes | SeqViewABC", seq)
         if isinstance(seq, str):
             seq = self.coerce_to(seq.encode("utf8")) if self.coerce_to else seq
 
@@ -691,11 +695,7 @@ class MolType(Generic[StrOrBytes]):
     def make_sequence(
         self,
         *,
-        seq: str
-        | bytes
-        | NumpyIntArrayType
-        | c3_sequence.Sequence
-        | c3_sequence.SeqViewABC,
+        seq: str | bytes | NumpyIntArrayType | c3_sequence.Sequence | SeqViewABC,
         name: str | None = None,
         check_seq: bool = True,
         **kwargs: Any,
@@ -802,7 +802,18 @@ class MolType(Generic[StrOrBytes]):
         msg = f"{type(seq)} not supported"
         raise TypeError(msg)
 
-    def rc(self, seq: str, validate: bool = True) -> str:
+    @overload
+    def rc(self, seq: str, validate: bool = True) -> str: ...
+    @overload
+    def rc(self, seq: bytes, validate: bool = True) -> bytes: ...
+    @overload
+    def rc(
+        self, seq: NumpyIntArrayType, validate: bool = True
+    ) -> NumpyIntArrayType: ...
+
+    def rc(
+        self, seq: str | bytes | NumpyIntArrayType, validate: bool = True
+    ) -> str | bytes | NumpyIntArrayType:
         """reverse reverse complement of a sequence
 
         Parameters
@@ -1360,7 +1371,7 @@ class MolType(Generic[StrOrBytes]):
         msg = f"{type(seq)} not supported"
         raise TypeError(msg)
 
-    def degenerate_from_seq(self, seq: str) -> str:
+    def degenerate_from_seq(self, seq: str | PySeq[str]) -> str:
         """Returns least degenerate symbol that encompasses a set of characters"""
         if not self.ambiguities:
             assert (
@@ -1624,7 +1635,7 @@ def get_moltype(name: MolTypeLiteral | MolType[Any] | None) -> MolType[Any]:
     return _moltypes[name.lower()]
 
 
-def available_moltypes() -> "Table":
+def available_moltypes() -> Table:
     """returns Table listing the available moltypes"""
     from cogent3.core.table import Table
 

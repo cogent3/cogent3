@@ -6,10 +6,7 @@ from typing import TYPE_CHECKING
 import stevedore
 
 if TYPE_CHECKING:  # pragma: no cover
-    from cogent3.core.alignment import (
-        AlignedSeqsDataABC,
-        SeqsDataABC,
-    )
+    from cogent3.core.seq_storage import AlignedSeqsDataABC, SeqsDataABC
     from cogent3.core.tree import PhyloNode
     from cogent3.evolve.fast_distance import DistanceMatrix
     from cogent3.format.sequence import SequenceWriterBase

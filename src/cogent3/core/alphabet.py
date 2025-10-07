@@ -1,9 +1,9 @@
+from __future__ import annotations
+
 import functools
 import itertools
 import json
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Iterable, Iterator, Sized
-from collections.abc import Sequence as PySeq
 from typing import TYPE_CHECKING, Any, Generic, Literal, TypeVar, cast
 
 import numba
@@ -15,6 +15,9 @@ from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.misc import get_object_provenance
 
 if TYPE_CHECKING:  # pragma: no cover
+    from cogent3.core.seqview import SeqViewABC
+    from collections.abc import Sequence as PySeq
+    from collections.abc import Callable, Iterable, Iterator, Sized
     from cogent3.core.moltype import MolType
 
 NumpyIntArrayType = npt.NDArray[numpy.integer]
@@ -159,7 +162,7 @@ class AlphabetABC(ABC, Generic[StrOrBytes]):
         return type(self).from_rich_dict(self.to_rich_dict())
 
     @property
-    def moltype(self) -> "MolType[StrOrBytes] | None":
+    def moltype(self) -> MolType[StrOrBytes] | None:
         return _alphabet_moltype_map.get(self)
 
     @abstractmethod
@@ -175,7 +178,7 @@ class MonomerAlphabetABC(ABC, Generic[StrOrBytes]):
         self,
         k: int,
         include_gap: bool = True,
-    ) -> "KmerAlphabet[StrOrBytes] | CharAlphabet[StrOrBytes]": ...
+    ) -> KmerAlphabet[StrOrBytes] | CharAlphabet[StrOrBytes]: ...
 
     @abstractmethod
     def as_bytes(self) -> bytes: ...
@@ -184,7 +187,7 @@ class MonomerAlphabetABC(ABC, Generic[StrOrBytes]):
     def convert_seq_array_to(
         self,
         *,
-        alphabet: "CharAlphabet[Any]",
+        alphabet: CharAlphabet[Any],
         seq: NumpyIntArrayType,
         check_valid: bool = True,
     ) -> NumpyIntArrayType: ...
@@ -197,7 +200,7 @@ class MonomerAlphabetABC(ABC, Generic[StrOrBytes]):
         missing_char: str | bytes = "?",
         include_missing: bool = False,
         gap_as_state: bool = False,
-    ) -> "MonomerAlphabetABC[StrOrBytes]": ...
+    ) -> MonomerAlphabetABC[StrOrBytes]: ...
 
 
 def get_array_type(
@@ -315,7 +318,7 @@ class CharAlphabet(
         chars: StrOrBytes | PySeq[StrOrBytes],
         gap: StrOrBytes | None = None,
         missing: StrOrBytes | None = None,
-    ) -> "CharAlphabet[StrOrBytes]":
+    ) -> CharAlphabet[StrOrBytes]:
         """
         Parameters
         ----------
@@ -490,7 +493,7 @@ class CharAlphabet(
 
     def get_kmer_alphabet(
         self, k: int, include_gap: bool = True
-    ) -> "KmerAlphabet[StrOrBytes] | CharAlphabet[StrOrBytes]":
+    ) -> KmerAlphabet[StrOrBytes] | CharAlphabet[StrOrBytes]:
         """returns kmer alphabet with words of size k
 
         Parameters
@@ -520,7 +523,7 @@ class CharAlphabet(
             self.moltype,
         )
 
-    def is_valid(self, seq: str | bytes | NumpyIntArrayType) -> bool:
+    def is_valid(self, seq: str | bytes | NumpyIntArrayType | SeqViewABC) -> bool:
         """seq is valid for alphabet"""
         if isinstance(seq, (str, bytes)):
             seq = self.to_indices(seq, validate=False)
@@ -531,7 +534,7 @@ class CharAlphabet(
         # refactor: design
         if hasattr(seq, "alphabet"):
             # assume a SeqView instance
-            return seq.alphabet == self
+            return cast("SeqViewABC", seq).alphabet == self
         msg = f"{type(seq)} is invalid"
         raise TypeError(msg)
 
@@ -566,7 +569,7 @@ class CharAlphabet(
         return json.dumps(self.to_rich_dict())
 
     @classmethod
-    def from_rich_dict(cls, data: dict[str, Any]) -> "CharAlphabet[StrOrBytes]":
+    def from_rich_dict(cls, data: dict[str, Any]) -> CharAlphabet[StrOrBytes]:
         """returns an instance from a serialised dictionary"""
         return cls(data["chars"], gap=data["gap"], missing=data["missing"])
 
@@ -574,7 +577,7 @@ class CharAlphabet(
         self,
         motif_subset: PySeq[StrOrBytes],
         excluded: bool = False,
-    ) -> "CharAlphabet[StrOrBytes]":
+    ) -> CharAlphabet[StrOrBytes]:
         """Returns a new Alphabet object containing a subset of motifs in self.
 
         Raises an exception if any of the items in the subset are not already
@@ -604,7 +607,7 @@ class CharAlphabet(
     def convert_seq_array_to(
         self,
         *,
-        alphabet: "CharAlphabet[Any]",
+        alphabet: CharAlphabet[Any],
         seq: NumpyIntArrayType,
         check_valid: bool = True,
     ) -> NumpyIntArrayType:
@@ -646,8 +649,8 @@ def _get_kmer_alpha(
     missing_char: StrOrBytes | None,
     include_gap: bool,
     k: int,
-    moltype: "MolType[StrOrBytes]",
-) -> "KmerAlphabet[StrOrBytes]":
+    moltype: MolType[StrOrBytes],
+) -> KmerAlphabet[StrOrBytes]:
     chars = tuple(monomers[:num_canonical])
 
     gap = gap_char * k if include_gap and gap_char is not None else None
@@ -728,7 +731,7 @@ MolTypeStrLiteral = Literal["dna", "rna", "protein", "protein_with_stop", "text"
 
 
 def _get_closest_char_alphabet(
-    moltype_name: "MolTypeStrLiteral | MolType[str]",
+    moltype_name: MolTypeStrLiteral | MolType[str],
     motifset: list[str] | set[str],
 ) -> CharAlphabet[str]:
     from cogent3.core.moltype import get_moltype
@@ -1004,7 +1007,7 @@ class KmerAlphabetABC(ABC, Generic[StrOrBytes]):
         self,
         include_missing: bool = False,
         **kwargs: Any,
-    ) -> "KmerAlphabetABC[StrOrBytes]": ...
+    ) -> KmerAlphabetABC[StrOrBytes]: ...
 
 
 class KmerAlphabet(
@@ -1031,7 +1034,7 @@ class KmerAlphabet(
         k: int,
         gap: StrOrBytes | None = None,
         missing: StrOrBytes | None = None,
-    ) -> "KmerAlphabet[StrOrBytes]":
+    ) -> KmerAlphabet[StrOrBytes]:
         """
         Parameters
         ----------
@@ -1261,7 +1264,7 @@ class KmerAlphabet(
         self,
         include_missing: bool = False,
         **kwargs: Any,
-    ) -> "KmerAlphabet[StrOrBytes] | CharAlphabet[StrOrBytes]":
+    ) -> KmerAlphabet[StrOrBytes] | CharAlphabet[StrOrBytes]:
         """returns a new KmerAlphabet with the gap motif added
 
         Notes
@@ -1375,7 +1378,7 @@ class KmerAlphabet(
         return json.dumps(self.to_rich_dict())
 
     @classmethod
-    def from_rich_dict(cls, data: dict[str, Any]) -> "KmerAlphabet[StrOrBytes]":
+    def from_rich_dict(cls, data: dict[str, Any]) -> KmerAlphabet[StrOrBytes]:
         """returns an instance from a serialised dictionary"""
         monomers = CharAlphabet[StrOrBytes].from_rich_dict(data["monomers"])
         return cls(
@@ -1422,7 +1425,7 @@ class SenseCodonAlphabet(
         words: tuple[str, ...],
         monomers: CharAlphabet[str],
         gap: str | None = None,
-    ) -> "SenseCodonAlphabet":
+    ) -> SenseCodonAlphabet:
         if not words:
             msg = f"cannot create empty {cls.__name__!r}"
             raise ValueError(msg)
@@ -1644,7 +1647,7 @@ class SenseCodonAlphabet(
         return json.dumps(self.to_rich_dict())
 
     @classmethod
-    def from_rich_dict(cls, data: dict[str, Any]) -> "SenseCodonAlphabet":
+    def from_rich_dict(cls, data: dict[str, Any]) -> SenseCodonAlphabet:
         """returns an instance from a serialised dictionary"""
         data["monomers"] = deserialise_char_alphabet(data["monomers"])
         data.pop("type", None)
@@ -1705,7 +1708,7 @@ def deserialise_codon_alphabet(data: dict[str, Any]) -> SenseCodonAlphabet:
     return code.get_alphabet(include_gap=include_gap)
 
 
-_alphabet_moltype_map: dict[AlphabetABC[Any], "MolType[Any]"] = {}
+_alphabet_moltype_map: dict[AlphabetABC[Any], MolType[Any]] = {}
 
 
 def make_alphabet(
@@ -1713,7 +1716,7 @@ def make_alphabet(
     chars: PySeq[StrOrBytes] | StrOrBytes,
     gap: StrOrBytes | None,
     missing: StrOrBytes | None,
-    moltype: "MolType[StrOrBytes]",
+    moltype: MolType[StrOrBytes],
 ) -> CharAlphabet[StrOrBytes]:
     """constructs a character alphabet and registers the associated moltype
 

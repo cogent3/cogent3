@@ -574,7 +574,7 @@ class MapABC(ABC):
     @classmethod
     def from_locations(
         cls,
-        locations: PySeq[tuple[IntTypes, IntTypes]],
+        locations: PySeq[tuple[IntTypes, IntTypes]] | NumpyIntArrayType,
         parent_length: int,
         **kwargs: Any,
     ) -> Self:
@@ -2178,7 +2178,14 @@ class FeatureMap(MapABC):
 
         return rel_pos if len(self) == self.parent_length else self.start + rel_pos
 
-    def relative_position(self, abs_pos: IntTypes) -> IntTypes:
+    @overload
+    def relative_position(self, abs_pos: IntTypes) -> IntTypes: ...
+    @overload
+    def relative_position(self, abs_pos: NumpyIntArrayType) -> NumpyIntArrayType: ...
+
+    def relative_position(
+        self, abs_pos: IntTypes | NumpyIntArrayType
+    ) -> IntTypes | NumpyIntArrayType:
         """converts abs_pos into an relative position
 
         Raises

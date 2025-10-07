@@ -13,6 +13,7 @@ from cogent3.core import alphabet as c3_alphabet
 from cogent3.core import genetic_code as c3_genetic_code
 from cogent3.core import moltype as c3_moltype
 from cogent3.core import sequence as c3_sequence
+from cogent3.core import slice_record as c3_slice_record
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.misc import get_object_provenance
 
@@ -1027,7 +1028,7 @@ def test_to_phylip():
 def test_seqview_initialisation(start, stop, step, bytes_alphabet):
     """Initialising a SeqView should work with range of provided values"""
     seq_data = "0123456789"
-    slice_record = c3_sequence.SliceRecord(
+    slice_record = c3_slice_record.SliceRecord(
         start=start,
         stop=stop,
         step=step,
@@ -1075,7 +1076,7 @@ def test_seqview_step_0(bytes_alphabet):
     with pytest.raises(ValueError):
         _ = sv[::0]
     with pytest.raises(ValueError):
-        sr = c3_sequence.SliceRecord(step=0, parent_len=10)
+        sr = c3_slice_record.SliceRecord(step=0, parent_len=10)
         _ = c3_sequence.SeqView(
             parent="0123456789",
             parent_len=10,
@@ -1092,7 +1093,7 @@ def test_seqview_invalid_index(start, bytes_alphabet):
     pos_boundary_index = length
     neg_boundary_index = -length - 1
 
-    sr = c3_sequence.SliceRecord(start=start, parent_len=len(seq))
+    sr = c3_slice_record.SliceRecord(start=start, parent_len=len(seq))
     sv = c3_sequence.SeqView(
         parent=seq,
         parent_len=len(seq),
@@ -1114,7 +1115,7 @@ def test_seqview_invalid_index_positive_step_gt_1(start, bytes_alphabet):
     neg_boundary_index = -length - 1
     pos_boundary_index = length
 
-    sr = c3_sequence.SliceRecord(start=start, step=step, parent_len=len(seq))
+    sr = c3_slice_record.SliceRecord(start=start, step=step, parent_len=len(seq))
     sv = c3_sequence.SeqView(
         parent=seq,
         parent_len=len(seq),
@@ -1137,7 +1138,7 @@ def test_seqview_invalid_index_reverse_step(stop, bytes_alphabet):
     neg_boundary_index = -length - 1
     pos_boundary_index = length
 
-    sr = c3_sequence.SliceRecord(
+    sr = c3_slice_record.SliceRecord(
         start=start,
         stop=stop,
         step=step,
@@ -1165,7 +1166,7 @@ def test_seqview_invalid_index_reverse_step_gt_1(stop, bytes_alphabet):
     neg_boundary_index = -length - 1
     pos_boundary_index = length
 
-    sr = c3_sequence.SliceRecord(
+    sr = c3_slice_record.SliceRecord(
         start=start,
         stop=stop,
         step=step,
@@ -1195,7 +1196,7 @@ def test_seqview_start_out_of_bounds(bytes_alphabet):
     seq = "0123456789"
     init_start, init_stop, init_step = 2, 10, 1
     boundary = abs((init_start - init_stop) // init_step)
-    sr = c3_sequence.SliceRecord(
+    sr = c3_slice_record.SliceRecord(
         start=init_start,
         stop=init_stop,
         step=init_step,
@@ -1216,7 +1217,7 @@ def test_seqview_start_out_of_bounds_step_gt_1(bytes_alphabet):
     seq = "0123456789"
     init_start, init_stop, init_step = 2, 10, 2
     boundary = abs((init_start - init_stop) // init_step)
-    sr = c3_sequence.SliceRecord(
+    sr = c3_slice_record.SliceRecord(
         start=init_start,
         stop=init_stop,
         step=init_step,
@@ -1239,7 +1240,7 @@ def test_seqview_start_out_of_bounds_reverse_step(bytes_alphabet):
     boundary_pos = abs((init_start - init_stop) // init_step)
     boundary_neg = -abs((init_start - init_stop) // init_step) - 1
 
-    sr = c3_sequence.SliceRecord(
+    sr = c3_slice_record.SliceRecord(
         start=init_start,
         stop=init_stop,
         step=init_step,
@@ -1304,7 +1305,7 @@ def test_seqview_sliced_index(index, simple_slices, bytes_alphabet):
 def test_seqview_reverse_slice(first_step, second_step, bytes_alphabet):
     """subsequent slices may reverse the previous slice"""
     seq = "0123456789"
-    sr = c3_sequence.SliceRecord(step=first_step, parent_len=len(seq))
+    sr = c3_slice_record.SliceRecord(step=first_step, parent_len=len(seq))
     sv = c3_sequence.SeqView(
         parent=seq,
         parent_len=len(seq),
@@ -1328,7 +1329,7 @@ def test_seqview_rev_sliced_index(index, start, stop, step, seq, bytes_alphabet)
         expected = seq_data[start:stop:step][index]
     except IndexError:
         with pytest.raises(IndexError):
-            sr = c3_sequence.SliceRecord(
+            sr = c3_slice_record.SliceRecord(
                 start=start,
                 stop=stop,
                 step=step,
@@ -1341,7 +1342,7 @@ def test_seqview_rev_sliced_index(index, start, stop, step, seq, bytes_alphabet)
                 alphabet=bytes_alphabet,
             )[index].str_value
     else:  # if no index error, SeqView should match python slicing
-        sr = c3_sequence.SliceRecord(
+        sr = c3_slice_record.SliceRecord(
             start=start,
             stop=stop,
             step=step,
@@ -1362,7 +1363,7 @@ def test_seqview_rev_sliced_index(index, start, stop, step, seq, bytes_alphabet)
 @pytest.mark.parametrize("step", [1, 2, -1, -2])
 def test_seqview_init_with_negatives(seq, start, stop, step, bytes_alphabet):
     "SeqView initialisation should handle any combination of positive and negative slices"
-    sr = c3_sequence.SliceRecord(
+    sr = c3_slice_record.SliceRecord(
         start=start,
         stop=stop,
         step=step,
@@ -1737,7 +1738,7 @@ def test_seqview_repr():
 
     # Non-zero slice record
     seq = "ACGT" * 10
-    sr = c3_sequence.SliceRecord(start=5, stop=35, step=2, parent_len=len(seq))
+    sr = c3_slice_record.SliceRecord(start=5, stop=35, step=2, parent_len=len(seq))
     view = c3_sequence.SeqView(
         parent=seq,
         parent_len=len(seq),
@@ -1749,7 +1750,7 @@ def test_seqview_repr():
 
     # slice record with an offset
     seq = "ACGT"
-    sr = c3_sequence.SliceRecord(offset=5, parent_len=len(seq))
+    sr = c3_slice_record.SliceRecord(offset=5, parent_len=len(seq))
     view = c3_sequence.SeqView(
         parent=seq,
         parent_len=len(seq),
@@ -1775,11 +1776,11 @@ def test_seqview_repr():
 
 def test_slice_record_repr():
     # defaults
-    sr = c3_sequence.SliceRecord(parent_len=20)
+    sr = c3_slice_record.SliceRecord(parent_len=20)
     expected = "SliceRecord(start=0, stop=20, step=1, parent_len=20, offset=0)"
     assert repr(sr) == expected
 
-    sr = c3_sequence.SliceRecord(start=1, stop=10, step=2, parent_len=20, offset=5)
+    sr = c3_slice_record.SliceRecord(start=1, stop=10, step=2, parent_len=20, offset=5)
     expected = "SliceRecord(start=1, stop=10, step=2, parent_len=20, offset=5)"
     assert repr(sr) == expected
 
@@ -2705,7 +2706,9 @@ def test_empty_seqview_translate_position(dna_alphabet):
 def test_seqview_seq_len_init(start, stop, step, length, dna_alphabet):
     # seq_len is length of seq when None
     seq_data = "A" * length
-    sr = c3_sequence.SliceRecord(start=start, stop=stop, step=step, parent_len=length)
+    sr = c3_slice_record.SliceRecord(
+        start=start, stop=stop, step=step, parent_len=length
+    )
     sv = c3_sequence.SeqView(
         parent=seq_data,
         parent_len=len(seq_data),
@@ -2724,7 +2727,7 @@ def test_seqview_plus_attrs(rev, step):
     # always equal values from plus strand
     start = 2
     stop = 12
-    sr = c3_sequence.SliceRecord(start=start, stop=stop, step=step, parent_len=30)
+    sr = c3_slice_record.SliceRecord(start=start, stop=stop, step=step, parent_len=30)
     sr = sr[::-1] if rev else sr
     assert (sr.plus_start, sr.plus_stop, sr.plus_step) == (start, stop, step)
 
@@ -2740,7 +2743,7 @@ def test_seqview_attrs_non_modulo(rev):
     #   * * * *
     # we expect the plus_stop to be 9, as this is the index immediately following
     # the last selected index
-    sr = c3_sequence.SliceRecord(start=2, stop=10, step=2, parent_len=10)
+    sr = c3_slice_record.SliceRecord(start=2, stop=10, step=2, parent_len=10)
     sr = sr[::-1] if rev else sr
     assert sr.plus_start == 2
     assert sr.plus_stop == 9
@@ -2751,7 +2754,7 @@ def test_seqview_attrs_non_modulo(rev):
     #   * * *
     # although a stop of -10 would be a start of 1 for step == 1, we expect
     # in this case the plus_start to be 2
-    sr = c3_sequence.SliceRecord(start=-4, stop=-10, step=-2, parent_len=10)
+    sr = c3_slice_record.SliceRecord(start=-4, stop=-10, step=-2, parent_len=10)
     sr = sr[::-1] if rev else sr
     assert sr.plus_start == 2
     assert sr.plus_stop == 7
@@ -2760,7 +2763,7 @@ def test_seqview_attrs_non_modulo(rev):
     #  [ --> )
     # 0123456789
     #  *  *
-    sr = c3_sequence.SliceRecord(start=1, stop=7, step=3, parent_len=10)
+    sr = c3_slice_record.SliceRecord(start=1, stop=7, step=3, parent_len=10)
     sr = sr[::-1] if rev else sr
     assert sr.plus_start == 1
     assert sr.plus_stop == 5
@@ -2769,12 +2772,12 @@ def test_seqview_attrs_non_modulo(rev):
     #  (     ]
     # 0123456789
     #     *  *
-    sr = c3_sequence.SliceRecord(start=-3, stop=-9, step=-3, parent_len=10)
+    sr = c3_slice_record.SliceRecord(start=-3, stop=-9, step=-3, parent_len=10)
     sr = sr[::-1] if rev else sr
     assert sr.plus_start == 4
     assert sr.plus_stop == 8
 
-    sr = c3_sequence.SliceRecord(start=0, stop=0, step=1, parent_len=10)
+    sr = c3_slice_record.SliceRecord(start=0, stop=0, step=1, parent_len=10)
     sr = sr[::-1] if rev else sr
     assert sr.plus_start == 0
     assert sr.plus_stop == 0
@@ -2786,7 +2789,7 @@ def test_seqview_attrs_non_modulo(rev):
 def test_plus_attrs_slicing(start, stop, step):
     """slicing with plus attributes then reversing should match native python slicing"""
     data = "0123456789"
-    sr = c3_sequence.SliceRecord(start=start, stop=stop, step=step, parent_len=10)
+    sr = c3_slice_record.SliceRecord(start=start, stop=stop, step=step, parent_len=10)
 
     plus_start, plus_stop, plus_step = sr.plus_start, sr.plus_stop, sr.plus_step
     got = (
@@ -2800,7 +2803,7 @@ def test_plus_attrs_slicing(start, stop, step):
 
 @pytest.mark.parametrize("rev", [False, True])
 def test_seqview_attrs_zero_slice(rev):
-    sr = c3_sequence.SliceRecord(start=0, stop=0, step=1, parent_len=0)
+    sr = c3_slice_record.SliceRecord(start=0, stop=0, step=1, parent_len=0)
     sr = sr[::-1] if rev else sr
     assert sr.plus_start == 0
     assert sr.plus_stop == 0
