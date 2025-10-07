@@ -50,6 +50,60 @@ def get_quick_tree_hook(
     return cogent3.get_app("quick_tree")
 
 
+P = typing.ParamSpec("P")
+
+
+TAppAPI = typing.Callable[
+    typing.Concatenate[int, P],
+    typing.Callable[[list[str]], "npt.NDArray[numpy.integer]"],
+]
+
+
+def get_count_kmers_hook(
+    *,
+    name: str | None = None,
+    **kwargs,  # noqa: ANN003
+) -> TAppAPI | None:
+    """returns app instance registered for count_kmers matching name
+
+    Parameters
+    ----------
+    name
+        name of package to get the app from
+    **kwargs
+        additional arguments to pass to the app
+
+    Notes
+    -----
+    The app constructor must take keyword arguments and the
+    instance must take a list of strings as input and return
+    a numpy array of integers.
+
+    Returns
+    -------
+    Returns the first found app instance, or one matching name
+    or None if no app found.
+    """
+    mgr = stevedore.hook.HookManager(
+        namespace=HOOK_ENTRY_POINT,
+        name="count_kmers",
+        invoke_on_load=False,
+    )
+    if name != "cogent3":
+        for extension in mgr.extensions:
+            if name and extension.module_name.startswith(name):
+                return extension.plugin(**kwargs)
+            # return first one if no name specified
+            return extension.plugin(**kwargs)
+
+        if name:
+            msg = f"Could not find count_kmers plugin for {name!r}"
+            raise ValueError(msg)
+
+    # we don't have a cogent3 app for this, we just use the builtin function
+    return None
+
+
 # registry for parsing sequence file formats
 SEQ_PARSER_ENTRY_POINT = "cogent3.parse.sequence"
 
