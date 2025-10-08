@@ -58,7 +58,6 @@ def get_count_kmers_hook(
     name: str | None = None,
     **kwargs: Any,
 ) -> Callable[..., NumpyIntArrayType] | None:
-
     """returns app instance registered for count_kmers matching name
 
     Parameters
