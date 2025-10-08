@@ -14,10 +14,11 @@ from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.misc import get_object_provenance
 
 if TYPE_CHECKING:  # pragma: no cover
-    from cogent3.core.seqview import SeqViewABC
-    from collections.abc import Sequence as PySeq
     from collections.abc import Callable, Iterable, Iterator, Sized
+    from collections.abc import Sequence as PySeq
+
     from cogent3.core.moltype import MolType
+    from cogent3.core.seqview import SeqViewABC
 
 NumpyIntArrayType = npt.NDArray[numpy.integer]
 
