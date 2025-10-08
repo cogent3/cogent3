@@ -16,13 +16,12 @@ from collections import defaultdict
 from functools import singledispatch, total_ordering
 from operator import eq, ne
 from random import shuffle
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Self, cast
 
 import numba
 import numpy
 import numpy.typing as npt
 from numpy import array
-from typing_extensions import Self
 
 from cogent3._version import __version__
 from cogent3.core import alphabet as c3_alphabet

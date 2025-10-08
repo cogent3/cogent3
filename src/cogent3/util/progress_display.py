@@ -5,10 +5,9 @@ import threading
 import time
 from collections.abc import Callable, Collection, Generator, Iterable, Sized
 from collections.abc import Sequence as PySeq
-from typing import Any, ParamSpec, TypeVar
+from typing import Any, ParamSpec, Self, TypeVar
 
 from tqdm import notebook, tqdm
-from typing_extensions import Self
 
 from cogent3.util import parallel as PAR
 from cogent3.util.misc import in_jupyter

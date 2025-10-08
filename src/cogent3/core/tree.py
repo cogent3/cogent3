@@ -61,8 +61,7 @@ if TYPE_CHECKING:  # pragma: no cover
     import os
     import pathlib
     from collections.abc import Callable, Generator, Iterable, Iterator, Sequence
-
-    from typing_extensions import Self
+    from typing import Self
 
     from cogent3.draw.dendrogram import Dendrogram
     from cogent3.evolve.fast_distance import DistanceMatrix
