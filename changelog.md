@@ -11,7 +11,7 @@ This is a minor feature enhancement release.
 ## Enhancements
 
 - Add a plugin hook for counting kmers. There are no packages doing this
-  ... yet. Unless a pakcage name is specified, the first app for the hook
+  ... yet. Unless a package name is specified, the first app for the hook
   is returned.
 - Added a `SequenceCollection.count_kmers()` method and support plugins for
   both this and `Sequence.count_kmers()` via `use_hook` argument. Additional

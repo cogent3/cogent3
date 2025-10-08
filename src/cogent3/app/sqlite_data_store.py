@@ -180,7 +180,7 @@ class DataStoreSqlite(DataStoreABC):
         return self._db
 
     def _init_log(self) -> None:
-        timestamp = datetime.datetime.now(tz=datetime.timezone.utc)
+        timestamp = datetime.datetime.now(tz=datetime.UTC)
         self.db.execute(f"INSERT INTO {_LOG_TABLE}(date) VALUES (?)", (timestamp,))
         self._log_id = self._db.execute(
             f"SELECT log_id FROM {_LOG_TABLE} where date = ?",

@@ -4,12 +4,11 @@ import functools
 import itertools
 import json
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Generic, Literal, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Generic, Literal, Self, TypeVar, cast
 
 import numba
 import numpy
 import numpy.typing as npt
-from typing_extensions import Self
 
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.misc import get_object_provenance

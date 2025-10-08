@@ -11,11 +11,10 @@ import sqlite3
 import warnings
 from collections.abc import Callable, Iterable, Iterator, Sized
 from collections.abc import Sequence as PySeq
-from typing import Any, ClassVar, Protocol, TypedDict, cast, runtime_checkable
+from typing import Any, ClassVar, Protocol, Self, TypedDict, cast, runtime_checkable
 
 import numpy
 import numpy.typing as npt
-from typing_extensions import Self
 
 from cogent3._version import __version__
 from cogent3.core.location import Strand, deserialise_map_spans

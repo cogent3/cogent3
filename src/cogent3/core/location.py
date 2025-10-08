@@ -11,12 +11,11 @@ from bisect import bisect_left, bisect_right
 from collections.abc import Iterable, Iterator
 from collections.abc import Sequence as PySeq
 from functools import total_ordering
-from typing import Any, TypeVar, cast, overload
+from typing import Any, Self, TypeVar, cast, overload
 
 import numba
 import numpy
 from numpy.typing import NDArray
-from typing_extensions import Self
 
 from cogent3._version import __version__
 from cogent3.util.deserialise import get_class, register_deserialiser
