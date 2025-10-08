@@ -33,7 +33,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.table import Table
 
 NumpyIntArrayType = npt.NDArray[numpy.integer]
-StrOrBytes = TypeVar("StrOrBytes", str, bytes)
+TStrOrBytes = TypeVar("TStrOrBytes", str, bytes)
 MolTypeLiteral = Literal["dna", "rna", "protein", "protein_with_stop", "text", "bytes"]
 
 IUPAC_gap = "-"
@@ -215,10 +215,10 @@ def make_pairs(
 
 
 def make_matches(
-    monomers: tuple[StrOrBytes, ...] | None = None,
-    gaps: frozenset[StrOrBytes] | None = None,
-    degenerates: dict[StrOrBytes, frozenset[StrOrBytes]] | None = None,
-) -> dict[tuple[StrOrBytes, StrOrBytes], bool]:
+    monomers: tuple[TStrOrBytes, ...] | None = None,
+    gaps: frozenset[TStrOrBytes] | None = None,
+    degenerates: dict[TStrOrBytes, frozenset[TStrOrBytes]] | None = None,
+) -> dict[tuple[TStrOrBytes, TStrOrBytes], bool]:
     """Makes a dict of symbol pairs (i,j) -> strictness.
 
     Strictness is True if i and j always match and False if they sometimes
@@ -395,7 +395,7 @@ AA_COLORS = _expand_colors(
 )
 
 
-def _combined_chars(*parts: StrOrBytes) -> StrOrBytes:
+def _combined_chars(*parts: TStrOrBytes) -> TStrOrBytes:
     concat = parts[0]
     for part in parts[1:]:
         if not part or part in concat:
@@ -415,7 +415,7 @@ coerce_to_protein = c3_alphabet.convert_alphabet(
 )
 
 
-class MolType(Generic[StrOrBytes]):
+class MolType(Generic[TStrOrBytes]):
     """MolType handles operations that depend on the sequence type.
 
     Notes
@@ -429,7 +429,7 @@ class MolType(Generic[StrOrBytes]):
     def __init__(
         self,
         name: str,
-        monomers: StrOrBytes,
+        monomers: TStrOrBytes,
         make_seq: type[c3_sequence.Sequence],
         gap: str | None = IUPAC_gap,
         missing: str | None = IUPAC_missing,
@@ -452,7 +452,7 @@ class MolType(Generic[StrOrBytes]):
 
     def __post_init__(
         self,
-        monomers: StrOrBytes,
+        monomers: TStrOrBytes,
         make_seq: type[c3_sequence.Sequence],
         complements: dict[str, str] | None,
         colors: dict[str, str] | None,
@@ -463,7 +463,7 @@ class MolType(Generic[StrOrBytes]):
         missing = c3_alphabet._coerce_to_type(monomers, self.missing or "")
         ambigs = c3_alphabet._coerce_to_type(monomers, "".join(self.ambiguities or ""))
 
-        self._monomers: c3_alphabet.CharAlphabet[StrOrBytes] = (
+        self._monomers: c3_alphabet.CharAlphabet[TStrOrBytes] = (
             c3_alphabet.make_alphabet(
                 chars=monomers,
                 gap=None,
@@ -471,7 +471,7 @@ class MolType(Generic[StrOrBytes]):
                 moltype=self,
             )
         )
-        self._degen: c3_alphabet.CharAlphabet[StrOrBytes] | None = (
+        self._degen: c3_alphabet.CharAlphabet[TStrOrBytes] | None = (
             c3_alphabet.make_alphabet(
                 chars=_combined_chars(monomers, ambigs, missing),
                 gap=None,
@@ -481,7 +481,7 @@ class MolType(Generic[StrOrBytes]):
             if ambigs
             else None
         )
-        self._gapped: c3_alphabet.CharAlphabet[StrOrBytes] | None = (
+        self._gapped: c3_alphabet.CharAlphabet[TStrOrBytes] | None = (
             c3_alphabet.make_alphabet(
                 chars=_combined_chars(monomers, gap),
                 gap=gap,
@@ -491,7 +491,7 @@ class MolType(Generic[StrOrBytes]):
             if gap
             else None
         )
-        self._gapped_missing: c3_alphabet.CharAlphabet[StrOrBytes] | None = (
+        self._gapped_missing: c3_alphabet.CharAlphabet[TStrOrBytes] | None = (
             c3_alphabet.make_alphabet(
                 chars=_combined_chars(monomers, gap, missing),
                 gap=gap,
@@ -501,7 +501,7 @@ class MolType(Generic[StrOrBytes]):
             if missing and gap
             else None
         )
-        self._degen_gapped: c3_alphabet.CharAlphabet[StrOrBytes] | None = (
+        self._degen_gapped: c3_alphabet.CharAlphabet[TStrOrBytes] | None = (
             c3_alphabet.make_alphabet(
                 chars=_combined_chars(monomers, gap, ambigs, missing),
                 gap=gap,
@@ -550,7 +550,7 @@ class MolType(Generic[StrOrBytes]):
     def __len__(self) -> int:
         return len(self._monomers)
 
-    def __iter__(self) -> Generator[StrOrBytes]:
+    def __iter__(self) -> Generator[TStrOrBytes]:
         yield from self._monomers
 
     @property
@@ -559,27 +559,27 @@ class MolType(Generic[StrOrBytes]):
         return self.name
 
     @property
-    def alphabet(self) -> c3_alphabet.CharAlphabet[StrOrBytes]:
+    def alphabet(self) -> c3_alphabet.CharAlphabet[TStrOrBytes]:
         """monomers"""
         return self._monomers
 
     @property
-    def degen_alphabet(self) -> c3_alphabet.CharAlphabet[StrOrBytes] | None:
+    def degen_alphabet(self) -> c3_alphabet.CharAlphabet[TStrOrBytes] | None:
         """monomers + ambiguous characters"""
         return self._degen
 
     @property
-    def gapped_alphabet(self) -> c3_alphabet.CharAlphabet[StrOrBytes] | None:
+    def gapped_alphabet(self) -> c3_alphabet.CharAlphabet[TStrOrBytes] | None:
         """monomers + gap"""
         return self._gapped
 
     @property
-    def gapped_missing_alphabet(self) -> c3_alphabet.CharAlphabet[StrOrBytes] | None:
+    def gapped_missing_alphabet(self) -> c3_alphabet.CharAlphabet[TStrOrBytes] | None:
         """monomers + gap"""
         return self._gapped_missing
 
     @property
-    def degen_gapped_alphabet(self) -> c3_alphabet.CharAlphabet[StrOrBytes] | None:
+    def degen_gapped_alphabet(self) -> c3_alphabet.CharAlphabet[TStrOrBytes] | None:
         """monomers + gap + ambiguous characters"""
         return self._degen_gapped
 
@@ -589,13 +589,13 @@ class MolType(Generic[StrOrBytes]):
         return frozenset(gaps)
 
     @property
-    def matching_rules(self) -> dict[tuple[StrOrBytes, StrOrBytes], bool]:
+    def matching_rules(self) -> dict[tuple[TStrOrBytes, TStrOrBytes], bool]:
         # Assumes no gaps or degnerates when monomers are bytes
         return make_matches(
             monomers=self._monomers,
-            gaps=cast("frozenset[StrOrBytes]", self.gaps),
+            gaps=cast("frozenset[TStrOrBytes]", self.gaps),
             degenerates=cast(
-                "dict[StrOrBytes, frozenset[StrOrBytes]]", self.ambiguities
+                "dict[TStrOrBytes, frozenset[TStrOrBytes]]", self.ambiguities
             ),
         )
 
@@ -604,7 +604,7 @@ class MolType(Generic[StrOrBytes]):
         alpha = self.most_degen_alphabet()
         return alpha.is_valid(seq)
 
-    def iter_alphabets(self) -> Generator[c3_alphabet.CharAlphabet[StrOrBytes]]:
+    def iter_alphabets(self) -> Generator[c3_alphabet.CharAlphabet[TStrOrBytes]]:
         """yield alphabets in order of most to least degenerate"""
         alphas = (
             self._degen_gapped,
@@ -1529,7 +1529,7 @@ class MolType(Generic[StrOrBytes]):
 
         return css, styles
 
-    def most_degen_alphabet(self) -> c3_alphabet.CharAlphabet[StrOrBytes]:
+    def most_degen_alphabet(self) -> c3_alphabet.CharAlphabet[TStrOrBytes]:
         """returns the most degenerate alphabet for this instance"""
         return _most_degen_alphabet(self)
 
@@ -1562,8 +1562,8 @@ class MolType(Generic[StrOrBytes]):
 
 @functools.cache
 def _most_degen_alphabet(
-    mt: MolType[StrOrBytes],
-) -> c3_alphabet.CharAlphabet[StrOrBytes]:
+    mt: MolType[TStrOrBytes],
+) -> c3_alphabet.CharAlphabet[TStrOrBytes]:
     """returns the most degenerate alphabet for this instance"""
     return next(mt.iter_alphabets())
 
