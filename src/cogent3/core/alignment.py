@@ -182,7 +182,7 @@ class Aligned(AnnotatableMixin):
             seq = self.moltype.degap(self.data.gapped_array_value)
             seq = self.moltype.complement(seq)
 
-        mt_seq = self.moltype.make_sequence(seq=seq, name=self.data.seqid)
+        mt_seq = self.moltype.make_seq(seq=seq, name=self.data.seqid)
         ann_db = self._annotation_db if self.data.slice_record.plus_step == 1 else None
         mt_seq.replace_annotation_db(ann_db)
         return mt_seq
@@ -193,7 +193,7 @@ class Aligned(AnnotatableMixin):
         seq = self.data.gapped_array_value
         if self.data.slice_record.step < 0:
             seq = self.moltype.complement(seq)
-        return self.moltype.make_sequence(seq=seq, name=self.data.seqid)
+        return self.moltype.make_seq(seq=seq, name=self.data.seqid)
 
     @property
     def moltype(self) -> c3_moltype.MolType[str]:
@@ -1645,7 +1645,7 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         sv = self._seqs_data.get_view(seqid)
         if self._is_reversed:
             sv = sv[::-1]
-        return self.moltype.make_sequence(
+        return self.moltype.make_seq(
             seq=sv,
             name=name,
             annotation_db=self._annotation_db,
@@ -3061,7 +3061,7 @@ class Alignment(CollectionBase[Aligned]):
             for gapchar in self.moltype.gaps:
                 s = s.replace(gapchar, ambig)
 
-        return self.moltype.make_sequence(seq=s, name=seqname)
+        return self.moltype.make_seq(seq=s, name=seqname)
 
     @extend_docstring_from(SequenceCollection.get_translation)
     def get_translation(
@@ -3680,7 +3680,7 @@ class Alignment(CollectionBase[Aligned]):
             pos_counts = CategoryCounter(pos)
             states.append(pos_counts.mode)
 
-        return self.moltype.make_sequence(seq="".join(states))
+        return self.moltype.make_seq(seq="".join(states))
 
     def counts_per_pos(
         self,

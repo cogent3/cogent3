@@ -415,7 +415,6 @@ coerce_to_protein = c3_alphabet.convert_alphabet(
 )
 
 
-@dataclasses.dataclass
 class MolType(Generic[StrOrBytes]):
     """MolType handles operations that depend on the sequence type.
 
@@ -427,43 +426,34 @@ class MolType(Generic[StrOrBytes]):
     Create a moltype using the ``get_moltype()`` function.
     """
 
-    name: str
-    monomers: dataclasses.InitVar[StrOrBytes]
-    make_seq: dataclasses.InitVar[
-        type[c3_sequence.Sequence]
-    ]  # Redefinition causes issues with static type checking
-    gap: str | None = IUPAC_gap
-    missing: str | None = IUPAC_missing
-    complements: dataclasses.InitVar[dict[str, str] | None] = None
-    ambiguities: dict[str, frozenset[str]] | None = None
-    colors: dataclasses.InitVar[dict[str, str] | None] = None
-    pairing_rules: dict[frozenset[str], bool] | None = None
-    mw_calculator: WeightCalculator | None = None
-    coerce_to: Callable[[bytes], bytes] | None = None
-
-    # private attributes to be delivered via properties
-    _monomers: c3_alphabet.CharAlphabet[StrOrBytes] = dataclasses.field(init=False)
-    _gapped: c3_alphabet.CharAlphabet[StrOrBytes] | None = dataclasses.field(init=False)
-    _gapped_missing: c3_alphabet.CharAlphabet[StrOrBytes] | None = dataclasses.field(
-        init=False
-    )
-    _degen: c3_alphabet.CharAlphabet[StrOrBytes] | None = dataclasses.field(init=False)
-    _degen_gapped: c3_alphabet.CharAlphabet[StrOrBytes] | None = dataclasses.field(
-        init=False
-    )
-    _colors: dict[str, str] = dataclasses.field(init=False)
-
-    # how to connect this to the sequence constructor and avoid
-    # circular imports
-    _make_seq: Callable[..., c3_sequence.Sequence] = dataclasses.field(init=False)
-    _complement: Callable[[bytes], bytes] | None = dataclasses.field(
-        init=False, default=None
-    )
+    def __init__(
+        self,
+        name: str,
+        monomers: StrOrBytes,
+        make_seq: type[c3_sequence.Sequence],
+        gap: str | None = IUPAC_gap,
+        missing: str | None = IUPAC_missing,
+        complements: dict[str, str] | None = None,
+        ambiguities: dict[str, frozenset[str]] | None = None,
+        colors: dict[str, str] | None = None,
+        pairing_rules: dict[frozenset[str], bool] | None = None,
+        mw_calculator: WeightCalculator | None = None,
+        coerce_to: Callable[[bytes], bytes] | None = None,
+    ) -> None:
+        self.name = name
+        self.gap = gap
+        self.missing = missing
+        self.ambiguities = ambiguities
+        self.pairing_rules = pairing_rules
+        self.mw_calculator = mw_calculator
+        self.coerce_to = coerce_to
+        self._complement: Callable[[bytes], bytes] | None = None
+        self.__post_init__(monomers, make_seq, complements, colors)
 
     def __post_init__(
         self,
         monomers: StrOrBytes,
-        make_seq: type,
+        make_seq: type[c3_sequence.Sequence],
         complements: dict[str, str] | None,
         colors: dict[str, str] | None,
     ) -> None:
@@ -473,13 +463,15 @@ class MolType(Generic[StrOrBytes]):
         missing = c3_alphabet._coerce_to_type(monomers, self.missing or "")
         ambigs = c3_alphabet._coerce_to_type(monomers, "".join(self.ambiguities or ""))
 
-        self._monomers = c3_alphabet.make_alphabet(
-            chars=monomers,
-            gap=None,
-            missing=None,
-            moltype=self,
+        self._monomers: c3_alphabet.CharAlphabet[StrOrBytes] = (
+            c3_alphabet.make_alphabet(
+                chars=monomers,
+                gap=None,
+                missing=None,
+                moltype=self,
+            )
         )
-        self._degen = (
+        self._degen: c3_alphabet.CharAlphabet[StrOrBytes] | None = (
             c3_alphabet.make_alphabet(
                 chars=_combined_chars(monomers, ambigs, missing),
                 gap=None,
@@ -489,7 +481,7 @@ class MolType(Generic[StrOrBytes]):
             if ambigs
             else None
         )
-        self._gapped = (
+        self._gapped: c3_alphabet.CharAlphabet[StrOrBytes] | None = (
             c3_alphabet.make_alphabet(
                 chars=_combined_chars(monomers, gap),
                 gap=gap,
@@ -499,7 +491,7 @@ class MolType(Generic[StrOrBytes]):
             if gap
             else None
         )
-        self._gapped_missing = (
+        self._gapped_missing: c3_alphabet.CharAlphabet[StrOrBytes] | None = (
             c3_alphabet.make_alphabet(
                 chars=_combined_chars(monomers, gap, missing),
                 gap=gap,
@@ -509,7 +501,7 @@ class MolType(Generic[StrOrBytes]):
             if missing and gap
             else None
         )
-        self._degen_gapped = (
+        self._degen_gapped: c3_alphabet.CharAlphabet[StrOrBytes] | None = (
             c3_alphabet.make_alphabet(
                 chars=_combined_chars(monomers, gap, ambigs, missing),
                 gap=gap,
@@ -643,8 +635,7 @@ class MolType(Generic[StrOrBytes]):
 
         return any(alpha == alphabet for alpha in self.iter_alphabets())
 
-    # This overshadows the make_seq attribute
-    def make_seq(  # type: ignore[no-redef]
+    def make_seq(
         self,
         *,
         seq: str | bytes | NumpyIntArrayType | c3_sequence.Sequence | SeqViewABC,
@@ -691,16 +682,6 @@ class MolType(Generic[StrOrBytes]):
             raise c3_alphabet.AlphabetError(msg)
 
         return self._make_seq(moltype=self, seq=seq, name=name, **kwargs)
-
-    def make_sequence(
-        self,
-        *,
-        seq: str | bytes | NumpyIntArrayType | c3_sequence.Sequence | SeqViewABC,
-        name: str | None = None,
-        check_seq: bool = True,
-        **kwargs: Any,
-    ) -> c3_sequence.Sequence:
-        return self.make_seq(seq=seq, name=name, check_seq=check_seq, **kwargs)  # type: ignore[attr-defined]
 
     @overload
     def complement(self, seq: str, validate: bool = True) -> str: ...

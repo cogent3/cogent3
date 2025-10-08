@@ -1351,7 +1351,7 @@ class Sequence(AnnotatableMixin):
             parent_len=len(seq),
             alphabet=moltype.most_degen_alphabet(),
         )
-        return moltype.make_sequence(
+        return moltype.make_seq(
             seq=sv,
             name=self.name,
             check_seq=False,
@@ -1968,7 +1968,7 @@ class Sequence(AnnotatableMixin):
         sampled = numpy.array(self).take(positions)
         return cast(
             "Self",
-            self.moltype.make_sequence(
+            self.moltype.make_seq(
                 seq=sampled, name=f"{self.name}-randomised", check_seq=False
             ),
         )
@@ -2214,7 +2214,7 @@ class NucleicAcidSequenceMixin(Sequence):
             raise c3_alphabet.AlphabetError(
                 msg,
             )
-        return cast("ProteinSequence", protein.make_sequence(seq=pep, name=self.name))
+        return cast("ProteinSequence", protein.make_seq(seq=pep, name=self.name))
 
     def to_rna(self) -> Sequence:
         """Returns copy of self as RNA."""
