@@ -4,7 +4,7 @@ import functools
 import itertools
 import json
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Generic, Literal, Self, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Generic, Literal, Self, TypeVar, cast, overload
 
 import numba
 import numpy
@@ -17,13 +17,14 @@ if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Callable, Iterable, Iterator, Sized
     from collections.abc import Sequence as PySeq
 
-    from cogent3.core.moltype import MolType
+    from cogent3.core.moltype import MolType, MolTypeLiteral
     from cogent3.core.seqview import SeqViewABC
 
 NumpyIntArrayType = npt.NDArray[numpy.integer]
 
 
 TStrOrBytes = TypeVar("TStrOrBytes", str, bytes)
+StrOrBytes = TStrOrBytes  # Backward compatability with cogent3_h5seqs
 
 
 def _coerce_to_type(
@@ -727,20 +728,38 @@ def make_converter(
     )
 
 
-MolTypeStrLiteral = Literal["dna", "rna", "protein", "protein_with_stop", "text"]
+@overload
+def _get_closest_char_alphabet(
+    moltype_name: Literal["dna", "rna", "protein", "protein_with_stop", "text"],
+    motifset: list[str] | set[str],
+) -> CharAlphabet[str]: ...
+@overload
+def _get_closest_char_alphabet(
+    moltype_name: Literal["bytes"],
+    motifset: list[bytes] | set[bytes],
+) -> CharAlphabet[bytes]: ...
+@overload
+def _get_closest_char_alphabet(
+    moltype_name: MolType[TStrOrBytes],
+    motifset: list[TStrOrBytes] | set[TStrOrBytes],
+) -> CharAlphabet[TStrOrBytes]: ...
 
 
 def _get_closest_char_alphabet(
-    moltype_name: MolTypeStrLiteral | MolType[str],
-    motifset: list[str] | set[str],
-) -> CharAlphabet[str]:
+    moltype_name: MolTypeLiteral | MolType[TStrOrBytes],
+    motifset: list[TStrOrBytes]
+    | set[TStrOrBytes]
+    | list[str]
+    | set[str]
+    | list[bytes]
+    | set[bytes],
+) -> CharAlphabet[TStrOrBytes]:
     from cogent3.core.moltype import get_moltype
 
     mtype = get_moltype(moltype_name)
-    motifset = set(motifset)
-    num_motifs = len(motifset)
+    num_motifs = len(set(motifset))
     alphas = sorted([(abs(len(a) - num_motifs), a) for a in mtype.iter_alphabets()])
-    return alphas[0][1]
+    return cast("CharAlphabet[TStrOrBytes]", alphas[0][1])
 
 
 @register_deserialiser(

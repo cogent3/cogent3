@@ -1591,12 +1591,12 @@ def deserialise_c3_moltype(data: dict[str, MolTypeLiteral]) -> MolType[Any]:
 
 @overload
 def get_moltype(
-    name: Literal["dna", "rna", "protein", "protein_with_stop", "text"]
-    | MolType[str]
-    | None,
+    name: Literal["dna", "rna", "protein", "protein_with_stop", "text"] | None,
 ) -> MolType[str]: ...
 @overload
-def get_moltype(name: Literal["bytes"] | MolType[bytes]) -> MolType[bytes]: ...
+def get_moltype(name: Literal["bytes"]) -> MolType[bytes]: ...
+@overload
+def get_moltype(name: MolType[TStrOrBytes]) -> MolType[TStrOrBytes]: ...
 
 
 def get_moltype(name: MolTypeLiteral | MolType[Any] | None) -> MolType[Any]:
