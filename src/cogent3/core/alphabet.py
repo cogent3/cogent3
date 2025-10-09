@@ -24,7 +24,9 @@ NumpyIntArrayType = npt.NDArray[numpy.integer]
 
 
 TStrOrBytes = TypeVar("TStrOrBytes", str, bytes)
-StrOrBytes = TStrOrBytes  # Backward compatability with cogent3_h5seqs
+StrOrBytes = TypeVar(
+    "StrOrBytes", str, bytes
+)  # Backward compatability with cogent3_h5seqs
 
 
 def _coerce_to_type(
