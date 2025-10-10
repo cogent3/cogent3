@@ -47,7 +47,6 @@ class _MotifNumberArray(DictArray):
             ndim = 2
         num_elements = len(data) if ndim == 1 else len(data[0])
         if num_elements != len(motifs):
-            print(data, len(motifs), num_elements, ndim)
             msg = f"number of data elements {len(data[0])} != {len(motifs)}"
             raise ValueError(msg)
         motifs = tuple(motifs)
