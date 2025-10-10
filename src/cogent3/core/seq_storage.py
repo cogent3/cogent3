@@ -15,7 +15,7 @@ from cogent3.core.location import IndelMap
 from cogent3.core.seqview import AlignedDataView, AlignedDataViewABC, SeqDataView
 from cogent3.util.misc import extend_docstring_from
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Collection, Mapping
     from collections.abc import Sequence as PySeq
 

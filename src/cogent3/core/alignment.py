@@ -66,7 +66,7 @@ from cogent3.util.misc import (
 )
 from cogent3.util.union_dict import UnionDict
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Callable, Iterable, Iterator
     from collections.abc import Sequence as PySeq
 

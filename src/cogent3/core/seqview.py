@@ -11,7 +11,7 @@ from cogent3.core.location import IndelMap
 from cogent3.core.slice_record import SliceRecord, SliceRecordABC
 from cogent3.util.misc import get_object_provenance
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     import cogent3.core.alphabet as c3_alphabet
     from cogent3.core.seq_storage import AlignedSeqsDataABC, SeqsDataABC
 

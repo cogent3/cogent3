@@ -58,7 +58,7 @@ from cogent3.util.misc import (
 )
 from cogent3.util.transform import for_seq, per_shortest
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Callable, Iterable, Iterator, Mapping
 
     from cogent3.core.alignment import Aligned

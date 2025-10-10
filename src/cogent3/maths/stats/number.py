@@ -19,7 +19,7 @@ from numpy.testing import assert_allclose
 
 from cogent3.util.dict_array import DictArray
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.table import Table
     from cogent3.maths.stats.contingency import CategoryCounts
 

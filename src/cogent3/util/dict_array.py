@@ -36,7 +36,7 @@ from cogent3.util.deserialise import get_class, register_deserialiser
 from cogent3.util.io import PathType, atomic_write
 from cogent3.util.misc import get_object_provenance
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.table import Table
 
 

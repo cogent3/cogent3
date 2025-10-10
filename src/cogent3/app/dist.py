@@ -25,7 +25,7 @@ from .typing import (
     UnalignedSeqsType,
 )
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.alignment import SequenceCollection
 
 # The following coefficients are derived from a polynomial fit between Jaccard distance
