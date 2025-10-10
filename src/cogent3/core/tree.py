@@ -2021,6 +2021,19 @@ class PhyloNode:
             dists[tip.name] = cum_sum
         return dists
 
+    def renamed_nodes(self, name_map: dict[str, str]) -> Self:
+        """returns a copy of the tree with nodes renamed according to name_map
+
+        Parameters
+        ----------
+        name_map
+            dict of {old_name: new_name, ...}
+        """
+        new_tree = self.deepcopy()
+        for node in new_tree.preorder():
+            node.name = name_map.get(node.name, node.name)
+        return new_tree
+
 
 T = TypeVar("T", bound=PhyloNode)
 

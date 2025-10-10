@@ -2640,3 +2640,40 @@ def test_ladderise_multifurcating_depth5(treestring):
     expected_newick = "(A,B,(C,D,(E,F)));"
     assert result_newick == expected_newick, f"{treestring} → {result_newick}"
     assert ladderised.same_topology(tree)
+
+
+@pytest.mark.parametrize(
+    "treestring",
+    [
+        "((C,D,(E,F)),A,B);",
+        "((A,B)AB,(C,D)CD)",
+    ],
+)
+def test_renamed_nodes(treestring):
+    tree = make_tree(treestring=treestring)
+    node_names = tree.get_node_names()
+    expected = [n.lower() for n in node_names]
+    name_map = dict(zip(node_names, expected, strict=True))
+    rn_tree = tree.renamed_nodes(name_map)
+    names = set(rn_tree.get_node_names())
+    assert names == set(expected)
+    assert rn_tree is not tree
+
+
+@pytest.mark.parametrize(
+    "treestring",
+    [
+        "((C,D,(E,F)),A,B);",
+        "((A,B)AB,(C,D)CD)",
+    ],
+)
+def test_renamed_nodes_just_tips(treestring):
+    tree = make_tree(treestring=treestring)
+    node_names = [n.name for n in tree.preorder() if not n.is_tip()]
+    tip_names = tree.get_tip_names()
+    expected = [n.lower() for n in tip_names]
+    name_map = dict(zip(tip_names, expected, strict=True))
+    rn_tree = tree.renamed_nodes(name_map)
+    names = set(rn_tree.get_node_names())
+    assert names == set(expected) | set(node_names)
+    assert rn_tree is not tree
