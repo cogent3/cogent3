@@ -1,4 +1,5 @@
 from typing import Any
+
 import numpy
 
 from cogent3 import get_moltype
