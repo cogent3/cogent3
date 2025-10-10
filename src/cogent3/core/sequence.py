@@ -42,7 +42,6 @@ from cogent3.core.location import (
     _LostSpan,
 )
 from cogent3.core.seqview import SeqView, SeqViewABC
-from cogent3.core.slice_record import SliceRecord
 from cogent3.draw.drawable import Shape
 from cogent3.format.fasta import seqs_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts, TestResult

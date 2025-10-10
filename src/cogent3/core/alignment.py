@@ -36,10 +36,8 @@ from cogent3.core.info import Info as InfoClass
 from cogent3.core.location import FeatureMap, IndelMap, Strand
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray, load_pssm
 from cogent3.core.seq_storage import (
-    AlignedDataView,
     AlignedSeqsData,
     AlignedSeqsDataABC,
-    SeqDataView,
     SeqsDataABC,
 )
 from cogent3.core.slice_record import SliceRecord
