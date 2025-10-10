@@ -1,11 +1,10 @@
 import os
 import pathlib
 from collections.abc import Sequence as PySeq
-from typing import TYPE_CHECKING, Any, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Self, TypeVar, cast
 
 import numpy
 import numpy.typing as npt
-from typing_extensions import Self
 
 from cogent3.util.misc import extend_docstring_from
 from cogent3.util.union_dict import UnionDict

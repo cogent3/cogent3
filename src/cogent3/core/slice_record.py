@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, SupportsIndex
-
-from typing_extensions import Self
+from typing import Any, Self, SupportsIndex
 
 from cogent3._version import __version__
 from cogent3.core.location import _input_vals_neg_step, _input_vals_pos_step

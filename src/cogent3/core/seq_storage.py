@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import hashlib
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Self, cast
 
 import numba
 import numpy
 import numpy.typing as npt
-from typing_extensions import Self
 
 import cogent3.core.alphabet as c3_alphabet
 import cogent3.core.moltype as c3_moltype

@@ -26,11 +26,10 @@ from collections import defaultdict
 from collections.abc import Hashable, Iterable, Iterator
 from collections.abc import Sequence as PySeq
 from itertools import combinations, product
-from typing import TYPE_CHECKING, Any, Protocol, SupportsInt, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Protocol, Self, SupportsInt, TypeVar, cast
 
 import numpy
 import numpy.typing as npt
-from typing_extensions import Self
 
 from cogent3._version import __version__
 from cogent3.util.deserialise import get_class, register_deserialiser

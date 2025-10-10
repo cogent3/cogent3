@@ -20,10 +20,10 @@ from collections import defaultdict
 from collections.abc import Callable, Iterable, MutableMapping
 from collections.abc import Sequence as PySeq
 from itertools import product
+from typing import Self
 from xml.sax.saxutils import escape
 
 import numpy
-import typing_extensions
 
 from cogent3.format import bedgraph
 from cogent3.format import table as table_format
@@ -1342,7 +1342,7 @@ class Table:
         columns: str | tuple[str, ...] | None = None,
         dtype: numpy.dtype | None = None,
         **kwargs,
-    ) -> typing_extensions.Self:
+    ) -> Self:
         """Returns new table with an additional column, computed using callback.
 
         Parameters

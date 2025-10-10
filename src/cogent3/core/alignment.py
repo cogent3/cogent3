@@ -11,12 +11,12 @@ import warnings
 from abc import ABC, abstractmethod
 from collections import Counter, defaultdict
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, Generic, Literal, TypeVar, cast, overload
+from typing import TYPE_CHECKING, Any, Generic, Literal, Self, TypeVar, cast, overload
 
 import numba
 import numpy
 import numpy.typing as npt
-from typing_extensions import Self, override
+from typing_extensions import override
 
 import cogent3
 import cogent3._plugin as c3_plugin

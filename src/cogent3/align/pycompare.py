@@ -5,12 +5,11 @@ from dataclasses import InitVar, dataclass, field
 from itertools import product
 from typing import TYPE_CHECKING
 
-import typing_extensions
-
 from cogent3.core import moltype as c3_moltype
 
 if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Generator
+    from typing import Self
 
     from cogent3.core.sequence import Sequence
 
@@ -28,7 +27,7 @@ class segment:
     def __len__(self) -> int:
         return abs(self.end - self.start)
 
-    def __sub__(self, other: typing_extensions.Self) -> typing_extensions.Self:
+    def __sub__(self, other: Self) -> Self:
         a, b = (self, other) if self.start < other.start else (other, self)
         if a.overlap(b) or a.end == b.start:
             return segment(0, 0)
@@ -41,26 +40,26 @@ class segment:
     def __getitem__(self, index: int) -> int:
         return (self.start, self.end)[index]
 
-    def overlap(self, other: typing_extensions.Self) -> bool:
+    def overlap(self, other: Self) -> bool:
         """whether coordinates overlap"""
         return (self.start < other.end <= self.end) or (
             self.start <= other.start < self.end
         )
 
-    def adjacent(self, o: typing_extensions.Self) -> bool:
+    def adjacent(self, o: Self) -> bool:
         """whether coordinates are adjacent"""
         if not all([self, o]):
             return False
         return (o.start == self.end < o.end) or (self.start == o.end < self.end)
 
-    def __or__(self, other: typing_extensions.Self) -> typing_extensions.Self:
+    def __or__(self, other: Self) -> Self:
         return self.merge(other, strict=True)
 
     def merge(
         self,
-        other: typing_extensions.Self,
+        other: Self,
         strict: bool = True,
-    ) -> typing_extensions.Self:
+    ) -> Self:
         """merge segments
 
         Parameters
@@ -77,7 +76,7 @@ class segment:
             )
         return segment(min(self.start, other.start), max(self.end, other.end))
 
-    def for_rc(self, length: int) -> typing_extensions.Self:
+    def for_rc(self, length: int) -> Self:
         """returns segment for reverse complement
 
         Parameters

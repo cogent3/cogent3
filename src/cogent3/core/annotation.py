@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Generic, Self, TypeVar, cast
 
 from numpy import array
-from typing_extensions import Self
 
 from .location import FeatureMap, IndelMap, Strand
 

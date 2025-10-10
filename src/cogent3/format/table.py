@@ -10,11 +10,10 @@ import contextlib
 import re
 import textwrap
 from collections.abc import Callable
-from typing import Any, Literal
+from typing import Any, Literal, Self
 from xml.sax.saxutils import escape
 
 import numpy
-import typing_extensions
 
 known_formats = (
     "bedgraph",
@@ -1021,7 +1020,7 @@ class HtmlElement:
 
     def __init__(
         self,
-        text: str | typing_extensions.Self,
+        text: str | Self,
         tag: str,
         css_classes: list[str] | None = None,
         newline: bool = False,
