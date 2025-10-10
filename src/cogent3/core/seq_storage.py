@@ -161,7 +161,7 @@ class SeqsData(SeqsDataABC):
     for a sequence as used by IndelMap.
     """
 
-    __slots__ = ("_alphabet", "_data", "_hashes", "_offset", "_reversed")
+    __slots__ = ("_alphabet", "_data", "_offset", "_reversed")
 
     def __init__(
         self,
@@ -205,10 +205,8 @@ class SeqsData(SeqsDataABC):
                     msg,
                 )
         self._data: dict[str, NumpyIntArrayType] = {}
-        self._hashes: dict[str, str] = {}
         for name, seq in data.items():
             arr = self._alphabet.to_indices(seq)
-            self._hashes[name] = array_hash64(arr)
             arr.flags.writeable = False
             self._data[str(name)] = arr
 
@@ -277,7 +275,10 @@ class SeqsData(SeqsDataABC):
 
     def get_hash(self, seqid: str) -> str | None:
         """returns hash of seqid"""
-        return self._hashes.get(seqid)
+        if seqid not in self._data:
+            return None
+        arr = self.get_seq_array(seqid=seqid)
+        return array_hash64(arr)
 
     def get_seq_array(
         self,
@@ -558,7 +559,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         "_alphabet",
         "_gapped",
         "_gaps",
-        "_hashes",
         "_name_to_index",
         "_names",
         "_offset",
@@ -611,7 +611,6 @@ class AlignedSeqsData(AlignedSeqsDataABC):
         self._gapped = gapped_seqs
         self._ungapped = ungapped_seqs or {}
         self._gaps = dict(gaps) if gaps else {}
-        self._hashes: dict[str, str] = {}
         align_len = align_len or gapped_seqs.shape[1]
         self._reversed = frozenset(reversed_seqs or set())
         if align_len:
@@ -810,12 +809,12 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             alphabet=alphabet,
         )
 
-    def get_hash(self, seqid: str) -> str:
+    def get_hash(self, seqid: str) -> str | None:
         """returns hash of seqid"""
-        if seqid not in self._hashes:
-            arr = self.get_gapped_seq_array(seqid=seqid)
-            self._hashes[seqid] = array_hash64(arr)
-        return self._hashes[seqid]
+        if seqid not in self._name_to_index:
+            return None
+        arr = self.get_gapped_seq_array(seqid=seqid)
+        return array_hash64(arr)
 
     def _make_gaps_and_ungapped(self, seqid: str) -> None:
         if seqid in self._gaps and seqid in self._ungapped:
@@ -1390,4 +1389,4 @@ def array_hash64(data: npt.NDArray[numpy.number]) -> str:
     is reproducible between processes.
     """
     h = hashlib.md5(data.tobytes(), usedforsecurity=False)
-    return h.hexdigest()
+    return h.hexdigest()[:16]
