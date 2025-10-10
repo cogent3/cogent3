@@ -40,18 +40,18 @@ class SummaryStatBase(ABC, MutableMapping[K, V], Generic[K, V]):
     def items(self) -> ItemsView[K, V]: ...
 
     @property
-    def mean(self) -> numpy.floating | float | int:
+    def mean(self) -> numpy.floating | float:
         return numpy.mean(self.expanded_values()) if len(self) > 0 else 0
 
     @property
-    def std(self) -> numpy.floating | float | int:
+    def std(self) -> numpy.floating | float:
         stat = self.var
         if stat > 0:
             stat = numpy.sqrt(stat)
         return stat
 
     @property
-    def var(self) -> numpy.floating | float | int:
+    def var(self) -> numpy.floating | float:
         return numpy.var(self.expanded_values(), ddof=1) if len(self) > 0 else 0
 
     def quantile(self, q: float) -> numpy.floating | int:
@@ -230,7 +230,7 @@ class CategoryCounter(SummaryStatBase[K, int]):
             or not hasattr(column_names, "__len__")
         ):
             key = column_names if column_names is not None else "key"
-            data: dict[Any, PySeq[Any] | NumpyArray] = {
+            data: dict[Any, Any] = {
                 c[0]: c[1:]
                 for c in zip([key, "count"], *list(self.items()), strict=False)
             }

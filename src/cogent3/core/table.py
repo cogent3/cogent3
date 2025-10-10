@@ -17,7 +17,7 @@ import pickle
 import re
 import typing
 from collections import defaultdict
-from collections.abc import Callable, Iterable, MutableMapping
+from collections.abc import Callable, Iterable, Mapping, MutableMapping
 from collections.abc import Sequence as PySeq
 from itertools import product
 from typing import Self
@@ -439,7 +439,9 @@ class Table:
     def __init__(
         self,
         header: list[str] | None = None,
-        data: PySeq[PySeq[typing.Any]] | dict[str, PySeq[typing.Any]] | None = None,
+        data: PySeq[PySeq[typing.Any]]
+        | Mapping[typing.Any, PySeq[typing.Any]]
+        | None = None,
         index_name: str | None = None,
         title: str = "",
         legend: str = "",
