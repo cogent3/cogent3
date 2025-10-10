@@ -2279,13 +2279,12 @@ def _coerce_to_seqview(
         # SeqView has an alphabet but SeqViewABC does NOT because that is
         # more general and covers the case where the SeqsData collection has the
         # alphabet
-        if hasattr(data, "alphabet"):
-            n = min(len(data.alphabet), len(alphabet))
-            if data.alphabet[:n] != alphabet[:n]:
-                msg = f"element order {data.alphabet=} != to that in {alphabet=} for {data=!r}"
-                raise c3_alphabet.AlphabetError(
-                    msg,
-                )
+        n = min(len(data.alphabet), len(alphabet))
+        if data.alphabet[:n] != alphabet[:n]:
+            msg = f"element order {data.alphabet=} != to that in {alphabet=} for {data=!r}"
+            raise c3_alphabet.AlphabetError(
+                msg,
+            )
 
         if offset and data.offset:
             msg = f"cannot set {offset=} on a SeqView with an offset {data.offset=}"
