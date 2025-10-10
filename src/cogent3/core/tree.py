@@ -1154,12 +1154,12 @@ class PhyloNode:
         constructor = self._default_tree_constructor()
 
         scores: dict[PhyloNode, int | None] = {}
-        rebuilt: dict[PhyloNode, PhyloNode] = {}
+        rebuilt: dict[Self, Self] = {}
 
         infinity = float("inf")
         for node in self.postorder():
             if node.is_tip():
-                score = score_map[node.name]
+                score: int | None = score_map[node.name]
                 tree = node.deepcopy()
             else:
                 child_info = [(scores[ch], rebuilt[ch]) for ch in node.children]
@@ -2284,7 +2284,7 @@ def load_tree(
 
 @register_deserialiser("cogent3.core.tree")
 def deserialise_tree(
-    data: dict[str, str | dict[str, Any]],
+    data: dict[str, Any],
 ) -> PhyloNode:
     """returns a cogent3 PhyloNode instance"""
     # we load tree using make_tree, then populate edge attributes
@@ -2299,7 +2299,7 @@ def deserialise_tree(
             stacklevel=3,
         )
 
-    tree = make_tree(treestring=data["newick"])
+    tree = make_tree(treestring=cast("str", data["newick"]))
     for edge in tree.preorder():
         params = edge_attr.get(edge.name, {})
         if length_and_support is None:

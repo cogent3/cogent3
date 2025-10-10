@@ -121,7 +121,7 @@ class ArrayMathTests(TestCase):
         # number of columns in the array
         assert_equal(row_degeneracy(a, cutoff=2), [4, 4, 4])
         # same behavior on empty array
-        assert_equal(row_degeneracy(array([[]])), [])
+        assert_equal(row_degeneracy(array([[]])), array([]))
 
     def test_column_degeneracy(self):
         """column_degeneracy: should work with different cutoff values"""
@@ -138,7 +138,7 @@ class ArrayMathTests(TestCase):
         # number of rows in the array
         assert_equal(column_degeneracy(a, cutoff=2), [3, 3, 3])
         # same behavior on empty array
-        assert_equal(column_degeneracy(array([[]])), [])
+        assert_equal(column_degeneracy(array([[]])), array([]))
 
 
 class TestUtils(TestCase):

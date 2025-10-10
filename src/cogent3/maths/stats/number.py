@@ -1,129 +1,163 @@
+from abc import ABC, abstractmethod
 from collections import Counter, defaultdict
-from collections.abc import MutableMapping
+from collections.abc import (
+    Hashable,
+    ItemsView,
+    Iterable,
+    Iterator,
+    KeysView,
+    Mapping,
+    MutableMapping,
+    ValuesView,
+)
+from collections.abc import Sequence as PySeq
+from typing import TYPE_CHECKING, Any, Generic, Self, TypeVar, cast
 
 import numpy
+import numpy.typing as npt
 from numpy.testing import assert_allclose
 
+from cogent3.util.dict_array import DictArray
 
-class SummaryStatBase:
+if TYPE_CHECKING:  # pragma: no cover
+    from cogent3.core.table import Table
+    from cogent3.maths.stats.contingency import CategoryCounts
+
+K = TypeVar("K", bound=Hashable)
+V = TypeVar("V", float, int)
+
+NumpyArray = npt.NDArray[Any]
+
+
+class SummaryStatBase(ABC, MutableMapping[K, V], Generic[K, V]):
+    @abstractmethod
+    def expanded_values(self) -> list[V]: ...
+
+    @abstractmethod
+    def __len__(self) -> int: ...
+
+    @abstractmethod
+    def items(self) -> ItemsView[K, V]: ...
+
     @property
-    def mean(self):
+    def mean(self) -> numpy.floating | float:
         return numpy.mean(self.expanded_values()) if len(self) > 0 else 0
 
     @property
-    def std(self):
+    def std(self) -> numpy.floating | float:
         stat = self.var
         if stat > 0:
             stat = numpy.sqrt(stat)
         return stat
 
     @property
-    def var(self):
+    def var(self) -> numpy.floating | float:
         return numpy.var(self.expanded_values(), ddof=1) if len(self) > 0 else 0
 
-    def quantile(self, q):
+    def quantile(self, q: float) -> numpy.floating | int:
         return numpy.quantile(self.expanded_values(), q=q) if len(self) > 0 else 0
 
     @property
-    def median(self):
+    def median(self) -> numpy.floating | int:
         return numpy.median(self.expanded_values()) if len(self) > 0 else 0
 
     @property
-    def mode(self):
+    def mode(self) -> K:
         _, mode = max((v, k) for k, v in self.items())
         return mode
 
     @property
-    def sum(self):
+    def sum(self) -> numpy.floating | int:
         return numpy.sum(self.expanded_values()) if len(self) > 0 else 0
 
 
-class CategoryCounter(MutableMapping, SummaryStatBase):
+class CategoryCounter(SummaryStatBase[K, int]):
     """counting class with summary statistic attributes"""
 
-    def __init__(self, data=None) -> None:
+    def __init__(self, data: dict[K, int] | Iterable[K] | None = None) -> None:
+        self._counts: dict[K, int] = {}
         if data is not None:
             if isinstance(data, dict):
-                self.update_from_counts(data)
+                self.update_from_counts(cast("dict[K, int]", data))
             else:
                 self.update_from_series(data)
 
-    def update_from_counts(self, data) -> None:
+    def update_from_counts(self, data: dict[K, int]) -> None:
         """updates values of self using counts dict"""
         for k, v in data.items():
             self[k] += v
 
-    def update_from_series(self, data) -> None:
+    def update_from_series(self, data: Iterable[K]) -> None:
         """updates values of self from raw series"""
         for element in data:
             self[element] += 1
 
-    def expand(self):
+    def expand(self) -> list[K]:
         """returns list of [[k] * val, ..]"""
-        result = []
+        result: list[K] = []
         for k in self:
             result.extend([k] * self[k])
         return result
 
-    def expanded_values(self):
+    def expanded_values(self) -> list[int]:
         return list(self.values())
 
-    def copy(self):
+    def copy(self) -> Self:
         data = self.to_dict().copy()
         return self.__class__(data)
 
-    def __setitem__(self, key, val) -> None:
-        self.__dict__[key] = val
+    def __setitem__(self, key: K, val: int) -> None:
+        self._counts[key] = val
 
-    def __getitem__(self, key):
-        return self.__dict__.get(key, 0)
+    def __getitem__(self, key: K) -> int:
+        return self._counts.get(key, 0)
 
-    def __delitem__(self, key) -> None:
-        del self.__dict__[key]
+    def __delitem__(self, key: K) -> None:
+        del self._counts[key]
 
     def __len__(self) -> int:
         return sum(self.values())
 
-    def __iter__(self):
-        return iter(self.__dict__)
+    def __iter__(self) -> Iterator[K]:
+        return iter(self._counts)
 
-    def __add__(self, other):
+    def __add__(self, other: K) -> Self:
         self[other] += 1
         return self
 
-    def __sub__(self, other):
+    def __sub__(self, other: K) -> Self:
         self[other] -= 1
         if self[other] == 0:
             del self[other]
         return self
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.__dict__!r})"
+        return f"{self.__class__.__name__}({self._counts!r})"
 
-    def keys(self):
-        return list(self)
+    def keys(self) -> KeysView[K]:
+        return self._counts.keys()
 
-    def values(self):
-        return [self[k] for k in self]
+    def values(self) -> ValuesView[int]:
+        return self._counts.values()
 
-    def items(self):
-        return [(k, self[k]) for k in self]
+    def items(self) -> ItemsView[K, int]:
+        return self._counts.items()
 
-    def to_dict(self):
+    def to_dict(self) -> dict[K, int]:
         return dict(self)
 
-    def tolist(self, keys=None):
+    def tolist(self, keys: Iterable[K] | None = None) -> list[int]:
         """return values for these keys as a list"""
         if keys is None:
             keys = list(self)
         return [self[key] for key in keys]
 
-    def to_array(self, keys=None):
+    def to_array(self, keys: Iterable[K] | None = None) -> npt.NDArray[numpy.integer]:
         """return values for these keys as an array"""
         data = self.tolist(keys=keys)
         return numpy.array(data, dtype=int)
 
-    def to_dictarray(self):
+    def to_dictarray(self) -> DictArray:
         """construct fully enumerated dictarray
 
         Returns
@@ -140,25 +174,25 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
 
         key = next(iter(self))
         try:
-            ndim = 1 if isinstance(key, str) else len(key)
+            ndim = 1 if isinstance(key, str) else len(key)  # type: ignore[arg-type]
         except TypeError:
             ndim = 1
 
         if ndim == 1:
-            names = sorted(self)
+            names: list[K] = sorted(self)  # type: ignore[type-var]
             vals = [self[n] for n in names]
-            return DictArrayTemplate(names).wrap(vals, dtype=int)
+            return DictArrayTemplate(cast("list[int]", names)).wrap(vals, dtype=int)
 
         categories = [sorted(set(labels)) for labels in zip(*self, strict=False)]
         shape = tuple(len(c) for c in categories)
         darr = DictArrayTemplate(*categories).wrap(numpy.zeros(shape, dtype=int))
         for comb in product(*categories):
             indices = [[categories[i].index(c)] for i, c in enumerate(comb)]
-            darr.array[tuple(indices)] = self[comb]
+            darr.array[tuple(indices)] = self[cast("K", comb)]
 
         return darr
 
-    def to_categorical(self):
+    def to_categorical(self) -> "CategoryCounts":
         """create CategoryCount object
 
         Notes
@@ -170,7 +204,9 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         darr = self.to_dictarray()
         return CategoryCounts(darr)
 
-    def to_table(self, column_names=None, **kwargs):
+    def to_table(
+        self, column_names: str | PySeq[str] | None = None, **kwargs: Any
+    ) -> "Table":
         """converts to Table
 
         Parameters
@@ -194,43 +230,44 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
             or not hasattr(column_names, "__len__")
         ):
             key = column_names if column_names is not None else "key"
-            data = {
+            data: dict[Any, Any] = {
                 c[0]: c[1:]
                 for c in zip([key, "count"], *list(self.items()), strict=False)
             }
-            header = [key, "count"]
+            header: list[str] = cast("list[str]", [key, "count"])
             # if keys are tuples, construct the numpy array manually so the
             # elements remain as tuples. numpy's object type casting converts
             # these to lists otherwise
-            if type(next(iter(self))) == tuple:
+            if isinstance(next(iter(self)), tuple):
                 num = len(data[key])
                 arr = numpy.empty(num, dtype=object)
                 for i in range(num):
                     arr[i] = data[key][i]
                 data[key] = arr
-        else:
-            key = next(iter(self))
-            assert len(key) == len(column_names), "mismatched dimensions"
-            data = defaultdict(list)
-            for key, count in self.items():
-                for c, e in zip(column_names, key, strict=False):
-                    data[c].append(e)
-                data["count"].append(count)
-            header = [*list(column_names), "count"]
-            data = dict(data)
+            return Table(header=header, data=data, **kwargs)
+
+        key = cast("str", next(iter(self)))
+        assert len(key) == len(column_names), "mismatched dimensions"
+        d_data: dict[Any, list[Any]] = defaultdict(list)
+        for key, count in self.items():  # type: ignore[assignment]
+            for c, e in zip(column_names, cast("str", key), strict=False):
+                d_data[c].append(e)
+            d_data["count"].append(count)
+        header = [*list(column_names), "count"]
+        data = dict(d_data)
         return Table(header=header, data=data, **kwargs)
 
     @property
-    def entropy(self):
+    def entropy(self) -> numpy.floating:
         data = self.to_array()
         data = data / self.sum
         return -(data * numpy.log2(data)).sum()
 
-    def to_freqs(self):
+    def to_freqs(self) -> "CategoryFreqs[K]":
         """returns dict of {key: val/total, ..}"""
-        return CategoryFreqs(self, total=self.sum)
+        return CategoryFreqs(self, total=float(self.sum))
 
-    def count(self, indices):
+    def count(self, indices: int | Iterable[int]) -> Self:
         """
         Parameters
         ----------
@@ -245,10 +282,10 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         if isinstance(indices, int):
             indices = [indices]
 
-        counts = Counter()
+        counts: Counter[Any] = Counter()
         for key in self:
             try:
-                sub_key = tuple(key[i] for i in indices)
+                sub_key = tuple(cast("PySeq[Any]", key)[i] for i in indices)
                 sub_key = sub_key[0] if len(sub_key) == 1 else sub_key
             except IndexError:
                 msg = f"indices {indices} too big for key {key}"
@@ -258,10 +295,15 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         return self.__class__(data=counts)
 
 
-class CategoryFreqs(MutableMapping, SummaryStatBase):
+class CategoryFreqs(SummaryStatBase[K, float]):
     """category frequencies with summary statistic attributes"""
 
-    def __init__(self, data=None, total=None, assert_unity=False) -> None:
+    def __init__(
+        self,
+        data: Mapping[K, float] | None = None,
+        total: float | None = None,
+        assert_unity: bool = False,
+    ) -> None:
         """
         Parameters
         ----------
@@ -272,6 +314,7 @@ class CategoryFreqs(MutableMapping, SummaryStatBase):
         assert_unity : bool
             checks sum of values (post construction) equals 1
         """
+        self._freqs: dict[K, float] = {}
         data = data or None
         if total:
             assert data is not None
@@ -284,65 +327,65 @@ class CategoryFreqs(MutableMapping, SummaryStatBase):
         if assert_unity and data is not None:
             assert_allclose(self.sum, 1)
 
-    def expanded_values(self):
+    def expanded_values(self) -> list[float]:
         return list(self.values())
 
-    def copy(self):
+    def copy(self) -> Self:
         data = self.to_dict().copy()
         return self.__class__(data=data)
 
-    def __setitem__(self, key, val) -> None:
-        self.__dict__[key] = val
+    def __setitem__(self, key: K, val: float) -> None:
+        self._freqs[key] = val
 
-    def __getitem__(self, key):
-        return self.__dict__.get(key, 0)
+    def __getitem__(self, key: K) -> float:
+        return self._freqs.get(key, 0)
 
-    def __delitem__(self, key) -> None:
-        del self.__dict__[key]
+    def __delitem__(self, key: K) -> None:
+        del self._freqs[key]
 
     def __len__(self) -> int:
-        return len(self.__dict__)
+        return len(self._freqs)
 
-    def __iter__(self):
-        return iter(self.__dict__)
+    def __iter__(self) -> Iterator[K]:
+        return iter(self._freqs)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.__dict__!r})"
+        return f"{self.__class__.__name__}({self._freqs!r})"
 
-    def keys(self):
-        return list(self)
+    def keys(self) -> KeysView[K]:
+        return self._freqs.keys()
 
-    def values(self):
-        return [self[k] for k in self]
+    def values(self) -> ValuesView[float]:
+        return self._freqs.values()
 
-    def items(self):
-        return [(k, self[k]) for k in self]
+    def items(self) -> ItemsView[K, float]:
+        return self._freqs.items()
 
     def to_dict(self):
         return dict(self)
 
-    def tolist(self, keys=None):
+    def tolist(self, keys: Iterable[K] | None = None) -> list[float]:
         """return values for these keys as a list"""
         if keys is None:
             keys = list(self)
         return [self[key] for key in keys]
 
-    def to_array(self, keys=None):
+    def to_array(self, keys: Iterable[K] | None = None) -> npt.NDArray[numpy.floating]:
         """return just these keys as an array"""
         data = self.tolist(keys=keys)
         return numpy.array(data, dtype=float)
 
     @property
-    def entropy(self):
+    def entropy(self) -> numpy.floating:
         data = self.to_array()
         return -(data * numpy.log2(data)).sum()
 
-    def to_normalized(self):
+    def to_normalized(self) -> "CategoryFreqs[K]":
         """returns rescaled self so sum is 1"""
-        return CategoryFreqs(self, total=self.sum, assert_unity=True)
+        return CategoryFreqs[K](self, total=float(self.sum), assert_unity=True)
 
 
-class NumberCounter(CategoryCounter):
+class NumberCounter(CategoryCounter[int]):
     """counts occurrences of numbers"""
 
     def __init__(self, data=None) -> None:
@@ -356,19 +399,19 @@ class NumberCounter(CategoryCounter):
         else:
             key = next(iter(self))
             try:  # if a numpy type
-                result = key.dtype.kind in "uifc"
+                result = key.dtype.kind in "uifc"  # type: ignore[attr]
             except AttributeError:
                 result = False
 
         return result
 
-    def expanded_values(self, check=False):
+    def expanded_values(self, check: bool = False) -> list[int]:
         # TODO memory footprint can be improved by directly computing the
         #  summary statistics
         if check and not self.valid:
             msg = "non-numeric keys"
             raise ValueError(msg)
-        values = []
+        values: list[int] = []
         for k, v in self.items():
             values.extend([k] * v)
         return values
@@ -377,12 +420,12 @@ class NumberCounter(CategoryCounter):
         return sum(self.values())
 
     @property
-    def mean(self):
+    def mean(self) -> float:
         mean = sum(k * self[k] for k in self)
         return mean / len(self)
 
     @property
-    def var(self):
+    def var(self) -> float:
         """unbiased estimate of the variance"""
         # we scale the variance contribution of a number by its occurrence
         mean = self.mean
@@ -390,10 +433,10 @@ class NumberCounter(CategoryCounter):
         return var / (len(self) - 1)
 
     @property
-    def std(self):
+    def std(self) -> numpy.floating:
         return numpy.sqrt(self.var)
 
-    def update_from_counts(self, data) -> None:
+    def update_from_counts(self, data: dict[int, int]) -> None:
         """updates values of self using counts dict"""
         for k, v in data.items():
             try:

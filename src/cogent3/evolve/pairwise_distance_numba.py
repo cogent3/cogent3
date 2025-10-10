@@ -1,5 +1,6 @@
 import itertools
-import typing
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Literal
 
 import numba
 import numba.types as numba_types
@@ -8,7 +9,7 @@ import numpy
 from cogent3.core import moltype as c3_moltype
 from cogent3.evolve.fast_distance import DistanceMatrix
 
-if typing.TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:  # pragma: no cover
     # Forward reference to avoid circular import
     from cogent3.core.alignment import Alignment
 
@@ -531,7 +532,10 @@ def pdist(aln: "Alignment", parallel: bool = False, **kwargs) -> DistanceMatrix:
     return DistanceMatrix.from_array_names(mat, aln.names)
 
 
-_calculators = {
+_calculators: dict[
+    Literal["paralinear", "jc69", "tn93", "hamming", "pdist"],
+    Callable[..., DistanceMatrix],
+] = {
     "paralinear": paralinear,
     "jc69": jc69,
     "tn93": tn93,
@@ -540,7 +544,7 @@ _calculators = {
 }
 
 
-def get_distance_calculator(name):
+def get_distance_calculator(name: str) -> Callable[..., DistanceMatrix]:
     """returns a pairwise distance calculator
 
     name is converted to lower case"""

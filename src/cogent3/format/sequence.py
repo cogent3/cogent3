@@ -3,18 +3,16 @@ import contextlib
 import os
 import pathlib
 import typing
+from collections.abc import Callable
 
+from cogent3.core.alignment import CollectionBase
 from cogent3.format import clustal, fasta, gde, paml, phylip
 from cogent3.parse.record import FileFormatError
 from cogent3.util.io import atomic_write
 
-if typing.TYPE_CHECKING:  # pragma: no cover
-    from cogent3.core.alignment import Alignment, SequenceCollection
+SeqsTypes = CollectionBase[typing.Any]
 
-
-SeqsTypes = typing.Union["SequenceCollection", "Alignment"]
-
-FORMATTERS = {
+FORMATTERS: dict[str, Callable[..., str]] = {
     "phylip": phylip.alignment_to_phylip,
     "paml": paml.alignment_to_paml,
     "fasta": fasta.seqs_to_fasta,
@@ -48,7 +46,7 @@ class SequenceWriterBase(abc.ABC):
         """Return list of file suffixes this parser supports"""
         ...
 
-    def formatted(self, seqcoll: SeqsTypes, **kwargs) -> str:
+    def formatted(self, seqcoll: SeqsTypes, **kwargs: typing.Any) -> str:
         """returns a string representation of the sequence collection
 
         Parameters
@@ -62,10 +60,10 @@ class SequenceWriterBase(abc.ABC):
     def write(
         self,
         *,
-        path: pathlib.Path,
+        path: pathlib.Path | str,
         seqcoll: SeqsTypes,
-        **kwargs,
-    ) -> pathlib.Path:
+        **kwargs: typing.Any,
+    ) -> pathlib.Path | str:
         """returns a path after writing the sequence collection to a file
         Parameters
         ----------

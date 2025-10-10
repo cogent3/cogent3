@@ -103,7 +103,7 @@ class SupportsQueryFeatures(Protocol):  # pragma: no cover
     def get_features_matching(
         self,
         *,
-        biotype: str | None = None,
+        biotype: str | tuple[str, ...] | list[str] | set[str] | None = None,
         seqid: str | None = None,
         name: str | None = None,
         start: int | None = None,
@@ -131,7 +131,7 @@ class SupportsQueryFeatures(Protocol):  # pragma: no cover
         self,
         *,
         seqid: str | None = None,
-        biotype: str | None = None,
+        biotype: str | tuple[str, ...] | list[str] | set[str] | None = None,
         name: str | None = None,
         strand: str | None = None,
         attributes: str | None = None,
@@ -178,7 +178,7 @@ class SupportsWriteFeatures(Protocol):  # pragma: no cover
     def update(
         self,
         annot_db: SqliteAnnotationDbMixin,
-        seqids: str | list[str] | None = None,
+        seqids: str | PySeq[str] | None = None,
         **kwargs: Any,
     ) -> None:
         # update records with those from an instance of the same type
@@ -209,6 +209,8 @@ class SupportsFeatures(
         self, other_db: SqliteAnnotationDbMixin, symmetric: bool = True
     ) -> bool: ...
 
+    def to_rich_dict(self) -> dict[str, Any]: ...
+
 
 class AnnotationDbABC(abc.ABC, SupportsFeatures):
     @abc.abstractmethod
@@ -221,7 +223,7 @@ class AnnotationDbABC(abc.ABC, SupportsFeatures):
     def get_features_matching(
         self,
         *,
-        biotype: str | None = None,
+        biotype: str | tuple[str, ...] | list[str] | set[str] | None = None,
         seqid: str | None = None,
         name: str | None = None,
         start: int | None = None,
@@ -252,7 +254,7 @@ class AnnotationDbABC(abc.ABC, SupportsFeatures):
         self,
         *,
         seqid: str | None = None,
-        biotype: str | None = None,
+        biotype: str | tuple[str, ...] | list[str] | set[str] | None = None,
         name: str | None = None,
         strand: str | None = None,
         attributes: str | None = None,
@@ -304,7 +306,7 @@ class AnnotationDbABC(abc.ABC, SupportsFeatures):
     def update(
         self,
         annot_db: SqliteAnnotationDbMixin,
-        seqids: str | list[str] | None = None,
+        seqids: str | PySeq[str] | None = None,
         **kwargs: Any,
     ) -> None:
         # override in subclass
@@ -937,7 +939,7 @@ class SqliteAnnotationDbMixin:
     def get_features_matching(
         self,
         *,
-        biotype: str | None = None,
+        biotype: str | tuple[str, ...] | list[str] | set[str] | None = None,
         seqid: str | None = None,
         name: str | None = None,
         start: int | None = None,
@@ -982,7 +984,7 @@ class SqliteAnnotationDbMixin:
         self,
         *,
         seqid: str | None = None,
-        biotype: str | None = None,
+        biotype: str | tuple[str, ...] | list[str] | set[str] | None = None,
         name: str | None = None,
         strand: str | None = None,
         attributes: str | None = None,
@@ -1140,7 +1142,7 @@ class SqliteAnnotationDbMixin:
     def update(
         self,
         annot_db: SqliteAnnotationDbMixin,
-        seqids: str | list[str] | None = None,
+        seqids: str | PySeq[str] | None = None,
         **kwargs: Any,
     ) -> None:
         """update records with those from an instance of the same type"""

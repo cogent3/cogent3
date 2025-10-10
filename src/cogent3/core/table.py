@@ -17,12 +17,13 @@ import pickle
 import re
 import typing
 from collections import defaultdict
-from collections.abc import Callable, Iterable, MutableMapping
+from collections.abc import Callable, Iterable, Mapping, MutableMapping
+from collections.abc import Sequence as PySeq
 from itertools import product
+from typing import Self
 from xml.sax.saxutils import escape
 
 import numpy
-import typing_extensions
 
 from cogent3.format import bedgraph
 from cogent3.format import table as table_format
@@ -438,14 +439,18 @@ class Table:
     def __init__(
         self,
         header: list[str] | None = None,
-        data: list[list[typing.Any]] | None = None,
+        data: PySeq[PySeq[typing.Any]]
+        | Mapping[typing.Any, PySeq[typing.Any]]
+        | None = None,
         index_name: str | None = None,
         title: str = "",
         legend: str = "",
         digits: int = 4,
         space: int = 4,
         max_width: int = int(1e100),
-        column_templates: dict[str, str] | None = None,
+        column_templates: dict[str, str]
+        | dict[str, Callable[[typing.Any], str]]
+        | None = None,
         format_name: str = "simple",
         missing_data: str = "",
         **kwargs,
@@ -1339,7 +1344,7 @@ class Table:
         columns: str | tuple[str, ...] | None = None,
         dtype: numpy.dtype | None = None,
         **kwargs,
-    ) -> typing_extensions.Self:
+    ) -> Self:
         """Returns new table with an additional column, computed using callback.
 
         Parameters
