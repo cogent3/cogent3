@@ -15,7 +15,7 @@ from collections import defaultdict
 from functools import total_ordering
 from operator import eq, ne
 from random import shuffle
-from typing import TYPE_CHECKING, Any, Self, SupportsIndex, cast
+from typing import TYPE_CHECKING, Any, Literal, Self, SupportsIndex, cast, overload
 
 import numba
 import numpy
@@ -1299,6 +1299,23 @@ class Sequence(AnnotatableMixin):
             feature_data.pop(discard)
         return self.make_feature(feature_data)
 
+    @overload
+    def to_moltype(self, moltype: Literal["dna"]) -> DnaSequence: ...
+    @overload
+    def to_moltype(self, moltype: Literal["rna"]) -> RnaSequence: ...
+    @overload
+    def to_moltype(self, moltype: Literal["protein"]) -> ProteinSequence: ...
+    @overload
+    def to_moltype(
+        self, moltype: Literal["protein_with_stop"]
+    ) -> ProteinWithStopSequence: ...
+    @overload
+    def to_moltype(self, moltype: Literal["bytes"]) -> ByteSequence: ...
+    @overload
+    def to_moltype(
+        self, moltype: Literal["text"] | c3_moltype.MolType[Any]
+    ) -> Sequence: ...
+
     def to_moltype(
         self, moltype: c3_moltype.MolTypeLiteral | c3_moltype.MolType[Any]
     ) -> Sequence:
@@ -2216,11 +2233,11 @@ class NucleicAcidSequenceBase(Sequence):
             )
         return cast("ProteinSequence", protein.make_seq(seq=pep, name=self.name))
 
-    def to_rna(self) -> Sequence:
+    def to_rna(self) -> RnaSequence:
         """Returns copy of self as RNA."""
         return self.to_moltype("rna")
 
-    def to_dna(self) -> Sequence:
+    def to_dna(self) -> DnaSequence:
         """Returns copy of self as DNA."""
         return self.to_moltype("dna")
 
