@@ -589,7 +589,13 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         """returns the names of duplicated sequences"""
         seq_hashes: defaultdict[str, list[str]] = defaultdict(list)
         for n, n2 in self.name_map.items():
-            h = cast("str", self.storage.get_hash(n2))
+            h = cast("str | None", self.storage.get_hash(n2))
+            if h is None:
+                cls = self.__class__.__name__
+                msg = (
+                    f"{cls} has an inconsistent state, no sequence found for name={n!r}"
+                )
+                raise RuntimeError(msg)
             seq_hashes[h].append(n)
         return [v for v in seq_hashes.values() if len(v) > 1]
 

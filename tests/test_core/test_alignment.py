@@ -6137,6 +6137,22 @@ def test_duplicated_seqs_duplicates(mk_cls):
 @pytest.mark.parametrize(
     "mk_cls", [c3_alignment.make_aligned_seqs, c3_alignment.make_unaligned_seqs]
 )
+def test_duplicated_seqs_duplicates_error(mk_cls):
+    # funky test designed to trigger exception
+    seqs = ["ATC-G", "TAGCC", "ATC-G"]
+    data = {f"s{i}": s for i, s in enumerate(seqs)}
+    seqcoll1 = mk_cls(data, moltype="dna")
+    data = {f"s{i + 5}": s for i, s in enumerate(seqs)}
+    seqcoll2 = mk_cls(data, moltype="dna")
+    # we need to access private data to force the error
+    seqcoll1._seqs_data = seqcoll2._seqs_data  # noqa: SLF001
+    with pytest.raises(RuntimeError):
+        seqcoll1.duplicated_seqs()
+
+
+@pytest.mark.parametrize(
+    "mk_cls", [c3_alignment.make_aligned_seqs, c3_alignment.make_unaligned_seqs]
+)
 def test_duplicated_seqs_no_duplicates(mk_cls):
     data = {
         "seq1": "ATC-G",
@@ -6431,3 +6447,68 @@ def test_coll_count_kmers(k, data):
     expect = numpy.array([seq.count_kmers(k=k) for seq in coll.seqs])
     got = coll.count_kmers(k=k)
     assert numpy.allclose(got, expect)
+
+
+@pytest.mark.parametrize(
+    ("mk_cls"),
+    [
+        c3_alignment.make_aligned_seqs,
+        c3_alignment.make_unaligned_seqs,
+    ],
+)
+def test_get_hash(mk_cls, dna_alphabet):
+    """SequenceCollection and Alignment constructor functions should convert names
+    using label_to_name function if provided"""
+
+    # for data as a dict
+    data = {"a": "AGGCCC", "b": "AGAAAA"}
+    expect_hashes = {
+        n: c3_seq_storage.array_hash64(dna_alphabet.to_indices(s))
+        for n, s in data.items()
+    }
+    storage = mk_cls(data, moltype="dna").storage
+    got_hashes = {n: storage.get_hash(n) for n in storage.names}
+    assert got_hashes == expect_hashes
+    assert storage.get_hash("nonexistent") is None
+
+
+@pytest.fixture
+def mock_storage():
+    class MockStorage:
+        def __init__(self) -> None:
+            # seq1 and 2 are the same
+            self.hash_map: dict[str, str] = {"seq1": "a", "seq2": "a", "seq3": "c"}
+
+        def get_hash(self, name: str) -> str | None:
+            return self.hash_map.get(name)
+
+    return MockStorage()
+
+
+@pytest.fixture
+def data_three_seq_two_hash():
+    common_seq = "ACGT"
+    return {"seq1": common_seq, "seq2": "GTCA", "seq3": common_seq}
+
+
+@pytest.fixture(params=[True, False])
+def three_seq_two_hash(request, data_three_seq_two_hash):
+    aligned = request.param
+    mk = c3_alignment.make_aligned_seqs if aligned else c3_alignment.make_unaligned_seqs
+    return mk(data_three_seq_two_hash, moltype="dna")
+
+
+def test_coll_uses_storage_get_hash(three_seq_two_hash, mock_storage):
+    coll = three_seq_two_hash
+    original = coll.duplicated_seqs()
+    assert len(original) == 1
+    assert set(original[0]) == {"seq1", "seq3"}
+    # replace the storage with our mock to check the collection
+    # method is using the storage get_hash method
+    # we have to use the private attribute here
+    coll._seqs_data = mock_storage  # noqa: SLF001
+    got = coll.duplicated_seqs()
+    assert len(got) == 1
+    # expected value under mock differs from original, so we know
+    # the storage method was used
+    assert set(got[0]) == {"seq1", "seq2"}
