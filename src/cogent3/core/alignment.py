@@ -1164,7 +1164,6 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
 
         Notes
         -----
-
         only non-overlapping motifs are counted
         """
         per_seq = self.counts_per_seq(
