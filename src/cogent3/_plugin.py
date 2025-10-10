@@ -275,7 +275,7 @@ class DefaultStorageDrivers:
     @property
     def unaligned(self) -> type["SeqsDataABC"]:
         if self._unaligned is None:
-            from cogent3.core.alignment import SeqsData
+            from cogent3.core.seq_storage import SeqsData
 
             self._unaligned = SeqsData
 

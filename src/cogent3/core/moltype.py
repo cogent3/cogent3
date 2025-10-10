@@ -1,13 +1,10 @@
 from __future__ import annotations
 
-import dataclasses
 import functools
 import itertools
 import json
 import warnings
 from collections import defaultdict
-from collections.abc import Callable, Generator, Mapping
-from collections.abc import Sequence as PySeq
 from string import ascii_letters
 from typing import (
     TYPE_CHECKING,
@@ -29,6 +26,9 @@ from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.misc import get_object_provenance
 
 if TYPE_CHECKING:  # pragma: no cover
+    from collections.abc import Callable, Generator, Mapping
+    from collections.abc import Sequence as PySeq
+
     from cogent3.core.seqview import SeqViewABC
     from cogent3.core.table import Table
 

@@ -9,7 +9,6 @@ import numpy
 import numpy.typing as npt
 
 import cogent3.core.alphabet as c3_alphabet
-import cogent3.core.moltype as c3_moltype
 import cogent3.core.sequence as c3_sequence
 from cogent3.core.location import IndelMap
 from cogent3.core.seqview import AlignedDataView, AlignedDataViewABC, SeqDataView

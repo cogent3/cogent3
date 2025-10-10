@@ -36,21 +36,11 @@ from cogent3.core.info import Info as InfoClass
 from cogent3.core.location import FeatureMap, IndelMap, Strand
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray, load_pssm
 from cogent3.core.seq_storage import (
+    AlignedDataView,
     AlignedSeqsData,
     AlignedSeqsDataABC,
-    SeqsData,
-    SeqsDataABC,
-    array_hash64,
-    compose_gapped_seq,
-    decompose_gapped_seq,
-    decompose_gapped_seq_array,
-)
-from cogent3.core.seqview import (
-    AlignedDataView,
-    AlignedDataViewABC,
     SeqDataView,
-    SeqView,
-    SeqViewABC,
+    SeqsDataABC,
 )
 from cogent3.core.slice_record import SliceRecord
 from cogent3.maths.stats.number import CategoryCounter
@@ -70,6 +60,10 @@ if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Callable, Iterable, Iterator
     from collections.abc import Sequence as PySeq
 
+    from cogent3.core.seqview import (
+        AlignedDataViewABC,
+        SeqViewABC,
+    )
     from cogent3.core.tree import PhyloNode
     from cogent3.draw.dotplot import Dotplot
     from cogent3.draw.drawable import AnnotatedDrawable, Drawable, Shape
