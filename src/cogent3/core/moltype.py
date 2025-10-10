@@ -1436,7 +1436,7 @@ class MolType(Generic[TStrOrBytes]):
         try:
             return self.mw_calculator(seq, delta)
         except KeyError:  # assume sequence was ambiguous
-            # This branch is never executed
+            # TODO: why is this branch is never executed
             return self.mw_calculator(self.disambiguate(seq, method), delta)
 
     def can_match(self, first: str, second: str) -> bool:
