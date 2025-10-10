@@ -48,7 +48,7 @@ Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 
 [project.optional-dependencies]
 test = [
-    "cogent3-h5seqs>=0.6.1",
+    "cogent3-h5seqs>=0.7.1",
     "piqtree>=0.6; python_version >= '3.11'",
     "ruff==0.13.3",
     "kaleido",
@@ -65,7 +65,7 @@ test = [
 doc = [
     "click",
     "cogent3[extra]",
-    "cogent3-h5seqs>=0.6.1",
+    "cogent3-h5seqs>=0.7.1",
     "jupyter-sphinx",
     "jupyter_client",
     "jupytext",
