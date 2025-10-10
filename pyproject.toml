@@ -24,7 +24,7 @@ dependencies = [
     "scitrack",
     "stevedore",
     "tqdm",
-    "typing_extensions",
+    "typing_extensions"
 ]
 # remember to update version in requires-python and classifiers
 requires-python = ">=3.11,<3.14"
@@ -62,6 +62,7 @@ test = [
     "tinydb",
     "nox"
 ]
+typing = ["mypy==1.18.2", "plotly-stubs"]
 doc = [
     "click",
     "cogent3[extra]",
@@ -102,7 +103,8 @@ dev = [
     "scriv",
     "types-tqdm",
     "cogent3[doc]",
-    "cogent3[test]"
+    "cogent3[test]",
+    "cogent3[typing]"
 ]
 
 [tool.flit.sdist]
