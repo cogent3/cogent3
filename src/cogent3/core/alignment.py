@@ -1066,7 +1066,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
             seq: c3_sequence.Sequence | Aligned = self.seqs[seq_name]
             if isinstance(seq, Aligned):
                 seq = seq.seq
-            seq = cast("c3_sequence.NucleicAcidSequenceMixin", seq)
+            seq = cast("c3_sequence.NucleicAcidSequenceBase", seq)
             if seq.has_terminal_stop(gc=gc, strict=strict):
                 return True
         return False
@@ -2032,7 +2032,7 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
 
         translated: dict[str, NumpyIntArrayType] = {}
         for seq in self.seqs:
-            seq = cast("c3_sequence.NucleicAcidSequenceMixin", seq)
+            seq = cast("c3_sequence.NucleicAcidSequenceBase", seq)
             pep = seq.get_translation(
                 gc,
                 incomplete_ok=incomplete_ok,
@@ -2082,7 +2082,7 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
             ).to_array(
                 apply_transforms=False,
             )
-            for s in cast("Iterable[c3_sequence.NucleicAcidSequenceMixin]", self.seqs)
+            for s in cast("Iterable[c3_sequence.NucleicAcidSequenceBase]", self.seqs)
         }
 
         init_kwargs = self._get_init_kwargs()
@@ -2452,7 +2452,7 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         """returns dict of strand symmetry test results per seq"""
         return {
             cast("str", s.name): s.strand_symmetry(motif_length=motif_length)
-            for s in cast("Iterable[c3_sequence.NucleicAcidSequenceMixin]", self.seqs)
+            for s in cast("Iterable[c3_sequence.NucleicAcidSequenceBase]", self.seqs)
         }
 
 
@@ -3082,7 +3082,7 @@ class Alignment(CollectionBase[Aligned]):
         translated: dict[str, NumpyIntArrayType] = {}
         for seqname in seqs.names:
             seq = cast(
-                "c3_sequence.NucleicAcidSequenceMixin", seqs.get_gapped_seq(seqname)
+                "c3_sequence.NucleicAcidSequenceBase", seqs.get_gapped_seq(seqname)
             )
             pep = seq.get_translation(
                 gc,
@@ -3518,7 +3518,7 @@ class Alignment(CollectionBase[Aligned]):
     def strand_symmetry(self, motif_length: int = 1) -> dict[str, TestResult]:
         """returns dict of strand symmetry test results per ungapped seq"""
         return {
-            s.name: cast("c3_sequence.NucleicAcidSequenceMixin", s.seq).strand_symmetry(
+            s.name: cast("c3_sequence.NucleicAcidSequenceBase", s.seq).strand_symmetry(
                 motif_length=motif_length
             )
             for s in self.seqs

@@ -10,7 +10,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Generator, Iterable
 
     from cogent3.core.alignment import Alignment
-    from cogent3.core.sequence import NucleicAcidSequenceMixin, Sequence
+    from cogent3.core.sequence import NucleicAcidSequenceBase, Sequence
     from cogent3.draw.drawable import Shape
 
 TSeqOrAlign = TypeVar("TSeqOrAlign", "Sequence", "Alignment")
@@ -137,7 +137,7 @@ class Feature(Generic[TSeqOrAlign]):
     def _do_seq_slice(self, result: TSeqOrAlign, apply_name: bool) -> TSeqOrAlign:
         if self.reversed:
             result = cast(
-                "TSeqOrAlign", cast("NucleicAcidSequenceMixin | Alignment", result).rc()
+                "TSeqOrAlign", cast("NucleicAcidSequenceBase | Alignment", result).rc()
             )
         if self.map.num_spans > 1:
             # db querying will be incorrect so make sure it can't be done
