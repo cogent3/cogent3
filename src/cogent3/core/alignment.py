@@ -323,7 +323,7 @@ class Aligned(AnnotatableMixin):
 TSequenceOrAligned = TypeVar("TSequenceOrAligned", c3_sequence.Sequence, Aligned)
 
 
-class CollectionBase(AnnotatableMixin, Generic[TSequenceOrAligned], ABC):
+class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
     def __init__(
         self,
         *,

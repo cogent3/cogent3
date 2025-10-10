@@ -30,7 +30,7 @@ V = TypeVar("V", float, int)
 NumpyArray = npt.NDArray[Any]
 
 
-class SummaryStatBase(Generic[K, V], ABC, MutableMapping[K, V]):
+class SummaryStatBase(ABC, MutableMapping[K, V], Generic[K, V]):
     @abstractmethod
     def expanded_values(self) -> list[V]: ...
 
