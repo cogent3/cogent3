@@ -11,7 +11,7 @@ import warnings
 from collections.abc import Mapping
 from collections.abc import Sequence as PySeq
 from random import choice
-from typing import TYPE_CHECKING, Any, ParamSpec, SupportsIndex, TypeVar, overload
+from typing import TYPE_CHECKING, Any, ParamSpec, TypeVar, overload
 from urllib.parse import urlparse
 from warnings import warn
 
