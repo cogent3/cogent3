@@ -673,8 +673,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         biotype: str | tuple[str] | None = None,
         show_progress: bool = False,
     ) -> Dotplot | AnnotatedDrawable:
-        """make a dotplot between specified sequences. Random sequences
-        chosen if names not provided.
+        """make a dotplot between two sequences.
 
         Parameters
         ----------
