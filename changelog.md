@@ -1,4 +1,31 @@
 
+<a id='changelog-2025.9.8a5'></a>
+# Changes in release "2025.9.8a5"
+
+Minor enhancement, major advances to type hinting allowing static
+type checking for core classes. This greatly improves the IDE experience,
+thanks @rmcar17!
+
+## Contributors
+
+- @GavinHuttley
+- @rmcar17, major refactoring of code and type hinting core
+  classes and functions🎉🚀
+
+## API
+
+- `Alignment` and `SequenceCollection` now inherit shared methods from
+  `CollectionBase`. `Alignment` no longer inherits from `SequenceCollection`,
+  this enables static type-checking across these classes.
+- `MolType` is no longer a dataclass so we can have a constructor argument
+  share the same name as a property.
+
+## Enhancements
+
+- `PhyloNode.renamed_nodes()` takes a dict mapping the current names to a
+  new name and returns a new `PhyloNode` instance with the new names. If a
+  node name is not present in the dict, it's left as is.
+
 <a id='changelog-2025.9.8a4'></a>
 # Changes in release "2025.9.8a4"
 
