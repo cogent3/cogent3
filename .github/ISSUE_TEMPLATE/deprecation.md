@@ -21,8 +21,6 @@ What should it be replaced with and why?
 
 **How much notice**
 
-**How much notice**
-
 How much time should the community be given to response to this notice? Specify as the number of months (*x*) before the capability will be removed. Leave blank if not known.
 
 **Guidelines for deprecation**
