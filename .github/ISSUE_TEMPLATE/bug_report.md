@@ -11,28 +11,23 @@ assignees: ''
 A clear and concise description of what the bug is.
 
 **To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+Steps to reproduce the behavior as code or an attached script, e.g.
+
+```python
+import cogent3
+
+# some statements
+```
+
+It's really useful if you provide a small data set too!
 
 **Expected behavior**
 A clear and concise description of what you expected to happen.
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+**Attach traceback or screenshot**
+Save the terminal output showing the traceback as a `.txt` file and attach it to the issue.
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
-
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+Alternatively, upload a screenshot showing the traceback.
 
 **Additional context**
 Add any other context about the problem here.
