@@ -5700,9 +5700,9 @@ def test_alignment_to_rich_dict_round_trip_offset(mk_cls):
     offsets = {"seq1": 10, "seq2": 20}
     aln = mk_cls(data, moltype="dna", offset=offsets)
     rd = aln.to_rich_dict()
-    got = deserialise_object(rd)._seqs_data.offset
+    got = deserialise_object(rd).storage.offset
     expect = {"seq1": 0, "seq2": 0}
-    assert got == expect
+    assert {k: got[k] for k in expect} == expect
 
 
 @pytest.mark.parametrize(

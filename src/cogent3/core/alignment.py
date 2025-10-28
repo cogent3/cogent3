@@ -1652,12 +1652,22 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         limit = 10
         delimiter = ""
 
-        repr_seq_names = [min(self.names, key=lambda name: len(self.seqs[name]))]
+        repr_seq_names = [
+            min(
+                self.names,
+                key=lambda name: self._seqs_data.get_seq_length(self.name_map[name]),
+            )
+        ]
         if len(self.names) > 1:
             # In case of a tie, min and max return first.
             # reversed ensures if all seqs are of same length, different seqs are returned
             repr_seq_names.append(
-                max(reversed(self.names), key=lambda name: len(self.seqs[name])),
+                max(
+                    reversed(self.names),
+                    key=lambda name: self._seqs_data.get_seq_length(
+                        self.name_map[name]
+                    ),
+                ),
             )
 
         for name in repr_seq_names:
@@ -2316,7 +2326,28 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
             msg = f"unknown {seqid=}"
             raise ValueError(msg)
 
-        seqids = [seqid] if isinstance(seqid, str) else self.names
+        if seqid is None:
+            # if no seqids provided, we do direct search to find the seqids
+            # that match the other parameters. This matters for collections
+            # with large numbers of sequences due to the overhead of creating
+            # Sequence instances
+            matched = {
+                record["seqid"]
+                for record in self.annotation_db.get_features_matching(
+                    biotype=biotype,
+                    name=name,
+                    start=start,
+                    stop=stop,
+                    allow_partial=allow_partial,
+                    **kwargs,
+                )
+            }
+            seqids = sorted(matched)
+        else:
+            seqids = cast(
+                "list[str]", [seqid] if isinstance(seqid, str) else self.names
+            )
+
         for seqid in seqids:
             seq = self.seqs[seqid]
             yield from seq.get_features(
