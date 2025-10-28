@@ -305,11 +305,10 @@ class SeqsData(SeqsDataABC):
 
     def get_view(self, seqid: str) -> SeqDataView:
         """reurns view of sequence data for seqid"""
-        seq_len = len(self._data[seqid])
         return SeqDataView(
             parent=self,
             seqid=seqid,
-            parent_len=seq_len,
+            parent_len=self.get_seq_length(seqid),
             alphabet=self.alphabet,
         )
 
