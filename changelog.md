@@ -1,4 +1,19 @@
 
+<a id='changelog-2025.9.8a6'></a>
+# Changes in release "2025.9.8a6"
+
+This is a minor enhancement release.
+
+## Contributors
+
+- @rmcar17, for more typing related commits!
+- @gavinHuttley, performance improvements for feature querying
+
+## Enhancements
+
+- Modify `SequenceCollection.get_features()` to improve performance
+  when the collection has large numbers of sequences.
+
 <a id='changelog-2025.9.8a5'></a>
 # Changes in release "2025.9.8a5"
 
