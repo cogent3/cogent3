@@ -1,3 +1,7 @@
+<a id='changelog-2025.9.8a7'></a>
+# Changes in release "2025.9.8a7"
+
+Version bump due to interrupted upload to pypi.
 
 <a id='changelog-2025.9.8a6'></a>
 # Changes in release "2025.9.8a6"
