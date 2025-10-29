@@ -5451,6 +5451,10 @@ def prep_for_seqs_data(
         if seq_data.is_reversed:
             rvd.add(name)
 
+    if len(data) != len(seqs):
+        msg = "Not all derived names for storage unique"
+        raise ValueError(msg)
+
     return seqs, offsets, rvd
 
 

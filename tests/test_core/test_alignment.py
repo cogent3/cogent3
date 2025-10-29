@@ -6512,3 +6512,15 @@ def test_coll_uses_storage_get_hash(three_seq_two_hash, mock_storage):
     # expected value under mock differs from original, so we know
     # the storage method was used
     assert set(got[0]) == {"seq1", "seq2"}
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+def test_non_unique_storage_names(mk_cls):
+    seqcoll = mk_cls({"s1": "ACGGT"}, moltype="dna")
+    s1 = seqcoll.seqs["s1"]
+    s2 = seqcoll.rename_seqs(lambda x: "s2").seqs["s2"]
+    with pytest.raises(ValueError):
+        mk_cls([s1, s2], moltype="dna")
