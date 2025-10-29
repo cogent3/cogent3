@@ -1,21 +1,27 @@
-import typing
+from collections.abc import Iterable
+from collections.abc import Sequence as PySeq
 
 import numpy
+import numpy.typing as npt
 from numpy import array, digitize
 from numpy.random import random
 
+import cogent3.core.sequence as c3_sequence
 from cogent3.maths.util import safe_log, safe_p_log_p, validate_freqs_array
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.misc import extend_docstring_from
+
+NumpyIntArrayType = npt.NDArray[numpy.integer]
+NumpyFloatArrayType = npt.NDArray[numpy.floating]
 
 
 class _MotifNumberArray(DictArray):
     def __init__(
         self,
-        data,
-        motifs: typing.Iterable[str],
-        row_indices: typing.Iterable[int] | None = None,
-        dtype: numpy.dtype | None = None,
+        data: NumpyFloatArrayType | PySeq[PySeq[float]],
+        motifs: PySeq[str | bytes],
+        row_indices: Iterable[int] | Iterable[str] | None = None,
+        dtype: numpy.dtype[numpy.number] | type[numpy.number] | None = None,
     ) -> None:
         """
         data
@@ -214,18 +220,23 @@ def make_pssm_from_tabular(tab_data):
 
 
 class MotifCountsArray(_MotifNumberArray):
-    def __init__(self, counts, motifs, row_indices=None) -> None:
+    def __init__(
+        self,
+        counts: PySeq[PySeq[int]] | NumpyIntArrayType,
+        motifs: PySeq[str | bytes],
+        row_indices: Iterable[int] | Iterable[str] | None = None,
+    ) -> None:
         super().__init__(counts, motifs, row_indices, dtype=numpy.int64)
 
-    def _to_freqs(self, pseudocount=0):
-        data = self.array
+    def _to_freqs(self, pseudocount: int = 0) -> NumpyFloatArrayType:
+        data: NumpyFloatArrayType = self.array
         if pseudocount:
             data = data + pseudocount
         axis = None if self.array.ndim == 1 else 1
         row_sum = data.sum(axis=axis)
         return data / numpy.vstack(row_sum) if axis is not None else data / row_sum
 
-    def to_freq_array(self, pseudocount=0):
+    def to_freq_array(self, pseudocount: int = 0) -> "MotifFreqsArray":
         """
         Parameters
         ----------
@@ -241,7 +252,7 @@ class MotifCountsArray(_MotifNumberArray):
         row_indices = None if self.array.ndim == 1 else self.template.names[0]
         return MotifFreqsArray(freqs, motifs, row_indices=row_indices)
 
-    def to_pssm(self, background=None, pseudocount=0):
+    def to_pssm(self, background=None, pseudocount: int = 0):
         """returns a PSSM array
 
         Parameters
@@ -274,7 +285,9 @@ class MotifCountsArray(_MotifNumberArray):
 
 
 class MotifFreqsArray(_MotifNumberArray):
-    def __init__(self, data, motifs, row_indices=None) -> None:
+    def __init__(
+        self, data, motifs: Iterable[str], row_indices: Iterable[int] | None = None
+    ) -> None:
         super().__init__(data, motifs, row_indices, dtype=float)
         axis = 0 if self.array.ndim == 1 else 1
         validate_freqs_array(self.array, axis=axis)
@@ -373,12 +386,12 @@ class MotifFreqsArray(_MotifNumberArray):
 
     def logo(
         self,
-        height=400,
-        width=800,
-        wrap=None,
-        ylim=None,
-        vspace=0.05,
-        colours=None,
+        height: float = 400,
+        width: float = 800,
+        wrap: int | None = None,
+        ylim: float | None = None,
+        vspace: float = 0.05,
+        colours: dict[str, str] | None = None,
     ):
         """returns a sequence logo Drawable"""
         from cogent3.draw.drawable import get_domain
@@ -466,7 +479,13 @@ class PSSM(_MotifNumberArray):
 
     A log-odds matrix"""
 
-    def __init__(self, data, motifs, row_indices=None, background=None) -> None:
+    def __init__(
+        self,
+        data: NumpyFloatArrayType,
+        motifs: PySeq[str],
+        row_indices: Iterable[int] | None = None,
+        background: NumpyFloatArrayType | None = None,
+    ) -> None:
         data = numpy.array(data)
         row_sum = data.sum(axis=1)
 
@@ -507,7 +526,7 @@ class PSSM(_MotifNumberArray):
         super().__init__(data, motifs, row_indices=row_indices, dtype=float)
         self._indices = numpy.arange(self.shape[0])  # used for scoring
 
-    def get_indexed_seq(self, seq):
+    def get_indexed_seq(self, seq: c3_sequence.Sequence) -> NumpyIntArrayType:
         """converts seq to numpy array of int
         characters in seq not present in motifs are assigned out-of-range index
         """
@@ -516,24 +535,24 @@ class PSSM(_MotifNumberArray):
         if self.motif_length == 1:
             indexed = [get_index(c, num_motifs) for c in seq]
         else:
-            indexed = []
+            indexed: list[int] = []
             for i in range(0, self.shape[0] - self.motif_length + 1, self.motif_length):
                 indexed.append(get_index(seq[i : i + self.motif_length], num_motifs))
         return numpy.array(indexed)
 
-    def score_seq(self, seq):
+    def score_seq(self, seq: c3_sequence.Sequence) -> list[float]:
         """return score for a sequence"""
         indexed = self.get_indexed_seq(seq)
         return self.score_indexed_seq(indexed)
 
-    def score_indexed_seq(self, indexed):
+    def score_indexed_seq(self, indexed: NumpyIntArrayType) -> list[float]:
         """return score for a sequence already converted to integer indices"""
         if len(indexed) < self.shape[1]:
             msg = f"sequence length {len(indexed)} shorter than PSSM {self.shape[1]}"
             raise ValueError(msg)
         indexed = numpy.array(indexed)
         num_motifs = len(self.motifs)
-        scores = []
+        scores: list[float] = []
 
         for i in range(indexed.shape[0] - self.shape[0] + 1):
             segment = indexed[i : i + self.shape[0]]
@@ -548,7 +567,9 @@ class PSSM(_MotifNumberArray):
         return scores
 
 
-def load_pssm(path: str, background: numpy.ndarray = None, pseudocount: int = 0):
+def load_pssm(
+    path: str, background: NumpyFloatArrayType | None = None, pseudocount: int = 0
+) -> PSSM:
     """loads a PSSM from a file
 
     Parameters

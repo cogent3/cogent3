@@ -550,7 +550,7 @@ class calc_rmi:
 def coevolution_matrix(
     *,
     alignment: "Alignment",
-    positions: list[int] | None = None,
+    positions: list[range] | None = None,
     stat: str = "nmi",
     parallel: bool = False,
     par_kw: dict | None = None,

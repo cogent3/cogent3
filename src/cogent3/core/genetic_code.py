@@ -572,7 +572,7 @@ for mapping in code_mapping:
 DEFAULT = _CODES[1]
 
 
-def get_code(code_id: str | int = 1) -> GeneticCode:
+def get_code(code_id: str | int | GeneticCode = 1) -> GeneticCode:
     """returns the genetic code
 
     Parameters
@@ -587,7 +587,7 @@ def get_code(code_id: str | int = 1) -> GeneticCode:
     code_id = code_id or 1
 
     with contextlib.suppress(ValueError, TypeError):
-        code_id = int(code_id)
+        code_id = int(cast("str | int", code_id))
 
     if code_id not in _CODES:
         msg = f"Unknown genetic code {code_id!r}"

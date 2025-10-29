@@ -61,8 +61,7 @@ if TYPE_CHECKING:  # pragma: no cover
     import os
     import pathlib
     from collections.abc import Callable, Generator, Iterable, Iterator, Sequence
-
-    from typing_extensions import Self
+    from typing import Self
 
     from cogent3.draw.dendrogram import Dendrogram
     from cogent3.evolve.fast_distance import DistanceMatrix
@@ -1155,12 +1154,12 @@ class PhyloNode:
         constructor = self._default_tree_constructor()
 
         scores: dict[PhyloNode, int | None] = {}
-        rebuilt: dict[PhyloNode, PhyloNode] = {}
+        rebuilt: dict[Self, Self] = {}
 
         infinity = float("inf")
         for node in self.postorder():
             if node.is_tip():
-                score = score_map[node.name]
+                score: int | None = score_map[node.name]
                 tree = node.deepcopy()
             else:
                 child_info = [(scores[ch], rebuilt[ch]) for ch in node.children]
@@ -2022,6 +2021,19 @@ class PhyloNode:
             dists[tip.name] = cum_sum
         return dists
 
+    def renamed_nodes(self, name_map: dict[str, str]) -> Self:
+        """returns a copy of the tree with nodes renamed according to name_map
+
+        Parameters
+        ----------
+        name_map
+            dict of {old_name: new_name, ...}
+        """
+        new_tree = self.deepcopy()
+        for node in new_tree.preorder():
+            node.name = name_map.get(node.name, node.name)
+        return new_tree
+
 
 T = TypeVar("T", bound=PhyloNode)
 
@@ -2285,7 +2297,7 @@ def load_tree(
 
 @register_deserialiser("cogent3.core.tree")
 def deserialise_tree(
-    data: dict[str, str | dict[str, Any]],
+    data: dict[str, Any],
 ) -> PhyloNode:
     """returns a cogent3 PhyloNode instance"""
     # we load tree using make_tree, then populate edge attributes
@@ -2300,7 +2312,7 @@ def deserialise_tree(
             stacklevel=3,
         )
 
-    tree = make_tree(treestring=data["newick"])
+    tree = make_tree(treestring=cast("str", data["newick"]))
     for edge in tree.preorder():
         params = edge_attr.get(edge.name, {})
         if length_and_support is None:

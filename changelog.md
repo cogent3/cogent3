@@ -1,3 +1,49 @@
+<a id='changelog-2025.9.8a7'></a>
+# Changes in release "2025.9.8a7"
+
+Version bump due to interrupted upload to pypi.
+
+<a id='changelog-2025.9.8a6'></a>
+# Changes in release "2025.9.8a6"
+
+This is a minor enhancement release.
+
+## Contributors
+
+- @rmcar17, for more typing related commits!
+- @gavinHuttley, performance improvements for feature querying
+
+## Enhancements
+
+- Modify `SequenceCollection.get_features()` to improve performance
+  when the collection has large numbers of sequences.
+
+<a id='changelog-2025.9.8a5'></a>
+# Changes in release "2025.9.8a5"
+
+Minor enhancement, major advances to type hinting allowing static
+type checking for core classes. This greatly improves the IDE experience,
+thanks @rmcar17!
+
+## Contributors
+
+- @GavinHuttley
+- @rmcar17, major refactoring of code and type hinting core
+  classes and functions🎉🚀
+
+## API
+
+- `Alignment` and `SequenceCollection` now inherit shared methods from
+  `CollectionBase`. `Alignment` no longer inherits from `SequenceCollection`,
+  this enables static type-checking across these classes.
+- `MolType` is no longer a dataclass so we can have a constructor argument
+  share the same name as a property.
+
+## Enhancements
+
+- `PhyloNode.renamed_nodes()` takes a dict mapping the current names to a
+  new name and returns a new `PhyloNode` instance with the new names. If a
+  node name is not present in the dict, it's left as is.
 
 <a id='changelog-2025.9.8a4'></a>
 # Changes in release "2025.9.8a4"
@@ -11,7 +57,7 @@ This is a minor feature enhancement release.
 ## Enhancements
 
 - Add a plugin hook for counting kmers. There are no packages doing this
-  ... yet. Unless a pakcage name is specified, the first app for the hook
+  ... yet. Unless a package name is specified, the first app for the hook
   is returned.
 - Added a `SequenceCollection.count_kmers()` method and support plugins for
   both this and `Sequence.count_kmers()` via `use_hook` argument. Additional
