@@ -15,7 +15,7 @@ from urllib.parse import ParseResult, urlparse
 from urllib.request import urlopen
 from zipfile import ZipFile
 
-from chardet import detect
+from charset_normalizer import detect
 
 from cogent3.util.misc import _wout_period
 
