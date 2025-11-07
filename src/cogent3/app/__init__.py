@@ -3,7 +3,6 @@ from __future__ import annotations
 import contextlib
 import inspect
 import re
-import sys
 import textwrap
 import warnings
 from importlib.metadata import PackageNotFoundError, metadata
@@ -23,8 +22,8 @@ if TYPE_CHECKING:  # pragma: no cover
 
 def _parse_license_name(classifier: str) -> str:
     """Extract just the license name from a trove classifier"""
-    match = re.search(r"^License :: (?:.+ :: )*(.+?)(?:\s+License)?$", classifier)
-    return match[1] if match else classifier
+    match = re.search(r"(.+?)(?:\s+License)?$", classifier.split("::")[-1])
+    return match[1].strip() if match else classifier
 
 
 def _get_licenses(package_name: str) -> str:
