@@ -1,15 +1,17 @@
-"""testing the default import"""
-
-import os
 from pathlib import Path
-from tempfile import TemporaryDirectory
-from unittest import TestCase
 
 import pytest
 
 from cogent3 import app_help, available_apps, get_app, open_data_store
 from cogent3.app.composable import LOADER, WRITER, is_app
 from cogent3.core.table import Table
+
+try:
+    import piqtree  # noqa: F401
+
+    has_piqtree = True
+except ImportError:
+    has_piqtree = False
 
 
 def _get_all_composables(tmp_dir_name):
@@ -54,71 +56,100 @@ def _get_all_composables(tmp_dir_name):
     ]
 
 
-class TestAvailableApps(TestCase):
-    def test_available_apps(self):
-        """available_apps returns a table"""
-        from cogent3.core.table import Table
+def test_available_apps():
+    """available_apps returns a table"""
+    from cogent3.core.table import Table
 
-        apps = available_apps()
-        assert isinstance(apps, Table)
-        assert apps.shape[0] > 10
+    apps = available_apps()
+    assert isinstance(apps, Table)
+    assert apps.shape[0] > 10
 
-    def test_composable_pairwise_applications(self):
-        """Properly compose two composable applications"""
 
-        with TemporaryDirectory(dir=".") as dirname:
-            applications = _get_all_composables(os.path.join(dirname, "delme"))
-            for app in applications:
-                assert is_app(app), app
+def _get_incompat_app_pairs(tmp_path):
+    """Generate all incompatible application pairs"""
+    applications = _get_all_composables(tmp_path / "delme")
+    return [
+        (app1, app2)
+        for app1 in applications
+        for app2 in applications
+        if app1.app_type is WRITER
+        or (
+            app2.app_type is LOADER
+            and app1 != app2
+            and not app1._return_types & app2._data_types
+            and not app1._return_types & {"SerialisableType", "IdentifierType"}
+        )
+    ]
 
-            composable_application_tuples = [
-                (app1, app2)
-                for app1 in applications
-                for app2 in applications
-                if app1 != app2
-                and (
-                    app1._return_types & app2._data_types
-                    or app1._return_types & {"SerialisableType", "IdentifierType"}
-                )
-                and app1.app_type is not WRITER
-                and app2.app_type is not LOADER
-            ]
 
-            for app_a, app_b in composable_application_tuples:
-                app_a.disconnect()
-                app_b.disconnect()
-                # Compose two composable applications, there should not be exceptions.
-                app_a + app_b
+def _get_compat_app_pairs(tmp_path):
+    """Generate all incompatible application pairs"""
+    applications = _get_all_composables(tmp_path / "delme")
+    return [
+        (app1, app2)
+        for app1 in applications
+        for app2 in applications
+        if app1 != app2
+        and (
+            app1._return_types & app2._data_types
+            or app1._return_types & {"SerialisableType", "IdentifierType"}
+        )
+        and app1.app_type is not WRITER
+        and app2.app_type is not LOADER
+    ]
 
-    def test_incompatible_pairwise_applications(self):
-        """Properly identify two incompatible applications"""
 
-        with TemporaryDirectory(dir=".") as dirname:
-            applications = _get_all_composables(os.path.join(dirname, "delme"))
-            for app in applications:
-                assert is_app(app)
+def pytest_generate_tests(metafunc):
+    """Dynamically generate test parameters"""
+    if "incompat_app_pair" in metafunc.fixturenames:
+        tmp_path = metafunc.config._tmp_path_factory.mktemp("test_apps")
+        pairs = _get_incompat_app_pairs(tmp_path)
+        metafunc.parametrize(
+            "incompat_app_pair",
+            pairs,
+            ids=[
+                f"{app1.__class__.__name__}-{app2.__class__.__name__}"
+                for app1, app2 in pairs
+            ],
+        )
+    elif "compat_pair" in metafunc.fixturenames:
+        tmp_path = metafunc.config._tmp_path_factory.mktemp("test_apps")
+        pairs = _get_compat_app_pairs(tmp_path)
+        metafunc.parametrize(
+            "compat_pair",
+            pairs,
+            ids=[
+                f"{app1.__class__.__name__}-{app2.__class__.__name__}"
+                for app1, app2 in pairs
+            ],
+        )
 
-            incompatible_application_tuples = [
-                (app1, app2)
-                for app1 in applications
-                for app2 in applications
-                if app1.app_type is WRITER
-                or (
-                    app2.app_type is LOADER
-                    and app1 != app2
-                    and not app1._return_types & app2._data_types
-                    and not app1._return_types & {"SerialisableType", "IdentifierType"}
-                )
-            ]
 
-            for app_a, app_b in incompatible_application_tuples:
-                err_type = ValueError if app_a is app_b else TypeError
-                app_a.disconnect()
-                app_b.disconnect()
+def test_incompatible_pairwise_applications(incompat_app_pair):
+    """Properly identify two incompatible applications"""
+    app_a, app_b = incompat_app_pair
+    assert is_app(app_a)
+    assert is_app(app_b)
+    err_type = ValueError if app_a is app_b else TypeError
+    # make sure they're not connected
+    app_a.disconnect()
+    app_b.disconnect()
 
-                # Compose two incompatible applications, there should be exceptions.
-                with pytest.raises(err_type):
-                    app_a + app_b
+    # Compose two incompatible applications, there should be exceptions.
+    with pytest.raises(err_type):
+        app_a + app_b
+
+
+def test_composable_pairwise_applications(compat_pair):
+    """Properly compose two composable applications"""
+    app_a, app_b = compat_pair
+    assert is_app(app_a)
+    assert is_app(app_b)
+
+    app_a.disconnect()
+    app_b.disconnect()
+    # Compose two composable applications, there should not be exceptions.
+    _ = app_a + app_b
 
 
 @pytest.mark.parametrize("name", ["sample.min_length", "min_length"])
@@ -175,3 +206,25 @@ def test_available_apps_package():
     filtered_apps = available_apps("model")
     assert "cogent3" in filtered_apps.columns["package"]
     assert all("." not in pkg for pkg in filtered_apps.columns["package"])
+
+
+_package_licenses = [("typing_extensions", "PSF-2"), ("numpy", "BSD")]
+if has_piqtree:
+    _package_licenses.append(("piqtree", "GPL"))
+
+
+@pytest.mark.parametrize(("package", "license"), _package_licenses)
+def test_available_apps_license(package, license):
+    # table contains the correct license
+    from cogent3.app import _get_licenses
+
+    # "typing_extensions" has no trove classifier
+    # rich has license but not in trove
+    got = _get_licenses(package)
+    assert license in got
+
+
+def test_available_apps_license_col():
+    available = available_apps()
+    assert "licenses" in available.columns
+    assert "BSD" in available.columns["licenses"]
