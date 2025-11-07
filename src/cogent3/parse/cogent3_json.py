@@ -21,10 +21,10 @@ def load_from_json(filename: "PathType", classes: Iterable[type]) -> Any:
     filename : Union[str,Path]
         name of the json file
     classes : Iterable[type]
-        A series of the Cogent3 types, for example: (Alignment, ArrayAlignment)
+        A series of the Cogent3 types, for example: (Alignment, SequenceCollection)
     """
     assert all(isinstance(klass, type) for klass in classes), (
-        "classes should be a series of Cogent3 types, for example: (Alignment, ArrayAlignment)"
+        "classes should be a series of Cogent3 types, for example: (Alignment, SequenceCollection)"
     )
 
     with open_(filename) as f:
