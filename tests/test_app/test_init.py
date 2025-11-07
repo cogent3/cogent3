@@ -213,15 +213,15 @@ if has_piqtree:
     _package_licenses.append(("piqtree", "GPL"))
 
 
-@pytest.mark.parametrize(("package", "license"), _package_licenses)
-def test_available_apps_license(package, license):
+@pytest.mark.parametrize(("package", "pkg_license"), _package_licenses)
+def test_available_apps_license(package, pkg_license):
     # table contains the correct license
     from cogent3.app import _get_licenses
 
     # "typing_extensions" has no trove classifier
     # rich has license but not in trove
     got = _get_licenses(package)
-    assert license in got
+    assert pkg_license in got
 
 
 def test_available_apps_license_col():
