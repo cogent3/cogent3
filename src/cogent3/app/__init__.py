@@ -23,8 +23,8 @@ if TYPE_CHECKING:  # pragma: no cover
 
 def _parse_license_name(classifier: str) -> str:
     """Extract just the license name from a trove classifier"""
-    match = re.search(r"License :: (?:.*? :: )*(.*?)(?:\s+License)?$", classifier)
-    return match.group(1) if match else classifier
+    match = re.search(r"^License :: (?:.+ :: )*(.+?)(?:\s+License)?$", classifier)
+    return match[1] if match else classifier
 
 
 def _get_licenses(package_name: str) -> str:
@@ -39,7 +39,7 @@ def _get_licenses(package_name: str) -> str:
     classifiers = pkg_meta.get_all("Classifier") or []
     license_classifiers = [c for c in classifiers if c.startswith("License ::")]
     # there can be multiple trove license classifiers
-    license_names = [_parse_license_name(c) for c in license_classifiers]
+    license_names = {_parse_license_name(c) for c in license_classifiers}
     return ", ".join(license_names)
 
 
