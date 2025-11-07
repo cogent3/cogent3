@@ -43,6 +43,7 @@ from cogent3.core.seq_storage import (
 from cogent3.core.slice_record import SliceRecord
 from cogent3.maths.stats.number import CategoryCounter
 from cogent3.util import progress_display as UI
+from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.io import atomic_write, get_format_suffixes
@@ -433,7 +434,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         sequences. This object maps the names of sequences in self to
         the names of sequences in SeqsData.
         MappingProxyType is an immutable mapping, so it cannot be
-        changed. Use self.rename_seqs() to do that.
+        changed. Use self.renamed_seqs() to do that.
         """
         return self._name_map
 
@@ -973,7 +974,18 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
             annotation_db=self._annotation_db,
         )
 
+    @c3warn.deprecated_callable(
+        version="2026.3",
+        reason="incorrectly implies modifies instance",
+        new="renamed_seqs",
+    )
     def rename_seqs(self, renamer: Callable[[str], str]) -> Self:
+        """.. deprecated:: 2026.3
+        Use ``renamed_seqs`` instead.
+        """
+        return self.renamed_seqs(renamer)
+
+    def renamed_seqs(self, renamer: Callable[[str], str]) -> Self:
         """Returns new collection with renamed sequences.
 
         Parameters
@@ -2703,12 +2715,23 @@ class Alignment(CollectionBase[Aligned]):
         columns in order corresponding to names."""
         return self.array_seqs.T
 
+    @c3warn.deprecated_callable(
+        version="2026.3",
+        reason="incorrectly implies modifies instance",
+        new="renamed_seqs",
+    )
     def rename_seqs(self, renamer: Callable[[str], str]) -> Self:
+        """.. deprecated:: 2026.3
+        Use ``renamed_seqs`` instead.
+        """
+        return self.renamed_seqs(renamer)
+
+    def renamed_seqs(self, renamer: Callable[[str], str]) -> Self:
         """Returns new alignment with renamed sequences."""
-        new = super().rename_seqs(renamer)
+        new = super().renamed_seqs(renamer)
 
         if self._array_seqs is not None:
-            new._array_seqs = self._array_seqs
+            new._array_seqs = self._array_seqs  # noqa: SLF001
 
         return new
 
@@ -5602,7 +5625,7 @@ def make_unaligned_seqs(
             is_reversed=is_reversed,
         )
         if label_to_name:
-            seqs = seqs.rename_seqs(label_to_name)
+            seqs = seqs.renamed_seqs(label_to_name)
         return seqs
 
     if len(data) == 0:
@@ -5808,7 +5831,7 @@ def make_aligned_seqs(
             slice_record=sr,
         )
         if label_to_name:
-            aln = aln.rename_seqs(label_to_name)
+            aln = aln.renamed_seqs(label_to_name)
         return aln
 
     if len(data) == 0:

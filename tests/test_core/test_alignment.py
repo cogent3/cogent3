@@ -840,7 +840,7 @@ def test_sequence_collection_iter_seqs_ragged(ragged):
 def test_sequence_collection_iter_seqs_renamed(ragged_padded_dict):
     """SequenceCollection iter_seqs() method should support renaming of seqs"""
     coll = c3_alignment.make_unaligned_seqs(ragged_padded_dict, moltype="dna")
-    renamed = coll.rename_seqs(renamer=lambda x: f"seq_{x}")
+    renamed = coll.renamed_seqs(renamer=lambda x: f"seq_{x}")
     seqs = list(renamed.iter_seqs())
     assert seqs == ["AAAAAA", "AAA---", "AAAA--"]
 
@@ -1503,7 +1503,7 @@ def test_get_translation(seqs, mk_cls):
 )
 def test_get_translation_renamed(seqs, mk_cls):
     seqs = mk_cls({"s1": "GATTTT", "s2": "GATCTT"}, moltype="dna")
-    renamed = seqs.rename_seqs(lambda x: f"{x}_renamed")
+    renamed = seqs.renamed_seqs(lambda x: f"{x}_renamed")
     got = renamed.get_translation(incomplete_ok=True)
     assert got.names == ("s1_renamed", "s2_renamed")
 
@@ -2512,11 +2512,11 @@ def test_sequence_collection_strand_symmetry(mk_cls):
     "mk_cls",
     [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
 )
-def test_sequence_collection_rename_seqs(mk_cls):
+def test_sequence_collection_renamed_seqs(mk_cls):
     """successfully rename sequences"""
     data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
     seqs = mk_cls(data, moltype="dna")
-    new = seqs.rename_seqs(lambda x: x.upper())
+    new = seqs.renamed_seqs(lambda x: x.upper())
     expect = {n.upper() for n in data}
     assert set(new.names) == expect
     # the names should not change in the seqsdata
@@ -2527,11 +2527,11 @@ def test_sequence_collection_rename_seqs(mk_cls):
     "mk_cls",
     [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
 )
-def test_sequence_collection_rename_seqs_name_map(mk_cls):
+def test_sequence_collection_renamed_seqs_name_map(mk_cls):
     """successfully rename sequences"""
     data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
     seqs = mk_cls(data, moltype="dna")
-    new = seqs.rename_seqs(lambda x: x.upper())
+    new = seqs.renamed_seqs(lambda x: x.upper())
     expect = {k.upper(): k for k in data}
     assert dict(new.name_map) == expect
 
@@ -2552,7 +2552,7 @@ def test_sequence_collection_immutable_name_map(mk_cls):
     "mk_cls",
     [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
 )
-def test_sequence_collection_multiple_rename_seqs_name_map(mk_cls):
+def test_sequence_collection_multiple_renamed_seqs_name_map(mk_cls):
     """parent seq names should remain the same after renames"""
     data = {"Seq1": "ACGTACGTA", "Seq2": "ACCGAA---", "Seq3": "ACGTACGTT"}
     seqs = mk_cls(data, moltype="dna")
@@ -2561,11 +2561,11 @@ def test_sequence_collection_multiple_rename_seqs_name_map(mk_cls):
     assert seqs.name_map == expect
 
     # subsequently only the keys change in name_map
-    new = seqs.rename_seqs(lambda x: x.upper())
+    new = seqs.renamed_seqs(lambda x: x.upper())
     expect = {k.upper(): k for k in data}
     assert new.name_map == expect
     # and again only the keys change in name_map
-    new = new.rename_seqs(lambda x: x.lower())
+    new = new.renamed_seqs(lambda x: x.lower())
     expect = {k.lower(): k for k in data}
     assert new.name_map == expect
 
@@ -2578,8 +2578,8 @@ def test_sequence_collection_subsequent_rename(mk_cls):
     """sequences can be renamed multiple times"""
     data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
     seqs = mk_cls(data, moltype="dna")
-    new = seqs.rename_seqs(lambda x: x.upper())
-    new_again = new.rename_seqs(lambda x: f"{x[0]}{x[-1]}")
+    new = seqs.renamed_seqs(lambda x: x.upper())
+    new_again = new.renamed_seqs(lambda x: f"{x[0]}{x[-1]}")
     expect = {"S1", "S2", "S3"}
     assert set(new_again.names) == expect
     # the names should not change in the seqsdata
@@ -2595,7 +2595,7 @@ def test_sequence_collection_rename_non_unique_fails(mk_cls):
     data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
     seqs = mk_cls(data, moltype="dna")
     with pytest.raises(ValueError):
-        _ = seqs.rename_seqs(lambda x: x[:1])
+        _ = seqs.renamed_seqs(lambda x: x[:1])
 
 
 def test_alignment_rename_sliced():
@@ -2603,7 +2603,7 @@ def test_alignment_rename_sliced():
     data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
     aln = c3_alignment.make_aligned_seqs(data, moltype="dna")
     sliced = aln[:3]
-    renamed = sliced.rename_seqs(lambda x: x.upper())
+    renamed = sliced.renamed_seqs(lambda x: x.upper())
     expect = {n.upper(): seq[:3] for n, seq in data.items()}
     assert renamed.to_dict() == expect
 
@@ -3648,7 +3648,7 @@ def test_alignment_array_seqs_renamed(simple_aln):
     # property .array_seqs is accessed), it should not be recreated when the
     # alignment is renamed
     orig_arr_seqs = simple_aln.array_seqs
-    renamed = simple_aln.rename_seqs(renamer=lambda x: x.upper())
+    renamed = simple_aln.renamed_seqs(renamer=lambda x: x.upper())
     assert renamed.array_seqs is orig_arr_seqs
 
 
@@ -4912,7 +4912,7 @@ def test_no_degenerates(renamed):
         "s3": "GGR YTT AAA CCC".replace(" ", ""),
     }
     aln = c3_alignment.make_aligned_seqs(data, moltype="dna")
-    aln = aln.rename_seqs(lambda x: x.upper()) if renamed else aln
+    aln = aln.renamed_seqs(lambda x: x.upper()) if renamed else aln
     # motif length of 1, defaults - no gaps allowed
     result = aln.no_degenerates().to_dict()
     expect = {
@@ -4963,7 +4963,7 @@ def test_no_degenerates_non_divisible_length(renamed):
         "s3": "GGR YTT AAA CCC C".replace(" ", ""),
     }
     aln = c3_alignment.make_aligned_seqs(data, moltype="dna")
-    aln = aln.rename_seqs(lambda x: x.upper()) if renamed else aln
+    aln = aln.renamed_seqs(lambda x: x.upper()) if renamed else aln
     result = aln.no_degenerates(motif_length=3, allow_gap=False).to_dict()
     expect = {
         "s1": "TTT".replace(" ", ""),
@@ -4993,7 +4993,7 @@ def test_omit_gap_pos_motif_length(renamed):
         "seq6": "GCC---------------------------",
     }
     aln = c3_alignment.make_aligned_seqs(data, moltype="dna")
-    aln = aln.rename_seqs(lambda x: x.upper()) if renamed else aln
+    aln = aln.renamed_seqs(lambda x: x.upper()) if renamed else aln
     got1 = aln.omit_gap_pos(motif_length=1)
     got3 = aln.omit_gap_pos(motif_length=3)
     assert len(got3) == len(got1)
@@ -5529,7 +5529,7 @@ def test_alignment_copy(simple_aln):
     assert sl._seqs_data.align_len == simple_aln._seqs_data.align_len
 
     # renamed seqs should be propagated
-    renamed = simple_aln.rename_seqs(renamer=lambda x: x.upper())
+    renamed = simple_aln.renamed_seqs(renamer=lambda x: x.upper())
     copied = renamed.copy()
     assert set(renamed.names) != set(simple_aln.names)
     assert set(copied.names) == set(renamed.names)
@@ -5558,7 +5558,7 @@ def test_alignment_deepcopy(simple_aln):
     assert sl._seqs_data.align_len == 2 != simple_aln._seqs_data.align_len
 
     # renamed seqs should be propagated
-    renamed = simple_aln.rename_seqs(renamer=lambda x: x.upper())
+    renamed = simple_aln.renamed_seqs(renamer=lambda x: x.upper())
     copied = renamed.deepcopy()
     assert set(renamed.names) != set(simple_aln.names)
     assert set(copied.names) == set(renamed.names)
@@ -5679,7 +5679,7 @@ def test_alignment_to_rich_dict_round_trip_renamed(mk_cls):
         "seq2": "TGA",
     }
     aln = mk_cls(data, moltype="dna")
-    renamed_aln = aln.rename_seqs(renamer=lambda x: x.upper())
+    renamed_aln = aln.renamed_seqs(renamer=lambda x: x.upper())
     rd = renamed_aln.to_rich_dict()
     got = deserialise_object(rd)
     assert dict(got.name_map) == {"SEQ1": "seq1", "SEQ2": "seq2"}
@@ -6212,7 +6212,7 @@ def renamed_aln():
         "seq3": "TCGCCC",
     }
     coll = c3_alignment.make_aligned_seqs(data, moltype="dna")
-    return coll.rename_seqs(renamer=lambda x: x.upper()), data
+    return coll.renamed_seqs(renamer=lambda x: x.upper()), data
 
 
 @pytest.fixture(params=[True, False])
@@ -6225,7 +6225,7 @@ def renamed_seqs(request, renamed_aln):
 
 def test_renamed_trim_stop_codons(renamed_seqs):
     coll, data = renamed_seqs
-    rn = coll.rename_seqs(renamer=lambda x: x.upper())
+    rn = coll.renamed_seqs(renamer=lambda x: x.upper())
     tr = rn.trim_stop_codons()
     assert set(tr.storage.names) == set(rn.storage.names)
     assert set(tr.names) == {k.upper() for k in data}
@@ -6375,14 +6375,14 @@ def test_seqcoll_modified_sliced():
 @pytest.mark.parametrize(
     "mk_cls", [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs]
 )
-def test_seqcoll_modified_rename_seqs(mk_cls):
+def test_seqcoll_modified_renamed_seqs(mk_cls):
     data = {
         "s1": "ATCTGA",
         "s2": "TCGCCC",
         "s3": "TCGCCC",
     }
     coll = mk_cls(data, moltype="dna")
-    sub = coll.rename_seqs(lambda x: x.upper())
+    sub = coll.renamed_seqs(lambda x: x.upper())
     assert sub.modified
 
 
@@ -6521,6 +6521,6 @@ def test_coll_uses_storage_get_hash(three_seq_two_hash, mock_storage):
 def test_non_unique_storage_names(mk_cls):
     seqcoll = mk_cls({"s1": "ACGGT"}, moltype="dna")
     s1 = seqcoll.seqs["s1"]
-    s2 = seqcoll.rename_seqs(lambda x: "s2").seqs["s2"]
+    s2 = seqcoll.renamed_seqs(lambda x: "s2").seqs["s2"]
     with pytest.raises(ValueError):
         mk_cls([s1, s2], moltype="dna")
