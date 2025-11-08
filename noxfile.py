@@ -1,10 +1,12 @@
 import os
 import pathlib
+import sys
 
 import nox
 
 # on python >= 3.12 this will improve speed of test coverage a lot
-os.environ["COVERAGE_CORE"] = "sysmon"
+if sys.version_info >= (3, 12):
+    os.environ["COVERAGE_CORE"] = "sysmon"
 
 _py_versions = range(11, 14)
 
