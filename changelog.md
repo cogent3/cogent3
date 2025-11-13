@@ -1,3 +1,43 @@
+
+<a id='changelog-2025.9.8a9'></a>
+# Changes in release "2025.9.8a9"
+
+Minor tweaks to support piqtree developers.
+
+## API
+
+- Modify args `make_tree(tip_names)` and `Alignment.iter_seqs(seq_order)` to accept any `Iterable[str]`, rather than strictly `list[str]`.
+
+## Contributors
+
+- @rmcar17 generalised type hints on `make_tree(tip_names)` and `Alignment.iter_seqs(seq_order)`
+
+<a id='changelog-2025.9.8a8'></a>
+# Changes in release "2025.9.8a8"
+
+This release contains minor bug fix and enhancements.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- `cogent3.available_apps()` now displays the software licenses for
+  apps 🎉
+
+## Bug fixes
+
+- Removed obsolete xmfa parser registration. This was causing errors in
+  some cases.
+
+## Deprecations
+
+- Renamed `<sequence collection>.rename_seqs()` to
+  `<sequence collection>.renamed_seqs()` because former
+  name implies modifying the instance, rather than returning
+  a new instance where the names are new.
+
 <a id='changelog-2025.9.8a7'></a>
 # Changes in release "2025.9.8a7"
 

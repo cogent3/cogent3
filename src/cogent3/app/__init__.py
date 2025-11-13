@@ -5,6 +5,7 @@ import inspect
 import re
 import textwrap
 import warnings
+from importlib.metadata import PackageNotFoundError, metadata
 from typing import TYPE_CHECKING
 
 import cogent3
@@ -17,6 +18,28 @@ if TYPE_CHECKING:  # pragma: no cover
     from stevedore.extension import Extension
 
     from cogent3.core.table import Table
+
+
+def _parse_license_name(classifier: str) -> str:
+    """Extract just the license name from a trove classifier"""
+    match = re.search(r"(.+?)(?:\s+License)?$", classifier.split("::")[-1])
+    return match[1].strip() if match else classifier
+
+
+def _get_licenses(package_name: str) -> str:
+    try:
+        pkg_meta = metadata(package_name)
+    except PackageNotFoundError:
+        return ""
+
+    if license_expr := pkg_meta.get("License-Expression"):
+        return license_expr
+
+    classifiers = pkg_meta.get_all("Classifier") or []
+    license_classifiers = [c for c in classifiers if c.startswith("License ::")]
+    # there can be multiple trove license classifiers
+    license_names = {_parse_license_name(c) for c in license_classifiers}
+    return ", ".join(license_names)
 
 
 def _get_extension_attr(extension: Extension) -> list[str]:
@@ -37,13 +60,15 @@ def _get_extension_attr(extension: Extension) -> list[str]:
         )
 
     _types = _make_types(obj)
+    package = extension.module_name.split(".")[0]
     return [
-        extension.module_name.split(".")[0],
+        package,
         extension.name,
         is_app_composable(obj),
         _doc_summary(obj.__doc__ or ""),
         ", ".join(sorted(_types["_data_types"])),
         ", ".join(sorted(_types["_return_types"])),
+        _get_licenses(package) or "Unknown, check package",
     ]
 
 
@@ -74,7 +99,15 @@ def available_apps(name_filter: str | None = None) -> Table:
             # probably a local scope issue in testing!
             rows.append(_get_extension_attr(extension))
 
-    header = ["package", "name", "composable", "doc", "input type", "output type"]
+    header = [
+        "package",
+        "name",
+        "composable",
+        "doc",
+        "input type",
+        "output type",
+        "licenses",
+    ]
     return cogent3.make_table(header=header, data=rows)
 
 
