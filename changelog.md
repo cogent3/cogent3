@@ -1,4 +1,17 @@
 
+<a id='changelog-2025.9.8a9'></a>
+# Changes in release "2025.9.8a9"
+
+Minor tweaks to support piqtree developers.
+
+## API
+
+- Modify args `make_tree(tip_names)` and `Alignment.iter_seqs(seq_order)` to accept any `Iterable[str]`, rather than strictly `list[str]`.
+
+## Contributors
+
+- @rmcar17 generalised type hints on `make_tree(tip_names)` and `Alignment.iter_seqs(seq_order)`
+
 <a id='changelog-2025.9.8a8'></a>
 # Changes in release "2025.9.8a8"
 
