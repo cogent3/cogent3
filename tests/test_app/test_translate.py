@@ -1,7 +1,7 @@
 import pytest
 
 import cogent3
-from cogent3.app.composable import NotCompleted
+from cogent3.app.comp_new import NotCompleted
 from cogent3.app.translate import (
     best_frame,
     get_fourfold_degenerate_sets,
@@ -185,5 +185,12 @@ def test_select_translatable_exclude_internal_stop():
 
 @pytest.mark.parametrize("frame", [-1, 0, 4])
 def test_select_translatable_invalid_frame(frame):
+    aln = cogent3.make_unaligned_seqs(
+        {
+            "internal_stop": "AATTAAATGTGA",
+            "s2": "TATGACTAA",
+        },
+        moltype="dna",
+    )
     with pytest.raises(AssertionError):
-        _ = select_translatable(frame=frame)
+        _ = select_translatable(frame=frame)(aln)

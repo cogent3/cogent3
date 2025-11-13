@@ -1,31 +1,34 @@
+from __future__ import annotations
+
 import contextlib
 import json
 import os
 import pickle
-import typing
 import zipfile
+from collections.abc import Callable
 from enum import Enum
 from functools import singledispatch
 from gzip import compress as gzip_compress
 from gzip import decompress as gzip_decompress
 from pathlib import Path
+from typing import TYPE_CHECKING, Any, overload
 
 import numpy
 
 import cogent3
+import cogent3._plugin as c3_plugin
 from cogent3.core import moltype as c3_moltype
-from cogent3.core.profile import (
-    make_motif_counts_from_tabular,
-    make_motif_freqs_from_tabular,
-    make_pssm_from_tabular,
-)
+from cogent3.core.alignment import Alignment, CollectionBase, SequenceCollection
+from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
 from cogent3.core.table import Table
 from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.util.deserialise import deserialise_object
+from cogent3.util.dict_array import DictArray
 
-from .composable import LOADER, WRITER, NotCompleted, define_app
+from .comp_new import LOADER, WRITER, NotCompleted, define_app
 from .data_store import (
     READONLY,
+    DataMemberABC,
     DataStoreABC,
     DataStoreDirectory,
     Mode,
@@ -36,20 +39,15 @@ from .data_store import (
 )
 from .sqlite_data_store import _MEMORY, DataStoreSqlite
 from .typing import (
-    AlignedSeqsType,
-    IdentifierType,
-    SeqsCollectionType,
     SerialisableType,
-    TabularType,
-    UnalignedSeqsType,
 )
 
-if typing.TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:  # pragma: no cover
     from cogent3.parse.sequence import SequenceParserBase
 
-_datastore_reader_map = {}
+MolTypes = c3_moltype.MolTypeLiteral | c3_moltype.MolType[Any]
 
-MolTypes = c3_moltype.MolTypeLiteral | c3_moltype.MolType
+_datastore_reader_map = {}
 
 
 class register_datastore_reader:
@@ -162,13 +160,13 @@ def open_data_store(
 
 
 @define_app(skip_not_completed=False)
-def pickle_it(data: SerialisableType) -> bytes:
+def pickle_it(data: object) -> bytes:
     """Serialises data using pickle."""
     return pickle.dumps(data)
 
 
 @define_app(skip_not_completed=False)
-def unpickle_it(data: bytes) -> SerialisableType:
+def unpickle_it(data: bytes) -> Any:
     "Deserialises pickle data."
     return pickle.loads(data)
 
@@ -208,7 +206,7 @@ class decompress:
         return self.decompressor(data)
 
 
-def as_dict(obj: typing.Any) -> dict:
+def as_dict(obj: Any) -> dict[str, Any]:
     """returns result of to_rich_dict method if it exists"""
     with contextlib.suppress(AttributeError):
         obj = obj.to_rich_dict()
@@ -219,10 +217,10 @@ def as_dict(obj: typing.Any) -> dict:
 class to_primitive:
     """convert an object to primitive python types suitable for serialisation"""
 
-    def __init__(self, convertor: callable = as_dict) -> None:
+    def __init__(self, convertor: Callable[[object], dict[str, Any]] = as_dict) -> None:
         self.convertor = convertor
 
-    def main(self, data: SerialisableType) -> SerialisableType:
+    def main(self, data: object) -> dict[str, Any]:
         """returns dict from a cogent3 object"""
         return self.convertor(data)
 
@@ -231,10 +229,13 @@ class to_primitive:
 class from_primitive:
     """deserialises from primitive python types"""
 
-    def __init__(self, deserialiser: callable = deserialise_object) -> None:
+    def __init__(
+        self,
+        deserialiser: Callable[[dict[str, Any]], Any] = deserialise_object,
+    ) -> None:
         self.deserialiser = deserialiser
 
-    def main(self, data: SerialisableType) -> SerialisableType:
+    def main(self, data: dict[str, Any] | str | bytes) -> Any:
         """either json or a dict from a cogent3 object"""
         return self.deserialiser(data)
 
@@ -259,8 +260,13 @@ class tabular(Enum):
     pssm = "pssm"
 
 
-@singledispatch
-def _read_it(path) -> str:
+def _read_it(path: Path | str | DataMemberABC) -> str:
+    if isinstance(path, str):
+        path = Path(path)
+    if isinstance(path, os.PathLike):
+        path = path.expanduser().absolute()
+        return path.read_text()
+
     try:
         data = path.read()
     except AttributeError:
@@ -269,23 +275,28 @@ def _read_it(path) -> str:
     return data
 
 
-@_read_it.register
-def _(path: os.PathLike) -> str:
-    path = path.expanduser().absolute()
-    return path.read_text()
-
-
-@_read_it.register
-def _(path: str) -> os.PathLike:
-    return _read_it(Path(path))
+@overload
+def _load_seqs(
+    path: str | Path | DataMemberABC,
+    coll_maker: Callable[..., SequenceCollection],
+    parser: SequenceParserBase,
+    moltype: c3_moltype.MolType[Any] | None = None,
+) -> SequenceCollection: ...
+@overload
+def _load_seqs(
+    path: str | Path | DataMemberABC,
+    coll_maker: Callable[..., Alignment],
+    parser: SequenceParserBase,
+    moltype: c3_moltype.MolType[Any] | None = None,
+) -> Alignment: ...
 
 
 def _load_seqs(
-    path: str | Path,
-    coll_maker: type,
-    parser: "SequenceParserBase",
-    moltype: c3_moltype.MolType | None = None,
-) -> SeqsCollectionType:
+    path: str | Path | DataMemberABC,
+    coll_maker: Callable[..., SequenceCollection | Alignment],
+    parser: SequenceParserBase,
+    moltype: c3_moltype.MolType[Any] | None = None,
+) -> CollectionBase[Any]:
     if not parser.result_is_storage:
         data = _read_it(path)
         data = data.splitlines()
@@ -320,13 +331,11 @@ class load_aligned:
         """
         moltype = moltype or "text"
         self.moltype = cogent3.get_moltype(moltype)
-        self._parser = cogent3._plugin.get_seq_format_parser_plugin(  # noqa: SLF001
+        self._parser = c3_plugin.get_seq_format_parser_plugin(
             format_name=format_name.lower(),
         )
 
-    T = SerialisableType | AlignedSeqsType
-
-    def main(self, path: IdentifierType) -> T:
+    def main(self, path: str | Path | DataMemberABC) -> Alignment:
         """returns alignment"""
         return _load_seqs(path, cogent3.make_aligned_seqs, self._parser, self.moltype)
 
@@ -356,13 +365,11 @@ class load_unaligned:
         """
         moltype = moltype or "text"
         self.moltype = cogent3.get_moltype(moltype)
-        self._parser = cogent3._plugin.get_seq_format_parser_plugin(  # noqa: SLF001
+        self._parser = c3_plugin.get_seq_format_parser_plugin(
             format_name=format_name.lower(),
         )
 
-    T = SerialisableType | UnalignedSeqsType
-
-    def main(self, path: IdentifierType) -> T:
+    def main(self, path: str | Path | DataMemberABC) -> SequenceCollection:
         """returns sequence collection"""
         seqs = _load_seqs(path, cogent3.make_unaligned_seqs, self._parser, self.moltype)
         return seqs.degap()
@@ -408,7 +415,7 @@ class load_tabular:
         self.strict = strict
         self.as_type = tabular(as_type)
 
-    def _parse(self, data):
+    def _parse(self, data: str | Path | DataMemberABC):
         """returns header, records, title"""
         title = header = None
         sep = self._sep
@@ -422,7 +429,7 @@ class load_tabular:
             header = [e.strip() for e in lines.pop(0).strip().split(sep)]
 
         num_records = None if header is None else len(header)
-        rows = []
+        rows: list[list[str]] = []
         for line in lines:
             line = line.strip()
             line = [e.strip() for e in line.split(sep)]
@@ -447,7 +454,17 @@ class load_tabular:
         records = numpy.array(records, dtype="O").T
         return header, records, title
 
-    def main(self, path: IdentifierType) -> TabularType:
+    def main(
+        self, path: str | Path | DataMemberABC
+    ) -> Table | DistanceMatrix | PSSM | MotifFreqsArray | MotifCountsArray:
+        from cogent3.core.profile import (
+            make_motif_counts_from_tabular,
+            make_motif_freqs_from_tabular,
+            make_pssm_from_tabular,
+        )
+        from cogent3.core.table import Table
+        from cogent3.evolve.fast_distance import DistanceMatrix
+
         try:
             header, data, title = self._parse(path)
         except Exception as err:
@@ -483,7 +500,7 @@ class load_json:
         See: https://cogent3.org/doc/app/app_cookbook/load-json.html
         """
 
-    def main(self, path: IdentifierType) -> SerialisableType:
+    def main(self, path: str | Path | DataMemberABC) -> SerialisableType:
         """returns object deserialised from json at path"""
         data = _read_it(path)
         identifier, data, completed = load_record_from_json(data)
@@ -511,7 +528,7 @@ class load_db:
     def __init__(self, deserialiser: callable = DEFAULT_DESERIALISER) -> None:
         self.deserialiser = deserialiser
 
-    def main(self, identifier: IdentifierType) -> SerialisableType:
+    def main(self, identifier: DataMemberABC) -> SerialisableType:
         """returns deserialised object"""
         try:
             data = identifier.read()
@@ -538,7 +555,9 @@ class write_json:
     def __init__(
         self,
         data_store: DataStoreABC,
-        id_from_source: typing.Callable[[object], str | None] = get_unique_id,
+        id_from_source: Callable[[object], str | None] = get_unique_id,
+        *,
+        identifier: str | None = None,
     ) -> None:
         """
         Parameters
@@ -560,15 +579,14 @@ class write_json:
         self.data_store = data_store
         self._format = "json"
         self._id_from_source = id_from_source
+        self.identifier = identifier
 
     def main(
         self,
         /,
         data: SerialisableType,
-        *,
-        identifier: str | None = None,
-    ) -> IdentifierType:
-        identifier = identifier or self._id_from_source(data)
+    ) -> DataMemberABC | None:
+        identifier = self.identifier or self._id_from_source(data)
         if identifier is None:
             msg = "identifier cannot be None"
             return NotCompleted(
@@ -593,8 +611,10 @@ class write_seqs:
     def __init__(
         self,
         data_store: DataStoreABC,
-        id_from_source: typing.Callable[[object], str | None] = get_unique_id,
+        id_from_source: Callable[[object], str | None] = get_unique_id,
         format_name: str = "fasta",
+        *,
+        identifier: str | None = None,
         **kwargs,
     ) -> None:
         """
@@ -613,23 +633,18 @@ class write_seqs:
         --------
         See https://cogent3.org/doc/app/app_cookbook/write-seqs.html
         """
+        self.identifier = identifier
         if not isinstance(data_store, DataStoreABC):
             msg = f"invalid type {type(data_store)!r} for data_store"
             raise TypeError(msg)
         self.data_store = data_store
-        self._formatter = cogent3._plugin.get_seq_format_writer_plugin(  # noqa: SLF001
+        self._formatter = c3_plugin.get_seq_format_writer_plugin(  # noqa: SLF001
             format_name=format_name.lower(),
         )
         self._id_from_source = id_from_source
 
-    def main(
-        self,
-        /,
-        data: SeqsCollectionType,
-        *,
-        identifier: str | None = None,
-    ) -> IdentifierType:
-        identifier = identifier or self._id_from_source(data)
+    def main(self, /, data: CollectionBase[Any]) -> DataMemberABC | None:
+        identifier = self.identifier or self._id_from_source(data)
         if identifier is None:
             msg = "identifier cannot be None"
             return NotCompleted(
@@ -653,8 +668,10 @@ class write_tabular:
     def __init__(
         self,
         data_store: DataStoreABC,
-        id_from_source: typing.Callable[[object], str | None] = get_unique_id,
+        id_from_source: Callable[[object], str | None] = get_unique_id,
         format_name: str = "tsv",
+        *,
+        identifier: str | None = None,
         **kwargs,
     ) -> None:
         """
@@ -671,6 +688,7 @@ class write_tabular:
         --------
         See https://cogent3.org/doc/app/app_cookbook/write-tabular.html
         """
+        self.identifier = identifier
         if not isinstance(data_store, DataStoreABC):
             msg = f"invalid type {type(data_store)!r} for data_store"
             raise TypeError(msg)
@@ -681,11 +699,9 @@ class write_tabular:
     def main(
         self,
         /,
-        data: TabularType,
-        *,
-        identifier: str | None = None,
-    ) -> IdentifierType:
-        identifier = identifier or self._id_from_source(data)
+        data: Table | DistanceMatrix | DictArray,
+    ) -> DataMemberABC | None:
+        identifier = self.identifier or self._id_from_source(data)
         if identifier is None:
             msg = "identifier cannot be None"
             return NotCompleted(
@@ -712,8 +728,10 @@ class write_db:
     def __init__(
         self,
         data_store: DataStoreABC,
-        id_from_source: typing.Callable[[object], str | None] = get_unique_id,
+        id_from_source: Callable[[object], str | None] = get_unique_id,
         serialiser: callable = DEFAULT_SERIALISER,
+        *,
+        identifier: str | None = None,
     ) -> None:
         """
         data_store
@@ -730,6 +748,7 @@ class write_db:
         --------
         See https://cogent3.org/doc/app/app_cookbook/write-db.html
         """
+        self.identifier = identifier
         if not isinstance(data_store, DataStoreABC):
             msg = f"invalid type {type(data_store)!r} for data_store"
             raise TypeError(msg)
@@ -741,10 +760,8 @@ class write_db:
         self,
         /,
         data: SerialisableType,
-        *,
-        identifier: str | None = None,
-    ) -> IdentifierType:
-        identifier = identifier or self._id_from_source(data)
+    ) -> DataMemberABC | None:
+        identifier = self.identifier or self._id_from_source(data)
         if identifier is None:
             msg = "identifier cannot be None"
             return NotCompleted(

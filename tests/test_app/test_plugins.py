@@ -15,7 +15,7 @@ from cogent3.app import (
     available_apps,
     get_app,
 )
-from cogent3.app.composable import define_app
+from cogent3.app.comp_new import define_app
 from cogent3.core.table import Table
 
 
@@ -252,7 +252,7 @@ def test_app_with_app_as_default(mock_extension_manager):
             self.app = app
 
         def main(self, data: int) -> int:
-            return self.app.main(data)
+            return self.app(data)
 
     mock_extension_manager([create_extension(AddApp), create_extension(AppWithDefault)])
 

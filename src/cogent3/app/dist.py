@@ -2,12 +2,12 @@ import itertools
 from collections.abc import Callable
 from copy import deepcopy
 from itertools import combinations
-from typing import TYPE_CHECKING
 
 import numpy
 from numpy import polyval, triu_indices
 
 from cogent3 import MolTypeLiteral, get_moltype, make_tree
+from cogent3.core.alignment import Alignment, SequenceCollection
 from cogent3.evolve.fast_distance import (
     DistanceMatrix,
     get_distance_calculator,
@@ -16,17 +16,8 @@ from cogent3.evolve.models import get_model
 from cogent3.maths.distance_transform import jaccard
 from cogent3.util.misc import get_true_spans
 
-from .composable import NotCompleted, define_app
+from .comp_new import NotCompleted, define_app
 from .data_store import get_data_source
-from .typing import (
-    AlignedSeqsType,
-    PairwiseDistanceType,
-    SerialisableType,
-    UnalignedSeqsType,
-)
-
-if TYPE_CHECKING:  # pragma: no cover
-    from cogent3.core.alignment import SequenceCollection
 
 # The following coefficients are derived from a polynomial fit between Jaccard distance
 # and the proportion of different sites for mammalian DNA sequences. NOTE: the Jaccard
@@ -163,8 +154,8 @@ class fast_slow_dist:
 
     def main(
         self,
-        aln: AlignedSeqsType,
-    ) -> SerialisableType | PairwiseDistanceType:
+        aln: Alignment,
+    ) -> DistanceMatrix:
         if self._moltype and self._moltype != aln.moltype:
             aln = aln.to_moltype(self._moltype)
 
@@ -191,20 +182,20 @@ def get_fast_slow_calc(distance, **kwargs):
 
 
 @define_app
-def jaccard_dist(seq_coll: UnalignedSeqsType, k: int = 10) -> PairwiseDistanceType:
+def jaccard_dist(seq_coll: SequenceCollection, k: int = 10) -> DistanceMatrix:
     """Calculates the pairwise Jaccard distance between the sets of kmers generated from
     sequences in the collection. A measure of distance for unaligned sequences.
 
     Parameters
     ----------
-    seq_coll: UnalignedSeqsType
+    seq_coll: SequenceCollection
         a collection of unaligned sequences
     k: int
         size of kmer. Default is 10.
 
     Returns
     -------
-    PairwiseDistanceType
+    DistanceMatrix
         Pairwise Jaccard distance between sequences in the collection.
 
     Examples
@@ -245,7 +236,7 @@ def jaccard_dist(seq_coll: UnalignedSeqsType, k: int = 10) -> PairwiseDistanceTy
 
 
 @define_app
-def approx_pdist(jaccard_dists: PairwiseDistanceType) -> PairwiseDistanceType:
+def approx_pdist(jaccard_dists: DistanceMatrix) -> DistanceMatrix:
     """Calculates an approximation of the p-distance between sequences based
     on Jaccard distances (see Notes for details).
 
@@ -307,9 +298,9 @@ def approx_pdist(jaccard_dists: PairwiseDistanceType) -> PairwiseDistanceType:
 
 @define_app
 def approx_jc69(
-    pdists: PairwiseDistanceType,
+    pdists: DistanceMatrix,
     num_states: int = 4,
-) -> PairwiseDistanceType:
+) -> DistanceMatrix:
     """Converts p-distances and returns pairwise JC69 distances
 
     Parameters
@@ -356,7 +347,7 @@ def approx_jc69(
 
 def get_approx_dist_calc(
     dist: str, num_states: int = 4
-) -> Callable[["SequenceCollection"], DistanceMatrix]:
+) -> Callable[[SequenceCollection], DistanceMatrix]:
     """Return the corresponding callable approximate distance calculator
 
     Parameters
@@ -426,7 +417,7 @@ class gap_dist:
         self._insert = gap_insert
         self._extend = gap_extend
 
-    def main(self, aln: AlignedSeqsType) -> PairwiseDistanceType:
+    def main(self, aln: Alignment) -> DistanceMatrix:
         gap_diffs = {}
         gap_data = dict(zip(aln.names, aln.get_gap_array(), strict=False))
         # convert each gap vector to gap spans

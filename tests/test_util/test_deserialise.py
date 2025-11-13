@@ -351,7 +351,7 @@ def test_roundtrip_tuple_key():
 
 def test_not_completed_result():
     """correctly reconstructs a NotCompletedResult object"""
-    from cogent3.app.composable import NotCompleted
+    from cogent3.app.comp_new import NotCompleted
 
     val = NotCompleted("ERROR", "nothing", "some error", source="here")
     expect = val.to_rich_dict()

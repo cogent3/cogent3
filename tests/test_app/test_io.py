@@ -10,11 +10,12 @@ import tempfile
 import numpy
 import pytest
 from numpy.testing import assert_allclose
+from typeguard import TypeCheckError
 
 import cogent3
 from cogent3 import get_app, get_moltype, open_data_store
 from cogent3.app import io as io_app
-from cogent3.app.composable import NotCompleted, propagate_source, source_proxy
+from cogent3.app.comp_new import NotCompleted
 from cogent3.app.data_store import (
     DataMember,
     DataStoreDirectory,
@@ -23,6 +24,7 @@ from cogent3.app.data_store import (
     get_data_source,
 )
 from cogent3.app.io import DEFAULT_DESERIALISER, DEFAULT_SERIALISER
+from cogent3.app.source_proxy import propagate_source, source_proxy
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
 from cogent3.core.table import Table
 from cogent3.evolve.fast_distance import DistanceMatrix
@@ -97,18 +99,20 @@ def test_write_seqs(fasta_dir, tmp_dir):
         mode=Mode.w,
         suffix="fasta",
     )
-    writer = io_app.write_seqs(out_data_store, format_name="fasta")
-    wrote = writer(seqs[0], identifier=datamember.unique_id)
+    writer = io_app.write_seqs(
+        out_data_store, format_name="fasta", identifier=datamember.unique_id
+    )
+    wrote = writer(seqs[0])
     assert isinstance(wrote, DataMember)
 
 
 def test_source_proxy_simple(fasta_dir):
     """correctly writes sequences out"""
-    from cogent3.app.composable import define_app
+    from cogent3.app.comp_new import define_app
     from cogent3.app.typing import IdentifierType
 
     @define_app
-    def get_bytes(path: IdentifierType) -> bytes:
+    def get_bytes(path: str | pathlib.Path) -> bytes:
         path = pathlib.Path(path)
         return path.read_bytes()
 
@@ -164,8 +168,8 @@ def test_load_unaligned(DATA_DIR):
 def test_load_nonpath(loader):
     # returns NotCompleted when it's given an alignment/sequence
     # collection
-    got = loader()({})
-    assert isinstance(got, NotCompleted)
+    with pytest.raises(TypeCheckError):
+        got = loader()({})
 
 
 def test_load_json(tmp_dir):
@@ -212,8 +216,10 @@ def test_load_tabular_motif_counts_array(w_dir_dstore):
     data = [[2, 4], [3, 5], [4, 8]]
     mca = MotifCountsArray(data, "AB")
     loader = io_app.load_tabular(sep="\t", as_type="motif_counts")
-    writer = io_app.write_tabular(data_store=w_dir_dstore, format_name="tsv")
-    m = writer.main(data=mca, identifier="delme")
+    writer = io_app.write_tabular(
+        data_store=w_dir_dstore, format_name="tsv", identifier="delme"
+    )
+    m = writer.main(mca)
     new = loader(m)
     assert mca.to_dict() == new.to_dict()
 
@@ -224,8 +230,10 @@ def test_load_tabular_motif_freqs_array(w_dir_dstore):
     data = [[0.3333, 0.6667], [0.3750, 0.625], [0.3333, 0.6667]]
     mfa = MotifFreqsArray(data, "AB")
     loader = io_app.load_tabular(sep="\t", as_type="motif_freqs")
-    writer = io_app.write_tabular(data_store=w_dir_dstore, format_name="tsv")
-    m = writer.main(mfa, identifier="delme")
+    writer = io_app.write_tabular(
+        data_store=w_dir_dstore, format_name="tsv", identifier="delme"
+    )
+    m = writer.main(mfa)
     new = loader(m)
     assert mfa.to_dict() == new.to_dict()
 
@@ -243,8 +251,10 @@ def test_load_tabular_pssm(w_dir_dstore):
     ]
     pssm = PSSM(data, "ACTG")
     loader = io_app.load_tabular(sep="\t", as_type="pssm")
-    writer = io_app.write_tabular(data_store=w_dir_dstore, format_name="tsv")
-    m = writer.main(pssm, identifier="delme")
+    writer = io_app.write_tabular(
+        data_store=w_dir_dstore, format_name="tsv", identifier="delme"
+    )
+    m = writer.main(pssm)
     new = loader(m)
     assert_allclose(pssm.array, new.array, atol=0.0001)
 
@@ -255,8 +265,10 @@ def test_load_tabular_distance_matrix(w_dir_dstore):
     data = {(0, 0): 0, (0, 1): 4, (1, 0): 4, (1, 1): 0}
     matrix = DistanceMatrix(data)
     loader = io_app.load_tabular(sep="\t", as_type="distances")
-    writer = io_app.write_tabular(data_store=w_dir_dstore, format_name="tsv")
-    m = writer.main(matrix, identifier="delme")
+    writer = io_app.write_tabular(
+        data_store=w_dir_dstore, format_name="tsv", identifier="delme"
+    )
+    m = writer.main(matrix)
     new = loader(m)
     assert matrix.to_dict() == new.to_dict()
 
@@ -267,8 +279,10 @@ def test_load_tabular_table(w_dir_dstore):
     rows = [[1, 2], [3, 4], [5, 6.5]]
     table = Table(["A", "B"], data=rows)
     loader = io_app.load_tabular(sep="\t", as_type="table")
-    writer = io_app.write_tabular(data_store=w_dir_dstore, format_name="tsv")
-    m = writer.main(table, identifier="delme")
+    writer = io_app.write_tabular(
+        data_store=w_dir_dstore, format_name="tsv", identifier="delme"
+    )
+    m = writer.main(table)
     new = loader(m)
     assert table.to_dict() == new.to_dict()
 
@@ -279,8 +293,10 @@ def test_write_tabular_motif_counts_array(w_dir_dstore):
     data = [[2, 4], [3, 5], [4, 8]]
     mca = MotifCountsArray(data, "AB")
     loader = io_app.load_tabular(sep="\t")
-    writer = io_app.write_tabular(data_store=w_dir_dstore, format_name="tsv")
-    m = writer.main(mca, identifier="delme")
+    writer = io_app.write_tabular(
+        data_store=w_dir_dstore, format_name="tsv", identifier="delme"
+    )
+    m = writer.main(mca)
     assert isinstance(m, DataMember)
     new = loader(m)
     # when written to file in tabular form
@@ -304,8 +320,10 @@ def test_write_tabular_motif_freqs_array(w_dir_dstore):
     mfa = MotifFreqsArray(data, "AB")
     loader = io_app.load_tabular(sep="\t")
 
-    writer = io_app.write_tabular(data_store=w_dir_dstore, format_name="tsv")
-    m = writer.main(mfa, identifier="delme")
+    writer = io_app.write_tabular(
+        data_store=w_dir_dstore, format_name="tsv", identifier="delme"
+    )
+    m = writer.main(mfa)
     new = loader(m)
     # when written to file in tabular form
     # the loaded table will have dim-1 dim-2 as column labels
@@ -336,8 +354,10 @@ def test_write_tabular_pssm(w_dir_dstore):
     )
     pssm = PSSM(data, "ACTG")
     loader = io_app.load_tabular(sep="\t")
-    writer = io_app.write_tabular(data_store=w_dir_dstore, format_name="tsv")
-    m = writer.main(pssm, identifier="delme")
+    writer = io_app.write_tabular(
+        data_store=w_dir_dstore, format_name="tsv", identifier="delme"
+    )
+    m = writer.main(pssm)
     new = loader(m)
     expected = safe_log(data) - safe_log(numpy.array([0.25, 0.25, 0.25, 0.25]))
     for i in range(len(expected)):
@@ -351,8 +371,10 @@ def test_write_tabular_distance_matrix(w_dir_dstore):
     data = {(0, 0): 0, (0, 1): 4, (1, 0): 4, (1, 1): 0}
     matrix = DistanceMatrix(data)
     loader = io_app.load_tabular(sep="\t")
-    writer = io_app.write_tabular(data_store=w_dir_dstore, format_name="tsv")
-    m = writer.main(matrix, identifier="delme")
+    writer = io_app.write_tabular(
+        data_store=w_dir_dstore, format_name="tsv", identifier="delme"
+    )
+    m = writer.main(matrix)
     new = loader(m)
     # when written to file in tabular form
     # the loaded table will have dim-1 dim-2 as column labels
@@ -370,8 +392,10 @@ def test_write_tabular_table(w_dir_dstore):
     rows = [[1, 2], [3, 4], [5, 6.5]]
     table = Table(["A", "B"], data=rows)
     loader = io_app.load_tabular(sep="\t")
-    writer = io_app.write_tabular(data_store=w_dir_dstore, format_name="tsv")
-    m = writer.main(table, identifier="delme")
+    writer = io_app.write_tabular(
+        data_store=w_dir_dstore, format_name="tsv", identifier="delme"
+    )
+    m = writer.main(table)
     new = loader(m)
     assert table.to_dict() == new.to_dict()
 
@@ -464,7 +488,7 @@ def test_write_db_load_db(fasta_dir, tmp_dir):
     reader = io_app.load_db()
     for m in orig_dstore:
         orig = load_seqs(m)
-        m = writer(orig, identifier=m.unique_id)
+        m = writer(orig)
         read = reader(m)
         assert orig == read
 
@@ -498,9 +522,9 @@ def test_write_read_db_not_completed(tmp_dir):
 
     nc = NotCompleted("ERROR", "test", "for tracing", source="blah")
     data_store = DataStoreSqlite(tmp_dir / "test.sqlitedb", mode="w")
-    writer = io_app.write_db(data_store=data_store)
+    writer = io_app.write_db(data_store=data_store, identifier="blah")
     assert len(data_store.not_completed) == 0
-    writer.main(nc, identifier="blah")
+    writer.main(nc)
     assert len(data_store.not_completed) == 1
     reader = io_app.load_db()
     got = reader(data_store.not_completed[0])
@@ -513,9 +537,9 @@ def test_write_read_db_summary_not_completed(tmp_dir):
 
     nc = NotCompleted("ERROR", "test", "for tracing", source="blah")
     data_store = DataStoreSqlite(tmp_dir / "test.sqlitedb", mode="w")
-    writer = get_app("write_db", data_store=data_store)
-    writer.main(nc, identifier="blah")
-    assert isinstance(writer.data_store.summary_not_completed, Table)
+    writer = get_app("write_db", data_store=data_store, identifier="blah")
+    writer.main(nc)
+    assert isinstance(writer.write_data_store.summary_not_completed, Table)
 
 
 def test_write_db_parallel(tmp_dir, fasta_dir):
@@ -526,7 +550,30 @@ def test_write_db_parallel(tmp_dir, fasta_dir):
     reader = get_app("load_unaligned")
     aligner = get_app("align_to_ref")
     writer = get_app("write_seqs", out_dstore)
+
+    assert isinstance(pickle.dumps(members[0]), bytes)
+    print("I at least successfully pickled data!")
+    assert isinstance(pickle.dumps(reader), bytes)
+    print("I at least successfully pickled reader!")
+    assert isinstance(pickle.dumps(aligner), bytes)
+    print("I at least successfully pickled aligner!")
+    assert isinstance(pickle.dumps(writer), bytes)
+    print("I at least successfully pickled writer!")
+    comb_1 = reader + aligner
+    comb_2 = aligner + writer
+    comb_3 = reader + aligner + writer
+    print(type(comb_1), type(comb_2), type(comb_3))
+    assert isinstance(pickle.dumps(comb_1), bytes)
+    print("I at least successfully pickled comb_1!")
+    assert isinstance(pickle.dumps(comb_2), bytes)
+    print("I at least successfully pickled comb_2!")
+    assert isinstance(pickle.dumps(comb_3), bytes)
+    print("I at least successfully pickled comb_3!")
+
     process = reader + aligner + writer
+    print(pickle.loads(pickle.dumps(process)))
+    assert isinstance(pickle.dumps(process), bytes)
+    print("I at least successfully pickled process!")
 
     _ = process.apply_to(members, show_progress=False, parallel=True, cleanup=True)
     expect = [str(pathlib.Path(m.data_store.source) / m.unique_id) for m in out_dstore]
@@ -608,7 +655,7 @@ def test_writer_unique_id_arg(tmp_dir, writer, data, dstore):
     writer = get_app(writer, data_store=dstore(tmp_dir), id_from_source=uniqid)
     m = writer(data)
     # directory data stores have a suffix, so we create expected name using that
-    suffix = getattr(writer.data_store, "suffix", "")
+    suffix = getattr(writer.write_data_store, "suffix", "")
     suffix = f".{suffix}" if suffix else suffix
     expect = f"blah{suffix}"
     assert m.unique_id == expect
@@ -647,7 +694,7 @@ def test_writer_no_unique_id(tmp_dir, writer, data, attr, dstore):
 )
 def test_writer_fails_on_data_store(writer):
     # should raise a type error if not a data store provided
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         get_app(writer, data_store="not-a-data_store")
 
 

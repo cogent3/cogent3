@@ -373,7 +373,7 @@ class DataStoreSqlite(DataStoreABC):
         return
 
     @extend_docstring_from(DataStoreDirectory.write)
-    def write(self, *, unique_id: str, data: StrOrBytes) -> DataMemberABC:
+    def write(self, *, unique_id: str, data: StrOrBytes) -> DataMemberABC | None:
         if unique_id.startswith(_RESULT_TABLE):
             unique_id = Path(unique_id).name
 
