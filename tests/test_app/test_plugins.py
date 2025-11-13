@@ -1,6 +1,8 @@
+import pathlib
 import random
 import string
 import sys
+import tomllib
 from importlib.metadata import EntryPoint
 from unittest.mock import patch
 
@@ -303,3 +305,67 @@ def test_app_help_from_function(mock_extension_manager):
     assert (
         "the square of the input" in got
     )  # test the docstring is included in the help
+
+
+def registered_cogent3_parsers():
+    project_root = pathlib.Path(cogent3.__file__).parent.parent.parent
+    toml = project_root / "pyproject.toml"
+    data = tomllib.loads(toml.read_text(encoding="utf-8"))
+    eps = data.get("project", {}).get("entry-points", {}) or {}
+    # key in the TOML is the literal string "cogent3.parse.sequence"
+    key = "cogent3.parse.sequence"
+    entries = eps.get(key)
+    if entries is None:
+        # fallback: find a matching key if parser produced a different mapping
+        for k, v in eps.items():
+            if k.endswith("parse.sequence") or "parse.sequence" in k:
+                entries = v
+                break
+    return dict(entries or {})
+
+
+def registered_cogent3_formatters():
+    project_root = pathlib.Path(cogent3.__file__).parent.parent.parent
+    toml = project_root / "pyproject.toml"
+    data = tomllib.loads(toml.read_text(encoding="utf-8"))
+    eps = data.get("project", {}).get("entry-points", {}) or {}
+    # key in the TOML is the literal string "cogent3.format.sequence"
+    key = "cogent3.format.sequence"
+    entries = eps.get(key)
+    if entries is None:
+        # fallback: find a matching key if parser produced a different mapping
+        for k, v in eps.items():
+            if k.endswith("format.sequence") or "format.sequence" in k:
+                entries = v
+                break
+    return dict(entries or {})
+
+
+def pytest_generate_tests(metafunc):
+    """Dynamically generate test parameters"""
+    if "seq_parser" in metafunc.fixturenames:
+        parsers = list(registered_cogent3_parsers())
+        metafunc.parametrize(
+            "seq_parser",
+            parsers,
+            ids=parsers,
+        )
+    elif "seq_formatter" in metafunc.fixturenames:
+        formatters = list(registered_cogent3_formatters())
+        metafunc.parametrize(
+            "seq_formatter",
+            formatters,
+            ids=formatters,
+        )
+
+
+def test_registered_parsers_exist(seq_parser):
+    get_parser = cogent3._plugin.get_seq_format_parser_plugin
+    # this should not fail
+    _ = get_parser(format_name=seq_parser)
+
+
+def test_registered_formatters_exist(seq_formatter):
+    get_formatter = cogent3._plugin.get_seq_format_writer_plugin
+    # this should not fail
+    _ = get_formatter(format_name=seq_formatter)

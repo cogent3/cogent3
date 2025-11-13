@@ -42,6 +42,7 @@ from cogent3.core.seq_storage import (
 from cogent3.core.slice_record import SliceRecord
 from cogent3.maths.stats.number import CategoryCounter
 from cogent3.util import progress_display as UI
+from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.io import atomic_write, get_format_suffixes
@@ -433,7 +434,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         sequences. This object maps the names of sequences in self to
         the names of sequences in SeqsData.
         MappingProxyType is an immutable mapping, so it cannot be
-        changed. Use self.rename_seqs() to do that.
+        changed. Use self.renamed_seqs() to do that.
         """
         return self._name_map
 
@@ -589,7 +590,13 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         """returns the names of duplicated sequences"""
         seq_hashes: defaultdict[str, list[str]] = defaultdict(list)
         for n, n2 in self.name_map.items():
-            h = cast("str", self.storage.get_hash(n2))
+            h = cast("str | None", self.storage.get_hash(n2))
+            if h is None:
+                cls = self.__class__.__name__
+                msg = (
+                    f"{cls} has an inconsistent state, no sequence found for name={n!r}"
+                )
+                raise RuntimeError(msg)
             seq_hashes[h].append(n)
         return [v for v in seq_hashes.values() if len(v) > 1]
 
@@ -967,7 +974,18 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
             annotation_db=self._annotation_db,
         )
 
+    @c3warn.deprecated_callable(
+        version="2026.3",
+        reason="incorrectly implies modifies instance",
+        new="renamed_seqs",
+    )
     def rename_seqs(self, renamer: Callable[[str], str]) -> Self:
+        """.. deprecated:: 2026.3
+        Use ``renamed_seqs`` instead.
+        """
+        return self.renamed_seqs(renamer)
+
+    def renamed_seqs(self, renamer: Callable[[str], str]) -> Self:
         """Returns new collection with renamed sequences.
 
         Parameters
@@ -1646,12 +1664,22 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         limit = 10
         delimiter = ""
 
-        repr_seq_names = [min(self.names, key=lambda name: len(self.seqs[name]))]
+        repr_seq_names = [
+            min(
+                self.names,
+                key=lambda name: self._seqs_data.get_seq_length(self.name_map[name]),
+            )
+        ]
         if len(self.names) > 1:
             # In case of a tie, min and max return first.
             # reversed ensures if all seqs are of same length, different seqs are returned
             repr_seq_names.append(
-                max(reversed(self.names), key=lambda name: len(self.seqs[name])),
+                max(
+                    reversed(self.names),
+                    key=lambda name: self._seqs_data.get_seq_length(
+                        self.name_map[name]
+                    ),
+                ),
             )
 
         for name in repr_seq_names:
@@ -2310,7 +2338,28 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
             msg = f"unknown {seqid=}"
             raise ValueError(msg)
 
-        seqids = [seqid] if isinstance(seqid, str) else self.names
+        if seqid is None:
+            # if no seqids provided, we do direct search to find the seqids
+            # that match the other parameters. This matters for collections
+            # with large numbers of sequences due to the overhead of creating
+            # Sequence instances
+            matched = {
+                record["seqid"]
+                for record in self.annotation_db.get_features_matching(
+                    biotype=biotype,
+                    name=name,
+                    start=start,
+                    stop=stop,
+                    allow_partial=allow_partial,
+                    **kwargs,
+                )
+            }
+            seqids = sorted(matched)
+        else:
+            seqids = cast(
+                "list[str]", [seqid] if isinstance(seqid, str) else self.names
+            )
+
         for seqid in seqids:
             seq = self.seqs[seqid]
             yield from seq.get_features(
@@ -2667,12 +2716,23 @@ class Alignment(CollectionBase[Aligned]):
         columns in order corresponding to names."""
         return self.array_seqs.T
 
+    @c3warn.deprecated_callable(
+        version="2026.3",
+        reason="incorrectly implies modifies instance",
+        new="renamed_seqs",
+    )
     def rename_seqs(self, renamer: Callable[[str], str]) -> Self:
+        """.. deprecated:: 2026.3
+        Use ``renamed_seqs`` instead.
+        """
+        return self.renamed_seqs(renamer)
+
+    def renamed_seqs(self, renamer: Callable[[str], str]) -> Self:
         """Returns new alignment with renamed sequences."""
-        new = super().rename_seqs(renamer)
+        new = super().renamed_seqs(renamer)
 
         if self._array_seqs is not None:
-            new._array_seqs = self._array_seqs
+            new._array_seqs = self._array_seqs  # noqa: SLF001
 
         return new
 
@@ -5417,6 +5477,10 @@ def prep_for_seqs_data(
         if seq_data.is_reversed:
             rvd.add(name)
 
+    if len(data) != len(seqs):
+        msg = "Not all derived names for storage unique"
+        raise ValueError(msg)
+
     return seqs, offsets, rvd
 
 
@@ -5564,7 +5628,7 @@ def make_unaligned_seqs(
             is_reversed=is_reversed,
         )
         if label_to_name:
-            seqs = seqs.rename_seqs(label_to_name)
+            seqs = seqs.renamed_seqs(label_to_name)
         return seqs
 
     if len(data) == 0:
@@ -5770,7 +5834,7 @@ def make_aligned_seqs(
             slice_record=sr,
         )
         if label_to_name:
-            aln = aln.rename_seqs(label_to_name)
+            aln = aln.renamed_seqs(label_to_name)
         return aln
 
     if len(data) == 0:

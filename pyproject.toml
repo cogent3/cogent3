@@ -14,7 +14,7 @@ keywords = ["biology", "genomics", "statistics", "phylogeny", "evolution", "bioi
 readme = "README.md"
 license = { file = "LICENSE" }
 dependencies = [
-    "chardet",
+    "charset_normalizer",
     "loky!=3.5.0",
     "numpy",
     "numba>=0.57.0; python_version=='3.11'",
@@ -51,7 +51,7 @@ Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 test = [
     "cogent3-h5seqs>=0.7.1",
     "piqtree>=0.6; python_version >= '3.11'",
-    "ruff==0.13.3",
+    "ruff==0.14.4",
     "kaleido",
     "pandas",
     "plotly",
@@ -201,7 +201,6 @@ phylip = "cogent3.parse.sequence:PhylipParser"
 clustal = "cogent3.parse.sequence:ClustalParser"
 genbank = "cogent3.parse.sequence:GenbankParser"
 msf = "cogent3.parse.sequence:MsfParser"
-xmfa = "cogent3.parse.sequence:XmfaParser"
 tinyseq = "cogent3.parse.sequence:TinyseqParser"
 gbseq = "cogent3.parse.sequence:GbSeqParser"
 

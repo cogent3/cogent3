@@ -1,4 +1,77 @@
 
+<a id='changelog-2025.9.8a8'></a>
+# Changes in release "2025.9.8a8"
+
+This release contains minor bug fix and enhancements.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- `cogent3.available_apps()` now displays the software licenses for
+  apps 🎉
+
+## Bug fixes
+
+- Removed obsolete xmfa parser registration. This was causing errors in
+  some cases.
+
+## Deprecations
+
+- Renamed `<sequence collection>.rename_seqs()` to
+  `<sequence collection>.renamed_seqs()` because former
+  name implies modifying the instance, rather than returning
+  a new instance where the names are new.
+
+<a id='changelog-2025.9.8a7'></a>
+# Changes in release "2025.9.8a7"
+
+Version bump due to interrupted upload to pypi.
+
+<a id='changelog-2025.9.8a6'></a>
+# Changes in release "2025.9.8a6"
+
+This is a minor enhancement release.
+
+## Contributors
+
+- @rmcar17, for more typing related commits!
+- @gavinHuttley, performance improvements for feature querying
+
+## Enhancements
+
+- Modify `SequenceCollection.get_features()` to improve performance
+  when the collection has large numbers of sequences.
+
+<a id='changelog-2025.9.8a5'></a>
+# Changes in release "2025.9.8a5"
+
+Minor enhancement, major advances to type hinting allowing static
+type checking for core classes. This greatly improves the IDE experience,
+thanks @rmcar17!
+
+## Contributors
+
+- @GavinHuttley
+- @rmcar17, major refactoring of code and type hinting core
+  classes and functions🎉🚀
+
+## API
+
+- `Alignment` and `SequenceCollection` now inherit shared methods from
+  `CollectionBase`. `Alignment` no longer inherits from `SequenceCollection`,
+  this enables static type-checking across these classes.
+- `MolType` is no longer a dataclass so we can have a constructor argument
+  share the same name as a property.
+
+## Enhancements
+
+- `PhyloNode.renamed_nodes()` takes a dict mapping the current names to a
+  new name and returns a new `PhyloNode` instance with the new names. If a
+  node name is not present in the dict, it's left as is.
+
 <a id='changelog-2025.9.8a4'></a>
 # Changes in release "2025.9.8a4"
 

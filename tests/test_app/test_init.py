@@ -1,15 +1,17 @@
-"""testing the default import"""
-
-import os
 from pathlib import Path
-from tempfile import TemporaryDirectory
-from unittest import TestCase
 
 import pytest
 
 from cogent3 import app_help, available_apps, get_app, open_data_store
 from cogent3.app.comp_new import LOADER, WRITER, is_app
 from cogent3.core.table import Table
+
+try:
+    import piqtree  # noqa: F401
+
+    has_piqtree = True
+except ImportError:
+    has_piqtree = False
 
 
 def _get_all_composables(tmp_dir_name):
@@ -175,3 +177,25 @@ def test_available_apps_package():
     filtered_apps = available_apps("model")
     assert "cogent3" in filtered_apps.columns["package"]
     assert all("." not in pkg for pkg in filtered_apps.columns["package"])
+
+
+_package_licenses = [("typing_extensions", "PSF-2"), ("numpy", "BSD")]
+if has_piqtree:
+    _package_licenses.append(("piqtree", "GPL"))
+
+
+@pytest.mark.parametrize(("package", "pkg_license"), _package_licenses)
+def test_available_apps_license(package, pkg_license):
+    # table contains the correct license
+    from cogent3.app import _get_licenses
+
+    # "typing_extensions" has no trove classifier
+    # rich has license but not in trove
+    got = _get_licenses(package)
+    assert pkg_license in got
+
+
+def test_available_apps_license_col():
+    available = available_apps()
+    assert "licenses" in available.columns
+    assert "BSD" in available.columns["licenses"]
