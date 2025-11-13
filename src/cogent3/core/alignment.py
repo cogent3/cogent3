@@ -779,7 +779,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
 
     def iter_seqs(
         self,
-        seq_order: list[str | int] | None = None,
+        seq_order: Iterable[str | int] | None = None,
     ) -> Iterator[TSequenceOrAligned]:
         """Iterates over sequences in the collection, in order.
 

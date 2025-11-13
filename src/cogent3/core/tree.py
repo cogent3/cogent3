@@ -2186,7 +2186,7 @@ class TreeBuilder:
 
 def make_tree(
     treestring: str | None = None,
-    tip_names: list[str] | None = None,
+    tip_names: Iterable[str] | None = None,
     format_name: str | None = None,
     underscore_unmunge: bool = False,
     source: str | pathlib.Path | None = None,
