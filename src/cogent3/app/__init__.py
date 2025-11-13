@@ -5,13 +5,13 @@ import inspect
 import re
 import textwrap
 import warnings
+from typing import TYPE_CHECKING, Any, get_type_hints
 from importlib.metadata import PackageNotFoundError, metadata
-from typing import TYPE_CHECKING
 
 import cogent3
 from cogent3._plugin import get_app_manager
 
-from .composable import is_app, is_app_composable
+from .comp_new import _AppBaseClass, is_app, is_app_composable
 from .io import open_data_store  # noqa
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -51,8 +51,11 @@ def _get_extension_attr(extension: Extension) -> list[str]:
     This function also loads the module the app is in.
     """
 
-    obj = extension.plugin
-
+    obj: _AppBaseClass[Any, Any, Any] | type[_AppBaseClass[Any, Any, Any]] = (
+        extension.plugin
+    )
+    print("OVERE HERE")
+    print(type(obj), is_app(obj), obj)
     if not is_app(obj):
         warnings.warn(
             f"{obj!r} from {obj.__module__!r} is not a valid cogent3 app, skipping",
@@ -72,13 +75,18 @@ def _get_extension_attr(extension: Extension) -> list[str]:
     ]
 
 
-def _make_types(app: type) -> dict:
+def _make_types(
+    app: _AppBaseClass[Any, Any, Any] | type[_AppBaseClass[Any, Any, Any]],
+) -> dict[str, list[str]]:
     """returns type hints for the input and output"""
-    _types = {"_data_types": [], "_return_types": []}
-    for tys in _types:
-        types = getattr(app, tys, None) or []
-        types = [types] if isinstance(types, str) else types
-        _types[tys] = [{None: ""}.get(e, e) for e in types]
+    _types: dict[str, list[str]] = {"_data_types": [], "_return_types": []}
+
+    type_hints = get_type_hints(app.fn)
+    if "return" in type_hints:
+        _types["_return_types"] = [str(type_hints["return"])]
+
+    if len(type_hints) > 0:
+        _types["_data_types"] = [str(type_hints[next(iter(type_hints))])]
     return _types
 
 
@@ -115,7 +123,9 @@ _get_param = re.compile('(?<=").+(?=")')
 _type_hint = re.compile(r":.+?=\s*")
 
 
-def _make_signature(app: type) -> str:
+def _make_signature(
+    app: _AppBaseClass[Any, Any, Any] | type[_AppBaseClass[Any, Any, Any]],
+) -> str:
     from cogent3.util.misc import get_object_provenance
 
     if app is None:
@@ -126,18 +136,14 @@ def _make_signature(app: type) -> str:
     if not inspect.isclass(app):
         app = app.__class__
 
-    init_sig = inspect.signature(app.__init__)
+    init_sig = inspect.signature(app.fn)
     app_name = app.__name__
     params = [f"{app_name!r}"]
     empty_default = inspect._empty
-    for k, v in init_sig.parameters.items():
-        if k == "self":
-            continue
-
+    for k, v in list(init_sig.parameters.items())[1:]:
         txt = repr(v).replace("\n", " ")
         # clean up text when callable() used  as a type hint
         txt = txt.replace("<built-in function callable>", "callable")
-
         val = _get_param.findall(txt)[0]
         val = _type_hint.sub("=", val)
         if v.default is not empty_default and callable(v.default):
@@ -204,7 +210,7 @@ def _get_app_matching_name(name: str) -> type:
     )
 
 
-def get_app(_app_name: str, *args, **kwargs):
+def get_app(_app_name: str, *args, **kwargs) -> _AppBaseClass[Any, Any, Any]:
     """returns app instance, use app_help() to display arguments
 
     Raises
@@ -243,8 +249,10 @@ def _clean_overview(text: str) -> str:
     return "\n".join(textwrap.wrap(" ".join(text), break_long_words=False))
 
 
-def _make_apphelp_docstring(app):
-    docs = []
+def _make_apphelp_docstring(
+    app: _AppBaseClass[Any, Any, Any] | type[_AppBaseClass[Any, Any, Any]],
+) -> str:
+    docs: list[str] = []
     app_doc = app.__doc__ or ""
     if app_doc.strip():
         docs.extend([*_make_head("Overview"), _clean_overview(app_doc), ""])
@@ -274,4 +282,4 @@ def app_help(name: str) -> None:
         to name.
     """
     app = _get_app_matching_name(name)
-    print(_make_apphelp_docstring(app))  # noqa
+    print(_make_apphelp_docstring(app))  # noqa: T201

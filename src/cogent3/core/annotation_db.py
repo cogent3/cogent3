@@ -11,20 +11,30 @@ import sqlite3
 import warnings
 from collections.abc import Callable, Iterable, Iterator, Sized
 from collections.abc import Sequence as PySeq
-from typing import Any, ClassVar, Protocol, Self, TypedDict, cast, runtime_checkable
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    ClassVar,
+    Protocol,
+    Self,
+    TypedDict,
+    cast,
+    runtime_checkable,
+)
 
 import numpy
 import numpy.typing as npt
 
 from cogent3._version import __version__
 from cogent3.core.location import Strand, deserialise_map_spans
-from cogent3.core.table import Table
 from cogent3.parse.gff import GffRecordABC, merged_gff_records
 from cogent3.util.deserialise import deserialise_object, register_deserialiser
 from cogent3.util.io import PathType, iter_line_blocks
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
 from cogent3.util.progress_display import ProgressContext, display_wrap
 
+if TYPE_CHECKING:
+    from cogent3.core.table import Table
 NumpyIntArrayType = npt.NDArray[numpy.integer]
 
 
@@ -1029,6 +1039,8 @@ class SqliteAnnotationDbMixin:
 
         >>> counts_table = db.count_distinct(seqid=True, biotype="gene", name=True)
         """
+        from cogent3.core.table import Table
+
         columns = {k for k, v in locals().items() if v is True}
         if not columns:
             return None
@@ -1061,6 +1073,8 @@ class SqliteAnnotationDbMixin:
     @property
     def describe(self) -> Table:
         """top level description of the annotation db"""
+        from cogent3.core.table import Table
+
         sql_template = "SELECT {}, COUNT(*) FROM {} GROUP BY {};"
         data: dict[str, int] = {}
         for column in ("seqid", "biotype"):

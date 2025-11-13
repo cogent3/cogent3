@@ -10,7 +10,7 @@ from scitrack import get_text_hexdigest
 
 from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
-from cogent3.app.composable import NotCompleted
+from cogent3.app.comp_new import NotCompleted
 from cogent3.app.data_store import (
     _MD5_TABLE,
     _NOT_COMPLETED_TABLE,
@@ -571,8 +571,8 @@ def test_write_read_not_completed(nc_dstore):
     nc_dstore.drop_not_completed()
     assert len(nc_dstore.not_completed) == 0
     nc = NotCompleted("ERROR", "test", "for tracing", source="blah")
-    writer = io_app.write_seqs(data_store=nc_dstore)
-    writer.main(nc, identifier="blah")
+    writer = io_app.write_seqs(data_store=nc_dstore, identifier="blah")
+    writer.main(nc)
     assert len(nc_dstore.not_completed) == 1
     got = nc_dstore.not_completed[0].read()
     assert nc.to_json() == got

@@ -27,7 +27,6 @@ import numpy
 
 from cogent3.format import bedgraph
 from cogent3.format import table as table_format
-from cogent3.parse import cogent3_json as c3_json
 from cogent3.parse.table import load_delimited
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
@@ -2417,6 +2416,8 @@ def load_table(
     skip_inconsistent
         skips rows that have different length to header row
     """
+    from cogent3.parse import cogent3_json as c3_json
+
     if not any(isinstance(filename, t) for t in (str, pathlib.PurePath)):
         msg = "filename must be string or Path, perhaps you want make_table()"
         raise TypeError(

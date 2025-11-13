@@ -13,7 +13,7 @@ from enum import Enum
 from functools import singledispatch
 from io import TextIOWrapper
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from scitrack import get_text_hexdigest
 
@@ -28,7 +28,6 @@ if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Iterator
     from os import PathLike
 
-    from cogent3.app.typing import TabularType
 
 _NOT_COMPLETED_TABLE = "not_completed"
 _LOG_TABLE = "logs"
@@ -65,7 +64,7 @@ class DataMemberABC(ABC):
 
     @property
     @abstractmethod
-    def unique_id(self): ...
+    def unique_id(self) -> str: ...
 
     def __str__(self) -> str:
         return self.unique_id
@@ -76,7 +75,7 @@ class DataMemberABC(ABC):
     def read(self) -> StrOrBytes:
         return self.data_store.read(self.unique_id)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object):
         """to check equality of members and check existence of a
         member in a list of members"""
         return isinstance(other, type(self)) and (self.data_store, self.unique_id) == (
@@ -85,7 +84,7 @@ class DataMemberABC(ABC):
         )
 
     @property
-    def md5(self):
+    def md5(self) -> str | None:
         return self.data_store.md5(self.unique_id)
 
 
@@ -157,11 +156,11 @@ class DataStoreABC(ABC):
             raise OSError(msg)
 
     @abstractmethod
-    def write(self, *, unique_id: str, data: StrOrBytes) -> None:
+    def write(self, *, unique_id: str, data: StrOrBytes) -> DataMemberABC | None:
         self._check_writable(unique_id)
 
     @abstractmethod
-    def write_not_completed(self, *, unique_id: str, data: StrOrBytes) -> None:
+    def write_not_completed(self, *, unique_id: str, data: StrOrBytes) -> DataMemberABC:
         self._check_writable(unique_id)
 
     @abstractmethod
@@ -188,7 +187,7 @@ class DataStoreABC(ABC):
     def not_completed(self) -> list[DataMemberABC]: ...
 
     @property
-    def summary_logs(self) -> TabularType:
+    def summary_logs(self) -> Table:
         """returns a table summarising log files"""
         rows = []
         for record in self.logs:
@@ -223,13 +222,13 @@ class DataStoreABC(ABC):
         )
 
     @property
-    def summary_not_completed(self) -> TabularType:
+    def summary_not_completed(self) -> Table:
         """returns a table summarising not completed results"""
         # detect last exception line
         return summary_not_completeds(self.not_completed)
 
     @property
-    def describe(self) -> TabularType:
+    def describe(self) -> Table:
         title = "Directory datastore"
         num_not_completed = len(self.not_completed)
         num_completed = len(self.completed)
@@ -247,7 +246,7 @@ class DataStoreABC(ABC):
     @abstractmethod
     def drop_not_completed(self, *, unique_id: str | None = None) -> None: ...
 
-    def validate(self) -> TabularType:
+    def validate(self) -> Table:
         correct_md5 = len(self.members)
         missing_md5 = 0
         for m in self.members:
@@ -274,7 +273,7 @@ class DataStoreABC(ABC):
         )
 
     @abstractmethod
-    def md5(self, unique_id: str) -> str | NoneType:
+    def md5(self, unique_id: str) -> str | None:
         """
         Parameters
         ----------
@@ -300,7 +299,7 @@ class DataMember(DataMemberABC):
         return self._data_store
 
     @property
-    def unique_id(self):
+    def unique_id(self) -> str:
         return self._unique_id
 
 
@@ -401,7 +400,7 @@ class DataStoreDirectory(DataStoreABC):
             (source / sub_dir).mkdir(parents=True, exist_ok=True)
 
     @property
-    def source(self) -> str | Path:
+    def source(self) -> Path:
         """string that references the data store, override in subclass constructor"""
         return self._source
 
@@ -523,7 +522,7 @@ class DataStoreDirectory(DataStoreABC):
 
         return member
 
-    def write(self, *, unique_id: str, data: str) -> DataMember:
+    def write(self, *, unique_id: str, data: str) -> DataMemberABC | None:
         """writes a completed record ending with .suffix
 
         Parameters
@@ -552,7 +551,7 @@ class DataStoreDirectory(DataStoreABC):
             self._completed.append(member)
         return member
 
-    def write_not_completed(self, *, unique_id: str, data: str) -> DataMember:
+    def write_not_completed(self, *, unique_id: str, data: str) -> DataMemberABC:
         """writes a not completed record as json
 
         Parameters
@@ -581,7 +580,7 @@ class DataStoreDirectory(DataStoreABC):
         (self.source / _LOG_TABLE).mkdir(parents=True, exist_ok=True)
         _ = self._write(subdir=_LOG_TABLE, unique_id=unique_id, suffix="log", data=data)
 
-    def md5(self, unique_id: str) -> str | NoneType:
+    def md5(self, unique_id: str | Path) -> str | None:
         """
         Parameters
         ----------
@@ -634,7 +633,7 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
         return self._mode
 
     @property
-    def source(self) -> str | Path:
+    def source(self) -> Path:
         return self._source
 
     def read(self, unique_id: str) -> StrOrBytes:
@@ -644,7 +643,7 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
             record = TextIOWrapper(record, encoding="latin-1")
             return record.read()
 
-    def _iter_matches(self, subdir: str, pattern: str) -> Iterator[PathLike]:
+    def _iter_matches(self, subdir: str, pattern: str) -> Iterator[PathLike[Any]]:
         with zipfile.ZipFile(self._source) as archive:
             names = archive.namelist()
             for name in names:
@@ -697,7 +696,7 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
             logs.append(m)
         return logs
 
-    def md5(self, unique_id: str) -> str | NoneType:
+    def md5(self, unique_id: str) -> str | None:
         """
         Parameters
         ----------
@@ -720,11 +719,11 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
         msg = "zip data stores are read only"
         raise TypeError(msg)
 
-    def write(self, *, unique_id: str, data: StrOrBytes) -> None:
+    def write(self, *, unique_id: str, data: StrOrBytes) -> DataMemberABC | None:
         msg = "zip data stores are read only"
         raise TypeError(msg)
 
-    def write_not_completed(self, *, unique_id: str, data: StrOrBytes) -> None:
+    def write_not_completed(self, *, unique_id: str, data: StrOrBytes) -> DataMemberABC:
         msg = "zip data stores are read only"
         raise TypeError(msg)
 
@@ -807,7 +806,7 @@ def convert_tinydb_to_sqlite(source: Path, dest: Path | None = None) -> DataStor
     from datetime import datetime
     from fnmatch import translate
 
-    from .composable import CachingLogger, _make_logfile_name
+    from .comp_new import CachingLogger, _make_logfile_name
     from .data_store import load_record_from_json
     from .io import write_db
     from .sqlite_data_store import _LOG_TABLE, DataStoreSqlite
@@ -850,8 +849,9 @@ def convert_tinydb_to_sqlite(source: Path, dest: Path | None = None) -> DataStor
     LOGGER.log_file_path = log_file_path
 
     dstore = DataStoreSqlite(source=dest, mode=OVERWRITE)
-    writer = write_db(data_store=dstore)
     for id_, data, _ in data_list:
+        writer = write_db(data_store=dstore, identifier=id_)
+        writer.set_raise_errors(True)
         if id_.endswith(".log"):
             cmnd = f"UPDATE {_LOG_TABLE} SET data =?, log_name =?"
             values = (data, id_)
@@ -868,7 +868,7 @@ def convert_tinydb_to_sqlite(source: Path, dest: Path | None = None) -> DataStor
 
             dstore.db.execute(cmnd, values)
         else:
-            writer.main(data, identifier=id_)
+            writer(data)
 
     # add a new log, recording this conversion
     LOGGER.shutdown()

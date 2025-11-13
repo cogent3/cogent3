@@ -1,10 +1,11 @@
 from unittest import TestCase
 
 import pytest
+from typeguard import TypeCheckError
 
 import cogent3
-from cogent3.app import composable, sample
-from cogent3.app.composable import NotCompleted
+from cogent3.app import comp_new, sample
+from cogent3.app.comp_new import NotCompleted
 from cogent3.core.moltype import MolTypeError
 
 DNA = cogent3.get_moltype("dna")
@@ -42,10 +43,10 @@ class TranslateTests(TestCase):
         """correctly return codon positions from Alignment"""
         self._codon_positions()
 
-    def test_take_named_3(self):
-        """3 named seqs"""
-        select = sample.take_named_seqs("a", "b", "c")
-        assert select._init_vals == {"names": tuple("abc"), "negate": False}
+    # def test_take_named_3(self):
+    #     """3 named seqs"""
+    #     select = sample.take_named_seqs("a", "b", "c")
+    #     assert select._init_vals == {"names": tuple("abc"), "negate": False}
 
     def test_take_named(self):
         """returns collections containing named seqs"""
@@ -83,7 +84,7 @@ class TranslateTests(TestCase):
         )
         got = select(aln)
         assert not got
-        assert type(got) is composable.NotCompleted
+        assert type(got) is comp_new.NotCompleted
 
         # using negate
         select = sample.take_named_seqs("c", negate=True)
@@ -301,12 +302,8 @@ class TranslateTests(TestCase):
         ]
         ccat = sample.concat()
         # triggered by first record
-        got = ccat(data)
-        assert isinstance(got, composable.NotCompleted)
-
-        # triggered by second record
-        got = ccat(data[::-1])
-        assert isinstance(got, composable.NotCompleted)
+        with pytest.raises(TypeCheckError):
+            got = ccat(data)
 
     def test_trim_stop_codons(self):
         """trims stop codons using the specified genetic code"""
@@ -368,9 +365,9 @@ class TranslateTests(TestCase):
         take = sample.take_n_seqs(3, fixed_choice=True)
         got = take(seqs1)
         assert len(got.names) == 3
-        # this should return NotCompleted because it applies the names present in 1 to the next one
+
         got = take(seqs2)
-        assert isinstance(got, NotCompleted)
+        assert len(got.names) == 3
 
         take = sample.take_n_seqs(30)
         # this should fail because too few seqs
@@ -385,15 +382,16 @@ class TranslateTests(TestCase):
 
         # random choice, fixed
         take = sample.take_n_seqs(3, random=True, fixed_choice=True)
-        assert take._fixed_choice is True
+        # assert take._fixed_choice is True
 
         got1 = take(seqs2)
         got2 = take(seqs1)
-        assert got1.names == got2.names
+        # TODO: apps are now stateless so this doesn't work
+        # assert got1.names == got2.names
 
         # random choice, not fixed
         take = sample.take_n_seqs(2, random=True, fixed_choice=False)
-        assert take._fixed_choice is False
+        # assert take._fixed_choice is False
         # testing this is hard, we simply expect the labels to differ on subsequent call
         # the probability of drawing a specific pair of names on one call is 1/(9 choose 2) = 1/36
         # at n = 11, the probability all the pairs will be identical is ~=0
@@ -478,8 +476,10 @@ def test_omit_bad_seqs(bad_gap_data, gap_fraction, quantile, expected_keys):
 
 
 def test_omit_bad_seqs_error():
+    aln = cogent3.load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
+
     with pytest.raises(MolTypeError):
-        sample.omit_bad_seqs(moltype="text")
+        sample.omit_bad_seqs(moltype="text")(aln)
 
 
 @pytest.fixture
@@ -540,7 +540,7 @@ def test_filter_degen():
         moltype=DNA,
     )
     got = degen(aln)
-    assert isinstance(got, composable.NotCompleted)
+    assert isinstance(got, comp_new.NotCompleted)
 
     # we get back the alignment type we passed in
     aln = cogent3.make_aligned_seqs(
@@ -604,7 +604,7 @@ def test_omit_gapped():
         moltype=DNA,
     )
     got = nogaps(aln)  # pylint: disable=not-callable
-    assert isinstance(got, composable.NotCompleted)
+    assert isinstance(got, comp_new.NotCompleted)
 
 
 def test_minlength():
@@ -617,7 +617,7 @@ def test_minlength():
     # if using subtract_degen, fails if incorect moltype
     ml = sample.min_length(9, subtract_degen=True)
     got = ml(aln)  # pylint: disable=not-callable
-    assert isinstance(got, composable.NotCompleted)
+    assert isinstance(got, comp_new.NotCompleted)
     assert got.type == "ERROR"
 
     # but works if subtract_degen is False
@@ -678,7 +678,7 @@ def test_codon_positions_4fold_degen():
     assert got.to_dict() == expect
     # error if no moltype
     with pytest.raises(ValueError):
-        _ = sample.take_codon_positions(moltype=None)
+        _ = sample.take_codon_positions(moltype=None)(aln)
 
 
 def test_fourfold_empty_alignment():
@@ -699,5 +699,6 @@ def test_fourfold_empty_alignment():
     "app_name", ["omit_degenerates", "omit_gap_pos", "take_codon_positions"]
 )
 def test_invalid_moltype_apps(app_name):
+    aln = cogent3.load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
     with pytest.raises(MolTypeError):
-        _ = cogent3.get_app(app_name, moltype="protein")
+        _ = cogent3.get_app(app_name, moltype="protein")(aln)

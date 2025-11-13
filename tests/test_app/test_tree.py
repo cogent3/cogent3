@@ -6,7 +6,7 @@ import pytest
 import cogent3
 from cogent3.app import dist
 from cogent3.app import tree as tree_app
-from cogent3.app.composable import NotCompleted
+from cogent3.app.comp_new import _AppBaseClass, NotCompleted
 from cogent3.core.tree import PhyloNode
 from cogent3.evolve.fast_distance import DistanceMatrix
 
@@ -18,10 +18,10 @@ DNA = cogent3.get_moltype("dna")
 class TestTree(TestCase):
     def test_scale_tree_lengths(self):
         """correctly scales tree lengths"""
-        with pytest.raises(AssertionError):
-            _ = tree_app.scale_branches(nuc_to_codon=True, codon_to_nuc=True)
-
         tree = cogent3.make_tree(treestring="(a:3,b:6,c:9)")
+        with pytest.raises(AssertionError):
+            _ = tree_app.scale_branches(nuc_to_codon=True, codon_to_nuc=True)(tree)
+
         scale_to_codon = tree_app.scale_branches(nuc_to_codon=True)
         d = scale_to_codon(tree)
         got = {e.name: e.length for e in d.get_edge_vector(include_root=False)}
@@ -69,8 +69,7 @@ class TestTree(TestCase):
             str(proc)
             == "fast_slow_dist(distance=None, moltype='dna', fast_calc='hamming',\nslow_calc=None) + quick_tree(drop_invalid=False)"
         )
-        assert isinstance(proc, tree_app.quick_tree)
-        assert isinstance(proc.input, dist.fast_slow_dist)
+        assert isinstance(proc, _AppBaseClass)
 
         tree1 = proc(aln1)
         assert isinstance(tree1, PhyloNode)

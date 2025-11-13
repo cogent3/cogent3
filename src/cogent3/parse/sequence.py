@@ -3,7 +3,8 @@
 import abc
 import functools
 import pathlib
-import typing
+from collections.abc import Callable, Iterable
+from typing import Any
 
 from cogent3.parse import (
     clustal,
@@ -18,7 +19,7 @@ from cogent3.parse import (
 )
 from cogent3.util.io import iter_splitlines
 
-ParserOutputType = typing.Iterable[tuple[str, str] | dict]
+ParserOutputType = Iterable[tuple[str, str] | dict]
 
 SeqParserInputTypes = str | pathlib.Path | tuple | list
 
@@ -55,7 +56,7 @@ class SequenceParserBase(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+    def loader(self) -> Callable[[SeqParserInputTypes], ParserOutputType]:
         """a callable for loading from a file"""
         ...
 
@@ -63,34 +64,32 @@ class SequenceParserBase(abc.ABC):
 class LineBasedParser:
     """wrapper class to standardise input for line-based sequence format parsers"""
 
-    def __init__(self, parser: typing.Callable[[typing.Any], ParserOutputType]) -> None:
+    def __init__(self, parser: Callable[[Any], ParserOutputType]) -> None:
         self._parse = parser
 
     @functools.singledispatchmethod
-    def __call__(self, data, **kwargs: dict[str, typing.Any]) -> ParserOutputType:
+    def __call__(self, data, **kwargs: dict[str, Any]) -> ParserOutputType:
         msg = f"Unsupported data type {type(data)}"
         raise TypeError(msg)
 
     @__call__.register
-    def _(self, data: str, **kwargs: dict[str, typing.Any]) -> ParserOutputType:
+    def _(self, data: str, **kwargs: dict[str, Any]) -> ParserOutputType:
         yield from self._parse(iter_splitlines(data), **kwargs)
 
     @__call__.register
-    def _(
-        self, data: pathlib.Path, **kwargs: dict[str, typing.Any]
-    ) -> ParserOutputType:
+    def _(self, data: pathlib.Path, **kwargs: dict[str, Any]) -> ParserOutputType:
         if not data.exists():
             msg = f"File '{data}' does not exist"
             raise FileNotFoundError(msg)
         yield from self._parse(iter_splitlines(data), **kwargs)
 
     @__call__.register
-    def _(self, data: tuple, **kwargs: dict[str, typing.Any]) -> ParserOutputType:
+    def _(self, data: tuple, **kwargs: dict[str, Any]) -> ParserOutputType:
         # we're assuming this is already split by lines
         yield from self._parse(data, **kwargs)
 
     @__call__.register
-    def _(self, data: list, **kwargs: dict[str, typing.Any]) -> ParserOutputType:
+    def _(self, data: list, **kwargs: dict[str, Any]) -> ParserOutputType:
         # we're assuming this is already split by lines
         yield from self._parse(data, **kwargs)
 
@@ -130,7 +129,7 @@ class FastaParser(SequenceParserBase):
         return {"fasta", "fa", "fna", "faa", "mfa"}
 
     @property
-    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+    def loader(self) -> Callable[[SeqParserInputTypes], ParserOutputType]:
         return fasta.iter_fasta_records
 
 
@@ -146,7 +145,7 @@ class GdeParser(SequenceParserBase):
         return {"gde"}
 
     @property
-    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+    def loader(self) -> Callable[[SeqParserInputTypes], ParserOutputType]:
         return LineBasedParser(fasta.MinimalGdeParser)
 
 
@@ -162,7 +161,7 @@ class PhylipParser(SequenceParserBase):
         return {"phylip", "phy"}
 
     @property
-    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+    def loader(self) -> Callable[[SeqParserInputTypes], ParserOutputType]:
         return LineBasedParser(phylip.MinimalPhylipParser)
 
 
@@ -178,7 +177,7 @@ class ClustalParser(SequenceParserBase):
         return {"clustal", "aln"}
 
     @property
-    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+    def loader(self) -> Callable[[SeqParserInputTypes], ParserOutputType]:
         return LineBasedParser(clustal.ClustalParser)
 
 
@@ -194,7 +193,7 @@ class PamlParser(SequenceParserBase):
         return {"paml"}
 
     @property
-    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+    def loader(self) -> Callable[[SeqParserInputTypes], ParserOutputType]:
         return LineBasedParser(paml.PamlParser)
 
 
@@ -210,7 +209,7 @@ class NexusParser(SequenceParserBase):
         return {"nexus", "nex", "nxs"}
 
     @property
-    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+    def loader(self) -> Callable[[SeqParserInputTypes], ParserOutputType]:
         return LineBasedParser(nexus.MinimalNexusAlignParser)
 
 
@@ -226,7 +225,7 @@ class GenbankParser(SequenceParserBase):
         return {"gb", "gbk", "gbff", "genbank"}
 
     @property
-    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+    def loader(self) -> Callable[[SeqParserInputTypes], ParserOutputType]:
         return genbank.rich_parser
 
 
@@ -242,7 +241,7 @@ class MsfParser(SequenceParserBase):
         return {"msf"}
 
     @property
-    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+    def loader(self) -> Callable[[SeqParserInputTypes], ParserOutputType]:
         return LineBasedParser(gcg.MsfParser)
 
 
@@ -258,7 +257,7 @@ class TinyseqParser(SequenceParserBase):
         return {"tinyseq"}
 
     @property
-    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+    def loader(self) -> Callable[[SeqParserInputTypes], ParserOutputType]:
         return LineBasedParser(tinyseq.TinyseqParser)
 
 
@@ -274,14 +273,14 @@ class GbSeqParser(SequenceParserBase):
         return {"gbseq"}
 
     @property
-    def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+    def loader(self) -> Callable[[SeqParserInputTypes], ParserOutputType]:
         return gbseq.GbSeqXmlParser
 
 
 XML_PARSERS = {"gbseq": gbseq.GbSeqXmlParser, "tseq": tinyseq.TinyseqParser}
 
 
-def get_parser(fmt: str) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
+def get_parser(fmt: str) -> Callable[[SeqParserInputTypes], ParserOutputType]:
     """returns a sequence format parser"""
     try:
         return PARSERS[fmt]

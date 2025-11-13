@@ -16,18 +16,18 @@ from cogent3.align.progressive import tree_align
 from cogent3.app import dist
 from cogent3.app.data_store import get_data_source
 from cogent3.app.tree import interpret_tree_arg
-from cogent3.core.alignment import Aligned
+from cogent3.core.alignment import Aligned, Alignment, SequenceCollection
 from cogent3.core.location import gap_coords_to_map
 from cogent3.core.moltype import MolTypeLiteral, get_moltype
 from cogent3.evolve.fast_distance import get_distance_calculator
 from cogent3.evolve.models import get_model
 from cogent3.maths.util import safe_log
 
-from .composable import NotCompleted, define_app
+from .comp_new import NotCompleted, define_app
 from .tree import quick_tree, scale_branches
-from .typing import AlignedSeqsType, SerialisableType, UnalignedSeqsType
 
 if typing.TYPE_CHECKING:  # pragma: no cover
+    from collections.abc import Callable
     from cogent3.core.tree import PhyloNode
 
 
@@ -410,9 +410,7 @@ class align_to_ref:
 
         return pairwise_to_multiple(pwise, ref_seq, self._moltype, info=seqs.info)
 
-    T = SerialisableType | AlignedSeqsType
-
-    def main(self, seqs: UnalignedSeqsType) -> T:
+    def main(self, seqs: SequenceCollection) -> Alignment:
         """return aligned sequences"""
         return self._func(seqs)
 
@@ -535,9 +533,7 @@ class progressive_align:
         self._distance = distance
         self._iters = iters
         if callable(guide_tree):
-            self._make_tree: typing.Callable[[UnalignedSeqsType], PhyloNode] = (
-                guide_tree
-            )
+            self._make_tree: Callable[[SequenceCollection], PhyloNode] = guide_tree
             guide_tree = None  # callback takes precedence
         elif approx_dists and len(moltype.alphabet) == 4:
             dist_app = dist.get_approx_dist_calc(dist="jc69", num_states=4)
@@ -581,9 +577,7 @@ class progressive_align:
             tree = scaler(tree)
         return tree
 
-    T = SerialisableType | AlignedSeqsType
-
-    def main(self, seqs: UnalignedSeqsType) -> T:
+    def main(self, seqs: SequenceCollection) -> Alignment:
         """returned progressively aligned sequences"""
         source = get_data_source(seqs)
         if self._moltype and self._moltype != seqs.moltype:
@@ -693,7 +687,7 @@ class smith_waterman:
         self._insertion_penalty = insertion_penalty
         self._extension_penalty = extension_penalty
 
-    def main(self, seqs: UnalignedSeqsType) -> AlignedSeqsType:
+    def main(self, seqs: SequenceCollection) -> Alignment:
         if seqs.num_seqs != 2:
             return NotCompleted(
                 "ERROR",
@@ -764,7 +758,7 @@ class ic_score:
         """
         self._equi_frequent = equifreq_mprobs
 
-    def main(self, aln: AlignedSeqsType) -> float:
+    def main(self, aln: Alignment) -> float:
         counts = aln.counts_per_pos(include_ambiguity=False, allow_gap=False)
         if counts.array.max() == 0 or aln.num_seqs == 1:
             msg = "zero length" if len(aln) == 0 else "single sequence"
@@ -795,7 +789,7 @@ class ic_score:
 
 
 @define_app
-def cogent3_score(aln: AlignedSeqsType) -> float:
+def cogent3_score(aln: Alignment) -> float:
     """returns the cogent3 log-likelihood as an alignment quality score
 
     Parameters
@@ -943,7 +937,7 @@ class sp_score:
         self._calc = get_distance_calculator(calc)
         self._gap_calc = dist.gap_dist(gap_insert=gap_insert, gap_extend=gap_extend)
 
-    def main(self, aln: AlignedSeqsType) -> float:
+    def main(self, aln: Alignment) -> float:
         # this is a distance matrix, we want a similarity matrix
         # because genetic distances can exceed 1, we need to adjust by
         # multiplying by the length of the alignment to get the estimated
