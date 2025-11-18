@@ -1,15 +1,16 @@
 from collections import defaultdict
-from typing import Union
+from typing import Any, TypeVar, Union
 
 from numpy import array
 from numpy import random as np_random
 
 import cogent3
 from cogent3.core import moltype as c3_moltype
+from cogent3.core.alignment import Alignment, CollectionBase, SequenceCollection
 
-from .composable import NON_COMPOSABLE, NotCompleted, define_app
+from .comp_new import NON_COMPOSABLE, NotCompleted, define_app
 from .translate import get_fourfold_degenerate_sets
-from .typing import AlignedSeqsType, SeqsCollectionType, SerialisableType
+from .typing import SerialisableType
 
 OptInt = int | None
 
@@ -102,8 +103,8 @@ class concat:
 
     def main(
         self,
-        data: list[AlignedSeqsType],
-    ) -> SerialisableType | AlignedSeqsType:
+        data: list[Alignment],
+    ) -> Alignment | NotCompleted:
         """returns an alignment
 
         Parameters
@@ -114,7 +115,7 @@ class concat:
         if not data:
             return NotCompleted("ERROR", self, message="no data")
 
-        names = []
+        names: list[tuple[str, ...]] = []
         for aln in data:
             if self._moltype is None:
                 self._moltype = aln.moltype
@@ -220,9 +221,7 @@ class omit_degenerates:
         self._allow_gap = not gap_is_degen
         self._motif_length = motif_length
 
-    T = Union[SerialisableType, AlignedSeqsType]
-
-    def main(self, aln: AlignedSeqsType) -> T:
+    def main(self, aln: Alignment) -> Alignment | NotCompleted:
         if self._moltype and aln.moltype != self._moltype:
             # try converting
             aln = aln.to_moltype(self._moltype)
@@ -315,9 +314,9 @@ class omit_gap_pos:
         self._allowed_frac = allowed_frac
         self._motif_length = motif_length
 
-    T = Union[SerialisableType, AlignedSeqsType]
+    T = Union[SerialisableType, Alignment]
 
-    def main(self, aln: AlignedSeqsType) -> T:
+    def main(self, aln: Alignment) -> T:
         if self._moltype and aln.moltype != self._moltype:
             # try converting
             aln = aln.to_moltype(self._moltype)
@@ -479,10 +478,13 @@ class take_codon_positions:
         indices = [k for k in range(length) if k % 3 in self._positions]
         return aln.take_positions(indices)
 
-    T = Union[SerialisableType, AlignedSeqsType]
+    T = Union[SerialisableType, Alignment]
 
-    def main(self, aln: AlignedSeqsType) -> T:
+    def main(self, aln: Alignment) -> T:
         return self._func(aln)
+
+
+TCollOrAlignment = TypeVar("TCollOrAlignment", SequenceCollection, Alignment)
 
 
 @define_app
@@ -526,9 +528,7 @@ class take_named_seqs:
         self._names: set[str] = set(names)
         self._negate = negate
 
-    T = SerialisableType | SeqsCollectionType
-
-    def main(self, data: SeqsCollectionType) -> T:
+    def main(self, data: TCollOrAlignment) -> TCollOrAlignment:
         if not self._negate and (missing := set(self._names) - set(data.names)):
             msg = f"named seq(s) {missing} not in {data.names}"
             return NotCompleted("FALSE", self, msg, source=data)
@@ -628,7 +628,7 @@ class take_n_seqs:
         self._random = random
         self._fixed_choice = fixed_choice
 
-    def _set_names(self, data: SeqsCollectionType) -> None:
+    def _set_names(self, data: CollectionBase[Any]) -> None:
         """set the names attribute"""
         if not self._random:
             self._names = set(data.names[: self._number])
@@ -638,9 +638,7 @@ class take_n_seqs:
             np_random.choice(data.names, self._number, replace=False).tolist()
         )
 
-    T = Union[SerialisableType, SeqsCollectionType]
-
-    def main(self, data: SeqsCollectionType) -> T:
+    def main(self, data: TCollOrAlignment) -> TCollOrAlignment | NotCompleted:
         """returns data with n sequences"""
         if len(data.names) < self._number:
             return NotCompleted("FALSE", self.main, "not enough sequences")
@@ -708,9 +706,7 @@ class min_length:
             moltype = cogent3.get_moltype(moltype)
         self._moltype = moltype
 
-    T = Union[SerialisableType, SeqsCollectionType]
-
-    def main(self, data: SeqsCollectionType) -> T:
+    def main(self, data: TCollOrAlignment) -> TCollOrAlignment:
         if self._moltype and self._moltype != data.moltype:
             data = data.to_moltype(self._moltype)
 
@@ -896,9 +892,9 @@ class fixed_length:
         result.sort(axis=0)
         return aln.take_positions(result.flatten().tolist())
 
-    T = Union[SerialisableType, AlignedSeqsType]
+    T = Union[SerialisableType, Alignment]
 
-    def main(self, data: AlignedSeqsType) -> T:
+    def main(self, data: Alignment) -> T:
         """return a fixed length alignment"""
         return self._func(data)
 
@@ -985,9 +981,9 @@ class omit_bad_seqs:
         self._ambig_fraction = ambig_fraction
         self._moltype = mtyp
 
-    T = SerialisableType | AlignedSeqsType
+    T = SerialisableType | Alignment
 
-    def main(self, aln: AlignedSeqsType) -> T:
+    def main(self, aln: Alignment) -> T:
         if self._moltype and self._moltype != aln.moltype:
             aln = aln.to_moltype(self._moltype)
 
@@ -1107,7 +1103,7 @@ class omit_duplicated:
         else:
             self._func = self.take_unique
 
-    def choose_longest(self, seqs):
+    def choose_longest(self, seqs: TCollOrAlignment) -> TCollOrAlignment:
         if self._moltype and self._moltype != seqs.moltype:
             seqs = seqs.to_moltype(self._moltype)
 
@@ -1121,7 +1117,7 @@ class omit_duplicated:
 
         return seqs.take_seqs(excludes, negate=True)
 
-    def choose_random(self, seqs):
+    def choose_random(self, seqs: TCollOrAlignment) -> TCollOrAlignment:
         if self._moltype and self._moltype != seqs.moltype:
             seqs = seqs.to_moltype(self._moltype)
 
@@ -1134,7 +1130,7 @@ class omit_duplicated:
 
         return seqs.take_seqs(excludes, negate=True)
 
-    def take_unique(self, seqs):
+    def take_unique(self, seqs: TCollOrAlignment) -> TCollOrAlignment:
         if self._moltype and self._moltype != seqs.moltype:
             seqs = seqs.to_moltype(self._moltype)
 
@@ -1144,9 +1140,7 @@ class omit_duplicated:
             names.update(dupes)
         return seqs.take_seqs(names, negate=True)
 
-    T = Union[SerialisableType, SeqsCollectionType]
-
-    def main(self, seqs: SeqsCollectionType) -> T:
+    def main(self, seqs: TCollOrAlignment) -> TCollOrAlignment:
         return self._func(seqs)
 
 
@@ -1201,7 +1195,5 @@ class trim_stop_codons:
         """
         self._gc = gc
 
-    T = Union[SerialisableType, SeqsCollectionType]
-
-    def main(self, data: SeqsCollectionType) -> T:
+    def main(self, data: TCollOrAlignment) -> TCollOrAlignment:
         return data.trim_stop_codons(gc=self._gc)

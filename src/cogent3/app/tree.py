@@ -3,13 +3,13 @@ from functools import singledispatch
 
 from cogent3 import load_tree, make_tree
 from cogent3.core.tree import PhyloNode
+from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.phylo.nj import gnj
 from cogent3.util.io import path_exists
 from cogent3.util.misc import is_url
 
-from .composable import define_app
+from .comp_new import define_app
 from .data_store import get_data_source
-from .typing import PairwiseDistanceType, SerialisableType, TreeType
 
 NoneType = type(None)
 
@@ -51,7 +51,7 @@ class scale_branches:
         self._scalar = scalar
         self._min_length = min_length
 
-    def main(self, tree: TreeType) -> SerialisableType | TreeType:
+    def main(self, tree: PhyloNode) -> PhyloNode:
         source = tree.source
         scalar = self._scalar
         min_length = self._min_length
@@ -86,7 +86,7 @@ class uniformize_tree:
         self._root_at = root_at
         self._ordered_names = ordered_names
 
-    def main(self, tree: TreeType) -> SerialisableType | TreeType:
+    def main(self, tree: PhyloNode) -> PhyloNode:
         source = tree.source
         if self._root_at == "midpoint":
             new = tree.root_at_midpoint()
@@ -118,7 +118,7 @@ class quick_tree:
         """
         self._drop_invalid = drop_invalid
 
-    def main(self, dists: PairwiseDistanceType) -> SerialisableType | TreeType:
+    def main(self, dists: DistanceMatrix) -> PhyloNode:
         """estimates a neighbor joining tree"""
         size = dists.shape[0]
         dists = dists.drop_invalid() if self._drop_invalid else dists

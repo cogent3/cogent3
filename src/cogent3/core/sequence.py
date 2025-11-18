@@ -23,7 +23,6 @@ import numpy.typing as npt
 
 from cogent3._version import __version__
 from cogent3.core import alphabet as c3_alphabet
-from cogent3.core import genetic_code as c3_genetic_code
 from cogent3.core import moltype as c3_moltype
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
@@ -61,6 +60,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Callable, Iterable, Iterator, Mapping
 
     from cogent3.core.alignment import Aligned
+    from cogent3.core.genetic_code import GeneticCode
     from cogent3.draw.drawable import Drawable, Shape
 
 NumpyIntArrayType = npt.NDArray[numpy.integer]
@@ -2083,7 +2083,7 @@ class NucleicAcidSequenceBase(Sequence):
 
     def has_terminal_stop(
         self,
-        gc: c3_genetic_code.GeneticCode | int = 1,
+        gc: GeneticCode | int = 1,
         strict: bool = False,
     ) -> bool:
         """Return True if the sequence has a terminal stop codon.
@@ -2096,7 +2096,9 @@ class NucleicAcidSequenceBase(Sequence):
         strict
             If True, raises an exception if length not divisible by 3
         """
-        gc = c3_genetic_code.get_code(gc)
+        from cogent3.core.genetic_code import get_code
+
+        gc = get_code(gc)
         _, s = self.parse_out_gaps()
 
         divisible_by_3 = len(s) % 3 == 0
@@ -2112,7 +2114,7 @@ class NucleicAcidSequenceBase(Sequence):
 
     def trim_stop_codon(
         self,
-        gc: c3_genetic_code.GeneticCode | int = 1,
+        gc: GeneticCode | int = 1,
         strict: bool = False,
     ) -> Self:
         """Removes a terminal stop codon from the sequence
@@ -2133,7 +2135,9 @@ class NucleicAcidSequenceBase(Sequence):
         if not self.has_terminal_stop(gc=gc, strict=strict):
             return self
 
-        gc = c3_genetic_code.get_code(gc)
+        from cogent3.core.genetic_code import get_code
+
+        gc = get_code(gc)
         m, s = self.parse_out_gaps()
 
         divisible_by_3 = len(s) % 3 == 0
@@ -2169,7 +2173,7 @@ class NucleicAcidSequenceBase(Sequence):
 
     def get_translation(
         self,
-        gc: c3_genetic_code.GeneticCode | int = 1,
+        gc: GeneticCode | int = 1,
         incomplete_ok: bool = False,
         include_stop: bool = False,
         trim_stop: bool = True,
@@ -2203,11 +2207,12 @@ class NucleicAcidSequenceBase(Sequence):
             raise c3_moltype.MolTypeError(
                 msg,
             )
+        from cogent3.core.genetic_code import get_code
 
         protein = c3_moltype.get_moltype(
             "protein_with_stop" if include_stop else "protein",
         )
-        gc = c3_genetic_code.get_code(gc)
+        gc = get_code(gc)
 
         if trim_stop:
             seq = self.trim_stop_codon(gc=gc, strict=not incomplete_ok)

@@ -9,6 +9,8 @@ Although the genetic code objects convert DNA to RNA and vice
 versa, lists of codons that they produce will be provided in DNA format.
 """
 
+from __future__ import annotations
+
 import contextlib
 import dataclasses
 import functools
@@ -23,10 +25,10 @@ import numpy.typing as npt
 
 from cogent3.core import alphabet as c3_alphabet
 from cogent3.core import moltype as c3_moltype
-from cogent3.core.table import Table
 
 if TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.sequence import Sequence
+    from cogent3.core.table import Table
 
 
 class GeneticCodeError(Exception):
@@ -180,6 +182,8 @@ class GeneticCode:
 
     def to_table(self) -> Table:
         """returns aa to codon mapping as a cogent3 Table"""
+        from cogent3.core.table import Table
+
         rows: list[list[str]] = []
         headers = ["aa", "IUPAC code", "codons"]
         for code, aa in c3_moltype.IUPAC_PROTEIN_code_aa.items():
@@ -597,6 +601,8 @@ def get_code(code_id: str | int | GeneticCode = 1) -> GeneticCode:
 
 def available_codes() -> Table:
     """returns Table listing the available genetic codes"""
+    from cogent3.core.table import Table
+
     rows = [(k, code.name) for k, code in _CODES.items() if isinstance(k, int)]
     header = ["Code ID", "Name"]
     return Table(

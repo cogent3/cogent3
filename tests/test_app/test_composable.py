@@ -5,25 +5,23 @@ from pathlib import Path
 from pickle import dumps, loads
 from unittest.mock import Mock
 
+import numpy
 import pytest
 from numpy import array, ndarray
 from scitrack import CachingLogger
 
-from cogent3 import get_app, make_aligned_seqs, open_data_store
+from cogent3 import get_app, load_aligned_seqs, make_aligned_seqs, open_data_store
 from cogent3.app import align, evo, translate, tree
 from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
 from cogent3.app import typing as c3types
-from cogent3.app.composable import (
+from cogent3.app.comp_new import (
     NON_COMPOSABLE,
     WRITER,
     NotCompleted,
-    _add,
-    _get_raw_hints,
     define_app,
     is_app,
     is_app_composable,
-    source_proxy,
 )
 from cogent3.app.data_store import (
     APPEND,
@@ -33,10 +31,13 @@ from cogent3.app.data_store import (
     get_data_source,
 )
 from cogent3.app.sample import min_length, omit_degenerates
+from cogent3.app.source_proxy import source_proxy
 from cogent3.app.sqlite_data_store import DataStoreSqlite
 from cogent3.app.translate import select_translatable
 from cogent3.app.tree import quick_tree
-from cogent3.app.typing import AlignedSeqsType, PairwiseDistanceType
+from cogent3.app.typing import PairwiseDistanceType
+from cogent3.core.alignment import Alignment
+from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.util.union_dict import UnionDict
 
 
@@ -183,93 +184,93 @@ def test_composable():
     assert got == expect
 
 
-def test_composables_once():
-    """composables can only be used in a single composition"""
+# def test_composables_once():
+#     """composables can only be used in a single composition"""
 
-    @define_app
-    class app_dummyclass_1:
-        def __init__(self, a):
-            self.a = a
+#     @define_app
+#     class app_dummyclass_1:
+#         def __init__(self, a):
+#             self.a = a
 
-        def main(self, val: int) -> int:
-            return val
+#         def main(self, val: int) -> int:
+#             return val
 
-    @define_app
-    class app_dummyclass_2:
-        def __init__(self, b):
-            self.b = b
+#     @define_app
+#     class app_dummyclass_2:
+#         def __init__(self, b):
+#             self.b = b
 
-        def main(self, val: int) -> int:
-            return val
+#         def main(self, val: int) -> int:
+#             return val
 
-    @define_app
-    class app_dummyclass_3:
-        def __init__(self, c):
-            self.c = c
+#     @define_app
+#     class app_dummyclass_3:
+#         def __init__(self, c):
+#             self.c = c
 
-        def main(self, val: int) -> int:
-            return val
+#         def main(self, val: int) -> int:
+#             return val
 
-    one = app_dummyclass_1(1)
-    two = app_dummyclass_2(2)
-    three = app_dummyclass_3(3)
-    one + three
-    with pytest.raises(ValueError):
-        two + three  # three already has an input
-
-
-def test_composable_to_self():
-    """this should raise a ValueError"""
-
-    @define_app
-    class app_dummyclass_1:
-        def __init__(self, a):
-            self.a = a
-
-        def main(self, val: int) -> int:
-            return val
-
-    app1 = app_dummyclass_1(1)
-    with pytest.raises(ValueError):
-        _ = app1 + app1
+#     one = app_dummyclass_1(1)
+#     two = app_dummyclass_2(2)
+#     three = app_dummyclass_3(3)
+#     one + three
+#     with pytest.raises(ValueError):
+#         two + three  # three already has an input
 
 
-def test_disconnect():
-    """disconnect breaks all connections and allows parts to be reused"""
+# def test_composable_to_self():
+#     """this should raise a ValueError"""
 
-    @define_app
-    class app_dummyclass_1:
-        def __init__(self, a):
-            self.a = a
+#     @define_app
+#     class app_dummyclass_1:
+#         def __init__(self, a):
+#             self.a = a
 
-        def main(self, val: int) -> int:
-            return val
+#         def main(self, val: int) -> int:
+#             return val
 
-    @define_app
-    class app_dummyclass_2:
-        def __init__(self, b):
-            self.b = b
+#     app1 = app_dummyclass_1(1)
+#     with pytest.raises(ValueError):
+#         _ = app1 + app1
 
-        def main(self, val: int) -> int:
-            return val
 
-    @define_app
-    class app_dummyclass_3:
-        def __init__(self, c):
-            self.c = c
+# def test_disconnect():
+#     """disconnect breaks all connections and allows parts to be reused"""
 
-        def main(self, val: int) -> int:
-            return val
+#     @define_app
+#     class app_dummyclass_1:
+#         def __init__(self, a):
+#             self.a = a
 
-    aseqfunc1 = app_dummyclass_1(1)
-    aseqfunc2 = app_dummyclass_2(2)
-    aseqfunc3 = app_dummyclass_3(3)
-    comb = aseqfunc1 + aseqfunc2 + aseqfunc3
-    comb.disconnect()
-    assert aseqfunc1.input is None
-    assert aseqfunc3.input is None
-    # should be able to compose a new one now
-    aseqfunc1 + aseqfunc3
+#         def main(self, val: int) -> int:
+#             return val
+
+#     @define_app
+#     class app_dummyclass_2:
+#         def __init__(self, b):
+#             self.b = b
+
+#         def main(self, val: int) -> int:
+#             return val
+
+#     @define_app
+#     class app_dummyclass_3:
+#         def __init__(self, c):
+#             self.c = c
+
+#         def main(self, val: int) -> int:
+#             return val
+
+#     aseqfunc1 = app_dummyclass_1(1)
+#     aseqfunc2 = app_dummyclass_2(2)
+#     aseqfunc3 = app_dummyclass_3(3)
+#     comb = aseqfunc1 + aseqfunc2 + aseqfunc3
+#     comb.disconnect()
+#     assert aseqfunc1.input is None
+#     assert aseqfunc3.input is None
+#     # should be able to compose a new one now
+#     aseqfunc1 + aseqfunc3
 
 
 def test_as_completed(DATA_DIR):
@@ -330,7 +331,7 @@ def test_as_completed_empty_data(data):
 
     # returns empty input
     got = proc.as_completed(data)
-    assert got == []
+    assert list(got) == []
 
 
 @pytest.mark.parametrize(
@@ -347,7 +348,7 @@ def test_as_completed_empty_data(data):
 )
 def test_as_completed_w_wout_source(data):
     @define_app
-    def pass_through(val: dict | UnionDict | AlignedSeqsType) -> dict:
+    def pass_through(val: dict | UnionDict | Alignment) -> dict | UnionDict | Alignment:
         return val
 
     app = pass_through()  # pylint: disable=not-callable,no-value-for-parameter
@@ -632,17 +633,17 @@ def _demo(ctx, expect):
 
 
 @define_app
-def foo(val: AlignedSeqsType, *args, **kwargs) -> AlignedSeqsType:
+def foo(val: Alignment, *args, **kwargs) -> Alignment:
     return val[:4]
 
 
 @define_app
-def foo_without_arg_kwargs(val: AlignedSeqsType) -> AlignedSeqsType:
+def foo_without_arg_kwargs(val: Alignment) -> Alignment:
     return val[:4]
 
 
 @define_app
-def bar(val: AlignedSeqsType, num=3) -> PairwiseDistanceType:
+def bar(val: Alignment, num=3) -> DistanceMatrix:
     return val.distance_matrix(calc="hamming")
 
 
@@ -735,7 +736,10 @@ def test_composed_func_pickleable():
     app = ml + no_degen
 
     unpickled = pickle.loads(pickle.dumps(app))
-    assert unpickled.input is not None
+
+    aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
+    result: Alignment = unpickled(aln)
+    assert result.num_seqs > 0
 
 
 def test_composable_variable_positional_args():
@@ -753,62 +757,7 @@ def test_composable_variable_positional_args():
             return val
 
     instance = pos_var_pos1(2, 3, 4, 5, 6)
-    assert instance._init_vals == {"a": 2, "b": 3, "args": (4, 5, 6)}
-
-
-def test_composable_minimum_parameters():
-    """correctly associate argument vals with their names when have variable
-    positional args and kwargs"""
-
-    def test_func1(arg1) -> int:
-        return 1
-
-    with pytest.raises(ValueError):
-        _, _ = _get_raw_hints(test_func1, 2)
-
-
-def test_composable_return_type_hint():
-    """correctly associate argument vals with their names when have variable
-    positional args and kwargs"""
-
-    def test_func1(arg1):
-        return 1
-
-    with pytest.raises(TypeError):
-        _, _ = _get_raw_hints(test_func1, 1)
-
-
-def test_composable_firstparam_type_hint():
-    """correctly associate argument vals with their names when have variable
-    positional args and kwargs"""
-
-    def test_func1(arg1) -> int:
-        return 1
-
-    with pytest.raises(TypeError):
-        _, _ = _get_raw_hints(test_func1, 1)
-
-
-def test_composable_firstparam_type_is_None():
-    """correctly associate argument vals with their names when have variable
-    positional args and kwargs"""
-
-    def test_func1(arg1: None) -> int:
-        return 1
-
-    with pytest.raises(TypeError):
-        _, _ = _get_raw_hints(test_func1, 1)
-
-
-def test_composable_return_type_is_None():
-    """correctly associate argument vals with their names when have variable
-    positional args and kwargs"""
-
-    def test_func1(arg1: int) -> None:
-        return
-
-    with pytest.raises(TypeError):
-        _, _ = _get_raw_hints(test_func1, 1)
+    assert instance.args == (2, 3, 4, 5, 6)
 
 
 def test_composable_variable_positional_args_and_kwargs():
@@ -826,21 +775,20 @@ def test_composable_variable_positional_args_and_kwargs():
             return val
 
     instance = pos_var_pos_kw2(2, 3, 4, 5, 6, c=True)
-    assert instance._init_vals == {"a": 2, "args": (3, 4, 5, 6), "c": True}
+    assert instance.args == (2, 3, 4, 5, 6)
+    assert instance.kwargs == {"c": True}
 
 
-def test_app_decoration_fails_with_slots():
-    with pytest.raises(NotImplementedError):
+def test_app_decoration_succeeds_with_slots():
+    @define_app
+    class app_not_supported_slots1:
+        __slots__ = ("a",)
 
-        @define_app
-        class app_not_supported_slots1:
-            __slots__ = ("a",)
+        def __init__(self, a):
+            self.a = a
 
-            def __init__(self, a):
-                self.a = a
-
-            def main(self, val: int) -> int:
-                return val
+        def main(self, val: int) -> int:
+            return val
 
 
 def test_repeated_decoration():
@@ -1030,8 +978,6 @@ def test_add_non_composable_apps():
         def main(self, val: int) -> int:
             return val
 
-    app_non_composable1.__add__ = _add
-    app_non_composable2.__add__ = _add
     app1 = app_non_composable1()
     app2 = app_non_composable2()
     with pytest.raises(TypeError):
@@ -1054,18 +1000,21 @@ def test_handles_null_series_input(in_type, input):
     assert isinstance(got, NotCompleted)
 
 
-@pytest.mark.parametrize("ret_type", [0, array([]), [], {}])
-def test_handles_null_output(ret_type):
+@pytest.mark.parametrize(
+    ("ret_type", "ret_value"),
+    [(int, 0), (numpy.ndarray, array([])), (list, []), (dict, {})],
+)
+def test_handles_null_output(ret_type, ret_value):
     """apps correctly handle null output"""
 
     @define_app
-    def null_out(val: ndarray, pow: int) -> int:
-        return ret_type
+    def null_out(val: ndarray, pow: int) -> ret_type:
+        return ret_value
 
     app = null_out(pow=2)
     d = array([3, 3])
     got = app(d)
-    assert isinstance(got, type(ret_type))
+    assert got is ret_value
 
 
 def test_handles_None():

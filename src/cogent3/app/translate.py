@@ -1,26 +1,27 @@
 from collections import defaultdict
-from typing import Union
+from typing import Any, TypeVar
 
 import cogent3
 from cogent3.core import alphabet as c3_alphabet
 from cogent3.core import genetic_code as c3_genetic_code
 from cogent3.core import moltype as c3_moltype
+from cogent3.core.alignment import Alignment, CollectionBase, SequenceCollection
+from cogent3.core.sequence import Sequence
 
-from .composable import NotCompleted, define_app
+from .comp_new import NotCompleted, define_app
 from .data_store import get_data_source
-from .typing import SeqsCollectionType, SeqType, SerialisableType
 
 GeneticCodeTypes = str | int | c3_genetic_code.GeneticCode
-MolTypes = str | c3_moltype.MolType
+MolTypes = str | c3_moltype.MolType[Any]
 AlphabetTypes = c3_alphabet.CharAlphabet
 
 
 def best_frame(
-    seq: SeqsCollectionType,
+    seq: Sequence,
     gc: GeneticCodeTypes = 1,
     allow_rc: bool = False,
     require_stop: bool = False,
-):
+) -> int:
     """returns reading frame start that has either no stops or a single
     terminal stop codon
 
@@ -88,11 +89,11 @@ def best_frame(
 
 
 def translate_frames(
-    seq: SeqsCollectionType,
+    seq: CollectionBase[Any],
     moltype: MolTypes | None = None,
     gc: GeneticCodeTypes = 1,
     allow_rc: bool = False,
-) -> SeqsCollectionType:
+) -> list[str]:
     """translates a nucleic acid sequence
 
     Parameters
@@ -252,9 +253,7 @@ class select_translatable:
         self._allow_rc = allow_rc
         self._trim_terminal_stop = trim_terminal_stop
 
-    T = Union[SerialisableType, SeqsCollectionType]
-
-    def _get_frame(self, seq: SeqType) -> int:
+    def _get_frame(self, seq: Sequence) -> int:
         if self._frame is not None:
             tr = self._gc.translate(str(seq), start=self._frame - 1)
             if "*" in tr[:-1]:
@@ -263,7 +262,7 @@ class select_translatable:
             return self._frame
         return best_frame(seq, self._gc, allow_rc=self._allow_rc)
 
-    def main(self, seqs: SeqsCollectionType) -> T:
+    def main(self, seqs: CollectionBase[Any]) -> SequenceCollection:
         """returns the translatable sequences from seqs.
 
         translation errors are stroed in the info object"""
@@ -304,6 +303,9 @@ class select_translatable:
             )
 
         return translatable
+
+
+TCollOrAlignment = TypeVar("TCollOrAlignment", SequenceCollection, Alignment)
 
 
 @define_app
@@ -357,9 +359,7 @@ class translate_seqs:
         self._gc = cogent3.get_code(gc)
         self._trim_terminal_stop = trim_terminal_stop
 
-    T = SerialisableType | SeqsCollectionType
-
-    def main(self, seqs: SeqsCollectionType) -> T:
+    def main(self, seqs: TCollOrAlignment) -> TCollOrAlignment:
         """returns translated sequences"""
         if self._moltype and self._moltype != seqs.moltype:
             seqs = seqs.to_moltype(self._moltype)

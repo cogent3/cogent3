@@ -1007,7 +1007,7 @@ _doc_block = re.compile(
 )
 
 
-def docstring_to_summary_rest(text: str) -> tuple[str, str]:
+def docstring_to_summary_rest(text: str | None) -> tuple[str, str]:
     """separates the summary at the start of a docstring from the rest
 
     Notes

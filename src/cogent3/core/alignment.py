@@ -21,7 +21,6 @@ from typing_extensions import override
 import cogent3
 import cogent3._plugin as c3_plugin
 import cogent3.core.alphabet as c3_alphabet
-import cogent3.core.genetic_code as c3_genetic_code
 import cogent3.core.moltype as c3_moltype
 import cogent3.core.sequence as c3_sequence
 from cogent3._version import __version__
@@ -59,6 +58,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Callable, Iterable, Iterator
     from collections.abc import Sequence as PySeq
 
+    from cogent3.core.genetic_code import GeneticCode
     from cogent3.core.seqview import (
         AlignedDataViewABC,
         SeqViewABC,
@@ -512,7 +512,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
     @abstractmethod
     def get_translation(
         self,
-        gc: c3_genetic_code.GeneticCode | int = 1,
+        gc: GeneticCode | int = 1,
         incomplete_ok: bool = False,
         include_stop: bool = False,
         trim_stop: bool = True,
@@ -522,7 +522,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
     @abstractmethod
     def trim_stop_codons(
         self,
-        gc: c3_genetic_code.GeneticCode | int = 1,
+        gc: GeneticCode | int = 1,
         strict: bool = False,
         **kwargs: Any,
     ) -> Self: ...
@@ -1060,7 +1060,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         return self.to_moltype("rna")
 
     def has_terminal_stop(
-        self, gc: c3_genetic_code.GeneticCode | int = 1, strict: bool = False
+        self, gc: GeneticCode | int = 1, strict: bool = False
     ) -> bool:
         """Returns True if any sequence has a terminal stop codon.
 
@@ -2013,7 +2013,7 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
 
     def get_translation(
         self,
-        gc: c3_genetic_code.GeneticCode | int = 1,
+        gc: GeneticCode | int = 1,
         incomplete_ok: bool = False,
         include_stop: bool = False,
         trim_stop: bool = True,
@@ -2079,7 +2079,7 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
 
     def trim_stop_codons(
         self,
-        gc: c3_genetic_code.GeneticCode | int = 1,
+        gc: GeneticCode | int = 1,
         strict: bool = False,
         **kwargs: Any,
     ) -> Self:
@@ -2418,7 +2418,8 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         app = get_count_kmers_hook(name=use_hook, **kwargs)
         if app is not None:
             # we call main method directly so errors are raised here
-            return app.main(list(self.seqs))  # type: ignore[attr-defined]
+            app.set_raise_errors(True)
+            return app(list(self.seqs))  # type: ignore[attr-defined]
 
         shape = (self.num_seqs, len(self.moltype.alphabet) ** k)
         result = numpy.empty(shape, dtype=int)
@@ -3116,7 +3117,7 @@ class Alignment(CollectionBase[Aligned]):
     @extend_docstring_from(SequenceCollection.get_translation)
     def get_translation(
         self,
-        gc: c3_genetic_code.GeneticCode | int = 1,
+        gc: GeneticCode | int = 1,
         incomplete_ok: bool = False,
         include_stop: bool = False,
         trim_stop: bool = True,
@@ -3163,16 +3164,18 @@ class Alignment(CollectionBase[Aligned]):
 
     def trim_stop_codons(
         self,
-        gc: c3_genetic_code.GeneticCode | int = 1,
+        gc: GeneticCode | int = 1,
         strict: bool = False,
         **kwargs: Any,
     ) -> Self:
+        from cogent3.core.genetic_code import get_code
+
         # refactor: array
         if not self.has_terminal_stop(gc=gc, strict=strict):
             return self
 
         # define a regex for finding stop codons followed by terminal gaps
-        gc = c3_genetic_code.get_code(gc)
+        gc = get_code(gc)
         gaps = "".join(self.moltype.gaps)
         pattern = f"({'|'.join(gc['*'])})[{gaps}]*$"
         terminal_stop = re.compile(pattern)

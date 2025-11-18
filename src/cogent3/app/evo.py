@@ -1,16 +1,17 @@
 import contextlib
-from collections.abc import Callable, Iterable
+from collections.abc import Callable
 from copy import deepcopy
-from typing import Union
+from typing import Any
 
 import cogent3.util.io
 from cogent3 import load_tree, make_tree
+from cogent3.core.alignment import Alignment
 from cogent3.core.tree import PhyloNode
 from cogent3.evolve.models import get_model
 from cogent3.evolve.substitution_model import _SubstitutionModel
 from cogent3.util import parallel
 
-from .composable import NotCompleted, define_app
+from .comp_new import NotCompleted, _AppBaseClass, define_app
 from .data_store import get_data_source
 from .result import (
     bootstrap_result,
@@ -20,15 +21,6 @@ from .result import (
     tabular_result,
 )
 from .tree import interpret_tree_arg
-from .typing import (
-    AlignedSeqsType,
-    BootstrapResultType,
-    HypothesisResultType,
-    ModelCollectionResultType,
-    ModelResultType,
-    SerialisableType,
-    TabularResultType,
-)
 
 
 def _config_rules(param_rules, lower, upper, overwrite=False):
@@ -76,6 +68,9 @@ class model:
         split_codons: bool = False,
         show_progress: bool = False,
         verbose: bool = False,
+        initialise: Callable | None = None,
+        construct: bool = True,
+        **kwargs,
     ) -> None:
         """
         Parameters
@@ -130,6 +125,13 @@ class model:
             show progress bars during numerical optimisation
         verbose
             prints intermediate states to screen during fitting
+        initialise
+            callable that takes a likelihood function instance and sets initial
+            parameter values prior to optimisation
+        construct
+            whether the likelihood function is created each time
+        kwargs
+            arguments passed to the optimiser
 
         Returns
         -------
@@ -261,6 +263,9 @@ class model:
         >>> print(result.message)  # doctest: +NORMALIZE_WHITESPACE
         Traceback ... FORCED EXIT from optimiser after 10 evaluations
         """
+        self.initialise = initialise
+        self.construct = construct
+        self.opt_args = kwargs
         if tree_func:
             assert callable(tree_func), "tree_func must be callable or None"
             tree = None
@@ -281,7 +286,7 @@ class model:
             )
 
         sm_args["optimise_motif_probs"] = optimise_motif_probs
-        if type(sm) == str:
+        if isinstance(sm, str):
             sm = get_model(sm, **sm_args)
         else:
             sm._optimise_motif_probs = optimise_motif_probs
@@ -359,7 +364,7 @@ class model:
 
     def _fit_aln(
         self,
-        aln: AlignedSeqsType,
+        aln: Alignment,
         identifier: str | None = None,
         initialise: Callable | None = None,
         construct: bool = True,
@@ -373,7 +378,6 @@ class model:
 
         if self._verbose:
             pass
-
         calc = lf.optimise(return_calculator=True, **kwargs)
         lf.calculator = calc
 
@@ -382,16 +386,9 @@ class model:
 
         if self._verbose:
             pass
-
         return lf
 
-    def main(
-        self,
-        aln: AlignedSeqsType,
-        initialise: Callable | None = None,
-        construct: bool = True,
-        **opt_args,
-    ) -> SerialisableType | ModelResultType:
+    def main(self, aln: Alignment) -> model_result:
         """
         Parameters
         ----------
@@ -399,13 +396,6 @@ class model:
             Alignment instance. aln.source indicates the origin of the
             alignment and will be propagated to the model_result so it can
             be written
-        initialise
-            callable that takes a likelihood function instance and sets initial
-            parameter values prior to optimisation
-        construct
-            whether the likelihood function is created each time
-        opt_args
-            arguments passed to the optimiser
 
         Returns
         -------
@@ -416,7 +406,7 @@ class model:
             msg = f"substitution model moltype '{self._sm.moltype.label}' and alignment moltype '{aln.moltype.label}' are incompatible"
             return NotCompleted("ERROR", self, msg, source=aln)
 
-        evaluation_limit = opt_args.get("max_evaluations")
+        evaluation_limit = self.opt_args.get("max_evaluations")
         if callable(self._tree_func):
             self._tree = self._tree_func(aln)
         elif self._tree is None or self._unique_trees:
@@ -438,9 +428,9 @@ class model:
         if not self._split_codons:
             lf = self._fit_aln(
                 aln,
-                initialise=initialise,
-                construct=construct,
-                **opt_args,
+                initialise=self.initialise,
+                construct=self.construct,
+                **self.opt_args,
             )
             result[self.name] = lf
             result.num_evaluations = lf.calculator.evaluations
@@ -453,9 +443,9 @@ class model:
                 lf = self._fit_aln(
                     codon_pos,
                     identifier=i + 1,
-                    initialise=initialise,
-                    construct=construct,
-                    **opt_args,
+                    initialise=self.initialise,
+                    construct=self.construct,
+                    **self.opt_args,
                 )
                 result[i + 1] = lf
                 num_evals += lf.calculator.evaluations
@@ -482,13 +472,40 @@ class _InitFrom:
         return other
 
 
+def _get_model_name(model: model) -> str:
+    model_args: list[Any] = model.args
+    model_kwargs: dict[str, Any] = model.kwargs
+
+    if len(model_args) >= 5:
+        name: str | None = model_args[4]
+    elif "name" in model_kwargs:
+        name = model_kwargs["name"]
+    else:
+        name = None
+
+    if not name:
+        sm = model_args[0]
+        if isinstance(sm, str):
+            if len(model_args) >= 7:
+                sm_args: dict[str, Any] | None = model_args[6]
+            elif "sm_args" in model_kwargs:
+                sm_args = model_kwargs["sm_args"]
+            else:
+                sm_args = None
+
+            sm_args = deepcopy(sm_args or {})
+            sm = get_model(sm, **sm_args)
+        name = sm.name or "unnamed model"
+    return name
+
+
 class _ModelCollectionBase:
     """Base class for fitting collections of models."""
 
     def __init__(
         self,
         null: model,
-        *alternates: Iterable[model],
+        *alternates: model,
         sequential: bool = True,
         init_alt: Callable | None = None,
     ) -> None:
@@ -518,8 +535,8 @@ class _ModelCollectionBase:
             sequential = False
 
         self.null = null
-        names = {a.name for a in alternates}
-        names.add(null.name)
+        names = {_get_model_name(a) for a in alternates}
+        names.add(_get_model_name(null))
         if len(names) != len(alternates) + 1:
             msg = f"{names} model names not unique"
             raise ValueError(msg)
@@ -538,14 +555,13 @@ class _ModelCollectionBase:
         for alt in self._alts:
             if self._sequential:
                 init_func = _InitFrom(null)
-            result = alt(aln, initialise=init_func)
+            alt.kwargs["initialise"] = init_func
+            result = alt(aln)
             results.append(result)
             null = result
         return results
 
-    T = Union[SerialisableType, ModelCollectionResultType, HypothesisResultType]
-
-    def main(self, aln: AlignedSeqsType) -> T:
+    def main(self, aln: Alignment) -> model_collection_result | hypothesis_result:
         try:
             null = self.null(aln)
         except ValueError:
@@ -578,7 +594,7 @@ class _ModelCollectionBase:
 class model_collection(_ModelCollectionBase):
     """Fits a collection of models."""
 
-    def _make_result(self, aln: AlignedSeqsType) -> ModelCollectionResultType:
+    def _make_result(self, aln: Alignment) -> model_collection_result:
         return model_collection_result(source=get_data_source(aln))
 
 
@@ -586,9 +602,9 @@ class model_collection(_ModelCollectionBase):
 class hypothesis(_ModelCollectionBase):
     """Specify a hypothesis through defining two models."""
 
-    def _make_result(self, aln: AlignedSeqsType) -> HypothesisResultType:
+    def _make_result(self, aln: Alignment) -> hypothesis_result:
         return hypothesis_result(
-            name_of_null=self.null.name, source=get_data_source(aln)
+            name_of_null=_get_model_name(self.null), source=get_data_source(aln)
         )
 
 
@@ -618,9 +634,7 @@ class bootstrap:
             sym_result = None
         return sym_result
 
-    T = Union[SerialisableType, BootstrapResultType]
-
-    def main(self, aln: AlignedSeqsType) -> T:
+    def main(self, aln: Alignment) -> bootstrap_result:
         result = bootstrap_result(get_data_source(aln))
         try:
             obs = self._hyp(aln)
@@ -649,8 +663,8 @@ class ancestral_states:
 
     def main(
         self,
-        result: ModelResultType,
-    ) -> SerialisableType | TabularResultType:
+        result: model_result,
+    ) -> tabular_result:
         """returns a tabular_result of posterior probabilities of ancestral states"""
         anc = result.lf.reconstruct_ancestral_seqs()
         fl = result.lf.get_full_length_likelihoods()
@@ -671,8 +685,8 @@ class tabulate_stats:
 
     def main(
         self,
-        result: ModelResultType,
-    ) -> SerialisableType | TabularResultType:
+        result: model_result,
+    ) -> tabular_result:
         """returns Table for all statistics returned by likelihood function
         get_statistics
 
@@ -813,9 +827,7 @@ class natsel_neutral:
         )
         self._hyp = hypothesis(null, alt)
 
-    T = Union[SerialisableType, HypothesisResultType]
-
-    def main(self, data: AlignedSeqsType) -> T:
+    def main(self, data: Alignment) -> hypothesis_result:
         return self._hyp(data)
 
 
@@ -1011,9 +1023,7 @@ class natsel_zhang:
         alt_args["param_rules"] = rules
         return model(**alt_args)
 
-    T = Union[SerialisableType, HypothesisResultType]
-
-    def main(self, aln: AlignedSeqsType, *args, **kwargs) -> T:
+    def main(self, aln: Alignment) -> hypothesis_result:
         null_result = self.null(aln)
         if not null_result:
             return null_result
@@ -1169,9 +1179,7 @@ class natsel_sitehet:
         alt_args["param_rules"] = rules
         return model(**alt_args)
 
-    T = Union[SerialisableType, HypothesisResultType]
-
-    def main(self, aln: AlignedSeqsType, *args, **kwargs) -> T:
+    def main(self, aln: Alignment) -> hypothesis_result:
         null_result = self.null(aln)
         if not null_result:
             return null_result
@@ -1341,7 +1349,5 @@ class natsel_timehet:
         )
         self._hyp = hypothesis(null, alt)
 
-    T = Union[SerialisableType, HypothesisResultType]
-
-    def main(self, data: AlignedSeqsType) -> T:
+    def main(self, data: Alignment) -> hypothesis_result:
         return self._hyp(data)
