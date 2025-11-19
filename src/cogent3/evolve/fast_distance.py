@@ -11,7 +11,6 @@ from numpy.linalg import det, inv
 import cogent3
 from cogent3._version import __version__
 from cogent3.core import moltype as c3_moltype
-from cogent3.core.table import Table
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArray
 from cogent3.util.misc import get_object_provenance
@@ -19,6 +18,7 @@ from cogent3.util.progress_display import display_wrap
 
 if typing.TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.alignment import Alignment
+    from cogent3.core.table import Table
     from cogent3.core.tree import PhyloNode
 
 PySeq = typing.Sequence
@@ -301,7 +301,7 @@ def _number_formatter(template):
 Stats = namedtuple("Stats", ["length", "fraction_variable", "dist", "variance"])
 
 
-def _make_stat_table(stats, names, **kwargs) -> Table:
+def _make_stat_table(stats, names, **kwargs) -> "Table":
     from cogent3.core.table import Table
 
     header = ["Seq1 \\ Seq2", *names]
@@ -724,7 +724,7 @@ def get_distance_calculator(name: str, *args, **kwargs) -> _PairwiseDistance:
     return calc(*args, **kwargs)
 
 
-def available_distances() -> Table:
+def available_distances() -> "Table":
     """returns Table listing available fast pairwise genetic distance calculator
 
     Notes
@@ -787,7 +787,7 @@ class DistanceMatrix(DictArray):
     def names(self) -> list[str]:
         return self.template.names[0]
 
-    def to_table(self) -> Table:
+    def to_table(self) -> "Table":
         """converted to a Table"""
         from cogent3.core.table import Table
 

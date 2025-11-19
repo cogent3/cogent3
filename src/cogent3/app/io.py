@@ -19,7 +19,6 @@ from cogent3.core.profile import (
     make_motif_freqs_from_tabular,
     make_pssm_from_tabular,
 )
-from cogent3.core.table import Table
 from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.util.deserialise import deserialise_object
 
@@ -448,6 +447,8 @@ class load_tabular:
         return header, records, title
 
     def main(self, path: IdentifierType) -> TabularType:
+        from cogent3.core.table import Table
+
         try:
             header, data, title = self._parse(path)
         except Exception as err:
