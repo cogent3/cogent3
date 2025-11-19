@@ -5,9 +5,11 @@ import threading
 import time
 from collections.abc import Callable, Collection, Generator, Iterable, Sized
 from collections.abc import Sequence as PySeq
-from typing import Any, ParamSpec, Self, TypeVar
+from typing import TYPE_CHECKING, Any, ParamSpec, Self, TypeVar
 
-from tqdm import notebook, tqdm
+if TYPE_CHECKING:  # pragma: no cover
+    from tqdm import notebook, tqdm
+
 
 from cogent3.util import parallel as PAR
 from cogent3.util.misc import in_jupyter
@@ -47,14 +49,19 @@ class LogFileOutput:
         pass
 
 
+TProgDisplay = type["tqdm | notebook.tqdm | LogFileOutput"]
+
+
 class ProgressContext:
     def __init__(
         self,
-        progress_bar_type: type[tqdm | notebook.tqdm | LogFileOutput] | None = None,
+        progress_bar_type: TProgDisplay | None = None,
         depth: int = -1,
         message: str | None = None,
         mininterval: float = 1.0,
     ) -> None:
+        from tqdm import notebook, tqdm
+
         self.progress_bar_type = progress_bar_type
         self.progress_bar: tqdm[Any] | notebook.tqdm[Any] | LogFileOutput | None = None
         self.progress: float = 0
@@ -195,6 +202,8 @@ def display_wrap(slow_function: Callable[P, R]) -> Callable[P, R]:
     @functools.wraps(slow_function)
     def f(*args: P.args, **kw: P.kwargs) -> R:
         if getattr(CURRENT, "context", None) is None:
+            from tqdm import notebook, tqdm
+
             klass: type[tqdm | notebook.tqdm | LogFileOutput] | None
             if sys.stdout.isatty():
                 klass = tqdm
@@ -248,7 +257,3 @@ def imap(f: Callable[[T], R], s: Collection[T], ui: ProgressContext) -> Generato
 def fun(inp: T) -> T:
     time.sleep(0.1)
     return inp
-
-
-if __name__ == "__main__":
-    demo(ProgressContext(tqdm))

@@ -6524,3 +6524,19 @@ def test_non_unique_storage_names(mk_cls):
     s2 = seqcoll.renamed_seqs(lambda x: "s2").seqs["s2"]
     with pytest.raises(ValueError):
         mk_cls([s1, s2], moltype="dna")
+
+
+def test_toplevel_getattr():
+    import cogent3
+
+    # should fail with attribute error
+    with pytest.raises(AttributeError):
+        _ = cogent3.non_existent_attribute
+
+
+def test_load_unaligned_glob(DATA_DIR):
+    seqcoll = load_unaligned_seqs(
+        DATA_DIR / "*.fasta", moltype="dna", show_progress=False
+    )
+    assert isinstance(seqcoll, c3_alignment.SequenceCollection)
+    assert len(seqcoll.names) > 1

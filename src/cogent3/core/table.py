@@ -35,7 +35,7 @@ from cogent3.util.io import atomic_write, get_format_suffixes, open_
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
 from cogent3.util.union_dict import UnionDict
 
-if typing.TYPE_CHECKING:
+if typing.TYPE_CHECKING:  # pragma: no cover
     from pandas import DataFrame
 
 try:

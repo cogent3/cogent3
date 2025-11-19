@@ -3,21 +3,22 @@ import io
 import pathlib
 import string
 from collections.abc import Callable, Iterator
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy
 import numpy.typing as npt
 
-import cogent3
 from cogent3.core import alphabet as c3_alphabet
-from cogent3.core.annotation_db import GenbankAnnotationDb
-from cogent3.core.info import Info
-from cogent3.parse.record import FieldWrapper
-from cogent3.parse.record_finder import (
+
+from .record import FieldWrapper
+from .record_finder import (
     DelimitedRecordFinder,
     LabeledRecordFinder,
 )
-from cogent3.util.io import PathType
+
+if TYPE_CHECKING:  # pragma: no cover
+    from cogent3.core.annotation_db import GenbankAnnotationDb
+    from cogent3.util.io import PathType
 
 maketrans = str.maketrans
 strip = str.strip
@@ -629,6 +630,8 @@ def _(
     converter: SeqConverterType = default_seq_converter,
     convert_features: OptFeatureConverterType = default_parse_metadata,
 ) -> Iterator[tuple[str, OutTypes, Any]]:
+    import cogent3
+
     with cogent3.open_(data, mode="rb") as infile:
         data: bytes = infile.read()
 
@@ -645,6 +648,8 @@ def _(
     converter: SeqConverterType = default_seq_converter,
     convert_features: OptFeatureConverterType = default_parse_metadata,
 ) -> Iterator[tuple[str, OutTypes, Any]]:
+    import cogent3
+
     with cogent3.open_(data, mode="rb") as infile:
         data: bytes = infile.read()
 
@@ -671,7 +676,7 @@ def _(
 
 
 def minimal_parser(
-    data: bytes | io.TextIOBase | PathType,
+    data: "bytes | io.TextIOBase | PathType",
     converter: SeqConverterType = default_seq_converter,
     convert_features: OptFeatureConverterType = default_parse_metadata,
 ) -> Iterator[dict[str, OutTypes | Any]]:
@@ -710,7 +715,7 @@ def rich_parser(
     info_excludes=None,
     moltype=None,
     skip_contigs=False,
-    db: GenbankAnnotationDb | None = None,
+    db: "GenbankAnnotationDb | None" = None,
     just_seq: bool = False,
 ):
     """Returns annotated sequences from GenBank formatted file.
@@ -731,8 +736,12 @@ def rich_parser(
         return only the sequence, excludes include any feature data and
         does not create an annotation_db. Overrides db argument.
     """
+    from cogent3.core.annotation_db import GenbankAnnotationDb
+    from cogent3.core.info import Info
+    from cogent3.core.moltype import get_moltype
+
     info_excludes = info_excludes or ["sequence", "features"]
-    moltype = cogent3.get_moltype(moltype) if moltype else None
+    moltype = get_moltype(moltype) if moltype else None
     feature_parser = parse_metadata_first_line if just_seq else default_parse_metadata
     for rec in minimal_parser(
         handle,
@@ -749,7 +758,7 @@ def rich_parser(
             rec_moltype = (
                 rec_moltype if rec_moltype in ("dna", "rna", "protein") else "text"
             )
-            rec_moltype = cogent3.get_moltype(rec_moltype)
+            rec_moltype = get_moltype(rec_moltype)
         else:
             rec_moltype = moltype
 

@@ -15,7 +15,16 @@ from collections import defaultdict
 from functools import total_ordering
 from operator import eq, ne
 from random import shuffle
-from typing import TYPE_CHECKING, Any, Literal, Self, SupportsIndex, cast, overload
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Literal,
+    Self,
+    SupportsIndex,
+    Union,
+    cast,
+    overload,
+)
 
 import numba
 import numpy
@@ -23,7 +32,6 @@ import numpy.typing as npt
 
 from cogent3._version import __version__
 from cogent3.core import alphabet as c3_alphabet
-from cogent3.core import genetic_code as c3_genetic_code
 from cogent3.core import moltype as c3_moltype
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
@@ -44,7 +52,6 @@ from cogent3.core.location import (
 from cogent3.core.seqview import SeqView, SeqViewABC
 from cogent3.draw.drawable import Shape
 from cogent3.format.fasta import seqs_to_fasta
-from cogent3.maths.stats.contingency import CategoryCounts, TestResult
 from cogent3.maths.stats.number import CategoryCounter
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArray
@@ -61,11 +68,13 @@ if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Callable, Iterable, Iterator, Mapping
 
     from cogent3.core.alignment import Aligned
+    from cogent3.core.genetic_code import GeneticCode
     from cogent3.draw.drawable import Drawable, Shape
+    from cogent3.maths.stats.contingency import TestResult
+
 
 NumpyIntArrayType = npt.NDArray[numpy.integer]
-
-
+GeneticCodeTypes = Union["GeneticCode | str | int"]
 # standard distance functions: left  because generally useful
 frac_same = for_seq(f=eq, aggregator=sum, normalizer=per_shortest)
 frac_diff = for_seq(f=ne, aggregator=sum, normalizer=per_shortest)
@@ -2083,7 +2092,7 @@ class NucleicAcidSequenceBase(Sequence):
 
     def has_terminal_stop(
         self,
-        gc: c3_genetic_code.GeneticCode | int = 1,
+        gc: GeneticCodeTypes = 1,
         strict: bool = False,
     ) -> bool:
         """Return True if the sequence has a terminal stop codon.
@@ -2096,7 +2105,9 @@ class NucleicAcidSequenceBase(Sequence):
         strict
             If True, raises an exception if length not divisible by 3
         """
-        gc = c3_genetic_code.get_code(gc)
+        from cogent3.core.genetic_code import get_code
+
+        gc = get_code(gc)
         _, s = self.parse_out_gaps()
 
         divisible_by_3 = len(s) % 3 == 0
@@ -2112,7 +2123,7 @@ class NucleicAcidSequenceBase(Sequence):
 
     def trim_stop_codon(
         self,
-        gc: c3_genetic_code.GeneticCode | int = 1,
+        gc: GeneticCodeTypes = 1,
         strict: bool = False,
     ) -> Self:
         """Removes a terminal stop codon from the sequence
@@ -2133,7 +2144,9 @@ class NucleicAcidSequenceBase(Sequence):
         if not self.has_terminal_stop(gc=gc, strict=strict):
             return self
 
-        gc = c3_genetic_code.get_code(gc)
+        from cogent3.core.genetic_code import get_code
+
+        gc = get_code(gc)
         m, s = self.parse_out_gaps()
 
         divisible_by_3 = len(s) % 3 == 0
@@ -2169,7 +2182,7 @@ class NucleicAcidSequenceBase(Sequence):
 
     def get_translation(
         self,
-        gc: c3_genetic_code.GeneticCode | int = 1,
+        gc: GeneticCodeTypes = 1,
         incomplete_ok: bool = False,
         include_stop: bool = False,
         trim_stop: bool = True,
@@ -2203,12 +2216,11 @@ class NucleicAcidSequenceBase(Sequence):
             raise c3_moltype.MolTypeError(
                 msg,
             )
+        from cogent3.core.genetic_code import get_code
 
         protein = c3_moltype.get_moltype(
             "protein_with_stop" if include_stop else "protein",
         )
-        gc = c3_genetic_code.get_code(gc)
-
         if trim_stop:
             seq = self.trim_stop_codon(gc=gc, strict=not incomplete_ok)
         else:
@@ -2216,7 +2228,9 @@ class NucleicAcidSequenceBase(Sequence):
 
         # since we are realising the view, reverse complementing will be
         # dealt with, so rc=False
-        pep = gc.translate(numpy.array(seq), rc=False, incomplete_ok=incomplete_ok)
+        pep = cast("GeneticCode", get_code(gc)).translate(
+            numpy.array(seq), rc=False, incomplete_ok=incomplete_ok
+        )
 
         if not include_stop and "*" in pep:
             msg = f"{self.name!r} has a stop codon in the translation"
@@ -2242,6 +2256,8 @@ class NucleicAcidSequenceBase(Sequence):
 
     def strand_symmetry(self, motif_length: int = 1) -> TestResult:
         """returns G-test for strand symmetry"""
+        from cogent3.maths.stats.contingency import CategoryCounts
+
         counts = self.counts(motif_length=motif_length)
         ssym_pairs = self.moltype.strand_symmetric_motifs(motif_length=motif_length)
 

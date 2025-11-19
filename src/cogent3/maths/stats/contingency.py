@@ -1,7 +1,6 @@
 from numpy import log, outer, sqrt, zeros
 from numpy.random import shuffle
 from numpy.testing import assert_allclose
-from scipy.stats.distributions import chi2
 
 from cogent3.maths.stats.test import G_fit
 from cogent3.util.dict_array import DictArray
@@ -268,6 +267,8 @@ class CategoryCounts:
             pvalue is estimated via resampling from the observed data,
             preserving the marginals
         """
+        from scipy.stats.distributions import chi2
+
         stat = calc_chisq(self.observed.array, self.expected.array)
         if not shuffled:
             pval = chi2.sf(stat, self.df)
@@ -297,6 +298,8 @@ class CategoryCounts:
             pvalue is estimated via resampling shuffled times from the observed
             data, preserving the marginals
         """
+        from scipy.stats.distributions import chi2
+
         assert type(pseudo_count) == int, f"{pseudo_count} not an integer"
         obs = self.observed
         exp = self.expected

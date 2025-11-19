@@ -17,9 +17,6 @@ from typing import TYPE_CHECKING
 
 from scitrack import get_text_hexdigest
 
-from cogent3.core import alignment as c3_alignment
-from cogent3.core import tree as c3tree
-from cogent3.core.table import Table
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.io import get_format_suffixes, open_
 from cogent3.util.parallel import is_master_process
@@ -29,6 +26,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from os import PathLike
 
     from cogent3.app.typing import TabularType
+    from cogent3.core.table import Table
 
 _NOT_COMPLETED_TABLE = "not_completed"
 _LOG_TABLE = "logs"
@@ -190,6 +188,8 @@ class DataStoreABC(ABC):
     @property
     def summary_logs(self) -> TabularType:
         """returns a table summarising log files"""
+        from cogent3.core.table import Table
+
         rows = []
         for record in self.logs:
             data = record.read().splitlines()
@@ -230,6 +230,8 @@ class DataStoreABC(ABC):
 
     @property
     def describe(self) -> TabularType:
+        from cogent3.core.table import Table
+
         title = "Directory datastore"
         num_not_completed = len(self.not_completed)
         num_completed = len(self.completed)
@@ -248,6 +250,8 @@ class DataStoreABC(ABC):
     def drop_not_completed(self, *, unique_id: str | None = None) -> None: ...
 
     def validate(self) -> TabularType:
+        from cogent3.core.table import Table
+
         correct_md5 = len(self.members)
         missing_md5 = 0
         for m in self.members:
@@ -316,6 +320,8 @@ def summary_not_completeds(
     deserialise
         a callable for converting not completed contents, the result of member.read() must be a json string
     """
+    from cogent3.core.table import Table
+
     err_pat = re.compile(r"[A-Z][a-z]+[A-Z][a-z]+\:.+")
     types = defaultdict(list)
     indices = "type", "origin"
@@ -745,26 +751,6 @@ def get_unique_id(name: object) -> str | None:
 def get_data_source(data: object) -> str | None:
     source = getattr(data, "source", None)
     return None if source is None else get_data_source(source)
-
-
-@get_data_source.register
-def _(data: c3_alignment.Alignment) -> str | None:
-    return get_data_source(data.source)
-
-
-@get_data_source.register
-def _(data: c3_alignment.SequenceCollection) -> str | None:
-    return get_data_source(data.source)
-
-
-@get_data_source.register
-def _(data: c3tree.PhyloNode) -> str | None:
-    return get_data_source(data.source)
-
-
-@get_data_source.register
-def _(data: c3tree.PhyloNode) -> str | None:
-    return get_data_source(data.source)
 
 
 @get_data_source.register
