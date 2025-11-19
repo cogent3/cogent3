@@ -104,10 +104,10 @@ __numba_logger.setLevel(logging.WARNING)
 def make_seq(
     seq,
     name: str | None = None,
-    moltype: typing.Union["MolTypeLiteral", None] = None,
+    moltype: "MolTypeLiteral | None" = None,
     annotation_offset: int = 0,
-    annotation_db: typing.Union["SupportsFeatures", None] = None,
-    **kw: dict,
+    annotation_db: "SupportsFeatures | None" = None,
+    **kwargs: typing.Any,  # noqa: ANN401
 ):  # refactor: type hinting, need to capture optional args and the return type
     """
     Parameters
@@ -120,7 +120,7 @@ def make_seq(
         name of a moltype or moltype instance. If None, defaults to 'text'.
     annotation_offset
         integer indicating start position relative to annotations
-    **kw
+    **kwargs
         other keyword arguments passed to Sequence
 
     Returns
@@ -135,7 +135,7 @@ def make_seq(
         seq=seq,
         name=name,
         annotation_offset=annotation_offset,
-        **kw,
+        **kwargs,
     )
     if annotation_db:
         seq.annotation_db = annotation_db
@@ -146,11 +146,11 @@ def _load_files_to_unaligned_seqs(
     *,
     path: os.PathLike,
     format_name: str | None = None,
-    moltype: typing.Union["MolTypeLiteral", None] = None,
+    moltype: "MolTypeLiteral | None" = None,
     label_to_name: Callable | None = None,
     parser_kw: dict | None = None,
     info: dict | None = None,
-    **kw,
+    **kwargs: typing.Any,  # noqa: ANN401
 ) -> "SequenceCollection":
     """loads multiple files and returns as a sequence collection"""
     from cogent3.core.alignment import make_unaligned_seqs
@@ -181,7 +181,7 @@ def _load_genbank_seq(
     filename: os.PathLike,
     parser_kw: dict,
     just_seq: bool = False,
-) -> tuple[str, str, typing.Union["SupportsFeatures", None]]:
+) -> tuple[str, str, "SupportsFeatures | None"]:
     """utility function for loading sequences"""
     from cogent3.core.annotation_db import GenbankAnnotationDb
     from cogent3.parse.genbank import iter_genbank_records
@@ -207,12 +207,12 @@ def load_seq(
     filename: os.PathLike,
     annotation_path: os.PathLike | None = None,
     format_name: str | None = None,
-    moltype: typing.Union["MolTypeLiteral", None] = None,
+    moltype: "MolTypeLiteral | None" = None,
     label_to_name: Callable | None = None,
     parser_kw: dict | None = None,
     info: dict | None = None,
     annotation_offset: int = 0,
-    **kw: dict,
+    **kwargs: typing.Any,  # noqa: ANN401
 ) -> "Sequence":
     """
     loads unaligned sequences from file
@@ -235,7 +235,7 @@ def load_seq(
         a dict from which to make an info object
     annotation_offset
         integer indicating start position relative to annotations
-    **kw
+    **kwargs
         other keyword arguments passed to sequence loader
 
     Notes
@@ -302,7 +302,7 @@ def load_seq(
         moltype=moltype,
         annotation_offset=annotation_offset,
         annotation_db=db,
-        **kw,
+        **kwargs,
     )
     result.info.update(info)
 
@@ -312,11 +312,11 @@ def load_seq(
 def load_unaligned_seqs(
     filename: str | pathlib.Path,
     format_name: str | None = None,
-    moltype: typing.Union["MolTypeLiteral", None] = None,
+    moltype: "MolTypeLiteral | None" = None,
     label_to_name: typing.Callable[[str], str] | None = None,
     parser_kw: dict | None = None,
     info: dict | None = None,
-    **kw,
+    **kwargs: typing.Any,  # noqa: ANN401
 ) -> "SequenceCollection":
     """
     loads unaligned sequences from file
@@ -336,7 +336,7 @@ def load_unaligned_seqs(
         optional arguments for the parser
     info
         a dict from which to make an info object
-    **kw
+    **kwargs
         other keyword arguments passed to SequenceCollection, or show_progress.
         The latter induces a progress bar for number of files processed when
         filename is a glob pattern.
@@ -365,7 +365,7 @@ def load_unaligned_seqs(
             label_to_name=label_to_name,
             parser_kw=parser_kw,
             info=info,
-            **kw,
+            **kwargs,
         )
 
     if file_suffix == "json":
@@ -392,18 +392,18 @@ def load_unaligned_seqs(
         moltype=moltype,
         source=filename,
         info=info,
-        **kw,
+        **kwargs,
     )
 
 
 def load_aligned_seqs(
     filename: str | pathlib.Path,
     format_name: str | None = None,
-    moltype: typing.Union["MolTypeLiteral", None] = None,
+    moltype: "MolTypeLiteral | None" = None,
     label_to_name: typing.Callable[[str], str] | None = None,
     parser_kw: dict | None = None,
     info: dict | None = None,
-    **kw,
+    **kwargs: typing.Any,  # noqa: ANN401
 ) -> "Alignment":
     """
     loads aligned sequences from file
@@ -420,7 +420,7 @@ def load_aligned_seqs(
         function for converting original name into another name.
     parser_kw
         optional arguments for the parser
-    kw
+    kwargs
         passed to make_aligned_seqs
 
     Returns
@@ -456,5 +456,5 @@ def load_aligned_seqs(
         moltype=moltype,
         source=filename,
         info=info,
-        **kw,
+        **kwargs,
     )

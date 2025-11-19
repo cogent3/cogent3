@@ -5,7 +5,7 @@ import threading
 import time
 from collections.abc import Callable, Collection, Generator, Iterable, Sized
 from collections.abc import Sequence as PySeq
-from typing import TYPE_CHECKING, Any, ParamSpec, Self, TypeVar, Union
+from typing import TYPE_CHECKING, Any, ParamSpec, Self, TypeVar
 
 if TYPE_CHECKING:
     from tqdm import notebook, tqdm
@@ -49,7 +49,7 @@ class LogFileOutput:
         pass
 
 
-TProgDisplay = type[Union["tqdm", "notebook.tqdm", LogFileOutput]]
+TProgDisplay = type["tqdm | notebook.tqdm | LogFileOutput"]
 
 
 class ProgressContext:

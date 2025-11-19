@@ -21,7 +21,6 @@ from typing import (
     Literal,
     Self,
     SupportsIndex,
-    Union,
     cast,
     overload,
 )
@@ -74,7 +73,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
 
 NumpyIntArrayType = npt.NDArray[numpy.integer]
-GeneticCodeTypes = Union["GeneticCode", str, int]
+GeneticCodeTypes = "GeneticCode | str | int"
 # standard distance functions: left  because generally useful
 frac_same = for_seq(f=eq, aggregator=sum, normalizer=per_shortest)
 frac_diff = for_seq(f=ne, aggregator=sum, normalizer=per_shortest)

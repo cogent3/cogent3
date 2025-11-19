@@ -3,7 +3,7 @@ import io
 import pathlib
 import string
 from collections.abc import Callable, Iterator
-from typing import TYPE_CHECKING, Any, Union
+from typing import TYPE_CHECKING, Any
 
 import numpy
 import numpy.typing as npt
@@ -676,7 +676,7 @@ def _(
 
 
 def minimal_parser(
-    data: Union[bytes, io.TextIOBase, "PathType"],
+    data: "bytes | io.TextIOBase | PathType",
     converter: SeqConverterType = default_seq_converter,
     convert_features: OptFeatureConverterType = default_parse_metadata,
 ) -> Iterator[dict[str, OutTypes | Any]]:
@@ -715,7 +715,7 @@ def rich_parser(
     info_excludes=None,
     moltype=None,
     skip_contigs=False,
-    db: Union["GenbankAnnotationDb", None] = None,
+    db: "GenbankAnnotationDb | None" = None,
     just_seq: bool = False,
 ):
     """Returns annotated sequences from GenBank formatted file.

@@ -2,7 +2,7 @@ import json
 import re
 from collections.abc import Callable
 from importlib import import_module
-from typing import TYPE_CHECKING, Any, ParamSpec, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, ParamSpec, TypeVar, cast
 
 if TYPE_CHECKING:  # pragma: no cover
     from cogent3.util.io import PathType
@@ -97,7 +97,7 @@ def deserialise_likelihood_function(data):
     return lf
 
 
-def deserialise_object(data: Union["PathType", str, dict[str, Any]]) -> Any:
+def deserialise_object(data: "PathType | str | dict[str, Any]") -> Any:
     """
     deserialises from json
 
