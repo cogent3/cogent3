@@ -12,7 +12,7 @@ from .typing import SeqsCollectionType, SeqType, SerialisableType
 if TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.genetic_code import GeneticCode
 
-GeneticCodeTypes = Union[str, int, "GeneticCode"]
+GeneticCodeTypes = Union["GeneticCode | str | int"]
 MolTypes = str | c3_moltype.MolType
 AlphabetTypes = c3_alphabet.CharAlphabet
 

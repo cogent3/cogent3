@@ -11,7 +11,17 @@ import warnings
 from abc import ABC, abstractmethod
 from collections import Counter, defaultdict
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, Generic, Literal, Self, TypeVar, cast, overload
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Generic,
+    Literal,
+    Self,
+    TypeVar,
+    Union,
+    cast,
+    overload,
+)
 
 import numba
 import numpy
@@ -58,6 +68,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Callable, Iterable, Iterator
     from collections.abc import Sequence as PySeq
 
+    from cogent3.core.genetic_code import GeneticCode
     from cogent3.core.seqview import (
         AlignedDataViewABC,
         SeqViewABC,
@@ -70,7 +81,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from cogent3.util.io import PathType
 
 MolTypes = c3_moltype.MolTypeLiteral | c3_moltype.MolType[Any]
-GeneticCodeTypes = "GeneticCode | str | int"
+GeneticCodeTypes = Union["GeneticCode | str | int"]
 NumpyIntArrayType = npt.NDArray[numpy.integer]
 NumpyFloatArrayType = npt.NDArray[numpy.floating]
 
