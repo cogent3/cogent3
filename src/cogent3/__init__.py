@@ -155,7 +155,7 @@ def _load_files_to_unaligned_seqs(
     """loads multiple files and returns as a sequence collection"""
     from cogent3.core.alignment import make_unaligned_seqs
 
-    ui = kw.pop("ui")
+    ui = kwargs.pop("ui")
     file_names = list(path.parent.glob(path.name))
     seqs = [
         load_seq(
