@@ -7,7 +7,7 @@ from collections.abc import Callable, Collection, Generator, Iterable, Sized
 from collections.abc import Sequence as PySeq
 from typing import TYPE_CHECKING, Any, ParamSpec, Self, TypeVar
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from tqdm import notebook, tqdm
 
 
