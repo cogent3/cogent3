@@ -2,6 +2,7 @@
 analysis experience within Jupyter notebooks plus supporting parallel
 execution on compute systems with 1000s of CPUs."""
 
+import logging
 import os
 import pathlib
 import typing
@@ -28,11 +29,10 @@ def __getattr__(name: str) -> typing.Any:  # noqa: ANN401
 
     if name not in _import_mapping:
         try:
-            module = import_module(name)
+            attr = __import__(name)
         except ImportError as err:
             raise AttributeError(name) from err
 
-        attr = __import__(name)
         globals()[name] = attr
         return attr
 
@@ -85,16 +85,14 @@ def __dir__() -> list[str]:
 __all__ = list(_import_mapping.keys())
 
 version = __version__
-version_info = tuple([int(v) for v in version.split(".") if v.isdigit()])
+version_info = tuple(int(v) for v in version.split(".") if v.isdigit())
 
 
 warn_env = "COGENT3_WARNINGS"
 
-if warn_env in os.environ:
-    warnings.simplefilter(os.environ[warn_env])
+if warn := os.environ.get(warn_env):
+    warnings.simplefilter(warn)
 
-
-import logging
 
 # suppress numba warnings
 __numba_logger = logging.getLogger("numba")

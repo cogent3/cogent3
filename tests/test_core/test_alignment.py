@@ -6526,12 +6526,20 @@ def test_non_unique_storage_names(mk_cls):
         mk_cls([s1, s2], moltype="dna")
 
 
-def test_toplevel_getattr():
+def test_toplevel_getattr_invalid():
     import cogent3
 
     # should fail with attribute error
     with pytest.raises(AttributeError):
         _ = cogent3.non_existent_attribute
+
+
+def test_toplevel_getattr_valid():
+    import cogent3
+
+    submods = {n for n in dir(cogent3) if not n.startswith("_")}
+    key = {"util", "phylo", "app", "align", "evolve", "core", "draw"}
+    assert len(submods & key) == len(key)
 
 
 def test_load_unaligned_glob(DATA_DIR):
