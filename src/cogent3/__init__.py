@@ -28,11 +28,10 @@ def __getattr__(name: str) -> typing.Any:  # noqa: ANN401
 
     if name not in _import_mapping:
         try:
-            module = import_module(name)
+            attr = __import__(name)
         except ImportError as err:
             raise AttributeError(name) from err
 
-        attr = __import__(name)
         globals()[name] = attr
         return attr
 
