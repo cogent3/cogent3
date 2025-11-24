@@ -1,4 +1,21 @@
 
+<a id='changelog-2025.9.8a10'></a>
+# Changes in release "2025.9.8a10"
+
+A performance enhancement release.
+
+## Contributors
+
+- @GavinHuttley, import speed improvements
+- @rmcar17, code review
+
+## Enhancements
+
+- Improve top level import speed. Done by implementing a
+  custom lazy import mechanism for the top level cogent3.
+  Additionally, move imports inside functions / methods
+  for some modules.
+
 <a id='changelog-2025.9.8a9'></a>
 # Changes in release "2025.9.8a9"
 
