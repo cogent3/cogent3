@@ -17,6 +17,7 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15067121.svg)](https://doi.org/10.5281/zenodo.15067121)
 
+[![CZI's Essential Open Source Software for Science](https://img.shields.io/badge/funded%20by-EOSS-FF414B)](https://czi.co/EOSS)
 
 `cogent3` is a mature python library for analysis of genomic sequence data. We endeavour to provide a first-class experience within Jupyter notebooks, but the algorithms also support parallel execution on compute systems with 1000's of processors.
 
@@ -114,6 +115,9 @@ To install the development version directly from GitHub
 ```bash
 $ pip install git+https://github.com/cogent3/cogent3.git@develop#egg=cogent3
 ```
+
+> **Note**
+> You can trial python3.14 by appending `--prerelease=allow` to your pip install line.
 
 ## Project Information
 
