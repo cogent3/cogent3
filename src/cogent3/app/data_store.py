@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING
 
 from scitrack import get_text_hexdigest
 
+from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.io import get_format_suffixes, open_
 from cogent3.util.parallel import is_master_process
@@ -789,7 +790,14 @@ def convert_directory_datastore(
     return out_dstore
 
 
-def convert_tinydb_to_sqlite(source: Path, dest: Path | None = None) -> DataStoreABC:
+@c3warn.deprecated_callable(
+    version="2026.1",
+    reason="tinydb conversions no longer supported",
+    is_discontinued=True,
+)
+def convert_tinydb_to_sqlite(
+    source: Path, dest: Path | None = None
+) -> DataStoreABC:  # pragma: no cover
     from datetime import datetime
     from fnmatch import translate
 
