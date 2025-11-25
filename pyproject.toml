@@ -20,6 +20,7 @@ dependencies = [
     "numba>=0.57.0; python_version=='3.11'",
     "numba>=0.59.0; python_version=='3.12'",
     "numba>=0.61.0; python_version=='3.13'",
+    "numba>=0.63.0rc1; python_version=='3.14'",
     "scipy",
     "scitrack",
     "stevedore",
@@ -27,7 +28,7 @@ dependencies = [
     "typing_extensions"
 ]
 # remember to update version in requires-python and classifiers
-requires-python = ">=3.11,<3.14"
+requires-python = ">=3.11,<3.15"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Science/Research",
@@ -49,7 +50,7 @@ Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 [project.optional-dependencies]
 test = [
     "cogent3-h5seqs>=0.7.2",
-    "piqtree>=0.6; python_version >= '3.11'",
+    "piqtree>=0.6; python_version >= '3.11'and python_version < '3.14'",
     "ruff==0.14.6",
     "kaleido",
     "pandas",
@@ -73,7 +74,7 @@ doc = [
     "nbformat",
     "nbsphinx",
     "numpydoc",
-    "piqtree>=0.6; python_version >= '3.11'",
+    "piqtree>=0.6; python_version >= '3.11'and python_version < '3.14'",
     "sphinx",
     "sphinx-autobuild",
     "pydata_sphinx_theme",
