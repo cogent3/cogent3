@@ -117,7 +117,7 @@ $ pip install git+https://github.com/cogent3/cogent3.git@develop#egg=cogent3
 ```
 
 > **Note**
-> You trial python3.14 support by appending `--prerelease=allow` to your pip install line.
+> You can trial python3.14 by appending `--prerelease=allow` to your pip install line.
 
 ## Project Information
 
