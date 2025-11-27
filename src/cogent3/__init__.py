@@ -13,6 +13,9 @@ from importlib import import_module
 from cogent3._version import __version__
 
 if typing.TYPE_CHECKING:  # pragma: no cover
+    import numpy
+    import numpy.typing as npt
+
     from cogent3.core.alignment import Alignment, SequenceCollection
     from cogent3.core.annotation_db import SupportsFeatures
     from cogent3.core.moltype import MolTypeLiteral
@@ -179,7 +182,7 @@ def _load_genbank_seq(
     filename: os.PathLike,
     parser_kw: dict,
     just_seq: bool = False,
-) -> tuple[str, str, "SupportsFeatures | None"]:
+) -> tuple[str, "str | bytes | npt.NDArray[numpy.integer]", "SupportsFeatures | None"]:
     """utility function for loading sequences"""
     from cogent3.core.annotation_db import GenbankAnnotationDb
     from cogent3.parse.genbank import iter_genbank_records
@@ -202,8 +205,8 @@ def _load_genbank_seq(
 
 
 def load_seq(
-    filename: os.PathLike,
-    annotation_path: os.PathLike | None = None,
+    filename: os.PathLike | str,
+    annotation_path: os.PathLike | str | None = None,
     format_name: str | None = None,
     moltype: "MolTypeLiteral | None" = None,
     label_to_name: Callable | None = None,
@@ -268,7 +271,7 @@ def load_seq(
 
     if is_genbank(format_name or file_suffix):
         name, seq, db = _load_genbank_seq(
-            filename,
+            pathlib.Path(filename),
             parser_kw,
             just_seq=annotation_path is not None,
         )

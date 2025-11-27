@@ -4,7 +4,8 @@
 </p>
 
 [![PyPI version](https://badge.fury.io/py/cogent3.svg)](https://badge.fury.io/py/cogent3)
-[![Downloads](https://pepy.tech/badge/cogent3/month)](https://pepy.tech/project/cogent3)
+[![Conda Downloads](https://pepy.tech/badge/cogent3/month)](https://pepy.tech/project/cogent3)
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/cogent3/badges/downloads.svg)](https://anaconda.org/bioconda/cogent3)
 
 [![Build Status](https://github.com/cogent3/cogent3/workflows/CI/badge.svg?branch=develop)](https://github.com/cogent3/cogent3/actions?workflow=CI)
 [![coverall](https://coveralls.io/repos/github/cogent3/cogent3/badge.svg?branch=develop)](https://coveralls.io/github/cogent3/cogent3?branch=develop)
@@ -24,9 +25,16 @@
 ## 📣 Feature Announcements 📣
 
 <details>
-  <summary> Third-party integration demo for `iplotx` </summary>
+  <summary> A new rust-based plugin for k-mer counting </summary>
 
-The [iplotx](https://iplotx.readthedocs.io/) team have contributed a demonstration of their tool's ability to produce images from ``cogent3`` tree objects. See the [cogent3 image gallery](https://cogent3.org/doc/draw/index.html) to read it.
+We recently added a new `count_kmers()` method to the `SequenceCollection` and `Sequence` classes. Then, the developers of [Pykmertools](https://github.com/anuradhawick/kmertools) (with a bit of help from us) have released a `cogent3-pykmertools` app which makes their rust-based python module for counting k-mers available as `seqs.count_kmers(k=k, use_hook="cogent3_pykmertools")`. Install it with `pip install cogent3-pykmertools` and give it a try. And add a star to the [Pykmertools](https://github.com/anuradhawick/kmertools) repo!
+
+</details>
+
+<details>
+  <summary> Third-party integration demo for iplotx </summary>
+
+The [iplotx](https://iplotx.readthedocs.io/) team have contributed a demonstration of their tool's ability to produce images from `cogent3` tree objects. See the [cogent3 image gallery](https://cogent3.org/doc/draw/index.html) to read it.
 
 </details>
 
@@ -44,7 +52,7 @@ We have implemented the infrastructure to support third-party provision of every
 
 ### Cogent3 implements plugin hooks 🔌🪝🎉
 
-We have implemented the infrastructure to support hook-style plugins. We have definied a single hook now -- the new type ``Alignment.quick_tree()`` method checks for an external plugin for calculation. The developers of [piqtree](https://pypi.org/project/piqtree) have made the rapid-NJ algorithm available for this hook! Once installed, it is used as `aln.quick_tree(use_hook="piqtree")`.
+We have implemented the infrastructure to support hook-style plugins. We have defined a single hook now -- the new type `Alignment.quick_tree()` method checks for an external plugin for calculation. The developers of [piqtree](https://pypi.org/project/piqtree) have made the rapid-NJ algorithm available for this hook! Once installed, it is used as `aln.quick_tree(use_hook="piqtree")`.
 
 > **Note**
 > For assistance in writing your own plugins, contact us via the [cogent3 discussions page](https://github.com/cogent3/cogent3/discussions).
