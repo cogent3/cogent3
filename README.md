@@ -52,7 +52,7 @@ We have implemented the infrastructure to support third-party provision of every
 
 ### Cogent3 implements plugin hooks 🔌🪝🎉
 
-We have implemented the infrastructure to support hook-style plugins. We have definied a single hook now -- the new type `Alignment.quick_tree()` method checks for an external plugin for calculation. The developers of [piqtree](https://pypi.org/project/piqtree) have made the rapid-NJ algorithm available for this hook! Once installed, it is used as `aln.quick_tree(use_hook="piqtree")`.
+We have implemented the infrastructure to support hook-style plugins. We have defined a single hook now -- the new type `Alignment.quick_tree()` method checks for an external plugin for calculation. The developers of [piqtree](https://pypi.org/project/piqtree) have made the rapid-NJ algorithm available for this hook! Once installed, it is used as `aln.quick_tree(use_hook="piqtree")`.
 
 > **Note**
 > For assistance in writing your own plugins, contact us via the [cogent3 discussions page](https://github.com/cogent3/cogent3/discussions).
