@@ -2467,8 +2467,7 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         """
         cat_counts: list[CategoryCounter[str | bytes]] = []
         motifs_set: set[str | bytes] = set()
-        for name in self.names:
-            seq = self.get_seq(name)
+        for seq in self.seqs:
             c = seq.counts(
                 motif_length=motif_length,
                 include_ambiguity=include_ambiguity,
@@ -2477,6 +2476,10 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
             )
             motifs_set.update(c.keys())
             cat_counts.append(c)
+
+        if not exclude_unobserved:
+            motifs_set.update(self.moltype.alphabet.get_kmer_alphabet(motif_length))
+
         # use motifs from moltype if empty sequences
         motifs = sorted(motifs_set) or sorted(self.moltype)
 
