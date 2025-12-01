@@ -62,7 +62,7 @@ test = [
     "pytest-xdist",
     "nox"
 ]
-typing = ["mypy==1.18.2", "plotly-stubs"]
+typing = ["mypy==1.19.0", "plotly-stubs"]
 doc = [
     "click",
     "cogent3[extra]",
