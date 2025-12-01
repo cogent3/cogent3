@@ -1,4 +1,28 @@
 
+<a id='changelog-2025.9.8a11'></a>
+# Changes in release "2025.9.8a11"
+
+Updated to support python 3.14 plus minor bug fix.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- We now support Python 3.14. Specify `--prerelease=allow` when doing
+  `pip install` (the pre-release flag is required for `numba` and
+  `llvmlite`, which are both at release candidate stage).
+
+## Bug fixes
+
+- The counts_per_seq() methods on both Alignment and SequenceCollection
+  are now consistent in honouring the `exclude_unobserved` argument.
+
+## Deprecations
+
+- Functions to convert `tinydb` data stores marked for removal by version 2026.1.
+
 <a id='changelog-2025.9.8a10'></a>
 # Changes in release "2025.9.8a10"
 
