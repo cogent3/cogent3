@@ -1926,7 +1926,7 @@ def test_sequence_collection_counts_per_seq(mk_cls):
     "mk_cls",
     [c3_alignment.make_aligned_seqs, c3_alignment.make_unaligned_seqs],
 )
-def test_sequence_collection_counts_per_seq_exclude_ubobserved(mk_cls):
+def test_sequence_collection_counts_per_seq_exclude_uobserved(mk_cls):
     """SequenceCollection.counts_per_seq handles motif length, allow_gaps etc.."""
     data = {"a": "AAAA??????", "b": "CCCGGG--NN"}
     coll = mk_cls(data, moltype="dna")
