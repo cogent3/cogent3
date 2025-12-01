@@ -60,18 +60,8 @@ jobs:
           uv venv venv -p python${{ matrix.python-version }}
           uv tool install -p venv nox
 
-      - name: "Run nox for ${{ matrix.python-version }}"
-        shell: bash
-        run: |
-          nox -db uv --force-python python -s test
-
-      - name: "Installs for docs"
-        run: |
-          pip install --upgrade pip nox
-          pip install ".[doc]"
-
       - name: "test the docs code"
-        run: "nox -db uv -s testdocs-3.14"
+        run: "nox -db uv --force-python python -s testdocs-3.14"
 
   build:
     name: Build wheel and sdist
