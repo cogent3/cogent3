@@ -21,8 +21,10 @@ license = { file = "LICENSE" }
 dependencies = [
     "charset_normalizer",
     "loky!=3.5.0",
-    # until numba modified to handle removal of numpy.trapz
-    "numpy<2.3.5",
+    # prevent release candidate of numpy 2.4 
+    # until numba modified to handle removal
+    # of numpy.trapz
+    "numpy<2.4",
     "numba>=0.57.0; python_version=='3.11'",
     "numba>=0.59.0; python_version=='3.12'",
     "numba>=0.61.0; python_version=='3.13'",
