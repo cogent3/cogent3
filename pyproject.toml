@@ -7,16 +7,24 @@ name = "cogent3"
 description = """COmparative GENomics Toolkit 3: genomic sequence analysis within notebooks or on compute systems with 1000s of CPUs."""
 dynamic = ["version"]
 
-authors = [
-    { name = "Gavin Huttley", email = "Gavin.Huttley@anu.edu.au" }
+authors = [{ name = "Gavin Huttley", email = "Gavin.Huttley@anu.edu.au" }]
+keywords = [
+    "biology",
+    "genomics",
+    "statistics",
+    "phylogeny",
+    "evolution",
+    "bioinformatics",
 ]
-keywords = ["biology", "genomics", "statistics", "phylogeny", "evolution", "bioinformatics"]
 readme = "README.md"
 license = { file = "LICENSE" }
 dependencies = [
     "charset_normalizer",
     "loky!=3.5.0",
-    "numpy",
+    # prevent release candidate of numpy 2.4 
+    # until numba modified to handle removal
+    # of numpy.trapz
+    "numpy<2.4",
     "numba>=0.57.0; python_version=='3.11'",
     "numba>=0.59.0; python_version=='3.12'",
     "numba>=0.61.0; python_version=='3.13'",
@@ -25,7 +33,7 @@ dependencies = [
     "scitrack",
     "stevedore",
     "tqdm",
-    "typing_extensions"
+    "typing_extensions",
 ]
 # remember to update version in requires-python and classifiers
 requires-python = ">=3.11,<3.15"
@@ -38,7 +46,7 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13"
+    "Programming Language :: Python :: 3.13",
 ]
 
 [project.urls]
@@ -60,7 +68,7 @@ test = [
     "pytest",
     "pytest-cov",
     "pytest-xdist",
-    "nox"
+    "nox",
 ]
 typing = ["mypy==1.19.0", "plotly-stubs"]
 doc = [
@@ -81,7 +89,7 @@ doc = [
     "sphinx_design",
     "sphinxcontrib-bibtex",
     "sphinxcontrib-video",
-    "iplotx>=0.6.8"
+    "iplotx>=0.6.8",
 ]
 extra = [
     "ipykernel",
@@ -94,7 +102,7 @@ extra = [
     "pillow",
     "plotly",
     "plotly-stubs",
-    "psutil"
+    "psutil",
 ]
 dev = [
     "flit",
@@ -104,7 +112,7 @@ dev = [
     "types-tqdm",
     "cogent3[doc]",
     "cogent3[test]",
-    "cogent3[typing]"
+    "cogent3[typing]",
 ]
 
 [tool.flit.sdist]
@@ -115,7 +123,7 @@ exclude = ["doc/*.html"]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "internet: marks tests that require internet access  (deselect with '-m \"not internet\"')",
-    "discontinued: mark tests as discontinued (deselect with '-m \"not discontinued\"')"
+    "discontinued: mark tests as discontinued (deselect with '-m \"not discontinued\"')",
 ]
 testpaths = "tests"
 addopts = ["--strict-config"]
@@ -123,7 +131,7 @@ norecursedirs = ["doc", ".nox"]
 filterwarnings = [
     'ignore:FORCED EXIT from optimiser',
     'ignore:Motif probs overspecified',
-    'ignore:Model not reversible'
+    'ignore:Model not reversible',
 ]
 
 [tool.uv]
@@ -131,7 +139,15 @@ reinstall-package = ["cogent3"]
 
 [tool.scriv]
 format = "md"
-categories = ["API", "Contributors", "Enhancements", "Bug fixes", "Documentation", "Deprecations", "Discontinued"]
+categories = [
+    "API",
+    "Contributors",
+    "Enhancements",
+    "Bug fixes",
+    "Documentation",
+    "Deprecations",
+    "Discontinued",
+]
 output_file = "changelog.md"
 version = "literal: src/cogent3/_version.py:__version__"
 skip_fragments = "README.*"
