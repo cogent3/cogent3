@@ -1,4 +1,15 @@
 
+<a id='changelog-2025.12.10a1'></a>
+# Changes in release "2025.12.10a1"
+
+Releasing this to avoid poor user experience due to the
+numpy 2.4 pre-release being incompatible with numba.
+
+## Documentation
+
+- numba released for python 3.14, remove instructions to use the --prerelease option
+  as this causes problems by allowing numpy 2.4 to be installed, which breaks numba
+
 <a id='changelog-2025.9.8a11'></a>
 # Changes in release "2025.9.8a11"
 
