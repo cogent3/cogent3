@@ -2,6 +2,7 @@
 
 import abc
 import functools
+import os
 import pathlib
 import typing
 
@@ -20,7 +21,7 @@ from cogent3.util.io import iter_splitlines
 
 ParserOutputType = typing.Iterable[tuple[str, str] | dict]
 
-SeqParserInputTypes = str | pathlib.Path | tuple | list
+SeqParserInputTypes = str | pathlib.Path | os.PathLike | tuple | list
 
 
 class SequenceParserBase(abc.ABC):
@@ -290,8 +291,10 @@ def get_parser(fmt: str) -> typing.Callable[[SeqParserInputTypes], ParserOutputT
         raise ValueError(msg)
 
 
-def is_genbank(fmt: str) -> bool:
+def is_genbank(fmt: str | None) -> bool:
     """whether the provided format is a genbank format"""
+    if fmt is None:
+        return False
     try:
         return get_parser(fmt).__module__.endswith("genbank")
     except ValueError:

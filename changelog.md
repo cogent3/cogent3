@@ -1,4 +1,56 @@
 
+<a id='changelog-2025.12.10a1'></a>
+# Changes in release "2025.12.10a1"
+
+Releasing this to avoid poor user experience due to the
+numpy 2.4 pre-release being incompatible with numba.
+
+## Documentation
+
+- numba released for python 3.14, remove instructions to use the --prerelease option
+  as this causes problems by allowing numpy 2.4 to be installed, which breaks numba
+
+<a id='changelog-2025.9.8a11'></a>
+# Changes in release "2025.9.8a11"
+
+Updated to support python 3.14 plus minor bug fix.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- We now support Python 3.14. Specify `--prerelease=allow` when doing
+  `pip install` (the pre-release flag is required for `numba` and
+  `llvmlite`, which are both at release candidate stage).
+
+## Bug fixes
+
+- The counts_per_seq() methods on both Alignment and SequenceCollection
+  are now consistent in honouring the `exclude_unobserved` argument.
+
+## Deprecations
+
+- Functions to convert `tinydb` data stores marked for removal by version 2026.1.
+
+<a id='changelog-2025.9.8a10'></a>
+# Changes in release "2025.9.8a10"
+
+A performance enhancement release.
+
+## Contributors
+
+- @GavinHuttley, import speed improvements
+- @rmcar17, code review
+
+## Enhancements
+
+- Improve top level import speed. Done by implementing a
+  custom lazy import mechanism for the top level cogent3.
+  Additionally, move imports inside functions / methods
+  for some modules.
+
 <a id='changelog-2025.9.8a9'></a>
 # Changes in release "2025.9.8a9"
 

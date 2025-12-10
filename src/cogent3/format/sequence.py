@@ -5,12 +5,10 @@ import pathlib
 import typing
 from collections.abc import Callable
 
-from cogent3.core.alignment import CollectionBase
 from cogent3.format import clustal, fasta, gde, paml, phylip
 from cogent3.parse.record import FileFormatError
-from cogent3.util.io import atomic_write
 
-SeqsTypes = CollectionBase[typing.Any]
+SeqsTypes = "CollectionBase[typing.Any]"
 
 FORMATTERS: dict[str, Callable[..., str]] = {
     "phylip": phylip.alignment_to_phylip,
@@ -74,6 +72,8 @@ class SequenceWriterBase(abc.ABC):
         kwargs
             additional arguments to pass to the formatter
         """
+        from cogent3.util.io import atomic_write
+
         output = self.formatted(seqcoll, **kwargs)
         with atomic_write(path, mode="wt") as f:
             f.write(output)
@@ -130,6 +130,8 @@ def save_to_filename(alignment, filename, format, **kw) -> None:
     - filename: name of the sequence alignment file
     - format: the multiple sequence file format
     """
+    from cogent3.util.io import atomic_write
+
     if format is None:
         msg = "format not known"
         raise FileFormatError(msg)

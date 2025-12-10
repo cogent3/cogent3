@@ -1,16 +1,18 @@
 from collections import defaultdict
-from typing import Union
+from typing import TYPE_CHECKING, Union
 
 import cogent3
 from cogent3.core import alphabet as c3_alphabet
-from cogent3.core import genetic_code as c3_genetic_code
 from cogent3.core import moltype as c3_moltype
 
 from .composable import NotCompleted, define_app
 from .data_store import get_data_source
 from .typing import SeqsCollectionType, SeqType, SerialisableType
 
-GeneticCodeTypes = str | int | c3_genetic_code.GeneticCode
+if TYPE_CHECKING:  # pragma: no cover
+    from cogent3.core.genetic_code import GeneticCode
+
+GeneticCodeTypes = Union["GeneticCode | str | int"]
 MolTypes = str | c3_moltype.MolType
 AlphabetTypes = c3_alphabet.CharAlphabet
 
@@ -20,7 +22,7 @@ def best_frame(
     gc: GeneticCodeTypes = 1,
     allow_rc: bool = False,
     require_stop: bool = False,
-):
+) -> int:
     """returns reading frame start that has either no stops or a single
     terminal stop codon
 

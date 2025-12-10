@@ -23,7 +23,7 @@ PathType = str | PathLike[Any] | PurePath | Path
 
 
 @functools.singledispatch
-def is_url(path: str | bytes | Path) -> bool:
+def is_url(path: str | bytes | Path | PathLike) -> bool:
     """whether a path is a url"""
     return False
 

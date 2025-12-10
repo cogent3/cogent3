@@ -1910,8 +1910,7 @@ def test_sequence_collection_counts_per_seq(mk_cls):
     assert len(got.motifs) == 7
     expect = {"-": 2, "?": 0, "A": 0, "C": 3, "G": 3, "N": 2, "T": 0}
     b = got["b"].to_dict()
-    for k in expect:
-        assert b[k] == expect[k]
+    assert b == expect
 
     got = coll.counts_per_seq(motif_length=2)
     assert len(got.motifs), len(mtype.alphabet) ** 2
@@ -1920,8 +1919,21 @@ def test_sequence_collection_counts_per_seq(mk_cls):
     got = coll.counts_per_seq(exclude_unobserved=True)
     expect = {"C": 4, "G": 2, "T": 2, "A": 2}
     c = got["c"].to_dict()
-    for k in expect:
-        assert c[k] == expect[k]
+    assert c == expect
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_aligned_seqs, c3_alignment.make_unaligned_seqs],
+)
+def test_sequence_collection_counts_per_seq_exclude_uobserved(mk_cls):
+    """SequenceCollection.counts_per_seq handles motif length, allow_gaps etc.."""
+    data = {"a": "AAAA??????", "b": "CCCGGG--NN"}
+    coll = mk_cls(data, moltype="dna")
+    got = coll.counts_per_seq(exclude_unobserved=True)
+    assert len(got.motifs) == 3
+    got = coll.counts_per_seq(exclude_unobserved=False)
+    assert len(got.motifs) == 4
 
 
 def test_counts_per_seq_text_moltype():
@@ -6524,3 +6536,27 @@ def test_non_unique_storage_names(mk_cls):
     s2 = seqcoll.renamed_seqs(lambda x: "s2").seqs["s2"]
     with pytest.raises(ValueError):
         mk_cls([s1, s2], moltype="dna")
+
+
+def test_toplevel_getattr_invalid():
+    import cogent3
+
+    # should fail with attribute error
+    with pytest.raises(AttributeError):
+        _ = cogent3.non_existent_attribute
+
+
+def test_toplevel_getattr_valid():
+    import cogent3
+
+    submods = {n for n in dir(cogent3) if not n.startswith("_")}
+    key = {"util", "phylo", "app", "align", "evolve", "core", "draw"}
+    assert len(submods & key) == len(key)
+
+
+def test_load_unaligned_glob(DATA_DIR):
+    seqcoll = load_unaligned_seqs(
+        DATA_DIR / "*.fasta", moltype="dna", show_progress=False
+    )
+    assert isinstance(seqcoll, c3_alignment.SequenceCollection)
+    assert len(seqcoll.names) > 1

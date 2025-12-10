@@ -1,6 +1,7 @@
 import numpy
 
-from cogent3 import get_code, get_moltype
+from cogent3.core.genetic_code import get_code
+from cogent3.core.moltype import get_moltype
 from cogent3.evolve.discrete_markov import PsubMatrixDefn
 from cogent3.evolve.predicate import MotifChange
 from cogent3.maths.optimisers import ParameterOutOfBoundsError

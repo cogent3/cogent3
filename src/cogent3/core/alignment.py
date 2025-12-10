@@ -11,7 +11,17 @@ import warnings
 from abc import ABC, abstractmethod
 from collections import Counter, defaultdict
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, Generic, Literal, Self, TypeVar, cast, overload
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Generic,
+    Literal,
+    Self,
+    TypeVar,
+    Union,
+    cast,
+    overload,
+)
 
 import numba
 import numpy
@@ -21,7 +31,6 @@ from typing_extensions import override
 import cogent3
 import cogent3._plugin as c3_plugin
 import cogent3.core.alphabet as c3_alphabet
-import cogent3.core.genetic_code as c3_genetic_code
 import cogent3.core.moltype as c3_moltype
 import cogent3.core.sequence as c3_sequence
 from cogent3._version import __version__
@@ -59,6 +68,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Callable, Iterable, Iterator
     from collections.abc import Sequence as PySeq
 
+    from cogent3.core.genetic_code import GeneticCode
     from cogent3.core.seqview import (
         AlignedDataViewABC,
         SeqViewABC,
@@ -71,7 +81,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from cogent3.util.io import PathType
 
 MolTypes = c3_moltype.MolTypeLiteral | c3_moltype.MolType[Any]
-
+GeneticCodeTypes = Union["GeneticCode | str | int"]
 NumpyIntArrayType = npt.NDArray[numpy.integer]
 NumpyFloatArrayType = npt.NDArray[numpy.floating]
 
@@ -512,7 +522,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
     @abstractmethod
     def get_translation(
         self,
-        gc: c3_genetic_code.GeneticCode | int = 1,
+        gc: GeneticCodeTypes = 1,
         incomplete_ok: bool = False,
         include_stop: bool = False,
         trim_stop: bool = True,
@@ -522,7 +532,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
     @abstractmethod
     def trim_stop_codons(
         self,
-        gc: c3_genetic_code.GeneticCode | int = 1,
+        gc: GeneticCodeTypes = 1,
         strict: bool = False,
         **kwargs: Any,
     ) -> Self: ...
@@ -1059,9 +1069,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         """returns copy of self as a collection of RNA moltype seqs"""
         return self.to_moltype("rna")
 
-    def has_terminal_stop(
-        self, gc: c3_genetic_code.GeneticCode | int = 1, strict: bool = False
-    ) -> bool:
+    def has_terminal_stop(self, gc: GeneticCodeTypes = 1, strict: bool = False) -> bool:
         """Returns True if any sequence has a terminal stop codon.
 
         Parameters
@@ -2013,7 +2021,7 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
 
     def get_translation(
         self,
-        gc: c3_genetic_code.GeneticCode | int = 1,
+        gc: GeneticCodeTypes = 1,
         incomplete_ok: bool = False,
         include_stop: bool = False,
         trim_stop: bool = True,
@@ -2079,7 +2087,7 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
 
     def trim_stop_codons(
         self,
-        gc: c3_genetic_code.GeneticCode | int = 1,
+        gc: GeneticCodeTypes = 1,
         strict: bool = False,
         **kwargs: Any,
     ) -> Self:
@@ -2459,8 +2467,7 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         """
         cat_counts: list[CategoryCounter[str | bytes]] = []
         motifs_set: set[str | bytes] = set()
-        for name in self.names:
-            seq = self.get_seq(name)
+        for seq in self.seqs:
             c = seq.counts(
                 motif_length=motif_length,
                 include_ambiguity=include_ambiguity,
@@ -2469,6 +2476,10 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
             )
             motifs_set.update(c.keys())
             cat_counts.append(c)
+
+        if not exclude_unobserved:
+            motifs_set.update(self.moltype.alphabet.get_kmer_alphabet(motif_length))
+
         # use motifs from moltype if empty sequences
         motifs = sorted(motifs_set) or sorted(self.moltype)
 
@@ -3116,7 +3127,7 @@ class Alignment(CollectionBase[Aligned]):
     @extend_docstring_from(SequenceCollection.get_translation)
     def get_translation(
         self,
-        gc: c3_genetic_code.GeneticCode | int = 1,
+        gc: GeneticCodeTypes = 1,
         incomplete_ok: bool = False,
         include_stop: bool = False,
         trim_stop: bool = True,
@@ -3163,16 +3174,18 @@ class Alignment(CollectionBase[Aligned]):
 
     def trim_stop_codons(
         self,
-        gc: c3_genetic_code.GeneticCode | int = 1,
+        gc: GeneticCodeTypes = 1,
         strict: bool = False,
         **kwargs: Any,
     ) -> Self:
+        from cogent3.core.genetic_code import get_code
+
         # refactor: array
         if not self.has_terminal_stop(gc=gc, strict=strict):
             return self
 
         # define a regex for finding stop codons followed by terminal gaps
-        gc = c3_genetic_code.get_code(gc)
+        gc = get_code(gc)
         gaps = "".join(self.moltype.gaps)
         pattern = f"({'|'.join(gc['*'])})[{gaps}]*$"
         terminal_stop = re.compile(pattern)

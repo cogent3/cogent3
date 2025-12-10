@@ -2,57 +2,23 @@
 analysis experience within Jupyter notebooks plus supporting parallel
 execution on compute systems with 1000s of CPUs."""
 
+import logging
 import os
 import pathlib
 import typing
 import warnings
 from collections.abc import Callable
+from importlib import import_module
 
-from cogent3._dataset import available_datasets, get_dataset  # noqa: F401
-from cogent3._plugin import set_storage_defaults  # noqa: F401
 from cogent3._version import __version__
-from cogent3.app import (  # noqa: F401
-    app_help,
-    available_apps,
-    get_app,
-    open_data_store,
-)
-from cogent3.core import annotation_db as _anno_db
-from cogent3.core.alignment import make_aligned_seqs, make_unaligned_seqs
-from cogent3.core.genetic_code import available_codes, get_code  # noqa: F401
-
-# note that moltype has to be imported last, because it sets the moltype in
-# the objects created by the other modules.
-from cogent3.core.moltype import (  # noqa: F401
-    ASCII,
-    DNA,
-    PROTEIN,
-    RNA,
-    MolTypeLiteral,
-    available_moltypes,
-    get_moltype,
-)
-from cogent3.core.table import load_table, make_table  # noqa: F401
-from cogent3.core.tree import (  # noqa: F401
-    PhyloNode,
-    TreeError,
-    load_tree,
-    make_tree,
-)
-from cogent3.evolve.fast_distance import (  # noqa: F401
-    available_distances,
-    get_distance_calculator,
-)
-from cogent3.evolve.models import available_models, get_model  # noqa: F401
-from cogent3.parse.cogent3_json import load_from_json
-from cogent3.parse.sequence import is_genbank
-from cogent3.parse.table import load_delimited  # noqa: F401
-from cogent3.util import warning as _c3warn
-from cogent3.util.io import get_format_suffixes, is_url, open_  # noqa: F401
-from cogent3.util.progress_display import display_wrap
 
 if typing.TYPE_CHECKING:  # pragma: no cover
+    import numpy
+    import numpy.typing as npt
+
     from cogent3.core.alignment import Alignment, SequenceCollection
+    from cogent3.core.annotation_db import SupportsFeatures
+    from cogent3.core.moltype import MolTypeLiteral
     from cogent3.core.sequence import Sequence
 
 __copyright__ = "Copyright 2007-date, The Cogent Project"
@@ -60,32 +26,89 @@ __credits__ = "https://github.com/cogent3/cogent3/graphs/contributors"
 __license__ = "BSD-3"
 
 
+def __getattr__(name: str) -> typing.Any:  # noqa: ANN401
+    if (attr := globals().get(name)) is not None:
+        return attr
+
+    if name not in _import_mapping:
+        try:
+            attr = __import__(name)
+        except ImportError as err:
+            raise AttributeError(name) from err
+
+        globals()[name] = attr
+        return attr
+
+    module_name = _import_mapping[name]
+    module = import_module(f".{module_name}", package=__name__)
+    attr = getattr(module, name)
+    globals()[name] = attr
+    return attr
+
+
+_import_mapping = {
+    "available_distances": "evolve.fast_distance",
+    "get_distance_calculator": "evolve.fast_distance",
+    "available_datasets": "_dataset",
+    "get_dataset": "_dataset",
+    "set_storage_defaults": "_plugin",
+    "make_aligned_seqs": "core.alignment",
+    "make_unaligned_seqs": "core.alignment",
+    "load_annotations": "core.annotation_db",
+    "load_tree": "core.tree",
+    "make_tree": "core.tree",
+    "PhyloNode": "core.tree",
+    "TreeError": "core.tree",
+    "load_table": "core.table",
+    "make_table": "core.table",
+    "load_delimited": "parse.table",
+    "ASCII": "core.moltype",
+    "DNA": "core.moltype",
+    "RNA": "core.moltype",
+    "PROTEIN": "core.moltype",
+    "available_moltypes": "core.moltype",
+    "get_moltype": "core.moltype",
+    "MolTypeLiteral": "core.moltype",
+    "open_": "util.io",
+    "available_models": "evolve.models",
+    "get_model": "evolve.models",
+    "available_codes": "core.genetic_code",
+    "get_code": "core.genetic_code",
+    "app_help": "app",
+    "available_apps": "app",
+    "get_app": "app",
+    "open_data_store": "app.io",
+}
+
+
+def __dir__() -> list[str]:
+    return list(_import_mapping.keys()) + list(globals().keys())
+
+
+__all__ = list(_import_mapping.keys())
+
 version = __version__
-version_info = tuple([int(v) for v in version.split(".") if v.isdigit()])
+version_info = tuple(int(v) for v in version.split(".") if v.isdigit())
 
 
 warn_env = "COGENT3_WARNINGS"
 
-if warn_env in os.environ:
-    warnings.simplefilter(os.environ[warn_env])
+if warn := os.environ.get(warn_env):
+    warnings.simplefilter(warn)
 
-
-import logging
 
 # suppress numba warnings
 __numba_logger = logging.getLogger("numba")
 __numba_logger.setLevel(logging.WARNING)
 
-load_annotations = _anno_db.load_annotations
-
 
 def make_seq(
     seq,
     name: str | None = None,
-    moltype: MolTypeLiteral | None = None,
+    moltype: "MolTypeLiteral | None" = None,
     annotation_offset: int = 0,
-    annotation_db: _anno_db.SupportsFeatures | None = None,
-    **kw: dict,
+    annotation_db: "SupportsFeatures | None" = None,
+    **kwargs: typing.Any,  # noqa: ANN401
 ):  # refactor: type hinting, need to capture optional args and the return type
     """
     Parameters
@@ -98,20 +121,22 @@ def make_seq(
         name of a moltype or moltype instance. If None, defaults to 'text'.
     annotation_offset
         integer indicating start position relative to annotations
-    **kw
+    **kwargs
         other keyword arguments passed to Sequence
 
     Returns
     -------
     returns a sequence object
     """
+    from cogent3.core.moltype import get_moltype
+
     mtype = get_moltype(moltype)
 
     seq = mtype.make_seq(
         seq=seq,
         name=name,
         annotation_offset=annotation_offset,
-        **kw,
+        **kwargs,
     )
     if annotation_db:
         seq.annotation_db = annotation_db
@@ -122,14 +147,16 @@ def _load_files_to_unaligned_seqs(
     *,
     path: os.PathLike,
     format_name: str | None = None,
-    moltype: MolTypeLiteral | None = None,
+    moltype: "MolTypeLiteral | None" = None,
     label_to_name: Callable | None = None,
     parser_kw: dict | None = None,
     info: dict | None = None,
-    ui=None,
+    **kwargs: typing.Any,  # noqa: ANN401
 ) -> "SequenceCollection":
     """loads multiple files and returns as a sequence collection"""
+    from cogent3.core.alignment import make_unaligned_seqs
 
+    ui = kwargs.pop("ui")
     file_names = list(path.parent.glob(path.name))
     seqs = [
         load_seq(
@@ -151,15 +178,13 @@ def _load_files_to_unaligned_seqs(
     )
 
 
-T = _anno_db.SupportsFeatures | None
-
-
 def _load_genbank_seq(
     filename: os.PathLike,
     parser_kw: dict,
     just_seq: bool = False,
-) -> tuple[str, str, T]:
+) -> tuple[str, "str | bytes | npt.NDArray[numpy.integer]", "SupportsFeatures | None"]:
     """utility function for loading sequences"""
+    from cogent3.core.annotation_db import GenbankAnnotationDb
     from cogent3.parse.genbank import iter_genbank_records
 
     for name, seq, features in iter_genbank_records(filename, **parser_kw):
@@ -171,7 +196,7 @@ def _load_genbank_seq(
     db = (
         None
         if just_seq
-        else _anno_db.GenbankAnnotationDb(
+        else GenbankAnnotationDb(
             data=features.pop("features", None),
             seqid=name,
         )
@@ -180,15 +205,15 @@ def _load_genbank_seq(
 
 
 def load_seq(
-    filename: os.PathLike,
-    annotation_path: os.PathLike | None = None,
+    filename: os.PathLike | str,
+    annotation_path: os.PathLike | str | None = None,
     format_name: str | None = None,
-    moltype: MolTypeLiteral | None = None,
+    moltype: "MolTypeLiteral | None" = None,
     label_to_name: Callable | None = None,
     parser_kw: dict | None = None,
     info: dict | None = None,
     annotation_offset: int = 0,
-    **kw: dict,
+    **kwargs: typing.Any,  # noqa: ANN401
 ) -> "Sequence":
     """
     loads unaligned sequences from file
@@ -211,7 +236,7 @@ def load_seq(
         a dict from which to make an info object
     annotation_offset
         integer indicating start position relative to annotations
-    **kw
+    **kwargs
         other keyword arguments passed to sequence loader
 
     Notes
@@ -224,6 +249,10 @@ def load_seq(
     ``Sequence``
     """
     from cogent3._plugin import get_seq_format_parser_plugin
+    from cogent3.core.annotation_db import load_annotations
+    from cogent3.parse.cogent3_json import load_from_json
+    from cogent3.parse.sequence import is_genbank
+    from cogent3.util.io import get_format_suffixes, is_url
 
     if not is_url(filename):
         filename = pathlib.Path(filename).expanduser()
@@ -242,7 +271,7 @@ def load_seq(
 
     if is_genbank(format_name or file_suffix):
         name, seq, db = _load_genbank_seq(
-            filename,
+            pathlib.Path(filename),
             parser_kw,
             just_seq=annotation_path is not None,
         )
@@ -274,22 +303,21 @@ def load_seq(
         moltype=moltype,
         annotation_offset=annotation_offset,
         annotation_db=db,
-        **kw,
+        **kwargs,
     )
     result.info.update(info)
 
     return result
 
 
-@display_wrap
 def load_unaligned_seqs(
     filename: str | pathlib.Path,
     format_name: str | None = None,
-    moltype: MolTypeLiteral | None = None,
+    moltype: "MolTypeLiteral | None" = None,
     label_to_name: typing.Callable[[str], str] | None = None,
     parser_kw: dict | None = None,
     info: dict | None = None,
-    **kw,
+    **kwargs: typing.Any,  # noqa: ANN401
 ) -> "SequenceCollection":
     """
     loads unaligned sequences from file
@@ -309,7 +337,7 @@ def load_unaligned_seqs(
         optional arguments for the parser
     info
         a dict from which to make an info object
-    **kw
+    **kwargs
         other keyword arguments passed to SequenceCollection, or show_progress.
         The latter induces a progress bar for number of files processed when
         filename is a glob pattern.
@@ -319,26 +347,29 @@ def load_unaligned_seqs(
     ``SequenceCollection``
     """
     from cogent3._plugin import get_seq_format_parser_plugin
+    from cogent3.core.alignment import SequenceCollection, make_unaligned_seqs
+    from cogent3.parse.cogent3_json import load_from_json
+    from cogent3.util.io import get_format_suffixes, is_url
 
-    ui = kw.pop("ui")
     if not is_url(filename):
         filename = pathlib.Path(filename).expanduser()
 
     file_suffix, _ = get_format_suffixes(filename)
     if "*" in filename.name:
-        return _load_files_to_unaligned_seqs(
+        from cogent3.util.progress_display import display_wrap
+
+        func = display_wrap(_load_files_to_unaligned_seqs)
+        return func(
             path=filename,
             format_name=format_name or file_suffix,
             moltype=moltype,
             label_to_name=label_to_name,
             parser_kw=parser_kw,
             info=info,
-            ui=ui,
+            **kwargs,
         )
 
     if file_suffix == "json":
-        from cogent3.core.alignment import SequenceCollection
-
         return load_from_json(filename, (SequenceCollection,))
 
     if not (file_suffix or format_name):
@@ -362,18 +393,18 @@ def load_unaligned_seqs(
         moltype=moltype,
         source=filename,
         info=info,
-        **kw,
+        **kwargs,
     )
 
 
 def load_aligned_seqs(
     filename: str | pathlib.Path,
     format_name: str | None = None,
-    moltype: MolTypeLiteral | None = None,
+    moltype: "MolTypeLiteral | None" = None,
     label_to_name: typing.Callable[[str], str] | None = None,
     parser_kw: dict | None = None,
     info: dict | None = None,
-    **kw,
+    **kwargs: typing.Any,  # noqa: ANN401
 ) -> "Alignment":
     """
     loads aligned sequences from file
@@ -390,7 +421,7 @@ def load_aligned_seqs(
         function for converting original name into another name.
     parser_kw
         optional arguments for the parser
-    kw
+    kwargs
         passed to make_aligned_seqs
 
     Returns
@@ -398,14 +429,15 @@ def load_aligned_seqs(
     ``Alignment`` instance
     """
     from cogent3._plugin import get_seq_format_parser_plugin
+    from cogent3.core.alignment import Alignment, make_aligned_seqs
+    from cogent3.parse.cogent3_json import load_from_json
+    from cogent3.util.io import get_format_suffixes, is_url
 
     if not is_url(filename):
         filename = pathlib.Path(filename).expanduser()
 
     file_suffix, _ = get_format_suffixes(filename)
     if file_suffix == "json":
-        from cogent3.core.alignment import Alignment
-
         return load_from_json(filename, (Alignment,))
 
     parser = get_seq_format_parser_plugin(
@@ -425,5 +457,5 @@ def load_aligned_seqs(
         moltype=moltype,
         source=filename,
         info=info,
-        **kw,
+        **kwargs,
     )
