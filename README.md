@@ -124,9 +124,6 @@ To install the development version directly from GitHub
 $ pip install git+https://github.com/cogent3/cogent3.git@develop#egg=cogent3
 ```
 
-> **Note**
-> You can trial python3.14 by appending `--prerelease=allow` to your pip install line.
-
 ## Project Information
 
 `cogent3` is released under the BSD-3 license, documentation is at [cogent3.org](https://cogent3.org), while [`cogent3` code is on GitHub](https://github.com/cogent3/cogent3). If you would like to contribute (and we hope you do!), we have created a companion [`c3dev` GitHub](https://github.com/cogent3/c3dev) repo which provides details on how to contribute and some useful tools for doing so.
