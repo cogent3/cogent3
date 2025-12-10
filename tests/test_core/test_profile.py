@@ -103,20 +103,6 @@ class MotifCountsArrayTests(TestCase):
         got = marr.to_freq_array()
         assert_allclose(got.array, expect)
 
-    def test_to_freqs_pseudocount(self):
-        """produces a freqs array with pseudocount"""
-        data = array([[2, 4], [3, 5], [0, 8]])
-        marr = MotifCountsArray(array(data), "AB")
-        got = marr.to_freq_array(pseudocount=1)
-        adj = data + 1
-        expect = adj / vstack(adj.sum(axis=1))
-        assert_allclose(got.array, expect)
-
-        got = marr.to_freq_array(pseudocount=0.5)
-        adj = data + 0.5
-        expect = adj / vstack(adj.sum(axis=1))
-        assert_allclose(got.array, expect)
-
     def test_to_freqs_1d(self):
         """produce a freqs array from 1D counts"""
         data = [43, 48, 114, 95]
@@ -540,3 +526,18 @@ class PSSMTests(TestCase):
         seq = DNA.make_seq(seq="".join("ACTG"[i] for i in [3, 1, 2, 0, 2, 2, 3]))
         scores = pssm.score_seq(seq)
         assert_allclose(scores, [-4.481, -5.703, -2.966], atol=1e-3)
+
+
+@pytest.mark.parametrize("pseudocount", [0, 0.5, 1])
+def test_to_freqs_pseudocount(pseudocount):
+    """produces a freqs array with pseudocount"""
+    data = array([[2, 4], [3, 5], [0, 8]], dtype=int)
+    zero_index = 2, 0
+
+    expect = data.astype(float, copy=True)
+    expect[zero_index] += pseudocount
+    expect = expect / vstack(expect.sum(axis=1))
+
+    marr = MotifCountsArray(array(data), "AB")
+    got = marr.to_freq_array(pseudocount=pseudocount)
+    assert_allclose(got.array, expect)

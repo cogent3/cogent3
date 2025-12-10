@@ -206,14 +206,14 @@ def make_motif_counts_from_tabular(tab_data):
 
 
 @extend_docstring_from(make_motif_counts_from_tabular)
-def make_motif_freqs_from_tabular(tab_data):
+def make_motif_freqs_from_tabular(tab_data: numpy.ndarray) -> "MotifFreqsArray":
     motif = _get_ordered_motifs_from_tabular(tab_data)
     data = _get_data_from_tabular(tab_data, motif, "float")
     return MotifFreqsArray(data, motif)
 
 
 @extend_docstring_from(make_motif_counts_from_tabular)
-def make_pssm_from_tabular(tab_data):
+def make_pssm_from_tabular(tab_data: numpy.ndarray) -> "PSSM":
     motif = _get_ordered_motifs_from_tabular(tab_data)
     data = _get_data_from_tabular(tab_data, motif, "float")
     return PSSM(data, motif)
@@ -228,10 +228,12 @@ class MotifCountsArray(_MotifNumberArray):
     ) -> None:
         super().__init__(counts, motifs, row_indices, dtype=numpy.int64)
 
-    def _to_freqs(self, pseudocount: int = 0) -> NumpyFloatArrayType:
-        data: NumpyFloatArrayType = self.array
+    def _to_freqs(self, pseudocount: float = 0) -> NumpyFloatArrayType:
+        data: NumpyFloatArrayType = self.array.astype(float, copy=True)
         if pseudocount:
-            data = data + pseudocount
+            zero_indices = data == 0
+            data[zero_indices] += pseudocount
+
         axis = None if self.array.ndim == 1 else 1
         row_sum = data.sum(axis=axis)
         return data / numpy.vstack(row_sum) if axis is not None else data / row_sum
