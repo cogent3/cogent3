@@ -229,9 +229,11 @@ class MotifCountsArray(_MotifNumberArray):
         super().__init__(counts, motifs, row_indices, dtype=numpy.int64)
 
     def _to_freqs(self, pseudocount: int = 0) -> NumpyFloatArrayType:
-        data: NumpyFloatArrayType = self.array
+        data: NumpyFloatArrayType = self.array.astype(float, copy=True)
         if pseudocount:
-            data = data + pseudocount
+            zero_indices = data == 0
+            data[zero_indices] += pseudocount
+
         axis = None if self.array.ndim == 1 else 1
         row_sum = data.sum(axis=axis)
         return data / numpy.vstack(row_sum) if axis is not None else data / row_sum
