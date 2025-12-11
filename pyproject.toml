@@ -64,14 +64,13 @@ test = [
     "kaleido",
     "pandas",
     "plotly",
-    "plotly-stubs",
     "psutil",
     "pytest",
     "pytest-cov",
     "pytest-xdist",
     "nox",
 ]
-typing = ["mypy==1.19.0", "plotly-stubs"]
+typing = ["mypy==1.19.0"]
 doc = [
     "click",
     "cogent3[extra]",
@@ -102,7 +101,6 @@ extra = [
     "pandas",
     "pillow",
     "plotly",
-    "plotly-stubs",
     "psutil",
 ]
 dev = [
