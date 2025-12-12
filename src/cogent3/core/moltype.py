@@ -1400,10 +1400,21 @@ class MolType(Generic[TStrOrBytes]):
     def strand_symmetric_motifs(
         self,
         motif_length: int = 1,
-    ) -> set[tuple[str, str]]:  # refactor: docstring
-        """returns ordered pairs of strand complementary motifs"""
-        if len(self.alphabet) != 4:
-            msg = "moltype must be DNA or RNA"
+    ) -> set[tuple[str, str]]:
+        """returns ordered pairs of strand complementary motifs
+
+        Parameters
+        ----------
+        motif_length
+            size of motifs
+
+        Raises
+        ------
+        TypeError
+            _description_
+        """
+        if not self.is_nucleic:
+            msg = f"moltype={self.name!r} but must be DNA or RNA"
             raise TypeError(msg)
 
         motif_set = self.alphabet.get_kmer_alphabet(k=motif_length)

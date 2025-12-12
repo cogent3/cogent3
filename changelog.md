@@ -1,4 +1,15 @@
 
+<a id='changelog-2025.12.10a2'></a>
+# Changes in release "2025.12.10a2"
+
+Release to address development dependency affecting dependent projects
+on Python 3.14.
+
+## Contributors
+
+- @GavinHuttley
+- @rmcar17
+
 <a id='changelog-2025.12.10a1'></a>
 # Changes in release "2025.12.10a1"
 

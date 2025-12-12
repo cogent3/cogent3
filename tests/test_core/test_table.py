@@ -100,13 +100,6 @@ class TableTests(TestCase):
         ["NineBande", "root", 4.0, 1.0, 3.0, 6.0],
     ]
 
-    def test_empty(self):
-        """create table with no data"""
-        for data in [None, [], {}, ()]:
-            t = Table(header=["col 1", "col 2"], data=data)
-            assert len(t) == 0
-            assert t.shape == (0, 2), f"failed with {data}"
-
     def test_input_containers(self):
         """should not fail on defaultdict"""
         raw = {"a": [1, 2, 3], "b": [3, 4, 6]}
@@ -2064,3 +2057,25 @@ def test_formats(format_name, startwith):
     assert got != last
     assert got.startswith(startwith), f"{format_name}: {got[:10]}"
     last = got
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        None,
+        [],
+        {},
+        (),
+    ],
+)
+def test_empty_table(data):
+    """create table with no data"""
+    t = Table(header=["col 1", "col 2"], data=data)
+    assert len(t) == 0
+    assert t.shape == (0, 2), f"failed with {data}"
+
+
+def test_to_list_empty():
+    t = Table(header=["col 1", "col 2"], data=[])
+    got = t.to_list()
+    assert got == []
