@@ -815,12 +815,16 @@ class LikelihoodFunction(ParameterController):
         if not isinstance(self.model, substitution_model.Stationary):
             ens = {}
             for e in edge_parent:
-                Q = self.get_rate_matrix_for_edge(e)
-                length = expected_number_subs(
-                    motif_probs[edge_parent[e]],
-                    Q,
-                    lengths[e],
-                )
+                if lengths[e] is not None:
+                    Q = self.get_rate_matrix_for_edge(e)
+                    length = expected_number_subs(
+                        motif_probs[edge_parent[e]],
+                        Q,
+                        lengths[e],
+                    )
+                else:
+                    # discrete-time model
+                    length = numpy.nan
                 ens[e] = length
 
             lengths = ens
