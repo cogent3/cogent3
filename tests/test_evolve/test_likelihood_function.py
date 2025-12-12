@@ -2406,3 +2406,19 @@ def test_get_all_psubs_mixed_discrete_cont():
     sm = result["HKY85"]
     psubs = sm.get_all_psubs()
     assert len(psubs) == 3  # one for each edge
+
+
+def test_get_ens_mixed_discrete_cont():
+    aln = get_dataset("brca1")
+    aln = aln.take_seqs(["Human", "Rhesus", "Mouse"]).omit_gap_pos(allowed_gap_frac=0)
+    model = get_app(
+        "model",
+        "GN",
+        time_het="max",
+        lf_args={"discrete_edges": ["Mouse"]},
+        optimise_motif_probs=True,
+    )
+    result = model(aln)
+    ens = result.lf.get_lengths_as_ens()
+    assert numpy.isnan(ens["Mouse"])
+    assert isinstance(ens["Human"], float)
