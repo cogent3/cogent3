@@ -1,4 +1,23 @@
 
+<a id='changelog-2025.12.10a3'></a>
+# Changes in release "2025.12.10a3"
+
+A minor bug fix and enhancement release.
+
+## Contributors
+
+- GavinHuttley
+
+## Enhancements
+
+- The `write_db` app now automatically accepts built-in cogent3 types as
+  serialisable.
+
+## Bug fixes
+
+- Fixed, getting the expected number of substitutions from a
+  model with a mixture of continuous and discrete time processes.
+
 <a id='changelog-2025.12.10a2'></a>
 # Changes in release "2025.12.10a2"
 
