@@ -45,10 +45,11 @@ def test_get_constraint_names_builtins(constraint):
 
 
 def test_get_constraint_names_serilisable():
-    """SerialisableType does not define any compatible types"""
+    """SerialisableType does define compatible types"""
 
     got = get_constraint_names(SerialisableType)
-    assert got == {"SerialisableType"}
+    # cogent3 builtin types should also be included
+    assert {"SerialisableType", "SequenceCollection", "Alignment", "PhyloNode"} <= got
 
 
 def test_get_constraint_names_identifiertype():
@@ -58,16 +59,19 @@ def test_get_constraint_names_identifiertype():
     assert got == {"IdentifierType"}
 
 
-def test_get_constraint_names_mixed_serilisable_identifiertype():
+@pytest.mark.parametrize(
+    "constraint",
+    [
+        Union[SerialisableType, IdentifierType, AlignedSeqsType],  # noqa: UP007
+        SerialisableType | IdentifierType | AlignedSeqsType,
+    ],
+)
+def test_get_constraint_names_mixed_serilisable_identifiertype(constraint):
     """SerialisableType does not define any compatible types"""
     expected = {"SerialisableType", "IdentifierType", "Alignment"}
 
-    got = get_constraint_names(Union[SerialisableType, IdentifierType, AlignedSeqsType])
-    assert got == expected
-
-    if sys.version_info.minor > 9:
-        got = get_constraint_names(SerialisableType | IdentifierType | AlignedSeqsType)
-        assert got == expected
+    got = get_constraint_names(constraint)
+    assert expected <= got
 
 
 @pytest.mark.parametrize(
