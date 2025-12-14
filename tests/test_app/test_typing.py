@@ -1,4 +1,3 @@
-import sys
 from typing import Union
 
 import pytest
@@ -36,23 +35,21 @@ def test_get_constraint_names():
     assert got == {obj.__name__ for obj in (Table, DictArray, DistanceMatrix)}
 
 
-def test_get_constraint_names_builtins():
+@pytest.mark.parametrize("constraint", [Union[str, bytes], str | bytes])  # noqa: UP007
+def test_get_constraint_names_builtins(constraint):
     """handles built-in types"""
     expected = {"str", "bytes"}
 
-    got = get_constraint_names(Union[str, bytes])
+    got = get_constraint_names(constraint)
     assert got == expected
-
-    if sys.version_info.minor > 9:
-        got = get_constraint_names(str | bytes)
-        assert got == expected
 
 
 def test_get_constraint_names_serilisable():
-    """SerialisableType does not define any compatible types"""
+    """SerialisableType does define compatible types"""
 
     got = get_constraint_names(SerialisableType)
-    assert got == {"SerialisableType"}
+    # cogent3 builtin types should also be included
+    assert {"SerialisableType", "SequenceCollection", "Alignment", "PhyloNode"} <= got
 
 
 def test_get_constraint_names_identifiertype():
@@ -62,29 +59,32 @@ def test_get_constraint_names_identifiertype():
     assert got == {"IdentifierType"}
 
 
-def test_get_constraint_names_mixed_serilisable_identifiertype():
+@pytest.mark.parametrize(
+    "constraint",
+    [
+        Union[SerialisableType, IdentifierType, AlignedSeqsType],  # noqa: UP007
+        SerialisableType | IdentifierType | AlignedSeqsType,
+    ],
+)
+def test_get_constraint_names_mixed_serilisable_identifiertype(constraint):
     """SerialisableType does not define any compatible types"""
     expected = {"SerialisableType", "IdentifierType", "Alignment"}
 
-    got = get_constraint_names(Union[SerialisableType, IdentifierType, AlignedSeqsType])
-    assert got == expected
-
-    if sys.version_info.minor > 9:
-        got = get_constraint_names(SerialisableType | IdentifierType | AlignedSeqsType)
-        assert got == expected
+    got = get_constraint_names(constraint)
+    assert expected <= got
 
 
-def test_hints_resolved_from_str():
+@pytest.mark.parametrize(
+    "constraint",
+    [Union[SerialisableType, "DnaSequence"], SerialisableType | "DnaSequence"],
+)
+def test_hints_resolved_from_str(constraint):
     got = get_constraint_names("DnaSequence")
     assert got == {"DnaSequence"}
 
     expected = {"SerialisableType", "DnaSequence"}
-    got = get_constraint_names(Union[SerialisableType, "DnaSequence"])
-    assert got == expected
-
-    if sys.version_info.minor > 9:
-        got = get_constraint_names(SerialisableType | "DnaSequence")
-        assert got == expected
+    got = get_constraint_names(constraint)
+    assert expected <= got
 
 
 @pytest.mark.parametrize("container", [list, tuple, set])
@@ -93,10 +93,6 @@ def test_hints_from_container_type(container):
     assert got == {"Alignment"}
 
 
-@pytest.mark.skipif(
-    (sys.version_info.major, sys.version_info.minor) == (3, 8),
-    reason="type object subscripting supported in >= 3.9",
-)
 @pytest.mark.parametrize("container", [list, set, tuple])
 def test_hints_from_container_type_obj(container):
     got = get_constraint_names(container[AlignedSeqsType])

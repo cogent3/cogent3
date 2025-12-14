@@ -1218,3 +1218,22 @@ def test_bad_wrap():
 
     with pytest.raises(NotImplementedError):
         define_app(bar)
+
+
+def test_cogent3_serialisable_compatible_with_serialisabletype(tmp_path):
+    from cogent3 import make_tree
+    from cogent3.core.tree import PhyloNode
+
+    @define_app
+    def foo(arg: str) -> PhyloNode:
+        # we're checking composability only
+        return make_tree(arg, source="blah")
+
+    foo_instance = foo()
+    out = open_data_store(tmp_path / "out.sqlitedb", mode="w")
+    writer = get_app("write_db", data_store=out)
+    loader = get_app("load_db")
+    app = foo_instance + writer
+    result = app("(A:0.1,B:0.2);")  # pylint: disable=not-callable
+    got = loader(result)
+    assert isinstance(got, PhyloNode)
