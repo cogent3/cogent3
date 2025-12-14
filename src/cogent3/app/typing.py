@@ -20,9 +20,8 @@ from typing import (
 if sys.version_info.minor >= 10:
     from types import UnionType
 
-    NESTED_HINTS = (Union, UnionType, list, tuple, set)
-else:
-    NESTED_HINTS = (Union, list, tuple, set)
+
+NESTED_HINTS = (Union, UnionType, list, tuple, set)
 
 
 @runtime_checkable
