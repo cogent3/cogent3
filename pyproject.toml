@@ -70,7 +70,7 @@ test = [
     "pytest-xdist",
     "nox",
 ]
-typing = ["mypy==1.19.0"]
+typing = ["mypy==1.19.1"]
 doc = [
     "click",
     "cogent3[extra]",
