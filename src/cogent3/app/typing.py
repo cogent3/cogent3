@@ -5,8 +5,9 @@ from __future__ import annotations
 
 import inspect
 import re
-import sys
+from types import UnionType
 from typing import (
+    TYPE_CHECKING,
     Any,
     ForwardRef,
     Protocol,
@@ -17,12 +18,31 @@ from typing import (
     runtime_checkable,
 )
 
-if sys.version_info.minor >= 10:
-    from types import UnionType
+if TYPE_CHECKING:  # pragma: no cover
+    from cogent3.app.result import (
+        bootstrap_result,
+        generic_result,
+        hypothesis_result,
+        model_collection_result,
+        model_result,
+        tabular_result,
+    )
+    from cogent3.core.alignment import Alignment, SequenceCollection
+    from cogent3.core.sequence import (
+        ByteSequence,
+        DnaSequence,
+        ProteinSequence,
+        ProteinWithStopSequence,
+        RnaSequence,
+        Sequence,
+    )
+    from cogent3.core.table import Table
+    from cogent3.core.tree import PhyloNode
+    from cogent3.evolve.fast_distance import DistanceMatrix
+    from cogent3.util.dict_array import DictArray
 
-    NESTED_HINTS = (Union, UnionType, list, tuple, set)
-else:
-    NESTED_HINTS = (Union, list, tuple, set)
+
+NESTED_HINTS = (Union, UnionType, list, tuple, set)
 
 
 @runtime_checkable
@@ -52,7 +72,6 @@ SeqType = TypeVar(
 PairwiseDistanceType = TypeVar("PairwiseDistanceType", bound="DistanceMatrix")
 TabularType = TypeVar("TabularType", "Table", "DictArray", "DistanceMatrix")
 TreeType = TypeVar("TreeType", bound="PhyloNode")
-SerialisableType = TypeVar("SerialisableType")
 BootstrapResultType = TypeVar("BootstrapResultType", bound="bootstrap_result")
 HypothesisResultType = TypeVar("HypothesisResultType", bound="hypothesis_result")
 ModelCollectionResultType = TypeVar(
@@ -69,6 +88,9 @@ ResultType = Union[
     ModelResultType,
     TabularResultType,
 ]
+SerialisableType = TypeVar(
+    "SerialisableType", SeqsCollectionType, TreeType, TabularType, ResultType, SeqType
+)
 
 IdentifierType = TypeVar("IdentifierType")
 
@@ -89,10 +111,20 @@ def get_constraint_names(*hints) -> set[str | type]:
     """returns the set of named constraints of a type hint"""
     all_hints = set()
     for hint in hints:
-        if hint in (SerialisableType, IdentifierType) or (
+        if hint == IdentifierType or (
             inspect.isclass(hint) and get_origin(hint) not in (list, tuple, set)
         ):
             all_hints.add(hint.__name__)
+            continue
+
+        if hint == SerialisableType or (
+            inspect.isclass(hint) and get_origin(hint) not in (list, tuple, set)
+        ):
+            all_hints.add(hint.__name__)
+            # we expand the nominated cogent3 compatible types
+            for hnt in getattr(hint, "__constraints__", []):
+                typ = get_constraint_names(hnt) | get_constraint_names(*get_args(hnt))
+                all_hints |= typ
             continue
 
         if getattr(hint, "__bound__", None):

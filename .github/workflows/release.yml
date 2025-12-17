@@ -86,7 +86,7 @@ jobs:
         run: python -m build --wheel --sdist
 
       - name: Upload sdist and wheel
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: c3-wheel-sdist
           path: |
@@ -103,7 +103,7 @@ jobs:
 
     steps:
       - name: Download sdist and wheel
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: c3-wheel-sdist
           path: ./dist
@@ -123,7 +123,7 @@ jobs:
 
     steps:
       - name: Download sdist and wheel
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: c3-wheel-sdist
           path: ./dist
