@@ -94,6 +94,7 @@ def column_uncertainty(a: NumpyArrayType) -> NumpyFloatArrayType:
         raise ValueError(msg)
     return sum(safe_p_log_p(a), axis=0)
 
+
 @c3warn.deprecated_callable(version="2026.1", reason="unused", is_discontinued=True)
 def row_degeneracy(a: NumpyFloatArrayType, cutoff: float = 0.5) -> NumpyIntArrayType:
     """Returns the number of characters that's needed to cover >= cutoff
