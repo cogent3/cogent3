@@ -1,5 +1,6 @@
 """Provides small utility functions for numpy arrays."""
 
+from cogent3.util import warning as c3warn
 from collections.abc import Sequence as PySeq
 
 import numpy
@@ -50,6 +51,7 @@ def safe_log(data: NumpyArrayType) -> NumpyFloatArrayType:
     return result
 
 
+@c3warn.deprecated_callable(version="2026.1", reason="unused", is_discontinued=True)
 def row_uncertainty(a: NumpyArrayType) -> NumpyFloatArrayType:
     """Returns uncertainty (Shannon's entropy) for each row in a IN BITS
 
@@ -71,6 +73,7 @@ def row_uncertainty(a: NumpyArrayType) -> NumpyFloatArrayType:
         raise ValueError(msg)
 
 
+@c3warn.deprecated_callable(version="2026.1", reason="unused", is_discontinued=True)
 def column_uncertainty(a: NumpyArrayType) -> NumpyFloatArrayType:
     """Returns uncertainty (Shannon's entropy) for each column in a in BITS
 
@@ -91,7 +94,7 @@ def column_uncertainty(a: NumpyArrayType) -> NumpyFloatArrayType:
         raise ValueError(msg)
     return sum(safe_p_log_p(a), axis=0)
 
-
+@c3warn.deprecated_callable(version="2026.1", reason="unused", is_discontinued=True)
 def row_degeneracy(a: NumpyFloatArrayType, cutoff: float = 0.5) -> NumpyIntArrayType:
     """Returns the number of characters that's needed to cover >= cutoff
 
@@ -128,6 +131,7 @@ def row_degeneracy(a: NumpyFloatArrayType, cutoff: float = 0.5) -> NumpyIntArray
     return clip(array(degen) + 1, 0, a.shape[1])
 
 
+@c3warn.deprecated_callable(version="2026.1", reason="unused", is_discontinued=True)
 def column_degeneracy(a: NumpyFloatArrayType, cutoff: float = 0.5) -> NumpyIntArrayType:
     """Returns the number of characters that's needed to cover >= cutoff
 
