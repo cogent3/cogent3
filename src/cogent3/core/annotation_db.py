@@ -249,6 +249,7 @@ class AnnotationDbABC(abc.ABC):
         allow_partial: bool = False,
     ) -> Iterator[FeatureDataType]: ...
 
+    @abc.abstractmethod
     def get_records_matching(
         self,
         *,
