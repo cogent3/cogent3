@@ -2139,7 +2139,7 @@ class AnnotatableMixin:
         if not self._annotation_db:
             # if no annotation db is set, use the default
             self._annotation_db.append(value)
-        else:
+        elif self._annotation_db[0] is not value:
             # we close the current annotation db and replace it
             self._annotation_db[0].close()
             self._annotation_db[0] = value
