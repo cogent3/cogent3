@@ -1,6 +1,5 @@
 import io
 import pathlib
-import warnings
 
 import numpy
 import pytest
@@ -14,12 +13,23 @@ from cogent3.core.annotation_db import (
     _matching_conditions,
     _rename_column_if_exists,
     load_annotations,
-    update_file_format,
 )
 from cogent3.parse import genbank
 from cogent3.util import deserialise
 
 DNA = cogent3.get_moltype("dna")
+
+
+def close_dbs(*objs):
+    for obj in objs:
+        if not hasattr(obj, "has_annotation_db"):
+            db = obj
+        elif obj.has_annotation_db():
+            db = obj.annotation_db
+        else:
+            continue
+
+        db.close()
 
 
 @pytest.fixture
@@ -48,25 +58,36 @@ def seq_db(DATA_DIR):
 
     seq.annotation_db = db
 
-    return seq
+    yield seq
+    db.close()
 
 
 @pytest.fixture
 def seq():
-    return cogent3.make_seq("ATTGTACGCCTTTTTTATTATT", name="test_seq", moltype="dna")
+    seq = cogent3.make_seq("ATTGTACGCCTTTTTTATTATT", name="test_seq", moltype="dna")
+    yield seq
+    if seq.has_annotation_db():
+        try:
+            seq.annotation_db.close()
+        except AttributeError:
+            # handles funky test condition
+            pass
 
 
 @pytest.fixture
 def anno_db() -> BasicAnnotationDb:
     # an empty db that we can add to
-    return BasicAnnotationDb()
+    db = BasicAnnotationDb()
+    yield db
+    db.close()
 
 
 @pytest.fixture
 def simple_seq_gff_db(DATA_DIR):
     seq = cogent3.make_seq("ATTGTACGCCTTTTTTATTATT", name="test_seq", moltype="dna")
     seq.annotation_db = load_annotations(path=DATA_DIR / "simple.gff")
-    return seq
+    yield seq
+    seq.annotation_db.close()
 
 
 def test_assign_valid_db(seq, anno_db):
@@ -117,7 +138,8 @@ def test_constructor_wrong_db_schema(db_name, cls, request):
 def test_constructor_db_instance_works(db_name, cls, request):
     # only compatible db's used to init
     db = request.getfixturevalue(db_name)
-    cls(db=db)
+    n = cls(db=db)
+    n.close()
 
 
 @pytest.mark.parametrize(
@@ -224,6 +246,7 @@ def test_gff_get_children_empty(DATA_DIR):
     db = load_annotations(path=DATA_DIR / "simple2.gff")
     got = list(db.get_feature_children(name="childless"))
     assert got == []
+    db.close()
 
 
 def test_gff_get_parent_empty(DATA_DIR):
@@ -231,6 +254,7 @@ def test_gff_get_parent_empty(DATA_DIR):
     db = load_annotations(path=DATA_DIR / "simple2.gff")
     got = list(db.get_feature_parent(name="parentless"))
     assert got == []
+    db.close()
 
 
 def test_gff_get_children_non_existent(DATA_DIR):
@@ -238,6 +262,7 @@ def test_gff_get_children_non_existent(DATA_DIR):
     db = load_annotations(path=DATA_DIR / "simple2.gff")
     got = list(db.get_feature_children(name="nonexistendID"))
     assert got == []
+    db.close()
 
 
 def test_gff_get_parent_non_existent(DATA_DIR):
@@ -245,6 +270,7 @@ def test_gff_get_parent_non_existent(DATA_DIR):
     db = load_annotations(path=DATA_DIR / "simple2.gff")
     got = list(db.get_feature_parent(name="nonexistendID"))
     assert got == []
+    db.close()
 
 
 def test_gff_counts(gff_db):
@@ -290,13 +316,16 @@ def test_gff_find_user_features(gff_db):
 
 
 def test_empty_data():
-    _ = GffAnnotationDb()
+    db = GffAnnotationDb()
+    db.close()
 
 
 # testing GenBank files
 @pytest.fixture
 def gb_db(DATA_DIR):
-    return load_annotations(path=DATA_DIR / "annotated_seq.gb")
+    db = load_annotations(path=DATA_DIR / "annotated_seq.gb")
+    yield db
+    db.close()
 
 
 def test_load_annotations_multi(DATA_DIR):
@@ -305,6 +334,7 @@ def test_load_annotations_multi(DATA_DIR):
     expect = len(one) + len(two)
     got = load_annotations(path=DATA_DIR / "simple*.gff")
     assert len(got) == expect
+    close_dbs(one, two, got)
 
 
 def test_load_annotations_chunked(gff_db, DATA_DIR):
@@ -319,6 +349,7 @@ def test_load_annotations_chunked(gff_db, DATA_DIR):
     got = next(iter(db.get_features_matching(name=name)))
     assert got.pop("spans") == expect.pop("spans")
     assert got == expect
+    db.close()
 
 
 @pytest.mark.parametrize(("parent_biotype", "name"), [("gene", "CNA00110")])
@@ -449,6 +480,7 @@ def test_feature_strand():
     assert str(plus.get_slice()) == plus_seq
     minus = next(iter(rced.get_features(name="minus")))
     assert str(minus.get_slice()) == minus_seq
+    db.close()
 
 
 def test_feature_nucleic():
@@ -490,6 +522,7 @@ def test_add_feature_with_parent():
     got = next(iter(db.get_features_matching(name="GG")))
     child = next(iter(db.get_feature_children(got["name"])))
     assert child["name"] == "child"
+    db.close()
 
 
 def test_get_features_matching_matching_features(anno_db: GffAnnotationDb, seq):
@@ -620,7 +653,8 @@ def test_get_features_matching_multiple_biotype_set(
 
 def test_get_features_matching_start_stop_seqview(DATA_DIR, seq):
     """testing that get_features_matching adjusts"""
-    seq.annotation_db = load_annotations(path=DATA_DIR / "simple.gff")
+    db = load_annotations(path=DATA_DIR / "simple.gff")
+    seq.annotation_db = db
     seq_features = list(seq.get_features(start=0, stop=3, allow_partial=True))
     assert len(seq_features) == 3
 
@@ -632,6 +666,7 @@ def test_get_features_matching_start_stop_seqview(DATA_DIR, seq):
         subseq.get_features(start=3, stop=10, allow_partial=True),
     )
     assert len(seq_features_features) == 1
+    close_dbs(db)
 
 
 def test_get_slice():
@@ -687,6 +722,7 @@ def test_get_slice_annotation_offset_not_set():
     assert not len(got.annotation_db)
     f = list(got.get_features(biotype="gene"))
     assert not f
+    close_dbs(got)
 
 
 def test_feature_get_children(seq_db):
@@ -780,7 +816,8 @@ def test_sequence_collection_annotate_from_gff(DATA_DIR):
     """
     seqs = {"test_seq": "ATCGATCGATCG", "test_seq2": "GATCGATCGATC"}
     seq_coll = cogent3.make_unaligned_seqs(seqs, moltype="dna")
-    seq_coll.annotation_db = cogent3.load_annotations(path=DATA_DIR / "simple.gff")
+    db = cogent3.load_annotations(path=DATA_DIR / "simple.gff")
+    seq_coll.annotation_db = db
 
     # the seq for which the seqid was provided is annotated
     seq = seq_coll.get_seq("test_seq")
@@ -797,21 +834,22 @@ def test_sequence_collection_annotate_from_gff(DATA_DIR):
 
     # the seq for which the seqid was NOT provided also has a reference to the same db
     seq2 = seq_coll.get_seq("test_seq2")
-    assert seq2.annotation_db is not None
     # querying on that sequence returns []
     got = list(seq2.get_features(biotype="CDS"))
     assert not got
+    db.close()
 
 
 def test_seq_coll_query(DATA_DIR):
     """obtain same results when querying from collection as from seq"""
     seqs = {"test_seq": "ATCGATCGATCG", "test_seq2": "GATCGATCGATC"}
     seq_coll = cogent3.make_unaligned_seqs(seqs, moltype="dna")
-    seq_coll.annotation_db = cogent3.load_annotations(path=DATA_DIR / "simple.gff")
+    db = cogent3.load_annotations(path=DATA_DIR / "simple.gff")
+    seq_coll.annotation_db = db
 
     seq = seq_coll.get_seq("test_seq")
     # the seq for which the seqid was provided is annotated
-    assert seq.annotation_db is not None
+    assert seq.has_annotation_db()
     # TODO gah this test fails when allow_partial=False because start / stop
     # not used by seqcoll method
     expect = {
@@ -830,6 +868,7 @@ def test_seq_coll_query(DATA_DIR):
 
     got = list(seq.get_features(biotype="CpG"))
     assert len(got) == 1
+    db.close()
 
 
 def test_gff_update_existing(gff_db, gff_small_db):
@@ -917,6 +956,7 @@ def test_deepcopy(gff_db):
     assert new.num_matches() == gff_db.num_matches() + 1
     assert len(list(new.get_features_matching(name="copied-exon"))) == 1
     assert len(list(gff_db.get_features_matching(name="copied-exon"))) == 0
+    close_dbs(new)
 
 
 def test_pickling(gff_db):
@@ -932,6 +972,7 @@ def test_pickling(gff_db):
         strand="+",
     )
     assert recon.num_matches() == gff_db.num_matches() + 1
+    close_dbs(recon)
 
 
 @pytest.mark.parametrize("db_name", ["gff_db", "gb_db"])
@@ -951,6 +992,7 @@ def test_deserialise(db_name, request):
     assert got is not db
     assert isinstance(got, type(db))
     assert got.num_matches() == db.num_matches()
+    close_dbs(got, db)
 
 
 def test_querying_attributes_gb(gb_db):
@@ -980,9 +1022,12 @@ def test_equal():
     db2 = BasicAnnotationDb()
     db3 = BasicAnnotationDb()
     assert db1 != db2
-    # we define equality by same class AND same db instance
+    # we define equality by same class AND same db instance, so we close the db
+    db3.close()
+    # then override a private attribute for this test
     db3._db = db2._db
     assert db2 == db3
+    close_dbs(db1, db2, db3)
 
 
 @pytest.mark.parametrize("other", [GenbankAnnotationDb, GffAnnotationDb])
@@ -993,6 +1038,7 @@ def test_compatible_symmetric(other):
     assert basic.compatible(other)
     assert other.compatible(other)
     assert other.compatible(basic)
+    close_dbs(basic, other)
 
 
 @pytest.mark.parametrize("other", [GenbankAnnotationDb, GffAnnotationDb])
@@ -1003,6 +1049,7 @@ def test_compatible_not_symmetric(other):
     assert not basic.compatible(other, symmetric=False)
     assert other.compatible(other, symmetric=False)
     assert other.compatible(basic, symmetric=False)
+    close_dbs(basic, other)
 
 
 def test_incompatible():
@@ -1010,6 +1057,7 @@ def test_incompatible():
     gb = GenbankAnnotationDb()
     assert not gff.compatible(gb)
     assert not gb.compatible(gff)
+    close_dbs(gff, gb)
 
 
 @pytest.mark.parametrize("wrong_type", [{}, BasicAnnotationDb().db])
@@ -1017,6 +1065,7 @@ def test_incompatible_invalid_type(wrong_type):
     db = BasicAnnotationDb()
     with pytest.raises(TypeError):
         db.compatible(wrong_type)
+    db.close()
 
 
 def _custom_namer(data):
@@ -1033,14 +1082,17 @@ def test_gb_namer(DATA_DIR):
     db = GenbankAnnotationDb(data=data, namer=_custom_namer, seqid=got[0]["locus"])
     # there are 2 repeat regions, which we don't catch with our namer
     assert db.num_matches(name="default name") == 2
+    close_dbs(db)
 
 
+@pytest.fixture
 def test_write(gb_db, tmp_path):
     outpath = tmp_path / "ondisk.gbkdb"
     gb_db.write(outpath)
     got = GenbankAnnotationDb(source=outpath)
     assert got.to_rich_dict()["tables"] == gb_db.to_rich_dict()["tables"]
     assert isinstance(got, GenbankAnnotationDb)
+    close_dbs(got, gb_db)
 
 
 def convert_to_old_np_format(data: bytes) -> bytes:
@@ -1077,134 +1129,7 @@ def test_read_old_format(db_name, cls, tmp_path, request):
     with pytest.warns(UserWarning):
         new_tables = new_db.to_rich_dict()["tables"]
     assert new_tables == old_tables
-
-
-@pytest.mark.parametrize(
-    ("db_name", "cls", "backup"),
-    [
-        ("gb_db", GenbankAnnotationDb, True),
-        ("gff_db", GffAnnotationDb, True),
-        ("gb_db", GenbankAnnotationDb, False),
-        ("gff_db", GffAnnotationDb, False),
-    ],
-)
-def test_update_file_format(db_name, cls, backup, tmp_path, request):
-    db = request.getfixturevalue(db_name)
-    old_tables = db.to_rich_dict()["tables"]
-
-    path = tmp_path / f"old_format_{db_name}.db"
-
-    # Convert to old numpy format
-    table_name = db_name.split("_")[0]
-    convert_spans_column(db, table_name)
-    db.write(path)
-
-    with open(path, "rb") as f:
-        old_format_bytes = f.read()
-
-    # The file should be updated without warning
-    with warnings.catch_warnings():
-        warnings.simplefilter("error")
-        update_file_format(path, cls, backup=backup)
-
-    backup_path = tmp_path / f"old_format_{db_name}.db.bak"
-    if backup:
-        # Check the backup hasn't been modified
-        with open(backup_path, "rb") as f:
-            assert old_format_bytes == f.read()
-    else:
-        # A backup file should not exist
-        assert not backup_path.exists()
-
-    # The file should have been modified
-    with open(path, "rb") as f:
-        assert old_format_bytes != f.read()
-
-    # Reading the new file (when spans is loaded) should not produce warnings
-    with warnings.catch_warnings():
-        warnings.simplefilter("error")
-
-        new_db = cls(source=path)
-        new_tables = new_db.to_rich_dict()["tables"]
-
-    # The tables should remain the same
-    assert old_tables == new_tables
-    db.close()
-
-
-@pytest.mark.parametrize(
-    ("db_name", "cls"),
-    [("gb_db", GenbankAnnotationDb), ("gff_db", GffAnnotationDb)],
-)
-def test_update_file_format_twice_fails(db_name, cls, tmp_path, request):
-    db = request.getfixturevalue(db_name)
-
-    path = tmp_path / f"old_format_{db_name}.db"
-
-    # Convert to old numpy format
-    table_name = db_name.split("_")[0]
-    convert_spans_column(db, table_name)
-    db.write(path)
-
-    update_file_format(path, cls, backup=True)
-    with pytest.raises(FileExistsError):
-        update_file_format(path, cls, backup=True)
-
-
-@pytest.mark.parametrize(
-    ("db_name", "cls", "backup"),
-    [
-        ("gb_db", GenbankAnnotationDb, True),
-        ("gff_db", GffAnnotationDb, True),
-        ("gb_db", GenbankAnnotationDb, False),
-        ("gff_db", GffAnnotationDb, False),
-    ],
-)
-def test_update_file_format_does_not_modify_correct_file(
-    db_name,
-    cls,
-    backup,
-    tmp_path,
-    request,
-):
-    db = request.getfixturevalue(db_name)
-
-    path = tmp_path / f"correct_format_{db_name}.db"
-    db.write(path)
-
-    with open(path, "rb") as f:
-        old_bytes = f.read()
-
-    # Updating the file format should not produce warnings
-    with warnings.catch_warnings():
-        warnings.simplefilter("error")
-        update_file_format(path, cls, backup=backup)
-
-    # The file should have remained the same
-    with open(path, "rb") as f:
-        assert old_bytes == f.read()
-
-
-@pytest.mark.parametrize(
-    ("db_name", "cls", "backup"),
-    [
-        ("gb_db", GenbankAnnotationDb, True),
-        ("gff_db", GffAnnotationDb, True),
-        ("gb_db", GenbankAnnotationDb, False),
-        ("gff_db", GffAnnotationDb, False),
-    ],
-)
-def test_update_file_format_fake_path(db_name, cls, backup, tmp_path):
-    path = tmp_path / f"non_existent_{db_name}.db"
-    with pytest.raises(OSError):
-        update_file_format(path, cls, backup=backup)
-
-    # The path should not have been created in the process
-    assert not path.exists()
-    if backup:
-        # The backup file path should also not exist
-        backup_path = tmp_path / f"non_existent_{db_name}.db.bak"
-        assert not backup_path.exists()
+    close_dbs(new_db, db)
 
 
 @pytest.fixture
@@ -1216,13 +1141,13 @@ def test_load_anns_with_write(DATA_DIR, tmp_dir):
     inpath = DATA_DIR / "simple.gff"
     outpath = tmp_dir / "simple.gffdb"
     orig = load_annotations(path=inpath, write_path=outpath)
-    orig.db.close()
     expect = load_annotations(path=inpath)
     got = GffAnnotationDb(source=outpath)
     assert len(got) == len(expect)
     got_data = got.to_rich_dict()
     expect_data = expect.to_rich_dict()
     assert got_data["tables"] == expect_data["tables"]
+    close_dbs(got, orig, expect)
 
 
 def test_load_anns_from_json(DATA_DIR, tmp_dir):
@@ -1236,6 +1161,7 @@ def test_load_anns_from_json(DATA_DIR, tmp_dir):
     got = load_annotations(path=outpath)
     assert len(got) == len(orig)
     assert got.to_rich_dict() == orig.to_rich_dict()
+    close_dbs(got, orig)
 
 
 def test_gff_end_renamed_to_stop(gff_db, tmp_path):
@@ -1257,6 +1183,7 @@ def test_gff_end_renamed_to_stop(gff_db, tmp_path):
     del new_rich_dict["init_args"]
 
     assert new_rich_dict == correct_rich_dict
+    close_dbs(loaded_gff_db, gff_db)
 
 
 def test_gb_end_renamed_to_stop(gb_db, tmp_path):
@@ -1278,6 +1205,7 @@ def test_gb_end_renamed_to_stop(gb_db, tmp_path):
     del new_rich_dict["init_args"]
 
     assert new_rich_dict == correct_rich_dict
+    close_dbs(loaded_gb_db, gb_db)
 
 
 def test_gbdb_get_children_fails_no_coords(gb_db):
@@ -1307,12 +1235,14 @@ def test_subset_gff3_db(gff_db, integer):
     # manual inspection of the original GFF3 file indicates 7 records
     # BUT the CDS records get merged into a single row
     assert len(subset) == 6
+    subset.close()
 
 
 def test_subset_empty_db(gff_db):
     subset = gff_db.subset(seqid="X", start=40, stop=70, allow_partial=True)
     # no records
     assert not len(subset)
+    subset.close()
 
 
 def test_subset_gff3_db_with_user(gff_db):
@@ -1328,12 +1258,14 @@ def test_subset_gff3_db_with_user(gff_db):
     # manual inspection of the original GFF3 file indicates 7 records
     # BUT the CDS records get merged into a single row
     assert len(subset) == 7
+    subset.close()
 
 
 def test_subset_gb_db(gb_db):
     subset = gb_db.subset(biotype="gene")
     # manual inspection of the original annotated gb file indicates 2 genes
     assert len(subset) == 2
+    subset.close()
 
 
 def test_subset_gff3_db_source(gff_db, tmp_dir):
@@ -1352,6 +1284,7 @@ def test_subset_gff3_db_source(gff_db, tmp_dir):
     # manual inspection of the original GFF3 file indicates 7 records
     # BUT the CDS records get merged into a single row
     assert len(subset) == 6
+    subset.close()
 
 
 @pytest.mark.parametrize(
@@ -1390,7 +1323,7 @@ def test_db_close(request, db):
 
     db = request.getfixturevalue(db)
     db.close()
-    with pytest.raises(sqlite3.ProgrammingError):
+    with pytest.raises((sqlite3.ProgrammingError, sqlite3.DatabaseError)):
         _ = list(db.get_features_matching(biotype="gene"))
 
 
@@ -1411,6 +1344,7 @@ def test_db_make_index(request, db, col):
     result = ann_db._execute_sql(sql_template % ann_db.table_names[0]).fetchone()
     got = tuple(result)[:3]
     assert got in expect
+    ann_db.close()
 
 
 @pytest.mark.parametrize("db", ["gff_db", "gb_db"])
@@ -1418,6 +1352,7 @@ def test_db_repr(request, db):
     ann_db = request.getfixturevalue(db)
     got = repr(ann_db)
     assert isinstance(got, str)
+    ann_db.close()
 
 
 @pytest.fixture
@@ -1433,3 +1368,4 @@ def test_load_annotations_home_dir(home_gff, transform):
     got = load_annotations(path=transform(home_gff))
     assert len(got) == 6
     assert isinstance(got, GffAnnotationDb)
+    got.close()

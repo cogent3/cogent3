@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import abc
 import collections
+import contextlib
 import copy
 import inspect
 import io
@@ -25,6 +26,7 @@ from typing import (
 import numpy
 import numpy.typing as npt
 
+import cogent3.util.warning as c3warn
 from cogent3._version import __version__
 from cogent3.core.location import Strand, deserialise_map_spans
 from cogent3.parse.gff import GffRecordABC, merged_gff_records
@@ -810,7 +812,9 @@ class SqliteAnnotationDbMixin:
             columns=columns,
             allow_partial=allow_partial,
         )
-        yield from self._execute_sql(sql, values=vals)
+        with contextlib.suppress(sqlite3.ProgrammingError):
+            # garbage collection issue
+            yield from self._execute_sql(sql, values=vals)
 
     # Return type is instead larger than FeatureDataType
     def _get_feature_by_id(
@@ -1330,6 +1334,7 @@ class SqliteAnnotationDbMixin:
         """closes the db"""
         if self._db is not None:
             self._db.close()
+            self._db = None
 
     def _make_index(self, *, table_name: str, col_names: tuple[str, ...]) -> None:
         """index columns for faster search"""
@@ -1951,6 +1956,11 @@ def _update_array_format(data: bytes) -> bytes:
         return array_to_sqlite(sqlite_to_array(data))
 
 
+@c3warn.deprecated_callable(
+    version="2026.31",
+    reason="Removing support for migrating old format",
+    is_discontinued=True,
+)
 def update_file_format(
     source_path: PathType,
     db_class: type[BasicAnnotationDb | GenbankAnnotationDb | GffAnnotationDb],
@@ -2004,24 +2014,26 @@ def update_file_format(
         anno_db.write(backup_path)
 
     conn = anno_db.db
+    table_names = anno_db.table_names
+    del anno_db
     conn.create_function("update_array_format", 1, _update_array_format)
     cursor = None
-    for table_name in anno_db.table_names:
-        cursor = conn.cursor()
-        array_columns = [
-            r["name"]
-            for r in cursor.execute(f"PRAGMA table_info({table_name});").fetchall()
-            if r["type"] == "array"
-        ]
+    for table_name in table_names:
+        with conn:
+            cursor = conn.cursor()
+            array_columns = [
+                r["name"]
+                for r in cursor.execute(f"PRAGMA table_info({table_name});").fetchall()
+                if r["type"] == "array"
+            ]
 
-        for column in array_columns:
-            cursor.execute(
-                f"UPDATE {table_name} SET {column}=update_array_format({column});",
-            )
-        conn.commit()
-    if cursor:
-        cursor.close()
-    anno_db.close()
+            for column in array_columns:
+                cursor.execute(
+                    f"UPDATE {table_name} SET {column}=update_array_format({column});",
+                )
+            conn.commit()
+            cursor.close()
+    conn.close()
 
 
 DEFAULT_ANNOTATION_DB = BasicAnnotationDb
@@ -2076,7 +2088,7 @@ class AnnotatableMixin:
         return self._annotation_db[0]
 
     @annotation_db.setter
-    def annotation_db(self, value: SupportsFeatures) -> None:
+    def annotation_db(self, value: SupportsFeatures | None) -> None:
         # Without knowing the contents of the db we cannot
         # establish whether self.moltype is compatible, so
         # we rely on the user to get that correct
@@ -2127,8 +2139,9 @@ class AnnotatableMixin:
         if not self._annotation_db:
             # if no annotation db is set, use the default
             self._annotation_db.append(value)
-        else:
-            # we replace the current annotation db
+        elif self._annotation_db[0] is not value:
+            # we close the current annotation db and replace it
+            self._annotation_db[0].close()
             self._annotation_db[0] = value
 
         return

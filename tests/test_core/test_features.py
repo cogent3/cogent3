@@ -14,6 +14,18 @@ ASCII = cogent3.get_moltype("text")
 DNA = cogent3.get_moltype("dna")
 
 
+def close_dbs(*objs):
+    for obj in objs:
+        if not hasattr(obj, "has_annotation_db"):
+            db = obj
+        elif obj.has_annotation_db():
+            db = obj.annotation_db
+        else:
+            continue
+
+        db.close()
+
+
 class FeaturesTest(TestCase):
     """Tests of features in core"""
 
@@ -31,84 +43,117 @@ class FeaturesTest(TestCase):
             spans=[(12, 17)],
         )
 
-    def test_exon_extraction(self):
-        """exon feature used to slice or directly access sequence"""
-        # The corresponding sequence can be extracted either with
-        # slice notation or by asking the feature to do it,
-        # since the feature knows what sequence it belongs to.
 
-        assert str(self.s[self.exon1]) == "CCCCC"
-        assert str(self.exon1.get_slice()) == "CCCCC"
+@pytest.fixture
+def s():
+    return DNA.make_seq(
+        seq="AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA",
+        name="Orig",
+    )
 
-    def test_get_features(self):
-        """correctly identifies all features of a given type"""
 
-        # Usually the only way to get a Feature object like exon1
-        # is to ask the sequence for it. There is one method for querying
-        # annotations by type and optionally by name:
+@pytest.fixture
+def ann_s(s):
+    s.add_feature(
+        biotype="repeat",
+        name="bob",
+        spans=[(12, 17)],
+    )
+    s.add_feature(biotype="exon", name="fred", spans=[(10, 15)])
+    s.add_feature(biotype="exon", name="trev", spans=[(30, 40)])
+    yield s
+    close_dbs(s)
 
-        exons = list(self.s.get_features(biotype="exon"))
-        assert str(exons).startswith(
-            "[Feature(seqid='Orig', biotype='exon', name='fred', map=[10:15]/48, parent=DnaSequence",
-        )
 
-    def test_union(self):
-        """combines multiple features into one"""
+@pytest.fixture
+def exon1(ann_s):
+    return next(iter(ann_s.get_features(biotype="exon", name="fred")))
 
-        # To construct a pseudo-feature covering (or excluding)
-        # multiple features, use get_region_covering_all:
 
-        exons = list(self.s.get_features(biotype="exon"))
-        exon1 = exons.pop(0)
-        combined = exon1.union(exons)
-        assert str(combined.get_slice()) == "CCCCCTTTTTAAAAA"
+def test_exon_extraction(ann_s, exon1):
+    """exon feature used to slice or directly access sequence"""
+    # The corresponding sequence can be extracted either with
+    # slice notation or by asking the feature to do it,
+    # since the feature knows what sequence it belongs to.
 
-    def test_shadow(self):
-        """combines multiple features into shadow"""
+    assert str(ann_s[exon1]) == "CCCCC"
+    assert str(exon1.get_slice()) == "CCCCC"
 
-        # To construct a pseudo-feature covering (or excluding)
-        # multiple features, use get_region_covering_all:
 
-        exons = list(self.s.get_features(biotype="exon"))
-        expect = str(
-            self.s[: exons[0].map.start]
-            + self.s[exons[0].map.end : exons[1].map.start]
-            + self.s[exons[1].map.end :],
-        )
-        exon1 = exons.pop(0)
-        shadow = exon1.union(exons).shadow()
-        assert str(shadow.get_slice()) == expect
+def test_get_features(ann_s):
+    """correctly identifies all features of a given type"""
 
-    def test_annotate_matches_to(self):
-        """annotate_matches_to attaches annotations correctly to a Sequence"""
-        seq = DNA.make_seq(seq="TTCCACTTCCGCTT", name="x")
-        pattern = "CCRC"
-        annot = seq.annotate_matches_to(
-            pattern=pattern,
-            biotype="domain",
-            name="fred",
-            allow_multiple=True,
-        )
-        assert [a.get_slice() for a in annot] == ["CCAC", "CCGC"]
-        annot = seq.annotate_matches_to(
-            pattern=pattern,
-            biotype="domain",
-            name="fred",
-            allow_multiple=False,
-        )
-        assert len(annot) == 1
-        fred = annot[0].get_slice()
-        assert str(fred) == "CCAC"
-        # For Sequence objects of a non-IUPAC MolType, annotate_matches_to
-        # should return an empty annotation.
-        seq = ASCII.make_seq(seq="TTCCACTTCCGCTT")
-        annot = seq.annotate_matches_to(
-            pattern=pattern,
-            biotype="domain",
-            name="fred",
-            allow_multiple=False,
-        )
-        assert annot == []
+    # Usually the only way to get a Feature object like exon1
+    # is to ask the sequence for it. There is one method for querying
+    # annotations by type and optionally by name:
+
+    exons = list(ann_s.get_features(biotype="exon"))
+    assert str(exons).startswith(
+        "[Feature(seqid='Orig', biotype='exon', name='fred', map=[10:15]/48, parent=DnaSequence",
+    )
+
+
+def test_union(ann_s):
+    """combines multiple features into one"""
+
+    # To construct a pseudo-feature covering (or excluding)
+    # multiple features, use get_region_covering_all:
+
+    exons = list(ann_s.get_features(biotype="exon"))
+    exon1 = exons.pop(0)
+    combined = exon1.union(exons)
+    assert str(combined.get_slice()) == "CCCCCTTTTTAAAAA"
+
+
+def test_shadow(ann_s):
+    """combines multiple features into shadow"""
+
+    # To construct a pseudo-feature covering (or excluding)
+    # multiple features, use get_region_covering_all:
+
+    exons = list(ann_s.get_features(biotype="exon"))
+    expect = str(
+        ann_s[: exons[0].map.start]
+        + ann_s[exons[0].map.end : exons[1].map.start]
+        + ann_s[exons[1].map.end :],
+    )
+    exon1 = exons.pop(0)
+    shadow = exon1.union(exons).shadow()
+    assert str(shadow.get_slice()) == expect
+
+
+def test_annotate_matches_to():
+    """annotate_matches_to attaches annotations correctly to a Sequence"""
+    seq = DNA.make_seq(seq="TTCCACTTCCGCTT", name="x")
+    pattern = "CCRC"
+    annot = seq.annotate_matches_to(
+        pattern=pattern,
+        biotype="domain",
+        name="fred",
+        allow_multiple=True,
+    )
+    assert [a.get_slice() for a in annot] == ["CCAC", "CCGC"]
+    annot = seq.annotate_matches_to(
+        pattern=pattern,
+        biotype="domain",
+        name="fred",
+        allow_multiple=False,
+    )
+    assert len(annot) == 1
+    fred = annot[0].get_slice()
+    assert str(fred) == "CCAC"
+    close_dbs(seq)
+    # For Sequence objects of a non-IUPAC MolType, annotate_matches_to
+    # should return an empty annotation.
+    seq = ASCII.make_seq(seq="TTCCACTTCCGCTT")
+    annot = seq.annotate_matches_to(
+        pattern=pattern,
+        biotype="domain",
+        name="fred",
+        allow_multiple=False,
+    )
+    assert annot == []
+    close_dbs(seq)
 
 
 def test_copy_annotations():
@@ -122,6 +167,7 @@ def test_copy_annotations():
     aln.copy_annotations(db)
     feat = next(iter(aln.get_features(seqid="y", biotype="exon")))
     assert feat.get_slice().to_dict() == {"x": "AAA", "y": "CCT"}
+    close_dbs(aln, db)
 
 
 def test_copy_annotations_onto_seq():
@@ -136,6 +182,7 @@ def test_copy_annotations_onto_seq():
     y.copy_annotations(db)
     feat = next(iter(aln.get_features(seqid="y", biotype="exon")))
     assert feat.get_slice().to_dict() == {"x": "AAA", "y": "CCT"}
+    close_dbs(aln, db)
 
 
 def test_feature_residue():
@@ -167,6 +214,7 @@ def test_feature_residue():
     rc_exons = next(iter(aln_rc.get_features(biotype="exon")))
     assert rc_exons.get_slice().to_dict() == {"x": "CCCC", "y": "----"}
     assert rc_exons.as_one_span().get_slice().to_dict() == {"x": "C-CCC", "y": "-T---"}
+    close_dbs(aln, aln_rc)
 
 
 @pytest.fixture
@@ -183,7 +231,8 @@ def ann_seq():
         spans=[(10, 15), (30, 40)],
         parent_id="a-gene",
     )
-    return s
+    yield s
+    close_dbs(s)
 
 
 def test_get_features_no_matches(ann_seq):
@@ -228,6 +277,7 @@ def test_feature_query_child_seq():
     child = child[0]
     assert child.name == "child"
     assert str(child.get_slice()) == str(s[3:6])
+    close_dbs(s)
 
 
 def test_feature_query_parent_seq():
@@ -239,6 +289,7 @@ def test_feature_query_parent_seq():
     parent = parent[0]
     assert parent.name == "GG"
     assert str(parent.get_slice()) == str(s[0:10])
+    close_dbs(s)
 
 
 def test_feature_query_child_aln():
@@ -253,6 +304,7 @@ def test_feature_query_child_aln():
     child = child[0]
     assert child.name == "child"
     assert child.get_slice().to_dict() == aln[3:6].to_dict()
+    close_dbs(aln)
 
 
 def test_feature_query_parent_aln():
@@ -267,6 +319,7 @@ def test_feature_query_parent_aln():
     parent = parent[0]
     assert parent.name == "GG"
     assert parent.get_slice().to_dict() == aln[0:10].to_dict()
+    close_dbs(aln)
 
 
 def test_aln_feature_lost_spans():
@@ -281,6 +334,7 @@ def test_aln_feature_lost_spans():
     aln.annotation_db = db
     copied = list(aln.get_features(seqid="y", biotype="repeat"))
     assert not copied
+    close_dbs(aln, db)
 
 
 def test_terminal_gaps():
@@ -305,6 +359,7 @@ def test_terminal_gaps():
     aln.annotation_db = db
     aln_exons = list(aln.get_features(seqid="x", biotype="exon"))
     assert aln_exons[0].get_slice().to_dict() == {"x": "AAAAA", "y": "--T--"}
+    close_dbs(aln, db)
 
 
 def test_feature_from_alignment():
@@ -337,6 +392,7 @@ def test_feature_from_alignment():
     assert len(exons) == 1
     assert str(aln.get_seq("y")[exons[0].map.without_gaps()]), "TTT"
     assert "biotype='exon', name='fred', map=[-2-, 4:7]/8" in str(exons[0])
+    close_dbs(aln, db)
 
 
 def test_nested_get_slice():
@@ -350,6 +406,7 @@ def test_nested_get_slice():
     s.add_feature(biotype="repeat", name="bob", spans=[(12, 17)], parent_id="fred")
     f = next(iter(ex.get_children()))
     assert str(s[f]) == str(s[12:17])
+    close_dbs(s)
 
 
 def test_masking_strand_agnostic_seq():
@@ -373,6 +430,7 @@ def test_masking_strand_agnostic_seq():
     masked = minus.with_masked_annotations("CDS")
     assert len(masked) == len(minus)
     assert str(masked) == "TTT??????????TTTTTTTTTT?????TTTT????TT"
+    close_dbs(plus, minus)
 
 
 def test_masking_strand_agnostic_aln():
@@ -402,6 +460,7 @@ def test_masking_strand_agnostic_aln():
         "x": "TTT??????????TTTTTTTTTT?????TTTT????TT",
         "y": str(rc.get_seq("y")),
     }
+    close_dbs(aln, rc)
 
 
 def test_feature_out_range():
@@ -414,6 +473,7 @@ def test_feature_out_range():
     db.add_feature(seqid="x", biotype="exon", name="A", spans=[(5, 8)])
     f = list(aln.get_features(seqid="x", biotype="exon"))
     assert not f
+    close_dbs(aln, db)
 
 
 @pytest.mark.parametrize("cast", [list, numpy.array])
@@ -429,6 +489,7 @@ def test_search_with_ints(cast):
         seq.get_features(biotype="exon", allow_partial=True, start=start, stop=stop),
     )
     assert len(feats) == 1
+    close_dbs(seq, db)
 
 
 def test_roundtripped_alignment_with_slices():
@@ -452,6 +513,7 @@ def test_roundtripped_alignment_with_slices():
     new = deserialise_object(sub_aln.to_json())
     feats = list(new.get_features(biotype="exon", allow_partial=True))
     assert not feats
+    close_dbs(aln, db)
 
 
 def test_feature_reverse():
@@ -478,6 +540,7 @@ def test_feature_reverse():
     minus = plus.rc()
     minus_cds = next(iter(minus.get_features(biotype="CDS")))
     assert str(minus_cds.get_slice()) == "GGGGCCCCCTTTTTTTTTT"
+    close_dbs(plus, minus)
 
 
 @pytest.mark.parametrize("moltype", ["protein", "bytes", "text"])
@@ -492,6 +555,7 @@ def test_rc_feature_on_wrong_moltype(moltype):
     )
     with pytest.raises((TypeError, AttributeError)):
         cds.get_slice()
+    close_dbs(seq)
 
 
 def test_feature_equal(ann_seq):
@@ -544,6 +608,7 @@ def test_seq_degap_preserves_annotations():
     s1.add_feature(biotype="exon", name="A", spans=[(10, 15)])
     dg = s1.degap()
     assert len(s1.annotation_db) == len(dg.annotation_db)
+    close_dbs(s1, dg)
 
 
 @pytest.mark.parametrize("aligned", [True, False])
@@ -563,6 +628,7 @@ def test_align_degap_preserves_annotations(aligned):
     got = coll.degap()
     assert got.annotation_db is coll.annotation_db
     assert len(got.annotation_db) == 1
+    close_dbs(coll, got, db)
 
 
 @pytest.fixture

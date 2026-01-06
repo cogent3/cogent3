@@ -174,3 +174,4 @@ class ParseGBseq(TestCase):
             assert name == "AY286018.1"
             assert sample_seq == seq.to_fasta(block_size=len(sample_seq))
             assert seq.annotation_db.num_matches() == 4
+            seq.annotation_db.close()

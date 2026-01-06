@@ -90,3 +90,4 @@ class TestCigar(unittest.TestCase):
                 end=end,
             )
             assert cmp_aln.to_dict() == slice_aln.to_dict(), (start, end)
+        db.close()
