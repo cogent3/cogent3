@@ -168,7 +168,6 @@ class SupportsQueryFeatures(Protocol):  # pragma: no cover
 
 @runtime_checkable
 class SupportsWriteFeatures(Protocol):  # pragma: no cover
-    # should be defined centrally
     def add_feature(
         self,
         *,
@@ -190,14 +189,14 @@ class SupportsWriteFeatures(Protocol):  # pragma: no cover
 
     def update(
         self,
-        annot_db: SqliteAnnotationDbMixin,
+        annot_db: AnnotationDbABC,
         seqids: str | PySeq[str] | None = None,
         **kwargs: Any,
     ) -> None:
         # update records with those from an instance of the same type
         ...
 
-    def union(self, annot_db: SqliteAnnotationDbMixin) -> SqliteAnnotationDbMixin:
+    def union(self, annot_db: AnnotationDbABC) -> AnnotationDbABC:
         # returns a new instance of the more complex class
         ...
 
@@ -209,6 +208,11 @@ class SupportsFeatures(
     Sized,
     Protocol,
 ):  # pragma: no cover
+    @c3warn.deprecated_callable(
+        version="2026.3", reason="use AnnotationDbABC instead", is_discontinued=True
+    )
+    def __init_subclass__(cls): ...
+
     # should be defined centrally
     def __len__(self) -> int:
         # the number of records
@@ -218,14 +222,12 @@ class SupportsFeatures(
         # equality based on class and identity of the bound db
         ...
 
-    def compatible(
-        self, other_db: SqliteAnnotationDbMixin, symmetric: bool = True
-    ) -> bool: ...
+    def compatible(self, other_db: AnnotationDbABC, symmetric: bool = True) -> bool: ...
 
     def to_rich_dict(self) -> dict[str, Any]: ...
 
 
-class AnnotationDbABC(abc.ABC, SupportsFeatures):
+class AnnotationDbABC(abc.ABC):
     @abc.abstractmethod
     def __len__(self) -> int: ...
 
@@ -246,6 +248,20 @@ class AnnotationDbABC(abc.ABC, SupportsFeatures):
         on_alignment: bool | None = None,
         allow_partial: bool = False,
     ) -> Iterator[FeatureDataType]: ...
+
+    def get_records_matching(
+        self,
+        *,
+        biotype: str | None = None,
+        seqid: str | None = None,
+        name: str | None = None,
+        start: int | None = None,
+        stop: int | None = None,
+        strand: str | None = None,
+        attributes: str | None = None,
+        on_alignment: bool | None = None,
+        allow_partial: bool = False,
+    ) -> Iterator[dict[str, Any]]: ...
 
     @abc.abstractmethod
     def get_feature_children(
@@ -316,9 +332,12 @@ class AnnotationDbABC(abc.ABC, SupportsFeatures):
         msg = f"{self.__class__.__name__!r} does not support add_records()"
         raise NotImplementedError(msg)
 
+    @abc.abstractmethod
+    def compatible(self, other_db: Self, symmetric: bool = True) -> bool: ...
+
     def update(
         self,
-        annot_db: SqliteAnnotationDbMixin,
+        annot_db: Self,
         seqids: str | PySeq[str] | None = None,
         **kwargs: Any,
     ) -> None:
@@ -326,10 +345,13 @@ class AnnotationDbABC(abc.ABC, SupportsFeatures):
         msg = f"{self.__class__.__name__!r} does not support update()"
         raise NotImplementedError(msg)
 
-    def union(self, annot_db: SqliteAnnotationDbMixin) -> SqliteAnnotationDbMixin:
+    def union(self, annot_db: Self) -> Self:
         # override in subclass
         msg = f"{self.__class__.__name__!r} does not support union"
         raise NotImplementedError(msg)
+
+    @abc.abstractmethod
+    def close(self) -> None: ...
 
 
 def _make_table_sql(
@@ -1151,7 +1173,7 @@ class SqliteAnnotationDbMixin:
             checks only that tables of other_db equal, or are a subset, of
             mine
         """
-        if not isinstance(other_db, SupportsFeatures):
+        if not isinstance(other_db, AnnotationDbABC):
             msg = f"{type(other_db)} does not support features"
             raise TypeError(msg)
         mine = set(self.table_names)
@@ -1165,8 +1187,8 @@ class SqliteAnnotationDbMixin:
         **kwargs: Any,
     ) -> None:
         """update records with those from an instance of the same type"""
-        if not isinstance(annot_db, SupportsFeatures):
-            msg = f"{type(annot_db)} does not satisfy SupportsFeatures"
+        if not isinstance(annot_db, AnnotationDbABC):
+            msg = f"{type(annot_db)} does not satisfy AnnotationDbABC"
             raise TypeError(msg)
         if not self.compatible(annot_db, symmetric=False):
             msg = f"{type(self)} cannot be updated from {type(annot_db)}"
@@ -1190,8 +1212,8 @@ class SqliteAnnotationDbMixin:
         -------
         The class whose schema contains the other
         """
-        if annot_db and not isinstance(annot_db, SupportsFeatures):
-            msg = f"{type(annot_db)} does not satisfy SupportsFeatures"
+        if annot_db and not isinstance(annot_db, AnnotationDbABC):
+            msg = f"{type(annot_db)} does not satisfy AnnotationDbABC"
             raise TypeError(msg)
         if not annot_db:
             return copy.deepcopy(self)
@@ -1757,7 +1779,7 @@ def deserialise_gb_db(data: dict[str, Any]) -> GenbankAnnotationDb:
 
 
 @register_deserialiser("annotation_to_annotation_db")
-def convert_annotation_to_annotation_db(data: dict[str, Any]) -> SupportsFeatures:
+def convert_annotation_to_annotation_db(data: dict[str, Any]) -> AnnotationDbABC:
     db = BasicAnnotationDb()
 
     minus = Strand.MINUS
@@ -2056,11 +2078,11 @@ class AnnotatableMixin:
     """class handling an annotation database for a collection, aligned or sequence"""
 
     def __init__(self) -> None:
-        self._annotation_db: list[SupportsFeatures]
+        self._annotation_db: list[AnnotationDbABC] = []
 
     def _init_annot_db_value(
-        self, value: SupportsFeatures | list[SupportsFeatures] | None
-    ) -> list[SupportsFeatures]:
+        self, value: AnnotationDbABC | list[AnnotationDbABC] | None
+    ) -> list[AnnotationDbABC]:
         """returns the value for assignment to self._annotation_db given value
 
         Parameters
@@ -2080,7 +2102,7 @@ class AnnotatableMixin:
         return value
 
     @property
-    def annotation_db(self) -> SupportsFeatures:
+    def annotation_db(self) -> AnnotationDbABC:
         """the annotation database for the collection"""
         if not self._annotation_db:
             # if no annotation db is set, use the default
@@ -2088,12 +2110,12 @@ class AnnotatableMixin:
         return self._annotation_db[0]
 
     @annotation_db.setter
-    def annotation_db(self, value: SupportsFeatures | None) -> None:
+    def annotation_db(self, value: AnnotationDbABC | None) -> None:
         # Without knowing the contents of the db we cannot
         # establish whether self.moltype is compatible, so
         # we rely on the user to get that correct
         # one approach to support validation might be to add
-        # to the SupportsFeatures protocol a is_nucleic flag,
+        # to the AnnotationDbABC protocol a is_nucleic flag,
         # for both DNA and RNA. But if a user trys get_slice()
         # on a '-' strand feature, they will get a TypeError.
         # I think that's enough.
@@ -2101,7 +2123,7 @@ class AnnotatableMixin:
 
     def replace_annotation_db(
         self,
-        value: SupportsFeatures | list[SupportsFeatures] | None,
+        value: AnnotationDbABC | list[AnnotationDbABC] | None,
         check: bool = True,
     ) -> None:
         """public interface to assigning the annotation_db
@@ -2131,11 +2153,11 @@ class AnnotatableMixin:
             self._annotation_db = value
             return
 
-        if check and value and not isinstance(value, SupportsFeatures):
-            msg = f"{type(value)} does not satisfy SupportsFeatures"
+        if check and value and not isinstance(value, AnnotationDbABC):
+            msg = f"{type(value)} does not satisfy AnnotationDbABC"
             raise TypeError(msg)
 
-        value = cast("SupportsFeatures", value)
+        value = cast("AnnotationDbABC", value)
         if not self._annotation_db:
             # if no annotation db is set, use the default
             self._annotation_db.append(value)

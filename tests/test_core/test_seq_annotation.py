@@ -273,7 +273,7 @@ def test_annotation_db_lazy_evaluation():
     s = c3_moltype.DNA.make_seq(seq="AC", name="s1")
     assert isinstance(s._annotation_db, list)
     # now if we invoke the property we get an actual db instance created
-    assert isinstance(s.annotation_db, anndb_module.SupportsFeatures)
+    assert isinstance(s.annotation_db, anndb_module.AnnotationDbABC)
     close_dbs(s)
 
 

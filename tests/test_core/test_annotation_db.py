@@ -6,10 +6,10 @@ import pytest
 
 import cogent3
 from cogent3.core.annotation_db import (
+    AnnotationDbABC,
     BasicAnnotationDb,
     GenbankAnnotationDb,
     GffAnnotationDb,
-    SupportsFeatures,
     _matching_conditions,
     _rename_column_if_exists,
     load_annotations,
@@ -391,7 +391,7 @@ def test_gb_get_parent(gb_db):
 
 def test_protocol_adherence(gff_db, gb_db):
     for db in (gff_db, gb_db):
-        assert isinstance(db, SupportsFeatures)
+        assert isinstance(db, AnnotationDbABC)
 
 
 def test_get_features_matching_no_annotation_db(seq):

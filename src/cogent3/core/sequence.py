@@ -36,9 +36,8 @@ from cogent3.core import moltype as c3_moltype
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
     AnnotatableMixin,
+    AnnotationDbABC,
     FeatureDataType,
-    SqliteAnnotationDbMixin,
-    SupportsFeatures,
 )
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.location import (
@@ -207,7 +206,7 @@ class Sequence(AnnotatableMixin):
         name: str | None = None,
         info: dict[str, Any] | InfoClass | None = None,
         annotation_offset: int = 0,
-        annotation_db: SupportsFeatures | None = None,
+        annotation_db: AnnotationDbABC | None = None,
     ) -> None:
         """Initialize a sequence.
 
@@ -242,7 +241,7 @@ class Sequence(AnnotatableMixin):
 
         self.info = InfoClass(**(info or {}))
         self._repr_policy = {"num_pos": 60}
-        self._annotation_db: list[SupportsFeatures] = self._init_annot_db_value(
+        self._annotation_db: list[AnnotationDbABC] = self._init_annot_db_value(
             annotation_db
         )
 
@@ -354,7 +353,11 @@ class Sequence(AnnotatableMixin):
             offset = int(self._seq.slice_record.parent_start)
             data |= {"annotation_offset": offset}
 
-        if self.has_annotation_db() and not exclude_annotations:
+        if (
+            self.has_annotation_db()
+            and not exclude_annotations
+            and hasattr(self.annotation_db, "to_rich_dict")
+        ):
             data["annotation_db"] = self.annotation_db.to_rich_dict()
 
         return data
@@ -1386,7 +1389,7 @@ class Sequence(AnnotatableMixin):
             annotation_db=db,
         )
 
-    def copy_annotations(self, seq_db: SqliteAnnotationDbMixin) -> None:
+    def copy_annotations(self, seq_db: AnnotationDbABC) -> None:
         """copy annotations into attached annotation db
 
         Parameters
@@ -1398,8 +1401,8 @@ class Sequence(AnnotatableMixin):
         -----
         Only copies annotations for records with seqid equal to self.name
         """
-        if not isinstance(seq_db, SupportsFeatures):
-            msg = f"type {type(seq_db)} does not match SupportsFeatures interface"
+        if not isinstance(seq_db, AnnotationDbABC):
+            msg = f"type {type(seq_db)} does not match AnnotationDbABC interface"
             raise TypeError(
                 msg,
             )
