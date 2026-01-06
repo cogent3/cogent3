@@ -94,7 +94,8 @@ def full_dstore_sqlite(db_dir, nc_objects, completed_objects, log_data):
     for id, data in completed_objects.items():
         dstore.write(unique_id=id, data=data)
     dstore.write_log(unique_id="scitrack.log", data=log_data)
-    return dstore
+    yield dstore
+    dstore.close()
 
 
 @pytest.fixture
@@ -162,6 +163,7 @@ def test_open_sqlite_db_rw():
         _RESULT_TABLE,
         "state",
     }
+    db.close()
 
 
 def test_rw_sql_dstore_mem(completed_objects):

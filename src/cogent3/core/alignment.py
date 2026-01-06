@@ -419,6 +419,10 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
     def __ne__(self, other: object) -> bool:
         return not self == other
 
+    def __del__(self):
+        if self._annotation_db:
+            self._annotation_db = None
+
     @property
     @abstractmethod
     def modified(self) -> bool: ...
@@ -5394,8 +5398,9 @@ def merged_db_collection(
         if first is None or db is None or first is db:
             continue
         first.update(db)
+        db.close()
 
-    return cast("SupportsFeatures", merged)
+    return cast("SupportsFeatures | None", merged)
 
 
 @dataclasses.dataclass

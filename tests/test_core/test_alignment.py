@@ -51,6 +51,18 @@ except ImportError:
     has_piqtree = False
 
 
+def close_dbs(*objs):
+    for obj in objs:
+        if not hasattr(obj, "has_annotation_db"):
+            db = obj
+        elif obj.has_annotation_db():
+            db = obj.annotation_db
+        else:
+            continue
+
+        db.close()
+
+
 @pytest.fixture(scope="session")
 def tmp_path(tmpdir_factory):
     return tmpdir_factory.mktemp("tmp_path")
@@ -120,9 +132,11 @@ def sdv_s2(dna_sd: c3_seq_storage.SeqsData) -> c3_seqview.SeqDataView:
 
 
 @pytest.fixture
-def seqs() -> c3_alignment.SequenceCollection:
+def seqs():
     data = {"seq1": "AAAAAA", "seq2": "TTTT", "seq3": "ATTCCCC"}
-    return c3_alignment.make_unaligned_seqs(data, moltype="dna")
+    result = c3_alignment.make_unaligned_seqs(data, moltype="dna")
+    yield result
+    close_dbs(result)
 
 
 @pytest.fixture
@@ -169,12 +183,16 @@ def ordered2():
 
 @pytest.fixture
 def gb_db(DATA_DIR):
-    return load_annotations(path=DATA_DIR / "annotated_seq.gb")
+    db = load_annotations(path=DATA_DIR / "annotated_seq.gb")
+    yield db
+    db.close()
 
 
 @pytest.fixture
 def gff_db(DATA_DIR):
-    return load_annotations(path=DATA_DIR / "simple.gff")
+    db = load_annotations(path=DATA_DIR / "simple.gff")
+    yield db
+    db.close()
 
 
 @pytest.fixture
@@ -191,7 +209,8 @@ def seqcoll_db(DATA_DIR):
     seq_coll.annotation_db = load_annotations(
         path=DATA_DIR / "c_elegans_WS199_shortened_gff.gff3",
     )
-    return seq_coll
+    yield seq_coll
+    close_dbs(seq_coll)
 
 
 def make_typed(seq, data_type, moltype):
@@ -1092,6 +1111,7 @@ def test_sequence_collection_take_seqs_copy_annotations(gff_db, mk_cls):
     # if copy annotations is false, the annotation db should be the same as original
     just_seq1 = seq_coll.take_seqs(names="test_seq", copy_annotations=False)
     assert just_seq1.annotation_db == gff_db
+    close_dbs(just_seq1, just_seq2, seq_coll)
 
 
 def test_sequence_collection_num_seqs():
@@ -2100,6 +2120,7 @@ def test_sequence_collection_get_seq_annotated():
     with_annos = seqs.get_seq("seq1")
     # the annotation db is identical to the one on the collection
     assert with_annos.annotation_db is seqs.annotation_db
+    close_dbs(seqs, with_annos)
 
 
 def _make_seq(name):
@@ -2123,6 +2144,7 @@ def test_sequence_collection_init_seqs_rc(rc):
     got = seq_coll.to_dict()
     expect = {k: str(v) for k, v in data.items()}
     assert got == expect
+    close_dbs(seq_coll)
 
 
 def test_sequence_collection_init_seqs_mixed_rc():
@@ -2134,6 +2156,7 @@ def test_sequence_collection_init_seqs_mixed_rc():
         seq_coll = c3_alignment.make_unaligned_seqs(data, moltype="dna")
     coll_db = seq_coll.annotation_db
     assert len(coll_db)
+    close_dbs(seq_coll, coll_db)
 
 
 def test_sequence_collection_copy_annotations_incompat_type_fails(seqcoll_db, seqs):
@@ -2243,6 +2266,7 @@ def test_sequence_collection_to_moltype_annotation_db(mk_cls):
     seqs.annotation_db = db
     dna = seqs.to_moltype("dna")
     assert len(dna.annotation_db) == 3
+    close_dbs(seqs, dna, db)
 
 
 @pytest.mark.parametrize(
@@ -3080,6 +3104,7 @@ def test_aligned_getitem_int(gapped_seqs_dict, seqid, i):
 def test_aligned_getitem_featuremap(raw_seq, coords):
     dna = c3_moltype.get_moltype("dna")
     im, seq = dna.make_seq(seq=raw_seq).parse_out_gaps()
+    assert not seq.has_annotation_db()
     gaps = numpy.array([im.gap_pos, im.cum_gap_lengths]).T
     asd = c3_seq_storage.AlignedSeqsData.from_seqs_and_gaps(
         seqs={"seq1": numpy.array(seq)},
@@ -3093,6 +3118,7 @@ def test_aligned_getitem_featuremap(raw_seq, coords):
     expect = "".join(raw_seq[s:e] for s, e in fmap.get_coordinates())
     got = ia[fmap]
     assert str(got) == expect
+    assert not aln.has_annotation_db()
 
 
 @pytest.fixture
@@ -4681,6 +4707,7 @@ def test_alignment_get_feature():
     db.add_feature(seqid="y", biotype="exon", name="A", spans=[(5, 8)])
     feat = next(iter(aln.get_features(seqid="y", biotype="exon", on_alignment=False)))
     assert feat.get_slice().to_dict() == {"x": "AAA", "y": "CCT"}
+    close_dbs(aln, db)
 
 
 def test_alignment_distance_matrix():
@@ -5494,6 +5521,9 @@ def test_alignment_apply_scaled_gaps_aa_to_codon(codon_and_aa_alns):
     ungapped = codon.degap()
     scaled = aa.apply_scaled_gaps(ungapped, aa_to_codon=True)
     assert scaled.to_dict() == codon.to_dict()
+    assert not codon.has_annotation_db()
+    assert not aa.has_annotation_db()
+    assert not scaled.has_annotation_db()
 
 
 def test_alignment_apply_scaled_gaps_codon_to_aa(codon_and_aa_alns):
@@ -5547,6 +5577,7 @@ def test_alignment_copy(simple_aln):
     assert set(copied.names) == set(renamed.names)
     # and can get a sequence with a new name
     assert str(copied.seqs["A"]) == str(renamed.seqs["A"])
+    close_dbs(simple_aln, got)
 
 
 def test_alignment_copy_rc(simple_aln):
@@ -5561,7 +5592,6 @@ def test_alignment_deepcopy(simple_aln):
     # all data structures should be different IDs
     assert got.name_map is not simple_aln.name_map
     assert got.info is not simple_aln.info
-    assert got.annotation_db is not simple_aln.annotation_db
     assert got._slice_record is not simple_aln._slice_record
     assert got._seqs_data is not simple_aln._seqs_data
 
@@ -5751,6 +5781,7 @@ def test_alignment_to_rich_dict_round_trip_annotation_db(gff_db, mk_cls):
     rd = aln.to_rich_dict()
     got = deserialise_object(rd)
     assert len(got.annotation_db) == 0
+    close_dbs(aln, got)
 
 
 def test_deserialise_alignment():
@@ -6254,6 +6285,7 @@ def test_renamed_take_seqs(renamed_seqs):
 def test_renamed_degap(renamed_seqs):
     coll, data = renamed_seqs
     got = coll.degap()
+    assert not got.has_annotation_db()
     assert set(got.storage.names) == {k.lower() for k in data}
     assert set(got.names) == {k.upper() for k in data}
 
@@ -6324,9 +6356,11 @@ def test_alignment_copy_handling_annot_db():
     orig_db = aln.annotation_db
     copied_aln = aln.copy(copy_annotations=True)
     assert orig_db is not copied_aln.annotation_db
+    close_dbs(copied_aln)
 
     copied_aln = aln.copy(copy_annotations=False)
     assert copied_aln.annotation_db is orig_db
+    close_dbs(aln, copied_aln, orig_db)
 
 
 def test_empty_aln_to_pretty():
@@ -6560,3 +6594,4 @@ def test_load_unaligned_glob(DATA_DIR):
     )
     assert isinstance(seqcoll, c3_alignment.SequenceCollection)
     assert len(seqcoll.names) > 1
+    assert not seqcoll.has_annotation_db()

@@ -8,7 +8,18 @@ import pytest
 
 from cogent3.parse import genbank
 
+
 # ruff: noqa: SIM905
+def close_dbs(*objs):
+    for obj in objs:
+        if not hasattr(obj, "has_annotation_db"):
+            db = obj
+        elif obj.has_annotation_db():
+            db = obj.annotation_db
+        else:
+            continue
+
+        db.close()
 
 
 class GenBankTests(TestCase):
@@ -437,7 +448,7 @@ def test_location_list_get_coordinates():
     assert spans == [(5669, 5918), (5964, 6126)]
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def rich_gb():
     with open("data/annotated_seq.gb") as infile:
         parser = genbank.rich_parser(infile)
@@ -470,6 +481,8 @@ def test_rich_parser(rich_gb):
         got = cds[locus].get_slice().trim_stop_codon().get_translation()
         assert str(got) == expects[locus]
 
+    close_dbs(rich_gb)
+
 
 def test_rich_parser_moltype(rich_gb):
     """correctly handles moltypes"""
@@ -482,6 +495,7 @@ def test_rich_parser_moltype(rich_gb):
     assert rich_gb.moltype.label == "dna"
     got = {f.name for f in rich_gb.get_features(biotype="mRNA")}
     assert got == feature_ids
+    close_dbs(rich_gb)
 
 
 @pytest.mark.parametrize("moltype", ["dna", "rna", "text"])
@@ -494,12 +508,14 @@ def test_moltype_overrides(moltype, rich_gb):
     assert rich_gb.annotation_db.num_matches() == got_2.annotation_db.num_matches()
 
     assert got_2.moltype.label == moltype
+    close_dbs(rich_gb, got_2)
 
 
 def test_rich_parser_info(rich_gb):
     """seq.info stores genbank_record"""
     assert "genbank_record" in rich_gb.info
     assert rich_gb.info.genbank_record["locus"] == rich_gb.name
+    close_dbs(rich_gb)
 
 
 def test_rich_genbank_just_seq():
@@ -507,7 +523,7 @@ def test_rich_genbank_just_seq():
         parser = genbank.rich_parser(infile, just_seq=True)
         seq = next(s for l, s in parser)
 
-    assert not seq.annotation_db
+    assert not seq.has_annotation_db()
 
 
 @pytest.fixture(params=("\r\n", "\n"))

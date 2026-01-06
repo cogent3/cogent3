@@ -246,6 +246,10 @@ class Sequence(AnnotatableMixin):
             annotation_db
         )
 
+    def __del__(self):
+        if self._annotation_db:
+            self._annotation_db = None
+
     def __str__(self) -> str:
         result = numpy.array(self)
         return self.moltype.most_degen_alphabet().from_indices(result)

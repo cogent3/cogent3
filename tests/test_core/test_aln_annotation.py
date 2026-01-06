@@ -14,9 +14,23 @@ from cogent3.core.annotation_db import (
 DNA = c3_moltype.get_moltype("dna")
 
 
+def close_dbs(*objs):
+    for obj in objs:
+        if not hasattr(obj, "has_annotation_db"):
+            db = obj
+        elif obj.has_annotation_db():
+            db = obj.annotation_db
+        else:
+            continue
+
+        db.close()
+
+
 @pytest.fixture
 def gff_db(DATA_DIR):
-    return load_annotations(path=DATA_DIR / "simple.gff")
+    db = load_annotations(path=DATA_DIR / "simple.gff")
+    yield db
+    close_dbs(db)
 
 
 def makeSampleSequence(name, with_gaps=False):
@@ -52,12 +66,16 @@ def makeSampleAlignment():
 @pytest.fixture
 def ann_aln1():
     # synthetic annotated alignment
-    return makeSampleAlignment()
+    aln = makeSampleAlignment()
+    yield aln
+    close_dbs(aln)
 
 
 @pytest.fixture
 def ann_seq():
-    return makeSampleSequence("seq1")
+    aln = makeSampleSequence("seq1")
+    yield aln
+    close_dbs(aln)
 
 
 def _make_seq(name):
@@ -84,6 +102,7 @@ def test_init_seqs_have_annotations(mk_cls):
         seq = seq_coll.get_seq(name)
         db = seq.annotation_db
         assert db is coll_db
+    close_dbs(coll_db)
 
 
 @pytest.mark.parametrize(
@@ -99,6 +118,7 @@ def test_constructing_collections(mk_cls):
     got = coll.annotation_db.num_matches()
 
     assert got == expect
+    close_dbs(coll)
 
 
 @pytest.mark.parametrize(
@@ -112,6 +132,7 @@ def test_init_annotated_seqs(mk_cls):
     coll = mk_cls({"seq1": seq}, moltype="dna")
     features = list(coll.get_features(biotype="exon"))
     assert len(features) == 1
+    close_dbs(coll)
 
 
 @pytest.mark.parametrize(
@@ -126,6 +147,8 @@ def test_sequence_collection_add_feature(mk_cls):
     # if seqid is not in seqs, raise error
     with pytest.raises(ValueError):
         _ = seqs.add_feature(seqid="bad_seq", biotype="xyz", name="abc", spans=[(1, 2)])
+
+    close_dbs(seqs)
 
 
 @pytest.mark.parametrize(
@@ -158,6 +181,7 @@ def test_sequence_collection_get_annotations_from_any_seq(mk_cls):
     got = list(seqs.get_features(name="annotation3"))
     assert len(got) == 1
     assert "biotype='exon', name='annotation3', map=[3:6]/9" in str(got[0])
+    close_dbs(seqs)
 
 
 @pytest.mark.parametrize("rc", [False, True])
@@ -179,6 +203,7 @@ def test_alignment_get_slice(rc):
     got_aln = feature.get_slice()
     got_seq = got_aln.get_seq("test_seq")
     assert str(got_seq) == str(seq[5:9])
+    close_dbs(aln)
 
 
 def test_align_get_features():
@@ -194,6 +219,7 @@ def test_align_get_features():
     assert len(sl) == (7 - 2)
     # returns correct value
     assert sl.to_dict() == {"seq1": "G--AC", "seq2": "GGGCC"}
+    close_dbs(aln)
 
 
 @pytest.fixture(scope="session")
@@ -201,7 +227,9 @@ def seqcoll_db():
     fasta_path = os.path.join("data/c_elegans_WS199_dna_shortened.fasta")
     gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
     seq = load_seq(fasta_path, moltype="dna", annotation_path=gff3_path)
-    return c3_alignment.make_unaligned_seqs({seq.name: seq}, moltype="dna")
+    result = c3_alignment.make_unaligned_seqs({seq.name: seq}, moltype="dna")
+    yield result
+    close_dbs(result)
 
 
 def test_seqcoll_query(seqcoll_db):
@@ -217,7 +245,7 @@ def test_seqcoll_query(seqcoll_db):
     assert len(matches) == 3
 
 
-def test_feature_projection_ungapped(ann_aln):
+def test_feature_projection_ungapped():
     # projection onto ungapped sequence
     ann_aln = makeSampleAlignment()
     expecteds = {"FAKE01": "CCCAAAATTTTTT", "FAKE02": "CCC-----TTTTT"}
@@ -231,6 +259,7 @@ def test_feature_projection_ungapped(ann_aln):
     assert str(got) == expected
     assert seq_ltr.seqid == seq_name
     assert seq_ltr.parent == ann_aln.get_seq(seq_name)
+    close_dbs(ann_aln)
 
 
 def test_feature_projection_gapped(ann_aln1):
@@ -264,6 +293,7 @@ def test_get_feature():
     feat = next(iter(aln.get_features(seqid="y", biotype="exon", on_alignment=False)))
     sliced = feat.get_slice()
     assert sliced.to_dict() == {"x": "AAA", "y": "CCT"}
+    close_dbs(aln)
 
 
 def test_aln_feature_to_dict():
@@ -287,6 +317,7 @@ def test_aln_feature_to_dict():
     f = aln.make_feature(feature=feature_data)
     d = f.to_dict()
     assert d == expect
+    close_dbs(aln)
 
 
 @pytest.mark.parametrize("rev", [False, True])
@@ -319,6 +350,7 @@ def test_features_survives_aligned_seq_rename(rev, make_cls):
     got = next(iter(seqs.get_features(name="gene1")))
     sliced = str(got.get_slice()).splitlines()[-1]
     assert sliced == "C" * 15
+    close_dbs(seqs)
 
 
 def test_alignment_annotations():
@@ -351,6 +383,8 @@ def test_alignment_annotations():
         expected = seq_expecteds[annot_type]
         assert observed == expected
 
+    close_dbs(aln)
+
 
 @pytest.mark.parametrize(
     "mk_cls",
@@ -370,6 +404,7 @@ def test_add_to_seq_updates_coll(mk_cls):
     assert len(seq_coll.annotation_db) == len(x.annotation_db) == 0
     x.add_feature(biotype="exon", name="E1", spans=[(3, 8)])
     assert len(seq_coll.annotation_db) == len(x.annotation_db) == 1
+    close_dbs(seq_coll)
 
 
 @pytest.mark.parametrize(
@@ -383,8 +418,11 @@ def test_annotation_db_assign_none(mk_cls):
     seq_coll.add_feature(seqid="seq1", biotype="xyz", name="abc", spans=[(1, 2)])
     seq_coll.add_feature(seqid="seq2", biotype="xyzzz", name="abc", spans=[(1, 2)])
     assert seq_coll.annotation_db is not None
+    # we have to close here to avoid resource
+    close_dbs(seq_coll)
     seq_coll.annotation_db = None
     assert not len(seq_coll.annotation_db)
+    close_dbs(seq_coll)
 
 
 @pytest.mark.parametrize(
@@ -425,6 +463,7 @@ def test_region_union_on_alignment(annot_type, rved):
     got = new.to_dict()
     expected = aln_expecteds[annot_type]
     assert expected == got, (annot_type, expected, got)
+    close_dbs(aln)
 
 
 def test_annotate_matches_to():
@@ -451,6 +490,7 @@ def test_annotate_matches_to():
     )
     got = [a.get_slice() for a in annot]
     assert got == matches[:1]
+    close_dbs(aln)
 
     # handles regex from aa
     aln = c3_alignment.make_aligned_seqs({"x": "TTCCACTTCCGCTT"}, moltype="dna")
@@ -460,6 +500,7 @@ def test_annotate_matches_to():
     aln.seqs["x"].annotate_matches_to(aa_regex, "domain", "test", allow_multiple=False)
     a = next(iter(aln.get_features(seqid="x")))
     assert str(aln[a].seqs["x"]) == "TTCCACTTC"
+    close_dbs(aln)
 
 
 @pytest.mark.parametrize(
@@ -481,6 +522,8 @@ def test_features_invalid_seqid(mk_cls):
         # seqid does not exist
         list(seqs.get_features(name="gene1", seqid="blah"))
 
+    close_dbs(seqs)
+
 
 @pytest.mark.parametrize(
     "mk_cls",
@@ -495,11 +538,13 @@ def test_copy_annotations(gff_db, mk_cls):
     expect = seq_coll.annotation_db.num_matches() + gff_db.num_matches()
     seq_coll.copy_annotations(gff_db)
     assert seq_coll.annotation_db.num_matches() == expect
+    close_dbs(seq_coll)
 
     # copy annotations with no current annotations
     seq_coll = mk_cls(data, moltype="rna")
     seq_coll.copy_annotations(gff_db)
     assert seq_coll.annotation_db.num_matches() == gff_db.num_matches()
+    close_dbs(seq_coll)
 
 
 @pytest.mark.parametrize(
@@ -516,6 +561,7 @@ def test_copy_annotations_same_annotations(gff_db, mk_cls):
     seq_coll.copy_annotations(gff_db)
 
     assert seq_coll.annotation_db.num_matches() == gff_db.num_matches()
+    close_dbs(seq_coll)
 
 
 @pytest.mark.parametrize(
@@ -532,6 +578,7 @@ def test_copy_annotations_none_matching(gff_db, mk_cls):
     assert gff_db.num_matches() > 0
     seq_coll.copy_annotations(gff_db)
     assert seq_coll.annotation_db.num_matches() == expect
+    close_dbs(seq_coll)
 
 
 @pytest.mark.parametrize(
@@ -544,6 +591,7 @@ def test_copy_annotations_no_db(gff_db, mk_cls):
 
     seq_coll.copy_annotations(gff_db)
     assert seq_coll.annotation_db.num_matches() == gff_db.num_matches()
+    close_dbs(seq_coll)
 
 
 def test_project_features_onto_specified_seqid():
@@ -559,6 +607,7 @@ def test_project_features_onto_specified_seqid():
     assert len(exons) == 1
     assert str(aln.get_seq("y")[exons[0].map.without_gaps()]), "TTT"
     assert "biotype='exon', name='fred', map=[-2-, 4:7]/8" in str(exons[0])
+    close_dbs(aln)
 
 
 def test_project_features_no_features_for_specified_seqid():
@@ -573,6 +622,7 @@ def test_project_features_no_features_for_specified_seqid():
     projected_features = aln.get_projected_features(seqid="seq2", biotype="exon")
 
     assert len(projected_features) == 0
+    close_dbs(db)
 
 
 @pytest.fixture
@@ -588,7 +638,9 @@ def ann_aln():
         seqid="x",
     )
     db.add_feature(seqid="y", biotype="repeat", name="frog", spans=[(5, 7)])
-    return c3_alignment.make_aligned_seqs(orig_data, moltype="dna", annotation_db=db)
+    aln = c3_alignment.make_aligned_seqs(orig_data, moltype="dna", annotation_db=db)
+    yield aln
+    close_dbs(aln)
 
 
 def test_annotated_region_masks(ann_aln):
@@ -680,6 +732,7 @@ def test_annotated_region_masks(ann_aln):
     assert masked.to_dict() == {"x": "?-???AAAAA???AA", "y": "-T----TTTT?-?TT"}
     masked = aln.with_masked_annotations(["repeat", "exon"], shadow=True)
     assert masked.to_dict() == {"x": "C-CCC?????GGG??", "y": "-?----????G-G??"}
+    close_dbs(aln)
 
 
 def test_with_masked_one_seqid():
@@ -698,6 +751,7 @@ def test_with_masked_one_seqid():
     masked = aln.with_masked_annotations(biotypes="repeat", mask_char="?", seqid="y")
     expect = {"x": raw_data["x"], "y": "AA???-----?????GGGGGGGGGGCC--"}
     assert masked.to_dict() == expect
+    close_dbs(aln)
 
 
 @pytest.mark.parametrize("shadow", [True, False])
@@ -711,6 +765,7 @@ def test_with_masked_missing_feature(ann_aln1, shadow):
         shadow=shadow,
     )
     assert masked.to_dict() == expect
+    close_dbs(aln)
 
 
 def test_masking_strand_agnostic_aln():
@@ -745,6 +800,7 @@ def test_masking_strand_agnostic_aln():
         "x": "TTT??????????TTTTTTTTTT?????TTTT????TT",
         "y": str(rc.seqs["y"]),
     }
+    close_dbs(db)
 
 
 def test_nested_annotated_region_masks():
@@ -775,6 +831,7 @@ def test_nested_annotated_region_masks():
     got = masked.to_dict()
     assert got["x"] == "?-???AAAAATTTAA"
     assert got["y"] == "-T----TTTTG-GTT"
+    close_dbs(db)
 
 
 @pytest.mark.parametrize("aligned", [True, False])
@@ -801,6 +858,7 @@ def test_mixed_strand_get_feature(aligned):
     expect = DNA.rc(plus["s2"].replace("-", ""))[3:6]
     got = f.get_slice()
     assert got == expect
+    close_dbs(seqcoll)
 
 
 def test_alignment_mixed_strand_get_feature1():
@@ -839,6 +897,7 @@ def test_alignment_mixed_strand_get_feature1():
     f = next(iter(rc.get_features(biotype="CDS")))
     faln = f.get_slice(allow_gaps=True)
     assert faln.to_dict() == expect
+    close_dbs(aln)
 
 
 def test_alignment_mixed_strand_get_feature2():
@@ -883,6 +942,7 @@ def test_alignment_mixed_strand_get_feature2():
     f = next(iter(rc.get_features(biotype="CDS")))
     faln = f.get_slice(allow_gaps=True)
     assert faln.to_dict() == expect_gapped
+    close_dbs(aln)
 
 
 @pytest.mark.parametrize("rc", [True, False])
@@ -916,6 +976,7 @@ def test_alignment_mixed_strand_masked_annotations(rc):
     assert str(s2) == s2_expect
     s3 = aln.seqs["s3"]
     assert str(s3) == s3_expect
+    close_dbs(aln)
 
 
 def test_slice_featuremap():
@@ -964,6 +1025,7 @@ def test_shadow_name():
     assert s.name == f"not {name}"
     s = f.shadow(name="newname")
     assert s.name == "newname"
+    close_dbs(seq)
 
 
 def test_one_span_name():
@@ -979,6 +1041,7 @@ def test_one_span_name():
     assert ospan.name == f"one-span {name}"
     s = f.as_one_span(name="newname")
     assert s.name == "newname"
+    close_dbs(seq)
 
 
 @pytest.mark.parametrize(
@@ -1002,6 +1065,7 @@ def test_get_feature_seqs_offset(mk_cls):
     got = feature[0].get_slice()
     got = got if mk_cls == c3_alignment.make_unaligned_seqs else got.get_seq("s1")
     assert str(got) == "AAGTA"
+    close_dbs(coll)
 
 
 @pytest.mark.parametrize(
@@ -1034,3 +1098,4 @@ def test_get_feature_seqs_offset_minus_strand(mk_cls):
     got = feature[0].get_slice()
     got = got if mk_cls == c3_alignment.make_unaligned_seqs else got.get_seq("s1")
     assert str(got) == expect
+    close_dbs(coll)
