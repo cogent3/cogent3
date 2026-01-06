@@ -18,6 +18,18 @@ from cogent3.draw.drawable import (
 from cogent3.util.union_dict import UnionDict
 
 
+def close_dbs(*objs):
+    for obj in objs:
+        if not hasattr(obj, "has_annotation_db"):
+            db = obj
+        elif obj.has_annotation_db():
+            db = obj.annotation_db
+        else:
+            continue
+
+        db.close()
+
+
 def load_alignment(annotate1=False, annotate2=False):
     """creates an alignment with None, one or two sequences annotated"""
     db = GffAnnotationDb()
@@ -307,6 +319,7 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         dp = aln.dotplot(name1=aln.names[0], name2=aln.names[1])
         self._check_drawable_attrs(dp.figure, "scatter")
         assert isinstance(dp, Dotplot)
+        close_dbs(aln)
 
         # seq1 annotated
         aln = load_alignment(annotate1=True)
@@ -316,6 +329,7 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         self._check_drawable_attrs(fig, "scatter")
         assert dp.left_track is None
         assert isinstance(dp.bottom_track, Drawable)
+        close_dbs(aln)
 
         # seq2 annotated
         aln = load_alignment(annotate2=True)
@@ -325,6 +339,7 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         self._check_drawable_attrs(fig, "scatter")
         assert dp.bottom_track is None
         assert isinstance(dp.left_track, Drawable)
+        close_dbs(aln)
 
         # both annotated
         aln = load_alignment(True, True)
@@ -334,6 +349,7 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         self._check_drawable_attrs(fig, "scatter")
         assert isinstance(dp.bottom_track, Drawable)
         assert isinstance(dp.left_track, Drawable)
+        close_dbs(aln)
 
     def test_annotated_dotplot_remove_tracks(self):  # ported
         """removing annotation tracks from dotplot should work"""
@@ -364,6 +380,7 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         assert dp._traces == []
         assert dp.figure is not orig_fig
         assert isinstance(dp.figure, UnionDict)
+        close_dbs(aln)
 
     def test_count_gaps_per_seq(self):  # ported
         """creation of drawables works"""
@@ -374,6 +391,7 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         assert not hasattr(counts, "drawable")
         self._check_drawable_styles(aln.count_gaps_per_seq, styles)
         self._check_drawable_styles(aln.count_gaps_per_seq, styles)
+        close_dbs(aln)
 
     def test_coevo_drawables(self):  # ported
         """coevolution produces drawables"""
@@ -384,6 +402,7 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         assert not hasattr(coevo, "drawable")
         self._check_drawable_styles(aln.coevolution, styles, show_progress=False)
         self._check_drawable_styles(aln.coevolution, styles, show_progress=False)
+        close_dbs(aln)
 
     def test_coevo_annotated(self):  # ported
         """coevolution on alignment with annotated seqs should add to heatmap plot"""
@@ -394,6 +413,7 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         assert isinstance(drawable, AnnotatedDrawable)
         assert isinstance(drawable.left_track, Drawable)
         assert isinstance(drawable.bottom_track, Drawable)
+        close_dbs(aln)
 
     def test_information_plot(self):  # ported
         """infoprmation plot makes a drawable"""
@@ -403,6 +423,7 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         self._check_drawable_attrs(drawable.figure, "scatter")
         drawable = aln.information_plot()
         self._check_drawable_attrs(drawable.figure, "scatter")
+        close_dbs(aln)
 
     def test_get_drawable(self):  # ported
         """sliced alignment with features returns a drawable"""
@@ -418,6 +439,7 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         aln.annotation_db = db
         g = aln.get_drawable()
         assert isinstance(g, Drawable)
+        close_dbs(aln)
 
 
 class TableDrawablesTest(BaseDrawablesTests):

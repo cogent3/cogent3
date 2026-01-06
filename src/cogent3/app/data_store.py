@@ -17,7 +17,6 @@ from typing import TYPE_CHECKING
 
 from scitrack import get_text_hexdigest
 
-from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.io import get_format_suffixes, open_
 from cogent3.util.parallel import is_master_process
@@ -788,93 +787,6 @@ def convert_directory_datastore(
     for fn in filenames:
         out_dstore.write(unique_id=fn.name, data=fn.read_text())
     return out_dstore
-
-
-@c3warn.deprecated_callable(
-    version="2026.1",
-    reason="tinydb conversions no longer supported",
-    is_discontinued=True,
-)
-def convert_tinydb_to_sqlite(
-    source: Path, dest: Path | None = None
-) -> DataStoreABC:  # pragma: no cover
-    from datetime import datetime
-    from fnmatch import translate
-
-    from .composable import CachingLogger, _make_logfile_name
-    from .data_store import load_record_from_json
-    from .io import write_db
-    from .sqlite_data_store import _LOG_TABLE, DataStoreSqlite
-
-    try:
-        from tinydb import Query, TinyDB
-        from tinydb.middlewares import CachingMiddleware
-        from tinydb.storages import JSONStorage
-    except ImportError as e:
-        msg = "You need to install tinydb to be able to migrate to new datastore."
-        raise ImportError(
-            msg,
-        ) from e
-
-    source = Path(source)
-    storage = CachingMiddleware(JSONStorage)
-    tinydb = TinyDB(str(source), storage=storage)
-    pattern = translate("*")
-    query = Query().identifier.matches(pattern)
-
-    id_list = []
-    data_list = []
-    lock_id = None
-    for record in tinydb.search(query):
-        if record["identifier"] == "LOCK":
-            lock_id = record["pid"]
-            continue
-        id_list.append(record["identifier"])
-        data_list.append(load_record_from_json(record))
-
-    dest = dest or Path(source.parent) / f"{source.stem}.sqlitedb"
-    if dest.exists():
-        msg = f"Destination file {dest!s} already exists. Delete or define new dest."
-        raise OSError(
-            msg,
-        )
-
-    LOGGER = CachingLogger(create_dir=True)
-    log_file_path = source.parent / _make_logfile_name("convert_tinydb_to_sqlite")
-    LOGGER.log_file_path = log_file_path
-
-    dstore = DataStoreSqlite(source=dest, mode=OVERWRITE)
-    writer = write_db(data_store=dstore)
-    for id_, data, _ in data_list:
-        if id_.endswith(".log"):
-            cmnd = f"UPDATE {_LOG_TABLE} SET data =?, log_name =?"
-            values = (data, id_)
-            with contextlib.suppress(ValueError):
-                date = datetime.strptime(
-                    data.split("\t", maxsplit=1)[0],
-                    "%Y-%m-%d %H:%M:%S",
-                )
-                cmnd = f"{cmnd}, date=?"
-                values += (date,)
-
-            cmnd = f"{cmnd} WHERE log_id=?"
-            values += (dstore._log_id,)
-
-            dstore.db.execute(cmnd, values)
-        else:
-            writer.main(data, identifier=id_)
-
-    # add a new log, recording this conversion
-    LOGGER.shutdown()
-    dstore.close()
-    dstore = DataStoreSqlite(source=dest, mode=APPEND)
-    dstore.write_log(unique_id=log_file_path.name, data=log_file_path.read_text())
-    log_file_path.unlink()
-    if lock_id is not None or dstore._lock_id:
-        cmnd = "UPDATE state SET lock_pid =? WHERE state_id == 1"
-        dstore.db.execute(cmnd, (lock_id,))
-
-    return dstore
 
 
 def make_record_for_json(identifier, data, completed):

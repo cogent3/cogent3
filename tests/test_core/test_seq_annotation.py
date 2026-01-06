@@ -8,6 +8,18 @@ DNA = c3_moltype.get_moltype("dna")
 ASCII = c3_moltype.get_moltype("text")
 
 
+def close_dbs(*objs):
+    for obj in objs:
+        if not hasattr(obj, "has_annotation_db"):
+            db = obj
+        elif obj.has_annotation_db():
+            db = obj.annotation_db
+        else:
+            continue
+
+        db.close()
+
+
 def makeSampleSequence(name, with_gaps=False):
     raw_seq = "AACCCAAAATTTTTTGGGGGGGGGGCCCC"
     cds = (15, 25)
@@ -23,7 +35,9 @@ def makeSampleSequence(name, with_gaps=False):
 
 @pytest.fixture
 def ann_seq():
-    return makeSampleSequence("seq1")
+    seq = makeSampleSequence("seq1")
+    yield seq
+    close_dbs(seq)
 
 
 def test_seq_feature_to_dict():
@@ -46,6 +60,7 @@ def test_seq_feature_to_dict():
     c = seq.add_feature(**got)
     assert c.to_dict() == expect
     assert str(f.get_slice()) == str(c.get_slice())
+    close_dbs(seq)
 
 
 @pytest.mark.parametrize("rev", [False, True])
@@ -76,6 +91,7 @@ def test_features_survives_seq_rename(rev):
     got = next(iter(sliced.get_features(name="domain1")))
     got = got.get_slice()
     assert str(got) == domain_expect
+    close_dbs(seq)
 
 
 def test_annotate_matches_to():
@@ -100,6 +116,7 @@ def test_annotate_matches_to():
 
     fred = annot[0].get_slice()
     assert str(fred) == "CCAC"
+    close_dbs(seq)
 
     # For Sequence objects of a non-IUPAC MolType, annotate_matches_to
     # should return an empty annotation.
@@ -111,6 +128,7 @@ def test_annotate_matches_to():
         allow_multiple=False,
     )
     assert annot == []
+    close_dbs(seq)
 
 
 @pytest.mark.parametrize("annot_type", ["CDS", "5'UTR"])
@@ -163,6 +181,7 @@ def test_gbdb_get_children_get_parent(DATA_DIR):
     (child,) = list(orig.get_children("CDS"))
     parent, *_ = list(child.get_parent())
     assert parent == orig
+    close_dbs(seq)
 
 
 def test_feature_names_seq():
@@ -181,6 +200,7 @@ def test_feature_names_seq():
     s = seq[f]
     assert s.name == "s1-cds"
     assert s.name == f.name
+    close_dbs(seq)
 
 
 def test_seq_with_masked_annotations():
@@ -194,6 +214,7 @@ def test_seq_with_masked_annotations():
     shadow = seq.with_masked_annotations(biotypes="CDS", shadow=True)
     expect = "?" * start + raw_seq[start:stop] + "?" * (len(raw_seq) - stop)
     assert str(shadow) == expect
+    close_dbs(seq)
 
 
 @pytest.mark.parametrize("shadow", [True, False])
@@ -202,6 +223,7 @@ def test_seq_with_masked_annotations_missing_feature(shadow):
     raw_seq = str(seq)
     masked = seq.with_masked_annotations(biotypes="not-present", shadow=shadow)
     assert str(masked) == raw_seq
+    close_dbs(seq)
 
 
 def test_is_annotated():
@@ -209,6 +231,7 @@ def test_is_annotated():
     s = c3_moltype.DNA.make_seq(seq="ACGGCTGAAGCGCTCCGGGTTTAAAACG", name="s1")
     _ = s.add_feature(biotype="gene", name="blah", spans=[(0, 10)])
     assert s.is_annotated()
+    close_dbs(s)
 
 
 @pytest.mark.parametrize("biotype", ["gene", "exon", ("gene", "exon")])
@@ -218,6 +241,7 @@ def test_is_annotated_biotype(biotype):
     _ = s.add_feature(biotype="gene", name="blah", spans=[(0, 10)])
     _ = s.add_feature(biotype="exon", name="blah", spans=[(0, 10)])
     assert s.is_annotated(biotype=biotype)
+    close_dbs(s)
 
 
 def test_not_is_annotated():
@@ -240,6 +264,7 @@ def test_not_is_annotated():
         spans=[(0, 10)],
     )
     assert not s.is_annotated(biotype="gene")
+    close_dbs(s)
     s.annotation_db = None
     assert not s.is_annotated()
 
@@ -248,7 +273,8 @@ def test_annotation_db_lazy_evaluation():
     s = c3_moltype.DNA.make_seq(seq="AC", name="s1")
     assert isinstance(s._annotation_db, list)
     # now if we invoke the property we get an actual db instance created
-    assert isinstance(s.annotation_db, anndb_module.SupportsFeatures)
+    assert isinstance(s.annotation_db, anndb_module.AnnotationDbABC)
+    close_dbs(s)
 
 
 def test_init_with_annotationdb():
@@ -256,6 +282,7 @@ def test_init_with_annotationdb():
     s = c3_moltype.DNA.make_seq(seq="AC", name="s1", annotation_db=anndb)
     assert isinstance(s.annotation_db, anndb_module.GffAnnotationDb)
     assert s.annotation_db is anndb
+    close_dbs(s)
 
 
 def test_init_with_annotation_offset():
@@ -290,6 +317,7 @@ def test_init_with_annotation_offset_plus_strand():
     )
     ft = list(s.get_features(biotype="gene"))[0]
     assert str(ft.get_slice()) == expect
+    close_dbs(db)
 
 
 def test_init_with_annotation_offset_minus_strand():
@@ -311,3 +339,4 @@ def test_init_with_annotation_offset_minus_strand():
     )
     ft = list(rc.get_features(biotype="gene"))[0]
     assert str(ft.get_slice()) == c3_moltype.DNA.rc(expect)
+    close_dbs(db)

@@ -1,4 +1,35 @@
 
+<a id='changelog-2026.1.6a1'></a>
+# Changes in release "2026.1.6a1"
+
+Minor release, with maintenance and code tidying.
+
+## Contributors
+
+- @GavinHuttley
+- @khiron
+
+## Enhancements
+
+- Added a method `has_annotation_db()` method to sequence collections and sequences.
+  Returns True/False whether a db instance has been created and is bound to the
+  annotation_db attribute.
+
+## Bug fixes
+
+- Finally resolved cases of generating annotation db's when there are no
+  annotations.
+
+## Deprecations
+
+- Deprecated row_uncertainty and column_uncertainty in cogent3/maths/util.py.
+  They are not being used internally and don't provide much functionality.
+- Deprecated cogent3.core.annotation_db.update_file_format() function. That's now
+  over a year old and users should have addressed the format issue by now.
+- All the type annotations regarding annotation DBs now redefined for
+  AnnotationDbABC. The previous protocols are going to be removed progressively
+  with the first one marked for deprecation being SupportsFeatures.
+
 <a id='changelog-2025.12.10a3'></a>
 # Changes in release "2025.12.10a3"
 

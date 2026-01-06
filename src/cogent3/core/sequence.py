@@ -36,9 +36,8 @@ from cogent3.core import moltype as c3_moltype
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
     AnnotatableMixin,
+    AnnotationDbABC,
     FeatureDataType,
-    SqliteAnnotationDbMixin,
-    SupportsFeatures,
 )
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.location import (
@@ -207,7 +206,7 @@ class Sequence(AnnotatableMixin):
         name: str | None = None,
         info: dict[str, Any] | InfoClass | None = None,
         annotation_offset: int = 0,
-        annotation_db: SupportsFeatures | None = None,
+        annotation_db: AnnotationDbABC | None = None,
     ) -> None:
         """Initialize a sequence.
 
@@ -242,9 +241,13 @@ class Sequence(AnnotatableMixin):
 
         self.info = InfoClass(**(info or {}))
         self._repr_policy = {"num_pos": 60}
-        self._annotation_db: list[SupportsFeatures] = self._init_annot_db_value(
+        self._annotation_db: list[AnnotationDbABC] = self._init_annot_db_value(
             annotation_db
         )
+
+    def __del__(self):
+        if self._annotation_db:
+            self._annotation_db = None
 
     def __str__(self) -> str:
         result = numpy.array(self)
@@ -351,9 +354,9 @@ class Sequence(AnnotatableMixin):
             data |= {"annotation_offset": offset}
 
         if (
-            hasattr(self, "annotation_db")
-            and self.annotation_db
+            self.has_annotation_db()
             and not exclude_annotations
+            and hasattr(self.annotation_db, "to_rich_dict")
         ):
             data["annotation_db"] = self.annotation_db.to_rich_dict()
 
@@ -593,7 +596,8 @@ class Sequence(AnnotatableMixin):
             name=self.name,
             info=self.info,
         )
-        result.annotation_db = self.annotation_db
+        if self.has_annotation_db():
+            result.annotation_db = self.annotation_db
         return result
 
     def gap_indices(self) -> NumpyIntArrayType:
@@ -1110,7 +1114,7 @@ class Sequence(AnnotatableMixin):
         of strand of the current instance.
         """
 
-        if self._annotation_db is None:
+        if not self.has_annotation_db():
             return None
 
         start = start or 0
@@ -1376,15 +1380,16 @@ class Sequence(AnnotatableMixin):
             parent_len=len(seq),
             alphabet=moltype.most_degen_alphabet(),
         )
+        db = self.annotation_db if self.has_annotation_db() else None
         return moltype.make_seq(
             seq=sv,
             name=self.name,
             check_seq=False,
             info=self.info,
-            annotation_db=self.annotation_db,
+            annotation_db=db,
         )
 
-    def copy_annotations(self, seq_db: SqliteAnnotationDbMixin) -> None:
+    def copy_annotations(self, seq_db: AnnotationDbABC) -> None:
         """copy annotations into attached annotation db
 
         Parameters
@@ -1396,8 +1401,8 @@ class Sequence(AnnotatableMixin):
         -----
         Only copies annotations for records with seqid equal to self.name
         """
-        if not isinstance(seq_db, SupportsFeatures):
-            msg = f"type {type(seq_db)} does not match SupportsFeatures interface"
+        if not isinstance(seq_db, AnnotationDbABC):
+            msg = f"type {type(seq_db)} does not match AnnotationDbABC interface"
             raise TypeError(
                 msg,
             )
@@ -1405,7 +1410,7 @@ class Sequence(AnnotatableMixin):
         if not seq_db.num_matches(seqid=self.name):
             return
 
-        if self._annotation_db and not self.annotation_db.compatible(seq_db):
+        if self.has_annotation_db() and not self.annotation_db.compatible(seq_db):
             msg = f"type {type(seq_db)} != {type(self.annotation_db)}"
             raise TypeError(msg)
 
@@ -1431,13 +1436,18 @@ class Sequence(AnnotatableMixin):
         # constructor from its current state.
         offset = self.annotation_offset if sliced else 0
         data = self._seq.copy(sliced=sliced)
+        db = (
+            self.annotation_db
+            if self.has_annotation_db() and not exclude_annotations
+            else None
+        )
         return self.__class__(
             moltype=self.moltype,
             seq=data,
             name=self.name,
             info=self.info,
             annotation_offset=offset,
-            annotation_db=None if exclude_annotations else self.annotation_db,
+            annotation_db=db,
         )
 
     def with_masked_annotations(
@@ -1498,7 +1508,9 @@ class Sequence(AnnotatableMixin):
             name=self.name,
             info=self.info,
         )
-        new.annotation_db = self.annotation_db
+        if self.has_annotation_db():
+            new.annotation_db = self.annotation_db
+
         return new
 
     def gapped_by_map_segment_iter(
@@ -1595,7 +1607,7 @@ class Sequence(AnnotatableMixin):
             msg = "cannot slice using list or tuple"
             raise TypeError(msg)
 
-        if self._annotation_db and preserve_offset:
+        if self.has_annotation_db() and preserve_offset:
             new.replace_annotation_db(self.annotation_db, check=False)
 
         if is_float(index):
@@ -1741,7 +1753,8 @@ class Sequence(AnnotatableMixin):
             cum_gap_lengths=cum_lengths,
             parent_length=len(seq),
         )
-        seq.annotation_db = self.annotation_db
+        if self.has_annotation_db():
+            seq.annotation_db = self.annotation_db
         return indel_map, seq
 
     def is_annotated(
@@ -1756,7 +1769,7 @@ class Sequence(AnnotatableMixin):
             amend condition to return True only if the sequence is
             annotated with one of provided biotypes.
         """
-        if not self._annotation_db:
+        if not self.has_annotation_db():
             return False
         with contextlib.suppress(AttributeError):
             return (
@@ -1998,6 +2011,10 @@ class Sequence(AnnotatableMixin):
             ),
         )
 
+    def has_annotation_db(self) -> bool:
+        """returns True if self has annotation db"""
+        return bool(self._annotation_db)
+
 
 class ProteinSequence(Sequence):
     """Holds the standard Protein sequence."""
@@ -2082,12 +2099,13 @@ class NucleicAcidSequenceBase(Sequence):
 
     def rc(self) -> Self:
         """Converts a nucleic acid sequence to its reverse complement."""
+        db = self.annotation_db if self.has_annotation_db() else None
         return self.__class__(
             moltype=self.moltype,
             seq=self._seq[::-1],
             name=self.name,
             info=self.info,
-            annotation_db=self.annotation_db,
+            annotation_db=db,
         )
 
     def has_terminal_stop(
@@ -2177,7 +2195,8 @@ class NucleicAcidSequenceBase(Sequence):
             name=self.name,
             info=self.info,
         )
-        result.annotation_db = self.annotation_db
+        if self.has_annotation_db():
+            result.annotation_db = self.annotation_db
         return result
 
     def get_translation(

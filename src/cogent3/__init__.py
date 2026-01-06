@@ -17,7 +17,7 @@ if typing.TYPE_CHECKING:  # pragma: no cover
     import numpy.typing as npt
 
     from cogent3.core.alignment import Alignment, SequenceCollection
-    from cogent3.core.annotation_db import SupportsFeatures
+    from cogent3.core.annotation_db import AnnotationDbABC
     from cogent3.core.moltype import MolTypeLiteral
     from cogent3.core.sequence import Sequence
 
@@ -107,7 +107,7 @@ def make_seq(
     name: str | None = None,
     moltype: "MolTypeLiteral | None" = None,
     annotation_offset: int = 0,
-    annotation_db: "SupportsFeatures | None" = None,
+    annotation_db: "AnnotationDbABC | None" = None,
     **kwargs: typing.Any,  # noqa: ANN401
 ):  # refactor: type hinting, need to capture optional args and the return type
     """
@@ -182,7 +182,7 @@ def _load_genbank_seq(
     filename: os.PathLike,
     parser_kw: dict,
     just_seq: bool = False,
-) -> tuple[str, "str | bytes | npt.NDArray[numpy.integer]", "SupportsFeatures | None"]:
+) -> tuple[str, "str | bytes | npt.NDArray[numpy.integer]", "AnnotationDbABC | None"]:
     """utility function for loading sequences"""
     from cogent3.core.annotation_db import GenbankAnnotationDb
     from cogent3.parse.genbank import iter_genbank_records

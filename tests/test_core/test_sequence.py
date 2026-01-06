@@ -18,6 +18,18 @@ from cogent3.util.deserialise import deserialise_object
 from cogent3.util.misc import get_object_provenance
 
 
+def close_dbs(*objs):
+    for obj in objs:
+        if not hasattr(obj, "has_annotation_db"):
+            db = obj
+        elif obj.has_annotation_db():
+            db = obj.annotation_db
+        else:
+            continue
+
+        db.close()
+
+
 @pytest.fixture
 def dna_alphabet():
     return c3_moltype.DNA.degen_gapped_alphabet
@@ -90,6 +102,7 @@ def test_sequence_copy(moltype):
     got2_slice = str(got_annot2.get_slice())
     assert annot1_slice == got1_slice
     assert annot2_slice == got2_slice
+    close_dbs(s, got)
 
 
 @pytest.mark.parametrize(
@@ -156,6 +169,7 @@ def test_sequence_to_moltype():
     assert str(got[fred]) == "TTTTTTTTTT"
     trev = next(iter(got.get_features(name="trev")))
     assert str(got[trev]) == "AAAA"
+    close_dbs(s, got)
 
 
 @pytest.mark.parametrize("invalid_moltype", [None, ""])
@@ -2086,6 +2100,7 @@ def test_annotation_from_slice_with_stride():
     s1 = seq[1::2]
     f = next(iter(s1.get_features(name="ex1")))
     assert str(f.get_slice()) == "CCC"
+    close_dbs(seq)
 
 
 def test_absolute_position_base_cases(one_seq):
@@ -2275,6 +2290,7 @@ def test_annotate_gff_nested_features(DATA_DIR):
     assert len(ann) == 2
     exon_seqs = ("TTTTTTTTT", "GGGGG")
     assert tuple(str(ex.get_slice()) for ex in exons) == exon_seqs
+    close_dbs(seq)
 
 
 def test_to_moltype_dna():
@@ -2437,6 +2453,7 @@ def test_get_drawable(DATA_DIR):
     # and their names should indicate they're incomplete
     for trace in full.traces:
         assert "(incomplete)" in trace.text
+    close_dbs(seq)
 
 
 @pytest.mark.parametrize(

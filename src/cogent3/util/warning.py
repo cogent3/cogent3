@@ -228,7 +228,7 @@ def deprecated_callable(
             "method" if sig & {"self", "cls", "klass"} else "function"
         )
         old = func.__name__
-        if old == "__init__":
+        if old in {"__init__", "__init_subclass__"}:
             # we're really deprecating a class, so get that name
             old = func.__qualname__.split(".")[-2]
             _type = "class"

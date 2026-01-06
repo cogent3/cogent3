@@ -10,6 +10,18 @@ from cogent3.draw.drawable import AnnotatedDrawable, Drawable
 from cogent3.util.union_dict import UnionDict
 
 
+def close_dbs(*objs):
+    for obj in objs:
+        if not hasattr(obj, "has_annotation_db"):
+            db = obj
+        elif obj.has_annotation_db():
+            db = obj.annotation_db
+        else:
+            continue
+
+        db.close()
+
+
 @pytest.fixture
 def seqs_dict():
     return {
@@ -24,11 +36,13 @@ def seqs_dict():
 
 @pytest.fixture
 def annotated_seq(DATA_DIR):
-    return load_seq(
+    result = load_seq(
         DATA_DIR / "c_elegans_WS199_dna_shortened.fasta",
         annotation_path=DATA_DIR / "c_elegans_WS199_shortened_gff.gff3",
         moltype="dna",
     )
+    yield result
+    close_dbs(result)
 
 
 @pytest.fixture
@@ -36,11 +50,11 @@ def load_alignment():
     """Fixture to create an alignment with None, one, or two sequences annotated."""
 
     def _load_alignment(annotate1=False, annotate2=False):
-        db = GffAnnotationDb()
-
         path = str(pathlib.Path(__file__).parent.parent / "data/brca1_5.paml")
         aln = load_aligned_seqs(path, moltype="dna")
         aln = aln.omit_gap_pos()
+        db = GffAnnotationDb() if annotate1 or annotate2 else None
+
         if annotate1:
             db.add_feature(
                 seqid=aln.names[0],
@@ -169,6 +183,8 @@ def test_dotplot_unaligned_no_aligned_path():
 )
 def test_dotplot_annotated(annotated_seq, with_annotations, mk_cls):
     if not with_annotations:
+        db = annotated_seq.annotation_db
+        db.close()
         annotated_seq.replace_annotation_db(None)  # this drops all annotations
 
     coll = mk_cls({"c_elegans": annotated_seq}, moltype="dna")
@@ -178,6 +194,7 @@ def test_dotplot_annotated(annotated_seq, with_annotations, mk_cls):
     expect = base | {"gene"} if with_annotations else base
     got = {tr["name"] for tr in fig.data}
     assert got == expect
+    close_dbs(coll, annotated_seq)
 
 
 @pytest.mark.parametrize(
@@ -235,6 +252,7 @@ def test_dotplot_with_diff_annotation_permutations(load_alignment):
     check_drawable_attrs(fig, "scatter")
     assert dp.left_track is None
     assert isinstance(dp.bottom_track, Drawable)
+    close_dbs(aln)
 
     # seq2 annotated
     aln = load_alignment(annotate2=True)
@@ -244,6 +262,7 @@ def test_dotplot_with_diff_annotation_permutations(load_alignment):
     check_drawable_attrs(fig, "scatter")
     assert dp.bottom_track is None
     assert isinstance(dp.left_track, Drawable)
+    close_dbs(aln)
 
     # both annotated
     aln = load_alignment(annotate1=True, annotate2=True)
@@ -253,6 +272,7 @@ def test_dotplot_with_diff_annotation_permutations(load_alignment):
     check_drawable_attrs(fig, "scatter")
     assert isinstance(dp.bottom_track, Drawable)
     assert isinstance(dp.left_track, Drawable)
+    close_dbs(aln)
 
 
 def test_annotated_dotplot_remove_tracks(load_alignment):
@@ -284,6 +304,7 @@ def test_annotated_dotplot_remove_tracks(load_alignment):
     assert dp._traces == []
     assert dp.figure is not orig_fig
     assert isinstance(dp.figure, UnionDict)
+    close_dbs(aln)
 
 
 def test_sequence_collection_dotplot_annotated_no_matcing_seqids():
@@ -298,6 +319,7 @@ def test_sequence_collection_dotplot_annotated_no_matcing_seqids():
     got = seqs.dotplot(show_progress=False, biotype="exon")
     assert not isinstance(got, AnnotatedDrawable)
     assert isinstance(got, Dotplot)
+    close_dbs(seqs, db)
 
 
 def test_sequence_collection_dotplot_annotated_select_biotype():
@@ -317,6 +339,7 @@ def test_sequence_collection_dotplot_annotated_select_biotype():
     assert isinstance(got, AnnotatedDrawable)
     # we get one trace with that biotype as the name
     assert sum(tr.name == "exon" for tr in got.figure.data)
+    close_dbs(seqs, db)
 
 
 def test_count_gaps_per_seq(load_alignment):
@@ -337,6 +360,7 @@ def test_coevo_drawables(load_alignment):
     coevo = aln.coevolution(show_progress=False)
     assert not (hasattr(coevo, "drawable"))
     check_drawable_styles(aln.coevolution, styles, show_progress=False)
+    close_dbs(aln)
 
 
 def test_coevo_annotated(load_alignment):
@@ -348,6 +372,7 @@ def test_coevo_annotated(load_alignment):
     assert isinstance(drawable, AnnotatedDrawable)
     assert isinstance(drawable.left_track, Drawable)
     assert isinstance(drawable.bottom_track, Drawable)
+    close_dbs(aln)
 
 
 def test_information_plot(load_alignment):
@@ -372,6 +397,7 @@ def test_get_drawable():
     aln.annotation_db = db
     got = aln.get_drawable()
     assert got is not None
+    close_dbs(aln)
 
 
 def test_seqlogo(seqs_dict):
