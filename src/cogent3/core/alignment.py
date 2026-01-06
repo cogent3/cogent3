@@ -744,7 +744,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
 
         seq1: c3_sequence.Sequence | Aligned = self.seqs[name1]
         seq2: c3_sequence.Sequence | Aligned = self.seqs[name2]
-        if not self._annotation_db:
+        if not self.has_annotation_db():
             annotated = False
         else:
             annotated = any(
@@ -853,7 +853,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
 
         init_kwargs = self._get_init_kwargs()
         init_kwargs["name_map"] = selected_name_map
-        if self._annotation_db:
+        if self.has_annotation_db():
             if copy_annotations:
                 ann_db = type(self.annotation_db)()
                 ann_db.update(
@@ -932,7 +932,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         seq: c3_sequence.Sequence | Aligned = self.seqs[seqname]
         if isinstance(seq, Aligned):
             seq = seq.seq
-        if copy_annotations and self._annotation_db:
+        if copy_annotations and self.has_annotation_db():
             # we need to copy the sequence too to break the link to self.annotation_db
             seq = seq.copy(exclude_annotations=True)
             seq.annotation_db = type(self.annotation_db)()
@@ -1122,7 +1122,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
             # no matching ID's, nothing to do
             return
 
-        if not self._annotation_db:
+        if not self.has_annotation_db():
             self.replace_annotation_db(type(seq_db)())
 
         if self.annotation_db.compatible(
@@ -1581,6 +1581,10 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         for group in dupes:
             omit.extend(group[1:])
         return self.take_seqs(omit, negate=True)
+
+    def has_annotation_db(self) -> bool:
+        """returns True if self has annotation db"""
+        return bool(self._annotation_db)
 
 
 class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
@@ -2339,7 +2343,7 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         strictly starting after start will be returned.
         """
 
-        if not self._annotation_db:
+        if not self.has_annotation_db():
             return None
 
         if seqid and (seqid not in self.names):
@@ -3395,7 +3399,7 @@ class Alignment(CollectionBase[Aligned]):
         yield a sequence segment that is consistently oriented irrespective
         of strand of the current instance.
         """
-        if not self._annotation_db:
+        if not self.has_annotation_db():
             return None
 
         seqid_to_seqname = {v: k for k, v in self._name_map.items()}
@@ -3468,7 +3472,7 @@ class Alignment(CollectionBase[Aligned]):
         """
         del kwargs
 
-        if not self._annotation_db or not len(self._annotation_db):
+        if not self.has_annotation_db() or not len(self._annotation_db):
             return None
 
         # we only do on-alignment in here
@@ -4908,7 +4912,9 @@ class Alignment(CollectionBase[Aligned]):
         init_args.pop("slice_record")  # slice is realised
         init_args["moltype"] = other.moltype
         init_args["seqs_data"] = seq_data
-        init_args["annotation_db"] = other.annotation_db
+        init_args["annotation_db"] = (
+            other.annotation_db if other.has_annotation_db() else None
+        )
         return self.__class__(**init_args)
 
     def copy(self, copy_annotations: bool = False) -> Self:
@@ -5370,6 +5376,9 @@ def merged_db_collection(
     merged = None
     for seq in seqs:
         if not isinstance(seq, c3_sequence.Sequence):
+            continue
+
+        if not seq.has_annotation_db():
             continue
 
         db: SqliteAnnotationDbMixin | None = cast(
