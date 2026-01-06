@@ -1330,6 +1330,7 @@ class SqliteAnnotationDbMixin:
         """closes the db"""
         if self._db is not None:
             self._db.close()
+            self._db = None
 
     def _make_index(self, *, table_name: str, col_names: tuple[str, ...]) -> None:
         """index columns for faster search"""
@@ -1951,6 +1952,11 @@ def _update_array_format(data: bytes) -> bytes:
         return array_to_sqlite(sqlite_to_array(data))
 
 
+@c3warn.deprecated_callable(
+    version="2026.31",
+    reason="Removing support for migrating old format",
+    is_discontinued=True,
+)
 def update_file_format(
     source_path: PathType,
     db_class: type[BasicAnnotationDb | GenbankAnnotationDb | GffAnnotationDb],
