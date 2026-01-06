@@ -1,11 +1,12 @@
 """Provides small utility functions for numpy arrays."""
 
-from cogent3.util import warning as c3warn
 from collections.abc import Sequence as PySeq
 
 import numpy
 import numpy.typing as npt
 from numpy import array, clip, cumsum, searchsorted, sort, sum
+
+from cogent3.util import warning as c3warn
 
 NumpyArrayType = npt.NDArray[numpy.number]
 NumpyIntArrayType = npt.NDArray[numpy.integer]

@@ -7,7 +7,7 @@ from unittest import TestCase
 from warnings import filterwarnings
 
 import pytest
-from numpy import array, transpose
+from numpy import array
 from numpy.testing import assert_allclose, assert_equal
 
 from cogent3.maths.util import (
@@ -54,6 +54,7 @@ class ArrayMathTests(TestCase):
         assert_equal(safe_log(array([])), array([]))
         # double empty array
         assert_equal(safe_log(array([[]])), array([[]]))
+
 
 class TestUtils(TestCase):
     def test_proportions_and_ratios(self):
