@@ -8,7 +8,7 @@ from collections.abc import Callable
 from cogent3.format import clustal, fasta, gde, paml, phylip
 from cogent3.parse.record import FileFormatError
 
-SeqsTypes = "CollectionBase[typing.Any]"
+SeqsTypes = "CollectionBase[typing.Any] | Sequence"
 
 FORMATTERS: dict[str, Callable[..., str]] = {
     "phylip": phylip.alignment_to_phylip,
@@ -50,7 +50,7 @@ class SequenceWriterBase(abc.ABC):
         Parameters
         ----------
         seqcoll
-            sequence collection to format, must have a to_dict() method
+            sequence, or a sequence collection, to format, must have a to_dict() method
         """
         formatter = FORMATTERS[self.name]
         return formatter(seqcoll.to_dict(), **kwargs)

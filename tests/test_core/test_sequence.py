@@ -3157,3 +3157,34 @@ def test_count_kmers_seq_gt_k():
     got = seq.count_kmers(k=k)
     expect = numpy.zeros(4**k, dtype=int)
     assert (got == expect).all()
+
+
+@pytest.mark.parametrize("name", ["blah", None])
+@pytest.mark.parametrize("as_array", [False, True])
+def test_seq_to_dict(as_array, name):
+    seq = cogent3.make_seq("ACGTACGT", name=name, moltype="dna")
+    got = seq.to_dict(as_array=as_array)
+    assert name in got
+    expect_seq = seq.to_array() if as_array else str(seq)
+    correct = (got[name] == expect_seq).all() if as_array else (got[name] == expect_seq)
+    assert correct
+
+
+def test_sequence_write_fasta(tmp_path):
+    """Sequence.write() should write in correct FASTA format"""
+    seq = c3_moltype.DNA.make_seq(seq="TCAGAT", name="test_seq")
+    fn = tmp_path / "seq.fasta"
+    seq.write(fn)
+    result = cogent3.load_seq(fn, moltype="dna")
+    assert result.name == "test_seq"
+    assert str(result) == "TCAGAT"
+
+
+def test_sequence_write_json(tmp_path):
+    """Sequence.write() should write JSON format to file"""
+    seq = c3_moltype.DNA.make_seq(seq="AAGGCC", name="seq1")
+    path = tmp_path / "sample.json"
+    seq.write(path)
+    with open(path) as fn:
+        got = json.loads(fn.read())
+    assert got == seq.to_rich_dict()
