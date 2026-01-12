@@ -30,6 +30,7 @@ import numba
 import numpy
 import numpy.typing as npt
 
+import cogent3._plugin as c3_plugin
 from cogent3._version import __version__
 from cogent3.core import alphabet as c3_alphabet
 from cogent3.core import moltype as c3_moltype
@@ -54,6 +55,7 @@ from cogent3.format.fasta import seqs_to_fasta
 from cogent3.maths.stats.number import CategoryCounter
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArray
+from cogent3.util.io import atomic_write, get_format_suffixes
 from cogent3.util.misc import (
     DistanceFromMatrix,
     get_object_provenance,
@@ -270,6 +272,12 @@ class Sequence(AnnotatableMixin):
                 result = self.moltype.complement(result)
         return result
 
+    def to_dict(
+        self, as_array: bool = False
+    ) -> dict[str | None, str | NumpyIntArrayType]:
+        seq = self.to_array() if as_array else str(self)
+        return {self.name: seq}
+
     def to_array(self, apply_transforms: bool = True) -> NumpyIntArrayType:
         """returns the numpy array
 
@@ -376,6 +384,41 @@ class Sequence(AnnotatableMixin):
     def to_json(self) -> str:
         """returns a json formatted string"""
         return json.dumps(self.to_rich_dict())
+
+    def write(
+        self, filename: str, format_name: str | None = None, **kwargs: Any
+    ) -> None:
+        """Write the sequence to a file.
+
+        Parameters
+        ----------
+        filename
+            name of the sequence file
+        format_name
+            format of the sequence file (e.g., 'fasta', 'json')
+        **kwargs
+            additional arguments passed to the format writer
+
+        Notes
+        -----
+        If format_name is None, will attempt to infer format from the filename
+        suffix. Uses the sequence format writer plugin system to support
+        multiple output formats.
+        """
+        suffix, _ = get_format_suffixes(filename)
+        if format_name is None and suffix:
+            format_name = suffix
+
+        if format_name == "json":
+            with atomic_write(filename, mode="wt") as f:
+                f.write(self.to_json())
+            return
+
+        writer = c3_plugin.get_seq_format_writer_plugin(
+            format_name=format_name,
+            file_suffix=suffix,
+        )
+        _ = writer.write(seqcoll=self, path=filename, **kwargs)
 
     def count(self, item: str) -> int:
         """count() delegates to self._seq."""

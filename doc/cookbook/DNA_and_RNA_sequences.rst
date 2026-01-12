@@ -78,6 +78,23 @@ Convert a RNA sequence to FASTA format
     rnaseq = make_seq("ACGUACGUACGUACGU", moltype="rna")
     rnaseq
 
+Writing a sequence to file
+""""""""""""""""""""""""""
+
+.. jupyter-execute::
+
+    from cogent3 import make_seq
+
+    my_seq = make_seq("AGTACACTGGT", name="seq1", moltype="dna")
+    my_seq.write("my_seq.fasta")
+
+.. jupyter-execute::
+    :hide-code:
+
+    from cogent3.util.io import remove_files
+
+    remove_files(["my_seq.fasta"], error_on_missing=False)
+
 Creating a named sequence
 """""""""""""""""""""""""
 

@@ -70,6 +70,11 @@ def test_writes_compressed_formats(DATA_DIR, tmp_dir, suffix):
     assert got == expect, f"write failed for {suffix}"
 
 
+def test_atomic_invalid_parent_dir():
+    with pytest.raises(OSError), atomic_write("invalid_dir/test.txt") as out:
+        out.write("will not work")
+
+
 def test_rename(tmp_dir):
     """Renames file as expected"""
     test_filepath = tmp_dir / "Atomic_write_test"
