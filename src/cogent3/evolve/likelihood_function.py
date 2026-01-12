@@ -735,21 +735,29 @@ class LikelihoodFunction(ParameterController):
 
         bprobs = [1.0] if len(bin_names) == 1 else get_value_of("bprobs", **value_of_kw)
 
-        mprobs = [get_value_of("mprobs", bin=b, **value_of_kw) for b in bin_names]
+        mprobs = {}
+        for b in bin_names:
+            probs = self.get_motif_probs_by_node(edges=None, bin=b, locus=locus)
+            edge_names = probs.template.names[0]
+            for edge_name in edge_names:
+                mprobs[b, edge_name] = probs[edge_name].array
 
         scaled_lengths = {}
-        for edge in self._tree.get_edge_vector():
-            if edge.isroot():
-                continue
+        for edge in self._tree.preorder(include_self=False):
+            parent_name = edge.parent.name
             Qs = [
                 get_value_of("Qd", bin=b, edge=edge.name, **value_of_kw).Q
                 for b in bin_names
             ]
-            length = get_value_of("length", edge=edge.name, **value_of_kw)
+            length = 0.0
+            for i, bname in enumerate(bin_names):
+                tau = get_value_of("length", bin=bname, edge=edge.name, **value_of_kw)
+                mprob = mprobs[bname, parent_name]
+                length += bprobs[i] * expected_number_subs(mprob, Qs[i], tau)
             scaled_lengths[edge.name] = length * self._model.get_scale_from_Qs(
                 Qs,
                 bprobs,
-                mprobs,
+                [mprobs[b, parent_name] for b in bin_names],
                 predicate,
             )
         return scaled_lengths
