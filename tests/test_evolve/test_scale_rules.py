@@ -1,9 +1,9 @@
-#!/usr/bin/env python
-
 import unittest
 
+import numpy
+
 from cogent3 import make_tree
-from cogent3.evolve import substitution_model
+from cogent3.evolve import ns_substitution_model, substitution_model
 from cogent3.evolve.predicate import MotifChange, replacement
 
 
@@ -154,5 +154,27 @@ class ScaleRuleTests(unittest.TestCase):
         assert f"{dS:.4f}" == "0.0514"
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_nstat_scaled():
+    import cogent3 as c3
+
+    c2t = MotifChange("C", "T", forward_only=True)
+    sm = ns_substitution_model.NonReversibleNucleotide(
+        predicates=[c2t], scales={"CtoT": c2t, "not": ~c2t}
+    )
+
+    names = ["Human", "Mouse", "Wombat"]
+    aln = c3.get_dataset("brca1").take_seqs(names)
+    aln = aln.omit_gap_pos(allowed_gap_frac=0)
+    tree = c3.make_tree(tip_names=names)
+    lf = sm.make_likelihood_function(tree)
+    lf.set_param_rule("C>T", is_independent=True)
+    lf.set_alignment(aln)
+    lf.optimise(show_progress=False)
+    sl = lf.get_scaled_lengths("CtoT")
+    sl = [sl[n] for n in names]
+    n_sl = lf.get_scaled_lengths("not")
+    n_sl = [n_sl[n] for n in names]
+    assert not numpy.allclose(sl, n_sl)
+    lengths = [lf.get_param_value("length", edge=n) for n in names]
+    assert not numpy.allclose(lengths, sl)
+    assert not numpy.allclose(lengths, n_sl)
