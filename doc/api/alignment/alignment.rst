@@ -7,11 +7,7 @@
     :toctree: classes
     :template: class.rst
 
-    SeqsData
-    SeqDataView
     SequenceCollection
-    AlignedSeqsData
-    AlignedDataView
     Aligned
     Alignment
 

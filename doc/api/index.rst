@@ -88,10 +88,13 @@ Major cogent3 Data Types
 .. toctree::
     :maxdepth: 1
 
-    alignment/alignment
     annotation/annotation
     annotation_db/annotation_db
+    alignment/alignment
     sequence/sequence
+    seq_storage/seq_storage
+    seqview/seqview
+    slice_record/slice_record
     genetic_code/genetic_code
     moltype/moltype
     alphabet/alphabet
