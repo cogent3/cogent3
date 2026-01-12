@@ -58,9 +58,9 @@ Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 
 [project.optional-dependencies]
 test = [
-    "cogent3-h5seqs>=0.7.2",
-    "piqtree>=0.6; python_version >= '3.11' and python_version < '3.14'",
-    "ruff==0.14.10",
+    "cogent3-h5seqs>=0.7.3",
+    "piqtree>=0.8.0; python_version > '3.11'",
+    "ruff==0.14.11",
     "kaleido",
     "pandas",
     "plotly",
@@ -74,7 +74,7 @@ typing = ["mypy==1.19.1"]
 doc = [
     "click",
     "cogent3[extra]",
-    "cogent3-h5seqs>=0.7.2",
+    "cogent3-h5seqs>=0.7.3",
     "jupyter-sphinx",
     "jupyter_client",
     "jupytext",
@@ -82,7 +82,7 @@ doc = [
     "nbformat",
     "nbsphinx",
     "numpydoc",
-    "piqtree>=0.6; python_version >= '3.11' and python_version < '3.14'",
+    "piqtree>=0.8.0; python_version > '3.11'",
     "sphinx",
     "sphinx-autobuild",
     "pydata_sphinx_theme",

@@ -10,5 +10,3 @@
     DnaSequence
     RnaSequence
     ProteinSequence
-    SeqView
-    SliceRecord
