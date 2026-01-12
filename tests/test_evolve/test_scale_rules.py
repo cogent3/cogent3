@@ -1,6 +1,7 @@
 import unittest
 
 import numpy
+import pytest
 
 from cogent3 import make_tree
 from cogent3.evolve import ns_substitution_model, substitution_model
@@ -17,16 +18,17 @@ trans = MotifChange("A", "G") | MotifChange("T", "C")
 TREE = make_tree(tip_names="ab")
 
 
-class ScaleRuleTests(unittest.TestCase):
-    def _makeModel(self, predicates, scale_rules=None):
-        scale_rules = scale_rules or []
-        return substitution_model.TimeReversibleNucleotide(
-            equal_motif_probs=True,
-            model_gaps=False,
-            predicates=predicates,
-            scales=scale_rules,
-        )
+def _make_model_factory(predicates, scale_rules=None):
+    scale_rules = scale_rules or []
+    return substitution_model.TimeReversibleNucleotide(
+        equal_motif_probs=True,
+        model_gaps=False,
+        predicates=predicates,
+        scales=scale_rules,
+    )
 
+
+class ScaleRuleTests(unittest.TestCase):
     def _get_scaled_lengths(self, model, params):
         LF = model.make_likelihood_function(TREE)
         for param in params:
@@ -38,27 +40,16 @@ class ScaleRuleTests(unittest.TestCase):
 
     def test_scaled(self):
         """Scale rule requiring matrix entries to have all pars specified"""
-        model = self._makeModel({"k": trans}, {"ts": trans, "tv": ~trans})
+        model = _make_model_factory({"k": trans}, {"ts": trans, "tv": ~trans})
 
         assert self._get_scaled_lengths(model, {"k": 6.0, "length": 4.0}) == {
             "ts": 3.0,
             "tv": 1.0,
         }
 
-    def test_binned(self):
-        model = self._makeModel({"k": trans}, {"ts": trans, "tv": ~trans})
-
-        LF = model.make_likelihood_function(TREE, bins=2)
-        LF.set_param_rule("length", value=4.0, is_constant=True)
-        LF.set_param_rule("k", value=6.0, bin="bin0", is_constant=True)
-        LF.set_param_rule("k", value=1.0, bin="bin1", is_constant=True)
-
-        for bin, expected in [("bin0", 3.0), ("bin1", 4.0 / 3), (None, 13.0 / 6)]:
-            assert LF.get_scaled_lengths("ts", bin=bin)["a"] == expected
-
     def test_scaled_or(self):
         """Scale rule where matrix entries can have any of the pars specified"""
-        model = self._makeModel(
+        model = _make_model_factory(
             {"k": trans, "ac": a_c},
             {"or": (trans | a_c), "not": ~(trans | a_c)},
         )
@@ -178,3 +169,22 @@ def test_nstat_scaled():
     lengths = [lf.get_param_value("length", edge=n) for n in names]
     assert not numpy.allclose(lengths, sl)
     assert not numpy.allclose(lengths, n_sl)
+
+
+@pytest.mark.parametrize(
+    ("bin_name", "expected"),
+    [
+        ("bin0", 3.0),
+        ("bin1", 4 / 3),
+        (None, 13 / 6),
+    ],
+)
+def test_binned(bin_name, expected):
+    model = _make_model_factory({"k": trans}, {"ts": trans, "tv": ~trans})
+
+    lf = model.make_likelihood_function(TREE, bins=2)
+    lf.set_param_rule("length", value=4.0, is_constant=True)
+    lf.set_param_rule("k", value=6.0, bin="bin0", is_constant=True)
+    lf.set_param_rule("k", value=1.0, bin="bin1", is_constant=True)
+
+    assert numpy.allclose(lf.get_scaled_lengths("ts", bin=bin_name)["a"], expected)
