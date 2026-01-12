@@ -281,6 +281,7 @@ ORIGIN
         l = lsp("37")
         assert l._data == 37
         assert str(l) == "37"
+        assert repr(l) == "Location(37)"
         assert l.strand == 1
         l = lsp("40..50")
         first, second = l._data
@@ -404,6 +405,8 @@ class LocationTests(TestCase):
         assert str(l5) == "37^42..(37.42)"
         l5 = genbank.Location([l4, l3], strand=-1)
         assert str(l5) == "complement(37^42..(37.42))"
+        l6 = genbank.Location(6, is_between=True)
+        assert str(l6) == "6^7"
 
 
 def test_Location_start():
@@ -412,10 +415,6 @@ def test_Location_start():
     l = genbank.Location(37)
     assert l.start == 36
     assert l.stop == 36
-
-
-class LocationListTests(TestCase):
-    """Tests of the genbank.LocationList class."""
 
 
 def test_locationlist_extract():
@@ -544,6 +543,7 @@ def test_iter_genbank_records(gb_rec):
     assert seq.startswith("CAATACCCAC")
     assert seq.endswith("TGTGTACGTAA")
     assert features["locus"] == "AE017341"
+    assert "LocationList" in repr(features)
 
 
 @pytest.fixture(params=(pathlib.Path, str, io.FileIO))

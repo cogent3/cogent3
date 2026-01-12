@@ -351,6 +351,10 @@ class Location:
         self.db = db
         self.strand = strand
 
+    def __repr__(self) -> str:
+        """Returns repr(self)."""
+        return f"{self.__class__.__name__}({self})"
+
     def __str__(self) -> str:
         """Returns self in string format.
 
@@ -363,6 +367,7 @@ class Location:
                 first, last = self._data
                 curr = f"{first}^{last}"
             except TypeError:  # only one base? must be this or the next
+                first = self._data
                 curr = f"{first}^{first + 1}"
         else:  # not self.is_between
             try:
@@ -413,6 +418,10 @@ class LocationList(list):
         """Returns strand of components: 1=forward, -1=reverse, 0=both"""
         curr = {i.strand: 1 for i in self}
         return 0 if len(curr) >= 2 else next(iter(curr.keys()))
+
+    def __repr__(self) -> str:
+        """Returns repr(self)."""
+        return f"{self.__class__.__name__}({self})"
 
     def __str__(self) -> str:
         """Returns (normalized) string representation of self."""
