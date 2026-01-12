@@ -1,4 +1,28 @@
 
+<a id='changelog-2026.1.12a1'></a>
+# Changes in release "2026.1.12a1"
+
+Minor feature enhancement release.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- Added `<sequence>.write()` and `<sequence>.to_dict()` methods and a cookbook example
+  for the former. These match the API of the sequence collection classes.
+- The likelihood function `get_scaled_lengths()` method is now updated to support
+  non-stationary models.
+- Provided repr for location GenBank feature objects. Makes it much easier to
+  understand the "raw content" coming from a record feature table.
+
+## Documentation
+
+- Updated the api docs to reflect the core restructure. So the classes that were split
+  out from alignment.py and sequence.py into seqview, slice_record, and seq_storage
+  modules now get their own API docs.
+
 <a id='changelog-2026.1.6a1'></a>
 # Changes in release "2026.1.6a1"
 
