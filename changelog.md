@@ -1,4 +1,31 @@
 
+<a id='changelog-2026.1.20a1'></a>
+# Changes in release "2026.1.20a1"
+
+A feature enhancement release.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- We now support third-party plugins for annotation handling 🎉
+  third-party annotation dbs should inherit from AnnotationDbABC,
+  to ensure integratiojn with sequence collection classes.
+  The plugin should inherit from AnnotationDbLoaderBase.
+  Plugins register in pyproject.toml under
+  `[project.entry-points."cogent3.load.annotations"]`.
+  Users can specify the plugin they want to use to load_annotations`
+  with `storage_backend='plugin name'.
+
+## Documentation
+
+- Added a cookbook snippet showing how to load sequences from
+  multiple files using wildcards.
+- Added a cookbook snippet showing how to load annotations from
+  multiple files using wildcards.
+
 <a id='changelog-2026.1.12a1'></a>
 # Changes in release "2026.1.12a1"
 
