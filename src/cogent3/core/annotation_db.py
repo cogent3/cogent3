@@ -2043,7 +2043,7 @@ class SqliteAnnotationDbLoader(AnnotationDbLoaderBase):
             raise OSError(msg)
 
         # Get UI context for progress display
-        series = kwargs["ui"].series(paths) if "ui" in kwargs else map(paths)
+        series = kwargs["ui"].series(paths) if "ui" in kwargs else paths
 
         # Process each file, passing db from one to the next
         for file_path in series:

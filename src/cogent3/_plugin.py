@@ -411,7 +411,7 @@ def get_annotation_loader_plugin(
             msg = f"Invalid storage backend {storage_backend!r}"
             raise ValueError(msg) from err
 
-        plugin = mgr.extensions[0].plugin
+        plugin = mgr.extensions[0].plugin()
 
         # Validate that plugin supports the file format
         if file_suffix not in plugin.supported_suffixes:
