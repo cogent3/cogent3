@@ -325,8 +325,9 @@ def load_unaligned_seqs(
     Parameters
     ----------
     filename
-        path to sequence file or glob pattern. If a glob we assume a single
-        sequence per file. All seqs returned in one SequenceCollection.
+        path to sequence file or wildcard / glob pattern (e.g.
+        'path/to/dir/*.fasta'). If a wildcard, we load one sequence per
+        file. All seqs returned in one SequenceCollection.
     format_name
         sequence file format, if not specified tries to guess from the path suffix
     moltype

@@ -1369,3 +1369,13 @@ def test_load_annotations_home_dir(home_gff, transform):
     assert len(got) == 6
     assert isinstance(got, GffAnnotationDb)
     got.close()
+
+
+def test_load_annotations_invalid_backend():
+    with pytest.raises(ValueError):
+        load_annotations(path="somefile.txt", storage_backend="invalid_backend")
+
+
+def test_load_annotations_invalid_file_format():
+    with pytest.raises(ValueError):
+        load_annotations(path="somefile.txt", format_name="invalid_format")

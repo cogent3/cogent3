@@ -227,6 +227,56 @@ class SupportsFeatures(
     def to_rich_dict(self) -> dict[str, Any]: ...
 
 
+class AnnotationDbLoaderBase(abc.ABC):
+    """Base class for annotation database format loaders."""
+
+    @property
+    @abc.abstractmethod
+    def name(self) -> str:
+        """Name of the storage backend (e.g., 'sqlite', 'hdf5')"""
+        ...
+
+    @property
+    @abc.abstractmethod
+    def supported_suffixes(self) -> set[str]:
+        """File suffixes this loader supports (e.g., {'.gff', '.gff3'})"""
+        ...
+
+    @abc.abstractmethod
+    def load(
+        self,
+        path: PathType,
+        seqids: str | Iterable[str] | None = None,
+        db: AnnotationDbABC | None = None,
+        write_path: PathType = ":memory:",
+        format_name: str | None = None,
+        **kwargs: Any,
+    ) -> AnnotationDbABC:
+        """Load annotations from file(s) into a database.
+
+        Parameters
+        ----------
+        path
+            Path to annotation file (may contain glob patterns)
+        seqids
+            Filter to specific sequence IDs
+        db
+            Existing database to add records to
+        write_path
+            Where to write the database
+        format_name
+            Explicit format override. If None, auto-detect from file suffix.
+        **kwargs
+            Additional loader-specific arguments (includes 'ui' for progress,
+            'lines_per_block' for GFF chunked loading)
+
+        Returns
+        -------
+        AnnotationDbABC instance with loaded annotations
+        """
+        ...
+
+
 class AnnotationDbABC(abc.ABC):
     @abc.abstractmethod
     def __len__(self) -> int: ...
@@ -1161,9 +1211,7 @@ class SqliteAnnotationDbMixin:
             tables[table_name] = table_data
         return result
 
-    def compatible(
-        self, other_db: SqliteAnnotationDbMixin, symmetric: bool = True
-    ) -> bool:
+    def compatible(self, other_db: AnnotationDbABC, symmetric: bool = True) -> bool:
         """checks whether table_names are compatible
 
         Parameters
@@ -1177,13 +1225,17 @@ class SqliteAnnotationDbMixin:
         if not isinstance(other_db, AnnotationDbABC):
             msg = f"{type(other_db)} does not support features"
             raise TypeError(msg)
+        if not hasattr(other_db, "table_names"):
+            return False
+
+        other = cast("SqliteAnnotationDbMixin", other_db)
         mine = set(self.table_names)
-        theirs = set(other_db.table_names)
+        theirs = set(other.table_names)
         return mine <= theirs or mine > theirs if symmetric else mine >= theirs
 
     def update(
         self,
-        annot_db: SqliteAnnotationDbMixin,
+        annot_db: AnnotationDbABC,
         seqids: str | PySeq[str] | None = None,
         **kwargs: Any,
     ) -> None:
@@ -1198,9 +1250,11 @@ class SqliteAnnotationDbMixin:
         if not annot_db or not len(annot_db):
             return
 
-        self._update_db_from_other_db(annot_db, seqids=seqids, **kwargs)
+        self._update_db_from_other_db(
+            cast("SqliteAnnotationDbMixin", annot_db), seqids=seqids, **kwargs
+        )
 
-    def union(self, annot_db: SqliteAnnotationDbMixin) -> SqliteAnnotationDbMixin:
+    def union(self, annot_db: AnnotationDbABC) -> Self:
         """returns a new instance with merged records with other
 
         Parameters
@@ -1271,6 +1325,10 @@ class SqliteAnnotationDbMixin:
     ) -> None:
         if other_db == self:
             return
+
+        if not isinstance(other_db, SqliteAnnotationDbMixin):
+            msg = f"cannot update from {type(other_db)}"
+            raise TypeError(msg)
 
         conditions = {"seqid": seqids} if seqids else {}
         table_names = other_db.table_names
@@ -1893,15 +1951,121 @@ def _db_from_gff(
     return db
 
 
+class SqliteAnnotationDbLoader(AnnotationDbLoaderBase):
+    """Loader for annotation files using SQLite storage backend."""
+
+    @property
+    def name(self) -> str:
+        return "c3anndb"
+
+    @property
+    def supported_suffixes(self) -> set[str]:
+        return {".gff", ".gff3", ".gb", ".gbk", ".gbff", ".json"}
+
+    def load(
+        self,
+        path: PathType,
+        seqids: str | Iterable[str] | None = None,
+        db: AnnotationDbABC | None = None,
+        write_path: PathType = ":memory:",
+        format_name: str | None = None,
+        **kwargs: Any,
+    ) -> AnnotationDbABC:
+        """Load annotations using SQLite backend.
+
+        Supports GFF, GenBank, and JSON formats.
+
+        Parameters
+        ----------
+        path
+            Path to annotation file (may contain glob patterns)
+        seqids
+            Filter to specific sequence IDs
+        db
+            Existing database instance to add records to
+        write_path
+            Path for database file (":memory:" for in-memory)
+        format_name
+            Explicit format override ('gff', 'genbank', 'json').
+            If None, auto-detect from file suffix.
+        **kwargs
+            Additional arguments (e.g., ui for progress display,
+            lines_per_block for GFF chunked loading)
+        """
+        # Determine format from format_name parameter or file suffix
+        if format_name:
+            fmt = format_name.lower()
+        else:
+            suffix = pathlib.Path(path).suffix.lower()
+            if suffix == ".json":
+                fmt = "json"
+            elif suffix in {".gb", ".gbk", ".gbff"}:
+                fmt = "genbank"
+            elif suffix in {".gff", ".gff3"}:
+                fmt = "gff"
+            else:
+                msg = f"Unknown annotation format for suffix {suffix!r}"
+                raise ValueError(msg)
+
+        # Check for glob pattern
+        p = pathlib.Path(path)
+        if fmt == "json":
+            path_str = str(p)
+            has_glob = "*" in path_str or "?" in path_str or "[" in path_str
+
+            if has_glob:
+                # JSON format doesn't support glob patterns
+                msg = "Glob patterns not supported for JSON format"
+                raise NotImplementedError(msg)
+            return deserialise_object(path)
+
+        # Select parsing function and prepare kwargs before loop
+        if fmt == "genbank":
+            parse_func = _db_from_genbank
+            func_kwargs = {"write_path": write_path, **kwargs}
+        elif fmt == "gff":
+            parse_func = _db_from_gff
+            func_kwargs = {
+                "seqids": seqids,
+                "write_path": write_path,
+                "num_lines": 500_000,
+                "lines_per_block": 500_000,
+                **kwargs,
+            }
+        else:
+            msg = f"Unknown format {format_name!r}"
+            raise ValueError(msg)
+
+        # Expand glob pattern
+        paths = sorted(p.parent.glob(p.name))
+        if not paths:
+            msg = f"No files found matching pattern {path!r}"
+            raise OSError(msg)
+
+        # Get UI context for progress display
+        series = kwargs["ui"].series(paths) if "ui" in kwargs else paths
+
+        # Process each file, passing db from one to the next
+        for file_path in series:
+            db = parse_func(path=file_path, db=db, **func_kwargs)
+
+        if db is None:
+            msg = f"Failed to load annotations into database {str(path)!r}"
+            raise RuntimeError(msg)
+        return db
+
+
 def load_annotations(
     *,
     path: PathType,
     seqids: str | Iterable[str] | None = None,
-    db: SqliteAnnotationDbMixin | None = None,
+    db: AnnotationDbABC | None = None,
     write_path: PathType = ":memory:",
     lines_per_block: int | None = 500_000,
     show_progress: bool = False,
-) -> SqliteAnnotationDbMixin:
+    format_name: str | None = None,
+    storage_backend: str | None = None,
+) -> AnnotationDbABC:
     """loads annotations from flatfile into a db
 
     Parameters
@@ -1923,36 +2087,54 @@ def load_annotations(
         memory usage. Only applies to gff files.
     show_progress
         applied only if loading features from multiple files
+    format_name
+        explicitly specify annotation format ('gff', 'genbank', 'json').
+        If not provided, format is auto-detected from file suffix.
+    storage_backend
+        storage backend to use for the annotation database (e.g., 'c3anndb').
+        If not provided, selects first compatible third-party plugin, falling back
+        to cogent3 built-in SQLite loaders.
 
     Notes
     -----
     We DO NOT check if a provided db already contains records from a flatfile.
     """
+    from cogent3._plugin import get_annotation_loader_plugin
     from cogent3.util.progress_display import display_wrap
 
     if seqids is not None:
         seqids = {seqids} if isinstance(seqids, str) else set(seqids)
+
     path = pathlib.Path(path).expanduser()
-    if any(s.lower() == ".json" for s in path.suffixes):
-        return deserialise_object(path)
 
-    if {".gb", ".gbk"} & set(path.suffixes):
-        func = display_wrap(_db_from_genbank)
-        return func(
-            path,
-            db=db,
-            write_path=write_path,
-            show_progress=show_progress,
-        )
+    # Determine file suffix for format detection
+    if format_name:
+        # Explicit format specified - map to suffix
+        suffix = f".{format_name}" if not format_name.startswith(".") else format_name
+    else:
+        # Auto-detect from file suffix
+        suffix = path.suffix.lower() if path.suffix else None
+        if not suffix:
+            msg = f"Cannot auto-detect format for {path!r}, use format_name parameter"
+            raise ValueError(msg)
 
-    func = display_wrap(_db_from_gff)
+    # Get the loader plugin
+    loader = get_annotation_loader_plugin(
+        storage_backend=storage_backend,
+        file_suffix=suffix,
+    )
+
+    # Wrap loader with progress display
+    func = display_wrap(loader.load)
+
     return func(
-        path,
+        path=path,
         seqids=seqids,
         db=db,
         write_path=write_path,
+        format_name=format_name,
+        lines_per_block=lines_per_block,
         show_progress=show_progress,
-        num_lines=lines_per_block,
     )
 
 
@@ -1988,7 +2170,7 @@ def update_file_format(
     source_path: PathType,
     db_class: type[BasicAnnotationDb | GenbankAnnotationDb | GffAnnotationDb],
     backup: bool = True,
-) -> None:
+) -> None:  # pragma: no cover
     """Update the database file to the latest format.
 
     Fixes an OS dependent issue under the previous representation.

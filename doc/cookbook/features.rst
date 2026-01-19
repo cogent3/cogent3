@@ -219,6 +219,18 @@ Because the names above are different, for FASTA its ``"I dna:chromosome chromos
     )
     seq.annotation_db
 
+How to merge features from multiple files into a single annotation db
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+We can create one annotation db from all files in a directory that match a wildcard (or glob) pattern (e.g. ``"path/to/dir/*.<filename suffix>"``) with the ``load_annotations()`` function.
+
+.. jupyter-execute::
+
+    from cogent3 import load_annotations
+
+    anndb = load_annotations(path="data/*.gb")
+    anndb.count_distinct(biotype=True).head()
+
 How to load features and associate them with an existing sequence
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

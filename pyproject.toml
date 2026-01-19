@@ -223,3 +223,6 @@ fasta = "cogent3.format.sequence:FastaWriter"
 paml = "cogent3.format.sequence:PamlWriter"
 gde = "cogent3.format.sequence:GdeWriter"
 phylip = "cogent3.format.sequence:PhylipWriter"
+
+[project.entry-points."cogent3.load.annotations"]
+c3anndb = "cogent3.core.annotation_db:SqliteAnnotationDbLoader"
