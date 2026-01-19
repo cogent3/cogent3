@@ -77,8 +77,8 @@ As the output indicates, variable ``anns`` is a dictionary. The features in the 
 
 .. _load-seqs:
 
-Loading an sequence collections from a file or url
---------------------------------------------------
+Loading sequence collections from a file or url
+-----------------------------------------------
 
 .. author, Gavin Huttley, Tony Walters, Tom Elliott
 
@@ -129,7 +129,7 @@ Files containing sequences that may differ in length can be loaded using ``load_
 Loading unaligned sequences from multiple files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-You can load a single sequence from all files in a directory that match a wildcard (or glob) pattern (e.g. ``"path/to/dir/*.<filename suffix>"``) in a directory using ``load_unaligned_seqs()``. Here we load one sequence from all files ending with ``.fa``. This approach can be taken for all supported sequence file formats.
+You can create a single sequence collection containing sequences from all files in a directory that match a wildcard (or glob) pattern (e.g. ``"path/to/dir/*.<filename suffix>"``). We load data from files ending with ``.fa`` using ``load_unaligned_seqs()``. This approach can be taken for all supported sequence file formats.
 
 .. jupyter-execute::
 
@@ -137,6 +137,8 @@ You can load a single sequence from all files in a directory that match a wildca
 
     seqs = load_unaligned_seqs("data/*.fa", moltype="dna")
     seqs
+
+.. note:: The function limits loading to just one sequence per file.
 
 .. _load_url:
 

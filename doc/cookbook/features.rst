@@ -222,7 +222,7 @@ Because the names above are different, for FASTA its ``"I dna:chromosome chromos
 How to merge features from multiple files into a single annotation db
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-We can directly create an annotation db from all files in a directory that match a wildcard (or glob) pattern (e.g. ``"path/to/dir/*.<filename suffix>"``) with the ``load_annotations()`` function.
+We can create one annotation db from all files in a directory that match a wildcard (or glob) pattern (e.g. ``"path/to/dir/*.<filename suffix>"``) with the ``load_annotations()`` function.
 
 .. jupyter-execute::
 
