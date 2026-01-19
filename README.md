@@ -27,14 +27,14 @@
 <details>
   <summary> We now support third-party plugins for annotation databases 📚🔌 </summary>
 
-If you want to contribute such third-party backenbd, [get in touch](https://github.com/cogent3/cogent3/discussions)!
+If you want to contribute a third-party backend, [get in touch](https://github.com/cogent3/cogent3/discussions)!
 
 </details>
 
 <details>
-  <summary> diverse-seq has been rewrittend in rust 🚀! </summary>
+  <summary> diverse-seq has been rewritten in rust 🚀! </summary>
 
-The sequence sampling tool [diverse-seq](diverse-seq.readthedocs.io), which provides multiple apps for sampling representative sequence, just got faster! The performance critical code has been rewritten in Rust. Give it a try 😀.
+The sequence sampling tool [diverse-seq](diverse-seq.readthedocs.io), which provides multiple apps for sampling representative sequences, just got faster! The performance critical code has been rewritten in Rust. Give it a try 😀.
 
 </details>
 
