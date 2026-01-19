@@ -25,19 +25,20 @@
 ## 📣 Feature Announcements 📣
 
 <details>
-  <summary> We now support third-party plugins for annotation databases 📚🔌</summary>
+  <summary> We now support third-party plugins for annotation databases 📚🔌 </summary>
 
-If you want to contribute such third-party backenbd, get in touch!
+If you want to contribute such third-party backenbd, [get in touch](https://github.com/cogent3/cogent3/discussions)!
 
 </details>
 
-  <summary> `diverse-seq` has been rewrittend in rust 🚀 </summary>
+<details>
+  <summary> diverse-seq has been rewrittend in rust 🚀! </summary>
 
 The sequence sampling tool [diverse-seq](diverse-seq.readthedocs.io), which provides multiple apps for sampling representative sequence, just got faster! The performance critical code has been rewritten in Rust. Give it a try 😀.
 
 </details>
 
-
+<details>
   <summary> A new rust-based plugin for k-mer counting </summary>
 
 We recently added a new `count_kmers()` method to the `SequenceCollection` and `Sequence` classes. Then, the developers of [Pykmertools](https://github.com/anuradhawick/kmertools) (with a bit of help from us) have released a `cogent3-pykmertools` app which makes their rust-based python module for counting k-mers available as `seqs.count_kmers(k=k, use_hook="cogent3_pykmertools")`. Install it with `pip install cogent3-pykmertools` and give it a try. And add a star to the [Pykmertools](https://github.com/anuradhawick/kmertools) repo!
