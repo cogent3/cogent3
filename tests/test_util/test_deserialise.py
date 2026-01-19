@@ -552,6 +552,7 @@ def test_convert_annotation_to_annotation_db():
     db = deserialise_object(data)
     assert isinstance(db, BasicAnnotationDb)
     assert db.num_matches() == 1
+    db.close()
 
 
 @pytest.mark.parametrize("rate_matrix_required", [True, False])

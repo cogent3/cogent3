@@ -126,6 +126,18 @@ Files containing sequences that may differ in length can be loaded using ``load_
     seqs = load_unaligned_seqs("data/long_testseqs.fasta", moltype="dna")
     type(seqs)
 
+Loading unaligned sequences from multiple files
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You can load a single sequence from all files in a directory that match a wildcard (or glob) pattern (e.g. ``"path/to/dir/*.<filename suffix>"``) in a directory using ``load_unaligned_seqs()``. Here we load one sequence from all files ending with ``.fa``. This approach can be taken for all supported sequence file formats.
+
+.. jupyter-execute::
+
+    from cogent3 import load_unaligned_seqs
+
+    seqs = load_unaligned_seqs("data/*.fa", moltype="dna")
+    seqs
+
 .. _load_url:
 
 Loading from a url

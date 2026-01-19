@@ -8,6 +8,7 @@ import numpy.typing as npt
 import stevedore
 
 if TYPE_CHECKING:  # pragma: no cover
+    from cogent3.core.annotation_db import AnnotationDbLoaderBase
     from cogent3.core.seq_storage import AlignedSeqsDataABC, SeqsDataABC
     from cogent3.core.tree import PhyloNode
     from cogent3.evolve.fast_distance import DistanceMatrix
@@ -359,3 +360,91 @@ def get_app_manager() -> stevedore.ExtensionManager:
         )
 
     return __apps
+
+
+# Entry point for annotation database loaders
+ANNOTATION_LOADER_ENTRY_POINT = "cogent3.load.annotations"
+
+
+@functools.cache
+def get_annotation_loader_plugin(
+    *,
+    storage_backend: str | None = None,
+    file_suffix: str,
+) -> "AnnotationDbLoaderBase":
+    """Returns annotation database loader plugin.
+
+    Parameters
+    ----------
+    storage_backend
+        Unique identifier for the storage backend plugin. If None, selects
+        first compatible third-party plugin, falling back to cogent3 built-in.
+    file_suffix
+        File suffix to match against plugin's supported formats
+
+    Returns
+    -------
+    AnnotationDbLoaderBase instance
+
+    Raises
+    ------
+    ValueError
+        If storage_backend is specified but doesn't identify a plugin, if the
+        selected plugin doesn't support the file suffix, or if no compatible
+        plugin is found.
+
+    Notes
+    -----
+    When storage_backend is specified, it uniquely identifies a loader plugin.
+    When storage_backend is None, third-party plugins are preferred over
+    built-in cogent3 loaders.
+    """
+    if storage_backend:
+        # Explicit backend specified - use DriverManager
+        try:
+            mgr = stevedore.driver.DriverManager(
+                namespace=ANNOTATION_LOADER_ENTRY_POINT,
+                name=storage_backend,
+                invoke_on_load=True,
+            )
+        except stevedore.exception.NoMatches as err:
+            msg = f"Invalid storage backend {storage_backend!r}"
+            raise ValueError(msg) from err
+
+        plugin = mgr.extensions[0].plugin
+
+        # Validate that plugin supports the file format
+        if file_suffix not in plugin.supported_suffixes:
+            msg = (
+                f"Storage backend {storage_backend!r} does not support file "
+                f"format {file_suffix!r}. Supported formats: "
+                f"{', '.join(sorted(plugin.supported_suffixes))}"
+            )
+            raise ValueError(msg)
+
+        return plugin
+
+    # No backend specified - find first compatible plugin, prefer third-party
+    mgr = stevedore.ExtensionManager(
+        namespace=ANNOTATION_LOADER_ENTRY_POINT,
+        invoke_on_load=True,
+    )
+
+    built_in = None
+    for ext in mgr.extensions:
+        plugin = ext.plugin()
+
+        if file_suffix in plugin.supported_suffixes:
+            # Found a match - defer built-in, return third-party immediately
+            if ext.module_name.startswith("cogent3."):
+                built_in = plugin
+                continue
+            return plugin
+
+    # Fall back to built-in if found
+    if built_in:
+        return built_in
+
+    # No compatible plugin found
+    msg = f"No loader found for file suffix {file_suffix!r}"
+    raise ValueError(msg)
