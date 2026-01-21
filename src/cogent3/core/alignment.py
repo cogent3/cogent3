@@ -2451,7 +2451,7 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         allow_gap: bool = False,
         exclude_unobserved: bool = False,
         warn: bool = False,
-    ) -> MotifCountsArray | None:  # refactor: using array
+    ) -> MotifCountsArray | None:
         """counts of motifs per sequence
 
         Parameters
@@ -2472,17 +2472,74 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
 
         only non-overlapping motifs are counted
         """
-        cat_counts: list[CategoryCounter[str | bytes]] = []
-        motifs_set: set[str | bytes] = set()
-        for seq in self.seqs:
-            c = seq.counts(
-                motif_length=motif_length,
-                include_ambiguity=include_ambiguity,
-                allow_gap=allow_gap,
-                warn=warn,
+        alpha = self.moltype.most_degen_alphabet()
+        num_states = len(alpha)
+        monomer_type: str | bytes = type(alpha[0])()
+
+        # Pre-compute for motif_length > 1
+        if motif_length > 1:
+            coeffs = numpy.array(
+                [num_states ** (motif_length - 1 - i) for i in range(motif_length)]
             )
-            motifs_set.update(c.keys())
-            cat_counts.append(c)
+            max_motif_idx = num_states**motif_length
+        else:
+            max_motif_idx = num_states
+
+        # Collect counts per sequence using array operations
+        seq_counts: list[dict[int, int]] = []
+        observed_indices: set[int] = set()
+
+        for seq in self.seqs:
+            data = numpy.array(seq)
+            if len(data) == 0:
+                seq_counts.append({})
+                continue
+
+            if motif_length != 1:
+                if warn and len(data) % motif_length != 0:
+                    warnings.warn(
+                        f"{seq.name} length not divisible by {motif_length}, truncating",
+                        stacklevel=2,
+                    )
+                limit = (len(data) // motif_length) * motif_length
+                if limit == 0:
+                    seq_counts.append({})
+                    continue
+                data = data[:limit].reshape(-1, motif_length)
+                # Convert motifs to single indices
+                motif_indices = (data * coeffs).sum(axis=1)
+            else:
+                motif_indices = data
+
+            # Count using bincount
+            counts = numpy.bincount(motif_indices, minlength=max_motif_idx)
+            count_dict = {i: int(c) for i, c in enumerate(counts) if c > 0}
+            seq_counts.append(count_dict)
+            observed_indices.update(count_dict.keys())
+
+        # Convert indices back to motifs and filter
+        def idx_to_motif(idx: int) -> str | bytes:
+            if motif_length == 1:
+                return alpha[idx]
+            chars = []
+            temp_idx = idx
+            for _ in range(motif_length):
+                chars.append(alpha[temp_idx % num_states])
+                temp_idx //= num_states
+            chars.reverse()
+            return monomer_type.join(chars)
+
+        # Build observed motifs set
+        motifs_set: set[str | bytes] = set()
+
+        for idx in observed_indices:
+            motif = idx_to_motif(idx)
+            # Filter by gap and ambiguity
+            if not allow_gap and self.moltype.is_gapped(motif):
+                continue
+            if not include_ambiguity and self.moltype.is_degenerate(motif):
+                continue
+            motifs_set.add(motif)
 
         if not exclude_unobserved:
             motifs_set.update(self.moltype.alphabet.get_kmer_alphabet(motif_length))
@@ -2493,8 +2550,18 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         if not motifs:
             return None
 
-        counts = [c.tolist(motifs) for c in cat_counts]
-        return MotifCountsArray(counts, motifs, row_indices=self.names)
+        # Build motif to index mapping for result array
+        motif_to_col: dict[str | bytes, int] = {m: i for i, m in enumerate(motifs)}
+
+        # Build final counts array
+        final_counts = numpy.zeros((len(self.names), len(motifs)), dtype=int)
+        for i, count_dict in enumerate(seq_counts):
+            for idx, count in count_dict.items():
+                motif = idx_to_motif(idx)
+                if motif in motif_to_col:
+                    final_counts[i, motif_to_col[motif]] = count
+
+        return MotifCountsArray(final_counts, motifs, row_indices=self.names)
 
     def count_ambiguous_per_seq(self) -> DictArray:
         """Counts of ambiguous characters per sequence."""
@@ -3555,28 +3622,114 @@ class Alignment(CollectionBase[Aligned]):
         if warn and len(self) != length:
             warnings.warn(f"trimmed {len(self) - length}", UserWarning, stacklevel=2)
 
-        counts: list[CategoryCounter[str | bytes]] = []
-        motifs: set[str | bytes] = set()
-        for name in self.names:
-            seq = self.get_gapped_seq(name)
-            c = seq.counts(
-                motif_length=motif_length,
-                include_ambiguity=include_ambiguity,
-                allow_gap=allow_gap,
-            )
-            motifs.update(c.keys())
-            counts.append(c)
+        # Use array-based operations for better performance
+        arr = self.array_seqs[:, :length]
+        alpha = self.moltype.most_degen_alphabet()
 
-        # if type motifs not same as type element in moltype
-        if not exclude_unobserved:
-            motifs.update(self.moltype.alphabet.get_kmer_alphabet(motif_length))
+        if motif_length == 1:
+            # For single characters, count directly using bincount
+            num_seqs = arr.shape[0]
+            # Get max index to determine number of bins
+            max_idx = int(arr.max()) + 1 if arr.size > 0 else len(alpha)
+            counts_arr = numpy.zeros((num_seqs, max_idx), dtype=int)
 
-        motifs_list = sorted(motifs)
-        if not motifs_list:
-            return None
+            for i in range(num_seqs):
+                counts_arr[i] = numpy.bincount(arr[i], minlength=max_idx)
 
-        final_counts = [c.tolist(motifs_list) for c in counts]
-        return MotifCountsArray(final_counts, motifs_list, row_indices=self.names)
+            # Build motif list and filter based on flags
+            observed_motifs: set[str | bytes] = set()
+            monomer_type: str | bytes = type(alpha[0])()
+            for idx in range(max_idx):
+                if counts_arr[:, idx].sum() > 0:
+                    if idx < len(alpha):
+                        observed_motifs.add(alpha[idx])
+
+            if not exclude_unobserved:
+                observed_motifs.update(self.moltype.alphabet.get_kmer_alphabet(1))
+
+            # Filter by gap and ambiguity
+            filtered_motifs: list[str | bytes] = []
+            for m in sorted(observed_motifs):
+                if not allow_gap and self.moltype.is_gapped(m):
+                    continue
+                if not include_ambiguity and self.moltype.is_degenerate(m):
+                    continue
+                filtered_motifs.append(m)
+
+            if not filtered_motifs:
+                return None
+
+            # Build final counts array
+            final_counts = numpy.zeros((num_seqs, len(filtered_motifs)), dtype=int)
+            for j, motif in enumerate(filtered_motifs):
+                idx = alpha.to_index(motif)
+                if idx < counts_arr.shape[1]:
+                    final_counts[:, j] = counts_arr[:, idx]
+
+            return MotifCountsArray(final_counts, filtered_motifs, row_indices=self.names)
+        else:
+            # For multi-character motifs, reshape and process
+            num_motifs = length // motif_length
+            arr_reshaped = arr.reshape(arr.shape[0], num_motifs, motif_length)
+
+            # Convert multi-char motifs to single indices using base conversion
+            num_states = len(alpha)
+            coeffs = numpy.array([num_states ** (motif_length - 1 - i) for i in range(motif_length)])
+            motif_indices = (arr_reshaped * coeffs).sum(axis=2)
+
+            # Count motifs for each sequence
+            max_motif_idx = num_states ** motif_length
+            num_seqs = arr.shape[0]
+            counts_arr = numpy.zeros((num_seqs, max_motif_idx), dtype=int)
+
+            for i in range(num_seqs):
+                counts_arr[i] = numpy.bincount(motif_indices[i], minlength=max_motif_idx)
+
+            # Identify observed motifs and build final array
+            observed_motifs_set: set[str | bytes] = set()
+            monomer_type = type(alpha[0])()
+
+            # Get all k-mer alphabet for index mapping
+            kmer_alpha = self.moltype.alphabet.get_kmer_alphabet(motif_length)
+
+            for idx in range(max_motif_idx):
+                if counts_arr[:, idx].sum() > 0:
+                    # Convert index back to motif string
+                    chars = []
+                    temp_idx = idx
+                    for _ in range(motif_length):
+                        chars.append(alpha[temp_idx % num_states])
+                        temp_idx //= num_states
+                    chars.reverse()
+                    motif = monomer_type.join(chars)
+                    observed_motifs_set.add(motif)
+
+            if not exclude_unobserved:
+                observed_motifs_set.update(kmer_alpha)
+
+            # Filter by gap and ambiguity
+            filtered_motifs = []
+            for m in sorted(observed_motifs_set):
+                if not allow_gap and self.moltype.is_gapped(m):
+                    continue
+                if not include_ambiguity and self.moltype.is_degenerate(m):
+                    continue
+                filtered_motifs.append(m)
+
+            if not filtered_motifs:
+                return None
+
+            # Build final counts array
+            final_counts = numpy.zeros((num_seqs, len(filtered_motifs)), dtype=int)
+            for j, motif in enumerate(filtered_motifs):
+                # Convert motif back to index
+                idx = 0
+                for c in motif:
+                    idx = idx * num_states + alpha.to_index(c)
+                if idx < counts_arr.shape[1]:
+                    final_counts[:, j] = counts_arr[:, idx]
+
+            return MotifCountsArray(final_counts, filtered_motifs, row_indices=self.names)
 
     def count_ambiguous_per_seq(self) -> DictArray:
         """Return the counts of ambiguous characters per sequence as a DictArray."""
