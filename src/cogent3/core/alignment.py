@@ -2482,6 +2482,14 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
                 [num_states ** (motif_length - 1 - i) for i in range(motif_length)]
             )
             max_motif_idx = num_states**motif_length
+            # Guard against memory explosion for large motif_length
+            if max_motif_idx > 10_000_000:
+                msg = (
+                    f"motif_length={motif_length} with alphabet size {num_states} "
+                    f"would create {max_motif_idx:,} possible motifs, which may "
+                    f"exhaust memory. Consider using a smaller motif_length."
+                )
+                raise ValueError(msg)
         else:
             max_motif_idx = num_states
 
@@ -3669,16 +3677,35 @@ class Alignment(CollectionBase[Aligned]):
             return MotifCountsArray(final_counts, filtered_motifs, row_indices=self.names)
         else:
             # For multi-character motifs, reshape and process
+            num_states = len(alpha)
+            max_motif_idx = num_states ** motif_length
+            
+            # Guard against memory explosion for large motif_length
+            if max_motif_idx > 10_000_000:
+                msg = (
+                    f"motif_length={motif_length} with alphabet size {num_states} "
+                    f"would create {max_motif_idx:,} possible motifs, which may "
+                    f"exhaust memory. Consider using a smaller motif_length."
+                )
+                raise ValueError(msg)
+            
+            # Truncate to multiple of motif_length to avoid reshape errors
             num_motifs = length // motif_length
+            if length % motif_length != 0 and warn:
+                trimmed = length % motif_length
+                warnings.warn(
+                    f"Trimmed {trimmed} positions from alignment to make "
+                    f"length divisible by motif_length={motif_length}",
+                    UserWarning,
+                    stacklevel=2,
+                )
+            truncated_length = num_motifs * motif_length
+            arr = arr[:, :truncated_length]
             arr_reshaped = arr.reshape(arr.shape[0], num_motifs, motif_length)
 
             # Convert multi-char motifs to single indices using base conversion
-            num_states = len(alpha)
             coeffs = numpy.array([num_states ** (motif_length - 1 - i) for i in range(motif_length)])
             motif_indices = (arr_reshaped * coeffs).sum(axis=2)
-
-            # Count motifs for each sequence
-            max_motif_idx = num_states ** motif_length
             num_seqs = arr.shape[0]
             counts_arr = numpy.zeros((num_seqs, max_motif_idx), dtype=int)
 
