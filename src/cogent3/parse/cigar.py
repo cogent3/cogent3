@@ -10,7 +10,7 @@ from cogent3.util import warning as c3warn
 if typing.TYPE_CHECKING:
     from cogent3.core.alignment import Alignment
 
-_pattern = re.compile("([0-9]*)([M=XI=DNSHP])")
+_pattern = re.compile("([0-9]*)([M=XIDNSHP])")
 
 
 def map_to_cigar(imap: IndelMap) -> str:
