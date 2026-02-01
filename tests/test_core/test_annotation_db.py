@@ -1,3 +1,4 @@
+import contextlib
 import io
 import pathlib
 
@@ -67,11 +68,8 @@ def seq():
     seq = cogent3.make_seq("ATTGTACGCCTTTTTTATTATT", name="test_seq", moltype="dna")
     yield seq
     if seq.has_annotation_db():
-        try:
+        with contextlib.suppress(AttributeError):
             seq.annotation_db.close()
-        except AttributeError:
-            # handles funky test condition
-            pass
 
 
 @pytest.fixture
@@ -335,6 +333,20 @@ def test_load_annotations_multi(DATA_DIR):
     got = load_annotations(path=DATA_DIR / "simple*.gff")
     assert len(got) == expect
     close_dbs(one, two, got)
+
+
+@pytest.fixture(params=["annotated_seq.gb", "simple2.gff"])
+def compressed_flat_file(DATA_DIR, tmp_path, request):
+    src = DATA_DIR / request.param
+    out_path = tmp_path / f"{request.param}.gz"
+    with cogent3.open_(out_path, mode="w") as out:
+        out.write(src.read_bytes())
+    return out_path
+
+
+def test_load_annotations_compressed(compressed_flat_file):
+    got = load_annotations(path=compressed_flat_file)
+    assert isinstance(got, AnnotationDbABC)
 
 
 def test_load_annotations_chunked(gff_db, DATA_DIR):

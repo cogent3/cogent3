@@ -31,7 +31,7 @@ from cogent3._version import __version__
 from cogent3.core.location import Strand, deserialise_map_spans
 from cogent3.parse.gff import GffRecordABC, merged_gff_records
 from cogent3.util.deserialise import deserialise_object, register_deserialiser
-from cogent3.util.io import PathType, iter_line_blocks
+from cogent3.util.io import PathType, get_format_suffixes, iter_line_blocks
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -1996,7 +1996,8 @@ class SqliteAnnotationDbLoader(AnnotationDbLoaderBase):
         if format_name:
             fmt = format_name.lower()
         else:
-            suffix = pathlib.Path(path).suffix.lower()
+            suffix, _ = get_format_suffixes(path)
+            suffix = (suffix if suffix.startswith(".") else f".{suffix}").lower()
             if suffix == ".json":
                 fmt = "json"
             elif suffix in {".gb", ".gbk", ".gbff"}:
@@ -2113,7 +2114,8 @@ def load_annotations(
         suffix = f".{format_name}" if not format_name.startswith(".") else format_name
     else:
         # Auto-detect from file suffix
-        suffix = path.suffix.lower() if path.suffix else None
+        suffix, _ = get_format_suffixes(path)
+        suffix = (suffix if suffix.startswith(".") else f".{suffix}").lower()
         if not suffix:
             msg = f"Cannot auto-detect format for {path!r}, use format_name parameter"
             raise ValueError(msg)
