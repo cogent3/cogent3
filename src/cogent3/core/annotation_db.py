@@ -2111,7 +2111,7 @@ def load_annotations(
     # Determine file suffix for format detection
     if format_name:
         # Explicit format specified - map to suffix
-        suffix = f".{format_name}" if not format_name.startswith(".") else format_name
+        suffix = format_name if format_name.startswith(".") else f".{format_name}"
     else:
         # Auto-detect from file suffix
         suffix, _ = get_format_suffixes(path)
