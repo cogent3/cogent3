@@ -1,4 +1,40 @@
 
+<a id='changelog-2026.2.3a1'></a>
+# Changes in release "2026.2.3a1"
+
+A minor feature enhancement and bug fix release.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- Update the CIGAR parsing capabilities. Now handles all valid
+  characters.
+- Major rewrite of the schema of the annotation db's. This will
+  greatly improve performance for looking for hierarchical features,
+  e.g. get transcripts of a specific gene.
+- The annotation db's schema is now versioned and users should apply
+  `cogent3.core.annotation_db.upgrade_annotation_db()` to upgrade
+  existing db's.
+- `load_annotations()` should now be used to load directly saved
+  db's.
+- Now specify filename suffixes for the different flavours of
+  annotation db's: genbank (.c3gbdb), gff (.c3gffdb) and
+  the basic ann db (.c3andb). Writing now enforces the correct suffix
+  is used.
+
+## Bug fixes
+
+- load_annotations() now correctly handles files with compression suffixes
+
+## Deprecations
+
+- The construction of alignments from CIGAR and sequence strings
+  no longer supports slicing. We need a clearer use case for this
+  to be provided by a user!
+
 <a id='changelog-2026.1.20a1'></a>
 # Changes in release "2026.1.20a1"
 
