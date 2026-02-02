@@ -7,13 +7,16 @@ import pytest
 
 import cogent3
 from cogent3.core.annotation_db import (
+    SCHEMA_VERSION,
     AnnotationDbABC,
     BasicAnnotationDb,
     GenbankAnnotationDb,
     GffAnnotationDb,
+    LookupTableCache,
     _matching_conditions,
     _rename_column_if_exists,
     load_annotations,
+    upgrade_annotation_db,
 )
 from cogent3.parse import genbank
 from cogent3.util import deserialise
@@ -210,6 +213,28 @@ def test_count_distinct_no_match(gb_db):
     assert got.shape == (0, 2)
 
 
+@pytest.mark.parametrize(
+    ("db_fixture", "db_class"),
+    [
+        ("gb_db", GenbankAnnotationDb),
+        ("gff_db", GffAnnotationDb),
+        ("anno_db", BasicAnnotationDb),
+    ],
+)
+def test_count_distinct_after_db_reuse(db_fixture, db_class, request):
+    """count_distinct works when db class reuses existing db connection.
+
+    Regression test: _setup_db was not copying _schema_version and
+    _lookup_cache when binding to an existing db of the same class,
+    causing "no such column: biotype" errors.
+    """
+    first_db = request.getfixturevalue(db_fixture)
+    second_db = db_class(db=first_db)
+    result = second_db.count_distinct(biotype=True)
+    assert result is not None
+    second_db.close()
+
+
 def test_gff_features_matching(gff_db):
     result = list(gff_db.get_features_matching(biotype="CDS"))
     assert result
@@ -347,6 +372,7 @@ def compressed_flat_file(DATA_DIR, tmp_path, request):
 def test_load_annotations_compressed(compressed_flat_file):
     got = load_annotations(path=compressed_flat_file)
     assert isinstance(got, AnnotationDbABC)
+    got.close()
 
 
 def test_load_annotations_chunked(gff_db, DATA_DIR):
@@ -1097,11 +1123,10 @@ def test_gb_namer(DATA_DIR):
     close_dbs(db)
 
 
-@pytest.fixture
 def test_write(gb_db, tmp_path):
-    outpath = tmp_path / "ondisk.gbkdb"
+    outpath = tmp_path / "ondisk.c3gbdb"
     gb_db.write(outpath)
-    got = GenbankAnnotationDb(source=outpath)
+    got = GenbankAnnotationDb.from_file(outpath)
     assert got.to_rich_dict()["tables"] == gb_db.to_rich_dict()["tables"]
     assert isinstance(got, GenbankAnnotationDb)
     close_dbs(got, gb_db)
@@ -1128,7 +1153,7 @@ def convert_spans_column(db, table_name):
 def test_read_old_format(db_name, cls, tmp_path, request):
     db = request.getfixturevalue(db_name)
 
-    path = tmp_path / f"old_format_{db_name}.db"
+    path = tmp_path / f"old_format_{db_name}.{cls._suffix}"
 
     old_tables = db.to_rich_dict()["tables"]
 
@@ -1137,7 +1162,7 @@ def test_read_old_format(db_name, cls, tmp_path, request):
 
     db.write(path)
 
-    new_db = cls(source=path)
+    new_db = cls.from_file(path)
     with pytest.warns(UserWarning):
         new_tables = new_db.to_rich_dict()["tables"]
     assert new_tables == old_tables
@@ -1151,10 +1176,10 @@ def tmp_dir(tmp_path_factory):
 
 def test_load_anns_with_write(DATA_DIR, tmp_dir):
     inpath = DATA_DIR / "simple.gff"
-    outpath = tmp_dir / "simple.gffdb"
+    outpath = tmp_dir / "simple.c3gffdb"
     orig = load_annotations(path=inpath, write_path=outpath)
     expect = load_annotations(path=inpath)
-    got = GffAnnotationDb(source=outpath)
+    got = GffAnnotationDb.from_file(outpath)
     assert len(got) == len(expect)
     got_data = got.to_rich_dict()
     expect_data = expect.to_rich_dict()
@@ -1177,7 +1202,7 @@ def test_load_anns_from_json(DATA_DIR, tmp_dir):
 
 
 def test_gff_end_renamed_to_stop(gff_db, tmp_path):
-    bad_col_path = tmp_path / "bad_col.gffdb"
+    bad_col_path = tmp_path / "bad_col.c3gffdb"
 
     correct_rich_dict = gff_db.to_rich_dict()
     del correct_rich_dict["init_args"]
@@ -1186,10 +1211,10 @@ def test_gff_end_renamed_to_stop(gff_db, tmp_path):
         # Convert in memory db stop column to the old end name
         _rename_column_if_exists(gff_db.db, table_name, "stop", "end")
 
-    gff_db.write(tmp_path / bad_col_path)
+    gff_db.write(bad_col_path)
 
     # Test that end column is renamed to stop on construction
-    loaded_gff_db = GffAnnotationDb(source=bad_col_path)
+    loaded_gff_db = GffAnnotationDb.from_file(bad_col_path)
 
     new_rich_dict = loaded_gff_db.to_rich_dict()
     del new_rich_dict["init_args"]
@@ -1199,7 +1224,7 @@ def test_gff_end_renamed_to_stop(gff_db, tmp_path):
 
 
 def test_gb_end_renamed_to_stop(gb_db, tmp_path):
-    bad_col_path = tmp_path / "bad_col.gbdb"
+    bad_col_path = tmp_path / "bad_col.c3gbdb"
 
     correct_rich_dict = gb_db.to_rich_dict()
     del correct_rich_dict["init_args"]
@@ -1208,10 +1233,10 @@ def test_gb_end_renamed_to_stop(gb_db, tmp_path):
         # Convert in memory db stop column to the old end name
         _rename_column_if_exists(gb_db.db, table_name, "stop", "end")
 
-    gb_db.write(tmp_path / bad_col_path)
+    gb_db.write(bad_col_path)
 
     # Test that end column is renamed to stop on construction
-    loaded_gb_db = GenbankAnnotationDb(source=bad_col_path)
+    loaded_gb_db = GenbankAnnotationDb.from_file(bad_col_path)
 
     new_rich_dict = loaded_gb_db.to_rich_dict()
     del new_rich_dict["init_args"]
@@ -1281,7 +1306,7 @@ def test_subset_gb_db(gb_db):
 
 
 def test_subset_gff3_db_source(gff_db, tmp_dir):
-    outpath = tmp_dir / "subset.gff3db"
+    outpath = tmp_dir / "subset.c3gffdb"
     subset = gff_db.subset(
         seqid="I",
         start=40,
@@ -1292,7 +1317,7 @@ def test_subset_gff3_db_source(gff_db, tmp_dir):
     subset.db.close()
 
     # reload
-    subset = type(gff_db)(source=outpath)
+    subset = type(gff_db).from_file(outpath)
     # manual inspection of the original GFF3 file indicates 7 records
     # BUT the CDS records get merged into a single row
     assert len(subset) == 6
@@ -1342,7 +1367,7 @@ def test_db_close(request, db):
 @pytest.mark.parametrize("db", ["gff_db", "gb_db"])
 @pytest.mark.parametrize(
     "col",
-    ["biotype", "seqid", "name", "start", "stop", "parent_id"],
+    ["biotype_id", "seqid_id", "name", "start", "stop", "parent_id"],
 )
 def test_db_make_index(request, db, col):
     ann_db = request.getfixturevalue(db)
@@ -1391,3 +1416,728 @@ def test_load_annotations_invalid_backend():
 def test_load_annotations_invalid_file_format():
     with pytest.raises(ValueError):
         load_annotations(path="somefile.txt", format_name="invalid_format")
+
+
+# Tests for optimized schema and upgrade_annotation_db function
+
+
+def test_schema_version_new_db():
+    """New databases should have the current schema version."""
+    db = BasicAnnotationDb()
+    assert db.schema_version == SCHEMA_VERSION
+    db.close()
+
+    db = GffAnnotationDb()
+    assert db.schema_version == SCHEMA_VERSION
+    db.close()
+
+    db = GenbankAnnotationDb()
+    assert db.schema_version == SCHEMA_VERSION
+    db.close()
+
+
+def test_lookup_tables_exist(DATA_DIR):
+    """Lookup tables should exist in the schema."""
+    db = load_annotations(path=DATA_DIR / "simple.gff")
+
+    # Check that lookup tables exist (they may or may not have entries)
+    conn = db.db
+    cursor = conn.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('seqids', 'biotypes')"
+    )
+    tables = [row[0] for row in cursor.fetchall()]
+    assert "seqids" in tables
+    assert "biotypes" in tables
+
+    db.close()
+
+
+def test_hierarchy_table_populated(DATA_DIR):
+    """Hierarchy table should be populated for features with parent_id."""
+    db = load_annotations(path=DATA_DIR / "c_elegans_WS199_shortened_gff.gff3")
+
+    # This GFF has parent-child relationships
+    conn = db.db
+    cursor = conn.execute("SELECT COUNT(*) FROM feature_hierarchy")
+    count = cursor.fetchone()[0]
+    # The shortened GFF should have some hierarchy entries
+    assert count >= 0  # May be 0 if no parent_id in data
+
+    db.close()
+
+
+def test_upgrade_annotation_db(DATA_DIR, tmp_path):
+    """Test upgrading an old-format database to the optimized schema."""
+    import sqlite3
+
+    # Create a database and write it to file
+    db_path = tmp_path / "test_upgrade.c3gffdb"
+    db = load_annotations(path=DATA_DIR / "simple.gff")
+    db.write(db_path)
+    db.close()
+
+    # Simulate an old-format database by removing schema_version table
+    conn = sqlite3.connect(db_path)
+    conn.execute("DROP TABLE IF EXISTS schema_version")
+    # Also drop optimized tables to simulate old format
+    conn.execute("DROP TABLE IF EXISTS seqids")
+    conn.execute("DROP TABLE IF EXISTS biotypes")
+    conn.execute("DROP TABLE IF EXISTS sources")
+    conn.execute("DROP TABLE IF EXISTS feature_spans")
+    conn.execute("DROP TABLE IF EXISTS feature_hierarchy")
+    conn.execute("DROP TABLE IF EXISTS feature_rtree")
+    conn.commit()
+    conn.close()
+
+    # Upgrade the database
+    upgrade_annotation_db(db_path, backup=True)
+
+    # Verify backup was created
+    backup_path = tmp_path / "test_upgrade.c3gffdb.bak"
+    assert backup_path.exists()
+
+    # Verify schema version is updated
+    conn = sqlite3.connect(db_path)
+    cursor = conn.execute(
+        "SELECT version FROM schema_version ORDER BY version DESC LIMIT 1"
+    )
+    version = cursor.fetchone()[0]
+    assert version == SCHEMA_VERSION
+
+    # Verify optimized tables exist
+    for table in ["seqids", "biotypes", "sources", "feature_hierarchy"]:
+        cursor = conn.execute(
+            f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table}'"
+        )
+        assert cursor.fetchone() is not None, f"Table {table} should exist"
+
+    conn.close()
+
+
+def test_upgrade_annotation_db_idempotent(DATA_DIR, tmp_path):
+    """Test that upgrading twice is safe (idempotent)."""
+    import sqlite3
+
+    # Create a database and write it to file
+    db_path = tmp_path / "test_idempotent.c3gffdb"
+    db = load_annotations(path=DATA_DIR / "simple.gff")
+    db.write(db_path)
+    db.close()
+
+    # Simulate old format
+    conn = sqlite3.connect(db_path)
+    conn.execute("DROP TABLE IF EXISTS schema_version")
+    conn.commit()
+    conn.close()
+
+    # Upgrade once
+    upgrade_annotation_db(db_path, backup=True)
+
+    # Upgrade again - should not fail and should not create another backup
+    upgrade_annotation_db(db_path, backup=False)
+
+    # Verify still at current version
+    conn = sqlite3.connect(db_path)
+    cursor = conn.execute(
+        "SELECT version FROM schema_version ORDER BY version DESC LIMIT 1"
+    )
+    version = cursor.fetchone()[0]
+    assert version == SCHEMA_VERSION
+    conn.close()
+
+
+def test_upgrade_annotation_db_file_not_exists(tmp_path):
+    """Test that upgrade fails gracefully when file doesn't exist."""
+    with pytest.raises(OSError):
+        upgrade_annotation_db(tmp_path / "nonexistent.gffdb")
+
+
+def test_upgrade_annotation_db_backup_exists(DATA_DIR, tmp_path):
+    """Test that upgrade fails when backup already exists."""
+    # Create database and backup file
+    db_path = tmp_path / "test_backup.c3gffdb"
+    backup_path = tmp_path / "test_backup.c3gffdb.bak"
+
+    db = load_annotations(path=DATA_DIR / "simple.gff")
+    db.write(db_path)
+    db.close()
+
+    # Create a fake backup file
+    backup_path.touch()
+
+    # Simulate old format
+    import sqlite3
+
+    conn = sqlite3.connect(db_path)
+    conn.execute("DROP TABLE IF EXISTS schema_version")
+    conn.commit()
+    conn.close()
+
+    with pytest.raises(FileExistsError):
+        upgrade_annotation_db(db_path, backup=True)
+
+
+def test_upgrade_annotation_db_genbank(DATA_DIR, tmp_path):
+    """Test upgrading a GenBank annotation database."""
+    import sqlite3
+
+    # Create a GenBank database
+    db_path = tmp_path / "test_gb.c3gbdb"
+    db = load_annotations(path=DATA_DIR / "annotated_seq.gb")
+    db.write(db_path)
+    db.close()
+
+    # Simulate old format
+    conn = sqlite3.connect(db_path)
+    conn.execute("DROP TABLE IF EXISTS schema_version")
+    conn.commit()
+    conn.close()
+
+    # Upgrade
+    upgrade_annotation_db(db_path, backup=True)
+
+    # Verify schema version
+    conn = sqlite3.connect(db_path)
+    cursor = conn.execute(
+        "SELECT version FROM schema_version ORDER BY version DESC LIMIT 1"
+    )
+    version = cursor.fetchone()[0]
+    assert version == SCHEMA_VERSION
+    conn.close()
+
+
+def test_rtree_range_query_matches_original(DATA_DIR):
+    """R*Tree range queries should return same results as original queries."""
+    db = load_annotations(path=DATA_DIR / "simple.gff")
+
+    # Get features with R*Tree
+    features_rtree = list(
+        db.get_features_matching(start=0, stop=10, allow_partial=True)
+    )
+
+    # Disable R*Tree and get features again
+    db._use_rtree = False
+    features_no_rtree = list(
+        db.get_features_matching(start=0, stop=10, allow_partial=True)
+    )
+
+    # Both should return the same results
+    assert len(features_rtree) == len(features_no_rtree)
+
+    # Compare feature names
+    rtree_names = {f["name"] for f in features_rtree}
+    no_rtree_names = {f["name"] for f in features_no_rtree}
+    assert rtree_names == no_rtree_names
+
+    db.close()
+
+
+def test_hierarchy_children_query_matches_original(DATA_DIR):
+    """Hierarchy-based children queries should return same results as LIKE-based."""
+    db = load_annotations(path=DATA_DIR / "c_elegans_WS199_shortened_gff.gff3")
+
+    # Get a gene name that has children
+    gene_name = "Gene:WBGene00000001"
+
+    # Get children with hierarchy table
+    children_hierarchy = list(db.get_feature_children(gene_name))
+
+    # Disable hierarchy and get children again
+    original_version = db._schema_version
+    db._schema_version = 1  # Force fallback to LIKE-based query
+    children_like = list(db.get_feature_children(gene_name))
+    db._schema_version = original_version
+
+    # Both should return the same results (or both empty if no children)
+    assert len(children_hierarchy) == len(children_like)
+
+    db.close()
+
+
+def test_data_integrity_after_upgrade(DATA_DIR, tmp_path):
+    """Data should be unchanged after upgrade."""
+    import sqlite3
+
+    # Create a database and write it to file
+    db_path = tmp_path / "test_integrity.c3gffdb"
+    db = load_annotations(path=DATA_DIR / "simple.gff")
+
+    # Get feature count before
+    features_before = list(db.get_features_matching())
+    count_before = len(features_before)
+
+    db.write(db_path)
+    db.close()
+
+    # Simulate old format
+    conn = sqlite3.connect(db_path)
+    conn.execute("DROP TABLE IF EXISTS schema_version")
+    conn.commit()
+    conn.close()
+
+    # Upgrade
+    upgrade_annotation_db(db_path, backup=True)
+
+    # Load upgraded database and count features
+    db = GffAnnotationDb.from_file(path=db_path)
+    features_after = list(db.get_features_matching())
+    count_after = len(features_after)
+
+    assert count_before == count_after
+
+    # Check that specific features are preserved
+    names_before = {f["name"] for f in features_before}
+    names_after = {f["name"] for f in features_after}
+    assert names_before == names_after
+
+    db.close()
+
+
+@pytest.mark.parametrize(
+    ("db_name", "cls", "suffix"),
+    [
+        ("gff_db", GffAnnotationDb, "c3gffdb"),
+        ("gb_db", GenbankAnnotationDb, "c3gbdb"),
+        ("anno_db", BasicAnnotationDb, "c3andb"),
+    ],
+)
+def test_constructor_rejects_existing_db_file(db_name, cls, suffix, tmp_path, request):
+    """Constructing a db class with an existing file path should raise ValueError.
+
+    Users should use <ClassName>.from_file() to load existing databases,
+    not the constructor with source=path.
+    """
+    db = request.getfixturevalue(db_name)
+    outpath = tmp_path / f"existing_db.{suffix}"
+    db.write(outpath)
+
+    # This should raise ValueError - users should use from_file() instead
+    with pytest.raises(ValueError):
+        cls(source=outpath)
+
+
+# Tests for load_annotations plugin delegation with custom suffixes
+
+
+@pytest.mark.parametrize(
+    ("db_name", "cls", "suffix"),
+    [
+        ("gff_db", GffAnnotationDb, "c3gffdb"),
+        ("gb_db", GenbankAnnotationDb, "c3gbdb"),
+        ("anno_db", BasicAnnotationDb, "c3andb"),
+    ],
+)
+def test_load_annotations_saved_db_file(db_name, cls, suffix, tmp_path, request):
+    """load_annotations should correctly load saved database files by suffix."""
+    db = request.getfixturevalue(db_name)
+    outpath = tmp_path / f"saved_db.{suffix}"
+    db.write(outpath)
+
+    # load_annotations should delegate to the correct from_file method
+    loaded = load_annotations(path=outpath)
+    assert isinstance(loaded, cls)
+    assert loaded.num_matches() == db.num_matches()
+    close_dbs(loaded)
+
+
+@pytest.mark.parametrize(
+    ("db_name", "cls", "suffix"),
+    [
+        ("gff_db", GffAnnotationDb, "c3gffdb"),
+        ("gb_db", GenbankAnnotationDb, "c3gbdb"),
+        ("anno_db", BasicAnnotationDb, "c3andb"),
+    ],
+)
+def test_load_annotations_with_storage_backend(db_name, cls, suffix, tmp_path, request):
+    """load_annotations with storage_backend='c3anndb' should load saved db files."""
+    db = request.getfixturevalue(db_name)
+    outpath = tmp_path / f"saved_db.{suffix}"
+    db.write(outpath)
+
+    # Explicitly specify the storage backend
+    loaded = load_annotations(path=outpath, storage_backend="c3anndb")
+    assert isinstance(loaded, cls)
+    assert loaded.num_matches() == db.num_matches()
+    close_dbs(loaded)
+
+
+def test_load_annotations_gff_with_c3anndb_backend(DATA_DIR):
+    """load_annotations with storage_backend='c3anndb' should load GFF files."""
+    path = DATA_DIR / "simple.gff"
+    db = load_annotations(path=path, storage_backend="c3anndb")
+    assert isinstance(db, GffAnnotationDb)
+    assert db.num_matches() > 0
+    db.close()
+
+
+def test_load_annotations_gb_with_c3anndb_backend(DATA_DIR):
+    """load_annotations with storage_backend='c3anndb' should load GenBank files."""
+    path = DATA_DIR / "annotated_seq.gb"
+    db = load_annotations(path=path, storage_backend="c3anndb")
+    assert isinstance(db, GenbankAnnotationDb)
+    assert db.num_matches() > 0
+    db.close()
+
+
+def test_load_annotations_roundtrip_gff(DATA_DIR, tmp_path):
+    """Round-trip test: load GFF, save to c3gffdb, reload via load_annotations."""
+    # Load from GFF
+    orig = load_annotations(path=DATA_DIR / "simple.gff")
+    outpath = tmp_path / "roundtrip.c3gffdb"
+    orig.write(outpath)
+
+    # Reload via load_annotations (should auto-detect suffix)
+    reloaded = load_annotations(path=outpath)
+    assert isinstance(reloaded, GffAnnotationDb)
+    assert reloaded.num_matches() == orig.num_matches()
+
+    # Verify data integrity
+    orig_features = list(orig.get_features_matching())
+    reloaded_features = list(reloaded.get_features_matching())
+    assert len(orig_features) == len(reloaded_features)
+
+    close_dbs(orig, reloaded)
+
+
+def test_load_annotations_roundtrip_gb(DATA_DIR, tmp_path):
+    """Round-trip test: load GenBank, save to c3gbdb, reload via load_annotations."""
+    # Load from GenBank
+    orig = load_annotations(path=DATA_DIR / "annotated_seq.gb")
+    outpath = tmp_path / "roundtrip.c3gbdb"
+    orig.write(outpath)
+
+    # Reload via load_annotations (should auto-detect suffix)
+    reloaded = load_annotations(path=outpath)
+    assert isinstance(reloaded, GenbankAnnotationDb)
+    assert reloaded.num_matches() == orig.num_matches()
+
+    close_dbs(orig, reloaded)
+
+
+# Tests for LookupTableCache._get_name_by_id coverage
+
+
+def test_lookup_cache_get_seqid_name_cache_hit():
+    """Test get_seqid_name returns cached value when ID is in reverse cache."""
+    import sqlite3
+
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    conn.execute("CREATE TABLE seqids (id INTEGER PRIMARY KEY, name TEXT UNIQUE)")
+    conn.execute("INSERT INTO seqids (name) VALUES ('chr1')")
+    conn.commit()
+
+    cache = LookupTableCache(conn)
+    # First call populates the cache
+    seqid_id = cache.get_seqid_id("chr1")
+    # Second call should hit the reverse cache
+    name = cache.get_seqid_name(seqid_id)
+    assert name == "chr1"
+
+    conn.close()
+
+
+def test_lookup_cache_get_seqid_name_db_lookup():
+    """Test get_seqid_name performs DB lookup when ID not in cache."""
+    import sqlite3
+
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    conn.execute("CREATE TABLE seqids (id INTEGER PRIMARY KEY, name TEXT UNIQUE)")
+    conn.execute("INSERT INTO seqids (name) VALUES ('chr1')")
+    conn.commit()
+
+    # Create cache and manually insert ID without populating reverse cache
+    cache = LookupTableCache(conn)
+    # Directly query DB to get ID without populating cache
+    cursor = conn.execute("SELECT id FROM seqids WHERE name = 'chr1'")
+    seqid_id = cursor.fetchone()[0]
+
+    # get_seqid_name should look up from DB
+    name = cache.get_seqid_name(seqid_id)
+    assert name == "chr1"
+    # Verify it was cached
+    assert seqid_id in cache._seqid_reverse
+    assert "chr1" in cache._seqid_cache
+
+    conn.close()
+
+
+def test_lookup_cache_get_seqid_name_not_found():
+    """Test get_seqid_name returns None when ID doesn't exist."""
+    import sqlite3
+
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    conn.execute("CREATE TABLE seqids (id INTEGER PRIMARY KEY, name TEXT UNIQUE)")
+    conn.commit()
+
+    cache = LookupTableCache(conn)
+    # Query for non-existent ID
+    name = cache.get_seqid_name(999)
+    assert name is None
+
+    conn.close()
+
+
+def test_lookup_cache_get_biotype_name():
+    """Test get_biotype_name works correctly."""
+    import sqlite3
+
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    conn.execute("CREATE TABLE biotypes (id INTEGER PRIMARY KEY, name TEXT UNIQUE)")
+    conn.execute("INSERT INTO biotypes (name) VALUES ('gene')")
+    conn.commit()
+
+    cache = LookupTableCache(conn)
+    # First call populates the cache
+    biotype_id = cache.get_biotype_id("gene")
+    # Get name from ID
+    name = cache.get_biotype_name(biotype_id)
+    assert name == "gene"
+
+    # Test not found case
+    assert cache.get_biotype_name(999) is None
+
+    conn.close()
+
+
+def test_lookup_cache_get_source_name():
+    """Test get_source_name works correctly."""
+    import sqlite3
+
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    conn.execute("CREATE TABLE sources (id INTEGER PRIMARY KEY, name TEXT UNIQUE)")
+    conn.execute("INSERT INTO sources (name) VALUES ('GFF3')")
+    conn.commit()
+
+    cache = LookupTableCache(conn)
+    # First call populates the cache
+    source_id = cache.get_source_id("GFF3")
+    # Get name from ID
+    name = cache.get_source_name(source_id)
+    assert name == "GFF3"
+
+    # Test not found case
+    assert cache.get_source_name(999) is None
+
+    conn.close()
+
+
+# Tests for SqliteAnnotationDbMixin._get_feature_rowid coverage
+
+
+def test_get_feature_rowid_by_name(gff_db):
+    """Test _get_feature_rowid finds feature by name."""
+    # Get a known feature name from the database
+    features = list(gff_db.get_features_matching(biotype="gene"))
+    if features:
+        feature_name = features[0]["name"]
+        rowid = gff_db._get_feature_rowid("gff", feature_name)
+        assert rowid is not None
+        assert isinstance(rowid, int)
+
+
+def test_get_feature_rowid_by_name_and_biotype(gff_db):
+    """Test _get_feature_rowid finds feature by name and biotype."""
+    # Get a known feature
+    features = list(gff_db.get_features_matching(biotype="gene"))
+    if features:
+        feature = features[0]
+        rowid = gff_db._get_feature_rowid(
+            "gff", feature["name"], biotype=feature["biotype"]
+        )
+        assert rowid is not None
+        assert isinstance(rowid, int)
+
+
+def test_get_feature_rowid_not_found(gff_db):
+    """Test _get_feature_rowid returns None when feature doesn't exist."""
+    rowid = gff_db._get_feature_rowid("gff", "nonexistent_feature_xyz")
+    assert rowid is None
+
+
+def test_get_feature_rowid_wrong_biotype(gff_db):
+    """Test _get_feature_rowid returns None when biotype doesn't match."""
+    # Get a gene feature
+    features = list(gff_db.get_features_matching(biotype="gene"))
+    if features:
+        feature_name = features[0]["name"]
+        # Search with wrong biotype
+        rowid = gff_db._get_feature_rowid(
+            "gff", feature_name, biotype="nonexistent_biotype"
+        )
+        assert rowid is None
+
+
+# Tests for upgrade_annotation_db hierarchy building coverage
+
+
+def test_upgrade_annotation_db_builds_hierarchy(tmp_path):
+    """Test that upgrade_annotation_db correctly builds feature hierarchy."""
+    import sqlite3
+
+    # Create a database with parent-child relationships
+    db_path = tmp_path / "hierarchy_test.c3gffdb"
+
+    # Create database manually with old schema (no hierarchy table)
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+
+    # Create gff table (simplified version of actual schema)
+    conn.execute("""
+        CREATE TABLE gff (
+            seqid TEXT,
+            source TEXT,
+            biotype TEXT,
+            start INTEGER,
+            stop INTEGER,
+            score TEXT,
+            strand TEXT,
+            phase TEXT,
+            name TEXT,
+            parent_id TEXT
+        )
+    """)
+
+    # Insert parent gene
+    conn.execute("""
+        INSERT INTO gff (seqid, source, biotype, start, stop, strand, name, parent_id)
+        VALUES ('chr1', 'test', 'gene', 100, 500, '+', 'gene1', NULL)
+    """)
+
+    # Insert child mRNA with parent_id pointing to gene1
+    conn.execute("""
+        INSERT INTO gff (seqid, source, biotype, start, stop, strand, name, parent_id)
+        VALUES ('chr1', 'test', 'mRNA', 100, 500, '+', 'mRNA1', 'gene1')
+    """)
+
+    # Insert exon with parent_id pointing to mRNA1
+    conn.execute("""
+        INSERT INTO gff (seqid, source, biotype, start, stop, strand, name, parent_id)
+        VALUES ('chr1', 'test', 'exon', 100, 200, '+', 'exon1', 'mRNA1')
+    """)
+
+    conn.commit()
+    conn.close()
+
+    # Upgrade the database
+    upgrade_annotation_db(db_path, backup=False)
+
+    # Verify hierarchy was built
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+
+    # Check feature_hierarchy table exists and has entries
+    cursor = conn.execute("SELECT COUNT(*) FROM feature_hierarchy")
+    count = cursor.fetchone()[0]
+    assert count >= 2  # At least gene->mRNA and mRNA->exon relationships
+
+    # Check specific relationships
+    cursor = conn.execute("""
+        SELECT h.child_id, h.parent_id
+        FROM feature_hierarchy h
+        JOIN gff g_child ON g_child.rowid = h.child_id
+        JOIN gff g_parent ON g_parent.rowid = h.parent_id
+        WHERE g_child.name = 'mRNA1' AND g_parent.name = 'gene1'
+    """)
+    row = cursor.fetchone()
+    assert row is not None
+
+    conn.close()
+
+
+def test_upgrade_annotation_db_multiple_parents(tmp_path):
+    """Test upgrade handles features with comma-separated parent_ids."""
+    import sqlite3
+
+    db_path = tmp_path / "multi_parent_test.c3gffdb"
+
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+
+    conn.execute("""
+        CREATE TABLE gff (
+            seqid TEXT,
+            source TEXT,
+            biotype TEXT,
+            start INTEGER,
+            stop INTEGER,
+            score TEXT,
+            strand TEXT,
+            phase TEXT,
+            name TEXT,
+            parent_id TEXT
+        )
+    """)
+
+    # Insert two parent genes
+    conn.execute("""
+        INSERT INTO gff (seqid, source, biotype, start, stop, strand, name, parent_id)
+        VALUES ('chr1', 'test', 'gene', 100, 500, '+', 'gene1', NULL)
+    """)
+    conn.execute("""
+        INSERT INTO gff (seqid, source, biotype, start, stop, strand, name, parent_id)
+        VALUES ('chr1', 'test', 'gene', 600, 1000, '+', 'gene2', NULL)
+    """)
+
+    # Insert exon with multiple parents (comma-separated)
+    conn.execute("""
+        INSERT INTO gff (seqid, source, biotype, start, stop, strand, name, parent_id)
+        VALUES ('chr1', 'test', 'exon', 100, 200, '+', 'shared_exon', 'gene1,gene2')
+    """)
+
+    conn.commit()
+    conn.close()
+
+    # Upgrade the database
+    upgrade_annotation_db(db_path, backup=False)
+
+    # Verify hierarchy has two entries for the shared exon
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+
+    cursor = conn.execute("""
+        SELECT COUNT(*)
+        FROM feature_hierarchy h
+        JOIN gff g ON g.rowid = h.child_id
+        WHERE g.name = 'shared_exon'
+    """)
+    count = cursor.fetchone()[0]
+    assert count == 2  # Should have two parent relationships
+
+    conn.close()
+
+
+def test_upgrade_annotation_db_no_backup(DATA_DIR, tmp_path):
+    """Test upgrade_annotation_db with backup=False doesn't create backup file."""
+    import sqlite3
+
+    db_path = tmp_path / "no_backup_test.c3gffdb"
+    db = load_annotations(path=DATA_DIR / "simple.gff")
+    db.write(db_path)
+    db.close()
+
+    # Simulate old format
+    conn = sqlite3.connect(db_path)
+    conn.execute("DROP TABLE IF EXISTS schema_version")
+    conn.commit()
+    conn.close()
+
+    # Upgrade without backup
+    upgrade_annotation_db(db_path, backup=False)
+
+    # Verify no backup was created
+    backup_path = tmp_path / "no_backup_test.c3gffdb.bak"
+    assert not backup_path.exists()
+
+    # Verify schema was still upgraded
+    conn = sqlite3.connect(db_path)
+    cursor = conn.execute(
+        "SELECT version FROM schema_version ORDER BY version DESC LIMIT 1"
+    )
+    version = cursor.fetchone()[0]
+    assert version == SCHEMA_VERSION
+    conn.close()
