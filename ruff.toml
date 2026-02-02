@@ -79,6 +79,9 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "N803",
     "S608" # sql injection unlikely
 ]
+"src/cogent3/core/annotation_db.py" = [
+    "S608" # table/column names are internal constants, values use parameterized queries
+]
 "noxfile.py" = [
     "S101", # asserts allowed in tests...
     "INP001", # __init__.py files are not required...
